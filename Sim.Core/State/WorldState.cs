@@ -15,13 +15,43 @@ public readonly record struct RegionRow(RegionId Id);
 public record struct RainfallRow(RegionId Region, double RainfallMmPerYear);
 
 /// <summary>
-/// Row of the biomass table — owned by GrowthSystem (M0 toy). Biomass is a `long`
-/// stock; GrowthRemainder is the D-004 per-entity remainder accumulator (the
-/// fractional part of integration carried between turns, deterministically — no
-/// stochastic rounding). It lives in the row so it travels with Clone and
-/// snapshots (systems are stateless).
+/// Row of the biomass table — owned by GrowthSystem (M0 toy). Biomass is a
+/// conserved stock (law 1, mutated only via Ledger); GrowthRemainder is the D-004
+/// per-entity remainder accumulator (the fractional part of integration carried
+/// between turns, deterministically — no stochastic rounding). It lives in the row
+/// so it travels with Clone and snapshots (systems are stateless).
 /// </summary>
-public record struct BiomassRow(RegionId Region, long Biomass, double GrowthRemainder);
+/// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
+public struct BiomassRow(RegionId region, Conserved biomass, double growthRemainder) : IEquatable<BiomassRow>
+{
+    public RegionId Region = region;
+    public Conserved Biomass = biomass;
+    public double GrowthRemainder = growthRemainder;
+
+    public readonly bool Equals(BiomassRow other) =>
+        Region == other.Region && Biomass == other.Biomass && GrowthRemainder.Equals(other.GrowthRemainder);
+    public override readonly bool Equals(object? obj) => obj is BiomassRow other && Equals(other);
+    public override readonly int GetHashCode() => Region.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>Row of the toy-goods table — owned by TradeSystem (M0 toy). A conserved stock per region.</summary>
+/// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
+public struct GoodsRow(RegionId region, Conserved amount) : IEquatable<GoodsRow>
+{
+    public RegionId Region = region;
+    public Conserved Amount = amount;
+
+    public readonly bool Equals(GoodsRow other) => Region == other.Region && Amount == other.Amount;
+    public override readonly bool Equals(object? obj) => obj is GoodsRow other && Equals(other);
+    public override readonly int GetHashCode() => Region.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>
+/// Cumulative source/sink counterweights per (quantity, reason) — written only by
+/// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
+/// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
+/// </summary>
+public record struct LedgerFlowRow(ConservedQuantityId Quantity, ReasonId Reason, long TotalSourced, long TotalSunk);
 
 /// <summary>
 /// State of one PCG32 stream (kernel contract §3.5: stream states live inside
@@ -46,6 +76,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<RngStreamRow> RngStreams { get; }
     IReadOnlyTable<RainfallRow> Rainfall { get; }
     IReadOnlyTable<BiomassRow> Biomass { get; }
+    IReadOnlyTable<GoodsRow> Goods { get; }
+    IReadOnlyTable<LedgerFlowRow> LedgerFlows { get; }
 }
 
 /// <summary>
@@ -73,10 +105,18 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-region biomass stock — owned by GrowthSystem (M0 toy).</summary>
     public Table<BiomassRow> Biomass { get; }
 
+    /// <summary>Per-region toy-good stock — owned by TradeSystem (M0 toy).</summary>
+    public Table<GoodsRow> Goods { get; }
+
+    /// <summary>Source/sink counterweights — written only by Ledger (§3.6).</summary>
+    public Table<LedgerFlowRow> LedgerFlows { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
     IReadOnlyTable<BiomassRow> IReadOnlyWorldState.Biomass => Biomass;
+    IReadOnlyTable<GoodsRow> IReadOnlyWorldState.Goods => Goods;
+    IReadOnlyTable<LedgerFlowRow> IReadOnlyWorldState.LedgerFlows => LedgerFlows;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -85,11 +125,14 @@ public sealed class WorldState : IReadOnlyWorldState
         RngStreams = new Table<RngStreamRow>();
         Rainfall = new Table<RainfallRow>();
         Biomass = new Table<BiomassRow>();
+        Goods = new Table<GoodsRow>();
+        LedgerFlows = new Table<LedgerFlowRow>();
     }
 
     private WorldState(
-        ulong seed, Kernel.SimClock clock, Table<RegionRow> regions,
-        Table<RngStreamRow> rngStreams, Table<RainfallRow> rainfall, Table<BiomassRow> biomass)
+        ulong seed, Kernel.SimClock clock, Table<RegionRow> regions, Table<RngStreamRow> rngStreams,
+        Table<RainfallRow> rainfall, Table<BiomassRow> biomass, Table<GoodsRow> goods,
+        Table<LedgerFlowRow> ledgerFlows)
     {
         Seed = seed;
         Clock = clock;
@@ -97,6 +140,8 @@ public sealed class WorldState : IReadOnlyWorldState
         RngStreams = rngStreams;
         Rainfall = rainfall;
         Biomass = biomass;
+        Goods = goods;
+        LedgerFlows = ledgerFlows;
     }
 
     /// <summary>
@@ -105,5 +150,6 @@ public sealed class WorldState : IReadOnlyWorldState
     /// field of WorldState MUST be carried here; the clone round-trip tests guard this.
     /// </summary>
     public WorldState Clone() =>
-        new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone());
+        new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
+            Goods.Clone(), LedgerFlows.Clone());
 }

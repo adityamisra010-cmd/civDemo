@@ -15,6 +15,8 @@ public static class WorldStates
         if (!TableEquals(a.RngStreams, b.RngStreams)) return false;
         if (!TableEquals(a.Rainfall, b.Rainfall)) return false;
         if (!TableEquals(a.Biomass, b.Biomass)) return false;
+        if (!TableEquals(a.Goods, b.Goods)) return false;
+        if (!TableEquals(a.LedgerFlows, b.LedgerFlows)) return false;
         return true;
     }
 
