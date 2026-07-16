@@ -1,0 +1,11 @@
+<Project>
+  <!-- D-001: .NET 10 LTS, C# latest. Shared build settings for all Sim.* projects. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Law 5: culture-sensitive parse/format is banned; run everything culture-invariant. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+</Project>
