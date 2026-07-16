@@ -51,4 +51,5 @@ Cross-system communication is exclusively through state tables and events.
 - **M0 — Simulation kernel: in progress.** Task packets T0.1–T0.9 per
   `docs/m0-kernel-spec.md` §4. Completed: T0.1 (scaffold + CI), T0.2 (state
   infrastructure: WorldState, tables, typed ids, double-buffer clone, read-only views),
-  T0.3 (PCG32 RNG: stream registry keyed system×region, states in WorldState).
+  T0.3 (PCG32 RNG: stream registry keyed system×region, states in WorldState),
+  T0.4 (integer-day SimClock per ADR-002; era-pacing table loader, D-006).

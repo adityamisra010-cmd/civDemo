@@ -25,6 +25,7 @@ public record struct RngStreamRow(SystemId System, RegionId Region, ulong State,
 public interface IReadOnlyWorldState
 {
     ulong Seed { get; }
+    Kernel.SimClock Clock { get; }
     IReadOnlyTable<RegionRow> Regions { get; }
     IReadOnlyTable<RngStreamRow> RngStreams { get; }
 }
@@ -39,6 +40,9 @@ public sealed class WorldState : IReadOnlyWorldState
 {
     /// <summary>World seed (D-007/D-008: root of all stream derivation and replay).</summary>
     public ulong Seed { get; }
+
+    /// <summary>The clock (§3.4, ADR-002) — advanced by the kernel, once per turn.</summary>
+    public Kernel.SimClock Clock { get; set; }
 
     public Table<RegionRow> Regions { get; }
 
@@ -55,9 +59,10 @@ public sealed class WorldState : IReadOnlyWorldState
         RngStreams = new Table<RngStreamRow>();
     }
 
-    private WorldState(ulong seed, Table<RegionRow> regions, Table<RngStreamRow> rngStreams)
+    private WorldState(ulong seed, Kernel.SimClock clock, Table<RegionRow> regions, Table<RngStreamRow> rngStreams)
     {
         Seed = seed;
+        Clock = clock;
         Regions = regions;
         RngStreams = rngStreams;
     }
@@ -67,5 +72,5 @@ public sealed class WorldState : IReadOnlyWorldState
     /// mutable state with the source: mutating one never affects the other. Every
     /// field of WorldState MUST be carried here; the clone round-trip tests guard this.
     /// </summary>
-    public WorldState Clone() => new(Seed, Regions.Clone(), RngStreams.Clone());
+    public WorldState Clone() => new(Seed, Clock, Regions.Clone(), RngStreams.Clone());
 }

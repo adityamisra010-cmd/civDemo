@@ -1,0 +1,11 @@
+{
+  "bands": [
+    { "name": "Neolithic",    "startYear": -4000, "endYear": -1500, "dtYears": 10 },
+    { "name": "Bronze/Iron",  "startYear": -1500, "endYear": 500,   "dtYears": 5 },
+    { "name": "Medieval",     "startYear": 500,   "endYear": 1400,  "dtYears": 3 },
+    { "name": "Early Modern", "startYear": 1400,  "endYear": 1800,  "dtYears": 2 },
+    { "name": "Industrial",   "startYear": 1800,  "endYear": 1920,  "dtYears": 1 },
+    { "name": "Modern",       "startYear": 1920,  "endYear": 2000,  "dtYears": 0.5 },
+    { "name": "Information+", "startYear": 2000,  "endYear": 2100,  "dtYears": 0.5 }
+  ]
+}

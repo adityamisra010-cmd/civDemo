@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="content\era-pacing.json" LogicalName="Sim.Data.era-pacing.json" />
+  </ItemGroup>
+
 </Project>

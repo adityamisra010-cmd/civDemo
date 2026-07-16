@@ -20,6 +20,7 @@ public class WorldStateCloneTests
     private static bool StateEquals(WorldState a, WorldState b)
     {
         if (a.Seed != b.Seed) return false;
+        if (a.Clock != b.Clock) return false;
         if (a.Regions.Count != b.Regions.Count) return false;
         for (int i = 0; i < a.Regions.Count; i++)
             if (a.Regions[i] != b.Regions[i]) return false;
@@ -77,6 +78,20 @@ public class WorldStateCloneTests
         var world = BuildWorld(regionValues ?? []);
         var clone = world.Clone();
         return StateEquals(world, clone);
+    }
+
+    [Fact]
+    public void CloneRoundTrip_CarriesClock()
+    {
+        var world = new WorldState(seed: 5)
+        {
+            Clock = new Sim.Core.Kernel.SimClock(Turn: 17, SimDays: 12345, DtDays: 1800),
+        };
+        var clone = world.Clone();
+        Assert.True(StateEquals(world, clone));
+
+        clone.Clock = default;
+        Assert.Equal(17, world.Clock.Turn); // clone's clock is independent
     }
 
     [Fact]
