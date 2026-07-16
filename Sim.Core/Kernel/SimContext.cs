@@ -3,13 +3,20 @@ using Sim.Core.State;
 namespace Sim.Core.Kernel;
 
 /// <summary>
-/// External inputs to the sim for one turn (kernel contract §3.9). Empty at M0 —
-/// present in the contract signature so the order log (T0.7) slots in without an
-/// executor change.
+/// The external inputs delivered to one turn's step (kernel contract §3.9) —
+/// the slice of the order log addressed to this turn, in log (append) order.
 /// </summary>
 public sealed class OrderBatch
 {
-    public static readonly OrderBatch Empty = new();
+    public static readonly OrderBatch Empty = new([]);
+
+    private readonly OrderRecord[] _orders;
+
+    internal OrderBatch(OrderRecord[] orders) => _orders = orders;
+
+    public int Count => _orders.Length;
+
+    public OrderRecord this[int index] => _orders[index];
 }
 
 /// <summary>

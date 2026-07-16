@@ -38,11 +38,15 @@ public sealed class TurnExecutor
 {
     private readonly EraTable _eraTable;
     private readonly SystemRegistration[] _pipeline;
+    private readonly OrderLog? _orders;
 
-    public TurnExecutor(EraTable eraTable, SystemRegistration[] pipeline)
+    /// <param name="orders">Optional order log (§3.9); orders with Turn == t are
+    /// delivered to the step executing from turn-t state.</param>
+    public TurnExecutor(EraTable eraTable, SystemRegistration[] pipeline, OrderLog? orders = null)
     {
         _eraTable = eraTable;
         _pipeline = pipeline;
+        _orders = orders;
     }
 
     /// <summary>Runs one turn. Never mutates <paramref name="prev"/>.</summary>
@@ -53,9 +57,10 @@ public sealed class TurnExecutor
 
         WorldState next = prev.Clone();                                 // (2) double buffer
         var rng = new RngRegistry(next);                                //     draws persist in Next
+        OrderBatch batch = _orders?.BatchFor(prev.Clock.Turn) ?? OrderBatch.Empty;
 
         for (int i = 0; i < _pipeline.Length; i++)                      // (3) fixed order
-            _pipeline[i].Invoke(prev, next, rng, dtDays, dtYears, OrderBatch.Empty);
+            _pipeline[i].Invoke(prev, next, rng, dtDays, dtYears, batch);
 
         next.Clock = new SimClock(prev.Clock.Turn + 1, prev.Clock.SimDays + dtDays, dtDays); // (4)
         return next;

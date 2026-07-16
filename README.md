@@ -56,4 +56,6 @@ Cross-system communication is exclusively through state tables and events.
   T0.5 (turn executor, typed system contexts per ADR-003, pipeline-as-data,
   toy Weather/Growth systems proving one-turn lag and dt-correct integration),
   T0.6 (Ledger + Conserved wrapper per ADR-004, sources/sinks tables,
-  ConservationAuditor, toy TradeSystem; conservation exact and grep-gated).
+  ConservationAuditor, toy TradeSystem; conservation exact and grep-gated),
+  T0.7 (canonical serialization per ADR-005, SHA-256 WorldHash, versioned
+  snapshots, order log + replay with the SetRainBias toy order).

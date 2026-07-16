@@ -50,6 +50,7 @@ scan 'System.Random (use RngRegistry)'     'System\.Random|\bnew Random\b|Random
 # Conserved.UNSAFE_LedgerSet is the single mutation path for conserved stocks;
 # it may appear ONLY in Ledger.cs (the caller) and Conserved.cs (the declaration).
 scan 'conserved mutation outside Ledger'   'UNSAFE_LedgerSet'                              '^(Sim\.Core/Kernel/Ledger\.cs|Sim\.Core/State/Conserved\.cs):' "${ALL_DIRS[@]}"
+scan 'conserved reconstitution outside CanonicalSchema' 'FromSnapshot'                     '^(Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/State/Conserved\.cs):' "${ALL_DIRS[@]}"
 
 # --- Sim-code bans (§3.7) ---
 scan 'wall clock in sim code'              '\b(DateTime|DateTimeOffset)\.(Now|UtcNow|Today)\b' '' "${SIM_DIRS[@]}"

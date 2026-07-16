@@ -21,4 +21,12 @@ public readonly record struct Conserved
     /// the banned-constructs gate greps for this name and fails CI on any other use.
     /// </summary>
     internal static Conserved UNSAFE_LedgerSet(long value) => new(value);
+
+    /// <summary>
+    /// SNAPSHOT-ONLY reconstitution (not mutation: the stock's flow counterweights
+    /// load in the same stream, so the conservation identity is preserved). Never
+    /// call this outside Sim.Core/Kernel/CanonicalSchema.cs — grep-gated like
+    /// UNSAFE_LedgerSet.
+    /// </summary>
+    internal static Conserved FromSnapshot(long value) => new(value);
 }
