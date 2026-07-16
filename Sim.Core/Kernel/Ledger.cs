@@ -95,8 +95,12 @@ public sealed class Ledger
         if (amount < 0)
             throw new ArgumentOutOfRangeException(nameof(amount), amount, "Ledger amounts are never negative.");
 
-        int flowIndex = FindOrAddFlowRow(quantity, reason);
-        ref LedgerFlowRow flowRow = ref _flows.Ref(flowIndex);
+        // Read-only lookup — the row is created only at commit time, so a failed
+        // Flow on a first-use (quantity, reason) pair leaves NO phantom row behind
+        // (atomicity: failed ops mutate nothing, including table layout).
+        int flowIndex = FindFlowRow(quantity, reason);
+        long currentSourced = flowIndex >= 0 ? _flows[flowIndex].TotalSourced : 0;
+        long currentSunk = flowIndex >= 0 ? _flows[flowIndex].TotalSunk : 0;
 
         if (direction == FlowDirection.Source)
         {
@@ -104,16 +108,19 @@ public sealed class Ledger
             try
             {
                 newStock = checked(stock.Value + amount);
-                newSourced = checked(flowRow.TotalSourced + amount);
+                newSourced = checked(currentSourced + amount);
             }
             catch (OverflowException e)
             {
                 throw new LedgerOverflowException(
                     $"sourcing {amount} of quantity {quantity.Value} (stock {stock.Value}, " +
-                    $"total sourced {flowRow.TotalSourced}) would overflow Int64.", e);
+                    $"total sourced {currentSourced}) would overflow Int64.", e);
             }
+            // Commit.
+            if (flowIndex < 0) flowIndex = AddFlowRow(quantity, reason);
             stock = Conserved.UNSAFE_LedgerSet(newStock);
-            flowRow = flowRow with { TotalSourced = newSourced };
+            ref LedgerFlowRow sourceRow = ref _flows.Ref(flowIndex);
+            sourceRow = sourceRow with { TotalSourced = newSourced };
             return amount;
         }
         else
@@ -128,27 +135,33 @@ public sealed class Ledger
             long newSunk;
             try
             {
-                newSunk = checked(flowRow.TotalSunk + sunk);
+                newSunk = checked(currentSunk + sunk);
             }
             catch (OverflowException e)
             {
                 throw new LedgerOverflowException(
-                    $"sinking {sunk} of quantity {quantity.Value} (total sunk {flowRow.TotalSunk}) " +
+                    $"sinking {sunk} of quantity {quantity.Value} (total sunk {currentSunk}) " +
                     "would overflow Int64.", e);
             }
+            // Commit.
+            if (flowIndex < 0) flowIndex = AddFlowRow(quantity, reason);
             stock = Conserved.UNSAFE_LedgerSet(available - sunk);
-            flowRow = flowRow with { TotalSunk = newSunk };
+            ref LedgerFlowRow sinkRow = ref _flows.Ref(flowIndex);
+            sinkRow = sinkRow with { TotalSunk = newSunk };
             return sunk;
         }
     }
 
-    private int FindOrAddFlowRow(ConservedQuantityId quantity, ReasonId reason)
+    private int FindFlowRow(ConservedQuantityId quantity, ReasonId reason)
     {
         for (int i = 0; i < _flows.Count; i++)
         {
             ref LedgerFlowRow row = ref _flows.Ref(i);
             if (row.Quantity == quantity && row.Reason == reason) return i;
         }
-        return _flows.Add(new LedgerFlowRow(quantity, reason, TotalSourced: 0, TotalSunk: 0));
+        return -1;
     }
+
+    private int AddFlowRow(ConservedQuantityId quantity, ReasonId reason) =>
+        _flows.Add(new LedgerFlowRow(quantity, reason, TotalSourced: 0, TotalSunk: 0));
 }

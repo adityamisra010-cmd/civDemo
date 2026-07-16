@@ -146,6 +146,39 @@ public class LedgerTests
     }
 
     [Fact]
+    public void FailedFlow_OnFirstUseReason_LeavesNoPhantomRow()
+    {
+        // Atomicity includes table LAYOUT: a failed Flow on a new (quantity,
+        // reason) pair must not add a zero-total row (it would change future
+        // canonical hashes for callers that catch and continue).
+        var (world, ledger) = NewWorldWithGoods(0);
+        int rowsBefore = world.LedgerFlows.Count;
+
+        Assert.Throws<LedgerOverdrawException>(() => ledger.Flow(
+            ref world.Goods.Ref(0).Amount, ConservedQuantityIds.ToyGood, ReasonIds.Growth,
+            5, FlowDirection.Sink, OverdrawPolicy.Throw));
+        Assert.Equal(rowsBefore, world.LedgerFlows.Count);
+
+        // Overflow path, same guarantee: source overflow on a fresh reason.
+        var (world2, ledger2) = NewWorldWithGoods(long.MaxValue - 1);
+        int rows2Before = world2.LedgerFlows.Count;
+        Assert.Throws<LedgerOverflowException>(() => ledger2.Flow(
+            ref world2.Goods.Ref(0).Amount, ConservedQuantityIds.ToyGood, ReasonIds.Growth,
+            10, FlowDirection.Source, OverdrawPolicy.Throw));
+        Assert.Equal(rows2Before, world2.LedgerFlows.Count);
+    }
+
+    [Fact]
+    public void Audit_IdentityArithmeticOverflow_ThrowsRatherThanWraps()
+    {
+        // "All audit arithmetic is checked": if the identity sum itself cannot
+        // fit Int64, the audit fails loudly instead of printing wrapped numbers.
+        var audit = new ConservationAuditor.QuantityAudit(
+            ConservedQuantityIds.ToyGood, long.MaxValue - 1, TotalSourced: 0, TotalSunk: 10);
+        Assert.Throws<OverflowException>(() => audit.IsConserved);
+    }
+
+    [Fact]
     public void Auditor_HasTeeth_DroppedLocalTransferBreaksIt()
     {
         // Corrupt a world using only the public API: transfer into a local stock

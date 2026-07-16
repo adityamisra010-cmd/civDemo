@@ -15,8 +15,12 @@ public static class ConservationAuditor
     public readonly record struct QuantityAudit(
         ConservedQuantityId Quantity, long StockTotal, long TotalSourced, long TotalSunk)
     {
-        /// <summary>Exact identity: stocks + sunk − sourced == 0.</summary>
-        public bool IsConserved => StockTotal + TotalSunk - TotalSourced == 0;
+        /// <summary>Exact identity: stocks + sunk − sourced == 0. Checked — an
+        /// audit whose identity arithmetic overflows is itself a failure.</summary>
+        public bool IsConserved
+        {
+            get { checked { return StockTotal + TotalSunk - TotalSourced == 0; } }
+        }
     }
 
     /// <summary>Audits every known quantity; true only if ALL conserve exactly.</summary>
@@ -60,7 +64,12 @@ public static class ConservationAuditor
         }
     }
 
-    private static string Describe(QuantityAudit a) =>
-        $"stocks {a.StockTotal} + sunk {a.TotalSunk} - sourced {a.TotalSourced} = " +
-        $"{a.StockTotal + a.TotalSunk - a.TotalSourced}";
+    private static string Describe(QuantityAudit a)
+    {
+        checked
+        {
+            return $"stocks {a.StockTotal} + sunk {a.TotalSunk} - sourced {a.TotalSourced} = " +
+                   $"{a.StockTotal + a.TotalSunk - a.TotalSourced}";
+        }
+    }
 }
