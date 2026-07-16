@@ -45,7 +45,7 @@ public class TurnExecutorTests
         var w1 = executor.Step(w0);
         double r1 = w1.Rainfall[0].RainfallMmPerYear;
         Assert.True(r1 > 0.0);
-        Assert.Equal(0L, w1.Biomass[0].Biomass);
+        Assert.Equal(0L, w1.Biomass[0].Biomass.Value);
 
         // Turn 2: growth must integrate EXACTLY from R1 (t−1), not from w2's fresh R2.
         var w2 = executor.Step(w1);
@@ -54,7 +54,7 @@ public class TurnExecutorTests
 
         double remainder = 0.0;
         long expected = ExpectedGrowthDelta(r1, dtYears: 10.0, ref remainder);
-        Assert.Equal(expected, w2.Biomass[0].Biomass);
+        Assert.Equal(expected, w2.Biomass[0].Biomass.Value);
         Assert.Equal(remainder, w2.Biomass[0].GrowthRemainder);
     }
 
@@ -91,8 +91,8 @@ public class TurnExecutorTests
 
         for (int i = 0; i < 2; i++)
         {
-            long bFull = full.Biomass[i].Biomass;
-            long bHalf = half.Biomass[i].Biomass;
+            long bFull = full.Biomass[i].Biomass.Value;
+            long bHalf = half.Biomass[i].Biomass.Value;
             Assert.True(Math.Abs(bFull - bHalf) <= 1L,
                 $"region {i}: |{bFull} - {bHalf}| exceeds the 1-unit analytic tolerance");
             // And both sit on the analytic value k·R·T within the same 1-unit bound.

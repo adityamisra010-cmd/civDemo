@@ -35,12 +35,18 @@ public sealed class SimContext<TOwned>
 
     public OrderBatch Orders { get; }
 
+    /// <summary>
+    /// The lawful mutation channel for conserved stocks (law 1) — bound by the
+    /// kernel to Next's flow table.
+    /// </summary>
+    public Ledger Ledger { get; }
+
     private readonly RngRegistry _rng;
     private readonly SystemId _self;
 
     internal SimContext(
         IReadOnlyWorldState prev, TOwned owned, RngRegistry rng, SystemId self,
-        long dtDays, double dtYears, OrderBatch orders)
+        long dtDays, double dtYears, OrderBatch orders, Ledger ledger)
     {
         Prev = prev;
         Owned = owned;
@@ -49,6 +55,7 @@ public sealed class SimContext<TOwned>
         DtDays = dtDays;
         DtYears = dtYears;
         Orders = orders;
+        Ledger = ledger;
     }
 
     /// <summary>

@@ -46,6 +46,11 @@ scan 'float literal suffix (D-004)'        '\b[0-9]+\.?[0-9]*[fF]\b'            
 scan 'MathF / System.Single (D-004)'       '\bMathF\b|System\.Single'                      '' "${ALL_DIRS[@]}"
 scan 'System.Random (use RngRegistry)'     'System\.Random|\bnew Random\b|Random\.Shared'  '' "${ALL_DIRS[@]}"
 
+# --- Conservation gate (law 1 / ADR-004) ---
+# Conserved.UNSAFE_LedgerSet is the single mutation path for conserved stocks;
+# it may appear ONLY in Ledger.cs (the caller) and Conserved.cs (the declaration).
+scan 'conserved mutation outside Ledger'   'UNSAFE_LedgerSet'                              '^(Sim\.Core/Kernel/Ledger\.cs|Sim\.Core/State/Conserved\.cs):' "${ALL_DIRS[@]}"
+
 # --- Sim-code bans (§3.7) ---
 scan 'wall clock in sim code'              '\b(DateTime|DateTimeOffset)\.(Now|UtcNow|Today)\b' '' "${SIM_DIRS[@]}"
 scan 'AsParallel'                          '\bAsParallel\b'                                '' "${SIM_DIRS[@]}"
