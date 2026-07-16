@@ -22,6 +22,10 @@ dotnet test Sim.slnx
 # Banned-constructs check (determinism gate, m0-kernel-spec §3.7) — run before every commit
 ./scripts/check-banned-constructs.sh
 
+# Read-only view proof (T0.2 acceptance): passes only when mutation through
+# IReadOnlyWorldState FAILS to compile
+./scripts/check-readonly-proof.sh
+
 # Headless CLI runner (run/hash/replay/bench commands land with packet T0.9)
 dotnet run --project Sim.Cli
 ```
@@ -45,4 +49,5 @@ Cross-system communication is exclusively through state tables and events.
 ## Milestone status
 
 - **M0 — Simulation kernel: in progress.** Task packets T0.1–T0.9 per
-  `docs/m0-kernel-spec.md` §4. Completed: T0.1 (scaffold + CI).
+  `docs/m0-kernel-spec.md` §4. Completed: T0.1 (scaffold + CI), T0.2 (state
+  infrastructure: WorldState, tables, typed ids, double-buffer clone, read-only views).

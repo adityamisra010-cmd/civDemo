@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- T0.2 acceptance gate: this project MUST NOT COMPILE.
+       It is deliberately excluded from Sim.slnx; scripts/check-readonly-proof.sh
+       builds it and passes only when the build fails with the expected errors. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sim.Core\Sim.Core.csproj" />
+  </ItemGroup>
+
+</Project>

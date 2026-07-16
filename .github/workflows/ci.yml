@@ -26,3 +26,6 @@ jobs:
 
       - name: Test
         run: dotnet test Sim.slnx --no-build --configuration Release
+
+      - name: Read-only view mutation must not compile (T0.2 acceptance)
+        run: ./scripts/check-readonly-proof.sh
