@@ -8,6 +8,14 @@ namespace Sim.Core.State;
 public readonly record struct RegionRow(RegionId Id);
 
 /// <summary>
+/// State of one PCG32 stream (kernel contract §3.5: stream states live inside
+/// WorldState so save/load/replay preserve randomness exactly). Keyed by
+/// (System, Region); State/Inc are the canonical PCG32 pair (Inc always odd).
+/// Unmanaged row per ADR-001 — travels with the double-buffer clone for free.
+/// </summary>
+public record struct RngStreamRow(SystemId System, RegionId Region, ulong State, ulong Inc);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -16,7 +24,9 @@ public readonly record struct RegionRow(RegionId Id);
 /// </summary>
 public interface IReadOnlyWorldState
 {
+    ulong Seed { get; }
     IReadOnlyTable<RegionRow> Regions { get; }
+    IReadOnlyTable<RngStreamRow> RngStreams { get; }
 }
 
 /// <summary>
@@ -27,23 +37,35 @@ public interface IReadOnlyWorldState
 /// </summary>
 public sealed class WorldState : IReadOnlyWorldState
 {
+    /// <summary>World seed (D-007/D-008: root of all stream derivation and replay).</summary>
+    public ulong Seed { get; }
+
     public Table<RegionRow> Regions { get; }
 
-    IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
+    /// <summary>PCG32 stream states (§3.5) — owned by the kernel's RngRegistry.</summary>
+    public Table<RngStreamRow> RngStreams { get; }
 
-    public WorldState()
+    IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
+    IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
+
+    public WorldState(ulong seed = 0UL)
     {
+        Seed = seed;
         Regions = new Table<RegionRow>();
+        RngStreams = new Table<RngStreamRow>();
     }
 
-    private WorldState(Table<RegionRow> regions)
+    private WorldState(ulong seed, Table<RegionRow> regions, Table<RngStreamRow> rngStreams)
     {
+        Seed = seed;
         Regions = regions;
+        RngStreams = rngStreams;
     }
 
     /// <summary>
     /// Full deep copy — the §3.2 double-buffer step (Prev → Next). The copy shares no
-    /// mutable state with the source: mutating one never affects the other.
+    /// mutable state with the source: mutating one never affects the other. Every
+    /// field of WorldState MUST be carried here; the clone round-trip tests guard this.
     /// </summary>
-    public WorldState Clone() => new(Regions.Clone());
+    public WorldState Clone() => new(Seed, Regions.Clone(), RngStreams.Clone());
 }

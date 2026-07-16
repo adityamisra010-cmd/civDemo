@@ -15,11 +15,17 @@ public class WorldStateCloneTests
         return world;
     }
 
+    // Compares EVERY WorldState field — extend this when WorldState grows, so the
+    // clone round-trip tests keep guarding "every field is carried by Clone()".
     private static bool StateEquals(WorldState a, WorldState b)
     {
+        if (a.Seed != b.Seed) return false;
         if (a.Regions.Count != b.Regions.Count) return false;
         for (int i = 0; i < a.Regions.Count; i++)
             if (a.Regions[i] != b.Regions[i]) return false;
+        if (a.RngStreams.Count != b.RngStreams.Count) return false;
+        for (int i = 0; i < a.RngStreams.Count; i++)
+            if (a.RngStreams[i] != b.RngStreams[i]) return false;
         return true;
     }
 
@@ -71,5 +77,17 @@ public class WorldStateCloneTests
         var world = BuildWorld(regionValues ?? []);
         var clone = world.Clone();
         return StateEquals(world, clone);
+    }
+
+    [Fact]
+    public void CloneRoundTrip_CarriesSeedAndRngStreams()
+    {
+        var world = new WorldState(seed: 123);
+        world.RngStreams.Add(new RngStreamRow(new SystemId(1), new RegionId(2), 0xDEADBEEFUL, 55UL));
+        var clone = world.Clone();
+        Assert.True(StateEquals(world, clone));
+
+        clone.RngStreams.Ref(0).State = 1UL;
+        Assert.Equal(0xDEADBEEFUL, world.RngStreams[0].State);
     }
 }
