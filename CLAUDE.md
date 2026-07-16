@@ -31,14 +31,6 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - Touched a contract? Write an ADR (`docs/adr/adr-NNN-title.md`). The kernel is frozen after M0 acceptance without director sign-off.
 - Before finishing: run the banned-constructs grep, `dotnet build`, `dotnet test`; if you touched hot paths, `sim bench`. Show the results, then a one-paragraph summary of what now exists.
 
-## Environment (remote sessions)
-- Containers are ephemeral: the .NET SDK does NOT survive between sessions. Run `./scripts/bootstrap.sh`
-  before any dotnet work — it installs the .NET 10 SDK from the Ubuntu archive (the direct Microsoft
-  download hosts are blocked by the session proxy) and no-ops if a 10.x SDK is present.
-- Branch convention: one branch per task packet (`t0.N-<slug>`), cut from `main`. `main` is accepted
-  truth — the director merges a packet branch to `main` on acceptance; agents never push to `main`.
-  CI on `main` is the director's between-session check.
-
 ## Repo map
 ```
 Sim.Core/ (Kernel/ Systems/ State/) · Sim.Data/ · Sim.Cli/ · Sim.Tests/ · docs/ (specs, adr/, queue.md) · CLAUDE.md
