@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="content\era-pacing.json" LogicalName="Sim.Data.era-pacing.json" />
+    <EmbeddedResource Include="content\pipeline.json" LogicalName="Sim.Data.pipeline.json" />
   </ItemGroup>
 
 </Project>

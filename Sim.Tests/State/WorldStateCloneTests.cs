@@ -15,20 +15,10 @@ public class WorldStateCloneTests
         return world;
     }
 
-    // Compares EVERY WorldState field — extend this when WorldState grows, so the
-    // clone round-trip tests keep guarding "every field is carried by Clone()".
+    // Compares EVERY WorldState field (shared helper — extend it when WorldState
+    // grows, so clone round-trip tests keep guarding "every field is carried").
     private static bool StateEquals(WorldState a, WorldState b)
-    {
-        if (a.Seed != b.Seed) return false;
-        if (a.Clock != b.Clock) return false;
-        if (a.Regions.Count != b.Regions.Count) return false;
-        for (int i = 0; i < a.Regions.Count; i++)
-            if (a.Regions[i] != b.Regions[i]) return false;
-        if (a.RngStreams.Count != b.RngStreams.Count) return false;
-        for (int i = 0; i < a.RngStreams.Count; i++)
-            if (a.RngStreams[i] != b.RngStreams[i]) return false;
-        return true;
-    }
+        => TestUtil.WorldStates.StateEquals(a, b);
 
     [Fact]
     public void CloneRoundTrip_CloneEqualsOriginal()

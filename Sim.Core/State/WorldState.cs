@@ -8,6 +8,22 @@ namespace Sim.Core.State;
 public readonly record struct RegionRow(RegionId Id);
 
 /// <summary>
+/// Row of the rainfall table — owned by WeatherSystem (M0 toy). Rainfall is an
+/// environmental state in mm/year, redrawn each turn from the system's RNG stream;
+/// a rate-like double, not a conserved stock (law 7).
+/// </summary>
+public record struct RainfallRow(RegionId Region, double RainfallMmPerYear);
+
+/// <summary>
+/// Row of the biomass table — owned by GrowthSystem (M0 toy). Biomass is a `long`
+/// stock; GrowthRemainder is the D-004 per-entity remainder accumulator (the
+/// fractional part of integration carried between turns, deterministically — no
+/// stochastic rounding). It lives in the row so it travels with Clone and
+/// snapshots (systems are stateless).
+/// </summary>
+public record struct BiomassRow(RegionId Region, long Biomass, double GrowthRemainder);
+
+/// <summary>
 /// State of one PCG32 stream (kernel contract §3.5: stream states live inside
 /// WorldState so save/load/replay preserve randomness exactly). Keyed by
 /// (System, Region); State/Inc are the canonical PCG32 pair (Inc always odd).
@@ -28,6 +44,8 @@ public interface IReadOnlyWorldState
     Kernel.SimClock Clock { get; }
     IReadOnlyTable<RegionRow> Regions { get; }
     IReadOnlyTable<RngStreamRow> RngStreams { get; }
+    IReadOnlyTable<RainfallRow> Rainfall { get; }
+    IReadOnlyTable<BiomassRow> Biomass { get; }
 }
 
 /// <summary>
@@ -49,22 +67,36 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>PCG32 stream states (§3.5) — owned by the kernel's RngRegistry.</summary>
     public Table<RngStreamRow> RngStreams { get; }
 
+    /// <summary>Per-region rainfall — owned by WeatherSystem (M0 toy).</summary>
+    public Table<RainfallRow> Rainfall { get; }
+
+    /// <summary>Per-region biomass stock — owned by GrowthSystem (M0 toy).</summary>
+    public Table<BiomassRow> Biomass { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
+    IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
+    IReadOnlyTable<BiomassRow> IReadOnlyWorldState.Biomass => Biomass;
 
     public WorldState(ulong seed = 0UL)
     {
         Seed = seed;
         Regions = new Table<RegionRow>();
         RngStreams = new Table<RngStreamRow>();
+        Rainfall = new Table<RainfallRow>();
+        Biomass = new Table<BiomassRow>();
     }
 
-    private WorldState(ulong seed, Kernel.SimClock clock, Table<RegionRow> regions, Table<RngStreamRow> rngStreams)
+    private WorldState(
+        ulong seed, Kernel.SimClock clock, Table<RegionRow> regions,
+        Table<RngStreamRow> rngStreams, Table<RainfallRow> rainfall, Table<BiomassRow> biomass)
     {
         Seed = seed;
         Clock = clock;
         Regions = regions;
         RngStreams = rngStreams;
+        Rainfall = rainfall;
+        Biomass = biomass;
     }
 
     /// <summary>
@@ -72,5 +104,6 @@ public sealed class WorldState : IReadOnlyWorldState
     /// mutable state with the source: mutating one never affects the other. Every
     /// field of WorldState MUST be carried here; the clone round-trip tests guard this.
     /// </summary>
-    public WorldState Clone() => new(Seed, Clock, Regions.Clone(), RngStreams.Clone());
+    public WorldState Clone() =>
+        new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone());
 }

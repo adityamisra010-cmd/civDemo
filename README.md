@@ -52,4 +52,6 @@ Cross-system communication is exclusively through state tables and events.
   `docs/m0-kernel-spec.md` §4. Completed: T0.1 (scaffold + CI), T0.2 (state
   infrastructure: WorldState, tables, typed ids, double-buffer clone, read-only views),
   T0.3 (PCG32 RNG: stream registry keyed system×region, states in WorldState),
-  T0.4 (integer-day SimClock per ADR-002; era-pacing table loader, D-006).
+  T0.4 (integer-day SimClock per ADR-002; era-pacing table loader, D-006),
+  T0.5 (turn executor, typed system contexts per ADR-003, pipeline-as-data,
+  toy Weather/Growth systems proving one-turn lag and dt-correct integration).

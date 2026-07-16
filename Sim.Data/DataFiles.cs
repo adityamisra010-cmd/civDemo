@@ -13,6 +13,9 @@ public static class DataFiles
     /// <summary>The era-pacing table (D-006), consumed by EraTableLoader.</summary>
     public static Stream OpenEraPacing() => Open("Sim.Data.era-pacing.json");
 
+    /// <summary>The turn-pipeline order (§3.3), consumed by PipelineLoader.</summary>
+    public static Stream OpenPipeline() => Open("Sim.Data.pipeline.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(
