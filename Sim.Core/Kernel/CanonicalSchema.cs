@@ -18,8 +18,9 @@ namespace Sim.Core.Kernel;
 public static class CanonicalSchema
 {
     /// <summary>Bumped on ANY schema change. Saves break between milestones (D-008).
-    /// v2 (T1.1, ADR-008): terrain presence flag + terrain content hash after the clock.</summary>
-    public const int Version = 2;
+    /// v2 (T1.1, ADR-008): terrain presence flag + terrain content hash after the clock.
+    /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.</summary>
+    public const int Version = 3;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -29,6 +30,8 @@ public static class CanonicalSchema
     private const int BiomassRowWidth = 4 + 8 + 8;       // RegionId, stock, remainder bits
     private const int GoodsRowWidth = 4 + 8;             // RegionId, stock
     private const int LedgerFlowRowWidth = 4 + 4 + 8 + 8; // Quantity, Reason, sourced, sunk
+    private const int NetworkNodeRowWidth = 4 + 4;        // Id, LatticeNode
+    private const int NetworkEdgeRowWidth = 4 + 4 + 4 + 4 + 8; // Id, A, B, EdgeType, Cost bits
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -104,6 +107,27 @@ public static class CanonicalSchema
             writer.Write(row.TotalSourced);
             writer.Write(row.TotalSunk);
         }
+
+        // 9. Network nodes (v3)
+        writer.Write(world.NetworkNodes.Count);
+        for (int i = 0; i < world.NetworkNodes.Count; i++)
+        {
+            NetworkNodeRow row = world.NetworkNodes[i];
+            writer.Write(row.Id.Value);
+            writer.Write(row.LatticeNode);
+        }
+
+        // 10. Network edges (v3)
+        writer.Write(world.NetworkEdges.Count);
+        for (int i = 0; i < world.NetworkEdges.Count; i++)
+        {
+            NetworkEdgeRow row = world.NetworkEdges[i];
+            writer.Write(row.Id.Value);
+            writer.Write(row.A.Value);
+            writer.Write(row.B.Value);
+            writer.Write(row.EdgeType);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Cost));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -171,6 +195,22 @@ public static class CanonicalSchema
                 reader.ReadInt64(), reader.ReadInt64()));
         }
 
+        int netNodeCount = reader.ReadInt32();
+        for (int i = 0; i < netNodeCount; i++)
+        {
+            world.NetworkNodes.Add(new NetworkNodeRow(
+                new NetworkNodeId(reader.ReadInt32()), reader.ReadInt32()));
+        }
+
+        int netEdgeCount = reader.ReadInt32();
+        for (int i = 0; i < netEdgeCount; i++)
+        {
+            world.NetworkEdges.Add(new NetworkEdgeRow(
+                new NetworkEdgeId(reader.ReadInt32()), new NetworkNodeId(reader.ReadInt32()),
+                new NetworkNodeId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -187,5 +227,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Rainfall.Count * RainfallRowWidth
         + CountPrefixWidth + (long)world.Biomass.Count * BiomassRowWidth
         + CountPrefixWidth + (long)world.Goods.Count * GoodsRowWidth
-        + CountPrefixWidth + (long)world.LedgerFlows.Count * LedgerFlowRowWidth;
+        + CountPrefixWidth + (long)world.LedgerFlows.Count * LedgerFlowRowWidth
+        + CountPrefixWidth + (long)world.NetworkNodes.Count * NetworkNodeRowWidth
+        + CountPrefixWidth + (long)world.NetworkEdges.Count * NetworkEdgeRowWidth;
 }

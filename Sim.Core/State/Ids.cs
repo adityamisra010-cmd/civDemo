@@ -29,6 +29,24 @@ public readonly record struct ReasonId(int Value) : IComparable<ReasonId>
     public int CompareTo(ReasonId other) => Value.CompareTo(other.Value);
 }
 
+/// <summary>Identifies a node of the built transport network (T1.3; anchored to a lattice node).</summary>
+public readonly record struct NetworkNodeId(int Value) : IComparable<NetworkNodeId>
+{
+    public int CompareTo(NetworkNodeId other) => Value.CompareTo(other.Value);
+}
+
+/// <summary>Identifies an edge of the built transport network (T1.3).</summary>
+public readonly record struct NetworkEdgeId(int Value) : IComparable<NetworkEdgeId>
+{
+    public int CompareTo(NetworkEdgeId other) => Value.CompareTo(other.Value);
+}
+
+/// <summary>Network edge types (D-009: path → road → highway …; M1 ships dirt path only).</summary>
+public static class EdgeTypes
+{
+    public const int DirtPath = 1;
+}
+
 /// <summary>Well-known conserved quantities (M0 toy registry — real registry is data, later milestone).</summary>
 public static class ConservedQuantityIds
 {

@@ -47,6 +47,20 @@ public struct GoodsRow(RegionId region, Conserved amount) : IEquatable<GoodsRow>
 }
 
 /// <summary>
+/// A node of the built transport network (T1.3), anchored at a traversal-lattice
+/// node. Created empty by worldgen; WRITE ownership is assigned at T1.6
+/// (PathBuildSystem) — until then no system owns these tables.
+/// </summary>
+public record struct NetworkNodeRow(NetworkNodeId Id, int LatticeNode);
+
+/// <summary>
+/// An edge of the built transport network (T1.3): a fast lane between two network
+/// nodes' lattice anchors. Cost is the TOTAL traversal cost of the edge (in the
+/// lattice's cost·px units), fixed when the edge is built.
+/// </summary>
+public record struct NetworkEdgeRow(NetworkEdgeId Id, NetworkNodeId A, NetworkNodeId B, int EdgeType, double Cost);
+
+/// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
 /// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
@@ -79,6 +93,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<BiomassRow> Biomass { get; }
     IReadOnlyTable<GoodsRow> Goods { get; }
     IReadOnlyTable<LedgerFlowRow> LedgerFlows { get; }
+    IReadOnlyTable<NetworkNodeRow> NetworkNodes { get; }
+    IReadOnlyTable<NetworkEdgeRow> NetworkEdges { get; }
 }
 
 /// <summary>
@@ -119,12 +135,20 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Source/sink counterweights — written only by Ledger (§3.6).</summary>
     public Table<LedgerFlowRow> LedgerFlows { get; }
 
+    /// <summary>Transport-network nodes (T1.3) — write ownership assigned at T1.6.</summary>
+    public Table<NetworkNodeRow> NetworkNodes { get; }
+
+    /// <summary>Transport-network edges (T1.3) — write ownership assigned at T1.6.</summary>
+    public Table<NetworkEdgeRow> NetworkEdges { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
     IReadOnlyTable<BiomassRow> IReadOnlyWorldState.Biomass => Biomass;
     IReadOnlyTable<GoodsRow> IReadOnlyWorldState.Goods => Goods;
     IReadOnlyTable<LedgerFlowRow> IReadOnlyWorldState.LedgerFlows => LedgerFlows;
+    IReadOnlyTable<NetworkNodeRow> IReadOnlyWorldState.NetworkNodes => NetworkNodes;
+    IReadOnlyTable<NetworkEdgeRow> IReadOnlyWorldState.NetworkEdges => NetworkEdges;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -135,12 +159,15 @@ public sealed class WorldState : IReadOnlyWorldState
         Biomass = new Table<BiomassRow>();
         Goods = new Table<GoodsRow>();
         LedgerFlows = new Table<LedgerFlowRow>();
+        NetworkNodes = new Table<NetworkNodeRow>();
+        NetworkEdges = new Table<NetworkEdgeRow>();
     }
 
     private WorldState(
         ulong seed, Kernel.SimClock clock, Table<RegionRow> regions, Table<RngStreamRow> rngStreams,
         Table<RainfallRow> rainfall, Table<BiomassRow> biomass, Table<GoodsRow> goods,
-        Table<LedgerFlowRow> ledgerFlows)
+        Table<LedgerFlowRow> ledgerFlows, Table<NetworkNodeRow> networkNodes,
+        Table<NetworkEdgeRow> networkEdges)
     {
         Seed = seed;
         Clock = clock;
@@ -150,6 +177,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Biomass = biomass;
         Goods = goods;
         LedgerFlows = ledgerFlows;
+        NetworkNodes = networkNodes;
+        NetworkEdges = networkEdges;
     }
 
     /// <summary>
@@ -159,7 +188,7 @@ public sealed class WorldState : IReadOnlyWorldState
     /// </summary>
     public WorldState Clone() =>
         new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
-            Goods.Clone(), LedgerFlows.Clone())
+            Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

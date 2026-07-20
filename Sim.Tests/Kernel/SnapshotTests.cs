@@ -93,7 +93,10 @@ public class SnapshotTests
         //   v2 (T1.1, ADR-008): schema gained the terrain presence flag + hash
         //   after the clock; sim behavior unchanged (this world has no terrain —
         //   the stream grew exactly one 0x00 byte).
-        const string golden = "34ad6f01a9b8aaa05eccc7f1265457bf6811a26e5760f4791c1ecf0d7ccea060";
+        //   v2 value: 34ad6f01a9b8aaa05eccc7f1265457bf6811a26e5760f4791c1ecf0d7ccea060
+        //   v3 (T1.3): schema gained the empty NetworkNodes/NetworkEdges tables
+        //   (two zero count prefixes, 8 bytes); sim behavior unchanged.
+        const string golden = "1884a60b2b66e106503291131b91e9254e7ddf20b6e6a9926fddeedd1cf62e9e";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

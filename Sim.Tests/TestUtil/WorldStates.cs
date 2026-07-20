@@ -21,6 +21,8 @@ public static class WorldStates
         if (!TableEquals(a.Biomass, b.Biomass)) return false;
         if (!TableEquals(a.Goods, b.Goods)) return false;
         if (!TableEquals(a.LedgerFlows, b.LedgerFlows)) return false;
+        if (!TableEquals(a.NetworkNodes, b.NetworkNodes)) return false;
+        if (!TableEquals(a.NetworkEdges, b.NetworkEdges)) return false;
         return true;
     }
 
