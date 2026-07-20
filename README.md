@@ -26,9 +26,44 @@ dotnet test Sim.slnx
 # IReadOnlyWorldState FAILS to compile
 ./scripts/check-readonly-proof.sh
 
-# Headless CLI runner (run/hash/replay/bench commands land with packet T0.9)
-dotnet run --project Sim.Cli
+# Headless CLI runner — see "CLI" below
+dotnet run --project Sim.Cli --configuration Release -- run --seed 42 --turns 1630 --report
 ```
+
+## CLI
+
+`sim` is a scripting surface: deterministic output; exit code **0** on success,
+**1** on usage errors, **2** on runtime failures — exit codes are its contract.
+
+```bash
+# Run a campaign; optionally save a snapshot at turn K, log per-turn hashes
+# (one lowercase hex WorldHash per line, \n-terminated), consume an order log
+sim run --seed S --turns N [--report] [--save-at K --save PATH]
+        [--orders PATH] [--hash-log PATH]
+
+# Recompute and print the canonical hash of a save
+sim hash SAVEFILE
+
+# Replay from seed + order log (the D-008 recovery path)
+sim replay --seed S --orders PATH --turns N [--hash-log PATH]
+
+# Per-phase wall time and allocations (clone + each system, first-seen order)
+sim bench --seed S --turns N [--json]
+```
+
+`sim bench --json` emits one JSON object — the future perf-gate input (no gate
+yet: toy systems would make thresholds meaningless):
+
+```json
+{ "seed": 42, "turns": 500, "totalMs": 9.19,
+  "phases": [ { "name": "clone", "totalMs": 0.88, "allocatedBytes": 335648 }, … ] }
+```
+
+CI runs three jobs on every push: `build-and-test` (gates + full suite),
+`determinism` (the T0.8 in-process harness), and `determinism-xproc` (T0.9:
+two separate `sim run` processes must produce byte-identical hash logs, and
+`sim replay` must reproduce an ordered run byte-identically — separate processes
+surface environment/JIT divergence the in-process twins share).
 
 CI (`.github/workflows/ci.yml`) runs the banned-constructs check, build, and tests on
 every push and pull request.
@@ -60,4 +95,6 @@ Cross-system communication is exclusively through state tables and events.
   T0.7 (canonical serialization per ADR-005, SHA-256 WorldHash, versioned
   snapshots, order log + replay with the SetRainBias toy order),
   T0.8 (determinism harness: 1,000-turn twin-runs, replay, per-turn conservation
-  audit — the required "determinism" CI job, ADR-006).
+  audit — the required "determinism" CI job, ADR-006),
+  T0.9 (CLI: run/hash/replay/bench, exit-code contract, per-phase bench via
+  executor observer; cross-process determinism CI job). M0 packets complete.
