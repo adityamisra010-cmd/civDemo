@@ -23,6 +23,8 @@ public sealed class TerrainSet
     private readonly double[] _moisture;     // [0,1]
     private readonly double[] _fertility;    // [0,1], 0 on water
     private readonly double[] _movementCost; // relative cost per px
+    private readonly double[] _rivers;       // 1.0 on river cells (T1.2), else 0.0
+    private readonly int[][] _riverPolylines; // head→mouth cell indices, discharge-ranked
 
     /// <summary>SHA-256 over the canonical layer serialization; computed once at construction.</summary>
     public byte[] ContentHash { get; }
@@ -33,6 +35,10 @@ public sealed class TerrainSet
     public ReadOnlySpan<double> Moisture => _moisture;
     public ReadOnlySpan<double> Fertility => _fertility;
     public ReadOnlySpan<double> MovementCost => _movementCost;
+    public ReadOnlySpan<double> Rivers => _rivers;
+
+    public int RiverPolylineCount => _riverPolylines.Length;
+    public ReadOnlySpan<int> RiverPolyline(int index) => _riverPolylines[index];
 
     public int Index(int x, int y) => y * Size + x;
     public bool IsWater(int x, int y) => _water[Index(x, y)] >= 0.5;
@@ -40,7 +46,8 @@ public sealed class TerrainSet
     internal TerrainSet(
         int size, double kmPerPx, double seaLevel,
         double[] elevation, double[] water, double[] temperature,
-        double[] moisture, double[] fertility, double[] movementCost)
+        double[] moisture, double[] fertility, double[] movementCost,
+        double[] rivers, int[][] riverPolylines)
     {
         Size = size;
         KmPerPx = kmPerPx;
@@ -51,6 +58,8 @@ public sealed class TerrainSet
         _moisture = moisture;
         _fertility = fertility;
         _movementCost = movementCost;
+        _rivers = rivers;
+        _riverPolylines = riverPolylines;
         ContentHash = ComputeContentHash();
     }
 
@@ -74,6 +83,23 @@ public sealed class TerrainSet
         AppendLayer(sha, _moisture, buf);
         AppendLayer(sha, _fertility, buf);
         AppendLayer(sha, _movementCost, buf);
+        AppendLayer(sha, _rivers, buf);
+
+        // River polylines: count, then per line its length and cell indices —
+        // field by field, same discipline as the raster layers.
+        BitConverter.TryWriteBytes(buf[..4], _riverPolylines.Length);
+        sha.AppendData(buf[..4]);
+        for (int p = 0; p < _riverPolylines.Length; p++)
+        {
+            int[] line = _riverPolylines[p];
+            BitConverter.TryWriteBytes(buf[..4], line.Length);
+            sha.AppendData(buf[..4]);
+            for (int i = 0; i < line.Length; i++)
+            {
+                BitConverter.TryWriteBytes(buf[..4], line[i]);
+                sha.AppendData(buf[..4]);
+            }
+        }
 
         return sha.GetHashAndReset();
     }

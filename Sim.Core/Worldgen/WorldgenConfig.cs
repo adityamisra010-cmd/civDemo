@@ -30,7 +30,17 @@ public sealed record WorldgenConfig(
     [property: JsonPropertyName("elevation")] NoiseConfig Elevation,
     [property: JsonPropertyName("temperature")] TemperatureConfig Temperature,
     [property: JsonPropertyName("moistureDecayPx")] double MoistureDecayPx,
-    [property: JsonPropertyName("movement")] MovementConfig Movement);
+    [property: JsonPropertyName("movement")] MovementConfig Movement,
+    [property: JsonPropertyName("rivers")] RiversConfig Rivers);
+
+/// <summary>River extraction tuning (T1.2, all TUNE).</summary>
+public sealed record RiversConfig(
+    [property: JsonPropertyName("count")] int Count,
+    [property: JsonPropertyName("minAccumulationFraction")] double MinAccumulationFraction,
+    [property: JsonPropertyName("adjacencyRadiusPx")] int AdjacencyRadiusPx,
+    [property: JsonPropertyName("fertilityBoost")] double FertilityBoost,
+    [property: JsonPropertyName("cellFractionMin")] double CellFractionMin,
+    [property: JsonPropertyName("cellFractionMax")] double CellFractionMax);
 
 public sealed record MaskConfig(
     [property: JsonPropertyName("noise")] NoiseConfig Noise,
@@ -94,6 +104,22 @@ public static class WorldgenConfigLoader
             throw new WorldgenConfigException("movement is missing.");
         if (cfg.Movement.BaseCost <= 0 || cfg.Movement.WaterCost <= 0)
             throw new WorldgenConfigException("movement.baseCost and movement.waterCost must be > 0.");
+        if (cfg.Rivers is null)
+            throw new WorldgenConfigException("rivers is missing.");
+        if (cfg.Rivers.Count < 1)
+            throw new WorldgenConfigException($"rivers.count must be >= 1, got {cfg.Rivers.Count}.");
+        if (cfg.Rivers.MinAccumulationFraction <= 0 || cfg.Rivers.MinAccumulationFraction >= 1)
+            throw new WorldgenConfigException(
+                $"rivers.minAccumulationFraction must be in (0,1), got {Inv(cfg.Rivers.MinAccumulationFraction)}.");
+        if (cfg.Rivers.AdjacencyRadiusPx < 0)
+            throw new WorldgenConfigException($"rivers.adjacencyRadiusPx must be >= 0, got {cfg.Rivers.AdjacencyRadiusPx}.");
+        if (cfg.Rivers.FertilityBoost < 0)
+            throw new WorldgenConfigException($"rivers.fertilityBoost must be >= 0, got {Inv(cfg.Rivers.FertilityBoost)}.");
+        if (!(0 <= cfg.Rivers.CellFractionMin && cfg.Rivers.CellFractionMin <= cfg.Rivers.CellFractionMax
+              && cfg.Rivers.CellFractionMax < 1))
+            throw new WorldgenConfigException(
+                $"rivers cell-fraction bounds must satisfy 0 <= min <= max < 1, got " +
+                $"min {Inv(cfg.Rivers.CellFractionMin)}, max {Inv(cfg.Rivers.CellFractionMax)}.");
 
         return cfg;
     }

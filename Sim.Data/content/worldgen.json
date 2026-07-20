@@ -18,5 +18,13 @@
     "fertilityToleranceC": 22.0
   },
   "moistureDecayPx": 40.0,
-  "movement": { "baseCost": 1.0, "slopeFactor": 60.0, "waterCost": 25.0 }
+  "movement": { "baseCost": 1.0, "slopeFactor": 60.0, "waterCost": 25.0 },
+  "rivers": {
+    "count": 12,
+    "minAccumulationFraction": 0.0004,
+    "adjacencyRadiusPx": 2,
+    "fertilityBoost": 0.6,
+    "cellFractionMin": 0.0005,
+    "cellFractionMax": 0.05
+  }
 }

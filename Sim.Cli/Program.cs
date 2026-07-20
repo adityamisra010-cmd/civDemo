@@ -230,6 +230,15 @@ namespace Sim.Cli
                     $"(target {cfg.LandFractionTarget.ToString(CultureInfo.InvariantCulture)}, " +
                     $"bounds {cfg.LandFractionMin.ToString(CultureInfo.InvariantCulture)}.." +
                     $"{cfg.LandFractionMax.ToString(CultureInfo.InvariantCulture)})");
+
+                long riverCells = 0;
+                ReadOnlySpan<double> riverMask = terrain.Rivers;
+                for (int i = 0; i < riverMask.Length; i++) if (riverMask[i] >= 0.5) riverCells++;
+                Console.WriteLine($"rivers: {terrain.RiverPolylineCount} polylines, {riverCells} cells " +
+                    $"({(riverCells / (double)Math.Max(1, landCells)).ToString("F5", CultureInfo.InvariantCulture)} of land)");
+                Console.WriteLine("fertility/river-adjacency correlation r=" +
+                    Sim.Core.Worldgen.WorldgenStats.FertilityRiverCorrelation(terrain, cfg.Rivers.AdjacencyRadiusPx)
+                        .ToString("F4", CultureInfo.InvariantCulture));
             }
             return 0;
         }

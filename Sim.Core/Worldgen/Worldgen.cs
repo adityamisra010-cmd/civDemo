@@ -91,14 +91,22 @@ public static class Worldgen
         for (int i = 0; i < cells; i++)
             moisture[i] = 1.0 / (1.0 + waterDistance[i] / cfg.MoistureDecayPx);
 
-        // --- 6: fertility v0 — temperature suitability × moisture, land only -----
+        // --- 5b: hydrology (T1.2) — rivers precede fertility finalization --------
+        Hydrology.Result rivers = Hydrology.Compute(elevation, water, size, cfg.Rivers);
+
+        // --- 6: fertility v0 — temperature suitability × moisture, land only,
+        //         with the river-adjacency boost applied BEFORE finalization ------
+        int[] riverDistance = ChebyshevDistanceToRivers(rivers.RiverMask, size, cfg.Rivers.AdjacencyRadiusPx);
         for (int i = 0; i < cells; i++)
         {
             if (water[i] >= 0.5) { fertility[i] = 0.0; continue; }
             double tempSuit = 1.0 - Math.Abs(temperature[i] - cfg.Temperature.FertilityOptimalC)
                                     / cfg.Temperature.FertilityToleranceC;
             if (tempSuit < 0.0) tempSuit = 0.0;
-            fertility[i] = tempSuit * moisture[i];
+            double f = tempSuit * moisture[i];
+            if (riverDistance[i] <= cfg.Rivers.AdjacencyRadiusPx)
+                f *= 1.0 + cfg.Rivers.FertilityBoost;
+            fertility[i] = f > 1.0 ? 1.0 : f;   // finalization clamp
         }
 
         // --- 7: movement-cost — slope-scaled on land, flat penalty on water ------
@@ -118,7 +126,45 @@ public static class Worldgen
         }
 
         return new TerrainSet(size, cfg.KmPerPx, seaLevel,
-            elevation, water, temperature, moisture, fertility, movementCost);
+            elevation, water, temperature, moisture, fertility, movementCost,
+            rivers.RiverMask, rivers.Polylines);
+    }
+
+    /// <summary>
+    /// Chebyshev distance (in px) to the nearest river cell, capped at
+    /// <paramref name="maxRadius"/>+1 — a bounded multi-source BFS over the
+    /// 8-neighborhood, same fixed expansion order as the water-distance BFS.
+    /// </summary>
+    private static int[] ChebyshevDistanceToRivers(double[] riverMask, int size, int maxRadius)
+    {
+        int cells = size * size;
+        var dist = new int[cells];
+        var queue = new int[cells];
+        int head = 0, tail = 0;
+        for (int i = 0; i < cells; i++)
+        {
+            if (riverMask[i] >= 0.5) { dist[i] = 0; queue[tail++] = i; }
+            else dist[i] = int.MaxValue;
+        }
+        while (head < tail)
+        {
+            int i = queue[head++];
+            int d = dist[i] + 1;
+            if (d > maxRadius) continue;   // bounded: beyond the boost radius is "far"
+            int x = i % size, y = i / size;
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+                    int n = ny * size + nx;
+                    if (dist[n] == int.MaxValue) { dist[n] = d; queue[tail++] = n; }
+                }
+            }
+        }
+        return dist;
     }
 
     /// <summary>
