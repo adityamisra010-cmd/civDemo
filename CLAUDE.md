@@ -7,7 +7,7 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 2. `docs/m0-kernel-spec.md` — current milestone spec: kernel contract (§3) + task packets (§4).
 3. When your task touches them: `docs/civ-sim-architecture-v3-outline.md` (Spine), `docs/spine-s8-governance-freeze.md` (rules), `docs/d009-d010-map-population-addendum.md`, `docs/d011-battle-layer-addendum.md`, `docs/d018-classes-and-needs.md`, latest `docs/adr/*`.
 
-**Current milestone: M0.** Active packets: `docs/m0-kernel-spec.md` §4. (This line changes only at a milestone exit gate.)
+**Current milestone: M0 COMPLETE (tag m0-exit).** Next: M1 — do NOT implement until `docs/m1-walking-skeleton-spec.md` exists on main and its packets are cut. (This line changes only at a milestone exit gate.)
 
 ## Non-negotiable laws (short form)
 1. **Conservation:** people/money/goods change ONLY via `Ledger.Transfer`/`Ledger.Flow`. Conserved stocks are `long`. Exact equality in tests — no epsilon.
