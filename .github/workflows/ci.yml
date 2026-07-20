@@ -63,3 +63,42 @@ jobs:
             tail -n 3 determinism.log
           } >> "$GITHUB_STEP_SUMMARY"
           exit $status
+
+  determinism-xproc:
+    name: determinism-xproc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI
+        run: dotnet build Sim.Cli/Sim.Cli.csproj --configuration Release
+
+      - name: Cross-process determinism (T0.9)
+        run: |
+          # Separate PROCESSES surface environment/culture/JIT divergence that
+          # the in-process T0.8 twins structurally share.
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+
+          $CLI run --seed 42 --turns 400 --hash-log run-a.log
+          $CLI run --seed 42 --turns 400 --hash-log run-b.log
+          if ! diff run-a.log run-b.log > xproc.diff; then
+            echo "CROSS-PROCESS DIVERGENCE — first divergent turn:"
+            head -n 5 xproc.diff
+            exit 1
+          fi
+          echo "orderless: two processes byte-identical over 400 turns"
+
+          python3 scripts/gen-sample-orders.py sample-orders.bin 400
+          $CLI run --seed 42 --turns 400 --orders sample-orders.bin --hash-log ordered.log
+          $CLI replay --seed 42 --turns 400 --orders sample-orders.bin --hash-log replayed.log
+          if ! diff ordered.log replayed.log > replay.diff; then
+            echo "REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 replay.diff
+            exit 1
+          fi
+          echo "replay: byte-identical to the ordered run over 400 turns"
