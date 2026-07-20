@@ -8,11 +8,14 @@ namespace Sim.Tests.Kernel;
 // required "determinism" CI job on every push.
 //
 // DIVISION OF LABOR (ADR-006): scripts/check-banned-constructs.sh catches VISIBLE
-// banned constructs (framework RNG, single-precision types, wall clock, …). THIS harness
-// catches BEHAVIORAL divergence no grep can see — hash-bucket-ordered iteration,
-// allocation-address dependence, hidden shared state, culture leaks. Teeth were
-// proven at packet time: a grep-invisible Dictionary<object,·>-iteration-ordered
-// state write injected into a toy system passed the grep and failed the twin-run.
+// banned constructs (framework RNG, single-precision types, wall clock, …). THIS
+// harness catches BEHAVIORAL divergence no grep can see — hidden shared state
+// between runs, identity-hash/allocation dependence feeding state. Teeth were
+// proven at packet time: a grep-invisible SHARED STATIC Dictionary accumulating
+// across Step calls, its iterated contents feeding a state write, passed the grep
+// and failed the twin-run. Known limits (ADR-006): purely local Dictionary
+// iteration is insertion-ordered (review-enforced, not gate-caught); culture
+// leaks are prevented by InvariantGlobalization, not by in-process twins.
 //
 // Every run here constructs EVERYTHING fresh — WorldState, system instances (via
 // SystemCatalog), executor, era table, pipeline — so twin equality also proves

@@ -49,11 +49,13 @@ jobs:
 
       - name: Determinism harness (T0.8 permanent regression gate)
         run: |
+          # Default step shell is 'bash -e': capture the pipeline status with
+          # '|| status=$?' so the summary below is published on FAILURE too.
           set -o pipefail
+          status=0
           start=$(date +%s)
           dotnet test Sim.slnx --no-build --configuration Release \
-            --filter "suite=determinism" 2>&1 | tee determinism.log
-          status=$?
+            --filter "suite=determinism" 2>&1 | tee determinism.log || status=$?
           end=$(date +%s)
           {
             echo "### Determinism harness (T0.8)"
