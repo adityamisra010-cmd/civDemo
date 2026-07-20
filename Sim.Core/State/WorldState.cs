@@ -72,6 +72,7 @@ public interface IReadOnlyWorldState
 {
     ulong Seed { get; }
     Kernel.SimClock Clock { get; }
+    Worldgen.TerrainSet? Terrain { get; }
     IReadOnlyTable<RegionRow> Regions { get; }
     IReadOnlyTable<RngStreamRow> RngStreams { get; }
     IReadOnlyTable<RainfallRow> Rainfall { get; }
@@ -93,6 +94,13 @@ public sealed class WorldState : IReadOnlyWorldState
 
     /// <summary>The clock (§3.4, ADR-002) — advanced by the kernel, once per turn.</summary>
     public Kernel.SimClock Clock { get; set; }
+
+    /// <summary>
+    /// Immutable terrain rasters (ADR-008): set once after worldgen, shared by
+    /// REFERENCE across Clone (immutable data needs no double buffer). The
+    /// terrain content hash is folded into WorldHash by the canonical schema.
+    /// </summary>
+    public Worldgen.TerrainSet? Terrain { get; set; }
 
     public Table<RegionRow> Regions { get; }
 
@@ -151,5 +159,8 @@ public sealed class WorldState : IReadOnlyWorldState
     /// </summary>
     public WorldState Clone() =>
         new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
-            Goods.Clone(), LedgerFlows.Clone());
+            Goods.Clone(), LedgerFlows.Clone())
+        {
+            Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
+        };
 }

@@ -16,6 +16,9 @@ public static class DataFiles
     /// <summary>The turn-pipeline order (§3.3), consumed by PipelineLoader.</summary>
     public static Stream OpenPipeline() => Open("Sim.Data.pipeline.json");
 
+    /// <summary>Worldgen tuning (D-015/D-022), consumed by WorldgenConfigLoader.</summary>
+    public static Stream OpenWorldgen() => Open("Sim.Data.worldgen.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

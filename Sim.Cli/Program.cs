@@ -10,6 +10,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "hash" => Cli.Guard(() => Cli.Hash(args)),
     "replay" => Cli.Guard(() => Cli.Replay(args)),
     "bench" => Cli.Guard(() => Cli.Bench(args)),
+    "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
     _ => Cli.Usage($"unknown command '{args[0]}'"),
 };
 
@@ -48,6 +49,7 @@ namespace Sim.Cli
                   sim hash SAVEFILE
                   sim replay --seed S --orders PATH --turns N [--hash-log PATH]
                   sim bench --seed S --turns N [--json]
+                  sim worldgen --seed S [--stats] [--size PX]
                 """);
             return 1;
         }
@@ -186,6 +188,64 @@ namespace Sim.Cli
                     Console.WriteLine($"{p.Name,-12} {Ms(TicksToMs(p.Ticks)),9}    {p.AllocatedBytes,12}");
             }
             return 0;
+        }
+
+        internal static int WorldgenCmd(string[] args)
+        {
+            var opts = Options.Parse(args, flags: ["--stats"], valued: ["--seed", "--size"]);
+            ulong seed = opts.Seed();
+
+            using var cfgStream = Sim.Data.DataFiles.OpenWorldgen();
+            Sim.Core.Worldgen.WorldgenConfig cfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(cfgStream);
+            if (opts.Get("--size") is { } sizeText)
+            {
+                if (!int.TryParse(sizeText, NumberStyles.None, CultureInfo.InvariantCulture, out int size) || size < 16)
+                    throw new CliUsageException($"--size must be an integer >= 16, got '{sizeText}'");
+                cfg = cfg with { SizePx = size };
+            }
+
+            long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+            Sim.Core.Worldgen.TerrainSet terrain = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed);
+            double ms = TicksToMs(System.Diagnostics.Stopwatch.GetTimestamp() - t0);
+
+            Console.WriteLine($"worldgen complete: seed {seed}, {cfg.SizePx}x{cfg.SizePx} @ " +
+                $"{cfg.KmPerPx.ToString(CultureInfo.InvariantCulture)} km/px, {Ms(ms)} ms, " +
+                $"terrain hash {Convert.ToHexStringLower(terrain.ContentHash)}");
+
+            if (opts.Has("--stats"))
+            {
+                Console.WriteLine("field         min          max          mean");
+                PrintFieldStats("elevation", terrain.Elevation);
+                PrintFieldStats("water", terrain.Water);
+                PrintFieldStats("temperature", terrain.Temperature);
+                PrintFieldStats("moisture", terrain.Moisture);
+                PrintFieldStats("fertility", terrain.Fertility);
+                PrintFieldStats("movementCost", terrain.MovementCost);
+
+                long landCells = 0;
+                ReadOnlySpan<double> water = terrain.Water;
+                for (int i = 0; i < water.Length; i++) if (water[i] < 0.5) landCells++;
+                double landFraction = landCells / (double)water.Length;
+                Console.WriteLine($"land fraction {landFraction.ToString("F4", CultureInfo.InvariantCulture)} " +
+                    $"(target {cfg.LandFractionTarget.ToString(CultureInfo.InvariantCulture)}, " +
+                    $"bounds {cfg.LandFractionMin.ToString(CultureInfo.InvariantCulture)}.." +
+                    $"{cfg.LandFractionMax.ToString(CultureInfo.InvariantCulture)})");
+            }
+            return 0;
+        }
+
+        private static void PrintFieldStats(string name, ReadOnlySpan<double> layer)
+        {
+            double min = double.MaxValue, max = double.MinValue, sum = 0.0;
+            for (int i = 0; i < layer.Length; i++)
+            {
+                double v = layer[i];
+                if (v < min) min = v;
+                if (v > max) max = v;
+                sum += v;
+            }
+            string F(double v) => v.ToString("F4", CultureInfo.InvariantCulture);
+            Console.WriteLine($"{name,-12} {F(min),10}   {F(max),10}   {F(sum / layer.Length),10}");
         }
 
         // --- helpers ----------------------------------------------------------

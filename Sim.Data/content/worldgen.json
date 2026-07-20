@@ -1,0 +1,22 @@
+{
+  "sizePx": 1024,
+  "kmPerPx": 4.0,
+  "landFractionTarget": 0.35,
+  "landFractionMin": 0.25,
+  "landFractionMax": 0.45,
+  "continentalMask": {
+    "noise": { "octaves": 3, "frequency": 2.0, "persistence": 0.5, "lacunarity": 2.0 },
+    "noiseWeight": 0.45,
+    "radialWeight": 0.75
+  },
+  "elevation": { "octaves": 6, "frequency": 4.0, "persistence": 0.55, "lacunarity": 2.0 },
+  "temperature": {
+    "equatorC": 30.0,
+    "poleDropC": 40.0,
+    "lapsePerElevC": 25.0,
+    "fertilityOptimalC": 16.0,
+    "fertilityToleranceC": 22.0
+  },
+  "moistureDecayPx": 40.0,
+  "movement": { "baseCost": 1.0, "slopeFactor": 60.0, "waterCost": 25.0 }
+}

@@ -11,6 +11,10 @@ public static class WorldStates
     {
         if (a.Seed != b.Seed) return false;
         if (a.Clock != b.Clock) return false;
+        // Terrain (ADR-008): immutable, so content-hash equality is state equality.
+        if ((a.Terrain is null) != (b.Terrain is null)) return false;
+        if (a.Terrain is not null && b.Terrain is not null
+            && !a.Terrain.ContentHash.AsSpan().SequenceEqual(b.Terrain.ContentHash)) return false;
         if (!TableEquals(a.Regions, b.Regions)) return false;
         if (!TableEquals(a.RngStreams, b.RngStreams)) return false;
         if (!TableEquals(a.Rainfall, b.Rainfall)) return false;

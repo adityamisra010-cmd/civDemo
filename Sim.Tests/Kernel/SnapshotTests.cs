@@ -87,7 +87,13 @@ public class SnapshotTests
         // content, schema order, field widths, RNG, system behavior, or the
         // canonical era/pipeline data — that is its job. Update it deliberately,
         // with a schema Version bump where appropriate; never casually.
-        const string golden = "4cba3e716e5d770a93b13beb4ef7c44baaefaa36c83c94c3f85ef48285f47ce9";
+        //
+        // Update history:
+        //   v1 (T0.7): 4cba3e716e5d770a93b13beb4ef7c44baaefaa36c83c94c3f85ef48285f47ce9
+        //   v2 (T1.1, ADR-008): schema gained the terrain presence flag + hash
+        //   after the clock; sim behavior unchanged (this world has no terrain —
+        //   the stream grew exactly one 0x00 byte).
+        const string golden = "34ad6f01a9b8aaa05eccc7f1265457bf6811a26e5760f4791c1ecf0d7ccea060";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

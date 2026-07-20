@@ -17,8 +17,9 @@ namespace Sim.Core.Kernel;
 /// </summary>
 public static class CanonicalSchema
 {
-    /// <summary>Bumped on ANY schema change. Saves break between milestones (D-008).</summary>
-    public const int Version = 1;
+    /// <summary>Bumped on ANY schema change. Saves break between milestones (D-008).
+    /// v2 (T1.1, ADR-008): terrain presence flag + terrain content hash after the clock.</summary>
+    public const int Version = 2;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -41,6 +42,13 @@ public static class CanonicalSchema
         writer.Write(world.Clock.Turn);
         writer.Write(world.Clock.SimDays);
         writer.Write(world.Clock.DtDays);
+
+        // 2b. Terrain (ADR-008): the immutable rasters never serialize per-state;
+        // their once-computed content hash is folded in, so worlds on different
+        // terrain can never hash equal, and a save binds to its terrain.
+        writer.Write(world.Terrain is not null);
+        if (world.Terrain is not null)
+            writer.Write(world.Terrain.ContentHash);
 
         // 3. Regions
         writer.Write(world.Regions.Count);
@@ -99,13 +107,24 @@ public static class CanonicalSchema
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
-    public static WorldState Read(BinaryReader reader)
+    public static WorldState Read(BinaryReader reader) => Read(reader, out _);
+
+    /// <summary>
+    /// As <see cref="Read(BinaryReader)"/>; <paramref name="expectedTerrainHash"/>
+    /// returns the terrain content hash the state was saved against (null if the
+    /// world had no terrain). Terrain itself is not in the stream (ADR-008) — the
+    /// caller regenerates it from seed + config and must match this hash
+    /// (Snapshot.Load enforces it).
+    /// </summary>
+    public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash)
     {
         ulong seed = reader.ReadUInt64();
         var world = new WorldState(seed)
         {
             Clock = new SimClock(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64()),
         };
+
+        expectedTerrainHash = reader.ReadBoolean() ? reader.ReadBytes(32) : null;
 
         int regionCount = reader.ReadInt32();
         for (int i = 0; i < regionCount; i++)
@@ -162,6 +181,7 @@ public static class CanonicalSchema
     /// </summary>
     public static long ExpectedLength(WorldState world) =>
         SeedWidth + ClockWidth
+        + 1 + (world.Terrain is not null ? 32 : 0)   // terrain flag + content hash
         + CountPrefixWidth + (long)world.Regions.Count * RegionRowWidth
         + CountPrefixWidth + (long)world.RngStreams.Count * RngStreamRowWidth
         + CountPrefixWidth + (long)world.Rainfall.Count * RainfallRowWidth

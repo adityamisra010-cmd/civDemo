@@ -25,7 +25,14 @@ public static class Snapshot
         CanonicalSchema.Write(world, writer);
     }
 
-    public static WorldState Load(Stream source)
+    /// <summary>
+    /// Loads a save. Terrain is not stored in saves (ADR-008): a save of a world
+    /// WITH terrain records only its content hash — pass the regenerated
+    /// <paramref name="terrain"/> (from the same seed + worldgen config) and it is
+    /// validated against the stored hash and attached; a mismatch or a missing
+    /// argument fails actionably.
+    /// </summary>
+    public static WorldState Load(Stream source, Worldgen.TerrainSet? terrain = null)
     {
         using var reader = new BinaryReader(source, System.Text.Encoding.UTF8, leaveOpen: true);
 
@@ -44,13 +51,32 @@ public static class Snapshot
         ulong headerSeed = reader.ReadUInt64();
         long headerTurn = reader.ReadInt64();
 
-        WorldState world = CanonicalSchema.Read(reader);
+        WorldState world = CanonicalSchema.Read(reader, out byte[]? expectedTerrainHash);
 
         // Header is redundant with the stream — treat disagreement as corruption.
         if (world.Seed != headerSeed || world.Clock.Turn != headerTurn)
             throw new SnapshotFormatException(
                 $"save is corrupt: header (seed {headerSeed}, turn {headerTurn}) disagrees with " +
                 $"state stream (seed {world.Seed}, turn {world.Clock.Turn}).");
+
+        if (expectedTerrainHash is not null)
+        {
+            if (terrain is null)
+                throw new SnapshotFormatException(
+                    "save was made against generated terrain (ADR-008): regenerate the TerrainSet " +
+                    "from the same seed + worldgen config and pass it to Snapshot.Load.");
+            if (!terrain.ContentHash.AsSpan().SequenceEqual(expectedTerrainHash))
+                throw new SnapshotFormatException(
+                    "terrain mismatch: the provided TerrainSet's content hash does not equal the " +
+                    "hash this save was made against — wrong seed or worldgen config.");
+            world.Terrain = terrain;
+        }
+        else if (terrain is not null)
+        {
+            throw new SnapshotFormatException(
+                "save was made without terrain, but a TerrainSet was provided — refusing to " +
+                "attach terrain the saved state never saw.");
+        }
 
         return world;
     }
