@@ -103,6 +103,45 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV3_PopulatedNetworkTables_LengthAndRoundTripExact()
+    {
+        // Adversarial-review finding (T1.3, the T1.1 precedent repeated): the v3
+        // network row widths and (de)serializers were only ever exercised with
+        // EMPTY tables — a destroyed edge-cost write passed the whole suite.
+        // This test pins the populated branch: exact length, bit-exact round
+        // trip (including a negative-zero Cost), and hash equality.
+        WorldState world = Genesis(7);
+        world.NetworkNodes.Add(new NetworkNodeRow(new NetworkNodeId(0), LatticeNode: 1234));
+        world.NetworkNodes.Add(new NetworkNodeRow(new NetworkNodeId(1), LatticeNode: 987));
+        world.NetworkEdges.Add(new NetworkEdgeRow(
+            new NetworkEdgeId(0), new NetworkNodeId(0), new NetworkNodeId(1),
+            EdgeTypes.DirtPath, Cost: 123.456));
+        world.NetworkEdges.Add(new NetworkEdgeRow(
+            new NetworkEdgeId(1), new NetworkNodeId(1), new NetworkNodeId(0),
+            EdgeTypes.DirtPath, Cost: -0.0));
+
+        // Anti-padding: exact schema width sum with rows PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(1234, loaded.NetworkNodes[0].LatticeNode);
+        Assert.Equal(123.456, loaded.NetworkEdges[0].Cost);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.NetworkEdges[1].Cost));
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
     public void VersionMismatch_FailsWithActionableMessage()
     {
         WorldState world = CanonicalExecutor().Run(Genesis(42), 3);

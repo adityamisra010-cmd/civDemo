@@ -139,6 +139,46 @@ public class PathfindingTests
         }
     }
 
+    [Fact]
+    public void PathDeterminism_TieRichLattice_TwinNodeSequencesIdentical_AllPairs()
+    {
+        // Adversarial-review finding (T1.3): the FsCheck twin property runs on
+        // fractal terrain where exact double f-ties essentially never occur, so a
+        // NONDETERMINISTIC tie-break (e.g. salted by runtime identity hash) passed
+        // it. This test runs twins on the tie-DENSE handcrafted lattice — small
+        // integer-ish costs produce many exact f-ties — and asserts identical
+        // NODE SEQUENCES, binding the (f, node id) mandate where it matters.
+        const int size = 6;
+        var costs = new double[size * size];
+        var passable = new bool[size * size];
+        for (int i = 0; i < costs.Length; i++)
+        {
+            costs[i] = 1.0 + (i * 7 % 5) * 1.5;
+            passable[i] = true;
+        }
+        passable[14] = false;
+        passable[15] = false;
+        var lattice = TraversalLattice.FromCosts(size, costs, passable);
+        var world = new WorldState(1);
+
+        for (int from = 0; from < size * size; from++)
+        {
+            if (!passable[from]) continue;
+            for (int to = 0; to < size * size; to++)
+            {
+                if (!passable[to]) continue;
+                Pathfinder.PathResult a = Pathfinder.FindPath(lattice, world, from, to);
+                Pathfinder.PathResult b = Pathfinder.FindPath(lattice, world, from, to);
+                Assert.Equal(a.Found, b.Found);
+                if (!a.Found) continue;
+                Assert.True(a.Nodes.AsSpan().SequenceEqual(b.Nodes),
+                    $"twin node sequences differ for {from}->{to}");
+                Assert.Equal(BitConverter.DoubleToInt64Bits(a.TotalCost),
+                    BitConverter.DoubleToInt64Bits(b.TotalCost));
+            }
+        }
+    }
+
     // Plain Dijkstra, independent implementation (no heuristic) — the optimality reference.
     private static double[] ReferenceDijkstra(TraversalLattice lattice, int from)
     {
