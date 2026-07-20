@@ -58,4 +58,6 @@ Cross-system communication is exclusively through state tables and events.
   T0.6 (Ledger + Conserved wrapper per ADR-004, sources/sinks tables,
   ConservationAuditor, toy TradeSystem; conservation exact and grep-gated),
   T0.7 (canonical serialization per ADR-005, SHA-256 WorldHash, versioned
-  snapshots, order log + replay with the SetRainBias toy order).
+  snapshots, order log + replay with the SetRainBias toy order),
+  T0.8 (determinism harness: 1,000-turn twin-runs, replay, per-turn conservation
+  audit — the required "determinism" CI job, ADR-006).

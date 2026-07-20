@@ -29,3 +29,35 @@ jobs:
 
       - name: Read-only view mutation must not compile (T0.2 acceptance)
         run: ./scripts/check-readonly-proof.sh
+
+  determinism:
+    name: determinism
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Sim.slnx
+
+      - name: Build
+        run: dotnet build Sim.slnx --no-restore --configuration Release
+
+      - name: Determinism harness (T0.8 permanent regression gate)
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          dotnet test Sim.slnx --no-build --configuration Release \
+            --filter "suite=determinism" 2>&1 | tee determinism.log
+          status=$?
+          end=$(date +%s)
+          {
+            echo "### Determinism harness (T0.8)"
+            echo "Runtime: $((end-start))s (budget: ~180s)"
+            tail -n 3 determinism.log
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
