@@ -160,6 +160,35 @@ public class WorldgenTests
         var e2 = Assert.Throws<SnapshotFormatException>(() =>
             Snapshot.Load(buffer, Sim.Core.Worldgen.Worldgen.Generate(cfg, seed: 10)));
         Assert.Contains("terrain mismatch", e2.Message);
+
+        // Inverse direction: a terrain-less save refuses an offered TerrainSet.
+        var plain = new WorldState(seed: 9);
+        using var plainBuffer = new MemoryStream();
+        Snapshot.Save(plain, plainBuffer);
+        plainBuffer.Position = 0;
+        var e3 = Assert.Throws<SnapshotFormatException>(() =>
+            Snapshot.Load(plainBuffer, Sim.Core.Worldgen.Worldgen.Generate(cfg, seed: 9)));
+        Assert.Contains("refusing to attach", e3.Message);
+    }
+
+    [Fact]
+    public void CanonicalStream_TerrainPresentBranch_LengthEqualsSchemaWidthSum()
+    {
+        // The anti-padding guard for schema v2's terrain branch (flag + 32 hash
+        // bytes): without this, a wrong width in ExpectedLength's terrain term
+        // would never fail any test (the M0 length proof runs terrain-less).
+        var world = new WorldState(seed: 3)
+        {
+            Terrain = Sim.Core.Worldgen.Worldgen.Generate(Dev(), seed: 3),
+        };
+        world.Regions.Add(new RegionRow(new RegionId(0)));
+
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), buffer.Length);
     }
 
     [Fact]
