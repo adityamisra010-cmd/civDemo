@@ -31,7 +31,16 @@ public sealed record WorldgenConfig(
     [property: JsonPropertyName("temperature")] TemperatureConfig Temperature,
     [property: JsonPropertyName("moistureDecayPx")] double MoistureDecayPx,
     [property: JsonPropertyName("movement")] MovementConfig Movement,
-    [property: JsonPropertyName("rivers")] RiversConfig Rivers);
+    [property: JsonPropertyName("rivers")] RiversConfig Rivers,
+    [property: JsonPropertyName("siting")] SitingConfig Siting);
+
+/// <summary>
+/// Settlement-siting tuning (T1.4, all TUNE). WaterAccessCutoffPx: BFS grid
+/// distance to water beyond which the access score is 0 (score falls linearly
+/// from 1 at the shoreline to 0 at the cutoff).
+/// </summary>
+public sealed record SitingConfig(
+    [property: JsonPropertyName("waterAccessCutoffPx")] int WaterAccessCutoffPx);
 
 /// <summary>River extraction tuning (T1.2, all TUNE).</summary>
 public sealed record RiversConfig(
@@ -120,6 +129,11 @@ public static class WorldgenConfigLoader
             throw new WorldgenConfigException(
                 $"rivers cell-fraction bounds must satisfy 0 <= min <= max < 1, got " +
                 $"min {Inv(cfg.Rivers.CellFractionMin)}, max {Inv(cfg.Rivers.CellFractionMax)}.");
+        if (cfg.Siting is null)
+            throw new WorldgenConfigException("siting is missing.");
+        if (cfg.Siting.WaterAccessCutoffPx < 1)
+            throw new WorldgenConfigException(
+                $"siting.waterAccessCutoffPx must be >= 1, got {cfg.Siting.WaterAccessCutoffPx}.");
 
         return cfg;
     }

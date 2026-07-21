@@ -41,6 +41,12 @@ public readonly record struct NetworkEdgeId(int Value) : IComparable<NetworkEdge
     public int CompareTo(NetworkEdgeId other) => Value.CompareTo(other.Value);
 }
 
+/// <summary>Identifies a settlement (T1.4).</summary>
+public readonly record struct SettlementId(int Value) : IComparable<SettlementId>
+{
+    public int CompareTo(SettlementId other) => Value.CompareTo(other.Value);
+}
+
 /// <summary>Network edge types (D-009: path → road → highway …; M1 ships dirt path only).</summary>
 public static class EdgeTypes
 {

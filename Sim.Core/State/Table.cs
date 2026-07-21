@@ -68,6 +68,13 @@ public sealed class Table<T> : IReadOnlyTable<T> where T : unmanaged
     }
 
     /// <summary>
+    /// Drops all rows (capacity retained). For DERIVED-state tables only — e.g.
+    /// CatchmentSystem rebuilding its own tables on a network-revision change
+    /// (D-016). Conserved stocks never live in cleared tables (law 1).
+    /// </summary>
+    public void Clear() => _count = 0;
+
+    /// <summary>
     /// Full deep copy (§3.2: at turn start the kernel clones Prev → Next; simplicity
     /// beats cleverness at M0 scale). Rows are unmanaged, so the array copy shares
     /// nothing with the source.

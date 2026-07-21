@@ -96,7 +96,12 @@ public class SnapshotTests
         //   v2 value: 34ad6f01a9b8aaa05eccc7f1265457bf6811a26e5760f4791c1ecf0d7ccea060
         //   v3 (T1.3): schema gained the empty NetworkNodes/NetworkEdges tables
         //   (two zero count prefixes, 8 bytes); sim behavior unchanged.
-        const string golden = "1884a60b2b66e106503291131b91e9254e7ddf20b6e6a9926fddeedd1cf62e9e";
+        //   v3 value: 1884a60b2b66e106503291131b91e9254e7ddf20b6e6a9926fddeedd1cf62e9e
+        //   v4 (T1.4): schema gained four empty tables (Settlements, NetworkMeta,
+        //   CatchmentNodes, CatchmentSummaries — four zero count prefixes, 16 bytes).
+        //   The catchment system leads the pipeline but no-ops on this terrain-less
+        //   genesis world, so sim behavior is unchanged; only the stream grew.
+        const string golden = "64dff09f5e58a95966f9e7c6b2d921048d8595ad9d3183e9e5dc1152c9d235e2";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -138,6 +143,53 @@ public class SnapshotTests
         Assert.Equal(123.456, loaded.NetworkEdges[0].Cost);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.NetworkEdges[1].Cost));
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV4_PopulatedSettlementAndCatchmentTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule (T1.4): every new serialized row type ships a
+        // POPULATED-table test — exact ExpectedLength, bit-exact round trip, hash
+        // equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
+        // Exercises all four v4 row types with negative-zero doubles present.
+        WorldState world = Genesis(11);
+        world.Settlements.Add(new SettlementRow(new SettlementId(0), SiteCell: 4242, FoundedTurn: 7));
+        world.Settlements.Add(new SettlementRow(new SettlementId(1), SiteCell: 99, FoundedTurn: 13));
+        world.NetworkMeta.Add(new NetworkMetaRow(Revision: 5));
+        world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(0), LatticeNode: 321, TravelCost: 8.75));
+        world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(1), LatticeNode: 654, TravelCost: -0.0));
+        world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            new SettlementId(0), NodeCount: 1, EffectiveFarmland: 3.5,
+            NetworkRevision: 5, LastRecomputeTurn: 42));
+        world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            new SettlementId(1), NodeCount: 1, EffectiveFarmland: -0.0,
+            NetworkRevision: 5, LastRecomputeTurn: 42));
+
+        // Anti-padding: exact schema width sum with rows PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(4242, loaded.Settlements[0].SiteCell);
+        Assert.Equal(13, loaded.Settlements[1].FoundedTurn);
+        Assert.Equal(5, loaded.NetworkMeta[0].Revision);
+        Assert.Equal(8.75, loaded.CatchmentNodes[0].TravelCost);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.CatchmentNodes[1].TravelCost));
+        Assert.Equal(3.5, loaded.CatchmentSummaries[0].EffectiveFarmland);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveFarmland));
+        Assert.Equal(42, loaded.CatchmentSummaries[0].LastRecomputeTurn);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

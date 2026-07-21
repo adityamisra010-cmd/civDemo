@@ -1,5 +1,6 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Trade;
 using Sim.Core.Systems.Weather;
@@ -16,6 +17,15 @@ namespace Sim.Core;
 /// </summary>
 public static class SystemCatalog
 {
+    public static SystemRegistration Catchment()
+    {
+        var system = new CatchmentSystem();
+        return new SystemRegistration(CatchmentSystem.WellKnownId, CatchmentSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<CatchmentTables>(
+                prev, new CatchmentTables(next.CatchmentNodes, next.CatchmentSummaries), rng,
+                CatchmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Weather()
     {
         var system = new WeatherSystem();
@@ -44,5 +54,5 @@ public static class SystemCatalog
     }
 
     /// <summary>All systems that exist at the current milestone.</summary>
-    public static SystemRegistration[] All() => [Weather(), Growth(), Trade()];
+    public static SystemRegistration[] All() => [Catchment(), Weather(), Growth(), Trade()];
 }

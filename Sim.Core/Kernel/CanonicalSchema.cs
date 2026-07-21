@@ -19,8 +19,9 @@ public static class CanonicalSchema
 {
     /// <summary>Bumped on ANY schema change. Saves break between milestones (D-008).
     /// v2 (T1.1, ADR-008): terrain presence flag + terrain content hash after the clock.
-    /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.</summary>
-    public const int Version = 3;
+    /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.
+    /// v4 (T1.4): Settlements, NetworkMeta, CatchmentNodes, CatchmentSummaries after NetworkEdges.</summary>
+    public const int Version = 4;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -32,6 +33,10 @@ public static class CanonicalSchema
     private const int LedgerFlowRowWidth = 4 + 4 + 8 + 8; // Quantity, Reason, sourced, sunk
     private const int NetworkNodeRowWidth = 4 + 4;        // Id, LatticeNode
     private const int NetworkEdgeRowWidth = 4 + 4 + 4 + 4 + 8; // Id, A, B, EdgeType, Cost bits
+    private const int SettlementRowWidth = 4 + 4 + 8;          // Id, SiteCell, FoundedTurn
+    private const int NetworkMetaRowWidth = 4;                 // Revision
+    private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
+    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -128,6 +133,43 @@ public static class CanonicalSchema
             writer.Write(row.EdgeType);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Cost));
         }
+
+        // 11. Settlements (v4)
+        writer.Write(world.Settlements.Count);
+        for (int i = 0; i < world.Settlements.Count; i++)
+        {
+            SettlementRow row = world.Settlements[i];
+            writer.Write(row.Id.Value);
+            writer.Write(row.SiteCell);
+            writer.Write(row.FoundedTurn);
+        }
+
+        // 12. Network meta (v4)
+        writer.Write(world.NetworkMeta.Count);
+        for (int i = 0; i < world.NetworkMeta.Count; i++)
+            writer.Write(world.NetworkMeta[i].Revision);
+
+        // 13. Catchment nodes (v4)
+        writer.Write(world.CatchmentNodes.Count);
+        for (int i = 0; i < world.CatchmentNodes.Count; i++)
+        {
+            CatchmentNodeRow row = world.CatchmentNodes[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.LatticeNode);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.TravelCost));
+        }
+
+        // 14. Catchment summaries (v4)
+        writer.Write(world.CatchmentSummaries.Count);
+        for (int i = 0; i < world.CatchmentSummaries.Count; i++)
+        {
+            CatchmentSummaryRow row = world.CatchmentSummaries[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.NodeCount);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveFarmland));
+            writer.Write(row.NetworkRevision);
+            writer.Write(row.LastRecomputeTurn);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -211,6 +253,34 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int settlementCount = reader.ReadInt32();
+        for (int i = 0; i < settlementCount; i++)
+        {
+            world.Settlements.Add(new SettlementRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
+        }
+
+        int netMetaCount = reader.ReadInt32();
+        for (int i = 0; i < netMetaCount; i++)
+            world.NetworkMeta.Add(new NetworkMetaRow(reader.ReadInt32()));
+
+        int catchNodeCount = reader.ReadInt32();
+        for (int i = 0; i < catchNodeCount; i++)
+        {
+            world.CatchmentNodes.Add(new CatchmentNodeRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int catchSummaryCount = reader.ReadInt32();
+        for (int i = 0; i < catchSummaryCount; i++)
+        {
+            world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt32(), reader.ReadInt64()));
+        }
+
         return world;
     }
 
@@ -229,5 +299,9 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Goods.Count * GoodsRowWidth
         + CountPrefixWidth + (long)world.LedgerFlows.Count * LedgerFlowRowWidth
         + CountPrefixWidth + (long)world.NetworkNodes.Count * NetworkNodeRowWidth
-        + CountPrefixWidth + (long)world.NetworkEdges.Count * NetworkEdgeRowWidth;
+        + CountPrefixWidth + (long)world.NetworkEdges.Count * NetworkEdgeRowWidth
+        + CountPrefixWidth + (long)world.Settlements.Count * SettlementRowWidth
+        + CountPrefixWidth + (long)world.NetworkMeta.Count * NetworkMetaRowWidth
+        + CountPrefixWidth + (long)world.CatchmentNodes.Count * CatchmentNodeRowWidth
+        + CountPrefixWidth + (long)world.CatchmentSummaries.Count * CatchmentSummaryRowWidth;
 }

@@ -23,6 +23,10 @@ public static class WorldStates
         if (!TableEquals(a.LedgerFlows, b.LedgerFlows)) return false;
         if (!TableEquals(a.NetworkNodes, b.NetworkNodes)) return false;
         if (!TableEquals(a.NetworkEdges, b.NetworkEdges)) return false;
+        if (!TableEquals(a.Settlements, b.Settlements)) return false;
+        if (!TableEquals(a.NetworkMeta, b.NetworkMeta)) return false;
+        if (!TableEquals(a.CatchmentNodes, b.CatchmentNodes)) return false;
+        if (!TableEquals(a.CatchmentSummaries, b.CatchmentSummaries)) return false;
         return true;
     }
 

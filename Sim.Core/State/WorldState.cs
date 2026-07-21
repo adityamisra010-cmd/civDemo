@@ -60,6 +60,28 @@ public record struct NetworkNodeRow(NetworkNodeId Id, int LatticeNode);
 /// </summary>
 public record struct NetworkEdgeRow(NetworkEdgeId Id, NetworkNodeId A, NetworkNodeId B, int EdgeType, double Cost);
 
+/// <summary>A settlement (T1.4): site is a TERRAIN cell index. The table never assumes one row.</summary>
+public record struct SettlementRow(SettlementId Id, int SiteCell, long FoundedTurn);
+
+/// <summary>
+/// Network bookkeeping (T1.4): a single row holding the network revision counter.
+/// Worldgen initializes it to 0; PathBuildSystem owns incrementing it from T1.6.
+/// CatchmentSystem recomputes only when this revision moves (D-016).
+/// </summary>
+public record struct NetworkMetaRow(int Revision);
+
+/// <summary>One lattice node inside a settlement's catchment (owned by CatchmentSystem).</summary>
+public record struct CatchmentNodeRow(SettlementId Settlement, int LatticeNode, double TravelCost);
+
+/// <summary>
+/// Per-settlement catchment summary (owned by CatchmentSystem): node count,
+/// effective farmland, the network revision it was computed against, and the turn
+/// of the last recompute (the D-016 skip-proof observable).
+/// </summary>
+public record struct CatchmentSummaryRow(
+    SettlementId Settlement, int NodeCount, double EffectiveFarmland,
+    int NetworkRevision, long LastRecomputeTurn);
+
 /// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
@@ -95,6 +117,10 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<LedgerFlowRow> LedgerFlows { get; }
     IReadOnlyTable<NetworkNodeRow> NetworkNodes { get; }
     IReadOnlyTable<NetworkEdgeRow> NetworkEdges { get; }
+    IReadOnlyTable<SettlementRow> Settlements { get; }
+    IReadOnlyTable<NetworkMetaRow> NetworkMeta { get; }
+    IReadOnlyTable<CatchmentNodeRow> CatchmentNodes { get; }
+    IReadOnlyTable<CatchmentSummaryRow> CatchmentSummaries { get; }
 }
 
 /// <summary>
@@ -141,6 +167,18 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Transport-network edges (T1.3) — write ownership assigned at T1.6.</summary>
     public Table<NetworkEdgeRow> NetworkEdges { get; }
 
+    /// <summary>Settlements (T1.4) — created by worldgen founding; never assumes one row.</summary>
+    public Table<SettlementRow> Settlements { get; }
+
+    /// <summary>Network revision counter (T1.4/D-016) — initialized by worldgen, incremented by PathBuild (T1.6).</summary>
+    public Table<NetworkMetaRow> NetworkMeta { get; }
+
+    /// <summary>Catchment membership (T1.4) — owned by CatchmentSystem (derived state, D-016).</summary>
+    public Table<CatchmentNodeRow> CatchmentNodes { get; }
+
+    /// <summary>Catchment summaries (T1.4) — owned by CatchmentSystem (derived state, D-016).</summary>
+    public Table<CatchmentSummaryRow> CatchmentSummaries { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -149,6 +187,10 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<LedgerFlowRow> IReadOnlyWorldState.LedgerFlows => LedgerFlows;
     IReadOnlyTable<NetworkNodeRow> IReadOnlyWorldState.NetworkNodes => NetworkNodes;
     IReadOnlyTable<NetworkEdgeRow> IReadOnlyWorldState.NetworkEdges => NetworkEdges;
+    IReadOnlyTable<SettlementRow> IReadOnlyWorldState.Settlements => Settlements;
+    IReadOnlyTable<NetworkMetaRow> IReadOnlyWorldState.NetworkMeta => NetworkMeta;
+    IReadOnlyTable<CatchmentNodeRow> IReadOnlyWorldState.CatchmentNodes => CatchmentNodes;
+    IReadOnlyTable<CatchmentSummaryRow> IReadOnlyWorldState.CatchmentSummaries => CatchmentSummaries;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -161,13 +203,19 @@ public sealed class WorldState : IReadOnlyWorldState
         LedgerFlows = new Table<LedgerFlowRow>();
         NetworkNodes = new Table<NetworkNodeRow>();
         NetworkEdges = new Table<NetworkEdgeRow>();
+        Settlements = new Table<SettlementRow>();
+        NetworkMeta = new Table<NetworkMetaRow>();
+        CatchmentNodes = new Table<CatchmentNodeRow>();
+        CatchmentSummaries = new Table<CatchmentSummaryRow>();
     }
 
     private WorldState(
         ulong seed, Kernel.SimClock clock, Table<RegionRow> regions, Table<RngStreamRow> rngStreams,
         Table<RainfallRow> rainfall, Table<BiomassRow> biomass, Table<GoodsRow> goods,
         Table<LedgerFlowRow> ledgerFlows, Table<NetworkNodeRow> networkNodes,
-        Table<NetworkEdgeRow> networkEdges)
+        Table<NetworkEdgeRow> networkEdges, Table<SettlementRow> settlements,
+        Table<NetworkMetaRow> networkMeta, Table<CatchmentNodeRow> catchmentNodes,
+        Table<CatchmentSummaryRow> catchmentSummaries)
     {
         Seed = seed;
         Clock = clock;
@@ -179,6 +227,10 @@ public sealed class WorldState : IReadOnlyWorldState
         LedgerFlows = ledgerFlows;
         NetworkNodes = networkNodes;
         NetworkEdges = networkEdges;
+        Settlements = settlements;
+        NetworkMeta = networkMeta;
+        CatchmentNodes = catchmentNodes;
+        CatchmentSummaries = catchmentSummaries;
     }
 
     /// <summary>
@@ -188,7 +240,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// </summary>
     public WorldState Clone() =>
         new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
-            Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone())
+            Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
+            Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
+            CatchmentSummaries.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

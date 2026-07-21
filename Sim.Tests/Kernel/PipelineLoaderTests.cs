@@ -17,9 +17,10 @@ public class PipelineLoaderTests
     {
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(3, pipeline.Length);
-        Assert.Equal("weather", pipeline[0].Name);
-        Assert.Equal("growth", pipeline[1].Name);
+        Assert.Equal(4, pipeline.Length);
+        Assert.Equal("catchment", pipeline[0].Name);
+        Assert.Equal("weather", pipeline[1].Name);
+        Assert.Equal("growth", pipeline[2].Name);
     }
 
     [Fact]
@@ -27,7 +28,7 @@ public class PipelineLoaderTests
     {
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
-        Assert.Contains("known systems: weather, growth, trade", e.Message);
+        Assert.Contains("known systems: catchment, weather, growth, trade", e.Message);
     }
 
     [Fact]

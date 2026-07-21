@@ -26,5 +26,8 @@
     "fertilityBoost": 0.6,
     "cellFractionMin": 0.0005,
     "cellFractionMax": 0.05
+  },
+  "siting": {
+    "waterAccessCutoffPx": 24
   }
 }
