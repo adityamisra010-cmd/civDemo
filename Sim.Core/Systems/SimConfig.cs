@@ -25,16 +25,18 @@ public sealed record SimConfig(
 /// packet — the LaborAllocationOrder overrides it from T1.6. YieldPerFarmlandPerYear
 /// converts one unit of effective farmland (block-mean fertility, T1.4) into food
 /// units per sim-year (1 food = 1 person-year, D-015 constants).
+/// Every leaf is [JsonRequired] (T1.5 adversarial finding): a missing or typo'd
+/// key must fail the load loudly, never silently bind as 0.0.
 /// </summary>
 public sealed record FarmingConfig(
-    [property: JsonPropertyName("farmLaborShareDefault")] double FarmLaborShareDefault,
-    [property: JsonPropertyName("yieldPerFarmlandPerYear")] double YieldPerFarmlandPerYear);
+    [property: JsonPropertyName("farmLaborShareDefault"), JsonRequired] double FarmLaborShareDefault,
+    [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear);
 
 /// <summary>Band consumption weights, food per person per sim-year (D-015 constants).</summary>
 public sealed record ConsumptionConfig(
-    [property: JsonPropertyName("childWeight")] double ChildWeight,
-    [property: JsonPropertyName("adultWeight")] double AdultWeight,
-    [property: JsonPropertyName("elderWeight")] double ElderWeight);
+    [property: JsonPropertyName("childWeight"), JsonRequired] double ChildWeight,
+    [property: JsonPropertyName("adultWeight"), JsonRequired] double AdultWeight,
+    [property: JsonPropertyName("elderWeight"), JsonRequired] double ElderWeight);
 
 /// <summary>
 /// Demographic rates, all per-sim-year. Aging rates are nominally 1/bandWidth
@@ -43,20 +45,20 @@ public sealed record ConsumptionConfig(
 /// consumption-deficit ratio (one-turn lag, §3.2).
 /// </summary>
 public sealed record DemographicsConfig(
-    [property: JsonPropertyName("birthsPerAdultPerYear")] double BirthsPerAdultPerYear,
-    [property: JsonPropertyName("childMortalityPerYear")] double ChildMortalityPerYear,
-    [property: JsonPropertyName("adultMortalityPerYear")] double AdultMortalityPerYear,
-    [property: JsonPropertyName("elderMortalityPerYear")] double ElderMortalityPerYear,
-    [property: JsonPropertyName("agingChildToAdultPerYear")] double AgingChildToAdultPerYear,
-    [property: JsonPropertyName("agingAdultToElderPerYear")] double AgingAdultToElderPerYear,
-    [property: JsonPropertyName("starvationMortalityMaxPerYear")] double StarvationMortalityMaxPerYear);
+    [property: JsonPropertyName("birthsPerAdultPerYear"), JsonRequired] double BirthsPerAdultPerYear,
+    [property: JsonPropertyName("childMortalityPerYear"), JsonRequired] double ChildMortalityPerYear,
+    [property: JsonPropertyName("adultMortalityPerYear"), JsonRequired] double AdultMortalityPerYear,
+    [property: JsonPropertyName("elderMortalityPerYear"), JsonRequired] double ElderMortalityPerYear,
+    [property: JsonPropertyName("agingChildToAdultPerYear"), JsonRequired] double AgingChildToAdultPerYear,
+    [property: JsonPropertyName("agingAdultToElderPerYear"), JsonRequired] double AgingAdultToElderPerYear,
+    [property: JsonPropertyName("starvationMortalityMaxPerYear"), JsonRequired] double StarvationMortalityMaxPerYear);
 
 /// <summary>The founding endowment per settlement (people by band; food units).</summary>
 public sealed record FoundingConfig(
-    [property: JsonPropertyName("children")] long Children,
-    [property: JsonPropertyName("adults")] long Adults,
-    [property: JsonPropertyName("elders")] long Elders,
-    [property: JsonPropertyName("foodStore")] long FoodStore);
+    [property: JsonPropertyName("children"), JsonRequired] long Children,
+    [property: JsonPropertyName("adults"), JsonRequired] long Adults,
+    [property: JsonPropertyName("elders"), JsonRequired] long Elders,
+    [property: JsonPropertyName("foodStore"), JsonRequired] long FoodStore);
 
 public static class SimConfigLoader
 {
@@ -75,7 +77,10 @@ public static class SimConfigLoader
         }
         catch (JsonException e)
         {
-            throw new SimConfigException($"sim config is not valid JSON: {e.Message}", e);
+            // Covers both malformed JSON and [JsonRequired] misses — the inner
+            // message names the missing properties, so the error stays actionable.
+            throw new SimConfigException(
+                $"sim config is not valid JSON or is missing required values: {e.Message}", e);
         }
         if (cfg is null) throw new SimConfigException("sim config is empty.");
 

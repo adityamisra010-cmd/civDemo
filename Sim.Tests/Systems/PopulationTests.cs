@@ -41,21 +41,27 @@ public class PopulationTests
 
     private static void AssertRowsSaneAndAuditExact(WorldState world, int turn)
     {
-        // Never negative, never NaN — checked per turn, on every row.
+        // Never negative, never NaN — checked per turn, on every row. Remainders
+        // must sit in [0,1): the documented invariant that clamp shortfalls are
+        // never banked (adversarial finding — a banking regression drove a
+        // remainder to 81.74 in famine, so this bound has real teeth; [0,1)
+        // implies finite, so no separate IsFinite check is needed).
         for (int i = 0; i < world.PopBands.Count; i++)
         {
             PopBandRow row = world.PopBands[i];
             Assert.True(row.Count.Value >= 0, $"turn {turn}: band {row.Band} count {row.Count.Value} < 0");
-            Assert.True(double.IsFinite(row.BirthRemainder) && double.IsFinite(row.DeathRemainder)
-                && double.IsFinite(row.StarvationRemainder) && double.IsFinite(row.AgingRemainder),
-                $"turn {turn}: non-finite remainder in band {row.Band}");
+            Assert.True(
+                row.BirthRemainder is >= 0.0 and < 1.0 && row.DeathRemainder is >= 0.0 and < 1.0
+                && row.StarvationRemainder is >= 0.0 and < 1.0 && row.AgingRemainder is >= 0.0 and < 1.0,
+                $"turn {turn}: remainder outside [0,1) in band {row.Band}");
         }
         for (int i = 0; i < world.FoodStores.Count; i++)
         {
             FoodStoreRow row = world.FoodStores[i];
             Assert.True(row.Store.Value >= 0, $"turn {turn}: food store {row.Store.Value} < 0");
-            Assert.True(double.IsFinite(row.HarvestRemainder) && double.IsFinite(row.EatenRemainder),
-                $"turn {turn}: non-finite food remainder");
+            Assert.True(
+                row.HarvestRemainder is >= 0.0 and < 1.0 && row.EatenRemainder is >= 0.0 and < 1.0,
+                $"turn {turn}: food remainder outside [0,1)");
         }
         for (int i = 0; i < world.ConsumptionDeficits.Count; i++)
         {
