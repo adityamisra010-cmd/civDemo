@@ -28,11 +28,16 @@ public static class ConservationAuditor
     {
         QuantityAudit biomass = AuditQuantity(world, ConservedQuantityIds.Biomass);
         QuantityAudit toyGood = AuditQuantity(world, ConservedQuantityIds.ToyGood);
+        QuantityAudit population = AuditQuantity(world, ConservedQuantityIds.Population);
+        QuantityAudit food = AuditQuantity(world, ConservedQuantityIds.Food);
 
-        bool ok = biomass.IsConserved && toyGood.IsConserved;
+        bool ok = biomass.IsConserved && toyGood.IsConserved
+                  && population.IsConserved && food.IsConserved;
         report = ok
             ? "conserved: all quantities balance exactly."
-            : $"CONSERVATION VIOLATION — biomass: {Describe(biomass)}; toyGood: {Describe(toyGood)}";
+            : "CONSERVATION VIOLATION — " +
+              $"biomass: {Describe(biomass)}; toyGood: {Describe(toyGood)}; " +
+              $"population: {Describe(population)}; food: {Describe(food)}";
         return ok;
     }
 
@@ -50,6 +55,16 @@ public static class ConservationAuditor
             {
                 for (int i = 0; i < world.Goods.Count; i++)
                     stocks += world.Goods[i].Amount.Value;
+            }
+            else if (quantity == ConservedQuantityIds.Population)
+            {
+                for (int i = 0; i < world.PopBands.Count; i++)
+                    stocks += world.PopBands[i].Count.Value;
+            }
+            else if (quantity == ConservedQuantityIds.Food)
+            {
+                for (int i = 0; i < world.FoodStores.Count; i++)
+                    stocks += world.FoodStores[i].Store.Value;
             }
 
             long sourced = 0, sunk = 0;

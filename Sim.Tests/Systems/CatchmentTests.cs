@@ -41,15 +41,15 @@ public class CatchmentTests
         var cfg = Dev();
         TurnExecutor exec = CatchmentExecutor();
 
-        WorldState a = exec.Step(WorldFounding.Found(cfg, seed: 42));
-        WorldState b = exec.Step(WorldFounding.Found(cfg, seed: 42));
+        WorldState a = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
+        WorldState b = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
 
         // Twin-deterministic: identical derived tables.
         Assert.True(WorldStates.StateEquals(a, b));
         Assert.Equal(1, a.CatchmentSummaries.Count);
 
         // Equal to a DIRECT isochrone call from the origin lattice node.
-        WorldState founded = WorldFounding.Found(cfg, seed: 42);
+        WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
         TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
         int origin = OriginOf(founded, lattice);
         Pathfinder.IsochroneResult iso =
@@ -81,7 +81,7 @@ public class CatchmentTests
         TurnExecutor exec = CatchmentExecutor();
 
         // Turn 1: baseline catchment (summaries empty ⇒ stale ⇒ recompute).
-        WorldState w1 = exec.Step(WorldFounding.Found(cfg, seed: 42));
+        WorldState w1 = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
         int baselineNodes = w1.CatchmentSummaries[0].NodeCount;
         double baselineFarmland = w1.CatchmentSummaries[0].EffectiveFarmland;
         Assert.Equal(0, w1.CatchmentSummaries[0].NetworkRevision);
@@ -130,7 +130,7 @@ public class CatchmentTests
         TurnExecutor exec = CatchmentExecutor();
 
         // Turn 1 recomputes (LastRecomputeTurn := Prev.Clock.Turn == 0).
-        WorldState world = exec.Step(WorldFounding.Found(cfg, seed: 42));
+        WorldState world = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
         long recomputeTurn = world.CatchmentSummaries[0].LastRecomputeTurn;
         Assert.Equal(0, recomputeTurn);
         int nodeCount = world.CatchmentSummaries[0].NodeCount;
@@ -153,7 +153,7 @@ public class CatchmentTests
     {
         using var stream = Sim.Data.DataFiles.OpenWorldgen();
         var cfg = WorldgenConfigLoader.Load(stream); // canonical 1024²
-        WorldState founded = WorldFounding.Found(cfg, seed: 42);
+        WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
 
         TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
         int origin = OriginOf(founded, lattice);

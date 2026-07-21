@@ -1,0 +1,26 @@
+{
+  "farming": {
+    "farmLaborShareDefault": 0.7,
+    "yieldPerFarmlandPerYear": 40.0
+  },
+  "consumption": {
+    "childWeight": 0.6,
+    "adultWeight": 1.0,
+    "elderWeight": 0.7
+  },
+  "demographics": {
+    "birthsPerAdultPerYear": 0.05,
+    "childMortalityPerYear": 0.01,
+    "adultMortalityPerYear": 0.006,
+    "elderMortalityPerYear": 0.045,
+    "agingChildToAdultPerYear": 0.06666666666666667,
+    "agingAdultToElderPerYear": 0.022222222222222223,
+    "starvationMortalityMaxPerYear": 0.12
+  },
+  "founding": {
+    "children": 130,
+    "adults": 200,
+    "elders": 70,
+    "foodStore": 6000
+  }
+}

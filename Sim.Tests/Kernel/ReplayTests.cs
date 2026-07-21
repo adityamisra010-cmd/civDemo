@@ -11,10 +11,13 @@ public class ReplayTests
     private static TurnExecutor Executor(OrderLog? orders = null)
     {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
-        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        // Toy preset (T1.5): the SetRainBias order targets the retired toy
+        // WeatherSystem; kernel-invariant replay coverage stays here (T1.9
+        // extends replay to the production preset).
+        using var pipeStream = Sim.Data.DataFiles.OpenPipelineToy();
         return new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All()),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())),
             orders);
     }
 

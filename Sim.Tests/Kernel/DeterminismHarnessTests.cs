@@ -29,11 +29,13 @@ public class DeterminismHarnessTests
     private static TurnExecutor FreshExecutor(OrderLog? orders = null)
     {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
-        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
-        // SystemCatalog.All() constructs NEW system instances every call.
+        // Toy preset (T1.5): these kernel-invariant tests run the retired T0.x
+        // toys on toy worlds; T1.9 extends the harness to founded production
+        // worlds. SystemCatalog constructs NEW system instances every call.
+        using var pipeStream = Sim.Data.DataFiles.OpenPipelineToy();
         return new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All()),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())),
             orders);
     }
 

@@ -58,6 +58,12 @@ public static class ConservedQuantityIds
 {
     public static readonly ConservedQuantityId Biomass = new(1);
     public static readonly ConservedQuantityId ToyGood = new(2);
+
+    /// <summary>People (T1.5) — every person a conserved long from here to the space age.</summary>
+    public static readonly ConservedQuantityId Population = new(3);
+
+    /// <summary>Food (T1.5) — 1 unit = 1 person-year of sustenance (D-015 data constants).</summary>
+    public static readonly ConservedQuantityId Food = new(4);
 }
 
 /// <summary>Well-known flow reasons (M0 toy registry).</summary>
@@ -65,4 +71,25 @@ public static class ReasonIds
 {
     public static readonly ReasonId Growth = new(1);
     public static readonly ReasonId InitialEndowment = new(2);
+
+    // T1.5 — the moral bookkeeping reasons. Aging is deliberately absent: band
+    // aging moves people BETWEEN stocks via Ledger.Transfer, which conserves by
+    // construction and records no source/sink row.
+    public static readonly ReasonId Harvest = new(3);
+    public static readonly ReasonId Eaten = new(4);
+    public static readonly ReasonId Births = new(5);
+    public static readonly ReasonId Deaths = new(6);
+    public static readonly ReasonId Starvation = new(7);
+}
+
+/// <summary>
+/// Age-band indices within PopBands (D-015 data constants: 0–15 / 15–60 / 60+).
+/// Band index is data, not a calendar gate — capability never derives from it.
+/// </summary>
+public static class PopBands
+{
+    public const int Children = 0;
+    public const int Adults = 1;
+    public const int Elders = 2;
+    public const int Count = 3;
 }

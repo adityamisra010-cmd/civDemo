@@ -70,7 +70,10 @@ public sealed class Table<T> : IReadOnlyTable<T> where T : unmanaged
     /// <summary>
     /// Drops all rows (capacity retained). For DERIVED-state tables only — e.g.
     /// CatchmentSystem rebuilding its own tables on a network-revision change
-    /// (D-016). Conserved stocks never live in cleared tables (law 1).
+    /// (D-016). BOUNDARY (director ruling, T1.5): calling this on a table that
+    /// carries conserved stocks (PopBands, FoodStores, Biomass, Goods, …) is a
+    /// law-1 violation — the stocks would vanish without a Ledger sink and the
+    /// per-turn conservation audit fails the same turn. Derived state only.
     /// </summary>
     public void Clear() => _count = 0;
 

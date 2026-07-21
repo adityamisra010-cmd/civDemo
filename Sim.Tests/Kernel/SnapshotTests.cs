@@ -18,8 +18,11 @@ public class SnapshotTests
 
     private static TurnExecutor CanonicalExecutor(OrderLog? orders = null)
     {
-        using var stream = Sim.Data.DataFiles.OpenPipeline();
-        var pipeline = PipelineLoader.Load(stream, SystemCatalog.All());
+        // Toy preset (T1.5): the golden lineage lives on the toy world + toy
+        // systems; the production preset's behavior is pinned by the T1.5
+        // population tests and gets its own golden at T1.9.
+        using var stream = Sim.Data.DataFiles.OpenPipelineToy();
+        var pipeline = PipelineLoader.Load(stream, SystemCatalog.All(TestUtil.TestConfigs.Sim()));
         return new TurnExecutor(CanonicalEra(), pipeline, orders);
     }
 
@@ -101,7 +104,14 @@ public class SnapshotTests
         //   CatchmentNodes, CatchmentSummaries — four zero count prefixes, 16 bytes).
         //   The catchment system leads the pipeline but no-ops on this terrain-less
         //   genesis world, so sim behavior is unchanged; only the stream grew.
-        const string golden = "64dff09f5e58a95966f9e7c6b2d921048d8595ad9d3183e9e5dc1152c9d235e2";
+        //   v4 value: 64dff09f5e58a95966f9e7c6b2d921048d8595ad9d3183e9e5dc1152c9d235e2
+        //   v5 (T1.5): schema gained three empty tables (PopBands, FoodStores,
+        //   ConsumptionDeficits — three zero count prefixes, 12 bytes). This test
+        //   also moved from the production pipeline to the retired-toy preset —
+        //   behavior-identical here: the toy preset is exactly the systems that
+        //   acted on this terrain-less world (catchment always no-oped, drew no
+        //   RNG). Only the stream grew.
+        const string golden = "abf1ef9357f7cd7599895743e2687c31cb003d616bbb396b4e3de206ba05121c";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -190,6 +200,60 @@ public class SnapshotTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveFarmland));
         Assert.Equal(42, loaded.CatchmentSummaries[0].LastRecomputeTurn);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV5_PopulatedPopulationTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-table
+        // test — exact ExpectedLength, bit-exact round trip, hash equality.
+        // Exercises all three v5 row types with negative-zero doubles present.
+        WorldState world = Genesis(17);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+        world.PopBands.Add(new PopBandRow(new SettlementId(0), PopBands.Children,
+            Conserved.Zero, birthRemainder: 0.25, deathRemainder: -0.0,
+            starvationRemainder: 0.5, agingRemainder: 0.125));
+        world.PopBands.Add(new PopBandRow(new SettlementId(0), PopBands.Adults,
+            Conserved.Zero, birthRemainder: 0.0, deathRemainder: 0.75,
+            starvationRemainder: -0.0, agingRemainder: 0.9));
+        ledger.Flow(ref world.PopBands.Ref(0).Count, ConservedQuantityIds.Population,
+            ReasonIds.InitialEndowment, 130, FlowDirection.Source, OverdrawPolicy.Throw);
+        ledger.Flow(ref world.PopBands.Ref(1).Count, ConservedQuantityIds.Population,
+            ReasonIds.InitialEndowment, 200, FlowDirection.Source, OverdrawPolicy.Throw);
+        world.FoodStores.Add(new FoodStoreRow(new SettlementId(0),
+            Conserved.Zero, harvestRemainder: 0.375, eatenRemainder: -0.0));
+        ledger.Flow(ref world.FoodStores.Ref(0).Store, ConservedQuantityIds.Food,
+            ReasonIds.InitialEndowment, 6000, FlowDirection.Source, OverdrawPolicy.Throw);
+        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 0.613));
+        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(1), -0.0));
+
+        // Anti-padding: exact schema width sum with rows PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(130, loaded.PopBands[0].Count.Value);
+        Assert.Equal(0.25, loaded.PopBands[0].BirthRemainder);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.PopBands[0].DeathRemainder));
+        Assert.Equal(0.9, loaded.PopBands[1].AgingRemainder);
+        Assert.Equal(6000, loaded.FoodStores[0].Store.Value);
+        Assert.Equal(0.375, loaded.FoodStores[0].HarvestRemainder);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.FoodStores[0].EatenRemainder));
+        Assert.Equal(0.613, loaded.ConsumptionDeficits[0].DeficitRatio);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.ConsumptionDeficits[1].DeficitRatio));
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

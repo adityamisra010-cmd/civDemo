@@ -19,8 +19,8 @@ public class SettlementTests
     public void Siting_SameSeed_SameSite_Twin()
     {
         var cfg = Dev();
-        WorldState a = WorldFounding.Found(cfg, seed: 42);
-        WorldState b = WorldFounding.Found(cfg, seed: 42);
+        WorldState a = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
+        WorldState b = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
 
         Assert.Equal(1, a.Settlements.Count);
         Assert.Equal(a.Settlements[0].SiteCell, b.Settlements[0].SiteCell);

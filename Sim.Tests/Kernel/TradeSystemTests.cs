@@ -23,7 +23,8 @@ public class TradeSystemTests
     [Fact]
     public void FullPipeline_ConservesAllQuantities_EveryTurn()
     {
-        var executor = new TurnExecutor(FlatEra(), SystemCatalog.All());
+        // All registered systems (M1 production ones no-op on this toy world).
+        var executor = new TurnExecutor(FlatEra(), SystemCatalog.All(TestUtil.TestConfigs.Sim()));
         var world = NewWorld(seed: 42);
 
         for (int turn = 0; turn < 40; turn++)   // even+odd turns → both policies exercised

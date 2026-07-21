@@ -67,10 +67,16 @@ namespace Sim.Cli
         private static TurnExecutor Executor(OrderLog? orders)
         {
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
-            using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+            // Toy preset (T1.5): run/replay/bench still drive the M0 toy world,
+            // which keeps the cross-process determinism CI job exercising real
+            // system activity. T1.9 rewires headless runs to founded production
+            // worlds and pins their golden.
+            using var pipeStream = Sim.Data.DataFiles.OpenPipelineToy();
+            using var simStream = Sim.Data.DataFiles.OpenSim();
             return new TurnExecutor(
                 EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream, SystemCatalog.All()),
+                PipelineLoader.Load(pipeStream,
+                    SystemCatalog.All(Sim.Core.Systems.SimConfigLoader.Load(simStream))),
                 orders);
         }
 

@@ -83,6 +83,73 @@ public record struct CatchmentSummaryRow(
     int NetworkRevision, long LastRecomputeTurn);
 
 /// <summary>
+/// One age band of one settlement's population (T1.5): a CONSERVED long stock
+/// (law 1 — every person moves via Ledger only) plus the D-004 remainder
+/// accumulators for each fractional flow that touches this band. Remainders
+/// live in the row so they clone and snapshot (systems are stateless):
+/// BirthRemainder accumulates on the CHILDREN row (the credited stock),
+/// DeathRemainder/StarvationRemainder on every band, AgingRemainder on the
+/// band aging OUT (children, adults; unused on elders).
+/// </summary>
+/// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
+public struct PopBandRow(
+    SettlementId settlement, int band, Conserved count,
+    double birthRemainder, double deathRemainder, double starvationRemainder,
+    double agingRemainder) : IEquatable<PopBandRow>
+{
+    public SettlementId Settlement = settlement;
+    public int Band = band;
+    public Conserved Count = count;
+    public double BirthRemainder = birthRemainder;
+    public double DeathRemainder = deathRemainder;
+    public double StarvationRemainder = starvationRemainder;
+    public double AgingRemainder = agingRemainder;
+
+    public readonly bool Equals(PopBandRow other) =>
+        Settlement == other.Settlement && Band == other.Band && Count == other.Count
+        && BirthRemainder.Equals(other.BirthRemainder)
+        && DeathRemainder.Equals(other.DeathRemainder)
+        && StarvationRemainder.Equals(other.StarvationRemainder)
+        && AgingRemainder.Equals(other.AgingRemainder);
+    public override readonly bool Equals(object? obj) => obj is PopBandRow other && Equals(other);
+    public override readonly int GetHashCode() => Settlement.Value * PopBands.Count + Band; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>
+/// One settlement's food store (T1.5): a CONSERVED long stock (1 unit = 1
+/// person-year, D-015 constants). Two systems lawfully move value through this
+/// stock via Ledger — Farming credits (Harvest) and owns HarvestRemainder;
+/// Consumption debits (Eaten, ClampToAvailable) and owns EatenRemainder. The
+/// shared handle is issued ONLY by SystemCatalog, where it is documented.
+/// </summary>
+/// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
+public struct FoodStoreRow(
+    SettlementId settlement, Conserved store, double harvestRemainder, double eatenRemainder)
+    : IEquatable<FoodStoreRow>
+{
+    public SettlementId Settlement = settlement;
+    public Conserved Store = store;
+    public double HarvestRemainder = harvestRemainder;
+    public double EatenRemainder = eatenRemainder;
+
+    public readonly bool Equals(FoodStoreRow other) =>
+        Settlement == other.Settlement && Store == other.Store
+        && HarvestRemainder.Equals(other.HarvestRemainder)
+        && EatenRemainder.Equals(other.EatenRemainder);
+    public override readonly bool Equals(object? obj) => obj is FoodStoreRow other && Equals(other);
+    public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>
+/// One settlement's consumption deficit for the turn just computed (T1.5, owned
+/// by ConsumptionSystem): DeficitRatio = unmet demand / integer demand, in [0,1];
+/// 0 when demand was fully met (or there was no demand). DemographicsSystem reads
+/// the PREVIOUS turn's row for its starvation multiplier — the kernel's standard
+/// one-turn-lag coupling (§3.2), documented and accepted.
+/// </summary>
+public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio);
+
+/// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
 /// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
@@ -121,6 +188,9 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<NetworkMetaRow> NetworkMeta { get; }
     IReadOnlyTable<CatchmentNodeRow> CatchmentNodes { get; }
     IReadOnlyTable<CatchmentSummaryRow> CatchmentSummaries { get; }
+    IReadOnlyTable<PopBandRow> PopBands { get; }
+    IReadOnlyTable<FoodStoreRow> FoodStores { get; }
+    IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits { get; }
 }
 
 /// <summary>
@@ -179,6 +249,15 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Catchment summaries (T1.4) — owned by CatchmentSystem (derived state, D-016).</summary>
     public Table<CatchmentSummaryRow> CatchmentSummaries { get; }
 
+    /// <summary>Population age bands (T1.5) — conserved stocks, owned by DemographicsSystem.</summary>
+    public Table<PopBandRow> PopBands { get; }
+
+    /// <summary>Food stores (T1.5) — conserved stocks; Farming credits, Consumption debits (see SystemCatalog).</summary>
+    public Table<FoodStoreRow> FoodStores { get; }
+
+    /// <summary>Per-settlement consumption deficits (T1.5) — owned by ConsumptionSystem.</summary>
+    public Table<ConsumptionDeficitRow> ConsumptionDeficits { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -191,6 +270,9 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<NetworkMetaRow> IReadOnlyWorldState.NetworkMeta => NetworkMeta;
     IReadOnlyTable<CatchmentNodeRow> IReadOnlyWorldState.CatchmentNodes => CatchmentNodes;
     IReadOnlyTable<CatchmentSummaryRow> IReadOnlyWorldState.CatchmentSummaries => CatchmentSummaries;
+    IReadOnlyTable<PopBandRow> IReadOnlyWorldState.PopBands => PopBands;
+    IReadOnlyTable<FoodStoreRow> IReadOnlyWorldState.FoodStores => FoodStores;
+    IReadOnlyTable<ConsumptionDeficitRow> IReadOnlyWorldState.ConsumptionDeficits => ConsumptionDeficits;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -207,6 +289,9 @@ public sealed class WorldState : IReadOnlyWorldState
         NetworkMeta = new Table<NetworkMetaRow>();
         CatchmentNodes = new Table<CatchmentNodeRow>();
         CatchmentSummaries = new Table<CatchmentSummaryRow>();
+        PopBands = new Table<PopBandRow>();
+        FoodStores = new Table<FoodStoreRow>();
+        ConsumptionDeficits = new Table<ConsumptionDeficitRow>();
     }
 
     private WorldState(
@@ -215,7 +300,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<LedgerFlowRow> ledgerFlows, Table<NetworkNodeRow> networkNodes,
         Table<NetworkEdgeRow> networkEdges, Table<SettlementRow> settlements,
         Table<NetworkMetaRow> networkMeta, Table<CatchmentNodeRow> catchmentNodes,
-        Table<CatchmentSummaryRow> catchmentSummaries)
+        Table<CatchmentSummaryRow> catchmentSummaries, Table<PopBandRow> popBands,
+        Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits)
     {
         Seed = seed;
         Clock = clock;
@@ -231,6 +317,9 @@ public sealed class WorldState : IReadOnlyWorldState
         NetworkMeta = networkMeta;
         CatchmentNodes = catchmentNodes;
         CatchmentSummaries = catchmentSummaries;
+        PopBands = popBands;
+        FoodStores = foodStores;
+        ConsumptionDeficits = consumptionDeficits;
     }
 
     /// <summary>
@@ -242,7 +331,8 @@ public sealed class WorldState : IReadOnlyWorldState
         new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
             Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
-            CatchmentSummaries.Clone())
+            CatchmentSummaries.Clone(), PopBands.Clone(), FoodStores.Clone(),
+            ConsumptionDeficits.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
