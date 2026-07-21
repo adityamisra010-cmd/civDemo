@@ -30,6 +30,8 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - Definition of done = the packet's stated acceptance criteria. Your own unit tests are additive, never a substitute.
 - Touched a contract? Write an ADR (`docs/adr/adr-NNN-title.md`). The kernel is frozen after M0 acceptance without director sign-off.
 - Before finishing: run the banned-constructs grep, `dotnet build`, `dotnet test`; if you touched hot paths, `sim bench`. Show the results, then a one-paragraph summary of what now exists.
+- Any ordering or argmax over double-valued scores uses a composite key with a stable integer tie-break (score, id) — and ships a tie-dense test proving it.
+- Every new serialized row type ships a POPULATED-table test: exact ExpectedLength, bit-exact round-trip, hash equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
 
 ## Environment (remote sessions)
 - Containers are ephemeral: the .NET SDK does NOT survive between sessions. Run `./scripts/bootstrap.sh`
