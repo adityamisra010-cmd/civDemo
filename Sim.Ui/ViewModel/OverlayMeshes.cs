@@ -68,6 +68,43 @@ public static class OverlayMeshes
         return [.. vertices];
     }
 
+    /// <summary>
+    /// T2.4: the PARTITION as geometry — one triangle list PER SETTLEMENT
+    /// (indexed by settlement row order), each covering exactly the lattice
+    /// nodes that settlement owns in the claim table. Because the partition
+    /// claims every node at most once (T2.3, by construction), the meshes are
+    /// disjoint and meet at clean block boundaries. The renderer tints each
+    /// with the settlement's palette color.
+    /// </summary>
+    public static LineGeometry.Vertex[][] BuildTerritoryFills(
+        IReadOnlyWorldState world, int latticeSize, int stride)
+    {
+        var lists = new List<LineGeometry.Vertex>[world.Settlements.Count];
+        for (int s = 0; s < lists.Length; s++) lists[s] = [];
+
+        for (int i = 0; i < world.CatchmentNodes.Count; i++)
+        {
+            CatchmentNodeRow row = world.CatchmentNodes[i];
+            int settlementIndex = -1;
+            for (int s = 0; s < world.Settlements.Count; s++)
+            {
+                if (world.Settlements[s].Id == row.Settlement) { settlementIndex = s; break; }
+            }
+            if (settlementIndex < 0) continue; // orphan claim row — never rendered
+
+            int node = row.LatticeNode;
+            double x0 = node % latticeSize * stride, y0 = node / latticeSize * stride;
+            double x1 = x0 + stride, y1 = y0 + stride;
+            List<LineGeometry.Vertex> v = lists[settlementIndex];
+            v.Add(new(x0, y0)); v.Add(new(x1, y0)); v.Add(new(x0, y1));
+            v.Add(new(x0, y1)); v.Add(new(x1, y0)); v.Add(new(x1, y1));
+        }
+
+        var result = new LineGeometry.Vertex[lists.Length][];
+        for (int s = 0; s < lists.Length; s++) result[s] = [.. lists[s]];
+        return result;
+    }
+
     /// <summary>World-space position of a settlement's site cell center.</summary>
     public static LineGeometry.Vertex SettlementPosition(SettlementRow settlement, int terrainSize) =>
         new(settlement.SiteCell % terrainSize + 0.5, settlement.SiteCell / terrainSize + 0.5);

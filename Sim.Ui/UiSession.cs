@@ -66,11 +66,29 @@ public sealed class UiSession
     }
 
     /// <summary>The HUD slider's release handler: ONE order, stamped with the
-    /// CURRENT turn (§3.9: delivered to the very next End Turn step).</summary>
+    /// CURRENT turn (§3.9: delivered to the very next End Turn step), targeting
+    /// the FIRST settlement — the pre-selection shorthand the T1.9 replay
+    /// tests pin; the selection HUD calls the targeted overload below.</summary>
     public void EmitLaborOrder(int farmPct)
     {
         if (World.Settlements.Count == 0) return;
-        Orders.Append(LaborOrderFactory.Create(World.Clock.Turn, World.Settlements[0].Id, farmPct));
+        EmitLaborOrder(farmPct, World.Settlements[0].Id.Value);
+    }
+
+    /// <summary>T2.4: the targeted form — the slider orders the SELECTED
+    /// settlement. An id not present in the world emits NOTHING (an order for
+    /// a ghost settlement would poison the log at replay validation).</summary>
+    public void EmitLaborOrder(int farmPct, int settlementId)
+    {
+        for (int i = 0; i < World.Settlements.Count; i++)
+        {
+            if (World.Settlements[i].Id.Value == settlementId)
+            {
+                Orders.Append(LaborOrderFactory.Create(
+                    World.Clock.Turn, World.Settlements[i].Id, farmPct));
+                return;
+            }
+        }
     }
 
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3).</summary>

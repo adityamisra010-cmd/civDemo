@@ -38,8 +38,8 @@ public sealed class SimUiGame : Game
     private VertexBuffer? _riverVertices;
     private VertexBuffer? _pathVertices;
     private int _pathVersion = -1;      // NetworkEdges.Count when path mesh was built
-    private VertexBuffer? _catchmentVertices;
-    private long _catchmentVersion = -1; // Σ LastRecomputeTurn when fill was built
+    private VertexBuffer?[] _territoryVertices = [];  // T2.4: one tinted mesh per settlement
+    private long _catchmentVersion = -1; // Σ LastRecomputeTurn when fills were built
     private BasicEffect? _worldEffect;
     private static readonly RasterizerState WorldRasterizer = new()
     {
@@ -48,14 +48,23 @@ public sealed class SimUiGame : Game
     };
 
     private static readonly Color PathColor = new(0x8B, 0x62, 0x3B, 0xFF);      // earth brown — never river blue
-    private static readonly Color CatchmentFill = new(0xE8, 0xD9, 0x6A, 0x46);  // translucent field-yellow
 
-    private bool _showCatchment;
+    /// <summary>T2.4: territory fill alpha — translucent enough for terrain to
+    /// read through, opaque enough that twelve tints stay tellable apart.</summary>
+    private const byte TerritoryAlpha = 0x50;
+
+    private bool _showCatchment = true; // T2.4: political geography on by default
     private int _sliderFarmPct = 100;
-    private long _previousHarvestTotal;
     private HudModel _hud = null!;
 
+    /// <summary>T2.4: the selected settlement id — PURE UI STATE (never in
+    /// WorldState, never serialized). Starts at the first settlement.</summary>
+    private int _selected;
+
     private MouseState _lastMouse;
+    private KeyboardState _lastKeyboard;
+    private bool _clickCandidate;   // press began on the map (not over ImGui)
+    private int _clickDownX, _clickDownY;
     private double _fps;
 
     public SimUiGame(UiSession session, string sessionLogPath)
@@ -98,8 +107,8 @@ public sealed class SimUiGame : Game
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
 
-        _hud = HudModel.From(_world, previousHarvestTotal: 0);
-        _previousHarvestTotal = _hud.HarvestTotal;
+        _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
+        RefreshHud(syncSlider: true);
         RebuildOverlays();
     }
 
@@ -160,11 +169,29 @@ public sealed class SimUiGame : Game
             catchmentVersion += _world.CatchmentSummaries[i].LastRecomputeTurn + 1;
         if (catchmentVersion != _catchmentVersion)
         {
-            _catchmentVertices?.Dispose();
-            _catchmentVertices = MakeBuffer(
-                OverlayMeshes.BuildCatchmentFill(_world, _lattice!.Size, _latticeStride), CatchmentFill);
+            // T2.4: the partition as political geography — one translucent
+            // mesh per settlement, tinted from the deterministic palette.
+            foreach (VertexBuffer? buffer in _territoryVertices) buffer?.Dispose();
+            LineGeometry.Vertex[][] fills =
+                OverlayMeshes.BuildTerritoryFills(_world, _lattice!.Size, _latticeStride);
+            _territoryVertices = new VertexBuffer?[fills.Length];
+            for (int s = 0; s < fills.Length; s++)
+            {
+                (byte r, byte g, byte b) = SettlementPalette.Color(_world.Settlements[s].Id.Value);
+                _territoryVertices[s] = MakeBuffer(fills[s], new Color(r, g, b, TerritoryAlpha));
+            }
             _catchmentVersion = catchmentVersion;
         }
+    }
+
+    /// <summary>Rebuilds the cached HUD snapshot for the current selection;
+    /// optionally snaps the slider to the selected settlement's current split
+    /// (on selection change and startup — never mid-drag, and not after End
+    /// Turn, where a just-emitted order has not applied yet).</summary>
+    private void RefreshHud(bool syncSlider)
+    {
+        _hud = HudModel.From(_world, _selected);
+        if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmSharePct);
     }
 
     // --- the player's verbs ---------------------------------------------------
@@ -173,16 +200,16 @@ public sealed class SimUiGame : Game
     // hardening): the replay-equivalence test drives the SAME code paths.
     private void EmitLaborOrder(int farmPct)
     {
-        _session.EmitLaborOrder(farmPct);
+        _session.EmitLaborOrder(farmPct, _selected); // T2.4: orders the SELECTION
         SaveSession();
+        RefreshHud(syncSlider: false);
     }
 
     private void EndTurn()
     {
         _session.EndTurn();
         _world = _session.World;
-        _hud = HudModel.From(_world, _previousHarvestTotal);
-        _previousHarvestTotal = _hud.HarvestTotal;
+        RefreshHud(syncSlider: false);
         RebuildOverlays();
         SaveSession();
     }
@@ -214,6 +241,33 @@ public sealed class SimUiGame : Game
             int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
             if (wheel != 0)
                 _camera!.ZoomAt(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), viewport.Width, viewport.Height);
+
+            // T2.4 click-select: press→release edge with a small movement
+            // threshold so a drag-pan never doubles as a click. A miss keeps
+            // the current selection (empty ground is camera territory).
+            if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Released)
+            {
+                _clickCandidate = true;
+                _clickDownX = mouse.X;
+                _clickDownY = mouse.Y;
+            }
+            if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed
+                && _clickCandidate
+                && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
+            {
+                int hit = SettlementSelection.HitTest(
+                    _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height);
+                if (hit >= 0 && hit != _selected)
+                {
+                    _selected = hit;
+                    RefreshHud(syncSlider: true);
+                }
+            }
+            if (mouse.LeftButton == ButtonState.Released) _clickCandidate = false;
+        }
+        else if (mouse.LeftButton == ButtonState.Released)
+        {
+            _clickCandidate = false; // press was over ImGui — never a map click
         }
         if (IsActive && !io.WantCaptureKeyboard)
         {
@@ -224,9 +278,21 @@ public sealed class SimUiGame : Game
             if (keyboard.IsKeyDown(Keys.A)) dx += panPx;
             if (keyboard.IsKeyDown(Keys.D)) dx -= panPx;
             if (dx != 0 || dy != 0) _camera!.Pan(dx, dy, viewport.Width, viewport.Height);
+
+            // T2.4: Tab cycles the selection in settlement-id order (key edge).
+            if (keyboard.IsKeyDown(Keys.Tab) && !_lastKeyboard.IsKeyDown(Keys.Tab))
+            {
+                int next = SettlementSelection.CycleNext(_world, _selected);
+                if (next >= 0 && next != _selected)
+                {
+                    _selected = next;
+                    RefreshHud(syncSlider: true);
+                }
+            }
         }
 
         _lastMouse = mouse;
+        _lastKeyboard = keyboard;
         base.Update(gameTime);
     }
 
@@ -254,7 +320,11 @@ public sealed class SimUiGame : Game
             0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
         GraphicsDevice.RasterizerState = WorldRasterizer;
         GraphicsDevice.BlendState = BlendState.NonPremultiplied; // translucent fill needs alpha
-        if (_showCatchment) DrawWorldBuffer(_catchmentVertices);
+        if (_showCatchment)
+        {
+            foreach (VertexBuffer? territory in _territoryVertices)
+                DrawWorldBuffer(territory);
+        }
         DrawWorldBuffer(_pathVertices);
         DrawWorldBuffer(_riverVertices);
 
@@ -267,10 +337,21 @@ public sealed class SimUiGame : Game
                 _world.Settlements[i], _world.Terrain!.Size);
             (double sx, double sy) = cam.WorldToScreen(
                 position.X, position.Y, viewport.Width, viewport.Height);
-            const float markerPx = 14f;
+            const float markerPx = (float)SettlementSelection.MarkerScreenPx;
+            bool isSelected = _world.Settlements[i].Id.Value == _selected;
+            if (isSelected)
+            {
+                // T2.4: the selected marker is unmistakable — a gold halo ring
+                // behind an enlarged marker.
+                const float haloPx = markerPx + 10f;
+                _spriteBatch.Draw(_markerTexture,
+                    new Rectangle((int)(sx - haloPx / 2), (int)(sy - haloPx / 2),
+                        (int)haloPx, (int)haloPx), new Color(0xFF, 0xD2, 0x5A, 0xFF));
+            }
+            float drawPx = isSelected ? markerPx + 4f : markerPx;
             _spriteBatch.Draw(_markerTexture,
-                new Rectangle((int)(sx - markerPx / 2), (int)(sy - markerPx / 2),
-                    (int)markerPx, (int)markerPx), Color.White);
+                new Rectangle((int)(sx - drawPx / 2), (int)(sy - drawPx / 2),
+                    (int)drawPx, (int)drawPx), Color.White);
         }
         _spriteBatch.End();
 
@@ -299,17 +380,21 @@ public sealed class SimUiGame : Game
         // parsing, and the SplitLine's '%' rendered as garbage. Every HUD string
         // is pre-formatted by HudModel and passed through unparsed.
         ImGui.TextUnformatted(_hud.ClockLine);
+        ImGui.TextUnformatted(_hud.WorldLine);      // T2.4: the world summary
+        ImGui.Separator();
+        ImGui.TextUnformatted(_hud.TitleLine);      // T2.4: the selected settlement
         ImGui.TextUnformatted(_hud.PopulationLine);
         ImGui.TextUnformatted(_hud.FoodLine);
         ImGui.TextUnformatted(_hud.SplitLine);
         ImGui.Separator();
 
-        // The labor slider: emits ONE order, on release only (§3.9 log hygiene).
+        // The labor slider: emits ONE order, on release only (§3.9 log
+        // hygiene), targeting the SELECTED settlement (T2.4).
         ImGui.SliderInt("farm %", ref _sliderFarmPct, 0, 100);
-        if (ImGui.IsItemDeactivatedAfterEdit() && _world.Settlements.Count > 0)
+        if (ImGui.IsItemDeactivatedAfterEdit() && _selected >= 0)
             EmitLaborOrder(_sliderFarmPct);
 
-        ImGui.Checkbox("catchment overlay", ref _showCatchment);
+        ImGui.Checkbox("territory overlay", ref _showCatchment);
 
         if (ImGui.Button("End Turn", new System.Numerics.Vector2(180, 32)))
             EndTurn();

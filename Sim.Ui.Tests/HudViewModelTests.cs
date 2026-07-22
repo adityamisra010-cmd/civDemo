@@ -83,7 +83,7 @@ public class HudViewModelTests
         SimConfig cfg = SimCfg();
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
 
-        HudModel hud = HudModel.From(world, previousHarvestTotal: 0);
+        HudModel hud = HudModel.From(world, selectedSettlementId: 0);
         // Band views over the founding cohort counts (T2.1): 0-2 / 3-11 / 12-15.
         long children = 0, adults = 0, elders = 0, total = 0;
         for (int c = 0; c < Sim.Core.State.Cohorts.Count; c++)
@@ -108,35 +108,42 @@ public class HudViewModelTests
         // SplitLine's '%' was printf-mangled into garbage by ImGui.Text; the
         // HUD must render these via TextUnformatted, and these are the exact
         // strings it hands over — '%' characters deliberately included).
+        Assert.Equal("Settlement 0", hud.TitleLine);
         Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 100% farm / 0% path", hud.SplitLine);
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
+        Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine); // T2.4, dev N=4
         Assert.Equal("turn 0   year -4000", hud.ClockLine);
         Assert.Equal("seed 42   fps 60", HudModel.StatusLine(42, 60.4));
         Assert.Equal("camera (128, 128) zoom 1.00x", HudModel.CameraLine(128.0, 128.0, 1.0));
     }
 
     [Fact]
-    public void HudModel_LastHarvest_IsTheDeltaAcrossEndTurn()
+    public void HudModel_LastHarvest_IsTheSelectedSettlementsPerTurnHarvest()
     {
-        // Mirrors the Game's End Turn bookkeeping: previous cumulative total is
-        // carried; the HUD shows the per-turn delta, exactly the Harvest flow.
+        // T2.4 migration (deliberate): LastHarvest is now the SELECTED
+        // settlement's FoodStoreRow.LastHarvestUnits — the per-settlement
+        // observable Farming writes each turn (T2.2) — replacing the T1.8
+        // UI-side global-ledger delta, which could not be per-settlement.
         SimConfig cfg = SimCfg();
         TurnExecutor exec = Executor(cfg);
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
 
-        long previous = HudModel.From(world, 0).HarvestTotal;
+        long anyHarvest = 0;
         for (int t = 1; t <= 3; t++)
         {
             world = exec.Step(world);
-            HudModel hud = HudModel.From(world, previous);
-            Assert.Equal(hud.HarvestTotal - previous, hud.LastHarvest);
-            Assert.True(hud.LastHarvest >= 0);
-            previous = hud.HarvestTotal;
+            for (int s = 0; s < world.Settlements.Count; s++)
+            {
+                HudModel hud = HudModel.From(world, world.Settlements[s].Id.Value);
+                Assert.Equal(world.FoodStores[s].LastHarvestUnits, hud.LastHarvest);
+                Assert.True(hud.LastHarvest >= 0);
+                anyHarvest += hud.LastHarvest;
+            }
         }
         // By turn 3 the catchment landed in Prev and farming produced: nonzero.
-        Assert.True(previous > 0, "no harvest by turn 3 — vacuous HUD delta");
+        Assert.True(anyHarvest > 0, "no harvest by turn 3 — vacuous HUD read");
     }
 
     // --- overlay transforms ---------------------------------------------------

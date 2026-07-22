@@ -5,52 +5,49 @@ namespace Sim.Ui.ViewModel;
 
 /// <summary>
 /// The HUD's numbers, computed from a WorldState read (T1.8, pure view-model —
-/// the formatting tests run against a founded state headless). All formatting
-/// is culture-invariant. LastHarvest is a UI-side delta: the cumulative Harvest
-/// flow total now minus the total when the previous turn ended (the caller
-/// carries the previous total across End Turn).
+/// the formatting tests run against a founded state headless; T2.4: computed
+/// for the SELECTED settlement, plus a world summary line). All formatting is
+/// culture-invariant. LastHarvest is the selected settlement's
+/// FoodStoreRow.LastHarvestUnits — the per-settlement observable Farming has
+/// written since T2.2, which retires the T1.8 UI-side global-ledger delta
+/// (that hack predated a per-settlement harvest signal existing).
 /// </summary>
 public sealed record HudModel(
-    long Turn, long Year,
+    int SettlementId, long Turn, long Year,
     long Children, long Adults, long Elders, long TotalPopulation,
     long FoodStore, long LastHarvest,
     double FarmSharePct, double PathSharePct,
-    long HarvestTotal)
+    long WorldPopulation, int SettlementCount)
 {
-    public static HudModel From(IReadOnlyWorldState world, long previousHarvestTotal)
+    /// <summary>Builds the HUD for one selected settlement. An id not present
+    /// in the world (or an empty world) yields the zeros the panel can render
+    /// harmlessly — selection itself is pure UI state and never crashes the sim.</summary>
+    public static HudModel From(IReadOnlyWorldState world, int selectedSettlementId)
     {
-        // T2.3 director ruling: the interim HUD shows SETTLEMENT 0 only —
-        // selection and per-settlement rule arrive at T2.4. Band views over
-        // the cohort buckets (T2.1), first settlement's food store.
-        long children = 0, adults = 0, elders = 0, food = 0;
-        if (world.Settlements.Count > 0)
+        var selected = new SettlementId(selectedSettlementId);
+        bool exists = false;
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (world.Settlements[i].Id == selected) { exists = true; break; }
+
+        long children = 0, adults = 0, elders = 0, food = 0, lastHarvest = 0;
+        double farmShare = 1.0; // never-ordered default
+        if (exists)
         {
-            SettlementId first = world.Settlements[0].Id;
-            children = BandViews.Children(world.Buckets, first);
-            adults = BandViews.Adults(world.Buckets, first);
-            elders = BandViews.Elders(world.Buckets, first);
+            children = BandViews.Children(world.Buckets, selected);
+            adults = BandViews.Adults(world.Buckets, selected);
+            elders = BandViews.Elders(world.Buckets, selected);
             for (int i = 0; i < world.FoodStores.Count; i++)
             {
-                if (world.FoodStores[i].Settlement == first) { food = world.FoodStores[i].Store.Value; break; }
+                if (world.FoodStores[i].Settlement == selected)
+                {
+                    food = world.FoodStores[i].Store.Value;
+                    lastHarvest = world.FoodStores[i].LastHarvestUnits;
+                    break;
+                }
             }
-        }
-
-        long harvestTotal = 0;
-        for (int i = 0; i < world.LedgerFlows.Count; i++)
-        {
-            LedgerFlowRow row = world.LedgerFlows[i];
-            if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
-                harvestTotal += row.TotalSourced;
-        }
-
-        // Farm share: the first settlement's allocation row; never-ordered = 1.0.
-        double farmShare = 1.0;
-        if (world.Settlements.Count > 0)
-        {
-            SettlementId first = world.Settlements[0].Id;
             for (int i = 0; i < world.LaborAllocations.Count; i++)
             {
-                if (world.LaborAllocations[i].Settlement == first)
+                if (world.LaborAllocations[i].Settlement == selected)
                 {
                     farmShare = world.LaborAllocations[i].FarmShare;
                     break;
@@ -58,17 +55,26 @@ public sealed record HudModel(
             }
         }
 
+        long worldPop = 0;
+        for (int i = 0; i < world.Buckets.Count; i++) worldPop += world.Buckets[i].Count.Value;
+
         return new HudModel(
+            SettlementId: selectedSettlementId,
             Turn: world.Clock.Turn,
             Year: -4000 + world.Clock.SimDays / 360, // presentation-only calendar (ADR-002)
             Children: children, Adults: adults, Elders: elders,
             TotalPopulation: children + adults + elders,
             FoodStore: food,
-            LastHarvest: harvestTotal - previousHarvestTotal,
+            LastHarvest: lastHarvest,
             FarmSharePct: farmShare * 100.0,
             PathSharePct: (1.0 - farmShare) * 100.0,
-            HarvestTotal: harvestTotal);
+            WorldPopulation: worldPop,
+            SettlementCount: world.Settlements.Count);
     }
+
+    /// <summary>"Settlement N" until T2.9 names them (m2 spec, chronicle packet).</summary>
+    public string TitleLine =>
+        string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}");
 
     public string PopulationLine =>
         string.Create(CultureInfo.InvariantCulture,
@@ -81,6 +87,10 @@ public sealed record HudModel(
     public string SplitLine =>
         string.Create(CultureInfo.InvariantCulture,
             $"labor {FarmSharePct:F0}% farm / {PathSharePct:F0}% path");
+
+    public string WorldLine =>
+        string.Create(CultureInfo.InvariantCulture,
+            $"world pop {WorldPopulation}  ({SettlementCount} settlements)");
 
     public string ClockLine =>
         string.Create(CultureInfo.InvariantCulture, $"turn {Turn}   year {Year}");
