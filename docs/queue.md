@@ -1,2 +1,3 @@
 - Harden Prev against downcast escape (ctx.Prev as WorldState): wrap Prev in a read-only facade object instead of an interface view of the live state. Compile-time-only guarantee is the ratified T0.2 design; revisit at M10 slice gate. (raised T0.5 verification)
 - Dropped-local Conserved escape: Ledger.Transfer into a non-world stock local removes value from audited totals (used deliberately by the auditor teeth test). Consider requiring stocks to be world-table-resident. Revisit at M10 slice gate. (raised T0.6, ADR-004)
+- Terrain detail-on-zoom: resample hash-noise fBm at view resolution (pure coordinate function → infinite zoom achievable); UI polish track. (raised T1.7 visual gate)

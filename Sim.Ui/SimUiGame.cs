@@ -24,6 +24,14 @@ public sealed class SimUiGame : Game
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
 
+    private VertexBuffer? _riverVertices;
+    private BasicEffect? _riverEffect;
+    private static readonly RasterizerState RiverRasterizer = new()
+    {
+        CullMode = CullMode.None,
+        MultiSampleAntiAlias = true,
+    };
+
     private MouseState _lastMouse;
     private double _fps;
 
@@ -35,7 +43,14 @@ public sealed class SimUiGame : Game
             PreferredBackBufferWidth = 1280,
             PreferredBackBufferHeight = 800,
             SynchronizeWithVerticalRetrace = true, // 60 fps target: vsync
+            // ANTI-ALIASING CHOICE (T1.7 re-gate, documented): rivers are solid
+            // vector quad-strips smoothed by 4x MSAA — one flag on immutable
+            // geometry, no per-vertex feathering to maintain. Requested here;
+            // the count is pinned in PreparingDeviceSettings below.
+            PreferMultiSampling = true,
         };
+        _graphics.PreparingDeviceSettings += (_, e) =>
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.Title = "civ-sim — M1 walking skeleton";
@@ -50,6 +65,24 @@ public sealed class SimUiGame : Game
         int size = _world.Terrain!.Size;
         _terrainTexture = new Texture2D(GraphicsDevice, size, size, false, SurfaceFormat.Color);
         _terrainTexture.SetData(TerrainBaker.Bake(_world.Terrain));
+
+        // Rivers: world-space vector mesh, built once (immutable polylines) —
+        // smooth at any zoom, unlike the raster texels they replaced (re-gate).
+        RiverMesh.Vertex[] mesh = RiverMesh.Build(_world.Terrain);
+        if (mesh.Length > 0)
+        {
+            var riverColor = new Color(
+                TerrainPalette.RiverColor.R, TerrainPalette.RiverColor.G,
+                TerrainPalette.RiverColor.B, TerrainPalette.RiverColor.A);
+            var vertices = new VertexPositionColor[mesh.Length];
+            for (int i = 0; i < mesh.Length; i++)
+                vertices[i] = new VertexPositionColor(
+                    new Vector3((float)mesh[i].X, (float)mesh[i].Y, 0f), riverColor);
+            _riverVertices = new VertexBuffer(
+                GraphicsDevice, VertexPositionColor.VertexDeclaration, vertices.Length, BufferUsage.None);
+            _riverVertices.SetData(vertices);
+        }
+        _riverEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
 
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
@@ -111,6 +144,22 @@ public sealed class SimUiGame : Game
         _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
         _spriteBatch.Draw(_terrainTexture, Vector2.Zero, Color.White);
         _spriteBatch.End();
+
+        // Rivers over terrain, every frame: same world transform, MSAA-smoothed.
+        if (_riverVertices is not null)
+        {
+            _riverEffect!.World = transform;
+            _riverEffect.Projection = Matrix.CreateOrthographicOffCenter(
+                0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
+            GraphicsDevice.RasterizerState = RiverRasterizer;
+            GraphicsDevice.SetVertexBuffer(_riverVertices);
+            foreach (EffectPass pass in _riverEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                GraphicsDevice.DrawPrimitives(
+                    PrimitiveType.TriangleList, 0, _riverVertices.VertexCount / 3);
+            }
+        }
 
         // Debug panel (the single T1.7 panel).
         _imgui!.BeforeLayout(gameTime);

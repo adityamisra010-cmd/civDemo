@@ -49,7 +49,12 @@ sits strictly outside it:
 
 - Rendering: rasters bake once into a `Texture2D` (pure `TerrainBaker`,
   byte-deterministic per seed — tested); bilinear sampling gives the D-023
-  "no visible tiles" smoothness at every zoom.
+  "no visible tiles" smoothness at every zoom. Rivers are NOT baked (first
+  visual gate bounced staircased raster rivers): they render as world-space
+  vector quad-strips from the discharge-ranked polylines (`RiverMesh`, pure,
+  width by rank), anti-aliased by 4× MSAA — chosen over per-vertex feathering
+  as one flag on immutable geometry. The raster river layer in `TerrainSet`
+  is untouched (sim/fertility data, hash-bound).
 - CI publishes a win-x64 self-contained `Sim.Ui` zip as an Actions artifact
   (branch-runnable this packet; T1.10 formalizes per-main-merge + README).
   No content pipeline (MGCB) is used — textures come from raw bytes, ImGui

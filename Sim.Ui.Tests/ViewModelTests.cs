@@ -146,20 +146,92 @@ public class TerrainBakerTests
     }
 
     [Fact]
-    public void Bake_PaintsRiverCells_WithTheRiverColor()
+    public void Bake_DoesNotPaintRivers_TexelsAreUnderlyingTerrain()
     {
+        // T1.7 re-gate: rivers left the texture (raster texels staircase at
+        // zoom) — every river cell now shows its underlying land color; the
+        // vector RiverMesh draws the river on top.
         TerrainSet terrain = DevTerrain(42);
         byte[] pixels = TerrainBaker.Bake(terrain);
+        ReadOnlySpan<double> elevation = terrain.Elevation;
         ReadOnlySpan<double> rivers = terrain.Rivers;
+
+        double maxElev = double.MinValue;
+        for (int i = 0; i < elevation.Length; i++) maxElev = Math.Max(maxElev, elevation[i]);
+        double landSpan = maxElev - terrain.SeaLevel;
+
         int riverCells = 0;
         for (int i = 0; i < rivers.Length; i++)
         {
             if (rivers[i] < 0.5) continue;
-            riverCells++;
-            Assert.Equal(TerrainPalette.RiverColor.R, pixels[i * 4]);
-            Assert.Equal(TerrainPalette.RiverColor.G, pixels[i * 4 + 1]);
-            Assert.Equal(TerrainPalette.RiverColor.B, pixels[i * 4 + 2]);
+            riverCells++; // river cells are on land (T1.2 invariant)
+            TerrainPalette.Rgba expected =
+                TerrainPalette.Land((elevation[i] - terrain.SeaLevel) / landSpan);
+            Assert.Equal(expected.R, pixels[i * 4]);
+            Assert.Equal(expected.G, pixels[i * 4 + 1]);
+            Assert.Equal(expected.B, pixels[i * 4 + 2]);
         }
         Assert.True(riverCells > 0, "dev terrain generated no river cells — vacuous");
+    }
+}
+
+public class RiverMeshTests
+{
+    private static TerrainSet DevTerrain(ulong seed)
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenWorldgen();
+        WorldgenConfig cfg = WorldgenConfigLoader.Load(stream) with { SizePx = 256 };
+        return Worldgen.Generate(cfg, seed);
+    }
+
+    [Fact]
+    public void Build_IsDeterministic_SixVerticesPerSegment()
+    {
+        TerrainSet terrain = DevTerrain(42);
+        RiverMesh.Vertex[] a = RiverMesh.Build(terrain);
+        RiverMesh.Vertex[] b = RiverMesh.Build(terrain);
+        Assert.Equal(a, b);
+        Assert.True(a.Length > 0, "no river geometry — vacuous");
+        Assert.Equal(0, a.Length % 6); // two triangles per segment quad
+    }
+
+    [Fact]
+    public void WidthForRank_FallsMonotonically_WithinTuneBounds()
+    {
+        const int count = 12;
+        double previous = double.MaxValue;
+        for (int rank = 0; rank < count; rank++)
+        {
+            double width = RiverMesh.WidthForRank(rank, count);
+            Assert.True(width <= previous, $"width rose at rank {rank}");
+            Assert.InRange(width, RiverMesh.MinWidthWorldPx, RiverMesh.MaxWidthWorldPx);
+            previous = width;
+        }
+        Assert.Equal(RiverMesh.MaxWidthWorldPx, RiverMesh.WidthForRank(0, count));
+        Assert.Equal(RiverMesh.MinWidthWorldPx, RiverMesh.WidthForRank(count - 1, count));
+    }
+
+    [Fact]
+    public void PolylineVertices_TransformToScreen_ConsistentlyWithTheCamera()
+    {
+        // The polyline->screen path the renderer uses: world vertex through the
+        // camera transform. Pinned against hand-computed values and the
+        // round-trip identity.
+        TerrainSet terrain = DevTerrain(42);
+        ReadOnlySpan<int> line = terrain.RiverPolyline(0);
+        RiverMesh.Vertex head = RiverMesh.CellCenter(line[0], terrain.Size);
+        Assert.Equal(line[0] % terrain.Size + 0.5, head.X);
+        Assert.Equal(line[0] / terrain.Size + 0.5, head.Y);
+
+        var cam = new Camera(terrain.Size);
+        cam.ZoomAt(300, 200, 3.0, 1280, 800);
+        (double sx, double sy) = cam.WorldToScreen(head.X, head.Y, 1280, 800);
+        (double wx, double wy) = cam.ScreenToWorld(sx, sy, 1280, 800);
+        Assert.Equal(head.X, wx, precision: 9);
+        Assert.Equal(head.Y, wy, precision: 9);
+
+        // Hand-computed: screen = (world - center) * zoom + viewport/2.
+        Assert.Equal((head.X - cam.CenterX) * cam.Zoom + 640.0, sx, precision: 9);
+        Assert.Equal((head.Y - cam.CenterY) * cam.Zoom + 400.0, sy, precision: 9);
     }
 }

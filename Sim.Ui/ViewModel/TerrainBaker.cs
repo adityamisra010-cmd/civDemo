@@ -8,6 +8,8 @@ namespace Sim.Ui.ViewModel;
 /// and never touches the rasters again (ADR-008: terrain is immutable in M1).
 /// PURE function of the TerrainSet: byte-identical for the same terrain (the
 /// bake-determinism test pins this). No MonoGame types — testable headless.
+/// RIVERS ARE NOT BAKED (T1.7 re-gate): raster river texels staircase at zoom;
+/// rivers render as vector polylines (RiverMesh) over this texture instead.
 /// </summary>
 public static class TerrainBaker
 {
@@ -17,7 +19,6 @@ public static class TerrainBaker
         var pixels = new byte[size * size * 4];
         ReadOnlySpan<double> elevation = terrain.Elevation;
         ReadOnlySpan<double> water = terrain.Water;
-        ReadOnlySpan<double> rivers = terrain.Rivers;
 
         // Normalization ranges from the actual raster (min/max are stable
         // properties of the immutable terrain, so the bake stays pure).
@@ -33,13 +34,9 @@ public static class TerrainBaker
 
         for (int i = 0; i < size * size; i++)
         {
-            TerrainPalette.Rgba color;
-            if (rivers[i] >= 0.5)
-                color = TerrainPalette.RiverColor;          // rivers overdraw everything
-            else if (water[i] >= 0.5)
-                color = TerrainPalette.Water((sea - elevation[i]) / depthSpan);
-            else
-                color = TerrainPalette.Land((elevation[i] - sea) / landSpan);
+            TerrainPalette.Rgba color = water[i] >= 0.5
+                ? TerrainPalette.Water((sea - elevation[i]) / depthSpan)
+                : TerrainPalette.Land((elevation[i] - sea) / landSpan);
 
             int o = i * 4;
             pixels[o] = color.R;
