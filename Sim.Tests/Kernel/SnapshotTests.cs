@@ -380,6 +380,45 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV9_PopulatedDistanceAndMigrationTables_AndWidenedBucket_Exact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test. v9 adds SettlementDistanceRow (incl. the +∞ unreachable
+        // sentinel — its IEEE bits must survive the round trip bit-exactly)
+        // and MigrationFlowRow, and widens BucketRow with MigrationRemainder.
+        WorldState world = Genesis(31);
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1),
+            new ReligionId(1), new ClassId(1), cohortIdx: 4,
+            Conserved.Zero, 0.0, 0.0, 0.0, 0.0,
+            mobilityRemainder: 0.25, migrationRemainder: 0.875));
+        world.SettlementDistances.Add(new SettlementDistanceRow(
+            new SettlementId(0), new SettlementId(1), 42.125));
+        world.SettlementDistances.Add(new SettlementDistanceRow(
+            new SettlementId(1), new SettlementId(0), double.PositiveInfinity));
+        world.MigrationFlows.Add(new MigrationFlowRow(new SettlementId(0), 123, 456));
+        world.MigrationFlows.Add(new MigrationFlowRow(new SettlementId(1), 0, 789));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(0.875, loaded.Buckets[0].MigrationRemainder);
+        Assert.Equal(42.125, loaded.SettlementDistances[0].TravelCost);
+        Assert.True(double.IsPositiveInfinity(loaded.SettlementDistances[1].TravelCost));
+        Assert.Equal(123, loaded.MigrationFlows[0].Inflow);
+        Assert.Equal(789, loaded.MigrationFlows[1].Outflow);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
     public void SchemaV6_PopulatedLaborTables_LengthAndRoundTripExact()
     {
         // Constitution rule: every new serialized row type ships a POPULATED-

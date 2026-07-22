@@ -431,6 +431,70 @@ public class MigrationTests
         });
     }
 
+    // --- full-key preservation ----------------------------------------------
+
+    [Fact]
+    public void Migrants_KeepTheirFullBucketKey_ClassesTravelSeparately()
+    {
+        // Two settlements, TWO CLASSES at the source (peasants + artisans in
+        // distinct adult cohorts): arrivals must land in the destination
+        // bucket with the IDENTICAL (culture, religion, class, cohort) key —
+        // artisan migrants stay artisans. Class totals across the world are
+        // invariant per class, and the destination's artisan rows gain people
+        // even though it started with zero artisans.
+        SimConfig cfg = TestConfigs.Sim();
+        var world = new WorldState(7);
+        var ledger = new Ledger(world.LedgerFlows);
+        for (int s = 0; s < 2; s++)
+        {
+            var id = new SettlementId(s);
+            world.Settlements.Add(new SettlementRow(id, SiteCell: s, FoundedTurn: 0));
+            for (int cls = 1; cls <= 2; cls++)
+            {
+                for (int c = 0; c < Cohorts.Count; c++)
+                {
+                    int row = world.Buckets.Add(new BucketRow(
+                        id, new CultureId(1), new ReligionId(1), new ClassId(cls),
+                        c, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+                    long endow = s == 0 ? (cls == 1 ? 5000 : (c is >= 3 and <= 6 ? 2000 : 0)) : (cls == 1 ? 100 : 0);
+                    if (endow > 0)
+                    {
+                        ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                            ReasonIds.InitialEndowment, endow, FlowDirection.Source, OverdrawPolicy.Throw);
+                    }
+                }
+            }
+            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
+        }
+        Endow(world, 1, 500_000); // rich destination
+        Link(world, 0, 1, 15.0);
+        Link(world, 1, 0, 15.0);
+
+        long peasantsBefore = 0, artisansBefore = 0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            if (world.Buckets[i].Class.Value == 1) peasantsBefore += world.Buckets[i].Count.Value;
+            else artisansBefore += world.Buckets[i].Count.Value;
+        }
+
+        WorldState next = MigrationOnly(cfg).Step(world);
+        long peasantsAfter = 0, artisansAfter = 0, artisanArrivals = 0;
+        for (int i = 0; i < next.Buckets.Count; i++)
+        {
+            BucketRow b = next.Buckets[i];
+            if (b.Class.Value == 1) peasantsAfter += b.Count.Value;
+            else
+            {
+                artisansAfter += b.Count.Value;
+                if (b.Settlement.Value == 1) artisanArrivals += b.Count.Value;
+            }
+        }
+        Assert.Equal(peasantsBefore, peasantsAfter);   // class totals invariant
+        Assert.Equal(artisansBefore, artisansAfter);
+        Assert.True(artisanArrivals > 0, "no artisan migrated — key preservation vacuous");
+    }
+
     // --- distances: D-016 piggyback -----------------------------------------
 
     [Fact]
