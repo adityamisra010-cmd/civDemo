@@ -176,14 +176,26 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                     srcRef.MigrationRemainder = exact - moved; // sub-person fraction only
                     if (moved <= 0) continue;
 
-                    int dstRow = bucketRows[dst][k]; // same key at dest: founding
-                    // lays out every settlement's buckets identically — guarded:
-                    BucketRow d = prev.Buckets[dstRow];
-                    if (d.Culture != b.Culture || d.Religion != b.Religion
-                        || d.Class != b.Class || d.CohortIdx != b.CohortIdx)
+                    // Same key at dest: founding lays out every settlement's
+                    // buckets identically; both the k-index shortcut and the
+                    // key check are GUARDED for hand-built worlds (review
+                    // finding: an unguarded index crashed when a destination
+                    // had fewer buckets than the source).
+                    int dstRow = k < bucketRows[dst].Count ? bucketRows[dst][k] : -1;
+                    if (dstRow >= 0)
                     {
-                        dstRow = FindBucket(buckets, prev.Settlements[dst].Id, b);
-                        if (dstRow < 0) continue; // no matching bucket — nobody can arrive
+                        BucketRow d = prev.Buckets[dstRow];
+                        if (d.Culture != b.Culture || d.Religion != b.Religion
+                            || d.Class != b.Class || d.CohortIdx != b.CohortIdx) dstRow = -1;
+                    }
+                    if (dstRow < 0) dstRow = FindBucket(buckets, prev.Settlements[dst].Id, b);
+                    if (dstRow < 0)
+                    {
+                        // No matching bucket — nobody can arrive. Restore the
+                        // floored amount to the remainder (review finding: the
+                        // intent was silently discarded, biasing outflow low).
+                        srcRef.MigrationRemainder += moved;
+                        continue;
                     }
 
                     long before = buckets.Ref(srcRow).Count.Value;

@@ -431,6 +431,67 @@ public class MigrationTests
         });
     }
 
+    // --- directed flight anchor (vacuity finding) ----------------------------
+
+    [Fact]
+    public void FamineFlight_FiresWithZeroGap_AndScalesWithTheFactor()
+    {
+        // The pure D-021 valve, pinned directly (vacuity finding: the
+        // flight-suppressed mutant was killed only by the aggregate corridor
+        // statistic, which any retune could un-teeth): two settlements with
+        // IDENTICAL attractiveness — gap exactly 0 — and a full deficit at
+        // the source. Flow exists (gap-independent flight), runs source→dest
+        // only, is ZERO with the factor zeroed, and grows with the factor.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState World(double flightFactor)
+        {
+            WorldState w = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
+            Endow(w, 0, 50_000); Endow(w, 1, 50_000);
+            w.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 1.0, 1000);
+            Link(w, 0, 1, 20.0); Link(w, 1, 0, 20.0);
+            return w;
+        }
+        SimConfig Zero = cfg with { Migration = cfg.Migration with { FamineFlightFactor = 0.0 } };
+        SimConfig Half = cfg with { Migration = cfg.Migration with { FamineFlightFactor = cfg.Migration.FamineFlightFactor / 2 } };
+
+        WorldState atZero = MigrationOnly(Zero).Step(World(0));
+        WorldState atHalf = MigrationOnly(Half).Step(World(0));
+        WorldState atFull = MigrationOnly(cfg).Step(World(0));
+
+        Assert.Equal(0, atZero.MigrationFlows[0].Outflow);   // no flight, no gap → nothing
+        Assert.True(atHalf.MigrationFlows[0].Outflow > 0, "flight valve inert at half factor");
+        Assert.True(atFull.MigrationFlows[0].Outflow > atHalf.MigrationFlows[0].Outflow,
+            "flight does not scale with the factor");
+        Assert.Equal(0, atFull.MigrationFlows[1].Outflow);   // the fed side stays put
+    }
+
+    // --- damping distance-dependence (vacuity finding) -----------------------
+
+    [Fact]
+    public void Damping_NearerDestinationReceivesMore_InTheExpRatio()
+    {
+        // Finite-cost damping pinned directly (vacuity finding: a damping=1
+        // mutant for reachable pairs survived everything but the corridor):
+        // two equally attractive destinations at costs 10 vs 30 — the nearer
+        // receives more, in the exp((30−10)/decay) ratio within integer floors.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState world = MigrationWorld(AdultsHeavy(5000), AdultsHeavy(50), AdultsHeavy(50));
+        Endow(world, 1, 300_000);
+        Endow(world, 2, 300_000);
+        Link(world, 0, 1, 10.0); Link(world, 1, 0, 10.0);
+        Link(world, 0, 2, 30.0); Link(world, 2, 0, 30.0);
+        Link(world, 1, 2, 10.0); Link(world, 2, 1, 10.0);
+
+        WorldState next = MigrationOnly(cfg).Step(world);
+        long inNear = next.MigrationFlows[1].Inflow, inFar = next.MigrationFlows[2].Inflow;
+        Assert.True(inNear > 0 && inFar > 0, $"flows {inNear}/{inFar} — damping rig vacuous");
+        Assert.True(inNear > inFar, $"nearer destination got {inNear} <= farther's {inFar}");
+        double expectedRatio = Math.Exp((30.0 - 10.0) / cfg.Migration.DampingDecayCost); // ≈ 2.23
+        double measured = inNear / (double)inFar;
+        Assert.True(Math.Abs(measured - expectedRatio) / expectedRatio < 0.25,
+            $"damping ratio {measured:F2} vs expected {expectedRatio:F2} — not exponential in cost");
+    }
+
     // --- overdraw proportionality (adversarial finding) ----------------------
 
     [Fact]
@@ -457,7 +518,8 @@ public class MigrationTests
         WorldState next = MigrationOnly(cfg).Step(world);
         long in1 = next.MigrationFlows[1].Inflow, in2 = next.MigrationFlows[2].Inflow;
         long moved = in1 + in2;
-        Assert.True(moved >= 900, $"only {moved} of 1000 moved — saturation rig failed");
+        Assert.True(moved is >= 950 and <= 1000,
+            $"moved {moved} of 1000 — the scaler did not engage (saturation rig failed)");
         Assert.True(Math.Abs(in1 - in2) <= moved / 10,
             $"overdraw split {in1}/{in2} not proportional — first-destination grab");
     }
@@ -499,9 +561,13 @@ public class MigrationTests
                 }
             }
             world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
-            // Source famine: drives BOTH the classmobility demotion (drains the
-            // artisan bucket this turn) and migration flight (sized from Prev).
-            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 1.0 : 0.0, 1000));
+            // A SMALL source deficit (0.03): the famine demotion drains the
+            // artisan bucket PARTIALLY this turn (2.0 × 0.03 × 10 = 60%), so
+            // migration's Prev-sized transfer clamps with a NONZERO delivery
+            // — the divergence the mutant needs (a full drain makes
+            // actuallyMoved 0 and the recording branch never runs, which is
+            // exactly how the first version of this rig let the mutant live).
+            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 0.03 : 0.0, 1000));
         }
         world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(1), 1));
         world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(2), 1));
@@ -524,6 +590,24 @@ public class MigrationTests
             arrivals1 += next.Buckets[i].Count.Value - world.Buckets[i].Count.Value;
         }
         Assert.True(arrivals1 > 0, "nothing migrated — clamp rig vacuous");
+        // THE CLAMP FIRED (rig-honesty guard, review finding): the artisan
+        // cohort-4 source bucket must be EMPTY — migration asked for its full
+        // Prev count (3000) but the demotion left only ~40%, so delivered <
+        // requested strictly and the recorded numbers can only match the
+        // delivery if the chronicle is honest.
+        long artisanSrcAfter = 0, artisanReq = 0;
+        for (int i = 0; i < next.Buckets.Count; i++)
+        {
+            BucketRow b = next.Buckets[i];
+            if (b.Settlement.Value == 0 && b.Class.Value == 2 && b.CohortIdx == 4)
+                artisanSrcAfter = b.Count.Value;
+            if (world.Buckets[i].Settlement.Value == 0 && world.Buckets[i].Class.Value == 2
+                && world.Buckets[i].CohortIdx == 4)
+                artisanReq = world.Buckets[i].Count.Value;
+        }
+        Assert.Equal(0, artisanSrcAfter);
+        Assert.True(arrivals1 < artisanReq,
+            $"delivered {arrivals1} not below the Prev-sized request {artisanReq} — clamp never bound, rig vacuous");
         Assert.Equal(arrivals1, next.MigrationFlows[1].Inflow);   // delivered, not requested
         Assert.Equal(arrivals1, next.MigrationFlows[0].Outflow);
         long inSum = 0, outSum = 0;
