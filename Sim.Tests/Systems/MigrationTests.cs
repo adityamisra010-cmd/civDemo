@@ -431,6 +431,110 @@ public class MigrationTests
         });
     }
 
+    // --- overdraw proportionality (adversarial finding) ----------------------
+
+    [Fact]
+    public void Overdraw_ScalesProportionally_NoFirstDestinationGrab()
+    {
+        // Adversarial finding: the overdraw-scaling bypass survived every
+        // semantic test (ClampToAvailable also caps the TOTAL at the bucket,
+        // so aggregate observables barely move — only the golden caught it).
+        // The distinguishing observable is the DISTRIBUTION: two equally
+        // attractive rich destinations whose combined desired flow exceeds
+        // the source bucket. With proportional scaling each receives ~half;
+        // with the bypass the first destination grabs everything and the
+        // second gets the clamped scraps. Assert near-equal split.
+        SimConfig cfg = TestConfigs.Sim();
+        var counts = new long[Cohorts.Count];
+        counts[4] = 1000; // one young-adult bucket — the whole source
+        WorldState world = MigrationWorld(counts, AdultsHeavy(10), AdultsHeavy(10));
+        Endow(world, 1, 2_000_000);
+        Endow(world, 2, 2_000_000);
+        Link(world, 0, 1, 5.0); Link(world, 1, 0, 5.0);
+        Link(world, 0, 2, 5.0); Link(world, 2, 0, 5.0);
+        Link(world, 1, 2, 5.0); Link(world, 2, 1, 5.0);
+
+        WorldState next = MigrationOnly(cfg).Step(world);
+        long in1 = next.MigrationFlows[1].Inflow, in2 = next.MigrationFlows[2].Inflow;
+        long moved = in1 + in2;
+        Assert.True(moved >= 900, $"only {moved} of 1000 moved — saturation rig failed");
+        Assert.True(Math.Abs(in1 - in2) <= moved / 10,
+            $"overdraw split {in1}/{in2} not proportional — first-destination grab");
+    }
+
+    // --- chronicle truthfulness (adversarial finding) ------------------------
+
+    [Fact]
+    public void Chronicle_RecordsDeliveredFlow_NotRequested_WhenClampBinds()
+    {
+        // Adversarial finding (an escaped mutant): within migration-only
+        // stepping the scaler guarantees Σmoved ≤ prev count, so the clamp
+        // never binds and "record requested" is indistinguishable from
+        // "record delivered". It binds when ANOTHER system drains the bucket
+        // in the SAME turn: classmobility's famine demotion runs first, so
+        // migration's transfer (sized from PREV) clamps. The chronicle must
+        // equal the DELIVERED people — cross-checked against actual state
+        // deltas, and Σ inflow must equal Σ outflow exactly.
+        SimConfig cfg = TestConfigs.Sim();
+        var world = new WorldState(7);
+        var ledger = new Ledger(world.LedgerFlows);
+        for (int s = 0; s < 2; s++)
+        {
+            var id = new SettlementId(s);
+            world.Settlements.Add(new SettlementRow(id, SiteCell: s, FoundedTurn: 0));
+            for (int cls = 1; cls <= 2; cls++)
+            {
+                for (int c = 0; c < Cohorts.Count; c++)
+                {
+                    int row = world.Buckets.Add(new BucketRow(
+                        id, new CultureId(1), new ReligionId(1), new ClassId(cls),
+                        c, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+                    long endow = s == 0 && cls == 2 && c == 4 ? 3000
+                        : s == 0 && cls == 1 ? 100 : 0;
+                    if (endow > 0)
+                    {
+                        ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                            ReasonIds.InitialEndowment, endow, FlowDirection.Source, OverdrawPolicy.Throw);
+                    }
+                }
+            }
+            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            // Source famine: drives BOTH the classmobility demotion (drains the
+            // artisan bucket this turn) and migration flight (sized from Prev).
+            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 1.0 : 0.0, 1000));
+        }
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(1), 1));
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(2), 1));
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(1), new ClassId(1), 1));
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(1), new ClassId(2), 1));
+        Endow(world, 1, 1_000_000);
+        Link(world, 0, 1, 5.0);
+        Link(world, 1, 0, 5.0);
+
+        var exec = new TurnExecutor(FlatEra(10.0),
+            [SystemCatalog.ClassMobility(cfg), SystemCatalog.Migration(cfg)]);
+        WorldState next = exec.Step(world);
+
+        // Delivered arrivals, from state deltas (classmobility never crosses
+        // settlements, so settlement 1's gains are migration's alone).
+        long arrivals1 = 0;
+        for (int i = 0; i < next.Buckets.Count; i++)
+        {
+            if (next.Buckets[i].Settlement.Value != 1) continue;
+            arrivals1 += next.Buckets[i].Count.Value - world.Buckets[i].Count.Value;
+        }
+        Assert.True(arrivals1 > 0, "nothing migrated — clamp rig vacuous");
+        Assert.Equal(arrivals1, next.MigrationFlows[1].Inflow);   // delivered, not requested
+        Assert.Equal(arrivals1, next.MigrationFlows[0].Outflow);
+        long inSum = 0, outSum = 0;
+        for (int s = 0; s < 2; s++)
+        {
+            inSum += next.MigrationFlows[s].Inflow;
+            outSum += next.MigrationFlows[s].Outflow;
+        }
+        Assert.Equal(inSum, outSum);
+    }
+
     // --- full-key preservation ----------------------------------------------
 
     [Fact]
