@@ -35,3 +35,6 @@ and casual `+=` does not compile at all.
   this is exactly how the auditor's teeth test corrupts a world without bypassing
   the gate. Real systems only ever hold refs into WorldState tables; the M10
   slice-gate review may revisit (see docs/queue.md).
+- Scope of the audit (recorded T1.6, per director): the audit proves bookkeeping
+  consistency, not rate truth — recorded-but-wrong flows balance. Per-flow
+  exactness tests own rate truth (T1.5 precedent).

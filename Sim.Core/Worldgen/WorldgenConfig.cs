@@ -9,10 +9,10 @@ public sealed class WorldgenConfigException(string message, Exception? inner = n
 
 /// <summary>Noise parameters for one fBm field (all TUNE).</summary>
 public sealed record NoiseConfig(
-    [property: JsonPropertyName("octaves")] int Octaves,
-    [property: JsonPropertyName("frequency")] double Frequency,
-    [property: JsonPropertyName("persistence")] double Persistence,
-    [property: JsonPropertyName("lacunarity")] double Lacunarity);
+    [property: JsonPropertyName("octaves"), JsonRequired] int Octaves,
+    [property: JsonPropertyName("frequency"), JsonRequired] double Frequency,
+    [property: JsonPropertyName("persistence"), JsonRequired] double Persistence,
+    [property: JsonPropertyName("lacunarity"), JsonRequired] double Lacunarity);
 
 /// <summary>
 /// Worldgen tuning (D-015/D-022; every value TUNE). Loaded from worldgen.json on
@@ -21,18 +21,18 @@ public sealed record NoiseConfig(
 /// config (D-015).
 /// </summary>
 public sealed record WorldgenConfig(
-    [property: JsonPropertyName("sizePx")] int SizePx,
-    [property: JsonPropertyName("kmPerPx")] double KmPerPx,
-    [property: JsonPropertyName("landFractionTarget")] double LandFractionTarget,
-    [property: JsonPropertyName("landFractionMin")] double LandFractionMin,
-    [property: JsonPropertyName("landFractionMax")] double LandFractionMax,
-    [property: JsonPropertyName("continentalMask")] MaskConfig ContinentalMask,
-    [property: JsonPropertyName("elevation")] NoiseConfig Elevation,
-    [property: JsonPropertyName("temperature")] TemperatureConfig Temperature,
-    [property: JsonPropertyName("moistureDecayPx")] double MoistureDecayPx,
-    [property: JsonPropertyName("movement")] MovementConfig Movement,
-    [property: JsonPropertyName("rivers")] RiversConfig Rivers,
-    [property: JsonPropertyName("siting")] SitingConfig Siting);
+    [property: JsonPropertyName("sizePx"), JsonRequired] int SizePx,
+    [property: JsonPropertyName("kmPerPx"), JsonRequired] double KmPerPx,
+    [property: JsonPropertyName("landFractionTarget"), JsonRequired] double LandFractionTarget,
+    [property: JsonPropertyName("landFractionMin"), JsonRequired] double LandFractionMin,
+    [property: JsonPropertyName("landFractionMax"), JsonRequired] double LandFractionMax,
+    [property: JsonPropertyName("continentalMask"), JsonRequired] MaskConfig ContinentalMask,
+    [property: JsonPropertyName("elevation"), JsonRequired] NoiseConfig Elevation,
+    [property: JsonPropertyName("temperature"), JsonRequired] TemperatureConfig Temperature,
+    [property: JsonPropertyName("moistureDecayPx"), JsonRequired] double MoistureDecayPx,
+    [property: JsonPropertyName("movement"), JsonRequired] MovementConfig Movement,
+    [property: JsonPropertyName("rivers"), JsonRequired] RiversConfig Rivers,
+    [property: JsonPropertyName("siting"), JsonRequired] SitingConfig Siting);
 
 /// <summary>
 /// Settlement-siting tuning (T1.4, all TUNE). WaterAccessCutoffPx: BFS grid
@@ -40,33 +40,33 @@ public sealed record WorldgenConfig(
 /// from 1 at the shoreline to 0 at the cutoff).
 /// </summary>
 public sealed record SitingConfig(
-    [property: JsonPropertyName("waterAccessCutoffPx")] int WaterAccessCutoffPx);
+    [property: JsonPropertyName("waterAccessCutoffPx"), JsonRequired] int WaterAccessCutoffPx);
 
 /// <summary>River extraction tuning (T1.2, all TUNE).</summary>
 public sealed record RiversConfig(
-    [property: JsonPropertyName("count")] int Count,
-    [property: JsonPropertyName("minAccumulationFraction")] double MinAccumulationFraction,
-    [property: JsonPropertyName("adjacencyRadiusPx")] int AdjacencyRadiusPx,
-    [property: JsonPropertyName("fertilityBoost")] double FertilityBoost,
-    [property: JsonPropertyName("cellFractionMin")] double CellFractionMin,
-    [property: JsonPropertyName("cellFractionMax")] double CellFractionMax);
+    [property: JsonPropertyName("count"), JsonRequired] int Count,
+    [property: JsonPropertyName("minAccumulationFraction"), JsonRequired] double MinAccumulationFraction,
+    [property: JsonPropertyName("adjacencyRadiusPx"), JsonRequired] int AdjacencyRadiusPx,
+    [property: JsonPropertyName("fertilityBoost"), JsonRequired] double FertilityBoost,
+    [property: JsonPropertyName("cellFractionMin"), JsonRequired] double CellFractionMin,
+    [property: JsonPropertyName("cellFractionMax"), JsonRequired] double CellFractionMax);
 
 public sealed record MaskConfig(
-    [property: JsonPropertyName("noise")] NoiseConfig Noise,
-    [property: JsonPropertyName("noiseWeight")] double NoiseWeight,
-    [property: JsonPropertyName("radialWeight")] double RadialWeight);
+    [property: JsonPropertyName("noise"), JsonRequired] NoiseConfig Noise,
+    [property: JsonPropertyName("noiseWeight"), JsonRequired] double NoiseWeight,
+    [property: JsonPropertyName("radialWeight"), JsonRequired] double RadialWeight);
 
 public sealed record TemperatureConfig(
-    [property: JsonPropertyName("equatorC")] double EquatorC,
-    [property: JsonPropertyName("poleDropC")] double PoleDropC,
-    [property: JsonPropertyName("lapsePerElevC")] double LapsePerElevC,
-    [property: JsonPropertyName("fertilityOptimalC")] double FertilityOptimalC,
-    [property: JsonPropertyName("fertilityToleranceC")] double FertilityToleranceC);
+    [property: JsonPropertyName("equatorC"), JsonRequired] double EquatorC,
+    [property: JsonPropertyName("poleDropC"), JsonRequired] double PoleDropC,
+    [property: JsonPropertyName("lapsePerElevC"), JsonRequired] double LapsePerElevC,
+    [property: JsonPropertyName("fertilityOptimalC"), JsonRequired] double FertilityOptimalC,
+    [property: JsonPropertyName("fertilityToleranceC"), JsonRequired] double FertilityToleranceC);
 
 public sealed record MovementConfig(
-    [property: JsonPropertyName("baseCost")] double BaseCost,
-    [property: JsonPropertyName("slopeFactor")] double SlopeFactor,
-    [property: JsonPropertyName("waterCost")] double WaterCost);
+    [property: JsonPropertyName("baseCost"), JsonRequired] double BaseCost,
+    [property: JsonPropertyName("slopeFactor"), JsonRequired] double SlopeFactor,
+    [property: JsonPropertyName("waterCost"), JsonRequired] double WaterCost);
 
 public static class WorldgenConfigLoader
 {
@@ -85,7 +85,10 @@ public static class WorldgenConfigLoader
         }
         catch (JsonException e)
         {
-            throw new WorldgenConfigException($"worldgen config is not valid JSON: {e.Message}", e);
+            // Covers both malformed JSON and [JsonRequired] misses (T1.5 defect
+            // class: a missing/typo'd key must never silently bind as 0).
+            throw new WorldgenConfigException(
+                $"worldgen config is not valid JSON or is missing required values: {e.Message}", e);
         }
         if (cfg is null) throw new WorldgenConfigException("worldgen config is empty.");
 

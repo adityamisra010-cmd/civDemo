@@ -9,6 +9,8 @@ namespace Sim.Core.Kernel;
 /// EXTEND IT when a new conserved table lands (the T0.8 harness runs this every
 /// turn, so an un-audited stock is caught the moment it drifts).
 /// All arithmetic is checked — an overflowing audit is itself a failure.
+/// The audit proves bookkeeping consistency, not rate truth — recorded-but-wrong
+/// flows balance. Per-flow exactness tests own rate truth (T1.5 precedent).
 /// </summary>
 public static class ConservationAuditor
 {
