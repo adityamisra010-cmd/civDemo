@@ -7,7 +7,7 @@ name: ui-artifact
 on:
   workflow_dispatch:
   push:
-    branches: ['t1.7-ui']
+    branches: ['t1.*']   # every UI-bearing packet branch needs a gateable zip
 
 jobs:
   ui-artifact:
