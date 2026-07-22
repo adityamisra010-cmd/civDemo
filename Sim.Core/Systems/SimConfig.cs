@@ -22,16 +22,18 @@ public sealed record SimConfig(
     [property: JsonPropertyName("founding")] FoundingConfig Founding);
 
 /// <summary>
-/// Farming tuning. YieldPerFarmlandPerYear converts one unit of effective
-/// farmland (block-mean fertility, T1.4) into food units per sim-year (1 food =
-/// 1 person-year, D-015 constants) at FULL farm allocation; the labor split is
-/// the LaborAllocations row (T1.6 — the T1.5 farmLaborShareDefault retired into
-/// it: default allocation 1.0, yield retuned 40 → 28 so the no-order production
-/// rate is unchanged). Every leaf is [JsonRequired] (T1.5 adversarial finding):
+/// Farming tuning — Leontief production (T1.8 director-sanctioned spec
+/// amendment; the T1.5 form had no labor factor and ghost-harvested in a dead
+/// world): harvest/yr = min(farmland × YieldPerFarmlandPerYear,
+/// adults × farmShare × OutputPerFarmerPerYear). Land side: what the catchment
+/// can yield at full working; labor side: what the assigned farmers can work.
+/// Tuned so a fresh seed-42 run is labor-limited early and land-limited at
+/// equilibrium. Every leaf is [JsonRequired] (T1.5 adversarial finding):
 /// a missing or typo'd key must fail the load loudly, never silently bind 0.0.
 /// </summary>
 public sealed record FarmingConfig(
-    [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear);
+    [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear,
+    [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear);
 
 /// <summary>
 /// Path-building tuning (T1.6, all TUNE, per-sim-year rates — law 3).
@@ -99,6 +101,7 @@ public static class SimConfigLoader
 
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
         RequireRate("farming.yieldPerFarmlandPerYear", cfg.Farming.YieldPerFarmlandPerYear);
+        RequireRate("farming.outputPerFarmerPerYear", cfg.Farming.OutputPerFarmerPerYear);
 
         if (cfg.Consumption is null) throw new SimConfigException("consumption is missing.");
         RequireRate("consumption.childWeight", cfg.Consumption.ChildWeight);

@@ -11,11 +11,17 @@ namespace Sim.Core.Systems.Farming;
 public readonly record struct FarmingTables(Table<FoodStoreRow> FoodStores);
 
 /// <summary>
-/// Farming (T1.5): yield = effective farmland (the settlement's PREV catchment
-/// summary, T1.4) × farm-labor share × yield conversion × dtYears (law 3),
-/// entering the store exclusively via Ledger.Flow with reason Harvest (law 1).
-/// Fractional yield converts to whole food units through the D-004 remainder
-/// accumulator in the FoodStoreRow.
+/// Farming (T1.5; production function amended at T1.8, director-sanctioned —
+/// the T1.5 form had no labor factor and a depopulated settlement harvested
+/// indefinitely, exposed by the first played session). LEONTIEF production:
+///   harvest/yr = min(farmland × YieldPerFarmlandPerYear,
+///                    adults × farmShare × OutputPerFarmerPerYear)
+/// — the binding constraint is the scarcer of workable land (PREV catchment
+/// summary, T1.4) and assigned farm labor (PREV adults × PREV allocation).
+/// Zero adults → harvest EXACTLY zero (min against 0). Integrated × dtYears
+/// (law 3), entering the store exclusively via Ledger.Flow with reason Harvest
+/// (law 1); fractional yield converts to whole units through the D-004
+/// remainder accumulator in the FoodStoreRow.
 ///
 /// ONE-TURN LAG (§3.2, documented): farmland comes from Prev, so turn 1 (before
 /// the first catchment recompute has landed in Prev) harvests nothing — the
@@ -69,7 +75,21 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 }
             }
 
-            double ratePerYear = farmland * farmShare * _cfg.Farming.YieldPerFarmlandPerYear;
+            long adults = 0;
+            for (int i = 0; i < prev.PopBands.Count; i++)
+            {
+                if (prev.PopBands[i].Settlement == settlement
+                    && prev.PopBands[i].Band == PopBands.Adults)
+                {
+                    adults = prev.PopBands[i].Count.Value;
+                    break;
+                }
+            }
+
+            // Leontief: the scarcer of land capacity and assigned farm labor binds.
+            double landSide = farmland * _cfg.Farming.YieldPerFarmlandPerYear;
+            double laborSide = adults * farmShare * _cfg.Farming.OutputPerFarmerPerYear;
+            double ratePerYear = Math.Min(landSide, laborSide);
 
             ref FoodStoreRow row = ref stores.Ref(storeIndex);
             double exact = ratePerYear * ctx.DtYears + row.HarvestRemainder;

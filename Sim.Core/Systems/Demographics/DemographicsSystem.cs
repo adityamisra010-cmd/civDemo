@@ -28,6 +28,13 @@ public readonly record struct DemographicsTables(Table<PopBandRow> PopBands);
 /// starved settlement bottoms out at zero people in a band, never negative.
 /// A clamp shortfall is NOT banked in the remainder (people who do not exist
 /// cannot die later); remainders carry only sub-person fractions.
+///
+/// EXTINCTION RULING (director, T1.8): terminal extinction is ACCEPTED at M1 —
+/// one settlement, no migration; recovery valves (refugees, respawn, D-021
+/// stability doctrine) are M2+ content. A dead world must stay dead CLEANLY:
+/// zero people → zero births, zero deaths, zero harvest (Leontief labor side),
+/// zero path labor, static food, exact audit, no NaN, forever. The dead-world
+/// test pins all of it.
 /// STATELESS: config is immutable tuning, not state.
 /// </summary>
 public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsTables>

@@ -93,10 +93,17 @@ public class HudViewModelTests
         Assert.Equal(0, hud.Turn);
         Assert.Equal(-4000, hud.Year);
 
+        // EVERY string handed to ImGui, exact (T1.8 re-gate finding 2: the
+        // SplitLine's '%' was printf-mangled into garbage by ImGui.Text; the
+        // HUD must render these via TextUnformatted, and these are the exact
+        // strings it hands over — '%' characters deliberately included).
         Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 100% farm / 0% path", hud.SplitLine);
+        Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
         Assert.Equal("turn 0   year -4000", hud.ClockLine);
+        Assert.Equal("seed 42   fps 60", HudModel.StatusLine(42, 60.4));
+        Assert.Equal("camera (128, 128) zoom 1.00x", HudModel.CameraLine(128.0, 128.0, 1.0));
     }
 
     [Fact]

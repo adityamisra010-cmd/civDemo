@@ -80,4 +80,15 @@ public sealed record HudModel(
 
     public string ClockLine =>
         string.Create(CultureInfo.InvariantCulture, $"turn {Turn}   year {Year}");
+
+    /// <summary>Status/camera lines are formatted HERE too (T1.8 re-gate: every
+    /// string handed to ImGui is view-model-owned and tested — the HUD renders
+    /// them via TextUnformatted, never through printf-style Text parsing, after
+    /// the SplitLine's '%' characters were mangled into garbage).</summary>
+    public static string StatusLine(ulong seed, double fps) =>
+        string.Create(CultureInfo.InvariantCulture, $"seed {seed}   fps {fps:F0}");
+
+    public static string CameraLine(double centerX, double centerY, double zoom) =>
+        string.Create(CultureInfo.InvariantCulture,
+            $"camera ({centerX:F0}, {centerY:F0}) zoom {zoom:F2}x");
 }

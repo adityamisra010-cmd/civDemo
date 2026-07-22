@@ -1,6 +1,7 @@
 {
   "farming": {
-    "yieldPerFarmlandPerYear": 28.0
+    "yieldPerFarmlandPerYear": 28.0,
+    "outputPerFarmerPerYear": 5.0
   },
   "pathBuild": {
     "laborPerAdultPerYear": 0.02,

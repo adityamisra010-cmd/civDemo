@@ -116,6 +116,12 @@ public class SnapshotTests
         //   tables (two zero count prefixes, 8 bytes) — forced by the labor
         //   order's persistent allocation state. Sim behavior on this toy world
         //   is unchanged (pathbuild is not in the toy preset); only the stream grew.
+        //   T1.8 note (deliberate): the Leontief farming amendment CHANGED sim
+        //   behavior on founded worlds (that was the point — ghost harvest
+        //   fixed), but this golden runs the retired-toy preset on a terrain-
+        //   less world where farming never executes, so the v6 value STANDS.
+        //   Founded-world behavior is pinned by the T1.5/T1.6/T1.8 tests and
+        //   the first-reign fixture; its own golden lands at T1.9.
         const string golden = "8f3a1986afe9f6fd076e082c868ca36bd171c9da5932fb34c0975de0f38390e1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);

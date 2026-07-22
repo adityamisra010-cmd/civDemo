@@ -258,7 +258,11 @@ public class PopulationExactnessTests
 
         // T1.6: farm share is the LaborAllocations row; this hand-built world
         // has none, so the never-ordered default of 1.0 applies.
-        long harvest = Floor(farmland * cfg.Farming.YieldPerFarmlandPerYear * dt); // 21980 @ yield 28
+        // T1.8 spec amendment: LEONTIEF — min(land side, labor side). Here the
+        // 200 adults bind: min(78.5×28=2198, 200×1×5=1000) → labor-limited.
+        long harvest = Floor(Math.Min(
+            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear) * dt);                 // 10000
         long demand = Floor((cfg.Consumption.ChildWeight * 100
                              + cfg.Consumption.AdultWeight * 200
                              + cfg.Consumption.ElderWeight * 50) * dt);            // 2950
@@ -300,7 +304,10 @@ public class PopulationExactnessTests
         SimConfig cfg = TestConfigs.Sim();
         const int horizonYears = 200;
         const double farmland = 78.5;
-        double harvestPerYear = farmland * cfg.Farming.YieldPerFarmlandPerYear;    // 2198.0/yr (share 1.0 default)
+        // Leontief (T1.8): static 200 adults bind the labor side across all dts.
+        double harvestPerYear = Math.Min(
+            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear);                       // 1000.0/yr
         double demandPerYear = cfg.Consumption.ChildWeight * 100
                                + cfg.Consumption.AdultWeight * 200
                                + cfg.Consumption.ElderWeight * 50;                 // 295.0/yr

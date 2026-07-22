@@ -119,6 +119,58 @@ public class PopulationTests
             $"unfed world did not decline: {TotalPop(world)} >= founding {founding}");
     }
 
+    [Fact]
+    public void DeadWorld_StaysDeadCleanly_Forever()
+    {
+        // Extinction ruling (director, T1.8): terminal extinction is ACCEPTED
+        // at M1. This pins the CLEANLINESS: after the last person dies, harvest
+        // is zero (Leontief labor side), path labor is zero, food is static,
+        // the audit stays exact, and nothing goes NaN — forever. Driven the way
+        // the director actually did it: a 0%-farm order.
+        SimConfig cfg = TestConfigs.Sim();
+        var orders = new OrderLog();
+        orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
+        using var stream = Sim.Data.DataFiles.OpenPipeline();
+        var exec = new TurnExecutor(CanonicalEra(),
+            PipelineLoader.Load(stream, SystemCatalog.All(cfg)), orders);
+        WorldState world = Founded(cfg);
+
+        int extinctionTurn = -1;
+        for (int t = 1; t <= 80 && extinctionTurn < 0; t++)
+        {
+            world = exec.Step(world);
+            AssertRowsSaneAndAuditExact(world, t);
+            if (TotalPop(world) == 0) extinctionTurn = t;
+        }
+        Assert.True(extinctionTurn > 0, "0% farm never drove extinction in 80 turns");
+
+        long foodAtDeath = world.FoodStores[0].Store.Value;
+        double bankAtDeath = world.PathProgress.Count > 0 ? world.PathProgress[0].Banked : 0.0;
+        long harvestAtDeath = 0;
+        for (int i = 0; i < world.LedgerFlows.Count; i++)
+        {
+            LedgerFlowRow row = world.LedgerFlows[i];
+            if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
+                harvestAtDeath = row.TotalSourced;
+        }
+
+        for (int t = 1; t <= 30; t++)
+        {
+            world = exec.Step(world);
+            AssertRowsSaneAndAuditExact(world, extinctionTurn + t);
+            Assert.Equal(0, TotalPop(world));
+            Assert.Equal(foodAtDeath, world.FoodStores[0].Store.Value);
+            if (world.PathProgress.Count > 0)
+                Assert.Equal(bankAtDeath, world.PathProgress[0].Banked); // zero adults accrue nothing
+            for (int i = 0; i < world.LedgerFlows.Count; i++)
+            {
+                LedgerFlowRow row = world.LedgerFlows[i];
+                if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
+                    Assert.Equal(harvestAtDeath, row.TotalSourced);
+            }
+        }
+    }
+
     // --- Malthus-lite -------------------------------------------------------
 
     /// <summary>

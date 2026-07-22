@@ -73,16 +73,19 @@ public class PathBuildTests
         Assert.Equal(0.5, world.LaborAllocations[0].FarmShare);
 
         // Yield shifts NEXT turn (Farming reads Prev): the step from turn-3
-        // state harvests farmland × 0.5 × yield × dtYears — hand-computed exact
-        // from turn-3 state (law 3: the rate integrates dtYears = 10).
+        // state harvests the LEONTIEF minimum (T1.8 spec amendment) of land
+        // capacity and the halved farm labor — hand-computed exact from turn-3
+        // state (law 3: the rate integrates dtYears = 10). At these magnitudes
+        // the labor side binds, so the 50% order visibly halves the harvest.
         double farmland = world.CatchmentSummaries[0].EffectiveFarmland;
         double remainder = world.FoodStores[0].HarvestRemainder;
         long adultsT3 = world.PopBands[1].Count.Value;
         long harvestBefore = HarvestSourced(world);
 
         world = exec.Step(world);
-        long expected = (long)Math.Floor(
-            farmland * 0.5 * cfg.Farming.YieldPerFarmlandPerYear * 10.0 + remainder);
+        long expected = (long)Math.Floor(Math.Min(
+            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            adultsT3 * 0.5 * cfg.Farming.OutputPerFarmerPerYear) * 10.0 + remainder);
         Assert.Equal(expected, HarvestSourced(world) - harvestBefore);
 
         // And the path bank accrued from the same Prev allocation, dt-correctly.

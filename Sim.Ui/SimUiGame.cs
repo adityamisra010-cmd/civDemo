@@ -301,10 +301,13 @@ public sealed class SimUiGame : Game
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
         ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
 
-        ImGui.Text(_hud.ClockLine);
-        ImGui.Text(_hud.PopulationLine);
-        ImGui.Text(_hud.FoodLine);
-        ImGui.Text(_hud.SplitLine);
+        // TextUnformatted ONLY (T1.8 re-gate finding 2): ImGui.Text runs printf
+        // parsing, and the SplitLine's '%' rendered as garbage. Every HUD string
+        // is pre-formatted by HudModel and passed through unparsed.
+        ImGui.TextUnformatted(_hud.ClockLine);
+        ImGui.TextUnformatted(_hud.PopulationLine);
+        ImGui.TextUnformatted(_hud.FoodLine);
+        ImGui.TextUnformatted(_hud.SplitLine);
         ImGui.Separator();
 
         // The labor slider: emits ONE order, on release only (§3.9 log hygiene).
@@ -318,10 +321,8 @@ public sealed class SimUiGame : Game
             EndTurn();
 
         ImGui.Separator();
-        ImGui.Text(string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"seed {_world.Seed}   fps {_fps:F0}"));
-        ImGui.Text(string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"camera ({_camera!.CenterX:F0}, {_camera.CenterY:F0}) zoom {_camera.Zoom:F2}x"));
+        ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, _fps));
+        ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
         ImGui.End();
         _imgui.AfterLayout();
     }
