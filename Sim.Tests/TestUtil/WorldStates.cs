@@ -27,7 +27,7 @@ public static class WorldStates
         if (!TableEquals(a.NetworkMeta, b.NetworkMeta)) return false;
         if (!TableEquals(a.CatchmentNodes, b.CatchmentNodes)) return false;
         if (!TableEquals(a.CatchmentSummaries, b.CatchmentSummaries)) return false;
-        if (!TableEquals(a.PopBands, b.PopBands)) return false;
+        if (!TableEquals(a.Buckets, b.Buckets)) return false;
         if (!TableEquals(a.FoodStores, b.FoodStores)) return false;
         if (!TableEquals(a.ConsumptionDeficits, b.ConsumptionDeficits)) return false;
         if (!TableEquals(a.LaborAllocations, b.LaborAllocations)) return false;

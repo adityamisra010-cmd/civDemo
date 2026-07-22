@@ -88,7 +88,7 @@ public static class SystemCatalog
         var system = new DemographicsSystem(cfg);
         return new SystemRegistration(DemographicsSystem.WellKnownId, DemographicsSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<DemographicsTables>(
-                prev, new DemographicsTables(next.PopBands), rng, DemographicsSystem.WellKnownId,
+                prev, new DemographicsTables(next.Buckets), rng, DemographicsSystem.WellKnownId,
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

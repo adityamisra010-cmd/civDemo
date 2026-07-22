@@ -22,8 +22,10 @@ public static class CanonicalSchema
     /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.
     /// v4 (T1.4): Settlements, NetworkMeta, CatchmentNodes, CatchmentSummaries after NetworkEdges.
     /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.
-    /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.</summary>
-    public const int Version = 6;
+    /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.
+    /// v7 (T2.1, D-026): Buckets (settlement, culture, religion, class, cohort)
+    /// replaces PopBands in the same stream position.</summary>
+    public const int Version = 7;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -39,7 +41,7 @@ public static class CanonicalSchema
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
-    private const int PopBandRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8;  // Settlement, Band, Count, 4 remainder bit-fields
+    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 4 remainder bit-fields
     private const int FoodStoreRowWidth = 4 + 8 + 8 + 8;            // Settlement, Store, 2 remainder bit-fields
     private const int ConsumptionDeficitRowWidth = 4 + 8;           // Settlement, DeficitRatio bits
     private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
@@ -178,13 +180,16 @@ public static class CanonicalSchema
             writer.Write(row.LastRecomputeTurn);
         }
 
-        // 15. Population bands (v5)
-        writer.Write(world.PopBands.Count);
-        for (int i = 0; i < world.PopBands.Count; i++)
+        // 15. Population buckets (v7; v5 shipped the retired PopBands here)
+        writer.Write(world.Buckets.Count);
+        for (int i = 0; i < world.Buckets.Count; i++)
         {
-            PopBandRow row = world.PopBands[i];
+            BucketRow row = world.Buckets[i];
             writer.Write(row.Settlement.Value);
-            writer.Write(row.Band);
+            writer.Write(row.Culture.Value);
+            writer.Write(row.Religion.Value);
+            writer.Write(row.Class.Value);
+            writer.Write(row.CohortIdx);
             writer.Write(row.Count.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.BirthRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.DeathRemainder));
@@ -341,14 +346,17 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt64()));
         }
 
-        int popBandCount = reader.ReadInt32();
-        for (int i = 0; i < popBandCount; i++)
+        int bucketCount = reader.ReadInt32();
+        for (int i = 0; i < bucketCount; i++)
         {
             var settlement = new SettlementId(reader.ReadInt32());
-            int band = reader.ReadInt32();
+            var culture = new CultureId(reader.ReadInt32());
+            var religion = new ReligionId(reader.ReadInt32());
+            var cls = new ClassId(reader.ReadInt32());
+            int cohort = reader.ReadInt32();
             long count = reader.ReadInt64();
-            world.PopBands.Add(new PopBandRow(
-                settlement, band, Conserved.FromSnapshot(count),
+            world.Buckets.Add(new BucketRow(
+                settlement, culture, religion, cls, cohort, Conserved.FromSnapshot(count),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
@@ -414,7 +422,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.NetworkMeta.Count * NetworkMetaRowWidth
         + CountPrefixWidth + (long)world.CatchmentNodes.Count * CatchmentNodeRowWidth
         + CountPrefixWidth + (long)world.CatchmentSummaries.Count * CatchmentSummaryRowWidth
-        + CountPrefixWidth + (long)world.PopBands.Count * PopBandRowWidth
+        + CountPrefixWidth + (long)world.Buckets.Count * BucketRowWidth
         + CountPrefixWidth + (long)world.FoodStores.Count * FoodStoreRowWidth
         + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
         + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth

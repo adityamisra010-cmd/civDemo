@@ -79,7 +79,7 @@ public class PathBuildTests
         // the labor side binds, so the 50% order visibly halves the harvest.
         double farmland = world.CatchmentSummaries[0].EffectiveFarmland;
         double remainder = world.FoodStores[0].HarvestRemainder;
-        long adultsT3 = world.PopBands[1].Count.Value;
+        long adultsT3 = BandViews.Adults(world.Buckets, new SettlementId(0));
         long harvestBefore = HarvestSourced(world);
 
         world = exec.Step(world);
@@ -287,7 +287,7 @@ public class PathBuildTests
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkNodes.Count);
         Assert.Equal(0, world.NetworkMeta[0].Revision);
-        Assert.True(world.FoodStores[0].Store.Value > 0 || world.PopBands[1].Count.Value > 0);
+        Assert.True(world.FoodStores[0].Store.Value > 0 || BandViews.Adults(world.Buckets, new SettlementId(0)) > 0);
     }
 
     // --- tie-dense target choice (constitution rule) -------------------------

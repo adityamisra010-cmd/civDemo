@@ -12,8 +12,9 @@ public readonly record struct ConsumptionTables(
     Table<FoodStoreRow> FoodStores, Table<ConsumptionDeficitRow> Deficits);
 
 /// <summary>
-/// Consumption (T1.5): each settlement's band-weighted demand — Σ weight_b ×
-/// count_b × dtYears, counts from Prev (law 3, §3.2) — leaves the food store via
+/// Consumption (T1.5, cohortized at T2.1): each settlement's cohort-weighted
+/// demand — Σ cohortWeights[c] × count_c × dtYears over every bucket, counts
+/// from Prev (law 3, §3.2) — leaves the food store via
 /// Ledger.Flow with reason Eaten under ClampToAvailable: a settlement can only
 /// eat what the store holds, so the store bottoms out at EXACTLY zero, never
 /// negative. The unmet fraction is recorded as the turn's DeficitRatio in [0,1];
@@ -48,19 +49,13 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
         {
             SettlementId settlement = prev.Settlements[s].Id;
 
-            // Band-weighted demand from PREV counts (per-year rate × dtYears).
+            // Cohort-weighted demand from PREV counts (per-year rate × dtYears).
             double demandPerYear = 0.0;
-            for (int i = 0; i < prev.PopBands.Count; i++)
+            for (int i = 0; i < prev.Buckets.Count; i++)
             {
-                PopBandRow band = prev.PopBands[i];
-                if (band.Settlement != settlement) continue;
-                double weight = band.Band switch
-                {
-                    PopBands.Children => _cfg.Consumption.ChildWeight,
-                    PopBands.Adults => _cfg.Consumption.AdultWeight,
-                    _ => _cfg.Consumption.ElderWeight,
-                };
-                demandPerYear += weight * band.Count.Value;
+                BucketRow bucket = prev.Buckets[i];
+                if (bucket.Settlement != settlement) continue;
+                demandPerYear += _cfg.Consumption.CohortWeights[bucket.CohortIdx] * bucket.Count.Value;
             }
 
             int storeIndex = FindStore(stores, settlement);

@@ -19,13 +19,14 @@ public sealed record HudModel(
 {
     public static HudModel From(IReadOnlyWorldState world, long previousHarvestTotal)
     {
+        // Band views over the cohort buckets (T2.1) — summed across settlements.
         long children = 0, adults = 0, elders = 0;
-        for (int i = 0; i < world.PopBands.Count; i++)
+        for (int i = 0; i < world.Settlements.Count; i++)
         {
-            PopBandRow row = world.PopBands[i];
-            if (row.Band == PopBands.Children) children += row.Count.Value;
-            else if (row.Band == PopBands.Adults) adults += row.Count.Value;
-            else elders += row.Count.Value;
+            SettlementId id = world.Settlements[i].Id;
+            children += BandViews.Children(world.Buckets, id);
+            adults += BandViews.Adults(world.Buckets, id);
+            elders += BandViews.Elders(world.Buckets, id);
         }
 
         long food = 0;

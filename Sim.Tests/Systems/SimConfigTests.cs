@@ -19,8 +19,12 @@ public class SimConfigTests
     public void CanonicalFile_Loads()
     {
         SimConfig cfg = TestConfigs.Sim();
-        Assert.True(cfg.Demographics.BirthsPerAdultPerYear > 0);
-        Assert.True(cfg.Founding.Adults > 0);
+        Assert.True(System.Linq.Enumerable.Sum(cfg.Demographics.FertilityPerPersonPerYear) > 0);
+        long adults = 0;
+        for (int c = Sim.Core.State.Cohorts.FirstAdult; c < Sim.Core.State.Cohorts.FirstElder; c++)
+            adults += cfg.Founding.CohortCounts[c];
+        Assert.True(adults > 0);
+        Assert.Equal(2, cfg.Registries.Classes.Length); // Peasants + Artisans (D-027)
     }
 
     [Fact]
@@ -28,9 +32,9 @@ public class SimConfigTests
     {
         // The typo scenario from the adversarial pass: a missing rate must not
         // silently load as 0.0 and produce a radically different simulation.
-        string json = CanonicalJson().Replace("\"birthsPerAdultPerYear\"", "\"birthsPerAdultPerYr\"");
+        string json = CanonicalJson().Replace("\"fertilityPerPersonPerYear\"", "\"fertilityPerPersonPerYr\"");
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
-        Assert.Contains("birthsPerAdultPerYear", e.Message);
+        Assert.Contains("fertilityPerPersonPerYear", e.Message);
     }
 
     [Fact]
@@ -45,9 +49,9 @@ public class SimConfigTests
     public void NegativeRate_FailsActionably()
     {
         string json = CanonicalJson().Replace(
-            "\"adultMortalityPerYear\": 0.006", "\"adultMortalityPerYear\": -0.006");
+            "\"starvationMortalityMaxPerYear\": 0.12", "\"starvationMortalityMaxPerYear\": -0.12");
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
-        Assert.Contains("adultMortalityPerYear", e.Message);
+        Assert.Contains("starvationMortalityMaxPerYear", e.Message);
         Assert.Contains(">= 0", e.Message);
     }
 
@@ -55,7 +59,7 @@ public class SimConfigTests
     public void NaNRate_FailsActionably()
     {
         string json = CanonicalJson().Replace(
-            "\"childWeight\": 0.6", "\"childWeight\": \"NaN\"");
+            "\"starvationChildMultiplier\": 1.5", "\"starvationChildMultiplier\": \"NaN\"");
         // String-typed NaN is a JSON binding error; either failure path must
         // surface as the loader's typed exception, never a silent 0/NaN.
         Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));

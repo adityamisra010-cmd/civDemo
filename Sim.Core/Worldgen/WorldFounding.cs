@@ -36,19 +36,39 @@ public static class WorldFounding
         world.NetworkMeta.Add(new NetworkMetaRow(Revision: 0));
 
         // Founding endowment — people and food are conserved from the first row.
+        // Buckets (T2.1, D-026/D-027): the FULL culture × religion × class ×
+        // cohort cross product is instantiated in registry order (contiguous
+        // ascending cohort runs per group — the deterministic layout every
+        // consumer may rely on). The founding population belongs entirely to
+        // the FIRST registered class (the always-on base class, D-027);
+        // other classes found at zero, awaiting T2.2 mobility transfers.
         var ledger = new Ledger(world.LedgerFlows);
         FoundingConfig founding = simCfg.Founding;
-        Span<long> bandCounts = [founding.Children, founding.Adults, founding.Elders];
-        for (int band = 0; band < PopBands.Count; band++)
+        RegistriesConfig reg = simCfg.Registries;
+        foreach (RegistryEntry culture in reg.Cultures)
         {
-            int row = world.PopBands.Add(new PopBandRow(
-                settlement, band, Conserved.Zero,
-                birthRemainder: 0.0, deathRemainder: 0.0,
-                starvationRemainder: 0.0, agingRemainder: 0.0));
-            ledger.Flow(
-                ref world.PopBands.Ref(row).Count, ConservedQuantityIds.Population,
-                ReasonIds.InitialEndowment, bandCounts[band], FlowDirection.Source,
-                OverdrawPolicy.Throw);
+            foreach (RegistryEntry religion in reg.Religions)
+            {
+                for (int cls = 0; cls < reg.Classes.Length; cls++)
+                {
+                    for (int cohort = 0; cohort < Cohorts.Count; cohort++)
+                    {
+                        int row = world.Buckets.Add(new BucketRow(
+                            settlement, new CultureId(culture.Id), new ReligionId(religion.Id),
+                            new ClassId(reg.Classes[cls].Id), cohort, Conserved.Zero,
+                            birthRemainder: 0.0, deathRemainder: 0.0,
+                            starvationRemainder: 0.0, agingRemainder: 0.0));
+                        long count = cls == 0 ? founding.CohortCounts[cohort] : 0;
+                        if (count > 0)
+                        {
+                            ledger.Flow(
+                                ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                                ReasonIds.InitialEndowment, count, FlowDirection.Source,
+                                OverdrawPolicy.Throw);
+                        }
+                    }
+                }
+            }
         }
 
         int storeRow = world.FoodStores.Add(new FoodStoreRow(

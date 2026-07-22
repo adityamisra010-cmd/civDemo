@@ -75,16 +75,8 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 }
             }
 
-            long adults = 0;
-            for (int i = 0; i < prev.PopBands.Count; i++)
-            {
-                if (prev.PopBands[i].Settlement == settlement
-                    && prev.PopBands[i].Band == PopBands.Adults)
-                {
-                    adults = prev.PopBands[i].Count.Value;
-                    break;
-                }
-            }
+            // Adult labor is the derived band view over the cohort buckets (T2.1).
+            long adults = BandViews.Adults(prev.Buckets, settlement);
 
             // Leontief: the scarcer of land capacity and assigned farm labor binds.
             double landSide = farmland * _cfg.Farming.YieldPerFarmlandPerYear;

@@ -82,14 +82,40 @@ public static class ReasonIds
     public static readonly ReasonId Starvation = new(7);
 }
 
-/// <summary>
-/// Age-band indices within PopBands (D-015 data constants: 0–15 / 15–60 / 60+).
-/// Band index is data, not a calendar gate — capability never derives from it.
-/// </summary>
-public static class PopBands
+/// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>
+public readonly record struct CultureId(int Value) : IComparable<CultureId>
 {
-    public const int Children = 0;
-    public const int Adults = 1;
-    public const int Elders = 2;
-    public const int Count = 3;
+    public int CompareTo(CultureId other) => Value.CompareTo(other.Value);
+}
+
+/// <summary>Identifies a religion registry entry (T2.1 — one placeholder at M2).</summary>
+public readonly record struct ReligionId(int Value) : IComparable<ReligionId>
+{
+    public int CompareTo(ReligionId other) => Value.CompareTo(other.Value);
+}
+
+/// <summary>Identifies a social-class registry entry (T2.1, D-018/D-027 — Peasants + Artisans at M2).</summary>
+public readonly record struct ClassId(int Value) : IComparable<ClassId>
+{
+    public int CompareTo(ClassId other) => Value.CompareTo(other.Value);
+}
+
+/// <summary>
+/// The cohort structure (T2.1, D-026): 16 five-year age cohorts, 0–4 … 75+.
+/// Cohort index is data, not a calendar gate — capability never derives from it.
+/// The child/adult/elder BAND VIEWS (UI + labor) are derived sums over cohort
+/// ranges chosen to match the retired M1 bands exactly (0–14 / 15–59 / 60+):
+/// see <see cref="BandViews"/>. The last cohort (75+) is absorbing — people
+/// leave it only by dying.
+/// </summary>
+public static class Cohorts
+{
+    public const int Count = 16;
+    public const double WidthYears = 5.0;
+
+    /// <summary>First cohort of the derived adult band (15–19).</summary>
+    public const int FirstAdult = 3;
+
+    /// <summary>First cohort of the derived elder band (60–64).</summary>
+    public const int FirstElder = 12;
 }

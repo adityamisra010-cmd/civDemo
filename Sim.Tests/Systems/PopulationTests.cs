@@ -35,7 +35,7 @@ public class PopulationTests
     private static long TotalPop(WorldState world)
     {
         long total = 0;
-        for (int i = 0; i < world.PopBands.Count; i++) total += world.PopBands[i].Count.Value;
+        for (int i = 0; i < world.Buckets.Count; i++) total += world.Buckets[i].Count.Value;
         return total;
     }
 
@@ -46,14 +46,14 @@ public class PopulationTests
         // never banked (adversarial finding — a banking regression drove a
         // remainder to 81.74 in famine, so this bound has real teeth; [0,1)
         // implies finite, so no separate IsFinite check is needed).
-        for (int i = 0; i < world.PopBands.Count; i++)
+        for (int i = 0; i < world.Buckets.Count; i++)
         {
-            PopBandRow row = world.PopBands[i];
-            Assert.True(row.Count.Value >= 0, $"turn {turn}: band {row.Band} count {row.Count.Value} < 0");
+            BucketRow row = world.Buckets[i];
+            Assert.True(row.Count.Value >= 0, $"turn {turn}: cohort {row.CohortIdx} count {row.Count.Value} < 0");
             Assert.True(
                 row.BirthRemainder is >= 0.0 and < 1.0 && row.DeathRemainder is >= 0.0 and < 1.0
                 && row.StarvationRemainder is >= 0.0 and < 1.0 && row.AgingRemainder is >= 0.0 and < 1.0,
-                $"turn {turn}: remainder outside [0,1) in band {row.Band}");
+                $"turn {turn}: remainder outside [0,1) in cohort {row.CohortIdx}");
         }
         for (int i = 0; i < world.FoodStores.Count; i++)
         {
@@ -171,6 +171,34 @@ public class PopulationTests
         }
     }
 
+    [Fact]
+    public void Pyramid_FormsWideBase_UnderDefaultRates()
+    {
+        // T2.1 acceptance: after the founding transient the age structure is a
+        // wide-base pyramid — quartile sums (4 cohorts = 20 years each) decline
+        // with age, and the derived child band outnumbers the elder band.
+        // Quartile sums are robust to the slot-advance parity striping at
+        // Neolithic dt = 10 (a 10-year turn cannot resolve 5-year sub-structure).
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg);
+        WorldState world = Founded(cfg);
+        for (int t = 1; t <= 100; t++) world = exec.Step(world);
+
+        var settlement = new SettlementId(0);
+        Span<long> quartile = stackalloc long[4];
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow row = world.Buckets[i];
+            if (row.Settlement == settlement) quartile[row.CohortIdx / 4] += row.Count.Value;
+        }
+        Assert.True(TotalPop(world) > 0, "population died out — pyramid vacuous");
+        Assert.True(quartile[0] > quartile[1] && quartile[1] > quartile[2] && quartile[2] > quartile[3],
+            $"not wide-base: quartiles {quartile[0]}/{quartile[1]}/{quartile[2]}/{quartile[3]}");
+        Assert.True(
+            BandViews.Children(world.Buckets, settlement) > BandViews.Elders(world.Buckets, settlement),
+            "children do not outnumber elders");
+    }
+
     // --- Malthus-lite -------------------------------------------------------
 
     /// <summary>
@@ -239,16 +267,14 @@ public class PopulationTests
         // population is EXACTLY constant. The oscillation metric must report
         // zero crossings, proving the Malthus assertion cannot pass vacuously.
         SimConfig cfg = TestConfigs.Sim();
+        // Aging cannot be disabled (it is structural, derived from dt), but it
+        // is a conserving Transfer — the TOTAL stays exactly constant.
         cfg = cfg with
         {
             Demographics = cfg.Demographics with
             {
-                BirthsPerAdultPerYear = 0.0,
-                ChildMortalityPerYear = 0.0,
-                AdultMortalityPerYear = 0.0,
-                ElderMortalityPerYear = 0.0,
-                AgingChildToAdultPerYear = 0.0,
-                AgingAdultToElderPerYear = 0.0,
+                FertilityPerPersonPerYear = new double[Cohorts.Count],
+                MortalityPerYear = new double[Cohorts.Count],
                 StarvationMortalityMaxPerYear = 0.0,
             },
         };
@@ -274,70 +300,88 @@ public class PopulationTests
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");
 
-    /// <summary>Hand-built demographics-only world at 100k-person scale (integer
-    /// quantization noise ≪ signal), endowed through the Ledger.</summary>
-    private static WorldState DemographicsWorld()
-    {
-        var world = new WorldState(7);
-        var settlement = new SettlementId(0);
-        world.Settlements.Add(new SettlementRow(settlement, SiteCell: 0, FoundedTurn: 0));
-        var ledger = new Ledger(world.LedgerFlows);
-        Span<long> counts = [33000L, 50000L, 17000L];
-        for (int band = 0; band < PopBands.Count; band++)
-        {
-            int row = world.PopBands.Add(new PopBandRow(
-                settlement, band, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
-            ledger.Flow(ref world.PopBands.Ref(row).Count, ConservedQuantityIds.Population,
-                ReasonIds.InitialEndowment, counts[band], FlowDirection.Source, OverdrawPolicy.Throw);
-        }
-        return world;
-    }
-
-    private static long[] RunDemographics(double dtYears, int simYears)
-    {
-        SimConfig cfg = TestConfigs.Sim();
-        var exec = new TurnExecutor(FlatEra(dtYears), [SystemCatalog.Demographics(cfg)]);
-        WorldState world = exec.Run(DemographicsWorld(), (int)(simYears / dtYears));
-        return [world.PopBands[0].Count.Value, world.PopBands[1].Count.Value, world.PopBands[2].Count.Value];
-    }
-
     [Fact]
-    public void DtHalving_DemographicFlows_FirstOrderConvergence()
+    public void DtHalving_MortalityFlow_FirstOrderConvergence()
     {
-        // Linear rate×dt integration is explicit Euler: global error is O(dt),
-        // so halving dt should roughly HALVE the deviation between successive
-        // refinements — that convergence ratio is the property under test, and
-        // the measured deviations are the documented characterization of the
-        // integration error (they are NOT small at Neolithic dt: with per-year
-        // rates up to ~0.077 and dt = 10yr, rate·dt ≈ 0.77 per step).
+        // Law-3 designed test, cohortized (T2.1). The full cohort model is no
+        // longer a clean Euler-convergence subject: slot-advance aging is
+        // SCHEME-EXACT at integral slot multiples (dt = 10, 5) and diffusive
+        // below (dt < 5) — a different operator per regime, so whole-model L1
+        // deviations do not halve (measured ratio ≈ 1.08; the aging operator's
+        // own dt-correctness is pinned by SlotAdvanceAging_* instead). The
+        // Euler property lives in the RATE flows: deaths-only decay on the
+        // ABSORBING 75+ cohort (no aging interference) is pure exponential
+        // decay, where halving dt should roughly HALVE the deviation between
+        // successive refinements.
         //
         // TOLERANCE (documented): the ratio → 2 as dt → 0; at these finite dts
-        // second-order curvature and integer remainder quantization widen it,
-        // so [1.4, 3.5] is asserted. Runs to the same sim-year horizon.
-        const int horizon = 200; // sim-years: 20 / 40 / 80 turns
-        long[] atDt10 = RunDemographics(10.0, horizon);
-        long[] atDt5 = RunDemographics(5.0, horizon);
-        long[] atDt25 = RunDemographics(2.5, horizon);
-
-        long l1Coarse = 0, l1Fine = 0;
-        for (int band = 0; band < PopBands.Count; band++)
+        // curvature and integer quantization widen it, so [1.4, 3.5] is
+        // asserted. Runs to the same sim-year horizon.
+        SimConfig cfg = TestConfigs.Sim();
+        double[] mortality = new double[Cohorts.Count];
+        mortality[15] = 0.03; // strong enough that Euler error is visible at dt 10
+        cfg = cfg with
         {
-            l1Coarse += Math.Abs(atDt10[band] - atDt5[band]);
-            l1Fine += Math.Abs(atDt5[band] - atDt25[band]);
+            Demographics = cfg.Demographics with
+            {
+                FertilityPerPersonPerYear = new double[Cohorts.Count],
+                MortalityPerYear = mortality,
+                StarvationMortalityMaxPerYear = 0.0,
+            },
+        };
+        var counts = new long[Cohorts.Count];
+        counts[15] = 1_000_000;
+
+        const int horizon = 200; // sim-years: 20 / 40 / 80 turns
+        var finals = new long[3];
+        double[] dts = [10.0, 5.0, 2.5];
+        for (int i = 0; i < dts.Length; i++)
+        {
+            var exec = new TurnExecutor(FlatEra(dts[i]), [SystemCatalog.Demographics(cfg)]);
+            WorldState world = exec.Run(
+                PopulationExactnessTests.BucketWorld(counts), (int)(horizon / dts[i]));
+            finals[i] = world.Buckets[15].Count.Value;
         }
 
+        long l1Coarse = Math.Abs(finals[0] - finals[1]);
+        long l1Fine = Math.Abs(finals[1] - finals[2]);
         Assert.True(l1Coarse > 0, "dt-halving produced no deviation — vacuous run");
         Assert.True(l1Fine > 0, "second halving produced no deviation — vacuous run");
         double ratio = l1Coarse / (double)l1Fine;
         Assert.True(ratio is >= 1.4 and <= 3.5,
             $"convergence ratio {ratio:F2} outside [1.4, 3.5] — not first-order behavior " +
             $"(L1 dt10→5: {l1Coarse}, dt5→2.5: {l1Fine})");
-
-        long total10 = atDt10[0] + atDt10[1] + atDt10[2];
-        long total25 = atDt25[0] + atDt25[1] + atDt25[2];
         Console.WriteLine(
-            $"dt-halving @ {horizon}yr: dt10 total {total10}, dt2.5 total {total25}, " +
-            $"L1(10→5) {l1Coarse}, L1(5→2.5) {l1Fine}, ratio {ratio:F2}");
+            $"dt-halving @ {horizon}yr (deaths-only, 75+): dt10 {finals[0]}, dt5 {finals[1]}, " +
+            $"dt2.5 {finals[2]}, ratio {ratio:F2}");
+    }
+
+    [Fact]
+    public void SlotAdvanceAging_OneCoarseStepEqualsTwoFineSteps_Exact()
+    {
+        // The aging operator's dt-correctness at the era table's integral-slot
+        // dts: one dt = 10 step must equal two dt = 5 steps EXACTLY (both are
+        // pure slot translations; a linear-rate aging regression ages people
+        // at half speed at dt = 10 and breaks this equality immediately).
+        SimConfig cfg = TestConfigs.Sim();
+        cfg = cfg with
+        {
+            Demographics = cfg.Demographics with
+            {
+                FertilityPerPersonPerYear = new double[Cohorts.Count],
+                MortalityPerYear = new double[Cohorts.Count],
+                StarvationMortalityMaxPerYear = 0.0,
+            },
+        };
+        var counts = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) counts[c] = 1000 + 137 * c;
+
+        WorldState coarse = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)])
+            .Run(PopulationExactnessTests.BucketWorld(counts), 1);
+        WorldState fine = new TurnExecutor(FlatEra(5.0), [SystemCatalog.Demographics(cfg)])
+            .Run(PopulationExactnessTests.BucketWorld(counts), 2);
+        for (int c = 0; c < Cohorts.Count; c++)
+            Assert.Equal(fine.Buckets[c].Count.Value, coarse.Buckets[c].Count.Value);
     }
 
     // --- reconciliation -----------------------------------------------------

@@ -60,8 +60,8 @@ public static class ConservationAuditor
             }
             else if (quantity == ConservedQuantityIds.Population)
             {
-                for (int i = 0; i < world.PopBands.Count; i++)
-                    stocks += world.PopBands[i].Count.Value;
+                for (int i = 0; i < world.Buckets.Count; i++)
+                    stocks += world.Buckets[i].Count.Value;
             }
             else if (quantity == ConservedQuantityIds.Food)
             {

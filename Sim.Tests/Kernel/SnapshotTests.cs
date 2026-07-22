@@ -122,6 +122,11 @@ public class SnapshotTests
         //   less world where farming never executes, so the v6 value STANDS.
         //   Founded-world behavior is pinned by the T1.5/T1.6/T1.8 tests and
         //   the first-reign fixture; its own golden lands at T1.9.
+        //   T2.1 note (deliberate): schema v7 replaced PopBands with Buckets,
+        //   but the canonical stream carries no version constant and both
+        //   tables serialize EMPTY on this toy world (same zero count prefix),
+        //   so the v6 value STANDS. Cohort-model behavior is pinned by the
+        //   founded golden and the first-reign fixture, both re-pinned at T2.1.
         const string golden = "8f3a1986afe9f6fd076e082c868ca36bd171c9da5932fb34c0975de0f38390e1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
@@ -224,8 +229,14 @@ public class SnapshotTests
         // is its job. Update deliberately, with a history line, never casually.
         //
         // Update history:
-        //   v1 (T1.9, post-Leontief farming): pinned below.
-        const string golden = "a9ae0ba00a8750a55c103a8c245ecbca4bd87d6ee5851e2a040a974974d34e6e";
+        //   v1 (T1.9, post-Leontief farming):
+        //   a9ae0ba00a8750a55c103a8c245ecbca4bd87d6ee5851e2a040a974974d34e6e
+        //   v2 (T2.1, D-026 cohort buckets — DELIBERATE): PopBands → Buckets
+        //   (schema v7) and the cohort demographic profiles replaced the band
+        //   rates; behavior changes by design (slot-advance aging, newborn
+        //   cohort spread, famine age multipliers). Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        const string golden = "1446f99105bf0b2fd457bbc278e156eafaad7cfd246a1ef695209200771d7cb0";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -239,22 +250,27 @@ public class SnapshotTests
     }
 
     [Fact]
-    public void SchemaV5_PopulatedPopulationTables_LengthAndRoundTripExact()
+    public void SchemaV7_PopulatedBucketAndFoodTables_LengthAndRoundTripExact()
     {
         // Constitution rule: every new serialized row type ships a POPULATED-table
         // test — exact ExpectedLength, bit-exact round trip, hash equality.
-        // Exercises all three v5 row types with negative-zero doubles present.
+        // v7 (T2.1): BucketRow replaces PopBandRow — the full five-part key is
+        // exercised with DISTINCT values per field (a swapped Culture/Religion/
+        // Class write order round-trips wrong here, not in an empty table).
+        // Negative-zero doubles present.
         WorldState world = Genesis(17);
         var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
-        world.PopBands.Add(new PopBandRow(new SettlementId(0), PopBands.Children,
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(3),
+            new ReligionId(5), new ClassId(7), cohortIdx: 0,
             Conserved.Zero, birthRemainder: 0.25, deathRemainder: -0.0,
             starvationRemainder: 0.5, agingRemainder: 0.125));
-        world.PopBands.Add(new PopBandRow(new SettlementId(0), PopBands.Adults,
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(4),
+            new ReligionId(6), new ClassId(8), cohortIdx: 9,
             Conserved.Zero, birthRemainder: 0.0, deathRemainder: 0.75,
             starvationRemainder: -0.0, agingRemainder: 0.9));
-        ledger.Flow(ref world.PopBands.Ref(0).Count, ConservedQuantityIds.Population,
+        ledger.Flow(ref world.Buckets.Ref(0).Count, ConservedQuantityIds.Population,
             ReasonIds.InitialEndowment, 130, FlowDirection.Source, OverdrawPolicy.Throw);
-        ledger.Flow(ref world.PopBands.Ref(1).Count, ConservedQuantityIds.Population,
+        ledger.Flow(ref world.Buckets.Ref(1).Count, ConservedQuantityIds.Population,
             ReasonIds.InitialEndowment, 200, FlowDirection.Source, OverdrawPolicy.Throw);
         world.FoodStores.Add(new FoodStoreRow(new SettlementId(0),
             Conserved.Zero, harvestRemainder: 0.375, eatenRemainder: -0.0));
@@ -277,11 +293,15 @@ public class SnapshotTests
         buffer.Position = 0;
         WorldState loaded = Snapshot.Load(buffer);
         Assert.True(WorldStates.StateEquals(world, loaded));
-        Assert.Equal(130, loaded.PopBands[0].Count.Value);
-        Assert.Equal(0.25, loaded.PopBands[0].BirthRemainder);
+        Assert.Equal(130, loaded.Buckets[0].Count.Value);
+        Assert.Equal(new CultureId(3), loaded.Buckets[0].Culture);
+        Assert.Equal(new ReligionId(5), loaded.Buckets[0].Religion);
+        Assert.Equal(new ClassId(7), loaded.Buckets[0].Class);
+        Assert.Equal(9, loaded.Buckets[1].CohortIdx);
+        Assert.Equal(0.25, loaded.Buckets[0].BirthRemainder);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.PopBands[0].DeathRemainder));
-        Assert.Equal(0.9, loaded.PopBands[1].AgingRemainder);
+            BitConverter.DoubleToInt64Bits(loaded.Buckets[0].DeathRemainder));
+        Assert.Equal(0.9, loaded.Buckets[1].AgingRemainder);
         Assert.Equal(6000, loaded.FoodStores[0].Store.Value);
         Assert.Equal(0.375, loaded.FoodStores[0].HarvestRemainder);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),

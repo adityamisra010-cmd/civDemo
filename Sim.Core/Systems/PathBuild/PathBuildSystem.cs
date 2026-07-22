@@ -97,16 +97,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             }
             double pathShare = 1.0 - farmShare;
 
-            long adults = 0;
-            for (int i = 0; i < prev.PopBands.Count; i++)
-            {
-                if (prev.PopBands[i].Settlement == settlement.Id
-                    && prev.PopBands[i].Band == PopBands.Adults)
-                {
-                    adults = prev.PopBands[i].Count.Value;
-                    break;
-                }
-            }
+            // Adult labor is the derived band view over the cohort buckets (T2.1).
+            long adults = BandViews.Adults(prev.Buckets, settlement.Id);
 
             double accrual = _cfg.PathBuild.LaborPerAdultPerYear * pathShare * adults * ctx.DtYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);
@@ -287,7 +279,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<NetworkMetaRow> NetworkMeta => prev.NetworkMeta;
         public IReadOnlyTable<CatchmentNodeRow> CatchmentNodes => prev.CatchmentNodes;
         public IReadOnlyTable<CatchmentSummaryRow> CatchmentSummaries => prev.CatchmentSummaries;
-        public IReadOnlyTable<PopBandRow> PopBands => prev.PopBands;
+        public IReadOnlyTable<BucketRow> Buckets => prev.Buckets;
         public IReadOnlyTable<FoodStoreRow> FoodStores => prev.FoodStores;
         public IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits => prev.ConsumptionDeficits;
         public IReadOnlyTable<LaborAllocationRow> LaborAllocations => prev.LaborAllocations;

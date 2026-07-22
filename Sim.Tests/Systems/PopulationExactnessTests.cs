@@ -1,3 +1,6 @@
+using FsCheck;
+using FsCheck.Fluent;
+using FsCheck.Xunit;
 using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
@@ -7,34 +10,68 @@ using Sim.Tests.TestUtil;
 
 namespace Sim.Tests.Systems;
 
-// T1.5 adversarial hardening: per-flow EXACTNESS coverage. The adversarial pass
-// proved the behavioral suite has no teeth against wrong-but-ledgered amounts —
-// an aging leak laundered through Deaths+Births flows and a dropped death
-// remainder both passed all 126 tests (a birth double-count survived all but an
-// incidental dt-ratio check). These tests pin every demographic/food flow to an
-// independently hand-computed expectation, exact long equality, no epsilon.
+// T1.5 adversarial hardening, migrated to the cohort model at T2.1: per-flow
+// EXACTNESS coverage. The T1.5 adversarial pass proved behavioral suites have
+// no teeth against wrong-but-ledgered amounts — an aging leak laundered
+// through Deaths+Births flows and a dropped death remainder both passed all
+// 126 tests. These tests pin every demographic/food flow to an independently
+// hand-computed expectation, exact long equality, no epsilon. The cohort
+// migration keeps every guard and adds slot-advance aging and the famine
+// age-selectivity multipliers to the pinned surface.
 public class PopulationExactnessTests
 {
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");
 
-    /// <summary>One settlement, band counts 33000/50000/17000 endowed via Ledger.</summary>
-    private static WorldState BandsWorld(long children = 33000, long adults = 50000, long elders = 17000)
+    /// <summary>One settlement, single (culture 1, religion 1, class 1) group,
+    /// 16 cohort rows endowed via Ledger from <paramref name="counts"/>.</summary>
+    internal static WorldState BucketWorld(long[] counts)
     {
         var world = new WorldState(7);
         var settlement = new SettlementId(0);
         world.Settlements.Add(new SettlementRow(settlement, SiteCell: 0, FoundedTurn: 0));
         var ledger = new Ledger(world.LedgerFlows);
-        Span<long> counts = [children, adults, elders];
-        for (int band = 0; band < PopBands.Count; band++)
+        for (int c = 0; c < Cohorts.Count; c++)
         {
-            int row = world.PopBands.Add(new PopBandRow(
-                settlement, band, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
-            ledger.Flow(ref world.PopBands.Ref(row).Count, ConservedQuantityIds.Population,
-                ReasonIds.InitialEndowment, counts[band], FlowDirection.Source, OverdrawPolicy.Throw);
+            int row = world.Buckets.Add(new BucketRow(
+                settlement, new CultureId(1), new ReligionId(1), new ClassId(1),
+                c, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+            if (counts[c] > 0)
+            {
+                ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                    ReasonIds.InitialEndowment, counts[c], FlowDirection.Source, OverdrawPolicy.Throw);
+            }
         }
         return world;
     }
+
+    private static long[] Uniform(long perCohort)
+    {
+        var counts = new long[Cohorts.Count];
+        Array.Fill(counts, perCohort);
+        return counts;
+    }
+
+    private static double[] Zeros() => new double[Cohorts.Count];
+
+    private static double[] Filled(double v)
+    {
+        var a = new double[Cohorts.Count];
+        Array.Fill(a, v);
+        return a;
+    }
+
+    /// <summary>Config with every demographic rate zeroed — aging (structural,
+    /// derived from dt alone) is the only thing left moving people.</summary>
+    private static SimConfig AgingOnly(SimConfig cfg) => cfg with
+    {
+        Demographics = cfg.Demographics with
+        {
+            FertilityPerPersonPerYear = Zeros(),
+            MortalityPerYear = Zeros(),
+            StarvationMortalityMaxPerYear = 0.0,
+        },
+    };
 
     private static long FlowTotal(WorldState world, ConservedQuantityId quantity, ReasonId reason, bool sunk)
     {
@@ -49,63 +86,167 @@ public class PopulationExactnessTests
 
     private static long Floor(double v) => (long)Math.Floor(v);
 
-    [Fact]
-    public void Demographics_SingleStep_EveryFlowAndBand_HandComputedExact()
+    private static long TotalPop(WorldState world)
     {
-        // One demographics step at dt = 10 with a seeded deficit of 0.25 —
-        // large enough that starvation flows are nonzero, small enough that NO
-        // clamp binds (clamp semantics get their own directed test below).
-        // Every flow amount and final band count is re-derived here from config
-        // × PREV counts — a doubled birth flow, swapped band rates, mislabeled
-        // reasons, or an aging leak all break at least one exact equality.
+        long total = 0;
+        for (int i = 0; i < world.Buckets.Count; i++) total += world.Buckets[i].Count.Value;
+        return total;
+    }
+
+    [Fact]
+    public void Demographics_SingleStep_EveryFlowAndCohort_HandComputedExact()
+    {
+        // One demographics step at dt = 2.5 (k = 0, f = 0.5 — no sink clamps
+        // bind at these rates, and dt < cohort width keeps every newborn in
+        // cohort 0) with a seeded deficit of 0.25. Every flow amount and final
+        // cohort count is re-derived here from config × PREV counts through
+        // the PINNED operation order (births → deaths → starvation → aging),
+        // including the famine age multipliers and the fractional slot-advance
+        // (floor(0.5 × prev) of each cohort moves one slot; the transfer is
+        // sized from PREV, so it clamps to the post-mortality bucket — the
+        // dead do not age; no clamp binds here). A doubled birth flow, a
+        // swapped cohort rate, an ignored starvation multiplier, a mislabeled
+        // reason, or an aging leak all break at least one exact equality.
         SimConfig cfg = TestConfigs.Sim();
-        const double dt = 10.0, deficit = 0.25;
-        const long prevC = 33000, prevA = 50000, prevE = 17000;
-        WorldState world = BandsWorld(prevC, prevA, prevE);
+        DemographicsConfig d = cfg.Demographics;
+        const double dt = 2.5, deficit = 0.25;
+        var prev = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) prev[c] = 10001 + 7 * c; // odd, distinct
+        WorldState world = BucketWorld(prev);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), deficit));
 
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
         WorldState next = exec.Step(world);
 
-        DemographicsConfig d = cfg.Demographics;
-        long births = Floor(d.BirthsPerAdultPerYear * prevA * dt);                 // 25000
-        long deathsC = Floor(d.ChildMortalityPerYear * prevC * dt);                // 3300
-        long deathsA = Floor(d.AdultMortalityPerYear * prevA * dt);                // 3000
-        long deathsE = Floor(d.ElderMortalityPerYear * prevE * dt);                // 7650
-        double starvRate = d.StarvationMortalityMaxPerYear * deficit;
-        long starvC = Floor(starvRate * prevC * dt);                               // 9900
-        long starvA = Floor(starvRate * prevA * dt);                               // 15000
-        long starvE = Floor(starvRate * prevE * dt);                               // 5100
-        long agingCA = Floor(d.AgingChildToAdultPerYear * prevC * dt);             // 22000
-        long agingAE = Floor(d.AgingAdultToElderPerYear * prevA * dt);             // 11111
+        // Births: Σ fertility[c] × prev[c] × dt — all into cohort 0 (dt < width).
+        double birthsPerYear = 0.0;
+        for (int c = 0; c < Cohorts.Count; c++)
+            birthsPerYear += d.FertilityPerPersonPerYear[c] * prev[c];
+        double birthsExact = birthsPerYear * dt;
+        long born = Floor(birthsExact);
 
-        // Band counts: exact (no clamp binds at these magnitudes — verified by
-        // the positive expected finals).
-        Assert.Equal(prevC + births - deathsC - starvC - agingCA, next.PopBands[0].Count.Value);
-        Assert.Equal(prevA - deathsA - starvA + agingCA - agingAE, next.PopBands[1].Count.Value);
-        Assert.Equal(prevE - deathsE - starvE + agingAE, next.PopBands[2].Count.Value);
+        // Deaths and starvation per cohort (no clamp binds at these magnitudes).
+        var deaths = new long[Cohorts.Count];
+        var starved = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++)
+        {
+            deaths[c] = Floor(d.MortalityPerYear[c] * prev[c] * dt);
+            double mult = c < Cohorts.FirstAdult ? d.StarvationChildMultiplier
+                : c >= Cohorts.FirstElder ? d.StarvationElderMultiplier : 1.0;
+            starved[c] = Floor(d.StarvationMortalityMaxPerYear * deficit * mult * prev[c] * dt);
+        }
+
+        // Aging recurrence (k = 0, f = 0.5): out_c = floor(0.5 × prev_c) moves
+        // ONE slot up; 75+ absorbs and never moves out.
+        var avail = new long[Cohorts.Count];
+        var outMove = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++)
+        {
+            avail[c] = prev[c] + (c == 0 ? born : 0) - deaths[c] - starved[c];
+            outMove[c] = c == Cohorts.Count - 1 ? 0 : Floor(0.5 * prev[c]);
+            Assert.True(outMove[c] <= avail[c], $"clamp bound at cohort {c} — test design broken");
+        }
+        for (int c = 0; c < Cohorts.Count; c++)
+        {
+            long arrivals = c >= 1 ? outMove[c - 1] : 0;
+            Assert.Equal(avail[c] - outMove[c] + arrivals, next.Buckets[c].Count.Value);
+        }
 
         // Ledger rows: exact per-reason attribution — and aging appears NOWHERE
-        // (it is a Transfer; a Flow-pair regression inflates Births/Deaths and
-        // breaks these equalities).
-        Assert.Equal(births, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Births, sunk: false));
-        Assert.Equal(deathsC + deathsA + deathsE,
-            FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Deaths, sunk: true));
-        Assert.Equal(starvC + starvA + starvE,
-            FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
+        // (it is a Transfer; a Flow-pair regression inflates Births/Deaths).
+        long deathsTotal = 0, starvedTotal = 0;
+        for (int c = 0; c < Cohorts.Count; c++) { deathsTotal += deaths[c]; starvedTotal += starved[c]; }
+        Assert.Equal(born, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Births, sunk: false));
+        Assert.Equal(deathsTotal, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Deaths, sunk: true));
+        Assert.Equal(starvedTotal, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
         Assert.Equal(0, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Births, sunk: true));
         Assert.Equal(0, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Deaths, sunk: false));
 
         // Remainders: exactly the sub-unit fractions of the same products —
-        // every one of them, bit-exact (a dropped remainder writes 0.0 and the
-        // true fraction is never exactly 0.0 at these operands).
-        double birthExact = d.BirthsPerAdultPerYear * prevA * dt;
-        Assert.Equal(birthExact - births, next.PopBands[0].BirthRemainder);
-        double agingExact = d.AgingChildToAdultPerYear * prevC * dt;
-        Assert.Equal(agingExact - agingCA, next.PopBands[0].AgingRemainder);
-        Assert.Equal(d.ChildMortalityPerYear * prevC * dt - deathsC, next.PopBands[0].DeathRemainder);
-        Assert.Equal(d.AdultMortalityPerYear * prevA * dt - deathsA, next.PopBands[1].DeathRemainder);
-        Assert.Equal(starvRate * prevC * dt - starvC, next.PopBands[0].StarvationRemainder);
+        // bit-exact (a dropped remainder writes 0.0; the odd counts make every
+        // asserted fraction nonzero, e.g. aging 0.5 × odd → .5).
+        Assert.Equal(birthsExact - born, next.Buckets[0].BirthRemainder);
+        Assert.Equal(d.MortalityPerYear[0] * prev[0] * dt - deaths[0], next.Buckets[0].DeathRemainder);
+        Assert.Equal(0.5 * prev[4] - outMove[4], next.Buckets[4].AgingRemainder);
+        Assert.Equal(
+            d.StarvationMortalityMaxPerYear * deficit * d.StarvationElderMultiplier * prev[15] * dt - starved[15],
+            next.Buckets[15].StarvationRemainder);
+    }
+
+    [Fact]
+    public void NewbornCohortSpread_Dt10_SplitsHalfIntoCohortOne_Exact()
+    {
+        // The dt = 10 newborn spread, pinned semantically (goldens alone would
+        // let a "credit everything to cohort 0" regression hide behind a
+        // blind re-pin): a 10-year turn's newborns end it aged 0..10, so
+        // cohorts 0 and 1 each receive exactly half. Fertility only, one
+        // step: cohort 5 is the only fertile source (rate 0.10), everyone
+        // else zeroed; prev[5] = 2000 → births exact = 0.10 × 2000 × 10 =
+        // 2000, → 1000 into cohort 0 and 1000 into cohort 1 BEFORE aging
+        // jumps them two slots (k = 2): they land in cohorts 2 and 3.
+        SimConfig cfg = TestConfigs.Sim();
+        double[] fertility = Zeros();
+        fertility[5] = 0.10;
+        cfg = AgingOnly(cfg) with
+        {
+            Demographics = AgingOnly(cfg).Demographics with { FertilityPerPersonPerYear = fertility },
+        };
+        var counts = new long[Cohorts.Count];
+        counts[5] = 2000;
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
+        WorldState next = exec.Step(BucketWorld(counts));
+
+        Assert.Equal(2000, FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Births, sunk: false));
+        // Aging (k = 2, amounts sized from PREV) moves only the 2000 of cohort
+        // 5 (→ 7); newborns' cohorts had prev = 0, so they STAY where credited.
+        Assert.Equal(1000, next.Buckets[0].Count.Value);
+        Assert.Equal(1000, next.Buckets[1].Count.Value);
+        Assert.Equal(2000, next.Buckets[7].Count.Value);
+        Assert.Equal(0, next.Buckets[5].Count.Value);
+    }
+
+    [Fact]
+    public void SlotAdvanceAging_WholeAndFractionalSlots_Exact()
+    {
+        // The dt-correctness core of D-026 aging. Aging-only config (no other
+        // flow interferes), distinct per-cohort counts so a swapped destination
+        // is visible.
+        SimConfig cfg = AgingOnly(TestConfigs.Sim());
+        var counts = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) counts[c] = 1000 + 100 * c;
+
+        // dt = 10 → k = 2, f = 0: every cohort jumps exactly two slots; 75+ absorbs.
+        WorldState w10 = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)])
+            .Step(BucketWorld(counts));
+        Assert.Equal(0, w10.Buckets[0].Count.Value);
+        Assert.Equal(0, w10.Buckets[1].Count.Value);
+        for (int c = 2; c < Cohorts.Count - 1; c++)
+            Assert.Equal(counts[c - 2], w10.Buckets[c].Count.Value);
+        Assert.Equal(counts[13] + counts[14] + counts[15], w10.Buckets[15].Count.Value);
+
+        // dt = 5 → k = 1, f = 0: one slot.
+        WorldState w5 = new TurnExecutor(FlatEra(5.0), [SystemCatalog.Demographics(cfg)])
+            .Step(BucketWorld(counts));
+        Assert.Equal(0, w5.Buckets[0].Count.Value);
+        for (int c = 1; c < Cohorts.Count - 1; c++)
+            Assert.Equal(counts[c - 1], w5.Buckets[c].Count.Value);
+        Assert.Equal(counts[14] + counts[15], w5.Buckets[15].Count.Value);
+
+        // dt = 2.5 → k = 0, f = 0.5: exactly half of each cohort advances one
+        // slot (floor + remainder; these counts are even, so no fraction left).
+        WorldState w25 = new TurnExecutor(FlatEra(2.5), [SystemCatalog.Demographics(cfg)])
+            .Step(BucketWorld(counts));
+        Assert.Equal(counts[0] / 2, w25.Buckets[0].Count.Value);
+        for (int c = 1; c < Cohorts.Count - 1; c++)
+            Assert.Equal(counts[c] - counts[c] / 2 + counts[c - 1] / 2, w25.Buckets[c].Count.Value);
+        Assert.Equal(counts[15] + counts[14] / 2, w25.Buckets[15].Count.Value);
+
+        // All three conserve exactly and leave no source/sink footprint.
+        foreach (WorldState w in new[] { w10, w5, w25 })
+        {
+            Assert.Equal(TotalPop(w), FlowTotal(w, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
+            Assert.True(ConservationAuditor.IsConserved(w, out string report), report);
+        }
     }
 
     [Fact]
@@ -113,64 +254,48 @@ public class PopulationExactnessTests
     {
         // The remainder-drop mutant escaped every magnitude test (single-step
         // flow amounts are unchanged when the fraction is discarded). This is
-        // the semantic guard: with 10 adults at 0.006/yr and dt = 10, each
-        // turn's exact mortality is 0.06 × prevAdults < 1 — deaths EXIST ONLY
-        // through remainder accumulation. Hand-walked recurrence (rate applies
-        // to the SHRINKING prev count; exact_t = 0.06·prevA + rem):
+        // the semantic guard, on the ABSORBING cohort (75+ never ages out, so
+        // the remainder trail stays with the people): 10 people at 0.006/yr,
+        // dt = 10 — each turn's exact mortality is 0.06 × prev < 1, so deaths
+        // EXIST ONLY through remainder accumulation. Hand-walked recurrence
+        // (rate applies to the SHRINKING prev count; exact_t = 0.06·prev + rem):
         //   t1 0.60→0  t2 1.20→1  t3 0.74→0  t4 1.28→1  t5 0.76→0
         //   t6 1.24→1  t7 0.66→0  t8 1.08→1  t9 0.44→0   — 4 deaths, 6 alive.
         // A dropped remainder floors every turn to zero and never kills anyone.
         SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with
+        double[] mortality = Zeros();
+        mortality[15] = 0.006;
+        cfg = AgingOnly(cfg) with
         {
-            Demographics = cfg.Demographics with
-            {
-                BirthsPerAdultPerYear = 0.0,
-                ChildMortalityPerYear = 0.0,
-                ElderMortalityPerYear = 0.0,
-                AgingChildToAdultPerYear = 0.0,
-                AgingAdultToElderPerYear = 0.0,
-                StarvationMortalityMaxPerYear = 0.0,
-                // AdultMortalityPerYear stays canonical 0.006.
-            },
+            Demographics = AgingOnly(cfg).Demographics with { MortalityPerYear = mortality },
         };
+        var counts = new long[Cohorts.Count];
+        counts[15] = 10;
         var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
-        WorldState world = exec.Run(BandsWorld(children: 0, adults: 10, elders: 0), 9);
+        WorldState world = exec.Run(BucketWorld(counts), 9);
 
         Assert.Equal(4, FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Deaths, sunk: true));
-        Assert.Equal(6, world.PopBands[1].Count.Value);
+        Assert.Equal(6, world.Buckets[15].Count.Value);
     }
 
     [Fact]
     public void Aging_LeavesNoFlowFootprint_TotalPopulationExactlyConserved()
     {
-        // Aging-only config: births, mortality, starvation all zero. Aging is a
-        // Ledger.Transfer — people MOVE but never source or sink. Ten steps:
-        // the total is exactly constant every step and the Births/Deaths/
-        // Starvation ledger totals stay exactly zero. An aging implementation
-        // booked as compensating flows (even a balanced pair) fails here.
-        SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with
-        {
-            Demographics = cfg.Demographics with
-            {
-                BirthsPerAdultPerYear = 0.0,
-                ChildMortalityPerYear = 0.0,
-                AdultMortalityPerYear = 0.0,
-                ElderMortalityPerYear = 0.0,
-                StarvationMortalityMaxPerYear = 0.0,
-            },
-        };
+        // Aging-only config: fertility, mortality, starvation all zero. Aging
+        // is Ledger.Transfers — people MOVE but never source or sink. Ten
+        // steps: the total is exactly constant every step and the Births/
+        // Deaths/Starvation ledger totals stay exactly zero. An aging
+        // implementation booked as compensating flows (even a balanced pair)
+        // fails here.
+        SimConfig cfg = AgingOnly(TestConfigs.Sim());
         var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
-        WorldState world = BandsWorld();
-        const long total = 33000 + 50000 + 17000;
+        WorldState world = BucketWorld(Uniform(1000));
+        const long total = 16000;
 
         for (int t = 1; t <= 10; t++)
         {
             world = exec.Step(world);
-            long sum = world.PopBands[0].Count.Value + world.PopBands[1].Count.Value
-                       + world.PopBands[2].Count.Value;
-            Assert.Equal(total, sum); // exact, every step
+            Assert.Equal(total, TotalPop(world)); // exact, every step
             foreach (ReasonId reason in new[] { ReasonIds.Births, ReasonIds.Deaths, ReasonIds.Starvation })
             {
                 Assert.Equal(0, FlowTotal(world, ConservedQuantityIds.Population, reason, sunk: false));
@@ -178,63 +303,135 @@ public class PopulationExactnessTests
             }
         }
 
-        // Aging really ran: children shrank, elders grew.
-        Assert.True(world.PopBands[0].Count.Value < 33000, "children never aged out");
-        Assert.True(world.PopBands[2].Count.Value > 17000, "elders never aged in");
+        // Aging really ran: everyone has reached the absorbing 75+ cohort.
+        Assert.Equal(total, world.Buckets[15].Count.Value);
     }
 
     [Fact]
-    public void ClampShortfall_NeverBanked_StarvedBandOwesNoFutureDeaths()
+    public void FamineAgeSelectivity_ChildAndElderMultipliers_Provable()
     {
-        // Famine floor semantics: requested starvation deaths exceed the band —
-        // the band clamps to exactly 0 and the shortfall is DISCARDED, not
-        // banked. After repopulating, the next step sinks only the newly
-        // computed amount. (A banking regression would carry the phase-1
-        // shortfall into phase 2's flow.)
+        // Acceptance criterion: famine kills the young and the old first, as a
+        // MECHANISM (the multiplier sits inside the starvation resolution
+        // equation). Uniform cohorts, full deficit, starvation only, one step:
+        //   child cohorts:  floor(0.12 × 1.5 × 10000 × 2.5) = 4500 each (×3)
+        //   adult cohorts:  floor(0.12 × 1.0 × 10000 × 2.5) = 3000 each (×9)
+        //   elder cohorts:  floor(0.12 × 1.3 × 10000 × 2.5) = 3900 each (×4)
+        // The aggregate Starvation sink pins the multipliers (an ignored
+        // multiplier books 48000, not 56100), and the absorbing cohort pins
+        // the per-row amount.
         SimConfig cfg = TestConfigs.Sim();
         cfg = cfg with
         {
             Demographics = cfg.Demographics with
             {
-                BirthsPerAdultPerYear = 0.0,
-                ChildMortalityPerYear = 0.0,
-                AdultMortalityPerYear = 0.0,
-                ElderMortalityPerYear = 0.0,
-                AgingChildToAdultPerYear = 0.0,
-                AgingAdultToElderPerYear = 0.0,
+                FertilityPerPersonPerYear = Zeros(),
+                MortalityPerYear = Zeros(),
+            },
+        };
+        WorldState world = BucketWorld(Uniform(10000));
+        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 1.0));
+        var exec = new TurnExecutor(FlatEra(2.5), [SystemCatalog.Demographics(cfg)]);
+        WorldState next = exec.Step(world);
+
+        Assert.Equal(3 * 4500 + 9 * 3000 + 4 * 3900,
+            FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
+        // Absorbing cohort, exact: survivors 10000−3900 = 6100, plus cohort
+        // 14's slot-advance arrivals floor(0.5 × 10000) = 5000 (sized from
+        // PREV; under its post-starvation 6100 available, so no clamp).
+        Assert.Equal(6100 + 5000, next.Buckets[15].Count.Value);
+    }
+
+    [Fact]
+    public void ClampShortfall_NeverBanked_StarvedCohortOwesNoFutureDeaths()
+    {
+        // Famine floor semantics on the absorbing cohort: requested starvation
+        // deaths exceed the bucket — it clamps to exactly 0 people short and
+        // the shortfall is DISCARDED, not banked. After repopulating, the next
+        // step sinks only the newly computed amount.
+        SimConfig cfg = AgingOnly(TestConfigs.Sim()) with { };
+        cfg = cfg with
+        {
+            Demographics = cfg.Demographics with
+            {
+                StarvationMortalityMaxPerYear = TestConfigs.Sim().Demographics.StarvationMortalityMaxPerYear,
             },
         };
         const double dt = 10.0;
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
-        WorldState world = BandsWorld(children: 5, adults: 0, elders: 0);
+        var counts = new long[Cohorts.Count];
+        counts[15] = 5;
+        WorldState world = BucketWorld(counts);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 1.0));
 
-        // Phase 1: requested = floor(0.12 × 1.0 × 5 × 10) = 6 > 5 → clamp to 5.
+        // Phase 1: requested = floor(0.12 × 1.0 × 1.3 × 5 × 10) = 7 > 5 → clamp
+        // to 5; remainder keeps only the sub-unit fraction 0.8.
         world = exec.Step(world);
-        Assert.Equal(0, world.PopBands[0].Count.Value);
+        Assert.Equal(0, world.Buckets[15].Count.Value);
         Assert.Equal(5, FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
-        Assert.True(world.PopBands[0].StarvationRemainder is >= 0.0 and < 1.0,
-            $"shortfall banked: remainder {world.PopBands[0].StarvationRemainder}");
+        Assert.True(world.Buckets[15].StarvationRemainder is >= 0.0 and < 1.0,
+            $"shortfall banked: remainder {world.Buckets[15].StarvationRemainder}");
 
-        // Phase 2: repopulate to 10, soften the deficit to 0.25 →
-        // requested = floor(0.12 × 0.25 × 10 × 10) = 3. The Starvation total
-        // must rise by EXACTLY 3 — no phase-1 debt executes against the living.
+        // Phase 2: repopulate to 10, soften the deficit to 0.25 → requested =
+        // floor(0.12 × 0.25 × 1.3 × 10 × 10 + 0.8) = floor(4.7) = 4. The
+        // Starvation total rises by EXACTLY 4 — no phase-1 debt executes
+        // against the living.
         var ledger = new Ledger(world.LedgerFlows);
-        ledger.Flow(ref world.PopBands.Ref(0).Count, ConservedQuantityIds.Population,
+        ledger.Flow(ref world.Buckets.Ref(15).Count, ConservedQuantityIds.Population,
             ReasonIds.InitialEndowment, 10, FlowDirection.Source, OverdrawPolicy.Throw);
         world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 0.25);
         world = exec.Step(world);
-        Assert.Equal(5 + 3, FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
-        Assert.Equal(7, world.PopBands[0].Count.Value);
+        Assert.Equal(5 + 4, FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true));
+        Assert.Equal(6, world.Buckets[15].Count.Value);
+    }
+
+    // --- FsCheck: conservation exact across all cohort flows -----------------
+
+    [Property(MaxTest = 100)]
+    public Property CohortFlows_ArbitraryStatesAndDeficits_ConserveExactly()
+    {
+        // Acceptance criterion (T2.1): conservation exact across ALL cohort
+        // flows, FsCheck over arbitrary cohort populations and famine depths.
+        // Three canonical-config demographics steps at Neolithic dt; after
+        // each, the audit identity Σ stocks + Σ sunk − Σ sourced == 0 must
+        // hold EXACTLY, and the person-exact reconciliation from flows alone
+        // must equal the live total.
+        Gen<long> countGen = Gen.Choose(0, 200_000).Select(v => (long)v);
+        Gen<long[]> stateGen = countGen.ArrayOf(Cohorts.Count);
+        Gen<int> deficitPctGen = Gen.Choose(0, 100);
+        return Prop.ForAll(stateGen.ToArbitrary(), deficitPctGen.ToArbitrary(), (counts, deficitPct) =>
+        {
+            SimConfig cfg = TestConfigs.Sim();
+            WorldState world = BucketWorld(counts);
+            world.ConsumptionDeficits.Add(
+                new ConsumptionDeficitRow(new SettlementId(0), deficitPct / 100.0));
+            var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
+            for (int t = 0; t < 3; t++)
+            {
+                world = exec.Step(world);
+                if (!ConservationAuditor.IsConserved(world, out string report))
+                    return false.Label($"turn {t + 1}: {report}");
+            }
+            long endow = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false);
+            long births = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Births, sunk: false);
+            long deaths = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Deaths, sunk: true);
+            long starved = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true);
+            return (TotalPop(world) == checked(endow + births - deaths - starved))
+                .Label("person-exact reconciliation from flows alone failed");
+        });
     }
 
     // --- food-loop exactness + dt-correctness -------------------------------
 
     /// <summary>One settlement, a fixed catchment summary (farmland F), an
-    /// endowed store, and static band counts 100/200/50.</summary>
+    /// endowed store, and static cohort counts: 100 in cohort 0 (child),
+    /// 200 in cohort 5 (adult), 50 in cohort 15 (elder) — weights 0.6/1.0/0.7
+    /// reproduce the T1.5 demand of 295/yr and 200 farming adults exactly.
+    /// Executors here never include demographics, so the counts are static.</summary>
     private static WorldState FoodWorld(double farmland, long store)
     {
-        WorldState world = BandsWorld(children: 100, adults: 200, elders: 50);
+        var counts = new long[Cohorts.Count];
+        counts[0] = 100; counts[5] = 200; counts[15] = 50;
+        WorldState world = BucketWorld(counts);
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
             new SettlementId(0), NodeCount: 1, EffectiveFarmland: farmland,
             NetworkRevision: 0, LastRecomputeTurn: 0));
@@ -245,6 +442,11 @@ public class PopulationExactnessTests
             FlowDirection.Source, OverdrawPolicy.Throw);
         return world;
     }
+
+    private static double DemandPerYear(SimConfig cfg) =>
+        cfg.Consumption.CohortWeights[0] * 100
+        + cfg.Consumption.CohortWeights[5] * 200
+        + cfg.Consumption.CohortWeights[15] * 50;                                  // 295.0/yr
 
     [Fact]
     public void FarmingAndConsumption_SingleStep_HandComputedExact()
@@ -259,13 +461,12 @@ public class PopulationExactnessTests
         // T1.6: farm share is the LaborAllocations row; this hand-built world
         // has none, so the never-ordered default of 1.0 applies.
         // T1.8 spec amendment: LEONTIEF — min(land side, labor side). Here the
-        // 200 adults bind: min(78.5×28=2198, 200×1×5=1000) → labor-limited.
+        // 200 adults (cohort 5, the T2.1 band view) bind:
+        // min(78.5×28=2198, 200×1×5=1000) → labor-limited.
         long harvest = Floor(Math.Min(
             farmland * cfg.Farming.YieldPerFarmlandPerYear,
             200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear) * dt);                 // 10000
-        long demand = Floor((cfg.Consumption.ChildWeight * 100
-                             + cfg.Consumption.AdultWeight * 200
-                             + cfg.Consumption.ElderWeight * 50) * dt);            // 2950
+        long demand = Floor(DemandPerYear(cfg) * dt);                              // 2950
 
         Assert.Equal(harvest, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Harvest, sunk: false));
         Assert.Equal(demand, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Eaten, sunk: true));
@@ -283,9 +484,7 @@ public class PopulationExactnessTests
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(FoodWorld(farmland: 0.0, store: 1000));
 
-        long demand = Floor((cfg.Consumption.ChildWeight * 100
-                             + cfg.Consumption.AdultWeight * 200
-                             + cfg.Consumption.ElderWeight * 50) * dt);
+        long demand = Floor(DemandPerYear(cfg) * dt);
         Assert.Equal(0, next.FoodStores[0].Store.Value);
         Assert.Equal(1000, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Eaten, sunk: true));
         Assert.Equal((demand - 1000) / (double)demand, next.ConsumptionDeficits[0].DeficitRatio);
@@ -308,9 +507,7 @@ public class PopulationExactnessTests
         double harvestPerYear = Math.Min(
             farmland * cfg.Farming.YieldPerFarmlandPerYear,
             200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear);                       // 1000.0/yr
-        double demandPerYear = cfg.Consumption.ChildWeight * 100
-                               + cfg.Consumption.AdultWeight * 200
-                               + cfg.Consumption.ElderWeight * 50;                 // 295.0/yr
+        double demandPerYear = DemandPerYear(cfg);                                 // 295.0/yr
 
         var harvested = new long[3];
         var eaten = new long[3];
@@ -342,21 +539,36 @@ public class PopulationExactnessTests
     [Fact]
     public void Founding_EndowmentPinnedToConfig_StocksAndLedgerRowsExact()
     {
-        // Adversarial finding: nothing pinned the founding amounts — a double
-        // endowment or band swap passed everything. Exact pins, config-derived.
+        // Adversarial finding (T1.5): nothing pinned the founding amounts — a
+        // double endowment or band swap passed everything. Exact pins,
+        // config-derived, extended at T2.1 to the bucket cross product: the
+        // full culture × religion × class × cohort layout, the whole founding
+        // population on the FIRST class, other classes at exactly zero.
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
 
-        Assert.Equal(PopBands.Count, world.PopBands.Count);
-        Assert.Equal(PopBands.Children, world.PopBands[0].Band);
-        Assert.Equal(cfg.Founding.Children, world.PopBands[0].Count.Value);
-        Assert.Equal(cfg.Founding.Adults, world.PopBands[1].Count.Value);
-        Assert.Equal(cfg.Founding.Elders, world.PopBands[2].Count.Value);
+        int groups = cfg.Registries.Cultures.Length * cfg.Registries.Religions.Length
+                     * cfg.Registries.Classes.Length;
+        Assert.Equal(groups * Cohorts.Count, world.Buckets.Count);
+
+        long popTotal = 0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow row = world.Buckets[i];
+            bool firstClass = row.Class.Value == cfg.Registries.Classes[0].Id;
+            long expected = firstClass ? cfg.Founding.CohortCounts[row.CohortIdx] : 0;
+            Assert.Equal(expected, row.Count.Value);
+            popTotal += row.Count.Value;
+        }
+        // The layout is contiguous ascending cohort runs (the documented
+        // deterministic order every consumer may rely on).
+        for (int i = 0; i < world.Buckets.Count; i++)
+            Assert.Equal(i % Cohorts.Count, world.Buckets[i].CohortIdx);
+
         Assert.Equal(1, world.FoodStores.Count);
         Assert.Equal(cfg.Founding.FoodStore, world.FoodStores[0].Store.Value);
         Assert.Equal(0, world.ConsumptionDeficits.Count);
 
-        long popTotal = cfg.Founding.Children + cfg.Founding.Adults + cfg.Founding.Elders;
         Assert.Equal(popTotal,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
         Assert.Equal(cfg.Founding.FoodStore,

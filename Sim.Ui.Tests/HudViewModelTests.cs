@@ -82,11 +82,20 @@ public class HudViewModelTests
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
 
         HudModel hud = HudModel.From(world, previousHarvestTotal: 0);
-        Assert.Equal(cfg.Founding.Children, hud.Children);
-        Assert.Equal(cfg.Founding.Adults, hud.Adults);
-        Assert.Equal(cfg.Founding.Elders, hud.Elders);
-        Assert.Equal(cfg.Founding.Children + cfg.Founding.Adults + cfg.Founding.Elders,
-            hud.TotalPopulation);
+        // Band views over the founding cohort counts (T2.1): 0-2 / 3-11 / 12-15.
+        long children = 0, adults = 0, elders = 0, total = 0;
+        for (int c = 0; c < Sim.Core.State.Cohorts.Count; c++)
+        {
+            long n = cfg.Founding.CohortCounts[c];
+            total += n;
+            if (c < Sim.Core.State.Cohorts.FirstAdult) children += n;
+            else if (c < Sim.Core.State.Cohorts.FirstElder) adults += n;
+            else elders += n;
+        }
+        Assert.Equal(children, hud.Children);
+        Assert.Equal(adults, hud.Adults);
+        Assert.Equal(elders, hud.Elders);
+        Assert.Equal(total, hud.TotalPopulation);
         Assert.Equal(cfg.Founding.FoodStore, hud.FoodStore);
         Assert.Equal(0, hud.LastHarvest);          // nothing harvested pre-turn-1
         Assert.Equal(100.0, hud.FarmSharePct);     // never-ordered default

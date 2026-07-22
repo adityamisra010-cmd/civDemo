@@ -40,7 +40,7 @@ public class FirstReignTests
         {
             world = exec.Step(world);
             long pop = 0;
-            for (int i = 0; i < world.PopBands.Count; i++) pop += world.PopBands[i].Count.Value;
+            for (int i = 0; i < world.Buckets.Count; i++) pop += world.Buckets[i].Count.Value;
             long harvest = 0;
             for (int i = 0; i < world.LedgerFlows.Count; i++)
             {
@@ -63,8 +63,12 @@ public class FirstReignTests
         // forever: the full 40-turn ordered trajectory is hash-pinned (a
         // founded-world ORDERED golden). Breaks loudly on any sim-behavior
         // change; update deliberately with a history line, never casually.
-        //   v1 (T1.9, post-Leontief): pinned below.
-        const string golden = "6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246";
+        //   v1 (T1.9, post-Leontief):
+        //   6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246
+        //   v2 (T2.1, D-026 cohort buckets — DELIBERATE, D-029): trajectory
+        //   re-pins under the cohort demographics; the shape asserts below
+        //   remain the load-bearing guard.
+        const string golden = "b4af3b3dff1cc62cf0b55f7a7234f2af4cc7c64bc91b98ca0b7a3107f53df504";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
