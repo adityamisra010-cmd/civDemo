@@ -1,17 +1,26 @@
 name: ui-artifact
 
-# T1.7 (D-023 Director Visual Gate): publish a win-x64 self-contained Sim.Ui
-# so the director can download the zip from the Actions run and play — no
-# toolchain touched. Branch-runnable this packet; T1.10 formalizes the
-# per-main-merge artifact + README "Download & Play".
+# T1.10 (D-023, formalized): the playable Windows build.
+#   - every t1.* branch push  → gate zip for Director Visual Gates
+#   - every push to main      → the "latest playable" artifact per merge
+#   - release: published      → the zip is ATTACHED to the GitHub Release as a
+#     permanent asset (runs on GitHub's runners, so milestone releases become
+#     permanently downloadable games regardless of any dev-container limits).
+# Build identity: -p:BuildSha/-p:BuildDate stamp the window title + debug panel
+# ("civ-sim M1 (<sha>, <date>)") — the director always knows which build he
+# is holding. Artifact name carries the same sha: sim-ui-win-x64-<sha>.
 on:
   workflow_dispatch:
   push:
-    branches: ['t1.*']   # every UI-bearing packet branch needs a gateable zip
+    branches: ['main', 't1.*']
+  release:
+    types: [published]
 
 jobs:
   ui-artifact:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed only by the release-asset upload step
     steps:
       - uses: actions/checkout@v4
 
@@ -20,10 +29,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Publish Sim.Ui (win-x64, self-contained)
+      - name: Compute build identity
+        id: ident
+        run: |
+          echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish Sim.Ui (win-x64, self-contained, identity-stamped)
         run: >
           dotnet publish Sim.Ui/Sim.Ui.csproj -c Release -r win-x64
           --self-contained -o publish/sim-ui-win-x64
+          -p:BuildSha=${{ steps.ident.outputs.sha }}
+          -p:BuildDate=${{ steps.ident.outputs.date }}
 
       - name: Assert the publish is complete (director hardening, T1.7)
         # An empty or partial publish must never go green: the exe and every
@@ -39,7 +56,19 @@ jobs:
       - name: Upload artifact zip
         uses: actions/upload-artifact@v4
         with:
-          name: sim-ui-win-x64
+          name: sim-ui-win-x64-${{ steps.ident.outputs.sha }}
           path: publish/sim-ui-win-x64
           if-no-files-found: error
           retention-days: 30
+
+      - name: Attach zip to the GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd publish
+          zip -qr "sim-ui-win-x64-${{ steps.ident.outputs.sha }}.zip" sim-ui-win-x64
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "sim-ui-win-x64-${{ steps.ident.outputs.sha }}.zip" \
+            --repo "${{ github.repository }}" --clobber
+          echo "attached sim-ui-win-x64-${{ steps.ident.outputs.sha }}.zip to release ${{ github.event.release.tag_name }}"

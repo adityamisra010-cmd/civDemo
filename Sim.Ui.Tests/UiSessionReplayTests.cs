@@ -106,3 +106,16 @@ public class UiSessionReplayTests
         Assert.Equal(WorldHash.ComputeHex(canonical), WorldHash.ComputeHex(ui));
     }
 }
+
+// T1.10: build identity — the string the director sees in title AND panel.
+public class BuildInfoTests
+{
+    [Fact]
+    public void Describe_LocalBuild_FallsBackToDevLocal()
+    {
+        // Test builds pass no -p:BuildSha/-p:BuildDate → the documented fallback.
+        Assert.Equal("civ-sim M1 (dev, local)", Sim.Ui.BuildInfo.Describe());
+        Assert.Equal("dev", Sim.Ui.BuildInfo.Sha);
+        Assert.Equal("local", Sim.Ui.BuildInfo.Date);
+    }
+}

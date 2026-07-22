@@ -74,7 +74,7 @@ public sealed class SimUiGame : Game
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
-        Window.Title = "civ-sim — M1 walking skeleton";
+        Window.Title = BuildInfo.Describe(); // build identity: sha + date (T1.10)
     }
 
     protected override void LoadContent()
@@ -315,6 +315,7 @@ public sealed class SimUiGame : Game
             EndTurn();
 
         ImGui.Separator();
+        ImGui.TextUnformatted(BuildInfo.Describe()); // same identity as the title
         ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, _fps));
         ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
         ImGui.End();
