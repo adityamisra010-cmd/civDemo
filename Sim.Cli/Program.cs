@@ -44,16 +44,18 @@ namespace Sim.Cli
             if (error is not null) Console.Error.WriteLine($"error: {error}");
             Console.Error.WriteLine("""
                 usage:
-                  sim run --seed S --turns N [--founded] [--report] [--save-at K --save PATH]
-                          [--orders PATH] [--hash-log PATH]
+                  sim run --seed S --turns N [--founded [--size PX]] [--report]
+                          [--save-at K --save PATH] [--orders PATH] [--hash-log PATH]
                   sim hash SAVEFILE
-                  sim replay --seed S --orders PATH --turns N [--founded] [--hash-log PATH]
+                  sim replay --seed S --orders PATH --turns N [--founded [--size PX]]
+                          [--hash-log PATH]
                   sim bench --seed S --turns N [--founded] [--json]
                   sim worldgen --seed S [--stats] [--size PX]
 
                 --founded: run the M1 production world (worldgen + settlement +
                 pop/food/pathbuild pipeline) instead of the M0 toy world. Labor
-                orders (kind 2) require --founded.
+                orders (kind 2) require --founded. --size replays a session
+                played on a non-canonical world size (runs/orders-*-sPX.bin).
                 """);
             return 1;
         }
@@ -91,8 +93,16 @@ namespace Sim.Cli
         }
 
         /// <summary>The starting world: M0 toy genesis, or the founded M1 world.</summary>
-        private static WorldState StartWorld(ulong seed, bool founded) =>
-            founded ? HeadlessFounding.Found(seed) : Genesis(seed);
+        private static WorldState StartWorld(ulong seed, bool founded, int? sizeOverridePx = null) =>
+            founded ? HeadlessFounding.Found(seed, sizeOverridePx) : Genesis(seed);
+
+        private static int? SizeOpt(Options opts, bool founded)
+        {
+            long size = opts.LongOr("--size", -1);
+            if (size < 0) return null;
+            if (!founded) throw new CliUsageException("--size requires --founded");
+            return (int)size;
+        }
 
         private static OrderLog LoadOrders(string path)
         {
@@ -105,10 +115,11 @@ namespace Sim.Cli
         internal static int Run(string[] args)
         {
             var opts = Options.Parse(args, flags: ["--report", "--founded"],
-                valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log"]);
+                valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
+            int? sizePx = SizeOpt(opts, founded);
             long saveAt = opts.LongOr("--save-at", -1);
             string? savePath = opts.Get("--save");
             if (saveAt >= 0 && savePath is null)
@@ -120,7 +131,7 @@ namespace Sim.Cli
 
             OrderLog? orders = opts.Get("--orders") is { } op ? LoadOrders(op) : null;
             var executor = Executor(orders, founded);
-            WorldState world = StartWorld(seed, founded);
+            WorldState world = StartWorld(seed, founded, sizePx);
             // World-dependent order validation happens HERE — before turn 1,
             // never mid-run (payload ranges were already checked at load).
             if (orders is not null) OrderValidation.ValidateAgainstWorld(orders, world);
@@ -154,16 +165,18 @@ namespace Sim.Cli
 
         internal static int Replay(string[] args)
         {
-            var opts = Options.Parse(args, flags: ["--founded"], valued: ["--seed", "--turns", "--orders", "--hash-log"]);
+            var opts = Options.Parse(args, flags: ["--founded"],
+                valued: ["--seed", "--turns", "--orders", "--hash-log", "--size"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
+            int? sizePx = SizeOpt(opts, founded);
             string ordersPath = opts.Get("--orders")
                 ?? throw new CliUsageException("replay requires --orders PATH");
 
             OrderLog orders = LoadOrders(ordersPath);
             var executor = Executor(orders, founded);
-            WorldState world = StartWorld(seed, founded);
+            WorldState world = StartWorld(seed, founded, sizePx);
             OrderValidation.ValidateAgainstWorld(orders, world);
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
             for (int t = 1; t <= turns; t++)
@@ -387,13 +400,14 @@ namespace Sim.Cli
     /// </summary>
     public static class HeadlessFounding
     {
-        public static WorldState Found(ulong seed)
+        public static WorldState Found(ulong seed, int? sizeOverridePx = null)
         {
             Sim.Core.Worldgen.WorldgenConfig wgCfg;
             using (var stream = Sim.Data.DataFiles.OpenWorldgen())
             {
                 wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(stream);
             }
+            if (sizeOverridePx is { } sz) wgCfg = wgCfg with { SizePx = sz };
             Sim.Core.Systems.SimConfig simCfg;
             using (var stream = Sim.Data.DataFiles.OpenSim())
             {

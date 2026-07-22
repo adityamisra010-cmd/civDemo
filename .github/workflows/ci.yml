@@ -117,6 +117,20 @@ jobs:
           fi
           echo "founded orderless: two processes byte-identical over 200 turns"
 
+          # Absolute pin (T1.9 adversarial hardening): the built binary's
+          # founded run must land on the SAME golden the in-test constant pins
+          # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
+          # the CLI that self-diffs cleanly still fails here. Update this hash
+          # together with the test constant, deliberately.
+          FOUNDED_GOLDEN=a9ae0ba00a8750a55c103a8c245ecbca4bd87d6ee5851e2a040a974974d34e6e
+          if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
+            echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
+            echo "  expected $FOUNDED_GOLDEN"
+            echo "  actual   $(tail -n 1 f-run-a.log)"
+            exit 1
+          fi
+          echo "founded run matches the pinned golden"
+
           $CLI run --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-ordered.log
           $CLI replay --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-replayed.log
           if ! diff f-ordered.log f-replayed.log > f-replay.diff; then

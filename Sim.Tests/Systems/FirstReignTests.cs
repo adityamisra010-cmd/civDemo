@@ -64,10 +64,13 @@ public class FirstReignTests
         // founded-world ORDERED golden). Breaks loudly on any sim-behavior
         // change; update deliberately with a history line, never casually.
         //   v1 (T1.9, post-Leontief): pinned below.
-        //   v1 value: 6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246
         const string golden = "6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
+        // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
+        // assert trajectory SEMANTICS, so a ghost-harvest revert plus a
+        // mechanical golden re-pin still fails here. Never delete these as
+        // "redundant with the golden".
         // The famine plays out (the director's 0%-farm order really starves).
         int extinctionTurn = trajectory.FindIndex(x => x.Pop == 0) + 1;
         Assert.True(extinctionTurn is > 5 and <= 25,

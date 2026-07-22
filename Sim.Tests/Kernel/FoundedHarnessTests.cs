@@ -75,6 +75,10 @@ public class FoundedHarnessTests
             b = execB.Step(b);
             Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
         }
+        // Anti-vacuity (adversarial pass): prove the ORDERS actually fired —
+        // the last SessionLog order (45%) must be the live allocation. Edges
+        // alone can't prove it (path labor exists without orders too).
+        Assert.Equal(0.45, a.LaborAllocations[0].FarmShare);
         Assert.True(a.NetworkEdges.Count > 0, "ordered run built nothing — vacuous twin");
     }
 

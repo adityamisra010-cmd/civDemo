@@ -32,6 +32,17 @@ public class FoundingEquivalenceTests
     }
 
     [Fact]
+    public void CliFounding_SizeOverrideBranch_EqualsCanonicalAtThatSize()
+    {
+        // The --size replay hatch (adversarial finding: a session played on a
+        // non-canonical size must be reproducible by the documented command).
+        WorldState cli = HeadlessFounding.Found(42, sizeOverridePx: 256);
+        WorldState canonical = WorldFounding.Found(
+            TestConfigs.Worldgen() with { SizePx = 256 }, TestConfigs.Sim(), 42);
+        Assert.Equal(WorldHash.ComputeHex(canonical), WorldHash.ComputeHex(cli));
+    }
+
+    [Fact]
     public void CliFounding_DifferentSeeds_DifferentWorlds()
     {
         Assert.NotEqual(
@@ -62,7 +73,10 @@ public class FoundingEquivalenceTests
             }
         }
 
-        string logPath = Path.Combine(Path.GetTempPath(), "orders-20260722-000000.bin");
+        // Stamped SHAPE with a per-run unique suffix (adversarial pass: a fixed
+        // shared-temp name races across concurrent test processes).
+        string logPath = Path.Combine(Path.GetTempPath(),
+            $"orders-20260722-000000-{Guid.NewGuid():N}.bin");
         using (var save = File.Create(logPath)) sessionOrders.Save(save);
         try
         {

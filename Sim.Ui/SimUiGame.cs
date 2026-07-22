@@ -21,10 +21,9 @@ namespace Sim.Ui;
 /// </summary>
 public sealed class SimUiGame : Game
 {
-    private WorldState _world;
-    private readonly TurnExecutor _executor;
-    private readonly OrderLog _orders;
+    private readonly UiSession _session;
     private readonly string _sessionLogPath;
+    private WorldState _world; // convenience alias of _session.World, refreshed each End Turn
 
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch? _spriteBatch;
@@ -59,11 +58,10 @@ public sealed class SimUiGame : Game
     private MouseState _lastMouse;
     private double _fps;
 
-    public SimUiGame(WorldState world, TurnExecutor executor, OrderLog orders, string sessionLogPath)
+    public SimUiGame(UiSession session, string sessionLogPath)
     {
-        _world = world;
-        _executor = executor;
-        _orders = orders;
+        _session = session;
+        _world = session.World;
         _sessionLogPath = sessionLogPath;
         _graphics = new GraphicsDeviceManager(this)
         {
@@ -171,30 +169,25 @@ public sealed class SimUiGame : Game
 
     // --- the player's verbs ---------------------------------------------------
 
+    // Stamping/stepping/persistence all live in UiSession (T1.9 adversarial
+    // hardening): the replay-equivalence test drives the SAME code paths.
     private void EmitLaborOrder(int farmPct)
     {
-        _orders.Append(LaborOrderFactory.Create(
-            _world.Clock.Turn, _world.Settlements[0].Id, farmPct));
+        _session.EmitLaborOrder(farmPct);
         SaveSession();
     }
 
     private void EndTurn()
     {
-        _world = _executor.Step(_world);
+        _session.EndTurn();
+        _world = _session.World;
         _hud = HudModel.From(_world, _previousHarvestTotal);
         _previousHarvestTotal = _hud.HarvestTotal;
         RebuildOverlays();
         SaveSession();
     }
 
-    /// <summary>Session recording (T1.8): the order log IS the replayable session.
-    /// Flat stamped filename (T1.9 UX ruling): lexicographic = chronological.</summary>
-    private void SaveSession()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(_sessionLogPath)!);
-        using var stream = File.Create(_sessionLogPath);
-        _orders.Save(stream);
-    }
+    private void SaveSession() => _session.Save(_sessionLogPath);
 
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {

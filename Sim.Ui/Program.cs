@@ -7,48 +7,14 @@ using Sim.Core.Worldgen;
 // and a fresh session order log, open the window. Worldgen runs before the
 // window so the first frame already has terrain (~2 s at 1024²).
 // Args: [--seed N] [--size PX] (size is the D-015 dev-preview escape hatch).
-ulong seed = 42;
-int? sizeOverride = null;
-for (int i = 0; i < args.Length - 1; i++)
-{
-    if (args[i] == "--seed" && ulong.TryParse(args[i + 1],
-        System.Globalization.NumberStyles.Integer,
-        System.Globalization.CultureInfo.InvariantCulture, out ulong s)) seed = s;
-    if (args[i] == "--size" && int.TryParse(args[i + 1],
-        System.Globalization.NumberStyles.Integer,
-        System.Globalization.CultureInfo.InvariantCulture, out int px)) sizeOverride = px;
-}
+(ulong seed, int? sizeOverride) = Sim.Ui.UiArgs.Parse(args);
 
-// The founding recipe lives in UiFounding (T1.9) — pinned by the
-// founding-equivalence test against the CLI's recipe.
-SimConfig simCfg;
-using (var stream = Sim.Data.DataFiles.OpenSim())
-{
-    simCfg = SimConfigLoader.Load(stream);
-}
+// Founding, executor recipe, order stamping and log persistence all live in
+// UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
+// tests. Wall-clock stamps are legal here (outside the determinism surface);
+// the log CONTENT records sim turns only.
+var session = Sim.Ui.UiSession.Start(seed, sizeOverride);
+string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride);
 
-EraTable era;
-using (var stream = Sim.Data.DataFiles.OpenEraPacing())
-{
-    era = EraTableLoader.Load(stream);
-}
-SystemRegistration[] pipeline;
-using (var stream = Sim.Data.DataFiles.OpenPipeline())
-{
-    pipeline = PipelineLoader.Load(stream, SystemCatalog.All(simCfg));
-}
-
-// Session recording (T1.8; director UX ruling T1.9): every UI session
-// autosaves its order log to a FLAT stamped filename — lexicographic order =
-// chronological order, so gate logs sort and sweep trivially. Wall-clock
-// stamps are legal in Sim.Ui (outside the determinism surface); the log
-// CONTENT records sim turns only.
-string sessionLogPath = Path.Combine("runs",
-    "orders-" + DateTime.Now.ToString("yyyyMMdd-HHmmss",
-        System.Globalization.CultureInfo.InvariantCulture) + ".bin");
-
-var orders = new OrderLog();
-var executor = new TurnExecutor(era, pipeline, orders);
-using var game = new Sim.Ui.SimUiGame(
-    Sim.Ui.UiFounding.Found(seed, sizeOverride), executor, orders, sessionLogPath);
+using var game = new Sim.Ui.SimUiGame(session, sessionLogPath);
 game.Run();
