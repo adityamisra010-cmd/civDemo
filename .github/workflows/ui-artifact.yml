@@ -1,7 +1,7 @@
 name: ui-artifact
 
 # T1.10 (D-023, formalized): the playable Windows build.
-#   - every t1.* branch push  → gate zip for Director Visual Gates
+#   - every packet branch push (t[0-9]*.*) → gate zip for Director Visual Gates
 #   - every push to main      → the "latest playable" artifact per merge
 #   - release: published      → the zip is ATTACHED to the GitHub Release as a
 #     permanent asset (runs on GitHub's runners, so milestone releases become
@@ -12,7 +12,7 @@ name: ui-artifact
 on:
   workflow_dispatch:
   push:
-    branches: ['main', 't1.*']
+    branches: ['main', 't[0-9]*.*']
   release:
     types: [published]
 

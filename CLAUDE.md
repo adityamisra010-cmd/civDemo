@@ -33,6 +33,7 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - Any ordering or argmax over double-valued scores uses a composite key with a stable integer tie-break (score, id) — and ships a tie-dense test proving it.
 - Every new serialized row type ships a POPULATED-table test: exact ExpectedLength, bit-exact round-trip, hash equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
 - Replay equality proves reproducibility, not semantics. Every order-delivery semantic (when an order applies relative to when it was issued) gets its own turn-exact pin — live-vs-replay comparison alone cannot see stamping drift (T1.9 precedent).
+- Verification workflows pin their worktrees to the packet commit under review; findings against any other tree are void (T2.1 precedent). Mutant kill-records must include at least one semantic test per mutant — golden-only kills don't count.
 
 ## Environment (remote sessions)
 - Containers are ephemeral: the .NET SDK does NOT survive between sessions. Run `./scripts/bootstrap.sh`
