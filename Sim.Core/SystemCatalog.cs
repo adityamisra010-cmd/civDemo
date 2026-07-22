@@ -6,6 +6,7 @@ using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Farming;
 using Sim.Core.Systems.Growth;
+using Sim.Core.Systems.PathBuild;
 using Sim.Core.Systems.Trade;
 using Sim.Core.Systems.Weather;
 
@@ -91,11 +92,22 @@ public static class SystemCatalog
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    public static SystemRegistration PathBuild(SimConfig cfg)
+    {
+        var system = new PathBuildSystem(cfg);
+        return new SystemRegistration(PathBuildSystem.WellKnownId, PathBuildSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<PathBuildTables>(
+                prev, new PathBuildTables(next.LaborAllocations, next.PathProgress,
+                    next.NetworkNodes, next.NetworkEdges, next.NetworkMeta), rng,
+                PathBuildSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(), Farming(cfg), Consumption(cfg), Demographics(cfg), Weather(), Growth(), Trade()];
+        [Catchment(), Farming(cfg), Consumption(cfg), Demographics(cfg), PathBuild(cfg),
+         Weather(), Growth(), Trade()];
 }

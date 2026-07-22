@@ -1,11 +1,24 @@
 namespace Sim.Core.Kernel;
 
-/// <summary>M0's order vocabulary: exactly one synthetic toy order (§3.9 pipe proof).</summary>
+/// <summary>
+/// The order vocabulary. Payload mapping is per-kind and documented here — the
+/// OrderRecord shape {Turn, ActorId, Kind, TargetId, Amount} is fixed.
+/// </summary>
 public enum OrderKind
 {
     /// <summary>Adds a flat mm/year bias to one region's rainfall draw this turn
-    /// (consumed by WeatherSystem — M0's only order).</summary>
+    /// (consumed by the retired toy WeatherSystem; kept for the toy preset and
+    /// the kernel-invariant order-pipe tests). TargetId = region id.</summary>
     SetRainBias = 1,
+
+    /// <summary>
+    /// The first REAL order (T1.6, m1 spec §3): sets a settlement's labor split.
+    /// TargetId = settlement id; Amount = farm percentage in [0,100] (100 = all
+    /// labor farms, 0 = all labor builds paths). Consumed by PathBuildSystem
+    /// into the LaborAllocations row; Farming and PathBuild read the row from
+    /// Prev the following turn. Range-validated at LOAD time.
+    /// </summary>
+    LaborAllocation = 2,
 }
 
 /// <summary>
@@ -92,10 +105,37 @@ public sealed class OrderLog
         int count = reader.ReadInt32();
         for (int i = 0; i < count; i++)
         {
-            log.Append(new OrderRecord(
+            var record = new OrderRecord(
                 reader.ReadInt64(), reader.ReadInt32(), (OrderKind)reader.ReadInt32(),
-                reader.ReadInt32(), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+                reader.ReadInt32(), BitConverter.Int64BitsToDouble(reader.ReadInt64()));
+            ValidateRecord(record, i);
+            log.Append(record);
         }
         return log;
+    }
+
+    /// <summary>
+    /// Per-kind payload validation at LOAD time (T1.6): a malformed order is
+    /// rejected here, actionably, before the sim ever runs — never mid-turn.
+    /// (Settlement EXISTENCE needs a world and is checked by
+    /// <see cref="OrderValidation.ValidateAgainstWorld"/> before turn 1.)
+    /// </summary>
+    private static void ValidateRecord(in OrderRecord record, int index)
+    {
+        switch (record.Kind)
+        {
+            case OrderKind.SetRainBias:
+                break; // any bias amount is legal (the draw floors at zero)
+            case OrderKind.LaborAllocation:
+                if (!(record.Amount >= 0.0 && record.Amount <= 100.0)) // NaN fails this too
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): LaborAllocation farm percentage " +
+                        $"must be in [0,100], got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
+            default:
+                throw new SnapshotFormatException(
+                    $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
+                    "this build understands kinds 1 (SetRainBias) and 2 (LaborAllocation).");
+        }
     }
 }

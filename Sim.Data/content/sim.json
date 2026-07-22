@@ -1,7 +1,11 @@
 {
   "farming": {
-    "farmLaborShareDefault": 0.7,
-    "yieldPerFarmlandPerYear": 40.0
+    "yieldPerFarmlandPerYear": 28.0
+  },
+  "pathBuild": {
+    "laborPerAdultPerYear": 0.02,
+    "buildCostMultiplier": 50.0,
+    "dirtPathSpeedFactor": 0.5
   },
   "consumption": {
     "childWeight": 0.6,

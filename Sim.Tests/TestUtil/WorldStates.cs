@@ -30,6 +30,8 @@ public static class WorldStates
         if (!TableEquals(a.PopBands, b.PopBands)) return false;
         if (!TableEquals(a.FoodStores, b.FoodStores)) return false;
         if (!TableEquals(a.ConsumptionDeficits, b.ConsumptionDeficits)) return false;
+        if (!TableEquals(a.LaborAllocations, b.LaborAllocations)) return false;
+        if (!TableEquals(a.PathProgress, b.PathProgress)) return false;
         return true;
     }
 

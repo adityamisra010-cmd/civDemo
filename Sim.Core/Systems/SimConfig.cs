@@ -18,19 +18,32 @@ public sealed record SimConfig(
     [property: JsonPropertyName("farming")] FarmingConfig Farming,
     [property: JsonPropertyName("consumption")] ConsumptionConfig Consumption,
     [property: JsonPropertyName("demographics")] DemographicsConfig Demographics,
+    [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
     [property: JsonPropertyName("founding")] FoundingConfig Founding);
 
 /// <summary>
-/// Farming tuning. FarmLaborShareDefault is the share of labor on the farms this
-/// packet — the LaborAllocationOrder overrides it from T1.6. YieldPerFarmlandPerYear
-/// converts one unit of effective farmland (block-mean fertility, T1.4) into food
-/// units per sim-year (1 food = 1 person-year, D-015 constants).
-/// Every leaf is [JsonRequired] (T1.5 adversarial finding): a missing or typo'd
-/// key must fail the load loudly, never silently bind as 0.0.
+/// Farming tuning. YieldPerFarmlandPerYear converts one unit of effective
+/// farmland (block-mean fertility, T1.4) into food units per sim-year (1 food =
+/// 1 person-year, D-015 constants) at FULL farm allocation; the labor split is
+/// the LaborAllocations row (T1.6 — the T1.5 farmLaborShareDefault retired into
+/// it: default allocation 1.0, yield retuned 40 → 28 so the no-order production
+/// rate is unchanged). Every leaf is [JsonRequired] (T1.5 adversarial finding):
+/// a missing or typo'd key must fail the load loudly, never silently bind 0.0.
 /// </summary>
 public sealed record FarmingConfig(
-    [property: JsonPropertyName("farmLaborShareDefault"), JsonRequired] double FarmLaborShareDefault,
     [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear);
+
+/// <summary>
+/// Path-building tuning (T1.6, all TUNE, per-sim-year rates — law 3).
+/// LaborPerAdultPerYear: banked build-progress per adult-year of path labor.
+/// BuildCostMultiplier: segment build cost = lattice StepCost × this.
+/// DirtPathSpeedFactor in (0,1]: a built edge's traversal cost = StepCost × this
+/// (the fast lane — must be cheaper than walking to matter).
+/// </summary>
+public sealed record PathBuildConfig(
+    [property: JsonPropertyName("laborPerAdultPerYear"), JsonRequired] double LaborPerAdultPerYear,
+    [property: JsonPropertyName("buildCostMultiplier"), JsonRequired] double BuildCostMultiplier,
+    [property: JsonPropertyName("dirtPathSpeedFactor"), JsonRequired] double DirtPathSpeedFactor);
 
 /// <summary>Band consumption weights, food per person per sim-year (D-015 constants).</summary>
 public sealed record ConsumptionConfig(
@@ -85,10 +98,6 @@ public static class SimConfigLoader
         if (cfg is null) throw new SimConfigException("sim config is empty.");
 
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
-        RequireRate("farming.farmLaborShareDefault", cfg.Farming.FarmLaborShareDefault);
-        if (cfg.Farming.FarmLaborShareDefault > 1.0)
-            throw new SimConfigException(
-                $"farming.farmLaborShareDefault must be <= 1, got {Inv(cfg.Farming.FarmLaborShareDefault)}.");
         RequireRate("farming.yieldPerFarmlandPerYear", cfg.Farming.YieldPerFarmlandPerYear);
 
         if (cfg.Consumption is null) throw new SimConfigException("consumption is missing.");
@@ -104,6 +113,15 @@ public static class SimConfigLoader
         RequireRate("demographics.agingChildToAdultPerYear", cfg.Demographics.AgingChildToAdultPerYear);
         RequireRate("demographics.agingAdultToElderPerYear", cfg.Demographics.AgingAdultToElderPerYear);
         RequireRate("demographics.starvationMortalityMaxPerYear", cfg.Demographics.StarvationMortalityMaxPerYear);
+
+        if (cfg.PathBuild is null) throw new SimConfigException("pathBuild is missing.");
+        RequireRate("pathBuild.laborPerAdultPerYear", cfg.PathBuild.LaborPerAdultPerYear);
+        if (cfg.PathBuild.BuildCostMultiplier <= 0 || !double.IsFinite(cfg.PathBuild.BuildCostMultiplier))
+            throw new SimConfigException(
+                $"pathBuild.buildCostMultiplier must be a finite value > 0, got {Inv(cfg.PathBuild.BuildCostMultiplier)}.");
+        if (!(cfg.PathBuild.DirtPathSpeedFactor > 0.0 && cfg.PathBuild.DirtPathSpeedFactor <= 1.0))
+            throw new SimConfigException(
+                $"pathBuild.dirtPathSpeedFactor must be in (0,1], got {Inv(cfg.PathBuild.DirtPathSpeedFactor)}.");
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.Children < 0 || cfg.Founding.Adults < 0 || cfg.Founding.Elders < 0

@@ -150,6 +150,23 @@ public struct FoodStoreRow(
 public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio);
 
 /// <summary>
+/// One settlement's labor split (T1.6, owned by PathBuildSystem): FarmShare in
+/// [0,1] — the fraction of labor on the farms; the rest builds paths. Set by
+/// LaborAllocationOrder; absent row means the NEVER-ORDERED DEFAULT of 1.0
+/// (100% farm — T1.5 behavior). Consumers (Farming, PathBuild) read it from
+/// Prev, so an order lands one turn before it steers yields (§3.2).
+/// </summary>
+public record struct LaborAllocationRow(SettlementId Settlement, double FarmShare);
+
+/// <summary>
+/// One settlement's path-building progress (T1.6, owned by PathBuildSystem):
+/// Banked is accrued build-labor (NOT a conserved stock — a rate accumulator
+/// like the D-004 remainders); FrontierNode is the lattice node the path chain
+/// currently ends at (−1 until first resolved to the settlement's origin).
+/// </summary>
+public record struct PathProgressRow(SettlementId Settlement, double Banked, int FrontierNode);
+
+/// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
 /// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
@@ -191,6 +208,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<PopBandRow> PopBands { get; }
     IReadOnlyTable<FoodStoreRow> FoodStores { get; }
     IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits { get; }
+    IReadOnlyTable<LaborAllocationRow> LaborAllocations { get; }
+    IReadOnlyTable<PathProgressRow> PathProgress { get; }
 }
 
 /// <summary>
@@ -258,6 +277,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-settlement consumption deficits (T1.5) — owned by ConsumptionSystem.</summary>
     public Table<ConsumptionDeficitRow> ConsumptionDeficits { get; }
 
+    /// <summary>Labor splits (T1.6) — owned by PathBuildSystem (order consumer).</summary>
+    public Table<LaborAllocationRow> LaborAllocations { get; }
+
+    /// <summary>Path-build banks + frontiers (T1.6) — owned by PathBuildSystem.</summary>
+    public Table<PathProgressRow> PathProgress { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -273,6 +298,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<PopBandRow> IReadOnlyWorldState.PopBands => PopBands;
     IReadOnlyTable<FoodStoreRow> IReadOnlyWorldState.FoodStores => FoodStores;
     IReadOnlyTable<ConsumptionDeficitRow> IReadOnlyWorldState.ConsumptionDeficits => ConsumptionDeficits;
+    IReadOnlyTable<LaborAllocationRow> IReadOnlyWorldState.LaborAllocations => LaborAllocations;
+    IReadOnlyTable<PathProgressRow> IReadOnlyWorldState.PathProgress => PathProgress;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -292,6 +319,8 @@ public sealed class WorldState : IReadOnlyWorldState
         PopBands = new Table<PopBandRow>();
         FoodStores = new Table<FoodStoreRow>();
         ConsumptionDeficits = new Table<ConsumptionDeficitRow>();
+        LaborAllocations = new Table<LaborAllocationRow>();
+        PathProgress = new Table<PathProgressRow>();
     }
 
     private WorldState(
@@ -301,7 +330,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<NetworkEdgeRow> networkEdges, Table<SettlementRow> settlements,
         Table<NetworkMetaRow> networkMeta, Table<CatchmentNodeRow> catchmentNodes,
         Table<CatchmentSummaryRow> catchmentSummaries, Table<PopBandRow> popBands,
-        Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits)
+        Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits,
+        Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress)
     {
         Seed = seed;
         Clock = clock;
@@ -320,6 +350,8 @@ public sealed class WorldState : IReadOnlyWorldState
         PopBands = popBands;
         FoodStores = foodStores;
         ConsumptionDeficits = consumptionDeficits;
+        LaborAllocations = laborAllocations;
+        PathProgress = pathProgress;
     }
 
     /// <summary>
@@ -332,7 +364,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
             CatchmentSummaries.Clone(), PopBands.Clone(), FoodStores.Clone(),
-            ConsumptionDeficits.Clone())
+            ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

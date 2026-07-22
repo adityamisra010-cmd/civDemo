@@ -100,58 +100,15 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
         return false;
     }
 
-    /// <summary>
-    /// The lattice node whose stride-block contains the site cell — or, when that
-    /// block averaged out impassable (a shoreline site in a majority-water block),
-    /// the nearest passable node by growing Chebyshev rings scanned in fixed
-    /// row-major order: the composite key (ring radius ASC, node id ASC), a total
-    /// order. Public and pure so tests can reproduce the mapping exactly.
-    /// </summary>
-    public static int OriginLatticeNode(TraversalLattice lattice, int terrainSize, int siteCell)
-    {
-        int stride = terrainSize / lattice.Size;
-        int cx = Math.Min(siteCell % terrainSize / stride, lattice.Size - 1);
-        int cy = Math.Min(siteCell / terrainSize / stride, lattice.Size - 1);
-        if (lattice.IsPassable(lattice.NodeId(cx, cy))) return lattice.NodeId(cx, cy);
+    // Terrain↔lattice mapping moved to Pathing.LatticeMap at T1.6 (PathBuild
+    // shares it; law 6 forbids a system-to-system reference). Thin delegates
+    // keep the T1.4 public test surface stable.
 
-        for (int r = 1; r < lattice.Size; r++)
-        {
-            for (int dy = -r; dy <= r; dy++)
-            {
-                int y = cy + dy;
-                if (y < 0 || y >= lattice.Size) continue;
-                for (int dx = -r; dx <= r; dx++)
-                {
-                    if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != r) continue; // ring only
-                    int x = cx + dx;
-                    if (x < 0 || x >= lattice.Size) continue;
-                    int node = lattice.NodeId(x, y);
-                    if (lattice.IsPassable(node)) return node;
-                }
-            }
-        }
-        throw new InvalidOperationException(
-            "no passable lattice node exists — terrain is all water at lattice scale.");
-    }
+    /// <inheritdoc cref="LatticeMap.OriginLatticeNode"/>
+    public static int OriginLatticeNode(TraversalLattice lattice, int terrainSize, int siteCell) =>
+        LatticeMap.OriginLatticeNode(lattice, terrainSize, siteCell);
 
-    /// <summary>
-    /// Mean fertility over the node's stride×stride terrain block — the same
-    /// block averaging as TraversalLattice.Build uses for movement cost, so a
-    /// node's farmland is representative at the lattice's own resolution.
-    /// Public and pure so tests can recompute the aggregate independently.
-    /// </summary>
-    public static double BlockFertility(TerrainSet terrain, TraversalLattice lattice, int node)
-    {
-        int stride = terrain.Size / lattice.Size;
-        (int x, int y) = lattice.Coords(node);
-        ReadOnlySpan<double> fertility = terrain.Fertility;
-
-        double sum = 0.0;
-        for (int by = 0; by < stride; by++)
-        {
-            int row = (y * stride + by) * terrain.Size + x * stride;
-            for (int bx = 0; bx < stride; bx++) sum += fertility[row + bx];
-        }
-        return sum / (stride * stride);
-    }
+    /// <inheritdoc cref="LatticeMap.BlockFertility"/>
+    public static double BlockFertility(TerrainSet terrain, TraversalLattice lattice, int node) =>
+        LatticeMap.BlockFertility(terrain, lattice, node);
 }

@@ -62,12 +62,13 @@ public class SimConfigTests
     }
 
     [Fact]
-    public void LaborShareAboveOne_Fails()
+    public void DirtPathSpeedFactorOutOfRange_Fails()
     {
         string json = CanonicalJson().Replace(
-            "\"farmLaborShareDefault\": 0.7", "\"farmLaborShareDefault\": 1.5");
+            "\"dirtPathSpeedFactor\": 0.5", "\"dirtPathSpeedFactor\": 1.5");
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
-        Assert.Contains("farmLaborShareDefault", e.Message);
+        Assert.Contains("dirtPathSpeedFactor", e.Message);
+        Assert.Contains("(0,1]", e.Message);
     }
 
     [Fact]

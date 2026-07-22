@@ -16,14 +16,15 @@ public class PipelineLoaderTests
     [Fact]
     public void CanonicalPipelineFile_LoadsInConfiguredOrder()
     {
-        // The M1 production preset (m1 spec §3, T1.5; PathBuild joins at T1.6).
+        // The M1 production preset, complete as of T1.6 (m1 spec §3).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(4, pipeline.Length);
+        Assert.Equal(5, pipeline.Length);
         Assert.Equal("catchment", pipeline[0].Name);
         Assert.Equal("farming", pipeline[1].Name);
         Assert.Equal("consumption", pipeline[2].Name);
         Assert.Equal("demographics", pipeline[3].Name);
+        Assert.Equal("pathbuild", pipeline[4].Name);
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, farming, consumption, demographics, weather, growth, trade",
+            "known systems: catchment, farming, consumption, demographics, pathbuild, weather, growth, trade",
             e.Message);
     }
 

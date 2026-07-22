@@ -4,16 +4,26 @@
 Writes the OrderLog format documented in Sim.Core/Kernel/OrderLog.cs:
   magic "CIVORDR\0" | int32 version=1 | int32 count |
   records: int64 turn, int32 actorId, int32 kind, int32 targetId, float64 amount (raw bits)
-Little-endian throughout. SetRainBias (kind=1) on alternating regions every 25th turn.
+Little-endian throughout.
+
+Default (toy runs): SetRainBias (kind=1) on alternating regions every 25th turn.
+--labor (T1.6, founded runs: sim run --founded): LaborAllocation (kind=2) on
+settlement 0, farm percentage sweeping 30/50/70 every 20th turn.
 """
 import struct
 import sys
 
-path = sys.argv[1] if len(sys.argv) > 1 else "sample-orders.bin"
-max_turn = int(sys.argv[2]) if len(sys.argv) > 2 else 400
+args = [a for a in sys.argv[1:] if a != "--labor"]
+labor = "--labor" in sys.argv
+path = args[0] if len(args) > 0 else "sample-orders.bin"
+max_turn = int(args[1]) if len(args) > 1 else 400
 
-records = [(turn, 1, 1, (turn // 25) % 2, 250.0 + turn)
-           for turn in range(0, max_turn, 25)]
+if labor:
+    records = [(turn, 1, 2, 0, [30.0, 50.0, 70.0][(turn // 20) % 3])
+               for turn in range(0, max_turn, 20)]
+else:
+    records = [(turn, 1, 1, (turn // 25) % 2, 250.0 + turn)
+               for turn in range(0, max_turn, 25)]
 
 with open(path, "wb") as f:
     f.write(b"CIVORDR\0")

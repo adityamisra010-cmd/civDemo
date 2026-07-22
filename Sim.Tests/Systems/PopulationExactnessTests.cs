@@ -256,8 +256,9 @@ public class PopulationExactnessTests
             [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(FoodWorld(farmland, endow));
 
-        long harvest = Floor(farmland * cfg.Farming.FarmLaborShareDefault
-                             * cfg.Farming.YieldPerFarmlandPerYear * dt);          // 21979
+        // T1.6: farm share is the LaborAllocations row; this hand-built world
+        // has none, so the never-ordered default of 1.0 applies.
+        long harvest = Floor(farmland * cfg.Farming.YieldPerFarmlandPerYear * dt); // 21980 @ yield 28
         long demand = Floor((cfg.Consumption.ChildWeight * 100
                              + cfg.Consumption.AdultWeight * 200
                              + cfg.Consumption.ElderWeight * 50) * dt);            // 2950
@@ -299,8 +300,7 @@ public class PopulationExactnessTests
         SimConfig cfg = TestConfigs.Sim();
         const int horizonYears = 200;
         const double farmland = 78.5;
-        double harvestPerYear = farmland * cfg.Farming.FarmLaborShareDefault
-                                * cfg.Farming.YieldPerFarmlandPerYear;             // 2198.0/yr
+        double harvestPerYear = farmland * cfg.Farming.YieldPerFarmlandPerYear;    // 2198.0/yr (share 1.0 default)
         double demandPerYear = cfg.Consumption.ChildWeight * 100
                                + cfg.Consumption.AdultWeight * 200
                                + cfg.Consumption.ElderWeight * 50;                 // 295.0/yr

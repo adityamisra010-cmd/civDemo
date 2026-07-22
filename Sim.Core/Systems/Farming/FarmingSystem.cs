@@ -22,8 +22,10 @@ public readonly record struct FarmingTables(Table<FoodStoreRow> FoodStores);
 /// founding food store covers the warm-up. Likewise a catchment grown by a new
 /// path edge raises yield one turn after the catchment recomputes.
 ///
-/// Labor share is the config default this packet; the LaborAllocationOrder
-/// overrides it from T1.6. STATELESS: config is immutable tuning, not state.
+/// Labor share (T1.6): the settlement's PREV LaborAllocations row — set by the
+/// LaborAllocationOrder via PathBuildSystem, so an order lands one turn before
+/// yields shift (same §3.2 lag). No row = the never-ordered default of 1.0.
+/// STATELESS: config is immutable tuning, not state.
 /// </summary>
 public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
 {
@@ -57,8 +59,17 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 }
             }
 
-            double ratePerYear = farmland * _cfg.Farming.FarmLaborShareDefault
-                                          * _cfg.Farming.YieldPerFarmlandPerYear;
+            double farmShare = 1.0; // never-ordered default: all labor farms
+            for (int i = 0; i < prev.LaborAllocations.Count; i++)
+            {
+                if (prev.LaborAllocations[i].Settlement == settlement)
+                {
+                    farmShare = prev.LaborAllocations[i].FarmShare;
+                    break;
+                }
+            }
+
+            double ratePerYear = farmland * farmShare * _cfg.Farming.YieldPerFarmlandPerYear;
 
             ref FoodStoreRow row = ref stores.Ref(storeIndex);
             double exact = ratePerYear * ctx.DtYears + row.HarvestRemainder;

@@ -21,8 +21,9 @@ public static class CanonicalSchema
     /// v2 (T1.1, ADR-008): terrain presence flag + terrain content hash after the clock.
     /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.
     /// v4 (T1.4): Settlements, NetworkMeta, CatchmentNodes, CatchmentSummaries after NetworkEdges.
-    /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.</summary>
-    public const int Version = 5;
+    /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.
+    /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.</summary>
+    public const int Version = 6;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -41,6 +42,8 @@ public static class CanonicalSchema
     private const int PopBandRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8;  // Settlement, Band, Count, 4 remainder bit-fields
     private const int FoodStoreRowWidth = 4 + 8 + 8 + 8;            // Settlement, Store, 2 remainder bit-fields
     private const int ConsumptionDeficitRowWidth = 4 + 8;           // Settlement, DeficitRatio bits
+    private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
+    private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -208,6 +211,25 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.DeficitRatio));
         }
+
+        // 18. Labor allocations (v6)
+        writer.Write(world.LaborAllocations.Count);
+        for (int i = 0; i < world.LaborAllocations.Count; i++)
+        {
+            LaborAllocationRow row = world.LaborAllocations[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.FarmShare));
+        }
+
+        // 19. Path progress (v6)
+        writer.Write(world.PathProgress.Count);
+        for (int i = 0; i < world.PathProgress.Count; i++)
+        {
+            PathProgressRow row = world.PathProgress[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Banked));
+            writer.Write(row.FrontierNode);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -352,6 +374,23 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int allocCount = reader.ReadInt32();
+        for (int i = 0; i < allocCount; i++)
+        {
+            world.LaborAllocations.Add(new LaborAllocationRow(
+                new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int progressCount = reader.ReadInt32();
+        for (int i = 0; i < progressCount; i++)
+        {
+            world.PathProgress.Add(new PathProgressRow(
+                new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt32()));
+        }
+
         return world;
     }
 
@@ -377,5 +416,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.CatchmentSummaries.Count * CatchmentSummaryRowWidth
         + CountPrefixWidth + (long)world.PopBands.Count * PopBandRowWidth
         + CountPrefixWidth + (long)world.FoodStores.Count * FoodStoreRowWidth
-        + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth;
+        + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
+        + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
+        + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth;
 }

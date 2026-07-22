@@ -365,7 +365,7 @@ public class PopulationTests
         double totalMs = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0
                          / System.Diagnostics.Stopwatch.Frequency;
 
-        foreach (string phase in new[] { "clone", "catchment", "farming", "consumption", "demographics" })
+        foreach (string phase in new[] { "clone", "catchment", "farming", "consumption", "demographics", "pathbuild" })
         {
             (long ticks, long bytes) = observer.Totals[phase];
             double ms = ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;

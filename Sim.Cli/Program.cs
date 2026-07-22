@@ -44,12 +44,16 @@ namespace Sim.Cli
             if (error is not null) Console.Error.WriteLine($"error: {error}");
             Console.Error.WriteLine("""
                 usage:
-                  sim run --seed S --turns N [--report] [--save-at K --save PATH]
+                  sim run --seed S --turns N [--founded] [--report] [--save-at K --save PATH]
                           [--orders PATH] [--hash-log PATH]
                   sim hash SAVEFILE
-                  sim replay --seed S --orders PATH --turns N [--hash-log PATH]
+                  sim replay --seed S --orders PATH --turns N [--founded] [--hash-log PATH]
                   sim bench --seed S --turns N [--json]
                   sim worldgen --seed S [--stats] [--size PX]
+
+                --founded: run the M1 production world (worldgen + settlement +
+                pop/food/pathbuild pipeline) instead of the M0 toy world. Labor
+                orders (kind 2) require --founded.
                 """);
             return 1;
         }
@@ -64,20 +68,35 @@ namespace Sim.Cli
             return world;
         }
 
-        private static TurnExecutor Executor(OrderLog? orders)
+        private static Sim.Core.Systems.SimConfig SimCfg()
+        {
+            using var simStream = Sim.Data.DataFiles.OpenSim();
+            return Sim.Core.Systems.SimConfigLoader.Load(simStream);
+        }
+
+        private static TurnExecutor Executor(OrderLog? orders, bool founded = false)
         {
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
-            // Toy preset (T1.5): run/replay/bench still drive the M0 toy world,
-            // which keeps the cross-process determinism CI job exercising real
-            // system activity. T1.9 rewires headless runs to founded production
-            // worlds and pins their golden.
-            using var pipeStream = Sim.Data.DataFiles.OpenPipelineToy();
-            using var simStream = Sim.Data.DataFiles.OpenSim();
+            // Default = toy preset + toy world: keeps the cross-process
+            // determinism CI job exercising the M0 systems it has always pinned.
+            // --founded (T1.6) runs the M1 production preset; T1.9 pins its
+            // golden and extends the harness.
+            using var pipeStream = founded
+                ? Sim.Data.DataFiles.OpenPipeline()
+                : Sim.Data.DataFiles.OpenPipelineToy();
             return new TurnExecutor(
                 EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream,
-                    SystemCatalog.All(Sim.Core.Systems.SimConfigLoader.Load(simStream))),
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(SimCfg())),
                 orders);
+        }
+
+        /// <summary>The starting world: M0 toy genesis, or the founded M1 world.</summary>
+        private static WorldState StartWorld(ulong seed, bool founded)
+        {
+            if (!founded) return Genesis(seed);
+            using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
+            var wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
+            return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, SimCfg(), seed);
         }
 
         private static OrderLog LoadOrders(string path)
@@ -90,10 +109,11 @@ namespace Sim.Cli
 
         internal static int Run(string[] args)
         {
-            var opts = Options.Parse(args, flags: ["--report"],
+            var opts = Options.Parse(args, flags: ["--report", "--founded"],
                 valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
+            bool founded = opts.Has("--founded");
             long saveAt = opts.LongOr("--save-at", -1);
             string? savePath = opts.Get("--save");
             if (saveAt >= 0 && savePath is null)
@@ -104,8 +124,11 @@ namespace Sim.Cli
                 throw new CliUsageException($"--save-at must be in 1..{turns}, got {saveAt}");
 
             OrderLog? orders = opts.Get("--orders") is { } op ? LoadOrders(op) : null;
-            var executor = Executor(orders);
-            WorldState world = Genesis(seed);
+            var executor = Executor(orders, founded);
+            WorldState world = StartWorld(seed, founded);
+            // World-dependent order validation happens HERE — before turn 1,
+            // never mid-run (payload ranges were already checked at load).
+            if (orders is not null) OrderValidation.ValidateAgainstWorld(orders, world);
 
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
             for (int t = 1; t <= turns; t++)
@@ -136,14 +159,17 @@ namespace Sim.Cli
 
         internal static int Replay(string[] args)
         {
-            var opts = Options.Parse(args, flags: [], valued: ["--seed", "--turns", "--orders", "--hash-log"]);
+            var opts = Options.Parse(args, flags: ["--founded"], valued: ["--seed", "--turns", "--orders", "--hash-log"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
+            bool founded = opts.Has("--founded");
             string ordersPath = opts.Get("--orders")
                 ?? throw new CliUsageException("replay requires --orders PATH");
 
-            var executor = Executor(LoadOrders(ordersPath));
-            WorldState world = Genesis(seed);
+            OrderLog orders = LoadOrders(ordersPath);
+            var executor = Executor(orders, founded);
+            WorldState world = StartWorld(seed, founded);
+            OrderValidation.ValidateAgainstWorld(orders, world);
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
             for (int t = 1; t <= turns; t++)
             {

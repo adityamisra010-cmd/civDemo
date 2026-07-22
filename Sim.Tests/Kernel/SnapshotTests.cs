@@ -111,7 +111,12 @@ public class SnapshotTests
         //   behavior-identical here: the toy preset is exactly the systems that
         //   acted on this terrain-less world (catchment always no-oped, drew no
         //   RNG). Only the stream grew.
-        const string golden = "abf1ef9357f7cd7599895743e2687c31cb003d616bbb396b4e3de206ba05121c";
+        //   v5 value: abf1ef9357f7cd7599895743e2687c31cb003d616bbb396b4e3de206ba05121c
+        //   v6 (T1.6): schema gained the empty LaborAllocations + PathProgress
+        //   tables (two zero count prefixes, 8 bytes) — forced by the labor
+        //   order's persistent allocation state. Sim behavior on this toy world
+        //   is unchanged (pathbuild is not in the toy preset); only the stream grew.
+        const string golden = "8f3a1986afe9f6fd076e082c868ca36bd171c9da5932fb34c0975de0f38390e1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -254,6 +259,38 @@ public class SnapshotTests
         Assert.Equal(0.613, loaded.ConsumptionDeficits[0].DeficitRatio);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.ConsumptionDeficits[1].DeficitRatio));
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV6_PopulatedLaborTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test — exact ExpectedLength, bit-exact round trip, hash equality.
+        WorldState world = Genesis(23);
+        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(0), 0.35));
+        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(1), -0.0));
+        world.PathProgress.Add(new PathProgressRow(new SettlementId(0), Banked: 123.456, FrontierNode: 4321));
+        world.PathProgress.Add(new PathProgressRow(new SettlementId(1), Banked: -0.0, FrontierNode: -1));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(0.35, loaded.LaborAllocations[0].FarmShare);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.LaborAllocations[1].FarmShare));
+        Assert.Equal(123.456, loaded.PathProgress[0].Banked);
+        Assert.Equal(4321, loaded.PathProgress[0].FrontierNode);
+        Assert.Equal(-1, loaded.PathProgress[1].FrontierNode);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 
