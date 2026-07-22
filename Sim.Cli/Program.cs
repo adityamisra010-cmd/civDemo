@@ -48,7 +48,7 @@ namespace Sim.Cli
                           [--orders PATH] [--hash-log PATH]
                   sim hash SAVEFILE
                   sim replay --seed S --orders PATH --turns N [--founded] [--hash-log PATH]
-                  sim bench --seed S --turns N [--json]
+                  sim bench --seed S --turns N [--founded] [--json]
                   sim worldgen --seed S [--stats] [--size PX]
 
                 --founded: run the M1 production world (worldgen + settlement +
@@ -91,13 +91,8 @@ namespace Sim.Cli
         }
 
         /// <summary>The starting world: M0 toy genesis, or the founded M1 world.</summary>
-        private static WorldState StartWorld(ulong seed, bool founded)
-        {
-            if (!founded) return Genesis(seed);
-            using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
-            var wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
-            return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, SimCfg(), seed);
-        }
+        private static WorldState StartWorld(ulong seed, bool founded) =>
+            founded ? HeadlessFounding.Found(seed) : Genesis(seed);
 
         private static OrderLog LoadOrders(string path)
         {
@@ -183,12 +178,13 @@ namespace Sim.Cli
 
         internal static int Bench(string[] args)
         {
-            var opts = Options.Parse(args, flags: ["--json"], valued: ["--seed", "--turns"]);
+            var opts = Options.Parse(args, flags: ["--json", "--founded"], valued: ["--seed", "--turns"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
+            bool founded = opts.Has("--founded");
 
-            var executor = Executor(null);
-            WorldState world = Genesis(seed);
+            var executor = Executor(null, founded);
+            WorldState world = StartWorld(seed, founded);
             var observer = new BenchObserver();
 
             long start = System.Diagnostics.Stopwatch.GetTimestamp();
@@ -374,6 +370,36 @@ namespace Sim.Cli
                 }
             }
             _phases.Add(new Phase(phase) { Ticks = elapsedTimestampTicks, AllocatedBytes = allocatedBytes });
+        }
+    }
+}
+
+namespace Sim.Cli
+{
+    using Sim.Core.State;
+
+    /// <summary>
+    /// THE headless founding recipe (T1.9): canonical worldgen.json + sim.json +
+    /// WorldFounding — what `sim run/replay/bench --founded` starts from. Public
+    /// and pure so the founding-equivalence test pins it against Sim.Ui's
+    /// recipe: UI-session replay is only real if both apps found IDENTICAL
+    /// worlds from the same seed.
+    /// </summary>
+    public static class HeadlessFounding
+    {
+        public static WorldState Found(ulong seed)
+        {
+            Sim.Core.Worldgen.WorldgenConfig wgCfg;
+            using (var stream = Sim.Data.DataFiles.OpenWorldgen())
+            {
+                wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(stream);
+            }
+            Sim.Core.Systems.SimConfig simCfg;
+            using (var stream = Sim.Data.DataFiles.OpenSim())
+            {
+                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream);
+            }
+            return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed);
         }
     }
 }

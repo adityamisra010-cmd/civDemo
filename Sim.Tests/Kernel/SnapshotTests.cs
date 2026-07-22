@@ -215,6 +215,30 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void FoundedGolden_Seed42Turn200_MatchesPinnedConstant()
+    {
+        // T1.9: THE founded-world golden — the M1 production preset on the
+        // canonical 1024² world, 200 no-order turns (the same horizon as the
+        // founded harness legs; ≥5 Malthus cycles). FROZEN like its toy
+        // sibling above: breaks loudly on ANY founded-behavior change — that
+        // is its job. Update deliberately, with a history line, never casually.
+        //
+        // Update history:
+        //   v1 (T1.9, post-Leontief farming): pinned below.
+        const string golden = "a9ae0ba00a8750a55c103a8c245ecbca4bd87d6ee5851e2a040a974974d34e6e";
+
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())));
+        WorldState world = executor.Run(
+            Sim.Core.Worldgen.WorldFounding.Found(
+                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 200);
+        Assert.Equal(golden, WorldHash.ComputeHex(world));
+    }
+
+    [Fact]
     public void SchemaV5_PopulatedPopulationTables_LengthAndRoundTripExact()
     {
         // Constitution rule: every new serialized row type ships a POPULATED-table

@@ -213,3 +213,29 @@ public class HudViewModelTests
         Assert.Equal(world.CatchmentNodes.Count * 6, mesh.Length);
     }
 }
+
+// T1.9 — the UI half of the founding-equivalence wall: UiFounding (what
+// Program.cs actually plays) must equal the canonical recipe (which
+// Sim.Tests pins against the CLI's HeadlessFounding). Transitively, the UI
+// and the headless replayer found ONE world.
+public class UiFoundingEquivalenceTests
+{
+    [Fact]
+    public void UiFounding_EqualsCanonical_SameSeedSameWorldHash()
+    {
+        Sim.Core.State.WorldState ui = Sim.Ui.UiFounding.Found(42, sizeOverridePx: null);
+        Sim.Core.State.WorldState canonical;
+        {
+            Sim.Core.Worldgen.WorldgenConfig wg;
+            using (var s = global::Sim.Data.DataFiles.OpenWorldgen())
+                wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(s);
+            Sim.Core.Systems.SimConfig sim;
+            using (var s = global::Sim.Data.DataFiles.OpenSim())
+                sim = Sim.Core.Systems.SimConfigLoader.Load(s);
+            canonical = Sim.Core.Worldgen.WorldFounding.Found(wg, sim, 42);
+        }
+        Assert.Equal(
+            Sim.Core.Kernel.WorldHash.ComputeHex(canonical),
+            Sim.Core.Kernel.WorldHash.ComputeHex(ui));
+    }
+}

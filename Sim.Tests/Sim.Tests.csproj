@@ -27,6 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Sim.Core\Sim.Core.csproj" />
     <ProjectReference Include="..\Sim.Data\Sim.Data.csproj" />
+    <!-- T1.9 founding equivalence: the tests pin the CLI's HeadlessFounding recipe. -->
+    <ProjectReference Include="..\Sim.Cli\Sim.Cli.csproj" />
   </ItemGroup>
 
 </Project>

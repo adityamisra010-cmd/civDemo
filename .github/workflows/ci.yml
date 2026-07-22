@@ -102,3 +102,26 @@ jobs:
             exit 1
           fi
           echo "replay: byte-identical to the ordered run over 400 turns"
+
+          # T1.9: the same discipline on the FOUNDED M1 production world.
+          # 200 turns (the founded-harness horizon: famine + >=5 Malthus
+          # cycles); each process is ~2s founding + ~1s stepping, so the four
+          # runs below add well under a minute to the job.
+          python3 scripts/gen-sample-orders.py founded-orders.bin 200 --labor
+          $CLI run --founded --seed 42 --turns 200 --hash-log f-run-a.log
+          $CLI run --founded --seed 42 --turns 200 --hash-log f-run-b.log
+          if ! diff f-run-a.log f-run-b.log > f-xproc.diff; then
+            echo "FOUNDED CROSS-PROCESS DIVERGENCE — first divergent turn:"
+            head -n 5 f-xproc.diff
+            exit 1
+          fi
+          echo "founded orderless: two processes byte-identical over 200 turns"
+
+          $CLI run --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-ordered.log
+          $CLI replay --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-replayed.log
+          if ! diff f-ordered.log f-replayed.log > f-replay.diff; then
+            echo "FOUNDED REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 f-replay.diff
+            exit 1
+          fi
+          echo "founded replay: byte-identical to the ordered run over 200 turns"

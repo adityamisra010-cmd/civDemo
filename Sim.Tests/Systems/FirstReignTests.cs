@@ -57,7 +57,16 @@ public class FirstReignTests
     [Fact]
     public void FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain()
     {
-        Replay(40, out var trajectory);
+        WorldState final = Replay(40, out var trajectory);
+
+        // T1.9 PIN — the director's first reign guards the Leontief fix
+        // forever: the full 40-turn ordered trajectory is hash-pinned (a
+        // founded-world ORDERED golden). Breaks loudly on any sim-behavior
+        // change; update deliberately with a history line, never casually.
+        //   v1 (T1.9, post-Leontief): pinned below.
+        //   v1 value: 6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246
+        const string golden = "6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246";
+        Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // The famine plays out (the director's 0%-farm order really starves).
         int extinctionTurn = trajectory.FindIndex(x => x.Pop == 0) + 1;

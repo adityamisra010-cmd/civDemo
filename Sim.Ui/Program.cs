@@ -19,13 +19,8 @@ for (int i = 0; i < args.Length - 1; i++)
         System.Globalization.CultureInfo.InvariantCulture, out int px)) sizeOverride = px;
 }
 
-WorldgenConfig worldgenCfg;
-using (var stream = Sim.Data.DataFiles.OpenWorldgen())
-{
-    worldgenCfg = WorldgenConfigLoader.Load(stream);
-}
-if (sizeOverride is { } sz) worldgenCfg = worldgenCfg with { SizePx = sz };
-
+// The founding recipe lives in UiFounding (T1.9) — pinned by the
+// founding-equivalence test against the CLI's recipe.
 SimConfig simCfg;
 using (var stream = Sim.Data.DataFiles.OpenSim())
 {
@@ -55,5 +50,5 @@ string sessionLogPath = Path.Combine("runs",
 var orders = new OrderLog();
 var executor = new TurnExecutor(era, pipeline, orders);
 using var game = new Sim.Ui.SimUiGame(
-    WorldFounding.Found(worldgenCfg, simCfg, seed), executor, orders, sessionLogPath);
+    Sim.Ui.UiFounding.Found(seed, sizeOverride), executor, orders, sessionLogPath);
 game.Run();
