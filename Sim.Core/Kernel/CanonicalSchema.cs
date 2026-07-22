@@ -24,8 +24,11 @@ public static class CanonicalSchema
     /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.
     /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.
     /// v7 (T2.1, D-026): Buckets (settlement, culture, religion, class, cohort)
-    /// replaces PopBands in the same stream position.</summary>
-    public const int Version = 7;
+    /// replaces PopBands in the same stream position.
+    /// v8 (T2.2, D-020): BucketRow gains MobilityRemainder, FoodStoreRow gains
+    /// LastHarvestUnits, ConsumptionDeficitRow gains DemandUnits; Variables and
+    /// ClassStates tables appended after PathProgress.</summary>
+    public const int Version = 8;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -41,11 +44,13 @@ public static class CanonicalSchema
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
-    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 4 remainder bit-fields
-    private const int FoodStoreRowWidth = 4 + 8 + 8 + 8;            // Settlement, Store, 2 remainder bit-fields
-    private const int ConsumptionDeficitRowWidth = 4 + 8;           // Settlement, DeficitRatio bits
+    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 5 remainder bit-fields (v8: +Mobility)
+    private const int FoodStoreRowWidth = 4 + 8 + 8 + 8 + 8;        // Settlement, Store, 2 remainder bit-fields, LastHarvestUnits (v8)
+    private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
     private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
+    private const int VariableRowWidth = 4 + 4 + 8;                 // Settlement, VarId, Value bits (v8)
+    private const int ClassStateRowWidth = 4 + 4 + 4;               // Settlement, Class, Active (v8)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -195,9 +200,10 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.DeathRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.StarvationRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.AgingRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.MobilityRemainder));
         }
 
-        // 16. Food stores (v5)
+        // 16. Food stores (v5; +LastHarvestUnits v8)
         writer.Write(world.FoodStores.Count);
         for (int i = 0; i < world.FoodStores.Count; i++)
         {
@@ -206,15 +212,17 @@ public static class CanonicalSchema
             writer.Write(row.Store.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.HarvestRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.EatenRemainder));
+            writer.Write(row.LastHarvestUnits);
         }
 
-        // 17. Consumption deficits (v5)
+        // 17. Consumption deficits (v5; +DemandUnits v8)
         writer.Write(world.ConsumptionDeficits.Count);
         for (int i = 0; i < world.ConsumptionDeficits.Count; i++)
         {
             ConsumptionDeficitRow row = world.ConsumptionDeficits[i];
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.DeficitRatio));
+            writer.Write(row.DemandUnits);
         }
 
         // 18. Labor allocations (v6)
@@ -234,6 +242,26 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Banked));
             writer.Write(row.FrontierNode);
+        }
+
+        // 20. Variables (v8)
+        writer.Write(world.Variables.Count);
+        for (int i = 0; i < world.Variables.Count; i++)
+        {
+            VariableRow row = world.Variables[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.VarId);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
+
+        // 21. Class states (v8)
+        writer.Write(world.ClassStates.Count);
+        for (int i = 0; i < world.ClassStates.Count; i++)
+        {
+            ClassStateRow row = world.ClassStates[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Class.Value);
+            writer.Write(row.Active);
         }
     }
 
@@ -360,6 +388,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
@@ -371,7 +400,8 @@ public static class CanonicalSchema
             world.FoodStores.Add(new FoodStoreRow(
                 settlement, Conserved.FromSnapshot(store),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
-                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt64()));
         }
 
         int deficitCount = reader.ReadInt32();
@@ -379,7 +409,8 @@ public static class CanonicalSchema
         {
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(
                 new SettlementId(reader.ReadInt32()),
-                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt64()));
         }
 
         int allocCount = reader.ReadInt32();
@@ -397,6 +428,22 @@ public static class CanonicalSchema
                 new SettlementId(reader.ReadInt32()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 reader.ReadInt32()));
+        }
+
+        int variableCount = reader.ReadInt32();
+        for (int i = 0; i < variableCount; i++)
+        {
+            world.Variables.Add(new VariableRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int classStateCount = reader.ReadInt32();
+        for (int i = 0; i < classStateCount; i++)
+        {
+            world.ClassStates.Add(new ClassStateRow(
+                new SettlementId(reader.ReadInt32()),
+                new ClassId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
         return world;
@@ -426,5 +473,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.FoodStores.Count * FoodStoreRowWidth
         + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
         + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
-        + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth;
+        + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth
+        + CountPrefixWidth + (long)world.Variables.Count * VariableRowWidth
+        + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth;
 }

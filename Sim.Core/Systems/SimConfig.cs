@@ -20,7 +20,8 @@ public sealed record SimConfig(
     [property: JsonPropertyName("demographics")] DemographicsConfig Demographics,
     [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
-    [property: JsonPropertyName("registries")] RegistriesConfig Registries);
+    [property: JsonPropertyName("registries")] RegistriesConfig Registries,
+    [property: JsonPropertyName("mobility")] MobilityConfig Mobility);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -94,6 +95,40 @@ public sealed record RegistryEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name);
 
 /// <summary>
+/// One class-registry entry (T2.2, D-020/D-027): id + name plus OPTIONAL
+/// emergence and recession predicates in the D-020 DSL. Emerge absent = the
+/// class is always active (the base class). Recede absent = once emerged,
+/// never recedes. Both are parsed and validated AT LOAD (unknown variables and
+/// malformed expressions reject loudly); the hysteresis SHAPE is emerge X /
+/// recede Y with Y &lt; X — the band between them is the latch.
+/// </summary>
+public sealed record ClassEntry(
+    [property: JsonPropertyName("id"), JsonRequired] int Id,
+    [property: JsonPropertyName("name"), JsonRequired] string Name,
+    [property: JsonPropertyName("emerge")] string? Emerge = null,
+    [property: JsonPropertyName("recede")] string? Recede = null);
+
+/// <summary>
+/// Class-mobility tuning (T2.2, all TUNE, per-sim-year rates — law 3).
+/// Target artisan share = min(TargetShareCap, TargetShareSlope × (surplus − 1))
+/// clamped at 0 — a capped saturating function of the published surplus ratio.
+/// The live share relaxes toward the target at PromoteRatePerYear (fraction of
+/// the gap closed per year); a famine (Prev deficit &gt; 0) forces demotion at
+/// FamineDemoteRatePerYear regardless of predicates — artisans starve back to
+/// the fields first. SCAFFOLDING (spec §1, M3 replaces): artisans contribute
+/// ConstructionLaborWeight × artisanAdults to PathBuild's pool and a farming
+/// tool multiplier 1 + min(ToolYieldBonusCap, ToolYieldBonusSlope × share).
+/// </summary>
+public sealed record MobilityConfig(
+    [property: JsonPropertyName("promoteRatePerYear"), JsonRequired] double PromoteRatePerYear,
+    [property: JsonPropertyName("famineDemoteRatePerYear"), JsonRequired] double FamineDemoteRatePerYear,
+    [property: JsonPropertyName("targetShareSlope"), JsonRequired] double TargetShareSlope,
+    [property: JsonPropertyName("targetShareCap"), JsonRequired] double TargetShareCap,
+    [property: JsonPropertyName("toolYieldBonusCap"), JsonRequired] double ToolYieldBonusCap,
+    [property: JsonPropertyName("toolYieldBonusSlope"), JsonRequired] double ToolYieldBonusSlope,
+    [property: JsonPropertyName("constructionLaborWeight"), JsonRequired] double ConstructionLaborWeight);
+
+/// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):
 /// M2 ships one placeholder culture, one placeholder religion, and the
 /// Peasants + Artisans classes. Buckets are instantiated for the full cross
@@ -102,7 +137,7 @@ public sealed record RegistryEntry(
 public sealed record RegistriesConfig(
     [property: JsonPropertyName("cultures"), JsonRequired] RegistryEntry[] Cultures,
     [property: JsonPropertyName("religions"), JsonRequired] RegistryEntry[] Religions,
-    [property: JsonPropertyName("classes"), JsonRequired] RegistryEntry[] Classes);
+    [property: JsonPropertyName("classes"), JsonRequired] ClassEntry[] Classes);
 
 public static class SimConfigLoader
 {
@@ -164,9 +199,54 @@ public static class SimConfigLoader
         if (cfg.Registries is null) throw new SimConfigException("registries is missing.");
         ValidateRegistry("registries.cultures", cfg.Registries.Cultures);
         ValidateRegistry("registries.religions", cfg.Registries.Religions);
-        ValidateRegistry("registries.classes", cfg.Registries.Classes);
+        ValidateClasses("registries.classes", cfg.Registries.Classes);
+
+        if (cfg.Mobility is null) throw new SimConfigException("mobility is missing.");
+        RequireRate("mobility.promoteRatePerYear", cfg.Mobility.PromoteRatePerYear);
+        RequireRate("mobility.famineDemoteRatePerYear", cfg.Mobility.FamineDemoteRatePerYear);
+        RequireRate("mobility.targetShareSlope", cfg.Mobility.TargetShareSlope);
+        RequireRate("mobility.toolYieldBonusCap", cfg.Mobility.ToolYieldBonusCap);
+        RequireRate("mobility.toolYieldBonusSlope", cfg.Mobility.ToolYieldBonusSlope);
+        RequireRate("mobility.constructionLaborWeight", cfg.Mobility.ConstructionLaborWeight);
+        if (!(cfg.Mobility.TargetShareCap >= 0.0 && cfg.Mobility.TargetShareCap < 1.0))
+            throw new SimConfigException(
+                $"mobility.targetShareCap must be in [0,1), got {Inv(cfg.Mobility.TargetShareCap)}.");
 
         return cfg;
+    }
+
+    private static void ValidateClasses(string name, ClassEntry[]? entries)
+    {
+        if (entries is null || entries.Length == 0)
+            throw new SimConfigException($"{name} must have at least one entry.");
+        for (int i = 0; i < entries.Length; i++)
+        {
+            ClassEntry e = entries[i];
+            if (e is null) throw new SimConfigException($"{name}[{i}] is null.");
+            if (e.Id <= 0)
+                throw new SimConfigException($"{name}[{i}].id must be > 0, got {e.Id}.");
+            if (string.IsNullOrWhiteSpace(e.Name))
+                throw new SimConfigException($"{name}[{i}].name must be non-empty.");
+            if (i > 0 && entries[i].Id <= entries[i - 1].Id)
+                throw new SimConfigException(
+                    $"{name} ids must be strictly ascending: [{i - 1}].id {entries[i - 1].Id} >= [{i}].id {entries[i].Id}.");
+            // D-020 load-time validation: predicates parse HERE, loudly.
+            foreach ((string? src, string leaf) in new[] { (e.Emerge, "emerge"), (e.Recede, "recede") })
+            {
+                if (src is null) continue;
+                try
+                {
+                    _ = ClassMobility.Predicate.Parse(src);
+                }
+                catch (ClassMobility.PredicateFormatException ex)
+                {
+                    throw new SimConfigException($"{name}[{i}] ({e.Name}).{leaf}: {ex.Message}", ex);
+                }
+            }
+        }
+        if (entries[0].Emerge is not null)
+            throw new SimConfigException(
+                $"{name}[0] ({entries[0].Name}) is the base class and must have no emerge predicate.");
     }
 
     private static void ValidateRegistry(string name, RegistryEntry[]? entries)

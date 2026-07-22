@@ -12,6 +12,14 @@ public static class TestConfigs
         return SimConfigLoader.Load(stream);
     }
 
+    /// <summary>The raw canonical sim.json text (for loader-rejection tests).</summary>
+    public static string SimJson()
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenSim();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
     public static WorldgenConfig Worldgen()
     {
         using var stream = global::Sim.Data.DataFiles.OpenWorldgen();

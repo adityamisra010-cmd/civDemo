@@ -127,7 +127,13 @@ public class SnapshotTests
         //   tables serialize EMPTY on this toy world (same zero count prefix),
         //   so the v6 value STANDS. Cohort-model behavior is pinned by the
         //   founded golden and the first-reign fixture, both re-pinned at T2.1.
-        const string golden = "8f3a1986afe9f6fd076e082c868ca36bd171c9da5932fb34c0975de0f38390e1";
+        //   v6 value: 8f3a1986afe9f6fd076e082c868ca36bd171c9da5932fb34c0975de0f38390e1
+        //   v8 (T2.2, D-020): schema gained the empty Variables + ClassStates
+        //   tables (two zero count prefixes, 8 bytes). Sim behavior on this toy
+        //   world is unchanged (classmobility is not in the toy preset; the
+        //   Bucket/FoodStore/Deficit row widenings serialize no rows here);
+        //   only the stream grew.
+        const string golden = "539ec6f830644903ee82a19d6ab03079977ead838047869edcc8a2fb20364b23";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -236,7 +242,11 @@ public class SnapshotTests
         //   rates; behavior changes by design (slot-advance aging, newborn
         //   cohort spread, famine age multipliers). Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
-        const string golden = "1446f99105bf0b2fd457bbc278e156eafaad7cfd246a1ef695209200771d7cb0";
+        //   v2 value: 1446f99105bf0b2fd457bbc278e156eafaad7cfd246a1ef695209200771d7cb0
+        //   v3 (T2.2, D-020 class system — DELIBERATE): schema v8, classmobility
+        //   in the pipeline, artisans emerge/mobilize, peasant-labor Leontief
+        //   with the scaffolded tool multiplier. Behavior changes by design.
+        const string golden = "5139a54ddb77ff46b2eb69e04815bc397da31dd6db5da9a977ef89dec4320347";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -309,6 +319,50 @@ public class SnapshotTests
         Assert.Equal(0.613, loaded.ConsumptionDeficits[0].DeficitRatio);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.ConsumptionDeficits[1].DeficitRatio));
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV8_PopulatedVariableAndClassStateTables_AndWidenedRows_Exact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test — exact ExpectedLength, bit-exact round trip, hash
+        // equality. v8 adds VariableRow + ClassStateRow and WIDENS three rows;
+        // the widened fields are populated with nonzero (and negative-zero)
+        // values so a dropped write is visible, not hidden by defaults.
+        WorldState world = Genesis(29);
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1),
+            new ReligionId(1), new ClassId(2), cohortIdx: 7,
+            Conserved.Zero, 0.125, 0.25, 0.375, 0.5, mobilityRemainder: 0.625));
+        world.FoodStores.Add(new FoodStoreRow(new SettlementId(0),
+            Conserved.Zero, 0.0, -0.0, lastHarvestUnits: 31700));
+        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 0.42, DemandUnits: 4096));
+        world.Variables.Add(new VariableRow(new SettlementId(0), Sim.Core.State.Variables.FoodSurplusRatio, 1.375));
+        world.Variables.Add(new VariableRow(new SettlementId(1), Sim.Core.State.Variables.ArtisanShare, -0.0));
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(1), Active: 1));
+        world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(2), Active: 0));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(0.625, loaded.Buckets[0].MobilityRemainder);
+        Assert.Equal(31700, loaded.FoodStores[0].LastHarvestUnits);
+        Assert.Equal(4096, loaded.ConsumptionDeficits[0].DemandUnits);
+        Assert.Equal(1.375, loaded.Variables[0].Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.Variables[1].Value));
+        Assert.Equal(Sim.Core.State.Variables.ArtisanShare, loaded.Variables[1].VarId);
+        Assert.Equal(1, loaded.ClassStates[0].Active);
+        Assert.Equal(new ClassId(2), loaded.ClassStates[1].Class);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

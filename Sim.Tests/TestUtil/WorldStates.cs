@@ -32,6 +32,8 @@ public static class WorldStates
         if (!TableEquals(a.ConsumptionDeficits, b.ConsumptionDeficits)) return false;
         if (!TableEquals(a.LaborAllocations, b.LaborAllocations)) return false;
         if (!TableEquals(a.PathProgress, b.PathProgress)) return false;
+        if (!TableEquals(a.Variables, b.Variables)) return false;
+        if (!TableEquals(a.ClassStates, b.ClassStates)) return false;
         return true;
     }
 

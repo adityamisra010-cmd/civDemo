@@ -99,7 +99,7 @@ public struct BucketRow(
     SettlementId settlement, CultureId culture, ReligionId religion, ClassId cls,
     int cohortIdx, Conserved count,
     double birthRemainder, double deathRemainder, double starvationRemainder,
-    double agingRemainder) : IEquatable<BucketRow>
+    double agingRemainder, double mobilityRemainder = 0.0) : IEquatable<BucketRow>
 {
     public SettlementId Settlement = settlement;
     public CultureId Culture = culture;
@@ -112,6 +112,11 @@ public struct BucketRow(
     public double StarvationRemainder = starvationRemainder;
     public double AgingRemainder = agingRemainder;
 
+    /// <summary>T2.2: D-004 remainder for class-mobility transfers, carried on
+    /// the SOURCE row of the flow (peasant row for promotion, artisan row for
+    /// demotion).</summary>
+    public double MobilityRemainder = mobilityRemainder;
+
     public readonly bool Equals(BucketRow other) =>
         Settlement == other.Settlement && Culture == other.Culture
         && Religion == other.Religion && Class == other.Class
@@ -119,7 +124,8 @@ public struct BucketRow(
         && BirthRemainder.Equals(other.BirthRemainder)
         && DeathRemainder.Equals(other.DeathRemainder)
         && StarvationRemainder.Equals(other.StarvationRemainder)
-        && AgingRemainder.Equals(other.AgingRemainder);
+        && AgingRemainder.Equals(other.AgingRemainder)
+        && MobilityRemainder.Equals(other.MobilityRemainder);
     public override readonly bool Equals(object? obj) => obj is BucketRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value * Cohorts.Count + CohortIdx; // gate:allow-gethashcode — equality plumbing, never logic input
 }
@@ -133,18 +139,24 @@ public struct BucketRow(
 /// </summary>
 /// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
 public struct FoodStoreRow(
-    SettlementId settlement, Conserved store, double harvestRemainder, double eatenRemainder)
-    : IEquatable<FoodStoreRow>
+    SettlementId settlement, Conserved store, double harvestRemainder, double eatenRemainder,
+    long lastHarvestUnits = 0) : IEquatable<FoodStoreRow>
 {
     public SettlementId Settlement = settlement;
     public Conserved Store = store;
     public double HarvestRemainder = harvestRemainder;
     public double EatenRemainder = eatenRemainder;
 
+    /// <summary>T2.2: the units Farming credited THIS turn (observational, not
+    /// a stock) — the numerator of the published food_surplus_ratio variable.
+    /// Written by Farming alongside its Ledger credit.</summary>
+    public long LastHarvestUnits = lastHarvestUnits;
+
     public readonly bool Equals(FoodStoreRow other) =>
         Settlement == other.Settlement && Store == other.Store
         && HarvestRemainder.Equals(other.HarvestRemainder)
-        && EatenRemainder.Equals(other.EatenRemainder);
+        && EatenRemainder.Equals(other.EatenRemainder)
+        && LastHarvestUnits == other.LastHarvestUnits;
     public override readonly bool Equals(object? obj) => obj is FoodStoreRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
 }
@@ -156,7 +168,9 @@ public struct FoodStoreRow(
 /// the PREVIOUS turn's row for its starvation multiplier — the kernel's standard
 /// one-turn-lag coupling (§3.2), documented and accepted.
 /// </summary>
-public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio);
+/// <summary>DemandUnits (T2.2): the integer demand Consumption computed this
+/// turn (pre-clamp) — the denominator of the published food_surplus_ratio.</summary>
+public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio, long DemandUnits = 0);
 
 /// <summary>
 /// One settlement's labor split (T1.6, owned by PathBuildSystem): FarmShare in
@@ -174,6 +188,24 @@ public record struct LaborAllocationRow(SettlementId Settlement, double FarmShar
 /// currently ends at (−1 until first resolved to the settlement's origin).
 /// </summary>
 public record struct PathProgressRow(SettlementId Settlement, double Banked, int FrontierNode);
+
+/// <summary>
+/// One published simulation variable (T2.2, D-020): a named per-settlement
+/// double, keyed by the CODE registry id (Sim.Core.State.Variables — names
+/// never live in sim rows, ADR-001). Written each turn by ClassMobilitySystem;
+/// the predicate DSL evaluates against the PREV turn's rows (one-turn lag,
+/// §3.2). Observational state, not a stock.
+/// </summary>
+public record struct VariableRow(SettlementId Settlement, int VarId, double Value);
+
+/// <summary>
+/// Per-(settlement, class) emergence state (T2.2, D-020): Active is the
+/// HYSTERESIS latch — 1 once the class's emergence predicate has fired, back
+/// to 0 only via its recession predicate (absent recede = never). Persistent
+/// sim state (serialized): the latch is what makes predicate flips hysteretic
+/// instead of oscillating.
+/// </summary>
+public record struct ClassStateRow(SettlementId Settlement, ClassId Class, int Active);
 
 /// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
@@ -219,6 +251,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits { get; }
     IReadOnlyTable<LaborAllocationRow> LaborAllocations { get; }
     IReadOnlyTable<PathProgressRow> PathProgress { get; }
+    IReadOnlyTable<VariableRow> Variables { get; }
+    IReadOnlyTable<ClassStateRow> ClassStates { get; }
 }
 
 /// <summary>
@@ -292,6 +326,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Path-build banks + frontiers (T1.6) — owned by PathBuildSystem.</summary>
     public Table<PathProgressRow> PathProgress { get; }
 
+    /// <summary>Published variables (T2.2, D-020) — owned by ClassMobilitySystem.</summary>
+    public Table<VariableRow> Variables { get; }
+
+    /// <summary>Class emergence latches (T2.2, D-020) — owned by ClassMobilitySystem.</summary>
+    public Table<ClassStateRow> ClassStates { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -309,6 +349,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConsumptionDeficitRow> IReadOnlyWorldState.ConsumptionDeficits => ConsumptionDeficits;
     IReadOnlyTable<LaborAllocationRow> IReadOnlyWorldState.LaborAllocations => LaborAllocations;
     IReadOnlyTable<PathProgressRow> IReadOnlyWorldState.PathProgress => PathProgress;
+    IReadOnlyTable<VariableRow> IReadOnlyWorldState.Variables => Variables;
+    IReadOnlyTable<ClassStateRow> IReadOnlyWorldState.ClassStates => ClassStates;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -330,6 +372,8 @@ public sealed class WorldState : IReadOnlyWorldState
         ConsumptionDeficits = new Table<ConsumptionDeficitRow>();
         LaborAllocations = new Table<LaborAllocationRow>();
         PathProgress = new Table<PathProgressRow>();
+        Variables = new Table<VariableRow>();
+        ClassStates = new Table<ClassStateRow>();
     }
 
     private WorldState(
@@ -340,7 +384,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<NetworkMetaRow> networkMeta, Table<CatchmentNodeRow> catchmentNodes,
         Table<CatchmentSummaryRow> catchmentSummaries, Table<BucketRow> buckets,
         Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits,
-        Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress)
+        Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress,
+        Table<VariableRow> variables, Table<ClassStateRow> classStates)
     {
         Seed = seed;
         Clock = clock;
@@ -361,6 +406,8 @@ public sealed class WorldState : IReadOnlyWorldState
         ConsumptionDeficits = consumptionDeficits;
         LaborAllocations = laborAllocations;
         PathProgress = pathProgress;
+        Variables = variables;
+        ClassStates = classStates;
     }
 
     /// <summary>
@@ -373,7 +420,8 @@ public sealed class WorldState : IReadOnlyWorldState
             Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
             CatchmentSummaries.Clone(), Buckets.Clone(), FoodStores.Clone(),
-            ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone())
+            ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
+            Variables.Clone(), ClassStates.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

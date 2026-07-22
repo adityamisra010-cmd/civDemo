@@ -2,6 +2,7 @@ using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Catchment;
+using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Farming;
@@ -92,6 +93,23 @@ public static class SystemCatalog
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>
+    /// SANCTIONED SHARED STOCK (T2.2): Buckets is handed to BOTH Demographics
+    /// (births/deaths/starvation/aging; owns Birth/Death/Starvation/Aging
+    /// remainders) and ClassMobility (same-cohort adult class transfers; owns
+    /// MobilityRemainder). Every mutation goes exclusively through the Ledger
+    /// (law 1) and the per-turn audit holds the pair to exactness — the same
+    /// reviewable pattern as the T1.5 FoodStores share above.
+    /// </summary>
+    public static SystemRegistration ClassMobility(SimConfig cfg)
+    {
+        var system = new ClassMobilitySystem(cfg);
+        return new SystemRegistration(ClassMobilitySystem.WellKnownId, ClassMobilitySystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ClassMobilityTables>(
+                prev, new ClassMobilityTables(next.Buckets, next.Variables, next.ClassStates), rng,
+                ClassMobilitySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration PathBuild(SimConfig cfg)
     {
         var system = new PathBuildSystem(cfg);
@@ -108,6 +126,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(), Farming(cfg), Consumption(cfg), Demographics(cfg), PathBuild(cfg),
-         Weather(), Growth(), Trade()];
+        [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Demographics(cfg),
+         PathBuild(cfg), Weather(), Growth(), Trade()];
 }

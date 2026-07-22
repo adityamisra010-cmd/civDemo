@@ -33,6 +33,20 @@
   "registries": {
     "cultures": [ { "id": 1, "name": "Riverfolk" } ],
     "religions": [ { "id": 1, "name": "Old Rites" } ],
-    "classes": [ { "id": 1, "name": "Peasants" }, { "id": 2, "name": "Artisans" } ]
+    "classes": [
+      { "id": 1, "name": "Peasants" },
+      { "id": 2, "name": "Artisans",
+        "emerge": "food_surplus_ratio > 1.3",
+        "recede": "food_surplus_ratio < 1.1" }
+    ]
+  },
+  "mobility": {
+    "promoteRatePerYear": 0.08,
+    "famineDemoteRatePerYear": 2.0,
+    "targetShareSlope": 0.2,
+    "targetShareCap": 0.2,
+    "toolYieldBonusCap": 0.3,
+    "toolYieldBonusSlope": 3.0,
+    "constructionLaborWeight": 1.0
   }
 }

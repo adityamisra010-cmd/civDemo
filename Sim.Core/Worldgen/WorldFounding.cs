@@ -71,6 +71,14 @@ public static class WorldFounding
             }
         }
 
+        // Class emergence latches (T2.2): base class active from the first
+        // day; every other class starts dormant, awaiting its D-020 predicate.
+        for (int cls = 0; cls < reg.Classes.Length; cls++)
+        {
+            world.ClassStates.Add(new ClassStateRow(
+                settlement, new ClassId(reg.Classes[cls].Id), Active: cls == 0 ? 1 : 0));
+        }
+
         int storeRow = world.FoodStores.Add(new FoodStoreRow(
             settlement, Conserved.Zero, harvestRemainder: 0.0, eatenRemainder: 0.0));
         ledger.Flow(

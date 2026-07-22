@@ -68,7 +68,11 @@ public class FirstReignTests
         //   v2 (T2.1, D-026 cohort buckets — DELIBERATE, D-029): trajectory
         //   re-pins under the cohort demographics; the shape asserts below
         //   remain the load-bearing guard.
-        const string golden = "b4af3b3dff1cc62cf0b55f7a7234f2af4cc7c64bc91b98ca0b7a3107f53df504";
+        //   v2 value: b4af3b3dff1cc62cf0b55f7a7234f2af4cc7c64bc91b98ca0b7a3107f53df504
+        //   v3 (T2.2, D-020 class system — DELIBERATE): schema v8 + the class
+        //   pipeline; the famine still extinguishes the settlement and the
+        //   shape asserts stand unchanged.
+        const string golden = "1a377e2e26cf5f0b83f75b3a8e509c290e385d33958711746247fee6d48fac44";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

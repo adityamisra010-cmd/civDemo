@@ -72,8 +72,10 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
             }
 
             // Deficit ratio for THIS turn (guarded: no demand → no deficit → no NaN).
+            // DemandUnits (T2.2): the pre-clamp integer demand — the
+            // denominator of the published food_surplus_ratio.
             double ratio = demanded > 0 ? (demanded - eaten) / (double)demanded : 0.0;
-            var deficitRow = new ConsumptionDeficitRow(settlement, ratio);
+            var deficitRow = new ConsumptionDeficitRow(settlement, ratio, demanded);
             if (s < deficits.Count) deficits[s] = deficitRow;
             else deficits.Add(deficitRow);
         }

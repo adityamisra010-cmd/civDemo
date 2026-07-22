@@ -97,10 +97,20 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             }
             double pathShare = 1.0 - farmShare;
 
-            // Adult labor is the derived band view over the cohort buckets (T2.1).
-            long adults = BandViews.Adults(prev.Buckets, settlement.Id);
+            // T2.2: the slider still governs the whole workforce — the path
+            // fraction of the pool is pathShare × (peasants + weight ×
+            // artisans): artisans join PathBuild's pool at
+            // ConstructionLaborWeight (TUNE), preserving the T1.6 invariant
+            // that 100% farm banks exactly nothing. SCAFFOLDING (spec §1) —
+            // M3's goods economy replaces this weighted-pool abstraction.
+            var baseClass = new ClassId(_cfg.Registries.Classes[0].Id);
+            long peasantAdults = Sim.Core.Systems.ClassMobility.ClassMobilitySystem
+                .AdultsOfClass(prev.Buckets, settlement.Id, baseClass);
+            long allAdults = BandViews.Adults(prev.Buckets, settlement.Id);
+            double builders = pathShare * (peasantAdults
+                              + _cfg.Mobility.ConstructionLaborWeight * (allAdults - peasantAdults));
 
-            double accrual = _cfg.PathBuild.LaborPerAdultPerYear * pathShare * adults * ctx.DtYears;
+            double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builders * ctx.DtYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);
             if (progressIdx < 0)
             {
@@ -284,6 +294,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits => prev.ConsumptionDeficits;
         public IReadOnlyTable<LaborAllocationRow> LaborAllocations => prev.LaborAllocations;
         public IReadOnlyTable<PathProgressRow> PathProgress => prev.PathProgress;
+        public IReadOnlyTable<VariableRow> Variables => prev.Variables;
+        public IReadOnlyTable<ClassStateRow> ClassStates => prev.ClassStates;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

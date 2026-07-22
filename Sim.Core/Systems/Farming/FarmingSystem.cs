@@ -75,12 +75,25 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 }
             }
 
-            // Adult labor is the derived band view over the cohort buckets (T2.1).
-            long adults = BandViews.Adults(prev.Buckets, settlement);
+            // T2.2: farm labor is the PEASANT adults (base class — artisans are
+            // specialists and do not farm); the artisan contribution enters as
+            // the tool multiplier below. SCAFFOLDING (spec §1): the multiplier
+            // is an abstraction of artisan output that M3's real goods economy
+            // replaces — 1 + min(ToolYieldBonusCap, ToolYieldBonusSlope ×
+            // artisanShare): monotone in the share, saturating, never above
+            // 1 + cap.
+            var baseClass = new ClassId(_cfg.Registries.Classes[0].Id);
+            long peasantAdults = Sim.Core.Systems.ClassMobility.ClassMobilitySystem
+                .AdultsOfClass(prev.Buckets, settlement, baseClass);
+            long allAdults = BandViews.Adults(prev.Buckets, settlement);
+            double artisanShare = allAdults > 0 ? (allAdults - peasantAdults) / (double)allAdults : 0.0;
+            double toolMultiplier = 1.0 + Math.Min(
+                _cfg.Mobility.ToolYieldBonusCap, _cfg.Mobility.ToolYieldBonusSlope * artisanShare);
 
             // Leontief: the scarcer of land capacity and assigned farm labor binds.
             double landSide = farmland * _cfg.Farming.YieldPerFarmlandPerYear;
-            double laborSide = adults * farmShare * _cfg.Farming.OutputPerFarmerPerYear;
+            double laborSide = peasantAdults * farmShare
+                               * _cfg.Farming.OutputPerFarmerPerYear * toolMultiplier;
             double ratePerYear = Math.Min(landSide, laborSide);
 
             ref FoodStoreRow row = ref stores.Ref(storeIndex);
@@ -90,6 +103,7 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 ref row.Store, ConservedQuantityIds.Food, ReasonIds.Harvest,
                 harvested, FlowDirection.Source, OverdrawPolicy.Throw);
             row.HarvestRemainder = exact - harvested;
+            row.LastHarvestUnits = harvested; // T2.2: numerator of food_surplus_ratio
         }
     }
 
