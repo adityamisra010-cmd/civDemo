@@ -2,6 +2,8 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Sim.Core.Kernel;
+using Sim.Core.Pathing;
 using Sim.Core.State;
 using Sim.Ui.ImGuiIntegration;
 using Sim.Ui.ViewModel;
@@ -9,44 +11,65 @@ using Sim.Ui.ViewModel;
 namespace Sim.Ui;
 
 /// <summary>
-/// The window (T1.7, D-023): renders a founded world's terrain — smooth-shaded,
-/// no visible tiles (bilinear sampling over the once-baked texture) — with
-/// pan/zoom camera and a single ImGui debug panel. VIEW ONLY this packet:
-/// End Turn, overlays and orders arrive at T1.8. The UI holds the WorldState
-/// and reads it; the sim never reads UI state, and nothing references Sim.Ui.
+/// The window (T1.7/T1.8, D-023): terrain + vector rivers + overlays
+/// (settlement marker, built paths, catchment fill toggle), the HUD panel
+/// (population, food, last harvest, labor split + slider, End Turn), and
+/// session recording. The UI is a VIEW + ORDER SOURCE, single-threaded (m1
+/// spec §3): it holds a founded world, reads it, and feeds the sim exclusively
+/// through the T0.7 order log; End Turn runs the executor synchronously. The
+/// sim never reads UI state; nothing references Sim.Ui.
 /// </summary>
 public sealed class SimUiGame : Game
 {
-    private readonly WorldState _world;
+    private WorldState _world;
+    private readonly TurnExecutor _executor;
+    private readonly OrderLog _orders;
+    private readonly string _runDirectory;
+
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch? _spriteBatch;
     private Texture2D? _terrainTexture;
+    private Texture2D? _markerTexture;
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
 
+    private TraversalLattice? _lattice;
+    private int _latticeStride;
+
     private VertexBuffer? _riverVertices;
-    private BasicEffect? _riverEffect;
-    private static readonly RasterizerState RiverRasterizer = new()
+    private VertexBuffer? _pathVertices;
+    private int _pathVersion = -1;      // NetworkEdges.Count when path mesh was built
+    private VertexBuffer? _catchmentVertices;
+    private long _catchmentVersion = -1; // Σ LastRecomputeTurn when fill was built
+    private BasicEffect? _worldEffect;
+    private static readonly RasterizerState WorldRasterizer = new()
     {
         CullMode = CullMode.None,
-        MultiSampleAntiAlias = true,
+        MultiSampleAntiAlias = true, // ADR-009: MSAA is the anti-aliasing choice
     };
+
+    private static readonly Color PathColor = new(0x8B, 0x62, 0x3B, 0xFF);      // earth brown — never river blue
+    private static readonly Color CatchmentFill = new(0xE8, 0xD9, 0x6A, 0x46);  // translucent field-yellow
+
+    private bool _showCatchment;
+    private int _sliderFarmPct = 100;
+    private long _previousHarvestTotal;
+    private HudModel _hud = null!;
 
     private MouseState _lastMouse;
     private double _fps;
 
-    public SimUiGame(WorldState world)
+    public SimUiGame(WorldState world, TurnExecutor executor, OrderLog orders, string runDirectory)
     {
         _world = world;
+        _executor = executor;
+        _orders = orders;
+        _runDirectory = runDirectory;
         _graphics = new GraphicsDeviceManager(this)
         {
             PreferredBackBufferWidth = 1280,
             PreferredBackBufferHeight = 800,
-            SynchronizeWithVerticalRetrace = true, // 60 fps target: vsync
-            // ANTI-ALIASING CHOICE (T1.7 re-gate, documented): rivers are solid
-            // vector quad-strips smoothed by 4x MSAA — one flag on immutable
-            // geometry, no per-vertex feathering to maintain. Requested here;
-            // the count is pinned in PreparingDeviceSettings below.
+            SynchronizeWithVerticalRetrace = true,
             PreferMultiSampling = true,
         };
         _graphics.PreparingDeviceSettings += (_, e) =>
@@ -60,32 +83,122 @@ public sealed class SimUiGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _imgui = new ImGuiRenderer(this);
+        _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
 
-        // Bake ONCE (ADR-008: terrain is immutable in M1).
         int size = _world.Terrain!.Size;
         _terrainTexture = new Texture2D(GraphicsDevice, size, size, false, SurfaceFormat.Color);
         _terrainTexture.SetData(TerrainBaker.Bake(_world.Terrain));
+        _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.Build(_world.Terrain)),
+            new Color(TerrainPalette.RiverColor.R, TerrainPalette.RiverColor.G,
+                      TerrainPalette.RiverColor.B, TerrainPalette.RiverColor.A));
 
-        // Rivers: world-space vector mesh, built once (immutable polylines) —
-        // smooth at any zoom, unlike the raster texels they replaced (re-gate).
-        RiverMesh.Vertex[] mesh = RiverMesh.Build(_world.Terrain);
-        if (mesh.Length > 0)
-        {
-            var riverColor = new Color(
-                TerrainPalette.RiverColor.R, TerrainPalette.RiverColor.G,
-                TerrainPalette.RiverColor.B, TerrainPalette.RiverColor.A);
-            var vertices = new VertexPositionColor[mesh.Length];
-            for (int i = 0; i < mesh.Length; i++)
-                vertices[i] = new VertexPositionColor(
-                    new Vector3((float)mesh[i].X, (float)mesh[i].Y, 0f), riverColor);
-            _riverVertices = new VertexBuffer(
-                GraphicsDevice, VertexPositionColor.VertexDeclaration, vertices.Length, BufferUsage.None);
-            _riverVertices.SetData(vertices);
-        }
-        _riverEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
+        // The same lattice geometry the M1 systems compute on (pure of terrain).
+        _lattice = TraversalLattice.Build(_world.Terrain);
+        _latticeStride = OverlayMeshes.LatticeStride(_lattice, size);
 
+        _markerTexture = MakeMarkerTexture(32);
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
+
+        _hud = HudModel.From(_world, previousHarvestTotal: 0);
+        _previousHarvestTotal = _hud.HarvestTotal;
+        RebuildOverlays();
+    }
+
+    private static LineGeometry.Vertex[] RiverMeshToLine(RiverMesh.Vertex[] mesh)
+    {
+        var result = new LineGeometry.Vertex[mesh.Length];
+        for (int i = 0; i < mesh.Length; i++) result[i] = new(mesh[i].X, mesh[i].Y);
+        return result;
+    }
+
+    private VertexBuffer? MakeBuffer(LineGeometry.Vertex[] mesh, Color color)
+    {
+        if (mesh.Length == 0) return null;
+        var vertices = new VertexPositionColor[mesh.Length];
+        for (int i = 0; i < mesh.Length; i++)
+            vertices[i] = new VertexPositionColor(
+                new Vector3((float)mesh[i].X, (float)mesh[i].Y, 0f), color);
+        var buffer = new VertexBuffer(
+            GraphicsDevice, VertexPositionColor.VertexDeclaration, vertices.Length, BufferUsage.None);
+        buffer.SetData(vertices);
+        return buffer;
+    }
+
+    /// <summary>Filled circle with a dark rim — the settlement marker sprite.</summary>
+    private Texture2D MakeMarkerTexture(int size)
+    {
+        var pixels = new Color[size * size];
+        double r = size / 2.0 - 1.0;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                double dx = x + 0.5 - size / 2.0, dy = y + 0.5 - size / 2.0;
+                double d = Math.Sqrt(dx * dx + dy * dy);
+                pixels[y * size + x] =
+                    d > r ? Color.Transparent
+                    : d > r - 3.0 ? new Color(30, 24, 18, 255)      // rim
+                    : new Color(0xF0, 0xE6, 0xC8, 0xFF);            // parchment fill
+            }
+        }
+        var texture = new Texture2D(GraphicsDevice, size, size, false, SurfaceFormat.Color);
+        texture.SetData(pixels);
+        return texture;
+    }
+
+    private void RebuildOverlays()
+    {
+        if (_world.NetworkEdges.Count != _pathVersion)
+        {
+            _pathVertices?.Dispose();
+            _pathVertices = MakeBuffer(
+                OverlayMeshes.BuildPaths(_world, _lattice!.Size, _latticeStride), PathColor);
+            _pathVersion = _world.NetworkEdges.Count;
+        }
+
+        long catchmentVersion = 0;
+        for (int i = 0; i < _world.CatchmentSummaries.Count; i++)
+            catchmentVersion += _world.CatchmentSummaries[i].LastRecomputeTurn + 1;
+        if (catchmentVersion != _catchmentVersion)
+        {
+            _catchmentVertices?.Dispose();
+            _catchmentVertices = MakeBuffer(
+                OverlayMeshes.BuildCatchmentFill(_world, _lattice!.Size, _latticeStride), CatchmentFill);
+            _catchmentVersion = catchmentVersion;
+        }
+    }
+
+    // --- the player's verbs ---------------------------------------------------
+
+    private void EmitLaborOrder(int farmPct)
+    {
+        _orders.Append(LaborOrderFactory.Create(
+            _world.Clock.Turn, _world.Settlements[0].Id, farmPct));
+        SaveSession();
+    }
+
+    private void EndTurn()
+    {
+        _world = _executor.Step(_world);
+        _hud = HudModel.From(_world, _previousHarvestTotal);
+        _previousHarvestTotal = _hud.HarvestTotal;
+        RebuildOverlays();
+        SaveSession();
+    }
+
+    /// <summary>Session recording (T1.8): the order log IS the replayable session.</summary>
+    private void SaveSession()
+    {
+        Directory.CreateDirectory(_runDirectory);
+        using var stream = File.Create(Path.Combine(_runDirectory, "orders.bin"));
+        _orders.Save(stream);
+    }
+
+    protected override void OnExiting(object sender, ExitingEventArgs args)
+    {
+        SaveSession();
+        base.OnExiting(sender, args);
     }
 
     private Rectangle Viewport() => GraphicsDevice.Viewport.Bounds;
@@ -99,7 +212,6 @@ public sealed class SimUiGame : Game
 
         if (keyboard.IsKeyDown(Keys.Escape)) Exit();
 
-        // Camera input — skipped while ImGui wants the mouse/keyboard.
         if (IsActive && !io.WantCaptureMouse)
         {
             if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Pressed)
@@ -111,7 +223,7 @@ public sealed class SimUiGame : Game
         }
         if (IsActive && !io.WantCaptureKeyboard)
         {
-            double panPx = 600.0 * gameTime.ElapsedGameTime.TotalSeconds; // screen px/s
+            double panPx = 600.0 * gameTime.ElapsedGameTime.TotalSeconds;
             double dx = 0, dy = 0;
             if (keyboard.IsKeyDown(Keys.W)) dy += panPx;
             if (keyboard.IsKeyDown(Keys.S)) dy -= panPx;
@@ -127,52 +239,90 @@ public sealed class SimUiGame : Game
     protected override void Draw(GameTime gameTime)
     {
         double dt = gameTime.ElapsedGameTime.TotalSeconds;
-        if (dt > 0) _fps = _fps * 0.95 + (1.0 / dt) * 0.05; // smoothed display fps
+        if (dt > 0) _fps = _fps * 0.95 + (1.0 / dt) * 0.05;
 
         GraphicsDevice.Clear(new Color(10, 14, 20));
         Rectangle viewport = Viewport();
         Camera cam = _camera!;
 
-        // World transform from the pure camera: scale then translate (floats
-        // only HERE, at the render boundary).
         var transform =
             Matrix.CreateTranslation((float)-cam.CenterX, (float)-cam.CenterY, 0f)
             * Matrix.CreateScale((float)cam.Zoom)
             * Matrix.CreateTranslation(viewport.Width / 2f, viewport.Height / 2f, 0f);
 
-        // LinearClamp = bilinear sampling: the D-023 "no visible tiles" mandate.
         _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
         _spriteBatch.Draw(_terrainTexture, Vector2.Zero, Color.White);
         _spriteBatch.End();
 
-        // Rivers over terrain, every frame: same world transform, MSAA-smoothed.
-        if (_riverVertices is not null)
-        {
-            _riverEffect!.World = transform;
-            _riverEffect.Projection = Matrix.CreateOrthographicOffCenter(
-                0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
-            GraphicsDevice.RasterizerState = RiverRasterizer;
-            GraphicsDevice.SetVertexBuffer(_riverVertices);
-            foreach (EffectPass pass in _riverEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                GraphicsDevice.DrawPrimitives(
-                    PrimitiveType.TriangleList, 0, _riverVertices.VertexCount / 3);
-            }
-        }
+        // World-space vector layers: catchment fill (toggle) under paths under rivers.
+        _worldEffect!.World = transform;
+        _worldEffect.Projection = Matrix.CreateOrthographicOffCenter(
+            0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
+        GraphicsDevice.RasterizerState = WorldRasterizer;
+        GraphicsDevice.BlendState = BlendState.NonPremultiplied; // translucent fill needs alpha
+        if (_showCatchment) DrawWorldBuffer(_catchmentVertices);
+        DrawWorldBuffer(_pathVertices);
+        DrawWorldBuffer(_riverVertices);
 
-        // Debug panel (the single T1.7 panel).
+        // Settlement markers: world-anchored, constant SCREEN size — readable at
+        // every zoom by construction (no transform on the sprite pass).
+        _spriteBatch.Begin(samplerState: SamplerState.LinearClamp);
+        for (int i = 0; i < _world.Settlements.Count; i++)
+        {
+            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
+                _world.Settlements[i], _world.Terrain!.Size);
+            (double sx, double sy) = cam.WorldToScreen(
+                position.X, position.Y, viewport.Width, viewport.Height);
+            const float markerPx = 14f;
+            _spriteBatch.Draw(_markerTexture,
+                new Rectangle((int)(sx - markerPx / 2), (int)(sy - markerPx / 2),
+                    (int)markerPx, (int)markerPx), Color.White);
+        }
+        _spriteBatch.End();
+
+        DrawHud(gameTime);
+        base.Draw(gameTime);
+    }
+
+    private void DrawWorldBuffer(VertexBuffer? buffer)
+    {
+        if (buffer is null) return;
+        GraphicsDevice.SetVertexBuffer(buffer);
+        foreach (EffectPass pass in _worldEffect!.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, buffer.VertexCount / 3);
+        }
+    }
+
+    private void DrawHud(GameTime gameTime)
+    {
         _imgui!.BeforeLayout(gameTime);
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
-        ImGui.Begin("debug", ImGuiWindowFlags.AlwaysAutoResize);
-        ImGui.Text($"seed: {_world.Seed}");
-        long year = -4000 + _world.Clock.SimDays / 360; // presentation-only calendar
-        ImGui.Text($"turn: {_world.Clock.Turn}   year: {year}");
-        ImGui.Text($"camera: ({cam.CenterX:F0}, {cam.CenterY:F0})  zoom: {cam.Zoom:F2}x");
-        ImGui.Text($"fps: {_fps:F0}");
+        ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
+
+        ImGui.Text(_hud.ClockLine);
+        ImGui.Text(_hud.PopulationLine);
+        ImGui.Text(_hud.FoodLine);
+        ImGui.Text(_hud.SplitLine);
+        ImGui.Separator();
+
+        // The labor slider: emits ONE order, on release only (§3.9 log hygiene).
+        ImGui.SliderInt("farm %", ref _sliderFarmPct, 0, 100);
+        if (ImGui.IsItemDeactivatedAfterEdit() && _world.Settlements.Count > 0)
+            EmitLaborOrder(_sliderFarmPct);
+
+        ImGui.Checkbox("catchment overlay", ref _showCatchment);
+
+        if (ImGui.Button("End Turn", new System.Numerics.Vector2(180, 32)))
+            EndTurn();
+
+        ImGui.Separator();
+        ImGui.Text(string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"seed {_world.Seed}   fps {_fps:F0}"));
+        ImGui.Text(string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"camera ({_camera!.CenterX:F0}, {_camera.CenterY:F0}) zoom {_camera.Zoom:F2}x"));
         ImGui.End();
         _imgui.AfterLayout();
-
-        base.Draw(gameTime);
     }
 }

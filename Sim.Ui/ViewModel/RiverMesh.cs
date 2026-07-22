@@ -25,6 +25,7 @@ public static class RiverMesh
     /// <summary>TUNE: minimum width for the lowest-discharge polyline.</summary>
     public const double MinWidthWorldPx = 0.9;
 
+    // Alias kept for the T1.7 test surface; geometry shared via LineGeometry (T1.8).
     public readonly record struct Vertex(double X, double Y);
 
     /// <summary>Width for a polyline at <paramref name="rank"/> of <paramref name="count"/> (linear falloff).</summary>
@@ -47,7 +48,7 @@ public static class RiverMesh
     /// </summary>
     public static Vertex[] Build(TerrainSet terrain)
     {
-        var vertices = new List<Vertex>();
+        var vertices = new List<LineGeometry.Vertex>();
         int count = terrain.RiverPolylineCount;
         for (int rank = 0; rank < count; rank++)
         {
@@ -57,30 +58,12 @@ public static class RiverMesh
             {
                 Vertex a = CellCenter(line[i], terrain.Size);
                 Vertex b = CellCenter(line[i + 1], terrain.Size);
-                AppendSegmentQuad(vertices, a, b, halfWidth);
+                LineGeometry.AppendSegmentQuad(vertices,
+                    new LineGeometry.Vertex(a.X, a.Y), new LineGeometry.Vertex(b.X, b.Y), halfWidth);
             }
         }
-        return [.. vertices];
-    }
-
-    private static void AppendSegmentQuad(List<Vertex> vertices, Vertex a, Vertex b, double halfWidth)
-    {
-        double dx = b.X - a.X, dy = b.Y - a.Y;
-        double length = Math.Sqrt(dx * dx + dy * dy);
-        if (length <= 0.0) return;
-        double ux = dx / length, uy = dy / length; // unit axis
-        double px = -uy, py = ux;                  // unit perpendicular
-
-        // Extend both ends by halfWidth: consecutive quads overlap → joints covered.
-        double ax = a.X - ux * halfWidth, ay = a.Y - uy * halfWidth;
-        double bx = b.X + ux * halfWidth, by = b.Y + uy * halfWidth;
-
-        var a1 = new Vertex(ax + px * halfWidth, ay + py * halfWidth);
-        var a2 = new Vertex(ax - px * halfWidth, ay - py * halfWidth);
-        var b1 = new Vertex(bx + px * halfWidth, by + py * halfWidth);
-        var b2 = new Vertex(bx - px * halfWidth, by - py * halfWidth);
-
-        vertices.Add(a1); vertices.Add(b1); vertices.Add(a2); // triangle 1
-        vertices.Add(a2); vertices.Add(b1); vertices.Add(b2); // triangle 2
+        var result = new Vertex[vertices.Count];
+        for (int i = 0; i < vertices.Count; i++) result[i] = new Vertex(vertices[i].X, vertices[i].Y);
+        return result;
     }
 }
