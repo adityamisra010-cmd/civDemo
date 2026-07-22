@@ -133,7 +133,11 @@ public class SnapshotTests
         //   world is unchanged (classmobility is not in the toy preset; the
         //   Bucket/FoodStore/Deficit row widenings serialize no rows here);
         //   only the stream grew.
-        const string golden = "539ec6f830644903ee82a19d6ab03079977ead838047869edcc8a2fb20364b23";
+        //   v8 value: 539ec6f830644903ee82a19d6ab03079977ead838047869edcc8a2fb20364b23
+        //   v9 (T2.5): schema gained the empty SettlementDistances +
+        //   MigrationFlows tables (two zero count prefixes, 8 bytes); the
+        //   BucketRow widening serializes no rows here. Only the stream grew.
+        const string golden = "87b9600ee4b717a13b0af627fb053f43677056e4466ec7fc355937a6e838ded0";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -251,7 +255,11 @@ public class SnapshotTests
         //   the PLURAL N = 12 world (spacing siting + partitioned catchments).
         //   The first-reign golden did NOT re-pin: at --settlements 1 the
         //   partition is bit-identical to the old single-source isochrone.
-        const string golden = "a91c7588f3f428a3c7dc3a1f7f7bd635d3167e4c9ae3c9b27df96964430684cb";
+        //   v4 value: a91c7588f3f428a3c7dc3a1f7f7bd635d3167e4c9ae3c9b27df96964430684cb
+        //   v5 (T2.5, D-021 migration — DELIBERATE): schema v9 + the migration
+        //   system in the pipeline; trajectories move (people flow between the
+        //   twelve settlements). Update ci.yml's FOUNDED_GOLDEN together.
+        const string golden = "112d2c77fbd11029aad3bf8109db3f2f516e823184040aacb218fa0e328bc032";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

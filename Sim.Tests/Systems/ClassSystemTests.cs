@@ -107,8 +107,13 @@ public class ClassSystemTests
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).
-        Assert.True(boomPeak is >= 0.18 and <= 0.2001,
-            $"boom peak share {boomPeak:F3} — never plateaued at the 0.20 cap");
+        // T2.5 note: migration churn (young-adult-peaked flows between the
+        // four dev settlements) keeps settlement 0's share a little under the
+        // exact cap — bound relaxed 0.18 → 0.15. The mobility MECHANISM is
+        // unchanged and its exact plateau/cap behavior stays pinned by the
+        // hand-built ClassWorld tests, which run no migration.
+        Assert.True(boomPeak is >= 0.15 and <= 0.2001,
+            $"boom peak share {boomPeak:F3} — never plateaued near the 0.20 cap");
         // And the other acceptance arm in the SAME run: once the Malthus
         // equilibrium erases the surplus (recession + famine demotions), the
         // share falls away from the cap — artisans drain when the surplus dies.

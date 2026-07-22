@@ -7,6 +7,7 @@ using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Farming;
 using Sim.Core.Systems.Growth;
+using Sim.Core.Systems.Migration;
 using Sim.Core.Systems.PathBuild;
 using Sim.Core.Systems.Trade;
 using Sim.Core.Systems.Weather;
@@ -35,7 +36,8 @@ public static class SystemCatalog
         var system = new CatchmentSystem();
         return new SystemRegistration(CatchmentSystem.WellKnownId, CatchmentSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<CatchmentTables>(
-                prev, new CatchmentTables(next.CatchmentNodes, next.CatchmentSummaries), rng,
+                prev, new CatchmentTables(next.CatchmentNodes, next.CatchmentSummaries,
+                    next.SettlementDistances), rng,
                 CatchmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -110,6 +112,21 @@ public static class SystemCatalog
                 ClassMobilitySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>
+    /// SANCTIONED SHARED STOCK (T2.5): Buckets is now handed to THREE systems —
+    /// Demographics, ClassMobility (see above), and Migration (cross-settlement
+    /// same-key Ledger.Transfers; owns MigrationRemainder). Same discipline:
+    /// every mutation through the Ledger (law 1), per-turn audit exact.
+    /// </summary>
+    public static SystemRegistration Migration(SimConfig cfg)
+    {
+        var system = new MigrationSystem(cfg);
+        return new SystemRegistration(MigrationSystem.WellKnownId, MigrationSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<MigrationTables>(
+                prev, new MigrationTables(next.Buckets, next.MigrationFlows), rng,
+                MigrationSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration PathBuild(SimConfig cfg)
     {
         var system = new PathBuildSystem(cfg);
@@ -126,6 +143,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Demographics(cfg),
-         PathBuild(cfg), Weather(), Growth(), Trade()];
+        [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
+         Demographics(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

@@ -27,8 +27,10 @@ public static class CanonicalSchema
     /// replaces PopBands in the same stream position.
     /// v8 (T2.2, D-020): BucketRow gains MobilityRemainder, FoodStoreRow gains
     /// LastHarvestUnits, ConsumptionDeficitRow gains DemandUnits; Variables and
-    /// ClassStates tables appended after PathProgress.</summary>
-    public const int Version = 8;
+    /// ClassStates tables appended after PathProgress.
+    /// v9 (T2.5): BucketRow gains MigrationRemainder; SettlementDistances and
+    /// MigrationFlows tables appended after ClassStates.</summary>
+    public const int Version = 9;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -44,13 +46,15 @@ public static class CanonicalSchema
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
-    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 5 remainder bit-fields (v8: +Mobility)
+    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration)
     private const int FoodStoreRowWidth = 4 + 8 + 8 + 8 + 8;        // Settlement, Store, 2 remainder bit-fields, LastHarvestUnits (v8)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
     private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
     private const int VariableRowWidth = 4 + 4 + 8;                 // Settlement, VarId, Value bits (v8)
     private const int ClassStateRowWidth = 4 + 4 + 4;               // Settlement, Class, Active (v8)
+    private const int SettlementDistanceRowWidth = 4 + 4 + 8;       // From, To, TravelCost bits (v9)
+    private const int MigrationFlowRowWidth = 4 + 8 + 8;            // Settlement, Inflow, Outflow (v9)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -201,6 +205,7 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.StarvationRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.AgingRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.MobilityRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.MigrationRemainder));
         }
 
         // 16. Food stores (v5; +LastHarvestUnits v8)
@@ -262,6 +267,26 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(row.Class.Value);
             writer.Write(row.Active);
+        }
+
+        // 22. Settlement distances (v9)
+        writer.Write(world.SettlementDistances.Count);
+        for (int i = 0; i < world.SettlementDistances.Count; i++)
+        {
+            SettlementDistanceRow row = world.SettlementDistances[i];
+            writer.Write(row.From.Value);
+            writer.Write(row.To.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.TravelCost));
+        }
+
+        // 23. Migration flows (v9)
+        writer.Write(world.MigrationFlows.Count);
+        for (int i = 0; i < world.MigrationFlows.Count; i++)
+        {
+            MigrationFlowRow row = world.MigrationFlows[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Inflow);
+            writer.Write(row.Outflow);
         }
     }
 
@@ -389,6 +414,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
@@ -446,6 +472,21 @@ public static class CanonicalSchema
                 new ClassId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
+        int distanceCount = reader.ReadInt32();
+        for (int i = 0; i < distanceCount; i++)
+        {
+            world.SettlementDistances.Add(new SettlementDistanceRow(
+                new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int migFlowCount = reader.ReadInt32();
+        for (int i = 0; i < migFlowCount; i++)
+        {
+            world.MigrationFlows.Add(new MigrationFlowRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt64(), reader.ReadInt64()));
+        }
+
         return world;
     }
 
@@ -475,5 +516,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
         + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth
         + CountPrefixWidth + (long)world.Variables.Count * VariableRowWidth
-        + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth;
+        + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth
+        + CountPrefixWidth + (long)world.SettlementDistances.Count * SettlementDistanceRowWidth
+        + CountPrefixWidth + (long)world.MigrationFlows.Count * MigrationFlowRowWidth;
 }

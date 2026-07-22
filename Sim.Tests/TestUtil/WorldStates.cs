@@ -34,6 +34,8 @@ public static class WorldStates
         if (!TableEquals(a.PathProgress, b.PathProgress)) return false;
         if (!TableEquals(a.Variables, b.Variables)) return false;
         if (!TableEquals(a.ClassStates, b.ClassStates)) return false;
+        if (!TableEquals(a.SettlementDistances, b.SettlementDistances)) return false;
+        if (!TableEquals(a.MigrationFlows, b.MigrationFlows)) return false;
         return true;
     }
 

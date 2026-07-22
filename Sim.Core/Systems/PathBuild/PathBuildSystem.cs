@@ -296,6 +296,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<PathProgressRow> PathProgress => prev.PathProgress;
         public IReadOnlyTable<VariableRow> Variables => prev.Variables;
         public IReadOnlyTable<ClassStateRow> ClassStates => prev.ClassStates;
+        public IReadOnlyTable<SettlementDistanceRow> SettlementDistances => prev.SettlementDistances;
+        public IReadOnlyTable<MigrationFlowRow> MigrationFlows => prev.MigrationFlows;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

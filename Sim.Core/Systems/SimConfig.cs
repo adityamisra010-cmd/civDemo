@@ -21,7 +21,8 @@ public sealed record SimConfig(
     [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
-    [property: JsonPropertyName("mobility")] MobilityConfig Mobility);
+    [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
+    [property: JsonPropertyName("migration")] MigrationConfig Migration);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -139,6 +140,26 @@ public sealed record RegistriesConfig(
     [property: JsonPropertyName("religions"), JsonRequired] RegistryEntry[] Religions,
     [property: JsonPropertyName("classes"), JsonRequired] ClassEntry[] Classes);
 
+/// <summary>
+/// Migration tuning (T2.5, all TUNE, per-sim-year — law 3).
+/// Desired outflow source→dest per bucket, per year:
+///   BaseRatePerYear × CohortProfile[cohort] × count × damping ×
+///   (max(0, A_dest − A_src) + FamineFlightFactor × Prev deficit_src)
+/// where damping = exp(−travelCost / DampingDecayCost) (∞ cost ⇒ exactly 0)
+/// and attractiveness A = FoodWeight × foodPerCapita + LandWeight ×
+/// farmlandPerCapita (Prev reads, capita floored at 1). The deficit term is
+/// the D-021 Exit valve: gap-INDEPENDENT — starving people leave for anywhere
+/// reachable, weighted by damping alone when no gap is positive.
+/// CohortProfile is the young-adult-peaked migration propensity (16 entries).
+/// </summary>
+public sealed record MigrationConfig(
+    [property: JsonPropertyName("baseRatePerYear"), JsonRequired] double BaseRatePerYear,
+    [property: JsonPropertyName("dampingDecayCost"), JsonRequired] double DampingDecayCost,
+    [property: JsonPropertyName("attractivenessFoodWeight"), JsonRequired] double AttractivenessFoodWeight,
+    [property: JsonPropertyName("attractivenessLandWeight"), JsonRequired] double AttractivenessLandWeight,
+    [property: JsonPropertyName("famineFlightFactor"), JsonRequired] double FamineFlightFactor,
+    [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile);
+
 public static class SimConfigLoader
 {
     public static SimConfig Load(Stream json)
@@ -211,6 +232,16 @@ public static class SimConfigLoader
         if (!(cfg.Mobility.TargetShareCap >= 0.0 && cfg.Mobility.TargetShareCap < 1.0))
             throw new SimConfigException(
                 $"mobility.targetShareCap must be in [0,1), got {Inv(cfg.Mobility.TargetShareCap)}.");
+
+        if (cfg.Migration is null) throw new SimConfigException("migration is missing.");
+        RequireRate("migration.baseRatePerYear", cfg.Migration.BaseRatePerYear);
+        RequireRate("migration.attractivenessFoodWeight", cfg.Migration.AttractivenessFoodWeight);
+        RequireRate("migration.attractivenessLandWeight", cfg.Migration.AttractivenessLandWeight);
+        RequireRate("migration.famineFlightFactor", cfg.Migration.FamineFlightFactor);
+        if (!(cfg.Migration.DampingDecayCost > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCost))
+            throw new SimConfigException(
+                $"migration.dampingDecayCost must be a finite value > 0, got {Inv(cfg.Migration.DampingDecayCost)}.");
+        RequireCohortArray("migration.cohortProfile", cfg.Migration.CohortProfile);
 
         return cfg;
     }

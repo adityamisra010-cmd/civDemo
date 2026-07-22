@@ -7,7 +7,8 @@ namespace Sim.Core.Systems.Catchment;
 
 /// <summary>Writable handles to CatchmentSystem's own tables (built by SystemCatalog only).</summary>
 public readonly record struct CatchmentTables(
-    Table<CatchmentNodeRow> Nodes, Table<CatchmentSummaryRow> Summaries);
+    Table<CatchmentNodeRow> Nodes, Table<CatchmentSummaryRow> Summaries,
+    Table<SettlementDistanceRow> Distances);
 
 /// <summary>
 /// Catchment maintenance (T1.4, D-016): each settlement's catchment is the
@@ -90,6 +91,34 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
             summaries.Add(new CatchmentSummaryRow(
                 settlement.Id, count, farmland, revision,
                 LastRecomputeTurn: prev.Clock.Turn));
+        }
+
+        // T2.5 (D-016 piggyback): pairwise settlement travel costs, recomputed
+        // on exactly the same events as the catchments themselves. One FULL
+        // (uncapped) Dijkstra per settlement over lattice + network fast
+        // lanes; an unreached destination stores PositiveInfinity — the
+        // by-construction zero-flow sentinel migration relies on. Rows in
+        // ascending (From, To) order, From ≠ To.
+        Table<SettlementDistanceRow> distances = ctx.Owned.Distances;
+        distances.Clear();
+        var costs = new double[prev.Settlements.Count][];
+        for (int s = 0; s < prev.Settlements.Count; s++)
+        {
+            Pathfinder.IsochroneResult full = Pathfinder.Isochrone(
+                lattice, prev, origins[s], double.MaxValue);
+            var field = new double[lattice.NodeCount];
+            Array.Fill(field, double.PositiveInfinity);
+            for (int i = 0; i < full.Reached.Length; i++) field[full.Reached[i]] = full.Costs[i];
+            costs[s] = field;
+        }
+        for (int from = 0; from < prev.Settlements.Count; from++)
+        {
+            for (int to = 0; to < prev.Settlements.Count; to++)
+            {
+                if (from == to) continue;
+                distances.Add(new SettlementDistanceRow(
+                    prev.Settlements[from].Id, prev.Settlements[to].Id, costs[from][origins[to]]));
+            }
         }
     }
 

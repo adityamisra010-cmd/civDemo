@@ -74,7 +74,12 @@ public class FirstReignTests
         //   v3 (T2.2, D-020 class system — DELIBERATE): schema v8 + the class
         //   pipeline; the famine still extinguishes the settlement and the
         //   shape asserts stand unchanged.
-        const string golden = "1a377e2e26cf5f0b83f75b3a8e509c290e385d33958711746247fee6d48fac44";
+        //   v3 value: 1a377e2e26cf5f0b83f75b3a8e509c290e385d33958711746247fee6d48fac44
+        //   v4 (T2.5 — SCHEMA-ONLY): BucketRow gained MigrationRemainder and
+        //   two empty tables joined the stream. At N = 1 migration NO-OPS (a
+        //   flow needs a second settlement), so the TRAJECTORY is unchanged —
+        //   the shape asserts below pass untouched; only the byte stream grew.
+        const string golden = "8a108763b1476489895a5c34ff63ad2060d65ee8d476a6cf8df49c528f7c709c";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

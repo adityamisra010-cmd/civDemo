@@ -99,7 +99,7 @@ public struct BucketRow(
     SettlementId settlement, CultureId culture, ReligionId religion, ClassId cls,
     int cohortIdx, Conserved count,
     double birthRemainder, double deathRemainder, double starvationRemainder,
-    double agingRemainder, double mobilityRemainder = 0.0) : IEquatable<BucketRow>
+    double agingRemainder, double mobilityRemainder = 0.0, double migrationRemainder = 0.0) : IEquatable<BucketRow>
 {
     public SettlementId Settlement = settlement;
     public CultureId Culture = culture;
@@ -117,6 +117,12 @@ public struct BucketRow(
     /// demotion).</summary>
     public double MobilityRemainder = mobilityRemainder;
 
+    /// <summary>T2.5: D-004 remainder for migration outflows, carried on the
+    /// SOURCE row — one accumulator per bucket, updated at each (dest, bucket)
+    /// visit in the pinned order, so fractional outflow is conserved in total
+    /// while sub-person destination attribution rides the carry (documented).</summary>
+    public double MigrationRemainder = migrationRemainder;
+
     public readonly bool Equals(BucketRow other) =>
         Settlement == other.Settlement && Culture == other.Culture
         && Religion == other.Religion && Class == other.Class
@@ -125,7 +131,8 @@ public struct BucketRow(
         && DeathRemainder.Equals(other.DeathRemainder)
         && StarvationRemainder.Equals(other.StarvationRemainder)
         && AgingRemainder.Equals(other.AgingRemainder)
-        && MobilityRemainder.Equals(other.MobilityRemainder);
+        && MobilityRemainder.Equals(other.MobilityRemainder)
+        && MigrationRemainder.Equals(other.MigrationRemainder);
     public override readonly bool Equals(object? obj) => obj is BucketRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value * Cohorts.Count + CohortIdx; // gate:allow-gethashcode — equality plumbing, never logic input
 }
@@ -208,6 +215,24 @@ public record struct VariableRow(SettlementId Settlement, int VarId, double Valu
 public record struct ClassStateRow(SettlementId Settlement, ClassId Class, int Active);
 
 /// <summary>
+/// Pairwise settlement travel cost (T2.5): the shortest lattice+network cost
+/// From → To — DERIVED state owned by CatchmentSystem, recomputed on exactly
+/// the D-016 catchment triggers (revision / settlement-set change; the
+/// piggyback the spec mandates). PositiveInfinity marks an unreachable pair —
+/// serialized as its IEEE bits, and exp(−∞) = 0 makes the damping (and
+/// therefore every flow across it) EXACTLY zero by construction.
+/// </summary>
+public record struct SettlementDistanceRow(SettlementId From, SettlementId To, double TravelCost);
+
+/// <summary>
+/// Per-settlement migration totals for the turn just computed (T2.5, owned by
+/// MigrationSystem; rebuilt each turn): the chronicle observables T2.9 reads
+/// for surge events. People counts, but NOT conserved stocks — bookkeeping of
+/// transfers that already conserve by construction.
+/// </summary>
+public record struct MigrationFlowRow(SettlementId Settlement, long Inflow, long Outflow);
+
+/// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
 /// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
@@ -253,6 +278,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<PathProgressRow> PathProgress { get; }
     IReadOnlyTable<VariableRow> Variables { get; }
     IReadOnlyTable<ClassStateRow> ClassStates { get; }
+    IReadOnlyTable<SettlementDistanceRow> SettlementDistances { get; }
+    IReadOnlyTable<MigrationFlowRow> MigrationFlows { get; }
 }
 
 /// <summary>
@@ -332,6 +359,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Class emergence latches (T2.2, D-020) — owned by ClassMobilitySystem.</summary>
     public Table<ClassStateRow> ClassStates { get; }
 
+    /// <summary>Pairwise travel costs (T2.5) — owned by CatchmentSystem (D-016 piggyback).</summary>
+    public Table<SettlementDistanceRow> SettlementDistances { get; }
+
+    /// <summary>Per-turn migration totals (T2.5) — owned by MigrationSystem (chronicle hooks).</summary>
+    public Table<MigrationFlowRow> MigrationFlows { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -351,6 +384,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<PathProgressRow> IReadOnlyWorldState.PathProgress => PathProgress;
     IReadOnlyTable<VariableRow> IReadOnlyWorldState.Variables => Variables;
     IReadOnlyTable<ClassStateRow> IReadOnlyWorldState.ClassStates => ClassStates;
+    IReadOnlyTable<SettlementDistanceRow> IReadOnlyWorldState.SettlementDistances => SettlementDistances;
+    IReadOnlyTable<MigrationFlowRow> IReadOnlyWorldState.MigrationFlows => MigrationFlows;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -374,6 +409,8 @@ public sealed class WorldState : IReadOnlyWorldState
         PathProgress = new Table<PathProgressRow>();
         Variables = new Table<VariableRow>();
         ClassStates = new Table<ClassStateRow>();
+        SettlementDistances = new Table<SettlementDistanceRow>();
+        MigrationFlows = new Table<MigrationFlowRow>();
     }
 
     private WorldState(
@@ -385,7 +422,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<CatchmentSummaryRow> catchmentSummaries, Table<BucketRow> buckets,
         Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits,
         Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress,
-        Table<VariableRow> variables, Table<ClassStateRow> classStates)
+        Table<VariableRow> variables, Table<ClassStateRow> classStates,
+        Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows)
     {
         Seed = seed;
         Clock = clock;
@@ -408,6 +446,8 @@ public sealed class WorldState : IReadOnlyWorldState
         PathProgress = pathProgress;
         Variables = variables;
         ClassStates = classStates;
+        SettlementDistances = settlementDistances;
+        MigrationFlows = migrationFlows;
     }
 
     /// <summary>
@@ -421,7 +461,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
             CatchmentSummaries.Clone(), Buckets.Clone(), FoodStores.Clone(),
             ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
-            Variables.Clone(), ClassStates.Clone())
+            Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
