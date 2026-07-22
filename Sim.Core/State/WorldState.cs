@@ -99,7 +99,8 @@ public struct BucketRow(
     SettlementId settlement, CultureId culture, ReligionId religion, ClassId cls,
     int cohortIdx, Conserved count,
     double birthRemainder, double deathRemainder, double starvationRemainder,
-    double agingRemainder, double mobilityRemainder = 0.0, double migrationRemainder = 0.0) : IEquatable<BucketRow>
+    double agingRemainder, double mobilityRemainder = 0.0, double migrationRemainder = 0.0,
+    double reboundReservoir = 0.0) : IEquatable<BucketRow>
 {
     public SettlementId Settlement = settlement;
     public CultureId Culture = culture;
@@ -123,6 +124,15 @@ public struct BucketRow(
     /// while sub-person destination attribution rides the carry (documented).</summary>
     public double MigrationRemainder = migrationRemainder;
 
+    /// <summary>T2.7: deferred-conception reservoir, carried on the group's
+    /// cohort-0 (newborn anchor) row only. Famine suppresses conceptions; a
+    /// TUNE-recoverable fraction of the suppressed EXACT births banks here and
+    /// is released back into the births flow once the settlement is fed again
+    /// (post-famine rebound). NOT a conserved stock — it counts conceptions
+    /// that never became people; people still enter ONLY via the Births
+    /// Ledger flow at release time ("deferred, not invented").</summary>
+    public double ReboundReservoir = reboundReservoir;
+
     public readonly bool Equals(BucketRow other) =>
         Settlement == other.Settlement && Culture == other.Culture
         && Religion == other.Religion && Class == other.Class
@@ -132,7 +142,8 @@ public struct BucketRow(
         && StarvationRemainder.Equals(other.StarvationRemainder)
         && AgingRemainder.Equals(other.AgingRemainder)
         && MobilityRemainder.Equals(other.MobilityRemainder)
-        && MigrationRemainder.Equals(other.MigrationRemainder);
+        && MigrationRemainder.Equals(other.MigrationRemainder)
+        && ReboundReservoir.Equals(other.ReboundReservoir);
     public override readonly bool Equals(object? obj) => obj is BucketRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value * Cohorts.Count + CohortIdx; // gate:allow-gethashcode — equality plumbing, never logic input
 }

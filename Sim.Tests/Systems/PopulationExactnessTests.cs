@@ -135,6 +135,16 @@ public class PopulationExactnessTests
         // swapped cohort rate, an ignored starvation multiplier, a mislabeled
         // reason, or an aging leak all break at least one exact equality.
         SimConfig cfg = TestConfigs.Sim();
+        // T2.7: the retuned elder rates (up to 0.305/yr) break this test's
+        // DELIBERATE no-clamp regime at dt 2.5 — mortality × dt + starvation
+        // + the 0.5 aging slot would overdraw cohorts 13–15, and a clamped
+        // floor makes the closed-form recurrence unverifiable. Elders run at
+        // a capped 0.09/yr HERE ONLY (every other rate canonical); the
+        // clamping regime has its own pin (ClampShortfall test).
+        double[] cappedMortality = (double[])cfg.Demographics.MortalityPerYear.Clone();
+        for (int c = 13; c < Cohorts.Count; c++)
+            cappedMortality[c] = Math.Min(cappedMortality[c], 0.09);
+        cfg = cfg with { Demographics = cfg.Demographics with { MortalityPerYear = cappedMortality } };
         DemographicsConfig d = cfg.Demographics;
         const double dt = 2.5, deficit = 0.25;
         var prev = new long[Cohorts.Count];
@@ -145,11 +155,16 @@ public class PopulationExactnessTests
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
         WorldState next = exec.Step(world);
 
-        // Births: Σ fertility[c] × prev[c] × dt — all into cohort 0 (dt < width).
+        // Births: Σ fertility[c] × prev[c] × dt, famine-suppressed (T2.7) by
+        // max(0, 1 − slope × deficit) — all into cohort 0 (dt < width). The
+        // suppressed share × recoverable fraction lands in the cohort-0 row's
+        // ReboundReservoir (asserted below with the remainders).
         double birthsPerYear = 0.0;
         for (int c = 0; c < Cohorts.Count; c++)
             birthsPerYear += d.FertilityPerPersonPerYear[c] * prev[c];
-        double birthsExact = birthsPerYear * dt;
+        double unsuppressed = birthsPerYear * dt;
+        double birthsExact = unsuppressed
+            * Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * deficit);
         long born = Floor(birthsExact);
 
         // Deaths and starvation per cohort (no clamp binds at these magnitudes).
@@ -193,6 +208,9 @@ public class PopulationExactnessTests
         // bit-exact (a dropped remainder writes 0.0; the odd counts make every
         // asserted fraction nonzero, e.g. aging 0.5 × odd → .5).
         Assert.Equal(birthsExact - born, next.Buckets[0].BirthRemainder);
+        Assert.Equal(
+            d.ReboundRecoverableFraction * (unsuppressed - birthsExact),
+            next.Buckets[0].ReboundReservoir);
         Assert.Equal(d.MortalityPerYear[0] * prev[0] * dt - deaths[0], next.Buckets[0].DeathRemainder);
         Assert.Equal(0.5 * prev[4] - outMove[4], next.Buckets[4].AgingRemainder);
         Assert.Equal(

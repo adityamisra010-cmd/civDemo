@@ -23,6 +23,15 @@ public readonly record struct DemographicsTables(Table<BucketRow> Buckets);
 ///      width = 5 → half into cohort 0, half into cohort 1). Each credited
 ///      cohort carries its own BirthRemainder. Newborns inherit the group key
 ///      (peasant parents bear peasants).
+///      FAMINE FERTILITY RESPONSE (T2.7): conceptions scale by
+///      max(0, 1 − SuppressionSlope × PREV deficit) — famine defers births.
+///      A TUNE fraction of the suppressed EXACT births banks into the group's
+///      ReboundReservoir (cohort-0 row); on a FED turn (PREV deficit exactly
+///      zero — the established fed-turn predicate) the reservoir drains at
+///      ReboundReleaseRatePerYear back into the same births flow. Released
+///      births can never exceed what was banked (deferred, NOT invented), and
+///      release requires living fertile adults (birthsPerYear > 0) — a
+///      reservoir cannot bear children into an extinct group.
 ///   2. Base deaths — sink per bucket (reason Deaths), mortality[c] × PREV.
 ///   3. Starvation  — sink per bucket (reason Starvation), max rate × PREV
 ///      deficit ratio × age multiplier × PREV count. The multiplier is
@@ -108,7 +117,22 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                     if (SameGroup(p, anchor))
                         birthsPerYear += d.FertilityPerPersonPerYear[p.CohortIdx] * p.Count.Value;
                 }
-                double totalExact = birthsPerYear * dt;
+
+                // Famine fertility response (see header): suppress during a
+                // deficit, bank a recoverable fraction, release when fed again.
+                double unsuppressed = birthsPerYear * dt;
+                double factor = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * deficit);
+                double totalExact = unsuppressed * factor;
+                ref BucketRow reservoirRow = ref buckets.Ref(i); // the cohort-0 anchor carries the bank
+                reservoirRow.ReboundReservoir +=
+                    d.ReboundRecoverableFraction * (unsuppressed - totalExact);
+                if (deficit == 0.0 && birthsPerYear > 0.0)
+                {
+                    double release = reservoirRow.ReboundReservoir
+                                     * Math.Min(1.0, d.ReboundReleaseRatePerYear * dt);
+                    reservoirRow.ReboundReservoir -= release;
+                    totalExact += release;
+                }
 
                 for (int c = 0; c < newbornCohorts; c++)
                 {

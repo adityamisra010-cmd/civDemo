@@ -259,7 +259,14 @@ public class SnapshotTests
         //   v5 (T2.5, D-021 migration — DELIBERATE): schema v9 + the migration
         //   system in the pipeline; trajectories move (people flow between the
         //   twelve settlements). Update ci.yml's FOUNDED_GOLDEN together.
-        const string golden = "112d2c77fbd11029aad3bf8109db3f2f516e823184040aacb218fa0e328bc032";
+        //   v5 value: 112d2c77fbd11029aad3bf8109db3f2f516e823184040aacb218fa0e328bc032
+        //   v6 (T2.7, historical demographic retune — DELIBERATE): schema v10
+        //   (BucketRow +ReboundReservoir) AND behavior — the pre-modern
+        //   fertility/mortality profiles (CBR ≈ 37, CDR ≈ 36.5, fed growth
+        //   ≈ 0.07 %/yr) plus famine fertility suppression and the deferred-
+        //   conception rebound reshape every trajectory. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        const string golden = "cb3e43959c467a57e57c1f4dbeafc266550a2c471aa905add90d8733650c15bb";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -415,6 +422,40 @@ public class SnapshotTests
         Assert.True(double.IsPositiveInfinity(loaded.SettlementDistances[1].TravelCost));
         Assert.Equal(123, loaded.MigrationFlows[0].Inflow);
         Assert.Equal(789, loaded.MigrationFlows[1].Outflow);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV10_PopulatedReboundReservoir_ExactLengthRoundTripHash()
+    {
+        // Constitution rule: every widened row type ships a POPULATED-table
+        // test (T1.1/T1.3 precedent: empty tables prove nothing). v10 widens
+        // BucketRow with ReboundReservoir (T2.7's deferred-conception bank) —
+        // pinned here with a nonzero, non-round value: exact ExpectedLength,
+        // bit-exact round trip, hash equality.
+        WorldState world = Genesis(32);
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1),
+            new ReligionId(1), new ClassId(1), cohortIdx: 0,
+            Conserved.Zero, 0.125, 0.0, 0.0, 0.0,
+            mobilityRemainder: 0.25, migrationRemainder: 0.875,
+            reboundReservoir: 137.4375));
+
+        // Anti-padding: exact schema width sum with the widened row PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(137.4375, loaded.Buckets[0].ReboundReservoir);
+        Assert.Equal(0.125, loaded.Buckets[0].BirthRemainder);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

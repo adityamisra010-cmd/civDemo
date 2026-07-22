@@ -71,13 +71,26 @@ public sealed record ConsumptionConfig(
 ///    on elder cohorts (famine age-selectivity — the acceptance criterion).
 /// Aging carries no rate here: cohort width is structural (Cohorts.WidthYears)
 /// and the slot-advance integration derives everything from dt (law 3).
+/// T2.7 famine fertility response (all TUNE):
+///  - FamineFertilitySuppressionSlope: conceptions scale by
+///    max(0, 1 − slope × deficit) during a deficit — famine suppresses births
+///    (amenorrhea, deferral), a coefficient INSIDE the birth equation (law 2).
+///  - ReboundRecoverableFraction: the share of suppressed exact births banked
+///    into the group's ReboundReservoir (the rest are conceptions permanently
+///    lost to aging-out and death — magnitude of the rebound).
+///  - ReboundReleaseRatePerYear: fed-turn drain rate of the reservoir back
+///    into the births flow (duration of the rebound; at Neolithic dt = 10 a
+///    rate ≥ 0.1 releases the bulk in the first fed decade).
 /// </summary>
 public sealed record DemographicsConfig(
     [property: JsonPropertyName("fertilityPerPersonPerYear"), JsonRequired] double[] FertilityPerPersonPerYear,
     [property: JsonPropertyName("mortalityPerYear"), JsonRequired] double[] MortalityPerYear,
     [property: JsonPropertyName("starvationMortalityMaxPerYear"), JsonRequired] double StarvationMortalityMaxPerYear,
     [property: JsonPropertyName("starvationChildMultiplier"), JsonRequired] double StarvationChildMultiplier,
-    [property: JsonPropertyName("starvationElderMultiplier"), JsonRequired] double StarvationElderMultiplier);
+    [property: JsonPropertyName("starvationElderMultiplier"), JsonRequired] double StarvationElderMultiplier,
+    [property: JsonPropertyName("famineFertilitySuppressionSlope"), JsonRequired] double FamineFertilitySuppressionSlope,
+    [property: JsonPropertyName("reboundRecoverableFraction"), JsonRequired] double ReboundRecoverableFraction,
+    [property: JsonPropertyName("reboundReleaseRatePerYear"), JsonRequired] double ReboundReleaseRatePerYear);
 
 /// <summary>
 /// The founding endowment per settlement: people per cohort (exactly
@@ -197,6 +210,12 @@ public static class SimConfigLoader
         RequireRate("demographics.starvationMortalityMaxPerYear", cfg.Demographics.StarvationMortalityMaxPerYear);
         RequireRate("demographics.starvationChildMultiplier", cfg.Demographics.StarvationChildMultiplier);
         RequireRate("demographics.starvationElderMultiplier", cfg.Demographics.StarvationElderMultiplier);
+        RequireRate("demographics.famineFertilitySuppressionSlope", cfg.Demographics.FamineFertilitySuppressionSlope);
+        RequireRate("demographics.reboundReleaseRatePerYear", cfg.Demographics.ReboundReleaseRatePerYear);
+        if (!(cfg.Demographics.ReboundRecoverableFraction >= 0.0 && cfg.Demographics.ReboundRecoverableFraction <= 1.0))
+            throw new SimConfigException(
+                $"demographics.reboundRecoverableFraction must be in [0,1] (a fraction of suppressed conceptions" +
+                $" cannot exceed what was suppressed), got {Inv(cfg.Demographics.ReboundRecoverableFraction)}.");
 
         if (cfg.PathBuild is null) throw new SimConfigException("pathBuild is missing.");
         RequireRate("pathBuild.laborPerAdultPerYear", cfg.PathBuild.LaborPerAdultPerYear);

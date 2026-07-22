@@ -242,17 +242,24 @@ public class PopulationTests
     }
 
     [Fact]
-    public void MalthusLite_OvershootCorrectionCycles_MeasurableIn200Turns()
+    public void MalthusLite_OvershootCorrectionCycles_MeasurableIn1000Turns()
     {
+        // WINDOW RESIZED at T2.7 (stated, per packet): at the pre-modern
+        // tempo (fed growth ≈ 0.07 %/yr) one full overshoot–crash–recovery
+        // cycle spans ~650 sim-years — the dev world's first crash lands near
+        // turn 255 and recoveries take centuries, so the old 200-turn window
+        // could not contain even one cycle. 1000 turns (sim-years −4000 →
+        // ~+1000 across the era table's dt shifts) holds two-plus cycles:
+        // crashes measured near turns 255, 535 and 855.
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
 
         var trajectory = new List<long>();
-        for (int t = 1; t <= 200; t++)
+        for (int t = 1; t <= 1000; t++)
         {
             world = exec.Step(world);
-            AssertRowsSaneAndAuditExact(world, t); // per-turn audit across the FULL 200-turn run
+            AssertRowsSaneAndAuditExact(world, t); // per-turn audit across the FULL 1000-turn run
             if (t >= 30) trajectory.Add(TotalPop(world)); // post-transient window
         }
 
@@ -267,7 +274,7 @@ public class PopulationTests
         double mean = 0.0;
         foreach (long p in trajectory) mean += p;
         mean /= trajectory.Count;
-        Console.WriteLine($"equilibrium population @ seed {Seed} (dev 256², turns 30–200): mean {mean:F0}");
+        Console.WriteLine($"equilibrium population @ seed {Seed} (dev 256², turns 30–1000): mean {mean:F0}");
     }
 
     [Fact]
@@ -404,10 +411,13 @@ public class PopulationTests
         //   Food:       InitialEndowment + Harvest − Eaten            == Σ stores
         // and NO other reason ever touches either quantity (aging is a Transfer —
         // it conserves by construction and never appears here).
+        // 300 turns, not 200 (T2.7, stated): the vacuity guard below demands
+        // every flow occurred, and at the pre-modern tempo the dev world's
+        // first starvation event does not arrive until the ~turn-255 crash.
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
-        for (int t = 1; t <= 200; t++) world = exec.Step(world);
+        for (int t = 1; t <= 300; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
         long foodEndow = 0, harvest = 0, eaten = 0;

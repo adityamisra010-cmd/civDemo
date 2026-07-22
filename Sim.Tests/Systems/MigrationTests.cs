@@ -320,35 +320,42 @@ public class MigrationTests
     }
 
     [Fact]
-    public void MagnitudeCorridor_FewPercentPerDecade_WithTeeth()
+    public void MagnitudeCorridor_FedPhaseDrift_WithTeeth()
     {
-        // TUNE corridor: the worst settlement's fed-turn gross outflow within
-        // [3%, 8%] per decade in dev autoplay (measured rate-response curve:
-        // 0.1× → 0.18%, 0.3× → 0.49%, 1× → 4.61%, 3× → 2.07%, 10× → 2.14%).
+        // TUNE corridor, RE-ANCHORED at T2.7 (each anchor stated, per packet):
+        // the pre-modern tempo collapses fed-phase attractiveness gaps —
+        // settlements grow at ~0.07 %/yr instead of ~2 %/yr, so nobody
+        // outruns their farmland inside the measured window and the everyday
+        // gap-driven drift is background noise, not the T2.5-era [3%, 8%].
+        // The T2.7-measured response curve: 0.1× → 0.02%, 0.3× → 0.05%,
+        // 1× → 0.25%, 1.5× → 0.64%, 2× → 1.77%, then a BIFURCATION — 2.2× →
+        // 11.8%, 3× → 30.6%, 10× → 39.5% — into a two-turn oscillation
+        // attractor (settlement-emptying ping-pong; see docs/queue.md). The
+        // old band sits inside the discontinuity and is unreachable; the
+        // corridor now pins the smooth branch at [0.1%, 1.0%] per decade.
+        // Famine flight (D-021 Exit valve) is unaffected — the surge semantics
+        // stay pinned by the exit-before-death test.
         SimConfig cfg = TestConfigs.Sim();
         double worst = MaxGrossPerDecade(cfg);
-        Assert.True(worst is > 0.03 and < 0.08,
-            $"gross migration {worst:P2}/decade outside the [3%, 8%] corridor");
+        Assert.True(worst is > 0.001 and < 0.010,
+            $"gross migration {worst:P2}/decade outside the [0.1%, 1.0%] corridor");
 
-        // ...WITH TEETH, and a finding worth stating: the response curve is
-        // NON-MONOTONE — a 10× rate fails the corridor from BELOW, because
-        // over-hot migration equalizes attractiveness so thoroughly that the
-        // steady gap-driven drift collapses (self-equalization homeostasis).
-        // A 0.1× rate fails low too. The corridor therefore detects
-        // mis-tuning in BOTH directions.
+        // ...WITH TEETH in both directions: 10× lands in the oscillatory
+        // regime and fails HIGH; 0.1× fails LOW. The corridor still detects
+        // mis-tuning both ways.
         SimConfig hot = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 10 },
         };
         double hotWorst = MaxGrossPerDecade(hot);
-        Assert.True(hotWorst < 0.03 || hotWorst > 0.08,
+        Assert.True(hotWorst > 0.010,
             $"10× rate produced {hotWorst:P2}/decade — inside the corridor, no teeth");
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },
         };
         double coldWorst = MaxGrossPerDecade(cold);
-        Assert.True(coldWorst < 0.03,
+        Assert.True(coldWorst < 0.001,
             $"0.1× rate produced {coldWorst:P2}/decade — inside the corridor, no teeth");
     }
 

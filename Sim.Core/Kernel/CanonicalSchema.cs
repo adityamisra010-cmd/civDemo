@@ -29,8 +29,10 @@ public static class CanonicalSchema
     /// LastHarvestUnits, ConsumptionDeficitRow gains DemandUnits; Variables and
     /// ClassStates tables appended after PathProgress.
     /// v9 (T2.5): BucketRow gains MigrationRemainder; SettlementDistances and
-    /// MigrationFlows tables appended after ClassStates.</summary>
-    public const int Version = 9;
+    /// MigrationFlows tables appended after ClassStates.
+    /// v10 (T2.7): BucketRow gains ReboundReservoir (deferred-conception bank
+    /// for the post-famine fertility rebound, cohort-0 rows only).</summary>
+    public const int Version = 10;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -46,7 +48,7 @@ public static class CanonicalSchema
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
-    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration)
+    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
     private const int FoodStoreRowWidth = 4 + 8 + 8 + 8 + 8;        // Settlement, Store, 2 remainder bit-fields, LastHarvestUnits (v8)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
@@ -206,6 +208,7 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.AgingRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.MobilityRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.MigrationRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ReboundReservoir));
         }
 
         // 16. Food stores (v5; +LastHarvestUnits v8)
@@ -410,6 +413,7 @@ public static class CanonicalSchema
             long count = reader.ReadInt64();
             world.Buckets.Add(new BucketRow(
                 settlement, culture, religion, cls, cohort, Conserved.FromSnapshot(count),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),

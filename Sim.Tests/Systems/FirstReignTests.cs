@@ -79,7 +79,15 @@ public class FirstReignTests
         //   two empty tables joined the stream. At N = 1 migration NO-OPS (a
         //   flow needs a second settlement), so the TRAJECTORY is unchanged —
         //   the shape asserts below pass untouched; only the byte stream grew.
-        const string golden = "8a108763b1476489895a5c34ff63ad2060d65ee8d476a6cf8df49c528f7c709c";
+        //   v4 value: 8a108763b1476489895a5c34ff63ad2060d65ee8d476a6cf8df49c528f7c709c
+        //   v5 (T2.7, historical demographic retune — DELIBERATE, behavior +
+        //   schema v10): the pre-modern vital rates change every count on the
+        //   trajectory, and famine fertility suppression halts conceptions
+        //   during the director's engineered starvation. The SHAPE of the
+        //   played session survives the retune — extinction still lands inside
+        //   (5, 25], the dead world stays frozen, no food mountain — and the
+        //   shape asserts below re-verified against the new trajectory.
+        const string golden = "d457c2042bdd462ce1f8f7ee432fb264607ec55e8ea5373a6969c7e7fd48fb2c";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

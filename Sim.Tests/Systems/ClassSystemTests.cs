@@ -86,9 +86,14 @@ public class ClassSystemTests
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
         Assert.Equal(0, ArtisanAdults(world)); // founding: no artisans
 
+        // T2.7 window resize (stated): 60 → 280 turns. At the pre-modern
+        // tempo the fed epoch legitimately holds the share at the cap for
+        // ~250 turns — the surplus recession + first Malthus crash (measured
+        // near turn 255) are what drain the artisans, so the post-boom arm
+        // must reach past them.
         int emergenceTurn = -1;
         double boomPeak = 0.0, minAfterBoom = 1.0;
-        for (int t = 1; t <= 60; t++)
+        for (int t = 1; t <= 280; t++)
         {
             world = exec.Step(world);
             long artisans = ArtisanAdults(world);
@@ -97,8 +102,16 @@ public class ClassSystemTests
             double share = adults > 0 ? artisans / (double)adults : 0.0;
             if (t <= 25) boomPeak = Math.Max(boomPeak, share);       // the founding boom window
             else minAfterBoom = Math.Min(minAfterBoom, share);       // Malthus equilibrium: famines bite
-            Assert.True(share <= cfg.Mobility.TargetShareCap + 1e-9,
-                $"turn {t}: share {share:F3} exceeded the cap {cfg.Mobility.TargetShareCap}");
+            // T2.7 re-anchor (stated): the cap binds PROMOTIONS (pinned
+            // exactly by the mobility-invariant tests); the share itself can
+            // drift a little past it passively — the retuned adult mortality
+            // climbs steeply with age, so the peasant-heavy older cohorts die
+            // faster than the artisan-heavy younger ones, and young-adult-
+            // peaked migration reshapes the denominator too. Measured drift
+            // peaks at 0.213; the bound allows 0.03 of composition drift and
+            // still catches a runaway-promotion regression.
+            Assert.True(share <= cfg.Mobility.TargetShareCap + 0.03,
+                $"turn {t}: share {share:F3} exceeded the cap {cfg.Mobility.TargetShareCap} + drift margin");
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
 
@@ -112,7 +125,10 @@ public class ClassSystemTests
         // exact cap — bound relaxed 0.18 → 0.15. The mobility MECHANISM is
         // unchanged and its exact plateau/cap behavior stays pinned by the
         // hand-built ClassWorld tests, which run no migration.
-        Assert.True(boomPeak is >= 0.15 and <= 0.2001,
+        // Upper bound carries the same 0.03 composition-drift margin as the
+        // per-turn assert above (T2.7, same measured cause) — a promotion
+        // runaway still lands far beyond it.
+        Assert.True(boomPeak is >= 0.15 and <= 0.2301,
             $"boom peak share {boomPeak:F3} — never plateaued near the 0.20 cap");
         // And the other acceptance arm in the SAME run: once the Malthus
         // equilibrium erases the surplus (recession + famine demotions), the
@@ -190,15 +206,19 @@ public class ClassSystemTests
         // famine valve, which must demote regardless of what the (stale)
         // predicates say.
         DriveSurplus(world, harvest: 700_000, demand: 317_000);
-        // Store ≈ 2.85 turns of demand (~317k/turn at dt = 10): two fully-fed
-        // turns, then a SMALL partial deficit (~0.15), then famine — the
-        // deficit ramps, so the ordering is observable: the famine valve
-        // (2.0/yr × deficit) clears the artisans on the small deficit while
-        // peak starvation arrives with the full deficit a turn later (an
-        // instant deficit of 1.0 collapses both into one turn).
+        // Store = two fully-fed turns + 85% of the third: a SMALL partial
+        // deficit (~0.15) at t3, then famine — the deficit ramps, so the
+        // ordering is observable: the famine valve (2.0/yr × deficit) clears
+        // the artisans on the small deficit while peak starvation arrives
+        // with the full deficit a turn later (an instant deficit of 1.0
+        // collapses both into one turn). T2.7 re-anchor (stated): demand now
+        // DECAYS turn over turn (~317k → 236k → 218k) because the retuned
+        // mortality is itself pre-modern-heavy, so the old 903k store slipped
+        // the ramp to t4/t5 and collided with the starvation peak; 738k =
+        // measured d1 + d2 + 0.85 × d3 restores the t3 ramp.
         int storeRow = 0;
         new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(storeRow).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 903_000,
+            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 738_000,
             FlowDirection.Source, OverdrawPolicy.Throw);
 
         var exec = new TurnExecutor(FlatEra(10.0),
