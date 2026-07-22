@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Build identity (T1.10): CI passes -p:BuildSha / -p:BuildDate; local
+         builds leave them empty and BuildInfo falls back to "dev"/"local". -->
+    <AssemblyMetadata Include="BuildSha" Value="$(BuildSha)" />
+    <AssemblyMetadata Include="BuildDate" Value="$(BuildDate)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>

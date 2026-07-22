@@ -70,16 +70,29 @@ every push and pull request.
 
 ## Download & Play
 
-Every push to a `t1.*` branch (per-`main`-merge lands at T1.10) publishes a
-self-contained Windows build as the `sim-ui-win-x64` artifact on the
-`ui-artifact` Actions run — download the zip, unzip, run `Sim.Ui.exe`
-(no toolchain needed). Optional args: `--seed N`, `--size PX`.
+No toolchain needed — download, unzip, run `Sim.Ui.exe`.
+
+**Latest build** (every merge to `main`): Actions → the newest `ui-artifact`
+run on `main` → download the `sim-ui-win-x64-<sha>` artifact.
+**Stable milestones**: the [Releases page](../../releases) — publishing a
+release automatically attaches its zip as a permanent asset.
+**Gate builds**: every `t1.*` branch push produces the same artifact for
+Director Visual Gates.
+
+The window title and debug panel both show `civ-sim M1 (<sha>, <date>)` — the
+build you are holding is never ambiguous. Optional flags: `--seed N` (default
+42) and `--size PX` (dev-preview world size; a non-canonical size is recorded
+in the session-log filename).
 
 Each played session autosaves its order log to
-`runs/orders-<yyyyMMdd-HHmmss>.bin` next to the exe — the filename stamp makes
-lexicographic order chronological, so back-to-back gate logs sort and sweep
-trivially. A session log + its seed replays hash-identically:
-`sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N`.
+`runs/orders-<yyyyMMdd-HHmmss>[-sPX].bin` next to the exe — the filename stamp
+makes lexicographic order chronological, so back-to-back gate logs sort and
+sweep trivially. A session log + its seed replays hash-identically:
+
+```bash
+sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
+# played on --size PX? add: --size PX  (the -sPX filename suffix tells you)
+```
 
 ## Solution layout
 
