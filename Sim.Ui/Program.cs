@@ -43,14 +43,17 @@ using (var stream = Sim.Data.DataFiles.OpenPipeline())
     pipeline = PipelineLoader.Load(stream, SystemCatalog.All(simCfg));
 }
 
-// Session recording (T1.8): every UI session autosaves its order log here.
-// Wall-clock folder names are legal in Sim.Ui (outside the determinism
-// surface); the log CONTENT records sim turns only.
-string runDirectory = Path.Combine(
-    "runs", DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture));
+// Session recording (T1.8; director UX ruling T1.9): every UI session
+// autosaves its order log to a FLAT stamped filename — lexicographic order =
+// chronological order, so gate logs sort and sweep trivially. Wall-clock
+// stamps are legal in Sim.Ui (outside the determinism surface); the log
+// CONTENT records sim turns only.
+string sessionLogPath = Path.Combine("runs",
+    "orders-" + DateTime.Now.ToString("yyyyMMdd-HHmmss",
+        System.Globalization.CultureInfo.InvariantCulture) + ".bin");
 
 var orders = new OrderLog();
 var executor = new TurnExecutor(era, pipeline, orders);
 using var game = new Sim.Ui.SimUiGame(
-    WorldFounding.Found(worldgenCfg, simCfg, seed), executor, orders, runDirectory);
+    WorldFounding.Found(worldgenCfg, simCfg, seed), executor, orders, sessionLogPath);
 game.Run();

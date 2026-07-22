@@ -68,6 +68,19 @@ surface environment/JIT divergence the in-process twins share).
 CI (`.github/workflows/ci.yml`) runs the banned-constructs check, build, and tests on
 every push and pull request.
 
+## Download & Play
+
+Every push to a `t1.*` branch (per-`main`-merge lands at T1.10) publishes a
+self-contained Windows build as the `sim-ui-win-x64` artifact on the
+`ui-artifact` Actions run — download the zip, unzip, run `Sim.Ui.exe`
+(no toolchain needed). Optional args: `--seed N`, `--size PX`.
+
+Each played session autosaves its order log to
+`runs/orders-<yyyyMMdd-HHmmss>.bin` next to the exe — the filename stamp makes
+lexicographic order chronological, so back-to-back gate logs sort and sweep
+trivially. A session log + its seed replays hash-identically:
+`sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N`.
+
 ## Solution layout
 
 | Project | Purpose |

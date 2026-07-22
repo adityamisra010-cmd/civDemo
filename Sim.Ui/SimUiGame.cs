@@ -24,7 +24,7 @@ public sealed class SimUiGame : Game
     private WorldState _world;
     private readonly TurnExecutor _executor;
     private readonly OrderLog _orders;
-    private readonly string _runDirectory;
+    private readonly string _sessionLogPath;
 
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch? _spriteBatch;
@@ -59,12 +59,12 @@ public sealed class SimUiGame : Game
     private MouseState _lastMouse;
     private double _fps;
 
-    public SimUiGame(WorldState world, TurnExecutor executor, OrderLog orders, string runDirectory)
+    public SimUiGame(WorldState world, TurnExecutor executor, OrderLog orders, string sessionLogPath)
     {
         _world = world;
         _executor = executor;
         _orders = orders;
-        _runDirectory = runDirectory;
+        _sessionLogPath = sessionLogPath;
         _graphics = new GraphicsDeviceManager(this)
         {
             PreferredBackBufferWidth = 1280,
@@ -187,11 +187,12 @@ public sealed class SimUiGame : Game
         SaveSession();
     }
 
-    /// <summary>Session recording (T1.8): the order log IS the replayable session.</summary>
+    /// <summary>Session recording (T1.8): the order log IS the replayable session.
+    /// Flat stamped filename (T1.9 UX ruling): lexicographic = chronological.</summary>
     private void SaveSession()
     {
-        Directory.CreateDirectory(_runDirectory);
-        using var stream = File.Create(Path.Combine(_runDirectory, "orders.bin"));
+        Directory.CreateDirectory(Path.GetDirectoryName(_sessionLogPath)!);
+        using var stream = File.Create(_sessionLogPath);
         _orders.Save(stream);
     }
 
