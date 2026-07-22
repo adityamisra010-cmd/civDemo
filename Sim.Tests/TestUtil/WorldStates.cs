@@ -36,6 +36,9 @@ public static class WorldStates
         if (!TableEquals(a.ClassStates, b.ClassStates)) return false;
         if (!TableEquals(a.SettlementDistances, b.SettlementDistances)) return false;
         if (!TableEquals(a.MigrationFlows, b.MigrationFlows)) return false;
+        if (!TableEquals(a.SettlementVitals, b.SettlementVitals)) return false;
+        if (!TableEquals(a.NeedSatisfactions, b.NeedSatisfactions)) return false;
+        if (!TableEquals(a.Grievances, b.Grievances)) return false;
         return true;
     }
 

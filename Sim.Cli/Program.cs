@@ -77,7 +77,8 @@ namespace Sim.Cli
         private static Sim.Core.Systems.SimConfig SimCfg()
         {
             using var simStream = Sim.Data.DataFiles.OpenSim();
-            return Sim.Core.Systems.SimConfigLoader.Load(simStream);
+            using var needsStream = Sim.Data.DataFiles.OpenNeeds();
+            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream);
         }
 
         private static TurnExecutor Executor(OrderLog? orders, bool founded = false)
@@ -429,8 +430,9 @@ namespace Sim.Cli
             if (sizeOverridePx is { } sz) wgCfg = wgCfg with { SizePx = sz };
             Sim.Core.Systems.SimConfig simCfg;
             using (var stream = Sim.Data.DataFiles.OpenSim())
+            using (var needs = Sim.Data.DataFiles.OpenNeeds())
             {
-                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream);
+                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs);
             }
             return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed, settlementsOverride);
         }

@@ -8,6 +8,7 @@ using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Farming;
 using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Migration;
+using Sim.Core.Systems.NeedsGrievance;
 using Sim.Core.Systems.PathBuild;
 using Sim.Core.Systems.Trade;
 using Sim.Core.Systems.Weather;
@@ -91,8 +92,25 @@ public static class SystemCatalog
         var system = new DemographicsSystem(cfg);
         return new SystemRegistration(DemographicsSystem.WellKnownId, DemographicsSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<DemographicsTables>(
-                prev, new DemographicsTables(next.Buckets), rng, DemographicsSystem.WellKnownId,
-                dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+                prev, new DemographicsTables(next.Buckets, next.SettlementVitals), rng,
+                DemographicsSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>
+    /// T2.6 table communication (law 6, reviewable record): NeedsGrievance
+    /// reads the PREV SettlementVitals chronicle that Demographics writes (the
+    /// D-021 generational-turnover input) — a single-writer table read across
+    /// a turn boundary, not a shared stock; no sanction needed. Its OWN tables
+    /// (NeedSatisfactions, Grievances) are read by nothing but UI/chronicle —
+    /// the CI read-isolation grep enforces that with an allowlist.
+    /// </summary>
+    public static SystemRegistration NeedsGrievance(SimConfig cfg)
+    {
+        var system = new NeedsGrievanceSystem(cfg);
+        return new SystemRegistration(NeedsGrievanceSystem.WellKnownId, NeedsGrievanceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<NeedsGrievanceTables>(
+                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances), rng,
+                NeedsGrievanceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
     /// <summary>
@@ -144,5 +162,5 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
         [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
-         Demographics(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
+         Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

@@ -30,6 +30,11 @@ public static class DataFiles
     /// <summary>Population/food-loop tuning (T1.5), consumed by SimConfigLoader.</summary>
     public static Stream OpenSim() => Open("Sim.Data.sim.json");
 
+    /// <summary>The D-018 needs registry + grievance tuning (T2.6), consumed by
+    /// NeedsConfigLoader (attached to SimConfig via SimConfigLoader.Load's
+    /// two-stream overload).</summary>
+    public static Stream OpenNeeds() => Open("Sim.Data.needs.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

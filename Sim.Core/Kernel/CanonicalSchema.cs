@@ -31,8 +31,10 @@ public static class CanonicalSchema
     /// v9 (T2.5): BucketRow gains MigrationRemainder; SettlementDistances and
     /// MigrationFlows tables appended after ClassStates.
     /// v10 (T2.7): BucketRow gains ReboundReservoir (deferred-conception bank
-    /// for the post-famine fertility rebound, cohort-0 rows only).</summary>
-    public const int Version = 10;
+    /// for the post-famine fertility rebound, cohort-0 rows only).
+    /// v11 (T2.6, D-018/D-021): SettlementVitals, NeedSatisfactions and
+    /// Grievances tables appended after MigrationFlows.</summary>
+    public const int Version = 11;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -57,6 +59,9 @@ public static class CanonicalSchema
     private const int ClassStateRowWidth = 4 + 4 + 4;               // Settlement, Class, Active (v8)
     private const int SettlementDistanceRowWidth = 4 + 4 + 8;       // From, To, TravelCost bits (v9)
     private const int MigrationFlowRowWidth = 4 + 8 + 8;            // Settlement, Inflow, Outflow (v9)
+    private const int SettlementVitalsRowWidth = 4 + 8 + 8 + 8;     // Settlement, Births, Deaths, DtYears bits (v11)
+    private const int NeedSatisfactionRowWidth = 4 + 4 + 4 + 8;     // Settlement, Class, NeedId, Value bits (v11)
+    private const int GrievanceRowWidth = 4 + 4 + 8;                // Settlement, Class, Value bits (v11)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -291,6 +296,38 @@ public static class CanonicalSchema
             writer.Write(row.Inflow);
             writer.Write(row.Outflow);
         }
+
+        // 24. Settlement vitals (v11)
+        writer.Write(world.SettlementVitals.Count);
+        for (int i = 0; i < world.SettlementVitals.Count; i++)
+        {
+            SettlementVitalsRow row = world.SettlementVitals[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Births);
+            writer.Write(row.Deaths);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.DtYears));
+        }
+
+        // 25. Need satisfactions (v11)
+        writer.Write(world.NeedSatisfactions.Count);
+        for (int i = 0; i < world.NeedSatisfactions.Count; i++)
+        {
+            NeedSatisfactionRow row = world.NeedSatisfactions[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Class.Value);
+            writer.Write(row.NeedId);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
+
+        // 26. Grievances (v11)
+        writer.Write(world.Grievances.Count);
+        for (int i = 0; i < world.Grievances.Count; i++)
+        {
+            GrievanceRow row = world.Grievances[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Class.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -491,6 +528,30 @@ public static class CanonicalSchema
                 new SettlementId(reader.ReadInt32()), reader.ReadInt64(), reader.ReadInt64()));
         }
 
+        int vitalsCount = reader.ReadInt32();
+        for (int i = 0; i < vitalsCount; i++)
+        {
+            world.SettlementVitals.Add(new SettlementVitalsRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt64(), reader.ReadInt64(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int satisfactionCount = reader.ReadInt32();
+        for (int i = 0; i < satisfactionCount; i++)
+        {
+            world.NeedSatisfactions.Add(new NeedSatisfactionRow(
+                new SettlementId(reader.ReadInt32()), new ClassId(reader.ReadInt32()),
+                reader.ReadInt32(), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int grievanceCount = reader.ReadInt32();
+        for (int i = 0; i < grievanceCount; i++)
+        {
+            world.Grievances.Add(new GrievanceRow(
+                new SettlementId(reader.ReadInt32()), new ClassId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -522,5 +583,8 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Variables.Count * VariableRowWidth
         + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth
         + CountPrefixWidth + (long)world.SettlementDistances.Count * SettlementDistanceRowWidth
-        + CountPrefixWidth + (long)world.MigrationFlows.Count * MigrationFlowRowWidth;
+        + CountPrefixWidth + (long)world.MigrationFlows.Count * MigrationFlowRowWidth
+        + CountPrefixWidth + (long)world.SettlementVitals.Count * SettlementVitalsRowWidth
+        + CountPrefixWidth + (long)world.NeedSatisfactions.Count * NeedSatisfactionRowWidth
+        + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth;
 }

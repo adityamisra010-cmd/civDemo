@@ -87,7 +87,13 @@ public class FirstReignTests
         //   played session survives the retune — extinction still lands inside
         //   (5, 25], the dead world stays frozen, no food mountain — and the
         //   shape asserts below re-verified against the new trajectory.
-        const string golden = "d457c2042bdd462ce1f8f7ee432fb264607ec55e8ea5373a6969c7e7fd48fb2c";
+        //   v5 value: d457c2042bdd462ce1f8f7ee432fb264607ec55e8ea5373a6969c7e7fd48fb2c
+        //   v6 (T2.6 — OBSERVATIONAL TABLES ONLY): schema v11 + needsgrievance
+        //   in the pipeline; the trajectory is unchanged (grievance accrues
+        //   during the director's famine and is read by nothing) — the shape
+        //   asserts below pass untouched; the byte stream gained the
+        //   vitals/satisfaction/grievance rows.
+        const string golden = "fd02c400127ea8972ac271721637538fee371265ec31c38131963a36d87ef17e";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

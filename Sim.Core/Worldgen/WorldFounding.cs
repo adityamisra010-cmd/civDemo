@@ -93,6 +93,17 @@ public static class WorldFounding
                     settlement, new ClassId(reg.Classes[cls].Id), Active: cls == 0 ? 1 : 0));
             }
 
+            // Grievance stocks (T2.6, D-018): one row per (settlement, class),
+            // founded at zero — nobody starts aggrieved. Settlement-major,
+            // class-registry order: the deterministic layout NeedsGrievance
+            // relies on. (Satisfaction rows are per-turn derived state, not
+            // founded.)
+            for (int cls = 0; cls < reg.Classes.Length; cls++)
+            {
+                world.Grievances.Add(new GrievanceRow(
+                    settlement, new ClassId(reg.Classes[cls].Id), Value: 0.0));
+            }
+
             int storeRow = world.FoodStores.Add(new FoodStoreRow(
                 settlement, Conserved.Zero, harvestRemainder: 0.0, eatenRemainder: 0.0));
             ledger.Flow(

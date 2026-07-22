@@ -54,8 +54,9 @@ public sealed class UiSession
         }
         SimConfig simCfg;
         using (var stream = Sim.Data.DataFiles.OpenSim())
+        using (var needs = Sim.Data.DataFiles.OpenNeeds())
         {
-            simCfg = SimConfigLoader.Load(stream);
+            simCfg = SimConfigLoader.Load(stream, needs);
         }
         SystemRegistration[] pipeline;
         using (var stream = Sim.Data.DataFiles.OpenPipeline())

@@ -1,0 +1,16 @@
+{
+  "needs": [
+    { "id": 1, "name": "Sustenance",      "bound": true,  "weight": 1.0 },
+    { "id": 2, "name": "Shelter",         "bound": false, "weight": 0.9 },
+    { "id": 3, "name": "Safety",          "bound": false, "weight": 0.9 },
+    { "id": 4, "name": "Health",          "bound": false, "weight": 0.6 },
+    { "id": 5, "name": "Belonging/Faith", "bound": false, "weight": 0.5 },
+    { "id": 6, "name": "Comfort",         "bound": false, "weight": 0.3 },
+    { "id": 7, "name": "Dignity/Liberty", "bound": false, "weight": 0.4 },
+    { "id": 8, "name": "Prospects",       "bound": false, "weight": 0.4 }
+  ],
+  "grievance": {
+    "baseDecayPerYear": 0.005,
+    "inheritFraction": 0.85
+  }
+}

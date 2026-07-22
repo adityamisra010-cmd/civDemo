@@ -22,7 +22,11 @@ public sealed record SimConfig(
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
-    [property: JsonPropertyName("migration")] MigrationConfig Migration);
+    [property: JsonPropertyName("migration")] MigrationConfig Migration,
+    // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
+    // travels with SimConfig so system construction stays single-config —
+    // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
+    [property: JsonIgnore] NeedsConfig? Needs = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -180,6 +184,12 @@ public static class SimConfigLoader
         using var reader = new StreamReader(json);
         return Load(reader.ReadToEnd());
     }
+
+    /// <summary>T2.6: canonical two-file load — sim.json plus the D-018 needs
+    /// registry (needs.json), attached as SimConfig.Needs. Systems that bind
+    /// needs (NeedsGrievance) refuse construction without it.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson) =>
+        Load(simJson) with { Needs = NeedsConfigLoader.Load(needsJson) };
 
     public static SimConfig Load(string json)
     {

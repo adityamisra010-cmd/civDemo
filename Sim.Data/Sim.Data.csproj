@@ -12,6 +12,7 @@
     <EmbeddedResource Include="content\worldgen.json" LogicalName="Sim.Data.worldgen.json" />
     <EmbeddedResource Include="content\sim.json" LogicalName="Sim.Data.sim.json" />
     <EmbeddedResource Include="content\pipeline.toy.json" LogicalName="Sim.Data.pipeline.toy.json" />
+    <EmbeddedResource Include="content\needs.json" LogicalName="Sim.Data.needs.json" />
   </ItemGroup>
 
 </Project>

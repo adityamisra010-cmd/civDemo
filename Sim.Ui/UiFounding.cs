@@ -26,8 +26,9 @@ public static class UiFounding
 
         SimConfig simCfg;
         using (var stream = Sim.Data.DataFiles.OpenSim())
+        using (var needs = Sim.Data.DataFiles.OpenNeeds())
         {
-            simCfg = SimConfigLoader.Load(stream);
+            simCfg = SimConfigLoader.Load(stream, needs);
         }
 
         return WorldFounding.Found(worldgenCfg, simCfg, seed, settlementsOverride);

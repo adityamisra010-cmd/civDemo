@@ -17,7 +17,8 @@ public class HudViewModelTests
     private static SimConfig SimCfg()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
-        return SimConfigLoader.Load(stream);
+        using var needs = global::Sim.Data.DataFiles.OpenNeeds();
+        return SimConfigLoader.Load(stream, needs);
     }
 
     private static WorldgenConfig DevCfg()
@@ -117,6 +118,32 @@ public class HudViewModelTests
         Assert.Equal("turn 0   year -4000", hud.ClockLine);
         Assert.Equal("seed 42   fps 60", HudModel.StatusLine(42, 60.4));
         Assert.Equal("camera (128, 128) zoom 1.00x", HudModel.CameraLine(128.0, 128.0, 1.0));
+    }
+
+    [Fact]
+    public void HudModel_NeedsBlock_BoundValueAndNotYetSimulatedLabels()
+    {
+        // T2.6: the needs block renders the FULL D-018 ladder in registry
+        // order — the bound Sustenance with its satisfaction value, all seven
+        // unbound needs honestly labeled "not yet simulated" — plus the
+        // grievance line. Driven through one production turn so satisfaction
+        // rows exist (turn 1 reads the founding Prev: deficit absent → 1.00).
+        SimConfig cfg = SimCfg();
+        Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
+        WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
+        var orders = new Sim.Core.Kernel.OrderLog();
+        world = UiSession.BuildProductionExecutor(orders).Step(world);
+
+        HudModel hud = HudModel.From(world, selectedSettlementId: 0, needs);
+        Assert.NotNull(hud.NeedLines);
+        Assert.Equal(8, hud.NeedLines!.Count);
+        Assert.Equal("Sustenance: 1.00", hud.NeedLines[0]);
+        for (int i = 1; i < 8; i++)
+            Assert.Equal($"{needs.Needs[i].Name}: not yet simulated", hud.NeedLines[i]);
+        Assert.Equal("grievance 0.00", hud.GrievanceLine); // fed turn 1: nobody aggrieved
+
+        // Without the registry (legacy callers) the block is simply absent.
+        Assert.Empty(HudModel.From(world, 0).NeedLines!);
     }
 
     [Fact]
@@ -249,7 +276,8 @@ public class UiFoundingEquivalenceTests
                 wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(s);
             Sim.Core.Systems.SimConfig sim;
             using (var s = global::Sim.Data.DataFiles.OpenSim())
-                sim = Sim.Core.Systems.SimConfigLoader.Load(s);
+            using (var n = global::Sim.Data.DataFiles.OpenNeeds())
+                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n);
             canonical = Sim.Core.Worldgen.WorldFounding.Found(wg, sim, 42);
         }
         Assert.Equal(

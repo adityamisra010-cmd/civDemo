@@ -3,8 +3,12 @@ using Sim.Core.State;
 
 namespace Sim.Core.Systems.Demographics;
 
-/// <summary>Writable handles to DemographicsSystem's own tables (built by SystemCatalog only).</summary>
-public readonly record struct DemographicsTables(Table<BucketRow> Buckets);
+/// <summary>Writable handles to DemographicsSystem's own tables (built by
+/// SystemCatalog only). SettlementVitals (T2.6) is this system's per-turn
+/// chronicle of birth/death counts — the D-021 generational-turnover input
+/// NeedsGrievance reads from Prev.</summary>
+public readonly record struct DemographicsTables(
+    Table<BucketRow> Buckets, Table<SettlementVitalsRow> Vitals);
 
 /// <summary>
 /// Demographics (T1.5, cohortized at T2.1 per D-026): births, mortality,
@@ -86,10 +90,16 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
         int wholeSlots = (int)Math.Floor(slots);
         double fracSlot = slots - wholeSlots;
 
+        // Vitals chronicle (T2.6): rebuilt every turn, one row per settlement,
+        // even a no-flow one — counts aggregate below as the flows execute.
+        Table<SettlementVitalsRow> vitals = ctx.Owned.Vitals;
+        vitals.Clear();
+
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            long vitalBirths = 0, vitalDeaths = 0;
 
             // PREV turn's deficit ratio (absent before the first consumption turn → 0).
             double deficit = 0.0;
@@ -145,21 +155,24 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                         ref row.Count, ConservedQuantityIds.Population, ReasonIds.Births,
                         born, FlowDirection.Source, OverdrawPolicy.Throw);
                     row.BirthRemainder = exact - born;
+                    vitalBirths += born;
                 }
             }
 
             // 2. Base deaths, then 3. starvation — per bucket, table order.
+            // Sink returns the ACTUAL sunk count (ClampToAvailable can floor),
+            // so the vitals chronicle records what the Ledger recorded.
             for (int i = 0; i < buckets.Count; i++)
             {
                 if (buckets[i].Settlement != settlement) continue;
                 long prevCount = prev.Buckets[i].Count.Value;
                 int c = buckets[i].CohortIdx;
 
-                Sink(ctx, buckets, i, d.MortalityPerYear[c], prevCount, ReasonIds.Deaths);
+                vitalDeaths += Sink(ctx, buckets, i, d.MortalityPerYear[c], prevCount, ReasonIds.Deaths);
 
                 double multiplier = BandViews.IsChild(c) ? d.StarvationChildMultiplier
                     : BandViews.IsElder(c) ? d.StarvationElderMultiplier : 1.0;
-                Sink(ctx, buckets, i,
+                vitalDeaths += Sink(ctx, buckets, i,
                     d.StarvationMortalityMaxPerYear * deficit * multiplier, prevCount,
                     ReasonIds.Starvation);
             }
@@ -191,6 +204,11 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                         Transfer(ctx, buckets, i, FindInGroup(buckets, key, nearDest), near);
                 }
             }
+
+            // Vitals chronicle row (T2.6): this settlement's turn, with the dt
+            // the counts occurred over — Prev-readers form per-year rates from
+            // the ROW's dt, staying dt-correct across era-pacing transitions.
+            vitals.Add(new SettlementVitalsRow(settlement, vitalBirths, vitalDeaths, dt));
         }
     }
 
@@ -225,7 +243,9 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
         return -1;
     }
 
-    private static void Sink(
+    /// <summary>Returns the ACTUAL count sunk (after any ClampToAvailable
+    /// floor) — the vitals chronicle aggregates these.</summary>
+    private static long Sink(
         SimContext<DemographicsTables> ctx, Table<BucketRow> buckets,
         int index, double ratePerYear, long prevCount, ReasonId reason)
     {
@@ -233,12 +253,14 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
         double exact = ratePerYear * prevCount * ctx.DtYears
                        + (reason == ReasonIds.Deaths ? row.DeathRemainder : row.StarvationRemainder);
         long sunk = (long)Math.Floor(exact);
+        long before = row.Count.Value;
         ctx.Ledger.Flow(
             ref row.Count, ConservedQuantityIds.Population, reason,
             sunk, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
         double remainder = exact - sunk; // sub-person fraction only (see header)
         if (reason == ReasonIds.Deaths) row.DeathRemainder = remainder;
         else row.StarvationRemainder = remainder;
+        return before - row.Count.Value;
     }
 
     private static void Transfer(

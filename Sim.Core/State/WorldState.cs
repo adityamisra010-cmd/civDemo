@@ -244,6 +244,37 @@ public record struct SettlementDistanceRow(SettlementId From, SettlementId To, d
 public record struct MigrationFlowRow(SettlementId Settlement, long Inflow, long Outflow);
 
 /// <summary>
+/// Per-settlement vital counts for the turn just computed (T2.6, owned by
+/// DemographicsSystem; rebuilt each turn): Births = the Births flow credited,
+/// Deaths = base deaths PLUS starvation sunk, DtYears = the dt they occurred
+/// over (so a Prev-reader can form per-year rates dt-correctly even across an
+/// era-pacing transition). Chronicle observables — the D-021 generational
+/// turnover input and a T2.9 chronicle surface. People counts, NOT conserved
+/// stocks: bookkeeping of flows the Ledger already audits.
+/// </summary>
+public record struct SettlementVitalsRow(SettlementId Settlement, long Births, long Deaths, double DtYears);
+
+/// <summary>
+/// One (settlement, class, need) satisfaction value in [0,1] (T2.6, D-018;
+/// owned by NeedsGrievanceSystem, rebuilt each turn from PREV supply signals).
+/// Rows exist only for BOUND needs — M2 binds Sustenance alone, from the Prev
+/// consumption deficit. Classes carry EQUAL values at M2 (consumption
+/// clamping is settlement-wide); the rows are per-class because M3's class
+/// consumption baskets differentiate them — honesty note, not a mechanism.
+/// </summary>
+public record struct NeedSatisfactionRow(SettlementId Settlement, ClassId Class, int NeedId, double Value);
+
+/// <summary>
+/// One (settlement, class) grievance stock (T2.6, D-018/D-021; owned by
+/// NeedsGrievanceSystem). A DOUBLE stock and deliberately NOT conserved —
+/// grievance is manufactured by deprivation and destroyed by decay, so it
+/// never touches the Ledger (law 1 governs people/money/goods; this is none
+/// of them). Integration is explicit and dt-correct (see the system header).
+/// Persistent sim state (serialized); seeded at founding at 0.
+/// </summary>
+public record struct GrievanceRow(SettlementId Settlement, ClassId Class, double Value);
+
+/// <summary>
 /// Cumulative source/sink counterweights per (quantity, reason) — written only by
 /// Ledger.Flow (§3.6). These rows make conservation exactly auditable:
 /// Σ stocks + Σ TotalSunk − Σ TotalSourced = 0 per quantity, at every turn.
@@ -291,6 +322,9 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<ClassStateRow> ClassStates { get; }
     IReadOnlyTable<SettlementDistanceRow> SettlementDistances { get; }
     IReadOnlyTable<MigrationFlowRow> MigrationFlows { get; }
+    IReadOnlyTable<SettlementVitalsRow> SettlementVitals { get; }
+    IReadOnlyTable<NeedSatisfactionRow> NeedSatisfactions { get; }
+    IReadOnlyTable<GrievanceRow> Grievances { get; }
 }
 
 /// <summary>
@@ -376,6 +410,15 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-turn migration totals (T2.5) — owned by MigrationSystem (chronicle hooks).</summary>
     public Table<MigrationFlowRow> MigrationFlows { get; }
 
+    /// <summary>Per-turn vital counts (T2.6) — owned by DemographicsSystem (chronicle + D-021 turnover input).</summary>
+    public Table<SettlementVitalsRow> SettlementVitals { get; }
+
+    /// <summary>Per-(settlement, class, bound-need) satisfaction (T2.6) — owned by NeedsGrievanceSystem.</summary>
+    public Table<NeedSatisfactionRow> NeedSatisfactions { get; }
+
+    /// <summary>Per-(settlement, class) grievance stocks (T2.6) — owned by NeedsGrievanceSystem.</summary>
+    public Table<GrievanceRow> Grievances { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -397,6 +440,9 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ClassStateRow> IReadOnlyWorldState.ClassStates => ClassStates;
     IReadOnlyTable<SettlementDistanceRow> IReadOnlyWorldState.SettlementDistances => SettlementDistances;
     IReadOnlyTable<MigrationFlowRow> IReadOnlyWorldState.MigrationFlows => MigrationFlows;
+    IReadOnlyTable<SettlementVitalsRow> IReadOnlyWorldState.SettlementVitals => SettlementVitals;
+    IReadOnlyTable<NeedSatisfactionRow> IReadOnlyWorldState.NeedSatisfactions => NeedSatisfactions;
+    IReadOnlyTable<GrievanceRow> IReadOnlyWorldState.Grievances => Grievances;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -422,6 +468,9 @@ public sealed class WorldState : IReadOnlyWorldState
         ClassStates = new Table<ClassStateRow>();
         SettlementDistances = new Table<SettlementDistanceRow>();
         MigrationFlows = new Table<MigrationFlowRow>();
+        SettlementVitals = new Table<SettlementVitalsRow>();
+        NeedSatisfactions = new Table<NeedSatisfactionRow>();
+        Grievances = new Table<GrievanceRow>();
     }
 
     private WorldState(
@@ -434,7 +483,9 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits,
         Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress,
         Table<VariableRow> variables, Table<ClassStateRow> classStates,
-        Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows)
+        Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
+        Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
+        Table<GrievanceRow> grievances)
     {
         Seed = seed;
         Clock = clock;
@@ -459,6 +510,9 @@ public sealed class WorldState : IReadOnlyWorldState
         ClassStates = classStates;
         SettlementDistances = settlementDistances;
         MigrationFlows = migrationFlows;
+        SettlementVitals = settlementVitals;
+        NeedSatisfactions = needSatisfactions;
+        Grievances = grievances;
     }
 
     /// <summary>
@@ -472,7 +526,8 @@ public sealed class WorldState : IReadOnlyWorldState
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
             CatchmentSummaries.Clone(), Buckets.Clone(), FoodStores.Clone(),
             ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
-            Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone())
+            Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
+            SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

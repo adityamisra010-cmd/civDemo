@@ -57,6 +57,17 @@ public sealed class SimUiGame : Game
     private int _sliderFarmPct = 100;
     private HudModel _hud = null!;
 
+    /// <summary>T2.6: the D-018 needs registry for the HUD needs block —
+    /// display data only (names, bound flags); the sim's copy travels inside
+    /// SimConfig and never routes through the UI.</summary>
+    private readonly Sim.Core.Systems.NeedsConfig _needs = LoadNeeds();
+
+    private static Sim.Core.Systems.NeedsConfig LoadNeeds()
+    {
+        using var stream = Sim.Data.DataFiles.OpenNeeds();
+        return Sim.Core.Systems.NeedsConfigLoader.Load(stream);
+    }
+
     /// <summary>T2.4: the selected settlement id — PURE UI STATE (never in
     /// WorldState, never serialized). Starts at the first settlement.</summary>
     private int _selected;
@@ -190,7 +201,7 @@ public sealed class SimUiGame : Game
     /// Turn, where a just-emitted order has not applied yet).</summary>
     private void RefreshHud(bool syncSlider)
     {
-        _hud = HudModel.From(_world, _selected);
+        _hud = HudModel.From(_world, _selected, _needs);
         if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmSharePct);
     }
 
@@ -386,6 +397,10 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(_hud.PopulationLine);
         ImGui.TextUnformatted(_hud.FoodLine);
         ImGui.TextUnformatted(_hud.SplitLine);
+        ImGui.TextUnformatted(_hud.GrievanceLine);          // T2.6: display only
+        ImGui.Separator();
+        if (_hud.NeedLines is not null)                     // T2.6: the needs block
+            foreach (string line in _hud.NeedLines) ImGui.TextUnformatted(line);
         ImGui.Separator();
 
         // The labor slider: emits ONE order, on release only (§3.9 log

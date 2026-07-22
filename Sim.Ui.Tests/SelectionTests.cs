@@ -22,7 +22,8 @@ public class SelectionTests
     private static SimConfig SimCfg()
     {
         using var stream = Sim.Data.DataFiles.OpenSim();
-        return SimConfigLoader.Load(stream);
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        return SimConfigLoader.Load(stream, needs);
     }
 
     /// <summary>Hand-built world: settlements at chosen site cells on a bare

@@ -13,6 +13,9 @@ jobs:
       - name: Banned-constructs check (m0-kernel-spec §3.7)
         run: ./scripts/check-banned-constructs.sh
 
+      - name: Read-isolation check (T2.6 — grievance read by nothing but UI/chronicle)
+        run: ./scripts/check-read-isolation.sh
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
@@ -122,7 +125,7 @@ jobs:
           # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
           # the CLI that self-diffs cleanly still fails here. Update this hash
           # together with the test constant, deliberately.
-          FOUNDED_GOLDEN=cb3e43959c467a57e57c1f4dbeafc266550a2c471aa905add90d8733650c15bb
+          FOUNDED_GOLDEN=bfd44b872a6938d8787ff877e8e165acee981b0ad0c487a7bbdf7cc1513b43b5
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

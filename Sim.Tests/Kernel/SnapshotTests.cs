@@ -137,7 +137,16 @@ public class SnapshotTests
         //   v9 (T2.5): schema gained the empty SettlementDistances +
         //   MigrationFlows tables (two zero count prefixes, 8 bytes); the
         //   BucketRow widening serializes no rows here. Only the stream grew.
-        const string golden = "87b9600ee4b717a13b0af627fb053f43677056e4466ec7fc355937a6e838ded0";
+        //   v9 value: 87b9600ee4b717a13b0af627fb053f43677056e4466ec7fc355937a6e838ded0
+        //   T2.7 note (deliberate): schema v10 widened BucketRow
+        //   (ReboundReservoir), which serializes no rows on this toy world,
+        //   and the demographic retune touches systems outside the toy preset
+        //   — the v9 value STOOD through T2.7 unchanged.
+        //   v10 (T2.6): schema v11 gained the empty SettlementVitals +
+        //   NeedSatisfactions + Grievances tables (three zero count prefixes,
+        //   12 bytes); needsgrievance is not in the toy preset. Only the
+        //   stream grew.
+        const string golden = "6ba9b770735a289cd49dff990d0c6e518afa91d336f8372073adcbd40018ecd2";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -266,7 +275,15 @@ public class SnapshotTests
         //   ≈ 0.07 %/yr) plus famine fertility suppression and the deferred-
         //   conception rebound reshape every trajectory. Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
-        const string golden = "cb3e43959c467a57e57c1f4dbeafc266550a2c471aa905add90d8733650c15bb";
+        //   v6 value: cb3e43959c467a57e57c1f4dbeafc266550a2c471aa905add90d8733650c15bb
+        //   v7 (T2.6 — OBSERVATIONAL TABLES ONLY): schema v11 + the
+        //   needsgrievance system in the pipeline. Population/food TRAJECTORIES
+        //   are unchanged (needs/grievance reads Prev and writes only its own
+        //   tables; the vitals chronicle is bookkeeping of flows that already
+        //   ran) — every trajectory-derived test passed across the re-pin; the
+        //   stream gained vitals/satisfaction/grievance rows. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        const string golden = "bfd44b872a6938d8787ff877e8e165acee981b0ad0c487a7bbdf7cc1513b43b5";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -456,6 +473,44 @@ public class SnapshotTests
         Assert.True(WorldStates.StateEquals(world, loaded));
         Assert.Equal(137.4375, loaded.Buckets[0].ReboundReservoir);
         Assert.Equal(0.125, loaded.Buckets[0].BirthRemainder);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV11_PopulatedVitalsSatisfactionGrievance_ExactLengthRoundTripHash()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test. v11 adds SettlementVitalsRow (long counts + a double dt),
+        // NeedSatisfactionRow and GrievanceRow — non-round doubles and a
+        // negative zero exercise bit-exactness.
+        WorldState world = Genesis(33);
+        world.SettlementVitals.Add(new SettlementVitalsRow(new SettlementId(0), 123, 456, 10.0));
+        world.SettlementVitals.Add(new SettlementVitalsRow(new SettlementId(1), 0, 0, 2.5));
+        world.NeedSatisfactions.Add(new NeedSatisfactionRow(new SettlementId(0), new ClassId(1), 1, 0.8125));
+        world.NeedSatisfactions.Add(new NeedSatisfactionRow(new SettlementId(0), new ClassId(2), 1, -0.0));
+        world.Grievances.Add(new GrievanceRow(new SettlementId(0), new ClassId(1), 42.640625));
+        world.Grievances.Add(new GrievanceRow(new SettlementId(1), new ClassId(1), 0.0));
+
+        // Anti-padding: exact schema width sum with rows PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(456, loaded.SettlementVitals[0].Deaths);
+        Assert.Equal(2.5, loaded.SettlementVitals[1].DtYears);
+        Assert.Equal(0.8125, loaded.NeedSatisfactions[0].Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.NeedSatisfactions[1].Value));
+        Assert.Equal(42.640625, loaded.Grievances[0].Value);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

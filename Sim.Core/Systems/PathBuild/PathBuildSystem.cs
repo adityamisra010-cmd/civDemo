@@ -298,6 +298,12 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ClassStateRow> ClassStates => prev.ClassStates;
         public IReadOnlyTable<SettlementDistanceRow> SettlementDistances => prev.SettlementDistances;
         public IReadOnlyTable<MigrationFlowRow> MigrationFlows => prev.MigrationFlows;
+        public IReadOnlyTable<SettlementVitalsRow> SettlementVitals => prev.SettlementVitals;
+        // Interface-completeness forwarding ONLY (the read-isolation gate
+        // allowlists this file for exactly these two lines): PathBuild routes
+        // over the overlay's NETWORK tables and never reads needs state.
+        public IReadOnlyTable<NeedSatisfactionRow> NeedSatisfactions => prev.NeedSatisfactions;
+        public IReadOnlyTable<GrievanceRow> Grievances => prev.Grievances;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)
