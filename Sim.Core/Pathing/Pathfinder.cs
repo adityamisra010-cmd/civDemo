@@ -152,6 +152,144 @@ public static class Pathfinder
         return new IsochroneResult { Reached = [.. reached], Costs = costs, Boundary = [.. boundary] };
     }
 
+    /// <summary>
+    /// The catchment PARTITION (T2.3, m2 spec §3): ONE multi-source Dijkstra
+    /// with every settlement origin as a source, truncated at the budget. Each
+    /// lattice node is CLAIMED by the composite key (travel cost, settlement
+    /// id) — the first source to settle it under that total order owns it, so
+    /// no node is ever claimed twice BY CONSTRUCTION (one owner array cell).
+    /// Ties (two sources reaching a node at bit-equal cost) go to the lower
+    /// settlement INDEX (== lower SettlementId in founding pick order): the
+    /// relax rule below propagates ownership on strictly-better cost, or on
+    /// equal cost from a lower-indexed owner. Uses the same lattice + network
+    /// overlay expansion as Isochrone (fast lanes shape the borders too).
+    /// Owner is −1 for unreached/over-budget nodes.
+    /// </summary>
+    public readonly struct PartitionResult
+    {
+        public required int[] Owner { get; init; }   // settlement INDEX per node; −1 unclaimed
+        public required double[] Cost { get; init; } // travel cost per node (MaxValue unclaimed)
+    }
+
+    public static PartitionResult Partition(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins, double budget)
+    {
+        int n = lattice.NodeCount;
+        (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
+
+        var g = new double[n];
+        var owner = new int[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+        Array.Fill(owner, -1);
+
+        var open = new MinHeap(256);
+        for (int s = 0; s < origins.Length; s++)
+        {
+            int origin = origins[s];
+            if (!lattice.IsPassable(origin)) continue;
+            // Two settlements sharing an origin node cannot happen under D-025
+            // spacing; if forced, the composite tie rule (lower index) holds.
+            if (g[origin] == 0.0 && owner[origin] >= 0) continue;
+            g[origin] = 0.0;
+            owner[origin] = s;
+            open.Push(0.0, origin);
+        }
+
+        while (open.Count > 0)
+        {
+            (double cost, int current) = open.Pop();
+            if (closed[current]) continue;
+            if (cost > budget) break; // heap is monotone: everything further is over budget
+            closed[current] = true;
+
+            (int x, int y) = lattice.Coords(current);
+            for (int d = 0; d < 8; d++)
+            {
+                int nx = x + Dx[d], ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+                int nb = ny * lattice.Size + nx;
+                if (closed[nb] || !lattice.IsPassable(nb)) continue;
+                RelaxClaim(current, nb, g[current] + lattice.StepCost(current, nb), g, owner, open, budget);
+            }
+            int[] targets = overlayTargets[current];
+            double[] costs = overlayCosts[current];
+            for (int e = 0; e < targets.Length; e++)
+            {
+                int nb = targets[e];
+                if (closed[nb] || !lattice.IsPassable(nb)) continue;
+                RelaxClaim(current, nb, g[current] + costs[e], g, owner, open, budget);
+            }
+        }
+
+        // Nodes never settled within budget are unclaimed (their tentative g /
+        // owner may hold over-budget speculation — normalize them out).
+        for (int i = 0; i < n; i++)
+        {
+            if (!closed[i]) { owner[i] = -1; g[i] = double.MaxValue; }
+        }
+        return new PartitionResult { Owner = owner, Cost = g };
+    }
+
+    private static void RelaxClaim(
+        int from, int to, double tentative, double[] g, int[] owner, MinHeap open, double budget)
+    {
+        // The claim key (travel cost, settlement index): strictly-better cost
+        // wins; bit-equal cost goes to the lower-indexed settlement.
+        if (tentative < g[to] || (tentative == g[to] && owner[from] < owner[to]))
+        {
+            g[to] = tentative;
+            owner[to] = owner[from];
+            if (tentative <= budget) open.Push(tentative, to);
+        }
+    }
+
+    /// <summary>
+    /// D-025 spacing support (T2.3): capped Dijkstra from one origin over RAW
+    /// terrain (no network overlay — spacing is a worldgen property), relaxing
+    /// <paramref name="minCost"/> in place: minCost[node] ← min(existing,
+    /// travel cost from this origin). Nodes beyond the cap are untouched —
+    /// the caller treats them as infinitely far (the prefilter stage).
+    /// </summary>
+    public static void RelaxCappedFrom(
+        TraversalLattice lattice, int origin, double cap, double[] minCost)
+    {
+        int n = lattice.NodeCount;
+        var g = new double[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+
+        var open = new MinHeap(256);
+        if (lattice.IsPassable(origin))
+        {
+            g[origin] = 0.0;
+            open.Push(0.0, origin);
+        }
+        while (open.Count > 0)
+        {
+            (double cost, int current) = open.Pop();
+            if (closed[current]) continue;
+            if (cost > cap) break;
+            closed[current] = true;
+            if (cost < minCost[current]) minCost[current] = cost;
+
+            (int x, int y) = lattice.Coords(current);
+            for (int d = 0; d < 8; d++)
+            {
+                int nx = x + Dx[d], ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+                int nb = ny * lattice.Size + nx;
+                if (closed[nb] || !lattice.IsPassable(nb)) continue;
+                double tentative = g[current] + lattice.StepCost(current, nb);
+                if (tentative < g[nb])
+                {
+                    g[nb] = tentative;
+                    if (tentative <= cap) open.Push(tentative, nb);
+                }
+            }
+        }
+    }
+
     // --- shared expansion ------------------------------------------------------
 
     private static void Expand(

@@ -14,7 +14,8 @@ namespace Sim.Ui;
 /// </summary>
 public static class UiFounding
 {
-    public static WorldState Found(ulong seed, int? sizeOverridePx = null)
+    public static WorldState Found(
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
     {
         WorldgenConfig worldgenCfg;
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -29,6 +30,6 @@ public static class UiFounding
             simCfg = SimConfigLoader.Load(stream);
         }
 
-        return WorldFounding.Found(worldgenCfg, simCfg, seed);
+        return WorldFounding.Found(worldgenCfg, simCfg, seed, settlementsOverride);
     }
 }

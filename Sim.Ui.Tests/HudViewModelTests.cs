@@ -23,7 +23,9 @@ public class HudViewModelTests
     private static WorldgenConfig DevCfg()
     {
         using var stream = global::Sim.Data.DataFiles.OpenWorldgen();
-        return WorldgenConfigLoader.Load(stream) with { SizePx = 256 };
+        return WorldgenConfigLoader.Load(stream) is { } c
+            ? c with { SizePx = 256, Siting = c.Siting with { SettlementCount = 4 } } // D-025 dev preset
+            : throw new InvalidOperationException();
     }
 
     private static TurnExecutor Executor(SimConfig cfg, OrderLog? orders = null)

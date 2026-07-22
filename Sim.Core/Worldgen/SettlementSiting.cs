@@ -19,6 +19,78 @@ public static class SettlementSiting
         ChooseSite(terrain.Fertility, terrain.Water, terrain.Size, cfg.WaterAccessCutoffPx);
 
     /// <summary>
+    /// D-025 (T2.3): iterative top-score siting of <paramref name="count"/>
+    /// settlements with a minimum TRAVEL-TIME spacing between accepted sites.
+    /// Each pick is the argmax by the composite key (score DESC, cell id ASC)
+    /// over cells still eligible; after each acceptance the spacing exclusion
+    /// grows. TWO-STAGE spacing check (documented shape):
+    ///   1. PREFILTER — a spacing-budget-CAPPED Dijkstra from each accepted
+    ///      site's lattice origin: any node the capped expansion never reaches
+    ///      is trivially far enough (travel &gt; MinSpacingTravel), so the
+    ///      exact check touches only the local region around accepted sites
+    ///      (the straight-line px reasoning, made exact by the cap).
+    ///   2. EXACT — a cell is blocked iff its lattice node's min travel cost
+    ///      from any accepted site is &lt; MinSpacingTravel.
+    /// Sites are returned in PICK ORDER — settlement id i is the i-th pick
+    /// (best first), the deterministic identity every consumer relies on.
+    /// Throws when the terrain cannot host <paramref name="count"/> sites at
+    /// this spacing (an actionable config/terrain mismatch, never a silent
+    /// shortfall).
+    /// </summary>
+    public static int[] ChooseSites(TerrainSet terrain, SitingConfig cfg, int count)
+    {
+        int size = terrain.Size;
+        ReadOnlySpan<double> fertility = terrain.Fertility;
+        ReadOnlySpan<double> water = terrain.Water;
+        int[] waterDistance = WaterDistanceBfs(water, size);
+        var lattice = Pathing.TraversalLattice.Build(terrain);
+
+        // Min travel cost from any accepted site, per lattice node (∞ start).
+        var spacing = new double[lattice.NodeCount];
+        Array.Fill(spacing, double.PositiveInfinity);
+
+        var sites = new int[count];
+        for (int pick = 0; pick < count; pick++)
+        {
+            int bestCell = -1;
+            double bestScore = double.NegativeInfinity;
+            for (int i = 0; i < fertility.Length; i++)
+            {
+                if (water[i] >= 0.5) continue; // land candidates only
+                double access = 1.0 - waterDistance[i] / (double)cfg.WaterAccessCutoffPx;
+                if (access < 0.0) access = 0.0;
+                double score = fertility[i] * access;
+                // Strictly-greater on an ascending-id scan = (score DESC, id ASC).
+                // The spacing test runs only on strict improvements (the
+                // lattice-origin lookup is the expensive part); a blocked
+                // improver is skipped WITHOUT raising bestScore, so the pick
+                // remains the true argmax over eligible cells.
+                if (score <= bestScore) continue;
+                if (pick > 0)
+                {
+                    int node = Pathing.LatticeMap.OriginLatticeNode(lattice, size, i);
+                    if (spacing[node] < cfg.MinSpacingTravel) continue; // stage-2 exact check
+                }
+                bestScore = score;
+                bestCell = i;
+            }
+            if (bestCell < 0)
+                throw new InvalidOperationException(
+                    $"settlement siting could only place {pick} of {count} sites at " +
+                    $"minSpacingTravel {cfg.MinSpacingTravel.ToString(System.Globalization.CultureInfo.InvariantCulture)} " +
+                    "— terrain too small or spacing too large.");
+            sites[pick] = bestCell;
+
+            // Stage-1 prefilter: relax the spacing field with a capped Dijkstra
+            // from the new site (no network overlay — spacing is a worldgen
+            // property of raw terrain).
+            int origin = Pathing.LatticeMap.OriginLatticeNode(lattice, size, bestCell);
+            Pathing.Pathfinder.RelaxCappedFrom(lattice, origin, cfg.MinSpacingTravel, spacing);
+        }
+        return sites;
+    }
+
+    /// <summary>
     /// Primitive overload (test surface for the tie-dense proof): fertility and
     /// water rasters as flat row-major spans. Returns the chosen cell id.
     /// Candidates are LAND cells only (water ≥ 0.5 is excluded), so the result

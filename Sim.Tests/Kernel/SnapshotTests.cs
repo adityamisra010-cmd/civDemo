@@ -246,7 +246,12 @@ public class SnapshotTests
         //   v3 (T2.2, D-020 class system — DELIBERATE): schema v8, classmobility
         //   in the pipeline, artisans emerge/mobilize, peasant-labor Leontief
         //   with the scaffolded tool multiplier. Behavior changes by design.
-        const string golden = "5139a54ddb77ff46b2eb69e04815bc397da31dd6db5da9a977ef89dec4320347";
+        //   v3 value: 5139a54ddb77ff46b2eb69e04815bc397da31dd6db5da9a977ef89dec4320347
+        //   v4 (T2.3, D-025 — DELIBERATE): the canonical founded world is now
+        //   the PLURAL N = 12 world (spacing siting + partitioned catchments).
+        //   The first-reign golden did NOT re-pin: at --settlements 1 the
+        //   partition is bit-identical to the old single-source isochrone.
+        const string golden = "a91c7588f3f428a3c7dc3a1f7f7bd635d3167e4c9ae3c9b27df96964430684cb";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

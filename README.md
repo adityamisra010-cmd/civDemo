@@ -92,6 +92,7 @@ sweep trivially. A session log + its seed replays hash-identically:
 ```bash
 sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
 # played on --size PX? add: --size PX  (the -sPX filename suffix tells you)
+# played with --settlements N? add: --settlements N  (the -nN suffix tells you)
 ```
 
 ## Solution layout

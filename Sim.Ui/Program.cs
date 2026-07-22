@@ -7,14 +7,14 @@ using Sim.Core.Worldgen;
 // and a fresh session order log, open the window. Worldgen runs before the
 // window so the first frame already has terrain (~2 s at 1024²).
 // Args: [--seed N] [--size PX] (size is the D-015 dev-preview escape hatch).
-(ulong seed, int? sizeOverride) = Sim.Ui.UiArgs.Parse(args);
+(ulong seed, int? sizeOverride, int? settlementsOverride) = Sim.Ui.UiArgs.Parse(args);
 
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
 // the log CONTENT records sim turns only.
-var session = Sim.Ui.UiSession.Start(seed, sizeOverride);
-string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride);
+var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride);
+string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride);
 
 using var game = new Sim.Ui.SimUiGame(session, sessionLogPath);
 game.Run();

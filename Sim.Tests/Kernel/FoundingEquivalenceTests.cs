@@ -36,9 +36,13 @@ public class FoundingEquivalenceTests
     {
         // The --size replay hatch (adversarial finding: a session played on a
         // non-canonical size must be reproducible by the documented command).
-        WorldState cli = HeadlessFounding.Found(42, sizeOverridePx: 256);
+        // T2.3: a 256² world cannot host the canonical 12 sites at canonical
+        // spacing — the override branch is exercised with BOTH overrides, which
+        // also pins the new --settlements plumbing end to end.
+        WorldState cli = HeadlessFounding.Found(42, sizeOverridePx: 256, settlementsOverride: 4);
         WorldState canonical = WorldFounding.Found(
-            TestConfigs.Worldgen() with { SizePx = 256 }, TestConfigs.Sim(), 42);
+            TestConfigs.Worldgen() with { SizePx = 256 }, TestConfigs.Sim(), 42,
+            settlementsOverride: 4);
         Assert.Equal(WorldHash.ComputeHex(canonical), WorldHash.ComputeHex(cli));
     }
 

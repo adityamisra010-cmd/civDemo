@@ -82,19 +82,22 @@ public class UiSessionReplayTests
     {
         // Replay-fidelity surface: a silently-added default size override would
         // make every played session unreplayable at canonical size.
-        (ulong seed, int? size) = Sim.Ui.UiArgs.Parse([]);
+        (ulong seed, int? size, int? settlements) = Sim.Ui.UiArgs.Parse([]);
         Assert.Equal(42UL, seed);
         Assert.Null(size);
+        Assert.Null(settlements); // T2.3: canonical count unless explicitly overridden
 
-        (seed, size) = Sim.Ui.UiArgs.Parse(["--seed", "7", "--size", "256"]);
+        (seed, size, settlements) = Sim.Ui.UiArgs.Parse(
+            ["--seed", "7", "--size", "256", "--settlements", "4"]);
         Assert.Equal(7UL, seed);
         Assert.Equal(256, size);
+        Assert.Equal(4, settlements);
     }
 
     [Fact]
     public void UiFounding_SizeOverrideBranch_EqualsCanonicalAtThatSize()
     {
-        WorldState ui = Sim.Ui.UiFounding.Found(42, sizeOverridePx: 256);
+        WorldState ui = Sim.Ui.UiFounding.Found(42, sizeOverridePx: 256, settlementsOverride: 4);
         Sim.Core.Worldgen.WorldgenConfig wg;
         using (var s = global::Sim.Data.DataFiles.OpenWorldgen())
             wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(s);
@@ -102,7 +105,7 @@ public class UiSessionReplayTests
         using (var s = global::Sim.Data.DataFiles.OpenSim())
             sim = Sim.Core.Systems.SimConfigLoader.Load(s);
         WorldState canonical = Sim.Core.Worldgen.WorldFounding.Found(
-            wg with { SizePx = 256 }, sim, 42);
+            wg with { SizePx = 256 }, sim, 42, settlementsOverride: 4);
         Assert.Equal(WorldHash.ComputeHex(canonical), WorldHash.ComputeHex(ui));
     }
 }

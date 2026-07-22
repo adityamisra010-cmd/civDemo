@@ -19,18 +19,21 @@ public sealed record HudModel(
 {
     public static HudModel From(IReadOnlyWorldState world, long previousHarvestTotal)
     {
-        // Band views over the cohort buckets (T2.1) — summed across settlements.
-        long children = 0, adults = 0, elders = 0;
-        for (int i = 0; i < world.Settlements.Count; i++)
+        // T2.3 director ruling: the interim HUD shows SETTLEMENT 0 only —
+        // selection and per-settlement rule arrive at T2.4. Band views over
+        // the cohort buckets (T2.1), first settlement's food store.
+        long children = 0, adults = 0, elders = 0, food = 0;
+        if (world.Settlements.Count > 0)
         {
-            SettlementId id = world.Settlements[i].Id;
-            children += BandViews.Children(world.Buckets, id);
-            adults += BandViews.Adults(world.Buckets, id);
-            elders += BandViews.Elders(world.Buckets, id);
+            SettlementId first = world.Settlements[0].Id;
+            children = BandViews.Children(world.Buckets, first);
+            adults = BandViews.Adults(world.Buckets, first);
+            elders = BandViews.Elders(world.Buckets, first);
+            for (int i = 0; i < world.FoodStores.Count; i++)
+            {
+                if (world.FoodStores[i].Settlement == first) { food = world.FoodStores[i].Store.Value; break; }
+            }
         }
-
-        long food = 0;
-        for (int i = 0; i < world.FoodStores.Count; i++) food += world.FoodStores[i].Store.Value;
 
         long harvestTotal = 0;
         for (int i = 0; i < world.LedgerFlows.Count; i++)

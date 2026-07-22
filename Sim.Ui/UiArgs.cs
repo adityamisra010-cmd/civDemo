@@ -10,17 +10,21 @@ namespace Sim.Ui;
 /// </summary>
 public static class UiArgs
 {
-    public static (ulong Seed, int? SizeOverridePx) Parse(string[] args)
+    public static (ulong Seed, int? SizeOverridePx, int? SettlementsOverride) Parse(string[] args)
     {
         ulong seed = 42;
         int? sizeOverride = null;
+        int? settlementsOverride = null;
         for (int i = 0; i < args.Length - 1; i++)
         {
             if (args[i] == "--seed" && ulong.TryParse(args[i + 1],
                 NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong s)) seed = s;
             if (args[i] == "--size" && int.TryParse(args[i + 1],
                 NumberStyles.Integer, CultureInfo.InvariantCulture, out int px)) sizeOverride = px;
+            if (args[i] == "--settlements" && int.TryParse(args[i + 1],
+                NumberStyles.Integer, CultureInfo.InvariantCulture, out int n) && n >= 1)
+                settlementsOverride = n;
         }
-        return (seed, sizeOverride);
+        return (seed, sizeOverride, settlementsOverride);
     }
 }

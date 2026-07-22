@@ -41,6 +41,42 @@ public class WorldgenPerfTests
     }
 
     [Fact]
+    public void FoundedN12_WorldgenSitingAndFirstPartition_UnderFiveSeconds()
+    {
+        // T2.3 budget ruling: worldgen stays under 5 s TOTAL at canonical
+        // 1024² INCLUDING the plural machinery — generation + the D-025
+        // 12-site spacing siting (founding) + the first multi-source
+        // catchment partition (one catchment step). Best-of-two, same
+        // rationale as above.
+        Sim.Core.Systems.SimConfig sim = Sim.Tests.TestUtil.TestConfigs.Sim();
+        WorldgenConfig cfg = Sim.Tests.TestUtil.TestConfigs.Worldgen();
+        var exec = new Sim.Core.Kernel.TurnExecutor(
+            CanonicalEra(), [Sim.Core.SystemCatalog.Catchment()]);
+
+        double best = double.MaxValue;
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+            Sim.Core.State.WorldState world = WorldFounding.Found(cfg, sim, seed: 42);
+            world = exec.Step(world); // first partition
+            double seconds = (System.Diagnostics.Stopwatch.GetTimestamp() - t0)
+                             / (double)System.Diagnostics.Stopwatch.Frequency;
+            Assert.Equal(12, world.Settlements.Count);
+            Assert.Equal(12, world.CatchmentSummaries.Count);
+            best = Math.Min(best, seconds);
+            if (best < 5.0) break;
+        }
+        Assert.True(best < 5.0, $"founded N=12 worldgen+siting+partition took {best:F2}s");
+        Console.WriteLine($"founded N=12 1024²: worldgen+siting+first-partition best {best:F2}s");
+    }
+
+    private static Sim.Core.Kernel.EraTable CanonicalEra()
+    {
+        using var stream = Sim.Data.DataFiles.OpenEraPacing();
+        return Sim.Core.Kernel.EraTableLoader.Load(stream);
+    }
+
+    [Fact]
     public void FullSize1024_GeneratesUnderFiveSeconds()
     {
         using var stream = Sim.Data.DataFiles.OpenWorldgen();

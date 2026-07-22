@@ -31,11 +31,13 @@ public sealed class UiSession
     }
 
     /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.</summary>
-    public static UiSession Start(ulong seed, int? sizeOverridePx = null)
+    public static UiSession Start(
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
     {
         var orders = new OrderLog();
         return new UiSession(
-            UiFounding.Found(seed, sizeOverridePx), BuildProductionExecutor(orders), orders);
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
+            BuildProductionExecutor(orders), orders);
     }
 
     /// <summary>
@@ -80,11 +82,15 @@ public sealed class UiSession
     /// name (…-s256.bin) so a preview session is never mistaken for a
     /// canonical-world log at replay time (`sim replay --founded --size PX`).
     /// </summary>
-    public static string SessionLogPath(DateTime now, int? sizeOverridePx = null) =>
+    public static string SessionLogPath(
+        DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null) =>
         Path.Combine("runs",
             "orders-" + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
             + (sizeOverridePx is { } sz
                 ? "-s" + sz.ToString(CultureInfo.InvariantCulture)
+                : "")
+            + (settlementsOverride is { } n
+                ? "-n" + n.ToString(CultureInfo.InvariantCulture)
                 : "")
             + ".bin");
 

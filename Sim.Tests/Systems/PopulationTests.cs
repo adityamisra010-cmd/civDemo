@@ -29,8 +29,8 @@ public class PopulationTests
         return new TurnExecutor(CanonicalEra(), PipelineLoader.Load(stream, SystemCatalog.All(cfg)));
     }
 
-    private static WorldState Founded(SimConfig cfg) =>
-        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed);
+    private static WorldState Founded(SimConfig cfg, int? settlements = null) =>
+        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, settlements);
 
     private static long TotalPop(WorldState world)
     {
@@ -133,7 +133,10 @@ public class PopulationTests
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(CanonicalEra(),
             PipelineLoader.Load(stream, SystemCatalog.All(cfg)), orders);
-        WorldState world = Founded(cfg);
+        // N = 1 (D-029 flag): the 0%-farm order targets settlement 0; dead-
+        // world cleanliness is a single-settlement semantic — with neighbors
+        // alive the world total never hits zero and the test measures nothing.
+        WorldState world = Founded(cfg, settlements: 1);
 
         int extinctionTurn = -1;
         for (int t = 1; t <= 80 && extinctionTurn < 0; t++)

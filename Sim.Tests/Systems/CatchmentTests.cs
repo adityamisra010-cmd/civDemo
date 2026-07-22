@@ -18,7 +18,9 @@ public class CatchmentTests
     private static WorldgenConfig Dev()
     {
         using var stream = Sim.Data.DataFiles.OpenWorldgen();
-        return WorldgenConfigLoader.Load(stream) with { SizePx = 256 };
+        return WorldgenConfigLoader.Load(stream) is { } c
+            ? c with { SizePx = 256, Siting = c.Siting with { SettlementCount = 4 } } // D-025 dev preset
+            : throw new InvalidOperationException();
     }
 
     private static EraTable CanonicalEra()
@@ -38,18 +40,23 @@ public class CatchmentTests
     [Fact]
     public void Catchment_Twin_Deterministic_AndEqualsDirectIsochrone()
     {
+        // N = 1 via the D-029 flag: with a single source the partition and a
+        // direct isochrone must coincide EXACTLY (same Dijkstra, same claims)
+        // — the continuity proof that T2.3 changed the mechanism, not the
+        // single-settlement semantics. Multi-source behavior gets its own
+        // partition tests (PluralWorldTests).
         var cfg = Dev();
         TurnExecutor exec = CatchmentExecutor();
 
-        WorldState a = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
-        WorldState b = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
+        WorldState a = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42, settlementsOverride: 1));
+        WorldState b = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42, settlementsOverride: 1));
 
         // Twin-deterministic: identical derived tables.
         Assert.True(WorldStates.StateEquals(a, b));
         Assert.Equal(1, a.CatchmentSummaries.Count);
 
         // Equal to a DIRECT isochrone call from the origin lattice node.
-        WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
+        WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42, settlementsOverride: 1);
         TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
         int origin = OriginOf(founded, lattice);
         Pathfinder.IsochroneResult iso =

@@ -26,6 +26,11 @@ public static class TestConfigs
         return WorldgenConfigLoader.Load(stream);
     }
 
-    /// <summary>The D-015 dev preset: canonical worldgen at 256² for fast tests.</summary>
-    public static WorldgenConfig DevWorldgen() => Worldgen() with { SizePx = 256 };
+    /// <summary>The D-015 dev preset: canonical worldgen at 256², N = 4
+    /// settlements (D-025 dev preset) for fast tests.</summary>
+    public static WorldgenConfig DevWorldgen()
+    {
+        WorldgenConfig cfg = Worldgen();
+        return cfg with { SizePx = 256, Siting = cfg.Siting with { SettlementCount = 4 } };
+    }
 }

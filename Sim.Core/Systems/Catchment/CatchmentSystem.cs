@@ -61,25 +61,34 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
         nodes.Clear();      // derived tables: rebuilt wholesale on recompute
         summaries.Clear();
 
+        // T2.3 (m2 spec §3): catchments PARTITION, never overlap — one
+        // multi-source Dijkstra, every settlement a source, each node claimed
+        // by the composite (travel cost, settlement id). One owner cell per
+        // node ⇒ zero double-claims by construction; per-settlement farmland
+        // sums only owned nodes, so no land is ever double-counted.
+        Span<int> origins = prev.Settlements.Count <= 64
+            ? stackalloc int[prev.Settlements.Count] : new int[prev.Settlements.Count];
+        for (int s = 0; s < prev.Settlements.Count; s++)
+            origins[s] = OriginLatticeNode(lattice, prev.Terrain.Size, prev.Settlements[s].SiteCell);
+        Pathfinder.PartitionResult part = Pathfinder.Partition(lattice, prev, origins, TravelBudget);
+
+        // Per settlement (ascending settlement order), rows in ascending node
+        // id. SUMMATION ORDER IS DETERMINISM SURFACE: double addition is not
+        // associative, so any reordering is a hash-visible behavior change.
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementRow settlement = prev.Settlements[s];
-            int origin = OriginLatticeNode(lattice, prev.Terrain.Size, settlement.SiteCell);
-            Pathfinder.IsochroneResult iso = Pathfinder.Isochrone(lattice, prev, origin, TravelBudget);
-
-            // Effective farmland = Σ block-averaged fertility over reached nodes.
-            // SUMMATION ORDER IS DETERMINISM SURFACE: Reached is ascending node
-            // id and we accumulate in that order — double addition is not
-            // associative, so any reordering is a hash-visible behavior change.
             double farmland = 0.0;
-            for (int i = 0; i < iso.Reached.Length; i++)
+            int count = 0;
+            for (int node = 0; node < part.Owner.Length; node++)
             {
-                nodes.Add(new CatchmentNodeRow(settlement.Id, iso.Reached[i], iso.Costs[i]));
-                farmland += BlockFertility(prev.Terrain, lattice, iso.Reached[i]);
+                if (part.Owner[node] != s) continue;
+                nodes.Add(new CatchmentNodeRow(settlement.Id, node, part.Cost[node]));
+                farmland += BlockFertility(prev.Terrain, lattice, node);
+                count++;
             }
-
             summaries.Add(new CatchmentSummaryRow(
-                settlement.Id, iso.Reached.Length, farmland, revision,
+                settlement.Id, count, farmland, revision,
                 LastRecomputeTurn: prev.Clock.Turn));
         }
     }

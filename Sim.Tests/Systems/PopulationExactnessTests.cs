@@ -619,9 +619,13 @@ public class PopulationExactnessTests
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
 
+        // T2.3: the dev preset founds N = 4 settlements, each with the SAME
+        // 400-person profile and food store (equal-split policy, provisional).
+        int n = world.Settlements.Count;
+        Assert.Equal(4, n); // D-025 dev preset
         int groups = cfg.Registries.Cultures.Length * cfg.Registries.Religions.Length
                      * cfg.Registries.Classes.Length;
-        Assert.Equal(groups * Cohorts.Count, world.Buckets.Count);
+        Assert.Equal(n * groups * Cohorts.Count, world.Buckets.Count);
 
         long popTotal = 0;
         for (int i = 0; i < world.Buckets.Count; i++)
@@ -632,18 +636,22 @@ public class PopulationExactnessTests
             Assert.Equal(expected, row.Count.Value);
             popTotal += row.Count.Value;
         }
-        // The layout is contiguous ascending cohort runs (the documented
-        // deterministic order every consumer may rely on).
+        // The layout is contiguous ascending cohort runs, settlements in id
+        // order (the documented deterministic order every consumer may rely on).
         for (int i = 0; i < world.Buckets.Count; i++)
+        {
             Assert.Equal(i % Cohorts.Count, world.Buckets[i].CohortIdx);
+            Assert.Equal(i / (groups * Cohorts.Count), world.Buckets[i].Settlement.Value);
+        }
 
-        Assert.Equal(1, world.FoodStores.Count);
-        Assert.Equal(cfg.Founding.FoodStore, world.FoodStores[0].Store.Value);
+        Assert.Equal(n, world.FoodStores.Count);
+        for (int i = 0; i < n; i++)
+            Assert.Equal(cfg.Founding.FoodStore, world.FoodStores[i].Store.Value);
         Assert.Equal(0, world.ConsumptionDeficits.Count);
 
         Assert.Equal(popTotal,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
-        Assert.Equal(cfg.Founding.FoodStore,
+        Assert.Equal(cfg.Founding.FoodStore * n,
             FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.InitialEndowment, sunk: false));
         Assert.Equal(0,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: true));

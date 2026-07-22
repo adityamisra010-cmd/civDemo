@@ -28,6 +28,8 @@
     "cellFractionMax": 0.05
   },
   "siting": {
+    "settlementCount": 12,
+    "minSpacingTravel": 30.0,
     "waterAccessCutoffPx": 24
   }
 }

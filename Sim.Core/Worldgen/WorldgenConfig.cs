@@ -35,12 +35,18 @@ public sealed record WorldgenConfig(
     [property: JsonPropertyName("siting"), JsonRequired] SitingConfig Siting);
 
 /// <summary>
-/// Settlement-siting tuning (T1.4, all TUNE). WaterAccessCutoffPx: BFS grid
-/// distance to water beyond which the access score is 0 (score falls linearly
-/// from 1 at the shoreline to 0 at the cutoff).
+/// Settlement-siting tuning (T1.4; pluralized at T2.3 per D-025, all TUNE).
+/// WaterAccessCutoffPx: BFS grid distance to water beyond which the access
+/// score is 0 (score falls linearly from 1 at the shoreline to 0 at the
+/// cutoff). SettlementCount: sites founded per world (canonical 12; the D-015
+/// dev preset overrides to 4). MinSpacingTravel: minimum travel-time distance
+/// (lattice cost units, same scale as the catchment TravelBudget) between any
+/// two accepted sites.
 /// </summary>
 public sealed record SitingConfig(
-    [property: JsonPropertyName("waterAccessCutoffPx"), JsonRequired] int WaterAccessCutoffPx);
+    [property: JsonPropertyName("waterAccessCutoffPx"), JsonRequired] int WaterAccessCutoffPx,
+    [property: JsonPropertyName("settlementCount"), JsonRequired] int SettlementCount,
+    [property: JsonPropertyName("minSpacingTravel"), JsonRequired] double MinSpacingTravel);
 
 /// <summary>River extraction tuning (T1.2, all TUNE).</summary>
 public sealed record RiversConfig(
@@ -137,6 +143,12 @@ public static class WorldgenConfigLoader
         if (cfg.Siting.WaterAccessCutoffPx < 1)
             throw new WorldgenConfigException(
                 $"siting.waterAccessCutoffPx must be >= 1, got {cfg.Siting.WaterAccessCutoffPx}.");
+        if (cfg.Siting.SettlementCount < 1)
+            throw new WorldgenConfigException(
+                $"siting.settlementCount must be >= 1, got {cfg.Siting.SettlementCount}.");
+        if (!(cfg.Siting.MinSpacingTravel >= 0.0) || !double.IsFinite(cfg.Siting.MinSpacingTravel))
+            throw new WorldgenConfigException(
+                $"siting.minSpacingTravel must be a finite value >= 0, got {Inv(cfg.Siting.MinSpacingTravel)}.");
 
         return cfg;
     }

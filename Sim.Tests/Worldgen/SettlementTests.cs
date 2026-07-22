@@ -12,7 +12,9 @@ public class SettlementTests
     private static WorldgenConfig Dev()
     {
         using var stream = Sim.Data.DataFiles.OpenWorldgen();
-        return WorldgenConfigLoader.Load(stream) with { SizePx = 256 };
+        return WorldgenConfigLoader.Load(stream) is { } c
+            ? c with { SizePx = 256, Siting = c.Siting with { SettlementCount = 4 } } // D-025 dev preset
+            : throw new InvalidOperationException();
     }
 
     [Fact]
@@ -22,8 +24,9 @@ public class SettlementTests
         WorldState a = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
         WorldState b = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
 
-        Assert.Equal(1, a.Settlements.Count);
-        Assert.Equal(a.Settlements[0].SiteCell, b.Settlements[0].SiteCell);
+        Assert.Equal(4, a.Settlements.Count); // D-025 dev preset
+        for (int i = 0; i < a.Settlements.Count; i++)
+            Assert.Equal(a.Settlements[i].SiteCell, b.Settlements[i].SiteCell);
     }
 
     [Fact]

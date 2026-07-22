@@ -31,7 +31,10 @@ public class PathBuildTests
     }
 
     private static WorldState Founded(SimConfig cfg) =>
-        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed);
+        // N = 1 via the D-029 flag: these are single-settlement SEMANTICS
+        // tests (hand-computed yields, ledger deltas); plural behavior is
+        // covered by PluralWorldTests.
+        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, settlementsOverride: 1);
 
     private static OrderLog LaborOrder(long turn, double farmPct)
     {
@@ -258,7 +261,7 @@ public class PathBuildTests
         TurnExecutor execA = ProductionExecutor(cfg, SweepLog());
         TurnExecutor execB = ProductionExecutor(TestConfigs.Sim(), SweepLog());
         WorldState a = Founded(cfg);
-        WorldState b = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), Seed);
+        WorldState b = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), Seed, settlementsOverride: 1);
 
         for (int t = 1; t <= 200; t++)
         {
