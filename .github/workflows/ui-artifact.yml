@@ -25,6 +25,17 @@ jobs:
           dotnet publish Sim.Ui/Sim.Ui.csproj -c Release -r win-x64
           --self-contained -o publish/sim-ui-win-x64
 
+      - name: Assert the publish is complete (director hardening, T1.7)
+        # An empty or partial publish must never go green: the exe and every
+        # native the window needs are asserted BEFORE upload, and the file
+        # count is printed so the run log shows what shipped.
+        run: |
+          set -e
+          for f in Sim.Ui.exe SDL2.dll openal.dll cimgui.dll; do
+            test -f "publish/sim-ui-win-x64/$f" || { echo "MISSING: $f"; exit 1; }
+          done
+          echo "publish contains $(ls publish/sim-ui-win-x64 | wc -l) files, $(du -sh publish/sim-ui-win-x64 | cut -f1)"
+
       - name: Upload artifact zip
         uses: actions/upload-artifact@v4
         with:
