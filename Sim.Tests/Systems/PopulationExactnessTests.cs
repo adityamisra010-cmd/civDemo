@@ -45,6 +45,33 @@ public class PopulationExactnessTests
         return world;
     }
 
+    /// <summary>Two-group world (vacuity-lens hardening): classes 1 and 2 in
+    /// the same settlement/culture/religion, each with its own 16 cohort rows
+    /// (contiguous runs, class 1 first — the founding layout).</summary>
+    internal static WorldState TwoGroupWorld(long[] class1, long[] class2)
+    {
+        var world = new WorldState(7);
+        var settlement = new SettlementId(0);
+        world.Settlements.Add(new SettlementRow(settlement, SiteCell: 0, FoundedTurn: 0));
+        var ledger = new Ledger(world.LedgerFlows);
+        for (int cls = 1; cls <= 2; cls++)
+        {
+            long[] counts = cls == 1 ? class1 : class2;
+            for (int c = 0; c < Cohorts.Count; c++)
+            {
+                int row = world.Buckets.Add(new BucketRow(
+                    settlement, new CultureId(1), new ReligionId(1), new ClassId(cls),
+                    c, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+                if (counts[c] > 0)
+                {
+                    ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                        ReasonIds.InitialEndowment, counts[c], FlowDirection.Source, OverdrawPolicy.Throw);
+                }
+            }
+        }
+        return world;
+    }
+
     private static long[] Uniform(long perCohort)
     {
         var counts = new long[Cohorts.Count];
@@ -384,6 +411,37 @@ public class PopulationExactnessTests
         Assert.Equal(6, world.Buckets[15].Count.Value);
     }
 
+    [Fact]
+    public void TwoGroups_AgingOnly_PerGroupTotalsInvariant_NoCrossTalk()
+    {
+        // Vacuity-lens hardening: the auditor and reconciliation are TOTALS-
+        // only, so a Transfer misrouted into the OTHER class's cohort (a
+        // SameGroup/FindInGroup bug) conserves perfectly and passes them.
+        // Two populated groups, aging-only, ten dt = 10 steps: each group's
+        // total must be exactly invariant — any cross-group leak shifts both.
+        SimConfig cfg = AgingOnly(TestConfigs.Sim());
+        var g1 = new long[Cohorts.Count];
+        var g2 = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) { g1[c] = 1000 + 13 * c; g2[c] = 500 + 7 * c; }
+        long total1 = 0, total2 = 0;
+        for (int c = 0; c < Cohorts.Count; c++) { total1 += g1[c]; total2 += g2[c]; }
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
+        WorldState world = TwoGroupWorld(g1, g2);
+        for (int t = 1; t <= 10; t++)
+        {
+            world = exec.Step(world);
+            long sum1 = 0, sum2 = 0;
+            for (int i = 0; i < world.Buckets.Count; i++)
+            {
+                if (world.Buckets[i].Class.Value == 1) sum1 += world.Buckets[i].Count.Value;
+                else sum2 += world.Buckets[i].Count.Value;
+            }
+            Assert.Equal(total1, sum1);
+            Assert.Equal(total2, sum2);
+        }
+    }
+
     // --- FsCheck: conservation exact across all cohort flows -----------------
 
     [Property(MaxTest = 100)]
@@ -395,21 +453,35 @@ public class PopulationExactnessTests
         // each, the audit identity Σ stocks + Σ sunk − Σ sourced == 0 must
         // hold EXACTLY, and the person-exact reconciliation from flows alone
         // must equal the live total.
+        // Vacuity-lens hardening: dt drawn from all three aging regimes
+        // (k=2/f=0, k=1/f=0, k=0/f=0.5), and the world carries an EMPTY
+        // second class — which must stay exactly empty (no births from zero
+        // people, no cross-group arrivals): the cross-group leak detector the
+        // totals-only audit cannot be.
         Gen<long> countGen = Gen.Choose(0, 200_000).Select(v => (long)v);
         Gen<long[]> stateGen = countGen.ArrayOf(Cohorts.Count);
         Gen<int> deficitPctGen = Gen.Choose(0, 100);
-        return Prop.ForAll(stateGen.ToArbitrary(), deficitPctGen.ToArbitrary(), (counts, deficitPct) =>
+        Gen<int> dtIdxGen = Gen.Choose(0, 2);
+        return Prop.ForAll(stateGen.ToArbitrary(), deficitPctGen.ToArbitrary(), dtIdxGen.ToArbitrary(),
+            (counts, deficitPct, dtIdx) =>
         {
             SimConfig cfg = TestConfigs.Sim();
-            WorldState world = BucketWorld(counts);
+            double dt = dtIdx == 0 ? 10.0 : dtIdx == 1 ? 5.0 : 2.5;
+            WorldState world = TwoGroupWorld(counts, new long[Cohorts.Count]);
             world.ConsumptionDeficits.Add(
                 new ConsumptionDeficitRow(new SettlementId(0), deficitPct / 100.0));
-            var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Demographics(cfg)]);
+            var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
             for (int t = 0; t < 3; t++)
             {
                 world = exec.Step(world);
                 if (!ConservationAuditor.IsConserved(world, out string report))
                     return false.Label($"turn {t + 1}: {report}");
+                for (int i = 0; i < world.Buckets.Count; i++)
+                {
+                    if (world.Buckets[i].Class.Value == 2 && world.Buckets[i].Count.Value != 0)
+                        return false.Label(
+                            $"turn {t + 1}: empty class gained {world.Buckets[i].Count.Value} people in cohort {world.Buckets[i].CohortIdx}");
+                }
             }
             long endow = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false);
             long births = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Births, sunk: false);
