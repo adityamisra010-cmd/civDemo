@@ -1,0 +1,51 @@
+# M2 — THE MALTHUSIAN CORE: SPEC & TASK PACKETS
+### People become real (cohorts, classes), the world becomes plural (settlements, migration), and the engine gets measured against history (calibration battery v1). Written post-M1-exit against code-truth, per S8 §4.
+
+---
+
+## 1. DECISIONS CLOSED THIS DOCUMENT
+
+- **D-020 CLOSED — Emergence predicate DSL.** Comparisons (`> < >= <= ==`) and boolean ops (`&& || !`) over **registered variables** that simulation systems publish per settlement (e.g. `food_surplus_ratio`, `artisan_share`). Load-time validation: unknown variable, malformed expression → actionable rejection. No functions, no arithmetic in v1 (queue if needed). Parser lives in Sim.Core; predicates are data.
+- **D-025 — Settlement count & spacing.** Worldgen sites **N = 12** settlements (TUNE, `worldgen.json`): iterative top-score siting with a minimum travel-time spacing constraint, composite key (score desc, cell id asc). Dev preset N=4.
+- **D-026 — Cohort structure.** Age bands upgrade to **16 five-year cohorts** (0–4 … 75+), the true cohort-component model. Fertility and mortality are per-cohort profiles (data). Child/adult/elder band views are derived for UI and labor. This is the structure war scars (M4+) and the demographic transition (later) require; it lands now because M2 is the demographic milestone.
+- **D-027 — Incremental data delivery.** The 11-class roster and 8-need registry are frozen design (D-018) delivered incrementally: each milestone's data files contain only classes whose predicate variables exist and needs with live satisfier bindings. M2 ships **Peasants** (always) and **Artisans** (emergence: `food_surplus_ratio > TUNE` — surplus sustains specialists, the historical mechanism). Unbound needs contribute nothing — neither satisfaction nor grievance — and are labeled "not yet simulated" in UI.
+- **D-028 — History buffers are UI-side.** Time-series graphs read a UI ring buffer captured per observed turn; replay rebuilds it, loading a mid-game save starts it fresh (documented limitation; sim-side history tables would bloat saves for no determinism gain).
+- **D-029 — First-reign compatibility.** Founding gains `--settlements N`; the first-reign fixture replays at N=1 under the new demographics — trajectory re-pins deliberately, its *shape asserts* (famine → extinction, harvest dies with the people, no ghost accumulation) remain the load-bearing guard.
+- **Scaffolding, explicitly marked:** Artisans at M2 contribute construction labor (PathBuild) and a capped tool-yield multiplier on farming (TUNE) — an abstraction M3's real goods economy replaces; the code comment says so.
+
+## 2. SCOPE FENCE
+
+**In:** cohort demographics with historical rate profiles · class system (registry, DSL, mobility flows, 2 live classes) · N settlements with travel-time-partitioned catchments · migration (differential-driven + famine flight — the D-021 Exit valve arrives) · needs/grievance stocks (Sustenance-bound, decay + generational decay per D-021) · chronicle-lite with procedural settlement names · time-series graphs · autoplay batch runner + calibration battery v1 · per-settlement UI control.
+**Out (where it lives):** goods/markets and real artisan output (M3), any second polity, conflict, or raids (M4), unrest *behavior* — grievance accrues but acts only at M5 (D-021 valves ship with the gas pedal), culture/religion plurality (M8/M9 — registries exist with one placeholder entry each; the bucket key carries the dimensions now so the schema never churns), housing/Shelter binding (M3), weather/harvest variance (M3 — famines at M2 remain player-made or emergent from overshoot).
+
+## 3. SYSTEM NOTES (kernel-contract shapes)
+
+- **Buckets table** replaces PopBands: key (settlementId, cultureId, religionId, classId, cohortIdx) → conserved `long` count + remainder accumulators. M2 instantiation: ~12 × 1 × 1 × 2 × 16 ≈ 384 rows — the cap is a distant rumor; the *shape* is final.
+- **Catchments partition, never overlap:** multi-source travel-time Dijkstra; each lattice node claims by (travel time, settlement id). One farmland ledger per settlement, no double-counted land — this is the mechanism that makes settlement placement matter.
+- **Migration is Ledger transfers of people** by cohort (young-adult-weighted profile), driven by food-per-capita and land-per-capita differentials, damped by network travel cost between settlements, amplified by famine deficit (Exit valve). No teleporting: flows only between settlements with finite travel cost.
+- **Variable registry:** systems publish named per-settlement doubles each turn (surplus ratio, class shares, growth trend); the DSL evaluates against Prev values (one-turn lag, standard).
+- **Pipeline (M2 preset):** Catchment → Farming → Consumption → ClassMobility → Migration → Demographics → Needs/Grievance → PathBuild → Chronicle-detect.
+- **Naming:** syllable-set generator (data phonology, one placeholder culture), deterministic from world seed + settlement id; names are registry entries (ADR-001 discipline — never in sim rows).
+
+## 4. TASK PACKETS (adversarial-mandatory: T2.1, T2.5, T2.8)
+
+- **T2.1 — Cohort buckets.** Registries (culture/religion/class), Buckets table, cohort fertility/mortality/consumption profiles (data), demographics + consumption migrated, band views, PopBands retired; tests/goldens migrated deliberately. *Accept:* conservation exact across all cohort flows (FsCheck); pyramid forms wide-base under default rates; famine age-selectivity (child+elder mortality multipliers) provable; dt-halving holds. *Adversarial:* cohort-boundary leak injections; reconciliation from flows alone.
+- **T2.2 — Class system + DSL.** D-020 parser + validation, variable registry, Artisan emergence, mobility flows (promote on sustained surplus, demote-first on famine — artisans starve back to the fields), construction labor + tool multiplier (scaffolding-marked). *Accept:* DSL rejection cases actionable; artisans emerge in surplus autoplay and drain in famine; mobility conserves; predicate flip is hysteretic (TUNE band), not oscillating.
+- **T2.3 — Plural worldgen + partitioned catchments.** N-site spacing siting, multi-source partition, per-settlement farmland. *Accept:* twin-identical; no node claimed twice; partition equals brute-force nearest for random samples; siting respects spacing across 10 seeds; recompute still event-driven.
+- **T2.4 — UI: selection + per-settlement rule. [Visual Gate]** Click-select markers, selected-settlement HUD + slider (orders target selection), world-summary line. *Accept:* view-model tests; gate: director rules two settlements differently in one session and both obey.
+- **T2.5 — Migration.** As §3; chronicle hooks for surges. *Accept:* richer settlement gains migrants from poorer (direction test); famine drives flight before deaths peak (Exit-before-death assertion window); conservation exact world-wide; no flow between unreachable pairs; magnitudes a few %/decade (TUNE corridor). *Adversarial:* teleport injection; double-transfer; flight-suppression vacuity.
+- **T2.6 — Needs + grievance.** 8-need registry, Sustenance binding, per-(settlement,class) satisfaction, grievance stocks (accrual from deficit, slow decay, generational decay on cohort turnover per D-021), UI display with "not yet simulated" labels. *Accept:* famine raises grievance, plenty decays it slowly, cohort replacement decays it faster; no unrest behavior exists (grep-level assert: grievance is read by nothing but UI/chronicle).
+- **T2.7 — Historical rate retune.** Pre-modern profiles: crude birth ~35–50/1000·yr, crude death ~30–45, infant mortality dominating cohort 0, long-run growth ≈ 0.05–0.1%/yr, post-famine birth rebound (TUNE, mechanism: deficit-recovery fertility bounce). All data; goldens re-pin. *Accept:* rates measured from autoplay match profile intents; Malthus cycles persist at the new tempo.
+- **T2.8 — Autoplay + calibration battery v1.** `sim autoplay --seeds N --turns T --metrics out.json` (parallel-process safe, deterministic per seed); calibration suite with **corridors**: population density per arable-km² within Neolithic envelope; long-run growth in band; pyramid-shape metric; famine demography (age-selective mortality, birth deficit, rebound); boom-crash presence via the T1.5 hysteresis metric. CI job runs a time-boxed subset; full battery documented as a local command. *Accept:* ≥20 seeds inside corridors; a deliberately mistuned config FAILS (corridor teeth). *Adversarial:* corridor vacuity — can trivial dynamics pass? Metric-definition audit.
+- **T2.9 — Chronicle-lite + names.** Name generator, founding/famine/extinction/first-artisans/migration-surge detection (threshold functions, data), annals UI panel + chronicle.txt export per run. *Accept:* deterministic annals twin-identical; events fire at documented thresholds; the director's famine reads as a story with named places.
+- **T2.10 — Graphs. [Visual Gate with T2.9]** ImGui PlotLines: world + selected settlement (pop, food, grievance), D-028 ring buffer. *Accept:* view-model tests; gate: director watches a famine as a falling line and a migration as two crossing ones.
+- **T2.11 — Harness + goldens + fixture.** All determinism suites on the N=12 founded world (turn count sized to CI budget — state it); first-reign at `--settlements 1` re-pinned with shape asserts; xproc updated; bench reported.
+- **T2.12 — M2 exit artifact. [Exit Gate]** Version strings to M2, README, exit build. Director's exit session: rule two settlements, cause one famine, watch flight, artisans, annals, graphs; stamped log uploaded to docs/ per standing ritual.
+
+## 5. M2 EXIT CRITERIA
+
+All packets accepted · calibration battery green across ≥20 seeds with proven teeth · director exit session played from the CI zip with its log replaying hash-identical · harness green on the plural world · first-reign shape asserts standing · goldens + milestones.md + `m2-exit` Release with attached zip.
+
+## 6. GOVERNANCE
+
+Kernel remains frozen; no kernel-adjacent touches are anticipated — anything that smells structural: stop, CR, per S8. Scaffolding marked in §1 is M3's to remove, recorded here so its removal is plan, not amendment. The M3 spec (goods, markets, the local-price solver mandate) is written only after M2 exit.
