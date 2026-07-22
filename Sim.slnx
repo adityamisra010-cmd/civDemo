@@ -3,4 +3,6 @@
   <Project Path="Sim.Core/Sim.Core.csproj" />
   <Project Path="Sim.Data/Sim.Data.csproj" />
   <Project Path="Sim.Tests/Sim.Tests.csproj" />
+  <Project Path="Sim.Ui.Tests/Sim.Ui.Tests.csproj" />
+  <Project Path="Sim.Ui/Sim.Ui.csproj" />
 </Solution>

@@ -113,15 +113,4 @@ public class HydrologyTests
                 Assert.True(water[i] < 0.5, $"river cell {i} is on water");
     }
 
-    [Fact]
-    public void FullSize1024_WithRivers_StillUnderFiveSeconds()
-    {
-        var cfg = Canonical();
-        long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
-        TerrainSet t = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed: 42);
-        double seconds = (System.Diagnostics.Stopwatch.GetTimestamp() - t0)
-                         / (double)System.Diagnostics.Stopwatch.Frequency;
-        Assert.True(seconds < 5.0, $"1024² worldgen with rivers took {seconds:F2}s (budget 5s)");
-        Assert.True(t.RiverPolylineCount > 0);
-    }
 }

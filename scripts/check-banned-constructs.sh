@@ -21,6 +21,11 @@ cd "$(dirname "$0")/.."
 
 SIM_DIRS=(Sim.Core Sim.Data Sim.Cli)                 # simulation code: full ban list
 ALL_DIRS=(Sim.Core Sim.Data Sim.Cli Sim.Tests)       # project-wide bans
+# Sim.Ui and Sim.Ui.Tests are DELIBERATELY excluded (T1.7, ADR-009): rendering
+# sits outside the determinism surface — the UI never feeds state into the sim
+# (nothing references Sim.Ui), so floats, wall-clock frame timing and GPU-order
+# nondeterminism there cannot alter a single world hash. The isolation is
+# structural (project references), not grep-enforced.
 
 fail=0
 

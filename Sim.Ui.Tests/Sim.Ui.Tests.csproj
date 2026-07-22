@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- View-model/logic tests ONLY (T1.7): pure camera math, color mapping,
+         texture-bake byte determinism. No Game instantiation, no window, so
+         these run headless in CI. Separate from Sim.Tests so the core test
+         project keeps zero UI dependencies (D-003 amendment, ADR-009). -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sim.Ui\Sim.Ui.csproj" />
+  </ItemGroup>
+
+</Project>

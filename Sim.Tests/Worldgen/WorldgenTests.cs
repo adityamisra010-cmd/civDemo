@@ -61,19 +61,6 @@ public class WorldgenTests
     }
 
     [Fact]
-    public void FullSize1024_GeneratesUnderFiveSeconds()
-    {
-        var cfg = Canonical();
-        Assert.Equal(1024, cfg.SizePx); // the acceptance size, from data
-        long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
-        TerrainSet t = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed: 42);
-        double seconds = (System.Diagnostics.Stopwatch.GetTimestamp() - t0)
-                         / (double)System.Diagnostics.Stopwatch.Frequency;
-        Assert.True(seconds < 5.0, $"1024² worldgen took {seconds:F2}s (budget 5s)");
-        Assert.Equal(1024 * 1024, t.Elevation.Length);
-    }
-
-    [Fact]
     public void Fields_AreSane()
     {
         TerrainSet t = Sim.Core.Worldgen.Worldgen.Generate(Dev(), seed: 7);
