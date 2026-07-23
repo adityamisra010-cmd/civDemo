@@ -49,6 +49,29 @@ public class MigrationStabilityTests
         return flips;
     }
 
+    /// <summary>The two-turn-attractor signature: CONSECUTIVE alternations —
+    /// a flip whose immediately preceding nonzero step also flipped. Isolated
+    /// direction reversals (regime shifts as stores evolve, famine pulses)
+    /// score zero; the old ping-pong (flip every turn) scores ~length.
+    /// Sharpened at T2.7b: the honest post-ruling dynamics reverse direction
+    /// legitimately at Malthus pulses, which the raw flip count cannot tell
+    /// from oscillation.</summary>
+    internal static int ConsecutiveAlternationCount(long[] series)
+    {
+        int count = 0, lastSign = 0;
+        bool lastWasFlip = false;
+        for (int i = 0; i < series.Length; i++)
+        {
+            int sign = Math.Sign(series[i]);
+            if (sign == 0) continue;
+            bool flip = lastSign != 0 && sign != lastSign;
+            if (flip && lastWasFlip) count++;
+            lastWasFlip = flip;
+            lastSign = sign;
+        }
+        return count;
+    }
+
     [Fact]
     public void Detector_Teeth_SyntheticPingPongCaught_SmoothDriftPasses()
     {
@@ -59,13 +82,22 @@ public class MigrationStabilityTests
         var pingPong = new long[20];
         for (int i = 0; i < 20; i++) pingPong[i] = i % 2 == 0 ? 500 : -500;
         Assert.Equal(19, SignFlipCount(pingPong));
+        Assert.Equal(18, ConsecutiveAlternationCount(pingPong));
 
         var drift = new long[20];
         for (int i = 0; i < 20; i++) drift[i] = 10 + i;
         Assert.Equal(0, SignFlipCount(drift));
+        Assert.Equal(0, ConsecutiveAlternationCount(drift));
 
         var oneTurn = new long[] { 100, 80, 0, -60, -40, -20 };
         Assert.Equal(1, SignFlipCount(oneTurn));
+        Assert.Equal(0, ConsecutiveAlternationCount(oneTurn));
+
+        // Isolated reversals (a famine pulse in, then out, turns later) score
+        // zero alternations; only back-to-back flipping registers.
+        var pulses = new long[] { 50, 60, -300, -100, 40, 50, 60, -200, -80, 30 };
+        Assert.Equal(4, SignFlipCount(pulses));
+        Assert.Equal(0, ConsecutiveAlternationCount(pulses));
     }
 
     [Fact]
@@ -104,9 +136,21 @@ public class MigrationStabilityTests
         Assert.True(grossTotal > 0, "no migration at 3x base — regression rig vacuous");
         for (int s = 0; s < 4; s++)
         {
-            int flips = SignFlipCount(net[s]);
-            Assert.True(flips <= turns / 3,
-                $"settlement {s}: {flips} net-flow sign flips in {turns} turns — oscillation regressed");
+            // The two-turn-attractor signature is CONSECUTIVE alternation
+            // (the old ping-pong scored ~38 here); isolated reversals at the
+            // honest dynamics' Malthus pulses are legitimate and don't count.
+            // NOISE FLOOR (T2.7b re-anchor): net flows of a few PERSONS are
+            // integer-remainder dribble (the D-004 flooring of sub-person
+            // desires at founding scale), not the attractor — the real
+            // ping-pong moved hundreds per turn (30.6 %/decade gross). Steps
+            // with |net| ≤ 5 are treated as zero (zeros stay transparent to
+            // the alternation count, so a genuine attractor with quiet turns
+            // still trips the detector).
+            for (int t = 0; t < turns; t++)
+                if (Math.Abs(net[s][t]) <= 5) net[s][t] = 0;
+            int alternations = ConsecutiveAlternationCount(net[s]);
+            Assert.True(alternations <= turns / 10,
+                $"settlement {s}: {alternations} consecutive net-flow alternations in {turns} turns — oscillation regressed");
         }
     }
 

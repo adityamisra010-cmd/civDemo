@@ -318,25 +318,19 @@ public class PopulationTests
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");
 
     [Fact]
-    public void DtHalving_MortalityFlow_FirstOrderConvergence()
+    public void DtInvariance_MortalityFlow_ExactAcrossDts()
     {
-        // Law-3 designed test, cohortized (T2.1). The full cohort model is no
-        // longer a clean Euler-convergence subject: slot-advance aging is
-        // SCHEME-EXACT at integral slot multiples (dt = 10, 5) and diffusive
-        // below (dt < 5) — a different operator per regime, so whole-model L1
-        // deviations do not halve (measured ratio ≈ 1.08; the aging operator's
-        // own dt-correctness is pinned by SlotAdvanceAging_* instead). The
-        // Euler property lives in the RATE flows: deaths-only decay on the
-        // ABSORBING 75+ cohort (no aging interference) is pure exponential
-        // decay, where halving dt should roughly HALVE the deviation between
-        // successive refinements.
-        //
-        // TOLERANCE (documented): the ratio → 2 as dt → 0; at these finite dts
-        // curvature and integer quantization widen it, so [1.4, 3.5] is
-        // asserted. Runs to the same sim-year horizon.
+        // ADR-011 SUPERSESSION of the old first-order dt-halving pin: the
+        // exponential-survival micro-kernel makes mortality dt-INVARIANT by
+        // construction (every dt composes the same half-year micro-steps), so
+        // the strictly stronger pin is EQUALITY — deaths-only decay on the
+        // absorbing 75+ cohort to the same sim-year horizon lands on the same
+        // count at dt 10 / 5 / 2.5 within ±1 (turn-boundary flooring). The
+        // old Euler behavior (ratio ≈ 2 between refinements) fails this
+        // loudly, as does any reintroduced turn-scale rate × dt flow.
         SimConfig cfg = TestConfigs.Sim();
         double[] mortality = new double[Cohorts.Count];
-        mortality[15] = 0.03; // strong enough that Euler error is visible at dt 10
+        mortality[15] = 0.03;
         cfg = cfg with
         {
             Demographics = cfg.Demographics with
@@ -360,17 +354,13 @@ public class PopulationTests
             finals[i] = world.Buckets[15].Count.Value;
         }
 
-        long l1Coarse = Math.Abs(finals[0] - finals[1]);
-        long l1Fine = Math.Abs(finals[1] - finals[2]);
-        Assert.True(l1Coarse > 0, "dt-halving produced no deviation — vacuous run");
-        Assert.True(l1Fine > 0, "second halving produced no deviation — vacuous run");
-        double ratio = l1Coarse / (double)l1Fine;
-        Assert.True(ratio is >= 1.4 and <= 3.5,
-            $"convergence ratio {ratio:F2} outside [1.4, 3.5] — not first-order behavior " +
-            $"(L1 dt10→5: {l1Coarse}, dt5→2.5: {l1Fine})");
-        Console.WriteLine(
-            $"dt-halving @ {horizon}yr (deaths-only, 75+): dt10 {finals[0]}, dt5 {finals[1]}, " +
-            $"dt2.5 {finals[2]}, ratio {ratio:F2}");
+        long expected = (long)(1_000_000 * Math.Exp(-0.03 * horizon)); // ≈ 2478
+        Assert.True(Math.Abs(finals[0] - expected) <= 2,
+            $"dt10 final {finals[0]} vs closed-form {expected}");
+        Assert.True(Math.Abs(finals[0] - finals[1]) <= 1,
+            $"dt10 {finals[0]} vs dt5 {finals[1]} — not dt-invariant");
+        Assert.True(Math.Abs(finals[1] - finals[2]) <= 1,
+            $"dt5 {finals[1]} vs dt2.5 {finals[2]} — not dt-invariant");
     }
 
     [Fact]
@@ -397,8 +387,12 @@ public class PopulationTests
             .Run(PopulationExactnessTests.BucketWorld(counts), 1);
         WorldState fine = new TurnExecutor(FlatEra(5.0), [SystemCatalog.Demographics(cfg)])
             .Run(PopulationExactnessTests.BucketWorld(counts), 2);
+        // ADR-011: identical micro-sequences; the fine run reconciles integers
+        // at the extra turn boundary, so ±1 per row of flooring is the exact
+        // bound (a kernel divergence shows up as multi-person drift).
         for (int c = 0; c < Cohorts.Count; c++)
-            Assert.Equal(fine.Buckets[c].Count.Value, coarse.Buckets[c].Count.Value);
+            Assert.True(Math.Abs(fine.Buckets[c].Count.Value - coarse.Buckets[c].Count.Value) <= 1,
+                $"cohort {c}: coarse {coarse.Buckets[c].Count.Value} vs fine {fine.Buckets[c].Count.Value}");
     }
 
     // --- reconciliation -----------------------------------------------------
@@ -411,13 +405,15 @@ public class PopulationTests
         //   Food:       InitialEndowment + Harvest − Eaten            == Σ stores
         // and NO other reason ever touches either quantity (aging is a Transfer —
         // it conserves by construction and never appears here).
-        // 300 turns, not 200 (T2.7, stated): the vacuity guard below demands
-        // every flow occurred, and at the pre-modern tempo the dev world's
-        // first starvation event does not arrive until the ~turn-255 crash.
+        // 650 turns (T2.7b, stated): the vacuity guard below demands every
+        // flow occurred, and on the honest post-ADR-011 dynamics the dev
+        // world's first Malthus crash (and first starvation) lands near turn
+        // 590 — the growth to carrying capacity is slower and cleaner than
+        // the mortality-dodging era ever showed.
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
-        for (int t = 1; t <= 300; t++) world = exec.Step(world);
+        for (int t = 1; t <= 650; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
         long foodEndow = 0, harvest = 0, eaten = 0;
@@ -453,7 +449,7 @@ public class PopulationTests
         for (int i = 0; i < world.FoodStores.Count; i++) storeTotal += world.FoodStores[i].Store.Value;
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
         Assert.True(births > 0 && deaths > 0 && starved > 0 && harvest > 0 && eaten > 0,
-            "reconciliation is vacuous — some flow never occurred in 200 turns");
+            "reconciliation is vacuous — some flow never occurred in 650 turns");
     }
 
     // --- bench report -------------------------------------------------------

@@ -1,9 +1,13 @@
 # CR-001 — The demographic tempo, the era-pacing arc, and explicit-Euler cohort integration are mutually unsatisfiable
 
-**Status: awaiting director ruling** (raised T2.8 commit 1, migration stabilization).
-Per the constitution's governance clause, work that depends on this ruling has STOPPED;
-the migration stabilization itself (mandated, independent of this conflict) is complete
-and committed alongside this CR.
+**Status: CLOSED — director ruled OPTION (a), exact-exponential cohort integration**
+(T2.8 session, on this branch). (b) rejected: calendar-gated rates violate law 4 and
+tune outcomes, not mechanisms. (c) rejected: forfeits the 6,000-year premise. The
+mechanism is recorded in **docs/adr/adr-011-exponential-survival.md**; the
+implementation is the directed T2.7b work (commit 2 on t2.8-calibration), including
+the dt-invariance acceptance and the permanent era-boundary continuity test.
+
+*(Original CR text below, kept verbatim for the record.)*
 
 ## 1. Frozen items in conflict
 

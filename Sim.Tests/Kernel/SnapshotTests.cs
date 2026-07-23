@@ -295,7 +295,16 @@ public class SnapshotTests
         //   settlements evaded Prev-sized death sinks via ClampToAvailable) —
         //   trajectories change massively and HONESTLY (see docs/adr/cr-001).
         //   Update ci.yml's FOUNDED_GOLDEN together with this constant.
-        const string golden = "8daa4c17dbfb4e0c1ea43aa95a2a227c03b5adb33d13ffc759b6f0082a94db14";
+        //   v8 value: 8daa4c17dbfb4e0c1ea43aa95a2a227c03b5adb33d13ffc759b6f0082a94db14
+        //   v9 (T2.7b, ADR-011 exponential-survival micro-step kernel —
+        //   DELIBERATE, behavior only, schema unchanged): mortality/fertility/
+        //   aging now integrate in half-year micro-steps with exact
+        //   exponential survival fractions on PRESENT counts (dt-invariant by
+        //   construction; fed growth 0.761/1000·yr at every dt), and the
+        //   vital-rate profiles re-tuned to the honest dynamics (CBR ≈ 41.4,
+        //   CDR ≈ 40.7). Every demographic trajectory changes. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        const string golden = "72fd2f00eac5d633b3a36140142aba1fc461ade2cfe682b110a70d96e00ed13c";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
