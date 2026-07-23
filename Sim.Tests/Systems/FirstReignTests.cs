@@ -93,7 +93,12 @@ public class FirstReignTests
         //   during the director's famine and is read by nothing) — the shape
         //   asserts below pass untouched; the byte stream gained the
         //   vitals/satisfaction/grievance rows.
-        const string golden = "fd02c400127ea8972ac271721637538fee371265ec31c38131963a36d87ef17e";
+        //   v6 value: fd02c400127ea8972ac271721637538fee371265ec31c38131963a36d87ef17e
+        //   v7 (T2.8, migration stabilization): at N = 1 migration still moves
+        //   nobody, but the system now WRITES its EMA filter row every turn
+        //   (schema v12 state) — the byte stream changes; the trajectory does
+        //   not, and the shape asserts below stand untouched.
+        const string golden = "15f44bd9ac90febda378db5eb4299843da81e9fbcdc31b061853bc31448a6f6b";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -168,6 +168,15 @@ public sealed record RegistriesConfig(
 /// the D-021 Exit valve: gap-INDEPENDENT — starving people leave for anywhere
 /// reachable, weighted by damping alone when no gap is positive.
 /// CohortProfile is the young-adult-peaked migration propensity (16 entries).
+/// T2.8 stabilization (director ruling — D-021 paired-feedback):
+///  - GapClosingFraction f ∈ (0,1): the gap-DRIVEN flow on a pair is capped
+///    at f × the flow that would EQUALIZE per-capita attractiveness
+///    (closed form; see MigrationSystem) — overshoot is structurally
+///    impossible below 1. Famine flight is deliberately NOT capped by it
+///    (the Exit valve is a surge by design; the overdraw scaler bounds it).
+///  - AttractivenessSmoothingWindowYears τ > 0: the EMA time constant of the
+///    smoothed attractiveness that DRIVES desire — a one-turn emptying
+///    cannot mint a one-turn magnet.
 /// </summary>
 public sealed record MigrationConfig(
     [property: JsonPropertyName("baseRatePerYear"), JsonRequired] double BaseRatePerYear,
@@ -175,7 +184,9 @@ public sealed record MigrationConfig(
     [property: JsonPropertyName("attractivenessFoodWeight"), JsonRequired] double AttractivenessFoodWeight,
     [property: JsonPropertyName("attractivenessLandWeight"), JsonRequired] double AttractivenessLandWeight,
     [property: JsonPropertyName("famineFlightFactor"), JsonRequired] double FamineFlightFactor,
-    [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile);
+    [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile,
+    [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
+    [property: JsonPropertyName("attractivenessSmoothingWindowYears"), JsonRequired] double AttractivenessSmoothingWindowYears);
 
 public static class SimConfigLoader
 {
@@ -271,6 +282,15 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 $"migration.dampingDecayCost must be a finite value > 0, got {Inv(cfg.Migration.DampingDecayCost)}.");
         RequireCohortArray("migration.cohortProfile", cfg.Migration.CohortProfile);
+        if (!(cfg.Migration.GapClosingFraction > 0.0 && cfg.Migration.GapClosingFraction < 1.0))
+            throw new SimConfigException(
+                $"migration.gapClosingFraction must be in (0,1) — at 1 or above the damped-flow cap no longer " +
+                $"prevents overshoot structurally, got {Inv(cfg.Migration.GapClosingFraction)}.");
+        if (!(cfg.Migration.AttractivenessSmoothingWindowYears > 0.0)
+            || !double.IsFinite(cfg.Migration.AttractivenessSmoothingWindowYears))
+            throw new SimConfigException(
+                $"migration.attractivenessSmoothingWindowYears must be a finite value > 0, " +
+                $"got {Inv(cfg.Migration.AttractivenessSmoothingWindowYears)}.");
 
         return cfg;
     }

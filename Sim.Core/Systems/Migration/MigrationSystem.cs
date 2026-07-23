@@ -5,45 +5,70 @@ namespace Sim.Core.Systems.Migration;
 
 /// <summary>Writable handles to MigrationSystem's tables (built by
 /// SystemCatalog only). Buckets is SHARED with Demographics and ClassMobility
-/// (see SystemCatalog); MigrationFlows is this system's chronicle table.</summary>
+/// (see SystemCatalog); MigrationFlows is this system's chronicle table;
+/// SmoothedAttractiveness is its persistent EMA filter state (T2.8).</summary>
 public readonly record struct MigrationTables(
-    Table<BucketRow> Buckets, Table<MigrationFlowRow> Flows);
+    Table<BucketRow> Buckets, Table<MigrationFlowRow> Flows,
+    Table<SmoothedAttractivenessRow> Smoothed);
 
 /// <summary>
-/// Migration (T2.5, m2 spec §3 / D-021 Exit valve): people are Ledger.Transfers
-/// of buckets between settlements — migrants keep their FULL bucket key
-/// (culture, religion, class, cohort travel together; the destination bucket is
-/// the same key at the destination settlement). Everything reads Prev (§3.2).
+/// Migration (T2.5, m2 spec §3 / D-021 Exit valve; STABILIZED at T2.8 by
+/// director ruling — the ping-pong attractor was a paired-feedback violation):
+/// people are Ledger.Transfers of buckets between settlements — migrants keep
+/// their FULL bucket key. Everything reads Prev (§3.2).
 ///
 /// DRIVER, per source bucket and destination:
 ///   desired/yr = BaseRatePerYear × CohortProfile[cohort] × PREV count
-///                × damping(i→j) × (gap(i→j) + FamineFlightFactor × deficit_i)
-///   gap      = max(0, A_j − A_i), A = FoodWeight × food/capita + LandWeight ×
-///              farmland/capita (Prev stores + Prev catchment summaries; capita
-///              floored at 1 so an empty settlement never divides by zero).
+///                × damping(i→j) × (gapScale(i→j) × gap(i→j)
+///                                  + FamineFlightFactor × deficit_i)
+///   gap      = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
 ///   damping  = exp(−travelCost / DampingDecayCost) from Prev
 ///              SettlementDistances; an UNREACHABLE pair stores +∞ and
 ///              exp(−∞) = 0 — zero flow BY CONSTRUCTION, not by branch.
-///   deficit  = the source's PREV consumption-deficit ratio — the famine
-///              flight term is gap-INDEPENDENT (D-021: starving people leave
-///              for anywhere reachable, weighted by damping alone when no gap
-///              is positive).
+///   deficit  = the source's PREV consumption-deficit ratio — famine flight
+///              stays gap-INDEPENDENT (D-021: starving people leave for
+///              anywhere reachable) and is deliberately NOT gap-capped: the
+///              Exit valve is a surge by design, bounded by the overdraw
+///              scaler alone.
+///
+/// T2.8 STABILIZATION — the market-mandate pattern applied to people, BOTH:
+/// (a) DAMPED FLOWS (gap-closing cap): with A = R/P (R = FoodWeight × food +
+///     LandWeight × farmland, P = population), the pairwise flow that would
+///     EQUALIZE instantaneous per-capita attractiveness has the closed form
+///       m* = (R_j × P_i − R_i × P_j) / (R_i + R_j),  taken at max(0, ·).
+///     The pair's total gap-driven desire is scaled so it never exceeds
+///     GapClosingFraction × m* — at f < 1 the post-move gap keeps its sign,
+///     so overshoot is STRUCTURALLY impossible at the pair level. The cap
+///     reads INSTANTANEOUS physics while desire reads the SMOOTHED signal:
+///     right after a large move the instantaneous m* says "equalized" and
+///     the cap zeroes further flow even while the EMA still remembers a gap.
+///     (Multiple sources can share one destination; with f well below 1 and
+///     the ascending-pair execution order the collective inflow stays inside
+///     the basin — pinned empirically by the oscillation regression tests.)
+/// (b) ATTRACTIVENESS SMOOTHING: S is a first-order low-pass over A —
+///       S += (A − S) × min(1, dt / WindowYears)
+///     (per-year time constant, integrated with dtYears, factor clamped at 1
+///     for dt ≥ τ). Persistent filter state in the SmoothedAttractiveness
+///     table; a settlement's first sighting initializes S = A (the filter
+///     starts converged). A one-turn emptying can no longer mint a one-turn
+///     magnet.
+/// (c) A separate crowding-saturation term was CONSIDERED AND DECLINED: the
+///     gap-closing cap already encodes diminishing pull — every arrival
+///     lowers the destination's per-capita draw and shrinks m* — so a third
+///     term would be a free-floating modifier stacked on a mechanism that
+///     already saturates (law 2).
 ///
 /// OVERDRAW DISCIPLINE: desired outflows to ALL destinations are computed from
-/// Prev first; if their sum exceeds the bucket's PREV count they are scaled
-/// proportionally (scale = count / Σdesired). Transfers then execute in the
-/// PINNED ascending (source, dest, bucket-key) order — source settlements
-/// ascending, destinations ascending inside, buckets in table order (the
-/// founding bucket-key order) innermost — through the per-source-row
-/// MigrationRemainder (fractional outflow is conserved in TOTAL; sub-person
-/// destination attribution rides the carry in visit order — documented).
-/// ClampToAvailable backstops the floors: a bucket can hit exactly zero,
-/// never negative, and nobody moves who does not exist.
+/// Prev first (gap components pre-scaled by their pair caps); if their sum
+/// exceeds the bucket's PREV count they are scaled proportionally. Transfers
+/// then execute in the PINNED ascending (source, dest, bucket-key) order
+/// through the per-source-row MigrationRemainder. ClampToAvailable backstops
+/// the floors: a bucket can hit exactly zero, never negative.
 ///
-/// CHRONICLE HOOKS: per-settlement Inflow/Outflow totals for THIS turn are
-/// rebuilt into MigrationFlows every step (T2.9 reads them for surge events).
-/// Slots after ClassMobility, before Demographics (m2 spec §3 pipeline).
-/// STATELESS: config is immutable tuning, not state. No RNG.
+/// CHRONICLE HOOKS: per-settlement Inflow/Outflow totals rebuilt into
+/// MigrationFlows every step. Slots after ClassMobility, before Demographics.
+/// STATELESS except the EMA filter rows (world state, not system state).
+/// No RNG.
 /// </summary>
 public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 {
@@ -65,10 +90,11 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         flows.Clear();
         for (int s = 0; s < n; s++)
             flows.Add(new MigrationFlowRow(prev.Settlements[s].Id, 0, 0));
-        if (n < 2) return;
 
         // --- Prev-derived per-settlement signals -----------------------------
-        var attractiveness = new double[n];
+        var resources = new double[n];    // R = fw × food + lw × farmland
+        var population = new long[n];     // P (raw, no floor — m* uses physics)
+        var instant = new double[n];      // A = R / max(P, 1)
         var deficit = new double[n];
         int maxId = 0;
         for (int s = 0; s < n; s++) maxId = Math.Max(maxId, prev.Settlements[s].Id.Value);
@@ -82,7 +108,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             long pop = 0;
             for (int i = 0; i < prev.Buckets.Count; i++)
                 if (prev.Buckets[i].Settlement == id) pop += prev.Buckets[i].Count.Value;
-            long capita = Math.Max(pop, 1);
+            population[s] = pop;
 
             long food = 0;
             for (int i = 0; i < prev.FoodStores.Count; i++)
@@ -95,9 +121,30 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 if (prev.ConsumptionDeficits[i].Settlement == id)
                 { deficit[s] = prev.ConsumptionDeficits[i].DeficitRatio; break; }
 
-            attractiveness[s] = m.AttractivenessFoodWeight * (food / (double)capita)
-                                + m.AttractivenessLandWeight * (farmland / (double)capita);
+            resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * farmland;
+            instant[s] = resources[s] / Math.Max(pop, 1);
         }
+
+        // --- EMA filter update (T2.8 b): PREV smoothed → owned smoothed ------
+        // The owned table is the cloned prev table; rows update in place, and
+        // a settlement without a row (first sighting) appends one initialized
+        // AT the instantaneous value, in ascending settlement-row order.
+        Table<SmoothedAttractivenessRow> smoothedTable = ctx.Owned.Smoothed;
+        var smoothed = new double[n];
+        double alpha = Math.Min(1.0, ctx.DtYears / m.AttractivenessSmoothingWindowYears);
+        for (int s = 0; s < n; s++)
+        {
+            SettlementId id = prev.Settlements[s].Id;
+            int rowIdx = -1;
+            for (int i = 0; i < smoothedTable.Count; i++)
+                if (smoothedTable[i].Settlement == id) { rowIdx = i; break; }
+            double prevSmoothed = rowIdx >= 0 ? smoothedTable[rowIdx].Value : instant[s];
+            double value = prevSmoothed + (instant[s] - prevSmoothed) * alpha;
+            if (rowIdx >= 0) smoothedTable[rowIdx] = smoothedTable[rowIdx] with { Value = value };
+            else smoothedTable.Add(new SmoothedAttractivenessRow(id, value));
+            smoothed[s] = value;
+        }
+        if (n < 2) return;
 
         // Damping matrix from Prev distances (missing row — e.g. before the
         // first catchment recompute — is unreachable: damping 0, no flow).
@@ -121,9 +168,41 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 bucketRows[settlementIndex[sid]].Add(i);
         }
 
+        // --- T2.8 (a): per-pair gap-closing caps -----------------------------
+        // gapScale[src,dst] scales the pair's ENTIRE gap-driven desire so it
+        // never exceeds f × m*. Computed once from Prev; the transfer loop
+        // recomputes bit-identical products from the same inputs.
+        var gapScale = new double[n, n];
+        for (int src = 0; src < n; src++)
+        {
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                double gap = Math.Max(0.0, smoothed[dst] - smoothed[src]);
+                if (gap <= 0.0 || damping[src, dst] <= 0.0) continue; // no gap desire — scale moot
+
+                // The pair's total gap-driven desire across every bucket.
+                double gapDesire = 0.0;
+                foreach (int row in bucketRows[src])
+                {
+                    BucketRow b = prev.Buckets[row];
+                    gapDesire += m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                                 * b.Count.Value * ctx.DtYears * damping[src, dst] * gap;
+                }
+                if (gapDesire <= 0.0) continue;
+
+                double denom = resources[src] + resources[dst];
+                double equalizing = denom > 0.0
+                    ? Math.Max(0.0, (resources[dst] * population[src] - resources[src] * population[dst]) / denom)
+                    : 0.0;
+                double cap = m.GapClosingFraction * equalizing;
+                gapScale[src, dst] = gapDesire > cap ? cap / gapDesire : 1.0;
+            }
+        }
+
         // --- desired outflows (all from Prev), then proportional scaling -----
-        // desiredTotal[bucketRow] = Σ_j desired; perDest factor recomputed in
-        // the transfer loop from the same Prev inputs (bit-identical products).
+        // desiredTotal[bucketRow] = Σ_j (gap-capped + flight) desire; perDest
+        // factors recomputed in the transfer loop (bit-identical products).
         var desiredTotal = new double[prev.Buckets.Count];
         for (int src = 0; src < n; src++)
         {
@@ -138,7 +217,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 {
                     if (dst == src) continue;
                     total += perCount * damping[src, dst]
-                             * (Math.Max(0.0, attractiveness[dst] - attractiveness[src])
+                             * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
                                 + m.FamineFlightFactor * deficit[src]);
                 }
                 desiredTotal[row] = total;
@@ -153,7 +232,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             {
                 if (dst == src) continue;
                 double push = damping[src, dst]
-                              * (Math.Max(0.0, attractiveness[dst] - attractiveness[src])
+                              * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
                                  + m.FamineFlightFactor * deficit[src]);
                 if (push <= 0.0) continue;
 

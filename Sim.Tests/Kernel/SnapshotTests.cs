@@ -146,7 +146,11 @@ public class SnapshotTests
         //   NeedSatisfactions + Grievances tables (three zero count prefixes,
         //   12 bytes); needsgrievance is not in the toy preset. Only the
         //   stream grew.
-        const string golden = "6ba9b770735a289cd49dff990d0c6e518afa91d336f8372073adcbd40018ecd2";
+        //   v10 value: 6ba9b770735a289cd49dff990d0c6e518afa91d336f8372073adcbd40018ecd2
+        //   v11 (T2.8): schema v12 gained the empty SmoothedAttractiveness
+        //   table (one zero count prefix, 4 bytes); migration is not in the
+        //   toy preset. Only the stream grew.
+        const string golden = "ff9519a151bb4b3b348aa289b7555c221834e4ce297d989cb038860c2c07d420";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -283,7 +287,15 @@ public class SnapshotTests
         //   ran) — every trajectory-derived test passed across the re-pin; the
         //   stream gained vitals/satisfaction/grievance rows. Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
-        const string golden = "bfd44b872a6938d8787ff877e8e165acee981b0ad0c487a7bbdf7cc1513b43b5";
+        //   v7 value: bfd44b872a6938d8787ff877e8e165acee981b0ad0c487a7bbdf7cc1513b43b5
+        //   v8 (T2.8, migration stabilization — DELIBERATE, behavior + schema
+        //   v12): the gap-closing flow cap + EMA-smoothed attractiveness
+        //   change every migration flow, and CRUCIALLY end the mortality
+        //   dodging the old ping-pong enabled (people shuttling between
+        //   settlements evaded Prev-sized death sinks via ClampToAvailable) —
+        //   trajectories change massively and HONESTLY (see docs/adr/cr-001).
+        //   Update ci.yml's FOUNDED_GOLDEN together with this constant.
+        const string golden = "8daa4c17dbfb4e0c1ea43aa95a2a227c03b5adb33d13ffc759b6f0082a94db14";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -511,6 +523,34 @@ public class SnapshotTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.NeedSatisfactions[1].Value));
         Assert.Equal(42.640625, loaded.Grievances[0].Value);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV12_PopulatedSmoothedAttractiveness_ExactLengthRoundTripHash()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test. v12 adds SmoothedAttractivenessRow (T2.8's EMA filter
+        // state) — non-round double and negative zero pin bit-exactness.
+        WorldState world = Genesis(34);
+        world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(0), 12.359375));
+        world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(1), -0.0));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(12.359375, loaded.SmoothedAttractiveness[0].Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.SmoothedAttractiveness[1].Value));
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 
