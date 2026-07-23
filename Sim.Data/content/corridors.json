@@ -9,10 +9,12 @@
       "note": "The ratified T2.7 band 0.05-0.1 %/yr verbatim; measured 0.00072-0.00076 across seeds after the 800-year founding warm-up."
     },
     "crudeBirthRatePer1000": {
+      "windowYears": [800, 2400],
       "band": [37.0, 46.0],
       "note": "Pre-modern CBR corridor around the measured 41.5; the historical envelope is ~30-55, the tune sits mid-range."
     },
     "crudeDeathRatePer1000": {
+      "windowYears": [800, 2400],
       "band": [36.0, 45.0],
       "note": "CDR tracks CBR minus the growth band; measured 40.7."
     },

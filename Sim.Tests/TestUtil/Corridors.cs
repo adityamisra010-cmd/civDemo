@@ -31,6 +31,11 @@ public sealed class Corridors
         return c;
     }
 
+    /// <summary>Every corridor key present in the file ("group.corridor") —
+    /// lets tests sweep ALL bands so an added corridor can't silently escape
+    /// the interval-sanity check.</summary>
+    public IReadOnlyCollection<string> Keys => _bands.Keys;
+
     public (double Lo, double Hi) Band(string key) =>
         _bands.TryGetValue(key, out var b)
             ? b

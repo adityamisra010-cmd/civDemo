@@ -9,8 +9,13 @@ namespace Sim.Tests.TestUtil;
 /// for a single-settlement, single-group 16-cohort world: same closed forms,
 /// same pinned op order, bit-identical arithmetic — the "hand-computed
 /// expectation" instrument of the exactness suite (a system-side deviation
-/// from the documented math breaks equality with this replica). Deliberately
-/// re-implemented from the ADR, not shared with production code.
+/// from the documented math breaks equality with this replica). Re-implemented
+/// from the PINNED KERNEL CONTRACT (the DemographicsSystem header, which the
+/// T2.7b adversarial pass verified against ADR-011), not shared with
+/// production code. Scope honesty: the replica pins the closed forms and the
+/// composition ORDER as documented — it would catch a formula or order edit,
+/// but a change made to BOTH documents and code in lockstep is by definition
+/// a new pinned contract, not a drift this instrument can see.
 /// </summary>
 public static class DemographicsReplica
 {

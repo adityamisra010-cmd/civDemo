@@ -40,6 +40,17 @@ public readonly record struct DemographicsTables(
 ///      deficit) multiplies fertility; suppressed exact births bank into the
 ///      ReboundReservoir and release on fed turns at the TUNE rate — all at
 ///      micro-scale, dt-correct by construction.
+///      NEWBORN CREDIT happens HERE, inside the births step: survivors =
+///      B × w(λ_0·h) join cohort 0 immediately (the shortfall is an infant
+///      Death — Births counts live births, Deaths includes in-step infant
+///      deaths), and the credited newborns then face THIS micro-step's
+///      sinks and aging below. That double exposure (w(λ_0·h) × e^(−λ_0·h)
+///      instead of the pure mid-step w factor) is a deliberate PINNED
+///      choice: it is identical at every dt (per-micro-step, so
+///      dt-invariance is untouched), it is part of the honest compositional
+///      residue the retune absorbed, and moving the credit after the sinks
+///      would be a behavior change re-anchoring every tuned rate for no
+///      structural gain.
 ///   1. Base deaths — pop_c × (1 − e^(−m_c·h)), then
 ///   2. Starvation — remaining × (1 − e^(−s_c·h)), s_c = max rate × PREV
 ///      deficit × age multiplier (sequential exponential sinks compose to
@@ -52,10 +63,7 @@ public readonly record struct DemographicsTables(
 ///   3. Aging — ADR-010 slot-advance at micro-scale: h/width of each cohort
 ///      advances one slot (descending, cascade-free); 75+ absorbs. At
 ///      h < width this is the fractional-advance kernel ADR-010 defines.
-///   4. Newborn credit — into cohort 0 (h < width always), surviving the
-///      in-step w(λ_0·h) factor; the shortfall is an infant Death (Births
-///      counts live births, Deaths includes in-step infant deaths). Newborns
-///      then age upward through the same micro-kernel — the coarse-dt
+///      Newborns age upward through the same micro-kernel — the coarse-dt
 ///      "newborn cohort spread" of the T2.1 kernel is SUPERSEDED: the spread
 ///      now emerges from integration instead of being imposed.
 ///

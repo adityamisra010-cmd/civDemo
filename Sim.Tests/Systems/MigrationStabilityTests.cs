@@ -119,8 +119,13 @@ public class MigrationStabilityTests
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, null);
 
-        const int turns = 40;
+        // 200 turns (not the founding 40): populations grow into the
+        // thousands, so a genuine attractor — which moves a FRACTION of the
+        // population per turn (the T2.7 one moved ~30 %/decade gross) —
+        // dwarfs the integer-dribble floor below instead of hiding under it.
+        const int turns = 200;
         var net = new long[4][];
+        var popSum = new long[4];
         for (int s = 0; s < 4; s++) net[s] = new long[turns];
         long grossTotal = 0;
         for (int t = 0; t < turns; t++)
@@ -132,22 +137,45 @@ public class MigrationStabilityTests
                 net[s][t] = row.Inflow - row.Outflow;
                 grossTotal += row.Outflow;
             }
+            for (int i = 0; i < world.Buckets.Count; i++)
+                for (int s = 0; s < 4; s++)
+                    if (world.Buckets[i].Settlement == world.Settlements[s].Id)
+                    { popSum[s] += world.Buckets[i].Count.Value; break; }
         }
         Assert.True(grossTotal > 0, "no migration at 3x base — regression rig vacuous");
         for (int s = 0; s < 4; s++)
         {
             // The two-turn-attractor signature is CONSECUTIVE alternation
-            // (the old ping-pong scored ~38 here); isolated reversals at the
-            // honest dynamics' Malthus pulses are legitimate and don't count.
-            // NOISE FLOOR (T2.7b re-anchor): net flows of a few PERSONS are
-            // integer-remainder dribble (the D-004 flooring of sub-person
-            // desires at founding scale), not the attractor — the real
-            // ping-pong moved hundreds per turn (30.6 %/decade gross). Steps
-            // with |net| ≤ 5 are treated as zero (zeros stay transparent to
-            // the alternation count, so a genuine attractor with quiet turns
-            // still trips the detector).
+            // (the old ping-pong scored ~38 per 40 turns here); isolated
+            // reversals at the honest dynamics' Malthus pulses are
+            // legitimate and don't count.
+            // NOISE FLOOR (T2.7b re-anchor, adversarially re-verified): net
+            // flows of a few PERSONS are integer-remainder dribble (D-004
+            // flooring of sub-person desires), not the attractor. The floor
+            // is POPULATION-RELATIVE — max(5, mean settlement pop / 200),
+            // i.e. 0.5% of the settlement per turn — so it can never mask a
+            // flow that matters at the settlement's own scale (the real
+            // attractor moved ~30% of a settlement per turn at dt 10).
+            // Zeros stay transparent to the alternation count, so a genuine
+            // attractor with quiet turns still trips the detector.
+            long meanPop = popSum[s] / turns;
+            long floor = Math.Max(5, meanPop / 200);
+            long zeroedMagnitude = 0;
             for (int t = 0; t < turns; t++)
-                if (Math.Abs(net[s][t]) <= 5) net[s][t] = 0;
+                if (Math.Abs(net[s][t]) <= floor)
+                {
+                    zeroedMagnitude += Math.Abs(net[s][t]);
+                    net[s][t] = 0;
+                }
+            // ANTI-VACUITY COMPANION (the floor must only ever discard
+            // dribble): D-004 remainder flooring sheds O(1 person) per
+            // settlement per turn regardless of population, so the AVERAGE
+            // discarded magnitude must stay ≤ 2 people/turn (measured: 0.9).
+            // A persistent attractor pinned at the floor amplitude would
+            // discard ≥ floor (≥ 5) per active turn — this trips first.
+            Assert.True(zeroedMagnitude <= 2 * turns,
+                $"settlement {s}: noise floor discarded {zeroedMagnitude} people over {turns} turns " +
+                $"(avg > 2/turn) — sub-floor flow is NOT dribble, raise the alarm not the floor");
             int alternations = ConsecutiveAlternationCount(net[s]);
             Assert.True(alternations <= turns / 10,
                 $"settlement {s}: {alternations} consecutive net-flow alternations in {turns} turns — oscillation regressed");

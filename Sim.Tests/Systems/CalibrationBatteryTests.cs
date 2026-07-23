@@ -72,10 +72,12 @@ public class CalibrationBatteryTests
         (double from, double to) = Corridors.WindowYears("canonical", "fedGrowthPerYear");
         AssertInBand(c, "canonical.fedGrowthPerYear",
             CalibrationAnalysis.WindowGrowthPerYear(m, from, to));
+        (double bFrom, double bTo) = Corridors.WindowYears("canonical", "crudeBirthRatePer1000");
         AssertInBand(c, "canonical.crudeBirthRatePer1000",
-            CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Births, from, to) * 1000.0);
+            CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Births, bFrom, bTo) * 1000.0);
+        (double dFrom, double dTo) = Corridors.WindowYears("canonical", "crudeDeathRatePer1000");
         AssertInBand(c, "canonical.crudeDeathRatePer1000",
-            CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Deaths, from, to) * 1000.0);
+            CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Deaths, dFrom, dTo) * 1000.0);
 
         (double child, double adult, double elder) = CalibrationAnalysis.PyramidShares(m);
         AssertInBand(c, "canonical.pyramidChildShare", child);
@@ -142,8 +144,18 @@ public class CalibrationBatteryTests
     {
         // A one-sided or inverted band is a silent-vacuity hazard: every band
         // must be a real interval with lo < hi (two-sided teeth by data).
+        // Interval sanity sweeps EVERY key in the FILE (adversarial pass: a
+        // corridor added to corridors.json must not escape this check), and
+        // the battery's assertion coverage is pinned to the exact expected
+        // key set — adding a corridor without wiring a battery assert FAILS
+        // here instead of silently going unenforced.
         Corridors c = Corridors.Load();
-        foreach (string key in new[]
+        foreach (string key in c.Keys)
+        {
+            (double lo, double hi) = c.Band(key);
+            Assert.True(lo < hi, $"{key}: band [{lo}, {hi}] is not a real interval");
+        }
+        var expected = new[]
         {
             "canonical.fedGrowthPerYear", "canonical.crudeBirthRatePer1000",
             "canonical.crudeDeathRatePer1000", "canonical.pyramidChildShare",
@@ -152,10 +164,10 @@ public class CalibrationBatteryTests
             "dev.crashCount", "dev.firstCrashTurn", "dev.crashDepth",
             "dev.postCrashPopulation", "dev.starvationRatePer1000",
             "dev.migrationGrossPerDecade",
-        })
-        {
-            (double lo, double hi) = c.Band(key);
-            Assert.True(lo < hi, $"{key}: band [{lo}, {hi}] is not a real interval");
-        }
+        };
+        var actual = new List<string>(c.Keys);
+        actual.Sort(StringComparer.Ordinal);
+        Array.Sort(expected, StringComparer.Ordinal);
+        Assert.Equal(expected, actual);
     }
 }

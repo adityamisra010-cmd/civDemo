@@ -33,22 +33,29 @@ scale, inflating growth ~+10/1000·yr).
    standard nLx-style exposure: people who die mid-step bear children for the
    fraction of the step they lived. Famine suppression multiplies fertility BEFORE
    integration; the rebound reservoir banks suppressed EXACT births as before.
-4. **Newborns face in-step mortality.** Births are spread uniformly over the step,
-   so of B exact births credited to cohort j, `B × (1 − e^{−m_j·dt}) / (m_j·dt)`
-   survive to the step boundary; the shortfall flows as Deaths (sourced then sunk —
-   ledger-honest infant deaths). Without this factor, longer steps let newborns skip
-   more infant exposure and the dt-invariance breaks by ≈ 4/1000·yr (measured).
-5. **Aging: ADR-010 slot-advance stands**, sized from POST-SINK present counts (the
-   people actually present age); descending-cohort processing is cascade-free
-   (arrivals land only on already-processed higher cohorts). The pinned within-step
-   composition order is **birth-exacts computed from pre-sink presents → base
-   deaths → starvation → aging → newborn credit (source + in-step infant-death
-   sink)** per settlement, in table order — newborns credit AFTER aging because
-   NewbornShares already places them at their end-of-step age. The remaining
-   compositional error (aging is a step-boundary jump while deaths are continuous;
-   newborn in-step survival uses the credited cohort's rate) is the honest
-   first-order residue — MEASURED by the dt-invariance and era-boundary continuity
-   tests, not hidden.
+4. **Newborns face in-step mortality.** Births are spread uniformly over the
+   micro-step, so of B exact births, `B × W(λ_0·h)` (W(x) = (1−e^{−x})/x, λ_0 =
+   cohort 0's total sink rate) are credited to cohort 0 and the shortfall flows as
+   Deaths (sourced then sunk — ledger-honest infant deaths). Without this factor,
+   longer steps let newborns skip more infant exposure and the dt-invariance breaks
+   by ≈ 4/1000·yr (measured at turn scale, pre-micro-step).
+5. **Aging: ADR-010 slot-advance stands**, at micro-scale (h/width of each cohort
+   advances one slot per micro-step), descending-cohort processing cascade-free
+   (arrivals land only on already-processed higher cohorts). The IMPLEMENTATION
+   (T2.7b final) integrates the whole turn as fixed half-year micro-steps — the
+   header of `DemographicsSystem.cs` is the authoritative statement of the kernel.
+   The pinned within-MICRO-STEP composition order is **births (exacts from
+   pre-sink presents; newborn credit into cohort 0 immediately, with the in-step
+   W(λ_0·h) survivor factor) → base deaths → starvation → aging**, per settlement
+   in table order; integer reconciliation runs ONCE per turn in the pinned order
+   **births → aging ASCENDING → deaths → starvation**. Because the newborn credit
+   precedes the same micro-step's sinks, newborns bear W(λ_0·h) × e^{−λ_0·h}
+   rather than the pure mid-step W factor — a deliberate pinned choice: it is
+   identical at every dt (so dt-invariance is untouched) and is part of the honest
+   compositional residue the retune absorbed. That residue (aging is a
+   step-boundary jump while deaths are continuous; newborns double-expose within
+   their birth micro-step) is MEASURED by the dt-invariance and era-boundary
+   continuity tests, not hidden.
 
 ## The law-3 reading
 
