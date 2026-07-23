@@ -400,6 +400,42 @@ public sealed class SimUiGame : Game
         }
     }
 
+    /// <summary>T2.10: the graphs — world totals + the selected settlement,
+    /// straight off the D-028 ring buffer (see HistoryBuffer for the replay/
+    /// mid-game-load semantics). PlotLines autoscales per series; the overlay
+    /// text carries the latest value so the line is readable as a number too.</summary>
+    private void DrawGraphs()
+    {
+        ImGui.SetNextWindowPos(
+            new System.Numerics.Vector2(700, 12), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(
+            new System.Numerics.Vector2(420, 460), ImGuiCond.FirstUseEver);
+        ImGui.Begin("Graphs");
+        ViewModel.HistoryBuffer history = _session.History;
+        ImGui.TextUnformatted("world");
+        Plot("pop##world", history.World(HistoryBuffer.Metric.Population));
+        Plot("food##world", history.World(HistoryBuffer.Metric.Food));
+        Plot("grievance##world", history.World(HistoryBuffer.Metric.Grievance));
+        ImGui.Separator();
+        ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
+        Plot("pop##sel", history.Settlement(_selected, HistoryBuffer.Metric.Population));
+        Plot("food##sel", history.Settlement(_selected, HistoryBuffer.Metric.Food));
+        Plot("grievance##sel", history.Settlement(_selected, HistoryBuffer.Metric.Grievance));
+        ImGui.End();
+    }
+
+    private static void Plot(string label, float[] series)
+    {
+        if (series.Length == 0)
+        {
+            ImGui.TextUnformatted("no data");
+            return;
+        }
+        string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
+        ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
+            float.MaxValue, float.MaxValue, new System.Numerics.Vector2(300, 56));
+    }
+
     /// <summary>T2.9: the annals — scrollable, newest LAST, auto-scrolled to
     /// the tail when new lines arrive while the reader is at the tail.</summary>
     private void DrawAnnals()
@@ -438,6 +474,7 @@ public sealed class SimUiGame : Game
         _imgui!.BeforeLayout(gameTime);
         DrawNameLabels();   // T2.9: background drawlist — under all panels
         DrawAnnals();       // T2.9
+        DrawGraphs();       // T2.10
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
         ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
 

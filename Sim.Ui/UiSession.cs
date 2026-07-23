@@ -38,6 +38,10 @@ public sealed class UiSession
     /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
     public IReadOnlyList<string> AnnalLines => _annals;
 
+    /// <summary>T2.10, D-028: the graphs' ring buffer — UI-side history,
+    /// captured per observed turn alongside the chronicle.</summary>
+    public ViewModel.HistoryBuffer History { get; } = new();
+
     private UiSession(WorldState world, TurnExecutor executor, OrderLog orders)
     {
         World = world;
@@ -50,6 +54,7 @@ public sealed class UiSession
         Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, world.Seed, world);
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg);
         ObserveChronicle(); // founding events fire on first sight
+        History.Capture(World); // the founding sample (turn 0)
     }
 
     private void ObserveChronicle()
@@ -128,6 +133,7 @@ public sealed class UiSession
     {
         World = _executor.Step(World);
         ObserveChronicle();
+        History.Capture(World);
     }
 
     /// <summary>The chronicle.txt path twinned with a session log path:
