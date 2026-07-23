@@ -49,6 +49,11 @@ sim replay --seed S --orders PATH --turns N [--hash-log PATH]
 
 # Per-phase wall time and allocations (clone + each system, first-seen order)
 sim bench --seed S --turns N [--json]
+
+# T2.8 calibration data source: N independent canonical founded worlds
+# (seeds seed-base..seed-base+N-1, default base 1), T no-order turns each,
+# per-seed metrics to OUT.json. Deterministic: same (seed, turns) => same bytes.
+sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
 ```
 
 `sim bench --json` emits one JSON object — the future perf-gate input (no gate
@@ -58,6 +63,48 @@ yet: toy systems would make thresholds meaningless):
 { "seed": 42, "turns": 500, "totalMs": 9.19,
   "phases": [ { "name": "clone", "totalMs": 0.88, "allocatedBytes": 335648 }, … ] }
 ```
+
+### Autoplay metrics (schema `autoplay-metrics/v1`)
+
+The JSON `sim autoplay --metrics` emits is the calibration battery's **input
+contract** — `Sim.Core.Kernel.AutoplayMetrics`/`CalibrationAnalysis` compute
+the same objects in-process for the CI battery
+(`Sim.Tests/Systems/CalibrationBatteryTests.cs`), and the corridor bands live
+in `Sim.Data/content/corridors.json` (TUNE data, D-006):
+
+```json
+{ "schema": "autoplay-metrics/v1", "turns": 650,
+  "seeds": [ {
+    "seed": 1, "worldHash": "…64 hex…",
+    "finalPopulation": 115627, "finalYear": 4500.0,
+    "settlementCount": 12,
+    "arableKm2": 388145.2,          // Σ EffectiveFarmland × lattice-block km²
+                                    // (fertility-WEIGHTED arable — the honest
+                                    // definition; raw land area would flatter
+                                    // density by counting desert as arable)
+    "finalCohortTotals": [16, 5-year cohort counts],
+    "series": {                     // parallel arrays, one entry per turn
+      "year": [...], "dtYears": [...], "population": [...],
+      "births": [...], "deaths": [...],        // deaths = base + starvation
+      "starvationDeaths": [...],               // per-turn ledger-sink delta
+      "migrationGross": [...]                  // Σ settlement outflows
+    },
+    "derived": {
+      "densityPerArableKm2": 0.298,
+      "migrationGrossPerDecade": 0.0004,       // fraction of pop per decade
+      "crashCount": 0                          // ≥20% peak-to-trough drawdowns
+    } } ] }
+```
+
+Nightly (`calibration-nightly` job, cron + manual dispatch) sweeps ≥20 seeds:
+`sim autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json`.
+
+**Density vs D-015 ("map feels small") verdict, T2.8:** at year 4500 the
+canonical world holds ~0.30–0.36 people per fertility-weighted arable km²
+(measured across seeds) — three orders of magnitude below mature agrarian
+land use (~10–30/km²). The map is **not** small for M2's horizon; the D-015
+concern is about *travel scale*, not carrying capacity, and no worldgen
+resize is warranted on density grounds.
 
 CI runs three jobs on every push: `build-and-test` (gates + full suite),
 `determinism` (the T0.8 in-process harness), and `determinism-xproc` (T0.9:

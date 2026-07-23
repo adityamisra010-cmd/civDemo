@@ -1,0 +1,58 @@
+{
+  "schema": "calibration-corridors/v1",
+  "_doc": "T2.8 calibration corridors — every band is TUNE data (D-006). Two-sided by construction: the battery fails when a metric leaves its band in EITHER direction, and fails when the metric produced no signal at all (no-output-is-failure). Bands were measured on the T2.7b honest dynamics (ADR-011 kernel) and widened to cover seed variance, not to make tests pass: see each band's note.",
+  "canonical": {
+    "_doc": "Canonical production autoplay (sim autoplay: 1024 px world, N = 12, 650 turns to year 4500). Fed-era corridors: at this scale the world is far below capacity for the whole horizon.",
+    "fedGrowthPerYear": {
+      "windowYears": [800, 2400],
+      "band": [0.0005, 0.001],
+      "note": "The ratified T2.7 band 0.05-0.1 %/yr verbatim; measured 0.00072-0.00076 across seeds after the 800-year founding warm-up."
+    },
+    "crudeBirthRatePer1000": {
+      "band": [37.0, 46.0],
+      "note": "Pre-modern CBR corridor around the measured 41.5; the historical envelope is ~30-55, the tune sits mid-range."
+    },
+    "crudeDeathRatePer1000": {
+      "band": [36.0, 45.0],
+      "note": "CDR tracks CBR minus the growth band; measured 40.7."
+    },
+    "pyramidChildShare": { "band": [0.35, 0.46], "note": "Measured 0.410; pre-modern high-fertility pyramids are 0.35-0.45 under-15." },
+    "pyramidAdultShare": { "band": [0.46, 0.57], "note": "Measured 0.516." },
+    "pyramidElderShare": { "band": [0.015, 0.08], "note": "Measured 0.026 with the BandViews elder boundary; pre-modern survival past the elder line is rare." },
+    "densityPerArableKm2": {
+      "band": [0.15, 0.60],
+      "note": "People per fertility-weighted arable km2 at year 4500; measured 0.30-0.36 across seeds. A Neolithic-to-Bronze world sits far below the ~10-30/km2 of mature agrarian land use - the D-015 verdict input."
+    },
+    "migrationGrossPerDecade": {
+      "band": [0.0001, 0.003],
+      "note": "Fraction of population moving per decade; measured 0.0004 in the fed era (famine flight, the big driver, is absent). Upper edge = the T2.5 rig corridor ceiling."
+    }
+  },
+  "dev": {
+    "_doc": "Dev-world autoplay (256 px, N = 4, 1000 turns): the capacity horizon is reachable, so the Malthus corridors live here.",
+    "crashCount": {
+      "band": [1, 3],
+      "note": "At least one >=20% boom-crash must occur (measured: exactly 1 per seed, first at t ~ 590-660); more than 3 in 1000 turns would be the oscillation pathology, not the Malthus cycle."
+    },
+    "firstCrashTurn": {
+      "band": [400, 800],
+      "note": "The founding boom must END: capacity ~10.2k (dev) is overshot near t ~ 590-660 across seeds."
+    },
+    "crashDepth": {
+      "band": [0.4, 0.95],
+      "note": "Measured 0.71-0.83 peak-to-trough; a <0.4 dip is a wobble not a crash, >0.95 is extinction."
+    },
+    "postCrashPopulation": {
+      "band": [4000, 20000],
+      "note": "The survivors must oscillate around capacity (~10.2k measured 10.2-11.6k final), not die out and not re-boom past the peak."
+    },
+    "starvationRatePer1000": {
+      "band": [0.1, 1.5],
+      "note": "Whole-run starvation deaths per 1000 person-years (measured 0.42-0.44): famine demography must EXIST (zero means the crash was bloodless = dodge regression) and must not dominate base mortality."
+    },
+    "migrationGrossPerDecade": {
+      "band": [0.0005, 0.01],
+      "note": "Measured 0.0013-0.0029; famine flight around the crash lifts the dev world above the fed canonical rate."
+    }
+  }
+}

@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
   push:
   pull_request:
 
@@ -142,3 +145,44 @@ jobs:
             exit 1
           fi
           echo "founded replay: byte-identical to the ordered run over 200 turns"
+
+  calibration:
+    # T2.8: the calibration battery as its own TIME-BOXED job — corridor
+    # drift fails CI without hiding inside the main test wall-clock. The
+    # ≥20-seed sweep is the NIGHTLY command (schedule below):
+    #   dotnet run --project Sim.Cli -c Release -- \
+    #     autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json
+    name: calibration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Battery (CI members — 2 canonical + 2 dev seeds, corridors.json bands)
+        run: dotnet test Sim.Tests --configuration Release --filter CalibrationBatteryTests
+
+  calibration-nightly:
+    # The ≥20-seed sweep: too slow for every push, mandatory once a day.
+    # Runs the same corridors via `sim autoplay` and uploads the metrics
+    # JSON as an artifact for offline corridor analysis.
+    name: calibration-nightly
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: 20-seed autoplay sweep
+        run: |
+          dotnet run --project Sim.Cli -c Release -- \
+            autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nightly-metrics
+          path: nightly-metrics.json
