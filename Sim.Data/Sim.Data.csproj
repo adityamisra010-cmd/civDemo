@@ -14,6 +14,7 @@
     <EmbeddedResource Include="content\pipeline.toy.json" LogicalName="Sim.Data.pipeline.toy.json" />
     <EmbeddedResource Include="content\needs.json" LogicalName="Sim.Data.needs.json" />
     <EmbeddedResource Include="content\corridors.json" LogicalName="Sim.Data.corridors.json" />
+    <EmbeddedResource Include="content\chronicle.json" LogicalName="Sim.Data.chronicle.json" />
   </ItemGroup>
 
 </Project>

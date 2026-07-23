@@ -39,6 +39,10 @@ public static class DataFiles
     /// calibration battery and any offline nightly analysis.</summary>
     public static Stream OpenCorridors() => Open("Sim.Data.corridors.json");
 
+    /// <summary>The T2.9 chronicle data: name phonology, event thresholds,
+    /// prose templates — consumed by ChronicleConfigLoader.</summary>
+    public static Stream OpenChronicle() => Open("Sim.Data.chronicle.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

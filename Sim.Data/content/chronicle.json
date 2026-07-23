@@ -1,0 +1,27 @@
+{
+  "schema": "chronicle/v1",
+  "_doc": "T2.9 chronicle-lite: name phonology, event thresholds, and prose templates. ALL TUNE data (D-006). Templates may reference ONLY the placeholders documented per event - every clause traces to a recorded magnitude; the renderer throws on an unknown placeholder (no invented facts by construction).",
+  "phonology": {
+    "_doc": "One placeholder culture. Names are onset+nucleus(+coda) syllables; deterministic from world seed + settlement id (splitmix64 mixing, ADR-001: registry entries, never sim rows).",
+    "onsets": ["k", "t", "s", "m", "n", "r", "l", "th", "v", "d", "b", "h"],
+    "nuclei": ["a", "e", "i", "o", "u", "ae", "ia", "ou"],
+    "codas": ["", "", "n", "r", "s", "l", "th", "m"],
+    "minSyllables": 2,
+    "maxSyllables": 3
+  },
+  "thresholds": {
+    "_doc": "Data-driven threshold functions over observable rows. Two-sided rigs in ChronicleTests pin each one: just-below must not fire, at-or-above must.",
+    "famineOnsetDeficit": 0.15,
+    "famineEndDeficit": 0.0,
+    "migrationSurgeFraction": 0.04
+  },
+  "templates": {
+    "_doc": "Placeholders per event: founding {year} {name} {population}; famineOnset {year} {name} {deficitPct}; famineEnd {year} {name} {years} {deaths}; extinction {year} {name} {lastPopulation}; firstArtisans {year} {name} {count}; migrationSurge {year} {name} {count} {sharePct}.",
+    "founding": "In the year {year}, {name} was founded, {population} souls strong.",
+    "famineOnset": "In {year}, famine gripped {name}: {deficitPct} of every hundred measures of need went unmet.",
+    "famineEnd": "In {year}, the famine at {name} lifted after {years} years; {deaths} were dead of it.",
+    "extinction": "In {year}, {name} fell silent - the last {lastPopulation} souls perished, and no smoke rose again.",
+    "firstArtisans": "In {year}, the first artisans set up their workshops at {name}, {count} masters and hands.",
+    "migrationSurge": "In {year}, {count} souls quit {name} in a single season - {sharePct} of every hundred who lived there."
+  }
+}

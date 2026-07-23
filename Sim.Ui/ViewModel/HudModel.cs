@@ -19,7 +19,8 @@ public sealed record HudModel(
     long FoodStore, long LastHarvest,
     double FarmSharePct, double PathSharePct,
     long WorldPopulation, int SettlementCount,
-    IReadOnlyList<string>? NeedLines = null, double GrievanceValue = 0.0)
+    IReadOnlyList<string>? NeedLines = null, double GrievanceValue = 0.0,
+    string? SettlementName = null)
 {
     /// <summary>Builds the HUD for one selected settlement. An id not present
     /// in the world (or an empty world) yields the zeros the panel can render
@@ -29,7 +30,8 @@ public sealed record HudModel(
     /// grievance value reads the settlement's first class row (values are
     /// identical across classes at M2 — settlement-wide inputs).</summary>
     public static HudModel From(
-        IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null)
+        IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null,
+        string? settlementName = null)
     {
         var selected = new SettlementId(selectedSettlementId);
         bool exists = false;
@@ -112,12 +114,15 @@ public sealed record HudModel(
             WorldPopulation: worldPop,
             SettlementCount: world.Settlements.Count,
             NeedLines: needLines,
-            GrievanceValue: grievance);
+            GrievanceValue: grievance,
+            SettlementName: settlementName);
     }
 
-    /// <summary>"Settlement N" until T2.9 names them (m2 spec, chronicle packet).</summary>
-    public string TitleLine =>
-        string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}");
+    /// <summary>T2.9: the chronicle name leads; the id stays for cross-
+    /// referencing orders/logs. Name defaults keep pre-T2.9 tests valid.</summary>
+    public string TitleLine => SettlementName is null
+        ? string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}")
+        : string.Create(CultureInfo.InvariantCulture, $"{SettlementName}  (settlement {SettlementId})");
 
     public string PopulationLine =>
         string.Create(CultureInfo.InvariantCulture,
