@@ -35,6 +35,10 @@ public static class DataFiles
     /// two-stream overload).</summary>
     public static Stream OpenNeeds() => Open("Sim.Data.needs.json");
 
+    /// <summary>The T2.8 calibration corridors (TUNE bands) consumed by the
+    /// calibration battery and any offline nightly analysis.</summary>
+    public static Stream OpenCorridors() => Open("Sim.Data.corridors.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

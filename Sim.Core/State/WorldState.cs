@@ -244,6 +244,17 @@ public record struct SettlementDistanceRow(SettlementId From, SettlementId To, d
 public record struct MigrationFlowRow(SettlementId Settlement, long Inflow, long Outflow);
 
 /// <summary>
+/// Per-settlement SMOOTHED attractiveness (T2.8 migration stabilization,
+/// owned by MigrationSystem): an EMA (first-order low-pass, TUNE window) over
+/// the instantaneous per-capita attractiveness that DRIVES migration desire —
+/// a one-turn emptying can no longer mint a one-turn magnet. Persistent sim
+/// state (a filter carries memory); rows appear lazily the first turn a
+/// settlement is seen (initialized AT the instantaneous value — the filter
+/// starts converged, not at zero).
+/// </summary>
+public record struct SmoothedAttractivenessRow(SettlementId Settlement, double Value);
+
+/// <summary>
 /// Per-settlement vital counts for the turn just computed (T2.6, owned by
 /// DemographicsSystem; rebuilt each turn): Births = the Births flow credited,
 /// Deaths = base deaths PLUS starvation sunk, DtYears = the dt they occurred
@@ -325,6 +336,7 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<SettlementVitalsRow> SettlementVitals { get; }
     IReadOnlyTable<NeedSatisfactionRow> NeedSatisfactions { get; }
     IReadOnlyTable<GrievanceRow> Grievances { get; }
+    IReadOnlyTable<SmoothedAttractivenessRow> SmoothedAttractiveness { get; }
 }
 
 /// <summary>
@@ -419,6 +431,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-(settlement, class) grievance stocks (T2.6) — owned by NeedsGrievanceSystem.</summary>
     public Table<GrievanceRow> Grievances { get; }
 
+    /// <summary>Per-settlement EMA-smoothed attractiveness (T2.8) — owned by MigrationSystem.</summary>
+    public Table<SmoothedAttractivenessRow> SmoothedAttractiveness { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -443,6 +458,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<SettlementVitalsRow> IReadOnlyWorldState.SettlementVitals => SettlementVitals;
     IReadOnlyTable<NeedSatisfactionRow> IReadOnlyWorldState.NeedSatisfactions => NeedSatisfactions;
     IReadOnlyTable<GrievanceRow> IReadOnlyWorldState.Grievances => Grievances;
+    IReadOnlyTable<SmoothedAttractivenessRow> IReadOnlyWorldState.SmoothedAttractiveness => SmoothedAttractiveness;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -471,6 +487,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementVitals = new Table<SettlementVitalsRow>();
         NeedSatisfactions = new Table<NeedSatisfactionRow>();
         Grievances = new Table<GrievanceRow>();
+        SmoothedAttractiveness = new Table<SmoothedAttractivenessRow>();
     }
 
     private WorldState(
@@ -485,7 +502,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<VariableRow> variables, Table<ClassStateRow> classStates,
         Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
-        Table<GrievanceRow> grievances)
+        Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness)
     {
         Seed = seed;
         Clock = clock;
@@ -513,6 +530,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementVitals = settlementVitals;
         NeedSatisfactions = needSatisfactions;
         Grievances = grievances;
+        SmoothedAttractiveness = smoothedAttractiveness;
     }
 
     /// <summary>
@@ -527,7 +545,8 @@ public sealed class WorldState : IReadOnlyWorldState
             CatchmentSummaries.Clone(), Buckets.Clone(), FoodStores.Clone(),
             ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
-            SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone())
+            SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
+            SmoothedAttractiveness.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

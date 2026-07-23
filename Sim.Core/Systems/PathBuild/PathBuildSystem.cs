@@ -304,6 +304,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         // over the overlay's NETWORK tables and never reads needs state.
         public IReadOnlyTable<NeedSatisfactionRow> NeedSatisfactions => prev.NeedSatisfactions;
         public IReadOnlyTable<GrievanceRow> Grievances => prev.Grievances;
+        public IReadOnlyTable<SmoothedAttractivenessRow> SmoothedAttractiveness => prev.SmoothedAttractiveness;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

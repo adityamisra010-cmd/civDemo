@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
   push:
   pull_request:
 
@@ -125,7 +128,7 @@ jobs:
           # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
           # the CLI that self-diffs cleanly still fails here. Update this hash
           # together with the test constant, deliberately.
-          FOUNDED_GOLDEN=bfd44b872a6938d8787ff877e8e165acee981b0ad0c487a7bbdf7cc1513b43b5
+          FOUNDED_GOLDEN=72fd2f00eac5d633b3a36140142aba1fc461ade2cfe682b110a70d96e00ed13c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -142,3 +145,60 @@ jobs:
             exit 1
           fi
           echo "founded replay: byte-identical to the ordered run over 200 turns"
+
+  calibration:
+    # T2.8: the calibration battery as its own TIME-BOXED job — corridor
+    # drift fails CI without hiding inside the main test wall-clock. The
+    # ≥20-seed sweep is the NIGHTLY command (schedule below):
+    #   dotnet run --project Sim.Cli -c Release -- \
+    #     autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json
+    name: calibration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Battery (CI members — 2 canonical + 2 dev seeds, corridors.json bands)
+        run: dotnet test Sim.Tests --configuration Release --filter CalibrationBatteryTests
+
+  calibration-nightly:
+    # The ≥20-seed sweep: too slow for every push, mandatory once a day.
+    # Runs the same corridors via `sim autoplay` and uploads the metrics
+    # JSON as an artifact for offline corridor analysis.
+    name: calibration-nightly
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: 20-seed autoplay sweep
+        run: |
+          dotnet run --project Sim.Cli -c Release -- \
+            autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json
+      - name: Corridor teeth across all 20 seeds (bands from corridors.json)
+        # The sweep FAILS when any seed leaves a band it emits (density,
+        # migration, liveness) — the nightly is a gate, not just an artifact.
+        # Series-derived corridors (growth, CBR/CDR, pyramid) are enforced by
+        # the in-process battery; the bands here are the ones the CLI derives.
+        run: |
+          jq -e --slurpfile cor Sim.Data/content/corridors.json '
+            ($cor[0].canonical.densityPerArableKm2.band) as $d |
+            ($cor[0].canonical.migrationGrossPerDecade.band) as $m |
+            [ .seeds[] |
+              (.finalPopulation > 0) and
+              (.derived.densityPerArableKm2 >= $d[0] and .derived.densityPerArableKm2 <= $d[1]) and
+              (.derived.migrationGrossPerDecade >= $m[0] and .derived.migrationGrossPerDecade <= $m[1])
+            ] | all' nightly-metrics.json \
+          || { echo "NIGHTLY CORRIDOR BREACH — inspect nightly-metrics.json artifact"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-metrics
+          path: nightly-metrics.json

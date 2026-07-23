@@ -39,6 +39,7 @@ public static class WorldStates
         if (!TableEquals(a.SettlementVitals, b.SettlementVitals)) return false;
         if (!TableEquals(a.NeedSatisfactions, b.NeedSatisfactions)) return false;
         if (!TableEquals(a.Grievances, b.Grievances)) return false;
+        if (!TableEquals(a.SmoothedAttractiveness, b.SmoothedAttractiveness)) return false;
         return true;
     }
 

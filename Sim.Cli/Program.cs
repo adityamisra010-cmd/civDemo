@@ -10,6 +10,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "hash" => Cli.Guard(() => Cli.Hash(args)),
     "replay" => Cli.Guard(() => Cli.Replay(args)),
     "bench" => Cli.Guard(() => Cli.Bench(args)),
+    "autoplay" => Cli.Guard(() => Cli.Autoplay(args)),
     "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
     _ => Cli.Usage($"unknown command '{args[0]}'"),
 };
@@ -51,6 +52,7 @@ namespace Sim.Cli
                   sim replay --seed S --orders PATH --turns N
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
+                  sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
 
                 --founded: run the M1 production world (worldgen + settlement +
@@ -247,6 +249,77 @@ namespace Sim.Cli
                 foreach (BenchObserver.Phase p in observer.Phases)
                     Console.WriteLine($"{p.Name,-12} {Ms(TicksToMs(p.Ticks)),9}    {p.AllocatedBytes,12}");
             }
+            return 0;
+        }
+
+        internal static int Autoplay(string[] args)
+        {
+            // T2.8: the calibration battery's data source. Each seed founds an
+            // INDEPENDENT canonical world (production preset, no orders) and
+            // runs T turns; the per-seed metrics object is deterministic — the
+            // same (seed, turns) always emits the same bytes (fixed \n,
+            // InvariantCulture via JSON). Schema: README.md §Autoplay metrics.
+            var opts = Options.Parse(args, flags: [],
+                valued: ["--seeds", "--turns", "--metrics", "--seed-base"]);
+            long seeds = opts.LongOr("--seeds", -1);
+            if (seeds < 1) throw new CliUsageException("--seeds N (positive integer) is required");
+            int turns = opts.Turns();
+            string metricsPath = opts.Get("--metrics")
+                ?? throw new CliUsageException("autoplay requires --metrics OUT.json");
+            long seedBase = opts.LongOr("--seed-base", 1);
+
+            var results = new List<AutoplayMetrics>((int)seeds);
+            for (long s = 0; s < seeds; s++)
+            {
+                ulong seed = (ulong)(seedBase + s);
+                var executor = Executor(null, founded: true);
+                WorldState world = StartWorld(seed, founded: true);
+                var collector = new AutoplayCollector(seed);
+                for (int t = 1; t <= turns; t++)
+                {
+                    world = executor.Step(world);
+                    collector.Observe(world);
+                }
+                AutoplayMetrics m = collector.Finish(world);
+                results.Add(m);
+                Console.WriteLine($"seed {seed}: pop {m.FinalPopulation}, year " +
+                    $"{m.FinalYear.ToString("F0", CultureInfo.InvariantCulture)}, hash {m.WorldHash}");
+            }
+
+            var doc = new
+            {
+                schema = "autoplay-metrics/v1",
+                turns,
+                seeds = results.Select(m => new
+                {
+                    seed = m.Seed,
+                    worldHash = m.WorldHash,
+                    finalPopulation = m.FinalPopulation,
+                    finalYear = m.FinalYear,
+                    settlementCount = m.SettlementCount,
+                    arableKm2 = m.ArableKm2,
+                    finalCohortTotals = m.FinalCohortTotals,
+                    series = new
+                    {
+                        year = m.Year,
+                        dtYears = m.DtYears,
+                        population = m.Population,
+                        births = m.Births,
+                        deaths = m.Deaths,
+                        starvationDeaths = m.StarvationDeaths,
+                        migrationGross = m.MigrationGross,
+                    },
+                    derived = new
+                    {
+                        densityPerArableKm2 = CalibrationAnalysis.DensityPerArableKm2(m),
+                        migrationGrossPerDecade = CalibrationAnalysis.MigrationGrossPerDecade(m),
+                        crashCount = CalibrationAnalysis.Crashes(m, 0.20).Count,
+                    },
+                }).ToArray(),
+            };
+            File.WriteAllText(metricsPath, System.Text.Json.JsonSerializer.Serialize(doc,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = false }) + "\n");
+            Console.WriteLine($"metrics written: {metricsPath}");
             return 0;
         }
 

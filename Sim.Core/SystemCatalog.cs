@@ -141,7 +141,8 @@ public static class SystemCatalog
         var system = new MigrationSystem(cfg);
         return new SystemRegistration(MigrationSystem.WellKnownId, MigrationSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<MigrationTables>(
-                prev, new MigrationTables(next.Buckets, next.MigrationFlows), rng,
+                prev, new MigrationTables(next.Buckets, next.MigrationFlows,
+                    next.SmoothedAttractiveness), rng,
                 MigrationSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

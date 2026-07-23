@@ -192,9 +192,9 @@ public class DemographyRetuneTests
         };
         SimConfig starving = fed with
         {
-            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
+            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 0.85 },
         };
-        (long[] births, long[] deaths, double[] deficits, double[] reservoirs) = RunFamineSchedule(fed, starving);
+        (long[] births, long[] deaths, double[] deficits, double[] reservoirs, long[] pops) = RunFamineSchedule(fed, starving);
         SimConfig fedOff = fed with
         {
             Demographics = fed.Demographics with { ReboundRecoverableFraction = 0.0 },
@@ -203,7 +203,7 @@ public class DemographyRetuneTests
         {
             Demographics = starving.Demographics with { ReboundRecoverableFraction = 0.0 },
         };
-        (long[] birthsOff, _, _, double[] reservoirsOff) = RunFamineSchedule(fedOff, starvingOff);
+        (long[] birthsOff, _, _, double[] reservoirsOff, _) = RunFamineSchedule(fedOff, starvingOff);
 
         // Baseline from fed turns 4–6 (post-founding-transient, pre-famine).
         double baseBirths = (births[3] + births[4] + births[5]) / 3.0;
@@ -218,13 +218,17 @@ public class DemographyRetuneTests
         Assert.True(worstDeficit > 0.12, $"famine rig too weak: worst deficit {worstDeficit:F2} <= 0.12");
         Assert.True(worstDeficit < 0.6, $"famine rig too deep: worst deficit {worstDeficit:F2} >= 0.6");
 
-        // Phase 1 — mortality spike: some famine-window turn kills at well
-        // above the fed baseline. (Deficit is Prev-read: the window extends
-        // one turn past the famine configs — turns 8–13.)
-        double spike = 0.0;
-        for (int t = 7; t < 13; t++) spike = Math.Max(spike, deaths[t]);
-        Assert.True(spike > 1.3 * baseDeaths,
-            $"no mortality spike: max famine deaths {spike:F0} <= 1.3x baseline {baseDeaths:F0}");
+        // Phase 1 — mortality spike, PER CAPITA (T2.7b: absolute deaths are
+        // pop-limited as the settlement shrinks — the honest famine
+        // observable is the death RATE): some famine-window turn kills at
+        // ≥ 1.35× the fed per-capita baseline. (Deficit is Prev-read: the
+        // window extends one turn past the famine configs — turns 8–13.)
+        double basePerCapita = baseDeaths / ((pops[2] + pops[3] + pops[4]) / 3.0);
+        double spikePerCapita = 0.0;
+        for (int t = 7; t < 13; t++)
+            spikePerCapita = Math.Max(spikePerCapita, deaths[t] / (double)pops[t - 1]);
+        Assert.True(spikePerCapita > 1.35 * basePerCapita,
+            $"no mortality spike: famine per-capita {spikePerCapita:F3} <= 1.35x baseline {basePerCapita:F3}");
 
         // Phase 2 — birth deficit: some famine-window turn conceives at well
         // below the fed baseline (suppression, same one-turn lag).
@@ -253,14 +257,15 @@ public class DemographyRetuneTests
 
         Console.WriteLine(
             $"famine phases: baseline births {baseBirths:F0}/deaths {baseDeaths:F0} per turn; "
-            + $"worst deficit {worstDeficit:F2}, spike {spike:F0}, trough {trough:F0}; release turn {release + 1}: "
-            + $"births {births[release]} vs twin {birthsOff[release]} (+{extra}), bank was {reservoirs[release - 1]:F1}");
+            + $"worst deficit {worstDeficit:F2}, per-capita spike {spikePerCapita:F3} vs base {basePerCapita:F3}, "
+            + $"trough {trough:F0}; release turn {release + 1}: births {births[release]} vs twin "
+            + $"{birthsOff[release]} (+{extra}), bank was {reservoirs[release - 1]:F1}");
     }
 
     /// <summary>6 fed turns, 5 famine turns, 6 fed turns on an N = 1 world;
     /// returns per-turn birth/death(+starvation) deltas, the settlement's
     /// deficit ratio, and the summed cohort-0 ReboundReservoir.</summary>
-    private static (long[] Births, long[] Deaths, double[] Deficits, double[] Reservoirs)
+    private static (long[] Births, long[] Deaths, double[] Deficits, double[] Reservoirs, long[] Pops)
         RunFamineSchedule(SimConfig fed, SimConfig starving)
     {
         TurnExecutor fedExec = ProductionExecutor(fed);
@@ -271,6 +276,7 @@ public class DemographyRetuneTests
         var deaths = new long[17];
         var deficits = new double[17];
         var reservoirs = new double[17];
+        var pops = new long[17];
         (long pb, long pd, long ps) = (0, 0, 0);
         for (int t = 0; t < 17; t++)
         {
@@ -280,25 +286,29 @@ public class DemographyRetuneTests
             deaths[t] = d - pd + (s - ps); // famine deaths = base + starvation
             deficits[t] = world.ConsumptionDeficits.Count > 0 ? world.ConsumptionDeficits[0].DeficitRatio : 0.0;
             for (int i = 0; i < world.Buckets.Count; i++)
+            {
                 if (world.Buckets[i].CohortIdx == 0) reservoirs[t] += world.Buckets[i].ReboundReservoir;
+                pops[t] += world.Buckets[i].Count.Value;
+            }
             (pb, pd, ps) = (b, d, s);
         }
-        return (births, deaths, deficits, reservoirs);
+        return (births, deaths, deficits, reservoirs, pops);
     }
 
     // --- deferred, not invented: exact reservoir accounting -----------------
 
     [Fact]
-    public void Rebound_ReleasesOnlyWhatWasBanked_ExactRecurrence()
+    public void Rebound_ReleasesOnlyWhatWasBanked_ReplicaExact()
     {
-        // Demographics-only rig, dt = 2.5, one bucket group with the fertile
-        // pool parked in the ABSORBING 75+ cohort (mortality zeroed, so the
-        // pool is exactly stationary — slot-advance would halve a mid-table
-        // cohort every turn and make the recurrence drift) and a hand-set
-        // deficit: TWO famine turns bank suppressed conceptions, then fed
-        // turns drain the bank. Every value is re-derived with the SAME
-        // operation order as the system — bit-exact double equality, no
-        // tolerances.
+        // Demographics-only rig against the ADR-011 replica: the fertile pool
+        // parked in the ABSORBING 75+ cohort (mortality zeroed — exactly
+        // stationary), deficit 0.2 (PARTIAL suppression at the canonical
+        // slope: factor 0.4), dt = 2.5. TWO famine turns bank suppressed
+        // conceptions, then THREE fed turns drain the bank. Each turn is
+        // re-derived by feeding the replica the SYSTEM's integer counts and
+        // the carried reservoir/birth-remainder: the reservoir must match
+        // BIT-exactly, the births flow person-for-person, and everything ever
+        // released is bounded by what was banked (deferred, NOT invented).
         SimConfig cfg = TestConfigs.Sim();
         double[] fertility = new double[Cohorts.Count];
         fertility[15] = 0.1;
@@ -311,10 +321,6 @@ public class DemographyRetuneTests
                 StarvationMortalityMaxPerYear = 0.0, // isolate fertility: nobody dies
             },
         };
-        DemographicsConfig d = cfg.Demographics;
-        // deficit 0.2 keeps the suppression PARTIAL at the canonical slope
-        // (factor 0.4) — the clamped-to-zero branch is exercised by the
-        // famine-phases test; this one pins the linear region's arithmetic.
         const double dt = 2.5, deficit = 0.2;
         var counts = new long[Cohorts.Count];
         counts[15] = 1000;
@@ -323,61 +329,53 @@ public class DemographyRetuneTests
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), deficit, 0));
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
 
-        // Famine turns: births suppressed, bank grows — replay the recurrence.
-        double birthsPerYear = fertility[15] * 1000;
-        double unsuppressed = birthsPerYear * dt;
-        double factor = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * deficit);
-        double expectedBank = 0.0, expectedRemainder = 0.0;
-        long expectedBorn = 0;
-        for (int t = 0; t < 2; t++)
+        double reservoir = 0.0, birthRemainder = 0.0, banked = 0.0, drained = 0.0;
+        long expectedBorn = 0, prevLedgerBirths = 0;
+        for (int t = 0; t < 5; t++)
         {
+            if (t == 2) world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 0.0, 0);
+            double turnDeficit = t < 2 ? deficit : 0.0;
+            var snapshot = new long[Cohorts.Count];
+            for (int c = 0; c < Cohorts.Count; c++) snapshot[c] = world.Buckets[c].Count.Value;
+
             world = exec.Step(world);
-            double totalExact = unsuppressed * factor;
-            expectedBank += d.ReboundRecoverableFraction * (unsuppressed - totalExact);
-            // dt = 2.5 < width 5: all newborns land in cohort 0 (share 1.0).
-            double exact = totalExact + expectedRemainder;
+            DemographicsReplica.Result r = DemographicsReplica.Turn(
+                cfg.Demographics, snapshot, turnDeficit, dt, reservoir);
+            if (t < 2) banked += r.Reservoir - reservoir;         // famine turns bank
+            else drained += reservoir - r.Reservoir;              // fed turns drain
+            reservoir = r.Reservoir;
+
+            double exact = r.Births + birthRemainder;
             long born = (long)Math.Floor(exact);
-            expectedRemainder = exact - born;
+            birthRemainder = exact - born;
             expectedBorn += born;
-            Assert.Equal(expectedBank, world.Buckets[0].ReboundReservoir);
-            // Suppression really suppressed: fewer than unsuppressed born.
-            Assert.True(born < unsuppressed, "suppression did not reduce births");
+
+            Assert.Equal(reservoir, world.Buckets[0].ReboundReservoir); // BIT-exact
+            (long ledgerBirths, _, _) = LedgerVitals(world);
+            Assert.Equal(expectedBorn, ledgerBirths - 0);
+            if (t < 2)
+                Assert.True(ledgerBirths - prevLedgerBirths < 0.1 * 1000 * dt,
+                    "suppression did not reduce births");
+            prevLedgerBirths = ledgerBirths;
         }
 
-        // Fed turns: the deficit row zeroes; the bank drains into births.
-        world.ConsumptionDeficits.Ref(0).DeficitRatio = 0.0;
-        double drained = 0.0;
-        for (int t = 0; t < 3; t++)
-        {
-            world = exec.Step(world);
-            double release = expectedBank * Math.Min(1.0, d.ReboundReleaseRatePerYear * dt);
-            expectedBank -= release;
-            drained += release;
-            double exact = unsuppressed + release + expectedRemainder;
-            long born = (long)Math.Floor(exact);
-            expectedRemainder = exact - born;
-            expectedBorn += born;
-            Assert.Equal(expectedBank, world.Buckets[0].ReboundReservoir);
-        }
-
-        // Deferred, not invented: everything ever released is bounded by what
-        // was banked, and the ledger's total births match the recurrence
-        // person-for-person.
-        double banked = 2.0 * d.ReboundRecoverableFraction * (unsuppressed - unsuppressed * factor);
+        Assert.True(banked > 0.0, "famine banked nothing — rig vacuous");
+        Assert.True(drained > 0.0, "fed turns released nothing — rig vacuous");
         Assert.True(drained <= banked, $"released {drained} exceeds banked {banked}");
-        (long ledgerBirths, _, _) = LedgerVitals(world);
-        Assert.Equal(expectedBorn, ledgerBirths);
-        Assert.True(world.Buckets[0].ReboundReservoir > 0.0, "bank fully drained in 3 turns — release-rate rig too hot");
+        Assert.True(world.Buckets[0].ReboundReservoir > 0.0,
+            "bank fully drained in 3 turns — release-rate rig too hot");
     }
 
     [Fact]
-    public void ReboundRelease_DtHalving_FirstOrderConvergence()
+    public void ReboundRelease_DtInvariant_ExactAcrossDts()
     {
-        // Law-3 pin for the release integrator (rate × dt with the saturation
-        // clamp): the same 40 fed sim-years at dt 10 / 5 / 2.5 drain a
-        // hand-seeded reservoir; successive refinements should roughly halve
-        // the remaining-bank deviation (Euler). Fertility nonzero (release
-        // requires living parents) but tiny, so births barely perturb counts.
+        // ADR-011 SUPERSESSION of the old first-order release pin: the
+        // reservoir banks and releases at MICRO-step scale, so the release
+        // schedule is the same half-year op sequence at every dt — the final
+        // bank after the same sim-year horizon is BIT-identical across
+        // dt 10 / 5 / 2.5 (the fertile pool sits in the absorbing cohort and
+        // the micro-births floor to zero integers, so every input to the
+        // reservoir recurrence is dt-independent by construction).
         SimConfig cfg = TestConfigs.Sim();
         double[] fertility = new double[Cohorts.Count];
         fertility[15] = 1e-9; // absorbing cohort: the parent pool never ages away
@@ -391,9 +389,6 @@ public class DemographyRetuneTests
             },
         };
         const double seedBank = 1000.0;
-        // 20 years, not more: at rate 0.08 the dt = 10 factor is already
-        // min(1, 0.8) — longer horizons push all three runs into the drained
-        // tail where the deviations no longer separate.
         const int horizonYears = 20;
         var finals = new double[3];
         double[] dts = [10.0, 5.0, 2.5];
@@ -407,14 +402,164 @@ public class DemographyRetuneTests
             world = exec.Run(world, (int)(horizonYears / dts[i]));
             finals[i] = world.Buckets[0].ReboundReservoir;
         }
+        Assert.True(finals[0] < seedBank * 0.5, "release inert — invariance vacuous");
+        Assert.Equal(finals[0], finals[1]); // bit-exact
+        Assert.Equal(finals[1], finals[2]);
+    }
 
-        double l1Coarse = Math.Abs(finals[0] - finals[1]);
-        double l1Fine = Math.Abs(finals[1] - finals[2]);
-        Assert.True(l1Coarse > 0 && l1Fine > 0, "dt-halving produced no deviation — vacuous");
-        double ratio = l1Coarse / l1Fine;
-        Assert.True(ratio is >= 1.4 and <= 3.5,
-            $"release convergence ratio {ratio:F2} outside [1.4, 3.5] "
-            + $"(banks: dt10 {finals[0]:F3}, dt5 {finals[1]:F3}, dt2.5 {finals[2]:F3})");
+    // --- T2.7b acceptance: dt-invariance and era-boundary continuity --------
+
+    [Fact]
+    public void FedGrowth_DtInvariant_AcrossAdjacentDts()
+    {
+        // THE CR-001 CORE, ruled option (a): fed long-run growth measured at
+        // dt 10 / 5 / 2.5 must agree within |Δr| ≤ 0.1/1000·yr between
+        // adjacent dts. The micro-step kernel meets it by construction —
+        // measured spread ≤ 0.001/1000 (the bar is discretization ≪ signal;
+        // the signal is +0.76/1000). Founding scaled ×50 so integer flooring
+        // stays out of the measurement.
+        SimConfig cfg = TestConfigs.Sim();
+        var scaled = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) scaled[c] = cfg.Founding.CohortCounts[c] * 50;
+        cfg = cfg with
+        {
+            Farming = cfg.Farming with { YieldPerFarmlandPerYear = 1e9, OutputPerFarmerPerYear = 1e6 },
+            Founding = cfg.Founding with { CohortCounts = scaled },
+        };
+        var rs = new double[3];
+        double[] dts = [10.0, 5.0, 2.5];
+        for (int i = 0; i < dts.Length; i++)
+        {
+            SystemRegistration[] pipe;
+            using (var stream = Sim.Data.DataFiles.OpenPipeline())
+                pipe = PipelineLoader.Load(stream, SystemCatalog.All(cfg));
+            var exec = new TurnExecutor(FlatEra(dts[i]), pipe);
+            WorldState world = Founded(cfg);
+            int warm = (int)(800 / dts[i]), end = (int)(2400 / dts[i]);
+            for (int t = 1; t <= warm; t++) world = exec.Step(world);
+            long p0 = TotalPop(world);
+            for (int t = warm + 1; t <= end; t++) world = exec.Step(world);
+            rs[i] = Math.Log(TotalPop(world) / (double)p0) / 1600.0 * 1000.0;
+        }
+        Console.WriteLine($"fed growth /1000yr: dt10 {rs[0]:F4}, dt5 {rs[1]:F4}, dt2.5 {rs[2]:F4}");
+        Assert.True(rs[0] > 0.4, $"fed growth {rs[0]:F3}/1000 collapsed — invariance vacuous");
+        Assert.True(Math.Abs(rs[0] - rs[1]) <= 0.1,
+            $"dt10 vs dt5 growth gap {Math.Abs(rs[0] - rs[1]):F4}/1000 exceeds the 0.1 bar");
+        Assert.True(Math.Abs(rs[1] - rs[2]) <= 0.1,
+            $"dt5 vs dt2.5 growth gap {Math.Abs(rs[1] - rs[2]):F4}/1000 exceeds the 0.1 bar");
+    }
+
+    [Fact]
+    public void EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator()
+    {
+        // THE PERMANENT TEST the CR-001 detonation becomes (director ruling):
+        // canonical autoplay across the Neolithic → Bronze dt flip at turn
+        // 250 (sim-year −1500). Windowed growth rates over the 1000 sim-years
+        // either side of the boundary must be continuous within the same
+        // 0.1/1000·yr bar — the pre-ruling kernel broke here by 4.1/1000
+        // (+0.7 flipping to −3.4) and the canonical world died by year
+        // +2250. This test exists forever.
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg);
+        WorldState world = Founded(cfg);
+        for (int t = 1; t <= 150; t++) world = exec.Step(world);
+        long popA = TotalPop(world);
+        for (int t = 151; t <= 250; t++) world = exec.Step(world);   // dt 10 side
+        long popBoundary = TotalPop(world);
+        for (int t = 251; t <= 450; t++) world = exec.Step(world);   // dt 5 side
+        long popB = TotalPop(world);
+
+        double rBefore = Math.Log(popBoundary / (double)popA) / 1000.0 * 1000.0;
+        double rAfter = Math.Log(popB / (double)popBoundary) / 1000.0 * 1000.0;
+        Console.WriteLine(
+            $"era boundary: r(Neolithic last 1000yr) {rBefore:F4}/1000, r(Bronze first 1000yr) {rAfter:F4}/1000");
+        Assert.True(popA > 1000, "world collapsed before the boundary — continuity vacuous");
+        Assert.True(Math.Abs(rBefore - rAfter) <= 0.1,
+            $"growth discontinuity {Math.Abs(rBefore - rAfter):F4}/1000·yr across the dt flip — the CR-001 detonator");
+    }
+
+    // --- ADR-011 §1: position-independent mortality (the dodge-class pin) ---
+
+    [Fact]
+    public void Mortality_PositionIndependent_MidTurnMoversStillDie()
+    {
+        // The semantic pin that kills the Prev-sized-absolute-flow mutant
+        // class (the old migration ping-pong exploited it to dodge death):
+        // famine flight moves essentially ALL of settlement A to B within the
+        // turn, BEFORE demographics runs. Present-count survival fractions
+        // kill the movers at B regardless; a reintroduced Prev-sized flow
+        // sizes A's deaths from full PREV counts but clamps against A's
+        // now-empty rows (nobody dies at A) and sizes B's from its empty PREV
+        // (nobody dies at B) — total deaths collapse toward zero. Assert the
+        // ledger records at least half the replica's present-count
+        // expectation for the moved population.
+        // Rig TUNEs: flight ×10 and a UNIFORM cohort profile so the exodus
+        // saturates the overdraw scaler on EVERY cohort — settlement A
+        // empties essentially fully (the young-adult-peaked canonical profile
+        // leaves elders behind, and elders are exactly who the mutant would
+        // still kill). Fertility and starvation zeroed: base mortality is
+        // the isolated observable.
+        SimConfig cfg = TestConfigs.Sim();
+        var uniformProfile = new double[Cohorts.Count];
+        Array.Fill(uniformProfile, 1.0);
+        cfg = cfg with
+        {
+            Migration = cfg.Migration with { FamineFlightFactor = 80.0, CohortProfile = uniformProfile },
+            Demographics = cfg.Demographics with
+            {
+                FertilityPerPersonPerYear = new double[Cohorts.Count],
+                StarvationMortalityMaxPerYear = 0.0,
+            },
+        };
+        var world = new WorldState(7);
+        var ledger = new Ledger(world.LedgerFlows);
+        for (int s = 0; s < 2; s++)
+        {
+            var id = new SettlementId(s);
+            world.Settlements.Add(new SettlementRow(id, SiteCell: s, FoundedTurn: 0));
+            for (int c = 0; c < Cohorts.Count; c++)
+            {
+                int row = world.Buckets.Add(new BucketRow(
+                    id, new CultureId(1), new ReligionId(1), new ClassId(1),
+                    c, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+                if (s == 0)
+                {
+                    ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+                        ReasonIds.InitialEndowment, 10_000, FlowDirection.Source, OverdrawPolicy.Throw);
+                }
+            }
+            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 1.0 : 0.0, 1));
+        }
+        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(1).Store,
+            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 5_000_000,
+            FlowDirection.Source, OverdrawPolicy.Throw);
+        world.SettlementDistances.Add(new SettlementDistanceRow(new SettlementId(0), new SettlementId(1), 5.0));
+        world.SettlementDistances.Add(new SettlementDistanceRow(new SettlementId(1), new SettlementId(0), 5.0));
+
+        var exec = new TurnExecutor(FlatEra(10.0),
+            [SystemCatalog.Migration(cfg), SystemCatalog.Demographics(cfg)]);
+        WorldState next = exec.Step(world);
+
+        // The flight really moved the bulk — measured from the migration
+        // chronicle (recorded before demographics runs; bucket counts at B
+        // are POST-death and would undercount the movers by exactly the
+        // deaths this test is about).
+        long inflowB = next.MigrationFlows[1].Inflow;
+        Assert.True(inflowB > 150_000, $"only {inflowB} moved — flight rig vacuous");
+
+        // Present-count mortality (base rates only, position-independent):
+        // everyone dies at their cohort's rate WHEREVER they stand — the
+        // replica expectation on the full 160k must be met within flooring.
+        // The Prev-sized mutant sizes A's flows from full PREV counts but
+        // clamps against A's emptied rows and sizes B's from its empty PREV —
+        // total deaths collapse toward zero and fail the half-bar loudly.
+        (_, long deaths, long starved) = LedgerVitals(next);
+        var uniform = new long[Cohorts.Count];
+        Array.Fill(uniform, 10_000);
+        DemographicsReplica.Result r = DemographicsReplica.Turn(cfg.Demographics, uniform, 0.0, 10.0);
+        Assert.True(deaths + starved > 0.5 * r.Deaths,
+            $"deaths {deaths}+{starved} below half the present-count expectation {r.Deaths:F0} — mid-turn movers dodged mortality");
     }
 
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(

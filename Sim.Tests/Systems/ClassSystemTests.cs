@@ -211,14 +211,15 @@ public class ClassSystemTests
         // ordering is observable: the famine valve (2.0/yr × deficit) clears
         // the artisans on the small deficit while peak starvation arrives
         // with the full deficit a turn later (an instant deficit of 1.0
-        // collapses both into one turn). T2.7 re-anchor (stated): demand now
-        // DECAYS turn over turn (~317k → 236k → 218k) because the retuned
-        // mortality is itself pre-modern-heavy, so the old 903k store slipped
-        // the ramp to t4/t5 and collided with the starvation peak; 738k =
-        // measured d1 + d2 + 0.85 × d3 restores the t3 ramp.
+        // collapses both into one turn). T2.7b re-anchor (stated): demand
+        // decays turn over turn (317,000 → 244,051 → 220,522 under the
+        // ADR-011 micro-step kernel — the exponential sinks kill slightly
+        // fewer than the old per-turn flows, so demand decays less steeply
+        // than the T2.7 trace); 748,494 = measured d1 + d2 + 0.85 × d3
+        // restores the t3 partial-deficit ramp.
         int storeRow = 0;
         new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(storeRow).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 738_000,
+            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 748_494,
             FlowDirection.Source, OverdrawPolicy.Throw);
 
         var exec = new TurnExecutor(FlatEra(10.0),
@@ -226,10 +227,15 @@ public class ClassSystemTests
              SystemCatalog.ClassMobility(cfg), SystemCatalog.Demographics(cfg)]);
 
         // DRAIN METRIC: the famine valve's signature is a massive single-turn
-        // demotion (≥ 80% of a substantial artisan class) — "gone to exactly
+        // demotion (≥ 70% of a substantial artisan class) — "gone to exactly
         // zero" is the wrong observable, because artisan CHILDREN keep
         // maturing into the adult band for a turn or two after the drain
-        // (births are group-local by T2.1 design). The ordering under test:
+        // (births are group-local by T2.1 design). T2.7b re-anchor: the
+        // ADR-011 diffusive micro-step aging matures children CONTINUOUSLY
+        // rather than in discrete slot jumps, so a FULL drain of the PREV
+        // adults still leaves ~27% of the previous count as fresh maturation
+        // (measured: 3262 → 883 on the drain turn) — the old ≥ 80% bar is
+        // unreachable through that influx. The ordering under test:
         // the drain turn strictly precedes the peak starvation turn, and
         // starvation continues after the drain (peasants keep dying).
         long prevStarved = 0, prevArtisans = ArtisanAdults(world);
@@ -250,7 +256,7 @@ public class ClassSystemTests
             prevStarved = starvedTotal;
             if (delta > peakStarvationDelta) { peakStarvationDelta = delta; peakStarvationTurn = t; }
             long artisansNow = ArtisanAdults(world);
-            if (drainTurn < 0 && prevArtisans >= 1000 && artisansNow <= prevArtisans / 5)
+            if (drainTurn < 0 && prevArtisans >= 1000 && artisansNow * 10 <= prevArtisans * 3)
                 drainTurn = t;
             prevArtisans = artisansNow;
             if (drainTurn > 0 && t > drainTurn && delta > 0) starvationAfterDrain = true;

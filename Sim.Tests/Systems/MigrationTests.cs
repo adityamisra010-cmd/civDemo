@@ -233,7 +233,11 @@ public class MigrationTests
         // react to the same one-turn-lagged deficit — the ordering is visible
         // because the ramp turn's gap-driven exodus (the store crash is
         // already visible in Prev) crosses 8% a full turn before starvation
-        // crosses anything.
+        // crosses anything. T2.8 anchor (stated): the smoothing window τ sets
+        // how much of that store-crash early warning survives the EMA —
+        // measured: τ = 30 mutes it below the threshold (exit ties death at
+        // t7), τ = 20 restores exit t6 vs death t7 while keeping α = 0.5 at
+        // dt 10; τ = 20 is the canonical TUNE.
         long threshold = pop0 * 8 / 100;
         long cumOutF = 0, cumOutB = 0, prevStarvF = 0, prevStarvB = 0, cumStarvF = 0, cumStarvB = 0;
         int exitTurn = -1, deathTurn = -1;
@@ -322,40 +326,39 @@ public class MigrationTests
     [Fact]
     public void MagnitudeCorridor_FedPhaseDrift_WithTeeth()
     {
-        // TUNE corridor, RE-ANCHORED at T2.7 (each anchor stated, per packet):
-        // the pre-modern tempo collapses fed-phase attractiveness gaps —
-        // settlements grow at ~0.07 %/yr instead of ~2 %/yr, so nobody
-        // outruns their farmland inside the measured window and the everyday
-        // gap-driven drift is background noise, not the T2.5-era [3%, 8%].
-        // The T2.7-measured response curve: 0.1× → 0.02%, 0.3× → 0.05%,
-        // 1× → 0.25%, 1.5× → 0.64%, 2× → 1.77%, then a BIFURCATION — 2.2× →
-        // 11.8%, 3× → 30.6%, 10× → 39.5% — into a two-turn oscillation
-        // attractor (settlement-emptying ping-pong; see docs/queue.md). The
-        // old band sits inside the discontinuity and is unreachable; the
-        // corridor now pins the smooth branch at [0.1%, 1.0%] per decade.
-        // Famine flight (D-021 Exit valve) is unaffected — the surge semantics
-        // stay pinned by the exit-before-death test.
+        // TUNE corridor, FINALIZED at T2.8 on the STABILIZED system (director
+        // mandate). Historical justification (one line): everyday inter-
+        // village relocation in pre-modern subsistence societies was a few
+        // per-mille per decade — mobility concentrated in crisis surges, and
+        // the famine-flight surges are excluded here by construction (pinned
+        // by exit-before-death instead).
+        // The T2.8-measured response curve (gap cap f = 0.25, EMA τ = 20):
+        // 0.1× → 0.01%, 0.3× → 0.05%, 1× → 0.12%, 3× → 0.25%, 10× → 0.35%,
+        // 30× → 0.54% — MONOTONE and saturating; the T2.7 bifurcation into
+        // the two-turn oscillation attractor (2.2× → 11.8%) is gone, which is
+        // the stabilization working (pinned by MigrationStabilityTests). The
+        // corridor is [0.05%, 0.30%] per decade, and two-sided teeth are
+        // REAL AGAIN under the damped mechanism (the T2.5 lesson holds).
         SimConfig cfg = TestConfigs.Sim();
         double worst = MaxGrossPerDecade(cfg);
-        Assert.True(worst is > 0.001 and < 0.010,
-            $"gross migration {worst:P2}/decade outside the [0.1%, 1.0%] corridor");
+        Assert.True(worst is > 0.0005 and < 0.0030,
+            $"gross migration {worst:P2}/decade outside the [0.05%, 0.30%] corridor");
 
-        // ...WITH TEETH in both directions: 10× lands in the oscillatory
-        // regime and fails HIGH; 0.1× fails LOW. The corridor still detects
-        // mis-tuning both ways.
+        // ...WITH TEETH in both directions: 10× saturates ABOVE the band,
+        // 0.1× starves BELOW it — mis-tuning is caught both ways.
         SimConfig hot = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 10 },
         };
         double hotWorst = MaxGrossPerDecade(hot);
-        Assert.True(hotWorst > 0.010,
+        Assert.True(hotWorst > 0.0030,
             $"10× rate produced {hotWorst:P2}/decade — inside the corridor, no teeth");
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },
         };
         double coldWorst = MaxGrossPerDecade(cold);
-        Assert.True(coldWorst < 0.001,
+        Assert.True(coldWorst < 0.0005,
             $"0.1× rate produced {coldWorst:P2}/decade — inside the corridor, no teeth");
     }
 
@@ -481,10 +484,14 @@ public class MigrationTests
         // mutant for reachable pairs survived everything but the corridor):
         // two equally attractive destinations at costs 10 vs 30 — the nearer
         // receives more, in the exp((30−10)/decay) ratio within integer floors.
+        // T2.8 rig note: endowments sized so the gap desire stays BELOW the
+        // pair's gap-closing cap (0.25 × m*) — at the old 300k both pairs
+        // cap-bound identically and the ratio collapsed to 1 by design; the
+        // exponential lives in the sub-cap driver.
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = MigrationWorld(AdultsHeavy(5000), AdultsHeavy(50), AdultsHeavy(50));
-        Endow(world, 1, 300_000);
-        Endow(world, 2, 300_000);
+        Endow(world, 1, 30_000);
+        Endow(world, 2, 30_000);
         Link(world, 0, 1, 10.0); Link(world, 1, 0, 10.0);
         Link(world, 0, 2, 30.0); Link(world, 2, 0, 30.0);
         Link(world, 1, 2, 10.0); Link(world, 2, 1, 10.0);
@@ -508,16 +515,21 @@ public class MigrationTests
         // semantic test (ClampToAvailable also caps the TOTAL at the bucket,
         // so aggregate observables barely move — only the golden caught it).
         // The distinguishing observable is the DISTRIBUTION: two equally
-        // attractive rich destinations whose combined desired flow exceeds
-        // the source bucket. With proportional scaling each receives ~half;
-        // with the bypass the first destination grabs everything and the
-        // second gets the clamped scraps. Assert near-equal split.
+        // reachable destinations whose combined desired flow exceeds the
+        // source bucket. With proportional scaling each receives ~half; with
+        // the bypass the first destination grabs everything and the second
+        // gets the clamped scraps. Assert near-equal split.
+        // T2.8 rig note: saturation now rides the FAMINE-FLIGHT channel
+        // (deficit 1.0 → desire ≈ 2170 per destination against a 1000-person
+        // bucket) — the gap channel is structurally capped at 0.25 × m* since
+        // the stabilization and can no longer over-desire a bucket by itself.
         SimConfig cfg = TestConfigs.Sim();
         var counts = new long[Cohorts.Count];
         counts[4] = 1000; // one young-adult bucket — the whole source
         WorldState world = MigrationWorld(counts, AdultsHeavy(10), AdultsHeavy(10));
         Endow(world, 1, 2_000_000);
         Endow(world, 2, 2_000_000);
+        world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 1.0, 1);
         Link(world, 0, 1, 5.0); Link(world, 1, 0, 5.0);
         Link(world, 0, 2, 5.0); Link(world, 2, 0, 5.0);
         Link(world, 1, 2, 5.0); Link(world, 2, 1, 5.0);
@@ -568,13 +580,17 @@ public class MigrationTests
                 }
             }
             world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
-            // A SMALL source deficit (0.03): the famine demotion drains the
-            // artisan bucket PARTIALLY this turn (2.0 × 0.03 × 10 = 60%), so
-            // migration's Prev-sized transfer clamps with a NONZERO delivery
-            // — the divergence the mutant needs (a full drain makes
-            // actuallyMoved 0 and the recording branch never runs, which is
-            // exactly how the first version of this rig let the mutant live).
-            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 0.03 : 0.0, 1000));
+            // A SMALL source deficit (0.045): the famine demotion drains the
+            // artisan bucket PARTIALLY this turn (2.0 × 0.045 × 10 = 90%, 300
+            // of 3000 left), while migration's Prev-sized request — the
+            // gap-capped share (~0.25 × m* ≈ 970 of this bucket) plus flight —
+            // still exceeds the remainder, so the transfer clamps with a
+            // NONZERO delivery: the divergence the mutant needs (a full drain
+            // makes actuallyMoved 0 and the recording branch never runs, which
+            // is exactly how the first version of this rig let the mutant
+            // live; T2.8's gap cap forced the deficit up from 0.03 — at the
+            // old value the CAPPED request no longer exceeded the remainder).
+            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 0.045 : 0.0, 1000));
         }
         world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(1), 1));
         world.ClassStates.Add(new ClassStateRow(new SettlementId(0), new ClassId(2), 1));

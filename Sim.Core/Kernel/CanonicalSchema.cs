@@ -33,8 +33,10 @@ public static class CanonicalSchema
     /// v10 (T2.7): BucketRow gains ReboundReservoir (deferred-conception bank
     /// for the post-famine fertility rebound, cohort-0 rows only).
     /// v11 (T2.6, D-018/D-021): SettlementVitals, NeedSatisfactions and
-    /// Grievances tables appended after MigrationFlows.</summary>
-    public const int Version = 11;
+    /// Grievances tables appended after MigrationFlows.
+    /// v12 (T2.8, migration stabilization): SmoothedAttractiveness table
+    /// appended after Grievances (the EMA filter state).</summary>
+    public const int Version = 12;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -62,6 +64,7 @@ public static class CanonicalSchema
     private const int SettlementVitalsRowWidth = 4 + 8 + 8 + 8;     // Settlement, Births, Deaths, DtYears bits (v11)
     private const int NeedSatisfactionRowWidth = 4 + 4 + 4 + 8;     // Settlement, Class, NeedId, Value bits (v11)
     private const int GrievanceRowWidth = 4 + 4 + 8;                // Settlement, Class, Value bits (v11)
+    private const int SmoothedAttractivenessRowWidth = 4 + 8;       // Settlement, Value bits (v12)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -328,6 +331,15 @@ public static class CanonicalSchema
             writer.Write(row.Class.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
         }
+
+        // 27. Smoothed attractiveness (v12)
+        writer.Write(world.SmoothedAttractiveness.Count);
+        for (int i = 0; i < world.SmoothedAttractiveness.Count; i++)
+        {
+            SmoothedAttractivenessRow row = world.SmoothedAttractiveness[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -552,6 +564,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int smoothedCount = reader.ReadInt32();
+        for (int i = 0; i < smoothedCount; i++)
+        {
+            world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(
+                new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -586,5 +606,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.MigrationFlows.Count * MigrationFlowRowWidth
         + CountPrefixWidth + (long)world.SettlementVitals.Count * SettlementVitalsRowWidth
         + CountPrefixWidth + (long)world.NeedSatisfactions.Count * NeedSatisfactionRowWidth
-        + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth;
+        + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth
+        + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth;
 }
