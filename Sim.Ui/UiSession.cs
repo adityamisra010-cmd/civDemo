@@ -23,11 +23,46 @@ public sealed class UiSession
     public OrderLog Orders { get; }
     private readonly TurnExecutor _executor;
 
+    // T2.9 chronicle-lite: names + event detection + annal prose. UI-side
+    // history in the D-028 sense — replay through the same UiSession rebuilds
+    // it; it never touches WorldState.
+    private readonly Sim.Core.Chronicle.ChronicleConfig _chronicleCfg;
+    private readonly Sim.Core.Chronicle.ChronicleCollector _chronicle;
+    private readonly List<string> _annals = [];
+    private int _renderedEvents;
+
+    /// <summary>Settlement id → name (deterministic from world seed; ADR-001
+    /// registry, never sim rows).</summary>
+    public Sim.Core.Chronicle.NameRegistry Names { get; }
+
+    /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
+    public IReadOnlyList<string> AnnalLines => _annals;
+
+    /// <summary>T2.10, D-028: the graphs' ring buffer — UI-side history,
+    /// captured per observed turn alongside the chronicle.</summary>
+    public ViewModel.HistoryBuffer History { get; } = new();
+
     private UiSession(WorldState world, TurnExecutor executor, OrderLog orders)
     {
         World = world;
         _executor = executor;
         Orders = orders;
+        using (var stream = Sim.Data.DataFiles.OpenChronicle())
+        {
+            _chronicleCfg = Sim.Core.Chronicle.ChronicleConfigLoader.Load(stream);
+        }
+        Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, world.Seed, world);
+        _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg);
+        ObserveChronicle(); // founding events fire on first sight
+        History.Capture(World); // the founding sample (turn 0)
+    }
+
+    private void ObserveChronicle()
+    {
+        _chronicle.Observe(World);
+        for (; _renderedEvents < _chronicle.Events.Count; _renderedEvents++)
+            _annals.Add(Sim.Core.Chronicle.ChronicleProse.Render(
+                _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
     }
 
     /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.</summary>
@@ -92,8 +127,29 @@ public sealed class UiSession
         }
     }
 
-    /// <summary>End Turn: the executor steps synchronously (m1 spec §3).</summary>
-    public void EndTurn() => World = _executor.Step(World);
+    /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
+    /// the chronicle observes the new state (detection is read-only).</summary>
+    public void EndTurn()
+    {
+        World = _executor.Step(World);
+        ObserveChronicle();
+        History.Capture(World);
+    }
+
+    /// <summary>The chronicle.txt path twinned with a session log path:
+    /// same stamp, `chronicle-` prefix, `.txt`.</summary>
+    public static string ChroniclePath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "chronicle-") + ".txt");
+
+    /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
+    /// fixed \n (byte-identical across identical runs).</summary>
+    public void ExportChronicle(string path)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, string.Join("\n", _annals) + "\n");
+    }
 
     /// <summary>
     /// Stamped session-log path (director UX ruling, T1.9): flat filename,

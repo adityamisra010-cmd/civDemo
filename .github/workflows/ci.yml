@@ -65,7 +65,7 @@ jobs:
           end=$(date +%s)
           {
             echo "### Determinism harness (T0.8)"
-            echo "Runtime: $((end-start))s (budget: ~180s)"
+            echo "Runtime: $((end-start))s (budget: ~300s ceiling — T2.11 sized the founded legs to 300 turns across the era gate; measured ~65s unloaded, founding+stepping dominate)"
             tail -n 3 determinism.log
           } >> "$GITHUB_STEP_SUMMARY"
           exit $status
@@ -109,26 +109,31 @@ jobs:
           fi
           echo "replay: byte-identical to the ordered run over 400 turns"
 
-          # T1.9: the same discipline on the FOUNDED M1 production world.
-          # 200 turns (the founded-harness horizon: famine + >=5 Malthus
-          # cycles); each process is ~2s founding + ~1s stepping, so the four
-          # runs below add well under a minute to the job.
-          python3 scripts/gen-sample-orders.py founded-orders.bin 200 --labor
-          $CLI run --founded --seed 42 --turns 200 --hash-log f-run-a.log
-          $CLI run --founded --seed 42 --turns 200 --hash-log f-run-b.log
+          # T1.9: the same discipline on the FOUNDED production world
+          # (1024^2, N = 12). T2.11: 300 turns - the founded-harness horizon,
+          # which since T2.11 CROSSES the era-pacing gate at turn 250 (dt
+          # 10 -> 5), so cross-process determinism covers the dt transition;
+          # each process is ~3s founding + ~1s stepping, the four runs below
+          # add well under a minute to the job.
+          # 300-turn horizon => orders at turns 0..280: the 260/280 orders
+          # land AFTER the era gate, so ordered delivery in the Bronze dt=5
+          # regime is exercised cross-process too (adversarial pass finding).
+          python3 scripts/gen-sample-orders.py founded-orders.bin 300 --labor
+          $CLI run --founded --seed 42 --turns 300 --hash-log f-run-a.log
+          $CLI run --founded --seed 42 --turns 300 --hash-log f-run-b.log
           if ! diff f-run-a.log f-run-b.log > f-xproc.diff; then
             echo "FOUNDED CROSS-PROCESS DIVERGENCE — first divergent turn:"
             head -n 5 f-xproc.diff
             exit 1
           fi
-          echo "founded orderless: two processes byte-identical over 200 turns"
+          echo "founded orderless: two processes byte-identical over 300 turns"
 
           # Absolute pin (T1.9 adversarial hardening): the built binary's
           # founded run must land on the SAME golden the in-test constant pins
           # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
           # the CLI that self-diffs cleanly still fails here. Update this hash
           # together with the test constant, deliberately.
-          FOUNDED_GOLDEN=72fd2f00eac5d633b3a36140142aba1fc461ade2cfe682b110a70d96e00ed13c
+          FOUNDED_GOLDEN=a5959cdc117ed5cb66f7ee6128d0ff81e66a04feb806e24f0558cadfdc65f2bf
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -137,14 +142,14 @@ jobs:
           fi
           echo "founded run matches the pinned golden"
 
-          $CLI run --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-ordered.log
-          $CLI replay --founded --seed 42 --turns 200 --orders founded-orders.bin --hash-log f-replayed.log
+          $CLI run --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-ordered.log
+          $CLI replay --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-replayed.log
           if ! diff f-ordered.log f-replayed.log > f-replay.diff; then
             echo "FOUNDED REPLAY DIVERGENCE — first divergent turn:"
             head -n 5 f-replay.diff
             exit 1
           fi
-          echo "founded replay: byte-identical to the ordered run over 200 turns"
+          echo "founded replay: byte-identical to the ordered run over 300 turns"
 
   calibration:
     # T2.8: the calibration battery as its own TIME-BOXED job — corridor

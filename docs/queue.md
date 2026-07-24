@@ -5,7 +5,7 @@
 - True river breadth: derive render width from actual discharge/accumulation instead of TUNE rank falloff (render-path only); UI polish track. (noted at T1.8 setup — the T1.7 rework used rank-scaled TUNE widths, no breadth line existed yet)
 - Bind founding parameters INTO the order-log header (seed + world size recorded at save; replay refuses a mismatch with an actionable error) — the hard version of the T1.9 filename convention (orders-*-sPX.bin). Requires an OrderLog IoVersion bump + ADR. (raised T1.9 adversarial pass)
 - Buckets group/cohort lookups are linear table scans (FindInGroup, BandViews). Re-benched at T2.3 as planned: N=12 1024² founded, classmobility 105.9 ms + demographics 97.3 ms per 200 turns (~0.5 ms/turn each) — visible but trivially within budget, no index added. Revisit when T2.8's autoplay batches multiply turn counts. (raised T2.1; re-benched T2.3)
-- Director: world feels small at 12 settlements — revisit D-015 size / settlement count against T2.8 density-corridor results. (raised T2.4 visual gate)
+- Director: world feels small at 12 settlements — revisit D-015 size / settlement count against T2.8 density-corridor results. (raised T2.4 visual gate) RESOLUTION-SO-FAR (director ruling, T2.9 session): the T2.8 density verdict stands — density is historically correct (0.30–0.36 people per fertility-weighted arable km² at year 4500); the "small map" perception is TRAVEL-SCALE (settlement count / spacing / travel budget), all TUNE data. Deferred to the M10 slice gate unless the M2 exit session makes it acute.
 - Post-crash migration ping-pong: an emptied settlement's per-capita attractiveness (capita floor 1) turns it into a magnet, and the dev world settles into a persistent two-turn population slosh (~95% of a settlement shuttling, mostly children) after the first Malthus crash — at CANONICAL rates. Base rates ≥ 2.2× bifurcate into this attractor even pre-crash (measured T2.7 response curve in MagnitudeCorridor test). Needs an attractiveness smoothing constant or migration hysteresis (D-021 revisit) before T2.8 density corridors lean on migration flows. (raised T2.7 retune)
 - T2.8 adversarial pass (minor hardening candidates, no packet conflict):
   (1) infant in-step shortfall uses the combined base+starvation hazard but is
@@ -17,3 +17,8 @@
   (founding + snapshot ordering), but no invariant test pins it; (4)
   dt-invariance covers dt 10/5/2.5 directly, dt 3 only via era-boundary
   continuity.
+- Founding variation: D-025 equal-split endowment is provisional; consider seeded
+  variance in founding population/food/composition so settlements diverge from
+  turn 0. Director observation (T2.9+T2.10 visual gate): uniform founding produces
+  lockstep history — 11 of 12 settlements got artisans in the same decade with
+  near-identical counts. Candidate for M3 (with goods) or the M10 gate.

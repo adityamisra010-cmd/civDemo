@@ -201,7 +201,8 @@ public sealed class SimUiGame : Game
     /// Turn, where a just-emitted order has not applied yet).</summary>
     private void RefreshHud(bool syncSlider)
     {
-        _hud = HudModel.From(_world, _selected, _needs);
+        _hud = HudModel.From(_world, _selected, _needs,
+            _selected >= 0 ? _session.Names.Name(_selected) : null);
         if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmSharePct);
     }
 
@@ -225,7 +226,12 @@ public sealed class SimUiGame : Game
         SaveSession();
     }
 
-    private void SaveSession() => _session.Save(_sessionLogPath);
+    private void SaveSession()
+    {
+        _session.Save(_sessionLogPath);
+        // T2.9: the chronicle exports beside the order log, same stamp.
+        _session.ExportChronicle(UiSession.ChroniclePath(_sessionLogPath));
+    }
 
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
@@ -370,6 +376,88 @@ public sealed class SimUiGame : Game
         base.Draw(gameTime);
     }
 
+    /// <summary>T2.9: name labels beside every marker — drawn on the ImGui
+    /// background drawlist (behind panels, above the map), constant screen
+    /// size like the markers themselves. Must run between BeforeLayout and
+    /// AfterLayout, so DrawHud calls it.</summary>
+    private void DrawNameLabels()
+    {
+        ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
+        Rectangle viewport = Viewport();
+        const float markerPx = (float)SettlementSelection.MarkerScreenPx;
+        for (int i = 0; i < _world.Settlements.Count; i++)
+        {
+            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
+                _world.Settlements[i], _world.Terrain!.Size);
+            (double sx, double sy) = _camera!.WorldToScreen(
+                position.X, position.Y, viewport.Width, viewport.Height);
+            string name = _session.Names.Name(_world.Settlements[i].Id.Value);
+            var pos = new System.Numerics.Vector2(
+                (float)sx + markerPx / 2f + 4f, (float)sy - markerPx / 2f);
+            // Shadowed for readability over any terrain color.
+            drawList.AddText(pos + new System.Numerics.Vector2(1, 1), 0xE0000000u, name);
+            drawList.AddText(pos, 0xFFE8DCC0u, name); // parchment
+        }
+    }
+
+    /// <summary>T2.10: the graphs — world totals + the selected settlement,
+    /// straight off the D-028 ring buffer (see HistoryBuffer for the replay/
+    /// mid-game-load semantics). PlotLines autoscales per series; the overlay
+    /// text carries the latest value so the line is readable as a number too.</summary>
+    private void DrawGraphs()
+    {
+        ImGui.SetNextWindowPos(
+            new System.Numerics.Vector2(700, 12), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(
+            new System.Numerics.Vector2(420, 460), ImGuiCond.FirstUseEver);
+        ImGui.Begin("Graphs");
+        ViewModel.HistoryBuffer history = _session.History;
+        ImGui.TextUnformatted("world");
+        Plot("pop##world", history.World(HistoryBuffer.Metric.Population));
+        Plot("food##world", history.World(HistoryBuffer.Metric.Food));
+        Plot("grievance##world", history.World(HistoryBuffer.Metric.Grievance));
+        ImGui.Separator();
+        ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
+        Plot("pop##sel", history.Settlement(_selected, HistoryBuffer.Metric.Population));
+        Plot("food##sel", history.Settlement(_selected, HistoryBuffer.Metric.Food));
+        Plot("grievance##sel", history.Settlement(_selected, HistoryBuffer.Metric.Grievance));
+        ImGui.End();
+    }
+
+    private static void Plot(string label, float[] series)
+    {
+        if (series.Length == 0)
+        {
+            ImGui.TextUnformatted("no data");
+            return;
+        }
+        string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
+        ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
+            float.MaxValue, float.MaxValue, new System.Numerics.Vector2(300, 56));
+    }
+
+    /// <summary>T2.9: the annals — scrollable, newest LAST, auto-scrolled to
+    /// the tail when new lines arrive while the reader is at the tail.</summary>
+    private void DrawAnnals()
+    {
+        ImGui.SetNextWindowPos(
+            new System.Numerics.Vector2(12, 560), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(
+            new System.Numerics.Vector2(560, 220), ImGuiCond.FirstUseEver);
+        ImGui.Begin("Annals");
+        ImGui.BeginChild("annal-scroll");
+        // TextUnformatted under a wrap pos (T1.8 re-gate doctrine: never the
+        // printf-parsing Text/TextWrapped for content strings).
+        ImGui.PushTextWrapPos(0f);
+        IReadOnlyList<string> lines = _session.AnnalLines;
+        for (int i = 0; i < lines.Count; i++) ImGui.TextUnformatted(lines[i]);
+        ImGui.PopTextWrapPos();
+        if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 1f)
+            ImGui.SetScrollHereY(1f);
+        ImGui.EndChild();
+        ImGui.End();
+    }
+
     private void DrawWorldBuffer(VertexBuffer? buffer)
     {
         if (buffer is null) return;
@@ -384,6 +472,9 @@ public sealed class SimUiGame : Game
     private void DrawHud(GameTime gameTime)
     {
         _imgui!.BeforeLayout(gameTime);
+        DrawNameLabels();   // T2.9: background drawlist — under all panels
+        DrawAnnals();       // T2.9
+        DrawGraphs();       // T2.10
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
         ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
 

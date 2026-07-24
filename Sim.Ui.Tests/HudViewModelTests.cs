@@ -147,6 +147,32 @@ public class HudViewModelTests
     }
 
     [Fact]
+    public void HudModel_TurnZero_SatisfactionUnpublished_ReadsNotYetMeasured_Then1FromTurn1On()
+    {
+        // Director gate finding (T2.9): the founding-day HUD showed
+        // "Sustenance: 0.00" with full stores and zero deficit. Diagnosis:
+        // UNPUBLISHED, not mis-wired — satisfaction rows are rebuilt per turn
+        // by NeedsGrievance, so at turn 0 the table is empty and the old HUD
+        // fabricated a default 0. PIN: turn 0 renders "not yet measured";
+        // from turn 1 ONWARD, full stores read exactly 1.00.
+        SimConfig cfg = SimCfg();
+        Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
+        WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
+        Assert.Equal(0, world.NeedSatisfactions.Count); // the diagnosis, pinned
+
+        HudModel turn0 = HudModel.From(world, 0, needs);
+        Assert.Equal("Sustenance: not yet measured", turn0.NeedLines![0]);
+
+        TurnExecutor exec = Executor(cfg);
+        for (int t = 1; t <= 5; t++)
+        {
+            world = exec.Step(world);
+            HudModel hud = HudModel.From(world, 0, needs);
+            Assert.Equal("Sustenance: 1.00", hud.NeedLines![0]);
+        }
+    }
+
+    [Fact]
     public void HudModel_LastHarvest_IsTheSelectedSettlementsPerTurnHarvest()
     {
         // T2.4 migration (deliberate): LastHarvest is now the SELECTED
