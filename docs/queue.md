@@ -17,3 +17,8 @@
   (founding + snapshot ordering), but no invariant test pins it; (4)
   dt-invariance covers dt 10/5/2.5 directly, dt 3 only via era-boundary
   continuity.
+- Founding variation: D-025 equal-split endowment is provisional; consider seeded
+  variance in founding population/food/composition so settlements diverge from
+  turn 0. Director observation (T2.9+T2.10 visual gate): uniform founding produces
+  lockstep history — 11 of 12 settlements got artisans in the same decade with
+  near-identical counts. Candidate for M3 (with goods) or the M10 gate.

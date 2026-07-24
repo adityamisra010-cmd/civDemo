@@ -80,15 +80,21 @@ public sealed record HudModel(
                         $"{need.Name}: not yet simulated"));
                     continue;
                 }
-                double value = 0.0;
+                // Absent row ≠ zero satisfaction: satisfaction rows are
+                // rebuilt each turn by NeedsGrievance, so before the first
+                // turn resolves NOTHING is published (Prev-lag, §3.2) — a
+                // fabricated "0.00" would read as total deprivation on a
+                // fully-stocked founding day (director gate finding, T2.9).
+                double? value = null;
                 for (int i = 0; i < world.NeedSatisfactions.Count; i++)
                 {
                     NeedSatisfactionRow row = world.NeedSatisfactions[i];
                     if (row.Settlement == selected && row.NeedId == need.Id)
                     { value = row.Value; break; }
                 }
-                needLines.Add(string.Create(CultureInfo.InvariantCulture,
-                    $"{need.Name}: {value:F2}"));
+                needLines.Add(value is { } v
+                    ? string.Create(CultureInfo.InvariantCulture, $"{need.Name}: {v:F2}")
+                    : string.Create(CultureInfo.InvariantCulture, $"{need.Name}: not yet measured"));
             }
         }
         double grievance = 0.0;
