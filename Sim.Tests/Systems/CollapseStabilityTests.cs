@@ -15,8 +15,16 @@ namespace Sim.Tests.Systems;
 // and dying hamlets circulated 40–70% of their population every turn for 150+
 // consecutive turns. Every test here reproduces that REGIME (director-style
 // farm-0% orders on a founded world) and asserts the pattern cannot recur.
-// VACUITY DISCIPLINE: each detector was run against the PRE-FIX code
-// (commit 966109b) and FAILED there — see the T2.13 adversarial pass record.
+// VACUITY DISCIPLINE (adversarial pass, commit 966109b as the pre-fix pin):
+// the three collapse detectors were each run against PRE-FIX mechanics and
+// FAILED there — no-starving-gain ("10 migrants walked INTO settlement 0"),
+// dead-stays-dead ("RESURRECTED to 3"), and the surge detector at streak 13
+// vs the bar of 8 (the ADVERSARIAL PASS caught the first rig as vacuous for
+// this detector — dev-scale populations collapse in short waves, so the ×30
+// founding scale below is load-bearing, not decorative). Post-fix measured
+// streaks: 1/3/0/0. SmallN_HealthyHamlets is NOT a T2.13 detector — it is
+// born green on both trees (deficit-free, viability ≡ 1) and stands as a
+// T2.8 gap-cap regression pin under the T2.13 config shape.
 public class CollapseStabilityTests
 {
     private const ulong Seed = 42;
@@ -51,7 +59,17 @@ public class CollapseStabilityTests
     private static List<TurnRow> RunCollapse(int turns)
     {
         SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with { Founding = cfg.Founding with { FoodStore = 4000 } };
+        // Rig TUNEs: founding populations ×30 (the director's canonical
+        // settlements were ~30× the dev counts — the sustained-surge churn
+        // needs director-scale populations to manifest pre-fix) and a small
+        // founding store (the dev surplus otherwise defers famine by
+        // millennia).
+        var scaled = new long[Cohorts.Count];
+        for (int c = 0; c < Cohorts.Count; c++) scaled[c] = cfg.Founding.CohortCounts[c] * 30;
+        cfg = cfg with
+        {
+            Founding = cfg.Founding with { FoodStore = 4000, CohortCounts = scaled },
+        };
         TurnExecutor exec = Executor(cfg, CollapseOrders());
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, null);
         int n = world.Settlements.Count;
@@ -117,8 +135,9 @@ public class CollapseStabilityTests
         // turn, indefinitely — the director logged ~150 consecutive turns at
         // 40–70%. Honest flight is a SURGE THAT ENDS: the settlement empties
         // or stabilizes. Bar: no settlement sustains surge-scale outflow for
-        // more than 8 CONSECUTIVE turns (the old refugee circulation refilled
-        // the settlement each turn, so the streak never ended).
+        // more than 8 CONSECUTIVE turns. Measured anchors at the ×30 rig
+        // scale: PRE-fix 13 (the circulation refilled the settlement each
+        // turn), post-fix 3 — the bar sits between with margin both ways.
         List<TurnRow> rows = RunCollapse(200);
         int n = rows[0].Pop.Length;
         long totalOut = 0;

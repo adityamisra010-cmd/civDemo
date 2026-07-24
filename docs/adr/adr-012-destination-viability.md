@@ -76,5 +76,10 @@ settlement into healthy neighbors; zero arrivals into severe famine).
   floors/quantization were therefore NOT adopted (they would have been
   modifiers patched over the real mechanism; law 2).
 - CollapseStabilityTests (T2.13) is the permanent regression battery for this
-  regime: no-starving-gain, no-sustained-surge, dead-stays-dead, and small-N
-  no-churn — each verified to FAIL on the pre-fix code.
+  regime. The three collapse detectors (no-starving-gain, no-sustained-surge,
+  dead-stays-dead) are each verified to FAIL on the pre-fix code — the surge
+  detector only after the adversarial pass caught its first rig as vacuous
+  and the founding scale was raised ×30 (pre-fix streak 13 vs bar 8;
+  post-fix 3). The small-N no-churn test is NOT a T2.13 detector: it is
+  deficit-free by construction (viability ≡ 1) and stands as a T2.8 gap-cap
+  regression pin.

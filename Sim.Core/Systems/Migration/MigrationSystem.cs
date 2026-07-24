@@ -211,7 +211,9 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // --- T2.8 (a): per-pair gap-closing caps -----------------------------
         // gapScale[src,dst] scales the pair's ENTIRE gap-driven desire so it
         // never exceeds f × m*. Computed once from Prev; the transfer loop
-        // recomputes bit-identical products from the same inputs.
+        // recomputes the same product terms from the same inputs (association
+        // differs at ULP level between the desire and transfer sites — a
+        // pre-T2.13 pattern; ClampToAvailable backstops any ULP overdraw).
         var gapScale = new double[n, n];
         for (int src = 0; src < n; src++)
         {

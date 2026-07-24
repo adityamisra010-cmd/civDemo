@@ -33,3 +33,8 @@
   frames, typography, style bible) has no such dependency and ships separately
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
   reference.
+- ADR-012 viability forward-note (T2.13 adversarial pass): the absolute food
+  gate is one-way today (a store cannot rise without a harvest, so a dead ruin
+  stays dead). If a future milestone adds food SHIPMENTS into settlements, a
+  trickle into a ruin re-arms viability — revisit the gate when goods movement
+  (M3) lands.
