@@ -15,7 +15,7 @@ public static class BuildInfo
     public static string Date { get; } = Metadata("BuildDate") ?? "local";
 
     /// <summary>The identity string used verbatim in title and panel.</summary>
-    public static string Describe() => $"civ-sim M1 ({Sha}, {Date})";
+    public static string Describe() => $"civ-sim M2 ({Sha}, {Date})";
 
     private static string? Metadata(string key)
     {
