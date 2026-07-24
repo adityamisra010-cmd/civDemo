@@ -19,17 +19,36 @@ public readonly record struct MigrationTables(
 ///
 /// DRIVER, per source bucket and destination:
 ///   desired/yr = BaseRatePerYear × CohortProfile[cohort] × PREV count
-///                × damping(i→j) × (gapScale(i→j) × gap(i→j)
-///                                  + FamineFlightFactor × deficit_i)
-///   gap      = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
-///   damping  = exp(−travelCost / DampingDecayCost) from Prev
-///              SettlementDistances; an UNREACHABLE pair stores +∞ and
-///              exp(−∞) = 0 — zero flow BY CONSTRUCTION, not by branch.
-///   deficit  = the source's PREV consumption-deficit ratio — famine flight
-///              stays gap-INDEPENDENT (D-021: starving people leave for
-///              anywhere reachable) and is deliberately NOT gap-capped: the
-///              Exit valve is a surge by design, bounded by the overdraw
-///              scaler alone.
+///                × damping(i→j) × viability(j)
+///                × (gapScale(i→j) × gap(i→j) + FamineFlightFactor × deficit_i)
+///   gap       = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
+///   damping   = exp(−travelCost / DampingDecayCost) from Prev
+///               SettlementDistances; an UNREACHABLE pair stores +∞ and
+///               exp(−∞) = 0 — zero flow BY CONSTRUCTION, not by branch.
+///   viability = max(0, 1 − DestinationDeficitRepulsion × deficit_j)
+///               (T2.13, director packet — the STARVATION-MAGNETISM fix):
+///               migrants know whether the destination can feed them, so the
+///               DESTINATION's PREV deficit gates every arriving flow. At
+///               deficit 1.0 a settlement receives EXACTLY ZERO migrants —
+///               attractiveness may still read high (land per capita), but an
+///               empty granary repels regardless of how empty the land is.
+///               The M2 exit session exposed the inversion this kills: an
+///               emptied, food-less settlement's per-capita land made it the
+///               world's strongest magnet, and famine flight (destination-
+///               blind, damping-only) funneled refugees INTO the famine —
+///               1,520 arrivals / 884 same-turn deaths in one turn at the
+///               director's settlement 3, circulating among the starving
+///               cluster indefinitely. Viability multiplies BOTH channels:
+///               "flee a starving settlement" survives intact (see below);
+///               "walk into a starving settlement" is dead by construction.
+///   deficit_i = the source's PREV consumption-deficit ratio — famine flight
+///               stays gap-INDEPENDENT (D-021: starving people leave for
+///               anywhere reachable AND VIABLE) and is deliberately NOT
+///               gap-capped: the Exit valve is a surge by design, bounded by
+///               the overdraw scaler alone. When every reachable destination
+///               is itself starving, flight goes to zero: there is no exodus
+///               without a destination — people die at home instead of
+///               circulating between ruins (the exit-session pathology).
 ///
 /// T2.8 STABILIZATION — the market-mandate pattern applied to people, BOTH:
 /// (a) DAMPED FLOWS (gap-closing cap): with A = R/P (R = FoodWeight × food +
@@ -96,6 +115,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         var population = new long[n];     // P (raw, no floor — m* uses physics)
         var instant = new double[n];      // A = R / max(P, 1)
         var deficit = new double[n];
+        var anyFood = new bool[n];        // T2.13: store > 0 OR last harvest > 0
         int maxId = 0;
         for (int s = 0; s < n; s++) maxId = Math.Max(maxId, prev.Settlements[s].Id.Value);
         var settlementIndex = new int[maxId + 1]; // id → row index (array, law 5: no dictionaries in sim logic)
@@ -110,9 +130,11 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 if (prev.Buckets[i].Settlement == id) pop += prev.Buckets[i].Count.Value;
             population[s] = pop;
 
-            long food = 0;
+            long food = 0, lastHarvest = 0;
             for (int i = 0; i < prev.FoodStores.Count; i++)
-                if (prev.FoodStores[i].Settlement == id) { food = prev.FoodStores[i].Store.Value; break; }
+                if (prev.FoodStores[i].Settlement == id)
+                { food = prev.FoodStores[i].Store.Value; lastHarvest = prev.FoodStores[i].LastHarvestUnits; break; }
+            anyFood[s] = food > 0 || lastHarvest > 0;
             double farmland = 0.0;
             for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
                 if (prev.CatchmentSummaries[i].Settlement == id)
@@ -124,6 +146,24 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * farmland;
             instant[s] = resources[s] / Math.Max(pop, 1);
         }
+
+        // T2.13: destination viability — TWO gates, both from Prev, both
+        // multiplying every pairwise flow below (both channels):
+        //   1. The deficit gate: max(0, 1 − Repulsion × deficit_dst) — a
+        //      settlement in famine repels in proportion to its hunger.
+        //   2. The ABSOLUTE food gate: no store AND no harvest ⇒ viability 0
+        //      regardless of the deficit signal. Without it, an EMPTY ruin is
+        //      a trap: zero population means zero demand means the deficit
+        //      READS 0.00, while land-per-capita (floor 1) reads astronomical
+        //      — the exit session's resurrection cycle (die → deficit resets
+        //      → 144 colonists in one turn → starve on the stale signal →
+        //      die → repeat every ~9 turns). An empty granary on unfarmed
+        //      land repels no matter how empty the land is.
+        var viability = new double[n];
+        for (int s = 0; s < n; s++)
+            viability[s] = anyFood[s]
+                ? Math.Max(0.0, 1.0 - m.DestinationDeficitRepulsion * deficit[s])
+                : 0.0;
 
         // --- EMA filter update (T2.8 b): PREV smoothed → owned smoothed ------
         // The owned table is the cloned prev table; rows update in place, and
@@ -179,7 +219,8 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             {
                 if (dst == src) continue;
                 double gap = Math.Max(0.0, smoothed[dst] - smoothed[src]);
-                if (gap <= 0.0 || damping[src, dst] <= 0.0) continue; // no gap desire — scale moot
+                if (gap <= 0.0 || damping[src, dst] <= 0.0 || viability[dst] <= 0.0)
+                    continue; // no (viable) gap desire — scale moot
 
                 // The pair's total gap-driven desire across every bucket.
                 double gapDesire = 0.0;
@@ -187,7 +228,8 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 {
                     BucketRow b = prev.Buckets[row];
                     gapDesire += m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                 * b.Count.Value * ctx.DtYears * damping[src, dst] * gap;
+                                 * b.Count.Value * ctx.DtYears * damping[src, dst]
+                                 * viability[dst] * gap;
                 }
                 if (gapDesire <= 0.0) continue;
 
@@ -216,7 +258,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 for (int dst = 0; dst < n; dst++)
                 {
                     if (dst == src) continue;
-                    total += perCount * damping[src, dst]
+                    total += perCount * damping[src, dst] * viability[dst]
                              * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
                                 + m.FamineFlightFactor * deficit[src]);
                 }
@@ -231,7 +273,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             for (int dst = 0; dst < n; dst++)
             {
                 if (dst == src) continue;
-                double push = damping[src, dst]
+                double push = damping[src, dst] * viability[dst]
                               * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
                                  + m.FamineFlightFactor * deficit[src]);
                 if (push <= 0.0) continue;
