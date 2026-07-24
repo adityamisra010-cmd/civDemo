@@ -243,13 +243,15 @@ public class SnapshotTests
     }
 
     [Fact]
-    public void FoundedGolden_Seed42Turn200_MatchesPinnedConstant()
+    public void FoundedGolden_Seed42Turn300_MatchesPinnedConstant()
     {
-        // T1.9: THE founded-world golden — the M1 production preset on the
-        // canonical 1024² world, 200 no-order turns (the same horizon as the
-        // founded harness legs; ≥5 Malthus cycles). FROZEN like its toy
-        // sibling above: breaks loudly on ANY founded-behavior change — that
-        // is its job. Update deliberately, with a history line, never casually.
+        // T1.9: THE founded-world golden — the production preset on the
+        // canonical 1024² N = 12 world, 300 no-order turns (the same horizon
+        // as the founded harness legs; since T2.11 the horizon CROSSES the
+        // Neolithic→Bronze era gate at turn 250, so the pin covers the dt
+        // transition too). FROZEN like its toy sibling above: breaks loudly
+        // on ANY founded-behavior change — that is its job. Update
+        // deliberately, with a history line, never casually.
         //
         // Update history:
         //   v1 (T1.9, post-Leontief farming):
@@ -304,7 +306,15 @@ public class SnapshotTests
         //   vital-rate profiles re-tuned to the honest dynamics (CBR ≈ 41.4,
         //   CDR ≈ 40.7). Every demographic trajectory changes. Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
-        const string golden = "72fd2f00eac5d633b3a36140142aba1fc461ade2cfe682b110a70d96e00ed13c";
+        //   v9 value (turn 200): 72fd2f00eac5d633b3a36140142aba1fc461ade2cfe682b110a70d96e00ed13c
+        //   v10 (T2.11 — HORIZON EXTENSION ONLY, no behavior change): the
+        //   golden horizon moves 200 → 300 turns to match the extended
+        //   harness legs and cross the era-pacing gate at turn 250 (dt
+        //   10 → 5). The hash changes because the WORLD IS OLDER, not because
+        //   any trajectory drifted — the v9 value above still reproduces at
+        //   turn 200 on this same code. Update ci.yml's FOUNDED_GOLDEN (and
+        //   its --turns) together with this constant.
+        const string golden = "a5959cdc117ed5cb66f7ee6128d0ff81e66a04feb806e24f0558cadfdc65f2bf";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -313,7 +323,7 @@ public class SnapshotTests
             PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 200);
+                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
     }
 
