@@ -55,7 +55,7 @@ namespace Sim.Cli
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
 
-                --founded: run the M1 production world (worldgen + settlement +
+                --founded: run the production world (M2: worldgen + settlements +
                 pop/food/pathbuild pipeline) instead of the M0 toy world. Labor
                 orders (kind 2) require --founded. --size replays a session
                 played on a non-canonical world size (runs/orders-*-sPX.bin);
@@ -88,7 +88,7 @@ namespace Sim.Cli
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
             // Default = toy preset + toy world: keeps the cross-process
             // determinism CI job exercising the M0 systems it has always pinned.
-            // --founded (T1.6) runs the M1 production preset; T1.9 pins its
+            // --founded (T1.6) runs the production preset; T1.9 pins its
             // golden and extends the harness.
             using var pipeStream = founded
                 ? Sim.Data.DataFiles.OpenPipeline()
@@ -99,7 +99,7 @@ namespace Sim.Cli
                 orders);
         }
 
-        /// <summary>The starting world: M0 toy genesis, or the founded M1 world.</summary>
+        /// <summary>The starting world: M0 toy genesis, or the founded production world.</summary>
         private static WorldState StartWorld(
             ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null) =>
             founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride) : Genesis(seed);

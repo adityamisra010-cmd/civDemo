@@ -186,7 +186,8 @@ public sealed record MigrationConfig(
     [property: JsonPropertyName("famineFlightFactor"), JsonRequired] double FamineFlightFactor,
     [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile,
     [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
-    [property: JsonPropertyName("attractivenessSmoothingWindowYears"), JsonRequired] double AttractivenessSmoothingWindowYears);
+    [property: JsonPropertyName("attractivenessSmoothingWindowYears"), JsonRequired] double AttractivenessSmoothingWindowYears,
+    [property: JsonPropertyName("destinationDeficitRepulsion"), JsonRequired] double DestinationDeficitRepulsion);
 
 public static class SimConfigLoader
 {
@@ -291,6 +292,13 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 $"migration.attractivenessSmoothingWindowYears must be a finite value > 0, " +
                 $"got {Inv(cfg.Migration.AttractivenessSmoothingWindowYears)}.");
+        if (!(cfg.Migration.DestinationDeficitRepulsion >= 1.0)
+            || !double.IsFinite(cfg.Migration.DestinationDeficitRepulsion))
+            throw new SimConfigException(
+                $"migration.destinationDeficitRepulsion must be a finite value >= 1 — below 1 a fully " +
+                $"starving destination (deficit 1.0) would still RECEIVE migrants, which is the T2.13 " +
+                $"starvation-magnetism defect this parameter exists to kill; got " +
+                $"{Inv(cfg.Migration.DestinationDeficitRepulsion)}.");
 
         return cfg;
     }

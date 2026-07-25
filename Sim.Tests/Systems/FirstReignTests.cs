@@ -105,7 +105,15 @@ public class FirstReignTests
         //   played session survives — extinction still lands inside (5, 25],
         //   the dead world stays frozen, no food mountain — and the shape
         //   asserts below re-verified against the new trajectory.
-        const string golden = "e5c9df592206c2da34cd17f7dbdc5e046819bcf01102df3b4c79b713f97149c5";
+        //   v8 value: e5c9df592206c2da34cd17f7dbdc5e046819bcf01102df3b4c79b713f97149c5
+        //   v9 (T2.13 ghost-grievance fix — DELIBERATE, dead-world state only):
+        //   an extinct settlement's grievance stock is now zeroed by
+        //   NeedsGrievance (grievance is held by people) instead of decaying
+        //   in the ruin forever. The director's famine extinguishes this
+        //   settlement, so the frozen dead-world bytes change; the living
+        //   trajectory to extinction is untouched and the shape asserts below
+        //   re-verified unchanged.
+        const string golden = "c35a88a837f102780342992e1f0db24d45e71eb020da3e1fba33b85d2a28b3ee";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

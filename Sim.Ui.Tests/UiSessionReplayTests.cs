@@ -118,7 +118,7 @@ public class BuildInfoTests
     public void Describe_LocalBuild_FallsBackToDevLocal()
     {
         // Test builds pass no -p:BuildSha/-p:BuildDate → the documented fallback.
-        Assert.Equal("civ-sim M1 (dev, local)", Sim.Ui.BuildInfo.Describe());
+        Assert.Equal("civ-sim M2 (dev, local)", Sim.Ui.BuildInfo.Describe());
         Assert.Equal("dev", Sim.Ui.BuildInfo.Sha);
         Assert.Equal("local", Sim.Ui.BuildInfo.Date);
     }

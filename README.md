@@ -1,10 +1,19 @@
-# civ-sim
+# civ-sim (M2)
 
 A deterministic, turn-based civilization simulation spanning 6,000 years. One human
 director; AI agents build it, one task packet per session.
 
+**M2 — Population & Society**: cohort demographics with historical vital rates
+(ADR-011 exponential-survival micro-step integration, dt-invariant across the
+era-pacing arc), a class system (Peasants + emergent Artisans, D-020 DSL),
+twelve settlements with travel-time-partitioned catchments, migration
+(differential-driven + famine flight, stabilized per D-021), needs/grievance
+stocks (Sustenance-bound, display-only until M5), chronicle-lite with
+procedural settlement names and exported annals, time-series graphs, and an
+autoplay batch runner with a corridor-checked calibration battery.
+
 Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution) and
-[`docs/m0-kernel-spec.md`](docs/m0-kernel-spec.md) (current milestone spec).
+[`docs/m2-spec.md`](docs/m2-spec.md) (current milestone spec).
 
 ## Prerequisites
 
@@ -123,18 +132,24 @@ No toolchain needed — download, unzip, run `Sim.Ui.exe`.
 run on `main` → download the `sim-ui-win-x64-<sha>` artifact.
 **Stable milestones**: the [Releases page](../../releases) — publishing a
 release automatically attaches its zip as a permanent asset.
-**Gate builds**: every `t1.*` branch push produces the same artifact for
-Director Visual Gates.
+**Gate builds**: every `t<N>.*` packet-branch push produces the same artifact
+for Director Visual Gates.
 
-The window title and debug panel both show `civ-sim M1 (<sha>, <date>)` — the
+The window title and debug panel both show `civ-sim M2 (<sha>, <date>)` — the
 build you are holding is never ambiguous. Optional flags: `--seed N` (default
 42) and `--size PX` (dev-preview world size; a non-canonical size is recorded
 in the session-log filename).
 
-Each played session autosaves its order log to
-`runs/orders-<yyyyMMdd-HHmmss>[-sPX].bin` next to the exe — the filename stamp
-makes lexicographic order chronological, so back-to-back gate logs sort and
-sweep trivially. A session log + its seed replays hash-identically:
+Each played session autosaves TWO files next to the exe, twinned by the same
+timestamp:
+
+- `runs/orders-<yyyyMMdd-HHmmss>[-sPX][-nN].bin` — the order log (the replay
+  input; lexicographic order = chronological, so back-to-back gate logs sort
+  and sweep trivially);
+- `runs/chronicle-<yyyyMMdd-HHmmss>[-sPX][-nN].txt` — the annals export (T2.9),
+  byte-exactly the Annals panel's lines.
+
+A session log + its seed replays hash-identically:
 
 ```bash
 sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
@@ -157,18 +172,36 @@ Cross-system communication is exclusively through state tables and events.
 
 ## Milestone status
 
-- **M0 — Simulation kernel: in progress.** Task packets T0.1–T0.9 per
-  `docs/m0-kernel-spec.md` §4. Completed: T0.1 (scaffold + CI), T0.2 (state
-  infrastructure: WorldState, tables, typed ids, double-buffer clone, read-only views),
-  T0.3 (PCG32 RNG: stream registry keyed system×region, states in WorldState),
-  T0.4 (integer-day SimClock per ADR-002; era-pacing table loader, D-006),
-  T0.5 (turn executor, typed system contexts per ADR-003, pipeline-as-data,
-  toy Weather/Growth systems proving one-turn lag and dt-correct integration),
-  T0.6 (Ledger + Conserved wrapper per ADR-004, sources/sinks tables,
-  ConservationAuditor, toy TradeSystem; conservation exact and grep-gated),
-  T0.7 (canonical serialization per ADR-005, SHA-256 WorldHash, versioned
-  snapshots, order log + replay with the SetRainBias toy order),
-  T0.8 (determinism harness: 1,000-turn twin-runs, replay, per-turn conservation
-  audit — the required "determinism" CI job, ADR-006),
-  T0.9 (CLI: run/hash/replay/bench, exit-code contract, per-phase bench via
-  executor observer; cross-process determinism CI job). M0 packets complete.
+- **M0 — Simulation kernel: COMPLETE.** T0.1–T0.9 per `docs/m0-kernel-spec.md`:
+  state infrastructure, PCG32 RNG registry, integer-day clock + era pacing,
+  turn executor + pipeline-as-data, Ledger + exact conservation, canonical
+  serialization + WorldHash + snapshots + order-log replay, the permanent
+  determinism harness and cross-process CI jobs, and the `sim` CLI.
+- **M1 — Walking skeleton: COMPLETE.** T1.1–T1.10 per
+  `docs/m1-walking-skeleton-spec.md`: worldgen fields + hydrology, traversal
+  lattice + pathfinding, settlement + catchment, population + food loop, labor
+  orders + PathBuild, the Sim.Ui window (terrain, overlays, HUD, End Turn),
+  founded-world harness + goldens, and the CI Windows artifact.
+- **M2 — Population & Society: at the exit gate.** T2.1–T2.12 per
+  `docs/m2-spec.md`: cohort buckets (D-026), class system + D-020 DSL, plural
+  worldgen with partitioned catchments (N = 12), per-settlement UI rule,
+  migration (D-021, stabilized: gap-closing caps + EMA-smoothed
+  attractiveness), historical demographic retune on the ADR-011
+  exponential-survival micro-step kernel (dt-invariant growth, era-boundary
+  continuity pinned forever), needs registry + grievance stocks (read by
+  nothing but UI/chronicle — grep-gated), autoplay + calibration battery with
+  two-sided corridors, chronicle-lite + procedural names + annals export,
+  time-series graphs on the D-028 UI ring buffer, and the T2.11 determinism
+  horizon across the era gate. Awaiting the director's exit session.
+
+## Calibration battery
+
+```bash
+# The CI battery members (2 canonical + 2 dev seeds, bands from
+# Sim.Data/content/corridors.json — TUNE data; two-sided, no-output-is-failure)
+dotnet test Sim.Tests --configuration Release --filter CalibrationBatteryTests
+
+# The >=20-seed sweep (the calibration-nightly CI job; also manual)
+dotnet run --project Sim.Cli -c Release -- \
+  autoplay --seeds 20 --turns 650 --metrics nightly-metrics.json
+```
