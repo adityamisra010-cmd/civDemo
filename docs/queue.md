@@ -42,3 +42,9 @@
   stays dead). If a future milestone adds food SHIPMENTS into settlements, a
   trickle into a ruin re-arms viability — revisit the gate when goods movement
   (M3) lands.
+- Worldgen: continental mask permits land at the world boundary (radial falloff
+  reaches zero only at CORNERS — edge-midpoint radial is 0.293), so continents
+  are truncated at the map edge; measured on seed 42: 185 land cells on the
+  eastern boundary column, 87 on the northern row. Consider an edge taper
+  guaranteeing an ocean margin — M3 spec candidate. (Render verified complete:
+  full world rect displayed at min zoom; not a Sim.Ui defect.)

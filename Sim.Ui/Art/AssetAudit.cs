@@ -109,12 +109,22 @@ public static class AssetAudit
             }
         }
 
+        // ALL files, not *.png: a mis-EXTENSIONED drop (header-rule.png.jpg —
+        // a JPEG export beside the placeholder it meant to replace) is exactly
+        // the "looks delivered, behaves missing" failure this audit exists to
+        // catch, and a .png glob is blind to it. Fonts (loaded by UiTheme, not
+        // the manifest) and drop-point docs are the only legitimate
+        // non-manifest files.
         var orphans = new List<string>();
         if (Directory.Exists(root))
         {
-            foreach (string file in Directory.EnumerateFiles(root, "*.png", SearchOption.AllDirectories))
-                if (!referenced.Contains(Path.GetFullPath(file)))
-                    orphans.Add(Path.GetRelativePath(root, file).Replace('\\', '/'));
+            foreach (string file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+            {
+                string rel = Path.GetRelativePath(root, file).Replace('\\', '/');
+                if (rel.StartsWith("fonts/", StringComparison.OrdinalIgnoreCase)) continue;
+                if (rel.EndsWith(".md", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!referenced.Contains(Path.GetFullPath(file))) orphans.Add(rel);
+            }
             orphans.Sort(StringComparer.Ordinal);
         }
         return new Report(root, keys, orphans);

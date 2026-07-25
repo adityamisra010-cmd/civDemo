@@ -394,7 +394,11 @@ public sealed class SimUiGame : Game
 
         // Settlement markers: world-anchored, constant SCREEN size — readable at
         // every zoom by construction (no transform on the sprite pass).
-        _spriteBatch.Begin(samplerState: SamplerState.LinearClamp);
+        // NonPremultiplied: our textures carry straight alpha from the PNG
+        // (UploadArt does not premultiply); SpriteBatch's default AlphaBlend
+        // assumes premultiplied and would rim the real marker's antialiased
+        // edge with a bright halo. The ImGui pass already draws straight alpha.
+        _spriteBatch.Begin(samplerState: SamplerState.LinearClamp, blendState: BlendState.NonPremultiplied);
         for (int i = 0; i < _world.Settlements.Count; i++)
         {
             LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(

@@ -92,10 +92,23 @@ public class AssetSeamTests
         // up while the eye reads it as ink). The reformulation is STRICTER
         // overall — it adds the mean and percentile checks the per-pixel
         // version never had — while refusing to call five specks a violation.
+        // ASSET-CLASS SPLIT (real-art drop 2, flagged for the director's
+        // ruling like the aggregate reformulation before it): the checks
+        // below are calibrated for FULL-BLEED PAINTED assets, where ink is a
+        // whisper in the tail. The compass rose and settlement marker are INK
+        // LINE-ART on transparency — ink IS the picture (11.7% / 17.3% of
+        // their visible pixels are near-black strokes, luminance 0–64, e.g.
+        // rgb(8,2,0)), and HSV saturation is numerically meaningless there
+        // (the accepted lowland-speck rationale, at asset scale — those
+        // specks sat at luminance 83, BRIGHTER than this ink). Line-art kinds
+        // get the ink-aware gate in
+        // <see cref="EveryInkLineArtAsset_IsDrawnInTheBibleInk"/>; the
+        // painted-asset bar here is UNCHANGED from the accepted ruling.
         AssetLibrary art = Library();
         double gamut = ParchmentPalette.MaxBibleSaturation();
         foreach (AssetManifest.Entry entry in AssetManifest.All)
         {
+            if (IsInkLineArt(entry.Kind)) continue;
             ArtImage img = art.Get(entry.Key);
             var saturations = new List<double>(img.Width * img.Height);
             long over = 0;
@@ -128,6 +141,75 @@ public class AssetSeamTests
             Assert.True(overFraction < 0.0001,
                 $"{entry.Key}: {overFraction:P4} of pixels exceed the §2 gamut {gamut:F3} " +
                 $"(worst {worst:F2} at rgb({wr},{wg},{wb})) — a new ink chemistry crept in");
+        }
+    }
+
+    /// <summary>Which manifest kinds are ink LINE-ART on transparency (drawn
+    /// strokes, not painted sheets). Declarative, from the manifest — if a
+    /// future real panel/button drop turns out to be transparent line-art
+    /// too, move its kind here and the right gate applies.</summary>
+    private static bool IsInkLineArt(AssetManifest.AssetKind kind) => kind is
+        AssetManifest.AssetKind.CoastHairline or
+        AssetManifest.AssetKind.UiHeaderRule or
+        AssetManifest.AssetKind.UiCompassRose or
+        AssetManifest.AssetKind.SettlementMarker;
+
+    [Fact]
+    public void EveryInkLineArtAsset_IsDrawnInTheBibleInk_SingleCartographerRule()
+    {
+        // §1 FOR INK DRAWINGS: the "chemistry" of line art is its INK. Three
+        // checks, each derived from the bible rather than a number of mine:
+        //   * MEAN saturation of visible pixels ≤ the §2 gamut — a whole-
+        //     drawing hue shift cannot hide;
+        //   * every over-gamut pixel must READ AS THE BIBLE'S INK: either at
+        //     or below InkPrimary's own luminance (≈47.5 — hue is unreadable
+        //     there; that IS black-sepia ink), or warm-ordered like it
+        //     (R ≥ G ≥ B, the ink→paper antialias shoulder). Any COOL or
+        //     bright off-palette pixel counts as foreign, bar < 0.01% — a
+        //     blue compass or a red marker fails outright;
+        //   * the warm shoulder itself stays a sliver: over-gamut fraction of
+        //     above-ink-luminance pixels < 1%. MEASURED on the director's
+        //     drop: marker 0.65%, compass 0.042%; a genuinely off-palette
+        //     warm asset (a vivid orange rose) would be tens of percent — an
+        //     order of magnitude of margin on both sides of the bar.
+        AssetLibrary art = Library();
+        double gamut = ParchmentPalette.MaxBibleSaturation();
+        var ip = ParchmentPalette.InkPrimary;
+        double inkLum = 0.2126 * ip.R + 0.7152 * ip.G + 0.0722 * ip.B;
+        foreach (AssetManifest.Entry entry in AssetManifest.All.Where(e => IsInkLineArt(e.Kind)))
+        {
+            ArtImage img = art.Get(entry.Key);
+            long visible = 0, aboveInk = 0, overWarm = 0, foreign = 0;
+            double satSum = 0, worstForeign = 0; int fr = 0, fg = 0, fb = 0;
+            for (int i = 0; i < img.Width * img.Height; i++)
+            {
+                int o = i * 4;
+                if (img.Rgba[o + 3] < 8) continue;
+                var c = new ParchmentPalette.Rgba(img.Rgba[o], img.Rgba[o + 1], img.Rgba[o + 2]);
+                double sat = ParchmentPalette.Saturation(c);
+                visible++; satSum += sat;
+                double lum = 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B;
+                if (lum <= inkLum) continue;   // pure ink by the bible's own darkness
+                aboveInk++;
+                if (sat <= gamut) continue;
+                bool warm = c.R >= c.G && c.G >= c.B;
+                if (warm) overWarm++;
+                else
+                {
+                    foreign++;
+                    if (sat > worstForeign) { worstForeign = sat; fr = c.R; fg = c.G; fb = c.B; }
+                }
+            }
+            if (visible == 0) continue;
+            double mean = satSum / visible;
+            Assert.True(mean <= gamut,
+                $"{entry.Key}: MEAN saturation {mean:F3} exceeds the §2 gamut {gamut:F3} — the drawing is in a new ink");
+            Assert.True(foreign / (double)Math.Max(1, aboveInk) < 0.0001,
+                $"{entry.Key}: {foreign} non-warm over-gamut pixel(s) above ink luminance " +
+                $"(worst {worstForeign:F2} at rgb({fr},{fg},{fb})) — a COOL foreign chemistry crept in");
+            Assert.True(overWarm / (double)Math.Max(1, aboveInk) < 0.01,
+                $"{entry.Key}: {overWarm / (double)Math.Max(1, aboveInk):P2} of above-ink-luminance pixels are " +
+                $"over-gamut — too much for an antialias shoulder; the ink is off-palette");
         }
     }
 
