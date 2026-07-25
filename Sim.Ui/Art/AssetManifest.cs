@@ -26,20 +26,40 @@ public static class AssetManifest
     /// 2×2 edge-wrap test applies (enforced by AssetSeamTests).</param>
     /// <param name="Variant">Parchment base variant index (renderer picks by seed).</param>
     /// <param name="TerrainClass">Set for TerrainWash entries only.</param>
+    /// <param name="AlternateFileNames">Other file names this key ACCEPTS, in
+    /// preference order after the primary. Real art arrives named however the
+    /// generating session named it; an alias costs nothing and turns a silent
+    /// "asset missing" (a misnamed drop looks delivered but renders as a
+    /// stand-in) into a normal load. The audit reports which name resolved.</param>
     public sealed record Entry(
         string Key, string RelativePath, AssetKind Kind, bool Tileable,
-        int Variant = 0, ParchmentPalette.TerrainClass? TerrainClass = null);
+        int Variant = 0, ParchmentPalette.TerrainClass? TerrainClass = null,
+        string[]? AlternateFileNames = null);
 
-    /// <summary>How many parchment variants the bible asks for ("2–3 variants;
-    /// renderer picks one per world seed").</summary>
+    /// <summary>How many parchment variants the bible allows ("2–3 variants;
+    /// renderer picks one per world seed"). VARIANTS ARE OPTIONAL: a single
+    /// sheet at parchment/parchment.png serves every seed (see
+    /// <see cref="ParchmentPrimary"/>).</summary>
     public const int ParchmentVariants = 3;
+
+    /// <summary>THE single-sheet paper. When this file exists it is the paper
+    /// for EVERY world seed and the numbered variants are ignored entirely —
+    /// the director generated one sheet, and "all three identical" is the
+    /// intent, so one file expresses it without three copies of a 2.6 MB PNG
+    /// (and without 2/3 of seeds silently drawing on placeholder paper because
+    /// a base-N stand-in still sat beside the real sheet).</summary>
+    public const string ParchmentPrimary = "parchment/parchment.png";
 
     public static readonly IReadOnlyList<Entry> All = Build();
 
     private static Entry[] Build()
     {
         var entries = new List<Entry>();
-        for (int v = 0; v < ParchmentVariants; v++)
+        // The primary sheet first: variant 0 accepts parchment.png OR base-0.png.
+        entries.Add(new Entry("parchment/base-0", ParchmentPrimary,
+            AssetKind.ParchmentBase, Tileable: true, Variant: 0,
+            AlternateFileNames: ["base-0.png"]));
+        for (int v = 1; v < ParchmentVariants; v++)
             entries.Add(new Entry($"parchment/base-{v}", $"parchment/base-{v}.png",
                 AssetKind.ParchmentBase, Tileable: true, Variant: v));
         entries.Add(new Entry("parchment/grain", "parchment/grain.png", AssetKind.Grain, Tileable: true));
@@ -49,7 +69,8 @@ public static class AssetManifest
             var cls = (ParchmentPalette.TerrainClass)c;
             string name = ParchmentPalette.TileName(cls);
             entries.Add(new Entry($"terrain/{name}", $"terrain/{name}.png",
-                AssetKind.TerrainWash, Tileable: true, TerrainClass: cls));
+                AssetKind.TerrainWash, Tileable: true, TerrainClass: cls,
+                AlternateFileNames: TileAliases(cls)));
         }
 
         entries.Add(new Entry("ink/coast-hairline", "ink/coast-hairline.png", AssetKind.CoastHairline, Tileable: false));
@@ -60,6 +81,49 @@ public static class AssetManifest
         entries.Add(new Entry("ui/compass-rose", "ui/compass-rose.png", AssetKind.UiCompassRose, Tileable: false));
         entries.Add(new Entry("ui/settlement-marker", "ui/settlement-marker.png", AssetKind.SettlementMarker, Tileable: false));
         return [.. entries];
+    }
+
+    /// <summary>Alternate names a terrain wash accepts. 'deepsea.png' is the
+    /// name the director's generation session produced for the deep-sea wash;
+    /// both spellings resolve so a regenerated batch drops in unchanged.</summary>
+    private static string[]? TileAliases(ParchmentPalette.TerrainClass cls) => cls switch
+    {
+        ParchmentPalette.TerrainClass.Deep => ["deepsea.png", "deep-sea.png"],
+        ParchmentPalette.TerrainClass.Shallows => ["shallow.png"],
+        ParchmentPalette.TerrainClass.Lowland => ["lowland-green.png"],
+        ParchmentPalette.TerrainClass.Fertile => ["fertile-green.png"],
+        ParchmentPalette.TerrainClass.Upland => ["upland-umber.png"],
+        ParchmentPalette.TerrainClass.Peak => ["peak-pale.png"],
+        ParchmentPalette.TerrainClass.Plain => ["plain-tan.png"],
+        _ => null,
+    };
+
+    /// <summary>The path this entry loads from, or null if no accepted name
+    /// exists on disk. Primary first, then each alias in order.</summary>
+    public static string? Resolve(string root, Entry entry)
+    {
+        string primary = Path.Combine(root, entry.RelativePath);
+        if (File.Exists(primary)) return primary;
+        if (entry.AlternateFileNames is { } alternates)
+        {
+            string dir = Path.GetDirectoryName(Path.Combine(root, entry.RelativePath))!;
+            foreach (string name in alternates)
+            {
+                string candidate = Path.Combine(dir, name);
+                if (File.Exists(candidate)) return candidate;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Parchment variants that ACTUALLY resolved, ascending. When the
+    /// single primary sheet is the only one present, every seed gets it.</summary>
+    public static IReadOnlyList<Entry> ResolvedParchmentVariants(string root)
+    {
+        var found = new List<Entry>();
+        foreach (Entry e in All)
+            if (e.Kind == AssetKind.ParchmentBase && Resolve(root, e) is not null) found.Add(e);
+        return found;
     }
 
     public static Entry Require(string key)

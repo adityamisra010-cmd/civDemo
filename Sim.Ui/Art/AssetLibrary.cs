@@ -22,20 +22,28 @@ public sealed class AssetLibrary
     public IReadOnlyList<Status> Report => _report;
     public int PlaceholderCount { get; private set; }
 
-    private AssetLibrary(string root) => Root = root;
+    private readonly IReadOnlyList<AssetManifest.Entry> _parchmentVariants;
+
+    private AssetLibrary(string root)
+    {
+        Root = root;
+        _parchmentVariants = AssetManifest.ResolvedParchmentVariants(root);
+    }
 
     public static AssetLibrary Load(string? root = null)
     {
         var library = new AssetLibrary(root ?? AssetManifest.DefaultRoot());
         foreach (AssetManifest.Entry entry in AssetManifest.All)
         {
-            string path = Path.Combine(library.Root, entry.RelativePath);
+            string? path = AssetManifest.Resolve(library.Root, entry);
             try
             {
-                if (File.Exists(path))
+                if (path is not null)
                 {
                     library._images[entry.Key] = PngCodec.Read(path);
-                    library._report.Add(new Status(entry.Key, true, null));
+                    string? note = Path.GetFileName(path) == Path.GetFileName(entry.RelativePath)
+                        ? null : $"via alias {Path.GetFileName(path)}";
+                    library._report.Add(new Status(entry.Key, true, note));
                     continue;
                 }
                 library.Substitute(entry, "missing file");
@@ -55,7 +63,11 @@ public sealed class AssetLibrary
     {
         _images[entry.Key] = PlaceholderArt.Generate(entry);
         _report.Add(new Status(entry.Key, false, why));
-        PlaceholderCount++;
+        // An un-provided OPTIONAL parchment variant is not a deficiency: the
+        // bible allows 2–3 sheets and requires one. Counting it would make a
+        // complete single-sheet drop report "2/20 PLACEHOLDER" forever.
+        bool optionalVariant = entry.Kind == AssetManifest.AssetKind.ParchmentBase && entry.Variant > 0;
+        if (!optionalVariant) PlaceholderCount++;
     }
 
     /// <summary>The image for a manifest key — always non-null (placeholder if
@@ -68,10 +80,22 @@ public sealed class AssetLibrary
     public ArtImage Terrain(ParchmentPalette.TerrainClass cls) =>
         Get(AssetManifest.Terrain(cls).Key);
 
-    /// <summary>Parchment variant for a world seed — the bible's "renderer
-    /// picks one per world seed" (§4 item 1). Deterministic, no RNG.</summary>
-    public ArtImage ParchmentFor(ulong worldSeed) =>
-        Get($"parchment/base-{(int)(worldSeed % AssetManifest.ParchmentVariants)}");
+    /// <summary>
+    /// Parchment variant for a world seed — the bible's "renderer picks one per
+    /// world seed" (§4 item 1). Chooses among the variants that ACTUALLY
+    /// RESOLVED: with the director's single sheet present, every seed draws on
+    /// it (and no seed is quietly handed a leftover stand-in). Deterministic,
+    /// no RNG.
+    /// </summary>
+    public ArtImage ParchmentFor(ulong worldSeed)
+    {
+        IReadOnlyList<AssetManifest.Entry> resolved = _parchmentVariants;
+        if (resolved.Count == 0) return Get("parchment/base-0");
+        return Get(resolved[(int)(worldSeed % (ulong)resolved.Count)].Key);
+    }
+
+    /// <summary>How many parchment sheets the drop actually provided.</summary>
+    public int ParchmentVariantCount => Math.Max(1, _parchmentVariants.Count);
 
     /// <summary>One-line status for the debug panel: silence when the art is
     /// complete, a loud count when it is not.</summary>

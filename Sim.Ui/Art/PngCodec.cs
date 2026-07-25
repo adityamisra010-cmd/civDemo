@@ -31,6 +31,41 @@ public sealed record ArtImage(int Width, int Height, byte[] Rgba)
         return new ParchmentPalette.Rgba(TerrainSplat.Byte(r), TerrainSplat.Byte(g), TerrainSplat.Byte(b));
     }
 
+    /// <summary>
+    /// SEAM-HIDDEN wrapped sample (the art-drop cross-fade). Real generated
+    /// art is only approximately edge-wrapping — a diffusion model has no way
+    /// to guarantee the left column continues into the right — so a faint
+    /// residual discontinuity survives even in good tiles (measured on the
+    /// director's drop: the join is ~1.4–1.7× rougher than the tile's own
+    /// interior). This sampler removes it at the SAMPLING stage rather than
+    /// asking for a better tile: it takes a second tap half a tile away, where
+    /// the seam region maps to tile INTERIOR, and cross-fades to it as the
+    /// primary tap approaches an edge. At the seam the second tap supplies
+    /// 100% of the colour, so the discontinuity cannot appear in the output;
+    /// two tiles away from any edge the primary tap is used untouched, so the
+    /// artist's texture is preserved everywhere it is safe to use it.
+    /// </summary>
+    /// <param name="edgeBand">Fraction of the tile over which the cross-fade
+    /// runs (0.12 = the outer 12% of each side).</param>
+    public ParchmentPalette.Rgba SampleWrappedCrossFaded(double u, double v, double edgeBand = 0.12)
+    {
+        double fu = u - Math.Floor(u), fv = v - Math.Floor(v);
+        double edgeDistance = Math.Min(Math.Min(fu, 1.0 - fu), Math.Min(fv, 1.0 - fv));
+        if (edgeDistance >= edgeBand) return SampleWrapped(u, v);
+
+        // Smoothstep from "all second tap" at the seam to "all primary tap"
+        // at the band's inner edge — C1 continuous, so the cross-fade itself
+        // introduces no new edge.
+        double t = edgeDistance / edgeBand;
+        double w = t * t * (3.0 - 2.0 * t);
+        ParchmentPalette.Rgba primary = SampleWrapped(u, v);
+        ParchmentPalette.Rgba shifted = SampleWrapped(u + 0.5, v + 0.5);
+        return new ParchmentPalette.Rgba(
+            TerrainSplat.Byte(shifted.R + (primary.R - shifted.R) * w),
+            TerrainSplat.Byte(shifted.G + (primary.G - shifted.G) * w),
+            TerrainSplat.Byte(shifted.B + (primary.B - shifted.B) * w));
+    }
+
     private static int Wrap(int i, int n) { i %= n; return i < 0 ? i + n : i; }
     private static double Lerp(double a, double b, double t) => a + (b - a) * t;
 }

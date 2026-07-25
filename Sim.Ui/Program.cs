@@ -9,6 +9,18 @@ using Sim.Core.Worldgen;
 // Args: [--seed N] [--size PX] (size is the D-015 dev-preview escape hatch).
 (ulong seed, int? sizeOverride, int? settlementsOverride) = Sim.Ui.UiArgs.Parse(args);
 
+// --audit-assets [root]: report which manifest keys resolve to REAL art,
+// which are still stand-ins, and which files are orphaned. Headless, no window.
+if (Array.IndexOf(args, "--audit-assets") >= 0)
+{
+    int at = Array.IndexOf(args, "--audit-assets");
+    string auditRoot = at + 1 < args.Length && !args[at + 1].StartsWith("--")
+        ? args[at + 1]
+        : Sim.Ui.Art.AssetManifest.DefaultRoot();
+    Console.Write(Sim.Ui.Art.AssetAudit.Run(auditRoot).Render());
+    return;
+}
+
 // --generate-placeholder-assets (art substrate packet): writes any MISSING
 // manifest asset as a programmatic stand-in and exits WITHOUT opening a
 // window — the headless path that keeps assets/ populated in CI and in the

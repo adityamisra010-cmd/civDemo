@@ -191,13 +191,28 @@ public class ParchmentBakeTests(ITestOutputHelper output)
     [Fact]
     public void Bake_HonoursTheSeedChosenParchmentVariant()
     {
-        // Different seeds pick different paper (bible §4 item 1) — so two
-        // worlds are not printed on the identical sheet.
+        // Bible §4 item 1: "renderer picks one per world seed". With a
+        // MULTI-sheet drop two seeds must land on different paper; with the
+        // director's single-sheet drop every seed shares it by design, so the
+        // multi-variant case is exercised against a generated three-sheet root.
         TerrainSet terrain = Terrain(128);
-        AssetLibrary art = AssetLibrary.Load();
-        byte[] a = ParchmentBaker.Bake(terrain, art, 0).Rgba;
-        byte[] b = ParchmentBaker.Bake(terrain, art, 1).Rgba;
-        Assert.NotEqual(a, b);
+        string root = Path.Combine(Path.GetTempPath(), $"art-bakevar-{Guid.NewGuid():N}");
+        try
+        {
+            PlaceholderArt.GenerateMissing(root);
+            AssetLibrary multi = AssetLibrary.Load(root);
+            Assert.Equal(AssetManifest.ParchmentVariants, multi.ParchmentVariantCount);
+            Assert.NotEqual(
+                ParchmentBaker.Bake(terrain, multi, 0).Rgba,
+                ParchmentBaker.Bake(terrain, multi, 1).Rgba);
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+
+        // And the shipped single-sheet drop prints every seed on that one sheet.
+        AssetLibrary single = AssetLibrary.Load();
+        Assert.Equal(
+            ParchmentBaker.Bake(terrain, single, 0).Rgba,
+            ParchmentBaker.Bake(terrain, single, 1).Rgba);
     }
 
     [Fact]
@@ -210,7 +225,9 @@ public class ParchmentBakeTests(ITestOutputHelper output)
         try
         {
             AssetLibrary empty = AssetLibrary.Load(root);
-            Assert.Equal(AssetManifest.All.Count, empty.PlaceholderCount);
+            int required = AssetManifest.All.Count(e =>
+                !(e.Kind == AssetManifest.AssetKind.ParchmentBase && e.Variant > 0));
+            Assert.Equal(required, empty.PlaceholderCount);
             ParchmentBaker.Result bake = ParchmentBaker.Bake(Terrain(128), empty, 42);
             Assert.Equal(128 * ParchmentBaker.Options.Default.Supersample, bake.Size);
             bool anyInk = false;

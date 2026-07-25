@@ -35,17 +35,30 @@ public static class ParchmentBaker
 {
     public sealed record Options(
         int Supersample = 2,
-        double TileWorldSpanPx = 220.0,
+        /// <summary>World pixels one terrain wash tile spans, or NULL to derive
+        /// it from the art's own resolution (tileWidth / Supersample, so one
+        /// output texel samples about one source texel). MEASURED FINDING on
+        /// the real drop: a fixed 220 px span minified the director's 1254²
+        /// washes ~5.7:1, throwing away the paint detail the art exists to
+        /// provide and crunching its noise. Auto-scaling shows the art at its
+        /// own scale and, as a bonus, lengthens the repeat period to ~627 px so
+        /// a 1024 px world barely repeats at all.</summary>
+        double? TileWorldSpanPx = null,
         /// <summary>World pixels one parchment tile spans. MEASURED FINDING:
         /// at ~870 (the tile's own size × 1.7) the paper's fibre was stretched
         /// to invisibility — the sheet showed only its low-frequency mottle
         /// and the "paper tooth" the bible asks for never reached the eye.
         /// At ~260 the fibre reads at map scale while the mottle still spans
         /// several hundred pixels.</summary>
-        double PaperWorldSpanPx = 260.0,
+        double? PaperWorldSpanPx = null,
         double CoastInkPx = 2.2,
         double EngravedBandPx = 26.0,
-        double PaperInfluence = 1.0)
+        double PaperInfluence = 1.0,
+        /// <summary>Apply the seam-hiding cross-fade at the sampling stage
+        /// (ArtImage.SampleWrappedCrossFaded). ON by default: real generated
+        /// art only approximately edge-wraps. Switchable so the rendered-seam
+        /// measurement can be taken both ways.</summary>
+        bool CrossFadeSeams = true)
     {
         public static readonly Options Default = new();
     }
@@ -77,9 +90,15 @@ public static class ParchmentBaker
 
         float[] coastDistance = CoastDistance(waterMask, n);
         ArtImage paper = art.ParchmentFor(worldSeed);
+        double paperSpan = o.PaperWorldSpanPx ?? Math.Max(64.0, paper.Width / (double)ss);
         double paperMean = Luminance(ParchmentPalette.PaperMid);
         var tiles = new ArtImage[ParchmentPalette.TerrainClassCount];
-        for (int c = 0; c < tiles.Length; c++) tiles[c] = art.Terrain((ParchmentPalette.TerrainClass)c);
+        var tileSpans = new double[ParchmentPalette.TerrainClassCount];
+        for (int c = 0; c < tiles.Length; c++)
+        {
+            tiles[c] = art.Terrain((ParchmentPalette.TerrainClass)c);
+            tileSpans[c] = o.TileWorldSpanPx ?? Math.Max(64.0, tiles[c].Width / (double)ss);
+        }
 
         var pixels = new byte[size * size * 4];
         double[] elevationCopy = elevation.ToArray();
@@ -104,7 +123,6 @@ public static class ParchmentBaker
                     isWater, weights);
 
                 // --- tiled wash blend -------------------------------------
-                double u = wx / o.TileWorldSpanPx, v = wy / o.TileWorldSpanPx;
                 double r = 0, g = 0, b = 0;
                 int dominant = 0;
                 double dominantWeight = 0.0;
@@ -113,7 +131,9 @@ public static class ParchmentBaker
                     double w = weights[c];
                     if (w > dominantWeight) { dominantWeight = w; dominant = c; }
                     if (w < 0.02) continue;   // below one part in fifty: invisible, skip the fetch
-                    ParchmentPalette.Rgba s = tiles[c].SampleWrapped(u, v);
+                    ParchmentPalette.Rgba s = o.CrossFadeSeams
+                        ? tiles[c].SampleWrappedCrossFaded(wx / tileSpans[c], wy / tileSpans[c])
+                        : tiles[c].SampleWrapped(wx / tileSpans[c], wy / tileSpans[c]);
                     r += s.R * w; g += s.G * w; b += s.B * w;
                 }
                 // Normalize by the weight actually sampled (the skipped tail),
@@ -124,15 +144,17 @@ public static class ParchmentBaker
                 if (sampled > 0.0) { r /= sampled; g /= sampled; b /= sampled; }
                 else { ParchmentPalette.Rgba f = TerrainSplat.Blend(weights); r = f.R; g = f.G; b = f.B; }
 
-                ParchmentPalette.Rgba breakUp = tiles[dominant].SampleWrapped(u * 0.371 + 0.19, v * 0.371 + 0.57);
+                ParchmentPalette.Rgba breakUp = tiles[dominant].SampleWrappedCrossFaded(
+                    wx / tileSpans[dominant] * 0.371 + 0.19, wy / tileSpans[dominant] * 0.371 + 0.57);
                 const double BreakUpMix = 0.30;
                 r = r * (1.0 - BreakUpMix) + breakUp.R * BreakUpMix;
                 g = g * (1.0 - BreakUpMix) + breakUp.G * BreakUpMix;
                 b = b * (1.0 - BreakUpMix) + breakUp.B * BreakUpMix;
 
                 // --- the paper prints through -----------------------------
-                ParchmentPalette.Rgba paperTexel = paper.SampleWrapped(
-                    wx / o.PaperWorldSpanPx, wy / o.PaperWorldSpanPx);
+                ParchmentPalette.Rgba paperTexel = o.CrossFadeSeams
+                    ? paper.SampleWrappedCrossFaded(wx / paperSpan, wy / paperSpan)
+                    : paper.SampleWrapped(wx / paperSpan, wy / paperSpan);
                 double paperFactor = 1.0 + o.PaperInfluence * (Luminance(paperTexel) - paperMean) / paperMean;
                 r *= paperFactor; g *= paperFactor; b *= paperFactor;
 

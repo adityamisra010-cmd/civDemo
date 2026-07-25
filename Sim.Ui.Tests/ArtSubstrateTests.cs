@@ -214,10 +214,15 @@ public class ArtSubstrateTests
     public void AssetLibrary_LoadsRealFiles_FromTheShippedAssetsFolder()
     {
         AssetLibrary library = AssetLibrary.Load();
-        Assert.Equal(0, library.PlaceholderCount);   // assets/ is populated in the repo
         Assert.Equal(AssetManifest.All.Count, library.Report.Count);
-        Assert.All(library.Report, r => Assert.True(r.Loaded, $"{r.Key}: {r.Note}"));
-        Assert.Contains("assets loaded", library.SummaryLine());
+        // Every REQUIRED key loads. Parchment variants beyond the primary are
+        // optional (the director shipped one sheet), so they may be absent
+        // without counting as placeholders.
+        foreach (AssetLibrary.Status r in library.Report)
+        {
+            bool optionalVariant = r.Key.StartsWith("parchment/base-") && r.Key != "parchment/base-0";
+            if (!optionalVariant) Assert.True(r.Loaded, $"{r.Key}: {r.Note}");
+        }
 
         // Loaded images are usable: non-empty, RGBA, addressable.
         ArtImage tile = library.Terrain(ParchmentPalette.TerrainClass.Fertile);
@@ -235,7 +240,9 @@ public class ArtSubstrateTests
         try
         {
             AssetLibrary empty = AssetLibrary.Load(root);
-            Assert.Equal(AssetManifest.All.Count, empty.PlaceholderCount);
+            int required = AssetManifest.All.Count(e =>
+                !(e.Kind == AssetManifest.AssetKind.ParchmentBase && e.Variant > 0));
+            Assert.Equal(required, empty.PlaceholderCount);
             Assert.All(empty.Report, r => Assert.False(r.Loaded));
             Assert.All(empty.Report, r => Assert.Equal("missing file", r.Note));
             Assert.Contains("PLACEHOLDER", empty.SummaryLine());
@@ -257,14 +264,43 @@ public class ArtSubstrateTests
     }
 
     [Fact]
-    public void AssetLibrary_ParchmentVariantIsChosenBySeed_Deterministically()
+    public void AssetLibrary_SingleSheetDrop_ServesEverySeed_FromTheRealPaper()
     {
+        // The director shipped ONE parchment sheet (parchment/parchment.png),
+        // and "all three identical is fine and intended". So every seed must
+        // draw on THAT sheet — and crucially not on a leftover stand-in,
+        // which is what would happen if the renderer still indexed base-N
+        // blindly while only base-0 resolved.
         AssetLibrary library = AssetLibrary.Load();
-        Assert.Same(library.ParchmentFor(42), library.ParchmentFor(42));
-        Assert.Same(library.ParchmentFor(0), library.ParchmentFor(AssetManifest.ParchmentVariants));
-        var distinct = new HashSet<ArtImage>();
-        for (ulong s = 0; s < (ulong)AssetManifest.ParchmentVariants; s++) distinct.Add(library.ParchmentFor(s));
-        Assert.Equal(AssetManifest.ParchmentVariants, distinct.Count);
+        Assert.Equal(1, library.ParchmentVariantCount);
+        ArtImage sheet = library.ParchmentFor(42);
+        Assert.Same(sheet, library.ParchmentFor(0));
+        Assert.Same(sheet, library.ParchmentFor(7));
+        Assert.Same(sheet, library.ParchmentFor(ulong.MaxValue));
+        // It is the REAL sheet, not the programmatic stand-in.
+        ArtImage stand = PlaceholderArt.Generate(AssetManifest.Require("parchment/base-0"));
+        Assert.False(sheet.Width == stand.Width && sheet.Rgba.AsSpan().SequenceEqual(stand.Rgba),
+            "every seed is drawing on the placeholder sheet, not the director's paper");
+    }
+
+    [Fact]
+    public void AssetLibrary_MultipleVariants_AreChosenBySeed_Deterministically()
+    {
+        // Variants remain SUPPORTED (the bible allows 2–3): when a drop
+        // provides several sheets, the seed selects among them, stably.
+        string root = Path.Combine(Path.GetTempPath(), $"art-variants-{Guid.NewGuid():N}");
+        try
+        {
+            PlaceholderArt.GenerateMissing(root);      // base-0..2 all present and distinct
+            AssetLibrary library = AssetLibrary.Load(root);
+            Assert.Equal(AssetManifest.ParchmentVariants, library.ParchmentVariantCount);
+            Assert.Same(library.ParchmentFor(42), library.ParchmentFor(42));
+            Assert.Same(library.ParchmentFor(0), library.ParchmentFor((ulong)AssetManifest.ParchmentVariants));
+            var distinct = new HashSet<ArtImage>();
+            for (ulong s = 0; s < (ulong)AssetManifest.ParchmentVariants; s++) distinct.Add(library.ParchmentFor(s));
+            Assert.Equal(AssetManifest.ParchmentVariants, distinct.Count);
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
     }
 
     // --- PNG codec -----------------------------------------------------------
