@@ -41,11 +41,14 @@ public sealed class ImGuiRenderer
 
     private const int ImGuiVertexSize = 20; // Vector2 pos + Vector2 uv + uint color
 
-    public ImGuiRenderer(Game game)
+    /// <param name="ownsContext">False when the caller already created the
+    /// ImGui context (the art substrate does, so fonts can join the atlas
+    /// BEFORE this renderer uploads it).</param>
+    public ImGuiRenderer(Game game, bool ownsContext = true)
     {
         _game = game;
         _device = game.GraphicsDevice;
-        ImGui.CreateContext();
+        if (ownsContext) ImGui.CreateContext();
         RebuildFontAtlas();
         game.Window.TextInput += (_, e) =>
         {

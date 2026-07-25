@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using Sim.Core.Kernel;
 using Sim.Core.Pathing;
 using Sim.Core.State;
+using Sim.Ui.Art;
 using Sim.Ui.ImGuiIntegration;
 using Sim.Ui.ViewModel;
 
@@ -32,6 +33,25 @@ public sealed class SimUiGame : Game
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
 
+    // --- art substrate (style-bible parchment atlas) ----------------------
+    private readonly AssetLibrary _art = AssetLibrary.Load();
+    private Texture2D? _grainTexture;
+    private Texture2D? _panelTexture, _headerRuleTexture, _buttonPlateTexture,
+                       _annalsTexture, _compassTexture;
+    private IntPtr _panelId, _headerRuleId, _buttonPlateId, _annalsId, _compassId;
+    private UiTheme.Fonts? _fonts;
+    private string _bakeNote = "";
+
+    /// <summary>Multiply blend for the §4 grain overlay: dst × src, so a
+    /// near-white grain darkens everything faintly — map AND UI alike.</summary>
+    private static readonly BlendState MultiplyBlend = new()
+    {
+        ColorSourceBlend = Blend.Zero,
+        ColorDestinationBlend = Blend.SourceColor,
+        AlphaSourceBlend = Blend.Zero,
+        AlphaDestinationBlend = Blend.SourceAlpha,
+    };
+
     private TraversalLattice? _lattice;
     private int _latticeStride;
 
@@ -47,11 +67,16 @@ public sealed class SimUiGame : Game
         MultiSampleAntiAlias = true, // ADR-009: MSAA is the anti-aliasing choice
     };
 
-    private static readonly Color PathColor = new(0x8B, 0x62, 0x3B, 0xFF);      // earth brown — never river blue
+    /// <summary>Built paths draw in INK-SOFT (§2) — a cartographer's road
+    /// hatch, not a colored line. Symbology (road tiers, trade) is DEFERRED.</summary>
+    private static readonly Color PathColor = new(
+        ParchmentPalette.InkSoft.R, ParchmentPalette.InkSoft.G, ParchmentPalette.InkSoft.B, (byte)235);
 
-    /// <summary>T2.4: territory fill alpha — translucent enough for terrain to
-    /// read through, opaque enough that twelve tints stay tellable apart.</summary>
-    private const byte TerritoryAlpha = 0x50;
+    /// <summary>Territory fill alpha. Style-bible §2 rule: the twelve political
+    /// colors are INK WASHES over parchment, not opaque fills — ~35% strength,
+    /// so the paper and its terrain washes read through every territory.</summary>
+    private static readonly byte TerritoryAlpha =
+        (byte)Math.Round(255 * ParchmentPalette.TerritoryWashStrength);
 
     private bool _showCatchment = true; // T2.4: political geography on by default
     private int _sliderFarmPct = 100;
@@ -100,21 +125,46 @@ public sealed class SimUiGame : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _imgui = new ImGuiRenderer(this);
+
+        // Fonts must join the atlas BEFORE the ImGui renderer uploads it (§3).
+        ImGui.CreateContext();
+        _fonts = UiTheme.LoadFonts(_art.Root);
+        _imgui = new ImGuiRenderer(this, ownsContext: false);
+        UiTheme.Apply();
         _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
 
+        // THE PARCHMENT BAKE (§4 items 1–4): terrain wash tiles splatted by the
+        // worldgen fields onto the paper, with inked coasts — one supersampled
+        // texture, baked once, drawn with bilinear filtering (no per-frame cost,
+        // so the 60 fps budget is untouched).
+        ParchmentBaker.Result bake = ParchmentBaker.Bake(_world.Terrain!, _art, _world.Seed);
+        _terrainTexture = new Texture2D(GraphicsDevice, bake.Size, bake.Size, false, SurfaceFormat.Color);
+        _terrainTexture.SetData(bake.Rgba);
+        _bakeNote = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"map {bake.Size}² {bake.MegabytesResident:F0} MB baked in {bake.BakeMilliseconds:F0} ms");
+
+        _grainTexture = UploadArt(_art.Get("parchment/grain"));
+        _panelTexture = UploadArt(_art.Get("ui/panel"));
+        _headerRuleTexture = UploadArt(_art.Get("ui/header-rule"));
+        _buttonPlateTexture = UploadArt(_art.Get("ui/button-plate"));
+        _annalsTexture = UploadArt(_art.Get("ui/annals-bg"));
+        _compassTexture = UploadArt(_art.Get("ui/compass-rose"));
+        _panelId = _imgui.BindTexture(_panelTexture);
+        _headerRuleId = _imgui.BindTexture(_headerRuleTexture);
+        _buttonPlateId = _imgui.BindTexture(_buttonPlateTexture);
+        _annalsId = _imgui.BindTexture(_annalsTexture);
+        _compassId = _imgui.BindTexture(_compassTexture);
+
         int size = _world.Terrain!.Size;
-        _terrainTexture = new Texture2D(GraphicsDevice, size, size, false, SurfaceFormat.Color);
-        _terrainTexture.SetData(TerrainBaker.Bake(_world.Terrain));
         _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.Build(_world.Terrain)),
-            new Color(TerrainPalette.RiverColor.R, TerrainPalette.RiverColor.G,
-                      TerrainPalette.RiverColor.B, TerrainPalette.RiverColor.A));
+            new Color(ParchmentPalette.River.R, ParchmentPalette.River.G,
+                      ParchmentPalette.River.B, (byte)255));
 
         // The same lattice geometry the M1 systems compute on (pure of terrain).
         _lattice = TraversalLattice.Build(_world.Terrain);
         _latticeStride = OverlayMeshes.LatticeStride(_lattice, size);
 
-        _markerTexture = MakeMarkerTexture(32);
+        _markerTexture = UploadArt(_art.Get("ui/settlement-marker"));
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
 
@@ -143,25 +193,12 @@ public sealed class SimUiGame : Game
         return buffer;
     }
 
-    /// <summary>Filled circle with a dark rim — the settlement marker sprite.</summary>
-    private Texture2D MakeMarkerTexture(int size)
+    /// <summary>Uploads an ArtImage (manifest asset or its placeholder) as a
+    /// texture. Non-premultiplied RGBA straight from the PNG.</summary>
+    private Texture2D UploadArt(ArtImage image)
     {
-        var pixels = new Color[size * size];
-        double r = size / 2.0 - 1.0;
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                double dx = x + 0.5 - size / 2.0, dy = y + 0.5 - size / 2.0;
-                double d = Math.Sqrt(dx * dx + dy * dy);
-                pixels[y * size + x] =
-                    d > r ? Color.Transparent
-                    : d > r - 3.0 ? new Color(30, 24, 18, 255)      // rim
-                    : new Color(0xF0, 0xE6, 0xC8, 0xFF);            // parchment fill
-            }
-        }
-        var texture = new Texture2D(GraphicsDevice, size, size, false, SurfaceFormat.Color);
-        texture.SetData(pixels);
+        var texture = new Texture2D(GraphicsDevice, image.Width, image.Height, false, SurfaceFormat.Color);
+        texture.SetData(image.Rgba);
         return texture;
     }
 
@@ -188,8 +225,8 @@ public sealed class SimUiGame : Game
             _territoryVertices = new VertexBuffer?[fills.Length];
             for (int s = 0; s < fills.Length; s++)
             {
-                (byte r, byte g, byte b) = SettlementPalette.Color(_world.Settlements[s].Id.Value);
-                _territoryVertices[s] = MakeBuffer(fills[s], new Color(r, g, b, TerritoryAlpha));
+                ParchmentPalette.Rgba ink = ParchmentPalette.TerritoryInk(_world.Settlements[s].Id.Value);
+                _territoryVertices[s] = MakeBuffer(fills[s], new Color(ink.R, ink.G, ink.B, TerritoryAlpha));
             }
             _catchmentVersion = catchmentVersion;
         }
@@ -318,7 +355,8 @@ public sealed class SimUiGame : Game
         double dt = gameTime.ElapsedGameTime.TotalSeconds;
         if (dt > 0) _fps = _fps * 0.95 + (1.0 / dt) * 0.05;
 
-        GraphicsDevice.Clear(new Color(10, 14, 20));
+        GraphicsDevice.Clear(new Color(
+            ParchmentPalette.PaperShade.R, ParchmentPalette.PaperShade.G, ParchmentPalette.PaperShade.B));
         Rectangle viewport = Viewport();
         Camera cam = _camera!;
 
@@ -373,7 +411,38 @@ public sealed class SimUiGame : Game
         _spriteBatch.End();
 
         DrawHud(gameTime);
+        DrawGrainOverlay();   // §4 item 2: multiplied over EVERYTHING, UI included
         base.Draw(gameTime);
+    }
+
+    /// <summary>The age/grain overlay (style-bible §4 item 2): one screen-filling
+    /// quad of the tiling grain texture, MULTIPLIED over the finished frame —
+    /// map, panels and text alike — so the whole window reads as one sheet of
+    /// paper rather than a map with widgets floating above it. Near-white
+    /// texture, so the effect is tooth, not dirt.</summary>
+    private void DrawGrainOverlay()
+    {
+        if (_grainTexture is null) return;
+        Rectangle viewport = Viewport();
+        _spriteBatch!.Begin(samplerState: SamplerState.LinearWrap, blendState: MultiplyBlend);
+        _spriteBatch.Draw(_grainTexture, viewport,
+            new Rectangle(0, 0, viewport.Width, viewport.Height), Color.White);
+        _spriteBatch.End();
+    }
+
+    /// <summary>The corner compass rose (§4 item 5, decorative): drawn on the
+    /// ImGui background list at a fixed screen corner, faint enough to sit
+    /// under the panels.</summary>
+    private void DrawCompassRose()
+    {
+        if (_compassId == IntPtr.Zero) return;
+        Rectangle viewport = Viewport();
+        const float px = 132f, margin = 22f;
+        var min = new System.Numerics.Vector2(viewport.Width - px - margin, viewport.Height - px - margin);
+        ImGui.GetBackgroundDrawList().AddImage(_compassId, min,
+            min + new System.Numerics.Vector2(px, px),
+            System.Numerics.Vector2.Zero, System.Numerics.Vector2.One,
+            0xB4FFFFFFu);
     }
 
     /// <summary>T2.9: name labels beside every marker — drawn on the ImGui
@@ -400,6 +469,64 @@ public sealed class SimUiGame : Game
         }
     }
 
+    /// <summary>
+    /// Panel furniture (§4 item 5): a parchment plate behind the current
+    /// ImGui window plus a 9-sliced inked border and a header rule under the
+    /// title bar. Drawn on the WINDOW draw list at Begin time, so every
+    /// widget added afterwards sits on top of it.
+    /// </summary>
+    private void DrawPanelFurniture(IntPtr backgroundId = default)
+    {
+        if (_panelId == IntPtr.Zero) return;
+        ImDrawListPtr list = ImGui.GetWindowDrawList();
+        System.Numerics.Vector2 min = ImGui.GetWindowPos();
+        System.Numerics.Vector2 max = min + ImGui.GetWindowSize();
+
+        if (backgroundId != default)
+        {
+            // Tiled parchment sheet: uv spans the window in texture multiples,
+            // so the ruled lines keep a constant pitch at any panel size.
+            var uv = new System.Numerics.Vector2(
+                (max.X - min.X) / 128f, (max.Y - min.Y) / 128f);
+            list.AddImage(backgroundId, min, max, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
+        }
+
+        NineSlice(list, _panelId, min, max, 12f, 64f);
+
+        if (_headerRuleId != IntPtr.Zero)
+        {
+            float y = min.Y + ImGui.GetFrameHeight() + 2f;
+            list.AddImage(_headerRuleId,
+                new System.Numerics.Vector2(min.X + 6f, y),
+                new System.Numerics.Vector2(max.X - 6f, y + 8f),
+                System.Numerics.Vector2.Zero, System.Numerics.Vector2.One, 0xFFFFFFFFu);
+        }
+    }
+
+    /// <summary>Classic 9-slice: corners at native size, edges stretched along
+    /// one axis, centre skipped (the panel's own background shows through).</summary>
+    private static void NineSlice(
+        ImDrawListPtr list, IntPtr texture,
+        System.Numerics.Vector2 min, System.Numerics.Vector2 max, float border, float textureSize)
+    {
+        float b = border, uvB = border / textureSize;
+        void Piece(float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1) =>
+            list.AddImage(texture,
+                new System.Numerics.Vector2(x0, y0), new System.Numerics.Vector2(x1, y1),
+                new System.Numerics.Vector2(u0, v0), new System.Numerics.Vector2(u1, v1), 0xFFFFFFFFu);
+
+        // corners
+        Piece(min.X, min.Y, min.X + b, min.Y + b, 0, 0, uvB, uvB);
+        Piece(max.X - b, min.Y, max.X, min.Y + b, 1 - uvB, 0, 1, uvB);
+        Piece(min.X, max.Y - b, min.X + b, max.Y, 0, 1 - uvB, uvB, 1);
+        Piece(max.X - b, max.Y - b, max.X, max.Y, 1 - uvB, 1 - uvB, 1, 1);
+        // edges
+        Piece(min.X + b, min.Y, max.X - b, min.Y + b, uvB, 0, 1 - uvB, uvB);
+        Piece(min.X + b, max.Y - b, max.X - b, max.Y, uvB, 1 - uvB, 1 - uvB, 1);
+        Piece(min.X, min.Y + b, min.X + b, max.Y - b, 0, uvB, uvB, 1 - uvB);
+        Piece(max.X - b, min.Y + b, max.X, max.Y - b, 1 - uvB, uvB, 1, 1 - uvB);
+    }
+
     /// <summary>T2.10: the graphs — world totals + the selected settlement,
     /// straight off the D-028 ring buffer (see HistoryBuffer for the replay/
     /// mid-game-load semantics). PlotLines autoscales per series; the overlay
@@ -411,6 +538,7 @@ public sealed class SimUiGame : Game
         ImGui.SetNextWindowSize(
             new System.Numerics.Vector2(420, 460), ImGuiCond.FirstUseEver);
         ImGui.Begin("Graphs");
+        DrawPanelFurniture();
         ViewModel.HistoryBuffer history = _session.History;
         ImGui.TextUnformatted("world");
         Plot("pop##world", history.World(HistoryBuffer.Metric.Population));
@@ -445,6 +573,7 @@ public sealed class SimUiGame : Game
         ImGui.SetNextWindowSize(
             new System.Numerics.Vector2(560, 220), ImGuiCond.FirstUseEver);
         ImGui.Begin("Annals");
+        DrawPanelFurniture(_annalsId);   // the scholar's sheet behind the text
         ImGui.BeginChild("annal-scroll");
         // TextUnformatted under a wrap pos (T1.8 re-gate doctrine: never the
         // printf-parsing Text/TextWrapped for content strings).
@@ -472,11 +601,14 @@ public sealed class SimUiGame : Game
     private void DrawHud(GameTime gameTime)
     {
         _imgui!.BeforeLayout(gameTime);
+        if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
+        DrawCompassRose();  // art substrate: §4 item 5 furniture
         DrawNameLabels();   // T2.9: background drawlist — under all panels
         DrawAnnals();       // T2.9
         DrawGraphs();       // T2.10
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
         ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
+        DrawPanelFurniture();
 
         // TextUnformatted ONLY (T1.8 re-gate finding 2): ImGui.Text runs printf
         // parsing, and the SplitLine's '%' rendered as garbage. Every HUD string
@@ -485,10 +617,12 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(_hud.WorldLine);      // T2.4: the world summary
         ImGui.Separator();
         ImGui.TextUnformatted(_hud.TitleLine);      // T2.4: the selected settlement
+        if (_fonts is { } numeric) ImGui.PushFont(numeric.Numeric);
         ImGui.TextUnformatted(_hud.PopulationLine);
         ImGui.TextUnformatted(_hud.FoodLine);
         ImGui.TextUnformatted(_hud.SplitLine);
         ImGui.TextUnformatted(_hud.GrievanceLine);          // T2.6: display only
+        if (_fonts is not null) ImGui.PopFont();
         ImGui.Separator();
         if (_hud.NeedLines is not null)                     // T2.6: the needs block
             foreach (string line in _hud.NeedLines) ImGui.TextUnformatted(line);
@@ -509,7 +643,13 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(BuildInfo.Describe()); // same identity as the title
         ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, _fps));
         ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
+        // Art-substrate provenance: which assets are real and which are
+        // stand-ins, plus the bake cost — the glass-box habit applied to art.
+        ImGui.TextUnformatted(_art.SummaryLine());
+        ImGui.TextUnformatted(_bakeNote);
+        if (_fonts is { } f) ImGui.TextUnformatted(f.Note);
         ImGui.End();
+        if (_fonts is not null) ImGui.PopFont();
         _imgui.AfterLayout();
     }
 }

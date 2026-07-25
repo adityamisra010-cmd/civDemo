@@ -18,6 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Art substrate packet: assets/ ships beside the exe. The renderer
+         addresses art by manifest KEY, so the director replaces any of these
+         files with real generated art and nothing rebuilds. -->
+    <None Include="..\assets\**\*" LinkBase="assets" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>
