@@ -35,6 +35,10 @@ public static class DataFiles
     /// two-stream overload).</summary>
     public static Stream OpenNeeds() => Open("Sim.Data.needs.json");
 
+    /// <summary>The D-031 goods roster + recipe book (T3.2), consumed by
+    /// GoodsConfigLoader (attached to SimConfig via the three-stream Load).</summary>
+    public static Stream OpenGoods() => Open("Sim.Data.goods.json");
+
     /// <summary>The T2.8 calibration corridors (TUNE bands) consumed by the
     /// calibration battery and any offline nightly analysis.</summary>
     public static Stream OpenCorridors() => Open("Sim.Data.corridors.json");

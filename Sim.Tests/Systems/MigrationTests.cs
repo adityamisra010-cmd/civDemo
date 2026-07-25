@@ -52,7 +52,7 @@ public class MigrationTests
                         FlowDirection.Source, OverdrawPolicy.Throw);
                 }
             }
-            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
         }
         return world;
@@ -66,8 +66,8 @@ public class MigrationTests
 
     private static void Endow(WorldState world, int settlement, long food)
     {
-        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(settlement).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, food,
+        new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(settlement).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, food,
             FlowDirection.Source, OverdrawPolicy.Throw);
     }
 
@@ -594,7 +594,7 @@ public class MigrationTests
                     }
                 }
             }
-            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             // A SMALL source deficit (0.045): the famine demotion drains the
             // artisan bucket PARTIALLY this turn (2.0 × 0.045 × 10 = 90%, 300
             // of 3000 left), while migration's Prev-sized request — the
@@ -690,7 +690,7 @@ public class MigrationTests
                     }
                 }
             }
-            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
         }
         Endow(world, 1, 500_000); // rich destination

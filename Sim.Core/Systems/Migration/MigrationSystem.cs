@@ -96,6 +96,11 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
     private readonly SimConfig _cfg = cfg;
 
+    /// <summary>T3.2: attractiveness's food term reads the grain stock (the
+    /// migrated FoodStore).</summary>
+    private readonly GoodId _grain = new(cfg.Goods?.GrainId
+        ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3."));
+
     public SystemId Id => WellKnownId;
 
     public void Step(SimContext<MigrationTables> ctx)
@@ -131,9 +136,9 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             population[s] = pop;
 
             long food = 0, lastHarvest = 0;
-            for (int i = 0; i < prev.FoodStores.Count; i++)
-                if (prev.FoodStores[i].Settlement == id)
-                { food = prev.FoodStores[i].Store.Value; lastHarvest = prev.FoodStores[i].LastHarvestUnits; break; }
+            for (int i = 0; i < prev.GoodStocks.Count; i++)
+                if (prev.GoodStocks[i].Settlement == id && prev.GoodStocks[i].Good == _grain)
+                { food = prev.GoodStocks[i].Amount.Value; lastHarvest = prev.GoodStocks[i].LastProducedUnits; break; }
             anyFood[s] = food > 0 || lastHarvest > 0;
             double farmland = 0.0;
             for (int i = 0; i < prev.CatchmentSummaries.Count; i++)

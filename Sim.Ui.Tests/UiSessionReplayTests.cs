@@ -104,7 +104,8 @@ public class UiSessionReplayTests
         Sim.Core.Systems.SimConfig sim;
         using (var s = global::Sim.Data.DataFiles.OpenSim())
         using (var n = global::Sim.Data.DataFiles.OpenNeeds())
-            sim = Sim.Core.Systems.SimConfigLoader.Load(s, n);
+        using (var g = global::Sim.Data.DataFiles.OpenGoods())
+            sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g);
         WorldState canonical = Sim.Core.Worldgen.WorldFounding.Found(
             wg with { SizePx = 256 }, sim, 42, settlementsOverride: 4);
         Assert.Equal(WorldHash.ComputeHex(canonical), WorldHash.ComputeHex(ui));

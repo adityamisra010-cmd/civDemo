@@ -8,7 +8,7 @@ namespace Sim.Core.Systems.Farming;
 /// FoodStores is the SHARED conserved stock: Farming credits it (Harvest) and
 /// owns HarvestRemainder; Consumption debits it (Eaten) — see SystemCatalog.
 /// </summary>
-public readonly record struct FarmingTables(Table<FoodStoreRow> FoodStores);
+public readonly record struct FarmingTables(Table<GoodStockRow> GoodStocks);
 
 /// <summary>
 /// Farming (T1.5; production function amended at T1.8, director-sanctioned —
@@ -40,18 +40,23 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
 
     private readonly SimConfig _cfg = cfg;
 
+    /// <summary>T3.2: the harvest lands in the GRAIN stock (the migrated M2
+    /// FoodStore). The D-031 registry is required at construction.</summary>
+    private readonly GoodId _grain = new(cfg.Goods?.GrainId
+        ?? throw new ArgumentException("FarmingSystem requires SimConfig.Goods (goods.json) — the harvest is a grain stock at M3."));
+
     public SystemId Id => WellKnownId;
 
     public void Step(SimContext<FarmingTables> ctx)
     {
         IReadOnlyWorldState prev = ctx.Prev;
-        Table<FoodStoreRow> stores = ctx.Owned.FoodStores;
+        Table<GoodStockRow> stores = ctx.Owned.GoodStocks;
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
-            int storeIndex = FindStore(stores, settlement);
+            int storeIndex = GoodStockIndex.IndexOf(stores, settlement, _grain);
             if (storeIndex < 0) continue; // no store row → founding never endowed one; nothing to credit
 
             // Effective farmland from the PREV catchment summary (one-turn lag).
@@ -96,21 +101,14 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                                * _cfg.Farming.OutputPerFarmerPerYear * toolMultiplier;
             double ratePerYear = Math.Min(landSide, laborSide);
 
-            ref FoodStoreRow row = ref stores.Ref(storeIndex);
-            double exact = ratePerYear * ctx.DtYears + row.HarvestRemainder;
+            ref GoodStockRow row = ref stores.Ref(storeIndex);
+            double exact = ratePerYear * ctx.DtYears + row.ProduceRemainder;
             long harvested = ConservedMath.WholeUnits(exact, $"farming harvest (settlement {settlement.Value})");
             ctx.Ledger.Flow(
-                ref row.Store, ConservedQuantityIds.Food, ReasonIds.Harvest,
+                ref row.Amount, ConservedQuantityIds.OfGood(_grain), ReasonIds.Harvest,
                 harvested, FlowDirection.Source, OverdrawPolicy.Throw);
-            row.HarvestRemainder = exact - harvested;
-            row.LastHarvestUnits = harvested; // T2.2: numerator of food_surplus_ratio
+            row.ProduceRemainder = exact - harvested;
+            row.LastProducedUnits = harvested; // T2.2: numerator of food_surplus_ratio
         }
-    }
-
-    private static int FindStore(Table<FoodStoreRow> stores, SettlementId settlement)
-    {
-        for (int i = 0; i < stores.Count; i++)
-            if (stores[i].Settlement == settlement) return i;
-        return -1;
     }
 }

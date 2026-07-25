@@ -55,12 +55,12 @@ public class PopulationTests
                 && row.StarvationRemainder is >= 0.0 and < 1.0 && row.AgingRemainder is >= 0.0 and < 1.0,
                 $"turn {turn}: remainder outside [0,1) in cohort {row.CohortIdx}");
         }
-        for (int i = 0; i < world.FoodStores.Count; i++)
+        for (int i = 0; i < world.GoodStocks.Count; i++)
         {
-            FoodStoreRow row = world.FoodStores[i];
-            Assert.True(row.Store.Value >= 0, $"turn {turn}: food store {row.Store.Value} < 0");
+            GoodStockRow row = world.GoodStocks[i];
+            Assert.True(row.Amount.Value >= 0, $"turn {turn}: food store {row.Amount.Value} < 0");
             Assert.True(
-                row.HarvestRemainder is >= 0.0 and < 1.0 && row.EatenRemainder is >= 0.0 and < 1.0,
+                row.ProduceRemainder is >= 0.0 and < 1.0 && row.ConsumeRemainder is >= 0.0 and < 1.0,
                 $"turn {turn}: food remainder outside [0,1)");
         }
         for (int i = 0; i < world.ConsumptionDeficits.Count; i++)
@@ -106,7 +106,7 @@ public class PopulationTests
             world = exec.Step(world);
             AssertRowsSaneAndAuditExact(world, t);
 
-            long store = world.FoodStores[0].Store.Value;
+            long store = world.GoodStocks[0].Amount.Value;
             if (firstZeroFoodTurn < 0 && store == 0) firstZeroFoodTurn = t;
             // With no harvest possible the store can never refill: once zero,
             // EXACTLY zero forever (ClampToAvailable bottoms out, long equality).
@@ -147,13 +147,13 @@ public class PopulationTests
         }
         Assert.True(extinctionTurn > 0, "0% farm never drove extinction in 80 turns");
 
-        long foodAtDeath = world.FoodStores[0].Store.Value;
+        long foodAtDeath = world.GoodStocks[0].Amount.Value;
         double bankAtDeath = world.PathProgress.Count > 0 ? world.PathProgress[0].Banked : 0.0;
         long harvestAtDeath = 0;
         for (int i = 0; i < world.LedgerFlows.Count; i++)
         {
             LedgerFlowRow row = world.LedgerFlows[i];
-            if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
+            if (row.Quantity == ConservedQuantityIds.OfGood(new GoodId(1)) && row.Reason == ReasonIds.Harvest)
                 harvestAtDeath = row.TotalSourced;
         }
 
@@ -162,13 +162,13 @@ public class PopulationTests
             world = exec.Step(world);
             AssertRowsSaneAndAuditExact(world, extinctionTurn + t);
             Assert.Equal(0, TotalPop(world));
-            Assert.Equal(foodAtDeath, world.FoodStores[0].Store.Value);
+            Assert.Equal(foodAtDeath, world.GoodStocks[0].Amount.Value);
             if (world.PathProgress.Count > 0)
                 Assert.Equal(bankAtDeath, world.PathProgress[0].Banked); // zero adults accrue nothing
             for (int i = 0; i < world.LedgerFlows.Count; i++)
             {
                 LedgerFlowRow row = world.LedgerFlows[i];
-                if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
+                if (row.Quantity == ConservedQuantityIds.OfGood(new GoodId(1)) && row.Reason == ReasonIds.Harvest)
                     Assert.Equal(harvestAtDeath, row.TotalSourced);
             }
         }
@@ -442,7 +442,7 @@ public class PopulationTests
                 else
                     Assert.Equal(0, row.TotalSourced);
             }
-            else if (row.Quantity == ConservedQuantityIds.Food)
+            else if (row.Quantity == ConservedQuantityIds.OfGood(new GoodId(1)))
             {
                 if (row.Reason == ReasonIds.InitialEndowment) foodEndow = row.TotalSourced;
                 else if (row.Reason == ReasonIds.Harvest) harvest = row.TotalSourced;
@@ -455,7 +455,7 @@ public class PopulationTests
         long foodFromLedger = checked(foodEndow + harvest - eaten);
         Assert.Equal(TotalPop(world), popFromLedger);        // person-exact
         long storeTotal = 0;
-        for (int i = 0; i < world.FoodStores.Count; i++) storeTotal += world.FoodStores[i].Store.Value;
+        for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
         Assert.True(births > 0 && deaths > 0 && starved > 0 && harvest > 0 && eaten > 0,
             "reconciliation is vacuous — some flow never occurred in 900 turns");

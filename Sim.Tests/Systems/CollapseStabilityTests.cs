@@ -83,9 +83,9 @@ public class CollapseStabilityTests
                 SettlementId id = world.Settlements[s].Id;
                 for (int b = 0; b < world.Buckets.Count; b++)
                     if (world.Buckets[b].Settlement == id) row.Pop[s] += world.Buckets[b].Count.Value;
-                for (int f = 0; f < world.FoodStores.Count; f++)
-                    if (world.FoodStores[f].Settlement == id)
-                    { row.Store[s] = world.FoodStores[f].Store.Value; row.Harvest[s] = world.FoodStores[f].LastHarvestUnits; break; }
+                for (int f = 0; f < world.GoodStocks.Count; f++)
+                    if (world.GoodStocks[f].Settlement == id)
+                    { row.Store[s] = world.GoodStocks[f].Amount.Value; row.Harvest[s] = world.GoodStocks[f].LastProducedUnits; break; }
                 for (int d = 0; d < world.ConsumptionDeficits.Count; d++)
                     if (world.ConsumptionDeficits[d].Settlement == id)
                     { row.Deficit[s] = world.ConsumptionDeficits[d].DeficitRatio; break; }
@@ -205,8 +205,8 @@ public class CollapseStabilityTests
         WorldState world = MigrationTestWorld.TwoSettlements(
             sourceCounts: 2, destCounts: 1, destFood: 50_000, travelCost: 20.0);
         // Source food too — BOTH healthy (the rig helper endows the dest).
-        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(0).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 50_000,
+        new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(0).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, 50_000,
             FlowDirection.Source, OverdrawPolicy.Throw);
         var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Migration(cfg)]);
 

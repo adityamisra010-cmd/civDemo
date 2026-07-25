@@ -23,9 +23,10 @@ namespace Sim.Core;
 /// ownership claim lands here, reviewable at a glance.
 /// The executor and pipeline loader consume these registrations generically.
 ///
-/// SANCTIONED SHARED STOCK (T1.5): FoodStores is handed to BOTH Farming (credits
-/// via Ledger reason Harvest; owns HarvestRemainder) and Consumption (debits via
-/// reason Eaten; owns EatenRemainder). A stock that one system fills and another
+/// SANCTIONED SHARED STOCK (T1.5; T3.2 the FoodStore migrated into the GRAIN
+/// row of GoodStocks): GoodStocks is handed to BOTH Farming (credits grain via
+/// Ledger reason Harvest; owns ProduceRemainder) and Consumption (debits via
+/// reason Eaten; owns ConsumeRemainder). A stock that one system fills and another
 /// drains cannot have a single writer; both mutations go exclusively through the
 /// Ledger (law 1) and the per-turn audit holds the pair to exactness. This
 /// paragraph is the reviewable record of that share.
@@ -74,7 +75,7 @@ public static class SystemCatalog
         var system = new FarmingSystem(cfg);
         return new SystemRegistration(FarmingSystem.WellKnownId, FarmingSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<FarmingTables>(
-                prev, new FarmingTables(next.FoodStores), rng, FarmingSystem.WellKnownId,
+                prev, new FarmingTables(next.GoodStocks), rng, FarmingSystem.WellKnownId,
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -83,7 +84,7 @@ public static class SystemCatalog
         var system = new ConsumptionSystem(cfg);
         return new SystemRegistration(ConsumptionSystem.WellKnownId, ConsumptionSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConsumptionTables>(
-                prev, new ConsumptionTables(next.FoodStores, next.ConsumptionDeficits), rng,
+                prev, new ConsumptionTables(next.GoodStocks, next.ConsumptionDeficits), rng,
                 ConsumptionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

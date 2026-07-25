@@ -56,6 +56,10 @@ public static class WorldFounding
         var ledger = new Ledger(world.LedgerFlows);
         FoundingConfig founding = simCfg.Founding;
         RegistriesConfig reg = simCfg.Registries;
+        GoodsConfig goods = simCfg.Goods
+            ?? throw new ArgumentException(
+                "WorldFounding requires SimConfig.Goods (goods.json) — the founding food store is a grain stock at M3.");
+        var grain = new GoodId(goods.GrainId);
         long configPop = 0;
         try
         {
@@ -128,29 +132,67 @@ public static class WorldFounding
                     settlement, new ClassId(reg.Classes[cls].Id), Value: 0.0));
             }
 
-            // The food endowment TRACKS THE REALIZED POPULATION (same
-            // settlement-common factor via the ratio), with only a SMALL
-            // independent per-capita wobble (amp/3). MEASURED FINDING: fully
-            // independent food-vs-people jitter swung founding food-per-capita
-            // ±31%, and badly-mismatched colonies crashed 90%+ during the
-            // catchment warm-up — firstCrashTurn 5 against the Malthus
-            // corridor's [400, 800]. Founding variation is meant to vary SIZE
-            // and COMPOSITION, not survival odds.
+            // T3.2: one stock row per (settlement, good), goods-registry
+            // order — the deterministic layout consumers may rely on. The M2
+            // FoodStore MIGRATED into grain's row: the food endowment TRACKS
+            // THE REALIZED POPULATION (same settlement-common factor via the
+            // ratio), with only a SMALL independent per-capita wobble (amp/3).
+            // MEASURED FINDING: fully independent food-vs-people jitter swung
+            // founding food-per-capita ±31%, and badly-mismatched colonies
+            // crashed 90%+ during the catchment warm-up — firstCrashTurn 5
+            // against the Malthus corridor's [400, 800]. Founding variation
+            // is meant to vary SIZE and COMPOSITION, not survival odds.
             double popScale = configPop > 0 ? jitteredPop / (double)configPop : 1.0;
             double perCapita = 1.0 + (founding.EndowmentJitter / 3.0) * U(seed, s, FoodSlot);
             long food = Math.Max(0L, ConservedMath.WholeUnits(
                 Math.Round(founding.FoodStore * popScale * perCapita),
                 $"founding food endowment (settlement {s})"));
-            int storeRow = world.FoodStores.Add(new FoodStoreRow(
-                settlement, Conserved.Zero, harvestRemainder: 0.0, eatenRemainder: 0.0));
-            ledger.Flow(
-                ref world.FoodStores.Ref(storeRow).Store, ConservedQuantityIds.Food,
-                ReasonIds.InitialEndowment, food,
-                FlowDirection.Source, OverdrawPolicy.Throw);
+            foreach (GoodEntry g in goods.Goods)
+            {
+                int stockRow = world.GoodStocks.Add(new GoodStockRow(
+                    settlement, new GoodId(g.Id), Conserved.Zero,
+                    produceRemainder: 0.0, consumeRemainder: 0.0));
+                if (g.Id == grain.Value)
+                {
+                    ledger.Flow(
+                        ref world.GoodStocks.Ref(stockRow).Amount,
+                        ConservedQuantityIds.OfGood(grain),
+                        ReasonIds.InitialEndowment, food,
+                        FlowDirection.Source, OverdrawPolicy.Throw);
+                }
+            }
+
+            // T3.2 DEPOSITS: the founding roll, per deposit-bearing good, in
+            // goods-registry order. Abundance = the good's terrain channel at
+            // the site × the seeded spread — what makes settlements DIFFERENT
+            // (the comparative-advantage precondition). Doubles, not stocks:
+            // deposits scale extraction RATES (T3.3); units enter the world
+            // only through production Ledger flows.
+            TerrainSet t = world.Terrain!;
+            int site = world.Settlements[s].SiteCell;
+            foreach (GoodEntry g in goods.Goods)
+            {
+                if (g.DepositChannel is null) continue;
+                double channel = g.DepositChannel switch
+                {
+                    "moisture" => t.Moisture[site],
+                    "elevation" => Math.Max(0.0, t.Elevation[site] - t.SeaLevel),
+                    // water proximity: 1 at the shore, fading with the same
+                    // moisture curve (clay pits, fish grounds hug the water).
+                    _ => t.Moisture[site] * t.Moisture[site],
+                };
+                double spread = 1.0 + g.DepositSpread * U(seed, s, DepositSlotBase + g.Id);
+                world.Deposits.Add(new DepositRow(
+                    settlement, new GoodId(g.Id), Math.Max(0.0, channel * spread)));
+            }
         }
 
         return world;
     }
+
+    /// <summary>Slot base for per-good deposit rolls (cohorts 0..15, food 100,
+    /// settlement factor 200; deposits 300+goodId).</summary>
+    private const int DepositSlotBase = 300;
 
     /// <summary>Salt keeping the endowment-jitter hash space disjoint from the
     /// siting jitter and every worldgen noise salt.</summary>

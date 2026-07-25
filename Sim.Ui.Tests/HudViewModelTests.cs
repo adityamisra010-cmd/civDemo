@@ -18,7 +18,12 @@ public class HudViewModelTests
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
-        return SimConfigLoader.Load(stream, needs);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        // T3.1 note: these view-model tests pin EXACT founded strings, so the
+        // canonical endowment jitter is zeroed — formatting is the contract
+        // here; the jittered founding has its own pins in Sim.Tests.
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods);
+        return cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
     }
 
     private static WorldgenConfig DevCfg()
@@ -176,7 +181,7 @@ public class HudViewModelTests
     public void HudModel_LastHarvest_IsTheSelectedSettlementsPerTurnHarvest()
     {
         // T2.4 migration (deliberate): LastHarvest is now the SELECTED
-        // settlement's FoodStoreRow.LastHarvestUnits — the per-settlement
+        // settlement's GoodStockRow.LastProducedUnits — the per-settlement
         // observable Farming writes each turn (T2.2) — replacing the T1.8
         // UI-side global-ledger delta, which could not be per-settlement.
         SimConfig cfg = SimCfg();
@@ -190,7 +195,11 @@ public class HudViewModelTests
             for (int s = 0; s < world.Settlements.Count; s++)
             {
                 HudModel hud = HudModel.From(world, world.Settlements[s].Id.Value);
-                Assert.Equal(world.FoodStores[s].LastHarvestUnits, hud.LastHarvest);
+                // T3.2: the grain row for settlement s (stocks are now
+                // settlement-major × 14 goods, not one row per settlement).
+                int grainRow = GoodStockIndex.IndexOf(
+                    world.GoodStocks, world.Settlements[s].Id, new GoodId(1));
+                Assert.Equal(world.GoodStocks[grainRow].LastProducedUnits, hud.LastHarvest);
                 Assert.True(hud.LastHarvest >= 0);
                 anyHarvest += hud.LastHarvest;
             }
@@ -303,7 +312,8 @@ public class UiFoundingEquivalenceTests
             Sim.Core.Systems.SimConfig sim;
             using (var s = global::Sim.Data.DataFiles.OpenSim())
             using (var n = global::Sim.Data.DataFiles.OpenNeeds())
-                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n);
+            using (var g = global::Sim.Data.DataFiles.OpenGoods())
+                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g);
             canonical = Sim.Core.Worldgen.WorldFounding.Found(wg, sim, 42);
         }
         Assert.Equal(
@@ -322,7 +332,8 @@ public class UiFoundingEquivalenceTests
         Sim.Core.Systems.SimConfig cfg;
         using (var st = global::Sim.Data.DataFiles.OpenSim())
         using (var nd = global::Sim.Data.DataFiles.OpenNeeds())
-            cfg = Sim.Core.Systems.SimConfigLoader.Load(st, nd);
+        using (var gd = global::Sim.Data.DataFiles.OpenGoods())
+            cfg = Sim.Core.Systems.SimConfigLoader.Load(st, nd, gd);
         var world = new WorldState(11);
         var id = new SettlementId(0);
         world.Settlements.Add(new SettlementRow(id, SiteCell: 0, FoundedTurn: 0));

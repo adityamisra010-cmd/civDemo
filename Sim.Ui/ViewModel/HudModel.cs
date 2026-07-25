@@ -9,10 +9,17 @@ namespace Sim.Ui.ViewModel;
 /// the formatting tests run against a founded state headless; T2.4: computed
 /// for the SELECTED settlement, plus a world summary line). All formatting is
 /// culture-invariant. LastHarvest is the selected settlement's
-/// FoodStoreRow.LastHarvestUnits — the per-settlement observable Farming has
+/// grain's GoodStockRow.LastProducedUnits (T3.2) — the per-settlement observable Farming has
 /// written since T2.2, which retires the T1.8 UI-side global-ledger delta
 /// (that hack predated a per-settlement harvest signal existing).
 /// </summary>
+/// <summary>Grain's D-031 registry id (goods.json; stable). The UI reads the
+/// canonical id directly — revisit if the roster ever renumbers.</summary>
+public static class UiGoods
+{
+    public static readonly Sim.Core.State.GoodId Grain = new(1);
+}
+
 public sealed record HudModel(
     int SettlementId, long Turn, long Year,
     long Children, long Adults, long Elders, long TotalPopulation,
@@ -45,12 +52,12 @@ public sealed record HudModel(
             children = BandViews.Children(world.Buckets, selected);
             adults = BandViews.Adults(world.Buckets, selected);
             elders = BandViews.Elders(world.Buckets, selected);
-            for (int i = 0; i < world.FoodStores.Count; i++)
+            for (int i = 0; i < world.GoodStocks.Count; i++)
             {
-                if (world.FoodStores[i].Settlement == selected)
+                if (world.GoodStocks[i].Settlement == selected && world.GoodStocks[i].Good == UiGoods.Grain)
                 {
-                    food = world.FoodStores[i].Store.Value;
-                    lastHarvest = world.FoodStores[i].LastHarvestUnits;
+                    food = world.GoodStocks[i].Amount.Value;
+                    lastHarvest = world.GoodStocks[i].LastProducedUnits;
                     break;
                 }
             }

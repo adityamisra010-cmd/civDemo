@@ -31,7 +31,8 @@ public class WorldgenRefreshTests
     {
         using var s = Sim.Data.DataFiles.OpenSim();
         using var n = Sim.Data.DataFiles.OpenNeeds();
-        return SimConfigLoader.Load(s, n);
+        using var g = Sim.Data.DataFiles.OpenGoods();
+        return SimConfigLoader.Load(s, n, g);
     }
 
     /// <summary>The 256² dev preset (D-015) — 10-seed sweeps stay affordable.</summary>
@@ -112,7 +113,9 @@ public class WorldgenRefreshTests
             for (int b = 0; b < w42.Buckets.Count; b++)
                 if (w42.Buckets[b].Settlement.Value == s) pop += w42.Buckets[b].Count.Value;
             pops.Add(pop);
-            foods.Add(w42.FoodStores[s].Store.Value);
+            foods.Add(w42.GoodStocks[
+                GoodStockIndex.IndexOf(w42.GoodStocks, new SettlementId(s), new GoodId(cfg.Goods!.GrainId))
+            ].Amount.Value);
         }
         Assert.True(pops.Distinct().Count() >= w42.Settlements.Count / 2,
             $"populations barely vary within one world: {string.Join(",", pops)}");

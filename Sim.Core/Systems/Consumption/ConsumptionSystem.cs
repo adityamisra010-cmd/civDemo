@@ -9,7 +9,7 @@ namespace Sim.Core.Systems.Consumption;
 /// owns EatenRemainder; Farming credits it (Harvest) — see SystemCatalog.
 /// </summary>
 public readonly record struct ConsumptionTables(
-    Table<FoodStoreRow> FoodStores, Table<ConsumptionDeficitRow> Deficits);
+    Table<GoodStockRow> GoodStocks, Table<ConsumptionDeficitRow> Deficits);
 
 /// <summary>
 /// Consumption (T1.5, cohortized at T2.1): each settlement's cohort-weighted
@@ -36,12 +36,17 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
 
     private readonly SimConfig _cfg = cfg;
 
+    /// <summary>T3.2: demand eats from the GRAIN stock (the migrated M2
+    /// FoodStore; the D-035 food basket arrives at T3.5).</summary>
+    private readonly GoodId _grain = new(cfg.Goods?.GrainId
+        ?? throw new ArgumentException("ConsumptionSystem requires SimConfig.Goods (goods.json) — consumption eats a grain stock at M3."));
+
     public SystemId Id => WellKnownId;
 
     public void Step(SimContext<ConsumptionTables> ctx)
     {
         IReadOnlyWorldState prev = ctx.Prev;
-        Table<FoodStoreRow> stores = ctx.Owned.FoodStores;
+        Table<GoodStockRow> stores = ctx.Owned.GoodStocks;
         Table<ConsumptionDeficitRow> deficits = ctx.Owned.Deficits;
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
@@ -58,17 +63,17 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
                 demandPerYear += _cfg.Consumption.CohortWeights[bucket.CohortIdx] * bucket.Count.Value;
             }
 
-            int storeIndex = FindStore(stores, settlement);
+            int storeIndex = GoodStockIndex.IndexOf(stores, settlement, _grain);
             long demanded = 0, eaten = 0;
             if (storeIndex >= 0)
             {
-                ref FoodStoreRow row = ref stores.Ref(storeIndex);
-                double exact = demandPerYear * ctx.DtYears + row.EatenRemainder;
+                ref GoodStockRow row = ref stores.Ref(storeIndex);
+                double exact = demandPerYear * ctx.DtYears + row.ConsumeRemainder;
                 demanded = ConservedMath.WholeUnits(exact, $"consumption demand (settlement {settlement.Value})");
                 eaten = ctx.Ledger.Flow(
-                    ref row.Store, ConservedQuantityIds.Food, ReasonIds.Eaten,
+                    ref row.Amount, ConservedQuantityIds.OfGood(_grain), ReasonIds.Eaten,
                     demanded, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
-                row.EatenRemainder = exact - demanded; // sub-unit fraction only (see header)
+                row.ConsumeRemainder = exact - demanded; // sub-unit fraction only (see header)
             }
 
             // Deficit ratio for THIS turn (guarded: no demand → no deficit → no NaN).
@@ -81,10 +86,4 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
         }
     }
 
-    private static int FindStore(Table<FoodStoreRow> stores, SettlementId settlement)
-    {
-        for (int i = 0; i < stores.Count; i++)
-            if (stores[i].Settlement == settlement) return i;
-        return -1;
-    }
 }

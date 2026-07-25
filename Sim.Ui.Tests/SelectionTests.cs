@@ -23,7 +23,12 @@ public class SelectionTests
     {
         using var stream = Sim.Data.DataFiles.OpenSim();
         using var needs = Sim.Data.DataFiles.OpenNeeds();
-        return SimConfigLoader.Load(stream, needs);
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        // T3.1 note: these view-model tests pin EXACT founded strings, so the
+        // canonical endowment jitter is zeroed — formatting is the contract
+        // here; the jittered founding has its own pins in Sim.Tests.
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods);
+        return cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
     }
 
     /// <summary>Hand-built world: settlements at chosen site cells on a bare

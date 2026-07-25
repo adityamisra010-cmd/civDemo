@@ -26,7 +26,9 @@ public sealed record SimConfig(
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
-    [property: JsonIgnore] NeedsConfig? Needs = null);
+    [property: JsonIgnore] NeedsConfig? Needs = null,
+    // T3.2: the D-031 goods registry rides goods.json, attached the same way.
+    [property: JsonIgnore] GoodsConfig? Goods = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -208,6 +210,17 @@ public static class SimConfigLoader
     /// needs (NeedsGrievance) refuse construction without it.</summary>
     public static SimConfig Load(Stream simJson, Stream needsJson) =>
         Load(simJson) with { Needs = NeedsConfigLoader.Load(needsJson) };
+
+    /// <summary>T3.2: canonical three-file load — sim.json + needs.json +
+    /// goods.json (the D-031 registry, attached as SimConfig.Goods). Systems
+    /// that bind goods (Farming, Consumption at M3) refuse construction
+    /// without it.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson) =>
+        Load(simJson) with
+        {
+            Needs = NeedsConfigLoader.Load(needsJson),
+            Goods = GoodsConfigLoader.Load(goodsJson),
+        };
 
     public static SimConfig Load(string json)
     {

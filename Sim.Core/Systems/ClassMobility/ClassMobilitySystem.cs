@@ -57,9 +57,16 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
     private readonly Predicate?[] _emerge;
     private readonly Predicate?[] _recede;
 
+    /// <summary>T3.2: the surplus numerator reads grain's LastProducedUnits
+    /// (the migrated FoodStore observational field).</summary>
+    private readonly GoodId _grain;
+
     public ClassMobilitySystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _grain = new GoodId(cfg.Goods?.GrainId
+            ?? throw new ArgumentException(
+                "ClassMobilitySystem requires SimConfig.Goods (goods.json) at M3."));
         int n = cfg.Registries.Classes.Length;
         _emerge = new Predicate?[n];
         _recede = new Predicate?[n];
@@ -94,11 +101,11 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
                     break;
                 }
             }
-            for (int i = 0; i < prev.FoodStores.Count; i++)
+            for (int i = 0; i < prev.GoodStocks.Count; i++)
             {
-                if (prev.FoodStores[i].Settlement == settlement)
+                if (prev.GoodStocks[i].Settlement == settlement && prev.GoodStocks[i].Good == _grain)
                 {
-                    harvest = prev.FoodStores[i].LastHarvestUnits;
+                    harvest = prev.GoodStocks[i].LastProducedUnits;
                     break;
                 }
             }

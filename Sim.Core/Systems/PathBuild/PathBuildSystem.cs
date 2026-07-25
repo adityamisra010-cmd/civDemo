@@ -290,7 +290,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<CatchmentNodeRow> CatchmentNodes => prev.CatchmentNodes;
         public IReadOnlyTable<CatchmentSummaryRow> CatchmentSummaries => prev.CatchmentSummaries;
         public IReadOnlyTable<BucketRow> Buckets => prev.Buckets;
-        public IReadOnlyTable<FoodStoreRow> FoodStores => prev.FoodStores;
+        public IReadOnlyTable<GoodStockRow> GoodStocks => prev.GoodStocks;
+        public IReadOnlyTable<DepositRow> Deposits => prev.Deposits;
         public IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits => prev.ConsumptionDeficits;
         public IReadOnlyTable<LaborAllocationRow> LaborAllocations => prev.LaborAllocations;
         public IReadOnlyTable<PathProgressRow> PathProgress => prev.PathProgress;

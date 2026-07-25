@@ -27,10 +27,10 @@ public class HistoryBufferTests
             if (pop > 0)
                 ledger.Flow(ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
                     ReasonIds.InitialEndowment, pop, FlowDirection.Source, OverdrawPolicy.Throw);
-            var storeRow = new FoodStoreRow(sid, Conserved.Zero, 0.0, 0.0, 0);
-            int fs = world.FoodStores.Add(storeRow);
+            var storeRow = new GoodStockRow(sid, new GoodId(1), Conserved.Zero, 0.0, 0.0, 0);
+            int fs = world.GoodStocks.Add(storeRow);
             if (food > 0)
-                ledger.Flow(ref world.FoodStores.Ref(fs).Store, ConservedQuantityIds.Food,
+                ledger.Flow(ref world.GoodStocks.Ref(fs).Amount, ConservedQuantityIds.OfGood(new GoodId(1)),
                     ReasonIds.InitialEndowment, food, FlowDirection.Source, OverdrawPolicy.Throw);
             world.Grievances.Add(new GrievanceRow(sid, new ClassId(1), grievance));
         }
