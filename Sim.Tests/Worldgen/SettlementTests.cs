@@ -43,7 +43,8 @@ public class SettlementTests
             // On land.
             Assert.True(terrain.Water[site] < 0.5, $"seed {seed}: site {site} is water");
 
-            // Within the water-access cutoff: access > 0 ⇔ grid distance < cutoff.
+            // Within the water-access cutoff: access > 0 ⇔ grid distance to
+            // water OR RIVER < cutoff (T3.1a: riverbanks seed the access BFS).
             int[] waterDist = WaterDistance(terrain);
             Assert.True(waterDist[site] < cutoff,
                 $"seed {seed}: site water distance {waterDist[site]} >= cutoff {cutoff}");
@@ -100,9 +101,10 @@ public class SettlementTests
         var dist = new int[cells];
         var queue = new Queue<int>();
         ReadOnlySpan<double> water = terrain.Water;
+        ReadOnlySpan<double> rivers = terrain.Rivers;
         for (int i = 0; i < cells; i++)
         {
-            if (water[i] >= 0.5) { dist[i] = 0; queue.Enqueue(i); }
+            if (water[i] >= 0.5 || rivers[i] >= 0.5) { dist[i] = 0; queue.Enqueue(i); }
             else dist[i] = int.MaxValue;
         }
         while (queue.Count > 0)

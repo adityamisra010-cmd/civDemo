@@ -9,17 +9,62 @@
     "dirtPathSpeedFactor": 0.5
   },
   "consumption": {
-    "cohortWeights": [0.6, 0.6, 0.6,
-                      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                      0.7, 0.7, 0.7, 0.7]
+    "cohortWeights": [
+      0.6,
+      0.6,
+      0.6,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.7,
+      0.7,
+      0.7,
+      0.7
+    ]
   },
   "demographics": {
-    "fertilityPerPersonPerYear": [0.0, 0.0, 0.0,
-                                  0.0520, 0.1144, 0.1190, 0.1037, 0.0778, 0.0412, 0.0105, 0.0, 0.0,
-                                  0.0, 0.0, 0.0, 0.0],
-    "mortalityPerYear": [0.056, 0.03, 0.018,
-                         0.024, 0.028, 0.032, 0.036, 0.041, 0.047, 0.056, 0.068, 0.083,
-                         0.107, 0.147, 0.208, 0.305],
+    "fertilityPerPersonPerYear": [
+      0.0,
+      0.0,
+      0.0,
+      0.052,
+      0.1144,
+      0.119,
+      0.1037,
+      0.0778,
+      0.0412,
+      0.0105,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mortalityPerYear": [
+      0.056,
+      0.03,
+      0.018,
+      0.024,
+      0.028,
+      0.032,
+      0.036,
+      0.041,
+      0.047,
+      0.056,
+      0.068,
+      0.083,
+      0.107,
+      0.147,
+      0.208,
+      0.305
+    ],
     "starvationMortalityMaxPerYear": 0.12,
     "starvationChildMultiplier": 1.5,
     "starvationElderMultiplier": 1.3,
@@ -28,10 +73,26 @@
     "reboundReleaseRatePerYear": 0.08
   },
   "founding": {
-    "cohortCounts": [46, 44, 40,
-                     30, 28, 26, 24, 22, 20, 18, 17, 15,
-                     30, 20, 12, 8],
-    "foodStore": 6000
+    "cohortCounts": [
+      46,
+      44,
+      40,
+      30,
+      28,
+      26,
+      24,
+      22,
+      20,
+      18,
+      17,
+      15,
+      30,
+      20,
+      12,
+      8
+    ],
+    "foodStore": 6000,
+    "endowmentJitter": 0.25
   },
   "migration": {
     "baseRatePerYear": 0.03,
@@ -39,21 +100,52 @@
     "attractivenessFoodWeight": 0.02,
     "attractivenessLandWeight": 1.0,
     "famineFlightFactor": 8.0,
-    "cohortProfile": [0.2, 0.3, 0.5,
-                      1.0, 1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.15, 0.1,
-                      0.05, 0.03, 0.02, 0.01],
+    "cohortProfile": [
+      0.2,
+      0.3,
+      0.5,
+      1.0,
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.3,
+      0.2,
+      0.15,
+      0.1,
+      0.05,
+      0.03,
+      0.02,
+      0.01
+    ],
     "gapClosingFraction": 0.25,
     "attractivenessSmoothingWindowYears": 20.0,
     "destinationDeficitRepulsion": 1.0
   },
   "registries": {
-    "cultures": [ { "id": 1, "name": "Riverfolk" } ],
-    "religions": [ { "id": 1, "name": "Old Rites" } ],
+    "cultures": [
+      {
+        "id": 1,
+        "name": "Riverfolk"
+      }
+    ],
+    "religions": [
+      {
+        "id": 1,
+        "name": "Old Rites"
+      }
+    ],
     "classes": [
-      { "id": 1, "name": "Peasants" },
-      { "id": 2, "name": "Artisans",
-        "emerge": "food_surplus_ratio > 1.3",
-        "recede": "food_surplus_ratio < 1.1" }
+      {
+        "id": 1,
+        "name": "Peasants"
+      },
+      {
+        "id": 2,
+        "name": "Artisans",
+        "emerge": "food_surplus_ratio > 1.3 && population > 520",
+        "recede": "food_surplus_ratio < 1.1"
+      }
     ]
   },
   "mobility": {

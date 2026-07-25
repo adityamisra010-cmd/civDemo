@@ -64,7 +64,7 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
             {
                 ref FoodStoreRow row = ref stores.Ref(storeIndex);
                 double exact = demandPerYear * ctx.DtYears + row.EatenRemainder;
-                demanded = (long)Math.Floor(exact);
+                demanded = ConservedMath.WholeUnits(exact, $"consumption demand (settlement {settlement.Value})");
                 eaten = ctx.Ledger.Flow(
                     ref row.Store, ConservedQuantityIds.Food, ReasonIds.Eaten,
                     demanded, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);

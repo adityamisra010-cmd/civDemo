@@ -102,9 +102,15 @@ public sealed record DemographicsConfig(
 /// units. The whole founding population belongs to the FIRST registered class
 /// (the always-on base class, D-027); other classes found at zero.
 /// </summary>
+/// <summary>EndowmentJitter (T3.1c): amplitude of the seeded per-settlement
+/// jitter on the founding endowment — each cohort count and the food store
+/// scale by (1 + j·u), u ∈ [−1,1] hashed from (seed, settlement, slot).
+/// At 0 every settlement founds as an identical copy (the M2 behavior that
+/// produced the T2.4 same-decade class lockstep). TUNE.</summary>
 public sealed record FoundingConfig(
     [property: JsonPropertyName("cohortCounts"), JsonRequired] long[] CohortCounts,
-    [property: JsonPropertyName("foodStore"), JsonRequired] long FoodStore);
+    [property: JsonPropertyName("foodStore"), JsonRequired] long FoodStore,
+    [property: JsonPropertyName("endowmentJitter"), JsonRequired] double EndowmentJitter);
 
 /// <summary>One registry entry: a stable id and a display name (ADR-001: names
 /// live in config/registries, never in sim rows).</summary>
@@ -257,6 +263,10 @@ public static class SimConfigLoader
             if (c < 0) throw new SimConfigException("founding.cohortCounts entries must be >= 0.");
         if (cfg.Founding.FoodStore < 0)
             throw new SimConfigException("founding.foodStore must be >= 0.");
+        if (!(cfg.Founding.EndowmentJitter >= 0.0 && cfg.Founding.EndowmentJitter < 1.0))
+            throw new SimConfigException(
+                $"founding.endowmentJitter must be in [0,1) — at 1 or above a settlement can found empty, " +
+                $"got {Inv(cfg.Founding.EndowmentJitter)}.");
 
         if (cfg.Registries is null) throw new SimConfigException("registries is missing.");
         ValidateRegistry("registries.cultures", cfg.Registries.Cultures);

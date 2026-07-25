@@ -34,7 +34,7 @@ public static class WorldFounding
         int count = settlementsOverride ?? cfg.Siting.SettlementCount;
         if (count < 1) throw new ArgumentOutOfRangeException(nameof(settlementsOverride),
             $"settlement count must be >= 1, got {count}");
-        int[] sites = SettlementSiting.ChooseSites(world.Terrain!, cfg.Siting, count);
+        int[] sites = SettlementSiting.ChooseSites(world.Terrain!, cfg.Siting, count, seed);
         for (int s = 0; s < sites.Length; s++)
             world.Settlements.Add(new SettlementRow(new SettlementId(s), sites[s], FoundedTurn: 0));
 
@@ -56,9 +56,21 @@ public static class WorldFounding
         var ledger = new Ledger(world.LedgerFlows);
         FoundingConfig founding = simCfg.Founding;
         RegistriesConfig reg = simCfg.Registries;
+        long configPop = 0;
+        try
+        {
+            foreach (long c in founding.CohortCounts) configPop = checked(configPop + c);
+        }
+        catch (OverflowException)
+        {
+            throw new FlowOverflowException(
+                "founding.cohortCounts total overflows Int64 — an absurd endowment config " +
+                "(realistic founding populations are < 1e6; long.MaxValue ~9.22e18).");
+        }
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
+            long jitteredPop = 0;
             foreach (RegistryEntry culture in reg.Cultures)
             {
                 foreach (RegistryEntry religion in reg.Religions)
@@ -72,13 +84,25 @@ public static class WorldFounding
                                 new ClassId(reg.Classes[cls].Id), cohort, Conserved.Zero,
                                 birthRemainder: 0.0, deathRemainder: 0.0,
                                 starvationRemainder: 0.0, agingRemainder: 0.0));
-                            long endowed = cls == 0 ? founding.CohortCounts[cohort] : 0;
+                            long endowed = cls == 0
+                                ? Jittered(founding.CohortCounts[cohort],
+                                    founding.EndowmentJitter, seed, s, slot: cohort)
+                                : 0;
                             if (endowed > 0)
                             {
                                 ledger.Flow(
                                     ref world.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
                                     ReasonIds.InitialEndowment, endowed, FlowDirection.Source,
                                     OverdrawPolicy.Throw);
+                                // endowed ≤ MaxWholeUnits per slot; 16 slots — the
+                                // checked sum cannot realistically overflow, but if
+                                // it ever does the named exception is the contract.
+                                try { jitteredPop = checked(jitteredPop + endowed); }
+                                catch (OverflowException)
+                                {
+                                    throw new FlowOverflowException(
+                                        $"founding population total for settlement {s} overflows Int64.");
+                                }
                             }
                         }
                     }
@@ -104,14 +128,70 @@ public static class WorldFounding
                     settlement, new ClassId(reg.Classes[cls].Id), Value: 0.0));
             }
 
+            // The food endowment TRACKS THE REALIZED POPULATION (same
+            // settlement-common factor via the ratio), with only a SMALL
+            // independent per-capita wobble (amp/3). MEASURED FINDING: fully
+            // independent food-vs-people jitter swung founding food-per-capita
+            // ±31%, and badly-mismatched colonies crashed 90%+ during the
+            // catchment warm-up — firstCrashTurn 5 against the Malthus
+            // corridor's [400, 800]. Founding variation is meant to vary SIZE
+            // and COMPOSITION, not survival odds.
+            double popScale = configPop > 0 ? jitteredPop / (double)configPop : 1.0;
+            double perCapita = 1.0 + (founding.EndowmentJitter / 3.0) * U(seed, s, FoodSlot);
+            long food = Math.Max(0L, ConservedMath.WholeUnits(
+                Math.Round(founding.FoodStore * popScale * perCapita),
+                $"founding food endowment (settlement {s})"));
             int storeRow = world.FoodStores.Add(new FoodStoreRow(
                 settlement, Conserved.Zero, harvestRemainder: 0.0, eatenRemainder: 0.0));
             ledger.Flow(
                 ref world.FoodStores.Ref(storeRow).Store, ConservedQuantityIds.Food,
-                ReasonIds.InitialEndowment, founding.FoodStore, FlowDirection.Source,
-                OverdrawPolicy.Throw);
+                ReasonIds.InitialEndowment, food,
+                FlowDirection.Source, OverdrawPolicy.Throw);
         }
 
         return world;
+    }
+
+    /// <summary>Salt keeping the endowment-jitter hash space disjoint from the
+    /// siting jitter and every worldgen noise salt.</summary>
+    private const ulong EndowSalt = 0x454E444F_00000004UL;
+
+    /// <summary>Slot index for the food-store endowment (cohorts use 0..15).</summary>
+    private const int FoodSlot = 100;
+
+    /// <summary>
+    /// T3.1(c) FOUNDING VARIATION: the endowment jitter — baseUnits ×
+    /// (1 + amp·u) with u ∈ [−1,1] from a SplitMix64 hash of (seed,
+    /// settlement, slot), rounded to whole units and floored at 0. Settlements
+    /// stop founding as identical 400-person copies; twin worlds stay
+    /// byte-identical (pure hash, no RNG stream). The double→long conversion
+    /// goes through ConservedMath.WholeUnits — an absurd endowment config
+    /// throws the named FlowOverflowException instead of wrapping (M3
+    /// overflow discipline).
+    /// </summary>
+    /// <summary>Slot index of the settlement-COMMON endowment factor.</summary>
+    private const int SettlementSlot = 200;
+
+    private static long Jittered(long baseUnits, double amp, ulong seed, int settlement, int slot)
+    {
+        if (amp <= 0.0 || baseUnits == 0) return baseUnits;
+        // TWO components, both amplitude amp: a settlement-COMMON factor (all
+        // of one settlement's slots scale together, so founding TOTALS spread
+        // by ±amp — independent per-cohort noise alone cancels to ±amp/√16
+        // in the total, which is no variation at all) and a per-slot factor
+        // (age structures and the food:people ratio differ too).
+        double us = U(seed, settlement, SettlementSlot);
+        double uc = U(seed, settlement, slot);
+        long jittered = ConservedMath.WholeUnits(
+            Math.Round(baseUnits * (1.0 + amp * us) * (1.0 + amp * uc)),
+            $"founding endowment (settlement {settlement}, slot {slot})");
+        return Math.Max(0L, jittered);
+    }
+
+    private static double U(ulong seed, int settlement, int slot)
+    {
+        ulong h = SplitMix64.Mix(
+            seed ^ EndowSalt ^ ((ulong)(uint)settlement << 32) ^ (ulong)(uint)slot);
+        return (h >> 11) * (1.0 / (1UL << 53)) * 2.0 - 1.0;
     }
 }

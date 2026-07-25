@@ -20,8 +20,17 @@ public static class Variables
     public const int FoodSurplusRatio = 1;
     public const int ArtisanShare = 2;
 
+    /// <summary>T3.1(c): total settlement population (all classes, all
+    /// cohorts, Prev buckets) — the first SCALE-DEPENDENT published variable.
+    /// The ratio variables are structurally scale-invariant (a labor-limited
+    /// surplus ratio is adultShare × output / consumption regardless of
+    /// size), which is WHY founding variation alone could never break the
+    /// T2.4 emergence lockstep; a population term in an emergence predicate
+    /// couples crossing times to the jittered founding sizes.</summary>
+    public const int Population = 3;
+
     /// <summary>Known names in registration order (parallel to ids 1..N).</summary>
-    public static readonly string[] Names = ["food_surplus_ratio", "artisan_share"];
+    public static readonly string[] Names = ["food_surplus_ratio", "artisan_share", "population"];
 
     /// <summary>Name → id; −1 when unknown (callers own the actionable error).</summary>
     public static int IdOf(string name)

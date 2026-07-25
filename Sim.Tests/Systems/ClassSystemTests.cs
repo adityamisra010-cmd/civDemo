@@ -91,17 +91,26 @@ public class ClassSystemTests
         // ~250 turns — the surplus recession + first Malthus crash (measured
         // near turn 255) are what drain the artisans, so the post-boom arm
         // must reach past them.
+        // T3.1 REWORK (stated): emergence is POPULATION-GATED now (the
+        // predicate carries `population > 520`, coupling crossing time to the
+        // jittered founding size — the lockstep break), so settlement 0
+        // emerges when it GROWS past the threshold (measured t52 on the dev
+        // world), not at the warm-up exit. Phases key off the measured
+        // emergence; the drain arm reaches past the first Malthus crash
+        // (~t820 on the refreshed worldgen).
         int emergenceTurn = -1;
         double boomPeak = 0.0, minAfterBoom = 1.0;
-        for (int t = 1; t <= 280; t++)
+        for (int t = 1; t <= 900; t++)
         {
             world = exec.Step(world);
             long artisans = ArtisanAdults(world);
             if (emergenceTurn < 0 && artisans > 0) emergenceTurn = t;
             long adults = BandViews.Adults(world.Buckets, S0);
             double share = adults > 0 ? artisans / (double)adults : 0.0;
-            if (t <= 25) boomPeak = Math.Max(boomPeak, share);       // the founding boom window
-            else minAfterBoom = Math.Min(minAfterBoom, share);       // Malthus equilibrium: famines bite
+            if (emergenceTurn > 0 && t <= emergenceTurn + 25)
+                boomPeak = Math.Max(boomPeak, share);                // the post-emergence boom window
+            else if (emergenceTurn > 0 && t > emergenceTurn + 25)
+                minAfterBoom = Math.Min(minAfterBoom, share);        // Malthus equilibrium: famines bite
             // T2.7 re-anchor (stated): the cap binds PROMOTIONS (pinned
             // exactly by the mobility-invariant tests); the share itself can
             // drift a little past it passively — the retuned adult mortality
@@ -115,8 +124,9 @@ public class ClassSystemTests
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
 
-        Assert.True(emergenceTurn is >= 3 and <= 10,
-            $"artisans emerged at turn {emergenceTurn} — outside the documented [3,10] window");
+        Assert.True(emergenceTurn is >= 30 and <= 70,
+            $"artisans emerged at turn {emergenceTurn} — outside the documented [30,70] window " +
+            "(population-gated emergence: founding ~350 growing past the 520 threshold)");
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).

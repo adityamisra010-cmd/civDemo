@@ -295,7 +295,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
                     ref BucketRow srcRef = ref buckets.Ref(srcRow);
                     double exact = desired * scale + srcRef.MigrationRemainder;
-                    long moved = (long)Math.Floor(exact);
+                    long moved = ConservedMath.WholeUnits(exact, $"migration outflow (bucket {srcRow})");
                     srcRef.MigrationRemainder = exact - moved; // sub-person fraction only
                     if (moved <= 0) continue;
 

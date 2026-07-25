@@ -627,7 +627,15 @@ public class PopulationExactnessTests
         // config-derived, extended at T2.1 to the bucket cross product: the
         // full culture × religion × class × cohort layout, the whole founding
         // population on the FIRST class, other classes at exactly zero.
-        SimConfig cfg = TestConfigs.Sim();
+        // T3.1(c) AMENDMENT: the canonical endowment is now JITTERED per
+        // settlement (founding variation), so the config-exact pin runs at
+        // endowmentJitter = 0 — the identity the jitter must reduce to. The
+        // JITTERED path's own contract (bounds + Ledger-exactness on the
+        // jittered totals) is pinned right after.
+        SimConfig cfg = TestConfigs.Sim() with
+        {
+            Founding = TestConfigs.Sim().Founding with { EndowmentJitter = 0.0 },
+        };
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
 
         // T2.3: the dev preset founds N = 4 settlements, each with the SAME
@@ -662,9 +670,60 @@ public class PopulationExactnessTests
 
         Assert.Equal(popTotal,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
-        Assert.Equal(cfg.Founding.FoodStore * n,
+        long foodStores = 0;
+        for (int i = 0; i < n; i++) foodStores += world.FoodStores[i].Store.Value;
+        Assert.Equal(foodStores,
             FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.InitialEndowment, sunk: false));
         Assert.Equal(0,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: true));
+    }
+
+    [Fact]
+    public void Founding_JitteredEndowment_BoundedByAmplitude_AndLedgerExact()
+    {
+        // T3.1(c): with the CANONICAL jitter, every jittered cohort count and
+        // food store stays within the compounded amplitude bounds of its
+        // config base — (1 ± j)² — and the Ledger flow rows still equal the
+        // realized stocks EXACTLY (conservation holds on the jittered world;
+        // no unaudited person or unit enters at founding).
+        SimConfig cfg = TestConfigs.Sim();
+        double j = cfg.Founding.EndowmentJitter;
+        Assert.True(j > 0.0, "canonical endowmentJitter is expected to be > 0 at M3");
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
+
+        double lo = (1.0 - j) * (1.0 - j), hi = (1.0 + j) * (1.0 + j);
+        long popTotal = 0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow row = world.Buckets[i];
+            popTotal += row.Count.Value;
+            bool firstClass = row.Class.Value == cfg.Registries.Classes[0].Id;
+            long baseCount = cfg.Founding.CohortCounts[row.CohortIdx];
+            if (!firstClass) { Assert.Equal(0, row.Count.Value); continue; }
+            Assert.InRange(row.Count.Value,
+                (long)Math.Floor(baseCount * lo) - 1, (long)Math.Ceiling(baseCount * hi) + 1);
+        }
+        // Food TRACKS the realized population (size varies, survival odds do
+        // not — see WorldFounding): store ≈ configFood × (settlementPop /
+        // configPop) × (1 ± j/3).
+        long configPop = cfg.Founding.CohortCounts.Sum();
+        long foodTotal = 0;
+        for (int i = 0; i < world.FoodStores.Count; i++)
+        {
+            long store = world.FoodStores[i].Store.Value;
+            foodTotal += store;
+            long sPop = 0;
+            for (int b = 0; b < world.Buckets.Count; b++)
+                if (world.Buckets[b].Settlement == world.FoodStores[i].Settlement)
+                    sPop += world.Buckets[b].Count.Value;
+            double popScale = sPop / (double)configPop;
+            Assert.InRange(store,
+                (long)Math.Floor(cfg.Founding.FoodStore * popScale * (1.0 - j / 3.0)) - 1,
+                (long)Math.Ceiling(cfg.Founding.FoodStore * popScale * (1.0 + j / 3.0)) + 1);
+        }
+        Assert.Equal(popTotal,
+            FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
+        Assert.Equal(foodTotal,
+            FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.InitialEndowment, sunk: false));
     }
 }

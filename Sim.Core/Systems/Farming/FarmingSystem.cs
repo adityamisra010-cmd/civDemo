@@ -98,7 +98,7 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
 
             ref FoodStoreRow row = ref stores.Ref(storeIndex);
             double exact = ratePerYear * ctx.DtYears + row.HarvestRemainder;
-            long harvested = (long)Math.Floor(exact);
+            long harvested = ConservedMath.WholeUnits(exact, $"farming harvest (settlement {settlement.Value})");
             ctx.Ledger.Flow(
                 ref row.Store, ConservedQuantityIds.Food, ReasonIds.Harvest,
                 harvested, FlowDirection.Source, OverdrawPolicy.Throw);
