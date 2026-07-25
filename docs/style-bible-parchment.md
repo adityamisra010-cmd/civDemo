@@ -10,6 +10,7 @@ An aged explorer's atlas: a single sheet of weathered parchment on which a 6,000
 - **Substrate:** aged laid-paper / vellum. Warm cream, faint mottling, subtle fiber grain, gentle edge-darkening (age, not damage). NOT crisp white, NOT heavily burnt/pirate-map brown, NOT high-contrast.
 - **Rendering logic:** land and sea are flat-ish tonal washes with hand-inked linework, the way a cartographer paints — NOT photoreal terrain, NOT 3D relief, NOT painterly brushstrokes (that's gouache — wrong medium). Think a fine 18th–19th c. hand-colored map, restrained and legible.
 - **Lighting:** none. A map is lit flat. No cast shadows, no sun angle, no ambient occlusion. Depth comes from linework density and wash tone only.
+- **SINGLE-CARTOGRAPHER RULE:** every generated asset must use the identical paper substrate and ink chemistry. No asset may introduce a new paper color, saturation, lighting model, brush style, or decorative vocabulary. Viewed individually, every asset must appear painted by the same cartographer on the same sheet. Production method: the parchment base is generated FIRST, and all other batches are generated AGAINST that base image as visual reference.
 
 ## 2. PALETTE (authoritative hex — all art generated to these; renderer tints to these)
 Parchment base:
@@ -39,6 +40,8 @@ Each entry: purpose · spec · tiling/format.
 5. **UI frame furniture** — panel border/corners, a header rule, button plate, a scroll/parchment panel background for the Annals, a compass rose (decorative, corner). In-palette, ink-on-parchment. PNGs with transparile edges (9-slice-friendly where possible).
 6. **Icon seeds (substrate-safe only)** — the generic settlement marker in the parchment style (a small inked ring/dot that reads at all zooms) and the core HUD stat glyphs IF they can be drawn timelessly (food, population, labor). Anything era-specific (city tiers, ports, production, armies) is DEFERRED to the symbology packet — do not generate it now.
 
+**SEAMLESS CLAUSE (applies to every tileable entry above — 1, 2, 3, and any tiling UI fill):** tileable textures must edge-wrap — left edge continues into right, top into bottom, no seam, border, or central focal point. Verify by 2×2 tiling before acceptance; regenerate any tile showing a seam or a visibly repeating feature.
+
 **Explicitly NOT this pass:** settlement size tiers, road/rail/trade visual language, army/border/politics symbology, map-mode legend art. Those wait for the M4/M5 art-direction packet (queue). Generating them now guarantees a redraw.
 
 ## 5. THE PROMPT SKELETON (paste into the image generator; fill the ⟨slot⟩)
@@ -50,6 +53,8 @@ Per-asset extra slots:
 - UI frame: "ornamental but restrained border element, ink on parchment, transparent background"
 
 **Consistency discipline (the thing that prevents drift):** generate ALL assets in one session with the same skeleton; regenerate any that stray rather than accepting a near-miss; check every tile against the palette; verify seamless tiles actually tile (drop into a 2×2 grid and look for seams/repeats). One off-style asset poisons the coherence of the whole map.
+
+**SEAMLESS CLAUSE:** tileable textures must edge-wrap — left edge continues into right, top into bottom, no seam, border, or central focal point. Verify by 2×2 tiling before acceptance; regenerate any tile showing a seam or a visibly repeating feature.
 
 ## 6. ACCEPTANCE (how the substrate packet is judged)
 - All manifest §4 items present in-palette and, where tileable, seam-free in a 2×2 test.
