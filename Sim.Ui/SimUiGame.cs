@@ -29,6 +29,7 @@ public sealed class SimUiGame : Game
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch? _spriteBatch;
     private Texture2D? _terrainTexture;
+    private float _terrainDrawScale = 1f;
     private Texture2D? _markerTexture;
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
@@ -140,6 +141,13 @@ public sealed class SimUiGame : Game
         ParchmentBaker.Result bake = ParchmentBaker.Bake(_world.Terrain!, _art, _world.Seed);
         _terrainTexture = new Texture2D(GraphicsDevice, bake.Size, bake.Size, false, SurfaceFormat.Color);
         _terrainTexture.SetData(bake.Rgba);
+        // The atlas is SUPERSAMPLED (Size = worldSize × ss): it must be drawn
+        // scaled to span the WORLD, not its own texel count. Drawn at native
+        // size it covers ss× the world and every marker sits over the wash
+        // painted for the cell at 1/ss of its coordinates — the coastal-
+        // flooding defect (settlements rendered in the sea). The mapping is
+        // pinned headless by CoastlineRenderTests via DisplayedTexel.
+        _terrainDrawScale = (float)bake.WorldDrawScale;
         _bakeNote = string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"map {bake.Size}² {bake.MegabytesResident:F0} MB baked in {bake.BakeMilliseconds:F0} ms");
 
@@ -366,7 +374,8 @@ public sealed class SimUiGame : Game
             * Matrix.CreateTranslation(viewport.Width / 2f, viewport.Height / 2f, 0f);
 
         _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
-        _spriteBatch.Draw(_terrainTexture, Vector2.Zero, Color.White);
+        _spriteBatch.Draw(_terrainTexture, Vector2.Zero, null, Color.White,
+            0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
         _spriteBatch.End();
 
         // World-space vector layers: catchment fill (toggle) under paths under rivers.

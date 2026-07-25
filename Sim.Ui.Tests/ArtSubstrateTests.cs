@@ -119,25 +119,64 @@ public class ArtSubstrateTests
     }
 
     [Fact]
-    public void SplatWeights_AreContinuous_NoClassificationEdges()
+    public void SplatWeights_AreContinuous_WithinEachDomain_AndDiscontinuousAtTheCoastline()
     {
-        // THE acceptance criterion behind "no visible tile grid / no flat
-        // colour blocks": a small change in the fields may only produce a
-        // small change in the weight vector. A thresholding implementation
-        // (if elev > x then class y) fails this immediately.
+        // THE AMENDED CONTRACT (director's coastal-defect ruling): continuity
+        // is required WITHIN land and WITHIN water — a small change in the
+        // fields may only produce a small change in the weight vector, so no
+        // contour banding, no stair-stepping ("if elev > x then class y"
+        // thresholding fails this immediately). But the land/water boundary
+        // is the ONE discontinuity that is physically real, and it is
+        // REQUIRED: crossing the mask must switch the blend completely from
+        // the land wash set to the water wash set — the transition falls
+        // exactly at the coastline, where the coast ink already draws. A
+        // splat that smoothed across the mask would paint water washes onto
+        // low-lying land (the defect this amendment was cut against).
         Span<double> a = stackalloc double[ParchmentPalette.TerrainClassCount];
         Span<double> b = stackalloc double[ParchmentPalette.TerrainClassCount];
         const double step = 1e-4;
         for (int i = 0; i < 200; i++)
         {
+            // WITHIN LAND: sweep the whole above-sea elevation range.
             double e = i / 200.0;
             TerrainSplat.Weights(e, 0.5, 0.5, 0.5, false, a);
             TerrainSplat.Weights(e + step, 0.5, 0.5, 0.5, false, b);
             double delta = 0;
             for (int c = 0; c < a.Length; c++) delta += Math.Abs(a[c] - b[c]);
             Assert.True(delta < 0.02,
-                $"weight vector jumped {delta:F4} for a {step} elevation step at e={e:F3} — hard classification edge");
+                $"weight vector jumped {delta:F4} for a {step} elevation step at e={e:F3} — hard classification edge on land");
+
+            // WITHIN WATER: sweep the whole depth range.
+            TerrainSplat.Weights(0.5, e, 0.5, 0.5, true, a);
+            TerrainSplat.Weights(0.5, e + step, 0.5, 0.5, true, b);
+            delta = 0;
+            for (int c = 0; c < a.Length; c++) delta += Math.Abs(a[c] - b[c]);
+            Assert.True(delta < 0.02,
+                $"weight vector jumped {delta:F4} for a {step} depth step at d={e:F3} — hard classification edge in water");
         }
+
+        // AT THE COASTLINE: the discontinuity is REQUIRED. The same point,
+        // vanishing elevation and depth, flipped across the mask: the land
+        // side must carry ALL its weight on land washes, the water side ALL
+        // of it on water washes — a total-variation jump of 2, the maximum.
+        Span<double> land = stackalloc double[ParchmentPalette.TerrainClassCount];
+        Span<double> sea = stackalloc double[ParchmentPalette.TerrainClassCount];
+        TerrainSplat.Weights(0.001, 0.001, 0.5, 0.5, isWater: false, land);
+        TerrainSplat.Weights(0.001, 0.001, 0.5, 0.5, isWater: true, sea);
+        double landOnLand = 0, seaOnWater = 0, jump = 0;
+        for (int c = 0; c < land.Length; c++)
+        {
+            bool waterClass = c >= (int)ParchmentPalette.TerrainClass.Shallows;
+            if (!waterClass) landOnLand += land[c];
+            if (waterClass) seaOnWater += sea[c];
+            jump += Math.Abs(land[c] - sea[c]);
+        }
+        Assert.True(landOnLand > 0.9999,
+            $"land side of the coastline puts only {landOnLand:F6} of its weight on land washes — the mask is not a hard gate");
+        Assert.True(seaOnWater > 0.9999,
+            $"water side of the coastline puts only {seaOnWater:F6} of its weight on water washes — the mask is not a hard gate");
+        Assert.True(jump > 1.999,
+            $"total-variation jump across the coastline is {jump:F4}, not 2 — the wash sets bleed across the mask");
     }
 
     [Fact]

@@ -63,9 +63,17 @@ public static class ParchmentBaker
         public static readonly Options Default = new();
     }
 
-    public sealed record Result(int Size, byte[] Rgba, double BakeMilliseconds)
+    public sealed record Result(int Size, byte[] Rgba, double BakeMilliseconds, int WorldSizePx)
     {
         public double MegabytesResident => Rgba.Length / (1024.0 * 1024.0);
+
+        /// <summary>Scale the world-space draw must apply so the atlas spans
+        /// the WORLD ([0, WorldSizePx] px), not its own texel count. The
+        /// supersampled atlas is Size = WorldSizePx × ss texels; drawn at
+        /// native size it covers ss× the world — the coastal-flooding defect
+        /// (settlements over the wash painted for the cell at 1/ss of their
+        /// coordinates). Pinned by CoastlineRenderTests.</summary>
+        public double WorldDrawScale => WorldSizePx / (double)Size;
     }
 
     public static Result Bake(TerrainSet terrain, AssetLibrary art, ulong worldSeed, Options? options = null)
@@ -114,9 +122,8 @@ public static class ParchmentBaker
             {
                 double wx = (x + 0.5) / ss - 0.5;
 
-                double water = Sample(waterCopy, n, wx, wy);
                 double elev = Sample(elevationCopy, n, wx, wy);
-                bool isWater = water >= 0.5;
+                bool isWater = IsWaterAt(waterCopy, n, wx, wy);
                 TerrainSplat.Weights(
                     (elev - sea) / landSpan, (sea - elev) / depthSpan,
                     Sample(moistureCopy, n, wx, wy), Sample(fertilityCopy, n, wx, wy),
@@ -191,8 +198,46 @@ public static class ParchmentBaker
 
         double ms = (System.Diagnostics.Stopwatch.GetTimestamp() - started) * 1000.0
                     / System.Diagnostics.Stopwatch.Frequency;
-        return new Result(size, pixels, ms);
+        return new Result(size, pixels, ms, n);
     }
+
+    /// <summary>
+    /// THE LAND/WATER HARD GATE (director's coastal-defect ruling): the paint
+    /// decision at a continuous world position is the SIM'S CELL-LEVEL MASK —
+    /// the nearest cell's <c>water</c> value, the same per-cell threshold
+    /// <c>TerrainSet.IsWater</c> and settlement siting use. Land cells blend
+    /// only land washes, water cells only water washes, and the transition
+    /// falls exactly on cell edges — the coastline, where the CoastDistance
+    /// ink already draws. A BILINEARLY interpolated mask thresholded at 0.5
+    /// (the previous decision) happens to agree with the cell mask at ss=2
+    /// (texel centres sit only ±0.25 from cell centres, where the own cell's
+    /// bilinear weight is ≥ 9/16 &gt; 1/2), but at ss ≥ 3 corner texels can
+    /// cross 0.5 and RESHAPE the coastline — the gate must not depend on the
+    /// supersample factor. Pinned by CoastlineRenderTests.
+    /// </summary>
+    public static bool IsWaterAt(ReadOnlySpan<double> water, int n, double wx, double wy)
+    {
+        int mx = Math.Clamp((int)Math.Floor(wx + 0.5), 0, n - 1);
+        int my = Math.Clamp((int)Math.Floor(wy + 0.5), 0, n - 1);
+        return water[my * n + mx] >= 0.5;
+    }
+
+    /// <summary>
+    /// Which atlas texel the world-space draw displays at a world position —
+    /// the render-side half of the coastline contract, kept as pure math so
+    /// the marker-over-wash agreement is testable headless. The atlas spans
+    /// [0, worldSizePx] world px EXACTLY: texel t covers world
+    /// [t·w/b, (t+1)·w/b), and its bake-sample position (t+0.5)/ss − 0.5
+    /// (cell-index space) is the centre of that footprint — so a draw scaled
+    /// by worldSizePx/bakeSize aligns every texel with the ground it was
+    /// painted for, with no half-texel offset. THE COASTAL-FLOODING DEFECT
+    /// was this mapping done wrong: the supersampled atlas drawn at NATIVE
+    /// texel size showed, at world (x, y), the texel baked for the cell at
+    /// (x/ss, y/ss) — five coastal settlements rendered in the sea. Pinned
+    /// by CoastlineRenderTests, which fail on floor(worldPx).
+    /// </summary>
+    public static int DisplayedTexel(double worldPx, int worldSizePx, int bakeSize) =>
+        Math.Clamp((int)Math.Floor(worldPx * bakeSize / (double)worldSizePx), 0, bakeSize - 1);
 
     /// <summary>Chamfer distance (in terrain texels) from every cell to the
     /// nearest land/water boundary — two sweeps, exact enough for an ink band
