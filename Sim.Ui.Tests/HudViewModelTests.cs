@@ -310,4 +310,31 @@ public class UiFoundingEquivalenceTests
             Sim.Core.Kernel.WorldHash.ComputeHex(canonical),
             Sim.Core.Kernel.WorldHash.ComputeHex(ui));
     }
+
+    [Fact]
+    public void HudModel_ExtinctSettlement_GrievanceAndNeedsReadDash_NotNumbers()
+    {
+        // T2.13 (director exit-session finding, ghost grievance): a
+        // population-zero settlement must read "\u2014" for every
+        // per-capita-meaningless stat - even against a STALE nonzero
+        // grievance row (the display branch is honest independently of the
+        // sim-side zeroing).
+        Sim.Core.Systems.SimConfig cfg;
+        using (var st = global::Sim.Data.DataFiles.OpenSim())
+        using (var nd = global::Sim.Data.DataFiles.OpenNeeds())
+            cfg = Sim.Core.Systems.SimConfigLoader.Load(st, nd);
+        var world = new WorldState(11);
+        var id = new SettlementId(0);
+        world.Settlements.Add(new SettlementRow(id, SiteCell: 0, FoundedTurn: 0));
+        world.Buckets.Add(new BucketRow(
+            id, new CultureId(1), new ReligionId(1), new ClassId(1),
+            5, Conserved.Zero, 0.0, 0.0, 0.0, 0.0)); // zero count: extinct
+        world.Grievances.Add(new GrievanceRow(id, new ClassId(1), 3.75)); // stale ghost
+        world.NeedSatisfactions.Add(new NeedSatisfactionRow(id, new ClassId(1), cfg.Needs!.Needs[0].Id, 0.6));
+
+        HudModel hud = HudModel.From(world, 0, cfg.Needs);
+        Assert.Equal(0, hud.TotalPopulation);
+        Assert.Equal("grievance \u2014", hud.GrievanceLine);
+        Assert.Equal($"{cfg.Needs!.Needs[0].Name}: \u2014", hud.NeedLines![0]);
+    }
 }

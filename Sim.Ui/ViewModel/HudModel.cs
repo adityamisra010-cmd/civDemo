@@ -80,6 +80,14 @@ public sealed record HudModel(
                         $"{need.Name}: not yet simulated"));
                     continue;
                 }
+                // T2.13: an extinct settlement's satisfaction is per-capita-
+                // meaningless — "—", not a number (the system publishes no
+                // rows for it either; this branch names the reason).
+                if (exists && children + adults + elders == 0)
+                {
+                    needLines.Add(string.Create(CultureInfo.InvariantCulture, $"{need.Name}: —"));
+                    continue;
+                }
                 // Absent row ≠ zero satisfaction: satisfaction rows are
                 // rebuilt each turn by NeedsGrievance, so before the first
                 // turn resolves NOTHING is published (Prev-lag, §3.2) — a
@@ -150,9 +158,14 @@ public sealed record HudModel(
         string.Create(CultureInfo.InvariantCulture, $"turn {Turn}   year {Year}");
 
     /// <summary>T2.6: the selected settlement's grievance stock — display only
-    /// (the read-isolation doctrine: grievance drives no behavior until M5).</summary>
-    public string GrievanceLine =>
-        string.Create(CultureInfo.InvariantCulture, $"grievance {GrievanceValue:F2}");
+    /// (the read-isolation doctrine: grievance drives no behavior until M5).
+    /// T2.13 (director finding, ghost grievance): per-capita-meaningless at
+    /// population zero — an extinct settlement reads "—", never a number
+    /// (the sim-side stock is also zeroed on extinction; this branch keeps
+    /// the panel honest even against a stale pre-extinction row).</summary>
+    public string GrievanceLine => TotalPopulation == 0
+        ? "grievance —"
+        : string.Create(CultureInfo.InvariantCulture, $"grievance {GrievanceValue:F2}");
 
     /// <summary>Status/camera lines are formatted HERE too (T1.8 re-gate: every
     /// string handed to ImGui is view-model-owned and tested — the HUD renders

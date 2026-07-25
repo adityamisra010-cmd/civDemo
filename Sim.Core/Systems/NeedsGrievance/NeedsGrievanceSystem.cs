@@ -89,6 +89,23 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         {
             SettlementId settlement = prev.Settlements[s].Id;
 
+            long settlementPop = 0;
+            for (int b = 0; b < prev.Buckets.Count; b++)
+                if (prev.Buckets[b].Settlement == settlement) settlementPop += prev.Buckets[b].Count.Value;
+
+            // T2.13 director finding (ghost grievance): grievance is HELD BY
+            // PEOPLE — an extinct settlement's stock is zeroed, not left to
+            // decay for centuries in an empty ruin, and no satisfaction rows
+            // publish (nobody to be satisfied). Display-layer honesty follows
+            // from the state itself, not a UI special case.
+            if (settlementPop == 0)
+            {
+                for (int g = 0; g < grievances.Count; g++)
+                    if (grievances[g].Settlement == settlement)
+                        grievances[g] = grievances[g] with { Value = 0.0 };
+                continue;
+            }
+
             // PREV deficit (absent before the first consumption turn → 0).
             double deficit = 0.0;
             for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)

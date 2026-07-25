@@ -351,4 +351,30 @@ public class NeedsGrievanceTests
         }
         return (b, d, s);
     }
+
+    [Fact]
+    public void ExtinctSettlement_GrievanceZeroed_NoSatisfactionRows_NoGhostStock()
+    {
+        // T2.13 (director exit-session finding, ghost grievance): grievance
+        // is held by people. An extinct settlement carrying a nonzero stock
+        // must read EXACTLY ZERO after the next step - not linger and decay
+        // for centuries in an empty ruin - and publishes no satisfaction rows
+        // (nobody to be satisfied). A living neighbor is untouched.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState world = GrievanceWorld(2);
+        // Settlement 0: carried grievance, then extinguished.
+        world.Grievances[0] = world.Grievances[0] with { Value = 7.5 };
+        new Ledger(world.LedgerFlows).Flow(ref world.Buckets.Ref(0).Count,
+            ConservedQuantityIds.Population, ReasonIds.Starvation, 1000,
+            FlowDirection.Sink, OverdrawPolicy.Throw);
+        // Settlement 1: alive, carrying its own stock.
+        world.Grievances[1] = world.Grievances[1] with { Value = 2.0 };
+
+        WorldState next = GrievanceOnly(cfg).Step(world);
+
+        Assert.Equal(0.0, Grievance(next, 0)); // EXACT zero, not decayed-toward
+        Assert.True(Grievance(next, 1) > 0.0, "living neighbor's stock vanished too - overreach");
+        for (int i = 0; i < next.NeedSatisfactions.Count; i++)
+            Assert.NotEqual(0, next.NeedSatisfactions[i].Settlement.Value);
+    }
 }
