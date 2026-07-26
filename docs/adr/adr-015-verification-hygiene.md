@@ -234,3 +234,47 @@ Operationally, a verify stage must therefore answer two questions and report bot
 test fail against the mutant* (mechanical, run it) and *is the property it asserts one the
 system is supposed to have* (a judgement, and the one that cannot be delegated to a test run).
 When those two answers disagree, the second wins.
+
+### 7.3 A review is incomplete until every lens has reported — including the ones that never started
+
+**Director ruling, 2026-07-26, recorded at the director's own instruction as a director-level
+error.** The record should say so plainly, because the failure was not the implementing agent's:
+
+> Acceptance was held for the two lenses that ERRORED — conservation and dt-determinism, the two
+> judged most important for this packet. Both returned **zero confirmed findings**. The packet's
+> worst defects came from the test-power lens, which never started in round one and whose silence
+> nobody questioned, the director included. Chief among them: an untested `SectorAllocation`
+> path that could be made fully inert while 357 tests passed — the packet's *headline mechanism*,
+> the accept clause's opening phrase, delivered by code nothing exercised.
+
+**THE RULE: A REVIEW IS INCOMPLETE UNTIL EVERY LENS HAS REPORTED, INCLUDING THE ONES THAT NEVER
+STARTED.**
+
+An errored lens is loud. It produces a stack trace, an HTTP status, a visible failure — it gets
+noticed, and it got noticed here, which is why acceptance was correctly held. A lens that
+silently never launched produces *nothing at all*, and nothing at all is indistinguishable from
+a clean report. It is therefore the more dangerous omission, and it is the one the process had
+no defence against.
+
+Operationally, before handback:
+
+1. **Enumerate the lenses the packet REQUIRED** — from the packet's own adversarial mandate,
+   written down before the review runs, not reconstructed afterwards from what came back.
+2. **Check each against the lenses that actually RAN**, by name, against the returned results —
+   not against the launch call, which is precisely what succeeded here while the lens did not.
+3. **A missing lens is a BLOCKING condition, not an oversight.** It is reported as such in the
+   handback, in the same register as a failing gate. "Four of five ran" is not a review; the
+   handback must say which five were required, which reported, and what each returned.
+
+This is the same defect as §1 and §7.1 at a third altitude, and the family is now complete:
+
+| altitude | what looks fine | what is actually true |
+| --- | --- | --- |
+| §1 — the fix | a fix looks verified because a lens said so | the verdict never returned |
+| §7.1 — the run | a hung run looks like a slow one | it will never terminate, and blocks everything behind it |
+| §7.3 — the review | a silent lens looks like a clean lens | it never launched |
+
+In every case the artefact that should have carried the alarm is *absence*, and absence is the
+one signal a passing check cannot distinguish from success. The countermeasure is the same each
+time: state what you require BEFORE you run it, then reconcile against that list — never read
+the absence of a complaint as a report of no complaints.
