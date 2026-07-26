@@ -131,7 +131,14 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // Grain was accidentally safe (farming always writes it), and grain is
         // the only consumer today — which is exactly why this had to be fixed
         // before T3.4/T3.5 start reading other goods' LastProduced.
-        for (int i = 0; i < stocks.Count; i++) stocks.Ref(i).LastProducedUnits = 0;
+        for (int i = 0; i < stocks.Count; i++)
+        {
+            stocks.Ref(i).LastProducedUnits = 0;
+            // T3.4: the same staleness argument, for the same reason. An
+            // observational field that is not written every turn reads as a
+            // live measurement of a turn that never happened.
+            stocks.Ref(i).LastInputDemandUnits = 0;
+        }
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
@@ -322,6 +329,26 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             double laborCapPerYear = recipe.LaborPerOutput > 0.0
                 ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
             double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
+
+            // T3.4 (D-033): publish the input demand this recipe WANTED, from
+            // labor alone, BEFORE any input cap binds. Demand that went unmet
+            // is precisely the signal that must move a scarce good's price —
+            // record only what was consumed and a shortage becomes invisible to
+            // the market exactly when it matters most. Observational, never a
+            // stock; infinite labor capacity (LaborPerOutput 0) publishes
+            // nothing rather than a garbage magnitude.
+            if (double.IsFinite(exactOutput) && exactOutput > 0.0)
+            {
+                for (int i = 0; i < recipe.Inputs.Length; i++)
+                {
+                    var want = new GoodId(goods.IdOf(recipe.Inputs[i].Good));
+                    int wantRow = GoodStockIndex.IndexOf(stocks, settlement, want);
+                    if (wantRow < 0) continue;
+                    double wanted = exactOutput * (recipe.Inputs[i].PerOutput / recipe.Output.Qty);
+                    if (double.IsFinite(wanted) && wanted > 0.0)
+                        stocks.Ref(wantRow).LastInputDemandUnits += (long)wanted;
+                }
+            }
 
             for (int i = 0; i < recipe.Inputs.Length; i++)
             {

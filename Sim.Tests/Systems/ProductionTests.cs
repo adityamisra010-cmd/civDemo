@@ -364,6 +364,73 @@ public class ProductionTests
         Assert.Equal(0, Stock(next, cfg, "grain")); // and produces nothing from negative labor
     }
 
+    // --- T3.4: the demand signals the price solver reads ----------------------
+
+    private static long InputDemand(WorldState w, SimConfig cfg, string good)
+    {
+        int id = cfg.Goods!.IdOf(good);
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+            if (w.GoodStocks[i].Good.Value == id) return w.GoodStocks[i].LastInputDemandUnits;
+        return -1;
+    }
+
+    [Fact]
+    public void InputDemand_IsPublished_PreCap_AndExceedsWhatWasActuallyConsumed()
+    {
+        // D-033's excess demand has an INPUT DEMAND half, and ProductionSystem
+        // is the only thing that publishes it. Zeroing the publication passed
+        // the entire 333-test suite: the field was written by nobody's test and
+        // read only by a solver whose own tests hand-build the value.
+        //
+        // PRE-CAP is the property that matters. Timber is deliberately scarce,
+        // so what the recipes WANTED must exceed what they could consume —
+        // publishing the consumed quantity instead would make a shortage
+        // invisible to the market exactly when it matters most.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = World(cfg, adults: 400,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("timber", 50), ("clay", 10_000_000), ("fiber", 10_000_000),
+                     ("copper-ore", 10_000_000), ("tin-ore", 10_000_000), ("bronze", 10_000_000)]);
+        w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+        WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]).Step(w);
+
+        long wanted = InputDemand(next, cfg, "timber");
+        long consumed = FlowOf(next, cfg, "timber", ReasonIds.InputsConsumed, sunk: true);
+        Assert.True(wanted > 0, "no input demand was published at all");
+        Assert.True(wanted > consumed,
+            $"input demand {wanted} did not exceed consumption {consumed} on a SCARCE input — "
+            + "the signal is post-cap, so unmet demand can never move a price");
+        Assert.Equal(50, consumed); // the scarcity is real, not a fixture artefact
+    }
+
+    [Fact]
+    public void InputDemand_IsZeroedEveryTurn_NeverAccumulates()
+    {
+        // The packet's own T3.3 staleness guard, which could be removed with the
+        // full suite green — the field then accumulates without bound and the
+        // price solver reads a demand signal summed over the whole run.
+        SimConfig cfg = TestConfigs.Sim();
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]);
+        WorldState w = World(cfg, adults: 400,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("timber", 10_000_000), ("clay", 10_000_000), ("fiber", 10_000_000),
+                     ("copper-ore", 10_000_000), ("tin-ore", 10_000_000), ("bronze", 10_000_000)]);
+        w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+
+        WorldState t1 = exec.Step(w);
+        long first = InputDemand(t1, cfg, "timber");
+        Assert.True(first > 0, "no input demand published — this test is vacuous");
+
+        WorldState t2 = exec.Step(t1);
+        // Identical inputs, identical turn: the SAME value, not twice it.
+        Assert.Equal(first, InputDemand(t2, cfg, "timber"));
+
+        // And a turn in which crafting stops leaves it at exactly 0, not stale.
+        WorldState idle = t2;
+        idle.SectorAllocations[0] = new SectorAllocationRow(S0, 1.0, 0.0, 0.0, 0.0, 0.0);
+        Assert.Equal(0, InputDemand(exec.Step(idle), cfg, "timber"));
+    }
+
     // --- 4. dt-correctness ----------------------------------------------------
 
     [Fact]

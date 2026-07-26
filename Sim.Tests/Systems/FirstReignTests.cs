@@ -144,7 +144,15 @@ public class FirstReignTests
         //   new trajectory — extinction still inside (5, 25], the dead world
         //   frozen, still no food mountain.
         //   v11 value: db653fd2b3615bcbeea94fefac870a227c9e49e92b28af4618da17489653a9f0
-        const string golden = "7c0671a31557e0842668d0995d9af0fd20530fcf11dea3df963d9f86a92a3ae7";
+        //   v8 (T3.4, D-033): the price system joins the pipeline and
+        //   populates the Prices + PriceTerms tables on this founded world, and
+        //   schema v15 adds two long fields to GoodStockRow. SCHEMA + NEW STATE,
+        //   no behaviour change to any existing system — the semantic
+        //   assertions below (extinction window, flat post-extinction
+        //   trajectory, no food mountain) are unchanged and still pass, which
+        //   is what distinguishes this re-mint from a regression.
+        //   v7 value: 7c0671a31557e0842668d0995d9af0fd20530fcf11dea3df963d9f86a92a3ae7
+        const string golden = "b6e16c1edf39ef0585eaef800b4b00d7f10a82ced12316349a2344965cb31c7b";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

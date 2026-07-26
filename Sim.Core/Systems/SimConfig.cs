@@ -24,6 +24,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
     [property: JsonPropertyName("production")] ProductionConfig Production,
+    [property: JsonPropertyName("price")] PriceConfig Price,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
@@ -216,6 +217,77 @@ public sealed record ProductionConfig(
     [property: JsonPropertyName("toolsPerFarmerToEquip"), JsonRequired] double ToolsPerFarmerToEquip,
     [property: JsonPropertyName("toolYieldBonusMax"), JsonRequired] double ToolYieldBonusMax,
     [property: JsonPropertyName("toolWearPerEquippedFarmerPerYear"), JsonRequired] double ToolWearPerEquippedFarmerPerYear);
+
+/// <summary>
+/// T3.4 price solver tuning (D-033). ALL TUNE, and the rate is per-sim-year
+/// (law 3) — the mandate's "per-turn relative change" is realised as a per-YEAR
+/// cap integrated with dtYears, because a literal per-turn constant would bind
+/// differently at dt = 10 and dt = 1 and is exactly what law 3 forbids. The
+/// clamp is a safety rail on the STEP, and a rail whose height depends on how
+/// long the turn is is the only version that means the same thing at every dt.
+///
+/// The step, per settlement, per good, once per turn, no global solve ever:
+///   excess = consumptionDemand + inputDemand − production − stockRelease
+///   scale  = max(production + stockRelease, MarketScaleFloorPerYear * dtYears)
+///   p += Lambda × p × (excess / scale) × dtYears
+/// then clamped to MaxRelativeChangePerYear × dtYears, then to the band.
+/// excess/scale is a RATIO of per-turn quantities: both numerator and
+/// denominator scale with dt, so the ratio is dimensionless and dt-invariant,
+/// and the single explicit × dtYears is the whole dt dependence.
+///
+/// S8 §4.1(c) — DERIVED OR MERELY CHOSEN, stated explicitly per value:
+/// Lambda — CHOSEN 0.04 per year. Never derived. The price-adjustment speed:
+///   at a 100% relative excess sustained for one year, price moves 4% (~25-year
+///   e-folding). Plausibility frame: a pre-modern market with no telegraph and
+///   seasonal caravans reprices over years, not turns. SIZED AGAINST THE
+///   COARSEST SHIPPED dt — the Neolithic band steps 10 sim-years at once, so
+///   Lambda × dt must stay well under 1 or a single turn overshoots the
+///   equilibrium it is seeking. An earlier 0.35 gave Lambda × dt = 3.5 and
+///   drove the same 100-year horizon to OPPOSITE ENDS of the band at dt = 10
+///   and dt = 1. That was caught by the dt-invariance test, not by inspection,
+///   which is the argument for the test existing.
+/// MarketScaleFloorPerYear — CHOSEN 0.1 units per year. Never derived. A
+///   divide-by-zero guard with a real meaning: a market with no supply at all
+///   still has a finite reference size, so a single unit of unmet demand cannot
+///   produce an unbounded relative excess. PER YEAR, integrated with dtYears,
+///   for the reason the rail is: it sits in the DENOMINATOR of excess/scale
+///   whose numerator scales with dt, so a dt-independent constant makes the
+///   ratio dt-DEPENDENT exactly when the floor binds — the one place the
+///   system's own "dimensionless and dt-invariant" claim was false. Found by
+///   the T3.4 dt-determinism lens, confirmed on the pinned tree. At 0.1/yr it
+///   reproduces the previous 1.0 exactly at dt = 10, so the Neolithic band is
+///   unchanged; finer bands now scale with the turn instead of being ten times
+///   too coarse.
+/// StockReleaseRatePerYear — CHOSEN 0.5 per year. Never derived. The fraction
+///   of a held stock offered to the market per year. Plausibility frame: half a
+///   granary comes to market within the year, the rest is held as seed corn and
+///   insurance. This is the term that lets a full warehouse damp a price spike.
+/// BandMin / BandMax — CHOSEN 0.05 / 20.0 grain units. Never derived. The hard
+///   bound on any price relative to the numeraire. Frame: nothing in a
+///   neolithic-to-iron-age economy is worth less than 1/20 of a grain unit or
+///   more than 20 of them per unit; the band is deliberately WIDE, because its
+///   job is to stop divergence, not to express economics. A price sitting on a
+///   band edge for long stretches is a signal the band is doing work it should
+///   not be — the soak reports it.
+/// MaxRelativeChangePerYear — CHOSEN 0.03 per year. Never derived. The per-step
+///   rail: a price may not move more than 3% of itself per sim-year however
+///   large the measured excess — 30% in a 10-year Neolithic turn, 3% in a
+///   1-year turn. This is the D-033 "maximum per-turn relative change",
+///   dt-corrected. Sized so the rail BINDS at the coarsest dt instead of being
+///   decorative there: at an earlier 0.5 it permitted a 500% move in a single
+///   dt = 10 turn, which is not a rail. It also makes the step
+///   positivity-preserving without help from the band — a maximum downward move
+///   of 0.3p can never reach zero — so the band is left free to do only its own
+///   job. It is the term that makes a shock ramp rather than jump, and the
+///   first thing to look at if the soak oscillates.
+/// </summary>
+public sealed record PriceConfig(
+    [property: JsonPropertyName("lambda"), JsonRequired] double Lambda,
+    [property: JsonPropertyName("marketScaleFloorPerYear"), JsonRequired] double MarketScaleFloorPerYear,
+    [property: JsonPropertyName("stockReleaseRatePerYear"), JsonRequired] double StockReleaseRatePerYear,
+    [property: JsonPropertyName("bandMin"), JsonRequired] double BandMin,
+    [property: JsonPropertyName("bandMax"), JsonRequired] double BandMax,
+    [property: JsonPropertyName("maxRelativeChangePerYear"), JsonRequired] double MaxRelativeChangePerYear);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):
