@@ -266,6 +266,19 @@ Operationally, before handback:
    handback, in the same register as a failing gate. "Four of five ran" is not a review; the
    handback must say which five were required, which reported, and what each returned.
 
+**STANDING PRACTICE (director ruling, 2026-07-26): the lens manifest is written as a committed
+file BEFORE implementation begins, on every adversarial-mandatory packet.** Not a T3.4 one-off.
+The manifest names each required lens, what it attacks, and the §7.1 mutation bounds, and it
+carries the handback checklist. First instance: `docs/t3.4-lens-manifest.md`, committed as the
+packet's first artifact ahead of a line of implementation code.
+
+The ordering is the whole point and is not negotiable for convenience. A list written after the
+results arrive is not a checklist, it is a description — it cannot detect a missing lens, because
+whatever came back defines what was required. Writing it first is what converts "did everything
+run?" from a memory question into a diff. The packet's own count may exceed the spec floor where
+the packet's risk argues for it (T3.4 requires six against a floor of five, naming test-power
+separately rather than trusting it to fold into another lens).
+
 This is the same defect as §1 and §7.1 at a third altitude, and the family is now complete:
 
 | altitude | what looks fine | what is actually true |
