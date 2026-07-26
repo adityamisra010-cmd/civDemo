@@ -1,6 +1,7 @@
 # ADR-015 — Verification hygiene: shared worktrees, and acting on findings before verdicts
 
-Status: PROPOSED (director ratification requested for the CLAUDE.md amendment in §6)
+Status: **RATIFIED** (director ruling, 2026-07-26 — §6 accepted as proposed; §7 added under the
+same ruling)
 Date: 2026-07-26
 Context: T3.3 review round 2. Written by the implementing agent against its own work.
 
@@ -175,7 +176,7 @@ The lens also proposed one wrong number (2000 clay; the closed form is
 `1000 × 4.0 × 0.2 × 10 = 8000`), caught by computing it before writing the assert rather than
 after. Verifier arithmetic gets checked too.
 
-## 6. Recommendation (director ruling requested)
+## 6. Ruling (RATIFIED 2026-07-26 — accepted as proposed)
 
 1. Ratify a CLAUDE.md amendment extending the existing worktree rule:
    *"One worktree per verifying agent, never shared — concurrent mutation of a shared tree
@@ -186,3 +187,50 @@ after. Verifier arithmetic gets checked too.
    examined, so the tree now under review is `3a57ebf`'s `Craft` plus the kept items in §3.
 3. Nothing here is a conflict between frozen items, so no CR is opened. The contested-input
    composition question is already T3.4's by scope, not by exception.
+
+## 7. Standing rules added under the same ruling
+
+### 7.1 Every mutant run gets a hard timeout
+
+A mutant run is bounded at a **stated multiple of the clean-suite baseline**, and the baseline
+and the multiple are both written down before the sweep starts. The clean `Sim.Tests` baseline is
+~3–5 minutes wall-clock; a mutant sweep on a filtered subset is seconds to tens of seconds. A
+run that exceeds its bound is killed, not waited on.
+
+**A mutant that hangs is itself a finding.** It is recorded in the kill-record in the same form
+as any other result — `M<n> hangs the suite; non-termination under this mutation` — and never
+treated as a reason to wait indefinitely or as a gap in the sweep. Non-termination is a stronger
+result than a survived mutant, not a weaker one: a mutation that turns a terminating computation
+into a non-terminating one has found a loop whose exit condition depends on the mutated
+expression. Where the cause is cheap to determine, state it in one line next to the record
+(which loop, which condition); where it is not, record the hang and move on rather than paying
+for a diagnosis the sweep does not need.
+
+Rationale: a hung run is indistinguishable from a slow one only until you have a baseline, and
+we have one. Waiting on it converts a bounded sweep into an unbounded one and — worse — blocks
+every downstream stage behind it, so a single non-terminating mutant can make an entire review
+look incomplete for a reason that has nothing to do with the code under review. That is the same
+shape as §1's failure: a review stalled by its own machinery, reported as a review still running.
+
+### 7.2 Standing caution for verify stages: teeth are not aim
+
+**A lens can have perfect teeth and bite the wrong thing.** A verify stage confirms that a test
+fails against a mutant; it does not confirm that the test is asserting a property the system
+ought to have. Both are required, and only the first is mechanical.
+
+The two cases from this packet, both accepted by the director as void-rather-than-stand:
+
+1. The test-power lens credited `Crafting_WithAContestedScarceInput_IsDtInvariant` with killing a
+   revert of the rationing loop — "the BLOCKING dt-lens fix does have teeth." True, and
+   irrelevant: that test asserted a property the system should not have, and was deleted with the
+   regression. A kill-record entry naming a test that no longer exists, or that pins a wrong
+   property, is void however cleanly it was measured.
+2. The same lens proposed an assertion value of 2000 clay where the closed form gives
+   `1000 × 4.0 × 0.2 × 10 = 8000`. Caught by computing the value before writing the assert
+   rather than after. **Verifier arithmetic gets checked too** — a verify stage is not a source
+   of truth about numbers, only about whether a run went red.
+
+Operationally, a verify stage must therefore answer two questions and report both: *does the
+test fail against the mutant* (mechanical, run it) and *is the property it asserts one the
+system is supposed to have* (a judgement, and the one that cannot be delegated to a test run).
+When those two answers disagree, the second wins.
