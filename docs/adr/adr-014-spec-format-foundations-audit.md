@@ -128,6 +128,11 @@ mode the format was written for: the questions are cheap to ask, and asking them
 changed the answer. Neither is the kind of defect a test suite finds, because in both cases the
 code and the tests agreed with each other — it was the *stated contract* that disagreed.
 
+**Read this section with ADR-015.** These two items stand, but they are not the whole verdict on
+T3.3. The same packet also shipped a regression built on an *unverified* finding, and reverted
+it. The format found real things; the process around it failed. ADR-015 records that and asks
+for the process rule.
+
 ## 6. Consequences
 
 - The next spec written is M4's, per S8 §4 (after M3's exit gate). It is the first to carry §4.1.

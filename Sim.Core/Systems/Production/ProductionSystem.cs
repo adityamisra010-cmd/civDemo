@@ -308,94 +308,29 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // D-032 "sim decides within the sector" clause becoming price-driven.
         double laborPerRecipe = pool / availableCount;
 
-        // PASS 1 — DESIRED output per recipe from LABOR alone, before any stock
-        // is touched. Separating desire from rationing is what makes the result
-        // ORDER-INDEPENDENT and therefore dt-invariant.
-        Span<double> desired = stackalloc double[goods.Recipes.Length];
         for (int r = 0; r < goods.Recipes.Length; r++)
         {
-            desired[r] = 0.0;
             if (!available[r]) continue;
-            RecipeEntry recipe = goods.Recipes[r];
-            if (GoodStockIndex.IndexOf(stocks, settlement, new GoodId(goods.IdOf(recipe.Output.Good))) < 0)
-                continue; // no output row → this recipe cannot run at all
-            double laborCapPerYear = recipe.LaborPerOutput > 0.0
-                ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
-            desired[r] = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
-        }
-
-        // PASS 2 — RATION each contested input PROPORTIONALLY to desire, then
-        // take the tightest ration each recipe suffers. Iterated to a fixed
-        // point because scaling one recipe down frees input for others; the
-        // iteration is monotone (scales only ever shrink) and bounded, so a
-        // fixed count of rounds is deterministic and terminating.
-        //
-        // WHY THIS EXISTS (T3.3 adversarial finding, BLOCKING): the first
-        // version served recipes SEQUENTIALLY in registry order, each sinking
-        // its inputs before the next re-read the drained stock. Each recipe's
-        // appetite scales with dt but a stock does not, so at large dt the FIRST
-        // claimant swallowed the whole shared input and later recipes got
-        // nothing — the same ten sim-years produced 120 pottery / 0 tools at
-        // dt = 10 and 70 pottery / 25 tools at dt = 2.5. Since the era table
-        // shrinks dt across the campaign, the production mix would have drifted
-        // for a reason with nothing to do with the simulated world. Proportional
-        // rationing is order-independent, so it is dt-invariant to within the
-        // whole-unit remainders, and it is the same "scale desire to what is
-        // available" pattern migration overdraw and consumption clamping use.
-        Span<double> scale = stackalloc double[goods.Recipes.Length];
-        for (int r = 0; r < goods.Recipes.Length; r++) scale[r] = 1.0;
-        for (int round = 0; round < goods.Recipes.Length + 1; round++)
-        {
-            bool changed = false;
-            for (int g = 0; g < goods.Goods.Length; g++)
-            {
-                var input = new GoodId(goods.Goods[g].Id);
-                int inRow = GoodStockIndex.IndexOf(stocks, settlement, input);
-                if (inRow < 0) continue;
-                long stockAmount = stocks[inRow].Amount.Value;
-
-                double demand = 0.0;
-                for (int r = 0; r < goods.Recipes.Length; r++)
-                {
-                    if (desired[r] <= 0.0) continue;
-                    demand += desired[r] * scale[r] * PerUnit(goods, goods.Recipes[r], input);
-                }
-                if (demand <= stockAmount) continue;      // uncontested, or enough to go round
-
-                double ration = stockAmount / demand;      // < 1
-                for (int r = 0; r < goods.Recipes.Length; r++)
-                {
-                    if (desired[r] <= 0.0) continue;
-                    if (PerUnit(goods, goods.Recipes[r], input) <= 0.0) continue;
-                    scale[r] *= ration;
-                    changed = true;
-                }
-            }
-            if (!changed) break;
-        }
-
-        for (int r = 0; r < goods.Recipes.Length; r++)
-        {
-            if (!available[r] || desired[r] <= 0.0) continue;
             RecipeEntry recipe = goods.Recipes[r];
 
             var output = new GoodId(goods.IdOf(recipe.Output.Good));
             int outRow = GoodStockIndex.IndexOf(stocks, settlement, output);
             if (outRow < 0) continue;
 
-            double exactOutput = desired[r] * scale[r];
-            // Belt-and-braces: the ration is computed against the pass-1 stock,
-            // and whole-unit rounding of an earlier recipe's sink can leave a
-            // later one a hair short. Re-clamp to the CURRENT stock so
-            // OverdrawPolicy.Throw stays safe by construction.
+            // Output rate the LABOR allows (outputs per year), then capped by
+            // every input's stock — Leontief over labor and materials.
+            double laborCapPerYear = recipe.LaborPerOutput > 0.0
+                ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
+            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
+
             for (int i = 0; i < recipe.Inputs.Length; i++)
             {
                 var input = new GoodId(goods.IdOf(recipe.Inputs[i].Good));
                 int inRow = GoodStockIndex.IndexOf(stocks, settlement, input);
                 long stockAmount = inRow >= 0 ? stocks[inRow].Amount.Value : 0;
-                double perOutput = PerUnit(goods, recipe, input);
-                if (perOutput > 0.0)
-                    exactOutput = Math.Min(exactOutput, stockAmount / perOutput);
+                double perOutput = recipe.Inputs[i].PerOutput / recipe.Output.Qty;
+                exactOutput = Math.Min(exactOutput, perOutput > 0.0
+                    ? stockAmount / perOutput : exactOutput);
             }
             if (exactOutput <= 0.0) continue; // no inputs (or no labor) → NOTHING, never from nothing
 
@@ -407,7 +342,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 var input = new GoodId(goods.IdOf(recipe.Inputs[i].Good));
                 int inRow = GoodStockIndex.IndexOf(stocks, settlement, input);
                 if (inRow < 0) continue;
-                double perOutput = PerUnit(goods, recipe, input);
+                double perOutput = recipe.Inputs[i].PerOutput / recipe.Output.Qty;
                 ref GoodStockRow inStock = ref stocks.Ref(inRow);
                 double exactIn = exactOutput * perOutput + inStock.ConsumeRemainder;
                 long sunk = ConservedMath.WholeUnits(
@@ -426,21 +361,6 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             outStock.ProduceRemainder = exactOut - produced;
             outStock.LastProducedUnits = produced;
         }
-    }
-
-    /// <summary>
-    /// Per-OUTPUT-UNIT coefficient of one input in one recipe, or 0 when the
-    /// recipe does not consume that good. The single place PerOutput is divided
-    /// by Output.Qty — the recipe contract is PER EXECUTION (see GoodsConfig),
-    /// so this is the one conversion to per-unit and both the ration and the
-    /// sink must use it or the books do not close.
-    /// </summary>
-    private static double PerUnit(GoodsConfig goods, RecipeEntry recipe, GoodId input)
-    {
-        for (int i = 0; i < recipe.Inputs.Length; i++)
-            if (goods.IdOf(recipe.Inputs[i].Good) == input.Value)
-                return recipe.Inputs[i].PerOutput / recipe.Output.Qty;
-        return 0.0;
     }
 
     /// <summary>PREV published variable for this settlement (0.0 when absent —

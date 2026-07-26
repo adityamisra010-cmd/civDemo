@@ -114,3 +114,12 @@
   Once trade exists (T3.6), generalize it to trade-connected demand — a
   settlement joined by cheap transport to neighbours has a larger effective
   market than its own population implies, which is the actual Smithian claim.
+- Under-utilisation is invisible to conservation tests. `Crafting_ThreeRecipesShareOneScarceInput`
+  passed under an implementation that stranded 15 of 60 timber (ADR-015 §4): the books closed on
+  what was consumed, and consuming too little is not a conservation break. Whenever a scarce
+  input is expected to be fully drawn down, pin the DRAWDOWN as well as the balance. Candidates
+  to audit for the same blind spot: consumption clamping, migration overdraw, PathBuild banking.
+- Intra-turn recipe-chain ordering (bronze-casting before toolmaking) is load-bearing behaviour
+  that lives only in the goods.json array order and was declared nowhere until ADR-015. T3.4
+  should state it as a contract when prices start weighting recipes, since a price-driven
+  ordering could silently break the chain the same way proportional rationing did.

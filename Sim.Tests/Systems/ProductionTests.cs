@@ -369,27 +369,33 @@ public class ProductionTests
     }
 
     [Fact]
-    public void Crafting_WithAContestedScarceInput_IsDtInvariant()
+    public void Crafting_IntraTurnRecipeChain_IsExactlyDtInvariant()
     {
-        // T3.3 adversarial finding, BLOCKING. timber is an input to
-        // pottery-firing (0.5), bronze-casting (2.0) AND toolmaking (1.0). Each
-        // recipe's labor allowance scales with dt but the input cap does not,
-        // and recipes execute SEQUENTIALLY in goods.json order — so at large dt
-        // the FIRST claimant's dt-proportional appetite swallows the whole
-        // shared stock and the later recipes get nothing. The same ten sim-years
-        // then produce a DIFFERENT ECONOMY depending only on the integration
-        // step, which matters doubly because the era table shrinks dt across the
-        // campaign (Neolithic 10 -> later 5 -> 2.5): the production mix would
-        // shift for a reason with nothing to do with the simulated world.
+        // THE REGRESSION GUARD. Sequential execution in registry order is not an
+        // accident to be tidied away — it is what makes the recipe GRAPH work
+        // inside one turn. bronze-casting precedes toolmaking, so toolmaking
+        // re-reads a stock bronze-casting has already credited and the chain
+        // ore -> bronze -> tools completes within a single Step. Here bronze
+        // starts at ZERO, so every tool produced must have come from bronze cast
+        // in the same turn.
         //
-        // Measured before the fix, 10 sim-years, 4 adults, timber 60:
-        //   dt=10  -> pottery 120, tools 0
-        //   dt=5   -> pottery 100, tools 0
-        //   dt=2.5 -> pottery  70, tools 25
+        // This is EXACTLY dt-invariant — 50 tools at dt 10, 5, 2.5, 1 and 0.5 —
+        // and it is invariant BECAUSE the passes are sequential.
+        //
+        // A T3.3 review round replaced this loop with two-pass proportional
+        // rationing to make contested-input COMPOSITION dt-invariant (see the
+        // next test). That construction computes every ration from stocks read
+        // BEFORE any recipe commits, so toolmaking could not see bronze cast
+        // later in the same turn: bronze's stock was 0 at ration time, the
+        // ration went to 0, and toolmaking was scaled out of existence. It
+        // measured 0 / 24 / 36 / 44 / 46 tools across those same five dt — a
+        // 0-vs-46 spread replacing an exact 50, i.e. strictly worse than the
+        // spread it was written to remove, and worst at dt = 10, the shipped
+        // Neolithic band. It was reverted. This test exists so that the same
+        // fix cannot be re-attempted without failing first.
         SimConfig cfg = TestConfigs.Sim();
         const int horizonYears = 10;
-        double[] dts = [10.0, 5.0, 2.5];
-        var pottery = new long[dts.Length];
+        double[] dts = [10.0, 5.0, 2.5, 1.0, 0.5];
         var tools = new long[dts.Length];
 
         for (int d = 0; d < dts.Length; d++)
@@ -397,28 +403,80 @@ public class ProductionTests
             var exec = new TurnExecutor(FlatEra(dts[d]), [SystemCatalog.Production(cfg)]);
             WorldState w = World(cfg, adults: 4,
                 allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
-                stocks: [("timber", 60), ("clay", 10_000_000), ("fiber", 10_000_000),
-                         ("copper-ore", 10_000_000), ("tin-ore", 10_000_000),
-                         ("bronze", 10_000_000)]);
+                // NO bronze endowment — toolmaking's input must be cast this turn.
+                stocks: [("copper-ore", 10_000_000), ("tin-ore", 10_000_000),
+                         ("timber", 10_000_000), ("clay", 10_000_000), ("fiber", 10_000_000)]);
             w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5)); // all recipes available
             for (int t = 0; t < (int)(horizonYears / dts[d]); t++) w = exec.Step(w);
-            pottery[d] = Stock(w, cfg, "pottery");
             tools[d] = Stock(w, cfg, "tools");
         }
 
-        Assert.True(pottery[0] > 0, "no pottery — the contention test is vacuous");
+        Assert.True(tools[0] > 0,
+            "no tools — the chain never fired, so this test proves nothing about ordering");
         for (int d = 1; d < dts.Length; d++)
         {
-            // Proportional rationing makes the split order-independent, so the
-            // only residual spread is whole-unit remainder telescoping.
-            Assert.True(Math.Abs(pottery[d] - pottery[0]) <= 2,
-                $"pottery not dt-invariant under input contention: dt {dts[0]} -> {pottery[0]}, "
-                + $"dt {dts[d]} -> {pottery[d]} — the first recipe in registry order is eating the "
-                + "shared stock in proportion to dt");
-            Assert.True(Math.Abs(tools[d] - tools[0]) <= 2,
-                $"tools not dt-invariant under input contention: dt {dts[0]} -> {tools[0]}, "
-                + $"dt {dts[d]} -> {tools[d]}");
+            // EXACT equality, not a tolerance: the chain either carries within
+            // the turn at every step size or it does not.
+            Assert.Equal(tools[0], tools[d]);
         }
+    }
+
+    [Fact]
+    public void Crafting_ContestedScarceInput_ConservesExactlyAtEveryDt()
+    {
+        // timber is an input to pottery-firing, bronze-casting AND toolmaking.
+        // When it is scarce and nothing replenishes it, WHICH recipe gets it
+        // depends on dt: each recipe's labor appetite scales with dt while a
+        // stock level does not, so at coarse dt the first claimant in registry
+        // order takes more of it. Measured, 10 sim-years, 4 adults, timber 60:
+        //
+        //   dt   pottery  tools
+        //   10     120      0
+        //    5     100      0
+        //    2.5    84     12
+        //    1      76     14
+        //    0.5    70     16
+        //
+        // That spread is a COMPOSITION difference, and this test deliberately
+        // does NOT assert it away. "Which recipe gets the scarce input" is the
+        // allocation question relative prices answer, and prices arrive at T3.4;
+        // until then the flat-price special case has to break the tie somehow,
+        // and registry order is a deterministic way to do it. Law 3 asks that
+        // every RATE be per-sim-year and integrated with dtYears, which Craft
+        // does; it does not ask that a Leontief min() of a rate×dt against an
+        // inventory LEVEL scale on both sides — scaling the level by dt would
+        // authorise consuming ten times the stock that exists at dt = 10, which
+        // is a law 1 break dressed as a law 3 fix.
+        //
+        // What IS invariant, and what this test pins: the QUANTITY conserved.
+        // Every unit of the scarce input is accounted for at every dt, exactly.
+        SimConfig cfg = TestConfigs.Sim();
+        const int horizonYears = 10;
+        const long timberEndowed = 60;
+        double[] dts = [10.0, 5.0, 2.5, 1.0, 0.5];
+        var consumed = new long[dts.Length];
+
+        for (int d = 0; d < dts.Length; d++)
+        {
+            var exec = new TurnExecutor(FlatEra(dts[d]), [SystemCatalog.Production(cfg)]);
+            WorldState w = World(cfg, adults: 4,
+                allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+                stocks: [("timber", timberEndowed), ("clay", 10_000_000), ("fiber", 10_000_000),
+                         ("copper-ore", 10_000_000), ("tin-ore", 10_000_000)]);
+            w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+            for (int t = 0; t < (int)(horizonYears / dts[d]); t++) w = exec.Step(w);
+
+            long left = Stock(w, cfg, "timber");
+            long used = FlowOf(w, cfg, "timber", ReasonIds.InputsConsumed, sunk: true);
+            // Law 1, exact, no epsilon — at EVERY integration step.
+            Assert.Equal(timberEndowed, left + used);
+            consumed[d] = used;
+        }
+
+        // The scarce input is fully drawn down at every dt: the quantity that
+        // moves does not depend on the step size, only its composition does.
+        for (int d = 0; d < dts.Length; d++)
+            Assert.Equal(timberEndowed, consumed[d]);
     }
 
     [Fact]
