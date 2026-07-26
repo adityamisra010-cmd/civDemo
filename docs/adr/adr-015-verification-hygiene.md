@@ -125,6 +125,56 @@ that first outing. The same packet also produced a shipped regression from an un
 finding. The honest summary is that the *format* found real things and the *process around it*
 failed, which is why this ADR is about process and not about §4.1.
 
+## 5b. The fifth lens, and what its silence had been hiding
+
+The lens that never ran in the original review was test power. It produced no output *and no
+error*, which is why its silence read as clean — the failure mode the director named one level
+up, at the review level, has a quieter version at the lens level: a lens that never starts looks
+exactly like a lens that found nothing.
+
+Run pinned, it applied 26 mutants and **7 survived**. Five findings were confirmed by an
+independent verify stage that tried to refute each and could not; one (a ±1 tolerance on a clay
+ratio) was refuted and left alone. Two were BLOCKING, and the first was against the accept
+clause's opening phrase:
+
+- The entire `OrderKind.SectorAllocation` path — the mechanism that *delivers* "sector labor
+  allocation (D-032)" — had no test anywhere. Making the handler fully inert passed all 357
+  tests. Every other test hand-builds `SectorAllocationRow` directly and so bypasses orders.
+- The whole herding/fishing sector could be deleted with 309 tests passing.
+- Deposit magnitude was unpinned: an ordering assert (`stone > clay`) survived both a 10×
+  labor error and the deletion of the per-worker abundance factor, because the ordering holds
+  either way.
+- Crafting labor was never pinned as being *split* across recipes: one crafter working four
+  jobs at once survived.
+- `Recipe_InputsAndLabor_ArePerEXECUTION` pinned the *input* half only. Deleting
+  `* recipe.Output.Qty` from the labor allowance survived the full suite — the same contract
+  ADR-014 §5b credits the format with correcting, pinned on one side.
+
+Kill-record, run on an isolated tree materialised from `46f706a` and owned by one process
+(the rule in §6, applied to its own evidence). Baseline 62/62 green; each mutant applied to a
+freshly restored pristine file, built, run, reverted:
+
+| mutant | result | killed by |
+| --- | --- | --- |
+| decode `>> 3` → `>> 2` | KILLED | `SectorOrder_TargetPacking_ShiftWidthIsPinned` + the five-weight test |
+| SectorAllocation handler inert | KILLED | both sector-order tests |
+| delete herding `FromDeposits` | KILLED | `Herding_WithoutDeposits_…FollowsAbundance` |
+| Craft: drop `* Output.Qty` | KILLED | `Recipe_LaborIsPerEXECUTION_…` + the chain test |
+| Craft: `laborPerRecipe = pool` | KILLED | `Crafting_LaborIsSplitAcrossAvailableRecipes_…` |
+| abundance² → abundance¹ | KILLED | extraction + herding magnitude pins |
+| extraction pool × 10 | KILLED | extraction magnitude pin |
+
+One entry in the lens's own kill-record is **void** against the shipped tree, and it matters
+because it points the same way as everything else in this ADR: the lens credits
+`Crafting_WithAContestedScarceInput_IsDtInvariant` with killing a revert of the rationing loop —
+"the BLOCKING dt-lens fix does have teeth." That test no longer exists. It asserted a property
+the system should not have and was removed with the regression. A test can have perfect teeth
+and still be biting the wrong thing, which is the whole of §1 restated in one line.
+
+The lens also proposed one wrong number (2000 clay; the closed form is
+`1000 × 4.0 × 0.2 × 10 = 8000`), caught by computing it before writing the assert rather than
+after. Verifier arithmetic gets checked too.
+
 ## 6. Recommendation (director ruling requested)
 
 1. Ratify a CLAUDE.md amendment extending the existing worktree rule:
