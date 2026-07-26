@@ -22,7 +22,7 @@ public sealed record PriceTables(Table<PriceRow> Prices, Table<PriceTermRow> Ter
 /// THE STEP, per settlement, per good, once per turn:
 ///   excess = consumptionDemand + inputDemand − production − stockRelease
 ///   scale  = max(production + stockRelease, MarketScaleFloorPerYear * dtYears)
-///   raw    = Lambda × p × (excess / scale) × dtYears
+///   raw    = p × (exp(Lambda × (excess / scale) × dtYears) − 1)
 ///   p'     = clamp(p + clamp(raw, ±MaxRelativeChangePerYear × p × dtYears),
 ///                  BandMin, BandMax)
 ///
@@ -31,12 +31,24 @@ public sealed record PriceTables(Table<PriceRow> Prices, Table<PriceTermRow> Ter
 /// so no accumulation of tiny movements can drift the unit of account. Every
 /// other price is denominated in it.
 ///
-/// DT-CORRECTNESS (law 3). excess/scale is a ratio of PER-TURN quantities:
-/// demand, production and stock release all scale with dt, so the ratio is
-/// dimensionless and dt-invariant, and the single explicit × dtYears carries
-/// the entire dt dependence. Both clamps are per-YEAR rates × dtYears for the
-/// same reason (see PriceConfig: a literal per-turn constant is what law 3
-/// forbids).
+/// DT-CORRECTNESS (law 3), and EXACT INTEGRATION (ADR-016, directed amendment
+/// to D-033). excess/scale is a ratio of PER-TURN quantities: demand,
+/// production and stock release all scale with dt, so the ratio is
+/// dimensionless, and the single explicit × dtYears carries the entire dt
+/// dependence. Both clamps are per-YEAR rates × dtYears for the same reason
+/// (see PriceConfig: a literal per-turn constant is what law 3 forbids).
+///
+/// The step is the CLOSED FORM, not Euler. Price is a COMPOUNDING process —
+/// the integrated quantity appears on the right-hand side (dp/dt ∝ p) — and
+/// Euler systematically under-integrates such a process with a residue that
+/// grows with dt: the original T3.4 implementation landed the same 100-year
+/// horizon at 7.439 / 8.225 / 8.694 / 9.006 across dt 10 / 5 / 2.5 / 1.
+/// Integrating exactly removes that entirely. The general rule (ADR-016):
+/// COMPOUNDING PROCESSES REQUIRE EXACT INTEGRATION; LINEAR ONES DO NOT. Tool
+/// wear at T3.3 was correctly left as Euler because it is linear in the stock
+/// being worn; this is not, which is why the same reasoning does not carry.
+/// Same Math.Exp path as ADR-011's exponential survival, under the same
+/// cross-process determinism gate.
 ///
 /// ONE-TURN LAG (§3.2). The quantity signals are read from PREV, so a price
 /// responds to last turn's market. That is the frozen architecture, not a
@@ -119,16 +131,34 @@ public sealed class PriceSystem(SimConfig cfg) : ISimSystem<PriceTables>
                 double stockRelease = p.StockReleaseRatePerYear * stock * ctx.DtYears;
                 double scale = Math.Max(production + stockRelease, p.MarketScaleFloorPerYear * ctx.DtYears);
 
-                // Common factor. Each term below multiplies it by ONE measured
-                // quantity — the property the sensitivity tests exercise.
-                double k = p.Lambda * prevPrice * ctx.DtYears / scale;
+                // EXACT INTEGRATION (ADR-016). The growth RATE contributed by
+                // each measured quantity — these sum to the exponent, and each
+                // multiplies exactly ONE measured quantity, which is the
+                // property the sensitivity tests exercise.
+                double k = p.Lambda * ctx.DtYears / scale;
 
-                double consumptionTerm = k * consumptionDemand;
-                double inputDemandTerm = k * inputDemand;
-                double productionTerm = -k * production;
-                double stockReleaseTerm = -k * stockRelease;
+                double consumptionRate = k * consumptionDemand;
+                double inputDemandRate = k * inputDemand;
+                double productionRate = -k * production;
+                double stockReleaseRate = -k * stockRelease;
 
-                double raw = consumptionTerm + inputDemandTerm + productionTerm + stockReleaseTerm;
+                double exponent = consumptionRate + inputDemandRate + productionRate + stockReleaseRate;
+
+                // p *= exp(exponent) — the closed form of dp/dt = lambda * p *
+                // (excess/scale), integrated over the turn rather than stepped.
+                double raw = prevPrice * (Math.Exp(exponent) - 1.0);
+
+                // Attribution: each term's SHARE of the exponent, applied to the
+                // realised change, so the four still sum to `raw` exactly while
+                // each still responds only to its own input. exp() is not
+                // linear, so the terms cannot simply be exponentiated
+                // separately — the shares are how a multiplicative change is
+                // honestly apportioned among additive causes.
+                double share = exponent != 0.0 ? raw / exponent : 0.0;
+                double consumptionTerm = share * consumptionRate;
+                double inputDemandTerm = share * inputDemandRate;
+                double productionTerm = share * productionRate;
+                double stockReleaseTerm = share * stockReleaseRate;
 
                 // Rail 1: the per-step relative cap (per-year × dt — law 3).
                 double maxStep = p.MaxRelativeChangePerYear * prevPrice * ctx.DtYears;

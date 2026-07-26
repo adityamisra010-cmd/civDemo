@@ -291,3 +291,55 @@ In every case the artefact that should have carried the alarm is *absence*, and 
 one signal a passing check cannot distinguish from success. The countermeasure is the same each
 time: state what you require BEFORE you run it, then reconcile against that list — never read
 the absence of a complaint as a report of no complaints.
+
+
+### 7.4 Every guard, clamp or rail ships with a test that fails when it is removed
+
+**Director ruling, 2026-07-26, from the T3.4 review.** The per-turn relative-change rail — a
+shipped safety mechanism, one of the two clamps D-033 names explicitly — could be **deleted from
+the shipped source with all 333 tests green**. The rail's own test drove such an enormous excess
+that the BAND clamped the price anyway, so removing the rail changed nothing the test measured.
+
+**A shipped safety mechanism whose absence no test detects is not a safety mechanism.** It is a
+comment that happens to compile. The rule:
+
+> Every guard, clamp, rail, floor, cap or validation ships with a test that FAILS when the guard
+> is removed — and the red is PROVEN, not assumed. Delete the guard, run the test, watch it fail,
+> restore it. A guard added without that step has not been tested; it has been described.
+
+The failure mode is specific and worth naming, because it is not carelessness: the test existed,
+was written in good faith, and named the right mechanism. It was disarmed by a fixture so extreme
+that a *different* mechanism reached the answer first. A guard test must therefore be built on a
+fixture where the guard under test is **the only thing** that can produce the asserted bound.
+
+### 7.5 Never assert on a quantity resting against its own limit
+
+Every confirmed T3.4 test-power finding had one shape: a long horizon drove the price onto a band
+edge, and the assertion then compared two **clamp constants**. `0.05 == 0.05` is true whatever
+the system under test does. The tests were not weak — they were *disarmed*, and they went on
+passing.
+
+> **General form: an assertion on a saturated quantity compares limits, not behaviour.** Before
+> comparing two values produced by a system with clamps, assert that the values are strictly
+> inside their limits. If they are not, the comparison is vacuous no matter how exact it looks.
+
+The shipped pattern is `PriceTests.AssertOffBandEdges`, called at every price-comparing assertion
+point. It failed loudly the moment it was introduced — the scarcity-shock "control good" had been
+asserting `BandMin == BandMin` — which is the argument for the guard being mechanical rather than
+a habit of care.
+
+This is the same family as §7.1 and §7.3: the artefact that should have carried the alarm is a
+value that *looks* like a measurement and is actually a constant.
+
+### 7.6 The empirical case for the six-lens floor
+
+`MarketScaleFloor` was a dt-independent constant in a denominator whose numerator scales with dt.
+**Lens 1 (no-global-solve) chased it and deliberately declined to raise it**, reasoning that the
+per-step rail masked it everywhere except an unreachable corner. **Lens 4 (dt-determinism) raised
+it, and an independent verifier confirmed it.** Both analyses were careful; they weighed the same
+code and reached opposite calls.
+
+That is the empirical argument for a lens FLOOR rather than a lens budget: not that six reviewers
+find six times as much, but that a defect can sit exactly on the boundary between two lenses'
+remits and be reasoned away by whichever one meets it alone. Recorded in
+`docs/t3.4-lens-manifest.md` as the rationale for requiring six against a spec floor of five.

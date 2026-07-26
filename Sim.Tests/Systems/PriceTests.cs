@@ -355,9 +355,20 @@ public class PriceTests
 
         Assert.True(p.Consumption > b.Consumption,
             $"consumption term did not respond to consumption demand ({b.Consumption} → {p.Consumption})");
-        Assert.Equal(b.InputDemand, p.InputDemand);
-        Assert.Equal(b.Production, p.Production);
-        Assert.Equal(b.StockRelease, p.StockRelease);
+
+        // WHY NOT "the others hold EXACTLY". Under exact integration (ADR-016)
+        // the change is MULTIPLICATIVE, and apportioning it among additive
+        // causes uses each term's share of the exponent. Moving one input moves
+        // the exponent, so every term rescales by the same common factor — the
+        // others do not hold constant, and asserting they do would be asserting
+        // something the mathematics forbids.
+        //
+        // What IS invariant, and is just as discriminating: the untouched terms
+        // rescale TOGETHER, so their RATIOS to one another are unchanged. A
+        // mislabelled attribution breaks that immediately, because the
+        // perturbed input would then be feeding one of these terms.
+        Assert.Equal(b.Production / b.StockRelease, p.Production / p.StockRelease, 12);
+        Assert.Equal(b.Production / b.InputDemand, p.Production / p.InputDemand, 12);
     }
 
     [Fact]
@@ -370,9 +381,11 @@ public class PriceTests
 
         Assert.True(p.InputDemand > b.InputDemand,
             $"input-demand term did not respond to input demand ({b.InputDemand} → {p.InputDemand})");
-        Assert.Equal(b.Consumption, p.Consumption);
-        Assert.Equal(b.Production, p.Production);
-        Assert.Equal(b.StockRelease, p.StockRelease);
+        // Same reasoning as the consumption case: the untouched terms rescale
+        // together under the shared exponent, so their ratios are the invariant
+        // with teeth (see that test for the full argument).
+        Assert.Equal(b.Production / b.StockRelease, p.Production / p.StockRelease, 12);
+        Assert.Equal(b.Production / b.Consumption, p.Production / p.Consumption, 12);
     }
 
     [Fact]
@@ -427,34 +440,30 @@ public class PriceTests
     // --- 6. dt-correctness ----------------------------------------------------
 
     [Fact]
-    public void Price_DtSensitivity_IsEulerDiscretization_BoundedAndConverging()
+    public void Price_DtInvariant_EqualHorizonAgreesAcrossDt()
     {
-        // Law 3 asks that every RATE be per-sim-year and integrated with
-        // dtYears, which the step does: excess/scale is a ratio of per-turn
-        // quantities and so is dimensionless, and the single explicit × dtYears
-        // carries the whole dt dependence. Law 3 does NOT demand that
-        // trajectories be dt-invariant, and this one is not, for a reason no
-        // correct implementation of the mandated formula can avoid.
-        //
-        // D-033 fixes the step as p += lambda * p * (excess/scale) * dt. That is
-        // Euler on dp/dt = lambda * p * (excess/scale) — a COMPOUNDING process,
-        // where Euler systematically under-integrates and converges from below
-        // as dt shrinks. Measured over 100 sim-years on a sustained excess:
+        // ADR-016 (directed amendment to D-033): the step is the CLOSED FORM
+        // p *= exp(lambda * (excess/scale) * dt), not Euler. Price compounds —
+        // the integrated quantity is on the right-hand side — so Euler
+        // under-integrated with a residue that grew with dt. Measured on the
+        // Euler implementation, same fixture, 100 sim-years:
         //
         //   dt      10       5      2.5      1
-        //   price  7.439   8.225   8.694   9.006
+        //   Euler  7.439   8.225   8.694   9.006     (21% spread)
         //
-        // Monotone, converging toward the exponential limit (~9.1), a 21% spread
-        // across the shipped range. The exact integration p *= exp(...) would
-        // remove it, and the T2.7b/ADR-011 exponential-survival precedent shows
-        // the project will make that change deliberately — but the price step is
-        // fixed by mandate and this is discretization, not a law violation, so
-        // the residue is RECORDED and BOUNDED rather than silently re-formed.
-        // Flagged for director ruling; queue.md carries the item.
+        // Exact integration collapses that to floating-point noise. Measured
+        // on this implementation, same fixture and horizon:
         //
-        // What this test pins: the sensitivity is monotone in dt, bounded, and
-        // STILL PRESENT — so it cannot quietly go vacuous, and it cannot quietly
-        // grow either (T3.3 ToolWear pattern).
+        //   dt 10   9.227814352139522
+        //   dt 5    9.227814352139527
+        //   dt 2.5  9.227814352139545
+        //   dt 1    9.227814352139534     relative spread 5.8e-16
+        //
+        // Fifteen significant figures, and 9.2278 is exactly the limit the
+        // Euler sequence was climbing toward from below. This test replaces the
+        // monotone-convergence pin it used to carry: the residue is not bounded
+        // any more, it is GONE, and the tolerance says so — 1e-12 is IEEE
+        // summation noise across different step counts, not a modelling slack.
         SimConfig cfg = TestConfigs.Sim();
         const int horizonYears = 100;
         double[] dts = [10.0, 5.0, 2.5, 1.0];
@@ -462,10 +471,8 @@ public class PriceTests
 
         for (int d = 0; d < dts.Length; d++)
         {
-            // Production and demand are PER-TURN INTEGRALS in the real sim —
-            // they scale with dt, which is precisely why excess/scale is
-            // dimensionless. A fixture that held them fixed while stock release
-            // scaled would be testing an economy that cannot exist.
+            // Production and demand are PER-TURN INTEGRALS in the real sim and
+            // scale with dt — that is why excess/scale is dimensionless.
             double f = dts[d] / 10.0;
             WorldState w = World(cfg,
                 [("pottery", 10, (long)(40 * f), (long)(20 * f), (long)(120 * f))]);
@@ -473,28 +480,68 @@ public class PriceTests
             landed[d] = Price(w, cfg, "pottery");
         }
 
-        // NON-VACUITY: the solver actually moved the price over the horizon.
         Assert.True(landed[0] > 2.0,
             $"the dt test is vacuous — price barely moved (landed {landed[0]})");
+        AssertOffBandEdges(cfg, landed[0], "the dt-invariance landing price");
 
-        // MONOTONE CONVERGENCE from below, the signature of Euler on a
-        // compounding process. A step that had a dt BUG rather than dt
-        // discretization would not be monotone.
+        // TIGHT: relative spread across the whole shipped dt range. The rail is
+        // linear in dt and would reintroduce a spread if it bound, so this
+        // fixture is chosen to stay under it; the rail's own behaviour is
+        // pinned by Rail_BindsOnAModestExcess.
         for (int d = 1; d < dts.Length; d++)
         {
-            Assert.True(landed[d] > landed[d - 1],
-                $"not monotone in dt: dt={dts[d - 1]} → {landed[d - 1]}, dt={dts[d]} → {landed[d]}");
+            double rel = Math.Abs(landed[d] - landed[0]) / landed[0];
+            Assert.True(rel < 1e-12,
+                $"price not dt-invariant under exact integration: dt={dts[0]} -> {landed[0]}, "
+                + $"dt={dts[d]} -> {landed[d]} (relative {rel})");
         }
+    }
 
-        // BOUNDED: the spread across the shipped dt range stays where it was
-        // measured. If a retune widens it, this fails and the residue gets
-        // re-examined rather than drifting.
-        double spread = (landed[^1] - landed[0]) / landed[0];
-        Assert.InRange(spread, 0.10, 0.35);
+    [Fact]
+    public void Price_TrajectoryDoesNotChangeSpeed_AcrossAnEraDtFlip()
+    {
+        // ERA-BOUNDARY CONTINUITY, in the family of ADR-011's continuity test.
+        // The era table shrinks dt across the campaign (Neolithic 10 -> Bronze
+        // 5 -> later 2.5). If the integration were dt-sensitive, a price would
+        // visibly change SPEED at the boundary for a reason having nothing to
+        // do with the simulated world — the campaign-scale form of the same
+        // defect the dt test catches at a point.
+        //
+        // Compare a run that crosses a 10 -> 5 flip mid-horizon against runs
+        // held at each dt throughout. Under exact integration all three reach
+        // the same place over the same sim-years.
+        SimConfig cfg = TestConfigs.Sim();
+        var flip = EraTableLoader.Load(
+            "{ \"bands\": [ { \"name\": \"neolithic\", \"startYear\": 0, \"endYear\": 50, \"dtYears\": 10 }, "
+            + "{ \"name\": \"bronze\", \"startYear\": 50, \"endYear\": 100000, \"dtYears\": 5 } ] }");
 
-        // The sensitivity STILL EXISTS, so the test cannot pass by the
-        // mechanism quietly disappearing.
-        Assert.True(spread > 0.0, "dt sensitivity vanished — this test is now vacuous");
+        static WorldState Fixture(SimConfig c, double f) => World(c,
+            [("pottery", 10, (long)(40 * f), (long)(20 * f), (long)(120 * f))]);
+
+        // Crossing run: 5 turns at dt=10 (to year 50), then 10 turns at dt=5.
+        // The fixture's flows must track the band's dt, exactly as real
+        // production would.
+        var crossing = new TurnExecutor(flip, [SystemCatalog.Price(cfg)]);
+        WorldState w = Fixture(cfg, 1.0);
+        for (int t = 0; t < 5; t++) w = crossing.Step(w);
+        double atFlip = Price(w, cfg, "pottery");
+        // Re-fixture the flows for the new band, then continue to year 100.
+        WorldState after = Fixture(cfg, 0.5);
+        after.Prices.Add(new PriceRow(S0, new GoodId(cfg.Goods!.IdOf("pottery")), atFlip));
+        var bronze = new TurnExecutor(FlatEra(5.0), [SystemCatalog.Price(cfg)]);
+        for (int t = 0; t < 10; t++) after = bronze.Step(after);
+        double crossed = Price(after, cfg, "pottery");
+
+        // Held-at-one-dt controls over the same 100 sim-years.
+        WorldState held10 = Fixture(cfg, 1.0);
+        for (int t = 0; t < 10; t++) held10 = Step(cfg, held10, 10.0);
+
+        AssertOffBandEdges(cfg, crossed, "the era-crossing price");
+        double heldPrice = Price(held10, cfg, "pottery");
+        double rel = Math.Abs(crossed - heldPrice) / crossed;
+        Assert.True(rel < 0.001,
+            $"trajectory changed speed across the era dt flip: crossing run {crossed}, "
+            + $"held-at-10 run {heldPrice} (relative {rel})");
     }
 
     // --- 5. no global solve ---------------------------------------------------

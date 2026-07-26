@@ -128,7 +128,8 @@
   but ~7.8M row-visits per turn at 200 settlements. Not a law violation and out of T3.4 scope;
   revisit when settlement counts grow (raised by the T3.4 no-global-solve lens, not raised as a
   finding).
-- T3.4 residue, Euler under-integration of the price step: over 100 sim-years, dt 10/5/2.5/1
+- [CLOSED by ADR-016 — D-033 amended to exact integration; spread 21% -> 5.8e-16]
+  T3.4 residue, Euler under-integration of the price step: over 100 sim-years, dt 10/5/2.5/1
   give 7.439/8.225/8.694/9.006 — monotone, converging from below, 21% spread. The mandated
   D-033 form is Euler on a compounding process; exact integration (p *= exp(...)) would remove
   it and ADR-011 is precedent for making that change deliberately. Bounded by
