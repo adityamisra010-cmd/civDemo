@@ -27,7 +27,7 @@ public class PluralWorldTests
     {
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), seed);
         lattice = TraversalLattice.Build(world.Terrain!);
-        var exec = new TurnExecutor(CanonicalEra(), [SystemCatalog.Catchment()]);
+        var exec = new TurnExecutor(CanonicalEra(), [SystemCatalog.Catchment(TestConfigs.Sim())]);
         return exec.Step(world);
     }
 
@@ -57,6 +57,7 @@ public class PluralWorldTests
 
             // Independent per-settlement cost fields (RelaxCappedFrom is raw
             // terrain — matches the no-network founding state).
+            double budget = CatchmentSystem.TravelBudgetCostUnits(TestConfigs.Sim(), lattice);
             var fields = new double[count][];
             for (int s = 0; s < count; s++)
             {
@@ -64,7 +65,7 @@ public class PluralWorldTests
                 Array.Fill(fields[s], double.PositiveInfinity);
                 int origin = LatticeMap.OriginLatticeNode(
                     lattice, world.Terrain!.Size, world.Settlements[s].SiteCell);
-                Pathfinder.RelaxCappedFrom(lattice, origin, CatchmentSystem.TravelBudget, fields[s]);
+                Pathfinder.RelaxCappedFrom(lattice, origin, budget, fields[s]);
             }
 
             // Claim table → owner per node (also: zero double-claims).
@@ -81,9 +82,19 @@ public class PluralWorldTests
             // ≥500 deterministic pseudo-random samples (fixed LCG — no RNG law
             // concerns in tests, but keep it reproducible).
             ulong lcg = seed * 6364136223846793005UL + 1442695040888963407UL;
+            // T3.2b: keep drawing until BOTH bars are met — 500 comparisons
+            // AND 50 of them on claimed nodes. Uniform sampling over the whole
+            // lattice used to hit ~10 % claimed; at a 50 km economic hinterland
+            // catchments cover ~1 % of the map, so 500 uniform draws yield about
+            // 5 claimed nodes and the witness goes vacuous. The bar is NOT
+            // lowered — the same ≥50 claimed comparisons are still required,
+            // and the unclaimed comparisons (which prove nothing is claimed
+            // that shouldn't be) go UP rather than down.
             int sampled = 0, claimedSamples = 0;
-            while (sampled < 500)
+            const int MaxDraws = 200_000;
+            while (sampled < 500 || claimedSamples < 50)
             {
+                if (sampled >= MaxDraws) break;
                 lcg = lcg * 6364136223846793005UL + 1442695040888963407UL;
                 int node = (int)(lcg >> 33) % n;
                 sampled++;
@@ -93,7 +104,7 @@ public class PluralWorldTests
                 for (int s = 0; s < count; s++)
                 {
                     double c = fields[s][node];
-                    if (c > CatchmentSystem.TravelBudget) continue;
+                    if (c > budget) continue;
                     // Composite (cost, settlement id): strictly better, or
                     // equal cost and lower id (ascending s makes id implicit).
                     if (c < bestCost) { bestCost = c; bestOwner = s; }
@@ -102,7 +113,7 @@ public class PluralWorldTests
                 if (bestOwner >= 0) claimedSamples++;
             }
             Assert.True(claimedSamples >= 50,
-                $"seed {seed}: only {claimedSamples}/500 samples were claimed — witness vacuous");
+                $"seed {seed}: only {claimedSamples} claimed nodes in {sampled} draws — witness vacuous");
         }
     }
 
@@ -123,13 +134,13 @@ public class PluralWorldTests
             CatchmentNodeRow row = world.CatchmentNodes[i];
             Assert.True(seen.Add(row.LatticeNode), "double-claimed node");
             perSettlement[row.Settlement.Value] +=
-                LatticeMap.BlockFertility(world.Terrain!, lattice, row.LatticeNode);
+                LatticeMap.BlockArableKm2(world.Terrain!, lattice, row.LatticeNode);
         }
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             Assert.Equal(
                 BitConverter.DoubleToInt64Bits(perSettlement[s]),
-                BitConverter.DoubleToInt64Bits(world.CatchmentSummaries[s].EffectiveFarmland));
+                BitConverter.DoubleToInt64Bits(world.CatchmentSummaries[s].EffectiveArableKm2));
             Assert.True(world.CatchmentSummaries[s].NodeCount > 0,
                 $"settlement {s} owns no land — partition degenerate");
         }
@@ -157,15 +168,17 @@ public class PluralWorldTests
             {
                 var field = new double[lattice.NodeCount];
                 Array.Fill(field, double.PositiveInfinity);
+                double minSpacing = LatticeGeometry.CostUnitsForIdealGroundKm(
+                    lattice, cfg.Siting.MinSpacingKm);
                 Pathfinder.RelaxCappedFrom(lattice,
                     LatticeMap.OriginLatticeNode(lattice, terrain.Size, sites[i]),
-                    cfg.Siting.MinSpacingTravel, field);
+                    minSpacing, field);
                 for (int j = i + 1; j < sites.Length; j++)
                 {
                     int nodeJ = LatticeMap.OriginLatticeNode(lattice, terrain.Size, sites[j]);
-                    Assert.True(field[nodeJ] >= cfg.Siting.MinSpacingTravel
+                    Assert.True(field[nodeJ] >= minSpacing
                         || double.IsPositiveInfinity(field[nodeJ]),
-                        $"seed {seed}: sites {i},{j} at travel {field[nodeJ]} < {cfg.Siting.MinSpacingTravel}");
+                        $"seed {seed}: sites {i},{j} at travel {field[nodeJ]} < {minSpacing}");
                 }
             }
 

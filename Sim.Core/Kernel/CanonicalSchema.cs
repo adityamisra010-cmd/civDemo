@@ -53,7 +53,7 @@ public static class CanonicalSchema
     private const int SettlementRowWidth = 4 + 4 + 8;          // Id, SiteCell, FoundedTurn
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
-    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
+    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
     private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8;   // Settlement, Good, Amount, 2 remainder bit-fields, LastProducedUnits (v13)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
@@ -197,7 +197,7 @@ public static class CanonicalSchema
             CatchmentSummaryRow row = world.CatchmentSummaries[i];
             writer.Write(row.Settlement.Value);
             writer.Write(row.NodeCount);
-            writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveFarmland));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveArableKm2));
             writer.Write(row.NetworkRevision);
             writer.Write(row.LastRecomputeTurn);
         }

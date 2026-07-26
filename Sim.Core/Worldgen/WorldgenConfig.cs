@@ -39,9 +39,12 @@ public sealed record WorldgenConfig(
 /// WaterAccessCutoffPx: BFS grid distance to water beyond which the access
 /// score is 0 (score falls linearly from 1 at the shoreline to 0 at the
 /// cutoff). SettlementCount: sites founded per world (canonical 12; the D-015
-/// dev preset overrides to 4). MinSpacingTravel: minimum travel-time distance
-/// (lattice cost units, same scale as the catchment TravelBudget) between any
-/// two accepted sites.
+/// dev preset overrides to 4). MinSpacingKm: minimum separation between any two
+/// accepted sites, as an IDEAL-GROUND distance in km (T3.2b denomination: it was
+/// `minSpacingTravel` in the pathfinder's internal cost units, the same
+/// unreadable denomination as the retired catchment travel budget). Converted to
+/// cost units at the LatticeGeometry chokepoint, so difficult country separates
+/// settlements at a shorter map distance than easy country does.
 /// </summary>
 /// <summary>ScoreJitter (T3.1c founding variation): amplitude of the seeded
 /// multiplicative jitter on every cell's siting score — score × (1 + j·u),
@@ -60,7 +63,7 @@ public sealed record WorldgenConfig(
 public sealed record SitingConfig(
     [property: JsonPropertyName("waterAccessCutoffPx"), JsonRequired] int WaterAccessCutoffPx,
     [property: JsonPropertyName("settlementCount"), JsonRequired] int SettlementCount,
-    [property: JsonPropertyName("minSpacingTravel"), JsonRequired] double MinSpacingTravel,
+    [property: JsonPropertyName("minSpacingKm"), JsonRequired] double MinSpacingKm,
     [property: JsonPropertyName("scoreJitter"), JsonRequired] double ScoreJitter,
     [property: JsonPropertyName("scoreFloorPercentile"), JsonRequired] double ScoreFloorPercentile,
     [property: JsonPropertyName("fertilityRadiusPx"), JsonRequired] int FertilityRadiusPx);
@@ -168,9 +171,9 @@ public static class WorldgenConfigLoader
         if (cfg.Siting.SettlementCount < 1)
             throw new WorldgenConfigException(
                 $"siting.settlementCount must be >= 1, got {cfg.Siting.SettlementCount}.");
-        if (!(cfg.Siting.MinSpacingTravel >= 0.0) || !double.IsFinite(cfg.Siting.MinSpacingTravel))
+        if (!(cfg.Siting.MinSpacingKm >= 0.0) || !double.IsFinite(cfg.Siting.MinSpacingKm))
             throw new WorldgenConfigException(
-                $"siting.minSpacingTravel must be a finite value >= 0, got {Inv(cfg.Siting.MinSpacingTravel)}.");
+                $"siting.minSpacingKm must be a finite distance >= 0, got {Inv(cfg.Siting.MinSpacingKm)}.");
         if (cfg.Siting.FertilityRadiusPx is < 0 or > 32)
             throw new WorldgenConfigException(
                 $"siting.fertilityRadiusPx must be in 0..32, got {cfg.Siting.FertilityRadiusPx}.");

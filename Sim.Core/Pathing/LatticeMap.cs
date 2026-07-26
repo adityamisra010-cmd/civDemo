@@ -44,12 +44,19 @@ public static class LatticeMap
     }
 
     /// <summary>
-    /// Mean fertility over the node's stride×stride terrain block — the same
+    /// MEAN fertility over the node's stride×stride terrain block — the same
     /// block averaging as TraversalLattice.Build uses for movement cost, so a
-    /// node's farmland is representative at the lattice's own resolution.
+    /// node's suitability is representative at the lattice's own resolution.
     /// Public and pure so tests can recompute the aggregate independently.
+    ///
+    /// DIMENSIONLESS (T3.2b): an agronomic-suitability index in [0,1], NOT an
+    /// area. Summing this over nodes counts fertility-weighted NODES — the
+    /// CR-002 denomination bug. To get land, convert through
+    /// <see cref="LatticeGeometry.ArableKm2"/>, or call
+    /// <see cref="BlockArableKm2"/>. The name says "mean" so that a future
+    /// caller cannot accumulate it into an area by accident.
     /// </summary>
-    public static double BlockFertility(TerrainSet terrain, TraversalLattice lattice, int node)
+    public static double BlockMeanFertility(TerrainSet terrain, TraversalLattice lattice, int node)
     {
         int stride = terrain.Size / lattice.Size;
         (int x, int y) = lattice.Coords(node);
@@ -63,4 +70,13 @@ public static class LatticeMap
         }
         return sum / (stride * stride);
     }
+
+    /// <summary>
+    /// The node's arable land in FERTILITY-WEIGHTED km² — mean suitability ×
+    /// block area, through the single conversion in <see cref="LatticeGeometry"/>.
+    /// This is what a catchment sums (T3.2b); the yield constant is denominated
+    /// against it.
+    /// </summary>
+    public static double BlockArableKm2(TerrainSet terrain, TraversalLattice lattice, int node) =>
+        LatticeGeometry.ArableKm2(BlockMeanFertility(terrain, lattice, node), lattice);
 }

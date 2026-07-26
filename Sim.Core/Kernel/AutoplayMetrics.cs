@@ -27,9 +27,11 @@ public sealed class AutoplayMetrics
     public long FinalPopulation { get; set; }
     public double FinalYear { get; set; }
     public long[] FinalCohortTotals { get; set; } = new long[Cohorts.Count];
-    /// <summary>Fertility-weighted arable area of all catchments, km²
-    /// (the HONEST arable definition: Σ EffectiveFarmland × block-km²;
-    /// EffectiveFarmland is mean-fertility-weighted lattice blocks).</summary>
+    /// <summary>Fertility-weighted arable area of all catchments, km² — now a
+    /// plain Σ EffectiveArableKm2. Until T3.2b this property applied the
+    /// block-area conversion itself, because the summary row held
+    /// fertility-weighted NODES; that conversion moved into the catchment
+    /// (CR-002), so re-applying it here would double-count.</summary>
     public double ArableKm2 { get; set; }
     public int SettlementCount { get; set; }
 }
@@ -89,16 +91,10 @@ public sealed class AutoplayCollector(ulong seed)
         }
         _m.FinalPopulation = pop;
 
-        if (world.Terrain is { } terrain)
-        {
-            var lattice = Pathing.TraversalLattice.Build(terrain);
-            int stride = terrain.Size / lattice.Size;
-            double blockKm2 = stride * terrain.KmPerPx * (stride * terrain.KmPerPx);
-            double farmland = 0.0;
-            for (int i = 0; i < world.CatchmentSummaries.Count; i++)
-                farmland += world.CatchmentSummaries[i].EffectiveFarmland;
-            _m.ArableKm2 = farmland * blockKm2;
-        }
+        double arableKm2 = 0.0;
+        for (int i = 0; i < world.CatchmentSummaries.Count; i++)
+            arableKm2 += world.CatchmentSummaries[i].EffectiveArableKm2;
+        _m.ArableKm2 = arableKm2;
         return _m;
     }
 }

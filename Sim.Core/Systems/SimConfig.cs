@@ -16,6 +16,7 @@ public sealed class SimConfigException(string message, Exception? inner = null)
 /// </summary>
 public sealed record SimConfig(
     [property: JsonPropertyName("farming")] FarmingConfig Farming,
+    [property: JsonPropertyName("catchment")] CatchmentConfig Catchment,
     [property: JsonPropertyName("consumption")] ConsumptionConfig Consumption,
     [property: JsonPropertyName("demographics")] DemographicsConfig Demographics,
     [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
@@ -33,16 +34,42 @@ public sealed record SimConfig(
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
 /// amendment; the T1.5 form had no labor factor and ghost-harvested in a dead
-/// world): harvest/yr = min(farmland × YieldPerFarmlandPerYear,
+/// world): harvest/yr = min(arableKm2 × YieldPerArableKm2PerYear,
 /// adults × farmShare × OutputPerFarmerPerYear). Land side: what the catchment
 /// can yield at full working; labor side: what the assigned farmers can work.
-/// Tuned so a fresh seed-42 run is labor-limited early and land-limited at
-/// equilibrium. Every leaf is [JsonRequired] (T1.5 adversarial finding):
-/// a missing or typo'd key must fail the load loudly, never silently bind 0.0.
+/// Every leaf is [JsonRequired] (T1.5 adversarial finding): a missing or typo'd
+/// key must fail the load loudly, never silently bind 0.0.
+///
+/// DENOMINATION (T3.2b): YieldPerArableKm2PerYear is food units per
+/// FERTILITY-WEIGHTED km² per year, against
+/// CatchmentSummaryRow.EffectiveArableKm2. One food unit is one person-year of
+/// adult-equivalent sustenance, so the constant reads directly as "person-years
+/// of food an ideal-suitability km² yields per year". Before T3.2b the key was
+/// `yieldPerFarmlandPerYear` and was denominated per fertility-weighted lattice
+/// NODE (256 km²) while claiming nothing about its unit at all — CR-002.
 /// </summary>
 public sealed record FarmingConfig(
-    [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear,
+    [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
     [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear);
+
+/// <summary>
+/// Catchment tuning (T3.2b). A settlement's catchment is its ECONOMIC
+/// HINTERLAND — the country whose produce can profitably flow in — not a
+/// farmer's daily working radius.
+///
+/// HinterlandRadiusKm is stated as an IDEAL-GROUND radius in km and converted to
+/// the pathfinder's cost budget by LatticeGeometry. What it actually buys is
+/// then decided by geography: less through mountain and marsh, more along
+/// rivers and built paths, which is the mechanism by which a road network grows
+/// a hinterland (D-009) rather than a modifier bolted onto one.
+///
+/// Before T3.2b this was `CatchmentSystem.TravelBudget = 15.0` — a code
+/// constant, in cost units, that no tuning pass could see. It went unexamined
+/// for three milestones and ended up compensating for the yield denomination
+/// error (CR-002).
+/// </summary>
+public sealed record CatchmentConfig(
+    [property: JsonPropertyName("hinterlandRadiusKm"), JsonRequired] double HinterlandRadiusKm);
 
 /// <summary>
 /// Path-building tuning (T1.6, all TUNE, per-sim-year rates — law 3).
@@ -188,8 +215,17 @@ public sealed record RegistriesConfig(
 /// </summary>
 public sealed record MigrationConfig(
     [property: JsonPropertyName("baseRatePerYear"), JsonRequired] double BaseRatePerYear,
-    [property: JsonPropertyName("dampingDecayCost"), JsonRequired] double DampingDecayCost,
+    // T3.2b: renamed to state its denomination. This one STAYS in the
+    // pathfinder's cost units rather than moving to km like the catchment
+    // radius and the siting spacing, because it damps travel EFFORT, not map
+    // distance: 400 km of river valley and 400 km of mountain should not damp
+    // migration equally, and the cost field is exactly what encodes that.
+    [property: JsonPropertyName("dampingDecayCostUnits"), JsonRequired] double DampingDecayCostUnits,
     [property: JsonPropertyName("attractivenessFoodWeight"), JsonRequired] double AttractivenessFoodWeight,
+    // T3.2b: denominated per FERTILITY-WEIGHTED km² of catchment (was per
+    // fertility-weighted lattice node). Divided by 256 in the same commit that
+    // multiplied the catchment quantity by 256 — a re-denomination, not a
+    // re-tune; the product is bit-identical (both factors are powers of two).
     [property: JsonPropertyName("attractivenessLandWeight"), JsonRequired] double AttractivenessLandWeight,
     [property: JsonPropertyName("famineFlightFactor"), JsonRequired] double FamineFlightFactor,
     [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile,
@@ -239,8 +275,16 @@ public static class SimConfigLoader
         if (cfg is null) throw new SimConfigException("sim config is empty.");
 
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
-        RequireRate("farming.yieldPerFarmlandPerYear", cfg.Farming.YieldPerFarmlandPerYear);
+        RequireRate("farming.yieldPerArableKm2PerYear", cfg.Farming.YieldPerArableKm2PerYear);
         RequireRate("farming.outputPerFarmerPerYear", cfg.Farming.OutputPerFarmerPerYear);
+
+        if (cfg.Catchment is null) throw new SimConfigException("catchment is missing.");
+        if (!(cfg.Catchment.HinterlandRadiusKm > 0.0)
+            || double.IsNaN(cfg.Catchment.HinterlandRadiusKm)
+            || double.IsInfinity(cfg.Catchment.HinterlandRadiusKm))
+            throw new SimConfigException(
+                "catchment.hinterlandRadiusKm must be a finite positive distance in km, got "
+                + $"{Inv(cfg.Catchment.HinterlandRadiusKm)}.");
 
         if (cfg.Consumption is null) throw new SimConfigException("consumption is missing.");
         RequireCohortArray("consumption.cohortWeights", cfg.Consumption.CohortWeights);
@@ -302,9 +346,10 @@ public static class SimConfigLoader
         RequireRate("migration.attractivenessFoodWeight", cfg.Migration.AttractivenessFoodWeight);
         RequireRate("migration.attractivenessLandWeight", cfg.Migration.AttractivenessLandWeight);
         RequireRate("migration.famineFlightFactor", cfg.Migration.FamineFlightFactor);
-        if (!(cfg.Migration.DampingDecayCost > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCost))
+        if (!(cfg.Migration.DampingDecayCostUnits > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCostUnits))
             throw new SimConfigException(
-                $"migration.dampingDecayCost must be a finite value > 0, got {Inv(cfg.Migration.DampingDecayCost)}.");
+                "migration.dampingDecayCostUnits must be a finite value > 0, got "
+                + $"{Inv(cfg.Migration.DampingDecayCostUnits)}.");
         RequireCohortArray("migration.cohortProfile", cfg.Migration.CohortProfile);
         if (!(cfg.Migration.GapClosingFraction > 0.0 && cfg.Migration.GapClosingFraction < 1.0))
             throw new SimConfigException(

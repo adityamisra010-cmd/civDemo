@@ -75,11 +75,18 @@ public record struct CatchmentNodeRow(SettlementId Settlement, int LatticeNode, 
 
 /// <summary>
 /// Per-settlement catchment summary (owned by CatchmentSystem): node count,
-/// effective farmland, the network revision it was computed against, and the turn
+/// arable land, the network revision it was computed against, and the turn
 /// of the last recompute (the D-016 skip-proof observable).
+///
+/// EffectiveArableKm2 is in FERTILITY-WEIGHTED km² — the land content of a
+/// hypothetical ideal-suitability (f = 1.0) km², summed over the catchment's
+/// lattice blocks. It was renamed from EffectiveFarmland at T3.2b, when the
+/// field turned out to be holding fertility-weighted NODE COUNTS that one
+/// consumer converted to km² and another did not (CR-002). The unit is in the
+/// name so that a reader of any consumer knows what they are holding.
 /// </summary>
 public record struct CatchmentSummaryRow(
-    SettlementId Settlement, int NodeCount, double EffectiveFarmland,
+    SettlementId Settlement, int NodeCount, double EffectiveArableKm2,
     int NetworkRevision, long LastRecomputeTurn);
 
 /// <summary>

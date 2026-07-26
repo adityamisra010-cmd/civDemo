@@ -33,9 +33,9 @@ namespace Sim.Core;
 /// </summary>
 public static class SystemCatalog
 {
-    public static SystemRegistration Catchment()
+    public static SystemRegistration Catchment(SimConfig cfg)
     {
-        var system = new CatchmentSystem();
+        var system = new CatchmentSystem(cfg);
         return new SystemRegistration(CatchmentSystem.WellKnownId, CatchmentSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<CatchmentTables>(
                 prev, new CatchmentTables(next.CatchmentNodes, next.CatchmentSummaries,
@@ -163,6 +163,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
+        [Catchment(cfg), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
          Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

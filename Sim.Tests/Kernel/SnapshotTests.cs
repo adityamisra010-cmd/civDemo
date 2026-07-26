@@ -215,10 +215,10 @@ public class SnapshotTests
         world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(0), LatticeNode: 321, TravelCost: 8.75));
         world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(1), LatticeNode: 654, TravelCost: -0.0));
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-            new SettlementId(0), NodeCount: 1, EffectiveFarmland: 3.5,
+            new SettlementId(0), NodeCount: 1, EffectiveArableKm2: 3.5,
             NetworkRevision: 5, LastRecomputeTurn: 42));
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-            new SettlementId(1), NodeCount: 1, EffectiveFarmland: -0.0,
+            new SettlementId(1), NodeCount: 1, EffectiveArableKm2: -0.0,
             NetworkRevision: 5, LastRecomputeTurn: 42));
 
         // Anti-padding: exact schema width sum with rows PRESENT.
@@ -241,9 +241,9 @@ public class SnapshotTests
         Assert.Equal(8.75, loaded.CatchmentNodes[0].TravelCost);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.CatchmentNodes[1].TravelCost));
-        Assert.Equal(3.5, loaded.CatchmentSummaries[0].EffectiveFarmland);
+        Assert.Equal(3.5, loaded.CatchmentSummaries[0].EffectiveArableKm2);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveFarmland));
+            BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveArableKm2));
         Assert.Equal(42, loaded.CatchmentSummaries[0].LastRecomputeTurn);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
@@ -331,7 +331,18 @@ public class SnapshotTests
         //   rolls per settlement. Trajectory semantics are pinned by the
         //   worldgen-refresh battery, the goods migration tests, and the
         //   recalibrated corridors (bands re-measured, notes in-file).
-        const string golden = "c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173";
+        //   v12 (T3.2b, CR-002 recalibration — DELIBERATE, moved ONCE for the
+        //   whole packet): CatchmentSummaryRow.EffectiveFarmland became
+        //   EffectiveArableKm2 and now carries fertility-weighted km² instead of
+        //   fertility-weighted NODES (schema WIDTH and version unchanged — same
+        //   double, different denomination), the catchment became a 50 km
+        //   economic hinterland from TUNE data instead of a 15-cost-unit code
+        //   constant, and farming.yieldPerArableKm2PerYear replaced
+        //   yieldPerFarmlandPerYear with a derived value. Every catchment, every
+        //   harvest and every trajectory moves by design. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        //   v11 value: c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173
+        const string golden = "8aa163701c02d52441dc7cc4efd1c1bd45cad01ca821cad0c88aeb75755374a0";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

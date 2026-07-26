@@ -32,7 +32,14 @@ public class CatchmentTests
     // A catchment-only pipeline: the other M0 systems are no-ops on a founded
     // world (no regions), so this isolates the behavior under test.
     private static TurnExecutor CatchmentExecutor() =>
-        new(CanonicalEra(), [SystemCatalog.Catchment()]);
+        new(CanonicalEra(), [SystemCatalog.Catchment(TestUtil.TestConfigs.Sim())]);
+
+    /// <summary>T3.2b: the catchment budget in cost units, from the TUNE
+    /// hinterland radius through the one conversion the system itself uses —
+    /// a test that recomputed km→cost by hand would agree with a wrong
+    /// implementation.</summary>
+    private static double Budget(TraversalLattice lattice) =>
+        CatchmentSystem.TravelBudgetCostUnits(TestUtil.TestConfigs.Sim(), lattice);
 
     private static int OriginOf(WorldState world, TraversalLattice lattice) =>
         CatchmentSystem.OriginLatticeNode(lattice, world.Terrain!.Size, world.Settlements[0].SiteCell);
@@ -60,7 +67,7 @@ public class CatchmentTests
         TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
         int origin = OriginOf(founded, lattice);
         Pathfinder.IsochroneResult iso =
-            Pathfinder.Isochrone(lattice, founded, origin, CatchmentSystem.TravelBudget);
+            Pathfinder.Isochrone(lattice, founded, origin, Budget(lattice));
 
         // Node-for-node membership and cost, in the system's storage order.
         var nodesForSettlement = new List<CatchmentNodeRow>();
@@ -74,11 +81,11 @@ public class CatchmentTests
         {
             Assert.Equal(iso.Reached[i], nodesForSettlement[i].LatticeNode);
             Assert.Equal(iso.Costs[i], nodesForSettlement[i].TravelCost);
-            expectedFarmland += CatchmentSystem.BlockFertility(founded.Terrain!, lattice, iso.Reached[i]);
+            expectedFarmland += CatchmentSystem.BlockArableKm2(founded.Terrain!, lattice, iso.Reached[i]);
         }
         // Farmland summed in the SAME ascending-node-id order — bit-exact.
         Assert.Equal(BitConverter.DoubleToInt64Bits(expectedFarmland),
-            BitConverter.DoubleToInt64Bits(a.CatchmentSummaries[0].EffectiveFarmland));
+            BitConverter.DoubleToInt64Bits(a.CatchmentSummaries[0].EffectiveArableKm2));
     }
 
     [Fact]
@@ -90,7 +97,7 @@ public class CatchmentTests
         // Turn 1: baseline catchment (summaries empty ⇒ stale ⇒ recompute).
         WorldState w1 = exec.Step(WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42));
         int baselineNodes = w1.CatchmentSummaries[0].NodeCount;
-        double baselineFarmland = w1.CatchmentSummaries[0].EffectiveFarmland;
+        double baselineFarmland = w1.CatchmentSummaries[0].EffectiveArableKm2;
         Assert.Equal(0, w1.CatchmentSummaries[0].NetworkRevision);
 
         TraversalLattice lattice = TraversalLattice.Build(w1.Terrain!);
@@ -106,7 +113,7 @@ public class CatchmentTests
         for (int node = 0; node < lattice.NodeCount; node++)
         {
             if (!lattice.IsPassable(node) || reached.Contains(node) || node == origin) continue;
-            if (CatchmentSystem.BlockFertility(w1.Terrain!, lattice, node) > 0.0) { far = node; break; }
+            if (CatchmentSystem.BlockMeanFertility(w1.Terrain!, lattice, node) > 0.0) { far = node; break; }
         }
         Assert.True(far >= 0, "no passable positive-fertility node outside the baseline catchment");
 
@@ -117,7 +124,7 @@ public class CatchmentTests
         w1.NetworkNodes.Add(new NetworkNodeRow(new NetworkNodeId(1), far));
         w1.NetworkEdges.Add(new NetworkEdgeRow(
             new NetworkEdgeId(0), new NetworkNodeId(0), new NetworkNodeId(1),
-            EdgeTypes.DirtPath, Cost: CatchmentSystem.TravelBudget * 0.5));
+            EdgeTypes.DirtPath, Cost: Budget(lattice) * 0.5));
         w1.NetworkMeta[0] = new NetworkMetaRow(Revision: 1);
 
         // Turn 2: reads Prev (revision 1, summaries at revision 0) ⇒ stale ⇒ recompute.
@@ -126,8 +133,8 @@ public class CatchmentTests
         Assert.Equal(1, w2.CatchmentSummaries[0].NetworkRevision);
         Assert.True(w2.CatchmentSummaries[0].NodeCount > baselineNodes,
             $"catchment did not grow: {w2.CatchmentSummaries[0].NodeCount} <= {baselineNodes}");
-        Assert.True(w2.CatchmentSummaries[0].EffectiveFarmland > baselineFarmland,
-            $"farmland did not increase: {w2.CatchmentSummaries[0].EffectiveFarmland} <= {baselineFarmland}");
+        Assert.True(w2.CatchmentSummaries[0].EffectiveArableKm2 > baselineFarmland,
+            $"farmland did not increase: {w2.CatchmentSummaries[0].EffectiveArableKm2} <= {baselineFarmland}");
     }
 
     [Fact]
@@ -167,7 +174,7 @@ public class CatchmentTests
 
         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
         Pathfinder.IsochroneResult iso =
-            Pathfinder.Isochrone(lattice, founded, origin, CatchmentSystem.TravelBudget);
+            Pathfinder.Isochrone(lattice, founded, origin, Budget(lattice));
         double recomputeMs = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0
                              / System.Diagnostics.Stopwatch.Frequency;
 

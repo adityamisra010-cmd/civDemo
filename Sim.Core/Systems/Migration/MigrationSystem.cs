@@ -22,7 +22,7 @@ public readonly record struct MigrationTables(
 ///                × damping(i→j) × viability(j)
 ///                × (gapScale(i→j) × gap(i→j) + FamineFlightFactor × deficit_i)
 ///   gap       = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
-///   damping   = exp(−travelCost / DampingDecayCost) from Prev
+///   damping   = exp(−travelCost / DampingDecayCostUnits) from Prev
 ///               SettlementDistances; an UNREACHABLE pair stores +∞ and
 ///               exp(−∞) = 0 — zero flow BY CONSTRUCTION, not by branch.
 ///   viability = max(0, 1 − DestinationDeficitRepulsion × deficit_j)
@@ -140,15 +140,18 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 if (prev.GoodStocks[i].Settlement == id && prev.GoodStocks[i].Good == _grain)
                 { food = prev.GoodStocks[i].Amount.Value; lastHarvest = prev.GoodStocks[i].LastProducedUnits; break; }
             anyFood[s] = food > 0 || lastHarvest > 0;
-            double farmland = 0.0;
+            // T3.2b: fertility-weighted km² (was fertility-weighted nodes; the
+            // paired AttractivenessLandWeight was re-denominated by the same
+            // 1/256 in sim.json, so the product is unchanged).
+            double arableKm2 = 0.0;
             for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
                 if (prev.CatchmentSummaries[i].Settlement == id)
-                { farmland = prev.CatchmentSummaries[i].EffectiveFarmland; break; }
+                { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; break; }
             for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)
                 if (prev.ConsumptionDeficits[i].Settlement == id)
                 { deficit[s] = prev.ConsumptionDeficits[i].DeficitRatio; break; }
 
-            resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * farmland;
+            resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * arableKm2;
             instant[s] = resources[s] / Math.Max(pop, 1);
         }
 
@@ -200,7 +203,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             int fi = row.From.Value <= maxId ? settlementIndex[row.From.Value] : -1;
             int ti = row.To.Value <= maxId ? settlementIndex[row.To.Value] : -1;
             if (fi >= 0 && ti >= 0)
-                damping[fi, ti] = Math.Exp(-row.TravelCost / m.DampingDecayCost);
+                damping[fi, ti] = Math.Exp(-row.TravelCost / m.DampingDecayCostUnits);
         }
 
         // Per-settlement bucket row indices, in table order (the bucket-key order).

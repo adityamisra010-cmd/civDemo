@@ -122,7 +122,17 @@ public class FirstReignTests
         //   frozen, no food mountain — and the shape asserts below were
         //   re-verified against the new trajectory (they run on every build;
         //   a blind re-pin cannot satisfy them).
-        const string golden = "3a6d296f117cbb339969a9ad261f5b685b27adcae4bcac55a016fe70a7d7e72c";
+        //   v11 (T3.2b, CR-002 recalibration — DELIBERATE, tuning + denomination
+        //   together, moved ONCE): the catchment became a 50 km economic
+        //   hinterland instead of a ~205 km isochrone and the yield constant was
+        //   re-derived and re-denominated per fertility-weighted km², so this
+        //   settlement's land, harvest and trajectory all move. The SHAPE of the
+        //   played session survives and the shape asserts below were re-verified
+        //   against the new trajectory — extinction still lands inside (5, 25],
+        //   the dead world is still frozen, and there is still no food mountain
+        //   (they run on every build; a blind re-pin cannot satisfy them).
+        //   v10 value: 3a6d296f117cbb339969a9ad261f5b685b27adcae4bcac55a016fe70a7d7e72c
+        const string golden = "db653fd2b3615bcbeea94fefac870a227c9e49e92b28af4618da17489653a9f0";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

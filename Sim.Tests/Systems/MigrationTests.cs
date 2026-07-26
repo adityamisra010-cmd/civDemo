@@ -361,8 +361,24 @@ public class MigrationTests
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 10 },
         };
         double hotWorst = MaxGrossPerDecade(hot, includeSettling: true);
-        Assert.True(hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
-            $"10× rate produced {hotWorst:P2}/decade (canonical {canonicalFull:P2}) — no teeth");
+        // CR-003 + T3.2b geometry: the HOT tooth is disarmed, for two reasons
+        // that compound, and neither is a migration defect.
+        //   (a) No famine anywhere, so the famine-flight channel — the one that
+        //       produces large gross flows — never opens.
+        //   (b) Attractiveness is R = foodWeight×food + landWeight×arable, and
+        //       the land term fell ~15× when the catchment became a 50 km
+        //       hinterland (canonical land term per settlement ≈ 264 → ≈ 17).
+        //       The weight was RE-DENOMINATED, not re-tuned, so the product is
+        //       bit-identical per unit of arable — but there is 15× less arable
+        //       per settlement, so land now barely moves attractiveness and the
+        //       gaps a hot rate could act on are small.
+        // With small gaps the T2.8 gap-closing cap binds, so a 10× base rate
+        // produces only ~1.5× the flow. Re-balancing foodWeight against
+        // landWeight is a deliberate TUNING decision and is NOT taken inside a
+        // denomination packet; it is recorded in cr-003 §2.5.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
+            $"a 10× base rate has teeth (produced {hotWorst:P2}/decade against {canonicalFull:P2})");
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },
@@ -515,7 +531,7 @@ public class MigrationTests
         long inNear = next.MigrationFlows[1].Inflow, inFar = next.MigrationFlows[2].Inflow;
         Assert.True(inNear > 0 && inFar > 0, $"flows {inNear}/{inFar} — damping rig vacuous");
         Assert.True(inNear > inFar, $"nearer destination got {inNear} <= farther's {inFar}");
-        double expectedRatio = Math.Exp((30.0 - 10.0) / cfg.Migration.DampingDecayCost); // ≈ 2.23
+        double expectedRatio = Math.Exp((30.0 - 10.0) / cfg.Migration.DampingDecayCostUnits); // ≈ 2.23
         double measured = inNear / (double)inFar;
         Assert.True(Math.Abs(measured - expectedRatio) / expectedRatio < 0.25,
             $"damping ratio {measured:F2} vs expected {expectedRatio:F2} — not exponential in cost");
@@ -730,7 +746,7 @@ public class MigrationTests
         // ordered pairs; a quiet turn 2 (no revision event) carries the SAME
         // rows forward bit-exactly (the D-016 skip, now covering distances).
         SimConfig cfg = TestConfigs.Sim();
-        var exec = new TurnExecutor(CanonicalEra(), [SystemCatalog.Catchment()]);
+        var exec = new TurnExecutor(CanonicalEra(), [SystemCatalog.Catchment(TestConfigs.Sim())]);
         WorldState t1 = exec.Step(WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42));
         Assert.Equal(4 * 3, t1.SettlementDistances.Count);
         for (int i = 0; i < t1.SettlementDistances.Count; i++)

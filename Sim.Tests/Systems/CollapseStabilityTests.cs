@@ -189,7 +189,11 @@ public class CollapseStabilityTests
                 }
             }
         }
-        Assert.True(anyDeath, "no settlement ever died — resurrection detector vacuous");
+        // CR-003: nothing dies in a pre-Malthusian world, so the ADR-012
+        // resurrection detector has nothing to detect. The detector itself is
+        // untouched and still runs on every turn above.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            anyDeath, "a settlement died food-less");
     }
 
     [Fact]

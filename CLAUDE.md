@@ -23,6 +23,7 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - If implementation reveals a genuine conflict between frozen items, STOP and write `docs/adr/cr-NNN.md`: (1) frozen items in conflict, (2) evidence — failing test/bench/derivation, (3) ≤3 minimal fix options, (4) blast radius, (5) recommendation. Await director ruling.
 - "A better way exists" is NOT a conflict. Add one line to `docs/queue.md` and proceed as specified.
 - Never write or modify specs beyond the current milestone + 1. Never implement ahead of the ratified spec.
+- Every milestone spec from M4 onward carries the four S8 §4.1 items — FOUNDATIONS AUDIT as packet one, dimensional declaration, corridor independence, coupling map (`docs/spine-s8-governance-freeze.md` §4.1, ADR-014). If you are writing a milestone spec, §4.1 is mandatory reading first.
 - Tuning data files and `TUNE` parameters is always allowed.
 
 ## Workflow per session

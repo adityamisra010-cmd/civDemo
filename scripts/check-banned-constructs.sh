@@ -57,6 +57,34 @@ scan 'System.Random (use RngRegistry)'     'System\.Random|\bnew Random\b|Random
 scan 'conserved mutation outside Ledger'   'UNSAFE_LedgerSet'                              '^(Sim\.Core/Kernel/Ledger\.cs|Sim\.Core/State/Conserved\.cs):' "${ALL_DIRS[@]}"
 scan 'conserved reconstitution outside CanonicalSchema' 'FromSnapshot'                     '^(Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/State/Conserved\.cs):' "${ALL_DIRS[@]}"
 
+# --- Denomination gate (T3.2b / CR-002) ---
+# CR-002: CatchmentSummaryRow held a sum of per-node MEAN fertilities under the
+# name "EffectiveFarmland". AutoplayMetrics converted it to km²; FarmingSystem
+# did not, so yieldPerFarmlandPerYear was silently denominated per 256 km² node
+# and survived three milestones implying ~9 km² of land per person. The fix is
+# structural, in two halves, and this gate enforces both:
+#   (a) ONE CHOKEPOINT. Every lattice↔physical conversion goes through
+#       Sim.Core/Pathing/LatticeGeometry.cs. KmPerNode is the raw scale factor
+#       every such conversion is built from, so reading it anywhere else is how
+#       a second, divergent conversion gets born. Allowed only in
+#       LatticeGeometry.cs (the conversions) and TraversalLattice.cs (the
+#       declaration). Tests are NOT exempt: a test that recomputes the
+#       conversion by hand agrees with a wrong implementation.
+#   (b) NO RESURRECTION. The retired identifiers were retired precisely because
+#       they did not say what they were denominated in. A reappearance in CODE
+#       is either a bad merge or a new quantity taking the old ambiguous name.
+#       Comment lines are exempt: the whole point of the rename is that the
+#       history stays legible, and a dead name inside a /// block cannot be
+#       read by the compiler.
+COMMENT_LINE=':[0-9]+:[[:space:]]*(///|//|\*)'
+scan 'KmPerNode outside the LatticeGeometry chokepoint (CR-002)' \
+     '\bKmPerNode\b' \
+     "^(Sim\.Core/Pathing/LatticeGeometry\.cs|Sim\.Core/Pathing/TraversalLattice\.cs):|$COMMENT_LINE" \
+     "${ALL_DIRS[@]}"
+scan 'retired undenominated identifier (CR-002)' \
+     '\bEffectiveFarmland\b|\bYieldPerFarmlandPerYear\b|\byieldPerFarmlandPerYear\b|\bTravelBudget\b|\bBlockFertility\b' \
+     "$COMMENT_LINE" "${ALL_DIRS[@]}"
+
 # --- Sim-code bans (§3.7) ---
 scan 'wall clock in sim code'              '\b(DateTime|DateTimeOffset)\.(Now|UtcNow|Today)\b' '' "${SIM_DIRS[@]}"
 scan 'AsParallel'                          '\bAsParallel\b'                                '' "${SIM_DIRS[@]}"

@@ -80,14 +80,14 @@ public class PathBuildTests
         // capacity and the halved farm labor — hand-computed exact from turn-3
         // state (law 3: the rate integrates dtYears = 10). At these magnitudes
         // the labor side binds, so the 50% order visibly halves the harvest.
-        double farmland = world.CatchmentSummaries[0].EffectiveFarmland;
+        double farmland = world.CatchmentSummaries[0].EffectiveArableKm2;
         double remainder = world.GoodStocks[0].ProduceRemainder;
         long adultsT3 = BandViews.Adults(world.Buckets, new SettlementId(0));
         long harvestBefore = HarvestSourced(world);
 
         world = exec.Step(world);
         long expected = (long)Math.Floor(Math.Min(
-            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            farmland * cfg.Farming.YieldPerArableKm2PerYear,
             adultsT3 * 0.5 * cfg.Farming.OutputPerFarmerPerYear) * 10.0 + remainder);
         Assert.Equal(expected, HarvestSourced(world) - harvestBefore);
 
@@ -114,7 +114,7 @@ public class PathBuildTests
         for (int t = 1; t <= 30 && firstEdgeTurn < 0; t++)
         {
             nodesBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].NodeCount : 0;
-            farmlandBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].EffectiveFarmland : 0.0;
+            farmlandBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].EffectiveArableKm2 : 0.0;
             world = exec.Step(world);
             if (world.NetworkEdges.Count > 0) firstEdgeTurn = t;
         }
@@ -129,8 +129,28 @@ public class PathBuildTests
         world = exec.Step(world);
         Assert.True(world.CatchmentSummaries[0].NodeCount > nodesBefore,
             $"catchment did not grow: {world.CatchmentSummaries[0].NodeCount} <= {nodesBefore}");
-        Assert.True(world.CatchmentSummaries[0].EffectiveFarmland > farmlandBefore,
-            $"farmland did not grow: {world.CatchmentSummaries[0].EffectiveFarmland} <= {farmlandBefore}");
+        Assert.True(world.CatchmentSummaries[0].EffectiveArableKm2 > farmlandBefore,
+            $"farmland did not grow: {world.CatchmentSummaries[0].EffectiveArableKm2} <= {farmlandBefore}");
+
+        // T3.2b — D-009's SECOND PRIZE, with a magnitude bar rather than a
+        // sign test. "Strictly greater" was satisfied at the old 205 km
+        // catchment too, by a rounding error: one dirt-path edge extended a
+        // hinterland that already spanned a subcontinent, so road-building
+        // was mechanically real and economically invisible. At a 50 km
+        // hinterland one edge is a material extension, and that is the
+        // property worth defending — if a later change shrinks it back to
+        // noise, roads have stopped mattering and this must say so.
+        double nodeGrowth =
+            (world.CatchmentSummaries[0].NodeCount - nodesBefore) / (double)nodesBefore;
+        double arableGrowth =
+            (world.CatchmentSummaries[0].EffectiveArableKm2 - farmlandBefore) / farmlandBefore;
+        Console.WriteLine(
+            $"first-edge hinterland growth: nodes +{nodeGrowth * 100.0:F1}%, "
+            + $"arable +{arableGrowth * 100.0:F1}%");
+        Assert.True(arableGrowth > 0.02,
+            $"one dirt path grew the hinterland by only {arableGrowth * 100.0:F2}% of its arable "
+            + "land — roads are back to being a rounding error against the catchment, which is "
+            + "the pre-T3.2b condition D-009's second prize was supposed to escape.");
     }
 
     // --- boundary orders -----------------------------------------------------
