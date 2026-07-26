@@ -24,12 +24,29 @@ namespace Sim.Core;
 /// The executor and pipeline loader consume these registrations generically.
 ///
 /// SANCTIONED SHARED STOCK (T1.5; T3.2 the FoodStore migrated into the GRAIN
-/// row of GoodStocks): GoodStocks is handed to BOTH Farming (credits grain via
-/// Ledger reason Harvest; owns ProduceRemainder) and Consumption (debits via
-/// reason Eaten; owns ConsumeRemainder). A stock that one system fills and another
-/// drains cannot have a single writer; both mutations go exclusively through the
-/// Ledger (law 1) and the per-turn audit holds the pair to exactness. This
-/// paragraph is the reviewable record of that share.
+/// row of GoodStocks; RE-RECORDED at T3.3 when Farming became Production).
+/// GoodStocks is handed to BOTH Production and Consumption. A stock that one
+/// system fills and another drains cannot have a single writer; both mutations
+/// go exclusively through the Ledger (law 1) and the per-turn audit holds the
+/// pair to exactness. This paragraph is the reviewable record of that share, so
+/// it states the split at FIELD level:
+///
+///   PRODUCTION owns, on every row it touches: Amount via Ledger (reasons
+///     Harvest for grain, Produced for everything else, InputsConsumed for
+///     recipe inputs, ToolWear for farm-tool depreciation), ProduceRemainder on
+///     every produced row, LastProducedUnits on every row (zeroed each step),
+///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
+///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
+///     the GRAIN row.
+///
+/// THE COLLISION THIS RECORD EXISTS TO CATCH (T3.3 adversarial finding — the
+/// paragraph had gone stale and still named Farming, mis-assigning
+/// ConsumeRemainder wholly to Consumption): no shipped recipe consumes grain
+/// today, so the two ConsumeRemainder owners never meet. THE FIRST RECIPE THAT
+/// TAKES GRAIN AS AN INPUT — a T3.5 food basket, a brewing recipe, or a
+/// data-only goods.json edit — puts two systems on one accumulator with two
+/// different meanings, and each turn's carry would clobber the other's. Whoever
+/// adds that recipe must split the field or serialize the two writers.
 /// </summary>
 public static class SystemCatalog
 {

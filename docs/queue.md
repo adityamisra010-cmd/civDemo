@@ -34,6 +34,21 @@
   Part B1 — colonization from below, migration extended to depart into UNCLAIMED land, refugee
   foundings may be stateless. See also the expansion-opportunity reframing of the "world feels
   small" entry above (same finding, ruled correct at CR-003 §6(d)).
+- Tool-wear dt-sensitivity (raised T3.3 adversarial pass, REFUTED as a defect but
+  real as a residue). Farm-tool wear is `rate x equipped-farmers x dtYears` — a
+  per-sim-year rate integrated with dtYears exactly as law 3 prescribes — but in
+  the stock-limited branch that is a first-order step on a decay whose own state
+  is the integrand, so cumulative wear is dt-sensitive: over 20 sim-years from a
+  1000-tool endowment, dt=10 leaves 0 and dt=2.5 leaves 100, and grain differs
+  ~1.3%. A reviewer proposed exp(); that was refuted because exp() embeds a
+  MEMORYLESS lifetime, contradicting the TUNE doc's declared finite "a tool set
+  lasts ~10 working years" and leaving an immortal tail. Choosing correctly needs
+  tool VINTAGE state, which m3-spec section 2 puts out of milestone scope
+  ("vintaged capital"). Bounded and pinned meanwhile by
+  ProductionTests.ToolWear_DtSensitivity_IsBoundedAndByDesign_NotAccidental: the
+  decay coefficient is <= 1 at the coarsest era band (so the step never
+  overshoots), wear is monotone in dt, and the sensitivity is asserted to still
+  exist so the test cannot go vacuous. REVISIT when vintaged capital lands.
 - Lattice stride floor (raised T3.2b): the traversal lattice samples terrain at
   stride 4, so one node is 16 × 16 km and one cost unit buys 16 km on ideal
   ground. That is the RESOLUTION FLOOR on every spatial quantity derived from it.

@@ -272,17 +272,24 @@ public class ProductionTests
             allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
             stocks: [("clay", 100), ("timber", 1000)]);
 
-        WorldState t1 = exec.Step(w);
-        long firstRun = LastProduced(t1, cfg, "pottery");
-        Assert.True(firstRun > 0, "no pottery in turn 1 — the test is vacuous");
-        Assert.Equal(0, Stock(t1, cfg, "clay"));      // clay exhausted
+        WorldState w1 = exec.Step(w);
+        Assert.True(LastProduced(w1, cfg, "pottery") > 0, "no pottery in turn 1 — the test is vacuous");
 
-        WorldState t2 = exec.Step(t1);
-        Assert.Equal(0, LastProduced(t2, cfg, "pottery"));   // was: still firstRun, forever
-        Assert.Equal(Stock(t1, cfg, "pottery"), Stock(t2, cfg, "pottery")); // and truly nothing made
+        // Run until the clay is genuinely gone. Proportional rationing (the
+        // dt-invariance fix) can leave a unit behind, so the number of turns is
+        // not something worth pinning — that the field ZEROES once production
+        // stops is.
+        WorldState cur = w1;
+        for (int t = 0; t < 10 && Stock(cur, cfg, "clay") > 0; t++) cur = exec.Step(cur);
+        Assert.Equal(0, Stock(cur, cfg, "clay"));
+        long potteryAtExhaustion = Stock(cur, cfg, "pottery");
+
+        WorldState after = exec.Step(cur);
+        Assert.Equal(0, LastProduced(after, cfg, "pottery"));      // was: last good turn, forever
+        Assert.Equal(potteryAtExhaustion, Stock(after, cfg, "pottery")); // truly nothing made
 
         // Grain's contract is unchanged: it still reports the turn's harvest.
-        Assert.Equal(0, LastProduced(t2, cfg, "grain"));     // no farm labor allocated here
+        Assert.Equal(0, LastProduced(after, cfg, "grain"));     // no farm labor allocated here
     }
 
     private static long LastProduced(WorldState w, SimConfig cfg, string good)
@@ -327,16 +334,19 @@ public class ProductionTests
         double[] dts = [10.0, 5.0, 2.5];
         var grain = new long[dts.Length];
         var stone = new long[dts.Length];
+        var pottery = new long[dts.Length];
 
         for (int d = 0; d < dts.Length; d++)
         {
             var exec = new TurnExecutor(FlatEra(dts[d]), [SystemCatalog.Production(cfg)]);
             WorldState w = World(cfg, adults: 2000,
-                allocation: new SectorAllocationRow(S0, 1.0, 0.0, 1.0, 0.0, 0.0),
-                arableKm2: 1e9, deposits: [("stone", 0.6)]);
+                allocation: new SectorAllocationRow(S0, 1.0, 0.0, 1.0, 1.0, 0.0),
+                arableKm2: 1e9, deposits: [("stone", 0.6)],
+                stocks: [("clay", 400_000), ("timber", 400_000), ("fiber", 400_000)]);
             for (int t = 0; t < (int)(horizonYears / dts[d]); t++) w = exec.Step(w);
             grain[d] = Stock(w, cfg, "grain");
             stone[d] = Stock(w, cfg, "stone");
+            pottery[d] = Stock(w, cfg, "pottery");
         }
 
         for (int d = 1; d < dts.Length; d++)
@@ -345,8 +355,131 @@ public class ProductionTests
                 $"grain not dt-invariant: dt {dts[0]} → {grain[0]}, dt {dts[d]} → {grain[d]}");
             Assert.True(Math.Abs(stone[d] - stone[0]) <= 1,
                 $"stone not dt-invariant: dt {dts[0]} → {stone[0]}, dt {dts[d]} → {stone[d]}");
+            Assert.True(Math.Abs(pottery[d] - pottery[0]) <= 1,
+                $"pottery not dt-invariant: dt {dts[0]} → {pottery[0]}, dt {dts[d]} → {pottery[d]}");
         }
-        Assert.True(grain[0] > 0 && stone[0] > 0, "nothing produced — dt test vacuous");
+        // NON-VACUITY, all three sectors. The first version of this test claimed
+        // to exercise "the WHOLE sector loop (farming + extraction + crafting)"
+        // but allocated ZERO crafting labor and endowed no recipe inputs, so
+        // Craft() returned at its guard and criterion 4 went untested for the
+        // one sector that could fail it (T3.3 adversarial finding).
+        Assert.True(grain[0] > 0, "no grain — farming half of the dt test is vacuous");
+        Assert.True(stone[0] > 0, "no stone — extraction half of the dt test is vacuous");
+        Assert.True(pottery[0] > 0, "no pottery — CRAFTING half of the dt test is vacuous");
+    }
+
+    [Fact]
+    public void Crafting_WithAContestedScarceInput_IsDtInvariant()
+    {
+        // T3.3 adversarial finding, BLOCKING. timber is an input to
+        // pottery-firing (0.5), bronze-casting (2.0) AND toolmaking (1.0). Each
+        // recipe's labor allowance scales with dt but the input cap does not,
+        // and recipes execute SEQUENTIALLY in goods.json order — so at large dt
+        // the FIRST claimant's dt-proportional appetite swallows the whole
+        // shared stock and the later recipes get nothing. The same ten sim-years
+        // then produce a DIFFERENT ECONOMY depending only on the integration
+        // step, which matters doubly because the era table shrinks dt across the
+        // campaign (Neolithic 10 -> later 5 -> 2.5): the production mix would
+        // shift for a reason with nothing to do with the simulated world.
+        //
+        // Measured before the fix, 10 sim-years, 4 adults, timber 60:
+        //   dt=10  -> pottery 120, tools 0
+        //   dt=5   -> pottery 100, tools 0
+        //   dt=2.5 -> pottery  70, tools 25
+        SimConfig cfg = TestConfigs.Sim();
+        const int horizonYears = 10;
+        double[] dts = [10.0, 5.0, 2.5];
+        var pottery = new long[dts.Length];
+        var tools = new long[dts.Length];
+
+        for (int d = 0; d < dts.Length; d++)
+        {
+            var exec = new TurnExecutor(FlatEra(dts[d]), [SystemCatalog.Production(cfg)]);
+            WorldState w = World(cfg, adults: 4,
+                allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+                stocks: [("timber", 60), ("clay", 10_000_000), ("fiber", 10_000_000),
+                         ("copper-ore", 10_000_000), ("tin-ore", 10_000_000),
+                         ("bronze", 10_000_000)]);
+            w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5)); // all recipes available
+            for (int t = 0; t < (int)(horizonYears / dts[d]); t++) w = exec.Step(w);
+            pottery[d] = Stock(w, cfg, "pottery");
+            tools[d] = Stock(w, cfg, "tools");
+        }
+
+        Assert.True(pottery[0] > 0, "no pottery — the contention test is vacuous");
+        for (int d = 1; d < dts.Length; d++)
+        {
+            // Proportional rationing makes the split order-independent, so the
+            // only residual spread is whole-unit remainder telescoping.
+            Assert.True(Math.Abs(pottery[d] - pottery[0]) <= 2,
+                $"pottery not dt-invariant under input contention: dt {dts[0]} -> {pottery[0]}, "
+                + $"dt {dts[d]} -> {pottery[d]} — the first recipe in registry order is eating the "
+                + "shared stock in proportion to dt");
+            Assert.True(Math.Abs(tools[d] - tools[0]) <= 2,
+                $"tools not dt-invariant under input contention: dt {dts[0]} -> {tools[0]}, "
+                + $"dt {dts[d]} -> {tools[d]}");
+        }
+    }
+
+    [Fact]
+    public void ToolWear_DtSensitivity_IsBoundedAndByDesign_NotAccidental()
+    {
+        // T3.3 adversarial finding: Production_DtCorrect endows NO tools, so
+        // equipRatio is 0, the whole wear block is skipped, and the dt test
+        // covered neither mechanism this packet added. Crafting is now covered
+        // and dt-INVARIANT (see Crafting_WithAContestedScarceInput_IsDtInvariant).
+        // TOOL WEAR IS DIFFERENT AND IS NOT WIDENED INTO THE ±1 CLAIM.
+        //
+        // Wear is rate × equipped-farmers × dtYears, a per-sim-year rate
+        // integrated with dtYears exactly as law 3 prescribes. In the
+        // stock-limited branch that reduces to a first-order step on a decay
+        // whose own state is the integrand, so cumulative wear IS dt-sensitive.
+        // A reviewer proposed replacing it with exp(); that was REFUTED and the
+        // refutation is the reason this test pins rather than fixes: exp()
+        // embeds a MEMORYLESS lifetime, contradicting the TUNE doc's declared
+        // finite "a tool set lasts ~10 working years" and leaving an immortal
+        // tail. Deciding properly needs tool VINTAGE state, which m3-spec §2
+        // puts out of milestone scope ("vintaged capital"). Queued there.
+        //
+        // What this test DOES guarantee, so the sensitivity can never silently
+        // grow: the coefficient rate/toolsPerFarmer × dt is ≤ 1 for EVERY band
+        // in era-pacing.json, so the step never overshoots, stock never goes
+        // negative, and finer dt only ever leaves MORE stock (monotone).
+        SimConfig cfg = TestConfigs.Sim();
+        double coefficientAtCoarsestDt =
+            cfg.Production.ToolWearPerEquippedFarmerPerYear
+            / cfg.Production.ToolsPerFarmerToEquip * 10.0;   // 10 = coarsest band (Neolithic)
+        Assert.True(coefficientAtCoarsestDt <= 1.0,
+            $"tool-wear decay coefficient {coefficientAtCoarsestDt} exceeds 1 at the coarsest dt — "
+            + "the step now overshoots and the clamp is load-bearing rather than belt-and-braces. "
+            + "Re-derive the wear rate or move to a vintaged-capital model.");
+
+        const int horizonYears = 20;
+        double[] dts = [10.0, 5.0, 2.5];
+        var toolsLeft = new long[dts.Length];
+        for (int d = 0; d < dts.Length; d++)
+        {
+            var exec = new TurnExecutor(FlatEra(dts[d]), [SystemCatalog.Production(cfg)]);
+            WorldState w = World(cfg, adults: 1000,
+                allocation: new SectorAllocationRow(S0, 1.0, 0.0, 0.0, 0.0, 0.0),
+                arableKm2: 1e9, stocks: [("tools", 1000)]);
+            for (int t = 0; t < (int)(horizonYears / dts[d]); t++) w = exec.Step(w);
+            toolsLeft[d] = Stock(w, cfg, "tools");
+        }
+
+        // Never negative, never above the endowment, and MONOTONE in dt: finer
+        // steps retain at least as much stock. A regression that made wear
+        // non-monotone or unbounded fails here loudly.
+        for (int d = 0; d < dts.Length; d++)
+            Assert.InRange(toolsLeft[d], 0, 1000);
+        for (int d = 1; d < dts.Length; d++)
+            Assert.True(toolsLeft[d] >= toolsLeft[d - 1],
+                $"tool wear is not monotone in dt: dt {dts[d - 1]} left {toolsLeft[d - 1]}, "
+                + $"dt {dts[d]} left {toolsLeft[d]}");
+        // And the sensitivity is REAL, so this test is not vacuous.
+        Assert.True(toolsLeft[^1] > toolsLeft[0],
+            "tool wear shows no dt sensitivity at all — either it became invariant (delete this "
+            + "test and fold tools into the ±1 dt ladder) or the wear block stopped running");
     }
 
     // --- 3. the demolition, asserted so it cannot rot -------------------------
