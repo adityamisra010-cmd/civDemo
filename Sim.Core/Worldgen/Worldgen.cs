@@ -56,7 +56,20 @@ public static class Worldgen
                 double mask = cfg.ContinentalMask.RadialWeight * radial
                             + cfg.ContinentalMask.NoiseWeight * maskNoise;
 
-                elevation[y * size + x] = Fbm(seed, ElevationSalt, nx, ny, cfg.Elevation) * mask;
+                // T3.1(b) EDGE TAPER — guarantee an ocean margin. The radial
+                // falloff alone reaches zero only at CORNERS (edge-midpoint
+                // radial ≈ 0.29), so continents could touch the boundary and
+                // read as truncated (measured on seed 42 pre-fix: 185 land
+                // cells on the eastern boundary column). A smoothstep ramp
+                // over edgeTaperPx crushes near-edge elevation toward 0; the
+                // boundary ring is EXACTLY 0, which sits below the quantile
+                // sea level for any non-degenerate land fraction — so the
+                // world edge is water by construction (10-seed test pins it).
+                double edgeDist = Math.Min(Math.Min(x, size - 1 - x), Math.Min(y, size - 1 - y));
+                double te = Math.Min(1.0, edgeDist / (double)cfg.ContinentalMask.EdgeTaperPx);
+                double taper = te * te * (3.0 - 2.0 * te);
+
+                elevation[y * size + x] = Fbm(seed, ElevationSalt, nx, ny, cfg.Elevation) * mask * taper;
             }
         }
 
@@ -86,13 +99,20 @@ public static class Worldgen
             }
         }
 
-        // --- 5: moisture — rational decay over BFS water distance ----------------
-        int[] waterDistance = WaterDistanceBfs(water, size);
+        // --- 5: hydrology (T1.2; moved BEFORE moisture at T3.1a) -----------------
+        Hydrology.Result rivers = Hydrology.Compute(elevation, water, size, cfg.Rivers);
+
+        // --- 5b: moisture — rational decay over BFS distance to water OR RIVER
+        // cells (T3.1a: the water-access family credits river adjacency — a
+        // river valley IS moist ground. Before this fix, moisture measured
+        // sea-distance only, so an interior river valley was dry, therefore
+        // infertile, therefore never a settlement site: the missing
+        // settlement type the m3-spec names). D-022's stage order is
+        // preserved: moisture still precedes fertility; hydrology needs only
+        // elevation + water and lawfully moves ahead of moisture.
+        int[] waterDistance = WaterDistanceBfs(water, rivers.RiverMask, size);
         for (int i = 0; i < cells; i++)
             moisture[i] = 1.0 / (1.0 + waterDistance[i] / cfg.MoistureDecayPx);
-
-        // --- 5b: hydrology (T1.2) — rivers precede fertility finalization --------
-        Hydrology.Result rivers = Hydrology.Compute(elevation, water, size, cfg.Rivers);
 
         // --- 6: fertility v0 — temperature suitability × moisture, land only,
         //         with the river-adjacency boost applied BEFORE finalization ------
@@ -173,7 +193,7 @@ public static class Worldgen
     /// fixed order W, E, N, S. All-land worlds are impossible (the quantile sea
     /// level guarantees water), so the queue is never empty.
     /// </summary>
-    private static int[] WaterDistanceBfs(double[] water, int size)
+    private static int[] WaterDistanceBfs(double[] water, double[] rivers, int size)
     {
         int cells = size * size;
         var dist = new int[cells];
@@ -182,7 +202,7 @@ public static class Worldgen
 
         for (int i = 0; i < cells; i++)
         {
-            if (water[i] >= 0.5) { dist[i] = 0; queue[tail++] = i; }
+            if (water[i] >= 0.5 || rivers[i] >= 0.5) { dist[i] = 0; queue[tail++] = i; }
             else dist[i] = int.MaxValue;
         }
 

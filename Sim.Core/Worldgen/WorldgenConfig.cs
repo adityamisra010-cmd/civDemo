@@ -43,10 +43,27 @@ public sealed record WorldgenConfig(
 /// (lattice cost units, same scale as the catchment TravelBudget) between any
 /// two accepted sites.
 /// </summary>
+/// <summary>ScoreJitter (T3.1c founding variation): amplitude of the seeded
+/// multiplicative jitter on every cell's siting score — score × (1 + j·u),
+/// u ∈ [−1,1] from a deterministic SplitMix64 hash of (seed, cell). At 0 the
+/// argmax is the pure fertility×access ranking (the M2 behavior, which sited
+/// twelve near-identical coastal towns); a modest j lets lower-scored inland
+/// and riverine sites win sometimes, so worlds stop being twelve copies of
+/// the same town. TUNE.</summary>
+/// <summary>ScoreFloorPercentile (T3.1c): candidates whose UNJITTERED score
+/// sits below this percentile of all positive-score land cells are ineligible
+/// — the jitter varies WHICH GOOD site wins, it does not gamble founders onto
+/// ground that cannot carry them. MEASURED FINDING without the floor: jitter
+/// occasionally accepted sites with carrying capacity below the founding
+/// population, and the colony crashed 90%+ within five turns — read by the
+/// Malthus battery as firstCrashTurn 5 against its [400, 800] band. TUNE.</summary>
 public sealed record SitingConfig(
     [property: JsonPropertyName("waterAccessCutoffPx"), JsonRequired] int WaterAccessCutoffPx,
     [property: JsonPropertyName("settlementCount"), JsonRequired] int SettlementCount,
-    [property: JsonPropertyName("minSpacingTravel"), JsonRequired] double MinSpacingTravel);
+    [property: JsonPropertyName("minSpacingTravel"), JsonRequired] double MinSpacingTravel,
+    [property: JsonPropertyName("scoreJitter"), JsonRequired] double ScoreJitter,
+    [property: JsonPropertyName("scoreFloorPercentile"), JsonRequired] double ScoreFloorPercentile,
+    [property: JsonPropertyName("fertilityRadiusPx"), JsonRequired] int FertilityRadiusPx);
 
 /// <summary>River extraction tuning (T1.2, all TUNE).</summary>
 public sealed record RiversConfig(
@@ -57,10 +74,15 @@ public sealed record RiversConfig(
     [property: JsonPropertyName("cellFractionMin"), JsonRequired] double CellFractionMin,
     [property: JsonPropertyName("cellFractionMax"), JsonRequired] double CellFractionMax);
 
+/// <summary>EdgeTaperPx (T3.1b): width of the smoothstep ramp crushing
+/// elevation to 0 at the world boundary — the guaranteed ocean margin (the
+/// radial term alone is zero only at corners, so continents truncated at the
+/// map edge were possible; m3-spec §4 T3.1 closes that).</summary>
 public sealed record MaskConfig(
     [property: JsonPropertyName("noise"), JsonRequired] NoiseConfig Noise,
     [property: JsonPropertyName("noiseWeight"), JsonRequired] double NoiseWeight,
-    [property: JsonPropertyName("radialWeight"), JsonRequired] double RadialWeight);
+    [property: JsonPropertyName("radialWeight"), JsonRequired] double RadialWeight,
+    [property: JsonPropertyName("edgeTaperPx"), JsonRequired] int EdgeTaperPx);
 
 public sealed record TemperatureConfig(
     [property: JsonPropertyName("equatorC"), JsonRequired] double EquatorC,
@@ -149,6 +171,20 @@ public static class WorldgenConfigLoader
         if (!(cfg.Siting.MinSpacingTravel >= 0.0) || !double.IsFinite(cfg.Siting.MinSpacingTravel))
             throw new WorldgenConfigException(
                 $"siting.minSpacingTravel must be a finite value >= 0, got {Inv(cfg.Siting.MinSpacingTravel)}.");
+        if (cfg.Siting.FertilityRadiusPx is < 0 or > 32)
+            throw new WorldgenConfigException(
+                $"siting.fertilityRadiusPx must be in 0..32, got {cfg.Siting.FertilityRadiusPx}.");
+        if (!(cfg.Siting.ScoreFloorPercentile >= 0.0 && cfg.Siting.ScoreFloorPercentile < 1.0))
+            throw new WorldgenConfigException(
+                $"siting.scoreFloorPercentile must be in [0,1), got {Inv(cfg.Siting.ScoreFloorPercentile)}.");
+        if (!(cfg.Siting.ScoreJitter >= 0.0 && cfg.Siting.ScoreJitter < 1.0))
+            throw new WorldgenConfigException(
+                $"siting.scoreJitter must be in [0,1) — at 1 or above a jittered score can go negative and " +
+                $"the argmax ordering loses meaning, got {Inv(cfg.Siting.ScoreJitter)}.");
+        if (cfg.ContinentalMask.EdgeTaperPx < 1 || cfg.ContinentalMask.EdgeTaperPx > cfg.SizePx / 4)
+            throw new WorldgenConfigException(
+                $"continentalMask.edgeTaperPx must be in 1..sizePx/4 (an ocean margin, not an ocean world), " +
+                $"got {cfg.ContinentalMask.EdgeTaperPx}.");
 
         return cfg;
     }

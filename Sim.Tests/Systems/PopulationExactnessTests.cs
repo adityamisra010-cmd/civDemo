@@ -518,10 +518,10 @@ public class PopulationExactnessTests
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
             new SettlementId(0), NodeCount: 1, EffectiveFarmland: farmland,
             NetworkRevision: 0, LastRecomputeTurn: 0));
-        int row = world.FoodStores.Add(new FoodStoreRow(
-            new SettlementId(0), Conserved.Zero, 0.0, 0.0));
-        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(row).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, store,
+        int row = world.GoodStocks.Add(new GoodStockRow(
+            new SettlementId(0), new GoodId(1), Conserved.Zero, 0.0, 0.0));
+        new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(row).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, store,
             FlowDirection.Source, OverdrawPolicy.Throw);
         return world;
     }
@@ -551,9 +551,9 @@ public class PopulationExactnessTests
             200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear) * dt);                 // 10000
         long demand = Floor(DemandPerYear(cfg) * dt);                              // 2950
 
-        Assert.Equal(harvest, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Harvest, sunk: false));
-        Assert.Equal(demand, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Eaten, sunk: true));
-        Assert.Equal(endow + harvest - demand, next.FoodStores[0].Store.Value);
+        Assert.Equal(harvest, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Harvest, sunk: false));
+        Assert.Equal(demand, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true));
+        Assert.Equal(endow + harvest - demand, next.GoodStocks[0].Amount.Value);
         Assert.Equal(0.0, next.ConsumptionDeficits[0].DeficitRatio);
     }
 
@@ -568,8 +568,8 @@ public class PopulationExactnessTests
         WorldState next = exec.Step(FoodWorld(farmland: 0.0, store: 1000));
 
         long demand = Floor(DemandPerYear(cfg) * dt);
-        Assert.Equal(0, next.FoodStores[0].Store.Value);
-        Assert.Equal(1000, FlowTotal(next, ConservedQuantityIds.Food, ReasonIds.Eaten, sunk: true));
+        Assert.Equal(0, next.GoodStocks[0].Amount.Value);
+        Assert.Equal(1000, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true));
         Assert.Equal((demand - 1000) / (double)demand, next.ConsumptionDeficits[0].DeficitRatio);
     }
 
@@ -602,8 +602,8 @@ public class PopulationExactnessTests
             // Store large enough that the clamp never binds at any dt.
             WorldState world = exec.Run(FoodWorld(farmland, store: 1_000_000),
                 (int)(horizonYears / dts[i]));
-            harvested[i] = FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.Harvest, sunk: false);
-            eaten[i] = FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.Eaten, sunk: true);
+            harvested[i] = FlowTotal(world, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Harvest, sunk: false);
+            eaten[i] = FlowTotal(world, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true);
         }
 
         for (int i = 1; i < dts.Length; i++)
@@ -627,7 +627,15 @@ public class PopulationExactnessTests
         // config-derived, extended at T2.1 to the bucket cross product: the
         // full culture × religion × class × cohort layout, the whole founding
         // population on the FIRST class, other classes at exactly zero.
-        SimConfig cfg = TestConfigs.Sim();
+        // T3.1(c) AMENDMENT: the canonical endowment is now JITTERED per
+        // settlement (founding variation), so the config-exact pin runs at
+        // endowmentJitter = 0 — the identity the jitter must reduce to. The
+        // JITTERED path's own contract (bounds + Ledger-exactness on the
+        // jittered totals) is pinned right after.
+        SimConfig cfg = TestConfigs.Sim() with
+        {
+            Founding = TestConfigs.Sim().Founding with { EndowmentJitter = 0.0 },
+        };
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
 
         // T2.3: the dev preset founds N = 4 settlements, each with the SAME
@@ -655,16 +663,78 @@ public class PopulationExactnessTests
             Assert.Equal(i / (groups * Cohorts.Count), world.Buckets[i].Settlement.Value);
         }
 
-        Assert.Equal(n, world.FoodStores.Count);
-        for (int i = 0; i < n; i++)
-            Assert.Equal(cfg.Founding.FoodStore, world.FoodStores[i].Store.Value);
+        // T3.2: one stock row per (settlement, good), settlement-major in
+        // goods-registry order; the FoodStore migrated into grain's row and
+        // every other good founds at exactly zero.
+        int goodsCount = cfg.Goods!.Goods.Length;
+        Assert.Equal(n * goodsCount, world.GoodStocks.Count);
+        for (int i = 0; i < world.GoodStocks.Count; i++)
+        {
+            GoodStockRow row = world.GoodStocks[i];
+            Assert.Equal(i / goodsCount, row.Settlement.Value);       // settlement-major
+            Assert.Equal(cfg.Goods.Goods[i % goodsCount].Id, row.Good.Value); // registry order
+            long expectedStock = row.Good.Value == cfg.Goods.GrainId ? cfg.Founding.FoodStore : 0;
+            Assert.Equal(expectedStock, row.Amount.Value);
+        }
         Assert.Equal(0, world.ConsumptionDeficits.Count);
 
         Assert.Equal(popTotal,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
-        Assert.Equal(cfg.Founding.FoodStore * n,
-            FlowTotal(world, ConservedQuantityIds.Food, ReasonIds.InitialEndowment, sunk: false));
+        long foodStores = 0;
+        for (int i = 0; i < world.GoodStocks.Count; i++) foodStores += world.GoodStocks[i].Amount.Value;
+        Assert.Equal(foodStores,
+            FlowTotal(world, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, sunk: false));
         Assert.Equal(0,
             FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: true));
+    }
+
+    [Fact]
+    public void Founding_JitteredEndowment_BoundedByAmplitude_AndLedgerExact()
+    {
+        // T3.1(c): with the CANONICAL jitter, every jittered cohort count and
+        // food store stays within the compounded amplitude bounds of its
+        // config base — (1 ± j)² — and the Ledger flow rows still equal the
+        // realized stocks EXACTLY (conservation holds on the jittered world;
+        // no unaudited person or unit enters at founding).
+        SimConfig cfg = TestConfigs.Sim();
+        double j = cfg.Founding.EndowmentJitter;
+        Assert.True(j > 0.0, "canonical endowmentJitter is expected to be > 0 at M3");
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);
+
+        double lo = (1.0 - j) * (1.0 - j), hi = (1.0 + j) * (1.0 + j);
+        long popTotal = 0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow row = world.Buckets[i];
+            popTotal += row.Count.Value;
+            bool firstClass = row.Class.Value == cfg.Registries.Classes[0].Id;
+            long baseCount = cfg.Founding.CohortCounts[row.CohortIdx];
+            if (!firstClass) { Assert.Equal(0, row.Count.Value); continue; }
+            Assert.InRange(row.Count.Value,
+                (long)Math.Floor(baseCount * lo) - 1, (long)Math.Ceiling(baseCount * hi) + 1);
+        }
+        // Food TRACKS the realized population (size varies, survival odds do
+        // not — see WorldFounding): store ≈ configFood × (settlementPop /
+        // configPop) × (1 ± j/3).
+        long configPop = cfg.Founding.CohortCounts.Sum();
+        long foodTotal = 0;
+        for (int i = 0; i < world.GoodStocks.Count; i++)
+        {
+            if (world.GoodStocks[i].Good.Value != cfg.Goods!.GrainId) continue; // only grain is endowed
+            long store = world.GoodStocks[i].Amount.Value;
+            foodTotal += store;
+            long sPop = 0;
+            for (int b = 0; b < world.Buckets.Count; b++)
+                if (world.Buckets[b].Settlement == world.GoodStocks[i].Settlement)
+                    sPop += world.Buckets[b].Count.Value;
+            double popScale = sPop / (double)configPop;
+            Assert.InRange(store,
+                (long)Math.Floor(cfg.Founding.FoodStore * popScale * (1.0 - j / 3.0)) - 1,
+                (long)Math.Ceiling(cfg.Founding.FoodStore * popScale * (1.0 + j / 3.0)) + 1);
+        }
+        Assert.Equal(popTotal,
+            FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.InitialEndowment, sunk: false));
+        Assert.Equal(foodTotal,
+            FlowTotal(world, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, sunk: false));
     }
 }

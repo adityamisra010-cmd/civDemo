@@ -62,8 +62,25 @@ public static class ConservedQuantityIds
     /// <summary>People (T1.5) — every person a conserved long from here to the space age.</summary>
     public static readonly ConservedQuantityId Population = new(3);
 
-    /// <summary>Food (T1.5) — 1 unit = 1 person-year of sustenance (D-015 data constants).</summary>
-    public static readonly ConservedQuantityId Food = new(4);
+    // T3.2: the M2 Food quantity (was id 4) is RETIRED — the FoodStore
+    // migrated into the grain good stock (m3-spec §3); Harvest/Eaten/
+    // InitialEndowment flows now record against grain's quantity id.
+
+    /// <summary>Base of the per-good quantity-id range (T3.2, D-031): good
+    /// g's conserved quantity is OfGood(g) = 100 + g. 1 grain unit = 1
+    /// person-year of sustenance (the D-015 constant, carried from FoodStore).</summary>
+    public const int GoodQuantityBase = 100;
+
+    public static ConservedQuantityId OfGood(GoodId good) => new(GoodQuantityBase + good.Value);
+    public static bool IsGood(ConservedQuantityId q) => q.Value > GoodQuantityBase;
+    public static GoodId GoodOf(ConservedQuantityId q) => new(q.Value - GoodQuantityBase);
+}
+
+/// <summary>Identifies a D-031 good (T3.2). Ids are data (goods.json), stable
+/// and strictly ascending; names live in GoodsConfig only (ADR-001).</summary>
+public readonly record struct GoodId(int Value) : IComparable<GoodId>
+{
+    public int CompareTo(GoodId other) => Value.CompareTo(other.Value);
 }
 
 /// <summary>Well-known flow reasons (M0 toy registry).</summary>

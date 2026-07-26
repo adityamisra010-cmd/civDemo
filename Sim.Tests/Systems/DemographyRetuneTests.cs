@@ -528,11 +528,11 @@ public class DemographyRetuneTests
                         ReasonIds.InitialEndowment, 10_000, FlowDirection.Source, OverdrawPolicy.Throw);
                 }
             }
-            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, s == 0 ? 1.0 : 0.0, 1));
         }
-        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(1).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 5_000_000,
+        new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(1).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, 5_000_000,
             FlowDirection.Source, OverdrawPolicy.Throw);
         world.SettlementDistances.Add(new SettlementDistanceRow(new SettlementId(0), new SettlementId(1), 5.0));
         world.SettlementDistances.Add(new SettlementDistanceRow(new SettlementId(1), new SettlementId(0), 5.0));

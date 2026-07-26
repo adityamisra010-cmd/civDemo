@@ -235,7 +235,7 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                 if (buckets[i].Settlement != settlement || birthsExact[i] <= 0.0) continue;
                 ref BucketRow row = ref buckets.Ref(i);
                 double exact = birthsExact[i] + row.BirthRemainder;
-                long born = (long)Math.Floor(exact);
+                long born = ConservedMath.WholeUnits(exact, $"births (settlement {settlement.Value}, bucket {i})");
                 ctx.Ledger.Flow(
                     ref row.Count, ConservedQuantityIds.Population, ReasonIds.Births,
                     born, FlowDirection.Source, OverdrawPolicy.Throw);
@@ -250,7 +250,7 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                 if (destRow < 0) continue;
                 ref BucketRow row = ref buckets.Ref(i);
                 double exact = agingExact[i] + row.AgingRemainder;
-                long moving = (long)Math.Floor(exact);
+                long moving = ConservedMath.WholeUnits(exact, $"cohort aging (settlement {settlement.Value}, bucket {i})");
                 row.AgingRemainder = exact - moving;
                 if (moving > 0)
                 {
@@ -303,7 +303,7 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
         ref BucketRow row = ref buckets.Ref(index);
         double exact = exactAmount
                        + (reason == ReasonIds.Deaths ? row.DeathRemainder : row.StarvationRemainder);
-        long sunk = (long)Math.Floor(exact);
+        long sunk = ConservedMath.WholeUnits(exact, $"deaths/starvation (reason {reason.Value}, bucket {index})");
         long before = row.Count.Value;
         ctx.Ledger.Flow(
             ref row.Count, ConservedQuantityIds.Population, reason,

@@ -310,10 +310,12 @@ public class ChronicleTests
             NameRegistry names = NameRegistry.Build(cfg, world.Seed, world);
             var collector = new ChronicleCollector(cfg);
             collector.Observe(world);
-            // 700 turns crosses the first Malthus crash (~t590): famine,
+            // 900 turns crosses the first Malthus crash (~t820 on the T3.1
+            // refreshed worldgen — moist river valleys raised capacity and
+            // stretched the growth arc; was ~t590): famine,
             // surge, and possibly extinction events exist — the twins compare
             // a POPULATED chronicle, not two empty lists.
-            for (int t = 1; t <= 700; t++) { world = exec.Step(world); collector.Observe(world); }
+            for (int t = 1; t <= 900; t++) { world = exec.Step(world); collector.Observe(world); }
             var lines = new List<string>(collector.Events.Count);
             foreach (ChronicleEvent e in collector.Events)
                 lines.Add(ChronicleProse.Render(e, cfg, names));

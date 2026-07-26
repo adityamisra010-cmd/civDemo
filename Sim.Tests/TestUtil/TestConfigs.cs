@@ -10,7 +10,8 @@ public static class TestConfigs
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
-        return SimConfigLoader.Load(stream, needs);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return SimConfigLoader.Load(stream, needs, goods);
     }
 
     /// <summary>The raw canonical sim.json text (for loader-rejection tests).</summary>

@@ -84,8 +84,9 @@ public sealed class HistoryBuffer
             for (int b = 0; b < world.Buckets.Count; b++)
                 if (world.Buckets[b].Settlement == id) pop += world.Buckets[b].Count.Value;
             long food = 0;
-            for (int f = 0; f < world.FoodStores.Count; f++)
-                if (world.FoodStores[f].Settlement == id) { food = world.FoodStores[f].Store.Value; break; }
+            for (int f = 0; f < world.GoodStocks.Count; f++)
+                if (world.GoodStocks[f].Settlement == id && world.GoodStocks[f].Good == UiGoods.Grain)
+                { food = world.GoodStocks[f].Amount.Value; break; }
             double grievance = 0.0;
             for (int g = 0; g < world.Grievances.Count; g++)
                 if (world.Grievances[g].Settlement == id) { grievance = world.Grievances[g].Value; break; }

@@ -42,9 +42,24 @@
   stays dead). If a future milestone adds food SHIPMENTS into settlements, a
   trickle into a ruin re-arms viability — revisit the gate when goods movement
   (M3) lands.
-- Worldgen: continental mask permits land at the world boundary (radial falloff
-  reaches zero only at CORNERS — edge-midpoint radial is 0.293), so continents
-  are truncated at the map edge; measured on seed 42: 185 land cells on the
-  eastern boundary column, 87 on the northern row. Consider an edge taper
-  guaranteeing an ocean margin — M3 spec candidate. (Render verified complete:
-  full world rect displayed at min zoom; not a Sim.Ui defect.)
+- ~~Worldgen: continental mask permits land at the world boundary~~ — **CLOSED by T3.1(b)**
+  (edge taper). Was: measured 185 land cells on seed 42's eastern boundary column, 87 on
+  the northern row; the render was verified complete, so it was a worldgen property, not
+  a Sim.Ui defect. The smoothstep taper now drives boundary elevation to exactly 0 and a
+  10-seed test pins that no land touches any world edge.
+- **BINDING for T3.10** — MalthusLite test power was WEAKENED at T3.1 (was: the
+  population trajectory must cross its long-run mean from above AND below ≥2
+  times each; now ≥1 each). Cause: the worldgen refresh raised carrying
+  capacity world-wide, so one overshoot–correction arc now spans most of the
+  1000-turn campaign (first crash moved ~t255 → ~t820). This is a REAL LOSS OF
+  POWER: one crossing pair cannot distinguish an oscillating system from a
+  single overshoot settling into equilibrium — exactly the distinction the
+  Malthus corridor exists to make. T3.10 MUST restore it, by either a longer
+  horizon that contains ≥2 full cycles, or a rigged higher-pressure config
+  (lower yield / higher fertility / smaller catchment) that produces multiple
+  cycles inside a practical horizon. Do not close T3.10 with the ≥1 bar standing.
+- Extent-of-market: the artisan population threshold (T3.1, `population > 520`
+  in the D-020 emergence predicate) is a LOCAL-DEMAND proxy for market extent.
+  Once trade exists (T3.6), generalize it to trade-connected demand — a
+  settlement joined by cheap transport to neighbours has a larger effective
+  market than its own population implies, which is the actual Smithian claim.

@@ -344,13 +344,13 @@ internal static class MigrationTestWorld
                         FlowDirection.Source, OverdrawPolicy.Throw);
                 }
             }
-            world.FoodStores.Add(new FoodStoreRow(id, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
         }
         if (destFood > 0)
         {
-            new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(1).Store,
-                ConservedQuantityIds.Food, ReasonIds.InitialEndowment, destFood,
+            new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(1).Amount,
+                ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, destFood,
                 FlowDirection.Source, OverdrawPolicy.Throw);
         }
         world.SettlementDistances.Add(new SettlementDistanceRow(new SettlementId(0), new SettlementId(1), travelCost));

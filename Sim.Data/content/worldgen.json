@@ -5,11 +5,22 @@
   "landFractionMin": 0.25,
   "landFractionMax": 0.45,
   "continentalMask": {
-    "noise": { "octaves": 3, "frequency": 2.0, "persistence": 0.5, "lacunarity": 2.0 },
+    "noise": {
+      "octaves": 3,
+      "frequency": 2.0,
+      "persistence": 0.5,
+      "lacunarity": 2.0
+    },
     "noiseWeight": 0.45,
-    "radialWeight": 0.75
+    "radialWeight": 0.75,
+    "edgeTaperPx": 24
   },
-  "elevation": { "octaves": 6, "frequency": 4.0, "persistence": 0.55, "lacunarity": 2.0 },
+  "elevation": {
+    "octaves": 6,
+    "frequency": 4.0,
+    "persistence": 0.55,
+    "lacunarity": 2.0
+  },
   "temperature": {
     "equatorC": 30.0,
     "poleDropC": 40.0,
@@ -18,7 +29,11 @@
     "fertilityToleranceC": 22.0
   },
   "moistureDecayPx": 40.0,
-  "movement": { "baseCost": 1.0, "slopeFactor": 60.0, "waterCost": 25.0 },
+  "movement": {
+    "baseCost": 1.0,
+    "slopeFactor": 60.0,
+    "waterCost": 25.0
+  },
   "rivers": {
     "count": 12,
     "minAccumulationFraction": 0.0004,
@@ -30,6 +45,9 @@
   "siting": {
     "settlementCount": 12,
     "minSpacingTravel": 30.0,
-    "waterAccessCutoffPx": 24
+    "waterAccessCutoffPx": 24,
+    "scoreJitter": 0.35,
+    "scoreFloorPercentile": 0.5,
+    "fertilityRadiusPx": 3
   }
 }
