@@ -144,7 +144,8 @@
         "id": 2,
         "name": "Artisans",
         "emerge": "food_surplus_ratio > 1.3 && population > 520",
-        "recede": "food_surplus_ratio < 1.1"
+        "recede": "food_surplus_ratio < 1.1",
+        "_doc": "Artisans emerge on TWO necessary conditions (T3.1): food_surplus_ratio - the food exists to feed a non-farmer - AND population - a market exists to buy from him. The second is Smith's extent-of-the-market limit on the division of labour (Wealth of Nations I.iii); it is also the registry's only SCALE-DEPENDENT term, so founding-size variation reaches the crossing time through it (see Sim.Core/State/Variables.cs). TUNE: 520 sits above the ~350-500 jittered founding sizes, so every settlement must GROW into its artisans."
       }
     ]
   },

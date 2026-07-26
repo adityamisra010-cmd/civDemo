@@ -42,3 +42,19 @@
   stays dead). If a future milestone adds food SHIPMENTS into settlements, a
   trickle into a ruin re-arms viability — revisit the gate when goods movement
   (M3) lands.
+- **BINDING for T3.10** — MalthusLite test power was WEAKENED at T3.1 (was: the
+  population trajectory must cross its long-run mean from above AND below ≥2
+  times each; now ≥1 each). Cause: the worldgen refresh raised carrying
+  capacity world-wide, so one overshoot–correction arc now spans most of the
+  1000-turn campaign (first crash moved ~t255 → ~t820). This is a REAL LOSS OF
+  POWER: one crossing pair cannot distinguish an oscillating system from a
+  single overshoot settling into equilibrium — exactly the distinction the
+  Malthus corridor exists to make. T3.10 MUST restore it, by either a longer
+  horizon that contains ≥2 full cycles, or a rigged higher-pressure config
+  (lower yield / higher fertility / smaller catchment) that produces multiple
+  cycles inside a practical horizon. Do not close T3.10 with the ≥1 bar standing.
+- Extent-of-market: the artisan population threshold (T3.1, `population > 520`
+  in the D-020 emergence predicate) is a LOCAL-DEMAND proxy for market extent.
+  Once trade exists (T3.6), generalize it to trade-connected demand — a
+  settlement joined by cheap transport to neighbours has a larger effective
+  market than its own population implies, which is the actual Smithian claim.
