@@ -88,6 +88,24 @@ public class PriceTests
         throw new InvalidOperationException($"no price-term row for {good}");
     }
 
+    /// <summary>
+    /// THE BAND-EDGE VACUITY GUARD. Every confirmed T3.4 test-power finding had
+    /// one shape: a long horizon runs the price onto a clamp, and the assertion
+    /// then compares two clamp CONSTANTS. 0.05 == 0.05 is true no matter what
+    /// the solver does, so the test passes while asserting nothing.
+    ///
+    /// Call this at every assertion point that compares prices. It fails loudly
+    /// if the value under comparison is resting on a band edge, so a retune or a
+    /// later demand-side packet that moves where prices settle re-surfaces the
+    /// problem automatically instead of silently re-draining the assertions.
+    /// </summary>
+    private static void AssertOffBandEdges(SimConfig cfg, double price, string what)
+    {
+        Assert.True(price > cfg.Price.BandMin * 1.001 && price < cfg.Price.BandMax * 0.999,
+            $"VACUOUS ASSERTION: {what} is resting on a band edge ({price}). "
+            + "Comparing clamp constants proves nothing about the solver.");
+    }
+
     // --- 2. grain is the numeraire --------------------------------------------
 
     [Fact]
@@ -108,6 +126,30 @@ public class PriceTests
         Assert.Equal(0.0, g.Delta);
         Assert.Equal(0.0, g.Consumption);
         Assert.Equal(0.0, g.InputDemand);
+        // The decomposition must report the pin too, not a stale or invented
+        // previous price: PrevPrice + Delta == the written price, on grain as
+        // on everything else.
+        Assert.Equal(1.0, g.PrevPrice);
+        Assert.Equal(Price(w, cfg, "grain"), g.PrevPrice + g.Delta);
+    }
+
+    [Fact]
+    public void Grain_IsPinned_NotMerelyInitialised_ACorruptedPriceIsCorrected()
+    {
+        // PINNED means WRITTEN EVERY TURN. An implementation that only seeds
+        // 1.0 when no row exists passes every "grain == 1" test on a clean run
+        // and silently accepts a corrupted or loaded price forever. Seed a bad
+        // grain price and require the solver to overwrite it on the FIRST step.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = World(cfg,
+            [("grain", 10, 0, 5_000, 50_000)],
+            prices: [("grain", 17.5)]);
+        Assert.Equal(17.5, Price(w, cfg, "grain")); // the corruption is really there
+
+        WorldState next = Step(cfg, w);
+        Assert.Equal(1.0, Price(next, cfg, "grain"));
+        for (int t = 0; t < 50; t++) next = Step(cfg, next);
+        Assert.Equal(1.0, Price(next, cfg, "grain"));
     }
 
     // --- 3. the price responds in the right direction -------------------------
@@ -138,12 +180,20 @@ public class PriceTests
         // test of the RIGHT price rather than of all prices.
         SimConfig cfg = TestConfigs.Sim();
         WorldState w = World(cfg,
-            [("pottery", 0, 1, 0, 500), ("cloth", 100, 100, 0, 100)]);
+            // Cloth is the CONTROL and its fixture is chosen so it settles in
+            // the band INTERIOR: supply and demand balanced, and no stock to
+            // release (a stock of 100 releases 500/turn at dt=10, swamping both
+            // flows and pinning cloth to the floor — which is what made the
+            // original version of this assertion compare 0.05 to 0.05).
+            [("pottery", 0, 1, 0, 500), ("cloth", 0, 100, 0, 100)]);
 
         for (int t = 0; t < 20; t++) w = Step(cfg, w);
         double shocked = Price(w, cfg, "pottery");
         double control = Price(w, cfg, "cloth");
         Assert.True(shocked > 1.5, $"20 turns of severe scarcity only reached {shocked}");
+        // The control must be a live price, not a clamp constant: comparing
+        // BandMin to BandMin later would assert nothing about "the RIGHT price".
+        AssertOffBandEdges(cfg, control, "the control good (cloth)");
 
         // The shock clears: production catches up and a stock accumulates.
         for (int i = 0; i < w.GoodStocks.Count; i++)
@@ -199,6 +249,63 @@ public class PriceTests
                     $"dt={dt}: step {before}→{after} exceeded the rail {bound}");
             }
         }
+    }
+
+    [Fact]
+    public void Rail_BindsOnAModestExcess_WhereTheBandCannotSaturateIt()
+    {
+        // The rail could be DELETED from the shipped source with all 333 tests
+        // green: the existing rail test drives such an enormous excess that the
+        // BAND clamps the price anyway, so removing the rail changes nothing it
+        // measures. This fixture is deliberately modest — the price never
+        // approaches an edge, so the rail is the only thing bounding the step.
+        SimConfig cfg = TestConfigs.Sim();
+        const double dt = 10.0;
+        WorldState w = World(cfg, [("pottery", 0, 1, 0, 500)]);
+
+        bool railEverBound = false;
+        for (int t = 0; t < 6; t++)
+        {
+            double before = t == 0 ? 1.0 : Price(w, cfg, "pottery");
+            w = Step(cfg, w, dt);
+            double after = Price(w, cfg, "pottery");
+            AssertOffBandEdges(cfg, after, $"pottery at turn {t}");
+
+            double bound = cfg.Price.MaxRelativeChangePerYear * before * dt;
+            Assert.True(Math.Abs(after - before) <= bound + 1e-12,
+                $"turn {t}: step {before} → {after} exceeded the rail {bound}");
+            if (Math.Abs(Math.Abs(after - before) - bound) < 1e-9) railEverBound = true;
+        }
+
+        // NON-VACUITY: the rail must actually BIND somewhere in this run, or
+        // the bound above is satisfied trivially and deleting the rail again
+        // goes unnoticed.
+        Assert.True(railEverBound,
+            "the rail never bound — this fixture cannot detect a deleted rail");
+    }
+
+    [Fact]
+    public void Solver_ReadsPrevQuantities_NotThisTurns_OneTurnLagHolds()
+    {
+        // §3.2. If the solver read the CURRENT turn's stocks it would be
+        // partially solving within the turn. Under the full pipeline Production
+        // and Consumption rewrite the demand signals in Next BEFORE Price runs,
+        // so a seeded PREV signal that moves turn-1's price can only have come
+        // from Prev.
+        SimConfig cfg = TestConfigs.Sim();
+        using var pipe = Sim.Data.DataFiles.OpenPipeline();
+        var exec = new TurnExecutor(FlatEra(10.0),
+            PipelineLoader.Load(pipe, SystemCatalog.All(cfg)));
+
+        WorldState seeded = World(cfg, [("pottery", 0, 1, 0, 5_000)]);
+        seeded.Settlements.Add(new SettlementRow(S0, SiteCell: 0, FoundedTurn: 0));
+        WorldState control = World(cfg, [("pottery", 0, 1, 0, 0)]);
+        control.Settlements.Add(new SettlementRow(S0, SiteCell: 0, FoundedTurn: 0));
+
+        WorldState a = exec.Step(seeded), b = exec.Step(control);
+        Assert.True(Price(a, cfg, "pottery") > Price(b, cfg, "pottery"),
+            "the PREV-seeded demand signal did not reach turn 1 — the solver is reading "
+            + "this turn's rewritten stocks instead of Prev");
     }
 
     // --- 4. EXPLAINABILITY ----------------------------------------------------
@@ -412,7 +519,10 @@ public class PriceTests
                 lastConsumptionDemandUnits: 1_000_000));
         }
 
-        for (int t = 0; t < 50; t++) { alone = Step(cfg, alone); paired = Step(cfg, paired); }
+        // SHORT horizon, deliberately: at 50 turns both prices sit on the band
+        // ceiling and the assertion below degenerates to 20.0 == 20.0. The
+        // guard makes that impossible to reintroduce silently.
+        for (int t = 0; t < 8; t++) { alone = Step(cfg, alone); paired = Step(cfg, paired); }
 
         double isolated = Price(alone, cfg, "pottery");
         double withNeighbour = double.NaN;
@@ -420,7 +530,42 @@ public class PriceTests
             if (paired.Prices[i].Settlement == S0 && paired.Prices[i].Good.Value == cfg.Goods!.IdOf("pottery"))
                 withNeighbour = paired.Prices[i].Price;
 
+        AssertOffBandEdges(cfg, isolated, "the isolated settlement's pottery price");
         // EXACT equality — not "close". Coupling of any strength fails here.
         Assert.Equal(isolated, withNeighbour);
+
+        // COVERAGE: settlement 1 must actually have been priced. Without this a
+        // solver that prices only settlement 0 passes the equality above
+        // trivially — 75% of the price table can vanish and nothing notices.
+        double neighbourOwn = double.NaN;
+        for (int i = 0; i < paired.Prices.Count; i++)
+            if (paired.Prices[i].Settlement == s1 && paired.Prices[i].Good.Value == cfg.Goods!.IdOf("pottery"))
+                neighbourOwn = paired.Prices[i].Price;
+        Assert.False(double.IsNaN(neighbourOwn), "settlement 1 was never priced at all");
+        Assert.True(neighbourOwn > 1.0,
+            $"settlement 1 carries a 1,000,000-unit shortage and its price is {neighbourOwn}");
+    }
+
+    [Fact]
+    public void Goods_ArePricedIndependently_NoSimultaneousSystemOverGoods()
+    {
+        // D-033's "no simultaneous system over goods", which until now was
+        // covered by nothing but a golden hash — and CLAUDE.md disqualifies a
+        // golden-only kill. Two worlds differing ONLY in OTHER goods'
+        // quantities must price the good under test bit-identically.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState a = World(cfg, [("pottery", 200, 100, 50, 300)]);
+        WorldState b = World(cfg,
+            [("pottery", 200, 100, 50, 300), ("cloth", 0, 0, 0, 1_000_000),
+             ("stone", 10_000_000, 10_000_000, 0, 0)]);
+
+        for (int t = 0; t < 8; t++) { a = Step(cfg, a); b = Step(cfg, b); }
+
+        double pa = Price(a, cfg, "pottery"), pb = Price(b, cfg, "pottery");
+        AssertOffBandEdges(cfg, pa, "pottery in the control world");
+        Assert.Equal(pa, pb);
+        // Non-vacuity: the other goods really did move, so the invariance above
+        // is a statement about independence and not about a dead fixture.
+        Assert.True(Price(b, cfg, "cloth") > 1.0, "the cloth shock never happened");
     }
 }

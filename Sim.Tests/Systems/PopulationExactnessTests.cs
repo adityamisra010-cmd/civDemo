@@ -572,6 +572,17 @@ public class PopulationExactnessTests
         Assert.Equal(0, next.GoodStocks[0].Amount.Value);
         Assert.Equal(1000, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true));
         Assert.Equal((demand - 1000) / (double)demand, next.ConsumptionDeficits[0].DeficitRatio);
+
+        // T3.4 (D-033): the PRICE SIGNAL is PRE-CLAMP demand, not what was
+        // eaten. This fixture is the only place the two differ — a settlement
+        // that could not buy what it needed — and publishing `eaten` instead of
+        // `demanded` survived the whole suite until this assertion existed.
+        // Getting it wrong would make a famine INVISIBLE to the grain price at
+        // the exact moment scarcity is most real: consumption would appear to
+        // fall to match supply, and excess demand would read zero.
+        Assert.Equal(demand, next.GoodStocks[0].LastConsumptionDemandUnits);
+        Assert.True(next.GoodStocks[0].LastConsumptionDemandUnits > 1000,
+            "the published demand signal collapsed to the clamped amount");
     }
 
     [Fact]

@@ -21,7 +21,7 @@ public sealed record PriceTables(Table<PriceRow> Prices, Table<PriceTermRow> Ter
 ///
 /// THE STEP, per settlement, per good, once per turn:
 ///   excess = consumptionDemand + inputDemand − production − stockRelease
-///   scale  = max(production + stockRelease, MarketScaleFloor)
+///   scale  = max(production + stockRelease, MarketScaleFloorPerYear * dtYears)
 ///   raw    = Lambda × p × (excess / scale) × dtYears
 ///   p'     = clamp(p + clamp(raw, ±MaxRelativeChangePerYear × p × dtYears),
 ///                  BandMin, BandMax)
@@ -117,7 +117,7 @@ public sealed class PriceSystem(SimConfig cfg) : ISimSystem<PriceTables>
                 }
 
                 double stockRelease = p.StockReleaseRatePerYear * stock * ctx.DtYears;
-                double scale = Math.Max(production + stockRelease, p.MarketScaleFloor);
+                double scale = Math.Max(production + stockRelease, p.MarketScaleFloorPerYear * ctx.DtYears);
 
                 // Common factor. Each term below multiplies it by ONE measured
                 // quantity — the property the sensitivity tests exercise.

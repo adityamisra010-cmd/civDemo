@@ -228,7 +228,7 @@ public sealed record ProductionConfig(
 ///
 /// The step, per settlement, per good, once per turn, no global solve ever:
 ///   excess = consumptionDemand + inputDemand − production − stockRelease
-///   scale  = max(production + stockRelease, MarketScaleFloor)
+///   scale  = max(production + stockRelease, MarketScaleFloorPerYear * dtYears)
 ///   p += Lambda × p × (excess / scale) × dtYears
 /// then clamped to MaxRelativeChangePerYear × dtYears, then to the band.
 /// excess/scale is a RATIO of per-turn quantities: both numerator and
@@ -246,11 +246,18 @@ public sealed record ProductionConfig(
 ///   drove the same 100-year horizon to OPPOSITE ENDS of the band at dt = 10
 ///   and dt = 1. That was caught by the dt-invariance test, not by inspection,
 ///   which is the argument for the test existing.
-/// MarketScaleFloor — CHOSEN 1.0 unit. Never derived. Purely a divide-by-zero
-///   guard with a real meaning: a market with no supply at all still has a
-///   finite reference size, so a single unit of unmet demand cannot produce an
-///   unbounded relative excess. It sets where "thin market" stops meaning
-///   anything, and nothing else.
+/// MarketScaleFloorPerYear — CHOSEN 0.1 units per year. Never derived. A
+///   divide-by-zero guard with a real meaning: a market with no supply at all
+///   still has a finite reference size, so a single unit of unmet demand cannot
+///   produce an unbounded relative excess. PER YEAR, integrated with dtYears,
+///   for the reason the rail is: it sits in the DENOMINATOR of excess/scale
+///   whose numerator scales with dt, so a dt-independent constant makes the
+///   ratio dt-DEPENDENT exactly when the floor binds — the one place the
+///   system's own "dimensionless and dt-invariant" claim was false. Found by
+///   the T3.4 dt-determinism lens, confirmed on the pinned tree. At 0.1/yr it
+///   reproduces the previous 1.0 exactly at dt = 10, so the Neolithic band is
+///   unchanged; finer bands now scale with the turn instead of being ten times
+///   too coarse.
 /// StockReleaseRatePerYear — CHOSEN 0.5 per year. Never derived. The fraction
 ///   of a held stock offered to the market per year. Plausibility frame: half a
 ///   granary comes to market within the year, the rest is held as seed corn and
@@ -276,7 +283,7 @@ public sealed record ProductionConfig(
 /// </summary>
 public sealed record PriceConfig(
     [property: JsonPropertyName("lambda"), JsonRequired] double Lambda,
-    [property: JsonPropertyName("marketScaleFloor"), JsonRequired] double MarketScaleFloor,
+    [property: JsonPropertyName("marketScaleFloorPerYear"), JsonRequired] double MarketScaleFloorPerYear,
     [property: JsonPropertyName("stockReleaseRatePerYear"), JsonRequired] double StockReleaseRatePerYear,
     [property: JsonPropertyName("bandMin"), JsonRequired] double BandMin,
     [property: JsonPropertyName("bandMax"), JsonRequired] double BandMax,

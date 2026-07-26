@@ -123,3 +123,18 @@
   that lives only in the goods.json array order and was declared nowhere until ADR-015. T3.4
   should state it as a contract when prices start weighting recipes, since a price-driven
   ordering could silently break the chain the same way proportional rationing did.
+- T3.4 residue, price solver: PriceSystem is O(S^2 * G^2) per turn — FindPrice and the
+  GoodStocks scan are both linear scans nested inside the settlement x good loop. 56 rows today,
+  but ~7.8M row-visits per turn at 200 settlements. Not a law violation and out of T3.4 scope;
+  revisit when settlement counts grow (raised by the T3.4 no-global-solve lens, not raised as a
+  finding).
+- T3.4 residue, Euler under-integration of the price step: over 100 sim-years, dt 10/5/2.5/1
+  give 7.439/8.225/8.694/9.006 — monotone, converging from below, 21% spread. The mandated
+  D-033 form is Euler on a compounding process; exact integration (p *= exp(...)) would remove
+  it and ADR-011 is precedent for making that change deliberately. Bounded by
+  Price_DtSensitivity_IsEulerDiscretization_BoundedAndConverging, flagged for director ruling.
+- T3.4 watch item: the shipped config has Lambda (0.04) > MaxRelativeChangePerYear (0.03), which
+  means the per-step rail saturates before the market-scale floor's arithmetic can matter. A
+  future retune that lowers Lambda below the rail would expose the floor-binding regime to
+  direct scrutiny for the first time. Noted by the no-global-solve lens as a corner it chased
+  and deliberately did not raise.
