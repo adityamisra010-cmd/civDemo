@@ -46,9 +46,15 @@ public static class AssetAudit
             var sb = new StringBuilder();
             sb.AppendLine($"assets root: {Root}");
             int required = Required.Count();
-            string optionalNote = Keys.Count > required
-                ? $" (+{Keys.Count - required} optional variant(s) not provided)"
-                : "";
+            int optionalProvided = Keys.Count(k => k.Optional && k.FileExists && !k.IsPlaceholder);
+            int optionalMissing = Keys.Count(k => k.Optional && !k.FileExists);
+            string optionalNote =
+                (optionalProvided > 0 ? $" (+{optionalProvided} optional variant(s) PROVIDED" : "")
+                + (optionalProvided > 0 && optionalMissing > 0 ? ", " : "")
+                + (optionalMissing > 0
+                    ? (optionalProvided > 0 ? $"{optionalMissing} not provided)"
+                                            : $" (+{optionalMissing} optional variant(s) not provided)")
+                    : (optionalProvided > 0 ? ")" : ""));
             sb.AppendLine(
                 $"art: {PlaceholderCount.ToString(CultureInfo.InvariantCulture)}/" +
                 $"{required.ToString(CultureInfo.InvariantCulture)} PLACEHOLDER, " +

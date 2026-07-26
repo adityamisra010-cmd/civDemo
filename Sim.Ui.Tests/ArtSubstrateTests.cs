@@ -303,23 +303,25 @@ public class ArtSubstrateTests
     }
 
     [Fact]
-    public void AssetLibrary_SingleSheetDrop_ServesEverySeed_FromTheRealPaper()
+    public void AssetLibrary_EverySeed_DrawsOnRealPaper_NeverAPlaceholder()
     {
-        // The director shipped ONE parchment sheet (parchment/parchment.png),
-        // and "all three identical is fine and intended". So every seed must
-        // draw on THAT sheet — and crucially not on a leftover stand-in,
-        // which is what would happen if the renderer still indexed base-N
-        // blindly while only base-0 resolved.
-        AssetLibrary library = AssetLibrary.Load();
-        Assert.Equal(1, library.ParchmentVariantCount);
-        ArtImage sheet = library.ParchmentFor(42);
-        Assert.Same(sheet, library.ParchmentFor(0));
-        Assert.Same(sheet, library.ParchmentFor(7));
-        Assert.Same(sheet, library.ParchmentFor(ulong.MaxValue));
-        // It is the REAL sheet, not the programmatic stand-in.
-        ArtImage stand = PlaceholderArt.Generate(AssetManifest.Require("parchment/base-0"));
-        Assert.False(sheet.Width == stand.Width && sheet.Rgba.AsSpan().SequenceEqual(stand.Rgba),
-            "every seed is drawing on the placeholder sheet, not the director's paper");
+        // The drop-integration contract, stated so it holds for ANY number of
+        // sheets: whatever variants actually resolved, every world seed is
+        // handed REAL paper — never a leftover programmatic stand-in. (Written
+        // when the drop was a single sheet; the director has since added
+        // base1/base2, so the count is read from the library rather than
+        // assumed.)
+        AssetLibrary art = AssetLibrary.Load();
+        Assert.True(art.ParchmentVariantCount >= 1);
+        ArtImage placeholder = PlaceholderArt.Generate(AssetManifest.Require("parchment/base-0"));
+        for (ulong seed = 0; seed < 24; seed++)
+        {
+            ArtImage sheet = art.ParchmentFor(seed);
+            Assert.False(sheet.Rgba.AsSpan().SequenceEqual(placeholder.Rgba),
+                $"seed {seed} was handed the programmatic stand-in instead of real paper");
+            Assert.True(sheet.Width > 256 && sheet.Height > 256,
+                $"seed {seed} drew a {sheet.Width}x{sheet.Height} sheet — that is a stand-in size");
+        }
     }
 
     [Fact]

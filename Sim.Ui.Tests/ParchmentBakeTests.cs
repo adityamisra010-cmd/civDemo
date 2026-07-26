@@ -229,11 +229,29 @@ public class ParchmentBakeTests(ITestOutputHelper output)
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
 
-        // And the shipped single-sheet drop prints every seed on that one sheet.
-        AssetLibrary single = AssetLibrary.Load();
-        Assert.Equal(
-            ParchmentBaker.Bake(terrain, single, 0).Rgba,
-            ParchmentBaker.Bake(terrain, single, 1).Rgba);
+        // And on the SHIPPED drop, the contract is that two seeds landing on
+        // DIFFERENT SHEETS bake differently and two seeds landing on the SAME
+        // sheet bake identically. Stated in terms of sheets, not variant
+        // indices, because a drop may legitimately contain duplicate files:
+        // MEASURED on the current drop, base1.png and base2.png are BYTE-
+        // IDENTICAL (md5 0b9c2ffc…), so variants 1 and 2 are the same paper
+        // and only two DISTINCT sheets exist. Reported to the director; the
+        // renderer is correct either way, so this test asserts what istrue
+        // of any drop rather than assuming three distinct sheets.
+        AssetLibrary shipped = AssetLibrary.Load();
+        for (ulong a = 0; a < 6; a++)
+        {
+            for (ulong b = 0; b < 6; b++)
+            {
+                bool sameSheet = shipped.ParchmentFor(a).Rgba.AsSpan()
+                    .SequenceEqual(shipped.ParchmentFor(b).Rgba);
+                bool sameBake = ParchmentBaker.Bake(terrain, shipped, a).Rgba.AsSpan()
+                    .SequenceEqual(ParchmentBaker.Bake(terrain, shipped, b).Rgba);
+                Assert.True(sameSheet == sameBake,
+                    $"seeds {a}/{b}: same sheet = {sameSheet} but same bake = {sameBake} — " +
+                    "the seed→paper choice is not reaching the bake");
+            }
+        }
     }
 
     [Fact]

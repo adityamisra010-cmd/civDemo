@@ -81,10 +81,17 @@ public static class AssetManifest
         // The primary sheet first: variant 0 accepts parchment.png OR base-0.png.
         entries.Add(new Entry("parchment/base-0", ParchmentPrimary,
             AssetKind.ParchmentBase, Tileable: true, Variant: 0,
-            AlternateFileNames: ["base-0.png"]));
+            AlternateFileNames: ["base-0.png", "base0.png"]));
+        // UNHYPHENATED ALIASES (third occurrence of this failure class, after
+        // deepsea.png and header-rule.png.jpg): the director's variant sheets
+        // arrived as base1.png / base2.png while the manifest asked for
+        // base-1.png / base-2.png, so 4.9 MB of real paper sat orphaned and
+        // every seed kept drawing on the primary sheet. The audit named them;
+        // an alias costs nothing and closes the class for good.
         for (int v = 1; v < ParchmentVariants; v++)
             entries.Add(new Entry($"parchment/base-{v}", $"parchment/base-{v}.png",
-                AssetKind.ParchmentBase, Tileable: true, Variant: v));
+                AssetKind.ParchmentBase, Tileable: true, Variant: v,
+                AlternateFileNames: [$"base{v}.png"]));
         entries.Add(new Entry("parchment/grain", "parchment/grain.png", AssetKind.Grain, Tileable: true));
 
         for (int c = 0; c < ParchmentPalette.TerrainClassCount; c++)
