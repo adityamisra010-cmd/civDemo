@@ -44,24 +44,37 @@ This is the test of whether the format earns its cost. Against the actual T3.2b 
 |---|---|---|
 | `yieldPerFarmlandPerYear` denominated per 256 km² node, consumed as per-km² | **1(b)** | the audit asks the same question at both ends of the pipe; the producer wrote nodes, the consumer multiplied as km² |
 | the constant was never derived | **1(c)** | traceable, and the trace is the finding: `40.0` appears bare at T1.5 (`0e63cb8`), becomes `28.0` at T1.6 (`7ddf7a8`) in a retune taken *only* so "the no-order production rate is unchanged". Neither step derived anything |
-| `CatchmentSystem.TravelBudget = 15.0` invisible to tuning | **1(a)** | it is in scope by DEPENDENCY (it reaches M3's systems through `EffectiveArableKm2`), and "15 cost units" fails 1(a) because the required answer is in REAL units — asking "which is how many km?" yields 240 km ideal-ground and surfaces the whole problem |
+| `CatchmentSystem.TravelBudget = 15.0` invisible to tuning | **1(a) + 1(d)** | in scope by DEPENDENCY (it reaches M3's systems through `EffectiveArableKm2`). 1(a) is answerable — "15 cost units" converts to 240 km ideal-ground — and it is the (a) plausibility half that then bites: 240 km is indefensible against any historical catchment. Its LOCATION is the separate catch: 1(d) flags a code literal invisible to tuning as a finding in its own right |
 | `harvest = arable × yield` could not be dimension-checked | **2** | T1.5 declared the numerator ("1 food = 1 person-year, D-015") but `EffectiveFarmland` — introduced at T1.4 — never declared a unit at all, so the balance check was not failed, it was UNPERFORMABLE. Requirement 2 forces the declaration that makes it performable |
 | the proposed 0.12 density floor, self-referential via the cancellation identity | **3** | the bound and the measurement share `s̄`; cancelling shows the sim term disappears |
 | nine downstream test failures discovered one at a time | **4** | the coupling map lists catchment/farming's dependents before the work starts |
 
-Six for six — but note that two of the rows were initially scored wrong in drafting and only
-survived once checked against git history and the T1.5 sources, which is itself a small argument for
-the format: the audit questions are answerable, and answering them properly changes the answer.
+Six for six — with two honesty notes. First, two of the rows were initially scored wrong in
+drafting and only survived once checked against git history and the T1.5 sources — itself a small
+argument for the format: the audit questions are answerable, and answering them properly changes
+the answer. Second, rows 1, 2 and 4 trace to ONE underlying fault (one field, one constant, one
+equation) seen through three different requirements; the table demonstrates coverage of the
+recorded findings, not six independent faults.
 
 ## 4. Blast radius
 
-**Docs:** S8 §4 gains §4.1. The M4 spec, when written, gains one packet (`T4.1`) and two short
+**Docs:** S8 §4 gains §4.1; S8 §6's CLAUDE.md patch block and CLAUDE.md itself gain one line each
+(the inheritance mechanism — a rule recorded only in S8 reaches no one, because CLAUDE.md is what
+every agent actually reads and it made S8 conditional reading). S8 §5's "next permitted document"
+line was also corrected under this same override: it still named the M1 spec three milestones after
+M1 closed, and it now points at CLAUDE.md's current-milestone line instead of naming any milestone,
+so it can never go stale again. The M4 spec, when written, gains one packet (`T4.1`) and two short
 sections. No existing spec changes — M0–M3 are written and M3 is mid-flight, so retro-fitting would
 violate the same "don't rewrite ratified specs" instinct the freeze exists to protect.
 
-**Tests:** none. This is a spec-authoring obligation, not a runtime or CI gate. Deliberately: the
-ruling explicitly declines to add further process gates, and a lint that checked for the presence
-of four section headings would measure compliance rather than thought.
+**Tests:** none in CI — a lint that checked for the presence of four section headings would measure
+compliance rather than thought. But "no CI gate" is not "no teeth": `T(n).1` carries an explicit
+acceptance form in §4.1 — a written table, one row per in-scope quantity, every row answering
+(a)–(d) explicitly, "never derived" stated rather than omitted, no unexplained omissions — because
+an audit that can pass by silence is not an audit. That is enforcement through the gate every other
+packet already uses (CLAUDE.md: definition of done = the packet's stated acceptance criteria), so
+it adds no process. This reconciles with ADR-013 §2's "a convention nobody can fail is not a fix":
+the failable artifact here is the table, adjudicated by the director.
 
 **Code:** none.
 
@@ -89,8 +102,11 @@ measurement, and an audit that returns "all clean" is evidence about paper, not 
 ## 6. Consequences
 
 - The next spec written is M4's, per S8 §4 (after M3's exit gate). It is the first to carry §4.1.
-- The foundations-audit packet is a normal packet: it has acceptance criteria, its findings are
-  evidence, and a genuine conflict it turns up opens a CR under §3 like any other. It gains no new
+- The foundations-audit packet is a normal packet: its acceptance criteria are the §4.1 table form
+  (one row per in-scope quantity, (a)–(d) answered explicitly, no silence), its findings are
+  evidence, and a genuine conflict it turns up opens a CR under §3 like any other. Dispositions are
+  fixed in §4.1 so the packet can close: (b) mismatches → CR; impossible magnitudes → escalate
+  before dependents build; untraceable-but-consistent → recorded and queued, NOT corrected. It gains no new
   authority beyond that — an earlier draft of §4.1 gave it a standing mandate to correct
   untraceable constants in-packet, which the ruling did not grant and which is exactly the kind of
   added process the ruling's closing paragraph excludes. Removed.
