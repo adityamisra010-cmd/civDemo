@@ -5,6 +5,7 @@ using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
+using Sim.Core.Systems.Price;
 using Sim.Core.Systems.Production;
 using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Migration;
@@ -105,6 +106,15 @@ public static class SystemCatalog
                 ConsumptionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    public static SystemRegistration Price(SimConfig cfg)
+    {
+        var system = new PriceSystem(cfg);
+        return new SystemRegistration(PriceSystem.WellKnownId, PriceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<PriceTables>(
+                prev, new PriceTables(next.Prices, next.PriceTerms), rng,
+                PriceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Demographics(SimConfig cfg)
     {
         var system = new DemographicsSystem(cfg);
@@ -180,6 +190,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(cfg), Production(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
+        [Catchment(cfg), Production(cfg), Consumption(cfg), Price(cfg), ClassMobility(cfg), Migration(cfg),
          Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

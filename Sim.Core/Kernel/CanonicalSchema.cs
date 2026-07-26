@@ -41,8 +41,12 @@ public static class CanonicalSchema
     /// v14 (T3.3, D-032): LaborAllocationRow (Settlement + FarmShare) becomes
     /// SectorAllocationRow (Settlement + five sector weights) — the farm/path
     /// pair generalizes to farming/herding/extraction/crafting/construction.
-    /// Row width 12 → 44; the table's position in the stream is unchanged.</summary>
-    public const int Version = 14;
+    /// Row width 12 → 44; the table's position in the stream is unchanged.
+    /// v15 (T3.4, D-033): GoodStockRow gains LastInputDemandUnits and
+    /// LastConsumptionDemandUnits (the two observational demand signals the
+    /// price solver reads); Prices and PriceTerms tables appended after
+    /// SmoothedAttractiveness.</summary>
+    public const int Version = 15;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -59,7 +63,7 @@ public static class CanonicalSchema
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
-    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8;   // Settlement, Good, Amount, 2 remainder bit-fields, LastProducedUnits (v13)
+    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     // T3.3 (D-032): Settlement + five sector weights (was Settlement + FarmShare).
@@ -73,6 +77,8 @@ public static class CanonicalSchema
     private const int NeedSatisfactionRowWidth = 4 + 4 + 4 + 8;     // Settlement, Class, NeedId, Value bits (v11)
     private const int GrievanceRowWidth = 4 + 4 + 8;                // Settlement, Class, Value bits (v11)
     private const int SmoothedAttractivenessRowWidth = 4 + 8;       // Settlement, Value bits (v12)
+    private const int PriceRowWidth = 4 + 4 + 8;                    // Settlement, Good, Price bits (v15)
+    private const int PriceTermRowWidth = 4 + 4 + 8 * 7;            // Settlement, Good, 7 double bit-fields (v15)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -238,6 +244,8 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.ProduceRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.ConsumeRemainder));
             writer.Write(row.LastProducedUnits);
+            writer.Write(row.LastInputDemandUnits);
+            writer.Write(row.LastConsumptionDemandUnits);
         }
         writer.Write(world.Deposits.Count);
         for (int i = 0; i < world.Deposits.Count; i++)
@@ -360,6 +368,30 @@ public static class CanonicalSchema
             SmoothedAttractivenessRow row = world.SmoothedAttractiveness[i];
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
+
+        // 28. Prices + price-term decomposition (v15, T3.4)
+        writer.Write(world.Prices.Count);
+        for (int i = 0; i < world.Prices.Count; i++)
+        {
+            PriceRow row = world.Prices[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Price));
+        }
+        writer.Write(world.PriceTerms.Count);
+        for (int i = 0; i < world.PriceTerms.Count; i++)
+        {
+            PriceTermRow row = world.PriceTerms[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.PrevPrice));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Consumption));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.InputDemand));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Production));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.StockRelease));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Clamp));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Delta));
         }
     }
 
@@ -506,6 +538,8 @@ public static class CanonicalSchema
                 settlement, good, Conserved.FromSnapshot(amount),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt64(),
+                reader.ReadInt64(),
                 reader.ReadInt64()));
         }
         int depositCount = reader.ReadInt32();
@@ -610,6 +644,27 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int priceCount = reader.ReadInt32();
+        for (int i = 0; i < priceCount; i++)
+        {
+            world.Prices.Add(new PriceRow(
+                new SettlementId(reader.ReadInt32()), new GoodId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+        int priceTermCount = reader.ReadInt32();
+        for (int i = 0; i < priceTermCount; i++)
+        {
+            world.PriceTerms.Add(new PriceTermRow(
+                new SettlementId(reader.ReadInt32()), new GoodId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -646,5 +701,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.SettlementVitals.Count * SettlementVitalsRowWidth
         + CountPrefixWidth + (long)world.NeedSatisfactions.Count * NeedSatisfactionRowWidth
         + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth
-        + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth;
+        + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth
+        + CountPrefixWidth + (long)world.Prices.Count * PriceRowWidth
+        + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth;
 }

@@ -173,7 +173,9 @@ public struct BucketRow(
 public struct GoodStockRow(
     SettlementId settlement, GoodId good, Conserved amount,
     double produceRemainder, double consumeRemainder,
-    long lastProducedUnits = 0) : IEquatable<GoodStockRow>
+    long lastProducedUnits = 0,
+    long lastInputDemandUnits = 0,
+    long lastConsumptionDemandUnits = 0) : IEquatable<GoodStockRow>
 {
     public SettlementId Settlement = settlement;
     public GoodId Good = good;
@@ -182,11 +184,28 @@ public struct GoodStockRow(
     public double ConsumeRemainder = consumeRemainder;
     public long LastProducedUnits = lastProducedUnits;
 
+    /// <summary>T3.4 (D-033): units of this good that RECIPES WANTED this turn,
+    /// before any input cap bound — the input-demand term of excess demand.
+    /// Observational, never a stock. WANTED, not consumed: a good that is
+    /// scarce must still register the demand that went unmet, or its price can
+    /// never rise to reflect the scarcity. Zeroed every turn like
+    /// LastProducedUnits (T3.3 precedent: a stale observational field reads as
+    /// a live one).</summary>
+    public long LastInputDemandUnits = lastInputDemandUnits;
+
+    /// <summary>T3.4 (D-033): PRE-CLAMP consumption demand for this good this
+    /// turn — the consumption term of excess demand. Pre-clamp for the same
+    /// reason as above: what a starving settlement could not buy is exactly the
+    /// signal that should move the price.</summary>
+    public long LastConsumptionDemandUnits = lastConsumptionDemandUnits;
+
     public readonly bool Equals(GoodStockRow other) =>
         Settlement == other.Settlement && Good == other.Good && Amount == other.Amount
         && ProduceRemainder.Equals(other.ProduceRemainder)
         && ConsumeRemainder.Equals(other.ConsumeRemainder)
-        && LastProducedUnits == other.LastProducedUnits;
+        && LastProducedUnits == other.LastProducedUnits
+        && LastInputDemandUnits == other.LastInputDemandUnits
+        && LastConsumptionDemandUnits == other.LastConsumptionDemandUnits;
     public override readonly bool Equals(object? obj) => obj is GoodStockRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
 }
@@ -331,6 +350,41 @@ public record struct MigrationFlowRow(SettlementId Settlement, long Inflow, long
 public record struct SmoothedAttractivenessRow(SettlementId Settlement, double Value);
 
 /// <summary>
+/// T3.4 (D-033): the price of one good in one settlement, in GRAIN units —
+/// grain is the numeraire and its own price is pinned at exactly 1.0. Prices
+/// are ratios, so `double` (law 7); they are NOT conserved and never move
+/// through the Ledger.
+/// </summary>
+public record struct PriceRow(SettlementId Settlement, GoodId Good, double Price);
+
+/// <summary>
+/// T3.4 (D-033) EXPLAINABILITY — the glass-box law made real. One row per
+/// (settlement, good) per turn recording WHY the price moved, decomposed into
+/// the four excess-demand terms plus the clamp.
+///
+/// The four economic terms are each computed from a DIFFERENT measured input
+/// (consumption demand, recipe input demand, production, stock release) sharing
+/// only the common factor k = lambda * price * dtYears / marketScale. That is
+/// what makes the decomposition falsifiable rather than decorative: attributing
+/// a term to the wrong input changes how it RESPONDS to a perturbation of that
+/// input, which is what the per-term sensitivity tests measure. A sum check
+/// alone cannot see a permuted label, so the sum check is necessary and is
+/// never the only check (director ruling, docs/t3.4-lens-manifest.md).
+///
+/// INVARIANT: Consumption + InputDemand + Production + StockRelease + Clamp
+/// == Delta, and PrevPrice + Delta == the new PriceRow.Price.
+/// </summary>
+public record struct PriceTermRow(
+    SettlementId Settlement, GoodId Good,
+    double PrevPrice,
+    double Consumption,
+    double InputDemand,
+    double Production,
+    double StockRelease,
+    double Clamp,
+    double Delta);
+
+/// <summary>
 /// Per-settlement vital counts for the turn just computed (T2.6, owned by
 /// DemographicsSystem; rebuilt each turn): Births = the Births flow credited,
 /// Deaths = base deaths PLUS starvation sunk, DtYears = the dt they occurred
@@ -414,6 +468,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<NeedSatisfactionRow> NeedSatisfactions { get; }
     IReadOnlyTable<GrievanceRow> Grievances { get; }
     IReadOnlyTable<SmoothedAttractivenessRow> SmoothedAttractiveness { get; }
+    IReadOnlyTable<PriceRow> Prices { get; }
+    IReadOnlyTable<PriceTermRow> PriceTerms { get; }
 }
 
 /// <summary>
@@ -514,6 +570,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-settlement EMA-smoothed attractiveness (T2.8) — owned by MigrationSystem.</summary>
     public Table<SmoothedAttractivenessRow> SmoothedAttractiveness { get; }
 
+    /// <summary>Per-(settlement, good) price in grain units (T3.4) — owned by PriceSystem.</summary>
+    public Table<PriceRow> Prices { get; }
+
+    /// <summary>Per-(settlement, good) price-change decomposition (T3.4) — owned by PriceSystem.</summary>
+    public Table<PriceTermRow> PriceTerms { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -540,6 +602,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<NeedSatisfactionRow> IReadOnlyWorldState.NeedSatisfactions => NeedSatisfactions;
     IReadOnlyTable<GrievanceRow> IReadOnlyWorldState.Grievances => Grievances;
     IReadOnlyTable<SmoothedAttractivenessRow> IReadOnlyWorldState.SmoothedAttractiveness => SmoothedAttractiveness;
+    IReadOnlyTable<PriceRow> IReadOnlyWorldState.Prices => Prices;
+    IReadOnlyTable<PriceTermRow> IReadOnlyWorldState.PriceTerms => PriceTerms;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -570,6 +634,8 @@ public sealed class WorldState : IReadOnlyWorldState
         NeedSatisfactions = new Table<NeedSatisfactionRow>();
         Grievances = new Table<GrievanceRow>();
         SmoothedAttractiveness = new Table<SmoothedAttractivenessRow>();
+        Prices = new Table<PriceRow>();
+        PriceTerms = new Table<PriceTermRow>();
     }
 
     private WorldState(
@@ -585,7 +651,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<VariableRow> variables, Table<ClassStateRow> classStates,
         Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
-        Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness)
+        Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness,
+        Table<PriceRow> prices, Table<PriceTermRow> priceTerms)
     {
         Seed = seed;
         Clock = clock;
@@ -615,6 +682,8 @@ public sealed class WorldState : IReadOnlyWorldState
         NeedSatisfactions = needSatisfactions;
         Grievances = grievances;
         SmoothedAttractiveness = smoothedAttractiveness;
+        Prices = prices;
+        PriceTerms = priceTerms;
     }
 
     /// <summary>
@@ -630,7 +699,7 @@ public sealed class WorldState : IReadOnlyWorldState
             ConsumptionDeficits.Clone(), SectorAllocations.Clone(), PathProgress.Clone(),
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
-            SmoothedAttractiveness.Clone())
+            SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
