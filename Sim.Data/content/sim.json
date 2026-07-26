@@ -158,12 +158,18 @@
     ]
   },
   "mobility": {
+    "_doc": "T3.3 DEMOLITION: toolYieldBonusCap/Slope and constructionLaborWeight DELETED (m3 spec 1, mandated). Tools are a real good consumed by farmers (see production); sector labor pools are class-blind shares of the adult workforce (D-032).",
     "promoteRatePerYear": 0.08,
     "famineDemoteRatePerYear": 2.0,
     "targetShareSlope": 0.2,
-    "targetShareCap": 0.2,
-    "toolYieldBonusCap": 0.3,
-    "toolYieldBonusSlope": 3.0,
-    "constructionLaborWeight": 1.0
+    "targetShareCap": 0.2
+  },
+  "production": {
+    "_doc": "T3.3 (D-032). ALL CHOSEN, not derived - stated per S8 4.1(c); each value's real-world meaning and plausibility frame is in ProductionConfig's doc. outputPerHerderPerYear: food units per herder-year at deposit 1.0 (3.0 - below the farmer's 5.0, above self-subsistence 1.0). outputPerExtractorPerYear: raw-good units per extractor-year at deposit 1.0 (4.0 - sized against recipe input demands). toolsPerFarmerToEquip: 1.0 (one man, one tool set). toolYieldBonusMax: labor-side factor 1 + bonus x equipRatio at full equipment (0.3 - magnitude carried from the retired scaffold cap; mechanism new: real stock per farmer, not a class share). toolWearPerEquippedFarmerPerYear: 0.1 (a tool set lasts ~10 working years).",
+    "outputPerHerderPerYear": 3.0,
+    "outputPerExtractorPerYear": 4.0,
+    "toolsPerFarmerToEquip": 1.0,
+    "toolYieldBonusMax": 0.3,
+    "toolWearPerEquippedFarmerPerYear": 0.1
   }
 }

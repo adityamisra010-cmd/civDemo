@@ -21,7 +21,7 @@ public class PipelineLoaderTests
         var pipeline = PipelineLoader.Load(stream, Available);
         Assert.Equal(8, pipeline.Length);
         Assert.Equal("catchment", pipeline[0].Name);
-        Assert.Equal("farming", pipeline[1].Name);
+        Assert.Equal("production", pipeline[1].Name);
         Assert.Equal("consumption", pipeline[2].Name);
         Assert.Equal("classmobility", pipeline[3].Name);  // T2.2, spec §3 pipeline order
         Assert.Equal("migration", pipeline[4].Name);      // T2.5, spec §3 pipeline order
@@ -48,7 +48,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, farming, consumption, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, trade",
+            "known systems: catchment, production, consumption, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, trade",
             e.Message);
     }
 

@@ -22,7 +22,7 @@ public static class CanonicalSchema
     /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.
     /// v4 (T1.4): Settlements, NetworkMeta, CatchmentNodes, CatchmentSummaries after NetworkEdges.
     /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.
-    /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.
+    /// v6 (T1.6): SectorAllocations, PathProgress after ConsumptionDeficits.
     /// v7 (T2.1, D-026): Buckets (settlement, culture, religion, class, cohort)
     /// replaces PopBands in the same stream position.
     /// v8 (T2.2, D-020): BucketRow gains MobilityRemainder, FoodStoreRow gains
@@ -35,10 +35,14 @@ public static class CanonicalSchema
     /// v11 (T2.6, D-018/D-021): SettlementVitals, NeedSatisfactions and
     /// Grievances tables appended after MigrationFlows.
     /// v12 (T2.8, migration stabilization): SmoothedAttractiveness table
+    /// appended after Grievances (the EMA filter state).
     /// v13 (T3.2, D-031): FoodStores REPLACED by GoodStocks (per settlement ×
     /// good; grain carries the migrated FoodStore) + the Deposits table.
-    /// appended after Grievances (the EMA filter state).</summary>
-    public const int Version = 13;
+    /// v14 (T3.3, D-032): LaborAllocationRow (Settlement + FarmShare) becomes
+    /// SectorAllocationRow (Settlement + five sector weights) — the farm/path
+    /// pair generalizes to farming/herding/extraction/crafting/construction.
+    /// Row width 12 → 44; the table's position in the stream is unchanged.</summary>
+    public const int Version = 14;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -58,7 +62,8 @@ public static class CanonicalSchema
     private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8;   // Settlement, Good, Amount, 2 remainder bit-fields, LastProducedUnits (v13)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
-    private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
+    // T3.3 (D-032): Settlement + five sector weights (was Settlement + FarmShare).
+    private const int SectorAllocationRowWidth = 4 + 8 + 8 + 8 + 8 + 8;
     private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
     private const int VariableRowWidth = 4 + 4 + 8;                 // Settlement, VarId, Value bits (v8)
     private const int ClassStateRowWidth = 4 + 4 + 4;               // Settlement, Class, Active (v8)
@@ -253,13 +258,17 @@ public static class CanonicalSchema
             writer.Write(row.DemandUnits);
         }
 
-        // 18. Labor allocations (v6)
-        writer.Write(world.LaborAllocations.Count);
-        for (int i = 0; i < world.LaborAllocations.Count; i++)
+        // 18. Sector allocations (v6; widened to five sectors at v14, T3.3/D-032)
+        writer.Write(world.SectorAllocations.Count);
+        for (int i = 0; i < world.SectorAllocations.Count; i++)
         {
-            LaborAllocationRow row = world.LaborAllocations[i];
+            SectorAllocationRow row = world.SectorAllocations[i];
             writer.Write(row.Settlement.Value);
-            writer.Write(BitConverter.DoubleToInt64Bits(row.FarmShare));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Farming));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Herding));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Extraction));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Crafting));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Construction));
         }
 
         // 19. Path progress (v6)
@@ -363,6 +372,10 @@ public static class CanonicalSchema
     /// world had no terrain). Terrain itself is not in the stream (ADR-008) — the
     /// caller regenerates it from seed + config and must match this hash
     /// (Snapshot.Load enforces it).
+    /// v14 (T3.3, D-032): LaborAllocationRow (Settlement + FarmShare) becomes
+    /// SectorAllocationRow (Settlement + five sector weights) — the farm/path
+    /// pair generalizes to farming/herding/extraction/crafting/construction.
+    /// Row width 12 → 44; the table's position in the stream is unchanged.
     /// </summary>
     public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash)
     {
@@ -516,8 +529,12 @@ public static class CanonicalSchema
         int allocCount = reader.ReadInt32();
         for (int i = 0; i < allocCount; i++)
         {
-            world.LaborAllocations.Add(new LaborAllocationRow(
+            world.SectorAllocations.Add(new SectorAllocationRow(
                 new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
@@ -620,7 +637,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.GoodStocks.Count * GoodStockRowWidth
         + CountPrefixWidth + (long)world.Deposits.Count * DepositRowWidth
         + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
-        + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
+        + CountPrefixWidth + (long)world.SectorAllocations.Count * SectorAllocationRowWidth
         + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth
         + CountPrefixWidth + (long)world.Variables.Count * VariableRowWidth
         + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth

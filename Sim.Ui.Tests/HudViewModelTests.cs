@@ -78,7 +78,7 @@ public class HudViewModelTests
         TurnExecutor exec = Executor(cfg, loaded);
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         for (int t = 1; t <= 3; t++) world = exec.Step(world);
-        Assert.Equal(0.5, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.5, world.SectorAllocations[0].Farming);
     }
 
     // --- HUD numbers from a founded state ------------------------------------

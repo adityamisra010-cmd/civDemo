@@ -231,12 +231,12 @@ public class SelectionTests
         session.EndTurn(); // both orders deliver on the very next End Turn
 
         double share1 = -1, share2 = -1, share3 = -1;
-        for (int i = 0; i < session.World.LaborAllocations.Count; i++)
+        for (int i = 0; i < session.World.SectorAllocations.Count; i++)
         {
-            LaborAllocationRow row = session.World.LaborAllocations[i];
-            if (row.Settlement.Value == 1) share1 = row.FarmShare;
-            if (row.Settlement.Value == 2) share2 = row.FarmShare;
-            if (row.Settlement.Value == 3) share3 = row.FarmShare;
+            SectorAllocationRow row = session.World.SectorAllocations[i];
+            if (row.Settlement.Value == 1) share1 = row.Farming;
+            if (row.Settlement.Value == 2) share2 = row.Farming;
+            if (row.Settlement.Value == 3) share3 = row.Farming;
         }
         Assert.Equal(0.30, share1);
         Assert.Equal(0.70, share2);

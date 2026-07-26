@@ -94,7 +94,7 @@ public class FoundedHarnessTests
         // Anti-vacuity (adversarial pass): prove the ORDERS actually fired —
         // the last SessionLog order (45%) must be the live allocation. Edges
         // alone can't prove it (path labor exists without orders too).
-        Assert.Equal(0.45, a.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.45, a.SectorAllocations[0].Farming);
         Assert.True(a.NetworkEdges.Count > 0, "ordered run built nothing — vacuous twin");
     }
 
@@ -168,7 +168,7 @@ public class FoundedHarnessTests
         TurnExecutor exec = FreshExecutor(ResumeLog());
         WorldState uninterrupted = FreshFounded();
         for (int t = 1; t <= saveAt; t++) uninterrupted = exec.Step(uninterrupted);
-        Assert.Equal(0.60, uninterrupted.LaborAllocations[0].FarmShare); // turn-235 order landed pre-save
+        Assert.Equal(0.60, uninterrupted.SectorAllocations[0].Farming); // turn-235 order landed pre-save
 
         // ANTI-VACUITY (adversarial pass): the boundary crossing is ASSERTED,
         // not narrated — era-pacing.json is TUNE data, and a retune that
@@ -199,9 +199,9 @@ public class FoundedHarnessTests
             Assert.Equal(WorldHash.ComputeHex(uninterrupted), WorldHash.ComputeHex(loaded));
             // Turn-exact delivery pins on the RESUMED branch (both branches
             // are hash-equal, so pinning one pins both).
-            if (t == 246) Assert.Equal(0.80, loaded.LaborAllocations[0].FarmShare);
-            if (t == 270) Assert.Equal(0.80, loaded.LaborAllocations[0].FarmShare); // not yet
-            if (t == 271) Assert.Equal(0.35, loaded.LaborAllocations[0].FarmShare); // post-gate order lands
+            if (t == 246) Assert.Equal(0.80, loaded.SectorAllocations[0].Farming);
+            if (t == 270) Assert.Equal(0.80, loaded.SectorAllocations[0].Farming); // not yet
+            if (t == 271) Assert.Equal(0.35, loaded.SectorAllocations[0].Farming); // post-gate order lands
         }
         Assert.Equal(5.0 * SimClock.YearDays, loaded.Clock.DtDays); // Bronze dt REACHED — the crossing happened
     }

@@ -61,11 +61,11 @@ public sealed record HudModel(
                     break;
                 }
             }
-            for (int i = 0; i < world.LaborAllocations.Count; i++)
+            for (int i = 0; i < world.SectorAllocations.Count; i++)
             {
-                if (world.LaborAllocations[i].Settlement == selected)
+                if (world.SectorAllocations[i].Settlement == selected)
                 {
-                    farmShare = world.LaborAllocations[i].FarmShare;
+                    farmShare = world.SectorAllocations[i].Farming;
                     break;
                 }
             }

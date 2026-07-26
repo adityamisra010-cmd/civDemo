@@ -5,7 +5,7 @@ using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
-using Sim.Core.Systems.Farming;
+using Sim.Core.Systems.Production;
 using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Migration;
 using Sim.Core.Systems.NeedsGrievance;
@@ -70,12 +70,12 @@ public static class SystemCatalog
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
-    public static SystemRegistration Farming(SimConfig cfg)
+    public static SystemRegistration Production(SimConfig cfg)
     {
-        var system = new FarmingSystem(cfg);
-        return new SystemRegistration(FarmingSystem.WellKnownId, FarmingSystem.Name,
-            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<FarmingTables>(
-                prev, new FarmingTables(next.GoodStocks), rng, FarmingSystem.WellKnownId,
+        var system = new ProductionSystem(cfg);
+        return new SystemRegistration(ProductionSystem.WellKnownId, ProductionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ProductionTables>(
+                prev, new ProductionTables(next.GoodStocks), rng, ProductionSystem.WellKnownId,
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -152,7 +152,7 @@ public static class SystemCatalog
         var system = new PathBuildSystem(cfg);
         return new SystemRegistration(PathBuildSystem.WellKnownId, PathBuildSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<PathBuildTables>(
-                prev, new PathBuildTables(next.LaborAllocations, next.PathProgress,
+                prev, new PathBuildTables(next.SectorAllocations, next.PathProgress,
                     next.NetworkNodes, next.NetworkEdges, next.NetworkMeta), rng,
                 PathBuildSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
@@ -163,6 +163,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(cfg), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
+        [Catchment(cfg), Production(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
          Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

@@ -18,17 +18,23 @@ public static class OrderValidation
         for (int i = 0; i < orders.Count; i++)
         {
             OrderRecord record = orders[i];
-            if (record.Kind != OrderKind.LaborAllocation) continue;
+            if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation)) continue;
+
+            // T3.3: SectorAllocation packs (settlement × 8 + sector) into
+            // TargetId — decode before the existence check (sector range is
+            // already load-validated).
+            int settlementId = record.Kind == OrderKind.SectorAllocation
+                ? record.TargetId >> 3 : record.TargetId;
 
             bool found = false;
             for (int s = 0; s < world.Settlements.Count; s++)
             {
-                if (world.Settlements[s].Id.Value == record.TargetId) { found = true; break; }
+                if (world.Settlements[s].Id.Value == settlementId) { found = true; break; }
             }
             if (!found)
                 throw new OrderValidationException(
-                    $"order[{i}] (turn {record.Turn}): LaborAllocation targets settlement " +
-                    $"{record.TargetId}, which does not exist in this world " +
+                    $"order[{i}] (turn {record.Turn}): {record.Kind} targets settlement " +
+                    $"{settlementId}, which does not exist in this world " +
                     $"({world.Settlements.Count} settlement(s)). Toy worlds have none — " +
                     "labor orders need a founded world.");
         }

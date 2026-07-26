@@ -11,14 +11,14 @@ namespace Sim.Core.Systems.PathBuild;
 /// edges, and the revision counter (worldgen only initializes revision 0).
 /// </summary>
 public readonly record struct PathBuildTables(
-    Table<LaborAllocationRow> Allocations, Table<PathProgressRow> Progress,
+    Table<SectorAllocationRow> Allocations, Table<PathProgressRow> Progress,
     Table<NetworkNodeRow> Nodes, Table<NetworkEdgeRow> Edges, Table<NetworkMetaRow> Meta);
 
 /// <summary>
 /// PathBuild (T1.6) — the player's hand touches the world. Two jobs, in order:
 ///
 /// 1. ORDER CONSUMPTION: each LaborAllocationOrder in this turn's batch upserts
-///    the target settlement's LaborAllocations row (FarmShare = Amount/100),
+///    the target settlement's SectorAllocations row (D-032 sector weights),
 ///    applied in log order — the last order for a settlement in a turn wins.
 ///    Farming and this system's own accrual read the row from PREV (§3.2), so
 ///    an order steers yields exactly one turn after it lands.
@@ -71,10 +71,40 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         for (int o = 0; o < ctx.Orders.Count; o++)
         {
             OrderRecord order = ctx.Orders[o];
-            if (order.Kind != OrderKind.LaborAllocation) continue;
-            if (!SettlementExists(prev, order.TargetId)) continue;
-            Upsert(ctx.Owned.Allocations, new LaborAllocationRow(
-                new SettlementId(order.TargetId), order.Amount / 100.0));
+            switch (order.Kind)
+            {
+                // LEGACY (T1.6) — kept live so every M1/M2 order log and the
+                // first-reign fixture replay UNCHANGED IN MEANING: farm pct
+                // maps to farming, the remainder to construction, other
+                // sectors zeroed. That is exactly the old two-way split.
+                case OrderKind.LaborAllocation:
+                {
+                    if (!SettlementExists(prev, order.TargetId)) continue;
+                    double farm = order.Amount / 100.0;
+                    Upsert(ctx.Owned.Allocations, new SectorAllocationRow(
+                        new SettlementId(order.TargetId), Farming: farm, Herding: 0.0,
+                        Extraction: 0.0, Crafting: 0.0, Construction: 1.0 - farm));
+                    break;
+                }
+                // T3.3 (D-032): one sector's raw weight, packed target id.
+                case OrderKind.SectorAllocation:
+                {
+                    int settlementId = order.TargetId >> 3;
+                    int sector = order.TargetId & 7;
+                    if (!SettlementExists(prev, settlementId)) continue;
+                    var id = new SettlementId(settlementId);
+                    SectorAllocationRow row = Sectors.Default(id);
+                    for (int i = 0; i < ctx.Owned.Allocations.Count; i++)
+                    {
+                        if (ctx.Owned.Allocations[i].Settlement == id)
+                        { row = ctx.Owned.Allocations[i]; break; }
+                    }
+                    Upsert(ctx.Owned.Allocations,
+                        Sectors.With(row, sector, order.Amount / 100.0));
+                    break;
+                }
+                default: continue;
+            }
         }
 
         // 2. Build loop — needs terrain (toy worlds stop here).
@@ -86,29 +116,20 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         {
             SettlementRow settlement = prev.Settlements[s];
 
-            double farmShare = 1.0;
-            for (int i = 0; i < prev.LaborAllocations.Count; i++)
+            // T3.3 (D-032): builders are the CONSTRUCTION sector's normalized
+            // share of the whole adult workforce. The M2 weighted-pool
+            // scaffold (peasants + ConstructionLaborWeight × artisans) is
+            // DELETED — sector pools are class-blind. The T1.6 invariant
+            // survives unchanged in meaning: an all-farming allocation gives
+            // construction share 0 and banks exactly nothing.
+            SectorAllocationRow shares = Sectors.Default(settlement.Id);
+            for (int i = 0; i < prev.SectorAllocations.Count; i++)
             {
-                if (prev.LaborAllocations[i].Settlement == settlement.Id)
-                {
-                    farmShare = prev.LaborAllocations[i].FarmShare;
-                    break;
-                }
+                if (prev.SectorAllocations[i].Settlement == settlement.Id)
+                { shares = prev.SectorAllocations[i]; break; }
             }
-            double pathShare = 1.0 - farmShare;
-
-            // T2.2: the slider still governs the whole workforce — the path
-            // fraction of the pool is pathShare × (peasants + weight ×
-            // artisans): artisans join PathBuild's pool at
-            // ConstructionLaborWeight (TUNE), preserving the T1.6 invariant
-            // that 100% farm banks exactly nothing. SCAFFOLDING (spec §1) —
-            // M3's goods economy replaces this weighted-pool abstraction.
-            var baseClass = new ClassId(_cfg.Registries.Classes[0].Id);
-            long peasantAdults = Sim.Core.Systems.ClassMobility.ClassMobilitySystem
-                .AdultsOfClass(prev.Buckets, settlement.Id, baseClass);
             long allAdults = BandViews.Adults(prev.Buckets, settlement.Id);
-            double builders = pathShare * (peasantAdults
-                              + _cfg.Mobility.ConstructionLaborWeight * (allAdults - peasantAdults));
+            double builders = Sectors.Share(shares, Sectors.Construction) * allAdults;
 
             double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builders * ctx.DtYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);
@@ -293,7 +314,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<GoodStockRow> GoodStocks => prev.GoodStocks;
         public IReadOnlyTable<DepositRow> Deposits => prev.Deposits;
         public IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits => prev.ConsumptionDeficits;
-        public IReadOnlyTable<LaborAllocationRow> LaborAllocations => prev.LaborAllocations;
+        public IReadOnlyTable<SectorAllocationRow> SectorAllocations => prev.SectorAllocations;
         public IReadOnlyTable<PathProgressRow> PathProgress => prev.PathProgress;
         public IReadOnlyTable<VariableRow> Variables => prev.Variables;
         public IReadOnlyTable<ClassStateRow> ClassStates => prev.ClassStates;
@@ -315,7 +336,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         return false;
     }
 
-    private static void Upsert(Table<LaborAllocationRow> allocations, LaborAllocationRow row)
+    private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)
     {
         for (int i = 0; i < allocations.Count; i++)
         {

@@ -538,10 +538,10 @@ public class PopulationExactnessTests
         const double dt = 10.0, farmland = 78.5;
         const long endow = 10000;
         var exec = new TurnExecutor(FlatEra(dt),
-            [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+            [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(FoodWorld(farmland, endow));
 
-        // T1.6: farm share is the LaborAllocations row; this hand-built world
+        // T1.6: farm share is the SectorAllocations row; this hand-built world
         // has none, so the never-ordered default of 1.0 applies.
         // T1.8 spec amendment: LEONTIEF — min(land side, labor side). Here the
         // 200 adults (cohort 5, the T2.1 band view) bind:
@@ -599,7 +599,7 @@ public class PopulationExactnessTests
         for (int i = 0; i < dts.Length; i++)
         {
             var exec = new TurnExecutor(FlatEra(dts[i]),
-                [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+                [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
             // Store large enough that the clamp never binds at any dt.
             WorldState world = exec.Run(FoodWorld(farmland, store: 1_000_000),
                 (int)(horizonYears / dts[i]));

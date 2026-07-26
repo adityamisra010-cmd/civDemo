@@ -66,14 +66,14 @@ public class PathBuildTests
         // Turns 1 and 2: no order delivered yet; allocations stay empty.
         world = exec.Step(world);
         world = exec.Step(world);
-        Assert.Equal(0, world.LaborAllocations.Count);
+        Assert.Equal(0, world.SectorAllocations.Count);
 
         // The order (Turn = 2) is delivered to the step FROM turn-2 state: the
         // allocation row exists in turn-3 state, exactly 0.5.
         world = exec.Step(world);
-        Assert.Equal(1, world.LaborAllocations.Count);
-        Assert.Equal(new SettlementId(0), world.LaborAllocations[0].Settlement);
-        Assert.Equal(0.5, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(1, world.SectorAllocations.Count);
+        Assert.Equal(new SettlementId(0), world.SectorAllocations[0].Settlement);
+        Assert.Equal(0.5, world.SectorAllocations[0].Farming);
 
         // Yield shifts NEXT turn (Farming reads Prev): the step from turn-3
         // state harvests the LEONTIEF minimum (T1.8 spec amendment) of land
@@ -177,7 +177,7 @@ public class PathBuildTests
             }
         }
 
-        Assert.Equal(0.0, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.0, world.SectorAllocations[0].Farming);
         Assert.True(famine, "0% farm never produced a consumption deficit in 40 turns");
         Assert.True(starved > 0, "0% farm never starved anyone in 40 turns");
         Assert.True(world.PathProgress[0].Banked > 0.0 || world.NetworkEdges.Count > 0,
@@ -193,7 +193,7 @@ public class PathBuildTests
 
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(1.0, world.LaborAllocations[0].FarmShare); // explicit row == default
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming); // explicit row == default
         Assert.Equal(0, world.PathProgress.Count);              // zero accrual → row never created
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkMeta[0].Revision);
@@ -305,7 +305,7 @@ public class PathBuildTests
         WorldState world = Founded(cfg);
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(0, world.LaborAllocations.Count);
+        Assert.Equal(0, world.SectorAllocations.Count);
         Assert.Equal(0, world.PathProgress.Count);
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkNodes.Count);
