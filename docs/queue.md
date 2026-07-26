@@ -6,6 +6,37 @@
 - Bind founding parameters INTO the order-log header (seed + world size recorded at save; replay refuses a mismatch with an actionable error) — the hard version of the T1.9 filename convention (orders-*-sPX.bin). Requires an OrderLog IoVersion bump + ADR. (raised T1.9 adversarial pass)
 - Buckets group/cohort lookups are linear table scans (FindInGroup, BandViews). Re-benched at T2.3 as planned: N=12 1024² founded, classmobility 105.9 ms + demographics 97.3 ms per 200 turns (~0.5 ms/turn each) — visible but trivially within budget, no index added. Revisit when T2.8's autoplay batches multiply turn counts. (raised T2.1; re-benched T2.3)
 - Director: world feels small at 12 settlements — revisit D-015 size / settlement count against T2.8 density-corridor results. (raised T2.4 visual gate) RESOLUTION-SO-FAR (director ruling, T2.9 session): the T2.8 density verdict stands — density is historically correct (0.30–0.36 people per fertility-weighted arable km² at year 4500); the "small map" perception is TRAVEL-SCALE (settlement count / spacing / travel budget), all TUNE data. Deferred to the M10 slice gate unless the M2 exit session makes it acute.
+  **SUPERSEDED AND REFRAMED AT T3.2b (CR-002).** The T2.8 density verdict this rests
+  on was measuring a denomination bug: "arable km²" was fertility-weighted lattice
+  NODES scaled by the block area in one consumer and not in the other, and the
+  205 km catchment radius that made the world *look* full was compensating for a
+  yield constant denominated 256× too coarse. Both are fixed; the honest picture
+  is the opposite of "small". At a 50 km economic hinterland the twelve
+  settlements claim ~2 % of the continent, so the world is now overwhelmingly
+  EMPTY — and that is the item. Reframed as an EXPANSION OPPORTUNITY rather than
+  a sizing complaint: there is a large, fertile, reachable, unclaimed hinterland
+  and no mechanism by which a growing population can take it. A settlement at its
+  land-bound ceiling can only starve back or migrate to another full settlement;
+  it cannot throw off a daughter settlement, and PathBuild can only extend the
+  reach of an existing centre. Candidate mechanisms (NOT designed here, no packet
+  implied): daughter-settlement founding driven by sustained land pressure plus a
+  reachable unclaimed frontier; or a colonization destination in the migration
+  choice set. Whichever lands, it wants the SAME land-pressure signal the Malthus
+  corridor already reads, so it belongs with the M10 slice gate or a dedicated
+  post-M3 packet, not bolted onto a tuning pass.
+- Lattice stride floor (raised T3.2b): the traversal lattice samples terrain at
+  stride 4, so one node is 16 × 16 km and one cost unit buys 16 km on ideal
+  ground. That is the RESOLUTION FLOOR on every spatial quantity derived from it.
+  `catchment.hinterlandRadiusKm` = 50 is ~3 nodes, which is coarse but not
+  degenerate; anything below ~32 km would be under two nodes and the isochrone
+  would collapse to a handful of blocks, so the instrument simply cannot
+  represent a village working radius (the classic 5 km site catchment is 0.3 of
+  one node). The same floor bounds how finely settlements can be spaced before
+  their catchments alias into each other. If a later milestone wants either
+  village-scale catchments or dense settlement spacing, the stride — not the
+  radius — is the thing that has to move, and that is a worldgen/pathfinding cost
+  question (stride 2 quadruples the node count and the Dijkstra work) plus a
+  golden re-pin, not a tuning change.
 - Post-crash migration ping-pong: an emptied settlement's per-capita attractiveness (capita floor 1) turns it into a magnet, and the dev world settles into a persistent two-turn population slosh (~95% of a settlement shuttling, mostly children) after the first Malthus crash — at CANONICAL rates. Base rates ≥ 2.2× bifurcate into this attractor even pre-crash (measured T2.7 response curve in MagnitudeCorridor test). Needs an attractiveness smoothing constant or migration hysteresis (D-021 revisit) before T2.8 density corridors lean on migration flows. (raised T2.7 retune)
 - T2.8 adversarial pass (minor hardening candidates, no packet conflict):
   (1) infant in-step shortfall uses the combined base+starvation hazard but is

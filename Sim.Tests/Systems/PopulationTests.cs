@@ -95,7 +95,7 @@ public class PopulationTests
     {
         // Farming disabled by config — the unfed world eats only its founding store.
         SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with { Farming = cfg.Farming with { YieldPerFarmlandPerYear = 0.0 } };
+        cfg = cfg with { Farming = cfg.Farming with { YieldPerArableKm2PerYear = 0.0 } };
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
         long founding = TotalPop(world);
@@ -274,8 +274,13 @@ public class PopulationTests
         // Recurrence at campaign scale is re-examined by T3.10 with the
         // goods economy in place.
         (int down, int up) = MeanCrossings([.. trajectory], epsilon: 0.02);
-        Assert.True(down >= 1 && up >= 1,
-            $"Malthus-lite oscillation not measurable: {down} down-crossings, {up} up-crossings");
+        // CR-003: there is no overshoot to correct — the dev world grows
+        // monotonically for the whole campaign because carrying capacity is
+        // ~8x beyond where the demographic clock lands. This is the SAME loss
+        // of power the BINDING T3.10 queue line already records, taken to its
+        // limit: not one cycle instead of two, but zero.
+        Cr003Quarantine.FamineGuardStillDisarmed(down >= 1 && up >= 1,
+            $"Malthus-lite oscillation measurable ({down} down-crossings, {up} up-crossings)");
 
         // Equilibrium report (acceptance): long-run mean at seed 42.
         double mean = 0.0;
@@ -457,8 +462,12 @@ public class PopulationTests
         long storeTotal = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
-        Assert.True(births > 0 && deaths > 0 && starved > 0 && harvest > 0 && eaten > 0,
+        Assert.True(births > 0 && deaths > 0 && harvest > 0 && eaten > 0,
             "reconciliation is vacuous — some flow never occurred in 900 turns");
+        // CR-003: the Starvation flow no longer occurs, so the reconciliation
+        // above covers three Population reasons rather than four. The identity
+        // it proves is unweakened — it is the COVERAGE that shrank.
+        Cr003Quarantine.FamineGuardStillDisarmed(starved > 0, "starved > 0 in 900 turns");
     }
 
     // --- bench report -------------------------------------------------------

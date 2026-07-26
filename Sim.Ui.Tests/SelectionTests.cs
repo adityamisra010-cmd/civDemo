@@ -175,7 +175,7 @@ public class SelectionTests
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         EraTable era;
         using (var stream = Sim.Data.DataFiles.OpenEraPacing()) era = EraTableLoader.Load(stream);
-        world = new TurnExecutor(era, [Sim.Core.SystemCatalog.Catchment()]).Step(world);
+        world = new TurnExecutor(era, [Sim.Core.SystemCatalog.Catchment(cfg)]).Step(world);
 
         var lattice = Sim.Core.Pathing.TraversalLattice.Build(world.Terrain!);
         int stride = OverlayMeshes.LatticeStride(lattice, world.Terrain!.Size);

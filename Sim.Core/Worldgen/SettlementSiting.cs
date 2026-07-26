@@ -50,11 +50,11 @@ public static class SettlementSiting
     /// grows. TWO-STAGE spacing check (documented shape):
     ///   1. PREFILTER — a spacing-budget-CAPPED Dijkstra from each accepted
     ///      site's lattice origin: any node the capped expansion never reaches
-    ///      is trivially far enough (travel &gt; MinSpacingTravel), so the
+    ///      is trivially far enough (travel &gt; MinSpacingKm), so the
     ///      exact check touches only the local region around accepted sites
     ///      (the straight-line px reasoning, made exact by the cap).
     ///   2. EXACT — a cell is blocked iff its lattice node's min travel cost
-    ///      from any accepted site is &lt; MinSpacingTravel.
+    ///      from any accepted site is &lt; MinSpacingKm.
     /// Sites are returned in PICK ORDER — settlement id i is the i-th pick
     /// (best first), the deterministic identity every consumer relies on.
     /// Throws when the terrain cannot host <paramref name="count"/> sites at
@@ -147,6 +147,10 @@ public static class SettlementSiting
         var spacing = new double[lattice.NodeCount];
         Array.Fill(spacing, double.PositiveInfinity);
 
+        // T3.2b: the TUNE spacing is an IDEAL-GROUND distance in km; the
+        // pathfinder wants cost units. One conversion, at the chokepoint.
+        double minSpacingCostUnits =
+            Pathing.LatticeGeometry.CostUnitsForIdealGroundKm(lattice, cfg.MinSpacingKm);
         var sites = new int[count];
         for (int pick = 0; pick < count; pick++)
         {
@@ -167,7 +171,7 @@ public static class SettlementSiting
                 if (pick > 0)
                 {
                     int node = Pathing.LatticeMap.OriginLatticeNode(lattice, size, i);
-                    if (spacing[node] < cfg.MinSpacingTravel) continue; // stage-2 exact check
+                    if (spacing[node] < minSpacingCostUnits) continue; // stage-2 exact check
                 }
                 bestScore = score;
                 bestCell = i;
@@ -175,7 +179,7 @@ public static class SettlementSiting
             if (bestCell < 0)
                 throw new InvalidOperationException(
                     $"settlement siting could only place {pick} of {count} sites at " +
-                    $"minSpacingTravel {cfg.MinSpacingTravel.ToString(System.Globalization.CultureInfo.InvariantCulture)} " +
+                    $"minSpacingKm {cfg.MinSpacingKm.ToString(System.Globalization.CultureInfo.InvariantCulture)} " +
                     "— terrain too small or spacing too large.");
             sites[pick] = bestCell;
 
@@ -183,7 +187,7 @@ public static class SettlementSiting
             // from the new site (no network overlay — spacing is a worldgen
             // property of raw terrain).
             int origin = Pathing.LatticeMap.OriginLatticeNode(lattice, size, bestCell);
-            Pathing.Pathfinder.RelaxCappedFrom(lattice, origin, cfg.MinSpacingTravel, spacing);
+            Pathing.Pathfinder.RelaxCappedFrom(lattice, origin, minSpacingCostUnits, spacing);
         }
         return sites;
     }

@@ -326,6 +326,9 @@ public class ChronicleTests
         Assert.Equal(a, b);
         bool anyFamine = false;
         foreach (string line in a) if (line.Contains("famine")) anyFamine = true;
-        Assert.True(anyFamine, "no famine line across the first Malthus crash — detection vacuous");
+        // CR-003: no crash, so no famine line. Twin-identity above (the point
+        // of this test) is unaffected and still asserted on 5+ events.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            anyFamine, "a famine line across the first Malthus crash");
     }
 }

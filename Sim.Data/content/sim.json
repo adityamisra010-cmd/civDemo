@@ -1,7 +1,13 @@
 {
   "farming": {
-    "yieldPerFarmlandPerYear": 28.0,
+    "_doc": "DENOMINATION (T3.2b/CR-002): yieldPerArableKm2PerYear is food units per FERTILITY-WEIGHTED km2 per year, against CatchmentSummaryRow.EffectiveArableKm2. One food unit = one person-year of adult-equivalent sustenance, so the constant reads directly as the person-years of food an ideal-suitability (f=1.0) km2 yields per year. It is a CAPACITY (what a saturated territory can produce), not an observed density. It replaces yieldPerFarmlandPerYear = 28.0, which was denominated per fertility-weighted lattice NODE (256 km2) and therefore implied 0.109 person-years/km2 = ~9 km2 of land per person; at a 2.5% sown share that is a sown yield of 8.8 kg/ha against a sowing rate of 120-200 kg/ha, i.e. it did not return the seed by a factor of ~700. See docs/adr/cr-002.md for the derivation.",
+    "_docValue": "DERIVED, NOT FITTED (T3.2b item 1); full chain, sensitivity and cross-checks in docs/adr/adr-013. Four independent reference-class derivations plus three adversarial attacks (fitting / units / labour-interaction), all three refuted; the synthesis re-derived the REFERENCE CLASS from the sim's own worldgen rather than picking one off the shelf, which is what settled it. Worldgen step 6 defines fertility = clamp(tempSuit x moisture x 1.6-if-river-adjacent, 0, 1) with moisture = 1/(1 + d_water_px/40) and 4 km pixels, so f = 1.0 is attainable ONLY within 8 km of a river channel and at mean annual temperature in [8.4, 23.6] C. The sim's ideal square kilometre is therefore RIVER-VALLEY FLOOR AND FIRST TERRACE in a temperate-to-warm climate - well-watered valley bottom, not average upland - and every land-use share must be a share of THAT landscape. CHAIN: 770 kg/ha long-run mean sown yield (frequency-weighted, valley bottom); minus 120 kg/ha broadcast seed (seed:yield 6.4:1, inside the 5-10:1 rainfed band); x0.90 storage and threshing loss = 585 kg edible per sown ha; cropped share of the territory at saturation k = 0.28 (deducting channel/floodplain 12, slope and terrace break 15, pasture for the traction and manure herd 25, woodland 15, settlement 5 ha per 100); medium fallow, crop 2 years in 7 = 0.2857, so 8.00 sown ha per f=1.0 km2; 4,680 kg edible; / 180 kg clean grain per adult-year (2,200 kcal/day, cereals 75% of calories, 3,390 kcal/kg) = 26.0. INVERSE CHECK: 0.88 arable ha per average person, against Wilkinson's and Halstead's 0.5-1.0 for pre-mechanised rainfed - inside, mid-range. SENSITIVITY: k alone 16.7-37.1; fallow alone 14.0-45.5; all endpoints simultaneously 5.5-133.8. THE WORLD IS OUT OF CORRIDOR AT THIS VALUE - see docs/adr/cr-003.md, which escalates it rather than absorbing it by moving a band. NOTE THE DENOMINATION: 26.0 is per fertility-weighted km2. The per-NODE equivalent 26.0 x 256 = 6,656 belongs only to the retired yieldPerFarmlandPerYear; writing it here would be exactly the 256x fault CR-002 closed.",
+    "yieldPerArableKm2PerYear": 26.0,
     "outputPerFarmerPerYear": 5.0
+  },
+  "catchment": {
+    "_doc": "The ECONOMIC HINTERLAND radius (T3.2b): the country whose produce can profitably flow to the settlement, NOT a farmer's daily working radius. Stated as an IDEAL-GROUND radius in km and converted to the pathfinder's cost budget by LatticeGeometry.CostUnitsForIdealGroundKm; what it actually buys is decided by geography - shorter through mountain and marsh, longer along rivers and built dirt paths, which is how a road network grows a hinterland (D-009). Replaces the code constant CatchmentSystem.TravelBudget = 15.0 cost units (= 240 km ideal ground, ~205 km measured), which no tuning pass could see and which was compensating for the yield denomination error.",
+    "hinterlandRadiusKm": 50.0
   },
   "pathBuild": {
     "laborPerAdultPerYear": 0.02,
@@ -96,9 +102,11 @@
   },
   "migration": {
     "baseRatePerYear": 0.03,
-    "dampingDecayCost": 25.0,
+    "_docDamping": "T3.2b RENAME ONLY, value unchanged. Lattice cost units — the same units as SettlementDistanceRow.TravelCost, which is correct here: this damps travel EFFORT, not map distance. 25 cost units is ~400 km across ideal ground and materially less across hard country, which is the intended behaviour.",
+    "dampingDecayCostUnits": 25.0,
     "attractivenessFoodWeight": 0.02,
-    "attractivenessLandWeight": 1.0,
+    "_docLandWeight": "T3.2b RE-DENOMINATION, NOT A RE-TUNE: was 1.0 per fertility-weighted lattice node; the catchment quantity it multiplies became fertility-weighted km2 in the same commit (x256), so this is 1.0/256. Both factors are exact powers of two, so the product resources = foodWeight*food + landWeight*arable is bit-identical to the pre-T3.2b value. If a later packet wants to re-BALANCE food against land, that is a separate, deliberate change to this number.",
+    "attractivenessLandWeight": 0.00390625,
     "famineFlightFactor": 8.0,
     "cohortProfile": [
       0.2,

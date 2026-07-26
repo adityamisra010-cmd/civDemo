@@ -11,9 +11,13 @@ public readonly record struct CatchmentTables(
     Table<SettlementDistanceRow> Distances);
 
 /// <summary>
-/// Catchment maintenance (T1.4, D-016): each settlement's catchment is the
-/// travel-time isochrone (budget = TUNE TravelBudget) around its site on the
-/// traversal lattice + network fast lanes. Catchments are DERIVED state held in
+/// Catchment maintenance (T1.4, D-016): each settlement's catchment is its
+/// ECONOMIC HINTERLAND — the travel-cost isochrone around its site on the
+/// traversal lattice + network fast lanes, with the budget derived from the
+/// TUNE radius `catchment.hinterlandRadiusKm` (T3.2b: the budget moved out of
+/// a code constant into tuning data, and is stated in km rather than in the
+/// pathfinder's cost units so that it is a quantity a director can reason
+/// about). Catchments are DERIVED state held in
 /// this system's owned tables — recomputed ONLY when they are stale: the
 /// settlement set changed, or the network revision counter moved (worldgen
 /// initializes it; PathBuild increments it from T1.6). Every other turn is a
@@ -31,18 +35,23 @@ public readonly record struct CatchmentTables(
 /// STATELESS: no instance fields; the lattice is rebuilt per recompute (it is
 /// a pure function of immutable terrain — not state, not a cache; T1.3 mandate).
 /// </summary>
-public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
+public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
 {
     public static readonly SystemId WellKnownId = new(4);
     public const string Name = "catchment";
 
-    /// <summary>
-    /// TUNE: catchment travel budget, in lattice cost units (node cost ≈ 1 on
-    /// flat land × stride units walked) — how far a settlement works its land.
-    /// </summary>
-    public const double TravelBudget = 15.0;
+    private readonly SimConfig _cfg = cfg;
 
     public SystemId Id => WellKnownId;
+
+    /// <summary>
+    /// The pathfinder's cost budget for a given lattice — the TUNE hinterland
+    /// radius (km, ideal ground) through the single conversion in
+    /// <see cref="LatticeGeometry"/>. Public and pure so tests and the UI can
+    /// reproduce the isochrone exactly without duplicating the conversion.
+    /// </summary>
+    public static double TravelBudgetCostUnits(SimConfig cfg, TraversalLattice lattice) =>
+        LatticeGeometry.CostUnitsForIdealGroundKm(lattice, cfg.Catchment.HinterlandRadiusKm);
 
     public void Step(SimContext<CatchmentTables> ctx)
     {
@@ -71,7 +80,8 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
             ? stackalloc int[prev.Settlements.Count] : new int[prev.Settlements.Count];
         for (int s = 0; s < prev.Settlements.Count; s++)
             origins[s] = OriginLatticeNode(lattice, prev.Terrain.Size, prev.Settlements[s].SiteCell);
-        Pathfinder.PartitionResult part = Pathfinder.Partition(lattice, prev, origins, TravelBudget);
+        Pathfinder.PartitionResult part = Pathfinder.Partition(
+            lattice, prev, origins, TravelBudgetCostUnits(_cfg, lattice));
 
         // Per settlement (ascending settlement order), rows in ascending node
         // id. SUMMATION ORDER IS DETERMINISM SURFACE: double addition is not
@@ -79,17 +89,21 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementRow settlement = prev.Settlements[s];
-            double farmland = 0.0;
+            // T3.2b: accumulated in FERTILITY-WEIGHTED km², not in fertility-
+            // weighted nodes — the CR-002 denomination fix. The conversion is
+            // per-node and inside LatticeMap, so the summary row leaves this
+            // system already denominated and no consumer converts again.
+            double arableKm2 = 0.0;
             int count = 0;
             for (int node = 0; node < part.Owner.Length; node++)
             {
                 if (part.Owner[node] != s) continue;
                 nodes.Add(new CatchmentNodeRow(settlement.Id, node, part.Cost[node]));
-                farmland += BlockFertility(prev.Terrain, lattice, node);
+                arableKm2 += BlockArableKm2(prev.Terrain, lattice, node);
                 count++;
             }
             summaries.Add(new CatchmentSummaryRow(
-                settlement.Id, count, farmland, revision,
+                settlement.Id, count, arableKm2, revision,
                 LastRecomputeTurn: prev.Clock.Turn));
         }
 
@@ -146,7 +160,11 @@ public sealed class CatchmentSystem : ISimSystem<CatchmentTables>
     public static int OriginLatticeNode(TraversalLattice lattice, int terrainSize, int siteCell) =>
         LatticeMap.OriginLatticeNode(lattice, terrainSize, siteCell);
 
-    /// <inheritdoc cref="LatticeMap.BlockFertility"/>
-    public static double BlockFertility(TerrainSet terrain, TraversalLattice lattice, int node) =>
-        LatticeMap.BlockFertility(terrain, lattice, node);
+    /// <inheritdoc cref="LatticeMap.BlockMeanFertility"/>
+    public static double BlockMeanFertility(TerrainSet terrain, TraversalLattice lattice, int node) =>
+        LatticeMap.BlockMeanFertility(terrain, lattice, node);
+
+    /// <inheritdoc cref="LatticeMap.BlockArableKm2"/>
+    public static double BlockArableKm2(TerrainSet terrain, TraversalLattice lattice, int node) =>
+        LatticeMap.BlockArableKm2(terrain, lattice, node);
 }

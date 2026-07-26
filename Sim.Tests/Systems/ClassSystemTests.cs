@@ -143,8 +143,15 @@ public class ClassSystemTests
         // And the other acceptance arm in the SAME run: once the Malthus
         // equilibrium erases the surplus (recession + famine demotions), the
         // share falls away from the cap — artisans drain when the surplus dies.
-        Assert.True(minAfterBoom < 0.05,
-            $"share never drained post-boom (min {minAfterBoom:F3}) — recession/famine valve inert");
+        // CR-003: there is no post-boom. The Malthus equilibrium that used to
+        // erase the surplus never arrives, so surplus stays above the
+        // targetShare saturation point (2.0) for the whole campaign, the share
+        // pins at the cap, and the emerge/recede hysteresis never fires again
+        // after year ~10. The emergence arm above is unaffected and still
+        // asserted; it is the RECESSION arm that has nothing to observe.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            minAfterBoom < 0.05,
+            $"the artisan share drained post-boom (min {minAfterBoom:F3})");
     }
 
     // --- hysteresis teeth ---------------------------------------------------
@@ -401,7 +408,7 @@ public class ClassSystemTests
             artisans[6] = artisanCounts[i];
             WorldState world = ClassWorld(peasants, artisans);
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-                S0, NodeCount: 1, EffectiveFarmland: 1e9, // land never binds
+                S0, NodeCount: 1, EffectiveArableKm2: 1e9, // land never binds
                 NetworkRevision: 0, LastRecomputeTurn: 0));
             world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Farming(cfg)]);

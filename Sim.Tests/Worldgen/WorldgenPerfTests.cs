@@ -51,7 +51,7 @@ public class WorldgenPerfTests
         Sim.Core.Systems.SimConfig sim = Sim.Tests.TestUtil.TestConfigs.Sim();
         WorldgenConfig cfg = Sim.Tests.TestUtil.TestConfigs.Worldgen();
         var exec = new Sim.Core.Kernel.TurnExecutor(
-            CanonicalEra(), [Sim.Core.SystemCatalog.Catchment()]);
+            CanonicalEra(), [Sim.Core.SystemCatalog.Catchment(Sim.Tests.TestUtil.TestConfigs.Sim())]);
 
         double best = double.MaxValue;
         for (int attempt = 0; attempt < 2; attempt++)

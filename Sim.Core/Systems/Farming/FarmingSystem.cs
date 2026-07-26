@@ -14,10 +14,14 @@ public readonly record struct FarmingTables(Table<GoodStockRow> GoodStocks);
 /// Farming (T1.5; production function amended at T1.8, director-sanctioned —
 /// the T1.5 form had no labor factor and a depopulated settlement harvested
 /// indefinitely, exposed by the first played session). LEONTIEF production:
-///   harvest/yr = min(farmland × YieldPerFarmlandPerYear,
+///   harvest/yr = min(arableKm2 × YieldPerArableKm2PerYear,
 ///                    adults × farmShare × OutputPerFarmerPerYear)
 /// — the binding constraint is the scarcer of workable land (PREV catchment
 /// summary, T1.4) and assigned farm labor (PREV adults × PREV allocation).
+/// DENOMINATION (T3.2b, CR-002): the land side is FERTILITY-WEIGHTED km² × food
+/// units per fertility-weighted km² per year. The catchment summary arrives
+/// already denominated in km²; this system performs no unit conversion of its
+/// own, and must not — that is what made the yield constant silently per-node.
 /// Zero adults → harvest EXACTLY zero (min against 0). Integrated × dtYears
 /// (law 3), entering the store exclusively via Ledger.Flow with reason Harvest
 /// (law 1); fractional yield converts to whole units through the D-004
@@ -59,13 +63,14 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
             int storeIndex = GoodStockIndex.IndexOf(stores, settlement, _grain);
             if (storeIndex < 0) continue; // no store row → founding never endowed one; nothing to credit
 
-            // Effective farmland from the PREV catchment summary (one-turn lag).
-            double farmland = 0.0;
+            // Arable land (fertility-weighted km²) from the PREV catchment
+            // summary (one-turn lag).
+            double arableKm2 = 0.0;
             for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
             {
                 if (prev.CatchmentSummaries[i].Settlement == settlement)
                 {
-                    farmland = prev.CatchmentSummaries[i].EffectiveFarmland;
+                    arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2;
                     break;
                 }
             }
@@ -96,7 +101,7 @@ public sealed class FarmingSystem(SimConfig cfg) : ISimSystem<FarmingTables>
                 _cfg.Mobility.ToolYieldBonusCap, _cfg.Mobility.ToolYieldBonusSlope * artisanShare);
 
             // Leontief: the scarcer of land capacity and assigned farm labor binds.
-            double landSide = farmland * _cfg.Farming.YieldPerFarmlandPerYear;
+            double landSide = arableKm2 * _cfg.Farming.YieldPerArableKm2PerYear;
             double laborSide = peasantAdults * farmShare
                                * _cfg.Farming.OutputPerFarmerPerYear * toolMultiplier;
             double ratePerYear = Math.Min(landSide, laborSide);

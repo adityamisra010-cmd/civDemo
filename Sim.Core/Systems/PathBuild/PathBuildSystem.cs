@@ -204,7 +204,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
     {
         var nodeFertility = new double[lattice.NodeCount];
         for (int node = 0; node < lattice.NodeCount; node++)
-            nodeFertility[node] = LatticeMap.BlockFertility(terrain, lattice, node);
+            nodeFertility[node] = LatticeMap.BlockMeanFertility(terrain, lattice, node);
         return ChooseTarget(lattice, nodeFertility, excluded, eligible);
     }
 
