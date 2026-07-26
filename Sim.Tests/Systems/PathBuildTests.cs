@@ -234,6 +234,94 @@ public class PathBuildTests
             Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(nan)).Message);
     }
 
+    // --- T3.3 (D-032): the SECTOR order path, end to end ---------------------
+
+    [Fact]
+    public void SectorOrders_FiveDistinctWeights_LandOnTheRightSectors_Exactly()
+    {
+        // The accept clause's FIRST phrase is "Sector labor allocation (D-032)",
+        // and until this test the mechanism that delivers it had no coverage at
+        // all: a T3.3 test-power lens made the whole OrderKind.SectorAllocation
+        // handler INERT — sector id and amount both discarded — and the entire
+        // 357-test suite passed. Every other test hand-builds the
+        // SectorAllocationRow directly and so never exercises the order path.
+        //
+        // Five orders, five DISTINCT weights, one per sector, target id packed
+        // as settlementId * 8 + sectorId. Distinct values are the point: equal
+        // weights would pass under a handler that transposed or dropped them.
+        var log = new OrderLog();
+        double[] pcts = [10.0, 20.0, 30.0, 40.0, 50.0];
+        for (int sector = 0; sector < Sectors.Count; sector++)
+        {
+            log.Append(new OrderRecord(
+                Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+                TargetId: 0 * 8 + sector, Amount: pcts[sector]));
+        }
+
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg, log);
+        WorldState world = Founded(cfg);
+
+        // T1.9 delivery lag, identical to the LaborAllocation case above.
+        world = exec.Step(world);
+        world = exec.Step(world);
+        Assert.Equal(0, world.SectorAllocations.Count);
+        world = exec.Step(world);
+
+        Assert.Equal(1, world.SectorAllocations.Count);
+        SectorAllocationRow row = world.SectorAllocations[0];
+        Assert.Equal(new SettlementId(0), row.Settlement);
+        // Exact, and all five different — a transposition or a dropped weight
+        // cannot satisfy this, and neither can Sectors.Default (farming 1.0).
+        Assert.Equal(0.1, row.Farming);
+        Assert.Equal(0.2, row.Herding);
+        Assert.Equal(0.3, row.Extraction);
+        Assert.Equal(0.4, row.Crafting);
+        Assert.Equal(0.5, row.Construction);
+    }
+
+    [Fact]
+    public void SectorOrder_TargetPacking_ShiftWidthIsPinned()
+    {
+        // The packing is settlementId * 8 + sectorId, decoded `>> 3` and `& 7`.
+        // Sector 4 (construction) is the discriminating case: 4 >> 3 == 0, so
+        // the order lands on the one settlement that exists, but under a `>> 2`
+        // decode 4 >> 2 == 1, SettlementExists(1) is false in this N = 1 world,
+        // and the order is silently DROPPED. Asserting construction landed
+        // therefore pins the shift width itself, not merely the sector id.
+        var log = new OrderLog();
+        log.Append(new OrderRecord(
+            Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+            TargetId: 0 * 8 + Sectors.Construction, Amount: 60.0));
+
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg, log);
+        WorldState world = Founded(cfg);
+        for (int t = 1; t <= 3; t++) world = exec.Step(world);
+
+        Assert.Equal(1, world.SectorAllocations.Count);
+        Assert.Equal(0.6, world.SectorAllocations[0].Construction);
+        // Farming keeps its default: one sector order sets ONE weight.
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming);
+    }
+
+    [Fact]
+    public void SectorOrder_UnknownSectorId_RejectedAtLoad_Actionably()
+    {
+        // TargetId 5 decodes to settlement 0, sector 5 — one past the last
+        // sector. Rejected at LOAD, before the sim runs, like every other
+        // malformed order.
+        using var stream = new MemoryStream(RawOrderLog((4, 3, 5, 50.0)));
+        var e = Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(stream));
+        Assert.Contains("sector id 5 unknown", e.Message);
+        Assert.Contains("turn 4", e.Message);
+
+        // The weight is percentage-validated too, on the same kind.
+        using var hot = new MemoryStream(RawOrderLog((6, 3, 0, 150.0)));
+        Assert.Contains("[0,100]",
+            Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(hot)).Message);
+    }
+
     [Fact]
     public void UnknownOrderKind_RejectedAtLoad_Actionably()
     {

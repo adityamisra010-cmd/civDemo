@@ -172,6 +172,50 @@ public class ProductionTests
         Assert.True(Stock(endowed, cfg, "stone") > 0, "rich deposit produced nothing");
         Assert.True(Stock(endowed, cfg, "stone") > Stock(endowed, cfg, "clay"),
             "extraction did not follow abundance — comparative advantage cannot emerge");
+
+        // MAGNITUDE, exact. An ordering assert alone is nearly powerless: a T3.3
+        // test-power lens survived BOTH a 10x extraction-labor error and the
+        // deletion of the per-worker abundance factor (abundance^2 -> ^1),
+        // because more-stone-than-clay stays true under either. Closed form
+        // (FromDeposits): workers_g = pool * ab_g / sum(ab), and
+        // rate_g = workers_g * perWorkerPerYear * ab_g — the SECOND abundance
+        // factor being the concentration the header calls a deliberate
+        // comparative-advantage precondition.
+        //   stone: 5000 * 0.8 = 4000 diggers, * 4.0 * 0.8 = 12800/yr, * 10 = 128000
+        //   clay:  5000 * 0.2 = 1000 diggers, * 4.0 * 0.2 =   800/yr, * 10 =   8000
+        Assert.Equal(128_000, Stock(endowed, cfg, "stone"));
+        Assert.Equal(8_000, Stock(endowed, cfg, "clay"));
+    }
+
+    [Fact]
+    public void Herding_WithoutDeposits_ProducesNothing_AndWithThemFollowsAbundance()
+    {
+        // The herding/fishing sector had NO test: a T3.3 test-power lens deleted
+        // the entire FromDeposits(foodSector: true) call from Step and all 309
+        // tests passed. One of the five sectors D-032 introduced was shipping
+        // untested, and the food half is the one that feeds the population.
+        SimConfig cfg = TestConfigs.Sim();
+        var alloc = new SectorAllocationRow(S0, 0.0, 1.0, 0.0, 0.0, 0.0);
+
+        var bare = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)])
+            .Step(World(cfg, adults: 5000, allocation: alloc));
+        Assert.Equal(0, Stock(bare, cfg, "livestock"));
+        Assert.Equal(0, Stock(bare, cfg, "fish"));
+
+        var endowed = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)])
+            .Step(World(cfg, adults: 5000, allocation: alloc,
+                deposits: [("livestock", 0.8), ("fish", 0.2)]));
+
+        // Same closed form, at OutputPerHerderPerYear = 3.0:
+        //   livestock: 4000 herders * 3.0 * 0.8 = 9600/yr, * 10 = 96000
+        //   fish:      1000 herders * 3.0 * 0.2 =  600/yr, * 10 =  6000
+        Assert.Equal(96_000, Stock(endowed, cfg, "livestock"));
+        Assert.Equal(6_000, Stock(endowed, cfg, "fish"));
+
+        // The food/non-food partition, pinned in the direction an inversion
+        // would break: a herding pool must not dig raw goods.
+        Assert.Equal(0, Stock(endowed, cfg, "stone"));
+        Assert.Equal(0, Stock(endowed, cfg, "clay"));
     }
 
     [Fact]
@@ -366,6 +410,81 @@ public class ProductionTests
         Assert.True(grain[0] > 0, "no grain — farming half of the dt test is vacuous");
         Assert.True(stone[0] > 0, "no stone — extraction half of the dt test is vacuous");
         Assert.True(pottery[0] > 0, "no pottery — CRAFTING half of the dt test is vacuous");
+    }
+
+    [Fact]
+    public void Crafting_LaborIsSplitAcrossAvailableRecipes_NotCountedInEachOne()
+    {
+        // D-032's within-sector split, pinned exactly. A T3.3 test-power lens
+        // replaced `laborPerRecipe = pool / availableCount` with
+        // `laborPerRecipe = pool` — every recipe counting the WHOLE crafting
+        // pool, so one crafter works four jobs at once and 4x the labor
+        // materialises — and the full suite passed. Nothing measured the split.
+        //
+        // The discriminating experiment is the same world with a different
+        // NUMBER of available recipes. artisan_share gates bronze-casting and
+        // toolmaking, so withholding it leaves 2 of 4 available and publishing
+        // it leaves 4. Pottery is labor-bound in both (every input endowed far
+        // in excess), so its output must halve EXACTLY when the recipe count
+        // doubles. Under the mutant it does not move at all.
+        SimConfig cfg = TestConfigs.Sim();
+        (string, long)[] plenty =
+        [
+            ("clay", 100_000_000), ("timber", 100_000_000), ("fiber", 100_000_000),
+            ("copper-ore", 100_000_000), ("tin-ore", 100_000_000), ("bronze", 100_000_000),
+        ];
+        var alloc = new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+        // Two recipes available: pool 100 / 2 = 50 labor-years to pottery,
+        // 50 / 0.05 = 1000 pots per year, x dt 10 = 10000.
+        WorldState twoUp = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)])
+            .Step(World(cfg, adults: 100, allocation: alloc, stocks: plenty));
+        Assert.Equal(10_000, Stock(twoUp, cfg, "pottery"));
+
+        // Four available: 100 / 4 = 25, 25 / 0.05 = 500/yr, x 10 = 5000.
+        WorldState four = World(cfg, adults: 100, allocation: alloc, stocks: plenty);
+        four.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+        WorldState fourUp = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]).Step(four);
+        Assert.Equal(5_000, Stock(fourUp, cfg, "pottery"));
+
+        // Stated as the relation, so the intent survives a retune of the labor
+        // coefficients: doubling the claimants exactly halves each one's share.
+        Assert.Equal(Stock(twoUp, cfg, "pottery"), 2 * Stock(fourUp, cfg, "pottery"));
+    }
+
+    [Fact]
+    public void Recipe_LaborIsPerEXECUTION_TwoToolsPerBatchOfLabor()
+    {
+        // The other half of the dimensional declaration. GoodsConfig states that
+        // recipe inputs AND laborPerOutput are PER EXECUTION, and one execution
+        // yields output.qty units. Recipe_InputsAndLabor_ArePerEXECUTION pins
+        // the INPUT half (2 tools per bronze). The LABOR half had no teeth: a
+        // T3.3 test-power lens deleted `* recipe.Output.Qty` from the labor
+        // allowance — halving toolmaking throughput, reading labor as
+        // per-output-unit instead of per-execution — and the full suite passed.
+        // That is the very contract the format was credited with correcting,
+        // pinned on one side only.
+        //
+        // Labor-bound, nothing else binding: 200 adults all crafting, four
+        // recipes available, so 50 labor-years to toolmaking. At 0.2 labor per
+        // EXECUTION that is 250 executions per year, x dt 10 = 2500 executions,
+        // and each execution yields 2 tools => 5000.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = World(cfg, adults: 200,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("clay", 100_000_000), ("timber", 100_000_000), ("fiber", 100_000_000),
+                     ("copper-ore", 100_000_000), ("tin-ore", 100_000_000),
+                     ("bronze", 100_000_000)]);
+        w.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+        WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]).Step(w);
+
+        Assert.Equal(5_000, Stock(next, cfg, "tools"));
+
+        // And the two halves of the declaration agree: 2500 executions each
+        // consumed 1.0 bronze, so exactly half as much bronze was consumed as
+        // tools were produced.
+        long bronzeUsed = FlowOf(next, cfg, "bronze", ReasonIds.InputsConsumed, sunk: true);
+        Assert.Equal(Stock(next, cfg, "tools"), 2 * bronzeUsed);
     }
 
     [Fact]
