@@ -192,6 +192,68 @@ public class ProductionTests
         Assert.Equal(Stock(a, cfg, "grain") / 2, Stock(half, cfg, "grain"));
     }
 
+    [Fact]
+    public void Crafting_ThreeRecipesShareOneScarceInput_NeverOverdraws()
+    {
+        // THE SHARPEST CONSERVATION RISK IN THIS PACKET, pinned. Timber is an
+        // input to pottery-firing (0.5), bronze-casting (2.0) AND toolmaking
+        // (1.0). The per-recipe output cap is computed from the CURRENT stock and
+        // the sinks execute sequentially, so recipe 2 sees a stock recipe 1
+        // already drained. The claim in ProductionSystem's header is that
+        // OverdrawPolicy.Throw is safe BY CONSTRUCTION because each recipe
+        // re-reads the drained stock. If that reasoning is wrong, this test
+        // throws rather than quietly going negative.
+        //
+        // Scarce timber, abundant everything else, artisan gate open so all four
+        // recipes compete for the same timber in one turn.
+        SimConfig cfg = TestConfigs.Sim();
+        const long timber = 37;                             // deliberately awkward, not a round number
+        WorldState world = World(cfg, adults: 100_000,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("timber", timber), ("clay", 1_000_000), ("fiber", 1_000_000),
+                     ("copper-ore", 1_000_000), ("tin-ore", 1_000_000), ("bronze", 1_000_000)]);
+        world.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+
+        WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]).Step(world);
+
+        long left = Stock(next, cfg, "timber");
+        long used = FlowOf(next, cfg, "timber", ReasonIds.InputsConsumed, sunk: true);
+        Assert.True(left >= 0, $"timber went negative: {left}");
+        Assert.Equal(timber, left + used);                   // EXACT, no epsilon (law 1)
+        Assert.True(used > 0, "no timber consumed — the shared-input contention is not exercised");
+    }
+
+    [Fact]
+    public void Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit()
+    {
+        // DIMENSIONAL DECLARATION, pinned (S8 §4.1 requirement 2 applied to this
+        // packet's own contract). T3.2's goods.json _doc said "inputs per output
+        // unit", but `toolmaking` declares bronze 1.0 + timber 1.0 with
+        // output.qty 2 — under a per-UNIT reading `qty` would be decorative and
+        // 2 tools would cost 2 bronze; under a per-EXECUTION reading one batch
+        // costs 1 bronze and yields 2 tools, which is what makes toolmaking a
+        // value-add step. T3.3 executes the PER-EXECUTION reading, the doc was
+        // corrected to say so, and this test is what stops the reading drifting
+        // again: it fixes the ratio at 2 tools per bronze.
+        //
+        // toolmaking is artisan-gated (`artisan_share > 0.05`), so the world
+        // publishes that variable directly — the D-020 gate is exercised here too.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState world = World(cfg, adults: 200,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("bronze", 100), ("timber", 100_000)]);
+        world.Variables.Add(new VariableRow(S0, Variables.ArtisanShare, 0.5));
+
+        WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]).Step(world);
+
+        long tools = Stock(next, cfg, "tools");
+        long bronzeUsed = FlowOf(next, cfg, "bronze", ReasonIds.InputsConsumed, sunk: true);
+        Assert.True(tools > 0, "toolmaking produced nothing — the artisan gate or the recipe is broken");
+        Assert.True(bronzeUsed > 0, "tools appeared without consuming bronze — production from nothing");
+        // EXACT, no epsilon: the whole-unit accumulators make this a clean 2:1.
+        Assert.Equal(2 * bronzeUsed, tools);
+    }
+
     // --- 4. dt-correctness ----------------------------------------------------
 
     [Fact]

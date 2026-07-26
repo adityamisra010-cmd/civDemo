@@ -29,9 +29,21 @@ public sealed record RecipeOutput(
     [property: JsonPropertyName("good"), JsonRequired] string Good,
     [property: JsonPropertyName("qty"), JsonRequired] int Qty);
 
-/// <summary>One recipe (T3.2 registers + validates; T3.3 executes). Requires
-/// is an OPTIONAL D-020 availability predicate over published variables — a
-/// knowledge gate, never a calendar date (law 4).</summary>
+/// <summary>
+/// One recipe (T3.2 registers + validates; T3.3 executes). Requires is an
+/// OPTIONAL D-020 availability predicate over published variables — a knowledge
+/// gate, never a calendar date (law 4).
+///
+/// DIMENSIONAL DECLARATION (corrected at T3.3, S8 §4.1 requirement 2): a
+/// recipe input's PerOutput and the recipe's LaborPerOutput are PER EXECUTION,
+/// and one execution yields Output.Qty units. T3.2's data doc said "per output
+/// unit", which contradicted the data it shipped — `toolmaking` declares bronze
+/// 1.0 with qty 2, so a per-unit reading would make Qty decorative and delete
+/// toolmaking's value-add. ProductionSystem divides PerOutput by Qty once, at
+/// the point of use, to get the per-unit coefficient; the 2-tools-per-bronze
+/// ratio is pinned exactly by
+/// ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit.
+/// </summary>
 public sealed record RecipeEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("inputs"), JsonRequired] RecipeInput[] Inputs,
