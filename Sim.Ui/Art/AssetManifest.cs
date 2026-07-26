@@ -34,7 +34,30 @@ public static class AssetManifest
     public sealed record Entry(
         string Key, string RelativePath, AssetKind Kind, bool Tileable,
         int Variant = 0, ParchmentPalette.TerrainClass? TerrainClass = null,
-        string[]? AlternateFileNames = null);
+        string[]? AlternateFileNames = null)
+    {
+        /// <summary>
+        /// Does this key's art have to CARRY TRANSPARENCY? True only for DRAWN
+        /// DEVICES — a shape composited over other content, where an opaque
+        /// rectangle would be visibly wrong: the compass rose and settlement
+        /// marker (over the map), the header rule (over a panel), the coast
+        /// hairline (over the washes).
+        ///
+        /// Deliberately FALSE for everything that is a SHEET rather than a
+        /// device: the parchment, the grain, the terrain washes, the Annals
+        /// background — and also ui/panel and ui/button-plate, which are
+        /// parchment PLATES drawn behind a window and a button. Those are
+        /// opaque on purpose (the current placeholders measure 0% transparent),
+        /// so requiring alpha of them would raise a false fault the first time
+        /// the director drops real plate art.
+        ///
+        /// Derived from the KIND, not listed per entry, so a new asset of an
+        /// existing kind inherits the requirement automatically.
+        /// </summary>
+        public bool RequiresAlpha => Kind is
+            AssetKind.CoastHairline or AssetKind.UiHeaderRule or
+            AssetKind.UiCompassRose or AssetKind.SettlementMarker;
+    }
 
     /// <summary>How many parchment variants the bible allows ("2–3 variants;
     /// renderer picks one per world seed"). VARIANTS ARE OPTIONAL: a single

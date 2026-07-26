@@ -19,13 +19,21 @@ public static class AssetAudit
 {
     public sealed record KeyStatus(
         string Key, string RelativePath, bool FileExists, bool IsPlaceholder,
-        int Width, int Height, string? Note, bool Optional = false);
+        int Width, int Height, string? Note, bool Optional = false,
+        string? AlphaFault = null);
 
     public sealed record Report(
         string Root,
         IReadOnlyList<KeyStatus> Keys,
         IReadOnlyList<string> OrphanFiles)
     {
+        /// <summary>Keys whose art cannot carry the transparency the renderer
+        /// composites it with — a JPEG re-exported under a .png name, or an
+        /// RGBA file that is actually an opaque rectangle. Either way the
+        /// device draws as a BOX over the map, which is the failure the eye
+        /// notices last and the audit must notice first.</summary>
+        public IEnumerable<KeyStatus> AlphaFaults => Keys.Where(k => k.AlphaFault is not null);
+
         /// <summary>Keys that MUST be satisfied — optional parchment variants
         /// beyond the primary sheet are excluded, so "one sheet for every seed"
         /// is a complete drop rather than a two-thirds-missing one.</summary>
@@ -54,13 +62,23 @@ public static class AssetAudit
                 string size = k.FileExists
                     ? string.Create(CultureInfo.InvariantCulture, $"{k.Width}x{k.Height}")
                     : "-";
-                sb.AppendLine($"{k.Key,-25} {state,-12} {size,-11} {k.Note ?? ""}");
+                string note = k.AlphaFault is null ? (k.Note ?? "") : $"!! {k.AlphaFault}";
+                sb.AppendLine($"{k.Key,-25} {state,-12} {size,-11} {note}");
+            }
+            if (AlphaFaults.Any())
+            {
+                sb.AppendLine();
+                sb.AppendLine("TRANSPARENCY FAULTS (these keys composite over the map or a panel and");
+                sb.AppendLine("MUST carry an alpha channel — as delivered they draw as opaque boxes):");
+                foreach (KeyStatus k in AlphaFaults) sb.AppendLine($"  {k.Key}: {k.AlphaFault}");
             }
             if (OrphanFiles.Count > 0)
             {
                 sb.AppendLine();
                 sb.AppendLine("ORPHANED FILES (present in assets/, referenced by NO manifest key —");
-                sb.AppendLine("the renderer never loads these):");
+                sb.AppendLine("the renderer NEVER loads these; a drop that lands here looks delivered");
+                sb.AppendLine("and behaves missing. Check for a doubled extension (foo.png.jpg), a");
+                sb.AppendLine("misspelling, or a name the manifest does not alias):");
                 foreach (string o in OrphanFiles) sb.AppendLine($"  {o}");
             }
             return sb.ToString();
@@ -99,8 +117,25 @@ public static class AssetAudit
                 string? note = Path.GetFileName(resolved) == Path.GetFileName(entry.RelativePath)
                     ? null
                     : $"resolved via alias '{Path.GetFileName(resolved)}'";
+                // TRANSPARENCY CHECK — only meaningful on REAL art (a
+                // placeholder is a stand-in and reports as such already).
+                string? alphaFault = null;
+                if (entry.RequiresAlpha && !isPlaceholder)
+                {
+                    if (!img.SourceHadAlpha)
+                        alphaFault = "source file has NO alpha channel (8-bit RGB PNG, or a JPEG " +
+                                     "re-exported under a .png name) — it cannot be transparent";
+                    else if (!img.CornersTransparent)
+                        alphaFault = "has an alpha channel but its corners are OPAQUE (" +
+                            img.TransparentFraction.ToString("P1", CultureInfo.InvariantCulture) +
+                            " of pixels transparent) — draws as a box";
+                    else if (img.TransparentFraction < 0.02)
+                        alphaFault = "only " +
+                            img.TransparentFraction.ToString("P2", CultureInfo.InvariantCulture) +
+                            " of pixels are transparent — effectively an opaque plate";
+                }
                 keys.Add(new KeyStatus(entry.Key, entry.RelativePath, true, isPlaceholder,
-                    img.Width, img.Height, note, optional));
+                    img.Width, img.Height, note, optional, alphaFault));
             }
             catch (Exception e)
             {

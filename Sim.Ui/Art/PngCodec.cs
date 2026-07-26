@@ -6,6 +6,33 @@ namespace Sim.Ui.Art;
 /// <summary>One decoded image: tightly-packed RGBA8, row-major.</summary>
 public sealed record ArtImage(int Width, int Height, byte[] Rgba)
 {
+    /// <summary>Did the SOURCE FILE carry an alpha channel (PNG colour type 6)?
+    /// Placeholders and RGB sources report false. Recorded because a file that
+    /// cannot express transparency can never satisfy a manifest entry that
+    /// requires it — the header-rule.png.jpg failure class (T3 art drop 2).</summary>
+    public bool SourceHadAlpha { get; init; }
+
+    /// <summary>Fraction of pixels that are effectively transparent (alpha &lt; 8).</summary>
+    public double TransparentFraction
+    {
+        get
+        {
+            if (Width * Height == 0) return 0.0;
+            long clear = 0;
+            for (int i = 0; i < Width * Height; i++) if (Rgba[i * 4 + 3] < 8) clear++;
+            return clear / (double)(Width * Height);
+        }
+    }
+
+    /// <summary>True when all four corners are effectively transparent — the
+    /// cheap, decisive test for "this is a drawn device, not an opaque box".</summary>
+    public bool CornersTransparent =>
+        Width > 0 && Height > 0
+        && Rgba[3] < 8
+        && Rgba[((Width - 1) * 4) + 3] < 8
+        && Rgba[(((Height - 1) * Width) * 4) + 3] < 8
+        && Rgba[((((Height - 1) * Width) + Width - 1) * 4) + 3] < 8;
+
     public ParchmentPalette.Rgba At(int x, int y)
     {
         int o = (y * Width + x) * 4;
@@ -201,7 +228,7 @@ public static class PngCodec
             rgba[i * 4 + 2] = rows[i * channels + 2];
             rgba[i * 4 + 3] = channels == 4 ? rows[i * channels + 3] : (byte)255;
         }
-        return new ArtImage(width, height, rgba);
+        return new ArtImage(width, height, rgba) { SourceHadAlpha = colorType == 6 };
     }
 
     private static byte Paeth(int a, int b, int c)

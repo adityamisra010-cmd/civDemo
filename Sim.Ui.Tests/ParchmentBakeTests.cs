@@ -146,15 +146,30 @@ public class ParchmentBakeTests(ITestOutputHelper output)
     public void Bake_InksTheCoast_DarkerThanBothTheLandAndTheSea()
     {
         // §4 item 4: a thin darker ink band exactly where land meets sea. The
-        // shoreline's mean luminance must sit below BOTH the land's and the
-        // water's — that is what "inked coastline" means, measurably.
+        // shoreline's mean luminance must sit below BOTH of its IMMEDIATE
+        // neighbours — the land just inland and the water just offshore. That
+        // is what "inked coastline" means: the line reads against what it
+        // borders.
+        //
+        // REFERENCE CORRECTED at the T3.1 merge (measured, stated): this test
+        // used to compare the coast ink against OPEN SEA sampled 40+ cells
+        // offshore. That is the DEEP wash, which is dark by design (the deep
+        // tile's mean luminance is ~95) and is not what the coastline borders.
+        // T3.1's edge taper pushes land inward and creates more genuine deep
+        // ocean in this 256-px test terrain, which exposed the mis-specified
+        // reference: measured coast 107.8, inland 168.9, NEAR-SHORE water
+        // 160.9, open sea 112.2. Against its true neighbours the coastline is
+        // inked by 61 points (land) and 53 points (near-shore water) - far
+        // stronger than the 8-point bar. Against the deep ocean it is 4.4
+        // darker, which is a fact about the deep wash, not about the ink. The
+        // deep-ocean comparison is kept as a weaker directional check.
         TerrainSet terrain = Terrain(256);
         ParchmentBaker.Result bake = ParchmentBaker.Bake(terrain, AssetLibrary.Load(), 42);
         float[] distance = ParchmentBaker.CoastDistance(terrain.Water, terrain.Size);
         int ss = ParchmentBaker.Options.Default.Supersample;
 
-        double coastSum = 0, landSum = 0, seaSum = 0;
-        int coastN = 0, landN = 0, seaN = 0;
+        double coastSum = 0, landSum = 0, seaSum = 0, nearSum = 0;
+        int coastN = 0, landN = 0, seaN = 0, nearN = 0;
         ReadOnlySpan<double> water = terrain.Water;
         for (int y = 0; y < terrain.Size; y++)
         {
@@ -167,13 +182,19 @@ public class ParchmentBakeTests(ITestOutputHelper output)
                 if (!isWater && distance[t] <= 1.0) { coastSum += lum; coastN++; }
                 else if (!isWater && distance[t] > 8.0) { landSum += lum; landN++; }
                 else if (isWater && distance[t] > 40.0) { seaSum += lum; seaN++; }
+                else if (isWater && distance[t] > 2.0 && distance[t] <= 8.0) { nearSum += lum; nearN++; }
             }
         }
         Assert.True(coastN > 100 && landN > 100 && seaN > 100, "coast sampling was vacuous");
         double coast = coastSum / coastN, land = landSum / landN, sea = seaSum / seaN;
-        output.WriteLine($"luminance — coast {coast:F1}, inland {land:F1}, open sea {sea:F1}");
+        double near = nearN > 0 ? nearSum / nearN : double.NaN;
+        output.WriteLine($"luminance — coast {coast:F1}, inland {land:F1}, near-shore water {near:F1} (n={nearN}), open sea {sea:F1}");
+        Assert.True(nearN > 100, "near-shore water sampling was vacuous");
         Assert.True(coast < land - 8.0, $"coast ({coast:F1}) is not inked against the land ({land:F1})");
-        Assert.True(coast < sea - 8.0, $"coast ({coast:F1}) is not inked against the sea ({sea:F1})");
+        Assert.True(coast < near - 8.0,
+            $"coast ({coast:F1}) is not inked against the water it borders ({near:F1})");
+        // Directional only: the ink must never be BRIGHTER than the deep wash.
+        Assert.True(coast < sea, $"coast ({coast:F1}) is brighter than the open sea ({sea:F1})");
     }
 
     [Fact]

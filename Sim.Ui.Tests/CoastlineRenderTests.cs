@@ -25,7 +25,8 @@ public sealed class CanonicalBakeFixture
         Sim.Core.Systems.SimConfig cfg;
         using (var s = global::Sim.Data.DataFiles.OpenSim())
         using (var n = global::Sim.Data.DataFiles.OpenNeeds())
-            cfg = Sim.Core.Systems.SimConfigLoader.Load(s, n);
+        using (var g = global::Sim.Data.DataFiles.OpenGoods())
+            cfg = Sim.Core.Systems.SimConfigLoader.Load(s, n, g);
         WorldgenConfig wg;
         using (var s = global::Sim.Data.DataFiles.OpenWorldgen()) wg = WorldgenConfigLoader.Load(s);
         World = WorldFounding.Found(wg, cfg, 42);
