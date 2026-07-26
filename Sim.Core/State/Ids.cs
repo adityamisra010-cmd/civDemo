@@ -97,6 +97,16 @@ public static class ReasonIds
     public static readonly ReasonId Births = new(5);
     public static readonly ReasonId Deaths = new(6);
     public static readonly ReasonId Starvation = new(7);
+
+    // T3.3 — the goods economy's flow vocabulary. Farming keeps Harvest (3)
+    // for grain (continuity: food_surplus_ratio and migration's anyFood gate
+    // key on the grain row); every OTHER produced unit enters via Produced,
+    // recipe inputs leave via InputsConsumed, and farm-tool depreciation
+    // leaves via ToolWear — the sink that makes tools a STOCK the farmers
+    // use up rather than a permanent buff (law 2).
+    public static readonly ReasonId Produced = new(8);
+    public static readonly ReasonId InputsConsumed = new(9);
+    public static readonly ReasonId ToolWear = new(10);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

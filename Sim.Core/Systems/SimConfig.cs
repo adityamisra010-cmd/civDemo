@@ -23,6 +23,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
+    [property: JsonPropertyName("production")] ProductionConfig Production,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
@@ -168,18 +169,53 @@ public sealed record ClassEntry(
 /// The live share relaxes toward the target at PromoteRatePerYear (fraction of
 /// the gap closed per year); a famine (Prev deficit &gt; 0) forces demotion at
 /// FamineDemoteRatePerYear regardless of predicates — artisans starve back to
-/// the fields first. SCAFFOLDING (spec §1, M3 replaces): artisans contribute
-/// ConstructionLaborWeight × artisanAdults to PathBuild's pool and a farming
-/// tool multiplier 1 + min(ToolYieldBonusCap, ToolYieldBonusSlope × share).
+/// the fields first. T3.3 DEMOLITION (mandated, m3 spec §1): the M2 scaffolds
+/// that lived here — the artisan tool-yield multiplier and the artisan
+/// construction-labor weight — are DELETED. Tools are a real good consumed by
+/// farmers (ProductionConfig); sector labor pools are class-blind shares of
+/// the adult workforce (D-032).
 /// </summary>
 public sealed record MobilityConfig(
     [property: JsonPropertyName("promoteRatePerYear"), JsonRequired] double PromoteRatePerYear,
     [property: JsonPropertyName("famineDemoteRatePerYear"), JsonRequired] double FamineDemoteRatePerYear,
     [property: JsonPropertyName("targetShareSlope"), JsonRequired] double TargetShareSlope,
-    [property: JsonPropertyName("targetShareCap"), JsonRequired] double TargetShareCap,
-    [property: JsonPropertyName("toolYieldBonusCap"), JsonRequired] double ToolYieldBonusCap,
-    [property: JsonPropertyName("toolYieldBonusSlope"), JsonRequired] double ToolYieldBonusSlope,
-    [property: JsonPropertyName("constructionLaborWeight"), JsonRequired] double ConstructionLaborWeight);
+    [property: JsonPropertyName("targetShareCap"), JsonRequired] double TargetShareCap);
+
+/// <summary>
+/// Production tuning (T3.3, D-032 — all TUNE, per-sim-year rates, law 3).
+/// Provenance discipline per S8 §4.1(c): every value below is CHOSEN, not
+/// derived, and says so — with the plausibility frame that bounds it. The
+/// foundations audit of the milestone that consumes these owes them a row.
+///
+/// OutputPerHerderPerYear — food units (person-years of sustenance) one
+///   herder/fisher produces per year at deposit abundance 1.0. CHOSEN 3.0:
+///   below the farmer's 5.0 (pastoralism supports fewer people per worker
+///   than valley agriculture — the reason farming displaced it on good land),
+///   above 1.0 (a herder feeds more than himself or herding would not exist).
+/// OutputPerExtractorPerYear — units of a raw good one extractor produces per
+///   year at deposit abundance 1.0. CHOSEN 4.0: sets raw-good flow scale;
+///   meaningful only relative to recipe input demands (a potter needs 2 clay +
+///   0.5 timber per pot), sized so a few extractors supply a few artisans.
+/// ToolsPerFarmerToEquip — tool units that fully equip one farmer. CHOSEN 1.0:
+///   the natural unit (one man, one plough/sickle set).
+/// ToolYieldBonusMax — labor-side yield factor at full equipment: factor =
+///   1 + bonus × equipRatio. CHOSEN 0.3, carried over in MAGNITUDE from the
+///   retired scaffold's cap (bronze-age tool advantage over digging-stick
+///   agriculture, order tens of percent — Boserup's tool-intensity range),
+///   but the MECHANISM is new: the ratio is real tools in stock per farmer,
+///   not a class share.
+/// ToolWearPerEquippedFarmerPerYear — tool units one EQUIPPED farmer wears out
+///   per year (the Ledger sink that makes tools deplete). CHOSEN 0.1: a tool
+///   set lasts ~10 working years — bronze tools were repaired and recast for
+///   decades; wholly wrong values fail the plausibility question loudly
+///   (1.0 = tools of wet clay; 0.001 = heirloom economy with no tool demand).
+/// </summary>
+public sealed record ProductionConfig(
+    [property: JsonPropertyName("outputPerHerderPerYear"), JsonRequired] double OutputPerHerderPerYear,
+    [property: JsonPropertyName("outputPerExtractorPerYear"), JsonRequired] double OutputPerExtractorPerYear,
+    [property: JsonPropertyName("toolsPerFarmerToEquip"), JsonRequired] double ToolsPerFarmerToEquip,
+    [property: JsonPropertyName("toolYieldBonusMax"), JsonRequired] double ToolYieldBonusMax,
+    [property: JsonPropertyName("toolWearPerEquippedFarmerPerYear"), JsonRequired] double ToolWearPerEquippedFarmerPerYear);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):
@@ -334,9 +370,12 @@ public static class SimConfigLoader
         RequireRate("mobility.promoteRatePerYear", cfg.Mobility.PromoteRatePerYear);
         RequireRate("mobility.famineDemoteRatePerYear", cfg.Mobility.FamineDemoteRatePerYear);
         RequireRate("mobility.targetShareSlope", cfg.Mobility.TargetShareSlope);
-        RequireRate("mobility.toolYieldBonusCap", cfg.Mobility.ToolYieldBonusCap);
-        RequireRate("mobility.toolYieldBonusSlope", cfg.Mobility.ToolYieldBonusSlope);
-        RequireRate("mobility.constructionLaborWeight", cfg.Mobility.ConstructionLaborWeight);
+        if (cfg.Production is null) throw new SimConfigException("production is missing.");
+        RequireRate("production.outputPerHerderPerYear", cfg.Production.OutputPerHerderPerYear);
+        RequireRate("production.outputPerExtractorPerYear", cfg.Production.OutputPerExtractorPerYear);
+        RequireRate("production.toolsPerFarmerToEquip", cfg.Production.ToolsPerFarmerToEquip);
+        RequireRate("production.toolYieldBonusMax", cfg.Production.ToolYieldBonusMax);
+        RequireRate("production.toolWearPerEquippedFarmerPerYear", cfg.Production.ToolWearPerEquippedFarmerPerYear);
         if (!(cfg.Mobility.TargetShareCap >= 0.0 && cfg.Mobility.TargetShareCap < 1.0))
             throw new SimConfigException(
                 $"mobility.targetShareCap must be in [0,1), got {Inv(cfg.Mobility.TargetShareCap)}.");

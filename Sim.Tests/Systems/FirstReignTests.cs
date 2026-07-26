@@ -132,7 +132,19 @@ public class FirstReignTests
         //   the dead world is still frozen, and there is still no food mountain
         //   (they run on every build; a blind re-pin cannot satisfy them).
         //   v10 value: 3a6d296f117cbb339969a9ad261f5b685b27adcae4bcac55a016fe70a7d7e72c
-        const string golden = "db653fd2b3615bcbeea94fefac870a227c9e49e92b28af4618da17489653a9f0";
+        //   v12 (T3.3, D-032 production + scaffolding demolition — DELIBERATE):
+        //   FarmingSystem is REPLACED by ProductionSystem (five sectors over the
+        //   D-031 roster), the M2 artisan tool-multiplier and weighted
+        //   construction-labor scaffolds are DELETED, tools become a real good
+        //   consumed by farmers, and schema v14 widens the labor row to five
+        //   sector weights. This N=1 fixture's own harvest changes because the
+        //   yield's tool factor is now a real stock (zero at founding) rather
+        //   than an artisan-share multiplier. The SHAPE of the played session
+        //   survives and the shape asserts below were re-verified against the
+        //   new trajectory — extinction still inside (5, 25], the dead world
+        //   frozen, still no food mountain.
+        //   v11 value: db653fd2b3615bcbeea94fefac870a227c9e49e92b28af4618da17489653a9f0
+        const string golden = "7c0671a31557e0842668d0995d9af0fd20530fcf11dea3df963d9f86a92a3ae7";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

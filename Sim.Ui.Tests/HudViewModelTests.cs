@@ -78,7 +78,7 @@ public class HudViewModelTests
         TurnExecutor exec = Executor(cfg, loaded);
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         for (int t = 1; t <= 3; t++) world = exec.Step(world);
-        Assert.Equal(0.5, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.5, world.SectorAllocations[0].Farming);
     }
 
     // --- HUD numbers from a founded state ------------------------------------
@@ -106,7 +106,7 @@ public class HudViewModelTests
         Assert.Equal(total, hud.TotalPopulation);
         Assert.Equal(cfg.Founding.FoodStore, hud.FoodStore);
         Assert.Equal(0, hud.LastHarvest);          // nothing harvested pre-turn-1
-        Assert.Equal(100.0, hud.FarmSharePct);     // never-ordered default
+        Assert.Equal(100.0, hud.FarmingPct);     // never-ordered default
         Assert.Equal(0, hud.Turn);
         Assert.Equal(-4000, hud.Year);
 
@@ -117,7 +117,7 @@ public class HudViewModelTests
         Assert.Equal("Settlement 0", hud.TitleLine);
         Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
-        Assert.Equal("labor 100% farm / 0% path", hud.SplitLine);
+        Assert.Equal("labor 100% farm / 0% herd / 0% mine / 0% craft / 0% build", hud.SplitLine);
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine); // T2.4, dev N=4
         Assert.Equal("turn 0   year -4000", hud.ClockLine);
@@ -292,6 +292,39 @@ public class HudViewModelTests
         LineGeometry.Vertex[] mesh = OverlayMeshes.BuildCatchmentFill(world, lattice.Size, stride);
         Assert.Equal(world.CatchmentNodes.Count * 6, mesh.Length);
     }
+    [Fact]
+    public void Hud_ReportsNormalizedSectorShares_NotAFabricatedTwoWaySplit()
+    {
+        // T3.3 adversarial finding (empirically demonstrated): the HUD read the
+        // RAW farming weight and derived path as (1 − farm). With any third
+        // sector allocated it told the player half the workforce was building
+        // roads while PathBuild banked exactly zero. The panel must agree with
+        // the sim, so it now reads Sectors.Share — the same normalization
+        // ProductionSystem and PathBuildSystem use.
+        SimConfig cfg = SimCfg();
+        WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(0), Farming: 0.5, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.5, Construction: 0.0));
+
+        HudModel hud = HudModel.From(world, 0);
+
+        // Raw weights sum to 1.0 here, so farming is 50% — and CONSTRUCTION IS
+        // ZERO, which the fabricated split reported as 50%.
+        Assert.Equal(50.0, hud.FarmingPct);
+        Assert.Equal(50.0, hud.CraftingPct);
+        Assert.Equal(0.0, hud.ConstructionPct);
+        Assert.Contains("0% build", hud.SplitLine);
+
+        // NORMALIZATION: un-normalized raw weights must report the same shares
+        // the sim computes, not the raw numbers.
+        world.SectorAllocations[0] = new SectorAllocationRow(
+            new SettlementId(0), Farming: 3.0, Herding: 1.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 0.0);
+        HudModel scaled = HudModel.From(world, 0);
+        Assert.Equal(75.0, scaled.FarmingPct);
+        Assert.Equal(25.0, scaled.HerdingPct);
+    }
 }
 
 // T1.9 — the UI half of the founding-equivalence wall: UiFounding (what
@@ -348,4 +381,5 @@ public class UiFoundingEquivalenceTests
         Assert.Equal("grievance \u2014", hud.GrievanceLine);
         Assert.Equal($"{cfg.Needs!.Needs[0].Name}: \u2014", hud.NeedLines![0]);
     }
+
 }

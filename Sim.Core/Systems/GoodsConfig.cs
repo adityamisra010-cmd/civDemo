@@ -29,9 +29,21 @@ public sealed record RecipeOutput(
     [property: JsonPropertyName("good"), JsonRequired] string Good,
     [property: JsonPropertyName("qty"), JsonRequired] int Qty);
 
-/// <summary>One recipe (T3.2 registers + validates; T3.3 executes). Requires
-/// is an OPTIONAL D-020 availability predicate over published variables — a
-/// knowledge gate, never a calendar date (law 4).</summary>
+/// <summary>
+/// One recipe (T3.2 registers + validates; T3.3 executes). Requires is an
+/// OPTIONAL D-020 availability predicate over published variables — a knowledge
+/// gate, never a calendar date (law 4).
+///
+/// DIMENSIONAL DECLARATION (corrected at T3.3, S8 §4.1 requirement 2): a
+/// recipe input's PerOutput and the recipe's LaborPerOutput are PER EXECUTION,
+/// and one execution yields Output.Qty units. T3.2's data doc said "per output
+/// unit", which contradicted the data it shipped — `toolmaking` declares bronze
+/// 1.0 with qty 2, so a per-unit reading would make Qty decorative and delete
+/// toolmaking's value-add. ProductionSystem divides PerOutput by Qty once, at
+/// the point of use, to get the per-unit coefficient; the 2-tools-per-bronze
+/// ratio is pinned exactly by
+/// ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit.
+/// </summary>
 public sealed record RecipeEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("inputs"), JsonRequired] RecipeInput[] Inputs,
@@ -169,6 +181,18 @@ public static class GoodsConfigLoader
                 if (string.Equals(input.Good, r.Output.Good, StringComparison.Ordinal))
                     throw new GoodsConfigException(
                         $"recipes[{i}] ({r.Name}) consumes its own output '{input.Good}'.");
+            // DUPLICATE INPUTS (T3.3 adversarial finding): two entries for one
+            // good made the Leontief cap and the sink asymmetric — the cap took
+            // the coefficient once, the sink loop charged it per ENTRY — so a
+            // purely data-level edit crashed the turn with a Ledger overdraw.
+            // CLAUDE.md says tuning data is always allowed, so the loader owes
+            // an actionable rejection rather than a mid-turn exception.
+            var inputNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (RecipeInput input in r.Inputs)
+                if (!inputNames.Add(input.Good))
+                    throw new GoodsConfigException(
+                        $"recipes[{i}] ({r.Name}) lists input '{input.Good}' more than once — " +
+                        "combine the entries into one perOutput coefficient.");
             if (!(r.LaborPerOutput >= 0.0) || !double.IsFinite(r.LaborPerOutput))
                 throw new GoodsConfigException(
                     $"recipes[{i}] ({r.Name}).laborPerOutput must be a finite value >= 0, got {Inv(r.LaborPerOutput)}.");

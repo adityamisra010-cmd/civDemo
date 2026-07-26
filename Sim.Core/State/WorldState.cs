@@ -214,13 +214,66 @@ public record struct DepositRow(SettlementId Settlement, GoodId Good, double Abu
 public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio, long DemandUnits = 0);
 
 /// <summary>
-/// One settlement's labor split (T1.6, owned by PathBuildSystem): FarmShare in
-/// [0,1] — the fraction of labor on the farms; the rest builds paths. Set by
-/// LaborAllocationOrder; absent row means the NEVER-ORDERED DEFAULT of 1.0
-/// (100% farm — T1.5 behavior). Consumers (Farming, PathBuild) read it from
-/// Prev, so an order lands one turn before it steers yields (§3.2).
+/// T3.3 (D-032): a settlement's labor allocation across the five sectors,
+/// replacing the M2 farm/path pair. Values are RAW weights in [0,1] as set by
+/// orders; consumers read NORMALIZED shares via <see cref="Sectors.Share"/>
+/// (divide by the row sum), so partial sector orders stay well-defined. The
+/// never-ordered default is all-farming (the M2 default, unchanged). Farming /
+/// Herding / Extraction / Crafting feed ProductionSystem; Construction feeds
+/// PathBuild (the M2 "path share").
 /// </summary>
-public record struct LaborAllocationRow(SettlementId Settlement, double FarmShare);
+public record struct SectorAllocationRow(
+    SettlementId Settlement, double Farming, double Herding, double Extraction,
+    double Crafting, double Construction);
+
+/// <summary>
+/// The D-032 sector vocabulary (T3.3): fixed order, array-friendly ids. The
+/// registry is deliberately code, not data — sectors are kernel-contract
+/// surface (order payloads and the allocation row shape key on them), unlike
+/// goods, which are data.
+/// </summary>
+public static class Sectors
+{
+    public const int Farming = 0;
+    public const int Herding = 1;      // herding/fishing — the food-from-deposits sector
+    public const int Extraction = 2;
+    public const int Crafting = 3;
+    public const int Construction = 4; // PathBuild's pool (housing joins at T3.8)
+    public const int Count = 5;
+
+    /// <summary>Raw weight of one sector in a row (by sector id).</summary>
+    public static double Raw(in SectorAllocationRow row, int sector) => sector switch
+    {
+        Farming => row.Farming, Herding => row.Herding, Extraction => row.Extraction,
+        Crafting => row.Crafting, Construction => row.Construction,
+        _ => throw new ArgumentOutOfRangeException(nameof(sector), sector, "unknown sector"),
+    };
+
+    /// <summary>Row with one sector's raw weight replaced (by sector id).</summary>
+    public static SectorAllocationRow With(in SectorAllocationRow row, int sector, double value) => sector switch
+    {
+        Farming => row with { Farming = value }, Herding => row with { Herding = value },
+        Extraction => row with { Extraction = value }, Crafting => row with { Crafting = value },
+        Construction => row with { Construction = value },
+        _ => throw new ArgumentOutOfRangeException(nameof(sector), sector, "unknown sector"),
+    };
+
+    /// <summary>
+    /// NORMALIZED share: raw ÷ row sum. An all-zero row (never legal via
+    /// orders, which validate at load; defensively possible in hand-built
+    /// state) yields 0 for every sector — no labor anywhere, nothing produced,
+    /// nothing banked, which is the conservative reading.
+    /// </summary>
+    public static double Share(in SectorAllocationRow row, int sector)
+    {
+        double sum = row.Farming + row.Herding + row.Extraction + row.Crafting + row.Construction;
+        return sum > 0.0 ? Raw(row, sector) / sum : 0.0;
+    }
+
+    /// <summary>The never-ordered default: all labor farms (M2 semantics).</summary>
+    public static SectorAllocationRow Default(SettlementId settlement) =>
+        new(settlement, Farming: 1.0, Herding: 0.0, Extraction: 0.0, Crafting: 0.0, Construction: 0.0);
+}
 
 /// <summary>
 /// One settlement's path-building progress (T1.6, owned by PathBuildSystem):
@@ -351,7 +404,7 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<GoodStockRow> GoodStocks { get; }
     IReadOnlyTable<DepositRow> Deposits { get; }
     IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits { get; }
-    IReadOnlyTable<LaborAllocationRow> LaborAllocations { get; }
+    IReadOnlyTable<SectorAllocationRow> SectorAllocations { get; }
     IReadOnlyTable<PathProgressRow> PathProgress { get; }
     IReadOnlyTable<VariableRow> Variables { get; }
     IReadOnlyTable<ClassStateRow> ClassStates { get; }
@@ -432,7 +485,7 @@ public sealed class WorldState : IReadOnlyWorldState
     public Table<ConsumptionDeficitRow> ConsumptionDeficits { get; }
 
     /// <summary>Labor splits (T1.6) — owned by PathBuildSystem (order consumer).</summary>
-    public Table<LaborAllocationRow> LaborAllocations { get; }
+    public Table<SectorAllocationRow> SectorAllocations { get; }
 
     /// <summary>Path-build banks + frontiers (T1.6) — owned by PathBuildSystem.</summary>
     public Table<PathProgressRow> PathProgress { get; }
@@ -477,7 +530,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<GoodStockRow> IReadOnlyWorldState.GoodStocks => GoodStocks;
     IReadOnlyTable<DepositRow> IReadOnlyWorldState.Deposits => Deposits;
     IReadOnlyTable<ConsumptionDeficitRow> IReadOnlyWorldState.ConsumptionDeficits => ConsumptionDeficits;
-    IReadOnlyTable<LaborAllocationRow> IReadOnlyWorldState.LaborAllocations => LaborAllocations;
+    IReadOnlyTable<SectorAllocationRow> IReadOnlyWorldState.SectorAllocations => SectorAllocations;
     IReadOnlyTable<PathProgressRow> IReadOnlyWorldState.PathProgress => PathProgress;
     IReadOnlyTable<VariableRow> IReadOnlyWorldState.Variables => Variables;
     IReadOnlyTable<ClassStateRow> IReadOnlyWorldState.ClassStates => ClassStates;
@@ -507,7 +560,7 @@ public sealed class WorldState : IReadOnlyWorldState
         GoodStocks = new Table<GoodStockRow>();
         Deposits = new Table<DepositRow>();
         ConsumptionDeficits = new Table<ConsumptionDeficitRow>();
-        LaborAllocations = new Table<LaborAllocationRow>();
+        SectorAllocations = new Table<SectorAllocationRow>();
         PathProgress = new Table<PathProgressRow>();
         Variables = new Table<VariableRow>();
         ClassStates = new Table<ClassStateRow>();
@@ -528,7 +581,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<CatchmentSummaryRow> catchmentSummaries, Table<BucketRow> buckets,
         Table<GoodStockRow> goodStocks, Table<DepositRow> deposits,
         Table<ConsumptionDeficitRow> consumptionDeficits,
-        Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress,
+        Table<SectorAllocationRow> sectorAllocations, Table<PathProgressRow> pathProgress,
         Table<VariableRow> variables, Table<ClassStateRow> classStates,
         Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
@@ -552,7 +605,7 @@ public sealed class WorldState : IReadOnlyWorldState
         GoodStocks = goodStocks;
         Deposits = deposits;
         ConsumptionDeficits = consumptionDeficits;
-        LaborAllocations = laborAllocations;
+        SectorAllocations = sectorAllocations;
         PathProgress = pathProgress;
         Variables = variables;
         ClassStates = classStates;
@@ -574,7 +627,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
             CatchmentSummaries.Clone(), Buckets.Clone(), GoodStocks.Clone(), Deposits.Clone(),
-            ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
+            ConsumptionDeficits.Clone(), SectorAllocations.Clone(), PathProgress.Clone(),
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone())

@@ -112,7 +112,7 @@ public class SnapshotTests
         //   acted on this terrain-less world (catchment always no-oped, drew no
         //   RNG). Only the stream grew.
         //   v5 value: abf1ef9357f7cd7599895743e2687c31cb003d616bbb396b4e3de206ba05121c
-        //   v6 (T1.6): schema gained the empty LaborAllocations + PathProgress
+        //   v6 (T1.6): schema gained the empty SectorAllocations + PathProgress
         //   tables (two zero count prefixes, 8 bytes) — forced by the labor
         //   order's persistent allocation state. Sim behavior on this toy world
         //   is unchanged (pathbuild is not in the toy preset); only the stream grew.
@@ -342,7 +342,16 @@ public class SnapshotTests
         //   harvest and every trajectory moves by design. Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
         //   v11 value: c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173
-        const string golden = "8aa163701c02d52441dc7cc4efd1c1bd45cad01ca821cad0c88aeb75755374a0";
+        //   v13 (T3.3, D-032 — DELIBERATE, behavior + schema v14): the M2
+        //   grain monoculture becomes five-sector production over the D-031
+        //   roster (ProductionSystem replaces FarmingSystem in the pipeline),
+        //   the mandated M2 scaffolding is demolished (artisan tool multiplier
+        //   and weighted construction labor DELETED; tools are a real good the
+        //   farmers consume), and LaborAllocationRow widens to
+        //   SectorAllocationRow. Every trajectory moves by design. Update
+        //   ci.yml's FOUNDED_GOLDEN together with this constant.
+        //   v12 value: 8aa163701c02d52441dc7cc4efd1c1bd45cad01ca821cad0c88aeb75755374a0
+        const string golden = "3a73f1a7df18091da43e542f48669996b01a46675f1b77782bdbf4a7892999ff";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -640,8 +649,10 @@ public class SnapshotTests
         // Constitution rule: every new serialized row type ships a POPULATED-
         // table test — exact ExpectedLength, bit-exact round trip, hash equality.
         WorldState world = Genesis(23);
-        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(0), 0.35));
-        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(1), -0.0));
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(0), 0.35, 0.15, 0.2, 0.25, 0.05));
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(1), -0.0, 0.0, 0.0, 0.0, 1.0));
         world.PathProgress.Add(new PathProgressRow(new SettlementId(0), Banked: 123.456, FrontierNode: 4321));
         world.PathProgress.Add(new PathProgressRow(new SettlementId(1), Banked: -0.0, FrontierNode: -1));
 
@@ -657,9 +668,9 @@ public class SnapshotTests
         buffer.Position = 0;
         WorldState loaded = Snapshot.Load(buffer);
         Assert.True(WorldStates.StateEquals(world, loaded));
-        Assert.Equal(0.35, loaded.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.35, loaded.SectorAllocations[0].Farming);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.LaborAllocations[1].FarmShare));
+            BitConverter.DoubleToInt64Bits(loaded.SectorAllocations[1].Farming));
         Assert.Equal(123.456, loaded.PathProgress[0].Banked);
         Assert.Equal(4321, loaded.PathProgress[0].FrontierNode);
         Assert.Equal(-1, loaded.PathProgress[1].FrontierNode);

@@ -1,3 +1,3 @@
 {
-  "pipeline": ["catchment", "farming", "consumption", "classmobility", "migration", "demographics", "needsgrievance", "pathbuild"]
+  "pipeline": ["catchment", "production", "consumption", "classmobility", "migration", "demographics", "needsgrievance", "pathbuild"]
 }

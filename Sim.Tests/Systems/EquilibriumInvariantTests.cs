@@ -121,7 +121,7 @@ public class EquilibriumInvariantTests
         const double dt = 10.0;
         const long store = 1_000_000;                      // far from any clamp
         var exec = new TurnExecutor(FlatEra(dt),
-            [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+            [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(EquilibriumWorld(scale: 1, arableKm2, store));
 
         long harvest = FlowTotal(next, ReasonIds.Harvest, sunk: false);
@@ -157,7 +157,7 @@ public class EquilibriumInvariantTests
         const double dt = 10.0;
         const long store = 100_000_000;
         var exec = new TurnExecutor(FlatEra(dt),
-            [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+            [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(EquilibriumWorld(scale, arableKm2, store));
 
         Assert.Equal(2950 * scale, FlowTotal(next, ReasonIds.Harvest, sunk: false));

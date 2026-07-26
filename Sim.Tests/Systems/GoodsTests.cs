@@ -146,6 +146,13 @@ public class GoodsTests
         "strictly ascending")]
     [InlineData("""{"goods":[{"id":1,"name":"grain","category":"cheese","bulkPerUnit":1.0,"numeraire":true}],"recipes":[]}""",
         "category")]
+    // T3.3 adversarial finding: two entries for one good made the Leontief cap
+    // and the sink asymmetric (cap counted the coefficient once, the sink loop
+    // charged it per ENTRY), so a purely data-level edit crashed the turn with a
+    // Ledger overdraw. CLAUDE.md says tuning data is always allowed, so the
+    // loader owes an actionable rejection instead of a mid-turn exception.
+    [InlineData("""{"goods":[{"id":1,"name":"grain","category":"food","bulkPerUnit":1.0,"numeraire":true},{"id":2,"name":"clay","category":"raw","bulkPerUnit":1.0}],"recipes":[{"name":"x","inputs":[{"good":"clay","perOutput":2.0},{"good":"clay","perOutput":2.0}],"laborPerOutput":0.1,"output":{"good":"grain","qty":1}}]}""",
+        "more than once")]
     public void Loader_RejectsBadConfigs_WithActionableMessages(string json, string fragment)
     {
         var ex = Assert.Throws<GoodsConfigException>(() => GoodsConfigLoader.Load(json));

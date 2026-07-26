@@ -99,6 +99,40 @@ A second-order caution follows from it — a spec author who has completed the f
 covered. They are not. The four items reduce avoidable surprises; they do not license skipping
 measurement, and an audit that returns "all clean" is evidence about paper, not about the world.
 
+## 5b. Evidence the format works — first outing, T3.3 (director-accepted, 2026-07-26)
+
+T3.3 was the first packet written after §4.1 landed, and applying the new requirements to it
+surfaced two real defects that nothing else in the project would have caught. Recorded here
+because a format's value is an empirical claim, and this is the first evidence for it.
+
+**Requirement 2 (dimensional declaration) caught a contract that contradicted its own data.**
+T3.2's `goods.json` doc declared recipe `inputs per output unit`. The data it shipped says
+otherwise: `toolmaking` declares `bronze: 1.0` with `output.qty: 2`. Under a per-unit reading
+`qty` is decorative and toolmaking's entire value-add disappears. T3.3's code implements the
+per-EXECUTION reading, so **the code was right and the declaration was wrong** — the reverse of
+the usual assumption, and only visible because requirement 2 forces the declaration to be
+written down and checked against the equation. Nothing pinned the reading before; it would have
+drifted at T3.4 when prices started weighting recipes. Now corrected in both the data doc and
+`GoodsConfig`, and pinned exactly at 2 tools per bronze
+(`ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit`).
+
+**The audit habit caught a load-bearing claim with no test behind it.** `ProductionSystem`'s
+header asserted that `OverdrawPolicy.Throw` on recipe inputs is safe *by construction*, because
+each recipe re-reads the already-drained stock. Timber is an input to three recipes, so that
+claim carries the conservation guarantee for the whole crafting path — and it was prose.
+`Crafting_ThreeRecipesShareOneScarceInput_NeverOverdraws` now runs all four recipes against 37
+timber with the artisan gate open and asserts `start == left + used` exactly.
+
+Both were found by the implementing agent applying the rules to its own packet, which is the
+mode the format was written for: the questions are cheap to ask, and asking them properly
+changed the answer. Neither is the kind of defect a test suite finds, because in both cases the
+code and the tests agreed with each other — it was the *stated contract* that disagreed.
+
+**Read this section with ADR-015.** These two items stand, but they are not the whole verdict on
+T3.3. The same packet also shipped a regression built on an *unverified* finding, and reverted
+it. The format found real things; the process around it failed. ADR-015 records that and asks
+for the process rule.
+
 ## 6. Consequences
 
 - The next spec written is M4's, per S8 §4 (after M3's exit gate). It is the first to carry §4.1.
