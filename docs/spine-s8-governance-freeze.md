@@ -48,6 +48,95 @@ implement M(n) → exit criteria GREEN → write + ratify M(n+1) spec → cut pa
 - **Exempt document classes:** decision records/ADRs (they are the amendment mechanism), the queue, and hotfix specs spawned by an approved Contradiction Report.
 - **Proof standard** per system = its packet acceptance tests green + CI green + (from M2 onward) the autoplay soak green + any calibration hooks defined for it. Already encoded in each milestone's exit criteria; no new definition.
 
+### 4.1 SPEC FORMAT (director ruling 2026-07-26, recorded in `docs/adr/adr-014-spec-format-foundations-audit.md` — effective from the M4 spec onward)
+
+**Origin.** The T3.2b detour existed because the M3 spec specified new systems without auditing the
+constants they would stand on. A yield constant denominated per lattice node was consumed as if it
+were per km²; the catchment budget that compensated for it was a code constant no tuning pass could
+see. Both were catchable on paper. Neither was in anybody's packet.
+
+**Aim.** Fewer AVOIDABLE surprises. Reality correcting the spec — CR-001, CR-002, the ghost harvest
+— is the system working, not a failure to plan; this format does not ask a spec to be omniscient
+and adds no new process gate. It asks four questions that can be answered before code exists.
+
+**Effective from the M4 spec onward.** M3 is mid-flight and is NOT retro-fitted: its remaining
+packets — including T3.10, which specs new corridors — run under the pre-amendment format.
+
+Every milestone spec from M4 onward carries all four. Item 1 is a task packet (the first one in
+§4); items 2–4 are spec content. The existing spec skeleton (§1 decisions closed · §2 scope fence ·
+§3 system notes · §4 task packets · §5 exit criteria · §6 governance) is otherwise unchanged, and
+each requirement below names where it lives.
+
+**1. FOUNDATIONS AUDIT — packet one.** `T(n).1` is an explicit pass over the EXISTING constants the
+milestone's new systems will depend on.
+
+  *Scope is DEPENDENCY, not perturbation:* every existing constant a new system depends on —
+  directly, or through a value it consumes. The coupling map (4 below) is the starting list, not
+  the limit. The distinction is load-bearing rather than pedantic: `CatchmentSystem.TravelBudget`
+  sat in an existing system's equation and reached M3's new systems only through
+  `EffectiveArableKm2`. A perturbation-scoped audit would have exempted the ruling's own origin
+  case; a dependency-scoped one catches it.
+
+  For each constant in scope, three answers:
+
+  - **(a) What it means in REAL units** — persons, km², person-years, grain-equivalents/yr. An
+    internal unit is not an answer: "15 cost units" only restates the number. The question
+    "…which is how many km?" is the one that does the work — it yields 240 km of ideal-ground
+    reach (~205 km once terrain is paid for), at which point nobody defends the value.
+  - **(b) Whether its denomination matches its consumption site** — the identical question at both
+    ends of the pipe: what the producer writes, what the consumer multiplies. CR-002 was two
+    consumers reading one field in two denominations and only one of them converting.
+  - **(c) Whether it was DERIVED or merely CHOSEN** — and if chosen, from what, by whom, when.
+    `yieldPerFarmlandPerYear` traces to a bare `40.0` at T1.5 and a mechanical retune to `28.0` at
+    T1.6 taken only to keep the no-order production rate unchanged. Three milestones stood on it.
+
+Cheap when clean: the deliverable is a table, and a clean audit closes the packet in a session.
+
+The audit RECORDS the answers; it does not acquire new powers from doing so. A finding that is a
+genuine conflict opens a CR under §3. Everything else follows the existing rules unchanged — TUNE
+values and data files are living and may be corrected freely (§1), and "a better way exists" goes
+to the queue (§2). The audit asks whether a constant is traceable and dimensionally sound, never
+whether it is optimal. This is the packet that would have caught CR-002 as planned work.
+
+*On packet ordering:* several specs put a golden-moving change first so goldens move once (M3's
+T3.1). That convention survives — an audit is cheap and produces findings, and any correction it
+justifies then lands in the same early window, so audit-then-correct-then-build still moves goldens
+once.
+
+**2. DIMENSIONAL DECLARATION — §3 system notes.** Every new quantity declares its units at
+introduction, and every core equation is checked for unit balance on paper before implementation.
+Both sides of a `min()`, both terms of a sum, and the numerator and denominator of every ratio.
+
+  Note what actually went wrong at T1.5, because it is the more common failure and the less
+  obvious one: the yield constant's NUMERATOR was declared ("1 food = 1 person-year, D-015"). It
+  was `EffectiveFarmland`, introduced a packet earlier at T1.4, that never declared a unit at all —
+  so `harvest = farmland × yield` was not a check that failed, it was a check nobody could run.
+  Requiring the declaration is what makes the balance check performable; the imbalance is then
+  visible in one line. Units belong in identifiers too, but that is a code convention (ADR-013),
+  not this document's business.
+
+**3. CORRIDOR INDEPENDENCE — wherever the corridor is introduced (§3 or §5).** No corridor is
+specced without naming (i) what it is independent OF, and (ii) how a change in the measured system
+could make it fail. A corridor whose denominator moves with the measured quantity is
+SELF-REFERENTIAL and is REFUSED at spec time, not discovered later.
+
+  The refused shape has a signature worth memorising, because it is not obvious in prose and is
+  algebraically fatal: deriving a bound as `P_hist / (H × s̄)` where `s̄` is the sim's own measured
+  quantity cancels against `measured = P_sim / (A × s̄)`, so the bound sits at a fixed fraction of
+  whatever the map reports, forever. That is the CR-002 cancellation identity — the standing
+  example. Two tests for it, both from the same CR-002 refutation and neither an extra obligation:
+  **algebraic** — write the bound and the measurement as fractions and cancel; if a sim-measured
+  term disappears from the ratio, the corridor is a mirror. **Counterfactual** — run the same
+  derivation against the world as it stood BEFORE the change; a recipe that yields a different
+  bound depending on which side of the change you run it on is not a derivation.
+
+**4. COUPLING MAP — a short table, §3.** Which existing constants, corridors and emergence tests
+each new system perturbs. It has two jobs and earns its place on both: it scopes the foundations
+audit up front, and it is the re-anchoring checklist when something moves. T3.2b re-verified nine
+downstream failures by discovery; a coupling map turns that into a list written before the work.
+
+**Not added:** further process gates, or pre-specification of what only measurement can settle.
+
 ## 5. CURRENT STATE DECLARATION
 
 **Frozen baseline (activates on M0 acceptance):** `civ-sim-architecture-v3-outline.md` (as amended below) · `m0-kernel-spec.md` · `d011-battle-layer-addendum.md` · `d009-d010-map-population-addendum.md` · `d018-classes-and-needs.md` · this document. Where addenda amend the v3 outline (region-graph clause, milestone renumbering, walking-skeleton content), **the addendum governs** — append-only audit trail, no retro-editing.
