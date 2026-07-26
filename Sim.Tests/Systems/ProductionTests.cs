@@ -254,6 +254,65 @@ public class ProductionTests
         Assert.Equal(2 * bronzeUsed, tools);
     }
 
+    [Fact]
+    public void LastProducedUnits_ZeroesWhenAGoodProducesNothing_NotStale()
+    {
+        // T3.3 adversarial finding. LastProducedUnits is documented as "the units
+        // credited THIS turn (observational)", but only the success paths wrote
+        // it, so a good that stopped producing kept reporting its last good turn
+        // forever. Grain was accidentally safe (farming always writes it) and is
+        // the only consumer today — food_surplus_ratio and migration's anyFood
+        // gate — which is why this had to be fixed BEFORE T3.4/T3.5 begin
+        // reading other goods' LastProduced.
+        SimConfig cfg = TestConfigs.Sim();
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]);
+
+        // Exactly enough clay for one turn of pottery, then nothing.
+        WorldState w = World(cfg, adults: 100_000,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("clay", 100), ("timber", 1000)]);
+
+        WorldState t1 = exec.Step(w);
+        long firstRun = LastProduced(t1, cfg, "pottery");
+        Assert.True(firstRun > 0, "no pottery in turn 1 — the test is vacuous");
+        Assert.Equal(0, Stock(t1, cfg, "clay"));      // clay exhausted
+
+        WorldState t2 = exec.Step(t1);
+        Assert.Equal(0, LastProduced(t2, cfg, "pottery"));   // was: still firstRun, forever
+        Assert.Equal(Stock(t1, cfg, "pottery"), Stock(t2, cfg, "pottery")); // and truly nothing made
+
+        // Grain's contract is unchanged: it still reports the turn's harvest.
+        Assert.Equal(0, LastProduced(t2, cfg, "grain"));     // no farm labor allocated here
+    }
+
+    private static long LastProduced(WorldState w, SimConfig cfg, string good)
+    {
+        int id = cfg.Goods!.IdOf(good);
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+            if (w.GoodStocks[i].Good.Value == id) return w.GoodStocks[i].LastProducedUnits;
+        return -1;
+    }
+
+    [Fact]
+    public void Farming_WithNegativeSectorWeight_DoesNotCrashTheKernel()
+    {
+        // T3.3 adversarial finding (minor, and the verifier was right that it is
+        // unreachable through orders — they validate [0,100]). But the SCHEMA
+        // reads the five weights as raw doubles, so a hand-edited or corrupted
+        // snapshot delivers a state the sim could not step: farming was the only
+        // sector without a non-positive-labor guard, and it threw
+        // ArgumentOutOfRangeException out of the Ledger. Cheap to make
+        // consistent with the other three sectors.
+        SimConfig cfg = TestConfigs.Sim();
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)]);
+        WorldState w = World(cfg, adults: 1000,
+            allocation: new SectorAllocationRow(S0, -1.0, 2.0, 0.0, 0.0, 0.0),
+            arableKm2: 1e6);
+
+        WorldState next = exec.Step(w);           // must not throw
+        Assert.Equal(0, Stock(next, cfg, "grain")); // and produces nothing from negative labor
+    }
+
     // --- 4. dt-correctness ----------------------------------------------------
 
     [Fact]
@@ -298,6 +357,25 @@ public class ProductionTests
         // m3 spec §1 acceptance: "zero references remain to the deleted
         // multiplier (grep-level)". Asserted here rather than left to a
         // one-time grep, so a revert or a bad merge fails the build.
+        //
+        // TWO HOLES IN THE FIRST VERSION OF THIS TEST, both found by the T3.3
+        // adversarial pass by CONSTRUCTING a surviving-scaffold scenario and
+        // watching the gate report success. Recorded because they are the
+        // difference between a gate and a decoration:
+        //   (1) it skipped sim.json ENTIRELY — the one file all three retired
+        //       parameters actually lived in. Re-inserting the keys under
+        //       "farming" restored the scaffolding on the config side and the
+        //       gate still passed. Now sim.json is SCANNED, and only the
+        //       documentation VALUE is exempt: a retired name is a violation
+        //       when it appears as a live JSON KEY ("token":), which is exactly
+        //       how SimConfig binds it, and harmless inside a _doc string.
+        //   (2) it exempted any line whose first character is '*', meaning to
+        //       skip block-comment continuations. The repo contains NO /* */
+        //       blocks, but its house style wraps multiplications with '*' at
+        //       the start of the continuation line — so the rule whitelisted
+        //       LIVE CODE. A compiling statement carrying a retired token on
+        //       such a line passed the gate. Comments are now stripped
+        //       properly instead of guessed at by prefix.
         string root = FindRepoRoot();
         string[] retired =
         [
@@ -314,27 +392,68 @@ public class ProductionTests
             {
                 if (file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
                     || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")) continue;
-                if (Path.GetExtension(file) is not (".cs" or ".json")) continue;
-                if (file.EndsWith("sim.json", StringComparison.Ordinal)) continue;
+                string ext = Path.GetExtension(file);
+                if (ext is not (".cs" or ".json")) continue;
+                // This file names the retired tokens to test for them.
                 if (file.EndsWith("ProductionTests.cs", StringComparison.Ordinal)) continue;
-                // COMMENT LINES ARE EXEMPT — the same call made for the CR-002
-                // denomination gate: the whole point of a demolition is that
-                // the history stays legible, and a dead name inside a /// block
-                // cannot be read by the compiler. LIVE CODE is not exempt.
-                foreach (string line in File.ReadAllLines(file))
+
+                string text = File.ReadAllText(file);
+                string live = ext == ".cs" ? StripCsComments(text) : text;
+                foreach (string token in retired)
                 {
-                    string trimmed = line.TrimStart();
-                    if (trimmed.StartsWith("//", StringComparison.Ordinal)
-                        || trimmed.StartsWith("*", StringComparison.Ordinal)
-                        || trimmed.StartsWith("\"_doc", StringComparison.Ordinal)) continue;
-                    foreach (string token in retired)
-                        if (line.Contains(token, StringComparison.Ordinal))
-                            offenders.Add($"{Path.GetRelativePath(root, file)}: {token}");
+                    bool hit = ext == ".json"
+                        // A LIVE config key is `"token":` — that is what binds.
+                        // A mention inside a _doc value is the demolition record.
+                        ? live.Contains($"\"{token}\"", StringComparison.Ordinal)
+                          && System.Text.RegularExpressions.Regex.IsMatch(
+                              live, "\"" + System.Text.RegularExpressions.Regex.Escape(token) + "\"\\s*:")
+                        : live.Contains(token, StringComparison.Ordinal);
+                    if (hit) offenders.Add($"{Path.GetRelativePath(root, file)}: {token}");
                 }
             }
         }
         Assert.True(offenders.Count == 0,
             "M2 scaffolding survives the T3.3 demolition:\n  " + string.Join("\n  ", offenders));
+    }
+
+    /// <summary>
+    /// Blanks C# comments so the demolition scan sees only LIVE code. Handles
+    /// // to end-of-line and /* */ spans, and skips string literals so a '//'
+    /// inside a string does not blind the rest of the line. Deliberately not a
+    /// prefix heuristic: guessing "this line starts with * so it is a comment"
+    /// is what let live code through the first time.
+    /// </summary>
+    private static string StripCsComments(string text)
+    {
+        var sb = new System.Text.StringBuilder(text.Length);
+        bool inLine = false, inBlock = false, inString = false, inVerbatim = false, inChar = false;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            char next = i + 1 < text.Length ? text[i + 1] : '\0';
+            if (inLine) { if (c == '\n') { inLine = false; sb.Append(c); } continue; }
+            if (inBlock) { if (c == '*' && next == '/') { inBlock = false; i++; } continue; }
+            if (inString)
+            {
+                sb.Append(c);
+                if (!inVerbatim && c == '\\') { if (i + 1 < text.Length) { sb.Append(next); i++; } continue; }
+                if (c == '"') { inString = false; inVerbatim = false; }
+                continue;
+            }
+            if (inChar)
+            {
+                sb.Append(c);
+                if (c == '\\') { if (i + 1 < text.Length) { sb.Append(next); i++; } continue; }
+                if (c == '\'') inChar = false;
+                continue;
+            }
+            if (c == '/' && next == '/') { inLine = true; continue; }
+            if (c == '/' && next == '*') { inBlock = true; i++; continue; }
+            if (c == '"') { inString = true; inVerbatim = i > 0 && text[i - 1] == '@'; sb.Append(c); continue; }
+            if (c == '\'') { inChar = true; sb.Append(c); continue; }
+            sb.Append(c);
+        }
+        return sb.ToString();
     }
 
     private static string FindRepoRoot()

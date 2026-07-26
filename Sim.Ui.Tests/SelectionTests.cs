@@ -243,9 +243,9 @@ public class SelectionTests
         Assert.Equal(-1, share3); // never ordered → no row (default 1.0 applies)
 
         // And the HUD reads each settlement's own split.
-        Assert.Equal(30.0, Sim.Ui.ViewModel.HudModel.From(session.World, 1).FarmSharePct);
-        Assert.Equal(70.0, Sim.Ui.ViewModel.HudModel.From(session.World, 2).FarmSharePct);
-        Assert.Equal(100.0, Sim.Ui.ViewModel.HudModel.From(session.World, 3).FarmSharePct);
+        Assert.Equal(30.0, Sim.Ui.ViewModel.HudModel.From(session.World, 1).FarmingPct);
+        Assert.Equal(70.0, Sim.Ui.ViewModel.HudModel.From(session.World, 2).FarmingPct);
+        Assert.Equal(100.0, Sim.Ui.ViewModel.HudModel.From(session.World, 3).FarmingPct);
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class SelectionTests
         Assert.Equal("Settlement 2", hud.TitleLine);
         Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
-        Assert.Equal("labor 100% farm / 0% path", hud.SplitLine);
+        Assert.Equal("labor 100% farm / 0% herd / 0% mine / 0% craft / 0% build", hud.SplitLine);
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine);
         Assert.Equal(2, hud.SettlementId);
     }

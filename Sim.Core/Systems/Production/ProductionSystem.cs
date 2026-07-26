@@ -123,6 +123,16 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         Table<GoodStockRow> stocks = ctx.Owned.GoodStocks;
         GoodsConfig goods = _cfg.Goods!;
 
+        // LastProducedUnits is documented as "the units credited THIS turn", so it
+        // must be ZEROED before the sectors run: a good that produces nothing
+        // this turn has to report nothing, not last turn's figure. Without this
+        // the success paths were the only writers, so a crafting run that ran
+        // out of clay left the pottery row reporting its last good turn forever.
+        // Grain was accidentally safe (farming always writes it), and grain is
+        // the only consumer today — which is exactly why this had to be fixed
+        // before T3.4/T3.5 start reading other goods' LastProduced.
+        for (int i = 0; i < stocks.Count; i++) stocks.Ref(i).LastProducedUnits = 0;
+
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
@@ -159,6 +169,14 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
+        // Non-positive labor guard, matching FromDeposits and Craft. Orders
+        // validate weights into [0,100] so a legitimate run cannot get here with
+        // negative labor, but a hand-edited or corrupted SNAPSHOT can (the
+        // schema reads the five weights as raw doubles), and the failure mode
+        // was an ArgumentOutOfRangeException out of Ledger rather than an
+        // actionable message. Zero labor also means zero harvest and zero wear,
+        // so returning early is the correct semantics either way.
+        if (!(farmLabor > 0.0)) return; // NaN fails this too
 
         double arableKm2 = 0.0;
         for (int i = 0; i < prev.CatchmentSummaries.Count; i++)

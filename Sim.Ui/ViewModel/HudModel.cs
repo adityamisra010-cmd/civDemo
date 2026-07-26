@@ -24,7 +24,14 @@ public sealed record HudModel(
     int SettlementId, long Turn, long Year,
     long Children, long Adults, long Elders, long TotalPopulation,
     long FoodStore, long LastHarvest,
-    double FarmSharePct, double PathSharePct,
+    // T3.3 (D-032): all five NORMALIZED sector shares, as percentages. The
+    // pre-T3.3 pair was FarmSharePct + PathSharePct fabricated as (1 − farm),
+    // which stopped being true the moment a third sector could be allocated:
+    // the HUD reported "50% path" while PathBuild banked exactly zero. These
+    // come from Sectors.Share — the same normalization the sim reads — so the
+    // panel cannot disagree with the simulation about who is working where.
+    double FarmingPct, double HerdingPct, double ExtractionPct,
+    double CraftingPct, double ConstructionPct,
     long WorldPopulation, int SettlementCount,
     IReadOnlyList<string>? NeedLines = null, double GrievanceValue = 0.0,
     string? SettlementName = null)
@@ -46,7 +53,9 @@ public sealed record HudModel(
             if (world.Settlements[i].Id == selected) { exists = true; break; }
 
         long children = 0, adults = 0, elders = 0, food = 0, lastHarvest = 0;
-        double farmShare = 1.0; // never-ordered default
+        // Never-ordered default: all farming (Sectors.Default), so the HUD
+        // shows what the sim would actually do with no allocation row.
+        SectorAllocationRow allocation = Sectors.Default(new SettlementId(selectedSettlementId));
         if (exists)
         {
             children = BandViews.Children(world.Buckets, selected);
@@ -65,7 +74,7 @@ public sealed record HudModel(
             {
                 if (world.SectorAllocations[i].Settlement == selected)
                 {
-                    farmShare = world.SectorAllocations[i].Farming;
+                    allocation = world.SectorAllocations[i];
                     break;
                 }
             }
@@ -130,8 +139,11 @@ public sealed record HudModel(
             TotalPopulation: children + adults + elders,
             FoodStore: food,
             LastHarvest: lastHarvest,
-            FarmSharePct: farmShare * 100.0,
-            PathSharePct: (1.0 - farmShare) * 100.0,
+            FarmingPct: Sectors.Share(allocation, Sectors.Farming) * 100.0,
+            HerdingPct: Sectors.Share(allocation, Sectors.Herding) * 100.0,
+            ExtractionPct: Sectors.Share(allocation, Sectors.Extraction) * 100.0,
+            CraftingPct: Sectors.Share(allocation, Sectors.Crafting) * 100.0,
+            ConstructionPct: Sectors.Share(allocation, Sectors.Construction) * 100.0,
             WorldPopulation: worldPop,
             SettlementCount: world.Settlements.Count,
             NeedLines: needLines,
@@ -155,7 +167,8 @@ public sealed record HudModel(
 
     public string SplitLine =>
         string.Create(CultureInfo.InvariantCulture,
-            $"labor {FarmSharePct:F0}% farm / {PathSharePct:F0}% path");
+            $"labor {FarmingPct:F0}% farm / {HerdingPct:F0}% herd / {ExtractionPct:F0}% mine"
+            + $" / {CraftingPct:F0}% craft / {ConstructionPct:F0}% build");
 
     public string WorldLine =>
         string.Create(CultureInfo.InvariantCulture,
