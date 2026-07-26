@@ -16,7 +16,7 @@ public class SnapshotTests
         return EraTableLoader.Load(stream);
     }
 
-    private static TurnExecutor CanonicalExecutor(OrderLog? orders = null)
+    internal static TurnExecutor CanonicalExecutor(OrderLog? orders = null)
     {
         // Toy preset (T1.5): the golden lineage lives on the toy world + toy
         // systems; the production preset's behavior is pinned by the T1.5
@@ -28,7 +28,7 @@ public class SnapshotTests
 
     // The canonical M0 test world: seed + two regions (world genesis, shared by
     // the golden-hash and replay tests — changing it changes the golden hash).
-    private static WorldState Genesis(ulong seed)
+    internal static WorldState Genesis(ulong seed)
     {
         var world = new WorldState(seed);
         world.Regions.Add(new RegionRow(new RegionId(0)));
@@ -150,7 +150,13 @@ public class SnapshotTests
         //   v11 (T2.8): schema v12 gained the empty SmoothedAttractiveness
         //   table (one zero count prefix, 4 bytes); migration is not in the
         //   toy preset. Only the stream grew.
-        const string golden = "ff9519a151bb4b3b348aa289b7555c221834e4ce297d989cb038860c2c07d420";
+        //   v11 value: ff9519a151bb4b3b348aa289b7555c221834e4ce297d989cb038860c2c07d420
+        //   v12 (T3.2, D-031 — SCHEMA ONLY on this world): schema v13 replaced
+        //   the empty FoodStores table with the empty GoodStocks + Deposits
+        //   tables (net one more zero count prefix, 4 bytes). No goods system
+        //   runs in the toy preset and this terrain-less world founds no
+        //   stocks; only the stream grew.
+        const string golden = "d0767e5126acbb3f9af220f373fc3dca37a8b8c80d35aad0e993294ea1da8dbd";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -314,7 +320,18 @@ public class SnapshotTests
         //   any trajectory drifted — the v9 value above still reproduces at
         //   turn 200 on this same code. Update ci.yml's FOUNDED_GOLDEN (and
         //   its --turns) together with this constant.
-        const string golden = "a5959cdc117ed5cb66f7ee6128d0ff81e66a04feb806e24f0558cadfdc65f2bf";
+        //   v10 value: a5959cdc117ed5cb66f7ee6128d0ff81e66a04feb806e24f0558cadfdc65f2bf
+        //   v11 (T3.1+T3.2 paired re-pin — DELIBERATE, worldgen + schema +
+        //   founding together, moved ONCE per the pairing rule): T3.1 changed
+        //   the WORLD (river-seeded moisture/access, edge taper, region-scored
+        //   jittered siting, jittered endowments — every field and every site
+        //   moves) and the emergence predicate gained the population term;
+        //   T3.2 migrated FoodStores into per-good GoodStocks (schema v13,
+        //   grain carries the M2 role) and founds 14 stock rows + deposit
+        //   rolls per settlement. Trajectory semantics are pinned by the
+        //   worldgen-refresh battery, the goods migration tests, and the
+        //   recalibrated corridors (bands re-measured, notes in-file).
+        const string golden = "c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -325,6 +342,39 @@ public class SnapshotTests
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
+    }
+
+    [Fact]
+    public void SchemaV13_PopulatedGoodStockAndDepositTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test — exact ExpectedLength, bit-exact round trip, hash
+        // equality. v13 (T3.2): GoodStockRow (five-field payload with the
+        // GOOD id distinct from the settlement id — a swapped write order
+        // round-trips wrong here) and DepositRow (negative-zero abundance).
+        WorldState world = Genesis(23);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+        world.GoodStocks.Add(new GoodStockRow(new SettlementId(2), new GoodId(7),
+            Conserved.Zero, produceRemainder: 0.375, consumeRemainder: -0.0,
+            lastProducedUnits: 4242));
+        world.GoodStocks.Add(new GoodStockRow(new SettlementId(3), new GoodId(11),
+            Conserved.Zero, produceRemainder: -0.0, consumeRemainder: 0.625));
+        ledger.Flow(ref world.GoodStocks.Ref(0).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(7)),
+            ReasonIds.InitialEndowment, 987654321, FlowDirection.Source, OverdrawPolicy.Throw);
+        world.Deposits.Add(new DepositRow(new SettlementId(2), new GoodId(5), 1.75));
+        world.Deposits.Add(new DepositRow(new SettlementId(3), new GoodId(8), -0.0));
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(world, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
+
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(TestUtil.WorldStates.StateEquals(world, back), "round-trip drifted");
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(back));
     }
 
     [Fact]
@@ -350,9 +400,9 @@ public class SnapshotTests
             ReasonIds.InitialEndowment, 130, FlowDirection.Source, OverdrawPolicy.Throw);
         ledger.Flow(ref world.Buckets.Ref(1).Count, ConservedQuantityIds.Population,
             ReasonIds.InitialEndowment, 200, FlowDirection.Source, OverdrawPolicy.Throw);
-        world.FoodStores.Add(new FoodStoreRow(new SettlementId(0),
-            Conserved.Zero, harvestRemainder: 0.375, eatenRemainder: -0.0));
-        ledger.Flow(ref world.FoodStores.Ref(0).Store, ConservedQuantityIds.Food,
+        world.GoodStocks.Add(new GoodStockRow(new SettlementId(0), new GoodId(1),
+            Conserved.Zero, produceRemainder: 0.375, consumeRemainder: -0.0));
+        ledger.Flow(ref world.GoodStocks.Ref(0).Amount, ConservedQuantityIds.OfGood(new GoodId(1)),
             ReasonIds.InitialEndowment, 6000, FlowDirection.Source, OverdrawPolicy.Throw);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 0.613));
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(1), -0.0));
@@ -380,10 +430,10 @@ public class SnapshotTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.Buckets[0].DeathRemainder));
         Assert.Equal(0.9, loaded.Buckets[1].AgingRemainder);
-        Assert.Equal(6000, loaded.FoodStores[0].Store.Value);
-        Assert.Equal(0.375, loaded.FoodStores[0].HarvestRemainder);
+        Assert.Equal(6000, loaded.GoodStocks[0].Amount.Value);
+        Assert.Equal(0.375, loaded.GoodStocks[0].ProduceRemainder);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.FoodStores[0].EatenRemainder));
+            BitConverter.DoubleToInt64Bits(loaded.GoodStocks[0].ConsumeRemainder));
         Assert.Equal(0.613, loaded.ConsumptionDeficits[0].DeficitRatio);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.ConsumptionDeficits[1].DeficitRatio));
@@ -402,8 +452,8 @@ public class SnapshotTests
         world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1),
             new ReligionId(1), new ClassId(2), cohortIdx: 7,
             Conserved.Zero, 0.125, 0.25, 0.375, 0.5, mobilityRemainder: 0.625));
-        world.FoodStores.Add(new FoodStoreRow(new SettlementId(0),
-            Conserved.Zero, 0.0, -0.0, lastHarvestUnits: 31700));
+        world.GoodStocks.Add(new GoodStockRow(new SettlementId(0), new GoodId(1),
+            Conserved.Zero, 0.0, -0.0, lastProducedUnits: 31700));
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 0.42, DemandUnits: 4096));
         world.Variables.Add(new VariableRow(new SettlementId(0), Sim.Core.State.Variables.FoodSurplusRatio, 1.375));
         world.Variables.Add(new VariableRow(new SettlementId(1), Sim.Core.State.Variables.ArtisanShare, -0.0));
@@ -423,7 +473,7 @@ public class SnapshotTests
         WorldState loaded = Snapshot.Load(buffer);
         Assert.True(WorldStates.StateEquals(world, loaded));
         Assert.Equal(0.625, loaded.Buckets[0].MobilityRemainder);
-        Assert.Equal(31700, loaded.FoodStores[0].LastHarvestUnits);
+        Assert.Equal(31700, loaded.GoodStocks[0].LastProducedUnits);
         Assert.Equal(4096, loaded.ConsumptionDeficits[0].DemandUnits);
         Assert.Equal(1.375, loaded.Variables[0].Value);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),

@@ -47,10 +47,10 @@ public class FirstReignTests
             for (int i = 0; i < world.LedgerFlows.Count; i++)
             {
                 LedgerFlowRow row = world.LedgerFlows[i];
-                if (row.Quantity == ConservedQuantityIds.Food && row.Reason == ReasonIds.Harvest)
+                if (row.Quantity == ConservedQuantityIds.OfGood(new GoodId(1)) && row.Reason == ReasonIds.Harvest)
                     harvest = row.TotalSourced;
             }
-            trajectory.Add((pop, world.FoodStores[0].Store.Value, harvest));
+            trajectory.Add((pop, world.GoodStocks[0].Amount.Value, harvest));
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
         return world;
@@ -113,7 +113,16 @@ public class FirstReignTests
         //   settlement, so the frozen dead-world bytes change; the living
         //   trajectory to extinction is untouched and the shape asserts below
         //   re-verified unchanged.
-        const string golden = "c35a88a837f102780342992e1f0db24d45e71eb020da3e1fba33b85d2a28b3ee";
+        //   v9 value: c35a88a837f102780342992e1f0db24d45e71eb020da3e1fba33b85d2a28b3ee
+        //   v10 (T3.1+T3.2 paired re-pin — DELIBERATE): the worldgen refresh
+        //   re-sites and re-endows even this N = 1 replay world (river-seeded
+        //   moisture, edge taper, jittered siting/endowment) and schema v13
+        //   carries the grain-migrated goods tables. The SHAPE of the played
+        //   session survives — extinction inside (5, 25], the dead world
+        //   frozen, no food mountain — and the shape asserts below were
+        //   re-verified against the new trajectory (they run on every build;
+        //   a blind re-pin cannot satisfy them).
+        const string golden = "3a6d296f117cbb339969a9ad261f5b685b27adcae4bcac55a016fe70a7d7e72c";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

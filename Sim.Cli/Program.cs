@@ -80,7 +80,8 @@ namespace Sim.Cli
         {
             using var simStream = Sim.Data.DataFiles.OpenSim();
             using var needsStream = Sim.Data.DataFiles.OpenNeeds();
-            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream);
+            using var goodsStream = Sim.Data.DataFiles.OpenGoods();
+            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream, goodsStream);
         }
 
         private static TurnExecutor Executor(OrderLog? orders, bool founded = false)
@@ -504,8 +505,9 @@ namespace Sim.Cli
             Sim.Core.Systems.SimConfig simCfg;
             using (var stream = Sim.Data.DataFiles.OpenSim())
             using (var needs = Sim.Data.DataFiles.OpenNeeds())
+            using (var goods = Sim.Data.DataFiles.OpenGoods())
             {
-                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs);
+                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods);
             }
             return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed, settlementsOverride);
         }

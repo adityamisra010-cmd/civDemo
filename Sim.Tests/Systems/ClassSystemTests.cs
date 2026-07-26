@@ -55,9 +55,9 @@ public class ClassSystemTests
     /// publish: LastHarvestUnits / DemandUnits on the current state's rows.</summary>
     private static void DriveSurplus(WorldState world, long harvest, long demand)
     {
-        if (world.FoodStores.Count == 0)
-            world.FoodStores.Add(new FoodStoreRow(S0, Conserved.Zero, 0.0, 0.0, harvest));
-        else world.FoodStores.Ref(0).LastHarvestUnits = harvest;
+        if (world.GoodStocks.Count == 0)
+            world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(1), Conserved.Zero, 0.0, 0.0, harvest));
+        else world.GoodStocks.Ref(0).LastProducedUnits = harvest;
         var row = new ConsumptionDeficitRow(S0, 0.0, demand);
         if (world.ConsumptionDeficits.Count == 0) world.ConsumptionDeficits.Add(row);
         else world.ConsumptionDeficits[0] = row;
@@ -91,17 +91,26 @@ public class ClassSystemTests
         // ~250 turns — the surplus recession + first Malthus crash (measured
         // near turn 255) are what drain the artisans, so the post-boom arm
         // must reach past them.
+        // T3.1 REWORK (stated): emergence is POPULATION-GATED now (the
+        // predicate carries `population > 520`, coupling crossing time to the
+        // jittered founding size — the lockstep break), so settlement 0
+        // emerges when it GROWS past the threshold (measured t52 on the dev
+        // world), not at the warm-up exit. Phases key off the measured
+        // emergence; the drain arm reaches past the first Malthus crash
+        // (~t820 on the refreshed worldgen).
         int emergenceTurn = -1;
         double boomPeak = 0.0, minAfterBoom = 1.0;
-        for (int t = 1; t <= 280; t++)
+        for (int t = 1; t <= 900; t++)
         {
             world = exec.Step(world);
             long artisans = ArtisanAdults(world);
             if (emergenceTurn < 0 && artisans > 0) emergenceTurn = t;
             long adults = BandViews.Adults(world.Buckets, S0);
             double share = adults > 0 ? artisans / (double)adults : 0.0;
-            if (t <= 25) boomPeak = Math.Max(boomPeak, share);       // the founding boom window
-            else minAfterBoom = Math.Min(minAfterBoom, share);       // Malthus equilibrium: famines bite
+            if (emergenceTurn > 0 && t <= emergenceTurn + 25)
+                boomPeak = Math.Max(boomPeak, share);                // the post-emergence boom window
+            else if (emergenceTurn > 0 && t > emergenceTurn + 25)
+                minAfterBoom = Math.Min(minAfterBoom, share);        // Malthus equilibrium: famines bite
             // T2.7 re-anchor (stated): the cap binds PROMOTIONS (pinned
             // exactly by the mobility-invariant tests); the share itself can
             // drift a little past it passively — the retuned adult mortality
@@ -115,8 +124,9 @@ public class ClassSystemTests
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
 
-        Assert.True(emergenceTurn is >= 3 and <= 10,
-            $"artisans emerged at turn {emergenceTurn} — outside the documented [3,10] window");
+        Assert.True(emergenceTurn is >= 30 and <= 70,
+            $"artisans emerged at turn {emergenceTurn} — outside the documented [30,70] window " +
+            "(population-gated emergence: founding ~350 growing past the 520 threshold)");
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).
@@ -218,8 +228,8 @@ public class ClassSystemTests
         // than the T2.7 trace); 748,494 = measured d1 + d2 + 0.85 × d3
         // restores the t3 partial-deficit ramp.
         int storeRow = 0;
-        new Ledger(world.LedgerFlows).Flow(ref world.FoodStores.Ref(storeRow).Store,
-            ConservedQuantityIds.Food, ReasonIds.InitialEndowment, 748_494,
+        new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(storeRow).Amount,
+            ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, 748_494,
             FlowDirection.Source, OverdrawPolicy.Throw);
 
         var exec = new TurnExecutor(FlatEra(10.0),
@@ -342,7 +352,7 @@ public class ClassSystemTests
             SimConfig cfg = TestConfigs.Sim();
             WorldState world = ClassWorld(peasants, artisans, artisansActive: true);
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, deficitPct / 100.0, 1000));
-            world.FoodStores.Add(new FoodStoreRow(S0, Conserved.Zero, 0.0, 0.0, surplusPct * 10));
+            world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(1), Conserved.Zero, 0.0, 0.0, surplusPct * 10));
             var exec = new TurnExecutor(FlatEra(10.0),
                 [SystemCatalog.ClassMobility(cfg), SystemCatalog.Demographics(cfg)]);
             for (int t = 0; t < 3; t++)
@@ -393,10 +403,10 @@ public class ClassSystemTests
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
                 S0, NodeCount: 1, EffectiveFarmland: 1e9, // land never binds
                 NetworkRevision: 0, LastRecomputeTurn: 0));
-            world.FoodStores.Add(new FoodStoreRow(S0, Conserved.Zero, 0.0, 0.0));
+            world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Farming(cfg)]);
             WorldState next = exec.Step(world);
-            harvests[i] = next.FoodStores[0].LastHarvestUnits;
+            harvests[i] = next.GoodStocks[0].LastProducedUnits;
         }
 
         for (int i = 1; i < harvests.Length; i++)

@@ -26,7 +26,9 @@ public sealed record SimConfig(
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
-    [property: JsonIgnore] NeedsConfig? Needs = null);
+    [property: JsonIgnore] NeedsConfig? Needs = null,
+    // T3.2: the D-031 goods registry rides goods.json, attached the same way.
+    [property: JsonIgnore] GoodsConfig? Goods = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -102,9 +104,15 @@ public sealed record DemographicsConfig(
 /// units. The whole founding population belongs to the FIRST registered class
 /// (the always-on base class, D-027); other classes found at zero.
 /// </summary>
+/// <summary>EndowmentJitter (T3.1c): amplitude of the seeded per-settlement
+/// jitter on the founding endowment — each cohort count and the food store
+/// scale by (1 + j·u), u ∈ [−1,1] hashed from (seed, settlement, slot).
+/// At 0 every settlement founds as an identical copy (the M2 behavior that
+/// produced the T2.4 same-decade class lockstep). TUNE.</summary>
 public sealed record FoundingConfig(
     [property: JsonPropertyName("cohortCounts"), JsonRequired] long[] CohortCounts,
-    [property: JsonPropertyName("foodStore"), JsonRequired] long FoodStore);
+    [property: JsonPropertyName("foodStore"), JsonRequired] long FoodStore,
+    [property: JsonPropertyName("endowmentJitter"), JsonRequired] double EndowmentJitter);
 
 /// <summary>One registry entry: a stable id and a display name (ADR-001: names
 /// live in config/registries, never in sim rows).</summary>
@@ -203,6 +211,17 @@ public static class SimConfigLoader
     public static SimConfig Load(Stream simJson, Stream needsJson) =>
         Load(simJson) with { Needs = NeedsConfigLoader.Load(needsJson) };
 
+    /// <summary>T3.2: canonical three-file load — sim.json + needs.json +
+    /// goods.json (the D-031 registry, attached as SimConfig.Goods). Systems
+    /// that bind goods (Farming, Consumption at M3) refuse construction
+    /// without it.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson) =>
+        Load(simJson) with
+        {
+            Needs = NeedsConfigLoader.Load(needsJson),
+            Goods = GoodsConfigLoader.Load(goodsJson),
+        };
+
     public static SimConfig Load(string json)
     {
         SimConfig? cfg;
@@ -257,6 +276,10 @@ public static class SimConfigLoader
             if (c < 0) throw new SimConfigException("founding.cohortCounts entries must be >= 0.");
         if (cfg.Founding.FoodStore < 0)
             throw new SimConfigException("founding.foodStore must be >= 0.");
+        if (!(cfg.Founding.EndowmentJitter >= 0.0 && cfg.Founding.EndowmentJitter < 1.0))
+            throw new SimConfigException(
+                $"founding.endowmentJitter must be in [0,1) — at 1 or above a settlement can found empty, " +
+                $"got {Inv(cfg.Founding.EndowmentJitter)}.");
 
         if (cfg.Registries is null) throw new SimConfigException("registries is missing.");
         ValidateRegistry("registries.cultures", cfg.Registries.Cultures);

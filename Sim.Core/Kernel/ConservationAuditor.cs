@@ -25,21 +25,61 @@ public static class ConservationAuditor
         }
     }
 
-    /// <summary>Audits every known quantity; true only if ALL conserve exactly.</summary>
-    public static bool IsConserved(IReadOnlyWorldState world, out string report)
+    /// <summary>Audits every known quantity; true only if ALL conserve exactly.
+    /// T3.2: the retired Food quantity is replaced by ONE AUDIT PER GOOD —
+    /// every good id present in the stocks table or the flow table is audited
+    /// (an un-audited goods stock cannot exist: rows carry their good id).
+    /// Pass the goods registry via the overload to audit ALL fourteen BY NAME
+    /// even when a good has no rows yet.</summary>
+    public static bool IsConserved(IReadOnlyWorldState world, out string report) =>
+        IsConserved(world, null, out report);
+
+    public static bool IsConserved(
+        IReadOnlyWorldState world, Sim.Core.Systems.GoodsConfig? goods, out string report)
     {
         QuantityAudit biomass = AuditQuantity(world, ConservedQuantityIds.Biomass);
         QuantityAudit toyGood = AuditQuantity(world, ConservedQuantityIds.ToyGood);
         QuantityAudit population = AuditQuantity(world, ConservedQuantityIds.Population);
-        QuantityAudit food = AuditQuantity(world, ConservedQuantityIds.Food);
 
-        bool ok = biomass.IsConserved && toyGood.IsConserved
-                  && population.IsConserved && food.IsConserved;
+        // Distinct good ids, ascending (law 5: no set iteration — collect and sort).
+        var goodIds = new List<int>();
+        if (goods is not null)
+        {
+            foreach (Sim.Core.Systems.GoodEntry g in goods.Goods) goodIds.Add(g.Id);
+        }
+        else
+        {
+            for (int i = 0; i < world.GoodStocks.Count; i++)
+            {
+                int id = world.GoodStocks[i].Good.Value;
+                if (!goodIds.Contains(id)) goodIds.Add(id);
+            }
+            for (int i = 0; i < world.LedgerFlows.Count; i++)
+            {
+                if (!ConservedQuantityIds.IsGood(world.LedgerFlows[i].Quantity)) continue;
+                int id = ConservedQuantityIds.GoodOf(world.LedgerFlows[i].Quantity).Value;
+                if (!goodIds.Contains(id)) goodIds.Add(id);
+            }
+            goodIds.Sort();
+        }
+
+        bool ok = biomass.IsConserved && toyGood.IsConserved && population.IsConserved;
+        var bad = new List<string>();
+        if (!biomass.IsConserved) bad.Add($"biomass: {Describe(biomass)}");
+        if (!toyGood.IsConserved) bad.Add($"toyGood: {Describe(toyGood)}");
+        if (!population.IsConserved) bad.Add($"population: {Describe(population)}");
+        foreach (int id in goodIds)
+        {
+            QuantityAudit a = AuditQuantity(world, ConservedQuantityIds.OfGood(new GoodId(id)));
+            if (a.IsConserved) continue;
+            ok = false;
+            string name = goods is not null ? goods.ById(id).Name
+                : $"good[{id.ToString(System.Globalization.CultureInfo.InvariantCulture)}]";
+            bad.Add($"{name}: {Describe(a)}");
+        }
         report = ok
             ? "conserved: all quantities balance exactly."
-            : "CONSERVATION VIOLATION — " +
-              $"biomass: {Describe(biomass)}; toyGood: {Describe(toyGood)}; " +
-              $"population: {Describe(population)}; food: {Describe(food)}";
+            : "CONSERVATION VIOLATION — " + string.Join("; ", bad);
         return ok;
     }
 
@@ -63,10 +103,12 @@ public static class ConservationAuditor
                 for (int i = 0; i < world.Buckets.Count; i++)
                     stocks += world.Buckets[i].Count.Value;
             }
-            else if (quantity == ConservedQuantityIds.Food)
+            else if (ConservedQuantityIds.IsGood(quantity))
             {
-                for (int i = 0; i < world.FoodStores.Count; i++)
-                    stocks += world.FoodStores[i].Store.Value;
+                GoodId good = ConservedQuantityIds.GoodOf(quantity);
+                for (int i = 0; i < world.GoodStocks.Count; i++)
+                    if (world.GoodStocks[i].Good == good)
+                        stocks += world.GoodStocks[i].Amount.Value;
             }
 
             long sourced = 0, sunk = 0;

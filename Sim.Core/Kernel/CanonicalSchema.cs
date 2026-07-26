@@ -35,8 +35,10 @@ public static class CanonicalSchema
     /// v11 (T2.6, D-018/D-021): SettlementVitals, NeedSatisfactions and
     /// Grievances tables appended after MigrationFlows.
     /// v12 (T2.8, migration stabilization): SmoothedAttractiveness table
+    /// v13 (T3.2, D-031): FoodStores REPLACED by GoodStocks (per settlement ×
+    /// good; grain carries the migrated FoodStore) + the Deposits table.
     /// appended after Grievances (the EMA filter state).</summary>
-    public const int Version = 12;
+    public const int Version = 13;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -53,7 +55,8 @@ public static class CanonicalSchema
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
-    private const int FoodStoreRowWidth = 4 + 8 + 8 + 8 + 8;        // Settlement, Store, 2 remainder bit-fields, LastHarvestUnits (v8)
+    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8;   // Settlement, Good, Amount, 2 remainder bit-fields, LastProducedUnits (v13)
+    private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
     private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
@@ -219,16 +222,25 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.ReboundReservoir));
         }
 
-        // 16. Food stores (v5; +LastHarvestUnits v8)
-        writer.Write(world.FoodStores.Count);
-        for (int i = 0; i < world.FoodStores.Count; i++)
+        // 16. Good stocks + deposits (v13 — the FoodStore migrated into grain).
+        writer.Write(world.GoodStocks.Count);
+        for (int i = 0; i < world.GoodStocks.Count; i++)
         {
-            FoodStoreRow row = world.FoodStores[i];
+            GoodStockRow row = world.GoodStocks[i];
             writer.Write(row.Settlement.Value);
-            writer.Write(row.Store.Value);
-            writer.Write(BitConverter.DoubleToInt64Bits(row.HarvestRemainder));
-            writer.Write(BitConverter.DoubleToInt64Bits(row.EatenRemainder));
-            writer.Write(row.LastHarvestUnits);
+            writer.Write(row.Good.Value);
+            writer.Write(row.Amount.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ProduceRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ConsumeRemainder));
+            writer.Write(row.LastProducedUnits);
+        }
+        writer.Write(world.Deposits.Count);
+        for (int i = 0; i < world.Deposits.Count; i++)
+        {
+            DepositRow row = world.Deposits[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Abundance));
         }
 
         // 17. Consumption deficits (v5; +DemandUnits v8)
@@ -471,16 +483,25 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int foodStoreCount = reader.ReadInt32();
-        for (int i = 0; i < foodStoreCount; i++)
+        int goodStockCount = reader.ReadInt32();
+        for (int i = 0; i < goodStockCount; i++)
         {
             var settlement = new SettlementId(reader.ReadInt32());
-            long store = reader.ReadInt64();
-            world.FoodStores.Add(new FoodStoreRow(
-                settlement, Conserved.FromSnapshot(store),
+            var good = new GoodId(reader.ReadInt32());
+            long amount = reader.ReadInt64();
+            world.GoodStocks.Add(new GoodStockRow(
+                settlement, good, Conserved.FromSnapshot(amount),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 reader.ReadInt64()));
+        }
+        int depositCount = reader.ReadInt32();
+        for (int i = 0; i < depositCount; i++)
+        {
+            world.Deposits.Add(new DepositRow(
+                new SettlementId(reader.ReadInt32()),
+                new GoodId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
         int deficitCount = reader.ReadInt32();
@@ -596,7 +617,8 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.CatchmentNodes.Count * CatchmentNodeRowWidth
         + CountPrefixWidth + (long)world.CatchmentSummaries.Count * CatchmentSummaryRowWidth
         + CountPrefixWidth + (long)world.Buckets.Count * BucketRowWidth
-        + CountPrefixWidth + (long)world.FoodStores.Count * FoodStoreRowWidth
+        + CountPrefixWidth + (long)world.GoodStocks.Count * GoodStockRowWidth
+        + CountPrefixWidth + (long)world.Deposits.Count * DepositRowWidth
         + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
         + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
         + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth

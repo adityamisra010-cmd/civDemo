@@ -57,9 +57,16 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
     private readonly Predicate?[] _emerge;
     private readonly Predicate?[] _recede;
 
+    /// <summary>T3.2: the surplus numerator reads grain's LastProducedUnits
+    /// (the migrated FoodStore observational field).</summary>
+    private readonly GoodId _grain;
+
     public ClassMobilitySystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _grain = new GoodId(cfg.Goods?.GrainId
+            ?? throw new ArgumentException(
+                "ClassMobilitySystem requires SimConfig.Goods (goods.json) at M3."));
         int n = cfg.Registries.Classes.Length;
         _emerge = new Predicate?[n];
         _recede = new Predicate?[n];
@@ -94,11 +101,11 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
                     break;
                 }
             }
-            for (int i = 0; i < prev.FoodStores.Count; i++)
+            for (int i = 0; i < prev.GoodStocks.Count; i++)
             {
-                if (prev.FoodStores[i].Settlement == settlement)
+                if (prev.GoodStocks[i].Settlement == settlement && prev.GoodStocks[i].Good == _grain)
                 {
-                    harvest = prev.FoodStores[i].LastHarvestUnits;
+                    harvest = prev.GoodStocks[i].LastProducedUnits;
                     break;
                 }
             }
@@ -112,6 +119,13 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
 
             Upsert(ctx.Owned.Variables, settlement, Variables.FoodSurplusRatio, surplus);
             Upsert(ctx.Owned.Variables, settlement, Variables.ArtisanShare, artisanShare);
+            // T3.1(c): population — the scale-dependent variable emergence
+            // predicates need to couple to founding variation (see Variables).
+            long totalPop = 0;
+            for (int b = 0; b < prev.Buckets.Count; b++)
+                if (prev.Buckets[b].Settlement == settlement)
+                    totalPop = checked(totalPop + prev.Buckets[b].Count.Value);
+            Upsert(ctx.Owned.Variables, settlement, Variables.Population, totalPop);
 
             // --- 2. latch (evaluated on PREV variables — one-turn lag) ------
             for (int c = 1; c < _cfg.Registries.Classes.Length; c++)
@@ -219,7 +233,7 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
             else
             {
                 double exact = moveTotal * (prevSrc / (double)fromAdults) + src.MobilityRemainder;
-                moved = (long)Math.Floor(exact);
+                moved = ConservedMath.WholeUnits(exact, $"class mobility transfer (settlement {settlement.Value}, cohort {cohort})");
                 src.MobilityRemainder = exact - moved; // sub-person fraction only
             }
             if (moved <= 0) continue;

@@ -149,35 +149,51 @@ public struct BucketRow(
 }
 
 /// <summary>
-/// One settlement's food store (T1.5): a CONSERVED long stock (1 unit = 1
-/// person-year, D-015 constants). Two systems lawfully move value through this
-/// stock via Ledger — Farming credits (Harvest) and owns HarvestRemainder;
-/// Consumption debits (Eaten, ClampToAvailable) and owns EatenRemainder. The
-/// shared handle is issued ONLY by SystemCatalog, where it is documented.
+/// One (settlement, good) stock (T3.2, D-031): a CONSERVED long quantity —
+/// the m3-spec §3 goods table. THE M2 FoodStoreRow MIGRATED HERE: grain's row
+/// plays its exact role (1 grain unit = 1 person-year, the D-015 constant) —
+/// Farming credits it (Harvest) and owns ProduceRemainder; Consumption debits
+/// it (Eaten, ClampToAvailable) and owns ConsumeRemainder; the shared handle
+/// is issued ONLY by SystemCatalog. Other goods' remainders serve their
+/// production/consumption flows from T3.3 on. LastProducedUnits is the units
+/// credited THIS turn (observational — grain's is the numerator of the
+/// published food_surplus_ratio). Founding lays rows out settlement-major,
+/// goods ascending in registry order — the deterministic layout consumers may
+/// rely on (hand-built test worlds may carry sparse rows; systems locate by
+/// (settlement, good), never by index arithmetic).
 /// </summary>
 /// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
-public struct FoodStoreRow(
-    SettlementId settlement, Conserved store, double harvestRemainder, double eatenRemainder,
-    long lastHarvestUnits = 0) : IEquatable<FoodStoreRow>
+public struct GoodStockRow(
+    SettlementId settlement, GoodId good, Conserved amount,
+    double produceRemainder, double consumeRemainder,
+    long lastProducedUnits = 0) : IEquatable<GoodStockRow>
 {
     public SettlementId Settlement = settlement;
-    public Conserved Store = store;
-    public double HarvestRemainder = harvestRemainder;
-    public double EatenRemainder = eatenRemainder;
+    public GoodId Good = good;
+    public Conserved Amount = amount;
+    public double ProduceRemainder = produceRemainder;
+    public double ConsumeRemainder = consumeRemainder;
+    public long LastProducedUnits = lastProducedUnits;
 
-    /// <summary>T2.2: the units Farming credited THIS turn (observational, not
-    /// a stock) — the numerator of the published food_surplus_ratio variable.
-    /// Written by Farming alongside its Ledger credit.</summary>
-    public long LastHarvestUnits = lastHarvestUnits;
-
-    public readonly bool Equals(FoodStoreRow other) =>
-        Settlement == other.Settlement && Store == other.Store
-        && HarvestRemainder.Equals(other.HarvestRemainder)
-        && EatenRemainder.Equals(other.EatenRemainder)
-        && LastHarvestUnits == other.LastHarvestUnits;
-    public override readonly bool Equals(object? obj) => obj is FoodStoreRow other && Equals(other);
+    public readonly bool Equals(GoodStockRow other) =>
+        Settlement == other.Settlement && Good == other.Good && Amount == other.Amount
+        && ProduceRemainder.Equals(other.ProduceRemainder)
+        && ConsumeRemainder.Equals(other.ConsumeRemainder)
+        && LastProducedUnits == other.LastProducedUnits;
+    public override readonly bool Equals(object? obj) => obj is GoodStockRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
 }
+
+/// <summary>
+/// One (settlement, good) DEPOSIT (T3.2): the founding-rolled extraction
+/// abundance multiplier — a double, NOT a conserved stock (it scales rates;
+/// units never enter the world except through production Ledger flows,
+/// T3.3). Derived from the good's terrain channel at the site plus the
+/// seeded founding roll; immutable after founding (depletion is a later
+/// milestone if the director wants it). This is what makes settlements
+/// DIFFERENT — the precondition for comparative advantage (m3-spec §3).
+/// </summary>
+public record struct DepositRow(SettlementId Settlement, GoodId Good, double Abundance);
 
 /// <summary>
 /// One settlement's consumption deficit for the turn just computed (T1.5, owned
@@ -325,7 +341,8 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<CatchmentNodeRow> CatchmentNodes { get; }
     IReadOnlyTable<CatchmentSummaryRow> CatchmentSummaries { get; }
     IReadOnlyTable<BucketRow> Buckets { get; }
-    IReadOnlyTable<FoodStoreRow> FoodStores { get; }
+    IReadOnlyTable<GoodStockRow> GoodStocks { get; }
+    IReadOnlyTable<DepositRow> Deposits { get; }
     IReadOnlyTable<ConsumptionDeficitRow> ConsumptionDeficits { get; }
     IReadOnlyTable<LaborAllocationRow> LaborAllocations { get; }
     IReadOnlyTable<PathProgressRow> PathProgress { get; }
@@ -398,8 +415,11 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Population buckets (T2.1, D-026) — conserved stocks, owned by DemographicsSystem.</summary>
     public Table<BucketRow> Buckets { get; }
 
-    /// <summary>Food stores (T1.5) — conserved stocks; Farming credits, Consumption debits (see SystemCatalog).</summary>
-    public Table<FoodStoreRow> FoodStores { get; }
+    /// <summary>Per-(settlement, good) stocks (T3.2, D-031) — conserved; grain carries the M2 FoodStore role (see SystemCatalog).</summary>
+    public Table<GoodStockRow> GoodStocks { get; }
+
+    /// <summary>Per-(settlement, good) deposit abundances (T3.2) — founding-rolled, immutable observational state.</summary>
+    public Table<DepositRow> Deposits { get; }
 
     /// <summary>Per-settlement consumption deficits (T1.5) — owned by ConsumptionSystem.</summary>
     public Table<ConsumptionDeficitRow> ConsumptionDeficits { get; }
@@ -447,7 +467,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<CatchmentNodeRow> IReadOnlyWorldState.CatchmentNodes => CatchmentNodes;
     IReadOnlyTable<CatchmentSummaryRow> IReadOnlyWorldState.CatchmentSummaries => CatchmentSummaries;
     IReadOnlyTable<BucketRow> IReadOnlyWorldState.Buckets => Buckets;
-    IReadOnlyTable<FoodStoreRow> IReadOnlyWorldState.FoodStores => FoodStores;
+    IReadOnlyTable<GoodStockRow> IReadOnlyWorldState.GoodStocks => GoodStocks;
+    IReadOnlyTable<DepositRow> IReadOnlyWorldState.Deposits => Deposits;
     IReadOnlyTable<ConsumptionDeficitRow> IReadOnlyWorldState.ConsumptionDeficits => ConsumptionDeficits;
     IReadOnlyTable<LaborAllocationRow> IReadOnlyWorldState.LaborAllocations => LaborAllocations;
     IReadOnlyTable<PathProgressRow> IReadOnlyWorldState.PathProgress => PathProgress;
@@ -476,7 +497,8 @@ public sealed class WorldState : IReadOnlyWorldState
         CatchmentNodes = new Table<CatchmentNodeRow>();
         CatchmentSummaries = new Table<CatchmentSummaryRow>();
         Buckets = new Table<BucketRow>();
-        FoodStores = new Table<FoodStoreRow>();
+        GoodStocks = new Table<GoodStockRow>();
+        Deposits = new Table<DepositRow>();
         ConsumptionDeficits = new Table<ConsumptionDeficitRow>();
         LaborAllocations = new Table<LaborAllocationRow>();
         PathProgress = new Table<PathProgressRow>();
@@ -497,7 +519,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<NetworkEdgeRow> networkEdges, Table<SettlementRow> settlements,
         Table<NetworkMetaRow> networkMeta, Table<CatchmentNodeRow> catchmentNodes,
         Table<CatchmentSummaryRow> catchmentSummaries, Table<BucketRow> buckets,
-        Table<FoodStoreRow> foodStores, Table<ConsumptionDeficitRow> consumptionDeficits,
+        Table<GoodStockRow> goodStocks, Table<DepositRow> deposits,
+        Table<ConsumptionDeficitRow> consumptionDeficits,
         Table<LaborAllocationRow> laborAllocations, Table<PathProgressRow> pathProgress,
         Table<VariableRow> variables, Table<ClassStateRow> classStates,
         Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
@@ -519,7 +542,8 @@ public sealed class WorldState : IReadOnlyWorldState
         CatchmentNodes = catchmentNodes;
         CatchmentSummaries = catchmentSummaries;
         Buckets = buckets;
-        FoodStores = foodStores;
+        GoodStocks = goodStocks;
+        Deposits = deposits;
         ConsumptionDeficits = consumptionDeficits;
         LaborAllocations = laborAllocations;
         PathProgress = pathProgress;
@@ -542,7 +566,7 @@ public sealed class WorldState : IReadOnlyWorldState
         new(Seed, Clock, Regions.Clone(), RngStreams.Clone(), Rainfall.Clone(), Biomass.Clone(),
             Goods.Clone(), LedgerFlows.Clone(), NetworkNodes.Clone(), NetworkEdges.Clone(),
             Settlements.Clone(), NetworkMeta.Clone(), CatchmentNodes.Clone(),
-            CatchmentSummaries.Clone(), Buckets.Clone(), FoodStores.Clone(),
+            CatchmentSummaries.Clone(), Buckets.Clone(), GoodStocks.Clone(), Deposits.Clone(),
             ConsumptionDeficits.Clone(), LaborAllocations.Clone(), PathProgress.Clone(),
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),

@@ -51,7 +51,7 @@ public sealed class TradeSystem : ISimSystem<TradeTables>
 
         RngStream rng = ctx.Rng(regions[0].Id); // one stream per route (keyed by first region)
         bool aToB = rng.NextUInt32() % 2 == 0;
-        long requested = (long)(rng.NextDouble() * MaxTradePerYear * ctx.DtYears);
+        long requested = ConservedMath.WholeUnits(rng.NextDouble() * MaxTradePerYear * ctx.DtYears, "toy trade request");
 
         int fromIdx = aToB ? 0 : 1, toIdx = aToB ? 1 : 0;
         ref Conserved from = ref goods.Ref(fromIdx).Amount;

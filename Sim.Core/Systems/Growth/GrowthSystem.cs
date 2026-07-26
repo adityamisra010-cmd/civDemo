@@ -42,7 +42,7 @@ public sealed class GrowthSystem : ISimSystem<GrowthTables>
 
             ref BiomassRow row = ref biomass.Ref(i);
             double exact = ratePerYear * ctx.DtYears + row.GrowthRemainder;
-            long delta = (long)Math.Floor(exact);
+            long delta = ConservedMath.WholeUnits(exact, $"biomass growth (region {regions[i].Id.Value})");
             ctx.Ledger.Flow(
                 ref row.Biomass, ConservedQuantityIds.Biomass, ReasonIds.Growth,
                 delta, FlowDirection.Source, OverdrawPolicy.Throw);
