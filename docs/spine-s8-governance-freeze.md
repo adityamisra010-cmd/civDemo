@@ -53,7 +53,10 @@ implement M(n) → exit criteria GREEN → write + ratify M(n+1) spec → cut pa
 **Origin.** The T3.2b detour existed because the M3 spec specified new systems without auditing the
 constants they would stand on. A yield constant denominated per lattice node was consumed as if it
 were per km²; the catchment budget that compensated for it was a code constant no tuning pass could
-see. Both were catchable on paper. Neither was in anybody's packet.
+see. Both were catchable on paper. Neither was in anybody's packet. The price of that omission
+is the vindicating example (CR-003 ruling §6(e)): a TWO-PACKET emergency detour — T3.2b plus the
+directed T3.4b it forced — and two CRs, where a foundations audit as packet one would have caught
+it as planned work.
 
 **Aim.** Fewer AVOIDABLE surprises. Reality correcting the spec — CR-001, CR-002, the ghost harvest
 — is the system working, not a failure to plan; this format does not ask a spec to be omniscient

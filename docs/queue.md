@@ -24,6 +24,16 @@
   choice set. Whichever lands, it wants the SAME land-pressure signal the Malthus
   corridor already reads, so it belongs with the M10 slice gate or a dedicated
   post-M3 packet, not bolted onto a tuning pass.
+- **COLONIZATION / LAND CLEARANCE — M4-TARGETED (director ruling, CR-003 §5.2(a)).** The
+  mechanism whose absence CR-003 exposed: how population converts empty land into settled, worked
+  land, and therefore how the frontier eventually closes and Malthusian pressure legitimately
+  emerges. Origin: cr-003 — the corrected constants leave a pre-Malthusian world because nothing
+  fills the frontier, and the Malthus corridors stay quarantined until this exists. A large
+  system (founding rules, site selection, clearing cost, sprawl constraints); at home in M4
+  alongside expansion and borders. Design bound by D-037 (`docs/d037-emergent-polities.md`)
+  Part B1 — colonization from below, migration extended to depart into UNCLAIMED land, refugee
+  foundings may be stateless. See also the expansion-opportunity reframing of the "world feels
+  small" entry above (same finding, ruled correct at CR-003 §6(d)).
 - Lattice stride floor (raised T3.2b): the traversal lattice samples terrain at
   stride 4, so one node is 16 × 16 km and one cost unit buys 16 km on ideal
   ground. That is the RESOLUTION FLOOR on every spatial quantity derived from it.

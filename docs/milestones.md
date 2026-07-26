@@ -98,5 +98,11 @@ by the director PLAYING the exit build — the gate did its job:
   precedent from M0/M1), which auto-attaches the playable zip via
   `ui-artifact.yml`.
 
+**Post-exit record (director ruling, CR-003, 2026-07-26):** M2's exit was declared against a
+Malthus corridor now known to have been measuring an artifact of two compensating errors (yield
+denomination and travel budget), corrected at T3.2b/CR-003. The mechanism is intact — the land
+term still binds in 3.8 % of settlement-turns — but the condition that made it visible was false.
+M2 does not reopen; the record states it.
+
 Next: **M3**. Do NOT implement until `docs/m3-spec.md` exists on `main` and
 its packets are cut.

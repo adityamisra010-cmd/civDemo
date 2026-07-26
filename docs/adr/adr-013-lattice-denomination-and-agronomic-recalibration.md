@@ -1,6 +1,6 @@
 # ADR-013 — Lattice denomination, the derived yield constant, and the economic hinterland
 
-**Status:** ACCEPTED (directed packet T3.2b, director ruling superseding the first CR-002 ruling)
+**Status:** ACCEPTED (directed packet T3.2b; packet accepted IN FULL by the CR-003 ruling, 2026-07-26)
 **Supersedes in part:** the tuning of `farming.yieldPerFarmlandPerYear` and the code constant
 `CatchmentSystem.TravelBudget`
 **Relates to:** `docs/adr/cr-002.md` (the change request this resolves), ADR-005 (canonical schema),
@@ -256,6 +256,28 @@ ratio is yield-free and greater than one (§4), **the land ceiling IS the realis
 model**. The constant is therefore doing two incompatible jobs at once. A strict capacity reading
 (k ≈ 0.40–0.55) would land at 70–120 people per fertility-weighted km²; the realised-landscape
 reading taken here lands at 31.8. Which one is correct is a design decision, not an agronomic one.
+
+## 4c. Standards set by this packet (director commendations, CR-003 ruling §4 — recorded because they bind future work)
+
+- **DERIVE THE REFERENCE CLASS FROM THE MODEL'S OWN DEFINITIONS before importing a historical
+  number.** Reading `Worldgen` step 6 to establish that f = 1.0 MEANS river-adjacent temperate
+  valley floor — not average upland — is what made 26.0 derived rather than averaged across four
+  disagreeing reference classes. This move is now the STANDARD for any future constant derivation.
+- The 0.88 arable ha/person inverse check against Wilkinson and Halstead's 0.5–1.0 stands as the
+  independent validation; the ~700× seed-return failure is the standing demonstration that the old
+  value was never physical at any denomination.
+- **Three-layer denomination enforcement, proven RED on both fault shapes** (missing conversion
+  and doubled conversion) before being accepted green, is the standard for any structural gate —
+  and tests not being exempt from the grep is the detail that makes it real.
+- **The shared quarantine helper asserts the precondition is still ABSENT**, so each family fails
+  loudly the moment famine returns: a tripwire, not a mute button. This is how a quarantine is
+  built.
+- **ROADS — the packet's second prize.** One dirt path now grows a hinterland by 16.6 % of its
+  arable land, against a rounding error at the old 205 km. D-009's infrastructure-as-differentiator
+  premise is LIVE for the first time in the project — the first evidence that the map's central
+  design claim actually functions. To be recorded in `milestones.md` when M3 closes.
+- Checking whether zero dev migration PRE-DATED the packet's changes, rather than assuming, is the
+  reason that finding is trustworthy.
 
 ## 5. Consequences
 
