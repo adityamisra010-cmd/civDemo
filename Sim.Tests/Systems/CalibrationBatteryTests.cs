@@ -113,29 +113,94 @@ public class CalibrationBatteryTests
     /// QuarantinedSeedValue. This commit corrects only what the artifact CLAIMS,
     /// so the claim and the code stop disagreeing while the fix is scheduled.
     /// </summary>
-    private const string QuarantinedKey = "dev.migrationGrossPerDecade";
-    private const double QuarantinedSeedValue = 0.000956939;
+    // The T3.4b declarations that sat here are GONE. QuarantinedSeedValue was
+    // dead code — declared, never read — so drift inside the bypass window was
+    // invisible. Superseded by AssertDevMigrationQuarantine above, whose envelope
+    // is measured, literal, and actually read.
 
     private static void AssertInBand(Corridors c, string key, double value)
     {
+        // T3.4c: the value-shaped bypass that used to live here is GONE. It was
+        // ratified as "seed-scoped and loud" and was neither — it fired for ANY
+        // dev seed in [0.9*lo, lo), which was ten of seeds 1-60, and named none of
+        // them. The dev migration corridor now goes through
+        // AssertDevMigrationQuarantine below, which takes the seed.
         Assert.False(double.IsNaN(value), $"{key}: metric produced NO OUTPUT — battery failure");
         (double lo, double hi) = c.Band(key);
-        if (key == QuarantinedKey && value < lo && value > lo * 0.90)
-        {
-            // CORRIDOR-SCOPED, not seed-scoped — see the docstring. This banner
-            // fires for ANY dev seed in [0.9*lo, lo), and ten of seeds 1-60 are
-            // in that window. It says so, because the previous wording implied a
-            // single quarantined seed and that was false.
-            Console.WriteLine(
-                $"CR-003-PATTERN QUARANTINE (CORRIDOR-SCOPED): {key} = {value:G6} sits "
-                + $"{(1 - value / lo):P1} below the re-derived floor {lo}. This is NOT one seed: "
-                + "52 of dev seeds 1-60 sit below this floor, median -14.1%, worst -55.0%. "
-                + "Awaiting the T3.4c re-measurement in the variance-corrected world; NOT widened to fit.");
-            return;
-        }
         Assert.True(value >= lo && value <= hi,
             $"{key}: {value.ToString("G6", System.Globalization.CultureInfo.InvariantCulture)} " +
             $"outside [{lo}, {hi}]");
+    }
+
+    /// <summary>
+    /// T3.4c — THE DEV MIGRATION CORRIDOR, quarantined CORRIDOR-WIDE and with
+    /// teeth in every direction. Replaces the T3.4b "seed 7" quarantine, which
+    /// described an outlier where the truth is a corridor-wide deviation.
+    ///
+    /// WHY CORRIDOR-WIDE. Measured after the T3.4c variance fix, dev worldgen,
+    /// 1000 turns, floor 0.001: 19 of 20 seeds BELOW, median −30.5%, worst seed 6
+    /// at −64.1%, best seed 11 at +7.5%. Seed 7 sits at −20.0%. Before the fix the
+    /// median was −14.1% — the excess variance had been INFLATING gross migration
+    /// and masking how far this world sits from the corridor. A defect can mask
+    /// the distance to a corridor as easily as it can create one (ADR-015 §7.13).
+    ///
+    /// WHY IT IS NOT A BAND PROBLEM — the discriminator the director ordered, with
+    /// its reading fixed BEFORE it ran. The SAME corridor on the CANONICAL 1024 px
+    /// world: 5 of 5 seeds IN BAND, +15.0% to +63.6% above floor. Canonical in
+    /// band with dev below is the pre-committed signature of M4 blocking material
+    /// B-1b: the dev preset is not a scale model of the shipped world (¼ the
+    /// linear extent at the same kmPerPx, hence +37% land movement cost and 3.1×
+    /// site packing), so a corridor calibrated on it measures the preset.
+    ///
+    /// THEREFORE the floor does NOT move and nothing is retuned. Canonical is
+    /// asserted normally by AssertInBand and is untouched by any of this.
+    ///
+    /// TEETH, which the T3.4b quarantine had in NO direction:
+    ///   BAND — the band may not move while the quarantine stands.
+    ///   DOWN — below the recorded envelope is a NEW defect, not more of the same.
+    ///   UP   — back inside the corridor RESOLVES it and must fail loudly, so it
+    ///          cannot rot into silence.
+    ///
+    /// The envelope is LITERAL and deliberately NOT derived from `lo`: a
+    /// quarantine expressible as a fraction of the band it is quarantined against
+    /// can be widened by widening the band, which is the move the director forbade.
+    /// </summary>
+    private const string QuarantinedKey = "dev.migrationGrossPerDecade";
+
+    /// <summary>Measured envelope, dev seeds 1-20 after the T3.4c variance fix:
+    /// worst 0.000359 (seed 6), best 0.001075 (seed 11). Literals with a modest
+    /// margin, and READ — unlike the T3.4b constant, which was declared and never
+    /// referenced, so drift inside the bypass window was invisible.</summary>
+    private const double QuarantineFloor = 0.00030, QuarantineCeiling = 0.00115;
+
+    private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
+    {
+        Assert.False(double.IsNaN(value), $"{QuarantinedKey}: metric produced NO OUTPUT — battery failure");
+        (double lo, double hi) = c.Band(QuarantinedKey);
+
+        Assert.True(lo == 0.001 && hi == 0.01,
+            $"{QuarantinedKey}: band moved to [{lo}, {hi}] while the T3.4c corridor-wide quarantine " +
+            "stands. The floor was ruled IMMOVABLE — take it to a ruling, do not re-tune.");
+
+        Assert.True(value >= QuarantineFloor,
+            $"seed {seed}: {Inv(value)} is BELOW the recorded T3.4c envelope " +
+            $"[{QuarantineFloor}, {QuarantineCeiling}] (measured worst 0.000359, seed 6) — the dev " +
+            "world has degraded beyond the quarantined deviation, which is a NEW defect.");
+
+        Assert.True(value < lo,
+            $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
+            "deviation is RESOLVED for this seed. Re-measure the dev seed set; if the distribution has " +
+            "returned, delete AssertDevMigrationQuarantine and restore the plain AssertInBand.");
+        Assert.True(value <= QuarantineCeiling,
+            $"seed {seed}: {Inv(value)} exceeds the recorded envelope ceiling {QuarantineCeiling} — " +
+            "the deviation is closing; re-measure the distribution and consider resolution.");
+
+        Console.WriteLine(
+            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b): {QuarantinedKey} seed {seed} = " +
+            $"{Inv(value)}, {(1 - value / lo):P1} below the floor {lo}. NOT one seed: 19 of dev seeds " +
+            "1-20 sit below this floor, median -30.5%, worst -64.1%. The SAME corridor on the CANONICAL " +
+            "world is 5/5 IN BAND (+15.0% to +63.6%), which is why this is the preset and not the band. " +
+            "Floor NOT moved; escalated as M4 blocking material B-1b.");
     }
 
     // --- canonical corridors (fed era, 650 turns to year 4500) ---------------
@@ -274,7 +339,7 @@ public class CalibrationBatteryTests
         Assert.True(totalBirths > 0, "no births in 1000 turns — vitals dead");
 
         AssertMalthusKnownDeviation(c, m, seed);
-        AssertInBand(c, "dev.migrationGrossPerDecade", CalibrationAnalysis.MigrationGrossPerDecade(m));
+        AssertDevMigrationQuarantine(c, seed, CalibrationAnalysis.MigrationGrossPerDecade(m));
     }
 
     /// <summary>
