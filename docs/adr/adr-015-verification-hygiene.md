@@ -463,3 +463,37 @@ and completely useless.
 
 **A REVIEW THAT CANNOT EXECUTE IS NOT A REVIEW THAT FOUND NOTHING.** Three attempts were made;
 the packet is NOT certified, and no lens result exists to certify it with.
+
+
+---
+
+## §7.11 — Reconcile lenses BY NAME, from the manifest, or §7.3 does nothing
+
+**T3.5/T3.4b, 2026-07-27.** §7.3 says a review is incomplete until every lens has reported,
+including the ones that never started. It says to reconcile *by name against returned results*. On
+the T3.4b re-run I reconciled **by count, from memory** — declared six when five had reported, filed
+a review record asserting all six, and then, acting on the same miscount, **deleted the missing
+lens's worktree while it was still running.**
+
+The lens recreated its tree at the pin and reported anyway. What it found were the two most damaging
+results in the review: a mutant that moves the weather multiplier onto the land side — violating a
+CR-003 constraint the code itself documents — surviving all 343 tests, and a shipped guard with no
+proven-red test. A review declared complete one lens early would have shipped both.
+
+**The rule §7.3 already stated, restated as a procedure because the statement was not enough:**
+
+1. Open the manifest. Read the lens names off it.
+2. For each name, point at the returned result. Not a memory of it, not a count.
+3. A name with no result is BLOCKING, whatever the tally says.
+4. **Do not tear down review infrastructure until step 3 is clean** — cleanup acts on the same belief
+   as the declaration, so a wrong count destroys the evidence that would have corrected it.
+
+The failure mode is not forgetting §7.3; it is *believing you have satisfied it*. A count is a claim
+about the world that feels like bookkeeping, which is what makes it easy to get wrong and hard to
+notice. The manifest exists so the reconciliation is a lookup rather than a recollection — use it
+that way.
+
+Note the symmetry with §7.10: there, a correct measurement carried a wrong interpretation; here, a
+correct process carried a wrong belief about whether it had been followed. Both are cases of
+confidence outrunning evidence, and both are defended against procedurally rather than by resolving
+to be more careful.
