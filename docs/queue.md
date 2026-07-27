@@ -160,6 +160,13 @@
   reproducibility is verified unaffected, but libm is not bit-guaranteed across glibc versions and
   nothing in the kernel spec or the banned-constructs gate addresses it. Bears on CI-vs-container
   golden pins, not on correctness. Raise if a golden ever diverges between environments.
+  **Director note (2026-07-27):** this is the FIRST TIME A PLATFORM MATH LIBRARY SITS INSIDE
+  DETERMINISM. Everything determinism rested on until now was integer PCG32 and IEEE-754 arithmetic,
+  both bit-specified. libm is not: `cos`/`log`/`exp` are implementation-defined to within an ulp and
+  may differ across glibc versions and CPU dispatch paths. **The property at risk is CROSS-PROCESS
+  BYTE-IDENTITY** — the guarantee the whole replay/golden/CI apparatus is built on, and the one M0
+  spent a milestone establishing. A 1-ulp difference survives rounding until it lands near a .5
+  boundary, then diverges permanently and silently.
 - **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
   in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
   yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.

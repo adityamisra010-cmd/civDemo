@@ -114,7 +114,7 @@
         0.001,
         0.01
       ],
-      "note": "T3.4b: unified with the canonical band, which is now DERIVED from the frontier-agrarian reference class rather than fitted per-world. The dev band was previously [0.0005, 0.01] - its upper edge already coincided with the derived ceiling."
+      "note": "T3.4b: unified with the canonical band, which is now DERIVED from the frontier-agrarian reference class rather than fitted per-world. The dev band was previously [0.0005, 0.01] - its upper edge already coincided with the derived ceiling. RE-FRAMED 2026-07-27 (director ruling): this floor is NOT missed by one outlier seed. MEASURED, dev worldgen, 1000 turns, seeds 1-60: 52 of 60 sit BELOW this floor, 8 in band, and 10 fall in the [0.9*lo, lo) window the test quarantines. Worst seed 26 at 0.00044986 (-55.0%); median seed 54 at 0.000858572 (-14.1%); best seed 14 at 0.00115079 (+15.1%). The ratified seed 7 sits at 0.000956939 (-4.3%) - the 44th smallest of 60, i.e. among the SMALLEST misses, not an outlier. THE WHOLE DEV SEED SET STRADDLES THIS FLOOR. THE FLOOR DOES NOT MOVE: this is a description fix, not a band fix, and the T3.4b ruling against widening stands. T3.4c's re-measurement in the variance-corrected world is judged against this baseline - the weather defect inflated realised sigma ~1.33x and gross migration with it, so a quarantine that hid the majority of its own failures would have made those before/after deltas meaningless."
     }
   }
 }

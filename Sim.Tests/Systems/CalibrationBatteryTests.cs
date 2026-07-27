@@ -67,11 +67,51 @@ public class CalibrationBatteryTests
     /// change. A reader who later re-derives this floor at higher precision may
     /// resolve the quarantine; nobody may resolve it by widening.
     ///
-    /// The quarantine is SEED-SCOPED and loud: every other seed and every other
-    /// corridor is asserted normally, and this one announces itself on each run
-    /// so it cannot rot into silence. Director ruling requested on whether the
-    /// floor should be re-derived at lower precision or the dev world's
-    /// low-mobility seeds treated as a distinct class.
+    /// RE-FRAMED 2026-07-27 (director ruling, T3.4b review). THE ORIGINAL
+    /// DESCRIPTION WAS FALSE and is corrected here rather than left to be
+    /// discovered again. It said: "The quarantine is SEED-SCOPED and loud: every
+    /// other seed and every other corridor is asserted normally." Measured, it is
+    /// none of that:
+    ///
+    ///   - NOT SEED-SCOPED. AssertInBand never receives the seed; the bypass is a
+    ///     pure function of (key, value), so it fires for ANY dev seed landing in
+    ///     [0.9*lo, lo). Ten of seeds 1-60 do.
+    ///   - NOT LOUD. The banner names no seed, so a seed-41 bypass is
+    ///     indistinguishable from seed 7's.
+    ///   - NOT ONE SEED. Seed 7 is not an outlier. It is the 44th smallest of 60.
+    ///
+    /// THE MEASURED DISTRIBUTION, dev worldgen, 1000 turns, seeds 1-60, floor
+    /// 0.001 (measured by the implementing agent for this re-frame, not restated
+    /// from a review):
+    ///
+    ///   below the floor      52 / 60          in band            8 / 60
+    ///   in the silent window 10 / 60          worst   seed 26    0.00044986 (-55.0%)
+    ///   median  (seed 54)    0.000858572 (-14.1%)
+    ///   best    (seed 14)    0.00115079  (+15.1%)
+    ///   seed 7               0.000956939 (-4.3%)  <- among the SMALLEST misses
+    ///   seed 42              0.00109699  (+9.7%)  <- in band, but by 9.7%
+    ///
+    /// So this is not one seed sitting just outside a good corridor. THE WHOLE DEV
+    /// SEED SET STRADDLES THE FLOOR, with the bulk below it and the median missing
+    /// by 14%. Describing that as a single-seed quarantine made the instrument
+    /// MISLEADING rather than merely narrow — it hid the majority of its own
+    /// failures behind a bypass that announces one of them.
+    ///
+    /// THE FLOOR DOES NOT MOVE. This is a DESCRIPTION fix, not a band fix; the
+    /// T3.4b ruling against widening stands untouched, and nothing here re-tunes
+    /// anything. What is corrected is the claim, which was written into a commit
+    /// message and this docstring WITHOUT BEING MEASURED (ADR-015 §7.12).
+    ///
+    /// T3.4c RE-MEASUREMENT IS JUDGED AGAINST THIS BASELINE. The weather variance
+    /// defect (T3.4b review §1) inflated realised sigma ~1.33x, and gross migration
+    /// with it, so T3.4c's corrected-world numbers must be compared against the
+    /// honest distribution above. A quarantine that hid the majority of its own
+    /// failures would have made those before/after deltas meaningless.
+    ///
+    /// THE CODE IS NOT FIXED HERE — T3.4c item 4 threads the seed, adds teeth in
+    /// both directions, adds a band-immovability guard and retires the dead
+    /// QuarantinedSeedValue. This commit corrects only what the artifact CLAIMS,
+    /// so the claim and the code stop disagreeing while the fix is scheduled.
     /// </summary>
     private const string QuarantinedKey = "dev.migrationGrossPerDecade";
     private const double QuarantinedSeedValue = 0.000956939;
@@ -82,11 +122,15 @@ public class CalibrationBatteryTests
         (double lo, double hi) = c.Band(key);
         if (key == QuarantinedKey && value < lo && value > lo * 0.90)
         {
-            // At the floor, inside the derivation's precision. Announced, not hidden.
+            // CORRIDOR-SCOPED, not seed-scoped — see the docstring. This banner
+            // fires for ANY dev seed in [0.9*lo, lo), and ten of seeds 1-60 are
+            // in that window. It says so, because the previous wording implied a
+            // single quarantined seed and that was false.
             Console.WriteLine(
-                $"CR-003-PATTERN QUARANTINE: {key} = {value:G6} sits {(1 - value / lo):P1} below the "
-                + $"re-derived floor {lo} — within the one-significant-figure precision of that "
-                + "derivation. Awaiting director ruling; NOT widened to fit.");
+                $"CR-003-PATTERN QUARANTINE (CORRIDOR-SCOPED): {key} = {value:G6} sits "
+                + $"{(1 - value / lo):P1} below the re-derived floor {lo}. This is NOT one seed: "
+                + "52 of dev seeds 1-60 sit below this floor, median -14.1%, worst -55.0%. "
+                + "Awaiting the T3.4c re-measurement in the variance-corrected world; NOT widened to fit.");
             return;
         }
         Assert.True(value >= lo && value <= hi,
