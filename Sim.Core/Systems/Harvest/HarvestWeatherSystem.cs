@@ -100,11 +100,17 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
         }
 
         // PASS 2 — the regional field: an exponential-distance-kernel smoothing
-        // of the local draws, normalised to unit variance. Sum of independent
-        // unit normals with weights w has variance Σw², so dividing by
-        // sqrt(Σw²) restores unit variance exactly — the blend below then has
-        // unit variance too, and Sigma means what its name says.
+        // of the local draws, normalised to unit variance. A sum of independent
+        // unit normals with weights w has variance Σw², so dividing by sqrt(Σw²)
+        // restores unit variance exactly — INDIVIDUALLY. That is all it does, and
+        // T3.4b's error was to read it as more (see PASS 3).
+        //
+        // sumSq is CARRIED OUT of this pass because PASS 3 needs it: the self
+        // weight is 1.0, so regional[i] CONTAINS local[i] with coefficient
+        // 1/sqrt(sumSq), and that coefficient IS the covariance the blend has to
+        // divide out.
         Span<double> regional = n <= 256 ? stackalloc double[n] : new double[n];
+        Span<double> sumSqOf = n <= 256 ? stackalloc double[n] : new double[n];
         for (int i = 0; i < n; i++)
         {
             SettlementId from = prev.Settlements[i].Id;
@@ -117,6 +123,7 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
                 acc += w * local[j];
                 sumSq += w * w;
             }
+            sumSqOf[i] = sumSq;
             regional[i] = sumSq > 0.0 ? acc / Math.Sqrt(sumSq) : local[i];
         }
 
@@ -138,7 +145,49 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
                 break;
             }
 
-            double innovation = wRegional * regional[i] + wLocal * local[i];
+            // THE BLEND, VARIANCE-CORRECTED (T3.4c, fixing a T3.4b defect).
+            //
+            // regional_i and local_i are NOT independent: PASS 2 builds the
+            // regional field with self-weight 1.0, so regional_i contains
+            // local_i at coefficient 1/sqrt(sumSq_i), which is exactly
+            // Cov(regional_i, local_i). Blending them as though independent
+            // gives
+            //
+            //   Var(√k·regional_i + √(1−k)·local_i) = 1 + 2√(k(1−k))/√sumSq_i
+            //
+            // which is strictly greater than 1 for every 0 < k < 1. T3.4b did
+            // that, so realised sigma ran 1.10–1.41× the DERIVED 0.2936 and the
+            // multiplier's mean ran 1.013–1.043 instead of exactly 1 — a silent
+            // ~3.2% lift on expected yield (t = 7.98 over 32 seeds), which is
+            // observationally identical to running the derived 26.0 at 26.9 and
+            // is what CR-003 §5.2(b) forbids in substance.
+            //
+            // Dividing by sqrt of that variance restores BOTH properties exactly,
+            // at every geometry, and touches nothing else: the spatial structure,
+            // the AR(1) memory, the draw order and the RNG consumption are all
+            // unchanged, and SIGMA STAYS 0.2936 — it simply becomes true.
+            //
+            // The k-sweep is the proof this is the only defect: variance is
+            // exactly correct at k=0 and k=1 (no blending happens, so there is no
+            // cross-term) and maximal in between, with the shipped k=0.6 sitting
+            // essentially at the maximum.
+            //
+            // THE FALLBACK BRANCH. When sumSq_i is 0 — a settlement with no
+            // reachable neighbour, where PASS 2 sets regional_i = local_i — the
+            // two are the SAME variable, correlation 1, and the variance is
+            // (√k+√(1−k))². That is the worst case (1.9798 at k=0.5), so it must
+            // be handled and not left to the general formula.
+            //
+            // REJECTED ALTERNATIVE, recorded so it is not re-proposed: excluding
+            // self (w_ii = 0) does make them independent, but then EVERY isolated
+            // settlement falls into that same fallback, and it changes what
+            // "regional" means — a region's weather would no longer include its
+            // own site.
+            double varInn = sumSqOf[i] > 0.0
+                ? 1.0 + 2.0 * wRegional * wLocal / Math.Sqrt(sumSqOf[i])
+                : (wRegional + wLocal) * (wRegional + wLocal);
+            double innovation =
+                (wRegional * regional[i] + wLocal * local[i]) / Math.Sqrt(varInn);
             double x = rho * previous + innovationScale * innovation;
             double multiplier = Math.Exp(x - meanCorrection);
 
