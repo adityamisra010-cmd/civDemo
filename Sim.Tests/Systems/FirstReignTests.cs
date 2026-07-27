@@ -163,7 +163,17 @@ public class FirstReignTests
         //   0.2936). Semantic assertions below unchanged and still passing.
         //   post-weather, pre-derivation value:
         //   58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2
-        const string golden = "8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4";
+        //   v10 (T3.5, D-035): consumption became a class-weighted BASKET over
+        //   six goods instead of a single grain flow, GoodStockRow gained
+        //   LastConsumptionEatenUnits (SCHEMA v17), and needs aggregate by CES.
+        //   Both a schema change and a real behaviour change — the nutritional
+        //   total per person is unchanged by construction (food basket weights
+        //   sum to 1.0 and unmet non-staple demand substitutes into grain), so
+        //   the demographic trajectory moves only through integer rounding of
+        //   the split flows. The semantic assertions below are unchanged and
+        //   still pass, which is what separates this re-mint from a regression.
+        //   v9 value: 8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4
+        const string golden = "97adbeb9dfbfcef446204c124ed3242aed42a81bc03ce7062adf24a40db7c45f";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

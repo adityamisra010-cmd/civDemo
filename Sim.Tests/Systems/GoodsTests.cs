@@ -119,9 +119,18 @@ public class GoodsTests
             LedgerFlowRow f = world.LedgerFlows[i];
             if (f.Quantity == grainQ && f.Reason == ReasonIds.Harvest) harvested = f.TotalSourced;
             if (f.Quantity == grainQ && f.Reason == ReasonIds.Eaten) eaten = f.TotalSunk;
-            // No other good moved: production is T3.3; at T3.2 only grain flows.
+            // T3.5: the D-035 baskets DEMAND livestock, fish, timber, stone,
+            // pottery and cloth, so consumption now touches their ledger rows.
+            // The claim that survives — and the one this test was always making
+            // — is that no unit of any other good actually MOVED: an all-farming
+            // settlement produces none of them and holds none, so every
+            // non-grain flow must be exactly zero in both directions. A single
+            // unit sourced or sunk here would mean goods appearing from nothing.
             if (ConservedQuantityIds.IsGood(f.Quantity) && f.Quantity != grainQ)
-                Assert.Fail($"good quantity {f.Quantity.Value} has flows before T3.3 exists");
+            {
+                Assert.Equal(0, f.TotalSourced);
+                Assert.Equal(0, f.TotalSunk);
+            }
         }
         Assert.True(harvested > 0 && eaten > 0, "grain never harvested/eaten — the migration lost the M2 loop");
         for (int i = 0; i < world.GoodStocks.Count; i++)

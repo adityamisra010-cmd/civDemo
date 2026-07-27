@@ -392,7 +392,17 @@ public class SnapshotTests
         //   amplitude sets the realised harvest path, so the hash moves.
         //   post-weather, pre-derivation value:
         //   305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8
-        const string golden = "38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207";
+        //   T3.5 (D-035 consumption baskets + needs — DELIBERATE): schema v17
+        //   (GoodStockRow.LastConsumptionEatenUnits) plus a real behaviour
+        //   change — consumption is now a class-weighted basket over six goods
+        //   rather than a single grain flow. Per-person nutrition is unchanged
+        //   by construction (the food basket sums to 1.0 and unmet non-staple
+        //   demand substitutes into the staple), so the trajectory moves only
+        //   through integer rounding of the split flows; needs and grievance
+        //   change substantially, and drive nothing. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        //   previous value: 38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207
+        const string golden = "9e71d80a0b51b86f93ecd71973128c2966313850479d6c6dd66376ac4ec54e86";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

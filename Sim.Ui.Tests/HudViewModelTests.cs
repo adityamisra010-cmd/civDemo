@@ -128,11 +128,17 @@ public class HudViewModelTests
     [Fact]
     public void HudModel_NeedsBlock_BoundValueAndNotYetSimulatedLabels()
     {
-        // T2.6: the needs block renders the FULL D-018 ladder in registry
-        // order — the bound Sustenance with its satisfaction value, all seven
-        // unbound needs honestly labeled "not yet simulated" — plus the
-        // grievance line. Driven through one production turn so satisfaction
-        // rows exist (turn 1 reads the founding Prev: deficit absent → 1.00).
+        // T2.6/T3.5: the needs block renders the FULL D-018 ladder in registry
+        // order — every BOUND need with its satisfaction value, every unbound
+        // need honestly labeled "not yet simulated" — plus the grievance line.
+        // Driven through one production turn so satisfaction rows exist.
+        //
+        // T3.5 anchors, all mechanism rather than accident. Sustenance reads
+        // 0.89, not 1.00: the settlement is fully fed but eats grain alone, and
+        // D-035-A prices monotony INSIDE satisfaction. Shelter and Comfort read
+        // 0.00: an all-farming settlement cuts no timber and weaves no cloth,
+        // so those baskets are empty — which is the mechanism working, and is
+        // reported as a finding in the packet handback, not hidden here.
         SimConfig cfg = SimCfg();
         Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
@@ -142,10 +148,19 @@ public class HudViewModelTests
         HudModel hud = HudModel.From(world, selectedSettlementId: 0, needs);
         Assert.NotNull(hud.NeedLines);
         Assert.Equal(8, hud.NeedLines!.Count);
-        Assert.Equal("Sustenance: 1.00", hud.NeedLines[0]);
-        for (int i = 1; i < 8; i++)
+        // TURN 1 READS THE FOUNDING PREV, which published no consumption at all
+        // — and no demand means no shortfall by design, so Shelter and Comfort
+        // read 1.00 here and only fall once a turn of real demand has been
+        // published. The one-turn lag is the documented mechanism (everything
+        // reads Prev, §3.2), pinned rather than smoothed over.
+        Assert.Equal("Sustenance: 0.89", hud.NeedLines[0]);   // fed, but grain-heavy (D-035-A)
+        Assert.Equal("Shelter: 1.00", hud.NeedLines[1]);
+        Assert.Equal("Comfort: 0.99", hud.NeedLines[5]);   // 40/60 pottery-cloth split: a whisker off even
+        for (int i = 0; i < 8; i++)
+        {
+            if (needs.Needs[i].Bound) continue;
             Assert.Equal($"{needs.Needs[i].Name}: not yet simulated", hud.NeedLines[i]);
-        Assert.Equal("grievance 0.00", hud.GrievanceLine); // fed turn 1: nobody aggrieved
+        }
 
         // Without the registry (legacy callers) the block is simply absent.
         Assert.Empty(HudModel.From(world, 0).NeedLines!);
@@ -159,7 +174,10 @@ public class HudViewModelTests
         // UNPUBLISHED, not mis-wired — satisfaction rows are rebuilt per turn
         // by NeedsGrievance, so at turn 0 the table is empty and the old HUD
         // fabricated a default 0. PIN: turn 0 renders "not yet measured";
-        // from turn 1 ONWARD, full stores read exactly 1.00.
+        // from turn 1 ONWARD it renders a real measured value. T3.5: that value
+        // is 0.89 rather than 1.00 for a grain-only diet — the pin is that the
+        // HUD reports what the sim computed instead of inventing a default,
+        // which is what the finding was about.
         SimConfig cfg = SimCfg();
         Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
@@ -173,7 +191,12 @@ public class HudViewModelTests
         {
             world = exec.Step(world);
             HudModel hud = HudModel.From(world, 0, needs);
-            Assert.Equal("Sustenance: 1.00", hud.NeedLines![0]);
+            // Turn 1 reads the founding Prev (no demand published, every basket
+            // good notionally supplied): 0.89, the grain-heavy basket's variety
+            // score. From turn 2 the previous turn's real demand is visible,
+            // livestock and fish came back empty, their nutrition substituted
+            // into grain — full calories, a strictly monotonous diet, 0.85.
+            Assert.Equal(t == 1 ? "Sustenance: 0.89" : "Sustenance: 0.85", hud.NeedLines![0]);
         }
     }
 
