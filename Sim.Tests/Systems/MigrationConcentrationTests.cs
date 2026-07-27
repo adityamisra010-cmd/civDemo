@@ -123,7 +123,22 @@ public class MigrationConcentrationTests
         Assert.True(share > 0.40, "the corridor bound would not have caught the recorded run");
         Assert.True(participating < 3, "the participation floor would not have caught it either");
 
-        // And it must NOT fire on the measured post-correction vector.
+        // And it must NOT fire on a healthy vector.
+        //
+        // PROVENANCE, corrected at T3.4c: this vector was measured at
+        // sigmaLogYield = 0.18, which is NOT what ships — the T3.4b derivation
+        // raised sigma to 0.2936 in a later commit and nothing downstream was
+        // re-measured, and the T3.4c variance fix moved the substrate again. The
+        // corrected world produces [197, 152, 223, 186, 0, 139, 187, 0, 223].
+        //
+        // IT IS DELIBERATELY NOT UPDATED. This is a FIXTURE for the detector, not
+        // a claim about the current world: the test's job is to prove the detector
+        // discriminates, so it needs one input the detector must reject and one it
+        // must catch. Re-pointing it at whatever the world produces today would
+        // couple a guard's fixture to the thing the guard is guarding — and every
+        // future world-change would silently re-baseline it. Both vectors are
+        // healthy on every axis the detector tests, so either serves; this one is
+        // stable, which is what a fixture should be.
         double[] measured = [197, 150, 201, 188, 0, 114, 168, 0, 220];
         (double okShare, int okParticipating) = Concentration(measured);
         Assert.True(okShare <= 0.40, $"healthy world tripped the corridor at {okShare:P1}");
