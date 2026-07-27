@@ -63,10 +63,10 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
     public static readonly SystemId WellKnownId = new(6);
     public const string Name = "consumption";
 
-    /// <summary>The Sustenance need id in the D-018 registry — the need whose
-    /// basket lines are nutrition and therefore cohort-weighted and
-    /// substitutable.</summary>
-    public const int SustenanceNeedId = 1;
+    /// <summary>The Sustenance need id — see <see cref="BasketBook.SustenanceNeedId"/>.
+    /// It lives on the shared book so that no system has to reference another
+    /// system to learn it (law 6).</summary>
+    private const int SustenanceNeedId = BasketBook.SustenanceNeedId;
 
     private readonly SimConfig _cfg;
     private readonly BasketBook _baskets;
