@@ -168,3 +168,8 @@
   in both `Aggregate` and `CeilingWhenOneNeedIsZero` survives every test except `sum > ces*4.0`,
   at ~7% margin. The harmonic-mean and power-mean oracles added at T3.5 cover σ = 0.5; a
   σ-general strength pin would close the rest.
+- **T3.5b golden churn, flagged ahead:** items 1 (subsistence default) and 3 (ghost-class
+  grievance) both move founded-world trajectories, and item 1 moves the food economy itself.
+  Expect the founded golden, the first-reign golden, the calibration battery anchors and the
+  equilibrium-density invariant all to need re-measurement in that packet. Flagged now so the
+  re-pin is planned rather than discovered.
