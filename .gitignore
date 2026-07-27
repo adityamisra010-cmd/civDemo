@@ -18,3 +18,7 @@ TestResults/
 .DS_Store
 Thumbs.db
 .claude/
+
+# Verification worktrees (ADR-015 §6 — one per verifying agent, never committed)
+wt4c/
+wt*/
