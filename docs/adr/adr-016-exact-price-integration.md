@@ -73,7 +73,21 @@ and that implementation stop if it does not. It does:
   reproducibility, which is what replay and the golden pins depend on. Adopting `exp()` here
   widens nothing — that exposure was taken at ADR-011 and is unchanged.
 
-**One correction to the ruling's citation.** The ruling refers to "Law 9 as amended". There is no
+**Citation corrected at implementation time — director confirmed, 2026-07-26.** The ruling cited
+"Law 9 as amended"; the director was quoting the v3 Spine's TEN-law numbering as if it were
+CLAUDE.md's SEVEN. There is no Law 8 or Law 9 in the constitution. The grounding below is the
+correction, confirmed by the director as "correct and better", and it is recorded here so a
+future reader does not go hunting for a law that does not exist.
+
+**STANDING NOTE (director ruling):** if the director cites a numbered law or a document that
+cannot be located in the repo, REFUSE it and ask rather than proceeding on it. Both instances in
+this packet — the phantom Law 9, and the "Nenatul" evidence that greps empty because it is a
+runtime-generated name from a chronicle outside the tree — were correctly refused. The second
+turned out to be real evidence held outside the repo, now filed as
+`docs/t3.4b-migration-evidence.md`; the first was simply wrong. Refusing both was right, and the
+cost of refusing a real one is one round-trip.
+
+**The original wording of this correction.** The ruling refers to "Law 9 as amended". There is no
 Law 9, and no Law 8: `CLAUDE.md` states laws 1–7 and neither number appears anywhere in `docs/`.
 The determinism basis above is therefore grounded in what exists — law 5's banned-construct list,
 the cross-process CI gate, and the ADR-011 precedent — rather than in a law number that would not
