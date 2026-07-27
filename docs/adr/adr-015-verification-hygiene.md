@@ -487,6 +487,13 @@ proven-red test. A review declared complete one lens early would have shipped bo
 3. A name with no result is BLOCKING, whatever the tally says.
 4. **Do not tear down review infrastructure until step 3 is clean** — cleanup acts on the same belief
    as the declaration, so a wrong count destroys the evidence that would have corrected it.
+5. **COMMIT BEFORE YOU RUN ANYTHING THAT REVERTS.** Third instance of one pattern — cleanup acting
+   destructively on unsecured work, on the strength of a belief about what state things were in:
+   the worktree deleted mid-sweep (above), and `git checkout --` wiping uncommitted item-4 work
+   during a T3.4c tooth-proof, because the mutant and the real work were in the same file. **Mutant
+   proofs, worktree teardown and any revert-shaped operation are CLEANUP; secure the work first.**
+   The second instance was caught only because the suite came back red against a clean tree — i.e.
+   by luck, not by process.
 
 The failure mode is not forgetting §7.3; it is *believing you have satisfied it*. A count is a claim
 about the world that feels like bookkeeping, which is what makes it easy to get wrong and hard to

@@ -54,6 +54,57 @@ a physical carrier (grain rots; a granary holds only so much; seed corn and fodd
 the harvest), never from a cap chosen to make famine appear. CR-003 §5.1's prohibition on choosing a
 constant that reproduces the old crash applies to this with full force.
 
+### B-2a — THE MECHANISM, STAGED (director ruling, 2026-07-27)
+
+Store bounding lands in **two layers, base first**. This constrains the M4 store-bounding packet when
+it is written; **nothing here is acted on in M3.**
+
+**BASE LAYER — the M4 packet:**
+
+1. **SPOILAGE** — a fraction of stored grain lost per sim-year, integrated dt-correctly.
+   *Physical carrier:* decay. Grain rots, is eaten by vermin, germinates, moulds.
+2. **GRANARY CAPACITY** — a per-settlement ceiling on what can be held, above which surplus is lost
+   or not stored. *Physical carrier:* a structure of finite size.
+
+Both **DERIVED, not chosen** (S8 §4.1): state the reference class for pre-modern grain loss rates and
+for granary capacity per household, and report what reserve depth the derived values produce.
+
+**COMPARISON TARGET, NOT A TARGET TO HIT:** historically, agrarian households carried on the order of
+one to a few years of grain. **If the derived values produce something far from that, report it as a
+finding rather than adjusting to reach it.** CR-003 §5.1 applies with full force — no constant chosen
+to make famine appear. (This is the same fence as the T3.4c corridor prediction, and ADR-015 §7.13
+applies: pre-commit the reading of both outcomes before measuring.)
+
+**ENRICHMENT LAYER — later.** Each item must state its physical carrier and act by **MODIFYING the
+base spoilage rate or capacity, never by adding an independent term** (law 2). The list is the
+director's:
+
+| item | carrier | note |
+| --- | --- | --- |
+| **STORAGE TECHNOLOGY** — pit, sealed jar, raised granary, silo | a built structure with a construction cost and a spoilage multiplier | **Most valuable of the list, and the strongest candidate to follow the base layer:** resilience becomes a real investment decision and a genuine technology arc across eras |
+| **MOISTURE** — damp regions spoil faster | the worldgen moisture field (T1.1/T3.1) | **Nearly free — the carrier already exists** |
+| **VERMIN** — rat losses scaling with settlement size and storage type | settlement density | arrives with T3.8's settlement-size work |
+| **HYGIENE / STORE MAINTENANCE** — labour spent maintaining stores reduces loss | the labour pool | already simulated; couples naturally to sector allocation |
+| **SEED CORN** — a claim on the harvest not available for consumption | next year's sowing | **Distinct from spoilage: a reservation, not a loss** — and it makes a bad year compound into the next one |
+| **ALTERNATIVE USES** — feed, brewing, trade | competing demand from other systems | arrives naturally with livestock and the goods economy |
+
+*Provenance: the enrichment list is the director's. **The staging — not the content — is the
+ruling.***
+
+### B-2b — THE SEQUENCING RULE
+
+> **WHEN A BASE QUANTITY IS WRONG, ADDING DETAIL ON TOP MAKES THE ERROR HARDER TO FIND, NOT EASIER.**
+
+Recorded because it has now been **paid for twice**: T3.2b (a yield constant denominated per lattice
+node while consumed per km², with the travel budget compensating for it) and T3.4b/c (a variance
+defect whose 3.2% yield lift was invisible under six interacting systems and no distributional test).
+
+Shipping vermin, humidity and storage styles before spoilage exists would leave the world still
+unable to starve, **with the cause now distributed across six systems instead of one.** Base mechanism
+first, measured; then enrichment, **each item earning its place by measurably changing the base.**
+
+---
+
 ## B-1 (original text, retained — see the correction above)
 
 
