@@ -536,6 +536,7 @@ The ruling names the director's own instance of the error alongside the agent's,
 finding. That is the point worth preserving: this failure mode is not a competence gap in the
 reviewing agent, it is what happens to anyone holding a correct measurement and an expectation
 about what the system owes. The defence is procedural — cite the requirement — not attentional.
+
 ---
 
 ## §7.11 — Reconcile lenses BY NAME, from the manifest, or §7.3 does nothing
