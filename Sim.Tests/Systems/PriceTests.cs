@@ -19,6 +19,15 @@ namespace Sim.Tests.Systems;
 ///   5. no global solve — structurally, one damped step per good per turn;
 ///   6. dt-correctness (law 3).
 /// The 500-turn soak and its oscillation detector live in PriceSoakTests.
+///
+/// COVERAGE WARNING (director ruling, 2026-07-26 — until T3.11 lands the driven
+/// golden). THE GOLDENS DO NOT COVER PRICE BEHAVIOUR AT ALL. Every pinned world
+/// runs the all-farming default, so no good but grain ever flows, every price
+/// sits at exactly 1.0, and the step's exponent is exactly 0 — ADR-016 changed
+/// the solver's mathematics from Euler to exact integration and left all three
+/// golden hashes BYTE-IDENTICAL. Price behaviour is therefore covered by THIS
+/// file and the driven soak alone. Do not read a green golden as evidence that
+/// the price solver is unchanged.
 /// </summary>
 public class PriceTests
 {
