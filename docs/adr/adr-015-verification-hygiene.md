@@ -483,6 +483,61 @@ the packet is NOT certified, and no lens result exists to certify it with.
 
 ---
 
+## §7.10 — A finding is a measurement plus an interpretation, and they verify separately
+
+**Director ruling, T3.5 (2026-07-27), recorded verbatim:**
+
+> **A FINDING IS A MEASUREMENT PLUS AN INTERPRETATION, AND THEY VERIFY SEPARATELY.** In T3.5,
+> three of four killed findings had exactly correct numbers and wrong conclusions. Independent
+> lenses agreeing raises confidence in the measurement only — it does not corroborate the
+> interpretation, because lenses briefed on the same question share its framing. Before relaying a
+> finding as a defect, check that some ratified item actually REQUIRES the property claimed to be
+> broken; "this looks wrong" is not a conflict. The director made the same error on the same
+> finding — he ruled grievance must be monotone before checking whether any ruling demanded it.
+
+### The T3.5 evidence
+
+Four findings were relayed as serious and did not survive verification. In three, the finder's
+arithmetic reproduced **bit-for-bit** and the conclusion drawn from it was wrong:
+
+| finding | measurement | interpretation | verdict |
+| --- | --- | --- | --- |
+| Tier A gate makes grievance non-monotone in food | exact, reproduced to 4 dp | "frozen-item conflict, needs a CR" | **no ruling requires monotonicity**; d018:46 *mandates* the collapse; removed by a TUNE value; zero founded settlement-turns in the region |
+| the mandatory acceptance test is circular | the bit-equality was real | "the nominated mutation survives" | **3 of 16 tests fail** against it |
+| satisfaction is dt-dependent | table reproduced exactly | "law 3 violation" | every rate *is* integrated with `dtYears`; it is a sentinel/integerization defect |
+| the variety reference point | numbers exact | "law 2 free-floating debuff" | the term is inside the equation, which is the form D-035-A *mandates* |
+
+### Why lens agreement is not corroboration
+
+Two lenses independently reported the gate/CES non-monotonicity with consistent numbers, and I
+treated the agreement as strengthening the *defect* claim. It did not. Both had been briefed to
+attack the same composition, so they shared the framing in which "grievance falls when food falls"
+reads as broken. Agreement across lenses is evidence about **the measurement** — it is worth having,
+and here it correctly told us the numbers were real. It says nothing about whether the property is
+one the system owes.
+
+### The operational rule
+
+Before relaying a finding as a defect, and **before** writing a `cr-NNN`:
+
+1. **Name the ratified item that requires the property.** Quote it. D-035-B's mandatory test is a
+   *floor* — "grievance must remain **above** a stated floor" — and a floor is not a monotonicity
+   requirement. Reading a bound as the property you expected is how a non-defect becomes a CR.
+2. **Check the nominated cause by substitution, not by plausibility.** The `rawWeightSum` diagnosis
+   was coherent and wrong: swapping in the adjusted sum leaves the effect in place.
+3. **Check reachability in the founded world**, not only in the rig that surfaced it.
+4. **A refutation is a result and gets recorded.** `docs/t3.5-review-record.md` has a "What
+   verification KILLED" section for exactly this reason; a review whose refutations vanish teaches
+   the next agent nothing and invites the same finding to be re-filed.
+
+### The symmetry the director recorded
+
+The ruling names the director's own instance of the error alongside the agent's, on the same
+finding. That is the point worth preserving: this failure mode is not a competence gap in the
+reviewing agent, it is what happens to anyone holding a correct measurement and an expectation
+about what the system owes. The defence is procedural — cite the requirement — not attentional.
+---
+
 ## §7.11 — Reconcile lenses BY NAME, from the manifest, or §7.3 does nothing
 
 **T3.5/T3.4b, 2026-07-27.** §7.3 says a review is incomplete until every lens has reported,
