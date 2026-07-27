@@ -544,3 +544,64 @@ created by the packet's own band change, and that the same run was in-band one c
 incomplete escalation, not a manufactured one.
 
 Re-scoping is scheduled in T3.4c.
+
+---
+
+## §7.13 — Pre-commit the reading of BOTH outcomes, before any measurement whose result could be argued about
+
+**Director ruling, T3.4c, 2026-07-27.** Recorded in the implementing agent's framing at the
+director's instruction.
+
+> An interpretation ruled AFTER a measurement is a negotiation; ruled BEFORE, it is a result.
+
+At T3.4c the director predicted the migration corridor would move toward band once excess variance
+was removed. **It moved the other way on the dev preset: median −14.1% → −30.5%**, because the
+inflation had been MASKING how far that world sits from the corridor. Had the interpretation not been
+fixed in advance, a −30.5% median would have been a standing invitation to argue the floor was
+miscalibrated — with the corrected-variance world as ammunition for the argument.
+
+**The prediction failing is the strongest available evidence that pre-committing was right: a rule
+that only ever confirms the ruler's expectations is not constraining anything.**
+
+### What was pre-committed, and what it bought
+
+The reading of all three outcomes was written into `docs/t3.4c-spec.md` before the measurement ran:
+
+| canonical | dev | reading, fixed in advance |
+| --- | --- | --- |
+| in band | in band | the fix moved the distribution; report the delta |
+| **in band** | **below floor** | **the dev preset is not a scale model of the shipped world; a corridor calibrated on it measures the preset** |
+| below floor | below floor | the finding is about the corridor's derivation |
+
+Measured: canonical **5/5 in band** (+15.0% to +63.6%), dev **19/20 below** (median −30.5%, worst
+−64.1%). Row 2, applied without deliberation — floor unmoved, nothing retuned, escalated as B-1b
+evidence. The director's addition of the canonical arm is what made it a discriminator rather than a
+single ambiguous number: it settled the preset question **with a number instead of an argument.**
+
+### The mechanism, which generalises
+
+**A DEFECT CAN MASK THE DISTANCE TO A CORRIDOR AS EASILY AS IT CAN CREATE ONE.**
+
+Excess variance inflated gross migration and moved the measured value *toward* the band, so the
+corrected world reads *further away*. **Do not assume a correction moves an instrument toward
+agreement.** The intuition that fixing a bug brings measurements closer to expectation is a bias
+about defects, not a fact about them — a defect is as likely to have been flattering the instrument
+as damaging it, and which one it was is an empirical question.
+
+This is why the pre-commitment must cover **both** directions explicitly. A pre-commitment that only
+names the outcome you expect is not a pre-commitment; it is a prediction with an escape hatch.
+
+### The rule
+
+Before any measurement whose result could be argued about:
+
+1. Write down what each possible outcome would mean, **including the ones you do not expect**.
+2. Where possible, add a **discriminating arm** — a second measurement that separates competing
+   explanations. One number admits many readings; two numbers that must disagree admit far fewer.
+3. Run it.
+4. Apply the pre-committed reading **without deliberation**, and record the prediction you got wrong.
+
+Note the family resemblance: §7.10 (a measurement and its interpretation verify separately), §7.11
+(reconcile by name, not by belief), §7.12 (a property asserted about your own artifact is a
+measurement you owe), and now §7.13. All four are the same defence — **fix the standard before you
+see the result**, because afterwards you cannot tell your reasoning from your preference.
