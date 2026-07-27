@@ -408,36 +408,58 @@ loss, and either isolate the rig or state why it survives. Silence is not eviden
 in T3.4b two of them had already inverted before anyone looked.
 
 
-### 7.9 A third way a lens vanishes: the harness discards a completed result
+### 7.9 A third way a lens vanishes: the tooling breaks and the error misdirects
 
-T3.4b's six-lens review was run, and **all six lenses reported nothing** —
-`allSixReported: false`, every lens in `missing`, each with
-`StructuredOutput retry cap (5) exceeded — 5 failed calls with no valid output`. Thirty failed
-emissions. The journal showed six `started` entries and zero results.
+**CORRECTED 2026-07-27. The first version of this section was WRONG, and the correction is the
+point of it.**
 
-**The lenses had not failed. They had finished.** Usage records ~240k subagent tokens and 90 tool
-calls across the six — each had read the code, run tests, and reached conclusions. What failed was
-the *emission*: the findings schema I wrote was strict (`additionalProperties: false`, required
-fields, closed enums on `severity` and mutant `result`), and every attempt to serialise a real
-finding against it was rejected until the retry cap ran out. The investigation was then thrown
-away.
+**What I first wrote.** T3.4b's six-lens review returned `allSixReported: false` with every lens
+reporting `StructuredOutput retry cap (5) exceeded`. Usage showed ~240k subagent tokens and 90
+tool calls, so I concluded the lenses had *finished* and that my strict findings schema had
+rejected their real output — "a validation schema sits downstream of all the expensive work". I
+loosened the schema and re-ran. It failed **identically**: six of six, same error, 216k tokens.
 
-This is a THIRD distinct mechanism by which a required lens produces silence, and the family is
-worth naming together because each looks different and they all end the same way:
+**What was actually happening**, from the agent transcripts I should have read the first time:
+
+> `The permission handler returned updatedInput for <Tool> that failed schema validation: The
+> required parameter <param> is missing. This is a configuration issue in your canUseTool
+> callback, PermissionRequest hook, or permission-prompt tool.`
+
+**Every tool in the subagent environment was non-functional** — `Bash`, `Read`, `Grep`, `Glob`
+and `StructuredOutput` alike. One lens recorded thirteen attempts across five tools, all the same
+error. The agents never pinned a worktree, never opened a source file, never ran a test. The
+tokens were spent retrying broken tools, not investigating. The `StructuredOutput` failure was
+itself a symptom: the agent DID supply `pinHashSeen: "UNVERIFIED"` and the handler still reported
+the property missing, because it was stripping required parameters from that call too.
+
+**THE LESSON, and it is not the one I first drew.** The error surfaced at the LAST step in the
+chain — the structured emission — and named a schema property. That is a plausible, specific,
+self-consistent story about the schema, and it was wrong. **A failure reported at the boundary of
+your own component is not evidence the fault is in your component.** I had a diagnosis that fit
+the visible evidence, acted on it, and only discovered the real cause because the fix changed
+nothing. The second identical failure was the finding; the first was a hypothesis I had already
+written into an ADR as fact.
+
+Read the agent transcripts before theorising about agent failures. The journal carries
+`started`/`result` only; the transcripts carry what the agent actually saw, and here they stated
+the true cause in plain English on the first run.
+
+**The subagent behaved better than I did.** Forced to emit, it refused to produce a clean-looking
+empty result and instead wrote: *"REVIEW NOT EXECUTED … Empty findings means UNMEASURED, not 'no
+defects' … T3.4b must not be accepted on this run; respawn Lens 1 with working tooling."* That is
+§7.3 holding one level below this one — an agent declining to let its own silence read as a pass.
+
+**The family of lens-vanishing mechanisms now stands at three:**
 
 | # | mechanism | what it looks like | first seen |
 | --- | --- | --- | --- |
 | 1 | the lens never launched | nothing at all, no error | T3.3 round 1 |
 | 2 | the lens errored in flight | HTTP 529, visible failure | T3.3 round 2 |
-| 3 | **the harness discarded a completed result** | retry-cap error, work already done | T3.4b |
+| 3 | **the environment's tooling was broken** | a schema error at the final step, misdirecting | T3.4b |
 
-Only §7.3's rule — reconcile required lenses **by name against returned results**, never against
-the launch call — catches all three. Against mechanism 3 in particular, "the workflow ran and
-finished" is true and useless: it ran, it finished, and it reported nothing.
+Only §7.3's rule — reconcile required lenses **by name against returned results** — catches all
+three, and against mechanism 3 the workflow-level report ("ran, finished, six agents") is true
+and completely useless.
 
-**THE LESSON FOR SCHEMA DESIGN: a validation schema sits DOWNSTREAM of all the expensive work, so
-its failure mode is uniquely bad — it converts a finding into silence after paying full price for
-it.** Prefer permissive: no `additionalProperties: false`, minimal required fields, enums
-expressed as descriptions rather than constraints, and union types where a model might reasonably
-emit either. A schema strict enough to reject a real finding is worse than no schema at all. Brief
-agents on an emission budget too — an oversized result is a result that never existed.
+**A REVIEW THAT CANNOT EXECUTE IS NOT A REVIEW THAT FOUND NOTHING.** Three attempts were made;
+the packet is NOT certified, and no lens result exists to certify it with.
