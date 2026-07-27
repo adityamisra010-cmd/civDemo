@@ -155,3 +155,11 @@
   needs it. Two packets (T3.5 by a session, T3.4b's evidence by a round-trip) were delayed by
   unfiled rulings; both refusals were correct and both cost a round-trip that filing would have
   saved.
+- **libm on the hashed determinism surface (T3.4b lens 1, carried not blocking):** `Math.Cos` and
+  `Math.Log` enter sim code for the first time in `HarvestWeatherSystem`'s Box–Muller. Same-machine
+  reproducibility is verified unaffected, but libm is not bit-guaranteed across glibc versions and
+  nothing in the kernel spec or the banned-constructs gate addresses it. Bears on CI-vs-container
+  golden pins, not on correctness. Raise if a golden ever diverges between environments.
+- **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
+  in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
+  yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
