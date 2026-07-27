@@ -406,3 +406,38 @@ still says.
 collapse** — enumerate the controlled experiments the driver can reach, check each for contrast
 loss, and either isolate the rig or state why it survives. Silence is not evidence the rigs held;
 in T3.4b two of them had already inverted before anyone looked.
+
+
+### 7.9 A third way a lens vanishes: the harness discards a completed result
+
+T3.4b's six-lens review was run, and **all six lenses reported nothing** —
+`allSixReported: false`, every lens in `missing`, each with
+`StructuredOutput retry cap (5) exceeded — 5 failed calls with no valid output`. Thirty failed
+emissions. The journal showed six `started` entries and zero results.
+
+**The lenses had not failed. They had finished.** Usage records ~240k subagent tokens and 90 tool
+calls across the six — each had read the code, run tests, and reached conclusions. What failed was
+the *emission*: the findings schema I wrote was strict (`additionalProperties: false`, required
+fields, closed enums on `severity` and mutant `result`), and every attempt to serialise a real
+finding against it was rejected until the retry cap ran out. The investigation was then thrown
+away.
+
+This is a THIRD distinct mechanism by which a required lens produces silence, and the family is
+worth naming together because each looks different and they all end the same way:
+
+| # | mechanism | what it looks like | first seen |
+| --- | --- | --- | --- |
+| 1 | the lens never launched | nothing at all, no error | T3.3 round 1 |
+| 2 | the lens errored in flight | HTTP 529, visible failure | T3.3 round 2 |
+| 3 | **the harness discarded a completed result** | retry-cap error, work already done | T3.4b |
+
+Only §7.3's rule — reconcile required lenses **by name against returned results**, never against
+the launch call — catches all three. Against mechanism 3 in particular, "the workflow ran and
+finished" is true and useless: it ran, it finished, and it reported nothing.
+
+**THE LESSON FOR SCHEMA DESIGN: a validation schema sits DOWNSTREAM of all the expensive work, so
+its failure mode is uniquely bad — it converts a finding into silence after paying full price for
+it.** Prefer permissive: no `additionalProperties: false`, minimal required fields, enums
+expressed as descriptions rather than constraints, and union types where a model might reasonably
+emit either. A schema strict enough to reject a real finding is worse than no schema at all. Brief
+agents on an emission budget too — an oversized result is a result that never existed.
