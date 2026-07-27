@@ -5,6 +5,7 @@ using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
+using Sim.Core.Systems.Harvest;
 using Sim.Core.Systems.Price;
 using Sim.Core.Systems.Production;
 using Sim.Core.Systems.Growth;
@@ -106,6 +107,15 @@ public static class SystemCatalog
                 ConsumptionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    public static SystemRegistration HarvestWeather(SimConfig cfg)
+    {
+        var system = new HarvestWeatherSystem(cfg);
+        return new SystemRegistration(HarvestWeatherSystem.WellKnownId, HarvestWeatherSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<HarvestWeatherTables>(
+                prev, new HarvestWeatherTables(next.HarvestWeather), rng,
+                HarvestWeatherSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Price(SimConfig cfg)
     {
         var system = new PriceSystem(cfg);
@@ -190,6 +200,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(cfg), Production(cfg), Consumption(cfg), Price(cfg), ClassMobility(cfg), Migration(cfg),
+        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Consumption(cfg), Price(cfg), ClassMobility(cfg), Migration(cfg),
          Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }

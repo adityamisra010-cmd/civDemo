@@ -210,6 +210,27 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         double laborSide = farmLabor * _cfg.Farming.OutputPerFarmerPerYear * toolFactor;
         double ratePerYear = Math.Min(landSide, laborSide);
 
+        // T3.4b (CR-003 ruling §3): weather multiplies REALISED OUTPUT, applied
+        // AFTER the Leontief minimum. Applying it to landSide instead would make
+        // it a statement about how much land the settlement has, which is
+        // exactly what the ruling forbids — the multiplier "multiplies OUTPUT
+        // and never alters the derived 26.0". Mean is exactly 1 by construction
+        // (see HarvestWeatherRow), so switching weather on does not move
+        // expected yield, only its variance. Read from PREV: this turn's harvest
+        // responds to the weather already published, the §3.2 one-turn lag.
+        //
+        // ABSENT ROW = 1.0, deliberately: a world with no weather system in its
+        // pipeline (every toy preset, and every hand-built test world that does
+        // not ask for weather) farms exactly as it did before T3.4b.
+        double weather = 1.0;
+        for (int i = 0; i < prev.HarvestWeather.Count; i++)
+        {
+            if (prev.HarvestWeather[i].Settlement != settlement) continue;
+            weather = prev.HarvestWeather[i].Multiplier;
+            break;
+        }
+        ratePerYear *= weather;
+
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
         long harvested = ConservedMath.WholeUnits(exact, $"grain harvest (settlement {settlement.Value})");

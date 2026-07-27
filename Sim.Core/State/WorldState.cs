@@ -350,6 +350,22 @@ public record struct MigrationFlowRow(SettlementId Settlement, long Inflow, long
 public record struct SmoothedAttractivenessRow(SettlementId Settlement, double Value);
 
 /// <summary>
+/// T3.4b (CR-003 ruling §3): per-settlement harvest weather. LogDeviation is the
+/// AR(1) state in LOG space — it lives in the row so it clones and snapshots
+/// (systems are stateless). Multiplier is exp(LogDeviation − σ²/2), the
+/// mean-one factor applied to realised farm output this turn.
+///
+/// MEAN ONE IS THE POINT. E[exp(x)] = exp(σ²/2) for x ~ N(0, σ²), so the −σ²/2
+/// correction makes E[Multiplier] exactly 1. Weather changes the VARIANCE of
+/// yield and never its expectation, which is what keeps the derived 26.0 a
+/// statement about land quality under normal conditions (CR-003: the multiplier
+/// "multiplies OUTPUT and never alters the derived 26.0"). Without the
+/// correction, adding weather would silently raise mean yield by exp(σ²/2) and
+/// re-open a constant the director derived.
+/// </summary>
+public record struct HarvestWeatherRow(SettlementId Settlement, double LogDeviation, double Multiplier);
+
+/// <summary>
 /// T3.4 (D-033): the price of one good in one settlement, in GRAIN units —
 /// grain is the numeraire and its own price is pinned at exactly 1.0. Prices
 /// are ratios, so `double` (law 7); they are NOT conserved and never move
@@ -470,6 +486,7 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<SmoothedAttractivenessRow> SmoothedAttractiveness { get; }
     IReadOnlyTable<PriceRow> Prices { get; }
     IReadOnlyTable<PriceTermRow> PriceTerms { get; }
+    IReadOnlyTable<HarvestWeatherRow> HarvestWeather { get; }
 }
 
 /// <summary>
@@ -576,6 +593,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-(settlement, good) price-change decomposition (T3.4) — owned by PriceSystem.</summary>
     public Table<PriceTermRow> PriceTerms { get; }
 
+    /// <summary>Per-settlement harvest weather (T3.4b) — owned by HarvestWeatherSystem.</summary>
+    public Table<HarvestWeatherRow> HarvestWeather { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -604,6 +624,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<SmoothedAttractivenessRow> IReadOnlyWorldState.SmoothedAttractiveness => SmoothedAttractiveness;
     IReadOnlyTable<PriceRow> IReadOnlyWorldState.Prices => Prices;
     IReadOnlyTable<PriceTermRow> IReadOnlyWorldState.PriceTerms => PriceTerms;
+    IReadOnlyTable<HarvestWeatherRow> IReadOnlyWorldState.HarvestWeather => HarvestWeather;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -636,6 +657,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SmoothedAttractiveness = new Table<SmoothedAttractivenessRow>();
         Prices = new Table<PriceRow>();
         PriceTerms = new Table<PriceTermRow>();
+        HarvestWeather = new Table<HarvestWeatherRow>();
     }
 
     private WorldState(
@@ -652,7 +674,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<SettlementDistanceRow> settlementDistances, Table<MigrationFlowRow> migrationFlows,
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
         Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness,
-        Table<PriceRow> prices, Table<PriceTermRow> priceTerms)
+        Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
+        Table<HarvestWeatherRow> harvestWeather)
     {
         Seed = seed;
         Clock = clock;
@@ -684,6 +707,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SmoothedAttractiveness = smoothedAttractiveness;
         Prices = prices;
         PriceTerms = priceTerms;
+        HarvestWeather = harvestWeather;
     }
 
     /// <summary>
@@ -699,7 +723,8 @@ public sealed class WorldState : IReadOnlyWorldState
             ConsumptionDeficits.Clone(), SectorAllocations.Clone(), PathProgress.Clone(),
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
-            SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone())
+            SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
+            HarvestWeather.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

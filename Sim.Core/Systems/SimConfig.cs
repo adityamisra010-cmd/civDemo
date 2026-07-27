@@ -25,6 +25,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
     [property: JsonPropertyName("production")] ProductionConfig Production,
     [property: JsonPropertyName("price")] PriceConfig Price,
+    [property: JsonPropertyName("harvestVariance")] HarvestVarianceConfig HarvestVariance,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
@@ -288,6 +289,58 @@ public sealed record PriceConfig(
     [property: JsonPropertyName("bandMin"), JsonRequired] double BandMin,
     [property: JsonPropertyName("bandMax"), JsonRequired] double BandMax,
     [property: JsonPropertyName("maxRelativeChangePerYear"), JsonRequired] double MaxRelativeChangePerYear);
+
+/// <summary>
+/// T3.4b harvest variance (CR-003 ruling §3). ALL TUNE, ALL CHOSEN, per S8
+/// 4.1(c) — none of these is derived, and each states its real-world meaning.
+///
+/// THE MODEL. Per settlement, a log-space AR(1) with a spatially smoothed
+/// innovation:
+///   rho     = exp(-dtYears / CorrelationTimeYears)      (temporal memory)
+///   x_i(t)  = rho * x_i(t-1) + Sigma * sqrt(1 - rho^2) * e_i
+///   mult_i  = exp(x_i - Sigma^2 / 2)                    (mean EXACTLY 1)
+/// where e_i is a unit-variance innovation smoothed over neighbours by an
+/// exponential distance kernel (see SpatialRangeCostUnits).
+///
+/// WHY exp(-dt/tau) FOR rho, AND WHY sqrt(1 - rho^2) ON THE INNOVATION. Both are
+/// dt-correctness (law 3) and both are the ADR-016 family — a correlation that
+/// decays continuously in TIME, not per turn. exp(-dt/tau) makes the memory a
+/// property of years rather than of turn count; sqrt(1 - rho^2) is exactly the
+/// factor that holds the STATIONARY variance at Sigma^2 for every dt, so a
+/// campaign that shrinks dt does not silently change how variable the weather
+/// is. A naive constant rho would make weather calmer or wilder purely as an
+/// artefact of the era table.
+///
+/// SigmaLogYield — CHOSEN 0.18. Never derived. Standard deviation of log yield
+///   in a single year. exp(±0.18) is roughly ±20%, so a typical bad year is a
+///   fifth off and a 2-sigma year is a third off. Frame: pre-modern European
+///   wheat yields varied year to year by roughly this much; wholly wrong values
+///   fail loudly — 0.02 is a greenhouse, 1.0 means half of all years are
+///   catastrophes and no society could form.
+/// CorrelationTimeYears — CHOSEN 3.0. Never derived. The e-folding memory of
+///   the weather process. THIS IS THE PARAMETER THAT MAKES MULTI-YEAR DROUGHTS
+///   POSSIBLE, which the ruling requires: at tau = 3 a bad year is followed by a
+///   bad year far more often than chance, so consecutive failures — the thing
+///   that actually kills, against stores that survive one bad year — occur at a
+///   realistic rate rather than never. Frame: drought regimes persist over a
+///   few years, not a few decades.
+/// SpatialSharedFraction — CHOSEN 0.6. Never derived. The share of a
+///   settlement's innovation that comes from the regionally smoothed field
+///   rather than its own local draw. THE RULING REQUIRES THIS BE MEANINGFUL:
+///   uncorrelated rolls let trade and migration average away all risk, and
+///   "regional bad years are the point". At 0.6 a bad year is mostly shared
+///   with neighbours and partly local.
+/// SpatialRangeCostUnits — CHOSEN 40.0 cost units. Never derived. The e-folding
+///   distance of the weather field, in the same travel-cost units as
+///   SettlementDistances. Settlements a short journey apart share weather
+///   strongly; settlements across the map share it weakly. Frame: a weather
+///   system spans a region, not a continent.
+/// </summary>
+public sealed record HarvestVarianceConfig(
+    [property: JsonPropertyName("sigmaLogYield"), JsonRequired] double SigmaLogYield,
+    [property: JsonPropertyName("correlationTimeYears"), JsonRequired] double CorrelationTimeYears,
+    [property: JsonPropertyName("spatialSharedFraction"), JsonRequired] double SpatialSharedFraction,
+    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):

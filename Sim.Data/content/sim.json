@@ -105,8 +105,8 @@
     "_docDamping": "T3.2b RENAME ONLY, value unchanged. Lattice cost units \u2014 the same units as SettlementDistanceRow.TravelCost, which is correct here: this damps travel EFFORT, not map distance. 25 cost units is ~400 km across ideal ground and materially less across hard country, which is the intended behaviour.",
     "dampingDecayCostUnits": 25.0,
     "attractivenessFoodWeight": 0.02,
-    "_docLandWeight": "T3.2b RE-DENOMINATION, NOT A RE-TUNE: was 1.0 per fertility-weighted lattice node; the catchment quantity it multiplies became fertility-weighted km2 in the same commit (x256), so this is 1.0/256. Both factors are exact powers of two, so the product resources = foodWeight*food + landWeight*arable is bit-identical to the pre-T3.2b value. If a later packet wants to re-BALANCE food against land, that is a separate, deliberate change to this number.",
-    "attractivenessLandWeight": 0.00390625,
+    "_docLandWeight": "T3.4b RE-DERIVATION (CR-003 2.6). NOT a rescale to reproduce old behaviour - the old balance was a product of the wrong denomination and has no claim to correctness. DERIVED FROM WHAT THE SIGNAL SHOULD DO, measured in the weather-live dev world at turn 120: food/capita runs 1526-1544 across settlements (a 1.2% spread, roughly 5000 years of stores - the pre-Malthusian frontier CR-003 describes), while arable/capita runs 0.162-4.698 (a 26x spread). Migration responds to the GAP in attractiveness, not its level, so at the previous weights food supplied ~20x the differential land did while being nearly uniform: the land signal was effectively dead and migration was reading noise on a saturated stock. STATED POSITION: in a frontier world the driver of movement is LAND OPPORTUNITY, because everyone is fed and only room to farm distinguishes one site from another; when land fills and stores thin, HUNGER must take over as the driver. The weights are therefore set so the two terms contribute COMPARABLY to the differential at FED conditions - which makes hunger automatically dominate the moment food actually varies, since famine moves food/capita by orders of magnitude while land's spread stays 26x. The driver SWITCHES WITH THE REGIME rather than being hardwired, which is the emergence property CR-003 requires. Land differential at fed conditions: (4.698-0.162)*0.078125 = 0.354, against a food differential of ~0.35. 0.078125 = 5/64 exactly, so the weight stays a clean binary fraction and the product remains exactly representable.",
+    "attractivenessLandWeight": 0.078125,
     "famineFlightFactor": 8.0,
     "cohortProfile": [
       0.2,
@@ -180,5 +180,12 @@
     "bandMin": 0.05,
     "bandMax": 20.0,
     "maxRelativeChangePerYear": 0.03
+  },
+  "harvestVariance": {
+    "_doc": "T3.4b harvest variance (CR-003 ruling 3). ALL TUNE, ALL CHOSEN - none derived, stated per S8 4.1(c); full model and plausibility frames in HarvestVarianceConfig's doc. Log-space AR(1) per settlement with a spatially smoothed innovation; the multiplier is mean EXACTLY 1 (the -sigma^2/2 correction), so weather changes the VARIANCE of yield and never its expectation - which is what keeps the derived 26.0 a statement about land quality under normal conditions. sigmaLogYield: SD of log yield in one year (0.18 - about +/-20%, a typical bad year a fifth off; pre-modern wheat varied roughly this much). correlationTimeYears: e-folding memory (3.0 - THE parameter that makes MULTI-YEAR DROUGHTS possible, which the ruling requires: consecutive failures are what kill, against stores that survive one bad year). spatialSharedFraction: share of the innovation coming from the regional field rather than a local draw (0.6 - the ruling requires this be meaningful, because uncorrelated rolls let trade and migration average all risk away and regional bad years are the point). spatialRangeCostUnits: e-folding distance of the weather field in travel-cost units (40.0 - a weather system spans a region, not a continent).",
+    "sigmaLogYield": 0.18,
+    "correlationTimeYears": 3.0,
+    "spatialSharedFraction": 0.6,
+    "spatialRangeCostUnits": 40.0
   }
 }
