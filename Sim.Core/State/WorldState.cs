@@ -239,8 +239,15 @@ public record struct DepositRow(SettlementId Settlement, GoodId Good, double Abu
 /// the PREVIOUS turn's row for its starvation multiplier — the kernel's standard
 /// one-turn-lag coupling (§3.2), documented and accepted.
 /// </summary>
-/// <summary>DemandUnits (T2.2): the integer demand Consumption computed this
-/// turn (pre-clamp) — the denominator of the published food_surplus_ratio.</summary>
+/// <summary>DemandUnits (T2.2; RE-STATED at T3.5): the settlement's whole
+/// NUTRITIONAL REQUIREMENT for the turn in person-year-equivalents, pre-clamp —
+/// the denominator of the published food_surplus_ratio. Its MAGNITUDE is
+/// unchanged by T3.5: before the D-035 baskets, grain was the only food, so
+/// grain demand WAS the whole requirement. What changed is that it is no longer
+/// any single good's demand — no good's LastConsumptionDemandUnits equals it,
+/// because the requirement is spread across the food basket and unmet
+/// non-staple demand substitutes into the staple. Anything dividing by it must
+/// therefore supply a numerator denominated the same way: FOOD, not grain.</summary>
 public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio, long DemandUnits = 0);
 
 /// <summary>

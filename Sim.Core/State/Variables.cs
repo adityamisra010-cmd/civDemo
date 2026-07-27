@@ -8,10 +8,13 @@ namespace Sim.Core.State;
 /// deterministic iteration order.
 ///
 /// M2 variables (published per settlement, per turn, by ClassMobilitySystem):
-///  - food_surplus_ratio: LAST turn's harvest units over LAST turn's integer
-///    demand units (Farming's LastHarvestUnits / Consumption's DemandUnits,
-///    both read from Prev). Demand of zero → ratio 0.0 (an empty settlement
-///    signals no surplus, so specialists can never emerge in one).
+///  - food_surplus_ratio: LAST turn's FOOD produced over LAST turn's
+///    nutritional requirement, both read from Prev and both denominated in
+///    person-year-equivalents (T3.5: the numerator sums LastProducedUnits over
+///    every Sustenance basket good, not grain alone — livestock and fish feed
+///    people too, and counting only grain clamps a well-fed herding settlement
+///    to zero specialists). A requirement of zero → ratio 0.0 (an empty
+///    settlement signals no surplus, so specialists can never emerge in one).
 ///  - artisan_share: artisan adults / total adults of the settlement
 ///    (band views over Prev buckets); zero adults → 0.0.
 ///

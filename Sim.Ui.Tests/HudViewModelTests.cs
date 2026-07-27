@@ -148,14 +148,18 @@ public class HudViewModelTests
         HudModel hud = HudModel.From(world, selectedSettlementId: 0, needs);
         Assert.NotNull(hud.NeedLines);
         Assert.Equal(8, hud.NeedLines!.Count);
-        // TURN 1 READS THE FOUNDING PREV, which published no consumption at all
-        // — and no demand means no shortfall by design, so Shelter and Comfort
-        // read 1.00 here and only fall once a turn of real demand has been
-        // published. The one-turn lag is the documented mechanism (everything
-        // reads Prev, §3.2), pinned rather than smoothed over.
-        Assert.Equal("Sustenance: 0.89", hud.NeedLines[0]);   // fed, but grain-heavy (D-035-A)
-        Assert.Equal("Shelter: 1.00", hud.NeedLines[1]);
-        Assert.Equal("Comfort: 0.99", hud.NeedLines[5]);   // 40/60 pottery-cloth split: a whisker off even
+        // TURN 1 READS THE FOUNDING PREV, which published no consumption yet.
+        // A published demand of zero is NOT read as "fully supplied": the T3.5
+        // review found that sentinel reporting empty timber and pottery stores
+        // as perfect Shelter and Comfort, and Fill now uses the STOCK as the
+        // discriminator. Founding stocks these goods at zero, so they correctly
+        // read 0.00 from the very first turn instead of enjoying one free turn
+        // of phantom supply. Sustenance reads 0.85 — full calories, since the
+        // missing non-staples substitute into grain, times the full D-035-A
+        // monotony penalty for a diet that is grain and nothing else.
+        Assert.Equal("Sustenance: 0.85", hud.NeedLines[0]);
+        Assert.Equal("Shelter: 0.00", hud.NeedLines[1]);
+        Assert.Equal("Comfort: 0.00", hud.NeedLines[5]);
         for (int i = 0; i < 8; i++)
         {
             if (needs.Needs[i].Bound) continue;
@@ -191,12 +195,12 @@ public class HudViewModelTests
         {
             world = exec.Step(world);
             HudModel hud = HudModel.From(world, 0, needs);
-            // Turn 1 reads the founding Prev (no demand published, every basket
-            // good notionally supplied): 0.89, the grain-heavy basket's variety
-            // score. From turn 2 the previous turn's real demand is visible,
-            // livestock and fish came back empty, their nutrition substituted
-            // into grain — full calories, a strictly monotonous diet, 0.85.
-            Assert.Equal(t == 1 ? "Sustenance: 0.89" : "Sustenance: 0.85", hud.NeedLines![0]);
+            // 0.85 from the first turn on: full calories (the missing
+            // non-staples substitute into grain) times the full D-035-A monotony
+            // penalty for a grain-only diet. Before the T3.5 review fixed Fill's
+            // zero-demand sentinel, turn 1 read 0.89 — a phantom credit for
+            // livestock and fish the settlement had no stock of.
+            Assert.Equal("Sustenance: 0.85", hud.NeedLines![0]);
         }
     }
 

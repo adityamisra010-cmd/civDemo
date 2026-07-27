@@ -25,8 +25,23 @@ public readonly record struct BasketLine(ClassId Class, int Need, GoodId Good, d
 /// </summary>
 public sealed class BasketBook
 {
+    /// <summary>
+    /// The Sustenance need id in the D-018 registry — the need whose basket
+    /// lines are NUTRITION, and therefore the ones that are cohort-weighted,
+    /// substitutable into the staple, and counted by the food-surplus ratio.
+    ///
+    /// It lives HERE, on the shared book, and not on ConsumptionSystem. Law 6
+    /// says systems never reference each other, and it says nothing about
+    /// `const` being exempt: NeedsGrievanceSystem reading
+    /// `ConsumptionSystem.SustenanceNeedId` was a reference between systems
+    /// even though a compile-time constant carries no runtime coupling. Every
+    /// system that needs this id already reads the book.
+    /// </summary>
+    public const int SustenanceNeedId = 1;
+
     private readonly BasketLine[] _lines;
-    private readonly GoodId[] _goods;   // distinct, ascending
+    private readonly GoodId[] _goods;       // distinct, ascending
+    private readonly GoodId[] _foodGoods;   // distinct, ascending, Sustenance only
 
     public BasketBook(NeedsConfig needs, GoodsConfig goods)
     {
@@ -59,6 +74,12 @@ public sealed class BasketBook
             if (!distinct.Contains(lines[i].Good)) distinct.Add(lines[i].Good);
         distinct.Sort(static (a, b) => a.Value.CompareTo(b.Value));
         _goods = [.. distinct];
+
+        var food = new List<GoodId>();
+        for (int i = 0; i < lines.Length; i++)
+            if (lines[i].Need == SustenanceNeedId && !food.Contains(lines[i].Good)) food.Add(lines[i].Good);
+        food.Sort(static (a, b) => a.Value.CompareTo(b.Value));
+        _foodGoods = [.. food];
     }
 
     /// <summary>Every line, in (class, need, good) order.</summary>
@@ -67,6 +88,15 @@ public sealed class BasketBook
     /// <summary>Every good any basket wants, ascending — the fixed iteration
     /// order for consumption flows.</summary>
     public ReadOnlySpan<GoodId> Goods => _goods;
+
+    /// <summary>The goods that are FOOD — those serving Sustenance, ascending.
+    /// Food lines are denominated in person-year-equivalents of nutrition, so
+    /// these goods' units are commensurable with each other and with the
+    /// nutritional requirement; a unit of any of them feeds the same person for
+    /// the same time. That is what makes summing production across them
+    /// meaningful, and it is why the food-surplus ratio must count all of them
+    /// rather than grain alone.</summary>
+    public ReadOnlySpan<GoodId> FoodGoods => _foodGoods;
 
     /// <summary>The lines of one (class, need) basket, in good order. Returns an
     /// empty span for a class that declares no basket for that need — an absent

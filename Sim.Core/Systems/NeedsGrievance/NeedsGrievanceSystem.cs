@@ -54,8 +54,11 @@ public readonly record struct NeedsGrievanceTables(
 /// where S is the CES aggregate and W the sum of the bound needs' RAW weights.
 /// W is the accrual's scale and the weights' RELATIVE sizes act inside the
 /// aggregation, which is where D-035-B put them; in the one-bound-need limit
-/// this reduces to exactly M2's w × (expectation − s), so the change of form is
-/// visible in the arithmetic rather than hidden by a re-tune.
+/// this reduces to M2's w × (expectation − s) bit-exactly FOR s ABOVE THE
+/// SATISFACTION FLOOR. Below the floor the two diverge, because the floor
+/// clamps unconditionally — at s = 0 with one bound need the accrual is 0.95·w,
+/// not w. Stated rather than rounded off: that config is unreachable in shipped
+/// data, which is exactly why the qualification would otherwise go unnoticed.
 ///
 /// expectation is FIXED at 1.0 — the D-018 §4 habituation ratchet is deferred
 /// to the milestone that gives needs supply curves to habituate to.
@@ -245,7 +248,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         Span<double> obtained = stackalloc double[basket.Length];
         double wanted = 0.0, got = 0.0;
 
-        if (need.Id == ConsumptionSystem.SustenanceNeedId)
+        if (need.Id == BasketBook.SustenanceNeedId)
         {
             double shortfall = 0.0, stapleRate = 0.0;
             int stapleIndex = -1;
@@ -285,18 +288,40 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         return Math.Clamp(quantity * NeedsAggregation.VarietyFactor(obtained, need.VarietyWeight), 0.0, 1.0);
     }
 
-    /// <summary>The settlement-wide fill ratio for one good last turn: obtained
-    /// over pre-clamp demanded. NO DEMAND MEANS NO SHORTFALL — a good nobody
-    /// asked for reads 1.0, so a settlement is never aggrieved by a market it
-    /// never entered; the absence of demand belongs in the basket, which is
-    /// where it is recorded.</summary>
+    /// <summary>
+    /// The settlement-wide fill ratio for one good last turn: obtained over
+    /// pre-clamp demanded.
+    ///
+    /// THREE CASES, and conflating them was a real defect. A published demand of
+    /// zero can mean either of two opposite things:
+    ///
+    ///  1. NO STOCK ROW AT ALL — the good does not exist in this settlement's
+    ///     world. Nothing wanted from a market that is not there: 1.0.
+    ///  2. A ROW EXISTS AND DEMAND IS ZERO — the basket wanted a positive RATE
+    ///     but the turn's integer demand quantised away (WholeUnits floors, and
+    ///     the smallest basket line is 0.005/person-year). Whether the household
+    ///     got its sub-unit share depends on whether the stock existed, so the
+    ///     STOCK is the discriminator: an empty store means they got nothing.
+    ///  3. DEMAND IS POSITIVE — the ordinary case, the honest ratio.
+    ///
+    /// Case 2 previously returned 1.0 unconditionally, reporting a settlement
+    /// with EMPTY timber, stone, pottery and cloth stores as fully sheltered and
+    /// comforted. Measured reachability: zero occurrences across 400 turns of
+    /// the founded world at shipped pacing AND at dt = 1 — it needs fewer than
+    /// ~200-400 people, against live settlements of 2290-6279. But the size of
+    /// that gap is a T3.5 artefact: splitting one flow at rate ~1.0 into seven
+    /// at 0.005-0.06 moved the quantisation threshold from about two people to
+    /// two hundred. Inherited shape, T3.5 reachability, T3.5 fix.
+    /// </summary>
     private static double Fill(IReadOnlyWorldState prev, SettlementId settlement, GoodId good)
     {
         int i = GoodStockIndex.IndexOf(prev.GoodStocks, settlement, good);
-        if (i < 0) return 1.0;
+        if (i < 0) return 1.0;                                   // case 1
         long demanded = prev.GoodStocks[i].LastConsumptionDemandUnits;
-        if (demanded <= 0) return 1.0;
-        return Math.Clamp(prev.GoodStocks[i].LastConsumptionEatenUnits / (double)demanded, 0.0, 1.0);
+        if (demanded <= 0)                                       // case 2
+            return prev.GoodStocks[i].Amount.Value > 0 ? 1.0 : 0.0;
+        return Math.Clamp(                                       // case 3
+            prev.GoodStocks[i].LastConsumptionEatenUnits / (double)demanded, 0.0, 1.0);
     }
 
     private static bool IsTierAGate(int needId)

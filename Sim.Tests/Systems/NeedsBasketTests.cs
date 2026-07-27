@@ -492,6 +492,110 @@ public class NeedsBasketTests
     }
 
     [Fact]
+    public void Aggregate_IsScaleInvariantInItsWeights_AndMatchesTheHarmonicMeanAtSigmaHalf()
+    {
+        // MUTANT M3 SURVIVED THE T3.5 SWEEP: dropping `/ weightSum` in Aggregate
+        // left all 52 tests green. It is not an equivalent mutant — with the
+        // shipped weights (1.0/0.9/0.3, sum 2.2) and every need at 0.5, correct
+        // S = 0.5 and the mutant gives 1/4.4 = 0.227, so grievance accrual
+        // roughly doubles everywhere, silently.
+        //
+        // WHY NOTHING CAUGHT IT: both mandatory-acceptance rigs use weights
+        // [0.5, 0.5], which sum to exactly 1.0 — normalisation is a no-op there,
+        // so they are STRUCTURALLY blind to it. The one rig with unnormalised
+        // weights asserts only upper bounds, and M3 lowers the aggregate, so the
+        // mutant satisfies them more comfortably than the correct code. That is
+        // ADR-015 §7.5 one level up: an assertion disarmed by pointing the same
+        // way as the defect. This test exists to be the thing that is not blind.
+        AggregationTuning t = Needs().Aggregation;
+        double[] sat = [0.5, 0.5, 0.5];
+        double[] shipped = [1.0, 0.9, 0.3];           // sum 2.2 — NOT 1.0, deliberately
+        Assert.NotEqual(1.0, shipped[0] + shipped[1] + shipped[2]);
+
+        // Scale invariance: the weights are shares, so multiplying them all by k
+        // must change nothing. The mutant fails this at every k != 1.
+        double baseline = NeedsAggregation.Aggregate(sat, shipped, t.Sigma, t.SatisfactionFloor);
+        foreach (double k in new[] { 0.5, 2.0, 7.0 })
+        {
+            double[] scaled = [shipped[0] * k, shipped[1] * k, shipped[2] * k];
+            Assert.Equal(baseline, NeedsAggregation.Aggregate(sat, scaled, t.Sigma, t.SatisfactionFloor), 12);
+        }
+
+        // INDEPENDENT ORACLE, not a second copy of the implementation. At the
+        // shipped sigma = 0.5, rho = -1 and CES IS the weighted HARMONIC mean —
+        // a closed form with no Math.Pow and no rho in it at all. If the
+        // implementation and this expression agree, the implementation is doing
+        // the arithmetic it claims; if someone changes rho's sign or magnitude,
+        // this expression does not follow them.
+        Assert.Equal(0.5, t.Sigma);   // the oracle below is only valid at sigma = 0.5
+        double[] uneven = [0.9, 0.4, 0.2];
+        double wSum = shipped[0] + shipped[1] + shipped[2];
+        double harmonic = 1.0 / (shipped[0] / wSum / uneven[0]
+                               + shipped[1] / wSum / uneven[1]
+                               + shipped[2] / wSum / uneven[2]);
+        Assert.Equal(harmonic, NeedsAggregation.Aggregate(uneven, shipped, t.Sigma, t.SatisfactionFloor), 12);
+
+        // And the sigma-GENERAL property, a theorem rather than a computation:
+        // for rho < 0 the power mean is STRICTLY below the weighted arithmetic
+        // mean whenever the inputs differ. This holds for every sigma in (0,1)
+        // and kills a sign flip without evaluating the CES independently.
+        foreach (double sigma in new[] { 0.2, 0.5, 0.9 })
+        {
+            double ces = NeedsAggregation.Aggregate(uneven, shipped, sigma, t.SatisfactionFloor);
+            double arithmetic = (shipped[0] * uneven[0] + shipped[1] * uneven[1] + shipped[2] * uneven[2]) / wSum;
+            Assert.True(ces < arithmetic,
+                $"at sigma {sigma} the CES {ces:F6} is not strictly below the arithmetic mean "
+                + $"{arithmetic:F6} — the aggregation is not acting as a complement");
+        }
+    }
+
+    [Fact]
+    public void UnboundNeed_WITHABasketLine_IsStillExactlyInert()
+    {
+        // MUTANT M8 SURVIVED THE T3.5 SWEEP: deleting `if (!need.Bound) continue;`
+        // from NeedsGrievanceSystem left all 52 tests green, because on shipped
+        // data the basket set is exactly the bound set, so the NEXT line
+        // (`basket.Length == 0`) reaches the answer first. Both zero-effect rigs
+        // — the T2.6 one and the CES one added by this packet — therefore test
+        // the no-basket path while their comments claim they test the Bound
+        // gate. ADR-015 §7.4 exactly: a guard disarmed by a different mechanism
+        // getting there first.
+        //
+        // This rig gives an UNBOUND need a real basket line, so the no-basket
+        // path cannot fire and the `Bound` flag is the ONLY thing that can
+        // produce the asserted inertness. Authoring a basket ahead of binding is
+        // a natural way to stage content, and it is precisely when an unbound
+        // need would otherwise enter a CES with rho < 0 — where a zero term does
+        // not contribute little, it zeroes the whole aggregate.
+        SimConfig cfg = TestConfigs.Sim();
+        int safety = Array.FindIndex(cfg.Needs!.Needs, n => n.Id == 3);
+        Assert.False(cfg.Needs.Needs[safety].Bound, "rig targets a BOUND need — the inertness claim is void");
+
+        // Safety gains a basket line (timber, a good the settlement does hold)
+        // while staying UNBOUND.
+        var entries = new List<BasketEntry>(cfg.Needs.Baskets.Entries) { new(1, 3, "timber", 0.05) };
+        NeedsConfig withLine = cfg.Needs with { Baskets = new BasketsConfig([.. entries]) };
+        SimConfig a = cfg with { Needs = withLine };
+
+        var cranked = (NeedEntry[])withLine.Needs.Clone();
+        cranked[safety] = cranked[safety] with { Weight = 1e9, VarietyWeight = 0.9 };
+        SimConfig b = cfg with { Needs = withLine with { Needs = cranked } };
+
+        WorldState world = HandWorld(cfg);
+        foreach (string good in new[] { "grain", "livestock", "fish", "timber", "stone", "pottery", "cloth" })
+            SetFill(world, cfg, good, 0.6);   // strictly inside both bounds
+
+        WorldState ra = new TurnExecutor(FlatEra(10.0), [SystemCatalog.NeedsGrievance(a)]).Step(world.Clone());
+        WorldState rb = new TurnExecutor(FlatEra(10.0), [SystemCatalog.NeedsGrievance(b)]).Step(world.Clone());
+
+        Assert.True(Grievance(ra, 0) > 0.0, "rig vacuous: nothing accrued, so nothing could have leaked");
+        // No satisfaction row for the unbound need, however well-satisfied its basket is.
+        for (int i = 0; i < ra.NeedSatisfactions.Count; i++)
+            Assert.NotEqual(3, ra.NeedSatisfactions[i].NeedId);
+        Assert.Equal(WorldHash.ComputeHex(ra), WorldHash.ComputeHex(rb));
+    }
+
+    [Fact]
     public void BasketBook_OrderIsIndependentOfAuthoringOrder()
     {
         // Law 5: the iteration order over baskets is the book's own (class,

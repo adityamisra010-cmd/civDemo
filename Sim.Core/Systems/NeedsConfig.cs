@@ -153,6 +153,10 @@ public static class NeedsConfigLoader
                 $"aggregation.tierACollapse must be a finite value >= 0, got {Inv(a.TierACollapse)}.");
     }
 
+    /// <summary>The Sustenance need id — mirrors BasketBook.SustenanceNeedId,
+    /// which the loader cannot reference (goods are not resolved yet here).</summary>
+    private const int SustenanceNeedId = 1;
+
     private static void ValidateBaskets(NeedsConfig cfg)
     {
         BasketsConfig? b = cfg.Baskets;
@@ -177,6 +181,40 @@ public static class NeedsConfigLoader
                     throw new NeedsConfigException(
                         $"baskets.entries[{i}] repeats (class {e.Class}, need {e.Need}, {e.Good}) "
                         + $"already declared at [{j}] — combine them into one perPersonYear rate.");
+        }
+
+        // FOOD LINES MUST SUM TO EXACTLY 1.0 PER CLASS. needs.json calls this
+        // "by construction"; construction is not a mechanism, so it is checked.
+        // The sum IS the settlement's nutritional requirement per person-year
+        // (ConsumptionDeficitRow.DemandUnits), which is the denominator of
+        // food_surplus_ratio, which gates artisan emergence — so a tuner who
+        // nudged grain from 0.90 to 0.95 while "just adjusting the diet" would
+        // silently move the class-mobility bar. Tuning data is always allowed;
+        // that is exactly why the invariant a tuner could break must be a check
+        // rather than a comment. Tolerance is 1e-9: authored decimal data, not
+        // an accumulated computation.
+        for (int c = 0; c < b.Entries.Length; c++)
+        {
+            int cls = b.Entries[c].Class;
+            bool seen = false;
+            for (int j = 0; j < c; j++) if (b.Entries[j].Class == cls) { seen = true; break; }
+            if (seen) continue;
+
+            double foodSum = 0.0;
+            bool anyFood = false;
+            for (int i = 0; i < b.Entries.Length; i++)
+            {
+                if (b.Entries[i].Class != cls || b.Entries[i].Need != SustenanceNeedId) continue;
+                foodSum += b.Entries[i].PerPersonYear;
+                anyFood = true;
+            }
+            if (anyFood && Math.Abs(foodSum - 1.0) > 1e-9)
+                throw new NeedsConfigException(
+                    $"class {cls}'s food basket sums to {Inv(foodSum)}, not 1.0. Food lines are "
+                    + "denominated in person-year-equivalents of nutrition, so the sum IS how much "
+                    + "one person needs per year — it must be 1.0. A basket changes WHAT is eaten, "
+                    + "never how much nutrition a person requires; the sum is also the denominator "
+                    + "of food_surplus_ratio, so moving it silently retunes class mobility.");
         }
 
         // A BOUND need with no basket line anywhere would satisfy silently at

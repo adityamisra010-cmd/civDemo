@@ -1,5 +1,6 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Consumption;
 
 namespace Sim.Core.Systems.ClassMobility;
 
@@ -15,8 +16,12 @@ public readonly record struct ClassMobilityTables(
 /// pinned order per settlement:
 ///
 /// 1. PUBLISH VARIABLES (into its own Variables table, upserted per turn):
-///    food_surplus_ratio = Prev LastHarvestUnits / Prev DemandUnits (0 when
-///    demand is 0), artisan_share = artisan adults / total adults from Prev
+///    food_surplus_ratio = Prev food produced / Prev nutritional requirement
+///    (0 when the requirement is 0) — T3.5: the numerator sums LastProducedUnits
+///    over EVERY Sustenance good, because livestock and fish are nutritionally
+///    real from T3.5 and a grain-only numerator would under-count a herding
+///    settlement into permanent non-specialisation. Both sides are
+///    person-year-equivalents. artisan_share = artisan adults / total adults from Prev
 ///    buckets (0 when no adults). Consumers — including this system's own
 ///    predicate evaluation — read the PREV turn's rows (one-turn lag, §3.2).
 ///
@@ -57,16 +62,25 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
     private readonly Predicate?[] _emerge;
     private readonly Predicate?[] _recede;
 
-    /// <summary>T3.2: the surplus numerator reads grain's LastProducedUnits
-    /// (the migrated FoodStore observational field).</summary>
-    private readonly GoodId _grain;
+    /// <summary>T3.5: the surplus numerator sums LastProducedUnits over every
+    /// FOOD good (the shared basket book's Sustenance goods), not grain alone.
+    /// Food units are person-year-equivalents and therefore commensurable, so
+    /// the sum is meaningful and matches the requirement in the denominator.
+    /// The book is config, read identically by every system that needs it — not
+    /// a channel between systems (see BasketBook's header).</summary>
+    private readonly BasketBook _baskets;
 
     public ClassMobilitySystem(SimConfig cfg)
     {
         _cfg = cfg;
-        _grain = new GoodId(cfg.Goods?.GrainId
+        GoodsConfig goods = cfg.Goods
             ?? throw new ArgumentException(
-                "ClassMobilitySystem requires SimConfig.Goods (goods.json) at M3."));
+                "ClassMobilitySystem requires SimConfig.Goods (goods.json) at M3.");
+        NeedsConfig needs = cfg.Needs
+            ?? throw new ArgumentException(
+                "ClassMobilitySystem requires SimConfig.Needs (needs.json) — the food-surplus "
+                + "numerator is denominated over the D-035 Sustenance basket at T3.5.");
+        _baskets = new BasketBook(needs, goods);
         int n = cfg.Registries.Classes.Length;
         _emerge = new Predicate?[n];
         _recede = new Predicate?[n];
@@ -101,13 +115,23 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
                     break;
                 }
             }
-            for (int i = 0; i < prev.GoodStocks.Count; i++)
+            // T3.5: FOOD, not grain. The denominator (ConsumptionDeficitRow's
+            // DemandUnits) is the settlement's whole nutritional requirement,
+            // and it always was — pre-T3.5 grain WAS the whole requirement
+            // because grain was the only food, so its magnitude is unchanged.
+            // What changed is that livestock and fish became nutritionally real
+            // (their basket lines are person-year-equivalents like grain's), so
+            // a grain-only numerator now under-counts the food a settlement
+            // actually produced. A herding settlement fed to exact repletion
+            // would have published surplus 0.90 and been clamped to zero
+            // artisans — perfectly fed and permanently unable to specialise.
+            // Reachable today: the herding sector ships at T3.3, so one sector
+            // order is enough; it is invisible in the dev world only because
+            // the all-farming default grows nothing else.
+            foreach (GoodId food in _baskets.FoodGoods)
             {
-                if (prev.GoodStocks[i].Settlement == settlement && prev.GoodStocks[i].Good == _grain)
-                {
-                    harvest = prev.GoodStocks[i].LastProducedUnits;
-                    break;
-                }
+                int i = GoodStockIndex.IndexOf(prev.GoodStocks, settlement, food);
+                if (i >= 0) harvest += prev.GoodStocks[i].LastProducedUnits;
             }
             if (demand > 0) surplus = harvest / (double)demand;
 
