@@ -163,7 +163,17 @@ public class FirstReignTests
         //   0.2936). Semantic assertions below unchanged and still passing.
         //   post-weather, pre-derivation value:
         //   58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2
-        const string golden = "8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4";
+        //   v10 (T3.4c): THE VARIANCE FIX. The weather blend treated a regional
+        //   field that CONTAINS the local draw as independent of it, so realised
+        //   sigma ran 1.10-1.41x the derived 0.2936 and the multiplier's mean ran
+        //   1.013-1.043 instead of 1. Correcting it changes every weather value
+        //   and therefore this collapsing world's whole trajectory. Realised CV is
+        //   now 0.295-0.308, inside the 0.25-0.35 band the constant was derived
+        //   from. The semantic assertions below are unchanged and still pass -
+        //   extinction window, flat post-extinction trajectory, no food mountain -
+        //   which is what separates this re-mint from a regression.
+        //   v9 value: 8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4
+        const string golden = "19c55dd9f2b509762495c352ef5a3491d03d9ccb658475cc1d23a9e31eb17668";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

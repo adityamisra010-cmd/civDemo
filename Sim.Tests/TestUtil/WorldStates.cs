@@ -41,6 +41,16 @@ public static class WorldStates
         if (!TableEquals(a.NeedSatisfactions, b.NeedSatisfactions)) return false;
         if (!TableEquals(a.Grievances, b.Grievances)) return false;
         if (!TableEquals(a.SmoothedAttractiveness, b.SmoothedAttractiveness)) return false;
+        // T3.4c: the three tables this helper was BLIND to. Prices and PriceTerms
+        // are T3.4's and PriceTerms is T3.4's too — that packet is ACCEPTED AND
+        // MERGED, so this gap was never confined to T3.4b. Every
+        // Assert.True(StateEquals(...)) was vacuous for all three; the hash
+        // asserts standing beside them are what has actually been carrying those
+        // tests. The header above says "EXTEND THIS when WorldState grows" and
+        // three consecutive packets did not.
+        if (!TableEquals(a.Prices, b.Prices)) return false;
+        if (!TableEquals(a.PriceTerms, b.PriceTerms)) return false;
+        if (!TableEquals(a.HarvestWeather, b.HarvestWeather)) return false;
         return true;
     }
 
