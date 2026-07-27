@@ -371,3 +371,38 @@ The diagnostic is cheap and should be routine: **sweep the nominal control param
 trusting a corridor.** If the value does not respond, the band is not describing what its name
 says. Note that the lever may be one-sided — here, pushing the rate DOWN did nothing while
 pushing it UP 10× did move the value, by lifting desire above the cap in more pairs.
+
+
+### 7.8 A new stochastic driver can silently destroy an existing experiment's control
+
+**Director ruling, 2026-07-26, from T3.4b.** Recorded as doctrine because it will recur: every
+future stochastic driver — weather, disease, raids, price shocks — creates this hazard on the day
+it lands.
+
+> **When a new stochastic driver is introduced, existing controlled experiments may silently lose
+> their control.** The baseline arm acquires the same variance as the treatment arm and the
+> contrast collapses.
+
+The T3.4b instance, measured: `Famine_MortalitySpike` compares a deliberately starved arm against
+a fed baseline, and the contrast IS the measurement. At the derived `sigmaLogYield` the famine arm
+reported **LOWER** per-capita mortality than its own baseline — **0.609 vs 0.707** — because the
+baseline had bad years too. The grievance rig's starvation window likewise *fell*, 5.96 → 2.04.
+Neither rig was broken; both had been quietly disarmed by noise arriving on both arms at once.
+
+**Running such rigs with the driver disabled RESTORES the control; it does not suppress the
+phenomenon.** The distinction that matters, and it is easy to blur:
+
+| instrument | purpose | treatment of a new driver |
+| --- | --- | --- |
+| a **rig** | isolate ONE variable | disable the driver — it is a confound |
+| a **system-level soak** | observe INTERACTION | keep the driver — it is the subject |
+
+Removing a confound from a rig is not the same act as hiding it from a soak, and the second would
+be the vacuity pattern. The test is what the instrument exists to measure: a controlled experiment
+that lets an uncontrolled variable into both arms has stopped being controlled, whatever its name
+still says.
+
+**THE STANDING OBLIGATION: every future stochastic driver must AUDIT EXISTING RIGS for this
+collapse** — enumerate the controlled experiments the driver can reach, check each for contrast
+loss, and either isolate the rig or state why it survives. Silence is not evidence the rigs held;
+in T3.4b two of them had already inverted before anyone looked.

@@ -56,6 +56,17 @@ public class CalibrationBatteryTests
     /// precision; MOVING that edge now, having seen the failure, would be
     /// fitting. Neither is taken.
     ///
+    /// DIRECTOR RULING, 2026-07-26 — QUARANTINE STANDS, THE FLOOR DOES NOT MOVE,
+    /// and the reasoning is ratified as the general rule:
+    ///   "Restating a one-significant-figure bound to three decimals to
+    ///    accommodate a 4% miss is FALSE PRECISION, and moving it after seeing
+    ///    the failure is FITTING. Both make the corridor mean less than leaving
+    ///    one seed honestly outside it."
+    /// The observation that the miss lies inside the derivation's own precision
+    /// is recorded as CONTEXT FOR A FUTURE READER — explicitly NOT grounds for a
+    /// change. A reader who later re-derives this floor at higher precision may
+    /// resolve the quarantine; nobody may resolve it by widening.
+    ///
     /// The quarantine is SEED-SCOPED and loud: every other seed and every other
     /// corridor is asserted normally, and this one announces itself on each run
     /// so it cannot rot into silence. Director ruling requested on whether the

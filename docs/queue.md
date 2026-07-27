@@ -139,7 +139,8 @@
   future retune that lowers Lambda below the rail would expose the floor-binding regime to
   direct scrutiny for the first time. Noted by the no-global-solve lens as a corner it chased
   and deliberately did not raise.
-- M4 COLONIZATION / spacing collision (T3.4b finding): minSpacingKm 480 caps the dev continent at
+- [PROMOTED to docs/m4-blocking-material.md B-1 — the M4 spec cannot ship without answering it]
+  M4 COLONIZATION / spacing collision (T3.4b finding): minSpacingKm 480 caps the dev continent at
   NINE settlements — `settlement siting could only place 9 of 12 sites`. Colonization means
   founding new settlements and there is nowhere to put the tenth. Either minSpacingKm becomes a
   colonization-aware founding rule rather than a worldgen-only one, or the continent grows, or
