@@ -47,8 +47,11 @@ public static class CanonicalSchema
     /// price solver reads); Prices and PriceTerms tables appended after
     /// SmoothedAttractiveness.
     /// v16 (T3.4b, CR-003 §3): HarvestWeather table appended after PriceTerms —
-    /// the per-settlement AR(1) weather state and its mean-one multiplier.</summary>
-    public const int Version = 16;
+    /// the per-settlement AR(1) weather state and its mean-one multiplier.
+    /// v17 (T3.5, D-035): GoodStockRow gains LastConsumptionEatenUnits — the
+    /// post-clamp companion to LastConsumptionDemandUnits, without which a
+    /// basket's fill ratio is not recoverable from published state.</summary>
+    public const int Version = 17;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -65,7 +68,7 @@ public static class CanonicalSchema
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
-    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15)
+    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15), LastConsumptionEatenUnits (v17)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
     // T3.3 (D-032): Settlement + five sector weights (was Settlement + FarmShare).
@@ -249,6 +252,7 @@ public static class CanonicalSchema
             writer.Write(row.LastProducedUnits);
             writer.Write(row.LastInputDemandUnits);
             writer.Write(row.LastConsumptionDemandUnits);
+            writer.Write(row.LastConsumptionEatenUnits);
         }
         writer.Write(world.Deposits.Count);
         for (int i = 0; i < world.Deposits.Count; i++)
@@ -551,6 +555,7 @@ public static class CanonicalSchema
                 settlement, good, Conserved.FromSnapshot(amount),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt64(),
                 reader.ReadInt64(),
                 reader.ReadInt64(),
                 reader.ReadInt64()));

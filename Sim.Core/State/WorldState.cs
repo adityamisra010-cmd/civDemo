@@ -175,7 +175,8 @@ public struct GoodStockRow(
     double produceRemainder, double consumeRemainder,
     long lastProducedUnits = 0,
     long lastInputDemandUnits = 0,
-    long lastConsumptionDemandUnits = 0) : IEquatable<GoodStockRow>
+    long lastConsumptionDemandUnits = 0,
+    long lastConsumptionEatenUnits = 0) : IEquatable<GoodStockRow>
 {
     public SettlementId Settlement = settlement;
     public GoodId Good = good;
@@ -199,13 +200,23 @@ public struct GoodStockRow(
     /// signal that should move the price.</summary>
     public long LastConsumptionDemandUnits = lastConsumptionDemandUnits;
 
+    /// <summary>T3.5 (D-035): units of this good this settlement ACTUALLY
+    /// obtained this turn — post-clamp, the companion to the pre-clamp demand
+    /// above. The pair is the settlement-wide FILL RATIO, and the fill ratio is
+    /// what turns a basket into a satisfaction: NeedsGrievanceSystem reads both
+    /// from Prev and needs them together, because demand alone cannot tell a
+    /// settlement that ate everything it wanted from one that ate nothing.
+    /// Observational, never a stock; zeroed every turn with the rest.</summary>
+    public long LastConsumptionEatenUnits = lastConsumptionEatenUnits;
+
     public readonly bool Equals(GoodStockRow other) =>
         Settlement == other.Settlement && Good == other.Good && Amount == other.Amount
         && ProduceRemainder.Equals(other.ProduceRemainder)
         && ConsumeRemainder.Equals(other.ConsumeRemainder)
         && LastProducedUnits == other.LastProducedUnits
         && LastInputDemandUnits == other.LastInputDemandUnits
-        && LastConsumptionDemandUnits == other.LastConsumptionDemandUnits;
+        && LastConsumptionDemandUnits == other.LastConsumptionDemandUnits
+        && LastConsumptionEatenUnits == other.LastConsumptionEatenUnits;
     public override readonly bool Equals(object? obj) => obj is GoodStockRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
 }

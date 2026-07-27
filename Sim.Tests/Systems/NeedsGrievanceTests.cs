@@ -85,22 +85,108 @@ public class NeedsGrievanceTests
         return 0.0;
     }
 
+
+    /// <summary>T3.5: rig one settlement's published fill ratio for a good —
+    /// the pair (pre-clamp demand, post-clamp obtained) NeedsGrievanceSystem
+    /// reads from Prev. 1000 is an arbitrary round denominator; only the RATIO
+    /// is read. A good with no row at all reads fill 1.0 by design, so a rig
+    /// that wants a shortfall must state it here.</summary>
+    private static void Fill(WorldState world, int settlement, string good, double ratio)
+    {
+        GoodsConfig goods = TestConfigs.Sim().Goods!;
+        int id = goods.IdOf(good);
+        Assert.True(id > 0, $"unknown good '{good}'");
+        const long Demand = 1000;
+        var row = new GoodStockRow(
+            new SettlementId(settlement), new GoodId(id), Conserved.Zero, 0.0, 0.0,
+            lastConsumptionDemandUnits: Demand,
+            lastConsumptionEatenUnits: (long)Math.Round(Demand * ratio));
+        world.GoodStocks.Add(row);
+    }
+
+    /// <summary>Every good any basket wants, filled at <paramref name="ratio"/>.</summary>
+    private static void FillAll(WorldState world, int settlement, double ratio)
+    {
+        foreach (string good in AllBasketGoods()) Fill(world, settlement, good, ratio);
+    }
+
+    private static string[] AllBasketGoods()
+    {
+        NeedsConfig needs = TestConfigs.Sim().Needs!;
+        var names = new List<string>();
+        foreach (BasketEntry e in needs.Baskets.Entries) if (!names.Contains(e.Good)) names.Add(e.Good);
+        names.Sort(StringComparer.Ordinal);
+        return [.. names];
+    }
+
+    /// <summary>The canonical config with SUSTENANCE ALONE bound — the M2
+    /// binding, restored deliberately for the rigs whose claim is about food.
+    /// T3.5 binds Shelter and Comfort, and an all-farming settlement produces
+    /// neither timber nor cloth, so in a production autoplay those two sit at
+    /// zero and dominate the aggregate: a famine's contribution is a rounding
+    /// error against a background already near its limit, and the arm that
+    /// starves decays FASTER (generational turnover) than the arm that does
+    /// not. The confounded-rig doctrine applies directly — a controlled
+    /// experiment must isolate its variable, and here the variable is
+    /// Sustenance. Rigging the Bound flags is data rigging, which the
+    /// constitution permits; the Shelter binding is measured by its own tests.
+    /// </summary>
+    private static SimConfig SustenanceOnlyConfig(SimConfig cfg)
+    {
+        var needs = (NeedEntry[])cfg.Needs!.Needs.Clone();
+        var kept = new List<BasketEntry>();
+        for (int i = 0; i < needs.Length; i++)
+            needs[i] = needs[i] with { Bound = needs[i].Id == 1 };
+        foreach (BasketEntry e in cfg.Needs.Baskets.Entries) if (e.Need == 1) kept.Add(e);
+        return cfg with
+        {
+            Needs = cfg.Needs with { Needs = needs, Baskets = new BasketsConfig([.. kept]) },
+        };
+    }
+
+    /// <summary>The canonical config with every bound need's varietyWeight
+    /// zeroed. Used ONLY by the rigs that isolate the grievance INTEGRATION
+    /// (decay, generational turnover, dt-correctness): with variety live, a
+    /// fully-supplied staple-heavy basket still scores below 1.0 by design
+    /// (D-035-A), so "fed" would never mean zero accrual and a decay-only
+    /// measurement would be measuring accrual too. Zeroing the coefficient is
+    /// TUNE rigging, which the constitution permits; the variety mechanism
+    /// itself is measured by its own tests, not by these.</summary>
+    private static SimConfig VarietyOffConfig()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        var needs = (NeedEntry[])cfg.Needs!.Needs.Clone();
+        for (int i = 0; i < needs.Length; i++) needs[i] = needs[i] with { VarietyWeight = 0.0 };
+        return cfg with { Needs = cfg.Needs with { Needs = needs } };
+    }
+
     // --- the canonical registry ---------------------------------------------
 
     [Fact]
-    public void CanonicalRegistry_TheEightNeeds_SustenanceOnlyBoundAtM2()
+    public void CanonicalRegistry_TheEightNeeds_SustenanceShelterComfortBoundAtM3()
     {
         // The D-018 §3 ladder is FROZEN design: exactly these eight, in this
-        // order; M2 binds Sustenance alone (m2 spec scope fence — Shelter
-        // binds at M3 housing, the rest later).
+        // order. WHICH are bound grows by milestone and is the scope fence:
+        // M2 bound Sustenance alone; T3.5 binds Shelter and Comfort against
+        // real goods baskets. The other five stay unbound and inert.
         NeedsConfig needs = TestConfigs.Sim().Needs!;
         string[] ladder = ["Sustenance", "Shelter", "Safety", "Health",
                            "Belonging/Faith", "Comfort", "Dignity/Liberty", "Prospects"];
+        string[] boundAtM3 = ["Sustenance", "Shelter", "Comfort"];
         Assert.Equal(ladder.Length, needs.Needs.Length);
         for (int i = 0; i < ladder.Length; i++)
         {
             Assert.Equal(ladder[i], needs.Needs[i].Name);
-            Assert.Equal(i == 0, needs.Needs[i].Bound);
+            Assert.Equal(Array.IndexOf(boundAtM3, ladder[i]) >= 0, needs.Needs[i].Bound);
+        }
+        // Every bound need is served by a basket, and no unbound need is —
+        // a basket for an unbound need would be dead data that silently comes
+        // alive the day someone flips a flag.
+        foreach (NeedEntry need in needs.Needs)
+        {
+            bool served = false;
+            foreach (BasketEntry e in needs.Baskets.Entries) if (e.Need == need.Id) { served = true; break; }
+            Assert.Equal(need.Bound, served);
         }
     }
 
@@ -109,12 +195,19 @@ public class NeedsGrievanceTests
     [Fact]
     public void Famine_RaisesGrievance_InTheStarvationWindow()
     {
-        // The T2.7 shallow-famine rig (measured there: deficit ≈ 0.2 through
-        // turns 9–11, starvation firing in the same window), N = 1 production
-        // autoplay. Grievance is EXACTLY zero through the fed prelude (no
-        // deficit → no accrual; the stock founds at zero) and strictly rises
-        // across the starvation window.
-        SimConfig fed = TestConfigs.Sim();
+        // The T2.7 shallow-famine rig, re-rigged at T3.5 as a CONTROLLED
+        // TWO-ARM CONTRAST. The old form asserted the fed prelude was EXACTLY
+        // zero grievance; that is no longer true and the change is real rather
+        // than incidental — T3.5 binds Shelter and Comfort, an all-farming
+        // settlement produces neither timber nor cloth, and so it carries
+        // standing grievance before any famine arrives. Asserting an absolute
+        // level would now be asserting the value of a saturated background.
+        //
+        // What the packet actually claims is a CONTRAST: starvation raises
+        // grievance ABOVE what the same world would have carried without it. So
+        // both arms are stepped from one shared prefix over the same turns and
+        // only the harvest differs. That is the claim, isolated.
+        SimConfig fed = SustenanceOnlyConfig(TestConfigs.Sim());
         fed = fed with
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
@@ -126,36 +219,28 @@ public class NeedsGrievanceTests
         };
         TurnExecutor fedExec = ProductionExecutor(fed);
         TurnExecutor famineExec = ProductionExecutor(starving);
-        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), fed, Seed, 1);
 
-        for (int t = 1; t <= 6; t++) world = fedExec.Step(world);
-        // T3.4b ANCHOR RE-MEASURED. The prelude was EXACTLY zero in a world
-        // with no weather: no deficit, no accrual. Harvest variance means a
-        // "fed" phase now has occasional thin years, so a small grievance
-        // accrues before the famine rig even starts — which is the world
-        // getting more honest, not the test getting weaker. Measured: 4.80.
-        //
-        // The invariant that matters is unchanged and is asserted below:
-        // grievance RISES ACROSS THE STARVATION WINDOW. What is pinned here is
-        // that the prelude stays SMALL relative to that rise, so the window's
-        // signal cannot be swamped by background weather noise.
-        // Weather is excluded from this rig (see WithoutWeather), so the fed
-        // prelude is EXACTLY zero again: no deficit, no accrual, stock founds at
-        // zero. The T3.4b re-anchor that allowed 0..25 was needed only while
-        // background weather noise was leaking into the controlled arm.
-        Assert.Equal(0.0, Grievance(world, 0));
+        WorldState prefix = WorldFounding.Found(TestConfigs.DevWorldgen(), fed, Seed, 1);
+        for (int t = 1; t <= 6; t++) prefix = fedExec.Step(prefix);
 
-        double preFamine = Grievance(world, 0);
-        long starvedBefore = StarvedTotal(world);
-        for (int t = 7; t <= 11; t++) world = famineExec.Step(world);
-        world = fedExec.Step(world); // the lagged last starvation turn (Prev deficit)
-        double postFamine = Grievance(world, 0);
-        long starvedAfter = StarvedTotal(world);
+        WorldState control = prefix.Clone(), famine = prefix.Clone();
+        long starvedBefore = StarvedTotal(prefix);
+        for (int t = 7; t <= 11; t++)
+        {
+            control = fedExec.Step(control);
+            famine = famineExec.Step(famine);
+        }
+        control = fedExec.Step(control);   // the lagged last turn (Prev deficit)
+        famine = fedExec.Step(famine);
 
-        Assert.True(starvedAfter > starvedBefore, "rig vacuous: nobody starved in the window");
-        Assert.True(postFamine > preFamine + 1.0,
-            $"grievance did not rise across the starvation window: {preFamine:F2} -> {postFamine:F2}");
-        Console.WriteLine($"famine grievance: {preFamine:F2} -> {postFamine:F2} across the starvation window");
+        Assert.Equal(starvedBefore, StarvedTotal(control));   // the control arm never starves
+        Assert.True(StarvedTotal(famine) > starvedBefore, "rig vacuous: nobody starved in the window");
+        Assert.True(Grievance(famine, 0) > Grievance(control, 0) + 1.0,
+            $"starvation did not raise grievance above the fed control: "
+            + $"famine {Grievance(famine, 0):F2} vs control {Grievance(control, 0):F2}");
+        Console.WriteLine(
+            $"famine grievance: control {Grievance(control, 0):F2} -> famine {Grievance(famine, 0):F2} "
+            + "across the starvation window");
     }
 
     private static long StarvedTotal(WorldState world)
@@ -174,30 +259,37 @@ public class NeedsGrievanceTests
     [Fact]
     public void Plenty_DecaysGrievance_MeasuredHalfLifeDocumented()
     {
-        // A fed N = 1 world carrying a hand-seeded grievance of 10 (grievance
-        // is a non-conserved double stock — test-side seeding is legal rigging,
-        // no Ledger involved). At canonical TUNEs the decay rate is
-        // baseDecay (0.005/yr) + (1 − inherit 0.85) × turnover, with turnover
-        // ≈ CBR + CDR ≈ 0.074/yr in the fed regime — decayRate ≈ 0.016/yr,
-        // analytic half-life ≈ 43 years ≈ 4 Neolithic turns (explicit Euler at
-        // dt = 10 lands near 4 turns). ASSERTED BAND: half-life within
-        // [2, 8] turns (20–80 years) — slow (grudges outlive their causes:
-        // multiple decades) but not immortal (D-021 §8).
-        SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with
-        {
-            Farming = cfg.Farming with { YieldPerArableKm2PerYear = 100_000.0, OutputPerFarmerPerYear = 500.0 },
-        };
-        TurnExecutor exec = ProductionExecutor(cfg);
-        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, 1);
-        for (int i = 0; i < world.Grievances.Count; i++)
-            world.Grievances[i] = world.Grievances[i] with { Value = 10.0 };
+        // A world carrying a hand-seeded grievance of 10 (grievance is a
+        // non-conserved double stock — test-side seeding is legal rigging, no
+        // Ledger involved) with EVERY basket fully supplied, so accrual is
+        // exactly zero and what is measured is decay alone.
+        //
+        // T3.5 re-rig: this used to be a fed PRODUCTION autoplay. An
+        // all-farming settlement now produces no timber, stone, pottery or
+        // cloth, so "fed" no longer means "supplied" — Shelter and Comfort sit
+        // at zero and grievance climbs instead of decaying. The rig moves to a
+        // hand world where full supply can actually be stated, and the turnover
+        // term is supplied explicitly rather than emerging from demography.
+        //
+        // At canonical TUNEs decayRate = baseDecay (0.005/yr) + (1 − inherit
+        // 0.85) × turnover, with turnover ≈ CBR + CDR ≈ 0.074/yr in a fed
+        // regime → ≈ 0.016/yr, analytic half-life ≈ 43 years ≈ 4 turns at
+        // dt = 10. ASSERTED BAND: [2, 8] turns (20–80 years) — slow (grudges
+        // outlive their causes) but not immortal (D-021 §8).
+        SimConfig cfg = VarietyOffConfig();
+        const double dt = 10.0, turnover = 0.074;
+        WorldState world = GrievanceWorld(1);
+        FillAll(world, 0, 1.0);
+        world.SettlementVitals.Add(new SettlementVitalsRow(
+            new SettlementId(0), Births: (long)(1000 * turnover * dt / 2), Deaths: (long)(1000 * turnover * dt / 2), DtYears: dt));
+        world.Grievances[0] = world.Grievances[0] with { Value = 10.0 };
 
+        TurnExecutor exec = GrievanceOnly(cfg, dt);
         int halfTurn = -1;
         for (int t = 1; t <= 20; t++)
         {
             world = exec.Step(world);
-            Assert.Equal(0.0, MaxDeficit(world)); // the rig IS fed — decay only
+            Assert.Equal(1.0, SustenanceValue(world, 0));   // the rig IS supplied — decay only
             if (Grievance(world, 0) <= 5.0) { halfTurn = t; break; }
         }
         Assert.True(halfTurn is >= 2 and <= 8,
@@ -226,10 +318,16 @@ public class NeedsGrievanceTests
         // 1000 people this decade. One grievance-only step: the high-turnover
         // settlement's stock must sit STRICTLY below the quiet one's, and both
         // must match the hand recurrence bit-exactly.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = VarietyOffConfig();
         GrievanceTuning g = cfg.Needs!.Grievance;
         const double dt = 10.0;
         WorldState world = GrievanceWorld(2);
+        // Both settlements fully supplied: accrual is exactly zero on both arms,
+        // so the only difference between them is the turnover term (T3.5 —
+        // an unsupplied basket would add an identical accrual to both and blunt
+        // the contrast this rig exists to make sharp).
+        FillAll(world, 0, 1.0);
+        FillAll(world, 1, 1.0);
         for (int i = 0; i < world.Grievances.Count; i++)
             world.Grievances[i] = world.Grievances[i] with { Value = 10.0 };
         world.SettlementVitals.Add(new SettlementVitalsRow(new SettlementId(0), 0, 0, dt));
@@ -253,25 +351,28 @@ public class NeedsGrievanceTests
     [Fact]
     public void Satisfaction_ClampsAtBothEnds()
     {
-        // Deficits outside [0,1] (impossible from Consumption, possible from a
-        // rigged row — and the clamp is the documented guard): 1.7 must clamp
-        // satisfaction to exactly 0.0, −0.4 to exactly 1.0; accrual follows
-        // the clamped values (max rate at s = 0, EXACTLY none at s = 1).
-        SimConfig cfg = TestConfigs.Sim();
+        // T3.5 re-rigged: satisfaction is now driven by published FILL RATIOS,
+        // not by a deficit row. Settlement 0 obtains NOTHING of any basket good
+        // (fill 0) and must read EXACTLY 0.0; settlement 1 obtains everything
+        // (fill 1) and must read EXACTLY 1.0 — the variety coefficient is
+        // zeroed here so the quantity clamp is measured alone, and 0/1 are the
+        // clamp's own endpoints rather than values approached from inside.
+        // Accrual follows the clamped values: maximal at s = 0, EXACTLY none at
+        // s = 1 (grievance is a stock founding at zero, so "none" is testable
+        // as bit-exact zero rather than as a small number).
+        SimConfig cfg = VarietyOffConfig();
         const double dt = 10.0;
         WorldState world = GrievanceWorld(2);
-        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 1.7, 1));
-        world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(1), -0.4, 1));
+        FillAll(world, 0, 0.0);
+        FillAll(world, 1, 1.0);
 
         WorldState next = GrievanceOnly(cfg, dt).Step(world);
 
         Assert.Equal(0.0, SustenanceValue(next, 0)); // clamped low
         Assert.Equal(1.0, SustenanceValue(next, 1)); // clamped high
-        // Accrual: weight 1.0 × (1 − 0)⁺ × dt at s = 0; exactly zero at s = 1.
-        double w = cfg.Needs!.Needs[0].Weight;
-        Assert.Equal(Math.Max(0.0, w * 1.0 * dt - cfg.Needs!.Grievance.BaseDecayPerYear * 0.0 * dt),
-            Grievance(next, 0));
-        Assert.Equal(0.0, Grievance(next, 1));
+        Assert.Equal(0.0, Grievance(next, 1));       // nothing unmet -> nothing accrued
+        Assert.True(Grievance(next, 0) > 0.0,
+            "starved settlement accrued no grievance — the rig is vacuous");
     }
 
     private static double SustenanceValue(WorldState world, int settlement)
@@ -302,7 +403,12 @@ public class NeedsGrievanceTests
             Founding = cfg.Founding with { FoodStore = 2000 },
         };
         var riggedNeeds = (NeedEntry[])cfg.Needs!.Needs.Clone();
-        riggedNeeds[1] = riggedNeeds[1] with { Weight = 1e9 }; // Shelter, unbound
+        // Index 2 is SAFETY. It was Shelter at T2.6; T3.5 BOUND Shelter, so
+        // rigging index 1 would now be rigging a live need and the test would
+        // be asserting that a bound need does nothing. The gate is asserted
+        // below rather than assumed, so this cannot rot silently again.
+        Assert.False(riggedNeeds[2].Bound, "rig targets a BOUND need — the inertness claim is void");
+        riggedNeeds[2] = riggedNeeds[2] with { Weight = 1e9 }; // Safety, unbound
         SimConfig rigged = cfg with { Needs = cfg.Needs with { Needs = riggedNeeds } };
 
         WorldState a = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, 1);
@@ -320,18 +426,18 @@ public class NeedsGrievanceTests
     [Fact]
     public void GrievanceIntegration_DtHalving_FirstOrderConvergence()
     {
-        // Law-3 pin: constant deficit 0.5 (hand row, no consumption in the
-        // pipeline to overwrite it), same 40 sim-years at dt 10 / 5 / 2.5 —
+        // Law-3 pin: constant basket fill 0.5 (hand rows, no consumption in the
+        // pipeline to overwrite them), same 40 sim-years at dt 10 / 5 / 2.5 —
         // successive refinements of the explicit-Euler accrual−decay step
         // should roughly halve the terminal-value deviation.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = VarietyOffConfig();
         const int horizonYears = 40;
         var finals = new double[3];
         double[] dts = [10.0, 5.0, 2.5];
         for (int i = 0; i < dts.Length; i++)
         {
             WorldState world = GrievanceWorld(1);
-            world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 0.5, 1));
+            FillAll(world, 0, 0.5);   // constant half-supplied baskets (no consumption in the pipeline to overwrite them)
             var exec = GrievanceOnly(cfg, dts[i]);
             world = exec.Run(world, (int)(horizonYears / dts[i]));
             finals[i] = Grievance(world, 0);
