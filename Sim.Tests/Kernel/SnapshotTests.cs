@@ -757,7 +757,8 @@ public class SnapshotTests
         // GoodStockRow gained two fields at v15 — populate them distinctly too.
         world.GoodStocks.Add(new GoodStockRow(
             new SettlementId(0), new GoodId(3), Conserved.Zero, 0.5, 0.25,
-            lastProducedUnits: 11, lastInputDemandUnits: 22, lastConsumptionDemandUnits: 33));
+            lastProducedUnits: 11, lastInputDemandUnits: 22, lastConsumptionDemandUnits: 33,
+            lastConsumptionEatenUnits: 44));   // v17 (T3.5) — DISTINCT from the other three
 
         using var raw = new MemoryStream();
         using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
@@ -787,6 +788,7 @@ public class SnapshotTests
         Assert.Equal(11, g.LastProducedUnits);
         Assert.Equal(22, g.LastInputDemandUnits);
         Assert.Equal(33, g.LastConsumptionDemandUnits);
+        Assert.Equal(44, g.LastConsumptionEatenUnits);   // v17 (T3.5)
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
