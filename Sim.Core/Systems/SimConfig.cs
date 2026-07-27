@@ -311,12 +311,25 @@ public sealed record PriceConfig(
 /// is. A naive constant rho would make weather calmer or wilder purely as an
 /// artefact of the era table.
 ///
-/// SigmaLogYield — CHOSEN 0.18. Never derived. Standard deviation of log yield
-///   in a single year. exp(±0.18) is roughly ±20%, so a typical bad year is a
-///   fifth off and a 2-sigma year is a third off. Frame: pre-modern European
-///   wheat yields varied year to year by roughly this much; wholly wrong values
-///   fail loudly — 0.02 is a greenhouse, 1.0 means half of all years are
-///   catastrophes and no society could form.
+/// SigmaLogYield — DERIVED 0.2936, replacing a CHOSEN 0.18 (T3.4b, director
+///   ruling). Standard deviation of LOG yield in a single year.
+///   REFERENCE CLASS: rain-fed cereal agriculture without irrigation or modern
+///   inputs. The best-documented proxy is medieval English demesne wheat
+///   (Winchester Pipe Rolls, 13th–15th c.), whose interannual yield CV is
+///   commonly placed around 0.25–0.35. Early agriculture should sit at least
+///   that high — landrace seed, no systematic rotation — and this model adds a
+///   specific reason to expect the upper part of the band: a ~50 km hinterland
+///   is a spatially small sample, so little internal averaging smooths the draw.
+///   DERIVATION: take CV = 0.30 as the central value and invert the lognormal
+///   relation CV = sqrt(exp(sigma²) − 1), giving
+///   sigma = sqrt(ln(1 + CV²)) = sqrt(ln 1.09) = 0.2936.
+///   The prior 0.18 implied CV = 0.18 — below the entire reference band, and
+///   never derived from anything.
+///   MEASURED CONSEQUENCE, reported because it does not help: gross migration
+///   rises 0.43 → 0.76 %/decade, i.e. the derived constant moves the migration
+///   corridor FURTHER out of band, not toward it. Adopted regardless, per the
+///   T3.2b precedent that out-of-band with a derived constant beats in-band
+///   with a fitted one.
 /// CorrelationTimeYears — CHOSEN 3.0. Never derived. The e-folding memory of
 ///   the weather process. THIS IS THE PARAMETER THAT MAKES MULTI-YEAR DROUGHTS
 ///   POSSIBLE, which the ruling requires: at tau = 3 a bad year is followed by a

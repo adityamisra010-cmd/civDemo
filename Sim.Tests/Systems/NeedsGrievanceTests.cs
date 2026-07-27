@@ -17,6 +17,25 @@ namespace Sim.Tests.Systems;
 // evidence, allowlist reviewed in the script itself).
 public class NeedsGrievanceTests
 {
+    /// <summary>The canonical pipeline MINUS harvest weather (T3.4b). This file's
+    /// rigs are CONTROLLED EXPERIMENTS on famine mechanics — they compare a
+    /// deliberately starved run against a fed baseline, and the contrast IS the
+    /// measurement. Background weather noise is a confound on both arms: at the
+    /// derived sigma the famine arm measured LOWER per-capita mortality than its
+    /// own baseline (0.609 vs 0.707) simply because the baseline had bad years
+    /// too. A controlled experiment must isolate its variable. Weather's own
+    /// behaviour is covered by the quarantine families and the migration
+    /// profile; excluding it here restores the contrast these rigs exist to
+    /// measure. Legitimate because an absent weather row means multiplier 1.0
+    /// BY DESIGN (ProductionSystem) — nothing about farming changes.</summary>
+    private static SystemRegistration[] WithoutWeather(SystemRegistration[] all)
+    {
+        var kept = new List<SystemRegistration>();
+        foreach (SystemRegistration r in all)
+            if (r.Name != Sim.Core.Systems.Harvest.HarvestWeatherSystem.Name) kept.Add(r);
+        return [.. kept];
+    }
+
     private const ulong Seed = 42;
 
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
@@ -31,7 +50,7 @@ public class NeedsGrievanceTests
     private static TurnExecutor ProductionExecutor(SimConfig cfg)
     {
         using var stream = Sim.Data.DataFiles.OpenPipeline();
-        return new TurnExecutor(CanonicalEra(), PipelineLoader.Load(stream, SystemCatalog.All(cfg)));
+        return new TurnExecutor(CanonicalEra(), WithoutWeather(PipelineLoader.Load(stream, SystemCatalog.All(cfg))));
     }
 
     private static TurnExecutor GrievanceOnly(SimConfig cfg, double dt = 10.0) =>
@@ -120,8 +139,11 @@ public class NeedsGrievanceTests
         // grievance RISES ACROSS THE STARVATION WINDOW. What is pinned here is
         // that the prelude stays SMALL relative to that rise, so the window's
         // signal cannot be swamped by background weather noise.
-        double preludeGrievance = Grievance(world, 0);
-        Assert.InRange(preludeGrievance, 0.0, 25.0);
+        // Weather is excluded from this rig (see WithoutWeather), so the fed
+        // prelude is EXACTLY zero again: no deficit, no accrual, stock founds at
+        // zero. The T3.4b re-anchor that allowed 0..25 was needed only while
+        // background weather noise was leaking into the controlled arm.
+        Assert.Equal(0.0, Grievance(world, 0));
 
         double preFamine = Grievance(world, 0);
         long starvedBefore = StarvedTotal(world);

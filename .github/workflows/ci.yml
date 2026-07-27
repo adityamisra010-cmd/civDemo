@@ -133,7 +133,7 @@ jobs:
           # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
           # the CLI that self-diffs cleanly still fails here. Update this hash
           # together with the test constant, deliberately.
-          FOUNDED_GOLDEN=305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8
+          FOUNDED_GOLDEN=38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

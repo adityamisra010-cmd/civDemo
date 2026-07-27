@@ -343,3 +343,31 @@ That is the empirical argument for a lens FLOOR rather than a lens budget: not t
 find six times as much, but that a defect can sit exactly on the boundary between two lenses'
 remits and be reasoned away by whichever one meets it alone. Recorded in
 `docs/t3.4-lens-manifest.md` as the rationale for requiring six against a spec floor of five.
+
+
+### 7.7 A corridor insensitive to its own control parameter is measuring something else
+
+**Director ruling, 2026-07-26, from T3.4b.** The migration magnitude corridor was defended and
+attacked for two sessions as though it measured a migration propensity. It did not.
+
+`baseRatePerYear` 0.03 / 0.018 / 0.012 produced 0.43 / 0.41 / **0.42** %/decade — barely moving,
+and NON-MONOTONICALLY. The cause: T2.8's gap-closing cap is `GapClosingFraction × m*` with
+`m* = (R_j·P_i − R_i·P_j)/(R_i + R_j)`, a function of resources and population only. Whenever the
+cap binds, **the base rate cancels out of the result entirely**. The corridor was measuring a
+structural property of the world's land heterogeneity, on a world that at calibration time had
+neither weather nor a live land signal.
+
+> **THE RULE: a corridor whose measured value is insensitive to the parameter that nominally
+> controls it is measuring something else. Establish what actually sets the value before
+> defending or moving the band.**
+
+This is a cousin of the density corridor's cancellation identity (ADR-013): there, a bound
+derived as `P_hist/(H × s̄)` cancelled against the sim's own `s̄` and the instrument became a
+mirror. Here the cancellation is in the *mechanism* rather than the algebra, and it was found by
+**measurement** — sweeping the parameter and watching the output refuse to move — rather than by
+inspecting a formula. Both failure modes produce a number that looks like evidence and is not.
+
+The diagnostic is cheap and should be routine: **sweep the nominal control parameter before
+trusting a corridor.** If the value does not respond, the band is not describing what its name
+says. Note that the lever may be one-sided — here, pushing the rate DOWN did nothing while
+pushing it UP 10× did move the value, by lifting desire above the cap in more pairs.

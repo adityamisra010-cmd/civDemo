@@ -386,7 +386,13 @@ public class SnapshotTests
         // Mean is exactly 1 by construction, so EXPECTED yield is unchanged and
         // the derived 26.0 is untouched; what moved is the realised path.
         //   T3.4 value: aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc
-        const string golden = "305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8";
+        //   SECOND re-mint in this packet, and the reason is a CONSTANT becoming
+        //   DERIVED rather than any code change: sigmaLogYield 0.18 (chosen) ->
+        //   0.2936 (derived from a rain-fed-cereal CV of 0.30). Weather
+        //   amplitude sets the realised harvest path, so the hash moves.
+        //   post-weather, pre-derivation value:
+        //   305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8
+        const string golden = "38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

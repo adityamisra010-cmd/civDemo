@@ -159,7 +159,11 @@ public class FirstReignTests
         //   trajectory, no food mountain), which is what separates this re-mint
         //   from a regression.
         //   v8 value: b6e16c1edf39ef0585eaef800b4b00d7f10a82ced12316349a2344965cb31c7b
-        const string golden = "58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2";
+        //   SECOND re-mint in this packet — sigmaLogYield became DERIVED (0.18 ->
+        //   0.2936). Semantic assertions below unchanged and still passing.
+        //   post-weather, pre-derivation value:
+        //   58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2
+        const string golden = "8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

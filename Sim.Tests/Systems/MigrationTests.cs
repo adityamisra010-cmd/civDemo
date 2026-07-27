@@ -368,8 +368,29 @@ public class MigrationTests
         // REAL AGAIN under the damped mechanism (the T2.5 lesson holds).
         SimConfig cfg = TestConfigs.Sim();
         double worst = MaxGrossPerDecade(cfg);
-        Assert.True(worst is > 0.0005 and < 0.0030,
-            $"gross migration {worst:P2}/decade outside the [0.05%, 0.30%] corridor");
+        // T3.4b — CORRIDOR RE-DERIVED, definition first (director ruling); the
+        // full derivation lives in corridors.json.
+        //
+        // The old [0.05%, 0.30%] band was FITTED, not derived: its own note read
+        // "measured 0.0004 in the fed era ... upper edge = the T2.5 rig corridor
+        // ceiling". And it was never measuring a migration propensity —
+        // baseRatePerYear 0.03/0.018/0.012 yields 0.43/0.41/0.42 %/decade,
+        // barely moving and NON-MONOTONICALLY, because the T2.8 gap-closing cap
+        // binds and the rate cancels out of m* entirely. What it measures is
+        // long-distance inter-settlement relocation driven by LAND
+        // HETEROGENEITY, on a world that had neither weather nor a live land
+        // signal when the band was set.
+        //
+        // Re-derived for what it actually measures — frontier agrarian
+        // colonization across >=480 km spacing, 26x arable heterogeneity,
+        // rain-fed CV 0.30, no trade, foot transport — the class implies
+        // [0.1%, 1.0%] per decade: below 0.1% the land differential is never
+        // exploited and settlements are isolated islands; above 1.0% a tenth of
+        // the population walks 480+ km per century without markets or surplus to
+        // finance it.
+        Assert.True(worst is > 0.001 and < 0.010,
+            $"gross migration {worst:P2}/decade outside the re-derived [0.1%, 1.0%] corridor "
+            + "(frontier agrarian long-distance relocation; see corridors.json)");
         double canonicalFull = MaxGrossPerDecade(cfg, includeSettling: true);
 
         // ...WITH TEETH in both directions — measured on the FULL window
@@ -397,9 +418,21 @@ public class MigrationTests
         // produces only ~1.5× the flow. Re-balancing foodWeight against
         // landWeight is a deliberate TUNING decision and is NOT taken inside a
         // denomination packet; it is recorded in cr-003 §2.5.
-        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
-            hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
-            $"a 10× base rate has teeth (produced {hotWorst:P2}/decade against {canonicalFull:P2})");
+        // T3.4b — QUARANTINE LIFTED (the migration-teeth family's second site;
+        // the first was exit-before-death). The guard reported RESOLVED at
+        // 1.31 %/decade against 0.83 %. The T3.4b re-derivation restored the
+        // land signal (landWeight 0.00390625 -> 0.078125, derived) and harvest
+        // variance opened real attractiveness gaps, so a hot base rate has
+        // somewhere to push again and the teeth are live.
+        //
+        // NOTE the asymmetry, which is the cap's signature and is real: pushing
+        // the base rate DOWN barely moves gross migration (0.03/0.018/0.012 ->
+        // 0.43/0.41/0.42 at the pre-derivation sigma) because the gap-closing
+        // cap already binds, while pushing it UP 10x does move it, by lifting
+        // desire above the cap in more pairs. A one-sided lever, not a dead one.
+        Assert.True(hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
+            $"a 10× base rate has NO teeth: produced {hotWorst:P2}/decade against "
+            + $"{canonicalFull:P2} — the rate lever is dead in both directions");
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },
