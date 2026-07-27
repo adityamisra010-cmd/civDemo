@@ -49,6 +49,12 @@ Unemployment/marginality is a **state flag on buckets**, not a class — people 
 - **Habituation ratchet.** Expectation baselines drift toward recent consumption: yesterday's luxury is today's floor. Losing accustomed comfort generates more grievance than never having had it.
 - **Relative deprivation.** Grievance also accrues from *visible* inequality: own satisfaction vs elite satisfaction, weighted by proximity and media reach. Gini becomes flammable only when seen.
 
+> **SUPERSEDED IN PART by D-035-B (`docs/d035-needs-aggregation.md`, ratified 2026-07-27).** The
+> WEIGHTED-SUM aggregation below is replaced by CES-class aggregation with substitution
+> elasticity σ < 1 — under a sum, abundant comfort offsets absent shelter, which the ruling
+> forbids. The Tier-A gate override in §46 above is RETAINED UNCHANGED and operates on top of the
+> new aggregation. Ratcheting expectations and the relative-deprivation term also stand.
+
 **Math shape (M2 spec finalizes):** per need n: satisfaction sₙ ∈ [0,1] from supply vs class-expected basket; grievance stock G += Σ wₙ·(expectationₙ − sₙ)⁺ · dt − decay·G·dt, with the Tier-A override, ratcheting expectations, and a relative-deprivation term. All coefficients `TUNE`-registered.
 
 ## 5. POLITICAL WEIGHT & MOBILITY (sketches; owning specs M5/M8)

@@ -147,3 +147,11 @@
   expansion saturates at 9 and the Malthusian transition arrives by MAP EXHAUSTION rather than by
   land filling — which would be the trap hardwired by geometry, exactly what CR-003 forbids.
   Must be settled before or within the M4 colonization packet.
+- D-035 was RULED but never FILED until 2026-07-27 (docs/d035-needs-aggregation.md). The four
+  rulings — variety-as-satisfaction, non-compensatory CES aggregation, the seven legal coupling
+  paths, taxation→Dignity — existed only in the director's notes, so the implementing agent
+  correctly refused to proceed on them (ADR-016 §4 standing note). PROCESS ITEM: a ruling that
+  changes a frozen D-decision must be filed at the time it is made, not at the time a packet
+  needs it. Two packets (T3.5 by a session, T3.4b's evidence by a round-trip) were delayed by
+  unfiled rulings; both refusals were correct and both cost a round-trip that filing would have
+  saved.
