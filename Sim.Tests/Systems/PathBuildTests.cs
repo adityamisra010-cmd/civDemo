@@ -29,7 +29,11 @@ public class PathBuildTests
     /// the dt-correct order-delivery semantics, and a stochastic multiplier on
     /// realised output turns every exact expectation into a moving target
     /// (measured: 4800 -> 2663 on a bad draw). Weather's own behaviour is
-    /// covered by HarvestWeatherTests and the quarantine families; excluding it
+    /// covered by HarvestWeatherTests (which EXISTS as of T3.4c — this comment cited
+    /// it by name for a file that had never been written) and by the quarantine
+    /// families; the real and sufficient ground for excluding it here is the
+    /// confounded-rig doctrine (ADR-015 §7.8): this is a controlled experiment and
+    /// background weather noise is a confound on both arms. Excluding it
     /// here keeps these tests testing what they were written to test.
     ///
     /// This is legitimate because absence of a weather row means multiplier 1.0
