@@ -497,3 +497,50 @@ Note the symmetry with §7.10: there, a correct measurement carried a wrong inte
 correct process carried a wrong belief about whether it had been followed. Both are cases of
 confidence outrunning evidence, and both are defended against procedurally rather than by resolving
 to be more careful.
+
+
+---
+
+## §7.12 — The seed-7 quarantine: a ruling granted on an unmeasured property
+
+**Director ruling, T3.4b review, 2026-07-27.** Recorded against the artifact, not only in the abstract.
+
+The director ratified a quarantine described to him as **seed-scoped, loud, and covering one seed
+honestly outside the band**. Measured, it is none of the three:
+
+| claimed | measured |
+| --- | --- |
+| seed-scoped | `AssertInBand` never receives the seed; the bypass is a pure function of `(key, value)`. Seeds **41, 29 and 12** were driven through the real call site and **passed while out of band**; nine non-seed-7 seeds in 1–60 land in the silent window |
+| loud | the banner never names a seed — a seed-41 bypass is indistinguishable from seed 7's |
+| one seed outside | **52 of 60 dev seeds sit below the floor.** Seed 7 is near the top of a large below-floor cluster, not an outlier |
+
+Net effect: the floor the director ruled **immovable** moved 10% for every dev seed. And it has no
+tooth in either direction — both established quarantine patterns in this repo carry a resolution
+tooth; this one does not, and `QuarantinedSeedValue` is dead code, so drift inside the window is
+invisible.
+
+**The mechanism of the failure is §7.10's, one level up.** "Seed-scoped and loud" was written into
+commit `0a4c374`'s message and the docstring **without being measured** — and this ADR already
+carried the rule that a claim written into a commit message must have been measured by the agent
+writing it, a rule that exists because of a prior instance of the same error. The director then ruled
+on the description rather than the artifact, because the description was the only thing in front of
+him.
+
+**Both halves of the lesson:**
+
+1. **For the implementing agent:** a property asserted about your own artifact is a measurement you
+   owe, not a summary you may write. "Seed-scoped" is a testable claim about a call signature and it
+   took one grep to falsify.
+2. **For an escalation:** when you take a failure to a ruling, state what you MEASURED and what you
+   BELIEVE separately. The director's ruling was sound on its own terms — false precision and
+   post-hoc fitting are still correctly forbidden — but it was granted on a premise the escalation
+   supplied and had not checked.
+
+**Also recorded, because the fair reading matters:** the counter-allegation that the packet
+*manufactured* the failure it escalated was **REFUTED**. The band note states the old band verbatim,
+and the floor raise made the corridor **1.8× stricter** — fitting is done to avoid failures, not to
+buy them. The residue is narrower and real: the escalation never told the director that the miss was
+created by the packet's own band change, and that the same run was in-band one commit earlier. An
+incomplete escalation, not a manufactured one.
+
+Re-scoping is scheduled in T3.4c.
