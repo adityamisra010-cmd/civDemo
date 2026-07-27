@@ -162,7 +162,13 @@ public class SnapshotTests
         //   system is not in the toy preset and this world has no settlements,
         //   so no price is ever computed; only the stream grew.
         //   v12 value: d0767e5126acbb3f9af220f373fc3dca37a8b8c80d35aad0e993294ea1da8dbd
-        const string golden = "8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c";
+        //   v14 (T3.4b, CR-003 §3 — SCHEMA ONLY on this world): schema v16
+        //   appended the empty HarvestWeather table (one zero count prefix, 4
+        //   bytes). The harvest-weather system is not in the toy preset and this
+        //   world has no settlements, so no weather is ever drawn; only the
+        //   stream grew.
+        //   v13 value: 8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c
+        const string golden = "1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -370,7 +376,17 @@ public class SnapshotTests
         // T3.3 value below was verified unchanged immediately before the price
         // system was added to the pipeline.
         //   T3.3 value: 3a73f1a7df18091da43e542f48669996b01a46675f1b77782bdbf4a7892999ff
-        const string golden = "aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc";
+        // T3.4b RE-MINT (CR-003 §3). The founded world DOES run harvest
+        // weather, so this moves for two reasons, both intended and itemized:
+        //   1. schema v16 — the HarvestWeather table is appended and POPULATED;
+        //   2. BEHAVIOUR — realised farm output is now multiplied by a mean-one
+        //      stochastic factor, so every downstream trajectory (stores,
+        //      population, migration, prices) differs from the deterministic
+        //      run. This is the packet's whole purpose, not a side effect.
+        // Mean is exactly 1 by construction, so EXPECTED yield is unchanged and
+        // the derived 26.0 is untouched; what moved is the realised path.
+        //   T3.4 value: aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc
+        const string golden = "305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

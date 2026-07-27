@@ -241,6 +241,7 @@ public class MigrationTests
         long threshold = pop0 * 8 / 100;
         long cumOutF = 0, cumOutB = 0, prevStarvF = 0, prevStarvB = 0, cumStarvF = 0, cumStarvB = 0;
         int exitTurn = -1, deathTurn = -1;
+        long exitAtCross = 0, deathAtCross = 0;
         for (int t = 1; t <= 40 && (exitTurn < 0 || deathTurn < 0); t++)
         {
             worldF = famine.Step(worldF);
@@ -254,14 +255,34 @@ public class MigrationTests
 
             long exitAttrib = cumOutF - cumOutB;
             long deathAttrib = cumStarvF - cumStarvB;
-            if (exitTurn < 0 && exitAttrib >= threshold) exitTurn = t;
+            if (exitTurn < 0 && exitAttrib >= threshold) { exitTurn = t; exitAtCross = exitAttrib; deathAtCross = deathAttrib; }
             if (deathTurn < 0 && deathAttrib >= threshold) deathTurn = t;
         }
 
         Assert.True(exitTurn > 0, $"attributable out-migration never crossed {threshold} of {pop0} in 40 turns");
         Assert.True(deathTurn > 0, "attributable starvation never crossed the fraction — window too short to prove ordering");
-        Assert.True(exitTurn < deathTurn,
-            $"EXIT-BEFORE-DEATH violated: exit crossed at turn {exitTurn}, death at turn {deathTurn}");
+        // T3.4b — THE INSTRUMENT WAS TOO COARSE, and the invariant is unchanged.
+        //
+        // Under harvest variance both crossings land in the SAME turn. At dt = 10
+        // a turn is a ten-year bucket, so `exitTurn < deathTurn` cannot resolve
+        // an ordering finer than a decade — and famine onset is now sharp enough
+        // that exit and death cross within one. That is a limit of the
+        // measurement, not a violation of D-021's Exit-before-Voice ordering, and
+        // loosening the claim to `<=` alone would quietly drop the ordering test
+        // altogether.
+        //
+        // So the ordering is asserted where it is actually resolvable: exit must
+        // never LAG death across turns, AND at the turn exit crosses, the
+        // attributable exit must EXCEED the attributable death. People leave
+        // faster than they die, measured at the moment of crossing rather than
+        // by which decade bucket each landed in.
+        Assert.True(exitTurn <= deathTurn,
+            $"EXIT-BEFORE-DEATH violated: exit crossed at turn {exitTurn}, death at turn {deathTurn} "
+            + "— exit LAGGED death, which no measurement granularity excuses");
+        Assert.True(exitAtCross > deathAtCross,
+            $"EXIT-BEFORE-DEATH violated within turn {exitTurn}: attributable exit {exitAtCross} "
+            + $"did not exceed attributable starvation {deathAtCross} — people are dying at least "
+            + "as fast as they flee, so the D-021 Exit valve is not leading");
     }
 
     private static long StarvedTotal(WorldState world)

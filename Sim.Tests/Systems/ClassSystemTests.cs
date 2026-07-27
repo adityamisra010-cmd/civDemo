@@ -124,9 +124,25 @@ public class ClassSystemTests
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
 
-        Assert.True(emergenceTurn is >= 30 and <= 70,
-            $"artisans emerged at turn {emergenceTurn} — outside the documented [30,70] window " +
-            "(population-gated emergence: founding ~350 growing past the 520 threshold)");
+        // T3.4b ANCHOR RE-MEASURED (CR-003 ruling: "anchors re-measured"). This
+        // is an OBSERVATION anchor documenting when the model's own
+        // population-gated mechanism fires — founding ~350 growing past the 520
+        // threshold — not a historical corridor, so re-measuring it against a
+        // changed world is the correct action rather than a loosening.
+        //
+        // Harvest variance moved it 70 -> 81. The reason is mechanical and
+        // expected: weather multiplies realised yield with mean exactly 1 but
+        // non-zero variance, and a population growing toward a THRESHOLD reaches
+        // it later under a fluctuating food supply than under a smooth one —
+        // bad years cost growth that good years do not fully repay, because the
+        // threshold is crossed once and early setbacks compound. The window is
+        // re-anchored to [30, 95] to hold the mechanism (population-gated, not
+        // instant, not never) while accommodating weather-driven jitter around
+        // the crossing.
+        Assert.True(emergenceTurn is >= 30 and <= 95,
+            $"artisans emerged at turn {emergenceTurn} — outside the re-measured [30,95] window " +
+            "(population-gated emergence: founding ~350 growing past the 520 threshold, " +
+            "under T3.4b harvest variance)");
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).

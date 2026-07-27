@@ -189,11 +189,17 @@ public class CollapseStabilityTests
                 }
             }
         }
-        // CR-003: nothing dies in a pre-Malthusian world, so the ADR-012
-        // resurrection detector has nothing to detect. The detector itself is
-        // untouched and still runs on every turn above.
-        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
-            anyDeath, "a settlement died food-less");
+        // T3.4b — QUARANTINE LIFTED. The CR-003 quarantine held because nothing
+        // died in a pre-Malthusian world, so the ADR-012 resurrection detector
+        // had nothing to detect. Harvest variance restored the precondition:
+        // settlements now die food-less, the detector above runs against real
+        // deaths on every turn, and its teeth are live again.
+        //
+        // The guard is restored in its ORIGINAL direction — a death MUST occur,
+        // or this test has silently gone back to proving nothing.
+        Assert.True(anyDeath,
+            "no settlement died food-less in the collapsing world — the resurrection "
+            + "detector is vacuous again; re-check the weather driver before trusting it");
     }
 
     [Fact]

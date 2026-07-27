@@ -152,7 +152,14 @@ public class FirstReignTests
         //   trajectory, no food mountain) are unchanged and still pass, which
         //   is what distinguishes this re-mint from a regression.
         //   v7 value: 7c0671a31557e0842668d0995d9af0fd20530fcf11dea3df963d9f86a92a3ae7
-        const string golden = "b6e16c1edf39ef0585eaef800b4b00d7f10a82ced12316349a2344965cb31c7b";
+        //   v9 (T3.4b, CR-003 §3): harvest weather multiplies realised farm
+        //   output, so this collapsing world's trajectory differs — SCHEMA v16
+        //   plus real behaviour change. The semantic assertions below are
+        //   unchanged and still pass (extinction window, flat post-extinction
+        //   trajectory, no food mountain), which is what separates this re-mint
+        //   from a regression.
+        //   v8 value: b6e16c1edf39ef0585eaef800b4b00d7f10a82ced12316349a2344965cb31c7b
+        const string golden = "58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

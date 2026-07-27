@@ -110,7 +110,18 @@ public class NeedsGrievanceTests
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), fed, Seed, 1);
 
         for (int t = 1; t <= 6; t++) world = fedExec.Step(world);
-        Assert.Equal(0.0, Grievance(world, 0)); // fed prelude: nobody aggrieved
+        // T3.4b ANCHOR RE-MEASURED. The prelude was EXACTLY zero in a world
+        // with no weather: no deficit, no accrual. Harvest variance means a
+        // "fed" phase now has occasional thin years, so a small grievance
+        // accrues before the famine rig even starts — which is the world
+        // getting more honest, not the test getting weaker. Measured: 4.80.
+        //
+        // The invariant that matters is unchanged and is asserted below:
+        // grievance RISES ACROSS THE STARVATION WINDOW. What is pinned here is
+        // that the prelude stays SMALL relative to that rise, so the window's
+        // signal cannot be swamped by background weather noise.
+        double preludeGrievance = Grievance(world, 0);
+        Assert.InRange(preludeGrievance, 0.0, 25.0);
 
         double preFamine = Grievance(world, 0);
         long starvedBefore = StarvedTotal(world);

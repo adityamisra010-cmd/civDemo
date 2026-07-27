@@ -23,11 +23,27 @@ public class PathBuildTests
         return EraTableLoader.Load(stream);
     }
 
+    /// <summary>
+    /// The canonical pipeline MINUS harvest weather (T3.4b). These are
+    /// HAND-COMPUTED EXACT yield tests — they pin the Leontief arithmetic and
+    /// the dt-correct order-delivery semantics, and a stochastic multiplier on
+    /// realised output turns every exact expectation into a moving target
+    /// (measured: 4800 -> 2663 on a bad draw). Weather's own behaviour is
+    /// covered by HarvestWeatherTests and the quarantine families; excluding it
+    /// here keeps these tests testing what they were written to test.
+    ///
+    /// This is legitimate because absence of a weather row means multiplier 1.0
+    /// BY DESIGN (see ProductionSystem) — the exclusion changes nothing about
+    /// how farming works, it only removes the noise source.
+    /// </summary>
     private static TurnExecutor ProductionExecutor(SimConfig cfg, OrderLog? orders = null)
     {
         using var stream = Sim.Data.DataFiles.OpenPipeline();
-        return new TurnExecutor(
-            CanonicalEra(), PipelineLoader.Load(stream, SystemCatalog.All(cfg)), orders);
+        SystemRegistration[] all = PipelineLoader.Load(stream, SystemCatalog.All(cfg));
+        var without = new List<SystemRegistration>();
+        foreach (SystemRegistration r in all)
+            if (r.Name != Sim.Core.Systems.Harvest.HarvestWeatherSystem.Name) without.Add(r);
+        return new TurnExecutor(CanonicalEra(), [.. without], orders);
     }
 
     private static WorldState Founded(SimConfig cfg) =>
