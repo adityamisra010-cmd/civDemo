@@ -94,6 +94,28 @@ public sealed class SimUiGame : Game
         return Sim.Core.Systems.NeedsConfigLoader.Load(stream);
     }
 
+    /// <summary>T3.9a: display registries — the D-031 goods roster (names for
+    /// the market panel) and the class registry (names for the per-class needs
+    /// block). Same doctrine as the needs registry above: display data only;
+    /// the sim's copy travels inside SimConfig and never routes through here.</summary>
+    private readonly Sim.Core.Systems.SimConfig _displayCfg = LoadDisplayCfg();
+
+    private static Sim.Core.Systems.SimConfig LoadDisplayCfg()
+    {
+        using var sim = Sim.Data.DataFiles.OpenSim();
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
+    }
+
+    /// <summary>T3.9a: the market panel's selected good — PURE UI STATE like
+    /// the settlement selection. Starts at the first non-numeraire good (the
+    /// numeraire's breakdown is all zeros by definition — nothing to explain).</summary>
+    private int _selectedGood;
+    private System.Collections.Generic.IReadOnlyList<MarketGoodRow> _marketRows = [];
+    private System.Collections.Generic.IReadOnlyList<NeedsClassBlock> _needsBlocks = [];
+    private System.Collections.Generic.IReadOnlyList<SectorBarRow> _sectorRows = [];
+
     /// <summary>T2.4: the selected settlement id — PURE UI STATE (never in
     /// WorldState, never serialized). Starts at the first settlement.</summary>
     private int _selected;
@@ -265,6 +287,20 @@ public sealed class SimUiGame : Game
         _hud = HudModel.From(_world, _selected, _needs,
             _selected >= 0 ? _session.Names.Name(_selected) : null);
         if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmingPct);
+
+        // T3.9a: the read-only market/needs/sector displays, recomputed on
+        // the same cadence as the HUD snapshot (selection change / End Turn).
+        Sim.Core.Systems.GoodsConfig goods = _displayCfg.Goods!;
+        if (_selectedGood == 0)
+            foreach (Sim.Core.Systems.GoodEntry g in goods.Goods)
+                if (!g.Numeraire) { _selectedGood = g.Id; break; }
+        _marketRows = MarketModel.Rows(_world, _selected, goods);
+        _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes);
+        SectorAllocationRow allocation = Sectors.Default(new SettlementId(_selected));
+        for (int i = 0; i < _world.SectorAllocations.Count; i++)
+            if (_world.SectorAllocations[i].Settlement.Value == _selected)
+            { allocation = _world.SectorAllocations[i]; break; }
+        _sectorRows = SectorBarModel.Rows(allocation);
     }
 
     // --- the player's verbs ---------------------------------------------------
@@ -611,6 +647,58 @@ public sealed class SimUiGame : Game
             float.MaxValue, float.MaxValue, new System.Numerics.Vector2(300, 56));
     }
 
+    /// <summary>T3.9a items 1+2: the market panel — the selected settlement's
+    /// goods with stock, price and last move; the PriceTerms decomposition for
+    /// the selected good (the glass-box artifact, surfaced); and the per-good
+    /// price time series in the same PlotLines idiom as the T2.10 graphs.
+    /// READ-ONLY: no widget in this window emits an order.</summary>
+    private void DrawMarket()
+    {
+        ImGui.SetNextWindowPos(
+            new System.Numerics.Vector2(700, 480), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(
+            new System.Numerics.Vector2(480, 300), ImGuiCond.FirstUseEver);
+        ImGui.Begin("Market");
+        DrawPanelFurniture();
+        ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
+        ImGui.Separator();
+        if (_fonts is { } numeric) ImGui.PushFont(numeric.Numeric);
+        foreach (MarketGoodRow row in _marketRows)
+        {
+            // Selectable rows pick the good whose decomposition + series show
+            // below. TextUnformatted doctrine does not apply to Selectable
+            // labels via printf — Selectable takes the label verbatim, but the
+            // lines contain no '%' anyway (chg is a signed decimal).
+            if (ImGui.Selectable(row.Line + "##good" + row.GoodId.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture),
+                _selectedGood == row.GoodId))
+            {
+                _selectedGood = row.GoodId;
+            }
+        }
+        ImGui.Separator();
+        PriceBreakdown? breakdown = _selected >= 0
+            ? MarketModel.Breakdown(_world, _selected, _selectedGood, _displayCfg.Goods!)
+            : null;
+        if (breakdown is null)
+        {
+            ImGui.TextUnformatted("price decomposition: not yet measured");
+        }
+        else
+        {
+            ImGui.TextUnformatted(breakdown.HeaderLine);
+            foreach (string line in breakdown.TermLines) ImGui.TextUnformatted(line);
+            ImGui.TextUnformatted(breakdown.DriverLine);
+        }
+        ImGui.Separator();
+        // Item 2 gate criterion: scarcity READS as a rising line. PlotLines
+        // autoscales per series (the T2.10 idiom), so a flat price is a
+        // boring flat line and a spike is unmissable.
+        Plot("price##sel-good", _session.History.Price(_selected, _selectedGood));
+        if (_fonts is not null) ImGui.PopFont();
+        ImGui.End();
+    }
+
     /// <summary>T2.9: the annals — scrollable, newest LAST, auto-scrolled to
     /// the tail when new lines arrive while the reader is at the tail.</summary>
     private void DrawAnnals()
@@ -653,6 +741,7 @@ public sealed class SimUiGame : Game
         DrawNameLabels();   // T2.9: background drawlist — under all panels
         DrawAnnals();       // T2.9
         DrawGraphs();       // T2.10
+        DrawMarket();       // T3.9a: goods, prices, decomposition, series
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
         ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
         DrawPanelFurniture();
@@ -667,12 +756,21 @@ public sealed class SimUiGame : Game
         if (_fonts is { } numeric) ImGui.PushFont(numeric.Numeric);
         ImGui.TextUnformatted(_hud.PopulationLine);
         ImGui.TextUnformatted(_hud.FoodLine);
-        ImGui.TextUnformatted(_hud.SplitLine);
+        // T3.9a item 4: the five-sector split as five labelled bar rows
+        // (DISPLAY ONLY — the slider below stays the only control until T3.9b).
+        foreach (SectorBarRow sector in _sectorRows)
+            ImGui.ProgressBar((float)sector.Fraction,
+                new System.Numerics.Vector2(220, 14), sector.Label);
         ImGui.TextUnformatted(_hud.GrievanceLine);          // T2.6: display only
         if (_fonts is not null) ImGui.PopFont();
         ImGui.Separator();
-        if (_hud.NeedLines is not null)                     // T2.6: the needs block
-            foreach (string line in _hud.NeedLines) ImGui.TextUnformatted(line);
+        // T3.9a item 3: needs PER CLASS (T3.5 baskets differ by class — the
+        // panel shows the difference; unbound needs stay honestly labelled).
+        foreach (NeedsClassBlock block in _needsBlocks)
+        {
+            ImGui.TextUnformatted(block.HeaderLine);
+            foreach (string line in block.NeedLines) ImGui.TextUnformatted(line);
+        }
         ImGui.Separator();
 
         // The labor slider: emits ONE order, on release only (§3.9 log
