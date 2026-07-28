@@ -864,6 +864,48 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV18_PopulatedTradeFlowsTable()
+    {
+        // T3.6 (D-034): the constitution's populated-table test for the new
+        // row type — exact ExpectedLength, bit-exact round trip, hash
+        // equality. DISTINCT values in every field (From ≠ To ≠ Good ≠
+        // Quantity), so a transposition of the three int32 id fields — same
+        // width, adjacent — cannot round-trip cleanly. Quantity includes a
+        // value above Int32.MaxValue so a 4-byte write of the 8-byte field
+        // breaks the length equation loudly.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+        world.TradeFlows.Add(new TradeFlowRow(
+            new SettlementId(3), new SettlementId(7), new GoodId(11), 5_000_000_017L));
+        world.TradeFlows.Add(new TradeFlowRow(
+            new SettlementId(7), new SettlementId(3), new GoodId(2), 1L));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2, loaded.TradeFlows.Count);
+        Assert.Equal(3, loaded.TradeFlows[0].From.Value);
+        Assert.Equal(7, loaded.TradeFlows[0].To.Value);
+        Assert.Equal(11, loaded.TradeFlows[0].Good.Value);
+        Assert.Equal(5_000_000_017L, loaded.TradeFlows[0].Quantity);
+        Assert.Equal(7, loaded.TradeFlows[1].From.Value);
+        Assert.Equal(3, loaded.TradeFlows[1].To.Value);
+        Assert.Equal(2, loaded.TradeFlows[1].Good.Value);
+        Assert.Equal(1L, loaded.TradeFlows[1].Quantity);
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
     public void VersionMismatch_FailsWithActionableMessage()
     {
         WorldState world = CanonicalExecutor().Run(Genesis(42), 3);
