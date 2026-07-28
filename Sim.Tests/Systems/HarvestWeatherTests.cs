@@ -296,24 +296,20 @@ public class HarvestWeatherTests
     [Fact]
     public void Weather_ScalesOutput_NeverTheLandCap()
     {
-        // MUTANT M10 SURVIVED ALL 343 TESTS at T3.4b — moving the weather
-        // multiplier onto the LAND side was undetectable, even though CR-003
-        // §5.2(b) forbids it and ProductionSystem carries a comment explaining
-        // exactly why.
+        // What THIS test pins: weather REACHES output at all (kills M11, the
+        // deleted multiplier). It does NOT discriminate the placements.
         //
-        // THE DISCRIMINATING RIG. Production takes min(landSide, laborSide). In a
-        // LABOR-CAPPED settlement the land term is slack, so scaling it changes
-        // nothing and weather still bites through output. In a LAND-CAPPED
-        // settlement the land term binds — and there, and only there, do the two
-        // placements differ: applied correctly (to the result) weather still
-        // moves harvest; applied to the land side it also moves harvest, but it
-        // has moved the CAP, which is a statement about how much land exists.
-        //
-        // What this test pins is the observable consequence that distinguishes
-        // them: with weather held at a known constant, harvest in a land-capped
-        // settlement must equal the land cap times the multiplier — never the
-        // land cap computed from weather-scaled land. The two differ whenever the
-        // labor side would otherwise have bound after scaling.
+        // §7.12 INSTANCE, recorded at the T3.4c review fix: this docstring
+        // previously described "THE DISCRIMINATING RIG" — a land-capped world
+        // in which the M10 placement (weather on the land side) is observable —
+        // and the packet's report claimed M10 was killed semantically. The rig
+        // described was NEVER BUILT: every world this test founds is
+        // labor-capped, so the mutant world was bit-exact identical to clean
+        // and M10 survived all 355 tests. The property was asserted about the
+        // packet's own artifact without being measured. The real discriminator
+        // is Weather_InALandCappedWorld_ScalesRealisedHarvestExactlyOnce_
+        // NeverTheCap below, proven red against M10 (w² signature) and M9
+        // (weather absorbed by the min).
         SimConfig cfg = TestConfigs.Sim();
         SimConfig noWeather = cfg with { HarvestVariance = cfg.HarvestVariance! with { SigmaLogYield = 0.0 } };
 

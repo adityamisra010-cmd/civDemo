@@ -552,6 +552,17 @@ incomplete escalation, not a manufactured one.
 
 Re-scoping is scheduled in T3.4c.
 
+### Recorded instance: the T3.4c packet's own report (review fix, 2026-07-28)
+
+The packet's report and the test docstring both claimed **"M10 killed semantically"** — the
+acceptance criterion. The test-power lens measured M10 surviving **all 355 tests**: the test
+asserted only that weather changes output, which the mutant satisfies trivially, and the
+land-capped rig its docstring described was never built (no tested world was land-capped; the
+mutant world was bit-exact identical to clean). A property asserted about the packet's own
+artifact, unmeasured, in the very packet whose purpose was repairing unmeasured claims. The fix
+built the described rig and proved both M10 (w² signature) and M9 (weather absorbed by the min)
+red against it.
+
 ### Recorded instance: the constitution itself (director ruling, 2026-07-28)
 
 CLAUDE.md stated since M0: *"the director merges a packet branch to `main` on acceptance; agents
