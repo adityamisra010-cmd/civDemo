@@ -262,4 +262,96 @@ public class SelectionTests
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine);
         Assert.Equal(2, hud.SettlementId);
     }
+
+    // --- D-A2: derived target size + clickable labels (docs/art-gate-defects.md)
+
+    [Fact]
+    public void HitRadius_IsDerivedFromTheNamedTargetStandard()
+    {
+        // The 44 px minimum target (Apple HIG / WCAG 2.5.5 Enhanced) is the
+        // ratified reference; the radius is exactly half of it. This fails if
+        // anyone re-couples the radius to marker size + slop.
+        Assert.Equal(44.0, SettlementSelection.MinTargetDiameterPx);
+        Assert.Equal(SettlementSelection.MinTargetDiameterPx / 2.0, SettlementSelection.HitRadiusPx);
+        // The marker stays a visual choice INSIDE the target.
+        Assert.True(SettlementSelection.MarkerScreenPx < SettlementSelection.MinTargetDiameterPx);
+    }
+
+    [Fact]
+    public void HitTest_LabelRect_SelectsItsSettlement_AndOnlyInsideTheRect()
+    {
+        // One settlement; its label rect sits to the right of the marker, far
+        // beyond the marker radius. A click inside the rect selects it; just
+        // outside misses. Proven RED by ignoring labelRects in HitTest.
+        int a = 100 + 100 * 256;
+        WorldState world = MarkerWorld(a);
+        var cam = new Camera(256);
+        cam.Clamp(512, 512);
+        (double sx, double sy) = cam.WorldToScreen(100.5, 100.5, 512, 512);
+
+        var rects = new[]
+        {
+            new SettlementSelection.LabelRect(sx + 40, sy - 8, sx + 120, sy + 8),
+        };
+        // Inside the rect, way outside the 22 px radius:
+        Assert.Equal(0, SettlementSelection.HitTest(world, cam, sx + 100, sy, 512, 512, rects));
+        // One pixel right of the rect: dead ground again.
+        Assert.Equal(-1, SettlementSelection.HitTest(world, cam, sx + 121, sy, 512, 512, rects));
+        // No rects passed: the label region is dead (the pre-fix behaviour,
+        // still correct for callers that do not supply rects).
+        Assert.Equal(-1, SettlementSelection.HitTest(world, cam, sx + 100, sy, 512, 512));
+    }
+
+    [Fact]
+    public void HitTest_OverlapRanking_IsMarkerCentreDistance_ThenId_TieDense()
+    {
+        // The STATED rule: admission by circle or rect, ranking ALWAYS by
+        // (marker-centre distance ASC, id ASC).
+        int a = 100 + 100 * 256;
+        WorldState world = MarkerWorld(a, a + 4); // ids 0,1; 4 px apart at 1:1
+        var cam = new Camera(256);
+        cam.Clamp(512, 512);
+        (double s0x, double s0y) = cam.WorldToScreen(100.5, 100.5, 512, 512);
+        (double s1x, _) = cam.WorldToScreen(104.5, 100.5, 512, 512);
+
+        // Both labels cover the SAME strip far to the right of both markers.
+        double rx0 = s1x + 60, rx1 = s1x + 160;
+        var rects = new[]
+        {
+            new SettlementSelection.LabelRect(rx0, s0y - 8, rx1, s0y + 8),
+            new SettlementSelection.LabelRect(rx0, s0y - 8, rx1, s0y + 8),
+        };
+        // Click inside both rects: settlement 1's marker centre is nearer.
+        Assert.Equal(1, SettlementSelection.HitTest(world, cam, rx0 + 10, s0y, 512, 512, rects));
+
+        // One marker radius vs another's label: click 10 px right of marker 1
+        // (inside its 22 px radius) while ALSO inside settlement 0's label —
+        // marker 1's centre is nearer, so 1 wins whichever shape admitted it.
+        var rectsWide = new[]
+        {
+            new SettlementSelection.LabelRect(s0x, s0y - 8, s1x + 20, s0y + 8),
+            new SettlementSelection.LabelRect(-1000, -1000, -999, -999),
+        };
+        Assert.Equal(1, SettlementSelection.HitTest(world, cam, s1x + 10, s0y, 512, 512, rectsWide));
+
+        // TIE-DENSE: three co-located settlements sharing one label rect —
+        // bit-exact identical distances at every id; lowest id wins. And with
+        // id 0 excluded from admission (its rect elsewhere, click outside all
+        // radii), the tie among {1, 2} picks 1.
+        WorldState stacked = MarkerWorld(a, a, a);
+        var shared = new[]
+        {
+            new SettlementSelection.LabelRect(s0x + 60, s0y - 8, s0x + 160, s0y + 8),
+            new SettlementSelection.LabelRect(s0x + 60, s0y - 8, s0x + 160, s0y + 8),
+            new SettlementSelection.LabelRect(s0x + 60, s0y - 8, s0x + 160, s0y + 8),
+        };
+        Assert.Equal(0, SettlementSelection.HitTest(stacked, cam, s0x + 100, s0y, 512, 512, shared));
+        var sharedNo0 = new[]
+        {
+            new SettlementSelection.LabelRect(-1000, -1000, -999, -999),
+            new SettlementSelection.LabelRect(s0x + 60, s0y - 8, s0x + 160, s0y + 8),
+            new SettlementSelection.LabelRect(s0x + 60, s0y - 8, s0x + 160, s0y + 8),
+        };
+        Assert.Equal(1, SettlementSelection.HitTest(stacked, cam, s0x + 100, s0y, 512, 512, sharedNo0));
+    }
 }

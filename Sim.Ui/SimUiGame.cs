@@ -101,6 +101,9 @@ public sealed class SimUiGame : Game
     private MouseState _lastMouse;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
+    // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
+    // (row-aligned with world.Settlements) and consumed by the click hit-test.
+    private readonly System.Collections.Generic.List<SettlementSelection.LabelRect> _labelRects = new();
     private int _clickDownX, _clickDownY;
     private double _fps;
 
@@ -318,7 +321,8 @@ public sealed class SimUiGame : Game
                 && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
             {
                 int hit = SettlementSelection.HitTest(
-                    _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height);
+                    _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height,
+                    _labelRects);   // D-A2: labels are part of the click target
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;
@@ -467,6 +471,7 @@ public sealed class SimUiGame : Game
         ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
         Rectangle viewport = Viewport();
         const float markerPx = (float)SettlementSelection.MarkerScreenPx;
+        _labelRects.Clear();
         for (int i = 0; i < _world.Settlements.Count; i++)
         {
             LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
@@ -479,6 +484,12 @@ public sealed class SimUiGame : Game
             // Shadowed for readability over any terrain color.
             drawList.AddText(pos + new System.Numerics.Vector2(1, 1), 0xE0000000u, name);
             drawList.AddText(pos, 0xFFE8DCC0u, name); // parchment
+            // D-A2: the label is part of the click target. The rect is
+            // measured HERE (the renderer owns font metrics) and handed to
+            // the pure view-model — ImGui never crosses into SettlementSelection.
+            System.Numerics.Vector2 extent = ImGui.CalcTextSize(name);
+            _labelRects.Add(new SettlementSelection.LabelRect(
+                pos.X, pos.Y, pos.X + extent.X, pos.Y + extent.Y));
         }
     }
 
