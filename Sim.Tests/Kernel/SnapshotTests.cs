@@ -407,7 +407,15 @@ public class SnapshotTests
         //   non-staple demand substitutes into the staple). Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
         //   T3.4c-only value: ed26139ba58e6fb22ddcd36f4b1abf0a407f8468f0cd001d28623c725570fda3
-        const string golden = "d4e5150a607d9f9ffaf90128433ebec32bb86f0cc2c98abdb8680bd51e3ae945";
+        //   T3.5b (2026-07-28, DELIBERATE): the never-ordered default becomes
+        //   the derived subsistence mix (0.55/0.15/0.10/0.12/0.08 —
+        //   docs/t3.5b-derivations.md §1), the variety reference becomes the
+        //   fixed nutritional standard (H* = 0.54), and empty classes accrue
+        //   no grievance. All three move every founded world: production
+        //   spreads across five sectors, satisfaction re-bases, ghost stocks
+        //   zero. Semantic shape asserts unchanged and passing.
+        //   T3.5 value: d4e5150a607d9f9ffaf90128433ebec32bb86f0cc2c98abdb8680bd51e3ae945
+        const string golden = "ea965151f84539806b9bc8ca7ffe378f27ab0978e4347d99f06f39d03c598054";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

@@ -221,6 +221,12 @@ public class NeedsGrievanceTests
         TurnExecutor famineExec = ProductionExecutor(starving);
 
         WorldState prefix = WorldFounding.Found(TestConfigs.DevWorldgen(), fed, Seed, 1);
+        // T3.5b: the fed/starving contrast is calibrated for an all-farming
+        // world; under the subsistence default the FED arm starves too and the
+        // control is no longer a control. Pinned explicitly (§7.8).
+        prefix.SectorAllocations.Add(new SectorAllocationRow(
+            prefix.Settlements[0].Id, Farming: 1.0, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 0.0));
         for (int t = 1; t <= 6; t++) prefix = fedExec.Step(prefix);
 
         WorldState control = prefix.Clone(), famine = prefix.Clone();
