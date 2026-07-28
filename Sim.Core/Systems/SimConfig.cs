@@ -25,6 +25,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
     [property: JsonPropertyName("production")] ProductionConfig Production,
     [property: JsonPropertyName("price")] PriceConfig Price,
+    [property: JsonPropertyName("harvestVariance")] HarvestVarianceConfig HarvestVariance,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
@@ -288,6 +289,71 @@ public sealed record PriceConfig(
     [property: JsonPropertyName("bandMin"), JsonRequired] double BandMin,
     [property: JsonPropertyName("bandMax"), JsonRequired] double BandMax,
     [property: JsonPropertyName("maxRelativeChangePerYear"), JsonRequired] double MaxRelativeChangePerYear);
+
+/// <summary>
+/// T3.4b harvest variance (CR-003 ruling §3). ALL TUNE, ALL CHOSEN, per S8
+/// 4.1(c) — none of these is derived, and each states its real-world meaning.
+///
+/// THE MODEL. Per settlement, a log-space AR(1) with a spatially smoothed
+/// innovation:
+///   rho     = exp(-dtYears / CorrelationTimeYears)      (temporal memory)
+///   x_i(t)  = rho * x_i(t-1) + Sigma * sqrt(1 - rho^2) * e_i
+///   mult_i  = exp(x_i - Sigma^2 / 2)                    (mean EXACTLY 1)
+/// where e_i is a unit-variance innovation smoothed over neighbours by an
+/// exponential distance kernel (see SpatialRangeCostUnits).
+///
+/// WHY exp(-dt/tau) FOR rho, AND WHY sqrt(1 - rho^2) ON THE INNOVATION. Both are
+/// dt-correctness (law 3) and both are the ADR-016 family — a correlation that
+/// decays continuously in TIME, not per turn. exp(-dt/tau) makes the memory a
+/// property of years rather than of turn count; sqrt(1 - rho^2) is exactly the
+/// factor that holds the STATIONARY variance at Sigma^2 for every dt, so a
+/// campaign that shrinks dt does not silently change how variable the weather
+/// is. A naive constant rho would make weather calmer or wilder purely as an
+/// artefact of the era table.
+///
+/// SigmaLogYield — DERIVED 0.2936, replacing a CHOSEN 0.18 (T3.4b, director
+///   ruling). Standard deviation of LOG yield in a single year.
+///   REFERENCE CLASS: rain-fed cereal agriculture without irrigation or modern
+///   inputs. The best-documented proxy is medieval English demesne wheat
+///   (Winchester Pipe Rolls, 13th–15th c.), whose interannual yield CV is
+///   commonly placed around 0.25–0.35. Early agriculture should sit at least
+///   that high — landrace seed, no systematic rotation — and this model adds a
+///   specific reason to expect the upper part of the band: a ~50 km hinterland
+///   is a spatially small sample, so little internal averaging smooths the draw.
+///   DERIVATION: take CV = 0.30 as the central value and invert the lognormal
+///   relation CV = sqrt(exp(sigma²) − 1), giving
+///   sigma = sqrt(ln(1 + CV²)) = sqrt(ln 1.09) = 0.2936.
+///   The prior 0.18 implied CV = 0.18 — below the entire reference band, and
+///   never derived from anything.
+///   MEASURED CONSEQUENCE, reported because it does not help: gross migration
+///   rises 0.43 → 0.76 %/decade, i.e. the derived constant moves the migration
+///   corridor FURTHER out of band, not toward it. Adopted regardless, per the
+///   T3.2b precedent that out-of-band with a derived constant beats in-band
+///   with a fitted one.
+/// CorrelationTimeYears — CHOSEN 3.0. Never derived. The e-folding memory of
+///   the weather process. THIS IS THE PARAMETER THAT MAKES MULTI-YEAR DROUGHTS
+///   POSSIBLE, which the ruling requires: at tau = 3 a bad year is followed by a
+///   bad year far more often than chance, so consecutive failures — the thing
+///   that actually kills, against stores that survive one bad year — occur at a
+///   realistic rate rather than never. Frame: drought regimes persist over a
+///   few years, not a few decades.
+/// SpatialSharedFraction — CHOSEN 0.6. Never derived. The share of a
+///   settlement's innovation that comes from the regionally smoothed field
+///   rather than its own local draw. THE RULING REQUIRES THIS BE MEANINGFUL:
+///   uncorrelated rolls let trade and migration average away all risk, and
+///   "regional bad years are the point". At 0.6 a bad year is mostly shared
+///   with neighbours and partly local.
+/// SpatialRangeCostUnits — CHOSEN 40.0 cost units. Never derived. The e-folding
+///   distance of the weather field, in the same travel-cost units as
+///   SettlementDistances. Settlements a short journey apart share weather
+///   strongly; settlements across the map share it weakly. Frame: a weather
+///   system spans a region, not a continent.
+/// </summary>
+public sealed record HarvestVarianceConfig(
+    [property: JsonPropertyName("sigmaLogYield"), JsonRequired] double SigmaLogYield,
+    [property: JsonPropertyName("correlationTimeYears"), JsonRequired] double CorrelationTimeYears,
+    [property: JsonPropertyName("spatialSharedFraction"), JsonRequired] double SpatialSharedFraction,
+    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):

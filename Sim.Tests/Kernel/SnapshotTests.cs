@@ -162,7 +162,13 @@ public class SnapshotTests
         //   system is not in the toy preset and this world has no settlements,
         //   so no price is ever computed; only the stream grew.
         //   v12 value: d0767e5126acbb3f9af220f373fc3dca37a8b8c80d35aad0e993294ea1da8dbd
-        const string golden = "8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c";
+        //   v14 (T3.4b, CR-003 §3 — SCHEMA ONLY on this world): schema v16
+        //   appended the empty HarvestWeather table (one zero count prefix, 4
+        //   bytes). The harvest-weather system is not in the toy preset and this
+        //   world has no settlements, so no weather is ever drawn; only the
+        //   stream grew.
+        //   v13 value: 8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c
+        const string golden = "1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -370,7 +376,29 @@ public class SnapshotTests
         // T3.3 value below was verified unchanged immediately before the price
         // system was added to the pipeline.
         //   T3.3 value: 3a73f1a7df18091da43e542f48669996b01a46675f1b77782bdbf4a7892999ff
-        const string golden = "aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc";
+        // T3.4b RE-MINT (CR-003 §3). The founded world DOES run harvest
+        // weather, so this moves for two reasons, both intended and itemized:
+        //   1. schema v16 — the HarvestWeather table is appended and POPULATED;
+        //   2. BEHAVIOUR — realised farm output is now multiplied by a mean-one
+        //      stochastic factor, so every downstream trajectory (stores,
+        //      population, migration, prices) differs from the deterministic
+        //      run. This is the packet's whole purpose, not a side effect.
+        // Mean is exactly 1 by construction, so EXPECTED yield is unchanged and
+        // the derived 26.0 is untouched; what moved is the realised path.
+        //   T3.4 value: aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc
+        //   SECOND re-mint in this packet, and the reason is a CONSTANT becoming
+        //   DERIVED rather than any code change: sigmaLogYield 0.18 (chosen) ->
+        //   0.2936 (derived from a rain-fed-cereal CV of 0.30). Weather
+        //   amplitude sets the realised harvest path, so the hash moves.
+        //   post-weather, pre-derivation value:
+        //   305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8
+        //   T3.4c (variance fix - DELIBERATE): the weather blend's cross-term is
+        //   corrected, so every weather multiplier changes and with it every
+        //   harvest. NOT a schema change; behaviour only. Realised CV moves from
+        //   0.38-0.43 to 0.295-0.308, inside the reference band the derived sigma
+        //   came from. Update ci.yml's FOUNDED_GOLDEN with this constant.
+        //   previous value: 38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207
+        const string golden = "ed26139ba58e6fb22ddcd36f4b1abf0a407f8468f0cd001d28623c725570fda3";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -750,6 +778,57 @@ public class SnapshotTests
         Assert.Equal(11, g.LastProducedUnits);
         Assert.Equal(22, g.LastInputDemandUnits);
         Assert.Equal(33, g.LastConsumptionDemandUnits);
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV16_PopulatedHarvestWeatherTable()
+    {
+        // THE POPULATED-TABLE TEST THE CONSTITUTION REQUIRES FOR EVERY NEW
+        // SERIALIZED ROW TYPE, missing since T3.4b introduced schema v16. The
+        // V-series ran V3, V4, V6-V13, V15 and then stopped: nothing anywhere in
+        // Sim.Tests constructed a HarvestWeatherRow, so a read/write
+        // transposition of its two doubles was caught only incidentally, by one
+        // leg of the founded harness — the exact T1.1/T1.3 precedent this rule
+        // exists for.
+        //
+        // DISTINCT values in every field, and a NEGATIVE LogDeviation, because
+        // that is the half of the range a bad year lives in and an all-positive
+        // fixture would not notice a sign error. -0.0 is included for the same
+        // reason it is elsewhere in this file: it is bit-distinct from 0.0 and a
+        // normalising serializer would silently eat it.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+        world.HarvestWeather.Add(new HarvestWeatherRow(new SettlementId(0), -0.4375, 0.6455078125));
+        world.HarvestWeather.Add(new HarvestWeatherRow(new SettlementId(1), 0.28125, 1.32470703125));
+        world.HarvestWeather.Add(new HarvestWeatherRow(new SettlementId(2), -0.0, 1.0));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(3, loaded.HarvestWeather.Count);
+        // Field-by-field, and by BITS on the doubles — the fields are the same
+        // type and adjacent, so a transposition round-trips cleanly under an
+        // equality that only checks values are present.
+        Assert.Equal(0, loaded.HarvestWeather[0].Settlement.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.4375),
+            BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[0].LogDeviation));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.6455078125),
+            BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[0].Multiplier));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.28125),
+            BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[1].LogDeviation));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[2].LogDeviation));
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }

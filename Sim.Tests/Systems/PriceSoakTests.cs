@@ -16,6 +16,15 @@ namespace Sim.Tests.Systems;
 /// one instrument — so the instrument is tested against a series known to
 /// oscillate before it is trusted on the series under test. This is the
 /// T2.8/PopulationTests precedent applied to prices.
+///
+/// COVERAGE WARNING (director ruling, 2026-07-26 — until T3.11 lands the driven
+/// golden). THE GOLDENS DO NOT COVER PRICE BEHAVIOUR AT ALL. Every pinned world
+/// runs the all-farming default, so no good but grain ever flows, every price
+/// sits at exactly 1.0, and the step's exponent is exactly 0 — ADR-016 changed
+/// the solver's mathematics from Euler to exact integration and left all three
+/// golden hashes BYTE-IDENTICAL. Price behaviour is therefore covered by THIS
+/// file and the driven soak alone. Do not read a green golden as evidence that
+/// the price solver is unchanged.
 /// </summary>
 public class PriceSoakTests
 {

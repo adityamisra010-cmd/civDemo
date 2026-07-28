@@ -66,10 +66,10 @@
     },
     "migrationGrossPerDecade": {
       "band": [
-        0.0001,
-        0.003
+        0.001,
+        0.01
       ],
-      "note": "Fraction of population moving per decade; measured 0.0004 in the fed era (famine flight, the big driver, is absent). Upper edge = the T2.5 rig corridor ceiling."
+      "note": "T3.4b RE-DERIVED, definition first (director ruling). WHAT THIS NUMBER MEASURES, established by measurement not assumption: LONG-DISTANCE PERMANENT INTER-SETTLEMENT RELOCATION between sites spaced >=480 km apart, in a frontier agrarian world with 26x arable-per-capita heterogeneity and rain-fed harvest CV 0.30, with no trade and foot/cart transport. It is NOT a migration propensity: baseRatePerYear 0.03/0.018/0.012 gives 0.43/0.41/0.42 %/decade, barely moving and non-monotonically, because the T2.8 gap-closing cap binds and m* = (R_j*P_i - R_i*P_j)/(R_i+R_j) depends only on resources and population - the rate cancels out entirely. T3.4c CORRECTION (review fix, measured): the number is NOT set by land heterogeneity — that attribution was refuted by factorial at corrected variance (canonical seed 1, 650 turns): sigma swept 0->0.5 moves the corridor 3.70x (0.000671->0.002480 %/decade) while the land term's entire main effect is 2.0% and deleting it outright moves the value -0.8%; at sigma=0 the shipped world reads 33% BELOW this floor. The number is set by WEATHER-DRIVEN per-capita food differentials against the cap. (The baseRatePerYear probe above was taken at sigma=0.18, pre-derivation; the cancellation it demonstrates is structural and survives the variance fix.) PRIOR BASIS (superseded): the old note read 'measured 0.0004 in the fed era ... upper edge = the T2.5 rig corridor ceiling' - i.e. the band was FITTED to what the model happened to produce and borrowed its ceiling from another rig. It was never derived. REFERENCE CLASS: frontier agrarian colonization - LBK Neolithic spread across Europe, Bantu expansion, the Russian/Siberian agricultural frontier, the North American colonial interior. Societies where land is abundant, sites differ markedly in quality, and long-distance relocation is expensive but routinely undertaken. BAND THE CLASS IMPLIES: lower bound 0.1 %/decade - below this a 26x land-quality differential is never exploited, settlements are isolated islands and no frontier dynamic exists, which contradicts every member of the class. Upper bound 1.0 %/decade - above this, 10% of a population relocates 480+ km per century on foot, with no markets, no roads to speak of and no surplus to finance it; subsistence societies cannot sustain that rate of long-distance movement. Hence [0.001, 0.010]. EPISTEMIC CAVEAT, stated because it matters: this band was derived AFTER the value 0.76 %/decade was measured, so it was not derived blind. (PROVENANCE, T3.4c: 0.76 was measured in the pre-fix world whose realised sigma was inflated 1.10-1.41x; the corrected world measures 0.115-0.164 %/decade on canonical seeds 1-5. The caveat's point — the band was not derived blind — stands unchanged; the number is kept as the historical value the derivation knew.) The two bounds rest on land-exploitation and transport-cost arguments that are independent of the measurement, but the director should weigh that the number was known."
     }
   },
   "dev": {
@@ -111,10 +111,10 @@
     },
     "migrationGrossPerDecade": {
       "band": [
-        0.0005,
+        0.001,
         0.01
       ],
-      "note": "Measured 0.0013-0.0029; famine flight around the crash lifts the dev world above the fed canonical rate."
+      "note": "T3.4b: unified with the canonical band, which is now DERIVED from the frontier-agrarian reference class rather than fitted per-world. The dev band was previously [0.0005, 0.01] - its upper edge already coincided with the derived ceiling. RE-FRAMED 2026-07-27 (director ruling): this floor is NOT missed by one outlier seed. MEASURED, dev worldgen, 1000 turns, seeds 1-60: 52 of 60 sit BELOW this floor, 8 in band, and 10 fall in the [0.9*lo, lo) window the test quarantines. Worst seed 26 at 0.00044986 (-55.0%); median seed 54 at 0.000858572 (-14.1%); best seed 14 at 0.00115079 (+15.1%). The ratified seed 7 sits at 0.000956939 (-4.3%) - the 44th smallest of 60, i.e. among the SMALLEST misses, not an outlier. THE WHOLE DEV SEED SET STRADDLES THIS FLOOR. THE FLOOR DOES NOT MOVE: this is a description fix, not a band fix, and the T3.4b ruling against widening stands. T3.4c's re-measurement in the variance-corrected world is judged against this baseline - the weather defect inflated realised sigma ~1.33x and gross migration with it, so a quarantine that hid the majority of its own failures would have made those before/after deltas meaningless."
     }
   }
 }

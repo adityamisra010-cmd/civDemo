@@ -241,6 +241,7 @@ public class MigrationTests
         long threshold = pop0 * 8 / 100;
         long cumOutF = 0, cumOutB = 0, prevStarvF = 0, prevStarvB = 0, cumStarvF = 0, cumStarvB = 0;
         int exitTurn = -1, deathTurn = -1;
+        long exitAtCross = 0, deathAtCross = 0;
         for (int t = 1; t <= 40 && (exitTurn < 0 || deathTurn < 0); t++)
         {
             worldF = famine.Step(worldF);
@@ -254,14 +255,34 @@ public class MigrationTests
 
             long exitAttrib = cumOutF - cumOutB;
             long deathAttrib = cumStarvF - cumStarvB;
-            if (exitTurn < 0 && exitAttrib >= threshold) exitTurn = t;
+            if (exitTurn < 0 && exitAttrib >= threshold) { exitTurn = t; exitAtCross = exitAttrib; deathAtCross = deathAttrib; }
             if (deathTurn < 0 && deathAttrib >= threshold) deathTurn = t;
         }
 
         Assert.True(exitTurn > 0, $"attributable out-migration never crossed {threshold} of {pop0} in 40 turns");
         Assert.True(deathTurn > 0, "attributable starvation never crossed the fraction — window too short to prove ordering");
-        Assert.True(exitTurn < deathTurn,
-            $"EXIT-BEFORE-DEATH violated: exit crossed at turn {exitTurn}, death at turn {deathTurn}");
+        // T3.4b — THE INSTRUMENT WAS TOO COARSE, and the invariant is unchanged.
+        //
+        // Under harvest variance both crossings land in the SAME turn. At dt = 10
+        // a turn is a ten-year bucket, so `exitTurn < deathTurn` cannot resolve
+        // an ordering finer than a decade — and famine onset is now sharp enough
+        // that exit and death cross within one. That is a limit of the
+        // measurement, not a violation of D-021's Exit-before-Voice ordering, and
+        // loosening the claim to `<=` alone would quietly drop the ordering test
+        // altogether.
+        //
+        // So the ordering is asserted where it is actually resolvable: exit must
+        // never LAG death across turns, AND at the turn exit crosses, the
+        // attributable exit must EXCEED the attributable death. People leave
+        // faster than they die, measured at the moment of crossing rather than
+        // by which decade bucket each landed in.
+        Assert.True(exitTurn <= deathTurn,
+            $"EXIT-BEFORE-DEATH violated: exit crossed at turn {exitTurn}, death at turn {deathTurn} "
+            + "— exit LAGGED death, which no measurement granularity excuses");
+        Assert.True(exitAtCross > deathAtCross,
+            $"EXIT-BEFORE-DEATH violated within turn {exitTurn}: attributable exit {exitAtCross} "
+            + $"did not exceed attributable starvation {deathAtCross} — people are dying at least "
+            + "as fast as they flee, so the D-021 Exit valve is not leading");
     }
 
     private static long StarvedTotal(WorldState world)
@@ -347,8 +368,29 @@ public class MigrationTests
         // REAL AGAIN under the damped mechanism (the T2.5 lesson holds).
         SimConfig cfg = TestConfigs.Sim();
         double worst = MaxGrossPerDecade(cfg);
-        Assert.True(worst is > 0.0005 and < 0.0030,
-            $"gross migration {worst:P2}/decade outside the [0.05%, 0.30%] corridor");
+        // T3.4b — CORRIDOR RE-DERIVED, definition first (director ruling); the
+        // full derivation lives in corridors.json.
+        //
+        // The old [0.05%, 0.30%] band was FITTED, not derived: its own note read
+        // "measured 0.0004 in the fed era ... upper edge = the T2.5 rig corridor
+        // ceiling". And it was never measuring a migration propensity —
+        // baseRatePerYear 0.03/0.018/0.012 yields 0.43/0.41/0.42 %/decade,
+        // barely moving and NON-MONOTONICALLY, because the T2.8 gap-closing cap
+        // binds and the rate cancels out of m* entirely. What it measures is
+        // long-distance inter-settlement relocation driven by LAND
+        // HETEROGENEITY, on a world that had neither weather nor a live land
+        // signal when the band was set.
+        //
+        // Re-derived for what it actually measures — frontier agrarian
+        // colonization across >=480 km spacing, 26x arable heterogeneity,
+        // rain-fed CV 0.30, no trade, foot transport — the class implies
+        // [0.1%, 1.0%] per decade: below 0.1% the land differential is never
+        // exploited and settlements are isolated islands; above 1.0% a tenth of
+        // the population walks 480+ km per century without markets or surplus to
+        // finance it.
+        Assert.True(worst is > 0.001 and < 0.010,
+            $"gross migration {worst:P2}/decade outside the re-derived [0.1%, 1.0%] corridor "
+            + "(frontier agrarian long-distance relocation; see corridors.json)");
         double canonicalFull = MaxGrossPerDecade(cfg, includeSettling: true);
 
         // ...WITH TEETH in both directions — measured on the FULL window
@@ -376,9 +418,21 @@ public class MigrationTests
         // produces only ~1.5× the flow. Re-balancing foodWeight against
         // landWeight is a deliberate TUNING decision and is NOT taken inside a
         // denomination packet; it is recorded in cr-003 §2.5.
-        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
-            hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
-            $"a 10× base rate has teeth (produced {hotWorst:P2}/decade against {canonicalFull:P2})");
+        // T3.4b — QUARANTINE LIFTED (the migration-teeth family's second site;
+        // the first was exit-before-death). The guard reported RESOLVED at
+        // 1.31 %/decade against 0.83 %. The T3.4b re-derivation restored the
+        // land signal (landWeight 0.00390625 -> 0.078125, derived) and harvest
+        // variance opened real attractiveness gaps, so a hot base rate has
+        // somewhere to push again and the teeth are live.
+        //
+        // NOTE the asymmetry, which is the cap's signature and is real: pushing
+        // the base rate DOWN barely moves gross migration (0.03/0.018/0.012 ->
+        // 0.43/0.41/0.42 at the pre-derivation sigma) because the gap-closing
+        // cap already binds, while pushing it UP 10x does move it, by lifting
+        // desire above the cap in more pairs. A one-sided lever, not a dead one.
+        Assert.True(hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
+            $"a 10× base rate has NO teeth: produced {hotWorst:P2}/decade against "
+            + $"{canonicalFull:P2} — the rate lever is dead in both directions");
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },

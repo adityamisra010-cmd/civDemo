@@ -343,3 +343,316 @@ That is the empirical argument for a lens FLOOR rather than a lens budget: not t
 find six times as much, but that a defect can sit exactly on the boundary between two lenses'
 remits and be reasoned away by whichever one meets it alone. Recorded in
 `docs/t3.4-lens-manifest.md` as the rationale for requiring six against a spec floor of five.
+
+
+### 7.7 A corridor insensitive to its own control parameter is measuring something else
+
+**Director ruling, 2026-07-26, from T3.4b.** The migration magnitude corridor was defended and
+attacked for two sessions as though it measured a migration propensity. It did not.
+
+`baseRatePerYear` 0.03 / 0.018 / 0.012 produced 0.43 / 0.41 / **0.42** %/decade — barely moving,
+and NON-MONOTONICALLY. The cause: T2.8's gap-closing cap is `GapClosingFraction × m*` with
+`m* = (R_j·P_i − R_i·P_j)/(R_i + R_j)`, a function of resources and population only. Whenever the
+cap binds, **the base rate cancels out of the result entirely**. The corridor was measuring a
+structural property of the world's land heterogeneity, on a world that at calibration time had
+neither weather nor a live land signal.
+
+**CORRECTION (T3.4c review fix, 2026-07-28 — measured, this section's own rule applied to
+itself).** The sentence above ends on a claim that was never measured and is false: with weather
+live, the corridor is NOT set by land heterogeneity. The factorial at corrected variance
+(canonical 1024 px, seed 1, 650 turns): σ swept 0 → 0.5 moves the corridor **3.70×**
+(0.000671 → 0.002480 %/decade); the land term's **entire main effect is 2.0%**, and deleting it
+outright moves the value **−0.8%** — weather dominates land by roughly **150×** on main effects.
+At σ = 0 the shipped canonical world reads 0.000671, **33% below its own floor**: the corridor's
+control parameter is harvest variance, and the cap converts weather-driven per-capita food
+differentials into flow. What the cancellation identity above established is only that
+`baseRatePerYear` is not the control — the "land heterogeneity" attribution slipped in unmeasured,
+was refuted at T3.4b (review record §5.3, ~30×), re-confirmed at T3.4c (~150×), and still
+propagated to a downstream misreading because it sat in this ratified section. **What actually
+sets the value: harvest-variance-driven attractiveness differentials, capped by
+`GapClosingFraction × m*`.** Per this section's own rule, that was established by sweeping — σ
+responds monotonically ~1.35× inside its own derived CV band; land does not respond at all.
+
+> **THE RULE: a corridor whose measured value is insensitive to the parameter that nominally
+> controls it is measuring something else. Establish what actually sets the value before
+> defending or moving the band.**
+
+This is a cousin of the density corridor's cancellation identity (ADR-013): there, a bound
+derived as `P_hist/(H × s̄)` cancelled against the sim's own `s̄` and the instrument became a
+mirror. Here the cancellation is in the *mechanism* rather than the algebra, and it was found by
+**measurement** — sweeping the parameter and watching the output refuse to move — rather than by
+inspecting a formula. Both failure modes produce a number that looks like evidence and is not.
+
+The diagnostic is cheap and should be routine: **sweep the nominal control parameter before
+trusting a corridor.** If the value does not respond, the band is not describing what its name
+says. Note that the lever may be one-sided — here, pushing the rate DOWN did nothing while
+pushing it UP 10× did move the value, by lifting desire above the cap in more pairs.
+
+
+### 7.8 A new stochastic driver can silently destroy an existing experiment's control
+
+**Director ruling, 2026-07-26, from T3.4b.** Recorded as doctrine because it will recur: every
+future stochastic driver — weather, disease, raids, price shocks — creates this hazard on the day
+it lands.
+
+> **When a new stochastic driver is introduced, existing controlled experiments may silently lose
+> their control.** The baseline arm acquires the same variance as the treatment arm and the
+> contrast collapses.
+
+The T3.4b instance, measured: `Famine_MortalitySpike` compares a deliberately starved arm against
+a fed baseline, and the contrast IS the measurement. At the derived `sigmaLogYield` the famine arm
+reported **LOWER** per-capita mortality than its own baseline — **0.609 vs 0.707** — because the
+baseline had bad years too. The grievance rig's starvation window likewise *fell*, 5.96 → 2.04.
+Neither rig was broken; both had been quietly disarmed by noise arriving on both arms at once.
+
+**Running such rigs with the driver disabled RESTORES the control; it does not suppress the
+phenomenon.** The distinction that matters, and it is easy to blur:
+
+| instrument | purpose | treatment of a new driver |
+| --- | --- | --- |
+| a **rig** | isolate ONE variable | disable the driver — it is a confound |
+| a **system-level soak** | observe INTERACTION | keep the driver — it is the subject |
+
+Removing a confound from a rig is not the same act as hiding it from a soak, and the second would
+be the vacuity pattern. The test is what the instrument exists to measure: a controlled experiment
+that lets an uncontrolled variable into both arms has stopped being controlled, whatever its name
+still says.
+
+**THE STANDING OBLIGATION: every future stochastic driver must AUDIT EXISTING RIGS for this
+collapse** — enumerate the controlled experiments the driver can reach, check each for contrast
+loss, and either isolate the rig or state why it survives. Silence is not evidence the rigs held;
+in T3.4b two of them had already inverted before anyone looked.
+
+
+### 7.9 A third way a lens vanishes: the tooling breaks and the error misdirects
+
+**CORRECTED 2026-07-27. The first version of this section was WRONG, and the correction is the
+point of it.**
+
+**What I first wrote.** T3.4b's six-lens review returned `allSixReported: false` with every lens
+reporting `StructuredOutput retry cap (5) exceeded`. Usage showed ~240k subagent tokens and 90
+tool calls, so I concluded the lenses had *finished* and that my strict findings schema had
+rejected their real output — "a validation schema sits downstream of all the expensive work". I
+loosened the schema and re-ran. It failed **identically**: six of six, same error, 216k tokens.
+
+**What was actually happening**, from the agent transcripts I should have read the first time:
+
+> `The permission handler returned updatedInput for <Tool> that failed schema validation: The
+> required parameter <param> is missing. This is a configuration issue in your canUseTool
+> callback, PermissionRequest hook, or permission-prompt tool.`
+
+**Every tool in the subagent environment was non-functional** — `Bash`, `Read`, `Grep`, `Glob`
+and `StructuredOutput` alike. One lens recorded thirteen attempts across five tools, all the same
+error. The agents never pinned a worktree, never opened a source file, never ran a test. The
+tokens were spent retrying broken tools, not investigating. The `StructuredOutput` failure was
+itself a symptom: the agent DID supply `pinHashSeen: "UNVERIFIED"` and the handler still reported
+the property missing, because it was stripping required parameters from that call too.
+
+**THE LESSON, and it is not the one I first drew.** The error surfaced at the LAST step in the
+chain — the structured emission — and named a schema property. That is a plausible, specific,
+self-consistent story about the schema, and it was wrong. **A failure reported at the boundary of
+your own component is not evidence the fault is in your component.** I had a diagnosis that fit
+the visible evidence, acted on it, and only discovered the real cause because the fix changed
+nothing. The second identical failure was the finding; the first was a hypothesis I had already
+written into an ADR as fact.
+
+Read the agent transcripts before theorising about agent failures. The journal carries
+`started`/`result` only; the transcripts carry what the agent actually saw, and here they stated
+the true cause in plain English on the first run.
+
+**The subagent behaved better than I did.** Forced to emit, it refused to produce a clean-looking
+empty result and instead wrote: *"REVIEW NOT EXECUTED … Empty findings means UNMEASURED, not 'no
+defects' … T3.4b must not be accepted on this run; respawn Lens 1 with working tooling."* That is
+§7.3 holding one level below this one — an agent declining to let its own silence read as a pass.
+
+**The family of lens-vanishing mechanisms now stands at three:**
+
+| # | mechanism | what it looks like | first seen |
+| --- | --- | --- | --- |
+| 1 | the lens never launched | nothing at all, no error | T3.3 round 1 |
+| 2 | the lens errored in flight | HTTP 529, visible failure | T3.3 round 2 |
+| 3 | **the environment's tooling was broken** | a schema error at the final step, misdirecting | T3.4b |
+
+Only §7.3's rule — reconcile required lenses **by name against returned results** — catches all
+three, and against mechanism 3 the workflow-level report ("ran, finished, six agents") is true
+and completely useless.
+
+**A REVIEW THAT CANNOT EXECUTE IS NOT A REVIEW THAT FOUND NOTHING.** Three attempts were made;
+the packet is NOT certified, and no lens result exists to certify it with.
+
+
+---
+
+## §7.11 — Reconcile lenses BY NAME, from the manifest, or §7.3 does nothing
+
+**T3.5/T3.4b, 2026-07-27.** §7.3 says a review is incomplete until every lens has reported,
+including the ones that never started. It says to reconcile *by name against returned results*. On
+the T3.4b re-run I reconciled **by count, from memory** — declared six when five had reported, filed
+a review record asserting all six, and then, acting on the same miscount, **deleted the missing
+lens's worktree while it was still running.**
+
+The lens recreated its tree at the pin and reported anyway. What it found were the two most damaging
+results in the review: a mutant that moves the weather multiplier onto the land side — violating a
+CR-003 constraint the code itself documents — surviving all 343 tests, and a shipped guard with no
+proven-red test. A review declared complete one lens early would have shipped both.
+
+**The rule §7.3 already stated, restated as a procedure because the statement was not enough:**
+
+1. Open the manifest. Read the lens names off it.
+2. For each name, point at the returned result. Not a memory of it, not a count.
+3. A name with no result is BLOCKING, whatever the tally says.
+4. **Do not tear down review infrastructure until step 3 is clean** — cleanup acts on the same belief
+   as the declaration, so a wrong count destroys the evidence that would have corrected it.
+5. **COMMIT BEFORE YOU RUN ANYTHING THAT REVERTS.** Third instance of one pattern — cleanup acting
+   destructively on unsecured work, on the strength of a belief about what state things were in:
+   the worktree deleted mid-sweep (above), and `git checkout --` wiping uncommitted item-4 work
+   during a T3.4c tooth-proof, because the mutant and the real work were in the same file. **Mutant
+   proofs, worktree teardown and any revert-shaped operation are CLEANUP; secure the work first.**
+   The second instance was caught only because the suite came back red against a clean tree — i.e.
+   by luck, not by process.
+
+The failure mode is not forgetting §7.3; it is *believing you have satisfied it*. A count is a claim
+about the world that feels like bookkeeping, which is what makes it easy to get wrong and hard to
+notice. The manifest exists so the reconciliation is a lookup rather than a recollection — use it
+that way.
+
+Note the symmetry with §7.10: there, a correct measurement carried a wrong interpretation; here, a
+correct process carried a wrong belief about whether it had been followed. Both are cases of
+confidence outrunning evidence, and both are defended against procedurally rather than by resolving
+to be more careful.
+
+
+---
+
+## §7.12 — The seed-7 quarantine: a ruling granted on an unmeasured property
+
+**Director ruling, T3.4b review, 2026-07-27.** Recorded against the artifact, not only in the abstract.
+
+The director ratified a quarantine described to him as **seed-scoped, loud, and covering one seed
+honestly outside the band**. Measured, it is none of the three:
+
+| claimed | measured |
+| --- | --- |
+| seed-scoped | `AssertInBand` never receives the seed; the bypass is a pure function of `(key, value)`. Seeds **41, 29 and 12** were driven through the real call site and **passed while out of band**; nine non-seed-7 seeds in 1–60 land in the silent window |
+| loud | the banner never names a seed — a seed-41 bypass is indistinguishable from seed 7's |
+| one seed outside | **52 of 60 dev seeds sit below the floor.** Seed 7 is near the top of a large below-floor cluster, not an outlier |
+
+Net effect: the floor the director ruled **immovable** moved 10% for every dev seed. And it has no
+tooth in either direction — both established quarantine patterns in this repo carry a resolution
+tooth; this one does not, and `QuarantinedSeedValue` is dead code, so drift inside the window is
+invisible.
+
+**The mechanism of the failure is §7.10's, one level up.** "Seed-scoped and loud" was written into
+commit `0a4c374`'s message and the docstring **without being measured** — and this ADR already
+carried the rule that a claim written into a commit message must have been measured by the agent
+writing it, a rule that exists because of a prior instance of the same error. The director then ruled
+on the description rather than the artifact, because the description was the only thing in front of
+him.
+
+**Both halves of the lesson:**
+
+1. **For the implementing agent:** a property asserted about your own artifact is a measurement you
+   owe, not a summary you may write. "Seed-scoped" is a testable claim about a call signature and it
+   took one grep to falsify.
+2. **For an escalation:** when you take a failure to a ruling, state what you MEASURED and what you
+   BELIEVE separately. The director's ruling was sound on its own terms — false precision and
+   post-hoc fitting are still correctly forbidden — but it was granted on a premise the escalation
+   supplied and had not checked.
+
+**Also recorded, because the fair reading matters:** the counter-allegation that the packet
+*manufactured* the failure it escalated was **REFUTED**. The band note states the old band verbatim,
+and the floor raise made the corridor **1.8× stricter** — fitting is done to avoid failures, not to
+buy them. The residue is narrower and real: the escalation never told the director that the miss was
+created by the packet's own band change, and that the same run was in-band one commit earlier. An
+incomplete escalation, not a manufactured one.
+
+Re-scoping is scheduled in T3.4c.
+
+### Recorded instance: the T3.4c packet's own report (review fix, 2026-07-28)
+
+The packet's report and the test docstring both claimed **"M10 killed semantically"** — the
+acceptance criterion. The test-power lens measured M10 surviving **all 355 tests**: the test
+asserted only that weather changes output, which the mutant satisfies trivially, and the
+land-capped rig its docstring described was never built (no tested world was land-capped; the
+mutant world was bit-exact identical to clean). A property asserted about the packet's own
+artifact, unmeasured, in the very packet whose purpose was repairing unmeasured claims. The fix
+built the described rig and proved both M10 (w² signature) and M9 (weather absorbed by the min)
+red against it.
+
+### Recorded instance: the constitution itself (director ruling, 2026-07-28)
+
+CLAUDE.md stated since M0: *"the director merges a packet branch to `main` on acceptance; agents
+never push to `main`."* Measured against the tree: **every merge commit on `main` since M0 is
+authored and committed by the agent** — the director rules on acceptance and has never performed a
+merge. The first thing every agent reads described a loop that has never once run that way. A
+property asserted about our own process was a measurement owed and never taken, and it survived
+eleven merges because the document asserting it is also the document nobody re-measures. Corrected
+in the same commit to describe the actual loop: agent hands back, director rules, agent merges on
+that explicit ruling.
+
+---
+
+## §7.13 — Pre-commit the reading of BOTH outcomes, before any measurement whose result could be argued about
+
+**Director ruling, T3.4c, 2026-07-27.** Recorded in the implementing agent's framing at the
+director's instruction.
+
+> An interpretation ruled AFTER a measurement is a negotiation; ruled BEFORE, it is a result.
+
+At T3.4c the director predicted the migration corridor would move toward band once excess variance
+was removed. **It moved the other way on BOTH worlds** — dev median −14.1% → −30.5%, and canonical
+fell 19.9–23.5% on every seed (0.00199/0.00173/0.00204/0.00147/0.00153 →
+0.00157/0.00134/0.00164/0.00115/0.00117) — because the inflation had been MASKING how far each
+world sits from the corridor. Canonical simply started with room, so it stayed in band while
+falling; the falsification was uniform. (The canonical arm was measured by the review's
+corridor-and-band lens after the packet reported only the dev arm — recorded here at the
+director's ruling because both-worlds falsification STRENGTHENS this section: the prediction did
+not merely fail on an unrepresentative preset.) Had the interpretation not been fixed in advance,
+a −30.5% median would have been a standing invitation to argue the floor was miscalibrated — with
+the corrected-variance world as ammunition for the argument.
+
+**The prediction failing is the strongest available evidence that pre-committing was right: a rule
+that only ever confirms the ruler's expectations is not constraining anything.**
+
+### What was pre-committed, and what it bought
+
+The reading of all three outcomes was written into `docs/t3.4c-spec.md` before the measurement ran:
+
+| canonical | dev | reading, fixed in advance |
+| --- | --- | --- |
+| in band | in band | the fix moved the distribution; report the delta |
+| **in band** | **below floor** | **the dev preset is not a scale model of the shipped world; a corridor calibrated on it measures the preset** |
+| below floor | below floor | the finding is about the corridor's derivation |
+
+Measured: canonical **5/5 in band** (+15.0% to +63.6%), dev **19/20 below** (median −30.5%, worst
+−64.1%). Row 2, applied without deliberation — floor unmoved, nothing retuned, escalated as B-1b
+evidence. The director's addition of the canonical arm is what made it a discriminator rather than a
+single ambiguous number: it settled the preset question **with a number instead of an argument.**
+
+### The mechanism, which generalises
+
+**A DEFECT CAN MASK THE DISTANCE TO A CORRIDOR AS EASILY AS IT CAN CREATE ONE.**
+
+Excess variance inflated gross migration and moved the measured value *toward* the band, so the
+corrected world reads *further away*. **Do not assume a correction moves an instrument toward
+agreement.** The intuition that fixing a bug brings measurements closer to expectation is a bias
+about defects, not a fact about them — a defect is as likely to have been flattering the instrument
+as damaging it, and which one it was is an empirical question.
+
+This is why the pre-commitment must cover **both** directions explicitly. A pre-commitment that only
+names the outcome you expect is not a pre-commitment; it is a prediction with an escape hatch.
+
+### The rule
+
+Before any measurement whose result could be argued about:
+
+1. Write down what each possible outcome would mean, **including the ones you do not expect**.
+2. Where possible, add a **discriminating arm** — a second measurement that separates competing
+   explanations. One number admits many readings; two numbers that must disagree admit far fewer.
+3. Run it.
+4. Apply the pre-committed reading **without deliberation**, and record the prediction you got wrong.
+
+Note the family resemblance: §7.10 (a measurement and its interpretation verify separately), §7.11
+(reconcile by name, not by belief), §7.12 (a property asserted about your own artifact is a
+measurement you owe), and now §7.13. All four are the same defence — **fix the standard before you
+see the result**, because afterwards you cannot tell your reasoning from your preference.

@@ -144,3 +144,64 @@
   future retune that lowers Lambda below the rail would expose the floor-binding regime to
   direct scrutiny for the first time. Noted by the no-global-solve lens as a corner it chased
   and deliberately did not raise.
+- [PROMOTED to docs/m4-blocking-material.md B-1 — the M4 spec cannot ship without answering it]
+  M4 COLONIZATION / spacing collision (T3.4b finding): minSpacingKm 480 caps the dev continent at
+  NINE settlements — `settlement siting could only place 9 of 12 sites`. Colonization means
+  founding new settlements and there is nowhere to put the tenth. Either minSpacingKm becomes a
+  colonization-aware founding rule rather than a worldgen-only one, or the continent grows, or
+  expansion saturates at 9 and the Malthusian transition arrives by MAP EXHAUSTION rather than by
+  land filling — which would be the trap hardwired by geometry, exactly what CR-003 forbids.
+  Must be settled before or within the M4 colonization packet.
+- D-035 was RULED but never FILED until 2026-07-27 (docs/d035-needs-aggregation.md). The four
+  rulings — variety-as-satisfaction, non-compensatory CES aggregation, the seven legal coupling
+  paths, taxation→Dignity — existed only in the director's notes, so the implementing agent
+  correctly refused to proceed on them (ADR-016 §4 standing note). PROCESS ITEM: a ruling that
+  changes a frozen D-decision must be filed at the time it is made, not at the time a packet
+  needs it. Two packets (T3.5 by a session, T3.4b's evidence by a round-trip) were delayed by
+  unfiled rulings; both refusals were correct and both cost a round-trip that filing would have
+  saved.
+- **libm on the hashed determinism surface (T3.4b lens 1, carried not blocking):** `Math.Cos` and
+  `Math.Log` enter sim code for the first time in `HarvestWeatherSystem`'s Box–Muller. Same-machine
+  reproducibility is verified unaffected, but libm is not bit-guaranteed across glibc versions and
+  nothing in the kernel spec or the banned-constructs gate addresses it. Bears on CI-vs-container
+  golden pins, not on correctness. Raise if a golden ever diverges between environments.
+  **Director note (2026-07-27):** this is the FIRST TIME A PLATFORM MATH LIBRARY SITS INSIDE
+  DETERMINISM. Everything determinism rested on until now was integer PCG32 and IEEE-754 arithmetic,
+  both bit-specified. libm is not: `cos`/`log`/`exp` are implementation-defined to within an ulp and
+  may differ across glibc versions and CPU dispatch paths. **The property at risk is CROSS-PROCESS
+  BYTE-IDENTITY** — the guarantee the whole replay/golden/CI apparatus is built on, and the one M0
+  spent a milestone establishing. A 1-ulp difference survives rounding until it lands near a .5
+  boundary, then diverges permanently and silently.
+- **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
+  in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
+  yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
+- **OPEN — owner T3.10 (corridor & measurement teeth): the √(1−ρ²) stationary-variance factor is
+  unpinned at every dt (T3.4c review, test-power M6-golden-only).** The factor exists, per its own
+  comment, to hold the stationary variance at σ² for every dt; at the shipped Neolithic dt = 10,
+  ρ = 0.036 and the factor is 0.99935 — inert — while at dt = 1 its deletion inflates σ 1.43×. The
+  one dt = 1 rig measures autocorrelation, which is invariant to innovation scale. No test measures
+  realised variance at TWO different dt, so the factor's entire stated purpose has no semantic
+  test. NOT cleared — a real coverage gap, not a stated T3.4c acceptance criterion.
+- **OPEN — owner T3.10: the spatial-correlation test does not test its own name (T3.4c review,
+  test-power F5).** `SpatialCorrelation_NeighboursShareWeather_AndDistantSettlementsDoNot` computes
+  one GLOBAL mean pairwise correlation and asserts it in (0.05, 0.95); it never compares near
+  against far. Mutants M5 (spatialSharedFraction made dead by forcing k = 1) and M8 (the distance
+  kernel made constant, spatialRangeCostUnits dead) both land inside the band and pass — two
+  shipped TUNE parameters have no semantic test. The asymmetry is the tell: pure-local dies,
+  pure-regional does not. Requires a near-vs-far comparison at a rig with meaningful spacing
+  spread. NOT cleared.
+- **Q1 (T3.4c certification, director) — owner T4.1 (M4 FOUNDATIONS AUDIT): the canonical
+  land-capacity / labour-capacity bind ratio was never measured.** The T3.4c land-capped rig used
+  outputPerFarmerPerYear ×1e6 — a definitely-binds value, not a threshold — which served its
+  criterion (M10/M9 discrimination) but tells nobody whether the real distance between the shipped
+  world and a land-capped one is 3× or 1e5×. That distance is exactly what B-2 store bounding and
+  M4 colonization aim to close. Measure the actual bind ratio per settlement on the canonical
+  world in T4.1, which is the packet that will need the number. Not a defect; filed, not fixed.
+- **Q2 (T3.4c certification, director) — the quarantine drift tooth's tolerance margins are
+  ASYMMETRIC, recorded with the mitigation so it is not rediscovered as a surprise.** 0.75 leaves
+  11% headroom on the must-pass side (largest legitimate correction ×0.836) against 40% on the
+  must-fire side (disablement signature ×0.536). A legitimate substrate correction larger than
+  ×0.836 would FALSE-FIRE the drift tooth. Mitigation, by construction: the per-seed pinned
+  values make that loud rather than silent — the failure message names the seed, the recorded
+  value and both signatures, and the correct response is a deliberate re-pin under a ruling, not
+  a tolerance widen. (CalibrationBatteryTests.AssertDevMigrationQuarantine.)

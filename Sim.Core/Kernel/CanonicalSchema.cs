@@ -45,8 +45,10 @@ public static class CanonicalSchema
     /// v15 (T3.4, D-033): GoodStockRow gains LastInputDemandUnits and
     /// LastConsumptionDemandUnits (the two observational demand signals the
     /// price solver reads); Prices and PriceTerms tables appended after
-    /// SmoothedAttractiveness.</summary>
-    public const int Version = 15;
+    /// SmoothedAttractiveness.
+    /// v16 (T3.4b, CR-003 §3): HarvestWeather table appended after PriceTerms —
+    /// the per-settlement AR(1) weather state and its mean-one multiplier.</summary>
+    public const int Version = 16;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -79,6 +81,7 @@ public static class CanonicalSchema
     private const int SmoothedAttractivenessRowWidth = 4 + 8;       // Settlement, Value bits (v12)
     private const int PriceRowWidth = 4 + 4 + 8;                    // Settlement, Good, Price bits (v15)
     private const int PriceTermRowWidth = 4 + 4 + 8 * 7;            // Settlement, Good, 7 double bit-fields (v15)
+    private const int HarvestWeatherRowWidth = 4 + 8 + 8;           // Settlement, LogDeviation, Multiplier (v16)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -393,6 +396,16 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.Clamp));
             writer.Write(BitConverter.DoubleToInt64Bits(row.Delta));
         }
+
+        // 29. Harvest weather (v16, T3.4b)
+        writer.Write(world.HarvestWeather.Count);
+        for (int i = 0; i < world.HarvestWeather.Count; i++)
+        {
+            HarvestWeatherRow row = world.HarvestWeather[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.LogDeviation));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Multiplier));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -665,6 +678,15 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int weatherCount = reader.ReadInt32();
+        for (int i = 0; i < weatherCount; i++)
+        {
+            world.HarvestWeather.Add(new HarvestWeatherRow(
+                new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -703,5 +725,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth
         + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth
         + CountPrefixWidth + (long)world.Prices.Count * PriceRowWidth
-        + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth;
+        + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth
+        + CountPrefixWidth + (long)world.HarvestWeather.Count * HarvestWeatherRowWidth;
 }

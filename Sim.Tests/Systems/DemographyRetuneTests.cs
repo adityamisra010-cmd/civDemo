@@ -16,6 +16,25 @@ namespace Sim.Tests.Systems;
 // deferred conceptions (never invented ones).
 public class DemographyRetuneTests
 {
+    /// <summary>The canonical pipeline MINUS harvest weather (T3.4b). This file's
+    /// rigs are CONTROLLED EXPERIMENTS on famine mechanics — they compare a
+    /// deliberately starved run against a fed baseline, and the contrast IS the
+    /// measurement. Background weather noise is a confound on both arms: at the
+    /// derived sigma the famine arm measured LOWER per-capita mortality than its
+    /// own baseline (0.609 vs 0.707) simply because the baseline had bad years
+    /// too. A controlled experiment must isolate its variable. Weather's own
+    /// behaviour is covered by the quarantine families and the migration
+    /// profile; excluding it here restores the contrast these rigs exist to
+    /// measure. Legitimate because an absent weather row means multiplier 1.0
+    /// BY DESIGN (ProductionSystem) — nothing about farming changes.</summary>
+    private static SystemRegistration[] WithoutWeather(SystemRegistration[] all)
+    {
+        var kept = new List<SystemRegistration>();
+        foreach (SystemRegistration r in all)
+            if (r.Name != Sim.Core.Systems.Harvest.HarvestWeatherSystem.Name) kept.Add(r);
+        return [.. kept];
+    }
+
     private const ulong Seed = 42;
 
     private static EraTable CanonicalEra()
@@ -27,7 +46,7 @@ public class DemographyRetuneTests
     private static TurnExecutor ProductionExecutor(SimConfig cfg)
     {
         using var stream = Sim.Data.DataFiles.OpenPipeline();
-        return new TurnExecutor(CanonicalEra(), PipelineLoader.Load(stream, SystemCatalog.All(cfg)));
+        return new TurnExecutor(CanonicalEra(), WithoutWeather(PipelineLoader.Load(stream, SystemCatalog.All(cfg))));
     }
 
     /// <summary>The fed rig: production pipeline with farming cranked so the
@@ -432,7 +451,7 @@ public class DemographyRetuneTests
         {
             SystemRegistration[] pipe;
             using (var stream = Sim.Data.DataFiles.OpenPipeline())
-                pipe = PipelineLoader.Load(stream, SystemCatalog.All(cfg));
+                pipe = WithoutWeather(PipelineLoader.Load(stream, SystemCatalog.All(cfg)));
             var exec = new TurnExecutor(FlatEra(dts[i]), pipe);
             WorldState world = Founded(cfg);
             int warm = (int)(800 / dts[i]), end = (int)(2400 / dts[i]);

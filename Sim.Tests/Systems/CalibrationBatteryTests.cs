@@ -42,13 +42,197 @@ public class CalibrationBatteryTests
         return col.Finish(world);
     }
 
+    /// <summary>
+    /// T3.4b QUARANTINE, CR-003 pattern — dev.migrationGrossPerDecade, seed 7.
+    ///
+    /// Measured 0.000956939 against the RE-DERIVED floor of 0.001: out of band
+    /// by 4%. Reported out-of-corridor honestly rather than widened to fit
+    /// (director ruling: "Do NOT widen to fit"). The floor was derived as "below
+    /// this a 26x land-quality differential is never exploited and settlements
+    /// are isolated islands" — a reasoned bound carrying about ONE significant
+    /// figure, so a 4% miss is inside the derivation's own precision and the
+    /// honest description is "at the floor", not "below it". Restating a
+    /// one-sig-fig argument as a three-decimal corridor edge would be false
+    /// precision; MOVING that edge now, having seen the failure, would be
+    /// fitting. Neither is taken.
+    ///
+    /// DIRECTOR RULING, 2026-07-26 — QUARANTINE STANDS, THE FLOOR DOES NOT MOVE,
+    /// and the reasoning is ratified as the general rule:
+    ///   "Restating a one-significant-figure bound to three decimals to
+    ///    accommodate a 4% miss is FALSE PRECISION, and moving it after seeing
+    ///    the failure is FITTING. Both make the corridor mean less than leaving
+    ///    one seed honestly outside it."
+    /// The observation that the miss lies inside the derivation's own precision
+    /// is recorded as CONTEXT FOR A FUTURE READER — explicitly NOT grounds for a
+    /// change. A reader who later re-derives this floor at higher precision may
+    /// resolve the quarantine; nobody may resolve it by widening.
+    ///
+    /// RE-FRAMED 2026-07-27 (director ruling, T3.4b review). THE ORIGINAL
+    /// DESCRIPTION WAS FALSE and is corrected here rather than left to be
+    /// discovered again. It said: "The quarantine is SEED-SCOPED and loud: every
+    /// other seed and every other corridor is asserted normally." Measured, it is
+    /// none of that:
+    ///
+    ///   - NOT SEED-SCOPED. AssertInBand never receives the seed; the bypass is a
+    ///     pure function of (key, value), so it fires for ANY dev seed landing in
+    ///     [0.9*lo, lo). Ten of seeds 1-60 do.
+    ///   - NOT LOUD. The banner names no seed, so a seed-41 bypass is
+    ///     indistinguishable from seed 7's.
+    ///   - NOT ONE SEED. Seed 7 is not an outlier. It is the 44th smallest of 60.
+    ///
+    /// THE MEASURED DISTRIBUTION, dev worldgen, 1000 turns, seeds 1-60, floor
+    /// 0.001 (measured by the implementing agent for this re-frame, not restated
+    /// from a review):
+    ///
+    ///   below the floor      52 / 60          in band            8 / 60
+    ///   in the silent window 10 / 60          worst   seed 26    0.00044986 (-55.0%)
+    ///   median  (seed 54)    0.000858572 (-14.1%)
+    ///   best    (seed 14)    0.00115079  (+15.1%)
+    ///   seed 7               0.000956939 (-4.3%)  <- among the SMALLEST misses
+    ///   seed 42              0.00109699  (+9.7%)  <- in band, but by 9.7%
+    ///
+    /// So this is not one seed sitting just outside a good corridor. THE WHOLE DEV
+    /// SEED SET STRADDLES THE FLOOR, with the bulk below it and the median missing
+    /// by 14%. Describing that as a single-seed quarantine made the instrument
+    /// MISLEADING rather than merely narrow — it hid the majority of its own
+    /// failures behind a bypass that announces one of them.
+    ///
+    /// THE FLOOR DOES NOT MOVE. This is a DESCRIPTION fix, not a band fix; the
+    /// T3.4b ruling against widening stands untouched, and nothing here re-tunes
+    /// anything. What is corrected is the claim, which was written into a commit
+    /// message and this docstring WITHOUT BEING MEASURED (ADR-015 §7.12).
+    ///
+    /// T3.4c RE-MEASUREMENT IS JUDGED AGAINST THIS BASELINE. The weather variance
+    /// defect (T3.4b review §1) inflated realised sigma ~1.33x, and gross migration
+    /// with it, so T3.4c's corrected-world numbers must be compared against the
+    /// honest distribution above. A quarantine that hid the majority of its own
+    /// failures would have made those before/after deltas meaningless.
+    ///
+    /// THE CODE IS NOT FIXED HERE — T3.4c item 4 threads the seed, adds teeth in
+    /// both directions, adds a band-immovability guard and retires the dead
+    /// QuarantinedSeedValue. This commit corrects only what the artifact CLAIMS,
+    /// so the claim and the code stop disagreeing while the fix is scheduled.
+    /// </summary>
+    // The T3.4b declarations that sat here are GONE. QuarantinedSeedValue was
+    // dead code — declared, never read — so drift inside the bypass window was
+    // invisible. Superseded by AssertDevMigrationQuarantine above, whose envelope
+    // is measured, literal, and actually read.
+
     private static void AssertInBand(Corridors c, string key, double value)
     {
+        // T3.4c: the value-shaped bypass that used to live here is GONE. It was
+        // ratified as "seed-scoped and loud" and was neither — it fired for ANY
+        // dev seed in [0.9*lo, lo), which was ten of seeds 1-60, and named none of
+        // them. The dev migration corridor now goes through
+        // AssertDevMigrationQuarantine below, which takes the seed.
         Assert.False(double.IsNaN(value), $"{key}: metric produced NO OUTPUT — battery failure");
         (double lo, double hi) = c.Band(key);
         Assert.True(value >= lo && value <= hi,
             $"{key}: {value.ToString("G6", System.Globalization.CultureInfo.InvariantCulture)} " +
             $"outside [{lo}, {hi}]");
+    }
+
+    /// <summary>
+    /// T3.4c — THE DEV MIGRATION CORRIDOR, quarantined CORRIDOR-WIDE and with
+    /// teeth in every direction. Replaces the T3.4b "seed 7" quarantine, which
+    /// described an outlier where the truth is a corridor-wide deviation.
+    ///
+    /// WHY CORRIDOR-WIDE. Measured after the T3.4c variance fix, dev worldgen,
+    /// 1000 turns, floor 0.001: 19 of 20 seeds BELOW, median −30.5%, worst seed 6
+    /// at −64.1%, best seed 11 at +7.5%. Seed 7 sits at −20.0%. Before the fix the
+    /// median was −14.1% — the excess variance had been INFLATING gross migration
+    /// and masking how far this world sits from the corridor. A defect can mask
+    /// the distance to a corridor as easily as it can create one (ADR-015 §7.13).
+    ///
+    /// WHY IT IS NOT A BAND PROBLEM — the discriminator the director ordered, with
+    /// its reading fixed BEFORE it ran. The SAME corridor on the CANONICAL 1024 px
+    /// world: 5 of 5 seeds IN BAND, +15.0% to +63.6% above floor. Canonical in
+    /// band with dev below is the pre-committed signature of M4 blocking material
+    /// B-1b: the dev preset is not a scale model of the shipped world (¼ the
+    /// linear extent at the same kmPerPx, hence +37% land movement cost and 3.1×
+    /// site packing), so a corridor calibrated on it measures the preset.
+    ///
+    /// THEREFORE the floor does NOT move and nothing is retuned. Canonical is
+    /// asserted normally by AssertInBand and is untouched by any of this.
+    ///
+    /// TEETH, which the T3.4b quarantine had in NO direction:
+    ///   BAND — the band may not move while the quarantine stands.
+    ///   DOWN — below the recorded envelope is a NEW defect, not more of the same.
+    ///   UP   — back inside the corridor RESOLVES it and must fail loudly, so it
+    ///          cannot rot into silence.
+    ///
+    /// The envelope is LITERAL and deliberately NOT derived from `lo`: a
+    /// quarantine expressible as a fraction of the band it is quarantined against
+    /// can be widened by widening the band, which is the move the director forbade.
+    /// </summary>
+    private const string QuarantinedKey = "dev.migrationGrossPerDecade";
+
+    /// <summary>
+    /// PER-SEED recorded values, measured at the T3.4c pin and self-verifying:
+    /// the drift tooth below fails the moment either recorded value stops
+    /// matching what the battery measures, so a stale pin cannot rot silently.
+    ///
+    /// T3.4c REVIEW FIX (H3). The first version of this envelope used the
+    /// 20-seed distribution's WORST value (0.000359) as the floor for every
+    /// seed, which gave the two call-site seeds 62–68% of silent headroom —
+    /// measured: cutting baseRatePerYear 300× and disabling famine flight
+    /// entirely still landed inside the silent window (seed 7 → 0.000429).
+    /// A quarantine whose tooth cannot see near-total disablement of the
+    /// mechanism it watches is the T3.4b bypass one level up.
+    ///
+    /// DriftTolerance 0.75 is MEASURED, not chosen to feel right: the largest
+    /// legitimate substrate correction observed moved seed 7 by ×0.836 (the
+    /// variance fix, 0.000957 → 0.000800 — must NOT fire), and the measured
+    /// mechanism-disablement signature is ×0.536 (300× rate cut + famine
+    /// flight off — MUST fire). 0.75 sits between them: gross mechanism loss
+    /// is caught, honest re-measurement after a ruled substrate change re-pins
+    /// the recorded values deliberately, like a golden.
+    ///
+    /// The former ceiling constant (0.00115) is DELETED: it sat above `lo`,
+    /// so its assert ran after `value &lt; lo` with an empty failure set — a
+    /// tooth that could never bite (review F6, verified). Upward motion is the
+    /// resolution tooth's job, and for both call-site seeds `lo` is nearer
+    /// than any envelope ceiling could be.
+    /// </summary>
+    private const double QuarantineRecordedSeed42 = 0.000931705;
+    private const double QuarantineRecordedSeed7 = 0.000799951;
+    private const double QuarantineDriftTolerance = 0.75;
+
+    private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
+    {
+        Assert.False(double.IsNaN(value), $"{QuarantinedKey}: metric produced NO OUTPUT — battery failure");
+        (double lo, double hi) = c.Band(QuarantinedKey);
+
+        Assert.True(lo == 0.001 && hi == 0.01,
+            $"{QuarantinedKey}: band moved to [{lo}, {hi}] while the T3.4c corridor-wide quarantine " +
+            "stands. The floor was ruled IMMOVABLE — take it to a ruling, do not re-tune.");
+
+        double recorded = seed == 42ul ? QuarantineRecordedSeed42 : QuarantineRecordedSeed7;
+        Assert.True(seed is 42ul or 7ul,
+            $"seed {seed} reached the quarantine helper without a recorded envelope value — " +
+            "record it here before asserting against it.");
+
+        Assert.True(value >= recorded * QuarantineDriftTolerance,
+            $"seed {seed}: {Inv(value)} fell below {QuarantineDriftTolerance:F2}× its recorded value " +
+            $"{Inv(recorded)} — the dev world has degraded beyond the quarantined deviation " +
+            "(measured disablement signature ×0.536; largest legitimate correction ×0.836). " +
+            "A NEW defect, or a ruled substrate change that must re-pin this envelope deliberately.");
+        // No per-seed UPPER tooth, deliberately: recorded / 0.75 exceeds `lo`
+        // for both call-site seeds, so any such assert would sit behind the
+        // resolution tooth with an empty failure set — the same dead-ceiling
+        // defect (review F6) this fix deletes. Upward motion has exactly one
+        // meaning here, resolution, and exactly one tooth:
+        Assert.True(value < lo,
+            $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
+            "deviation is RESOLVED for this seed. Re-measure the dev seed set; if the distribution has " +
+            "returned, delete AssertDevMigrationQuarantine and restore the plain AssertInBand.");
+
+        Console.WriteLine(
+            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b): {QuarantinedKey} seed {seed} = " +
+            $"{Inv(value)}, {(1 - value / lo):P1} below the floor {lo}. NOT one seed: 19 of dev seeds " +
+            "1-20 sit below this floor, median -30.5%, worst -64.1%. The SAME corridor on the CANONICAL " +
+            "world is 5/5 IN BAND (+15.0% to +63.6%), which is why this is the preset and not the band. " +
+            "Floor NOT moved; escalated as M4 blocking material B-1b.");
     }
 
     // --- canonical corridors (fed era, 650 turns to year 4500) ---------------
@@ -187,7 +371,7 @@ public class CalibrationBatteryTests
         Assert.True(totalBirths > 0, "no births in 1000 turns — vitals dead");
 
         AssertMalthusKnownDeviation(c, m, seed);
-        AssertInBand(c, "dev.migrationGrossPerDecade", CalibrationAnalysis.MigrationGrossPerDecade(m));
+        AssertDevMigrationQuarantine(c, seed, CalibrationAnalysis.MigrationGrossPerDecade(m));
     }
 
     /// <summary>
