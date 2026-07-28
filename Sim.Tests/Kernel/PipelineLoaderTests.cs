@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(10, pipeline.Length);
+        Assert.Equal(11, pipeline.Length);
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -33,11 +33,15 @@ public class PipelineLoaderTests
         // legibility rather than results — but it is pinned here so a silent
         // reorder is a failing test rather than a shrug.
         Assert.Equal("price", pipeline[4].Name);
-        Assert.Equal("classmobility", pipeline[5].Name);  // T2.2, spec §3 pipeline order
-        Assert.Equal("migration", pipeline[6].Name);      // T2.5, spec §3 pipeline order
-        Assert.Equal("demographics", pipeline[7].Name);
-        Assert.Equal("needsgrievance", pipeline[8].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[9].Name);
+        // T3.6 (D-034): trade runs AFTER price — it arbitrages the prices the
+        // solver just published. It reads PREV either way (the §3.2 lag), so
+        // position is legibility; pinned so a silent reorder fails a test.
+        Assert.Equal("trade", pipeline[5].Name);
+        Assert.Equal("classmobility", pipeline[6].Name);  // T2.2, spec §3 pipeline order
+        Assert.Equal("migration", pipeline[7].Name);      // T2.5, spec §3 pipeline order
+        Assert.Equal("demographics", pipeline[8].Name);
+        Assert.Equal("needsgrievance", pipeline[9].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[10].Name);
     }
 
     [Fact]
@@ -58,7 +62,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, consumption, price, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, production, consumption, price, trade, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 

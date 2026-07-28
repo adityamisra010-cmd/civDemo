@@ -51,6 +51,7 @@ public static class WorldStates
         if (!TableEquals(a.Prices, b.Prices)) return false;
         if (!TableEquals(a.PriceTerms, b.PriceTerms)) return false;
         if (!TableEquals(a.HarvestWeather, b.HarvestWeather)) return false;
+        if (!TableEquals(a.TradeFlows, b.TradeFlows)) return false;
         return true;
     }
 
