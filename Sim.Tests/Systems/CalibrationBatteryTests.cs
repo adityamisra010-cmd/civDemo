@@ -316,14 +316,33 @@ public class CalibrationBatteryTests
             $"{Key}: the corridor band moved to [{lo}, {hi}] while CR-002/CR-003 are OPEN - " +
             "the band may not be re-tuned to absorb this deviation; take the CR to a ruling.");
 
-        // The recorded deviation envelope — an ANCHOR, not a band. MEASURED at
-        // T3.2b: seed 1 = 2.252, seed 2 = 2.385. RE-MEASURED at T3.5b after
-        // the derived subsistence mix (item 1b's pre-committed reading 1: the
-        // food economy MOVES): seed 1 = 1.70191, seed 2 = 1.7661 — density
-        // fell 24% toward the corridor for a 45% farm-labour cut, the
-        // plausible direction and magnitude. The corridor band [0.15, 0.6] is
-        // untouched; CR-002/CR-003 stay OPEN (still ~3x above the ceiling).
-        // The window is the measured envelope with the same modest margin.
+        // The recorded deviation envelope — an ANCHOR, not a band.
+        //
+        // PROVENANCE, full row (canonical 1024 px preset, 650 turns, seeds
+        // 1/2, measured by the implementing agent, not cited):
+        //   T3.2b record:      2.252 / 2.385
+        //   main b60e49e:      2.26310 / 2.38654   (re-measured for T3.5b)
+        //   T3.5b (this tree): 1.70191 / 1.76610
+        // The before column agreeing with T3.2b within 0.5% ACROSS FOUR
+        // PACKETS (T3.3, T3.4, T3.4b, T3.4c — including a one-third change in
+        // realised sigma) is itself a finding: CR-003 §2.3's population
+        // yield-insensitivity, confirmed at head.
+        //
+        // WHY THE T3.5b VALUE FELL — measured, not assumed (§7.10: the first
+        // version of this comment attributed it to the food economy and was
+        // WRONG). Population is UNCHANGED (120,811/120,558 → 120,588/120,585,
+        // ±0.2%): the −24% is the DENOMINATOR — the default 0.08 construction
+        // share builds paths, the network grows, catchments recompute, and
+        // effective arable expands 53,385 → 70,851 km² (+33%). A geometry
+        // effect of the new default, not a harvest effect. The food economy's
+        // own response is item 1b's SECOND pre-committed reading: grain
+        // accumulation slowed (303M → 125M at turn 650, −59%) but reserves
+        // remain ~1,240 years and starvation stays 0 — the unbounded granary
+        // masks the perturbation. DIRECT B-2 EVIDENCE, escalated there.
+        //
+        // The corridor band [0.15, 0.6] is untouched; CR-002/CR-003 stay OPEN
+        // (still ~3x above the ceiling). The window is the measured envelope
+        // with the same modest margin.
         const double DeviationFloor = 1.55, DeviationCeiling = 1.95;
         Assert.True(value <= DeviationCeiling,
             $"{Key}: {Inv(value)} has drifted FURTHER above the corridor ceiling {hi} than the " +
