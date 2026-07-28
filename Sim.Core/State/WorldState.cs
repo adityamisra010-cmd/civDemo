@@ -175,7 +175,8 @@ public struct GoodStockRow(
     double produceRemainder, double consumeRemainder,
     long lastProducedUnits = 0,
     long lastInputDemandUnits = 0,
-    long lastConsumptionDemandUnits = 0) : IEquatable<GoodStockRow>
+    long lastConsumptionDemandUnits = 0,
+    long lastConsumptionEatenUnits = 0) : IEquatable<GoodStockRow>
 {
     public SettlementId Settlement = settlement;
     public GoodId Good = good;
@@ -199,13 +200,23 @@ public struct GoodStockRow(
     /// signal that should move the price.</summary>
     public long LastConsumptionDemandUnits = lastConsumptionDemandUnits;
 
+    /// <summary>T3.5 (D-035): units of this good this settlement ACTUALLY
+    /// obtained this turn — post-clamp, the companion to the pre-clamp demand
+    /// above. The pair is the settlement-wide FILL RATIO, and the fill ratio is
+    /// what turns a basket into a satisfaction: NeedsGrievanceSystem reads both
+    /// from Prev and needs them together, because demand alone cannot tell a
+    /// settlement that ate everything it wanted from one that ate nothing.
+    /// Observational, never a stock; zeroed every turn with the rest.</summary>
+    public long LastConsumptionEatenUnits = lastConsumptionEatenUnits;
+
     public readonly bool Equals(GoodStockRow other) =>
         Settlement == other.Settlement && Good == other.Good && Amount == other.Amount
         && ProduceRemainder.Equals(other.ProduceRemainder)
         && ConsumeRemainder.Equals(other.ConsumeRemainder)
         && LastProducedUnits == other.LastProducedUnits
         && LastInputDemandUnits == other.LastInputDemandUnits
-        && LastConsumptionDemandUnits == other.LastConsumptionDemandUnits;
+        && LastConsumptionDemandUnits == other.LastConsumptionDemandUnits
+        && LastConsumptionEatenUnits == other.LastConsumptionEatenUnits;
     public override readonly bool Equals(object? obj) => obj is GoodStockRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
 }
@@ -228,8 +239,15 @@ public record struct DepositRow(SettlementId Settlement, GoodId Good, double Abu
 /// the PREVIOUS turn's row for its starvation multiplier — the kernel's standard
 /// one-turn-lag coupling (§3.2), documented and accepted.
 /// </summary>
-/// <summary>DemandUnits (T2.2): the integer demand Consumption computed this
-/// turn (pre-clamp) — the denominator of the published food_surplus_ratio.</summary>
+/// <summary>DemandUnits (T2.2; RE-STATED at T3.5): the settlement's whole
+/// NUTRITIONAL REQUIREMENT for the turn in person-year-equivalents, pre-clamp —
+/// the denominator of the published food_surplus_ratio. Its MAGNITUDE is
+/// unchanged by T3.5: before the D-035 baskets, grain was the only food, so
+/// grain demand WAS the whole requirement. What changed is that it is no longer
+/// any single good's demand — no good's LastConsumptionDemandUnits equals it,
+/// because the requirement is spread across the food basket and unmet
+/// non-staple demand substitutes into the staple. Anything dividing by it must
+/// therefore supply a numerator denominated the same way: FOOD, not grain.</summary>
 public record struct ConsumptionDeficitRow(SettlementId Settlement, double DeficitRatio, long DemandUnits = 0);
 
 /// <summary>

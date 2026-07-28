@@ -5,41 +5,90 @@ namespace Sim.Core.Systems.Consumption;
 
 /// <summary>
 /// Writable handles to ConsumptionSystem's tables (built by SystemCatalog only).
-/// FoodStores is the SHARED conserved stock: Consumption debits it (Eaten) and
-/// owns EatenRemainder; Farming credits it (Harvest) — see SystemCatalog.
+/// GoodStocks is the SHARED conserved stock: Consumption debits it (Eaten) and
+/// owns ConsumeRemainder; Production credits it — see SystemCatalog.
 /// </summary>
 public readonly record struct ConsumptionTables(
     Table<GoodStockRow> GoodStocks, Table<ConsumptionDeficitRow> Deficits);
 
 /// <summary>
-/// Consumption (T1.5, cohortized at T2.1): each settlement's cohort-weighted
-/// demand — Σ cohortWeights[c] × count_c × dtYears over every bucket, counts
-/// from Prev (law 3, §3.2) — leaves the food store via
-/// Ledger.Flow with reason Eaten under ClampToAvailable: a settlement can only
-/// eat what the store holds, so the store bottoms out at EXACTLY zero, never
-/// negative. The unmet fraction is recorded as the turn's DeficitRatio in [0,1];
-/// DemographicsSystem reads it from Prev NEXT turn (one-turn lag, documented).
+/// Consumption (T1.5; cohortized T2.1; T3.5 — D-035 class baskets).
 ///
-/// Running AFTER Farming in the pipeline is deliberate: the clamp applies to the
-/// post-harvest store — this turn's harvest is eaten this turn. Reading its own
-/// shared Next stock is lawful (owned-table access); everything else reads Prev.
+/// M3/T3.5 REPLACES the single grain flow with a CLASS-WEIGHTED BASKET over
+/// three needs: Sustenance (grain / livestock / fish), Shelter (timber / stone
+/// as dwelling upkeep) and Comfort (pottery / cloth). Every line is data
+/// (needs.json `baskets`, resolved through <see cref="BasketBook"/>) at a
+/// per-person-per-sim-year RATE integrated with dtYears — no per-turn amounts
+/// anywhere (law 3). Peasants and artisans differ because their basket lines
+/// differ, not because a coefficient is applied to one of them.
 ///
-/// REMAINDER SEMANTICS (documented): EatenRemainder carries only the sub-unit
+/// TWO POPULATION MEASURES, deliberately. Sustenance demand is COHORT-WEIGHTED
+/// (D-015: a child eats less than an adult). Shelter and Comfort demand is per
+/// HEAD — a child needs a roof over him at full size, and the cohort weights
+/// are a nutritional table, not a general-purpose person-size.
+///
+/// STAPLE SUBSTITUTION. Food is denominated in person-year-equivalents, so the
+/// basket says WHAT is eaten and never how much nutrition a person needs.
+/// Unmet non-staple food demand falls back on the staple (grain): a household
+/// short of fish eats more bread rather than starving while grain sits in the
+/// store. Monotony is then paid in the D-035-A variety term inside satisfaction
+/// rather than in calories — which is the point of D-035-A, not a softening of
+/// it. Substituted demand is REAL demand and is published as such, so the price
+/// solver sees the pressure a failed fishery puts on the grain market.
+///
+/// RATIONING ACROSS CLASSES is proportional to demand: one flow per good, and
+/// the settlement-wide fill ratio applies to every class alike. There is no
+/// money at M3 (D-035-C path 2's purse is the M3.6/M3.7 market), so the
+/// alternative would be an arbitrary priority order between classes — a
+/// mechanism nobody chose, expressed as an iteration order. Proportional is the
+/// honest statement of "no priced competition yet"; T3.6/T3.7 replace it.
+///
+/// Running AFTER Production is deliberate: the clamp applies to the post-harvest
+/// store — this turn's harvest is eaten this turn. Reading its own shared Next
+/// stock is lawful (owned-table access); everything else reads Prev.
+///
+/// REMAINDER SEMANTICS (documented): ConsumeRemainder carries only the sub-unit
 /// fraction of demand. A clamp shortfall is NOT carried forward as remainder —
 /// hunger is recorded in the deficit ratio, not banked as future double-eating.
+///
+/// DEFICIT RATIO (unchanged in meaning, T2.7/T2.13 consumers depend on it): the
+/// unmet fraction of the settlement's NUTRITIONAL requirement — total food
+/// person-year-equivalents obtained over total required, substitution included
+/// once and only once. It is not affected by Shelter or Comfort: famine is a
+/// food fact.
 /// STATELESS: config is immutable tuning, not state.
 /// </summary>
-public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTables>
+public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
 {
     public static readonly SystemId WellKnownId = new(6);
     public const string Name = "consumption";
 
-    private readonly SimConfig _cfg = cfg;
+    /// <summary>The Sustenance need id — see <see cref="BasketBook.SustenanceNeedId"/>.
+    /// It lives on the shared book so that no system has to reference another
+    /// system to learn it (law 6).</summary>
+    private const int SustenanceNeedId = BasketBook.SustenanceNeedId;
 
-    /// <summary>T3.2: demand eats from the GRAIN stock (the migrated M2
-    /// FoodStore; the D-035 food basket arrives at T3.5).</summary>
-    private readonly GoodId _grain = new(cfg.Goods?.GrainId
-        ?? throw new ArgumentException("ConsumptionSystem requires SimConfig.Goods (goods.json) — consumption eats a grain stock at M3."));
+    private readonly SimConfig _cfg;
+    private readonly BasketBook _baskets;
+    private readonly GoodId _grain;
+    private readonly ClassId[] _classes;
+
+    public ConsumptionSystem(SimConfig cfg)
+    {
+        _cfg = cfg;
+        GoodsConfig goods = cfg.Goods
+            ?? throw new ArgumentException("ConsumptionSystem requires SimConfig.Goods (goods.json) — consumption eats goods stocks at M3.");
+        NeedsConfig needs = cfg.Needs
+            ?? throw new ArgumentException("ConsumptionSystem requires SimConfig.Needs (needs.json) — the D-035 baskets are what it consumes at T3.5.");
+        _baskets = new BasketBook(needs, goods);
+        _grain = new GoodId(goods.GrainId);
+
+        var classes = new List<ClassId>();
+        foreach (BasketLine line in _baskets.Lines)
+            if (!classes.Contains(line.Class)) classes.Add(line.Class);
+        classes.Sort(static (a, b) => a.Value.CompareTo(b.Value));
+        _classes = [.. classes];
+    }
 
     public SystemId Id => WellKnownId;
 
@@ -48,54 +97,135 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
         IReadOnlyWorldState prev = ctx.Prev;
         Table<GoodStockRow> stores = ctx.Owned.GoodStocks;
         Table<ConsumptionDeficitRow> deficits = ctx.Owned.Deficits;
+        double dt = ctx.DtYears;
+
+        ReadOnlySpan<GoodId> basketGoods = _baskets.Goods;
+        Span<double> exactDemand = stackalloc double[basketGoods.Length];
+        Span<long> demandedUnits = stackalloc long[basketGoods.Length];
+        Span<long> eatenUnits = stackalloc long[basketGoods.Length];
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
 
-            // Cohort-weighted demand from PREV counts (per-year rate × dtYears).
-            double demandPerYear = 0.0;
-            for (int i = 0; i < prev.Buckets.Count; i++)
-            {
-                BucketRow bucket = prev.Buckets[i];
-                if (bucket.Settlement != settlement) continue;
-                demandPerYear += _cfg.Consumption.CohortWeights[bucket.CohortIdx] * bucket.Count.Value;
-            }
-
-            // Zero every good's consumption-demand signal before writing this
-            // turn's (T3.3 staleness precedent): at M3 only grain is eaten, so
-            // without this every other good would carry a permanent 0 that is
-            // correct only by accident, and the accident ends at T3.5.
+            // Zero every good's observational signals before writing this
+            // turn's (T3.3 staleness precedent: a stale observational field
+            // reads as a live one). This covers goods OUTSIDE the baskets too —
+            // their consumption demand this turn is genuinely zero.
             for (int i = 0; i < stores.Count; i++)
-                if (stores[i].Settlement == settlement)
-                    stores.Ref(i).LastConsumptionDemandUnits = 0;
-
-            int storeIndex = GoodStockIndex.IndexOf(stores, settlement, _grain);
-            long demanded = 0, eaten = 0;
-            if (storeIndex >= 0)
             {
-                ref GoodStockRow row = ref stores.Ref(storeIndex);
-                double exact = demandPerYear * ctx.DtYears + row.ConsumeRemainder;
-                demanded = ConservedMath.WholeUnits(exact, $"consumption demand (settlement {settlement.Value})");
-                eaten = ctx.Ledger.Flow(
-                    ref row.Amount, ConservedQuantityIds.OfGood(_grain), ReasonIds.Eaten,
-                    demanded, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
-                row.ConsumeRemainder = exact - demanded; // sub-unit fraction only (see header)
-                // T3.4 (D-033): PRE-CLAMP demand is the price signal. What a
-                // starving settlement could not buy is exactly what should move
-                // the price, so this is `demanded`, never `eaten`.
-                row.LastConsumptionDemandUnits = demanded;
+                if (stores[i].Settlement != settlement) continue;
+                stores.Ref(i).LastConsumptionDemandUnits = 0;
+                stores.Ref(i).LastConsumptionEatenUnits = 0;
             }
 
-            // Deficit ratio for THIS turn (guarded: no demand → no deficit → no NaN).
-            // DemandUnits (T2.2): the pre-clamp integer demand — the
-            // denominator of the published food_surplus_ratio.
-            double ratio = demanded > 0 ? (demanded - eaten) / (double)demanded : 0.0;
-            var deficitRow = new ConsumptionDeficitRow(settlement, ratio, demanded);
+            exactDemand.Clear();
+            demandedUnits.Clear();
+            eatenUnits.Clear();
+
+            // --- basket demand, per (class, need, good) ----------------------
+            double nutritionalRequirement = 0.0;   // person-year-equivalents this turn
+            for (int c = 0; c < _classes.Length; c++)
+            {
+                ClassId cls = _classes[c];
+                BasketDemand.Persons(prev, settlement, cls, _cfg.Consumption.CohortWeights,
+                    out double nutritional, out double heads);
+                if (nutritional <= 0.0 && heads <= 0.0) continue;
+
+                foreach (BasketLine line in _baskets.Lines)
+                {
+                    if (line.Class != cls) continue;
+                    double persons = line.Need == SustenanceNeedId ? nutritional : heads;
+                    double units = persons * line.PerPersonYear * dt;
+                    if (line.Need == SustenanceNeedId) nutritionalRequirement += units;
+                    exactDemand[IndexOfGood(basketGoods, line.Good)] += units;
+                }
+            }
+
+            // --- pass 1: every basket good EXCEPT the staple -----------------
+            // The staple goes last because it absorbs the substituted demand of
+            // whatever the other food goods could not supply.
+            double foodObtained = 0.0, nonStapleShortfall = 0.0;
+            for (int g = 0; g < basketGoods.Length; g++)
+            {
+                if (basketGoods[g] == _grain) continue;
+                Consume(ctx, stores, settlement, basketGoods[g], exactDemand[g],
+                    out demandedUnits[g], out eatenUnits[g]);
+                if (IsFood(basketGoods[g]))
+                {
+                    foodObtained += eatenUnits[g];
+                    // EXACT demand minus units obtained, not integer demand minus
+                    // units obtained: a settlement with no livestock row at all
+                    // demands livestock and receives none, and that whole
+                    // shortfall must reach the staple. Differencing the rounded
+                    // integers would drop it silently — the settlement would
+                    // simply eat 10% less and be recorded as in deficit while
+                    // grain sat in the store.
+                    nonStapleShortfall += exactDemand[g] - eatenUnits[g];
+                }
+            }
+
+            // --- pass 2: the staple, base demand + substitution ---------------
+            for (int g = 0; g < basketGoods.Length; g++)
+            {
+                if (basketGoods[g] != _grain) continue;
+                Consume(ctx, stores, settlement, _grain, exactDemand[g] + nonStapleShortfall,
+                    out demandedUnits[g], out eatenUnits[g]);
+                foodObtained += eatenUnits[g];
+            }
+
+            // --- deficit: the unmet fraction of the NUTRITIONAL requirement ---
+            // Denominator is the base requirement, NOT the sum of per-good
+            // demands: substituted demand is the same nutrition asked for a
+            // second time in another good, and counting it twice would report a
+            // famine in a settlement that ate its fill of bread.
+            long requiredUnits = ConservedMath.WholeUnits(
+                nutritionalRequirement, $"nutritional requirement (settlement {settlement.Value})");
+            double ratio = requiredUnits > 0
+                ? Math.Clamp((requiredUnits - foodObtained) / requiredUnits, 0.0, 1.0)
+                : 0.0;
+            var deficitRow = new ConsumptionDeficitRow(settlement, ratio, requiredUnits);
             if (s < deficits.Count) deficits[s] = deficitRow;
             else deficits.Add(deficitRow);
         }
     }
 
+    /// <summary>One good's flow out of one settlement's store, with the
+    /// sub-unit remainder banked and both observational signals published.
+    /// PRE-CLAMP demand is the price signal (T3.4/D-033): what a starving
+    /// settlement could not buy is exactly what should move the price.</summary>
+    private static void Consume(
+        SimContext<ConsumptionTables> ctx, Table<GoodStockRow> stores,
+        SettlementId settlement, GoodId good, double exact,
+        out long demanded, out long eaten)
+    {
+        demanded = 0; eaten = 0;
+        int index = GoodStockIndex.IndexOf(stores, settlement, good);
+        if (index < 0) return;   // no row for this good here — nothing to eat from
+
+        ref GoodStockRow row = ref stores.Ref(index);
+        double want = exact + row.ConsumeRemainder;
+        demanded = ConservedMath.WholeUnits(
+            want, $"consumption demand (settlement {settlement.Value}, good {good.Value})");
+        eaten = ctx.Ledger.Flow(
+            ref row.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.Eaten,
+            demanded, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
+        row.ConsumeRemainder = want - demanded;   // sub-unit fraction only (see header)
+        row.LastConsumptionDemandUnits = demanded;
+        row.LastConsumptionEatenUnits = eaten;
+    }
+
+    private bool IsFood(GoodId good)
+    {
+        foreach (BasketLine line in _baskets.Lines)
+            if (line.Good == good && line.Need == SustenanceNeedId) return true;
+        return false;
+    }
+
+    private static int IndexOfGood(ReadOnlySpan<GoodId> goods, GoodId good)
+    {
+        for (int i = 0; i < goods.Length; i++) if (goods[i] == good) return i;
+        return -1;
+    }
 }

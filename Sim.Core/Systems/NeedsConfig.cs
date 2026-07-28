@@ -15,15 +15,50 @@ namespace Sim.Core.Systems;
 /// </summary>
 public sealed record NeedsConfig(
     [property: JsonPropertyName("needs"), JsonRequired] NeedEntry[] Needs,
-    [property: JsonPropertyName("grievance"), JsonRequired] GrievanceTuning Grievance);
+    [property: JsonPropertyName("grievance"), JsonRequired] GrievanceTuning Grievance,
+    [property: JsonPropertyName("aggregation"), JsonRequired] AggregationTuning Aggregation,
+    [property: JsonPropertyName("baskets"), JsonRequired] BasketsConfig Baskets);
 
 /// <summary>One registry entry: Bound gates participation entirely; Weight is
-/// the wₙ of the D-018 grievance accrual (TUNE, meaningful only once bound).</summary>
+/// the wₙ of the D-018 grievance accrual (TUNE, meaningful only once bound).
+/// VarietyWeight is D-035-A's concentration coefficient — 0 for a need with no
+/// diversity dimension.</summary>
 public sealed record NeedEntry(
     [property: JsonPropertyName("id"), JsonRequired] int Id,
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("bound"), JsonRequired] bool Bound,
-    [property: JsonPropertyName("weight"), JsonRequired] double Weight);
+    [property: JsonPropertyName("weight"), JsonRequired] double Weight,
+    [property: JsonPropertyName("varietyWeight")] double VarietyWeight = 0.0);
+
+/// <summary>
+/// D-035-B aggregation tuning (all TUNE). Sigma is the CES substitution
+/// elasticity and MUST be in (0,1) — that is the ruling's load-bearing
+/// constraint, not a preference, so the loader refuses anything else rather
+/// than silently degenerating to the weighted sum D-035-B exists to forbid.
+/// SatisfactionFloor bounds how far a single zeroed need may drag the
+/// aggregate (see needs.json's doc; the D-035-B acceptance ceiling is derived
+/// from it). The TierA* trio is d018:46's gate override, retained unchanged.
+/// </summary>
+public sealed record AggregationTuning(
+    [property: JsonPropertyName("sigma"), JsonRequired] double Sigma,
+    [property: JsonPropertyName("satisfactionFloor"), JsonRequired] double SatisfactionFloor,
+    [property: JsonPropertyName("tierAFloor"), JsonRequired] double TierAFloor,
+    [property: JsonPropertyName("tierAGain"), JsonRequired] double TierAGain,
+    [property: JsonPropertyName("tierACollapse"), JsonRequired] double TierACollapse);
+
+/// <summary>The D-035-C consumption baskets: one entry per (class, need, good).</summary>
+public sealed record BasketsConfig(
+    [property: JsonPropertyName("entries"), JsonRequired] BasketEntry[] Entries);
+
+/// <summary>One basket line. PerPersonYear is a RATE (law 3) — units of the
+/// good demanded per person per sim-year, integrated with dtYears at the point
+/// of use. Food lines are denominated in person-year-equivalents of nutrition
+/// (the D-015 grain convention).</summary>
+public sealed record BasketEntry(
+    [property: JsonPropertyName("class"), JsonRequired] int Class,
+    [property: JsonPropertyName("need"), JsonRequired] int Need,
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("perPersonYear"), JsonRequired] double PerPersonYear);
 
 /// <summary>
 /// D-021 grievance decay tuning (all TUNE, all per-sim-year where rates):
@@ -89,7 +124,113 @@ public static class NeedsConfigLoader
                 $"grievance.inheritFraction must be in [0,1] (a fraction of inherited grudges), " +
                 $"got {Inv(cfg.Grievance.InheritFraction)}.");
 
+        ValidateAggregation(cfg.Aggregation);
+        ValidateBaskets(cfg);
         return cfg;
+    }
+
+    private static void ValidateAggregation(AggregationTuning? a)
+    {
+        if (a is null) throw new NeedsConfigException("aggregation is missing.");
+        // sigma in (0,1) is D-035-B's load-bearing constraint: at sigma >= 1 the
+        // aggregation stops being non-compensatory, which is the whole point of
+        // the ruling. Refuse loudly rather than degenerate silently.
+        if (!(a.Sigma > 0.0) || !(a.Sigma < 1.0))
+            throw new NeedsConfigException(
+                $"aggregation.sigma must be in the open interval (0,1) — D-035-B's "
+                + $"non-compensatory requirement; got {Inv(a.Sigma)}.");
+        if (!(a.SatisfactionFloor >= 0.0) || !(a.SatisfactionFloor < 1.0))
+            throw new NeedsConfigException(
+                $"aggregation.satisfactionFloor must be in [0,1), got {Inv(a.SatisfactionFloor)}.");
+        if (!(a.TierAFloor >= 0.0) || !(a.TierAFloor <= 1.0))
+            throw new NeedsConfigException(
+                $"aggregation.tierAFloor must be in [0,1] (a satisfaction level), got {Inv(a.TierAFloor)}.");
+        if (!(a.TierAGain >= 0.0) || !double.IsFinite(a.TierAGain))
+            throw new NeedsConfigException(
+                $"aggregation.tierAGain must be a finite value >= 0, got {Inv(a.TierAGain)}.");
+        if (!(a.TierACollapse >= 0.0) || !double.IsFinite(a.TierACollapse))
+            throw new NeedsConfigException(
+                $"aggregation.tierACollapse must be a finite value >= 0, got {Inv(a.TierACollapse)}.");
+    }
+
+    /// <summary>The Sustenance need id — mirrors BasketBook.SustenanceNeedId,
+    /// which the loader cannot reference (goods are not resolved yet here).</summary>
+    private const int SustenanceNeedId = 1;
+
+    private static void ValidateBaskets(NeedsConfig cfg)
+    {
+        BasketsConfig? b = cfg.Baskets;
+        if (b is null || b.Entries is null) throw new NeedsConfigException("baskets.entries is missing.");
+        for (int i = 0; i < b.Entries.Length; i++)
+        {
+            BasketEntry e = b.Entries[i];
+            if (string.IsNullOrWhiteSpace(e.Good))
+                throw new NeedsConfigException($"baskets.entries[{i}].good must be non-empty.");
+            if (!(e.PerPersonYear > 0.0) || !double.IsFinite(e.PerPersonYear))
+                throw new NeedsConfigException(
+                    $"baskets.entries[{i}] ({e.Good}).perPersonYear must be a finite value > 0 "
+                    + $"— an entry that demands nothing is a deleted line, not data; got {Inv(e.PerPersonYear)}.");
+            bool known = false;
+            for (int n = 0; n < cfg.Needs.Length; n++) if (cfg.Needs[n].Id == e.Need) { known = true; break; }
+            if (!known)
+                throw new NeedsConfigException(
+                    $"baskets.entries[{i}] names need id {e.Need}, which is not in the needs registry.");
+            for (int j = 0; j < i; j++)
+                if (b.Entries[j].Class == e.Class && b.Entries[j].Need == e.Need
+                    && string.Equals(b.Entries[j].Good, e.Good, StringComparison.Ordinal))
+                    throw new NeedsConfigException(
+                        $"baskets.entries[{i}] repeats (class {e.Class}, need {e.Need}, {e.Good}) "
+                        + $"already declared at [{j}] — combine them into one perPersonYear rate.");
+        }
+
+        // FOOD LINES MUST SUM TO EXACTLY 1.0 PER CLASS. needs.json calls this
+        // "by construction"; construction is not a mechanism, so it is checked.
+        // The sum IS the settlement's nutritional requirement per person-year
+        // (ConsumptionDeficitRow.DemandUnits), which is the denominator of
+        // food_surplus_ratio, which gates artisan emergence — so a tuner who
+        // nudged grain from 0.90 to 0.95 while "just adjusting the diet" would
+        // silently move the class-mobility bar. Tuning data is always allowed;
+        // that is exactly why the invariant a tuner could break must be a check
+        // rather than a comment. Tolerance is 1e-9: authored decimal data, not
+        // an accumulated computation.
+        for (int c = 0; c < b.Entries.Length; c++)
+        {
+            int cls = b.Entries[c].Class;
+            bool seen = false;
+            for (int j = 0; j < c; j++) if (b.Entries[j].Class == cls) { seen = true; break; }
+            if (seen) continue;
+
+            double foodSum = 0.0;
+            bool anyFood = false;
+            for (int i = 0; i < b.Entries.Length; i++)
+            {
+                if (b.Entries[i].Class != cls || b.Entries[i].Need != SustenanceNeedId) continue;
+                foodSum += b.Entries[i].PerPersonYear;
+                anyFood = true;
+            }
+            if (anyFood && Math.Abs(foodSum - 1.0) > 1e-9)
+                throw new NeedsConfigException(
+                    $"class {cls}'s food basket sums to {Inv(foodSum)}, not 1.0. Food lines are "
+                    + "denominated in person-year-equivalents of nutrition, so the sum IS how much "
+                    + "one person needs per year — it must be 1.0. A basket changes WHAT is eaten, "
+                    + "never how much nutrition a person requires; the sum is also the denominator "
+                    + "of food_surplus_ratio, so moving it silently retunes class mobility.");
+        }
+
+        // A BOUND need with no basket line anywhere would satisfy silently at
+        // 1.0 forever — indistinguishable from an unbound need in the output
+        // but not in the weighting. That is exactly the failure the T2.6
+        // zero-effect gate exists to catch, so catch it at load.
+        for (int n = 0; n < cfg.Needs.Length; n++)
+        {
+            if (!cfg.Needs[n].Bound) continue;
+            bool served = false;
+            for (int i = 0; i < b.Entries.Length; i++) if (b.Entries[i].Need == cfg.Needs[n].Id) { served = true; break; }
+            if (!served)
+                throw new NeedsConfigException(
+                    $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) is bound but no basket entry serves it "
+                    + "— a bound need with no satisfier would read as permanently satisfied.");
+        }
     }
 
     private static string Inv(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

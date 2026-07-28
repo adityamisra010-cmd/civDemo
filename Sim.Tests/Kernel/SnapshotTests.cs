@@ -392,13 +392,22 @@ public class SnapshotTests
         //   amplitude sets the realised harvest path, so the hash moves.
         //   post-weather, pre-derivation value:
         //   305e3bf1a5df12d7b6061d1da431024486c2d340e6382de45b6195d8fe33eab8
-        //   T3.4c (variance fix - DELIBERATE): the weather blend's cross-term is
+//   T3.4c (variance fix - DELIBERATE): the weather blend's cross-term is
         //   corrected, so every weather multiplier changes and with it every
         //   harvest. NOT a schema change; behaviour only. Realised CV moves from
         //   0.38-0.43 to 0.295-0.308, inside the reference band the derived sigma
-        //   came from. Update ci.yml's FOUNDED_GOLDEN with this constant.
+        //   came from.
         //   previous value: 38f371b2f711514ab1eaa733808f1705443e56176c2b7d5a5d849e61c790e207
-        const string golden = "ed26139ba58e6fb22ddcd36f4b1abf0a407f8468f0cd001d28623c725570fda3";
+        //   T3.5 (D-035 consumption baskets + needs — DELIBERATE, re-minted on
+        //   the REBASED substrate, i.e. on top of the T3.4c variance fix):
+        //   schema v17 (GoodStockRow.LastConsumptionEatenUnits) plus a real
+        //   behaviour change — consumption is now a class-weighted basket over
+        //   six goods rather than a single grain flow. Per-person nutrition is
+        //   unchanged by construction (the food basket sums to 1.0 and unmet
+        //   non-staple demand substitutes into the staple). Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        //   T3.4c-only value: ed26139ba58e6fb22ddcd36f4b1abf0a407f8468f0cd001d28623c725570fda3
+        const string golden = "d4e5150a607d9f9ffaf90128433ebec32bb86f0cc2c98abdb8680bd51e3ae945";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -748,7 +757,8 @@ public class SnapshotTests
         // GoodStockRow gained two fields at v15 — populate them distinctly too.
         world.GoodStocks.Add(new GoodStockRow(
             new SettlementId(0), new GoodId(3), Conserved.Zero, 0.5, 0.25,
-            lastProducedUnits: 11, lastInputDemandUnits: 22, lastConsumptionDemandUnits: 33));
+            lastProducedUnits: 11, lastInputDemandUnits: 22, lastConsumptionDemandUnits: 33,
+            lastConsumptionEatenUnits: 44));   // v17 (T3.5) — DISTINCT from the other three
 
         using var raw = new MemoryStream();
         using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
@@ -778,6 +788,7 @@ public class SnapshotTests
         Assert.Equal(11, g.LastProducedUnits);
         Assert.Equal(22, g.LastInputDemandUnits);
         Assert.Equal(33, g.LastConsumptionDemandUnits);
+        Assert.Equal(44, g.LastConsumptionEatenUnits);   // v17 (T3.5)
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }

@@ -128,11 +128,17 @@ public class HudViewModelTests
     [Fact]
     public void HudModel_NeedsBlock_BoundValueAndNotYetSimulatedLabels()
     {
-        // T2.6: the needs block renders the FULL D-018 ladder in registry
-        // order — the bound Sustenance with its satisfaction value, all seven
-        // unbound needs honestly labeled "not yet simulated" — plus the
-        // grievance line. Driven through one production turn so satisfaction
-        // rows exist (turn 1 reads the founding Prev: deficit absent → 1.00).
+        // T2.6/T3.5: the needs block renders the FULL D-018 ladder in registry
+        // order — every BOUND need with its satisfaction value, every unbound
+        // need honestly labeled "not yet simulated" — plus the grievance line.
+        // Driven through one production turn so satisfaction rows exist.
+        //
+        // T3.5 anchors, all mechanism rather than accident. Sustenance reads
+        // 0.89, not 1.00: the settlement is fully fed but eats grain alone, and
+        // D-035-A prices monotony INSIDE satisfaction. Shelter and Comfort read
+        // 0.00: an all-farming settlement cuts no timber and weaves no cloth,
+        // so those baskets are empty — which is the mechanism working, and is
+        // reported as a finding in the packet handback, not hidden here.
         SimConfig cfg = SimCfg();
         Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
@@ -142,10 +148,23 @@ public class HudViewModelTests
         HudModel hud = HudModel.From(world, selectedSettlementId: 0, needs);
         Assert.NotNull(hud.NeedLines);
         Assert.Equal(8, hud.NeedLines!.Count);
-        Assert.Equal("Sustenance: 1.00", hud.NeedLines[0]);
-        for (int i = 1; i < 8; i++)
+        // TURN 1 READS THE FOUNDING PREV, which published no consumption yet.
+        // A published demand of zero is NOT read as "fully supplied": the T3.5
+        // review found that sentinel reporting empty timber and pottery stores
+        // as perfect Shelter and Comfort, and Fill now uses the STOCK as the
+        // discriminator. Founding stocks these goods at zero, so they correctly
+        // read 0.00 from the very first turn instead of enjoying one free turn
+        // of phantom supply. Sustenance reads 0.85 — full calories, since the
+        // missing non-staples substitute into grain, times the full D-035-A
+        // monotony penalty for a diet that is grain and nothing else.
+        Assert.Equal("Sustenance: 0.85", hud.NeedLines[0]);
+        Assert.Equal("Shelter: 0.00", hud.NeedLines[1]);
+        Assert.Equal("Comfort: 0.00", hud.NeedLines[5]);
+        for (int i = 0; i < 8; i++)
+        {
+            if (needs.Needs[i].Bound) continue;
             Assert.Equal($"{needs.Needs[i].Name}: not yet simulated", hud.NeedLines[i]);
-        Assert.Equal("grievance 0.00", hud.GrievanceLine); // fed turn 1: nobody aggrieved
+        }
 
         // Without the registry (legacy callers) the block is simply absent.
         Assert.Empty(HudModel.From(world, 0).NeedLines!);
@@ -159,7 +178,10 @@ public class HudViewModelTests
         // UNPUBLISHED, not mis-wired — satisfaction rows are rebuilt per turn
         // by NeedsGrievance, so at turn 0 the table is empty and the old HUD
         // fabricated a default 0. PIN: turn 0 renders "not yet measured";
-        // from turn 1 ONWARD, full stores read exactly 1.00.
+        // from turn 1 ONWARD it renders a real measured value. T3.5: that value
+        // is 0.89 rather than 1.00 for a grain-only diet — the pin is that the
+        // HUD reports what the sim computed instead of inventing a default,
+        // which is what the finding was about.
         SimConfig cfg = SimCfg();
         Sim.Core.Systems.NeedsConfig needs = cfg.Needs!;
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
@@ -173,7 +195,12 @@ public class HudViewModelTests
         {
             world = exec.Step(world);
             HudModel hud = HudModel.From(world, 0, needs);
-            Assert.Equal("Sustenance: 1.00", hud.NeedLines![0]);
+            // 0.85 from the first turn on: full calories (the missing
+            // non-staples substitute into grain) times the full D-035-A monotony
+            // penalty for a grain-only diet. Before the T3.5 review fixed Fill's
+            // zero-demand sentinel, turn 1 read 0.89 — a phantom credit for
+            // livestock and fish the settlement had no stock of.
+            Assert.Equal("Sustenance: 0.85", hud.NeedLines![0]);
         }
     }
 

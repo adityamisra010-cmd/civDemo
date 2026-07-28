@@ -205,3 +205,21 @@
   values make that loud rather than silent — the failure message names the seed, the recorded
   value and both signatures, and the correct response is a deliberate re-pin under a ruling, not
   a tolerance widen. (CalibrationBatteryTests.AssertDevMigrationQuarantine.)
+
+## T3.5 review notes (2026-07-27)
+
+- **M5 tuning, grievance monotonicity:** `needs.aggregation.tierACollapse = 1.0` makes grievance
+  non-monotone in food when Comfort ≈ 0 and Shelter ≈ 1 — a hungrier settlement is measurably
+  calmer, by ~3.4% over food fill 0.55→0.34. Verified as NOT a defect (no ruling requires
+  monotonicity; d018:46 mandates the collapse) and NOT reachable in the founded world (zero
+  settlement-turns in the region). `tierACollapse ≤ 0.25` removes it entirely if M5 wants
+  monotonicity once grievance actually drives behaviour. TUNE only.
+- **Aggregation strength is thinly pinned.** ρ's *sign* is well covered, but halving ρ's magnitude
+  in both `Aggregate` and `CeilingWhenOneNeedIsZero` survives every test except `sum > ces*4.0`,
+  at ~7% margin. The harmonic-mean and power-mean oracles added at T3.5 cover σ = 0.5; a
+  σ-general strength pin would close the rest.
+- **T3.5b golden churn, flagged ahead:** items 1 (subsistence default) and 3 (ghost-class
+  grievance) both move founded-world trajectories, and item 1 moves the food economy itself.
+  Expect the founded golden, the first-reign golden, the calibration battery anchors and the
+  equilibrium-density invariant all to need re-measurement in that packet. Flagged now so the
+  re-pin is planned rather than discovered.
