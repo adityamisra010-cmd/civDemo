@@ -167,11 +167,36 @@ public class CalibrationBatteryTests
     /// </summary>
     private const string QuarantinedKey = "dev.migrationGrossPerDecade";
 
-    /// <summary>Measured envelope, dev seeds 1-20 after the T3.4c variance fix:
-    /// worst 0.000359 (seed 6), best 0.001075 (seed 11). Literals with a modest
-    /// margin, and READ — unlike the T3.4b constant, which was declared and never
-    /// referenced, so drift inside the bypass window was invisible.</summary>
-    private const double QuarantineFloor = 0.00030, QuarantineCeiling = 0.00115;
+    /// <summary>
+    /// PER-SEED recorded values, measured at the T3.4c pin and self-verifying:
+    /// the drift tooth below fails the moment either recorded value stops
+    /// matching what the battery measures, so a stale pin cannot rot silently.
+    ///
+    /// T3.4c REVIEW FIX (H3). The first version of this envelope used the
+    /// 20-seed distribution's WORST value (0.000359) as the floor for every
+    /// seed, which gave the two call-site seeds 62–68% of silent headroom —
+    /// measured: cutting baseRatePerYear 300× and disabling famine flight
+    /// entirely still landed inside the silent window (seed 7 → 0.000429).
+    /// A quarantine whose tooth cannot see near-total disablement of the
+    /// mechanism it watches is the T3.4b bypass one level up.
+    ///
+    /// DriftTolerance 0.75 is MEASURED, not chosen to feel right: the largest
+    /// legitimate substrate correction observed moved seed 7 by ×0.836 (the
+    /// variance fix, 0.000957 → 0.000800 — must NOT fire), and the measured
+    /// mechanism-disablement signature is ×0.536 (300× rate cut + famine
+    /// flight off — MUST fire). 0.75 sits between them: gross mechanism loss
+    /// is caught, honest re-measurement after a ruled substrate change re-pins
+    /// the recorded values deliberately, like a golden.
+    ///
+    /// The former ceiling constant (0.00115) is DELETED: it sat above `lo`,
+    /// so its assert ran after `value &lt; lo` with an empty failure set — a
+    /// tooth that could never bite (review F6, verified). Upward motion is the
+    /// resolution tooth's job, and for both call-site seeds `lo` is nearer
+    /// than any envelope ceiling could be.
+    /// </summary>
+    private const double QuarantineRecordedSeed42 = 0.000931705;
+    private const double QuarantineRecordedSeed7 = 0.000799951;
+    private const double QuarantineDriftTolerance = 0.75;
 
     private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
     {
@@ -182,18 +207,25 @@ public class CalibrationBatteryTests
             $"{QuarantinedKey}: band moved to [{lo}, {hi}] while the T3.4c corridor-wide quarantine " +
             "stands. The floor was ruled IMMOVABLE — take it to a ruling, do not re-tune.");
 
-        Assert.True(value >= QuarantineFloor,
-            $"seed {seed}: {Inv(value)} is BELOW the recorded T3.4c envelope " +
-            $"[{QuarantineFloor}, {QuarantineCeiling}] (measured worst 0.000359, seed 6) — the dev " +
-            "world has degraded beyond the quarantined deviation, which is a NEW defect.");
+        double recorded = seed == 42ul ? QuarantineRecordedSeed42 : QuarantineRecordedSeed7;
+        Assert.True(seed is 42ul or 7ul,
+            $"seed {seed} reached the quarantine helper without a recorded envelope value — " +
+            "record it here before asserting against it.");
 
+        Assert.True(value >= recorded * QuarantineDriftTolerance,
+            $"seed {seed}: {Inv(value)} fell below {QuarantineDriftTolerance:F2}× its recorded value " +
+            $"{Inv(recorded)} — the dev world has degraded beyond the quarantined deviation " +
+            "(measured disablement signature ×0.536; largest legitimate correction ×0.836). " +
+            "A NEW defect, or a ruled substrate change that must re-pin this envelope deliberately.");
+        // No per-seed UPPER tooth, deliberately: recorded / 0.75 exceeds `lo`
+        // for both call-site seeds, so any such assert would sit behind the
+        // resolution tooth with an empty failure set — the same dead-ceiling
+        // defect (review F6) this fix deletes. Upward motion has exactly one
+        // meaning here, resolution, and exactly one tooth:
         Assert.True(value < lo,
             $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
             "deviation is RESOLVED for this seed. Re-measure the dev seed set; if the distribution has " +
             "returned, delete AssertDevMigrationQuarantine and restore the plain AssertInBand.");
-        Assert.True(value <= QuarantineCeiling,
-            $"seed {seed}: {Inv(value)} exceeds the recorded envelope ceiling {QuarantineCeiling} — " +
-            "the deviation is closing; re-measure the distribution and consider resolution.");
 
         Console.WriteLine(
             $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b): {QuarantinedKey} seed {seed} = " +
