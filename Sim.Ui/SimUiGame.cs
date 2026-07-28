@@ -508,11 +508,20 @@ public sealed class SimUiGame : Game
 
         if (_headerRuleId != IntPtr.Zero)
         {
+            // D-A1 fix (docs/art-gate-defects.md): native dimensions from the
+            // LOADED asset, uv from the pure view-model — uniform scale set by
+            // the vertical mapping, horizontal overflow tiled, so the rule's
+            // ink weight is identical at every panel width. The same treatment
+            // the parchment background above gets, applied horizontally.
             float y = min.Y + ImGui.GetFrameHeight() + 2f;
+            float h = ViewModel.PanelFurniture.HeaderRuleScreenHeightPx;
+            float w = (max.X - min.X) - 12f;
+            (float u, float v) = ViewModel.PanelFurniture.HeaderRuleUv(
+                _headerRuleTexture!.Width, _headerRuleTexture.Height, w, h);
             list.AddImage(_headerRuleId,
                 new System.Numerics.Vector2(min.X + 6f, y),
-                new System.Numerics.Vector2(max.X - 6f, y + 8f),
-                System.Numerics.Vector2.Zero, System.Numerics.Vector2.One, 0xFFFFFFFFu);
+                new System.Numerics.Vector2(min.X + 6f + w, y + h),
+                System.Numerics.Vector2.Zero, new System.Numerics.Vector2(u, v), 0xFFFFFFFFu);
         }
     }
 

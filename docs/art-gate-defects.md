@@ -8,7 +8,7 @@ is the record; the statuses below are updated as the close-out packet lands.
 
 | # | defect | status |
 | --- | --- | --- |
-| D-A1 | The header rule is mis-scaled: drawn with uv (0,0)–(1,1) and a hardcoded 8f height, so the native 64×8 asset is stretched across the whole panel width. The ornament smears and its ink weight changes with panel size. | OPEN |
+| D-A1 | The header rule is mis-scaled: drawn with uv (0,0)–(1,1) and a hardcoded 8f height, so the native 64×8 asset is stretched across the whole panel width. The ornament smears and its ink weight changes with panel size. | **FIXED** — `PanelFurniture.HeaderRuleUv`: native dims from the loaded asset, uniform scale set by the vertical mapping, horizontal overflow tiled; ink-weight invariance pinned by `PanelFurnitureTests` (proven red 5/9 against the old u=1 extent). Awaiting visual gate. |
 | D-A2 | Settlement markers are too small to click (hit radius 11 px), and the name labels are not clickable at all — `HitTest` tests marker-centre distance only, so the label region is dead to the mouse. | OPEN |
 | D-A3 | River width scales with zoom: `RiverMesh` widths are in WORLD units, so a 2.4 world-px river is ~76 screen px at 32×. Markers and labels are constant screen size; rivers are the odd one out, and the style bible §2 calls rivers "ink-blue hairlines". | OPEN |
 
