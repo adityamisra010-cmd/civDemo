@@ -167,9 +167,7 @@ public sealed class SimUiGame : Game
         _compassId = _imgui.BindTexture(_compassTexture);
 
         int size = _world.Terrain!.Size;
-        _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.Build(_world.Terrain)),
-            new Color(ParchmentPalette.River.R, ParchmentPalette.River.G,
-                      ParchmentPalette.River.B, (byte)255));
+        RebuildRiverBuffer(1.0);
 
         // The same lattice geometry the M1 systems compute on (pure of terrain).
         _lattice = TraversalLattice.Build(_world.Terrain);
@@ -182,6 +180,21 @@ public sealed class SimUiGame : Game
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
         RefreshHud(syncSlider: true);
         RebuildOverlays();
+    }
+
+    // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
+    // so the world-space strip is rebuilt when zoom changes — zoom moves on
+    // wheel events only, never per frame. Measured rebuild cost on the
+    // canonical 1024² terrain: see the D-A3 commit message.
+    private double _riverBuiltZoom;
+
+    private void RebuildRiverBuffer(double zoom)
+    {
+        _riverVertices?.Dispose();
+        _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.Build(_world.Terrain!, zoom)),
+            new Color(ParchmentPalette.River.R, ParchmentPalette.River.G,
+                      ParchmentPalette.River.B, (byte)255));
+        _riverBuiltZoom = zoom;
     }
 
     private static LineGeometry.Vertex[] RiverMeshToLine(RiverMesh.Vertex[] mesh)
@@ -371,6 +384,7 @@ public sealed class SimUiGame : Game
             ParchmentPalette.PaperShade.R, ParchmentPalette.PaperShade.G, ParchmentPalette.PaperShade.B));
         Rectangle viewport = Viewport();
         Camera cam = _camera!;
+        if (cam.Zoom != _riverBuiltZoom) RebuildRiverBuffer(cam.Zoom);   // D-A3
 
         var transform =
             Matrix.CreateTranslation((float)-cam.CenterX, (float)-cam.CenterY, 0f)
