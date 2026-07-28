@@ -94,3 +94,40 @@ two-ink equality, both stronger. `assets/ui/header-rule.png` (1.7 MB) deleted �
 entry gone it would be an orphan the audit flags, and it has no consumer. Five properties pinned,
 four proven red against generator mutants (all-transparent → 2 red; wrap broken → seam red;
 RGB blended → palette red; stateful → determinism red).
+
+## D-A1 gate round 2 — the lozenge does not repeat (2026-07-28)
+
+**Gate evidence (director's measurement):** at the 256 px screen period, a 705 px panel should
+show lozenges at 128/384/640 (3) and a 1283 px panel at 128/384/640/896/1152 (5). Observed:
+**1 and 1**, at the same absolute offset from the panel's left edge. The two rule LINES tiled
+correctly across the full width in both — which proves nothing about wrap, because horizontally
+uniform rows repeated under clamp are indistinguishable from tiling.
+
+**Discriminating check — which case held, with code evidence:** the WIDER one. The vendored
+`ImGuiRenderer.RenderDrawData` set blend, depth and rasterizer state but **never set
+`SamplerStates[0]`** — ImGui geometry sampled under whatever the last SpriteBatch pass left on
+the device, and the pass immediately before `DrawHud` is the settlement-marker batch,
+`_spriteBatch.Begin(samplerState: SamplerState.LinearClamp, ...)` (SimUiGame.cs). So EVERY ImGui
+draw ran under LinearClamp: the parchment panel background (`uv = size/128`,
+`DrawPanelFurniture`) relied on clamp exactly as the header rule did — its ruled lines only
+looked right for the same uniform-rows reason, and any panel taller than one tile was streaking
+the bottom edge row. Not a header-rule draw-call fault.
+
+**Fix chosen:** `ImGuiRenderer` gains `public static readonly SamplerState TextureSampler =
+SamplerState.LinearWrap`, applied to `SamplerStates[0]` in `RenderDrawData` (saved and restored
+like the other device state). Least invasive candidate that fixes background AND rule in one
+place; matches the reference ImGui backends (imgui_impl_dx11 samples with ADDRESS_WRAP); safe
+for the font atlas and 9-slice, whose uv stay inside [0,1]. The draw calls and
+`PanelFurniture.HeaderRuleUv` are byte-identical — the ink-weight math (checks 1–2) is untouched.
+
+**The missing composite test — now shipped:** every prior test certified a PIECE (generator
+seamless, uv density exact); none certified the RESULT. Third occurrence of this shape on this
+asset. `PanelFurniture.HeaderRuleVisibleDiamondCenters(nativeW, nativeH, drawW, drawH,
+addressMode)` is the pure model of the composed draw — period derived from the very `HeaderRuleUv`
+value the draw call issues, address mode mapped from the very `ImGuiRenderer.TextureSampler` the
+renderer applies. `PanelFurnitureTests.ComposedDraw_LozengeRepeats_AtPredictedCenters` asserts
+centers {128,384,640} at 705 px and {128,384,640,896,1152} at 1283 px; proven RED by reverting
+the sampler to LinearClamp (model collapses to one center, test fails at both widths).
+**Coverage statement:** what remains uncovered is the actual GPU sampling — that MonoGame honours
+`SamplerStates[0]` for BasicEffect draws and that `RenderDrawData` really applies
+`TextureSampler`; that hop is not inspectable headless and takes one eyeball on the gate build.

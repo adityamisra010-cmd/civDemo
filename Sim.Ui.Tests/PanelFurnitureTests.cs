@@ -63,6 +63,58 @@ public class PanelFurnitureTests
         Assert.Equal(u1 * 2f, u2, 5);
     }
 
+    // ------------------------------------------------------------------
+    // D-A1 gate round 2: the COMPOSITE tests. Every earlier test certified a
+    // PIECE (generator seamless, uv density exact) and none certified the
+    // RESULT; the gate build showed ONE lozenge on every panel because the
+    // ImGui renderer sampled under LinearClamp inherited from the previous
+    // SpriteBatch pass. These tests assert the composed draw one layer below
+    // the GPU: the pure model of (draw rect, uv extent, sampler address mode)
+    // → visible lozenge centers, with the address mode read from the ACTUAL
+    // SamplerState the renderer configures (ImGuiRenderer.TextureSampler),
+    // and the uv extent from the ACTUAL HeaderRuleUv the draw call uses.
+    //
+    // UNCOVERED, stated per the packet: the real GPU sampling itself — that
+    // MonoGame honours SamplerStates[0] for BasicEffect draws, and that
+    // RenderDrawData applies TextureSampler on the device. That last hop is
+    // not inspectable headless (ImGui draw lists need a GraphicsDevice); it
+    // takes one eyeball on the gate build. Everything computable before that
+    // hop is asserted here.
+    // ------------------------------------------------------------------
+
+    private static PanelFurniture.AddressModeX RendererAddressModeX()
+        => Sim.Ui.ImGuiIntegration.ImGuiRenderer.TextureSampler.AddressU
+               == Microsoft.Xna.Framework.Graphics.TextureAddressMode.Wrap
+           ? PanelFurniture.AddressModeX.Wrap
+           : PanelFurniture.AddressModeX.Clamp;
+
+    [Fact]
+    public void ImGuiSampler_Wraps_BothAxes()
+    {
+        // The parchment background tiles in BOTH axes (uv = size/128); the
+        // header rule tiles in x. Both require wrap addressing.
+        var s = Sim.Ui.ImGuiIntegration.ImGuiRenderer.TextureSampler;
+        Assert.Equal(Microsoft.Xna.Framework.Graphics.TextureAddressMode.Wrap, s.AddressU);
+        Assert.Equal(Microsoft.Xna.Framework.Graphics.TextureAddressMode.Wrap, s.AddressV);
+    }
+
+    [Theory]
+    // 256 px screen period (drawH 8 × nativeW 1024 / nativeH 32); lozenge at
+    // period centre 128 + 256k. Directors' gate widths:
+    [InlineData(705f, new double[] { 128, 384, 640 })]
+    [InlineData(1283f, new double[] { 128, 384, 640, 896, 1152 })]
+    // one narrow panel: a single lozenge, still centred at 128
+    [InlineData(300f, new double[] { 128 })]
+    public void ComposedDraw_LozengeRepeats_AtPredictedCenters(
+        float drawWidth, double[] expectedCenters)
+    {
+        double[] centers = PanelFurniture.HeaderRuleVisibleDiamondCenters(
+            Sim.Ui.Art.HeaderRuleBaker.NativeWidth, Sim.Ui.Art.HeaderRuleBaker.NativeHeight,
+            drawWidth, PanelFurniture.HeaderRuleScreenHeightPx,
+            RendererAddressModeX());
+        Assert.Equal(expectedCenters, centers);
+    }
+
     [Theory]
     [InlineData(0, 1024, 100f, 8f)]
     [InlineData(1536, 0, 100f, 8f)]

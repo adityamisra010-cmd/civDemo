@@ -19,6 +19,21 @@ public sealed class ImGuiRenderer
     private readonly Dictionary<IntPtr, Texture2D> _boundTextures = [];
     private int _nextTextureId = 1;
 
+    /// <summary>
+    /// Sampler for EVERY ImGui draw call (D-A1 gate round 2). This renderer
+    /// never set one, so ImGui geometry sampled under whatever state the last
+    /// SpriteBatch pass left on the device — LinearClamp from the settlement
+    /// marker pass that runs immediately before DrawHud. Under clamp, uv &gt; 1
+    /// re-samples the final texel column forever, so the panel furniture's
+    /// tiled draws (parchment background uv = size/128, header rule u &gt; 1 on
+    /// wide panels) showed exactly one period and streaked the edge column.
+    /// Wrap matches the reference ImGui backends (imgui_impl_dx11 creates its
+    /// sampler with D3D11_TEXTURE_ADDRESS_WRAP) and is safe for the font atlas
+    /// and 9-slice, whose uv stay inside [0,1]. Public and static so headless
+    /// tests can pin the address mode the composed furniture draw depends on.
+    /// </summary>
+    public static readonly SamplerState TextureSampler = SamplerState.LinearWrap;
+
     private BasicEffect? _effect;
     private readonly RasterizerState _rasterizer = new()
     {
@@ -141,6 +156,7 @@ public sealed class ImGuiRenderer
         BlendState lastBlend = _device.BlendState;
         DepthStencilState lastDepth = _device.DepthStencilState;
         RasterizerState lastRasterizer = _device.RasterizerState;
+        SamplerState lastSampler = _device.SamplerStates[0];
 
         drawData.ScaleClipRects(ImGui.GetIO().DisplayFramebufferScale);
         UpdateBuffers(drawData);
@@ -158,6 +174,7 @@ public sealed class ImGuiRenderer
         _device.BlendState = BlendState.NonPremultiplied;
         _device.DepthStencilState = DepthStencilState.None;
         _device.RasterizerState = _rasterizer;
+        _device.SamplerStates[0] = TextureSampler;
         _device.SetVertexBuffer(_vertexBuffer);
         _device.Indices = _indexBuffer;
 
@@ -195,6 +212,7 @@ public sealed class ImGuiRenderer
         _device.BlendState = lastBlend;
         _device.DepthStencilState = lastDepth;
         _device.RasterizerState = lastRasterizer;
+        _device.SamplerStates[0] = lastSampler;
     }
 
     private unsafe void UpdateBuffers(ImDrawDataPtr drawData)
