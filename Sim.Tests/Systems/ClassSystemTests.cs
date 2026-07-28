@@ -427,6 +427,11 @@ public class ClassSystemTests
             var peasants = new long[Cohorts.Count];
             peasants[5] = farmers;
             WorldState world = ClassWorld(peasants, new long[Cohorts.Count]);
+            // T3.5b: the tool-factor arithmetic below assumes every adult
+            // farms; pin it explicitly now that the default is the subsistence
+            // mix (§7.8: a rig isolates its variable).
+            world.SectorAllocations.Add(new SectorAllocationRow(
+                S0, Farming: 1.0, Herding: 0.0, Extraction: 0.0, Crafting: 0.0, Construction: 0.0));
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
                 S0, NodeCount: 1, EffectiveArableKm2: 1e9, // land never binds
                 NetworkRevision: 0, LastRecomputeTurn: 0));
@@ -514,18 +519,28 @@ public class ClassSystemTests
         // LaborAllocation order maps 40% farm → 60% construction.
         double builders = 0.6 * (peasants + 60);
         double expected = cfg.PathBuild.LaborPerAdultPerYear * builders * 10.0;
-        Assert.Equal(1, next.PathProgress.Count);
-        // Exact pin: the bank (~24) is far below a segment's cost
-        // (StepCost × 50), so nothing was laid and the bank IS the accrual —
-        // bit-exact. An unweighted pool (peasants only) or a slider-ignoring
-        // artisan term shifts this product and fails.
-        Assert.Equal(expected, next.PathProgress[0].Banked);
-        // The exact pin: run a twin with zero artisans and compare deltas.
+        // T3.5b: the subsistence default (construction 0.08) banks for EVERY
+        // settlement from turn 1, so rows exist for all four dev settlements
+        // and S0's bank carries two default turns before the order lands. The
+        // exact pin becomes the DELTA across the post-order step; the twin
+        // (identical world, no order) supplies the default-turns baseline —
+        // which also keeps the twin non-vacuous where "banks exactly nothing"
+        // was retired with the all-farming default.
+        int S0row = -1;
+        for (int i = 0; i < next.PathProgress.Count; i++)
+            if (next.PathProgress[i].Settlement == S0) { S0row = i; break; }
+        Assert.True(S0row >= 0, "no bank row for S0");
         WorldState twin = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
         var exec2 = new TurnExecutor(CanonicalEra(), [SystemCatalog.PathBuild(cfg)], new OrderLog());
-        // (twin uses the never-ordered default 1.0 → banks exactly nothing)
-        WorldState t2 = exec2.Run(twin, 3);
-        Assert.True(t2.PathProgress.Count == 0 || t2.PathProgress[0].Banked == 0.0,
-            "100% farm banked labor — the T1.6 invariant broke");
+        WorldState t2 = exec2.Run(twin, 2);          // the two pre-order turns, default share
+        int twinRow = -1;
+        for (int i = 0; i < t2.PathProgress.Count; i++)
+            if (t2.PathProgress[i].Settlement == S0) { twinRow = i; break; }
+        double preOrderBank = twinRow >= 0 ? t2.PathProgress[twinRow].Banked : 0.0;
+        // Exact pin: the post-order accrual is the 0.6 construction share of
+        // ALL adults, artisans included at full weight. An unweighted pool
+        // (peasants only) or a slider-ignoring artisan term shifts this
+        // product and fails.
+        Assert.Equal(expected, next.PathProgress[S0row].Banked - preOrderBank, 9);
     }
 }

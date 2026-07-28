@@ -419,18 +419,94 @@ public static class SimConfigLoader
     /// registry (needs.json), attached as SimConfig.Needs. Systems that bind
     /// needs (NeedsGrievance) refuse construction without it.</summary>
     public static SimConfig Load(Stream simJson, Stream needsJson) =>
-        Load(simJson) with { Needs = NeedsConfigLoader.Load(needsJson) };
+        ValidateNeedsAgainstRegistries(Load(simJson) with { Needs = NeedsConfigLoader.Load(needsJson) });
 
     /// <summary>T3.2: canonical three-file load — sim.json + needs.json +
     /// goods.json (the D-031 registry, attached as SimConfig.Goods). Systems
     /// that bind goods (Farming, Consumption at M3) refuse construction
     /// without it.</summary>
     public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson) =>
-        Load(simJson) with
+        ValidateNeedsAgainstRegistries(Load(simJson) with
         {
             Needs = NeedsConfigLoader.Load(needsJson),
             Goods = GoodsConfigLoader.Load(goodsJson),
-        };
+        });
+
+    /// <summary>
+    /// T3.5b item 4 — the two cross-file guards, at the only point where
+    /// needs.json and sim.json's class registry meet. Silently-inert configs
+    /// are the deepest failure class this project has (deepsea.png, the
+    /// untested SectorAllocation path, the rail deletable with 333 green), so
+    /// both REFUSE the load with an actionable message — a guard that logged
+    /// and continued would be the fault it exists to fix.
+    ///
+    /// (a) A basket entry naming a class id absent from sim.json's class
+    ///     registry loads clean today and renders the need fully inert for
+    ///     that entry — T3.5's inertness lens drove a bound need at weight 1e9
+    ///     through this path to a bit-identical world hash. With two classes
+    ///     shipped, a stray 3 is a realistic typo.
+    /// (b) A PER-CLASS hole in a bound need's basket is silent and inverts
+    ///     the mechanism: dropping artisans' Shelter lines made artisans LESS
+    ///     aggrieved under total roof collapse (measured 0.7075 vs 0.7236),
+    ///     because dropping the need drops its weight from the accrual scale.
+    ///     The guard is (class, need)-scoped: every bound need that any class
+    ///     baskets must be basketed by EVERY registry class.
+    /// </summary>
+    private static SimConfig ValidateNeedsAgainstRegistries(SimConfig cfg)
+    {
+        if (cfg.Needs is null) return cfg;
+        ClassEntry[] classes = cfg.Registries.Classes;
+        BasketEntry[] entries = cfg.Needs.Baskets.Entries;
+
+        for (int i = 0; i < entries.Length; i++)
+        {
+            bool known = false;
+            for (int c = 0; c < classes.Length; c++)
+                if (classes[c].Id == entries[i].Class) { known = true; break; }
+            if (!known)
+            {
+                var valid = new System.Text.StringBuilder();
+                for (int c = 0; c < classes.Length; c++)
+                {
+                    if (c > 0) valid.Append(", ");
+                    valid.Append(classes[c].Id).Append(" (").Append(classes[c].Name).Append(')');
+                }
+                throw new NeedsConfigException(
+                    $"needs.json baskets.entries[{i}] names class id {entries[i].Class}, which is not in "
+                    + $"sim.json's class registry (valid ids: {valid}). A basket for an unknown class is "
+                    + "SILENTLY INERT — the need never binds for anyone, whatever its weight says. Fix the "
+                    + "class id, or add the class to sim.json registries.classes.");
+            }
+        }
+
+        for (int n = 0; n < cfg.Needs.Needs.Length; n++)
+        {
+            NeedEntry need = cfg.Needs.Needs[n];
+            if (!need.Bound) continue;
+            bool anyClassBasketsThis = false;
+            for (int i = 0; i < entries.Length; i++)
+                if (entries[i].Need == need.Id) { anyClassBasketsThis = true; break; }
+            if (!anyClassBasketsThis) continue;   // a bound need nobody baskets is T2.6's zero-effect gate, not a hole
+
+            for (int c = 0; c < classes.Length; c++)
+            {
+                bool has = false;
+                for (int i = 0; i < entries.Length; i++)
+                    if (entries[i].Need == need.Id && entries[i].Class == classes[c].Id) { has = true; break; }
+                if (!has)
+                {
+                    throw new NeedsConfigException(
+                        $"needs.json: bound need {need.Id} ({need.Name}) has basket entries for some classes "
+                        + $"but NONE for class {classes[c].Id} ({classes[c].Name}). A per-class hole is "
+                        + "silently inverted mechanism: the class with the hole becomes LESS aggrieved under "
+                        + "total deprivation, because the missing need's weight drops out of its accrual "
+                        + $"scale. Add at least one baskets.entries line with class {classes[c].Id} and need "
+                        + $"{need.Id}, or unbind the need.");
+                }
+            }
+        }
+        return cfg;
+    }
 
     public static SimConfig Load(string json)
     {

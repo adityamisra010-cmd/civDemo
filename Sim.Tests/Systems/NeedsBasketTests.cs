@@ -183,7 +183,8 @@ public class NeedsBasketTests
           "aggregation": { "sigma": {{inv(sigma)}}, "satisfactionFloor": 0.05,
                            "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
           "baskets": { "entries": [ {{baskets}} ] },
-          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 }
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": { "shares": [0.70, 0.20, 0.10] }
         }
         """;
     }
@@ -244,21 +245,39 @@ public class NeedsBasketTests
         // to monoculture. Satisfaction must fall the whole way. Fixed quantity
         // is the whole point — a test that let the total move would be measuring
         // quantity and calling it variety.
-        const double weight = 0.15, total = 3.0;
+        // T3.5b item 2: the reference is now the FIXED nutritional standard
+        // (H* = 0.54 shipped), not perfect evenness. Below the standard the
+        // factor is FLAT at exactly 1.0 (no penalty for being at least as
+        // varied as a good pre-modern diet); above it, strictly decreasing to
+        // the full penalty at monoculture.
+        const double weight = 0.15, total = 3.0, hStar = 0.54;
         double previous = double.MaxValue;
         var trace = new List<double>();
+        bool crossed = false;
         for (int i = 0; i <= 10; i++)
         {
             double concentrated = total * (1.0 / 3.0 + (2.0 / 3.0) * (i / 10.0));
             double rest = (total - concentrated) / 2.0;
             double[] basket = [concentrated, rest, rest];
             Assert.Equal(total, basket[0] + basket[1] + basket[2], 12);   // quantity held fixed
-            double f = NeedsAggregation.VarietyFactor(basket, weight);
-            Assert.True(f < previous, $"variety factor did not fall at step {i}: {f:F6} !< {previous:F6}");
+            double share = concentrated / total;
+            double h = share * share + 2.0 * (rest / total) * (rest / total);
+            double f = NeedsAggregation.VarietyFactor(basket, weight, hStar);
+            if (h <= hStar)
+            {
+                Assert.Equal(1.0, f, 12);   // at or below the standard: no penalty, exactly
+            }
+            else
+            {
+                crossed = true;
+                Assert.True(f < previous, $"variety factor did not fall at step {i}: {f:F6} !< {previous:F6}");
+                Assert.True(f < 1.0, $"above-standard concentration took no penalty at step {i}");
+            }
             previous = f;
             trace.Add(f);
         }
-        Assert.Equal(1.0, trace[0], 12);                    // perfectly even: no penalty
+        Assert.True(crossed, "the sweep never crossed the standard — vacuous");
+        Assert.Equal(1.0, trace[0], 12);                    // even (H = 1/3 < H*): no penalty
         Assert.Equal(1.0 - weight, trace[^1], 12);          // monoculture: the full penalty
         Console.WriteLine($"variety factor, even -> monoculture: {trace[0]:F4} -> {trace[^1]:F4} at weight {weight}");
     }
@@ -272,9 +291,9 @@ public class NeedsBasketTests
         // strictly below a fully-supplied VARIED one, at identical quantity.
         // The distinguishing case is the fully-supplied one — under a bonus
         // there is nothing left to add.
-        const double weight = 0.15;
-        double varied = NeedsAggregation.VarietyFactor([1.0, 1.0, 1.0], weight);
-        double monotonous = NeedsAggregation.VarietyFactor([3.0, 0.0, 0.0], weight);
+        const double weight = 0.15, hStar = 0.54;
+        double varied = NeedsAggregation.VarietyFactor([1.0, 1.0, 1.0], weight, hStar);
+        double monotonous = NeedsAggregation.VarietyFactor([3.0, 0.0, 0.0], weight, hStar);
         Assert.Equal(1.0, varied, 12);
         Assert.True(monotonous < 1.0, "a monotonous full basket scored 1.0 — the term is a bonus, not a mechanism");
         Assert.True(monotonous <= 1.0, "variety exceeded 1.0 — that is a buff, which law 2 forbids");
@@ -289,10 +308,10 @@ public class NeedsBasketTests
         // goods present would make n = 1, give it no diversity dimension, and
         // score it as an unimprovable single-good basket — deleting D-035-A
         // precisely in the case it exists for.
-        const double weight = 0.15;
-        Assert.Equal(1.0 - weight, NeedsAggregation.VarietyFactor([1.0, 0.0, 0.0], weight), 12);
+        const double weight = 0.15, hStar = 0.54;
+        Assert.Equal(1.0 - weight, NeedsAggregation.VarietyFactor([1.0, 0.0, 0.0], weight, hStar), 12);
         // A genuinely one-good basket has no diversity to lose, and is not penalised.
-        Assert.Equal(1.0, NeedsAggregation.VarietyFactor([1.0], weight), 12);
+        Assert.Equal(1.0, NeedsAggregation.VarietyFactor([1.0], weight, hStar), 12);
     }
 
     // ======================================================================
