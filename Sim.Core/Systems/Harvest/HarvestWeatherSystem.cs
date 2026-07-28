@@ -124,7 +124,14 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
                 sumSq += w * w;
             }
             sumSqOf[i] = sumSq;
-            regional[i] = sumSq > 0.0 ? acc / Math.Sqrt(sumSq) : local[i];
+            // INVARIANT: sumSq >= 1.0 always — the self term (w_ii = 1.0) is
+            // unconditional and cannot be skipped by the w <= 0 guard, so even
+            // a settlement with no reachable neighbour normalises through the
+            // general expression (where S_i = 1 and regional_i = local_i falls
+            // out). T3.4c review fix M4: the former `: local[i]` fallback arm
+            // was unreachable dead code — proven by NaN-poisoning it with the
+            // whole suite green and bit-identical world hashes.
+            regional[i] = acc / Math.Sqrt(sumSq);
         }
 
         // PASS 3 — the AR(1) step and the mean-one multiplier.
@@ -172,20 +179,22 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
             // cross-term) and maximal in between, with the shipped k=0.6 sitting
             // essentially at the maximum.
             //
-            // THE FALLBACK BRANCH. When sumSq_i is 0 — a settlement with no
-            // reachable neighbour, where PASS 2 sets regional_i = local_i — the
-            // two are the SAME variable, correlation 1, and the variance is
-            // (√k+√(1−k))². That is the worst case (1.9798 at k=0.5), so it must
-            // be handled and not left to the general formula.
+            // THE ISOLATED-SETTLEMENT CASE needs no branch (T3.4c review fix
+            // M4 — the former sumSq == 0 fallback was UNREACHABLE dead code,
+            // because the unconditional self-weight guarantees S_i >= 1): with
+            // no reachable neighbour S_i = 1, regional_i = local_i, and the
+            // general formula evaluates to 1 + 2·√(k(1−k)) = (√k+√(1−k))² —
+            // the fully-correlated worst case (1.9798 at k=0.5) — of its own
+            // accord. Three artifacts previously claimed the fallback arm was
+            // exercised; all were false, and the claims are corrected where
+            // they stood.
             //
             // REJECTED ALTERNATIVE, recorded so it is not re-proposed: excluding
-            // self (w_ii = 0) does make them independent, but then EVERY isolated
-            // settlement falls into that same fallback, and it changes what
+            // self (w_ii = 0) does make them independent, but then an isolated
+            // settlement genuinely divides by zero, and it changes what
             // "regional" means — a region's weather would no longer include its
             // own site.
-            double varInn = sumSqOf[i] > 0.0
-                ? 1.0 + 2.0 * wRegional * wLocal / Math.Sqrt(sumSqOf[i])
-                : (wRegional + wLocal) * (wRegional + wLocal);
+            double varInn = 1.0 + 2.0 * wRegional * wLocal / Math.Sqrt(sumSqOf[i]);
             double innovation =
                 (wRegional * regional[i] + wLocal * local[i]) / Math.Sqrt(varInn);
             double x = rho * previous + innovationScale * innovation;

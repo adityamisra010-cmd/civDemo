@@ -98,7 +98,10 @@ public class HarvestWeatherTests
         // GEOMETRY IS A PARAMETER HERE, deliberately. The pre-fix bias varied
         // with the kernel's sumSq, so a single-geometry test could have been
         // tuned past. n=1 is the extreme case (the regional field IS the local
-        // draw, correlation 1) and must work through the fallback branch.
+        // draw, correlation 1), handled by the GENERAL formula at S_i = 1 —
+        // the former claim that it 'must work through the fallback branch' was
+        // false (T3.4c review fix M4: that branch was unreachable dead code;
+        // the unconditional self-weight keeps S_i >= 1 always).
         //
         // TOLERANCE: this is a Monte-Carlo mean of a right-skewed lognormal whose
         // draws are spatially correlated, so effective sample size is well below
