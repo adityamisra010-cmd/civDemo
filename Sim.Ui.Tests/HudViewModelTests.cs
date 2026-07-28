@@ -106,7 +106,7 @@ public class HudViewModelTests
         Assert.Equal(total, hud.TotalPopulation);
         Assert.Equal(cfg.Founding.FoodStore, hud.FoodStore);
         Assert.Equal(0, hud.LastHarvest);          // nothing harvested pre-turn-1
-        Assert.Equal(100.0, hud.FarmingPct);     // never-ordered default
+        Assert.Equal(55.0, hud.FarmingPct, 9);   // never-ordered default (T3.5b subsistence mix; share×100 carries 1-ulp float noise)
         Assert.Equal(0, hud.Turn);
         Assert.Equal(-4000, hud.Year);
 
@@ -117,7 +117,7 @@ public class HudViewModelTests
         Assert.Equal("Settlement 0", hud.TitleLine);
         Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
-        Assert.Equal("labor 100% farm / 0% herd / 0% mine / 0% craft / 0% build", hud.SplitLine);
+        Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine); // T2.4, dev N=4
         Assert.Equal("turn 0   year -4000", hud.ClockLine);
@@ -156,7 +156,9 @@ public class HudViewModelTests
         // read 0.00 from the very first turn instead of enjoying one free turn
         // of phantom supply. Sustenance reads 0.85 — full calories, since the
         // missing non-staples substitute into grain, times the full D-035-A
-        // monotony penalty for a diet that is grain and nothing else.
+        // monotony penalty for a diet that is grain and nothing else (H = 1 is
+        // maximally over ANY standard, so the T3.5b re-reference does not move
+        // this value — the monoculture penalty is standard-independent).
         Assert.Equal("Sustenance: 0.85", hud.NeedLines[0]);
         Assert.Equal("Shelter: 0.00", hud.NeedLines[1]);
         Assert.Equal("Comfort: 0.00", hud.NeedLines[5]);
@@ -195,12 +197,22 @@ public class HudViewModelTests
         {
             world = exec.Step(world);
             HudModel hud = HudModel.From(world, 0, needs);
-            // 0.85 from the first turn on: full calories (the missing
-            // non-staples substitute into grain) times the full D-035-A monotony
-            // penalty for a grain-only diet. Before the T3.5 review fixed Fill's
-            // zero-demand sentinel, turn 1 read 0.89 — a phantom credit for
-            // livestock and fish the settlement had no stock of.
-            Assert.Equal("Sustenance: 0.85", hud.NeedLines![0]);
+            // Turn 1: 0.85 — full calories (missing non-staples substitute
+            // into grain) times the full monotony penalty for a grain-only
+            // diet. T3.5b RE-ANCHOR for the turns after: the subsistence
+            // default's herding share puts livestock and fish into the store
+            // from turn 2 on, so the diet DIVERSIFIES and satisfaction rises
+            // above the monoculture floor — the new default's mechanism,
+            // visible in the HUD. The pin stays semantic (a real measured
+            // value, never a fabricated default), which is what the original
+            // gate finding was about.
+            string line = hud.NeedLines![0];
+            Assert.StartsWith("Sustenance: 0.", line, StringComparison.Ordinal);
+            double v = double.Parse(line["Sustenance: ".Length..],
+                System.Globalization.CultureInfo.InvariantCulture);
+            if (t == 1) Assert.Equal(0.85, v, 2);
+            else Assert.True(v >= 0.85,
+                $"turn {t}: Sustenance {v:F2} fell below the monoculture floor — diversification reversed");
         }
     }
 

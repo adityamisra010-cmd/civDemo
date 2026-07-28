@@ -143,3 +143,15 @@ distinguished, in the metrics, from land genuinely filling.
 
 **Evidence:** `docs/t3.4b-migration-evidence.md` (addendum), `docs/adr/cr-003.md`,
 `Sim.Core/Worldgen/SettlementSiting.cs:180`.
+
+### B-2 addendum (T3.5b, 2026-07-28) — the granary masks a 45% labour perturbation
+
+Item 1b's pre-committed reading 2 fired and is escalated here as directed. The derived subsistence
+mix cut farm labour 45%. Measured consequence on canonical seeds 1/2 at 650 turns: **population
+±0.2%** (120,811/120,558 → 120,588/120,585 — CR-003 §2.3's yield-insensitivity confirmed at head),
+starvation 0, grain accumulation slowed −59% (303M → 125M) with **~1,240 years of reserve
+remaining**. A 45% cut to food labour is invisible to every demographic observable because the
+unbounded granary absorbs it — the store is not merely deep, it is deep enough to hide
+labour-allocation policy itself. Store bounding (B-2a) is what makes sector allocation a decision
+with consequences; until it lands, no M3/M4 mechanism that routes through food scarcity can be
+calibrated against the shipped world.

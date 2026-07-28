@@ -2,6 +2,7 @@ using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Core.Systems;
+using Sim.Core.Systems.NeedsGrievance;
 using Sim.Core.Worldgen;
 using Sim.Tests.TestUtil;
 
@@ -221,6 +222,12 @@ public class NeedsGrievanceTests
         TurnExecutor famineExec = ProductionExecutor(starving);
 
         WorldState prefix = WorldFounding.Found(TestConfigs.DevWorldgen(), fed, Seed, 1);
+        // T3.5b: the fed/starving contrast is calibrated for an all-farming
+        // world; under the subsistence default the FED arm starves too and the
+        // control is no longer a control. Pinned explicitly (§7.8).
+        prefix.SectorAllocations.Add(new SectorAllocationRow(
+            prefix.Settlements[0].Id, Farming: 1.0, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 0.0));
         for (int t = 1; t <= 6; t++) prefix = fedExec.Step(prefix);
 
         WorldState control = prefix.Clone(), famine = prefix.Clone();
@@ -516,4 +523,305 @@ public class NeedsGrievanceTests
         for (int i = 0; i < next.NeedSatisfactions.Count; i++)
             Assert.NotEqual(0, next.NeedSatisfactions[i].Settlement.Value);
     }
+
+    // ======================================================================
+    // T3.5b — the variety standard, the ghost-class fix, and the guards
+    // ======================================================================
+
+    /// <summary>A Sustenance-only config whose declared basket IS the fixed
+    /// nutritional standard (0.70 grain / 0.20 livestock / 0.10 fish) — the
+    /// legal configuration under which full supply meets the standard exactly.
+    /// Built through the REAL loader so nothing is hand-assembled.</summary>
+    private static SimConfig StandardShapedConfig(double[]? standardShares = null)
+    {
+        double[] std = standardShares ?? [0.70, 0.20, 0.10];
+        string inv(double d) => d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string needsJson = $$"""
+        {
+          "needs": [ { "id": 1, "name": "Sustenance", "bound": true, "weight": 1.0, "varietyWeight": 0.15 },
+                     { "id": 2, "name": "Shelter", "bound": false, "weight": 0.9 },
+                     { "id": 3, "name": "Safety", "bound": false, "weight": 0.9 } ],
+          "aggregation": { "sigma": 0.5, "satisfactionFloor": 0.05,
+                           "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
+          "baskets": { "entries": [
+            { "class": 1, "need": 1, "good": "grain",     "perPersonYear": 0.70 },
+            { "class": 1, "need": 1, "good": "livestock", "perPersonYear": 0.20 },
+            { "class": 1, "need": 1, "good": "fish",      "perPersonYear": 0.10 } ] },
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": { "shares": [{{inv(std[0])}}, {{inv(std[1])}}, {{inv(std[2])}}] }
+        }
+        """;
+        return TestConfigs.Sim() with { Needs = NeedsConfigLoader.Load(needsJson) };
+    }
+
+    [Fact]
+    public void ExactSaturationBranch_IsLIVE_AStandardShapedDietFullySupplied_AccruesEXACTLYNothing()
+    {
+        // T3.5b item 2's §7.4 obligation: the exact-saturation branch in
+        // NeedsAggregation.Aggregate was MEASURED DEAD at T3.5 (every shipped
+        // variety-weighted need capped below 1.0 under the perfect-evenness
+        // reference, so "all needs >= 1" could never hold). Under the fixed
+        // standard, a settlement supplied at the standard scores EXACTLY 1.0 —
+        // no epsilon — and grievance accrues EXACTLY nothing, through the real
+        // loader, the real system, and the real per-need path. This packet has
+        // just watched an unreachable branch survive three artifacts claiming
+        // it was exercised; this test is the measurement, not the claim.
+        //
+        // PROVEN RED against the perfect-evenness form: 0.70/0.20/0.10 is not
+        // even (H = 0.54 > 1/3), so the old normalisation gives factor
+        // 1 − 0.15·(0.54 − 1/3)/(1 − 1/3) = 0.9535 < 1 and the accrual is
+        // strictly positive — this test fails against the pre-T3.5b code.
+        SimConfig cfg = StandardShapedConfig();
+        WorldState world = GrievanceWorld(1);
+        Fill(world, 0, "grain", 1.0);
+        Fill(world, 0, "livestock", 1.0);
+        Fill(world, 0, "fish", 1.0);
+
+        WorldState next = GrievanceOnly(cfg).Step(world);
+        for (int t = 0; t < 5; t++) next = GrievanceOnly(cfg).Step(Refill(next));
+
+        Assert.Equal(1, next.NeedSatisfactions.Count);
+        Assert.Equal(1.0, next.NeedSatisfactions[0].Value);   // EXACT — no epsilon
+        Assert.Equal(0.0, Grievance(next, 0));                // EXACT — nothing unmet
+    }
+
+    /// <summary>Fills evaporate each step (the rig rows carry last-turn data);
+    /// re-state them so a multi-turn saturation run stays supplied.</summary>
+    private static WorldState Refill(WorldState world)
+    {
+        for (int i = 0; i < world.GoodStocks.Count; i++)
+        {
+            GoodStockRow r = world.GoodStocks[i];
+            world.GoodStocks[i] = r with { LastConsumptionEatenUnits = r.LastConsumptionDemandUnits };
+        }
+        return world;
+    }
+
+    [Fact]
+    public void GrainOnlyDiet_ScoresStrictlyBelow_FishImporting_TheTradeRationaleMeasured()
+    {
+        // D-035-A's rationale, MEASURED as the ruling demands ("show the two
+        // numbers"): a settlement feeding itself entirely on grain scores
+        // strictly below one importing livestock and fish, at the same
+        // varietyWeight, under the fixed standard. The declared-basket
+        // normalisation the ruling rejected would let the grain-only
+        // settlement declare a one-good basket and escape; the standard does
+        // not care what was declared.
+        const double weight = 0.15, hStar = 0.54;
+        double grainOnly = NeedsAggregation.VarietyFactor([1.0, 0.0, 0.0], weight, hStar);
+        double importing = NeedsAggregation.VarietyFactor([0.70, 0.20, 0.10], weight, hStar);
+        Assert.Equal(1.0 - weight, grainOnly, 12);   // full monoculture penalty: 0.85
+        Assert.Equal(1.0, importing, 12);            // at the standard: no penalty
+        Assert.True(grainOnly < importing, "no reason to trade — D-035-A deleted");
+        Console.WriteLine($"variety factor: grain-only {grainOnly:F4} vs standard-diet {importing:F4}");
+    }
+
+    [Fact]
+    public void AntiTautology_SatisfactionRESPONDSToTheStandard_PerturbedEitherWay()
+    {
+        // The anti-tautology bar (T3.4's explainability precedent): the
+        // standard is DATA, so satisfaction must respond to it — a
+        // normalisation that reconciles by construction proves nothing.
+        // One obtained diet, three standards, predicted ordering asserted:
+        // a STRICTER standard (lower H*) penalises this diet more; a LAXER
+        // one (H* above the diet's own concentration) penalises it not at all.
+        // The full pipeline runs through the loader each time — the standard
+        // enters from needs.json, not from a test parameter.
+        WorldState World()
+        {
+            WorldState w = GrievanceWorld(1);
+            Fill(w, 0, "grain", 1.0);       // obtained diet: declared shape,
+            Fill(w, 0, "livestock", 0.5);   // partially supplied non-staples —
+            Fill(w, 0, "fish", 0.5);        // H = (0.7/0.85)² + ... ≈ 0.696
+            return w;
+        }
+        double SatUnder(double[] shares)
+        {
+            WorldState next = GrievanceOnly(StandardShapedConfig(shares)).Step(World());
+            Assert.Equal(1, next.NeedSatisfactions.Count);
+            return next.NeedSatisfactions[0].Value;
+        }
+
+        double strict = SatUnder([0.50, 0.30, 0.20]);   // H* = 0.38 — stricter
+        double shipped = SatUnder([0.70, 0.20, 0.10]);  // H* = 0.54
+        double lax = SatUnder([0.85, 0.10, 0.05]);      // H* = 0.735 — above the diet's H
+
+        Assert.True(strict < shipped,
+            $"a stricter standard did not lower satisfaction: {strict:F6} !< {shipped:F6}");
+        Assert.True(shipped < lax,
+            $"a laxer standard did not raise satisfaction: {shipped:F6} !< {lax:F6}");
+        Console.WriteLine($"same diet under H* 0.38 / 0.54 / 0.735: {strict:F4} / {shipped:F4} / {lax:F4}");
+    }
+
+    [Fact]
+    public void GhostClass_LiveSettlementAccruesNothingForAnEmptyClass_ExtinctionZeroingIntact()
+    {
+        // T3.5b item 3, pinned ALONGSIDE the T2.13 fix it must not weaken.
+        // Settlement 0: LIVE (1000 peasants), carrying a grievance row for an
+        // artisan class with ZERO members — the ghost. Settlement 1: EXTINCT.
+        // After stepping with everything deprived:
+        //   - S0 peasants accrue (live people, unmet needs),
+        //   - S0 artisans hold EXACTLY zero (nobody to hold it),
+        //   - S1 zeroes entirely (T2.13, untouched),
+        //   - no satisfaction rows publish for the empty class or the ruin.
+        //
+        // PROVEN RED by removing the classPop check: the artisan row accrues
+        // the same as the peasants' (the pre-fix ghost, magnitude ~119 per
+        // T3.5's measurement) and this test fails on exact zero.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState world = GrievanceWorld(2);
+        world.Grievances.Add(new GrievanceRow(new SettlementId(0), new ClassId(2), 0.0));
+        // Extinguish settlement 1 (its bucket to zero via the ledger).
+        var ledger = new Ledger(world.LedgerFlows);
+        for (int i = 0; i < world.Buckets.Count; i++)
+            if (world.Buckets[i].Settlement.Value == 1)
+                ledger.Flow(ref world.Buckets.Ref(i).Count, ConservedQuantityIds.Population,
+                    ReasonIds.Deaths, 1000, FlowDirection.Sink, OverdrawPolicy.Throw);
+        // Seed settlement 1's stock nonzero so the zeroing is observable.
+        for (int i = 0; i < world.Grievances.Count; i++)
+            if (world.Grievances[i].Settlement.Value == 1)
+                world.Grievances[i] = world.Grievances[i] with { Value = 42.0 };
+        // Nothing supplied anywhere: every basket good at fill 0.
+        foreach (string good in AllBasketGoods()) { Fill(world, 0, good, 0.0); Fill(world, 1, good, 0.0); }
+
+        WorldState next = GrievanceOnly(cfg).Step(world);
+
+        double peasant0 = 0.0, artisan0 = -1.0, ruin1 = -1.0;
+        for (int i = 0; i < next.Grievances.Count; i++)
+        {
+            GrievanceRow g = next.Grievances[i];
+            if (g.Settlement.Value == 0 && g.Class.Value == 1) peasant0 = g.Value;
+            if (g.Settlement.Value == 0 && g.Class.Value == 2) artisan0 = g.Value;
+            if (g.Settlement.Value == 1) ruin1 = g.Value;
+        }
+        Assert.True(peasant0 > 0.0, "live deprived peasants accrued nothing — rig vacuous");
+        Assert.Equal(0.0, artisan0);   // EXACT: the ghost class holds nothing
+        Assert.Equal(0.0, ruin1);      // EXACT: T2.13 extinction zeroing intact
+        for (int i = 0; i < next.NeedSatisfactions.Count; i++)
+        {
+            Assert.NotEqual(2, next.NeedSatisfactions[i].Class.Value);      // no rows for the empty class
+            Assert.NotEqual(1, next.NeedSatisfactions[i].Settlement.Value); // none for the ruin
+        }
+    }
+
+    [Fact]
+    public void Guard_BasketNamingUnknownClassId_RefusesTheLoad_Actionably()
+    {
+        // T3.5b item 4(a), proven red by removing ValidateNeedsAgainstRegistries:
+        // without the guard this config loads clean and the entry is silently
+        // inert (T3.5's inertness lens drove weight 1e9 through this path to a
+        // bit-identical hash).
+        using var sim = Sim.Data.DataFiles.OpenSim();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        string needsJson = System.Text.Json.JsonSerializer.Serialize(BadNeeds(classId: 999));
+        var ex = Assert.Throws<NeedsConfigException>(() => SimConfigLoader.Load(
+            new StreamReader(sim).ReadToEnd() is string simText
+                ? new MemoryStream(System.Text.Encoding.UTF8.GetBytes(simText)) : Stream.Null,
+            new MemoryStream(System.Text.Encoding.UTF8.GetBytes(needsJson)),
+            goods));
+        Assert.Contains("class id 999", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("valid ids", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("SILENTLY INERT", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Guard_PerClassHoleInABoundNeedsBasket_RefusesTheLoad_Actionably()
+    {
+        // T3.5b item 4(b), proven red the same way. The hole INVERTS the
+        // mechanism (dropping a class's Shelter lines made it LESS aggrieved
+        // under total roof collapse — measured 0.7075 vs 0.7236 at T3.5), so
+        // registry-scoped checking is not enough: the guard is (class, need)-
+        // scoped.
+        using var sim = Sim.Data.DataFiles.OpenSim();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        string needsJson = System.Text.Json.JsonSerializer.Serialize(BadNeeds(dropClass2Sustenance: true));
+        var ex = Assert.Throws<NeedsConfigException>(() => SimConfigLoader.Load(
+            new StreamReader(sim).ReadToEnd() is string simText
+                ? new MemoryStream(System.Text.Encoding.UTF8.GetBytes(simText)) : Stream.Null,
+            new MemoryStream(System.Text.Encoding.UTF8.GetBytes(needsJson)),
+            goods));
+        Assert.Contains("NONE for class 2", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("per-class hole", ex.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>The shipped needs.json, deformed one way or the other.</summary>
+    private static System.Text.Json.Nodes.JsonNode BadNeeds(int? classId = null, bool dropClass2Sustenance = false)
+    {
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        var node = System.Text.Json.Nodes.JsonNode.Parse(new StreamReader(needs).ReadToEnd())!;
+        var entries = node["baskets"]!["entries"]!.AsArray();
+        if (classId is int bad)
+        {
+            // A COMPLETE food basket for the unknown class (sums to 1.0), so
+            // the loader's per-class sum check passes and the deformation is
+            // caught by the cross-file guard alone — the fault under test.
+            foreach ((string good, double rate) in new[] { ("grain", 0.70), ("livestock", 0.20), ("fish", 0.10) })
+            {
+                var e = new System.Text.Json.Nodes.JsonObject
+                {
+                    ["class"] = bad, ["need"] = 1, ["good"] = good, ["perPersonYear"] = rate,
+                };
+                entries.Add(e);
+            }
+        }
+        if (dropClass2Sustenance)
+            for (int i = entries.Count - 1; i >= 0; i--)
+                if ((int)entries[i]!["class"]! == 2 && (int)entries[i]!["need"]! == 1)
+                    entries.RemoveAt(i);
+        return node;
+    }
+
+    [Fact]
+    public void Guard_VarietyStandard_MalformedShares_RefuseTheLoad_AllThreeArms()
+    {
+        // T3.5b review fix (lens 3, C3): the varietyStandard validation
+        // shipped described, not tested — deletable with 479 green, the one
+        // §7.4 violation the sweep found. Three arms, each proven RED by
+        // deleting the corresponding loader check.
+        string Json(string standard) => $$"""
+        {
+          "needs": [ { "id": 1, "name": "Sustenance", "bound": true, "weight": 1.0, "varietyWeight": 0.15 } ],
+          "aggregation": { "sigma": 0.5, "satisfactionFloor": 0.05,
+                           "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
+          "baskets": { "entries": [ { "class": 1, "need": 1, "good": "grain", "perPersonYear": 1.0 } ] },
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": {{standard}}
+        }
+        """;
+        // Arm 1: fewer than two shares — no diversity dimension.
+        var ex1 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [1.0] }""")));
+        Assert.Contains("at least two", ex1.Message, StringComparison.Ordinal);
+        // Arm 2: a non-positive share.
+        var ex2 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [1.1, -0.1, 0.0] }""")));
+        Assert.Contains("finite value > 0", ex2.Message, StringComparison.Ordinal);
+        // Arm 3: shares that do not sum to a diet.
+        var ex3 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [0.5, 0.3, 0.1] }""")));
+        Assert.Contains("sum to 1.0", ex3.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Guard_VarietyWeightOutsideUnitInterval_RefusesTheLoad()
+    {
+        // T3.5b review fix (lens 3, V3): varietyWeight was entirely
+        // unvalidated — a NEGATIVE value is a smuggled variety BONUS (law 2
+        // forbids free-floating buffs), masked in-sim only by an outer clamp.
+        // Proven RED by deleting the loader's varietyWeight range check.
+        string Json(string vw) => $$"""
+        {
+          "needs": [ { "id": 1, "name": "Sustenance", "bound": true, "weight": 1.0, "varietyWeight": {{vw}} } ],
+          "aggregation": { "sigma": 0.5, "satisfactionFloor": 0.05,
+                           "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
+          "baskets": { "entries": [ { "class": 1, "need": 1, "good": "grain", "perPersonYear": 1.0 } ] },
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": { "shares": [0.70, 0.20, 0.10] }
+        }
+        """;
+        Assert.Contains("varietyWeight must be in [0, 1]",
+            Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("-0.5"))).Message,
+            StringComparison.Ordinal);
+        Assert.Contains("varietyWeight must be in [0, 1]",
+            Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("5.0"))).Message,
+            StringComparison.Ordinal);
+    }
+
 }

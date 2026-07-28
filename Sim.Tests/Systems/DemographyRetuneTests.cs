@@ -290,6 +290,12 @@ public class DemographyRetuneTests
         TurnExecutor fedExec = ProductionExecutor(fed);
         TurnExecutor famineExec = ProductionExecutor(starving);
         WorldState world = Founded(fed, settlements: 1);
+        // T3.5b: this famine rig's depth calibration assumes all labour farms;
+        // the subsistence default would deepen the driven deficit past the
+        // rig's own honesty guard. Pinned explicitly (§7.8).
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            world.Settlements[0].Id, Farming: 1.0, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 0.0));
 
         var births = new long[17];
         var deaths = new long[17];

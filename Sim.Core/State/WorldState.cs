@@ -307,9 +307,27 @@ public static class Sectors
         return sum > 0.0 ? Raw(row, sector) / sum : 0.0;
     }
 
-    /// <summary>The never-ordered default: all labor farms (M2 semantics).</summary>
+    /// <summary>
+    /// The never-ordered default: the subsistence mix of a mixed-farming
+    /// riverine village (T3.5b item 1, DERIVED not fitted — reference class,
+    /// activity reasoning and anti-fitting statement in
+    /// docs/t3.5b-derivations.md §1, committed before any measurement).
+    /// Majority cultivation; herding/fishing for the traction-and-manure herd
+    /// ADR-013's land budget already reserves; fuel-wood and building-material
+    /// extraction; craft (tools are REAL goods since T3.3 and need this labour
+    /// to exist); construction for dwellings and paths.
+    ///
+    /// Replaces the M2 all-farming placeholder, whose consequence was a world
+    /// containing grain and nothing else — no trade to test at T3.6, no
+    /// merchant emergence at T3.7, no comparative advantage at T3.10.
+    ///
+    /// Regime check (ADR-013 §4, recomputed at T3.5b item 1a): land binds
+    /// while food-labour capacity a·(s_f·m·5.0 + s_h·ā·3.0) exceeds c ≈ 0.84;
+    /// worst-case flip at s_f* = 0.295. This mix sits at 0.55 — land-bound
+    /// with ≥1.87× headroom (see t3.5b spec item 1a for all four cases).
+    /// </summary>
     public static SectorAllocationRow Default(SettlementId settlement) =>
-        new(settlement, Farming: 1.0, Herding: 0.0, Extraction: 0.0, Crafting: 0.0, Construction: 0.0);
+        new(settlement, Farming: 0.55, Herding: 0.15, Extraction: 0.10, Crafting: 0.12, Construction: 0.08);
 }
 
 /// <summary>

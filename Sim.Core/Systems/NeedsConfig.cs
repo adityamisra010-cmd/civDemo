@@ -17,7 +17,48 @@ public sealed record NeedsConfig(
     [property: JsonPropertyName("needs"), JsonRequired] NeedEntry[] Needs,
     [property: JsonPropertyName("grievance"), JsonRequired] GrievanceTuning Grievance,
     [property: JsonPropertyName("aggregation"), JsonRequired] AggregationTuning Aggregation,
-    [property: JsonPropertyName("baskets"), JsonRequired] BasketsConfig Baskets);
+    [property: JsonPropertyName("baskets"), JsonRequired] BasketsConfig Baskets,
+    [property: JsonPropertyName("varietyStandard"), JsonRequired] VarietyStandardConfig VarietyStandard);
+
+/// <summary>
+/// T3.5b item 2 — the FIXED NUTRITIONAL DIVERSITY STANDARD (director ruling:
+/// neither perfect-evenness nor declared-basket normalisation; a standard in
+/// DATA, independent of what the class asked for and what it received).
+/// Shares are the reference diet's composition (derivation:
+/// docs/t3.5b-derivations.md §2 — staple 0.70 / animal 0.20 / other 0.10 from
+/// the varied pre-modern agrarian diet, anchored to ADR-013's own "cereals
+/// 75% of calories" chain). The loader computes the standard's Herfindahl
+/// concentration H* = Σ shareᵢ²; the variety factor penalises only EXCESS
+/// concentration beyond it, so a diet at or below H* takes no penalty and
+/// exact saturation is expressible.
+/// </summary>
+public sealed record VarietyStandardConfig(
+    [property: JsonPropertyName("shares"), JsonRequired] double[] Shares)
+{
+    /// <summary>H* — computed at load, never stored, so shares and standard
+    /// cannot drift apart. NORMALISED exactly as VarietyFactor normalises the
+    /// obtained diet (share = value / Σ values, same operations, same order):
+    /// 0.70+0.20+0.10 is 1−1ulp in binary, and an un-normalised H* left a diet
+    /// EXACTLY at the standard one ulp above it — satisfaction 1−1.1e-16, the
+    /// exact-saturation branch dead by a rounding error. Identical shapes must
+    /// give H == H* bitwise, and with matching normalisation they do.</summary>
+    public double Concentration
+    {
+        get
+        {
+            double total = 0.0;
+            for (int i = 0; i < Shares.Length; i++) total += Math.Max(0.0, Shares[i]);
+            if (!(total > 0.0)) return 1.0;
+            double h = 0.0;
+            for (int i = 0; i < Shares.Length; i++)
+            {
+                double share = Math.Max(0.0, Shares[i]) / total;
+                h += share * share;
+            }
+            return h;
+        }
+    }
+}
 
 /// <summary>One registry entry: Bound gates participation entirely; Weight is
 /// the wₙ of the D-018 grievance accrual (TUNE, meaningful only once bound).
@@ -107,6 +148,16 @@ public static class NeedsConfigLoader
             if (double.IsNaN(n.Weight) || double.IsInfinity(n.Weight) || n.Weight < 0.0)
                 throw new NeedsConfigException(
                     $"needs[{i}].weight must be a finite value >= 0, got {Inv(n.Weight)}.");
+            // T3.5b review fix (lens 3, V3): varietyWeight was entirely
+            // unvalidated — NaN, -1 and 5.0 all loaded clean, and a negative
+            // value under a clamp-less factor is a smuggled variety BONUS,
+            // which law 2 via D-035-A forbids.
+            if (double.IsNaN(n.VarietyWeight) || double.IsInfinity(n.VarietyWeight)
+                || n.VarietyWeight < 0.0 || n.VarietyWeight > 1.0)
+                throw new NeedsConfigException(
+                    $"needs[{i}].varietyWeight must be in [0, 1], got {Inv(n.VarietyWeight)} — "
+                    + "a negative value is a variety BONUS (law 2 forbids free-floating buffs), "
+                    + "and above 1 the factor can go negative.");
             // Strictly ascending ids: uniqueness AND a stable deterministic
             // iteration order in one check (entry order is THE order everywhere).
             if (i > 0 && n.Id <= cfg.Needs[i - 1].Id)
@@ -126,6 +177,26 @@ public static class NeedsConfigLoader
 
         ValidateAggregation(cfg.Aggregation);
         ValidateBaskets(cfg);
+        // T3.5b item 2: the variety standard — validated so a malformed
+        // standard cannot silently disable the diversity mechanism.
+        if (cfg.VarietyStandard is null || cfg.VarietyStandard.Shares is null
+            || cfg.VarietyStandard.Shares.Length < 2)
+            throw new NeedsConfigException(
+                "varietyStandard.shares must list at least two reference-diet shares "
+                + "(docs/t3.5b-derivations.md §2); a standard with fewer has no diversity dimension.");
+        double shareSum = 0.0;
+        for (int i = 0; i < cfg.VarietyStandard.Shares.Length; i++)
+        {
+            double v = cfg.VarietyStandard.Shares[i];
+            if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0.0)
+                throw new NeedsConfigException(
+                    $"varietyStandard.shares[{i}] must be a finite value > 0, got {Inv(v)}.");
+            shareSum += v;
+        }
+        if (Math.Abs(shareSum - 1.0) > 1e-9)
+            throw new NeedsConfigException(
+                $"varietyStandard.shares must sum to 1.0 (a diet composition), got {Inv(shareSum)}.");
+
         return cfg;
     }
 

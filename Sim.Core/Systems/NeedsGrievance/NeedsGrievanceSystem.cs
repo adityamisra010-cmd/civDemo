@@ -148,6 +148,13 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
 
             // T2.13 director finding (ghost grievance): grievance is HELD BY
             // PEOPLE — an extinct settlement's stock is zeroed, not left to
+            // (T3.5b lens note: this block is now SHADOWED by the per-class
+            // zero below — every class of an extinct settlement has zero
+            // members, so deleting this block alone is behaviourally
+            // invisible. Kept for structural clarity at the settlement
+            // altitude; its PROPERTY is pinned by both test families, its
+            // code identity deliberately is not — do not re-file that as a
+            // finding.)
             // decay for centuries in an empty ruin, and no satisfaction rows
             // publish (nobody to be satisfied).
             if (settlementPop == 0)
@@ -176,6 +183,31 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
             {
                 if (grievances[g].Settlement != settlement) continue;
                 ClassId cls = grievances[g].Class;
+
+                // T3.5b item 3 — GHOST-CLASS GRIEVANCE. Grievance is held by
+                // people (the T2.13 principle): a LIVE settlement accrues
+                // nothing on behalf of a class with ZERO members, and holds no
+                // stock for it. Distinct from — and deliberately not touching —
+                // the T2.13 extinction fix above, which zeroes a DEAD
+                // settlement's whole stock; this zeroes one empty class inside
+                // a living settlement. Fixed at ACCRUAL (the sim layer),
+                // because the stock itself is the defect: a nonzero stock for
+                // an empty class is false state, not a display artifact, so a
+                // display-layer mask would leave the lie in the world and in
+                // the hash. No satisfaction rows publish either (nobody to be
+                // satisfied — same reasoning as extinction). EMERGENCE
+                // INHERITANCE, documented: a class that emerges (or refills by
+                // promotion) starts from a grievance of exactly 0 — new
+                // members carry no memory of a deprivation nobody experienced.
+                long classPop = 0;
+                for (int b = 0; b < prev.Buckets.Count; b++)
+                    if (prev.Buckets[b].Settlement == settlement && prev.Buckets[b].Class == cls)
+                        classPop += prev.Buckets[b].Count.Value;
+                if (classPop == 0)
+                {
+                    grievances[g] = grievances[g] with { Value = 0.0 };
+                    continue;
+                }
 
                 // --- per-need satisfaction from PREV basket fills -------------
                 int bound = 0;
@@ -285,7 +317,10 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         }
 
         double quantity = wanted > 0.0 ? Math.Clamp(got / wanted, 0.0, 1.0) : 1.0;
-        return Math.Clamp(quantity * NeedsAggregation.VarietyFactor(obtained, need.VarietyWeight), 0.0, 1.0);
+        return Math.Clamp(
+            quantity * NeedsAggregation.VarietyFactor(
+                obtained, need.VarietyWeight, _needs.VarietyStandard.Concentration),
+            0.0, 1.0);
     }
 
     /// <summary>

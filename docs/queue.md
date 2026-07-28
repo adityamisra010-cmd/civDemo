@@ -223,3 +223,27 @@
   Expect the founded golden, the first-reign golden, the calibration battery anchors and the
   equilibrium-density invariant all to need re-measurement in that packet. Flagged now so the
   re-pin is planned rather than discovered.
+- **Q2 (T3.5b certification, director) — an UNDECLARED test-power weakening, itemized here as
+  ruled.** `HudViewModelTests`' Sustenance loop pinned `Assert.Equal("Sustenance: 0.85")` EXACTLY,
+  every turn. T3.5b re-anchored it to: exact at turn 1, floor `value >= 0.85` for turns 2+. WHY the
+  trade was necessary: the derived herding share diversifies the obtained diet from turn 2, so the
+  displayed value legitimately varies by turn and no single literal is correct. WHAT IT CAN NO
+  LONGER DISTINGUISH: on turns 2+, a regression that INFLATES displayed Sustenance (any value
+  ≥ 0.85, including a hardcoded 1.0 from turn 2 on) passes the floor; only turn 1 retains exact
+  power against fabricated defaults. Same class as T3.1's MalthusLite weakening (now a binding
+  T3.10 obligation because nobody itemized it at the time) — itemized at the time, this time.
+  Restoring per-turn exactness needs turn-indexed expected values or a recomputed oracle; owner
+  whoever next touches the HUD pins.
+- **Q3 (T3.5b certification, director) — candidate ADR-015 §7.15, owner T3.10 (alongside M5/M6):
+  a pre-committed READING requires a DISCRIMINATING OBSERVABLE.** Root cause of T3.5b's misapplied
+  reading (lens 2 F2): density = population/arable is composite, so "the food economy moves" could
+  fire for a pure denominator reason while the mechanism under test did nothing. §7.13 requires
+  pre-committing the readings; it does not require verifying the observable can DISCRIMINATE
+  between them. Second time this shape has bitten — §7.7 was the first (a corridor insensitive to
+  its own control parameter). NOT written into ADR-015 in T3.5b, deliberately: all four lenses had
+  cleared, and a post-clearance governance addition is the f8a19e1 pattern, now recorded twice.
+  T3.10 writes it with a worked example from both instances.
+- **Q5 (T3.5b certification, director) — data-file edit convention:** edits to `needs.json` and
+  `goods.json` stay MINIMAL-DIFF — no wholesale re-serialization — so scope review reads the
+  change rather than the reformatting. T3.5b's 143-insertion rewrite of needs.json was accepted
+  after mechanical semantic-equality proof; the proof should not have been necessary.

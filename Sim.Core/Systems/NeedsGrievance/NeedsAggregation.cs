@@ -28,13 +28,15 @@ public static class NeedsAggregation
     /// same calories from grain alone satisfy Sustenance LESS than the same
     /// calories spread across grain, livestock and fish.
     ///
-    /// HERFINDAHL. H = Σ shareᵢ² over basket shares, running from 1/n (perfectly
-    /// even across n goods) to 1 (everything from one good). The normalised
-    /// concentration is (H − 1/n) / (1 − 1/n), which is 0 for an even basket and
-    /// 1 for a monoculture regardless of n — so the penalty means the same thing
-    /// whether a basket has two goods or ten.
+    /// HERFINDAHL AGAINST A FIXED STANDARD (T3.5b item 2, director ruling —
+    /// replacing the perfect-evenness reference, under which no real staple
+    /// diet could ever score 1.0 and a fully supplied world grieved forever).
+    /// H = Σ shareᵢ² over the OBTAINED shares; H* is the reference diet's own
+    /// concentration, in DATA (needs.json varietyStandard, derivation in
+    /// docs/t3.5b-derivations.md §2). Only concentration in EXCESS of the
+    /// standard is penalised:
     ///
-    ///   factor = 1 − varietyWeight × normalisedConcentration
+    ///   factor = 1 − varietyWeight × max(0, (H − H*) / (1 − H*))
     ///
     /// DECREASING IN CONCENTRATION AT FIXED QUANTITY, which is the property the
     /// ruling actually asks for and the one the tests measure.
@@ -52,7 +54,8 @@ public static class NeedsAggregation
     /// returns 1.0; so does an empty basket, where the quantity term is already
     /// zero and a variety penalty would be double-counting nothing.
     /// </summary>
-    public static double VarietyFactor(ReadOnlySpan<double> quantities, double varietyWeight)
+    public static double VarietyFactor(
+        ReadOnlySpan<double> quantities, double varietyWeight, double standardConcentration)
     {
         int n = quantities.Length;
         if (n <= 1) return 1.0;
@@ -68,10 +71,20 @@ public static class NeedsAggregation
             herfindahl += share * share;
         }
 
-        double even = 1.0 / n;                                    // H at perfect evenness
-        double normalised = (herfindahl - even) / (1.0 - even);   // 0 even … 1 monoculture
-        normalised = Math.Clamp(normalised, 0.0, 1.0);
-        return Math.Clamp(1.0 - varietyWeight * normalised, 0.0, 1.0);
+        // T3.5b item 2 (director ruling): EXCESS concentration beyond the
+        // FIXED nutritional diversity standard H*, replacing distance from
+        // perfect evenness. A diet at or below H* takes NO penalty — factor
+        // exactly 1.0, so full satisfaction is expressible and the exact-
+        // saturation branch in Aggregate is reachable again. A monoculture
+        // (H = 1) takes the full varietyWeight penalty regardless of what the
+        // basket DECLARED — the declared-basket normalisation the ruling
+        // rejected let a settlement self-certify out by declaring monotony,
+        // and measuring the obtained diet against a standard it does not
+        // control is what closes that door.
+        double hStar = Math.Clamp(standardConcentration, 0.0, 1.0 - 1e-12);
+        double excess = Math.Max(0.0, (herfindahl - hStar) / (1.0 - hStar));
+        excess = Math.Clamp(excess, 0.0, 1.0);
+        return Math.Clamp(1.0 - varietyWeight * excess, 0.0, 1.0);
     }
 
     /// <summary>
@@ -129,17 +142,17 @@ public static class NeedsAggregation
         // settlement accrues EXACTLY nothing" would have to be written with an
         // epsilon. The constitution's exact-equality culture is the reason this
         // short-circuit exists; it changes no value that was not already 1.
-        // MEASURED DEAD IN THE SHIPPED CONFIGURATION (T3.5 review, verified):
-        // both bound classes' Sustenance carries varietyWeight 0.15 over a
-        // three-good declared basket at 0.90/0.06/0.04, so its satisfaction is
-        // capped at 0.8916 (peasant) / 0.9325 (artisan) and can never reach 1.0.
-        // The branch below therefore cannot fire for any shipped class. It is
-        // kept because it is correct, cheap, and load-bearing for any config
-        // whose bound needs have no variety term — the decay and generational
-        // rigs run exactly that config — but nobody should read it as protecting
-        // the shipped world. Whether a perfectly supplied world OUGHT to be able
-        // to reach satisfaction 1.0 is a live question for the director; see the
-        // T3.5 review record.
+        // T3.5b STATUS (supersedes the T3.5 "measured dead" note): under the
+        // FIXED variety standard the branch is LIVE — a settlement whose
+        // declared diet is at or below H* = 0.54 and fully supplied scores
+        // EXACTLY 1.0 through the real loader and system path, pinned by
+        // ExactSaturationBranch_IsLIVE (which also caught the 1-ulp H*
+        // normalisation defect). The SHIPPED class baskets remain more
+        // concentrated than the standard (peasant H = 0.8152 caps Sustenance
+        // at 0.9103; artisan at 0.9695), so shipped-world full supply still
+        // scores below 1.0 — deliberately: that is D-035-A's reason to trade,
+        // and the honest reading of a frontier grain diet against a good
+        // pre-modern one (docs/t3.5b-derivations.md §2).
         bool allMet = true;
         for (int i = 0; i < satisfactions.Length; i++)
         {
