@@ -357,6 +357,22 @@ cap binds, **the base rate cancels out of the result entirely**. The corridor wa
 structural property of the world's land heterogeneity, on a world that at calibration time had
 neither weather nor a live land signal.
 
+**CORRECTION (T3.4c review fix, 2026-07-28 — measured, this section's own rule applied to
+itself).** The sentence above ends on a claim that was never measured and is false: with weather
+live, the corridor is NOT set by land heterogeneity. The factorial at corrected variance
+(canonical 1024 px, seed 1, 650 turns): σ swept 0 → 0.5 moves the corridor **3.70×**
+(0.000671 → 0.002480 %/decade); the land term's **entire main effect is 2.0%**, and deleting it
+outright moves the value **−0.8%** — weather dominates land by roughly **150×** on main effects.
+At σ = 0 the shipped canonical world reads 0.000671, **33% below its own floor**: the corridor's
+control parameter is harvest variance, and the cap converts weather-driven per-capita food
+differentials into flow. What the cancellation identity above established is only that
+`baseRatePerYear` is not the control — the "land heterogeneity" attribution slipped in unmeasured,
+was refuted at T3.4b (review record §5.3, ~30×), re-confirmed at T3.4c (~150×), and still
+propagated to a downstream misreading because it sat in this ratified section. **What actually
+sets the value: harvest-variance-driven attractiveness differentials, capped by
+`GapClosingFraction × m*`.** Per this section's own rule, that was established by sweeping — σ
+responds monotonically ~1.35× inside its own derived CV band; land does not respond at all.
+
 > **THE RULE: a corridor whose measured value is insensitive to the parameter that nominally
 > controls it is measuring something else. Establish what actually sets the value before
 > defending or moving the band.**
@@ -584,10 +600,16 @@ director's instruction.
 > An interpretation ruled AFTER a measurement is a negotiation; ruled BEFORE, it is a result.
 
 At T3.4c the director predicted the migration corridor would move toward band once excess variance
-was removed. **It moved the other way on the dev preset: median −14.1% → −30.5%**, because the
-inflation had been MASKING how far that world sits from the corridor. Had the interpretation not been
-fixed in advance, a −30.5% median would have been a standing invitation to argue the floor was
-miscalibrated — with the corrected-variance world as ammunition for the argument.
+was removed. **It moved the other way on BOTH worlds** — dev median −14.1% → −30.5%, and canonical
+fell 19.9–23.5% on every seed (0.00199/0.00173/0.00204/0.00147/0.00153 →
+0.00157/0.00134/0.00164/0.00115/0.00117) — because the inflation had been MASKING how far each
+world sits from the corridor. Canonical simply started with room, so it stayed in band while
+falling; the falsification was uniform. (The canonical arm was measured by the review's
+corridor-and-band lens after the packet reported only the dev arm — recorded here at the
+director's ruling because both-worlds falsification STRENGTHENS this section: the prediction did
+not merely fail on an unrepresentative preset.) Had the interpretation not been fixed in advance,
+a −30.5% median would have been a standing invitation to argue the floor was miscalibrated — with
+the corrected-variance world as ammunition for the argument.
 
 **The prediction failing is the strongest available evidence that pre-committing was right: a rule
 that only ever confirms the ruler's expectations is not constraining anything.**
