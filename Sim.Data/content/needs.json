@@ -1,51 +1,166 @@
 {
   "_doc": "T3.5 (D-035, d018). The eight-need ladder is frozen (D-018 3); BOUND grows by milestone. M2 bound Sustenance alone; M3/T3.5 binds Sustenance, Shelter and Comfort against real goods baskets. An UNBOUND need contributes EXACTLY nothing whatever its weight says (T2.6 zero-effect gate). varietyWeight is the D-035-A concentration coefficient INSIDE the satisfaction equation - 0 means the need has no diversity dimension (Shelter: two dwellings' worth of timber is not a more varied roof).",
-
   "needs": [
-    { "id": 1, "name": "Sustenance",      "bound": true,  "weight": 1.0, "varietyWeight": 0.15 },
-    { "id": 2, "name": "Shelter",         "bound": true,  "weight": 0.9, "varietyWeight": 0.0 },
-    { "id": 3, "name": "Safety",          "bound": false, "weight": 0.9 },
-    { "id": 4, "name": "Health",          "bound": false, "weight": 0.6 },
-    { "id": 5, "name": "Belonging/Faith", "bound": false, "weight": 0.5 },
-    { "id": 6, "name": "Comfort",         "bound": true,  "weight": 0.3, "varietyWeight": 0.15 },
-    { "id": 7, "name": "Dignity/Liberty", "bound": false, "weight": 0.4 },
-    { "id": 8, "name": "Prospects",       "bound": false, "weight": 0.4 }
+    {
+      "id": 1,
+      "name": "Sustenance",
+      "bound": true,
+      "weight": 1.0,
+      "varietyWeight": 0.15
+    },
+    {
+      "id": 2,
+      "name": "Shelter",
+      "bound": true,
+      "weight": 0.9,
+      "varietyWeight": 0.0
+    },
+    {
+      "id": 3,
+      "name": "Safety",
+      "bound": false,
+      "weight": 0.9
+    },
+    {
+      "id": 4,
+      "name": "Health",
+      "bound": false,
+      "weight": 0.6
+    },
+    {
+      "id": 5,
+      "name": "Belonging/Faith",
+      "bound": false,
+      "weight": 0.5
+    },
+    {
+      "id": 6,
+      "name": "Comfort",
+      "bound": true,
+      "weight": 0.3,
+      "varietyWeight": 0.15
+    },
+    {
+      "id": 7,
+      "name": "Dignity/Liberty",
+      "bound": false,
+      "weight": 0.4
+    },
+    {
+      "id": 8,
+      "name": "Prospects",
+      "bound": false,
+      "weight": 0.4
+    }
   ],
-
   "aggregation": {
     "_doc": "D-035-B. CES over BOUND needs with substitution elasticity sigma < 1, replacing d018:52's weighted sum. rho = (sigma-1)/sigma < 0 makes needs genuine COMPLEMENTS: surplus comfort cannot buy off absent shelter. sigma 0.5 (rho = -1, the weighted harmonic mean) is the round value squarely inside the non-compensatory regime and far from the sigma=1 Cobb-Douglas degeneration. satisfactionFloor states how bad ONE need at zero is allowed to make the aggregate: at exactly zero the CES limit is 0 regardless of everything else - true in the limit, but it would make a world with nothing indistinguishable from a world with almost nothing and every settlement equally, maximally aggrieved. 0.05 says total deprivation of a single need is very bad, not infinitely bad. It is a MECHANISM PARAMETER, not a guard - raising it weakens non-compensation continuously - and the D-035-B acceptance ceiling is DERIVED from it, never chosen alongside it.",
     "sigma": 0.5,
     "satisfactionFloor": 0.05,
-
     "_tierADoc": "d018:46, retained unchanged by D-035-B and applied to the WEIGHTS before aggregation. Below tierAFloor a gate need (Sustenance/Shelter/Safety) scales superlinearly and collapses upper-need weights toward zero: a starving intelligentsia riots over bread, not press freedom. tierAFloor 0.5 = 'half-fed is where the ladder inverts'; tierAGain 3.0 = a wholly unmet gate need weighs 4x its normal weight; tierACollapse 1.0 = upper weights fall linearly in gate severity toward zero.",
     "tierAFloor": 0.5,
     "tierAGain": 3.0,
     "tierACollapse": 1.0
   },
-
   "baskets": {
     "_doc": "D-035-C path 1 (SHARED SATISFIER) and path 2 (SHARED BUDGET) made data. One entry per (class, need, good); perPersonYear is a per-sim-year rate integrated with dtYears (law 3), never a per-turn amount. FOOD entries are denominated in PERSON-YEAR-EQUIVALENTS of nutrition, the D-015 convention grain already carries: a class's food entries sum to 1.0 by construction, so the basket changes WHAT is eaten and never how much nutrition a person needs. Peasants eat a staple diet; artisans, with income and a market, eat measurably more livestock and fish - the T3.5 class-differentiation requirement IS this table, not a coefficient bolted on afterwards. SUBSTITUTION: unmet non-staple food demand falls back on the staple (grain), because a household short of fish eats more bread rather than going hungry while grain sits in the store. Monotony is then paid for in the D-035-A variety term rather than in calories, which is exactly the director's rationale - a settlement that can feed itself entirely on grain still has a reason to import fish. SHELTER is an upkeep flow of dwelling materials, an honest M3 stand-in for the housing STOCK T3.8 builds: a settlement short of timber cannot keep its roofs up, which is what 'a housing shortage lowers Shelter satisfaction' can mean before there is a housing stock to be short of. TUNE, all of it.",
     "entries": [
-      { "class": 1, "need": 1, "good": "grain",     "perPersonYear": 0.90 },
-      { "class": 1, "need": 1, "good": "livestock", "perPersonYear": 0.06 },
-      { "class": 1, "need": 1, "good": "fish",      "perPersonYear": 0.04 },
-      { "class": 1, "need": 2, "good": "timber",    "perPersonYear": 0.030 },
-      { "class": 1, "need": 2, "good": "stone",     "perPersonYear": 0.005 },
-      { "class": 1, "need": 6, "good": "pottery",   "perPersonYear": 0.020 },
-      { "class": 1, "need": 6, "good": "cloth",     "perPersonYear": 0.030 },
-
-      { "class": 2, "need": 1, "good": "grain",     "perPersonYear": 0.78 },
-      { "class": 2, "need": 1, "good": "livestock", "perPersonYear": 0.13 },
-      { "class": 2, "need": 1, "good": "fish",      "perPersonYear": 0.09 },
-      { "class": 2, "need": 2, "good": "timber",    "perPersonYear": 0.040 },
-      { "class": 2, "need": 2, "good": "stone",     "perPersonYear": 0.015 },
-      { "class": 2, "need": 6, "good": "pottery",   "perPersonYear": 0.050 },
-      { "class": 2, "need": 6, "good": "cloth",     "perPersonYear": 0.080 }
+      {
+        "class": 1,
+        "need": 1,
+        "good": "grain",
+        "perPersonYear": 0.9
+      },
+      {
+        "class": 1,
+        "need": 1,
+        "good": "livestock",
+        "perPersonYear": 0.06
+      },
+      {
+        "class": 1,
+        "need": 1,
+        "good": "fish",
+        "perPersonYear": 0.04
+      },
+      {
+        "class": 1,
+        "need": 2,
+        "good": "timber",
+        "perPersonYear": 0.03
+      },
+      {
+        "class": 1,
+        "need": 2,
+        "good": "stone",
+        "perPersonYear": 0.005
+      },
+      {
+        "class": 1,
+        "need": 6,
+        "good": "pottery",
+        "perPersonYear": 0.02
+      },
+      {
+        "class": 1,
+        "need": 6,
+        "good": "cloth",
+        "perPersonYear": 0.03
+      },
+      {
+        "class": 2,
+        "need": 1,
+        "good": "grain",
+        "perPersonYear": 0.78
+      },
+      {
+        "class": 2,
+        "need": 1,
+        "good": "livestock",
+        "perPersonYear": 0.13
+      },
+      {
+        "class": 2,
+        "need": 1,
+        "good": "fish",
+        "perPersonYear": 0.09
+      },
+      {
+        "class": 2,
+        "need": 2,
+        "good": "timber",
+        "perPersonYear": 0.04
+      },
+      {
+        "class": 2,
+        "need": 2,
+        "good": "stone",
+        "perPersonYear": 0.015
+      },
+      {
+        "class": 2,
+        "need": 6,
+        "good": "pottery",
+        "perPersonYear": 0.05
+      },
+      {
+        "class": 2,
+        "need": 6,
+        "good": "cloth",
+        "perPersonYear": 0.08
+      }
     ]
   },
-
   "grievance": {
     "baseDecayPerYear": 0.005,
     "inheritFraction": 0.85
+  },
+  "varietyStandard": {
+    "_doc": "T3.5b item 2 (director ruling): the FIXED NUTRITIONAL DIVERSITY STANDARD - the reference composition of a varied pre-modern agrarian diet, independent of both what a class declares and what it receives. DERIVED, not fitted (docs/t3.5b-derivations.md section 2): staple 0.70 / animal-and-fish 0.20 / other 0.10, from diet-history reconstruction anchored to ADR-013's own 'cereals 75% of calories' chain. H* = 0.70^2+0.20^2+0.10^2 = 0.54. The variety factor penalises only EXCESS concentration beyond H*: a diet at or below it takes no penalty (full satisfaction expressible); a grain-only diet (H = 1) takes the full varietyWeight penalty, so the D-035-A reason to trade survives. NOTE the shipped baskets are MORE concentrated than this standard (peasant food H = 0.8152) - a fully supplied frontier grain economy scores 0.910 on Sustenance, not 1.0, which is the honest reading: its diet is monotonous by the standard of a good pre-modern diet, and imports are how it closes the gap.",
+    "shares": [
+      0.7,
+      0.2,
+      0.1
+    ]
   }
 }

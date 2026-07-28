@@ -107,6 +107,15 @@ public class GoodsTests
         using (var s = Sim.Data.DataFiles.OpenPipeline())
             exec = new TurnExecutor(era, PipelineLoader.Load(s, Sim.Core.SystemCatalog.All(cfg)));
         WorldState world = WorldFounding.Found(TestUtil.TestConfigs.DevWorldgen(), cfg, 42);
+        // T3.5b: this rig's ledger identity is grain-only ("every other good
+        // untouched" is its own docstring); the subsistence default would
+        // produce timber/stone/tools/pottery, so the rig pins all-farming
+        // explicitly (§7.8) — the multi-good conservation surface belongs to
+        // the ConservationAuditor, which runs across all goods regardless.
+        for (int i = 0; i < world.Settlements.Count; i++)
+            world.SectorAllocations.Add(new SectorAllocationRow(
+                world.Settlements[i].Id, Farming: 1.0, Herding: 0.0,
+                Extraction: 0.0, Crafting: 0.0, Construction: 0.0));
         for (int t = 1; t <= 10; t++)
         {
             world = exec.Step(world);

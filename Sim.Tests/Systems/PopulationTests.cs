@@ -427,6 +427,15 @@ public class PopulationTests
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
+        // T3.5b: the food identity below counts grain flows against ALL good
+        // stocks, which is exact only in a single-good world; the subsistence
+        // default would put timber/tools/pottery into the store sum. The rig
+        // pins all-farming explicitly (§7.8) — the multi-good surface is the
+        // ConservationAuditor's, which covers every good by construction.
+        for (int i = 0; i < world.Settlements.Count; i++)
+            world.SectorAllocations.Add(new SectorAllocationRow(
+                world.Settlements[i].Id, Farming: 1.0, Herding: 0.0,
+                Extraction: 0.0, Crafting: 0.0, Construction: 0.0));
         for (int t = 1; t <= 900; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;

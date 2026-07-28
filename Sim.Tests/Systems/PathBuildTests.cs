@@ -104,6 +104,12 @@ public class PathBuildTests
         double remainder = world.GoodStocks[0].ProduceRemainder;
         long adultsT3 = BandViews.Adults(world.Buckets, new SettlementId(0));
         long harvestBefore = HarvestSourced(world);
+        // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
+        // (0.08 share), so the bank assertion below is a DELTA across the
+        // post-order step, not a from-zero total. The hand-computed exactness
+        // is unchanged — the explicit legacy order row (0.5, 0, 0, 0, 0.5) is
+        // the controlled variable, and it overrides the default entirely.
+        double bankBefore = world.PathProgress.Count > 0 ? world.PathProgress[0].Banked : 0.0;
 
         world = exec.Step(world);
         long expected = (long)Math.Floor(Math.Min(
@@ -114,7 +120,7 @@ public class PathBuildTests
         // And the path bank accrued from the same Prev allocation, dt-correctly.
         Assert.Equal(1, world.PathProgress.Count);
         Assert.Equal(cfg.PathBuild.LaborPerAdultPerYear * 0.5 * adultsT3 * 10.0,
-            world.PathProgress[0].Banked);
+            world.PathProgress[0].Banked - bankBefore, 9);
     }
 
     [Fact]
@@ -213,8 +219,16 @@ public class PathBuildTests
 
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(1.0, world.SectorAllocations[0].Farming); // explicit row == default
-        Assert.Equal(0, world.PathProgress.Count);              // zero accrual → row never created
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming);
+        // T3.5b: turn 1 ran on the subsistence DEFAULT (construction 0.08), so
+        // a bank row exists from before the order. What the 100% order pins is
+        // that construction accrual STOPS: the bank is frozen at its pre-order
+        // value for the rest of the run and never reaches a build.
+        Assert.Equal(1, world.PathProgress.Count);
+        double frozen = world.PathProgress[0].Banked;
+        WorldState after = world;
+        for (int t = 0; t < 5; t++) after = exec.Step(after);
+        Assert.Equal(frozen, after.PathProgress[0].Banked, 9); // no further accrual
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkMeta[0].Revision);
     }
@@ -321,8 +335,9 @@ public class PathBuildTests
 
         Assert.Equal(1, world.SectorAllocations.Count);
         Assert.Equal(0.6, world.SectorAllocations[0].Construction);
-        // Farming keeps its default: one sector order sets ONE weight.
-        Assert.Equal(1.0, world.SectorAllocations[0].Farming);
+        // Farming keeps its default: one sector order sets ONE weight. (T3.5b:
+        // the default is the derived subsistence mix, referenced not re-typed.)
+        Assert.Equal(Sectors.Default(new SettlementId(0)).Farming, world.SectorAllocations[0].Farming);
     }
 
     [Fact]
@@ -403,21 +418,25 @@ public class PathBuildTests
     // --- no-order behavior ---------------------------------------------------
 
     [Fact]
-    public void NoOrders_T15ShapePreserved_NothingAllocatesOrBuilds()
+    public void NoOrders_SubsistenceDefaultApplies_ConstructionBanksWithoutAnOrder()
     {
-        // Without orders the allocation default (1.0 farm) applies and PathBuild
-        // is inert: no rows, no edges, revision stays 0 — the T1.5 world shape.
-        // (The pinned golden covers the toy world; this covers production.)
+        // T3.5b RE-ANCHOR (was NoOrders_T15ShapePreserved_NothingAllocatesOrBuilds).
+        // The never-ordered default is no longer all-farming: it is the derived
+        // subsistence mix (docs/t3.5b-derivations.md §1), whose 0.08
+        // construction share makes an undirected village maintain its own
+        // paths — the T1.5 "nothing builds without an order" shape is
+        // deliberately retired with it. What this test now pins: no ORDER row
+        // is created (the default is implicit, not a row), and construction
+        // labour banks from turn 1 at the default share.
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(0, world.SectorAllocations.Count);
-        Assert.Equal(0, world.PathProgress.Count);
-        Assert.Equal(0, world.NetworkEdges.Count);
-        Assert.Equal(0, world.NetworkNodes.Count);
-        Assert.Equal(0, world.NetworkMeta[0].Revision);
+        Assert.Equal(0, world.SectorAllocations.Count);   // default stays implicit
+        Assert.Equal(1, world.PathProgress.Count);        // ...but it allocates
+        Assert.True(world.PathProgress[0].Banked > 0.0 || world.NetworkEdges.Count > 0,
+            "the default construction share banked nothing in 30 turns");
         Assert.True(world.GoodStocks[0].Amount.Value > 0 || BandViews.Adults(world.Buckets, new SettlementId(0)) > 0);
     }
 

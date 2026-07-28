@@ -523,6 +523,12 @@ public class PopulationExactnessTests
         new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(row).Amount,
             ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, store,
             FlowDirection.Source, OverdrawPolicy.Throw);
+        // T3.5b: this rig's hand computation assumes ALL labour farms. The
+        // never-ordered default is now the subsistence mix, so the rig pins its
+        // controlled variable EXPLICITLY (§7.8: isolate, don't inherit).
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(0), Farming: 1.0, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 0.0));
         return world;
     }
 
