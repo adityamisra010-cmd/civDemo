@@ -712,3 +712,39 @@ Note the family resemblance: §7.10 (a measurement and its interpretation verify
 (reconcile by name, not by belief), §7.12 (a property asserted about your own artifact is a
 measurement you owe), and now §7.13. All four are the same defence — **fix the standard before you
 see the result**, because afterwards you cannot tell your reasoning from your preference.
+
+---
+
+## §7.14 — A packet that introduces a controlled experiment AUDITS ITS OWN RIGS against the world's live drivers
+
+**Director ruling, T3.5b, 2026-07-28. Recorded as a DECLARED widening of that packet — deliberately
+and not silently, because the alternative is the pattern that produced f8a19e1: an out-of-scope item
+landing quietly on a packet branch.**
+
+§7.8 states: *"every future stochastic driver must AUDIT EXISTING RIGS for this collapse."* The
+obligation runs from the DRIVER's packet to PRE-EXISTING rigs. T3.4b discharged it correctly for
+the rigs of its day. T3.5 then built NEW controlled experiments — peasant and artisan baskets
+provably differ; a housing shortage lowers Shelter and raises grievance — into a world where
+weather was already live and (unknown at the time) inflated. Those rigs were in no §7.8
+enumeration, and on a strict reading NOBODY OWED ONE. That is a directional hole, not a defect by
+anyone.
+
+**THE RULE:** a packet that introduces a controlled experiment into a world with live stochastic
+drivers AUDITS ITS OWN RIGS against them — enumerate the drivers both arms of the rig can reach,
+check each for contrast loss, and either isolate the rig or state why it survives. §7.8's rig/soak
+distinction applies unchanged: a rig isolates one variable, so a driver reaching both arms is a
+confound; a soak observes interaction, so the driver is the subject.
+
+**The family resemblance, stated:** §7.8 and §7.14 are ONE OBLIGATION seen from the two ends of the
+same pipe — the driver's packet owes the audit to the rigs that exist; the rig's packet owes it to
+the drivers that exist. The gap between them stayed invisible exactly as long as no packet happened
+to sit in it.
+
+**How it was found:** a rebase that crossed a variance correction. T3.5's contrast criteria were
+authored against the pre-fix (inflated) weather and replayed onto the corrected substrate; every
+criterion passed unchanged, which was evidence the hazard did not bite there — but passing is not
+auditing, and the near-miss is what surfaced the missing obligation.
+
+**Margins are the deliverable, not pass/fail.** A contrast that survives with a thinner margin is a
+finding; margins are what a future driver erodes. The audit records them so the next packet can see
+erosion instead of discovering a flip.
