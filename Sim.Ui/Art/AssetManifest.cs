@@ -105,7 +105,15 @@ public static class AssetManifest
 
         entries.Add(new Entry("ink/coast-hairline", "ink/coast-hairline.png", AssetKind.CoastHairline, Tileable: false));
         entries.Add(new Entry("ui/panel", "ui/panel.png", AssetKind.UiPanel, Tileable: false));
-        entries.Add(new Entry("ui/header-rule", "ui/header-rule.png", AssetKind.UiHeaderRule, Tileable: false));
+        // ui/header-rule is GONE from the manifest (D-A1 fix): the rule is
+        // PROCEDURAL (HeaderRuleBaker), a generated resource like the
+        // parchment atlas — the manifest is the contract for director-supplied
+        // drop files, and a code generator is not a drop point. The old
+        // Tileable: false declaration contradicted the tiling draw path; the
+        // generated texture is periodic BY CONSTRUCTION, asserted by
+        // wraparound byte-equality in HeaderRuleBakerTests, which replaces
+        // the statistical seam test for this element (and the palette test is
+        // replaced by exact-ink equality — stronger than the seam gamut).
         entries.Add(new Entry("ui/button-plate", "ui/button-plate.png", AssetKind.UiButtonPlate, Tileable: false));
         entries.Add(new Entry("ui/annals-bg", "ui/annals-bg.png", AssetKind.UiAnnalsBackground, Tileable: false));
         entries.Add(new Entry("ui/compass-rose", "ui/compass-rose.png", AssetKind.UiCompassRose, Tileable: false));

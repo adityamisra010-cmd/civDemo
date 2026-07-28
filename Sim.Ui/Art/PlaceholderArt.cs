@@ -47,7 +47,6 @@ public static class PlaceholderArt
         AssetManifest.AssetKind.TerrainWash => Wash(256, entry.TerrainClass!.Value),
         AssetManifest.AssetKind.CoastHairline => Hairline(64, 8),
         AssetManifest.AssetKind.UiPanel => Panel(64),
-        AssetManifest.AssetKind.UiHeaderRule => HeaderRule(64, 8),
         AssetManifest.AssetKind.UiButtonPlate => ButtonPlate(64, 24),
         AssetManifest.AssetKind.UiAnnalsBackground => AnnalsBackground(128),
         AssetManifest.AssetKind.UiCompassRose => CompassRose(128),
@@ -177,18 +176,9 @@ public static class PlaceholderArt
         return img;
     }
 
-    private static ArtImage HeaderRule(int width, int height)
-    {
-        var img = New(width, height);
-        for (int y = 0; y < height; y++)
-        {
-            // A heavy rule with a hairline companion beneath — engraved-map habit.
-            byte a = y switch { 2 => 235, 3 => 200, 5 => 90, _ => 0 };
-            for (int x = 0; x < width; x++)
-                Set(img, x, y, ParchmentPalette.InkPrimary with { A = a });
-        }
-        return img;
-    }
+    // HeaderRule placeholder PROMOTED to Sim.Ui/Art/HeaderRuleBaker.cs (D-A1):
+    // the rule ships procedural, so there is no placeholder-vs-real distinction
+    // for it any more.
 
     private static ArtImage ButtonPlate(int width, int height)
     {

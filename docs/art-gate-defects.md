@@ -8,7 +8,7 @@ is the record; the statuses below are updated as the close-out packet lands.
 
 | # | defect | status |
 | --- | --- | --- |
-| D-A1 | The header rule is mis-scaled: drawn with uv (0,0)–(1,1) and a hardcoded 8f height, so the native 64×8 asset is stretched across the whole panel width. The ornament smears and its ink weight changes with panel size. | **FIXED** — `PanelFurniture.HeaderRuleUv`: native dims from the loaded asset, uniform scale set by the vertical mapping, horizontal overflow tiled; ink-weight invariance pinned by `PanelFurnitureTests` (proven red 5/9 against the old u=1 extent). **GATE 2026-07-28: FAILED — see §D-A1 gate verdict below. The draw-path fix is CORRECT and stays; the ASSET is the defect. OPEN, blocked on a director-supplied replacement asset.** |
+| D-A1 | The header rule is mis-scaled: drawn with uv (0,0)–(1,1) and a hardcoded 8f height, so the native 64×8 asset is stretched across the whole panel width. The ornament smears and its ink weight changes with panel size. | **CLOSED** (director ruling, 2026-07-28): the rule is **PROCEDURAL** — `HeaderRuleBaker`, a double rule with a repeating lozenge, seamless by construction, palette-exact, coverage-antialiased, deterministic; the draw-path fix stays untouched. Evidence for going procedural below. Awaiting visual gate confirmation only. |
 | D-A2 | Settlement markers are too small to click (hit radius 11 px), and the name labels are not clickable at all — `HitTest` tests marker-centre distance only, so the label region is dead to the mouse. | **FIXED** — hit target derived from the named 44 px standard (Apple HIG / WCAG 2.5.5 Enhanced): `MinTargetDiameterPx = 44`, radius 22; marker raised 14→20 px as a visual affordance inside the target. Labels clickable via renderer-measured `LabelRect`s handed into the pure view-model; ranking rule stated (marker-centre distance ASC, id ASC, whatever shape admitted) and pinned tie-dense. Proven red 2/12 with label admission removed. **GATE 2026-07-28: PASS.** |
 | D-A3 | River width scales with zoom: `RiverMesh` widths are in WORLD units, so a 2.4 world-px river is ~76 screen px at 32×. Markers and labels are constant screen size; rivers are the odd one out, and the style bible §2 calls rivers "ink-blue hairlines". | **FIXED** — option (iii): screen width = clamp(worldWidth × zoom, 1.0 px, 6.0 px). Mesh stays world-space (half-width = clampedScreenWidth/zoom) so the existing transform draws it; rebuilt on zoom change at a measured 0.533 ms (canonical 1024², 11,214 vertices). Rank ordering pinned as a property test across a 0.25–32× zoom sweep (proven red 2/6 with the clamp removed). **GATE 2026-07-28: PASS.** |
 
@@ -63,3 +63,34 @@ checks — written when the rule was drawn once across the panel. Under `HeaderR
 tiled in x. **Decision: flip to `Tileable: true` (or a Tileable-in-X variant if the checker is
 axis-aware) in the same commit that lands the replacement asset**, so the seam check and the asset
 that must satisfy it arrive together and the flag never fronts an asset that fails it.
+
+## D-A1 CLOSED — procedural (director ruling, 2026-07-28)
+
+**Why the generated assets failed — measured, the evidence for this ruling:**
+
+| asset | dimensions | alpha > 127 coverage | ink |
+| --- | --- | --- | --- |
+| `main` `assets/ui/header-rule.png` | 1536×1024 (1.50:1) | **0.46%** | neutral (post white-key) |
+| `abbd0ca` re-drop | 1536×1024 (1.50:1) | **0.90%** | dominant **#A77032 — off-palette** |
+
+Both are a small ornament floating on a ~99%-empty square field. At the pinned texel density of
+128, each drawn pixel samples a 128×128 source region that is ~99% empty, so the rule renders as
+nothing. The second drop doubled coverage and changed nothing that mattered.
+
+**The ruling's reasoning, recorded:** a double rule with a repeating lozenge is a straightedge and
+a stamp. Drawn in code it is seamless BY CONSTRUCTION, exactly on-palette, correct in aspect by
+definition, and needs no alpha keying. The single-cartographer rule is strengthened, not waived —
+a procedural rule at exactly #3A2E1F satisfies identical ink chemistry better than a generated one
+can. Cartographers ruled their lines with instruments; this is the one element on the page that
+was never freehand.
+
+**What shipped:** `Sim.Ui/Art/HeaderRuleBaker.cs` (pure, headless, TerrainBaker idiom).
+Derived geometry: nativeH = drawH 8 × supersample 4 = 32; repeat 256 screen px ⇒ nativeW = 1024;
+at drawH 12/16 the repeat stretches to 384/512 px (period fixed in texture space). Measured
+alpha>127 coverage: **34.6% whole texture, 64.9% within the rule's own band** — against 0.46%/0.90%
+for the two generated attempts. Manifest: `ui/header-rule` REMOVED (a generated resource is not a
+drop point); the seam test is replaced by wraparound byte-equality and the palette test by exact
+two-ink equality, both stronger. `assets/ui/header-rule.png` (1.7 MB) deleted — with the manifest
+entry gone it would be an orphan the audit flags, and it has no consumer. Five properties pinned,
+four proven red against generator mutants (all-transparent → 2 red; wrap broken → seam red;
+RGB blended → palette red; stateful → determinism red).
