@@ -316,10 +316,15 @@ public class CalibrationBatteryTests
             $"{Key}: the corridor band moved to [{lo}, {hi}] while CR-002/CR-003 are OPEN - " +
             "the band may not be re-tuned to absorb this deviation; take the CR to a ruling.");
 
-        // The recorded deviation envelope, MEASURED at T3.2b: seed 1 = 2.252,
-        // seed 2 = 2.385, both ABOVE the ceiling. The window is the measured
-        // envelope with a modest margin.
-        const double DeviationFloor = 2.0, DeviationCeiling = 2.6;
+        // The recorded deviation envelope — an ANCHOR, not a band. MEASURED at
+        // T3.2b: seed 1 = 2.252, seed 2 = 2.385. RE-MEASURED at T3.5b after
+        // the derived subsistence mix (item 1b's pre-committed reading 1: the
+        // food economy MOVES): seed 1 = 1.70191, seed 2 = 1.7661 — density
+        // fell 24% toward the corridor for a 45% farm-labour cut, the
+        // plausible direction and magnitude. The corridor band [0.15, 0.6] is
+        // untouched; CR-002/CR-003 stay OPEN (still ~3x above the ceiling).
+        // The window is the measured envelope with the same modest margin.
+        const double DeviationFloor = 1.55, DeviationCeiling = 1.95;
         Assert.True(value <= DeviationCeiling,
             $"{Key}: {Inv(value)} has drifted FURTHER above the corridor ceiling {hi} than the " +
             $"recorded deviation window [{DeviationFloor}, {DeviationCeiling}] - the world is " +
