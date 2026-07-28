@@ -552,6 +552,17 @@ incomplete escalation, not a manufactured one.
 
 Re-scoping is scheduled in T3.4c.
 
+### Recorded instance: the constitution itself (director ruling, 2026-07-28)
+
+CLAUDE.md stated since M0: *"the director merges a packet branch to `main` on acceptance; agents
+never push to `main`."* Measured against the tree: **every merge commit on `main` since M0 is
+authored and committed by the agent** — the director rules on acceptance and has never performed a
+merge. The first thing every agent reads described a loop that has never once run that way. A
+property asserted about our own process was a measurement owed and never taken, and it survived
+eleven merges because the document asserting it is also the document nobody re-measures. Corrected
+in the same commit to describe the actual loop: agent hands back, director rules, agent merges on
+that explicit ruling.
+
 ---
 
 ## §7.13 — Pre-commit the reading of BOTH outcomes, before any measurement whose result could be argued about

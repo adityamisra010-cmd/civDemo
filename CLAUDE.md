@@ -43,7 +43,8 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
   before any dotnet work — it installs the .NET 10 SDK from the Ubuntu archive (the direct Microsoft
   download hosts are blocked by the session proxy) and no-ops if a 10.x SDK is present.
 - Branch convention: one branch per task packet (`t0.N-<slug>`), cut from `main`. `main` is accepted
-  truth — the director merges a packet branch to `main` on acceptance; agents never push to `main`.
+  truth. The loop: the agent hands the packet back, the DIRECTOR RULES on acceptance, and only then
+  the agent performs the merge to `main` on that explicit ruling — never on its own judgement.
   CI on `main` is the director's between-session check.
 
 ## Repo map
