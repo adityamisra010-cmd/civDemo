@@ -44,7 +44,8 @@
   },
   "siting": {
     "settlementCount": 12,
-    "minSpacingTravel": 30.0,
+    "_docMinSpacing": "T3.2b RE-DENOMINATION, NOT A RE-TUNE: was minSpacingTravel = 30.0 in the pathfinder's internal cost units; 30 cost units x 16 km per cost unit on ideal ground = 480 km. Both factors are exact powers of two divided out, so siting is bit-identical. Stated in km for the same reason the catchment radius is: a spacing in cost units is not a quantity anyone can hold an opinion about.",
+    "minSpacingKm": 480.0,
     "waterAccessCutoffPx": 24,
     "scoreJitter": 0.35,
     "scoreFloorPercentile": 0.5,

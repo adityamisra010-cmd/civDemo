@@ -6,6 +6,62 @@
 - Bind founding parameters INTO the order-log header (seed + world size recorded at save; replay refuses a mismatch with an actionable error) — the hard version of the T1.9 filename convention (orders-*-sPX.bin). Requires an OrderLog IoVersion bump + ADR. (raised T1.9 adversarial pass)
 - Buckets group/cohort lookups are linear table scans (FindInGroup, BandViews). Re-benched at T2.3 as planned: N=12 1024² founded, classmobility 105.9 ms + demographics 97.3 ms per 200 turns (~0.5 ms/turn each) — visible but trivially within budget, no index added. Revisit when T2.8's autoplay batches multiply turn counts. (raised T2.1; re-benched T2.3)
 - Director: world feels small at 12 settlements — revisit D-015 size / settlement count against T2.8 density-corridor results. (raised T2.4 visual gate) RESOLUTION-SO-FAR (director ruling, T2.9 session): the T2.8 density verdict stands — density is historically correct (0.30–0.36 people per fertility-weighted arable km² at year 4500); the "small map" perception is TRAVEL-SCALE (settlement count / spacing / travel budget), all TUNE data. Deferred to the M10 slice gate unless the M2 exit session makes it acute.
+  **SUPERSEDED AND REFRAMED AT T3.2b (CR-002).** The T2.8 density verdict this rests
+  on was measuring a denomination bug: "arable km²" was fertility-weighted lattice
+  NODES scaled by the block area in one consumer and not in the other, and the
+  205 km catchment radius that made the world *look* full was compensating for a
+  yield constant denominated 256× too coarse. Both are fixed; the honest picture
+  is the opposite of "small". At a 50 km economic hinterland the twelve
+  settlements claim ~2 % of the continent, so the world is now overwhelmingly
+  EMPTY — and that is the item. Reframed as an EXPANSION OPPORTUNITY rather than
+  a sizing complaint: there is a large, fertile, reachable, unclaimed hinterland
+  and no mechanism by which a growing population can take it. A settlement at its
+  land-bound ceiling can only starve back or migrate to another full settlement;
+  it cannot throw off a daughter settlement, and PathBuild can only extend the
+  reach of an existing centre. Candidate mechanisms (NOT designed here, no packet
+  implied): daughter-settlement founding driven by sustained land pressure plus a
+  reachable unclaimed frontier; or a colonization destination in the migration
+  choice set. Whichever lands, it wants the SAME land-pressure signal the Malthus
+  corridor already reads, so it belongs with the M10 slice gate or a dedicated
+  post-M3 packet, not bolted onto a tuning pass.
+- **COLONIZATION / LAND CLEARANCE — M4-TARGETED (director ruling, CR-003 §5.2(a)).** The
+  mechanism whose absence CR-003 exposed: how population converts empty land into settled, worked
+  land, and therefore how the frontier eventually closes and Malthusian pressure legitimately
+  emerges. Origin: cr-003 — the corrected constants leave a pre-Malthusian world because nothing
+  fills the frontier, and the Malthus corridors stay quarantined until this exists. A large
+  system (founding rules, site selection, clearing cost, sprawl constraints); at home in M4
+  alongside expansion and borders. Design bound by D-037 (`docs/d037-emergent-polities.md`)
+  Part B1 — colonization from below, migration extended to depart into UNCLAIMED land, refugee
+  foundings may be stateless. See also the expansion-opportunity reframing of the "world feels
+  small" entry above (same finding, ruled correct at CR-003 §6(d)).
+- Tool-wear dt-sensitivity (raised T3.3 adversarial pass, REFUTED as a defect but
+  real as a residue). Farm-tool wear is `rate x equipped-farmers x dtYears` — a
+  per-sim-year rate integrated with dtYears exactly as law 3 prescribes — but in
+  the stock-limited branch that is a first-order step on a decay whose own state
+  is the integrand, so cumulative wear is dt-sensitive: over 20 sim-years from a
+  1000-tool endowment, dt=10 leaves 0 and dt=2.5 leaves 100, and grain differs
+  ~1.3%. A reviewer proposed exp(); that was refuted because exp() embeds a
+  MEMORYLESS lifetime, contradicting the TUNE doc's declared finite "a tool set
+  lasts ~10 working years" and leaving an immortal tail. Choosing correctly needs
+  tool VINTAGE state, which m3-spec section 2 puts out of milestone scope
+  ("vintaged capital"). Bounded and pinned meanwhile by
+  ProductionTests.ToolWear_DtSensitivity_IsBoundedAndByDesign_NotAccidental: the
+  decay coefficient is <= 1 at the coarsest era band (so the step never
+  overshoots), wear is monotone in dt, and the sensitivity is asserted to still
+  exist so the test cannot go vacuous. REVISIT when vintaged capital lands.
+- Lattice stride floor (raised T3.2b): the traversal lattice samples terrain at
+  stride 4, so one node is 16 × 16 km and one cost unit buys 16 km on ideal
+  ground. That is the RESOLUTION FLOOR on every spatial quantity derived from it.
+  `catchment.hinterlandRadiusKm` = 50 is ~3 nodes, which is coarse but not
+  degenerate; anything below ~32 km would be under two nodes and the isochrone
+  would collapse to a handful of blocks, so the instrument simply cannot
+  represent a village working radius (the classic 5 km site catchment is 0.3 of
+  one node). The same floor bounds how finely settlements can be spaced before
+  their catchments alias into each other. If a later milestone wants either
+  village-scale catchments or dense settlement spacing, the stride — not the
+  radius — is the thing that has to move, and that is a worldgen/pathfinding cost
+  question (stride 2 quadruples the node count and the Dijkstra work) plus a
+  golden re-pin, not a tuning change.
 - Post-crash migration ping-pong: an emptied settlement's per-capita attractiveness (capita floor 1) turns it into a magnet, and the dev world settles into a persistent two-turn population slosh (~95% of a settlement shuttling, mostly children) after the first Malthus crash — at CANONICAL rates. Base rates ≥ 2.2× bifurcate into this attractor even pre-crash (measured T2.7 response curve in MagnitudeCorridor test). Needs an attractiveness smoothing constant or migration hysteresis (D-021 revisit) before T2.8 density corridors lean on migration flows. (raised T2.7 retune)
 - T2.8 adversarial pass (minor hardening candidates, no packet conflict):
   (1) infant in-step shortfall uses the combined base+starvation hazard but is
@@ -63,3 +119,28 @@
   Once trade exists (T3.6), generalize it to trade-connected demand — a
   settlement joined by cheap transport to neighbours has a larger effective
   market than its own population implies, which is the actual Smithian claim.
+- Under-utilisation is invisible to conservation tests. `Crafting_ThreeRecipesShareOneScarceInput`
+  passed under an implementation that stranded 15 of 60 timber (ADR-015 §4): the books closed on
+  what was consumed, and consuming too little is not a conservation break. Whenever a scarce
+  input is expected to be fully drawn down, pin the DRAWDOWN as well as the balance. Candidates
+  to audit for the same blind spot: consumption clamping, migration overdraw, PathBuild banking.
+- Intra-turn recipe-chain ordering (bronze-casting before toolmaking) is load-bearing behaviour
+  that lives only in the goods.json array order and was declared nowhere until ADR-015. T3.4
+  should state it as a contract when prices start weighting recipes, since a price-driven
+  ordering could silently break the chain the same way proportional rationing did.
+- T3.4 residue, price solver: PriceSystem is O(S^2 * G^2) per turn — FindPrice and the
+  GoodStocks scan are both linear scans nested inside the settlement x good loop. 56 rows today,
+  but ~7.8M row-visits per turn at 200 settlements. Not a law violation and out of T3.4 scope;
+  revisit when settlement counts grow (raised by the T3.4 no-global-solve lens, not raised as a
+  finding).
+- [CLOSED by ADR-016 — D-033 amended to exact integration; spread 21% -> 5.8e-16]
+  T3.4 residue, Euler under-integration of the price step: over 100 sim-years, dt 10/5/2.5/1
+  give 7.439/8.225/8.694/9.006 — monotone, converging from below, 21% spread. The mandated
+  D-033 form is Euler on a compounding process; exact integration (p *= exp(...)) would remove
+  it and ADR-011 is precedent for making that change deliberately. Bounded by
+  Price_DtSensitivity_IsEulerDiscretization_BoundedAndConverging, flagged for director ruling.
+- T3.4 watch item: the shipped config has Lambda (0.04) > MaxRelativeChangePerYear (0.03), which
+  means the per-step rail saturates before the market-scale floor's arithmetic can matter. A
+  future retune that lowers Lambda below the rail would expose the floor-binding regime to
+  direct scrutiny for the first time. Noted by the no-global-solve lens as a corner it chased
+  and deliberately did not raise.

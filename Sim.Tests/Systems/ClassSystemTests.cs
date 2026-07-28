@@ -143,8 +143,15 @@ public class ClassSystemTests
         // And the other acceptance arm in the SAME run: once the Malthus
         // equilibrium erases the surplus (recession + famine demotions), the
         // share falls away from the cap — artisans drain when the surplus dies.
-        Assert.True(minAfterBoom < 0.05,
-            $"share never drained post-boom (min {minAfterBoom:F3}) — recession/famine valve inert");
+        // CR-003: there is no post-boom. The Malthus equilibrium that used to
+        // erase the surplus never arrives, so surplus stays above the
+        // targetShare saturation point (2.0) for the whole campaign, the share
+        // pins at the cap, and the emerge/recede hysteresis never fires again
+        // after year ~10. The emergence arm above is unaffected and still
+        // asserted; it is the RECESSION arm that has nothing to observe.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            minAfterBoom < 0.05,
+            $"the artisan share drained post-boom (min {minAfterBoom:F3})");
     }
 
     // --- hysteresis teeth ---------------------------------------------------
@@ -381,43 +388,68 @@ public class ClassSystemTests
     // --- scaffolded artisan contributions -----------------------------------
 
     [Fact]
-    public void ToolMultiplier_MonotoneSaturating_NeverExceedsCap()
+    public void ToolStock_RaisesHarvest_MonotoneSaturating_AndDepletes()
     {
-        // Farming with FIXED peasants and growing artisans stacked on top: the
-        // harvest rate is peasants × output × multiplier (labor-limited), so
-        // the multiplier is directly observable. It must be monotone in the
-        // artisan share, saturate once slope × share reaches the cap
-        // (shares 0.2 and 0.5 → EXACTLY equal harvest), and never exceed
-        // 1 + cap (assert against the exact capped product).
+        // T3.3 SCAFFOLDING DEMOLITION (m3 spec §1). The retired test pinned the
+        // M2 abstraction: harvest rose with the ARTISAN SHARE via a free
+        // multiplier. That mechanism is deleted. What replaces it is a real
+        // good: harvest rises with the TOOL STOCK the settlement actually
+        // holds, saturates at one tool per farmer, and — the half a modifier
+        // could never have — the stock DEPLETES as equipped farmers work.
+        //
+        // Fixed 4000 farming adults, land never binds, so harvest is exactly
+        // the labor side: 4000 × outputPerFarmer × (1 + bonus × equipRatio).
         SimConfig cfg = TestConfigs.Sim();
         const double dt = 10.0;
-        long[] artisanCounts = [0, 100, 250, 1000, 4000]; // shares 0, .024, .059, .2, .5
-        var harvests = new long[artisanCounts.Length];
-        for (int i = 0; i < artisanCounts.Length; i++)
+        const long farmers = 4000;
+        var toolStocks = new long[] { 0, 1000, 2000, 4000, 8000 }; // equip 0, .25, .5, 1, 1 (capped)
+        var harvests = new long[toolStocks.Length];
+        var toolsLeft = new long[toolStocks.Length];
+
+        for (int i = 0; i < toolStocks.Length; i++)
         {
             var peasants = new long[Cohorts.Count];
-            var artisans = new long[Cohorts.Count];
-            peasants[5] = 4000;
-            artisans[6] = artisanCounts[i];
-            WorldState world = ClassWorld(peasants, artisans);
+            peasants[5] = farmers;
+            WorldState world = ClassWorld(peasants, new long[Cohorts.Count]);
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-                S0, NodeCount: 1, EffectiveFarmland: 1e9, // land never binds
+                S0, NodeCount: 1, EffectiveArableKm2: 1e9, // land never binds
                 NetworkRevision: 0, LastRecomputeTurn: 0));
             world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(1), Conserved.Zero, 0.0, 0.0));
-            var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Farming(cfg)]);
+            int toolsRow = world.GoodStocks.Add(new GoodStockRow(
+                S0, new GoodId(cfg.Goods!.IdOf("tools")), Conserved.Zero, 0.0, 0.0));
+            if (toolStocks[i] > 0)
+            {
+                new Ledger(world.LedgerFlows).Flow(
+                    ref world.GoodStocks.Ref(toolsRow).Amount,
+                    ConservedQuantityIds.OfGood(new GoodId(cfg.Goods!.IdOf("tools"))),
+                    ReasonIds.InitialEndowment, toolStocks[i],
+                    FlowDirection.Source, OverdrawPolicy.Throw);
+            }
+
+            var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Production(cfg)]);
             WorldState next = exec.Step(world);
             harvests[i] = next.GoodStocks[0].LastProducedUnits;
+            toolsLeft[i] = next.GoodStocks[1].Amount.Value;
         }
 
         for (int i = 1; i < harvests.Length; i++)
             Assert.True(harvests[i] >= harvests[i - 1],
-                $"multiplier not monotone: harvest {harvests[i - 1]} → {harvests[i]}");
-        Assert.True(harvests[1] > harvests[0], "multiplier flat — scaffolding inert");
-        Assert.Equal(harvests[^1], harvests[^2]); // saturated: cap binds at share 0.1+
+                $"tool bonus not monotone in stock: {harvests[i - 1]} → {harvests[i]}");
+        Assert.True(harvests[1] > harvests[0], "tools had no effect — the mechanism is inert");
+        Assert.Equal(harvests[^1], harvests[^2]); // saturated: one tool per farmer is full equipment
+
+        // Exact pin at full equipment — never above 1 + bonus.
         long capExact = (long)Math.Floor(
-            4000 * 1.0 * cfg.Farming.OutputPerFarmerPerYear
-            * (1.0 + cfg.Mobility.ToolYieldBonusCap) * dt);
-        Assert.Equal(capExact, harvests[^1]); // never exceeds 1 + cap — exactly at it
+            farmers * cfg.Farming.OutputPerFarmerPerYear
+            * (1.0 + cfg.Production.ToolYieldBonusMax) * dt);
+        Assert.Equal(capExact, harvests[^1]);
+
+        // DEPLETION — the half the scaffold could not express. Equipped farmers
+        // wear stock out; an unequipped settlement wears nothing.
+        Assert.Equal(toolStocks[0], toolsLeft[0]);
+        for (int i = 1; i < toolStocks.Length; i++)
+            Assert.True(toolsLeft[i] < toolStocks[i],
+                $"tools did not deplete at stock {toolStocks[i]}: {toolsLeft[i]} — a modifier, not a stock");
     }
 
     [Fact]
@@ -460,8 +492,11 @@ public class ClassSystemTests
         next = exec.Step(next);
         next = exec.Step(next);
 
-        // Same association order as the system (builders first) — bit-exact.
-        double builders = 0.6 * (peasants + cfg.Mobility.ConstructionLaborWeight * 60);
+        // T3.3: builders are the CONSTRUCTION share of ALL adults — the M2
+        // weighted pool (peasants + weight × artisans) is DELETED, so the
+        // artisan/peasant split no longer changes the bank at all. The legacy
+        // LaborAllocation order maps 40% farm → 60% construction.
+        double builders = 0.6 * (peasants + 60);
         double expected = cfg.PathBuild.LaborPerAdultPerYear * builders * 10.0;
         Assert.Equal(1, next.PathProgress.Count);
         // Exact pin: the bank (~24) is far below a segment's cost

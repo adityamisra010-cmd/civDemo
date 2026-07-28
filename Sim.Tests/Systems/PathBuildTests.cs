@@ -66,28 +66,28 @@ public class PathBuildTests
         // Turns 1 and 2: no order delivered yet; allocations stay empty.
         world = exec.Step(world);
         world = exec.Step(world);
-        Assert.Equal(0, world.LaborAllocations.Count);
+        Assert.Equal(0, world.SectorAllocations.Count);
 
         // The order (Turn = 2) is delivered to the step FROM turn-2 state: the
         // allocation row exists in turn-3 state, exactly 0.5.
         world = exec.Step(world);
-        Assert.Equal(1, world.LaborAllocations.Count);
-        Assert.Equal(new SettlementId(0), world.LaborAllocations[0].Settlement);
-        Assert.Equal(0.5, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(1, world.SectorAllocations.Count);
+        Assert.Equal(new SettlementId(0), world.SectorAllocations[0].Settlement);
+        Assert.Equal(0.5, world.SectorAllocations[0].Farming);
 
         // Yield shifts NEXT turn (Farming reads Prev): the step from turn-3
         // state harvests the LEONTIEF minimum (T1.8 spec amendment) of land
         // capacity and the halved farm labor — hand-computed exact from turn-3
         // state (law 3: the rate integrates dtYears = 10). At these magnitudes
         // the labor side binds, so the 50% order visibly halves the harvest.
-        double farmland = world.CatchmentSummaries[0].EffectiveFarmland;
+        double farmland = world.CatchmentSummaries[0].EffectiveArableKm2;
         double remainder = world.GoodStocks[0].ProduceRemainder;
         long adultsT3 = BandViews.Adults(world.Buckets, new SettlementId(0));
         long harvestBefore = HarvestSourced(world);
 
         world = exec.Step(world);
         long expected = (long)Math.Floor(Math.Min(
-            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            farmland * cfg.Farming.YieldPerArableKm2PerYear,
             adultsT3 * 0.5 * cfg.Farming.OutputPerFarmerPerYear) * 10.0 + remainder);
         Assert.Equal(expected, HarvestSourced(world) - harvestBefore);
 
@@ -114,7 +114,7 @@ public class PathBuildTests
         for (int t = 1; t <= 30 && firstEdgeTurn < 0; t++)
         {
             nodesBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].NodeCount : 0;
-            farmlandBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].EffectiveFarmland : 0.0;
+            farmlandBefore = world.CatchmentSummaries.Count > 0 ? world.CatchmentSummaries[0].EffectiveArableKm2 : 0.0;
             world = exec.Step(world);
             if (world.NetworkEdges.Count > 0) firstEdgeTurn = t;
         }
@@ -129,8 +129,28 @@ public class PathBuildTests
         world = exec.Step(world);
         Assert.True(world.CatchmentSummaries[0].NodeCount > nodesBefore,
             $"catchment did not grow: {world.CatchmentSummaries[0].NodeCount} <= {nodesBefore}");
-        Assert.True(world.CatchmentSummaries[0].EffectiveFarmland > farmlandBefore,
-            $"farmland did not grow: {world.CatchmentSummaries[0].EffectiveFarmland} <= {farmlandBefore}");
+        Assert.True(world.CatchmentSummaries[0].EffectiveArableKm2 > farmlandBefore,
+            $"farmland did not grow: {world.CatchmentSummaries[0].EffectiveArableKm2} <= {farmlandBefore}");
+
+        // T3.2b — D-009's SECOND PRIZE, with a magnitude bar rather than a
+        // sign test. "Strictly greater" was satisfied at the old 205 km
+        // catchment too, by a rounding error: one dirt-path edge extended a
+        // hinterland that already spanned a subcontinent, so road-building
+        // was mechanically real and economically invisible. At a 50 km
+        // hinterland one edge is a material extension, and that is the
+        // property worth defending — if a later change shrinks it back to
+        // noise, roads have stopped mattering and this must say so.
+        double nodeGrowth =
+            (world.CatchmentSummaries[0].NodeCount - nodesBefore) / (double)nodesBefore;
+        double arableGrowth =
+            (world.CatchmentSummaries[0].EffectiveArableKm2 - farmlandBefore) / farmlandBefore;
+        Console.WriteLine(
+            $"first-edge hinterland growth: nodes +{nodeGrowth * 100.0:F1}%, "
+            + $"arable +{arableGrowth * 100.0:F1}%");
+        Assert.True(arableGrowth > 0.02,
+            $"one dirt path grew the hinterland by only {arableGrowth * 100.0:F2}% of its arable "
+            + "land — roads are back to being a rounding error against the catchment, which is "
+            + "the pre-T3.2b condition D-009's second prize was supposed to escape.");
     }
 
     // --- boundary orders -----------------------------------------------------
@@ -157,7 +177,7 @@ public class PathBuildTests
             }
         }
 
-        Assert.Equal(0.0, world.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.0, world.SectorAllocations[0].Farming);
         Assert.True(famine, "0% farm never produced a consumption deficit in 40 turns");
         Assert.True(starved > 0, "0% farm never starved anyone in 40 turns");
         Assert.True(world.PathProgress[0].Banked > 0.0 || world.NetworkEdges.Count > 0,
@@ -173,7 +193,7 @@ public class PathBuildTests
 
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(1.0, world.LaborAllocations[0].FarmShare); // explicit row == default
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming); // explicit row == default
         Assert.Equal(0, world.PathProgress.Count);              // zero accrual → row never created
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkMeta[0].Revision);
@@ -212,6 +232,94 @@ public class PathBuildTests
         using var nan = new MemoryStream(RawOrderLog((3, 2, 0, double.NaN)));
         Assert.Contains("[0,100]",
             Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(nan)).Message);
+    }
+
+    // --- T3.3 (D-032): the SECTOR order path, end to end ---------------------
+
+    [Fact]
+    public void SectorOrders_FiveDistinctWeights_LandOnTheRightSectors_Exactly()
+    {
+        // The accept clause's FIRST phrase is "Sector labor allocation (D-032)",
+        // and until this test the mechanism that delivers it had no coverage at
+        // all: a T3.3 test-power lens made the whole OrderKind.SectorAllocation
+        // handler INERT — sector id and amount both discarded — and the entire
+        // 357-test suite passed. Every other test hand-builds the
+        // SectorAllocationRow directly and so never exercises the order path.
+        //
+        // Five orders, five DISTINCT weights, one per sector, target id packed
+        // as settlementId * 8 + sectorId. Distinct values are the point: equal
+        // weights would pass under a handler that transposed or dropped them.
+        var log = new OrderLog();
+        double[] pcts = [10.0, 20.0, 30.0, 40.0, 50.0];
+        for (int sector = 0; sector < Sectors.Count; sector++)
+        {
+            log.Append(new OrderRecord(
+                Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+                TargetId: 0 * 8 + sector, Amount: pcts[sector]));
+        }
+
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg, log);
+        WorldState world = Founded(cfg);
+
+        // T1.9 delivery lag, identical to the LaborAllocation case above.
+        world = exec.Step(world);
+        world = exec.Step(world);
+        Assert.Equal(0, world.SectorAllocations.Count);
+        world = exec.Step(world);
+
+        Assert.Equal(1, world.SectorAllocations.Count);
+        SectorAllocationRow row = world.SectorAllocations[0];
+        Assert.Equal(new SettlementId(0), row.Settlement);
+        // Exact, and all five different — a transposition or a dropped weight
+        // cannot satisfy this, and neither can Sectors.Default (farming 1.0).
+        Assert.Equal(0.1, row.Farming);
+        Assert.Equal(0.2, row.Herding);
+        Assert.Equal(0.3, row.Extraction);
+        Assert.Equal(0.4, row.Crafting);
+        Assert.Equal(0.5, row.Construction);
+    }
+
+    [Fact]
+    public void SectorOrder_TargetPacking_ShiftWidthIsPinned()
+    {
+        // The packing is settlementId * 8 + sectorId, decoded `>> 3` and `& 7`.
+        // Sector 4 (construction) is the discriminating case: 4 >> 3 == 0, so
+        // the order lands on the one settlement that exists, but under a `>> 2`
+        // decode 4 >> 2 == 1, SettlementExists(1) is false in this N = 1 world,
+        // and the order is silently DROPPED. Asserting construction landed
+        // therefore pins the shift width itself, not merely the sector id.
+        var log = new OrderLog();
+        log.Append(new OrderRecord(
+            Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+            TargetId: 0 * 8 + Sectors.Construction, Amount: 60.0));
+
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg, log);
+        WorldState world = Founded(cfg);
+        for (int t = 1; t <= 3; t++) world = exec.Step(world);
+
+        Assert.Equal(1, world.SectorAllocations.Count);
+        Assert.Equal(0.6, world.SectorAllocations[0].Construction);
+        // Farming keeps its default: one sector order sets ONE weight.
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming);
+    }
+
+    [Fact]
+    public void SectorOrder_UnknownSectorId_RejectedAtLoad_Actionably()
+    {
+        // TargetId 5 decodes to settlement 0, sector 5 — one past the last
+        // sector. Rejected at LOAD, before the sim runs, like every other
+        // malformed order.
+        using var stream = new MemoryStream(RawOrderLog((4, 3, 5, 50.0)));
+        var e = Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(stream));
+        Assert.Contains("sector id 5 unknown", e.Message);
+        Assert.Contains("turn 4", e.Message);
+
+        // The weight is percentage-validated too, on the same kind.
+        using var hot = new MemoryStream(RawOrderLog((6, 3, 0, 150.0)));
+        Assert.Contains("[0,100]",
+            Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(hot)).Message);
     }
 
     [Fact]
@@ -285,7 +393,7 @@ public class PathBuildTests
         WorldState world = Founded(cfg);
         for (int t = 1; t <= 30; t++) world = exec.Step(world);
 
-        Assert.Equal(0, world.LaborAllocations.Count);
+        Assert.Equal(0, world.SectorAllocations.Count);
         Assert.Equal(0, world.PathProgress.Count);
         Assert.Equal(0, world.NetworkEdges.Count);
         Assert.Equal(0, world.NetworkNodes.Count);

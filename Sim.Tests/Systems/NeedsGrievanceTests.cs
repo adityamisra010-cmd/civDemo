@@ -98,12 +98,12 @@ public class NeedsGrievanceTests
         SimConfig fed = TestConfigs.Sim();
         fed = fed with
         {
-            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
             Founding = fed.Founding with { FoodStore = 4000 },
         };
         SimConfig starving = fed with
         {
-            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
         };
         TurnExecutor fedExec = ProductionExecutor(fed);
         TurnExecutor famineExec = ProductionExecutor(starving);
@@ -153,7 +153,7 @@ public class NeedsGrievanceTests
         SimConfig cfg = TestConfigs.Sim();
         cfg = cfg with
         {
-            Farming = cfg.Farming with { YieldPerFarmlandPerYear = 100_000.0, OutputPerFarmerPerYear = 500.0 },
+            Farming = cfg.Farming with { YieldPerArableKm2PerYear = 100_000.0, OutputPerFarmerPerYear = 500.0 },
         };
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, 1);
@@ -265,7 +265,7 @@ public class NeedsGrievanceTests
         SimConfig cfg = TestConfigs.Sim();
         cfg = cfg with
         {
-            Farming = cfg.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
+            Farming = cfg.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
             Founding = cfg.Founding with { FoodStore = 2000 },
         };
         var riggedNeeds = (NeedEntry[])cfg.Needs!.Needs.Clone();

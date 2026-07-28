@@ -41,7 +41,7 @@ public class DemographyRetuneTests
         {
             Farming = cfg.Farming with
             {
-                YieldPerFarmlandPerYear = 100_000.0, // fed even at the tens of millions the transient reaches
+                YieldPerArableKm2PerYear = 100_000.0, // fed even at the tens of millions the transient reaches
                 OutputPerFarmerPerYear = 500.0,
             },
         };
@@ -187,12 +187,12 @@ public class DemographyRetuneTests
         SimConfig fed = TestConfigs.Sim();
         fed = fed with
         {
-            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
             Founding = fed.Founding with { FoodStore = 4000 },
         };
         SimConfig starving = fed with
         {
-            Farming = fed.Farming with { YieldPerFarmlandPerYear = 1000.0, OutputPerFarmerPerYear = 0.85 },
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 0.85 },
         };
         (long[] births, long[] deaths, double[] deficits, double[] reservoirs, long[] pops) = RunFamineSchedule(fed, starving);
         SimConfig fedOff = fed with
@@ -423,7 +423,7 @@ public class DemographyRetuneTests
         for (int c = 0; c < Cohorts.Count; c++) scaled[c] = cfg.Founding.CohortCounts[c] * 50;
         cfg = cfg with
         {
-            Farming = cfg.Farming with { YieldPerFarmlandPerYear = 1e9, OutputPerFarmerPerYear = 1e6 },
+            Farming = cfg.Farming with { YieldPerArableKm2PerYear = 1e9, OutputPerFarmerPerYear = 1e6 },
             Founding = cfg.Founding with { CohortCounts = scaled },
         };
         var rs = new double[3];

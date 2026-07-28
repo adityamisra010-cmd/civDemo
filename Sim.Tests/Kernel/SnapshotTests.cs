@@ -112,7 +112,7 @@ public class SnapshotTests
         //   acted on this terrain-less world (catchment always no-oped, drew no
         //   RNG). Only the stream grew.
         //   v5 value: abf1ef9357f7cd7599895743e2687c31cb003d616bbb396b4e3de206ba05121c
-        //   v6 (T1.6): schema gained the empty LaborAllocations + PathProgress
+        //   v6 (T1.6): schema gained the empty SectorAllocations + PathProgress
         //   tables (two zero count prefixes, 8 bytes) — forced by the labor
         //   order's persistent allocation state. Sim behavior on this toy world
         //   is unchanged (pathbuild is not in the toy preset); only the stream grew.
@@ -156,7 +156,13 @@ public class SnapshotTests
         //   tables (net one more zero count prefix, 4 bytes). No goods system
         //   runs in the toy preset and this terrain-less world founds no
         //   stocks; only the stream grew.
-        const string golden = "d0767e5126acbb3f9af220f373fc3dca37a8b8c80d35aad0e993294ea1da8dbd";
+        //   v13 (T3.4, D-033 — SCHEMA ONLY on this world): schema v15 gained
+        //   two long fields on GoodStockRow (empty here) and the empty Prices +
+        //   PriceTerms tables (two zero count prefixes, 8 bytes). The price
+        //   system is not in the toy preset and this world has no settlements,
+        //   so no price is ever computed; only the stream grew.
+        //   v12 value: d0767e5126acbb3f9af220f373fc3dca37a8b8c80d35aad0e993294ea1da8dbd
+        const string golden = "8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -215,10 +221,10 @@ public class SnapshotTests
         world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(0), LatticeNode: 321, TravelCost: 8.75));
         world.CatchmentNodes.Add(new CatchmentNodeRow(new SettlementId(1), LatticeNode: 654, TravelCost: -0.0));
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-            new SettlementId(0), NodeCount: 1, EffectiveFarmland: 3.5,
+            new SettlementId(0), NodeCount: 1, EffectiveArableKm2: 3.5,
             NetworkRevision: 5, LastRecomputeTurn: 42));
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-            new SettlementId(1), NodeCount: 1, EffectiveFarmland: -0.0,
+            new SettlementId(1), NodeCount: 1, EffectiveArableKm2: -0.0,
             NetworkRevision: 5, LastRecomputeTurn: 42));
 
         // Anti-padding: exact schema width sum with rows PRESENT.
@@ -241,9 +247,9 @@ public class SnapshotTests
         Assert.Equal(8.75, loaded.CatchmentNodes[0].TravelCost);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.CatchmentNodes[1].TravelCost));
-        Assert.Equal(3.5, loaded.CatchmentSummaries[0].EffectiveFarmland);
+        Assert.Equal(3.5, loaded.CatchmentSummaries[0].EffectiveArableKm2);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveFarmland));
+            BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveArableKm2));
         Assert.Equal(42, loaded.CatchmentSummaries[0].LastRecomputeTurn);
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
@@ -331,7 +337,40 @@ public class SnapshotTests
         //   rolls per settlement. Trajectory semantics are pinned by the
         //   worldgen-refresh battery, the goods migration tests, and the
         //   recalibrated corridors (bands re-measured, notes in-file).
-        const string golden = "c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173";
+        //   v12 (T3.2b, CR-002 recalibration — DELIBERATE, moved ONCE for the
+        //   whole packet): CatchmentSummaryRow.EffectiveFarmland became
+        //   EffectiveArableKm2 and now carries fertility-weighted km² instead of
+        //   fertility-weighted NODES (schema WIDTH and version unchanged — same
+        //   double, different denomination), the catchment became a 50 km
+        //   economic hinterland from TUNE data instead of a 15-cost-unit code
+        //   constant, and farming.yieldPerArableKm2PerYear replaced
+        //   yieldPerFarmlandPerYear with a derived value. Every catchment, every
+        //   harvest and every trajectory moves by design. Update ci.yml's
+        //   FOUNDED_GOLDEN together with this constant.
+        //   v11 value: c219cdcc251c903de8ef9240fa839f279ca729d02d14ef70a49f744cca20b173
+        //   v13 (T3.3, D-032 — DELIBERATE, behavior + schema v14): the M2
+        //   grain monoculture becomes five-sector production over the D-031
+        //   roster (ProductionSystem replaces FarmingSystem in the pipeline),
+        //   the mandated M2 scaffolding is demolished (artisan tool multiplier
+        //   and weighted construction labor DELETED; tools are a real good the
+        //   farmers consume), and LaborAllocationRow widens to
+        //   SectorAllocationRow. Every trajectory moves by design. Update
+        //   ci.yml's FOUNDED_GOLDEN together with this constant.
+        //   v12 value: 8aa163701c02d52441dc7cc4efd1c1bd45cad01ca821cad0c88aeb75755374a0
+        // T3.4 RE-MINT (D-033). The founded world DOES run the price system,
+        // so this hash moves for two reasons, both intended and both itemized:
+        //   1. schema v15 — GoodStockRow gains LastInputDemandUnits and
+        //      LastConsumptionDemandUnits, and the Prices + PriceTerms tables
+        //      are appended;
+        //   2. those tables are POPULATED on this world — the founded run
+        //      prices every (settlement, good) every turn, and grain is pinned
+        //      at 1.0 while the rest move.
+        // No existing system's behaviour changed: production, consumption,
+        // migration, demographics and pathbuild are byte-identical, and the
+        // T3.3 value below was verified unchanged immediately before the price
+        // system was added to the pipeline.
+        //   T3.3 value: 3a73f1a7df18091da43e542f48669996b01a46675f1b77782bdbf4a7892999ff
+        const string golden = "aebac29c9ac5c7a2321e0be7a4126869526ed556000869ccc92d6937176880dc";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -629,8 +668,10 @@ public class SnapshotTests
         // Constitution rule: every new serialized row type ships a POPULATED-
         // table test — exact ExpectedLength, bit-exact round trip, hash equality.
         WorldState world = Genesis(23);
-        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(0), 0.35));
-        world.LaborAllocations.Add(new LaborAllocationRow(new SettlementId(1), -0.0));
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(0), 0.35, 0.15, 0.2, 0.25, 0.05));
+        world.SectorAllocations.Add(new SectorAllocationRow(
+            new SettlementId(1), -0.0, 0.0, 0.0, 0.0, 1.0));
         world.PathProgress.Add(new PathProgressRow(new SettlementId(0), Banked: 123.456, FrontierNode: 4321));
         world.PathProgress.Add(new PathProgressRow(new SettlementId(1), Banked: -0.0, FrontierNode: -1));
 
@@ -646,12 +687,70 @@ public class SnapshotTests
         buffer.Position = 0;
         WorldState loaded = Snapshot.Load(buffer);
         Assert.True(WorldStates.StateEquals(world, loaded));
-        Assert.Equal(0.35, loaded.LaborAllocations[0].FarmShare);
+        Assert.Equal(0.35, loaded.SectorAllocations[0].Farming);
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
-            BitConverter.DoubleToInt64Bits(loaded.LaborAllocations[1].FarmShare));
+            BitConverter.DoubleToInt64Bits(loaded.SectorAllocations[1].Farming));
         Assert.Equal(123.456, loaded.PathProgress[0].Banked);
         Assert.Equal(4321, loaded.PathProgress[0].FrontierNode);
         Assert.Equal(-1, loaded.PathProgress[1].FrontierNode);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV15_PopulatedPriceTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-
+        // table test — exact ExpectedLength, bit-exact round trip, hash
+        // equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent),
+        // and DISTINCT values in every field are what makes a transposition
+        // detectable (T3.3 precedent: the SectorAllocation write path).
+        WorldState world = Genesis(41);
+        world.Prices.Add(new PriceRow(new SettlementId(0), new GoodId(3), 2.5));
+        world.Prices.Add(new PriceRow(new SettlementId(1), new GoodId(7), -0.0));
+        // Seven distinct term fields, so a permuted write order cannot pass.
+        world.PriceTerms.Add(new PriceTermRow(
+            new SettlementId(0), new GoodId(3),
+            PrevPrice: 1.5, Consumption: 0.25, InputDemand: 0.125,
+            Production: -0.0625, StockRelease: -0.03125, Clamp: 0.015625, Delta: 0.296875));
+        world.PriceTerms.Add(new PriceTermRow(
+            new SettlementId(1), new GoodId(7),
+            PrevPrice: -0.0, Consumption: 0.0, InputDemand: 0.0,
+            Production: 0.0, StockRelease: 0.0, Clamp: 0.0, Delta: 0.0));
+
+        // GoodStockRow gained two fields at v15 — populate them distinctly too.
+        world.GoodStocks.Add(new GoodStockRow(
+            new SettlementId(0), new GoodId(3), Conserved.Zero, 0.5, 0.25,
+            lastProducedUnits: 11, lastInputDemandUnits: 22, lastConsumptionDemandUnits: 33));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2.5, loaded.Prices[0].Price);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.Prices[1].Price));
+        PriceTermRow t = loaded.PriceTerms[0];
+        Assert.Equal(1.5, t.PrevPrice);
+        Assert.Equal(0.25, t.Consumption);
+        Assert.Equal(0.125, t.InputDemand);
+        Assert.Equal(-0.0625, t.Production);
+        Assert.Equal(-0.03125, t.StockRelease);
+        Assert.Equal(0.015625, t.Clamp);
+        Assert.Equal(0.296875, t.Delta);
+        GoodStockRow g = loaded.GoodStocks[^1];
+        Assert.Equal(11, g.LastProducedUnits);
+        Assert.Equal(22, g.LastInputDemandUnits);
+        Assert.Equal(33, g.LastConsumptionDemandUnits);
+
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 

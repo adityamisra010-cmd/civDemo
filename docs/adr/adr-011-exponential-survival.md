@@ -1,5 +1,11 @@
 # ADR-011 — Exponential survival integration for cohort demography
 
+> **See ADR-016.** This ADR is the FIRST INSTANCE of a rule now stated in general:
+> COMPOUNDING PROCESSES REQUIRE EXACT INTEGRATION; LINEAR ONES DO NOT. Mortality compounds —
+> the integrated quantity (the surviving cohort) is on the right-hand side — which is why Euler
+> under-integrated it and the closed form was required. ADR-016 applies the same ruling to the
+> T3.4 price step and states the general test.
+
 **Status: accepted** (director ruling on CR-001, option (a); T2.8 session, T2.7b work).
 
 ## Context

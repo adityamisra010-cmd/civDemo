@@ -31,8 +31,8 @@ public class UiSessionReplayTests
             // replay fidelity alone cannot see it. What it breaks is the HUD's
             // promise that a released slider applies on the very next End
             // Turn; that promise is asserted here, turn-exactly).
-            if (t == 3) Assert.Equal(0.55, session.World.LaborAllocations[0].FarmShare);
-            if (t == 11) Assert.Equal(0.20, session.World.LaborAllocations[0].FarmShare);
+            if (t == 3) Assert.Equal(0.55, session.World.SectorAllocations[0].Farming);
+            if (t == 11) Assert.Equal(0.20, session.World.SectorAllocations[0].Farming);
         }
 
         string logPath = Path.Combine(Path.GetTempPath(), $"orders-ui-replay-{Guid.NewGuid():N}.bin");
@@ -53,7 +53,7 @@ public class UiSessionReplayTests
                 Assert.Equal(hashes[t - 1], WorldHash.ComputeHex(world));
             }
             // The orders really steered the sim (anti-vacuity).
-            Assert.Equal(0.20, world.LaborAllocations[0].FarmShare);
+            Assert.Equal(0.20, world.SectorAllocations[0].Farming);
         }
         finally
         {

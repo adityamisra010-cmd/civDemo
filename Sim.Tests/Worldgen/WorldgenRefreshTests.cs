@@ -40,7 +40,7 @@ public class WorldgenRefreshTests
     {
         SizePx = 256,
         ContinentalMask = Wg().ContinentalMask with { EdgeTaperPx = 12 },
-        Siting = Wg().Siting with { SettlementCount = 4, MinSpacingTravel = 15.0 },
+        Siting = Wg().Siting with { SettlementCount = 4, MinSpacingKm = 240.0 },
     };
 
     [Fact]
@@ -201,7 +201,7 @@ public class WorldgenRefreshTests
         {
             SizePx = 64,
             ContinentalMask = Wg().ContinentalMask with { EdgeTaperPx = 4 },
-            Siting = Wg().Siting with { SettlementCount = 1, MinSpacingTravel = 0.0 },
+            Siting = Wg().Siting with { SettlementCount = 1, MinSpacingKm = 0.0 },
         };
         var absurd = new long[Cohorts.Count];
         Array.Fill(absurd, long.MaxValue / 2);

@@ -63,6 +63,14 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
                 demandPerYear += _cfg.Consumption.CohortWeights[bucket.CohortIdx] * bucket.Count.Value;
             }
 
+            // Zero every good's consumption-demand signal before writing this
+            // turn's (T3.3 staleness precedent): at M3 only grain is eaten, so
+            // without this every other good would carry a permanent 0 that is
+            // correct only by accident, and the accident ends at T3.5.
+            for (int i = 0; i < stores.Count; i++)
+                if (stores[i].Settlement == settlement)
+                    stores.Ref(i).LastConsumptionDemandUnits = 0;
+
             int storeIndex = GoodStockIndex.IndexOf(stores, settlement, _grain);
             long demanded = 0, eaten = 0;
             if (storeIndex >= 0)
@@ -74,6 +82,10 @@ public sealed class ConsumptionSystem(SimConfig cfg) : ISimSystem<ConsumptionTab
                     ref row.Amount, ConservedQuantityIds.OfGood(_grain), ReasonIds.Eaten,
                     demanded, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
                 row.ConsumeRemainder = exact - demanded; // sub-unit fraction only (see header)
+                // T3.4 (D-033): PRE-CLAMP demand is the price signal. What a
+                // starving settlement could not buy is exactly what should move
+                // the price, so this is `demanded`, never `eaten`.
+                row.LastConsumptionDemandUnits = demanded;
             }
 
             // Deficit ratio for THIS turn (guarded: no demand → no deficit → no NaN).

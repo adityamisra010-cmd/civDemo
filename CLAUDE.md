@@ -23,6 +23,7 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - If implementation reveals a genuine conflict between frozen items, STOP and write `docs/adr/cr-NNN.md`: (1) frozen items in conflict, (2) evidence — failing test/bench/derivation, (3) ≤3 minimal fix options, (4) blast radius, (5) recommendation. Await director ruling.
 - "A better way exists" is NOT a conflict. Add one line to `docs/queue.md` and proceed as specified.
 - Never write or modify specs beyond the current milestone + 1. Never implement ahead of the ratified spec.
+- Every milestone spec from M4 onward carries the four S8 §4.1 items — FOUNDATIONS AUDIT as packet one, dimensional declaration, corridor independence, coupling map (`docs/spine-s8-governance-freeze.md` §4.1, ADR-014). If you are writing a milestone spec, §4.1 is mandatory reading first.
 - Tuning data files and `TUNE` parameters is always allowed.
 
 ## Workflow per session
@@ -34,6 +35,8 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 - Every new serialized row type ships a POPULATED-table test: exact ExpectedLength, bit-exact round-trip, hash equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
 - Replay equality proves reproducibility, not semantics. Every order-delivery semantic (when an order applies relative to when it was issued) gets its own turn-exact pin — live-vs-replay comparison alone cannot see stamping drift (T1.9 precedent).
 - Verification workflows pin their worktrees to the packet commit under review; findings against any other tree are void (T2.1 precedent). Mutant kill-records must include at least one semantic test per mutant — golden-only kills don't count.
+- **One worktree per verifying agent, never shared** — concurrent mutation of a shared tree voids findings and refutations alike. **No finding is actionable before its verdict returns**; applying a fix on a finder's word alone is a review bypass, and a claim written into a commit message must have been measured by the agent writing it. (ADR-015 §6, ratified — T3.3 precedent: a shipped regression built on a finding that was later refuted.)
+- Every mutant run is bounded by a stated multiple of the clean-suite baseline. A mutant that HANGS is itself a finding — record "non-termination under this mutation", never wait indefinitely (ADR-015 §7.1). A verify stage answers two questions, not one: does the test fail against the mutant, and is the property it asserts one the system ought to have — teeth are not aim (ADR-015 §7.2).
 
 ## Environment (remote sessions)
 - Containers are ephemeral: the .NET SDK does NOT survive between sessions. Run `./scripts/bootstrap.sh`

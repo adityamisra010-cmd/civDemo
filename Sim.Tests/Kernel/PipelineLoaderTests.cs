@@ -19,15 +19,21 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(8, pipeline.Length);
+        Assert.Equal(9, pipeline.Length);
         Assert.Equal("catchment", pipeline[0].Name);
-        Assert.Equal("farming", pipeline[1].Name);
+        Assert.Equal("production", pipeline[1].Name);
         Assert.Equal("consumption", pipeline[2].Name);
-        Assert.Equal("classmobility", pipeline[3].Name);  // T2.2, spec §3 pipeline order
-        Assert.Equal("migration", pipeline[4].Name);      // T2.5, spec §3 pipeline order
-        Assert.Equal("demographics", pipeline[5].Name);
-        Assert.Equal("needsgrievance", pipeline[6].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[7].Name);
+        // T3.4 (D-033): price runs AFTER consumption, so a turn's demand and
+        // production signals are complete before anything is priced. It reads
+        // PREV regardless (the §3.2 one-turn lag), so the position is about
+        // legibility rather than results — but it is pinned here so a silent
+        // reorder is a failing test rather than a shrug.
+        Assert.Equal("price", pipeline[3].Name);
+        Assert.Equal("classmobility", pipeline[4].Name);  // T2.2, spec §3 pipeline order
+        Assert.Equal("migration", pipeline[5].Name);      // T2.5, spec §3 pipeline order
+        Assert.Equal("demographics", pipeline[6].Name);
+        Assert.Equal("needsgrievance", pipeline[7].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[8].Name);
     }
 
     [Fact]
@@ -48,7 +54,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, farming, consumption, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, trade",
+            "known systems: catchment, production, consumption, price, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, trade",
             e.Message);
     }
 

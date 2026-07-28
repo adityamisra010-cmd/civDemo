@@ -19,6 +19,21 @@ public enum OrderKind
     /// Prev the following turn. Range-validated at LOAD time.
     /// </summary>
     LaborAllocation = 2,
+
+    /// <summary>
+    /// T3.3 (D-032): sets ONE sector's raw labor weight for a settlement.
+    /// The fixed OrderRecord shape carries one double, so a full five-way
+    /// allocation is issued as a BATCH of these (one per sector, same turn) —
+    /// TargetId = settlementId × 8 + sectorId (Sectors.Farming..Construction,
+    /// 0..4; ×8 leaves headroom and decodes with shift/mask), Amount = weight
+    /// percentage in [0,100]. Consumed by PathBuildSystem into the
+    /// SectorAllocations row (raw weights; consumers read NORMALIZED shares,
+    /// so a partial batch is well-defined). The legacy LaborAllocation order
+    /// stays valid and maps onto the same row: farming = pct, construction =
+    /// 100 − pct, other sectors zeroed — the M1/M2 fixtures replay unchanged
+    /// in meaning.
+    /// </summary>
+    SectorAllocation = 3,
 }
 
 /// <summary>
@@ -132,10 +147,21 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): LaborAllocation farm percentage " +
                         $"must be in [0,100], got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.SectorAllocation:
+                if (!(record.Amount >= 0.0 && record.Amount <= 100.0)) // NaN fails this too
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SectorAllocation weight percentage " +
+                        $"must be in [0,100], got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                if ((record.TargetId & 7) >= Sim.Core.State.Sectors.Count || record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SectorAllocation sector id " +
+                        $"{record.TargetId & 7} unknown — sectors are 0..{Sim.Core.State.Sectors.Count - 1} " +
+                        "(farming, herding, extraction, crafting, construction).");
+                break;
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
-                    "this build understands kinds 1 (SetRainBias) and 2 (LaborAllocation).");
+                    "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation) and 3 (SectorAllocation).");
         }
     }
 }

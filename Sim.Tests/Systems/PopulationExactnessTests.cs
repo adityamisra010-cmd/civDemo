@@ -516,7 +516,7 @@ public class PopulationExactnessTests
         counts[0] = 100; counts[5] = 200; counts[15] = 50;
         WorldState world = BucketWorld(counts);
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
-            new SettlementId(0), NodeCount: 1, EffectiveFarmland: farmland,
+            new SettlementId(0), NodeCount: 1, EffectiveArableKm2: farmland,
             NetworkRevision: 0, LastRecomputeTurn: 0));
         int row = world.GoodStocks.Add(new GoodStockRow(
             new SettlementId(0), new GoodId(1), Conserved.Zero, 0.0, 0.0));
@@ -538,16 +538,17 @@ public class PopulationExactnessTests
         const double dt = 10.0, farmland = 78.5;
         const long endow = 10000;
         var exec = new TurnExecutor(FlatEra(dt),
-            [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+            [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(FoodWorld(farmland, endow));
 
-        // T1.6: farm share is the LaborAllocations row; this hand-built world
+        // T1.6: farm share is the SectorAllocations row; this hand-built world
         // has none, so the never-ordered default of 1.0 applies.
         // T1.8 spec amendment: LEONTIEF — min(land side, labor side). Here the
         // 200 adults (cohort 5, the T2.1 band view) bind:
-        // min(78.5×28=2198, 200×1×5=1000) → labor-limited.
+        // min(78.5 × yieldPerArableKm2PerYear, 200×1×5=1000) → labor-limited at
+        // any yield above 12.74; the canonical value is far above it.
         long harvest = Floor(Math.Min(
-            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            farmland * cfg.Farming.YieldPerArableKm2PerYear,
             200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear) * dt);                 // 10000
         long demand = Floor(DemandPerYear(cfg) * dt);                              // 2950
 
@@ -571,6 +572,17 @@ public class PopulationExactnessTests
         Assert.Equal(0, next.GoodStocks[0].Amount.Value);
         Assert.Equal(1000, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true));
         Assert.Equal((demand - 1000) / (double)demand, next.ConsumptionDeficits[0].DeficitRatio);
+
+        // T3.4 (D-033): the PRICE SIGNAL is PRE-CLAMP demand, not what was
+        // eaten. This fixture is the only place the two differ — a settlement
+        // that could not buy what it needed — and publishing `eaten` instead of
+        // `demanded` survived the whole suite until this assertion existed.
+        // Getting it wrong would make a famine INVISIBLE to the grain price at
+        // the exact moment scarcity is most real: consumption would appear to
+        // fall to match supply, and excess demand would read zero.
+        Assert.Equal(demand, next.GoodStocks[0].LastConsumptionDemandUnits);
+        Assert.True(next.GoodStocks[0].LastConsumptionDemandUnits > 1000,
+            "the published demand signal collapsed to the clamped amount");
     }
 
     [Fact]
@@ -588,7 +600,7 @@ public class PopulationExactnessTests
         const double farmland = 78.5;
         // Leontief (T1.8): static 200 adults bind the labor side across all dts.
         double harvestPerYear = Math.Min(
-            farmland * cfg.Farming.YieldPerFarmlandPerYear,
+            farmland * cfg.Farming.YieldPerArableKm2PerYear,
             200 * 1.0 * cfg.Farming.OutputPerFarmerPerYear);                       // 1000.0/yr
         double demandPerYear = DemandPerYear(cfg);                                 // 295.0/yr
 
@@ -598,7 +610,7 @@ public class PopulationExactnessTests
         for (int i = 0; i < dts.Length; i++)
         {
             var exec = new TurnExecutor(FlatEra(dts[i]),
-                [SystemCatalog.Farming(cfg), SystemCatalog.Consumption(cfg)]);
+                [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
             // Store large enough that the clamp never binds at any dt.
             WorldState world = exec.Run(FoodWorld(farmland, store: 1_000_000),
                 (int)(horizonYears / dts[i]));

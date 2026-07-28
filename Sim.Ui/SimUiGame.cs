@@ -248,7 +248,7 @@ public sealed class SimUiGame : Game
     {
         _hud = HudModel.From(_world, _selected, _needs,
             _selected >= 0 ? _session.Names.Name(_selected) : null);
-        if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmSharePct);
+        if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmingPct);
     }
 
     // --- the player's verbs ---------------------------------------------------

@@ -22,7 +22,7 @@ public static class CanonicalSchema
     /// v3 (T1.3): NetworkNodes + NetworkEdges tables after LedgerFlows.
     /// v4 (T1.4): Settlements, NetworkMeta, CatchmentNodes, CatchmentSummaries after NetworkEdges.
     /// v5 (T1.5): PopBands, FoodStores, ConsumptionDeficits after CatchmentSummaries.
-    /// v6 (T1.6): LaborAllocations, PathProgress after ConsumptionDeficits.
+    /// v6 (T1.6): SectorAllocations, PathProgress after ConsumptionDeficits.
     /// v7 (T2.1, D-026): Buckets (settlement, culture, religion, class, cohort)
     /// replaces PopBands in the same stream position.
     /// v8 (T2.2, D-020): BucketRow gains MobilityRemainder, FoodStoreRow gains
@@ -35,10 +35,18 @@ public static class CanonicalSchema
     /// v11 (T2.6, D-018/D-021): SettlementVitals, NeedSatisfactions and
     /// Grievances tables appended after MigrationFlows.
     /// v12 (T2.8, migration stabilization): SmoothedAttractiveness table
+    /// appended after Grievances (the EMA filter state).
     /// v13 (T3.2, D-031): FoodStores REPLACED by GoodStocks (per settlement ×
     /// good; grain carries the migrated FoodStore) + the Deposits table.
-    /// appended after Grievances (the EMA filter state).</summary>
-    public const int Version = 13;
+    /// v14 (T3.3, D-032): LaborAllocationRow (Settlement + FarmShare) becomes
+    /// SectorAllocationRow (Settlement + five sector weights) — the farm/path
+    /// pair generalizes to farming/herding/extraction/crafting/construction.
+    /// Row width 12 → 44; the table's position in the stream is unchanged.
+    /// v15 (T3.4, D-033): GoodStockRow gains LastInputDemandUnits and
+    /// LastConsumptionDemandUnits (the two observational demand signals the
+    /// price solver reads); Prices and PriceTerms tables appended after
+    /// SmoothedAttractiveness.</summary>
+    public const int Version = 15;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -53,12 +61,13 @@ public static class CanonicalSchema
     private const int SettlementRowWidth = 4 + 4 + 8;          // Id, SiteCell, FoundedTurn
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
-    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveFarmland bits, NetworkRevision, LastRecomputeTurn
+    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
-    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8;   // Settlement, Good, Amount, 2 remainder bit-fields, LastProducedUnits (v13)
+    private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
-    private const int LaborAllocationRowWidth = 4 + 8;              // Settlement, FarmShare bits
+    // T3.3 (D-032): Settlement + five sector weights (was Settlement + FarmShare).
+    private const int SectorAllocationRowWidth = 4 + 8 + 8 + 8 + 8 + 8;
     private const int PathProgressRowWidth = 4 + 8 + 4;             // Settlement, Banked bits, FrontierNode
     private const int VariableRowWidth = 4 + 4 + 8;                 // Settlement, VarId, Value bits (v8)
     private const int ClassStateRowWidth = 4 + 4 + 4;               // Settlement, Class, Active (v8)
@@ -68,6 +77,8 @@ public static class CanonicalSchema
     private const int NeedSatisfactionRowWidth = 4 + 4 + 4 + 8;     // Settlement, Class, NeedId, Value bits (v11)
     private const int GrievanceRowWidth = 4 + 4 + 8;                // Settlement, Class, Value bits (v11)
     private const int SmoothedAttractivenessRowWidth = 4 + 8;       // Settlement, Value bits (v12)
+    private const int PriceRowWidth = 4 + 4 + 8;                    // Settlement, Good, Price bits (v15)
+    private const int PriceTermRowWidth = 4 + 4 + 8 * 7;            // Settlement, Good, 7 double bit-fields (v15)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -197,7 +208,7 @@ public static class CanonicalSchema
             CatchmentSummaryRow row = world.CatchmentSummaries[i];
             writer.Write(row.Settlement.Value);
             writer.Write(row.NodeCount);
-            writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveFarmland));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveArableKm2));
             writer.Write(row.NetworkRevision);
             writer.Write(row.LastRecomputeTurn);
         }
@@ -233,6 +244,8 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.ProduceRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.ConsumeRemainder));
             writer.Write(row.LastProducedUnits);
+            writer.Write(row.LastInputDemandUnits);
+            writer.Write(row.LastConsumptionDemandUnits);
         }
         writer.Write(world.Deposits.Count);
         for (int i = 0; i < world.Deposits.Count; i++)
@@ -253,13 +266,17 @@ public static class CanonicalSchema
             writer.Write(row.DemandUnits);
         }
 
-        // 18. Labor allocations (v6)
-        writer.Write(world.LaborAllocations.Count);
-        for (int i = 0; i < world.LaborAllocations.Count; i++)
+        // 18. Sector allocations (v6; widened to five sectors at v14, T3.3/D-032)
+        writer.Write(world.SectorAllocations.Count);
+        for (int i = 0; i < world.SectorAllocations.Count; i++)
         {
-            LaborAllocationRow row = world.LaborAllocations[i];
+            SectorAllocationRow row = world.SectorAllocations[i];
             writer.Write(row.Settlement.Value);
-            writer.Write(BitConverter.DoubleToInt64Bits(row.FarmShare));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Farming));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Herding));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Extraction));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Crafting));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Construction));
         }
 
         // 19. Path progress (v6)
@@ -352,6 +369,30 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
         }
+
+        // 28. Prices + price-term decomposition (v15, T3.4)
+        writer.Write(world.Prices.Count);
+        for (int i = 0; i < world.Prices.Count; i++)
+        {
+            PriceRow row = world.Prices[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Price));
+        }
+        writer.Write(world.PriceTerms.Count);
+        for (int i = 0; i < world.PriceTerms.Count; i++)
+        {
+            PriceTermRow row = world.PriceTerms[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.PrevPrice));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Consumption));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.InputDemand));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Production));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.StockRelease));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Clamp));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Delta));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -363,6 +404,10 @@ public static class CanonicalSchema
     /// world had no terrain). Terrain itself is not in the stream (ADR-008) — the
     /// caller regenerates it from seed + config and must match this hash
     /// (Snapshot.Load enforces it).
+    /// v14 (T3.3, D-032): LaborAllocationRow (Settlement + FarmShare) becomes
+    /// SectorAllocationRow (Settlement + five sector weights) — the farm/path
+    /// pair generalizes to farming/herding/extraction/crafting/construction.
+    /// Row width 12 → 44; the table's position in the stream is unchanged.
     /// </summary>
     public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash)
     {
@@ -493,6 +538,8 @@ public static class CanonicalSchema
                 settlement, good, Conserved.FromSnapshot(amount),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                reader.ReadInt64(),
+                reader.ReadInt64(),
                 reader.ReadInt64()));
         }
         int depositCount = reader.ReadInt32();
@@ -516,8 +563,12 @@ public static class CanonicalSchema
         int allocCount = reader.ReadInt32();
         for (int i = 0; i < allocCount; i++)
         {
-            world.LaborAllocations.Add(new LaborAllocationRow(
+            world.SectorAllocations.Add(new SectorAllocationRow(
                 new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
@@ -593,6 +644,27 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int priceCount = reader.ReadInt32();
+        for (int i = 0; i < priceCount; i++)
+        {
+            world.Prices.Add(new PriceRow(
+                new SettlementId(reader.ReadInt32()), new GoodId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+        int priceTermCount = reader.ReadInt32();
+        for (int i = 0; i < priceTermCount; i++)
+        {
+            world.PriceTerms.Add(new PriceTermRow(
+                new SettlementId(reader.ReadInt32()), new GoodId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -620,7 +692,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.GoodStocks.Count * GoodStockRowWidth
         + CountPrefixWidth + (long)world.Deposits.Count * DepositRowWidth
         + CountPrefixWidth + (long)world.ConsumptionDeficits.Count * ConsumptionDeficitRowWidth
-        + CountPrefixWidth + (long)world.LaborAllocations.Count * LaborAllocationRowWidth
+        + CountPrefixWidth + (long)world.SectorAllocations.Count * SectorAllocationRowWidth
         + CountPrefixWidth + (long)world.PathProgress.Count * PathProgressRowWidth
         + CountPrefixWidth + (long)world.Variables.Count * VariableRowWidth
         + CountPrefixWidth + (long)world.ClassStates.Count * ClassStateRowWidth
@@ -629,5 +701,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.SettlementVitals.Count * SettlementVitalsRowWidth
         + CountPrefixWidth + (long)world.NeedSatisfactions.Count * NeedSatisfactionRowWidth
         + CountPrefixWidth + (long)world.Grievances.Count * GrievanceRowWidth
-        + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth;
+        + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth
+        + CountPrefixWidth + (long)world.Prices.Count * PriceRowWidth
+        + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth;
 }

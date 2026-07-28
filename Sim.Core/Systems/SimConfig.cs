@@ -16,12 +16,15 @@ public sealed class SimConfigException(string message, Exception? inner = null)
 /// </summary>
 public sealed record SimConfig(
     [property: JsonPropertyName("farming")] FarmingConfig Farming,
+    [property: JsonPropertyName("catchment")] CatchmentConfig Catchment,
     [property: JsonPropertyName("consumption")] ConsumptionConfig Consumption,
     [property: JsonPropertyName("demographics")] DemographicsConfig Demographics,
     [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
+    [property: JsonPropertyName("production")] ProductionConfig Production,
+    [property: JsonPropertyName("price")] PriceConfig Price,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
@@ -33,16 +36,42 @@ public sealed record SimConfig(
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
 /// amendment; the T1.5 form had no labor factor and ghost-harvested in a dead
-/// world): harvest/yr = min(farmland × YieldPerFarmlandPerYear,
+/// world): harvest/yr = min(arableKm2 × YieldPerArableKm2PerYear,
 /// adults × farmShare × OutputPerFarmerPerYear). Land side: what the catchment
 /// can yield at full working; labor side: what the assigned farmers can work.
-/// Tuned so a fresh seed-42 run is labor-limited early and land-limited at
-/// equilibrium. Every leaf is [JsonRequired] (T1.5 adversarial finding):
-/// a missing or typo'd key must fail the load loudly, never silently bind 0.0.
+/// Every leaf is [JsonRequired] (T1.5 adversarial finding): a missing or typo'd
+/// key must fail the load loudly, never silently bind 0.0.
+///
+/// DENOMINATION (T3.2b): YieldPerArableKm2PerYear is food units per
+/// FERTILITY-WEIGHTED km² per year, against
+/// CatchmentSummaryRow.EffectiveArableKm2. One food unit is one person-year of
+/// adult-equivalent sustenance, so the constant reads directly as "person-years
+/// of food an ideal-suitability km² yields per year". Before T3.2b the key was
+/// `yieldPerFarmlandPerYear` and was denominated per fertility-weighted lattice
+/// NODE (256 km²) while claiming nothing about its unit at all — CR-002.
 /// </summary>
 public sealed record FarmingConfig(
-    [property: JsonPropertyName("yieldPerFarmlandPerYear"), JsonRequired] double YieldPerFarmlandPerYear,
+    [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
     [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear);
+
+/// <summary>
+/// Catchment tuning (T3.2b). A settlement's catchment is its ECONOMIC
+/// HINTERLAND — the country whose produce can profitably flow in — not a
+/// farmer's daily working radius.
+///
+/// HinterlandRadiusKm is stated as an IDEAL-GROUND radius in km and converted to
+/// the pathfinder's cost budget by LatticeGeometry. What it actually buys is
+/// then decided by geography: less through mountain and marsh, more along
+/// rivers and built paths, which is the mechanism by which a road network grows
+/// a hinterland (D-009) rather than a modifier bolted onto one.
+///
+/// Before T3.2b this was `CatchmentSystem.TravelBudget = 15.0` — a code
+/// constant, in cost units, that no tuning pass could see. It went unexamined
+/// for three milestones and ended up compensating for the yield denomination
+/// error (CR-002).
+/// </summary>
+public sealed record CatchmentConfig(
+    [property: JsonPropertyName("hinterlandRadiusKm"), JsonRequired] double HinterlandRadiusKm);
 
 /// <summary>
 /// Path-building tuning (T1.6, all TUNE, per-sim-year rates — law 3).
@@ -141,18 +170,124 @@ public sealed record ClassEntry(
 /// The live share relaxes toward the target at PromoteRatePerYear (fraction of
 /// the gap closed per year); a famine (Prev deficit &gt; 0) forces demotion at
 /// FamineDemoteRatePerYear regardless of predicates — artisans starve back to
-/// the fields first. SCAFFOLDING (spec §1, M3 replaces): artisans contribute
-/// ConstructionLaborWeight × artisanAdults to PathBuild's pool and a farming
-/// tool multiplier 1 + min(ToolYieldBonusCap, ToolYieldBonusSlope × share).
+/// the fields first. T3.3 DEMOLITION (mandated, m3 spec §1): the M2 scaffolds
+/// that lived here — the artisan tool-yield multiplier and the artisan
+/// construction-labor weight — are DELETED. Tools are a real good consumed by
+/// farmers (ProductionConfig); sector labor pools are class-blind shares of
+/// the adult workforce (D-032).
 /// </summary>
 public sealed record MobilityConfig(
     [property: JsonPropertyName("promoteRatePerYear"), JsonRequired] double PromoteRatePerYear,
     [property: JsonPropertyName("famineDemoteRatePerYear"), JsonRequired] double FamineDemoteRatePerYear,
     [property: JsonPropertyName("targetShareSlope"), JsonRequired] double TargetShareSlope,
-    [property: JsonPropertyName("targetShareCap"), JsonRequired] double TargetShareCap,
-    [property: JsonPropertyName("toolYieldBonusCap"), JsonRequired] double ToolYieldBonusCap,
-    [property: JsonPropertyName("toolYieldBonusSlope"), JsonRequired] double ToolYieldBonusSlope,
-    [property: JsonPropertyName("constructionLaborWeight"), JsonRequired] double ConstructionLaborWeight);
+    [property: JsonPropertyName("targetShareCap"), JsonRequired] double TargetShareCap);
+
+/// <summary>
+/// Production tuning (T3.3, D-032 — all TUNE, per-sim-year rates, law 3).
+/// Provenance discipline per S8 §4.1(c): every value below is CHOSEN, not
+/// derived, and says so — with the plausibility frame that bounds it. The
+/// foundations audit of the milestone that consumes these owes them a row.
+///
+/// OutputPerHerderPerYear — food units (person-years of sustenance) one
+///   herder/fisher produces per year at deposit abundance 1.0. CHOSEN 3.0:
+///   below the farmer's 5.0 (pastoralism supports fewer people per worker
+///   than valley agriculture — the reason farming displaced it on good land),
+///   above 1.0 (a herder feeds more than himself or herding would not exist).
+/// OutputPerExtractorPerYear — units of a raw good one extractor produces per
+///   year at deposit abundance 1.0. CHOSEN 4.0: sets raw-good flow scale;
+///   meaningful only relative to recipe input demands (a potter needs 2 clay +
+///   0.5 timber per pot), sized so a few extractors supply a few artisans.
+/// ToolsPerFarmerToEquip — tool units that fully equip one farmer. CHOSEN 1.0:
+///   the natural unit (one man, one plough/sickle set).
+/// ToolYieldBonusMax — labor-side yield factor at full equipment: factor =
+///   1 + bonus × equipRatio. CHOSEN 0.3, carried over in MAGNITUDE from the
+///   retired scaffold's cap (bronze-age tool advantage over digging-stick
+///   agriculture, order tens of percent — Boserup's tool-intensity range),
+///   but the MECHANISM is new: the ratio is real tools in stock per farmer,
+///   not a class share.
+/// ToolWearPerEquippedFarmerPerYear — tool units one EQUIPPED farmer wears out
+///   per year (the Ledger sink that makes tools deplete). CHOSEN 0.1: a tool
+///   set lasts ~10 working years — bronze tools were repaired and recast for
+///   decades; wholly wrong values fail the plausibility question loudly
+///   (1.0 = tools of wet clay; 0.001 = heirloom economy with no tool demand).
+/// </summary>
+public sealed record ProductionConfig(
+    [property: JsonPropertyName("outputPerHerderPerYear"), JsonRequired] double OutputPerHerderPerYear,
+    [property: JsonPropertyName("outputPerExtractorPerYear"), JsonRequired] double OutputPerExtractorPerYear,
+    [property: JsonPropertyName("toolsPerFarmerToEquip"), JsonRequired] double ToolsPerFarmerToEquip,
+    [property: JsonPropertyName("toolYieldBonusMax"), JsonRequired] double ToolYieldBonusMax,
+    [property: JsonPropertyName("toolWearPerEquippedFarmerPerYear"), JsonRequired] double ToolWearPerEquippedFarmerPerYear);
+
+/// <summary>
+/// T3.4 price solver tuning (D-033). ALL TUNE, and the rate is per-sim-year
+/// (law 3) — the mandate's "per-turn relative change" is realised as a per-YEAR
+/// cap integrated with dtYears, because a literal per-turn constant would bind
+/// differently at dt = 10 and dt = 1 and is exactly what law 3 forbids. The
+/// clamp is a safety rail on the STEP, and a rail whose height depends on how
+/// long the turn is is the only version that means the same thing at every dt.
+///
+/// The step, per settlement, per good, once per turn, no global solve ever:
+///   excess = consumptionDemand + inputDemand − production − stockRelease
+///   scale  = max(production + stockRelease, MarketScaleFloorPerYear * dtYears)
+///   p += Lambda × p × (excess / scale) × dtYears
+/// then clamped to MaxRelativeChangePerYear × dtYears, then to the band.
+/// excess/scale is a RATIO of per-turn quantities: both numerator and
+/// denominator scale with dt, so the ratio is dimensionless and dt-invariant,
+/// and the single explicit × dtYears is the whole dt dependence.
+///
+/// S8 §4.1(c) — DERIVED OR MERELY CHOSEN, stated explicitly per value:
+/// Lambda — CHOSEN 0.04 per year. Never derived. The price-adjustment speed:
+///   at a 100% relative excess sustained for one year, price moves 4% (~25-year
+///   e-folding). Plausibility frame: a pre-modern market with no telegraph and
+///   seasonal caravans reprices over years, not turns. SIZED AGAINST THE
+///   COARSEST SHIPPED dt — the Neolithic band steps 10 sim-years at once, so
+///   Lambda × dt must stay well under 1 or a single turn overshoots the
+///   equilibrium it is seeking. An earlier 0.35 gave Lambda × dt = 3.5 and
+///   drove the same 100-year horizon to OPPOSITE ENDS of the band at dt = 10
+///   and dt = 1. That was caught by the dt-invariance test, not by inspection,
+///   which is the argument for the test existing.
+/// MarketScaleFloorPerYear — CHOSEN 0.1 units per year. Never derived. A
+///   divide-by-zero guard with a real meaning: a market with no supply at all
+///   still has a finite reference size, so a single unit of unmet demand cannot
+///   produce an unbounded relative excess. PER YEAR, integrated with dtYears,
+///   for the reason the rail is: it sits in the DENOMINATOR of excess/scale
+///   whose numerator scales with dt, so a dt-independent constant makes the
+///   ratio dt-DEPENDENT exactly when the floor binds — the one place the
+///   system's own "dimensionless and dt-invariant" claim was false. Found by
+///   the T3.4 dt-determinism lens, confirmed on the pinned tree. At 0.1/yr it
+///   reproduces the previous 1.0 exactly at dt = 10, so the Neolithic band is
+///   unchanged; finer bands now scale with the turn instead of being ten times
+///   too coarse.
+/// StockReleaseRatePerYear — CHOSEN 0.5 per year. Never derived. The fraction
+///   of a held stock offered to the market per year. Plausibility frame: half a
+///   granary comes to market within the year, the rest is held as seed corn and
+///   insurance. This is the term that lets a full warehouse damp a price spike.
+/// BandMin / BandMax — CHOSEN 0.05 / 20.0 grain units. Never derived. The hard
+///   bound on any price relative to the numeraire. Frame: nothing in a
+///   neolithic-to-iron-age economy is worth less than 1/20 of a grain unit or
+///   more than 20 of them per unit; the band is deliberately WIDE, because its
+///   job is to stop divergence, not to express economics. A price sitting on a
+///   band edge for long stretches is a signal the band is doing work it should
+///   not be — the soak reports it.
+/// MaxRelativeChangePerYear — CHOSEN 0.03 per year. Never derived. The per-step
+///   rail: a price may not move more than 3% of itself per sim-year however
+///   large the measured excess — 30% in a 10-year Neolithic turn, 3% in a
+///   1-year turn. This is the D-033 "maximum per-turn relative change",
+///   dt-corrected. Sized so the rail BINDS at the coarsest dt instead of being
+///   decorative there: at an earlier 0.5 it permitted a 500% move in a single
+///   dt = 10 turn, which is not a rail. It also makes the step
+///   positivity-preserving without help from the band — a maximum downward move
+///   of 0.3p can never reach zero — so the band is left free to do only its own
+///   job. It is the term that makes a shock ramp rather than jump, and the
+///   first thing to look at if the soak oscillates.
+/// </summary>
+public sealed record PriceConfig(
+    [property: JsonPropertyName("lambda"), JsonRequired] double Lambda,
+    [property: JsonPropertyName("marketScaleFloorPerYear"), JsonRequired] double MarketScaleFloorPerYear,
+    [property: JsonPropertyName("stockReleaseRatePerYear"), JsonRequired] double StockReleaseRatePerYear,
+    [property: JsonPropertyName("bandMin"), JsonRequired] double BandMin,
+    [property: JsonPropertyName("bandMax"), JsonRequired] double BandMax,
+    [property: JsonPropertyName("maxRelativeChangePerYear"), JsonRequired] double MaxRelativeChangePerYear);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):
@@ -188,8 +323,17 @@ public sealed record RegistriesConfig(
 /// </summary>
 public sealed record MigrationConfig(
     [property: JsonPropertyName("baseRatePerYear"), JsonRequired] double BaseRatePerYear,
-    [property: JsonPropertyName("dampingDecayCost"), JsonRequired] double DampingDecayCost,
+    // T3.2b: renamed to state its denomination. This one STAYS in the
+    // pathfinder's cost units rather than moving to km like the catchment
+    // radius and the siting spacing, because it damps travel EFFORT, not map
+    // distance: 400 km of river valley and 400 km of mountain should not damp
+    // migration equally, and the cost field is exactly what encodes that.
+    [property: JsonPropertyName("dampingDecayCostUnits"), JsonRequired] double DampingDecayCostUnits,
     [property: JsonPropertyName("attractivenessFoodWeight"), JsonRequired] double AttractivenessFoodWeight,
+    // T3.2b: denominated per FERTILITY-WEIGHTED km² of catchment (was per
+    // fertility-weighted lattice node). Divided by 256 in the same commit that
+    // multiplied the catchment quantity by 256 — a re-denomination, not a
+    // re-tune; the product is bit-identical (both factors are powers of two).
     [property: JsonPropertyName("attractivenessLandWeight"), JsonRequired] double AttractivenessLandWeight,
     [property: JsonPropertyName("famineFlightFactor"), JsonRequired] double FamineFlightFactor,
     [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile,
@@ -239,8 +383,16 @@ public static class SimConfigLoader
         if (cfg is null) throw new SimConfigException("sim config is empty.");
 
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
-        RequireRate("farming.yieldPerFarmlandPerYear", cfg.Farming.YieldPerFarmlandPerYear);
+        RequireRate("farming.yieldPerArableKm2PerYear", cfg.Farming.YieldPerArableKm2PerYear);
         RequireRate("farming.outputPerFarmerPerYear", cfg.Farming.OutputPerFarmerPerYear);
+
+        if (cfg.Catchment is null) throw new SimConfigException("catchment is missing.");
+        if (!(cfg.Catchment.HinterlandRadiusKm > 0.0)
+            || double.IsNaN(cfg.Catchment.HinterlandRadiusKm)
+            || double.IsInfinity(cfg.Catchment.HinterlandRadiusKm))
+            throw new SimConfigException(
+                "catchment.hinterlandRadiusKm must be a finite positive distance in km, got "
+                + $"{Inv(cfg.Catchment.HinterlandRadiusKm)}.");
 
         if (cfg.Consumption is null) throw new SimConfigException("consumption is missing.");
         RequireCohortArray("consumption.cohortWeights", cfg.Consumption.CohortWeights);
@@ -290,9 +442,12 @@ public static class SimConfigLoader
         RequireRate("mobility.promoteRatePerYear", cfg.Mobility.PromoteRatePerYear);
         RequireRate("mobility.famineDemoteRatePerYear", cfg.Mobility.FamineDemoteRatePerYear);
         RequireRate("mobility.targetShareSlope", cfg.Mobility.TargetShareSlope);
-        RequireRate("mobility.toolYieldBonusCap", cfg.Mobility.ToolYieldBonusCap);
-        RequireRate("mobility.toolYieldBonusSlope", cfg.Mobility.ToolYieldBonusSlope);
-        RequireRate("mobility.constructionLaborWeight", cfg.Mobility.ConstructionLaborWeight);
+        if (cfg.Production is null) throw new SimConfigException("production is missing.");
+        RequireRate("production.outputPerHerderPerYear", cfg.Production.OutputPerHerderPerYear);
+        RequireRate("production.outputPerExtractorPerYear", cfg.Production.OutputPerExtractorPerYear);
+        RequireRate("production.toolsPerFarmerToEquip", cfg.Production.ToolsPerFarmerToEquip);
+        RequireRate("production.toolYieldBonusMax", cfg.Production.ToolYieldBonusMax);
+        RequireRate("production.toolWearPerEquippedFarmerPerYear", cfg.Production.ToolWearPerEquippedFarmerPerYear);
         if (!(cfg.Mobility.TargetShareCap >= 0.0 && cfg.Mobility.TargetShareCap < 1.0))
             throw new SimConfigException(
                 $"mobility.targetShareCap must be in [0,1), got {Inv(cfg.Mobility.TargetShareCap)}.");
@@ -302,9 +457,10 @@ public static class SimConfigLoader
         RequireRate("migration.attractivenessFoodWeight", cfg.Migration.AttractivenessFoodWeight);
         RequireRate("migration.attractivenessLandWeight", cfg.Migration.AttractivenessLandWeight);
         RequireRate("migration.famineFlightFactor", cfg.Migration.FamineFlightFactor);
-        if (!(cfg.Migration.DampingDecayCost > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCost))
+        if (!(cfg.Migration.DampingDecayCostUnits > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCostUnits))
             throw new SimConfigException(
-                $"migration.dampingDecayCost must be a finite value > 0, got {Inv(cfg.Migration.DampingDecayCost)}.");
+                "migration.dampingDecayCostUnits must be a finite value > 0, got "
+                + $"{Inv(cfg.Migration.DampingDecayCostUnits)}.");
         RequireCohortArray("migration.cohortProfile", cfg.Migration.CohortProfile);
         if (!(cfg.Migration.GapClosingFraction > 0.0 && cfg.Migration.GapClosingFraction < 1.0))
             throw new SimConfigException(

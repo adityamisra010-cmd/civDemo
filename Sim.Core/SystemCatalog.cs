@@ -5,7 +5,8 @@ using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
-using Sim.Core.Systems.Farming;
+using Sim.Core.Systems.Price;
+using Sim.Core.Systems.Production;
 using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Migration;
 using Sim.Core.Systems.NeedsGrievance;
@@ -24,18 +25,35 @@ namespace Sim.Core;
 /// The executor and pipeline loader consume these registrations generically.
 ///
 /// SANCTIONED SHARED STOCK (T1.5; T3.2 the FoodStore migrated into the GRAIN
-/// row of GoodStocks): GoodStocks is handed to BOTH Farming (credits grain via
-/// Ledger reason Harvest; owns ProduceRemainder) and Consumption (debits via
-/// reason Eaten; owns ConsumeRemainder). A stock that one system fills and another
-/// drains cannot have a single writer; both mutations go exclusively through the
-/// Ledger (law 1) and the per-turn audit holds the pair to exactness. This
-/// paragraph is the reviewable record of that share.
+/// row of GoodStocks; RE-RECORDED at T3.3 when Farming became Production).
+/// GoodStocks is handed to BOTH Production and Consumption. A stock that one
+/// system fills and another drains cannot have a single writer; both mutations
+/// go exclusively through the Ledger (law 1) and the per-turn audit holds the
+/// pair to exactness. This paragraph is the reviewable record of that share, so
+/// it states the split at FIELD level:
+///
+///   PRODUCTION owns, on every row it touches: Amount via Ledger (reasons
+///     Harvest for grain, Produced for everything else, InputsConsumed for
+///     recipe inputs, ToolWear for farm-tool depreciation), ProduceRemainder on
+///     every produced row, LastProducedUnits on every row (zeroed each step),
+///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
+///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
+///     the GRAIN row.
+///
+/// THE COLLISION THIS RECORD EXISTS TO CATCH (T3.3 adversarial finding — the
+/// paragraph had gone stale and still named Farming, mis-assigning
+/// ConsumeRemainder wholly to Consumption): no shipped recipe consumes grain
+/// today, so the two ConsumeRemainder owners never meet. THE FIRST RECIPE THAT
+/// TAKES GRAIN AS AN INPUT — a T3.5 food basket, a brewing recipe, or a
+/// data-only goods.json edit — puts two systems on one accumulator with two
+/// different meanings, and each turn's carry would clobber the other's. Whoever
+/// adds that recipe must split the field or serialize the two writers.
 /// </summary>
 public static class SystemCatalog
 {
-    public static SystemRegistration Catchment()
+    public static SystemRegistration Catchment(SimConfig cfg)
     {
-        var system = new CatchmentSystem();
+        var system = new CatchmentSystem(cfg);
         return new SystemRegistration(CatchmentSystem.WellKnownId, CatchmentSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<CatchmentTables>(
                 prev, new CatchmentTables(next.CatchmentNodes, next.CatchmentSummaries,
@@ -70,12 +88,12 @@ public static class SystemCatalog
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
-    public static SystemRegistration Farming(SimConfig cfg)
+    public static SystemRegistration Production(SimConfig cfg)
     {
-        var system = new FarmingSystem(cfg);
-        return new SystemRegistration(FarmingSystem.WellKnownId, FarmingSystem.Name,
-            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<FarmingTables>(
-                prev, new FarmingTables(next.GoodStocks), rng, FarmingSystem.WellKnownId,
+        var system = new ProductionSystem(cfg);
+        return new SystemRegistration(ProductionSystem.WellKnownId, ProductionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ProductionTables>(
+                prev, new ProductionTables(next.GoodStocks), rng, ProductionSystem.WellKnownId,
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -86,6 +104,15 @@ public static class SystemCatalog
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConsumptionTables>(
                 prev, new ConsumptionTables(next.GoodStocks, next.ConsumptionDeficits), rng,
                 ConsumptionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    public static SystemRegistration Price(SimConfig cfg)
+    {
+        var system = new PriceSystem(cfg);
+        return new SystemRegistration(PriceSystem.WellKnownId, PriceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<PriceTables>(
+                prev, new PriceTables(next.Prices, next.PriceTerms), rng,
+                PriceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
     public static SystemRegistration Demographics(SimConfig cfg)
@@ -152,7 +179,7 @@ public static class SystemCatalog
         var system = new PathBuildSystem(cfg);
         return new SystemRegistration(PathBuildSystem.WellKnownId, PathBuildSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<PathBuildTables>(
-                prev, new PathBuildTables(next.LaborAllocations, next.PathProgress,
+                prev, new PathBuildTables(next.SectorAllocations, next.PathProgress,
                     next.NetworkNodes, next.NetworkEdges, next.NetworkMeta), rng,
                 PathBuildSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
@@ -163,6 +190,6 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(), Farming(cfg), Consumption(cfg), ClassMobility(cfg), Migration(cfg),
+        [Catchment(cfg), Production(cfg), Consumption(cfg), Price(cfg), ClassMobility(cfg), Migration(cfg),
          Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
 }
