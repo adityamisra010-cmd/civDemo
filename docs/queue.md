@@ -185,3 +185,18 @@
   shipped TUNE parameters have no semantic test. The asymmetry is the tell: pure-local dies,
   pure-regional does not. Requires a near-vs-far comparison at a rig with meaningful spacing
   spread. NOT cleared.
+- **Q1 (T3.4c certification, director) — owner T4.1 (M4 FOUNDATIONS AUDIT): the canonical
+  land-capacity / labour-capacity bind ratio was never measured.** The T3.4c land-capped rig used
+  outputPerFarmerPerYear ×1e6 — a definitely-binds value, not a threshold — which served its
+  criterion (M10/M9 discrimination) but tells nobody whether the real distance between the shipped
+  world and a land-capped one is 3× or 1e5×. That distance is exactly what B-2 store bounding and
+  M4 colonization aim to close. Measure the actual bind ratio per settlement on the canonical
+  world in T4.1, which is the packet that will need the number. Not a defect; filed, not fixed.
+- **Q2 (T3.4c certification, director) — the quarantine drift tooth's tolerance margins are
+  ASYMMETRIC, recorded with the mitigation so it is not rediscovered as a surprise.** 0.75 leaves
+  11% headroom on the must-pass side (largest legitimate correction ×0.836) against 40% on the
+  must-fire side (disablement signature ×0.536). A legitimate substrate correction larger than
+  ×0.836 would FALSE-FIRE the drift tooth. Mitigation, by construction: the per-seed pinned
+  values make that loud rather than silent — the failure message names the seed, the recorded
+  value and both signatures, and the correct response is a deliberate re-pin under a ruling, not
+  a tolerance widen. (CalibrationBatteryTests.AssertDevMigrationQuarantine.)
