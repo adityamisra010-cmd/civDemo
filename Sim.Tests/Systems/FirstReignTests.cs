@@ -178,7 +178,7 @@ public class FirstReignTests
         //   the split flows. The semantic assertions below are unchanged and
         //   still pass, which is what separates this re-mint from a regression.
         //   v10 value: 19c55dd9f2b509762495c352ef5a3491d03d9ccb658475cc1d23a9e31eb17668
-        const string golden = "REMINT_ON_REBASED_SUBSTRATE";
+        const string golden = "fe6b0287592acf5a2c79c57e9b882c790a4466a4a07cefe9b5bb6b584577e40f";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -407,7 +407,7 @@ public class SnapshotTests
         //   non-staple demand substitutes into the staple). Update ci.yml's
         //   FOUNDED_GOLDEN together with this constant.
         //   T3.4c-only value: ed26139ba58e6fb22ddcd36f4b1abf0a407f8468f0cd001d28623c725570fda3
-        const string golden = "REMINT_ON_REBASED_SUBSTRATE";
+        const string golden = "d4e5150a607d9f9ffaf90128433ebec32bb86f0cc2c98abdb8680bd51e3ae945";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
