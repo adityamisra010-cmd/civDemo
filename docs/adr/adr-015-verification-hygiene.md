@@ -467,51 +467,6 @@ the packet is NOT certified, and no lens result exists to certify it with.
 
 ---
 
-## §7.10 — A finding is a measurement plus an interpretation, and they verify separately
-
-**RATIFIED by the director, 2026-07-27** (T3.5 acceptance), in the director's words:
-
-> A FINDING IS A MEASUREMENT PLUS AN INTERPRETATION, AND THEY VERIFY SEPARATELY. Independent
-> lenses agreeing raises confidence in the measurement only. Before relaying a finding as a
-> defect, check that some ratified item actually REQUIRES the property claimed to be broken;
-> "this looks wrong" is not a conflict. The director made the same error on the same finding —
-> he ruled grievance must be monotone before checking whether any ruling demanded it.
-
-### Why it holds
-
-Lenses briefed on one question share its framing. When three lenses report the same defect, what
-has been corroborated is the **number**; the claim that the number is *wrong* has been asserted
-three times from one premise, not tested three times. Agreement between lenses is therefore
-evidence about the measurement and no evidence at all about the interpretation.
-
-On T3.4b, adversarial verification refuted or materially cut down **eight** findings. In most of
-them the measurement was exactly right and the conclusion drawn from it was wrong.
-
-### The procedure
-
-Before relaying any finding as a defect:
-
-1. **State the measurement separately from the reading of it.** If they cannot be written as two
-   sentences, the finding is not yet understood.
-2. **Name the ratified item** — a law in `CLAUDE.md`, a closed D-decision, a CR ruling, an ADR
-   section, a spec acceptance criterion — that REQUIRES the property claimed to be broken, and
-   **quote it**. Not paraphrase: quote.
-3. **If no ratified item requires it, it is not a defect.** It may still be a queue line, a
-   milestone-blocking note, or a proposal — file it as one of those and say which.
-4. A bound is not the property you expected it to be. A number outside a band you find surprising
-   is a measurement; whether it is a violation depends on what the band was ratified to mean.
-
-### The symmetric warning
-
-The director recorded his own instance in the same breath: he ruled that grievance must be
-monotone **before** checking whether any ruling demanded monotonicity. The rule binds the director
-as it binds the agent, and it binds hardest on findings that feel obviously correct — those are
-precisely the ones whose interpretation never gets tested.
-
-**A measurement is owed evidence. An interpretation is owed a citation.**
-
----
-
 ## §7.11 — Reconcile lenses BY NAME, from the manifest, or §7.3 does nothing
 
 **T3.5/T3.4b, 2026-07-27.** §7.3 says a review is incomplete until every lens has reported,
