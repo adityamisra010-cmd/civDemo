@@ -168,7 +168,12 @@ public class SnapshotTests
         //   world has no settlements, so no weather is ever drawn; only the
         //   stream grew.
         //   v13 value: 8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c
-        const string golden = "1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e";
+        //   v18 (T3.6, D-034 — SCHEMA-ONLY for this preset): the TradeFlows
+        //   table joined the stream. The TOY pipeline does not run the trade
+        //   system, so the table is empty and only the byte stream grew (one
+        //   zero count prefix); the trajectory is unchanged.
+        //   v17 value: 1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e
+        const string golden = "bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -426,7 +431,14 @@ public class SnapshotTests
         //   the diagnosis: its pure-grain diets sit at H = 1, where the excess
         //   is (1−H*)/(1−H*) = 1 for ANY standard.
         //   pre-normalisation value: ea965151f84539806b9bc8ca7ffe378f27ab0978e4347d99f06f39d03c598054
-        const string golden = "724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023";
+        //   v18 (T3.6, D-034 — DELIBERATE, schema + pipeline): the TradeFlows
+        //   table joined the stream AND the trade system joined the production
+        //   pipeline after price. Whether the no-order founded world actually
+        //   TRADES on this horizon is measured and reported by
+        //   TradeReadingsTests (the T3.11 blocking-gap question), not assumed
+        //   from this hash moving — the hash moves for the schema alone.
+        //   v17 value: 724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023
+        const string golden = "3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

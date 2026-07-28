@@ -217,8 +217,15 @@ public class TradeArbitrageTests
         // S2 has no distance rows at all (an island); S0–S1 are connected.
         // S2's cloth price is maximally attractive — if reachability were not
         // enforced, S2 would be the FIRST destination.
+        // S2 carries a real cloth stock: a zero-stock market's scale floor
+        // ALONE suppresses the gap-closing quantity below one unit, and the
+        // first version of this test proved nothing about reachability — the
+        // "missing distance row → cost 0" mutant SURVIVED it (§7.8: the zero
+        // had two causes and the test could not tell them apart). With stock
+        // 10,000 the island WOULD trade eagerly if it were reachable — the
+        // mutant now fails here, measured.
         WorldState w = TradeWorld(cfg, 3,
-            stocks: [(0, "cloth", 50_000, 0), (1, "cloth", 5_000, 0)],
+            stocks: [(0, "cloth", 50_000, 0), (1, "cloth", 5_000, 0), (2, "cloth", 10_000, 0)],
             prices: [(0, "cloth", 1.0), (1, "cloth", 2.0), (2, "cloth", 19.0)],
             edges: [(0, 1, 1.0)]);
         var executor = new TurnExecutor(FlatEra(10.0), [SystemCatalog.TradeArbitrage(cfg)]);
@@ -230,7 +237,7 @@ public class TradeArbitrageTests
                 Assert.NotEqual(2, w.TradeFlows[i].From.Value);
                 Assert.NotEqual(2, w.TradeFlows[i].To.Value);
             }
-            Assert.Equal(0, Stock(w, cfg, 2, "cloth"));
+            Assert.Equal(10_000, Stock(w, cfg, 2, "cloth"));
         }
         // Non-vacuous: the reachable pair traded in this same world.
         Assert.True(Stock(w, cfg, 1, "cloth") > 5_000, "the reachable pair must have traded");

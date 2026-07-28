@@ -247,3 +247,16 @@
   `goods.json` stay MINIMAL-DIFF — no wholesale re-serialization — so scope review reads the
   change rather than the reformatting. T3.5b's 143-insertion rewrite of needs.json was accepted
   after mechanical semantic-equality proof; the proof should not have been necessary.
+- **T3.6 → M4 BLOCKING (B-2 escalation, spec R2's own path):** price-driven trade CANNOT
+  redistribute grain at all — the numeraire's price is pinned at 1.0 everywhere (D-033), so its
+  pairwise gap is structurally zero, while B-2's ~1,240-year granaries sit untouched behind that
+  pin. Any famine-relief redistribution needs a QUANTITY-driven mechanism (deficit-driven relief,
+  merchants, or a granary policy), not this price-driven one. Measured at T3.6
+  (docs/t3.6-review-record.md, R2); ALSO measured: under sustained maximum drive the mechanism
+  drains a seller's stock to zero — the unbounded-granary interaction is live in both directions.
+- **T3.6 observation (not a defect): uniform sector mixes produce no arbitrage.** In the driven
+  founded world every settlement running the same 40/35/25 mix, no abundant good's price gap ever
+  cleared its transport deadband in 100 decades (97 crossings, all bronze at the band ceiling with
+  zero inventory). Trade volume awaits real comparative advantage — deposit-differentiated
+  production orders, or T3.7 merchants. The T3.11 driven golden should drive settlements
+  ASYMMETRICALLY if it wants nonzero flow on the golden horizon.
