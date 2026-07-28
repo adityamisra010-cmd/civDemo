@@ -16,6 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Art substrate: the tests read the SAME assets/ the game ships,
+         so the seamless/palette gates judge the real files. -->
+    <None Include="..\assets\**\*" LinkBase="assets" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Sim.Ui\Sim.Ui.csproj" />
   </ItemGroup>
 

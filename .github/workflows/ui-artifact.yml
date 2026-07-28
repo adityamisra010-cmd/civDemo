@@ -12,7 +12,7 @@ name: ui-artifact
 on:
   workflow_dispatch:
   push:
-    branches: ['main', 't[0-9]*.*']
+    branches: ['main', 't[0-9]*.*', 'art-*']
   release:
     types: [published]
 

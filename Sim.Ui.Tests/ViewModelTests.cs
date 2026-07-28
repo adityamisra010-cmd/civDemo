@@ -234,4 +234,72 @@ public class RiverMeshTests
         Assert.Equal((head.X - cam.CenterX) * cam.Zoom + 640.0, sx, precision: 9);
         Assert.Equal((head.Y - cam.CenterY) * cam.Zoom + 400.0, sy, precision: 9);
     }
+
+    // --- D-A3: screen-clamped river width (docs/art-gate-defects.md) --------
+
+    [Fact]
+    public void ScreenWidth_RankOrdering_HoldsAtEveryZoom_AndStaysInsideTheClamps()
+    {
+        // The packet's constraint, pinned as a property over a zoom sweep
+        // spanning world-fit to the 32x maximum: a higher-discharge river
+        // (lower rank index) is NEVER thinner on screen than a lower one,
+        // and every width sits inside [MinScreenWidthPx, MaxScreenWidthPx].
+        const int count = 12;
+        foreach (double zoom in new[] { 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0 })
+        {
+            double previous = double.MaxValue;
+            for (int rank = 0; rank < count; rank++)
+            {
+                double w = RiverMesh.ScreenWidthForRank(rank, count, zoom);
+                Assert.True(w <= previous,
+                    $"rank {rank} wider on screen than rank {rank - 1} at zoom {zoom}");
+                Assert.InRange(w, RiverMesh.MinScreenWidthPx, RiverMesh.MaxScreenWidthPx);
+                previous = w;
+            }
+        }
+    }
+
+    [Fact]
+    public void ScreenWidth_IsFlatAtTheEnds_AndScalesInTheMiddle()
+    {
+        const int count = 12;
+        // Zoomed far out: everything rides the hairline floor — flat, but
+        // still weakly ordered (the un-ranking is the floor's cost, stated).
+        Assert.Equal(RiverMesh.MinScreenWidthPx, RiverMesh.ScreenWidthForRank(0, count, 0.25));
+        Assert.Equal(RiverMesh.MinScreenWidthPx, RiverMesh.ScreenWidthForRank(count - 1, count, 0.25));
+        // Zoomed far in: the ceiling holds — a 2.4 world-px river at 32x
+        // would be 76.8 px unclamped; it draws at MaxScreenWidthPx.
+        Assert.Equal(RiverMesh.MaxScreenWidthPx, RiverMesh.ScreenWidthForRank(0, count, 32.0));
+        // Middle band: unclamped, so the response is exactly world x zoom —
+        // approach still reads as approach.
+        Assert.Equal(RiverMesh.WidthForRank(3, count) * 2.0,
+            RiverMesh.ScreenWidthForRank(3, count, 2.0), precision: 12);
+        // And at 1:1 the defaults are inside the clamps, so the legacy
+        // Build(terrain) mesh is bit-identical to Build(terrain, 1.0).
+        TerrainSet terrain = DevTerrain(42);
+        Assert.Equal(RiverMesh.Build(terrain), RiverMesh.Build(terrain, 1.0));
+    }
+
+    [Fact]
+    public void Build_AtZoom_LandsEachRankAtItsClampedScreenWidth()
+    {
+        // The mesh stays in world units; after the camera scale the quad must
+        // span exactly ScreenWidthForRank on screen. Measure the built quad's
+        // half-width directly: for a segment, the first two vertices sit a
+        // half-width either side of the axis, so their distance is the world
+        // width; times zoom = screen width.
+        TerrainSet terrain = DevTerrain(42);
+        foreach (double zoom in new[] { 0.5, 32.0 })
+        {
+            RiverMesh.Vertex[] mesh = RiverMesh.Build(terrain, zoom);
+            // Rank 0 owns the first quad. In LineGeometry's layout vertices
+            // 0 and 2 (a1/a2) are the two corners ACROSS the strip at the
+            // segment start — their distance is the full world width.
+            double dx = mesh[2].X - mesh[0].X, dy = mesh[2].Y - mesh[0].Y;
+            double worldWidth = Math.Sqrt(dx * dx + dy * dy);
+            double screenWidth = worldWidth * zoom;
+            Assert.Equal(RiverMesh.ScreenWidthForRank(0, terrain.RiverPolylineCount, zoom),
+                screenWidth, precision: 9);
+        }
+    }
 }
