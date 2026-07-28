@@ -415,7 +415,18 @@ public class SnapshotTests
         //   spreads across five sectors, satisfaction re-bases, ghost stocks
         //   zero. Semantic shape asserts unchanged and passing.
         //   T3.5 value: d4e5150a607d9f9ffaf90128433ebec32bb86f0cc2c98abdb8680bd51e3ae945
-        const string golden = "ea965151f84539806b9bc8ca7ffe378f27ab0978e4347d99f06f39d03c598054";
+        //   T3.5b SECOND RE-PIN, stated with its reason (director injection 4:
+        //   never folded in quietly): the variety standard's H* is now
+        //   normalised exactly as VarietyFactor normalises the obtained diet
+        //   — without this, 0.70+0.20+0.10 = 1−1ulp left a diet exactly AT the
+        //   standard one ulp above it and the exact-saturation branch was dead
+        //   by a rounding error. A mechanism-correctness fix, not a test
+        //   addition; it moves every variety-weighted satisfaction by ≤1 ulp
+        //   and the hash with it. FirstReign did NOT move, which corroborates
+        //   the diagnosis: its pure-grain diets sit at H = 1, where the excess
+        //   is (1−H*)/(1−H*) = 1 for ANY standard.
+        //   pre-normalisation value: ea965151f84539806b9bc8ca7ffe378f27ab0978e4347d99f06f39d03c598054
+        const string golden = "724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
