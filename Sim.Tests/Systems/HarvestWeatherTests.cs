@@ -340,6 +340,101 @@ public class HarvestWeatherTests
         Assert.NotEqual(grainWithoutWeather, TotalProduced(live, cfg));
     }
 
+    [Fact]
+    public void Weather_InALandCappedWorld_ScalesRealisedHarvestExactlyOnce_NeverTheCap()
+    {
+        // T3.4c REVIEW FIX (B1/B2). The test above claims to discriminate the
+        // weather placements but no world it builds is ever LAND-capped, so
+        // mutants M10 (weather on the land side) and M9 (weather on the labor
+        // side, before the Leontief min) survived ALL 355 tests — the mutant
+        // worlds were bit-exact identical to clean. This is the rig the old
+        // docstring described and never built.
+        //
+        // ADR-013 §4's condition: land binds when labour-capacity harvest
+        // exceeds land-capacity harvest. Rigged at CONFIG level (test-local
+        // record override; no shipped constant moves): outputPerFarmerPerYear
+        // ×1e6 makes laborSide astronomically larger than landSide in every
+        // settlement, so the Leontief min takes the land side always.
+        //
+        // THE DISCRIMINATOR. With land binding and w the settlement's
+        // published multiplier (one-turn lag):
+        //   correct  : harvest = landCap · w        (weather scales OUTPUT)
+        //   M10      : harvest = landCap · w · w    (the cap itself scaled,
+        //              then output scaled — w² ≠ w whenever w ≠ 1)
+        //   M9       : harvest = landCap            (weather on the slack
+        //              labor side is absorbed by the min — no effect at all)
+        // Per-turn, live/control must track w to first order. Both mutants
+        // are proven RED against exactly this assertion.
+        SimConfig baseCfg = TestConfigs.Sim();
+        SimConfig landCapped = baseCfg with
+        {
+            Farming = baseCfg.Farming with
+            { OutputPerFarmerPerYear = baseCfg.Farming.OutputPerFarmerPerYear * 1_000_000.0 },
+        };
+        SimConfig control = landCapped with
+        { HarvestVariance = landCapped.HarvestVariance! with { SigmaLogYield = 0.0 } };
+        // Bind check arm: DOUBLE the labor side again. If land truly binds,
+        // the control harvest is bit-identical — if this ever fails, the rig
+        // has silently stopped being land-capped and the test is vacuous.
+        SimConfig bindCheck = control with
+        {
+            Farming = control.Farming with
+            { OutputPerFarmerPerYear = control.Farming.OutputPerFarmerPerYear * 2.0 },
+        };
+
+        const int turns = 40;
+        (double[] w, long[] produced) live = RunLandCapped(landCapped, turns);
+        (double[] _, long[] produced) ctrl = RunLandCapped(control, turns);
+        (double[] _, long[] produced) bind = RunLandCapped(bindCheck, turns);
+
+        Assert.Equal(ctrl.produced, bind.produced); // land binds, or vacuous
+
+        int checked_ = 0, varied = 0;
+        for (int t = 0; t < turns; t++)
+        {
+            if (ctrl.produced[t] < 1000) continue; // rounding noise floor
+            checked_++;
+            double wt = live.w[t];
+            if (Math.Abs(wt - 1.0) > 0.05) varied++;
+            double ratio = live.produced[t] / (double)ctrl.produced[t];
+            // 2% tolerance: unit rounding + remainder carry. The mutants sit
+            // far outside it — M10 errs by |w−1| (up to ~30% at this σ), M9
+            // by the whole weather deviation.
+            Assert.True(Math.Abs(ratio - wt) <= 0.02 * wt,
+                $"turn {t + 1}: harvest ratio {ratio.ToString("F4", CultureInfo.InvariantCulture)} "
+                + $"does not track the published multiplier {wt.ToString("F4", CultureInfo.InvariantCulture)} "
+                + "in a land-capped world — weather is being applied to the wrong side of the Leontief min "
+                + "(CR-003 §5.2(b): weather scales realised OUTPUT, exactly once, never the land cap).");
+        }
+        Assert.True(checked_ >= 20, $"only {checked_} turns above the noise floor — rig vacuous");
+        Assert.True(varied >= 5, $"only {varied} turns with |w−1| > 5% — weather never varied, rig vacuous");
+    }
+
+    /// <summary>One settlement (spatial half inert — irrelevant here), per-turn
+    /// (multiplier published BEFORE the step, grain produced BY the step). The
+    /// one-turn lag is the contract: production at step t reads the weather row
+    /// the previous step published.</summary>
+    private static (double[] W, long[] Produced) RunLandCapped(SimConfig cfg, int turns)
+    {
+        TurnExecutor exec = Executor(cfg);
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, 1);
+        var grain = new GoodId(cfg.Goods!.GrainId);
+        double[] w = new double[turns];
+        long[] produced = new long[turns];
+        for (int t = 0; t < turns; t++)
+        {
+            w[t] = 1.0;
+            for (int r = 0; r < world.HarvestWeather.Count; r++)
+                if (world.HarvestWeather[r].Settlement.Value == 0)
+                { w[t] = world.HarvestWeather[r].Multiplier; break; }
+            world = exec.Step(world);
+            for (int i = 0; i < world.GoodStocks.Count; i++)
+                if (world.GoodStocks[i].Settlement.Value == 0 && world.GoodStocks[i].Good == grain)
+                { produced[t] = world.GoodStocks[i].LastProducedUnits; break; }
+        }
+        return (w, produced);
+    }
+
     private static long TotalProduced(WorldState world, SimConfig cfg)
     {
         var grain = ConservedQuantityIds.OfGood(new GoodId(cfg.Goods!.GrainId));
