@@ -36,13 +36,25 @@ public sealed record VarietyStandardConfig(
     [property: JsonPropertyName("shares"), JsonRequired] double[] Shares)
 {
     /// <summary>H* — computed at load, never stored, so shares and standard
-    /// cannot drift apart.</summary>
+    /// cannot drift apart. NORMALISED exactly as VarietyFactor normalises the
+    /// obtained diet (share = value / Σ values, same operations, same order):
+    /// 0.70+0.20+0.10 is 1−1ulp in binary, and an un-normalised H* left a diet
+    /// EXACTLY at the standard one ulp above it — satisfaction 1−1.1e-16, the
+    /// exact-saturation branch dead by a rounding error. Identical shapes must
+    /// give H == H* bitwise, and with matching normalisation they do.</summary>
     public double Concentration
     {
         get
         {
+            double total = 0.0;
+            for (int i = 0; i < Shares.Length; i++) total += Math.Max(0.0, Shares[i]);
+            if (!(total > 0.0)) return 1.0;
             double h = 0.0;
-            for (int i = 0; i < Shares.Length; i++) h += Shares[i] * Shares[i];
+            for (int i = 0; i < Shares.Length; i++)
+            {
+                double share = Math.Max(0.0, Shares[i]) / total;
+                h += share * share;
+            }
             return h;
         }
     }
