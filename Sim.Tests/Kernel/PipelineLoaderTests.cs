@@ -49,7 +49,7 @@ public class PipelineLoaderTests
         Assert.Equal(3, pipeline.Length);
         Assert.Equal("weather", pipeline[0].Name);
         Assert.Equal("growth", pipeline[1].Name);
-        Assert.Equal("trade", pipeline[2].Name);
+        Assert.Equal("toytrade", pipeline[2].Name);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, consumption, price, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, trade",
+            "known systems: catchment, harvestweather, production, consumption, price, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 
@@ -80,5 +80,51 @@ public class PipelineLoaderTests
     public void InvalidJson_FailsActionably()
     {
         Assert.Contains("not valid JSON", LoadFails("{ nope").Message);
+    }
+
+    [Fact]
+    public void AmbiguousRoster_DuplicateName_RefusesBeforeAnyBinding()
+    {
+        // T3.6 (director decision 3b): a duplicate name in the AVAILABLE
+        // roster binds presets silently to whichever registration wins the
+        // scan — the config-fails-quietly class. The roster itself is refused.
+        // Proven RED by deleting the ValidateRoster call in PipelineLoader.
+        // The Load path is exercised with the same registration twice (the one
+        // collision constructible from outside — the ctor is internal by
+        // design); the id arm is attacked through the pure guard below.
+        SystemRegistration[] dup = [Available[0], Available[1], Available[1]];
+        var e = Assert.Throws<PipelineFormatException>(
+            () => PipelineLoader.Load("""{ "pipeline": ["weather"] }""", dup));
+        Assert.Contains("AMBIGUOUS", e.Message);
+        Assert.Contains(Available[1].Name, e.Message);
+    }
+
+    [Fact]
+    public void AmbiguousRoster_DuplicateId_RefusesNamingBothSystems()
+    {
+        var e = Assert.Throws<PipelineFormatException>(
+            () => PipelineLoader.ValidateRoster(["alpha", "beta"], [7, 7]));
+        Assert.Contains("AMBIGUOUS", e.Message);
+        Assert.Contains("WellKnownId", e.Message);
+        Assert.Contains("alpha", e.Message);
+        Assert.Contains("beta", e.Message);
+        // And a clean roster passes.
+        PipelineLoader.ValidateRoster(["alpha", "beta"], [7, 8]);
+    }
+
+    [Fact]
+    public void ShippedRoster_HasNoDuplicateNamesOrIds_TheDecision3dAudit()
+    {
+        // Director decision 3d: the audit, kept as a permanent pin rather
+        // than a one-time grep — the registry PERMITTING duplicates was the
+        // finding, and the roster guard closes the class; this asserts the
+        // shipped roster never trips it.
+        var names = new HashSet<string>();
+        var ids = new HashSet<int>();
+        foreach (SystemRegistration r in Available)
+        {
+            Assert.True(names.Add(r.Name), $"duplicate system name '{r.Name}' in SystemCatalog.All");
+            Assert.True(ids.Add(r.Id.Value), $"duplicate WellKnownId {r.Id.Value} in SystemCatalog.All");
+        }
     }
 }
