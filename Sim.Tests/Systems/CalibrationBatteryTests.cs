@@ -333,7 +333,7 @@ public class CalibrationBatteryTests
         // WRONG). Population is UNCHANGED (120,811/120,558 → 120,588/120,585,
         // ±0.2%): the −24% is the DENOMINATOR — the default 0.08 construction
         // share builds paths, the network grows, catchments recompute, and
-        // effective arable expands 53,385 → 70,851 km² (+33%). A geometry
+        // effective arable expands 53,382.9 → 70,854.5 km² (+32.7%). A geometry
         // effect of the new default, not a harvest effect. The food economy's
         // own response is item 1b's SECOND pre-committed reading: grain
         // accumulation slowed (303M → 125M at turn 650, −59%) but reserves

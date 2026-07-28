@@ -142,17 +142,17 @@ public static class NeedsAggregation
         // settlement accrues EXACTLY nothing" would have to be written with an
         // epsilon. The constitution's exact-equality culture is the reason this
         // short-circuit exists; it changes no value that was not already 1.
-        // MEASURED DEAD IN THE SHIPPED CONFIGURATION (T3.5 review, verified):
-        // both bound classes' Sustenance carries varietyWeight 0.15 over a
-        // three-good declared basket at 0.90/0.06/0.04, so its satisfaction is
-        // capped at 0.8916 (peasant) / 0.9325 (artisan) and can never reach 1.0.
-        // The branch below therefore cannot fire for any shipped class. It is
-        // kept because it is correct, cheap, and load-bearing for any config
-        // whose bound needs have no variety term — the decay and generational
-        // rigs run exactly that config — but nobody should read it as protecting
-        // the shipped world. Whether a perfectly supplied world OUGHT to be able
-        // to reach satisfaction 1.0 is a live question for the director; see the
-        // T3.5 review record.
+        // T3.5b STATUS (supersedes the T3.5 "measured dead" note): under the
+        // FIXED variety standard the branch is LIVE — a settlement whose
+        // declared diet is at or below H* = 0.54 and fully supplied scores
+        // EXACTLY 1.0 through the real loader and system path, pinned by
+        // ExactSaturationBranch_IsLIVE (which also caught the 1-ulp H*
+        // normalisation defect). The SHIPPED class baskets remain more
+        // concentrated than the standard (peasant H = 0.8152 caps Sustenance
+        // at 0.9103; artisan at 0.9695), so shipped-world full supply still
+        // scores below 1.0 — deliberately: that is D-035-A's reason to trade,
+        // and the honest reading of a frontier grain diet against a good
+        // pre-modern one (docs/t3.5b-derivations.md §2).
         bool allMet = true;
         for (int i = 0; i < satisfactions.Length; i++)
         {

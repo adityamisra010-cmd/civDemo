@@ -770,4 +770,58 @@ public class NeedsGrievanceTests
                     entries.RemoveAt(i);
         return node;
     }
+
+    [Fact]
+    public void Guard_VarietyStandard_MalformedShares_RefuseTheLoad_AllThreeArms()
+    {
+        // T3.5b review fix (lens 3, C3): the varietyStandard validation
+        // shipped described, not tested — deletable with 479 green, the one
+        // §7.4 violation the sweep found. Three arms, each proven RED by
+        // deleting the corresponding loader check.
+        string Json(string standard) => $$"""
+        {
+          "needs": [ { "id": 1, "name": "Sustenance", "bound": true, "weight": 1.0, "varietyWeight": 0.15 } ],
+          "aggregation": { "sigma": 0.5, "satisfactionFloor": 0.05,
+                           "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
+          "baskets": { "entries": [ { "class": 1, "need": 1, "good": "grain", "perPersonYear": 1.0 } ] },
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": {{standard}}
+        }
+        """;
+        // Arm 1: fewer than two shares — no diversity dimension.
+        var ex1 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [1.0] }""")));
+        Assert.Contains("at least two", ex1.Message, StringComparison.Ordinal);
+        // Arm 2: a non-positive share.
+        var ex2 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [1.1, -0.1, 0.0] }""")));
+        Assert.Contains("finite value > 0", ex2.Message, StringComparison.Ordinal);
+        // Arm 3: shares that do not sum to a diet.
+        var ex3 = Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("""{ "shares": [0.5, 0.3, 0.1] }""")));
+        Assert.Contains("sum to 1.0", ex3.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Guard_VarietyWeightOutsideUnitInterval_RefusesTheLoad()
+    {
+        // T3.5b review fix (lens 3, V3): varietyWeight was entirely
+        // unvalidated — a NEGATIVE value is a smuggled variety BONUS (law 2
+        // forbids free-floating buffs), masked in-sim only by an outer clamp.
+        // Proven RED by deleting the loader's varietyWeight range check.
+        string Json(string vw) => $$"""
+        {
+          "needs": [ { "id": 1, "name": "Sustenance", "bound": true, "weight": 1.0, "varietyWeight": {{vw}} } ],
+          "aggregation": { "sigma": 0.5, "satisfactionFloor": 0.05,
+                           "tierAFloor": 0.5, "tierAGain": 3.0, "tierACollapse": 1.0 },
+          "baskets": { "entries": [ { "class": 1, "need": 1, "good": "grain", "perPersonYear": 1.0 } ] },
+          "grievance": { "baseDecayPerYear": 0.005, "inheritFraction": 0.85 },
+          "varietyStandard": { "shares": [0.70, 0.20, 0.10] }
+        }
+        """;
+        Assert.Contains("varietyWeight must be in [0, 1]",
+            Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("-0.5"))).Message,
+            StringComparison.Ordinal);
+        Assert.Contains("varietyWeight must be in [0, 1]",
+            Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(Json("5.0"))).Message,
+            StringComparison.Ordinal);
+    }
+
 }

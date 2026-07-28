@@ -148,6 +148,13 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
 
             // T2.13 director finding (ghost grievance): grievance is HELD BY
             // PEOPLE — an extinct settlement's stock is zeroed, not left to
+            // (T3.5b lens note: this block is now SHADOWED by the per-class
+            // zero below — every class of an extinct settlement has zero
+            // members, so deleting this block alone is behaviourally
+            // invisible. Kept for structural clarity at the settlement
+            // altitude; its PROPERTY is pinned by both test families, its
+            // code identity deliberately is not — do not re-file that as a
+            // finding.)
             // decay for centuries in an empty ruin, and no satisfaction rows
             // publish (nobody to be satisfied).
             if (settlementPop == 0)

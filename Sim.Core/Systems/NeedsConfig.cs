@@ -148,6 +148,16 @@ public static class NeedsConfigLoader
             if (double.IsNaN(n.Weight) || double.IsInfinity(n.Weight) || n.Weight < 0.0)
                 throw new NeedsConfigException(
                     $"needs[{i}].weight must be a finite value >= 0, got {Inv(n.Weight)}.");
+            // T3.5b review fix (lens 3, V3): varietyWeight was entirely
+            // unvalidated — NaN, -1 and 5.0 all loaded clean, and a negative
+            // value under a clamp-less factor is a smuggled variety BONUS,
+            // which law 2 via D-035-A forbids.
+            if (double.IsNaN(n.VarietyWeight) || double.IsInfinity(n.VarietyWeight)
+                || n.VarietyWeight < 0.0 || n.VarietyWeight > 1.0)
+                throw new NeedsConfigException(
+                    $"needs[{i}].varietyWeight must be in [0, 1], got {Inv(n.VarietyWeight)} — "
+                    + "a negative value is a variety BONUS (law 2 forbids free-floating buffs), "
+                    + "and above 1 the factor can go negative.");
             // Strictly ascending ids: uniqueness AND a stable deterministic
             // iteration order in one check (entry order is THE order everywhere).
             if (i > 0 && n.Id <= cfg.Needs[i - 1].Id)
