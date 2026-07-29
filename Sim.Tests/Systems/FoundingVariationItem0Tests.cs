@@ -32,7 +32,7 @@ public class FoundingVariationItem0Tests
     private static readonly ulong[] Seeds = [42, 7, 101, 202, 303];
     private const int Horizon = 150; // 1,500 years at the Neolithic dt
 
-    [Fact]
+    [Fact(Skip = "T3.6b Item 0 measurement rig (~30 min: 5 canonical worlds x 150 turns) — run manually to reproduce docs/t3.6b-review-record.md; recorded numbers are the packet's evidence")]
     public void Item0_MeasureTheWorldBeforeDesigningAnything()
     {
         SimConfig cfg = TestConfigs.Sim();
