@@ -82,6 +82,15 @@
   decade with near-identical counts — and the siting pass clusters settlements
   coastally. Confirmed for the record at the T2.13 session: BOTH observations
   are this one queue item. Candidate for M3 (with goods) or the M10 gate.
+  **T3.6 CONSEQUENCE (director ruling at certification): this is no longer a variety
+  complaint — it is a BLOCKER on observable inter-settlement exchange, and therefore on every
+  mechanism downstream of trade volume.** The T3.6 R1 measurement (docs/t3.6-review-record.md)
+  found ZERO units traded of every good in 100 driven decades because the uniform mix leaves
+  settlements with no comparative advantage: every abundant good's price gap sits inside its
+  transport deadband, and the only gaps that open (bronze, at the band ceiling) have no
+  inventory behind them. Founding uniformity is the named structural cause of D-034's silence,
+  and T3.7 merchants predicate on the trade volume it suppresses. No owner assigned — that is
+  the director's next ruling; the fix is not designed here.
 - Map symbology art-direction (director ruling, T2.12 session): DEFERRED to
   after M4/M5 — settlement icon tiers, production/trade-route visual language,
   political vs catchment border treatment, army/conflict markers, unrest
@@ -278,3 +287,11 @@
   file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
   The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
   launcher/hook configuration. Until then bootstrap carries it.
+- **THE STOP-HOOK PATCH MUST FAIL LOUDLY (T3.6 certification ruling) — DONE, was a silent no-op.**
+  As shipped at 5a16c2f the bootstrap patch silently no-opped on a non-matching hook (grep gated
+  entry; a sed miss went undetected and `|| true` swallowed even hard failures) — exactly the
+  worse-than-the-defect shape the ruling names. Now: sed runs without the swallow, and a
+  post-condition grep verifies no `--reset-author` remains in the hook's text; if any does, the
+  bootstrap EXITS 1 with an actionable message telling the operator to re-derive the patch before
+  committing anything. A launcher-shipped hook change is therefore a loud session-start stop, not
+  a silent loss of the next packet's commit-order evidence.
