@@ -306,3 +306,21 @@
   bootstrap EXITS 1 with an actionable message telling the operator to re-derive the patch before
   committing anything. A launcher-shipped hook change is therefore a loud session-start stop, not
   a silent loss of the next packet's commit-order evidence.
+- **THE nearMean < 0.90 CEILING IS A STRUCTURALLY WEAK TOOTH (T3.4d certification ruling) — and
+  it is the SOLE M5 tooth, measured.** Clean near-correlation 0.72; M5 drives it to 0.9948; the
+  ceiling sits at 0.90 — a ~5% must-fire margin that CANNOT be widened, because correlation is
+  bounded at 1.0 and any mutant driving it toward 1 is compressed against every ceiling below 1.
+  Raising the ceiling loses the tooth; lowering it risks false-firing on an honest world (the
+  companion floor is 0.30). The director asked whether the near−far MARGIN assertion also fails
+  under M5, which would make the thin ceiling acceptable by redundancy: MEASURED, IT DOES NOT —
+  under M5 the first failing assert is the ceiling (test line 333); the margin assert before it
+  passed, because at k=1 the distance kernel still decorrelates far pairs (measured bound from
+  the passing assert: far < 0.665 under M5). So the ceiling carries M5 ALONE. The clean-world
+  near-correlation value that would leave the ceiling armed with no room is 0.90 itself: any
+  retune raising clean near toward 0.90 silently disarms the M5 tooth while every test stays
+  green (at ≥ 0.90 it false-fires instead). OPEN, owner T3.10, alongside candidate §7.15.
+- **PATTERN (third instance): ASYMMETRIC-MARGIN THRESHOLDS.** T3.4c Q2 (drift envelope, 11% on
+  the must-pass side), now the M5 ceiling (5% on the must-fire side) — thresholds separating a
+  measured clean case from a measured mutant, where one side's margin is structurally thin. The
+  standing line: a discriminating threshold's WEAKER margin is stated at the point the threshold
+  is chosen, not discovered later.
