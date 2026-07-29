@@ -82,6 +82,15 @@
   decade with near-identical counts — and the siting pass clusters settlements
   coastally. Confirmed for the record at the T2.13 session: BOTH observations
   are this one queue item. Candidate for M3 (with goods) or the M10 gate.
+  **T3.6 CONSEQUENCE (director ruling at certification): this is no longer a variety
+  complaint — it is a BLOCKER on observable inter-settlement exchange, and therefore on every
+  mechanism downstream of trade volume.** The T3.6 R1 measurement (docs/t3.6-review-record.md)
+  found ZERO units traded of every good in 100 driven decades because the uniform mix leaves
+  settlements with no comparative advantage: every abundant good's price gap sits inside its
+  transport deadband, and the only gaps that open (bronze, at the band ceiling) have no
+  inventory behind them. Founding uniformity is the named structural cause of D-034's silence,
+  and T3.7 merchants predicate on the trade volume it suppresses. No owner assigned — that is
+  the director's next ruling; the fix is not designed here.
 - Map symbology art-direction (director ruling, T2.12 session): DEFERRED to
   after M4/M5 — settlement icon tiers, production/trade-route visual language,
   political vs catchment border treatment, army/conflict markers, unrest
@@ -256,3 +265,42 @@
   headless test sees sampler state; this round's composite repeat test catches it for the header
   rule only. Candidate fix: make sampler state explicit per draw rather than inherited. OPEN,
   owner: UI polish track. Not fixed here.
+- **T3.6 → M4 BLOCKING (B-2 escalation, spec R2's own path):** price-driven trade CANNOT
+  redistribute grain at all — the numeraire's price is pinned at 1.0 everywhere (D-033), so its
+  pairwise gap is structurally zero, while B-2's ~1,240-year granaries sit untouched behind that
+  pin. Any famine-relief redistribution needs a QUANTITY-driven mechanism (deficit-driven relief,
+  merchants, or a granary policy), not this price-driven one. Measured at T3.6
+  (docs/t3.6-review-record.md, R2); ALSO measured: under sustained maximum drive the mechanism
+  drains a seller's stock to zero — the unbounded-granary interaction is live in both directions.
+- **T3.6 observation (not a defect): uniform sector mixes produce no arbitrage.** In the driven
+  founded world every settlement running the same 40/35/25 mix, no abundant good's price gap ever
+  cleared its transport deadband in 100 decades (97 crossings, all bronze at the band ceiling with
+  zero inventory). Trade volume awaits real comparative advantage — deposit-differentiated
+  production orders, or T3.7 merchants. The T3.11 driven golden should drive settlements
+  ASYMMETRICALLY if it wants nonzero flow on the golden horizon.
+- **PATTERN (director, T3.6 certification check — fourth instance): summary prose disagreeing
+  with its own measured record.** 28-vs-29 commits (T3.4c handoff), 12-vs-13 mutants and
+  11-vs-10 kills (T3.5b), 1-vs-2 flips (T3.6 handback: the measurement written into the slot
+  labelled "margin"). Every instance: prose written FROM RECOLLECTION alongside a document whose
+  numbers were measured; every one caught downstream by the director, none by the author. The
+  cheap discipline, now standing: summary prose is TRANSCRIBED from the record — open the
+  record, copy the number, never re-derive or recall it — and any figure appearing in both
+  places is diffed before handback.
+- **TOOL DEFECT (T3.6 ruling, second occurrence): the CCR stop hook's remediation text destroyed
+  commit-order evidence.** The hook's check reads committer email + signature only, but its advice
+  prescribed `--amend --reset-author`, which also resets AUTHOR dates — the temporal record every
+  derivation-honesty lens reads. Chosen fix: make the hook preserve author dates — the advice now
+  prescribes plain `--amend --no-edit` after the git-config fix (satisfies the hook's own check;
+  author identity and dates untouched), so no archive-ref rescue is needed from T3.7 on. The live
+  hook is patched and `scripts/bootstrap.sh` re-applies the patch every session, because the hook
+  file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
+  The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
+  launcher/hook configuration. Until then bootstrap carries it.
+- **THE STOP-HOOK PATCH MUST FAIL LOUDLY (T3.6 certification ruling) — DONE, was a silent no-op.**
+  As shipped at 5a16c2f the bootstrap patch silently no-opped on a non-matching hook (grep gated
+  entry; a sed miss went undetected and `|| true` swallowed even hard failures) — exactly the
+  worse-than-the-defect shape the ruling names. Now: sed runs without the swallow, and a
+  post-condition grep verifies no `--reset-author` remains in the hook's text; if any does, the
+  bootstrap EXITS 1 with an actionable message telling the operator to re-derive the patch before
+  committing anything. A launcher-shipped hook change is therefore a loud session-start stop, not
+  a silent loss of the next packet's commit-order evidence.

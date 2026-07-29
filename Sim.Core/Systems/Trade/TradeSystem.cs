@@ -19,7 +19,12 @@ public readonly record struct TradeTables(Table<GoodsRow> Goods);
 public sealed class TradeSystem : ISimSystem<TradeTables>
 {
     public static readonly SystemId WellKnownId = new(3);
-    public const string Name = "trade";
+    // T3.6 (director decision 3): renamed from "trade" — the D-034 real trade
+    // system takes that name; this M0 toy keeps its WellKnownId (3) and its
+    // toy-world goldens, under a name that says what it is. A duplicate name
+    // in the available roster would bind pipeline presets silently to
+    // whichever registration wins, which PipelineLoader now refuses outright.
+    public const string Name = "toytrade";
 
     /// <summary>TUNE: initial toy-good endowment per region, base units.</summary>
     public const long InitialEndowment = 1_000_000;

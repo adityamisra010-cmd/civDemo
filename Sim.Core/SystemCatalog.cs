@@ -40,6 +40,11 @@ namespace Sim.Core;
 ///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
 ///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
 ///     the GRAIN row.
+///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
+///     conserving cross-settlement moves within a good, never a source or
+///     sink, and NO remainder field (whole units only; sub-unit intent is
+///     dropped, not banked — a banked trade remainder would be new serialized
+///     state the mandate does not ask for). Trade touches no other field.
 ///
 /// THE COLLISION THIS RECORD EXISTS TO CATCH (T3.3 adversarial finding — the
 /// paragraph had gone stale and still named Farming, mis-assigning
@@ -125,6 +130,19 @@ public static class SystemCatalog
                 PriceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>T3.6 (D-034): the arbitrage system — name "trade"; the retired
+    /// M0 toy is "toytrade" (director decision 3, 2026-07-28; the roster guard
+    /// in PipelineLoader refuses any duplicate). Third holder of the GoodStocks
+    /// share — see the ownership record above.</summary>
+    public static SystemRegistration TradeArbitrage(SimConfig cfg)
+    {
+        var system = new TradeArbitrageSystem(cfg);
+        return new SystemRegistration(TradeArbitrageSystem.WellKnownId, TradeArbitrageSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<TradeArbitrageTables>(
+                prev, new TradeArbitrageTables(next.GoodStocks, next.TradeFlows), rng,
+                TradeArbitrageSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Demographics(SimConfig cfg)
     {
         var system = new DemographicsSystem(cfg);
@@ -200,6 +218,7 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Consumption(cfg), Price(cfg), ClassMobility(cfg), Migration(cfg),
-         Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg), Weather(), Growth(), Trade()];
+        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
+         ClassMobility(cfg), Migration(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Weather(), Growth(), Trade()];
 }

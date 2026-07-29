@@ -185,7 +185,13 @@ public class FirstReignTests
         //   and still passing, which is what separates a re-mint from a
         //   regression.
         //   v11 value: fe6b0287592acf5a2c79c57e9b882c790a4466a4a07cefe9b5bb6b584577e40f
-        const string golden = "4427d965f08fc7f59b44a51b57fd4ca3e1187436e381222abdc8247b057fe293";
+        //   v13 (T3.6, D-034 — SCHEMA-ONLY): TradeFlows joined the stream and
+        //   trade joined the pipeline, but at N = 1 trade NO-OPS structurally
+        //   (a pair needs two settlements), so the trajectory is unchanged —
+        //   the shape asserts below pass untouched; the byte stream gained
+        //   one empty table count per snapshot.
+        //   v12 value: 4427d965f08fc7f59b44a51b57fd4ca3e1187436e381222abdc8247b057fe293
+        const string golden = "9bc1e06f605de359257836c016bd0082341e454c8001e5424a02e892b21ba071";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
