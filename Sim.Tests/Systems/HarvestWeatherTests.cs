@@ -148,12 +148,208 @@ public class HarvestWeatherTests
             + "constant is only meaningful if the substrate delivers it.");
     }
 
-    [Fact]
-    public void SpatialCorrelation_NeighboursShareWeather_AndDistantSettlementsDoNot()
+    // ======================================================================
+    // T3.4d — WEATHER TEST HARDENING (queue items re-homed from T3.10)
+    // ======================================================================
+
+    /// <summary>Flat one-band era table so dt is one known number.</summary>
+    private static EraTable FlatEra(double dtYears) =>
+        EraTableLoader.Load($$"""
+            { "bands": [ { "name": "flat", "startYear": 0, "endYear": 1000000,
+                           "dtYears": {{dtYears.ToString(CultureInfo.InvariantCulture)}} } ] }
+            """);
+
+    /// <summary>Hand-built minimal world for weather-only pipelines: settlement
+    /// rows and (optionally) explicit SettlementDistances rows, nothing else.
+    /// The weather system reads only Prev.Settlements, Prev.SettlementDistances
+    /// and Prev.HarvestWeather, so with a weather-only pipeline no other system
+    /// exists to recompute the distances — the hand rig is the lever, stated
+    /// per the T3.4c land-cap rig precedent.</summary>
+    private static WorldState WeatherWorld(ulong seed, int settlements)
     {
-        // The ruling REQUIRES meaningful spatial correlation: "uncorrelated rolls
-        // let trade and migration trivially average away all risk; regional bad
-        // years are the point."
+        var world = new WorldState(seed);
+        for (int s = 0; s < settlements; s++)
+            world.Settlements.Add(new SettlementRow(
+                new SettlementId(s), SiteCell: s, FoundedTurn: 0));
+        return world;
+    }
+
+    private static TurnExecutor WeatherOnlyExecutor(SimConfig cfg, double dtYears) =>
+        new(FlatEra(dtYears), [SystemCatalog.HarvestWeather(cfg)]);
+
+    /// <summary>Realised stationary SD of the log deviation at one fixed dt,
+    /// single settlement (the spatial half is mathematically inert at n=1 and
+    /// irrelevant to the temporal claim under test).</summary>
+    private static double RealisedStationarySd(double dtYears, int turns, int burnIn)
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = WeatherOnlyExecutor(cfg, dtYears);
+        WorldState world = WeatherWorld(Seed, 1);
+        var logs = new List<double>();
+        for (int t = 1; t <= turns; t++)
+        {
+            world = exec.Step(world);
+            if (t <= burnIn) continue;
+            logs.Add(world.HarvestWeather[0].LogDeviation);
+        }
+        Assert.True(logs.Count > 1000, $"only {logs.Count} samples — rig vacuous");
+        double mean = 0.0; foreach (double v in logs) mean += v; mean /= logs.Count;
+        double var = 0.0; foreach (double v in logs) var += (v - mean) * (v - mean);
+        var /= logs.Count - 1;
+        return Math.Sqrt(var);
+    }
+
+    [Fact]
+    public void StationaryVariance_IsDtInvariant_TheSqrtFactorIsLoadBearing()
+    {
+        // THE TWO-dt COMPARISON IS THE DISCRIMINATOR (ADR-015 §7.5). The
+        // √(1−ρ²) factor exists, per its own comment, to hold the stationary
+        // variance of the AR(1) at σ² for EVERY dt. At the shipped Neolithic
+        // dt = 10 (ρ = exp(−10/3) = 0.036) the factor is 0.99935 — inert — so
+        // a dt=10-only arm asserts a quantity resting against its own limit
+        // and proves nothing. At dt = 1 (ρ = 0.717) deleting the factor
+        // inflates realised σ by 1/√(1−ρ²) = 1.43×, while the dt = 10 arm
+        // barely moves. Clean, the RATIO of realised σ across the two dt is 1;
+        // with the factor deleted it is ~1.43. Asserting the two arms AGREE is
+        // therefore a test of the factor itself, not of either arm's absolute
+        // value.
+        //
+        // This closes mutant M6 of the T3.4b/T3.4c sweeps (√(1−ρ²) dropped),
+        // previously killed GOLDEN-ONLY — which ADR-015 §7.2 does not count as
+        // a kill. Queue item re-homed from T3.10 to T3.4d.
+        //
+        // SAMPLING ERROR AND TOLERANCE. For a Gaussian AR(1), the variance
+        // estimator's effective sample size is N·(1−ρ)/(1+ρ). dt=1 arm:
+        // 8,000 post-burn-in samples × 0.165 ≈ 1,320 effective, so
+        // SE(σ̂)/σ ≈ 1/√(2·1320) ≈ 1.4%. dt=10 arm: 4,000 × 0.93 ≈ 3,720
+        // effective, ≈ 1.2%. SE of the ratio ≈ 1.9%. The 10% tolerance is
+        // ~5 SE (stable across seeds), while the mutant's 1.43 sits ~22 SE
+        // outside it — the gap between tolerance and mutation is what makes
+        // the test able to fail for the right reason and only that reason.
+        // Burn-in 50 turns ≥ 16 e-folding times at dt=1 — the x=0 start is
+        // fully forgotten.
+        double sd1 = RealisedStationarySd(dtYears: 1.0, turns: 8050, burnIn: 50);
+        double sd10 = RealisedStationarySd(dtYears: 10.0, turns: 4050, burnIn: 50);
+        double ratio = sd1 / sd10;
+        Assert.True(Math.Abs(ratio - 1.0) < 0.10,
+            $"realised stationary sd at dt=1 is {sd1.ToString("F4", CultureInfo.InvariantCulture)} but "
+            + $"{sd10.ToString("F4", CultureInfo.InvariantCulture)} at dt=10 (ratio "
+            + $"{ratio.ToString("F4", CultureInfo.InvariantCulture)}) — the stationary variance is not "
+            + "dt-invariant, so the era table is altering the climate. The √(1−ρ²) innovation scaling "
+            + "exists precisely to prevent this (mutant M6).");
+    }
+
+    [Fact]
+    public void SpatialCorrelation_NearPairsShareWeather_FarPairsDoNot()
+    {
+        // THE NEAR-VS-FAR COMPARISON, replacing the global-mean test below as
+        // the semantic pin on the spatial substrate. The old assertion — one
+        // GLOBAL mean pairwise correlation in (0.05, 0.95) — cannot
+        // distinguish "correlated with neighbours" from "correlated with
+        // everyone": mutants M5 (spatialSharedFraction dead, k forced to 1)
+        // and M8 (distance kernel constant, spatialRangeCostUnits dead) both
+        // landed inside the band and passed. Two shipped TUNE parameters had
+        // no semantic test. Queue item re-homed from T3.10 to T3.4d.
+        //
+        // THE RIG. Six settlements in two clusters of three with hand-rigged
+        // SettlementDistances rows (the stated lever — the weather system
+        // reads Prev.SettlementDistances; with a weather-only pipeline no
+        // other system exists to overwrite them; T3.4c land-cap rig
+        // precedent). The canonical world's siting gives no controlled
+        // spacing spread, so the boundary is placed by construction:
+        //   near = range/8   (0.125 e-foldings of spatialRangeCostUnits=40 —
+        //                     kernel weight e^(−1/8) = 0.88, deep inside one
+        //                     e-folding: unambiguously "neighbours")
+        //   far  = 5×range   (5 e-foldings — kernel weight e^(−5) = 0.0067,
+        //                     130× weaker: unambiguously "not neighbours")
+        // Both are order-of-magnitude placements on either side of the
+        // kernel's own e-folding scale, expressed in units of the TUNE
+        // parameter itself — principled, not fitted to the realised numbers.
+        //
+        // WHAT EACH ASSERTION KILLS — the two mutants fail DIFFERENT
+        // assertions, structurally (T3.4c M10/M9 precedent):
+        //   near − far > 0.30 kills M8: a constant kernel makes the regional
+        //     field identical for every settlement, so near and far pairs
+        //     correlate EQUALLY (measured ≈ 0.7 each; difference ≈ 0). Clean,
+        //     far pairs share only the e^(−5) tail, so near − far ≈ 0.6.
+        //   near < 0.90 kills M5: with k forced to 1 the independent local
+        //     component vanishes and near-cluster innovations become nearly
+        //     identical (analytic within-cluster correlation of the smoothed
+        //     field at these weights: 0.994). Clean, the k=0.6 local share
+        //     caps near correlation well below that (≈ 0.7).
+        //
+        // SAMPLING: 4,000 post-burn-in turns at dt=1, effective N per series
+        // ≈ 4000·(1−ρ)/(1+ρ) ≈ 660; SE of a correlation ≈ (1−r²)/√660 ≤ 0.04.
+        // The 0.30 / 0.90 margins sit many SE from the clean values on both
+        // sides.
+        SimConfig cfg = TestConfigs.Sim();
+        HarvestVarianceConfig h = Tuning;
+        double near = h.SpatialRangeCostUnits / 8.0;
+        double far = 5.0 * h.SpatialRangeCostUnits;
+
+        const int n = 6; // clusters {0,1,2} and {3,4,5}
+        WorldState world = WeatherWorld(Seed, n);
+        for (int a = 0; a < n; a++)
+            for (int b = 0; b < n; b++)
+            {
+                if (a == b) continue;
+                bool sameCluster = a / 3 == b / 3;
+                world.SettlementDistances.Add(new SettlementDistanceRow(
+                    new SettlementId(a), new SettlementId(b), sameCluster ? near : far));
+            }
+
+        TurnExecutor exec = WeatherOnlyExecutor(cfg, dtYears: 1.0);
+        var series = new List<double>[n];
+        for (int i = 0; i < n; i++) series[i] = [];
+        for (int t = 1; t <= 4050; t++)
+        {
+            world = exec.Step(world);
+            if (t <= 50) continue;
+            for (int r = 0; r < world.HarvestWeather.Count; r++)
+                series[world.HarvestWeather[r].Settlement.Value]
+                    .Add(world.HarvestWeather[r].LogDeviation);
+        }
+        for (int i = 0; i < n; i++)
+            Assert.True(series[i].Count > 1000, $"settlement {i}: rig vacuous");
+
+        double nearMean = 0.0, farMean = 0.0;
+        int nearPairs = 0, farPairs = 0;
+        for (int a = 0; a < n; a++)
+            for (int b = a + 1; b < n; b++)
+            {
+                double c = Correlation(series[a], series[b]);
+                if (a / 3 == b / 3) { nearMean += c; nearPairs++; }
+                else { farMean += c; farPairs++; }
+            }
+        nearMean /= nearPairs;
+        farMean /= farPairs;
+
+        Assert.True(nearMean - farMean > 0.30,
+            $"near-pair correlation {nearMean.ToString("F4", CultureInfo.InvariantCulture)} vs far-pair "
+            + $"{farMean.ToString("F4", CultureInfo.InvariantCulture)} — settlements {near.ToString("F1", CultureInfo.InvariantCulture)} "
+            + $"cost units apart share no more weather than settlements {far.ToString("F0", CultureInfo.InvariantCulture)} apart. "
+            + "The distance kernel is not doing its job (mutant M8: spatialRangeCostUnits dead). The ruling "
+            + "requires REGIONAL bad years — correlated with neighbours, not with everyone.");
+        Assert.True(nearMean < 0.90,
+            $"near-pair correlation {nearMean.ToString("F4", CultureInfo.InvariantCulture)} — neighbours share "
+            + "essentially one innovation, so the independent local component is gone (mutant M5: "
+            + "spatialSharedFraction dead, k forced to 1). At the shipped k=0.6 the local draw must keep "
+            + "near-pair correlation well below identity.");
+        Assert.True(nearMean > 0.30,
+            $"near-pair correlation {nearMean.ToString("F4", CultureInfo.InvariantCulture)} — neighbours at "
+            + "an eighth of the e-folding range share almost no weather; the spatial field is effectively "
+            + "absent and trade/migration can average all risk away.");
+    }
+
+    [Fact]
+    public void SpatialCorrelation_GlobalMeanSanityBound()
+    {
+        // RENAMED at T3.4d (was SpatialCorrelation_NeighboursShareWeather_
+        // AndDistantSettlementsDoNot — a name the assertion never earned: it
+        // computes ONE global mean and never compares near against far, so
+        // mutants M5 and M8 both passed it). Kept as a SANITY BOUND on the
+        // canonical founded world only; the semantic near-vs-far pin is
+        // SpatialCorrelation_NearPairsShareWeather_FarPairsDoNot above.
         //
         // This needs a MULTI-SETTLEMENT rig and that is not incidental. The only
         // weather-reactive test in the suite before T3.4c ran at
