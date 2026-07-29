@@ -184,14 +184,16 @@
 - **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
   in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
   yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
-- **OPEN — owner T3.10 (corridor & measurement teeth): the √(1−ρ²) stationary-variance factor is
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29) — (corridor &
+  measurement teeth): the √(1−ρ²) stationary-variance factor is
   unpinned at every dt (T3.4c review, test-power M6-golden-only).** The factor exists, per its own
   comment, to hold the stationary variance at σ² for every dt; at the shipped Neolithic dt = 10,
   ρ = 0.036 and the factor is 0.99935 — inert — while at dt = 1 its deletion inflates σ 1.43×. The
   one dt = 1 rig measures autocorrelation, which is invariant to innovation scale. No test measures
   realised variance at TWO different dt, so the factor's entire stated purpose has no semantic
   test. NOT cleared — a real coverage gap, not a stated T3.4c acceptance criterion.
-- **OPEN — owner T3.10: the spatial-correlation test does not test its own name (T3.4c review,
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29): the
+  spatial-correlation test does not test its own name (T3.4c review,
   test-power F5).** `SpatialCorrelation_NeighboursShareWeather_AndDistantSettlementsDoNot` computes
   one GLOBAL mean pairwise correlation and asserts it in (0.05, 0.95); it never compares near
   against far. Mutants M5 (spatialSharedFraction made dead by forcing k = 1) and M8 (the distance
