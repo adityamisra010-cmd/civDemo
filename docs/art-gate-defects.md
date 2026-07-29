@@ -131,3 +131,27 @@ the sampler to LinearClamp (model collapses to one center, test fails at both wi
 **Coverage statement:** what remains uncovered is the actual GPU sampling — that MonoGame honours
 `SamplerStates[0]` for BasicEffect draws and that `RenderDrawData` really applies
 `TextureSampler`; that hop is not inspectable headless and takes one eyeball on the gate build.
+
+## D-A1 — CLOSED (director's gate, round 3, 2026-07-29)
+
+All four checks PASS: (1) rule clearly visible on every panel; (2) ink and line weight hold at
+~705 px and ~1283 px; (3) the lozenge repeats correctly — the LinearWrap fix confirmed at the
+gate; (4) the hairline reads as a good subtle secondary line, no constant change.
+
+**Director's check on the wider finding, recorded as the measurement of record:** the parchment
+panel background did NOT fail before the fix — the clamp leak's visible effect was confined to
+the header rule. The round-2 note above inferred from code that the background "was streaking";
+the gate says otherwise, and the gate is the measurement. No wider rendering-path defect. The
+structural point stands and is filed in queue.md: sampler state is implicit and order-dependent,
+nothing at the call site distinguishes an element that needs WRAP from one that tolerates CLAMP,
+and no headless test sees sampler state — the composite repeat test covers the header rule only.
+
+**The record's value — three rounds, three different failure modes, one asset:**
+1. Two GENERATED assets failed on content: 0.46% and 0.90% alpha coverage, #A77032 off-palette —
+   invisible ink, caught by the visibility numbers.
+2. The PROCEDURAL generator succeeded on content (32:1 aspect, ~34% coverage within-band 64.9%,
+   exact two-ink palette, seamless by construction, four red proofs) — and still failed the GATE:
+   every unit test certified the pieces while the composed draw ran under an inherited
+   LinearClamp sampler nothing had ever asserted.
+3. The sampler fix (one explicit LinearWrap in ImGuiRenderer) passed all four gate checks.
+Tests certify what they mention; each round's failure lived precisely in what no test mentioned.
