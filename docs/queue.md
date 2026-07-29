@@ -260,3 +260,21 @@
   zero inventory). Trade volume awaits real comparative advantage — deposit-differentiated
   production orders, or T3.7 merchants. The T3.11 driven golden should drive settlements
   ASYMMETRICALLY if it wants nonzero flow on the golden horizon.
+- **PATTERN (director, T3.6 certification check — fourth instance): summary prose disagreeing
+  with its own measured record.** 28-vs-29 commits (T3.4c handoff), 12-vs-13 mutants and
+  11-vs-10 kills (T3.5b), 1-vs-2 flips (T3.6 handback: the measurement written into the slot
+  labelled "margin"). Every instance: prose written FROM RECOLLECTION alongside a document whose
+  numbers were measured; every one caught downstream by the director, none by the author. The
+  cheap discipline, now standing: summary prose is TRANSCRIBED from the record — open the
+  record, copy the number, never re-derive or recall it — and any figure appearing in both
+  places is diffed before handback.
+- **TOOL DEFECT (T3.6 ruling, second occurrence): the CCR stop hook's remediation text destroyed
+  commit-order evidence.** The hook's check reads committer email + signature only, but its advice
+  prescribed `--amend --reset-author`, which also resets AUTHOR dates — the temporal record every
+  derivation-honesty lens reads. Chosen fix: make the hook preserve author dates — the advice now
+  prescribes plain `--amend --no-edit` after the git-config fix (satisfies the hook's own check;
+  author identity and dates untouched), so no archive-ref rescue is needed from T3.7 on. The live
+  hook is patched and `scripts/bootstrap.sh` re-applies the patch every session, because the hook
+  file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
+  The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
+  launcher/hook configuration. Until then bootstrap carries it.
