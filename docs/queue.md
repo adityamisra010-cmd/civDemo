@@ -184,14 +184,16 @@
 - **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
   in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
   yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
-- **OPEN — owner T3.10 (corridor & measurement teeth): the √(1−ρ²) stationary-variance factor is
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29) — (corridor &
+  measurement teeth): the √(1−ρ²) stationary-variance factor is
   unpinned at every dt (T3.4c review, test-power M6-golden-only).** The factor exists, per its own
   comment, to hold the stationary variance at σ² for every dt; at the shipped Neolithic dt = 10,
   ρ = 0.036 and the factor is 0.99935 — inert — while at dt = 1 its deletion inflates σ 1.43×. The
   one dt = 1 rig measures autocorrelation, which is invariant to innovation scale. No test measures
   realised variance at TWO different dt, so the factor's entire stated purpose has no semantic
   test. NOT cleared — a real coverage gap, not a stated T3.4c acceptance criterion.
-- **OPEN — owner T3.10: the spatial-correlation test does not test its own name (T3.4c review,
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29): the
+  spatial-correlation test does not test its own name (T3.4c review,
   test-power F5).** `SpatialCorrelation_NeighboursShareWeather_AndDistantSettlementsDoNot` computes
   one GLOBAL mean pairwise correlation and asserts it in (0.05, 0.95); it never compares near
   against far. Mutants M5 (spatialSharedFraction made dead by forcing k = 1) and M8 (the distance
@@ -304,3 +306,21 @@
   bootstrap EXITS 1 with an actionable message telling the operator to re-derive the patch before
   committing anything. A launcher-shipped hook change is therefore a loud session-start stop, not
   a silent loss of the next packet's commit-order evidence.
+- **THE nearMean < 0.90 CEILING IS A STRUCTURALLY WEAK TOOTH (T3.4d certification ruling) — and
+  it is the SOLE M5 tooth, measured.** Clean near-correlation 0.72; M5 drives it to 0.9948; the
+  ceiling sits at 0.90 — a ~5% must-fire margin that CANNOT be widened, because correlation is
+  bounded at 1.0 and any mutant driving it toward 1 is compressed against every ceiling below 1.
+  Raising the ceiling loses the tooth; lowering it risks false-firing on an honest world (the
+  companion floor is 0.30). The director asked whether the near−far MARGIN assertion also fails
+  under M5, which would make the thin ceiling acceptable by redundancy: MEASURED, IT DOES NOT —
+  under M5 the first failing assert is the ceiling (test line 333); the margin assert before it
+  passed, because at k=1 the distance kernel still decorrelates far pairs (measured bound from
+  the passing assert: far < 0.665 under M5). So the ceiling carries M5 ALONE. The clean-world
+  near-correlation value that would leave the ceiling armed with no room is 0.90 itself: any
+  retune raising clean near toward 0.90 silently disarms the M5 tooth while every test stays
+  green (at ≥ 0.90 it false-fires instead). OPEN, owner T3.10, alongside candidate §7.15.
+- **PATTERN (third instance): ASYMMETRIC-MARGIN THRESHOLDS.** T3.4c Q2 (drift envelope, 11% on
+  the must-pass side), now the M5 ceiling (5% on the must-fire side) — thresholds separating a
+  measured clean case from a measured mutant, where one side's margin is structurally thin. The
+  standing line: a discriminating threshold's WEAKER margin is stated at the point the threshold
+  is chosen, not discovered later.
