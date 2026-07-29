@@ -481,7 +481,14 @@ public class ClassSystemTests
         // laborPerAdult × pathShare × (peasants + weight × artisans) × dt,
         // and a 100% farm order still banks exactly nothing (the T1.6
         // invariant the slider-scaling preserves).
+        // RIG LEVER, stated (T3.4c precedent; T3.6b repair): endowment jitter
+        // is pinned to 0 IN THIS RIG because the test's subject is slider-
+        // scaled labor pooling, not founding variance — the hand-computed
+        // 10-per-cohort transfers below assume the unjittered cohort counts,
+        // and the ADR-017 amplitude (0.69) left a cohort at 9 on this seed
+        // (measured LedgerOverdrawException in the T3.6b fallout run).
         SimConfig cfg = TestConfigs.Sim();
+        cfg = cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
         // Move 10 adults from each of cohorts 3..8 (60 total) into the
         // artisan buckets via the Ledger (founding cohorts hold 30/28/26/24/

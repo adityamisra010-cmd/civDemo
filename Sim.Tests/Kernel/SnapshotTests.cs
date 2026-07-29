@@ -438,7 +438,12 @@ public class SnapshotTests
         //   TradeReadingsTests (the T3.11 blocking-gap question), not assumed
         //   from this hash moving — the hash moves for the schema alone.
         //   v17 value: 724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023
-        const string golden = "3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54";
+        //   T3.6b (ADR-017 — DELIBERATE, data-only, 2026-07-29): founding
+        //   endowmentJitter 0.25 → 0.69 (RC-1 reference-band floor). Every
+        //   founded endowment redraws, so the founded trajectory moves; the
+        //   schema is untouched (still v18) and the toy golden did not move.
+        //   pre-T3.6b value: 3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54
+        const string golden = "469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
