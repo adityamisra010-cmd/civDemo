@@ -156,7 +156,11 @@ public sealed class SimUiGame : Game
 
         _grainTexture = UploadArt(_art.Get("parchment/grain"));
         _panelTexture = UploadArt(_art.Get("ui/panel"));
-        _headerRuleTexture = UploadArt(_art.Get("ui/header-rule"));
+        // D-A1: the header rule is PROCEDURAL (HeaderRuleBaker) — a generated
+        // resource like the parchment atlas, not a manifest drop point. Two
+        // generated-asset rounds failed (docs/art-gate-defects.md); a ruled
+        // line is drawn with an instrument, in code.
+        _headerRuleTexture = UploadArt(Art.HeaderRuleBaker.Bake());
         _buttonPlateTexture = UploadArt(_art.Get("ui/button-plate"));
         _annalsTexture = UploadArt(_art.Get("ui/annals-bg"));
         _compassTexture = UploadArt(_art.Get("ui/compass-rose"));

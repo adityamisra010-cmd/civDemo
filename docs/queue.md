@@ -247,3 +247,12 @@
   `goods.json` stay MINIMAL-DIFF — no wholesale re-serialization — so scope review reads the
   change rather than the reformatting. T3.5b's 143-insertion rewrite of needs.json was accepted
   after mechanical semantic-equality proof; the proof should not have been necessary.
+- **SAMPLER STATE IS IMPLICIT AND ORDER-DEPENDENT (D-A1 close-out, director ruling).** The header
+  rule inherited LinearClamp from the settlement-marker batch and failed to tile; the parchment
+  panel background, which also relies on uv > 1, was confirmed by the director's gate to have been
+  unaffected throughout. Nothing at the call site distinguishes them — the header rule was simply
+  the first element to need WRAP after the marker batch. Any future tiling element drawn in that
+  position inherits the same defect, and it costs a visual-gate round each time, because no
+  headless test sees sampler state; this round's composite repeat test catches it for the header
+  rule only. Candidate fix: make sampler state explicit per draw rather than inherited. OPEN,
+  owner: UI polish track. Not fixed here.

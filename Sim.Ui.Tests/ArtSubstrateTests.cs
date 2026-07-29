@@ -233,14 +233,21 @@ public class ArtSubstrateTests
         Assert.Single(AssetManifest.All, e => e.Kind == AssetManifest.AssetKind.Grain);
         Assert.Equal(ParchmentPalette.TerrainClassCount,
             AssetManifest.All.Count(e => e.Kind == AssetManifest.AssetKind.TerrainWash));
+        // D-A1: UiHeaderRule left this roster — the header rule is PROCEDURAL
+        // (HeaderRuleBaker), a generated resource, not a manifest drop point.
+        // Its coverage moved to HeaderRuleBakerTests, which pin visibility,
+        // seamlessness, palette exactness and determinism — the properties a
+        // manifest entry's audits used to buy, each strictly stronger. Assert
+        // it is genuinely gone rather than silently re-added.
         foreach (AssetManifest.AssetKind kind in new[]
         {
             AssetManifest.AssetKind.CoastHairline, AssetManifest.AssetKind.UiPanel,
-            AssetManifest.AssetKind.UiHeaderRule, AssetManifest.AssetKind.UiButtonPlate,
+            AssetManifest.AssetKind.UiButtonPlate,
             AssetManifest.AssetKind.UiAnnalsBackground, AssetManifest.AssetKind.UiCompassRose,
             AssetManifest.AssetKind.SettlementMarker,
         })
             Assert.Single(AssetManifest.All, e => e.Kind == kind);
+        Assert.DoesNotContain(AssetManifest.All, e => e.Kind == AssetManifest.AssetKind.UiHeaderRule);
 
         // Every terrain class is addressable, and keys are unique.
         for (int c = 0; c < ParchmentPalette.TerrainClassCount; c++)

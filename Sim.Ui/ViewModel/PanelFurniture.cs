@@ -50,6 +50,52 @@ public static class PanelFurniture
         return (u, 1f);
     }
 
+    /// <summary>Horizontal texture addressing mode of the sampler the composed
+    /// draw runs under. Mirrors MonoGame's TextureAddressMode without a
+    /// MonoGame reference — the view-model stays headless; the test maps the
+    /// renderer's actual configured SamplerState into this enum.</summary>
+    public enum AddressModeX { Clamp, Wrap }
+
+    /// <summary>
+    /// D-A1 gate round 2 — the COMPOSITE model. The draw call in
+    /// SimUiGame.DrawPanelFurniture issues ONE AddImage with uv (0,0)→(u,1),
+    /// u from <see cref="HeaderRuleUv"/> (called here, so test and renderer
+    /// share the computation). What that quad SHOWS depends on the sampler's
+    /// address mode: under Wrap every 256-screen-px period repeats and carries
+    /// the lozenge at its center; under Clamp every uv &gt; 1 re-samples the
+    /// final texel column (plain heavy+hair rule, no lozenge), so the lozenge
+    /// appears at most once. This function returns the screen-x centers
+    /// (relative to the strip's left edge) at which the lozenge is visible.
+    ///
+    /// The screen period is drawHeightPx * nativeWidth / nativeHeight (the
+    /// uniform scale s = drawHeightPx / nativeHeight applied to the full
+    /// native width); the lozenge sits at the period's center, so centers are
+    /// (k + 0.5) * period for each whole-or-partial period whose center fits
+    /// inside the strip.
+    /// </summary>
+    public static double[] HeaderRuleVisibleDiamondCenters(
+        int nativeWidth, int nativeHeight, float drawWidthPx, float drawHeightPx,
+        AddressModeX addressMode)
+    {
+        // Period derived FROM the uv extent the draw call actually issues —
+        // u = drawWidth / period, so period = drawWidth / u. If HeaderRuleUv
+        // ever drifted, this model drifts with it, by construction.
+        (float u, _) = HeaderRuleUv(nativeWidth, nativeHeight, drawWidthPx, drawHeightPx);
+        double period = drawWidthPx / (double)u;
+        var centers = new System.Collections.Generic.List<double>();
+        for (int k = 0; ; k++)
+        {
+            double x = (k + 0.5) * period;
+            if (x > drawWidthPx) break;
+            // Under clamp, only texture-space uv <= 1 shows real art; the
+            // lozenge of period k lives at uv = (k + 0.5) * period / drawWidth
+            // * u = k + 0.5, so only k = 0 survives.
+            if (addressMode == AddressModeX.Clamp && k > 0) break;
+            centers.Add(x);
+        }
+        return centers.ToArray();
+    }
+
     /// <summary>Native texels per screen pixel along one axis, for the rect
     /// and uv extent given. The D-A1 test asserts X and Y densities equal and
     /// panel-width-independent.</summary>
