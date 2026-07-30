@@ -748,3 +748,177 @@ auditing, and the near-miss is what surfaced the missing obligation.
 **Margins are the deliverable, not pass/fail.** A contrast that survives with a thinner margin is a
 finding; margins are what a future driver erodes. The audit records them so the next packet can see
 erosion instead of discovering a flip.
+
+---
+
+## §7.15 — A pre-committed reading requires a DISCRIMINATING observable
+
+**Director ruling, T3.5b certification Q3 (2026-07-28). Filed then as a candidate section and
+deliberately NOT written in T3.5b — all four lenses had already cleared, and a post-clearance
+governance addition is the f8a19e1 pattern (§7.14). Written at the director's instruction under
+the GOV-1 docs packet, 2026-07-30.**
+
+§7.13 fixes the READING of every outcome before the measurement runs. It does not require
+verifying that the observable can tell the outcomes apart — and a reading pre-committed over an
+observable that several mechanisms move is a prediction about nothing in particular, applied
+"without deliberation" precisely as §7.13 rule 4 instructs. The rule:
+
+> **A pre-committed reading names an observable that DISCRIMINATES between the hypotheses before
+> the measurement runs — not merely a number to look at.** Ask, at pre-commitment time: what else
+> moves this observable? If a composite can fire the reading for a reason unrelated to the
+> mechanism under test, pre-commit the DECOMPOSITION — the factors read separately — or the
+> reading is §7.13 in form and not in force.
+
+**The mechanism of failure is worse than a missing pre-commitment, because it launders the
+error.** The reading was fixed in advance; the number moved; the reading was applied without
+deliberation — every §7.13 step followed, and the conclusion wrong, with the procedure itself
+supplying the confidence. §7.13's defence assumes the observable answers the question; nothing
+in §7.13 checks that it can.
+
+**Second instance, the one that forced the rule — T3.5b, lens 2 F2.** Item 1b pre-committed "the
+food economy moves" and the reading fired on the density anchor — a COMPOSITE, population /
+arable. Measured (the §7.10 confession shipped in `CalibrationBatteryTests`; the first version
+of that comment attributed the fall to the food economy and was WRONG): population UNCHANGED
+(120,811/120,558 → 120,588/120,585, ±0.2%); the −24% was the DENOMINATOR — the new default's
+0.08 construction share builds paths, catchments recompute, and effective arable expands
+53,382.9 → 70,854.5 km² (+32.7%). A geometry effect of the mix, not a harvest effect: the
+reading fired for a pure denominator reason while the mechanism under test did nothing the
+observable could see. The director's injections forced the decomposition, and the lens's root
+cause stands verbatim in `docs/t3.5b-review-record.md`: *the pre-committed observable lacked a
+discriminating arm (§7.13 rule 2).* The food economy's own answer, once decomposed, belonged to
+the SECOND reading: accumulation slowed (303M → 125M at turn 650, −59%) behind a ~1,240-year
+granary — direct B-2 evidence, escalated there.
+
+**First instance — §7.7, the same shape from the other side.** The migration corridor swept its
+nominal control (`baseRatePerYear` 0.03/0.018/0.012 → 0.43/0.41/0.42 %/decade, barely moving and
+non-monotone) and was measuring something else entirely (harvest variance, ~150× over land on
+main effects, per that section's own correction). §7.7 is an observable blind to its own control
+parameter; F2 is an observable that sees everything else too. Both produce a number that looks
+like evidence about a mechanism and is not, and the queue filed Q3 as the second bite of one
+shape.
+
+**The rule exercised, for the shape of compliance — `docs/t3.6b-spec.md`.** Its pre-committed
+readings P1–P3 are headed "each with a DISCRIMINATING observable". P3 (density; "three prior
+hits, candidate §7.15") pre-commits the decomposition itself: if density moves, population and
+arable are read SEPARATELY (Σpop and Σ effective arable km², per seed, before and after) BEFORE
+anything is interpreted. At the T3.6b review the one envelope move was decomposed before being
+touched — founding total 1,742 → 2,018 (+15.8%) against final +18.5%, pure initial-condition
+compounding, no demographic-rate change — and the interpretation never had room to be argued
+about.
+
+**What a verify stage must now do.** For each pre-committed reading in the packet's spec, answer
+both halves and report both: was the reading fixed before the measurement ran (mechanical —
+commit order), and does the named observable DISCRIMINATE between the hypotheses the readings
+encode (a judgement: enumerate what else moves it)? A reading over a composite with no
+pre-committed decomposition is a finding at SPEC-review time, before the measurement runs — the
+only moment the fix is cheap. This is §7.13's family extended one step: fix the standard before
+you see the result, and first check that the standard can decide anything.
+
+---
+
+## §7.16 — An asymmetric margin is stated at the moment the threshold is chosen
+
+**T3.4c certification Q2 (2026-07-28) and the T3.4d certification ruling (2026-07-29), filed as
+a standing pattern line in the queue at the second of them. Written at the director's
+instruction under the GOV-1 docs packet, 2026-07-30.**
+
+A discriminating threshold — a tolerance, ceiling or floor chosen to separate a measured clean
+case from a measured failure signature — has TWO margins, one to each side, and they are almost
+never equal: one side is armed, the other has room. The standing line, transcribed from the
+queue:
+
+> **A discriminating threshold's WEAKER margin is stated at the point the threshold is chosen,
+> not discovered later.** Which side is thin, what erodes it, and at what measured value the
+> tooth disarms or false-fires — written down by the agent choosing the number, at the moment of
+> choice.
+
+**The mechanism of failure.** The threshold is chosen against two measurements, passes the clean
+case and fails the mutant, and every test is green from birth — so nothing in the suite ever
+distinguishes a threshold with 40% of room from one with 5%. The asymmetry is a fact about the
+threshold from the day it is chosen; when only the choice is recorded and not the asymmetry, the
+thin side erodes under retunes that are individually legitimate, and the first notice anyone
+gets is a tooth that has silently disarmed — or a legitimate change that false-fires. Both named
+instances were discovered by directed re-measurement AFTER their thresholds shipped; the rule
+exists so the next one is a statement instead of a discovery.
+
+| instance | threshold | must-pass side | must-fire side |
+| --- | --- | --- | --- |
+| T3.4c Q2 — the quarantine drift tooth (`CalibrationBatteryTests.AssertDevMigrationQuarantine`) | drift tolerance 0.75 against per-seed pins 0.000931705 / 0.000799951 | **11%** — largest legitimate correction ×0.836 | 40% — disablement signature ×0.536 |
+| T3.4d — the M5 near-correlation ceiling, the SOLE M5 tooth | `nearMean < 0.90`; clean 0.72, companion floor 0.30 | armed-with-no-room at clean = 0.90; at ≥ 0.90 it false-fires | **~5%** — M5 drives near to 0.9948, compressed against the 1.0 bound |
+
+In the first, the thin side is MUST-PASS: a legitimate substrate correction larger than ×0.836
+FALSE-FIRES the drift tooth. The mitigation was chosen with the threshold — per-seed pinned
+values, so the failure is loud and names the seed, the recorded value and both signatures, and
+the correct response is a deliberate re-pin under a ruling, not a tolerance widen. In the
+second, the thin side is MUST-FIRE and CANNOT be widened: correlation is bounded at 1.0, so any
+mutant driving it toward 1 is compressed against every ceiling below 1. Measured at the
+director's question, the ceiling carries M5 ALONE — the near−far margin assert does not also
+fail (under M5 the first failing assert is the ceiling; the passing margin assert bounds
+far < 0.665) — and the disarm point was measured and stated: any retune raising clean near
+toward 0.90 silently disarms the tooth while every test stays green.
+
+**What a verify stage must now do.** For every threshold separating a measured clean value from
+a measured failure signature: report BOTH margins, with the two measurements they separate; name
+the armed side; state the clean-world value at which the tooth disarms or false-fires; and check
+that this statement exists in the CHOOSING commit — a margin statement reconstructed at review
+is this section's failure mode already under way. Where the thin side is structural (a bounded
+quantity compressing every mutant against a limit, as at the M5 ceiling), say so: that is §7.5's
+saturation warning read from the tooth's side of the fence — the mutant's signal, not only the
+clean one, can be the value resting against a limit. §7.14 made margins the deliverable for rig
+contrasts; this section makes the asymmetry the deliverable for chosen thresholds.
+
+---
+
+## §7.17 — A modified guard re-opens its red proof
+
+**Director + agent agreement, T3.8 (2026-07-30), recorded as the guard-modification queue line
+on the T3.8 branch — in flight at the time of writing; the reasoning below is that line's,
+transcribed. Written at the director's instruction under the GOV-1 docs packet.**
+
+§7.4 requires every guard to ship with a proven red: delete the guard, watch the test fail,
+restore it. That red is evidence about the guard AS IT WAS. The rule:
+
+> **Widening a load-time guard — teaching it a new legitimate case — VOIDS the guard's prior red
+> proof. Every property the guard held before the widening is re-proven red INDEPENDENTLY, never
+> by re-running the suite the widening was written against; the new case and any ambiguity guard
+> between old and new get fresh MEASURED reds of their own.**
+
+**The mechanism, stated fully in the record.** A guard widened to admit a new legitimate case
+can silently begin admitting an illegitimate one, BECAUSE THE WIDENING IS AUTHORED AGAINST A
+FAILING TEST — the wall the author is trying to clear. At T3.8 the wall was 229 red tests with
+one cause, and the shortest edit turning 229 tests green is a WEAKER guard. Nothing in the suite
+would have noticed, because the original property had no test of its own independent of the
+guard's existence — which is exactly why the re-proof had to be WRITTEN rather than found. This
+is §7.5's shape (do not assert on a quantity resting against its own limit) pointed at a GUARD
+rather than a measurement: the suite the widening was authored against is the limit the edit
+rests on, and re-running it asserts a quantity against its own limit — it confirms the wall
+cleared, never that the guard still guards. It is likewise §7.4 one step later: not a missing
+guard but a modified one, whose red proof expired the moment the guard's text changed.
+
+**First instance — T3.8, the bound-need satisfier guard (`HousingGuardTests`).** T3.5b shipped
+the load guard "a bound need with no basket entry serving it refuses load" — it would read as
+permanently satisfied. T3.8 moved Shelter's satisfier from basket flow lines to the housing
+stock; the guard, not knowing the source, refused the canonical `needs.json`, and the fallout
+wall measured **229 failed / 186 passed / 4 skipped — one cause**
+(`docs/t3.8-review-record.md`). The guard was taught the `housingStock` source, the widening
+authored against exactly that wall. The re-proof — written against the CANONICAL config, one
+guard arm deleted at a time, measured post-modification:
+
+1. the ORIGINAL property — a bound need with no satisfier of ANY kind still refuses;
+2. the new case's own red — a source typo refuses and never silently falls back to basket,
+   which, with no basket lines, would be the original defect wearing a typo;
+3. the AMBIGUITY guard between them — a stock-sourced need that also carries basket lines
+   refuses ("two satisfaction sources").
+
+**What a verify stage must now do.** Treat any diff to an existing guard as a NEW guard for
+§7.4 purposes: enumerate the properties the guard held before the change; require one fresh
+measured red per property, obtained against the MODIFIED guard by deleting its arm — never by
+re-running the suite; and where the old and new cases could stand in for one another, require
+the ambiguity guard and its red as well. The tell is the motivation: a guard edit whose
+motivating red is the SUITE — a wall of failures the packet must clear — is presumed
+teeth-losing until each pre-existing property shows a fresh red of its own.
+
+The three sections §7.15–§7.17 are one family, and §7.13's closing note extends to them: fix the
+standard before you see the result — and state, at the moment of authorship, what the standard
+can decide (§7.15), where it is thin (§7.16), and when it has expired (§7.17). Afterwards you
+cannot tell your reasoning from your preference; that is the whole register in one line.
