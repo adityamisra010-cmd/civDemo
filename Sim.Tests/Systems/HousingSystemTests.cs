@@ -42,6 +42,7 @@ public class HousingSystemTests
             cohortIdx: 5, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
         ledger.Flow(ref world.Buckets.Ref(bucket).Count, ConservedQuantityIds.Population,
             ReasonIds.InitialEndowment, pop, FlowDirection.Source, OverdrawPolicy.Throw);
+        world.Grievances.Add(new GrievanceRow(id, new ClassId(1), 0.0));
         int h = world.Housing.Add(new HousingRow(id, Conserved.Zero, 0.0, 0.0, 1.0, 0.0));
         if (dwellings > 0)
         {
@@ -283,6 +284,42 @@ public class HousingSystemTests
         // accrue — no progress row is even created for the settlement.
         Assert.True(double.IsNaN(Banked(nextC, id0)),
             "over-drawn pool still accrued path labor — the floor is broken");
+    }
+
+    [Fact]
+    public void OneTurnStop_ShelterFollowsTheStock_NeverCollapsesToZero()
+    {
+        // THE PACKET'S MOTIVATING ASSERTION, permanent (manifest lens 4: this
+        // — not a golden — is the required killer for the rebind-reverted
+        // mutant). Under the T3.5 flow stand-in, the before-column MEASURED a
+        // settlement that stopped obtaining materials reading Shelter 0.0000
+        // the very next reading — instantly and completely homeless. Under
+        // the stock, a full stop (no materials, no construction labor) decays
+        // the housing by one exact exponent step per turn, and Shelter reads
+        // the SURVIVING stock: high and nonzero after a stopped turn.
+        //
+        // Two steps because satisfaction reads PREV housing (§3.2 lag): step
+        // 1 decays the stock; step 2's satisfaction row reads it.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState world = HousingWorld(cfg, pop: 600, dwellings: 100, timber: 0, clay: 0, 0.0);
+        var exec = new TurnExecutor(FlatEra(10.0),
+            [SystemCatalog.Housing(cfg), SystemCatalog.NeedsGrievance(cfg)]);
+        WorldState next = exec.Step(exec.Step(world));
+
+        long afterOneTurn = 100L - (long)Math.Floor(
+            100L * (1.0 - Math.Exp(-(1.0 - 0.0) * 10.0 / cfg.Housing.TauYears)));
+        double expected = Math.Min(1.0, afterOneTurn * cfg.Housing.PersonsPerDwelling / 600L);
+
+        double shelter = double.NaN;
+        for (int i = 0; i < next.NeedSatisfactions.Count; i++)
+        {
+            NeedSatisfactionRow r = next.NeedSatisfactions[i];
+            if (r.Settlement.Value == 0 && r.Class.Value == 1 && r.NeedId == 2) shelter = r.Value;
+        }
+        Assert.False(double.IsNaN(shelter), "no Shelter satisfaction row — the stock is not being read");
+        AssertBits(expected, shelter);
+        Assert.True(shelter > 0.5,
+            $"one stopped turn collapsed Shelter to {shelter:F4} — the flow stand-in's signature, not the stock's");
     }
 
     [Fact]
