@@ -173,7 +173,13 @@ public class SnapshotTests
         //   system, so the table is empty and only the byte stream grew (one
         //   zero count prefix); the trajectory is unchanged.
         //   v17 value: 1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e
-        const string golden = "bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718";
+        //   v19 (T3.8 — SCHEMA-ONLY for this preset): the Housing table joined
+        //   the stream (one zero count prefix on this settlement-less world)
+        //   and CatchmentSummaryRow gained SizeTier (no rows here to widen).
+        //   The toy pipeline does not run the housing system; only the byte
+        //   stream grew.
+        //   v18 value: bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718
+        const string golden = "b4d523f6f1e0cc1a66d94393cf86368db7063acde27ca24bf17555e772883525";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -443,7 +449,15 @@ public class SnapshotTests
         //   founded endowment redraws, so the founded trajectory moves; the
         //   schema is untouched (still v18) and the toy golden did not move.
         //   pre-T3.6b value: 3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54
-        const string golden = "469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0";
+        //   v19 (T3.8 — DELIBERATE, schema + behavior): the housing stock.
+        //   Schema v19 (Housing table + CatchmentSummaryRow.SizeTier); founded
+        //   settlements arrive HOUSED (InitialEndowment), maintenance draws
+        //   timber/clay, unmet upkeep decays dwellings, construction labor
+        //   splits between dwellings and paths, Shelter reads the stock, and
+        //   catchments run tier budgets through the per-source-exact
+        //   Partition. Every count on the founded trajectory moves.
+        //   pre-T3.8 value: 469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0
+        const string golden = "8473c02161ff4051457d13521e7dc0edbaf7078240cc2da3cad33d38476544c4";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
