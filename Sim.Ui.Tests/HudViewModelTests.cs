@@ -152,15 +152,22 @@ public class HudViewModelTests
         // A published demand of zero is NOT read as "fully supplied": the T3.5
         // review found that sentinel reporting empty timber and pottery stores
         // as perfect Shelter and Comfort, and Fill now uses the STOCK as the
-        // discriminator. Founding stocks these goods at zero, so they correctly
-        // read 0.00 from the very first turn instead of enjoying one free turn
-        // of phantom supply. Sustenance reads 0.85 — full calories, since the
+        // discriminator. Sustenance reads 0.85 — full calories, since the
         // missing non-staples substitute into grain, times the full D-035-A
         // monotony penalty for a diet that is grain and nothing else (H = 1 is
         // maximally over ANY standard, so the T3.5b re-reference does not move
         // this value — the monoculture penalty is standard-independent).
+        //
+        // T3.8: Shelter reads the DWELLING STOCK, and a founded settlement
+        // arrives HOUSED (WorldFounding endows round(pop/6) dwellings — 67 × 6
+        // = 402 capacity over 400 people, clamps to exactly 1.00). The old
+        // "Shelter: 0.00" here was the flow stand-in's phantom (an empty
+        // timber store read as homelessness on founding day); 1.00 is the
+        // founding generation in the houses it founded with. Comfort keeps
+        // the flow stand-in this packet (the T3.8 Item 3 verdict) and still
+        // reads 0.00 from the empty founding stores.
         Assert.Equal("Sustenance: 0.85", hud.NeedLines[0]);
-        Assert.Equal("Shelter: 0.00", hud.NeedLines[1]);
+        Assert.Equal("Shelter: 1.00", hud.NeedLines[1]);
         Assert.Equal("Comfort: 0.00", hud.NeedLines[5]);
         for (int i = 0; i < 8; i++)
         {
