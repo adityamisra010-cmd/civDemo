@@ -298,6 +298,11 @@
   file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
   The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
   launcher/hook configuration. Until then bootstrap carries it.
+  **STATUS UPDATE (T3.6b certification): EVIDENCED, RECURRING — no longer a candidate.** The
+  launcher re-provisioned the hook and wiped the patch; the fail-loudly post-condition fired
+  exactly as the T3.6 ruling required (director's observation at session start). The loud stop
+  now recurs EVERY session until the launcher config is fixed at source. Owner unchanged:
+  director.
 - **THE STOP-HOOK PATCH MUST FAIL LOUDLY (T3.6 certification ruling) — DONE, was a silent no-op.**
   As shipped at 5a16c2f the bootstrap patch silently no-opped on a non-matching hook (grep gated
   entry; a sed miss went undetected and `|| true` swallowed even hard failures) — exactly the
