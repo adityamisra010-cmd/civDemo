@@ -298,6 +298,11 @@
   file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
   The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
   launcher/hook configuration. Until then bootstrap carries it.
+  **STATUS UPDATE (T3.6b certification): EVIDENCED, RECURRING — no longer a candidate.** The
+  launcher re-provisioned the hook and wiped the patch; the fail-loudly post-condition fired
+  exactly as the T3.6 ruling required (director's observation at session start). The loud stop
+  now recurs EVERY session until the launcher config is fixed at source. Owner unchanged:
+  director.
 - **THE STOP-HOOK PATCH MUST FAIL LOUDLY (T3.6 certification ruling) — DONE, was a silent no-op.**
   As shipped at 5a16c2f the bootstrap patch silently no-opped on a non-matching hook (grep gated
   entry; a sed miss went undetected and `|| true` swallowed even hard failures) — exactly the
@@ -324,3 +329,24 @@
   measured clean case from a measured mutant, where one side's margin is structurally thin. The
   standing line: a discriminating threshold's WEAKER margin is stated at the point the threshold
   is chosen, not discovered later.
+- **T3.6b ESCALATION 1 — THE TRANSPORT DEADBAND EXCEEDS THE PRICE BAND for bulk ≥ 8 at map
+  distances.** Measured (docs/t3.6b-review-record.md, Item 0(c), 5 seeds): tin-ore price gaps
+  span the ENTIRE band (19.95, floor to ceiling) and still reach only 0.57–0.86 of their
+  deadband; threshold = bulk × pathCost × costPerBulkCostUnit ≈ 23–35 for bulk-8 goods at the
+  closest pairs, vs a maximum possible gap of BandMax − BandMin = 19.95. Ores and stone are
+  STRUCTURALLY untradeable overland at ANY price divergence. With T3.6 R1 this is the sharpened
+  trade-silence finding. Every surface involved (price band, costPerBulkCostUnit, bulk table)
+  is ruled/frozen — DIRECTOR MATERIAL, no owner assigned here.
+- **T3.6b ESCALATION 2 — COMMON-BAND-EDGE PINNING blocks gaps for 11 of 13 non-grain goods.**
+  Both sides of every pair rest on the SAME band edge (floor: oversupplied-undemanded; ceiling:
+  demanded-underproduced), so gap ≡ 0 however much settlements differ. The missing demand side
+  (PriceSoak's recorded edge-resting) is now measured as the direct blocker of inter-settlement
+  exchange. Founding variance cannot touch it; sector reallocation is M5's governing loop.
+- **FOUNDING-VARIATION ITEM — MEASURED DISCHARGED AND PINNED (T3.6b).** The lockstep predicate
+  no longer holds at HEAD (emergence spreads 58–85 decades at jitter 0.25; 89–118+ at the
+  ADR-017 0.69; modal decade ≤ 2 of 12, five seeds) — T3.1c's jitters discharged it and it sat
+  unmeasured for two milestones; the T3.6b variance-floor pin (CV ≥ 0.22, red-proven both
+  regressions) prevents a silent return. Endowment variance now sits ON its reference band
+  (realised founding-pop CV ≈ 0.30–0.47, RC-1 floor); siting stands per ADR-017. The
+  blocked-exchange consequence recorded at T3.6 is NOT discharged — it is re-attributed by
+  measurement to the two escalations above.

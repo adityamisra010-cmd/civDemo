@@ -98,7 +98,8 @@
       8
     ],
     "foodStore": 6000,
-    "endowmentJitter": 0.25
+    "_docEndowmentJitter": "T3.6b (ADR-017): 0.25 -> 0.69, DERIVED - the RC-1 reference-band FLOOR, the smallest intervention the Item 0 measurement justifies. RC-1 (committed before the measurement was seen, docs/t3.6b-spec.md): Neolithic settlement-size distributions and village-fission founder groups justify founding-population CV 0.4-0.6; the uniform u in [-1,1] jitter realises CV = amplitude/sqrt(3), so the band floor CV 0.4 gives amplitude 0.4*sqrt(3) = 0.6928 ~ 0.69 (measured at 0.25: CV 0.115-0.161 across five seeds, below the band). The T3.1c structure is unchanged: food scales with REALISED population (only the amp/3 per-capita wobble is independent), so founding food-per-capita stays stable and the measured colony-crash mode stays closed. NOT justified by trade and may never be re-tuned against a trade observable (CR-003 5.1; the pre-committed P2 reading predicts trade unchanged by this value).",
+    "endowmentJitter": 0.69
   },
   "migration": {
     "baseRatePerYear": 0.03,
