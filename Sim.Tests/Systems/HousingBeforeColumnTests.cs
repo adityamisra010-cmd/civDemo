@@ -37,7 +37,7 @@ public class HousingBeforeColumnTests
     private const int Hikiavur = 4;
     private const int Mothian = 11;
 
-    [Fact(Skip = "T3.8 before-column measurement rig (~2 min: canonical worldgen + 190 turns) — run manually; docs/t3.8-review-record.md records the table")]
+    [Fact(Skip = "T3.8 before/after-column measurement rig (~2 min: canonical worldgen + 190 turns) — run manually; docs/t3.8-review-record.md records both tables")]
     public void BeforeColumn_DirectorSessionReplay_OnMain()
     {
         SimConfig cfg = TestConfigs.Sim();
@@ -95,6 +95,22 @@ public class HousingBeforeColumnTests
         for (int i = 0; i < w.Grievances.Count; i++)
             if (w.Grievances[i].Settlement.Value == s) grievance += w.Grievances[i].Value;
         sb.Append(inv, $"t{turn} s{s}: grievanceSum={grievance:F2}\n");
+
+        // T3.8 after-column extension (a strict SUPERSET of the before
+        // instrument — shared fields stay comparable): the housing observables
+        // (H1/H2) and the catchment density decomposition inputs (H3).
+        for (int i = 0; i < w.Housing.Count; i++)
+        {
+            HousingRow r = w.Housing[i];
+            if (r.Settlement.Value != s) continue;
+            sb.Append(inv, $"t{turn} s{s}: dwellings={r.Dwellings.Value} maintFraction={r.LastMaintenanceFraction:F4} laborUsed={r.LastLaborUsed:F2}\n");
+        }
+        for (int i = 0; i < w.CatchmentSummaries.Count; i++)
+        {
+            CatchmentSummaryRow r = w.CatchmentSummaries[i];
+            if (r.Settlement.Value != s) continue;
+            sb.Append(inv, $"t{turn} s{s}: catchNodes={r.NodeCount} arableKm2={r.EffectiveArableKm2:F1} sizeTier={r.SizeTier}\n");
+        }
 
         foreach (string g in new[] { "grain", "timber", "stone", "clay", "pottery", "cloth" })
         {
