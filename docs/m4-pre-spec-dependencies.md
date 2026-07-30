@@ -5,11 +5,16 @@ under S8 §4.1 (`docs/spine-s8-governance-freeze.md:65` — "Effective from the 
 whose four mandatory items include a coupling map (§4.1 item 4, `spine-s8-governance-freeze.md:183`).
 This file is the INPUT to that map: it collects, with tree citations, everything the M4 spec author
 would otherwise rediscover. **It observes; it designs nothing and amends nothing.** The rulings
-recorded in §1 and §4 arrive via the GOV-2 directive and are FIRST RECORDED HERE (see §5, finding
+recorded in §1 and §6 arrive via the GOV-2 directive and are FIRST RECORDED HERE (see §7, finding
 F1); the corrections they imply land later, by ADR where a frozen document is touched.
 
 Citation convention: `file:line` as measured in the tree at `gov-2-m4-dependencies` (cut from
 `main` @ d51327e). Where a figure comes from a review record, the record is cited.
+
+*Amended once under the GOV-2 extension (director, 2026-07-30, same session): §2d gains a third
+consumer, §4 (three conflicts) and §5 (one measurement owed) are new, findings F9–F12 and their
+provenance rows are added, later sections renumbered. This file is unmerged and unratified; the
+in-place amendment is by the extension's explicit instruction. Nothing ratified is touched.*
 
 ---
 
@@ -75,7 +80,7 @@ ratified prose, none in state.
 coinage emerges well inside the 6,000-year campaign, and law 4 requires it to emerge from
 computed state. The ladder's only money-adjacent row is "Finance … era exp."
 (`civ-sim-architecture-v3-outline.md:93`), which presupposes money rather than introducing it.
-See also finding F7 (§5): the vertical slice is described in the Spine as a "Full loop through
+See also finding F7 (§7): the vertical slice is described in the Spine as a "Full loop through
 classical antiquity" (`civ-sim-architecture-v3-outline.md:113`), which spans the ruling's own
 ~630 BCE coinage date — the open item is therefore live before the slice, not after it.
 
@@ -250,26 +255,35 @@ carries a row verifying the three quantities are structurally separate in the sh
   the mechanism that starts moving S upward from 12. Not an M4 defect; a trajectory M4
   accelerates.
 
-### 2d. THE LATTICE STRIDE BLOCKS TWO CONSUMERS, NOT ONE — RULE IT ONCE
+### 2d. THE LATTICE STRIDE BLOCKS THREE CONSUMERS, NOT ONE — RULE IT ONCE
+*(amended under the GOV-2 extension: this item's first commit named two consumers; a third,
+stated in the SAME queue entry, was missed and is added here — see §4b)*
 
 Stride 4 means one traversal node is 16 × 16 km — "the RESOLUTION FLOOR on every spatial quantity
-derived from it" (`docs/queue.md:52-64`). Two independent consumers are blocked:
+derived from it" (`docs/queue.md:52-64`). Three independent consumers are blocked, in three
+different milestones:
 
-1. **Rivers are sub-node features invisible to the traversal lattice.** The T3.6b water
-   counterfactual's stage 1 finding: the stride-4 water mask cannot see rivers, so even FREE
-   water never crosses the ore deadband at lattice resolution — "a RESOLUTION limit, not an
+1. **Rivers are sub-node features invisible to the traversal lattice** (M4 transport). The T3.6b
+   water counterfactual's stage 1 finding: the stride-4 water mask cannot see rivers, so even
+   FREE water never crosses the ore deadband at lattice resolution — "a RESOLUTION limit, not an
    economics answer" (`docs/t3.6b-review-record.md:235-239`); the measured hypothesis had to
    move to the pixel river mask — "since stride-4 blocks cannot represent rivers"
    (`t3.6b-review-record.md:259-260`).
-2. **Village-scale catchments are unrepresentable.** "the classic 5 km site catchment is 0.3 of
-   one node"; anything below ~32 km is under two nodes and the isochrone collapses
-   (`queue.md:52-64`).
+2. **Village-scale catchments are unrepresentable** (unowned — no milestone has claimed them).
+   "the classic 5 km site catchment is 0.3 of one node"; anything below ~32 km is under two
+   nodes and the isochrone collapses (`queue.md:52-64`).
+3. **Settlement density is bounded by the stride, not only by the siting rule** (M4
+   colonization, per §4a). The same queue entry: *"The same floor bounds how finely settlements
+   can be spaced before their catchments alias into each other"* (`queue.md:58-60`). This is
+   §4a's Charter-vs-spacing constraint seen from the engineering side: even if `minSpacingKm`
+   moved, the stride would still bound how dense the Charter's 300–800 settlements can pack
+   before their catchments alias.
 
 Moving to stride 2 "quadruples the node count and the Dijkstra work" plus a golden re-pin, not a
-tuning change (`queue.md:62-64`). ONE architecture decision with TWO consumers — the M4 spec
-should obtain a single ruling covering both (including whether the answer is a finer stride or a
-pixel-resolution water overlay, which the T3.6b measurement already reached for), not two rulings
-a milestone apart.
+tuning change (`queue.md:62-64`). ONE architecture decision with THREE consumers — the M4 spec
+should obtain a single ruling covering all three (including whether the answer is a finer stride
+or a pixel-resolution water overlay, which the T3.6b measurement already reached for), not three
+rulings across three milestones.
 
 ---
 
@@ -295,7 +309,155 @@ once.
 
 ---
 
-## 4. WHAT M4 IS NOW HOLDING, IN ONE LIST
+## 4. THREE SCALING AND SCOPE CONFLICTS FOUND IN THE PRE-SPEC SCAN
+
+Found by reading the ratified documents against each other (GOV-2 extension; every figure
+re-verified against the tree below). Each is a conflict between things that are individually
+true. **Recorded, not resolved.**
+
+### 4a. THE SCALE CHARTER'S SETTLEMENT COUNTS ARE UNREACHABLE UNDER A DECISION JUST RE-RATIFIED
+
+The three figures, verified:
+
+- **The Charter line:** the revised Scale Charter states settlements *"~50 (ancient) → 300–800
+  (late)"* (`docs/d009-d010-map-population-addendum.md:19`).
+- **The measured capacity:** greedy saturation of the canonical continent at the shipped
+  `minSpacingKm = 480` (`Sim.Data/content/worldgen.json:48`, set at T3.2b) is **min 33, median
+  45, max 74** across seeds — *"Saturation is real at ~33, not 9"*
+  (`docs/t3.4b-review-record.md:220,237`; carried as the corrected B-1,
+  `docs/m4-blocking-material.md:9-24`, superseding B-1's original false claim of nine).
+- **The re-ratification:** ADR-017 (2026-07-29) re-examined D-025's siting clause — *"iterative
+  top-score siting with a minimum travel-time spacing constraint"* — against the T3.6b Item 0
+  measurement and ruled **"SITING: STANDS UNAMENDED"** on measured grounds
+  (`docs/adr/adr-017-d025-founding-variation.md`; evidence `docs/t3.6b-review-record.md`).
+
+The arithmetic: the ANCIENT target (~50) already exceeds measured capacity ~33 by ~1.5×, and the
+LATE target exceeds it by **~9–24×** (300/33 ≈ 9.1; 800/33 ≈ 24.2 — the directive's "10–24×" is
+corrected to the measured arithmetic, finding F10). Only three things close the gap: colonization
+founding settlements that do not respect `minSpacingKm = 480`; a change to the spacing constraint
+itself; or a larger map (D-015, `d009-d010-map-population-addendum.md:58`).
+
+**THE CONFLICT:** colonization is M4 work (CR-003 §5.2(a) — *"A large system — founding rules,
+site selection, clearing cost, what constrains sprawl"*, `docs/adr/cr-003.md:261`), and the
+siting-and-spacing clause it would have to break or bypass was re-examined and left UNAMENDED
+days ago, on measured grounds. Nothing in any document states that M4's colonization must also
+break or bypass that constraint in order to reach the Charter's own numbers. Stated, not
+resolved. **NAMED CHECK for T4.1:** this is a constant-versus-consumer mismatch of exactly the
+kind S8 §4.1 item 1(b) exists to catch — *"the identical question at both ends of the pipe: what
+the producer writes, what the consumer multiplies"* (`spine-s8-governance-freeze.md:99-101`) —
+reaching M4 through colonization; the audit row is `minSpacingKm` vs the Charter's settlement
+counts, with the three closure routes as the recorded options for the director's ruling.
+
+### 4b. THE STRIDE'S THIRD CONSUMER — LANDED AS THE §2d AMENDMENT
+
+The GOV-2 extension identified a third consumer of the stride-4 decision, stated in the same
+queue entry as the second and missed in this file's first commit: settlement density
+(`docs/queue.md:58-60`). §2d is amended in place to name all three consumers with their
+milestones — rivers (M4 transport), village catchments (unowned), settlement density (M4
+colonization, §4a). The cost line is unchanged. The case for ruling the stride ONCE rather than
+three times, across three milestones, is now substantially stronger.
+
+### 4c. D-037 SHIPS CLAIM SOURCES THAT NOTHING CAN EXERCISE FOR SEVERAL MILESTONES
+
+D-037 C1 enumerates six claim sources (`docs/d037-emergent-polities.md:70-79`). Read against the
+milestone ladder, verified source by source (D-037's own milestone labels use the pre-D-011
+numbering in places — §1c/F8; both numberings given):
+
+| C1 source | live at M4? | goes live |
+| --- | --- | --- |
+| prior possession (`d037:72`) | **live mechanism at M4, empty at turn zero** — it needs a former controller, so it populates only after control first changes hands (conquest, E3, is M4: `d037:176-181`) | M4, first exercised after the first control change |
+| co-ethnic/co-cultural population — irredentism (`d037:73-74`) | **inert** — C1's own text: "becomes live when cultural plurality does, M8/M9"; cultural plurality (Religion & culture) sits at M9 under D-011 §6 (§1c) | M9 (D-011 numbering) |
+| dynastic or legal inheritance (`d037:75`) | **inert** — "(M7 institutions)"; institutions are M8 under D-011 §6 (§1c) | M8 (D-011 numbering) |
+| treaty cession (`d037:76`) | **inert** — "(M7 diplomacy)"; diplomacy is M8 under D-011 §6 (§1c) | M8 (D-011 numbering) |
+| conquest (`d037:77`) | **live** — E3: "Conquest converts CONTROL immediately but converts CLAIM only slowly" (`d037:176-181`) | M4 |
+| settlement founding (`d037:78`) | **live** — B1 colonization from below is M4 (`d037:41-46`) | M4 |
+
+**THIS IS NOT A REASON TO CHANGE D-037.** D1 is explicit that the data model supports all six
+from day one and that retrofitting is prohibitively expensive (`d037:128-130`; §2a). The conflict
+is with a DIFFERENT standard: this project has repeatedly shipped unreachable code paths that
+artifacts claimed were exercised, and the reviews have caught them at cost. The precedents,
+cited:
+
+- **The `sumSq == 0` fallback (T3.4c review — NOT T3.6b as the directive stated; finding F9):**
+  *"the `sumSq == 0` fallback branch is unreachable dead code and three artifacts claim it is
+  exercised (lens 1 and lens 3 independently; NaN-poisoning proof — bit-identical worlds)"*
+  (`docs/t3.4c-review-record.md:116-117`); the fallback was deleted, the three false claims
+  corrected where they stood, and the *"undischargeable manifest item struck"*
+  (`t3.4c-review-record.md:197`).
+- **T3.5's exact-saturation branch** was *"measured dead in shipped"* config
+  (`docs/t3.5-review-record.md:73`) and had to be revived deliberately at T3.5b
+  (`docs/t3.5b-spec.md:154,200` — "the exact-saturation branch demonstrably live again").
+
+**The requirement for M4, recorded so the spec author reads it before writing the packet
+(director, via the GOV-2 extension):** every claim source that is inert at M4 ships explicitly
+marked inert, with a test proving it is INERT RATHER THAN BROKEN, and with the milestone where it
+goes live named in the code. An inert-and-tested path is honest; an inert-and-unmarked path is
+the finding this project keeps paying for.
+
+---
+
+## 5. ONE MEASUREMENT OWED, NOT A FILING — THE KERNEL CLONE-SIZE CLAIM
+
+m0-kernel-spec §3.2 states: *"At turn start the kernel clones `Prev → Next` (full copy; at M0–M9
+scale this is a few MB — simplicity beats cleverness, revisit only if profiling gates fail)"*
+(`docs/m0-kernel-spec.md:66`). That claim covers THROUGH M9 and has never been measured beyond M3
+(trivially: no later milestone has run). This is §7.12's shape — a property asserted about the
+artifact, covering a range it was never tested across, in a document every agent reads at session
+start — and it is a FOURTH instance of the §1c pattern (CLAUDE.md's merge-loop line, ADR-015
+§7.7's refuted mechanism, the stale Spine inventory).
+
+**What is already determinable from code (read, not run — recorded here):**
+
+- **The Buckets table is DENSE, not sparse.** The founding site instantiates the full
+  cross-product: *"the FULL culture × religion × class × cohort cross product is instantiated in
+  registry order"* (`Sim.Core/Worldgen/WorldFounding.cs:50-52`), with four nested loops adding a
+  row for EVERY (culture, religion, class, cohort) combination per settlement and endowing only
+  class 0 (`WorldFounding.cs:76-96`); other classes found at zero rows that nonetheless EXIST.
+  No other site adds bucket rows — later systems transfer among the founded rows.
+- **Today's row count, statically:** 12 settlements (`Sim.Data/content/worldgen.json:46`) × 1
+  culture × 1 religion × 2 registered classes (`Sim.Data/content/sim.json` registries; the
+  Merchants class, D-036/T3.7, has not landed on main) × 16 cohorts
+  (`Sim.Core/State/Ids.cs:140`, `Cohorts.Count = 16`) = **384 rows** — coinciding with the M2
+  arithmetic (12 × 1 × 1 × 2 × 16), since no third class has landed. A `BucketRow` carries four
+  id fields, a cohort index, one `Conserved` long and seven doubles
+  (`Sim.Core/State/WorldState.cs:105-141`) — order ~84 bytes unpadded, so today's Buckets clone
+  is tens of KB. Arithmetic from code, not a measurement.
+- **The projection arithmetic that makes the measurement urgent:** DENSE instantiation at the
+  Charter's late game (settlements 300–800, `d009-d010-map-population-addendum.md:19`) with
+  D-018's 11+1 class slots (`docs/d018-classes-and-needs.md:10`) and 16 cohorts gives, at even a
+  SINGLE culture and religion, 800 × 1 × 1 × 12 × 16 = **153,600 rows — already at the Spine's
+  own ratified hard cap of "~150k buckets world-wide"** (`civ-sim-architecture-v3-outline.md:44`)
+  — and every plural culture/religion (arriving M8/M9-band) multiplies it: at 4 × 4, ~2.46M rows,
+  order ~200 MB at ~84 B/row — no longer "a few MB". The cap's own *"automatic merge-below-
+  threshold policy"* (`civ-sim-architecture-v3-outline.md:44`) presupposes sparse-or-merged
+  storage; the shipped dense founding and the ratified cap are on a collision course at scale.
+  Projection arithmetic, flagged as such — not a measurement.
+
+**THE MEASUREMENT OWED, with its method (recorded, not run — docs-only packet):** report today's
+bucket row count and clone bytes from `sim bench`; state sparse-or-dense (answered above from
+code: DENSE — the bench confirms); project both against the Charter's late-game settlement counts
+with plural cultures and religions and the ~150k bucket cap; then either CONFIRM the §3.2 claim
+or NARROW it to the milestones it actually holds for. If the kernel spec's wording needs
+amendment, the mechanism is an ADR under the M0 freeze (`m0-kernel-spec.md` is in the frozen
+baseline, `spine-s8-governance-freeze.md:202`; kernel contract in the freeze perimeter, `:15`).
+
+**Interaction with ADR-008, for whoever runs it:** ~50 MB of terrain is currently EXCLUDED from
+the per-turn clone — terrain layers are *"immutable after worldgen"*
+(`docs/adr/adr-008-static-terrain.md:9,19`). ADR-008 names the upgrade path: *"late-era terrain
+mutation … would move the mutated layers into cloned, canonically-serialized state — a
+director-approved ADR at that milestone, reversing this exclusion only for the layers that gain
+writers"* (`adr-008:37-41`). The Spine schedules Environment & climate at M9
+(`civ-sim-architecture-v3-outline.md:89`), displaced and AMBIGUOUS under the D-011 resequence
+per §1c's table (the extension's "M10" is not tree-supported — finding F11). When those layers
+gain writers, part of that 50 MB re-enters the clone, on top of whatever the buckets are doing by
+then. D-009's mitigation is already on record: *"Raster-wide updates (climate, vegetation) run
+chunked or every-N-turns, never full-raster every turn"* (`d009-d010-map-population-addendum.md:19`).
+
+**Owner: the next packet that runs a bench. No milestone assigned.**
+
+---
+
+## 6. WHAT M4 IS NOW HOLDING, IN ONE LIST
 
 **Director ruling, recorded at the director's instruction: M4 STAYS WHOLE rather than splitting.**
 This section exists so the scale is visible to the spec author, not to reopen the ruling. M4
@@ -324,7 +486,7 @@ same, in proportion to its width.
 
 ---
 
-## 5. FINDINGS — PROMPT-VS-TREE DISAGREEMENTS (§7.12) AND FIRST-RECORD RULINGS
+## 7. FINDINGS — PROMPT-VS-TREE DISAGREEMENTS (§7.12) AND FIRST-RECORD RULINGS
 
 Filed per the packet's own rule: where the directive and the tree disagree, the tree wins and the
 disagreement is reported.
@@ -336,7 +498,9 @@ disagreement is reported.
   (§4). The tree's last word on T3.10 still schedules it inside M3 (`m3-spec.md:60`;
   `queue.md:116-125` "Do not close T3.10 with the ≥1 bar standing"). Of the transport packet's
   three levers, only water routes have a tree measurement behind them
-  (`t3.6b-review-record.md:224-265`).
+  (`t3.6b-review-record.md:224-265`). *Extended at the GOV-2 extension:* the §4c inert-marking
+  requirement for M4's claim sources is likewise director-originated with no earlier tree record;
+  first recorded here.
 - **F2 — Misattributed sentence.** "M4's own blocking material says conflict and foreign trade
   both assume scarcity can bite" — that sentence lives in `docs/handoff-status.md:217`, not in
   `m4-blocking-material.md`, whose own words are "M4 cannot ship without answering how stores are
@@ -373,9 +537,32 @@ disagreement is reported.
   numbering schemes (`d037-emergent-polities.md:176` vs `:4,119,170`), demonstrating the stale
   table propagating into a new ratified document (§1c).
 
+*Findings F9–F12 filed at the GOV-2 extension (2026-07-30):*
+
+- **F9 — The `sumSq == 0` precedent is a T3.4c finding, not T3.6b.** The extension attributed it
+  to "T3.6b"; the tree records it in the T3.4c review — mutant/finding M4, unreachable dead code,
+  NaN-poisoning proof, three artifacts claiming exercise, undischargeable manifest item struck
+  (`docs/t3.4c-review-record.md:116-117,197`; the branch itself originates in the T3.4b/c weather
+  substrate, `docs/t3.4c-spec.md:19-37`). Nothing in the T3.6b record mentions `sumSq`. Cited
+  correctly in §4c.
+- **F10 — "roughly 10–24×" is ~9–24× by the cited figures.** 300/33 ≈ 9.1 and 800/33 ≈ 24.2;
+  §4a records the measured arithmetic. Minor, filed for the transcription discipline (the
+  standing summary-prose rule, `docs/queue.md:283-290`).
+- **F11 — Environment & climate is not "M10 under the D-011 resequence".** The extension's
+  Section 6 parenthetical asserts M10 "per 1c"; §1c's verified table records the row as
+  DISPLACED AND AMBIGUOUS — D-011 §6 does not name Environment & climate at all, and M9 is now
+  the society layer (`docs/d011-battle-layer-addendum.md:49-59`;
+  `civ-sim-architecture-v3-outline.md:89`). §5 carries the ambiguity, not the M10 label.
+- **F12 — ADR-017's status line is stale against the merge record (tree-internal, noted while
+  verifying §4a).** The ADR file still reads "Status: proposed (director certification pending)"
+  (`docs/adr/adr-017-d025-founding-variation.md:3`) while the merge commit on `main` records the
+  packet as director-certified ("Merge t3.6b-founding-variation (director-certified)", commit
+  `4938897`). §4a's premise — the siting clause stands, re-ratified on measured grounds — holds
+  either way; the unflipped status line is itself a small instance of the §1c pattern.
+
 ---
 
-## 6. PROVENANCE (per-item, claim → source)
+## 8. PROVENANCE (per-item, claim → source)
 
 | claim | source |
 | --- | --- |
@@ -393,5 +580,9 @@ disagreement is reported.
 | price-solver figures | `docs/queue.md:140-144`; `docs/t3.6-review-record.md:166`; `docs/d009-d010-map-population-addendum.md:19`; `docs/civ-sim-architecture-v3-outline.md:46,47` |
 | lattice stride | `docs/queue.md:52-64`; `docs/t3.6b-review-record.md:235-239,259-260` |
 | T3.6 timing note | `docs/t3.6-spec.md:26-50`; `Sim.Data/content/era-pacing.json`; `docs/adr/adr-013-lattice-denomination-and-agronomic-recalibration.md:129-130`; `docs/d009-d010-map-population-addendum.md:51` |
-| M4 scope list | table in §4, each row cited |
+| M4 scope list | table in §6, each row cited |
 | exit-gate history | `docs/milestones.md:11-21,45-68` |
+| Charter-vs-spacing conflict (§4a) | `docs/d009-d010-map-population-addendum.md:19,58`; `Sim.Data/content/worldgen.json:48`; `docs/t3.4b-review-record.md:220,237`; `docs/m4-blocking-material.md:9-24`; `docs/adr/adr-017-d025-founding-variation.md`; `docs/adr/cr-003.md:261`; `docs/spine-s8-governance-freeze.md:99-101` |
+| stride third consumer (§2d/§4b) | `docs/queue.md:58-60` |
+| D-037 claim-source liveness (§4c) | `docs/d037-emergent-polities.md:41-46,70-79,128-130,176-181`; precedents `docs/t3.4c-review-record.md:116-117,197`, `docs/t3.4c-spec.md:19-37`, `docs/t3.5-review-record.md:73`, `docs/t3.5b-spec.md:154,200` |
+| kernel clone-size claim (§5) | `docs/m0-kernel-spec.md:66`; bucket key `docs/d009-d010-map-population-addendum.md:29`; DENSE founding `Sim.Core/Worldgen/WorldFounding.cs:50-52,76-96`; counts `Sim.Data/content/worldgen.json:46`, `Sim.Data/content/sim.json` (registries), `Sim.Core/State/Ids.cs:140`; row shape `Sim.Core/State/WorldState.cs:105-141`; bucket cap `civ-sim-architecture-v3-outline.md:44`; classes ceiling `docs/d018-classes-and-needs.md:10`; ADR-008 `docs/adr/adr-008-static-terrain.md:9,19,37-41`; mitigation `d009-d010-map-population-addendum.md:19`; freeze mechanism `docs/spine-s8-governance-freeze.md:15,202` |

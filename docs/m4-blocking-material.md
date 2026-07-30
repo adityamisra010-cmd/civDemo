@@ -8,7 +8,10 @@ milestone spec's foundations are audited before its packets are written.
 > dependency filing, input to the M4 spec's S8 §4.1 coupling map: two director rulings first
 > recorded there (money: M5 taxes in kind; notables: split by role, generals at M4), the stale
 > system-inventory reconciliation, four known items with the milestone they bite in (incl. B-2
-> below), the T3.6 trade-instantaneity timing note, and the ruled-whole M4 scope list.
+> below), three ratified-doc conflicts (incl. the Scale-Charter-vs-`minSpacingKm` collision that
+> reaches M4 through colonization, and D-037 claim sources inert until M8/M9), one owed
+> kernel-clone measurement (the §3.2 "few MB" claim vs a DENSE bucket cross-product), the T3.6
+> trade-instantaneity timing note, and the ruled-whole M4 scope list.
 
 ---
 
