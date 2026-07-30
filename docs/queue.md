@@ -442,3 +442,10 @@
   traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
   Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
   designed here.
+- **MODIFYING A GUARD RE-OPENS ITS RED PROOF (director + agent agreement, T3.8).** The T3.5b
+  bound-need-must-have-a-satisfier guard was taught the T3.8 housingStock source; a guard
+  taught a NEW case can lose its teeth on the OLD one, and its prior §7.4 red proof no longer
+  automatically holds. General rule, now standing: any modification to a proven-red guard
+  re-runs the red for the ORIGINAL property AND adds one for the new case, as permanent tests
+  where the guard's shape allows. First instance: HousingGuardTests (original no-satisfier red,
+  source-typo red, double-sourcing ambiguity red, all measured post-modification).

@@ -923,6 +923,57 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV19_PopulatedHousingTable_AndSizeTierField()
+    {
+        // T3.8: the constitution's populated-table test for BOTH v19 surfaces
+        // — the new HousingRow AND the int SizeTier appended to
+        // CatchmentSummaryRow (a widened row is a serialized change exactly
+        // like a new one). DISTINCT values in every field; the four adjacent
+        // HousingRow doubles include a NEGATIVE and a -0.0 so a transposition
+        // or normalising serializer cannot round-trip cleanly; Dwellings
+        // above Int32.MaxValue so a 4-byte write of the 8-byte stock breaks
+        // the length equation loudly.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+        world.Housing.Add(new HousingRow(new SettlementId(3),
+            Conserved.FromSnapshot(5_000_000_021L), 0.4375, -0.28125, 0.6455078125, 1.75));
+        world.Housing.Add(new HousingRow(new SettlementId(9),
+            Conserved.FromSnapshot(68L), -0.0, 0.015625, 1.0, 0.0));
+        world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            new SettlementId(3), 41, 1234.5625, 7, 55L, SizeTier: 3));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2, loaded.Housing.Count);
+        Assert.Equal(3, loaded.Housing[0].Settlement.Value);
+        Assert.Equal(5_000_000_021L, loaded.Housing[0].Dwellings.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.4375),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].BuildRemainder));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.28125),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].DecayRemainder));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.6455078125),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].LastMaintenanceFraction));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.75),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].LastLaborUsed));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[1].BuildRemainder));
+        Assert.Equal(3, loaded.CatchmentSummaries[^1].SizeTier);
+        Assert.Equal(41, loaded.CatchmentSummaries[^1].NodeCount);
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
     public void VersionMismatch_FailsWithActionableMessage()
     {
         WorldState world = CanonicalExecutor().Run(Genesis(42), 3);
