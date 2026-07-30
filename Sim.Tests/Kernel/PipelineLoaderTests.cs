@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(11, pipeline.Length);
+        Assert.Equal(12, pipeline.Length);
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -37,11 +37,16 @@ public class PipelineLoaderTests
         // solver just published. It reads PREV either way (the §3.2 lag), so
         // position is legibility; pinned so a silent reorder fails a test.
         Assert.Equal("trade", pipeline[5].Name);
-        Assert.Equal("classmobility", pipeline[6].Name);  // T2.2, spec §3 pipeline order
-        Assert.Equal("migration", pipeline[7].Name);      // T2.5, spec §3 pipeline order
-        Assert.Equal("demographics", pipeline[8].Name);
-        Assert.Equal("needsgrievance", pipeline[9].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[10].Name);
+        // T3.8: housing runs after the goods economy settles the turn's flows.
+        // It reads PREV either way (the §3.2 lag: maintenance draws Prev
+        // stocks, pathbuild subtracts Prev housing labor next turn), so the
+        // position is legibility — pinned so a silent reorder fails a test.
+        Assert.Equal("housing", pipeline[6].Name);
+        Assert.Equal("classmobility", pipeline[7].Name);  // T2.2, spec §3 pipeline order
+        Assert.Equal("migration", pipeline[8].Name);      // T2.5, spec §3 pipeline order
+        Assert.Equal("demographics", pipeline[9].Name);
+        Assert.Equal("needsgrievance", pipeline[10].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[11].Name);
     }
 
     [Fact]
@@ -62,7 +67,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, consumption, price, trade, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, production, consumption, price, trade, housing, classmobility, migration, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 

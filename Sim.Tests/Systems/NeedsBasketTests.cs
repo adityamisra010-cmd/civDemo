@@ -423,9 +423,16 @@ public class NeedsBasketTests
     [Fact]
     public void HousingShortage_LowersShelterSatisfaction_AndRaisesGrievance()
     {
-        // The packet's Shelter criterion, as a controlled contrast: two
-        // settlements identical in every respect except the supply of dwelling
-        // materials. The short one must read LOWER Shelter and MORE grievance.
+        // The Shelter criterion, RE-RIGGED at T3.8 as the mechanism changed
+        // out from under it: Shelter is now sourced from the DWELLING STOCK
+        // (needs.json source: "housingStock"), so the controlled contrast is
+        // two settlements identical in every respect — every basket good
+        // filled on both — except the dwellings themselves. The short one
+        // must read LOWER Shelter and MORE grievance. Under the old flow
+        // stand-in this test deprived timber/stone FLOWS; that variable no
+        // longer reaches Shelter at all (the T3.8 before-column measured a
+        // 93%-construction settlement still reading Shelter 0.0000 under the
+        // stand-in — building effort was invisible; the stock fixes that).
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = HandWorld(cfg, settlements: 2);
         foreach (string good in new[] { "grain", "livestock", "fish", "pottery", "cloth" })
@@ -433,17 +440,22 @@ public class NeedsBasketTests
             SetFill(world, cfg, good, 1.0, settlement: 0);
             SetFill(world, cfg, good, 1.0, settlement: 1);
         }
-        // Settlement 0 keeps its roofs up; settlement 1 gets a third of what it needs.
-        SetFill(world, cfg, "timber", 1.0, settlement: 0);
-        SetFill(world, cfg, "stone", 1.0, settlement: 0);
-        SetFill(world, cfg, "timber", 0.33, settlement: 1);
-        SetFill(world, cfg, "stone", 0.33, settlement: 1);
+        // Settlement 0's 1000 people are fully housed (ceil(1000/6) = 167
+        // dwellings, capacity 1002 ≥ 1000 → clamps to exactly 1.0);
+        // settlement 1 has a third of that (56 dwellings → 336/1000 = 0.336,
+        // strictly inside (0,1)).
+        double ppd = cfg.Housing!.PersonsPerDwelling;
+        long fullDwellings = (long)Math.Ceiling(1000.0 / ppd);
+        AddHousing(world, settlement: 0, fullDwellings);
+        AddHousing(world, settlement: 1, fullDwellings / 3);
 
         WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.NeedsGrievance(cfg)]).Step(world);
 
         double housed = Satisfaction(next, 0, 1, needId: 2);
         double short_ = Satisfaction(next, 1, 1, needId: 2);
         Assert.Equal(1.0, housed);
+        // The stock arithmetic is exact and assertable: dwellings × ppd / pop.
+        Assert.Equal(fullDwellings / 3 * ppd / 1000.0, short_);
         Assert.True(short_ < housed, $"the housing shortage did not lower Shelter: {short_:F4} !< {housed:F4}");
         Assert.True(short_ > 0.0, "Shelter bottomed out — assert strictly inside the bound (ADR-015 §7.5)");
         Assert.True(Grievance(next, 1) > Grievance(next, 0),
@@ -714,5 +726,16 @@ public class NeedsBasketTests
             if (world.Grievances[i].Settlement.Value == settlement) return world.Grievances[i].Value;
         Assert.Fail($"no grievance row for settlement {settlement}");
         return 0.0;
+    }
+
+    /// <summary>T3.8: seed a dwelling stock the lawful way (Ledger flow, the
+    /// founding convention) — Shelter reads it from Prev.</summary>
+    private static void AddHousing(WorldState world, int settlement, long dwellings)
+    {
+        var ledger = new Ledger(world.LedgerFlows);
+        int row = world.Housing.Add(new HousingRow(
+            new SettlementId(settlement), Conserved.Zero, 0.0, 0.0, 1.0, 0.0));
+        ledger.Flow(ref world.Housing.Ref(row).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, dwellings, FlowDirection.Source, OverdrawPolicy.Throw);
     }
 }

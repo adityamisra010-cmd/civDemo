@@ -56,17 +56,39 @@ public class PluralWorldTests
             int count = world.Settlements.Count;
 
             // Independent per-settlement cost fields (RelaxCappedFrom is raw
-            // terrain — matches the no-network founding state).
-            double budget = CatchmentSystem.TravelBudgetCostUnits(TestConfigs.Sim(), lattice);
+            // terrain — matches the no-network founding state). T3.8: budgets
+            // are PER SETTLEMENT via the system's own pure tier functions on
+            // the founded housing rows (Prev for the catchment step) — the
+            // witness's independence is the Dijkstra + composite-nearest
+            // computation, not the budget derivation, exactly as the base
+            // budget already came from TravelBudgetCostUnits.
+            var sim = TestConfigs.Sim();
+            var budgets = new double[count];
+            var tiers = new int[count];
             var fields = new double[count][];
             for (int s = 0; s < count; s++)
             {
+                int tier = 0;
+                for (int h = 0; h < world.Housing.Count; h++)
+                    if (world.Housing[h].Settlement == world.Settlements[s].Id)
+                    {
+                        tier = CatchmentSystem.SizeTier(
+                            world.Housing[h].Dwellings.Value, sim.Catchment.SizeDwellingsRef);
+                        break;
+                    }
+                tiers[s] = tier;
+                budgets[s] = CatchmentSystem.TierBudget(sim, lattice, tier);
                 fields[s] = new double[n];
                 Array.Fill(fields[s], double.PositiveInfinity);
                 int origin = LatticeMap.OriginLatticeNode(
                     lattice, world.Terrain!.Size, world.Settlements[s].SiteCell);
-                Pathfinder.RelaxCappedFrom(lattice, origin, budget, fields[s]);
+                Pathfinder.RelaxCappedFrom(lattice, origin, budgets[s], fields[s]);
             }
+            // The T3.8 record's discriminating diagnostic: state whether this
+            // world actually exercises UNEQUAL budgets (all-equal tiers make
+            // the sweep blind to per-budget semantics; the constructed pin in
+            // PartitionUnequalBudgetTests covers that case by construction).
+            Console.WriteLine($"seed {seed}: founding tiers [{string.Join(",", tiers)}]");
 
             // Claim table → owner per node (also: zero double-claims).
             var claimed = new int[n];
@@ -79,41 +101,38 @@ public class PluralWorldTests
                 claimed[row.LatticeNode] = row.Settlement.Value;
             }
 
-            // ≥500 deterministic pseudo-random samples (fixed LCG — no RNG law
-            // concerns in tests, but keep it reproducible).
-            ulong lcg = seed * 6364136223846793005UL + 1442695040888963407UL;
-            // T3.2b: keep drawing until BOTH bars are met — 500 comparisons
-            // AND 50 of them on claimed nodes. Uniform sampling over the whole
-            // lattice used to hit ~10 % claimed; at a 50 km economic hinterland
-            // catchments cover ~1 % of the map, so 500 uniform draws yield about
-            // 5 claimed nodes and the witness goes vacuous. The bar is NOT
-            // lowered — the same ≥50 claimed comparisons are still required,
-            // and the unclaimed comparisons (which prove nothing is claimed
-            // that shouldn't be) go UP rather than down.
-            int sampled = 0, claimedSamples = 0;
-            const int MaxDraws = 200_000;
-            while (sampled < 500 || claimedSamples < 50)
+            // T3.8: FULL-lattice sweep. The 500-draw LCG existed to bound the
+            // comparison cost, but the expensive part is the fields — already
+            // computed above — and the comparison is O(n·count), so every node
+            // is checked. Strictly stronger than sampling; the T3.2b ≥50
+            // claimed-comparison bar is kept as the non-vacuousness floor.
+            int claimedTotal = 0;
+            for (int node = 0; node < n; node++)
             {
-                if (sampled >= MaxDraws) break;
-                lcg = lcg * 6364136223846793005UL + 1442695040888963407UL;
-                int node = (int)(lcg >> 33) % n;
-                sampled++;
-
                 int bestOwner = -1;
                 double bestCost = double.PositiveInfinity;
                 for (int s = 0; s < count; s++)
                 {
                     double c = fields[s][node];
-                    if (c > budget) continue;
+                    if (c > budgets[s]) continue;
                     // Composite (cost, settlement id): strictly better, or
                     // equal cost and lower id (ascending s makes id implicit).
                     if (c < bestCost) { bestCost = c; bestOwner = s; }
                 }
                 Assert.Equal(bestOwner, claimed[node]);
-                if (bestOwner >= 0) claimedSamples++;
+                if (bestOwner >= 0) claimedTotal++;
             }
-            Assert.True(claimedSamples >= 50,
-                $"seed {seed}: only {claimedSamples} claimed nodes in {sampled} draws — witness vacuous");
+            // Non-vacuousness, recalibrated for the sweep: the T3.2b ≥50 bar
+            // counted claimed DRAWS with duplicates over a ~40-node claimed
+            // set (measured: 44 distinct at seed 42); the sweep covers every
+            // claimed node exactly once, so the completeness identity replaces
+            // the draw count — the witness's claimed total must equal the
+            // system's row count exactly (bidirectional: no phantom claims,
+            // no unwitnessed rows) — plus a floor that each settlement claims
+            // on average at least a couple of nodes.
+            Assert.Equal(world.CatchmentNodes.Count, claimedTotal);
+            Assert.True(claimedTotal >= 2 * count,
+                $"seed {seed}: only {claimedTotal} claimed nodes for {count} settlements — witness vacuous");
         }
     }
 

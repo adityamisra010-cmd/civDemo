@@ -153,17 +153,17 @@ public static class Pathfinder
     }
 
     /// <summary>
-    /// The catchment PARTITION (T2.3, m2 spec §3): ONE multi-source Dijkstra
-    /// with every settlement origin as a source, truncated at the budget. Each
-    /// lattice node is CLAIMED by the composite key (travel cost, settlement
-    /// id) — the first source to settle it under that total order owns it, so
-    /// no node is ever claimed twice BY CONSTRUCTION (one owner array cell).
-    /// Ties (two sources reaching a node at bit-equal cost) go to the lower
-    /// settlement INDEX (== lower SettlementId in founding pick order): the
-    /// relax rule below propagates ownership on strictly-better cost, or on
-    /// equal cost from a lower-indexed owner. Uses the same lattice + network
-    /// overlay expansion as Isochrone (fast lanes shape the borders too).
-    /// Owner is −1 for unreached/over-budget nodes.
+    /// The catchment PARTITION (T2.3, m2 spec §3): every settlement origin
+    /// claims lattice nodes by the composite key (travel cost, settlement
+    /// id) — one owner array cell, so no node is ever claimed twice BY
+    /// CONSTRUCTION. Ties (two sources reaching a node at bit-equal cost) go
+    /// to the lower settlement INDEX (== lower SettlementId in founding pick
+    /// order). Uses the same lattice + network overlay expansion as Isochrone
+    /// (fast lanes shape the borders too). Owner is −1 for unreached/
+    /// over-budget nodes. Since T3.8 the algorithm is one capped Dijkstra per
+    /// source merged at settle time (the per-budget overload explains why);
+    /// with all budgets equal that computes exactly what T2.3's single
+    /// multi-source pass computed.
     /// </summary>
     public readonly struct PartitionResult
     {
@@ -182,14 +182,23 @@ public static class Pathfinder
 
     /// <summary>
     /// T3.8: as above with a PER-SOURCE budget (the settlement-size catchment
-    /// bonus). Semantics: each source claims only nodes within ITS budget; a
-    /// contested node still goes to the composite (travel cost, settlement
-    /// index) key among the sources that can afford it. With all budgets equal
-    /// this is BIT-IDENTICAL to the scalar overload (proven by the equal-budget
-    /// equivalence test): an over-budget tentative never writes g under either
-    /// formulation that matters — the scalar version wrote-but-never-closed it
-    /// and normalized it out, and the blocking case needs one budget above
-    /// another, impossible when equal.
+    /// bonus). SEMANTICS — the T2.3 witness is the spec: each source's reach
+    /// is its OWN capped Dijkstra field, independent of every rival, and a
+    /// node goes to the composite (travel cost, settlement index) key among
+    /// the sources whose field reaches it within their own budget. Produce may
+    /// therefore TRANSIT territory another settlement claims — M3 has no
+    /// polity borders (walls are D-037's business, not the hinterland's).
+    ///
+    /// Implemented as one capped Dijkstra PER SOURCE merged at settle time,
+    /// deliberately NOT one multi-source pass: a single-label multi-source
+    /// formulation is exact only under EQUAL budgets (a refused tentative is
+    /// refused for every source alike), and under UNEQUAL budgets it truncates
+    /// a larger-budget source's field behind a nearer smaller-budget rival —
+    /// the rival holds the node's only label, then exhausts at its budget, and
+    /// the larger-budget source never propagates through (label-stealing).
+    /// Measured: PartitionUnequalBudgetTests runs the single-label formulation
+    /// inline as a mutant and shows the divergence this implementation exists
+    /// to avoid, then pins Partition == per-source witness node-for-node.
     /// </summary>
     public static PartitionResult Partition(
         TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins,
@@ -198,79 +207,54 @@ public static class Pathfinder
         int n = lattice.NodeCount;
         (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
 
-        var g = new double[n];
-        var owner = new int[n];
-        var closed = new bool[n];
+        var g = new double[n];      // best composite cost per node (MaxValue unclaimed)
+        var owner = new int[n];     // winning settlement INDEX per node (−1 unclaimed)
         Array.Fill(g, double.MaxValue);
         Array.Fill(owner, -1);
 
-        var open = new MinHeap(256);
+        // Scratch reused across sources. Total relax work is the sum of the
+        // per-source balls — what the old union pass did plus the overlap
+        // between balls (small at D-025 spacing) — plus one O(n) clear pair
+        // per source. Recompute is D-016-gated, never per-turn.
+        var dist = new double[n];
+        var closed = new bool[n];
+
         for (int s = 0; s < origins.Length; s++)
         {
             int origin = origins[s];
             if (!lattice.IsPassable(origin)) continue;
-            // Two settlements sharing an origin node cannot happen under D-025
-            // spacing; if forced, the composite tie rule (lower index) holds.
-            if (g[origin] == 0.0 && owner[origin] >= 0) continue;
-            g[origin] = 0.0;
-            owner[origin] = s;
+            double budget = budgets[s];
+
+            Array.Fill(dist, double.MaxValue);
+            Array.Clear(closed);
+            var open = new MinHeap(256);
+            dist[origin] = 0.0;
             open.Push(0.0, origin);
-        }
 
-        double maxBudget = 0.0;
-        for (int s = 0; s < budgets.Length; s++) if (budgets[s] > maxBudget) maxBudget = budgets[s];
-
-        while (open.Count > 0)
-        {
-            (double cost, int current) = open.Pop();
-            if (closed[current]) continue;
-            if (cost > maxBudget) break; // heap is monotone: everything further is over every budget
-            closed[current] = true;
-
-            (int x, int y) = lattice.Coords(current);
-            for (int d = 0; d < 8; d++)
+            while (open.Count > 0)
             {
-                int nx = x + Dx[d], ny = y + Dy[d];
-                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
-                int nb = ny * lattice.Size + nx;
-                if (closed[nb] || !lattice.IsPassable(nb)) continue;
-                RelaxClaim(current, nb, g[current] + lattice.StepCost(current, nb), g, owner, open, budgets);
-            }
-            int[] targets = overlayTargets[current];
-            double[] costs = overlayCosts[current];
-            for (int e = 0; e < targets.Length; e++)
-            {
-                int nb = targets[e];
-                if (closed[nb] || !lattice.IsPassable(nb)) continue;
-                RelaxClaim(current, nb, g[current] + costs[e], g, owner, open, budgets);
+                (double cost, int current) = open.Pop();
+                if (closed[current]) continue;
+                if (cost > budget) break; // heap is monotone: everything further is over THIS budget
+                closed[current] = true;
+
+                // Claim at settle time by the composite key (cost, settlement
+                // index): strictly better cost wins; bit-equal cost keeps the
+                // lower index (s ascends, so the first writer holds ties —
+                // including two settlements forced onto one origin node, which
+                // D-025 spacing forbids but the key resolves anyway).
+                if (cost < g[current] || (cost == g[current] && s < owner[current]))
+                {
+                    g[current] = cost;
+                    owner[current] = s;
+                }
+
+                Expand(lattice, overlayTargets, overlayCosts, current, dist, null, closed,
+                    (node, tentative) => { if (tentative <= budget) open.Push(tentative, node); });
             }
         }
 
-        // Nodes never settled within budget are unclaimed (their tentative g /
-        // owner may hold over-budget speculation — normalize them out).
-        for (int i = 0; i < n; i++)
-        {
-            if (!closed[i]) { owner[i] = -1; g[i] = double.MaxValue; }
-        }
         return new PartitionResult { Owner = owner, Cost = g };
-    }
-
-    private static void RelaxClaim(
-        int from, int to, double tentative, double[] g, int[] owner, MinHeap open,
-        ReadOnlySpan<double> budgets)
-    {
-        // T3.8: a source may claim only within ITS budget — an unaffordable
-        // tentative writes nothing, so it can never block an affordable claim
-        // from a larger-budget neighbour.
-        if (tentative > budgets[owner[from]]) return;
-        // The claim key (travel cost, settlement index): strictly-better cost
-        // wins; bit-equal cost goes to the lower-indexed settlement.
-        if (tentative < g[to] || (tentative == g[to] && owner[from] < owner[to]))
-        {
-            g[to] = tentative;
-            owner[to] = owner[from];
-            open.Push(tentative, to);
-        }
     }
 
     /// <summary>
