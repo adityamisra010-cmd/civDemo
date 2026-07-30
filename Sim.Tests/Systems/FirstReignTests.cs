@@ -207,7 +207,19 @@ public class FirstReignTests
         //   dead world frozen, no food mountain (a blind re-pin cannot
         //   satisfy them).
         //   v13 value: 66c3a94522c0c580b3c200efe69cef7e480b312ef0fafc9c421a29f0a4682195
-        const string golden = "2d6f9f45f9ec5097efbca0063284f0325352dbea40dd3df4b246a0c316f7b4e5";
+        //   v15 (T3.8 certification fix pass — DELIBERATE, DATA-ONLY; the
+        //   SECOND re-pin in this packet, authorized by the certification
+        //   ruling on the T3.5b precedent): v14 CAPTURED A WORLD LATER FOUND
+        //   DEFECTIVE — housing collapsed from turn 1 (the maintenance
+        //   derivation named the registry's ceramic clay, which crafting
+        //   consumes to exhaustion before housing's draw; review record, fix
+        //   pass). Clay draw rates corrected to 0 (structural earth is
+        //   subsoil, a non-good); even this N = 1 world's housing now
+        //   maintains from its timber store until the famine takes the people.
+        //   Do not read v14 as a good state. Shape asserts re-verified:
+        //   extinction inside (5, 25], dead world frozen, no food mountain.
+        //   defective v14 value: 2d6f9f45f9ec5097efbca0063284f0325352dbea40dd3df4b246a0c316f7b4e5
+        const string golden = "144d7e5d89b9ff99085eda559e105c712880064e5c14d8d626bf5df36c913bff";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

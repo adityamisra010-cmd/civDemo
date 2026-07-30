@@ -457,7 +457,20 @@ public class SnapshotTests
         //   catchments run tier budgets through the per-source-exact
         //   Partition. Every count on the founded trajectory moves.
         //   pre-T3.8 value: 469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0
-        const string golden = "8473c02161ff4051457d13521e7dc0edbaf7078240cc2da3cad33d38476544c4";
+        //   T3.8 CERTIFICATION FIX PASS (DELIBERATE, DATA-ONLY — the SECOND
+        //   re-pin in this packet, authorized by the certification ruling on
+        //   the T3.5b precedent): THE v19 PIN ABOVE CAPTURED A WORLD LATER
+        //   FOUND DEFECTIVE — housing collapsed from turn 1 because the
+        //   maintenance derivation named the registry's ceramic clay (the
+        //   pottery input, consumed to exhaustion by crafting before housing's
+        //   draw) as the structural-earth material. Corrected derivation:
+        //   clay draw rates 0 (subsoil daub is a non-good, like water); every
+        //   settlement now maintains housing from its timber store, founding
+        //   size tiers engage, and the founded trajectory re-pins. Do not read
+        //   v19's 8473c021... as a good state. (The toy golden did not move —
+        //   config values are not state and the toy preset runs no housing.)
+        //   defective v19 value: 8473c02161ff4051457d13521e7dc0edbaf7078240cc2da3cad33d38476544c4
+        const string golden = "b9f93d4ab096798d9e76a52fe2740c8ff62cf3bc759437829056a16eb152761b";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
