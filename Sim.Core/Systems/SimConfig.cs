@@ -27,6 +27,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("price")] PriceConfig Price,
     [property: JsonPropertyName("harvestVariance")] HarvestVarianceConfig HarvestVariance,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
+    [property: JsonPropertyName("trade")] TradeConfig Trade,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
@@ -407,6 +408,38 @@ public sealed record MigrationConfig(
     [property: JsonPropertyName("attractivenessSmoothingWindowYears"), JsonRequired] double AttractivenessSmoothingWindowYears,
     [property: JsonPropertyName("destinationDeficitRepulsion"), JsonRequired] double DestinationDeficitRepulsion);
 
+/// <summary>
+/// T3.6 trade tuning (D-034). Both TUNE, per S8 §4.1(c) provenance stated:
+///
+/// GapClosingFraction f — CHOSEN 0.25. Never derived. The fraction of the
+///   gap-closing quantity a pair moves per turn. The mandate fixes only
+///   f &lt; 1 (structural no-overshoot: the flow can never move more than the
+///   quantity that would close the gap, so trade is a damped step toward
+///   parity, never past it — the same shape as migration's
+///   gapClosingFraction, T2.8). 0.25 sits well inside the stable region and
+///   leaves the transport-cost deadband, not the cap, as the normally
+///   binding throttle. VALIDATED in (0,1) at load — at 1 or above the
+///   structural guarantee is gone, which is a config fault, not a tuning
+///   choice.
+///
+/// CostPerBulkCostUnit — DERIVED 0.16 grain-value units per (bulk × travel
+///   cost unit). The conversion that turns bulkPerUnit × path cost into the
+///   same unit as a price gap (grain value per unit of good). ANCHOR: the
+///   classic result the bulk table is already reviewed against — carting
+///   GRAIN roughly DOUBLES its cost within about 100 km overland. Grain has
+///   bulk 1.0 and price ≡ 1.0 (numeraire), so "doubles at ~100 km" means
+///   transport cost ≈ 1.0 grain-value over 100 km. One travel cost unit is
+///   KmPerNode = 16 km of ideal ground (LatticeGeometry: worldgen kmPerPx
+///   4.0 × lattice stride 4), so 100 km ≈ 6.25 cost units, and
+///   1.0 / (1.0 bulk × 6.25 cost units) = 0.16. Real terrain costs more per
+///   km than ideal ground, so effective per-km cost is HIGHER than the
+///   anchor on rough routes — the right direction (overland trade harder in
+///   the mountains, easier along rivers/paths where edges are cheap).
+/// </summary>
+public sealed record TradeConfig(
+    [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
+    [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit);
+
 public static class SimConfigLoader
 {
     public static SimConfig Load(Stream json)
@@ -620,6 +653,19 @@ public static class SimConfigLoader
                 $"starving destination (deficit 1.0) would still RECEIVE migrants, which is the T2.13 " +
                 $"starvation-magnetism defect this parameter exists to kill; got " +
                 $"{Inv(cfg.Migration.DestinationDeficitRepulsion)}.");
+
+        if (cfg.Trade is null) throw new SimConfigException("trade is missing.");
+        if (!(cfg.Trade.GapClosingFraction > 0.0 && cfg.Trade.GapClosingFraction < 1.0))
+            throw new SimConfigException(
+                $"trade.gapClosingFraction must be in (0,1) — the D-034 mandate fixes f < 1: at 1 or " +
+                $"above the flow can overshoot the gap it is closing and the structural no-overshoot " +
+                $"guarantee is gone; at 0 or below trade is silently inert. Got " +
+                $"{Inv(cfg.Trade.GapClosingFraction)}.");
+        if (!(cfg.Trade.CostPerBulkCostUnit > 0.0) || !double.IsFinite(cfg.Trade.CostPerBulkCostUnit))
+            throw new SimConfigException(
+                $"trade.costPerBulkCostUnit must be a finite value > 0 — at 0 the transport-cost deadband " +
+                $"vanishes and every price gap trades regardless of distance, got " +
+                $"{Inv(cfg.Trade.CostPerBulkCostUnit)}.");
 
         return cfg;
     }

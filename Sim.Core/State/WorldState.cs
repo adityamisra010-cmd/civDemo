@@ -402,6 +402,17 @@ public record struct SmoothedAttractivenessRow(SettlementId Settlement, double V
 public record struct HarvestWeatherRow(SettlementId Settlement, double LogDeviation, double Multiplier);
 
 /// <summary>
+/// T3.6 (D-034): one realised trade flow for the turn just computed — Quantity
+/// units of Good moved From → To (always the low-price → high-price direction
+/// at COMPUTE time). Owned by the trade system, REBUILT each turn (cleared
+/// first — the T3.3 stale-row precedent); rows only for flows that actually
+/// moved (Quantity > 0). The R1/R2 observables and the T3.7 merchant-emergence
+/// signal read this table. Bookkeeping of transfers that already conserve by
+/// construction (Ledger.Transfer), NOT itself a conserved stock.
+/// </summary>
+public record struct TradeFlowRow(SettlementId From, SettlementId To, GoodId Good, long Quantity);
+
+/// <summary>
 /// T3.4 (D-033): the price of one good in one settlement, in GRAIN units —
 /// grain is the numeraire and its own price is pinned at exactly 1.0. Prices
 /// are ratios, so `double` (law 7); they are NOT conserved and never move
@@ -523,6 +534,7 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<PriceRow> Prices { get; }
     IReadOnlyTable<PriceTermRow> PriceTerms { get; }
     IReadOnlyTable<HarvestWeatherRow> HarvestWeather { get; }
+    IReadOnlyTable<TradeFlowRow> TradeFlows { get; }
 }
 
 /// <summary>
@@ -632,6 +644,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-settlement harvest weather (T3.4b) — owned by HarvestWeatherSystem.</summary>
     public Table<HarvestWeatherRow> HarvestWeather { get; }
 
+    /// <summary>Per-turn realised trade flows (T3.6, D-034) — owned by TradeArbitrageSystem.</summary>
+    public Table<TradeFlowRow> TradeFlows { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -661,6 +676,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<PriceRow> IReadOnlyWorldState.Prices => Prices;
     IReadOnlyTable<PriceTermRow> IReadOnlyWorldState.PriceTerms => PriceTerms;
     IReadOnlyTable<HarvestWeatherRow> IReadOnlyWorldState.HarvestWeather => HarvestWeather;
+    IReadOnlyTable<TradeFlowRow> IReadOnlyWorldState.TradeFlows => TradeFlows;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -694,6 +710,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Prices = new Table<PriceRow>();
         PriceTerms = new Table<PriceTermRow>();
         HarvestWeather = new Table<HarvestWeatherRow>();
+        TradeFlows = new Table<TradeFlowRow>();
     }
 
     private WorldState(
@@ -711,7 +728,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
         Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness,
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
-        Table<HarvestWeatherRow> harvestWeather)
+        Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows)
     {
         Seed = seed;
         Clock = clock;
@@ -744,6 +761,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Prices = prices;
         PriceTerms = priceTerms;
         HarvestWeather = harvestWeather;
+        TradeFlows = tradeFlows;
     }
 
     /// <summary>
@@ -760,7 +778,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
-            HarvestWeather.Clone())
+            HarvestWeather.Clone(), TradeFlows.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

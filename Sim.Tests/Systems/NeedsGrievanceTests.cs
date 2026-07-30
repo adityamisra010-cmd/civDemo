@@ -404,10 +404,21 @@ public class NeedsGrievanceTests
         // merely small. A "multiply by weight but forget the bound gate"
         // regression detonates instantly against a 1e9 multiplier.
         SimConfig cfg = TestConfigs.Sim();
+        // RIG LEVERS, stated (T3.4c precedent; T3.6b repair): the test's
+        // subject is unbound-need inertness, not founding variance, so the
+        // rig must produce its famine INDEPENDENT of the endowment draw.
+        // EndowmentJitter is pinned to 0 (deterministic nominal endowment) —
+        // and the FoodStore drops 2000 → 400, because the old 2000 was
+        // implicitly calibrated against the 0.25-jittered draw of this seed
+        // (measured in the T3.6b fallout run: at the nominal endowment the
+        // stores outlast the 12-turn horizon and the vacuity guard fires —
+        // it caught its second confounded rig in one packet, working as
+        // designed). At 400 the famine lands well inside the horizon from
+        // the nominal numbers alone.
         cfg = cfg with
         {
             Farming = cfg.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.05 },
-            Founding = cfg.Founding with { FoodStore = 2000 },
+            Founding = cfg.Founding with { FoodStore = 400, EndowmentJitter = 0.0 },
         };
         var riggedNeeds = (NeedEntry[])cfg.Needs!.Needs.Clone();
         // Index 2 is SAFETY. It was Shelter at T2.6; T3.5 BOUND Shelter, so
@@ -422,10 +433,22 @@ public class NeedsGrievanceTests
         WorldState b = WorldFounding.Found(TestConfigs.DevWorldgen(), rigged, Seed, 1);
         TurnExecutor execA = ProductionExecutor(cfg);
         TurnExecutor execB = ProductionExecutor(rigged);
-        for (int t = 1; t <= 12; t++) { a = execA.Step(a); b = execB.Step(b); }
-
-        Assert.True(Grievance(a, 0) > 0.0, "rig vacuous: famine never accrued grievance");
-        Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
+        // Observe the TRAJECTORY, not the endpoint (T3.6b repair, measured):
+        // at the nominal endowment the famine extinguishes the settlement by
+        // t8 and the T2.13 ghost-grievance fix then rightly zeroes the dead
+        // world, so an endpoint-only grievance read is structurally vacuous.
+        // Hash equality is asserted EVERY turn — strictly stronger than the
+        // old end-of-run comparison (two worlds that diverge and reconverge
+        // in death can no longer pass).
+        bool famineAccrued = false;
+        for (int t = 1; t <= 12; t++)
+        {
+            a = execA.Step(a);
+            b = execB.Step(b);
+            if (Grievance(a, 0) > 0.0) famineAccrued = true;
+            Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
+        }
+        Assert.True(famineAccrued, "rig vacuous: famine never accrued grievance on any turn");
     }
 
     // --- dt-correctness of the integration ----------------------------------

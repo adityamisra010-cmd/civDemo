@@ -50,8 +50,10 @@ public static class CanonicalSchema
     /// the per-settlement AR(1) weather state and its mean-one multiplier.
     /// v17 (T3.5, D-035): GoodStockRow gains LastConsumptionEatenUnits — the
     /// post-clamp companion to LastConsumptionDemandUnits, without which a
-    /// basket's fill ratio is not recoverable from published state.</summary>
-    public const int Version = 17;
+    /// basket's fill ratio is not recoverable from published state.
+    /// v18 (T3.6, D-034): TradeFlows table appended after HarvestWeather — the
+    /// per-turn realised trade flows (From, To, Good, Quantity).</summary>
+    public const int Version = 18;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -85,6 +87,7 @@ public static class CanonicalSchema
     private const int PriceRowWidth = 4 + 4 + 8;                    // Settlement, Good, Price bits (v15)
     private const int PriceTermRowWidth = 4 + 4 + 8 * 7;            // Settlement, Good, 7 double bit-fields (v15)
     private const int HarvestWeatherRowWidth = 4 + 8 + 8;           // Settlement, LogDeviation, Multiplier (v16)
+    private const int TradeFlowRowWidth = 4 + 4 + 4 + 8;            // From, To, Good, Quantity (v18)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -410,6 +413,17 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.LogDeviation));
             writer.Write(BitConverter.DoubleToInt64Bits(row.Multiplier));
         }
+
+        // 30. Trade flows (v18, T3.6)
+        writer.Write(world.TradeFlows.Count);
+        for (int i = 0; i < world.TradeFlows.Count; i++)
+        {
+            TradeFlowRow row = world.TradeFlows[i];
+            writer.Write(row.From.Value);
+            writer.Write(row.To.Value);
+            writer.Write(row.Good.Value);
+            writer.Write(row.Quantity);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -692,6 +706,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int tradeFlowCount = reader.ReadInt32();
+        for (int i = 0; i < tradeFlowCount; i++)
+        {
+            world.TradeFlows.Add(new TradeFlowRow(
+                new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                new GoodId(reader.ReadInt32()), reader.ReadInt64()));
+        }
+
         return world;
     }
 
@@ -731,5 +753,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.SmoothedAttractiveness.Count * SmoothedAttractivenessRowWidth
         + CountPrefixWidth + (long)world.Prices.Count * PriceRowWidth
         + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth
-        + CountPrefixWidth + (long)world.HarvestWeather.Count * HarvestWeatherRowWidth;
+        + CountPrefixWidth + (long)world.HarvestWeather.Count * HarvestWeatherRowWidth
+        + CountPrefixWidth + (long)world.TradeFlows.Count * TradeFlowRowWidth;
 }

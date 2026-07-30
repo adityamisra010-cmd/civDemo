@@ -82,6 +82,15 @@
   decade with near-identical counts — and the siting pass clusters settlements
   coastally. Confirmed for the record at the T2.13 session: BOTH observations
   are this one queue item. Candidate for M3 (with goods) or the M10 gate.
+  **T3.6 CONSEQUENCE (director ruling at certification): this is no longer a variety
+  complaint — it is a BLOCKER on observable inter-settlement exchange, and therefore on every
+  mechanism downstream of trade volume.** The T3.6 R1 measurement (docs/t3.6-review-record.md)
+  found ZERO units traded of every good in 100 driven decades because the uniform mix leaves
+  settlements with no comparative advantage: every abundant good's price gap sits inside its
+  transport deadband, and the only gaps that open (bronze, at the band ceiling) have no
+  inventory behind them. Founding uniformity is the named structural cause of D-034's silence,
+  and T3.7 merchants predicate on the trade volume it suppresses. No owner assigned — that is
+  the director's next ruling; the fix is not designed here.
 - Map symbology art-direction (director ruling, T2.12 session): DEFERRED to
   after M4/M5 — settlement icon tiers, production/trade-route visual language,
   political vs catchment border treatment, army/conflict markers, unrest
@@ -175,14 +184,16 @@
 - **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
   in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
   yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
-- **OPEN — owner T3.10 (corridor & measurement teeth): the √(1−ρ²) stationary-variance factor is
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29) — (corridor &
+  measurement teeth): the √(1−ρ²) stationary-variance factor is
   unpinned at every dt (T3.4c review, test-power M6-golden-only).** The factor exists, per its own
   comment, to hold the stationary variance at σ² for every dt; at the shipped Neolithic dt = 10,
   ρ = 0.036 and the factor is 0.99935 — inert — while at dt = 1 its deletion inflates σ 1.43×. The
   one dt = 1 rig measures autocorrelation, which is invariant to innovation scale. No test measures
   realised variance at TWO different dt, so the factor's entire stated purpose has no semantic
   test. NOT cleared — a real coverage gap, not a stated T3.4c acceptance criterion.
-- **OPEN — owner T3.10: the spatial-correlation test does not test its own name (T3.4c review,
+- **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29): the
+  spatial-correlation test does not test its own name (T3.4c review,
   test-power F5).** `SpatialCorrelation_NeighboursShareWeather_AndDistantSettlementsDoNot` computes
   one GLOBAL mean pairwise correlation and asserts it in (0.05, 0.95); it never compares near
   against far. Mutants M5 (spatialSharedFraction made dead by forcing k = 1) and M8 (the distance
@@ -247,3 +258,95 @@
   `goods.json` stay MINIMAL-DIFF — no wholesale re-serialization — so scope review reads the
   change rather than the reformatting. T3.5b's 143-insertion rewrite of needs.json was accepted
   after mechanical semantic-equality proof; the proof should not have been necessary.
+- **SAMPLER STATE IS IMPLICIT AND ORDER-DEPENDENT (D-A1 close-out, director ruling).** The header
+  rule inherited LinearClamp from the settlement-marker batch and failed to tile; the parchment
+  panel background, which also relies on uv > 1, was confirmed by the director's gate to have been
+  unaffected throughout. Nothing at the call site distinguishes them — the header rule was simply
+  the first element to need WRAP after the marker batch. Any future tiling element drawn in that
+  position inherits the same defect, and it costs a visual-gate round each time, because no
+  headless test sees sampler state; this round's composite repeat test catches it for the header
+  rule only. Candidate fix: make sampler state explicit per draw rather than inherited. OPEN,
+  owner: UI polish track. Not fixed here.
+- **T3.6 → M4 BLOCKING (B-2 escalation, spec R2's own path):** price-driven trade CANNOT
+  redistribute grain at all — the numeraire's price is pinned at 1.0 everywhere (D-033), so its
+  pairwise gap is structurally zero, while B-2's ~1,240-year granaries sit untouched behind that
+  pin. Any famine-relief redistribution needs a QUANTITY-driven mechanism (deficit-driven relief,
+  merchants, or a granary policy), not this price-driven one. Measured at T3.6
+  (docs/t3.6-review-record.md, R2); ALSO measured: under sustained maximum drive the mechanism
+  drains a seller's stock to zero — the unbounded-granary interaction is live in both directions.
+- **T3.6 observation (not a defect): uniform sector mixes produce no arbitrage.** In the driven
+  founded world every settlement running the same 40/35/25 mix, no abundant good's price gap ever
+  cleared its transport deadband in 100 decades (97 crossings, all bronze at the band ceiling with
+  zero inventory). Trade volume awaits real comparative advantage — deposit-differentiated
+  production orders, or T3.7 merchants. The T3.11 driven golden should drive settlements
+  ASYMMETRICALLY if it wants nonzero flow on the golden horizon.
+- **PATTERN (director, T3.6 certification check — fourth instance): summary prose disagreeing
+  with its own measured record.** 28-vs-29 commits (T3.4c handoff), 12-vs-13 mutants and
+  11-vs-10 kills (T3.5b), 1-vs-2 flips (T3.6 handback: the measurement written into the slot
+  labelled "margin"). Every instance: prose written FROM RECOLLECTION alongside a document whose
+  numbers were measured; every one caught downstream by the director, none by the author. The
+  cheap discipline, now standing: summary prose is TRANSCRIBED from the record — open the
+  record, copy the number, never re-derive or recall it — and any figure appearing in both
+  places is diffed before handback.
+- **TOOL DEFECT (T3.6 ruling, second occurrence): the CCR stop hook's remediation text destroyed
+  commit-order evidence.** The hook's check reads committer email + signature only, but its advice
+  prescribed `--amend --reset-author`, which also resets AUTHOR dates — the temporal record every
+  derivation-honesty lens reads. Chosen fix: make the hook preserve author dates — the advice now
+  prescribes plain `--amend --no-edit` after the git-config fix (satisfies the hook's own check;
+  author identity and dates untouched), so no archive-ref rescue is needed from T3.7 on. The live
+  hook is patched and `scripts/bootstrap.sh` re-applies the patch every session, because the hook
+  file lives in the ephemeral container home, provisioned by the CCR launcher OUTSIDE the repo.
+  The durable at-source fix (launcher config) is outside agent remit — OWNER: director, via CCR
+  launcher/hook configuration. Until then bootstrap carries it.
+  **STATUS UPDATE (T3.6b certification): EVIDENCED, RECURRING — no longer a candidate.** The
+  launcher re-provisioned the hook and wiped the patch; the fail-loudly post-condition fired
+  exactly as the T3.6 ruling required (director's observation at session start). The loud stop
+  now recurs EVERY session until the launcher config is fixed at source. Owner unchanged:
+  director.
+- **THE STOP-HOOK PATCH MUST FAIL LOUDLY (T3.6 certification ruling) — DONE, was a silent no-op.**
+  As shipped at 5a16c2f the bootstrap patch silently no-opped on a non-matching hook (grep gated
+  entry; a sed miss went undetected and `|| true` swallowed even hard failures) — exactly the
+  worse-than-the-defect shape the ruling names. Now: sed runs without the swallow, and a
+  post-condition grep verifies no `--reset-author` remains in the hook's text; if any does, the
+  bootstrap EXITS 1 with an actionable message telling the operator to re-derive the patch before
+  committing anything. A launcher-shipped hook change is therefore a loud session-start stop, not
+  a silent loss of the next packet's commit-order evidence.
+- **THE nearMean < 0.90 CEILING IS A STRUCTURALLY WEAK TOOTH (T3.4d certification ruling) — and
+  it is the SOLE M5 tooth, measured.** Clean near-correlation 0.72; M5 drives it to 0.9948; the
+  ceiling sits at 0.90 — a ~5% must-fire margin that CANNOT be widened, because correlation is
+  bounded at 1.0 and any mutant driving it toward 1 is compressed against every ceiling below 1.
+  Raising the ceiling loses the tooth; lowering it risks false-firing on an honest world (the
+  companion floor is 0.30). The director asked whether the near−far MARGIN assertion also fails
+  under M5, which would make the thin ceiling acceptable by redundancy: MEASURED, IT DOES NOT —
+  under M5 the first failing assert is the ceiling (test line 333); the margin assert before it
+  passed, because at k=1 the distance kernel still decorrelates far pairs (measured bound from
+  the passing assert: far < 0.665 under M5). So the ceiling carries M5 ALONE. The clean-world
+  near-correlation value that would leave the ceiling armed with no room is 0.90 itself: any
+  retune raising clean near toward 0.90 silently disarms the M5 tooth while every test stays
+  green (at ≥ 0.90 it false-fires instead). OPEN, owner T3.10, alongside candidate §7.15.
+- **PATTERN (third instance): ASYMMETRIC-MARGIN THRESHOLDS.** T3.4c Q2 (drift envelope, 11% on
+  the must-pass side), now the M5 ceiling (5% on the must-fire side) — thresholds separating a
+  measured clean case from a measured mutant, where one side's margin is structurally thin. The
+  standing line: a discriminating threshold's WEAKER margin is stated at the point the threshold
+  is chosen, not discovered later.
+- **T3.6b ESCALATION 1 — THE TRANSPORT DEADBAND EXCEEDS THE PRICE BAND for bulk ≥ 8 at map
+  distances.** Measured (docs/t3.6b-review-record.md, Item 0(c), 5 seeds): tin-ore price gaps
+  span the ENTIRE band (19.95, floor to ceiling) and still reach only 0.57–0.86 of their
+  deadband; threshold = bulk × pathCost × costPerBulkCostUnit ≈ 23–35 for bulk-8 goods at the
+  closest pairs, vs a maximum possible gap of BandMax − BandMin = 19.95. Ores and stone are
+  STRUCTURALLY untradeable overland at ANY price divergence. With T3.6 R1 this is the sharpened
+  trade-silence finding. Every surface involved (price band, costPerBulkCostUnit, bulk table)
+  is ruled/frozen — DIRECTOR MATERIAL, no owner assigned here.
+- **T3.6b ESCALATION 2 — COMMON-BAND-EDGE PINNING blocks gaps for 11 of 13 non-grain goods.**
+  Both sides of every pair rest on the SAME band edge (floor: oversupplied-undemanded; ceiling:
+  demanded-underproduced), so gap ≡ 0 however much settlements differ. The missing demand side
+  (PriceSoak's recorded edge-resting) is now measured as the direct blocker of inter-settlement
+  exchange. Founding variance cannot touch it; sector reallocation is M5's governing loop.
+- **FOUNDING-VARIATION ITEM — MEASURED DISCHARGED AND PINNED (T3.6b).** The lockstep predicate
+  no longer holds at HEAD (emergence spreads 58–85 decades at jitter 0.25; 89–118+ at the
+  ADR-017 0.69; modal decade ≤ 2 of 12, five seeds) — T3.1c's jitters discharged it and it sat
+  unmeasured for two milestones; the T3.6b variance-floor pin (CV ≥ 0.22, red-proven both
+  regressions) prevents a silent return. Endowment variance now sits ON its reference band
+  (realised founding-pop CV ≈ 0.30–0.47, RC-1 floor); siting stands per ADR-017. The
+  blocked-exchange consequence recorded at T3.6 is NOT discharged — it is re-attributed by
+  measurement to the two escalations above.

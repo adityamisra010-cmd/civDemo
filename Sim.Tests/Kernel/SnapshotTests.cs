@@ -168,7 +168,12 @@ public class SnapshotTests
         //   world has no settlements, so no weather is ever drawn; only the
         //   stream grew.
         //   v13 value: 8287c70cf0c0baecdfe01d7eab709f4056edaf26eee4666f7826b215f5a2dc1c
-        const string golden = "1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e";
+        //   v18 (T3.6, D-034 — SCHEMA-ONLY for this preset): the TradeFlows
+        //   table joined the stream. The TOY pipeline does not run the trade
+        //   system, so the table is empty and only the byte stream grew (one
+        //   zero count prefix); the trajectory is unchanged.
+        //   v17 value: 1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e
+        const string golden = "bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -426,7 +431,19 @@ public class SnapshotTests
         //   the diagnosis: its pure-grain diets sit at H = 1, where the excess
         //   is (1−H*)/(1−H*) = 1 for ANY standard.
         //   pre-normalisation value: ea965151f84539806b9bc8ca7ffe378f27ab0978e4347d99f06f39d03c598054
-        const string golden = "724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023";
+        //   v18 (T3.6, D-034 — DELIBERATE, schema + pipeline): the TradeFlows
+        //   table joined the stream AND the trade system joined the production
+        //   pipeline after price. Whether the no-order founded world actually
+        //   TRADES on this horizon is measured and reported by
+        //   TradeReadingsTests (the T3.11 blocking-gap question), not assumed
+        //   from this hash moving — the hash moves for the schema alone.
+        //   v17 value: 724c5e3e7d5bbb59234e480e7f91e13d6b27a321cce2d3455e0ae8400a9d4023
+        //   T3.6b (ADR-017 — DELIBERATE, data-only, 2026-07-29): founding
+        //   endowmentJitter 0.25 → 0.69 (RC-1 reference-band floor). Every
+        //   founded endowment redraws, so the founded trajectory moves; the
+        //   schema is untouched (still v18) and the toy golden did not move.
+        //   pre-T3.6b value: 3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54
+        const string golden = "469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -859,6 +876,48 @@ public class SnapshotTests
             BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[1].LogDeviation));
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.HarvestWeather[2].LogDeviation));
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV18_PopulatedTradeFlowsTable()
+    {
+        // T3.6 (D-034): the constitution's populated-table test for the new
+        // row type — exact ExpectedLength, bit-exact round trip, hash
+        // equality. DISTINCT values in every field (From ≠ To ≠ Good ≠
+        // Quantity), so a transposition of the three int32 id fields — same
+        // width, adjacent — cannot round-trip cleanly. Quantity includes a
+        // value above Int32.MaxValue so a 4-byte write of the 8-byte field
+        // breaks the length equation loudly.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+        world.TradeFlows.Add(new TradeFlowRow(
+            new SettlementId(3), new SettlementId(7), new GoodId(11), 5_000_000_017L));
+        world.TradeFlows.Add(new TradeFlowRow(
+            new SettlementId(7), new SettlementId(3), new GoodId(2), 1L));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2, loaded.TradeFlows.Count);
+        Assert.Equal(3, loaded.TradeFlows[0].From.Value);
+        Assert.Equal(7, loaded.TradeFlows[0].To.Value);
+        Assert.Equal(11, loaded.TradeFlows[0].Good.Value);
+        Assert.Equal(5_000_000_017L, loaded.TradeFlows[0].Quantity);
+        Assert.Equal(7, loaded.TradeFlows[1].From.Value);
+        Assert.Equal(3, loaded.TradeFlows[1].To.Value);
+        Assert.Equal(2, loaded.TradeFlows[1].Good.Value);
+        Assert.Equal(1L, loaded.TradeFlows[1].Quantity);
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }

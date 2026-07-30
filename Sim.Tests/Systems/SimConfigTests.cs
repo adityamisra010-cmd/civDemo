@@ -81,4 +81,50 @@ public class SimConfigTests
         Assert.Contains("not valid JSON",
             Assert.Throws<SimConfigException>(() => SimConfigLoader.Load("{ nope")).Message);
     }
+
+    // ---- T3.6 (D-034): the f < 1 mandate is a LOAD guard, not a comment. ----
+    // Proven RED by deleting the trade validation block in SimConfigLoader:
+    // both (0,1) tests then fail (the config loads clean), while CanonicalFile
+    // stays green — the guard, not the shipped value, is under test (§7.5).
+
+    [Theory]
+    [InlineData("1.0")]   // f = 1: overshoot no longer structurally impossible
+    [InlineData("1.5")]   // f > 1: overshoot guaranteed on a large gap
+    [InlineData("0.0")]   // f = 0: trade silently inert
+    [InlineData("-0.25")] // negative: direction inverts
+    public void TradeGapClosingFraction_OutsideOpenUnitInterval_RefusesLoad(string bad)
+    {
+        // Anchor on the adjacent trade-only key: migration ALSO has a
+        // gapClosingFraction (same shape, same shipped value — the T2.8
+        // ancestor of this cap), and a bare replace would trip ITS guard
+        // instead and pass for the wrong reason.
+        string json = CanonicalJson().Replace(
+            "\"gapClosingFraction\": 0.25,\n    \"costPerBulkCostUnit\"",
+            $"\"gapClosingFraction\": {bad},\n    \"costPerBulkCostUnit\"");
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("trade.gapClosingFraction", e.Message);
+        Assert.Contains("(0,1)", e.Message);
+    }
+
+    [Theory]
+    [InlineData("0.0")]  // deadband vanishes — every gap trades at any distance
+    [InlineData("-0.16")]
+    public void TradeCostPerBulkCostUnit_NotPositive_RefusesLoad(string bad)
+    {
+        string json = CanonicalJson().Replace("\"costPerBulkCostUnit\": 0.16", $"\"costPerBulkCostUnit\": {bad}");
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("trade.costPerBulkCostUnit", e.Message);
+    }
+
+    [Fact]
+    public void TradeSection_Missing_RefusesLoad()
+    {
+        // A silently absent trade section must not bind null and NRE at step
+        // time — the config-fails-quietly class (T3.5b item 4 idiom).
+        string json = CanonicalJson().Replace(
+            "\"gapClosingFraction\": 0.25,\n    \"costPerBulkCostUnit\"",
+            "\"gapClosingFractionX\": 0.25,\n    \"costPerBulkCostUnit\"");
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("gapClosingFraction", e.Message);
+    }
 }

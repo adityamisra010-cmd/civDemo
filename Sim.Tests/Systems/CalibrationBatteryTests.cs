@@ -481,7 +481,17 @@ public class CalibrationBatteryTests
         Assert.True(peak == m.FinalPopulation,
             $"seed {seed}: population peaked at {peak} and ended at {m.FinalPopulation} — " +
             "growth is no longer monotone, which contradicts the recorded pre-Malthusian regime.");
-        Assert.InRange(m.FinalPopulation, 70_000, 100_000);
+        // Envelope RE-MEASURED at T3.6b (ADR-017: endowmentJitter 0.25 → 0.69).
+        // The move is INITIAL-CONDITION, decomposed before this was touched:
+        // seed 7's founding total rose 1,742 → 2,018 (+15.8%) and its final
+        // 89,615 → 106,150 (+18.5%) — the start compounding through the
+        // pre-Malthusian exponential, no demographic rate change (seed 42:
+        // founding −0.9%, final 79,847 → 77,654). New measured finals
+        // 77,654 / 106,150; envelope [68k, 119k] keeps ~12% margins on both
+        // sides. corridors.json bands are UNTOUCHED — this is the recorded-
+        // trajectory pin, re-pinned like a golden with this history line.
+        // (v1, T3.2b/CR-003: [70k, 100k] on measured 79,847 / 89,615.)
+        Assert.InRange(m.FinalPopulation, 68_000, 119_000);
     }
 
     // --- the corridors file itself -------------------------------------------
