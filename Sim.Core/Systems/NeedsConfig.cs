@@ -328,12 +328,18 @@ public static class NeedsConfigLoader
         for (int n = 0; n < cfg.Needs.Length; n++)
         {
             if (!cfg.Needs[n].Bound) continue;
+            // T3.8: a housingStock-sourced need's satisfier IS the dwelling
+            // stock — the guard's purpose (no bound need without a satisfier)
+            // is met by the declared source, and the ambiguity guard above
+            // separately forbids it ALSO having basket lines.
+            if (cfg.Needs[n].FromHousingStock) continue;
             bool served = false;
             for (int i = 0; i < b.Entries.Length; i++) if (b.Entries[i].Need == cfg.Needs[n].Id) { served = true; break; }
             if (!served)
                 throw new NeedsConfigException(
                     $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) is bound but no basket entry serves it "
-                    + "— a bound need with no satisfier would read as permanently satisfied.");
+                    + "— a bound need with no satisfier would read as permanently satisfied (declare "
+                    + "source \"housingStock\" if the T3.8 dwelling stock is meant to serve it).");
         }
     }
 
