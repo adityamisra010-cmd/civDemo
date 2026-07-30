@@ -74,6 +74,14 @@ public static class ConservedQuantityIds
     public static ConservedQuantityId OfGood(GoodId good) => new(GoodQuantityBase + good.Value);
     public static bool IsGood(ConservedQuantityId q) => q.Value > GoodQuantityBase;
     public static GoodId GoodOf(ConservedQuantityId q) => new(q.Value - GoodQuantityBase);
+
+    /// <summary>Dwellings (T3.8, the housing stock) — a capital stock, not a
+    /// good: it never sits in GoodStocks and never trades, but it IS conserved
+    /// and Ledger-audited (built via source HousingBuilt, lost via sink
+    /// HousingDecayed) so the per-turn audit covers the build/degrade cycle
+    /// exactly. Id 4 reuses the RETIRED M2 Food slot — retired ids are safe to
+    /// reuse because saves break between milestones by design (D-008).</summary>
+    public static readonly ConservedQuantityId Dwellings = new(4);
 }
 
 /// <summary>Identifies a D-031 good (T3.2). Ids are data (goods.json), stable
@@ -107,6 +115,15 @@ public static class ReasonIds
     public static readonly ReasonId Produced = new(8);
     public static readonly ReasonId InputsConsumed = new(9);
     public static readonly ReasonId ToolWear = new(10);
+
+    // T3.8 — housing's flow vocabulary. Dwellings enter via HousingBuilt and
+    // leave via HousingDecayed (unmet maintenance); the MATERIALS consumed by
+    // building and upkeep leave their good stocks via HousingMaterials — one
+    // reason for both draws, because the audit question ("where did the timber
+    // go?") has one answer: into the houses.
+    public static readonly ReasonId HousingBuilt = new(11);
+    public static readonly ReasonId HousingDecayed = new(12);
+    public static readonly ReasonId HousingMaterials = new(13);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

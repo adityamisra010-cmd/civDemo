@@ -1,5 +1,5 @@
 {
-  "_doc": "T3.5 (D-035, d018). The eight-need ladder is frozen (D-018 3); BOUND grows by milestone. M2 bound Sustenance alone; M3/T3.5 binds Sustenance, Shelter and Comfort against real goods baskets. An UNBOUND need contributes EXACTLY nothing whatever its weight says (T2.6 zero-effect gate). varietyWeight is the D-035-A concentration coefficient INSIDE the satisfaction equation - 0 means the need has no diversity dimension (Shelter: two dwellings' worth of timber is not a more varied roof).",
+  "_doc": "T3.5 (D-035, d018). The eight-need ladder is frozen (D-018 3); BOUND grows by milestone. M2 bound Sustenance alone; M3/T3.5 binds Sustenance, Shelter and Comfort (T3.8: Shelter now reads the housing stock via source=housingStock; Sustenance/Comfort stay basket-bound). An UNBOUND need contributes EXACTLY nothing whatever its weight says (T2.6 zero-effect gate). varietyWeight is the D-035-A concentration coefficient INSIDE the satisfaction equation - 0 means the need has no diversity dimension (Shelter: two dwellings' worth of timber is not a more varied roof).",
   "needs": [
     {
       "id": 1,
@@ -12,6 +12,7 @@
       "id": 2,
       "name": "Shelter",
       "bound": true,
+      "source": "housingStock",
       "weight": 0.9,
       "varietyWeight": 0.0
     },
@@ -63,7 +64,7 @@
     "tierACollapse": 1.0
   },
   "baskets": {
-    "_doc": "D-035-C path 1 (SHARED SATISFIER) and path 2 (SHARED BUDGET) made data. One entry per (class, need, good); perPersonYear is a per-sim-year rate integrated with dtYears (law 3), never a per-turn amount. FOOD entries are denominated in PERSON-YEAR-EQUIVALENTS of nutrition, the D-015 convention grain already carries: a class's food entries sum to 1.0 by construction, so the basket changes WHAT is eaten and never how much nutrition a person needs. Peasants eat a staple diet; artisans, with income and a market, eat measurably more livestock and fish - the T3.5 class-differentiation requirement IS this table, not a coefficient bolted on afterwards. SUBSTITUTION: unmet non-staple food demand falls back on the staple (grain), because a household short of fish eats more bread rather than going hungry while grain sits in the store. Monotony is then paid for in the D-035-A variety term rather than in calories, which is exactly the director's rationale - a settlement that can feed itself entirely on grain still has a reason to import fish. SHELTER is an upkeep flow of dwelling materials, an honest M3 stand-in for the housing STOCK T3.8 builds: a settlement short of timber cannot keep its roofs up, which is what 'a housing shortage lowers Shelter satisfaction' can mean before there is a housing stock to be short of. TUNE, all of it.",
+    "_doc": "D-035-C path 1 (SHARED SATISFIER) and path 2 (SHARED BUDGET) made data. One entry per (class, need, good); perPersonYear is a per-sim-year rate integrated with dtYears (law 3), never a per-turn amount. FOOD entries are denominated in PERSON-YEAR-EQUIVALENTS of nutrition, the D-015 convention grain already carries: a class's food entries sum to 1.0 by construction, so the basket changes WHAT is eaten and never how much nutrition a person needs. Peasants eat a staple diet; artisans, with income and a market, eat measurably more livestock and fish - the T3.5 class-differentiation requirement IS this table, not a coefficient bolted on afterwards. SUBSTITUTION: unmet non-staple food demand falls back on the staple (grain), because a household short of fish eats more bread rather than going hungry while grain sits in the store. Monotony is then paid for in the D-035-A variety term rather than in calories, which is exactly the director's rationale - a settlement that can feed itself entirely on grain still has a reason to import fish. SHELTER left this table at T3.8: it now reads the housing STOCK (needs[].source = housingStock) exactly as the old stand-in's own doc anticipated; the material draw moved into HousingSystem's build/maintenance sinks. TUNE, all of it.",
     "entries": [
       {
         "class": 1,
@@ -82,18 +83,6 @@
         "need": 1,
         "good": "fish",
         "perPersonYear": 0.04
-      },
-      {
-        "class": 1,
-        "need": 2,
-        "good": "timber",
-        "perPersonYear": 0.03
-      },
-      {
-        "class": 1,
-        "need": 2,
-        "good": "stone",
-        "perPersonYear": 0.005
       },
       {
         "class": 1,
@@ -124,18 +113,6 @@
         "need": 1,
         "good": "fish",
         "perPersonYear": 0.09
-      },
-      {
-        "class": 2,
-        "need": 2,
-        "good": "timber",
-        "perPersonYear": 0.04
-      },
-      {
-        "class": 2,
-        "need": 2,
-        "good": "stone",
-        "perPersonYear": 0.015
       },
       {
         "class": 2,

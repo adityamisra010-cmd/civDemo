@@ -94,9 +94,13 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     private readonly NeedsConfig _needs;
     private readonly BasketBook _baskets;
     private readonly GoodId _grain;
+    private readonly double _personsPerDwelling;
 
     public NeedsGrievanceSystem(SimConfig cfg)
     {
+        _personsPerDwelling = cfg.Housing?.PersonsPerDwelling
+            ?? throw new NeedsConfigException(
+                "SimConfig.Housing is not loaded — a housingStock-sourced need reads it (T3.8).");
         _needs = cfg.Needs ?? throw new NeedsConfigException(
             "SimConfig.Needs is not loaded — construct configs via " +
             "SimConfigLoader.Load(simStream, needsStream) so needs.json travels with sim.json.");
@@ -117,6 +121,26 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     }
 
     public SystemId Id => WellKnownId;
+
+    /// <summary>T3.8: dwelling capacity over population, capped at 1 — the
+    /// stock read that replaces the material-flow stand-in. A settlement with
+    /// people and NO housing row (pre-T3.8 hand rigs) reads 0: honest — they
+    /// are unhoused — and the housing system creates the row on its first
+    /// step, so founded worlds never sit there.</summary>
+    private double HousingSatisfaction(IReadOnlyWorldState prev, SettlementId settlement)
+    {
+        long pop = 0;
+        for (int i = 0; i < prev.Buckets.Count; i++)
+            if (prev.Buckets[i].Settlement == settlement) pop += prev.Buckets[i].Count.Value;
+        if (pop <= 0) return 1.0; // nobody to house
+        for (int i = 0; i < prev.Housing.Count; i++)
+        {
+            if (prev.Housing[i].Settlement != settlement) continue;
+            double capacity = prev.Housing[i].Dwellings.Value * _personsPerDwelling;
+            return Math.Min(1.0, capacity / pop);
+        }
+        return 0.0;
+    }
 
     public void Step(SimContext<NeedsGrievanceTables> ctx)
     {
@@ -216,10 +240,23 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 {
                     NeedEntry need = _needs.Needs[n];
                     if (!need.Bound) continue;                       // unbound: skipped before any weight is read
-                    ReadOnlySpan<BasketLine> basket = _baskets.Basket(cls, need.Id);
-                    if (basket.Length == 0) continue;                // this class demands nothing here
 
-                    double value = Satisfaction(prev, settlement, cls, need, basket);
+                    double value;
+                    if (need.FromHousingStock)
+                    {
+                        // T3.8: Shelter reads the DWELLING STOCK against the
+                        // population — never a flow. Classes carry EQUAL
+                        // values (dwellings are settlement-level; per-class
+                        // housing is a later differentiation) — the honest
+                        // note, same shape as M2's settlement-wide Sustenance.
+                        value = HousingSatisfaction(prev, settlement);
+                    }
+                    else
+                    {
+                        ReadOnlySpan<BasketLine> basket = _baskets.Basket(cls, need.Id);
+                        if (basket.Length == 0) continue;            // this class demands nothing here
+                        value = Satisfaction(prev, settlement, cls, need, basket);
+                    }
                     satisfactions.Add(new NeedSatisfactionRow(settlement, cls, need.Id, value));
 
                     sat[bound] = value;

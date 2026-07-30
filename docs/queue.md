@@ -380,3 +380,101 @@
   down-rank it from Tier A — all three are fitting a coefficient to hide a missing mechanism
   (law 2). Filed against T3.8 as a MOTIVATING MEASUREMENT so that packet can state its
   expected before/after.
+- **Q-F (director, 2026-07-30): THE THREE SKIP-GATED MEASUREMENT RIGS NEED INVALIDATION
+  CONDITIONS.** FoundingVariationItem0Tests (~30 min) underwrites ADR-017 (the decision NOT to
+  amend D-025's siting clause); WaterRouteCounterfactualTests ×2 (lattice and pixel passes)
+  underwrite the reframing of escalation 1 from a CR against frozen constants into a missing
+  mechanism — both conclusions will be cited by the transport packet and by T3.10. Skipping
+  them is correct (they are expensive; that is why) — what is missing is an INVALIDATION
+  CONDITION per rig: a skipped rig still compiles, so it goes semantically stale silently,
+  still runnable, measuring a world that has moved, with recorded numbers that quietly stop
+  describing anything. REQUIRED, one line per rig IN THE RIG'S OWN HEADER where the next
+  reader sees it: what change would invalidate its recorded numbers. Candidates by rig —
+  Item 0: worldgen, siting, endowment, sector mix, catchment. Water counterfactuals: the
+  lattice stride, the river mask, transport cost, bulk values, the price band. Name them PER
+  RIG, no general rule. Then a packet touching a named surface knows to re-run before citing —
+  the coupling-map discipline (S8 §4.1 item 4) applied to EVIDENCE rather than code. OPEN,
+  owner: T3.11 (harness and goldens, which owns test-suite health). Not fixed here.
+- **Q-A (T3.8 Item 0, director): RIVERS CANNOT LIVE ON THE STRIDE-4 LATTICE.** The T3.6b water
+  counterfactual's lattice pass could only see the SEA — stride-4 majority-water blocks hide
+  rivers — and concluded even FREE water was insufficient; that was a resolution artifact, not
+  economics (the pixel pass routes the real river mask and the sites sit on it). Collides with
+  the existing lattice-stride entry: one node is 16×16 km and a river is a sub-node feature. Any
+  future water-transport packet must resolve this FIRST, and it is an ARCHITECTURE call. The
+  three candidates, named without choosing: (1) finer stride — quadruples node count and
+  Dijkstra work, re-pins every golden; (2) river edges as an OVERLAY on the network vector
+  graph, which is what D-009 actually describes ("canal" is a listed edge type); (3) river
+  polylines promoted to first-class edges. OPEN, owner: the water-transport packet.
+- **Q-B (T3.8 Item 0, director): HYPOTHESIS — ESCALATION 2 MAY BE ANOTHER FACE OF B-2.** Almost
+  every non-grain price rests on a band edge (stocked goods at the 0.05 floor, zero-stock goods
+  at the 20.0 ceiling), so every gap is identically zero and nothing can trade. Candidate cause:
+  nothing bounds accumulation — abundant goods ratchet up forever and peg the floor, while
+  goods consumed on production peg the ceiling. If stores were bounded, stocks would CYCLE and
+  prices would float off the rails. Filed as an explicit HYPOTHESIS, not a finding, with the
+  test named: when B-2's store bounding lands, measure whether prices leave the band edges — if
+  they do, escalation 2 and B-2 are one packet. Owner: B-2, M4 blocking material.
+  **EXTENDED (T3.8 certification ruling): B-2's THIRD COSTUME — TIMBER.** T3.8's H1 overshoot
+  has the same root: timber stores keep housing maintenance m = 1 for decades after a farm-100%
+  order (measured: Hikiavur reads Shelter 1.0000 at t177 after 30 years of nothing but farming,
+  timber store 755 covering ~16 more turns). The decay mechanism is correct; the buffer it draws
+  on is fictional. Three faces of one defect: grain (the world cannot starve, ~1,240 years of
+  reserve), prices (11 of 13 goods pegged at band edges), timber (the world cannot become
+  homeless). The hypothesis sharpens to ONE TEST, THREE PREDICTIONS: if bounding stores makes
+  stocks CYCLE, it should unpeg prices AND make Shelter decay reachable — B-2 is the packet that
+  makes three separate mechanisms observable, not just a scarcity fix.
+- **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
+  Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
+  HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for
+  high-bulk goods, lowering the deadband T3.6b measured at 23–35 against a maximum possible gap
+  of 19.95. Mechanism-shaped and COMPUTED, never assigned: effective bulk cost falls with
+  available livestock, so a herding settlement hauls cheaper. Sits alongside water routes as a
+  second lever on escalation 1. OPEN, owner: the same future transport packet. Not designed
+  here.
+- **Q-D (T3.8 Item 0, director design input): HOUSING TIERS ARE OUT OF T3.8 SCOPE.** The
+  director wants housing to progress IN KIND over the campaign — hut to longhouse to tenement
+  to apartment block — not only in quantity. Real, wanted, and NOT the T3.8 packet. The
+  governing constraint, recorded now: LAW 4 FORBIDS CALENDAR GATES — a tier cannot unlock by
+  era or date; it must derive from computed state (materials available, population density,
+  accumulated wealth, institutions). Wants D-017's settlement sprawl model alongside it. OPEN,
+  no owner yet.
+- **Q-E (T3.8 Item 0, director ruling): TRADE ROUTES AS EMERGENT INFRASTRUCTURE.** The Civ-6
+  trade-route model is RULED OUT in its unit half: no placed trader unit, no player-created
+  route — that makes exchange happen because the player chose it rather than because goods were
+  worth moving, inverting the signal the current mechanism gives (D-009 deleted the separate
+  region graph precisely so trade IS the transport network; D-018 forbids unlocked classes).
+  The half that IS wanted: historical trade ran on ESTABLISHED routes — a path used repeatedly,
+  maintained, cheaper each time. That is the network graph improving where traffic justifies
+  it — D-009's own claim, which PathBuild already half-implements for farmland reach. Candidate
+  mechanism: sustained flow on a pair justifies path improvement; improved path lowers
+  transport cost; lower cost opens further pairs. Computed, self-reinforcing, no unit. Merchant
+  consequence noted: T3.7's class then emerges on its own terms once volume justifies full-time
+  traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
+  Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
+  designed here.
+- **MODIFYING A GUARD RE-OPENS ITS RED PROOF — CANDIDATE ADR-015 SECTION, owner T3.10
+  (director + agent agreement, T3.8; reasoning added at the director's ruling).** The T3.5b
+  bound-need-must-have-a-satisfier guard was taught the T3.8 housingStock source; a guard
+  taught a NEW case can lose its teeth on the OLD one, and its prior §7.4 red proof no longer
+  automatically holds. THE MECHANISM, stated fully: a guard widened to admit a new legitimate
+  case can silently begin admitting an illegitimate one, BECAUSE THE WIDENING IS AUTHORED
+  AGAINST A FAILING TEST — here 229 tests were red and the shortest edit turning them green is
+  a WEAKER guard. Nothing in the suite would have noticed, because the original property had
+  no test of its own independent of the guard's existence — which is exactly why
+  HousingGuardTests had to be WRITTEN rather than found. This is §7.5's shape (do not assert
+  on a quantity resting against its own limit) pointed at a GUARD rather than a measurement.
+  THE RULE: every property a guard held BEFORE a widening must be re-proven red
+  INDEPENDENTLY — never by re-running the suite, which is what the widening was written
+  against. First instance: HousingGuardTests (original no-satisfier red, source-typo red,
+  double-sourcing ambiguity red, measured post-modification). NOTE: three rules now sit as
+  queue lines rather than numbered ADR-015 sections — this one, candidate §7.15 (a
+  pre-committed reading needs a discriminating observable), and the asymmetric-margin pattern
+  (T3.4c Q2's 11% must-pass margin, T3.4d's 5% must-fire ceiling) — and a queue line does not
+  bind an agent the way a numbered §7.x does; the director rules on writing them at T3.10's
+  scoping.
+
+- **FALLOUT ENUMERATION IS PER-SOLUTION, NOT PER-PROJECT** (T3.8 certification fix pass,
+  Item 4 — director ruling). T3.8's fallout enumeration ran Sim.Tests only; a 14th real
+  fallout item (the HUD needs-block pin — "Shelter: 0.00" against a founded world that now
+  arrives housed) was invisible to it and surfaced only when Sim.Ui.Tests ran at handback
+  item 3. The rule: any packet changing sim state that the HUD displays enumerates fallout
+  across BOTH test projects, not just Sim.Tests. OPEN. Owner: T3.11 (harness and goldens).

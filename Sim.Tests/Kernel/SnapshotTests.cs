@@ -173,7 +173,13 @@ public class SnapshotTests
         //   system, so the table is empty and only the byte stream grew (one
         //   zero count prefix); the trajectory is unchanged.
         //   v17 value: 1195124da9977df75052efe24f7b3fbe6a42122cf470e166cfe989dcd436653e
-        const string golden = "bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718";
+        //   v19 (T3.8 — SCHEMA-ONLY for this preset): the Housing table joined
+        //   the stream (one zero count prefix on this settlement-less world)
+        //   and CatchmentSummaryRow gained SizeTier (no rows here to widen).
+        //   The toy pipeline does not run the housing system; only the byte
+        //   stream grew.
+        //   v18 value: bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718
+        const string golden = "b4d523f6f1e0cc1a66d94393cf86368db7063acde27ca24bf17555e772883525";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -443,7 +449,28 @@ public class SnapshotTests
         //   founded endowment redraws, so the founded trajectory moves; the
         //   schema is untouched (still v18) and the toy golden did not move.
         //   pre-T3.6b value: 3d0e3706e41e9dd8aa21131c285f2a65693c8be988f9aae21309c834f545ab54
-        const string golden = "469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0";
+        //   v19 (T3.8 — DELIBERATE, schema + behavior): the housing stock.
+        //   Schema v19 (Housing table + CatchmentSummaryRow.SizeTier); founded
+        //   settlements arrive HOUSED (InitialEndowment), maintenance draws
+        //   timber/clay, unmet upkeep decays dwellings, construction labor
+        //   splits between dwellings and paths, Shelter reads the stock, and
+        //   catchments run tier budgets through the per-source-exact
+        //   Partition. Every count on the founded trajectory moves.
+        //   pre-T3.8 value: 469e38b06e9e3947081acf7304572e9830a16159740139e323ef3651798dfbf0
+        //   T3.8 CERTIFICATION FIX PASS (DELIBERATE, DATA-ONLY — the SECOND
+        //   re-pin in this packet, authorized by the certification ruling on
+        //   the T3.5b precedent): THE v19 PIN ABOVE CAPTURED A WORLD LATER
+        //   FOUND DEFECTIVE — housing collapsed from turn 1 because the
+        //   maintenance derivation named the registry's ceramic clay (the
+        //   pottery input, consumed to exhaustion by crafting before housing's
+        //   draw) as the structural-earth material. Corrected derivation:
+        //   clay draw rates 0 (subsoil daub is a non-good, like water); every
+        //   settlement now maintains housing from its timber store, founding
+        //   size tiers engage, and the founded trajectory re-pins. Do not read
+        //   v19's 8473c021... as a good state. (The toy golden did not move —
+        //   config values are not state and the toy preset runs no housing.)
+        //   defective v19 value: 8473c02161ff4051457d13521e7dc0edbaf7078240cc2da3cad33d38476544c4
+        const string golden = "b9f93d4ab096798d9e76a52fe2740c8ff62cf3bc759437829056a16eb152761b";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -918,6 +945,62 @@ public class SnapshotTests
         Assert.Equal(3, loaded.TradeFlows[1].To.Value);
         Assert.Equal(2, loaded.TradeFlows[1].Good.Value);
         Assert.Equal(1L, loaded.TradeFlows[1].Quantity);
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV19_PopulatedHousingTable_AndSizeTierField()
+    {
+        // T3.8: the constitution's populated-table test for BOTH v19 surfaces
+        // — the new HousingRow AND the int SizeTier appended to
+        // CatchmentSummaryRow (a widened row is a serialized change exactly
+        // like a new one). DISTINCT values in every field; the four adjacent
+        // HousingRow doubles include a NEGATIVE and a -0.0 so a transposition
+        // or normalising serializer cannot round-trip cleanly; Dwellings
+        // above Int32.MaxValue so a 4-byte write of the 8-byte stock breaks
+        // the length equation loudly.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+        int h0 = world.Housing.Add(new HousingRow(new SettlementId(3),
+            Conserved.Zero, 0.4375, -0.28125, 0.6455078125, 1.75));
+        int h1 = world.Housing.Add(new HousingRow(new SettlementId(9),
+            Conserved.Zero, -0.0, 0.015625, 1.0, 0.0));
+        ledger.Flow(ref world.Housing.Ref(h0).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, 5_000_000_021L, FlowDirection.Source, OverdrawPolicy.Throw);
+        ledger.Flow(ref world.Housing.Ref(h1).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, 68L, FlowDirection.Source, OverdrawPolicy.Throw);
+        world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            new SettlementId(3), 41, 1234.5625, 7, 55L, SizeTier: 3));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2, loaded.Housing.Count);
+        Assert.Equal(3, loaded.Housing[0].Settlement.Value);
+        Assert.Equal(5_000_000_021L, loaded.Housing[0].Dwellings.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.4375),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].BuildRemainder));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.28125),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].DecayRemainder));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.6455078125),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].LastMaintenanceFraction));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.75),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[0].LastLaborUsed));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.Housing[1].BuildRemainder));
+        Assert.Equal(3, loaded.CatchmentSummaries[^1].SizeTier);
+        Assert.Equal(41, loaded.CatchmentSummaries[^1].NodeCount);
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }

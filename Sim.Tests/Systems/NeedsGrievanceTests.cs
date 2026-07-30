@@ -86,6 +86,23 @@ public class NeedsGrievanceTests
         return 0.0;
     }
 
+    /// <summary>T3.8: "fully supplied" now includes HOUSING — Shelter is a
+    /// STOCK need, so a rig whose accrual must be exactly zero needs dwellings
+    /// covering its 1000 people. ceil(1000 / personsPerDwelling) dwellings
+    /// puts capacity at or above population, and HousingSatisfaction clamps to
+    /// exactly 1.0. A settlement deliberately left WITHOUT a housing row reads
+    /// Shelter 0.0 (the no-row path).</summary>
+    private static void HouseFully(WorldState world, int settlement)
+    {
+        double ppd = TestConfigs.Sim().Housing!.PersonsPerDwelling;
+        long dwellings = (long)Math.Ceiling(1000.0 / ppd);
+        var ledger = new Ledger(world.LedgerFlows);
+        int row = world.Housing.Add(new HousingRow(
+            new SettlementId(settlement), Conserved.Zero, 0.0, 0.0, 1.0, 0.0));
+        ledger.Flow(ref world.Housing.Ref(row).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, dwellings, FlowDirection.Source, OverdrawPolicy.Throw);
+    }
+
 
     /// <summary>T3.5: rig one settlement's published fill ratio for a good —
     /// the pair (pre-clamp demand, post-clamp obtained) NeedsGrievanceSystem
@@ -169,7 +186,9 @@ public class NeedsGrievanceTests
         // The D-018 §3 ladder is FROZEN design: exactly these eight, in this
         // order. WHICH are bound grows by milestone and is the scope fence:
         // M2 bound Sustenance alone; T3.5 binds Shelter and Comfort against
-        // real goods baskets. The other five stay unbound and inert.
+        // real goods baskets; T3.8 moves Shelter's SATISFIER from basket flows
+        // to the dwelling stock (still bound — the source changed, not the
+        // binding). The other five stay unbound and inert.
         NeedsConfig needs = TestConfigs.Sim().Needs!;
         string[] ladder = ["Sustenance", "Shelter", "Safety", "Health",
                            "Belonging/Faith", "Comfort", "Dignity/Liberty", "Prospects"];
@@ -180,15 +199,22 @@ public class NeedsGrievanceTests
             Assert.Equal(ladder[i], needs.Needs[i].Name);
             Assert.Equal(Array.IndexOf(boundAtM3, ladder[i]) >= 0, needs.Needs[i].Bound);
         }
-        // Every bound need is served by a basket, and no unbound need is —
-        // a basket for an unbound need would be dead data that silently comes
-        // alive the day someone flips a flag.
+        // Every bound need is served by exactly ONE source — a basket, or
+        // (T3.8) the housing stock — and no unbound need is served by either:
+        // a satisfier for an unbound need would be dead data that silently
+        // comes alive the day someone flips a flag. The loader's ambiguity
+        // guard refuses both-at-once at load; HousingGuardTests carries its
+        // measured red. Shelter specifically is the stock-sourced one.
         foreach (NeedEntry need in needs.Needs)
         {
-            bool served = false;
-            foreach (BasketEntry e in needs.Baskets.Entries) if (e.Need == need.Id) { served = true; break; }
-            Assert.Equal(need.Bound, served);
+            bool basketServed = false;
+            foreach (BasketEntry e in needs.Baskets.Entries) if (e.Need == need.Id) { basketServed = true; break; }
+            Assert.Equal(need.Bound, basketServed || need.FromHousingStock);
+            Assert.False(basketServed && need.FromHousingStock,
+                $"{need.Name} is double-sourced — the load guard should have refused this");
         }
+        Assert.True(needs.Needs[1].FromHousingStock);  // Shelter, from the stock
+        Assert.False(needs.Needs[0].FromHousingStock); // Sustenance, from the basket
     }
 
     // --- famine raises grievance --------------------------------------------
@@ -287,6 +313,7 @@ public class NeedsGrievanceTests
         const double dt = 10.0, turnover = 0.074;
         WorldState world = GrievanceWorld(1);
         FillAll(world, 0, 1.0);
+        HouseFully(world, 0); // T3.8: full supply includes the dwelling stock
         world.SettlementVitals.Add(new SettlementVitalsRow(
             new SettlementId(0), Births: (long)(1000 * turnover * dt / 2), Deaths: (long)(1000 * turnover * dt / 2), DtYears: dt));
         world.Grievances[0] = world.Grievances[0] with { Value = 10.0 };
@@ -335,6 +362,8 @@ public class NeedsGrievanceTests
         // the contrast this rig exists to make sharp).
         FillAll(world, 0, 1.0);
         FillAll(world, 1, 1.0);
+        HouseFully(world, 0); // T3.8: full supply includes the dwelling stock,
+        HouseFully(world, 1); // identically on BOTH arms — the contrast stays turnover alone
         for (int i = 0; i < world.Grievances.Count; i++)
             world.Grievances[i] = world.Grievances[i] with { Value = 10.0 };
         world.SettlementVitals.Add(new SettlementVitalsRow(new SettlementId(0), 0, 0, dt));
@@ -372,6 +401,10 @@ public class NeedsGrievanceTests
         WorldState world = GrievanceWorld(2);
         FillAll(world, 0, 0.0);
         FillAll(world, 1, 1.0);
+        // T3.8: settlement 1's full supply includes housing; settlement 0
+        // deliberately has NO housing row — Shelter reads 0.0 by the no-row
+        // path, consistent with "obtains nothing of any kind".
+        HouseFully(world, 1);
 
         WorldState next = GrievanceOnly(cfg, dt).Step(world);
 

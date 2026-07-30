@@ -131,7 +131,20 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             long allAdults = BandViews.Adults(prev.Buckets, settlement.Id);
             double builders = Sectors.Share(shares, Sectors.Construction) * allAdults;
 
-            double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builders * ctx.DtYears;
+            // T3.8: housing draws on the SAME construction pool. Its published
+            // labor use (HousingRow.LastLaborUsed, adult-years) is subtracted
+            // here at the standard §3.2 one-turn lag — the split is a table
+            // read, never a system reference (law 6). Floor at zero: the lag
+            // means a shrinking pool can transiently owe more than it has.
+            double builderYears = builders * ctx.DtYears;
+            for (int i = 0; i < prev.Housing.Count; i++)
+            {
+                if (prev.Housing[i].Settlement != settlement.Id) continue;
+                builderYears = Math.Max(0.0, builderYears - prev.Housing[i].LastLaborUsed);
+                break;
+            }
+
+            double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builderYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);
             if (progressIdx < 0)
             {
@@ -331,6 +344,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<PriceTermRow> PriceTerms => prev.PriceTerms;
         public IReadOnlyTable<HarvestWeatherRow> HarvestWeather => prev.HarvestWeather;
         public IReadOnlyTable<TradeFlowRow> TradeFlows => prev.TradeFlows;
+        public IReadOnlyTable<HousingRow> Housing => prev.Housing;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

@@ -22,6 +22,7 @@
     <!-- The director's first played session (T1.8 visual gate) — a permanent
          replay fixture: the log that exposed the ghost-harvest spec defect. -->
     <None Include="Fixtures\first-reign-orders.bin" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\t38-director-orders.bin" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -40,6 +40,7 @@ public static class ConservationAuditor
         QuantityAudit biomass = AuditQuantity(world, ConservedQuantityIds.Biomass);
         QuantityAudit toyGood = AuditQuantity(world, ConservedQuantityIds.ToyGood);
         QuantityAudit population = AuditQuantity(world, ConservedQuantityIds.Population);
+        QuantityAudit dwellings = AuditQuantity(world, ConservedQuantityIds.Dwellings);
 
         // Distinct good ids, ascending (law 5: no set iteration — collect and sort).
         var goodIds = new List<int>();
@@ -63,11 +64,13 @@ public static class ConservationAuditor
             goodIds.Sort();
         }
 
-        bool ok = biomass.IsConserved && toyGood.IsConserved && population.IsConserved;
+        bool ok = biomass.IsConserved && toyGood.IsConserved && population.IsConserved
+            && dwellings.IsConserved;
         var bad = new List<string>();
         if (!biomass.IsConserved) bad.Add($"biomass: {Describe(biomass)}");
         if (!toyGood.IsConserved) bad.Add($"toyGood: {Describe(toyGood)}");
         if (!population.IsConserved) bad.Add($"population: {Describe(population)}");
+        if (!dwellings.IsConserved) bad.Add($"dwellings: {Describe(dwellings)}");
         foreach (int id in goodIds)
         {
             QuantityAudit a = AuditQuantity(world, ConservedQuantityIds.OfGood(new GoodId(id)));
@@ -102,6 +105,11 @@ public static class ConservationAuditor
             {
                 for (int i = 0; i < world.Buckets.Count; i++)
                     stocks += world.Buckets[i].Count.Value;
+            }
+            else if (quantity == ConservedQuantityIds.Dwellings)
+            {
+                for (int i = 0; i < world.Housing.Count; i++)
+                    stocks += world.Housing[i].Dwellings.Value;
             }
             else if (ConservedQuantityIds.IsGood(quantity))
             {

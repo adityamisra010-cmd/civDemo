@@ -44,6 +44,23 @@ public class CatchmentTests
     private static int OriginOf(WorldState world, TraversalLattice lattice) =>
         CatchmentSystem.OriginLatticeNode(lattice, world.Terrain!.Size, world.Settlements[0].SiteCell);
 
+    /// <summary>T3.8: the settlement's ACTUAL budget — its founding housing
+    /// row through the system's own pure SizeTier/TierBudget, so direct-call
+    /// witnesses compare against what the system really runs.</summary>
+    private static double TierBudgetOf(WorldState world, TraversalLattice lattice, int settlementIndex)
+    {
+        var sim = TestUtil.TestConfigs.Sim();
+        int tier = 0;
+        for (int h = 0; h < world.Housing.Count; h++)
+            if (world.Housing[h].Settlement == world.Settlements[settlementIndex].Id)
+            {
+                tier = CatchmentSystem.SizeTier(
+                    world.Housing[h].Dwellings.Value, sim.Catchment.SizeDwellingsRef);
+                break;
+            }
+        return CatchmentSystem.TierBudget(sim, lattice, tier);
+    }
+
     [Fact]
     public void Catchment_Twin_Deterministic_AndEqualsDirectIsochrone()
     {
@@ -62,12 +79,15 @@ public class CatchmentTests
         Assert.True(WorldStates.StateEquals(a, b));
         Assert.Equal(1, a.CatchmentSummaries.Count);
 
-        // Equal to a DIRECT isochrone call from the origin lattice node.
+        // Equal to a DIRECT isochrone call from the origin lattice node — at
+        // the settlement's ACTUAL budget (T3.8: founding seeds dwellings, so
+        // the system runs the TIER budget, derived here through the same pure
+        // functions the system uses).
         WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42, settlementsOverride: 1);
         TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
         int origin = OriginOf(founded, lattice);
         Pathfinder.IsochroneResult iso =
-            Pathfinder.Isochrone(lattice, founded, origin, Budget(lattice));
+            Pathfinder.Isochrone(lattice, founded, origin, TierBudgetOf(founded, lattice, 0));
 
         // Node-for-node membership and cost, in the system's storage order.
         var nodesForSettlement = new List<CatchmentNodeRow>();
@@ -174,7 +194,7 @@ public class CatchmentTests
 
         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
         Pathfinder.IsochroneResult iso =
-            Pathfinder.Isochrone(lattice, founded, origin, Budget(lattice));
+            Pathfinder.Isochrone(lattice, founded, origin, TierBudgetOf(founded, lattice, 0));
         double recomputeMs = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0
                              / System.Diagnostics.Stopwatch.Frequency;
 

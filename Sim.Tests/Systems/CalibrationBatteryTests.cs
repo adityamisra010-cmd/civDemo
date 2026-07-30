@@ -343,7 +343,31 @@ public class CalibrationBatteryTests
         // The corridor band [0.15, 0.6] is untouched; CR-002/CR-003 stay OPEN
         // (still ~3x above the ceiling). The window is the measured envelope
         // with the same modest margin.
-        const double DeviationFloor = 1.55, DeviationCeiling = 1.95;
+        // T3.8 CERTIFICATION FIX PASS — RE-PIN under a ruling (the T3.4c
+        // protocol; director-certified). Measured on the repaired tree:
+        // seeds 1/2 = 1.53756 / 1.60184 (from T3.5b's 1.70191 / 1.76610);
+        // seed 1 fell through the old floor 1.55, seed 2 held by 0.05.
+        // THREE THINGS, per the ruling:
+        // 1. THE DECOMPOSITION IS THE POINT. Arable +20% from the T3.8 tier-4
+        //    catchment bonus; population -1%. The metric moved because its
+        //    DENOMINATOR grew — the FIFTH time this metric has moved for
+        //    denominator reasons (CR-002, CR-003, T3.5b, T3.6b, now this) and
+        //    the FIRST time it was decomposed BEFORE anyone interpreted it:
+        //    the T3.8 H3 pre-commitment is what produced the clean read.
+        // 2. THE DIRECTION, cross-referenced to CR-002: movement is TOWARD
+        //    the corridor (~1.84 -> 1.54 against the 0.6 ceiling). CR-002's
+        //    recommended fix was Option B — enlarge the effective arable
+        //    denominator — and T3.8's size tier has done a small amount of
+        //    Option B AS A SIDE EFFECT. Whoever picks CR-002 up in M4 (it
+        //    travelled with T3.10) must know its baseline moved underneath
+        //    it; the same cross-reference is recorded in cr-002.md itself.
+        // 3. THE LIFT CONDITION REMAINS UNMET: 1.54 against a band ceiling of
+        //    0.6 — the value moved toward resolution without reaching it. Do
+        //    not read this re-pin as progress toward closure beyond what was
+        //    measured. No band edge moved; the envelope keeps the modest
+        //    margins of its T3.5b predecessor.
+        //    (T3.5b window: [1.55, 1.95].)
+        const double DeviationFloor = 1.40, DeviationCeiling = 1.80;
         Assert.True(value <= DeviationCeiling,
             $"{Key}: {Inv(value)} has drifted FURTHER above the corridor ceiling {hi} than the " +
             $"recorded deviation window [{DeviationFloor}, {DeviationCeiling}] - the world is " +
