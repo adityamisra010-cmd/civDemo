@@ -934,10 +934,15 @@ public class SnapshotTests
         // above Int32.MaxValue so a 4-byte write of the 8-byte stock breaks
         // the length equation loudly.
         WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
-        world.Housing.Add(new HousingRow(new SettlementId(3),
-            Conserved.FromSnapshot(5_000_000_021L), 0.4375, -0.28125, 0.6455078125, 1.75));
-        world.Housing.Add(new HousingRow(new SettlementId(9),
-            Conserved.FromSnapshot(68L), -0.0, 0.015625, 1.0, 0.0));
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+        int h0 = world.Housing.Add(new HousingRow(new SettlementId(3),
+            Conserved.Zero, 0.4375, -0.28125, 0.6455078125, 1.75));
+        int h1 = world.Housing.Add(new HousingRow(new SettlementId(9),
+            Conserved.Zero, -0.0, 0.015625, 1.0, 0.0));
+        ledger.Flow(ref world.Housing.Ref(h0).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, 5_000_000_021L, FlowDirection.Source, OverdrawPolicy.Throw);
+        ledger.Flow(ref world.Housing.Ref(h1).Dwellings, ConservedQuantityIds.Dwellings,
+            ReasonIds.InitialEndowment, 68L, FlowDirection.Source, OverdrawPolicy.Throw);
         world.CatchmentSummaries.Add(new CatchmentSummaryRow(
             new SettlementId(3), 41, 1234.5625, 7, 55L, SizeTier: 3));
 
