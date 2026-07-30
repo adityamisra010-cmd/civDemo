@@ -395,3 +395,50 @@
   RIG, no general rule. Then a packet touching a named surface knows to re-run before citing —
   the coupling-map discipline (S8 §4.1 item 4) applied to EVIDENCE rather than code. OPEN,
   owner: T3.11 (harness and goldens, which owns test-suite health). Not fixed here.
+- **Q-A (T3.8 Item 0, director): RIVERS CANNOT LIVE ON THE STRIDE-4 LATTICE.** The T3.6b water
+  counterfactual's lattice pass could only see the SEA — stride-4 majority-water blocks hide
+  rivers — and concluded even FREE water was insufficient; that was a resolution artifact, not
+  economics (the pixel pass routes the real river mask and the sites sit on it). Collides with
+  the existing lattice-stride entry: one node is 16×16 km and a river is a sub-node feature. Any
+  future water-transport packet must resolve this FIRST, and it is an ARCHITECTURE call. The
+  three candidates, named without choosing: (1) finer stride — quadruples node count and
+  Dijkstra work, re-pins every golden; (2) river edges as an OVERLAY on the network vector
+  graph, which is what D-009 actually describes ("canal" is a listed edge type); (3) river
+  polylines promoted to first-class edges. OPEN, owner: the water-transport packet.
+- **Q-B (T3.8 Item 0, director): HYPOTHESIS — ESCALATION 2 MAY BE ANOTHER FACE OF B-2.** Almost
+  every non-grain price rests on a band edge (stocked goods at the 0.05 floor, zero-stock goods
+  at the 20.0 ceiling), so every gap is identically zero and nothing can trade. Candidate cause:
+  nothing bounds accumulation — abundant goods ratchet up forever and peg the floor, while
+  goods consumed on production peg the ceiling. If stores were bounded, stocks would CYCLE and
+  prices would float off the rails. Filed as an explicit HYPOTHESIS, not a finding, with the
+  test named: when B-2's store bounding lands, measure whether prices leave the band edges — if
+  they do, escalation 2 and B-2 are one packet. Owner: B-2, M4 blocking material.
+- **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
+  Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
+  HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for
+  high-bulk goods, lowering the deadband T3.6b measured at 23–35 against a maximum possible gap
+  of 19.95. Mechanism-shaped and COMPUTED, never assigned: effective bulk cost falls with
+  available livestock, so a herding settlement hauls cheaper. Sits alongside water routes as a
+  second lever on escalation 1. OPEN, owner: the same future transport packet. Not designed
+  here.
+- **Q-D (T3.8 Item 0, director design input): HOUSING TIERS ARE OUT OF T3.8 SCOPE.** The
+  director wants housing to progress IN KIND over the campaign — hut to longhouse to tenement
+  to apartment block — not only in quantity. Real, wanted, and NOT the T3.8 packet. The
+  governing constraint, recorded now: LAW 4 FORBIDS CALENDAR GATES — a tier cannot unlock by
+  era or date; it must derive from computed state (materials available, population density,
+  accumulated wealth, institutions). Wants D-017's settlement sprawl model alongside it. OPEN,
+  no owner yet.
+- **Q-E (T3.8 Item 0, director ruling): TRADE ROUTES AS EMERGENT INFRASTRUCTURE.** The Civ-6
+  trade-route model is RULED OUT in its unit half: no placed trader unit, no player-created
+  route — that makes exchange happen because the player chose it rather than because goods were
+  worth moving, inverting the signal the current mechanism gives (D-009 deleted the separate
+  region graph precisely so trade IS the transport network; D-018 forbids unlocked classes).
+  The half that IS wanted: historical trade ran on ESTABLISHED routes — a path used repeatedly,
+  maintained, cheaper each time. That is the network graph improving where traffic justifies
+  it — D-009's own claim, which PathBuild already half-implements for farmland reach. Candidate
+  mechanism: sustained flow on a pair justifies path improvement; improved path lowers
+  transport cost; lower cost opens further pairs. Computed, self-reinforcing, no unit. Merchant
+  consequence noted: T3.7's class then emerges on its own terms once volume justifies full-time
+  traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
+  Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
+  designed here.
