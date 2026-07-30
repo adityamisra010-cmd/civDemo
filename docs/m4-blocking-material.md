@@ -4,6 +4,12 @@ Findings that the M4 spec **cannot ship without answering**. Not queue items: th
 incomplete until each has a stated resolution. Raised under the S8 §4.1 discipline that a
 milestone spec's foundations are audited before its packets are written.
 
+> **Cross-reference (GOV-2, 2026-07-30):** `docs/m4-pre-spec-dependencies.md` — the pre-spec
+> dependency filing, input to the M4 spec's S8 §4.1 coupling map: two director rulings first
+> recorded there (money: M5 taxes in kind; notables: split by role, generals at M4), the stale
+> system-inventory reconciliation, four known items with the milestone they bite in (incl. B-2
+> below), the T3.6 trade-instantaneity timing note, and the ruled-whole M4 scope list.
+
 ---
 
 ## B-1 — ~~Settlement spacing caps the continent at nine sites~~ **CORRECTED: the claim was FALSE** (T3.4b review, 2026-07-27)
