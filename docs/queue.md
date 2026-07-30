@@ -101,7 +101,8 @@
   settled. The art SUBSTRATE (terrain textures, grain overlay, palette, UI
   frames, typography, style bible) has no such dependency and ships separately
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
-  reference.
+  reference. [D-038 (docs/d038-visual-target.md) fixes the milestone: an
+  inserted visual milestone after M5, before M6, absorbing this packet.]
 - ADR-012 viability forward-note (T2.13 adversarial pass): the absolute food
   gate is one-way today (a store cannot rise without a harvest, so a dead ruin
   stays dead). If a future milestone adds food SHIPMENTS into settlements, a

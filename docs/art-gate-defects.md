@@ -155,3 +155,7 @@ and no headless test sees sampler state — the composite repeat test covers the
    LinearClamp sampler nothing had ever asserted.
 3. The sampler fix (one explicit LinearWrap in ImGuiRenderer) passed all four gate checks.
 Tests certify what they mention; each round's failure lived precisely in what no test mentioned.
+
+**Cross-reference:** D-038 (docs/d038-visual-target.md, Part D) cites this record — the two
+generated-asset failures (alpha>127 at 0.46% and 0.90%, off-palette #A77032) and HeaderRuleBaker's
+procedural success — as the precedent for its production-method ordering.
