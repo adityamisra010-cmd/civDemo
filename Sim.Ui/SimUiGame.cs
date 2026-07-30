@@ -136,8 +136,12 @@ public sealed class SimUiGame : Game
         _sessionLogPath = sessionLogPath;
         _graphics = new GraphicsDeviceManager(this)
         {
-            PreferredBackBufferWidth = 1280,
-            PreferredBackBufferHeight = 800,
+            // T3.9a-b item 4: the default window IS the layout's design
+            // resolution (PanelLayout.DesignWidth/Height = 1280×800) — read
+            // from the tested view-model so the proven-non-overlapping
+            // default layout and the actual window cannot drift apart.
+            PreferredBackBufferWidth = PanelLayout.DesignWidth,
+            PreferredBackBufferHeight = PanelLayout.DesignHeight,
             SynchronizeWithVerticalRetrace = true,
             PreferMultiSampling = true,
         };
@@ -154,6 +158,17 @@ public sealed class SimUiGame : Game
 
         // Fonts must join the atlas BEFORE the ImGui renderer uploads it (§3).
         ImGui.CreateContext();
+        // T3.9a-b item 4: window state (position/size/COLLAPSED) is session-
+        // scoped and in-memory ONLY. ImGui's default imgui.ini would persist
+        // layout across runs — and a stale ini from an older build overrides
+        // every FirstUseEver default below, resurrecting the pre-polish
+        // overlapping layout. With the ini disabled the PanelLayout defaults
+        // are authoritative at every launch, while the user's in-session
+        // drag/resize/collapse changes stick for the whole session: ImGui
+        // keeps per-window state in the live context, and no SetNextWindow*
+        // call in this file uses ImGuiCond.Always — first-use only, so
+        // nothing re-forces a panel after the user touches it.
+        unsafe { ImGui.GetIO().NativePtr->IniFilename = null; }
         _fonts = UiTheme.LoadFonts(_art.Root);
         _imgui = new ImGuiRenderer(this, ownsContext: false);
         UiTheme.Apply();
@@ -410,6 +425,20 @@ public sealed class SimUiGame : Game
             }
         }
 
+        // T3.9a-b item 1: Space = End Turn, through the SAME EndTurn() the
+        // button calls (no second end-turn implementation). Eligibility —
+        // the focus rule (never while ImGui wants the keyboard or a text
+        // field has focus) and the no-repeat rule (pressed edge on polled
+        // state; key repeat never re-lowers polled key state, so a held
+        // Space fires exactly once) — lives in the pure EndTurnKey
+        // predicate, pinned headless by EndTurnKeyTests.
+        if (IsActive && EndTurnKey.ShouldFire(
+                keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space),
+                io.WantCaptureKeyboard, io.WantTextInput))
+        {
+            EndTurn();
+        }
+
         _lastMouse = mouse;
         _lastKeyboard = keyboard;
         base.Update(gameTime);
@@ -614,17 +643,38 @@ public sealed class SimUiGame : Game
         Piece(max.X - b, min.Y + b, max.X, max.Y - b, 1 - uvB, uvB, 1, 1 - uvB);
     }
 
+    /// <summary>T3.9a-b item 4: first-use defaults from the tested PanelLayout
+    /// — ImGuiCond.FirstUseEver ONLY (never Always, never per-frame forcing),
+    /// so the user's drags, resizes and title-bar collapses stick for the
+    /// session. Every panel window Begins through this helper.</summary>
+    private static void ApplyPanelDefaults(in PanelRect rect)
+    {
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(rect.X, rect.Y), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(rect.Width, rect.Height), ImGuiCond.FirstUseEver);
+    }
+
+    // §3 TYPOGRAPHY RULE (T3.9a-b item 3 — THE font-selection site, stated
+    // once, applied panel-wide): the companion face (IBM Plex Serif, lining
+    // figures) carries every DATA line — a text line whose payload is
+    // measurements (clock/world totals, population, food, the sector bars,
+    // grievance, per-need values, market rows, the debug footer). The body
+    // serif (EB Garamond) carries headers, prose and control labels (the
+    // settlement title, class headers, annal prose, slider/checkbox/button).
+    // The switch happens per BLOCK, never per line: the T3.9a gate found the
+    // food line sized differently from its neighbours because the companion-
+    // face block boundary was drawn mid-panel, ad hoc. All data-line blocks
+    // route through this pair so the choice cannot drift per call site.
+    private void PushDataFont() { if (_fonts is { } f) ImGui.PushFont(f.Numeric); }
+    private void PopDataFont() { if (_fonts is not null) ImGui.PopFont(); }
+
     /// <summary>T2.10: the graphs — world totals + the selected settlement,
     /// straight off the D-028 ring buffer (see HistoryBuffer for the replay/
     /// mid-game-load semantics). PlotLines autoscales per series; the overlay
     /// text carries the latest value so the line is readable as a number too.</summary>
     private void DrawGraphs()
     {
-        ImGui.SetNextWindowPos(
-            new System.Numerics.Vector2(700, 12), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(
-            new System.Numerics.Vector2(420, 460), ImGuiCond.FirstUseEver);
-        ImGui.Begin("Graphs");
+        ApplyPanelDefaults(PanelLayout.Graphs);
+        ImGui.Begin(PanelLayout.Graphs.Title);
         DrawPanelFurniture();
         ViewModel.HistoryBuffer history = _session.History;
         ImGui.TextUnformatted("world");
@@ -658,15 +708,12 @@ public sealed class SimUiGame : Game
     /// READ-ONLY: no widget in this window emits an order.</summary>
     private void DrawMarket()
     {
-        ImGui.SetNextWindowPos(
-            new System.Numerics.Vector2(700, 480), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(
-            new System.Numerics.Vector2(480, 300), ImGuiCond.FirstUseEver);
-        ImGui.Begin("Market");
+        ApplyPanelDefaults(PanelLayout.Market);
+        ImGui.Begin(PanelLayout.Market.Title);
         DrawPanelFurniture();
         ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
         ImGui.Separator();
-        if (_fonts is { } numeric) ImGui.PushFont(numeric.Numeric);
+        PushDataFont();   // §3 rule (see PushDataFont): market rows are data lines
         foreach (MarketGoodRow row in _marketRows)
         {
             // Selectable rows pick the good whose decomposition + series show
@@ -699,7 +746,7 @@ public sealed class SimUiGame : Game
         // autoscales per series (the T2.10 idiom), so a flat price is a
         // boring flat line and a spike is unmissable.
         Plot("price##sel-good", _session.History.Price(_selected, _selectedGood));
-        if (_fonts is not null) ImGui.PopFont();
+        PopDataFont();
         ImGui.End();
     }
 
@@ -707,11 +754,8 @@ public sealed class SimUiGame : Game
     /// the tail when new lines arrive while the reader is at the tail.</summary>
     private void DrawAnnals()
     {
-        ImGui.SetNextWindowPos(
-            new System.Numerics.Vector2(12, 560), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(
-            new System.Numerics.Vector2(560, 220), ImGuiCond.FirstUseEver);
-        ImGui.Begin("Annals");
+        ApplyPanelDefaults(PanelLayout.Annals);
+        ImGui.Begin(PanelLayout.Annals.Title);
         DrawPanelFurniture(_annalsId);   // the scholar's sheet behind the text
         ImGui.BeginChild("annal-scroll");
         // TextUnformatted under a wrap pos (T1.8 re-gate doctrine: never the
@@ -746,34 +790,47 @@ public sealed class SimUiGame : Game
         DrawAnnals();       // T2.9
         DrawGraphs();       // T2.10
         DrawMarket();       // T3.9a: goods, prices, decomposition, series
-        ImGui.SetNextWindowPos(new System.Numerics.Vector2(12, 12), ImGuiCond.FirstUseEver);
-        ImGui.Begin("civ-sim", ImGuiWindowFlags.AlwaysAutoResize);
+        ApplyPanelDefaults(PanelLayout.Hud);
+        // T3.9a-b item 4: the HUD has a FIXED default size and scrolls when
+        // content exceeds it (AlwaysAutoResize had no height cap, so the
+        // panel grew past the 800 px window bottom and under the Annals —
+        // the gate's overlap). HorizontalScrollbar so an over-long footer
+        // line scrolls instead of silently clipping at the fixed width.
+        ImGui.Begin(PanelLayout.Hud.Title, ImGuiWindowFlags.HorizontalScrollbar);
         DrawPanelFurniture();
 
         // TextUnformatted ONLY (T1.8 re-gate finding 2): ImGui.Text runs printf
         // parsing, and the SplitLine's '%' rendered as garbage. Every HUD string
         // is pre-formatted by HudModel and passed through unparsed.
+        PushDataFont();   // §3 rule (see PushDataFont): clock/world are data lines
         ImGui.TextUnformatted(_hud.ClockLine);
         ImGui.TextUnformatted(_hud.WorldLine);      // T2.4: the world summary
+        PopDataFont();
         ImGui.Separator();
         ImGui.TextUnformatted(_hud.TitleLine);      // T2.4: the selected settlement
-        if (_fonts is { } numeric) ImGui.PushFont(numeric.Numeric);
+        PushDataFont();   // §3 rule: the settlement data block, one face throughout
         ImGui.TextUnformatted(_hud.PopulationLine);
         ImGui.TextUnformatted(_hud.FoodLine);
         // T3.9a item 4: the five-sector split as five labelled bar rows
         // (DISPLAY ONLY — the slider below stays the only control until T3.9b).
+        // T3.9a-b item 2: row height is the MEASURED frame height of the
+        // active font (line height + vertical frame padding), never a
+        // literal — the literal 14 sat under the font's line height and
+        // clipped every label top and bottom (gate Q2).
         foreach (SectorBarRow sector in _sectorRows)
             ImGui.ProgressBar((float)sector.Fraction,
-                new System.Numerics.Vector2(220, 14), sector.Label);
+                new System.Numerics.Vector2(220, ImGui.GetFrameHeight()), sector.Label);
         ImGui.TextUnformatted(_hud.GrievanceLine);          // T2.6: display only
-        if (_fonts is not null) ImGui.PopFont();
+        PopDataFont();
         ImGui.Separator();
         // T3.9a item 3: needs PER CLASS (T3.5 baskets differ by class — the
         // panel shows the difference; unbound needs stay honestly labelled).
         foreach (NeedsClassBlock block in _needsBlocks)
         {
-            ImGui.TextUnformatted(block.HeaderLine);
+            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
+            PushDataFont();   // §3 rule: per-need values are data lines
             foreach (string line in block.NeedLines) ImGui.TextUnformatted(line);
+            PopDataFont();
         }
         ImGui.Separator();
 
@@ -785,10 +842,13 @@ public sealed class SimUiGame : Game
 
         ImGui.Checkbox("territory overlay", ref _showCatchment);
 
-        if (ImGui.Button("End Turn", new System.Numerics.Vector2(180, 32)))
+        // T3.9a-b item 1 discoverability: the binding is shown ON the button
+        // itself. Both paths (click here, Space in Update) call EndTurn().
+        if (ImGui.Button("End Turn [Space]", new System.Numerics.Vector2(180, 32)))
             EndTurn();
 
         ImGui.Separator();
+        PushDataFont();   // §3 rule: the debug footer is data lines
         ImGui.TextUnformatted(BuildInfo.Describe()); // same identity as the title
         ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, _fps));
         ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
@@ -797,6 +857,7 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(_art.SummaryLine());
         ImGui.TextUnformatted(_bakeNote);
         if (_fonts is { } f) ImGui.TextUnformatted(f.Note);
+        PopDataFont();
         ImGui.End();
         if (_fonts is not null) ImGui.PopFont();
         _imgui.AfterLayout();

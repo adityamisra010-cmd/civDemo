@@ -352,17 +352,17 @@
   measurement to the two escalations above.
 - **T3.9a GATE Q1 — END TURN NEEDS A KEYBOARD SHORTCUT (spacebar or Enter).** The director had
   to scroll to reach the button; it is the single most-repeated action in the game and currently
-  costs a scroll. Owner: T3.9b.
+  costs a scroll. Owner: T3.9a-b (this packet).
 - **T3.9a GATE Q2 — THE FIVE SECTOR BARS CLIP THEIR LABELS VERTICALLY.** Row height sits under
-  the font's line height, so labels are cut off top and bottom. Owner: T3.9b.
+  the font's line height, so labels are cut off top and bottom. Owner: T3.9a-b (this packet).
 - **T3.9a GATE Q3 — TEXT SIZE INCONSISTENT IN THE SETTLEMENT PANEL.** The "food ... (last
   harvest +N)" line renders at a different size from its neighbours; style bible §3 permits a
   companion face for dense numbers, but the switch must be deliberate and consistent, not
-  per-line. Owner: T3.9b.
+  per-line. Owner: T3.9a-b (this packet).
 - **T3.9a GATE Q4 — PANELS NEED TO BE INDIVIDUALLY COLLAPSIBLE WITH SESSION-PERSISTENT STATE.**
   Market, Graphs, Annals and the settlement HUD open together clutter and overlap; the director
   specifically wants Annals closeable for routine play. ImGui already collapses on the title-bar
-  arrow — what is missing is persistence and non-overlapping layout. Owner: T3.9b.
+  arrow — what is missing is persistence and non-overlapping layout. Owner: T3.9a-b (this packet).
 - **T3.9a GATE Q5 — COMFORT MAY HAVE THE SAME FLOW-NOT-STOCK PROBLEM AS SHELTER.** Pots and
   cloth are durable; zero crafting for one turn should not zero Comfort. Investigate alongside
   T3.8's housing stock, same reasoning. Owner: T3.8.
