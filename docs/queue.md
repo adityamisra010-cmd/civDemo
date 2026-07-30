@@ -413,6 +413,15 @@
   prices would float off the rails. Filed as an explicit HYPOTHESIS, not a finding, with the
   test named: when B-2's store bounding lands, measure whether prices leave the band edges — if
   they do, escalation 2 and B-2 are one packet. Owner: B-2, M4 blocking material.
+  **EXTENDED (T3.8 certification ruling): B-2's THIRD COSTUME — TIMBER.** T3.8's H1 overshoot
+  has the same root: timber stores keep housing maintenance m = 1 for decades after a farm-100%
+  order (measured: Hikiavur reads Shelter 1.0000 at t177 after 30 years of nothing but farming,
+  timber store 755 covering ~16 more turns). The decay mechanism is correct; the buffer it draws
+  on is fictional. Three faces of one defect: grain (the world cannot starve, ~1,240 years of
+  reserve), prices (11 of 13 goods pegged at band edges), timber (the world cannot become
+  homeless). The hypothesis sharpens to ONE TEST, THREE PREDICTIONS: if bounding stores makes
+  stocks CYCLE, it should unpeg prices AND make Shelter decay reachable — B-2 is the packet that
+  makes three separate mechanisms observable, not just a scarcity fix.
 - **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
   Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
   HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for

@@ -155,3 +155,13 @@ unbounded granary absorbs it — the store is not merely deep, it is deep enough
 labour-allocation policy itself. Store bounding (B-2a) is what makes sector allocation a decision
 with consequences; until it lands, no M3/M4 mechanism that routes through food scarcity can be
 calibrated against the shipped world.
+
+### B-2 addendum (T3.8 certification, 2026-07-30) — the THIRD costume: timber
+
+T3.8's H1 overshoot, measured: timber stores keep housing maintenance m = 1.0 for decades after
+all timber production stops (Hikiavur: farm-100% at t174, Shelter 1.0000 at t177, store 755
+covering ~16 further turns of upkeep). The decay mechanism is correct; the buffer it draws on is
+fictional. B-2 now has three faces — grain (the world cannot starve), prices (band-edge pegging,
+Q-B), timber (the world cannot become homeless) — and ONE TEST WITH THREE PREDICTIONS: bounded
+stores should cycle stocks, unpeg prices, and make Shelter decay reachable. Bounding stores is
+the packet that makes three separate mechanisms observable.
