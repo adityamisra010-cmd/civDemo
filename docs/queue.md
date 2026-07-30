@@ -380,3 +380,18 @@
   down-rank it from Tier A — all three are fitting a coefficient to hide a missing mechanism
   (law 2). Filed against T3.8 as a MOTIVATING MEASUREMENT so that packet can state its
   expected before/after.
+- **Q-F (director, 2026-07-30): THE THREE SKIP-GATED MEASUREMENT RIGS NEED INVALIDATION
+  CONDITIONS.** FoundingVariationItem0Tests (~30 min) underwrites ADR-017 (the decision NOT to
+  amend D-025's siting clause); WaterRouteCounterfactualTests ×2 (lattice and pixel passes)
+  underwrite the reframing of escalation 1 from a CR against frozen constants into a missing
+  mechanism — both conclusions will be cited by the transport packet and by T3.10. Skipping
+  them is correct (they are expensive; that is why) — what is missing is an INVALIDATION
+  CONDITION per rig: a skipped rig still compiles, so it goes semantically stale silently,
+  still runnable, measuring a world that has moved, with recorded numbers that quietly stop
+  describing anything. REQUIRED, one line per rig IN THE RIG'S OWN HEADER where the next
+  reader sees it: what change would invalidate its recorded numbers. Candidates by rig —
+  Item 0: worldgen, siting, endowment, sector mix, catchment. Water counterfactuals: the
+  lattice stride, the river mask, transport cost, bulk values, the price band. Name them PER
+  RIG, no general rule. Then a packet touching a named surface knows to re-run before citing —
+  the coupling-map discipline (S8 §4.1 item 4) applied to EVIDENCE rather than code. OPEN,
+  owner: T3.11 (harness and goldens, which owns test-suite health). Not fixed here.
