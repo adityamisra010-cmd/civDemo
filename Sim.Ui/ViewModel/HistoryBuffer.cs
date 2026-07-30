@@ -53,7 +53,20 @@ public sealed class HistoryBuffer
 
     private readonly Series[] _world = [new(), new(), new()];
     private readonly Dictionary<int, Series[]> _settlements = [];
+
+    /// <summary>T3.9a item 2: per-(settlement, good) PRICE series, keyed by
+    /// (settlement id, good id) packed into one long. Same D-028 semantics as
+    /// every other series here: UI-side, rebuilt by replay, fresh on a
+    /// mid-game load. Prices are written by PriceSystem from the first
+    /// resolved turn on, so a price series is naturally shorter than the
+    /// population series by the founding sample — a series plots what was
+    /// measured, never a fabricated turn-0 price. Dictionary use is lookup +
+    /// keyed insert only, never iterated (and this is the view layer anyway).</summary>
+    private readonly Dictionary<long, Series> _prices = [];
     private long _lastTurn = long.MinValue;
+
+    private static long PriceKey(int settlementId, int goodId) =>
+        ((long)settlementId << 32) | (uint)goodId;
 
     public int SampleCount => _world[0].Count;
 
@@ -101,6 +114,18 @@ public sealed class HistoryBuffer
             worldGrievance += grievance;
         }
 
+        for (int p = 0; p < world.Prices.Count; p++)
+        {
+            PriceRow price = world.Prices[p];
+            long key = PriceKey(price.Settlement.Value, price.Good.Value);
+            if (!_prices.TryGetValue(key, out Series? series))
+            {
+                series = new Series();
+                _prices[key] = series;
+            }
+            series.Add((float)price.Price);
+        }
+
         _world[(int)Metric.Population].Add(worldPop);
         _world[(int)Metric.Food].Add(worldFood);
         _world[(int)Metric.Grievance].Add((float)worldGrievance);
@@ -113,5 +138,13 @@ public sealed class HistoryBuffer
     public float[] Settlement(int settlementId, Metric metric) =>
         _settlements.TryGetValue(settlementId, out Series[]? s)
             ? s[(int)metric].Snapshot()
+            : [];
+
+    /// <summary>T3.9a: the price series for one (settlement, good). A pair
+    /// never captured (unknown id, or no turn resolved yet) yields an empty
+    /// series — the graph renders "no data", never crashes.</summary>
+    public float[] Price(int settlementId, int goodId) =>
+        _prices.TryGetValue(PriceKey(settlementId, goodId), out Series? s)
+            ? s.Snapshot()
             : [];
 }

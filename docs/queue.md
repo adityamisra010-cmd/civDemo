@@ -350,3 +350,33 @@
   (realised founding-pop CV ≈ 0.30–0.47, RC-1 floor); siting stands per ADR-017. The
   blocked-exchange consequence recorded at T3.6 is NOT discharged — it is re-attributed by
   measurement to the two escalations above.
+- **T3.9a GATE Q1 — END TURN NEEDS A KEYBOARD SHORTCUT (spacebar or Enter).** The director had
+  to scroll to reach the button; it is the single most-repeated action in the game and currently
+  costs a scroll. Owner: T3.9b.
+- **T3.9a GATE Q2 — THE FIVE SECTOR BARS CLIP THEIR LABELS VERTICALLY.** Row height sits under
+  the font's line height, so labels are cut off top and bottom. Owner: T3.9b.
+- **T3.9a GATE Q3 — TEXT SIZE INCONSISTENT IN THE SETTLEMENT PANEL.** The "food ... (last
+  harvest +N)" line renders at a different size from its neighbours; style bible §3 permits a
+  companion face for dense numbers, but the switch must be deliberate and consistent, not
+  per-line. Owner: T3.9b.
+- **T3.9a GATE Q4 — PANELS NEED TO BE INDIVIDUALLY COLLAPSIBLE WITH SESSION-PERSISTENT STATE.**
+  Market, Graphs, Annals and the settlement HUD open together clutter and overlap; the director
+  specifically wants Annals closeable for routine play. ImGui already collapses on the title-bar
+  arrow — what is missing is persistence and non-overlapping layout. Owner: T3.9b.
+- **T3.9a GATE Q5 — COMFORT MAY HAVE THE SAME FLOW-NOT-STOCK PROBLEM AS SHELTER.** Pots and
+  cloth are durable; zero crafting for one turn should not zero Comfort. Investigate alongside
+  T3.8's housing stock, same reasoning. Owner: T3.8.
+- **T3.9a GATE — SHELTER IS FLOW-NOT-STOCK: DIRECTOR MATERIAL, MOTIVATING MEASUREMENT FOR
+  T3.8.** Measured at the gate (2026-07-29): Hikiavur at 100% farming reads Sustenance 0.88,
+  Shelter 0.00, Comfort 0.00, grievance 119.55, holding 225,026 food; Mothian at the T3.5b
+  default mix (55/15/10/12/8) reads Shelter 0.88, Comfort 0.74, grievance 16.49 — the
+  difference is entirely construction and crafting share. WorldState.cs:278 says
+  "Construction = 4; // PathBuild's pool (housing joins at T3.8)" — there is no housing stock;
+  Shelter satisfies from current-period goods, so a settlement that stops building is instantly
+  and completely homeless. Houses are durable; the honest model is a STOCK WITH SLOW DECAY,
+  which is exactly what T3.8 ships. Shelter's Tier A dominance (D-018 §4: gate needs override
+  signature weights when unmet) amplifies a flow artifact into the largest grievance term in
+  the world. Explicitly: do NOT weaken grievance, do NOT lower Shelter's weight, do NOT
+  down-rank it from Tier A — all three are fitting a coefficient to hide a missing mechanism
+  (law 2). Filed against T3.8 as a MOTIVATING MEASUREMENT so that packet can state its
+  expected before/after.

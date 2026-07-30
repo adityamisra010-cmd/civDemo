@@ -98,6 +98,54 @@ public class HistoryBufferTests
         }
     }
 
+    // --- T3.9a item 2: per-(settlement, good) price series ----------------
+
+    private static WorldState PriceWorld(long turn, params (int Settlement, int Good, double Price)[] prices)
+    {
+        WorldState world = World(turn, (0, 100, 100, 0.0));
+        foreach ((int settlement, int good, double price) in prices)
+            world.Prices.Add(new PriceRow(new SettlementId(settlement), new GoodId(good), price));
+        return world;
+    }
+
+    [Fact]
+    public void PriceSeries_CapturedPerSettlementGood_ChronologicalAndExact()
+    {
+        var buffer = new HistoryBuffer();
+        buffer.Capture(PriceWorld(1, (0, 4, 1.00), (0, 5, 2.00), (1, 4, 3.00)));
+        buffer.Capture(PriceWorld(1, (0, 4, 9.99)));                      // same turn: ignored
+        buffer.Capture(PriceWorld(2, (0, 4, 1.10), (0, 5, 1.90), (1, 4, 3.30)));
+        buffer.Capture(PriceWorld(3, (0, 4, 1.25), (0, 5, 1.80), (1, 4, 3.60)));
+
+        Assert.Equal([1.00f, 1.10f, 1.25f], buffer.Price(0, 4)); // a scarcity reads as a rising line
+        Assert.Equal([2.00f, 1.90f, 1.80f], buffer.Price(0, 5));
+        Assert.Equal([3.00f, 3.30f, 3.60f], buffer.Price(1, 4));
+    }
+
+    [Fact]
+    public void PriceSeries_StartsAtFirstMeasuredTurn_NoFabricatedFoundingSample()
+    {
+        // Turn 0 has no price rows (PriceSystem writes from the first resolved
+        // turn): the price series must be SHORTER than the population series,
+        // never padded with an invented turn-0 price.
+        var buffer = new HistoryBuffer();
+        buffer.Capture(World(0, (0, 100, 100, 0.0)));         // founding: no prices
+        buffer.Capture(PriceWorld(1, (0, 4, 1.05)));
+        buffer.Capture(PriceWorld(2, (0, 4, 1.15)));
+        Assert.Equal(3, buffer.Settlement(0, HistoryBuffer.Metric.Population).Length);
+        Assert.Equal([1.05f, 1.15f], buffer.Price(0, 4));
+    }
+
+    [Fact]
+    public void PriceSeries_UnknownPair_EmptyNotCrash()
+    {
+        var buffer = new HistoryBuffer();
+        buffer.Capture(PriceWorld(1, (0, 4, 1.0)));
+        Assert.Empty(buffer.Price(0, 99));
+        Assert.Empty(buffer.Price(42, 4));
+        Assert.Empty(new HistoryBuffer().Price(0, 4));
+    }
+
     [Fact]
     public void NoSimSideState_GrepLevel_SimCoreNeverReferencesTheBuffer()
     {
