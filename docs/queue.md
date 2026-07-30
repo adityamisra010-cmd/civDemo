@@ -462,3 +462,10 @@
   (T3.4c Q2's 11% must-pass margin, T3.4d's 5% must-fire ceiling) — and a queue line does not
   bind an agent the way a numbered §7.x does; the director rules on writing them at T3.10's
   scoping.
+
+- **FALLOUT ENUMERATION IS PER-SOLUTION, NOT PER-PROJECT** (T3.8 certification fix pass,
+  Item 4 — director ruling). T3.8's fallout enumeration ran Sim.Tests only; a 14th real
+  fallout item (the HUD needs-block pin — "Shelter: 0.00" against a founded world that now
+  arrives housed) was invisible to it and surfaced only when Sim.Ui.Tests ran at handback
+  item 3. The rule: any packet changing sim state that the HUD displays enumerates fallout
+  across BOTH test projects, not just Sim.Tests. OPEN. Owner: T3.11 (harness and goldens).

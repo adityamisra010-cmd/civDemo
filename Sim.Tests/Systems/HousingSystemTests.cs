@@ -21,6 +21,27 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class HousingSystemTests
 {
+    /// <summary>The two-material rig: canonical config with the clay draw
+    /// rates RESTORED to the pre-correction values. The T3.8 fix pass zeroed
+    /// canonical clay (corrected derivation — structural earth is subsoil, a
+    /// non-good, not the registry's ceramic clay), but the MECHANISM keeps its
+    /// full Leontief generality over any number of drawn materials; these
+    /// tests exercise that generality with rigged data (constitution: data
+    /// rigging is legal). Tests of the canonical single-material behaviour use
+    /// TestConfigs.Sim() directly.</summary>
+    private static SimConfig TwoMaterialConfig()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        return cfg with
+        {
+            Housing = cfg.Housing with
+            {
+                UpkeepClayPerDwellingYear = 0.025,
+                BuildClayPerDwelling = 1.0,
+            },
+        };
+    }
+
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");
 
@@ -99,7 +120,7 @@ public class HousingSystemTests
         // INDEFINITELY, and the upkeep is a real material draw, not a
         // coefficient. Construction share 0 keeps the build arm silent
         // (deficit 20 exists, but zero builder-years cap it at zero).
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TwoMaterialConfig();
         WorldState world = HousingWorld(cfg, pop: 600, dwellings: 100, timber: 1000, clay: 1000, 0.0);
         WorldState next = HousingOnly(cfg).Step(world);
 
@@ -138,12 +159,13 @@ public class HousingSystemTests
     [Fact]
     public void Maintenance_IsLeontief_TheScarcerMaterialGoverns()
     {
-        // Roof AND walls: timber plentiful, clay at 12 of the 25 demanded.
+        // Roof AND walls (two-material rig): timber plentiful, clay at 12 of
+        // the 25 demanded.
         // m must be the MIN fill (12/25), not a timber-weighted average, and
         // the decay exponent must scale by (1 − m) — the kill for the
         // degradation-ignores-m mutant (which would lose 22 dwellings here
         // instead of the correct 12) and for any mean-not-min blend.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TwoMaterialConfig();
         WorldState world = HousingWorld(cfg, pop: 600, dwellings: 100, timber: 1000, clay: 12, 0.0);
         WorldState next = HousingOnly(cfg).Step(world);
 
@@ -166,7 +188,7 @@ public class HousingSystemTests
     [Fact]
     public void Build_StopsExactlyAtTheSurplusTarget_NeverAStockpile()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TwoMaterialConfig();
         // Arm 1 — AT the target (600 people / 6 per dwelling × 1.2 = 120):
         // labor and materials abundant, and construction must still build
         // NOTHING. The cap-deleted mutant builds to its material cap here.
@@ -190,7 +212,7 @@ public class HousingSystemTests
     [Fact]
     public void Build_EachCapBindsAlone()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TwoMaterialConfig();
 
         // Labor-bound: a sliver of construction labor against a 1,200-deficit
         // and mountains of material. Expected built = floor(builderYears /
@@ -328,8 +350,9 @@ public class HousingSystemTests
         // Law 1 directly on the new conserved quantity: after three mixed
         // turns (build + partial maintenance + decay all active), the stock
         // equals endowment + built − decayed, from the LEDGER's own aggregate
-        // rows, exactly — no epsilon.
-        SimConfig cfg = TestConfigs.Sim();
+        // rows, exactly — no epsilon. Two-material rig keeps the original
+        // measured mixed dynamics (build + partial maintenance + decay).
+        SimConfig cfg = TwoMaterialConfig();
         WorldState world = HousingWorld(cfg, pop: 600, dwellings: 100, timber: 260, clay: 40, 0.3);
         WorldState end = HousingOnly(cfg).Run(world, 3);
 
