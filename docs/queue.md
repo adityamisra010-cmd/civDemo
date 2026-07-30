@@ -442,10 +442,23 @@
   traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
   Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
   designed here.
-- **MODIFYING A GUARD RE-OPENS ITS RED PROOF (director + agent agreement, T3.8).** The T3.5b
+- **MODIFYING A GUARD RE-OPENS ITS RED PROOF — CANDIDATE ADR-015 SECTION, owner T3.10
+  (director + agent agreement, T3.8; reasoning added at the director's ruling).** The T3.5b
   bound-need-must-have-a-satisfier guard was taught the T3.8 housingStock source; a guard
   taught a NEW case can lose its teeth on the OLD one, and its prior §7.4 red proof no longer
-  automatically holds. General rule, now standing: any modification to a proven-red guard
-  re-runs the red for the ORIGINAL property AND adds one for the new case, as permanent tests
-  where the guard's shape allows. First instance: HousingGuardTests (original no-satisfier red,
-  source-typo red, double-sourcing ambiguity red, all measured post-modification).
+  automatically holds. THE MECHANISM, stated fully: a guard widened to admit a new legitimate
+  case can silently begin admitting an illegitimate one, BECAUSE THE WIDENING IS AUTHORED
+  AGAINST A FAILING TEST — here 229 tests were red and the shortest edit turning them green is
+  a WEAKER guard. Nothing in the suite would have noticed, because the original property had
+  no test of its own independent of the guard's existence — which is exactly why
+  HousingGuardTests had to be WRITTEN rather than found. This is §7.5's shape (do not assert
+  on a quantity resting against its own limit) pointed at a GUARD rather than a measurement.
+  THE RULE: every property a guard held BEFORE a widening must be re-proven red
+  INDEPENDENTLY — never by re-running the suite, which is what the widening was written
+  against. First instance: HousingGuardTests (original no-satisfier red, source-typo red,
+  double-sourcing ambiguity red, measured post-modification). NOTE: three rules now sit as
+  queue lines rather than numbered ADR-015 sections — this one, candidate §7.15 (a
+  pre-committed reading needs a discriminating observable), and the asymmetric-margin pattern
+  (T3.4c Q2's 11% must-pass margin, T3.4d's 5% must-fire ceiling) — and a queue line does not
+  bind an agent the way a numbered §7.x does; the director rules on writing them at T3.10's
+  scoping.
