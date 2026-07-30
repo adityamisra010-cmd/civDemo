@@ -7,7 +7,10 @@
   },
   "catchment": {
     "_doc": "The ECONOMIC HINTERLAND radius (T3.2b): the country whose produce can profitably flow to the settlement, NOT a farmer's daily working radius. Stated as an IDEAL-GROUND radius in km and converted to the pathfinder's cost budget by LatticeGeometry.CostUnitsForIdealGroundKm; what it actually buys is decided by geography - shorter through mountain and marsh, longer along rivers and built dirt paths, which is how a road network grows a hinterland (D-009). Replaces the code constant CatchmentSystem.TravelBudget = 15.0 cost units (= 240 km ideal ground, ~205 km measured), which no tuning pass could see and which was compensating for the yield denomination error.",
-    "hinterlandRadiusKm": 50.0
+    "hinterlandRadiusKm": 50.0,
+    "_docSizeBonus": "T3.8 catchment bonus. sizeBonusMaxRatio: CHOSEN 0.10 within a stated frame - a fully built-out settlement extends its effective hinterland by at most a tenth (second-order vs geography; 0.5 would let size dominate terrain, 0.01 would be decorative). sizeDwellingsRef: DERIVED 70 = founding-scale dwelling demand (~410 founding pop / 6 persons per dwelling), so a founding settlement sits near the top tier and the bonus SATURATES rather than compounding with growth. Quantized to five tiers so the D-016 recompute gate survives (a continuous dwellings budget would re-run the partition Dijkstra every turn).",
+    "sizeBonusMaxRatio": 0.10,
+    "sizeDwellingsRef": 70.0
   },
   "pathBuild": {
     "laborPerAdultPerYear": 0.02,
@@ -181,6 +184,17 @@
     "bandMin": 0.05,
     "bandMax": 20.0,
     "maxRelativeChangePerYear": 0.03
+  },
+  "housing": {
+    "_doc": "T3.8 (director ruling: maintenance, not abstract decay). Provenance per S8 4.1(c); reference classes committed in docs/t3.8-spec.md BEFORE measurement. tauYears: DERIVED 40 (band 25-60) - zero-maintenance habitable life of a neolithic dwelling (LBK timber-post rebuild cycles ~25-50y, mudbrick 50-100 with continual replastering); the e-fold of unmaintained decay, so one 10-year turn without upkeep loses ~22% of stock. upkeep{Timber,Clay}PerDwellingYear: DERIVED 0.05/0.025 = build cost / tauYears (2.5%/yr, band 2-5% - rethatch every 2-5y, annual replaster). build{Timber,Clay}PerDwelling: 2.0/1.0 - the MIX is the reference statement (timber frame + earth walls); scale checked against shipped production (~70 dwellings for a founding settlement = 140 timber vs measured ~24/yr output: a build-out takes years, not turns). personsPerDwelling: DERIVED 6 (band 5-8). buildLaborAdultYearsPerDwelling: CHOSEN 0.5 within a stated frame (a household raises a house in a season with help). surplusCapRatio: CHOSEN 1.2, mechanism shape - houses are built for households, not stockpiled; the cap stops construction labor compounding into a dwelling mountain while allowing a vacancy margin.",
+    "tauYears": 40.0,
+    "upkeepTimberPerDwellingYear": 0.05,
+    "upkeepClayPerDwellingYear": 0.025,
+    "buildTimberPerDwelling": 2.0,
+    "buildClayPerDwelling": 1.0,
+    "personsPerDwelling": 6.0,
+    "buildLaborAdultYearsPerDwelling": 0.5,
+    "surplusCapRatio": 1.2
   },
   "trade": {
     "_doc": "T3.6 trade & arbitrage (D-034). Provenance per S8 4.1(c), stated per value. gapClosingFraction: CHOSEN 0.25, never derived - the TUNE fraction f of the gap-closing quantity a connected pair moves per turn; the mandate fixes only f < 1 (structural no-overshoot: flow is a damped step toward price parity, never past it - the migration gapClosingFraction shape, T2.8) and the loader REFUSES anything outside (0,1). costPerBulkCostUnit: DERIVED 0.16 grain-value units per (bulkPerUnit x travel-cost unit) - the conversion that puts transport cost in the same unit as a price gap. Anchor: carting grain roughly doubles its cost within ~100 km overland (the same reference-class result the bulk table is reviewed against); grain has bulk 1.0 and price = 1.0, so ~1.0 grain-value per 100 km; one travel cost unit = 16 km ideal ground (kmPerPx 4.0 x lattice stride 4), so 100 km = 6.25 cost units and 1.0/(1.0 x 6.25) = 0.16. Rough terrain costs more per km than ideal, which points the right way: mountain routes trade less, river/path routes more.",

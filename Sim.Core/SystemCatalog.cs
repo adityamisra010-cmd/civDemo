@@ -6,6 +6,7 @@ using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Harvest;
+using Sim.Core.Systems.Housing;
 using Sim.Core.Systems.Price;
 using Sim.Core.Systems.Production;
 using Sim.Core.Systems.Growth;
@@ -40,6 +41,9 @@ namespace Sim.Core;
 ///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
 ///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
 ///     the GRAIN row.
+///   HOUSING (T3.8, the FOURTH holder) owns: Amount via Ledger SINK only, reason
+///     HousingMaterials, on the TIMBER and CLAY rows (build + upkeep draws) —
+///     never a source, never another good, no remainder field touched.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or
 ///     sink, and NO remainder field (whole units only; sub-unit intent is
@@ -143,6 +147,17 @@ public static class SystemCatalog
                 TradeArbitrageSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>T3.8: the housing stock — fourth holder of the GoodStocks share
+    /// (see the ownership record above).</summary>
+    public static SystemRegistration Housing(SimConfig cfg)
+    {
+        var system = new HousingSystem(cfg);
+        return new SystemRegistration(HousingSystem.WellKnownId, HousingSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<HousingTables>(
+                prev, new HousingTables(next.Housing, next.GoodStocks), rng,
+                HousingSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Demographics(SimConfig cfg)
     {
         var system = new DemographicsSystem(cfg);
@@ -219,6 +234,6 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
         [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         ClassMobility(cfg), Migration(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), ClassMobility(cfg), Migration(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }

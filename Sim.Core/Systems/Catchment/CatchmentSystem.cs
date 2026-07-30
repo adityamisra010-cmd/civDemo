@@ -53,6 +53,32 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
     public static double TravelBudgetCostUnits(SimConfig cfg, TraversalLattice lattice) =>
         LatticeGeometry.CostUnitsForIdealGroundKm(lattice, cfg.Catchment.HinterlandRadiusKm);
 
+    /// <summary>T3.8: the QUANTIZED size step (0..4) — dwellings over
+    /// sizeDwellingsRef, bucketed into fifths and saturating at 4. Public and
+    /// pure so the staleness check, the budget, and the tests share one
+    /// definition.</summary>
+    public static int SizeTier(long dwellings, double dwellingsRef)
+    {
+        if (dwellings <= 0) return 0;
+        double ratio = dwellings / dwellingsRef;
+        if (ratio >= 1.0) return 4;
+        return (int)(ratio * 4.0); // 0..3 below the reference scale
+    }
+
+    /// <summary>T3.8: a settlement's travel budget with its size bonus —
+    /// base × (1 + sizeBonusMaxRatio × tier/4). A coefficient inside the
+    /// budget equation (law 2), never a free-floating buff.</summary>
+    public static double TierBudget(SimConfig cfg, TraversalLattice lattice, int tier) =>
+        TravelBudgetCostUnits(cfg, lattice) * (1.0 + cfg.Catchment.SizeBonusMaxRatio * tier / 4.0);
+
+    private static int TierOf(IReadOnlyWorldState prev, SimConfig cfg, SettlementId settlement)
+    {
+        for (int i = 0; i < prev.Housing.Count; i++)
+            if (prev.Housing[i].Settlement == settlement)
+                return SizeTier(prev.Housing[i].Dwellings.Value, cfg.Catchment.SizeDwellingsRef);
+        return 0;
+    }
+
     public void Step(SimContext<CatchmentTables> ctx)
     {
         IReadOnlyWorldState prev = ctx.Prev;
@@ -78,10 +104,17 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         // sums only owned nodes, so no land is ever double-counted.
         Span<int> origins = prev.Settlements.Count <= 64
             ? stackalloc int[prev.Settlements.Count] : new int[prev.Settlements.Count];
+        Span<double> budgets = prev.Settlements.Count <= 64
+            ? stackalloc double[prev.Settlements.Count] : new double[prev.Settlements.Count];
+        Span<int> tiers = prev.Settlements.Count <= 64
+            ? stackalloc int[prev.Settlements.Count] : new int[prev.Settlements.Count];
         for (int s = 0; s < prev.Settlements.Count; s++)
+        {
             origins[s] = OriginLatticeNode(lattice, prev.Terrain.Size, prev.Settlements[s].SiteCell);
-        Pathfinder.PartitionResult part = Pathfinder.Partition(
-            lattice, prev, origins, TravelBudgetCostUnits(_cfg, lattice));
+            tiers[s] = TierOf(prev, _cfg, prev.Settlements[s].Id);
+            budgets[s] = TierBudget(_cfg, lattice, tiers[s]); // T3.8 size bonus, per settlement
+        }
+        Pathfinder.PartitionResult part = Pathfinder.Partition(lattice, prev, origins, budgets);
 
         // Per settlement (ascending settlement order), rows in ascending node
         // id. SUMMATION ORDER IS DETERMINISM SURFACE: double addition is not
@@ -104,7 +137,7 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
             }
             summaries.Add(new CatchmentSummaryRow(
                 settlement.Id, count, arableKm2, revision,
-                LastRecomputeTurn: prev.Clock.Turn));
+                LastRecomputeTurn: prev.Clock.Turn, SizeTier: tiers[s]));
         }
 
         // T2.5 (D-016 piggyback): pairwise settlement travel costs, recomputed
@@ -140,7 +173,7 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
     /// Stale iff the summaries don't cover the settlement set 1:1 in order, or
     /// any summary was computed against a different network revision.
     /// </summary>
-    private static bool IsStale(IReadOnlyWorldState prev, int revision)
+    private bool IsStale(IReadOnlyWorldState prev, int revision)
     {
         if (prev.CatchmentSummaries.Count != prev.Settlements.Count) return true;
         for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
@@ -148,6 +181,9 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
             CatchmentSummaryRow summary = prev.CatchmentSummaries[i];
             if (summary.Settlement != prev.Settlements[i].Id) return true;
             if (summary.NetworkRevision != revision) return true;
+            // T3.8: a size-tier change is a recompute event (D-016 gate) —
+            // the summary records the tier it was computed at.
+            if (summary.SizeTier != TierOf(prev, _cfg, summary.Settlement)) return true;
         }
         return false;
     }

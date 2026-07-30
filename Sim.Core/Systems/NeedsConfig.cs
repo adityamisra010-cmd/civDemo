@@ -69,7 +69,18 @@ public sealed record NeedEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("bound"), JsonRequired] bool Bound,
     [property: JsonPropertyName("weight"), JsonRequired] double Weight,
-    [property: JsonPropertyName("varietyWeight")] double VarietyWeight = 0.0);
+    [property: JsonPropertyName("varietyWeight")] double VarietyWeight = 0.0,
+    // T3.8: WHERE a bound need's satisfaction comes from. "basket" (default)
+    // = the D-035-C consumption-basket fill; "housingStock" = the T3.8
+    // dwelling stock (capacity/population), declared in DATA so the binding
+    // is reviewable and the loader can refuse ambiguity (a housingStock need
+    // with basket entries would have two satisfaction sources and the code
+    // would silently pick one).
+    [property: JsonPropertyName("source")] string? Source = null)
+{
+    [JsonIgnore] public bool FromHousingStock =>
+        string.Equals(Source, "housingStock", StringComparison.Ordinal);
+}
 
 /// <summary>
 /// D-035-B aggregation tuning (all TUNE). Sigma is the CES substitution
@@ -163,6 +174,13 @@ public static class NeedsConfigLoader
             if (i > 0 && n.Id <= cfg.Needs[i - 1].Id)
                 throw new NeedsConfigException(
                     $"needs ids must be strictly ascending: [{i - 1}].id {cfg.Needs[i - 1].Id} >= [{i}].id {n.Id}.");
+            // T3.8: the source field is a closed vocabulary — a typo'd source
+            // must not silently fall back to basket (the config-fails-quietly
+            // class).
+            if (n.Source is not null && n.Source != "basket" && n.Source != "housingStock")
+                throw new NeedsConfigException(
+                    $"needs[{i}] ({n.Name}).source must be \"basket\" or \"housingStock\", got "
+                    + $"\"{n.Source}\".");
         }
 
         if (cfg.Grievance is null) throw new NeedsConfigException("grievance is missing.");
@@ -177,6 +195,21 @@ public static class NeedsConfigLoader
 
         ValidateAggregation(cfg.Aggregation);
         ValidateBaskets(cfg);
+        // T3.8 AMBIGUITY GUARD: a housingStock-sourced need must have NO
+        // basket entries — two satisfaction sources for one need means the
+        // code silently picks one, which is how mechanisms rot. Proven RED by
+        // deleting this block.
+        for (int n = 0; n < cfg.Needs.Length; n++)
+        {
+            if (!cfg.Needs[n].FromHousingStock) continue;
+            for (int i = 0; i < cfg.Baskets!.Entries.Length; i++)
+                if (cfg.Baskets.Entries[i].Need == cfg.Needs[n].Id)
+                    throw new NeedsConfigException(
+                        $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) declares source \"housingStock\" "
+                        + $"but baskets.entries[{i}] still baskets it ({cfg.Baskets.Entries[i].Good}) — "
+                        + "a need cannot have two satisfaction sources. Delete the basket lines or the "
+                        + "source declaration.");
+        }
         // T3.5b item 2: the variety standard — validated so a malformed
         // standard cannot silently disable the diversity mechanism.
         if (cfg.VarietyStandard is null || cfg.VarietyStandard.Shares is null

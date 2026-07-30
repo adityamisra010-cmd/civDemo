@@ -174,6 +174,27 @@ public static class Pathfinder
     public static PartitionResult Partition(
         TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins, double budget)
     {
+        Span<double> budgets = origins.Length <= 64
+            ? stackalloc double[origins.Length] : new double[origins.Length];
+        budgets.Fill(budget);
+        return Partition(lattice, world, origins, budgets);
+    }
+
+    /// <summary>
+    /// T3.8: as above with a PER-SOURCE budget (the settlement-size catchment
+    /// bonus). Semantics: each source claims only nodes within ITS budget; a
+    /// contested node still goes to the composite (travel cost, settlement
+    /// index) key among the sources that can afford it. With all budgets equal
+    /// this is BIT-IDENTICAL to the scalar overload (proven by the equal-budget
+    /// equivalence test): an over-budget tentative never writes g under either
+    /// formulation that matters — the scalar version wrote-but-never-closed it
+    /// and normalized it out, and the blocking case needs one budget above
+    /// another, impossible when equal.
+    /// </summary>
+    public static PartitionResult Partition(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins,
+        ReadOnlySpan<double> budgets)
+    {
         int n = lattice.NodeCount;
         (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
 
@@ -196,11 +217,14 @@ public static class Pathfinder
             open.Push(0.0, origin);
         }
 
+        double maxBudget = 0.0;
+        for (int s = 0; s < budgets.Length; s++) if (budgets[s] > maxBudget) maxBudget = budgets[s];
+
         while (open.Count > 0)
         {
             (double cost, int current) = open.Pop();
             if (closed[current]) continue;
-            if (cost > budget) break; // heap is monotone: everything further is over budget
+            if (cost > maxBudget) break; // heap is monotone: everything further is over every budget
             closed[current] = true;
 
             (int x, int y) = lattice.Coords(current);
@@ -210,7 +234,7 @@ public static class Pathfinder
                 if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
                 int nb = ny * lattice.Size + nx;
                 if (closed[nb] || !lattice.IsPassable(nb)) continue;
-                RelaxClaim(current, nb, g[current] + lattice.StepCost(current, nb), g, owner, open, budget);
+                RelaxClaim(current, nb, g[current] + lattice.StepCost(current, nb), g, owner, open, budgets);
             }
             int[] targets = overlayTargets[current];
             double[] costs = overlayCosts[current];
@@ -218,7 +242,7 @@ public static class Pathfinder
             {
                 int nb = targets[e];
                 if (closed[nb] || !lattice.IsPassable(nb)) continue;
-                RelaxClaim(current, nb, g[current] + costs[e], g, owner, open, budget);
+                RelaxClaim(current, nb, g[current] + costs[e], g, owner, open, budgets);
             }
         }
 
@@ -232,15 +256,20 @@ public static class Pathfinder
     }
 
     private static void RelaxClaim(
-        int from, int to, double tentative, double[] g, int[] owner, MinHeap open, double budget)
+        int from, int to, double tentative, double[] g, int[] owner, MinHeap open,
+        ReadOnlySpan<double> budgets)
     {
+        // T3.8: a source may claim only within ITS budget — an unaffordable
+        // tentative writes nothing, so it can never block an affordable claim
+        // from a larger-budget neighbour.
+        if (tentative > budgets[owner[from]]) return;
         // The claim key (travel cost, settlement index): strictly-better cost
         // wins; bit-equal cost goes to the lower-indexed settlement.
         if (tentative < g[to] || (tentative == g[to] && owner[from] < owner[to]))
         {
             g[to] = tentative;
             owner[to] = owner[from];
-            if (tentative <= budget) open.Push(tentative, to);
+            open.Push(tentative, to);
         }
     }
 

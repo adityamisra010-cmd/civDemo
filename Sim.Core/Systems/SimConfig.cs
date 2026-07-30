@@ -28,6 +28,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("harvestVariance")] HarvestVarianceConfig HarvestVariance,
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     [property: JsonPropertyName("trade")] TradeConfig Trade,
+    [property: JsonPropertyName("housing")] HousingConfig Housing,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
@@ -73,7 +74,19 @@ public sealed record FarmingConfig(
 /// error (CR-002).
 /// </summary>
 public sealed record CatchmentConfig(
-    [property: JsonPropertyName("hinterlandRadiusKm"), JsonRequired] double HinterlandRadiusKm);
+    [property: JsonPropertyName("hinterlandRadiusKm"), JsonRequired] double HinterlandRadiusKm,
+    // T3.8 (the spec line's catchment bonus). SizeBonusMaxRatio — CHOSEN 0.10
+    // within a stated frame: a fully built-out settlement's infrastructure and
+    // labor density extend its effective hinterland by AT MOST a tenth (a
+    // second-order effect on a 50 km radius; 0.5 would make size dominate
+    // geography, 0.01 would be decorative). SizeDwellingsRef — DERIVED 70,
+    // the founding-scale dwelling demand (~410 founding population /
+    // 6 persons per dwelling): a settlement at its founding size sits near
+    // the top tier, and the bonus saturates rather than compounding with
+    // growth (law 2: a coefficient inside the budget equation, quantized to
+    // five steps so the D-016 recompute gate survives).
+    [property: JsonPropertyName("sizeBonusMaxRatio"), JsonRequired] double SizeBonusMaxRatio,
+    [property: JsonPropertyName("sizeDwellingsRef"), JsonRequired] double SizeDwellingsRef);
 
 /// <summary>
 /// Path-building tuning (T1.6, all TUNE, per-sim-year rates — law 3).
@@ -440,6 +453,39 @@ public sealed record TradeConfig(
     [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
     [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit);
 
+/// <summary>
+/// T3.8 housing tuning (director ruling: maintenance, not abstract decay).
+/// Provenance per S8 §4.1(c), stated per value; reference classes committed in
+/// docs/t3.8-spec.md BEFORE any measurement.
+///
+/// TauYears — DERIVED 40 (band 25–60): the zero-maintenance habitable life of
+///   a Neolithic dwelling (LBK timber-post rebuild cycles ~25–50 y; mudbrick
+///   50–100 with continual replastering). The e-fold of unmaintained decay.
+/// UpkeepTimberPerDwellingYear / UpkeepClayPerDwellingYear — DERIVED 0.05 /
+///   0.025: annual upkeep ≈ replacement cost / lifetime = (2.0 timber +
+///   1.0 clay) / 40, RC-H2's 2.5%/yr central (band 2–5%).
+/// BuildTimberPerDwelling / BuildClayPerDwelling — 2.0 / 1.0: the material MIX
+///   is the reference statement (timber frame + earth walls); absolute scale
+///   checked against shipped production in the spec.
+/// PersonsPerDwelling — DERIVED 6 (band 5–8, nuclear-to-extended household).
+/// BuildLaborAdultYearsPerDwelling — CHOSEN 0.5 within a stated frame (a
+///   household raises a house in a season with help; 5.0 would be a cathedral,
+///   0.05 a tent).
+/// SurplusCapRatio — CHOSEN 1.2, mechanism shape not tuning: houses are built
+///   for households, not stockpiled; the cap stops construction labor from
+///   compounding into an unbounded dwelling mountain (the B-2 shape) while
+///   allowing a modest vacancy margin.
+/// </summary>
+public sealed record HousingConfig(
+    [property: JsonPropertyName("tauYears"), JsonRequired] double TauYears,
+    [property: JsonPropertyName("upkeepTimberPerDwellingYear"), JsonRequired] double UpkeepTimberPerDwellingYear,
+    [property: JsonPropertyName("upkeepClayPerDwellingYear"), JsonRequired] double UpkeepClayPerDwellingYear,
+    [property: JsonPropertyName("buildTimberPerDwelling"), JsonRequired] double BuildTimberPerDwelling,
+    [property: JsonPropertyName("buildClayPerDwelling"), JsonRequired] double BuildClayPerDwelling,
+    [property: JsonPropertyName("personsPerDwelling"), JsonRequired] double PersonsPerDwelling,
+    [property: JsonPropertyName("buildLaborAdultYearsPerDwelling"), JsonRequired] double BuildLaborAdultYearsPerDwelling,
+    [property: JsonPropertyName("surplusCapRatio"), JsonRequired] double SurplusCapRatio);
+
 public static class SimConfigLoader
 {
     public static SimConfig Load(Stream json)
@@ -568,6 +614,11 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 "catchment.hinterlandRadiusKm must be a finite positive distance in km, got "
                 + $"{Inv(cfg.Catchment.HinterlandRadiusKm)}.");
+        RequireRate("catchment.sizeBonusMaxRatio", cfg.Catchment.SizeBonusMaxRatio);
+        if (!(cfg.Catchment.SizeDwellingsRef > 0.0) || !double.IsFinite(cfg.Catchment.SizeDwellingsRef))
+            throw new SimConfigException(
+                $"catchment.sizeDwellingsRef must be a finite value > 0 (it divides the dwelling stock " +
+                $"into size tiers), got {Inv(cfg.Catchment.SizeDwellingsRef)}.");
 
         if (cfg.Consumption is null) throw new SimConfigException("consumption is missing.");
         RequireCohortArray("consumption.cohortWeights", cfg.Consumption.CohortWeights);
@@ -653,6 +704,26 @@ public static class SimConfigLoader
                 $"starving destination (deficit 1.0) would still RECEIVE migrants, which is the T2.13 " +
                 $"starvation-magnetism defect this parameter exists to kill; got " +
                 $"{Inv(cfg.Migration.DestinationDeficitRepulsion)}.");
+
+        if (cfg.Housing is null) throw new SimConfigException("housing is missing.");
+        if (!(cfg.Housing.TauYears > 0.0) || !double.IsFinite(cfg.Housing.TauYears))
+            throw new SimConfigException(
+                $"housing.tauYears must be a finite value > 0 — at 0 or below every dwelling dies the " +
+                $"instant maintenance lapses and the stock the mechanism exists to give memory to has " +
+                $"none; got {Inv(cfg.Housing.TauYears)}.");
+        RequireRate("housing.upkeepTimberPerDwellingYear", cfg.Housing.UpkeepTimberPerDwellingYear);
+        RequireRate("housing.upkeepClayPerDwellingYear", cfg.Housing.UpkeepClayPerDwellingYear);
+        RequireRate("housing.buildTimberPerDwelling", cfg.Housing.BuildTimberPerDwelling);
+        RequireRate("housing.buildClayPerDwelling", cfg.Housing.BuildClayPerDwelling);
+        if (!(cfg.Housing.PersonsPerDwelling > 0.0) || !double.IsFinite(cfg.Housing.PersonsPerDwelling))
+            throw new SimConfigException(
+                $"housing.personsPerDwelling must be a finite value > 0 (it divides population into " +
+                $"dwelling demand), got {Inv(cfg.Housing.PersonsPerDwelling)}.");
+        RequireRate("housing.buildLaborAdultYearsPerDwelling", cfg.Housing.BuildLaborAdultYearsPerDwelling);
+        if (!(cfg.Housing.SurplusCapRatio >= 1.0) || !double.IsFinite(cfg.Housing.SurplusCapRatio))
+            throw new SimConfigException(
+                $"housing.surplusCapRatio must be a finite value >= 1 — below 1 the cap forbids housing " +
+                $"the population it exists to house; got {Inv(cfg.Housing.SurplusCapRatio)}.");
 
         if (cfg.Trade is null) throw new SimConfigException("trade is missing.");
         if (!(cfg.Trade.GapClosingFraction > 0.0 && cfg.Trade.GapClosingFraction < 1.0))

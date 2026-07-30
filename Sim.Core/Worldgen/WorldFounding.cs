@@ -162,6 +162,31 @@ public static class WorldFounding
                 }
             }
 
+            // T3.8 HOUSING: a founded settlement arrives HOUSED — its people
+            // did not sleep in fields before turn 1. Dwellings for the
+            // realised population enter via InitialEndowment (the same
+            // out-of-nothing convention as the founding food store; build
+            // materials are not retro-sunk). Round, not ceil: the sub-dwelling
+            // fraction is within one household of full housing either way and
+            // round is the convention every founding quantity uses.
+            {
+                long jitteredPopTotal = 0;
+                for (int i = 0; i < world.Buckets.Count; i++)
+                    if (world.Buckets[i].Settlement == settlement)
+                        jitteredPopTotal += world.Buckets[i].Count.Value;
+                long dwellings0 = Math.Max(0L, ConservedMath.WholeUnits(
+                    Math.Round(jitteredPopTotal / simCfg.Housing.PersonsPerDwelling),
+                    $"founding housing (settlement {s})"));
+                int hRow = world.Housing.Add(new HousingRow(
+                    settlement, Conserved.Zero, 0.0, 0.0, 1.0, 0.0));
+                if (dwellings0 > 0)
+                {
+                    ledger.Flow(ref world.Housing.Ref(hRow).Dwellings,
+                        ConservedQuantityIds.Dwellings, ReasonIds.InitialEndowment,
+                        dwellings0, FlowDirection.Source, OverdrawPolicy.Throw);
+                }
+            }
+
             // T3.2 DEPOSITS: the founding roll, per deposit-bearing good, in
             // goods-registry order. Abundance = the good's terrain channel at
             // the site × the seeded spread — what makes settlements DIFFERENT

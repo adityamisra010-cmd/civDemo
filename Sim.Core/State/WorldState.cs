@@ -87,7 +87,12 @@ public record struct CatchmentNodeRow(SettlementId Settlement, int LatticeNode, 
 /// </summary>
 public record struct CatchmentSummaryRow(
     SettlementId Settlement, int NodeCount, double EffectiveArableKm2,
-    int NetworkRevision, long LastRecomputeTurn);
+    int NetworkRevision, long LastRecomputeTurn, int SizeTier = 0);
+// T3.8 SizeTier: the QUANTIZED settlement-size step (0..4) this summary was
+// computed at — dwellings/sizeDwellingsRef bucketed into fifths. Stored so the
+// D-016 recompute gate can see a tier change without recomputing every turn
+// (a continuous dwellings-driven budget would re-run the partition Dijkstra
+// each turn; the tier changes a handful of times per campaign).
 
 /// <summary>
 /// One population bucket (T2.1, D-026): the key is (Settlement, Culture,
@@ -413,6 +418,43 @@ public record struct HarvestWeatherRow(SettlementId Settlement, double LogDeviat
 public record struct TradeFlowRow(SettlementId From, SettlementId To, GoodId Good, long Quantity);
 
 /// <summary>
+/// T3.8 — the HOUSING stock (director ruling: maintenance, not abstract
+/// decay). Dwellings is a CONSERVED capital stock (quantity
+/// ConservedQuantityIds.Dwellings): built from real materials via Ledger
+/// (source HousingBuilt; timber+clay sunk via HousingMaterials), degraded by
+/// UNMET MAINTENANCE via Ledger sink HousingDecayed — fully maintained
+/// housing persists indefinitely. BuildRemainder/DecayRemainder are the
+/// standard sub-unit banks (§3.3). LastMaintenanceFraction ∈ [0,1] is the
+/// share of upkeep materials actually available last step (observational —
+/// UI and the H1 curve read it). LastLaborUsed is the construction labor
+/// (adult-years) housing consumed this turn — the PUBLISHED ROW PathBuild
+/// subtracts from its banked labor at the standard §3.2 one-turn lag, which
+/// is how the construction pool is split without a system-to-system
+/// reference (law 6).
+/// </summary>
+/// <remarks>Field-based (not a record struct) so Ledger can take `ref` to the stock.</remarks>
+public struct HousingRow(
+    SettlementId settlement, Conserved dwellings,
+    double buildRemainder, double decayRemainder,
+    double lastMaintenanceFraction, double lastLaborUsed) : IEquatable<HousingRow>
+{
+    public SettlementId Settlement = settlement;
+    public Conserved Dwellings = dwellings;
+    public double BuildRemainder = buildRemainder;
+    public double DecayRemainder = decayRemainder;
+    public double LastMaintenanceFraction = lastMaintenanceFraction;
+    public double LastLaborUsed = lastLaborUsed;
+
+    public readonly bool Equals(HousingRow other) =>
+        Settlement == other.Settlement && Dwellings == other.Dwellings
+        && BuildRemainder.Equals(other.BuildRemainder) && DecayRemainder.Equals(other.DecayRemainder)
+        && LastMaintenanceFraction.Equals(other.LastMaintenanceFraction)
+        && LastLaborUsed.Equals(other.LastLaborUsed);
+    public override readonly bool Equals(object? obj) => obj is HousingRow other && Equals(other);
+    public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>
 /// T3.4 (D-033): the price of one good in one settlement, in GRAIN units —
 /// grain is the numeraire and its own price is pinned at exactly 1.0. Prices
 /// are ratios, so `double` (law 7); they are NOT conserved and never move
@@ -535,6 +577,7 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<PriceTermRow> PriceTerms { get; }
     IReadOnlyTable<HarvestWeatherRow> HarvestWeather { get; }
     IReadOnlyTable<TradeFlowRow> TradeFlows { get; }
+    IReadOnlyTable<HousingRow> Housing { get; }
 }
 
 /// <summary>
@@ -647,6 +690,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-turn realised trade flows (T3.6, D-034) — owned by TradeArbitrageSystem.</summary>
     public Table<TradeFlowRow> TradeFlows { get; }
 
+    /// <summary>Per-settlement housing stock (T3.8) — owned by HousingSystem.</summary>
+    public Table<HousingRow> Housing { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -677,6 +723,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<PriceTermRow> IReadOnlyWorldState.PriceTerms => PriceTerms;
     IReadOnlyTable<HarvestWeatherRow> IReadOnlyWorldState.HarvestWeather => HarvestWeather;
     IReadOnlyTable<TradeFlowRow> IReadOnlyWorldState.TradeFlows => TradeFlows;
+    IReadOnlyTable<HousingRow> IReadOnlyWorldState.Housing => Housing;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -711,6 +758,7 @@ public sealed class WorldState : IReadOnlyWorldState
         PriceTerms = new Table<PriceTermRow>();
         HarvestWeather = new Table<HarvestWeatherRow>();
         TradeFlows = new Table<TradeFlowRow>();
+        Housing = new Table<HousingRow>();
     }
 
     private WorldState(
@@ -728,7 +776,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<SettlementVitalsRow> settlementVitals, Table<NeedSatisfactionRow> needSatisfactions,
         Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness,
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
-        Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows)
+        Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
+        Table<HousingRow> housing)
     {
         Seed = seed;
         Clock = clock;
@@ -762,6 +811,7 @@ public sealed class WorldState : IReadOnlyWorldState
         PriceTerms = priceTerms;
         HarvestWeather = harvestWeather;
         TradeFlows = tradeFlows;
+        Housing = housing;
     }
 
     /// <summary>
@@ -778,7 +828,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
-            HarvestWeather.Clone(), TradeFlows.Clone())
+            HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

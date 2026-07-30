@@ -52,8 +52,13 @@ public static class CanonicalSchema
     /// post-clamp companion to LastConsumptionDemandUnits, without which a
     /// basket's fill ratio is not recoverable from published state.
     /// v18 (T3.6, D-034): TradeFlows table appended after HarvestWeather — the
-    /// per-turn realised trade flows (From, To, Good, Quantity).</summary>
-    public const int Version = 18;
+    /// per-turn realised trade flows (From, To, Good, Quantity).
+    /// v19 (T3.8): Housing table appended after TradeFlows (the per-settlement
+    /// dwelling stock with its remainders and published labor/maintenance
+    /// observables); CatchmentSummaryRow gains SizeTier (the quantized
+    /// settlement-size step the summary was computed at — the D-016 gate for
+    /// the size catchment bonus).</summary>
+    public const int Version = 19;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -68,7 +73,7 @@ public static class CanonicalSchema
     private const int SettlementRowWidth = 4 + 4 + 8;          // Id, SiteCell, FoundedTurn
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
-    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn
+    private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8 + 4; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn, SizeTier (v19)
     private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
     private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15), LastConsumptionEatenUnits (v17)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
@@ -88,6 +93,7 @@ public static class CanonicalSchema
     private const int PriceTermRowWidth = 4 + 4 + 8 * 7;            // Settlement, Good, 7 double bit-fields (v15)
     private const int HarvestWeatherRowWidth = 4 + 8 + 8;           // Settlement, LogDeviation, Multiplier (v16)
     private const int TradeFlowRowWidth = 4 + 4 + 4 + 8;            // From, To, Good, Quantity (v18)
+    private const int HousingRowWidth = 4 + 8 + 8 + 8 + 8 + 8;      // Settlement, Dwellings, BuildRem, DecayRem, MaintFraction, LaborUsed (v19)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -220,6 +226,7 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.EffectiveArableKm2));
             writer.Write(row.NetworkRevision);
             writer.Write(row.LastRecomputeTurn);
+            writer.Write(row.SizeTier);
         }
 
         // 15. Population buckets (v7; v5 shipped the retired PopBands here)
@@ -424,6 +431,19 @@ public static class CanonicalSchema
             writer.Write(row.Good.Value);
             writer.Write(row.Quantity);
         }
+
+        // 31. Housing (v19, T3.8)
+        writer.Write(world.Housing.Count);
+        for (int i = 0; i < world.Housing.Count; i++)
+        {
+            HousingRow row = world.Housing[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Dwellings.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.BuildRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.DecayRemainder));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.LastMaintenanceFraction));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.LastLaborUsed));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -536,7 +556,7 @@ public static class CanonicalSchema
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
-                reader.ReadInt32(), reader.ReadInt64()));
+                reader.ReadInt32(), reader.ReadInt64(), reader.ReadInt32()));
         }
 
         int bucketCount = reader.ReadInt32();
@@ -714,6 +734,19 @@ public static class CanonicalSchema
                 new GoodId(reader.ReadInt32()), reader.ReadInt64()));
         }
 
+        int housingCount = reader.ReadInt32();
+        for (int i = 0; i < housingCount; i++)
+        {
+            var settlement = new SettlementId(reader.ReadInt32());
+            long dwellings = reader.ReadInt64();
+            world.Housing.Add(new HousingRow(
+                settlement, Conserved.FromSnapshot(dwellings),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -754,5 +787,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Prices.Count * PriceRowWidth
         + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth
         + CountPrefixWidth + (long)world.HarvestWeather.Count * HarvestWeatherRowWidth
-        + CountPrefixWidth + (long)world.TradeFlows.Count * TradeFlowRowWidth;
+        + CountPrefixWidth + (long)world.TradeFlows.Count * TradeFlowRowWidth
+        + CountPrefixWidth + (long)world.Housing.Count * HousingRowWidth;
 }
