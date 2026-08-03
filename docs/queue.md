@@ -245,7 +245,7 @@
   T3.10 obligation because nobody itemized it at the time) — itemized at the time, this time.
   Restoring per-turn exactness needs turn-indexed expected values or a recomputed oracle; owner
   whoever next touches the HUD pins.
-- **Q3 (T3.5b certification, director) — candidate ADR-015 §7.15, owner T3.10 (alongside M5/M6):
+- **Q3 (T3.5b certification, director) — WRITTEN as ADR-015 §7.15 (GOV-1, 2026-07-30):
   a pre-committed READING requires a DISCRIMINATING OBSERVABLE.** Root cause of T3.5b's misapplied
   reading (lens 2 F2): density = population/arable is composite, so "the food economy moves" could
   fire for a pure denominator reason while the mechanism under test did nothing. §7.13 requires
@@ -253,7 +253,7 @@
   between them. Second time this shape has bitten — §7.7 was the first (a corridor insensitive to
   its own control parameter). NOT written into ADR-015 in T3.5b, deliberately: all four lenses had
   cleared, and a post-clearance governance addition is the f8a19e1 pattern, now recorded twice.
-  T3.10 writes it with a worked example from both instances.
+  ADR-015 §7.15 carries it with a worked example from both instances.
 - **Q5 (T3.5b certification, director) — data-file edit convention:** edits to `needs.json` and
   `goods.json` stay MINIMAL-DIFF — no wholesale re-serialization — so scope review reads the
   change rather than the reformatting. T3.5b's 143-insertion rewrite of needs.json was accepted
@@ -327,8 +327,8 @@
 - **PATTERN (third instance): ASYMMETRIC-MARGIN THRESHOLDS.** T3.4c Q2 (drift envelope, 11% on
   the must-pass side), now the M5 ceiling (5% on the must-fire side) — thresholds separating a
   measured clean case from a measured mutant, where one side's margin is structurally thin. The
-  standing line: a discriminating threshold's WEAKER margin is stated at the point the threshold
-  is chosen, not discovered later.
+  standing line, WRITTEN as ADR-015 §7.16 (GOV-1, 2026-07-30): a discriminating threshold's
+  WEAKER margin is stated at the point the threshold is chosen, not discovered later.
 - **T3.6b ESCALATION 1 — THE TRANSPORT DEADBAND EXCEEDS THE PRICE BAND for bulk ≥ 8 at map
   distances.** Measured (docs/t3.6b-review-record.md, Item 0(c), 5 seeds): tin-ore price gaps
   span the ENTIRE band (19.95, floor to ceiling) and still reach only 0.57–0.86 of their
