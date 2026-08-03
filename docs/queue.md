@@ -323,7 +323,8 @@
   the passing assert: far < 0.665 under M5). So the ceiling carries M5 ALONE. The clean-world
   near-correlation value that would leave the ceiling armed with no room is 0.90 itself: any
   retune raising clean near toward 0.90 silently disarms the M5 tooth while every test stays
-  green (at ≥ 0.90 it false-fires instead). OPEN, owner T3.10, alongside candidate §7.15.
+  green (at ≥ 0.90 it false-fires instead). OPEN, owner T3.10; §7.15 and §7.16 are now
+  WRITTEN (GOV-1) and this entry is an instance of both.
 - **PATTERN (third instance): ASYMMETRIC-MARGIN THRESHOLDS.** T3.4c Q2 (drift envelope, 11% on
   the must-pass side), now the M5 ceiling (5% on the must-fire side) — thresholds separating a
   measured clean case from a measured mutant, where one side's margin is structurally thin. The
@@ -451,7 +452,8 @@
   traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
   Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
   designed here.
-- **MODIFYING A GUARD RE-OPENS ITS RED PROOF — CANDIDATE ADR-015 SECTION, owner T3.10
+- **MODIFYING A GUARD RE-OPENS ITS RED PROOF — WRITTEN as ADR-015 §7.17 (GOV-1, merged
+  behind T3.8; the merge-time re-point this entry was held open for)
   (director + agent agreement, T3.8; reasoning added at the director's ruling).** The T3.5b
   bound-need-must-have-a-satisfier guard was taught the T3.8 housingStock source; a guard
   taught a NEW case can lose its teeth on the OLD one, and its prior §7.4 red proof no longer
@@ -465,12 +467,12 @@
   THE RULE: every property a guard held BEFORE a widening must be re-proven red
   INDEPENDENTLY — never by re-running the suite, which is what the widening was written
   against. First instance: HousingGuardTests (original no-satisfier red, source-typo red,
-  double-sourcing ambiguity red, measured post-modification). NOTE: three rules now sit as
-  queue lines rather than numbered ADR-015 sections — this one, candidate §7.15 (a
-  pre-committed reading needs a discriminating observable), and the asymmetric-margin pattern
-  (T3.4c Q2's 11% must-pass margin, T3.4d's 5% must-fire ceiling) — and a queue line does not
-  bind an agent the way a numbered §7.x does; the director rules on writing them at T3.10's
-  scoping.
+  double-sourcing ambiguity red, measured post-modification). NOTE, DISCHARGED: the three rules that
+  sat here as queue lines rather than numbered sections — this one, the discriminating
+  observable, and the asymmetric-margin pattern (T3.4c Q2's 11% must-pass margin, T3.4d's 5%
+  must-fire ceiling) — are now WRITTEN as ADR-015 §7.17, §7.15 and §7.16 respectively (GOV-1,
+  director-certified). A queue line does not bind an agent the way a numbered §7.x does; all
+  three now bind.
 
 - **FALLOUT ENUMERATION IS PER-SOLUTION, NOT PER-PROJECT** (T3.8 certification fix pass,
   Item 4 — director ruling). T3.8's fallout enumeration ran Sim.Tests only; a 14th real
