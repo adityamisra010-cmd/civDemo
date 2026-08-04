@@ -129,7 +129,12 @@ D5. STARVATION IS A FIRST-CLASS SIEGE OUTCOME. A settlement can be starved into
 ## PART E — THE CAMPAIGN LAYER
 
 E1. D-011 already sub-steps BATTLES: 6-12 command pulses, roughly one day (D-013).
-    That stands unchanged.
+    That is D-013's standing RECOMMENDATION against an open decision, not a closed
+    ruling, and this ruling neither closes it nor departs from it. [Weakened at
+    filing, DIRECTOR-AUTHORED: the original read "That stands unchanged", which
+    asserted more settled ground than the tree carries — d011 §8 lists D-013 as an
+    open decision with a recommendation attached. The campaign layer's dependency on
+    it is unaffected either way.]
 
 E2. A WAR IS NOT A BATTLE, AND NEEDS ITS OWN LAYER. Wars run months to years; a
     10-year turn cannot contain one as a single resolution. This layer DOES NOT
@@ -153,9 +158,15 @@ E5. D-011's PARITY RULE EXTENDS TO THE CAMPAIGN LAYER UNCHANGED: auto-resolved
     a war is a strategy rather than a convenience.
 
 E6. THE dt QUESTION IS ALREADY ON FILE. GOV-2 §3 records that dt falls to 0.5 by the
-    Modern band, where a cross-continent march is roughly one full turn. The campaign
-    layer must work at both dt = 10 and dt = 0.5. State the constraint; the M6 spec
-    solves it.
+    Modern band, where a 4,096 km corner-to-corner HAUL at pre-modern land speeds
+    (~30 km/day, roughly 136 days) is about one full turn. Armies march the same graph
+    at comparable speeds (D-009/D-010: "M4: armies march and supply on the network
+    graph (same object as trade)"), so the constraint carries over — but the measured
+    referent on file is goods transport, not a march. [Corrected at filing,
+    DIRECTOR-AUTHORED: the original attributed the figure directly to a
+    "cross-continent march". Same distance and speed class; the attribution was loose
+    and the constraint holds either way.] The campaign layer must work at both dt = 10
+    and dt = 0.5. State the constraint; the M6 spec solves it.
 
 ## PART F — WHAT THIS DOES NOT DO
 
@@ -165,3 +176,44 @@ F3. Does not schedule any work. M6 owns Parts A, C, D, E; Part B's investment
     mechanism touches M4, which owns armies.
 F4. Does not design espionage. B5 draws the line: reconnaissance is stale, espionage
     is uncertain, and they are different systems in different milestones.
+
+---
+
+## FILING NOTES — verification findings (§7.12), appended at filing
+
+Not part of the ruling. Recorded here because the citations were verified against the tree at
+filing time and two results outlive the check. Every other citation in this document was
+confirmed exact (D-011 §1's "units change, verbs don't", §2's delegate-with-agency and parity
+rule, D-009's settlement-and-hinterland unit and abstracted districts, D-018's twelve slots,
+D-030, GOV-2 §1a, D-038 E4, and B-2's reserve figure and three costumes).
+
+**FN-1 — D1/D2's size-tier input is LIVE, but its trajectory is distorted by unbounded stores.
+This is D5's dependency, not a second one.**
+
+*Corrected at the director's ruling, and the correction is itself the §7.10 shape — a correct
+measurement carrying a wrong interpretation.* The first version of this note claimed T3.8's size
+tier was measured INERT and therefore could not feed fortification. The cited line is real
+(`docs/t3.8-review-record.md`, the `geometry-and-corridors` lens row: "the size-tier bonus is
+INERT on the canonical trajectory — tier 0 once the stock collapses") but it describes the
+COLLAPSED world the clay-derivation error produced, which the T3.8 fix pass corrected out of
+existence. The measurement on the REPAIRED tree is in the same record's fix-pass table: Mothian
+t29 reads dwellings 116 / m 1.0000 / **TIER 4**, Hikiavur t177 reads 91 / 1.0000 / **4**,
+against `[0 / — / 0]` in the collapsed column. **The tier engages.**
+
+The narrower claim, which stands: tiers engage on a healthy mix and fall to zero on collapse,
+but WHEN they fall is governed by a buffer that should not exist. T3.8's H1 measured timber
+stores holding maintenance m = 1.0 for decades after a farm-100% order — Hikiavur still reads
+Shelter 1.0000 thirty years on, with a store covering ~16 further turns, and ruins only when it
+finally empties. So a fortification model computed from size tier inherits a settlement-decline
+curve whose timing is set by unbounded accumulation.
+
+That is **B-2 — the same dependency D5 already names**, reached from a second direction rather
+than a second prerequisite. Cross-reference D5; do not schedule this separately. (It is also
+Q-B's shape: one bounding fix, several mechanisms made observable at once.)
+
+**FN-2 — B5's "late milestone" for espionage reads M11+, not the Spine's M10+.** The Spine's
+system inventory row is `| Espionage/intel uncertainty | M10+ | T3 | estimates-with-error UI
+only at first |`, but GOV-2 §1c rules that inventory STALE BY ONE MILESTONE FROM M6 ONWARD (the
+D-011 §6 battle-layer insertion). Read against D-011 §6, espionage is M11+. B5's wording is
+imprecise rather than wrong, and F4's "different systems in different milestones" holds under
+either reading.
