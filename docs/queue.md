@@ -103,6 +103,12 @@
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
   reference. [D-038 (docs/d038-visual-target.md) fixes the milestone: an
   inserted visual milestone after M5, before M6, absorbing this packet.]
+- D-039 (docs/d039-command-fog-and-siege.md) — CROSS-REFERENCE POINTER ONLY.
+  Director ruling closing D-014 (command friction), and extending D-011/D-012/D-013
+  with reconnaissance, the stale-ghost display, siege, and a new campaign layer.
+  Binds M6 (Parts A, C, D, E); Part B's reconnaissance-investment mechanism touches
+  M4, which owns armies. D5 (siege starvation) is hard-blocked on M4's B-2 store
+  bounding. Nothing scheduled here — the pointer exists so the queue records it.
 - ADR-012 viability forward-note (T2.13 adversarial pass): the absolute food
   gate is one-way today (a store cannot rise without a harvest, so a dead ruin
   stays dead). If a future milestone adds food SHIPMENTS into settlements, a
