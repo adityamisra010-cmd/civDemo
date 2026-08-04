@@ -80,7 +80,12 @@ public sealed class SimUiGame : Game
         (byte)Math.Round(255 * ParchmentPalette.TerritoryWashStrength);
 
     private bool _showCatchment = true; // T2.4: political geography on by default
-    private int _sliderFarmPct = 100;
+    // T3.9b: the five-sector control's widget state (raw weight percentages,
+    // farming..construction). Replaces the retired single farm-% slider, whose
+    // 100 setting zeroed herding, extraction, crafting AND construction at
+    // once — the gate session's 100/0/0/0/0 and the blunt instrument this
+    // packet exists to remove.
+    private readonly int[] _sectorWeights = new int[Sectors.Count];
     private HudModel _hud = null!;
 
     /// <summary>T2.6: the D-018 needs registry for the HUD needs block —
@@ -115,6 +120,9 @@ public sealed class SimUiGame : Game
     private System.Collections.Generic.IReadOnlyList<MarketGoodRow> _marketRows = [];
     private System.Collections.Generic.IReadOnlyList<NeedsClassBlock> _needsBlocks = [];
     private System.Collections.Generic.IReadOnlyList<SectorBarRow> _sectorRows = [];
+    private System.Collections.Generic.IReadOnlyList<TradeGoodRow> _tradeRows = [];
+    private System.Collections.Generic.IReadOnlyList<TradeFlowLine> _tradeFlows = [];
+    private string _tradeSummary = "";
 
     /// <summary>T2.4: the selected settlement id — PURE UI STATE (never in
     /// WorldState, never serialized). Starts at the first settlement.</summary>
@@ -305,7 +313,7 @@ public sealed class SimUiGame : Game
     {
         _hud = HudModel.From(_world, _selected, _needs,
             _selected >= 0 ? _session.Names.Name(_selected) : null);
-        if (syncSlider) _sliderFarmPct = (int)Math.Round(_hud.FarmingPct);
+
 
         // T3.9a: the read-only market/needs/sector displays, recomputed on
         // the same cadence as the HUD snapshot (selection change / End Turn).
@@ -320,15 +328,34 @@ public sealed class SimUiGame : Game
             if (_world.SectorAllocations[i].Settlement.Value == _selected)
             { allocation = _world.SectorAllocations[i]; break; }
         _sectorRows = SectorBarModel.Rows(allocation);
+        // T3.9b: snap the control to the settlement's CURRENT split on
+        // selection change and startup — never mid-edit, and not after End
+        // Turn, where a just-submitted batch has not applied yet (the same
+        // cadence rule the retired farm-% slider followed). Weights are the
+        // normalized shares as percentages, so what the control shows on
+        // arrival is what the sim is actually running.
+        if (syncSlider)
+            for (int s = 0; s < Sectors.Count; s++)
+                _sectorWeights[s] = (int)Math.Round(Sectors.Share(allocation, s) * 100.0);
+
+        // T3.9b: the trade panel's rows — world-level, not per-settlement
+        // (trade is a pairwise mechanism over every settlement).
+        _tradeRows = TradeModel.Rows(_world, goods);
+        _tradeFlows = TradeModel.Flows(_world, goods);
+        _tradeSummary = TradeModel.SummaryLine(_tradeRows);
     }
 
     // --- the player's verbs ---------------------------------------------------
 
     // Stamping/stepping/persistence all live in UiSession (T1.9 adversarial
     // hardening): the replay-equivalence test drives the SAME code paths.
-    private void EmitLaborOrder(int farmPct)
+    // T3.9b: the five-sector submit. One BATCH of five SectorAllocation
+    // orders for the SELECTED settlement (T2.4 targeting, unchanged). The
+    // session refuses an all-zero allocation and returns false; on refusal
+    // nothing is written and nothing is claimed.
+    private void SubmitSectorOrders()
     {
-        _session.EmitLaborOrder(farmPct, _selected); // T2.4: orders the SELECTION
+        if (!_session.EmitSectorOrders(_sectorWeights, _selected)) return;
         SaveSession();
         RefreshHud(syncSlider: false);
     }
@@ -750,6 +777,31 @@ public sealed class SimUiGame : Game
         ImGui.End();
     }
 
+    /// <summary>
+    /// T3.9b: the trade panel. Its hard case is that on the canonical world
+    /// NOTHING TRADES (T3.6 measured zero flow), and an empty panel reads as a
+    /// broken one. So the panel never renders emptiness: the summary line
+    /// states "no trade" as a counted, deliberate fact, and every good carries
+    /// its own reason — no spread at all (the escalation-2 band-edge pegging,
+    /// with the shared price printed) or a spread under the deadband
+    /// (escalation 1). Both escalations are M4 material; this panel makes the
+    /// measured state legible and changes nothing about it.
+    /// </summary>
+    private void DrawTrade()
+    {
+        ApplyPanelDefaults(PanelLayout.Trade);
+        ImGui.Begin(PanelLayout.Trade.Title);
+        DrawPanelFurniture();
+        PushDataFont();   // §3 rule (see PushDataFont): trade rows are data lines
+        ImGui.TextUnformatted(_tradeSummary);
+        ImGui.Separator();
+        foreach (TradeFlowLine flow in _tradeFlows) ImGui.TextUnformatted(flow.Line);
+        if (_tradeFlows.Count > 0) ImGui.Separator();
+        foreach (TradeGoodRow row in _tradeRows) ImGui.TextUnformatted(row.Line);
+        PopDataFont();
+        ImGui.End();
+    }
+
     /// <summary>T2.9: the annals — scrollable, newest LAST, auto-scrolled to
     /// the tail when new lines arrive while the reader is at the tail.</summary>
     private void DrawAnnals()
@@ -790,6 +842,7 @@ public sealed class SimUiGame : Game
         DrawAnnals();       // T2.9
         DrawGraphs();       // T2.10
         DrawMarket();       // T3.9a: goods, prices, decomposition, series
+        DrawTrade();        // T3.9b: flows, or WHY nothing flowed
         ApplyPanelDefaults(PanelLayout.Hud);
         // T3.9a-b item 4: the HUD has a FIXED default size and scrolls when
         // content exceeds it (AlwaysAutoResize had no height cap, so the
@@ -834,11 +887,27 @@ public sealed class SimUiGame : Game
         }
         ImGui.Separator();
 
-        // The labor slider: emits ONE order, on release only (§3.9 log
-        // hygiene), targeting the SELECTED settlement (T2.4).
-        ImGui.SliderInt("farm %", ref _sliderFarmPct, 0, 100);
-        if (ImGui.IsItemDeactivatedAfterEdit() && _selected >= 0)
-            EmitLaborOrder(_sliderFarmPct);
+        // T3.9b: REAL PER-SECTOR CONTROL, replacing the farm-% slider.
+        // Five raw weights, submitted AS TYPED — normalization happens in the
+        // consumer (Sectors.Share), and the preview line below shows exactly
+        // what the sim will run, so normalization is never invisible. Emitted
+        // on an explicit Apply rather than per-slider-release: a five-way
+        // allocation is one decision, and one decision is one batch in the
+        // log (§3.9 log hygiene).
+        for (int s = 0; s < Sectors.Count; s++)
+            ImGui.SliderInt(SectorBarModel.SectorNames[s], ref _sectorWeights[s], 0, 100);
+        PushDataFont();
+        ImGui.TextUnformatted(_selected >= 0
+            ? SectorOrderFactory.PreviewLine(new SettlementId(_selected), _sectorWeights)
+            : "applies as —");
+        PopDataFont();
+        bool canSubmit = _selected >= 0 && SectorOrderFactory.CanSubmit(_sectorWeights);
+        ImGui.BeginDisabled(!canSubmit);
+        if (ImGui.Button("Apply labor split", new System.Numerics.Vector2(180, 28)))
+            SubmitSectorOrders();
+        ImGui.EndDisabled();
+        if (!canSubmit && _selected >= 0)
+            ImGui.TextUnformatted("give at least one sector a positive weight");
 
         ImGui.Checkbox("territory overlay", ref _showCatchment);
 

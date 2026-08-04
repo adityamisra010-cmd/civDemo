@@ -34,8 +34,14 @@ public static class PanelLayout
     public static readonly PanelRect Graphs = new("Graphs", 828, 12, 440, 448);
     public static readonly PanelRect Market = new("Market", 828, 472, 440, 316);
     public static readonly PanelRect Annals = new("Annals", 464, 560, 352, 228);
+    // T3.9b: the trade panel takes the free centre-top column — between the
+    // HUD (ends x = 452) and the Graphs column (starts x = 828), above the
+    // Annals (starts y = 560). Twelve-pixel gutters on every side, matching
+    // the existing rects, and the non-overlap proof covers it automatically
+    // because it joins All below.
+    public static readonly PanelRect Trade = new("Trade", 464, 12, 352, 300);
 
-    public static IReadOnlyList<PanelRect> All { get; } = [Hud, Graphs, Market, Annals];
+    public static IReadOnlyList<PanelRect> All { get; } = [Hud, Graphs, Market, Annals, Trade];
 
     /// <summary>Strict-interior intersection: true iff the shared area is
     /// positive. Edge-adjacent rects (shared boundary only) do not overlap.</summary>

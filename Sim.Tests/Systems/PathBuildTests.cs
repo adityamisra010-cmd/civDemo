@@ -315,6 +315,52 @@ public class PathBuildTests
     }
 
     [Fact]
+    public void SectorBatch_SameSectorTwiceInOneTurn_LastWriteWins_TurnExact()
+    {
+        // T3.9b: the UI submits a five-sector BATCH, and a director who
+        // adjusts and re-adjusts before ending the turn produces the same
+        // sector TWICE in one turn's batch. T3.3's pin covers five DIFFERENT
+        // sectors; this covers the repeat, which is the semantic the UI makes
+        // reachable for the first time: within a turn, orders apply in LOG
+        // ORDER and the last write wins (PathBuildSystem reads the row it is
+        // accumulating into, so the second order overwrites the first).
+        //
+        // TURN-EXACT, not replay equality (T1.9 / CLAUDE.md): the batch is
+        // stamped turn 2, so it must be ABSENT after the step from turn-1
+        // state and PRESENT after the step from turn-2 state. Replay equality
+        // could not see a one-turn stamping drift here; the "not yet" arm can.
+        var log = new OrderLog();
+        log.Append(new OrderRecord(
+            Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+            TargetId: 0 * 8 + Sectors.Farming, Amount: 90.0));   // first thought
+        log.Append(new OrderRecord(
+            Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+            TargetId: 0 * 8 + Sectors.Crafting, Amount: 10.0));
+        log.Append(new OrderRecord(
+            Turn: 2, ActorId: 1, OrderKind.SectorAllocation,
+            TargetId: 0 * 8 + Sectors.Farming, Amount: 30.0));   // reconsidered
+
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg, log);
+        WorldState world = Founded(cfg);
+
+        world = exec.Step(world);                       // from turn 0
+        world = exec.Step(world);                       // from turn 1
+        Assert.Equal(0, world.SectorAllocations.Count); // NOT YET — the discriminating arm
+        world = exec.Step(world);                       // from turn 2: the batch lands
+
+        Assert.Equal(1, world.SectorAllocations.Count);
+        SectorAllocationRow row = world.SectorAllocations[0];
+        // The SECOND farming order won; the first is gone, not averaged and
+        // not summed (either would read 0.6 or 1.2 here).
+        Assert.Equal(0.3, row.Farming);
+        Assert.Equal(0.1, row.Crafting);
+        // Untouched sectors keep the derived default — a batch sets what it
+        // names and nothing else (T3.5b: the default is referenced, not retyped).
+        Assert.Equal(Sectors.Default(new SettlementId(0)).Herding, row.Herding);
+    }
+
+    [Fact]
     public void SectorOrder_TargetPacking_ShiftWidthIsPinned()
     {
         // The packing is settlementId * 8 + sectorId, decoded `>> 3` and `& 7`.
