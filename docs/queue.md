@@ -379,7 +379,20 @@
   breakage plus growth*, and gives a settlement that has ACCUMULATED goods a materially lower
   crafting requirement than one starting from nothing. That is a DIFFERENT EQUILIBRIUM, not a
   copy of housing's, and the M4 spec should not reach for T3.8's maintenance-fraction shape by
-  analogy. CONSEQUENCE FOR THE RECORD ALREADY IN THE TREE: T3.8 measured Hikiavur's grievance
+  analogy.
+  **OPEN QUESTION ATTACHED (T3.9b gate, director) — COMFORT MAY SATURATE ON ALMOST ANY NONZERO
+  CRAFTING, WHICH WOULD MAKE IT A NEAR-USELESS SIGNAL.** Two data points exist and BOTH ARE
+  EXTREMES: 0.98 at a 21% crafting share (T3.9b gate session, Nenatul) and 0.00 at zero crafting
+  (T3.8 after-column, Hikiavur t177 — pottery demand 59 eaten 0, cloth demand 88 eaten 0).
+  Nothing measures the middle. If Comfort reads near 1.0 across the whole usable range, the
+  need discriminates nothing over the range a player actually plays in, and the FLOW reading is
+  why — a flow at any adequate rate fills the basket.
+  MEASUREMENT OWED, METHOD STATED: two settlements differing ONLY in crafting share (e.g. 15%
+  vs 25%), same world and same seed, Comfort compared — and decomposed per §7.15 (pottery and
+  cloth fill read separately, against population, since fill is a ratio whose denominator moves
+  with demand). If Comfort barely moves across that range, it STRENGTHENS the stock rework
+  considerably: a stock with turnover discriminates where a flow at any adequate rate does not.
+  Not answered here. Owner: M4, riding with B-2 as ruled. CONSEQUENCE FOR THE RECORD ALREADY IN THE TREE: T3.8 measured Hikiavur's grievance
   falling 227.49 → 132.46 once Shelter gained memory, and **Comfort's flow reading is why it
   landed at 132 rather than in the tens** — the healthy-mix settlement in the same run reached
   10.85. Owner: M4, riding with B-2 per the director's ruling.
@@ -534,3 +547,29 @@
   with it; the launcher should be plain enough to read at a glance; and confirm on Windows that
   cwd is the launcher's directory rather than `app/` (the `runs/` placement depends on it).
   OPEN. Owner: T3.11 (harness and goldens — it owns build and test infrastructure).
+
+- **REFERENCE POINT FOR T3.12's EXIT SESSION — PLAYER-SET ALLOCATION BEATS THE DERIVED
+  DEFAULT** (T3.9b visual gate, director's own session, 2026-08-05). Seed 42, settlement
+  Nenatul, hand-set mix typed 55/46/41/46/36 and applying as **25 / 21 / 18 / 21 / 16**:
+  **grievance 6, Shelter 1.00, Comfort 0.98, Sustenance 0.97, population 2,095 and rising,
+  food 2,071,560.** Against T3.8's measured after-column on the canonical world — healthy-mix
+  Mothian at grievance 10.85, farm-100% Hikiavur at 132.46 — this is the **FIRST EVIDENCE THAT
+  A PLAYER-SET ALLOCATION OUTPERFORMS T3.5b's DERIVED 55/15/10/12/8 BASELINE**, and it is filed
+  so T3.12's exit session has a KNOWN-GOOD MIX to compare against rather than re-deriving one
+  under gate conditions.
+  **NOT A REASON TO RETUNE THE DEFAULT.** T3.5b's mix is DERIVED from a reference class and
+  CR-003 §5.1 governs it. A player finding a better mix for a particular world is the control
+  working as designed — the default is the never-ordered starting point, not a claim to be
+  optimal on every world.
+  **TWO HONEST QUALIFICATIONS, so the reference point is not over-read:**
+    - It is NOT a controlled comparison. Different settlement, different world instance,
+      different horizon, and a session the director steered throughout; the T3.8 figures are
+      Mothian t29 and Hikiavur t177 under a replayed order log. It is a reference POINT, not a
+      measured delta.
+    - It points the OPPOSITE WAY FROM R1 on population, and this packet cannot say why. T3.9b's
+      R1 found a hand-set mix that raised per-capita satisfaction by HALVING the population
+      (444 → 213, every production number falling); the gate session's settlement is large,
+      growing, and well supplied at a LOWER farming share still. Different worlds and horizons,
+      so the two are not in contradiction — but nothing here measures which factor separates
+      them. Recorded as an open observation for T3.12, not resolved.
+  OPEN. Owner: T3.12 (M3 exit session).
