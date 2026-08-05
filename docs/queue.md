@@ -504,3 +504,33 @@
   arrives housed) was invisible to it and surfaced only when Sim.Ui.Tests ran at handback
   item 3. The rule: any packet changing sim state that the HUD displays enumerates fallout
   across BOTH test projects, not just Sim.Tests. OPEN. Owner: T3.11 (harness and goldens).
+
+- **THE GATE ARTIFACT'S LAYOUT BURIES THE EXECUTABLE** (director, T3.9b gate session).
+  `ui-artifact.yml` publishes `-r win-x64 --self-contained -o publish/sim-ui-win-x64` and
+  uploads that folder AS the artifact root, so the zip root holds ~40 .NET runtime DLLs
+  (coreclr, clrjit, System.Private.CoreLib, …) plus the natives (SDL2, openal, cimgui) mixed in
+  with `Sim.Ui.exe`, `assets/` and `runs/`. The director scrolls past the runtime to find the
+  executable every gate, and `runs/` — the thing a gate session produces — sorts to the bottom.
+  Ergonomics, not a defect: the build is correct and the gate works.
+  **THE CONSTRAINT, NOTED BEFORE CHOOSING:** .NET's self-contained layout expects its runtime
+  BESIDE the executable, so this is a PUBLISH/PACKAGING change, not a post-hoc file move. A
+  workflow step that shuffles files after publish would break the app.
+  **CHOSEN: APP IN A SUBFOLDER, LAUNCHER AT THE ROOT** — publish the whole tree unchanged into
+  `app/`, leaving the root as `Play civ-sim.cmd` + `app/` + `runs/`. Two facts measured on the
+  current tree make this a ZERO-CODE-CHANGE packaging edit:
+    - `UiSession.SessionLogPath` builds `Path.Combine("runs", …)` — a RELATIVE path, resolved
+      against the process WORKING DIRECTORY. A launcher that starts `app\Sim.Ui.exe` with cwd
+      left at the zip root therefore puts `runs/` at the root by itself.
+    - `AssetManifest` resolves art at `Path.Combine(AppContext.BaseDirectory, "assets")` — the
+      EXE's directory, not cwd — so `assets/` travels with the exe into `app/` and keeps working.
+  **REJECTED: `PublishSingleFile`.** It is the tidier-looking answer and it carries real risk
+  here: MonoGame.Framework.DesktopGL loads SDL2/openal/cimgui as native libraries, and
+  single-file self-extract changes where those resolve at runtime; it would also invalidate
+  `ui-artifact.yml`'s completeness assertion, which checks those four files by name beside the
+  exe (the T1.7 director hardening that exists so a partial publish can never go green). A
+  gate-ergonomics improvement must not put the gate build itself at risk. Revisit only if the
+  launcher proves unsatisfying in use.
+  **FOR WHOEVER TAKES IT:** the completeness assertion's paths move under `app/` and must move
+  with it; the launcher should be plain enough to read at a glance; and confirm on Windows that
+  cwd is the launcher's directory rather than `app/` (the `runs/` placement depends on it).
+  OPEN. Owner: T3.11 (harness and goldens — it owns build and test infrastructure).
