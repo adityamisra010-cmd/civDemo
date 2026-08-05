@@ -22,12 +22,14 @@ public class PanelLayoutTests
     }
 
     [Fact]
-    public void FourPanels_AllPresent_TitlesAreTheWindowNames()
+    public void FivePanels_AllPresent_TitlesAreTheWindowNames()
     {
         // The roster: every floating window the game Begins. A new panel
-        // must join the layout (and this list) to get a default rect.
-        Assert.Equal(4, PanelLayout.All.Count);
-        Assert.Equal(["civ-sim", "Graphs", "Market", "Annals"],
+        // must join the layout (and this list) to get a default rect —
+        // which is this pin doing its job: T3.9b's Trade panel had to come
+        // through here, and through the disjointness proof below with it.
+        Assert.Equal(5, PanelLayout.All.Count);
+        Assert.Equal(["civ-sim", "Graphs", "Market", "Annals", "Trade"],
             PanelLayout.All.Select(p => p.Title).ToArray());
     }
 

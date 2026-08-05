@@ -365,9 +365,37 @@
   Market, Graphs, Annals and the settlement HUD open together clutter and overlap; the director
   specifically wants Annals closeable for routine play. ImGui already collapses on the title-bar
   arrow — what is missing is persistence and non-overlapping layout. Owner: T3.9a-b (this packet).
-- **T3.9a GATE Q5 — COMFORT MAY HAVE THE SAME FLOW-NOT-STOCK PROBLEM AS SHELTER.** Pots and
-  cloth are durable; zero crafting for one turn should not zero Comfort. Investigate alongside
-  T3.8's housing stock, same reasoning. Owner: T3.8.
+- **T3.9a GATE Q5 — COMFORT IS FLOW-BOUND, AND ITS MODEL IS NOT SHELTER'S.** Pots and cloth
+  are durable; zero crafting for one turn should not zero Comfort. CONFIRMED FLOW-BOUND by
+  T3.8's Item 3 measurement (Hikiavur t177: pottery demand 59 eaten 0, cloth demand 88 eaten 0
+  → Comfort 0.0000 both classes) and left on the flow stand-in by that packet's stated verdict,
+  which is why Comfort — not Shelter — is the residual grievance accruer on the fixed tree.
+  **SHARPENED (T3.9b certification ruling, director): IT IS NOT SIMPLY SHELTER AGAIN.** T3.8
+  rebound Shelter to the dwelling STOCK with timber and clay as upkeep; Comfort still reads
+  pottery and cloth consumed THIS PERIOD. But the two decay for different reasons and therefore
+  want different models: **a dwelling degrades from lack of MAINTENANCE; a pot breaks from
+  USE.** The honest model is a HOUSEHOLD-GOODS STOCK that depletes with use and is replenished
+  by crafting — which changes the crafting sector's job from *supplying comfort* to *replacing
+  breakage plus growth*, and gives a settlement that has ACCUMULATED goods a materially lower
+  crafting requirement than one starting from nothing. That is a DIFFERENT EQUILIBRIUM, not a
+  copy of housing's, and the M4 spec should not reach for T3.8's maintenance-fraction shape by
+  analogy.
+  **OPEN QUESTION ATTACHED (T3.9b gate, director) — COMFORT MAY SATURATE ON ALMOST ANY NONZERO
+  CRAFTING, WHICH WOULD MAKE IT A NEAR-USELESS SIGNAL.** Two data points exist and BOTH ARE
+  EXTREMES: 0.98 at a 21% crafting share (T3.9b gate session, Nenatul) and 0.00 at zero crafting
+  (T3.8 after-column, Hikiavur t177 — pottery demand 59 eaten 0, cloth demand 88 eaten 0).
+  Nothing measures the middle. If Comfort reads near 1.0 across the whole usable range, the
+  need discriminates nothing over the range a player actually plays in, and the FLOW reading is
+  why — a flow at any adequate rate fills the basket.
+  MEASUREMENT OWED, METHOD STATED: two settlements differing ONLY in crafting share (e.g. 15%
+  vs 25%), same world and same seed, Comfort compared — and decomposed per §7.15 (pottery and
+  cloth fill read separately, against population, since fill is a ratio whose denominator moves
+  with demand). If Comfort barely moves across that range, it STRENGTHENS the stock rework
+  considerably: a stock with turnover discriminates where a flow at any adequate rate does not.
+  Not answered here. Owner: M4, riding with B-2 as ruled. CONSEQUENCE FOR THE RECORD ALREADY IN THE TREE: T3.8 measured Hikiavur's grievance
+  falling 227.49 → 132.46 once Shelter gained memory, and **Comfort's flow reading is why it
+  landed at 132 rather than in the tens** — the healthy-mix settlement in the same run reached
+  10.85. Owner: M4, riding with B-2 per the director's ruling.
 - **T3.9a GATE — SHELTER IS FLOW-NOT-STOCK: DIRECTOR MATERIAL, MOTIVATING MEASUREMENT FOR
   T3.8.** Measured at the gate (2026-07-29): Hikiavur at 100% farming reads Sustenance 0.88,
   Shelter 0.00, Comfort 0.00, grievance 119.55, holding 225,026 food; Mothian at the T3.5b
@@ -424,6 +452,14 @@
   homeless). The hypothesis sharpens to ONE TEST, THREE PREDICTIONS: if bounding stores makes
   stocks CYCLE, it should unpeg prices AND make Shelter decay reachable — B-2 is the packet that
   makes three separate mechanisms observable, not just a scarcity fix.
+  **EXTENDED AGAIN (T3.9b certification ruling): A FOURTH PREDICTION — COMFORT-AS-STOCK.**
+  Bounding stores also makes the household-goods stock of the sharpened Q5 entry MEANINGFUL:
+  without bounding, an accumulating goods stock saturates at 1.0 forever and never falls, which
+  is the TIMBER PROBLEM AGAIN — B-2's third costume in a fourth costume. A Comfort stock built
+  on top of unbounded accumulation would reproduce exactly the defect T3.8 measured for Shelter,
+  one milestone later and with a second stock's worth of machinery behind it.
+  **ONE TEST, FOUR PREDICTIONS.** That is what Q-B exists to establish: these are ONE M4 packet,
+  not four — bound the stores once and four separate mechanisms become observable together.
 - **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
   Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
   HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for
@@ -481,3 +517,59 @@
   arrives housed) was invisible to it and surfaced only when Sim.Ui.Tests ran at handback
   item 3. The rule: any packet changing sim state that the HUD displays enumerates fallout
   across BOTH test projects, not just Sim.Tests. OPEN. Owner: T3.11 (harness and goldens).
+
+- **THE GATE ARTIFACT'S LAYOUT BURIES THE EXECUTABLE** (director, T3.9b gate session).
+  `ui-artifact.yml` publishes `-r win-x64 --self-contained -o publish/sim-ui-win-x64` and
+  uploads that folder AS the artifact root, so the zip root holds ~40 .NET runtime DLLs
+  (coreclr, clrjit, System.Private.CoreLib, …) plus the natives (SDL2, openal, cimgui) mixed in
+  with `Sim.Ui.exe`, `assets/` and `runs/`. The director scrolls past the runtime to find the
+  executable every gate, and `runs/` — the thing a gate session produces — sorts to the bottom.
+  Ergonomics, not a defect: the build is correct and the gate works.
+  **THE CONSTRAINT, NOTED BEFORE CHOOSING:** .NET's self-contained layout expects its runtime
+  BESIDE the executable, so this is a PUBLISH/PACKAGING change, not a post-hoc file move. A
+  workflow step that shuffles files after publish would break the app.
+  **CHOSEN: APP IN A SUBFOLDER, LAUNCHER AT THE ROOT** — publish the whole tree unchanged into
+  `app/`, leaving the root as `Play civ-sim.cmd` + `app/` + `runs/`. Two facts measured on the
+  current tree make this a ZERO-CODE-CHANGE packaging edit:
+    - `UiSession.SessionLogPath` builds `Path.Combine("runs", …)` — a RELATIVE path, resolved
+      against the process WORKING DIRECTORY. A launcher that starts `app\Sim.Ui.exe` with cwd
+      left at the zip root therefore puts `runs/` at the root by itself.
+    - `AssetManifest` resolves art at `Path.Combine(AppContext.BaseDirectory, "assets")` — the
+      EXE's directory, not cwd — so `assets/` travels with the exe into `app/` and keeps working.
+  **REJECTED: `PublishSingleFile`.** It is the tidier-looking answer and it carries real risk
+  here: MonoGame.Framework.DesktopGL loads SDL2/openal/cimgui as native libraries, and
+  single-file self-extract changes where those resolve at runtime; it would also invalidate
+  `ui-artifact.yml`'s completeness assertion, which checks those four files by name beside the
+  exe (the T1.7 director hardening that exists so a partial publish can never go green). A
+  gate-ergonomics improvement must not put the gate build itself at risk. Revisit only if the
+  launcher proves unsatisfying in use.
+  **FOR WHOEVER TAKES IT:** the completeness assertion's paths move under `app/` and must move
+  with it; the launcher should be plain enough to read at a glance; and confirm on Windows that
+  cwd is the launcher's directory rather than `app/` (the `runs/` placement depends on it).
+  OPEN. Owner: T3.11 (harness and goldens — it owns build and test infrastructure).
+
+- **REFERENCE POINT FOR T3.12's EXIT SESSION — PLAYER-SET ALLOCATION BEATS THE DERIVED
+  DEFAULT** (T3.9b visual gate, director's own session, 2026-08-05). Seed 42, settlement
+  Nenatul, hand-set mix typed 55/46/41/46/36 and applying as **25 / 21 / 18 / 21 / 16**:
+  **grievance 6, Shelter 1.00, Comfort 0.98, Sustenance 0.97, population 2,095 and rising,
+  food 2,071,560.** Against T3.8's measured after-column on the canonical world — healthy-mix
+  Mothian at grievance 10.85, farm-100% Hikiavur at 132.46 — this is the **FIRST EVIDENCE THAT
+  A PLAYER-SET ALLOCATION OUTPERFORMS T3.5b's DERIVED 55/15/10/12/8 BASELINE**, and it is filed
+  so T3.12's exit session has a KNOWN-GOOD MIX to compare against rather than re-deriving one
+  under gate conditions.
+  **NOT A REASON TO RETUNE THE DEFAULT.** T3.5b's mix is DERIVED from a reference class and
+  CR-003 §5.1 governs it. A player finding a better mix for a particular world is the control
+  working as designed — the default is the never-ordered starting point, not a claim to be
+  optimal on every world.
+  **TWO HONEST QUALIFICATIONS, so the reference point is not over-read:**
+    - It is NOT a controlled comparison. Different settlement, different world instance,
+      different horizon, and a session the director steered throughout; the T3.8 figures are
+      Mothian t29 and Hikiavur t177 under a replayed order log. It is a reference POINT, not a
+      measured delta.
+    - It points the OPPOSITE WAY FROM R1 on population, and this packet cannot say why. T3.9b's
+      R1 found a hand-set mix that raised per-capita satisfaction by HALVING the population
+      (444 → 213, every production number falling); the gate session's settlement is large,
+      growing, and well supplied at a LOWER farming share still. Different worlds and horizons,
+      so the two are not in contradiction — but nothing here measures which factor separates
+      them. Recorded as an open observation for T3.12, not resolved.
+  OPEN. Owner: T3.12 (M3 exit session).

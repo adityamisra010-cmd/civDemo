@@ -128,6 +128,30 @@ public sealed class UiSession
         }
     }
 
+    /// <summary>
+    /// T3.9b: the five-sector control's submit handler — a BATCH of five
+    /// SectorAllocation orders (D-032, the order kind T3.3 already shipped),
+    /// all stamped with the CURRENT turn, targeting the SELECTED settlement.
+    /// Same ghost-id rule as the labor order: an id not present in the world
+    /// emits NOTHING, because an order for a settlement that does not exist
+    /// poisons the log at replay validation.
+    /// Returns true when the batch was appended, so the caller can leave the
+    /// widget alone on refusal rather than pretending the order landed.
+    /// </summary>
+    public bool EmitSectorOrders(ReadOnlySpan<int> weights, int settlementId)
+    {
+        if (!SectorOrderFactory.CanSubmit(weights)) return false;
+        for (int i = 0; i < World.Settlements.Count; i++)
+        {
+            if (World.Settlements[i].Id.Value != settlementId) continue;
+            IReadOnlyList<OrderRecord> batch = SectorOrderFactory.Create(
+                World.Clock.Turn, World.Settlements[i].Id, weights);
+            for (int b = 0; b < batch.Count; b++) Orders.Append(batch[b]);
+            return true;
+        }
+        return false;
+    }
+
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
     /// the chronicle observes the new state (detection is read-only).</summary>
     public void EndTurn()
