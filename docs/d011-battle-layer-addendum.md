@@ -67,3 +67,4 @@ M0 task packets T0.1–T0.9: untouched — build proceeds. Kernel contract: alre
 - **D-012** battle-grid representation — rec: coarse deterministic grid + continuous render (above).
 - **D-013** pulse budget and pulse-duration fiction — rec: 6–12 pulses ≈ one day of battle.
 - **D-014** command friction model — orders beyond the general's command radius/staff capacity suffer delay or degradation (ties command quality to institutions and era; the realism device that makes the general's seat feel real).
+  - **CLOSED by D-039** (`docs/d039-command-fog-and-siege.md`, director ruling). The line above is retained unedited — superseded, not deleted, per S8 §5's append-only audit trail. D-039 Part A rules the model: order latency is DELAY, NOT DEGRADATION (A3); the three information channels — position, strength, outcome — are separate quantities (A2); command capability grows faster than force size (A4); and nothing gates on era (A5, Law 4).

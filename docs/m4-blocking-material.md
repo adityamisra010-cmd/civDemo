@@ -174,3 +174,19 @@ fictional. B-2 now has three faces — grain (the world cannot starve), prices (
 Q-B), timber (the world cannot become homeless) — and ONE TEST WITH THREE PREDICTIONS: bounded
 stores should cycle stocks, unpeg prices, and make Shelter decay reachable. Bounding stores is
 the packet that makes three separate mechanisms observable.
+
+### B-2 addendum (D-039, 2026-08-04) — a FOURTH downstream consumer: siege starvation
+
+D-039 D5 (`docs/d039-command-fog-and-siege.md`) rules starvation a first-class siege outcome —
+a settlement can be starved into surrender with no assault, running on the FOOD system rather
+than the battle system — and states B-2 store bounding as a HARD PREREQUISITE: "a siege that
+cannot starve a city is not a siege." Nothing in B-2 changes; this records that M6's siege model
+now waits on M4's store-bounding packet in addition to the three costumes above.
+
+Reached from a second direction, same dependency (D-039 filing note FN-1): D-039 D1 computes
+fortification from T3.8's SIZE TIER, and the tier is live — the fix-pass measurement reads
+Mothian t29 at TIER 4 and Hikiavur t177 at 4 on the repaired tree. What is distorted is its
+TIMING: T3.8's H1 measured timber stores holding maintenance at m = 1.0 for decades after all
+production stopped, so a settlement's decline curve — and therefore its fortification over
+time — is paced by unbounded accumulation. Not a separate prerequisite; the same B-2, arrived
+at through D1 rather than D5.
