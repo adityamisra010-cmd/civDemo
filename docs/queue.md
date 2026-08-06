@@ -103,6 +103,14 @@
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
   reference. [D-038 (docs/d038-visual-target.md) fixes the milestone: an
   inserted visual milestone after M5, before M6, absorbing this packet.]
+  **D-038 PART H (composed settlement sprites) further scopes the settlement-icon-tier half of
+  this entry:** settlement icons are RULED to be composed sprites assembled at draw time from
+  per-institution parts, not a glyph ring around a marker; glyphs are demoted to what is
+  HAPPENING to a settlement (trade status, unrest, production emphasis) rather than what it IS.
+  Part H also carries the constraint that binds any part authored for it — one light angle, one
+  ground plane, stricter than anywhere else in the visual layer because parts sit adjacent in a
+  single image — and one open legibility question (how many parts before the sprite stops
+  reading). Same milestone, same deferral reasoning; Part H does not schedule work.
 - D-039 (docs/d039-command-fog-and-siege.md) — CROSS-REFERENCE POINTER ONLY.
   Director ruling closing D-014 (command friction), and extending D-011/D-012/D-013
   with reconnaissance, the stale-ghost display, siege, and a new campaign layer.
