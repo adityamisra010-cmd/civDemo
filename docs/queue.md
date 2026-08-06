@@ -98,7 +98,8 @@
   what the map CONTAINS, and M3 (goods/markets), M4 (neighbors/armies), M5
   (unrest) each change that content; redrawing piecemeal in the interim is
   wasted work — placeholder symbols are CORRECT until the map's content is
-  settled. The art SUBSTRATE (terrain textures, grain overlay, palette, UI
+  settled. The art SUBSTRATE (terrain textures, fibre overlay [renamed from
+  "grain overlay" by CONV-1 — `grain` is namespaced to the SIM domain], palette, UI
   frames, typography, style bible) has no such dependency and ships separately
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
   reference. [D-038 (docs/d038-visual-target.md) fixes the milestone: an
@@ -709,3 +710,45 @@
   FOUNDING conditions compounding through the demographic integration. **ADR-017's endowment
   jitter at 0.69 is the named candidate and it is NOT bisected.** Owner: unassigned; belongs with
   M4's CR-002 packet, which already carries the density corridor.
+- **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
+  THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
+  2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
+  candidates are FILED and the director rules on writing them, so no section text is drafted
+  here). **THREE INSTANCES, ALL IN THE LAST FEW PACKETS, ALL THE SAME SHAPE:** a git operation
+  that *appears* to have done what was asked while doing something else.
+  1. **T3.9b** — `git checkout` silently NO-OP'd on an untracked file, so both §7.4 arms were
+     defeated at once and the red proof was ambiguous. Discarded and redone.
+  2. **T3.11** — `git push --delete` returned **HTTP 403 for all 21 branches** while the loop
+     printed `DELETED: 21`: the counter incremented on ATTEMPTS and the failures went to stderr.
+     Caught only by re-listing the remote afterwards.
+  3. **CONV-1** — `git checkout -- <file>` reverted the file to `main`, silently taking the
+     packet's own rename along with the perturbation it was meant to undo.
+  **WHAT THE THREE HAVE IN COMMON:** each was caught by CHECKING THE RESULT rather than trusting
+  the command's apparent success, and in two of the three the operation's exit signal was
+  actively misleading (a no-op is success; a counter is not a result).
+  **THE REMEDY, FOUND INDEPENDENTLY TWICE:** **COMMIT A VERIFIED-GREEN BASELINE BEFORE A RED
+  PROOF.** Then every revert returns to a KNOWN state rather than an assumed one, each arm is
+  measured against that state, and a silent no-op or an over-wide revert shows up as a diff
+  instead of as a clean-looking proof. Generalised: **a git command's output is not a
+  measurement of the repository — re-read the state.**
+  4. **T3.12** — `dotnet build … | grep -c error` returned `0` and therefore EXITED NONZERO, so
+     the `&&` that followed silently skipped the entire test suite. The command reported nothing
+     wrong because it never ran the thing that could report.
+  5. **T3.12, MID-RED-PROOF** — `git checkout -- corridors.json`, intended to undo a
+     perturbation, reverted to HEAD instead. The quarantine block being proved was still
+     UNCOMMITTED, so the restore destroyed the work rather than the perturbation.
+  **WHY IT BELONGS IN §7.4 RATHER THAN IN AN AGENT'S HABITS:** §7.4 already requires proving a
+  guard red, and every instance is a failure of the PROOF PROCEDURE, not of the guards. Note
+  instance 4 is not a git command at all — the pattern is broader than git: **any operation
+  whose success signal is not the thing you care about.** A no-op is success; a counter counts
+  attempts; `grep -c 0` is a failure exit; a revert restores whatever HEAD happens to hold.
+  **STATUS UPGRADED TO READY TO WRITE (director ruling, 2026-08-06), and instance 5 is why.**
+  Instance 5 occurred AFTER instances 1-3 were written into this entry, in the same session, and
+  **the remedy this entry names is what recovered it**: the loss was caught by checking the
+  result, the baseline was then COMMITTED (`1fad8e9`), both arms were re-run against it, and the
+  restore was verified with `git diff --stat` returning empty. A remedy that prevents a loss in
+  the same session it is written down is no longer a proposal with anecdotes behind it. The
+  director rules on writing it as a numbered section at M4 spec time, alongside the other
+  candidates.
+  **FILED ON THE `conv-1-term-namespacing` BRANCH** because that is where instance 3 occurred and
+  CONV-1 is itself a conventions record; redirect it if another home is preferred.

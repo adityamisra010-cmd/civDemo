@@ -3,11 +3,26 @@
 
 ---
 
+> **RENAME (CONV-1, 2026-08-06) — the paper texture is no longer called "grain".**
+> `grain` is namespaced to the SIM domain: it is `goods.json` id 1, the numeraire against which
+> every price in the world is denominated, and it is serialized. This document previously used
+> "grain" for the paper fibre texture in three places (§1 substrate, §4 item 2, §5 prompt
+> skeleton); all three now say **paper fibre / fibre**. Nothing here became false — it is a
+> rename, not a supersession, so the wording is corrected in place rather than struck through.
+>
+> **Older documents keep the older phrasing on purpose.** `docs/d038-visual-target.md` §A4 says
+> "grain overlay" and the art gate records use the earlier wording; those are a ratified director
+> ruling and closed gate records, and closed records are never retroactively edited (S8 §5). If
+> you are reading them, "grain overlay" means this document's **Fibre/age overlay**.
+> Rule and rationale: `docs/conv-1-term-namespacing.md`.
+
+---
+
 ## 0. THE ONE-LINE BRIEF
 An aged explorer's atlas: a single sheet of weathered parchment on which a 6,000-year world is drawn in iron-gall ink and muted earth washes. The material never changes; only what is drawn upon it evolves. Readable first, beautiful second, never busy.
 
 ## 1. THE MEDIUM (frozen — the frame that never changes)
-- **Substrate:** aged laid-paper / vellum. Warm cream, faint mottling, subtle fiber grain, gentle edge-darkening (age, not damage). NOT crisp white, NOT heavily burnt/pirate-map brown, NOT high-contrast.
+- **Substrate:** aged laid-paper / vellum. Warm cream, faint mottling, subtle paper fibre, gentle edge-darkening (age, not damage). NOT crisp white, NOT heavily burnt/pirate-map brown, NOT high-contrast.
 - **Rendering logic:** land and sea are flat-ish tonal washes with hand-inked linework, the way a cartographer paints — NOT photoreal terrain, NOT 3D relief, NOT painterly brushstrokes (that's gouache — wrong medium). Think a fine 18th–19th c. hand-colored map, restrained and legible.
 - **Lighting:** none. A map is lit flat. No cast shadows, no sun angle, no ambient occlusion. Depth comes from linework density and wash tone only. **[SUPERSEDED by D-038 Part B — replaced by the two-layer rule below; line retained per S8 §5 audit-trail convention.]**
 - **Lighting (two-layer rule, D-038 Part B):**
@@ -40,7 +55,7 @@ Accents (sparingly, for symbology later):
 ## 4. ASSET MANIFEST (what gets generated — substrate pass only; symbology deferred)
 Each entry: purpose · spec · tiling/format.
 1. **Parchment base texture** — the paper itself. Large, seamless, tileable, subtle (no dominant blotches that repeat visibly). 2048² PNG, tileable. Generate 2–3 variants; renderer picks one per world seed.
-2. **Grain/age overlay** — a separate faint fiber+mottle layer multiplied over everything (including UI). Very low contrast. 2048² tileable PNG, grayscale.
+2. **Fibre/age overlay** — a separate faint fibre+mottle layer multiplied over everything (including UI). Very low contrast. 2048² tileable PNG, grayscale.
 3. **Terrain wash tiles** — one seamless swatch per land class in §2 (lowland, fertile, plain, arid, upland, peak) + shallows/sea/deep. These are what the shader blends by elevation/moisture/fertility. 1024² each, tileable, in-palette. This single item is the biggest visual upgrade — it replaces flat color fills with painted parchment.
 4. **Coastline ink treatment** — a thin darker ink band the renderer draws where land meets sea (the classic hand-map coast line), plus optional faint parallel "engraved sea" lines offshore. Spec as a shader effect + one hairline texture, not a full asset.
 5. **UI frame furniture** — panel border/corners, a header rule, button plate, a scroll/parchment panel background for the Annals, a compass rose (decorative, corner). In-palette, ink-on-parchment. PNGs with transparile edges (9-slice-friendly where possible).
@@ -65,7 +80,7 @@ All object-tier entries carry the object layer's one consistent light with conta
 
 Per-asset extra slots:
 - terrain tiles: "even seamless field of ⟨class⟩ terrain wash, subtle tonal variation only, must tile edge-to-edge"
-- parchment base: "blank aged paper, faint fiber grain and gentle mottling, no imagery"
+- parchment base: "blank aged paper, faint paper fibre and gentle mottling, no imagery"
 - UI frame: "ornamental but restrained border element, ink on parchment, transparent background"
 
 **Consistency discipline (the thing that prevents drift):** generate ALL assets in one session with the same skeleton; regenerate any that stray rather than accepting a near-miss; check every tile against the palette; verify seamless tiles actually tile (drop into a 2×2 grid and look for seams/repeats). One off-style asset poisons the coherence of the whole map.
