@@ -7,7 +7,7 @@ name: ui-artifact
 #     permanent asset (runs on GitHub's runners, so milestone releases become
 #     permanently downloadable games regardless of any dev-container limits).
 # Build identity: -p:BuildSha/-p:BuildDate stamp the window title + debug panel
-# ("civ-sim M1 (<sha>, <date>)") — the director always knows which build he
+# ("civ-sim M3 (<sha>, <date>)") — the director always knows which build he
 # is holding. Artifact name carries the same sha: sim-ui-win-x64-<sha>.
 on:
   workflow_dispatch:

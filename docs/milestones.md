@@ -104,5 +104,117 @@ denomination and travel budget), corrected at T3.2b/CR-003. The mechanism is int
 term still binds in 3.8 % of settlement-turns — but the condition that made it visible was false.
 M2 does not reopen; the record states it.
 
-Next: **M3**. Do NOT implement until `docs/m3-spec.md` exists on `main` and
-its packets are cut.
+---
+
+## M3 — The economy arrives  *(at the exit gate)*
+
+Settlements stop being identical food-machines and become places that make different things,
+price them, and want more than bread. T3.1–T3.12 per `docs/m3-spec.md`.
+
+### THE SECOND PRIZE — infrastructure became a differentiator (T3.2b, CR-003 ruling §4)
+
+**One dirt path grows a settlement's hinterland by 16.6 % of its arable land.** Before the CR-002
+recalibration, catchments were a ~205 km isochrone: every settlement already reached everything
+worth reaching, so building a road changed nothing anyone could see. At a 50 km economic
+hinterland, the road is what puts land inside the boundary. **D-009's
+infrastructure-as-differentiator premise is live for the first time in the project** — this was
+not a designed feature of T3.2b but a consequence of getting the denomination right, and it is
+recorded here because it is the milestone's most durable structural gain.
+
+### WHAT M3 DELIVERED
+
+- [x] **Five-sector production over a real goods roster** (D-032, T3.3) — farming, herding,
+  extraction, crafting, construction; recipes consume inputs, and the M2 scaffolding (artisan
+  tool-multiplier, weighted construction labor) was DEMOLISHED rather than left beside it.
+- [x] **The director can rule a settlement's production mix** (T3.9b) — five sector controls over
+  `OrderKind.SectorAllocation`, turn-exact delivery pinned.
+- [x] **A price solver that settles** (D-033, T3.4) on ADR-016 exact integration of its damped
+  step, with per-term attribution; stable over the 500-turn soak, dt-correct, no global solve.
+- [x] **Consumption as a class-weighted basket** over six goods with CES needs aggregation
+  (D-035, T3.5) — Sustenance, Shelter, Comfort.
+- [x] **Housing as a real stock** (T3.8) — dwellings built, maintained and decaying; Shelter is
+  no longer a flow reading.
+- [x] **Trade & arbitrage implemented** (D-034, T3.6) — the mechanism exists, is dt-correct and
+  is proven to move goods when a gap clears its deadband. See the open items: on the canonical
+  world it moves nothing, and that is not a defect in this system.
+- [x] **Spatial and agronomic denomination corrected** (CR-002/T3.2b) — the yield constant and
+  the catchment radius were two compensating errors; both fixed.
+- [x] **Founding variation** (ADR-017, T3.6b) — settlements no longer emerge in lockstep;
+  variance-floor pinned (CV ≥ 0.22) so a silent return fails the suite.
+- [x] **The goldens finally see the goods economy** (T3.11) — a DRIVEN golden, specialised by
+  sector orders, red-proven against two distinct price-step perturbations. It also measured that
+  the founded golden had ALREADY closed the price half of that gap at T3.2b/T3.5b, and the
+  original blocking premise was stale.
+- [x] **Market, sector-control and trade UI** (T3.9a/T3.9b) — the trade panel is legible AT ZERO
+  FLOW, per good, which is the state the director will actually meet.
+
+### WHAT M3 DELIBERATELY DID NOT DELIVER
+
+This list is unusually long, and every line is measured, named and owned. A milestone entry that
+records only what worked is a worse instrument than one that records what is known-open.
+
+- [ ] **THE WORLD CANNOT STARVE — B-2, unbounded stores.** Nothing bounds accumulation, so
+  abundant goods ratchet upward forever. **Three costumes, all measured:** grain reserves of
+  **~1,240 years**; **11 of 13 non-grain goods pegged at a price band edge** (0.05 floor or 20.0
+  ceiling); and timber stores holding **Shelter at 1.0000 for decades** after a farm-100 % order
+  (Hikiavur t177, timber store 755 ≈ 16 more turns of cover). A fourth and fifth prediction are
+  filed against the same fix. *Owner: B-2, M4 blocking material (`docs/queue.md` Q-B —
+  ONE TEST, FIVE PREDICTIONS).*
+- [ ] **TRADE IS STRUCTURALLY ZERO on the canonical world.** Two independent causes, both
+  escalated, neither this milestone's to fix:
+  - **Escalation 1 — the deadband exceeds the maximum expressible price gap.** For bulk ≥ 8 at
+    map distances the threshold is ≈ 23–35 while the largest gap the price band can express is
+    `BandMax − BandMin = 19.95`. Ores and stone are **structurally untradeable overland at any
+    price divergence**. And the water counterfactual says **the model is CORRECT** — bulk goods
+    moved by water in the real world, so the finding is a missing transport mode, not a bad
+    constant. *Owner: a future transport packet; every surface involved is ruled or frozen.*
+  - **Escalation 2 — common band-edge pinning.** Both sides of every pair rest on the SAME band
+    edge, so the gap is identically zero however much settlements differ. Suspected to be B-2
+    wearing its price costume (Q-B). *Owner: B-2.*
+  - A **counterexample worth carrying forward** (T3.11): `bronze` shows a spread of 15.17 against
+    a 7.22 deadband — a gap well OVER threshold — and still moves nothing, because `maxStock = 0`.
+    The deadband is not always the binding constraint, and a transport packet measured on volume
+    alone would misread that either way.
+- [ ] **COMFORT IS FLOW-BOUND (Q5).** Shelter got its stock at T3.8; Comfort did not. Pots and
+  cloth are durable, yet zero crafting for one period zeroes Comfort (Hikiavur t177: pottery
+  demand 59 eaten 0, cloth demand 88 eaten 0 → Comfort 0.0000 in both classes). It is therefore
+  the residual grievance accruer on the otherwise-fixed tree. **Not simply Shelter again:** a
+  dwelling degrades from lack of MAINTENANCE, a pot breaks from USE, so the honest model is a
+  household-goods stock depleted by use — a different equilibrium, not a copy of housing's.
+  *Owner: M4, and it depends on B-2 (an unbounded goods stock would saturate at 1.0 forever).*
+- [ ] **T3.7 — MERCHANTS: MOVED TO M4 by director ruling.** Merchants emerge on trade volume,
+  and trade volume does not exist. Implementing the class first would have produced a mechanism
+  with nothing to feed it. *Owner: M4, gated behind the two trade escalations.*
+- [ ] **T3.10 — CALIBRATION: MOVED TO M4 by director ruling.** *Owner: M4.*
+- [ ] **The Malthus corridors remain quarantined** (CR-003) — the corrected constants leave a
+  pre-Malthusian world because nothing fills the frontier. *Owner: colonization / land
+  clearance, M4-targeted (CR-003 §5.2(a)).*
+
+### EXIT CRITERIA — STATUS AT HANDBACK
+
+- [x] **All packets accepted** — T3.1–T3.11 each merged to `main` on a director ruling; T3.9b and
+  the art-substrate work additionally passed Director Visual Gates on the CI zip.
+- [x] **Price solver soak stable over 500 turns** — `PriceSoakTests`, with the oscillation
+  detector itself proven against a series known to oscillate before it was trusted.
+- [x] **Harness green** — determinism suites on the M3 world, all four xproc legs byte-identical,
+  and the built binary's founded run matching the in-test golden absolutely (T3.11).
+- [x] **First-reign shape asserts standing** — extinction inside (5, 25], dead world frozen, no
+  food mountain; golden at v22, history block repaired at T3.11 (it carried two spliced
+  numbering series).
+- [x] **Goldens pinned** — toy, founded 300-turn `b9f93d4a…` (pinned absolutely in ci.yml xproc),
+  first-reign `144d7e5d…`, and the new DRIVEN golden `e7457fbc…`; every re-pin carries a dated
+  history line.
+- [x] **milestones.md M3 entry** — this entry.
+- [ ] **Calibration battery green across ≥20 seeds** — CI battery and nightly sweep: see the
+  T3.12 sweep counts at handback. NOTE the standing qualification: the density corridor is
+  QUARANTINED and re-pinned (T3.8), and "including comparative advantage" cannot be met as
+  written while trade is structurally zero.
+- [ ] **Director exit session played from the CI zip, log replaying hash-identical** — the
+  director's, not this packet's. Brief: `docs/m3-exit-session.md`.
+- [ ] **`m3-exit` Release with attached zip** — minted by the director publishing the release.
+- [ ] **Merged branch sweep** — 21 verified-safe remote branches listed at T3.11; this session's
+  credential cannot delete remote refs (HTTP 403), so the deletions are the director's from the
+  GitHub UI.
+
+**M3 does not close on this handback.** The exit is the director's play session against the build
+above, and the milestone closes on his ruling.

@@ -1,19 +1,39 @@
-# civ-sim (M2)
+# civ-sim (M3)
 
 A deterministic, turn-based civilization simulation spanning 6,000 years. One human
 director; AI agents build it, one task packet per session.
 
-**M2 — Population & Society**: cohort demographics with historical vital rates
-(ADR-011 exponential-survival micro-step integration, dt-invariant across the
-era-pacing arc), a class system (Peasants + emergent Artisans, D-020 DSL),
-twelve settlements with travel-time-partitioned catchments, migration
-(differential-driven + famine flight, stabilized per D-021), needs/grievance
-stocks (Sustenance-bound, display-only until M5), chronicle-lite with
-procedural settlement names and exported annals, time-series graphs, and an
-autoplay batch runner with a corridor-checked calibration battery.
+**M3 — The economy arrives.** At M2 every settlement was the same food-machine
+running at a different size. At M3 they are *places that make different things*.
+What the world can now do that it could not before:
+
+- **Produce across five sectors** — farming, herding, extraction, crafting,
+  construction — over a roster of real goods (grain, timber, stone, clay, ores,
+  fibre, hides → tools, pottery, cloth, bronze). Recipes consume inputs; a
+  workshop with no clay makes no pots.
+- **Be ruled into a production mix.** The director allocates labour per
+  settlement across the five sectors and the settlement's whole economy follows:
+  what it makes, what it runs short of, what its people's needs read.
+- **Price things.** A per-settlement, per-good price solver (D-033) runs on the
+  exact closed form of its damped step (ADR-016), driven by consumption, input
+  demand, production and stock release, and it settles rather than oscillating.
+- **Want more than food.** Consumption is a class-weighted basket over six goods
+  (D-035), aggregated by CES into Sustenance, Shelter and Comfort — so a
+  well-fed settlement can still be poorly housed.
+- **House people.** Dwellings are built, maintained and decay; Shelter is a real
+  stock, and a settlement that stops maintaining housing degrades (T3.8).
+- **Grow its own hinterland.** One dirt path can enlarge a settlement's arable
+  catchment by 16.6% — infrastructure as a differentiator between places, live
+  for the first time (T3.2b).
+
+Its known-open edges are recorded with the same care as its features — see the
+M3 entry in [`docs/milestones.md`](docs/milestones.md), which names what this
+milestone deliberately did NOT deliver, each with a measurement and an owner.
+The largest: **goods do not yet trade on the canonical world**, for two measured
+and escalated reasons.
 
 Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution) and
-[`docs/m2-spec.md`](docs/m2-spec.md) (current milestone spec).
+[`docs/m3-spec.md`](docs/m3-spec.md) (current milestone spec).
 
 ## Prerequisites
 
@@ -56,8 +76,10 @@ sim hash SAVEFILE
 # Replay from seed + order log (the D-008 recovery path)
 sim replay --seed S --orders PATH --turns N [--hash-log PATH]
 
-# Per-phase wall time and allocations (clone + each system, first-seen order)
-sim bench --seed S --turns N [--json]
+# Per-phase wall time and allocations (clone + each system, first-seen order),
+# plus the state footprint: bucket row count and clone bytes per turn (T3.11 —
+# the instrument for the m0-kernel-spec §3.2 clone-size claim)
+sim bench --seed S --turns N [--founded [--settlements N]] [--json]
 
 # T2.8 calibration data source: N independent canonical founded worlds
 # (seeds seed-base..seed-base+N-1, default base 1), T no-order turns each,
@@ -70,6 +92,7 @@ yet: toy systems would make thresholds meaningless):
 
 ```json
 { "seed": 42, "turns": 500, "totalMs": 9.19,
+  "bucketRows": 384, "cloneBytesPerTurn": 82096,
   "phases": [ { "name": "clone", "totalMs": 0.88, "allocatedBytes": 335648 }, … ] }
 ```
 
@@ -115,6 +138,17 @@ land use (~10–30/km²). The map is **not** small for M2's horizon; the D-015
 concern is about *travel scale*, not carrying capacity, and no worldgen
 resize is warranted on density grounds.
 
+> **SUPERSEDED AT T3.2b (CR-002) — kept because the reasoning is still
+> instructive.** The verdict above was measuring a DENOMINATION BUG: "arable
+> km²" was fertility-weighted lattice NODES scaled by block area in one consumer
+> and not in the other, and the 205 km catchment radius that made the world look
+> full was compensating for a yield constant denominated 256× too coarse. Both
+> are fixed. At a 50 km economic hinterland the twelve settlements claim ~2 % of
+> the continent, so the honest picture is the opposite of "small": the world is
+> overwhelmingly EMPTY, and the open item is that no mechanism lets a growing
+> population take the frontier. Reframed in `docs/queue.md` as an expansion
+> opportunity, M4-targeted (colonization / land clearance, CR-003 §5.2(a)).
+
 CI runs three jobs on every push: `build-and-test` (gates + full suite),
 `determinism` (the T0.8 in-process harness), and `determinism-xproc` (T0.9:
 two separate `sim run` processes must produce byte-identical hash logs, and
@@ -135,7 +169,7 @@ release automatically attaches its zip as a permanent asset.
 **Gate builds**: every `t<N>.*` packet-branch push produces the same artifact
 for Director Visual Gates.
 
-The window title and debug panel both show `civ-sim M2 (<sha>, <date>)` — the
+The window title and debug panel both show `civ-sim M3 (<sha>, <date>)` — the
 build you are holding is never ambiguous. Optional flags: `--seed N` (default
 42) and `--size PX` (dev-preview world size; a non-canonical size is recorded
 in the session-log filename).
@@ -192,7 +226,21 @@ Cross-system communication is exclusively through state tables and events.
   nothing but UI/chronicle — grep-gated), autoplay + calibration battery with
   two-sided corridors, chronicle-lite + procedural names + annals export,
   time-series graphs on the D-028 UI ring buffer, and the T2.11 determinism
-  horizon across the era gate. Awaiting the director's exit session.
+  horizon across the era gate. Exit accepted 2026-07-25 on the T2.13 fix
+  evidence. (Post-exit record, CR-003: M2's Malthus corridor was measuring an
+  artifact of two compensating errors, corrected at T3.2b — the mechanism is
+  intact but the condition that made it visible was false. M2 does not reopen;
+  the record states it.)
+- **M3 — The economy arrives: AT THE EXIT GATE.** T3.1–T3.12 per
+  `docs/m3-spec.md`: worldgen refresh + the goods/recipe roster, five-sector
+  production (D-032) with the M2 scaffolding demolished, the CR-002 spatial and
+  agronomic recalibration, the D-033 price solver on ADR-016 exact integration,
+  D-035 consumption baskets and CES needs, D-034 trade & arbitrage, founding
+  variation (ADR-017), settlement size + housing as a real stock, the market and
+  sector-control UI with the trade panel, and the T3.11 harness work (a DRIVEN
+  golden that finally exercises the goods economy). **What it deliberately did
+  NOT deliver is recorded beside what it did** — see `docs/milestones.md`.
+  Awaiting the director's exit session.
 
 ## Calibration battery
 
