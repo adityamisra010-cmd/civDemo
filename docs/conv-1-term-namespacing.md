@@ -20,7 +20,8 @@ accident, and worth a test. If your rule changes what the sim computes, it is no
 ## 1. THE COLLISIONS — VERIFIED AGAINST THE TREE AT `cadcc83`
 
 All four re-verified here rather than taken from the directing prompt (§7.12). All four hold; no
-finding against the brief.
+finding against the brief. **One finding against THIS TABLE, found later and recorded in §4:** the
+grain row lists only the style bible, and a live `queue.md` entry carried the art sense too.
 
 | term | meaning A | meaning B (and C) | verified at |
 | --- | --- | --- | --- |
@@ -118,6 +119,25 @@ clearly; the timing is the director's.
 `docs/style-bible-parchment.md` amended so the paper texture is not called grain. All three
 instances found by grepping the file, not by trusting a list: §1 substrate line, §4 item 2
 heading, §5 prompt-skeleton line. A rename note is recorded IN that file.
+
+**FINDING AGAINST THIS RECORD'S OWN §1 TABLE (§7.12), found while verifying D-038's citations
+for a later packet — filed rather than quietly fixed.** §1 listed the grain collision as
+`goods.json` vs the style bible, and the fix section originally claimed the style bible was the
+only live document carrying the art sense. **That was wrong: `docs/queue.md:101` also said
+"grain overlay"**, inside the still-OPEN symbology deferral entry. I verified the three style
+bible instances by grepping that file, and never swept the wider tree for the art sense — the
+exact shape of incompleteness this register exists to catch, committed by the register itself on
+its first outing.
+
+Corrected: `queue.md` now reads **"fibre overlay"** with an inline note naming CONV-1. It is a
+live working entry, not a closed record, so renaming it in place is correct.
+
+**The test did not catch this and still does not** — it is scoped to one file, and §5 says so.
+Widening it to all of `docs/` is NOT proposed here, because the tree contains many legitimate
+sim-sense uses of "grain" and a whole-tree grep would be noise. The honest position: the test
+guards the file that was renamed; **completeness of the initial sweep is a human obligation the
+test cannot assume**, and this finding is the evidence for that sentence rather than a
+hypothetical.
 
 **Not touched, deliberately:**
 

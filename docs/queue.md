@@ -98,7 +98,8 @@
   what the map CONTAINS, and M3 (goods/markets), M4 (neighbors/armies), M5
   (unrest) each change that content; redrawing piecemeal in the interim is
   wasted work — placeholder symbols are CORRECT until the map's content is
-  settled. The art SUBSTRATE (terrain textures, grain overlay, palette, UI
+  settled. The art SUBSTRATE (terrain textures, fibre overlay [renamed from
+  "grain overlay" by CONV-1 — `grain` is namespaced to the SIM domain], palette, UI
   frames, typography, style bible) has no such dependency and ships separately
   at M2+. Target: after M4 or M5, against the Troy/Humankind stylized
   reference. [D-038 (docs/d038-visual-target.md) fixes the milestone: an
