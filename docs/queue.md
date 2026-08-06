@@ -654,3 +654,58 @@
   item in the project.** Cross-reference: `docs/m4-pre-spec-dependencies.md` §5;
   `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
   that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.
+
+- **SWEEP OUTPUT MUST BE CAPTURED WHOLE AND FILTERED AT READ TIME (director ruling, T3.12 exit,
+  2026-08-06).** A sweep whose PURPOSE is to catch failures must **capture full output to disk and
+  filter at READ time, never at CAPTURE time.** Piping `dotnet test` through `grep` discards the
+  test name and the assertion text before anything is written, so a red becomes UNEXPLAINABLE
+  after the fact. **Measured instance:** T3.12's pre-exit sweep recorded
+  `Failed: 1, Passed: 150` for `Sim.Ui.Tests` in a run captured as `dotnet test … | grep -E
+  "Passed!|Failed!|error"`. Three lines survived; the failing test's name and message were never
+  written and could not be recovered. The final tree ran green and the director ruled the exit
+  proceeds, but the observation itself is permanently lost. Owner: T4-era harness work, or
+  wherever the sweep script comes to live.
+
+- **CI PROCESS DEFECT — A NIGHTLY FAILURE MUST SURFACE WHERE SOMEONE READS IT. OWNER: CI,
+  M4-era (director ruling, T3.12).** Measured from the Actions API, not inferred: the scheduled
+  `calibration-nightly` job failed on **ELEVEN CONSECUTIVE RUNS**, from 2026-07-27 (run
+  `30243589130`) through 2026-08-06 (`31076072204`). Last green: **2026-07-26**
+  (`30190719365`). Nobody noticed until T3.12's pre-exit sweep reproduced it locally.
+  **WHAT THAT COST, stated precisely: T3.5b, T3.6, T3.6b, T3.8, T3.9a, T3.9b and T3.11 all
+  landed under an instrument that was already dark.** The whole second half of M3 shipped with
+  its ≥20-seed calibration gate providing zero signal.
+  **AND THE SHARPER VERSION — IT WAS NOT MERELY DARK, IT WAS MASKING.** The density false-red
+  (a corridor the project had already quarantined, see the `quarantine` block in
+  `corridors.json`) hid a GENUINE reading for those eleven nights: `migrationGrossPerDecade`
+  seed 9 at 0.00098 against a 0.001 floor. Once T3.12 taught the nightly about quarantines, the
+  job still failed — on the real signal, which had been sitting underneath the noise the entire
+  time. **An instrument that is dark is bad; one that is dark AND masking a real signal is
+  worse.** A red that nobody reads is indistinguishable from a green, and a red that is
+  *expected* trains everyone to ignore the one that is not.
+  This is the same shape as CLAUDE.md's false merge-loop line and the Spine's stale inventory:
+  **nothing checks the checker.** The corridor fix (T3.12 item B) closes the instrument
+  disagreement; it does NOT close this. Candidate mechanisms, none chosen here: fail the
+  scheduled run loudly into a channel the director reads; a badge; a "days since last green
+  nightly" line in the run summary; or a follow-up issue opened automatically on the first red.
+
+- **MIGRATION CORRIDOR FLOOR MAY BE MIS-SPECIFIED FOR SMALL WORLDS (T3.12b, measured).**
+  `canonical.migrationGrossPerDecade` floor 0.001 is ABSOLUTE and takes no account of world size.
+  Seed 9 breaches it at 0.000980 (2 % under) — and seed 9 is the SMALLEST world in the 20-seed
+  sweep (population 81,160 vs a 132,280 max). The metric is already population-normalised
+  (`AutoplayMetrics.cs:139`), yet corr(migration, population) = **+0.737** and
+  corr(migration, arable) = **+0.815** across seeds: bigger, more-arable worlds migrate
+  PROPORTIONALLY more. So the smallest world showing the lowest migration intensity is the
+  expected reading, not an anomaly, and one seed in twenty landing 2 % under an absolute floor is
+  what that looks like. **Not a migration defect on this evidence.** Owner: whoever homes the
+  migration-weight packet (T3.4c ruling 2). Do not re-tune the floor to silence it — that would
+  be fitting the instrument to the artifact, and the reason the floor is absolute may itself be
+  the thing to revisit.
+- **WHAT MAKES WORLD POPULATION VARY 1.63x ACROSS SEEDS IS STILL OPEN (T3.12b).** Measured:
+  81,160 to 132,280 over 20 seeds, and it is what drives the density corridor's across-seed
+  spread (corr(density, population) = +0.858 vs corr(density, arable) = +0.018). Migration is
+  EXCLUDED by measurement — it conserves people, and starvation deaths are ZERO in 20 of 20
+  seeds, so the only channel by which it could move world population is shut. World population is
+  set by births and deaths integrated over the era table, so the spread must originate in
+  FOUNDING conditions compounding through the demographic integration. **ADR-017's endowment
+  jitter at 0.69 is the named candidate and it is NOT bisected.** Owner: unassigned; belongs with
+  M4's CR-002 packet, which already carries the density corridor.
