@@ -656,7 +656,7 @@
   `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
   that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.
 
-- **CANDIDATE ADR-015 SECTION — A GIT OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
+- **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
   candidates are FILED and the director rules on writing them, so no section text is drafted
@@ -677,9 +677,24 @@
   measured against that state, and a silent no-op or an over-wide revert shows up as a diff
   instead of as a clean-looking proof. Generalised: **a git command's output is not a
   measurement of the repository — re-read the state.**
+  4. **T3.12** — `dotnet build … | grep -c error` returned `0` and therefore EXITED NONZERO, so
+     the `&&` that followed silently skipped the entire test suite. The command reported nothing
+     wrong because it never ran the thing that could report.
+  5. **T3.12, MID-RED-PROOF** — `git checkout -- corridors.json`, intended to undo a
+     perturbation, reverted to HEAD instead. The quarantine block being proved was still
+     UNCOMMITTED, so the restore destroyed the work rather than the perturbation.
   **WHY IT BELONGS IN §7.4 RATHER THAN IN AN AGENT'S HABITS:** §7.4 already requires proving a
-  guard red, and all three instances are failures of the PROOF PROCEDURE, not of the guards. The
-  refinement currently exists only in session transcripts — which is precisely the decay shape
-  CONV-1 §5 and the three stale-document findings describe.
+  guard red, and every instance is a failure of the PROOF PROCEDURE, not of the guards. Note
+  instance 4 is not a git command at all — the pattern is broader than git: **any operation
+  whose success signal is not the thing you care about.** A no-op is success; a counter counts
+  attempts; `grep -c 0` is a failure exit; a revert restores whatever HEAD happens to hold.
+  **STATUS UPGRADED TO READY TO WRITE (director ruling, 2026-08-06), and instance 5 is why.**
+  Instance 5 occurred AFTER instances 1-3 were written into this entry, in the same session, and
+  **the remedy this entry names is what recovered it**: the loss was caught by checking the
+  result, the baseline was then COMMITTED (`1fad8e9`), both arms were re-run against it, and the
+  restore was verified with `git diff --stat` returning empty. A remedy that prevents a loss in
+  the same session it is written down is no longer a proposal with anecdotes behind it. The
+  director rules on writing it as a numbered section at M4 spec time, alongside the other
+  candidates.
   **FILED ON THE `conv-1-term-namespacing` BRANCH** because that is where instance 3 occurred and
   CONV-1 is itself a conventions record; redirect it if another home is preferred.
