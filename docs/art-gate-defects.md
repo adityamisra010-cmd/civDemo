@@ -159,3 +159,14 @@ Tests certify what they mention; each round's failure lived precisely in what no
 **Cross-reference:** D-038 (docs/d038-visual-target.md, Part D) cites this record — the two
 generated-asset failures (alpha>127 at 0.46% and 0.90%, off-palette #A77032) and HeaderRuleBaker's
 procedural success — as the precedent for its production-method ordering.
+
+**WHERE THE EVIDENCE LIVES (T3.11 Item 5, director ruling 2026-08-06).** Every measurement in
+this record about `assets/ui/header-rule.png` — 1536×1024, alpha > 127 at 0.46% / 0.90%,
+off-palette #A77032 — is a measurement of a file that **NO LONGER EXISTS ON `main`**: the
+procedural fix deleted it. The blob survives in exactly one place, the branch now named
+**`archive/d-a1-rejected-assets`** (commit `abbd0ca`, verified by the director's own diff and
+re-verified here: `assets/ui/header-rule.png` present in that tree, absent from `origin/main`).
+That branch is therefore NOT deletable — deleting it makes every figure above unverifiable.
+Same reasoning as `archive/t3.5-prerebase-originals`, `archive/t3.5b-prerebase-originals` and
+`archive/t3.6-prerebase-originals-2`: evidence behind a recorded measurement outlives the branch
+that produced it.

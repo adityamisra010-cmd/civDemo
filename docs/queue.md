@@ -628,3 +628,29 @@
       so the two are not in contradiction — but nothing here measures which factor separates
       them. Recorded as an open observation for T3.12, not resolved.
   OPEN. Owner: T3.12 (M3 exit session).
+
+- **ADR REQUIRED — THE KERNEL CLONE-SIZE CLAIM AND THE BUCKET-CAP COLLISION, ONE RULING.
+  OWNER: DIRECTOR. Due at M4 spec time (director ruling, T3.11 certification, 2026-08-06).**
+  T3.11 Item 3 discharged the measurement GOV-2 §5 recorded as owed, and the result decides an
+  amendment this agent may not write: `m0-kernel-spec.md` is inside the M0 freeze perimeter
+  (`spine-s8-governance-freeze.md:15,202`), so the mechanism is a director-ruled ADR.
+  **THE THREE MEASUREMENTS** (`docs/t3.11-review-record.md` Item 3; `sim bench` now reports
+  bucket rows and clone bytes, which it did not before):
+  1. **today, M3, N = 12:** 384 bucket rows, **82,096 B/turn = 0.078 MiB** — some 40× UNDER the
+     §3.2 claim of "a few MB", and DENSE founding confirmed against GOV-2's code-only prediction
+     of exactly 384;
+  2. **scaling, measured not assumed:** 12 → 73,906 B, 24 → 147,036 B ⇒ **≈ 6,094 B per
+     settlement**, essentially the whole clone;
+  3. **projection:** at the Charter's 800 settlements with D-018's 12 class slots and a single
+     culture/religion, **153,600 bucket rows — AT the ratified ~150k cap — and order 16 MB per
+     turn**; at 4 cultures × 4 religions, ~2.46M rows and order **200 MB**.
+  **THE CLAIM'S STATED RANGE IS WRONG AT THE FAR END.** §3.2 covers "M0–M9"; what it actually
+  covers is "while buckets stay small", and buckets are exactly what D-018 and plural cultures
+  grow. CONFIRM for the milestones reached, NARROW for the rest.
+  **WHY ONE RULING AND NOT TWO (the director's reasoning, recorded):** this now joins the
+  bucket-cap collision GOV-2 already carries — dense founding, a ratified ~150k world-wide cap,
+  an unbuilt "automatic merge-below-threshold policy" the cap presupposes, and a clone-size claim
+  that fails at the same scale. Four faces of one scaling decision, and **the largest unscheduled
+  item in the project.** Cross-reference: `docs/m4-pre-spec-dependencies.md` §5;
+  `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
+  that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.
