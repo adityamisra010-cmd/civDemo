@@ -51,6 +51,7 @@ namespace Sim.Cli
                   sim hash SAVEFILE
                   sim replay --seed S --orders PATH --turns N
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
+                          [--report-jsonl PATH [--report-every N]]
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
@@ -185,7 +186,8 @@ namespace Sim.Cli
         internal static int Replay(string[] args)
         {
             var opts = Options.Parse(args, flags: ["--founded"],
-                valued: ["--seed", "--turns", "--orders", "--hash-log", "--size", "--settlements"]);
+                valued: ["--seed", "--turns", "--orders", "--hash-log", "--size", "--settlements",
+                         "--report-jsonl", "--report-every"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
@@ -199,13 +201,30 @@ namespace Sim.Cli
             WorldState world = StartWorld(seed, founded, sizePx, settlements);
             OrderValidation.ValidateAgainstWorld(orders, world);
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
+
+            // T3.12a — THE DIAGNOSTIC REPORTER. Strictly an OBSERVER: the report
+            // stream is written FROM the post-step world and never feeds back.
+            // The step call below is byte-identical whether or not reporting is
+            // on — there is no reporting branch inside it, which is what makes
+            // the determinism assertion in ReplayReportTests structural rather
+            // than merely observed.
+            string? reportPath = opts.Get("--report-jsonl");
+            int reportEvery = (int)opts.LongOr("--report-every", 1);
+            if (reportEvery < 1) throw new CliUsageException("--report-every must be >= 1");
+            using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
+            Sim.Core.Systems.SimConfig? reportCfg = report is not null ? SimCfg() : null;
+
             for (int t = 1; t <= turns; t++)
             {
                 world = executor.Step(world);
                 hashLog?.Add(WorldHash.ComputeHex(world));
+                if (report is not null && t % reportEvery == 0)
+                    ReplayReport.WriteTurn(report, world, reportCfg!);
             }
             if (hashLog is not null) WriteHashLog(opts.Get("--hash-log")!, hashLog);
             Console.WriteLine($"replay complete: seed {seed}, {turns} turns, hash {WorldHash.ComputeHex(world)}");
+            if (reportPath is not null)
+                Console.WriteLine($"report: {reportPath} ({new FileInfo(reportPath).Length} bytes, every {reportEvery} turn(s))");
             return 0;
         }
 
