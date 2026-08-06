@@ -37,6 +37,37 @@ namespace Sim.Tests.Systems;
 /// exactly this split. CROSSING CONDITION: a bulk-8 good with the measured
 /// full-band gap (19.95) trades iff pathCost &lt; 19.95 / (8 × 0.16) = 15.586.
 /// Skip-gated after the measurement; docs/t3.6b-review-record.md records it.
+///
+/// INVALIDATION CONDITION (Q-F, director 2026-07-30; written T3.11 Item 4b).
+/// A Skip-gated rig still COMPILES, so it goes stale in silence. These two
+/// passes underwrite the reframing of escalation 1 from a CR against frozen
+/// constants into a MISSING MECHANISM — the transport packet and T3.10 will
+/// cite that conclusion, so the numbers behind it must not be quietly stale.
+/// Both passes in this file share the condition; it is stated once here.
+///
+/// RE-RUN BOTH PASSES BEFORE CITING THEIR NUMBERS IF ANY OF THESE CHANGED:
+///   - THE LATTICE STRIDE — the lattice pass is stride-4 and Q-A already
+///     records that stride-4 majority-water blocks HIDE RIVERS, which is
+///     why the pixel pass exists. Any stride change re-opens both, and
+///     changes what the lattice pass can even see;
+///   - THE RIVER / WATER MASK — hydrology, the impassable-because-water
+///     predicate, or coastline: the counterfactual is defined by exactly
+///     which nodes flip to passable;
+///   - TRANSPORT COST — `costPerBulkCostUnit`, the Pathfinder step formula,
+///     node costs, or the √2 diagonal convention (the rig REPLICATES the
+///     shipped step model; if the model moves, the replica is wrong, not
+///     merely stale — that is the sharper failure);
+///   - BULK VALUES — CrossingCost hardcodes bulk 8;
+///   - THE PRICE BAND — CrossingCost hardcodes the full-band gap 19.95, so
+///     either band edge moving changes the threshold the whole conclusion
+///     turns on;
+///   - THE MAP SCALE — km per pixel sets every path cost in real units.
+/// NOT invalidating: anything that leaves geometry, water and transport
+/// cost alone — demography, needs, housing, prices ELSEWHERE in the band.
+///
+/// A change to the Pathfinder step model deserves its own emphasis: this
+/// rig REPLICATES that model rather than calling it, so such a change makes
+/// the rig SILENTLY WRONG rather than out of date. Re-derive, do not re-run.
 /// </summary>
 public class WaterRouteCounterfactualTests
 {

@@ -35,23 +35,62 @@ jobs:
           echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
           echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
+      # T3.11 Item 4c (director queue line, T3.9b gate session): the zip root
+      # used to hold ~40 runtime DLLs with the exe mixed in, so the director
+      # scrolled past coreclr/clrjit/System.Private.CoreLib every gate and
+      # `runs/` — the thing a gate session PRODUCES — sorted to the bottom.
+      #
+      # The whole self-contained tree publishes UNCHANGED into `app/`; only
+      # the launcher sits at the root. This is a packaging change, not a
+      # post-publish file shuffle: .NET's self-contained layout expects its
+      # runtime beside the executable, so moving files after publish would
+      # break the app. Two facts on the current tree make it zero-code-change,
+      # both re-verified at T3.11 rather than taken from the queue line:
+      #   - UiSession.SessionLogPath builds Path.Combine("runs", …) — RELATIVE,
+      #     resolved against the WORKING DIRECTORY, so a launcher that leaves
+      #     cwd at the zip root puts `runs/` at the root by itself.
+      #   - AssetManifest resolves art at Path.Combine(AppContext.BaseDirectory,
+      #     "assets") — the EXE's directory, not cwd — so `assets/` travels
+      #     with the exe into `app/` and keeps working.
+      # PublishSingleFile was REJECTED: MonoGame.Framework.DesktopGL loads
+      # SDL2/openal/cimgui as native libraries and self-extract changes where
+      # those resolve, and it would invalidate the completeness assertion
+      # below. A gate-ergonomics fix must not put the gate build at risk.
       - name: Publish Sim.Ui (win-x64, self-contained, identity-stamped)
         run: >
           dotnet publish Sim.Ui/Sim.Ui.csproj -c Release -r win-x64
-          --self-contained -o publish/sim-ui-win-x64
+          --self-contained -o publish/sim-ui-win-x64/app
           -p:BuildSha=${{ steps.ident.outputs.sha }}
           -p:BuildDate=${{ steps.ident.outputs.date }}
+
+      - name: Write the launcher (the only file at the zip root)
+        # CRLF and `cd /d "%~dp0"`: the launcher forces cwd to ITS OWN
+        # directory — the zip root — so `runs/` lands beside the launcher and
+        # not inside app/. `start ""` inherits that cwd for the child.
+        run: |
+          set -e
+          printf '@echo off\r\ncd /d "%%~dp0"\r\nstart "" "app\\Sim.Ui.exe"\r\n' \
+            > "publish/sim-ui-win-x64/Play civ-sim.cmd"
+          cat "publish/sim-ui-win-x64/Play civ-sim.cmd"
 
       - name: Assert the publish is complete (director hardening, T1.7)
         # An empty or partial publish must never go green: the exe and every
         # native the window needs are asserted BEFORE upload, and the file
         # count is printed so the run log shows what shipped.
+        # T3.11 4c: these paths moved under app/ WITH the publish — the
+        # assertion is the reason a partial publish cannot go green, so it
+        # follows the tree rather than being relaxed. The launcher is asserted
+        # too: a zip whose root file is missing is exactly the defect this
+        # change exists to prevent.
         run: |
           set -e
           for f in Sim.Ui.exe SDL2.dll openal.dll cimgui.dll; do
-            test -f "publish/sim-ui-win-x64/$f" || { echo "MISSING: $f"; exit 1; }
+            test -f "publish/sim-ui-win-x64/app/$f" || { echo "MISSING: app/$f"; exit 1; }
           done
-          echo "publish contains $(ls publish/sim-ui-win-x64 | wc -l) files, $(du -sh publish/sim-ui-win-x64 | cut -f1)"
+          test -f "publish/sim-ui-win-x64/Play civ-sim.cmd" || { echo "MISSING: launcher"; exit 1; }
+          test -d "publish/sim-ui-win-x64/app/assets" || { echo "MISSING: app/assets"; exit 1; }
+          echo "zip root: $(ls publish/sim-ui-win-x64 | tr '\n' ' ')"
+          echo "app/ contains $(ls publish/sim-ui-win-x64/app | wc -l) files, $(du -sh publish/sim-ui-win-x64/app | cut -f1)"
 
       - name: Upload artifact zip
         uses: actions/upload-artifact@v4

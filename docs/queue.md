@@ -444,6 +444,16 @@
   RIG, no general rule. Then a packet touching a named surface knows to re-run before citing —
   the coupling-map discipline (S8 §4.1 item 4) applied to EVIDENCE rather than code. OPEN,
   owner: T3.11 (harness and goldens, which owns test-suite health). Not fixed here.
+  **DONE (T3.11 Item 4b).** Written IN EACH RIG'S OWN HEADER, per rig, no general rule:
+  `FoundingVariationItem0Tests` names worldgen, siting/jitters, initial endowment, the sector
+  mix, catchment, and the price-band/bulk/cost trio (one per reading it took), plus what is
+  explicitly NOT invalidating. `WaterRouteCounterfactualTests` states one condition covering
+  both passes — lattice stride, water mask, transport cost and the Pathfinder step formula,
+  bulk values, price band, map scale. **One sharpening the original line did not anticipate:**
+  the water rig REPLICATES the shipped Pathfinder step model rather than calling it, so a
+  change to that model makes it SILENTLY WRONG rather than merely stale — re-derive, do not
+  re-run. That distinction is called out in the header, because "stale" and "wrong" need
+  different responses from whoever cites it.
 - **Q-A (T3.8 Item 0, director): RIVERS CANNOT LIVE ON THE STRIDE-4 LATTICE.** The T3.6b water
   counterfactual's lattice pass could only see the SEA — stride-4 majority-water blocks hide
   rivers — and concluded even FREE water was insufficient; that was a resolution artifact, not
@@ -578,7 +588,20 @@
   **FOR WHOEVER TAKES IT:** the completeness assertion's paths move under `app/` and must move
   with it; the launcher should be plain enough to read at a glance; and confirm on Windows that
   cwd is the launcher's directory rather than `app/` (the `runs/` placement depends on it).
-  OPEN. Owner: T3.11 (harness and goldens — it owns build and test infrastructure).
+  **DONE (T3.11 Item 4c).** `ui-artifact.yml` publishes to `publish/sim-ui-win-x64/app` and
+  writes `Play civ-sim.cmd` at the root; the zip root is now launcher + `app/` + (after a
+  session) `runs/`. The completeness assertion MOVED WITH the tree rather than being relaxed,
+  and gained two checks it never had: the launcher itself, and `app/assets` — a zip missing its
+  root file is precisely the defect this change exists to prevent. Both path facts were
+  RE-VERIFIED against the current tree, not carried from this line: `UiSession.SessionLogPath`
+  is still `Path.Combine("runs", …)` (relative) and `AssetManifest` still resolves at
+  `AppContext.BaseDirectory`. **ONE CONFIRMATION STILL OWED, AND IT CANNOT BE MADE HERE:** the
+  launcher does `cd /d "%~dp0"` so cwd is forced to the launcher's own directory regardless of
+  how Explorer invokes it — but that is reasoned from cmd.exe semantics, NOT measured, because
+  this is a Linux container with no Windows to run it on. The director's next gate download is
+  the measurement: if `runs/` appears at the zip root beside the launcher, it holds; if it
+  appears inside `app/`, the `cd /d` did not take and the launcher needs revisiting. Flagged
+  rather than assumed.
 
 - **REFERENCE POINT FOR T3.12's EXIT SESSION — PLAYER-SET ALLOCATION BEATS THE DERIVED
   DEFAULT** (T3.9b visual gate, director's own session, 2026-08-05). Seed 42, settlement
