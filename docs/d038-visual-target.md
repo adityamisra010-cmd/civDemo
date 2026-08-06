@@ -73,3 +73,133 @@ G1. §6's current bar — "it looks like an atlas, not a debug tool" — is DISC
 G2. The new bar: A SETTLEMENT'S SIZE IS LEGIBLE AT A GLANCE WITHOUT READING A NUMBER; an army reads as an army; terrain has relief; and the whole reads as one illustrated map rather than a set of assets on a shared background.
 G3. The single-cartographer test survives as the failure condition: any asset that reads as lit differently, or drawn by a different hand, is rejected.
 G4. Director visual gate as ever. Automated tests cover palette exactness, seamlessness and regenerability; the look is the director's call (D-023).
+
+---
+
+## PART H — HOW A SETTLEMENT SHOWS WHAT IT HAS BUILT
+
+Director ruling, taken after D-038's original filing. **Append-only: amends nothing in Parts
+A–G**; it answers a question they left open.
+
+**CITATION CHECK (§7.12).** Every citation below was verified against the tree at `cadcc83`.
+All hold except one, recorded at H2 as a finding: the tree does not contain the phrase
+"one settlement per place".
+
+H1. **THE QUESTION.** A settlement gains institutions and works over the campaign — granaries,
+    walls, temples, barracks, libraries, universities. Should the map show them, or should they
+    remain a list revealed on selection?
+
+    **RULED: THE MAP SHOWS THEM.** A settlement the director has watched for two thousand years
+    should look like what it has become. This is the same argument A1 made for raising the visual
+    ceiling at all.
+
+H2. **THE DESIGN CONSTRAINT THAT SHAPES THE ANSWER.** Districts inside a settlement are
+    ABSTRACTED. So a university is NOT an object at coordinates inside a settlement — it is a
+    **CAPABILITY THE SETTLEMENT HAS**. Any visual treatment must express a capability, never
+    imply an internal map.
+
+    > **FINDING (§7.12) — the citation as directed does not match the tree, though its substance
+    > does.** The ruling was cited as "D-009 rules ONE SETTLEMENT PER PLACE, with districts
+    > abstracted". **No line in the tree says "one settlement per place."** What D-009 actually
+    > says, verbatim, is two separate things:
+    > - *"Districts inside remain abstracted (v3 position holds)"*
+    >   (`d009-d010-map-population-addendum.md:15`) — this is the load-bearing half, and it fully
+    >   supports H2's constraint;
+    > - *"The unit of 'where' is a settlement and its hinterland"* (`:13`) — the granularity
+    >   ruling, which is about settlements-and-catchments as the unit of place, not about a
+    >   one-per-place cardinality.
+    >
+    > The tree wins: **cite the abstraction of districts, not a one-per-place rule.** The
+    > constraint H2 imposes is unaffected — it rests entirely on districts being abstracted — so
+    > this corrects the citation, not the ruling. Recorded because a future reader chasing
+    > "one settlement per place" through D-009 will not find it.
+    >
+    > **THE FOOTPRINT IS THE SAME DEFERRED ITEM, NOT A MISSING PREREQUISITE** (corrected on the
+    > director's ruling; an earlier draft of this note warned that "sprawl was not built", which
+    > was half right and misleading). `m3-spec.md:15` reads: *"**D-017 CLOSED — Settlement
+    > growth.** A settlement carries a **size** stock grown from population and construction,
+    > which drives housing capacity, catchment radius bonus, and (render-side) footprint. Sprawl
+    > visuals are symbology — deferred per the queue."* The footprint was **ruled RENDER-SIDE and
+    > deferred to this same visual milestone.** So the composed sprite and the organic footprint
+    > are not overlapping answers to one question — **they are one deferred item, and the composed
+    > sprite may well be HOW the footprint gets expressed.** The visual milestone should treat
+    > them together.
+    >
+    > **FINDING (§7.12), MEASURED — "D-017 CLOSED" OVERSTATES, AND A MECHANICAL HALF WENT WITH
+    > THE VISUALS.** D-009:15 says footprints *"consume real farmland as they expand (the
+    > food-ceiling tension made visible)"*. **Consuming farmland is not render-side.** Measured
+    > against the shipped sim at `cadcc83`: a settlement's growth **NEVER reduces arable — its
+    > own or a neighbour's.** `EffectiveArableKm2` is summed from `BlockArableKm2`
+    > (`CatchmentSystem.cs:204`), a pure function of TERRAIN — immutable after worldgen per
+    > ADR-008 — and the lattice; no writer anywhere subtracts for settlement size or dwellings.
+    > The only thing `SizeTier` does to land is the **opposite**: it RAISES the travel budget
+    > (`TierBudget`, `base × (1 + sizeBonusMaxRatio × tier/4)`), so growth ADDS reachable nodes.
+    > A neighbour's arable can shrink only through catchment partition competition — reachability,
+    > not consumption.
+    >
+    > So D-017's size stock, housing capacity and catchment bonus are real and closed; **the
+    > farmland-consumption mechanism is not implemented and is not scheduled anywhere.** Filed for
+    > the M3 exit record and carried in the milestone entry's known-open list. **Not fixed here,
+    > and Part H does not depend on it** — a composed sprite reads state; it does not need the
+    > footprint to consume land.
+
+H3. **TWO OPTIONS WERE CONSIDERED.** Both recorded, because the rejected one is cheaper and a
+    future reader should see it was weighed.
+
+    - **GLYPH RING** — small icons arranged around the settlement marker. Cheap, legible, scales
+      to the Scale Charter's late-game settlement counts (*"settlements ~50 (ancient) → 300–800
+      (late)"*, `d009-d010:19` — verified), needs no new sim concept, and is pure
+      procedural-in-code under D1. **REJECTED as the primary treatment.**
+    - **COMPOSED SETTLEMENT SPRITE** — the settlement's own art changes shape as it gains
+      institutions and size. **ADOPTED.** Rationale: it makes the settlement itself the thing
+      that grew, rather than decorating a marker that did not, and it extends T3.8's size tiers,
+      which already vary the settlement by what it has built (`SummaryRow.SizeTier`, a quantized
+      0..4 step computed from dwellings — `WorldState.cs:90-95`, `CatchmentSystem.cs:60` —
+      verified).
+
+    The director's ruling in substance: **the composed sprite is the heavier option and is chosen
+    because it is better, with the additional work accepted deliberately.**
+
+H4. **THE COMBINATORIAL PROBLEM IS THE REAL ENGINEERING DECISION, AND IT MUST BE SOLVED BY PARTS
+    AND ASSEMBLY, NOT BY PRE-RENDERING COMBINATIONS.**
+
+    Size tiers × walls × temple × barracks × library × whatever M5–M8 adds is a combination count
+    that grows multiplicatively. Pre-rendering every combination does not scale and never will.
+
+    **REQUIRED APPROACH:** each PART is authored once — a tier's built form, a wall ring, an
+    institution's structure — and the settlement is **COMPOSITED AT DRAW TIME** from the parts
+    its state says it has. Adding an institution then costs one part, not a re-render of the
+    whole matrix.
+
+    This suits D1's parametric-render method exactly: parts are scripted scene descriptions
+    rendered headless to sprites, and the script is the part's source. **Note the constraint it
+    imposes: EVERY PART MUST BE AUTHORED AGAINST THE SAME LIGHT ANGLE AND THE SAME GROUND PLANE**,
+    or composited settlements will read as collage. That is B2's single-cartographer rule applied
+    at the part level, and it is **stricter here than anywhere else in the visual layer**, because
+    the parts sit adjacent in one image.
+
+H5. **WHAT DRIVES THE COMPOSITION IS COMPUTED STATE, AND LAW 4 BINDS.** A settlement shows walls
+    because it HAS walls, a university because it HAS one. No era gate, no date, no unlock. The
+    sprite is a **READ** of state — it never becomes a source of truth, and nothing in the sim may
+    ever consult it. (ADR-009 already guarantees the direction of that dependency: nothing in
+    `Sim.Ui` can alter a world hash — E6.)
+
+H6. **GLYPHS ARE NOT REJECTED, ONLY DEMOTED.** Things that must be legible at world-fit zoom, or
+    that have no built form — a trade status, an unrest marker, a production emphasis — remain
+    glyphs, procedural in code per D1. **The composed sprite carries what a settlement IS; glyphs
+    carry what is happening to it.** Stated here so the visual packet does not have to invent the
+    division.
+
+H7. **WHAT THIS DOES NOT DO.** It does not schedule work — the inserted visual milestone after M5
+    and before M6 owns it (E1). It does not amend the abstraction of districts; H2 explicitly
+    upholds it. It does not authorise any asset before that milestone, for the reason the
+    symbology deferral already gives and which is verified in `docs/queue.md`: *"symbology encodes
+    what the map CONTAINS, and M3 (goods/markets), M4 (neighbors/armies), M5 (unrest) each change
+    that content; redrawing piecemeal in the interim is wasted work"*. M4 and M5 change what a
+    settlement contains, and drawing before that is redrawing.
+
+H8. **ONE OPEN QUESTION, NOT RULED:** how many distinct parts a settlement may show before the
+    sprite becomes unreadable at map zoom, and what happens past that limit — do parts merge, does
+    the sprite abstract upward, or does the settlement show only its most significant works? This
+    is a legibility question that **cannot be answered before the parts exist.** The visual
+    milestone owns it; **name it there rather than discovering it mid-packet.**
