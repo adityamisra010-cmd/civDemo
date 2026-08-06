@@ -221,10 +221,20 @@ records only what worked is a worse instrument than one that records what is kno
   with colonization / land clearance (CR-003 §5.2(a)), which is the other half of the same
   land-pressure question. Not fixed at T3.12; the m3-spec entry is left as written and this is
   the record.*
-- [ ] **Calibration battery green across ≥20 seeds** — CI battery and nightly sweep: see the
-  T3.12 sweep counts at handback. NOTE the standing qualification: the density corridor is
-  QUARANTINED and re-pinned (T3.8), and "including comparative advantage" cannot be met as
-  written while trade is structurally zero.
+- [x] **Calibration battery green across ≥20 seeds with proven teeth** — CI battery 6/6, nightly
+  20-seed sweep green with BOTH deviating corridors quarantined-and-reported rather than
+  silently gating (T3.12 item B). Density `[0.15, 0.6]` band vs measured 1.1428–1.6501, and
+  migration floor 0.001 vs seed 9's 0.000980, are each declared in `corridors.json` with window,
+  owner and history; the nightly prints their measured range every run.
+- [~] **"…including comparative advantage" — WITHDRAWN, NOT FAILED** (director ruling, M3 exit,
+  on the **T3.4b precedent**: the chronicle-famine criterion was withdrawn rather than failed
+  because the world genuinely could not exercise it). **The difference matters and is stated
+  explicitly: a FAILED criterion means the system did the wrong thing; a WITHDRAWN one means the
+  criterion asked for evidence the world cannot produce, so no run of it could be informative.**
+  Comparative advantage requires trade; trade is structurally zero for two measured, escalated
+  reasons — the deadband exceeds the maximum expressible price gap (≈23–35 vs 19.95), and 11 of
+  13 non-grain goods are pinned gap-zero on common band edges. Nothing was tuned to avoid the
+  criterion and nothing regressed to breach it. **Travels to M4 with T3.10.**
 - [ ] **Director exit session played from the CI zip, log replaying hash-identical** — the
   director's, not this packet's. Brief: `docs/m3-exit-session.md`.
 - [ ] **`m3-exit` Release with attached zip** — minted by the director publishing the release.
@@ -249,5 +259,23 @@ defect, and treating an unrecoverable log as a stop condition would mean any los
 milestone — not a rule worth having. The process fix is filed in `docs/queue.md`: a sweep whose
 purpose is catching failures must capture full output to disk and filter at READ time.
 
-**M3 does not close on this handback.** The exit is the director's play session against the build
+### THE KNOWN-OPEN LIST, COMPLETED AT THE EXIT RULING
+
+Each with its measurement and its owner. **A milestone entry recording only what worked is a
+worse instrument than one recording what is known-open** — and for M3 the second list is the more
+valuable one.
+
+| # | known-open | measurement | owner |
+| --- | --- | --- | --- |
+| 1 | **The world cannot starve — B-2, FOUR costumes** | grain ~1,240 yr reserve; 11/13 goods pegged at band edges; timber holds Shelter at 1.0000 for decades after a farm-100 % order; **and now a fourth: the migration transmission channel measures ZERO starvation deaths in 20/20 seeds** | B-2, M4 blocking material (Q-B: one test, five predictions) |
+| 2 | **Trade is structurally zero** | escalation 1: deadband ≈23–35 vs max expressible gap 19.95 — and the water counterfactual says the MODEL IS CORRECT, bulk moves by water; escalation 2: 11/13 goods gap-zero on common band edges | a future transport packet; escalation 2 → B-2 |
+| 3 | **Comfort is flow-bound (Q5)** | Hikiavur t177: pottery demand 59 eaten 0, cloth demand 88 eaten 0 → Comfort 0.0000 both classes | M4; depends on B-2 |
+| 4 | **Density corridor ~2.3× above its band** | 20 seeds, 1.1428–1.6501, mean 1.3952 vs band [0.15, 0.6]; **dated to T3.2b** by run history (last green nightly 2026-07-26, first red 2026-07-27) | M4 CR-002 packet (travelled with T3.10) |
+| 5 | **World population varies 1.63× across seeds by an UNBISECTED mechanism** | 81,160–132,280 over 20 seeds; drives the density spread (corr with population **+0.858**, with arable **+0.018**); migration EXCLUDED by measurement | unassigned; belongs with M4 CR-002. **Named candidate: ADR-017's endowment jitter at 0.69 — not bisected** |
+| 6 | **Artisans emerge with exactly 1 member in 10 of 12 settlements** | **OBSERVED, NOT DIAGNOSED** (director ruling) | M4 |
+| 7 | **The Thiathiariath oscillation is UNREPRODUCED** | director's session: 13/24/24/10/10 % between consecutive decades. T3.12b's diagnosis runs measured a **1.96 % maximum** share swing (seeds 3/6/9, different seed and order log) — **so they do not explain it** | M4; now investigable, since T3.12a makes his own session log a dataset |
+| 8 | **Kunaetho's late grievance rise** | **observed, not diagnosed**, by director ruling | M4 |
+| 9 | **T3.7 (merchants) and T3.10 (calibration) MOVED TO M4** | T3.7 because merchants emerge on a trade volume that does not exist | M4 |
+
+**M3 CLOSES on the director's exit ruling, 2026-08-06.** The exit is the director's play session against the build
 above, and the milestone closes on his ruling.
