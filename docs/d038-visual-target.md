@@ -114,12 +114,34 @@ H2. **THE DESIGN CONSTRAINT THAT SHAPES THE ANSWER.** Districts inside a settlem
     > this corrects the citation, not the ruling. Recorded because a future reader chasing
     > "one settlement per place" through D-009 will not find it.
     >
-    > **Adjacent, and worth knowing before the visual milestone designs anything:** the same
-    > D-009 line says settlement footprints are *"organic blobs that grow along the network and
-    > terrain suitability… consuming real farmland as they expand"*, and D-017 schedules the
-    > sprawl model at M3 (`:60`). **Sprawl was not built.** A composed sprite and an organic
-    > footprint are different answers to overlapping questions; whoever owns the visual milestone
-    > should know the footprint half is unimplemented rather than assume it exists to compose on.
+    > **THE FOOTPRINT IS THE SAME DEFERRED ITEM, NOT A MISSING PREREQUISITE** (corrected on the
+    > director's ruling; an earlier draft of this note warned that "sprawl was not built", which
+    > was half right and misleading). `m3-spec.md:15` reads: *"**D-017 CLOSED — Settlement
+    > growth.** A settlement carries a **size** stock grown from population and construction,
+    > which drives housing capacity, catchment radius bonus, and (render-side) footprint. Sprawl
+    > visuals are symbology — deferred per the queue."* The footprint was **ruled RENDER-SIDE and
+    > deferred to this same visual milestone.** So the composed sprite and the organic footprint
+    > are not overlapping answers to one question — **they are one deferred item, and the composed
+    > sprite may well be HOW the footprint gets expressed.** The visual milestone should treat
+    > them together.
+    >
+    > **FINDING (§7.12), MEASURED — "D-017 CLOSED" OVERSTATES, AND A MECHANICAL HALF WENT WITH
+    > THE VISUALS.** D-009:15 says footprints *"consume real farmland as they expand (the
+    > food-ceiling tension made visible)"*. **Consuming farmland is not render-side.** Measured
+    > against the shipped sim at `cadcc83`: a settlement's growth **NEVER reduces arable — its
+    > own or a neighbour's.** `EffectiveArableKm2` is summed from `BlockArableKm2`
+    > (`CatchmentSystem.cs:204`), a pure function of TERRAIN — immutable after worldgen per
+    > ADR-008 — and the lattice; no writer anywhere subtracts for settlement size or dwellings.
+    > The only thing `SizeTier` does to land is the **opposite**: it RAISES the travel budget
+    > (`TierBudget`, `base × (1 + sizeBonusMaxRatio × tier/4)`), so growth ADDS reachable nodes.
+    > A neighbour's arable can shrink only through catchment partition competition — reachability,
+    > not consumption.
+    >
+    > So D-017's size stock, housing capacity and catchment bonus are real and closed; **the
+    > farmland-consumption mechanism is not implemented and is not scheduled anywhere.** Filed for
+    > the M3 exit record and carried in the milestone entry's known-open list. **Not fixed here,
+    > and Part H does not depend on it** — a composed sprite reads state; it does not need the
+    > footprint to consume land.
 
 H3. **TWO OPTIONS WERE CONSIDERED.** Both recorded, because the rejected one is cheaper and a
     future reader should see it was weighed.
