@@ -654,3 +654,14 @@
   item in the project.** Cross-reference: `docs/m4-pre-spec-dependencies.md` §5;
   `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
   that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.
+
+- **SWEEP OUTPUT MUST BE CAPTURED WHOLE AND FILTERED AT READ TIME (director ruling, T3.12 exit,
+  2026-08-06).** A sweep whose PURPOSE is to catch failures must **capture full output to disk and
+  filter at READ time, never at CAPTURE time.** Piping `dotnet test` through `grep` discards the
+  test name and the assertion text before anything is written, so a red becomes UNEXPLAINABLE
+  after the fact. **Measured instance:** T3.12's pre-exit sweep recorded
+  `Failed: 1, Passed: 150` for `Sim.Ui.Tests` in a run captured as `dotnet test … | grep -E
+  "Passed!|Failed!|error"`. Three lines survived; the failing test's name and message were never
+  written and could not be recovered. The final tree ran green and the director ruled the exit
+  proceeds, but the observation itself is permanently lost. Owner: T4-era harness work, or
+  wherever the sweep script comes to live.

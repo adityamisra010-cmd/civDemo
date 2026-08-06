@@ -205,6 +205,22 @@ records only what worked is a worse instrument than one that records what is kno
   first-reign `144d7e5d…`, and the new DRIVEN golden `e7457fbc…`; every re-pin carries a dated
   history line.
 - [x] **milestones.md M3 entry** — this entry.
+- [ ] **D-017's FARMLAND-CONSUMPTION HALF IS NOT IMPLEMENTED, and "D-017 CLOSED" overstates.**
+  Found at T3.12 while verifying D-038 Part H's citations, and MEASURED against the tree.
+  `m3-spec.md:15` closes D-017 with the size stock driving housing capacity, catchment radius
+  bonus and "(render-side) footprint", deferring sprawl VISUALS to the visual milestone. But
+  D-009:15 says footprints *"consume real farmland as they expand (the food-ceiling tension made
+  visible)"* — and **consuming farmland is not render-side.** Measured: a settlement's growth
+  **never reduces arable, its own or a neighbour's.** `EffectiveArableKm2` sums `BlockArableKm2`
+  (`CatchmentSystem.cs:204`), a pure function of TERRAIN — immutable after worldgen, ADR-008 —
+  and the lattice; no writer subtracts for settlement size or dwellings. `SizeTier` does the
+  OPPOSITE, raising the travel budget so growth ADDS reachable nodes. A neighbour's arable can
+  shrink only via catchment partition competition, which is reachability, not consumption. So the
+  size stock, housing capacity and catchment bonus are closed; **the food-ceiling tension D-009
+  wanted made visible is not built and is scheduled nowhere.** *Owner: unassigned — it belongs
+  with colonization / land clearance (CR-003 §5.2(a)), which is the other half of the same
+  land-pressure question. Not fixed at T3.12; the m3-spec entry is left as written and this is
+  the record.*
 - [ ] **Calibration battery green across ≥20 seeds** — CI battery and nightly sweep: see the
   T3.12 sweep counts at handback. NOTE the standing qualification: the density corridor is
   QUARANTINED and re-pinned (T3.8), and "including comparative advantage" cannot be met as
@@ -215,6 +231,23 @@ records only what worked is a worse instrument than one that records what is kno
 - [ ] **Merged branch sweep** — 21 verified-safe remote branches listed at T3.11; this session's
   credential cannot delete remote refs (HTTP 403), so the deletions are the director's from the
   GitHub UI.
+
+### THE PRE-EXIT SWEEP SAW ONE UNREPRODUCIBLE RED, AND THE DIRECTOR RULED THE EXIT PROCEEDS
+
+Recorded so a future reader sees the judgement rather than a gap. An early T3.12 sweep run
+reported `Sim.Ui.Tests` **150 passed / 1 failed**. That run's output had been piped through
+`grep` at capture time, so the failing test's NAME and ASSERTION TEXT were discarded before
+anything reached disk — three summary lines survived and **the observation is permanently
+unrecoverable.** The most likely account is a `--no-build` race against that packet's
+`BuildInfo` M2→M3 edit and its exact-match pin, but that is an INFERENCE and is recorded as one.
+
+The authoritative run on the final tree is green: **`Sim.Ui.Tests` 151/151, `Sim.Tests` 440/444
+(4 skipped)**, banned-constructs clean, build clean.
+
+**Director's ruling (2026-08-06): the exit proceeds.** A LOST observation is not evidence of a
+defect, and treating an unrecoverable log as a stop condition would mean any lost output halts a
+milestone — not a rule worth having. The process fix is filed in `docs/queue.md`: a sweep whose
+purpose is catching failures must capture full output to disk and filter at READ time.
 
 **M3 does not close on this handback.** The exit is the director's play session against the build
 above, and the milestone closes on his ruling.
