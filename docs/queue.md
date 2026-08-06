@@ -665,3 +665,25 @@
   written and could not be recovered. The final tree ran green and the director ruled the exit
   proceeds, but the observation itself is permanently lost. Owner: T4-era harness work, or
   wherever the sweep script comes to live.
+
+- **CI PROCESS DEFECT — A NIGHTLY FAILURE MUST SURFACE WHERE SOMEONE READS IT. OWNER: CI,
+  M4-era (director ruling, T3.12).** Measured from the Actions API, not inferred: the scheduled
+  `calibration-nightly` job failed on **ELEVEN CONSECUTIVE RUNS**, from 2026-07-27 (run
+  `30243589130`) through 2026-08-06 (`31076072204`). Last green: **2026-07-26**
+  (`30190719365`). Nobody noticed until T3.12's pre-exit sweep reproduced it locally.
+  **WHAT THAT COST, stated precisely: T3.5b, T3.6, T3.6b, T3.8, T3.9a, T3.9b and T3.11 all
+  landed under an instrument that was already dark.** The whole second half of M3 shipped with
+  its ≥20-seed calibration gate providing zero signal.
+  **AND THE SHARPER VERSION — IT WAS NOT MERELY DARK, IT WAS MASKING.** The density false-red
+  (a corridor the project had already quarantined, see the `quarantine` block in
+  `corridors.json`) hid a GENUINE reading for those eleven nights: `migrationGrossPerDecade`
+  seed 9 at 0.00098 against a 0.001 floor. Once T3.12 taught the nightly about quarantines, the
+  job still failed — on the real signal, which had been sitting underneath the noise the entire
+  time. **An instrument that is dark is bad; one that is dark AND masking a real signal is
+  worse.** A red that nobody reads is indistinguishable from a green, and a red that is
+  *expected* trains everyone to ignore the one that is not.
+  This is the same shape as CLAUDE.md's false merge-loop line and the Spine's stale inventory:
+  **nothing checks the checker.** The corridor fix (T3.12 item B) closes the instrument
+  disagreement; it does NOT close this. Candidate mechanisms, none chosen here: fail the
+  scheduled run loudly into a channel the director reads; a badge; a "days since last green
+  nightly" line in the run summary; or a follow-up issue opened automatically on the first red.
