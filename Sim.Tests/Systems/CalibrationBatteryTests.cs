@@ -367,7 +367,17 @@ public class CalibrationBatteryTests
         //    measured. No band edge moved; the envelope keeps the modest
         //    margins of its T3.5b predecessor.
         //    (T3.5b window: [1.55, 1.95].)
-        const double DeviationFloor = 1.40, DeviationCeiling = 1.80;
+        // T3.12 — the window now comes FROM corridors.json, not from a constant
+        // here. Two instruments hard-coding the same numbers is how the nightly
+        // came to gate on a band this quarantine had already superseded, red for
+        // eleven consecutive runs with nobody reading it. One source, both
+        // readers. The teeth below are UNCHANGED in both directions.
+        (double DeviationFloor, double DeviationCeiling) =
+            Corridors.Quarantine("canonical", "densityPerArableKm2")
+            ?? throw new InvalidOperationException(
+                "canonical.densityPerArableKm2 declares no ACTIVE quarantine in corridors.json, " +
+                "but this test asserts against one. If CR-002/CR-003 resolved, delete this " +
+                "method and restore the plain AssertInBand.");
         Assert.True(value <= DeviationCeiling,
             $"{Key}: {Inv(value)} has drifted FURTHER above the corridor ceiling {hi} than the " +
             $"recorded deviation window [{DeviationFloor}, {DeviationCeiling}] - the world is " +
