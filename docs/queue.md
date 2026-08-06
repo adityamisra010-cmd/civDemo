@@ -654,3 +654,31 @@
   item in the project.** Cross-reference: `docs/m4-pre-spec-dependencies.md` §5;
   `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
   that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.
+
+- **CANDIDATE ADR-015 SECTION — A GIT OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
+  THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
+  2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
+  candidates are FILED and the director rules on writing them, so no section text is drafted
+  here). **THREE INSTANCES, ALL IN THE LAST FEW PACKETS, ALL THE SAME SHAPE:** a git operation
+  that *appears* to have done what was asked while doing something else.
+  1. **T3.9b** — `git checkout` silently NO-OP'd on an untracked file, so both §7.4 arms were
+     defeated at once and the red proof was ambiguous. Discarded and redone.
+  2. **T3.11** — `git push --delete` returned **HTTP 403 for all 21 branches** while the loop
+     printed `DELETED: 21`: the counter incremented on ATTEMPTS and the failures went to stderr.
+     Caught only by re-listing the remote afterwards.
+  3. **CONV-1** — `git checkout -- <file>` reverted the file to `main`, silently taking the
+     packet's own rename along with the perturbation it was meant to undo.
+  **WHAT THE THREE HAVE IN COMMON:** each was caught by CHECKING THE RESULT rather than trusting
+  the command's apparent success, and in two of the three the operation's exit signal was
+  actively misleading (a no-op is success; a counter is not a result).
+  **THE REMEDY, FOUND INDEPENDENTLY TWICE:** **COMMIT A VERIFIED-GREEN BASELINE BEFORE A RED
+  PROOF.** Then every revert returns to a KNOWN state rather than an assumed one, each arm is
+  measured against that state, and a silent no-op or an over-wide revert shows up as a diff
+  instead of as a clean-looking proof. Generalised: **a git command's output is not a
+  measurement of the repository — re-read the state.**
+  **WHY IT BELONGS IN §7.4 RATHER THAN IN AN AGENT'S HABITS:** §7.4 already requires proving a
+  guard red, and all three instances are failures of the PROOF PROCEDURE, not of the guards. The
+  refinement currently exists only in session transcripts — which is precisely the decay shape
+  CONV-1 §5 and the three stale-document findings describe.
+  **FILED ON THE `conv-1-term-namespacing` BRANCH** because that is where instance 3 occurred and
+  CONV-1 is itself a conventions record; redirect it if another home is preferred.
