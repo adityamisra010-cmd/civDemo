@@ -26,6 +26,29 @@ namespace Sim.Tests.Systems;
 /// it. Runtime is ~5 min/seed (worldgen 1024² + 150 canonical turns), so
 /// this rig is Skip-gated after the measurement — reproducible on demand,
 /// not a CI cost. The recorded numbers stand as the packet's evidence.
+///
+/// INVALIDATION CONDITION (Q-F, director 2026-07-30; written T3.11 Item 4b).
+/// A Skip-gated rig still COMPILES, so it goes stale in silence: still
+/// runnable, still green, measuring a world that has moved, with recorded
+/// numbers that quietly stop describing anything. This rig's numbers
+/// underwrite ADR-017 — the decision NOT to amend D-025's siting clause —
+/// and the transport packet and T3.10 will cite them.
+///
+/// RE-RUN THIS RIG BEFORE CITING ITS NUMBERS IF ANY OF THESE CHANGED:
+///   - WORLDGEN — elevation, moisture, rivers, biome assignment, or the
+///     1024² canonical size (every reading is per-site terrain);
+///   - SITING — D-025's scoring or spacing, or `endowmentJitter` /
+///     `siteJitter` (readings (a) and (d) ARE the siting-vs-continent and
+///     endowment spreads; ADR-017 already moved endowmentJitter once);
+///   - INITIAL ENDOWMENT — what a settlement founds holding;
+///   - THE SECTOR MIX — reading (b) is production spread UNDER THE SHIPPED
+///     ALLOCATION, so a re-derived default mix invalidates it outright;
+///   - CATCHMENT — radius, weighting, or partitioning (it sets the land
+///     each site actually draws on);
+///   - THE PRICE BAND, BULK VALUES or `costPerBulkCostUnit` — reading (c)
+///     is distance-to-deadband and is arithmetic in all three.
+/// NOT invalidating: anything downstream of founding that leaves these
+/// alone — housing, needs, grievance, trade execution, UI.
 /// </summary>
 public class FoundingVariationItem0Tests
 {

@@ -17,14 +17,21 @@ namespace Sim.Tests.Systems;
 /// oscillate before it is trusted on the series under test. This is the
 /// T2.8/PopulationTests precedent applied to prices.
 ///
-/// COVERAGE WARNING (director ruling, 2026-07-26 — until T3.11 lands the driven
-/// golden). THE GOLDENS DO NOT COVER PRICE BEHAVIOUR AT ALL. Every pinned world
-/// runs the all-farming default, so no good but grain ever flows, every price
-/// sits at exactly 1.0, and the step's exponent is exactly 0 — ADR-016 changed
-/// the solver's mathematics from Euler to exact integration and left all three
-/// golden hashes BYTE-IDENTICAL. Price behaviour is therefore covered by THIS
-/// file and the driven soak alone. Do not read a green golden as evidence that
-/// the price solver is unchanged.
+/// COVERAGE, MEASURED (T3.11 Item 1, 2026-08-06 — replaces the 2026-07-26
+/// COVERAGE WARNING that stood here, which was wrong TWICE OVER by the time it
+/// was discharged). The old warning said the goldens do not cover price
+/// behaviour at all, every price sitting at exactly 1.0 with the step's
+/// exponent exactly 0. Measurement: the founded golden has 156 of 156 non-grain
+/// price rows OFF 1.0 and its hash CHANGES under both price-step perturbations.
+/// T3.2b/T3.5b spread production across sectors and closed that gap before
+/// T3.11 existed; nobody re-measured. The goldens DO exercise the price solver.
+///
+/// What they did not cover was FLOW — the founded world moves zero goods.
+/// DrivenGoldenTests now pins a world driven by SectorAllocation orders that
+/// moves 46 units, and is red-proven against P1 and P2. So price behaviour is
+/// covered by THIS file, PriceTests, AND two goldens — but this soak remains
+/// the only instrument that watches a price SERIES over time for oscillation;
+/// a golden hash sees one final state and cannot.
 /// </summary>
 public class PriceSoakTests
 {

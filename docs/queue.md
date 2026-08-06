@@ -345,6 +345,19 @@
   STRUCTURALLY untradeable overland at ANY price divergence. With T3.6 R1 this is the sharpened
   trade-silence finding. Every surface involved (price band, costPerBulkCostUnit, bulk table)
   is ruled/frozen — DIRECTOR MATERIAL, no owner assigned here.
+  **COUNTEREXAMPLE, MEASURED (T3.11 Item 1 — filed here deliberately, beside escalation 1, for
+  whoever scopes the M4 transport packet): THE DEADBAND IS NOT ALWAYS THE BINDING CONSTRAINT.**
+  On the driven golden, `bronze` shows a price spread of **15.17 against a deadband of 7.22** —
+  a gap comfortably OVER threshold, more than twice it — and moved **zero** units. The cause is
+  not transport at all: `maxStock = 0`. Nobody holds any bronze to sell. Escalation 1 says the
+  threshold is unreachable for high-bulk goods; this is the opposite case, a good whose gap
+  clears its threshold easily and still cannot trade because the SELLER SIDE is empty.
+  Consequence for scoping: lowering transport cost — water routes, draught animals (Q-C), any
+  deadband lever — would do NOTHING for bronze. A transport packet measured only on total flow
+  could be judged a failure, or a success, for reasons that have nothing to do with transport.
+  Whatever instrument that packet uses must decompose gap / threshold / stock separately, as
+  T3.11's D1 was pre-committed to do; volume alone would have read this as a trade-solver
+  defect. Evidence: `docs/t3.11-review-record.md` §D1.
 - **T3.6b ESCALATION 2 — COMMON-BAND-EDGE PINNING blocks gaps for 11 of 13 non-grain goods.**
   Both sides of every pair rest on the SAME band edge (floor: oversupplied-undemanded; ceiling:
   demanded-underproduced), so gap ≡ 0 however much settlements differ. The missing demand side
@@ -431,6 +444,16 @@
   RIG, no general rule. Then a packet touching a named surface knows to re-run before citing —
   the coupling-map discipline (S8 §4.1 item 4) applied to EVIDENCE rather than code. OPEN,
   owner: T3.11 (harness and goldens, which owns test-suite health). Not fixed here.
+  **DONE (T3.11 Item 4b).** Written IN EACH RIG'S OWN HEADER, per rig, no general rule:
+  `FoundingVariationItem0Tests` names worldgen, siting/jitters, initial endowment, the sector
+  mix, catchment, and the price-band/bulk/cost trio (one per reading it took), plus what is
+  explicitly NOT invalidating. `WaterRouteCounterfactualTests` states one condition covering
+  both passes — lattice stride, water mask, transport cost and the Pathfinder step formula,
+  bulk values, price band, map scale. **One sharpening the original line did not anticipate:**
+  the water rig REPLICATES the shipped Pathfinder step model rather than calling it, so a
+  change to that model makes it SILENTLY WRONG rather than merely stale — re-derive, do not
+  re-run. That distinction is called out in the header, because "stale" and "wrong" need
+  different responses from whoever cites it.
 - **Q-A (T3.8 Item 0, director): RIVERS CANNOT LIVE ON THE STRIDE-4 LATTICE.** The T3.6b water
   counterfactual's lattice pass could only see the SEA — stride-4 majority-water blocks hide
   rivers — and concluded even FREE water was insufficient; that was a resolution artifact, not
@@ -464,8 +487,21 @@
   is the TIMBER PROBLEM AGAIN — B-2's third costume in a fourth costume. A Comfort stock built
   on top of unbounded accumulation would reproduce exactly the defect T3.8 measured for Shelter,
   one milestone later and with a second stock's worth of machinery behind it.
-  **ONE TEST, FOUR PREDICTIONS.** That is what Q-B exists to establish: these are ONE M4 packet,
-  not four — bound the stores once and four separate mechanisms become observable together.
+  **EXTENDED AGAIN (T3.11 Item 1 certification ruling): A FIFTH PREDICTION — BAND-EDGE PINNING
+  DEGRADES RED PROOFS, NOT JUST TRADE.** Measured inside T3.11's red proof: perturbation P1's
+  effect on the three named non-grain goods at settlement 0 was INVISIBLE, because all three
+  rest on a band edge (0.05 or 20.0) and a clamped price cannot show a perturbation that would
+  otherwise move it. The proof's evidence had to change shape mid-run, from per-good values to
+  the aggregate non-grain sum, to see an effect that was really there. This is the §7.5 hazard
+  ("never assert on a quantity resting against its own limit") arriving UNINVITED — §7.5 is a
+  rule about how to write a guard, and escalation 2 turns it into a property of the world that
+  degrades guards nobody wrote carelessly. Prediction: if bounding stores unpegs prices, every
+  price-sensitive guard in the tree gets sharper for free, and red proofs stop needing
+  aggregate statistics to see per-good effects. That is a FIFTH mechanism made observable by
+  one bounding fix, and the first one that is about the project's INSTRUMENTS rather than its
+  simulation.
+  **ONE TEST, FIVE PREDICTIONS.** That is what Q-B exists to establish: these are ONE M4 packet,
+  not five — bound the stores once and five separate mechanisms become observable together.
 - **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
   Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
   HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for
@@ -552,7 +588,20 @@
   **FOR WHOEVER TAKES IT:** the completeness assertion's paths move under `app/` and must move
   with it; the launcher should be plain enough to read at a glance; and confirm on Windows that
   cwd is the launcher's directory rather than `app/` (the `runs/` placement depends on it).
-  OPEN. Owner: T3.11 (harness and goldens — it owns build and test infrastructure).
+  **DONE (T3.11 Item 4c).** `ui-artifact.yml` publishes to `publish/sim-ui-win-x64/app` and
+  writes `Play civ-sim.cmd` at the root; the zip root is now launcher + `app/` + (after a
+  session) `runs/`. The completeness assertion MOVED WITH the tree rather than being relaxed,
+  and gained two checks it never had: the launcher itself, and `app/assets` — a zip missing its
+  root file is precisely the defect this change exists to prevent. Both path facts were
+  RE-VERIFIED against the current tree, not carried from this line: `UiSession.SessionLogPath`
+  is still `Path.Combine("runs", …)` (relative) and `AssetManifest` still resolves at
+  `AppContext.BaseDirectory`. **ONE CONFIRMATION STILL OWED, AND IT CANNOT BE MADE HERE:** the
+  launcher does `cd /d "%~dp0"` so cwd is forced to the launcher's own directory regardless of
+  how Explorer invokes it — but that is reasoned from cmd.exe semantics, NOT measured, because
+  this is a Linux container with no Windows to run it on. The director's next gate download is
+  the measurement: if `runs/` appears at the zip root beside the launcher, it holds; if it
+  appears inside `app/`, the `cd /d` did not take and the launcher needs revisiting. Flagged
+  rather than assumed.
 
 - **REFERENCE POINT FOR T3.12's EXIT SESSION — PLAYER-SET ALLOCATION BEATS THE DERIVED
   DEFAULT** (T3.9b visual gate, director's own session, 2026-08-05). Seed 42, settlement
@@ -579,3 +628,29 @@
       so the two are not in contradiction — but nothing here measures which factor separates
       them. Recorded as an open observation for T3.12, not resolved.
   OPEN. Owner: T3.12 (M3 exit session).
+
+- **ADR REQUIRED — THE KERNEL CLONE-SIZE CLAIM AND THE BUCKET-CAP COLLISION, ONE RULING.
+  OWNER: DIRECTOR. Due at M4 spec time (director ruling, T3.11 certification, 2026-08-06).**
+  T3.11 Item 3 discharged the measurement GOV-2 §5 recorded as owed, and the result decides an
+  amendment this agent may not write: `m0-kernel-spec.md` is inside the M0 freeze perimeter
+  (`spine-s8-governance-freeze.md:15,202`), so the mechanism is a director-ruled ADR.
+  **THE THREE MEASUREMENTS** (`docs/t3.11-review-record.md` Item 3; `sim bench` now reports
+  bucket rows and clone bytes, which it did not before):
+  1. **today, M3, N = 12:** 384 bucket rows, **82,096 B/turn = 0.078 MiB** — some 40× UNDER the
+     §3.2 claim of "a few MB", and DENSE founding confirmed against GOV-2's code-only prediction
+     of exactly 384;
+  2. **scaling, measured not assumed:** 12 → 73,906 B, 24 → 147,036 B ⇒ **≈ 6,094 B per
+     settlement**, essentially the whole clone;
+  3. **projection:** at the Charter's 800 settlements with D-018's 12 class slots and a single
+     culture/religion, **153,600 bucket rows — AT the ratified ~150k cap — and order 16 MB per
+     turn**; at 4 cultures × 4 religions, ~2.46M rows and order **200 MB**.
+  **THE CLAIM'S STATED RANGE IS WRONG AT THE FAR END.** §3.2 covers "M0–M9"; what it actually
+  covers is "while buckets stay small", and buckets are exactly what D-018 and plural cultures
+  grow. CONFIRM for the milestones reached, NARROW for the rest.
+  **WHY ONE RULING AND NOT TWO (the director's reasoning, recorded):** this now joins the
+  bucket-cap collision GOV-2 already carries — dense founding, a ratified ~150k world-wide cap,
+  an unbuilt "automatic merge-below-threshold policy" the cap presupposes, and a clone-size claim
+  that fails at the same scale. Four faces of one scaling decision, and **the largest unscheduled
+  item in the project.** Cross-reference: `docs/m4-pre-spec-dependencies.md` §5;
+  `civ-sim-architecture-v3-outline.md:44`; `docs/d018-classes-and-needs.md:10`. Also inbound at
+  that scale: ADR-008's ~50 MB of terrain re-enters the clone for any layer that gains a writer.

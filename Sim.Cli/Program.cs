@@ -226,6 +226,21 @@ namespace Sim.Cli
             for (int t = 0; t < turns; t++) world = executor.Step(world, observer);
             double totalMs = TicksToMs(System.Diagnostics.Stopwatch.GetTimestamp() - start);
 
+            // T3.11 Item 3 — THE STATE FOOTPRINT, for the m0-kernel-spec §3.2
+            // clone-size claim ("at M0-M9 scale this is a few MB"). GOV-2 §5
+            // recorded the measurement as OWED and named `sim bench` as the
+            // instrument; the instrument did not report it, so it does now.
+            // The clone phase's allocatedBytes IS the per-turn clone cost —
+            // TurnExecutor brackets exactly `prev.Clone()` with
+            // GC.GetAllocatedBytesForCurrentThread. Bucket rows are called out
+            // by name because the projection that makes the claim urgent is
+            // about them (DENSE founding vs the ~150k world-wide cap).
+            long cloneBytes = 0;
+            foreach (BenchObserver.Phase p in observer.Phases)
+                if (p.Name == "clone") cloneBytes = p.AllocatedBytes;
+            long clonePerTurn = turns > 0 ? cloneBytes / turns : 0;
+            int bucketRows = world.Buckets.Count;
+
             if (opts.Has("--json"))
             {
                 // Machine-readable variant — the future perf-gate input (see README).
@@ -234,6 +249,8 @@ namespace Sim.Cli
                     seed,
                     turns,
                     totalMs,
+                    bucketRows,
+                    cloneBytesPerTurn = clonePerTurn,
                     phases = observer.Phases.Select(p => new
                     {
                         name = p.Name,
@@ -249,6 +266,9 @@ namespace Sim.Cli
                 Console.WriteLine("phase        total_ms     alloc_bytes");
                 foreach (BenchObserver.Phase p in observer.Phases)
                     Console.WriteLine($"{p.Name,-12} {Ms(TicksToMs(p.Ticks)),9}    {p.AllocatedBytes,12}");
+                Console.WriteLine(string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                    $"state: bucket_rows {bucketRows}, clone_bytes_per_turn {clonePerTurn} " +
+                    $"({clonePerTurn / 1048576.0:F3} MiB)"));
             }
             return 0;
         }

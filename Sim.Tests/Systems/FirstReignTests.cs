@@ -65,6 +65,26 @@ public class FirstReignTests
         // forever: the full 40-turn ordered trajectory is hash-pinned (a
         // founded-world ORDERED golden). Breaks loudly on any sim-behavior
         // change; update deliberately with a history line, never casually.
+        //
+        // NUMBERING REPAIR (T3.11 Item 2, 2026-08-06 — heading numbers only; no
+        // hash, no entry text and no pin was altered). This history had TWO
+        // spliced numbering series: after the T3.3 entry the count RESTARTED at
+        // v8, so v8-v13 each named two different pins and v13 named two on its
+        // own. The splice point is exactly where the T3.5 entry records being
+        // "re-minted on the REBASED substrate" — the rebase carried a second
+        // series in beside the first. Headings are now MONOTONIC v1..v22 in
+        // file order, which is chronological because each entry names its
+        // packet and the packet order is independently checkable against main.
+        //
+        // WHAT WAS NOT REPAIRED, DELIBERATELY: the trailing "vN value:" labels
+        // inside each entry are left EXACTLY as written, and they are known
+        // inconsistent — early entries label their OWN pin, entries from the
+        // T3.2b one onward label the SUPERSEDED pin. Re-attributing a hash
+        // would mean guessing which convention an author meant, and a wrong
+        // guess here silently rewrites the project's record of what a world
+        // once hashed to. The hashes themselves are unique and were never in
+        // doubt; only their labels are. Read a value line as "a pin from around
+        // this entry", and read the ENTRY TEXT for which.
         //   v1 (T1.9, post-Leontief):
         //   6c32ed53d2d0a1d19753847ea23cd3c92b9d02ce51f32a6f3eea63e66627e246
         //   v2 (T2.1, D-026 cohort buckets — DELIBERATE, D-029): trajectory
@@ -144,7 +164,7 @@ public class FirstReignTests
         //   new trajectory — extinction still inside (5, 25], the dead world
         //   frozen, still no food mountain.
         //   v11 value: db653fd2b3615bcbeea94fefac870a227c9e49e92b28af4618da17489653a9f0
-        //   v8 (T3.4, D-033): the price system joins the pipeline and
+        //   v13 (T3.4, D-033): the price system joins the pipeline and
         //   populates the Prices + PriceTerms tables on this founded world, and
         //   schema v15 adds two long fields to GoodStockRow. SCHEMA + NEW STATE,
         //   no behaviour change to any existing system — the semantic
@@ -152,24 +172,24 @@ public class FirstReignTests
         //   trajectory, no food mountain) are unchanged and still pass, which
         //   is what distinguishes this re-mint from a regression.
         //   v7 value: 7c0671a31557e0842668d0995d9af0fd20530fcf11dea3df963d9f86a92a3ae7
-        //   v9 (T3.4b, CR-003 §3): harvest weather multiplies realised farm
+        //   v14 (T3.4b, CR-003 §3): harvest weather multiplies realised farm
         //   output, so this collapsing world's trajectory differs — SCHEMA v16
         //   plus real behaviour change. The semantic assertions below are
         //   unchanged and still pass (extinction window, flat post-extinction
         //   trajectory, no food mountain), which is what separates this re-mint
         //   from a regression.
         //   v8 value: b6e16c1edf39ef0585eaef800b4b00d7f10a82ced12316349a2344965cb31c7b
-        //   SECOND re-mint in this packet — sigmaLogYield became DERIVED (0.18 ->
+        //   v15 (T3.4b) SECOND re-mint in this packet — sigmaLogYield became DERIVED (0.18 ->
         //   0.2936). Semantic assertions below unchanged and still passing.
         //   post-weather, pre-derivation value:
         //   58a0aec6747ce1ee7fc7625fbc4dccb1627906d8c2b67f0f3c8a431eb2d4c1a2
-//   v10 (T3.4c): THE VARIANCE FIX. The weather blend treated a regional
+        //   v16 (T3.4c): THE VARIANCE FIX. The weather blend treated a regional
         //   field that CONTAINS the local draw as independent of it, so realised
         //   sigma ran 1.10-1.41x the derived 0.2936 and the multiplier's mean ran
         //   1.013-1.043 instead of 1. Correcting it changes every weather value
         //   and therefore this collapsing world's whole trajectory.
         //   v9 value: 8f7e93be5bf3e28acc03dbe786aac038a7df0ecea4cfd9843be19212c0a5f0a4
-        //   v11 (T3.5, D-035, re-minted on the REBASED substrate — on top of the
+        //   v17 (T3.5, D-035, re-minted on the REBASED substrate — on top of the
         //   T3.4c variance fix): consumption became a class-weighted BASKET over
         //   six goods instead of a single grain flow, GoodStockRow gained
         //   LastConsumptionEatenUnits (SCHEMA v17), and needs aggregate by CES.
@@ -178,27 +198,27 @@ public class FirstReignTests
         //   the split flows. The semantic assertions below are unchanged and
         //   still pass, which is what separates this re-mint from a regression.
         //   v10 value: 19c55dd9f2b509762495c352ef5a3491d03d9ccb658475cc1d23a9e31eb17668
-        //   v12 (T3.5b): the derived subsistence default + the fixed variety
+        //   v18 (T3.5b): the derived subsistence default + the fixed variety
         //   standard + the empty-class grievance fix — every founded world's
         //   trajectory moves (production spreads across sectors, satisfaction
         //   re-bases, ghost stocks zero). Semantic assertions below unchanged
         //   and still passing, which is what separates a re-mint from a
         //   regression.
         //   v11 value: fe6b0287592acf5a2c79c57e9b882c790a4466a4a07cefe9b5bb6b584577e40f
-        //   v13 (T3.6, D-034 — SCHEMA-ONLY): TradeFlows joined the stream and
+        //   v19 (T3.6, D-034 — SCHEMA-ONLY): TradeFlows joined the stream and
         //   trade joined the pipeline, but at N = 1 trade NO-OPS structurally
         //   (a pair needs two settlements), so the trajectory is unchanged —
         //   the shape asserts below pass untouched; the byte stream gained
         //   one empty table count per snapshot.
         //   v12 value: 4427d965f08fc7f59b44a51b57fd4ca3e1187436e381222abdc8247b057fe293
-        //   v13 (T3.6b, ADR-017 — DELIBERATE, data-only): endowmentJitter
+        //   v20 (T3.6b, ADR-017 — DELIBERATE, data-only): endowmentJitter
         //   0.25 → 0.69 redraws even this N = 1 world's founding endowment
         //   (slot-0 jitter), so the director's famine trajectory re-pins; the
         //   shape asserts below run on every build and re-verified unchanged
         //   (extinction inside the window, dead world frozen, no food
         //   mountain — a blind re-pin cannot satisfy them).
         //   v12 value: 9bc1e06f605de359257836c016bd0082341e454c8001e5424a02e892b21ba071
-        //   v14 (T3.8 — DELIBERATE, schema v19 + behavior): the housing stock.
+        //   v21 (T3.8 — DELIBERATE, schema v19 + behavior): the housing stock.
         //   Even this N = 1 world founds HOUSED (dwellings via
         //   InitialEndowment), maintenance draws timber/clay while people
         //   live, and the construction pool splits between dwellings and
@@ -207,7 +227,7 @@ public class FirstReignTests
         //   dead world frozen, no food mountain (a blind re-pin cannot
         //   satisfy them).
         //   v13 value: 66c3a94522c0c580b3c200efe69cef7e480b312ef0fafc9c421a29f0a4682195
-        //   v15 (T3.8 certification fix pass — DELIBERATE, DATA-ONLY; the
+        //   v22 (T3.8 certification fix pass — DELIBERATE, DATA-ONLY; the
         //   SECOND re-pin in this packet, authorized by the certification
         //   ruling on the T3.5b precedent): v14 CAPTURED A WORLD LATER FOUND
         //   DEFECTIVE — housing collapsed from turn 1 (the maintenance
