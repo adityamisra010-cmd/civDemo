@@ -687,3 +687,25 @@
   disagreement; it does NOT close this. Candidate mechanisms, none chosen here: fail the
   scheduled run loudly into a channel the director reads; a badge; a "days since last green
   nightly" line in the run summary; or a follow-up issue opened automatically on the first red.
+
+- **MIGRATION CORRIDOR FLOOR MAY BE MIS-SPECIFIED FOR SMALL WORLDS (T3.12b, measured).**
+  `canonical.migrationGrossPerDecade` floor 0.001 is ABSOLUTE and takes no account of world size.
+  Seed 9 breaches it at 0.000980 (2 % under) — and seed 9 is the SMALLEST world in the 20-seed
+  sweep (population 81,160 vs a 132,280 max). The metric is already population-normalised
+  (`AutoplayMetrics.cs:139`), yet corr(migration, population) = **+0.737** and
+  corr(migration, arable) = **+0.815** across seeds: bigger, more-arable worlds migrate
+  PROPORTIONALLY more. So the smallest world showing the lowest migration intensity is the
+  expected reading, not an anomaly, and one seed in twenty landing 2 % under an absolute floor is
+  what that looks like. **Not a migration defect on this evidence.** Owner: whoever homes the
+  migration-weight packet (T3.4c ruling 2). Do not re-tune the floor to silence it — that would
+  be fitting the instrument to the artifact, and the reason the floor is absolute may itself be
+  the thing to revisit.
+- **WHAT MAKES WORLD POPULATION VARY 1.63x ACROSS SEEDS IS STILL OPEN (T3.12b).** Measured:
+  81,160 to 132,280 over 20 seeds, and it is what drives the density corridor's across-seed
+  spread (corr(density, population) = +0.858 vs corr(density, arable) = +0.018). Migration is
+  EXCLUDED by measurement — it conserves people, and starvation deaths are ZERO in 20 of 20
+  seeds, so the only channel by which it could move world population is shut. World population is
+  set by births and deaths integrated over the era table, so the spread must originate in
+  FOUNDING conditions compounding through the demographic integration. **ADR-017's endowment
+  jitter at 0.69 is the named candidate and it is NOT bisected.** Owner: unassigned; belongs with
+  M4's CR-002 packet, which already carries the density corridor.
