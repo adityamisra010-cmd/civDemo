@@ -131,6 +131,13 @@ actually move. That is itself a finding worth recording: **the goldens do not ex
 solver at all**, which is why the driven soak and the dt tests carry the entire behavioural
 weight of this packet.
 
+> **Superseded in part (T3.11 Item 1, 2026-08-06).** The three hashes above are correct AS
+> MEASURED AT THIS DATE. The INFERENCE drawn from them — "the goldens do not exercise the price
+> solver at all" — did not survive: T3.2b/T3.5b later spread production across sectors, and the
+> founded golden now has 156/156 non-grain price rows off 1.0 and changes under both price-step
+> perturbations. It is FLOW, not price, that the goldens still did not exercise. Left standing
+> as a dated record rather than rewritten. See `docs/t3.11-review-record.md`.
+
 ## 7. Measured effect
 
 Same fixture, same 100-sim-year horizon, dt 10 / 5 / 2.5 / 1:

@@ -345,6 +345,19 @@
   STRUCTURALLY untradeable overland at ANY price divergence. With T3.6 R1 this is the sharpened
   trade-silence finding. Every surface involved (price band, costPerBulkCostUnit, bulk table)
   is ruled/frozen — DIRECTOR MATERIAL, no owner assigned here.
+  **COUNTEREXAMPLE, MEASURED (T3.11 Item 1 — filed here deliberately, beside escalation 1, for
+  whoever scopes the M4 transport packet): THE DEADBAND IS NOT ALWAYS THE BINDING CONSTRAINT.**
+  On the driven golden, `bronze` shows a price spread of **15.17 against a deadband of 7.22** —
+  a gap comfortably OVER threshold, more than twice it — and moved **zero** units. The cause is
+  not transport at all: `maxStock = 0`. Nobody holds any bronze to sell. Escalation 1 says the
+  threshold is unreachable for high-bulk goods; this is the opposite case, a good whose gap
+  clears its threshold easily and still cannot trade because the SELLER SIDE is empty.
+  Consequence for scoping: lowering transport cost — water routes, draught animals (Q-C), any
+  deadband lever — would do NOTHING for bronze. A transport packet measured only on total flow
+  could be judged a failure, or a success, for reasons that have nothing to do with transport.
+  Whatever instrument that packet uses must decompose gap / threshold / stock separately, as
+  T3.11's D1 was pre-committed to do; volume alone would have read this as a trade-solver
+  defect. Evidence: `docs/t3.11-review-record.md` §D1.
 - **T3.6b ESCALATION 2 — COMMON-BAND-EDGE PINNING blocks gaps for 11 of 13 non-grain goods.**
   Both sides of every pair rest on the SAME band edge (floor: oversupplied-undemanded; ceiling:
   demanded-underproduced), so gap ≡ 0 however much settlements differ. The missing demand side
@@ -464,8 +477,21 @@
   is the TIMBER PROBLEM AGAIN — B-2's third costume in a fourth costume. A Comfort stock built
   on top of unbounded accumulation would reproduce exactly the defect T3.8 measured for Shelter,
   one milestone later and with a second stock's worth of machinery behind it.
-  **ONE TEST, FOUR PREDICTIONS.** That is what Q-B exists to establish: these are ONE M4 packet,
-  not four — bound the stores once and four separate mechanisms become observable together.
+  **EXTENDED AGAIN (T3.11 Item 1 certification ruling): A FIFTH PREDICTION — BAND-EDGE PINNING
+  DEGRADES RED PROOFS, NOT JUST TRADE.** Measured inside T3.11's red proof: perturbation P1's
+  effect on the three named non-grain goods at settlement 0 was INVISIBLE, because all three
+  rest on a band edge (0.05 or 20.0) and a clamped price cannot show a perturbation that would
+  otherwise move it. The proof's evidence had to change shape mid-run, from per-good values to
+  the aggregate non-grain sum, to see an effect that was really there. This is the §7.5 hazard
+  ("never assert on a quantity resting against its own limit") arriving UNINVITED — §7.5 is a
+  rule about how to write a guard, and escalation 2 turns it into a property of the world that
+  degrades guards nobody wrote carelessly. Prediction: if bounding stores unpegs prices, every
+  price-sensitive guard in the tree gets sharper for free, and red proofs stop needing
+  aggregate statistics to see per-good effects. That is a FIFTH mechanism made observable by
+  one bounding fix, and the first one that is about the project's INSTRUMENTS rather than its
+  simulation.
+  **ONE TEST, FIVE PREDICTIONS.** That is what Q-B exists to establish: these are ONE M4 packet,
+  not five — bound the stores once and five separate mechanisms become observable together.
 - **Q-C (T3.8 Item 0, director design input): DRAUGHT ANIMALS AS A SECOND TRANSPORT LEVER.**
   Overland bulk haulage moved by ox-cart, not on backs. Pack/draught animals drawn from the
   HERDING sector (live today at 0.15 of the default mix) would cut effective transport cost for
