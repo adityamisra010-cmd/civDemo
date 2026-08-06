@@ -75,6 +75,7 @@ sim hash SAVEFILE
 
 # Replay from seed + order log (the D-008 recovery path)
 sim replay --seed S --orders PATH --turns N [--hash-log PATH]
+        [--report-jsonl PATH [--report-every N]]
 
 # Per-phase wall time and allocations (clone + each system, first-seen order),
 # plus the state footprint: bucket row count and clone bytes per turn (T3.11 —
@@ -95,6 +96,59 @@ yet: toy systems would make thresholds meaningless):
   "bucketRows": 384, "cloneBytesPerTurn": 82096,
   "phases": [ { "name": "clone", "totalMs": 0.88, "allocatedBytes": 335648 }, … ] }
 ```
+
+### Replay diagnostic report (schema `replay-report/v1`)
+
+`sim replay --report-jsonl PATH` turns any played session into a **reproducible
+dataset**. Without it, an orders `.bin` plus a chronicle `.txt` carry almost no
+state — the chronicle records emergence and migration events only, the orders log
+records inputs rather than outcomes, and everything between (stocks, prices,
+needs, grievance, class counts, sector mixes) is visible only to whoever is
+sitting at the machine. That makes the player the measuring instrument.
+
+One JSONL line per reported turn:
+
+```json
+{ "schema": "replay-report/v1", "turn": 60, "year": 600.0, "dtYears": 10.0,
+  "hash": "…64 hex…", "totalPopulation": 20431, "totalFood": 3120044,
+  "totalTradeFlow": 0,
+  "settlements": [ {
+    "id": 0, "population": 1783,
+    "cohorts": [16 counts],
+    "classes": [ { "id": 0, "name": "Peasants", "count": 1783, "active": 1,
+                   "needs": { "Sustenance": 0.97, "Shelter": 1.0, "Comfort": 0.0 },
+                   "grievance": 132.46 } ],
+    "sectors": { "farming": 0.55, "herding": 0.15, … },
+    "goods":   [ { "name": "grain", "stock": 260003, "demanded": 8915,
+                   "eaten": 8915, "produced": 12004, "price": 1.0 }, … ],
+    "housing": { "dwellings": 421, "maintenanceFraction": 1.0,
+                 "sizeTier": 2, "arableKm2": 4210.6 }
+  } ] }
+```
+
+**JSONL, not CSV, deliberately.** The data is ragged — variable classes per
+settlement, each with variable bound needs, alongside ~13 goods carrying several
+numbers each. CSV forces either a column explosion or several files joined on a
+composite key, and both bake registry sizes into a header contract that breaks
+whenever a good or class is added. JSONL is self-describing per line, streams,
+appends without a header, and `jq` reads it directly.
+
+**Volume, measured** (canonical founded world, N = 12, 650 turns):
+
+| interval | size |
+|---|---|
+| `--report-every 1` (**default**) | **12.5 MiB** |
+| `--report-every 10` | 1.25 MiB |
+
+The default is **every turn**: a diagnostic that silently skips turns can hide
+the exact turn a finding occurred, so the default is lossless and the flag exists
+for when volume matters.
+
+**It is strictly an observer.** The report is written FROM the post-step world and
+never feeds back; the step call is identical whether or not reporting is on.
+Asserted, not assumed (`ReplayReportTests`): the same log produces the same world
+hash with and without `--report-jsonl`, and the report bytes themselves are
+identical across runs.
 
 ### Autoplay metrics (schema `autoplay-metrics/v1`)
 
