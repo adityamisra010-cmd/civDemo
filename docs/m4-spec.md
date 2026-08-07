@@ -209,7 +209,24 @@ Each prediction is reported separately whatever the others do; a composite "it w
 
 | packet | one-line scope | depends on | adversarial |
 | --- | --- | --- | --- |
-| **T4.3 — D-037 claim model** | claim, control, recognition as three separate quantities; tables + schema only, no polity behaviour | T4.1 check 2 | NO (schema) |
+| **T4.3 — D-037 claim model** | claim, control, recognition as three separate quantities; tables + schema only, no polity behaviour. **CARRIES TWO NAMED PROHIBITIONS — see below** | T4.1 check 2 | NO (schema) |
+
+### T4.3 FENCE — TWO NAMED PROHIBITIONS (director ruling on T4.1 Q2, 2026-08-07)
+
+D-037 D1 says omitting the three-quantity model *"would make Part C unbuildable later"*. T4.1's
+audit found the two SPECIFIC SHAPES that would do it, and they are promoted here from findings to
+**prohibitions an agent reads at packet start**, in the audit's own words:
+
+> **PROHIBITED 1 — control as an OWNER ID ON THE PLACE ROW.** Storing control that way *"silently
+> forecloses overlap"*.
+>
+> **PROHIBITED 2 — recognition as a FLAG ON THE POLITY.** A single `recognised: bool` per polity
+> *"cannot express"* asymmetric recognition.
+
+**Both are the NATURAL FIRST IMPLEMENTATION**, which is exactly why they are named rather than
+left to be rediscovered. **All three quantities ship as RELATIONS:** claim keyed by
+(polity, place), control keyed by (polity, place), recognition keyed by
+**(recogniser, recognised)**.
 | **T4.4 — colonization / land clearance** | founding rules, site selection, clearing cost, sprawl constraint; migration extended to depart into UNCLAIMED land; refugee foundings may be stateless (D-037 B1) | **T4.2** (land pressure needs scarcity), T4.1 check 4, T4.9 | **YES** |
 | **T4.5 — non-state peoples from turn zero** | D-037 B3 | T4.3 | YES |
 | **T4.6 — trade & foreign trade** | the second polity's exchange; foreign-trade rules | T4.2, T4.3, **T4.7** | **YES** |
@@ -353,6 +370,23 @@ quantity, audit rows, and every notable event as a Ledger flow.
 
 **CONSEQUENCE FOR T4.8, binding:** generals ship with the **conservation surface from day one**,
 and the law-1 audit is **part of the packet, not a follow-up**.
+
+**NARROWED, NOT REOPENED (director ruling, T4.1 Q3 escalation, 2026-08-07): M4 DOES NOT IMPLEMENT
+PURCHASE.** T4.1 tested R-1's premise before T4.8 could build on it and found it holds for three
+of four lifecycle events: **born, dies and defects are clean Ledger flows; IS BOUGHT is not** —
+the person moves, but the **consideration is a SECOND flow, and payment is money, which is M5**
+(GOV-2 §1a).
+
+**R-1 STANDS.** The person half is exactly what Option B was taken for. What does not hold is the
+PAYMENT half. **The notable moves via `Ledger.Transfer` whatever the reason; the consideration for
+a purchase is a separate flow that cannot exist until money does.** D-021 valve 5's "bought"
+therefore arrives at **M5 alongside the fiscal system**, not at M4 with generals.
+
+**Cross-reference: GOV-2 §1a's rewrite inventory** already enumerates every ratified line that
+assumes a money stock — *"this list is the M5 spec author's rewrite inventory"* — and **D-021 valve
+5's "bought" is one more entry for it.** Note that the **in-kind ruling makes a purchase
+expressible IN PRINCIPLE** (grain, land, office), **but designing it is M5's work and not a
+workaround to add here.**
 
 ### R-2 — `stock` AND `source` NAMESPACING
 
