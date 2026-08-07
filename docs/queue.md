@@ -769,7 +769,24 @@
   final until the director rules R-1 (is a notable a person — counted or labelled), R-2 (`stock`
   and `source` namespacing, which waits on R-1), and R-3 (the bucket-cap and clone-size ADR, ONE
   ruling under S8 §2, and the largest unscheduled item in the project — it bites at M8/M9).** The
-  spec also records five findings against its own directing prompt (§9), of which F4 is
-  substantive: **the artisans-at-1 claim is CONTRADICTED by measurement** — 0 of 12 settlements
-  hold exactly 1 artisan in any of seeds 3/6/9 at any of eleven sampled turns, while what IS
-  measured is an artisan COLLAPSE TO ZERO in 6 of 12 settlements between turns 320 and 650.
+  spec also records findings against its own directing prompt (§9). **F4 was WITHDRAWN FOR A
+  METHOD REASON and REPLACED** (director ruling): artisan emergence is an INSTANT, and sampling
+  eleven turns of 650 cannot see it. Re-measured scanning EVERY turn, the claim's shape is
+  **CORROBORATED** — 19 of 35 emergences across seeds 3/6/9 occur at EXACTLY 1, and the
+  distribution is **BIMODAL with an empty gap between 3 and 26** (low mode {1,3}, high mode 26–60),
+  reproducing the director's Nuhem-27 / Naethaehun-36 split on independent seeds. **The anomaly is
+  the SPLIT, not the number 1.**
+- **ARTISAN CLASS EXTINCTION — NEW M4 FINDING (m4-spec §9 F4b, measured every turn, seeds 3/6/9).**
+  Artisans rise to the hundreds by turn 160 (12/12 settlements non-zero), peak near turn 320, then
+  **COLLAPSE TO ZERO in 6 of 12 settlements by turn 650** — a class going extinct across half the
+  world. Seed 3 finals: `[0, 1849, 0, 0, 0, 1805, 0, 2427, 2964, 1788, 0, 1376]`. Corroborates
+  T3.12a's sample line `(Artisans, 0, 0)` with Comfort 0.00, and **feeds the bronze chain from the
+  other end: no artisans → artisan_share zero → the casting gate is shut regardless of whether it
+  ever opened.** OPEN QUESTION, not answered: is the collapse the emergence latch's RECEDE arm
+  firing, CLASS MOBILITY moving people out, or the SETTLEMENTS THEMSELVES declining? Those are
+  different defects. **Owner: T4.14**, alongside the emergence question.
+- **NOT IN THE TREE — the director's M3 exit session log `orders-20260807-145349.bin`.** Absent
+  from `docs/`, `runs/` and the container; never committed. T4.14's first obligation is to replay
+  it once it is available; every artisan measurement recorded so far replays the shipped
+  `orders-20260724-164734-held-exit.bin` on seeds 3/6/9 instead, and corroborates the SHAPE on
+  independent worlds rather than reproducing his session.

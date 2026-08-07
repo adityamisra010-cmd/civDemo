@@ -220,7 +220,7 @@ Each prediction is reported separately whatever the others do; a composite "it w
 | **T4.11 — T3.7 merchants** | the class that emerges on trade volume | **T4.6** (merchants emerge on a volume that must first exist) | YES |
 | **T4.12 — the migration-weight packet** | T3.4c ruling 2, still unhomed: design point missed 2.3×–8.1×, metric unstable in N and seed | — | **YES** |
 | **T4.13 — Comfort-as-stock** | household goods depleted by USE and replenished by crafting — a different equilibrium from housing's maintenance shape, NOT a copy | **T4.2** (unbounded stock saturates at 1.0 forever) | YES |
-| **T4.14 — the two undiagnosed M3 observations** | the artisan finding (see §9 F4 — the prompt's version is CONTRADICTED by measurement) and Kunaetho's late grievance rise | T3.12a reporter | NO (diagnosis) |
+| **T4.14 — the three undiagnosed M3 observations** | (a) artisan EMERGENCE: why bimodal — 1 or ~26–60, never in between (§9 F4); (b) the artisan COLLAPSE to zero in half the settlements (§9 F4b) — recede arm, class mobility, or settlement decline; (c) Kunaetho's late grievance rise. **First obligation: replay the director's own session log when it is available** | T3.12a reporter | NO (diagnosis) |
 | **T4.15 — M4 exit artifact** | version strings, README, sweep incl. nightly, milestones entry, session brief | all | NO |
 
 ---
@@ -384,7 +384,7 @@ The director rules on writing these at spec time.
 GOV-2 already carries twelve findings against its own citations. These are new, found while
 verifying this prompt's carried claims. **In every case the TREE WINS.**
 
-**F1 — the prompt's GOV-2 section numbers are wrong in two places.**
+**F1 — the prompt's GOV-2 section numbers are wrong in two places (director-acknowledged).**
 The prompt says *"Everything M4 is holding, from GOV-2 §4"*. GOV-2 **§4** is
 "THREE SCALING AND SCOPE CONFLICTS"; the holding list is **§6**, "WHAT M4 IS NOW HOLDING, IN ONE
 LIST". The prompt also cites *"GOV-2 §5a"* for the Scale Charter conflict; there is no §5a —
@@ -396,39 +396,83 @@ different addresses. Corrected throughout this spec.
 The scaling and scope conflicts are **§4**; §5 is the clone-size measurement and §6 is the holding
 list. Same class as F1.
 
-**F3 — the bronze/tools cascade has NO tree record.**
+**F3 — the bronze/tools cascade filing NEVER LANDED; the packet appears not to have been sent.**
 The prompt asks the spec to carry *"the artisans-at-1 finding and its bronze/tools cascade"*. The
-phrase "cascade" appears nowhere in `queue.md` or `milestones.md`, and no record connects artisans
-to bronze or tools. Not carried as a finding; carried as **T4.14's subject to establish or drop**.
+word "cascade" appears nowhere in `queue.md`, `milestones.md` or any review record, and no record
+anywhere connects artisans to bronze or tools. **Asked to say so rather than file it here: there
+is no such filing in the tree, so either the packet that would have created it was never sent, or
+it was sent and never committed.** Not reconstructed from the prompt — reconstructing a filing
+from a one-line reference is how unmeasured claims enter the record.
 
-**F4 — THE ARTISANS-AT-1 CLAIM IS CONTRADICTED BY MEASUREMENT, and this is the substantive one.**
-The claim, recorded in `milestones.md` from the director's exit ruling, is *"artisans emerge with
-exactly 1 member in 10 of 12 settlements"*. **Measured against the tree using T3.12a's replay
-reporter**, three seeds (3, 6, 9) over 650 turns, sampled at turns 1, 2, 3, 5, 10, 20, 40, 80,
-160, 320, 650:
+**What IS measured and adjacent** (seed 3, turn 650, from the same replay reports): world bronze
+stock **0** with 34 produced in the final turn, tools stock 240, against copper-ore 14,650 and
+tin-ore 109,197 accumulated. Ore piles up; bronze does not persist. **F4b supplies the other end
+of that chain** — with artisans extinct in half the settlements, artisan_share is zero and the
+casting gate is shut regardless of whether it ever opened. Recorded as an observation with its
+measurement, NOT as the missing filing.
+
+**F4 — WITHDRAWN AND REPLACED (director ruling). THE METHOD COULD NOT SEE THE QUANTITY.**
+
+**Withdrawn for a METHOD reason, which is not the same as refuted**, and the record should not
+blur them — the same distinction the T3.4b criterion withdrawal drew.
+
+*What F4 originally said:* the artisans-at-1 claim is contradicted, because 0 of 12 settlements
+held exactly 1 artisan in seeds 3/6/9 at any of eleven sampled turns.
+
+*Why that was the wrong instrument:* the chronicle logs *"the FIRST artisans set up their
+workshops at X, N masters and hands"* — an **EMERGENCE EVENT, one instant per settlement**, not a
+persisting state. Sampling eleven turns out of 650 cannot see a momentary event. If artisans
+emerge at 1 and reach hundreds by turn 160, every sampled turn shows hundreds and none shows 1 —
+which is exactly the result obtained. The turns-1–40 arm does not rescue it either: zero there is
+consistent with emergence happening LATER in those seeds, not with emergence never being 1. **The
+reports were written every turn; the sampling error was at ANALYSIS time**, one layer below where
+it was looked for.
+
+**RE-MEASURED PROPERLY — EVERY TURN SCANNED, 650 lines per seed, first non-zero turn and the count
+AT THAT TURN, which is the quantity the chronicle records:**
+
+| seed | emerged | AT EXACTLY 1 | emergence turns |
+| --- | --- | --- | --- |
+| 3 | 12/12 | **5** | 43–98 |
+| 6 | 12/12 | **9** | 4–65 |
+| 9 | 11/12 (s3 never) | **5** | 69–137 |
+
+**THE BIMODAL SPLIT IS REPRODUCED — and it is sharper than the director's chronicle showed.**
+All 35 emergences across three seeds:
 
 ```
-seed 3 @ t650: artisan counts [0, 1849, 0, 0, 0, 1805, 0, 2427, 2964, 1788, 0, 1376]
-seed 6 @ t650: [0, 3091, 0, 0, 0, 1331, 0, 4421, 2738, 1963, 0, 2609]
-seed 9 @ t650: [0, 1683, 0, 0, 0, 1520, 0, 1712, 1963, 1676, 0,  987]
-AT EXACTLY 1: 0 of 12, in every seed, at every sampled turn.
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 3 | 26 26 33 33 55 56 56 57 57 57 58 58 58 59 60
+LOW mode (<=3): n=20, values {1, 3}      HIGH mode: n=15, range 26-60
+GAP: NOTHING between 3 and 26.           AT EXACTLY 1: 19 of 35 = 54%
 ```
 
-**No settlement in any of the three seeds ever holds exactly 1 artisan**, and the early window
-(turns 1–40) is flatly ZERO everywhere, which refutes an "early emergence moment" reading for
-these seeds.
+The director's chronicle showed Nuhem at 27 and Naethaehun at 36 against ten settlements at
+exactly 1. **That shape is confirmed on independent seeds**: a low mode pinned at 1, a high mode
+in the mid-tens-to-sixty, and an empty gap between them. **The anomaly is the SPLIT, not the
+number 1** — and a mechanism that emits either one person or fifty-odd, never five, is the thing
+T4.14 has to explain.
 
-**What IS measured, and it is arguably the more interesting phenomenon:** artisans rise to the
-hundreds by turn 160 (12 of 12 settlements non-zero), peak around turn 320, and then **COLLAPSE TO
-ZERO in 6 of 12 settlements by turn 650** after having held hundreds.
+**LIMIT, stated: this is NOT the director's session.** `orders-20260807-145349.bin` **is not in
+the tree** — not in `docs/`, not in `runs/`, never committed, and absent from the container. The
+measurement above replays the shipped `orders-20260724-164734-held-exit.bin` on seeds 3/6/9. It
+corroborates the claim's SHAPE on independent worlds; it does not replay his session, and T4.14
+should still do so when that log is available.
 
-**The honest limits of this refutation:** these are seeds 3/6/9 replaying the shipped
-`orders-20260724-164734-held-exit.bin`, **not the director's own session** — different seed,
-different orders. His observation may hold in his conditions. So the finding is not "the director
-is wrong"; it is that **the claim as recorded is not reproducible from the tree**, and T4.14's
-first obligation is to reproduce it from HIS session log — which T3.12a now makes possible —
-before diagnosing it. Recorded because a milestone entry carrying an unreproducible measurement is
-the exact decay shape this project keeps catching.
+**F4b — A LARGER FINDING FOUND WHILE CHECKING A SMALLER ONE: THE ARTISAN CLASS GOES EXTINCT
+ACROSS HALF THE WORLD.** Measured, every turn, all three seeds: artisans rise to the hundreds by
+turn 160 (12 of 12 settlements non-zero), peak near turn 320, and then **COLLAPSE TO ZERO in 6 of
+12 settlements by turn 650** after having held hundreds. Seed 3 final counts:
+`[0, 1849, 0, 0, 0, 1805, 0, 2427, 2964, 1788, 0, 1376]`.
+
+It corroborates T3.12a's own sample line — `(Artisans, 0, 0)` at turn 650 with Comfort 0.00 — and
+**it feeds the bronze chain from the other end: no artisans means artisan_share zero means the
+casting gate is shut regardless of whether it ever opened.**
+
+**THE OPEN QUESTION, STATED AND NOT ANSWERED.** Three different defects produce this shape:
+(i) the emergence latch's **RECEDE arm** firing; (ii) **class mobility** moving people out of the
+artisan class; or (iii) the **settlements themselves declining**, taking every class down with
+them. Distinguishing them needs per-turn class flows, which the reporter already emits.
+**Owner: T4.14, alongside the emergence question.**
 
 **F5 — "artisans-at-1" exists in the tree ONLY in the milestones entry.**
 It has no measurement record anywhere else — no review record, no queue entry, no test. It entered
@@ -465,5 +509,6 @@ director.
 | Visual milestone sits after M5, before M6; absorbs symbology + Part H | D-038 E1; D-038 Part H |
 | Comparative-advantage criterion WITHDRAWN not failed | `milestones.md` M3 entry |
 | Candidate ADR-015 sections, five instances, READY TO WRITE | `queue.md` |
-| **Artisans-at-1** | `milestones.md` M3 entry ONLY — **and CONTRADICTED by measurement, F4/F5** |
+| **Artisans-at-1** | `milestones.md` M3 entry ONLY, no measurement behind it (F5) — original F4 **WITHDRAWN for a method reason and REPLACED**; re-measured every-turn, the claim's SHAPE is **CORROBORATED** (54 % of emergences at exactly 1; bimodal split with an empty gap between 3 and 26) |
+| **Artisan collapse to zero in 6 of 12 settlements** | **NEW, F4b** — measured every turn, seeds 3/6/9; owner T4.14 |
 | **Bronze/tools cascade** | **NO TREE RECORD — F3** |
