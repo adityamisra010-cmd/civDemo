@@ -852,3 +852,38 @@
   forecloses asymmetric recognition. **Both are the natural first implementation**, which is
   precisely why D-037 D1 calls the omission unbuildable-later. T4.3 must ship all three as
   RELATIONS. Named so the audit's warning is actionable rather than general.
+
+- **ARTISANS-AT-1: CONFIRMED FROM PRIMARY EVIDENCE (T4.1, director's chronicle supplied mid-packet,
+  `docs/session-logs/chronicle-20260807-145349.txt`).** All twelve emergences from the director's
+  own session: **ten at EXACTLY 1**, Nuhem at **27** (year 40) and Naethaehun at **36** (year 380).
+  **Bimodal with nothing between 1 and 27.** The claim stands exactly as stated. It also
+  corroborates T4.1's order-log measurement independently — that run gave emergence at turns 4–137
+  with a high mode of 26–60, and year 40 at the early dt of 10 IS turn 4, so the two agree on both
+  modes and on timing. **SIZE DOES NOT PREDICT THE MODE:** Nuhem is the largest founding (663) and
+  lands high, but Mothian is second largest (583) and lands at 1, while Naethaehun is mid-pack
+  (380) and lands at 36. **That is T4.14's discriminating question and it is now well-posed.**
+- **Q1.2 / A2 — THE TOOL YIELD BONUS IS A SHIPPED MECHANISM THAT DOES ESSENTIALLY NOTHING. OWNER:
+  T4.14 (director ruling, T4.1 certification).** Filed as its own M4 item because it is the bigger
+  finding of the audit. Measured t650: tool stocks **0–49 per settlement** against farmLabor
+  **2,000–4,500**, giving toolFactor **≈1.001–1.015 against a designed 1.3** — **under 5 % of
+  design range**, and 0–2 tools (nothing) in 3 of 12 settlements. It sits on the LAST LINK of a
+  chain T4.1 proved open end to end: artisans exist, `artisan_share` clears 0.05 in 12/12 by turn
+  300, the gate opens, bronze is produced (and correctly shows stock 0 as an intermediate consumed
+  by toolmaking within the turn). **DO NOT FIX, AND DO NOT RAISE ANY CONSTANT TO MAKE THE BONUS
+  BITE — the cause is upstream (how few tools exist), not the coefficient.** Homed with T4.14
+  because both now turn on one question: **what happens to production classes under labour
+  orders.**
+- **Q1 ANSWERED, for the record (T4.1):** LABOUR binds 12/12 at every turn; land/labour ratio
+  213× (t100) → 36–63× (t300) → **9.4–19.2× (t650)**. The world converges toward land-binding
+  across a campaign and never reaches it; the distance is **~1 order of magnitude**. **T3.4c's
+  ×1e6 rig sat about FIVE ORDERS past the real threshold — which is exactly why the number was
+  worth measuring.**
+- **"IS BOUGHT" — RULED: M4 DOES NOT IMPLEMENT PURCHASE. A NARROWING OF R-1, NOT A DEFECT IN IT
+  (director ruling, T4.1 Q3 escalation).** Born, dies and defects are clean Ledger flows; **is
+  bought is not**, because the person moves and the CONSIDERATION is a second flow, and payment is
+  money — **M5** per GOV-2 §1a. **R-1 stands:** the notable moves via `Ledger.Transfer` whatever
+  the reason; the consideration cannot exist until money does. **D-021 valve 5's "bought" arrives
+  at M5 with the fiscal system, not at M4 with generals.** **One more entry for GOV-2 §1a's
+  rewrite inventory** (*"this list is the M5 spec author's rewrite inventory"*). The in-kind ruling
+  makes purchase expressible IN PRINCIPLE (grain, land, office), **but designing it is M5's work
+  and not a workaround to add at M4.**
