@@ -34,6 +34,17 @@ public class OrderLogFixtureTests
         { "Sim.Tests/Fixtures/t38-director-orders.bin", "the T3.9a gate session — T3.8 before/after column" },
         { "docs/orders-20260722-153834.bin", "the M2 gate session" },
         { "docs/orders-20260724-164734-held-exit.bin", "the M2 HELD-exit reproduction" },
+        // T4.1b: the director's M3-exit session, committed at main 3185a6b. It
+        // landed in docs/session-logs/ rather than docs/ — the newer layout —
+        // and this test resolves specific filenames, so it did NOT cover the new
+        // folder until this line existed. The log was committed to be GUARDED;
+        // committed-but-unguarded is the state this entry closes.
+        //
+        // The two older logs are deliberately LEFT where they are: moving them
+        // would be a rename in the same commit as a coverage fix, and the two
+        // failures look identical in the log (a missing file). Consolidating the
+        // layout is a separate, trivial commit if the director wants it.
+        { "docs/session-logs/orders-20260807-145349.bin", "the director's M3-exit session (30 records, 6 sector-allocation events, settlements 2 and 11)" },
     };
 
     private static string RepoRoot()
