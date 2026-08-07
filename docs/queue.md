@@ -790,3 +790,29 @@
   it once it is available; every artisan measurement recorded so far replays the shipped
   `orders-20260724-164734-held-exit.bin` on seeds 3/6/9 instead, and corroborates the SHAPE on
   independent worlds rather than reproducing his session.
+
+- **M4 SPEC: R-1, R-2 AND R-3 RULED (director, 2026-08-07); THE PACKET LIST IS FINAL.**
+  **R-1 — A NOTABLE IS A PERSON (Option B):** extracted from the bucket via `Ledger.Transfer`, a
+  conserved population stock with births, deaths and a law-1 audit. Lifecycle, defection and purge
+  become conservation-exact rather than each inventing its own bookkeeping, which D-021 valve 5
+  already requires. Cost accepted deliberately. **T4.8 ships the conservation surface from day
+  one; the audit is part of the packet, not a follow-up.**
+  **R-2 — NAMESPACING TAKEN:** bare `stock` = goods inventory, housing = `dwelling stock`,
+  population qualified explicitly; bare `source` = a need satisfier's binding, claims say
+  `claim origin`. Both moved PROPOSED → RULED in `docs/conv-1-term-namespacing.md`, registry
+  updated. R-1 is what unblocked them: the third meaning of `stock` now exists.
+  **R-3 — RAISE THE CEILING AND RETHINK THE COPY ARCHITECTURE**, a fifth option beyond the
+  spec's four. Raising the cap PERMITS more rows; it does nothing about every row being COPIED
+  EVERY TURN, which is the actual late-game constraint. **New packet T4.16** — design and
+  measurement only, producing an **ADR under S8 §2** (both `m0-kernel-spec` §3.2 and the kernel
+  clone are inside the M0 freeze). Three non-negotiables: **read-isolation preserved exactly** (a
+  scheme that weakens it is rejected, not traded off), **determinism absolute** (two-axis
+  assertion with a vacuity guard, T3.12a precedent), and **goldens must not move** (if one does,
+  that is a finding and the packet stops — it means behaviour changed, not representation).
+  Candidates to MEASURE not pick: copy-on-write per table (law 6 already declares writers
+  statically), lazy clone on first write, delta journal. **Framing correction recorded against the
+  spec's own option list: sparse founding is COMPLEMENTARY to raising the ceiling, not an
+  alternative — rows exist at ZERO population, so most of the projected 153,600 is empty slots,
+  and sparse founding + a raised cap + a cheaper clone are three independent wins.** Slotted early
+  and NON-BLOCKING, because the ADR's blast-radius inventory grows with every table M4 adds before
+  it is written — not because it is urgent (measured 0.078 MiB today).

@@ -2,7 +2,7 @@
 
 ### The first milestone spec written under S8 §4.1. Its own conformance to that section is part of the deliverable (§0).
 
-**Status: PROPOSED. The packet list is NOT final until R-1, R-2 and R-3 are ruled (§7).**
+**Status: R-1, R-2 and R-3 RULED (director, 2026-08-07). THE PACKET LIST IS FINAL.**
 This spec OBSERVES and PROPOSES. It amends no frozen or ratified document.
 
 ---
@@ -222,6 +222,47 @@ Each prediction is reported separately whatever the others do; a composite "it w
 | **T4.13 — Comfort-as-stock** | household goods depleted by USE and replenished by crafting — a different equilibrium from housing's maintenance shape, NOT a copy | **T4.2** (unbounded stock saturates at 1.0 forever) | YES |
 | **T4.14 — the three undiagnosed M3 observations** | (a) artisan EMERGENCE: why bimodal — 1 or ~26–60, never in between (§9 F4); (b) the artisan COLLAPSE to zero in half the settlements (§9 F4b) — recede arm, class mobility, or settlement decline; (c) Kunaetho's late grievance rise. **First obligation: replay the director's own session log when it is available** | T3.12a reporter | NO (diagnosis) |
 | **T4.15 — M4 exit artifact** | version strings, README, sweep incl. nightly, milestones entry, session brief | all | NO |
+| **T4.16 — CLONE ARCHITECTURE (R-3)** | **DESIGN AND MEASUREMENT ONLY, no implementation.** Produces an **ADR under S8 §2** — both `m0-kernel-spec` §3.2 and the kernel clone are inside the M0 freeze — stating what breaks, which tests and docs change, and the schedule price | T4.1 | **YES** |
+
+### T4.16 — CLONE ARCHITECTURE [DESIGN AND MEASUREMENT; ADR-PRODUCING; ADVERSARIAL-MANDATORY]
+
+**Deliverable: an ADR under S8 §2, not a code change.** It states what breaks, which tests and
+docs change, and the schedule price. Implementation is scheduled by the ruling on that ADR.
+
+**THREE NON-NEGOTIABLES — constraints, not trade-offs.**
+
+1. **READ-ISOLATION IS WHY THE COPY EXISTS.** Systems read `Prev` and write `Next`; that is what
+   makes a turn's systems independent of ordering, and CI gates on it. Any scheme must keep
+   `Prev` **genuinely immutable for the whole turn**. **A scheme that buys memory by weakening
+   that is REJECTED, not traded off.**
+2. **DETERMINISM IS ABSOLUTE.** Same seed, same order log, same world hash, before and after.
+   **Asserted, not assumed** — T3.12a's two-axis assertion is the named precedent, **including a
+   vacuity guard so the assertion cannot pass trivially.**
+3. **THE GOLDENS ARE THE SAFETY NET AND MUST NOT MOVE.** A clone-architecture change is a change
+   of REPRESENTATION, not of behaviour. **If a golden moves, that is a finding and the packet
+   STOPS** — it means the change altered what the world does.
+
+**CANDIDATE APPROACHES — TO MEASURE, NOT TO PICK HERE.**
+
+| approach | mechanism | expected shape |
+| --- | --- | --- |
+| **copy-on-write per table** | **Law 6 (system isolation) already declares which systems write which tables**, so the kernel can know STATICALLY which tables can change in a turn; unchanged tables are shared by reference | read-isolation preserved **exactly** — `Prev` is never written |
+| **lazy clone on first write** | the same effect, decided **dynamically** rather than declared | fewer static guarantees, no pipeline declaration needed |
+| **delta journal** | `Next = Prev` + a change list; reads consult the list | lowest memory, **highest read cost — probably wrong for a read-heavy sim, but MEASURE it rather than dismissing it** |
+
+**SEQUENCING, WITH THE DIRECTOR'S OWN REASONING AND A PROPOSED SLOT.** Late-game slowdown is the
+risk, and **today's measurement is 0.078 MiB — nothing. So this is NOT urgent by measurement.**
+But **every milestone adds tables and the clone touches all of them**, so it is **cheap now and
+expensive later** — the same shape as D-037's data model.
+
+**PROPOSED SLOT: early in M4, immediately after T4.1, and NON-BLOCKING.** The reason is specific
+rather than "do important things first": M4 itself adds several tables — claims/control/
+recognition (T4.3), notables-as-a-conserved-stock (T4.8, now with a Ledger surface per R-1), war
+state — so **measuring the clone AFTER them measures a moving target, and the ADR's "what breaks"
+list grows with every table added before it is written.** Running the measurement while the table
+set is still M3's gives the ADR a stable baseline and a smaller blast-radius inventory. It is
+design-and-measurement only, so it **blocks nothing**; the implementation slot is the ADR's to
+propose and the director's to rule.
 
 ---
 
@@ -241,6 +282,8 @@ T4.9  STRIDE RULING ──> T4.7 transport ──┘
 T4.3  claim model ──> T4.5 non-state peoples
                  └──> T4.8 war + generals   (also gated on R-1)
 T4.6 ──> T4.11 merchants
+T4.1 ──> T4.16 clone architecture (design+measurement, NON-BLOCKING, runs while
+                                   the table set is still M3's)
 ```
 
 **The gates, stated:**
@@ -253,6 +296,8 @@ T4.6 ──> T4.11 merchants
   economics. Building water transport on a lattice that cannot represent a river repeats it.
 - **T4.8 waits on R-1**, because whether a general is extracted from their bucket decides whether
   the packet has a conservation surface at all.
+- **T4.16 blocks nothing and is deliberately EARLY** — not by importance but because the ADR's
+  blast-radius inventory grows with every table M4 adds before it is written.
 - **Golden-moving order:** T4.1's corrections and T4.2 both move goldens. Per S8 §4.1's ordering
   note, audit-then-correct-then-build lands them in one early window so goldens move once.
 
@@ -275,7 +320,7 @@ T4.6 ──> T4.11 merchants
 
 ---
 
-## §7. THREE RULINGS THE DIRECTOR OWES — FRAMED, NOT TAKEN
+## §7. THREE RULINGS — TAKEN (director, 2026-08-07)
 
 **All three turn on the same question: IS A THING COUNTED, OR LABELLED?** That framing is not a
 presentational convenience — it is why they are presented together and why R-2 cannot be taken
@@ -298,8 +343,16 @@ from the aggrieved bucket, named, with traits"*.
 | **A — LABEL.** The notable remains counted in their bucket | An annotation; no conservation surface | Cheap now. But a general who dies, defects or is purchased (D-021 valve 5) changes nothing conserved, so every later lifecycle mechanic has to invent its own bookkeeping |
 | **B — PERSON.** The notable is EXTRACTED via `Ledger.Transfer` | Notables become a conserved population stock with births, deaths and a law-1 audit | Expensive now: a new conserved quantity, audit rows, and every notable event becomes a Ledger flow. But lifecycle, defection and purge are then conservation-exact for free |
 
-**Expensive to reverse in either direction**, which is why it is ruled before T4.8 rather than
-discovered inside it. Owner named by GOV-2: T4.1.
+**RULED: OPTION B — A NOTABLE IS A PERSON.** Extracted from the bucket via `Ledger.Transfer`; a
+conserved population stock with births, deaths and a law-1 audit.
+
+*Rationale, recorded:* lifecycle, defection and purge become **conservation-exact** rather than
+each inventing its own bookkeeping — and D-021 valve 5 already requires all three ("leaders die,
+defect, are bought, or fall out"). **The cost is accepted deliberately:** a new conserved
+quantity, audit rows, and every notable event as a Ledger flow.
+
+**CONSEQUENCE FOR T4.8, binding:** generals ship with the **conservation surface from day one**,
+and the law-1 audit is **part of the packet, not a follow-up**.
 
 ### R-2 — `stock` AND `source` NAMESPACING
 
@@ -317,11 +370,13 @@ CONV-1 left both PROPOSED rather than ruled, **deliberately, because both touch 
   document. *Proposed wording:* bare `source` = a need satisfier's binding; claims say
   `claim origin`.
 
-**Why it still waits on R-1:** ruling `stock` now either blesses a term for a thing that may not
-exist (if R-1 says LABEL, there is no population stock to name) or quietly constrains how R-1 can
-be phrased. `source`'s dependency is weaker — its blocker is that D-037 is ratified and its
-polity layer unbuilt, so renaming inside it pre-empts vocabulary the M4 claim packet may want to
-choose deliberately.
+**RULED: THE PROPOSED WORDING IS TAKEN.** Bare **`stock` = the goods inventory**; housing becomes
+**`dwelling stock`**; **population is qualified explicitly**, now that R-1 makes a population stock
+exist. Bare **`source` = a need satisfier's binding**; claims say **`claim origin`**.
+
+R-1 unblocked it exactly as CONV-1 predicted: the third meaning of `stock` is real, so qualifying
+it is a decision about a thing that exists rather than a bet on one that might. Both moved from
+PROPOSED to **RULED** in `docs/conv-1-term-namespacing.md`, and the registry updated there.
 
 ### R-3 — THE BUCKET-CAP AND CLONE-SIZE ADR
 
@@ -353,10 +408,20 @@ milestones where cultural plurality arrives and D-037's co-ethnic claim source g
 faces of one scaling decision: dense founding, a ratified cap, an unbuilt merge policy, and a
 clone-size claim that fails at the same scale.
 
-**Options, no recommendation:** (i) sparse founding — instantiate on first non-zero population;
-(ii) merge-below-threshold, as the cap already presupposes; (iii) raise the cap and amend §3.2's
-range; (iv) accept the cost and narrow §3.2 to the milestones it holds for. Each has a different
-blast radius across serialization, determinism and the golden set.
+**RULED: RAISE THE CEILING, AND RETHINK THE COPY ARCHITECTURE — a FIFTH option this spec did not
+offer, and the difference is the point.**
+
+**Raising the cap permits more rows. It does nothing about every row being COPIED EVERY TURN**,
+and that is the actual constraint at late-game scale. The ruling therefore adds: **change how
+state is carried between turns so a big world is AFFORDABLE, not merely PERMITTED.** Scheduled as
+**T4.16**.
+
+**A FRAMING ERROR IN THIS SPEC'S OWN OPTION LIST, CORRECTED.** Options (i) and (iii) were
+presented as if mutually exclusive. **They are not.** Rows currently exist at ZERO POPULATION —
+the cross-product is instantiated whether or not anyone lives there — so **most of the projected
+153,600 is empty slots**. **Sparse founding, a raised cap, and a cheaper clone are THREE
+INDEPENDENT WINS and can all be taken.** Sparse founding is COMPLEMENTARY to raising the ceiling,
+never an alternative to it.
 
 ---
 
