@@ -1010,3 +1010,33 @@
   an existing artifact already records the quantity.** Same family as the sweep-capture line and
   the operation-looks-successful line: the failure is in what the method could SEE, not in the
   measurement.
+
+- **T4.1b — SPACING DERIVED (~95 km), AND A MEASUREMENT THAT CHANGES THE RULING'S JUSTIFICATION
+  (`docs/t4.1b-review-record.md`).** Direction was ruled Option B (spacing DOWN); the NUMBER was
+  derived, not supplied. **M1 CONFIRMS the inconsistency:** at `minSpacingKm = 480` hex packing
+  allots **199,532 km²** per settlement while the catchment works **7,854 km² — 3.94 %**, and
+  ~95 % of measured habitable land (5,373,616 km², fertility ≥ 0.10) is never touched.
+  **M2 derives s = r√(π/0.866) = 95.2 km** (catchments tangent gives 100 km) — **above the whole
+  reference band** (Sumerian 30–50, Athens–Corinth ~80), because the 50 km catchment radius is
+  itself generous; radius is out of scope. **M4 CONFIRMS the ~32 km stride floor does NOT bind**
+  (derived spacing = 5.95 nodes; the floor is on RADIUS, unchanged) — the director's earlier
+  belief that it blocked Option B is confirmed wrong.
+  **THE FINDING: NO SINGLE FIXED VALUE SATISFIES BOTH CHARTER ENDPOINTS.** Measured saturation
+  (5 seeds) — 480 km → **40/46/52**, 143.8 km → 206/254/294, 95.2 km → **398/457/582**, 88.1 km →
+  458/515/650. **The shipped 480 already hits the Charter's "~50 (ancient)" at a median of 46**;
+  the late target of 300–800 needs 88–144 km. Those are 2.5–4× apart and `minSpacingKm` is ONE
+  constant. **The director's "a fixed spacing constant cannot be right across 6,000 years" is now
+  a MEASUREMENT, not an intuition.** Derived 95.2 km implies ~457 settlements, ~9× the ancient
+  target — reported and NOT rounded toward a comfortable count (CR-003 §5.1). Direction survives;
+  justification changes: 480 is not wrong, it is correct **for the ancient endpoint only**. Three
+  shapes offered to the director, none chosen. **No constant moved; the ADR amending D-025 comes
+  after the ruling.**
+- **OPEN DESIGN ITEM, NO OWNER — SPACING SHOULD DERIVE FROM COMPUTED STATE (law 4).** Population
+  pressure and land quality, not a fixed constant. T4.1b's M3+M5 is its supporting measurement:
+  it is not merely nicer, it is **the only shape that satisfies both Charter endpoints**.
+- **PLAYABILITY COUPLING — WHY THE SPACING CHANGE SHOULD BE TAKEN IN TWO STEPS (director's
+  reasoning, recorded).** The Charter's 300–800 is not reachable as a PLAY EXPERIENCE until
+  **M5's delegation** exists: sector mixes are set per settlement by hand — workable at 12,
+  tedious at 46, impossible at 300+. **And T4.16's clone work should land before the world grows**
+  — the price solver is O(S²·G²) and buckets already collide with their ratified ~150k cap at
+  Charter scale. Both argue the first step should be modest and the second taken deliberately.
