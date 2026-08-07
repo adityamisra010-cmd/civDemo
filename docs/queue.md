@@ -1040,3 +1040,37 @@
   tedious at 46, impossible at 300+. **And T4.16's clone work should land before the world grows**
   — the price solver is O(S²·G²) and buckets already collide with their ratified ~150k cap at
   Charter scale. Both argue the first step should be modest and the second taken deliberately.
+
+- **THE DIRECTOR'S SESSION LOG REPLAYED (T4.1b; `docs/session-logs/orders-20260807-145349.bin`,
+  main `3185a6b`; now GUARDED by `OrderLogFixtureTests`, which its filename resolution did not
+  reach).** Four measurements:
+  **1. THE BIMODAL-EMERGENCE DISCRIMINATOR IS DECISIVE — AND KILLS THE OBVIOUS HYPOTHESIS.** Only
+  TWO settlements were ever ruled: **s11 = Mothian** and **s2 = Kunaetho**. **Both emerged at
+  EXACTLY 1.** The two high-mode settlements — **Nuhem (42) and Naethaehun (58)** — received **no
+  order at all**. So **the split is NOT a per-settlement response to being ordered.** It NARROWS
+  T4.1's order-conditional finding rather than contradicting it: a no-order world still has
+  artisans from turn 1 with no emergence event, so **the effect is WORLD-LEVEL** — two orders
+  anywhere change the emergence regime everywhere. Remaining candidates: world-aggregate couplings
+  (prices, trade, class-mobility shares). **Owner T4.14.**
+  **2. THE ARTISAN COLLAPSE DOES NOT OCCUR IN THE DIRECTOR'S WORLD** — 0 of 12 settlements at zero
+  artisans at t650 (finals 103–3,083). The 6-of-12 extinction measured earlier was on the **shipped
+  M2-era held-exit log**, so it is specific to THAT labour schedule, not to labour orders in
+  general and not to the director's play. **T4.14's subject narrows again.**
+  **3. THE THIATHIARIATH OSCILLATION DOES NOT REPRODUCE.** Population share over 650 turns:
+  range 4.64–7.89 %, **largest turn-to-turn swing 0.89 percentage points**. Against the reported
+  13/24/24/10/10 %, this is not the same quantity — either a different observable (absolute
+  population, a per-class share, a UI panel measuring something else) or a different run. Two
+  independent replays now agree with each other and disagree with the reported figures.
+  **Measured, not explained.**
+  **4. KUNAETHO'S GRIEVANCE IS COMFORT-DRIVEN.** Grievance 10.4 → 23.6 → plateau ~20, while
+  **Sustenance is pinned at 0.910 and Shelter at 1.000 for the ENTIRE campaign** and **Comfort
+  falls 0.713 → 0.413, tracking grievance inversely throughout.** Kunaetho is a RULED settlement
+  whose crafting share was set to 10 and never raised. **This is Q5 (Comfort is flow-bound) in a
+  played session.**
+  **ALSO: the log stores RAW slider values (sums 100/134/129/128/179), as D-032 intends** — raw
+  weights, consumers normalise via `Sectors.Share`; replay and UI share that one path, so they
+  cannot diverge. **AND: replay vs chronicle differs by ONE TURN on two emergences** (Kunaetho
+  320 vs 330, Vurun 470 vs 480) **and systematically on counts** (Nuhem 42 vs 27, Naethaehun 58 vs
+  36) — consistent with the chronicle counting adults only ("masters and hands") and logging at a
+  different point in the turn. Unresolved; does not affect the 10/2 mode structure, which
+  reproduces exactly.
