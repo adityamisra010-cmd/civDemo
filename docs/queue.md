@@ -760,3 +760,16 @@
   candidates.
   **FILED ON THE `conv-1-term-namespacing` BRANCH** because that is where instance 3 occurred and
   CONV-1 is itself a conventions record; redirect it if another home is preferred.
+
+- **THE M4 SPEC IS WRITTEN AND AWAITS THREE RULINGS (`docs/m4-spec.md`, PROPOSED, 2026-08-06).**
+  First spec under S8 §4.1; its own conformance is stated requirement by requirement in its §0.
+  T4.1 is the foundations audit (packet one) carrying four named checks — Q1's bind ratio, D-037's
+  three-quantity model, the notables retrofit fields, and `minSpacingKm` vs the Scale Charter.
+  T4.2 is B-2 store bounding with Q-B's five predictions pre-committed. **The packet list is NOT
+  final until the director rules R-1 (is a notable a person — counted or labelled), R-2 (`stock`
+  and `source` namespacing, which waits on R-1), and R-3 (the bucket-cap and clone-size ADR, ONE
+  ruling under S8 §2, and the largest unscheduled item in the project — it bites at M8/M9).** The
+  spec also records five findings against its own directing prompt (§9), of which F4 is
+  substantive: **the artisans-at-1 claim is CONTRADICTED by measurement** — 0 of 12 settlements
+  hold exactly 1 artisan in any of seeds 3/6/9 at any of eleven sampled turns, while what IS
+  measured is an artisan COLLAPSE TO ZERO in 6 of 12 settlements between turns 320 and 650.
