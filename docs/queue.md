@@ -816,3 +816,39 @@
   and sparse founding + a raised cap + a cheaper clone are three independent wins.** Slotted early
   and NON-BLOCKING, because the ADR's blast-radius inventory grows with every table M4 adds before
   it is written — not because it is urgent (measured 0.078 MiB today).
+
+- **T4.1 FOUNDATIONS AUDIT FINDINGS (`docs/t4.1-review-record.md`, 2026-08-07).**
+  **Q1 ANSWERED — the bind ratio nobody had measured:** LABOUR binds **12/12 settlements at every
+  turn** on the canonical world; the land/labour ratio falls 213× (t100) → 36–63× (t300) →
+  **9.4–19.2× (t650)**. The world converges toward land-binding across a campaign and never
+  reaches it; the real distance is **~1 order of magnitude**, against T3.4c's ×1e6 rig which sat
+  ~5 orders past the threshold. B-2 and colonization now have the number they were filed to need.
+- **Q1.2 / A2 — THE TOOL YIELD BONUS IS EFFECTIVELY INERT (new, T4.1).** `toolFactor = 1 + 0.3 ×
+  min(1, toolStock/farmLabor)`. Measured t650: tool stocks **0–49 per settlement** against
+  farmLabor **2,000–4,500**, so toolFactor ≈ **1.001–1.015 against a designed 1.3** — under 5 % of
+  its design range, and 0–2 tools (i.e. nothing) in 3 of 12 settlements. The chain that feeds it
+  is OPEN and correctly gated; the failure is quantitative, at the last link. `toolYieldBonusMax`
+  0.3 is **chosen, never derived**. Recorded per S8 §4.1's common-case disposition; NOT corrected.
+  Owner: whoever revisits farm yield or the crafting sector.
+- **BOTH M3 ARTISAN INHERITANCES ARE ORDER-CONDITIONAL (T4.1 discriminator, and it re-aims
+  T4.14).** Same seeds 3/6/9, with and without the shipped held-exit order log:
+  **WITH orders** — emergence at turns 4–137, counts bimodal {1,3} ∪ {26–60}, 19 of 35 at exactly
+  1, and **6 of 12 settlements at ZERO artisans by t650**.
+  **NO orders** — artisans present in **all 12 settlements from TURN 1** at founding-endowment
+  levels (121–665), **never at 1**, and **ZERO collapse**: all 12 hold thousands at t650.
+  So the "class going extinct across half the world" is **driven by the labour orders, not by the
+  emergence mechanism**, and "emergence at exactly 1" is a property of order-driven RE-emergence,
+  not of founding. §7.10: the M4-spec measurement was correct; its interpretation was missing this
+  precondition. **T4.14's subject is re-aimed to the interaction between labour orders and class
+  emergence/mobility.**
+- **ESCALATION FROM T4.1 Q3, FOR THE DIRECTOR BEFORE T4.8 BUILDS — "PURCHASE" HAS NO CONSIDERATION
+  AT M4.** R-1 ruled notables are conserved people, so born/dies/defects are all clean Ledger
+  flows. **"Is bought" (D-021 valve 5) is not:** the person moves, but the PAYMENT is a second
+  flow, and M4 ships no currency (money ruled M5, in kind). Options, none chosen: (i) M4 ships
+  defection-without-payment, purchase waits for M5; (ii) purchase paid IN KIND from goods stocks,
+  which M4 does have; (iii) purchase modelled as influence, a new non-conserved quantity.
+- **T4.1 Q2 — THE TWO D-037 IMPLEMENTATIONS THAT WOULD FORECLOSE PART C.** Storing control as an
+  OWNER ID ON THE PLACE ROW forecloses overlap; storing recognition as a FLAG ON THE POLITY
+  forecloses asymmetric recognition. **Both are the natural first implementation**, which is
+  precisely why D-037 D1 calls the omission unbuildable-later. T4.3 must ship all three as
+  RELATIONS. Named so the audit's warning is actionable rather than general.
