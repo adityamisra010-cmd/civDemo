@@ -887,3 +887,21 @@
   rewrite inventory** (*"this list is the M5 spec author's rewrite inventory"*). The in-kind ruling
   makes purchase expressible IN PRINCIPLE (grain, land, office), **but designing it is M5's work
   and not a workaround to add at M4.**
+
+- **T4.14 — EXCLUDED CANDIDATE, DO NOT RE-TEST: FOUNDING POPULATION DOES NOT PREDICT THE
+  EMERGENCE MODE.** The artisan emergence split is bimodal (ten at exactly 1; Nuhem 27,
+  Naethaehun 36; nothing between 1 and 27). **The obvious hypothesis — bigger settlements emerge
+  with more artisans — is REFUTED by the director's own chronicle:** Nuhem is the largest founding
+  (663 souls) and lands high, but **Mothian is the SECOND largest (583) and lands at 1**, while
+  **Naethaehun is mid-pack (380) and lands at 36**. Evidence:
+  `docs/session-logs/chronicle-20260807-145349.txt`. **Whatever splits the two modes is not
+  founding population.** Recorded as an excluded candidate so it is not re-tested.
+- **METHOD LESSON (T4.1, recorded by director ruling): THE CHEAPER INSTRUMENT WAS ALREADY IN
+  HAND.** Inheritance B was specified as a per-turn replay scan of the director's order log,
+  because the log was assumed to be the only record of emergence. It was not: **the CHRONICLE is
+  the emergence record** — it logs the first-emergence event and its count directly, which is
+  exactly the quantity in question — so the reading needed no replay at all, and the `.bin` that
+  blocked it was never required for this question. **Before building an instrument, check whether
+  an existing artifact already records the quantity.** Same family as the sweep-capture line and
+  the operation-looks-successful line: the failure is in what the method could SEE, not in the
+  measurement.
