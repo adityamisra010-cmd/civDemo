@@ -190,3 +190,14 @@ TIMING: T3.8's H1 measured timber stores holding maintenance at m = 1.0 for deca
 production stopped, so a settlement's decline curve — and therefore its fortification over
 time — is paced by unbounded accumulation. Not a separate prerequisite; the same B-2, arrived
 at through D1 rather than D5.
+
+---
+
+**CROSS-REFERENCE — THE M4 SPEC IS WRITTEN (`docs/m4-spec.md`, PROPOSED).** B-2 is scheduled there
+as **T4.2, the first real packet after the foundations audit**, base layer only (spoilage +
+granary capacity, derived not chosen), with **Q-B's five predictions as its pre-committed
+readings**. Several M4 packets are gated on it — colonization, the T3.10 migrated work
+(MalthusLite restoration needs cycling stocks), Comfort-as-stock, and D-039 D5's siege starvation.
+B-1's `minSpacingKm` collision is a NAMED CHECK in T4.1. The spec's packet list is NOT final until
+the director rules R-1 (is a notable a person), R-2 (`stock`/`source` namespacing) and R-3 (the
+bucket-cap and clone-size ADR).

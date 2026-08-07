@@ -68,18 +68,25 @@ claimant rule's reasoning.
 | --- | --- | --- | --- | --- |
 | **grain** | **SIM** | the numeraire food good, `goods.json` id 1, `numeraire: true` — serialized, and every price in the world is denominated against it | **"fibre texture", "paper fibre", or "mottling"** — never "grain" | `goods.json:5` vs `style-bible-parchment.md:10,43,68` |
 | **trade** | **SIM** | the D-034 arbitrage system, `Name = "trade"`, named in `pipeline.json` | the retired M0 toy is **`toytrade`** — already renamed, guarded at load | `TradeArbitrageSystem.cs:84` vs `TradeSystem.cs:27` |
+| **stock** | **SIM (goods inventory)** | `GoodStocks`, a serialized table | housing says **"dwelling stock"**; population is **qualified explicitly** (it exists as a conserved stock per R-1) | `WorldState.cs` `Table<GoodStockRow>` vs `d018-classes-and-needs.md:36` vs the R-1 population stock |
+| **source** | **NEEDS** | `needs.json`'s `"source"` — a serialized JSON key read by the needs binding | claims say **"claim origin"** | `needs.json:15` vs `d037-emergent-polities.md:177` |
 
 **`trade` is recorded as ALREADY RESOLVED** (T3.6, director decision 3, 2026-07-28) so it is not
 re-litigated. The resolution is the claimant rule in action: the shipped system kept the word, the
 toy moved, and `PipelineLoader` fails loudly on the ambiguity rather than binding silently.
 
-### PROPOSED — NOT RULED
+### RULED AT THE M4 SPEC (director, 2026-08-07) — WERE PROPOSED, NOW TAKEN
 
-Both of these touch questions the director has not settled. **A convention that pre-empts an open
-design ruling is worse than no convention**, so these are proposals only, and the test in §5 does
-NOT enforce them.
+**Both were held back because they touched R-1 (is a notable a person). R-1 was RULED OPTION B —
+a notable IS a person, extracted via `Ledger.Transfer` into a conserved population stock — so the
+third meaning of `stock` now genuinely EXISTS, and both terms were ruled with it.**
 
-**`stock` — PROPOSED: owned by SIM's goods inventory; every other use qualifies.**
+The register's own reasoning is what made the wait correct: *"a convention that pre-empts an open
+design ruling is worse than no convention."* Qualifying `stock` is now a decision about a thing
+that exists rather than a bet on one that might. **The test in §5 is still scoped to the style
+bible and does NOT enforce these** — widening it is not proposed here.
+
+**`stock` — RULED: owned by SIM's goods inventory; every other use qualifies.**
 
 Three live meanings: the goods inventory (`GoodStocks`, a serialized table), the housing stock
 (T3.8, D-018's Shelter line), and a possible conserved POPULATION stock. Under the claimant rule
@@ -89,13 +96,11 @@ the goods inventory wins — it is a schema field and the other two are prose.
 already what `HousingSystem` counts, and "housing stock" invites the collision); population
 qualified explicitly if it ever becomes one.
 
-**Why this is NOT ruled:** the third meaning is genuinely open — GOV-2 carries *"is a notable a
-person?"*, and whether notables are conserved population decides whether there IS a population
-stock to name. Ruling now would either bless a term for a thing that may not exist, or quietly
-constrain how that ruling can be phrased. **Left for the director alongside the notables
-question.**
+**RULED (M4 spec, R-2).** The third meaning is no longer open: R-1 ruled notables ARE conserved
+population, so a population stock exists and is **qualified explicitly**. Bare `stock` = goods
+inventory; `dwelling stock` for housing; population named explicitly wherever it appears.
 
-**`source` — PROPOSED: owned by the NEEDS domain; claims say "claim origin".**
+**`source` — RULED: owned by the NEEDS domain; claims say "claim origin".**
 
 Two meanings, both in ratified documents: D-037 C1's claim source, and `needs.json`'s
 `"source": "housingStock"`. Under the claimant rule **needs.json wins** — `source` there is a
@@ -105,12 +110,14 @@ is the whole rule applied cleanly.
 *Proposed wording:* bare **"source"** = a need satisfier's binding; claims say **"claim origin"**
 or **"claim provenance"**.
 
-**Why this is NOT ruled:** D-037 is a ratified director document and the polity layer it describes
-is unbuilt. Renaming a term inside a ratified design before its implementing packet exists risks
-ruling on vocabulary the M4 spec may want to choose deliberately. The claimant rule points
-clearly; the timing is the director's.
+**RULED (M4 spec, R-2).** Bare `source` = a need satisfier's binding; claims say **`claim
+origin`**. The claimant rule applied cleanly — `needs.json`'s `source` is a SERIALIZED KEY, D-037's
+is prose — and the M4 claim packet (T4.3) now inherits the vocabulary rather than choosing it
+mid-implementation. **D-037 itself is NOT amended by this**; the convention governs new writing.
 
-**Two ruled, two proposed — the honest split.** Rule only what is safely rulable now.
+**All four now RULED.** `grain` and `trade` at CONV-1; `stock` and `source` at the M4 spec, once
+R-1 made the third meaning of `stock` real. **The honest split held: nothing was ruled before the
+thing it named existed.**
 
 ---
 
