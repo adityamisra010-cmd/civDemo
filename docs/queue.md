@@ -735,7 +735,7 @@
   numbered §7.x does** — GOV-1 made this same observation before §7.15–§7.17 were written.
 - **FILED, NOT FIXED — T4.1's ORDER-CONDITIONAL FRAMING SURVIVES IN THIS FILE** at the entries
   around line 834 after the claim was withdrawn (T4.1d: the class-id bug; the two paths were
-  bit-identical). Recorded by GOV-3 E2 under B3, which permits the filing and forbids the repair.
+  bit-identical). Recorded by GOV-3 G2 under B3, which permits the filing and forbids the repair.
   **Owner: whoever takes T4.14.**
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,

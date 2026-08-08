@@ -5,7 +5,7 @@
 
 **Citations verified against the tree.** A3's six cited instances were checked against the review
 records rather than taken from the prompt: **two hold as stated, four are a different failure mode
-than claimed.** The corrected evidence is in **§A3** and the disagreements in **PART E**. The rule
+than claimed.** The corrected evidence is in **§A3** and the disagreements in **PART G**. The rule
 A3 states is unchanged — the evidence for it is stronger and more varied than the prompt's version,
 not weaker.
 
@@ -155,9 +155,83 @@ and it is made again here rather than assumed to have been heard.
 
 ---
 
-## PART E — DISAGREEMENTS WITH THE PROMPT (§7.12: THE TREE WINS)
+## PART E — HANDBACK ECONOMY
 
-**E1. FOUR OF A3's SIX CITED INSTANCES ARE NOT THE FAILURE MODE CLAIMED.** Verified case by case
+**E1.** The director pays for a packet's findings **twice**: once in the review record committed to
+the tree, once restated in prose in the chat handback. Handbacks have run to **800+ words** while
+the record beside them says the same thing at greater length and with better provenance.
+
+**E2. THE HANDBACK IS A POINTER, NOT A REPORT.** From here, a standard handback carries:
+
+- the **branch name and tip SHA**;
+- the **review record's path**;
+- **suite counts, both projects**;
+- **which pre-committed branches fired**, by name, one line each;
+- **anything that STOPPED, in full** — a stop is the exception and it carries its reasoning;
+- **anything requiring a director ruling, in full**.
+
+Everything else lives in the record and the director reads it there.
+
+**E3. WHAT MUST NOT BE COMPRESSED**, because compression is where a finding goes quiet:
+
+- any **DEFECT**;
+- any measurement landing **outside a pre-committed branch**;
+- any **determinism** result;
+- any **golden that moved unpredicted**;
+- any **§7.12 instance**, whether against the packet or the director;
+- any **disagreement between the prompt and the tree**.
+
+**E4.** For an **adversarial-mandatory** packet the **lens reconciliation table stays in the
+handback** as well as the record. It is the artifact §7.11 exists to make visible, and burying it
+in a file is how a missing lens goes unnoticed.
+
+---
+
+## PART F — MEASUREMENT ECONOMY
+
+**F1. FILTER DURING, FULL RUN AT HANDBACK.** `Sim.Tests` at 440+ tests has run **20+ minutes**, and
+several packets ran it repeatedly during development. The convention: **filtered runs on the
+affected family while working, ONE full run on the final tree before handback.** The full run is
+**the measurement of record** and it is never skipped, inferred, or replaced by a filter.
+
+Where a fence inference replaces a run — as at `d51327e` — **the premise is checked, not assumed**.
+That precedent had quietly stopped being true one packet after it was set, and only re-checking
+caught it.
+
+**F2. VERIFY THE DIRECTOR'S ARITHMETIC WHERE IT IS LOAD-BEARING; TAKE HIS WORDING ON TRUST AND
+CORRECT IT IF WRONG.** The tree always wins, and every citation correction filed so far has been
+right to file. But:
+
+- **A number the packet ACTS ON** — a threshold, a ratio, a measured value — **is verified before
+  use.** D-040's F2 found a ratified document disagreeing with shipped code by checking; that is
+  the case for verification.
+- **A citation address, a section number, a name, a quoted phrase** is corrected if wrong and
+  recorded (**B4**), but **does not need independent re-derivation** before the packet proceeds.
+
+**The difference is whether being wrong changes what gets built.**
+
+**F3. RE-MEASURING SOMETHING THE TREE ALREADY RECORDS IS A COST, NOT A VIRTUE**, unless the
+packet's own conclusion rests on it. Where a prior packet's measurement is **cited and not acted
+on**, cite it with its source and move on. Where it **IS acted on, verify** — the class-id bug is
+what happens when a measurement is trusted without checking what it measured.
+
+**F4. BUNDLE SMALL MEASUREMENTS IN ONE AREA; SPLIT INDEPENDENT RISK.** T4.1, T4.1b, T4.1c and T4.1d
+were four packets with four manifests, four records, four handbacks and four certifications — and
+**two of them were small**. The overhead was paid four times.
+
+**The counterweight is real and is stated so this is not read as a licence to consolidate:** T3.10
+was **split** precisely because it carried four packets of **independent risk** under one label,
+and discovering that inside an adversarial-mandatory packet would have been expensive.
+
+**The rule: SPLIT when the parts carry independent risk; BUNDLE when they are several small
+measurements in one area under one fence.** Where a packet is bundled, **each part still carries
+its own pre-committed readings and its own red proofs.**
+
+---
+
+## PART G — DISAGREEMENTS WITH THE PROMPT (§7.12: THE TREE WINS)
+
+**G1. FOUR OF A3's SIX CITED INSTANCES ARE NOT THE FAILURE MODE CLAIMED.** Verified case by case
 against the review records; the corrected table is in A3. Two hold exactly as stated (T3.5b's
 density anchor, T4.1d's seed-3 over-generalisation). The other four fail differently: **T3.6b** was
 a stale unmeasured premise (§7.12's shape, as its own record says); **T4.1's order-conditional
@@ -170,11 +244,11 @@ least six cases where a measurement was correct and its interpretation was wrong
 correct-in-substance observation with an over-general reading attached to it. Six things did go
 wrong; they did not go wrong the same way.
 
-**E2. THE STALE INTERPRETATION FROM CASE 4 IS STILL UNAMENDED IN `queue.md`.** T4.1's
+**G2. THE STALE INTERPRETATION FROM CASE 4 IS STILL UNAMENDED IN `queue.md`.** T4.1's
 order-conditional framing survives at `docs/queue.md:834-845` after the claim was withdrawn.
 **Filed, not fixed** — B3 permits the filing and forbids the repair. Owner: whoever takes T4.14.
 
-**E3. §7.10 EXISTS AND IS NUMBERED.** `docs/adr/adr-015-verification-hygiene.md:486`. Worth stating
+**G3. §7.10 EXISTS AND IS NUMBERED.** `docs/adr/adr-015-verification-hygiene.md:486`. Worth stating
 because `docs/handoff-status.md:244` records a prior session wrongly reporting it as never written.
 A3 cites the live section.
 
