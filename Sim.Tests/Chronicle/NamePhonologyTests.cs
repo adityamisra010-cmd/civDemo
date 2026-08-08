@@ -115,4 +115,35 @@ public class NamePhonologyTests
         }
         return Rec(0, []);
     }
+
+    [Fact]
+    public void ReportSpaceAndSample()
+    {
+        PhonologyConfig p = Pools();
+        var all = new HashSet<string>(StringComparer.Ordinal);
+        var lens = new List<int>();
+        for (ulong seed = 1; seed <= 200; seed++)
+            for (int id = 0; id < 200; id++)
+                for (int salt = 0; salt < 3; salt++)
+                { string n = NameRegistry.Generate(p, seed, id, salt); all.Add(n); }
+        foreach (string n in all) lens.Add(n.Length);
+        lens.Sort();
+        Console.WriteLine($"T41C_SPACE distinct names from 120,000 draws: {all.Count}");
+        Console.WriteLine($"T41C_SPACE length min {lens[0]} median {lens[lens.Count / 2]} max {lens[^1]}");
+        Console.WriteLine("T41C_SPACE longest: " + string.Join(" ", all.OrderByDescending(x => x.Length).Take(8)));
+
+        // The canonical world's twelve, seed 42 — what the director will read.
+        Console.Write("T41C_TWELVE ");
+        var taken = new HashSet<string>(StringComparer.Ordinal);
+        for (int id = 0; id < 12; id++)
+        {
+            for (int salt = 0; salt < 10000; salt++)
+            {
+                string n = NameRegistry.Generate(p, 42UL, id, salt);
+                if (taken.Add(n)) { Console.Write(n + "  "); break; }
+            }
+        }
+        Console.WriteLine();
+        Assert.True(all.Count > 800);
+    }
 }
