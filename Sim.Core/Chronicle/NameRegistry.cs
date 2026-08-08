@@ -66,10 +66,38 @@ public sealed class NameRegistry
         ulong state = Mix(Mix(Mix(worldSeed) ^ (ulong)(uint)settlementId) ^ (ulong)(uint)salt);
         var sb = new System.Text.StringBuilder(12);
         int syllables = p.MinSyllables + (int)(Next(ref state) % (ulong)(p.MaxSyllables - p.MinSyllables + 1));
+
+        // T4.1c — NO-REPEAT CONSTRAINTS, applied WITHIN the existing determinism.
+        // The M3 exit session produced Thiathiariath = th+ia | th+ia | r+ia+th
+        // (onset "th" twice, nucleus "ia" THREE times) and Naethaehun =
+        // n+ae | th+ae | h+u+n (nucleus "ae" twice). Both are REPETITION, and
+        // nothing here prevented it.
+        //
+        // Rejection is by RE-DRAW inside the same splitmix64 stream, never by a
+        // filter across settlements: (seed, id, salt) still determines the name
+        // exactly, which is what law 5 and UniqueName's salt loop both rely on.
+        // Bounded re-draws (never a while-true) so a small pool cannot hang the
+        // generator; on exhaustion the draw is taken as-is and UniqueName's salt
+        // loop handles it, which keeps the failure loud at the right layer.
+        Span<int> usedOnsets = stackalloc int[syllables];
+        Span<int> usedNuclei = stackalloc int[syllables];
         for (int s = 0; s < syllables; s++)
         {
-            sb.Append(p.Onsets[(int)(Next(ref state) % (ulong)p.Onsets.Length)]);
-            sb.Append(p.Nuclei[(int)(Next(ref state) % (ulong)p.Nuclei.Length)]);
+            int oi = 0, ni = 0;
+            for (int attempt = 0; attempt < 32; attempt++)
+            {
+                oi = (int)(Next(ref state) % (ulong)p.Onsets.Length);
+                if (!Contains(usedOnsets, s, oi)) break;
+            }
+            for (int attempt = 0; attempt < 32; attempt++)
+            {
+                ni = (int)(Next(ref state) % (ulong)p.Nuclei.Length);
+                if (!Contains(usedNuclei, s, ni)) break;
+            }
+            usedOnsets[s] = oi;
+            usedNuclei[s] = ni;
+            sb.Append(p.Onsets[oi]);
+            sb.Append(p.Nuclei[ni]);
             // Codas only close the FINAL syllable — mid-word clusters like
             // "thr" from coda+onset collisions read as typos, not names.
             if (s == syllables - 1)
@@ -77,6 +105,15 @@ public sealed class NameRegistry
         }
         sb[0] = char.ToUpperInvariant(sb[0]);
         return sb.ToString();
+    }
+
+    /// <summary>Linear scan over the syllables drawn so far — arrays, not a
+    /// HashSet, because the counts are 2–3 and law 5 bans Dictionary/HashSet
+    /// iteration in sim logic. Order is fixed, so this is deterministic.</summary>
+    private static bool Contains(Span<int> used, int count, int value)
+    {
+        for (int i = 0; i < count; i++) if (used[i] == value) return true;
+        return false;
     }
 
     private static ulong Next(ref ulong state)

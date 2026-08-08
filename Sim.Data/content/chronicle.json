@@ -2,10 +2,38 @@
   "schema": "chronicle/v1",
   "_doc": "T2.9 chronicle-lite: name phonology, event thresholds, and prose templates. ALL TUNE data (D-006). Templates may reference ONLY the placeholders documented per event - every clause traces to a recorded magnitude; the renderer throws on an unknown placeholder (no invented facts by construction).",
   "phonology": {
-    "_doc": "One placeholder culture. Names are onset+nucleus(+coda) syllables; deterministic from world seed + settlement id (splitmix64 mixing, ADR-001: registry entries, never sim rows).",
-    "onsets": ["k", "t", "s", "m", "n", "r", "l", "th", "v", "d", "b", "h"],
-    "nuclei": ["a", "e", "i", "o", "u", "ae", "ia", "ou"],
-    "codas": ["", "", "n", "r", "s", "l", "th", "m"],
+    "_doc": "REFERENCE CLASS (T4.1c, fixed BEFORE any output was looked at): SUMERIAN/AKKADIAN (third-millennium Mesopotamian) toponymy — the era the sim's opening slice depicts. Derived from the phonology of that family, NOT from literal borrowings: no real city name appears in these pools, because placing Ur or Nineveh on a procedurally generated continent breaks the fiction and collides with cultural plurality at M8/M9. WHY IT FIXES THE READING PROBLEM: Sumerian has NO DIPHTHONGS — the vowel inventory is a/e/i/u. The old pools carried 'ae', 'ia' and 'ou', which are exactly what produced Naethaehun and Thiathiariath. Dropping them removes the vowel-cluster failure mode at the source rather than filtering it afterwards. Onsets are the single consonants of that family plus 'sh'; codas are the sonorants and stops that actually close syllables there. STRUCTURE NOTE FOR M8/M9: this is ONE culture's pool. A second culture should be added as a SIBLING pool keyed by culture id, not by widening these arrays — widening would blend two phonologies into one unpronounceable average, which is the failure this packet exists to fix.",
+    "onsets": [
+      "b",
+      "d",
+      "g",
+      "k",
+      "l",
+      "m",
+      "n",
+      "p",
+      "r",
+      "s",
+      "sh",
+      "t",
+      "z"
+    ],
+    "nuclei": [
+      "a",
+      "e",
+      "i",
+      "u"
+    ],
+    "codas": [
+      "",
+      "",
+      "l",
+      "m",
+      "n",
+      "r",
+      "s",
+      "t"
+    ],
     "minSyllables": 2,
     "maxSyllables": 3
   },
