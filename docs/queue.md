@@ -887,3 +887,25 @@
   rewrite inventory** (*"this list is the M5 spec author's rewrite inventory"*). The in-kind ruling
   makes purchase expressible IN PRINCIPLE (grain, land, office), **but designing it is M5's work
   and not a workaround to add at M4.**
+
+- **T4.1d — THE TWO-PATH DISCREPANCY IS RESOLVED: A REPORTING ERROR, NOT A DETERMINISM FINDING
+  (`docs/t4.1d-review-record.md`).** World hashes from the in-test harness and the CLI replay are
+  **BIT-IDENTICAL at turns 1, 100 and 650** on seed 3 with no orders (`8fe17719…`, `9ee7b1e6…`,
+  `e7b93234…`), and class counts match exactly. **Law 5 holds.**
+  **CAUSE: `sim.json` has `id 1 = Peasants`, `id 2 = Artisans`, and T4.1's probe counted
+  `Class.Value == 1`** — it reported PEASANT counts as artisan counts. That is exactly why the
+  "no-order" arm showed 121–665 present from turn 1: peasants are endowed at founding, artisans
+  are not.
+  **WITHDRAWN: T4.1's "both M3 artisan inheritances are ORDER-CONDITIONAL".** Its discriminator
+  compared a name-matched with-orders reading against a wrong-class no-orders reading — **two
+  different classes, not two order regimes.**
+  **UNAFFECTED and still standing:** T4.1's chain finding (read `Variables.ArtisanShare` and good
+  stocks), T4.1's Q1 bind ratio, T4.1b's discriminator table, and the M4 spec's collapse
+  measurement — all read by registry NAME or by fields other than the class id.
+  **RULE TO ADD TO THE REGISTER: when a probe indexes a registry by RAW ID, print the registry's
+  NAME for that id on the same line.** An off-by-one id yields a plausible series rather than an
+  error — peasant counts look exactly like artisan counts — so nothing fails and the number is
+  simply about a different thing. The replay reporter was immune because it matches on NAME, which
+  is the only reason the disagreement surfaced at all. Third instance in the family with the
+  sweep-capture and operation-looks-successful lines: **the failure is in what the instrument could
+  distinguish.**
