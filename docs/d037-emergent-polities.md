@@ -129,6 +129,12 @@ playable position.
 only a subset, the data model must support overlap, claim-without-control, and asymmetric
 recognition. This is the single instruction whose omission would make Part C unbuildable later.
 
+**D-040 (2026-08-08) DEPENDS ON THIS CLAUSE AND DOES NOT AMEND IT.** `docs/d040-discovery-and-control.md`
+Part C rules that **control carries a distance term** rather than a `loyalty` field, and that
+contested control is the overlap D1 already requires. D-040 C7 adds a THIRD requirement to T4.3's
+two prohibitions: **an owner-id cannot carry a decay term either** — all three quantities must be
+relations, recognition keyed by (recogniser, recognised).
+
 **D2.** Settle the player-scope question: the director currently rules all twelve settlements
 because M1/M2 had no polity concept. Under D-037 the natural design is that he controls ONE polity
 holding a few settlements, with others belonging to rivals, to stateless foundings, or to no one.

@@ -540,6 +540,15 @@
   traders, rather than being stapled on. OPEN, owner: the transport packet — Q-A (water),
   Q-C (draught animals) and Q-E are ONE design conversation and should be ruled together. Not
   designed here.
+  **D-040 (2026-08-08) ADDS SEA TRAVEL TO THIS CONVERSATION** (`docs/d040-discovery-and-control.md`
+  B3/B4): boats are the same object as water routes — sea travel extends the network's EDGE TYPES,
+  it is not a separate movement mode, and it becomes possible when the conditions for boats exist
+  (coastal settlement, timber, craft capacity), never by a technology unlock. D-040 C6 further
+  couples this queue to the control model: **improving a route extends administrative reach**, so
+  Q-A and Q-E strengthen the hold on what is at the end of them. Still OPEN; D-040 designs nothing.
+  **D-040 F-tension, for whoever takes this packet:** D-009/D-010 calls bridges and tunnels
+  "expensive, era-gated, terrain-crossing edges" — the same shape D-040 B3 rejects, sitting in a
+  ratified document on this subject.
 - **MODIFYING A GUARD RE-OPENS ITS RED PROOF — WRITTEN as ADR-015 §7.17 (GOV-1, merged
   behind T3.8; the merge-time re-point this entry was held open for)
   (director + agent agreement, T3.8; reasoning added at the director's ruling).** The T3.5b

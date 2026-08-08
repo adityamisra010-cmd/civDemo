@@ -223,6 +223,15 @@ audit found the two SPECIFIC SHAPES that would do it, and they are promoted here
 > **PROHIBITED 2 — recognition as a FLAG ON THE POLITY.** A single `recognised: bool` per polity
 > *"cannot express"* asymmetric recognition.
 
+> **PROHIBITED 3 — ADDED BY D-040 C3/C7 (director ruling, 2026-08-08).** An **owner id cannot
+> carry a DECAY TERM** either. D-040 rules that **control carries a distance term** — administrative
+> reach over the network graph, travel cost not Euclidean distance — and that grievance, unrest and
+> the political systems READ control. **There is to be no `loyalty` field**: a double decaying with
+> distance is the free-floating modifier law 2 forbids. **All three quantities must be RELATIONS**,
+> with recognition keyed by **(recogniser, recognised)**. T4.3 must be able to express a control
+> value that VARIES WITH DISTANCE and is CONTESTED WHERE CLAIMS OVERLAP.
+> See `docs/d040-discovery-and-control.md` Part C.
+
 **Both are the NATURAL FIRST IMPLEMENTATION**, which is exactly why they are named rather than
 left to be rediscovered. **All three quantities ship as RELATIONS:** claim keyed by
 (polity, place), control keyed by (polity, place), recognition keyed by
