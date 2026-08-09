@@ -718,6 +718,25 @@
   FOUNDING conditions compounding through the demographic integration. **ADR-017's endowment
   jitter at 0.69 is the named candidate and it is NOT bisected.** Owner: unassigned; belongs with
   M4's CR-002 packet, which already carries the density corridor.
+- **CANDIDATE — ADR-015 SECTION: CONDITIONAL EXECUTION AND STANDING AUTONOMY (GOV-3).**
+  Filed by `docs/gov-3-execution-protocol.md` Part D. A directed packet may pre-rule its branches
+  and the agent EXECUTES the matching one; branch on the MEASUREMENT never the interpretation; cap
+  the chain at THREE branch points; every branch states its else; the unpredicted case always
+  stops. Plus the standing permissions (merge on a pre-given ruling, file a finding, correct a
+  citation error in one's own prompt, re-run an invalid measurement) and the B6 list of what still
+  always stops. **Expected to recover a MINORITY of round trips** — the record says so explicitly,
+  because the round trips actually observed were unpredictable FINDINGS, which must still stop.
+  **A3's evidence was verified and corrected: two of six cited instances are the claimed
+  measurement-correct/interpretation-wrong shape; the other four are a stale premise, a wrong
+  measurement, a mis-citation and a wrong instrument** — four further ways a branch condition can
+  be false. **OWNER: DIRECTOR**, to rule at the next governance packet.
+  **THREE CANDIDATES NOW SIT UNQUEUED INTO SECTIONS** (this one, the git-operation pattern at
+  READY TO WRITE, and the registry-id rule). **A queue line does not bind an agent the way a
+  numbered §7.x does** — GOV-1 made this same observation before §7.15–§7.17 were written.
+- **FILED, NOT FIXED — T4.1's ORDER-CONDITIONAL FRAMING SURVIVES IN THIS FILE** at the entries
+  around line 834 after the claim was withdrawn (T4.1d: the class-id bug; the two paths were
+  bit-identical). Recorded by GOV-3 G2 under B3, which permits the filing and forbids the repair.
+  **Owner: whoever takes T4.14.**
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
