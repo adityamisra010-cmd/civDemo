@@ -239,6 +239,13 @@ claim** failed on the MEASUREMENT — two paths disagreed, and the cause was the
 **D-040's F2** is a mis-citation; **the M4 spec's artisans-at-1** is the inverse case entirely —
 the measurement was the wrong instrument and the claim it attacked was later **corroborated**.
 
+**THE OVER-GENERAL READING OCCURRED WHILE DRAFTING THE SECTION ABOUT OVER-GENERAL READINGS.**
+That is not an aside; it is the whole argument for A3 in one line. The rule is not a lesson someone
+learns and thereafter applies — the failure recurs at the moment of maximum attention to it, in the
+sentence written to prevent it. A branch author is not exempt because they are the one writing the
+branch. *(Director ruling, 2026-08-08: recorded at his instruction as the most useful sentence in
+the record.)*
+
 **This is itself an A3 instance, and it happened while writing A3.** The prompt's claim — *"at
 least six cases where a measurement was correct and its interpretation was wrong"* — is a
 correct-in-substance observation with an over-general reading attached to it. Six things did go

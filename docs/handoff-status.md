@@ -245,7 +245,9 @@ The record deliberately keeps its own errors. Do not act on any of these as if s
 absence from this branch. The measurement was right and the conclusion wrong — it was filed on
 `t3.5-needs-baskets`, which this branch does not descend from. My duplicate has been reverted so the
 two do not collide at merge. This is precisely the error §7.10 itself describes, committed against
-§7.10.
+§7.10. **STAMPED CURRENT (GOV-3 G3, director ruling): §7.10 IS LIVE AND
+NUMBERED on `main` at `docs/adr/adr-015-verification-hygiene.md:486`** — a reader skimming the
+paragraph above must not carry away the withdrawn claim.
 
 **A prediction that was falsified, kept because the falsification is the point:** I predicted the
 variance fix would move the migration corridor back toward its band. On the dev preset it moved
