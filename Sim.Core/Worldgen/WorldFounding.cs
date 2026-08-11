@@ -193,18 +193,43 @@ public static class WorldFounding
             // (the comparative-advantage precondition). Doubles, not stocks:
             // deposits scale extraction RATES (T3.3); units enter the world
             // only through production Ledger flows.
+            // T4.1b/ADR-018 — THE CHANNEL IS SAMPLED OVER THE HINTERLAND, NOT
+            // AT THE SITE CELL (director ruling, option (b)). The site-cell
+            // reading was a MEASURED defect, exposed rather than caused by the
+            // spacing change: siting selects for water access, the moisture
+            // channel is "1 at the shore", and so moisture at the site read
+            // EXACTLY 1.0000 at eleven of twelve settlements even at 480 km
+            // spacing. The comparative-advantage precondition had been passing
+            // on ONE settlement 2.4% below the ceiling since T3.2, which is
+            // ADR-015 §7.5 (never assert on a quantity resting against its own
+            // limit). Four goods — livestock, timber, fiber, hides — were
+            // effectively constant across the founded world for two milestones.
+            //
+            // STATISTIC: AREA-WEIGHTED MEAN over the hinterland footprint, land
+            // cells only. Derived from the DIMENSION, not swept: a deposit
+            // abundance is an INTENSITY (it multiplies extraction rates), so it
+            // averages; EffectiveArableKm2 is an EXTENT (km²), so it sums.
+            // Summing an intensity over a catchment would make abundance grow
+            // with catchment SIZE — the CR-002 error in a new costume. Equal-area
+            // pixels make the plain pixel mean the area-weighted mean (this stops
+            // being true for anyone who samples stride-4 lattice blocks instead).
+            // Same radius the catchment uses, so deposit and arable describe the
+            // SAME territory — the inconsistency between the two models was
+            // arguably the underlying defect, and one of them had to be wrong.
             TerrainSet t = world.Terrain!;
             int site = world.Settlements[s].SiteCell;
+            double radiusPx = simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+            (double meanMoisture, double meanElevation) = HinterlandMeans(t, cfg, site, radiusPx);
             foreach (GoodEntry g in goods.Goods)
             {
                 if (g.DepositChannel is null) continue;
                 double channel = g.DepositChannel switch
                 {
-                    "moisture" => t.Moisture[site],
-                    "elevation" => Math.Max(0.0, t.Elevation[site] - t.SeaLevel),
+                    "moisture" => meanMoisture,
+                    "elevation" => meanElevation,
                     // water proximity: 1 at the shore, fading with the same
                     // moisture curve (clay pits, fish grounds hug the water).
-                    _ => t.Moisture[site] * t.Moisture[site],
+                    _ => meanMoisture * meanMoisture,
                 };
                 double spread = 1.0 + g.DepositSpread * U(seed, s, DepositSlotBase + g.Id);
                 world.Deposits.Add(new DepositRow(
@@ -213,6 +238,49 @@ public static class WorldFounding
         }
 
         return world;
+    }
+
+    /// <summary>
+    /// T4.1b: the two deposit channels averaged over a settlement's hinterland
+    /// footprint — LAND CELLS ONLY (ocean is not hinterland; including it would
+    /// make a coastal deposit a function of how much sea a disc happens to
+    /// contain, a siting artefact rather than geography).
+    ///
+    /// Deterministic by construction: a fixed row-major scan of a fixed disc,
+    /// summed in index order. No dictionary iteration, no RNG, no LINQ. The
+    /// site cell itself is inside the disc, so a settlement whose hinterland is
+    /// entirely water (impossible for a sited settlement, which requires land)
+    /// would still divide by at least one.
+    /// </summary>
+    private static (double Moisture, double Elevation) HinterlandMeans(
+        TerrainSet t, WorldgenConfig cfg, int site, double radiusPx)
+    {
+        int size = cfg.SizePx;
+        int cx = site % size, cy = site / size;
+        int r = (int)radiusPx;
+        double r2 = radiusPx * radiusPx;
+        double sumM = 0.0, sumE = 0.0;
+        long n = 0;
+        for (int dy = -r; dy <= r; dy++)
+        {
+            int y = cy + dy;
+            if (y < 0 || y >= size) continue;
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int x = cx + dx;
+                if (x < 0 || x >= size) continue;
+                if (dx * dx + dy * dy > r2) continue;
+                int cell = y * size + x;
+                double land = t.Elevation[cell] - t.SeaLevel;
+                if (land <= 0.0) continue; // ocean is not hinterland
+                sumM += t.Moisture[cell];
+                sumE += land;
+                n++;
+            }
+        }
+        return n == 0
+            ? (t.Moisture[site], Math.Max(0.0, t.Elevation[site] - t.SeaLevel))
+            : (sumM / n, sumE / n);
     }
 
     /// <summary>Slot base for per-good deposit rolls (cohorts 0..15, food 100,

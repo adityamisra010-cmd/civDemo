@@ -737,6 +737,17 @@
   around line 834 after the claim was withdrawn (T4.1d: the class-id bug; the two paths were
   bit-identical). Recorded by GOV-3 G2 under B3, which permits the filing and forbids the repair.
   **Owner: whoever takes T4.14.**
+- **AUDIT — A DISCRIMINATOR PLACED BEHIND THE ASSERTION IT DISCRIMINATES CANNOT FIRE.
+  OWNER: T3.11's HARNESS WORK.** Found at T4.1e (2026-08-08): `FirstReignTests`' shape asserts —
+  the anti-blind-re-pin guard, whose comment says *"Never delete these as redundant with the
+  golden"* — sit AFTER the world-hash assert. **On a failing run the hash throws first and the
+  shape asserts never execute**, so the one run in which a reader needs to tell a RE-MINT from a
+  REGRESSION is exactly the run that cannot tell them. T4.1e re-pinned the hash and re-ran so the
+  shape asserts actually executed (they passed); a packet that skipped that step would have written
+  "shape asserts re-verified" having never run them.
+  **The audit: check every pin carrying semantic asserts for the same ordering, and put the
+  semantics FIRST** — a guard should fail on what it guards, not queue behind a hash. Not fixed at
+  T4.1e: out of that packet's one-change fence.
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that

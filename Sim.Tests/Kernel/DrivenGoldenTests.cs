@@ -120,7 +120,13 @@ public class DrivenGoldenTests
         // HISTORY (a golden is read by people who were not there):
         //   v1 (T3.11, 2026-08-05): first pin. Schema v19, canonical 1024²
         //   N = 12, seed 42, 300 turns, driven by the 60-order batch above.
-        const string golden = "e7457fbca359cda6aa8ccc44e64672a49fcdf07a083b3154addf4cff1444aa79";
+        // T4.1e RE-PIN (defect repair, code-only, ONE cause): deposits moved
+        // from a point sample at the site cell to the area-weighted mean over
+        // the 50 km hinterland (land cells only). Every founded world's
+        // endowments change, so this world hash re-mints. Spacing is UNTOUCHED
+        // at its shipped 480 km — this packet carries one change and this pin
+        // moves for that one cause.
+        const string golden = "71768febd7f39534a9247f77a0f66005b3bab41fa2476509d2aca0d37c30ff7c";
 
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
