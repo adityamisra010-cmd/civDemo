@@ -802,6 +802,26 @@
   **ADR-018 §7's "what breaks" enumeration is INCOMPLETE AS WRITTEN and should say so** — it lists
   seven moving tests and no couplings. **Spacing has more undeclared couplings than any packet has
   enumerated, and the count is 3 discovered in 2 packets.**
+- **DEFECT — THE DEV MIGRATION QUARANTINE ENVELOPE IS STALE ON `main`, AND ITS SELF-VERIFICATION
+  CLAIM IS FALSE AS IMPLEMENTED. OWNER: T3.10's MIGRATED CORRIDOR WORK IN M4.**
+  Measured at T4.1b (2026-08-08) on `origin/main`, with NO packet change applied, via the real
+  battery in a clean worktree:
+
+  | seed | recorded constant | measured on main | ratio | tolerance |
+  | --- | --- | --- | --- | --- |
+  | 42 | 0.000931705 | 0.000887533 | ×0.953 | 0.75 |
+  | 7 | 0.000799951 | 0.000644000 | **×0.805** | 0.75 |
+
+  **Neither pin reproduces; seed 7 sits 0.055 above the drift tooth.** `CalibrationBatteryTests.cs:170-174`
+  states the recorded values are *"self-verifying: the drift tooth below fails the moment either
+  recorded value stops matching what the battery measures, so a stale pin cannot rot silently."*
+  **That property does not hold.** The tooth compares against `recorded × 0.75`, so a pin can rot by
+  up to 25 % in silence — and both have, one of them by 19.5 %.
+  **This is §7.12 pointed at a GUARD: an assertion claiming a property it does not have.** Same
+  family as the nightly that was red for eleven runs while nobody read it.
+  **WHEN it drifted, and FROM WHAT, is unmeasured** — a bisect over the packets between T3.4c's pin
+  and `main`, on one cheap metric. **Do not let a future re-pin absorb two causes** (the ruled
+  spacing change and this drift) in one act; separate them or state which is being absorbed.
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
