@@ -748,6 +748,41 @@
   **The audit: check every pin carrying semantic asserts for the same ordering, and put the
   semantics FIRST** — a guard should fail on what it guards, not queue behind a hash. Not fixed at
   T4.1e: out of that packet's one-change fence.
+- **DEFECT — THE FOUNDED GOLDEN IS PINNED IN TWO PLACES; T4.1e MOVED ONE. `determinism-xproc` IS
+  RED ON `main`. OWNER: CI.** Run history, `main`: GREEN at `3185a6b` (Aug 8) and at `d4ce188`
+  (Aug 11 04:39); **FIRST RED at `7ae19c9`, the T4.1e merge** (run 31479413458, job 93740652645).
+  **It is NOT a determinism regression.** The same job log, verbatim:
+  `founded orderless: two processes byte-identical over 300 turns` and
+  `replay: byte-identical to the ordered run over 400 turns`. What fails is a golden comparison:
+  `FOUNDED RUN DIVERGED FROM PINNED GOLDEN: expected b9f93d4a… actual 63c8579a…` — the actual is
+  T4.1e's correctly re-pinned value; the expected is the stale one at
+  **`.github/workflows/ci.yml:136` (`FOUNDED_GOLDEN=`)**, a SECOND copy of a constant the test
+  suite also holds. A local suite run cannot see it: the duplicate lives in CI yaml.
+  **Fix is one line; NOT taken here — filed under B3, disposition the director's.**
+  **The general defect: a pinned constant duplicated across the test suite and the CI workflow has
+  no single source of truth, and only one copy is covered by the suite.**
+- **DEFECT — `build-and-test` HAS BEEN RED ON `main` SINCE AT LEAST 2026-08-08, ON THE
+  READ-ISOLATION CHECK. OWNER: CI.** Job step *"Read-isolation check (T2.6 — grievance read by
+  nothing but UI/chronicle)"* fails at `3185a6b`, `d4ce188` and `7ae19c9`; **every later step —
+  Setup, Restore, Build, Test, and the T0.2 no-compile acceptance — is SKIPPED as a result.**
+  **The CI suite has therefore not run on `main` for at least three days**, and nobody read it.
+  Same family as the nightly's eleven silent runs. Not diagnosed here beyond the step name.
+- **PROCESS — A REQUIRED STATUS CHECK CAN BE BYPASSED SILENTLY BY THE PUSHING IDENTITY.** `git push`
+  to `main` printed `remote: Bypassed rule violations for refs/heads/main: - Required status check
+  "determinism-xproc" is failing.` and **the push succeeded**. The ruleset lists a bypass actor and
+  the session's identity is in it, so the gate reports rather than blocks. **A gate that can be
+  bypassed silently is not a gate.** Options (none taken): remove the bypass actor for `main`; or
+  keep it and make the bypass loud. **Director's ruling.**
+- **THE THIRD UNDECLARED COUPLING TO `minSpacingKm`, AND THE ADR SAYS SO.** Measured across
+  T4.1b/T4.1e: spacing is coupled to **(1) the deposit CORRELATION LENGTH** — hypothesised,
+  **REFUTED** (the moisture channel saturates at every site, so no correlation length helps);
+  **(2) the deposit SAMPLING FOOTPRINT** — **REAL**, repaired at T4.1e; **(3) `landWeight`** —
+  **REAL**, packing shrinks partitioned catchments, the land term shrinks, attractiveness gaps
+  narrow, T2.8's gap-closing cap binds, and the migration rate lever loses its teeth. T3.4b already
+  fixed this once by re-deriving `landWeight` after the catchment became a 50 km hinterland.
+  **ADR-018 §7's "what breaks" enumeration is INCOMPLETE AS WRITTEN and should say so** — it lists
+  seven moving tests and no couplings. **Spacing has more undeclared couplings than any packet has
+  enumerated, and the count is 3 discovered in 2 packets.**
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
