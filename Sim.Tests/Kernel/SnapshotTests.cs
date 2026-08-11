@@ -470,7 +470,13 @@ public class SnapshotTests
         //   v19's 8473c021... as a good state. (The toy golden did not move —
         //   config values are not state and the toy preset runs no housing.)
         //   defective v19 value: 8473c02161ff4051457d13521e7dc0edbaf7078240cc2da3cad33d38476544c4
-        const string golden = "b9f93d4ab096798d9e76a52fe2740c8ff62cf3bc759437829056a16eb152761b";
+        // T4.1e RE-PIN (defect repair, code-only, ONE cause): deposits moved
+        // from a point sample at the site cell to the area-weighted mean over
+        // the 50 km hinterland (land cells only). Every founded world's
+        // endowments change, so this world hash re-mints. Spacing is UNTOUCHED
+        // at its shipped 480 km — this packet carries one change and this pin
+        // moves for that one cause.
+        const string golden = "63c8579a79ba36a92975da0a72456e528a6f8cf206dca9ed7d49ca47dbd165ad";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

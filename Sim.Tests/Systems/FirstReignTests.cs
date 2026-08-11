@@ -239,7 +239,19 @@ public class FirstReignTests
         //   Do not read v14 as a good state. Shape asserts re-verified:
         //   extinction inside (5, 25], dead world frozen, no food mountain.
         //   defective v14 value: 2d6f9f45f9ec5097efbca0063284f0325352dbea40dd3df4b246a0c316f7b4e5
-        const string golden = "144d7e5d89b9ff99085eda559e105c712880064e5c14d8d626bf5df36c913bff";
+        //   v14 value: 144d7e5d89b9ff99085eda559e105c712880064e5c14d8d626bf5df36c913bff
+        //   v23 (T4.1e — DEFECT REPAIR, code-only): deposits are now the
+        //   AREA-WEIGHTED MEAN of their terrain channel over the settlement's
+        //   50 km hinterland, land cells only, instead of a POINT SAMPLE at the
+        //   site cell. The site reading was measured saturated: moisture read
+        //   EXACTLY 1.0000 at eleven of twelve settlements on the canonical
+        //   world at the SHIPPED 480 km spacing, because siting selects for
+        //   water access and that channel is "1 at the shore". Even this N = 1
+        //   world's founding deposits therefore move. Shape asserts below
+        //   RE-VERIFIED against the new trajectory and passing — extinction
+        //   inside (5, 25], dead world frozen, no food mountain — which is the
+        //   re-mint/regression separator, not a formality.
+        const string golden = "a631877cc96660576a205e0222d8ebac19c7798e933cac4c78b6db9a58de9e8d";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
