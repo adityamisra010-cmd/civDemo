@@ -758,11 +758,30 @@
   T4.1e's correctly re-pinned value; the expected is the stale one at
   **`.github/workflows/ci.yml:136` (`FOUNDED_GOLDEN=`)**, a SECOND copy of a constant the test
   suite also holds. A local suite run cannot see it: the duplicate lives in CI yaml.
-  **Fix is one line; NOT taken here — filed under B3, disposition the director's.**
+  **FIXED (2026-08-11, director ruling):** `ci.yml:136` updated to `63c8579a…`, the correct value.
+  **AND THE GENERAL DEFECT IS GUARDED:** `Sim.Tests/Kernel/CiPinAgreementTests.cs` asserts the two
+  copies agree. **Option chosen and why:** making ci.yml read from the suite's source removes the
+  possibility, but the golden's home is a C# const inside the test that computes the hash and yaml
+  cannot read C# — sharing it would move a test pin into a data file, trading one duplication for a
+  worse one (a golden nobody reads beside its assert). The agreement test is cheaper, fails loudly
+  in the suite before the push, and catches exactly the drift that occurred. Red-proved by drifting
+  the yaml pin (FAILED) and restoring (PASSED).
+  **AUDIT: ci.yml carries exactly ONE 64-hex pin** — `FOUNDED_GOLDEN`. No other duplicated
+  constants found.
   **The general defect: a pinned constant duplicated across the test suite and the CI workflow has
   no single source of truth, and only one copy is covered by the suite.**
-- **DEFECT — `build-and-test` HAS BEEN RED ON `main` SINCE AT LEAST 2026-08-08, ON THE
-  READ-ISOLATION CHECK. OWNER: CI.** Job step *"Read-isolation check (T2.6 — grievance read by
+- **FIXED (2026-08-11) — `build-and-test` WAS RED ON `main` ON THE READ-ISOLATION CHECK. CAUSE:
+  T3.12a, NOT A PRE-EXISTING FAILURE.** *(Dating corrected by the director: red at `3185a6b` is
+  AFTER T3.12a merged, so the reporter is the cause; my earlier "pre-existing since at least
+  2026-08-08" was wrong.)* `ReplayReport.cs` reads `NeedSatisfactions` and `Grievances` BY DESIGN —
+  it is a reporter — and the T2.6 allowlist predates reporters. Allowlisted with the reason at the
+  entry; red-proved by removing the entry (FAILED) and restoring (OK).
+  **MEASURED WEAKNESS OF THE GUARD, filed not fixed:** it is a bare grep for four identifiers. It
+  does NOT distinguish a WRITE from a READ, nor sim code from reporting code, nor code from PROSE —
+  **two of the seven lines it flagged were DOC COMMENT text**. A path allowlist is its only lever,
+  so every future reporter, exporter or debug dump trips it for the same non-reason. Same class as
+  the FirstReign ordering finding: the guard's name claims more than its mechanism delivers.
+- **(superseded, kept for the dating correction) `build-and-test` red on `main`.** Job step *"Read-isolation check (T2.6 — grievance read by
   nothing but UI/chronicle)"* fails at `3185a6b`, `d4ce188` and `7ae19c9`; **every later step —
   Setup, Restore, Build, Test, and the T0.2 no-compile acceptance — is SKIPPED as a result.**
   **The CI suite has therefore not run on `main` for at least three days**, and nobody read it.

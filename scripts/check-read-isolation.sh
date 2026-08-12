@@ -18,12 +18,29 @@
 #   Sim.Core/Systems/PathBuild/PathBuildSystem.cs - NetworkOverlayView interface
 #     completeness ONLY (forwards prev tables; routes over network tables, never
 #     reads needs state — documented at the forwarding lines)
+#   Sim.Core/Kernel/ReplayReport.cs            - T3.12a replay diagnostic reporter:
+#     a READ-ONLY observer OUTSIDE the determinism surface (ADR-009). It writes
+#     JSONL from tables the owning systems already wrote and is consulted by NO
+#     system - the same standing UI and the chronicle have, and the reason the
+#     T2.6 rule exists (grievance must drive no BEHAVIOUR until M5, D-021) is
+#     untouched by something that only prints it. The allowlist predates
+#     reporters and had no entry for one; T3.12a landed and this gate has been
+#     RED ON main ever since, taking the whole build-and-test job with it.
 #   Sim.Ui/, Sim.Ui.Tests/, Sim.Tests/         - display + tests (packet-sanctioned)
+#
+# WHAT THIS GUARD ACTUALLY MATCHES, stated because it is weaker than its name
+# (measured at the T4.1e follow-up): a bare grep for four identifiers. It does
+# NOT distinguish a WRITE from a READ, and it does NOT distinguish sim code from
+# reporting code or from PROSE - two of the seven lines it flagged on
+# ReplayReport.cs were DOC COMMENT text. A path allowlist is therefore the only
+# lever it has, and every future reporter, exporter or debug dump will trip it
+# for the same non-reason. Same class as the FirstReign ordering finding: the
+# guard's name claims more than its mechanism delivers. Not fixed here.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b'
-ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs)'
+ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs)'
 
 matches=$(grep -RnE --include='*.cs' --exclude-dir=bin --exclude-dir=obj \
   "$PATTERN" Sim.Core Sim.Data Sim.Cli 2>/dev/null || true)
