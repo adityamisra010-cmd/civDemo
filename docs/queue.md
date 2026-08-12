@@ -748,6 +748,60 @@
   **The audit: check every pin carrying semantic asserts for the same ordering, and put the
   semantics FIRST** — a guard should fail on what it guards, not queue behind a hash. Not fixed at
   T4.1e: out of that packet's one-change fence.
+- **DEFECT — THE FOUNDED GOLDEN IS PINNED IN TWO PLACES; T4.1e MOVED ONE. `determinism-xproc` IS
+  RED ON `main`. OWNER: CI.** Run history, `main`: GREEN at `3185a6b` (Aug 8) and at `d4ce188`
+  (Aug 11 04:39); **FIRST RED at `7ae19c9`, the T4.1e merge** (run 31479413458, job 93740652645).
+  **It is NOT a determinism regression.** The same job log, verbatim:
+  `founded orderless: two processes byte-identical over 300 turns` and
+  `replay: byte-identical to the ordered run over 400 turns`. What fails is a golden comparison:
+  `FOUNDED RUN DIVERGED FROM PINNED GOLDEN: expected b9f93d4a… actual 63c8579a…` — the actual is
+  T4.1e's correctly re-pinned value; the expected is the stale one at
+  **`.github/workflows/ci.yml:136` (`FOUNDED_GOLDEN=`)**, a SECOND copy of a constant the test
+  suite also holds. A local suite run cannot see it: the duplicate lives in CI yaml.
+  **FIXED (2026-08-11, director ruling):** `ci.yml:136` updated to `63c8579a…`, the correct value.
+  **AND THE GENERAL DEFECT IS GUARDED:** `Sim.Tests/Kernel/CiPinAgreementTests.cs` asserts the two
+  copies agree. **Option chosen and why:** making ci.yml read from the suite's source removes the
+  possibility, but the golden's home is a C# const inside the test that computes the hash and yaml
+  cannot read C# — sharing it would move a test pin into a data file, trading one duplication for a
+  worse one (a golden nobody reads beside its assert). The agreement test is cheaper, fails loudly
+  in the suite before the push, and catches exactly the drift that occurred. Red-proved by drifting
+  the yaml pin (FAILED) and restoring (PASSED).
+  **AUDIT: ci.yml carries exactly ONE 64-hex pin** — `FOUNDED_GOLDEN`. No other duplicated
+  constants found.
+  **The general defect: a pinned constant duplicated across the test suite and the CI workflow has
+  no single source of truth, and only one copy is covered by the suite.**
+- **FIXED (2026-08-11) — `build-and-test` WAS RED ON `main` ON THE READ-ISOLATION CHECK. CAUSE:
+  T3.12a, NOT A PRE-EXISTING FAILURE.** *(Dating corrected by the director: red at `3185a6b` is
+  AFTER T3.12a merged, so the reporter is the cause; my earlier "pre-existing since at least
+  2026-08-08" was wrong.)* `ReplayReport.cs` reads `NeedSatisfactions` and `Grievances` BY DESIGN —
+  it is a reporter — and the T2.6 allowlist predates reporters. Allowlisted with the reason at the
+  entry; red-proved by removing the entry (FAILED) and restoring (OK).
+  **MEASURED WEAKNESS OF THE GUARD, filed not fixed:** it is a bare grep for four identifiers. It
+  does NOT distinguish a WRITE from a READ, nor sim code from reporting code, nor code from PROSE —
+  **two of the seven lines it flagged were DOC COMMENT text**. A path allowlist is its only lever,
+  so every future reporter, exporter or debug dump trips it for the same non-reason. Same class as
+  the FirstReign ordering finding: the guard's name claims more than its mechanism delivers.
+- **(superseded, kept for the dating correction) `build-and-test` red on `main`.** Job step *"Read-isolation check (T2.6 — grievance read by
+  nothing but UI/chronicle)"* fails at `3185a6b`, `d4ce188` and `7ae19c9`; **every later step —
+  Setup, Restore, Build, Test, and the T0.2 no-compile acceptance — is SKIPPED as a result.**
+  **The CI suite has therefore not run on `main` for at least three days**, and nobody read it.
+  Same family as the nightly's eleven silent runs. Not diagnosed here beyond the step name.
+- **PROCESS — A REQUIRED STATUS CHECK CAN BE BYPASSED SILENTLY BY THE PUSHING IDENTITY.** `git push`
+  to `main` printed `remote: Bypassed rule violations for refs/heads/main: - Required status check
+  "determinism-xproc" is failing.` and **the push succeeded**. The ruleset lists a bypass actor and
+  the session's identity is in it, so the gate reports rather than blocks. **A gate that can be
+  bypassed silently is not a gate.** Options (none taken): remove the bypass actor for `main`; or
+  keep it and make the bypass loud. **Director's ruling.**
+- **THE THIRD UNDECLARED COUPLING TO `minSpacingKm`, AND THE ADR SAYS SO.** Measured across
+  T4.1b/T4.1e: spacing is coupled to **(1) the deposit CORRELATION LENGTH** — hypothesised,
+  **REFUTED** (the moisture channel saturates at every site, so no correlation length helps);
+  **(2) the deposit SAMPLING FOOTPRINT** — **REAL**, repaired at T4.1e; **(3) `landWeight`** —
+  **REAL**, packing shrinks partitioned catchments, the land term shrinks, attractiveness gaps
+  narrow, T2.8's gap-closing cap binds, and the migration rate lever loses its teeth. T3.4b already
+  fixed this once by re-deriving `landWeight` after the catchment became a 50 km hinterland.
+  **ADR-018 §7's "what breaks" enumeration is INCOMPLETE AS WRITTEN and should say so** — it lists
+  seven moving tests and no couplings. **Spacing has more undeclared couplings than any packet has
+  enumerated, and the count is 3 discovered in 2 packets.**
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
