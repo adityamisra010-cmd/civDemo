@@ -44,7 +44,14 @@ Formations render as **unit tokens/blocks with strength and morale bars**, banne
 
 v1 ships ancient/classical warfare only (matching the vertical slice). Later eras arrive as **data + a few new verbs**, with their expansions: gunpowder (ranged dominance, entrenchment value), industrial (artillery bombard, rail-fed fronts), modern (armored formations, air as *strike missions on the battle map* — never dogfight simulation). Naval command battles: post-slice candidate; naval stays auto-resolve until then. Sieges remain multi-turn strategic operations that can spawn assault battles.
 
-## 6. Milestone resequence (battle layer inserted as M6)
+
+
+> **D-040 (2026-08-08) uses this resequence.** `docs/d040-discovery-and-control.md` D3/D4 place
+> map extent and discovery at **M7 (knowledge)** and the political consequences of weak control at
+> **M8 (politics)**, per the table below. D-040 Part B also extends **D-039** Part B's
+> reconnaissance clauses to a second scale (strategic discovery), naming the one difference:
+> reconnaissance reports a lagging position of a moving thing, discovery a permanent fact about
+> the land.## 6. Milestone resequence (battle layer inserted as M6)
 
 | M | Content | Note |
 |---|---|---|
