@@ -16,6 +16,11 @@ A doom loop discovered by these tests is a mechanism bug — fix the mechanism, 
 
 ## PART 2 — THE RELEASE VALVES (why outbursts end even when needs stay unmet)
 
+> **D-041 (2026-08-12) points M8's defection work at these valves.** `docs/d041-attachment.md` D2:
+> secession, autonomy and the periphery leaving are the political consequences of a population whose
+> ATTACHMENT stock has run out while the state's control still nominally reaches it. The machinery
+> is here; the stock is D-041's.
+
 Organizing frame: grievance expresses through three competing channels — **Exit, Voice, or Endurance** — and the sim always keeps at least one channel open.
 
 1. **Expression discharges pressure.** The outburst itself vents the stock: a riot converts accumulated grievance into expressed grievance ("the message was sent"), dropping G even when nothing was fixed. Riots are literally pressure-release events.

@@ -250,6 +250,14 @@ audit found the two SPECIFIC SHAPES that would do it, and they are promoted here
 > value that VARIES WITH DISTANCE and is CONTESTED WHERE CLAIMS OVERLAP.
 > See `docs/d040-discovery-and-control.md` Part C.
 
+> **NOTE, NOT A FOURTH PROHIBITION — D-041 (2026-08-12).** `docs/d041-attachment.md` D3 checked
+> whether this shape can accommodate a fourth quantity, **ATTACHMENT**, a stock held by a
+> POPULATION rather than by a place. **It can, without a retrofit**, precisely because the three
+> prohibitions above force RELATIONS rather than owner-ids — a fourth relation is an added table,
+> not a reshaping. **No M4 obligation is created.** The one thing to keep in view: attachment
+> travels with MIGRANTS, so a fourth relation keyed to a PLACE rather than to a population-bearing
+> row would create exactly the retrofit this note reports is unnecessary.
+
 **Both are the NATURAL FIRST IMPLEMENTATION**, which is exactly why they are named rather than
 left to be rediscovered. **All three quantities ship as RELATIONS:** claim keyed by
 (polity, place), control keyed by (polity, place), recognition keyed by
