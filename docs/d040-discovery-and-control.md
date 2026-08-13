@@ -111,7 +111,14 @@ the free-floating modifier law 2 forbids — *"free-floating permanent buffs are
 reach runs out.**
 
 **C4.** The reference class, recorded because it is what makes this historically exact: **empires
-lose their periphery first.** Roman provinces, colonial holdings, every over-extended polity fails
+lose their periphery first.**
+
+> **D-041 (2026-08-12) ADDS THE POPULATION-SIDE QUANTITY THIS PART LEAVES OPEN.**
+> `docs/d041-attachment.md`: control is a FUNCTION computed each turn; **attachment is an
+> ACCUMULATED STOCK held by a POPULATION**, slow to build and slow to lose, and it travels with
+> migrants. Distance-decayed control explains why remote provinces are weakly governed; it does not
+> explain why some never leave. **D-041 does not amend this record** — attachment's inputs are time
+> under control and what the polity does, and distance enters only through control, never directly. Roman provinces, colonial holdings, every over-extended polity fails
 at its edges before its centre. A control model that decays with administrative distance produces
 that **without anyone scripting it**.
 
