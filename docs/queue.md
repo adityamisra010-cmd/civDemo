@@ -802,6 +802,26 @@
   **ADR-018 §7's "what breaks" enumeration is INCOMPLETE AS WRITTEN and should say so** — it lists
   seven moving tests and no couplings. **Spacing has more undeclared couplings than any packet has
   enumerated, and the count is 3 discovered in 2 packets.**
+- **DEFECT — THE DEV MIGRATION QUARANTINE ENVELOPE IS STALE ON `main`, AND ITS SELF-VERIFICATION
+  CLAIM IS FALSE AS IMPLEMENTED. OWNER: T3.10's MIGRATED CORRIDOR WORK IN M4.**
+  Measured at T4.1b (2026-08-08) on `origin/main`, with NO packet change applied, via the real
+  battery in a clean worktree:
+
+  | seed | recorded constant | measured on main | ratio | tolerance |
+  | --- | --- | --- | --- | --- |
+  | 42 | 0.000931705 | 0.000887533 | ×0.953 | 0.75 |
+  | 7 | 0.000799951 | 0.000644000 | **×0.805** | 0.75 |
+
+  **Neither pin reproduces; seed 7 sits 0.055 above the drift tooth.** `CalibrationBatteryTests.cs:170-174`
+  states the recorded values are *"self-verifying: the drift tooth below fails the moment either
+  recorded value stops matching what the battery measures, so a stale pin cannot rot silently."*
+  **That property does not hold.** The tooth compares against `recorded × 0.75`, so a pin can rot by
+  up to 25 % in silence — and both have, one of them by 19.5 %.
+  **This is §7.12 pointed at a GUARD: an assertion claiming a property it does not have.** Same
+  family as the nightly that was red for eleven runs while nobody read it.
+  **WHEN it drifted, and FROM WHAT, is unmeasured** — a bisect over the packets between T3.4c's pin
+  and `main`, on one cheap metric. **Do not let a future re-pin absorb two causes** (the ruled
+  spacing change and this drift) in one act; separate them or state which is being absorbed.
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
@@ -993,3 +1013,84 @@
   is the only reason the disagreement surfaced at all. Third instance in the family with the
   sweep-capture and operation-looks-successful lines: **the failure is in what the instrument could
   distinguish.**
+- **T4.14 — EXCLUDED CANDIDATE, DO NOT RE-TEST: FOUNDING POPULATION DOES NOT PREDICT THE
+  EMERGENCE MODE.** The artisan emergence split is bimodal (ten at exactly 1; Nuhem 27,
+  Naethaehun 36; nothing between 1 and 27). **The obvious hypothesis — bigger settlements emerge
+  with more artisans — is REFUTED by the director's own chronicle:** Nuhem is the largest founding
+  (663 souls) and lands high, but **Mothian is the SECOND largest (583) and lands at 1**, while
+  **Naethaehun is mid-pack (380) and lands at 36**. Evidence:
+  `docs/session-logs/chronicle-20260807-145349.txt`. **Whatever splits the two modes is not
+  founding population.** Recorded as an excluded candidate so it is not re-tested.
+- **METHOD LESSON (T4.1, recorded by director ruling): THE CHEAPER INSTRUMENT WAS ALREADY IN
+  HAND.** Inheritance B was specified as a per-turn replay scan of the director's order log,
+  because the log was assumed to be the only record of emergence. It was not: **the CHRONICLE is
+  the emergence record** — it logs the first-emergence event and its count directly, which is
+  exactly the quantity in question — so the reading needed no replay at all, and the `.bin` that
+  blocked it was never required for this question. **Before building an instrument, check whether
+  an existing artifact already records the quantity.** Same family as the sweep-capture line and
+  the operation-looks-successful line: the failure is in what the method could SEE, not in the
+  measurement.
+
+- **T4.1b — SPACING DERIVED (~95 km), AND A MEASUREMENT THAT CHANGES THE RULING'S JUSTIFICATION
+  (`docs/t4.1b-review-record.md`).** Direction was ruled Option B (spacing DOWN); the NUMBER was
+  derived, not supplied. **M1 CONFIRMS the inconsistency:** at `minSpacingKm = 480` hex packing
+  allots **199,532 km²** per settlement while the catchment works **7,854 km² — 3.94 %**, and
+  ~95 % of measured habitable land (5,373,616 km², fertility ≥ 0.10) is never touched.
+  **M2 derives s = r√(π/0.866) = 95.2 km** (catchments tangent gives 100 km) — **above the whole
+  reference band** (Sumerian 30–50, Athens–Corinth ~80), because the 50 km catchment radius is
+  itself generous; radius is out of scope. **M4 CONFIRMS the ~32 km stride floor does NOT bind**
+  (derived spacing = 5.95 nodes; the floor is on RADIUS, unchanged) — the director's earlier
+  belief that it blocked Option B is confirmed wrong.
+  **THE FINDING: NO SINGLE FIXED VALUE SATISFIES BOTH CHARTER ENDPOINTS.** Measured saturation
+  (5 seeds) — 480 km → **40/46/52**, 143.8 km → 206/254/294, 95.2 km → **398/457/582**, 88.1 km →
+  458/515/650. **The shipped 480 already hits the Charter's "~50 (ancient)" at a median of 46**;
+  the late target of 300–800 needs 88–144 km. Those are 2.5–4× apart and `minSpacingKm` is ONE
+  constant. **The director's "a fixed spacing constant cannot be right across 6,000 years" is now
+  a MEASUREMENT, not an intuition.** Derived 95.2 km implies ~457 settlements, ~9× the ancient
+  target — reported and NOT rounded toward a comfortable count (CR-003 §5.1). Direction survives;
+  justification changes: 480 is not wrong, it is correct **for the ancient endpoint only**. Three
+  shapes offered to the director, none chosen. **No constant moved; the ADR amending D-025 comes
+  after the ruling.**
+- **OPEN DESIGN ITEM, NO OWNER — SPACING SHOULD DERIVE FROM COMPUTED STATE (law 4).** Population
+  pressure and land quality, not a fixed constant. T4.1b's M3+M5 is its supporting measurement:
+  it is not merely nicer, it is **the only shape that satisfies both Charter endpoints**.
+- **PLAYABILITY COUPLING — WHY THE SPACING CHANGE SHOULD BE TAKEN IN TWO STEPS (director's
+  reasoning, recorded).** The Charter's 300–800 is not reachable as a PLAY EXPERIENCE until
+  **M5's delegation** exists: sector mixes are set per settlement by hand — workable at 12,
+  tedious at 46, impossible at 300+. **And T4.16's clone work should land before the world grows**
+  — the price solver is O(S²·G²) and buckets already collide with their ratified ~150k cap at
+  Charter scale. Both argue the first step should be modest and the second taken deliberately.
+
+- **THE DIRECTOR'S SESSION LOG REPLAYED (T4.1b; `docs/session-logs/orders-20260807-145349.bin`,
+  main `3185a6b`; now GUARDED by `OrderLogFixtureTests`, which its filename resolution did not
+  reach).** Four measurements:
+  **1. THE BIMODAL-EMERGENCE DISCRIMINATOR IS DECISIVE — AND KILLS THE OBVIOUS HYPOTHESIS.** Only
+  TWO settlements were ever ruled: **s11 = Mothian** and **s2 = Kunaetho**. **Both emerged at
+  EXACTLY 1.** The two high-mode settlements — **Nuhem (42) and Naethaehun (58)** — received **no
+  order at all**. So **the split is NOT a per-settlement response to being ordered.** It NARROWS
+  T4.1's order-conditional finding rather than contradicting it: a no-order world still has
+  artisans from turn 1 with no emergence event, so **the effect is WORLD-LEVEL** — two orders
+  anywhere change the emergence regime everywhere. Remaining candidates: world-aggregate couplings
+  (prices, trade, class-mobility shares). **Owner T4.14.**
+  **2. THE ARTISAN COLLAPSE DOES NOT OCCUR IN THE DIRECTOR'S WORLD** — 0 of 12 settlements at zero
+  artisans at t650 (finals 103–3,083). The 6-of-12 extinction measured earlier was on the **shipped
+  M2-era held-exit log**, so it is specific to THAT labour schedule, not to labour orders in
+  general and not to the director's play. **T4.14's subject narrows again.**
+  **3. THE THIATHIARIATH OSCILLATION DOES NOT REPRODUCE.** Population share over 650 turns:
+  range 4.64–7.89 %, **largest turn-to-turn swing 0.89 percentage points**. Against the reported
+  13/24/24/10/10 %, this is not the same quantity — either a different observable (absolute
+  population, a per-class share, a UI panel measuring something else) or a different run. Two
+  independent replays now agree with each other and disagree with the reported figures.
+  **Measured, not explained.**
+  **4. KUNAETHO'S GRIEVANCE IS COMFORT-DRIVEN.** Grievance 10.4 → 23.6 → plateau ~20, while
+  **Sustenance is pinned at 0.910 and Shelter at 1.000 for the ENTIRE campaign** and **Comfort
+  falls 0.713 → 0.413, tracking grievance inversely throughout.** Kunaetho is a RULED settlement
+  whose crafting share was set to 10 and never raised. **This is Q5 (Comfort is flow-bound) in a
+  played session.**
+  **ALSO: the log stores RAW slider values (sums 100/134/129/128/179), as D-032 intends** — raw
+  weights, consumers normalise via `Sectors.Share`; replay and UI share that one path, so they
+  cannot diverge. **AND: replay vs chronicle differs by ONE TURN on two emergences** (Kunaetho
+  320 vs 330, Vurun 470 vs 480) **and systematically on counts** (Nuhem 42 vs 27, Naethaehun 58 vs
+  36) — consistent with the chronicle counting adults only ("masters and hands") and logging at a
+  different point in the turn. Unresolved; does not affect the 10/2 mode structure, which
+  reproduces exactly.

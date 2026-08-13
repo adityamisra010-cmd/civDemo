@@ -194,7 +194,15 @@ public class CalibrationBatteryTests
     /// resolution tooth's job, and for both call-site seeds `lo` is nearer
     /// than any envelope ceiling could be.
     /// </summary>
-    private const double QuarantineRecordedSeed42 = 0.000931705;
+    // T4.1b RE-PIN (ADR-018, ONE ruled cause): minSpacingKm 480 -> 95.2.
+    // DECOMPOSED before re-pinning (§7.15): the metric is gross / person-years,
+    // and seed 42 moved on the NUMERATOR — gross 8,940 -> 6,632 (x0.742) while
+    // person-years moved x0.9995. Not the CR-002 denominator family.
+    // NOT ABSORBED SILENTLY: the pre-existing drift filed in queue.md (main
+    // measured 0.000887533 against the OLD recorded 0.000931705, x0.953, cause
+    // unmeasured) is STILL OPEN and is a second cause this pin now also
+    // carries. Owner: T3.10's migrated corridor work in M4.
+    private const double QuarantineRecordedSeed42 = 0.000659126;
     private const double QuarantineRecordedSeed7 = 0.000799951;
     private const double QuarantineDriftTolerance = 0.75;
 

@@ -476,7 +476,11 @@ public class SnapshotTests
         // endowments change, so this world hash re-mints. Spacing is UNTOUCHED
         // at its shipped 480 km — this packet carries one change and this pin
         // moves for that one cause.
-        const string golden = "63c8579a79ba36a92975da0a72456e528a6f8cf206dca9ed7d49ca47dbd165ad";
+                // T4.1b RE-PIN (ADR-018, ONE cause): minSpacingKm 480 -> 95.2 sites the
+        // twelve settlements differently, so the founded world differs. Deposits
+        // unchanged (T4.1e already on main). ci.yml's FOUNDED_GOLDEN moves with
+        // this value; CiPinAgreementTests asserts the two copies agree.
+        const string golden = "7f536da22b561e5d1dc4261b35178996de4f8b9ff6877e0362a4fec947e7be3b";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();

@@ -113,16 +113,34 @@ right shape is the open question, and it is a corridor-independence question, no
 its denominator moves with the measured system. The CR-002 cancellation identity is the signature
 to test against, algebraically and counterfactually.
 
-### §3.4 COUPLING MAP (S8 §4.1 requirement 4) — PROVISIONAL; T4.1 IS AUTHORITATIVE
+### §3.4 COUPLING MAP (S8 §4.1 requirement 4) — **REVISED BY T4.1 UNDER THE LIVING CLAUSE**
+
+> **REVISION RECORD (director ruling, 2026-08-07).** S8 §4.1 makes T4.1 authoritative over this
+> map; a finding that moves a row is a **LIVING revision, not an amendment**. **Two rows moved:**
+> `AutoResolver + generals` (R-1 ruled PERSON, and purchase ruled OUT — see T4.8) and
+> `colonization` (`minSpacingKm` amended in the open by t4.1b rather than bypassed). **Nothing
+> else moved:** B-2's row stands — T4.1's Q1 quantifies how far B-2 must move the world (~9–19×
+> from land-binding at t650) without changing what B-2 perturbs. Claims, transport and T3.10 are
+> untouched.
+>
+> **A CLASSIFICATION CORRECTION, recorded because §7.12 applies to classifications as well as to
+> numbers.** T4.1's review record initially called two things "coupling-map revisions". Checked
+> against this merged map, **neither was a map row**: **T4.14 is not in the map at all** (a
+> packet-scope change), and **the inert tool bonus is INBOUND**, which this map explicitly assigns
+> to T4.1's own scope — *"INBOUND … is T4.1's scope and is enumerated from code there, not here."*
+> The mislabelling was found by reading the artifact before the director ruled on it. **What
+> actually moved is the two rows above**, one from the audit and one from the Q4 direction ruling.
+
+**PROVISIONAL AS AUTHORED; T4.1 IS AUTHORITATIVE**
 
 OUTBOUND: what M4's new systems perturb.
 
 | new system | perturbs | re-anchoring expected |
 | --- | --- | --- |
 | **B-2 store bounding** | every goods stock; all price series (band-edge pinning); Shelter (timber buffer); Comfort; the grain reserve; `densityPerArableKm2` indirectly via starvation becoming reachable | **ALL THREE GOLDENS + first-reign.** Re-pin once, in the same early window as T4.1's corrections |
-| **colonization** | settlement count; `minSpacingKm` consumers; every catchment; `EffectiveArableKm2`; the density corridor's denominator; migration destinations | goldens; density + migration corridors; `CatchmentSystem` recompute triggers (D-016) |
+| **colonization** | settlement count; every catchment; `EffectiveArableKm2`; the density corridor's denominator; migration destinations. **`minSpacingKm` is NO LONGER perturbed here** — it is amended in the open by t4.1b's ADR, before and independently of colonization | goldens; density + migration corridors; `CatchmentSystem` recompute triggers (D-016). **The spacing change's own golden re-pin and catchment recompute belong to t4.1b, not to this row** |
 | **claim/control/recognition** | new tables only; schema version bump | goldens (schema), no behaviour |
-| **AutoResolver + generals** | new tables; bucket extraction IF R-1 rules "person" | goldens; **conservation audit IF R-1 rules "person"** |
+| **AutoResolver + generals** | new tables; **bucket extraction via `Ledger.Transfer` (R-1 RULED person)**; NOT purchase — payment is money, M5 | goldens; **the law-1 conservation audit, as packet CONTENT** |
 | **transport levers** | travel cost → path costs → catchments → arable → density corridor; trade deadband | goldens; density corridor; escalation 1's arithmetic |
 | **T3.10 migrated work** | MalthusLite test power (BINDING restoration); calibration corridors | corridor bands; test power assertions |
 
@@ -231,7 +249,7 @@ left to be rediscovered. **All three quantities ship as RELATIONS:** claim keyed
 | **T4.5 — non-state peoples from turn zero** | D-037 B3 | T4.3 | YES |
 | **T4.6 — trade & foreign trade** | the second polity's exchange; foreign-trade rules | T4.2, T4.3, **T4.7** | **YES** |
 | **T4.7 — the transport packet (Q-A + Q-C + Q-E as ONE)** | water routes, draught animals, route improvement — **ruled one design conversation**; the lever set that could make escalation 1's deadband reachable | **T4.9** (rivers cannot live on a stride-4 lattice) | **YES** |
-| **T4.8 — strategic war + AutoResolver + notables-as-generals** | delegate-with-agency; general competence and traits parameterize the AutoResolver | T4.3, **R-1** | **YES** |
+| **T4.8 — strategic war + AutoResolver + notables-as-generals** | delegate-with-agency; general competence and traits parameterize the AutoResolver. **R-1 RESOLVED: notables are PEOPLE** — bucket extraction via `Ledger.Transfer` and the **law-1 audit are packet CONTENT, not a follow-up**. **PURCHASE IS OUT OF SCOPE** (payment is money, M5). **ACCEPTANCE MUST INCLUDE: a notable can be BORN, DIE and DEFECT with no bookkeeping outside the Ledger** — the property Option B was taken for, which T4.1's escalation established holds for three of four lifecycle events | T4.3 | **YES** |
 | **T4.9 — RULE THE LATTICE STRIDE ONCE** | one architecture call serving three blocked consumers: rivers (transport), village catchments, settlement density (colonization) | — | NO (ruling + measurement) |
 | **T4.10 — T3.10's migrated work** | calibration extension; **the BINDING MalthusLite power restoration**; CR-002's deferred geometry fix; the density + migration corridor quarantines with their 20-seed ranges; the withdrawn comparative-advantage criterion | **T4.2** (MalthusLite restoration needs cycling stocks) | **YES** |
 | **T4.11 — T3.7 merchants** | the class that emerges on trade volume | **T4.6** (merchants emerge on a volume that must first exist) | YES |

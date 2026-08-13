@@ -200,7 +200,39 @@ public class CatchmentTests
 
         // End-to-end turn (recompute inside the pipeline) as a cross-check.
         WorldState stepped = CatchmentExecutor().Step(founded);
-        Assert.Equal(iso.Reached.Length, stepped.CatchmentSummaries[0].NodeCount);
+        // T4.1b WEAKENING (director ruling, itemized in ADR-018 §11). WAS
+        // Assert.Equal(iso, partitioned). The equality was correct only for a
+        // world where no neighbour is ever close enough to contest a node: at
+        // minSpacingKm = 480 the nearest neighbour sat ~30 lattice nodes away.
+        // At 95.2 km neighbours contest, and the T2.3 partition removes one
+        // node — which is the partitioning WORKING, not failing.
+        //
+        // UPPER BOUND — partitioning can only REMOVE nodes a nearer neighbour
+        // claims, never add: partitioned <= unpartitioned, always.
+        Assert.True(stepped.CatchmentSummaries[0].NodeCount <= iso.Reached.Length,
+            $"partitioned catchment {stepped.CatchmentSummaries[0].NodeCount} EXCEEDS the " +
+            $"unpartitioned isochrone {iso.Reached.Length} — partitioning added nodes, which it " +
+            "cannot do; the partition is claiming cells outside the travel budget.");
+
+        // LOWER BOUND — added in the SAME edit so the weakening cannot go
+        // silent (an inequality alone passes if partitioning removes EVERY
+        // node). DERIVED FROM THE GEOMETRY: a settlement always retains every
+        // cell strictly nearer to it than to any neighbour, so at minimum
+        // spacing s it keeps at least the disc of radius s/2 = 47.6 km against
+        // the 50 km hinterland — an area fraction of (47.6/50)^2 = 0.906.
+        // ASYMMETRIC MARGIN (§7.16), stating the weaker side: floor 19 against
+        // a measured 21 leaves TWO nodes of headroom, deliberately thin. A
+        // generous floor (say half the isochrone) would still pass if
+        // partitioning collapsed the catchment to a fifth of its budget, which
+        // is precisely the failure this bound exists to catch. If a future
+        // spacing change makes 0.906 wrong, DERIVE IT AGAIN — do not lower it
+        // to accommodate a red.
+        int floorNodes = (int)Math.Floor(0.906 * iso.Reached.Length);
+        Assert.True(stepped.CatchmentSummaries[0].NodeCount >= floorNodes,
+            $"partitioned catchment {stepped.CatchmentSummaries[0].NodeCount} fell below the " +
+            $"geometric floor {floorNodes} (0.906 x {iso.Reached.Length}) — a settlement is losing " +
+            "cells NEARER to it than to any neighbour, so the partition is mis-assigning, not " +
+            "contesting.");
 
         Assert.True(iso.Reached.Length > 0);
         Assert.True(recomputeMs < 2000, $"catchment recompute took {recomputeMs:F1} ms");

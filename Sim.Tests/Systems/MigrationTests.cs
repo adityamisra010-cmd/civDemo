@@ -204,7 +204,15 @@ public class MigrationTests
 
     // --- exit before death (D-021) ------------------------------------------
 
-    [Fact]
+    // T4.1b SUSPENDED (director ruling, ADR-018 §11). NOT re-pinned, NOT
+    // relaxed, NOT deleted — the assertion is MEASURED WRONG on main,
+    // independently of spacing: T4.1g measured gap-driven migration responding
+    // x3.10 to a 10x rate lever while GROSS migration responds x1.07, and this
+    // test asserts on GROSS. The observable is defective, not the mechanism.
+    // The skip LIFTS when M4's migration work re-derives what these teeth
+    // should assert. Owner: M4 migration. Do not re-enable by adjusting a
+    // threshold — that would pin the wrong observable harder.
+    [Fact(Skip = "T4.1b/ADR-018 §11: asserts on GROSS migration, which T4.1g measured as the wrong observable for the rate lever (gap-driven x3.10 vs gross x1.07). Lifts when M4's migration work re-derives the assertion. Owner: M4 migration.")]
     public void FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes()
     {
         // Canonical N = 12 world; settlement 0 is ordered to 0% farm at turn
@@ -350,7 +358,15 @@ public class MigrationTests
         return worst;
     }
 
-    [Fact]
+    // T4.1b SUSPENDED (director ruling, ADR-018 §11). NOT re-pinned, NOT
+    // relaxed, NOT deleted — the assertion is MEASURED WRONG on main,
+    // independently of spacing: T4.1g measured gap-driven migration responding
+    // x3.10 to a 10x rate lever while GROSS migration responds x1.07, and this
+    // test asserts on GROSS. The observable is defective, not the mechanism.
+    // The skip LIFTS when M4's migration work re-derives what these teeth
+    // should assert. Owner: M4 migration. Do not re-enable by adjusting a
+    // threshold — that would pin the wrong observable harder.
+    [Fact(Skip = "T4.1b/ADR-018 §11: asserts on GROSS migration, which T4.1g measured as the wrong observable for the rate lever (gap-driven x3.10 vs gross x1.07). Lifts when M4's migration work re-derives the assertion. Owner: M4 migration.")]
     public void MagnitudeCorridor_FedPhaseDrift_WithTeeth()
     {
         // TUNE corridor, FINALIZED at T2.8 on the STABILIZED system (director
