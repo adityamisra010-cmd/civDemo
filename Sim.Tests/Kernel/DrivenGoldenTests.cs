@@ -126,7 +126,9 @@ public class DrivenGoldenTests
         // endowments change, so this world hash re-mints. Spacing is UNTOUCHED
         // at its shipped 480 km — this packet carries one change and this pin
         // moves for that one cause.
-        const string golden = "71768febd7f39534a9247f77a0f66005b3bab41fa2476509d2aca0d37c30ff7c";
+                // T4.1b RE-PIN (ADR-018, ONE cause): the same re-sited world under the
+        // order log — minSpacingKm 480 -> 95.2.
+        const string golden = "f2d896ff6df5489faa587b314316728fb342259386da4949466f23bff6871b0e";
 
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

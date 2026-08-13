@@ -242,3 +242,50 @@ are true. Which one gives is a design ruling, not a re-pin decision.
 
 **STATE OF THE TREE: `minSpacingKm = 95.2` is committed; NOTHING was re-pinned; no guard was
 touched; the suite is RED on these seven and green elsewhere.**
+
+---
+
+## 11. WHAT THE SPACING CHANGE COSTS THE TEST SUITE — TWO SUSPENSIONS AND ONE WEAKENING
+
+**Director ruling, 2026-08-12.** The final fallout is **three values re-pinned, two guards
+SUSPENDED, one assertion WEAKENED** — not the four-and-two first reported. Each with its owner.
+
+### SUSPENDED — the assertion is measured wrong, not the mechanism
+
+| test | why | owner |
+| --- | --- | --- |
+| `MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth` | asserts on **GROSS** migration; T4.1g measured gap-driven flow responding **×3.10** to a 10× rate lever while gross responds **×1.07**. **The observable is defective independently of spacing.** | **M4 migration work** |
+| `MigrationTests.FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes` | same family — the migration-teeth family's first site; cannot reach its ordering comparison | **M4 migration work** |
+
+**Neither was re-pinned, relaxed, or deleted.** `[Skip]` carries the reason at the skip. **The skip
+lifts when M4's migration work re-derives what these teeth should assert** — not by adjusting a
+threshold, which would pin the wrong observable harder.
+
+### WEAKENED — itemized, per the T3.9b precedent where an unitemized weakening became a queue line
+
+**`CatchmentTests.Catchment_NodeCount_And_RecomputeMs_Reported_At1024`.**
+**WAS:** `Assert.Equal(unpartitioned, partitioned)`.
+**NOW:** `partitioned <= unpartitioned` **AND** `partitioned >= floor(0.906 × unpartitioned)`.
+
+**Why weakened rather than suspended:** the equality was correct for a world where no neighbour
+ever contests a node, and it is **now correct that one does**. At 480 km the nearest neighbour sat
+~30 lattice nodes away; at 95.2 km neighbours contest and the T2.3 partition removes one.
+**The partitioning is working; the assertion was over-specified.**
+
+**The floor is derived from the geometry:** a settlement always retains every cell strictly nearer
+to it than to any neighbour, so at minimum spacing `s` it keeps at least the disc of radius
+`s/2 = 47.6 km` against the 50 km hinterland — an area fraction of `(47.6/50)² = 0.906`.
+**Asymmetric margin (§7.16), weaker side stated:** floor 19 against a measured 21 leaves **two
+nodes** of headroom, deliberately thin, because a generous floor would still pass if partitioning
+collapsed the catchment to a fifth of its budget.
+
+**WHAT THE TEST CAN NO LONGER DISTINGUISH — the cost of the weakening, stated plainly:**
+- it can no longer detect a partition that removes **1 to 3 nodes** for a WRONG reason (a
+  mis-assignment rather than a genuine contest) — anything inside the 19–22 band now passes;
+- it can no longer detect a **drift in the isochrone budget** that moves both quantities together,
+  since the floor is expressed as a fraction of the unpartitioned count rather than as an absolute;
+- it still detects partitioning that ADDS nodes, and partitioning that collapses the catchment
+  below 90.6 % of its travel budget.
+
+**Owner of the lost coverage: T4.4 (colonization), which is the packet that will make contested
+catchments routine rather than exceptional.**
