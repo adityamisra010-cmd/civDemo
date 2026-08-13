@@ -35,7 +35,10 @@
       0.7,
       0.7,
       0.7
-    ]
+    ],
+    "_docStoreBounding": "T4.2 (B-2 BASE LAYER). Two DERIVED constants, reference classes stated in docs/t4.2-manifest.md and fixed BEFORE the world was run. grainSpoilagePerYear 0.08: threshed cereal in pre-modern FIXED storage (mud-brick or pit granary, no chemical protection, no controlled atmosphere) loses 5-10%/yr to moulds, germination, insects and rodents; the midpoint is taken, not tuned. Carrier: decay. granaryYearsOfDemand 1.5: an agrarian household carried on the order of one to a few years of its own consumption; the midpoint is taken. Carrier: a structure of finite size, which grows with the settlement because more households means more granaries. NOT A CAP CHOSEN TO MAKE FAMINE APPEAR (CR-003 5.1): spoilage ALONE equilibrates at 12.5 years of surplus (0.08*S = s), which is why B-2a stages two layers - the capacity ceiling is what binds, and that was derived and stated in the manifest before measuring.",
+    "grainSpoilagePerYear": 0.08,
+    "granaryYearsOfDemand": 1.5
   },
   "demographics": {
     "fertilityPerPersonPerYear": [
