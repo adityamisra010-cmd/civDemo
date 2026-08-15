@@ -133,7 +133,10 @@ public class DrivenGoldenTests
         // driven world's grain stock trajectory over the 300-turn horizon —
         // spoilage and the granary ceiling both apply from the first turn a
         // store exists. No other mechanism, constant, or ordering changed.
-        const string golden = "7837c05d2c50182ec328732c87fcd99eb887bb51da1ffe3ed2df793be0fe5364";
+        // T4.3 RE-PIN (VALUE, SCHEMA-ONLY, ONE cause): the Claims, Controls
+        // and Recognitions tables joined the stream (three zero count
+        // prefixes, 12 bytes). No polity/claim/control system exists yet.
+        const string golden = "75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d";
 
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

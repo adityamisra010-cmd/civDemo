@@ -536,6 +536,44 @@ public record struct LedgerFlowRow(ConservedQuantityId Quantity, ReasonId Reason
 public record struct RngStreamRow(SystemId System, RegionId Region, ulong State, ulong Inc);
 
 /// <summary>
+/// T4.3 (D-037 A3): a polity's claim to a settlement — WHICH polities assert a
+/// right to it. Multiple polities may claim the SAME settlement simultaneously
+/// (D-037 A3); this is why claim is a RELATION keyed by (Polity, Place), never
+/// an owner-id field on the settlement row — an owner-id cannot express
+/// overlap. Strength is the claim's own magnitude (D-037 C1: strengthens with
+/// recognition, population of the claiming culture, continuous assertion;
+/// decays with time and disuse) — SCHEMA ONLY at T4.3: no system computes,
+/// writes, or decays this field yet; that is a later packet's mechanism.
+/// </summary>
+public record struct ClaimRow(PolityId Polity, SettlementId Place, double Strength);
+
+/// <summary>
+/// T4.3 (D-037 A3 / D-040 Part C): which polity's orders a settlement actually
+/// obeys — distinct from claim (who asserts a right) and recognition (who
+/// acknowledges another's claim). A RELATION keyed by (Polity, Place), NEVER
+/// an owner-id field on the settlement row (T4.3 PROHIBITED 1) — multiple
+/// contested control rows for the same place must be representable so a
+/// later mechanism can resolve them, per D-040 Part C's requirement that
+/// control "varies with distance and is contested where claims overlap".
+/// Strength is that value's SLOT, not a stored decay term (T4.3 PROHIBITED 3):
+/// no distance-decay, communication-latency, or loyalty computation exists
+/// yet — this field is written by nothing in this packet.
+/// </summary>
+public record struct ControlRow(PolityId Polity, SettlementId Place, double Strength);
+
+/// <summary>
+/// T4.3 (D-037 A3): which OTHER polity's claim a polity acknowledges —
+/// bilateral and ASYMMETRIC by construction: a row (Recogniser, Recognised)
+/// never implies its reverse. NEVER a boolean/flag field on a polity row
+/// (T4.3 PROHIBITED 2), which could only express "recognised by someone" or
+/// a single counterparty, not the many-to-many asymmetric relation D-037
+/// requires. Row PRESENCE is the fact: no payload beyond the two keys is
+/// needed at T4.3 (D-037 C7's diplomatic consequences are a later, M7
+/// packet).
+/// </summary>
+public record struct RecognitionRow(PolityId Recogniser, PolityId Recognised);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -578,6 +616,9 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<HarvestWeatherRow> HarvestWeather { get; }
     IReadOnlyTable<TradeFlowRow> TradeFlows { get; }
     IReadOnlyTable<HousingRow> Housing { get; }
+    IReadOnlyTable<ClaimRow> Claims { get; }
+    IReadOnlyTable<ControlRow> Controls { get; }
+    IReadOnlyTable<RecognitionRow> Recognitions { get; }
 }
 
 /// <summary>
@@ -693,6 +734,18 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Per-settlement housing stock (T3.8) — owned by HousingSystem.</summary>
     public Table<HousingRow> Housing { get; }
 
+    /// <summary>Polity claims to a settlement (T4.3, D-037 A3) — schema only; no
+    /// system writes this table yet.</summary>
+    public Table<ClaimRow> Claims { get; }
+
+    /// <summary>Which polity's orders a settlement obeys (T4.3, D-037 A3) —
+    /// schema only; no system writes this table yet.</summary>
+    public Table<ControlRow> Controls { get; }
+
+    /// <summary>Bilateral, asymmetric claim recognition between polities (T4.3,
+    /// D-037 A3) — schema only; no system writes this table yet.</summary>
+    public Table<RecognitionRow> Recognitions { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -724,6 +777,9 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<HarvestWeatherRow> IReadOnlyWorldState.HarvestWeather => HarvestWeather;
     IReadOnlyTable<TradeFlowRow> IReadOnlyWorldState.TradeFlows => TradeFlows;
     IReadOnlyTable<HousingRow> IReadOnlyWorldState.Housing => Housing;
+    IReadOnlyTable<ClaimRow> IReadOnlyWorldState.Claims => Claims;
+    IReadOnlyTable<ControlRow> IReadOnlyWorldState.Controls => Controls;
+    IReadOnlyTable<RecognitionRow> IReadOnlyWorldState.Recognitions => Recognitions;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -759,6 +815,9 @@ public sealed class WorldState : IReadOnlyWorldState
         HarvestWeather = new Table<HarvestWeatherRow>();
         TradeFlows = new Table<TradeFlowRow>();
         Housing = new Table<HousingRow>();
+        Claims = new Table<ClaimRow>();
+        Controls = new Table<ControlRow>();
+        Recognitions = new Table<RecognitionRow>();
     }
 
     private WorldState(
@@ -777,7 +836,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<GrievanceRow> grievances, Table<SmoothedAttractivenessRow> smoothedAttractiveness,
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
         Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
-        Table<HousingRow> housing)
+        Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
+        Table<RecognitionRow> recognitions)
     {
         Seed = seed;
         Clock = clock;
@@ -812,6 +872,9 @@ public sealed class WorldState : IReadOnlyWorldState
         HarvestWeather = harvestWeather;
         TradeFlows = tradeFlows;
         Housing = housing;
+        Claims = claims;
+        Controls = controls;
+        Recognitions = recognitions;
     }
 
     /// <summary>
@@ -828,7 +891,8 @@ public sealed class WorldState : IReadOnlyWorldState
             Variables.Clone(), ClassStates.Clone(), SettlementDistances.Clone(), MigrationFlows.Clone(),
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
-            HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone())
+            HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
+            Claims.Clone(), Controls.Clone(), Recognitions.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

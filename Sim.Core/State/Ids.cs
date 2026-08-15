@@ -47,6 +47,15 @@ public readonly record struct SettlementId(int Value) : IComparable<SettlementId
     public int CompareTo(SettlementId other) => Value.CompareTo(other.Value);
 }
 
+/// <summary>Identifies a polity (T4.3, D-037 A2): a claim, not a container — this id
+/// names the claimant/recogniser in the claim/control/recognition relations. Nothing
+/// about polity origination, behaviour, or lifecycle is implied by the id existing;
+/// D-037 Part B's origin mechanisms are a later packet.</summary>
+public readonly record struct PolityId(int Value) : IComparable<PolityId>
+{
+    public int CompareTo(PolityId other) => Value.CompareTo(other.Value);
+}
+
 /// <summary>Network edge types (D-009: path → road → highway …; M1 ships dirt path only).</summary>
 public static class EdgeTypes
 {
