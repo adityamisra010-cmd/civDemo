@@ -106,7 +106,18 @@ public sealed record PathBuildConfig(
 /// Cohorts.Count entries, validated at load.
 /// </summary>
 public sealed record ConsumptionConfig(
-    [property: JsonPropertyName("cohortWeights"), JsonRequired] double[] CohortWeights);
+    [property: JsonPropertyName("cohortWeights"), JsonRequired] double[] CohortWeights,
+    // T4.2 (B-2 base layer). GrainSpoilagePerYear: the fraction of STORED grain
+    // lost per sim-year to moulds, germination, insects and rodents — DERIVED
+    // from pre-modern fixed-storage loss rates (5-10%/yr; midpoint taken), see
+    // docs/t4.2-manifest.md 1a. Integrated dt-correctly as a survival
+    // exponential, never as rate*dt (the CR-001 fragility).
+    [property: JsonPropertyName("grainSpoilagePerYear"), JsonRequired] double GrainSpoilagePerYear,
+    // GranaryYearsOfDemand: the per-settlement ceiling, denominated in YEARS OF
+    // THE SETTLEMENT'S OWN ANNUAL GRAIN DEMAND so it scales with population and
+    // introduces no per-world constant. DERIVED from agrarian household storage
+    // carrying "one to a few years"; midpoint taken. Manifest 1b.
+    [property: JsonPropertyName("granaryYearsOfDemand"), JsonRequired] double GranaryYearsOfDemand);
 
 /// <summary>
 /// Cohort demographic profiles (T2.1, D-026), all per-sim-year, all TUNE

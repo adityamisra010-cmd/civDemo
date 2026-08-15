@@ -124,6 +124,15 @@ public static class ReasonIds
     public static readonly ReasonId HousingBuilt = new(11);
     public static readonly ReasonId HousingDecayed = new(12);
     public static readonly ReasonId HousingMaterials = new(13);
+
+    // T4.2 (B-2 store bounding) — the two sinks that make a store a STORE
+    // rather than an accumulator. Both are LOSSES with a physical carrier, not
+    // caps: grain rots (Spoilage), and a granary of finite size cannot hold what
+    // overflows it (GranaryOverflow). Separate reasons deliberately — the audit
+    // question "why is the store not growing?" has two different answers and a
+    // single reason would merge a decay process with a capacity constraint.
+    public static readonly ReasonId Spoilage = new(14);
+    public static readonly ReasonId GranaryOverflow = new(15);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

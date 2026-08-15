@@ -188,6 +188,19 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
             var deficitRow = new ConsumptionDeficitRow(settlement, ratio, requiredUnits);
             if (s < deficits.Count) deficits[s] = deficitRow;
             else deficits.Add(deficitRow);
+
+            // --- T4.2 (B-2): STORE BOUNDING, applied AFTER eating -------------
+            // Order matters and is stated: people eat from the store BEFORE it
+            // spoils and BEFORE it overflows. The reverse order would starve a
+            // settlement whose granary was full at the moment of harvest, which
+            // is an artefact of evaluation order rather than of scarcity.
+            //
+            // Grain only. B-2a's base layer is STORED GRAIN; every other good's
+            // bounding is enrichment and out of this packet's fence.
+            BoundStore(ctx, stores, settlement, _grain,
+                annualGrainDemand: (exactDemand[IndexOfGood(basketGoods, _grain)]
+                                    + nonStapleShortfall) / Math.Max(dt, double.Epsilon),
+                dt: dt, cfg: _cfg.Consumption);
         }
     }
 
@@ -214,6 +227,73 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
         row.ConsumeRemainder = want - demanded;   // sub-unit fraction only (see header)
         row.LastConsumptionDemandUnits = demanded;
         row.LastConsumptionEatenUnits = eaten;
+    }
+
+    /// <summary>
+    /// T4.2 — B-2 store bounding, base layer: SPOILAGE then GRANARY CAPACITY.
+    ///
+    /// BOTH ARE LOSSES THROUGH THE LEDGER with their own reasons, never silent
+    /// clamps: law 1 holds exactly, the stock stays `long`, and the audit trail
+    /// answers "where did the grain go?" with two distinct answers.
+    ///
+    /// SPOILAGE is integrated as a SURVIVAL EXPONENTIAL, `1 - exp(-rate*dt)`,
+    /// not as `rate*dt`. At the canonical dt of 10 sim-years a linear reading of
+    /// 0.08/yr would destroy 80% of the store in one turn and 100% at dt = 12.5
+    /// — the CR-001 dt-fragility exactly. The exponential form is dt-invariant:
+    /// two 5-year steps and one 10-year step remove the same fraction.
+    ///
+    /// CAPACITY is denominated in YEARS OF THE SETTLEMENT'S OWN ANNUAL GRAIN
+    /// DEMAND, so it scales with population and there is no per-world constant
+    /// to tune. A settlement that grows builds granaries; one that empties has
+    /// less to hold. The overflow is a LOSS, not a refusal to harvest: the
+    /// harvest already happened, and grain that will not fit is grain that rots
+    /// in the open.
+    ///
+    /// SUB-UNIT PRECISION, stated rather than hidden: neither loss banks a
+    /// remainder. `WholeUnits` rounds, so a store small enough that its annual
+    /// spoilage is under half a unit does not spoil at all. That is a deliberate
+    /// simplification of the base layer — a remainder field would change the
+    /// serialized row shape, which is out of this packet's fence — and its only
+    /// effect is at stores of order 1/(2*rate*dt) units, i.e. single digits.
+    /// </summary>
+    private static void BoundStore(
+        SimContext<ConsumptionTables> ctx, Table<GoodStockRow> stores,
+        SettlementId settlement, GoodId good, double annualGrainDemand,
+        double dt, ConsumptionConfig cfg)
+    {
+        int index = GoodStockIndex.IndexOf(stores, settlement, good);
+        if (index < 0) return;
+        ref GoodStockRow row = ref stores.Ref(index);
+
+        // 1. SPOILAGE — a fraction of what is actually held.
+        long held = row.Amount.Value;
+        if (held > 0 && cfg.GrainSpoilagePerYear > 0.0 && dt > 0.0)
+        {
+            double lostFraction = 1.0 - Math.Exp(-cfg.GrainSpoilagePerYear * dt);
+            long spoiled = ConservedMath.WholeUnits(
+                held * lostFraction, $"grain spoilage (settlement {settlement.Value})");
+            if (spoiled > 0)
+            {
+                ctx.Ledger.Flow(
+                    ref row.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.Spoilage,
+                    spoiled, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
+            }
+        }
+
+        // 2. GRANARY CAPACITY — what is left must fit.
+        if (cfg.GranaryYearsOfDemand > 0.0 && annualGrainDemand > 0.0)
+        {
+            long capacity = ConservedMath.WholeUnits(
+                cfg.GranaryYearsOfDemand * annualGrainDemand,
+                $"granary capacity (settlement {settlement.Value})");
+            long over = row.Amount.Value - capacity;
+            if (over > 0)
+            {
+                ctx.Ledger.Flow(
+                    ref row.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.GranaryOverflow,
+                    over, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
+            }
+        }
     }
 
     private bool IsFood(GoodId good)

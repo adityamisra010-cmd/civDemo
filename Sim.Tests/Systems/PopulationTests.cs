@@ -439,7 +439,7 @@ public class PopulationTests
         for (int t = 1; t <= 900; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
-        long foodEndow = 0, harvest = 0, eaten = 0;
+        long foodEndow = 0, harvest = 0, eaten = 0, spoiled = 0, granaryOverflow = 0;
         for (int i = 0; i < world.LedgerFlows.Count; i++)
         {
             LedgerFlowRow row = world.LedgerFlows[i];
@@ -461,12 +461,16 @@ public class PopulationTests
                 if (row.Reason == ReasonIds.InitialEndowment) foodEndow = row.TotalSourced;
                 else if (row.Reason == ReasonIds.Harvest) harvest = row.TotalSourced;
                 else if (row.Reason == ReasonIds.Eaten) eaten = row.TotalSunk;
+                // T4.2: BoundStore's two sinks — legitimate food-leaving-the-
+                // ledger reasons, not a weakening of the identity below.
+                else if (row.Reason == ReasonIds.Spoilage) spoiled = row.TotalSunk;
+                else if (row.Reason == ReasonIds.GranaryOverflow) granaryOverflow = row.TotalSunk;
                 else Assert.Fail($"unexpected Food flow reason {row.Reason.Value}");
             }
         }
 
         long popFromLedger = checked(popEndow + births - deaths - starved);
-        long foodFromLedger = checked(foodEndow + harvest - eaten);
+        long foodFromLedger = checked(foodEndow + harvest - eaten - spoiled - granaryOverflow);
         Assert.Equal(TotalPop(world), popFromLedger);        // person-exact
         long storeTotal = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;

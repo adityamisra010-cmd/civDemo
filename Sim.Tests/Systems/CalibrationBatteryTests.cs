@@ -202,7 +202,10 @@ public class CalibrationBatteryTests
     // measured 0.000887533 against the OLD recorded 0.000931705, x0.953, cause
     // unmeasured) is STILL OPEN and is a second cause this pin now also
     // carries. Owner: T3.10's migrated corridor work in M4.
-    private const double QuarantineRecordedSeed42 = 0.000659126;
+    // T4.2 RE-PIN (VALUE, ONE ruled cause): grainSpoilagePerYear = 0.08 and
+    // granaryYearsOfDemand = 1.5 move the dev world's migration signature —
+    // itemized in the T4.2 fallout table alongside the other four VALUE pins.
+    private const double QuarantineRecordedSeed42 = 7.21744E-05;
     private const double QuarantineRecordedSeed7 = 0.000799951;
     private const double QuarantineDriftTolerance = 0.75;
 
