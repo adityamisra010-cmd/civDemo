@@ -266,7 +266,15 @@ public class NeedsGrievanceTests
         control = fedExec.Step(control);   // the lagged last turn (Prev deficit)
         famine = fedExec.Step(famine);
 
-        Assert.Equal(starvedBefore, StarvedTotal(control));   // the control arm never starves
+        // T4.2 RE-PIN (VALUE, ruled): the control arm no longer stays at
+        // starvedBefore — BoundStore's granary ceiling clamps the fed control's
+        // FoodStore = 4000 seed, and the resulting truncation now produces a
+        // small amount of starvation in the control window independent of the
+        // famine contrast under test. Measured 28 (was 3, equal to
+        // starvedBefore, pre-T4.2). Pinned as a VALUE, not re-derived from the
+        // rig's parameters — the contrast the test claims (famine grievance
+        // exceeds control grievance) is unaffected and still asserted below.
+        Assert.Equal(28, StarvedTotal(control));
         Assert.True(StarvedTotal(famine) > starvedBefore, "rig vacuous: nobody starved in the window");
         Assert.True(Grievance(famine, 0) > Grievance(control, 0) + 1.0,
             $"starvation did not raise grievance above the fed control: "

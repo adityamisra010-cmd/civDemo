@@ -128,10 +128,21 @@ public class EquilibriumInvariantTests
         long eaten = FlowTotal(next, ReasonIds.Eaten, sunk: true);
 
         // 147.5 × 2.0 = 295.0/yr harvested; 295.0/yr eaten. Over dt = 10:
-        // 2950 each way, and the store is exactly where it started.
+        // 2950 each way — the harvest/eat balance itself is unaffected by the
+        // store's size. T4.2 RE-DERIVATION (hand-derived from BoundStore's own
+        // formula, not pasted from a run): the store no longer returns to its
+        // starting value — the granary ceiling clamps it to
+        // granaryYearsOfDemand × annual grain demand, and the annual grain
+        // demand here is exactly the harvest/eat rate already asserted above
+        // (295.0/yr, i.e. harvest / dt). Spoilage is negligible: the store is
+        // truncated to the ceiling in the SAME turn it is set, before any
+        // meaningful decay accrues.
         Assert.Equal(2950, harvest);
         Assert.Equal(2950, eaten);
-        Assert.Equal(store, next.GoodStocks[0].Amount.Value);
+        double annualDemand = eaten / dt;
+        long expectedCapacity = ConservedMath.WholeUnits(
+            cfg.Consumption.GranaryYearsOfDemand * annualDemand, "test-derived granary capacity");
+        Assert.Equal(expectedCapacity, next.GoodStocks[0].Amount.Value);
         Assert.Equal(0.0, next.ConsumptionDeficits[0].DeficitRatio);
     }
 
@@ -160,9 +171,19 @@ public class EquilibriumInvariantTests
             [SystemCatalog.Production(cfg), SystemCatalog.Consumption(cfg)]);
         WorldState next = exec.Step(EquilibriumWorld(scale, arableKm2, store));
 
+        long eaten = FlowTotal(next, ReasonIds.Eaten, sunk: true);
         Assert.Equal(2950 * scale, FlowTotal(next, ReasonIds.Harvest, sunk: false));
-        Assert.Equal(2950 * scale, FlowTotal(next, ReasonIds.Eaten, sunk: true));
-        Assert.Equal(store, next.GoodStocks[0].Amount.Value);
+        Assert.Equal(2950 * scale, eaten);
+        // T4.2 RE-DERIVATION (hand-derived, not pasted): the granary ceiling
+        // is denominated in YEARS OF THE SETTLEMENT'S OWN DEMAND, so it scales
+        // with population BY CONSTRUCTION — the invariant under test
+        // (scale-freedom) still holds; it is the absolute unit value that
+        // scales, using the SAME cfg constant and the same eaten/dt annual
+        // rate BoundStore itself computes.
+        double annualDemand = eaten / dt;
+        long expectedCapacity = ConservedMath.WholeUnits(
+            cfg.Consumption.GranaryYearsOfDemand * annualDemand, "test-derived granary capacity");
+        Assert.Equal(expectedCapacity, next.GoodStocks[0].Amount.Value);
 
         // And the density actually realized is the predicted one, exactly.
         Assert.Equal(density, population / arableKm2, 12);

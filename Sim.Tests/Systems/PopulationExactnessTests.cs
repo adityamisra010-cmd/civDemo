@@ -560,7 +560,14 @@ public class PopulationExactnessTests
 
         Assert.Equal(harvest, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Harvest, sunk: false));
         Assert.Equal(demand, FlowTotal(next, ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.Eaten, sunk: true));
-        Assert.Equal(endow + harvest - demand, next.GoodStocks[0].Amount.Value);
+        // T4.2 RE-DERIVATION (hand-derived from BoundStore's own formula, not
+        // pasted from a run): endow + harvest - demand = 17,050 pre-T4.2, but
+        // the store now also clears BoundStore's granary ceiling in the same
+        // turn — granaryYearsOfDemand × the settlement's annual grain demand,
+        // DemandPerYear(cfg) (the same function that derived `demand` above).
+        long expectedCapacity = ConservedMath.WholeUnits(
+            cfg.Consumption.GranaryYearsOfDemand * DemandPerYear(cfg), "test-derived granary capacity");
+        Assert.Equal(expectedCapacity, next.GoodStocks[0].Amount.Value);
         Assert.Equal(0.0, next.ConsumptionDeficits[0].DeficitRatio);
     }
 

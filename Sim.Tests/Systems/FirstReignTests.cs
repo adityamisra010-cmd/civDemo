@@ -251,7 +251,13 @@ public class FirstReignTests
         //   RE-VERIFIED against the new trajectory and passing — extinction
         //   inside (5, 25], dead world frozen, no food mountain — which is the
         //   re-mint/regression separator, not a formality.
-        const string golden = "a631877cc96660576a205e0222d8ebac19c7798e933cac4c78b6db9a58de9e8d";
+        //   v24 (T4.2 — B-2 STORE BOUNDING, ONE cause): grainSpoilagePerYear =
+        //   0.08 and granaryYearsOfDemand = 1.5 change the director's famine
+        //   trajectory's grain stock from the first turn the store exists.
+        //   Shape asserts below RE-RUN (not carried) against the new
+        //   trajectory and passing — extinction inside (5, 25], dead world
+        //   frozen, no food mountain.
+        const string golden = "8bf37a0707ee8284c0ebf8e78dc84299a55fd9e00bef10b2ae8be31bfcef63e2";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

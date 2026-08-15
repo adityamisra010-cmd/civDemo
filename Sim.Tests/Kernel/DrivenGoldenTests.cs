@@ -128,7 +128,12 @@ public class DrivenGoldenTests
         // moves for that one cause.
                 // T4.1b RE-PIN (ADR-018, ONE cause): the same re-sited world under the
         // order log — minSpacingKm 480 -> 95.2.
-        const string golden = "f2d896ff6df5489faa587b314316728fb342259386da4949466f23bff6871b0e";
+        // T4.2 RE-PIN (VALUE, itemized, ONE cause): store bounding
+        // (grainSpoilagePerYear = 0.08, granaryYearsOfDemand = 1.5) changes the
+        // driven world's grain stock trajectory over the 300-turn horizon —
+        // spoilage and the granary ceiling both apply from the first turn a
+        // store exists. No other mechanism, constant, or ordering changed.
+        const string golden = "7837c05d2c50182ec328732c87fcd99eb887bb51da1ffe3ed2df793be0fe5364";
 
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

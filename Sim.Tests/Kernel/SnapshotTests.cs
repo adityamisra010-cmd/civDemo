@@ -480,7 +480,12 @@ public class SnapshotTests
         // twelve settlements differently, so the founded world differs. Deposits
         // unchanged (T4.1e already on main). ci.yml's FOUNDED_GOLDEN moves with
         // this value; CiPinAgreementTests asserts the two copies agree.
-        const string golden = "7f536da22b561e5d1dc4261b35178996de4f8b9ff6877e0362a4fec947e7be3b";
+        // T4.2 RE-PIN (VALUE, itemized, ONE cause): store bounding
+        // (grainSpoilagePerYear = 0.08, granaryYearsOfDemand = 1.5) changes the
+        // founded world's grain stock trajectory over the 300-turn horizon —
+        // spoilage and the granary ceiling both apply from the first turn a
+        // store exists. No other mechanism, constant, or ordering changed.
+        const string golden = "2ac9e0a59317bdbd98d7be6453b9878d5113f62fdb984693de25ae3c75581924";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
