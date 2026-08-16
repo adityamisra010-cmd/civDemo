@@ -345,6 +345,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<HarvestWeatherRow> HarvestWeather => prev.HarvestWeather;
         public IReadOnlyTable<TradeFlowRow> TradeFlows => prev.TradeFlows;
         public IReadOnlyTable<HousingRow> Housing => prev.Housing;
+        public IReadOnlyTable<ClaimRow> Claims => prev.Claims;
+        public IReadOnlyTable<ControlRow> Controls => prev.Controls;
+        public IReadOnlyTable<RecognitionRow> Recognitions => prev.Recognitions;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

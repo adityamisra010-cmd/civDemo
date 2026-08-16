@@ -53,6 +53,9 @@ public static class WorldStates
         if (!TableEquals(a.HarvestWeather, b.HarvestWeather)) return false;
         if (!TableEquals(a.TradeFlows, b.TradeFlows)) return false;
         if (!TableEquals(a.Housing, b.Housing)) return false;
+        if (!TableEquals(a.Claims, b.Claims)) return false;
+        if (!TableEquals(a.Controls, b.Controls)) return false;
+        if (!TableEquals(a.Recognitions, b.Recognitions)) return false;
         return true;
     }
 

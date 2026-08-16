@@ -257,7 +257,12 @@ public class FirstReignTests
         //   Shape asserts below RE-RUN (not carried) against the new
         //   trajectory and passing — extinction inside (5, 25], dead world
         //   frozen, no food mountain.
-        const string golden = "8bf37a0707ee8284c0ebf8e78dc84299a55fd9e00bef10b2ae8be31bfcef63e2";
+        //   v25 (T4.3, D-037 A3 — SCHEMA-ONLY): the Claims, Controls and
+        //   Recognitions tables joined the stream (three zero count
+        //   prefixes, 12 bytes, N = 1). No polity/claim/control system
+        //   exists yet; the trajectory is unchanged — shape asserts below
+        //   RE-VERIFIED against the new stream and passing.
+        const string golden = "3fd26370340ac7521e371328dd72d8ac3aa3407ba14c4b39afc9713200dc989a";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

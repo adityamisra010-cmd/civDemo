@@ -179,7 +179,12 @@ public class SnapshotTests
         //   The toy pipeline does not run the housing system; only the byte
         //   stream grew.
         //   v18 value: bbb0929b414fc50502f142ca9e2bfd45d9d7fb4982a46742efcc97f522a7a718
-        const string golden = "b4d523f6f1e0cc1a66d94393cf86368db7063acde27ca24bf17555e772883525";
+        //   v20 (T4.3, D-037 A3 — SCHEMA-ONLY): the Claims, Controls and
+        //   Recognitions tables joined the stream (three zero count prefixes
+        //   on this settlement-less world, 12 bytes). No system reads or
+        //   writes them; sim behavior unchanged.
+        //   v19 value: b4d523f6f1e0cc1a66d94393cf86368db7063acde27ca24bf17555e772883525
+        const string golden = "1f146285e65b9f509a18f21f53c1787c6c1736be285b0a7f2ebe16294d429f7c";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -485,7 +490,11 @@ public class SnapshotTests
         // founded world's grain stock trajectory over the 300-turn horizon —
         // spoilage and the granary ceiling both apply from the first turn a
         // store exists. No other mechanism, constant, or ordering changed.
-        const string golden = "2ac9e0a59317bdbd98d7be6453b9878d5113f62fdb984693de25ae3c75581924";
+        // T4.3 RE-PIN (VALUE, SCHEMA-ONLY, ONE cause): the Claims, Controls
+        // and Recognitions tables joined the stream (three zero count
+        // prefixes, 12 bytes, on this world — no polity/claim/control system
+        // exists yet). ci.yml's FOUNDED_GOLDEN moves with this value.
+        const string golden = "66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -1016,6 +1025,57 @@ public class SnapshotTests
             BitConverter.DoubleToInt64Bits(loaded.Housing[1].BuildRemainder));
         Assert.Equal(3, loaded.CatchmentSummaries[^1].SizeTier);
         Assert.Equal(41, loaded.CatchmentSummaries[^1].NodeCount);
+
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV20_PopulatedClaimControlRecognitionTables_RoundTripExact()
+    {
+        // T4.3 (D-037 A3): the constitution's populated-table test for all
+        // three new relations. DISTINCT field values including a NEGATIVE and
+        // a -0.0 Strength so a transposition or normalising serializer cannot
+        // round-trip cleanly.
+        WorldState world = CanonicalExecutor().Run(Genesis(42), 2);
+
+        world.Claims.Add(new ClaimRow(new PolityId(1), new SettlementId(3), 0.625));
+        world.Claims.Add(new ClaimRow(new PolityId(2), new SettlementId(3), -0.0));
+        world.Controls.Add(new ControlRow(new PolityId(1), new SettlementId(3), -0.375));
+        world.Controls.Add(new ControlRow(new PolityId(2), new SettlementId(9), 1.0));
+        world.Recognitions.Add(new RecognitionRow(new PolityId(1), new PolityId(2)));
+        world.Recognitions.Add(new RecognitionRow(new PolityId(3), new PolityId(1)));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+
+        Assert.Equal(2, loaded.Claims.Count);
+        Assert.Equal(1, loaded.Claims[0].Polity.Value);
+        Assert.Equal(3, loaded.Claims[0].Place.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.625),
+            BitConverter.DoubleToInt64Bits(loaded.Claims[0].Strength));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.Claims[1].Strength));
+
+        Assert.Equal(2, loaded.Controls.Count);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.375),
+            BitConverter.DoubleToInt64Bits(loaded.Controls[0].Strength));
+        Assert.Equal(9, loaded.Controls[1].Place.Value);
+
+        Assert.Equal(2, loaded.Recognitions.Count);
+        Assert.Equal(1, loaded.Recognitions[0].Recogniser.Value);
+        Assert.Equal(2, loaded.Recognitions[0].Recognised.Value);
+        Assert.Equal(3, loaded.Recognitions[1].Recogniser.Value);
+        Assert.Equal(1, loaded.Recognitions[1].Recognised.Value);
 
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }

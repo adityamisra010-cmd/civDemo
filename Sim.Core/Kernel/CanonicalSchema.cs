@@ -57,8 +57,13 @@ public static class CanonicalSchema
     /// dwelling stock with its remainders and published labor/maintenance
     /// observables); CatchmentSummaryRow gains SizeTier (the quantized
     /// settlement-size step the summary was computed at — the D-016 gate for
-    /// the size catchment bonus).</summary>
-    public const int Version = 19;
+    /// the size catchment bonus).
+    /// v20 (T4.3, D-037 A3): Claims, Controls and Recognitions tables appended
+    /// after Housing — the claim/control/recognition data model, schema only
+    /// (no system writes any of the three yet). Three separate RELATION
+    /// tables, never an owner-id field or a boolean flag (T4.3's three named
+    /// prohibitions).</summary>
+    public const int Version = 20;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -94,6 +99,9 @@ public static class CanonicalSchema
     private const int HarvestWeatherRowWidth = 4 + 8 + 8;           // Settlement, LogDeviation, Multiplier (v16)
     private const int TradeFlowRowWidth = 4 + 4 + 4 + 8;            // From, To, Good, Quantity (v18)
     private const int HousingRowWidth = 4 + 8 + 8 + 8 + 8 + 8;      // Settlement, Dwellings, BuildRem, DecayRem, MaintFraction, LaborUsed (v19)
+    private const int ClaimRowWidth = 4 + 4 + 8;                    // Polity, Place, Strength bits (v20)
+    private const int ControlRowWidth = 4 + 4 + 8;                  // Polity, Place, Strength bits (v20)
+    private const int RecognitionRowWidth = 4 + 4;                  // Recogniser, Recognised (v20)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -444,6 +452,35 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.LastMaintenanceFraction));
             writer.Write(BitConverter.DoubleToInt64Bits(row.LastLaborUsed));
         }
+
+        // 32. Claims (v20, T4.3)
+        writer.Write(world.Claims.Count);
+        for (int i = 0; i < world.Claims.Count; i++)
+        {
+            ClaimRow row = world.Claims[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Place.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Strength));
+        }
+
+        // 33. Controls (v20, T4.3)
+        writer.Write(world.Controls.Count);
+        for (int i = 0; i < world.Controls.Count; i++)
+        {
+            ControlRow row = world.Controls[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Place.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Strength));
+        }
+
+        // 34. Recognitions (v20, T4.3)
+        writer.Write(world.Recognitions.Count);
+        for (int i = 0; i < world.Recognitions.Count; i++)
+        {
+            RecognitionRow row = world.Recognitions[i];
+            writer.Write(row.Recogniser.Value);
+            writer.Write(row.Recognised.Value);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -747,6 +784,29 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int claimCount = reader.ReadInt32();
+        for (int i = 0; i < claimCount; i++)
+        {
+            world.Claims.Add(new ClaimRow(
+                new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int controlCount = reader.ReadInt32();
+        for (int i = 0; i < controlCount; i++)
+        {
+            world.Controls.Add(new ControlRow(
+                new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int recognitionCount = reader.ReadInt32();
+        for (int i = 0; i < recognitionCount; i++)
+        {
+            world.Recognitions.Add(new RecognitionRow(
+                new PolityId(reader.ReadInt32()), new PolityId(reader.ReadInt32())));
+        }
+
         return world;
     }
 
@@ -788,5 +848,8 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.PriceTerms.Count * PriceTermRowWidth
         + CountPrefixWidth + (long)world.HarvestWeather.Count * HarvestWeatherRowWidth
         + CountPrefixWidth + (long)world.TradeFlows.Count * TradeFlowRowWidth
-        + CountPrefixWidth + (long)world.Housing.Count * HousingRowWidth;
+        + CountPrefixWidth + (long)world.Housing.Count * HousingRowWidth
+        + CountPrefixWidth + (long)world.Claims.Count * ClaimRowWidth
+        + CountPrefixWidth + (long)world.Controls.Count * ControlRowWidth
+        + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth;
 }
