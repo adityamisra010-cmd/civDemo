@@ -548,16 +548,21 @@ public record struct RngStreamRow(SystemId System, RegionId Region, ulong State,
 public record struct ClaimRow(PolityId Polity, SettlementId Place, double Strength);
 
 /// <summary>
-/// T4.3 (D-037 A3 / D-040 Part C): which polity's orders a settlement actually
+/// T4.3 (D-037 A3 / D-040 C7): which polity's orders a settlement actually
 /// obeys — distinct from claim (who asserts a right) and recognition (who
 /// acknowledges another's claim). A RELATION keyed by (Polity, Place), NEVER
-/// an owner-id field on the settlement row (T4.3 PROHIBITED 1) — multiple
-/// contested control rows for the same place must be representable so a
-/// later mechanism can resolve them, per D-040 Part C's requirement that
-/// control "varies with distance and is contested where claims overlap".
-/// Strength is that value's SLOT, not a stored decay term (T4.3 PROHIBITED 3):
-/// no distance-decay, communication-latency, or loyalty computation exists
-/// yet — this field is written by nothing in this packet.
+/// an owner-id field on the settlement row (T4.3 PROHIBITED 1) — but D-037
+/// A3 is explicit that control's CARDINALITY is "exactly one, or none
+/// (stateless)": at most one ControlRow should exist per Place. D-040 C7
+/// does NOT amend that cardinality; its "contested where claims overlap"
+/// requirement is about CLAIM's multiplicity and about a later RESOLUTION
+/// mechanism (out of scope here) choosing which polity's control row, if
+/// any, exists — not about CONTROL itself holding multiple simultaneous
+/// rows for one place. Strength is that value's SLOT, not a stored decay
+/// term (T4.3 PROHIBITED 3): no distance-decay, communication-latency, or
+/// loyalty computation exists yet — this field is written by nothing in
+/// this packet, and nothing in this packet enforces the one-or-none
+/// cardinality either (no system exists yet to violate it).
 /// </summary>
 public record struct ControlRow(PolityId Polity, SettlementId Place, double Strength);
 

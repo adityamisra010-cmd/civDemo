@@ -50,17 +50,37 @@ public class ClaimModelTests
     }
 
     [Fact]
-    public void Control_CanBeContested_MultipleRowsForTheSamePlace()
+    public void Control_IsAtMostOnePolityPerPlace_ExactlyOneOrNone()
     {
-        // D-040 Part C: control "varies with distance and is contested where
-        // claims overlap" — the relation shape must not force a single row
-        // per place; whether contested control ever RESOLVES to one is a
-        // later mechanism, not a schema constraint.
+        // D-037 A3: CONTROL is "which polity's orders the settlement
+        // actually obeys. Exactly one, or none (stateless)." D-040 C7 does
+        // NOT amend this cardinality — it requires control to carry a value
+        // that VARIES WITH DISTANCE and to be EXPRESSIBLE where claims
+        // overlap, which is a statement about CLAIM's multiplicity (already
+        // proven by MultipleClaims_OnTheSamePlace_AreBothRepresentable) and
+        // about the eventual RESOLUTION mechanism (out of scope, a later
+        // packet) — not a license for the CONTROL relation itself to hold
+        // more than one row per place. This test proves both valid states
+        // the schema must express: no controller (stateless), and exactly
+        // one controller.
         var world = new WorldState();
-        world.Controls.Add(new ControlRow(PolityA, Place1, 0.6));
-        world.Controls.Add(new ControlRow(PolityB, Place1, 0.4));
 
-        Assert.Equal(2, world.Controls.Count);
+        // No control row for Place1: stateless, nobody's orders are obeyed.
+        Assert.Empty(ControllersOf(world, Place1));
+
+        // Exactly one control row for Place1: PolityA's orders are obeyed.
+        world.Controls.Add(new ControlRow(PolityA, Place1, 0.6));
+        var controllers = ControllersOf(world, Place1);
+        Assert.Single(controllers);
+        Assert.Equal(PolityA, controllers[0]);
+    }
+
+    private static List<PolityId> ControllersOf(WorldState world, SettlementId place)
+    {
+        var found = new List<PolityId>();
+        for (int i = 0; i < world.Controls.Count; i++)
+            if (world.Controls[i].Place == place) found.Add(world.Controls[i].Polity);
+        return found;
     }
 
     [Fact]
