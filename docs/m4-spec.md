@@ -265,9 +265,9 @@ left to be rediscovered. **All three quantities ship as RELATIONS:** claim keyed
 | **T4.4 — colonization / land clearance** | founding rules, site selection, clearing cost, sprawl constraint; migration extended to depart into UNCLAIMED land; refugee foundings may be stateless (D-037 B1) | **T4.2** (land pressure needs scarcity), T4.1 check 4, T4.9 | **YES** |
 | **T4.5 — non-state peoples from turn zero** | D-037 B3 | T4.3 | YES |
 | **T4.6 — trade & foreign trade** | the second polity's exchange; foreign-trade rules | T4.2, T4.3, **T4.7** | **YES** |
-| **T4.7 — the transport packet (Q-A + Q-C + Q-E as ONE)** | water routes, draught animals, route improvement — **ruled one design conversation**; the lever set that could make escalation 1's deadband reachable | **T4.9** (rivers cannot live on a stride-4 lattice) | **YES** |
+| **T4.7 — the transport packet (Q-A + Q-C + Q-E as ONE)** | water routes, draught animals, route improvement — **ruled one design conversation**; the lever set that could make escalation 1's deadband reachable | **T4.9** (RULED — rivers are invisible to the lattice's passability signal at ANY stride, not a resolution artifact; T4.7 must build a river-specific representation off the existing hydrology river data, per `docs/t4.9-review-record.md`) | **YES** |
 | **T4.8 — strategic war + AutoResolver + notables-as-generals** | delegate-with-agency; general competence and traits parameterize the AutoResolver. **R-1 RESOLVED: notables are PEOPLE** — bucket extraction via `Ledger.Transfer` and the **law-1 audit are packet CONTENT, not a follow-up**. **PURCHASE IS OUT OF SCOPE** (payment is money, M5). **ACCEPTANCE MUST INCLUDE: a notable can be BORN, DIE and DEFECT with no bookkeeping outside the Ledger** — the property Option B was taken for, which T4.1's escalation established holds for three of four lifecycle events | T4.3 | **YES** |
-| **T4.9 — RULE THE LATTICE STRIDE ONCE** | one architecture call serving three blocked consumers: rivers (transport), village catchments, settlement density (colonization) | — | NO (ruling + measurement) |
+| **T4.9 — RULE THE LATTICE STRIDE ONCE** | one architecture call serving three blocked consumers: rivers (transport), village catchments, settlement density (colonization) | — | **RULED, docs-only — see `docs/t4.9-review-record.md`: stride stays 4; rivers are a separate downstream data-path fix owned by T4.7, not a stride question; village catchments remain unowned; settlement density is unblocked at the current spacing** |
 | **T4.10 — T3.10's migrated work** | calibration extension; **the BINDING MalthusLite power restoration**; CR-002's deferred geometry fix; the density + migration corridor quarantines with their 20-seed ranges; the withdrawn comparative-advantage criterion | **T4.2** (MalthusLite restoration needs cycling stocks) | **YES** |
 | **T4.11 — T3.7 merchants** | the class that emerges on trade volume | **T4.6** (merchants emerge on a volume that must first exist) | YES |
 | **T4.12 — the migration-weight packet** | T3.4c ruling 2, still unhomed: design point missed 2.3×–8.1×, metric unstable in N and seed | — | **YES** |
@@ -343,9 +343,17 @@ T4.1 ──> T4.16 clone architecture (design+measurement, NON-BLOCKING, runs wh
 - **Everything scarcity-dependent waits for T4.2.** B-2b's rule: detail on a base known to be
   wrong makes the error harder to find.
 - **D-039 D5 (siege starvation) is hard-blocked on T4.2** — and is M6 anyway.
-- **T4.7 waits on T4.9**: the T3.6b water counterfactual's lattice pass could see only the SEA,
-  because stride-4 majority-water blocks hide rivers. That was a resolution artifact, not
-  economics. Building water transport on a lattice that cannot represent a river repeats it.
+- **T4.7 waited on T4.9; T4.9 is now RULED (`docs/t4.9-review-record.md`).** The T3.6b water
+  counterfactual's lattice pass could see only the SEA — but the cause, confirmed by reading
+  `Worldgen.cs`'s terrain generation directly, is NOT lattice resolution: the lattice's
+  passability signal is built from `TerrainSet.Water` (the sea/lake mask) only, and river cells
+  are never written into that array at any stride — they are ordinary land cells with a fertility
+  bonus. Making the lattice finer, even to 1:1 pixel resolution, would not change this; the
+  passability test simply never reads `TerrainSet.Rivers` / `Hydrology.Result.RiverMask`. This is
+  a downstream data-path gap, not a resolution artifact, and stride does not fix it. T4.7 must
+  build its own river-specific representation directly off the existing hydrology river data
+  (the shape T3.6b's pixel-resolution counterfactual already validated) — not wait on, or request,
+  a stride change.
 - **T4.8 waits on R-1**, because whether a general is extracted from their bucket decides whether
   the packet has a conservation surface at all.
 - **T4.16 blocks nothing and is deliberately EARLY** — not by importance but because the ADR's
