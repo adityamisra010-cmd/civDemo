@@ -131,7 +131,24 @@ KEEP ruling: no code, no test, no config, no schema, no golden is touched by thi
 
 ---
 
-**STATUS: DRAFT. Awaiting director ruling on KEEP vs. SIMPLIFY vs. REPLACE.** If SIMPLIFY or REPLACE
-is ruled, that ruling is the director sign-off CLAUDE.md requires to reopen T4.2/Demographics/
-Consumption's frozen surface, and implementation would follow as its own, separately scoped packet —
-not folded into T4.10.
+## 5. DIRECTOR RULING
+
+**RULING: KEEP.** The Malthusian architecture audit (§2 above) is accepted in full. Specifically
+ratified as established fact, not merely this ADR's argument:
+
+- Deficit → fertility/mortality is structurally sound.
+- The mechanism is linear and dt-robust.
+- Migration cannot affect the world-total population metric (proven by construction, Track E).
+- The zero-crossings result is the already-ruled CR-003 finding, not a new defect.
+- The missing pressure mechanism is colonization/land clearance (CR-003 Option 3), not a broken
+  population engine.
+- Housing is not used as a primary mortality mechanism in the current code (confirmed absent, not
+  merely undesired) — the director's stated design principle is already how the system is built.
+
+**NOT AUTHORIZED by this ruling:** any simplification or replacement of Demographics or Consumption.
+T4.2 remains frozen and is not reopened by this ruling or by anything in this ADR. No demographic
+architecture change of any kind is authorized.
+
+---
+
+**STATUS: RULED — KEEP.** CR-004 closed. No code changed; none is authorized by this ruling.
