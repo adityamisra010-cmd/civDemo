@@ -125,7 +125,7 @@ the backing store is `Array.Empty<T>()`, so the row array is free, but the objec
 are not). Three added tables are therefore three added allocations: **strictly greater than zero**.
 Second, even if the cost were zero, zero added cost cannot produce a *decrease*. Something else
 accounts for the 340 bytes; this ADR does not know what, did not re-run to find out (design-only
-scope, no re-measurement authorised), and **reports it as unexplained rather than rationalised**. A
+scope: T4.16 authorises the headline clone measurement reported in §3, but not a second diagnostic run to chase this delta), and **reports it as unexplained rather than rationalised**. A
 follow-up packet that touches clone internals should resolve it before trusting either figure as a
 regression baseline, since a 340-byte unexplained delta is the same order as the effect an
 empty-table accounting change would have.
@@ -285,7 +285,7 @@ that IS written, which is what the projection demands. Its cost is on the read s
 simulation, and this ADR has no prototype and no authority to build one. So: **recommend no
 architecture yet.** Recommend instead that the next bounded packet be a **measurement** packet — (i)
 re-derive the projection at Charter bucket cardinality, (ii) measure what fraction of clone bytes is
-`Buckets` alone. If `Buckets` dominates, as §4 suggests, then the problem is a **bucket
+`Buckets` alone. If `Buckets` dominates — which §4's growth argument MOTIVATES but does not establish, since §4 shows only that `Buckets` is written every turn and is the growth TERM, not that it dominates clone bytes at today's 384 bucket rows — then the problem is a **bucket
 representation** problem (sparsity, compression, or delta-journalling that one table) rather than a
 whole-`WorldState` clone-architecture problem, and the three candidates in §4 are the wrong menu.
 **That reframing is the main substantive change this correction pass produces and it should be ruled
