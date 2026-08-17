@@ -297,6 +297,18 @@ public class FirstReignTests
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
         const string golden = "dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca";
+
+        //   v26 (T4.10 — MIGRATION ATTRACTIVENESS, ONE cause, and NARROWER
+        //   than it looks): R = LandWeight × arableKm2; the food term was
+        //   removed. NO MIGRATION HAPPENS HERE — this world is N = 1 and
+        //   MigrationSystem returns at `n < 2` before any transfer. What moves
+        //   the stream is the SmoothedAttractiveness EMA row, which is written
+        //   every turn BEFORE that early return and whose value is derived from
+        //   R. So the hash moves while the demographic trajectory does not,
+        //   and the shape asserts below are the proof of exactly that: RE-RUN
+        //   (not carried) against the new stream and passing — extinction
+        //   inside (5, 25], dead world frozen, no food mountain.
+        //   v25 value: 3fd26370340ac7521e371328dd72d8ac3aa3407ba14c4b39afc9713200dc989a
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

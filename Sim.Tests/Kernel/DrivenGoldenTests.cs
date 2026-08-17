@@ -199,6 +199,12 @@ public class DrivenGoldenTests
         //         contributes nothing to this hash; the weather coupling is the
         //         whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+
+        // T4.10 RE-PIN (VALUE, BEHAVIOUR, ONE cause): the SAME migration
+        // attractiveness change as the founded golden — R = LandWeight ×
+        // arableKm2, the food term removed. The driven order batch is
+        // unchanged; what moved is migration, and populations through it.
+        //   was (T4.3): 75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
     }

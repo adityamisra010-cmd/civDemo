@@ -571,6 +571,18 @@ public class SnapshotTests
         //         the whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+
+        // T4.10 RE-PIN (VALUE, BEHAVIOUR, ONE cause): migration attractiveness
+        // lost its food term — R = LandWeight × arableKm2, was
+        // FoodWeight × food + LandWeight × arableKm2 — so gap-driven flows, and
+        // through them populations, differ. Raw stock stopped meaning
+        // "attractive" once T4.2 bounded the store, and the replacement signal
+        // (1 − DeficitRatio) measured identically 1.0 world-wide, so the term
+        // was removed rather than re-weighted. No other mechanism, constant, or
+        // ordering changed. Measured consequence, 20-seed sweep: migration mean
+        // 0.000352 → 0.000332, density mean 1.2239 → 1.2243.
+        //   was (T4.3): 66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529
+        // ci.yml's FOUNDED_GOLDEN moves with this value.
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
