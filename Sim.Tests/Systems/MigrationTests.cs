@@ -64,11 +64,30 @@ public class MigrationTests
             new SettlementId(from), new SettlementId(to), cost));
     }
 
+    /// <summary>Grain at a settlement. T4.10: this NO LONGER creates
+    /// attractiveness — the food term left R. It still matters, because the
+    /// T2.13 absolute food gate zeroes a destination's viability when it has
+    /// neither store nor harvest, so a destination with no food receives
+    /// nobody. Presence, not magnitude. Use <see cref="Land"/> to create an
+    /// attractiveness gap.</summary>
     private static void Endow(WorldState world, int settlement, long food)
     {
         new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(settlement).Amount,
             ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, food,
             FlowDirection.Source, OverdrawPolicy.Throw);
+    }
+
+    /// <summary>T4.10: the attractiveness signal. R = LandWeight × arableKm2,
+    /// so a catchment row IS the destination's pull. Hand-built worlds have no
+    /// CatchmentSystem to write these, so tests that need a gap add them here.
+    /// Land values are chosen as oldFood × 0.02 / 0.078125, which reproduces the
+    /// pre-T4.10 R BIT-EXACTLY (0.078125 = 5/64), so each rig keeps the
+    /// above/below-cap regime it was tuned for instead of being re-tuned.</summary>
+    private static void Land(WorldState world, int settlement, double arableKm2)
+    {
+        world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            new SettlementId(settlement), NodeCount: 1, EffectiveArableKm2: arableKm2,
+            NetworkRevision: 0, LastRecomputeTurn: 0));
     }
 
     private static long[] AdultsHeavy(long perCohort)
@@ -96,8 +115,14 @@ public class MigrationTests
     {
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
-        Endow(world, 0, 1_000);     // poor
-        Endow(world, 1, 200_000);   // rich
+        // T4.10: POOR vs RICH is now a LAND difference, not a stock difference —
+        // 256 and 51_200 km² reproduce the old R (20 and 4_000) exactly. Food is
+        // still endowed at both so neither destination is gated out by the
+        // absolute food gate; it no longer sets who is rich.
+        Endow(world, 0, 1_000);
+        Endow(world, 1, 200_000);
+        Land(world, 0, 256.0);       // poor
+        Land(world, 1, 51_200.0);    // rich
         Link(world, 0, 1, 20.0);
         Link(world, 1, 0, 20.0);
 
@@ -125,6 +150,12 @@ public class MigrationTests
         WorldState world = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
         Endow(world, 0, 50_000);
         Endow(world, 1, 50_000);
+        // T4.10: EQUAL LAND and equal population ⇒ equal attractiveness. Stated
+        // because it is the point of this test: the equality must be asserted
+        // against a LIVE, NONZERO signal. Zero land on both sides would also
+        // produce zero flow, but vacuously — it would hold with migration off.
+        Land(world, 0, 12_800.0);
+        Land(world, 1, 12_800.0);
         Link(world, 0, 1, 20.0);
         Link(world, 1, 0, 20.0);
 
@@ -133,6 +164,135 @@ public class MigrationTests
         Assert.Equal(0, next.MigrationFlows[1].Outflow);
         for (int i = 0; i < world.Buckets.Count; i++)
             Assert.Equal(world.Buckets[i].Count.Value, next.Buckets[i].Count.Value);
+    }
+
+    // --- T4.10: what the attractiveness signal IS, and what it is not --------
+
+    [Fact]
+    public void FoodStockMagnitude_IsInert_LandAloneDrivesAttractiveness()
+    {
+        // THE T4.10 INVARIANT, two-sided. Arm 1: a 5000× grain-stock difference
+        // with EQUAL land produces EXACTLY ZERO flow — stock magnitude is inert
+        // in attractiveness. Arm 2 is the positive control that keeps arm 1
+        // honest: identical (large) stocks on both sides with a LAND difference
+        // does move people. Without arm 2, arm 1 would also pass on a world
+        // where migration is simply dead.
+        SimConfig cfg = TestConfigs.Sim();
+
+        WorldState equalLand = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
+        Endow(equalLand, 0, 1_000);
+        Endow(equalLand, 1, 5_000_000);      // 5000× the stock...
+        Land(equalLand, 0, 12_800.0);
+        Land(equalLand, 1, 12_800.0);        // ...but the same land
+        Link(equalLand, 0, 1, 20.0); Link(equalLand, 1, 0, 20.0);
+
+        WorldState afterEqualLand = MigrationOnly(cfg).Step(equalLand);
+        Assert.Equal(0, afterEqualLand.MigrationFlows[0].Outflow);
+        Assert.Equal(0, afterEqualLand.MigrationFlows[1].Outflow);
+        for (int i = 0; i < equalLand.Buckets.Count; i++)
+            Assert.Equal(equalLand.Buckets[i].Count.Value, afterEqualLand.Buckets[i].Count.Value);
+
+        WorldState landGap = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
+        Endow(landGap, 0, 1_000_000);
+        Endow(landGap, 1, 1_000_000);        // identical stocks...
+        Land(landGap, 0, 12_800.0);
+        Land(landGap, 1, 51_200.0);          // ...and a real land gap
+        Link(landGap, 0, 1, 20.0); Link(landGap, 1, 0, 20.0);
+
+        WorldState afterLandGap = MigrationOnly(cfg).Step(landGap);
+        Assert.True(afterLandGap.MigrationFlows[0].Outflow > 0,
+            "land gap moved nobody — the positive control is dead, so the inertness "
+            + "of food in arm 1 proves nothing");
+        Assert.Equal(0, afterLandGap.MigrationFlows[1].Outflow);   // toward the land, not away
+    }
+
+    [Fact]
+    public void HigherArable_RaisesAttractiveness_MonotoneInTheLandTerm()
+    {
+        // R = LandWeight × arableKm2: more land at the destination, strictly
+        // more pull. Measured at two land levels against the same source, both
+        // sized to stay under the gap-closing cap so the comparison reads the
+        // driver rather than the clamp.
+        SimConfig cfg = TestConfigs.Sim();
+        long Flow(double destLand)
+        {
+            WorldState w = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
+            Endow(w, 0, 100_000); Endow(w, 1, 100_000);
+            Land(w, 0, 12_800.0);
+            Land(w, 1, destLand);
+            Link(w, 0, 1, 20.0); Link(w, 1, 0, 20.0);
+            return MigrationOnly(cfg).Step(w).MigrationFlows[1].Inflow;
+        }
+        // Both arms sit BELOW the pair's gap-closing cap (m* ≈ 5_333 and 9_600
+        // against desires of ~10² people), so the comparison reads the driver
+        // and not the clamp — at the cap both arms would clip to the same number
+        // and the monotonicity would be invisible. The smaller arm must also
+        // clear the per-bucket integer floor: at 14_000 km² the desire is ~0.8
+        // of a person per bucket and floors to zero, which is why the low arm is
+        // 25_600 rather than a hair above the source.
+        long small = Flow(25_600.0), large = Flow(51_200.0);
+        Assert.True(small > 0, "no flow at the smaller land gap — monotonicity rig vacuous");
+        Assert.True(large > small,
+            $"more arable did not pull harder: {large} at 51_200 km² vs {small} at 25_600 km²");
+    }
+
+    [Fact]
+    public void DestinationDeficit_StillRepels_ThroughViability_NotThroughR()
+    {
+        // T4.10 removed food from R, NOT from migration. Hunger keeps its two
+        // ratified channels; this pins the destination one. Identical land gap,
+        // identical stocks — only the DESTINATION's deficit differs. At deficit
+        // 1.0 with DestinationDeficitRepulsion 1.0 viability is exactly 0 and
+        // the destination receives nobody, however much land it has.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState Build(double destDeficit)
+        {
+            WorldState w = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
+            Endow(w, 0, 100_000); Endow(w, 1, 100_000);
+            Land(w, 0, 12_800.0);
+            Land(w, 1, 51_200.0);
+            w.ConsumptionDeficits[1] = new ConsumptionDeficitRow(new SettlementId(1), destDeficit, 1000);
+            Link(w, 0, 1, 20.0); Link(w, 1, 0, 20.0);
+            return w;
+        }
+        long fed = MigrationOnly(cfg).Step(Build(0.0)).MigrationFlows[1].Inflow;
+        long starving = MigrationOnly(cfg).Step(Build(1.0)).MigrationFlows[1].Inflow;
+
+        Assert.True(fed > 0, "no arrivals at the fed destination — repulsion rig vacuous");
+        Assert.Equal(0, starving);
+    }
+
+    [Fact]
+    public void Attractiveness_IsDeterministic_IdenticalStateIdenticalFlows()
+    {
+        // Same inputs, same outputs — bucket-exact and chronicle-exact, twice.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState Build()
+        {
+            WorldState w = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(250), AdultsHeavy(40));
+            Endow(w, 0, 10_000); Endow(w, 1, 60_000); Endow(w, 2, 30_000);
+            Land(w, 0, 2_560.0); Land(w, 1, 51_200.0); Land(w, 2, 7_680.0);
+            w.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 0.3, 100);
+            Link(w, 0, 1, 12.0); Link(w, 1, 0, 12.0);
+            Link(w, 0, 2, 30.0); Link(w, 2, 0, 30.0);
+            Link(w, 1, 2, 18.0); Link(w, 2, 1, 18.0);
+            return w;
+        }
+        WorldState a = MigrationOnly(cfg).Step(Build());
+        WorldState b = MigrationOnly(cfg).Step(Build());
+
+        long movedTotal = 0;
+        for (int s = 0; s < 3; s++)
+        {
+            Assert.Equal(a.MigrationFlows[s].Inflow, b.MigrationFlows[s].Inflow);
+            Assert.Equal(a.MigrationFlows[s].Outflow, b.MigrationFlows[s].Outflow);
+            movedTotal += a.MigrationFlows[s].Outflow;
+        }
+        Assert.True(movedTotal > 0, "nothing moved — determinism asserted over a dead world");
+        for (int i = 0; i < a.Buckets.Count; i++)
+            Assert.Equal(a.Buckets[i].Count.Value, b.Buckets[i].Count.Value);
+        for (int i = 0; i < a.SmoothedAttractiveness.Count; i++)
+            Assert.Equal(a.SmoothedAttractiveness[i].Value, b.SmoothedAttractiveness[i].Value);
     }
 
     // --- unreachable pairs --------------------------------------------------
@@ -146,6 +306,7 @@ public class MigrationTests
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = MigrationWorld(AdultsHeavy(1000), AdultsHeavy(1000));
         Endow(world, 1, 1_000_000);
+        Land(world, 1, 256_000.0);  // T4.10: the "extreme gap" is land now
         world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 1.0, 1000);
         Link(world, 0, 1, double.PositiveInfinity);
         Link(world, 1, 0, double.PositiveInfinity);
@@ -179,6 +340,8 @@ public class MigrationTests
         WorldState world = MigrationWorld(AdultsHeavy(10_000), AdultsHeavy(1000));
         Endow(world, 0, 10_000);
         Endow(world, 1, 200_000);
+        Land(world, 0, 2_560.0);     // T4.10: moderate gap, now land-carried
+        Land(world, 1, 51_200.0);
         Link(world, 0, 1, 10.0);
         Link(world, 1, 0, 10.0);
 
@@ -493,7 +656,14 @@ public class MigrationTests
             ((int D0, int D1, int D2) deficits, int[] foods) = right;
             SimConfig cfg = TestConfigs.Sim();
             WorldState world = MigrationWorld(pops.A, pops.B, pops.C);
+            // T4.10: keep BOTH channels exercised under randomization — random
+            // food still drives the absolute food gate and famine flight, and
+            // random land (the same draw × 256, the exact old-R equivalent) now
+            // drives the gap channel that food used to. Without land the gap
+            // channel would be dead in every generated case and the property
+            // would only ever cover flight.
             for (int s = 0; s < 3; s++) Endow(world, s, foods[s] * 1000L);
+            for (int s = 0; s < 3; s++) Land(world, s, foods[s] * 256.0);
             world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), deficits.D0 / 100.0, 1);
             world.ConsumptionDeficits[1] = new ConsumptionDeficitRow(new SettlementId(1), deficits.D1 / 100.0, 1);
             world.ConsumptionDeficits[2] = new ConsumptionDeficitRow(new SettlementId(2), deficits.D2 / 100.0, 1);
@@ -593,6 +763,12 @@ public class MigrationTests
         WorldState world = MigrationWorld(AdultsHeavy(5000), AdultsHeavy(50), AdultsHeavy(50));
         Endow(world, 1, 30_000);
         Endow(world, 2, 30_000);
+        // T4.10: the two destinations are made EQUALLY attractive by equal land
+        // (7_680 km² ⇒ R = 600 each, bit-identical to the old 0.02 × 30_000), so
+        // the only thing separating them stays the travel cost — which is exactly
+        // what this test isolates.
+        Land(world, 1, 7_680.0);
+        Land(world, 2, 7_680.0);
         Link(world, 0, 1, 10.0); Link(world, 1, 0, 10.0);
         Link(world, 0, 2, 30.0); Link(world, 2, 0, 30.0);
         Link(world, 1, 2, 10.0); Link(world, 2, 1, 10.0);
@@ -630,6 +806,12 @@ public class MigrationTests
         WorldState world = MigrationWorld(counts, AdultsHeavy(10), AdultsHeavy(10));
         Endow(world, 1, 2_000_000);
         Endow(world, 2, 2_000_000);
+        // T4.10: equal land at both destinations (R = 40_000 each, bit-identical
+        // to the old 0.02 × 2_000_000). Saturation here rides the famine-flight
+        // channel, which is untouched by the food-term removal, but the two
+        // destinations must stay symmetric for the proportional-split assertion.
+        Land(world, 1, 512_000.0);
+        Land(world, 2, 512_000.0);
         world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 1.0, 1);
         Link(world, 0, 1, 5.0); Link(world, 1, 0, 5.0);
         Link(world, 0, 2, 5.0); Link(world, 2, 0, 5.0);
@@ -698,6 +880,12 @@ public class MigrationTests
         world.ClassStates.Add(new ClassStateRow(new SettlementId(1), new ClassId(1), 1));
         world.ClassStates.Add(new ClassStateRow(new SettlementId(1), new ClassId(2), 1));
         Endow(world, 1, 1_000_000);
+        // T4.10: the gap-capped share this clamp rig depends on (~0.25 × m*) is
+        // now land-driven; 256_000 km² reproduces the old R = 20_000 exactly, so
+        // the request still exceeds the post-demotion remainder and the clamp
+        // still binds. Without it the request would fall to flight alone and the
+        // clamp would stop binding — the rig would go vacuous.
+        Land(world, 1, 256_000.0);
         Link(world, 0, 1, 5.0);
         Link(world, 1, 0, 5.0);
 
@@ -779,7 +967,8 @@ public class MigrationTests
             world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
         }
-        Endow(world, 1, 500_000); // rich destination
+        Endow(world, 1, 500_000);
+        Land(world, 1, 128_000.0); // T4.10: rich destination = land-rich now
         Link(world, 0, 1, 15.0);
         Link(world, 1, 0, 15.0);
 
