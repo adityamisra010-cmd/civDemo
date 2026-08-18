@@ -82,7 +82,8 @@ public class WorldgenRefreshTests
             int n = t.Size;
             int[] seaDist = GridDistance(t.Water, default, n);
             int[] riverDist = GridDistance(t.Water, t.Rivers, n, riversOnly: true);
-            int[] sites = SettlementSiting.ChooseSites(t, cfg.Siting, cfg.Siting.SettlementCount, seed);
+            int[] sites = SettlementSiting.ChooseSites(
+                t, cfg.Siting, cfg.Siting.SettlementCount, Sim.Tests.TestUtil.TestConfigs.RiverCostFactor(), seed);
             foreach (int site in sites)
             {
                 total++;

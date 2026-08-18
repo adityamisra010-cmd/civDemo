@@ -91,7 +91,7 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         int revision = prev.NetworkMeta[0].Revision;
         if (!IsStale(prev, revision)) return; // D-016: no event → no recompute
 
-        TraversalLattice lattice = TraversalLattice.Build(prev.Terrain);
+        TraversalLattice lattice = TraversalLattice.Build(prev.Terrain, _cfg.Transport.RiverCostFactor);
         Table<CatchmentNodeRow> nodes = ctx.Owned.Nodes;
         Table<CatchmentSummaryRow> summaries = ctx.Owned.Summaries;
         nodes.Clear();      // derived tables: rebuilt wholesale on recompute

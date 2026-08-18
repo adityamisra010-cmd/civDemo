@@ -81,7 +81,7 @@ public class WaterRouteCounterfactualTests
         foreach (ulong seed in new ulong[] { 42, 7, 303 })
         {
             WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, seed);
-            TraversalLattice lattice = TraversalLattice.Build(world.Terrain!);
+            TraversalLattice lattice = TraversalLattice.Build(world.Terrain!, cfg.Transport.RiverCostFactor);
             int tin = cfg.Goods!.IdOf("tin-ore");
             int n = world.Settlements.Count;
 

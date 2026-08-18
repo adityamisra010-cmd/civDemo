@@ -22,7 +22,7 @@ public class PathfindingTests
     {
         var terrain = Sim.Core.Worldgen.Worldgen.Generate(Dev(), seed);
         var world = new WorldState(seed) { Terrain = terrain };
-        return (TraversalLattice.Build(terrain), world);
+        return (TraversalLattice.Build(terrain, Sim.Tests.TestUtil.TestConfigs.RiverCostFactor()), world);
     }
 
     private static int[] PassableNodes(TraversalLattice lattice)
@@ -327,7 +327,7 @@ public class PathfindingTests
         using var stream = Sim.Data.DataFiles.OpenWorldgen();
         var cfg = WorldgenConfigLoader.Load(stream);
         var terrain = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed: 42);
-        var lattice = TraversalLattice.Build(terrain);   // 256² nodes
+        var lattice = TraversalLattice.Build(terrain, Sim.Tests.TestUtil.TestConfigs.RiverCostFactor());   // 256² nodes
         var world = new WorldState(42) { Terrain = terrain };
         int[] nodes = LargestComponentNodes(lattice);
         int from = nodes[0], to = nodes[^1];             // extremes of the main landmass

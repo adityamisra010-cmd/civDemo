@@ -84,7 +84,7 @@ public class CatchmentTests
         // the system runs the TIER budget, derived here through the same pure
         // functions the system uses).
         WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42, settlementsOverride: 1);
-        TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
+        TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!, TestConfigs.RiverCostFactor());
         int origin = OriginOf(founded, lattice);
         Pathfinder.IsochroneResult iso =
             Pathfinder.Isochrone(lattice, founded, origin, TierBudgetOf(founded, lattice, 0));
@@ -120,7 +120,7 @@ public class CatchmentTests
         double baselineFarmland = w1.CatchmentSummaries[0].EffectiveArableKm2;
         Assert.Equal(0, w1.CatchmentSummaries[0].NetworkRevision);
 
-        TraversalLattice lattice = TraversalLattice.Build(w1.Terrain!);
+        TraversalLattice lattice = TraversalLattice.Build(w1.Terrain!, TestConfigs.RiverCostFactor());
         int origin = OriginOf(w1, lattice);
 
         // The baseline reached set — to pick a target OUTSIDE it.
@@ -189,7 +189,7 @@ public class CatchmentTests
         var cfg = WorldgenConfigLoader.Load(stream); // canonical 1024²
         WorldState founded = WorldFounding.Found(cfg, TestUtil.TestConfigs.Sim(), seed: 42);
 
-        TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!);
+        TraversalLattice lattice = TraversalLattice.Build(founded.Terrain!, TestConfigs.RiverCostFactor());
         int origin = OriginOf(founded, lattice);
 
         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();

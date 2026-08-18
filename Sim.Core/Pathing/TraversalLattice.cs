@@ -9,12 +9,42 @@ namespace Sim.Core.Pathing;
 /// and isochrones run here; network edges overlay as fast lanes at their
 /// endpoints' lattice nodes.
 ///
-/// Derived, immutable, rebuildable: a pure function of (TerrainSet, stride) —
-/// not state, not a cache. Node ids are row-major and stable. Node cost is the
-/// AVERAGE movement-cost over the node's stride×stride terrain block (documented
-/// choice: block averaging is stable and representative; point sampling would
-/// alias single-pixel features). A node is impassable (water) when the block's
-/// water fraction is ≥ 0.5.
+/// Derived, immutable, rebuildable: a pure function of
+/// (TerrainSet, riverCostFactor, stride) — not state, not a cache. Node ids are
+/// row-major and stable. A node is impassable (water) when the block's water
+/// fraction is ≥ 0.5; RIVERS DO NOT CHANGE PASSABILITY (river cells are LAND).
+///
+/// NODE COST (T4.7 — the river-aware cost term). Base: the AVERAGE movement
+/// cost over the node's stride×stride terrain block (documented choice: block
+/// averaging is stable and representative; point sampling would alias
+/// single-pixel features). Before T4.7 that was the WHOLE story and
+/// <see cref="TerrainSet.Rivers"/> was never read here at all — so a river
+/// threading a block was invisible to every path, catchment and isochrone in
+/// the game (proven at T4.9: `water[]` and the river mask are separate arrays
+/// and river cells are land, so no stride hides or reveals them).
+///
+/// THE TERM, and why it is not an area mean. A traveller crossing a block that
+/// a river threads does not average the block; they follow the river as far as
+/// it goes their way and walk the rest. So the block cost is a PATH-LENGTH
+/// weighted blend, not an area-weighted one:
+///
+///     span      = min(1, riverCells / stride)          // river cells per crossing row
+///     nodeCost  = (1 − span) × blockMeanCost + span × riverCostFactor
+///
+/// A river running straight through the block contributes `stride` cells, so
+/// span = 1 and the node costs exactly `riverCostFactor` — which is precisely
+/// what the T3.6b PIXEL counterfactual charges for crossing that block along
+/// the river (r per cell × stride cells × the ¼-node step scale). The lattice
+/// therefore AGREES with the pixel model in the fully-spanning limit, and
+/// degrades linearly toward the land mean as the river only clips the block.
+/// A block with no river cells takes the untouched `costSum / cells` — the
+/// same expression, in the same order, as before T4.7, so a world with no
+/// rivers is bit-identical to the pre-T4.7 lattice.
+///
+/// `riverCostFactor` is a coefficient INSIDE this equation (law 2), never a
+/// free-floating buff, and is denominated in the same units as movement cost:
+/// a fraction of IDEAL GROUND (movement cost 1.0). Its derivation and its
+/// ratified band live in sim.json's `transport._doc`.
 /// </summary>
 public sealed class TraversalLattice
 {
@@ -58,19 +88,34 @@ public sealed class TraversalLattice
         MinNodeCost = min == double.MaxValue ? 0.0 : min;
     }
 
-    public static TraversalLattice Build(TerrainSet terrain, int stride = 4)
+    /// <summary>
+    /// Build the lattice over <paramref name="terrain"/>. <paramref name="riverCostFactor"/>
+    /// is the TUNE constant `transport.riverCostFactor` — river traversal cost as a
+    /// fraction of ideal ground. It is a REQUIRED argument on purpose: the lattice must
+    /// be identical for every consumer in a world, and a defaulted value is how two call
+    /// sites end up on two different lattices.
+    /// </summary>
+    public static TraversalLattice Build(TerrainSet terrain, double riverCostFactor, int stride = 4)
     {
+        if (!(riverCostFactor > 0.0 && riverCostFactor <= 1.0))
+            throw new ArgumentOutOfRangeException(nameof(riverCostFactor),
+                riverCostFactor,
+                "transport.riverCostFactor must be in (0,1] — a river must be cheaper than "
+                + "ideal ground to be a corridor at all, and cannot be free.");
+
         int size = terrain.Size / stride;
         var nodeCost = new double[size * size];
         var passable = new bool[size * size];
         ReadOnlySpan<double> cost = terrain.MovementCost;
         ReadOnlySpan<double> water = terrain.Water;
+        ReadOnlySpan<double> rivers = terrain.Rivers;
 
         for (int y = 0; y < size; y++)
         {
             for (int x = 0; x < size; x++)
             {
                 double costSum = 0.0, waterSum = 0.0;
+                int riverCells = 0;
                 for (int by = 0; by < stride; by++)
                 {
                     int row = (y * stride + by) * terrain.Size + x * stride;
@@ -78,16 +123,35 @@ public sealed class TraversalLattice
                     {
                         costSum += cost[row + bx];
                         waterSum += water[row + bx];
+                        if (rivers[row + bx] >= 0.5) riverCells++;
                     }
                 }
                 int cells = stride * stride;
                 int node = y * size + x;
-                nodeCost[node] = costSum / cells;
+                double blockMean = costSum / cells;
+                // T4.7: path-length weighted river blend. riverCells == 0 takes the
+                // untouched pre-T4.7 expression — bit-identical on riverless worlds.
+                nodeCost[node] = riverCells == 0
+                    ? blockMean
+                    : Blend(blockMean, RiverSpan(riverCells, stride), riverCostFactor);
                 passable[node] = waterSum / cells < 0.5;
             }
         }
         return new TraversalLattice(size, stride, terrain.KmPerPx * stride, nodeCost, passable);
     }
+
+    /// <summary>
+    /// The fraction of a block crossing that can be made ON the river:
+    /// riverCells / stride, saturating at 1 (a meandering river can hold more
+    /// than `stride` cells in a block, but a crossing is still one crossing).
+    /// Pure and public so tests reproduce the aggregation without duplicating it.
+    /// </summary>
+    public static double RiverSpan(int riverCells, int stride) =>
+        riverCells >= stride ? 1.0 : (double)riverCells / stride;
+
+    /// <summary>The T4.7 cost blend: (1−span)·land + span·river.</summary>
+    public static double Blend(double blockMeanCost, double span, double riverCostFactor) =>
+        (1.0 - span) * blockMeanCost + span * riverCostFactor;
 
     /// <summary>Test factory: a handcrafted lattice with explicit costs/passability.</summary>
     public static TraversalLattice FromCosts(int size, double[] nodeCost, bool[] passable, double kmPerNode = 1.0)

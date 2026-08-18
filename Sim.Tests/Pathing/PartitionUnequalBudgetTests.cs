@@ -32,7 +32,7 @@ public class PartitionUnequalBudgetTests
     {
         var terrain = Sim.Core.Worldgen.Worldgen.Generate(Dev(), seed);
         var world = new WorldState(seed) { Terrain = terrain };
-        return (TraversalLattice.Build(terrain), world);
+        return (TraversalLattice.Build(terrain, Sim.Tests.TestUtil.TestConfigs.RiverCostFactor()), world);
     }
 
     /// <summary>Largest 8-connected passable component, ascending node id —

@@ -177,7 +177,7 @@ public class SelectionTests
         using (var stream = Sim.Data.DataFiles.OpenEraPacing()) era = EraTableLoader.Load(stream);
         world = new TurnExecutor(era, [Sim.Core.SystemCatalog.Catchment(cfg)]).Step(world);
 
-        var lattice = Sim.Core.Pathing.TraversalLattice.Build(world.Terrain!);
+        var lattice = Sim.Core.Pathing.TraversalLattice.Build(world.Terrain!, cfg.Transport.RiverCostFactor);
         int stride = OverlayMeshes.LatticeStride(lattice, world.Terrain!.Size);
         LineGeometry.Vertex[][] fills =
             OverlayMeshes.BuildTerritoryFills(world, lattice.Size, stride);
