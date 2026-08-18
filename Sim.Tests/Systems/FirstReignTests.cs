@@ -274,8 +274,16 @@ public class FirstReignTests
         //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
         //         system was touched, and the targeted suite proves the world is
         //         otherwise identical.
-        const string golden = "aa122530e71b22ec65a050c30e6e96b64a185e5975049b9421f2861f05123ad6";
-        Assert.Equal(golden, WorldHash.ComputeHex(final));
+        // T4.7 RE-PIN (VALUE, ONE cause — the river-aware traversal lattice).
+        //   OLD   3fd26370340ac7521e371328dd72d8ac3aa3407ba14c4b39afc9713200dc989a
+        //   NEW   50bf1298523eeb5e69423e63886ce1e7b6e67bc39a21d59d580508af7198ec4f
+        //   CAUSE `transport.riverCostFactor` now reaches TraversalLattice.Build.
+        //         SettlementSiting enforces `minSpacingKm` as a TRAVEL-COST distance
+        //         (D-025: "minimum travel-time spacing"); rivers shorten travel cost,
+        //         so different candidates fail the spacing test — 3 of 9 dev sites
+        //         move and the pick order shifts. Candidate SCORES are untouched.
+        //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+        const string golden = "50bf1298523eeb5e69423e63886ce1e7b6e67bc39a21d59d580508af7198ec4f";        Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
         // assert trajectory SEMANTICS, so a ghost-harvest revert plus a

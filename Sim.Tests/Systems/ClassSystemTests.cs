@@ -139,10 +139,23 @@ public class ClassSystemTests
         // re-anchored to [30, 95] to hold the mechanism (population-gated, not
         // instant, not never) while accommodating weather-driven jitter around
         // the crossing.
-        Assert.True(emergenceTurn is >= 30 and <= 95,
-            $"artisans emerged at turn {emergenceTurn} — outside the re-measured [30,95] window " +
+        // T4.7 RE-ANCHOR, under the policy stated immediately above — this is an
+        // observation anchor, so re-measuring it against a changed world is the
+        // correct action. T4.7's river-aware lattice enlarges catchments (effective
+        // arable roughly triples), so settlement 0 grows through the 520 threshold
+        // sooner: MEASURED 81 -> 22 on this seed.
+        //
+        // ONLY THE FLOOR MOVES, and it is anchored to an existing project constant
+        // rather than fitted to the new measurement: 10 sits just past the
+        // founding-settling epoch (`settling = 8`, MigrationTests.cs:332), which is
+        // what "not instant" has to mean here. The ceiling stays at 95, so the "not
+        // never" half of the mechanism is not weakened at all. The window still
+        // holds the mechanism it exists to hold — population-gated, not instant,
+        // not never — with 22 sitting 2.2x above the floor.
+        Assert.True(emergenceTurn is >= 10 and <= 95,
+            $"artisans emerged at turn {emergenceTurn} — outside the re-measured [10,95] window " +
             "(population-gated emergence: founding ~350 growing past the 520 threshold, " +
-            "under T3.4b harvest variance)");
+            "under T3.4b harvest variance and T4.7's enlarged catchments)");
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).
@@ -544,10 +557,26 @@ public class ClassSystemTests
         for (int i = 0; i < t2.PathProgress.Count; i++)
             if (t2.PathProgress[i].Settlement == S0) { twinRow = i; break; }
         double preOrderBank = twinRow >= 0 ? t2.PathProgress[twinRow].Banked : 0.0;
+        // T4.7 — the delta must compare LABOUR COMMITTED, not bank level. `Banked`
+        // is debited the instant a segment completes, and T4.7's cheaper
+        // river-threaded segments make one complete inside this window, which sent
+        // the raw delta negative. Each completed segment leaves exactly one
+        // NetworkEdgeRow holding `StepCost × DirtPathSpeedFactor`, so its labour is
+        // recovered exactly; adding it back on BOTH sides leaves the hand-computed
+        // pin untouched and restores what the assertion always meant to measure.
+        double Spent(WorldState w)
+        {
+            double sum = 0.0;
+            for (int e = 0; e < w.NetworkEdges.Count; e++)
+                sum += w.NetworkEdges[e].Cost
+                       / cfg.PathBuild.DirtPathSpeedFactor * cfg.PathBuild.BuildCostMultiplier;
+            return sum;
+        }
         // Exact pin: the post-order accrual is the 0.6 construction share of
         // ALL adults, artisans included at full weight. An unweighted pool
         // (peasants only) or a slider-ignoring artisan term shifts this
         // product and fails.
-        Assert.Equal(expected, next.PathProgress[S0row].Banked - preOrderBank, 9);
+        Assert.Equal(expected,
+            (next.PathProgress[S0row].Banked + Spent(next)) - (preOrderBank + Spent(t2)), 9);
     }
 }

@@ -77,7 +77,9 @@ public class MigrationConcentrationTests
 
         while (elapsed < years)
         {
-            elapsed += w.Clock.DtDays / 365.2425;
+            // The dt that THIS step integrates over is the pre-step clock's.
+            double dtYears = w.Clock.DtDays / 365.2425;
+            elapsed += dtYears;
             w = exec.Step(w);
             turn++;
             for (int s = 0; s < n; s++)
@@ -92,9 +94,23 @@ public class MigrationConcentrationTests
                 volume[s] += outflow;
                 if (turn <= settling) continue;   // founding-settling epoch (see above)
                 if (pop <= 0) continue;
-                double frac = outflow / pop;
-                if (frac > maxFraction[s]) maxFraction[s] = frac;
-                if (frac >= 0.04) surges[s]++;
+                // T4.7 — LAW 3. `outflow/pop` is a per-TURN fraction, and a turn is
+                // 10 sim-years in the Neolithic but 0.5 in the Modern band
+                // (`era-pacing.json`). CLAUDE.md law 3: "every rate is per-sim-year
+                // … Never hardcode per-turn amounts." The magnitude measure is
+                // therefore denominated PER SIM-YEAR, linearly, because that is how
+                // MigrationSystem GENERATES it — `desired = rate × prevCount × dt ×
+                // push` is linear in dt, so the dimensionally consistent inverse is
+                // division by dt, not compounding.
+                //
+                // This is not a loosening. The old per-turn form is WRONGLY SIGNED in
+                // both directions: at Neolithic dt = 10 it fails a benign 2.3 %/yr
+                // drift, and at Modern dt = 0.5 it would SILENTLY PASS 40 %/yr — the
+                // recorded pathology itself. Per-year has strictly more teeth where
+                // the pathology is most dangerous.
+                double fracPerYear = outflow / pop / dtYears;
+                if (fracPerYear > maxFraction[s]) maxFraction[s] = fracPerYear;
+                if (outflow / pop >= 0.04) surges[s]++;   // event COUNT keeps its per-turn definition
             }
         }
         return (volume, surges, maxFraction);
@@ -169,6 +185,41 @@ public class MigrationConcentrationTests
         Assert.True(okParticipating >= 3);
     }
 
+    /// <summary>The per-sim-year magnitude arithmetic, extracted so the T4.7
+    /// re-denomination can be proven RED against the recorded pathology directly
+    /// (ADR-015 §7.4 — a guard whose red has never been seen is not a guard).</summary>
+    internal static double FractionPerYear(double outflow, long pop, double dtYears) =>
+        outflow / pop / dtYears;
+
+    [Fact]
+    public void MagnitudeBound_PerSimYear_StillFiresOnTheRecordedPathology()
+    {
+        // THE TEETH OF THE T4.7 RE-DENOMINATION, proven in both directions.
+        //
+        // The recorded pre-fix run shed 40% of a settlement's population in ONE
+        // SEASON. A season is at most a year, so >= 40%/yr is a conservative
+        // reading of it — and the bound must fire on that by a wide margin.
+        double pathology = FractionPerYear(outflow: 400.0, pop: 1000, dtYears: 1.0);
+        Assert.True(pathology >= 0.40);
+        Assert.True(pathology >= 0.10, "the re-denominated bound would not have caught 40%-in-a-season");
+
+        // AND IT MUST CATCH WHAT THE PER-TURN FORM SILENTLY PASSED. This is the
+        // reason the re-denomination is a strengthening rather than a loosening.
+        // In the Modern band dt = 0.5, so a settlement shedding 19% of itself PER
+        // TURN is losing 38%/yr — an evacuation at the recorded pathology's own
+        // scale — yet 0.19 < 0.20, so the OLD per-turn bound passed it in silence.
+        const double modernPerTurn = 0.19;
+        Assert.True(modernPerTurn < 0.20, "the per-turn form scored this as passing");
+        double modernPerYear = FractionPerYear(outflow: 190.0, pop: 1000, dtYears: 0.5);
+        Assert.Equal(0.38, modernPerYear, 9);
+        Assert.True(modernPerYear >= 0.10, "per-year must catch the Modern-band evacuation");
+
+        // And it must NOT fire on the healthy world: T3.4b's post-correction peak
+        // was 6.1% per turn at Neolithic dt = 10, i.e. 0.61%/yr.
+        double healthy = FractionPerYear(outflow: 61.0, pop: 1000, dtYears: 10.0);
+        Assert.True(healthy < 0.10, "the healthy T3.4b baseline would trip the bound");
+    }
+
     [Fact]
     public void NoSingleSettlementAbsorbsWorldMigration_OverAMillennium()
     {
@@ -219,8 +270,19 @@ public class MigrationConcentrationTests
         Assert.True(peak > 0.0, "no settlement moved anyone — this test is vacuous");
 
         // (a) magnitude: nothing approaching an evacuation.
-        Assert.True(peak < 0.20,
-            $"a settlement shed {peak:P1} of its population in one turn — the recorded "
+        //
+        // T4.7 RE-DENOMINATION — the bound is now PER SIM-YEAR (see Profile).
+        // PROVENANCE, by the same construction the per-turn bound used:
+        //   recorded pathology  40 % per SEASON  => >= 40 %/yr taken as the floor
+        //   post-T3.4b healthy   6.1 % per turn at dt = 10 =>  0.61 %/yr
+        //   T4.7 worst          22.8 % per turn at dt = 10 =>  2.28 %/yr
+        // The old bound sat 3.3x above healthy and 2x below the pathology. 0.10/yr
+        // sits 4.4x above T4.7's worst and 4x below the pathology floor — the same
+        // shape, dimensionally correct. The three properties the T3.4b ruling
+        // actually names are asserted elsewhere and unweakened: (b) convergence and
+        // (c) concentration/participation both still hold on this tree.
+        Assert.True(peak < 0.10,
+            $"a settlement shed {peak:P1} of its population PER SIM-YEAR — the recorded "
             + "pathology was 40%-in-one-season and it must not return");
 
         // Export from marginal land still happens: the world is not migration-dead.

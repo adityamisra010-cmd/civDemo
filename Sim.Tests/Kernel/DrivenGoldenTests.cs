@@ -148,8 +148,19 @@ public class DrivenGoldenTests
         //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
         //         system was touched, and the targeted suite proves the world is
         //         otherwise identical.
-        const string golden = "74d072c8add4ccae0fe83ed4c4eb3c92242632e271bbe9103401b795de221f63";
-
+        // T4.7 RE-PIN (VALUE, ONE cause — the river-aware traversal lattice).
+        //   OLD   75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
+        //   NEW   7f32248ba34ef8cf4ffd7ce56c76695495f5615f263fea2f80e78a91c62c3c9f
+        //   CAUSE `transport.riverCostFactor` now reaches TraversalLattice.Build,
+        //         so river-threaded blocks price below the land mean. SettlementSiting
+        //         enforces `minSpacingKm` as a TRAVEL-COST distance (D-025: "minimum
+        //         travel-time spacing"), and rivers shorten travel cost, so the
+        //         spacing test rejects different candidates: 3 of 9 dev sites move
+        //         and the pick order shifts. Every seeded world therefore differs
+        //         from founding onward. Candidate SCORES are untouched — the lattice
+        //         enters siting only through the spacing constraint.
+        //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+        const string golden = "7f32248ba34ef8cf4ffd7ce56c76695495f5615f263fea2f80e78a91c62c3c9f";
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
     }

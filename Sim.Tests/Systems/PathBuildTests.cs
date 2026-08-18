@@ -110,6 +110,7 @@ public class PathBuildTests
         // is unchanged — the explicit legacy order row (0.5, 0, 0, 0, 0.5) is
         // the controlled variable, and it overrides the default entirely.
         double bankBefore = world.PathProgress.Count > 0 ? world.PathProgress[0].Banked : 0.0;
+        int edgesBefore = world.NetworkEdges.Count;
 
         world = exec.Step(world);
         long expected = (long)Math.Floor(Math.Min(
@@ -118,9 +119,25 @@ public class PathBuildTests
         Assert.Equal(expected, HarvestSourced(world) - harvestBefore);
 
         // And the path bank accrued from the same Prev allocation, dt-correctly.
+        //
+        // T4.7 — MEASURE ACCRUAL, NOT ACCRUAL-MINUS-SPEND. `Banked` is a stock that
+        // both accrues and is DEBITED the moment a segment completes
+        // (PathBuildSystem: `progress.Banked -= segmentCost`), so its delta is only
+        // a proxy for accrual while no segment completes inside the window. T4.7
+        // makes river-threaded segments cheap enough that one now completes here,
+        // and the raw delta went NEGATIVE — not negative labour (the debit is
+        // guarded by `if (progress.Banked < segmentCost) return;`), just the wrong
+        // quantity. Every completed segment adds exactly one NetworkEdgeRow storing
+        // `StepCost × DirtPathSpeedFactor`, so the labour it consumed is recovered
+        // exactly, and the identity below is accrual = ΔBanked + spend. The
+        // hand-computed pin is UNCHANGED; only the proxy was repaired.
+        double spent = 0.0;
+        for (int e = edgesBefore; e < world.NetworkEdges.Count; e++)
+            spent += world.NetworkEdges[e].Cost
+                     / cfg.PathBuild.DirtPathSpeedFactor * cfg.PathBuild.BuildCostMultiplier;
         Assert.Equal(1, world.PathProgress.Count);
         Assert.Equal(cfg.PathBuild.LaborPerAdultPerYear * 0.5 * adultsT3 * 10.0,
-            world.PathProgress[0].Banked - bankBefore, 9);
+            world.PathProgress[0].Banked - bankBefore + spent, 9);
     }
 
     [Fact]
