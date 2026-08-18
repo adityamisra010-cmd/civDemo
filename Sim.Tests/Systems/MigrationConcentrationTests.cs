@@ -52,11 +52,34 @@ public class MigrationConcentrationTests
         var surges = new int[n];
         var maxFraction = new double[n];
         double elapsed = 0.0;
+        int turn = 0;
+        // T4.7 SCOPE CORRECTION (director ruling) — the FOUNDING-SETTLING epoch is
+        // excluded from the MAGNITUDE and PERSISTENCE measures, using the project's
+        // existing constant and semantics, not a new duration: MigrationTests.cs:332
+        // declares `const int settling = 8` and skips `t <= settling`, because
+        // "T3.1's jittered endowments open real attractiveness gaps at turn 0 and
+        // people equalize them in a deliberate one-time surge … the settling epoch
+        // is excluded BY CONSTRUCTION, exactly like famine turns."
+        //
+        // WHY THIS IS CONSISTENT WITH THE GUARD'S PURPOSE, not a weakening of it:
+        // this guard exists to catch the recorded pathology of PERSISTENT,
+        // OSCILLATING export — "60+ events at up to 40%, oscillating 40 → 32 → 28
+        // → 7 → 34" (see this file's header). A one-time founding equalisation is
+        // the opposite of persistent: it happens once, at turn 2, and does not
+        // recur. Scoring it here — while the sibling steady-state test excludes it
+        // — measured the one epoch the guard was never about.
+        //
+        // `volume` DELIBERATELY still accumulates from turn 1. Concentration ("is
+        // one settlement absorbing the world's migration?") is a claim about the
+        // whole history, the founding surge included, and that test passes on this
+        // tree; narrowing its window would move a passing baseline for no reason.
+        const int settling = 8;
 
         while (elapsed < years)
         {
             elapsed += w.Clock.DtDays / 365.2425;
             w = exec.Step(w);
+            turn++;
             for (int s = 0; s < n; s++)
             {
                 SettlementId id = w.Settlements[s].Id;
@@ -67,6 +90,7 @@ public class MigrationConcentrationTests
                 for (int m = 0; m < w.MigrationFlows.Count; m++)
                     if (w.MigrationFlows[m].Settlement == id) outflow = w.MigrationFlows[m].Outflow;
                 volume[s] += outflow;
+                if (turn <= settling) continue;   // founding-settling epoch (see above)
                 if (pop <= 0) continue;
                 double frac = outflow / pop;
                 if (frac > maxFraction[s]) maxFraction[s] = frac;
