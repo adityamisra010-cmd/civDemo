@@ -320,6 +320,148 @@ public class NonStatePeoplesTests
         Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b)); // bit-exact repeat
     }
 
+    [Fact]
+    public void NoGrainAnywhere_MeansNoRaid_AndNoPhantomTransfer()
+    {
+        // "No raid occurs when the source lacks available grain." Every other
+        // settlement holds ZERO — not a little, none. The transfer must be a
+        // no-op: no phantom units appear, and world grain stays exactly 0.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = TwoSettlements(cfg, grain0: 0, grain1: 0);
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, DeficitRatio: 1.0, DemandUnits: 5000));
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Appropriation(cfg)]);
+        WorldState next = exec.Step(w);
+
+        Assert.Equal(0, Grain(next, cfg, S0));
+        Assert.Equal(0, Grain(next, cfg, S1));
+        Assert.Equal(0, WorldGrain(next, cfg));
+    }
+
+    [Fact]
+    public void ARaidedSettlement_CannotBecomeARaider_InTheSameTurn()
+    {
+        // THE ANTI-CHAIN-REACTION PIN, and the reason the mechanism cannot become
+        // an intra-turn economic sub-simulation: eligibility is read from PREV
+        // (`prev.ConsumptionDeficits`), never from the live stock table. So being
+        // emptied by an earlier raider in the SAME pass cannot make a settlement
+        // hungry enough to raid in that pass — it can only qualify next turn, on a
+        // deficit that ConsumptionSystem actually published.
+        //
+        // S0 is a hungry herding people. S1 is a herding people that is FED (no
+        // deficit row) and holds the grain. S0 empties S1; S1 must not retaliate.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = TwoSettlements(cfg, grain0: 0, grain1: 500);
+        for (int i = 0; i < w.SectorAllocations.Count; i++)
+            if (w.SectorAllocations[i].Settlement == S1)
+                w.SectorAllocations[i] = new SectorAllocationRow(S1, 0.0, 1.0, 0.0, 0.0, 0.0);
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, DeficitRatio: 1.0, DemandUnits: 5000));
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Appropriation(cfg)]);
+        WorldState next = exec.Step(w);
+
+        // S0 took everything S1 had; S1 — now holding nothing — did NOT take it back.
+        Assert.Equal(500, Grain(next, cfg, S0));
+        Assert.Equal(0, Grain(next, cfg, S1));
+        Assert.Equal(500, WorldGrain(next, cfg));
+    }
+
+    [Fact]
+    public void EachRaiderTakesAtMostOnce_PerTurn_TheWholePassIsBounded()
+    {
+        // ONE TURN IS ONE STRATEGIC dt. The pass is a single ascending sweep of
+        // settlements, so N settlements produce at most N transfers and there is
+        // no iteration to a fixpoint. Three hungry herding peoples against one
+        // granary: the granary loses its stock ONCE over, never repeatedly, and
+        // world grain is unchanged.
+        SimConfig cfg = TestConfigs.Sim();
+        var w = new WorldState(7);
+        var grain = new GoodId(cfg.Goods!.GrainId);
+        var ledger = new Ledger(w.LedgerFlows);
+        for (int s = 0; s < 4; s++)
+        {
+            var id = new SettlementId(s);
+            w.Settlements.Add(new SettlementRow(id, s, 0));
+            // 0..2 are herding peoples; 3 is the farming granary.
+            w.SectorAllocations.Add(s < 3
+                ? new SectorAllocationRow(id, 0.0, 1.0, 0.0, 0.0, 0.0)
+                : new SectorAllocationRow(id, 1.0, 0.0, 0.0, 0.0, 0.0));
+            int row = w.GoodStocks.Add(new GoodStockRow(id, grain, Conserved.Zero, 0.0, 0.0));
+            if (s == 3)
+                ledger.Flow(ref w.GoodStocks.Ref(row).Amount, ConservedQuantityIds.OfGood(grain),
+                    ReasonIds.InitialEndowment, 900, FlowDirection.Source, OverdrawPolicy.Throw);
+            if (s < 3)
+                w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, DeficitRatio: 0.5, DemandUnits: 400));
+        }
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Appropriation(cfg)]);
+        WorldState next = exec.Step(w);
+
+        // Each of the three wanted 200 (0.5 x 400) and each took it once: 600 moved.
+        Assert.Equal(200, Grain(next, cfg, new SettlementId(0)));
+        Assert.Equal(200, Grain(next, cfg, new SettlementId(1)));
+        Assert.Equal(200, Grain(next, cfg, new SettlementId(2)));
+        Assert.Equal(300, Grain(next, cfg, new SettlementId(3)));
+        Assert.Equal(900, WorldGrain(next, cfg)); // nothing created, nothing destroyed
+    }
+
+    [Fact]
+    public void RaiderAndVictimAreNeverTheSameRow_NoSelfTransfer()
+    {
+        // A self-transfer would alias two `ref`s into one row and could mint grain.
+        // The victim scan skips the raider by construction; with only ONE
+        // settlement in the world there is no victim at all and nothing moves.
+        SimConfig cfg = TestConfigs.Sim();
+        var w = new WorldState(7);
+        var grain = new GoodId(cfg.Goods!.GrainId);
+        w.Settlements.Add(new SettlementRow(S0, 0, 0));
+        w.SectorAllocations.Add(new SectorAllocationRow(S0, 0.0, 1.0, 0.0, 0.0, 0.0));
+        var ledger = new Ledger(w.LedgerFlows);
+        int row = w.GoodStocks.Add(new GoodStockRow(S0, grain, Conserved.Zero, 0.0, 0.0));
+        ledger.Flow(ref w.GoodStocks.Ref(row).Amount, ConservedQuantityIds.OfGood(grain),
+            ReasonIds.InitialEndowment, 100, FlowDirection.Source, OverdrawPolicy.Throw);
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, DeficitRatio: 1.0, DemandUnits: 400));
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Appropriation(cfg)]);
+        WorldState next = exec.Step(w);
+
+        Assert.Equal(100, Grain(next, cfg, S0)); // unchanged: it cannot raid itself
+        Assert.Equal(100, WorldGrain(next, cfg));
+    }
+
+    [Fact]
+    public void TwoHungryPeoples_DoNotRobEachOtherInACircle_TheRaidIsNotANoOp()
+    {
+        // REGRESSION — found by adversarial review. Victim wealth is read from
+        // PREV, not from the live table. Selecting on the live table let two
+        // hungry herders swap the same grain inside ONE pass: S0 emptied S1, then
+        // S1 — now seeing S0 rich — took it straight back, leaving the world
+        // bit-identical, NEITHER settlement relieved, and the outcome decided by
+        // settlement row order rather than by any modelled quantity.
+        //
+        // Both peoples are herding-dominant, both hungry, only S1 begins with grain.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = TwoSettlements(cfg, grain0: 0, grain1: 500);
+        for (int i = 0; i < w.SectorAllocations.Count; i++)
+            if (w.SectorAllocations[i].Settlement == S1)
+                w.SectorAllocations[i] = new SectorAllocationRow(S1, 0.0, 1.0, 0.0, 0.0, 0.0);
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, DeficitRatio: 1.0, DemandUnits: 500));
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S1, DeficitRatio: 1.0, DemandUnits: 500));
+
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Appropriation(cfg)]);
+        WorldState next = exec.Step(w);
+
+        // The grain moved ONCE and stayed moved. S1 began the turn holding it and
+        // ends without it; S0 began with nothing and is actually relieved.
+        Assert.Equal(500, Grain(next, cfg, S0));
+        Assert.Equal(0, Grain(next, cfg, S1));
+        Assert.Equal(500, WorldGrain(next, cfg));
+
+        // And the state actually CHANGED — the pre-fix bug's signature was a
+        // world identical to its input after two transfers.
+        Assert.NotEqual(WorldHash.ComputeHex(w), WorldHash.ComputeHex(next));
+    }
+
     // --- F. STATE BOUNDARY ----------------------------------------------------
 
     [Fact]

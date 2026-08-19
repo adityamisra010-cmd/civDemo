@@ -41,11 +41,15 @@ public readonly record struct AppropriationTables(Table<GoodStockRow> Stocks);
 /// ControlRow's own contract already provides for ("exactly one state control
 /// row, OR none"). No new table, no new population carrier, no new polity type,
 /// no schema change. NOTE FOR THE READER, because it is load-bearing: at T4.5
-/// nothing in Sim.Core writes Controls (T4.3 shipped it as schema only), so in
-/// a live world EVERY settlement is currently stateless and this behaviour is
-/// available to all of them. That is a property of Controls being unpopulated,
-/// not of this rule; the discriminator is written here exactly once and will
-/// narrow by itself the moment any system starts writing control rows.
+/// nothing in Sim.Core writes Controls (T4.3 shipped it as schema only), so
+/// statelessness ALONE is currently true of every settlement. The raider must
+/// therefore ALSO be herding-dominant (below), and the practical consequence is
+/// the opposite of permissive: `WorldFounding` writes no SectorAllocationRow at
+/// all, and the only writer in Sim.Core is PathBuildSystem acting on ORDERS, so
+/// in a headless founded world no settlement is herding-dominant and THIS SYSTEM
+/// MOVES NOTHING. D-037 B3 wants non-state peoples "present from turn zero" in
+/// worldgen; placing them is worldgen work this packet did not carry, and it is
+/// recorded in docs/queue.md rather than left to look live.
 ///
 /// WHO IS RAIDED: the OTHER settlement holding the most grain, tie-broken to the
 /// LOWEST settlement id by the strictly-greater scan over ascending rows — the
@@ -101,7 +105,7 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
             if (raiderRow < 0) continue; // nowhere to put it
 
             int victimRow = RichestOtherGrainRow(stocks, prev, raider);
-            if (victimRow < 0) continue; // nobody holds any grain
+            if (victimRow < 0) continue; // nobody held any grain when the turn began
 
             // ClampToAvailable, never Throw: the victim can be emptied but can
             // never be overdrawn, and the return value reports what truly moved.
@@ -138,9 +142,11 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
     /// D-037 B3's herders, and it is not what the decision describes.
     ///
     /// It introduces NO constant and NO new state: `Sectors.Raw` already exists and
-    /// "largest sector" is a comparison, not a threshold. The never-ordered default
-    /// allocation is ALL FARMING, so an ordinary village is excluded by the same
-    /// data that already governs its labour.
+    /// "largest sector" is a comparison, not a threshold. `Sectors.Default` is
+    /// Farming 0.55 / Herding 0.15 / Extraction 0.10 / Crafting 0.12 /
+    /// Construction 0.08 — farming-dominant — so an ordinary village is excluded by
+    /// the same data that already governs its labour, and a settlement with NO
+    /// allocation row at all is excluded too.
     /// </summary>
     private static bool IsHerdingDominant(IReadOnlyWorldState prev, SettlementId settlement)
     {
@@ -176,10 +182,21 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
         {
             SettlementId victim = prev.Settlements[s].Id;
             if (victim == raider) continue;
-            int row = GoodStockIndex.IndexOf(stocks, victim, _grain);
-            if (row < 0) continue;
-            long amount = stocks[row].Amount.Value;
-            if (amount > bestAmount) { bestAmount = amount; best = row; }
+            // WEALTH IS READ FROM **PREV**, the amount held when the turn began —
+            // the row it is MOVED FROM is the live one. Selecting on the live
+            // table let two hungry herders rob each other inside a single pass:
+            // the first emptied the second, and the second, now finding the first
+            // rich, took it straight back, leaving the world bit-identical, nobody
+            // relieved, and the outcome decided by settlement row order. Reading
+            // PREV kills that: a settlement that began the turn with nothing is
+            // never chosen, however much it has just been handed.
+            int prevRow = GoodStockIndex.IndexOf(prev.GoodStocks, victim, _grain);
+            if (prevRow < 0) continue;
+            long amount = prev.GoodStocks[prevRow].Amount.Value;
+            if (amount <= bestAmount) continue;
+            int liveRow = GoodStockIndex.IndexOf(stocks, victim, _grain);
+            if (liveRow < 0) continue; // nowhere to take it from
+            bestAmount = amount; best = liveRow;
         }
         return best;
     }

@@ -506,7 +506,6 @@ public class SnapshotTests
         // and Recognitions tables joined the stream (three zero count
         // prefixes, 12 bytes, on this world — no polity/claim/control system
         // exists yet). ci.yml's FOUNDED_GOLDEN moves with this value.
-<<<<<<< HEAD
         // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
         //   OLD   66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529
         //   NEW   43741d31b33feac1699e1bb9b36751c1e796f4b10465edc9d4eb0c51e6d25420
@@ -545,7 +544,6 @@ public class SnapshotTests
         //         pick order shifts. Candidate SCORES are untouched.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
         const string golden = "d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101";
-=======
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD   66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529
         //   NEW   a65aaa01b8a25725023b755b169fcd6796c05210e14cdb92ef2a9e83b9a15e83
@@ -555,7 +553,10 @@ public class SnapshotTests
         //         *Herding 0.15*, Extraction 0.10, Crafting 0.12, Construction
         //         0.08 — so every settlement in every weather-bearing world now
         //         has 15% of its labour producing food that varies with the year.
-        //         Livestock output moves, food moves, and the hash follows.
+        //         The Herding sector is the FOOD-FROM-DEPOSITS sector and covers
+        //         BOTH livestock and fish (ProductionSystem.InSector), and
+        //         WorldFounding gives every site a fish deposit, so the catch moves
+        //         with the year too. Food moves, and the hash follows.
         //   NOT THE RAID: appropriation cannot fire in this world. It requires a
         //         HERDING-DOMINANT settlement, and measured over all 300 turns of
         //         this exact run there are ZERO herding-dominant settlement-turns
@@ -563,9 +564,6 @@ public class SnapshotTests
         //         contributes nothing to this hash.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        const string golden = "a65aaa01b8a25725023b755b169fcd6796c05210e14cdb92ef2a9e83b9a15e83";
-
->>>>>>> 2d64776 (T4.5: non-state peoples (D-037 B3) — drought couples to herding; hungry)
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
