@@ -136,6 +136,7 @@ public class DrivenGoldenTests
         // T4.3 RE-PIN (VALUE, SCHEMA-ONLY, ONE cause): the Claims, Controls
         // and Recognitions tables joined the stream (three zero count
         // prefixes, 12 bytes). No polity/claim/control system exists yet.
+<<<<<<< HEAD
         // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
         //   OLD   75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
         //   NEW   74d072c8add4ccae0fe83ed4c4eb3c92242632e271bbe9103401b795de221f63
@@ -174,6 +175,26 @@ public class DrivenGoldenTests
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
         const string golden = "35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0";
+=======
+        // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
+        //   OLD   75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
+        //   NEW   ef42b770c741bc38763d046d498a32dce728ffd34e55f26e569bc65d4c7ce7e6
+        //   CAUSE T4.5 gives the HERDING food pathway the same HarvestWeatherRow
+        //         multiplier farming already had (D-037 B3). The never-ordered
+        //         default sector mix HERDS: Sectors.Default is Farming 0.55,
+        //         *Herding 0.15*, Extraction 0.10, Crafting 0.12, Construction
+        //         0.08 — so every settlement in every weather-bearing world now
+        //         has 15% of its labour producing food that varies with the year.
+        //         Livestock output moves, food moves, and the hash follows.
+        //   NOT THE RAID: appropriation cannot fire in this world. It requires a
+        //         HERDING-DOMINANT settlement, and measured over all 300 turns of
+        //         this exact run there are ZERO herding-dominant settlement-turns
+        //         (the default mix is farming-dominant). The grain transfer
+        //         contributes nothing to this hash.
+        //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+        const string golden = "ef42b770c741bc38763d046d498a32dce728ffd34e55f26e569bc65d4c7ce7e6";
+
+>>>>>>> 2d64776 (T4.5: non-state peoples (D-037 B3) — drought couples to herding; hungry)
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
     }

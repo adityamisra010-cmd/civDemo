@@ -156,14 +156,28 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
 
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults);
+            // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
+            // harvest-weather multiplier farming already carried. D-037 B3 asks
+            // for exactly this coupling and no other: "Steppe raiding
+            // historically correlates with drought, which is exactly the T3.4b
+            // harvest-variance driver: the same bad year that starves villages
+            // sends herders after grain."
+            //
+            // Weather is passed by the CALLER rather than looked up inside
+            // FromDeposits, so the one call that must NOT see it says so at the
+            // call site: EXTRACTION is ore and stone, not food, and a drought
+            // does not reduce the quarry. Same multiplier, same PREV read, same
+            // absent-row-is-1.0 rule as Farm — no new driver, no new variable.
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
-                foodSector: true);
+                foodSector: true,
+                weather: HarvestWeatherFor(prev, settlement));
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
-                foodSector: false);
+                foodSector: false,
+                weather: 1.0);
             Craft(ctx, prev, stocks, goods, settlement,
                 pool: Sectors.Share(shares, Sectors.Crafting) * adults);
         }
@@ -222,14 +236,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // ABSENT ROW = 1.0, deliberately: a world with no weather system in its
         // pipeline (every toy preset, and every hand-built test world that does
         // not ask for weather) farms exactly as it did before T3.4b.
-        double weather = 1.0;
-        for (int i = 0; i < prev.HarvestWeather.Count; i++)
-        {
-            if (prev.HarvestWeather[i].Settlement != settlement) continue;
-            weather = prev.HarvestWeather[i].Multiplier;
-            break;
-        }
-        ratePerYear *= weather;
+        ratePerYear *= HarvestWeatherFor(prev, settlement);
 
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
@@ -266,7 +273,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void FromDeposits(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, SettlementId settlement,
-        double pool, double perWorkerPerYear, bool foodSector)
+        double pool, double perWorkerPerYear, bool foodSector, double weather)
     {
         if (pool <= 0.0) return;
 
@@ -291,7 +298,12 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             if (row < 0) continue;
 
             double workers = pool * (d.Abundance / abundanceSum);
-            double ratePerYear = workers * perWorkerPerYear * d.Abundance;
+            // T4.5: weather multiplies the RATE, in the same position and the
+            // same order as Farm does it — once, before dt integration and
+            // before the remainder is added, so a drought cannot be applied
+            // twice and cannot disturb the D-004 remainder chain. Extraction
+            // passes 1.0, so this expression is bit-identical there.
+            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather;
 
             ref GoodStockRow stock = ref stocks.Ref(row);
             double exact = ratePerYear * ctx.DtYears + stock.ProduceRemainder;
@@ -302,6 +314,26 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             stock.ProduceRemainder = exact - produced;
             stock.LastProducedUnits = produced;
         }
+    }
+
+    /// <summary>
+    /// This settlement's PREV harvest-weather multiplier, or 1.0 when no row
+    /// exists. Extracted verbatim at T4.5 from Farm's own inline lookup — same
+    /// scan order, same first-match break, same absent-row default — so that
+    /// farming and the herding food pathway cannot drift onto two readings of
+    /// one signal. Farm's behaviour is unchanged by the extraction.
+    ///
+    /// ABSENT ROW = 1.0, deliberately (the T3.4b rule this inherits): a world
+    /// with no weather system in its pipeline produces exactly as it did before.
+    /// </summary>
+    private static double HarvestWeatherFor(IReadOnlyWorldState prev, SettlementId settlement)
+    {
+        for (int i = 0; i < prev.HarvestWeather.Count; i++)
+        {
+            if (prev.HarvestWeather[i].Settlement != settlement) continue;
+            return prev.HarvestWeather[i].Multiplier;
+        }
+        return 1.0;
     }
 
     private bool InSector(GoodId good, bool foodSector)

@@ -1118,3 +1118,12 @@
      ledger — notable and bucket deaths share one reason. Defensible (it is the same event, and the
      audit balances either way) and recorded as a design call for the director rather than inherited
      silently. Changing it later is a schema-visible flow-table change.
+- **T4.5 follow-up — D-037 B3's OTHER half: worldgen does not place pastoralists.**
+  T4.5 ships the non-state subsistence/appropriation mechanism and tests it, but the raid
+  requires a HERDING-DOMINANT stateless settlement and the never-ordered default mix
+  (`Sectors.Default`: Farming 0.55, Herding 0.15, …) is farming-dominant. Measured over
+  300 turns of the canonical founded world: ZERO herding-dominant settlement-turns, so the
+  appropriation path is DORMANT in live worlds today. D-037 B3 says non-state peoples are
+  "M4 worldgen, present from turn zero — NOT spawned"; placing them is worldgen work that
+  T4.5's authorized design did not cover (it forbids schema changes and does not mention
+  worldgen). Whoever owns that should read `docs/t4.5-review-record.md` first.

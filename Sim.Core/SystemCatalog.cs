@@ -107,6 +107,22 @@ public static class SystemCatalog
                 dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>T4.5 (D-037 B3): stateless settlements appropriate grain when their
+    /// own subsistence fails. Owns no tables; moves grain between existing stock
+    /// rows via Ledger.Transfer, which conserves by construction.</summary>
+    public static SystemRegistration Appropriation(SimConfig cfg)
+    {
+        var system = new Systems.Appropriation.AppropriationSystem(cfg);
+        return new SystemRegistration(
+            Systems.Appropriation.AppropriationSystem.WellKnownId,
+            Systems.Appropriation.AppropriationSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.Appropriation.AppropriationTables>(
+                    prev, new Systems.Appropriation.AppropriationTables(next.GoodStocks), rng,
+                    Systems.Appropriation.AppropriationSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Consumption(SimConfig cfg)
     {
         var system = new ConsumptionSystem(cfg);
@@ -233,7 +249,7 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg) =>
-        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
+        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), ClassMobility(cfg), Migration(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }
