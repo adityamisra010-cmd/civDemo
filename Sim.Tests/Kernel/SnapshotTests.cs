@@ -529,7 +529,21 @@ public class SnapshotTests
         //         move and the pick order shifts. Candidate SCORES are untouched.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        const string golden = "cbbf6d6deac2fcd5944d07617a6fd4d42a5128bb154fa500d13975b5b4f34b32";
+        // T4.7 RE-DERIVED ON REBASE onto main-with-T4.8 (v21 schema). The value
+        // pinned pre-rebase was measured against ba96b1c and is void here: the
+        // cumulative main differs by BOTH T4.8's empty-Notables count prefix and
+        // T4.7's own behaviour, so the hash was re-measured rather than carried.
+        //   OLD (on main, T4.8's pin)  43741d31b33feac1699e1bb9b36751c1e796f4b10465edc9d4eb0c51e6d25420
+        //   NEW (T4.7 rebased)         d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
+        //   CAUSE, behavioural and unchanged from T4.7's original attribution:
+        //         `transport.riverCostFactor` reaches TraversalLattice.Build, so
+        //         river-threaded blocks price below the land mean. SettlementSiting
+        //         enforces `minSpacingKm` as a TRAVEL-COST distance (D-025: "minimum
+        //         travel-time spacing"), and rivers shorten travel cost, so different
+        //         candidates fail the spacing test: 3 of 9 dev sites move and the
+        //         pick order shifts. Candidate SCORES are untouched.
+        //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+        const string golden = "d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101";
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(

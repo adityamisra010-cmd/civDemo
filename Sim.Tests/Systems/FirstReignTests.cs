@@ -283,7 +283,21 @@ public class FirstReignTests
         //         so different candidates fail the spacing test — 3 of 9 dev sites
         //         move and the pick order shifts. Candidate SCORES are untouched.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
-        const string golden = "50bf1298523eeb5e69423e63886ce1e7b6e67bc39a21d59d580508af7198ec4f";        Assert.Equal(golden, WorldHash.ComputeHex(final));
+        // T4.7 RE-DERIVED ON REBASE onto main-with-T4.8 (v21 schema). The value
+        // pinned pre-rebase was measured against ba96b1c and is void here: the
+        // cumulative main differs by BOTH T4.8's empty-Notables count prefix and
+        // T4.7's own behaviour, so the hash was re-measured rather than carried.
+        //   OLD (on main, T4.8's pin)  aa122530e71b22ec65a050c30e6e96b64a185e5975049b9421f2861f05123ad6
+        //   NEW (T4.7 rebased)         dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca
+        //   CAUSE, behavioural and unchanged from T4.7's original attribution:
+        //         `transport.riverCostFactor` reaches TraversalLattice.Build, so
+        //         river-threaded blocks price below the land mean. SettlementSiting
+        //         enforces `minSpacingKm` as a TRAVEL-COST distance (D-025: "minimum
+        //         travel-time spacing"), and rivers shorten travel cost, so different
+        //         candidates fail the spacing test: 3 of 9 dev sites move and the
+        //         pick order shifts. Candidate SCORES are untouched.
+        const string golden = "dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca";
+        Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
         // assert trajectory SEMANTICS, so a ghost-harvest revert plus a
