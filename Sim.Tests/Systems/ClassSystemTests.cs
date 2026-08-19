@@ -566,6 +566,14 @@ public class ClassSystemTests
         // pin untouched and restores what the assertion always meant to measure.
         double Spent(WorldState w)
         {
+            // SCOPE, stated because it is a real limitation (independent review):
+            // this sums EVERY settlement's edges, while the bank it corrects is
+            // S0's alone in a four-settlement world. It recovers the hand-computed
+            // pin exactly (9 decimals) only because no other settlement completes
+            // a segment inside this three-turn window. Correct today, fragile if
+            // the window or the world grows — a future edit that makes another
+            // settlement build here will over-correct and the pin will fail
+            // loudly, which is the acceptable failure direction.
             double sum = 0.0;
             for (int e = 0; e < w.NetworkEdges.Count; e++)
                 sum += w.NetworkEdges[e].Cost

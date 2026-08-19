@@ -275,12 +275,28 @@ public class MigrationConcentrationTests
         // PROVENANCE, by the same construction the per-turn bound used:
         //   recorded pathology  40 % per SEASON  => >= 40 %/yr taken as the floor
         //   post-T3.4b healthy   6.1 % per turn at dt = 10 =>  0.61 %/yr
-        //   T4.7 worst          22.8 % per turn at dt = 10 =>  2.28 %/yr
-        // The old bound sat 3.3x above healthy and 2x below the pathology. 0.10/yr
-        // sits 4.4x above T4.7's worst and 4x below the pathology floor — the same
-        // shape, dimensionally correct. The three properties the T3.4b ruling
-        // actually names are asserted elsewhere and unweakened: (b) convergence and
-        // (c) concentration/participation both still hold on this tree.
+        //   T4.7 worst          32.6 % per turn at dt = 10 =>  3.26 %/yr
+        // so 0.10/yr sits 3.07x above T4.7's worst and 4x below the pathology
+        // floor — the same shape as the old bound (3.3x above healthy, 2x below
+        // the pathology), dimensionally correct.
+        //
+        // CORRECTED at certification (independent review). An earlier version of
+        // this comment quoted 22.8 %/turn and claimed 4.4x. BOTH were wrong, and
+        // the reason matters: `maxFraction` divides outflow by the population
+        // gathered AFTER `exec.Step` (see Profile), so what this assertion
+        // actually sees is the REPORTED 32.6 %, never the 22.8 % that a pre-step
+        // denominator would give. The headroom is 3.07x.
+        //
+        // AND THE SETTLING EXCLUSION IS LOAD-BEARING, not an independent tidy-up.
+        // Without it the largest event in the run is turn 2 at 98.4 % reported
+        // (dt = 10 => 0.0984/yr), which clears this 0.10 bound by 1.6 % — not by
+        // any margin worth the name. The re-denomination and the founding-epoch
+        // exclusion are each necessary; neither alone carries this assertion, and
+        // the earlier wording implied otherwise.
+        //
+        // The three properties the T3.4b ruling actually names are asserted
+        // elsewhere and unweakened: (b) convergence and (c) concentration/
+        // participation both still hold on this tree.
         Assert.True(peak < 0.10,
             $"a settlement shed {peak:P1} of its population PER SIM-YEAR — the recorded "
             + "pathology was 40%-in-one-season and it must not return");

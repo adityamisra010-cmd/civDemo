@@ -69,6 +69,18 @@ namespace Sim.Tests.Systems;
 /// rig REPLICATES that model rather than calling it, so such a change makes
 /// the rig SILENTLY WRONG rather than out of date. Re-derive, do not re-run.
 /// </summary>
+/// <summary>
+/// STALE AT T4.7 — DO NOT RE-RUN AND READ THE NUMBERS (independent review, N3).
+/// This rig's own header warns that a change to NODE COSTS makes it "SILENTLY
+/// WRONG rather than out of date — re-derive, do not re-run". T4.7 changed node
+/// costs: `riverCostFactor` now enters TraversalLattice.Build, so the `land`
+/// baseline here (waterCost = infinity) ALREADY embeds the river discount and is
+/// no longer the river-blind control the counterfactual needs. The test is
+/// Skip-ped so nothing in CI depends on it.
+///
+/// The sim.json derivation of riverCostFactor = 0.20 is NOT affected: it cites
+/// T3.6b's PIXEL-resolution counterfactual, which does not use the lattice.
+/// </summary>
 public class WaterRouteCounterfactualTests
 {
     private const double CrossingCost = 19.95 / (8.0 * 0.16); // 15.586
