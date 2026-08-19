@@ -333,7 +333,7 @@ public class HudViewModelTests
         WorldState world = exec.Step(WorldFounding.Found(DevCfg(), cfg, 42));
         Assert.True(world.CatchmentNodes.Count > 0);
 
-        TraversalLattice lattice = TraversalLattice.Build(world.Terrain!);
+        TraversalLattice lattice = TraversalLattice.Build(world.Terrain!, cfg.Transport.RiverCostFactor);
         int stride = OverlayMeshes.LatticeStride(lattice, world.Terrain!.Size);
         LineGeometry.Vertex[] mesh = OverlayMeshes.BuildCatchmentFill(world, lattice.Size, stride);
         Assert.Equal(world.CatchmentNodes.Count * 6, mesh.Length);

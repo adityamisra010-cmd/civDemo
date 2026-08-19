@@ -156,7 +156,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             ref PathProgressRow progress = ref ctx.Owned.Progress.Ref(progressIdx);
             progress.Banked += accrual;
 
-            lattice ??= TraversalLattice.Build(prev.Terrain);
+            lattice ??= TraversalLattice.Build(prev.Terrain, _cfg.Transport.RiverCostFactor);
             if (progress.FrontierNode < 0)
                 progress.FrontierNode = LatticeMap.OriginLatticeNode(
                     lattice, prev.Terrain.Size, settlement.SiteCell);

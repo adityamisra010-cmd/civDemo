@@ -247,7 +247,7 @@ public class EquilibriumInvariantTests
 
         WorldState world = new TurnExecutor(era, [SystemCatalog.Catchment(cfg)])
             .Step(WorldFounding.Found(wcfg, cfg, seed: 42));
-        TraversalLattice lattice = TraversalLattice.Build(world.Terrain!);
+        TraversalLattice lattice = TraversalLattice.Build(world.Terrain!, TestConfigs.RiverCostFactor());
         double blockAreaKm2 = LatticeGeometry.BlockAreaKm2(lattice);
 
         Assert.True(world.CatchmentSummaries.Count > 0, "no catchments — test vacuous");
@@ -286,7 +286,8 @@ public class EquilibriumInvariantTests
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
             wcfg = WorldgenConfigLoader.Load(stream) is { } c
                 ? c with { SizePx = 256 } : throw new InvalidOperationException();
-        TraversalLattice lattice = TraversalLattice.Build(Sim.Core.Worldgen.Worldgen.Generate(wcfg, seed: 42));
+        TraversalLattice lattice = TraversalLattice.Build(
+            Sim.Core.Worldgen.Worldgen.Generate(wcfg, seed: 42), TestConfigs.RiverCostFactor());
 
         double budget = CatchmentSystem.TravelBudgetCostUnits(cfg, lattice);
         Assert.Equal(

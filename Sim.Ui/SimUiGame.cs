@@ -219,7 +219,7 @@ public sealed class SimUiGame : Game
         RebuildRiverBuffer(1.0);
 
         // The same lattice geometry the M1 systems compute on (pure of terrain).
-        _lattice = TraversalLattice.Build(_world.Terrain);
+        _lattice = TraversalLattice.Build(_world.Terrain, _displayCfg.Transport.RiverCostFactor);
         _latticeStride = OverlayMeshes.LatticeStride(_lattice, size);
 
         _markerTexture = UploadArt(_art.Get("ui/settlement-marker"));

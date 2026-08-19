@@ -20,6 +20,7 @@ public sealed record SimConfig(
     [property: JsonPropertyName("consumption")] ConsumptionConfig Consumption,
     [property: JsonPropertyName("demographics")] DemographicsConfig Demographics,
     [property: JsonPropertyName("pathBuild")] PathBuildConfig PathBuild,
+    [property: JsonPropertyName("transport")] TransportConfig Transport,
     [property: JsonPropertyName("founding")] FoundingConfig Founding,
     [property: JsonPropertyName("registries")] RegistriesConfig Registries,
     [property: JsonPropertyName("mobility")] MobilityConfig Mobility,
@@ -99,6 +100,19 @@ public sealed record PathBuildConfig(
     [property: JsonPropertyName("laborPerAdultPerYear"), JsonRequired] double LaborPerAdultPerYear,
     [property: JsonPropertyName("buildCostMultiplier"), JsonRequired] double BuildCostMultiplier,
     [property: JsonPropertyName("dirtPathSpeedFactor"), JsonRequired] double DirtPathSpeedFactor);
+
+/// <summary>
+/// Transport tuning (T4.7 — the transport packet). ONE constant:
+/// RiverCostFactor, the cost of moving ALONG a river as a fraction of ideal
+/// ground (movement cost 1.0), applied as a coefficient inside
+/// <see cref="Pathing.TraversalLattice.Build"/>'s per-block cost aggregation
+/// (law 2 — never a free-floating buff, and no second graph: TerrainSet stays
+/// the authoritative geometry and no river-derived routing state is persisted).
+///
+/// DERIVATION — see sim.json `transport._doc` for the full text and band.
+/// </summary>
+public sealed record TransportConfig(
+    [property: JsonPropertyName("riverCostFactor"), JsonRequired] double RiverCostFactor);
 
 /// <summary>
 /// Per-cohort consumption weights (T2.1): food per person per sim-year for each
@@ -655,6 +669,12 @@ public static class SimConfigLoader
         if (!(cfg.PathBuild.DirtPathSpeedFactor > 0.0 && cfg.PathBuild.DirtPathSpeedFactor <= 1.0))
             throw new SimConfigException(
                 $"pathBuild.dirtPathSpeedFactor must be in (0,1], got {Inv(cfg.PathBuild.DirtPathSpeedFactor)}.");
+
+        if (cfg.Transport is null) throw new SimConfigException("transport is missing.");
+        if (!(cfg.Transport.RiverCostFactor > 0.0 && cfg.Transport.RiverCostFactor <= 1.0))
+            throw new SimConfigException(
+                $"transport.riverCostFactor must be in (0,1] (a river must be cheaper than ideal "
+                + $"ground to be a corridor, and cannot be free), got {Inv(cfg.Transport.RiverCostFactor)}.");
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)

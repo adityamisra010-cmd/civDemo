@@ -34,7 +34,8 @@ public static class WorldFounding
         int count = settlementsOverride ?? cfg.Siting.SettlementCount;
         if (count < 1) throw new ArgumentOutOfRangeException(nameof(settlementsOverride),
             $"settlement count must be >= 1, got {count}");
-        int[] sites = SettlementSiting.ChooseSites(world.Terrain!, cfg.Siting, count, seed);
+        int[] sites = SettlementSiting.ChooseSites(
+            world.Terrain!, cfg.Siting, count, simCfg.Transport.RiverCostFactor, seed);
         for (int s = 0; s < sites.Length; s++)
             world.Settlements.Add(new SettlementRow(new SettlementId(s), sites[s], FoundedTurn: 0));
 

@@ -119,12 +119,13 @@ public static class SettlementSiting
         return sums;
     }
 
-    public static int[] ChooseSites(TerrainSet terrain, SitingConfig cfg, int count, ulong seed = 0UL)
+    public static int[] ChooseSites(
+        TerrainSet terrain, SitingConfig cfg, int count, double riverCostFactor, ulong seed = 0UL)
     {
         int size = terrain.Size;
         ReadOnlySpan<double> water = terrain.Water;
         double[] scores = CandidateScores(terrain, cfg);
-        var lattice = Pathing.TraversalLattice.Build(terrain);
+        var lattice = Pathing.TraversalLattice.Build(terrain, riverCostFactor);
 
         // T3.1(c) SCORE FLOOR: the jitter chooses among GOOD sites — cells
         // whose unjittered score falls below the configured percentile of all

@@ -17,6 +17,10 @@
     "buildCostMultiplier": 50.0,
     "dirtPathSpeedFactor": 0.5
   },
+  "transport": {
+    "_doc": "T4.7 (THE TRANSPORT PACKET). riverCostFactor 0.20: the cost of moving ALONG a river as a fraction of IDEAL GROUND (movement cost 1.0), i.e. the r of T3.6b's water counterfactual. REFERENCE CLASS, stated at T3.6b BEFORE any number was computed: pre-modern freight-cost ratios (Diocletian's Price Edict, corroborated by medieval English cartage-vs-river rates) put ROAD : RIVER per ton-km at roughly 5-10 : 1, giving the ratified band r in [0.10, 0.20]. 0.20 is the CONSERVATIVE edge of that band - the 5:1 end, the WEAKEST river advantage the reference class supports - chosen because it is also the edge with a MEASURED outcome: T3.6b's pixel-resolution counterfactual at r = 0.20 produced 4/27 ore-trade-pair crossings against 0/27 on the river-blind lattice. Picking the strong edge (0.10) would have manufactured a larger effect from the same evidence. CARRIER: a coefficient inside TraversalLattice.Build's per-block cost aggregation - nodeCost = (1-span)*blockMeanCost + span*riverCostFactor, span = min(1, riverCells/stride) - so a river that fully threads a stride block prices that block at exactly r, which is what the pixel counterfactual charges for the same crossing. NOT a second graph, NOT a NetworkEdge, NOT persisted state: TerrainSet remains the authoritative geometry (ADR-008 - derived terrain is neither serialized nor cloned). Rivers do NOT change passability; river cells are LAND. Vessels, ports and naval movement are OUT OF SCOPE.",
+    "riverCostFactor": 0.2
+  },
   "consumption": {
     "cohortWeights": [
       0.6,

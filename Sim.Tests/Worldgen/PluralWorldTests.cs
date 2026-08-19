@@ -26,7 +26,7 @@ public class PluralWorldTests
     private static WorldState FoundedStepped(ulong seed, out TraversalLattice lattice)
     {
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), seed);
-        lattice = TraversalLattice.Build(world.Terrain!);
+        lattice = TraversalLattice.Build(world.Terrain!, TestConfigs.RiverCostFactor());
         var exec = new TurnExecutor(CanonicalEra(), [SystemCatalog.Catchment(TestConfigs.Sim())]);
         return exec.Step(world);
     }
@@ -179,8 +179,8 @@ public class PluralWorldTests
         for (ulong seed = 1; seed <= 10; seed++)
         {
             TerrainSet terrain = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed);
-            int[] sites = SettlementSiting.ChooseSites(terrain, cfg.Siting, 4, seed);
-            var lattice = TraversalLattice.Build(terrain);
+            int[] sites = SettlementSiting.ChooseSites(terrain, cfg.Siting, 4, TestConfigs.RiverCostFactor(), seed);
+            var lattice = TraversalLattice.Build(terrain, TestConfigs.RiverCostFactor());
 
             // Pairwise travel-time spacing ≥ the configured minimum.
             for (int i = 0; i < sites.Length; i++)

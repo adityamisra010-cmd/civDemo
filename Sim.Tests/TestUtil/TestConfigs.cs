@@ -14,6 +14,11 @@ public static class TestConfigs
         return SimConfigLoader.Load(stream, needs, goods);
     }
 
+    /// <summary>T4.7: the canonical `transport.riverCostFactor` — the required
+    /// TraversalLattice.Build argument, so rig-local lattices are built on the
+    /// same cost model production uses.</summary>
+    public static double RiverCostFactor() => Sim().Transport.RiverCostFactor;
+
     /// <summary>The raw canonical sim.json text (for loader-rejection tests).</summary>
     public static string SimJson()
     {
