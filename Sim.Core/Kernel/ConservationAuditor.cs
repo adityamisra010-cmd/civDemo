@@ -105,6 +105,12 @@ public static class ConservationAuditor
             {
                 for (int i = 0; i < world.Buckets.Count; i++)
                     stocks += world.Buckets[i].Count.Value;
+                // T4.8 (R-1): a notable is a PERSON, held in a second carrier.
+                // People are counted wherever they stand — omitting this table
+                // would make every promotion look like a population loss, and
+                // R-1 bought Option B precisely so the law-1 audit spans both.
+                for (int i = 0; i < world.Notables.Count; i++)
+                    stocks += world.Notables[i].Count.Value;
             }
             else if (quantity == ConservedQuantityIds.Dwellings)
             {

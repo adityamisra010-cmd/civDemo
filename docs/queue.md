@@ -1103,3 +1103,18 @@
   36) — consistent with the chronicle counting adults only ("masters and hands") and logging at a
   different point in the turn. Unresolved; does not affect the 10/2 mode structure, which
   reproduces exactly.
+
+- **T4.8 follow-up — three items the FUTURE NOTABLE SPAWNER must own** (raised by the independent
+  certification review of `t4.8-notables`, none reachable while no system creates notables):
+  1. **`NotableId` uniqueness is not enforced.** Calling `NotableLifecycle.Born` twice with the same
+     id yields two LIVING rows sharing one identity. Conservation still holds (they are two distinct
+     people), but `LivingRowOf` silently returns the first. Whoever ships the spawner must own id
+     allocation or this becomes a silent identity collision.
+  2. **Row growth is unbounded.** Every defection appends a row permanently — vacated rows are never
+     reclaimed, correctly, since deleting would shift indices under a table other rows may reference.
+     Over a 6,000-year run a frequently-defecting population grows the table monotonically and
+     `LivingRowOf` is an O(n) scan over it.
+  3. **`Dies` reuses `ReasonIds.Deaths`**, so "how many NOTABLES died" is not answerable from the
+     ledger — notable and bucket deaths share one reason. Defensible (it is the same event, and the
+     audit balances either way) and recorded as a design call for the director rather than inherited
+     silently. Changing it later is a schema-visible flow-table change.

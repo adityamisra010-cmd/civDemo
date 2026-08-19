@@ -136,7 +136,19 @@ public class DrivenGoldenTests
         // T4.3 RE-PIN (VALUE, SCHEMA-ONLY, ONE cause): the Claims, Controls
         // and Recognitions tables joined the stream (three zero count
         // prefixes, 12 bytes). No polity/claim/control system exists yet.
-        const string golden = "75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d";
+        // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
+        //   OLD   75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
+        //   NEW   74d072c8add4ccae0fe83ed4c4eb3c92242632e271bbe9103401b795de221f63
+        //   CAUSE CanonicalSchema v21 appends the Notables table (R-1: a notable
+        //         is a PERSON, so the row carries a conserved Population count).
+        //         NO SYSTEM WRITES IT, so the table is EMPTY in every world and
+        //         the ONLY change to the stream is its 4-byte count prefix —
+        //         MEASURED on the founded seed-42 world: notableRows=0,
+        //         notableBytes=4. Every hash moves; no behaviour does.
+        //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
+        //         system was touched, and the targeted suite proves the world is
+        //         otherwise identical.
+        const string golden = "74d072c8add4ccae0fe83ed4c4eb3c92242632e271bbe9103401b795de221f63";
 
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));

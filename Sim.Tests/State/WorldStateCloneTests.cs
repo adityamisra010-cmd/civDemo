@@ -29,6 +29,33 @@ public class WorldStateCloneTests
     }
 
     [Fact]
+    public void Clone_CarriesAPopulatedNotablesTable_AndTheCopyIsIndependent()
+    {
+        // T4.8, added on independent review. Notables is EMPTY in every world
+        // today, so a Clone() that dropped the table entirely would have passed
+        // the whole suite unnoticed — the table has to be POPULATED for this
+        // assertion to mean anything, which is the same rule the constitution
+        // applies to serialization tests.
+        var world = new WorldState();
+        world.Notables.Add(new NotableRow(
+            new NotableId(4), new SettlementId(2), new PolityId(3), 5, Conserved.Zero));
+        world.Notables.Add(new NotableRow(
+            new NotableId(9), new SettlementId(1), new PolityId(0), 11, Conserved.Zero));
+
+        WorldState copy = world.Clone();
+        Assert.Equal(2, copy.Notables.Count);
+        Assert.True(StateEquals(world, copy));
+        Assert.Equal(4, copy.Notables[0].Id.Value);
+        Assert.Equal(11, copy.Notables[1].CohortIdx);
+
+        // DEEP, not aliased: mutating the copy must not reach the original.
+        copy.Notables.Add(new NotableRow(
+            new NotableId(99), new SettlementId(0), new PolityId(0), 0, Conserved.Zero));
+        Assert.Equal(2, world.Notables.Count);
+        Assert.False(StateEquals(world, copy));
+    }
+
+    [Fact]
     public void CloneOfEmptyWorld_EqualsOriginal()
     {
         var world = new WorldState();

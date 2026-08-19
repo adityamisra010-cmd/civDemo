@@ -184,7 +184,19 @@ public class SnapshotTests
         //   on this settlement-less world, 12 bytes). No system reads or
         //   writes them; sim behavior unchanged.
         //   v19 value: b4d523f6f1e0cc1a66d94393cf86368db7063acde27ca24bf17555e772883525
-        const string golden = "1f146285e65b9f509a18f21f53c1787c6c1736be285b0a7f2ebe16294d429f7c";
+        // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
+        //   OLD   1f146285e65b9f509a18f21f53c1787c6c1736be285b0a7f2ebe16294d429f7c
+        //   NEW   0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745
+        //   CAUSE CanonicalSchema v21 appends the Notables table (R-1: a notable
+        //         is a PERSON, so the row carries a conserved Population count).
+        //         NO SYSTEM WRITES IT, so the table is EMPTY in every world and
+        //         the ONLY change to the stream is its 4-byte count prefix —
+        //         MEASURED on the founded seed-42 world: notableRows=0,
+        //         notableBytes=4. Every hash moves; no behaviour does.
+        //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
+        //         system was touched, and the targeted suite proves the world is
+        //         otherwise identical.
+        const string golden = "0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -494,7 +506,20 @@ public class SnapshotTests
         // and Recognitions tables joined the stream (three zero count
         // prefixes, 12 bytes, on this world — no polity/claim/control system
         // exists yet). ci.yml's FOUNDED_GOLDEN moves with this value.
-        const string golden = "66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529";
+        // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
+        //   OLD   66ec938629bff4c3471c037c9c9371c95de3ab4bcd7559851a550b4729db4529
+        //   NEW   43741d31b33feac1699e1bb9b36751c1e796f4b10465edc9d4eb0c51e6d25420
+        //   CAUSE CanonicalSchema v21 appends the Notables table (R-1: a notable
+        //         is a PERSON, so the row carries a conserved Population count).
+        //         NO SYSTEM WRITES IT, so the table is EMPTY in every world and
+        //         the ONLY change to the stream is its 4-byte count prefix —
+        //         MEASURED on the founded seed-42 world: notableRows=0,
+        //         notableBytes=4. Every hash moves; no behaviour does.
+        //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
+        //         system was touched, and the targeted suite proves the world is
+        //         otherwise identical.
+        //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+        const string golden = "43741d31b33feac1699e1bb9b36751c1e796f4b10465edc9d4eb0c51e6d25420";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -505,6 +530,52 @@ public class SnapshotTests
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
+    }
+
+    [Fact]
+    public void SchemaV21_PopulatedNotableTable_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-table
+        // test — exact ExpectedLength, bit-exact round trip, hash equality. An
+        // empty table proves nothing (T1.1/T1.3 precedent).
+        //
+        // v21 (T4.8, R-1): NotableRow. The row carries a CONSERVED person, so the
+        // fixture covers a LIVING notable (Count 1), a VACATED slot (Count 0 —
+        // what death and defection leave behind), and the SAME identity on two
+        // rows, which is exactly the post-defection shape.
+        WorldState world = Genesis(23);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+
+        int living = world.Notables.Add(new NotableRow(
+            new NotableId(7), new SettlementId(2), new PolityId(3), 5, Conserved.Zero));
+        ledger.Flow(ref world.Notables.Ref(living).Count, ConservedQuantityIds.Population,
+            ReasonIds.InitialEndowment, 1, FlowDirection.Source, OverdrawPolicy.Throw);
+
+        // the vacated former post of that same notable, and an unrelated dead one
+        world.Notables.Add(new NotableRow(
+            new NotableId(7), new SettlementId(1), new PolityId(1), 5, Conserved.Zero));
+        world.Notables.Add(new NotableRow(
+            new NotableId(0), new SettlementId(0), new PolityId(0), 0, Conserved.Zero));
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(world, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
+
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(TestUtil.WorldStates.StateEquals(world, back), "round-trip drifted");
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(back));
+
+        // and the fields actually survived, field by field
+        Assert.Equal(3, back.Notables.Count);
+        Assert.Equal(7, back.Notables[0].Id.Value);
+        Assert.Equal(2, back.Notables[0].Settlement.Value);
+        Assert.Equal(3, back.Notables[0].Allegiance.Value);
+        Assert.Equal(5, back.Notables[0].CohortIdx);
+        Assert.Equal(1, back.Notables[0].Count.Value);
+        Assert.Equal(0, back.Notables[1].Count.Value);
     }
 
     [Fact]
