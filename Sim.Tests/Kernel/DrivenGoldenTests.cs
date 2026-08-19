@@ -173,10 +173,14 @@ public class DrivenGoldenTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0";
+        const string golden = "aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
-        //   OLD   75b5bbbf85fbc6262253b51ca01f2bc6d5323df0b7b983d873dd7fc6f896f61d
-        //   NEW   ef42b770c741bc38763d046d498a32dce728ffd34e55f26e569bc65d4c7ce7e6
+        //   OLD (main, T4.7's pin)  35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0
+        //   NEW (T4.5 rebased)      aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
+        //   RE-DERIVED ON REBASE onto the cumulative main (T4.8 v21 + T4.7 rivers).
+        //         The value measured on T4.5's pre-rebase base (ef42b770…, taken
+        //         against a tree with neither) is VOID here and was re-measured,
+        //         never carried through the conflict resolution.
         //   CAUSE T4.5 gives the HERDING food pathway the same HarvestWeatherRow
         //         multiplier farming already had (D-037 B3). The never-ordered
         //         default sector mix HERDS: Sectors.Default is Farming 0.55,
@@ -188,10 +192,12 @@ public class DrivenGoldenTests
         //         WorldFounding gives every site a fish deposit, so the catch moves
         //         with the year too. Food moves, and the hash follows.
         //   NOT THE RAID: appropriation cannot fire in this world. It requires a
-        //         HERDING-DOMINANT settlement, and measured over all 300 turns of
-        //         this exact run there are ZERO herding-dominant settlement-turns
-        //         (the default mix is farming-dominant). The grain transfer
-        //         contributes nothing to this hash.
+        //         HERDING-DOMINANT settlement, and RE-MEASURED on the rebased tree
+        //         by counting inside AppropriationSystem over all 300 turns of this
+        //         exact run: ZERO herding-dominant settlement-turns and ZERO grain
+        //         transfers (the default mix is farming-dominant). The raid
+        //         contributes nothing to this hash; the weather coupling is the
+        //         whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
