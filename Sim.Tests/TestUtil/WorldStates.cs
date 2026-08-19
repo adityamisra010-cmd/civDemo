@@ -56,6 +56,10 @@ public static class WorldStates
         if (!TableEquals(a.Claims, b.Claims)) return false;
         if (!TableEquals(a.Controls, b.Controls)) return false;
         if (!TableEquals(a.Recognitions, b.Recognitions)) return false;
+        // T4.8: Notables. Added WITH the table rather than after it, because the
+        // comment above records three consecutive packets that did not — and an
+        // independent review caught this packet about to be the fourth.
+        if (!TableEquals(a.Notables, b.Notables)) return false;
         return true;
     }
 

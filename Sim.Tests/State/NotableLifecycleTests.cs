@@ -258,8 +258,6 @@ public class NotableLifecycleTests
                    "Prowess", "Morale", "Casualt" })
             Assert.DoesNotContain(banned, stripped, StringComparison.Ordinal);
 
-        // The banned list is not vacuous: it really does fire on battle code.
-        Assert.Contains("BattleSetup", "var setup = new BattleSetup();", StringComparison.Ordinal);
 
         // And the ROW itself carries identity, place, allegiance and the person —
         // nothing that could parameterize a resolver.
