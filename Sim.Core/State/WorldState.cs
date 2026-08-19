@@ -567,6 +567,55 @@ public record struct ClaimRow(PolityId Polity, SettlementId Place, double Streng
 public record struct ControlRow(PolityId Polity, SettlementId Place, double Strength);
 
 /// <summary>
+/// T4.8 — ONE NOTABLE, AND THE PERSON THEY ARE (R-1 RULED, m4-spec §7).
+///
+/// R-1 chose Option B over Option A deliberately: "A NOTABLE IS A PERSON.
+/// Extracted from the bucket via `Ledger.Transfer`; a conserved population stock
+/// with births, deaths and a law-1 audit." So <see cref="Count"/> is a CONSERVED
+/// stock of <see cref="ConservedQuantityIds.Population"/> — the same quantity a
+/// bucket holds — and it is 1 while this notable lives, 0 once the slot is
+/// vacated. It is NOT a flag, and that is the whole point: a general who dies or
+/// defects moves a real person, so lifecycle and defection are conservation-exact
+/// instead of each inventing its own bookkeeping.
+///
+/// <see cref="CohortIdx"/> is the age band the person was extracted FROM, kept so
+/// that a notable remains a person in the demographic sense rather than an
+/// age-less token, and so the extraction can be reasoned about against the pyramid.
+///
+/// <see cref="Allegiance"/> is which polity they serve — the field a DEFECTION
+/// changes. The person themselves moves by `Ledger.Transfer` between rows, so the
+/// defection is auditable rather than a silent field flip.
+///
+/// DELIBERATELY ABSENT: competence, traits, experience, and every battle field.
+/// Those parameterize the AutoResolver, which is M6 (m4-spec §1.6, "Strategic war
+/// is AutoResolver ONLY at M4" — and the resolver itself is deferred). This row
+/// carries identity, place, allegiance and the person. Nothing else.
+/// </summary>
+public struct NotableRow(
+    NotableId id, SettlementId settlement, PolityId allegiance, int cohortIdx, Conserved count)
+    : IEquatable<NotableRow>
+{
+    public NotableId Id = id;
+    public SettlementId Settlement = settlement;
+    public PolityId Allegiance = allegiance;
+    public int CohortIdx = cohortIdx;
+
+    /// <summary>The PERSON. A conserved Population stock — 1 while this notable
+    /// lives here, 0 once the slot is vacated by death or defection. A FIELD, not
+    /// a property, because the Ledger mutates it by `ref` like every other
+    /// conserved stock in the world.</summary>
+    public Conserved Count = count;
+
+    public readonly bool Equals(NotableRow other) =>
+        Id == other.Id && Settlement == other.Settlement && Allegiance == other.Allegiance
+        && CohortIdx == other.CohortIdx && Count == other.Count;
+    public override readonly bool Equals(object? obj) => obj is NotableRow other && Equals(other);
+    public override readonly int GetHashCode() => Id.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+    public static bool operator ==(NotableRow a, NotableRow b) => a.Equals(b);
+    public static bool operator !=(NotableRow a, NotableRow b) => !a.Equals(b);
+}
+
+/// <summary>
 /// T4.3 (D-037 A3): which OTHER polity's claim a polity acknowledges —
 /// bilateral and ASYMMETRIC by construction: a row (Recogniser, Recognised)
 /// never implies its reverse. NEVER a boolean/flag field on a polity row
@@ -623,6 +672,10 @@ public interface IReadOnlyWorldState
     IReadOnlyTable<HousingRow> Housing { get; }
     IReadOnlyTable<ClaimRow> Claims { get; }
     IReadOnlyTable<ControlRow> Controls { get; }
+
+    /// <summary>Notables as PEOPLE (T4.8, R-1) — owned by no system yet; M4 ships the
+    /// conserved carrier and its lifecycle operations, not a spawner.</summary>
+    IReadOnlyTable<NotableRow> Notables { get; }
     IReadOnlyTable<RecognitionRow> Recognitions { get; }
 }
 
@@ -746,6 +799,7 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Which polity's orders a settlement obeys (T4.3, D-037 A3) —
     /// schema only; no system writes this table yet.</summary>
     public Table<ControlRow> Controls { get; }
+    public Table<NotableRow> Notables { get; }
 
     /// <summary>Bilateral, asymmetric claim recognition between polities (T4.3,
     /// D-037 A3) — schema only; no system writes this table yet.</summary>
@@ -784,6 +838,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<HousingRow> IReadOnlyWorldState.Housing => Housing;
     IReadOnlyTable<ClaimRow> IReadOnlyWorldState.Claims => Claims;
     IReadOnlyTable<ControlRow> IReadOnlyWorldState.Controls => Controls;
+    IReadOnlyTable<NotableRow> IReadOnlyWorldState.Notables => Notables;
     IReadOnlyTable<RecognitionRow> IReadOnlyWorldState.Recognitions => Recognitions;
 
     public WorldState(ulong seed = 0UL)
@@ -822,6 +877,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Housing = new Table<HousingRow>();
         Claims = new Table<ClaimRow>();
         Controls = new Table<ControlRow>();
+        Notables = new Table<NotableRow>();
         Recognitions = new Table<RecognitionRow>();
     }
 
@@ -842,7 +898,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
         Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
-        Table<RecognitionRow> recognitions)
+        Table<RecognitionRow> recognitions, Table<NotableRow> notables)
     {
         Seed = seed;
         Clock = clock;
@@ -879,6 +935,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Housing = housing;
         Claims = claims;
         Controls = controls;
+        Notables = notables;
         Recognitions = recognitions;
     }
 
@@ -897,7 +954,7 @@ public sealed class WorldState : IReadOnlyWorldState
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
-            Claims.Clone(), Controls.Clone(), Recognitions.Clone())
+            Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

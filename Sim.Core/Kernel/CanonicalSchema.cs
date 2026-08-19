@@ -58,12 +58,17 @@ public static class CanonicalSchema
     /// observables); CatchmentSummaryRow gains SizeTier (the quantized
     /// settlement-size step the summary was computed at — the D-016 gate for
     /// the size catchment bonus).
+    /// v21 (T4.8, R-1): Notables table appended after Recognitions. R-1 ruled a
+    /// notable is a PERSON, so the row carries a CONSERVED Population count
+    /// extracted from a bucket via Ledger.Transfer - not a label. No system
+    /// writes it yet: M4 ships the carrier and its lifecycle operations, and the
+    /// spawner is later work.
     /// v20 (T4.3, D-037 A3): Claims, Controls and Recognitions tables appended
     /// after Housing — the claim/control/recognition data model, schema only
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
-    public const int Version = 20;
+    public const int Version = 21;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -102,6 +107,7 @@ public static class CanonicalSchema
     private const int ClaimRowWidth = 4 + 4 + 8;                    // Polity, Place, Strength bits (v20)
     private const int ControlRowWidth = 4 + 4 + 8;                  // Polity, Place, Strength bits (v20)
     private const int RecognitionRowWidth = 4 + 4;                  // Recogniser, Recognised (v20)
+    private const int NotableRowWidth = 4 + 4 + 4 + 4 + 8;          // Id, Settlement, Allegiance, CohortIdx, Count (v21)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -481,6 +487,18 @@ public static class CanonicalSchema
             writer.Write(row.Recogniser.Value);
             writer.Write(row.Recognised.Value);
         }
+
+        // 35. Notables (v21, T4.8, R-1: a notable is a PERSON)
+        writer.Write(world.Notables.Count);
+        for (int i = 0; i < world.Notables.Count; i++)
+        {
+            NotableRow row = world.Notables[i];
+            writer.Write(row.Id.Value);
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Allegiance.Value);
+            writer.Write(row.CohortIdx);
+            writer.Write(row.Count.Value);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -807,6 +825,17 @@ public static class CanonicalSchema
                 new PolityId(reader.ReadInt32()), new PolityId(reader.ReadInt32())));
         }
 
+        int notableCount = reader.ReadInt32();
+        for (int i = 0; i < notableCount; i++)
+        {
+            var id = new NotableId(reader.ReadInt32());
+            var settlement = new SettlementId(reader.ReadInt32());
+            var allegiance = new PolityId(reader.ReadInt32());
+            int cohort = reader.ReadInt32();
+            world.Notables.Add(new NotableRow(
+                id, settlement, allegiance, cohort, Conserved.FromSnapshot(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -851,5 +880,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Housing.Count * HousingRowWidth
         + CountPrefixWidth + (long)world.Claims.Count * ClaimRowWidth
         + CountPrefixWidth + (long)world.Controls.Count * ControlRowWidth
-        + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth;
+        + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth
+        + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth;
 }

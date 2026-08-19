@@ -262,7 +262,19 @@ public class FirstReignTests
         //   prefixes, 12 bytes, N = 1). No polity/claim/control system
         //   exists yet; the trajectory is unchanged — shape asserts below
         //   RE-VERIFIED against the new stream and passing.
-        const string golden = "3fd26370340ac7521e371328dd72d8ac3aa3407ba14c4b39afc9713200dc989a";
+        // T4.8 RE-PIN (SCHEMA-ONLY, ONE cause — the v21 Notables table).
+        //   OLD   3fd26370340ac7521e371328dd72d8ac3aa3407ba14c4b39afc9713200dc989a
+        //   NEW   aa122530e71b22ec65a050c30e6e96b64a185e5975049b9421f2861f05123ad6
+        //   CAUSE CanonicalSchema v21 appends the Notables table (R-1: a notable
+        //         is a PERSON, so the row carries a conserved Population count).
+        //         NO SYSTEM WRITES IT, so the table is EMPTY in every world and
+        //         the ONLY change to the stream is its 4-byte count prefix —
+        //         MEASURED on the founded seed-42 world: notableRows=0,
+        //         notableBytes=4. Every hash moves; no behaviour does.
+        //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
+        //         system was touched, and the targeted suite proves the world is
+        //         otherwise identical.
+        const string golden = "aa122530e71b22ec65a050c30e6e96b64a185e5975049b9421f2861f05123ad6";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

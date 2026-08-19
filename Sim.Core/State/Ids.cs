@@ -56,6 +56,15 @@ public readonly record struct PolityId(int Value) : IComparable<PolityId>
     public int CompareTo(PolityId other) => Value.CompareTo(other.Value);
 }
 
+/// <summary>Identifies a NOTABLE (T4.8, R-1 RULED: a notable is a PERSON). Stable
+/// identity for one named individual across every lifecycle event — born, dies,
+/// defects — so the person can be followed while the ROW that holds them changes.
+/// An id, never a name: ADR-001 keeps display names out of sim rows entirely.</summary>
+public readonly record struct NotableId(int Value) : IComparable<NotableId>
+{
+    public int CompareTo(NotableId other) => Value.CompareTo(other.Value);
+}
+
 /// <summary>Network edge types (D-009: path → road → highway …; M1 ships dirt path only).</summary>
 public static class EdgeTypes
 {
