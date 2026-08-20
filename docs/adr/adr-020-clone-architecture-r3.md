@@ -37,7 +37,20 @@ still hold:
 | once-per-turn clone site | `TurnExecutor.cs:80` | `TurnExecutor.cs:80` | unchanged |
 | distinct `next.*` tables in `SystemCatalog` | 27 | **27** | unchanged; T4.5's `AppropriationSystem` owns no table and writes `next.GoodStocks`, already in the set |
 | written per turn | 28 of 34 | **28 of 35** | unchanged in absolute terms |
-| shareable (unwritten) tables | at most 6 | **at most 7** | `Notables` is written by no system at M4 (`PathBuildSystem.cs:350` exposes it read-only from `Prev`), so it joins the shareable set |
+| shareable (unwritten) tables | at most 6 | **at most 7** | `Notables` is written by no system at M4, so it joins the shareable set |
+
+Two precision notes on that table, both raised by independent verification of this section:
+
+- **The 28 is 27 + `RngStreams`, and only the 27 is re-verified here.** §6's table sources the
+  28th write outside `SystemCatalog.cs` — `RngStreams`, written every turn via `new RngRegistry(next)`
+  (`TurnExecutor.cs:83`). This section re-counted the 27 catalog expressions directly; it INHERITS
+  the `RngStreams` write from §6 rather than re-measuring it, and the "at most 7" figure is
+  arithmetic off that inherited 28.
+- **The `Notables` claim rests on every reference, not on one.** `PathBuildSystem.cs:350` exposing
+  it read-only from `Prev` is an example, not a proof. The claim was checked against every
+  `Notables` reference in `Sim.Core`: serialization (`CanonicalSchema.cs`), an auditor read
+  (`ConservationAuditor.cs:112`), declaration and clone (`WorldState.cs`), and that one passthrough.
+  There is no `next.Notables` anywhere.
 
 **The recommendation is unaffected.** The load-bearing finding is that `next.Buckets` is written
 every turn and is the entire growth term of §3's projection, so copy-on-write cannot avoid copying
