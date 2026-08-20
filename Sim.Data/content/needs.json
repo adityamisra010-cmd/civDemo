@@ -39,7 +39,9 @@
       "name": "Comfort",
       "bound": true,
       "weight": 0.3,
-      "varietyWeight": 0.15
+      "varietyWeight": 0.15,
+      "source": "householdGoods",
+      "_doc": "T4.13: Comfort is satisfied by a STOCK of household goods, not by an annual flow of pottery and cloth. Its former basket lines have MOVED to householdGoods.perClass below - the same ratified numbers, in the same file - because they are the derivation input for the holding standard, not dead data. The loader's ambiguity guard requires a stock-sourced need to carry no basket entries."
     },
     {
       "id": 7,
@@ -85,18 +87,6 @@
         "perPersonYear": 0.04
       },
       {
-        "class": 1,
-        "need": 6,
-        "good": "pottery",
-        "perPersonYear": 0.02
-      },
-      {
-        "class": 1,
-        "need": 6,
-        "good": "cloth",
-        "perPersonYear": 0.03
-      },
-      {
         "class": 2,
         "need": 1,
         "good": "grain",
@@ -113,18 +103,6 @@
         "need": 1,
         "good": "fish",
         "perPersonYear": 0.09
-      },
-      {
-        "class": 2,
-        "need": 6,
-        "good": "pottery",
-        "perPersonYear": 0.05
-      },
-      {
-        "class": 2,
-        "need": 6,
-        "good": "cloth",
-        "perPersonYear": 0.08
       }
     ]
   },
@@ -138,6 +116,38 @@
       0.7,
       0.2,
       0.1
+    ]
+  },
+  "householdGoods": {
+    "_doc": "T4.13 - HOUSEHOLD GOODS, the stock that satisfies Comfort (need 6).\nserviceLifeYears 5.0 - DERIVED, band 2-10, reference class committed BEFORE the number in docs/t4.13-design-record.md: ethnoarchaeological use-life of the goods this stock is made of. Cooking vessels run roughly 0.5-2 years and storage jars 2-8 across the ethnographic record (Shott's meta-analysis of vessel use-lives; David's Fulani, DeBoer's Shipibo-Conibo, Longacre's Kalinga, Foster's Tzintzuntzan); everyday cloth in a pre-industrial household runs a few years, heavier textiles longer. A blended pottery-and-cloth durable stock sits in the middle of that, so 5.0 is the central value of a 2-10 band rather than an edge.\nWHAT THE CONSTANT DOES AND DOES NOT DO: it does NOT change steady-state material consumption. The standard is DERIVED from perClass below by standard x (1 - exp(-1/serviceLife)) = sum perPersonYear, so at the standard holding the annual material draw equals exactly what the basket drew before T4.13, for any service life. The constant sets only the DEPTH of the buffer - how many years of neglect Comfort survives - which is what makes this a stock rather than a flow, and it is falsifiable by exactly that observation.\nperClass: the FORMER Comfort basket lines, moved verbatim from baskets.entries. They are the material mix (1 material unit makes 1 household-good unit) and the derivation input for the per-person holding standard.",
+    "serviceLifeYears": 5.0,
+    "perClass": [
+      {
+        "class": 1,
+        "materials": [
+          {
+            "good": "pottery",
+            "perPersonYear": 0.02
+          },
+          {
+            "good": "cloth",
+            "perPersonYear": 0.03
+          }
+        ]
+      },
+      {
+        "class": 2,
+        "materials": [
+          {
+            "good": "pottery",
+            "perPersonYear": 0.05
+          },
+          {
+            "good": "cloth",
+            "perPersonYear": 0.08
+          }
+        ]
+      }
     ]
   }
 }

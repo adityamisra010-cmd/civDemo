@@ -18,7 +18,63 @@ public sealed record NeedsConfig(
     [property: JsonPropertyName("grievance"), JsonRequired] GrievanceTuning Grievance,
     [property: JsonPropertyName("aggregation"), JsonRequired] AggregationTuning Aggregation,
     [property: JsonPropertyName("baskets"), JsonRequired] BasketsConfig Baskets,
-    [property: JsonPropertyName("varietyStandard"), JsonRequired] VarietyStandardConfig VarietyStandard);
+    [property: JsonPropertyName("varietyStandard"), JsonRequired] VarietyStandardConfig VarietyStandard,
+    [property: JsonPropertyName("householdGoods")] HouseholdGoodsConfig? HouseholdGoods = null);
+
+/// <summary>
+/// T4.13 — the household-goods stock that satisfies Comfort.
+///
+/// ServiceLifeYears is the ONE constant this packet introduces, DERIVED against a
+/// reference class stated in needs.json and docs/t4.13-design-record.md before any
+/// number was chosen. It does NOT set steady-state material consumption: the
+/// holding standard is derived from PerClass so that, at the standard, the annual
+/// draw equals exactly what the basket drew before T4.13 for ANY service life. The
+/// constant sets only how deep the buffer is — how many years of neglect Comfort
+/// survives — which is the property that makes this a stock and not a flow.
+///
+/// PerClass carries the FORMER Comfort basket lines verbatim. They are both the
+/// material mix (one material unit makes one household-good unit) and the
+/// derivation input for the standard, so they had to move rather than be deleted.
+/// </summary>
+public sealed record HouseholdGoodsConfig(
+    [property: JsonPropertyName("serviceLifeYears"), JsonRequired] double ServiceLifeYears,
+    [property: JsonPropertyName("perClass"), JsonRequired] HouseholdGoodsClass[] PerClass)
+{
+    /// <summary>Fraction of the goods IN USE that wear out per sim-year, as an
+    /// e-fold over the service life — the same shape housing uses for decay, so
+    /// it is bounded below 1 at any dt and cannot wear more than exists.</summary>
+    public double WornFraction(double dtYears) =>
+        1.0 - System.Math.Exp(-dtYears / ServiceLifeYears);
+
+    /// <summary>Units a person of this class holds when Comfort is exactly met.
+    /// DERIVED: standard × WornFraction(1) = Σ PerPersonYear, i.e. at the standard
+    /// the annual replacement equals the ratified annual consumption. Evaluated AT
+    /// the standard, where every held unit is in use — so it never assumes goods
+    /// above the standard wear.</summary>
+    public double StandardPerPerson(int classId)
+    {
+        double annual = 0.0;
+        for (int i = 0; i < PerClass.Length; i++)
+        {
+            if (PerClass[i].Class != classId) continue;
+            for (int j = 0; j < PerClass[i].Materials.Length; j++)
+                annual += PerClass[i].Materials[j].PerPersonYear;
+            break;
+        }
+        return annual <= 0.0 ? 0.0 : annual / WornFraction(1.0);
+    }
+}
+
+/// <summary>One class's household-goods material mix (T4.13).</summary>
+public sealed record HouseholdGoodsClass(
+    [property: JsonPropertyName("class"), JsonRequired] int Class,
+    [property: JsonPropertyName("materials"), JsonRequired] HouseholdGoodsMaterial[] Materials);
+
+/// <summary>One material line: PerPersonYear is a RATE (law 3), the same
+/// denomination the basket line it came from used.</summary>
+public sealed record HouseholdGoodsMaterial(
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("perPersonYear"), JsonRequired] double PerPersonYear);
 
 /// <summary>
 /// T3.5b item 2 — the FIXED NUTRITIONAL DIVERSITY STANDARD (director ruling:
@@ -80,6 +136,16 @@ public sealed record NeedEntry(
 {
     [JsonIgnore] public bool FromHousingStock =>
         string.Equals(Source, "housingStock", StringComparison.Ordinal);
+
+    /// <summary>T4.13: satisfaction comes from the HouseholdGoods stock
+    /// (Comfort). Same contract as <see cref="FromHousingStock"/> — declared in
+    /// data, refused by the loader if it also carries basket lines.</summary>
+    [JsonIgnore] public bool FromHouseholdGoods =>
+        string.Equals(Source, "householdGoods", StringComparison.Ordinal);
+
+    /// <summary>Any stock source — the property the ambiguity guard and the
+    /// bound-need bookkeeping actually care about.</summary>
+    [JsonIgnore] public bool FromStock => FromHousingStock || FromHouseholdGoods;
 }
 
 /// <summary>
@@ -177,7 +243,8 @@ public static class NeedsConfigLoader
             // T3.8: the source field is a closed vocabulary — a typo'd source
             // must not silently fall back to basket (the config-fails-quietly
             // class).
-            if (n.Source is not null && n.Source != "basket" && n.Source != "housingStock")
+            if (n.Source is not null && n.Source != "basket" && n.Source != "housingStock"
+                && n.Source != "householdGoods")
                 throw new NeedsConfigException(
                     $"needs[{i}] ({n.Name}).source must be \"basket\" or \"housingStock\", got "
                     + $"\"{n.Source}\".");
@@ -201,11 +268,11 @@ public static class NeedsConfigLoader
         // deleting this block.
         for (int n = 0; n < cfg.Needs.Length; n++)
         {
-            if (!cfg.Needs[n].FromHousingStock) continue;
+            if (!cfg.Needs[n].FromStock) continue;
             for (int i = 0; i < cfg.Baskets!.Entries.Length; i++)
                 if (cfg.Baskets.Entries[i].Need == cfg.Needs[n].Id)
                     throw new NeedsConfigException(
-                        $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) declares source \"housingStock\" "
+                        $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) declares source \"{cfg.Needs[n].Source}\" "
                         + $"but baskets.entries[{i}] still baskets it ({cfg.Baskets.Entries[i].Good}) — "
                         + "a need cannot have two satisfaction sources. Delete the basket lines or the "
                         + "source declaration.");
@@ -332,14 +399,14 @@ public static class NeedsConfigLoader
             // stock — the guard's purpose (no bound need without a satisfier)
             // is met by the declared source, and the ambiguity guard above
             // separately forbids it ALSO having basket lines.
-            if (cfg.Needs[n].FromHousingStock) continue;
+            if (cfg.Needs[n].FromStock) continue;
             bool served = false;
             for (int i = 0; i < b.Entries.Length; i++) if (b.Entries[i].Need == cfg.Needs[n].Id) { served = true; break; }
             if (!served)
                 throw new NeedsConfigException(
                     $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) is bound but no basket entry serves it "
                     + "— a bound need with no satisfier would read as permanently satisfied (declare "
-                    + "source \"housingStock\" if the T3.8 dwelling stock is meant to serve it).");
+                    + "source \"housingStock\" or \"householdGoods\" if a stock is meant to serve it).");
         }
     }
 

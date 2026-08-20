@@ -95,6 +95,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     private readonly BasketBook _baskets;
     private readonly GoodId _grain;
     private readonly double _personsPerDwelling;
+    /// <summary>Per-class holding standard, indexed by class id (T4.13). Built once
+    /// from data so the hot loop does no lookup.</summary>
+    private readonly double[] _hgStandard;
 
     public NeedsGrievanceSystem(SimConfig cfg)
     {
@@ -108,6 +111,17 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
             "SimConfig.Goods is not loaded — T3.5 satisfaction is computed from goods baskets.");
         _baskets = new BasketBook(_needs, goods);
         _grain = new GoodId(goods.GrainId);
+
+        // T4.13: the per-class household-goods standard. Sized to the largest
+        // declared class id so the read is an array index, never a search.
+        int maxClass = 0;
+        HouseholdGoodsConfig? hg = _needs.HouseholdGoods;
+        if (hg is not null)
+            for (int i = 0; i < hg.PerClass.Length; i++)
+                if (hg.PerClass[i].Class > maxClass) maxClass = hg.PerClass[i].Class;
+        _hgStandard = new double[maxClass + 1];
+        if (hg is not null)
+            for (int c = 0; c <= maxClass; c++) _hgStandard[c] = hg.StandardPerPerson(c);
 
         for (int i = 0; i < TierAGateNeedIds.Length; i++)
         {
@@ -127,6 +141,33 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// people and NO housing row (pre-T3.8 hand rigs) reads 0: honest — they
     /// are unhoused — and the housing system creates the row on its first
     /// step, so founded worlds never sit there.</summary>
+    /// <summary>
+    /// T4.13 — Comfort from the household-goods stock: min(1, stock / requirement),
+    /// the same shape Shelter uses. The requirement sums the per-class standard over
+    /// the settlement's actual class mix, so the ratified per-class figures stay
+    /// load-bearing after Comfort stopped being basket-sourced.
+    /// A settlement with nobody in it needs nothing and is satisfied (the
+    /// HousingSatisfaction convention, so an empty settlement does not read as
+    /// maximally aggrieved).
+    /// </summary>
+    private double HouseholdGoodsSatisfaction(IReadOnlyWorldState prev, SettlementId settlement)
+    {
+        double requirement = 0.0;
+        for (int i = 0; i < prev.Buckets.Count; i++)
+        {
+            BucketRow b = prev.Buckets[i];
+            if (b.Settlement != settlement) continue;
+            requirement += b.Count.Value * _hgStandard[b.Class.Value];
+        }
+        if (requirement <= 0.0) return 1.0;   // nobody to equip
+        for (int i = 0; i < prev.HouseholdGoods.Count; i++)
+        {
+            if (prev.HouseholdGoods[i].Settlement != settlement) continue;
+            return Math.Min(1.0, prev.HouseholdGoods[i].Units.Value / requirement);
+        }
+        return 0.0;
+    }
+
     private double HousingSatisfaction(IReadOnlyWorldState prev, SettlementId settlement)
     {
         long pop = 0;
@@ -242,7 +283,18 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     if (!need.Bound) continue;                       // unbound: skipped before any weight is read
 
                     double value;
-                    if (need.FromHousingStock)
+                    if (need.FromHouseholdGoods)
+                    {
+                        // T4.13: Comfort reads the HOUSEHOLD-GOODS STOCK against
+                        // the settlement's requirement — never a flow. Classes
+                        // carry EQUAL values for the same reason Shelter does:
+                        // the stock is settlement-level, and per-class holdings
+                        // are a later differentiation. The REQUIREMENT is still
+                        // class-weighted, so a settlement of artisans needs more
+                        // than a settlement of peasants for the same satisfaction.
+                        value = HouseholdGoodsSatisfaction(prev, settlement);
+                    }
+                    else if (need.FromHousingStock)
                     {
                         // T3.8: Shelter reads the DWELLING STOCK against the
                         // population — never a flow. Classes carry EQUAL

@@ -448,6 +448,9 @@ public class NeedsBasketTests
         long fullDwellings = (long)Math.Ceiling(1000.0 / ppd);
         AddHousing(world, settlement: 0, fullDwellings);
         AddHousing(world, settlement: 1, fullDwellings / 3);
+        // T4.13: equal on BOTH arms, so the only difference stays the dwellings.
+        AddHouseholdGoods(world, cfg, settlement: 0);
+        AddHouseholdGoods(world, cfg, settlement: 1);
 
         WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.NeedsGrievance(cfg)]).Step(world);
 
@@ -730,6 +733,29 @@ public class NeedsBasketTests
 
     /// <summary>T3.8: seed a dwelling stock the lawful way (Ledger flow, the
     /// founding convention) — Shelter reads it from Prev.</summary>
+    /// <summary>T4.13: Comfort became stock-sourced, so a fixture that holds
+    /// "everything else equal" must now provision household goods too — otherwise
+    /// BOTH arms read Comfort 0.0 and the Tier-A gate turns that shared zero into a
+    /// confounder of whatever the test is actually contrasting.</summary>
+    private static void AddHouseholdGoods(WorldState world, SimConfig cfg, int settlement)
+    {
+        HouseholdGoodsConfig hg = cfg.Needs!.HouseholdGoods!;
+        double requirement = 0.0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow b = world.Buckets[i];
+            if (b.Settlement.Value != settlement) continue;
+            requirement += b.Count.Value * hg.StandardPerPerson(b.Class.Value);
+        }
+        long units = (long)Math.Ceiling(requirement);
+        if (units <= 0) return;
+        var ledger = new Ledger(world.LedgerFlows);
+        int row = world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(settlement), Conserved.Zero, 0.0, 0.0));
+        ledger.Flow(ref world.HouseholdGoods.Ref(row).Units, ConservedQuantityIds.HouseholdGoods,
+            ReasonIds.InitialEndowment, units, FlowDirection.Source, OverdrawPolicy.Throw);
+    }
+
     private static void AddHousing(WorldState world, int settlement, long dwellings)
     {
         var ledger = new Ledger(world.LedgerFlows);

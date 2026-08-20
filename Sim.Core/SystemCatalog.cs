@@ -123,6 +123,23 @@ public static class SystemCatalog
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>T4.13: household goods — Comfort's stock, worn by USE and
+    /// replenished by crafting. Owns the HouseholdGoods table and SINKS from the
+    /// shared GoodStocks (the materials crafting consumes).</summary>
+    public static SystemRegistration HouseholdGoods(SimConfig cfg)
+    {
+        var system = new Systems.HouseholdGoods.HouseholdGoodsSystem(cfg);
+        return new SystemRegistration(
+            Systems.HouseholdGoods.HouseholdGoodsSystem.WellKnownId,
+            Systems.HouseholdGoods.HouseholdGoodsSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.HouseholdGoods.HouseholdGoodsTables>(
+                    prev, new Systems.HouseholdGoods.HouseholdGoodsTables(
+                        next.HouseholdGoods, next.GoodStocks), rng,
+                    Systems.HouseholdGoods.HouseholdGoodsSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Consumption(SimConfig cfg)
     {
         var system = new ConsumptionSystem(cfg);
@@ -275,7 +292,7 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
-        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
+        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), HouseholdGoods(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }
