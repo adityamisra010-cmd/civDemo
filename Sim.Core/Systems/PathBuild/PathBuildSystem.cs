@@ -348,6 +348,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ClaimRow> Claims => prev.Claims;
         public IReadOnlyTable<ControlRow> Controls => prev.Controls;
         public IReadOnlyTable<NotableRow> Notables => prev.Notables;
+        public IReadOnlyTable<HouseholdGoodsRow> HouseholdGoods => prev.HouseholdGoods;
         public IReadOnlyTable<RecognitionRow> Recognitions => prev.Recognitions;
     }
 

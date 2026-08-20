@@ -496,6 +496,41 @@ public struct HousingRow(
 }
 
 /// <summary>
+/// T4.13 — HOUSEHOLD GOODS, the stock that satisfies Comfort. A CAPITAL stock in
+/// the same class as <see cref="HousingRow"/>'s dwellings: conserved, Ledger-audited,
+/// and never sitting in GoodStocks — it does not trade (housing's precedent; goods
+/// are traded, the capital they become is not).
+///
+/// WHY IT IS NOT A SECOND HOUSING. Housing's equilibrium is MAINTENANCE-driven: a
+/// dwelling degrades when its upkeep materials are not paid. This stock's is
+/// USE-driven — the wear term is proportional to the goods actually IN USE,
+/// min(stock, population x standard), not to the stock. Idle surplus therefore does
+/// not evaporate, surplus above the standard buys nothing, and the equilibrium
+/// tracks POPULATION, so a growing settlement loses Comfort by dilution without
+/// losing a single pot. That is the m4-spec P4 property: a household-goods stock
+/// that does not saturate at 1.0 forever.
+///
+/// Two remainders because there are two independent D-004 integer boundaries per
+/// turn (craft in, wear out); banking them separately keeps each flow's residue
+/// with its own mechanism rather than netting two unrelated fractions.
+/// </summary>
+public struct HouseholdGoodsRow(
+    SettlementId settlement, Conserved units,
+    double craftRemainder, double wearRemainder) : IEquatable<HouseholdGoodsRow>
+{
+    public SettlementId Settlement = settlement;
+    public Conserved Units = units;
+    public double CraftRemainder = craftRemainder;
+    public double WearRemainder = wearRemainder;
+
+    public readonly bool Equals(HouseholdGoodsRow other) =>
+        Settlement == other.Settlement && Units == other.Units
+        && CraftRemainder.Equals(other.CraftRemainder) && WearRemainder.Equals(other.WearRemainder);
+    public override readonly bool Equals(object? obj) => obj is HouseholdGoodsRow other && Equals(other);
+    public override readonly int GetHashCode() => Settlement.Value; // gate:allow-gethashcode — equality plumbing, never logic input
+}
+
+/// <summary>
 /// T3.4 (D-033): the price of one good in one settlement, in GRAIN units —
 /// grain is the numeraire and its own price is pinned at exactly 1.0. Prices
 /// are ratios, so `double` (law 7); they are NOT conserved and never move
@@ -717,6 +752,9 @@ public interface IReadOnlyWorldState
     /// <summary>Notables as PEOPLE (T4.8, R-1) — owned by no system yet; M4 ships the
     /// conserved carrier and its lifecycle operations, not a spawner.</summary>
     IReadOnlyTable<NotableRow> Notables { get; }
+
+    /// <summary>T4.13: the per-settlement household-goods stock that satisfies Comfort.</summary>
+    IReadOnlyTable<HouseholdGoodsRow> HouseholdGoods { get; }
     IReadOnlyTable<RecognitionRow> Recognitions { get; }
 }
 
@@ -842,6 +880,9 @@ public sealed class WorldState : IReadOnlyWorldState
     public Table<ControlRow> Controls { get; }
     public Table<NotableRow> Notables { get; }
 
+    /// <summary>T4.13: household goods (Comfort's stock). See HouseholdGoodsRow.</summary>
+    public Table<HouseholdGoodsRow> HouseholdGoods { get; }
+
     /// <summary>Bilateral, asymmetric claim recognition between polities (T4.3,
     /// D-037 A3) — schema only; no system writes this table yet.</summary>
     public Table<RecognitionRow> Recognitions { get; }
@@ -880,6 +921,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ClaimRow> IReadOnlyWorldState.Claims => Claims;
     IReadOnlyTable<ControlRow> IReadOnlyWorldState.Controls => Controls;
     IReadOnlyTable<NotableRow> IReadOnlyWorldState.Notables => Notables;
+    IReadOnlyTable<HouseholdGoodsRow> IReadOnlyWorldState.HouseholdGoods => HouseholdGoods;
     IReadOnlyTable<RecognitionRow> IReadOnlyWorldState.Recognitions => Recognitions;
 
     public WorldState(ulong seed = 0UL)
@@ -919,6 +961,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Claims = new Table<ClaimRow>();
         Controls = new Table<ControlRow>();
         Notables = new Table<NotableRow>();
+        HouseholdGoods = new Table<HouseholdGoodsRow>();
         Recognitions = new Table<RecognitionRow>();
     }
 
@@ -939,7 +982,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
         Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
-        Table<RecognitionRow> recognitions, Table<NotableRow> notables)
+        Table<RecognitionRow> recognitions, Table<NotableRow> notables,
+        Table<HouseholdGoodsRow> householdGoods)
     {
         Seed = seed;
         Clock = clock;
@@ -977,6 +1021,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Claims = claims;
         Controls = controls;
         Notables = notables;
+        HouseholdGoods = householdGoods;
         Recognitions = recognitions;
     }
 
@@ -995,7 +1040,8 @@ public sealed class WorldState : IReadOnlyWorldState
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
-            Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone())
+            Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
+            HouseholdGoods.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

@@ -58,6 +58,15 @@ public static class CanonicalSchema
     /// observables); CatchmentSummaryRow gains SizeTier (the quantized
     /// settlement-size step the summary was computed at — the D-016 gate for
     /// the size catchment bonus).
+    /// v23 (T4.13): HouseholdGoods table appended after Notables — Comfort's
+    /// CAPITAL STOCK (units held, plus the D-004 craft and wear remainders).
+    /// Comfort stops being an annual basket draw of pottery and cloth and becomes
+    /// a holding that WEARS with use and is replenished by crafting.
+    /// RENUMBERED FROM v22 ON REBASE: T4.4 (D-037 B1) took v22 on main while this
+    /// packet was in flight, so this table is v23. The rebase auto-merge silently
+    /// kept only T4.4's changelog line and left this one at 22 — caught by
+    /// inspection, not by a test, because a duplicated version number breaks no
+    /// assertion until two streams have to be told apart.
     /// v22 (T4.4, D-037 B1): BucketRow gains UnplacedDeparture and
     /// UnplacedRemainder — the departure demand that found NO viable existing
     /// destination (the quantity MigrationSystem never formed because its flight
@@ -74,7 +83,7 @@ public static class CanonicalSchema
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
-    public const int Version = 22;
+    public const int Version = 23;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -114,6 +123,7 @@ public static class CanonicalSchema
     private const int ControlRowWidth = 4 + 4 + 8;                  // Polity, Place, Strength bits (v20)
     private const int RecognitionRowWidth = 4 + 4;                  // Recogniser, Recognised (v20)
     private const int NotableRowWidth = 4 + 4 + 4 + 4 + 8;          // Id, Settlement, Allegiance, CohortIdx, Count (v21)
+    private const int HouseholdGoodsRowWidth = 4 + 8 + 8 + 8;       // Settlement, Units, CraftRem, WearRem (v23)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -507,6 +517,17 @@ public static class CanonicalSchema
             writer.Write(row.CohortIdx);
             writer.Write(row.Count.Value);
         }
+
+        // 36. HouseholdGoods (v23, T4.13: Comfort's capital stock)
+        writer.Write(world.HouseholdGoods.Count);
+        for (int i = 0; i < world.HouseholdGoods.Count; i++)
+        {
+            HouseholdGoodsRow row = world.HouseholdGoods[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Units.Value);
+            writer.Write(row.CraftRemainder);
+            writer.Write(row.WearRemainder);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -846,6 +867,16 @@ public static class CanonicalSchema
                 id, settlement, allegiance, cohort, Conserved.FromSnapshot(reader.ReadInt64())));
         }
 
+        int householdGoodsCount = reader.ReadInt32();
+        for (int i = 0; i < householdGoodsCount; i++)
+        {
+            var settlement = new SettlementId(reader.ReadInt32());
+            Conserved units = Conserved.FromSnapshot(reader.ReadInt64());
+            double craftRem = reader.ReadDouble();
+            double wearRem = reader.ReadDouble();
+            world.HouseholdGoods.Add(new HouseholdGoodsRow(settlement, units, craftRem, wearRem));
+        }
+
         return world;
     }
 
@@ -891,5 +922,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Claims.Count * ClaimRowWidth
         + CountPrefixWidth + (long)world.Controls.Count * ControlRowWidth
         + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth
-        + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth;
+        + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth
+        + CountPrefixWidth + (long)world.HouseholdGoods.Count * HouseholdGoodsRowWidth;
 }

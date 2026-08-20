@@ -60,6 +60,7 @@ public static class WorldStates
         // comment above records three consecutive packets that did not — and an
         // independent review caught this packet about to be the fourth.
         if (!TableEquals(a.Notables, b.Notables)) return false;
+        if (!TableEquals(a.HouseholdGoods, b.HouseholdGoods)) return false;
         return true;
     }
 

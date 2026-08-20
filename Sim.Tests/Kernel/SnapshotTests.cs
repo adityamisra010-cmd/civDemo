@@ -654,6 +654,54 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV22_PopulatedHouseholdGoodsTable_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-table
+        // test — exact ExpectedLength, bit-exact round trip, hash equality. An
+        // empty table proves nothing (T1.1/T1.3 precedent).
+        //
+        // v22 (T4.13): HouseholdGoodsRow. The fixture covers a settlement holding
+        // stock with BOTH remainders non-zero (the ordinary mid-turn state), a
+        // settlement at exactly zero units with a banked craft residue (a village
+        // that has begun crafting but not yet completed one whole unit), and a
+        // row whose remainders are negative-exponent doubles, because the two
+        // remainders are the fields a raw-memory shortcut would silently pad.
+        WorldState world = Genesis(23);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+
+        int held = world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(2), Conserved.Zero, 0.375, 0.125));
+        ledger.Flow(ref world.HouseholdGoods.Ref(held).Units,
+            ConservedQuantityIds.HouseholdGoods, ReasonIds.InitialEndowment,
+            41, FlowDirection.Source, OverdrawPolicy.Throw);
+
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(1), Conserved.Zero, 0.9999999999999999, 0.0));
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(0), Conserved.Zero, 1e-300, -0.0));
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(world, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
+
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(TestUtil.WorldStates.StateEquals(world, back), "round-trip drifted");
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(back));
+
+        Assert.Equal(3, back.HouseholdGoods.Count);
+        Assert.Equal(2, back.HouseholdGoods[0].Settlement.Value);
+        Assert.Equal(41, back.HouseholdGoods[0].Units.Value);
+        Assert.Equal(0.375, back.HouseholdGoods[0].CraftRemainder);
+        Assert.Equal(0.125, back.HouseholdGoods[0].WearRemainder);
+        Assert.Equal(0, back.HouseholdGoods[1].Units.Value);
+        Assert.Equal(0.9999999999999999, back.HouseholdGoods[1].CraftRemainder);
+        Assert.Equal(1e-300, back.HouseholdGoods[2].CraftRemainder);
+    }
+
+    [Fact]
     public void SchemaV13_PopulatedGoodStockAndDepositTables_LengthAndRoundTripExact()
     {
         // Constitution rule: every new serialized row type ships a POPULATED-

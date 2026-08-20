@@ -89,6 +89,12 @@ public static class ConservedQuantityIds
     /// person-year of sustenance (the D-015 constant, carried from FoodStore).</summary>
     public const int GoodQuantityBase = 100;
 
+    /// <summary>Household goods (T4.13) — Comfort's capital stock. Like
+    /// <see cref="Dwellings"/> it is conserved and Ledger-audited but never sits in
+    /// GoodStocks and never trades. Id 5 is the next free slot below the per-good
+    /// range (GoodQuantityBase = 100).</summary>
+    public static readonly ConservedQuantityId HouseholdGoods = new(5);
+
     public static ConservedQuantityId OfGood(GoodId good) => new(GoodQuantityBase + good.Value);
     public static bool IsGood(ConservedQuantityId q) => q.Value > GoodQuantityBase;
     public static GoodId GoodOf(ConservedQuantityId q) => new(q.Value - GoodQuantityBase);
@@ -151,6 +157,16 @@ public static class ReasonIds
     // single reason would merge a decay process with a capacity constraint.
     public static readonly ReasonId Spoilage = new(14);
     public static readonly ReasonId GranaryOverflow = new(15);
+
+    // T4.13 — household goods' flow vocabulary, three reasons for the same
+    // reason housing has three: the audit questions differ. Goods ENTER the
+    // stock via HouseholdGoodsCrafted and leave via HouseholdGoodsWorn (use,
+    // not decay); the pottery and cloth consumed to make them leave their own
+    // good stocks via HouseholdGoodsMaterials. "Where did the clay go?" and
+    // "why is Comfort falling?" must not share an answer.
+    public static readonly ReasonId HouseholdGoodsCrafted = new(16);
+    public static readonly ReasonId HouseholdGoodsWorn = new(17);
+    public static readonly ReasonId HouseholdGoodsMaterials = new(18);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

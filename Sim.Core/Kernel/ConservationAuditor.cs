@@ -117,6 +117,12 @@ public static class ConservationAuditor
                 for (int i = 0; i < world.Housing.Count; i++)
                     stocks += world.Housing[i].Dwellings.Value;
             }
+            else if (quantity == ConservedQuantityIds.HouseholdGoods)
+            {
+                // T4.13: Comfort's capital stock, audited exactly as dwellings are.
+                for (int i = 0; i < world.HouseholdGoods.Count; i++)
+                    stocks += world.HouseholdGoods[i].Units.Value;
+            }
             else if (ConservedQuantityIds.IsGood(quantity))
             {
                 GoodId good = ConservedQuantityIds.GoodOf(quantity);
