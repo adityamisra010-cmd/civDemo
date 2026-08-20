@@ -61,7 +61,9 @@ public static class CanonicalSchema
     /// v23 (T4.13): HouseholdGoods table appended after Notables — Comfort's
     /// CAPITAL STOCK (units held, plus the D-004 craft and wear remainders).
     /// Comfort stops being an annual basket draw of pottery and cloth and becomes
-    /// a holding that WEARS with use and is replenished by crafting.
+    /// a holding that WEARS with use and is replenished by crafting. It is in the
+    /// same class as Housing's dwellings: conserved, Ledger-audited, never in
+    /// GoodStocks and never traded.
     /// RENUMBERED FROM v22 ON REBASE: T4.4 (D-037 B1) took v22 on main while this
     /// packet was in flight, so this table is v23. The rebase auto-merge silently
     /// kept only T4.4's changelog line and left this one at 22 — caught by
