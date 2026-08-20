@@ -543,7 +543,34 @@ public class SnapshotTests
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        const string golden = "d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101";
+        const string golden = "c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a";
+        // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
+        //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
+        //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
+        //   RE-DERIVED ON REBASE onto the cumulative main (T4.8 v21 + T4.7 rivers),
+        //         and derived TWICE independently: by this in-test harness and by
+        //         the built CLI (`sim run --founded --seed 42 --turns 300`), which
+        //         agree. The pre-rebase value (a65aaa01…) is void and was not
+        //         carried through the conflict resolution.
+        //   CAUSE T4.5 gives the HERDING food pathway the same HarvestWeatherRow
+        //         multiplier farming already had (D-037 B3). The never-ordered
+        //         default sector mix HERDS: Sectors.Default is Farming 0.55,
+        //         *Herding 0.15*, Extraction 0.10, Crafting 0.12, Construction
+        //         0.08 — so every settlement in every weather-bearing world now
+        //         has 15% of its labour producing food that varies with the year.
+        //         The Herding sector is the FOOD-FROM-DEPOSITS sector and covers
+        //         BOTH livestock and fish (ProductionSystem.InSector), and
+        //         WorldFounding gives every site a fish deposit, so the catch moves
+        //         with the year too. Food moves, and the hash follows.
+        //   NOT THE RAID: appropriation cannot fire in this world. It requires a
+        //         HERDING-DOMINANT settlement, and RE-MEASURED on the rebased tree
+        //         by counting inside AppropriationSystem over all 300 turns of this
+        //         exact founded run: ZERO herding-dominant settlement-turns and
+        //         ZERO grain transfers (the default mix is farming-dominant). The
+        //         raid contributes nothing to this hash; the weather coupling is
+        //         the whole of the movement.
+        //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+        //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(

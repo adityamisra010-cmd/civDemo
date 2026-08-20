@@ -1118,3 +1118,32 @@
      ledger — notable and bucket deaths share one reason. Defensible (it is the same event, and the
      audit balances either way) and recorded as a design call for the director rather than inherited
      silently. Changing it later is a schema-visible flow-table change.
+- **T4.5 follow-up — D-037 B3's OTHER half: worldgen does not place pastoralists.**
+  T4.5 ships the non-state subsistence/appropriation mechanism and tests it, but the raid
+  requires a HERDING-DOMINANT stateless settlement and the never-ordered default mix
+  (`Sectors.Default`: Farming 0.55, Herding 0.15, …) is farming-dominant. Measured over
+  300 turns of the canonical founded world: ZERO herding-dominant settlement-turns, so the
+  appropriation path is DORMANT in live worlds today. D-037 B3 says non-state peoples are
+  "M4 worldgen, present from turn zero — NOT spawned"; placing them is worldgen work that
+  T4.5's authorized design did not cover (it forbids schema changes and does not mention
+  worldgen). Whoever owns that should read `docs/t4.5-review-record.md` first.
+- **T4.5 review finding — the raid responds to the BASKET, not to the year.**
+  `needs.json` is grain-dominant (grain 0.9 / livestock 0.06 / fish 0.04) and a surplus in one
+  good does not cover a shortfall in another, so a herding-dominant settlement is short by
+  roughly the grain share in EVERY year while its livestock output sits far above the 0.06 it
+  needs. Its `DeficitRatio` is therefore a near-constant of the basket, and appropriation
+  becomes a self-correcting alternation (take, eat, be fed, take again) that owes nothing to
+  the weather. Measured with the real pipeline, weather 1.0 everywhere: a pure pastoralist
+  alternates deficit 0.94 / 0.00 forever. D-037 B3's "the same bad year that starves villages
+  sends herders after grain" therefore holds for MIXED settlements (through farming's
+  pre-existing weather multiplier) but not for pastoralists. Closing that gap needs diet
+  substitution or a pastoralist grain trade — a needs/D-018 question, not an appropriation one.
+- **T4.5 review finding — dt seam at the one-turn lag (law 3, bounded).**
+  `AppropriationSystem` takes `DeficitRatio x DemandUnits` from PREV. `DemandUnits` is already
+  dt-integrated where it is published, so the take scales linearly with dt in steady state
+  (measured 3000 at dt=10 vs 1500 at dt=5, ratio exactly 2). But the PREV row was integrated
+  under the PREVIOUS turn's dt, so on the single turn where era pacing steps dt (10 -> 5 -> 3
+  -> 2 -> 1 -> 0.5) a raider takes old_dt/new_dt times the shortfall of the turn it is in —
+  2x at the first boundary. One turn per band, non-compounding. Every fix widens a serialized
+  row (publish a per-year demand rate, or carry the previous dt), which T4.5's design forbids;
+  whoever next opens `ConsumptionDeficitRow` should fix it in the same edit.
