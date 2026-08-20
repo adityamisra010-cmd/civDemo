@@ -28,6 +28,29 @@ public readonly record struct AppropriationTables(Table<GoodStockRow> Stocks);
 /// with drought, which is exactly the T3.4b harvest-variance driver: the same bad
 /// year that starves villages sends herders after grain."
 ///
+/// HOW MUCH OF THAT SENTENCE THIS PACKET ACTUALLY DELIVERS, measured rather than
+/// asserted, because an independent review found the obvious reading too strong.
+/// The chain above is real link by link, but the WEATHER link only reaches the
+/// deficit where food-from-deposits output is BINDING. It is not binding for the
+/// settlements this system selects: the consumption basket is grain-dominant
+/// (needs.json: grain 0.9, livestock 0.06, fish 0.04) and a surplus in one good
+/// does not cover a shortfall in another, so a herding-dominant settlement is
+/// short by roughly the grain share in EVERY year, drought or not, while its
+/// livestock output sits far above the 0.06 it needs. Consequently:
+///   - a pure pastoralist's DeficitRatio is a near-constant of the basket, not a
+///     weather signal, and it appropriates in a self-correcting alternation
+///     (take, eat, be fed, take again) that owes nothing to the year;
+///   - the drought sensitivity that IS observable end to end runs through the
+///     FARMING half of a mixed settlement, which had its weather multiplier
+///     before T4.5.
+/// What T4.5's coupling changes for certain is total food OUTPUT in every
+/// weather-bearing world — enough to move both behavioural goldens and to trip
+/// the CR-003 famine tripwire in ClassSystemTests. Closing the gap between "the
+/// raid responds to the year" and "the raid responds to the basket" needs diet
+/// substitution or a pastoralist grain trade, neither of which is T4.5's design.
+/// It is written down in docs/queue.md and docs/t4.5-review-record.md rather
+/// than left implied by this comment.
+///
 /// NO SECOND DEFINITION OF HUNGER. The trigger is ConsumptionSystem's existing
 /// deficit row, read from PREV like every other cross-system signal (§3.2's
 /// one-turn lag). Nothing here re-derives whether a settlement is short of food.
@@ -36,6 +59,21 @@ public readonly record struct AppropriationTables(Table<GoodStockRow> Stocks);
 /// `DeficitRatio x DemandUnits` — both already on the row. There is no raid size,
 /// no greed factor and no threshold to tune: a settlement that is 1% short takes
 /// 1% of its requirement, and a settlement that is not short takes nothing.
+///
+/// DIMENSIONS, and the one seam in them (law 3). `DemandUnits` is not a rate: it
+/// is already dt-integrated where it is published (ConsumptionSystem computes
+/// `persons x perPersonPerYear x dtYears`), so the amount taken scales linearly
+/// with dt in steady state — measured 3000 units at dt=10 against 1500 at dt=5,
+/// ratio exactly 2. There is nothing here to integrate again, and re-deriving
+/// the requirement locally would be a SECOND definition of hunger.
+/// The seam is at the one-turn lag: the row read from PREV was integrated under
+/// the PREVIOUS turn's dt, so on the single turn where era pacing changes dt
+/// (era-pacing.json steps 10 -> 5 -> 3 -> 2 -> 1 -> 0.5) a raider takes
+/// old_dt/new_dt times the shortfall of the turn it is now in — 2x at the first
+/// boundary. It is one turn per band, it is not a compounding error, and every
+/// fix costs more than it buys at M4: publishing a per-year demand rate widens a
+/// serialized row, and carrying the previous dt on the row does the same. It is
+/// recorded in docs/queue.md rather than papered over here.
 ///
 /// WHO RAIDS: a settlement with NO ControlRow — the stateless case that
 /// ControlRow's own contract already provides for ("exactly one state control
@@ -164,20 +202,33 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
             }
             return herding > 0.0;
         }
-        return false; // no allocation row at all: the all-farming default
+        // No allocation row at all. ProductionSystem substitutes Sectors.Default
+        // for a missing row, and that default is farming-DOMINANT (not, as an
+        // earlier version of this comment said, all-farming — it has herded since
+        // T3.5b), so the settlement is not herding-dominant either way.
+        return false;
     }
 
     /// <summary>
-    /// The other settlement holding the most grain. Strictly-greater over an
-    /// ascending scan = (stock DESC, settlement id ASC): a tie goes to the lowest
-    /// id, deterministically, with no floating-point comparison anywhere — grain
-    /// stocks are conserved longs.
+    /// The other settlement holding the most grain, under the EXPLICIT composite
+    /// key (stock DESC, settlement id ASC) the constitution requires of every
+    /// argmax. No floating-point comparison anywhere — grain stocks are longs.
+    ///
+    /// THE KEY IS COMPARED, NOT ASSUMED. An earlier version relied on a
+    /// strictly-greater scan and called that the composite key, which is only
+    /// true while `Settlements` happens to be stored in ascending id order: with
+    /// rows in any other order a tie went to the FIRST ROW SCANNED instead of the
+    /// lowest id, and the tie-dense test could not see it because it built its
+    /// rows ascending too. Independent review caught it; the test now builds
+    /// descending and the id is compared here outright, so the outcome no longer
+    /// depends on the table's storage order at all.
     /// </summary>
     private int RichestOtherGrainRow(
         Table<GoodStockRow> stocks, IReadOnlyWorldState prev, SettlementId raider)
     {
         int best = -1;
         long bestAmount = 0;
+        int bestId = 0;
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId victim = prev.Settlements[s].Id;
@@ -193,10 +244,13 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
             int prevRow = GoodStockIndex.IndexOf(prev.GoodStocks, victim, _grain);
             if (prevRow < 0) continue;
             long amount = prev.GoodStocks[prevRow].Amount.Value;
-            if (amount <= bestAmount) continue;
+            if (amount <= 0) continue;
+            // (stock DESC, id ASC), both halves compared explicitly.
+            if (best >= 0 && (amount < bestAmount
+                || (amount == bestAmount && victim.Value > bestId))) continue;
             int liveRow = GoodStockIndex.IndexOf(stocks, victim, _grain);
             if (liveRow < 0) continue; // nowhere to take it from
-            bestAmount = amount; best = liveRow;
+            bestAmount = amount; bestId = victim.Value; best = liveRow;
         }
         return best;
     }

@@ -285,14 +285,22 @@ public class NonStatePeoplesTests
     {
         // Two equally-rich victims: the tie must resolve to the LOWEST id, and
         // must do so identically on every run (composite key (stock desc, id asc)).
+        //
+        // THE ROWS ARE ADDED IN **DESCENDING** ID ORDER (2, 1, 0), deliberately.
+        // An ascending build cannot distinguish "lowest id" from "first row scanned",
+        // so it passes under either semantics and pins neither — which is what the
+        // first version of this test did, and an independent review caught it: the
+        // implementation charged the FIRST ROW, and the property this test is named
+        // for had never actually been observed red (ADR-015 §7.4). Built descending,
+        // first-row and lowest-id disagree, and only the composite key survives.
         SimConfig cfg = TestConfigs.Sim();
 
         WorldState Build()
         {
             var w = new WorldState(7);
-            w.Settlements.Add(new SettlementRow(new SettlementId(0), 0, 0));
-            w.Settlements.Add(new SettlementRow(new SettlementId(1), 1, 0));
             w.Settlements.Add(new SettlementRow(new SettlementId(2), 2, 0));
+            w.Settlements.Add(new SettlementRow(new SettlementId(1), 1, 0));
+            w.Settlements.Add(new SettlementRow(new SettlementId(0), 0, 0));
             w.SectorAllocations.Add(new SectorAllocationRow(new SettlementId(0), 0.0, 1.0, 0.0, 0.0, 0.0));
             var ledger = new Ledger(w.LedgerFlows);
             var grain = new GoodId(cfg.Goods!.GrainId);
@@ -557,6 +565,24 @@ public class NonStatePeoplesTests
         // weather and its deficit carries no drought signal at all. A settlement
         // that is marginal is the one whose subsistence a bad year can actually
         // break, which is exactly D-037 B3's "marginal terrain".
+        //
+        // WHICH WEATHER PATH THIS TEST ACTUALLY EXERCISES, stated because an
+        // independent review measured it and the answer is not the obvious one:
+        // S0's drought signal reaches its deficit through the FARMING half of
+        // its mix, using the weather multiplier `Farm` already had before T4.5.
+        // Deleting T4.5's own herding coupling leaves this test GREEN. That is
+        // not a hole to paper over — it is the same fact the paragraph above
+        // records, seen from the other side: a herding-dominant settlement's
+        // food-from-deposits output sits far above the 0.06 livestock share of
+        // the basket, so scaling that output by the year cannot move its
+        // deficit, which is dominated by the grain it does not grow. The
+        // herding coupling's teeth are therefore in
+        // `Herding_ScalesExactlyWithHarvestWeather`, which pins the multiplier
+        // exactly at the production step; this test pins the END-TO-END chain
+        // (bad year -> deficit -> appropriation) and does not claim to pin the
+        // coupling. What T4.5's coupling demonstrably DOES change is total food
+        // output in every weather-bearing world — see the golden re-pins and
+        // the CR-003 tripwire recorded in docs/t4.5-review-record.md.
         SimConfig cfg = TestConfigs.Sim();
 
         (long Ate, long Grew, double WorstDeficit) Run(double weather)
