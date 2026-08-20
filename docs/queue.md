@@ -1147,3 +1147,26 @@
   2x at the first boundary. One turn per band, non-compounding. Every fix widens a serialized
   row (publish a per-year demand rate, or carry the previous dt), which T4.5's design forbids;
   whoever next opens `ConsumptionDeficitRow` should fix it in the same edit.
+- **PR #4 (AI CONSTITUTION) — four §23 citations do not resolve against the tree.**
+  The document's own §23 closes with *"Before implementation, the coder must verify these references
+  against the current repository. If this document conflicts with ratified architecture, the tree and
+  ratified documents win and the conflict is a finding."* Verified at `87fb866`; these are the findings,
+  filed here rather than by editing the author's prose:
+  1. **"AI symmetry … difficulty should be information and decision quality"** — the principle exists but
+     is named simply **Symmetry** (Spine principle 7, `docs/civ-sim-architecture-v3-outline.md:25`), and it
+     reads *"Difficulty = information and **friction**, never hidden resources."* The document renders
+     "friction" as "decision quality" in both §7 and §23. Not cosmetic: *friction* names a ratified,
+     world-side, player-symmetric lever (D-039 is titled COMMAND FRICTION), whereas *decision quality* is
+     the document's own §6 AI-side competence concept. If the document means to ADD competence as a
+     difficulty lever, that is a proposal and needs to be labelled as one, not folded into a restatement
+     of a frozen principle.
+  2. **"Emergent systems"** — no principle, law or document of that name exists (0 hits). Its gloss also
+     restates the Symmetry bullet two lines above it.
+  3. **"Information systems"** — no item of that name exists (0 hits). The mechanisms are real but titled
+     `docs/d039-command-fog-and-siege.md` and `docs/d040-discovery-and-control.md`.
+  4. **"Strategic dt … the authoritative strategic timestep unless a sanctioned crisis layer exists"** —
+     no "strategic dt", "strategic timestep" or "crisis layer" exists (0 hits each). The nearest ratified
+     machinery is S3's **dt authority rule** and **crisis zoom** (`civ-sim-architecture-v3-outline.md:34`),
+     but that rule governs WHICH polity sets the global dt — it is not a layered strategic/tactical
+     timestep, which is what the bullet asserts.
+  Whoever writes the M5 AI spec must reconcile §23 against the tree before implementing from it.
