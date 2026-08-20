@@ -21,6 +21,32 @@ being reported.
 
 ---
 
+## 0a. REBASE VERIFICATION (M4 controlled integration)
+
+This ADR was written against `main` `ba96b1c` and is rebased onto the cumulative `main` carrying
+T4.8 (notables, schema v21), T4.7 (river-aware traversal lattice) and T4.5 (non-state peoples). The
+measurements below were NOT re-run — re-running is implementation work this design-only ADR does not
+carry, and silently editing numbers measured on a different tree would be exactly the error §0.2
+withdraws. What was re-verified, by direct inspection of the rebased tree, is which of its claims
+still hold:
+
+| claim | as written | on the rebased tree | effect |
+|---|---|---|---|
+| `Table<T>` field count | 34 | **35** | T4.8 added `Notables`; every count of the form "N of 34" reads "N of 35" |
+| `Table<T>.Clone()` site | `Table.cs:85` | `Table.cs:85` | unchanged |
+| once-per-turn clone site | `TurnExecutor.cs:80` | `TurnExecutor.cs:80` | unchanged |
+| distinct `next.*` tables in `SystemCatalog` | 27 | **27** | unchanged; T4.5's `AppropriationSystem` owns no table and writes `next.GoodStocks`, already in the set |
+| written per turn | 28 of 34 | **28 of 35** | unchanged in absolute terms |
+| shareable (unwritten) tables | at most 6 | **at most 7** | `Notables` is written by no system at M4 (`PathBuildSystem.cs:350` exposes it read-only from `Prev`), so it joins the shareable set |
+
+**The recommendation is unaffected.** The load-bearing finding is that `next.Buckets` is written
+every turn and is the entire growth term of §3's projection, so copy-on-write cannot avoid copying
+the one table this ADR exists to worry about. A seventh shareable table that is EMPTY at M4 moves
+that ceiling by nothing. The one number a future implementing packet must re-measure rather than
+inherit is §3's bytes-per-turn baseline, which was taken against a 34-table `WorldState`.
+
+---
+
 ## 0. CORRECTIONS APPLIED (post-review)
 
 This ADR was independently reviewed at commit `080e97f` and **REJECTED**. The following corrections
