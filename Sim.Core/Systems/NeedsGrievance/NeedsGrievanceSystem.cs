@@ -157,7 +157,13 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         {
             BucketRow b = prev.Buckets[i];
             if (b.Settlement != settlement) continue;
-            requirement += b.Count.Value * _hgStandard[b.Class.Value];
+            // Bounds-checked exactly as HouseholdGoodsSystem checks it: a class
+            // added without a householdGoods.perClass line must not throw
+            // mid-turn (independent review, F4). Such a class contributes no
+            // requirement, which is the same reading the crafting side takes.
+            int cls = b.Class.Value;
+            if (cls < 0 || cls >= _hgStandard.Length) continue;
+            requirement += b.Count.Value * _hgStandard[cls];
         }
         if (requirement <= 0.0) return 1.0;   // nobody to equip
         for (int i = 0; i < prev.HouseholdGoods.Count; i++)

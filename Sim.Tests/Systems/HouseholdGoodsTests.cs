@@ -129,7 +129,17 @@ public class HouseholdGoodsTests
         w = exec.Step(w);
         long lost = before - Units(w);
 
-        double onUse = req * cfg.Needs!.HouseholdGoods!.WornFraction(10.0);
+        // THE EXPECTED QUANTITY WAS WRONG IN THIS TEST'S FIRST VERSION, and
+        // independent review caught it: it asserted req × wornFraction(dt), which
+        // is the e-fold of a STOCK-proportional decay. Deep in the surplus regime
+        // the in-use set is CONSTANT at `req`, so the goods wear at a constant
+        // req/L per year and a 10-year turn gets through 10/5 = two full
+        // turnovers of it. The old expectation capped the loss below ONE
+        // turnover, i.e. it pinned the integration error as intended behaviour
+        // (ADR-015 §7.2 — teeth are not aim). The property this test exists for
+        // is unchanged and still asserted: wear is on USE, not on the whole stock.
+        double life = cfg.Needs!.HouseholdGoods!.ServiceLifeYears;
+        double onUse = req * 10.0 / life;                       // constant-rate regime
         double onWholeStock = before * cfg.Needs!.HouseholdGoods!.WornFraction(10.0);
         Assert.True(Math.Abs(lost - onUse) <= 1.0,
             $"loss {lost} is not the in-use quantity {onUse:F2}");
@@ -203,5 +213,122 @@ public class HouseholdGoodsTests
             double wearAtStandard = hg.StandardPerPerson(pc.Class) * hg.WornFraction(1.0);
             Assert.Equal(basketAnnual, wearAtStandard, 12);
         }
+    }
+
+    // --- REGRESSION PINS for the three defects independent review found -------
+
+    [Fact]
+    public void MaterialsDrawnEqualsUnitsMade_EXACTLY_NoMintFromRoundingSplit()
+    {
+        // F1, the critical one: `made` units were sourced under one flow while each
+        // material was drawn under its OWN floor, and Σ floor(made × mixⱼ) is
+        // strictly less than `made` whenever a share is fractional. The auditor is
+        // structurally blind to it because the source flow is individually legal.
+        // The invariant is asserted directly: materials out == units in, exactly.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Rig(cfg, heads: 1000, materials: 1_000_000);
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.HouseholdGoods(cfg)]);
+
+        long materialsBefore = TotalMaterials(w, cfg);
+        w = exec.Step(w);
+        long drawn = materialsBefore - TotalMaterials(w, cfg);
+        Assert.Equal(drawn, Units(w));
+    }
+
+    [Fact]
+    public void OneUnitOfEachMaterial_CannotMintForever_PerpetualMotionPin()
+    {
+        // F1's worst case, measured before the fix: a settlement holding exactly
+        // 1 pottery and 1 cloth crafted a unit EVERY turn while its material
+        // stocks never moved. Both floors were 0 while affordability said 1.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Rig(cfg, heads: 1000, materials: 1);
+        var exec = new TurnExecutor(FlatEra(10.0), [SystemCatalog.HouseholdGoods(cfg)]);
+
+        long materialsBefore = TotalMaterials(w, cfg);
+        long cumulativeMade = 0, prevUnits = 0;
+        for (int t = 0; t < 12; t++)
+        {
+            w = exec.Step(w);
+            long u = Units(w);
+            if (u > prevUnits) cumulativeMade += u - prevUnits;
+            prevUnits = u;
+        }
+        long materialsSpent = materialsBefore - TotalMaterials(w, cfg);
+        Assert.True(cumulativeMade <= materialsSpent,
+            $"minted {cumulativeMade} units from {materialsSpent} materials — perpetual motion");
+        Assert.True(ConservationAuditor.IsConserved(w, out string report), report);
+    }
+
+    [Fact]
+    public void WearIsDtINVARIANT_OneBigTurnMatchesManySmallOnes_InTheSurplusRegime()
+    {
+        // F2: 1 − exp(−dt/L) is the closed form for decay proportional to the
+        // STOCK, but above the requirement the rate is CONSTANT at requirement/L.
+        // Measured before the fix: one dt=10 turn lost 2615 where ten dt=1 turns
+        // lost 920. Era pacing steps dt 10→5→3→2→1→0.5, so this is not academic.
+        SimConfig cfg = TestConfigs.Sim();
+        long heads = 10_000;
+        double req = Requirement(cfg, heads);
+        long start = (long)(req * 1.8);
+
+        WorldState big = Rig(cfg, heads, materials: 0, startingUnits: start);
+        big = new TurnExecutor(FlatEra(10.0), [SystemCatalog.HouseholdGoods(cfg)]).Step(big);
+
+        WorldState small = Rig(cfg, heads, materials: 0, startingUnits: start);
+        var fine = new TurnExecutor(FlatEra(1.0), [SystemCatalog.HouseholdGoods(cfg)]);
+        for (int t = 0; t < 10; t++) small = fine.Step(small);
+
+        long a = Units(big), b = Units(small);
+        Assert.True(Math.Abs(a - b) <= Math.Max(2, b / 100),
+            $"wear is not dt-invariant: dt=10 leaves {a}, ten dt=1 turns leave {b}");
+    }
+
+    [Fact]
+    public void AnArtisanOnlySettlement_ReachesItsStandard_NoSubUnitStall()
+    {
+        // F3: the sub-unit residue was banked for ONE class only, so a settlement
+        // with no members of that class dropped its residue every turn and stalled
+        // one unit short of its requirement forever — measured stalling at 1
+        // against a requirement of 1.4343 with a million units of material.
+        SimConfig cfg = TestConfigs.Sim();
+        var w = new WorldState(7);
+        w.Settlements.Add(new SettlementRow(S0, 0, 0));
+        var ledger = new Ledger(w.LedgerFlows);
+        int b = w.Buckets.Add(new BucketRow(
+            S0, new CultureId(1), new ReligionId(1), new ClassId(2), 5,
+            Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+        ledger.Flow(ref w.Buckets.Ref(b).Count, ConservedQuantityIds.Population,
+            ReasonIds.InitialEndowment, 2, FlowDirection.Source, OverdrawPolicy.Throw);
+        foreach (GoodEntry g in cfg.Goods!.Goods)
+        {
+            int row = w.GoodStocks.Add(new GoodStockRow(S0, new GoodId(g.Id), Conserved.Zero, 0.0, 0.0));
+            ledger.Flow(ref w.GoodStocks.Ref(row).Amount,
+                ConservedQuantityIds.OfGood(new GoodId(g.Id)), ReasonIds.InitialEndowment,
+                1_000_000, FlowDirection.Source, OverdrawPolicy.Throw);
+        }
+
+        double req = 2 * cfg.Needs!.HouseholdGoods!.StandardPerPerson(2);
+        var exec = new TurnExecutor(FlatEra(1.0), [SystemCatalog.HouseholdGoods(cfg)]);
+        for (int t = 0; t < 30; t++) w = exec.Step(w);
+
+        Assert.True(Units(w) >= (long)Math.Floor(req),
+            $"artisan-only settlement stalled at {Units(w)} against requirement {req:F4} "
+            + "with unlimited materials — the sub-unit residue is being dropped");
+    }
+
+    private static long TotalMaterials(WorldState w, SimConfig cfg)
+    {
+        var wanted = new List<int>();
+        foreach (HouseholdGoodsClass pc in cfg.Needs!.HouseholdGoods!.PerClass)
+            foreach (HouseholdGoodsMaterial m in pc.Materials)
+            {
+                int id = cfg.Goods!.IdOf(m.Good);
+                if (!wanted.Contains(id)) wanted.Add(id);
+            }
+        long total = 0;
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+            if (wanted.Contains(w.GoodStocks[i].Good.Value)) total += w.GoodStocks[i].Amount.Value;
+        return total;
     }
 }
