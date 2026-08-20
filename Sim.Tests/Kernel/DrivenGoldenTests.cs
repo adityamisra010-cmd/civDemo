@@ -173,7 +173,19 @@ public class DrivenGoldenTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66";
+        const string golden = "a6a4da00bce942ce1a3e4a8a092c0e379dfbe696cf7e71e09f98b2d129091928";
+        // T4.10 RE-DERIVED ON REBASE onto the cumulative main (T4.8 v21 +
+        // T4.7 rivers + T4.5 herding weather). The value T4.10 pinned against
+        // its own base is VOID here and was re-MEASURED, never carried through
+        // the conflict resolution.
+        //   OLD (main, T4.5's pin)  aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
+        //   NEW (T4.10 rebased)     a6a4da00bce942ce1a3e4a8a092c0e379dfbe696cf7e71e09f98b2d129091928
+        //   CAUSE, unchanged from T4.10's own attribution: migration
+        //         attractiveness R = LandWeight x arableKm2, the food term
+        //         removed. The cumulative base contributes the rest.
+        //   NOT CERTIFIED. This branch is PENDING REVIEW; the pin is here so the
+        //         branch is coherent and testable, not because T4.10 is accepted.
+
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0
         //   NEW (T4.5 rebased)      aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66

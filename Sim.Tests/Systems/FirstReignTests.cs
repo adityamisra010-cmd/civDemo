@@ -296,7 +296,19 @@ public class FirstReignTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca";
+        const string golden = "f645ac87a137769fe6f515106c46e0e33422de0c9dc4b241a15482f3770dec60";
+        // T4.10 RE-DERIVED ON REBASE onto the cumulative main (T4.8 v21 +
+        // T4.7 rivers + T4.5 herding weather). The value T4.10 pinned against
+        // its own base is VOID here and was re-MEASURED, never carried through
+        // the conflict resolution.
+        //   OLD (main, T4.5's pin)  dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca
+        //   NEW (T4.10 rebased)     f645ac87a137769fe6f515106c46e0e33422de0c9dc4b241a15482f3770dec60
+        //   CAUSE, unchanged from T4.10's own attribution: migration
+        //         attractiveness R = LandWeight x arableKm2, the food term
+        //         removed. The cumulative base contributes the rest.
+        //   NOT CERTIFIED. This branch is PENDING REVIEW; the pin is here so the
+        //         branch is coherent and testable, not because T4.10 is accepted.
+
 
         //   v26 (T4.10 — MIGRATION ATTRACTIVENESS, ONE cause, and NARROWER
         //   than it looks): R = LandWeight × arableKm2; the food term was

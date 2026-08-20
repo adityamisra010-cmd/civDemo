@@ -543,7 +543,19 @@ public class SnapshotTests
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        const string golden = "c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a";
+        const string golden = "e714beb8a6adc395f87c895abfe14388e09048d4af504e9f916f73c59f5dd81b";
+        // T4.10 RE-DERIVED ON REBASE onto the cumulative main (T4.8 v21 +
+        // T4.7 rivers + T4.5 herding weather). The value T4.10 pinned against
+        // its own base is VOID here and was re-MEASURED, never carried through
+        // the conflict resolution.
+        //   OLD (main, T4.5's pin)  c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
+        //   NEW (T4.10 rebased)     e714beb8a6adc395f87c895abfe14388e09048d4af504e9f916f73c59f5dd81b
+        //   CAUSE, unchanged from T4.10's own attribution: migration
+        //         attractiveness R = LandWeight x arableKm2, the food term
+        //         removed. The cumulative base contributes the rest.
+        //   NOT CERTIFIED. This branch is PENDING REVIEW; the pin is here so the
+        //         branch is coherent and testable, not because T4.10 is accepted.
+
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
