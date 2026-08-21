@@ -343,6 +343,68 @@ public class ColonizationTests
     }
 
     [Fact]
+    public void ZeroProvisionFoundingIsIMPOSSIBLE_AnEmptyGranaryOutfitsNobody()
+    {
+        // The clearing cost is BINDING. A source with an empty granary has nothing
+        // to outfit an expedition with, and — the reason this matters mechanically —
+        // a daughter founded with no provisions fails ADR-012's absolute food gate,
+        // is therefore not a viable destination, and brakes nothing. Measured on
+        // 4d11c02: the FirstReign source granary was empty from turn 5 and the world
+        // founded 16 settlements in 14 consecutive turns.
+        WorldState w = Warm(Founded());
+        SettlementId src = w.Settlements[0].Id;
+        StarveAllBut(w, src);
+        Starve(w, src);                 // ...and the source's own granary is empty too
+        SetDeficit(w, src, 0.40);
+        int before = w.Settlements.Count;
+
+        w = Handoff().Step(w);
+
+        Assert.Equal(before, w.Settlements.Count);
+    }
+
+    [Fact]
+    public void EveryFoundedSettlementCarriesRealProvisions_NoEmptyDaughters()
+    {
+        (WorldState w, SettlementId _s) = StrandedSource();
+        w = Handoff().Step(w);
+
+        int grain = TestConfigs.Sim().Goods!.GrainId;
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            if (w.Settlements[i].FoundedTurn == 0) continue;      // turn-zero settlement
+            SettlementId id = w.Settlements[i].Id;
+            long store = 0;
+            for (int k = 0; k < w.GoodStocks.Count; k++)
+                if (w.GoodStocks[k].Settlement == id && w.GoodStocks[k].Good.Value == grain)
+                    store = w.GoodStocks[k].Amount.Value;
+            Assert.True(store > 0, $"settlement {id.Value} was founded with no provisions");
+        }
+    }
+
+    [Fact]
+    public void TheRemainderBanksOnlyASubPersonFraction_NeverWholePeople()
+    {
+        // The bank is taken BEFORE the availability clamp. Banking after it would
+        // carry whole people forward: a bucket whose desire far exceeds its
+        // population would accumulate person-units of unmet desire and discharge
+        // them as one huge party later. Measured on 4d11c02: desire 500 against 25
+        // people banked 475.
+        (WorldState w, SettlementId src) = StrandedSource();
+
+        // Drive desire far above the population so the clamp certainly binds.
+        for (int i = 0; i < w.Buckets.Count; i++)
+            if (w.Buckets[i].Settlement == src) w.Buckets.Ref(i).UnplacedDeparture = 1e6;
+
+        w = new TurnExecutor(FlatEra(), [SystemCatalog.Colonization(
+            TestConfigs.Sim(), TestConfigs.Worldgen())]).Step(w);
+
+        for (int i = 0; i < w.Buckets.Count; i++)
+            Assert.True(w.Buckets[i].UnplacedRemainder < 1.0,
+                $"bucket {i} banked {w.Buckets[i].UnplacedRemainder} — whole people carried forward");
+    }
+
+    [Fact]
     public void MigrationWritesTheDemandAndColonizationCONSUMESIt()
     {
         // The handoff contract, asserted directly: non-zero after migration, zero

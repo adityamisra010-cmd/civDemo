@@ -165,6 +165,23 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
             long partyTotal = DrawParty(ctx.Owned.Buckets, source);
             if (partyTotal <= 0) continue;           // nobody was left unplaced
 
+            // THE CLEARING COST IS BINDING: an expedition must be OUTFITTED.
+            // This is the provisions share TransferProvisions already computes,
+            // REQUIRED to be satisfiable rather than silently clamped to nothing.
+            // Two things depend on it, and the second is the whole mechanism:
+            //   1. A settlement with an empty granary cannot send colonists into
+            //      wilderness. It has nothing to send them with.
+            //   2. THE CASCADE BRAKE ONLY EXISTS IF THE DAUGHTER HAS FOOD. The
+            //      brake is that a daughter holding provisions satisfies ADR-012's
+            //      absolute food gate and so becomes a VIABLE DESTINATION, which
+            //      zeroes its founder's demand. A daughter founded with zero
+            //      provisions is non-viable, brakes nothing, and the founder keeps
+            //      founding — measured on 4d11c02 in the FirstReign world, whose
+            //      source granary was empty from turn 5: 16 consecutive foundings.
+            // No new constant: the amount is the existing per-capita share, and the
+            // only new thing asserted is that it is greater than zero.
+            if (ProvisionsFor(ctx.Owned.Stocks, ctx.Owned.Buckets, source, partyTotal) <= 0) continue;
+
             int site = SettlementSiting.ChooseFrontierSite(
                 _frontier, terrain, spacing, occupied, _worldgen.Siting.ScoreJitter, prev.Seed);
             // Frontier full — an ordinary outcome. The drawn whole units are NOT
@@ -286,42 +303,67 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
             ref BucketRow b = ref buckets.Ref(i);
             double exact = b.UnplacedDeparture + b.UnplacedRemainder;
             long take = ConservedMath.WholeUnits(exact, $"colonization party (bucket {i})");
+
+            // THE BANK IS THE SUB-PERSON FRACTION AND NOTHING ELSE. Taken before
+            // the availability clamp on purpose: banking `exact - take` AFTER the
+            // clamp would carry whole people forward, so a bucket whose desire far
+            // exceeds its population would accumulate hundreds of person-units of
+            // unmet desire and discharge them as a huge party later. Measured on
+            // 4d11c02: a source with desire 500 and 25 people banked 475. Desire
+            // that the population cannot satisfy is DROPPED — nobody moved, so
+            // nobody is owed a move, which is migration's own discipline.
+            b.UnplacedRemainder = exact - take;   // < 1 by construction of floor()
+            b.UnplacedDeparture = 0.0;            // consumed
+
             // Never promise more people than the bucket still holds after migration
             // took its share: the live count is the ceiling (the ClampToAvailable
             // backstop would otherwise silently shrink a party already counted).
             long live = b.Count.Value;
             if (take > live) take = live < 0 ? 0 : live;
-
-            b.UnplacedRemainder = exact - take;   // sub-person fraction only
-            b.UnplacedDeparture = 0.0;            // consumed
             _party[i] = take;
             total += take;
         }
         return total;
     }
 
+    /// <summary>
+    /// The colonists' per-capita share of the home granary, in whole grain. ONE
+    /// arithmetic, called twice: once as the founding precondition (before any row
+    /// exists) and once to perform the transfer. Sharing it is what makes "an
+    /// expedition must be outfitted" and "this is what it leaves with" the same
+    /// statement rather than two that can drift apart.
+    ///
+    /// <paramref name="partyHasLeft"/> says whether the party is still counted in
+    /// the source's buckets, because the population the share is OF is always the
+    /// source PLUS the party.
+    /// </summary>
+    private long ProvisionsFor(
+        Table<GoodStockRow> stocks, Table<BucketRow> buckets,
+        SettlementId source, long party, bool partyHasLeft = false)
+    {
+        long sourcePop = 0;
+        for (int i = 0; i < buckets.Count; i++)
+            if (buckets[i].Settlement == source) sourcePop += buckets[i].Count.Value;
+        long before = partyHasLeft ? sourcePop + party : sourcePop;
+        if (before <= 0 || party <= 0) return 0;
+
+        int from = GoodStockIndex.IndexOf(stocks, source, _grain);
+        if (from < 0) return 0;
+        long store = stocks[from].Amount.Value;
+        if (store <= 0) return 0;
+        return (long)Math.Floor(store * (party / (double)before));
+    }
+
     private void TransferProvisions(
         SimContext<ColonizationTables> ctx, SettlementId source, SettlementId dest, long party)
     {
         Table<GoodStockRow> stocks = ctx.Owned.Stocks;
-        Table<BucketRow> buckets = ctx.Owned.Buckets;
-
-        long sourcePop = 0;
-        for (int i = 0; i < buckets.Count; i++)
-            if (buckets[i].Settlement == source) sourcePop += buckets[i].Count.Value;
-        // The party has already left the source's buckets, so the population it
-        // is a share OF is the source plus the party.
-        long before = sourcePop + party;
-        if (before <= 0) return;
+        long provisions = ProvisionsFor(stocks, ctx.Owned.Buckets, source, party, partyHasLeft: true);
+        if (provisions <= 0) return;
 
         int from = GoodStockIndex.IndexOf(stocks, source, _grain);
         int to = GoodStockIndex.IndexOf(stocks, dest, _grain);
         if (from < 0 || to < 0) return;
-
-        long store = stocks[from].Amount.Value;
-        if (store <= 0) return;                       // refugees leave with nothing
-        long provisions = (long)Math.Floor(store * (party / (double)before));
-        if (provisions <= 0) return;
 
         ctx.Ledger.Transfer(
             ref stocks.Ref(from).Amount, ref stocks.Ref(to).Amount,

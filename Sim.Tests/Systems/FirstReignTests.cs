@@ -296,28 +296,27 @@ public class FirstReignTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        // T4.4 RE-PIN — SCHEMA **AND** BEHAVIOUR. Both causes are real here and they
-        // are separated by measurement.
+        // T4.4 RE-PIN — **SCHEMA ONLY**, and that is PROVEN, not asserted.
         //   OLD  dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca
-        //   NEW  3cd256d17643a5e5ce18dd028af94632a19d3c735c3e984520a6d0234758e293
-        //   CAUSE 1 (schema) v21 -> v22, as on the other two goldens.
-        //   CAUSE 2 (BEHAVIOUR, and this is the packet's whole point) THIS IS THE ONE
-        //         WORLD WHERE COLONIZATION FIRES. The fixture replays at
-        //         --settlements 1: a SINGLE settlement, so there is no other
-        //         settlement to be a destination, and D-037 B1's condition ("no
-        //         viable destination") is genuinely met the moment it runs a deficit.
-        //         Measured trajectory: 1 -> 17 settlements between turns 6 and 19,
-        //         and then NOTHING for the remaining 181 turns. That plateau IS the
-        //         cascade brake: once daughters exist and hold provisions, ADR-012's
-        //         own food gate makes them viable destinations, the unplaced demand
-        //         goes to zero and founding stops. Population 317 -> 1321, not a
-        //         collapse. The defective implementation, by contrast, founded once
-        //         per deficit settlement per turn without bound.
-        //   THE SEPARATION IS MEASURED: with the two new fields removed from the
-        //         stream (v21 layout, logic unchanged) the other three goldens came
-        //         back byte-identical to their old values and THIS ONE DID NOT — so
-        //         this golden, alone, carries behaviour.
-        const string golden = "3cd256d17643a5e5ce18dd028af94632a19d3c735c3e984520a6d0234758e293";
+        //   NEW  bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c
+        //   CAUSE v21 -> v22: BucketRow gained UnplacedDeparture and
+        //         UnplacedRemainder, so every bucket row is 16 bytes wider.
+        //   THE CONTROL THAT PROVES IT: re-measured on this exact tree with ONLY
+        //         the two new fields removed from the serialized stream (schema back
+        //         at v21, all logic unchanged) — this test passes at the OLD value
+        //         above WITH EVERY SHAPE ASSERT INTACT. The trajectory is identical.
+        //   HISTORY, recorded because it is the reason this comment exists: an
+        //         earlier revision of T4.4 (4d11c02) DID move this golden
+        //         behaviourally — the lone settlement colonised its way out of the
+        //         director's 0%-farm order instead of dying, 1 -> 17 settlements,
+        //         and the shape asserts went red. That was NOT the Exit valve
+        //         working; it was a defect. The source granary is empty from turn 5,
+        //         and the implementation founded daughters with ZERO provisions.
+        //         Once the clearing cost was made binding (an expedition must be
+        //         outfitted from a real granary) no founding is possible here at
+        //         all, and the reign dies exactly as it always did. The shape
+        //         asserts were never weakened — they caught a real bug.
+        const string golden = "bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -833,6 +833,43 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void SchemaV22_PopulatedUnplacedDepartureFields_ExactLengthRoundTripHash()
+    {
+        // Constitution rule: every widened row type ships a POPULATED-table test —
+        // empty-table coverage proves nothing (T1.1/T1.3 precedent). v22 widens
+        // BucketRow with UnplacedDeparture and UnplacedRemainder (T4.4, D-037 B1's
+        // carrier; ADR-021). Both are written NON-ZERO here, and with values that
+        // are NOT equal to each other, so a writer/reader field transposition fails.
+        WorldState world = Genesis(37);
+        world.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1),
+            new ReligionId(1), new ClassId(1), cohortIdx: 6,
+            Conserved.Zero, 0.0, 0.0, 0.0, 0.0,
+            mobilityRemainder: 0.5, migrationRemainder: 0.125,
+            reboundReservoir: 0.75,
+            unplacedDeparture: 1234.5, unplacedRemainder: 0.6875));
+
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(1234.5, loaded.Buckets[0].UnplacedDeparture);
+        Assert.Equal(0.6875, loaded.Buckets[0].UnplacedRemainder);
+        // The neighbouring doubles must not have been shifted by the widening.
+        Assert.Equal(0.75, loaded.Buckets[0].ReboundReservoir);
+        Assert.Equal(0.125, loaded.Buckets[0].MigrationRemainder);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
     public void SchemaV10_PopulatedReboundReservoir_ExactLengthRoundTripHash()
     {
         // Constitution rule: every widened row type ships a POPULATED-table
