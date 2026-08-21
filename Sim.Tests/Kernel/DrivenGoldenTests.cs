@@ -92,7 +92,7 @@ public class DrivenGoldenTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
         return (exec.Run(world, turns), cfg);
     }
 
@@ -173,7 +173,25 @@ public class DrivenGoldenTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66";
+        // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
+        //   OLD  aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
+        //   NEW  5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
+        //   CAUSE v21 -> v22: BucketRow gained UnplacedDeparture and
+        //         UnplacedRemainder (D-037 B1's carrier), so every bucket row in
+        //         the stream is 16 bytes wider. NOTHING BEHAVIOURAL MOVED.
+        //   THE CONTROL THAT PROVES IT: this golden was re-measured on this exact
+        //         tree with ONLY the two new fields removed from the serialized
+        //         stream (schema back at v21, all logic unchanged) and it came back
+        //         BYTE-IDENTICAL to the OLD value above. Behaviour and layout are
+        //         therefore separated by measurement, not by argument.
+        //   AND COLONIZATION NEVER FIRES IN THIS WORLD: measured 0 foundings and 0
+        //         unplaced departure demand on every turn (canonical founded, 650
+        //         turns x seeds 1-3; driven, 300 turns). Settlement count never
+        //         leaves 12. There is a viable neighbour at all times, so D-037 B1's
+        //         condition is never met.
+        //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
+        //         was touched; the new readout only WRITES a quantity.
+        const string golden = "5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0
         //   NEW (T4.5 rebased)      aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66

@@ -196,6 +196,11 @@ public class SnapshotTests
         //   NOT A BEHAVIOUR CHANGE: no pipeline slot was added, no existing
         //         system was touched, and the targeted suite proves the world is
         //         otherwise identical.
+        // T4.4: **UNMOVED**, and deliberately so — this is the no-unrelated-movement
+        // control. It is re-measured on this tree at 0f94b4ad... , the same value it
+        // carried on main. Colonization cannot reach this world (no terrain), and the
+        // v22 bucket widening cannot reach it either because this synthetic world
+        // holds no bucket rows. Do not re-pin it as part of a colonization packet.
         const string golden = "0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
@@ -543,7 +548,26 @@ public class SnapshotTests
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        const string golden = "c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a";
+        // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
+        //   OLD  c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
+        //   NEW  87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b
+        //   CAUSE v21 -> v22: BucketRow gained UnplacedDeparture and
+        //         UnplacedRemainder (D-037 B1's carrier), so every bucket row in
+        //         the stream is 16 bytes wider. NOTHING BEHAVIOURAL MOVED.
+        //   THE CONTROL THAT PROVES IT: this golden was re-measured on this exact
+        //         tree with ONLY the two new fields removed from the serialized
+        //         stream (schema back at v21, all logic unchanged) and it came back
+        //         BYTE-IDENTICAL to the OLD value above. Behaviour and layout are
+        //         therefore separated by measurement, not by argument.
+        //   AND COLONIZATION NEVER FIRES IN THIS WORLD: measured 0 foundings and 0
+        //         unplaced departure demand on every turn (canonical founded, 650
+        //         turns x seeds 1-3; driven, 300 turns). Settlement count never
+        //         leaves 12. There is a viable neighbour at all times, so D-037 B1's
+        //         condition is never met.
+        //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
+        //         was touched; the new readout only WRITES a quantity.
+        //   ci.yml FOUNDED_GOLDEN moves with it, in this same commit.
+        const string golden = "87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
@@ -575,7 +599,8 @@ public class SnapshotTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())));
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);

@@ -217,25 +217,8 @@ public static class WorldFounding
             // Same radius the catchment uses, so deposit and arable describe the
             // SAME territory — the inconsistency between the two models was
             // arguably the underlying defect, and one of them had to be wrong.
-            TerrainSet t = world.Terrain!;
-            int site = world.Settlements[s].SiteCell;
-            double radiusPx = simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
-            (double meanMoisture, double meanElevation) = HinterlandMeans(t, cfg, site, radiusPx);
-            foreach (GoodEntry g in goods.Goods)
-            {
-                if (g.DepositChannel is null) continue;
-                double channel = g.DepositChannel switch
-                {
-                    "moisture" => meanMoisture,
-                    "elevation" => meanElevation,
-                    // water proximity: 1 at the shore, fading with the same
-                    // moisture curve (clay pits, fish grounds hug the water).
-                    _ => meanMoisture * meanMoisture,
-                };
-                double spread = 1.0 + g.DepositSpread * U(seed, s, DepositSlotBase + g.Id);
-                world.Deposits.Add(new DepositRow(
-                    settlement, new GoodId(g.Id), Math.Max(0.0, channel * spread)));
-            }
+            AddDepositsForSite(world.Deposits, world.Terrain!, cfg, simCfg, goods,
+                settlement, world.Settlements[s].SiteCell, seed, s);
         }
 
         return world;
@@ -329,5 +312,41 @@ public static class WorldFounding
         ulong h = SplitMix64.Mix(
             seed ^ EndowSalt ^ ((ulong)(uint)settlement << 32) ^ (ulong)(uint)slot);
         return (h >> 11) * (1.0 / (1UL << 53)) * 2.0 - 1.0;
+    }
+
+    /// <summary>
+    /// The deposit endowment for ONE site — extracted at T4.4 so turn-zero
+    /// founding and dynamic frontier founding derive deposits from ONE
+    /// algorithm rather than two that could drift. Behaviour is unchanged for
+    /// the turn-zero caller: same channel selection, same hinterland statistic,
+    /// same seeded spread, same registry order.
+    ///
+    /// Deposits are DOUBLES, not conserved stocks (T3.2): they scale extraction
+    /// RATES, and units enter the world only through production's Ledger flows.
+    /// So endowing a frontier settlement with deposits mints nothing — it
+    /// describes the ground the colonists walked onto, which was always there.
+    /// </summary>
+    public static void AddDepositsForSite(
+        Table<DepositRow> deposits, TerrainSet terrain, WorldgenConfig cfg,
+        Systems.SimConfig simCfg, Systems.GoodsConfig goods,
+        SettlementId settlement, int siteCell, ulong seed, int variationSlot)
+    {
+        double radiusPx = simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+        (double meanMoisture, double meanElevation) = HinterlandMeans(terrain, cfg, siteCell, radiusPx);
+        foreach (GoodEntry g in goods.Goods)
+        {
+            if (g.DepositChannel is null) continue;
+            double channel = g.DepositChannel switch
+            {
+                "moisture" => meanMoisture,
+                "elevation" => meanElevation,
+                // water proximity: 1 at the shore, fading with the same
+                // moisture curve (clay pits, fish grounds hug the water).
+                _ => meanMoisture * meanMoisture,
+            };
+            double spread = 1.0 + g.DepositSpread * U(seed, variationSlot, DepositSlotBase + g.Id);
+            deposits.Add(new DepositRow(
+                settlement, new GoodId(g.Id), Math.Max(0.0, channel * spread)));
+        }
     }
 }

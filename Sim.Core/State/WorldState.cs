@@ -112,7 +112,8 @@ public struct BucketRow(
     int cohortIdx, Conserved count,
     double birthRemainder, double deathRemainder, double starvationRemainder,
     double agingRemainder, double mobilityRemainder = 0.0, double migrationRemainder = 0.0,
-    double reboundReservoir = 0.0) : IEquatable<BucketRow>
+    double reboundReservoir = 0.0, double unplacedDeparture = 0.0,
+    double unplacedRemainder = 0.0) : IEquatable<BucketRow>
 {
     public SettlementId Settlement = settlement;
     public CultureId Culture = culture;
@@ -145,6 +146,44 @@ public struct BucketRow(
     /// Ledger flow at release time ("deferred, not invented").</summary>
     public double ReboundReservoir = reboundReservoir;
 
+    /// <summary>
+    /// T4.4 — THE D-037 B1 CARRIER. This turn's UNPLACED DEPARTURE DEMAND for this
+    /// bucket: the people who generated migration desire and found NO viable existing
+    /// destination at all, and whom ADR-012 therefore leaves at home.
+    ///
+    /// WHY IT HAS TO EXIST AT ALL. `MigrationSystem` forms the flight term ONLY inside
+    /// its destination loop, always as `damping(i→j) × viability(j) × FamineFlight ×
+    /// deficit_i`. When no destination is viable EVERY product is zero, so the desire
+    /// is never expressed as a quantity — it is structurally ABSENT, not discarded.
+    /// D-037 B1 needs exactly that absent quantity: *"ADR-012 rules that with no viable
+    /// destination people die at home. Extend it: groups may depart into UNCLAIMED land
+    /// and found new settlements."*
+    ///
+    /// NOT A NEW FORMULA. ADR-012 names this desire verbatim — *"flight desire remains
+    /// source-driven (FamineFlightFactor × deficit_source), uncapped by the gap
+    /// mechanism, exactly as D-021 ratified"* — and says viability *"only redistributes
+    /// WHERE the fleeing go"*. This field is that same ratified term with the
+    /// destination redistribution removed BECAUSE THERE IS NO DESTINATION. No migration
+    /// flow, cap, gate, EMA or attractiveness term is changed by writing it down.
+    ///
+    /// PER BUCKET, not per settlement, so a founding party keeps its FULL bucket key
+    /// (D-026) — migration requires key-for-key arrival, and a party assembled from a
+    /// settlement-level scalar would have to INVENT an allocation across buckets.
+    ///
+    /// REWRITTEN EVERY TURN by MigrationSystem (including to zero). It is a DESIRE, not
+    /// a stock: no person is held here and none is conserved here.
+    /// </summary>
+    public double UnplacedDeparture = unplacedDeparture;
+
+    /// <summary>T4.4: the D-004 remainder for the unplaced-departure draw, carried on
+    /// the source bucket exactly as <see cref="MigrationRemainder"/> is. Without it a
+    /// bucket whose per-turn demand is under one person floors to zero EVERY turn and
+    /// can never colonise however long the condition holds — the permanent sub-unit
+    /// stall T4.13 F3 measured. This is the ratified D-004 accumulator pattern, NOT a
+    /// timer: what accumulates is the demand itself, so it fills at a rate the
+    /// mechanism sets and stops the moment a viable destination appears.</summary>
+    public double UnplacedRemainder = unplacedRemainder;
+
     public readonly bool Equals(BucketRow other) =>
         Settlement == other.Settlement && Culture == other.Culture
         && Religion == other.Religion && Class == other.Class
@@ -155,7 +194,9 @@ public struct BucketRow(
         && AgingRemainder.Equals(other.AgingRemainder)
         && MobilityRemainder.Equals(other.MobilityRemainder)
         && MigrationRemainder.Equals(other.MigrationRemainder)
-        && ReboundReservoir.Equals(other.ReboundReservoir);
+        && ReboundReservoir.Equals(other.ReboundReservoir)
+        && UnplacedDeparture.Equals(other.UnplacedDeparture)
+        && UnplacedRemainder.Equals(other.UnplacedRemainder);
     public override readonly bool Equals(object? obj) => obj is BucketRow other && Equals(other);
     public override readonly int GetHashCode() => Settlement.Value * Cohorts.Count + CohortIdx; // gate:allow-gethashcode — equality plumbing, never logic input
 }

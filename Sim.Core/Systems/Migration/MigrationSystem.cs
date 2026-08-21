@@ -192,18 +192,27 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             else smoothedTable.Add(new SmoothedAttractivenessRow(id, value));
             smoothed[s] = value;
         }
-        if (n < 2) return;
-
         // Damping matrix from Prev distances (missing row — e.g. before the
         // first catchment recompute — is unreachable: damping 0, no flow).
         var damping = new double[n, n];
+        // T4.4: whether this source has ANY distance row at all. A genuinely
+        // unreachable pair STILL HAS A ROW (it stores +inf, and exp(-inf) = 0), so
+        // "no row" means the network has not been computed yet — not "nowhere to
+        // go". Migration cannot tell the two apart and does not need to (both give
+        // zero flow), but colonization must: only the second is D-037 B1's
+        // condition, and treating missing data as isolation would authorise a
+        // founding out of an empty table.
+        var hasDistances = new bool[n];
         for (int i = 0; i < prev.SettlementDistances.Count; i++)
         {
             SettlementDistanceRow row = prev.SettlementDistances[i];
             int fi = row.From.Value <= maxId ? settlementIndex[row.From.Value] : -1;
             int ti = row.To.Value <= maxId ? settlementIndex[row.To.Value] : -1;
             if (fi >= 0 && ti >= 0)
+            {
                 damping[fi, ti] = Math.Exp(-row.TravelCost / m.DampingDecayCostUnits);
+                hasDistances[fi] = true;
+            }
         }
 
         // Per-settlement bucket row indices, in table order (the bucket-key order).
@@ -215,6 +224,65 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             if (sid <= maxId && settlementIndex[sid] >= 0)
                 bucketRows[settlementIndex[sid]].Add(i);
         }
+
+        // === T4.4 (D-037 B1) — THE UNPLACED-DEPARTURE READOUT ==================
+        // A PURE WRITE. It reads what this system has already computed and writes
+        // BucketRow.UnplacedDeparture. It moves no person, touches no flow, and is
+        // placed AFTER every input it reads is final and BEFORE any transfer, so
+        // no ordering between it and the transfer loop can exist.
+        //
+        // WHAT IT WRITES, and why this is not a second migration model: ADR-012
+        // states the Exit valve's desire is source-driven — "flight desire remains
+        // source-driven (FamineFlightFactor × deficit_source), uncapped by the gap
+        // mechanism, exactly as D-021 ratified" — and that viability "only
+        // redistributes WHERE the fleeing go". This system only ever forms that
+        // desire multiplied by damping(i→j) × viability(j), so when NO destination
+        // is both reachable and viable every product is zero and the desire is
+        // never expressed at all. That is precisely ADR-012's ruled outcome
+        // ("people die at home") and precisely what D-037 B1 extends: "with no
+        // viable destination people die at home. Extend it".
+        //
+        // The condition is BINARY and it is B1's own condition — NO viable
+        // reachable destination — not "demand that happened to go unmet". A
+        // settlement with even one viable neighbour writes ZERO here and colonises
+        // nothing, however hungry it is. That is the property the deficit-ratio
+        // trigger lacked, and it is why founding cannot cascade: a settlement
+        // founded with provisions has store > 0, so ADR-012's own gate makes it a
+        // VIABLE DESTINATION, which zeroes its founder's demand the next turn.
+        //
+        // The gap channel contributes nothing here BY CONSTRUCTION: a gap is
+        // max(0, S_dst − S_src) and needs a destination to exist. There is no
+        // destination-free gap desire to leave unplaced.
+        Table<BucketRow> bucketsOut = ctx.Owned.Buckets;
+        for (int i = 0; i < bucketsOut.Count; i++)
+            bucketsOut.Ref(i).UnplacedDeparture = 0.0;   // rewritten every turn, never stale
+        for (int src = 0; src < n; src++)
+        {
+            bool anyViableDestination = false;
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                if (damping[src, dst] > 0.0 && viability[dst] > 0.0) { anyViableDestination = true; break; }
+            }
+            if (anyViableDestination) continue;          // migration owns these people
+            // Missing network data is NOT isolation (see hasDistances above). With a
+            // single settlement there is no network to miss, and being alone in the
+            // world IS the condition.
+            if (n > 1 && !hasDistances[src]) continue;
+            if (deficit[src] <= 0.0) continue;           // no flight desire to strand
+
+            foreach (int row in bucketRows[src])
+            {
+                BucketRow b = prev.Buckets[row];
+                double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                                  * b.Count.Value * ctx.DtYears;
+                if (perCount <= 0.0) continue;
+                bucketsOut.Ref(row).UnplacedDeparture = perCount * m.FamineFlightFactor * deficit[src];
+            }
+        }
+        // === end T4.4 readout ==================================================
+
+        if (n < 2) return;
 
         // --- T2.8 (a): per-pair gap-closing caps -----------------------------
         // gapScale[src,dst] scales the pair's ENTIRE gap-driven desire so it

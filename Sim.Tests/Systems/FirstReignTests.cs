@@ -31,7 +31,7 @@ public class FirstReignTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), Fixture());
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), Fixture());
         // FULL 1024², N = 1 via the D-029 flag (T2.3): the fixture is a
         // single-settlement director session and replays at --settlements 1.
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42, settlementsOverride: 1);
@@ -296,7 +296,28 @@ public class FirstReignTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca";
+        // T4.4 RE-PIN — SCHEMA **AND** BEHAVIOUR. Both causes are real here and they
+        // are separated by measurement.
+        //   OLD  dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca
+        //   NEW  3cd256d17643a5e5ce18dd028af94632a19d3c735c3e984520a6d0234758e293
+        //   CAUSE 1 (schema) v21 -> v22, as on the other two goldens.
+        //   CAUSE 2 (BEHAVIOUR, and this is the packet's whole point) THIS IS THE ONE
+        //         WORLD WHERE COLONIZATION FIRES. The fixture replays at
+        //         --settlements 1: a SINGLE settlement, so there is no other
+        //         settlement to be a destination, and D-037 B1's condition ("no
+        //         viable destination") is genuinely met the moment it runs a deficit.
+        //         Measured trajectory: 1 -> 17 settlements between turns 6 and 19,
+        //         and then NOTHING for the remaining 181 turns. That plateau IS the
+        //         cascade brake: once daughters exist and hold provisions, ADR-012's
+        //         own food gate makes them viable destinations, the unplaced demand
+        //         goes to zero and founding stops. Population 317 -> 1321, not a
+        //         collapse. The defective implementation, by contrast, founded once
+        //         per deficit settlement per turn without bound.
+        //   THE SEPARATION IS MEASURED: with the two new fields removed from the
+        //         stream (v21 layout, logic unchanged) the other three goldens came
+        //         back byte-identical to their old values and THIS ONE DID NOT — so
+        //         this golden, alone, carries behaviour.
+        const string golden = "3cd256d17643a5e5ce18dd028af94632a19d3c735c3e984520a6d0234758e293";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
