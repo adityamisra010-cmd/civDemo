@@ -95,9 +95,18 @@ namespace Sim.Cli
             using var pipeStream = founded
                 ? Sim.Data.DataFiles.OpenPipeline()
                 : Sim.Data.DataFiles.OpenPipelineToy();
+            // T4.4: the founded pipeline gets the WORLDGEN config too, because
+            // frontier siting is a terrain question. The toy preset passes null
+            // and colonization no-ops there (no terrain to colonise).
+            Sim.Core.Worldgen.WorldgenConfig? wg = null;
+            if (founded)
+            {
+                using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
+                wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
+            }
             return new TurnExecutor(
                 EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream, SystemCatalog.All(SimCfg())),
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(SimCfg(), wg)),
                 orders);
         }
 

@@ -15,6 +15,12 @@
 #   Sim.Core/Kernel/CanonicalSchema.cs         - serialization
 #   Sim.Core/SystemCatalog.cs                  - ownership handout (composition root)
 #   Sim.Core/Worldgen/WorldFounding.cs         - founding seeds grievance rows at 0
+#   Sim.Core/Systems/Colonization/             - T4.4 dynamic founding, the SAME
+#     reason as WorldFounding above and no more: a newly founded settlement needs
+#     a GrievanceRow per class or NeedsGrievanceSystem never accrues anything for
+#     it (it iterates existing rows only). Colonization CREATES those rows at 0.0
+#     and never reads one, so D-021's property - grievance drives no BEHAVIOUR
+#     until M5 - is untouched. This is the second founding path, not a new reader.
 #   Sim.Core/Systems/PathBuild/PathBuildSystem.cs - NetworkOverlayView interface
 #     completeness ONLY (forwards prev tables; routes over network tables, never
 #     reads needs state — documented at the forwarding lines)
@@ -40,7 +46,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b'
-ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs)'
+ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs)'
 
 matches=$(grep -RnE --include='*.cs' --exclude-dir=bin --exclude-dir=obj \
   "$PATTERN" Sim.Core Sim.Data Sim.Cli 2>/dev/null || true)

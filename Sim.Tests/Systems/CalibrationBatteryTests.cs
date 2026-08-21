@@ -22,7 +22,7 @@ public class CalibrationBatteryTests
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)));
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())));
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, seed, null);
         var col = new AutoplayCollector(seed);
         for (int t = 1; t <= turns; t++) { world = exec.Step(world); col.Observe(world); }
@@ -35,7 +35,7 @@ public class CalibrationBatteryTests
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)));
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.DevWorldgen())));
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed, null);
         var col = new AutoplayCollector(seed);
         for (int t = 1; t <= turns; t++) { world = exec.Step(world); col.Observe(world); }

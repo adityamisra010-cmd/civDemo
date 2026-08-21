@@ -31,7 +31,7 @@ public class FirstReignTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), Fixture());
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), Fixture());
         // FULL 1024², N = 1 via the D-029 flag (T2.3): the fixture is a
         // single-settlement director session and replays at --settlements 1.
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42, settlementsOverride: 1);

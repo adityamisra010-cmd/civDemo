@@ -119,6 +119,23 @@ public static class SettlementSiting
         return sums;
     }
 
+    /// <summary>
+    /// T3.1(c) SCORE FLOOR: the jitter chooses among GOOD sites — cells whose
+    /// unjittered score falls below this percentile of all positive-score land
+    /// cells are ineligible. EXTRACTED at T4.4 so turn-zero siting and dynamic
+    /// founding cannot drift apart: one definition, two callers.
+    /// </summary>
+    public static double ScoreFloor(ReadOnlySpan<double> scores, double percentile)
+    {
+        if (percentile <= 0.0) return 0.0;
+        var positive = new List<double>();
+        for (int i = 0; i < scores.Length; i++)
+            if (scores[i] > 0.0) positive.Add(scores[i]);
+        if (positive.Count == 0) return 0.0;
+        positive.Sort();
+        return positive[Math.Min(positive.Count - 1, (int)(positive.Count * percentile))];
+    }
+
     public static int[] ChooseSites(
         TerrainSet terrain, SitingConfig cfg, int count, double riverCostFactor, ulong seed = 0UL)
     {
@@ -130,19 +147,7 @@ public static class SettlementSiting
         // T3.1(c) SCORE FLOOR: the jitter chooses among GOOD sites — cells
         // whose unjittered score falls below the configured percentile of all
         // positive-score land cells are ineligible (see SitingConfig).
-        double floor = 0.0;
-        if (cfg.ScoreFloorPercentile > 0.0)
-        {
-            var positive = new List<double>();
-            for (int i = 0; i < scores.Length; i++)
-                if (scores[i] > 0.0) positive.Add(scores[i]);
-            if (positive.Count > 0)
-            {
-                positive.Sort();
-                floor = positive[Math.Min(positive.Count - 1,
-                    (int)(positive.Count * cfg.ScoreFloorPercentile))];
-            }
-        }
+        double floor = ScoreFloor(scores, cfg.ScoreFloorPercentile);
 
         // Min travel cost from any accepted site, per lattice node (∞ start).
         var spacing = new double[lattice.NodeCount];
@@ -263,5 +268,131 @@ public static class SettlementSiting
             if (y < size - 1 && dist[i + size] == int.MaxValue) { dist[i + size] = d; queue[tail++] = i + size; }
         }
         return dist;
+    }
+
+    // ---- T4.4 DYNAMIC FOUNDING -------------------------------------------
+    //
+    // The SAME machinery as turn-zero siting, differing in exactly one thing:
+    // at turn zero the spacing field starts +INFINITY everywhere because no
+    // site exists yet, whereas a frontier pick must be spaced against every
+    // settlement ALREADY standing. So the field is SEEDED from the existing
+    // sites and the identical argmax runs over it.
+    //
+    // Nothing here is a second site-selection algorithm. `CandidateScores`,
+    // `Jitter`, `ScoreFloor`, `TraversalLattice.Build`, `OriginLatticeNode`
+    // and `RelaxCappedFrom` are the turn-zero functions, called unchanged —
+    // which is also how T4.7's river-aware traversal stays authoritative:
+    // the lattice is built with `riverCostFactor` exactly as `ChooseSites`
+    // builds it, and bypassing it would require writing the second algorithm
+    // this deliberately avoids.
+
+    /// <summary>
+    /// The parts of frontier siting that are PURE FUNCTIONS OF STATIC TERRAIN
+    /// (ADR-008: terrain is neither serialized nor cloned, so these never
+    /// change over a run). Built once and reused every turn — rebuilding a
+    /// 1024² score raster and a traversal lattice per turn would be a hot-path
+    /// cost for a result that cannot differ.
+    /// </summary>
+    public sealed class FrontierSiting
+    {
+        public required Pathing.TraversalLattice Lattice { get; init; }
+        public required double[] Scores { get; init; }
+        public required double Floor { get; init; }
+        public required double MinSpacingCostUnits { get; init; }
+        public required int Size { get; init; }
+    }
+
+    /// <summary>Prepare the terrain-invariant half of frontier siting (once per run).</summary>
+    public static FrontierSiting PrepareFrontier(
+        TerrainSet terrain, SitingConfig cfg, double riverCostFactor)
+    {
+        var lattice = Pathing.TraversalLattice.Build(terrain, riverCostFactor);
+        double[] scores = CandidateScores(terrain, cfg);
+        return new FrontierSiting
+        {
+            Lattice = lattice,
+            Scores = scores,
+            Floor = ScoreFloor(scores, cfg.ScoreFloorPercentile),
+            // The ONE km→cost conversion, at the same chokepoint ChooseSites
+            // uses. ADR-018's spacing floor is a TRAVEL-COST distance.
+            MinSpacingCostUnits =
+                Pathing.LatticeGeometry.CostUnitsForIdealGroundKm(lattice, cfg.MinSpacingKm),
+            Size = terrain.Size,
+        };
+    }
+
+    /// <summary>
+    /// Seed the spacing exclusion field from every site already standing —
+    /// the one thing turn-zero siting cannot do, because at turn zero there
+    /// are none. Same capped Dijkstra, same cap, same raw-terrain lattice
+    /// (spacing is a property of the ground, not of the built network).
+    /// </summary>
+    public static double[] SeedSpacing(FrontierSiting f, ReadOnlySpan<int> existingSiteCells)
+    {
+        var spacing = new double[f.Lattice.NodeCount];
+        Array.Fill(spacing, double.PositiveInfinity);
+        for (int i = 0; i < existingSiteCells.Length; i++)
+        {
+            int origin = Pathing.LatticeMap.OriginLatticeNode(f.Lattice, f.Size, existingSiteCells[i]);
+            Pathing.Pathfinder.RelaxCappedFrom(f.Lattice, origin, f.MinSpacingCostUnits, spacing);
+        }
+        return spacing;
+    }
+
+    /// <summary>
+    /// One frontier pick: the argmax by the composite key (score DESC, cell id
+    /// ASC) over cells that are land, above the score floor, OUTSIDE every
+    /// existing settlement's spacing exclusion, and NOT already a settlement's
+    /// site cell.
+    ///
+    /// THE TWO REJECTIONS ARE SEPARATE AND BOTH ARE REQUIRED (director ruling,
+    /// T4.4). Minimum travel-cost SPACING and exact SITE-CELL OCCUPANCY are
+    /// different rules: spacing is evaluated on the candidate's ORIGIN LATTICE
+    /// NODE (stride 4, ~16 km), so two distinct cells inside one node read the
+    /// same spacing value, and the spacing test alone therefore cannot be
+    /// relied on to keep site cells distinct. Turn-zero siting gets
+    /// distinctness only INCIDENTALLY, from `minSpacingKm` being large and the
+    /// test being strictly-less. Dynamic founding asserts it outright.
+    ///
+    /// Returns −1 when no legal site exists. It does NOT throw: "the frontier
+    /// is full" is an ordinary outcome of a per-turn system, not a config
+    /// error, which is the other reason `ChooseSites` cannot be called here.
+    /// </summary>
+    public static int ChooseFrontierSite(
+        FrontierSiting f, TerrainSet terrain, double[] spacing,
+        ReadOnlySpan<int> occupiedSiteCells, double scoreJitter, ulong seed)
+    {
+        ReadOnlySpan<double> water = terrain.Water;
+        int bestCell = -1;
+        double bestScore = double.NegativeInfinity;
+        for (int i = 0; i < f.Scores.Length; i++)
+        {
+            if (water[i] >= 0.5) continue;                       // land only
+            double unjittered = f.Scores[i];
+            if (unjittered <= 0.0 || unjittered < f.Floor) continue;
+            double score = unjittered * Jitter(seed, i, scoreJitter);
+            // Strictly-greater on an ascending scan = (score DESC, cell id ASC).
+            if (score <= bestScore) continue;
+            if (IsOccupied(occupiedSiteCells, i)) continue;      // exact site cell
+            int node = Pathing.LatticeMap.OriginLatticeNode(f.Lattice, f.Size, i);
+            if (spacing[node] < f.MinSpacingCostUnits) continue; // travel-cost spacing
+            bestScore = score;
+            bestCell = i;
+        }
+        return bestCell;
+    }
+
+    /// <summary>Linear scan — the settlement count is small and law 5 forbids a hash set here.</summary>
+    private static bool IsOccupied(ReadOnlySpan<int> cells, int cell)
+    {
+        for (int i = 0; i < cells.Length; i++) if (cells[i] == cell) return true;
+        return false;
+    }
+
+    /// <summary>Grow the exclusion field after a frontier site is accepted.</summary>
+    public static void AcceptFrontierSite(FrontierSiting f, double[] spacing, int siteCell)
+    {
+        int origin = Pathing.LatticeMap.OriginLatticeNode(f.Lattice, f.Size, siteCell);
+        Pathing.Pathfinder.RelaxCappedFrom(f.Lattice, origin, f.MinSpacingCostUnits, spacing);
     }
 }

@@ -575,7 +575,8 @@ public class SnapshotTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestUtil.TestConfigs.Sim())));
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
