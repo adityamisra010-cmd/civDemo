@@ -233,6 +233,32 @@ public static class SystemCatalog
                 MigrationSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>
+    /// T4.4 colonization. Takes the WORLDGEN config as well, because frontier
+    /// siting is a terrain question and `SitingConfig` (the score floor, the
+    /// jitter and ADR-018's `minSpacingKm`) lives there. It is OPTIONAL: toy and
+    /// hand-built worlds have no terrain and no worldgen config, and the system
+    /// no-ops for them, so `pipeline.json` stays valid everywhere.
+    ///
+    /// `next.Settlements` is a NEW ownership grant — before T4.4 no system could
+    /// append a settlement and the table was immutable for the whole simulation.
+    /// </summary>
+    public static SystemRegistration Colonization(SimConfig cfg, Worldgen.WorldgenConfig? worldgen)
+    {
+        var system = worldgen is null ? null
+            : new Systems.Colonization.ColonizationSystem(cfg, worldgen);
+        return new SystemRegistration(
+            Systems.Colonization.ColonizationSystem.WellKnownId,
+            Systems.Colonization.ColonizationSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system?.Step(
+                new SimContext<Systems.Colonization.ColonizationTables>(
+                    prev, new Systems.Colonization.ColonizationTables(
+                        next.Settlements, next.Buckets, next.GoodStocks, next.Deposits,
+                        next.ClassStates, next.Grievances, next.SmoothedAttractiveness), rng,
+                    Systems.Colonization.ColonizationSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration PathBuild(SimConfig cfg)
     {
         var system = new PathBuildSystem(cfg);
@@ -248,8 +274,8 @@ public static class SystemCatalog
     /// first, retired T0.x toys last (still registered: the toy preset and the
     /// kernel-invariant tests keep running them).
     /// </summary>
-    public static SystemRegistration[] All(SimConfig cfg) =>
+    public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), ClassMobility(cfg), Migration(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }

@@ -31,7 +31,7 @@ public class FirstReignTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), Fixture());
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), Fixture());
         // FULL 1024², N = 1 via the D-029 flag (T2.3): the fixture is a
         // single-settlement director session and replays at --settlements 1.
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42, settlementsOverride: 1);
@@ -296,7 +296,27 @@ public class FirstReignTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        const string golden = "dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca";
+        // T4.4 RE-PIN — **SCHEMA ONLY**, and that is PROVEN, not asserted.
+        //   OLD  dfd14560d94f44c1774d6e75298dc0a37a202ddc198fde343c0af12c5c6e0cca
+        //   NEW  bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c
+        //   CAUSE v21 -> v22: BucketRow gained UnplacedDeparture and
+        //         UnplacedRemainder, so every bucket row is 16 bytes wider.
+        //   THE CONTROL THAT PROVES IT: re-measured on this exact tree with ONLY
+        //         the two new fields removed from the serialized stream (schema back
+        //         at v21, all logic unchanged) — this test passes at the OLD value
+        //         above WITH EVERY SHAPE ASSERT INTACT. The trajectory is identical.
+        //   HISTORY, recorded because it is the reason this comment exists: an
+        //         earlier revision of T4.4 (4d11c02) DID move this golden
+        //         behaviourally — the lone settlement colonised its way out of the
+        //         director's 0%-farm order instead of dying, 1 -> 17 settlements,
+        //         and the shape asserts went red. That was NOT the Exit valve
+        //         working; it was a defect. The source granary is empty from turn 5,
+        //         and the implementation founded daughters with ZERO provisions.
+        //         Once the clearing cost was made binding (an expedition must be
+        //         outfitted from a real granary) no founding is possible here at
+        //         all, and the reign dies exactly as it always did. The shape
+        //         asserts were never weakened — they caught a real bug.
+        const string golden = "bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

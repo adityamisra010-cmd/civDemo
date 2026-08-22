@@ -58,6 +58,12 @@ public static class CanonicalSchema
     /// observables); CatchmentSummaryRow gains SizeTier (the quantized
     /// settlement-size step the summary was computed at — the D-016 gate for
     /// the size catchment bonus).
+    /// v22 (T4.4, D-037 B1): BucketRow gains UnplacedDeparture and
+    /// UnplacedRemainder — the departure demand that found NO viable existing
+    /// destination (the quantity MigrationSystem never formed because its flight
+    /// term only exists multiplied by damping x viability), plus its D-004
+    /// accumulator. Two bit-exact doubles appended to the bucket row; no table
+    /// joined or left the stream.
     /// v21 (T4.8, R-1): Notables table appended after Recognitions. R-1 ruled a
     /// notable is a PERSON, so the row carries a CONSERVED Population count
     /// extracted from a bucket via Ledger.Transfer - not a label. No system
@@ -68,7 +74,7 @@ public static class CanonicalSchema
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
-    public const int Version = 21;
+    public const int Version = 22;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -84,7 +90,7 @@ public static class CanonicalSchema
     private const int NetworkMetaRowWidth = 4;                 // Revision
     private const int CatchmentNodeRowWidth = 4 + 4 + 8;       // Settlement, LatticeNode, TravelCost bits
     private const int CatchmentSummaryRowWidth = 4 + 4 + 8 + 4 + 8 + 4; // Settlement, NodeCount, EffectiveArableKm2 bits, NetworkRevision, LastRecomputeTurn, SizeTier (v19)
-    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10)
+    private const int BucketRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // Settlement, Culture, Religion, Class, CohortIdx, Count, 6 remainder bit-fields (v8 +Mobility, v9 +Migration), ReboundReservoir (v10), UnplacedDeparture + UnplacedRemainder (v22)
     private const int GoodStockRowWidth = 4 + 4 + 8 + 8 + 8 + 8 + 8 + 8 + 8; // + LastInputDemandUnits, LastConsumptionDemandUnits (v15), LastConsumptionEatenUnits (v17)
     private const int DepositRowWidth = 4 + 4 + 8;                  // Settlement, Good, Abundance bits (v13)
     private const int ConsumptionDeficitRowWidth = 4 + 8 + 8;       // Settlement, DeficitRatio bits, DemandUnits (v8)
@@ -261,6 +267,8 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.MobilityRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.MigrationRemainder));
             writer.Write(BitConverter.DoubleToInt64Bits(row.ReboundReservoir));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.UnplacedDeparture));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.UnplacedRemainder));
         }
 
         // 16. Good stocks + deposits (v13 — the FoodStore migrated into grain).
@@ -625,6 +633,8 @@ public static class CanonicalSchema
             long count = reader.ReadInt64();
             world.Buckets.Add(new BucketRow(
                 settlement, culture, religion, cls, cohort, Conserved.FromSnapshot(count),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()),

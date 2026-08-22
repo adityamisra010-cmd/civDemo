@@ -97,7 +97,9 @@ public sealed class UiSession
         SystemRegistration[] pipeline;
         using (var stream = Sim.Data.DataFiles.OpenPipeline())
         {
-            pipeline = PipelineLoader.Load(stream, SystemCatalog.All(simCfg));
+            using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
+            pipeline = PipelineLoader.Load(stream, SystemCatalog.All(
+                simCfg, Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream)));
         }
         return new TurnExecutor(era, pipeline, orders);
     }
