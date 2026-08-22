@@ -201,7 +201,22 @@ public class SnapshotTests
         // carried on main. Colonization cannot reach this world (no terrain), and the
         // v22 bucket widening cannot reach it either because this synthetic world
         // holds no bucket rows. Do not re-pin it as part of a colonization packet.
-        const string golden = "0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745";
+        // T4.13 RE-PIN — **SCHEMA ONLY**, and that is PROVEN, not asserted.
+        //   OLD  0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745
+        //   NEW  fd67574e4d6fc5adfc3f4055b2d305775be996ce45864ebb46cecb0f4be7eb90
+        //   CAUSE v22 -> v23: the HouseholdGoods table joins the stream. In THIS
+        //         world the table is EMPTY, so the entire delta is its 4-byte count
+        //         prefix — the synthetic Genesis(23) world has no class structure
+        //         for the Comfort mechanism to reach.
+        //   THE CONTROL THAT PROVES IT: re-measured on this exact tree with the
+        //         HouseholdGoods table removed from the serialized stream and ALL
+        //         LOGIC LEFT INTACT, this golden returns to the OLD value BYTE FOR
+        //         BYTE. The other three goldens do NOT under that same control, so
+        //         they carry behaviour and this one does not. That contrast is what
+        //         makes this the no-unrelated-movement control.
+        //   This value is unchanged from the pre-rebase branch (fd67574e…), which is
+        //         itself corroboration: T4.4 never touched this world either.
+        const string golden = "fd67574e4d6fc5adfc3f4055b2d305775be996ce45864ebb46cecb0f4be7eb90";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -567,7 +582,29 @@ public class SnapshotTests
         //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
         //         was touched; the new readout only WRITES a quantity.
         //   ci.yml FOUNDED_GOLDEN moves with it, in this same commit.
-        const string golden = "87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b";
+        // T4.13 RE-PIN — SCHEMA **AND** BEHAVIOUR, and the split is MEASURED.
+        //   OLD  87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b
+        //   NEW  19c00f1cc5ae3b4a8266538f8bef14ae4672ae2d78840cb5b9c6b1af8c25ec19
+        //   CAUSE 1 (schema) v22 -> v23: the HouseholdGoods table joins the stream.
+        //   CAUSE 2 (BEHAVIOUR, and this is the packet) Comfort stopped being an
+        //         annual basket draw of pottery and cloth and became a HOLDING.
+        //         Three things reach the stream: the pottery/cloth draw changes
+        //         shape (materials crafted toward a standard, not eaten each year),
+        //         Comfort's satisfaction is now min(1, stock/requirement) and feeds
+        //         grievance differently, and the HouseholdGoods table is populated.
+        //   THE SPLIT IS MEASURED, NOT ASSERTED. Re-measured on this exact tree with
+        //         the HouseholdGoods table removed from the serialized stream and
+        //         ALL LOGIC LEFT INTACT, this golden reads c629e05a…
+        //         — still different from OLD, so the movement is genuinely
+        //         behavioural and not merely the new table's bytes.
+        //   THE CONTROL THAT ISOLATES SCHEMA: under that same control
+        //         GoldenHash_Seed42Turn200 returns to main's 0f94b4ad… exactly, so
+        //         ITS movement is schema-only. See SnapshotTests.
+        //   PRE-REBASE VALUES ARE VOID: this packet was rebased onto main after T4.4
+        //         (D-037 B1) merged and took schema v22. Every hash measured before
+        //         that rebase was taken against a tree without T4.4 and was
+        //         re-measured here rather than carried.
+        const string golden = "19c00f1cc5ae3b4a8266538f8bef14ae4672ae2d78840cb5b9c6b1af8c25ec19";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
@@ -651,6 +688,54 @@ public class SnapshotTests
         Assert.Equal(5, back.Notables[0].CohortIdx);
         Assert.Equal(1, back.Notables[0].Count.Value);
         Assert.Equal(0, back.Notables[1].Count.Value);
+    }
+
+    [Fact]
+    public void SchemaV22_PopulatedHouseholdGoodsTable_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-table
+        // test — exact ExpectedLength, bit-exact round trip, hash equality. An
+        // empty table proves nothing (T1.1/T1.3 precedent).
+        //
+        // v22 (T4.13): HouseholdGoodsRow. The fixture covers a settlement holding
+        // stock with BOTH remainders non-zero (the ordinary mid-turn state), a
+        // settlement at exactly zero units with a banked craft residue (a village
+        // that has begun crafting but not yet completed one whole unit), and a
+        // row whose remainders are negative-exponent doubles, because the two
+        // remainders are the fields a raw-memory shortcut would silently pad.
+        WorldState world = Genesis(23);
+        var ledger = new Sim.Core.Kernel.Ledger(world.LedgerFlows);
+
+        int held = world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(2), Conserved.Zero, 0.375, 0.125));
+        ledger.Flow(ref world.HouseholdGoods.Ref(held).Units,
+            ConservedQuantityIds.HouseholdGoods, ReasonIds.InitialEndowment,
+            41, FlowDirection.Source, OverdrawPolicy.Throw);
+
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(1), Conserved.Zero, 0.9999999999999999, 0.0));
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(0), Conserved.Zero, 1e-300, -0.0));
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(world, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
+
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(TestUtil.WorldStates.StateEquals(world, back), "round-trip drifted");
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(back));
+
+        Assert.Equal(3, back.HouseholdGoods.Count);
+        Assert.Equal(2, back.HouseholdGoods[0].Settlement.Value);
+        Assert.Equal(41, back.HouseholdGoods[0].Units.Value);
+        Assert.Equal(0.375, back.HouseholdGoods[0].CraftRemainder);
+        Assert.Equal(0.125, back.HouseholdGoods[0].WearRemainder);
+        Assert.Equal(0, back.HouseholdGoods[1].Units.Value);
+        Assert.Equal(0.9999999999999999, back.HouseholdGoods[1].CraftRemainder);
+        Assert.Equal(1e-300, back.HouseholdGoods[2].CraftRemainder);
     }
 
     [Fact]

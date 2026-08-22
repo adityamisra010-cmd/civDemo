@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(14, pipeline.Length);   // T4.5 added `appropriation`; T4.4 `colonization`
+        Assert.Equal(15, pipeline.Length);   // T4.5 `appropriation`; T4.13 `householdgoods`; T4.4 `colonization`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -32,32 +32,36 @@ public class PipelineLoaderTests
         // cross-system signal (the §3.2 lag); only the relief is same-turn.
         Assert.Equal("appropriation", pipeline[3].Name);
         Assert.Equal("consumption", pipeline[4].Name);
+        // T4.13: household goods runs AFTER consumption — it crafts from the
+        // pottery and cloth left once the basket has been charged, so a turn's
+        // consumption is complete before Comfort's stock is topped up.
+        Assert.Equal("householdgoods", pipeline[5].Name);
         // T3.4 (D-033): price runs AFTER consumption, so a turn's demand and
         // production signals are complete before anything is priced. It reads
         // PREV regardless (the §3.2 one-turn lag), so the position is about
         // legibility rather than results — but it is pinned here so a silent
         // reorder is a failing test rather than a shrug.
-        Assert.Equal("price", pipeline[5].Name);
+        Assert.Equal("price", pipeline[6].Name);
         // T3.6 (D-034): trade runs AFTER price — it arbitrages the prices the
         // solver just published. It reads PREV either way (the §3.2 lag), so
         // position is legibility; pinned so a silent reorder fails a test.
-        Assert.Equal("trade", pipeline[6].Name);
+        Assert.Equal("trade", pipeline[7].Name);
         // T3.8: housing runs after the goods economy settles the turn's flows.
         // It reads PREV either way (the §3.2 lag: maintenance draws Prev
         // stocks, pathbuild subtracts Prev housing labor next turn), so the
         // position is legibility — pinned so a silent reorder fails a test.
-        Assert.Equal("housing", pipeline[7].Name);
-        Assert.Equal("classmobility", pipeline[8].Name);  // T2.2, spec §3 pipeline order
-        Assert.Equal("migration", pipeline[9].Name);      // T2.5, spec §3 pipeline order
+        Assert.Equal("housing", pipeline[8].Name);
+        Assert.Equal("classmobility", pipeline[9].Name);  // T2.2, spec §3 pipeline order
+        Assert.Equal("migration", pipeline[10].Name);     // T2.5, spec §3 pipeline order
         // T4.4: colonization runs immediately AFTER migration and BEFORE
         // demographics. After, because it draws the founding party from LIVE
         // post-migration buckets and reading PREV would double-spend against
         // migration's overdraw scaler; before, because the party is ordinary
         // people who should age and breed this turn like everyone else.
-        Assert.Equal("colonization", pipeline[10].Name);
-        Assert.Equal("demographics", pipeline[11].Name);
-        Assert.Equal("needsgrievance", pipeline[12].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[13].Name);
+        Assert.Equal("colonization", pipeline[11].Name);
+        Assert.Equal("demographics", pipeline[12].Name);
+        Assert.Equal("needsgrievance", pipeline[13].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[14].Name);
     }
 
     [Fact]
@@ -78,7 +82,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, appropriation, consumption, price, trade, housing, classmobility, migration, colonization, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, production, appropriation, consumption, householdgoods, price, trade, housing, classmobility, migration, colonization, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 

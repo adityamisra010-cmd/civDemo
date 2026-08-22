@@ -56,6 +56,31 @@ public class WorldStateCloneTests
     }
 
     [Fact]
+    public void Clone_CarriesAPopulatedHouseholdGoodsTable_AndTheCopyIsIndependent()
+    {
+        // T4.13, same reasoning as the Notables case above: HouseholdGoods is empty
+        // in every world until the crafting system lands, so a Clone() that dropped
+        // it would pass the whole suite unnoticed. Populated, or it proves nothing.
+        var world = new WorldState();
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(2), Conserved.Zero, 0.25, 0.75));
+        world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(1), Conserved.Zero, 0.5, 0.0));
+
+        WorldState copy = world.Clone();
+        Assert.Equal(2, copy.HouseholdGoods.Count);
+        Assert.True(StateEquals(world, copy));
+        Assert.Equal(2, copy.HouseholdGoods[0].Settlement.Value);
+        Assert.Equal(0.75, copy.HouseholdGoods[0].WearRemainder);
+
+        // DEEP, not aliased: mutating the copy must not reach the original.
+        copy.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(0), Conserved.Zero, 0.0, 0.0));
+        Assert.Equal(2, world.HouseholdGoods.Count);
+        Assert.False(StateEquals(world, copy));
+    }
+
+    [Fact]
     public void CloneOfEmptyWorld_EqualsOriginal()
     {
         var world = new WorldState();

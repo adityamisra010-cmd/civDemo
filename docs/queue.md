@@ -1170,3 +1170,19 @@
      but that rule governs WHICH polity sets the global dt — it is not a layered strategic/tactical
      timestep, which is what the bullet asserts.
   Whoever writes the M5 AI spec must reconcile §23 against the tree before implementing from it.
+- **T4.13 finding — `ConservationAuditor` is structurally blind to cross-quantity accounting holes.**
+  T4.13's crafting turns pottery/cloth (one conserved quantity) into household goods (another), so
+  it is a SINK plus a SOURCE rather than a `Ledger.Transfer`. A rounding split let it source more
+  units than it drew materials for — measured at 1 unit per class per settlement per turn, and in
+  the worst case a settlement holding 1 pottery + 1 cloth minted a unit every turn while its
+  material stocks never moved. **The auditor did not and cannot see this**: it reconciles each
+  quantity against its own ledger, and both flows were individually legitimate. Fixed inside T4.13
+  by a largest-remainder allocation plus an explicit "materials drawn == units made" pin, but the
+  general hole remains for any FUTURE transformation between conserved quantities. Whoever adds the
+  next one (smelting, tool-making, money) should either add a paired-flow invariant to the auditor
+  or ship the same explicit pin. Worth considering as a kernel-level guard.
+- **T4.13 finding — a needs `source` other than `basket` needs its class table bounds-checked twice.**
+  `HouseholdGoodsSystem` and `NeedsGrievanceSystem` both index a per-class standard array by
+  `BucketRow.Class.Value`. The crafting side guarded it; the grievance side did not, so the first
+  class added without a `householdGoods.perClass` line would have thrown mid-turn. Both are guarded
+  now. Any third stock-sourced need should copy the pair, not just one.

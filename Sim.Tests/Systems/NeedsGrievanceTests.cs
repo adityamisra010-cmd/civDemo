@@ -103,6 +103,30 @@ public class NeedsGrievanceTests
             ReasonIds.InitialEndowment, dwellings, FlowDirection.Source, OverdrawPolicy.Throw);
     }
 
+    /// <summary>T4.13: the household-goods twin of <see cref="HouseFully"/>. Comfort
+    /// stopped being basket-served, so a "plenty" fixture must now stock the goods
+    /// as well as the dwellings — a settlement left WITHOUT a household-goods row
+    /// reads Comfort 0.0 (the no-row path), exactly as Shelter does. Provisions the
+    /// class-weighted requirement so satisfaction clamps to exactly 1.0.</summary>
+    private static void EquipFully(WorldState world, int settlement)
+    {
+        HouseholdGoodsConfig hg = TestConfigs.Sim().Needs!.HouseholdGoods!;
+        double requirement = 0.0;
+        for (int i = 0; i < world.Buckets.Count; i++)
+        {
+            BucketRow b = world.Buckets[i];
+            if (b.Settlement.Value != settlement) continue;
+            requirement += b.Count.Value * hg.StandardPerPerson(b.Class.Value);
+        }
+        long units = (long)Math.Ceiling(requirement);
+        if (units <= 0) return;
+        var ledger = new Ledger(world.LedgerFlows);
+        int row = world.HouseholdGoods.Add(new HouseholdGoodsRow(
+            new SettlementId(settlement), Conserved.Zero, 0.0, 0.0));
+        ledger.Flow(ref world.HouseholdGoods.Ref(row).Units, ConservedQuantityIds.HouseholdGoods,
+            ReasonIds.InitialEndowment, units, FlowDirection.Source, OverdrawPolicy.Throw);
+    }
+
 
     /// <summary>T3.5: rig one settlement's published fill ratio for a good —
     /// the pair (pre-clamp demand, post-clamp obtained) NeedsGrievanceSystem
@@ -209,12 +233,14 @@ public class NeedsGrievanceTests
         {
             bool basketServed = false;
             foreach (BasketEntry e in needs.Baskets.Entries) if (e.Need == need.Id) { basketServed = true; break; }
-            Assert.Equal(need.Bound, basketServed || need.FromHousingStock);
-            Assert.False(basketServed && need.FromHousingStock,
+            Assert.Equal(need.Bound, basketServed || need.FromStock);
+            Assert.False(basketServed && need.FromStock,
                 $"{need.Name} is double-sourced — the load guard should have refused this");
         }
-        Assert.True(needs.Needs[1].FromHousingStock);  // Shelter, from the stock
-        Assert.False(needs.Needs[0].FromHousingStock); // Sustenance, from the basket
+        Assert.True(needs.Needs[1].FromHousingStock);   // Shelter, from the dwelling stock
+        Assert.False(needs.Needs[0].FromHousingStock);  // Sustenance, from the basket
+        Assert.True(needs.Needs[5].FromHouseholdGoods); // T4.13: Comfort, from the goods stock
+        Assert.False(needs.Needs[5].FromHousingStock);  // and NOT from the dwellings
     }
 
     // --- famine raises grievance --------------------------------------------
@@ -322,6 +348,7 @@ public class NeedsGrievanceTests
         WorldState world = GrievanceWorld(1);
         FillAll(world, 0, 1.0);
         HouseFully(world, 0); // T3.8: full supply includes the dwelling stock
+        EquipFully(world, 0);
         world.SettlementVitals.Add(new SettlementVitalsRow(
             new SettlementId(0), Births: (long)(1000 * turnover * dt / 2), Deaths: (long)(1000 * turnover * dt / 2), DtYears: dt));
         world.Grievances[0] = world.Grievances[0] with { Value = 10.0 };
@@ -371,7 +398,9 @@ public class NeedsGrievanceTests
         FillAll(world, 0, 1.0);
         FillAll(world, 1, 1.0);
         HouseFully(world, 0); // T3.8: full supply includes the dwelling stock,
+        EquipFully(world, 0);
         HouseFully(world, 1); // identically on BOTH arms — the contrast stays turnover alone
+        EquipFully(world, 1);
         for (int i = 0; i < world.Grievances.Count; i++)
             world.Grievances[i] = world.Grievances[i] with { Value = 10.0 };
         world.SettlementVitals.Add(new SettlementVitalsRow(new SettlementId(0), 0, 0, dt));
@@ -413,6 +442,7 @@ public class NeedsGrievanceTests
         // deliberately has NO housing row — Shelter reads 0.0 by the no-row
         // path, consistent with "obtains nothing of any kind".
         HouseFully(world, 1);
+        EquipFully(world, 1);
 
         WorldState next = GrievanceOnly(cfg, dt).Step(world);
 
