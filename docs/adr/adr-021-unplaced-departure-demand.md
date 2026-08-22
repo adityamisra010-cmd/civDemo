@@ -1,8 +1,12 @@
 # ADR-021 — Unplaced departure demand: the migration→colonization carrier (schema v22)
 
-**Status: PROPOSED, awaiting director ruling.** Written because T4.4 changes the serialized
-kernel contract, and CLAUDE.md requires an ADR for a contract change plus director sign-off for
-anything the M0 kernel freeze covers. No part of this is self-certified.
+**Status: ACCEPTED** (director ruling, T4.4 — Option A). The ruling is recorded in
+`docs/t4.4-review-record.md` §0. This ADR was written as PROPOSED and is now ratified as part of
+that decision; the implementation is still **not certified and not merged**.
+
+It exists because T4.4 changes the serialized kernel contract, and CLAUDE.md requires an ADR for a
+contract change plus director sign-off for anything the M0 kernel freeze covers. No part of it is
+self-certified.
 
 **ADR number:** 021. `adr-020-clone-architecture-r3.md` is the highest on `main`; **019 is taken
 by an unmerged branch** (`a36b94d`, architecture constitution addendum), so 019 is deliberately
@@ -76,12 +80,22 @@ claim: with only these two fields removed from the serialized stream, all four g
 - `ci.yml`'s `FOUNDED_GOLDEN` moves with the founded pin.
 - 16 bytes per bucket added to every snapshot.
 
-## The open question this ADR cannot settle
+## The scope boundary the ruling fixed
 
-The carrier is only worth its schema cost if the mechanism it feeds does something.
-**Measured, it never fires in any shipped world** (see `docs/t4.4-review-record.md` §7 F1). If
-the director rules that D-037 B1's condition should be read more broadly than "no viable
-destination at all", the carrier stays and only `MigrationSystem`'s readout changes. If B1 is
-ruled to be a collapse-only mechanism and frontier closure is to come from elsewhere, **this
-schema change should be reverted rather than shipped**, because the tree would be paying 16 bytes
-per bucket for a mechanism that cannot fire.
+The carrier's cost was questioned in the PROPOSED draft on the grounds that the mechanism it feeds
+never fires in a canonical world. **The director ruled Option A**, which settles it:
+
+- **D-037 B1 is authorized and complete as a COLLAPSE-DRIVEN mechanism.** It extends ADR-012's
+  "no viable destination" rule and converts genuinely unplaced migration demand into a settlement.
+- **T4.4 is not required to deliver CR-003 §5.2(a)'s frontier-closure behaviour.** A separate
+  future mechanism handles voluntary/frontier expansion driven by land opportunity.
+- **T4.4's lack of activation in current canonical worlds is therefore not a defect**, and the
+  carrier is **not** reverted on that basis.
+
+The draft's option (c) — revert v22 because canonical worlds do not exercise B1 — is **explicitly
+refused by the ruling** and is recorded here only so the reasoning trail stays intact.
+
+Consequently the readout's condition stays **binary** (no reachable, viable destination at all).
+Broadening B1 to be land-driven, and reinterpreting the graded land-gap signal as partial unplaced
+demand, are both **ruled out**; `docs/t4.4-review-record.md` §1.1 records the measurement-based
+reason the graded reading also fails on its own merits.
