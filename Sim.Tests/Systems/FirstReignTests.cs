@@ -316,7 +316,29 @@ public class FirstReignTests
         //         outfitted from a real granary) no founding is possible here at
         //         all, and the reign dies exactly as it always did. The shape
         //         asserts were never weakened — they caught a real bug.
-        const string golden = "bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c";
+        // T4.13 RE-PIN — SCHEMA **AND** BEHAVIOUR, and the split is MEASURED.
+        //   OLD  bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c
+        //   NEW  ad3aa160cab9a9a1e7ed67473d4485e1923bf7609fdbeb7ebced656958b5d803
+        //   CAUSE 1 (schema) v22 -> v23: the HouseholdGoods table joins the stream.
+        //   CAUSE 2 (BEHAVIOUR, and this is the packet) Comfort stopped being an
+        //         annual basket draw of pottery and cloth and became a HOLDING.
+        //         Three things reach the stream: the pottery/cloth draw changes
+        //         shape (materials crafted toward a standard, not eaten each year),
+        //         Comfort's satisfaction is now min(1, stock/requirement) and feeds
+        //         grievance differently, and the HouseholdGoods table is populated.
+        //   THE SPLIT IS MEASURED, NOT ASSERTED. Re-measured on this exact tree with
+        //         the HouseholdGoods table removed from the serialized stream and
+        //         ALL LOGIC LEFT INTACT, this golden reads 41eb695b…
+        //         — still different from OLD, so the movement is genuinely
+        //         behavioural and not merely the new table's bytes.
+        //   THE CONTROL THAT ISOLATES SCHEMA: under that same control
+        //         GoldenHash_Seed42Turn200 returns to main's 0f94b4ad… exactly, so
+        //         ITS movement is schema-only. See SnapshotTests.
+        //   PRE-REBASE VALUES ARE VOID: this packet was rebased onto main after T4.4
+        //         (D-037 B1) merged and took schema v22. Every hash measured before
+        //         that rebase was taken against a tree without T4.4 and was
+        //         re-measured here rather than carried.
+        const string golden = "ad3aa160cab9a9a1e7ed67473d4485e1923bf7609fdbeb7ebced656958b5d803";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

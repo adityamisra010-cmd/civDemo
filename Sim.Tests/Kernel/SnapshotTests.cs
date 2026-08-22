@@ -201,7 +201,22 @@ public class SnapshotTests
         // carried on main. Colonization cannot reach this world (no terrain), and the
         // v22 bucket widening cannot reach it either because this synthetic world
         // holds no bucket rows. Do not re-pin it as part of a colonization packet.
-        const string golden = "0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745";
+        // T4.13 RE-PIN — **SCHEMA ONLY**, and that is PROVEN, not asserted.
+        //   OLD  0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745
+        //   NEW  fd67574e4d6fc5adfc3f4055b2d305775be996ce45864ebb46cecb0f4be7eb90
+        //   CAUSE v22 -> v23: the HouseholdGoods table joins the stream. In THIS
+        //         world the table is EMPTY, so the entire delta is its 4-byte count
+        //         prefix — the synthetic Genesis(23) world has no class structure
+        //         for the Comfort mechanism to reach.
+        //   THE CONTROL THAT PROVES IT: re-measured on this exact tree with the
+        //         HouseholdGoods table removed from the serialized stream and ALL
+        //         LOGIC LEFT INTACT, this golden returns to the OLD value BYTE FOR
+        //         BYTE. The other three goldens do NOT under that same control, so
+        //         they carry behaviour and this one does not. That contrast is what
+        //         makes this the no-unrelated-movement control.
+        //   This value is unchanged from the pre-rebase branch (fd67574e…), which is
+        //         itself corroboration: T4.4 never touched this world either.
+        const string golden = "fd67574e4d6fc5adfc3f4055b2d305775be996ce45864ebb46cecb0f4be7eb90";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -567,7 +582,29 @@ public class SnapshotTests
         //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
         //         was touched; the new readout only WRITES a quantity.
         //   ci.yml FOUNDED_GOLDEN moves with it, in this same commit.
-        const string golden = "87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b";
+        // T4.13 RE-PIN — SCHEMA **AND** BEHAVIOUR, and the split is MEASURED.
+        //   OLD  87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b
+        //   NEW  19c00f1cc5ae3b4a8266538f8bef14ae4672ae2d78840cb5b9c6b1af8c25ec19
+        //   CAUSE 1 (schema) v22 -> v23: the HouseholdGoods table joins the stream.
+        //   CAUSE 2 (BEHAVIOUR, and this is the packet) Comfort stopped being an
+        //         annual basket draw of pottery and cloth and became a HOLDING.
+        //         Three things reach the stream: the pottery/cloth draw changes
+        //         shape (materials crafted toward a standard, not eaten each year),
+        //         Comfort's satisfaction is now min(1, stock/requirement) and feeds
+        //         grievance differently, and the HouseholdGoods table is populated.
+        //   THE SPLIT IS MEASURED, NOT ASSERTED. Re-measured on this exact tree with
+        //         the HouseholdGoods table removed from the serialized stream and
+        //         ALL LOGIC LEFT INTACT, this golden reads c629e05a…
+        //         — still different from OLD, so the movement is genuinely
+        //         behavioural and not merely the new table's bytes.
+        //   THE CONTROL THAT ISOLATES SCHEMA: under that same control
+        //         GoldenHash_Seed42Turn200 returns to main's 0f94b4ad… exactly, so
+        //         ITS movement is schema-only. See SnapshotTests.
+        //   PRE-REBASE VALUES ARE VOID: this packet was rebased onto main after T4.4
+        //         (D-037 B1) merged and took schema v22. Every hash measured before
+        //         that rebase was taken against a tree without T4.4 and was
+        //         re-measured here rather than carried.
+        const string golden = "19c00f1cc5ae3b4a8266538f8bef14ae4672ae2d78840cb5b9c6b1af8c25ec19";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

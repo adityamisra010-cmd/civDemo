@@ -191,7 +191,29 @@ public class DrivenGoldenTests
         //         condition is never met.
         //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
         //         was touched; the new readout only WRITES a quantity.
-        const string golden = "5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb";
+        // T4.13 RE-PIN — SCHEMA **AND** BEHAVIOUR, and the split is MEASURED.
+        //   OLD  5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
+        //   NEW  6d6d5a4c9c3120b3c2dddfca29f5ada4d8c11106388fd8eb16d1718ca911afc8
+        //   CAUSE 1 (schema) v22 -> v23: the HouseholdGoods table joins the stream.
+        //   CAUSE 2 (BEHAVIOUR, and this is the packet) Comfort stopped being an
+        //         annual basket draw of pottery and cloth and became a HOLDING.
+        //         Three things reach the stream: the pottery/cloth draw changes
+        //         shape (materials crafted toward a standard, not eaten each year),
+        //         Comfort's satisfaction is now min(1, stock/requirement) and feeds
+        //         grievance differently, and the HouseholdGoods table is populated.
+        //   THE SPLIT IS MEASURED, NOT ASSERTED. Re-measured on this exact tree with
+        //         the HouseholdGoods table removed from the serialized stream and
+        //         ALL LOGIC LEFT INTACT, this golden reads d7846f9a…
+        //         — still different from OLD, so the movement is genuinely
+        //         behavioural and not merely the new table's bytes.
+        //   THE CONTROL THAT ISOLATES SCHEMA: under that same control
+        //         GoldenHash_Seed42Turn200 returns to main's 0f94b4ad… exactly, so
+        //         ITS movement is schema-only. See SnapshotTests.
+        //   PRE-REBASE VALUES ARE VOID: this packet was rebased onto main after T4.4
+        //         (D-037 B1) merged and took schema v22. Every hash measured before
+        //         that rebase was taken against a tree without T4.4 and was
+        //         re-measured here rather than carried.
+        const string golden = "6d6d5a4c9c3120b3c2dddfca29f5ada4d8c11106388fd8eb16d1718ca911afc8";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0
         //   NEW (T4.5 rebased)      aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
