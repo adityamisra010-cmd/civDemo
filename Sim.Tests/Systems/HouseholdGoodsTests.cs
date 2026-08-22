@@ -331,4 +331,75 @@ public class HouseholdGoodsTests
             if (wanted.Contains(w.GoodStocks[i].Good.Value)) total += w.GoodStocks[i].Amount.Value;
         return total;
     }
+
+    // ===== T4.13 x T4.4 INTERACTION ==========================================
+    // These could not exist before this packet was rebased onto main: T4.4
+    // (D-037 B1) merged while T4.13 was in flight, and it is the FIRST mechanism
+    // in the project that can append a settlement mid-run. Every earlier system
+    // was written against a settlement table that was immutable after founding.
+
+    [Fact]
+    public void ASettlementThatAPPEARSMidRun_GetsItsHouseholdGoodsRow_AndConserves()
+    {
+        // T4.4 appends a settlement with population but NO HouseholdGoodsRow.
+        // If this system only ever UPDATED existing rows, that settlement would
+        // silently never hold, wear or craft household goods — a permanent
+        // Comfort hole that no existing test would have caught, because before
+        // T4.4 no settlement could appear after turn zero.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Rig(cfg, heads: 100, materials: 10_000);
+        var exec = new TurnExecutor(FlatEra(1.0), [SystemCatalog.HouseholdGoods(cfg)]);
+        w = exec.Step(w);
+        Assert.Equal(1, w.HouseholdGoods.Count);
+
+        // A second settlement arrives the way colonization delivers one: a
+        // settlement row plus buckets, and nothing else.
+        var newId = new SettlementId(1);
+        w.Settlements.Add(new SettlementRow(newId, SiteCell: 1, FoundedTurn: 1));
+        var ledger = new Ledger(w.LedgerFlows);
+        int copied = 0;
+        int bucketsAtStart = w.Buckets.Count;
+        for (int i = 0; i < bucketsAtStart; i++)
+        {
+            BucketRow b = w.Buckets[i];
+            if (b.Settlement != S0) continue;
+            long take = b.Count.Value / 2;
+            int dst = w.Buckets.Add(new BucketRow(newId, b.Culture, b.Religion, b.Class,
+                b.CohortIdx, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+            // Moved, not minted — the same Ledger.Transfer shape colonization uses.
+            ledger.Transfer(ref w.Buckets.Ref(i).Count, ref w.Buckets.Ref(dst).Count,
+                take, OverdrawPolicy.ClampToAvailable);
+            copied++;
+        }
+        Assert.True(copied > 0, "rig copied no buckets — the test would be vacuous");
+        foreach (GoodEntry g in cfg.Goods!.Goods)
+            w.GoodStocks.Add(new GoodStockRow(newId, new GoodId(g.Id), Conserved.Zero, 0.0, 0.0));
+        Assert.Equal(1, w.HouseholdGoods.Count);      // no row for the newcomer yet
+
+        w = exec.Step(w);
+
+        // It got one, materialised at zero and then worked on like any other.
+        Assert.Equal(2, w.HouseholdGoods.Count);
+        bool found = false;
+        for (int i = 0; i < w.HouseholdGoods.Count; i++)
+            if (w.HouseholdGoods[i].Settlement == newId) found = true;
+        Assert.True(found, "the mid-run settlement never got a HouseholdGoods row");
+        Assert.True(ConservationAuditor.IsConserved(w, out string report), report);
+    }
+
+    [Fact]
+    public void ASettlementWithPopulationButNoMaterials_HoldsNothing_AndStillConserves()
+    {
+        // The colonized-settlement shape in its harshest form: real people, an
+        // empty granary of craft materials. It must not mint, must not throw, and
+        // must not leave a half-built row behind.
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Rig(cfg, heads: 100, materials: 0);
+        var exec = new TurnExecutor(FlatEra(1.0), [SystemCatalog.HouseholdGoods(cfg)]);
+
+        for (int t = 0; t < 5; t++) w = exec.Step(w);
+
+        Assert.Equal(0, Units(w));
+        Assert.True(ConservationAuditor.IsConserved(w, out string report), report);
+    }
 }
