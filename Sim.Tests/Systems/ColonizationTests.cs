@@ -383,6 +383,56 @@ public class ColonizationTests
     }
 
     [Fact]
+    public void ProvisionsAreTRANSFERRED_SourceLosesEXACTLYWhatTheDaughterGains()
+    {
+        // ADVERSARIAL: double-spending provisions. `ProvisionsFor` is called TWICE —
+        // once as the founding precondition (party still counted in the source's
+        // buckets) and once to move the grain (party already gone) — so the two
+        // calls pass different `partyHasLeft` flags. If they disagreed, the
+        // precondition could admit a founding that then moves a different amount,
+        // or grain could be sourced rather than transferred. The identity that
+        // makes them agree is that BOTH denominators are the source population
+        // INCLUDING the party, and the store does not change between the calls.
+        //
+        // This is the ruling's "clearing cost is both a precondition and an actual
+        // transfer using shared arithmetic" invariant, pinned directly.
+        (WorldState w, SettlementId src) = StrandedSource();
+
+        int grain = TestConfigs.Sim().Goods!.GrainId;
+        long GrainOf(WorldState s, SettlementId id)
+        {
+            for (int i = 0; i < s.GoodStocks.Count; i++)
+                if (s.GoodStocks[i].Settlement == id && s.GoodStocks[i].Good.Value == grain)
+                    return s.GoodStocks[i].Amount.Value;
+            return -1;
+        }
+
+        WorldState afterMigration = new TurnExecutor(FlatEra(), [
+            SystemCatalog.Catchment(TestConfigs.Sim()),
+            SystemCatalog.Migration(TestConfigs.Sim())]).Step(w);
+        long srcGrainBefore = GrainOf(afterMigration, src);
+        long worldGrainBefore = 0;
+        for (int i = 0; i < afterMigration.GoodStocks.Count; i++)
+            if (afterMigration.GoodStocks[i].Good.Value == grain)
+                worldGrainBefore += afterMigration.GoodStocks[i].Amount.Value;
+
+        WorldState after = new TurnExecutor(FlatEra(), [SystemCatalog.Colonization(
+            TestConfigs.Sim(), TestConfigs.Worldgen())]).Step(afterMigration);
+
+        SettlementId daughter = after.Settlements[^1].Id;
+        long moved = GrainOf(after, daughter);
+        Assert.True(moved > 0, "the daughter carried no provisions — the rig is vacuous");
+
+        // Left once, arrived once, nothing minted, nothing sunk.
+        Assert.Equal(srcGrainBefore - moved, GrainOf(after, src));
+        long worldGrainAfter = 0;
+        for (int i = 0; i < after.GoodStocks.Count; i++)
+            if (after.GoodStocks[i].Good.Value == grain)
+                worldGrainAfter += after.GoodStocks[i].Amount.Value;
+        Assert.Equal(worldGrainBefore, worldGrainAfter);
+    }
+
+    [Fact]
     public void TheRemainderBanksOnlyASubPersonFraction_NeverWholePeople()
     {
         // The bank is taken BEFORE the availability clamp. Banking after it would
