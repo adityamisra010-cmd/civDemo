@@ -31,6 +31,22 @@ public sealed class SystemRegistration
 public interface ITurnObserver
 {
     void OnPhase(string phase, long elapsedTimestampTicks, long allocatedBytes);
+
+    /// <summary>
+    /// INTRA-TURN STATE CHECKPOINT (food-anomaly investigation). Called with the
+    /// WORK-IN-PROGRESS Next world immediately after the named phase completes,
+    /// so an observer can see stock between two systems instead of only at the
+    /// turn boundary. The first call is `"clone"` — Next before ANY system has
+    /// run, i.e. true beginning-of-turn state.
+    ///
+    /// IT IS A READ-ONLY WINDOW AND THAT IS LOAD-BEARING. The parameter is typed
+    /// <see cref="IReadOnlyWorldState"/> so an observer cannot write, and the
+    /// default body is empty so no existing observer and no production path is
+    /// altered by its existence. When `observer` is null — which is every
+    /// canonical, golden, CLI and replay path — neither this nor
+    /// <see cref="OnPhase"/> is reached at all.
+    /// </summary>
+    void OnPhaseState(string phase, IReadOnlyWorldState next) { }
 }
 
 /// <summary>
@@ -98,6 +114,7 @@ public sealed class TurnExecutor
             long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
             long a1 = GC.GetAllocatedBytesForCurrentThread();
             observer.OnPhase(phase, t1 - t0, a1 - a0);
+            observer.OnPhaseState(phase, next);
             t0 = t1;
             a0 = a1;
         }
