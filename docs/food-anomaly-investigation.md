@@ -161,8 +161,16 @@ recomputed **every turn from that turn's own demand**. Measured
 **Consequence:** `totalFood` is a function of current *population*, not of past
 harvests. It carries no history. A settlement cannot accumulate famine insurance,
 because the size of its buffer is defined by how hungry it is right now — the cap
-is **procyclical**. When population falls, capacity falls with it in the same
-turn, and the surplus that would have fed the survivors is destroyed as overflow.
+is **procyclical**. When population falls, capacity falls with it, and the surplus
+that would have fed the survivors is destroyed as overflow.
+
+> **CORRECTION (added with §7.6, not silently rewritten).** This paragraph
+> originally read "capacity falls with it **in the same turn**". That is wrong.
+> Consumption reads `prev.Buckets` and sits at pipeline slot 5, while population
+> is mutated at slots 10 (migration) and 11 (demographics), so capacity in turn N
+> uses turn N−1's population. **The procyclical chain is real but carries two
+> turns of lag, not instantaneous.** The claim is weaker than first stated; the
+> loop's sign is unchanged.
 
 ### 4.3 Finding 2 — 53.4% of all grain ever harvested is destroyed before it can be eaten
 
@@ -296,3 +304,122 @@ Per the packet and per CLAUDE.md governance:
 - The observability work is committed **separately** from any eventual
   behavioural fix, as instructed.
 - Nothing is certified. Nothing is merged. **No independent reviewer ran.**
+
+---
+
+## §7 SOURCE-LEVEL REVIEW (E) — NONLINEAR INTERACTIONS
+
+A read-only review hunted for interactions that dimensional analysis cannot see.
+**Every claim recorded below was re-verified by me directly against source before
+being written here** (ADR-015 §6: a finding is not actionable on a finder's word).
+Claims I did not independently confirm are not in this section.
+
+### 7.1 CANDIDATE IMPLEMENTATION DEFECT — the capacity guard tests the wrong quantity
+
+`ConsumptionSystem.cs:284-296`:
+
+```csharp
+if (cfg.GranaryYearsOfDemand > 0.0 && annualGrainDemand > 0.0)
+{
+    long capacity = ConservedMath.WholeUnits(
+        cfg.GranaryYearsOfDemand * annualGrainDemand, ...);
+    long over = row.Amount.Value - capacity;
+    if (over > 0) { ...GranaryOverflow, ClampToAvailable... }
+}
+```
+
+**The guard tests `annualGrainDemand > 0`, never `capacity > 0`.** And
+`ConservedMath.WholeUnits` **floors** — `return (long)Math.Floor(exact);`
+(`ConservedMath.cs:53`). So when `1.5 × annualGrainDemand < 1.0`, capacity is
+**0**, `over` becomes the whole stock, and **the settlement's entire grain store
+is destroyed as `GranaryOverflow` in one turn.**
+
+Reachability, computed from shipped data (`needs.json` grain lines
+`perPersonYear` 0.9 and 0.78; `sim.json` cohort weights 0.6–1.0):
+capacity is 0 whenever cohort-weighted demand < 0.667 person-year-equivalents.
+One person of class 2 in a child cohort gives `0.78 × 0.6 = 0.468`, so
+`floor(1.5 × 0.468) = floor(0.702) = 0` — **the whole store goes.**
+
+**The asymmetry is the tell:** a settlement at *exactly zero* population has
+`annualGrainDemand == 0`, fails the guard, and keeps its grain indefinitely
+(spoiling only); a settlement down to its *last person* is stripped completely.
+A nearly-dead settlement is treated more harshly than a dead one.
+
+This is **a distinct question from the CR-004 design conflict** and is a
+candidate for classification **F (implementation defect)**. Whether it is
+reachable in canonical worlds is an empirical question — canonical settlements
+hold hundreds of people, so capacity there is in the hundreds and this branch is
+never taken. **Not fixed, per instruction. Reported only.**
+
+### 7.2 DOCUMENTATION DEFECT IN A RATIFIED HEADER
+
+`ConsumptionSystem.cs:253` states: *"`WholeUnits` rounds, so a store small enough
+that its annual spoilage is under half a unit does not spoil at all."*
+**`WholeUnits` floors** (`ConservedMath.cs:53`). The threshold is therefore one
+whole unit, not half, and the bias direction differs from the one documented:
+capacity floors **down** (destroying more), spoilage floors **down** (destroying
+less). T4.2's own header misdescribes its own arithmetic.
+
+### 7.3 CONFIRMED — every grain-stock reader sees a POST-DESTRUCTION number
+
+`TurnExecutor.cs:96` clones Prev once; every system reads that fully-committed
+state. Because `BoundStore` is the last thing consumption does to the grain row,
+**every `prev.GoodStocks[...].Amount` read anywhere in the pipeline is
+post-Eaten, post-Spoilage, post-GranaryOverflow.**
+
+The sharpest consequence is in migration (`MigrationSystem.cs:141`, `:154-155`):
+
+```csharp
+resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * arableKm2;
+instant[s]   = resources[s] / Math.Max(pop, 1);
+```
+
+At steady state the store is pinned at capacity, which is proportional to
+population, so the **food half of `instant` degenerates to a constant** and stops
+discriminating between well-fed and badly-fed settlements. Only the land term
+carries information.
+
+### 7.4 IMPORTANT NEGATIVE — mortality is NOT contaminated by the cap
+
+`DemographicsSystem.cs:128-132` reads **only**
+`prev.ConsumptionDeficits[...].DeficitRatio` — a flow ratio computed from the
+nutritional requirement, never the grain stock. **Starvation is therefore driven
+by what people failed to eat, not by the capped store.** The cap does not
+directly drive deaths. This matters: it rules out the most alarming version of
+the anomaly.
+
+### 7.5 CONFIRMED — capacity depends on the LIVESTOCK AND FISH supply
+
+`ConsumptionSystem.cs:201-202` passes
+`annualGrainDemand: (exactDemand[grain] + nonStapleShortfall) / dt`.
+`nonStapleShortfall` is the unmet demand for the *other* food goods
+(`ConsumptionSystem.cs:165`). So a settlement whose fishery fails gets a
+**larger** grain granary, and one whose fishery recovers gets its granary
+**shrunk with the difference destroyed as overflow.** A cross-good coupling that
+no header describes.
+
+### 7.6 THE FEEDBACK LOOP, WITH ITS SIGN AND ITS LAG
+
+population(N−1) → grain demand(N) (`ConsumptionSystem.cs:132`, `:140`)
+→ capacity(N) (`:201`, `:286`) → overflow sink(N) (`:289-295`)
+→ smaller carry-in(N+1) → deficit(N+1) (`:185-187`)
+→ starvation (`DemographicsSystem.cs:139`, `:207`) → smaller population.
+
+**Sign: positive (amplifying) on the downswing** — a shrinking settlement is
+permitted a shrinking buffer. **But it carries two turns of lag**: consumption
+reads `prev.Buckets`, and population is mutated only later in the pipeline
+(migration slot 10, demographics slot 11, against consumption at slot 5), so
+capacity cannot shrink in the *same* turn a population falls. It shrinks the
+turn after. The procyclical chain is therefore **real but lagged, not
+instantaneous** — which is weaker than §4.4 of this document originally implied.
+
+### 7.7 NOT FOUND, stated plainly
+
+- No grain consumer is sequenced after `BoundStore` — appropriation is pipeline
+  slot 4, before consumption at slot 5, so raided grain is edible the same turn.
+- No same-turn population change ahead of the capacity computation (see 7.6).
+- No dt-boundary defect in `ConsumeRemainder`/`ProduceRemainder` (sub-unit
+  fractions, not rates), in the harvest AR(1) state (stationary at σ² for every
+  dt), or in migration's smoothing window (denominated in years).
+- **No units bug anywhere.** This is the third independent pass to reach that
+  conclusion.
