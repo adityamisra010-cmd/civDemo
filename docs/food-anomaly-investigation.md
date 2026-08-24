@@ -227,8 +227,57 @@ Against the packet's buckets, the anomaly is **not** a logging artefact alone an
   site**, both unreachable when `observer` is null — which is every canonical,
   golden, CLI, replay and UI path.
 
-**Goldens and the full suite have not yet been re-run on this worktree; that
-measurement is owed before any hand-back and is not claimed here.**
+### 5.1 ATTRIBUTION — branch vs `main`, both suites run to completion
+
+Both suites were run to completion, **sequentially against the same starting
+commit** (`main` `87fb866`), one per worktree.
+
+| | total | passed | **failed** | skipped |
+|---|---|---|---|---|
+| `main` `87fb866` | 497 | 484 | **7** | 6 |
+| `food-anomaly-observability` | 498 | 485 | **7** | 6 |
+| delta | **+1** | **+1** | **0** | **0** |
+
+The `+1` is `FoodAccountingReconcilesEveryTurn_AndTheAnomalyWindowIsDumped`.
+**The failing set is identical, test for test:**
+`ClassSystemTests.Artisans_EmergeInFedAutoplay_PlateauAtTheCap_DocumentedWindow`,
+`ClassSystemTests.Famine_DrainsArtisansBeforePeasantStarvationPeaks`,
+`PopulationTests.ProductionPipeline_PerPhaseBench_Reported`,
+`CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 1, 2)`,
+`CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7, 42)`.
+All seven are pre-existing certified quarantine reds. **No test was altered,
+weakened, re-banded or deleted, and no quarantine status was touched.**
+
+**Attribution was not settled on pass/fail parity — the calibration NUMBERS were
+compared.** Extracting every assertion message from both runs and diffing them:
+
+```
+canonical.densityPerArableKm2: 0.479659 has fallen below the recorded deviation window ...
+canonical.densityPerArableKm2: 0.564256 has fallen below the recorded deviation window ...
+seed 42: 6 starvation deaths — the dev world is no longer pre-Malthusian ...
+seed  7: 2 starvation deaths — the dev world is no longer pre-Malthusian ...
+CR-003 QUARANTINE RESOLVED — "the artisan share drained post-boom (min 0.032)" ...
+```
+
+**Identical to six significant figures in both runs.** The only differences
+anywhere in the two logs are wall-clock timings, worktree paths, and .NET
+reflection stub names — none of which are simulation state. The instrumentation
+branch is therefore **numerically inert**, not merely pass/fail-neutral.
+
+### 5.2 INTEGRITY — the whole production diff
+
+```
+ Sim.Core/Kernel/FoodAudit.cs      | 180 +++++   (new; referenced by NO production code)
+ Sim.Core/Kernel/TurnExecutor.cs   |  17 +       (one default method + one call site)
+```
+
+`git diff --name-only 87fb866 -- Sim.Data/ .github/ '*golden*' '*.json'` is
+**empty**: no data file, no CI file, no golden, no TUNE value, no band, no
+quarantine, no frozen document was changed. The `TurnExecutor` call site sits
+inside the `Observe` local function, which returns immediately when `observer is
+null` — every canonical, golden, CLI, replay and UI path. Gates:
+`check-banned-constructs` **OK**, `check-read-isolation` **OK**,
+`check-readonly-proof` **OK**.
 
 ---
 
