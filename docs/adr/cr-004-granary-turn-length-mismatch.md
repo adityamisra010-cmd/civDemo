@@ -65,14 +65,37 @@ exhaust — the first bad turn already finds the granary holding a sixth of a
 turn's food. The reported turn-47/48/49 flicker is this, at a settlement count
 low enough that no cross-settlement averaging hides it.
 
+## §2A CORRECTION — A WITHDRAWN RECOMMENDATION (recorded, not erased)
+
+**The earlier recommendation to denominate granary capacity in TURNS was WRONG
+and is WITHDRAWN. Capacity is correctly denominated in YEARS.**
+
+What was originally hypothesised: that the granary is "dimensionally too small
+for the turn it must bridge", and that Option A — recasting capacity as
+`granaryTurnsOfDemand × turnDemand` — was the fix.
+
+What falsified it: the era table does not hold dt at 10. It steps dt down
+10 → 5 → 3 → 2 → 1 → 0.5 across the campaign, so capacity ÷ turn-consumption is
+`1.5/dt` **turns**:
+
+| dt (years/turn) | 10 | 5 | 3 | 2 | 1 | 0.5 |
+|---|---|---|---|---|---|---|
+| capacity in TURNS of consumption | 0.15 | 0.30 | 0.50 | 0.75 | **1.50** | **3.00** |
+
+Denominating storage in turns would give Neolithic granaries holding **15 years**
+of grain — for which no reference class exists — and Modern granaries holding
+half a year, inverting the physical intent of T4.2's derivation. The years
+denomination is the correct one, and `1.5/dt` is a *framing* of a fixed physical
+store, not evidence of a behavioural defect on its own.
+
+**What survives the correction:** the conflict in §1 is real, but it is located
+at the TURN LENGTH and its interaction with sub-turn processes, not at the
+granary constant. **Do not silently restore the withdrawn recommendation.**
+
 ## §3 OPTIONS (≤3, minimal, NOT recommendations to implement without a ruling)
 
-**Option A — denominate the granary in turns, not years.**
-Capacity becomes `granaryTurnsOfDemand × turnDemand`. Restores (2)'s premise
-directly: a store that survives one bad *turn* is what a decade-resolution sim
-needs. Blast radius: one expression in `BoundStore`; all goldens move; T4.2's
-manifest reference class must be re-derived, since "1.5 years" was the derived
-figure and "1.5 turns" is not the same claim.
+**Option A — WITHDRAWN, see §2A.** Retained here only so the record shows what
+was rejected and why. It must not be reinstated without new evidence.
 
 **Option B — leave the cap and accept that storage is not a buffer at this
 resolution**, recording it as an explicit modelling limit and removing the "stores
@@ -85,21 +108,44 @@ peak historical demand rather than current demand, so a population crash does no
 destroy the surplus in the same turn. Addresses E4 but not E1/E2 — the buffer is
 still too small for the turn — and it adds serialized per-settlement state.
 
+**Option D — reduce dt in the coarse bands so the timestep can resolve the
+processes the design depends on** (dt ≤ tau = 3 years, i.e. the Neolithic band's
+10 stops being 3.3× the AR(1) correlation time). This is the only option that
+addresses the located cause rather than a symptom. Blast radius is the largest of
+all: turn counts explode, era pacing is a frozen item, every golden re-pins, and
+the 6,000-year campaign length is a Spine commitment.
+
 ## §4 BLAST RADIUS
 
-All four goldens re-pin under A and C (grain stock enters the world hash every
+All four goldens re-pin under C and D (grain stock enters the world hash every
 turn). Migration's food-attractiveness term and its famine-flight term read grain
 stock and `LastProducedUnits`, so T4.2's migration corridor and the calibration
 bands that depend on it would need re-measurement — the granary cap was already
 measured as the dominant term in that corridor. Prices read stock through
 `MarketScale`. Option B moves nothing.
 
-## §5 RECOMMENDATION
+## §5 RECOMMENDATION — DEFERRED PENDING THE OUTSTANDING EXPERIMENT
 
-**Option A, with the T4.2 reference class re-derived rather than rescaled** — the
-conflict is a units error, and A is the only option that fixes the units. But
-this is a ruling for the director, not a call for an agent: A re-pins every golden
-and disturbs a calibration corridor, and B is a legitimate choice if the director
-would rather accept the limit than pay that cost.
+**No option is recommended yet, and Option A is withdrawn (§2A).**
+
+The dimensional analysis is clean: every rate is per-year, every dt conversion is
+correct, and spoilage, `rho` and capacity are each independently dt-invariant.
+**There is no units error** — the earlier claim of one is retracted. That leaves
+the open question narrow and testable:
+
+> Does changing temporal resolution ALONE change the qualitative food-storage
+> behaviour, when compared on a per-sim-year basis?
+
+A controlled experiment holding all annual parameters fixed and varying only dt
+across {10, 5, 3, 2, 1, 0.5} is the discriminator. **Until it reports:**
+
+- if per-year behaviour is invariant and only the per-turn framing moves, the
+  temporal-resolution hypothesis is **killed**, this CR reduces to Option B
+  (a documentation reconciliation of (2)'s premise), and the classification is
+  **emergent behaviour consistent with the ratified model**;
+- if per-year behaviour genuinely changes with dt, the classification is a
+  **temporal discretization interaction**, and the choice is between B and D.
+
+**No option is implemented. Awaiting the experiment, then a ruling.**
 
 **No option is implemented. Awaiting ruling.**
