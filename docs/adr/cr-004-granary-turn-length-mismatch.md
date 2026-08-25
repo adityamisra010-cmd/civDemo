@@ -1,6 +1,46 @@
 # CR-004 — THE GRANARY CAP AND THE TURN LENGTH ARE DENOMINATED IN DIFFERENT UNITS
 
-**Status: OPEN — awaiting director ruling. No code change proposed or applied.**
+**Status: WITHDRAWN BY ITS OWN EVIDENCE. No code change proposed or applied.**
+**Retained in full, not deleted — the record of a falsified hypothesis is the
+point.** See §0 first; §1–§4 below are the ORIGINAL text and its premise no
+longer holds.
+
+## §0 WITHDRAWAL — THE CENTRAL CONFLICT IS FALSIFIED
+
+This CR asserted (§1) a conflict between CR-003 ruling 3's stated premise —
+*"stores that survive one bad year"* — and T4.2's granary cap, on the evidence
+(§2 E1) that a full granary covers only 15% of one turn's consumption.
+
+**That comparison was invalid.** It measured a **years-denominated store**
+against a **turn-denominated consumption** — the same category error that
+produced the already-withdrawn Option A (§2A). Measured in the unit the premise
+actually uses, over 300 sim-years at every dt, three seeds:
+
+| dt | 10 | 5 | 3 | 2 | 1 | 0.5 |
+|---|---|---|---|---|---|---|
+| store in **YEARS** of consumption | **1.634** | 1.659 | 1.664 | 1.666 | 1.656 | 1.664 |
+
+Independently confirmed from the seed-42 turn table: 6,098 held against an
+annual consumption of 4,109 = **1.484 years**.
+
+**The store holds ~1.6 years. It survives one bad year. The premise is met and
+there is no conflict between the two frozen items.** E1's "15%" was arithmetically
+correct and analytically meaningless.
+
+**What survives as fact, and is NOT a defect:** the store is pinned at the
+granary ceiling on 4,800 of 4,800 measured turns, and ~55% of every harvest is
+destroyed by spoilage plus overflow at *every* dt (composition shifts from
+spoilage-dominated at dt=10 to overflow-dominated at dt=0.5; the total does not).
+That is what a bounded store does when production outruns storage.
+
+**What replaces this CR:** nothing at the design level. Two smaller items, both
+recorded in `docs/food-anomaly-investigation.md` §7 and neither fixed:
+a candidate **implementation defect** (the granary guard tests
+`annualGrainDemand > 0` but never `capacity > 0`, so a floored capacity of 0
+destroys an entire store — `ConsumptionSystem.cs:284`), and a **documentation
+defect** (`ConsumptionSystem.cs:253` says `WholeUnits` rounds; it floors).
+
+**Do not reinstate this CR's conflict claim, and do not reinstate Option A.**
 Raised from the food-anomaly investigation; full measurement in
 `docs/food-anomaly-investigation.md`. Worktree pinned to `main` `87fb866`.
 
