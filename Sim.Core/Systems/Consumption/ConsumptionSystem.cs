@@ -250,11 +250,37 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
     /// in the open.
     ///
     /// SUB-UNIT PRECISION, stated rather than hidden: neither loss banks a
-    /// remainder. `WholeUnits` rounds, so a store small enough that its annual
-    /// spoilage is under half a unit does not spoil at all. That is a deliberate
+    /// remainder. `WholeUnits` FLOORS (`ConservedMath.cs` — "by floor, the D-004
+    /// remainder convention"), so a store small enough that its annual spoilage
+    /// is under ONE WHOLE UNIT does not spoil at all. That is a deliberate
     /// simplification of the base layer — a remainder field would change the
     /// serialized row shape, which is out of this packet's fence — and its only
-    /// effect is at stores of order 1/(2*rate*dt) units, i.e. single digits.
+    /// effect is at stores of order 1/(rate*dt) units, i.e. single digits.
+    ///
+    /// (This paragraph previously said `WholeUnits` "rounds" and put the
+    /// threshold at half a unit. It floors. The correction is stated rather than
+    /// silently applied because the flooring direction is load-bearing below.)
+    ///
+    /// WHY THE CAPACITY CEILING IS ENFORCED ONLY WHEN IT IS REPRESENTABLE.
+    /// `WholeUnits` converts a FLOW, under a remainder convention that banks the
+    /// fraction elsewhere. A capacity is not a flow — it is a THRESHOLD, and it
+    /// has no remainder bank, so flooring biases it downward with nothing to
+    /// carry the loss. At a demand small enough that
+    /// `GranaryYearsOfDemand × annualGrainDemand < 1`, the floor collapses a
+    /// genuinely POSITIVE capacity to zero, `over` becomes the whole store, and
+    /// the settlement's entire grain holding is destroyed as overflow in one
+    /// turn — while a settlement at literally zero demand is skipped by the
+    /// guard and keeps its grain indefinitely. A settlement down to its last
+    /// person was thus treated more harshly than a dead one, which is not a
+    /// physical rule anyone chose.
+    ///
+    /// The ceiling is therefore enforced only when it is representable as a
+    /// positive whole number of units. Below that the ceiling is not enforced —
+    /// exactly the stance this code already takes when there is no demand at all
+    /// to size a granary from. No constant, parameter or rule is introduced: the
+    /// sub-unit case simply joins the no-basis case that was already shipped.
+    /// Wherever capacity ≥ 1 — every settlement in every canonical world — this
+    /// changes nothing, which is why no golden moves.
     /// </summary>
     private static void BoundStore(
         SimContext<ConsumptionTables> ctx, Table<GoodStockRow> stores,
@@ -287,7 +313,10 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
                 cfg.GranaryYearsOfDemand * annualGrainDemand,
                 $"granary capacity (settlement {settlement.Value})");
             long over = row.Amount.Value - capacity;
-            if (over > 0)
+            // `capacity > 0`: a ceiling that floors to zero is not representable
+            // and is not enforced (see the header). Without this, `over` is the
+            // ENTIRE store and the whole holding is destroyed.
+            if (capacity > 0 && over > 0)
             {
                 ctx.Ledger.Flow(
                     ref row.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.GranaryOverflow,
