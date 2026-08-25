@@ -423,3 +423,205 @@ instantaneous** — which is weaker than §4.4 of this document originally impli
   dt), or in migration's smoothing window (denominated in years).
 - **No units bug anywhere.** This is the third independent pass to reach that
   conclusion.
+
+---
+
+## §8 THE 40-SEED EXACT-ZERO SWEEP (B) — THE REPORTED STATE IS NOT REPRODUCIBLE
+
+Seeds 1–40 × 120 turns = **4,800 turn-events**. Grain is a `long`; zero means
+exactly 0 and **no epsilon is used anywhere**. Raw data:
+`docs/food-evidence-40seed-sweep.md`.
+
+| measurement | value |
+|---|---|
+| seeds with aggregate grain exactly 0 while population > 0 | **0 / 40** |
+| turn-events with aggregate grain exactly 0 and pop > 0 | **0 / 4800** |
+| turns with zero population (a different fact, counted apart) | **0** |
+| global minimum aggregate grain | **2602** (seed 24, turn 11) |
+| conservation failures | **0 / 4800** |
+
+**The reported symptom — aggregate food exactly 0 at one turn with positive
+population — does not occur in any canonical world in 4,800 measured turns.**
+
+### 8.1 The five outcomes, kept distinct as required
+
+- **(a) zero grain with positive population — 0 at the aggregate**, but it *does*
+  occur **per settlement**: 87 turn-events had at least one of 12 settlements at
+  exactly 0 (max 7, seed 16). Every settlement had a grain row at all times, so
+  "no row" never masqueraded as "zero".
+- **(b) zero population — 0 occurrences.** End populations 6,131–10,969.
+- **(c) merely low grain** — the minimum, 2602, against a same-turn consumption
+  of 19,906: about 13% of one turn's eating. Low, but never zero.
+- **(d) low harvest (harvest < eating) — 40 of 4800 turns**, and in every seed it
+  is **turn 1 only**, the founding turn. From turn 2 on, harvest exceeded
+  consumption on every turn of every seed.
+- **(e) capacity-limited — 4800 of 4800.** Granary overflow was strictly positive
+  on **every turn of every seed**. The store is **not scarcity-limited at any
+  point**; it is pinned against the granary ceiling on literally every measured
+  turn.
+
+**(e) is the finding.** The world is storage-limited, not food-limited.
+
+## §9 THE CONTROLLED dt EXPERIMENT (C) — THE TEMPORAL-RESOLUTION HYPOTHESIS IS LARGELY KILLED
+
+300 sim-years at **identical sim-year horizon** for every dt, seeds 42/7/13,
+only dt varied. Conservation residual exactly 0 at every dt. Raw data:
+`docs/food-evidence-dt-experiment.md`.
+
+**Spoilage is exactly dt-invariant, proven arithmetically:** `survival^(1/dt)` =
+`0.923116346387` at every dt ∈ {10, 5, 3, 2, 1, 0.5}, matching `exp(−0.08)` to
+twelve digits. **Spoilage is not a bug.**
+
+| dt | 10 | 5 | 3 | 2 | 1 | 0.5 |
+|---|---|---|---|---|---|---|
+| store in **YEARS** of consumption | 1.634 | 1.659 | 1.664 | 1.666 | 1.656 | 1.664 |
+| store in **turns** of consumption | 0.163 | 0.332 | 0.555 | 0.833 | 1.656 | 3.328 |
+| destroyed ÷ harvest (per turn) | 0.546 | 0.553 | 0.550 | 0.557 | 0.562 | 0.555 |
+| **population at year 300** | **5116** | **5122** | **5141** | **5152** | **5165** | **5151** |
+| grain stock at year 300 | 5584 | 5671 | 5699 | 5709 | 5693 | — |
+| deficit events per settlement-**year** | 0.00074 | 0.00028 | **0** | **0** | **0** | **0** |
+| exact-zero turns | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**Answer to "does changing dt alone change qualitative food-storage behaviour?"
+— essentially NO.** Store in years, grain stock at equal sim-years, destroyed
+fraction of harvest, and **population trajectory (1% spread)** are all
+dt-invariant. The store-in-turns row is the mechanical `1.5/dt` framing and
+carries no behavioural content.
+
+**The one genuinely dt-sensitive quantity is deficit incidence**, which falls
+from 0.00074 per settlement-year at dt=10 to 0 at dt ≤ 3. That is a real
+discretization effect — at dt=10 one weather draw governs a decade, so a bad
+draw records a decade-long shortfall as one event — but **it does not propagate
+to population**, which is invariant. It is a rare-event count (4/360, 1/360,
+3/360 at dt=10), not a change in the storage regime.
+
+> **CORRECTION — I reported the opposite from a pilot run, and it was wrong.**
+> A 50-sim-year pilot showed population 4472 at dt=10 rising to 5300 at dt=0.5
+> (+18.5%) and I reported that as a material dt-sensitivity. **The 300-year run
+> refutes it**: 5116 → 5151, a 1% spread with no monotone trend. 50 sim-years is
+> only **5 turns** at dt=10, far too short to support a population claim. The
+> earlier figure was a short-horizon artefact and is withdrawn.
+
+**Refining dt would not rescue the buffer**: the destroyed fraction of harvest is
+~0.55 at *every* dt. Only its composition shifts — spoilage-dominated at dt=10
+(739,454 vs 457,123 overflow), overflow-dominated at dt=0.5 (159,917 vs
+1,051,357). The grain is destroyed either way.
+
+## §10 PROPAGATION TRACE (D) — WHERE THE OUTCOME BECOMES INEVITABLE
+
+Intra-turn phase attribution, identical in all nine traced turns (seed 24, t11):
+
+```
+clone            2843
+production      37918   delta +35075   <-- the ONLY inflow
+appropriation   37918   delta 0        <-- pure internal transfer, confirmed
+consumption      2602   delta -35316   <-- eaten + spoilage + overflow at once
+price..pathbuild 2602   delta 0        <-- eight phases, grain bit-identical
+```
+
+**Two phases move grain; eleven do not.** The low-food outcome is **created in
+`production` and realised in `consumption`, within the same turn** — not carried
+in from the previous turn. What distinguishes a low turn is *only* the harvest:
+
+| seed | turn | harvest before → at → after | eating (near-flat) | end stock |
+|---|---|---|---|---|
+| 42 | 8 | 59,261 → **52,929** → 65,060 | 30,185 / 30,433 / 30,610 | 4501 → **4354** → 4586 |
+| 24 | 11 | 40,376 → **35,075** → 41,886 | 19,841 / 19,906 / 20,061 | 2843 → **2602** → 3004 |
+| 16 | 25 | 101,255 → **51,566** → 77,706 | 34,692 / 33,784 / 35,244 | 5199 → **3159** → 5281 |
+
+The previous turn's stock is nearly irrelevant — it contributes 2,843 units to a
+turn whose throughput is 35,075. **The carry-over conveys no information from a
+good turn into a bad one**, because the store ends at ~99.9% of the ceiling
+regardless of how large the preceding harvest was (seed 16 turn 24 harvested
+101,255 and destroyed 39,362 to spoilage plus 26,933 to overflow, ending at
+0.9991 of capacity).
+
+**Why it never reaches exactly zero:** even on the worst traced turn, harvest
+(51,566) exceeded eating (33,784) by 1.53×.
+
+### 10.1 The procyclical chain, measured
+
+| | P(next-turn capacity falls \| population fell) | baseline P(… \| population rose) |
+|---|---|---|
+| pooled, 3 seeds | **11/11 = 1.0000** | **0/342 = 0.0000** |
+
+The **demand → capacity** link is confirmed exactly, with no exception in 353
+pairs. **But two honest limits:** the antecedent is rare (11 events in 354
+turns — these worlds grow almost monotonically), and the chain's *final* link,
+"buffer weakens", is **not supported**: the buffer is already saturated
+(overflow positive on 100% of turns), so no additional weakening is observable.
+In seed 16 the observed direction is **food → population** (the −113 fall at
+turn 26 *follows* the low-food turn 25), not population → food.
+
+---
+
+## §11 FINAL CLASSIFICATION — AND A CORRECTION THAT FALSIFIES §4.4
+
+### 11.1 THE CORRECTION: CR-004's CENTRAL CONFLICT IS FALSIFIED
+
+**§4.4 of this document claimed a conflict between two frozen items** — that
+CR-003 ruling 3 requires "stores that survive one bad year" while T4.2's cap
+delivers "0.15 of one turn". **That claim is WRONG and is withdrawn.**
+
+It compared a **years-denominated store** against a **turn-denominated
+consumption** — the identical category error that produced the already-withdrawn
+"denominate the granary in turns" recommendation. Measured in the unit the
+premise actually uses:
+
+| dt | 10 | 5 | 3 | 2 | 1 | 0.5 |
+|---|---|---|---|---|---|---|
+| store in **YEARS** of consumption | **1.634** | 1.659 | 1.664 | 1.666 | 1.656 | 1.664 |
+
+Independently confirmed from the seed-42 per-turn table in §3: turn 48 holds
+6,098 against an annual consumption of 41,091/10 = 4,109, i.e. **1.484 years**.
+
+**The store survives one bad year — it holds roughly 1.6 of them, at every dt.
+The design premise is SATISFIED, not violated. There is no conflict between
+CR-003 ruling 3 and T4.2's granary cap.** CR-004's §1 is therefore falsified and
+the CR is withdrawn on its stated grounds (see the CR itself, which records this
+rather than deleting it).
+
+What survives from §4.2–4.3 is descriptive and remains true: the store is pinned
+at the granary ceiling on **4,800 of 4,800** measured turns, and ~55% of every
+harvest is destroyed by spoilage plus overflow at **every** dt. But "the buffer
+holds 1.6 years and production routinely exceeds what 1.6 years can hold" is
+**not a defect** — it is what a bounded store does when production outruns
+storage. It required measurement to tell those apart, and the measurement went
+against my earlier reading.
+
+### 11.2 CLASSIFICATION AGAINST THE REQUIRED CATEGORIES
+
+| # | category | verdict |
+|---|---|---|
+| A | Accounting bug | **NO** — 5,160 turn-accounts, residual exactly 0, no epsilon |
+| B | Dimensional/unit bug | **NO** — four independent passes; every rate per-year, every dt conversion correct |
+| C | Temporal discretization interaction | **MARGINAL** — only deficit incidence is dt-sensitive (0.00074 → 0 per settlement-year); store, stock, destroyed fraction and **population are all dt-invariant** |
+| D | Emergent behaviour consistent with the ratified model | **YES — this is the primary verdict** for the observed food dynamics |
+| E | Ratified design conflict | **NO — falsified in §11.1** |
+| F | Genuine implementation bug | **YES, one, unrelated to the reported symptom** — §7.1, the capacity guard |
+| G | Still unresolved | **YES, for the REPORTED OBSERVATION itself** — 0/4800, not reproduced |
+
+### 11.3 WHAT IS PROVEN
+
+1. Grain accounting closes exactly — 5,160 turn-accounts, residual 0, `long`, no epsilon.
+2. The reported state (aggregate grain exactly 0, population > 0) **does not occur** in 4,800 canonical turn-events. Global minimum 2,602.
+3. The world is **storage-limited, never food-limited**: overflow positive on 4,800/4,800 turns; harvest exceeded eating on 4,760/4,800 (the 40 exceptions are each seed's founding turn).
+4. Spoilage is exactly dt-invariant (`survival^(1/dt)` = 0.923116346387 at every dt) — **not a bug**.
+5. The store holds **~1.6 years** of consumption at every dt — the design premise is met.
+6. Low-food turns are created in `production` and realised in `consumption`, within one turn; eleven of thirteen phases move no grain.
+7. The demand → capacity link is exact (11/11, baseline 0/342), but its downstream "buffer weakens" link is **not** supported — the buffer is already saturated.
+8. **One implementation defect** (§7.1) and **one documentation defect** (§7.2), both reported, neither fixed.
+
+### 11.4 WHAT IS NOT PROVEN / REMAINS UNCERTAIN
+
+1. **The origin of the reported turn-47/48/49 observation is unknown.** It is not reproducible in any canonical world. Candidate explanations, none confirmed: a world with far fewer settlements (no cross-settlement averaging); a different aggregate than `ReplayReport.totalFood`; or the §7.1 capacity-floor defect in a settlement down to its last person. **Resolving it requires the seed, settlement count and log source of the original run.**
+2. Whether the §7.1 defect is reachable in any *played* world — it is unreachable in canonical ones (capacity there is in the hundreds).
+3. Whether ~55% harvest destruction is the intended equilibrium. It is consistent with the mechanisms as ratified, but no ratified document states a target.
+4. The dt-sensitivity of deficit incidence rests on rare events (4/360, 1/360, 3/360 at dt=10).
+
+### 11.5 RECOMMENDED NEXT ACTION
+
+1. **Obtain the original run's seed, settlement count and log source.** Without it the reported anomaly cannot be closed, and every canonical measurement says it did not happen.
+2. **Director ruling on the §7.1 capacity guard** — a one-line guard change (`capacity > 0`) is the candidate remedy, but it is a production equation and is out of an investigating agent's authority.
+3. **Correct the `ConsumptionSystem.cs:253` header** ("rounds" → "floors") — documentation only.
+4. **No change to the granary constant, the spoilage rate, dt, harvest variance, any band or any golden is warranted by this evidence.**
