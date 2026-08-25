@@ -1156,3 +1156,13 @@
   in `docs/adr/cr-005-m5-research-technology-institutions-placement.md`; scope is recorded in
   `docs/m5-research-technology-institutions-placeholder.md`. **Awaiting director ruling — this is
   NOT parked to the M10 slice gate.**
+
+- **M5 temporal control / player agency — CR-006 OPEN, not a queue item.**
+  Pointer only. The agreed model (continuous simulation under turn-shaped player control,
+  projections, policies, calculated hand-backs, player triggers) is recorded in
+  `docs/m5-temporal-control-and-player-agency-placeholder.md`. It raises TWO conflicts with
+  frozen material, both in `docs/adr/cr-006-continuous-time-and-campaign-epoch.md`: mid-turn
+  hand-backs vs the atomic turn of kernel contract §3.2-3.4, and a 10,000 BCE epoch vs ADR-002
+  (4000 BCE = day 0) and CLAUDE.md's "spanning 6,000 years". **Awaiting director ruling — NOT
+  parked to the M10 slice gate.** Variable turn duration by era is ALREADY SATISFIED by
+  `EraTable` and needs no change.
