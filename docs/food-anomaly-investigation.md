@@ -625,3 +625,99 @@ against my earlier reading.
 2. **Director ruling on the §7.1 capacity guard** — a one-line guard change (`capacity > 0`) is the candidate remedy, but it is a production equation and is out of an investigating agent's authority.
 3. **Correct the `ConsumptionSystem.cs:253` header** ("rounds" → "floors") — documentation only.
 4. **No change to the granary constant, the spoilage rate, dt, harvest variance, any band or any golden is warranted by this evidence.**
+
+---
+
+## §12 THE CAPACITY-FLOOR FIX — IMPLEMENTED, AND A GOLDEN MOVED
+
+**STATUS: STOPPED AT THE GOLDEN BOUNDARY. `DrivenGolden_Seed42Turn300` moved.
+Nothing repinned. Director ruling required.**
+
+### 12.1 Root cause, exactly
+
+`BoundStore` sized the ceiling with `ConservedMath.WholeUnits`, which **floors** —
+it is the D-004 converter for a **FLOW**, under a remainder convention that banks
+the fraction elsewhere. A capacity is a **THRESHOLD** with no remainder bank, so
+flooring biases it down with nothing carrying the loss. At
+`1.5 × annualGrainDemand < 1` a genuinely positive capacity became `0`, `over`
+became the entire store, and every unit held was destroyed in one turn.
+
+The tell was the asymmetry: a settlement at **literally zero** demand fails the
+`annualGrainDemand > 0` guard and keeps its grain forever, while a settlement
+down to its **last few people** was stripped bare.
+
+### 12.2 The chosen invariant, and why not the alternative
+
+**Invariant:** the ceiling is enforced only when representable as a positive
+whole number of units; below that it is not enforced — the same stance already
+shipped for the no-basis case.
+
+**Implementation (one condition):** `if (over > 0)` → `if (capacity > 0 && over > 0)`.
+
+`Math.Max(1, capacity)` was **considered and rejected**: it introduces a literal
+one-unit storage floor, which is both a new constant and a new physical rule
+("every settlement can store at least one unit") — both outside the fence.
+
+### 12.3 Reachability — measured, not assumed
+
+| world | capacity floors to 0 with stock? | evidence |
+|---|---|---|
+| canonical **founded** (seed 42, 300 turns) | **NO** | `FoundedGolden` hash **unchanged** |
+| canonical founded, 40 seeds × 120 turns | **NO** | min settlement populations in the thousands |
+| **FirstReign** | **NO** | both FirstReign tests pass unchanged |
+| calibration (canonical + dev) | **NO** | 4 failed / 2 passed **both** sides, same four tests |
+| **order-DRIVEN world** | **YES — 3 turns of 300** | turns 154, 223, 241 |
+
+**It is reachable only where settlements are tiny.** In the driven world the
+responsible settlements held **3–6 people**.
+
+### 12.4 Attribution of the golden movement — textbook, and it is the defect
+
+Two bounded workers (fix ON / fix OFF), same driven world, per-turn hash:
+
+| turn | capacity 0? | stock there? | hash old | hash new | total grain old → new |
+|---|---|---|---|---|---|
+| 152 | **yes** | **no** (already 0) | `4cea9af9f980` | `4cea9af9f980` | 162 → 162 |
+| 153 | no | — | `bc5ddfc6652e` | `bc5ddfc6652e` | 159 → 159 |
+| **154** | **yes** | **YES** | `02ddb1b264f3` | `94afa40a0eac` | **127 → 136** |
+
+**Turn 152 is the control**: capacity floored to zero there too, but the store was
+already empty, so there was nothing to destroy — and the hashes are **identical**.
+The very next time capacity floors to zero *with grain present*, the hashes
+diverge. The behavioural change is **9 grain units** in a world holding ~130,
+belonging to a **4-person** settlement, recurring at turns 223 and 241.
+
+**The movement is attributable solely to this defect.** The driven golden was
+encoding the destruction of a tiny settlement's entire granary.
+
+Final hash: `aae82e38…` → `414a32f4…`.
+
+### 12.5 Verification
+
+- Focused tests: **7/7 pass** (`GranaryCapacityFloorTests`).
+- **Mutation test — teeth AND aim (ADR-015 §7.2):** reverting the fix fails
+  **exactly one** test, `PositiveCapacityBelowOneUnit_DoesNotDestroyTheStore`,
+  while capacity-is-enforced and canonical-scale still pass. Neither vacuous nor
+  over-broad.
+- Golden controls: **49/50**, the single failure being the driven golden above.
+  `FoundedGolden`, `FirstReign` ×2, `GoldenHash`, `CiPinAgreement`, all
+  `SnapshotTests`, all `EquilibriumInvariantTests`, all `PopulationExactnessTests`
+  **pass unchanged**.
+- Calibration: **4 failed / 2 passed on both sides**, identical test set.
+- Gates: banned-constructs **OK**, read-isolation **OK**, readonly-proof **OK**.
+- `Sim.Data/`, `.github/`, all `*.json`: **untouched**.
+- Documentation corrected: the header said `WholeUnits` "rounds"; it floors.
+
+### 12.6 IS IT CERTIFIABLE? NOT YET — one director decision
+
+**The fix is correct and its blast radius is exactly one golden.** But
+`DrivenGolden_Seed42Turn300` encodes the old behaviour, and repinning a golden is
+not an agent's call. The decision:
+
+> Accept that a 4-person settlement's 9-unit grain store now survives instead of
+> being destroyed, and repin `DRIVEN_GOLDEN` from `aae82e38…` to `414a32f4…`?
+
+The full `Sim.Tests` suite has **not** been re-run against this fix — deliberately.
+The targeted golden and calibration runs answer the attribution question, and a
+40-minute full suite before the ruling would be a redundant expensive job.
+It is owed **after** the ruling, not before.
