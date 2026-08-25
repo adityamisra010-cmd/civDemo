@@ -1147,3 +1147,12 @@
   2x at the first boundary. One turn per band, non-compounding. Every fix widens a serialized
   row (publish a per-year demand rate, or carry the previous dt), which T4.5's design forbids;
   whoever next opens `ConsumptionDeficitRow` should fix it in the same edit.
+
+- **M5 ownership of Research, Technology & Institutions — CR-005 OPEN, not a queue item.**
+  Recorded here only as a pointer so the queue reader is not surprised. The director directed
+  that M5 own a Research/Technology/Institutions architecture packet; that conflicts with the
+  frozen milestone order (Spine: M5 governing loop, M6 knowledge & diffusion, M7 institutions)
+  and with `m4-spec.md`'s five by-name deferrals of money to M5. Conflict and three options are
+  in `docs/adr/cr-005-m5-research-technology-institutions-placement.md`; scope is recorded in
+  `docs/m5-research-technology-institutions-placeholder.md`. **Awaiting director ruling — this is
+  NOT parked to the M10 slice gate.**
