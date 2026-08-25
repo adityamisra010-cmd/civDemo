@@ -76,7 +76,7 @@ public sealed class DrivenGoldenAttributionProbe
             }
 
             report.AppendLine(string.Create(CultureInfo.InvariantCulture,
-                $"{w.Clock.Turn}|{WorldHash.ComputeHex(w)[..12]}|{total}|{(minCap == long.MaxValue ? -1 : minCap)}|{capZero}|{capZeroWithStock}|{minPop}"));
+                $"{w.Clock.Turn}|{WorldHash.ComputeHex(w)}|{total}|{(minCap == long.MaxValue ? -1 : minCap)}|{capZero}|{capZeroWithStock}|{minPop}"));
         }
 
         string tag = Environment.GetEnvironmentVariable("CIV_PROBE_TAG") ?? "probe";
