@@ -1,8 +1,18 @@
 # FOOD ANOMALY — OBSERVABILITY AND ROOT-CAUSE INVESTIGATION
 
-**Worktree pinned to `main` `87fb866`.** Investigation and observability only. No
-mechanism, equation, constant, band, quarantine, golden or calibration value was
-changed. **Nothing is certified and nothing is merged.**
+**Worktree pinned to `main` `87fb866`.**
+
+> **STATUS UPDATE (supersedes the original framing below; the original is kept,
+> not rewritten).** §1–§11 were written while this was an
+> **investigation-and-observability-only** packet, and that is what they describe.
+> The packet has since gained, on a **director ruling**, exactly two things:
+> a one-condition production fix in `ConsumptionSystem.BoundStore`
+> (`if (over > 0)` → `if (capacity > 0 && over > 0)`, §12) and the **approved
+> repin of one golden**, `DrivenGolden_Seed42Turn300`. **No other mechanism,
+> equation, constant, band, quarantine, calibration value, data file or schema
+> was changed, and no other golden moved.**
+>
+> **Nothing is certified and nothing is merged.**
 
 Reported symptom: aggregate food > 0 at turn 47, **exactly 0** at turn 48, > 0
 again at turn 49, with population and farming output positive throughout.
@@ -102,7 +112,19 @@ epsilon**. Reasons are indexed by id rather than enumerated, and a grain flow
 carrying an id beyond the audit's capacity **throws** — the accounting is allowed
 to fail loudly, never to lose a term quietly.
 
-### 2.3 The harness — `Sim.Tests/Kernel/FoodAnomalyInvestigation.cs` (new)
+### 2.3 The harness — `Sim.Tests/Kernel/FoodAnomalyInvestigation.cs`
+
+> **REMOVED AFTER THE INVESTIGATION.** This harness and four others
+> (`FoodZeroSweepEvidence`, `FoodPropagationTraceEvidence`,
+> `DtControlledFoodExperiment`, `DrivenGoldenAttributionProbe`) were **research
+> experiments, not regression tests**, and together cost **~69m 49s** on every
+> CI run — they entered the default suite through SDK default globbing and
+> unfiltered `dotnet test`. They were deleted; **their measurements are preserved
+> in this document and in `docs/food-evidence-40seed-sweep.md` and
+> `docs/food-evidence-dt-experiment.md`.** What remains as a permanent regression
+> test is `Sim.Tests/Systems/GranaryCapacityFloorTests.cs` (7 tests, ~0.4 s),
+> whose conservation `Theory` keeps `FoodAudit` exercised. The description below
+> is what the harness did while it existed.
 
 Runs the canonical founded world (`HeadlessFounding.Found`, production
 `pipeline.json`) and emits the per-turn closed accounting, per-phase grain stock
@@ -630,8 +652,16 @@ against my earlier reading.
 
 ## §12 THE CAPACITY-FLOOR FIX — IMPLEMENTED, AND A GOLDEN MOVED
 
-**STATUS: STOPPED AT THE GOLDEN BOUNDARY. `DrivenGolden_Seed42Turn300` moved.
-Nothing repinned. Director ruling required.**
+> **STATUS: RULED AND APPLIED.** This section was written at the stop point —
+> *"`DrivenGolden_Seed42Turn300` moved. Nothing repinned. Director ruling
+> required."* **The director has since ruled ACCEPT**: a positive sub-unit
+> granary capacity no longer destroys an existing store, and a 4-person
+> settlement retaining 9 units of grain is the correct behaviour. The golden was
+> repinned on that ruling (commit `24d107f`), and the accepted implementation is
+> fixed as `if (capacity > 0 && over > 0)` — not to be replaced by
+> `Math.Max(1, …)`, a new constant, a remainder bank or a minimum-capacity rule.
+> The evidence in §12.1–§12.5 is unchanged and is what the ruling rested on;
+> **§12.6 is superseded and carries its own update.**
 
 ### 12.1 Root cause, exactly
 
@@ -721,3 +751,28 @@ The full `Sim.Tests` suite has **not** been re-run against this fix — delibera
 The targeted golden and calibration runs answer the attribution question, and a
 40-minute full suite before the ruling would be a redundant expensive job.
 It is owed **after** the ruling, not before.
+
+### 12.7 POST-RULING OUTCOME (supersedes 12.6)
+
+The ruling was **ACCEPT**, the golden was repinned (`24d107f`), and the owed
+verification has been run.
+
+| check | result |
+|---|---|
+| `Sim.Tests` | **504 total / 491 passed / 7 failed / 6 skipped** |
+| derivation vs certified main | main 497 + 7 `GranaryCapacityFloorTests` = **504**; 484 + 7 = **491**; failures 7 = 7; skipped 6 = 6 |
+| failing set | **byte-identical to main's** — 2 `ClassSystemTests`, 1 `PopulationTests` bench, 4 `CalibrationBatteryTests`. **Zero new failures.** |
+| `Sim.Ui.Tests` | **151 / 151** |
+| `DrivenGolden_Seed42Turn300` | **PASSES** on the approved pin |
+| `FoundedGolden`, `GoldenHash_Seed42Turn200`, `FirstReign` ×2, `CiPinAgreement` | **PASS UNCHANGED** |
+| determinism | toy orderless, founded cross-process, ordered-vs-replay all **IDENTICAL**; `FOUNDED_GOLDEN` absolute pin **MATCHES** |
+| gates | banned-constructs, read-isolation, readonly-proof **all OK**; build clean, 0 warnings |
+| suite runtime | **~70 min → 28 min** after the research harnesses were removed |
+
+**Two measurement corrections, recorded rather than quietly fixed.** The
+investigation-harness burden was **~69m 49s**, not the ~40 min first reported —
+`DtControlledFoodExperiment` at **29m 30s** was omitted from the original tally
+and was the single most expensive test in the suite. And an earlier full-suite
+total of "508" came from a **log truncated by a worker restart** whose summary
+line never printed; the authoritative total is **504**, from a complete run, and
+it reconciles exactly against main.
