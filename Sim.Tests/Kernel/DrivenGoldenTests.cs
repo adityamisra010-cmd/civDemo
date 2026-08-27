@@ -192,7 +192,9 @@ public class DrivenGoldenTests
         //         `if (capacity > 0 && over > 0)`.
         //   WHERE THE DIVERGENCE BEGINS, and the control that proves the cause.
         //         Measured per turn with the fix ON and OFF over this same driven
-        //         world (`DrivenGoldenAttributionProbe`):
+        //         world (the harness was removed from the suite after the
+        //         investigation; its measurements are preserved in
+        //         docs/food-anomaly-investigation.md §12.4):
         //           turn 152 — capacity floors to 0, but the store is ALREADY 0,
         //                      so there is nothing to destroy: hashes IDENTICAL
         //                      (`4cea9af9f980`), world grain 162 both sides.
