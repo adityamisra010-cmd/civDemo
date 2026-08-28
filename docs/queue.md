@@ -1189,3 +1189,13 @@
   (4000 BCE = day 0) and CLAUDE.md's "spanning 6,000 years". **Awaiting director ruling — NOT
   parked to the M10 slice gate.** Variable turn duration by era is ALREADY SATISFIED by
   `EraTable` and needs no change.
+
+- **Milestone roadmap dependency audit — pointer only, decisions belong to the director.**
+  `docs/m5-roadmap-dependency-audit.md`. Two ratified findings reframe the reordering question:
+  D-011 §6 already resequenced the ladder (battle layer inserted as M6, knowledge to M7, politics
+  to M8) and D-040 B3 already ruled "NO TECHNOLOGY UNLOCK — LAW 4 BINDS", rejecting the Civ
+  research-to-unlock shape in favour of capability emerging from computed preconditions. The audit
+  recommends keeping the ratified order, landing a small capability-predicate SEAM early as the
+  anti-retrofit device, and re-scoping M7 from "knowledge & divergence" to the capability layer.
+  **Awaiting director ruling on Q1 (whether an accumulating science stock is compatible with
+  D-040 B3 at all) — that question blocks the rest.** NOT parked to the M10 slice gate.
