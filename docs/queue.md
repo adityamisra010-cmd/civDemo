@@ -1199,3 +1199,14 @@
   anti-retrofit device, and re-scoping M7 from "knowledge & divergence" to the capability layer.
   **Awaiting director ruling on Q1 (whether an accumulating science stock is compatible with
   D-040 B3 at all) — that question blocks the rest.** NOT parked to the M10 slice gate.
+
+- **Capability architecture decision record — pointer only; five director decisions inside.**
+  `docs/capability-architecture-decision.md`. Supersedes parts of
+  `docs/m5-roadmap-dependency-audit.md` (see its §12, which records three errors in that document
+  rather than silently fixing them). Headlines: the capability seam ALREADY SHIPS (D-020 predicate
+  DSL, two live consumers — class emergence and recipe `requires`, documented in goods.json:3 as
+  "a knowledge gate over published variables, never a calendar date"); a per-CIVILIZATION
+  capability is NOT representable (no PolityRow, no table, no constructor outside deserialization);
+  and GOV-2 §1a rules money is NOT at M5, so money is currently UNOWNED and "money is M5" in
+  m4-spec is transcription drift. **The Q1 adversarial verification DID NOT RUN (session limit) —
+  §4's recommendation is UNVERIFIED under ADR-015 §6.** NOT parked to the M10 slice gate.
