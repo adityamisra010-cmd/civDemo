@@ -1187,3 +1187,16 @@
   and GOV-2 §1a rules money is NOT at M5, so money is currently UNOWNED and "money is M5" in
   m4-spec is transcription drift. **The Q1 adversarial verification DID NOT RUN (session limit) —
   §4's recommendation is UNVERIFIED under ADR-015 §6.** NOT parked to the M10 slice gate.
+
+- **Milestone architecture governance record — pointer only; four BLOCKING contradictions, CR-007 gates the rest.**
+  `docs/milestone-architecture-governance.md`. The adversarial pass that failed last run has now
+  completed: of ten assumptions, **3 FALSIFIED, 7 conditional, 0 clean survivals**. HEADLINE:
+  D-040 B3's own sanctioned exemplar FAILS B3's operative test — `population > 520` is universal
+  delay by explicit tuning (`sim.json:167`) and `food_surplus_ratio > 1.3` is constant-true
+  (`Variables.cs:29-32`), so no settlement is ever structurally excluded. Also: polity state
+  CANNOT be postponed past M5 (Law 1's two-endpoint `Transfer` gives an in-kind tax nowhere to
+  go); advanced military is ERA-GATED in frozen D-011 (`:13`, `:45`, `:66`), not
+  capability-gated; knowledge and economy are a CYCLE, not an order; and "institution" carries
+  SIX meanings with zero code. Recommended next packet is **CR-007 alone**. Corrections to
+  `docs/capability-architecture-decision.md` are marked in that file, not rewritten.
+  **NOT parked to the M10 slice gate.**
