@@ -1223,3 +1223,15 @@
   SIX meanings with zero code. Recommended next packet is **CR-007 alone**. Corrections to
   `docs/capability-architecture-decision.md` are marked in that file, not rewritten.
   **NOT parked to the M10 slice gate.**
+
+- **CR-007 RESOLVED WITHOUT A NEW RULING — the B3 contradiction does not exist.**
+  `docs/adr/cr-007-b3-exemplar-reconciliation.md`. In B3's "A landlocked polity never develops
+  it", **"it" refers to SEA TRAVEL** (coastal AND timber AND craft), whose first conjunct is
+  permanently false inland — static terrain, ADR-008. The class predicate is cited for its SHAPE,
+  not as a conformance exemplar, and D-040 Part F already states "None changes a ruling; all
+  change what may be cited in support of one", with F2 recording the reference's defects "Noted,
+  not ruled". **The headline of `milestone-architecture-governance.md` (487a66d) is WITHDRAWN**
+  and marked in that file. Untouched and still standing from that pass: polity state cannot be
+  postponed past M5 (Law 1 two-endpoint Transfer), advanced military is era-gated in frozen D-011,
+  knowledge/economy is a cycle, institutions carry six meanings with zero code.
+  **Next blocker is now CR-008 (money has no owner).** NOT parked to the M10 slice gate.

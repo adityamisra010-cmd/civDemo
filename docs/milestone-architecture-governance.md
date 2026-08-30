@@ -14,7 +14,35 @@ by me against source before being recorded.**
 
 ---
 
-## §1 EXECUTIVE FINDING — THE EXEMPLAR THAT LICENSES THE WHOLE MODEL FAILS ITS OWN TEST
+## §1 EXECUTIVE FINDING — **WITHDRAWN BY CR-007**
+
+> **CORRECTION NOTICE (added later; the original §1 is preserved below, not
+> rewritten).** This section's headline — *"B3's own sanctioned exemplar fails
+> B3's own test"*, recorded as **BLOCKING contradiction #1** — **is WITHDRAWN.**
+> See `docs/adr/cr-007-b3-exemplar-reconciliation.md` §4.1.
+>
+> **The misreading:** in B3's *"A landlocked polity never develops it"*, **"it"
+> refers to SEA TRAVEL**, not to the artisan class. The subject is the boats
+> predicate — *coastal settlement AND timber AND craft capacity* — whose first
+> conjunct is permanently false for a landlocked polity, coastal geography being
+> static terrain. **That predicate does exhibit structural exclusion.** The
+> class-emergence predicate is cited for its **SHAPE** (*"in the same shape as
+> class emergence"* = a conjunction of computed conditions rather than a date),
+> not as a demonstration of permanent exclusion.
+>
+> **And D-040 had already quarantined the residue:** Part F states *"None changes
+> a ruling; all change what may be cited in support of one"*, and F2 records the
+> reference's defects — including *"'market extent' is implemented as RAW
+> POPULATION… **Noted, not ruled**"*.
+>
+> **The measurements below are correct and stand. The inference from them does
+> not.** Consequently §3's verdicts **#1, #6 and #10** lose their principal
+> supporting argument. **#2, #3 and #5 are untouched and still stand**, as does
+> the six-meanings institution finding.
+>
+> Original text follows.
+
+### §1 (original, superseded) — the exemplar that licenses the whole model fails its own test
 
 D-040 B3 replaces the tech tree with capability emerging *"in the same shape as
 class emergence"*, and stakes the ruling on one operative test: **"A landlocked
