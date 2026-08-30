@@ -4,6 +4,28 @@
 golden, corridor, quarantine or frozen document touched. Nothing certified or
 merged.**
 
+> **CORRECTION NOTICE (added later; original text below is NOT rewritten).**
+> The adversarial pass that §0 records as NOT HAVING RUN has since run, and it
+> **falsified two claims in this document**. Both are recorded in
+> `docs/milestone-architecture-governance.md` §6.2:
+>
+> 1. **§4.1's appeal to the shipped exemplar is falsified.** This document claims
+>    the class-emergence predicate demonstrates *"the predicate conjoins a
+>    structurally-falsifiable-forever term."* **It does not.** One conjunct is
+>    constant-true (`Variables.cs:29-32`, measured 3.5 ± 0.1 across all twelve),
+>    and the other is universal delay by explicit tuning (`sim.json:167`: *"520
+>    sits above the ~350-500 jittered founding sizes, so every settlement must
+>    GROW into its artisans"*). **The fence proposed in §4.1 stands as a rule; its
+>    evidentiary basis does not.**
+> 2. **The latch is misdescribed.** §5 and the roadmap audit say a latch *"records
+>    that a predicate has fired."* It records **current satisfaction under
+>    hysteresis** — *"active + recede true → Active = 0… Recede absent = never
+>    recedes"* (`ClassMobilitySystem.cs:28-33`).
+>
+> §4's science-model recommendation remains **UNVERIFIED** in the sense that
+> matters: the adversarial pass returned **SURVIVES_WITH_CONDITIONS**, not a clean
+> survival, and the conditions are in the governance record.
+
 **VERIFICATION STATUS, STATED FIRST BECAUSE IT BOUNDS EVERYTHING BELOW.** Six
 source audits were commissioned; **four returned (Q1–Q4) and two did not (Q5, Q6
 — session limit)**, and **the three-lens adversarial verification of the Q1
