@@ -175,6 +175,18 @@ permanently false for a valid class of polity under the same rules.
 
 ## §6 RECOMMENDED RULING
 
+> **SUPERSEDED IN PART BY D-042 (director ruling, later).** This CR's §5/§6 treat
+> *"is an accumulating knowledge quantity permitted?"* as still open. **D-042 §9.4
+> and §9.5 now rule it: knowledge is an allocatable flow, and unallocated
+> knowledge ACCUMULATES AS A RESERVE.** So the accumulation question is
+> **answered YES** and must not be re-asked. D-042 §9.7 and §12 supply the guard
+> that keeps the answer compatible with B3 — no rigid technology tree, no
+> one-at-a-time queue, no calendar-date unlocks. **This CR's conclusion is
+> unaffected** — B3 was never contradictory, and §8's design constraints (in
+> particular §8.4: a predicate whose conjuncts are all constant-true or
+> monotone-in-time is a *schedule*) remain the operative guidance for keeping an
+> accumulating quantity from becoming a disguised tree.
+
 **OPTION C, recorded rather than enacted: no new ruling is required.**
 
 D-040 B3 is **not internally contradictory**. The alleged contradiction was a

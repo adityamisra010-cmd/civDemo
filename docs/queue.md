@@ -1212,3 +1212,17 @@
   postponed past M5 (Law 1 two-endpoint Transfer), advanced military is era-gated in frozen D-011,
   knowledge/economy is a cycle, institutions carry six meanings with zero code.
   **Next blocker is now CR-008 (money has no owner).** NOT parked to the M10 slice gate.
+
+- **D-042 EMPIRE / OWNERSHIP / GOVERNANCE / PLAYER CONTROL — ratified architecture addendum.**
+  `docs/d042-empire-and-player-control-addendum.md`. Follows the D-011 addendum precedent: binds
+  the Spine WITHOUT editing it. The player controls an Empire; the simulation models the world.
+  Empire is the strategic-actor role of D-037's polity (NOT a third abstraction) and its
+  settlement set is DERIVED from D-037's CONTROL relation, so D-037 A2 "a polity is a claim, not
+  a container" is upheld, not overridden (§13). Settles several previously-open questions (§15):
+  knowledge IS an allocatable flow whose unallocated remainder ACCUMULATES AS A RESERVE (answers
+  the CR-007/Q1 accumulation blocker YES), research runs in parallel, capability must distinguish
+  Empire vs Settlement scope, D-020 is the capability foundation, money is Empire-owned, and
+  player/AI share one order pathway. **ONE UNRESOLVED STALENESS FINDING for the director:
+  D-018's per-class income column (wage/stipend/trade profit) reads as individual economic
+  ownership, which D-042 §4.4/§4.6 now forbid — D-018 is closed and was NOT edited (§14.1).**
+  Still open: CR-005, CR-006, CR-008, CR-009, CR-010. NOT parked to the M10 slice gate.
