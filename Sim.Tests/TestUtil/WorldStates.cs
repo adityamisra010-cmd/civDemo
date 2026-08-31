@@ -60,6 +60,11 @@ public static class WorldStates
         // comment above records three consecutive packets that did not — and an
         // independent review caught this packet about to be the fourth.
         if (!TableEquals(a.Notables, b.Notables)) return false;
+        // M4 (D-042): Polities and Capitals. Added WITH the tables, for the same
+        // reason T4.8 gave — a comparer that silently skips a table makes every
+        // StateEquals assertion about it vacuous.
+        if (!TableEquals(a.Polities, b.Polities)) return false;
+        if (!TableEquals(a.Capitals, b.Capitals)) return false;
         return true;
     }
 

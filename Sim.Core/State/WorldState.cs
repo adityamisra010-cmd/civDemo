@@ -628,6 +628,61 @@ public struct NotableRow(
 public record struct RecognitionRow(PolityId Recogniser, PolityId Recognised);
 
 /// <summary>
+/// D-042 §6 — WHO ISSUES A POLITY'S ORDERS. Player and AI are different COMMAND
+/// SOURCES acting on the same state model, never different simulation entities
+/// (D-042 §1.4, §6.6: "the simulation must not contain separate gameplay physics
+/// for human- and AI-controlled Empires"). Serialized as its underlying int so
+/// the canonical stream stays platform-independent.
+/// </summary>
+public enum CommandSource
+{
+    /// <summary>Default. Every polity is AI-commanded unless designated otherwise.</summary>
+    Ai = 0,
+    /// <summary>The single human-controlled Empire (D-042 §1.1).</summary>
+    Player = 1,
+}
+
+/// <summary>
+/// D-042 — THE EMPIRE ROSTER. One row per strategic actor.
+///
+/// THE IDENTITY IS <see cref="PolityId"/>, REUSED, NOT REPLACED. D-042 §13
+/// reconciles "Empire" with D-037's polity: the Empire is the strategic-actor
+/// ROLE of the existing polity, not a third abstraction, so no `EmpireId` is
+/// introduced and no rename is implied.
+///
+/// THE ROW IS DELIBERATELY LIGHTWEIGHT (D-042 §3.2, §12): identity plus command
+/// source and nothing else. Government, economy, knowledge, military and
+/// institution state are SEPARATE domains that key themselves to this id — the
+/// Empire must not become a God object holding every domain's state.
+///
+/// SETTLEMENT MEMBERSHIP IS NOT HERE, and that is load-bearing. Controlled
+/// settlements are DERIVED from <see cref="ControlRow"/>, which stays the single
+/// source of truth (D-042 §5). A `SettlementIds` field here would be a second
+/// source of truth and would re-introduce the container D-037 A2 rejects.
+/// </summary>
+public record struct PolityRow(PolityId Id, CommandSource Source);
+
+/// <summary>
+/// D-042 §6 — THE CAPITAL DESIGNATION, AS A RELATION.
+///
+/// A RELATION, NOT A FIELD, for two reasons. (1) Absence of a row IS "no
+/// capital" — no sentinel `SettlementId` is invented, and an Empire between
+/// capitals is representable without a magic value. (2) It mirrors the shipped
+/// claim/control/recognition idiom rather than bolting an id onto another row
+/// (T4.3 PROHIBITED 1 bans exactly that shape for control).
+///
+/// THE CAPITAL IS NOT THE EMPIRE'S IDENTITY (D-042 §6, and the packet states the
+/// error case explicitly: `EmpireId = CapitalSettlementId` is WRONG). The
+/// identity is <see cref="PolityRow.Id"/> and lives in a different table, so
+/// losing or moving a capital cannot change who the Empire is.
+///
+/// CARDINALITY: zero-or-one per polity. Nothing in this packet enforces it —
+/// no system writes this table yet, exactly as Claims/Controls/Recognitions
+/// shipped at T4.3.
+/// </summary>
+public record struct CapitalRow(PolityId Polity, SettlementId Place);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -677,6 +732,14 @@ public interface IReadOnlyWorldState
     /// conserved carrier and its lifecycle operations, not a spawner.</summary>
     IReadOnlyTable<NotableRow> Notables { get; }
     IReadOnlyTable<RecognitionRow> Recognitions { get; }
+
+    /// <summary>The Empire roster — identity + command source (D-042). Schema
+    /// only; no system writes this table yet.</summary>
+    IReadOnlyTable<PolityRow> Polities { get; }
+
+    /// <summary>Capital designations, zero-or-one per polity (D-042 §6). Schema
+    /// only; no system writes this table yet.</summary>
+    IReadOnlyTable<CapitalRow> Capitals { get; }
 }
 
 /// <summary>
@@ -805,6 +868,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// D-037 A3) — schema only; no system writes this table yet.</summary>
     public Table<RecognitionRow> Recognitions { get; }
 
+    /// <summary>The Empire roster (D-042) — schema only; no system writes it yet.</summary>
+    public Table<PolityRow> Polities { get; }
+
+    /// <summary>Capital designations (D-042 §6) — schema only; no system writes it yet.</summary>
+    public Table<CapitalRow> Capitals { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -840,6 +909,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ControlRow> IReadOnlyWorldState.Controls => Controls;
     IReadOnlyTable<NotableRow> IReadOnlyWorldState.Notables => Notables;
     IReadOnlyTable<RecognitionRow> IReadOnlyWorldState.Recognitions => Recognitions;
+    IReadOnlyTable<PolityRow> IReadOnlyWorldState.Polities => Polities;
+    IReadOnlyTable<CapitalRow> IReadOnlyWorldState.Capitals => Capitals;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -879,6 +950,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Controls = new Table<ControlRow>();
         Notables = new Table<NotableRow>();
         Recognitions = new Table<RecognitionRow>();
+        Polities = new Table<PolityRow>();
+        Capitals = new Table<CapitalRow>();
     }
 
     private WorldState(
@@ -898,7 +971,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<PriceRow> prices, Table<PriceTermRow> priceTerms,
         Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
-        Table<RecognitionRow> recognitions, Table<NotableRow> notables)
+        Table<RecognitionRow> recognitions, Table<NotableRow> notables,
+        Table<PolityRow> polities, Table<CapitalRow> capitals)
     {
         Seed = seed;
         Clock = clock;
@@ -937,6 +1011,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Controls = controls;
         Notables = notables;
         Recognitions = recognitions;
+        Polities = polities;
+        Capitals = capitals;
     }
 
     /// <summary>
@@ -954,7 +1030,8 @@ public sealed class WorldState : IReadOnlyWorldState
             SettlementVitals.Clone(), NeedSatisfactions.Clone(), Grievances.Clone(),
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
-            Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone())
+            Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
+            Polities.Clone(), Capitals.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
