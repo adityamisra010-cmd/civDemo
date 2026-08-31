@@ -26,7 +26,7 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
 | **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
 | **Integration state** | T4.4 v22 + M4 v23 + capacity-floor fix + D-042 + GOV-4; four goldens re-derived and causally attributed |
-| **Certification** | **READY FOR DIRECTOR MERGE** at `5ebc1e3` — not merged; the merge is the director's |
+| **Certification** | M4-A merged to `main` at `82ba3fc`. **M4-B CERTIFIED** at `7d1734d` on `m4-empire-order-seam` — not merged; the merge is the director's |
 | **Schema version** | **v23** — v22 is T4.4's `BucketRow` widening; v23 is M4's Polities and Capitals |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
@@ -87,6 +87,25 @@ Two branch facts worth carrying anyway, because they are easy to miss:
 ---
 
 ## 4. STATUS OF OPEN THREADS
+
+**M4-B — STRATEGIC ACTOR IN THE ORDER SEAM. CERTIFIED at `7d1734d`.**
+
+An order's issuing strategic actor is the **existing `PolityId`**. The kernel spec §3.9 already
+defined the log as `{turn, actorId, orderPayload}` for "player/AI orders", so `ActorId` was always
+the strategic actor — it merely had no type and no enforcement. `PolityId` is a one-`int` identity,
+so the binding required **no new field, no second identity, and no serialization change**:
+`OrderRecord.Actor` is a projection with `Actor.Value == ActorId` always. `PolityId` is the typed
+in-memory form; `ActorId` is the serialized form; they are one identity.
+
+Actor existence is enforced in `OrderValidation` (the world-dependent layer), guarded on a non-empty
+roster — **dormant today**, because nothing seeds `Polities`. Player/AI symmetry is preserved: the
+only production references to `CommandSource` are the state definition, the serializer, the
+`EmpireQuery` readers, and an existence probe in validation that discards the value. **No simulation
+system branches on it.** No golden moved.
+
+Certification run at `7d1734d` on a verified-clean tree: `Sim.Tests` **553 passed / 6 failed /
+6 skipped** (565, 26m57), `Sim.Ui.Tests` **151/151**, build 0 warnings, all three gates OK. The 6
+failures are the unchanged mainline quarantine set.
 
 **CERTIFICATION RUN, measured at `5ebc1e3` — the tip this report certifies.**
 `dotnet test Sim.Tests` → **541 passed / 6 failed / 6 skipped** (553 total, 16m45).

@@ -1267,3 +1267,12 @@
   in the suite. Work continues on `m4-empire-control-foundation`; the pre-rebase history is
   preserved at `origin/food-anomaly-observability`. **The food-anomaly certification suite still has
   to be re-run against the integrated tree** — the pre-rebase run does not certify this tree.
+
+- **M4-B actor seam CERTIFIED at `7d1734d` (`m4-empire-order-seam`), not merged.**
+  An order's actor is the existing `PolityId`; the `OrderLog` contract was REUSED, not changed —
+  `ActorId` was already the strategic actor per kernel spec §3.9, and `OrderRecord.Actor` is a typed
+  projection of it, so there is no second identity and no serialization change. Player/AI symmetry
+  holds: no simulation system branches on `CommandSource`. Deliberately deferred, and still open:
+  an explicit order **scope** field, a permission matrix, and a populated `Polities`/`Capitals`
+  roster — until something seeds the roster, the actor-existence check in `OrderValidation` stays
+  dormant by design.
