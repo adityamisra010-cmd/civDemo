@@ -25,6 +25,7 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Milestone spec** | `docs/m4-spec.md` (R-1, R-2, R-3 ruled 2026-08-07; packet list FINAL) |
 | **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
 | **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
+| **Integration state** | T4.4 v22 + M4 v23 + capacity-floor fix + D-042 + GOV-4, all four goldens re-derived |
 | **Schema version** | **v23** — v22 is T4.4's `BucketRow` widening; v23 is M4's Polities and Capitals |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
@@ -85,6 +86,12 @@ Two branch facts worth carrying anyway, because they are easy to miss:
 ---
 
 ## 4. STATUS OF OPEN THREADS
+
+**Integrated-tree suite, measured at this branch's tip:** `dotnet test Sim.Tests` →
+**541 passed / 6 failed / 6 skipped** (553 total, 22m09). The 6 failures are exactly main's
+certified baseline — two `ClassSystemTests` and four `CalibrationBatteryTests` — and no new
+deterministic failure appeared. The 6 skips are the documented quarantine. The load-sensitive
+`ProductionPipeline_PerPhaseBench_Reported` passed on this run and is NOT a deterministic failure.
 
 **Food-anomaly certification: PAUSED, NOT COMPLETE.** The investigation concluded the reported
 symptom is not reproducible (0/40 seeds) and that the real defect was a granary capacity floor. The
