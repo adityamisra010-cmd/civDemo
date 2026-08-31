@@ -9,6 +9,9 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 
 **Current milestone: M3 — active packets: `docs/m3-spec.md` §4.** (This line changes only at a milestone exit gate. Director amendment to m3-spec §6: M3 proceeds in parallel with the unmerged art-substrate branch — its non-UI diff is provably empty; rebase when it merges.)
 
+## Repository freshness (read before implementation)
+Read `docs/current-state.md` first, then **verify its claims against Git state and the relevant authoritative documents** — it is a router and a status board, not evidence. The rules behind it are in `docs/gov-4-repository-freshness.md`: the source-of-truth hierarchy, commit provenance, branch and packet freshness, test-result expiry, and the standing bans on branch deletion and rewriting frozen documents. Two of them are worth stating here because they are the ones most often skipped: a previous agent's report is secondary evidence and must be verified against the tree before you act on it, and LOCAL / REMOTE / MAIN are three different states that must never be collapsed into "the repository has it".
+
 ## Non-negotiable laws (short form)
 1. **Conservation:** people/money/goods change ONLY via `Ledger.Transfer`/`Ledger.Flow`. Conserved stocks are `long`. Exact equality in tests — no epsilon.
 2. **Mechanisms over modifiers:** coefficients inside resolution equations are fine; free-floating permanent buffs are banned.

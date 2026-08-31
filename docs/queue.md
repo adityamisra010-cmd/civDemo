@@ -1249,3 +1249,12 @@
   D-018's per-class income column (wage/stipend/trade profit) reads as individual economic
   ownership, which D-042 §4.4/§4.6 now forbid — D-018 is closed and was NOT edited (§14.1).**
   Still open: CR-005, CR-006, CR-008, CR-009, CR-010. NOT parked to the M10 slice gate.
+
+- **Repository freshness protocol (GOV-4) — `docs/current-state.md` is now the entry point.**
+  An agent resuming with no conversation context should read `docs/current-state.md` for current
+  milestone, baseline, active branch and open blockers, then verify those claims against git before
+  acting on them. The rules — source-of-truth hierarchy, commit provenance, branch/packet/test
+  freshness, and the bans on branch deletion and rewriting frozen documents — are in
+  `docs/gov-4-repository-freshness.md`. Two standing facts that document records rather than fixes:
+  `CLAUDE.md`'s milestone line still reads M3 while the tree is on M4, and `docs/handoff-status.md`
+  is a superseded M3-era routing document deliberately left in place as a historical measurement.
