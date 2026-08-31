@@ -40,8 +40,34 @@ public enum OrderKind
 /// One external input to the sim (§3.9): {turn, actorId, payload}. Turn semantics:
 /// an order with Turn = t is delivered to the step that transforms turn-t state
 /// into turn-(t+1) state (i.e. delivered when Prev.Clock.Turn == t).
+///
+/// M4-B — WHAT <see cref="ActorId"/> MEANS. It is the STRATEGIC ACTOR issuing the
+/// order: the <see cref="State.PolityId"/> of the Empire, read through
+/// <see cref="Actor"/>. §3.9 already defined this field as the actor of a
+/// "player/AI order", and <see cref="State.PolityId"/> is a one-int identity, so
+/// the binding needs no new field, no new identity type and NO CHANGE TO THE WIRE
+/// FORMAT — the int on disk was always this id.
+///
+/// It is NOT a command source. Who DECIDED (a human or the AI) is
+/// <see cref="State.CommandSource"/> on the polity's roster row; who is ACTING is
+/// this id. Never encode "the player" as an actor id — under D-042 a human and an
+/// AI commanding the same Empire issue orders as the SAME actor, and one human
+/// switching Empires changes the actor while the command source is unmoved.
 /// </summary>
-public readonly record struct OrderRecord(long Turn, int ActorId, OrderKind Kind, int TargetId, double Amount);
+public readonly record struct OrderRecord(long Turn, int ActorId, OrderKind Kind, int TargetId, double Amount)
+{
+    /// <summary>
+    /// The issuing Empire, typed. A projection of <see cref="ActorId"/>, never a
+    /// second identity: <c>Actor.Value == ActorId</c> always, so nothing can drift
+    /// between the serialized form and the strategic one.
+    /// </summary>
+    public State.PolityId Actor => new(ActorId);
+
+    /// <summary>Builds a record from a typed issuer — the preferred constructor.</summary>
+    public static OrderRecord From(
+        long turn, State.PolityId actor, OrderKind kind, int targetId, double amount)
+        => new(turn, actor.Value, kind, targetId, amount);
+}
 
 /// <summary>
 /// Append-only order log — the second half of determinism (§3.9) and the save
