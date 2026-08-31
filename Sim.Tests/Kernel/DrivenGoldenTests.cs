@@ -173,12 +173,25 @@ public class DrivenGoldenTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
-        // INTEGRATED PIN — TWO INDEPENDENT CAUSES COMPOSE HERE. The value below
-        // is re-derived on the integrated tree (T4.4 v22 + M4 v23 + the granary
-        // capacity-floor fix); neither side's pre-integration pin is carried
-        // forward on authority. Both causal records are kept because both causes
-        // are real and both still apply.
-        const string golden = "REDERIVE_ON_INTEGRATED_TREE";
+        // INTEGRATED PIN — TWO INDEPENDENT CAUSES, MEASURED APART.
+        // Neither side's pre-integration pin is carried forward on authority.
+        // The chain, every step of it re-derived on THIS tree:
+        //
+        //   main, post-T4.4, v22          5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
+        //     + capacity-floor fix  (v22) 9432d39f5a1618eead13115c889dd77748c118e4699310576704802aa2d0c621
+        //     + M4 Polities/Capitals(v23) ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4
+        //
+        // The middle value is MEASURED, not inferred: IntegratedPinAttributionTests
+        // strips the two empty v23 count prefixes from this world's stream and gets
+        // it. So the first step is behavioural and the second is layout, and the two
+        // are separated by measurement rather than by argument.
+        //
+        // Note the asymmetry that makes this the ONLY golden with two causes: the
+        // same strip applied to the founded and turn-200 goldens returns main's
+        // pins EXACTLY, because the capacity-floor fix cannot reach those worlds.
+        // Here it can, so the stripped value differs from main's — and that
+        // difference is the fix, isolated.
+        const string golden = "ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

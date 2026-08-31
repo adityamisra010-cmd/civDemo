@@ -24,7 +24,7 @@ public class FirstReignTests
         return OrderLog.Load(stream);
     }
 
-    private static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory)
+    internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory)
     {
         SimConfig cfg = TestConfigs.Sim();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
@@ -316,7 +316,22 @@ public class FirstReignTests
         //         outfitted from a real granary) no founding is possible here at
         //         all, and the reign dies exactly as it always did. The shape
         //         asserts were never weakened — they caught a real bug.
-        const string golden = "bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c";
+        // M4 INTEGRATION RE-PIN — SCHEMA ONLY, and MEASURED, not asserted.
+        //   OLD  bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c
+        //   NEW  28247419268e8d6e81edbc2a9d09097a69e565bb97578a1101500bad3c575d74
+        //   CAUSE v22 -> v23: the Polities and Capitals tables append two EMPTY
+        //         four-byte count prefixes. Nothing writes either table, so eight
+        //         zero bytes are their entire contribution to the stream.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttributionTests strips
+        //         exactly those eight bytes from THIS world on THIS tree and gets
+        //         the OLD value back, byte for byte — with every shape assert
+        //         below still intact and green.
+        //   WHY THAT CONTROL IS NOT CEREMONIAL HERE: the history immediately above
+        //         records an earlier revision of T4.4 moving this same pin
+        //         BEHAVIOURALLY, 1 -> 17 settlements, with the shape asserts red.
+        //         "Schema only" is precisely the claim this test exists to doubt,
+        //         so it is measured rather than argued.
+        const string golden = "28247419268e8d6e81edbc2a9d09097a69e565bb97578a1101500bad3c575d74";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

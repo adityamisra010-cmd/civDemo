@@ -23,9 +23,9 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Current objective** | M4 "Empire Control Foundation" — the structural minimum for the ratified Empire model |
 | **Governing architecture** | `docs/d042-empire-and-player-control-addendum.md` (D-042) |
 | **Milestone spec** | `docs/m4-spec.md` (R-1, R-2, R-3 ruled 2026-08-07; packet list FINAL) |
-| **Authoritative baseline** | `origin/main` = `070f05b` |
-| **Active implementation branch** | `food-anomaly-observability` = `481b806`, preserved at `origin/food-anomaly-observability` = `481b806` — see §3 |
-| **Latest implementation commit** | `481b806` — GOV-4 governance; the M4 foundation is `8bd433a` |
+| **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
+| **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
+| **Schema version** | **v23** — v22 is T4.4's `BucketRow` widening; v23 is M4's Polities and Capitals |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
 `docs/d042-empire-and-player-control-addendum.md` · `docs/spine-s8-governance-freeze.md` ·
@@ -61,13 +61,12 @@ mislead the next agent.
 
 1. **Local `main` is stale.** Local `main` = `87fb866`, `origin/main` = `070f05b`: **0 ahead, 8
    behind**. The 8 are the T4.4 colonization merge and the PR#4 AI-constitution admission.
-2. **The active branch is preserved on the remote but is not on `main`.** As of 2026-08-31,
-   `food-anomaly-observability` was pushed to `origin/food-anomaly-observability` at `481b806`,
-   verified equal by `git ls-remote`. It is **18 ahead / 8 behind `origin/main`**. REMOTE is now
-   true; MAIN is still false.
-3. **It was cut from the stale local `main`,** so everything on it — the food-anomaly investigation,
-   the capacity-floor fix, the M5 design records, CR-007, D-042 and the M4 foundation — sits on a
-   base that predates T4.4. None of it is on `origin/main`.
+2. **The work is now rebased onto `origin/main`, on a new branch.** `m4-empire-control-foundation`
+   carries T4.4 + the whole M4 body and is **0 behind `origin/main`**. The pre-rebase history is
+   preserved untouched at `origin/food-anomaly-observability` = `358b9a9`, so no force-push was ever
+   needed and the old provenance is recoverable. REMOTE is true for both; **MAIN is still false**.
+3. **Local `main` is still stale and was deliberately not moved.** It is checked out in other
+   worktrees, so fast-forwarding it would disturb them. `origin/main` is the reference to use.
 
 Anything on that branch is therefore **LOCAL**, not **REMOTE**, and not **MAIN**. Say which one you
 mean, every time.
@@ -99,11 +98,17 @@ Two new empty count prefixes move all four pinned world hashes. That is a schema
 behavioural one, so **the goldens were deliberately not repinned** — the pin change needs a director
 ruling, on the T4.3/T4.8 precedent.
 
-**A schema-version collision now stands between this branch and `origin/main`.** T4.4 (`4d11c02`,
-merged into `origin/main` at `070f05b`) ALSO took `CanonicalSchema` to **v22**, for a different
-reason — `BucketRow` gained `UnplacedDeparture` and `UnplacedRemainder`. Two independent v22s exist,
-and the branch was cut before T4.4 landed so it cannot see it. Reconciling the two is a director
-decision, not an agent's: see §3 and the GOV-4 preservation report.
+**The schema-version collision is RESOLVED by director ruling.** T4.4's v22 (`BucketRow` gaining
+`UnplacedDeparture` and `UnplacedRemainder`) is authoritative because it merged to `origin/main`
+first and is certified; M4's Polities and Capitals are **v23**. Exactly one meaning of every version
+number survives, and T4.4's representation was not altered or reordered.
+
+**All three moved goldens are re-pinned on the integrated tree, with the cause MEASURED.**
+`IntegratedPinAttributionTests` strips the two empty v23 count prefixes — the tables' entire
+contribution, since nothing writes them — and re-hashes. `GoldenHash_Seed42Turn200` and
+`FoundedGolden_Seed42Turn300` return **main's exact pins** under that control, so both moved for the
+M4 schema and nothing else. `DrivenGolden_Seed42Turn300` does not, which isolates the capacity-floor
+fix as its second, behavioural cause. `ci.yml`'s `FOUNDED_GOLDEN` moved with its test.
 
 **Open change requests awaiting director ruling:** CR-005 (M5 ownership of Research/Technology/
 Institutions) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by

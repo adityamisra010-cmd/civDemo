@@ -201,7 +201,22 @@ public class SnapshotTests
         // carried on main. Colonization cannot reach this world (no terrain), and the
         // v22 bucket widening cannot reach it either because this synthetic world
         // holds no bucket rows. Do not re-pin it as part of a colonization packet.
-        const string golden = "0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745";
+        // M4 INTEGRATION RE-PIN — SCHEMA ONLY, and MEASURED, not asserted.
+        //   OLD  0f94b4ad95b8821d19b24d208d56ecc1d2be755ced2d89c539249855ebc23745
+        //   NEW  51b97aad643660053bb5b35e5703d544f14a6f186e7ab9eed569f2ed9878127e
+        //   CAUSE v22 -> v23: the Polities and Capitals tables append two EMPTY
+        //         four-byte count prefixes to the stream. Nothing writes either
+        //         table, so eight zero bytes are their entire contribution.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttributionTests strips
+        //         exactly those eight bytes from this world's stream on THIS tree
+        //         and gets the OLD value back, byte for byte. Behaviour and layout
+        //         are separated by measurement.
+        //   NOT THE CAPACITY-FLOOR FIX, and NOT T4.4: this synthetic world has no
+        //         terrain and no bucket rows, so neither colonization nor the v22
+        //         bucket widening can reach it — which is why T4.4 left this pin
+        //         deliberately UNMOVED as its own control, and why the stripped
+        //         value equals main's exactly rather than merely resembling it.
+        const string golden = "51b97aad643660053bb5b35e5703d544f14a6f186e7ab9eed569f2ed9878127e";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -567,7 +582,19 @@ public class SnapshotTests
         //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
         //         was touched; the new readout only WRITES a quantity.
         //   ci.yml FOUNDED_GOLDEN moves with it, in this same commit.
-        const string golden = "87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b";
+        // M4 INTEGRATION RE-PIN — SCHEMA ONLY, and MEASURED, not asserted.
+        //   OLD  87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b
+        //   NEW  9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686
+        //   CAUSE v22 -> v23: two EMPTY count prefixes (Polities, Capitals).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttributionTests strips those
+        //         eight bytes on THIS tree and reproduces the OLD value — which is
+        //         main's own post-T4.4 pin — byte for byte.
+        //   NOT THE CAPACITY-FLOOR FIX: that fix's blast radius was measured as the
+        //         driven golden ALONE, and the control confirms it here — if the fix
+        //         reached this world the stripped stream could not equal main's.
+        //   T4.4 IS INTACT UNDERNEATH: the stripped value IS main's v22 value, so
+        //         colonization and the bucket widening are bit-identical to main.
+        const string golden = "9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

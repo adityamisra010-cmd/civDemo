@@ -1258,3 +1258,12 @@
   `docs/gov-4-repository-freshness.md`. Two standing facts that document records rather than fixes:
   `CLAUDE.md`'s milestone line still reads M3 while the tree is on M4, and `docs/handoff-status.md`
   is a superseded M3-era routing document deliberately left in place as a historical measurement.
+
+- **M4 Empire Control Foundation integrated onto post-T4.4 `origin/main`.**
+  The schema collision is settled by director ruling: **v22 is T4.4's `BucketRow` widening, v23 is
+  M4's Polities and Capitals.** T4.4's representation was not altered, reordered or renumbered.
+  Three goldens moved and were re-derived on the integrated tree rather than carried forward from
+  either side; `IntegratedPinAttributionTests` is the control that attributes each one, and it stays
+  in the suite. Work continues on `m4-empire-control-foundation`; the pre-rebase history is
+  preserved at `origin/food-anomaly-observability`. **The food-anomaly certification suite still has
+  to be re-run against the integrated tree** — the pre-rebase run does not certify this tree.
