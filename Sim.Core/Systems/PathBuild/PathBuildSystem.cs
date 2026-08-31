@@ -349,6 +349,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ControlRow> Controls => prev.Controls;
         public IReadOnlyTable<NotableRow> Notables => prev.Notables;
         public IReadOnlyTable<RecognitionRow> Recognitions => prev.Recognitions;
+        public IReadOnlyTable<PolityRow> Polities => prev.Polities;
+        public IReadOnlyTable<CapitalRow> Capitals => prev.Capitals;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)
