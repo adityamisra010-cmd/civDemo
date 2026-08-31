@@ -162,6 +162,17 @@ properties.** **UNVERIFIED — the adversarial pass did not run.**
 
 ## §5 THE CAPABILITY SEAM
 
+> **CONSTRAINT ADDED BY D-042 (director ruling; this section is not rewritten).**
+> D-042 §7.3 and §12 forbid *"a universal God system such as a `CapabilitySystem`
+> that owns every capability or coordinates every domain."* The seam proposed
+> below is conformant **only** as a **shared predicate grammar consumed
+> independently by each domain system** — which is the shape D-020 already has,
+> and which D-042 §8.1 ratifies as the foundation. It is **not** conformant as a
+> coordinating owner, and the `CapabilityState(scope, domain, capability)`
+> notation below must be read as *a way of asking*, never as *a system that
+> answers for everyone*. D-042 §8.3 independently ratifies the scope point:
+> capability evaluation must distinguish **Empire-level and Settlement-level**.
+
 **It exists. Do not rebuild it.** The D-020 predicate DSL is a closed
 deterministic grammar over registered variables, with two shipped consumers
 (class emergence; recipe `requires`).
