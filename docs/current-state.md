@@ -24,8 +24,8 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Governing architecture** | `docs/d042-empire-and-player-control-addendum.md` (D-042) |
 | **Milestone spec** | `docs/m4-spec.md` (R-1, R-2, R-3 ruled 2026-08-07; packet list FINAL) |
 | **Authoritative baseline** | `origin/main` = `070f05b` |
-| **Active implementation branch** | `food-anomaly-observability` = `8bd433a` — **LOCAL ONLY, see §3** |
-| **Latest implementation commit** | `8bd433a` — M4 Empire control foundation, schema v22 |
+| **Active implementation branch** | `food-anomaly-observability` = `481b806`, preserved at `origin/food-anomaly-observability` = `481b806` — see §3 |
+| **Latest implementation commit** | `481b806` — GOV-4 governance; the M4 foundation is `8bd433a` |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
 `docs/d042-empire-and-player-control-addendum.md` · `docs/spine-s8-governance-freeze.md` ·
@@ -61,8 +61,10 @@ mislead the next agent.
 
 1. **Local `main` is stale.** Local `main` = `87fb866`, `origin/main` = `070f05b`: **0 ahead, 8
    behind**. The 8 are the T4.4 colonization merge and the PR#4 AI-constitution admission.
-2. **The active branch has no remote.** `food-anomaly-observability` exists **locally only** — no
-   upstream, never pushed. It is **17 ahead / 8 behind `origin/main`**.
+2. **The active branch is preserved on the remote but is not on `main`.** As of 2026-08-31,
+   `food-anomaly-observability` was pushed to `origin/food-anomaly-observability` at `481b806`,
+   verified equal by `git ls-remote`. It is **18 ahead / 8 behind `origin/main`**. REMOTE is now
+   true; MAIN is still false.
 3. **It was cut from the stale local `main`,** so everything on it — the food-anomaly investigation,
    the capacity-floor fix, the M5 design records, CR-007, D-042 and the M4 foundation — sits on a
    base that predates T4.4. None of it is on `origin/main`.
@@ -96,6 +98,12 @@ re-run**. The fix and its 7-test regression suite are on the active branch; **no
 Two new empty count prefixes move all four pinned world hashes. That is a schema-only change, not a
 behavioural one, so **the goldens were deliberately not repinned** — the pin change needs a director
 ruling, on the T4.3/T4.8 precedent.
+
+**A schema-version collision now stands between this branch and `origin/main`.** T4.4 (`4d11c02`,
+merged into `origin/main` at `070f05b`) ALSO took `CanonicalSchema` to **v22**, for a different
+reason — `BucketRow` gained `UnplacedDeparture` and `UnplacedRemainder`. Two independent v22s exist,
+and the branch was cut before T4.4 landed so it cannot see it. Reconciling the two is a director
+decision, not an agent's: see §3 and the GOV-4 preservation report.
 
 **Open change requests awaiting director ruling:** CR-005 (M5 ownership of Research/Technology/
 Institutions) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by
