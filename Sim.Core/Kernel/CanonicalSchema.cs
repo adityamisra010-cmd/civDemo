@@ -74,7 +74,20 @@ public static class CanonicalSchema
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
-    public const int Version = 22;
+    /// v23 (M4, D-042): Polities and Capitals tables appended after Notables.
+    /// PolityRow is the Empire roster — the pre-existing D-037 PolityId reused as
+    /// the strategic identity, carrying only its command source (AI or player), so
+    /// human and AI command are structurally separated from simulation state.
+    /// Membership is NOT stored here: it derives from the Controls relation, the
+    /// single source of truth. CapitalRow is a RELATION, not a field: absence of a
+    /// row means no capital, so capital loss is representable without destroying
+    /// the surviving Empire, and the capital is a designation rather than the
+    /// Empire identity. Schema only — no system writes either table yet.
+    /// DIRECTOR-RULED: this work was authored as a second, independent "v22"
+    /// before T4.4 merged. T4.4's v22 is authoritative because it landed on main
+    /// first and is certified; these two tables are v23. There is exactly one
+    /// meaning of every version number in this file.</summary>
+    public const int Version = 23;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -114,6 +127,8 @@ public static class CanonicalSchema
     private const int ControlRowWidth = 4 + 4 + 8;                  // Polity, Place, Strength bits (v20)
     private const int RecognitionRowWidth = 4 + 4;                  // Recogniser, Recognised (v20)
     private const int NotableRowWidth = 4 + 4 + 4 + 4 + 8;          // Id, Settlement, Allegiance, CohortIdx, Count (v21)
+    private const int PolityRowWidth = 4 + 4;                       // Id, Source (v23)
+    private const int CapitalRowWidth = 4 + 4;                      // Polity, Place (v23)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -507,6 +522,24 @@ public static class CanonicalSchema
             writer.Write(row.CohortIdx);
             writer.Write(row.Count.Value);
         }
+
+        // 36. Polities (v23, M4, D-042: the Empire roster and its command source)
+        writer.Write(world.Polities.Count);
+        for (int i = 0; i < world.Polities.Count; i++)
+        {
+            PolityRow row = world.Polities[i];
+            writer.Write(row.Id.Value);
+            writer.Write((int)row.Source);
+        }
+
+        // 37. Capitals (v23, M4, D-042: capital as a RELATION, absence = none)
+        writer.Write(world.Capitals.Count);
+        for (int i = 0; i < world.Capitals.Count; i++)
+        {
+            CapitalRow row = world.Capitals[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Place.Value);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -846,6 +879,20 @@ public static class CanonicalSchema
                 id, settlement, allegiance, cohort, Conserved.FromSnapshot(reader.ReadInt64())));
         }
 
+        int polityCount = reader.ReadInt32();
+        for (int i = 0; i < polityCount; i++)
+        {
+            var id = new PolityId(reader.ReadInt32());
+            world.Polities.Add(new PolityRow(id, (CommandSource)reader.ReadInt32()));
+        }
+
+        int capitalCount = reader.ReadInt32();
+        for (int i = 0; i < capitalCount; i++)
+        {
+            world.Capitals.Add(new CapitalRow(
+                new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32())));
+        }
+
         return world;
     }
 
@@ -891,5 +938,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Claims.Count * ClaimRowWidth
         + CountPrefixWidth + (long)world.Controls.Count * ControlRowWidth
         + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth
-        + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth;
+        + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth
+        + CountPrefixWidth + (long)world.Polities.Count * PolityRowWidth
+        + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth;
 }

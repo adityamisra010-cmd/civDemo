@@ -173,6 +173,27 @@ public class DrivenGoldenTests
         //         travel-time spacing"), and rivers shorten travel cost, so different
         //         candidates fail the spacing test: 3 of 9 dev sites move and the
         //         pick order shifts. Candidate SCORES are untouched.
+        // INTEGRATED PIN — TWO INDEPENDENT CAUSES, MEASURED APART.
+        // Neither side's pre-integration pin is carried forward on authority.
+        // The chain, every step of it re-derived on THIS tree:
+        //
+        //   main, post-T4.4, v22          5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
+        //     + capacity-floor fix  (v22) 9432d39f5a1618eead13115c889dd77748c118e4699310576704802aa2d0c621
+        //     + M4 Polities/Capitals(v23) ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4
+        //
+        // The middle value is MEASURED, not inferred: IntegratedPinAttributionTests
+        // strips the two empty v23 count prefixes from this world's stream and gets
+        // it. So the first step is behavioural and the second is layout, and the two
+        // are separated by measurement rather than by argument.
+        //
+        // Note the asymmetry that makes this the ONLY golden with two causes: the
+        // same strip applied to the founded and turn-200 goldens returns main's
+        // pins EXACTLY, because the capacity-floor fix cannot reach those worlds.
+        // Here it can, so the stripped value differs from main's — and that
+        // difference is the fix, isolated.
+        const string golden = "ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4";
+
+        // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
         //   OLD  aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
         //   NEW  5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
@@ -191,7 +212,47 @@ public class DrivenGoldenTests
         //         condition is never met.
         //   NOT A MIGRATION CHANGE: no flow, cap, gate, EMA or attractiveness term
         //         was touched; the new readout only WRITES a quantity.
-        const string golden = "5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb";
+
+        // ---- CAUSE 2 (from this branch, the capacity-floor fix) ----
+        // GRANARY CAPACITY-FLOOR RE-PIN (VALUE, ONE cause — a sub-unit granary
+        // ceiling no longer destroys an existing store). DIRECTOR-RULED.
+        //   OLD (main, T4.5's pin)  aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66
+        //   NEW                     414a32f44d2d49d81fd8c2085c7f7612e7e4418fd6f9bca1ac77d36db393fb61
+        //   CAUSE `ConsumptionSystem.BoundStore` sized the granary with
+        //         `ConservedMath.WholeUnits`, which FLOORS — it is the D-004
+        //         converter for a FLOW, under a remainder convention that banks
+        //         the fraction elsewhere. A capacity is a THRESHOLD with no
+        //         remainder bank, so at `1.5 × annualGrainDemand < 1` a genuinely
+        //         POSITIVE capacity floored to 0, `over` became the entire store,
+        //         and the settlement's whole grain holding was destroyed in one
+        //         turn — while a settlement at literally ZERO demand fails the
+        //         `annualGrainDemand > 0` guard and keeps its grain forever. A
+        //         settlement down to its last people was treated worse than a
+        //         dead one. The ceiling is now enforced only when representable:
+        //         `if (capacity > 0 && over > 0)`.
+        //   WHERE THE DIVERGENCE BEGINS, and the control that proves the cause.
+        //         Measured per turn with the fix ON and OFF over this same driven
+        //         world (the harness was removed from the suite after the
+        //         investigation; its measurements are preserved in
+        //         docs/food-anomaly-investigation.md §12.4):
+        //           turn 152 — capacity floors to 0, but the store is ALREADY 0,
+        //                      so there is nothing to destroy: hashes IDENTICAL
+        //                      (`4cea9af9f980`), world grain 162 both sides.
+        //           turn 153 — no capacity floors to 0: hashes IDENTICAL.
+        //           turn 154 — capacity floors to 0 WITH STOCK PRESENT: hashes
+        //                      DIVERGE, world grain 127 → 136. The 9 units are a
+        //                      4-person settlement's entire granary, previously
+        //                      destroyed. Recurs at turns 223 and 241.
+        //         The divergence begins exactly when capacity floors to zero
+        //         while stock is positive, and NOT when capacity floors to zero
+        //         against an empty store — which is what attributes the movement
+        //         to this defect and to nothing else.
+        //   BLAST RADIUS: this golden only. `FoundedGolden`, `GoldenHash`, both
+        //         `FirstReign` tests, `CiPinAgreement`, every `SnapshotTests`,
+        //         `EquilibriumInvariantTests` and `PopulationExactnessTests` pass
+        //         UNCHANGED; calibration is 4 failed / 2 passed on both sides with
+        //         the identical test set. `ci.yml` pins FOUNDED_GOLDEN only and is
+        //         untouched. No data file, band, quarantine or schema changed.
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  35c90bd1c2f0fef3ec34ae66bc3469fbeb7619da99cf5fb2c7e0054379ac89a0
         //   NEW (T4.5 rebased)      aae82e388697663fe1c9430283257aa6892cdce16e5d26c2a738dd7736258e66

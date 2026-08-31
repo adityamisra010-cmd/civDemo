@@ -1170,3 +1170,100 @@
      but that rule governs WHICH polity sets the global dt — it is not a layered strategic/tactical
      timestep, which is what the bullet asserts.
   Whoever writes the M5 AI spec must reconcile §23 against the tree before implementing from it.
+
+- **M5 ownership of Research, Technology & Institutions — CR-005 OPEN, not a queue item.**
+  Recorded here only as a pointer so the queue reader is not surprised. The director directed
+  that M5 own a Research/Technology/Institutions architecture packet; that conflicts with the
+  frozen milestone order (Spine: M5 governing loop, M6 knowledge & diffusion, M7 institutions)
+  and with `m4-spec.md`'s five by-name deferrals of money to M5. Conflict and three options are
+  in `docs/adr/cr-005-m5-research-technology-institutions-placement.md`; scope is recorded in
+  `docs/m5-research-technology-institutions-placeholder.md`. **Awaiting director ruling — this is
+  NOT parked to the M10 slice gate.**
+
+- **M5 temporal control / player agency — CR-006 OPEN, not a queue item.**
+  Pointer only. The agreed model (continuous simulation under turn-shaped player control,
+  projections, policies, calculated hand-backs, player triggers) is recorded in
+  `docs/m5-temporal-control-and-player-agency-placeholder.md`. It raises TWO conflicts with
+  frozen material, both in `docs/adr/cr-006-continuous-time-and-campaign-epoch.md`: mid-turn
+  hand-backs vs the atomic turn of kernel contract §3.2-3.4, and a 10,000 BCE epoch vs ADR-002
+  (4000 BCE = day 0) and CLAUDE.md's "spanning 6,000 years". **Awaiting director ruling — NOT
+  parked to the M10 slice gate.** Variable turn duration by era is ALREADY SATISFIED by
+  `EraTable` and needs no change.
+
+- **Milestone roadmap dependency audit — pointer only, decisions belong to the director.**
+  `docs/m5-roadmap-dependency-audit.md`. Two ratified findings reframe the reordering question:
+  D-011 §6 already resequenced the ladder (battle layer inserted as M6, knowledge to M7, politics
+  to M8) and D-040 B3 already ruled "NO TECHNOLOGY UNLOCK — LAW 4 BINDS", rejecting the Civ
+  research-to-unlock shape in favour of capability emerging from computed preconditions. The audit
+  recommends keeping the ratified order, landing a small capability-predicate SEAM early as the
+  anti-retrofit device, and re-scoping M7 from "knowledge & divergence" to the capability layer.
+  **Awaiting director ruling on Q1 (whether an accumulating science stock is compatible with
+  D-040 B3 at all) — that question blocks the rest.** NOT parked to the M10 slice gate.
+
+- **Capability architecture decision record — pointer only; five director decisions inside.**
+  `docs/capability-architecture-decision.md`. Supersedes parts of
+  `docs/m5-roadmap-dependency-audit.md` (see its §12, which records three errors in that document
+  rather than silently fixing them). Headlines: the capability seam ALREADY SHIPS (D-020 predicate
+  DSL, two live consumers — class emergence and recipe `requires`, documented in goods.json:3 as
+  "a knowledge gate over published variables, never a calendar date"); a per-CIVILIZATION
+  capability is NOT representable (no PolityRow, no table, no constructor outside deserialization);
+  and GOV-2 §1a rules money is NOT at M5, so money is currently UNOWNED and "money is M5" in
+  m4-spec is transcription drift. **The Q1 adversarial verification DID NOT RUN (session limit) —
+  §4's recommendation is UNVERIFIED under ADR-015 §6.** NOT parked to the M10 slice gate.
+
+- **Milestone architecture governance record — pointer only; four BLOCKING contradictions, CR-007 gates the rest.**
+  `docs/milestone-architecture-governance.md`. The adversarial pass that failed last run has now
+  completed: of ten assumptions, **3 FALSIFIED, 7 conditional, 0 clean survivals**. HEADLINE:
+  D-040 B3's own sanctioned exemplar FAILS B3's operative test — `population > 520` is universal
+  delay by explicit tuning (`sim.json:167`) and `food_surplus_ratio > 1.3` is constant-true
+  (`Variables.cs:29-32`), so no settlement is ever structurally excluded. Also: polity state
+  CANNOT be postponed past M5 (Law 1's two-endpoint `Transfer` gives an in-kind tax nowhere to
+  go); advanced military is ERA-GATED in frozen D-011 (`:13`, `:45`, `:66`), not
+  capability-gated; knowledge and economy are a CYCLE, not an order; and "institution" carries
+  SIX meanings with zero code. Recommended next packet is **CR-007 alone**. Corrections to
+  `docs/capability-architecture-decision.md` are marked in that file, not rewritten.
+  **NOT parked to the M10 slice gate.**
+
+- **CR-007 RESOLVED WITHOUT A NEW RULING — the B3 contradiction does not exist.**
+  `docs/adr/cr-007-b3-exemplar-reconciliation.md`. In B3's "A landlocked polity never develops
+  it", **"it" refers to SEA TRAVEL** (coastal AND timber AND craft), whose first conjunct is
+  permanently false inland — static terrain, ADR-008. The class predicate is cited for its SHAPE,
+  not as a conformance exemplar, and D-040 Part F already states "None changes a ruling; all
+  change what may be cited in support of one", with F2 recording the reference's defects "Noted,
+  not ruled". **The headline of `milestone-architecture-governance.md` (487a66d) is WITHDRAWN**
+  and marked in that file. Untouched and still standing from that pass: polity state cannot be
+  postponed past M5 (Law 1 two-endpoint Transfer), advanced military is era-gated in frozen D-011,
+  knowledge/economy is a cycle, institutions carry six meanings with zero code.
+  **Next blocker is now CR-008 (money has no owner).** NOT parked to the M10 slice gate.
+
+- **D-042 EMPIRE / OWNERSHIP / GOVERNANCE / PLAYER CONTROL — ratified architecture addendum.**
+  `docs/d042-empire-and-player-control-addendum.md`. Follows the D-011 addendum precedent: binds
+  the Spine WITHOUT editing it. The player controls an Empire; the simulation models the world.
+  Empire is the strategic-actor role of D-037's polity (NOT a third abstraction) and its
+  settlement set is DERIVED from D-037's CONTROL relation, so D-037 A2 "a polity is a claim, not
+  a container" is upheld, not overridden (§13). Settles several previously-open questions (§15):
+  knowledge IS an allocatable flow whose unallocated remainder ACCUMULATES AS A RESERVE (answers
+  the CR-007/Q1 accumulation blocker YES), research runs in parallel, capability must distinguish
+  Empire vs Settlement scope, D-020 is the capability foundation, money is Empire-owned, and
+  player/AI share one order pathway. **ONE UNRESOLVED STALENESS FINDING for the director:
+  D-018's per-class income column (wage/stipend/trade profit) reads as individual economic
+  ownership, which D-042 §4.4/§4.6 now forbid — D-018 is closed and was NOT edited (§14.1).**
+  Still open: CR-005, CR-006, CR-008, CR-009, CR-010. NOT parked to the M10 slice gate.
+
+- **Repository freshness protocol (GOV-4) — `docs/current-state.md` is now the entry point.**
+  An agent resuming with no conversation context should read `docs/current-state.md` for current
+  milestone, baseline, active branch and open blockers, then verify those claims against git before
+  acting on them. The rules — source-of-truth hierarchy, commit provenance, branch/packet/test
+  freshness, and the bans on branch deletion and rewriting frozen documents — are in
+  `docs/gov-4-repository-freshness.md`. Two standing facts that document records rather than fixes:
+  `CLAUDE.md`'s milestone line still reads M3 while the tree is on M4, and `docs/handoff-status.md`
+  is a superseded M3-era routing document deliberately left in place as a historical measurement.
+
+- **M4 Empire Control Foundation integrated onto post-T4.4 `origin/main`.**
+  The schema collision is settled by director ruling: **v22 is T4.4's `BucketRow` widening, v23 is
+  M4's Polities and Capitals.** T4.4's representation was not altered, reordered or renumbered.
+  Three goldens moved and were re-derived on the integrated tree rather than carried forward from
+  either side; `IntegratedPinAttributionTests` is the control that attributes each one, and it stays
+  in the suite. Work continues on `m4-empire-control-foundation`; the pre-rebase history is
+  preserved at `origin/food-anomaly-observability`. **The food-anomaly certification suite still has
+  to be re-run against the integrated tree** — the pre-rebase run does not certify this tree.
