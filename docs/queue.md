@@ -1276,3 +1276,14 @@
   an explicit order **scope** field, a permission matrix, and a populated `Polities`/`Capitals`
   roster — until something seeds the roster, the actor-existence check in `OrderValidation` stays
   dormant by design.
+
+- **M4-C founding->Empire implemented; BLOCKED on CR-011, nothing repinned.**
+  `WorldFounding.Found` now creates the one player-commanded Empire, its control rows and its
+  capital in the same operation, per D-042/§20. Focused founding tests pass (6/6) and two mutants
+  were killed. But populating the roster makes M4-B's actor check LIVE, and the founded id (§7's
+  `PolityId 0`) then contradicts the entire existing order corpus, which stamps `ActorId = 1` -
+  including **both binary replay fixtures**. 14 of the 17 new suite failures are that single
+  collision; a controlled probe at `PolityId 1` clears 29/30. See
+  `docs/adr/cr-011-founding-polity-id-vs-the-order-corpus.md`. **Two goldens also genuinely move**
+  (founded worlds now carry Empire rows) and were deliberately NOT repinned.
+

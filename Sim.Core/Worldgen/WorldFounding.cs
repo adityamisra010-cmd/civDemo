@@ -221,7 +221,46 @@ public static class WorldFounding
                 settlement, world.Settlements[s].SiteCell, seed, s);
         }
 
+        FoundInitialEmpire(world);
         return world;
+    }
+
+    /// <summary>
+    /// M4-C (D-042): the founded world's ONE player-commanded Empire, created in
+    /// the same operation that creates its settlements — so `Found` never returns
+    /// a playable world whose settlements answer to nobody.
+    ///
+    /// Identity is the EXISTING D-037 <see cref="PolityId"/>; no Empire container,
+    /// no owner field on <see cref="SettlementRow"/>, no second identity. Id 0 is
+    /// the deterministic allocation: the first row in a previously-unwritten table,
+    /// matching how every other id table in this file starts, and leaving 1.. free
+    /// for later AI Empires without renumbering anything.
+    ///
+    /// Membership is the CONTROL relation, one row per founded settlement — so a
+    /// multi-settlement founding yields ONE Empire holding N settlements, not N
+    /// Empires, and later colonization extends the same Empire by appending one
+    /// more control row. The capital is a DESIGNATION on the first founded
+    /// settlement: one relation row, never a flag or an id on the settlement.
+    /// </summary>
+    private static void FoundInitialEmpire(WorldState world)
+    {
+        var player = new PolityId(0);
+        world.Polities.Add(new PolityRow(player, CommandSource.Player));
+
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            // Strength 1.0: uncontested control of one's own founding. The field
+            // is T4.3's SLOT and no system computes or decays it yet.
+            world.Controls.Add(new ControlRow(player, world.Settlements[s].Id, 1.0));
+        }
+
+        // The first founded site is the seat. Exactly one row, and only if there
+        // is a settlement to seat it in — a capital-less Empire is representable
+        // (M4-A) and inventing a seat for an empty world would be a lie.
+        if (world.Settlements.Count > 0)
+        {
+            world.Capitals.Add(new CapitalRow(player, world.Settlements[0].Id));
+        }
     }
 
     /// <summary>
