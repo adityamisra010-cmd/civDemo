@@ -216,7 +216,15 @@ public class SnapshotTests
         //         bucket widening can reach it — which is why T4.4 left this pin
         //         deliberately UNMOVED as its own control, and why the stripped
         //         value equals main's exactly rather than merely resembling it.
-        const string golden = "51b97aad643660053bb5b35e5703d544f14a6f186e7ab9eed569f2ed9878127e";
+                // M4-D RE-PIN — SCHEMA v24, LAYOUT ONLY, DIRECTOR-APPROVED.
+        //   CAUSE v23 -> v24 appends ConstructionQueue and Structures. Both are
+        //         EMPTY in this world — nothing enqueues without an order — so
+        //         their entire contribution is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution strips M4's rows
+        //         and its four trailing prefixes on this exact world and returns
+        //         the pre-M4 value byte for byte; stripping only the two v24
+        //         prefixes returns the pre-M4-D value. Layout, not behaviour.
+        const string golden = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -609,7 +617,15 @@ public class SnapshotTests
         //         the economy would survive that strip and break the control — so it
         //         is measured that nothing else moved, not argued.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "5a64109a4d11ac4e9a55ed111567ebf7a273d23d8c452e547213025b9c7c5c4c";
+                // M4-D RE-PIN — SCHEMA v24, LAYOUT ONLY, DIRECTOR-APPROVED.
+        //   CAUSE v23 -> v24 appends ConstructionQueue and Structures. Both are
+        //         EMPTY in this world — nothing enqueues without an order — so
+        //         their entire contribution is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution strips M4's rows
+        //         and its four trailing prefixes on this exact world and returns
+        //         the pre-M4 value byte for byte; stripping only the two v24
+        //         prefixes returns the pre-M4-D value. Layout, not behaviour.
+        const string golden = "d13f366cb01850b71ef15286f4abed1f2f3487bc38e1c88da999995325eb6888";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

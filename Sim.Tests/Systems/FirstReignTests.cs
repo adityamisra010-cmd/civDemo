@@ -340,7 +340,15 @@ public class FirstReignTests
         //         returns the OLD value byte for byte, and the shape asserts below
         //         are unchanged and green — the trajectory did not move, the state
         //         the trajectory is recorded in gained rows.
-        const string golden = "c6f28f8aea60cc0bce8ee42c82f6d1e37b3d256d5915927ed3b5c6245e091dc7";
+                // M4-D RE-PIN — SCHEMA v24, LAYOUT ONLY, DIRECTOR-APPROVED.
+        //   CAUSE v23 -> v24 appends ConstructionQueue and Structures. Both are
+        //         EMPTY in this world — nothing enqueues without an order — so
+        //         their entire contribution is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution strips M4's rows
+        //         and its four trailing prefixes on this exact world and returns
+        //         the pre-M4 value byte for byte; stripping only the two v24
+        //         prefixes returns the pre-M4-D value. Layout, not behaviour.
+        const string golden = "d6a737fb89c4980c89fc89f3c6ad4e622b2b9cc3f7cd3991f40f991c5f646f4e";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

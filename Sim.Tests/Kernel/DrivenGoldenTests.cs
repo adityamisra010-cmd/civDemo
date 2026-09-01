@@ -210,7 +210,15 @@ public class DrivenGoldenTests
         //         that is measured rather than argued.
         //   NOT A BEHAVIOURAL CHANGE: nothing reads Polities, Controls or Capitals,
         //         so founding them cannot steer this world's 300 turns.
-        const string golden = "1768b254ef92ee7f7e75905c1d5f77c9db6cf4ba1da2c2f8fee3e04d49d860bf";
+                // M4-D RE-PIN — SCHEMA v24, LAYOUT ONLY, DIRECTOR-APPROVED.
+        //   CAUSE v23 -> v24 appends ConstructionQueue and Structures. Both are
+        //         EMPTY in this world — nothing enqueues without an order — so
+        //         their entire contribution is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution strips M4's rows
+        //         and its four trailing prefixes on this exact world and returns
+        //         the pre-M4 value byte for byte; stripping only the two v24
+        //         prefixes returns the pre-M4-D value. Layout, not behaviour.
+        const string golden = "f63758883a5458283ca97428c044038f43d49b97adc520570a941bf70e550aa0";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

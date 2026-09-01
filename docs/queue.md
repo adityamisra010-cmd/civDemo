@@ -1304,6 +1304,7 @@
   **Schema v23 -> v24** adds `ConstructionQueue` and `Structures`. Both are EMPTY in every canonical
   world (nothing enqueues without an order), so their whole contribution is two zero count prefixes —
   and all four pinned worlds move for that alone. The attribution control proves it: stripping M4's
-  rows and those prefixes returns each pin's pre-M4 value byte for byte. **Nothing was repinned** —
-  per M4-D §24 that is the director's call.
+  rows and those prefixes returns each pin's pre-M4 value byte for byte. The four pins were repinned
+  on director approval after that audit; no other golden was touched. **M4-D CERTIFIED**: 572 passed
+  / 6 failed / 6 skipped, the six being the unchanged mainline quarantine.
 
