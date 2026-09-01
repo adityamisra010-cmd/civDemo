@@ -1277,7 +1277,7 @@
   roster — until something seeds the roster, the actor-existence check in `OrderValidation` stays
   dormant by design.
 
-- **M4-C founding->Empire implemented; BLOCKED on CR-011, nothing repinned.**
+- **M4-C founding->Empire implemented. CR-011 RULED: initial player Empire is `PolityId 1`.**
   `WorldFounding.Found` now creates the one player-commanded Empire, its control rows and its
   capital in the same operation, per D-042/§20. Focused founding tests pass (6/6) and two mutants
   were killed. But populating the roster makes M4-B's actor check LIVE, and the founded id (§7's
@@ -1286,4 +1286,11 @@
   collision; a controlled probe at `PolityId 1` clears 29/30. See
   `docs/adr/cr-011-founding-polity-id-vs-the-order-corpus.md`. **Two goldens also genuinely move**
   (founded worlds now carry Empire rows) and were deliberately NOT repinned.
+
+- **M4-C golden movement audited; `DrivenGolden` alone still awaits approval.**
+  Three founded-world pins move because founded worlds now carry real Empire state. The attribution
+  control proves the delta is the Empire rows and nothing else — emptying them returns each pin's
+  pre-M4-C value byte for byte. `FoundedGolden` (ruled) and `FirstReign` (§6's condition, satisfied)
+  are repinned; **`DrivenGolden` is deliberately NOT repinned** because §6 forbids repinning any
+  golden the ruling did not name. It is the single outstanding item blocking M4-C certification.
 

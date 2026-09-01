@@ -1,7 +1,18 @@
 # CR-011 — the founded Empire's PolityId collides with the entire existing order corpus
 
-**Status: OPEN. Raised by M4-C implementation. Awaiting director ruling.**
-**Nothing was repinned, restamped or worked around. The tree implements §7 as written.**
+**Status: RULED (director, 2026-09-01). Option 1 accepted: the initial player Empire is `PolityId 1`.**
+
+**THE RULING, so nobody "corrects" the id back to 0.** M4-C §7 prescribed `PolityId 0` *only if*
+that was consistent with existing row-table conventions. It is not. The convention that actually
+governs an order's actor is the order corpus — the UI factories, ~8 in-code order logs, and both
+BINARY replay fixtures — which has stamped `ActorId = 1` since M1. M4-B's actor-existence check
+makes that convention operational the moment a roster exists. **The id is arbitrary; the frozen
+replay pin is not**, so the id moved rather than the fixtures. The frozen replay artifacts were
+preserved unmodified and now resolve naturally. `WorldFounding.FoundInitialEmpire` carries this
+reasoning in its header.
+
+Ids 0 and 2.. remain free for later AI Empires. No translation layer and no allocator framework
+was introduced.
 
 ---
 
@@ -54,8 +65,27 @@ Option 1: `WorldFounding` only; no fixture, no golden, no contract touched. Opti
 
 If the director prefers `0` on principle, Option 2 is coherent but the restamping of `first-reign-orders.bin` and `t38-director-orders.bin` needs to be authorised explicitly and separately — an agent must not rewrite a frozen replay pin on its own judgement.
 
-## 6. SEPARATELY, AND NOT PART OF THIS CR
+## 6. GOLDEN MOVEMENT — AUDITED, THEN PARTLY REPINNED
 
-Two goldens genuinely move because founded worlds now carry Polity/Control/Capital rows —
-`FoundedGolden_Seed42Turn300` and its attribution control. That is real state, not layout noise,
-and per M4-C §14 **nothing was repinned**. It needs its own approval whichever option is chosen.
+**Three** founded-world pins move, not two: `FoundedGolden_Seed42Turn300`, `FirstReign` and
+`DrivenGolden_Seed42Turn300`. `GoldenHash_Seed42Turn200` does NOT — it is synthetic and never
+founded, which is the no-unrelated-movement control holding.
+
+**The audit, run before any repin.** `IntegratedPinAttributionTests` now separates TWO layers,
+because M4 moved these pins twice for different reasons: M4-A's schema-v23 LAYOUT (count prefixes,
+present even when the tables are empty) and M4-C's founding CONTENT (the rows). Emptying
+Polities/Controls/Capitals on each finished world returns its pre-M4-C pin **byte for byte** — for
+all three. Any drift in population, food, terrain, deposits, paths, production, demography,
+migration or the economy would survive that strip and break the control, so it is *measured* that
+nothing else moved.
+
+| pin | old | new |
+| --- | --- | --- |
+| `FoundedGolden_Seed42Turn300` | `9fc45cc7…ff686` | `5a64109a…c5c4c` |
+| `FirstReign` turn 40 | `28247419…75d74` | `c6f28f8a…91dc7` |
+| `DrivenGolden_Seed42Turn300` | `ca1d8329…767a4` | `1768b254…860bf` **NOT REPINNED** |
+
+`FoundedGolden` was repinned under the explicit ruling; `FirstReign` under §6's condition that it
+may be touched if it moves for the same intended founding-state reason, which the control proves.
+**`DrivenGolden` was NOT repinned**: §6 says not to repin any other golden, and it is not named.
+It moves for the identical, proven cause and needs one word of approval.

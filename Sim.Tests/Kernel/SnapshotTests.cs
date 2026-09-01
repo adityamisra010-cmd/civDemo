@@ -594,7 +594,22 @@ public class SnapshotTests
         //         reached this world the stripped stream could not equal main's.
         //   T4.4 IS INTACT UNDERNEATH: the stripped value IS main's v22 value, so
         //         colonization and the bucket widening are bit-identical to main.
-        const string golden = "9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686";
+        // M4-C RE-PIN — INTENDED EMPIRE STATE, DIRECTOR-APPROVED (CR-011 ruling).
+        //   OLD  9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686
+        //   NEW  5a64109a4d11ac4e9a55ed111567ebf7a273d23d8c452e547213025b9c7c5c4c
+        //   CAUSE WorldFounding now instantiates the founded world's Empire in the
+        //         same operation that creates its settlements: one PolityRow
+        //         (PolityId 1, CommandSource.Player), one ControlRow per founded
+        //         settlement, one CapitalRow on the first. This is real canonical
+        //         simulation state, NOT layout noise, so the pin is expected to move.
+        //   THE CONTROL THAT PROVES THE DELTA IS ONLY THAT: IntegratedPinAttribution
+        //         empties Polities/Controls/Capitals on this exact world and re-hashes,
+        //         and gets the OLD value back BYTE FOR BYTE. Any drift in population,
+        //         food, terrain, deposits, paths, production, demography, migration or
+        //         the economy would survive that strip and break the control — so it
+        //         is measured that nothing else moved, not argued.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "5a64109a4d11ac4e9a55ed111567ebf7a273d23d8c452e547213025b9c7c5c4c";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

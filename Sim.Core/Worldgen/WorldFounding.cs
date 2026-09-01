@@ -231,10 +231,19 @@ public static class WorldFounding
     /// a playable world whose settlements answer to nobody.
     ///
     /// Identity is the EXISTING D-037 <see cref="PolityId"/>; no Empire container,
-    /// no owner field on <see cref="SettlementRow"/>, no second identity. Id 0 is
-    /// the deterministic allocation: the first row in a previously-unwritten table,
-    /// matching how every other id table in this file starts, and leaving 1.. free
-    /// for later AI Empires without renumbering anything.
+    /// no owner field on <see cref="SettlementRow"/>, no second identity.
+    ///
+    /// THE ID IS 1, AND THAT IS A DIRECTOR RULING (CR-011) — DO NOT "CORRECT" IT
+    /// TO 0. Every other id table in this file starts at 0, and this one does not,
+    /// which looks like an oversight and is not. The convention that actually
+    /// governs an order's actor is the ORDER CORPUS, which has stamped
+    /// `ActorId = 1` since M1: the UI factories, roughly eight in-code order logs,
+    /// and — decisively — both BINARY replay fixtures, whose bytes cannot be
+    /// re-derived from source. Once M4-C populates the roster, M4-B's
+    /// actor-existence check goes live and an id of 0 would reject that entire
+    /// corpus, including the director's own first reign. The id is arbitrary; the
+    /// frozen replay pin is not, so the id moved. Ids 0 and 2.. remain free for
+    /// later AI Empires.
     ///
     /// Membership is the CONTROL relation, one row per founded settlement — so a
     /// multi-settlement founding yields ONE Empire holding N settlements, not N
@@ -244,7 +253,7 @@ public static class WorldFounding
     /// </summary>
     private static void FoundInitialEmpire(WorldState world)
     {
-        var player = new PolityId(0);
+        var player = new PolityId(1);   // CR-011 ruling — see the header. Not 0.
         world.Polities.Add(new PolityRow(player, CommandSource.Player));
 
         for (int s = 0; s < world.Settlements.Count; s++)
