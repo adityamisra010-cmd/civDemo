@@ -34,14 +34,53 @@ public enum OrderKind
     /// in meaning.
     /// </summary>
     SectorAllocation = 3,
+
+    /// <summary>
+    /// M4-D: enqueue a construction project in a settlement the issuing Empire
+    /// controls. TargetId = settlement id; Amount = the project id, a whole
+    /// number carried exactly by the double (project ids are small integers, far
+    /// inside the 2^53 exact range). The five-field OrderRecord already encodes
+    /// this, so the wire format is untouched.
+    ///
+    /// Range-validated at LOAD (a project id must be a non-negative integer);
+    /// the settlement's existence AND the issuing Empire's CONTROL of it are
+    /// world-dependent and checked in OrderValidation.
+    /// </summary>
+    EnqueueConstruction = 4,
 }
 
 /// <summary>
 /// One external input to the sim (§3.9): {turn, actorId, payload}. Turn semantics:
 /// an order with Turn = t is delivered to the step that transforms turn-t state
 /// into turn-(t+1) state (i.e. delivered when Prev.Clock.Turn == t).
+///
+/// M4-B — WHAT <see cref="ActorId"/> MEANS. It is the STRATEGIC ACTOR issuing the
+/// order: the <see cref="State.PolityId"/> of the Empire, read through
+/// <see cref="Actor"/>. §3.9 already defined this field as the actor of a
+/// "player/AI order", and <see cref="State.PolityId"/> is a one-int identity, so
+/// the binding needs no new field, no new identity type and NO CHANGE TO THE WIRE
+/// FORMAT — the int on disk was always this id.
+///
+/// It is NOT a command source. Who DECIDED (a human or the AI) is
+/// <see cref="State.CommandSource"/> on the polity's roster row; who is ACTING is
+/// this id. Never encode "the player" as an actor id — under D-042 a human and an
+/// AI commanding the same Empire issue orders as the SAME actor, and one human
+/// switching Empires changes the actor while the command source is unmoved.
 /// </summary>
-public readonly record struct OrderRecord(long Turn, int ActorId, OrderKind Kind, int TargetId, double Amount);
+public readonly record struct OrderRecord(long Turn, int ActorId, OrderKind Kind, int TargetId, double Amount)
+{
+    /// <summary>
+    /// The issuing Empire, typed. A projection of <see cref="ActorId"/>, never a
+    /// second identity: <c>Actor.Value == ActorId</c> always, so nothing can drift
+    /// between the serialized form and the strategic one.
+    /// </summary>
+    public State.PolityId Actor => new(ActorId);
+
+    /// <summary>Builds a record from a typed issuer — the preferred constructor.</summary>
+    public static OrderRecord From(
+        long turn, State.PolityId actor, OrderKind kind, int targetId, double amount)
+        => new(turn, actor.Value, kind, targetId, amount);
+}
 
 /// <summary>
 /// Append-only order log — the second half of determinism (§3.9) and the save
@@ -157,6 +196,21 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): SectorAllocation sector id " +
                         $"{record.TargetId & 7} unknown — sectors are 0..{Sim.Core.State.Sectors.Count - 1} " +
                         "(farming, herding, extraction, crafting, construction).");
+                break;
+            case OrderKind.EnqueueConstruction:
+                // The project id rides in a double. Insist it is a non-negative
+                // WHOLE number here rather than truncating later: 1.5 is not a
+                // project, and silently flooring it would enqueue the wrong one.
+                if (!(record.Amount >= 0.0) || record.Amount != Math.Floor(record.Amount)
+                    || record.Amount > int.MaxValue)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): EnqueueConstruction project id must be a " +
+                        "non-negative whole number carried exactly by Amount, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): EnqueueConstruction settlement id must be " +
+                        $">= 0, got {record.TargetId}.");
                 break;
             default:
                 throw new SnapshotFormatException(

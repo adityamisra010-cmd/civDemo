@@ -25,8 +25,12 @@ namespace Sim.Ui.ViewModel;
 /// </summary>
 public static class SectorOrderFactory
 {
-    /// <summary>The UI's actor id in order logs — the same single human
-    /// director as the legacy labor order (LaborOrderFactory.UiActorId).</summary>
+    /// <summary>The Empire the human director commands — the same one the legacy
+    /// labor order names. See <see cref="LaborOrderFactory.PlayerEmpire"/> for why
+    /// this is an Empire identity and not a "player" marker.</summary>
+    public static PolityId PlayerEmpire => LaborOrderFactory.PlayerEmpire;
+
+    /// <summary>Back-compat alias for the raw id. Prefer <see cref="PlayerEmpire"/>.</summary>
     public const int UiActorId = LaborOrderFactory.UiActorId;
 
     /// <summary>
@@ -75,6 +79,11 @@ public static class SectorOrderFactory
     /// </summary>
     public static IReadOnlyList<OrderRecord> Create(
         long currentTurn, SettlementId settlement, ReadOnlySpan<int> weights)
+        => Create(currentTurn, PlayerEmpire, settlement, weights);
+
+    /// <summary>As above, with the issuing Empire named explicitly.</summary>
+    public static IReadOnlyList<OrderRecord> Create(
+        long currentTurn, PolityId issuer, SettlementId settlement, ReadOnlySpan<int> weights)
     {
         RequireShape(weights);
 
@@ -102,8 +111,8 @@ public static class SectorOrderFactory
         var orders = new OrderRecord[Sectors.Count];
         for (int s = 0; s < Sectors.Count; s++)
         {
-            orders[s] = new OrderRecord(
-                currentTurn, UiActorId, OrderKind.SectorAllocation,
+            orders[s] = OrderRecord.From(
+                currentTurn, issuer, OrderKind.SectorAllocation,
                 PackTarget(settlement, s), weights[s]);
         }
         return orders;

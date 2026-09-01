@@ -51,6 +51,39 @@ public sealed record RecipeEntry(
     [property: JsonPropertyName("output"), JsonRequired] RecipeOutput Output,
     [property: JsonPropertyName("requires")] string? Requires = null);
 
+/// <summary>M4-D: one material requirement of a construction project. Absolute
+/// units, NOT a per-output coefficient — a project is built once, not per unit,
+/// which is exactly why it cannot borrow <see cref="RecipeInput"/>.</summary>
+public sealed record ProjectInput(
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("qty"), JsonRequired] long Qty);
+
+/// <summary>
+/// M4-D — ONE CONSTRUCTABLE STRUCTURE, and a deliberate SECOND definition
+/// alongside <see cref="RecipeEntry"/> rather than a reuse of it.
+///
+/// A recipe's contract is that it OUTPUTS A GOOD (<see cref="RecipeOutput"/> is
+/// required and names one), and its inputs and labour are per EXECUTION with a
+/// per-unit divisor. A structure is not a good: it has no stock row, no price,
+/// no bulk, and nothing trades it. Expressing a granary as a recipe would mean
+/// inventing a phantom good to be its output, which breaks the goods registry's
+/// invariants and lies to the price and trade systems. So the extension is a
+/// parallel entry, and it is kept as small as the job allows — a name, a
+/// material list, and the labour the job takes.
+///
+/// DIMENSIONAL DECLARATION (S8 §4.1 requirement 2): `Inputs[].Qty` is in whole
+/// units of the named good, absolute per project. `LaborRequired` is in
+/// ADULT-YEARS — the same unit the construction sector's pool is measured in
+/// (share × adults × dtYears), so the comparison is dimensionally sound and no
+/// conversion constant is invented. There is NO build-time field: how many turns
+/// a project takes is emergent from what the settlement can marshal.
+/// </summary>
+public sealed record ConstructionProjectEntry(
+    [property: JsonPropertyName("id"), JsonRequired] int Id,
+    [property: JsonPropertyName("name"), JsonRequired] string Name,
+    [property: JsonPropertyName("inputs"), JsonRequired] ProjectInput[] Inputs,
+    [property: JsonPropertyName("laborRequired"), JsonRequired] double LaborRequired);
+
 /// <summary>
 /// The D-031 goods registry + recipe book (T3.2), loaded from goods.json on
 /// the T0.4 template. Travels with SimConfig (like NeedsConfig) so system
@@ -59,10 +92,19 @@ public sealed record RecipeEntry(
 /// </summary>
 public sealed record GoodsConfig(
     [property: JsonPropertyName("goods"), JsonRequired] GoodEntry[] Goods,
-    [property: JsonPropertyName("recipes"), JsonRequired] RecipeEntry[] Recipes)
+    [property: JsonPropertyName("recipes"), JsonRequired] RecipeEntry[] Recipes,
+    [property: JsonPropertyName("projects")] ConstructionProjectEntry[]? Projects = null)
 {
     /// <summary>The numéraire's id (D-030). Set at load after validation.</summary>
     [JsonIgnore] public int GrainId { get; init; }
+
+    /// <summary>The construction project with this id, or null if unknown.</summary>
+    public ConstructionProjectEntry? ProjectById(int id)
+    {
+        ConstructionProjectEntry[] projects = Projects ?? [];
+        for (int i = 0; i < projects.Length; i++) if (projects[i].Id == id) return projects[i];
+        return null;
+    }
 
     public GoodEntry ById(int id)
     {
@@ -208,6 +250,48 @@ public static class GoodsConfigLoader
                         $"recipes[{i}] ({r.Name}).requires: {ex.Message}", ex);
                 }
             }
+        }
+
+        // M4-D: construction projects. Optional — a config with none is legal
+        // and simply offers nothing to build.
+        if (cfg.Projects is null) cfg = cfg with { Projects = [] };
+        var projectIds = new HashSet<int>();
+        var projectNames = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < cfg.Projects.Length; i++)
+        {
+            ConstructionProjectEntry pr = cfg.Projects[i];
+            if (pr is null) throw new GoodsConfigException($"projects[{i}] is null.");
+            if (string.IsNullOrWhiteSpace(pr.Name))
+                throw new GoodsConfigException($"projects[{i}].name must be non-empty.");
+            if (!projectNames.Add(pr.Name))
+                throw new GoodsConfigException($"projects[{i}].name '{pr.Name}' is a duplicate.");
+            if (pr.Id < 0)
+                throw new GoodsConfigException(
+                    $"projects[{i}] ({pr.Name}).id must be >= 0, got {pr.Id} — the id is carried by an " +
+                    "order's Amount field and must be a non-negative whole number.");
+            if (!projectIds.Add(pr.Id))
+                throw new GoodsConfigException($"projects[{i}] ({pr.Name}).id {pr.Id} is a duplicate.");
+            if (pr.Inputs is null || pr.Inputs.Length == 0)
+                throw new GoodsConfigException(
+                    $"projects[{i}] ({pr.Name}) has no inputs — building from nothing violates law 1.");
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (ProjectInput input in pr.Inputs)
+            {
+                if (cfg.IdOf(input.Good) < 0)
+                    throw new GoodsConfigException(
+                        $"projects[{i}] ({pr.Name}) input good '{input.Good}' is not in the roster.");
+                if (input.Qty <= 0)
+                    throw new GoodsConfigException(
+                        $"projects[{i}] ({pr.Name}) input '{input.Good}'.qty must be > 0, got {input.Qty}.");
+                if (!seen.Add(input.Good))
+                    throw new GoodsConfigException(
+                        $"projects[{i}] ({pr.Name}) names input '{input.Good}' twice — one line per good, " +
+                        "or the atomic all-or-nothing draw would check one line and consume both.");
+            }
+            if (!(pr.LaborRequired > 0.0) || !double.IsFinite(pr.LaborRequired))
+                throw new GoodsConfigException(
+                    $"projects[{i}] ({pr.Name}).laborRequired must be a finite value > 0 (adult-years), " +
+                    $"got {Inv(pr.LaborRequired)}.");
         }
 
         return cfg with { GrainId = numeraire };

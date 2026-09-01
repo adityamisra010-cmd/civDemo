@@ -92,6 +92,30 @@ public static class EmpireQuery
     /// or of any simulation quantity, so removing the player changes who issues
     /// orders and nothing else about the world.
     /// </summary>
+    /// <summary>
+    /// Whether <paramref name="polity"/> commands <paramref name="place"/> — the
+    /// primitive a settlement-level order's permission check will ask, so that
+    /// "may this Empire order this settlement?" is answered from the D-037 control
+    /// relation and never from the order's actor id taken on trust.
+    ///
+    /// This is the QUESTION, not the policy. M4-B establishes the identity seam;
+    /// no ownership/permission matrix is implemented here and nothing calls this
+    /// in the pipeline yet.
+    /// </summary>
+    public static bool ControlsSettlement(IReadOnlyWorldState world, PolityId polity, SettlementId place)
+    {
+        for (int i = 0; i < world.Controls.Count; i++)
+        {
+            ControlRow row = world.Controls[i];
+            if (row.Polity.Value == polity.Value && row.Place.Value == place.Value)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static bool IsPlayerCommanded(IReadOnlyWorldState world, PolityId polity)
         => TryGetCommandSource(world, polity, out CommandSource source) && source == CommandSource.Player;
 }

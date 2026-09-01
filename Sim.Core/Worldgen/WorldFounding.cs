@@ -221,7 +221,55 @@ public static class WorldFounding
                 settlement, world.Settlements[s].SiteCell, seed, s);
         }
 
+        FoundInitialEmpire(world);
         return world;
+    }
+
+    /// <summary>
+    /// M4-C (D-042): the founded world's ONE player-commanded Empire, created in
+    /// the same operation that creates its settlements — so `Found` never returns
+    /// a playable world whose settlements answer to nobody.
+    ///
+    /// Identity is the EXISTING D-037 <see cref="PolityId"/>; no Empire container,
+    /// no owner field on <see cref="SettlementRow"/>, no second identity.
+    ///
+    /// THE ID IS 1, AND THAT IS A DIRECTOR RULING (CR-011) — DO NOT "CORRECT" IT
+    /// TO 0. Every other id table in this file starts at 0, and this one does not,
+    /// which looks like an oversight and is not. The convention that actually
+    /// governs an order's actor is the ORDER CORPUS, which has stamped
+    /// `ActorId = 1` since M1: the UI factories, roughly eight in-code order logs,
+    /// and — decisively — both BINARY replay fixtures, whose bytes cannot be
+    /// re-derived from source. Once M4-C populates the roster, M4-B's
+    /// actor-existence check goes live and an id of 0 would reject that entire
+    /// corpus, including the director's own first reign. The id is arbitrary; the
+    /// frozen replay pin is not, so the id moved. Ids 0 and 2.. remain free for
+    /// later AI Empires.
+    ///
+    /// Membership is the CONTROL relation, one row per founded settlement — so a
+    /// multi-settlement founding yields ONE Empire holding N settlements, not N
+    /// Empires, and later colonization extends the same Empire by appending one
+    /// more control row. The capital is a DESIGNATION on the first founded
+    /// settlement: one relation row, never a flag or an id on the settlement.
+    /// </summary>
+    private static void FoundInitialEmpire(WorldState world)
+    {
+        var player = new PolityId(1);   // CR-011 ruling — see the header. Not 0.
+        world.Polities.Add(new PolityRow(player, CommandSource.Player));
+
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            // Strength 1.0: uncontested control of one's own founding. The field
+            // is T4.3's SLOT and no system computes or decays it yet.
+            world.Controls.Add(new ControlRow(player, world.Settlements[s].Id, 1.0));
+        }
+
+        // The first founded site is the seat. Exactly one row, and only if there
+        // is a settlement to seat it in — a capital-less Empire is representable
+        // (M4-A) and inventing a seat for an empty world would be a lie.
+        if (world.Settlements.Count > 0)
+        {
+            world.Capitals.Add(new CapitalRow(player, world.Settlements[0].Id));
+        }
     }
 
     /// <summary>

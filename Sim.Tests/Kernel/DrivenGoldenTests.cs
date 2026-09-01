@@ -191,7 +191,34 @@ public class DrivenGoldenTests
         // pins EXACTLY, because the capacity-floor fix cannot reach those worlds.
         // Here it can, so the stripped value differs from main's — and that
         // difference is the fix, isolated.
-        const string golden = "ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4";
+        // M4-C RE-PIN — INTENDED FOUNDING STATE, DIRECTOR-APPROVED. A THIRD cause
+        // now composes into this one pin, and each remains measured separately:
+        //
+        //   main, post-T4.4, v22          5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb
+        //     + capacity-floor fix  (v22) 9432d39f5a1618eead13115c889dd77748c118e4699310576704802aa2d0c621
+        //     + M4-A Polities/Capitals    ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4
+        //       (v23 count prefixes — LAYOUT, the tables still empty)
+        //     + M4-C founding Empire rows 1768b254ef92ee7f7e75905c1d5f77c9db6cf4ba1da2c2f8fee3e04d49d860bf
+        //       (CONTENT — this world is founded, so it now carries a real Empire)
+        //
+        //   THE CONTROL THAT PROVES THE LAST STEP: IntegratedPinAttribution empties
+        //         Polities/Controls/Capitals on this exact world and re-hashes, and
+        //         gets the PREVIOUS value (ca1d8329…) back byte for byte. Any drift
+        //         in population, food, terrain, deposits, paths, production,
+        //         demography, migration or the economy would survive that strip and
+        //         break the control — so the Empire rows are the whole delta, and
+        //         that is measured rather than argued.
+        //   NOT A BEHAVIOURAL CHANGE: nothing reads Polities, Controls or Capitals,
+        //         so founding them cannot steer this world's 300 turns.
+                // M4-D RE-PIN — SCHEMA v24, LAYOUT ONLY, DIRECTOR-APPROVED.
+        //   CAUSE v23 -> v24 appends ConstructionQueue and Structures. Both are
+        //         EMPTY in this world — nothing enqueues without an order — so
+        //         their entire contribution is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution strips M4's rows
+        //         and its four trailing prefixes on this exact world and returns
+        //         the pre-M4 value byte for byte; stripping only the two v24
+        //         prefixes returns the pre-M4-D value. Layout, not behaviour.
+        const string golden = "f63758883a5458283ca97428c044038f43d49b97adc520570a941bf70e550aa0";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

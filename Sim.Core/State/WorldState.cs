@@ -724,6 +724,37 @@ public record struct PolityRow(PolityId Id, CommandSource Source);
 public record struct CapitalRow(PolityId Polity, SettlementId Place);
 
 /// <summary>
+/// M4-D — ONE QUEUED CONSTRUCTION PROJECT. The queue belongs to the SETTLEMENT,
+/// not to a player, Empire, polity, class or UI session: an AI-commanded
+/// settlement later uses this same table with no second model.
+///
+/// Ordering is the SLOT, an explicit integer, not row position — rows are
+/// appended and removed over time and "wherever the row happens to sit" is not
+/// an order anyone can rely on across a save. Head of a settlement's queue is
+/// its lowest slot. Slots are assigned strictly increasing per settlement and
+/// are never reused, so insertion order is total and deterministic.
+///
+/// There is NO progress field here, deliberately: no percent, no turns
+/// remaining, no completion turn. A project either has its materials and its
+/// labour this turn and is built whole, or it waits unchanged. Duration is
+/// emergent from what the settlement can marshal, never a stored timer.
+/// </summary>
+public record struct ConstructionQueueRow(SettlementId Settlement, int Slot, int ProjectId);
+
+/// <summary>
+/// M4-D — a completed structure, counted per (settlement, project).
+///
+/// NOT a Conserved stock, and that is a considered choice rather than an
+/// oversight: law 1 governs people, money and goods, and a building is none of
+/// those. Its INPUTS are conserved and leave their good stocks through
+/// Ledger.Flow under ReasonIds.ConstructionMaterials, which is where the audit
+/// question is answered. The structure itself is a durable count with no source
+/// or sink vocabulary yet — decay, demolition and capture are later work, and
+/// inventing their reasons now would be speculative.
+/// </summary>
+public record struct StructureRow(SettlementId Settlement, int ProjectId, long Count);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -781,6 +812,12 @@ public interface IReadOnlyWorldState
     /// <summary>Capital designations, zero-or-one per polity (D-042 §6). Schema
     /// only; no system writes this table yet.</summary>
     IReadOnlyTable<CapitalRow> Capitals { get; }
+
+    /// <summary>M4-D: per-settlement construction queues, ordered by Slot.</summary>
+    IReadOnlyTable<ConstructionQueueRow> ConstructionQueue { get; }
+
+    /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
+    IReadOnlyTable<StructureRow> Structures { get; }
 }
 
 /// <summary>
@@ -915,6 +952,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>Capital designations (D-042 §6) — schema only; no system writes it yet.</summary>
     public Table<CapitalRow> Capitals { get; }
 
+    /// <summary>M4-D: per-settlement construction queues, ordered by Slot.</summary>
+    public Table<ConstructionQueueRow> ConstructionQueue { get; }
+
+    /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
+    public Table<StructureRow> Structures { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -952,6 +995,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<RecognitionRow> IReadOnlyWorldState.Recognitions => Recognitions;
     IReadOnlyTable<PolityRow> IReadOnlyWorldState.Polities => Polities;
     IReadOnlyTable<CapitalRow> IReadOnlyWorldState.Capitals => Capitals;
+    IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
+    IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -993,6 +1038,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Recognitions = new Table<RecognitionRow>();
         Polities = new Table<PolityRow>();
         Capitals = new Table<CapitalRow>();
+        ConstructionQueue = new Table<ConstructionQueueRow>();
+        Structures = new Table<StructureRow>();
     }
 
     private WorldState(
@@ -1013,7 +1060,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<HarvestWeatherRow> harvestWeather, Table<TradeFlowRow> tradeFlows,
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
-        Table<PolityRow> polities, Table<CapitalRow> capitals)
+        Table<PolityRow> polities, Table<CapitalRow> capitals,
+        Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures)
     {
         Seed = seed;
         Clock = clock;
@@ -1054,6 +1102,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Recognitions = recognitions;
         Polities = polities;
         Capitals = capitals;
+        ConstructionQueue = constructionQueue;
+        Structures = structures;
     }
 
     /// <summary>
@@ -1072,7 +1122,8 @@ public sealed class WorldState : IReadOnlyWorldState
             SmoothedAttractiveness.Clone(), Prices.Clone(), PriceTerms.Clone(),
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
-            Polities.Clone(), Capitals.Clone())
+            Polities.Clone(), Capitals.Clone(),
+            ConstructionQueue.Clone(), Structures.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

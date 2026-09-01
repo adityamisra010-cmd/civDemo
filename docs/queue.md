@@ -1267,3 +1267,44 @@
   in the suite. Work continues on `m4-empire-control-foundation`; the pre-rebase history is
   preserved at `origin/food-anomaly-observability`. **The food-anomaly certification suite still has
   to be re-run against the integrated tree** — the pre-rebase run does not certify this tree.
+
+- **M4-B actor seam CERTIFIED at `7d1734d` (`m4-empire-order-seam`), not merged.**
+  An order's actor is the existing `PolityId`; the `OrderLog` contract was REUSED, not changed —
+  `ActorId` was already the strategic actor per kernel spec §3.9, and `OrderRecord.Actor` is a typed
+  projection of it, so there is no second identity and no serialization change. Player/AI symmetry
+  holds: no simulation system branches on `CommandSource`. Deliberately deferred, and still open:
+  an explicit order **scope** field, a permission matrix, and a populated `Polities`/`Capitals`
+  roster — until something seeds the roster, the actor-existence check in `OrderValidation` stays
+  dormant by design.
+
+- **M4-C founding->Empire implemented. CR-011 RULED: initial player Empire is `PolityId 1`.**
+  `WorldFounding.Found` now creates the one player-commanded Empire, its control rows and its
+  capital in the same operation, per D-042/§20. Focused founding tests pass (6/6) and two mutants
+  were killed. But populating the roster makes M4-B's actor check LIVE, and the founded id (§7's
+  `PolityId 0`) then contradicts the entire existing order corpus, which stamps `ActorId = 1` -
+  including **both binary replay fixtures**. 14 of the 17 new suite failures are that single
+  collision; a controlled probe at `PolityId 1` clears 29/30. See
+  `docs/adr/cr-011-founding-polity-id-vs-the-order-corpus.md`. **Two goldens also genuinely move**
+  (founded worlds now carry Empire rows) and were deliberately NOT repinned.
+
+- **M4-C golden movement audited; `DrivenGolden` alone still awaits approval.**
+  Three founded-world pins move because founded worlds now carry real Empire state. The attribution
+  control proves the delta is the Empire rows and nothing else — emptying them returns each pin's
+  pre-M4-C value byte for byte. `FoundedGolden` (ruled) and `FirstReign` (§6's condition, satisfied)
+  are repinned, and `DrivenGolden` on separate director approval once the audit was on the table.
+  **M4-C CERTIFIED**: 559 passed / 6 failed / 6 skipped, the 6 being the unchanged quarantine.
+
+- **M4-D construction queue implemented; FOUR goldens move on schema v24, NOT repinned.**
+  Settlements now hold an ordered construction queue resolved atomically within a turn — no build
+  timer, no fractional progress, no construction currency. Materials leave good stocks all-or-nothing
+  under `ReasonIds.ConstructionMaterials`; capacity is the EXISTING construction sector's adult-years
+  less housing's published draw, so the opportunity cost is real. Control is enforced: an Empire may
+  only build where it rules, which is the first production caller of
+  `EmpireQuery.ControlsSettlement`.
+  **Schema v23 -> v24** adds `ConstructionQueue` and `Structures`. Both are EMPTY in every canonical
+  world (nothing enqueues without an order), so their whole contribution is two zero count prefixes —
+  and all four pinned worlds move for that alone. The attribution control proves it: stripping M4's
+  rows and those prefixes returns each pin's pre-M4 value byte for byte. The four pins were repinned
+  on director approval after that audit; no other golden was touched. **M4-D CERTIFIED**: 572 passed
+  / 6 failed / 6 skipped, the six being the unchanged mainline quarantine.
+

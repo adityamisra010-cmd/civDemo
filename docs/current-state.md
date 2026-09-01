@@ -26,8 +26,8 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
 | **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
 | **Integration state** | T4.4 v22 + M4 v23 + capacity-floor fix + D-042 + GOV-4; four goldens re-derived and causally attributed |
-| **Certification** | **READY FOR DIRECTOR MERGE** at `5ebc1e3` — not merged; the merge is the director's |
-| **Schema version** | **v23** — v22 is T4.4's `BucketRow` widening; v23 is M4's Polities and Capitals |
+| **Certification** | M4-A merged to `main` at `82ba3fc`. **M4-B, M4-C and M4-D CERTIFIED** on `m4-empire-order-seam` — not merged; the merge is the director's |
+| **Schema version** | **v24** — v22 T4.4's `BucketRow`; v23 M4-A's Polities/Capitals; v24 M4-D's ConstructionQueue/Structures |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
 `docs/d042-empire-and-player-control-addendum.md` · `docs/spine-s8-governance-freeze.md` ·
@@ -87,6 +87,65 @@ Two branch facts worth carrying anyway, because they are easy to miss:
 ---
 
 ## 4. STATUS OF OPEN THREADS
+
+**M4-D — THE SETTLEMENT CONSTRUCTION QUEUE. CERTIFIED.**
+
+A settlement holds an ordered construction queue; only its head is eligible, and that head is either
+built whole this turn or waits unchanged. No build timer, no fractional progress, no construction
+currency, no second labour pool. Capacity is the existing construction sector in adult-years less
+housing's published draw, so builders genuinely compete with farmers. Materials leave settlement
+good stocks all-or-nothing under `ReasonIds.ConstructionMaterials`. An Empire may only build where
+it rules — the first production caller of `EmpireQuery.ControlsSettlement`.
+
+A construction project is deliberately NOT a `RecipeEntry`: a recipe must output a good, and a
+structure is not one. `ConstructionProjectEntry` is the smallest parallel definition.
+
+Schema v23 → **v24** adds `ConstructionQueue` and `Structures`, empty in every canonical world, so
+all four pinned worlds moved for two zero count prefixes alone. Audited by the generalised
+attribution control before any repin, then repinned on director approval.
+
+Certification run: `Sim.Tests` **572 passed / 6 failed / 6 skipped** (584, 24m07), `Sim.Ui.Tests`
+**151/151**, build 0 warnings, all three gates OK. The 6 are the unchanged mainline quarantine.
+
+**M4-C — FOUNDING INSTANTIATES THE EMPIRE. CERTIFIED.**
+
+`WorldFounding.Found` now creates the founded world's one player-commanded Empire in the same
+operation that creates its settlements: `PolityRow(PolityId 1, CommandSource.Player)`, one
+`ControlRow` per founded settlement, one `CapitalRow` on the first. So `Found` never returns a
+playable world whose settlements answer to nobody. Identity remains the existing D-037 `PolityId`;
+`SettlementRow` carries no ownership field and no Empire container exists.
+
+**The id is 1 by director ruling (CR-011), not 0** — the convention governing an order's actor is
+the order corpus, which has stamped `ActorId = 1` since M1 including both binary replay fixtures.
+Those fixtures were preserved unmodified and now resolve naturally.
+
+**Three founded-world goldens moved, each audited before repin.** `IntegratedPinAttributionTests`
+separates M4-A's schema LAYOUT from M4-C's founding CONTENT: emptying Polities/Controls/Capitals
+returns each world's pre-M4-C pin byte for byte, so the Empire rows are the whole delta and no
+simulation state moved with them. `GoldenHash_Seed42Turn200` did NOT move — the
+no-unrelated-movement control holding.
+
+Certification run: `Sim.Tests` **559 passed / 6 failed / 6 skipped** (571, 19m06), `Sim.Ui.Tests`
+**151/151**, build 0 warnings, all three gates OK. The 6 are the unchanged mainline quarantine.
+
+**M4-B — STRATEGIC ACTOR IN THE ORDER SEAM. CERTIFIED at `7d1734d`.**
+
+An order's issuing strategic actor is the **existing `PolityId`**. The kernel spec §3.9 already
+defined the log as `{turn, actorId, orderPayload}` for "player/AI orders", so `ActorId` was always
+the strategic actor — it merely had no type and no enforcement. `PolityId` is a one-`int` identity,
+so the binding required **no new field, no second identity, and no serialization change**:
+`OrderRecord.Actor` is a projection with `Actor.Value == ActorId` always. `PolityId` is the typed
+in-memory form; `ActorId` is the serialized form; they are one identity.
+
+Actor existence is enforced in `OrderValidation` (the world-dependent layer), guarded on a non-empty
+roster — **dormant today**, because nothing seeds `Polities`. Player/AI symmetry is preserved: the
+only production references to `CommandSource` are the state definition, the serializer, the
+`EmpireQuery` readers, and an existence probe in validation that discards the value. **No simulation
+system branches on it.** No golden moved.
+
+Certification run at `7d1734d` on a verified-clean tree: `Sim.Tests` **553 passed / 6 failed /
+6 skipped** (565, 26m57), `Sim.Ui.Tests` **151/151**, build 0 warnings, all three gates OK. The 6
+failures are the unchanged mainline quarantine set.
 
 **CERTIFICATION RUN, measured at `5ebc1e3` — the tip this report certifies.**
 `dotnet test Sim.Tests` → **541 passed / 6 failed / 6 skipped** (553 total, 16m45).
