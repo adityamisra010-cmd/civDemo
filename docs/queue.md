@@ -1293,3 +1293,17 @@
   pre-M4-C value byte for byte. `FoundedGolden` (ruled) and `FirstReign` (§6's condition, satisfied)
   are repinned, and `DrivenGolden` on separate director approval once the audit was on the table.
   **M4-C CERTIFIED**: 559 passed / 6 failed / 6 skipped, the 6 being the unchanged quarantine.
+
+- **M4-D construction queue implemented; FOUR goldens move on schema v24, NOT repinned.**
+  Settlements now hold an ordered construction queue resolved atomically within a turn — no build
+  timer, no fractional progress, no construction currency. Materials leave good stocks all-or-nothing
+  under `ReasonIds.ConstructionMaterials`; capacity is the EXISTING construction sector's adult-years
+  less housing's published draw, so the opportunity cost is real. Control is enforced: an Empire may
+  only build where it rules, which is the first production caller of
+  `EmpireQuery.ControlsSettlement`.
+  **Schema v23 -> v24** adds `ConstructionQueue` and `Structures`. Both are EMPTY in every canonical
+  world (nothing enqueues without an order), so their whole contribution is two zero count prefixes —
+  and all four pinned worlds move for that alone. The attribution control proves it: stripping M4's
+  rows and those prefixes returns each pin's pre-M4 value byte for byte. **Nothing was repinned** —
+  per M4-D §24 that is the director's call.
+

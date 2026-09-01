@@ -151,6 +151,11 @@ public static class ReasonIds
     // single reason would merge a decay process with a capacity constraint.
     public static readonly ReasonId Spoilage = new(14);
     public static readonly ReasonId GranaryOverflow = new(15);
+
+    // M4-D — construction's single materials sink. One reason, not one per
+    // good, for the same argument HousingMaterials makes: the audit question
+    // ("where did the timber go?") has one answer — into the structure.
+    public static readonly ReasonId ConstructionMaterials = new(16);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

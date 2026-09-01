@@ -39,7 +39,24 @@ public static class OrderValidation
                     "Empire's PolityId, never a player/AI marker.");
             }
 
-            if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation)) continue;
+            if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
+                or OrderKind.EnqueueConstruction)) continue;
+
+            // M4-D §12: an Empire may only build where it rules. The answer comes
+            // from the D-037 control relation, never from the actor id taken on
+            // trust — this is the caller EmpireQuery.ControlsSettlement was
+            // written for. Guarded on a non-empty Controls table for the same
+            // reason the actor check is guarded on a non-empty roster: a world
+            // with no control relation has nothing to check against, and hand-built
+            // test worlds are legitimately in that state.
+            if (record.Kind == OrderKind.EnqueueConstruction && world.Controls.Count > 0
+                && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
+            {
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): EnqueueConstruction targets settlement " +
+                    $"{record.TargetId}, which polity {record.ActorId} does not control. An Empire may " +
+                    "only build where it rules (D-037 control is authoritative).");
+            }
 
             // T3.3: SectorAllocation packs (settlement × 8 + sector) into
             // TargetId — decode before the existence check (sector range is

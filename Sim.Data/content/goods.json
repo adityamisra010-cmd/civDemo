@@ -2,47 +2,215 @@
   "schema": "goods/v1",
   "_doc": "D-031 goods roster (14, data-driven) + recipes. Categories: food | raw | processed. Grain is the numeraire (D-030: prices are grain-equivalent ratios; price of grain == 1 by definition). bulkPerUnit is the D-034 transport bulk (grain-equivalent volume/mass per unit; TUNE). depositChannel names the terrain field a settlement's founding deposit roll derives from (T3.2; extraction is endowment-bound, m3-spec 3): moisture (forests/pasture), elevation (quarries/ore), water (clay pits, fish grounds); ores add depositSpread - a wide seeded spread that makes ore geography uneven, the precondition for comparative advantage. Recipes are data (T3.2 registers + validates; T3.3 executes). DIMENSIONAL DECLARATION, corrected at T3.3 (S8 4.1 requirement 2): inputs and laborPerOutput are PER EXECUTION of the recipe, and one execution yields output.qty units. T3.2 wrote inputs-per-output-unit, which contradicts the data it shipped - toolmaking declares bronze 1.0 with qty 2, so under a per-unit reading qty would be decorative and the value-add of toolmaking would vanish. The per-execution reading is what T3.3 implements and what ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit pins exactly (2 tools per bronze). laborPerOutput is person-years per execution, an optional D-020 availability predicate ('requires') - a knowledge gate over published variables, never a calendar date (law 4).",
   "goods": [
-    { "id": 1, "name": "grain", "category": "food", "numeraire": true, "bulkPerUnit": 1.0 },
-    { "id": 2, "name": "livestock", "category": "food", "bulkPerUnit": 4.0, "depositChannel": "moisture" },
-    { "id": 3, "name": "fish", "category": "food", "bulkPerUnit": 1.0, "depositChannel": "water" },
-    { "id": 4, "name": "timber", "category": "raw", "bulkPerUnit": 6.0, "depositChannel": "moisture" },
-    { "id": 5, "name": "stone", "category": "raw", "bulkPerUnit": 10.0, "depositChannel": "elevation" },
-    { "id": 6, "name": "clay", "category": "raw", "bulkPerUnit": 5.0, "depositChannel": "water" },
-    { "id": 7, "name": "copper-ore", "category": "raw", "bulkPerUnit": 8.0, "depositChannel": "elevation", "depositSpread": 0.8 },
-    { "id": 8, "name": "tin-ore", "category": "raw", "bulkPerUnit": 8.0, "depositChannel": "elevation", "depositSpread": 0.9 },
-    { "id": 9, "name": "fiber", "category": "raw", "bulkPerUnit": 2.0, "depositChannel": "moisture" },
-    { "id": 10, "name": "hides", "category": "raw", "bulkPerUnit": 3.0, "depositChannel": "moisture" },
-    { "id": 11, "name": "bronze", "category": "processed", "bulkPerUnit": 2.0 },
-    { "id": 12, "name": "tools", "category": "processed", "bulkPerUnit": 1.5 },
-    { "id": 13, "name": "pottery", "category": "processed", "bulkPerUnit": 3.0 },
-    { "id": 14, "name": "cloth", "category": "processed", "bulkPerUnit": 1.0 }
+    {
+      "id": 1,
+      "name": "grain",
+      "category": "food",
+      "numeraire": true,
+      "bulkPerUnit": 1.0
+    },
+    {
+      "id": 2,
+      "name": "livestock",
+      "category": "food",
+      "bulkPerUnit": 4.0,
+      "depositChannel": "moisture"
+    },
+    {
+      "id": 3,
+      "name": "fish",
+      "category": "food",
+      "bulkPerUnit": 1.0,
+      "depositChannel": "water"
+    },
+    {
+      "id": 4,
+      "name": "timber",
+      "category": "raw",
+      "bulkPerUnit": 6.0,
+      "depositChannel": "moisture"
+    },
+    {
+      "id": 5,
+      "name": "stone",
+      "category": "raw",
+      "bulkPerUnit": 10.0,
+      "depositChannel": "elevation"
+    },
+    {
+      "id": 6,
+      "name": "clay",
+      "category": "raw",
+      "bulkPerUnit": 5.0,
+      "depositChannel": "water"
+    },
+    {
+      "id": 7,
+      "name": "copper-ore",
+      "category": "raw",
+      "bulkPerUnit": 8.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.8
+    },
+    {
+      "id": 8,
+      "name": "tin-ore",
+      "category": "raw",
+      "bulkPerUnit": 8.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.9
+    },
+    {
+      "id": 9,
+      "name": "fiber",
+      "category": "raw",
+      "bulkPerUnit": 2.0,
+      "depositChannel": "moisture"
+    },
+    {
+      "id": 10,
+      "name": "hides",
+      "category": "raw",
+      "bulkPerUnit": 3.0,
+      "depositChannel": "moisture"
+    },
+    {
+      "id": 11,
+      "name": "bronze",
+      "category": "processed",
+      "bulkPerUnit": 2.0
+    },
+    {
+      "id": 12,
+      "name": "tools",
+      "category": "processed",
+      "bulkPerUnit": 1.5
+    },
+    {
+      "id": 13,
+      "name": "pottery",
+      "category": "processed",
+      "bulkPerUnit": 3.0
+    },
+    {
+      "id": 14,
+      "name": "cloth",
+      "category": "processed",
+      "bulkPerUnit": 1.0
+    }
   ],
   "recipes": [
     {
       "name": "pottery-firing",
-      "inputs": [ { "good": "clay", "perOutput": 2.0 }, { "good": "timber", "perOutput": 0.5 } ],
+      "inputs": [
+        {
+          "good": "clay",
+          "perOutput": 2.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 0.5
+        }
+      ],
       "laborPerOutput": 0.05,
-      "output": { "good": "pottery", "qty": 1 }
+      "output": {
+        "good": "pottery",
+        "qty": 1
+      }
     },
     {
       "name": "weaving",
-      "inputs": [ { "good": "fiber", "perOutput": 3.0 } ],
+      "inputs": [
+        {
+          "good": "fiber",
+          "perOutput": 3.0
+        }
+      ],
       "laborPerOutput": 0.1,
-      "output": { "good": "cloth", "qty": 1 }
+      "output": {
+        "good": "cloth",
+        "qty": 1
+      }
     },
     {
       "name": "bronze-casting",
-      "inputs": [ { "good": "copper-ore", "perOutput": 8.0 }, { "good": "tin-ore", "perOutput": 1.0 }, { "good": "timber", "perOutput": 2.0 } ],
+      "inputs": [
+        {
+          "good": "copper-ore",
+          "perOutput": 8.0
+        },
+        {
+          "good": "tin-ore",
+          "perOutput": 1.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 2.0
+        }
+      ],
       "laborPerOutput": 0.4,
-      "output": { "good": "bronze", "qty": 1 },
+      "output": {
+        "good": "bronze",
+        "qty": 1
+      },
       "requires": "artisan_share > 0.05"
     },
     {
       "name": "toolmaking",
-      "inputs": [ { "good": "bronze", "perOutput": 1.0 }, { "good": "timber", "perOutput": 1.0 } ],
+      "inputs": [
+        {
+          "good": "bronze",
+          "perOutput": 1.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 1.0
+        }
+      ],
       "laborPerOutput": 0.2,
-      "output": { "good": "tools", "qty": 2 },
+      "output": {
+        "good": "tools",
+        "qty": 2
+      },
       "requires": "artisan_share > 0.05"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "name": "granary",
+      "_doc": "M4-D first constructible. Sized to be reachable by a founded settlement within a few turns of deliberate construction allocation, so the labour opportunity cost is observable rather than theoretical. TUNE.",
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 40
+        },
+        {
+          "good": "stone",
+          "qty": 20
+        }
+      ],
+      "laborRequired": 2.0
+    },
+    {
+      "id": 2,
+      "name": "workshop",
+      "_doc": "M4-D second constructible, deliberately several times the granary in both materials and labour so a settlement can hold it queued for many turns without any stored timer. TUNE.",
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 60
+        },
+        {
+          "good": "stone",
+          "qty": 40
+        },
+        {
+          "good": "tools",
+          "qty": 10
+        }
+      ],
+      "laborRequired": 8.0
     }
   ]
 }

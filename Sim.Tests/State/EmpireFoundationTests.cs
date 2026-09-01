@@ -173,6 +173,42 @@ public class EmpireFoundationTests
     }
 
     [Fact]
+    public void SchemaV24_PopulatedConstructionTables_LengthAndRoundTripExact()
+    {
+        // Constitution rule: every new serialized row type ships a POPULATED-table
+        // test — exact ExpectedLength, bit-exact round trip, hash equality.
+        // The fixture holds two settlements with interleaved rows, a non-zero
+        // starting slot, and a structure count above one, so a swapped write
+        // order or a dropped field round-trips wrong here.
+        var world = new WorldState();
+        world.ConstructionQueue.Add(new ConstructionQueueRow(new SettlementId(2), 5, 7));
+        world.ConstructionQueue.Add(new ConstructionQueueRow(new SettlementId(1), 0, 1));
+        world.ConstructionQueue.Add(new ConstructionQueueRow(new SettlementId(2), 6, 1));
+        world.Structures.Add(new StructureRow(new SettlementId(1), 1, 3));
+        world.Structures.Add(new StructureRow(new SettlementId(2), 7, 1));
+
+        Assert.Equal(24, CanonicalSchema.Version);
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(world, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
+
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(TestUtil.WorldStates.StateEquals(world, back), "round-trip drifted");
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(back));
+
+        Assert.Equal(3, back.ConstructionQueue.Count);
+        Assert.Equal(2, back.ConstructionQueue[0].Settlement.Value);
+        Assert.Equal(5, back.ConstructionQueue[0].Slot);
+        Assert.Equal(7, back.ConstructionQueue[0].ProjectId);
+        Assert.Equal(2, back.Structures.Count);
+        Assert.Equal(3, back.Structures[0].Count);
+    }
+
+    [Fact]
     public void SchemaV23_PopulatedPolityAndCapitalTables_LengthAndRoundTripExact()
     {
         // Constitution rule: every new serialized row type ships a POPULATED-table
@@ -187,7 +223,7 @@ public class EmpireFoundationTests
         world.Capitals.Add(new CapitalRow(new PolityId(0), new SettlementId(0)));
 
         // v23, not v22: T4.4's BucketRow widening owns v22 (director-ruled).
-        Assert.Equal(23, CanonicalSchema.Version);
+        Assert.Equal(24, CanonicalSchema.Version);
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))

@@ -39,26 +39,31 @@ public class IntegratedPinAttributionTests
     internal const string CapacityFloorFixAtSchemaV22 =
         "9432d39f5a1618eead13115c889dd77748c118e4699310576704802aa2d0c621";
 
-    /// <summary>
-    /// The world as it would be WITHOUT M4-C's Empire ROWS — same simulation
-    /// output, Polities/Controls/Capitals emptied. The v23 count prefixes remain
-    /// (an empty table still writes its prefix), so this isolates M4-C's CONTENT
-    /// from M4-A's LAYOUT. Operates on a deep Clone.
-    /// </summary>
-    private static string HashWithoutEmpireRows(WorldState world)
-    {
-        return WorldHash.ComputeHex(StripRows(world));
-    }
+    /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
+    private const int EmptyTableBytes = 4;
 
     /// <summary>
-    /// As above, and then also without the two v23 count prefixes — i.e. the
-    /// stream this tree would have produced at T4.4's schema v22, before M4
-    /// touched it at all. Removing eight trailing zero bytes is exact once the
-    /// tables are empty, which is what <see cref="StripRows"/> guarantees.
+    /// The finished world with EVERY M4 row removed — Polities, Controls,
+    /// Capitals (v23) and the construction queue and structures (v24) — then
+    /// re-serialized with <paramref name="dropTrailingTables"/> of the trailing
+    /// empty count prefixes also removed. Operates on a deep Clone.
+    ///
+    /// That parameter is what lets one control answer three different questions:
+    /// drop 4 tables and the stream is T4.4's v22, before M4 existed; drop the 2
+    /// v24 tables and it is v23, the tree as it stood before M4-C; drop none and
+    /// it is v24 with M4's content removed but its layout intact. Each is a real
+    /// earlier pin, so each comparison is against a measured value rather than a
+    /// recomputed one.
     /// </summary>
-    private static string HashAtSchemaV22(WorldState world)
+    private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
-        WorldState stripped = StripRows(world);
+        WorldState stripped = world.Clone();
+        stripped.Polities.Clear();
+        stripped.Controls.Clear();
+        stripped.Capitals.Clear();
+        stripped.ConstructionQueue.Clear();
+        stripped.Structures.Clear();
+
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
@@ -66,22 +71,21 @@ public class IntegratedPinAttributionTests
         }
 
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 8; i < full.Length; i++)
+        int drop = dropTrailingTables * EmptyTableBytes;
+        for (int i = full.Length - drop; i < full.Length; i++)
         {
-            Assert.Equal(0, full[i]);   // the trailer really is two empty tables
+            Assert.Equal(0, full[i]);   // what is dropped really is empty tables
         }
 
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 8).ToArray()));
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - drop).ToArray()));
     }
 
-    private static WorldState StripRows(WorldState world)
-    {
-        WorldState stripped = world.Clone();
-        stripped.Polities.Clear();
-        stripped.Controls.Clear();
-        stripped.Capitals.Clear();
-        return stripped;
-    }
+    /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.</summary>
+    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 4);
+
+    /// <summary>The stream as v23 — M4-A's tables present but empty, i.e. the
+    /// tree exactly as it stood before M4-C's founding wrote them.</summary>
+    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 2);
 
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheM4SchemaAlone()
@@ -123,7 +127,7 @@ public class IntegratedPinAttributionTests
         // path, production, demographic, migration or economic state moved with
         // it, because any such drift would survive the strip and break this.
         const string beforeM4C = "9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686";
-        Assert.Equal(beforeM4C, HashWithoutEmpireRows(world));
+        Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
         Assert.Equal(1, world.Polities.Count);
@@ -146,7 +150,7 @@ public class IntegratedPinAttributionTests
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
         const string beforeM4C = "28247419268e8d6e81edbc2a9d09097a69e565bb97578a1101500bad3c575d74";
-        Assert.Equal(beforeM4C, HashWithoutEmpireRows(world));
+        Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
         Assert.Equal(1, world.Capitals.Count);
@@ -173,7 +177,7 @@ public class IntegratedPinAttributionTests
         // M4-C LAYER — founded world, so Empire rows land here as well. Three
         // causes now compose in this one pin, and each is measured separately.
         const string beforeM4C = "ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4";
-        Assert.Equal(beforeM4C, HashWithoutEmpireRows(world));
+        Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
         Assert.Equal(1, world.Capitals.Count);

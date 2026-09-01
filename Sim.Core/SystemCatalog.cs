@@ -6,6 +6,7 @@ using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
 using Sim.Core.Systems.Harvest;
+using Sim.Core.Systems.Construction;
 using Sim.Core.Systems.Housing;
 using Sim.Core.Systems.Price;
 using Sim.Core.Systems.Production;
@@ -174,6 +175,19 @@ public static class SystemCatalog
                 HousingSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>M4-D: the settlement construction queue — FIFTH holder of the
+    /// GoodStocks share (see the ownership record above). It draws materials the
+    /// same way housing does, under its own reason.</summary>
+    public static SystemRegistration Construction(SimConfig cfg)
+    {
+        var system = new ConstructionSystem(cfg);
+        return new SystemRegistration(ConstructionSystem.WellKnownId, ConstructionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConstructionTables>(
+                prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks),
+                rng, ConstructionSystem.WellKnownId, dtDays, dtYears, orders,
+                new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Demographics(SimConfig cfg)
     {
         var system = new DemographicsSystem(cfg);
@@ -276,6 +290,6 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }

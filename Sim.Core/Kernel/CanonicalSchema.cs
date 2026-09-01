@@ -74,6 +74,11 @@ public static class CanonicalSchema
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
+    /// v24 (M4-D): ConstructionQueue and Structures appended after Capitals —
+    /// the per-settlement construction queue (ordered by an explicit Slot, never
+    /// by row position) and the completed-structure counts. No progress field
+    /// exists in either, by design: construction is atomic within a turn, so
+    /// there is no fractional state to persist.
     /// v23 (M4, D-042): Polities and Capitals tables appended after Notables.
     /// PolityRow is the Empire roster — the pre-existing D-037 PolityId reused as
     /// the strategic identity, carrying only its command source (AI or player), so
@@ -87,7 +92,7 @@ public static class CanonicalSchema
     /// before T4.4 merged. T4.4's v22 is authoritative because it landed on main
     /// first and is certified; these two tables are v23. There is exactly one
     /// meaning of every version number in this file.</summary>
-    public const int Version = 23;
+    public const int Version = 24;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -129,6 +134,8 @@ public static class CanonicalSchema
     private const int NotableRowWidth = 4 + 4 + 4 + 4 + 8;          // Id, Settlement, Allegiance, CohortIdx, Count (v21)
     private const int PolityRowWidth = 4 + 4;                       // Id, Source (v23)
     private const int CapitalRowWidth = 4 + 4;                      // Polity, Place (v23)
+    private const int ConstructionQueueRowWidth = 4 + 4 + 4;        // Settlement, Slot, ProjectId (v24)
+    private const int StructureRowWidth = 4 + 4 + 8;                // Settlement, ProjectId, Count (v24)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -540,6 +547,26 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.Place.Value);
         }
+
+        // 38. ConstructionQueue (v24, M4-D: settlement-owned, ordered by Slot)
+        writer.Write(world.ConstructionQueue.Count);
+        for (int i = 0; i < world.ConstructionQueue.Count; i++)
+        {
+            ConstructionQueueRow row = world.ConstructionQueue[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Slot);
+            writer.Write(row.ProjectId);
+        }
+
+        // 39. Structures (v24, M4-D: completed structures per settlement)
+        writer.Write(world.Structures.Count);
+        for (int i = 0; i < world.Structures.Count; i++)
+        {
+            StructureRow row = world.Structures[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.ProjectId);
+            writer.Write(row.Count);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -893,6 +920,20 @@ public static class CanonicalSchema
                 new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32())));
         }
 
+        int queueCount = reader.ReadInt32();
+        for (int i = 0; i < queueCount; i++)
+        {
+            world.ConstructionQueue.Add(new ConstructionQueueRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32()));
+        }
+
+        int structureCount = reader.ReadInt32();
+        for (int i = 0; i < structureCount; i++)
+        {
+            world.Structures.Add(new StructureRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
+        }
+
         return world;
     }
 
@@ -940,5 +981,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Recognitions.Count * RecognitionRowWidth
         + CountPrefixWidth + (long)world.Notables.Count * NotableRowWidth
         + CountPrefixWidth + (long)world.Polities.Count * PolityRowWidth
-        + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth;
+        + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth
+        + CountPrefixWidth + (long)world.ConstructionQueue.Count * ConstructionQueueRowWidth
+        + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth;
 }

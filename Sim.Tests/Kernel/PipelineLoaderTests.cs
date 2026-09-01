@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(14, pipeline.Length);   // T4.5 added `appropriation`; T4.4 `colonization`
+        Assert.Equal(15, pipeline.Length);   // T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -47,17 +47,24 @@ public class PipelineLoaderTests
         // stocks, pathbuild subtracts Prev housing labor next turn), so the
         // position is legibility — pinned so a silent reorder fails a test.
         Assert.Equal("housing", pipeline[7].Name);
-        Assert.Equal("classmobility", pipeline[8].Name);  // T2.2, spec §3 pipeline order
-        Assert.Equal("migration", pipeline[9].Name);      // T2.5, spec §3 pipeline order
+        // M4-D: construction runs immediately AFTER housing. Both draw on the
+        // same construction-sector pool, and construction subtracts housing's
+        // published draw at the standard one-turn lag — a table read, never a
+        // system reference. It sits after production/consumption/trade so the
+        // materials it checks are the ones the settlement actually holds when
+        // the turn's goods flows have settled.
+        Assert.Equal("construction", pipeline[8].Name);
+        Assert.Equal("classmobility", pipeline[9].Name);  // T2.2, spec §3 pipeline order
+        Assert.Equal("migration", pipeline[10].Name);     // T2.5, spec §3 pipeline order
         // T4.4: colonization runs immediately AFTER migration and BEFORE
         // demographics. After, because it draws the founding party from LIVE
         // post-migration buckets and reading PREV would double-spend against
         // migration's overdraw scaler; before, because the party is ordinary
         // people who should age and breed this turn like everyone else.
-        Assert.Equal("colonization", pipeline[10].Name);
-        Assert.Equal("demographics", pipeline[11].Name);
-        Assert.Equal("needsgrievance", pipeline[12].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[13].Name);
+        Assert.Equal("colonization", pipeline[11].Name);
+        Assert.Equal("demographics", pipeline[12].Name);
+        Assert.Equal("needsgrievance", pipeline[13].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[14].Name);
     }
 
     [Fact]
@@ -78,7 +85,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, appropriation, consumption, price, trade, housing, classmobility, migration, colonization, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 

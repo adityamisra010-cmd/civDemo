@@ -65,6 +65,10 @@ public static class WorldStates
         // StateEquals assertion about it vacuous.
         if (!TableEquals(a.Polities, b.Polities)) return false;
         if (!TableEquals(a.Capitals, b.Capitals)) return false;
+        // M4-D: the construction queue and structures, added WITH the tables —
+        // a comparer that skips a table makes every assertion about it vacuous.
+        if (!TableEquals(a.ConstructionQueue, b.ConstructionQueue)) return false;
+        if (!TableEquals(a.Structures, b.Structures)) return false;
         return true;
     }
 
