@@ -1291,6 +1291,5 @@
   Three founded-world pins move because founded worlds now carry real Empire state. The attribution
   control proves the delta is the Empire rows and nothing else — emptying them returns each pin's
   pre-M4-C value byte for byte. `FoundedGolden` (ruled) and `FirstReign` (§6's condition, satisfied)
-  are repinned; **`DrivenGolden` is deliberately NOT repinned** because §6 forbids repinning any
-  golden the ruling did not name. It is the single outstanding item blocking M4-C certification.
-
+  are repinned, and `DrivenGolden` on separate director approval once the audit was on the table.
+  **M4-C CERTIFIED**: 559 passed / 6 failed / 6 skipped, the 6 being the unchanged quarantine.

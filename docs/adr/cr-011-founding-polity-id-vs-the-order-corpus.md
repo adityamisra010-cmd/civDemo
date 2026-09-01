@@ -83,9 +83,12 @@ nothing else moved.
 | --- | --- | --- |
 | `FoundedGolden_Seed42Turn300` | `9fc45cc7…ff686` | `5a64109a…c5c4c` |
 | `FirstReign` turn 40 | `28247419…75d74` | `c6f28f8a…91dc7` |
-| `DrivenGolden_Seed42Turn300` | `ca1d8329…767a4` | `1768b254…860bf` **NOT REPINNED** |
+| `DrivenGolden_Seed42Turn300` | `ca1d8329…767a4` | `1768b254…860bf` |
 
-`FoundedGolden` was repinned under the explicit ruling; `FirstReign` under §6's condition that it
-may be touched if it moves for the same intended founding-state reason, which the control proves.
-**`DrivenGolden` was NOT repinned**: §6 says not to repin any other golden, and it is not named.
-It moves for the identical, proven cause and needs one word of approval.
+All three were repinned, each only after the control proved its delta: `FoundedGolden` under the
+explicit ruling, `FirstReign` under §6's condition that it may be touched if it moves for the same
+intended founding-state reason, and `DrivenGolden` under a separate director approval given once the
+audit was on the table. `DrivenGolden` is the one pin carrying FOUR composed causes, and its comment
+records the whole chain rather than just the last step.
+
+**CLOSED. M4-C certified at this tree.**
