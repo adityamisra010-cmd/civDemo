@@ -102,6 +102,42 @@ public static class EmpireQuery
     /// no ownership/permission matrix is implemented here and nothing calls this
     /// in the pipeline yet.
     /// </summary>
+    /// <summary>
+    /// Which Empire commands <paramref name="place"/>, if any — the inverse of
+    /// <see cref="ControlsSettlement"/>, and the question a trade endpoint asks.
+    ///
+    /// D-037 A3 fixes control's cardinality at "exactly one, or none (stateless)",
+    /// but NOTHING IN THE TREE ENFORCES IT — `Controls` is a relation, and a
+    /// hand-built or deserialized world may legally carry two rows for one place.
+    /// So this does NOT stop at the first match: it takes the LOWEST
+    /// <see cref="PolityId"/>, which makes the answer a function of the row SET and
+    /// never of row ORDER (law 5). First-match would be order-dependent — the same
+    /// rows serialized in a different order would give a different controller — and
+    /// that is a determinism defect, not merely an inelegance. The rule is credited
+    /// to the earlier `t4.6-foreign-trade` branch, which got this right.
+    ///
+    /// FALSE means genuinely unruled — a settlement no Empire commands. That is a
+    /// real state, not an error: colonization founds settlements and writes no
+    /// control row for them.
+    /// </summary>
+    public static bool TryGetController(IReadOnlyWorldState world, SettlementId place, out PolityId polity)
+    {
+        bool found = false;
+        polity = default;
+        for (int i = 0; i < world.Controls.Count; i++)
+        {
+            ControlRow row = world.Controls[i];
+            if (row.Place.Value != place.Value) continue;
+            if (!found || row.Polity.Value < polity.Value)
+            {
+                polity = row.Polity;
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
     public static bool ControlsSettlement(IReadOnlyWorldState world, PolityId polity, SettlementId place)
     {
         for (int i = 0; i < world.Controls.Count; i++)
