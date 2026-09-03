@@ -231,13 +231,19 @@ public class MigrationStabilityTests
         // GapClosingFraction × m*, m* = (R_d×P_s − R_s×P_d)/(R_s + R_d), plus
         // per-bucket floor slack. The EMA starts converged on first sighting,
         // so this is the maximal-desire case, not a smoothed-away one.
+        // T4.10: the gap is now LAND-driven (the food term left R). destLand
+        // 128_000 km² gives R_dest = 0.078125 × 128_000 = 10_000 — BIT-IDENTICAL
+        // to the old 0.02 × 500_000 food-driven R this rig was tuned against, so
+        // the "huge gap, cap must bind" regime is preserved exactly, not re-tuned.
+        // destFood stays: it satisfies the absolute food gate (viability), which
+        // is a presence test and no longer an attractiveness magnitude.
         SimConfig cfg = TestConfigs.Sim();
         WorldState world = MigrationTestWorld.TwoSettlements(
-            sourceCounts: 2000, destCounts: 10, destFood: 500_000);
+            sourceCounts: 2000, destCounts: 10, destFood: 500_000, destLand: 128_000.0);
         WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Migration(cfg)]).Step(world);
 
         long moved = next.MigrationFlows[1].Inflow;
-        double rd = cfg.Migration.AttractivenessFoodWeight * 500_000;
+        double rd = cfg.Migration.AttractivenessLandWeight * 128_000.0;
         long ps = 2000 * 16, pd = 10 * 16;
         double equalizing = (rd * ps - 0.0 * pd) / (rd + 0.0);
         double cap = cfg.Migration.GapClosingFraction * equalizing;
@@ -263,8 +269,11 @@ public class MigrationStabilityTests
         // destFood sized so BOTH desires sit BELOW the gap-closing cap —
         // at the cap the two runs clip identically and the filter's effect
         // on desire is invisible (first version of this rig did exactly that).
-        WorldState fresh = MigrationTestWorld.TwoSettlements(2000, 10, destFood: 12_000);
-        WorldState seeded = MigrationTestWorld.TwoSettlements(2000, 10, destFood: 12_000);
+        // T4.10: land carries the gap now. destLand 3_072 km² gives
+        // R_dest = 0.078125 × 3_072 = 240 — bit-identical to the old
+        // 0.02 × 12_000, so "both desires sit BELOW the cap" still holds.
+        WorldState fresh = MigrationTestWorld.TwoSettlements(2000, 10, destFood: 12_000, destLand: 3_072.0);
+        WorldState seeded = MigrationTestWorld.TwoSettlements(2000, 10, destFood: 12_000, destLand: 3_072.0);
         // The destination LOOKS freshly emptied: its smoothed history is low.
         seeded.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(0), 0.0));
         seeded.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(1), 1.0));
@@ -273,7 +282,7 @@ public class MigrationStabilityTests
         WorldState freshNext = exec.Step(fresh);
         WorldState seededNext = new TurnExecutor(FlatEra(dt), [SystemCatalog.Migration(cfg)]).Step(seeded);
 
-        double instantDest = cfg.Migration.AttractivenessFoodWeight * 12_000 / (10.0 * 16);
+        double instantDest = cfg.Migration.AttractivenessLandWeight * 3_072.0 / (10.0 * 16);
         double alpha = Math.Min(1.0, dt / cfg.Migration.AttractivenessSmoothingWindowYears);
         Assert.Equal(1.0 + (instantDest - 1.0) * alpha, seededNext.SmoothedAttractiveness[1].Value);
         Assert.Equal(instantDest, freshNext.SmoothedAttractiveness[1].Value); // fresh row: converged init
@@ -299,8 +308,12 @@ public class MigrationStabilityTests
         double[] dts = [10.0, 5.0, 2.5];
         for (int i = 0; i < dts.Length; i++)
         {
+            // T4.10: destLand 25_600 km² gives R_dest = 0.078125 × 25_600 = 2_000
+            // — bit-identical to the old 0.02 × 100_000, keeping the near-constant
+            // filter input this dt-halving pin depends on.
             WorldState world = MigrationTestWorld.TwoSettlements(
-                sourceCounts: 5, destCounts: 5, destFood: 100_000, travelCost: 1000.0);
+                sourceCounts: 5, destCounts: 5, destFood: 100_000, travelCost: 1000.0,
+                destLand: 25_600.0);
             world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(0), 0.0));
             world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(new SettlementId(1), 0.0));
             var exec = new TurnExecutor(FlatEra(dts[i]), [SystemCatalog.Migration(cfg)]);
@@ -319,11 +332,23 @@ public class MigrationStabilityTests
 
 /// <summary>Shared hand-world builder for the stability tests: two settlements,
 /// uniform cohort counts each, food endowment at the destination, symmetric
-/// links. Deficit rows zeroed; distances explicit.</summary>
+/// links. Deficit rows zeroed; distances explicit.
+///
+/// T4.10: `destFood` no longer carries attractiveness — the food term is gone
+/// from R (see MigrationSystem). It is still required, because the T2.13
+/// absolute food gate zeroes a destination's viability when it has neither
+/// store nor harvest, so a destination with no food receives nobody. The
+/// attractiveness signal now comes from `destLand`/`sourceLand`, written as
+/// CatchmentSummaries rows. Callers that need a gap pass `destLand`; the
+/// stability rigs pass the value that makes R BIT-IDENTICAL to the food-driven
+/// R they were tuned against (land = oldFood × 0.02 / 0.078125, exact in binary
+/// since 0.078125 = 5/64), so their above/below-cap regimes are preserved
+/// rather than re-tuned.</summary>
 internal static class MigrationTestWorld
 {
     public static WorldState TwoSettlements(
-        long sourceCounts, long destCounts, long destFood, double travelCost = 20.0)
+        long sourceCounts, long destCounts, long destFood, double travelCost = 20.0,
+        double destLand = 0.0, double sourceLand = 0.0)
     {
         var world = new WorldState(7);
         var ledger = new Ledger(world.LedgerFlows);
@@ -346,6 +371,9 @@ internal static class MigrationTestWorld
             }
             world.GoodStocks.Add(new GoodStockRow(id, new GoodId(1), Conserved.Zero, 0.0, 0.0));
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, 0.0, 0));
+            world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+                id, NodeCount: 1, EffectiveArableKm2: s == 0 ? sourceLand : destLand,
+                NetworkRevision: 0, LastRecomputeTurn: 0));
         }
         if (destFood > 0)
         {

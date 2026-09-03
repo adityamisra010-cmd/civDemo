@@ -212,8 +212,16 @@ public class CollapseStabilityTests
         // stay under one full population turnover, and net flows must not
         // alternate (the small-N ping-pong cousin).
         SimConfig cfg = TestConfigs.Sim();
+        // T4.10: BOTH hamlets get equal land (12_800 km² ⇒ R = 0.078125 ×
+        // 12_800 = 1_000 each, bit-identical to the old 0.02 × 50_000 food R).
+        // Equal R with unequal population is the point: per-capita attractiveness
+        // still differs (1000/32 vs 1000/16), so the small-N churn regime this
+        // test exists to police is preserved. Without land the food removal would
+        // leave R = 0 everywhere and the test would pass vacuously — it would
+        // hold even with migration switched off entirely.
         WorldState world = MigrationTestWorld.TwoSettlements(
-            sourceCounts: 2, destCounts: 1, destFood: 50_000, travelCost: 20.0);
+            sourceCounts: 2, destCounts: 1, destFood: 50_000, travelCost: 20.0,
+            destLand: 12_800.0, sourceLand: 12_800.0);
         // Source food too — BOTH healthy (the rig helper endows the dest).
         new Ledger(world.LedgerFlows).Flow(ref world.GoodStocks.Ref(0).Amount,
             ConservedQuantityIds.OfGood(new GoodId(1)), ReasonIds.InitialEndowment, 50_000,

@@ -50,9 +50,38 @@ public readonly record struct MigrationTables(
 ///               without a destination — people die at home instead of
 ///               circulating between ruins (the exit-session pathology).
 ///
+/// T4.10 — THE FOOD TERM IS GONE FROM ATTRACTIVENESS (director ruling,
+/// Option A). R was `FoodWeight × food + LandWeight × farmland`, where `food`
+/// was the raw grain STOCK. T4.2 bounded that stock (spoilage + granary
+/// capacity), which destroyed its meaning as an attractiveness signal: an
+/// adequately-fed settlement and a moderately food-SHORT one both converge
+/// toward near-zero post-consumption stock, so stock magnitude stopped
+/// distinguishing the two cases migration most needs to tell apart. The
+/// replacement signal considered (1 − DeficitRatio) was measured IDENTICALLY
+/// 1.0 across the canonical world — 4 seeds × 3 checkpoints × 12 settlements,
+/// DeficitRatio exactly 0 everywhere — so it contributes zero differential and
+/// no coefficient for it can be derived, validated or refuted (cr-003's
+/// unfalsifiable-constant bar). Rather than ship an underivable weight, the
+/// term is REMOVED:
+///
+///     R = LandWeight × farmland
+///
+/// LAND OPPORTUNITY sets baseline destination attractiveness. FOOD acts on
+/// migration through the mechanisms that already exist and are already
+/// ratified — famine flight (source push), destination-deficit repulsion and
+/// the absolute food gate (both in `viability`) — NOT through a fourth
+/// channel. This is the same reasoning as (c) below, applied to hunger: a
+/// graded food term inside the gap would be a stacked modifier on a mechanism
+/// that already handles hunger twice. The measured cost of the removal is
+/// small BY CONSTRUCTION and was quantified before the change: at canonical
+/// seed 1 turn 100 the food term supplied ~0.7 % of the attractiveness
+/// differential (0.000286 against land's 0.041063) — post-T4.2 the world was
+/// already ~97 % land-driven. Full derivation and measurements:
+/// docs/t4.10-review-record.md.
+///
 /// T2.8 STABILIZATION — the market-mandate pattern applied to people, BOTH:
-/// (a) DAMPED FLOWS (gap-closing cap): with A = R/P (R = FoodWeight × food +
-///     LandWeight × farmland, P = population), the pairwise flow that would
+/// (a) DAMPED FLOWS (gap-closing cap): with A = R/P (R = LandWeight ×
+///     farmland, P = population), the pairwise flow that would
 ///     EQUALIZE instantaneous per-capita attractiveness has the closed form
 ///       m* = (R_j × P_i − R_i × P_j) / (R_i + R_j),  taken at max(0, ·).
 ///     The pair's total gap-driven desire is scaled so it never exceeds
@@ -96,8 +125,11 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
     private readonly SimConfig _cfg = cfg;
 
-    /// <summary>T3.2: attractiveness's food term reads the grain stock (the
-    /// migrated FoodStore).</summary>
+    /// <summary>The grain stock, read ONLY for the T2.13 ABSOLUTE FOOD GATE
+    /// (`anyFood`) that zeroes a destination's viability when it has neither a
+    /// store nor a harvest. T4.10 removed the attractiveness food term, so the
+    /// stock no longer feeds R — but the gate still needs to know whether there
+    /// is any food at all, which is a presence test, not a magnitude one.</summary>
     private readonly GoodId _grain = new(cfg.Goods?.GrainId
         ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3."));
 
@@ -116,7 +148,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             flows.Add(new MigrationFlowRow(prev.Settlements[s].Id, 0, 0));
 
         // --- Prev-derived per-settlement signals -----------------------------
-        var resources = new double[n];    // R = fw × food + lw × farmland
+        var resources = new double[n];    // R = lw × farmland (T4.10: food term removed)
         var population = new long[n];     // P (raw, no floor — m* uses physics)
         var instant = new double[n];      // A = R / max(P, 1)
         var deficit = new double[n];
@@ -151,7 +183,9 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 if (prev.ConsumptionDeficits[i].Settlement == id)
                 { deficit[s] = prev.ConsumptionDeficits[i].DeficitRatio; break; }
 
-            resources[s] = m.AttractivenessFoodWeight * food + m.AttractivenessLandWeight * arableKm2;
+            // T4.10: LAND ONLY. `food` above is still read, but only for the
+            // absolute food gate below — never for attractiveness magnitude.
+            resources[s] = m.AttractivenessLandWeight * arableKm2;
             instant[s] = resources[s] / Math.Max(pop, 1);
         }
 
