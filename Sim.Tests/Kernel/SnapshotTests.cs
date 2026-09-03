@@ -625,7 +625,30 @@ public class SnapshotTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "d13f366cb01850b71ef15286f4abed1f2f3487bc38e1c88da999995325eb6888";
+        // T4.10 RE-PIN — BEHAVIOURAL, ONE CAUSE, DIRECTOR-RULED (Option A).
+        //   OLD  d13f366cb01850b71ef15286f4abed1f2f3487bc38e1c88da999995325eb6888
+        //   NEW  8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048
+        //   CAUSE the food term is GONE from migration attractiveness. R was
+        //         `FoodWeight x food + LandWeight x farmland`; it is now
+        //         `LandWeight x farmland`. T4.2 bounded the grain store, which
+        //         destroyed raw stock as an attractiveness signal — a fed and a
+        //         moderately short settlement both converge toward near-zero
+        //         post-consumption stock — and the candidate replacement
+        //         (1 - DeficitRatio) measured IDENTICALLY 1.0 across the canonical
+        //         world, so no coefficient for it was derivable. Rather than ship an
+        //         underivable weight, the term was removed. Food still reaches
+        //         migration through famine flight, destination-deficit repulsion and
+        //         the absolute food gate — it simply no longer has a fourth channel.
+        //   THE NO-UNRELATED-MOVEMENT CONTROL: `GoldenHash_Seed42Turn200` is
+        //         UNMOVED and its pin is untouched in this packet. It is synthetic
+        //         and terrain-less, so migration cannot reach it; if this change had
+        //         leaked into anything but migration, that pin would have moved too.
+        //   MEASURED SIZE OF THE CAUSE: at canonical seed 1 turn 100 the food term
+        //         supplied ~0.7% of the attractiveness differential (0.000286 against
+        //         land's 0.041063) — post-T4.2 the world was already ~97% land-driven.
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24; no table, row or field
+        //         joined or left the stream. Full derivation: docs/t4.10-review-record.md.
+        const string golden = "8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

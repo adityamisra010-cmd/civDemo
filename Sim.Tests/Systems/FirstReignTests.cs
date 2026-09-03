@@ -348,7 +348,30 @@ public class FirstReignTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "d6a737fb89c4980c89fc89f3c6ad4e622b2b9cc3f7cd3991f40f991c5f646f4e";
+        // T4.10 RE-PIN — BEHAVIOURAL, ONE CAUSE, DIRECTOR-RULED (Option A).
+        //   OLD  d6a737fb89c4980c89fc89f3c6ad4e622b2b9cc3f7cd3991f40f991c5f646f4e
+        //   NEW  51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3
+        //   CAUSE the food term is GONE from migration attractiveness. R was
+        //         `FoodWeight x food + LandWeight x farmland`; it is now
+        //         `LandWeight x farmland`. T4.2 bounded the grain store, which
+        //         destroyed raw stock as an attractiveness signal — a fed and a
+        //         moderately short settlement both converge toward near-zero
+        //         post-consumption stock — and the candidate replacement
+        //         (1 - DeficitRatio) measured IDENTICALLY 1.0 across the canonical
+        //         world, so no coefficient for it was derivable. Rather than ship an
+        //         underivable weight, the term was removed. Food still reaches
+        //         migration through famine flight, destination-deficit repulsion and
+        //         the absolute food gate — it simply no longer has a fourth channel.
+        //   THE NO-UNRELATED-MOVEMENT CONTROL: `GoldenHash_Seed42Turn200` is
+        //         UNMOVED and its pin is untouched in this packet. It is synthetic
+        //         and terrain-less, so migration cannot reach it; if this change had
+        //         leaked into anything but migration, that pin would have moved too.
+        //   MEASURED SIZE OF THE CAUSE: at canonical seed 1 turn 100 the food term
+        //         supplied ~0.7% of the attractiveness differential (0.000286 against
+        //         land's 0.041063) — post-T4.2 the world was already ~97% land-driven.
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24; no table, row or field
+        //         joined or left the stream. Full derivation: docs/t4.10-review-record.md.
+        const string golden = "51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

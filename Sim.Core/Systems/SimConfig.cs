@@ -411,8 +411,13 @@ public sealed record RegistriesConfig(
 ///   BaseRatePerYear × CohortProfile[cohort] × count × damping ×
 ///   (max(0, A_dest − A_src) + FamineFlightFactor × Prev deficit_src)
 /// where damping = exp(−travelCost / DampingDecayCost) (∞ cost ⇒ exactly 0)
-/// and attractiveness A = FoodWeight × foodPerCapita + LandWeight ×
-/// farmlandPerCapita (Prev reads, capita floored at 1). The deficit term is
+/// and attractiveness A = LandWeight × farmlandPerCapita (Prev reads, capita
+/// floored at 1). T4.10 REMOVED the food term from A (director ruling,
+/// Option A): T4.2's bounded store made raw grain magnitude meaningless as an
+/// attractiveness signal, and its candidate replacement (1 − DeficitRatio)
+/// measured identically 1.0 across the canonical world, so no coefficient for
+/// it was derivable. Food reaches migration through FamineFlightFactor and
+/// DestinationDeficitRepulsion instead. The deficit term is
 /// the D-021 Exit valve: gap-INDEPENDENT — starving people leave for anywhere
 /// reachable, weighted by damping alone when no gap is positive.
 /// CohortProfile is the young-adult-peaked migration propensity (16 entries).
@@ -434,7 +439,9 @@ public sealed record MigrationConfig(
     // distance: 400 km of river valley and 400 km of mountain should not damp
     // migration equally, and the cost field is exactly what encodes that.
     [property: JsonPropertyName("dampingDecayCostUnits"), JsonRequired] double DampingDecayCostUnits,
-    [property: JsonPropertyName("attractivenessFoodWeight"), JsonRequired] double AttractivenessFoodWeight,
+    // T4.10: `attractivenessFoodWeight` REMOVED — the attractiveness food term
+    // it weighted no longer exists, and a dead JsonRequired key would force
+    // every config to keep carrying a number nothing reads.
     // T3.2b: denominated per FERTILITY-WEIGHTED km² of catchment (was per
     // fertility-weighted lattice node). Divided by 256 in the same commit that
     // multiplied the catchment quantity by 256 — a re-denomination, not a
@@ -711,7 +718,6 @@ public static class SimConfigLoader
 
         if (cfg.Migration is null) throw new SimConfigException("migration is missing.");
         RequireRate("migration.baseRatePerYear", cfg.Migration.BaseRatePerYear);
-        RequireRate("migration.attractivenessFoodWeight", cfg.Migration.AttractivenessFoodWeight);
         RequireRate("migration.attractivenessLandWeight", cfg.Migration.AttractivenessLandWeight);
         RequireRate("migration.famineFlightFactor", cfg.Migration.FamineFlightFactor);
         if (!(cfg.Migration.DampingDecayCostUnits > 0.0) || !double.IsFinite(cfg.Migration.DampingDecayCostUnits))

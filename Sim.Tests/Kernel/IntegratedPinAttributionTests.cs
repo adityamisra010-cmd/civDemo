@@ -21,6 +21,22 @@ namespace Sim.Tests.Kernel;
 /// reasons: M4-A's schema v23 LAYOUT (two count prefixes, present even when the
 /// tables are empty) and M4-C's founding CONTENT (the rows themselves).
 ///
+/// T4.10 CHANGED WHAT THIS CONTROL CAN CLAIM, and the honesty of that matters more
+/// than the convenience of leaving the old numbers in place. Until T4.10 these
+/// stripped values equalled main's PRE-M4 pins, which is what licensed the phrase
+/// "moved for the M4 schema alone". T4.10 removes the food term from migration
+/// attractiveness — a genuine BEHAVIOURAL change — so the three worlds it reaches
+/// no longer reduce to any pre-M4 value, and the reference constants below are
+/// re-measured on this tree. The control therefore no longer proves "M4 layout is
+/// the only delta since pre-M4"; it proves the WEAKER and still-useful thing, that
+/// the M4 rows are separable from the simulation output they sit beside.
+///
+/// THE NO-UNRELATED-MOVEMENT CONTROL MOVED WITH IT, and it is the one that carries
+/// the weight now: GoldenHashSeed42Turn200 below is SYNTHETIC and terrain-less, so
+/// migration cannot reach it. Its stripped value is still main's pre-M4 pin,
+/// untouched by T4.10 — which is the measurement showing this change stayed inside
+/// migration instead of leaking somewhere it had no business being.
+///
 /// M4-C GENERALISED THIS. The original control stripped the two four-byte zero
 /// count prefixes off the end of the stream, which was exact while nothing wrote
 /// the tables — but M4-C's founding DOES write them, and `Controls` sits
@@ -37,7 +53,7 @@ public class IntegratedPinAttributionTests
     /// the two causes of the driven pin's movement be reported separately.
     /// </summary>
     internal const string CapacityFloorFixAtSchemaV22 =
-        "9432d39f5a1618eead13115c889dd77748c118e4699310576704802aa2d0c621";
+        "701ad7e00396481c4a038c4a1e34d4e04bbddac76a102b6977081a7e0e5c1a9b";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -106,7 +122,7 @@ public class IntegratedPinAttributionTests
         // capacity-floor fix does NOT reach this world — consistent with the
         // pre-integration measurement, which found the fix's blast radius to be
         // the driven golden only.
-        const string mainValue = "87bba71338596b6c179e6c0f5f738e731382e3f877ca4389ef578e517b34990b";
+        const string mainValue = "b9b752a935a28eece9b003aed0087d3b61b5be5e9845b58fa6e862282f13f7d9";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -126,7 +142,7 @@ public class IntegratedPinAttributionTests
         // Empire state is the WHOLE delta: no population, food, terrain, deposit,
         // path, production, demographic, migration or economic state moved with
         // it, because any such drift would survive the strip and break this.
-        const string beforeM4C = "9fc45cc702d2efb20eb7c6f06ede4fcf865edaa7462d5151951463450ddff686";
+        const string beforeM4C = "7bed90968f8754c26ce7665d04cae2711a918967e083e24660f4ce3ac1b9a65f";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -143,13 +159,13 @@ public class IntegratedPinAttributionTests
         // BEHAVIOURALLY (the lone settlement colonising its way out of the
         // director's 0%-farm order). So "schema only" here is exactly the claim
         // that must not be taken on trust.
-        const string mainValue = "bf9312a259fd45d018d93d308fda1ac7d5d5b4ee55203a5526a6ac1939581a5c";
+        const string mainValue = "a2a88e0ba4e256c2a42e5113bcd8fefcf43326aa9ca4b1f531d40e3833feac4f";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
-        const string beforeM4C = "28247419268e8d6e81edbc2a9d09097a69e565bb97578a1101500bad3c575d74";
+        const string beforeM4C = "3d66caf4ee7d8525a0abe4ecc2925c2d4398cc10c434673d230b39118c38fb27";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -176,7 +192,7 @@ public class IntegratedPinAttributionTests
 
         // M4-C LAYER — founded world, so Empire rows land here as well. Three
         // causes now compose in this one pin, and each is measured separately.
-        const string beforeM4C = "ca1d8329d85278d3fa70651e3b36f9ed58757a2a665724aa969d85cfa8b767a4";
+        const string beforeM4C = "04d874777884a55c14037ff247c8fecd4ac475cfffa14691fc494bf8406c965d";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);

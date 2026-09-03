@@ -218,7 +218,30 @@ public class DrivenGoldenTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "f63758883a5458283ca97428c044038f43d49b97adc520570a941bf70e550aa0";
+        // T4.10 RE-PIN — BEHAVIOURAL, ONE CAUSE, DIRECTOR-RULED (Option A).
+        //   OLD  f63758883a5458283ca97428c044038f43d49b97adc520570a941bf70e550aa0
+        //   NEW  0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272
+        //   CAUSE the food term is GONE from migration attractiveness. R was
+        //         `FoodWeight x food + LandWeight x farmland`; it is now
+        //         `LandWeight x farmland`. T4.2 bounded the grain store, which
+        //         destroyed raw stock as an attractiveness signal — a fed and a
+        //         moderately short settlement both converge toward near-zero
+        //         post-consumption stock — and the candidate replacement
+        //         (1 - DeficitRatio) measured IDENTICALLY 1.0 across the canonical
+        //         world, so no coefficient for it was derivable. Rather than ship an
+        //         underivable weight, the term was removed. Food still reaches
+        //         migration through famine flight, destination-deficit repulsion and
+        //         the absolute food gate — it simply no longer has a fourth channel.
+        //   THE NO-UNRELATED-MOVEMENT CONTROL: `GoldenHash_Seed42Turn200` is
+        //         UNMOVED and its pin is untouched in this packet. It is synthetic
+        //         and terrain-less, so migration cannot reach it; if this change had
+        //         leaked into anything but migration, that pin would have moved too.
+        //   MEASURED SIZE OF THE CAUSE: at canonical seed 1 turn 100 the food term
+        //         supplied ~0.7% of the attractiveness differential (0.000286 against
+        //         land's 0.041063) — post-T4.2 the world was already ~97% land-driven.
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24; no table, row or field
+        //         joined or left the stream. Full derivation: docs/t4.10-review-record.md.
+        const string golden = "0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
