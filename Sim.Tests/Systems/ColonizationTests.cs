@@ -922,6 +922,83 @@ public class ColonizationTests
         Assert.Equal(3.5, seeded, 10);
     }
 
+
+    // ---- COLONY CONTROL INHERITANCE (M4 completion §10) --------------------
+    //
+    // The rule is conditional on the PARENT, and both arms are pinned here
+    // because only the pair distinguishes "inherits control" from "always writes
+    // a control row" and from "never writes one".
+
+    [Fact]
+    public void AColonyFoundedFromAControlledParent_IsControlledByTheSamePolity()
+    {
+        (WorldState w, SettlementId src) = StrandedSource();
+        Assert.True(EmpireQuery.TryGetController(w, src, out PolityId parent),
+            "a founded world controls its settlements — precondition, not the assertion");
+        int settlementsBefore = w.Settlements.Count;
+        int controlsBefore = w.Controls.Count;
+
+        w = Handoff().Step(w);
+
+        Assert.Equal(settlementsBefore + 1, w.Settlements.Count);
+        Assert.Equal(controlsBefore + 1, w.Controls.Count);
+
+        // The colony is the settlement that did not exist before, and it is held
+        // by the PARENT's polity — not by "polity 1", which would pass even if
+        // the code hardcoded the player.
+        SettlementId colony = w.Settlements[^1].Id;
+        Assert.True(EmpireQuery.TryGetController(w, colony, out PolityId held));
+        Assert.Equal(parent.Value, held.Value);
+    }
+
+    [Fact]
+    public void AColonyFoundedFromASTATELESSParent_IsItselfStateless()
+    {
+        // D-037 B1's case, and the one that makes the rule an inheritance rather
+        // than a grant. Strip the parent's control row and nothing else.
+        (WorldState w, SettlementId src) = StrandedSource();
+        DropControlsOf(w, src);
+        Assert.False(EmpireQuery.TryGetController(w, src, out _));
+
+        int settlementsBefore = w.Settlements.Count;
+        int controlsBefore = w.Controls.Count;
+
+        w = Handoff().Step(w);
+
+        Assert.Equal(settlementsBefore + 1, w.Settlements.Count);   // it IS founded
+        Assert.Equal(controlsBefore, w.Controls.Count);             // and holds nobody
+
+        SettlementId colony = w.Settlements[^1].Id;
+        Assert.False(EmpireQuery.TryGetController(w, colony, out _));
+    }
+
+    [Fact]
+    public void AFAILEDFoundingWritesNeitherASettlementNorAControlRow()
+    {
+        // §10's second clause. No demand means no party, so Found() returns false
+        // before writing anything; the control row must not appear on its own.
+        WorldState w = Warm(Founded());
+        int settlementsBefore = w.Settlements.Count;
+        int controlsBefore = w.Controls.Count;
+
+        w = Handoff().Step(w);
+
+        Assert.Equal(settlementsBefore, w.Settlements.Count);
+        Assert.Equal(controlsBefore, w.Controls.Count);
+    }
+
+
+    /// <summary>Table is Add/Clear only, so dropping a relation row means
+    /// rebuilding the table without it — which is what losing control IS.</summary>
+    private static void DropControlsOf(WorldState w, SettlementId place)
+    {
+        var kept = new List<ControlRow>();
+        for (int i = 0; i < w.Controls.Count; i++)
+            if (w.Controls[i].Place != place) kept.Add(w.Controls[i]);
+        w.Controls.Clear();
+        for (int i = 0; i < kept.Count; i++) w.Controls.Add(kept[i]);
+    }
+
     private static EraTable FlatEra() => EraTableLoader.Load(
         """{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": 10 } ] }""");
 }

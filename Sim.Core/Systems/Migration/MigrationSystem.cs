@@ -201,11 +201,38 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         //      → 144 colonists in one turn → starve on the stale signal →
         //      die → repeat every ~9 turns). An empty granary on unfarmed
         //      land repels no matter how empty the land is.
+        //   3. T4.13 — HAPPINESS, and it is deliberately the WEAKEST of the
+        //      three. People prefer to move somewhere that is bearable, but
+        //      material survival decides first: this term MULTIPLIES the two
+        //      gates above rather than joining them, so it can shade a choice
+        //      between comparable destinations and can never rescue one the
+        //      food gates have already closed. A destination in famine is
+        //      viability 0 however content it looks, which is what keeps
+        //      severe famine from being cured by moving people into it.
+        //
+        //      The factor is (1 − w) + w·happiness with happiness in [0,1]:
+        //      exactly 1.0 for a fully-provided destination, (1 − w) for a
+        //      destitute one. w = 0 recovers the pre-T4.13 behaviour exactly.
+        //
+        //      THE FEEDBACK IS EMERGENT, NOT GRANTED. Nothing here adds
+        //      happiness to anyone. Happiness is derived from conditions; this
+        //      term reads it; migration then moves people; the movement changes
+        //      population and therefore food-per-head and housing-per-head; and
+        //      the NEXT turn's happiness is recomputed from those changed
+        //      conditions. If the move does not actually improve conditions,
+        //      happiness does not improve — there is no path by which the act
+        //      of migrating pays a happiness bonus.
         var viability = new double[n];
         for (int s = 0; s < n; s++)
-            viability[s] = anyFood[s]
-                ? Math.Max(0.0, 1.0 - m.DestinationDeficitRepulsion * deficit[s])
-                : 0.0;
+        {
+            if (!anyFood[s]) { viability[s] = 0.0; continue; }
+
+            double material = Math.Max(0.0, 1.0 - m.DestinationDeficitRepulsion * deficit[s]);
+            double happiness01 =
+                SettlementHappiness.Of(prev, prev.Settlements[s].Id, _cfg) / SettlementHappiness.Max;
+            double w = m.AttractivenessHappinessWeight;
+            viability[s] = material * (1.0 - w + w * happiness01);
+        }
 
         // --- EMA filter update (T2.8 b): PREV smoothed → owned smoothed ------
         // The owned table is the cloned prev table; rows update in place, and

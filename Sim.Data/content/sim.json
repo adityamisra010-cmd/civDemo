@@ -138,6 +138,8 @@
     ],
     "gapClosingFraction": 0.25,
     "attractivenessSmoothingWindowYears": 20.0,
+    "_docHappinessWeight": "T4.13 (director ruling): happiness is a WEAK migration input; food and material survival stay dominant. CHOSEN 0.15 within a stated frame, not derived - there is no measurement that could derive it, because happiness is new and no historical series contains it, and inventing a derivation would be a false provenance claim. The frame: happiness must be able to break a TIE between two materially similar destinations without being able to override a material difference. Land attractiveness across the canonical world spreads ~26x (see _docLandWeight); a modulation of 0.15 moves viability by at most 15%, which is far inside that spread and therefore cannot reorder two destinations whose land differs materially, while it does reorder destinations whose land is comparable. The mechanism is multiplicative on VIABILITY, so it composes with - and never bypasses - the deficit repulsion and the absolute food gate: a famine-struck or foodless destination is still viability 0 whatever its happiness, which is the ruling's requirement that severe famine not be cured by migration. Raising this toward 1.0 continuously strengthens happiness as a driver; 0 disables the input entirely and recovers exactly the pre-T4.13 behaviour, which is the arm the tests use to prove the term is doing the work.",
+    "attractivenessHappinessWeight": 0.15,
     "destinationDeficitRepulsion": 1.0
   },
   "registries": {
