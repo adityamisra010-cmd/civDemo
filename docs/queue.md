@@ -1268,7 +1268,7 @@
   preserved at `origin/food-anomaly-observability`. **The food-anomaly certification suite still has
   to be re-run against the integrated tree** — the pre-rebase run does not certify this tree.
 
-- **M4-B actor seam CERTIFIED at `7d1734d` (`m4-empire-order-seam`), not merged.**
+- **M4-B actor seam CERTIFIED and since MERGED** (director-certified, `dfef2a2`, with M4-C and M4-D).
   An order's actor is the existing `PolityId`; the `OrderLog` contract was REUSED, not changed —
   `ActorId` was already the strategic actor per kernel spec §3.9, and `OrderRecord.Actor` is a typed
   projection of it, so there is no second identity and no serialization change. Player/AI symmetry

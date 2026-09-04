@@ -103,7 +103,19 @@ public readonly record struct ColonizationTables(
 /// (`HousingSystem` materialises a missing row at ZERO — colonists start homeless and
 /// build), prices, sector allocations, path progress, and every per-turn chronicle row.
 /// It writes no claim or control row either, so the settlement is STATELESS exactly as
-/// D-037 B1 permits — and, since nothing in the tree writes `Controls`, unavoidably so.
+/// D-037 B1 permits.
+///
+/// THAT SILENCE WAS ONCE FORCED AND IS NOW A CHOICE. When this shipped, nothing in
+/// the tree wrote `Controls`, so writing none here was unavoidable. M4-C's
+/// `WorldFounding.FoundInitialEmpire` now writes one per FOUNDED settlement, which
+/// leaves colonies as the only uncontrolled places in a live world — and puts this
+/// comment in direct conflict with `WorldFounding`'s own contract, which states that
+/// "later colonization extends the same Empire by appending one more control row".
+/// One of the two is wrong. Both readings are defensible: D-037 B1 permits stateless
+/// refugee foundings, while D-042 says an Empire may acquire further settlements.
+/// This is an OPEN ARCHITECTURAL QUESTION for the director, not an oversight to be
+/// closed by whichever system is edited next; until it is ruled, the behaviour here
+/// is unchanged and the disagreement is recorded rather than silently resolved.
 /// </summary>
 public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) : ISimSystem<ColonizationTables>
 {

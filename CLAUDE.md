@@ -7,7 +7,7 @@ One deterministic, turn-based civilization simulation spanning 6,000 years. One 
 2. `docs/m0-kernel-spec.md` — current milestone spec: kernel contract (§3) + task packets (§4).
 3. When your task touches them: `docs/civ-sim-architecture-v3-outline.md` (Spine), `docs/spine-s8-governance-freeze.md` (rules), `docs/d009-d010-map-population-addendum.md`, `docs/d011-battle-layer-addendum.md`, `docs/d018-classes-and-needs.md`, latest `docs/adr/*`.
 
-**Current milestone: M3 — active packets: `docs/m3-spec.md` §4.** (This line changes only at a milestone exit gate. Director amendment to m3-spec §6: M3 proceeds in parallel with the unmerged art-substrate branch — its non-UI diff is provably empty; rebase when it merges.)
+**Current milestone: M4 — active packets: `docs/m4-spec.md` §4.** (This line changes only at a milestone exit gate. Director amendment to m3-spec §6: M3 proceeds in parallel with the unmerged art-substrate branch — its non-UI diff is provably empty; rebase when it merges.)
 
 ## Repository freshness (read before implementation)
 Read `docs/current-state.md` first, then **verify its claims against Git state and the relevant authoritative documents** — it is a router and a status board, not evidence. The rules behind it are in `docs/gov-4-repository-freshness.md`: the source-of-truth hierarchy, commit provenance, branch and packet freshness, test-result expiry, and the standing bans on branch deletion and rewriting frozen documents. Two of them are worth stating here because they are the ones most often skipped: a previous agent's report is secondary evidence and must be verified against the tree before you act on it, and LOCAL / REMOTE / MAIN are three different states that must never be collapsed into "the repository has it".

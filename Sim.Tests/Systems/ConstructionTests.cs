@@ -437,4 +437,67 @@ public class ConstructionTests
         ms.Position = 0;
         Assert.Throws<SnapshotFormatException>(() => OrderLog.Load(ms));
     }
+
+    // ---- 9. the control rule has teeth WHERE ORDERS ARE CONSUMED ----------
+    //
+    // M4-D §12 says an Empire may only build where it rules. Until this pass the
+    // ONLY enforcement was OrderValidation, which runs once before turn 1 against
+    // the turn-0 world — so the rule was untested and unenforced at the point the
+    // ConstructionSystem actually reads orders. These two tests close that gap,
+    // and they are deliberately written to fail if the check is removed again.
+
+    [Fact]
+    public void ASettlementTheActorDoesNotControlIsNeverEnqueued_AtTheConsumptionPoint()
+    {
+        WorldState world = Found(settlements: 2);
+        Assert.True(world.Settlements.Count >= 2, "fixture needs two settlements");
+        PolityId player = PlayerOf(world);
+        SettlementId theirs = world.Settlements[1].Id;
+
+        // Hand settlement 1 to a rival, exactly as the OrderValidation test does.
+        var rival = new PolityId(2);
+        world.Polities.Add(new PolityRow(rival, CommandSource.Ai));
+        for (int i = 0; i < world.Controls.Count; i++)
+            if (world.Controls[i].Place == theirs)
+                world.Controls[i] = new ControlRow(rival, theirs, 1.0);
+
+        // The order reaches the SYSTEM without passing OrderValidation — which is
+        // the real case: an order whose target did not exist at turn 0 can never
+        // have been validated against the turn-0 world.
+        var trespass = new OrderLog();
+        trespass.Append(Enqueue(0, player, theirs, Granary));
+        Endow(world, theirs);
+        SetConstructionShare(world, theirs, 0.0);
+
+        WorldState next = Executor(trespass).Run(world, 1);
+
+        Assert.Equal(0, next.ConstructionQueue.Count);
+    }
+
+    [Fact]
+    public void TheControlCheckIsNotVacuous_TheSameOrderFromTheControllerIsEnqueued()
+    {
+        // Anti-vacuity companion. Identical world and order except for the ACTOR:
+        // if the previous test passed because the order never arrives at all, this
+        // one fails, and the pair only both pass if control is what decides.
+        WorldState world = Found(settlements: 2);
+        Assert.True(world.Settlements.Count >= 2, "fixture needs two settlements");
+        SettlementId theirs = world.Settlements[1].Id;
+
+        var rival = new PolityId(2);
+        world.Polities.Add(new PolityRow(rival, CommandSource.Ai));
+        for (int i = 0; i < world.Controls.Count; i++)
+            if (world.Controls[i].Place == theirs)
+                world.Controls[i] = new ControlRow(rival, theirs, 1.0);
+
+        var lawful = new OrderLog();
+        lawful.Append(Enqueue(0, rival, theirs, Granary));
+        Endow(world, theirs);
+        SetConstructionShare(world, theirs, 0.0);
+
+        WorldState next = Executor(lawful).Run(world, 1);
+
+        Assert.Equal(1, next.ConstructionQueue.Count);
+        Assert.Equal(theirs, next.ConstructionQueue[0].Settlement);
+    }
 }

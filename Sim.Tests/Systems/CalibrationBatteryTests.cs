@@ -508,8 +508,13 @@ public class CalibrationBatteryTests
         for (int i = 0; i < m.StarvationDeaths.Count; i++) starvedTotal += m.StarvationDeaths[i];
         Assert.True(starvedTotal == 0,
             $"seed {seed}: {starvedTotal} starvation deaths — the dev world is no longer " +
-            "pre-Malthusian. If a crash cycle is back, CR-003 is resolved: delete this " +
-            "quarantine and restore the five AssertInBand calls.");
+            "pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as " +
+            "permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed " +
+            "evidence) rules that the measured world moved AWAY from Malthusian constraint — more " +
+            "land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST " +
+            "lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. " +
+            "Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the " +
+            "quarantine stays, and only a director ruling on CR-003 changes either.");
 
         var crashes = CalibrationAnalysis.Crashes(m, 0.20);
         Assert.True(crashes.Count == 0,

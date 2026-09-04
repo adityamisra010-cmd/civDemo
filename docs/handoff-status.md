@@ -51,8 +51,20 @@ Everything else in the branch list is a spent packet branch already contained in
 **Complete and tagged:** `m0-exit` (simulation kernel), `m1-exit` (a walking skeleton: world,
 population, food, a UI), `m2-exit` (social classes, migration, grievance, chronicle).
 
-**M4 and later:** not started. M4 covers neighbours, conflict and foreign trade. Its spec is written
-only after M3 exits — but M4 already has *blocking material* recorded (§6).
+**M4:** IN PROGRESS, and this line was three months stale — it said "not started" against a tree
+carrying fourteen merged M4 packets. `docs/m4-spec.md` is written and its packet list is FINAL.
+Merged: T4.1(+b–g), T4.2, T4.3, T4.4, T4.5, T4.6, T4.7, T4.8, T4.9, T4.10/T4.12, T4.14, T4.16 and
+M4-A/B/C/D.
+
+Remaining, and the distinction matters: **T4.11** (merchants) is genuinely NOT STARTED — no branch,
+no document, no code, and it is blocked empirically on a trade volume that does not yet exist.
+**T4.13** (comfort-as-stock) and **T4.15** (the exit artifact) are NOT absent but UNMERGED, each on
+its own branch (`t4.13-comfort-as-stock` at `21e6aa5`, 25 files / ~1,732 insertions with a review
+record; `t4.15-exit-inventory` at `01cb191`, docs only). Both were cut from a much older main and
+neither has been re-measured against the current tree, so neither is merge-ready as it stands.
+
+See `docs/m4-integration-audit.md` for the measured per-packet state and the M4 §6 exit-criteria
+assessment. **M5 and later:** not started.
 
 **M3 — in progress.** Packet order, including the three packets inserted mid-milestone by director
 ruling (T3.2b, T3.4b/T3.4c, T3.5b):
