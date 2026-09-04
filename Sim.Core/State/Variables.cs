@@ -59,8 +59,38 @@ public static class Variables
     /// </summary>
     public const int Population = 3;
 
+    /// <summary>
+    /// T4.11 — TRADE VOLUME: the whole units of goods that moved through this
+    /// settlement last turn, in or out, summed over every good and every
+    /// counterparty (Prev `TradeFlows`).
+    ///
+    /// THE MERCHANT'S EXTENT-OF-THE-MARKET TERM, and the direct analogue of
+    /// `population` for artisans. A merchant is someone who lives by moving
+    /// goods between places; that living exists only where goods actually move,
+    /// so the variable that gates merchant emergence is the observed movement
+    /// itself rather than a proxy for it. Nobody has to decide that trade is
+    /// "important enough" — if the arbitrage deadband never opens, volume is
+    /// zero and no merchant ever emerges, which is the honest outcome for a
+    /// world whose settlements have nothing to gain by exchanging.
+    ///
+    /// ABSOLUTE, NOT A RATIO, and deliberately so: the registry law above
+    /// records that an all-ratio predicate set is scale-invariant and cannot
+    /// differentiate settlements. Volume in units is scale-dependent — a large
+    /// entrepot crosses the threshold a hamlet on the same trade route never
+    /// will, which is the property that makes merchants concentrate rather than
+    /// appear evenly everywhere.
+    ///
+    /// EXTENSION SEAM. What COUNTS as volume is expected to grow — long-distance
+    /// shipping, foreign trade, multiple cargo classes and specialised logistics
+    /// all add movement that this same variable will sum. None of that changes
+    /// the merchant's identity: they remain a class in the registry emerging on
+    /// this variable, so richer logistics arrive as a richer numerator and not
+    /// as a replacement for the actor model.
+    /// </summary>
+    public const int TradeVolume = 4;
+
     /// <summary>Known names in registration order (parallel to ids 1..N).</summary>
-    public static readonly string[] Names = ["food_surplus_ratio", "artisan_share", "population"];
+    public static readonly string[] Names = ["food_surplus_ratio", "artisan_share", "population", "trade_volume"];
 
     /// <summary>Name → id; −1 when unknown (callers own the actionable error).</summary>
     public static int IdOf(string name)

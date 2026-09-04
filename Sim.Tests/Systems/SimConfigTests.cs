@@ -24,7 +24,9 @@ public class SimConfigTests
         for (int c = Sim.Core.State.Cohorts.FirstAdult; c < Sim.Core.State.Cohorts.FirstElder; c++)
             adults += cfg.Founding.CohortCounts[c];
         Assert.True(adults > 0);
-        Assert.Equal(2, cfg.Registries.Classes.Length); // Peasants + Artisans (D-027)
+        // T4.11 added Merchants alongside Peasants and Artisans (D-027 delivers
+        // the registry incrementally, one class per milestone that earns one).
+        Assert.Equal(3, cfg.Registries.Classes.Length);
     }
 
     [Fact]

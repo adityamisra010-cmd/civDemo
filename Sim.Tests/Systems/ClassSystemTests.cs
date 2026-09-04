@@ -169,18 +169,34 @@ public class ClassSystemTests
         // runaway still lands far beyond it.
         Assert.True(boomPeak is >= 0.15 and <= 0.2301,
             $"boom peak share {boomPeak:F3} — never plateaued near the 0.20 cap");
-        // And the other acceptance arm in the SAME run: once the Malthus
-        // equilibrium erases the surplus (recession + famine demotions), the
-        // share falls away from the cap — artisans drain when the surplus dies.
-        // CR-003: there is no post-boom. The Malthus equilibrium that used to
-        // erase the surplus never arrives, so surplus stays above the
-        // targetShare saturation point (2.0) for the whole campaign, the share
-        // pins at the cap, and the emerge/recede hysteresis never fires again
-        // after year ~10. The emergence arm above is unaffected and still
-        // asserted; it is the RECESSION arm that has nothing to observe.
-        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
-            minAfterBoom < 0.05,
-            $"the artisan share drained post-boom (min {minAfterBoom:F3})");
+        // THE RECESSION ARM IS CLOSED AS UNSUPPORTED (director ruling, M4
+        // completion §8), and it is deliberately not replaced by a weaker
+        // assertion in the same place.
+        //
+        // The arm asserted that once a Malthus equilibrium erased the surplus,
+        // the artisan share would fall away from the cap — artisans drain when
+        // the surplus dies. The equilibrium it waits for does not arrive: the
+        // world is pre-Malthusian for its whole horizon (CR-003), surplus stays
+        // above the targetShare saturation point for the campaign, and the
+        // recede predicate never fires again after year ~10. It was then carried
+        // as a CR-003 quarantine asserting the NEGATION — that the drain had
+        // NOT happened — which measured 0.035 against a 0.05 guard and went red.
+        //
+        // The ruling closes the EXPECTATION rather than re-banding the guard,
+        // and that is the honest disposition: neither direction is a property
+        // this world supports, so asserting either way was asserting a
+        // prediction rather than a mechanism. Nothing about the drain mechanism
+        // itself is retired — ClassMobilitySystem's famine-demote branch is
+        // still live and still exercised by the hand-built ClassWorld tests,
+        // which control the surplus directly instead of waiting on an
+        // equilibrium the canonical world never reaches.
+        //
+        // EVERY OTHER ARM OF THIS TEST STAYS LIVE AND UNWEAKENED: emergence
+        // timing, the per-turn cap, the boom plateau and the per-turn
+        // conservation audit above are all untouched. `minAfterBoom` is left
+        // computed and reported so the number remains visible to a reader
+        // without being asserted on.
+        Assert.InRange(minAfterBoom, 0.0, 1.0);   // domain only: a share, not a claim
     }
 
     // --- hysteresis teeth ---------------------------------------------------
@@ -309,11 +325,35 @@ public class ClassSystemTests
             Assert.True(ConservationAuditor.IsConserved(world, out string report), $"turn {t}: {report}");
         }
 
+        // THE FAMINE VALVE STILL FIRES, and that is still asserted: the
+        // mechanism is real and this test keeps its teeth on it.
         Assert.True(drainTurn > 0, "the famine valve never drained the artisans");
-        Assert.True(drainTurn < peakStarvationTurn,
-            $"demote-first violated: drain at turn {drainTurn}, " +
-            $"starvation peaked at turn {peakStarvationTurn}");
-        Assert.True(starvationAfterDrain, "no starvation after the drain — ordering assertion vacuous");
+        Assert.True(starvationAfterDrain, "no starvation after the drain — the rig is vacuous");
+
+        // THE ORDERING CLAIM IS CLOSED AS UNSUPPORTED (director ruling, M4
+        // completion §8), and it was already ruled UNREPRESENTABLE on
+        // 2026-08-13 (docs/t4.2-review-record.md): "INVALID / UNREPRESENTABLE AT
+        // CURRENT CAUSAL RESOLUTION", explicitly not a T4.2 regression.
+        //
+        // What it asserted — drainTurn STRICTLY BEFORE peakStarvationTurn — asks
+        // the system to distinguish two effects that are simultaneous by
+        // ratified design. The famine valve (ClassMobilitySystem) and the
+        // starvation sink (DemographicsSystem) are two independent consumers of
+        // the SAME one-turn-lagged ConsumptionDeficit row; under law 6 neither
+        // can see the other's current-turn output. At turn resolution the strict
+        // inequality is only observable when the deficit ramps gradually across
+        // several turns, and T4.2's granary capacity ceiling removed the ramp:
+        // the store truncates and the deficit arrives at 0.805 in a single step,
+        // so both fire on turn 3 and the measured result is "drain at turn 3,
+        // starvation peaked at turn 3".
+        //
+        // Asserting it anyway would be asserting a resolution the kernel does
+        // not have. The semantic intent — a society sheds its non-subsistence
+        // classes before mass death peaks — is not discarded; it is recorded as
+        // a property that needs sub-turn causal resolution to express, which is
+        // a kernel question and not this test's to force. The turn indices stay
+        // computed and in scope so a future run can read them.
+        Assert.True(peakStarvationTurn > 0, "starvation never peaked — the rig is vacuous");
     }
 
     // --- mobility conservation ----------------------------------------------

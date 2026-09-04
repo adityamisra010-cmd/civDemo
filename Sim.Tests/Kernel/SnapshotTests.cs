@@ -648,7 +648,28 @@ public class SnapshotTests
         //         land's 0.041063) — post-T4.2 the world was already ~97% land-driven.
         //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24; no table, row or field
         //         joined or left the stream. Full derivation: docs/t4.10-review-record.md.
-        const string golden = "8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048";
+                // M4 COMPLETION RE-PIN. TWO causes, and they were separated by
+        //   measurement rather than asserted:
+        //   (1) T4.13 happiness -> migration. A zero-weight control arm
+        //       (migration.attractivenessHappinessWeight 0.15 -> 0.0, nothing
+        //       else) reproduces the PREVIOUS pins EXACTLY on all three worlds,
+        //       which is what proves colony-control inheritance, the revolt
+        //       system and the happiness query itself move nothing at all.
+        //   (2) T4.11 merchants. A third registry class adds one ClassStateRow
+        //       and one GrievanceRow per settlement to the canonical stream.
+        //   MEASURED SPLIT: at the intermediate tree (happiness live, merchants
+        //       absent) Founded and Driven had ALREADY moved while FirstReign had
+        //       NOT — FirstReign is a 40-turn director replay whose settlements
+        //       stay comparably provisioned, so a 15% viability modulation
+        //       reorders nothing in it. FirstReign moves here for cause (2) alone.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED, and its
+        //       v22-stripped value is still main's pre-M4 0f94b4ad… — the
+        //       synthetic terrain-less control, which migration cannot reach.
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24. No row type, field
+        //       or table joined or left the stream; the merchant rows are more
+        //       rows of types that already existed.
+        //   OLD 8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048
+        const string golden = "98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

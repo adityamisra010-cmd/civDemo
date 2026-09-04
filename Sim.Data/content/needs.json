@@ -125,8 +125,39 @@
         "need": 6,
         "good": "cloth",
         "perPersonYear": 0.08
+      },
+      {
+        "class": 3,
+        "need": 1,
+        "good": "grain",
+        "perPersonYear": 0.74
+      },
+      {
+        "class": 3,
+        "need": 1,
+        "good": "livestock",
+        "perPersonYear": 0.15
+      },
+      {
+        "class": 3,
+        "need": 1,
+        "good": "fish",
+        "perPersonYear": 0.11
+      },
+      {
+        "class": 3,
+        "need": 6,
+        "good": "pottery",
+        "perPersonYear": 0.06
+      },
+      {
+        "class": 3,
+        "need": 6,
+        "good": "cloth",
+        "perPersonYear": 0.1
       }
-    ]
+    ],
+    "_docMerchants": "T4.11. Merchants sit one step further from the staple than artisans (grain 0.74 vs 0.78) and correspondingly higher on livestock and fish. The reasoning is the same one the table already encodes for artisans - income and market access change WHAT is eaten, never how much nutrition a person needs, and the food entries still sum to exactly 1.0 by construction - with the additional point that a merchant's living IS market access: the class that moves livestock and fish between settlements is the least likely of the three to be eating only what grows in its own catchment. Comfort is likewise slightly above artisans (pottery 0.06, cloth 0.10 vs 0.05/0.08). TUNE, like every other row here. The mechanical consequence to be aware of is that merchants import MORE and are therefore hit harder when trade stops - which is the correct coupling for a trading class and not a penalty bolted on."
   },
   "grievance": {
     "baseDecayPerYear": 0.005,
