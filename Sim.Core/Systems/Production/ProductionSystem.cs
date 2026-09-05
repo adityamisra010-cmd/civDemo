@@ -238,6 +238,16 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // not ask for weather) farms exactly as it did before T3.4b.
         ratePerYear *= HarvestWeatherFor(prev, settlement);
 
+        // M5: EXTRACTION. A state that taxes harder works its realm harder —
+        // corvée, quotas, levied labour — so realised output rises with the
+        // EFFECTIVE tax rate (the declared rate scaled by administrative reach).
+        // Applied in the SAME position and the same order as weather: once, on
+        // the realised rate, before dt integration and before the remainder is
+        // added, so it can never be applied twice and never disturbs the D-004
+        // remainder chain. An untaxed settlement multiplies by exactly 1.0, so a
+        // world with no tax policy produces bit-identically to M4.
+        ratePerYear *= State.Governance.ExtractionMultiplier(prev, settlement, _cfg);
+
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
         long harvested = ConservedMath.WholeUnits(exact, $"grain harvest (settlement {settlement.Value})");
@@ -303,7 +313,8 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // before the remainder is added, so a drought cannot be applied
             // twice and cannot disturb the D-004 remainder chain. Extraction
             // passes 1.0, so this expression is bit-identical there.
-            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather;
+            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather
+                * State.Governance.ExtractionMultiplier(prev, settlement, _cfg);   // M5 extraction
 
             ref GoodStockRow stock = ref stocks.Ref(row);
             double exact = ratePerYear * ctx.DtYears + stock.ProduceRemainder;
@@ -381,7 +392,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // every input's stock — Leontief over labor and materials.
             double laborCapPerYear = recipe.LaborPerOutput > 0.0
                 ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
-            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
+            // M5: extraction applies to crafted output too — the same compelled
+            // effort, on the LABOUR-allowed rate before the input caps bind, so a
+            // levy cannot conjure output the materials do not support.
+            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty
+                * State.Governance.ExtractionMultiplier(prev, settlement, _cfg);
 
             // T3.4 (D-033): publish the input demand this recipe WANTED, from
             // labor alone, BEFORE any input cap binds. Demand that went unmet

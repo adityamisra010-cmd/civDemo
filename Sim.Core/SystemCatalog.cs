@@ -277,6 +277,22 @@ public static class SystemCatalog
     /// <summary>M4: revolt — a settlement at zero happiness loses its control
     /// relation. Shares the `Controls` table with Colonization (which appends on
     /// inheritance); the header above records it as a sanctioned shared table.</summary>
+    /// <summary>M5: governance — enacts tax policy from orders and computes
+    /// ControlRow.Strength as administrative reach. Shares `Controls` with
+    /// Colonization (appends) and Revolt (removes); this one updates Strength.</summary>
+    public static SystemRegistration Governance(SimConfig cfg)
+    {
+        var system = new Systems.Governance.GovernanceSystem(cfg);
+        return new SystemRegistration(
+            Systems.Governance.GovernanceSystem.WellKnownId,
+            Systems.Governance.GovernanceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.Governance.GovernanceTables>(
+                    prev, new Systems.Governance.GovernanceTables(next.TaxPolicies, next.Controls),
+                    rng, Systems.Governance.GovernanceSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     public static SystemRegistration Revolt(SimConfig cfg)
     {
         var system = new Systems.Revolt.RevoltSystem(cfg);
@@ -306,6 +322,6 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }

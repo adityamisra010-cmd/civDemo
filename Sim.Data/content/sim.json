@@ -222,5 +222,10 @@
     "correlationTimeYears": 3.0,
     "spatialSharedFraction": 0.6,
     "spatialRangeCostUnits": 40.0
+  },
+  "governance": {
+    "_doc": "M5 (the governing loop). authorityDecayCostUnits: DERIVED BY REFERENCE CLASS 25.0 - the e-fold of administrative reach in SettlementDistances travel-cost units, denominated identically to migration.dampingDecayCostUnits (25.0) and using the identical functional form exp(-cost/decay). Both answer 'how far does influence travel over this network', so a second unrelated distance scale for administration would be asserting a magnitude nobody measured. Satisfies D-040 C3: control carries a distance term over the NETWORK GRAPH, travel cost not Euclidean. Historically an official's reach is SHORTER than a migrant's, so if these two ever diverge that must be a measured decision, not a default. taxExtractionResponseMax: CHOSEN WITHIN A MEASURED FRAME 0.3 - the frame is farming.toolYieldBonusMax (0.3), the tree's existing statement of how much a multiplier may add to realised production. A fully extracted realm is worth at most what fully equipping it with tools is worth, which stops compelled labour out-earning capital. NOT derived from a historical series - none exists for this quantity, and claiming one would be false provenance. 0.0 disables the economic arm and is the control arm the tests use to prove the term is not inert.",
+    "authorityDecayCostUnits": 25.0,
+    "taxExtractionResponseMax": 0.3
   }
 }

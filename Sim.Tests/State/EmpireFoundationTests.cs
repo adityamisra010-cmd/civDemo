@@ -187,7 +187,7 @@ public class EmpireFoundationTests
         world.Structures.Add(new StructureRow(new SettlementId(1), 1, 3));
         world.Structures.Add(new StructureRow(new SettlementId(2), 7, 1));
 
-        Assert.Equal(24, CanonicalSchema.Version);
+        Assert.Equal(25, CanonicalSchema.Version);   // M5 appended TaxPolicies
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
@@ -223,7 +223,7 @@ public class EmpireFoundationTests
         world.Capitals.Add(new CapitalRow(new PolityId(0), new SettlementId(0)));
 
         // v23, not v22: T4.4's BucketRow widening owns v22 (director-ruled).
-        Assert.Equal(24, CanonicalSchema.Version);
+        Assert.Equal(25, CanonicalSchema.Version);   // M5 appended TaxPolicies
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))

@@ -224,7 +224,20 @@ public class SnapshotTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
+        // M5 RE-PIN — SCHEMA v25, LAYOUT ONLY, and MEASURED.
+        //   OLD  eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69
+        //   NEW  b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1
+        //   CAUSE v24 -> v25 appends TaxPolicies. Nothing writes it without a
+        //         SetTaxRate order, so its entire contribution to this world is
+        //         one four-byte zero count prefix.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution's
+        //         GoldenHashSeed42Turn200_MovedForTheM5LayoutAlone drops exactly
+        //         that prefix on THIS tree and gets the OLD value back byte for
+        //         byte. This world is synthetic and terrain-less — no settlements,
+        //         so no controls and no happiness — which is why M5's two
+        //         BEHAVIOURAL causes cannot reach it, and why this pin is the
+        //         no-unrelated-movement control for the whole milestone.
+        const string golden = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -313,6 +326,39 @@ public class SnapshotTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
             BitConverter.DoubleToInt64Bits(loaded.CatchmentSummaries[1].EffectiveArableKm2));
         Assert.Equal(42, loaded.CatchmentSummaries[0].LastRecomputeTurn);
+        Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
+    }
+
+    [Fact]
+    public void SchemaV25_PopulatedTaxPolicies_LengthAndRoundTripExact()
+    {
+        // Constitution rule (T1.4): every new serialized row type ships a
+        // POPULATED-table test — exact ExpectedLength, bit-exact round trip, hash
+        // equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
+        WorldState world = Genesis(11);
+        world.TaxPolicies.Add(new TaxPolicyRow(new PolityId(1), Rate: 0.125));
+        world.TaxPolicies.Add(new TaxPolicyRow(new PolityId(7), Rate: -0.0));
+
+        // Anti-padding: exact schema width sum with rows PRESENT.
+        using var raw = new MemoryStream();
+        using (var writer = new BinaryWriter(raw, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(world, writer);
+        }
+        Assert.Equal(CanonicalSchema.ExpectedLength(world), raw.Length);
+
+        // Round trip: every field survives bit-exactly; hashes agree.
+        using var buffer = new MemoryStream();
+        Snapshot.Save(world, buffer);
+        buffer.Position = 0;
+        WorldState loaded = Snapshot.Load(buffer);
+        Assert.True(WorldStates.StateEquals(world, loaded));
+        Assert.Equal(2, loaded.TaxPolicies.Count);
+        Assert.Equal(1, loaded.TaxPolicies[0].Polity.Value);
+        Assert.Equal(0.125, loaded.TaxPolicies[0].Rate);
+        Assert.Equal(7, loaded.TaxPolicies[1].Polity.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0),
+            BitConverter.DoubleToInt64Bits(loaded.TaxPolicies[1].Rate));
         Assert.Equal(WorldHash.ComputeHex(world), WorldHash.ComputeHex(loaded));
     }
 
@@ -669,7 +715,23 @@ public class SnapshotTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048
-        const string golden = "98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983";
+        // M5 RE-PIN — BEHAVIOURAL, and DECOMPOSED BY MEASUREMENT.
+        //   OLD  98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983
+        //   NEW  1a630b4741a174e8aed03a93de213073b21c72df8c1c0c45ab0d387e0f274d38
+        //   TWO CAUSES, each measured on this tree rather than asserted:
+        //     (1) LAYOUT: schema v25's empty TaxPolicies count prefix.
+        //     (2) CONTROL STRENGTH: GovernanceSystem writes ControlRow.Strength =
+        //         administrative reach. Founding wrote a placeholder 1.0; the
+        //         capital still reaches 1.0 and the outlying settlements now carry
+        //         reach that decays with travel cost.
+        //   NOTHING ELSE MOVES, and that is a measurement, not a hope. This realm
+        //         is UNTAXED: the extraction multiplier is exactly 1.0, so
+        //         production output is bit-identical, and the happiness burden
+        //         multiplies by exactly 1.0, so migration is untouched.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution's M5 layer strips
+        //         (1) and (2) from this world and returns the OLD value byte for
+        //         byte — nothing left over.
+        const string golden = "1a630b4741a174e8aed03a93de213073b21c72df8c1c0c45ab0d387e0f274d38";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

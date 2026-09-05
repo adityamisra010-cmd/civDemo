@@ -79,6 +79,7 @@ public class IntegratedPinAttributionTests
         stripped.Capitals.Clear();
         stripped.ConstructionQueue.Clear();
         stripped.Structures.Clear();
+        stripped.TaxPolicies.Clear();
 
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
@@ -97,11 +98,11 @@ public class IntegratedPinAttributionTests
     }
 
     /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.</summary>
-    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 4);
+    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5);
 
     /// <summary>The stream as v23 — M4-A's tables present but empty, i.e. the
     /// tree exactly as it stood before M4-C's founding wrote them.</summary>
-    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 2);
+    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3);
 
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheM4SchemaAlone()
@@ -197,5 +198,132 @@ public class IntegratedPinAttributionTests
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
         Assert.Equal(1, world.Capitals.Count);
+    }
+
+    // ---------------------------------------------------------------------
+    // M5 LAYER — the governing loop.
+    //
+    // M5 moves three pinned worlds, and the packet's rule is the same one M4
+    // worked under: a moved golden is repinned only with a measured cause. The
+    // causes here are THREE, and they are not the same three for every world:
+    //
+    //   (1) LAYOUT. Schema v25 appends TaxPolicies. Nothing writes it without a
+    //       SetTaxRate order, so on every pinned world its whole contribution is
+    //       one four-byte zero count prefix.
+    //   (2) CONTROL STRENGTH. GovernanceSystem now writes ControlRow.Strength =
+    //       administrative reach, where founding and colonization used to leave a
+    //       placeholder 1.0. Reach is 1.0 at the capital and decays with travel
+    //       cost, so this reaches only worlds holding NON-CAPITAL settlements.
+    //   (3) HAPPINESS — RULED OUT BY CONSTRUCTION, and it was not always so. The
+    //       first implementation made taxation a third CES factor, which moved
+    //       every world with settlements even when untaxed, and disarmed the
+    //       ruled revolt condition as well. Taxation now MULTIPLIES the aggregate
+    //       instead, and an untaxed realm multiplies by exactly 1.0, so pre-M5
+    //       happiness is bit-identical. That is what lets the M4 layer above keep
+    //       its original constants rather than being re-measured under M5.
+    //
+    // So the control below is exact again: strip (1) and (2) and the pre-M5 pin
+    // must come back byte for byte, on every pinned world.
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// The finished world with M5's state removed but M4's left intact: the
+    /// TaxPolicies table cleared (and its trailing empty prefix dropped), and
+    /// every ControlRow.Strength restored to the placeholder 1.0 that founding
+    /// and colonization wrote before GovernanceSystem existed. What survives is
+    /// the schema v24 stream, so the comparison is against a real earlier pin.
+    /// </summary>
+    private static string HashAtSchemaV24(WorldState world, bool restoreUnitStrength)
+    {
+        WorldState stripped = world.Clone();
+        stripped.TaxPolicies.Clear();
+        if (restoreUnitStrength)
+        {
+            for (int i = 0; i < stripped.Controls.Count; i++)
+            {
+                stripped.Controls[i] = stripped.Controls[i] with { Strength = 1.0 };
+            }
+        }
+
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+
+        byte[] full = buffer.ToArray();
+        for (int i = full.Length - EmptyTableBytes; i < full.Length; i++)
+        {
+            Assert.Equal(0, full[i]);   // the dropped prefix really is an empty table
+        }
+
+        return Convert.ToHexStringLower(
+            SHA256.HashData(full.AsSpan(0, full.Length - EmptyTableBytes).ToArray()));
+    }
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheM5LayoutAlone()
+    {
+        // The synthetic terrain-less world: no settlements, so no controls and no
+        // happiness. Cause (2) and cause (3) cannot reach it, and the prediction
+        // that follows is exact — dropping the one empty count prefix must return
+        // the pre-M5 pin byte for byte. This is M5's no-unrelated-movement
+        // control, and it is the reason the other two pins can be read as
+        // "the governing loop moved them" rather than "something drifted".
+        const string beforeM5 = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
+
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(0, world.Controls.Count);
+        Assert.Equal(0, world.TaxPolicies.Count);
+        Assert.Equal(beforeM5, HashAtSchemaV24(world, restoreUnitStrength: false));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheM5LayoutAlone()
+    {
+        // One settlement, and it is the capital — so its administrative reach is
+        // exactly 1.0, the same value founding wrote. Cause (2) is therefore
+        // NUMERICALLY absent here rather than merely small, and this world tests
+        // that claim: the strip returns the pre-M5 pin, which it could not do if
+        // the happiness factor had moved this world's migration either.
+        const string beforeM5 = "7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3";
+
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(1, world.Controls.Count);
+        Assert.Equal(1.0, world.Controls[0].Strength);
+        Assert.Equal(beforeM5, HashAtSchemaV24(world, restoreUnitStrength: false));
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForM5LayoutAndControlStrengthAlone()
+    {
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
+        WorldState world = executor.Run(
+            Sim.Core.Worldgen.WorldFounding.Found(
+                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
+
+        // Twelve settlements under one polity, so this is the ONE pinned world
+        // that cause (2) can reach — and it does: eleven non-capital settlements
+        // now carry reach below 1.0 where the placeholder used to sit.
+        Assert.Equal(12, world.Controls.Count);
+        Assert.Equal(1.0, world.Controls[0].Strength);
+        Assert.True(world.Controls[1].Strength < 1.0);
+
+        // LAYOUT + CONTROL STRENGTH REMOVED must return the PRE-M5 PIN itself,
+        // byte for byte. Nothing is left over: happiness cannot move an untaxed
+        // world, and with no policy row the extraction multiplier is exactly 1.0,
+        // so production output is bit-identical too.
+        const string layoutAndStrengthRemoved =
+            "98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983";
+        Assert.Equal(layoutAndStrengthRemoved, HashAtSchemaV24(world, restoreUnitStrength: true));
+
+        // ...and with strength LEFT ALONE the value differs, so the restore above
+        // is doing real work rather than passing vacuously.
+        Assert.NotEqual(layoutAndStrengthRemoved, HashAtSchemaV24(world, restoreUnitStrength: false));
     }
 }

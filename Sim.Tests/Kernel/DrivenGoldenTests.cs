@@ -262,7 +262,23 @@ public class DrivenGoldenTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272
-        const string golden = "01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af";
+        // M5 RE-PIN — BEHAVIOURAL, and DECOMPOSED BY MEASUREMENT.
+        //   OLD  01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af
+        //   NEW  25e037ce5085575b6afb608c08b0abf5f250464247f1c605f1d1f5eb10cc6899
+        //   TWO CAUSES, each measured on this tree rather than asserted:
+        //     (1) LAYOUT: schema v25's empty TaxPolicies count prefix.
+        //     (2) CONTROL STRENGTH: GovernanceSystem writes ControlRow.Strength =
+        //         administrative reach. Founding wrote a placeholder 1.0; the
+        //         capital still reaches 1.0 and the outlying settlements now carry
+        //         reach that decays with travel cost.
+        //   NOTHING ELSE MOVES, and that is a measurement, not a hope. This realm
+        //         is UNTAXED: the extraction multiplier is exactly 1.0, so
+        //         production output is bit-identical, and the happiness burden
+        //         multiplies by exactly 1.0, so migration is untouched.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution's M5 layer strips
+        //         (1) and (2) from this world and returns the OLD value byte for
+        //         byte — nothing left over.
+        const string golden = "25e037ce5085575b6afb608c08b0abf5f250464247f1c605f1d1f5eb10cc6899";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

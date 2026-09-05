@@ -3,6 +3,44 @@ using System.Text.Json.Serialization;
 
 namespace Sim.Core.Systems;
 
+/// <summary>
+/// M5 — the governing loop's two tuning constants. Both are DIMENSIONLESS and
+/// both are denominated against a shipped quantity rather than chosen freely;
+/// see each field.
+/// </summary>
+public sealed record GovernanceConfig(
+    /// <summary>
+    /// The e-fold of ADMINISTRATIVE REACH, in the same travel-cost units as
+    /// `SettlementDistances`. Reach is exp(-travelCost / this).
+    ///
+    /// DERIVED BY REFERENCE CLASS, not chosen: it is denominated identically to
+    /// `migration.dampingDecayCostUnits` (25.0), which is the shipped e-fold for
+    /// how far influence travels over this same network with this same functional
+    /// form. Both answer "how far does influence reach over these roads", so
+    /// inventing a second, unrelated distance scale for administration would be
+    /// asserting a magnitude nobody measured. If the two should differ — and
+    /// historically an official's reach IS shorter than a desperate family's —
+    /// that is a tuning decision to be made against measurement, not a default.
+    /// </summary>
+    [property: JsonPropertyName("authorityDecayCostUnits"), JsonRequired]
+    double AuthorityDecayCostUnits,
+
+    /// <summary>
+    /// How much realised production a FULLY extracted, fully reached settlement
+    /// yields above an untaxed one: output multiplier = 1 + this x effectiveRate.
+    ///
+    /// CHOSEN WITHIN A MEASURED FRAME, and the frame is `farming.toolYieldBonusMax`
+    /// (0.3) — the tree's existing statement of how much a multiplier is allowed
+    /// to add to production. Full extraction is worth at most what fully equipping
+    /// the settlement with tools is worth, which keeps compelled labour from
+    /// out-earning capital. It is NOT derived from a historical series, because
+    /// none exists for this quantity, and pretending otherwise would be a false
+    /// provenance claim. 0.0 disables the economic arm entirely and is the arm the
+    /// tests use to prove the term is doing work.
+    /// </summary>
+    [property: JsonPropertyName("taxExtractionResponseMax"), JsonRequired]
+    double TaxExtractionResponseMax);
+
 /// <summary>Raised on any sim-config schema violation, with an actionable message.</summary>
 public sealed class SimConfigException(string message, Exception? inner = null)
     : Exception(message, inner);
@@ -30,6 +68,10 @@ public sealed record SimConfig(
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     [property: JsonPropertyName("trade")] TradeConfig Trade,
     [property: JsonPropertyName("housing")] HousingConfig Housing,
+    // M5 (the governing loop). Optional so that a pre-M5 sim.json still loads and
+    // behaves exactly as it did: absent governance means no tax policy can be
+    // scaled and no extraction response exists.
+    [property: JsonPropertyName("governance")] GovernanceConfig? Governance = null,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.

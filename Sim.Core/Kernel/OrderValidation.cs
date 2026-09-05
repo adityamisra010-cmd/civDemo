@@ -39,6 +39,21 @@ public static class OrderValidation
                     "Empire's PolityId, never a player/AI marker.");
             }
 
+            // M5: an Empire sets ITS OWN tax policy and no one else's. The check is
+            // the same shape as M4-D's build permission — authority comes from the
+            // control/roster relation, never from the order's word for it.
+            if (record.Kind == OrderKind.SetTaxRate)
+            {
+                if (record.TargetId != record.ActorId)
+                {
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): SetTaxRate targets polity " +
+                        $"{record.TargetId} but was issued by polity {record.ActorId}. An Empire " +
+                        "legislates its own taxes; it does not set another Empire's.");
+                }
+                continue;   // no settlement target to resolve
+            }
+
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction)) continue;
 

@@ -392,7 +392,20 @@ public class FirstReignTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3
-        const string golden = "7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3";
+        // M5 RE-PIN — SCHEMA v25, LAYOUT ONLY, and MEASURED.
+        //   OLD  7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3
+        //   NEW  27c54fbc05b546b84ebd2117e0eed7de061d7c461d08bb6fd30b9455237d2ebb
+        //   CAUSE v24 -> v25's empty TaxPolicies count prefix, four zero bytes.
+        //   NOT CONTROL STRENGTH: this world holds ONE settlement and it is the
+        //         capital, so its administrative reach is exactly 1.0 — the same
+        //         value founding wrote. The M5 mechanism is numerically absent
+        //         here rather than merely small.
+        //   NOT HAPPINESS: the realm is untaxed, so the burden multiplies by
+        //         exactly 1.0 and migration is bit-identical.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution's
+        //         FirstReignTurn40_MovedForTheM5LayoutAlone drops that prefix on
+        //         THIS tree and gets the OLD value back byte for byte.
+        const string golden = "27c54fbc05b546b84ebd2117e0eed7de061d7c461d08bb6fd30b9455237d2ebb";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -69,6 +69,8 @@ public static class WorldStates
         // a comparer that skips a table makes every assertion about it vacuous.
         if (!TableEquals(a.ConstructionQueue, b.ConstructionQueue)) return false;
         if (!TableEquals(a.Structures, b.Structures)) return false;
+        // M5: tax policy, added WITH the table — the standing reason above.
+        if (!TableEquals(a.TaxPolicies, b.TaxPolicies)) return false;
         return true;
     }
 

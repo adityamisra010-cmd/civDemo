@@ -755,6 +755,36 @@ public record struct ConstructionQueueRow(SettlementId Settlement, int Slot, int
 public record struct StructureRow(SettlementId Settlement, int ProjectId, long Count);
 
 /// <summary>
+/// M5 — ONE EMPIRE'S TAX POLICY. A standing governance decision, not a stock.
+///
+/// <c>Rate</c> is the NOMINAL extraction rate the Empire has declared, a
+/// dimensionless fraction in [0,1]. It is what the state ASKS for; what it
+/// actually gets is that rate scaled by the settlement's administrative reach
+/// (M5 authority), so the nominal rate and the realised one are different
+/// quantities and are never conflated.
+///
+/// A POLICY ROW, ON THE SHIPPED PRECEDENT of <see cref="SectorAllocationRow"/>:
+/// it exists only once an order has set it, and its ABSENCE means the
+/// never-ordered default of ZERO — an Empire that has never legislated a tax
+/// levies none. That is why there is no sentinel and no "unset" flag, and why a
+/// world founded before M5 deserialises into exactly its old behaviour.
+///
+/// WHAT THIS ROW IS NOT, because the shape was ruled against explicitly. It is
+/// NOT a treasury, NOT a tax receipt, NOT a stock and NOT an owner: no goods
+/// move because of it, nothing accumulates in it, and it holds no quantity. Tax
+/// here is a POLICY that changes how hard a realm is worked and what that costs
+/// its people — extraction and burden — never a transfer of grain to a capital.
+/// Goods stay physically localized in <see cref="GoodStockRow"/> exactly as they
+/// were, and economic ownership stays derived through
+/// <see cref="ControlRow"/>.
+///
+/// Keyed by POLITY, not by settlement: taxation is an Empire-level decision that
+/// applies to everything the Empire controls, which is what makes control the
+/// thing that carries it.
+/// </summary>
+public record struct TaxPolicyRow(PolityId Polity, double Rate);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -818,6 +848,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
     IReadOnlyTable<StructureRow> Structures { get; }
+
+    /// <summary>M5: standing tax policy per Empire; absence means the zero default.</summary>
+    IReadOnlyTable<TaxPolicyRow> TaxPolicies { get; }
 }
 
 /// <summary>
@@ -958,6 +991,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
     public Table<StructureRow> Structures { get; }
 
+    /// <summary>M5 (governing loop): standing tax policy per Empire.</summary>
+    public Table<TaxPolicyRow> TaxPolicies { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -997,6 +1033,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<CapitalRow> IReadOnlyWorldState.Capitals => Capitals;
     IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
     IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
+    IReadOnlyTable<TaxPolicyRow> IReadOnlyWorldState.TaxPolicies => TaxPolicies;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1040,6 +1077,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Capitals = new Table<CapitalRow>();
         ConstructionQueue = new Table<ConstructionQueueRow>();
         Structures = new Table<StructureRow>();
+        TaxPolicies = new Table<TaxPolicyRow>();
     }
 
     private WorldState(
@@ -1061,7 +1099,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
         Table<PolityRow> polities, Table<CapitalRow> capitals,
-        Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures)
+        Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures,
+        Table<TaxPolicyRow> taxPolicies)
     {
         Seed = seed;
         Clock = clock;
@@ -1104,6 +1143,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Capitals = capitals;
         ConstructionQueue = constructionQueue;
         Structures = structures;
+        TaxPolicies = taxPolicies;
     }
 
     /// <summary>
@@ -1123,7 +1163,7 @@ public sealed class WorldState : IReadOnlyWorldState
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
             Polities.Clone(), Capitals.Clone(),
-            ConstructionQueue.Clone(), Structures.Clone())
+            ConstructionQueue.Clone(), Structures.Clone(), TaxPolicies.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

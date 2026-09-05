@@ -47,6 +47,22 @@ public enum OrderKind
     /// world-dependent and checked in OrderValidation.
     /// </summary>
     EnqueueConstruction = 4,
+
+    /// <summary>
+    /// M5: set an Empire's standing TAX POLICY. TargetId = the issuing Empire's
+    /// PolityId; Amount = the nominal rate as a PERCENTAGE in [0,100], matching
+    /// the convention LaborAllocation and SectorAllocation already use so the
+    /// order corpus reads consistently.
+    ///
+    /// The five-field OrderRecord already encodes this, so the WIRE FORMAT IS
+    /// UNTOUCHED. Range-validated at LOAD; that the target polity is the issuing
+    /// Empire is world-dependent and checked in OrderValidation.
+    ///
+    /// A POLICY, NOT A TRANSACTION: this order moves no goods and creates no
+    /// stock. It records what the state asks for; what it actually collects is
+    /// that rate scaled by administrative reach, computed each turn.
+    /// </summary>
+    SetTaxRate = 5,
 }
 
 /// <summary>
@@ -197,6 +213,16 @@ public sealed class OrderLog
                         $"{record.TargetId & 7} unknown — sectors are 0..{Sim.Core.State.Sectors.Count - 1} " +
                         "(farming, herding, extraction, crafting, construction).");
                 break;
+            case OrderKind.SetTaxRate:
+                if (!(record.Amount >= 0.0 && record.Amount <= 100.0))   // NaN fails this too
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetTaxRate percentage must be in " +
+                        $"[0,100], got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetTaxRate target polity id must be " +
+                        $">= 0, got {record.TargetId}.");
+                break;
             case OrderKind.EnqueueConstruction:
                 // The project id rides in a double. Insist it is a non-negative
                 // WHOLE number here rather than truncating later: 1.5 is not a
@@ -215,7 +241,8 @@ public sealed class OrderLog
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
-                    "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation) and 3 (SectorAllocation).");
+                    "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
+                    "4 (EnqueueConstruction) and 5 (SetTaxRate).");
         }
     }
 }

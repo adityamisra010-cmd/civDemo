@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(16, pipeline.Length);   // T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`
+        Assert.Equal(17, pipeline.Length);   // T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; M5 `governance`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -69,9 +69,16 @@ public class PipelineLoaderTests
         // is therefore about legibility rather than correctness — but it is
         // pinned here so a future reorder is a deliberate act, not a diff.
         Assert.Equal("revolt", pipeline[12].Name);
-        Assert.Equal("demographics", pipeline[13].Name);
-        Assert.Equal("needsgrievance", pipeline[14].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[15].Name);
+        // M5: governance runs immediately AFTER revolt. After, because a
+        // settlement a polity LOST this turn must not have its administrative
+        // reach recomputed as though the polity still held it; and after
+        // pathbuild's network from the previous turn, since reach is a travel
+        // cost from the capital. It reads Prev and writes only the tax policy
+        // table and the control relation's strength.
+        Assert.Equal("governance", pipeline[13].Name);
+        Assert.Equal("demographics", pipeline[14].Name);
+        Assert.Equal("needsgrievance", pipeline[15].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[16].Name);
     }
 
     [Fact]
@@ -92,7 +99,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, governance, demographics, needsgrievance, pathbuild, weather, growth, toytrade",
             e.Message);
     }
 

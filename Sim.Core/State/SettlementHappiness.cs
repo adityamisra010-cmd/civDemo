@@ -44,9 +44,11 @@ namespace Sim.Core.State;
 /// stubbed at 1.0, which would silently claim every settlement is well watered.
 /// CLOTHING/comfort exists only as a basket-bound need computed inside the needs
 /// system, so taking it would cross the D-021 line above; it is deferred with
-/// the same reasoning. TAXATION does not exist on this tree in any form (M5
-/// owns it) and is not invented here. Adding a factor later is one entry in
-/// <see cref="Factors"/> and its weight — the extension seam is the array.
+/// the same reasoning. TAXATION arrives with M5, but NOT as a member of this
+/// array — it is a burden on whatever provision exists rather than a provision
+/// of its own, so it multiplies the aggregate; see <see cref="TaxSufficiency"/>.
+/// Adding a provision factor later is one entry in <see cref="Factors"/> and its
+/// weight — the extension seam is the array.
 ///
 /// AGGREGATION IS NON-COMPENSATORY, and reuses the ratified equation rather than
 /// inventing a second one: <see cref="NeedsAggregation.Aggregate"/>, D-035-B's
@@ -83,7 +85,11 @@ public static class SettlementHappiness
         Housing = 1,
     }
 
-    /// <summary>How many factors compose the reading today.</summary>
+    /// <summary>
+    /// How many PROVISION factors compose the reading today. Taxation is NOT one
+    /// of them — see <see cref="TaxSufficiency"/> for why it multiplies the
+    /// aggregate rather than joining it.
+    /// </summary>
     public const int FactorCount = 2;
 
     /// <summary>
@@ -159,6 +165,44 @@ public static class SettlementHappiness
     }
 
     /// <summary>
+    /// M5 TAX BURDEN, as a sufficiency in [0,1]: one minus the EFFECTIVE rate.
+    ///
+    /// AN UNTAXED SETTLEMENT READS EXACTLY 1.0, and that is load-bearing rather
+    /// than cosmetic. Every world founded before M5 — and every hand-built test
+    /// world, and every settlement of an Empire that has never legislated a tax —
+    /// has no policy row, so this factor contributes nothing and happiness is
+    /// exactly what M4 computed. Returning 0.0 for "no policy on record" would
+    /// instead read every such settlement as maximally burdened and, through the
+    /// CES floor anchoring, could fire the revolt valve on turn one.
+    ///
+    /// The scale is deliberately linear and total: a state taking everything
+    /// leaves nothing, and reads 0.0. That is reachable only at a declared rate of
+    /// 100% AND full administrative reach — a real and rare corner, not a routine
+    /// one, and one a government ought to be destroyed by.
+    ///
+    /// WHY THIS MULTIPLIES THE AGGREGATE INSTEAD OF JOINING IT AS A THIRD FACTOR.
+    /// The first implementation made taxation a third CES factor, and the suite
+    /// caught what that costs: an unfed, unhoused, UNTAXED settlement scored
+    /// 2.31 rather than 0, because a third factor sitting at 1.0 lifts the
+    /// floor-anchored aggregate off its floor. That silently disarms the ruled
+    /// revolt condition — `happiness == 0` becomes unreachable, a dead predicate
+    /// that reads as implemented — and it is the same class of mistake the
+    /// anchoring comment in <see cref="Of"/> was written to prevent.
+    ///
+    /// As a MULTIPLIER the mechanism is exact in both directions. An untaxed
+    /// realm multiplies by 1.0, so happiness is bit-identical to what M4
+    /// computed and no pre-M5 world moves. A taxed one scales down everywhere on
+    /// the curve, so the burden is felt at every level of provision rather than
+    /// being traded off against a full granary. Total deprivation still lands on
+    /// exactly 0 whatever the rate. This is a coefficient inside a resolution
+    /// equation, which law 2 permits; it is NOT `happiness -= taxRate`, which the
+    /// packet forbids and which would be a free-floating modifier.
+    /// </summary>
+    public static double TaxSufficiency(
+        IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+        => Math.Clamp(1.0 - Governance.EffectiveTaxRate(world, settlement, cfg), 0.0, 1.0);
+
+    /// <summary>
     /// The settlement's happiness in [0, 100].
     ///
     /// Weights come from the needs registry so that food and shelter carry the
@@ -208,7 +252,12 @@ public static class SettlementHappiness
         double span = 1.0 - floor;
         double normalized = span > 0.0 ? (aggregate - floor) / span : aggregate;
 
-        return Math.Clamp(normalized * Max, 0.0, Max);
+        // M5: the tax burden scales the whole reading. See TaxSufficiency for why
+        // it multiplies rather than joining the aggregate — an untaxed realm
+        // multiplies by exactly 1.0, so nothing that predates M5 moves.
+        double burdenScale = TaxSufficiency(world, settlement, cfg);
+
+        return Math.Clamp(normalized * Max * burdenScale, 0.0, Max);
     }
 
     /// <summary>

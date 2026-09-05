@@ -92,7 +92,14 @@ public static class CanonicalSchema
     /// before T4.4 merged. T4.4's v22 is authoritative because it landed on main
     /// first and is certified; these two tables are v23. There is exactly one
     /// meaning of every version number in this file.</summary>
-    public const int Version = 24;
+    /// <summary>v25 (M5, the governing loop): the TaxPolicies table is appended
+    /// after Structures. ONE table, holding a standing policy rate per Empire —
+    /// no treasury, no receipt, no stock and no quantity, because M5's tax is a
+    /// policy that changes extraction and burden rather than a transfer of
+    /// goods. A pre-M5 save deserialises with an empty table, which is exactly
+    /// the never-ordered zero default, so old worlds keep their old
+    /// behaviour.</summary>
+    public const int Version = 25;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -136,6 +143,7 @@ public static class CanonicalSchema
     private const int CapitalRowWidth = 4 + 4;                      // Polity, Place (v23)
     private const int ConstructionQueueRowWidth = 4 + 4 + 4;        // Settlement, Slot, ProjectId (v24)
     private const int StructureRowWidth = 4 + 4 + 8;                // Settlement, ProjectId, Count (v24)
+    private const int TaxPolicyRowWidth = 4 + 8;                    // Polity, Rate (v25)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -567,6 +575,15 @@ public static class CanonicalSchema
             writer.Write(row.ProjectId);
             writer.Write(row.Count);
         }
+
+        // 40. TaxPolicies (v25, M5: standing policy per Empire; absence = zero)
+        writer.Write(world.TaxPolicies.Count);
+        for (int i = 0; i < world.TaxPolicies.Count; i++)
+        {
+            TaxPolicyRow row = world.TaxPolicies[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Rate);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -934,6 +951,13 @@ public static class CanonicalSchema
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
         }
 
+        int taxPolicyCount = reader.ReadInt32();
+        for (int i = 0; i < taxPolicyCount; i++)
+        {
+            world.TaxPolicies.Add(new TaxPolicyRow(
+                new PolityId(reader.ReadInt32()), reader.ReadDouble()));
+        }
+
         return world;
     }
 
@@ -983,5 +1007,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Polities.Count * PolityRowWidth
         + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth
         + CountPrefixWidth + (long)world.ConstructionQueue.Count * ConstructionQueueRowWidth
-        + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth;
+        + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth
+        + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth;
 }
