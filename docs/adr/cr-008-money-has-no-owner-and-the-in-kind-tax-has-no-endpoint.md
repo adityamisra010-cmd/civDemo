@@ -1,7 +1,34 @@
 # CR-008 — MONEY HAS NO OWNING MILESTONE, AND M5's IN-KIND TAX HAS NO ENDPOINT
 
-**Status: OPEN — awaiting director ruling. No frozen document has been edited, and
-no code, schema, test, golden, band or quarantine was touched.**
+**Status: CLOSED — RULED ON BY THE DIRECTOR, and the ruling REJECTED THE PREMISE
+rather than picking one of the options below.**
+
+> *"There is NO separate tax-recipient entity. There is NO treasury requirement.
+> Tax is NOT an in-kind resource transfer. Taxation MUST operate on an economic
+> flow. It MUST NOT tax stored GoodStockRow quantities."*
+> — M5 FULL BUILD — GOVERNING LOOP (UNBLOCKED)
+
+The CR asked where the grain goes. The ruling is that no grain moves: taxation is
+a POLICY that acts on production as it happens — a coefficient inside the
+resolution equation — and the missing recipient endpoint is therefore not missing,
+because there was never a transfer to have one. Options 1–3 below are superseded
+and are kept only as the record of what was considered.
+
+What M5 shipped on that ruling: `TaxPolicyRow` (the legislative act), the
+extraction multiplier on farm/deposit/craft output, the burden on happiness, and
+legitimacy as the feedback. No treasury, no `TaxReceiptRow`, no
+`TaxTransferSystem`, no `EmpireInventory`, and `GovernanceSystem` calls no `Ledger`
+method at all. See `docs/m5-implementation-inventory.md`.
+
+The money question in §1.1 is UNAFFECTED and remains open: this ruling removes
+money from M5's critical path, it does not decide which milestone owns currency.
+
+---
+
+*Original filing follows, unedited.*
+
+**Status at filing: OPEN — awaiting director ruling. No frozen document has been
+edited, and no code, schema, test, golden, band or quarantine was touched.**
 
 Raised under S8 §3 while specifying M5. `docs/queue.md:1237` already named this CR
 by number — *"Next blocker is now **CR-008 (money has no owner)**"* — and no file

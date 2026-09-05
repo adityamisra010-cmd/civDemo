@@ -15,6 +15,14 @@ quarantine was touched.
 
 ---
 
+> **RULED ON — READ THIS FIRST (added after the director's unblocking packet).**
+> §0's headline finding asked where an in-kind tax's grain goes. The director
+> rejected the premise: taxation is a POLICY acting on an economic FLOW, not a
+> transfer of stored goods, so there is no recipient endpoint to be missing. The
+> audit's dependency table below is unaffected and was used as written; only the
+> headline blocker is void. See `docs/adr/cr-008-…` (now CLOSED) and
+> `docs/m5-implementation-inventory.md`.
+
 ## §0 THE HEADLINE FINDING
 
 **M5's central mechanism cannot be specified from the current tree, and the reason
