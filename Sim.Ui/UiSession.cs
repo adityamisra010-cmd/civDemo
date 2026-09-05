@@ -42,11 +42,12 @@ public sealed class UiSession
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
-    private UiSession(WorldState world, TurnExecutor executor, OrderLog orders)
+    private UiSession(WorldState world, TurnExecutor executor, OrderLog orders, SimConfig config)
     {
         World = world;
         _executor = executor;
         Orders = orders;
+        Config = config;
         using (var stream = Sim.Data.DataFiles.OpenChronicle())
         {
             _chronicleCfg = Sim.Core.Chronicle.ChronicleConfigLoader.Load(stream);
@@ -70,9 +71,10 @@ public sealed class UiSession
         ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
     {
         var orders = new OrderLog();
+        TurnExecutor executor = BuildProductionExecutor(orders, out SimConfig config);
         return new UiSession(
             UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
-            BuildProductionExecutor(orders), orders);
+            executor, orders, config);
     }
 
     /// <summary>
@@ -80,7 +82,20 @@ public sealed class UiSession
     /// full system catalog. Public so the replay-equivalence test pins it; any
     /// UI-only preset/era drift breaks that test, not a played session.
     /// </summary>
+    /// <summary>
+    /// The tuning the played session runs on — the SAME instance the executor
+    /// was built from, published because the M5 governance panel and the AI both
+    /// have to read it. Loading a second copy here would be a config seam that
+    /// could drift; there is one config or the numbers on screen are not the
+    /// numbers the sim used.
+    /// </summary>
+    public SimConfig Config { get; }
+
     public static TurnExecutor BuildProductionExecutor(OrderLog orders)
+        => BuildProductionExecutor(orders, out _);
+
+    /// <summary>As above, also handing back the config it loaded.</summary>
+    public static TurnExecutor BuildProductionExecutor(OrderLog orders, out SimConfig config)
     {
         EraTable era;
         using (var stream = Sim.Data.DataFiles.OpenEraPacing())
@@ -94,6 +109,7 @@ public sealed class UiSession
         {
             simCfg = SimConfigLoader.Load(stream, needs, goods);
         }
+        config = simCfg;
         SystemRegistration[] pipeline;
         using (var stream = Sim.Data.DataFiles.OpenPipeline())
         {
@@ -154,10 +170,33 @@ public sealed class UiSession
         return false;
     }
 
+    /// <summary>
+    /// M5: the tax slider's submit handler — ONE SetTaxRate order stamped with
+    /// the CURRENT turn, legislated by the player's Empire for itself. Returns
+    /// false and emits NOTHING for a rate outside 0..100, so a refused rate
+    /// leaves the widget alone rather than pretending the edict landed.
+    /// </summary>
+    public bool EmitTaxOrder(int percent)
+    {
+        if (!TaxOrderFactory.CanSubmit(percent)) return false;
+        Orders.Append(TaxOrderFactory.Create(World.Clock.Turn, percent));
+        return true;
+    }
+
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
     /// the chronicle observes the new state (detection is read-only).</summary>
     public void EndTurn()
     {
+        // M5, law 7: the AI Empires legislate through the SAME order log the
+        // director writes to — appended here, before the step, so they are
+        // stamped like any other order and land on the same turn. Recording
+        // them in the log rather than generating them inside the step is what
+        // keeps replay honest: the log is the whole story of what was ordered,
+        // by anyone, and a replay of it reproduces the session without having
+        // to re-derive the AI's reasoning.
+        IReadOnlyList<OrderRecord> ai = AiGovernance.ChooseOrders(World, Config, World.Clock.Turn);
+        for (int i = 0; i < ai.Count; i++) Orders.Append(ai[i]);
+
         World = _executor.Step(World);
         ObserveChronicle();
         History.Capture(World);

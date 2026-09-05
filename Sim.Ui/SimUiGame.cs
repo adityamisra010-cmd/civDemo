@@ -86,6 +86,14 @@ public sealed class SimUiGame : Game
     // once — the gate session's 100/0/0/0/0 and the blunt instrument this
     // packet exists to remove.
     private readonly int[] _sectorWeights = new int[Sectors.Count];
+
+    // M5: the declared tax rate, in percent. Snapped to what the realm has
+    // legislated on the same cadence as the sector weights — on selection
+    // change and startup, never mid-edit — so the widget reads the world
+    // instead of remembering what was last typed.
+    private int _taxPercent;
+    private IReadOnlyList<string> _burdenLines = [];
+    private string _legitimacyLine = "";
     private HudModel _hud = null!;
 
     /// <summary>T2.6: the D-018 needs registry for the HUD needs block —
@@ -338,6 +346,18 @@ public sealed class SimUiGame : Game
             for (int s = 0; s < Sectors.Count; s++)
                 _sectorWeights[s] = (int)Math.Round(Sectors.Share(allocation, s) * 100.0);
 
+        // M5 governance: the declared rate, what it actually collects where, and
+        // the legitimacy it is being traded against. All three come from the
+        // sim's own Governance readers — the panel never computes a second
+        // opinion about what the state is taking.
+        if (syncSlider)
+            _taxPercent = TaxOrderFactory.DeclaredPercent(_world, TaxOrderFactory.PlayerEmpire);
+        _burdenLines = TaxOrderFactory.BurdenLines(
+            _world, TaxOrderFactory.PlayerEmpire, _session.Config,
+            id => _session.Names.Name(id.Value));
+        _legitimacyLine = TaxOrderFactory.LegitimacyLine(
+            _world, TaxOrderFactory.PlayerEmpire, _session.Config);
+
         // T3.9b: the trade panel's rows — world-level, not per-settlement
         // (trade is a pairwise mechanism over every settlement).
         _tradeRows = TradeModel.Rows(_world, goods);
@@ -356,6 +376,17 @@ public sealed class SimUiGame : Game
     private void SubmitSectorOrders()
     {
         if (!_session.EmitSectorOrders(_sectorWeights, _selected)) return;
+        SaveSession();
+        RefreshHud(syncSlider: false);
+    }
+
+    // M5: the tax edict. ONE order for the player's own Empire, stamped with
+    // the current turn like every other verb. The session refuses a rate
+    // outside 0..100 and returns false; on refusal nothing is written and
+    // nothing is claimed.
+    private void SubmitTaxOrder()
+    {
+        if (!_session.EmitTaxOrder(_taxPercent)) return;
         SaveSession();
         RefreshHud(syncSlider: false);
     }
@@ -908,6 +939,24 @@ public sealed class SimUiGame : Game
         ImGui.EndDisabled();
         if (!canSubmit && _selected >= 0)
             ImGui.TextUnformatted("give at least one sector a positive weight");
+
+        ImGui.Separator();
+
+        // M5 GOVERNANCE. The slider declares a rate; the lines below say what
+        // the state can actually collect where, because reach decays with
+        // travel cost from the capital and a declared rate is not what anyone
+        // pays. Applied on an explicit button for the same reason the labor
+        // split is: one decision, one order in the log.
+        ImGui.SliderInt("tax rate %", ref _taxPercent,
+            TaxOrderFactory.MinPercent, TaxOrderFactory.MaxPercent);
+        PushDataFont();
+        ImGui.TextUnformatted(_legitimacyLine);
+        foreach (string line in _burdenLines) ImGui.TextUnformatted(line);
+        PopDataFont();
+        if (ImGui.Button("Legislate tax", new System.Numerics.Vector2(180, 28)))
+            SubmitTaxOrder();
+
+        ImGui.Separator();
 
         ImGui.Checkbox("territory overlay", ref _showCatchment);
 
