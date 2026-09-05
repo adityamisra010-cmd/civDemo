@@ -1,5 +1,21 @@
 # M4 INTEGRATION AND STABILIZATION — AUDIT RECORD
 
+> **SUPERSEDED IN ITS CONCLUSIONS BY THE M4 EXIT CERTIFICATION (2026-09-05).** This document is the
+> HISTORICAL RECORD of the integration pass that preceded M4 completion, and its measurements stand
+> exactly as taken. Its *dispositions* do not. Specifically:
+>
+> * its **"M4 NOT READY"** verdict is superseded — M4 is certified feature-complete; see
+>   `docs/m4-exit-inventory.md`;
+> * its recommendation of a **per-merge migration bisection as the next task** is superseded —
+>   **migration investigation is DEFERRED by ruling** and migration is **not an M4 or M5 tuning
+>   target**;
+> * the **two red Malthus tests are an explicit quarantine by ruling** (CR-003 §8.2), not an
+>   ordinary regression and not a certification failure;
+> * the fed-density quarantine described here as open has since been **LIFTED** on 20/20-seed
+>   evidence (CR-003 §8.1).
+>
+> Nothing below is edited. Read it for the evidence, not for the verdict.
+
 **Measured 2026-09-04** against `origin/main` at `e6cf705`, in worktrees pinned to that commit.
 Every number below was produced by running the tree, not recalled. Where something was not
 measured, it says so.
