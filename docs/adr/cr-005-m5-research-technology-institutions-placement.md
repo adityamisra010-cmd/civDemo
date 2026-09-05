@@ -1,6 +1,6 @@
 # CR-005 — PLACING "RESEARCH, TECHNOLOGY & INSTITUTIONS" AT M5 CONFLICTS WITH THE FROZEN MILESTONE ORDER
 
-**Status: OPEN — awaiting director ruling. No frozen document has been edited.**
+**Status: RULED 2026-09-05 — OPTION C ACCEPTED (see §6). No frozen document has been edited.**
 Raised under S8 §3 (milestone order is frozen; change requires a Contradiction
 Report + director ADR). Scope record for the proposed packet:
 `docs/m5-research-technology-institutions-placeholder.md`.
@@ -153,3 +153,79 @@ question this CR needs answered, and it is a director call, not an agent's.
 
 **No option is implemented. Awaiting ruling.** The scope itself is recorded
 separately and is safe to accumulate under any ruling.
+
+
+---
+
+## §6 DIRECTOR RULING (2026-09-05) — OPTION C
+
+**Ruled by the M5 FULL BUILD packet.** The packet's instructions state Option C in
+substance rather than by name, and they match this CR's own §5 recommendation:
+
+> *"M5 is the **GOVERNING LOOP** milestone … State, Taxation, Authority / state
+> capacity, Legitimacy, Opinion / grievance, Laws-lite, Basic autonomous AI."*
+>
+> *"Do not silently move entire future milestones into M5."*
+>
+> *"**DO NOT ACTIVATE M6/M7 GAMEPLAY IN M5.**"* — the progression architecture is
+> commissioned as **data and specification only**.
+
+That is Option C exactly: **the milestone order is unchanged, M5 keeps the
+governing loop and money, and the technology/institutional architecture lands now
+as an ARCHITECTURE-ONLY package whose mechanics arrive at their ratified
+milestone.**
+
+**Consequences, per §4's blast-radius table:**
+
+- `civ-sim-architecture-v3-outline.md` — one added line, no re-lettering.
+- `m4-spec.md`'s five by-name "M5 = money" deferrals — **remain valid**. M5 owns
+  money and the fiscal system.
+- `d038-visual-target.md`'s "between M5 and M6" — **unchanged**.
+- The **"it's a game now" checkpoint stays at M5**, where the Spine deliberately
+  put it.
+- No code, schema, test, golden, band or quarantine is touched by the ruling
+  itself.
+
+### 6.1 ONE DISCREPANCY IN THE RULING, RECORDED RATHER THAN SILENTLY RESOLVED
+
+The packet states the downstream placement as *"Knowledge & diffusion → M6"* and
+*"Politics / institutions / regime change → M7"*. **Those are the PRE-D-011 §6
+numbers.** `docs/d011-battle-layer-addendum.md` §6 is ratified — and was
+explicitly used by D-040 on 2026-08-08 — and it inserted the Battle Layer as M6,
+pushing everything down:
+
+| ratified (D-011 §6) | content |
+| --- | --- |
+| **M5** | governing loop ← *this milestone; both readings agree* |
+| **M6** | Battle Layer v1 |
+| **M7** | knowledge & divergence *(the packet calls this M6)* |
+| **M8** | politics & diplomacy *(the packet calls this M7)* |
+
+**The substance is unaffected** — knowledge and institutions are downstream of M5
+under either numbering, which is all Option C turns on. Per the packet's own
+source-of-truth rule (*"resolve according to chronology and ratification
+status"*), **the ratified D-011 §6 numbering is used throughout M5's documents**:
+knowledge is **M7**, politics/institutions is **M8**. Recorded here for the
+director to confirm or correct; nothing was renumbered in any frozen document.
+
+### 6.2 WHAT THIS RULING DOES *NOT* SETTLE
+
+Option C's stated cost stands: **the ownership of "institutions" is still split**
+between the knowledge milestone and the politics milestone, and this ruling does
+not resolve it. The civic/institutional module graph commissioned by this packet
+is authored as future content architecture under that ambiguity, and says so.
+
+**Separately and more seriously — §8 Q1 of
+`docs/m5-roadmap-dependency-audit.md` remains OPEN and BLOCKING for the
+progression lane:**
+
+> *"Is an accumulating 'science' stock compatible with D-040 B3 at all? … Either
+> B3 is narrowed to 'no tree EDGES' while permitting accumulation, or capability
+> must emerge purely from structural preconditions with no research resource.
+> **This is the load-bearing question and everything else depends on it.**"*
+
+That audit's own implementation order makes it item 1 and says it **blocks
+everything**. It is a director call and is NOT taken here. The consequence for
+this packet is recorded in `docs/progression-architecture.md`: the knowledge
+lattice is specified so that **both** answers remain buildable from it, and no
+science stock is committed to.
