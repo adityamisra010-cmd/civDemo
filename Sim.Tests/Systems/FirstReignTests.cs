@@ -371,7 +371,28 @@ public class FirstReignTests
         //         land's 0.041063) — post-T4.2 the world was already ~97% land-driven.
         //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24; no table, row or field
         //         joined or left the stream. Full derivation: docs/t4.10-review-record.md.
-        const string golden = "51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3";
+                // M4 COMPLETION RE-PIN. TWO causes, and they were separated by
+        //   measurement rather than asserted:
+        //   (1) T4.13 happiness -> migration. A zero-weight control arm
+        //       (migration.attractivenessHappinessWeight 0.15 -> 0.0, nothing
+        //       else) reproduces the PREVIOUS pins EXACTLY on all three worlds,
+        //       which is what proves colony-control inheritance, the revolt
+        //       system and the happiness query itself move nothing at all.
+        //   (2) T4.11 merchants. A third registry class adds one ClassStateRow
+        //       and one GrievanceRow per settlement to the canonical stream.
+        //   MEASURED SPLIT: at the intermediate tree (happiness live, merchants
+        //       absent) Founded and Driven had ALREADY moved while FirstReign had
+        //       NOT — FirstReign is a 40-turn director replay whose settlements
+        //       stay comparably provisioned, so a 15% viability modulation
+        //       reorders nothing in it. FirstReign moves here for cause (2) alone.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED, and its
+        //       v22-stripped value is still main's pre-M4 0f94b4ad… — the
+        //       synthetic terrain-less control, which migration cannot reach.
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24. No row type, field
+        //       or table joined or left the stream; the merchant rows are more
+        //       rows of types that already existed.
+        //   OLD 51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3
+        const string golden = "7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

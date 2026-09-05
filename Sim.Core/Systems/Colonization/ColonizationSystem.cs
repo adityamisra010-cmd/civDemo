@@ -15,7 +15,8 @@ public readonly record struct ColonizationTables(
     Table<DepositRow> Deposits,
     Table<ClassStateRow> ClassStates,
     Table<GrievanceRow> Grievances,
-    Table<SmoothedAttractivenessRow> Smoothed);
+    Table<SmoothedAttractivenessRow> Smoothed,
+    Table<ControlRow> Controls);
 
 /// <summary>
 /// T4.4 — COLONIZATION FROM BELOW (D-037 B1). Population with nowhere viable to go
@@ -102,8 +103,23 @@ public readonly record struct ColonizationTables(
 /// `CatchmentSystem.IsStale` true by count mismatch, so it recomputes next turn), housing
 /// (`HousingSystem` materialises a missing row at ZERO — colonists start homeless and
 /// build), prices, sector allocations, path progress, and every per-turn chronicle row.
-/// It writes no claim or control row either, so the settlement is STATELESS exactly as
-/// D-037 B1 permits — and, since nothing in the tree writes `Controls`, unavoidably so.
+/// CONTROL IS INHERITED FROM THE PARENT (director ruling, M4 completion §10). A colony
+/// founded from a settlement Polity P controls is itself controlled by P, recorded as
+/// one more `ControlRow` — the shape `WorldFounding`'s own contract always described.
+/// The rule is stated as a CONDITIONAL on the parent, not as "colonies belong to the
+/// player", and that is what makes it more than bookkeeping:
+///
+///   * a controlled parent yields a controlled colony — the Empire grows by settling,
+///     which is what D-042 §2.2's "may acquire further settlements" means in practice;
+///   * a STATELESS parent yields a STATELESS colony, because there is no controller to
+///     inherit. D-037 B1's stateless founding survives as the propagating case rather
+///     than as a special case, and it is the pathway by which uncontrolled settlements
+///     continue to exist at all once one appears.
+///
+/// The control row is written only on a SUCCESSFUL founding, inside `Found`, after the
+/// settlement row exists. `Found` returns false and writes nothing when the party would
+/// be empty, so a failed founding creates neither settlement nor control row — no
+/// orphan row can be left behind pointing at a settlement that was never created.
 /// </summary>
 public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) : ISimSystem<ColonizationTables>
 {
@@ -226,6 +242,20 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
         // The invariant is that a settlement is never partially visible: every
         // row a downstream system would look for exists before it holds anyone.
         settlements.Add(new SettlementRow(newId, siteCell, prev.Clock.Turn + 1));
+
+        // --- 3a. CONTROL, inherited from the parent (M4 completion §10) -------
+        // Read from PREV, like every other signal in this system: the controller
+        // of the settlement the colonists left. Absence is meaningful and is
+        // propagated rather than defaulted — a stateless parent founds a
+        // stateless colony, which is D-037 B1's case and the only way an
+        // uncontrolled settlement can persist in a live world.
+        //
+        // Strength 1.0 matches founding's own uncontested value; T4.3 owns the
+        // field and no system computes or decays it yet.
+        if (EmpireQuery.TryGetController(prev, source, out PolityId parent))
+        {
+            ctx.Owned.Controls.Add(new ControlRow(parent, newId, 1.0));
+        }
 
         Table<GoodStockRow> stocks = ctx.Owned.Stocks;
         foreach (GoodEntry g in _cfg.Goods!.Goods)

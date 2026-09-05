@@ -17,8 +17,19 @@ public sealed record ConstructionTables(
 ///  1. ENQUEUE. Each EnqueueConstruction order in this turn's batch appends one
 ///     row to the target settlement's queue at the next free SLOT. Log order,
 ///     so two orders in one turn queue in the order they were issued. The
-///     settlement's existence and the issuing Empire's CONTROL of it were
-///     rejected up-front by OrderValidation.
+///     settlement must exist AND the issuing Empire must CONTROL it; both are
+///     checked HERE, at the point of consumption.
+///
+///     WHY HERE AND NOT ONLY IN OrderValidation, which also checks both. That
+///     pass runs ONCE, before turn 1, against the turn-0 world (Sim.Cli calls
+///     it right after world construction). It therefore cannot see any order
+///     whose target did not exist at turn 0 — every colonised settlement — and
+///     it never runs at all on orders that do not arrive through a loaded log.
+///     An earlier revision of this comment asserted control "was rejected
+///     up-front by OrderValidation" and skipped the check on that basis, which
+///     left M4-D §12's rule with no enforcement at the only place orders are
+///     actually consumed. The load-time pass is a fast, actionable rejection
+///     for a bad log; it is not the rule's implementation.
 ///  2. RESOLVE. Only the HEAD of each queue — its lowest slot — is eligible.
 ///     A blocked head blocks the queue; the system never reaches past it to
 ///     build something cheaper, because a queue whose order is advisory is not
@@ -70,6 +81,16 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             if (!SettlementExists(prev, order.TargetId)) continue;
 
             var settlement = new SettlementId(order.TargetId);
+
+            // M4-D §12: an Empire may only build where it rules. The answer comes
+            // from the D-037 control relation, never from the actor id on trust.
+            //
+            // Guarded on a non-empty relation for the same reason OrderValidation
+            // is: a world with no Controls at all has nothing to check against,
+            // and hand-built test worlds are legitimately in that state. In a
+            // FOUNDED world the relation is never empty (M4-C), so this is live.
+            if (prev.Controls.Count > 0
+                && !EmpireQuery.ControlsSettlement(prev, order.Actor, settlement)) continue;
             int projectId = (int)order.Amount;   // load-validated as a whole number
             if (_cfg.Goods?.ProjectById(projectId) is null) continue;
 

@@ -451,7 +451,19 @@ public sealed record MigrationConfig(
     [property: JsonPropertyName("cohortProfile"), JsonRequired] double[] CohortProfile,
     [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
     [property: JsonPropertyName("attractivenessSmoothingWindowYears"), JsonRequired] double AttractivenessSmoothingWindowYears,
-    [property: JsonPropertyName("destinationDeficitRepulsion"), JsonRequired] double DestinationDeficitRepulsion);
+    [property: JsonPropertyName("destinationDeficitRepulsion"), JsonRequired] double DestinationDeficitRepulsion,
+
+    /// <summary>
+    /// T4.13 (director ruling): how strongly derived settlement HAPPINESS
+    /// modulates a destination's viability. Deliberately WEAK — it scales
+    /// viability by (1 − w + w·happiness), so w is the maximum fraction of a
+    /// destination's appeal that happiness can account for. Material survival
+    /// keeps its own gates: the deficit repulsion and the absolute food gate
+    /// both still zero viability outright, and happiness cannot raise a
+    /// destination above what its land and food already justify.
+    /// </summary>
+    [property: JsonPropertyName("attractivenessHappinessWeight"), JsonRequired]
+    double AttractivenessHappinessWeight);
 
 /// <summary>
 /// T3.6 trade tuning (D-034). Both TUNE, per S8 §4.1(c) provenance stated:
@@ -734,6 +746,17 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 $"migration.attractivenessSmoothingWindowYears must be a finite value > 0, " +
                 $"got {Inv(cfg.Migration.AttractivenessSmoothingWindowYears)}.");
+        if (!(cfg.Migration.AttractivenessHappinessWeight >= 0.0
+              && cfg.Migration.AttractivenessHappinessWeight <= 1.0))
+        {
+            throw new SimConfigException(
+                "migration.attractivenessHappinessWeight must be in [0,1] — it is the FRACTION "
+                + "of destination viability that happiness may account for, and a value above 1 "
+                + "would let happiness alone drive viability negative. Got "
+                + cfg.Migration.AttractivenessHappinessWeight.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) + ".");
+        }
+
         if (!(cfg.Migration.DestinationDeficitRepulsion >= 1.0)
             || !double.IsFinite(cfg.Migration.DestinationDeficitRepulsion))
             throw new SimConfigException(

@@ -221,7 +221,7 @@ public static class WorldFounding
                 settlement, world.Settlements[s].SiteCell, seed, s);
         }
 
-        FoundInitialEmpire(world);
+        FoundInitialEmpire(world, cfg.AiEmpires);
         return world;
     }
 
@@ -251,24 +251,62 @@ public static class WorldFounding
     /// more control row. The capital is a DESIGNATION on the first founded
     /// settlement: one relation row, never a flag or an id on the settlement.
     /// </summary>
-    private static void FoundInitialEmpire(WorldState world)
+    /// <summary>
+    /// M4 §11 — found EXACTLY ONE player Empire and <paramref name="aiEmpires"/>
+    /// AI ones, and divide the founded settlements between them.
+    ///
+    /// The player is always <c>PolityId(1)</c> (CR-011); AI Empires take 2, 3, …
+    /// in order. Ids 0 and everything past the roster stay free.
+    ///
+    /// THE DIVISION IS ROUND-ROBIN over settlement rows, which is deliberately
+    /// the dullest rule that works: it is deterministic, it needs no RNG stream
+    /// (so it adds no serialized state and cannot shift any other draw), it gives
+    /// every Empire a fair share without a "starting position quality" model that
+    /// M4 has not earned, and it degenerates EXACTLY to the previous behaviour at
+    /// <paramref name="aiEmpires"/> = 0 — one Empire, every settlement, capital
+    /// on the first site. Who deserves the better ground is a real design
+    /// question and this is not an answer to it; it is a placeholder honest
+    /// enough to be replaced without anything else moving.
+    ///
+    /// Each Empire's capital is the FIRST settlement it receives, so a capital is
+    /// always a place its owner actually holds. An Empire that receives none —
+    /// possible when rivals outnumber settlements — is founded with no holdings
+    /// and no capital, which is a representable state (M4-A) and immediately
+    /// extinct by <see cref="EmpireQuery.IsExtinct"/> rather than an error.
+    /// </summary>
+    private static void FoundInitialEmpire(WorldState world, int aiEmpires)
     {
+        int rivals = Math.Max(0, aiEmpires);
+        int polities = rivals + 1;
+
         var player = new PolityId(1);   // CR-011 ruling — see the header. Not 0.
         world.Polities.Add(new PolityRow(player, CommandSource.Player));
+        for (int a = 0; a < rivals; a++)
+            world.Polities.Add(new PolityRow(new PolityId(2 + a), CommandSource.Ai));
 
+        // Control first, in settlement order, so the table stays settlement-major
+        // exactly as it was before rivals existed.
         for (int s = 0; s < world.Settlements.Count; s++)
         {
+            var holder = new PolityId(1 + (s % polities));
             // Strength 1.0: uncontested control of one's own founding. The field
             // is T4.3's SLOT and no system computes or decays it yet.
-            world.Controls.Add(new ControlRow(player, world.Settlements[s].Id, 1.0));
+            world.Controls.Add(new ControlRow(holder, world.Settlements[s].Id, 1.0));
         }
 
-        // The first founded site is the seat. Exactly one row, and only if there
-        // is a settlement to seat it in — a capital-less Empire is representable
-        // (M4-A) and inventing a seat for an empty world would be a lie.
-        if (world.Settlements.Count > 0)
+        // Then one capital per Empire that holds anything: its first settlement.
+        // A capital-less Empire is representable (M4-A) and inventing a seat for
+        // one that holds nothing would be a lie.
+        for (int p = 0; p < polities; p++)
         {
-            world.Capitals.Add(new CapitalRow(player, world.Settlements[0].Id));
+            var id = new PolityId(1 + p);
+            if (EmpireQuery.TryGetCapital(world, id, out _)) continue;
+            for (int s = 0; s < world.Settlements.Count; s++)
+            {
+                if (!EmpireQuery.ControlsSettlement(world, id, world.Settlements[s].Id)) continue;
+                world.Capitals.Add(new CapitalRow(id, world.Settlements[s].Id));
+                break;
+            }
         }
     }
 

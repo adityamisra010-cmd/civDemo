@@ -279,125 +279,54 @@ public class CalibrationBatteryTests
         AssertInBand(c, "canonical.pyramidAdultShare", adult);
         AssertInBand(c, "canonical.pyramidElderShare", elder);
 
-        AssertDensityKnownDeviation(c, CalibrationAnalysis.DensityPerArableKm2(m));
-        AssertInBand(c, "canonical.migrationGrossPerDecade", CalibrationAnalysis.MigrationGrossPerDecade(m));
+        // M4 completion (director ruling): THE FED-DENSITY QUARANTINE IS LIFTED.
+        // This is now the plain corridor assertion every other metric gets.
+        //
+        // The evidence, and it is the quarantine's OWN stated lift condition: a
+        // 20-seed / 650-turn sweep at e6cf705 measured densityPerArableKm2 IN
+        // BAND on 20 of 20 seeds (min 0.2808, mean 0.4129, max 0.5648, corridor
+        // [0.15, 0.6]) — met at the >=20-seed standard m4-spec §6 requires,
+        // rather than on the two seeds this battery happens to run.
+        //
+        // The band was NOT re-tuned to absorb anything: it is untouched at
+        // [0.15, 0.6] and the world came back to it. The cause of the return was
+        // T4.7's river-aware traversal enlarging catchments (mean effective
+        // arable 90,886 -> 273,561 km2 at flat population), measured by
+        // single-variable control in docs/t4.10-review-record.md.
+        //
+        // Fed-density health is NOT Malthusian crash emergence, and the ruling
+        // keeps them apart: the dev Malthus corridors below stay quarantined.
+        AssertInBand(c, "canonical.densityPerArableKm2",
+            CalibrationAnalysis.DensityPerArableKm2(m));
+        // MIGRATION IS NO LONGER AN ACCEPTANCE GATE (director ruling, M4
+        // completion §5/§22). It is REPORTED against its corridor, not gated on.
+        //
+        // Measured at e6cf705, 20 seeds / 650 turns: IN BAND on 1 of 20
+        // (min 0.00029, mean 0.00057, max 0.00103) against [0.001, 0.01]. The
+        // record had ONE seed 2% under the floor; nineteen are now under it, the
+        // worst by 3.4x — a change in kind, not the deviation on file.
+        //
+        // The recorded cause is REFUTED rather than merely unconfirmed. The
+        // standing explanation was T4.2's granary cap, on a pre-T4.10 measurement
+        // of a 5.56x recovery when lifted; re-run at e6cf705 as a single-variable
+        // arm (cap 1.5 -> 1e6, nothing else, 20 seeds) migration got WORSE:
+        // 1/20 -> 0/20 in band, mean 0.00057 -> 0.00036. The cause is unknown.
+        //
+        // The ruling is to ACCEPT current migration behaviour and NOT tune to
+        // this corridor. So the band is NOT re-cut to fit — a band redrawn around
+        // whatever the world happens to do measures nothing — and the assertion
+        // is removed rather than widened. What stays is the LIVENESS tooth: the
+        // metric must still be produced and still be positive, so a migration
+        // system that silently stopped moving anyone would still fail loudly.
+        // That is the part of this corridor that still tests something.
+        double migration = CalibrationAnalysis.MigrationGrossPerDecade(m);
+        Assert.False(double.IsNaN(migration),
+            "canonical.migrationGrossPerDecade: metric produced NO OUTPUT — battery failure");
+        Assert.True(migration > 0.0,
+            $"canonical.migrationGrossPerDecade: {Inv(migration)} — migration has stopped "
+            + "entirely, which is a NEW defect and not the accepted low-volume regime.");
     }
 
-    /// <summary>
-    /// canonical.densityPerArableKm2 — KNOWN DEVIATION, OPEN under
-    /// docs/adr/cr-002.md (diagnosis) and docs/adr/cr-003.md (the ruling this
-    /// now waits on). The band is HELD at [0.15, 0.6] and the deviation is
-    /// recorded with teeth in both directions; it is not absorbed.
-    ///
-    /// THE DEVIATION CHANGED SIDES AT T3.2b. Before: 0.1415–0.1630 across four
-    /// seeds, three of them BELOW the floor. Now: 2.252 (seed 1) and 2.385
-    /// (seed 2), well ABOVE the ceiling. Both readings were produced by the
-    /// same underlying fault, and the flip is the evidence that it was a
-    /// DENOMINATION problem rather than a demographic one:
-    ///
-    ///  - the old numerator was correct and the old denominator was ~17x too
-    ///    large, because the catchment was a 205 km isochrone rather than an
-    ///    economic hinterland (809,711 fertility-weighted km² world-wide);
-    ///  - the corrected 50 km hinterland gives 50,516–54,621, and the SAME
-    ///    population divided by a denominator 15x smaller reads 15x denser.
-    ///
-    /// Population is essentially unchanged and is not what moved: it is set by
-    /// the demographic vectors integrated over the era table, not by the food
-    /// ceiling (CR-003 §2.3), so the measured density is now almost entirely a
-    /// statement about catchment GEOMETRY divided into a demography-driven
-    /// numerator. Note the measured value is INSIDE the honestly re-derived
-    /// frontier band of [0.25, 2.30] recorded in corridors.json at T3.1 —
-    /// barely, at its very top — and outside the standing [0.15, 0.6]. Raising
-    /// the band to the re-derived one is also a change to the instrument and
-    /// needs the same ruling, so it is not done here.
-    ///
-    /// The assertion keeps teeth in BOTH directions: it fails if the world
-    /// drifts further above the recorded envelope (a new defect on top of the
-    /// open one), and it fails if it falls back toward the corridor (which
-    /// would mean CR-002/CR-003 resolved and this quarantine must be deleted).
-    /// Delete this method and restore AssertInBand the moment the director
-    /// rules.
-    /// </summary>
-    private static void AssertDensityKnownDeviation(Corridors c, double value)
-    {
-        const string Key = "canonical.densityPerArableKm2";
-        Assert.False(double.IsNaN(value), $"{Key}: metric produced NO OUTPUT - battery failure");
-        (double lo, double hi) = c.Band(Key);
-        Assert.True(lo == 0.15 && hi == 0.6,
-            $"{Key}: the corridor band moved to [{lo}, {hi}] while CR-002/CR-003 are OPEN - " +
-            "the band may not be re-tuned to absorb this deviation; take the CR to a ruling.");
-
-        // The recorded deviation envelope — an ANCHOR, not a band.
-        //
-        // PROVENANCE, full row (canonical 1024 px preset, 650 turns, seeds
-        // 1/2, measured by the implementing agent, not cited):
-        //   T3.2b record:      2.252 / 2.385
-        //   main b60e49e:      2.26310 / 2.38654   (re-measured for T3.5b)
-        //   T3.5b (this tree): 1.70191 / 1.76610
-        // The before column agreeing with T3.2b within 0.5% ACROSS FOUR
-        // PACKETS (T3.3, T3.4, T3.4b, T3.4c — including a one-third change in
-        // realised sigma) is itself a finding: CR-003 §2.3's population
-        // yield-insensitivity, confirmed at head.
-        //
-        // WHY THE T3.5b VALUE FELL — measured, not assumed (§7.10: the first
-        // version of this comment attributed it to the food economy and was
-        // WRONG). Population is UNCHANGED (120,811/120,558 → 120,588/120,585,
-        // ±0.2%): the −24% is the DENOMINATOR — the default 0.08 construction
-        // share builds paths, the network grows, catchments recompute, and
-        // effective arable expands 53,382.9 → 70,854.5 km² (+32.7%). A geometry
-        // effect of the new default, not a harvest effect. The food economy's
-        // own response is item 1b's SECOND pre-committed reading: grain
-        // accumulation slowed (303M → 125M at turn 650, −59%) but reserves
-        // remain ~1,240 years and starvation stays 0 — the unbounded granary
-        // masks the perturbation. DIRECT B-2 EVIDENCE, escalated there.
-        //
-        // The corridor band [0.15, 0.6] is untouched; CR-002/CR-003 stay OPEN
-        // (still ~3x above the ceiling). The window is the measured envelope
-        // with the same modest margin.
-        // T3.8 CERTIFICATION FIX PASS — RE-PIN under a ruling (the T3.4c
-        // protocol; director-certified). Measured on the repaired tree:
-        // seeds 1/2 = 1.53756 / 1.60184 (from T3.5b's 1.70191 / 1.76610);
-        // seed 1 fell through the old floor 1.55, seed 2 held by 0.05.
-        // THREE THINGS, per the ruling:
-        // 1. THE DECOMPOSITION IS THE POINT. Arable +20% from the T3.8 tier-4
-        //    catchment bonus; population -1%. The metric moved because its
-        //    DENOMINATOR grew — the FIFTH time this metric has moved for
-        //    denominator reasons (CR-002, CR-003, T3.5b, T3.6b, now this) and
-        //    the FIRST time it was decomposed BEFORE anyone interpreted it:
-        //    the T3.8 H3 pre-commitment is what produced the clean read.
-        // 2. THE DIRECTION, cross-referenced to CR-002: movement is TOWARD
-        //    the corridor (~1.84 -> 1.54 against the 0.6 ceiling). CR-002's
-        //    recommended fix was Option B — enlarge the effective arable
-        //    denominator — and T3.8's size tier has done a small amount of
-        //    Option B AS A SIDE EFFECT. Whoever picks CR-002 up in M4 (it
-        //    travelled with T3.10) must know its baseline moved underneath
-        //    it; the same cross-reference is recorded in cr-002.md itself.
-        // 3. THE LIFT CONDITION REMAINS UNMET: 1.54 against a band ceiling of
-        //    0.6 — the value moved toward resolution without reaching it. Do
-        //    not read this re-pin as progress toward closure beyond what was
-        //    measured. No band edge moved; the envelope keeps the modest
-        //    margins of its T3.5b predecessor.
-        //    (T3.5b window: [1.55, 1.95].)
-        // T3.12 — the window now comes FROM corridors.json, not from a constant
-        // here. Two instruments hard-coding the same numbers is how the nightly
-        // came to gate on a band this quarantine had already superseded, red for
-        // eleven consecutive runs with nobody reading it. One source, both
-        // readers. The teeth below are UNCHANGED in both directions.
-        (double DeviationFloor, double DeviationCeiling) =
-            Corridors.Quarantine("canonical", "densityPerArableKm2")
-            ?? throw new InvalidOperationException(
-                "canonical.densityPerArableKm2 declares no ACTIVE quarantine in corridors.json, " +
-                "but this test asserts against one. If CR-002/CR-003 resolved, delete this " +
-                "method and restore the plain AssertInBand.");
-        Assert.True(value <= DeviationCeiling,
-            $"{Key}: {Inv(value)} has drifted FURTHER above the corridor ceiling {hi} than the " +
-            $"recorded deviation window [{DeviationFloor}, {DeviationCeiling}] - the world is " +
-            "getting denser, which is a NEW defect on top of the open one.");
-        Assert.True(value >= DeviationFloor,
-            $"{Key}: {Inv(value)} has fallen below the recorded deviation window - if it is back " +
-            $"inside the corridor [{lo}, {hi}], CR-002/CR-003 are resolved: delete this " +
-            "quarantine and restore the plain AssertInBand.");
-    }
 
     private static string Inv(double v) =>
         v.ToString("G6", System.Globalization.CultureInfo.InvariantCulture);
@@ -508,8 +437,13 @@ public class CalibrationBatteryTests
         for (int i = 0; i < m.StarvationDeaths.Count; i++) starvedTotal += m.StarvationDeaths[i];
         Assert.True(starvedTotal == 0,
             $"seed {seed}: {starvedTotal} starvation deaths — the dev world is no longer " +
-            "pre-Malthusian. If a crash cycle is back, CR-003 is resolved: delete this " +
-            "quarantine and restore the five AssertInBand calls.");
+            "pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as " +
+            "permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed " +
+            "evidence) rules that the measured world moved AWAY from Malthusian constraint — more " +
+            "land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST " +
+            "lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. " +
+            "Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the " +
+            "quarantine stays, and only a director ruling on CR-003 changes either.");
 
         var crashes = CalibrationAnalysis.Crashes(m, 0.20);
         Assert.True(crashes.Count == 0,

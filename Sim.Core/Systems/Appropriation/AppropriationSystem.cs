@@ -78,16 +78,27 @@ public readonly record struct AppropriationTables(Table<GoodStockRow> Stocks);
 /// WHO RAIDS: a settlement with NO ControlRow — the stateless case that
 /// ControlRow's own contract already provides for ("exactly one state control
 /// row, OR none"). No new table, no new population carrier, no new polity type,
-/// no schema change. NOTE FOR THE READER, because it is load-bearing: at T4.5
-/// nothing in Sim.Core writes Controls (T4.3 shipped it as schema only), so
-/// statelessness ALONE is currently true of every settlement. The raider must
-/// therefore ALSO be herding-dominant (below), and the practical consequence is
-/// the opposite of permissive: `WorldFounding` writes no SectorAllocationRow at
-/// all, and the only writer in Sim.Core is PathBuildSystem acting on ORDERS, so
-/// in a headless founded world no settlement is herding-dominant and THIS SYSTEM
-/// MOVES NOTHING. D-037 B3 wants non-state peoples "present from turn zero" in
-/// worldgen; placing them is worldgen work this packet did not carry, and it is
-/// recorded in docs/queue.md rather than left to look live.
+/// no schema change.
+///
+/// NOTE FOR THE READER, because it is load-bearing AND because the ground moved
+/// under it. When T4.5 shipped, nothing in Sim.Core wrote Controls (T4.3 shipped
+/// the table as schema only), so statelessness alone was true of EVERY settlement
+/// and the herding-dominance condition below was the only thing narrowing the
+/// trigger. **M4-C changed that fact.** `WorldFounding.FoundInitialEmpire` now
+/// writes one ControlRow per founded settlement, so in a founded world NO
+/// worldgen settlement is stateless and `IsStateless` is false for all of them.
+///
+/// The consequence is worth stating plainly rather than leaving to be
+/// rediscovered: this system now has TWO independent blockers in a founded world,
+/// not one. Even if worldgen later placed herding-dominant pastoralists exactly as
+/// D-037 B3 requires, every settlement worldgen founds also carries a control row,
+/// so no raid could fire. The queued worldgen work therefore NO LONGER SUFFICES to
+/// bring this mechanism to life; whether colonised or worldgen-placed settlements
+/// should be stateless is a D-037 B1/B3-vs-D-042 question that is not this
+/// system's to answer. Recorded in docs/queue.md.
+///
+/// The colonization path is the one route that still produces a stateless
+/// settlement, because `ColonizationSystem` writes no control row.
 ///
 /// WHO IS RAIDED: the OTHER settlement holding the most grain, tie-broken to the
 /// LOWEST settlement id by the strictly-greater scan over ascending rows — the
@@ -171,9 +182,10 @@ public sealed class AppropriationSystem(SimConfig cfg) : ISimSystem<Appropriatio
     /// is why a drought reaches them at all. A settlement whose largest sector is
     /// HERDING is that people; a village that happens to have no control row is not.
     ///
-    /// WHY THIS CONDITION IS HERE, stated because it narrows the trigger. Nothing
-    /// in Sim.Core writes Controls yet, so statelessness ALONE is currently true of
-    /// every settlement, and raiding on statelessness alone made every village in
+    /// WHY THIS CONDITION IS HERE, stated because it narrows the trigger. When this
+    /// was written nothing in Sim.Core wrote Controls, so statelessness ALONE was
+    /// true of every settlement (M4-C has since changed that — see the type header);
+    /// raiding on statelessness alone made every village in
     /// the world take grain from its hungriest neighbour — measured, not supposed:
     /// it emptied CollapseStabilityTests' food-less-death precondition, turning an
     /// ADR-012 resurrection guard vacuous. That is famine relief for everyone, not

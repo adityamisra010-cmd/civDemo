@@ -151,6 +151,19 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
                     totalPop = checked(totalPop + prev.Buckets[b].Count.Value);
             Upsert(ctx.Owned.Variables, settlement, Variables.Population, totalPop);
 
+            // T4.11: trade volume — every whole unit that moved through this
+            // settlement last turn, either direction. Read from Prev like every
+            // other published variable, so the predicate sees a settled figure
+            // and never this turn's half-finished exchange.
+            long tradeVolume = 0;
+            for (int f = 0; f < prev.TradeFlows.Count; f++)
+            {
+                TradeFlowRow flow = prev.TradeFlows[f];
+                if (flow.From == settlement || flow.To == settlement)
+                    tradeVolume = checked(tradeVolume + flow.Quantity);
+            }
+            Upsert(ctx.Owned.Variables, settlement, Variables.TradeVolume, tradeVolume);
+
             // --- 2. latch (evaluated on PREV variables — one-turn lag) ------
             for (int c = 1; c < _cfg.Registries.Classes.Length; c++)
             {

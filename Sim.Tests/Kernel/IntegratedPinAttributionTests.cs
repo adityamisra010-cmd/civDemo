@@ -53,7 +53,7 @@ public class IntegratedPinAttributionTests
     /// the two causes of the driven pin's movement be reported separately.
     /// </summary>
     internal const string CapacityFloorFixAtSchemaV22 =
-        "701ad7e00396481c4a038c4a1e34d4e04bbddac76a102b6977081a7e0e5c1a9b";
+        "611a1508e650c9b897e3ec3ec0884969ae3add4d8de520fa5a126efbb71926ea";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -122,7 +122,7 @@ public class IntegratedPinAttributionTests
         // capacity-floor fix does NOT reach this world — consistent with the
         // pre-integration measurement, which found the fix's blast radius to be
         // the driven golden only.
-        const string mainValue = "b9b752a935a28eece9b003aed0087d3b61b5be5e9845b58fa6e862282f13f7d9";
+        const string mainValue = "f25c5dd3947a53827c1d9615a7e351108c05258bb0ffe0b1ab1a269e9a4626c6";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -142,7 +142,7 @@ public class IntegratedPinAttributionTests
         // Empire state is the WHOLE delta: no population, food, terrain, deposit,
         // path, production, demographic, migration or economic state moved with
         // it, because any such drift would survive the strip and break this.
-        const string beforeM4C = "7bed90968f8754c26ce7665d04cae2711a918967e083e24660f4ce3ac1b9a65f";
+        const string beforeM4C = "16a1c17150f210b90a8c4d866f16a1767bdc13f218f880304f2449437625e015";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -159,13 +159,13 @@ public class IntegratedPinAttributionTests
         // BEHAVIOURALLY (the lone settlement colonising its way out of the
         // director's 0%-farm order). So "schema only" here is exactly the claim
         // that must not be taken on trust.
-        const string mainValue = "a2a88e0ba4e256c2a42e5113bcd8fefcf43326aa9ca4b1f531d40e3833feac4f";
+        const string mainValue = "a64a6cf62eb63a4e5c46297fca4e146a543e13cb0f49a53c3687b47da63001e6";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
-        const string beforeM4C = "3d66caf4ee7d8525a0abe4ecc2925c2d4398cc10c434673d230b39118c38fb27";
+        const string beforeM4C = "f79714f955c31cf0f25d323c045a0c1935345e92908fa78758bc8266c6b8ef0b";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -192,7 +192,7 @@ public class IntegratedPinAttributionTests
 
         // M4-C LAYER — founded world, so Empire rows land here as well. Three
         // causes now compose in this one pin, and each is measured separately.
-        const string beforeM4C = "04d874777884a55c14037ff247c8fecd4ac475cfffa14691fc494bf8406c965d";
+        const string beforeM4C = "e2f3c0426f504077c8536f51f7784a7fa2b5925bc85c95ef715b7931f64851ab";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);

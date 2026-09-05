@@ -32,7 +32,27 @@ public sealed record WorldgenConfig(
     [property: JsonPropertyName("moistureDecayPx"), JsonRequired] double MoistureDecayPx,
     [property: JsonPropertyName("movement"), JsonRequired] MovementConfig Movement,
     [property: JsonPropertyName("rivers"), JsonRequired] RiversConfig Rivers,
-    [property: JsonPropertyName("siting"), JsonRequired] SitingConfig Siting);
+    [property: JsonPropertyName("siting"), JsonRequired] SitingConfig Siting,
+
+    /// <summary>
+    /// M4 §11 — how many AI-commanded Empires the world is founded with, BESIDE
+    /// the single human-commanded one. Exactly one Empire is ever
+    /// <see cref="Sim.Core.State.CommandSource.Player"/>; this is the count of
+    /// the others.
+    ///
+    /// THE POINT OF THE FIELD IS THAT THE NUMBER IS NOT IN THE CODE. Whether a
+    /// world has three rivals or eleven is a setup decision, and hard-coding one
+    /// answer now is exactly what makes it expensive to change later. Optional
+    /// with a default of 0 so that a config written before this existed still
+    /// loads and still describes the same world.
+    ///
+    /// The DEFAULT IS 0, deliberately, and it is not a claim that a world should
+    /// have no rivals. It preserves the shipped world exactly — one Empire
+    /// holding everything, every golden unmoved — so that turning rivals on is a
+    /// deliberate act with its own measurement, rather than something that
+    /// happened to every existing world the day the seam landed.
+    /// </summary>
+    [property: JsonPropertyName("aiEmpires")] int AiEmpires = 0);
 
 /// <summary>
 /// Settlement-siting tuning (T1.4; pluralized at T2.3 per D-025, all TUNE).

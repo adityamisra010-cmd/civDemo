@@ -268,8 +268,24 @@ public static class SystemCatalog
                 new SimContext<Systems.Colonization.ColonizationTables>(
                     prev, new Systems.Colonization.ColonizationTables(
                         next.Settlements, next.Buckets, next.GoodStocks, next.Deposits,
-                        next.ClassStates, next.Grievances, next.SmoothedAttractiveness), rng,
+                        next.ClassStates, next.Grievances, next.SmoothedAttractiveness,
+                        next.Controls), rng,
                     Systems.Colonization.ColonizationSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>M4: revolt — a settlement at zero happiness loses its control
+    /// relation. Shares the `Controls` table with Colonization (which appends on
+    /// inheritance); the header above records it as a sanctioned shared table.</summary>
+    public static SystemRegistration Revolt(SimConfig cfg)
+    {
+        var system = new Systems.Revolt.RevoltSystem(cfg);
+        return new SystemRegistration(
+            Systems.Revolt.RevoltSystem.WellKnownId, Systems.Revolt.RevoltSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.Revolt.RevoltTables>(
+                    prev, new Systems.Revolt.RevoltTables(next.Controls), rng,
+                    Systems.Revolt.RevoltSystem.WellKnownId,
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -290,6 +306,6 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }
