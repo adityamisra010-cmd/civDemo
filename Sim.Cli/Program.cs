@@ -9,6 +9,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "run" => Cli.Guard(() => Cli.Run(args)),
     "hash" => Cli.Guard(() => Cli.Hash(args)),
     "replay" => Cli.Guard(() => Cli.Replay(args)),
+    "inspect" => Cli.Guard(() => Cli.Inspect(args)),
     "bench" => Cli.Guard(() => Cli.Bench(args)),
     "autoplay" => Cli.Guard(() => Cli.Autoplay(args)),
     "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
@@ -52,6 +53,8 @@ namespace Sim.Cli
                   sim replay --seed S --orders PATH --turns N
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
                           [--report-jsonl PATH [--report-every N]]
+                  sim inspect --manifest runs/session-STAMP.json [--turn N] [--window K]
+                          [--report-jsonl PATH]
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
@@ -236,6 +239,221 @@ namespace Sim.Cli
                 Console.WriteLine($"report: {reportPath} ({new FileInfo(reportPath).Length} bytes, every {reportEvery} turn(s))");
             return 0;
         }
+
+
+        /// <summary>
+        /// T4.17 — WHAT HAPPENED IN A PLAYED SESSION.
+        ///
+        /// Point it at a session manifest and it rebuilds that exact world from
+        /// the recorded seed, replays the director's own order log into it, and
+        /// reports. It answers the question a playtest actually generates —
+        /// "around turn 85 I set farming to 50% and the population did something
+        /// strange" — by showing the orders that landed on that turn beside the
+        /// turns either side of it, so the order and its consequence are on the
+        /// same screen.
+        ///
+        /// IT ALSO CHECKS THE SESSION AGAINST ITSELF. The trace carries the
+        /// hash the DIRECTOR'S machine computed on each turn; the replay
+        /// computes its own. If any turn disagrees, the session did not
+        /// reproduce and the first disagreeing turn is named. That check is the
+        /// reason the trace is written live rather than derived here — a replay
+        /// compared only against itself proves nothing about the session it
+        /// claims to reconstruct.
+        /// </summary>
+        internal static int Inspect(string[] args)
+        {
+            var opts = Options.Parse(args, flags: [],
+                valued: ["--manifest", "--turn", "--window", "--report-jsonl"]);
+
+            string manifestPath = opts.Get("--manifest")
+                ?? throw new CliUsageException("inspect requires --manifest PATH");
+            string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? ".";
+
+            SessionManifest manifest;
+            using (FileStream file = File.OpenRead(manifestPath))
+            {
+                manifest = SessionManifest.Read(file, manifestPath);
+            }
+
+            string tracePath = Path.Combine(dir, manifest.TraceFile);
+            IReadOnlyList<SessionTrace.Row> played = File.Exists(tracePath)
+                ? SessionTrace.Parse(File.ReadLines(tracePath), tracePath)
+                : [];
+            // The trace's last turn is how far the session actually got. With no
+            // trace there is nothing to replay TO, and guessing a turn count
+            // would silently report a different session than the one played.
+            long turns = played.Count > 0 ? played[^1].Turn : 0;
+
+            Console.WriteLine($"session   {Path.GetFileName(manifestPath)}");
+            Console.WriteLine($"  started {manifest.StartedAt}   build {manifest.BuildSha} ({manifest.BuildDate})   schema v{manifest.SchemaVersion}");
+            Console.WriteLine($"  world   seed {manifest.Seed.ToString(CultureInfo.InvariantCulture)}"
+                + (manifest.SizePx is { } px ? $", size {px.ToString(CultureInfo.InvariantCulture)}" : "")
+                + (manifest.Settlements is { } n ? $", settlements {n.ToString(CultureInfo.InvariantCulture)}" : ""));
+            Console.WriteLine($"  reproduce with: {manifest.ReplayCommand(turns)}");
+
+            if (turns == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"no turns recorded in {manifest.TraceFile} — nothing to inspect.");
+                return 0;
+            }
+
+            OrderLog orders = LoadOrders(Path.Combine(dir, manifest.OrdersFile));
+            WorldState world = StartWorld(
+                manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements);
+            OrderValidation.ValidateAgainstWorld(orders, world);
+
+            var executor = Executor(orders, founded: true);
+            Sim.Core.Systems.SimConfig cfg = SimCfg();
+            int grain = cfg.Goods?.GrainId ?? 0;
+
+            string? reportPath = opts.Get("--report-jsonl");
+            using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
+
+            var replayed = new List<SessionTrace.Row>((int)turns + 1)
+            {
+                SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0],
+            };
+            for (long t = 1; t <= turns; t++)
+            {
+                world = executor.Step(world);
+                replayed.Add(SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0]);
+                if (report is not null) ReplayReport.WriteTurn(report, world, cfg);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine(Divergence(played, replayed));
+
+            long? focus = opts.Get("--turn") is not null ? opts.LongOr("--turn", 0) : null;
+            int window = (int)opts.LongOr("--window", 3);
+            if (window < 0) throw new CliUsageException("--window must be >= 0");
+
+            if (focus is { } turn) ReportTurn(replayed, orders, turn, window);
+            else ReportOrderTurns(replayed, orders, window);
+
+            if (reportPath is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"full per-turn state: {reportPath} ({new FileInfo(reportPath).Length} bytes)");
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Compares what the director's machine recorded against what this
+        /// replay computed, and names the FIRST turn they disagree on. A
+        /// mismatch is a determinism finding, not a reporting nicety, so it is
+        /// stated as one.
+        /// </summary>
+        private static string Divergence(
+            IReadOnlyList<SessionTrace.Row> played, IReadOnlyList<SessionTrace.Row> replayed)
+        {
+            if (played.Count == 0) return "no live trace — replay not cross-checked.";
+
+            int common = Math.Min(played.Count, replayed.Count);
+            for (int i = 0; i < common; i++)
+            {
+                if (played[i].Hash == replayed[i].Hash) continue;
+                return $"REPRODUCTION FAILED at turn {played[i].Turn.ToString(CultureInfo.InvariantCulture)}: "
+                    + $"the session recorded {played[i].Hash[..12]}…, this replay computed {replayed[i].Hash[..12]}…. "
+                    + "Every turn before it matches, so that turn is where the two diverge.";
+            }
+
+            return played.Count == replayed.Count
+                ? $"reproduction VERIFIED: {common.ToString(CultureInfo.InvariantCulture)} turns, hash-for-hash."
+                : $"reproduction verified for the {common.ToString(CultureInfo.InvariantCulture)} turns both cover "
+                    + $"(trace has {played.Count.ToString(CultureInfo.InvariantCulture)}, replay {replayed.Count.ToString(CultureInfo.InvariantCulture)}).";
+        }
+
+        /// <summary>The turns AROUND a turn of interest, with the orders that
+        /// landed on it — the order and its consequence on one screen.</summary>
+        private static void ReportTurn(
+            IReadOnlyList<SessionTrace.Row> rows, OrderLog orders, long turn, int window)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"--- turn {turn.ToString(CultureInfo.InvariantCulture)} "
+                + $"(+/- {window.ToString(CultureInfo.InvariantCulture)}) ---");
+            PrintOrdersAt(orders, turn);
+            Console.WriteLine();
+            PrintRows(rows, turn - window, turn + window, turn);
+        }
+
+        /// <summary>With no turn named, report every turn an order was issued
+        /// on — those are the turns a director made a decision, and therefore
+        /// the ones worth looking at.</summary>
+        private static void ReportOrderTurns(
+            IReadOnlyList<SessionTrace.Row> rows, OrderLog orders, int window)
+        {
+            long previous = long.MinValue;
+            int reported = 0;
+            for (int i = 0; i < orders.Count; i++)
+            {
+                long turn = orders[i].Turn;
+                if (turn == previous) continue;
+                previous = turn;
+                if (++reported > 20)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("… more order turns follow; name one with --turn N.");
+                    return;
+                }
+                ReportTurn(rows, orders, turn, window);
+            }
+
+            if (reported == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("no orders were issued in this session — it was played on End Turn alone.");
+                Console.WriteLine();
+                PrintRows(rows, rows[0].Turn, rows[^1].Turn, focus: -1);
+            }
+        }
+
+        private static void PrintOrdersAt(OrderLog orders, long turn)
+        {
+            int found = 0;
+            for (int i = 0; i < orders.Count; i++)
+            {
+                OrderRecord o = orders[i];
+                if (o.Turn != turn) continue;
+                found++;
+                Console.WriteLine($"  ORDER  {o.Kind} target {o.TargetId.ToString(CultureInfo.InvariantCulture)} "
+                    + $"= {o.Amount.ToString("0.###", CultureInfo.InvariantCulture)}  "
+                    + $"(Empire {o.ActorId.ToString(CultureInfo.InvariantCulture)})");
+            }
+            if (found == 0) Console.WriteLine("  (no orders issued on this turn)");
+        }
+
+        /// <summary>
+        /// The trace rows in a range, with the turn-on-turn CHANGE beside each
+        /// value. The delta column is the point: "population 8,339" says little,
+        /// "population 8,339 (-1,204)" is the glitch the director saw.
+        /// </summary>
+        private static void PrintRows(
+            IReadOnlyList<SessionTrace.Row> rows, long from, long to, long focus)
+        {
+            Console.WriteLine("   turn     year   population            food   settlements");
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].Turn < from || rows[i].Turn > to) continue;
+                bool first = i == 0;
+                long dPop = first ? 0 : rows[i].Population - rows[i - 1].Population;
+                long dFood = first ? 0 : rows[i].Food - rows[i - 1].Food;
+                Console.WriteLine(
+                    (rows[i].Turn == focus ? " > " : "   ")
+                    + rows[i].Turn.ToString(CultureInfo.InvariantCulture).PadLeft(5)
+                    + rows[i].Year.ToString(CultureInfo.InvariantCulture).PadLeft(9)
+                    + rows[i].Population.ToString("N0", CultureInfo.InvariantCulture).PadLeft(12)
+                    + (first ? "" : Signed(dPop)).PadLeft(10)
+                    + rows[i].Food.ToString("N0", CultureInfo.InvariantCulture).PadLeft(14)
+                    + (first ? "" : Signed(dFood)).PadLeft(12)
+                    + rows[i].Settlements.ToString(CultureInfo.InvariantCulture).PadLeft(8));
+            }
+        }
+
+        private static string Signed(long delta) => delta == 0
+            ? "0"
+            : (delta > 0 ? "+" : "") + delta.ToString("N0", CultureInfo.InvariantCulture);
 
         internal static int Bench(string[] args)
         {

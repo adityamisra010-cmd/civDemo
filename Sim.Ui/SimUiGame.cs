@@ -374,6 +374,11 @@ public sealed class SimUiGame : Game
         _session.Save(_sessionLogPath);
         // T2.9: the chronicle exports beside the order log, same stamp.
         _session.ExportChronicle(UiSession.ChroniclePath(_sessionLogPath));
+        // T4.17: and the turn trace, same stamp again — what the world actually
+        // looked like on each turn, ending in the hash this machine computed.
+        // The manifest is NOT rewritten here: it is written once at launch, so
+        // that a session ending in a crash is still reproducible.
+        _session.ExportTrace(UiSession.TracePath(_sessionLogPath));
     }
 
     protected override void OnExiting(object sender, ExitingEventArgs args)

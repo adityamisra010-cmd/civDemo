@@ -38,15 +38,38 @@ public sealed class UiSession
     /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
     public IReadOnlyList<string> AnnalLines => _annals;
 
+    // THE SESSION RECORD (T4.17). The seed and overrides are kept because a
+    // session log without them is UNREPLAYABLE — the world cannot be rebuilt,
+    // so nothing downstream of it can run. They are written to the manifest.
+    private readonly ulong _seed;
+    private readonly int? _sizePx;
+    private readonly int? _settlements;
+    private readonly int _grainGoodId;
+    private readonly List<string> _trace = [SessionTrace.Header];
+
+    /// <summary>The live turn trace, one line per observed turn beneath the
+    /// header — what the world looked like as it was actually played.</summary>
+    public IReadOnlyList<string> TraceLines => _trace;
+
+    /// <summary>The last turn this session reached — what a replay of its log
+    /// must be run for.</summary>
+    public long TurnsPlayed => World.Clock.Turn;
+
     /// <summary>T2.10, D-028: the graphs' ring buffer — UI-side history,
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
-    private UiSession(WorldState world, TurnExecutor executor, OrderLog orders)
+    private UiSession(
+        WorldState world, TurnExecutor executor, OrderLog orders,
+        ulong seed, int? sizePx, int? settlements, int grainGoodId)
     {
         World = world;
         _executor = executor;
         Orders = orders;
+        _seed = seed;
+        _sizePx = sizePx;
+        _settlements = settlements;
+        _grainGoodId = grainGoodId;
         using (var stream = Sim.Data.DataFiles.OpenChronicle())
         {
             _chronicleCfg = Sim.Core.Chronicle.ChronicleConfigLoader.Load(stream);
@@ -55,6 +78,7 @@ public sealed class UiSession
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg);
         ObserveChronicle(); // founding events fire on first sight
         History.Capture(World); // the founding sample (turn 0)
+        CaptureTrace();         // turn 0 — the world before any order lands
     }
 
     private void ObserveChronicle()
@@ -70,9 +94,18 @@ public sealed class UiSession
         ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
     {
         var orders = new OrderLog();
+        SimConfig simCfg;
+        using (var stream = Sim.Data.DataFiles.OpenSim())
+        using (var needs = Sim.Data.DataFiles.OpenNeeds())
+        using (var goods = Sim.Data.DataFiles.OpenGoods())
+        {
+            simCfg = SimConfigLoader.Load(stream, needs, goods);
+        }
         return new UiSession(
             UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
-            BuildProductionExecutor(orders), orders);
+            BuildProductionExecutor(orders), orders,
+            seed, sizeOverridePx, settlementsOverride,
+            simCfg.Goods?.GrainId ?? 0);
     }
 
     /// <summary>
@@ -161,7 +194,12 @@ public sealed class UiSession
         World = _executor.Step(World);
         ObserveChronicle();
         History.Capture(World);
+        CaptureTrace();
     }
+
+    /// <summary>One trace line for the world as it now stands. Called AFTER the
+    /// step, like every other observer here.</summary>
+    private void CaptureTrace() => _trace.Add(SessionTrace.Line(World, _grainGoodId));
 
     /// <summary>The chronicle.txt path twinned with a session log path:
     /// same stamp, `chronicle-` prefix, `.txt`.</summary>
@@ -169,6 +207,55 @@ public sealed class UiSession
         Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
             Path.GetFileNameWithoutExtension(sessionLogPath)
                 .Replace("orders-", "chronicle-") + ".txt");
+
+    /// <summary>The trace path twinned with a session log path: same stamp,
+    /// `trace-` prefix, `.csv`.</summary>
+    public static string TracePath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "trace-") + ".csv");
+
+    /// <summary>The manifest path twinned with a session log path: same stamp,
+    /// `session-` prefix, `.json`.</summary>
+    public static string ManifestPath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "session-") + ".json");
+
+    /// <summary>
+    /// The reproduction contract for this session: the seed and overrides the
+    /// world was built from, and the identity of the build that ran it. Written
+    /// ONCE at launch — before a turn is played — because its whole job is to
+    /// survive a session that ends in a crash.
+    /// </summary>
+    public SessionManifest Manifest(string startedAt, string sessionLogPath) =>
+        new(Seed: _seed,
+            SizePx: _sizePx,
+            Settlements: _settlements,
+            SchemaVersion: CanonicalSchema.Version,
+            BuildSha: BuildInfo.Sha,
+            BuildDate: BuildInfo.Date,
+            StartedAt: startedAt,
+            OrdersFile: Path.GetFileName(sessionLogPath),
+            ChronicleFile: Path.GetFileName(ChroniclePath(sessionLogPath)),
+            TraceFile: Path.GetFileName(TracePath(sessionLogPath)));
+
+    /// <summary>Writes the manifest beside the order log.</summary>
+    public void ExportManifest(string startedAt, string sessionLogPath)
+    {
+        string path = ManifestPath(sessionLogPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using FileStream file = File.Create(path);
+        Manifest(startedAt, sessionLogPath).Write(file);
+    }
+
+    /// <summary>Exports the turn trace — header plus one line per observed
+    /// turn, fixed \n like the chronicle.</summary>
+    public void ExportTrace(string path)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, string.Join("\n", _trace) + "\n");
+    }
 
     /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
     /// fixed \n (byte-identical across identical runs).</summary>
