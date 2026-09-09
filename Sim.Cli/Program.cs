@@ -8,6 +8,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
 {
     "run" => Cli.Guard(() => Cli.Run(args)),
     "hash" => Cli.Guard(() => Cli.Hash(args)),
+    "diff" => Cli.Guard(() => Cli.Diff(args)),
     "replay" => Cli.Guard(() => Cli.Replay(args)),
     "inspect" => Cli.Guard(() => Cli.Inspect(args)),
     "bench" => Cli.Guard(() => Cli.Bench(args)),
@@ -49,7 +50,8 @@ namespace Sim.Cli
                   sim run --seed S --turns N [--founded [--size PX] [--settlements N]]
                           [--report] [--save-at K --save PATH] [--orders PATH]
                           [--hash-log PATH]
-                  sim hash SAVEFILE
+                  sim hash SAVEFILE [--size PX]
+                  sim diff A.bin B.bin [--size PX]
                   sim replay --seed S --orders PATH --turns N
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
                           [--report-jsonl PATH [--report-every N]]
@@ -66,6 +68,13 @@ namespace Sim.Cli
                 --settlements overrides siting.settlementCount (D-029 — the
                 first-reign fixture replays at --settlements 1; a non-canonical
                 count is recorded as runs/orders-*-nN.bin).
+
+                hash/diff on a FOUNDED save regenerate its terrain from the
+                seed in the header (ADR-008: terrain is not in the stream) at
+                the canonical size, or --size PX. diff (T4.19/CR-013) walks
+                both canonical streams in schema order and reports the first
+                divergent table/row/field (doubles as R text + 64-bit pattern)
+                and a per-table summary; exit 0 identical, 1 different.
                 """);
             return 1;
         }
@@ -188,11 +197,79 @@ namespace Sim.Cli
 
         internal static int Hash(string[] args)
         {
-            if (args.Length != 2) throw new CliUsageException("hash takes exactly one argument: SAVEFILE");
-            using var stream = File.OpenRead(args[1]);
-            WorldState world = Snapshot.Load(stream);
+            string[] files = Positional(args, 1, out string[] rest);
+            var opts = Options.Parse(rest, flags: [], valued: ["--size"]);
+            WorldState world = LoadSave(files[0], opts.LongOr("--size", -1));
             Console.WriteLine(WorldHash.ComputeHex(world));
             return 0;
+        }
+
+        /// <summary>T4.19 lane E (CR-013 §6): first divergent field between two
+        /// saves, then the per-table extent. Exit 0 identical, 1 different.</summary>
+        internal static int Diff(string[] args)
+        {
+            string[] files = Positional(args, 2, out string[] rest);
+            var opts = Options.Parse(rest, flags: [], valued: ["--size"]);
+            long size = opts.LongOr("--size", -1);
+            WorldState a = LoadSave(files[0], size);
+            WorldState b = LoadSave(files[1], size);
+            Console.WriteLine($"A: {files[0]}  turn {a.Clock.Turn.ToString(CultureInfo.InvariantCulture)}  hash {WorldHash.ComputeHex(a)}");
+            Console.WriteLine($"B: {files[1]}  turn {b.Clock.Turn.ToString(CultureInfo.InvariantCulture)}  hash {WorldHash.ComputeHex(b)}");
+            SnapshotDiff.Result result = SnapshotDiff.Compare(a, b);
+            SnapshotDiff.Print(result, Console.Out);
+            return result.Identical ? 0 : 1;
+        }
+
+        /// <summary>The first <paramref name="count"/> non-option arguments after
+        /// the verb, in order; <paramref name="rest"/> is the verb plus every
+        /// remaining argument, shaped for <see cref="Options.Parse"/>.</summary>
+        private static string[] Positional(string[] args, int count, out string[] rest)
+        {
+            var positional = new List<string>(count);
+            var remaining = new List<string>(args.Length) { args[0] };
+            for (int i = 1; i < args.Length; i++)
+            {
+                if (positional.Count < count && !args[i].StartsWith("--", StringComparison.Ordinal))
+                    positional.Add(args[i]);
+                else
+                    remaining.Add(args[i]);
+            }
+            if (positional.Count != count)
+                throw new CliUsageException($"{args[0]} takes exactly {count} file argument(s)");
+            rest = remaining.ToArray();
+            return positional.ToArray();
+        }
+
+        // Snapshot header layout (Snapshot.Save): magic 8 | version 4 | seed 8 |
+        // turn 8, then the canonical stream: seed 8 | clock 24 | terrain flag 1.
+        private const int SaveHeaderSeedOffset = 8 + 4;
+        private const int SaveTerrainFlagOffset = 8 + 4 + 8 + 8 + 8 + 24;
+
+        /// <summary>
+        /// Loads a save, regenerating its terrain when the stream says it had one.
+        /// Terrain is not serialized (ADR-008); Snapshot.Load demands the
+        /// regenerated TerrainSet and validates its content hash against the one
+        /// the save recorded, so a wrong size or worldgen config fails loudly
+        /// rather than hashing a different world. The seed and the flag are read
+        /// from fixed header offsets BEFORE Load so that a toy save (no terrain)
+        /// is loaded plainly and a founded save gets exactly one worldgen.
+        /// </summary>
+        private static WorldState LoadSave(string path, long sizePx)
+        {
+            byte[] bytes = File.ReadAllBytes(path);
+            Sim.Core.Worldgen.TerrainSet? terrain = null;
+            if (bytes.Length > SaveTerrainFlagOffset && bytes[SaveTerrainFlagOffset] != 0)
+            {
+                ulong seed = BitConverter.ToUInt64(bytes, SaveHeaderSeedOffset);
+                if (!BitConverter.IsLittleEndian) throw new InvalidOperationException("big-endian host: header peek assumes little-endian saves");
+                Sim.Core.Worldgen.WorldgenConfig wgCfg;
+                using (var wgStream = Sim.Data.DataFiles.OpenWorldgen())
+                    wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
+                if (sizePx >= 0) wgCfg = wgCfg with { SizePx = (int)sizePx };
+                terrain = Sim.Core.Worldgen.Worldgen.Generate(wgCfg, seed);
+            }
+            using var stream = new MemoryStream(bytes, writable: false);
+            return Snapshot.Load(stream, terrain);
         }
 
         internal static int Replay(string[] args)
