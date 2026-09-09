@@ -620,11 +620,18 @@ public sealed class SimUiGame : Game
 
     /// <summary>
     /// Panel furniture (§4 item 5): a parchment plate behind the current
-    /// ImGui window plus a 9-sliced inked border and a header rule under the
-    /// title bar. Drawn on the WINDOW draw list at Begin time, so every
-    /// widget added afterwards sits on top of it.
+    /// ImGui window plus a 9-sliced inked border and a header rule. Drawn on
+    /// the WINDOW draw list at Begin time, so every widget added afterwards
+    /// sits on top of it.
+    ///
+    /// T4.19 lane D: the rule's placement is the ELEMENT's, from
+    /// ChromeGeometry, not "under the title bar" for every window. The
+    /// T4.18 chrome has no title bars, and in the 56 px command bar the
+    /// under-title-bar formula (y = top + frameHeight + 2 = 31..39) crossed
+    /// the button row (12..42). The caller names its element; the rect the
+    /// rule is drawn into is the rect the headless test checks.
     /// </summary>
-    private void DrawPanelFurniture(IntPtr backgroundId = default)
+    private void DrawPanelFurniture(in ChromeElement element, IntPtr backgroundId = default)
     {
         if (_panelId == IntPtr.Zero) return;
         ImDrawListPtr list = ImGui.GetWindowDrawList();
@@ -640,7 +647,7 @@ public sealed class SimUiGame : Game
             list.AddImage(backgroundId, min, max, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
         }
 
-        NineSlice(list, _panelId, min, max, 12f, 64f);
+        NineSlice(list, _panelId, min, max, ChromeGeometry.FrameBorderPx, 64f);
 
         if (_headerRuleId != IntPtr.Zero)
         {
@@ -649,14 +656,12 @@ public sealed class SimUiGame : Game
             // the vertical mapping, horizontal overflow tiled, so the rule's
             // ink weight is identical at every panel width. The same treatment
             // the parchment background above gets, applied horizontally.
-            float y = min.Y + ImGui.GetFrameHeight() + 2f;
-            float h = ViewModel.PanelFurniture.HeaderRuleScreenHeightPx;
-            float w = (max.X - min.X) - 12f;
+            ScreenRect rule = ChromeGeometry.HeaderRule(element, ImGui.GetFrameHeight());
             (float u, float v) = ViewModel.PanelFurniture.HeaderRuleUv(
-                _headerRuleTexture!.Width, _headerRuleTexture.Height, w, h);
+                _headerRuleTexture!.Width, _headerRuleTexture.Height, rule.Width, rule.Height);
             list.AddImage(_headerRuleId,
-                new System.Numerics.Vector2(min.X + 6f, y),
-                new System.Numerics.Vector2(min.X + 6f + w, y + h),
+                new System.Numerics.Vector2(rule.X, rule.Y),
+                new System.Numerics.Vector2(rule.Right, rule.Bottom),
                 System.Numerics.Vector2.Zero, new System.Numerics.Vector2(u, v), 0xFFFFFFFFu);
         }
     }
@@ -769,7 +774,7 @@ public sealed class SimUiGame : Game
     private void DrawStatusBand()
     {
         BeginChrome(PanelLayout.Status);
-        DrawPanelFurniture();
+        DrawPanelFurniture(ChromeGeometry.Status);   // rule along the BOTTOM edge: status | world
         PushDataFont();
         ImGui.TextUnformatted(_hud.ClockLine);
         ImGui.SameLine(0, 28);
@@ -786,7 +791,7 @@ public sealed class SimUiGame : Game
     private void DrawSelectionCard()
     {
         BeginChrome(PanelLayout.Selection);
-        DrawPanelFurniture();
+        DrawPanelFurniture(ChromeGeometry.Selection);   // under the title line, as before
         ImGui.TextUnformatted(_hud.TitleLine);
         PushDataFont();
         ImGui.TextUnformatted(_hud.PopulationLine);
@@ -803,31 +808,49 @@ public sealed class SimUiGame : Game
     private void DrawCommandBar()
     {
         BeginChrome(PanelLayout.Command);
-        DrawPanelFurniture();
+        DrawPanelFurniture(ChromeGeometry.Command);   // rule along the TOP edge: world | controls
 
+        // T4.19 lane D: every control is placed at the rect ChromeGeometry
+        // computes — cursor set explicitly, not left to WindowPadding and
+        // SameLine spacing — so the row the headless test proves disjoint
+        // from the rule is the row that is drawn. (WindowPadding.x is 14 and
+        // Margin is 12; the old row started at 14 by accident of the style.)
+        //
         // T3.9a-b item 1 discoverability: the binding is shown ON the button.
         // Both paths (click here, Space in Update) call EndTurn().
-        if (ImGui.Button("End Turn [Space]", new System.Numerics.Vector2(150, 30)))
+        PlaceCursor(PanelLayout.Command, ChromeGeometry.EndTurnButton);
+        if (ImGui.Button("End Turn [Space]", Size(ChromeGeometry.EndTurnButton)))
             EndTurn();
 
         for (int i = 0; i < GameSections.Order.Count; i++)
         {
             Section section = GameSections.Order[i];
-            ImGui.SameLine(0, i == 0 ? 24 : 6);
+            ScreenRect slot = ChromeGeometry.NavButton(i);
+            PlaceCursor(PanelLayout.Command, slot);
 
             // The open section reads as pressed, so the row says where you are
             // as well as where you can go.
             bool open = _openSection == section;
             if (open) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
-            if (ImGui.Button(GameSections.Label(section) + "##nav", new System.Numerics.Vector2(104, 30)))
+            if (ImGui.Button(GameSections.Label(section) + "##nav", Size(slot)))
                 _openSection = GameSections.Toggle(_openSection, section);
             if (open) ImGui.PopStyleColor();
         }
 
-        ImGui.SameLine(0, 24);
+        ImGui.SetCursorPos(new System.Numerics.Vector2(
+            ChromeGeometry.TerritoryToggleX - PanelLayout.Command.X,
+            ChromeGeometry.ButtonRow.Y - PanelLayout.Command.Y));
         ImGui.Checkbox("territory", ref _showCatchment);
         ImGui.End();
     }
+
+    /// <summary>Moves the ImGui cursor to a ChromeGeometry rect's top-left.
+    /// SetCursorPos is window-local, so the screen rect is re-based on the
+    /// panel it was computed against; scroll offsets are ImGui's to apply.</summary>
+    private static void PlaceCursor(in PanelRect panel, in ScreenRect rect) =>
+        ImGui.SetCursorPos(new System.Numerics.Vector2(rect.X - panel.X, rect.Y - panel.Y));
+
+    private static System.Numerics.Vector2 Size(in ScreenRect rect) => new(rect.Width, rect.Height);
 
     /// <summary>
     /// The one contextual surface. Nothing is drawn at all when no section is
@@ -837,15 +860,42 @@ public sealed class SimUiGame : Game
     {
         if (_openSection == Section.None) return;
 
-        BeginChrome(PanelLayout.Context, ImGuiWindowFlags.HorizontalScrollbar);
-        DrawPanelFurniture(_openSection == Section.Annals ? _annalsId : default);
+        BeginChrome(PanelLayout.Context);
+        DrawPanelFurniture(ChromeGeometry.Context,   // rule under the header row
+            _openSection == Section.Annals ? _annalsId : default);
 
+        // T4.19 lane D — the header row: title at the left, close button
+        // flush right, both a frame height tall. The old button was 24×20
+        // under FramePadding (8,5) and a 19 px face — an 8×10 interior for a
+        // 19 px glyph, which ImGui pins to the interior's top-left rather
+        // than centring (ChromeGeometry.LabelAnchor models the clamp). The
+        // rect is now the view-model's: square, frame-height, Margin from
+        // the panel edge, and the text alignment is pushed explicitly so the
+        // glyph's anchor is the rect's centre by construction. Whether the
+        // GPU draws it there is the one hop no headless test can see.
+        float frameHeight = ImGui.GetFrameHeight();
+        ScreenRect close = ChromeGeometry.CloseButton(ChromeGeometry.Context, frameHeight);
+        ImGui.AlignTextToFramePadding();   // title baseline against the frame-height row
         ImGui.TextUnformatted(GameSections.Title(_openSection));
-        ImGui.SameLine(PanelLayout.Context.Width - 46);
-        if (ImGui.Button("x##close", new System.Numerics.Vector2(24, 20)))
+        PlaceCursor(PanelLayout.Context, close);
+        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
+            new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
+        if (ImGui.Button(ChromeGeometry.CloseGlyph + "##close", Size(close)))
             _openSection = Section.None;
-        ImGui.Separator();
+        ImGui.PopStyleVar();
 
+        // The header rule IS the separator now; content starts under it. The
+        // sections scroll inside a child so the header row is chrome that
+        // stays put, and so a vertical scrollbar — ImGui hangs it on the
+        // window's right edge, x = 381..395 in this 396 px panel — cannot
+        // land on the close button (x = 355..384). POPULATION with all three
+        // classes present is 3 + 3 × (1 + 8) lines: by the style arithmetic
+        // (17 or 19 px faces + 7 px ItemSpacing, separator, per-class
+        // Spacing) about 755 px against the 607 px below the header — it
+        // overflows, so the case occurs. Section content is unchanged.
+        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(ChromeGeometry.Context, frameHeight) - PanelLayout.Context.Y);
+        ImGui.BeginChild("context-body", System.Numerics.Vector2.Zero,
+            ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar);
         switch (_openSection)
         {
             case Section.Policy: DrawPolicySection(); break;
@@ -856,6 +906,7 @@ public sealed class SimUiGame : Game
             case Section.Trends: DrawTrendsSection(); break;
             case Section.More: DrawBuildSection(); break;
         }
+        ImGui.EndChild();
 
         ImGui.End();
     }
