@@ -12,6 +12,13 @@ name: xplat-diagnostic
 
 on:
   workflow_dispatch:
+  # T4.19: workflow_dispatch resolves a workflow by filename ONLY when that file
+  # exists on the default branch; this instrument lives on a feature branch and
+  # main is not to be modified, so the dispatch API returns 404 for it. A push
+  # trigger scoped to the diagnostic branches is the one way to run it without
+  # touching main. It is still an instrument, not a gate.
+  push:
+    branches: ['t4.19-xplat-run']
 
 jobs:
   windows:
