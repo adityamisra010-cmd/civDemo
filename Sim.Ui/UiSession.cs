@@ -1,6 +1,7 @@
 using System.Globalization;
 using Sim.Core;
 using Sim.Core.Kernel;
+using Sim.Core.Observability;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Ui.ViewModel;
@@ -47,6 +48,18 @@ public sealed class UiSession
     private readonly int _grainGoodId;
     private readonly List<string> _trace = [SessionTrace.Header];
 
+    // T4.19 — THE GLASS BOX. One TurnRecord + SettlementRecord[] per End Turn,
+    // built from (prev, next, cfg, ordersApplied) after the step. The log holds
+    // records only — never a world — and nothing in the executor or any system
+    // can reach it, so it cannot change a hash; that is also MEASURED, not
+    // assumed (TelemetryTests: hash equality with and without a log).
+    private readonly SimConfig _simCfg;
+
+    /// <summary>The observation history the UI graphs and panels read through
+    /// (docs/observability-architecture.md §7: one read seam).</summary>
+    public IObservationHistory Observations => _observations;
+    private readonly ObservationLog _observations = new();
+
     /// <summary>The live turn trace, one line per observed turn beneath the
     /// header — what the world looked like as it was actually played.</summary>
     public IReadOnlyList<string> TraceLines => _trace;
@@ -61,7 +74,7 @@ public sealed class UiSession
 
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
-        ulong seed, int? sizePx, int? settlements, int grainGoodId)
+        ulong seed, int? sizePx, int? settlements, SimConfig simCfg)
     {
         World = world;
         _executor = executor;
@@ -69,7 +82,8 @@ public sealed class UiSession
         _seed = seed;
         _sizePx = sizePx;
         _settlements = settlements;
-        _grainGoodId = grainGoodId;
+        _simCfg = simCfg;
+        _grainGoodId = simCfg.Goods?.GrainId ?? 0;
         using (var stream = Sim.Data.DataFiles.OpenChronicle())
         {
             _chronicleCfg = Sim.Core.Chronicle.ChronicleConfigLoader.Load(stream);
@@ -104,8 +118,7 @@ public sealed class UiSession
         return new UiSession(
             UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
             BuildProductionExecutor(orders), orders,
-            seed, sizeOverridePx, settlementsOverride,
-            simCfg.Goods?.GrainId ?? 0);
+            seed, sizeOverridePx, settlementsOverride, simCfg);
     }
 
     /// <summary>
@@ -188,10 +201,20 @@ public sealed class UiSession
     }
 
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
-    /// the chronicle observes the new state (detection is read-only).</summary>
+    /// the chronicle observes the new state (detection is read-only).
+    ///
+    /// T4.19: the observation log is fed the (prev, next) pair AFTER the step.
+    /// It runs before the chronicle here, and the order is immaterial: both are
+    /// read-only over the same two worlds and neither reads the other, so
+    /// swapping them changes no record and no hash. The orders handed to it
+    /// are exactly the batch the executor delivered — the log rows whose Turn
+    /// == prev.Clock.Turn (TurnExecutor.Step's BatchFor) — with their log
+    /// indices, so a policy change carries its order number.</summary>
     public void EndTurn()
     {
-        World = _executor.Step(World);
+        WorldState prev = World;
+        World = _executor.Step(prev);
+        _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
         ObserveChronicle();
         History.Capture(World);
         CaptureTrace();
@@ -214,6 +237,13 @@ public sealed class UiSession
         Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
             Path.GetFileNameWithoutExtension(sessionLogPath)
                 .Replace("orders-", "trace-") + ".csv");
+
+    /// <summary>T4.19: the telemetry path twinned with a session log path: same
+    /// stamp, `telemetry-` prefix, `.jsonl`.</summary>
+    public static string TelemetryPath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "telemetry-") + ".jsonl");
 
     /// <summary>The manifest path twinned with a session log path: same stamp,
     /// `session-` prefix, `.json`.</summary>
@@ -238,7 +268,8 @@ public sealed class UiSession
             StartedAt: startedAt,
             OrdersFile: Path.GetFileName(sessionLogPath),
             ChronicleFile: Path.GetFileName(ChroniclePath(sessionLogPath)),
-            TraceFile: Path.GetFileName(TracePath(sessionLogPath)));
+            TraceFile: Path.GetFileName(TracePath(sessionLogPath)),
+            TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)));
 
     /// <summary>Writes the manifest beside the order log.</summary>
     public void ExportManifest(string startedAt, string sessionLogPath)
@@ -255,6 +286,18 @@ public sealed class UiSession
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, string.Join("\n", _trace) + "\n");
+    }
+
+    /// <summary>T4.19: exports the telemetry — one JSONL line per observed turn,
+    /// rewritten in full from the in-memory log on every save (like the trace),
+    /// so the file on disk is always a complete prefix of the session and a crash
+    /// mid-write loses at most the last End Turn. Byte-identical across two runs
+    /// of the same session (TelemetryWriter, asserted).</summary>
+    public void ExportTelemetry(string path)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using FileStream file = File.Create(path);
+        TelemetryWriter.WriteAll(file, _observations);
     }
 
     /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,

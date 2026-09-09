@@ -43,7 +43,13 @@ public sealed record SessionManifest(
     string StartedAt,
     string OrdersFile,
     string ChronicleFile,
-    string TraceFile)
+    string TraceFile,
+    // T4.19: the telemetry JSONL beside the other four. A MANIFEST field, not
+    // schema — CanonicalSchema.Version is untouched, and a manifest written
+    // before T4.19 reads back with an empty TelemetryFile rather than failing,
+    // because the session it describes is still fully reproducible without it
+    // (the telemetry is a pure function of the replay, §7).
+    string TelemetryFile = "")
 {
     /// <summary>The schema tag, so a reader can tell which vintage produced a
     /// file it did not write.</summary>
@@ -87,6 +93,7 @@ public sealed record SessionManifest(
         json.WriteString("ordersFile", OrdersFile);
         json.WriteString("chronicleFile", ChronicleFile);
         json.WriteString("traceFile", TraceFile);
+        json.WriteString("telemetryFile", TelemetryFile);
         json.WriteEndObject();
         json.Flush();
     }
@@ -118,7 +125,8 @@ public sealed record SessionManifest(
             StartedAt: root.GetProperty("startedAt").GetString() ?? "",
             OrdersFile: root.GetProperty("ordersFile").GetString() ?? "",
             ChronicleFile: root.GetProperty("chronicleFile").GetString() ?? "",
-            TraceFile: root.GetProperty("traceFile").GetString() ?? "");
+            TraceFile: root.GetProperty("traceFile").GetString() ?? "",
+            TelemetryFile: root.TryGetProperty("telemetryFile", out JsonElement tf) ? tf.GetString() ?? "" : "");
     }
 
     private static int? Nullable(JsonElement root, string name)

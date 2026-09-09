@@ -18,7 +18,8 @@ public class SessionRecordTests
     private static SessionManifest Sample() => new(
         Seed: 42, SizePx: 256, Settlements: 4, SchemaVersion: CanonicalSchema.Version,
         BuildSha: "abc1234", BuildDate: "2026-09-09", StartedAt: "2026-09-09 12:00:00",
-        OrdersFile: "orders-x.bin", ChronicleFile: "chronicle-x.txt", TraceFile: "trace-x.csv");
+        OrdersFile: "orders-x.bin", ChronicleFile: "chronicle-x.txt", TraceFile: "trace-x.csv",
+        TelemetryFile: "telemetry-x.jsonl");
 
     [Fact]
     public void ManifestRoundTripsEveryFieldItPromisesToCarry()
