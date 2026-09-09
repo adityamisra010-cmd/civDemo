@@ -1,47 +1,96 @@
 namespace Sim.Ui.ViewModel;
 
-/// <summary>One panel's first-use default rectangle, in screen pixels.</summary>
+/// <summary>One panel's rectangle, in screen pixels.</summary>
 public readonly record struct PanelRect(string Title, float X, float Y, float Width, float Height);
 
 /// <summary>
-/// T3.9a-b item 4: the default panel layout as DATA — pure rects, no ImGui,
-/// proven non-overlapping headless (PanelLayoutTests) so the director's gate
-/// never re-discovers panel overlap at the default window size.
+/// T4.18 — THE GAME SCREEN, as data.
 ///
-/// TARGET RESOLUTION: 1280×800 — the project's default window size, the
-/// honest anchor: it is what every gate build opens at. SimUiGame's ctor
-/// reads DesignWidth/Height from HERE, so the tested layout and the actual
-/// window cannot drift apart. A user-resized window keeps these first-use
-/// defaults (panels stay within the top-left 1280×800 region until moved).
+/// WHAT WAS WRONG. Five windows — HUD, Graphs, Market, Annals, Trade — were
+/// permanently open, non-overlapping, and between them covered essentially the
+/// whole 1280×800 viewport. The HUD alone was 440×776: a third of the width,
+/// the full height, always. The world the game is ABOUT was whatever pixels the
+/// dashboard had not claimed, and every subsystem shouted at equal volume
+/// whether or not the director was thinking about it. The layout was proven
+/// non-overlapping, which is exactly the wrong success criterion — it certified
+/// a full screen as correct.
 ///
-/// GEOMETRY: 12 px outer margin, ≥12 px inter-panel gaps. The HUD takes the
-/// left column at a FIXED default size and scrolls when its content exceeds
-/// it — the pre-polish HUD was AlwaysAutoResize with no height cap, so it
-/// grew past the 800 px window bottom and under the Annals at y=560 (the
-/// T3.9a gate Q4 overlap). Graphs over Market take the right column; the
-/// Annals sits bottom-centre, narrow enough to leave the map readable above
-/// it and collapsible to its title bar for routine play.
+/// THE PRINCIPLE THIS REPLACES IT WITH. The simulation can know everything; the
+/// screen should show only what the player needs right now. So the world gets
+/// the screen, a thin band of always-true status sits above it, the verbs sit
+/// below it, and every analytical surface — policy, economy, population,
+/// market, annals, trends — is ONE contextual panel that the director opens and
+/// closes. One mechanism, one at a time, and closing it returns a clean world.
 ///
-/// These rects are FIRST-USE defaults only (ImGuiCond.FirstUseEver at every
-/// consumer): the user's in-session drags/resizes/collapses always win.
+/// NOTHING WAS REMOVED. Every line the old five windows drew still exists; it
+/// moved behind the section that owns it. Fewer things visible at once, not
+/// fewer capabilities.
+///
+/// FIXED CHROME, NOT FLOATING WINDOWS. The bars and the context panel are
+/// positioned every frame rather than at first use: they are the frame of the
+/// game, and a frame that can be dragged into the middle of the map and lost is
+/// not a frame. The old rects were FirstUseEver defaults, which is why panel
+/// overlap was a thing that could be re-discovered at all.
+///
+/// TARGET RESOLUTION 1280×800 — the project's default window, and what every
+/// gate build opens at. SimUiGame reads DesignWidth/Height from HERE, so the
+/// tested layout and the actual window cannot drift apart.
 /// </summary>
 public static class PanelLayout
 {
     public const int DesignWidth = 1280;
     public const int DesignHeight = 800;
 
-    public static readonly PanelRect Hud = new("civ-sim", 12, 12, 440, 776);
-    public static readonly PanelRect Graphs = new("Graphs", 828, 12, 440, 448);
-    public static readonly PanelRect Market = new("Market", 828, 472, 440, 316);
-    public static readonly PanelRect Annals = new("Annals", 464, 560, 352, 228);
-    // T3.9b: the trade panel takes the free centre-top column — between the
-    // HUD (ends x = 452) and the Graphs column (starts x = 828), above the
-    // Annals (starts y = 560). Twelve-pixel gutters on every side, matching
-    // the existing rects, and the non-overlap proof covers it automatically
-    // because it joins All below.
-    public static readonly PanelRect Trade = new("Trade", 464, 12, 352, 300);
+    /// <summary>Outer margin and inter-element gap, one number so the spacing
+    /// is uniform by construction rather than by five separate decisions.</summary>
+    public const float Margin = 12;
 
-    public static IReadOnlyList<PanelRect> All { get; } = [Hud, Graphs, Market, Annals, Trade];
+    /// <summary>The always-true world state: year, population, settlements,
+    /// food. Full width, deliberately shallow — status is a band, not a
+    /// column.</summary>
+    public static readonly PanelRect Status = new("##status", 0, 0, DesignWidth, 48);
+
+    /// <summary>The verbs and the section navigation. Full width at the foot,
+    /// where a strategy game's controls live.</summary>
+    public static readonly PanelRect Command = new("##command", 0, DesignHeight - 56, DesignWidth, 56);
+
+    /// <summary>
+    /// The selected settlement, floating over the map at the top left: the one
+    /// piece of contextual detail worth keeping visible while looking at the
+    /// world, because selection is how every other panel is aimed.
+    /// </summary>
+    public static readonly PanelRect Selection =
+        new("##selection", Margin, Status.Height + Margin, 268, 104);
+
+    /// <summary>
+    /// The contextual panel — policy, economy, population, market, annals or
+    /// trends, whichever is open, and NOTHING when none is. Right-hand column,
+    /// between the bars.
+    /// </summary>
+    public static readonly PanelRect Context = new("##context",
+        DesignWidth - 396 - Margin, Status.Height + Margin,
+        396, DesignHeight - Status.Height - Command.Height - (Margin * 2));
+
+    /// <summary>The chrome that is always on screen. The context panel is NOT
+    /// here: its whole point is that it is usually absent.</summary>
+    public static IReadOnlyList<PanelRect> Always { get; } = [Status, Command, Selection];
+
+    /// <summary>Everything that can be on screen at once — the chrome plus one
+    /// open section.</summary>
+    public static IReadOnlyList<PanelRect> All { get; } = [Status, Command, Selection, Context];
+
+    /// <summary>
+    /// The map area left clear when no section is open: the full viewport less
+    /// the two bars. The Selection card floats INSIDE this — it is a small
+    /// overlay on the world, not a column carved out of it — so it is not
+    /// subtracted here.
+    /// </summary>
+    public static float ClearMapArea =>
+        DesignWidth * (DesignHeight - Status.Height - Command.Height);
+
+    /// <summary>The same, with a section open.</summary>
+    public static float MapAreaWithContextOpen =>
+        (DesignWidth - Context.Width - Margin) * (DesignHeight - Status.Height - Command.Height);
 
     /// <summary>Strict-interior intersection: true iff the shared area is
     /// positive. Edge-adjacent rects (shared boundary only) do not overlap.</summary>
