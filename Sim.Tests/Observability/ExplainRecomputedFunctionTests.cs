@@ -117,16 +117,19 @@ public class ExplainRecomputedFunctionTests
         Assert.True(fills >= 5, $"vacuous: only {fills} fill links (grain, livestock, fish, pottery, cloth expected)");
         Assert.True(interior > 0, "vacuous: no fill was strictly between 0 and 1 on the drawdown turn");
 
-        // The grain fill on the drawdown turn, measured: 436 eaten of 3078 demanded.
+        // The grain fill on the drawdown turn, measured: 531 eaten of 3937 demanded.
+        // (T4.19 lane C re-pin from 436 / 3078: the founding cohort vector moved
+        // the rig's founded population; the fill identity below is what is
+        // asserted, the literals only say which world it was measured on.)
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, Target, grain);
-        Assert.Equal(436, prev.GoodStocks[g].LastConsumptionEatenUnits);
-        Assert.Equal(3078, prev.GoodStocks[g].LastConsumptionDemandUnits);
+        Assert.Equal(531, prev.GoodStocks[g].LastConsumptionEatenUnits);
+        Assert.Equal(3937, prev.GoodStocks[g].LastConsumptionDemandUnits);
         Link grainFill = Labelled(sustenance.Links, ChainNode.FoodGoodFill, ExplainRowsName(cfg, grain) + " fill");
-        Assert.Equal(436.0 / 3078.0, grainFill.Value);
+        Assert.Equal(531.0 / 3937.0, grainFill.Value);
         // ...and the satisfaction the SYSTEM published from that fill is below 1.
         Link s = ExplainGrievanceTests.Single(sustenance.Links, ChainNode.SustenanceSatisfaction);
         Assert.Equal(LinkKind.Read, s.Kind);
-        Assert.True(s.Value < 0.5, $"Sustenance satisfaction {s.Value} on a 14% grain fill");
+        Assert.True(s.Value < 0.5, $"Sustenance satisfaction {s.Value} on a 13% grain fill");
     }
 
     [Fact]
