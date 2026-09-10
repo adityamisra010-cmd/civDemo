@@ -83,9 +83,13 @@ public static class ScreenModels
     }
 
     /// <summary>The Grievance tab: happiness on next (the world on screen),
-    /// one GrievanceExplanation per registry class PRESENT in the settlement
-    /// (a class with nobody has no rows and nothing to explain), every bound
-    /// need's chain on demand.</summary>
+    /// one GrievanceExplanation per registry class with MEMBERS ON PREV — the
+    /// same rule the query itself uses (GrievanceExplanation.ClassPopulation is
+    /// the PREV bucket sum), because the needs system iterated PREV's members
+    /// to write the row on next. A class that emptied THIS step therefore still
+    /// appears, with the G the system wrote for it from those members; a class
+    /// with nobody on prev has no published satisfaction row and nothing to
+    /// explain. Every bound need's chain on demand.</summary>
     public static GrievanceView Grievance(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, SettlementId id)
     {
@@ -96,8 +100,8 @@ public static class ScreenModels
         {
             var cls = new ClassId(classes[c].Id);
             long pop = 0;
-            for (int b = 0; b < next.Buckets.Count; b++)
-                if (next.Buckets[b].Settlement == id && next.Buckets[b].Class == cls) pop += next.Buckets[b].Count.Value;
+            for (int b = 0; b < prev.Buckets.Count; b++)
+                if (prev.Buckets[b].Settlement == id && prev.Buckets[b].Class == cls) pop += prev.Buckets[b].Count.Value;
             if (pop == 0) continue;
             explanations.Add(GrievanceExplanation.For(prev, next, cfg, id, cls));
         }

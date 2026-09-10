@@ -1282,13 +1282,19 @@ public sealed class SimUiGame : Game
         }
     }
 
-    /// <summary>A chain's links then its lever; the lever's button opens
-    /// POLICY for this settlement. GAP links are already worded "not
-    /// recorded" by the view model; nothing here reinterprets them.</summary>
+    /// <summary>A chain's links, each with ITS OWN node's lever indented under
+    /// it (a weather link reads "condition, no lever", a share link names its
+    /// slider), then the head-node lever summary whose button opens POLICY for
+    /// this settlement. GAP links are already worded "not recorded" by the
+    /// view model; nothing here reinterprets them.</summary>
     private void DrawChain(IReadOnlyList<ChainLine> chain, LeverLine lever, string id)
     {
         ImGui.PushTextWrapPos(0f);
-        foreach (ChainLine link in chain) ImGui.TextUnformatted("    " + link.Text);
+        foreach (ChainLine link in chain)
+        {
+            ImGui.TextUnformatted("    " + link.Text);
+            ImGui.TextUnformatted("      -> " + link.Lever.Text);
+        }
         ImGui.TextUnformatted("    " + lever.Text);
         ImGui.PopTextWrapPos();
         if (!lever.IsNone)

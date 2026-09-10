@@ -3,11 +3,13 @@ using Sim.Core.Observability.Explain;
 
 namespace Sim.Ui.ViewModel;
 
-/// <summary>One link of a chain as rendered: "label  value  (kind, source)",
-/// or for a GAP "not recorded: note".</summary>
-public sealed record ChainLine(string Text, bool IsGap);
+/// <summary>One link of a chain as rendered: "label  value  (kind, source) - note",
+/// or for a GAP "label: not recorded: note" — plus the lever of THIS link's own
+/// node (<see cref="Levers.For"/>), so a weather link says it is a condition
+/// while a share link says which slider it is.</summary>
+public sealed record ChainLine(string Text, bool IsGap, LeverLine Lever);
 
-/// <summary>The lever under a chain: the sectors of the labour allocation that
+/// <summary>The lever under a node: the sectors of the labour allocation that
 /// reach it, or the honest reason none does.</summary>
 public sealed record LeverLine(string Text, bool IsNone, int[] Sectors);
 
@@ -43,25 +45,40 @@ public sealed record GrievanceView(
 /// director clicks first would differ between machines; the tie-dense test
 /// pins that every bound need equally unmet lists ascending by id.
 ///
-/// A GAP link is rendered "not recorded: &lt;note&gt;" and never as a number.
-/// The lever shown is the lever of the chain's HEAD node — the need's own
-/// satisfaction — which is by construction the set of sectors that reach the
-/// contributor (Levers.For). A None lever prints its reason; no mechanic is
-/// invented to make the row actionable.
+/// EVERY LINK CARRIES ITS NOTE AND ITS OWN LEVER. A link's Note is the query's
+/// citation of where the value came from and what it means (the file:line, the
+/// one-turn lag, "a condition, no lever"); dropping it would leave a bare
+/// number the player cannot check. A GAP link is rendered "not recorded:
+/// &lt;note&gt;" and never as a number. The lever is looked up PER NODE
+/// (<see cref="Levers.For"/>) and rendered beside each link, so the causes the
+/// core marks as conditions — weather, arable land, deposit abundance,
+/// nutritional demand, grain imports — read "condition, no lever - &lt;reason&gt;"
+/// and are not confused with the levered links around them
+/// (docs/observability-architecture.md §5: "the explanation names them as
+/// conditions"). The chain's HEAD lever — the need's own satisfaction node, by
+/// construction the set of sectors that reach the contributor — is kept as the
+/// summary under the chain, where the [open POLICY] button sits. No mechanic is
+/// invented to make a row actionable.
 /// </summary>
 public static class GrievanceViewModel
 {
+    public const string NoLeverPrefix = "condition, no lever - ";
+    public const string AllocationPrefix = "lever: labour allocation - ";
+
     private static string F(double v, string fmt) => double.IsNaN(v) ? "-" : v.ToString(fmt, CultureInfo.InvariantCulture);
 
     public static ChainLine LinkLine(in Link link)
     {
+        LeverLine lever = LeverFor(link.Node);
         if (link.Kind == LinkKind.Gap)
-            return new ChainLine(string.Create(CultureInfo.InvariantCulture, $"  {link.Label}: not recorded: {link.Note}"), true);
+            return new ChainLine(string.Create(CultureInfo.InvariantCulture, $"  {link.Label}: not recorded: {link.Note}"), true, lever);
         string source = link.World == SourceWorld.None || link.SourceIndex < 0
             ? link.World.ToString().ToLowerInvariant()
             : string.Create(CultureInfo.InvariantCulture, $"{link.World.ToString().ToLowerInvariant()} {link.SourceTable}[{link.SourceIndex}]");
-        return new ChainLine(string.Create(CultureInfo.InvariantCulture,
-            $"  {link.Label}  {F(link.Value, "G6")}  ({link.Kind.ToString().ToLowerInvariant()}, {source})"), false);
+        string text = string.Create(CultureInfo.InvariantCulture,
+            $"  {link.Label}  {F(link.Value, "G6")}  ({link.Kind.ToString().ToLowerInvariant()}, {source})");
+        if (!string.IsNullOrEmpty(link.Note)) text = text + " - " + link.Note;
+        return new ChainLine(text, false, lever);
     }
 
     public static IReadOnlyList<ChainLine> ChainLines(Link[] links)
@@ -71,11 +88,14 @@ public static class GrievanceViewModel
         return lines;
     }
 
+    /// <summary>The lever of one node: "lever: labour allocation - &lt;sectors&gt;
+    /// (&lt;reason&gt;)" or "condition, no lever - &lt;reason&gt;". The two prefixes
+    /// are disjoint so a None node can never read as levered.</summary>
     public static LeverLine LeverFor(ChainNode node)
     {
         Lever lever = Levers.For(node);
-        if (lever.IsNone) return new LeverLine("lever: none - " + lever.Reason, true, []);
-        var text = new System.Text.StringBuilder("lever: labour allocation - ");
+        if (lever.IsNone) return new LeverLine(NoLeverPrefix + lever.Reason, true, []);
+        var text = new System.Text.StringBuilder(AllocationPrefix);
         for (int i = 0; i < lever.Sectors.Length; i++)
         {
             if (i > 0) text.Append(", ");
@@ -87,7 +107,7 @@ public static class GrievanceViewModel
 
     /// <summary>The chain's head-node lever, or None with a reason for an empty chain.</summary>
     private static LeverLine HeadLever(Link[] links) =>
-        links.Length == 0 ? new LeverLine("lever: none - the chain is empty", true, []) : LeverFor(links[0].Node);
+        links.Length == 0 ? new LeverLine("no lever - the chain is empty", true, []) : LeverFor(links[0].Node);
 
     public static GrievanceView Build(
         HappinessExplanation happiness,

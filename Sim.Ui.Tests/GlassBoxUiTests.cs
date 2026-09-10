@@ -277,6 +277,11 @@ public class GlassBoxUiTests
         ChainLine readLine = GrievanceViewModel.LinkLine(read);
         Assert.False(readLine.IsGap);
         Assert.Equal("  grain harvest  436  (read, prev GoodStocks[7])", readLine.Text);
+        // A link with a Note renders the note after its citation, verbatim.
+        var noted = new Link(ChainNode.GrainHarvest, "grain harvest", 436, LinkKind.Read, SourceWorld.Prev, "GoodStocks", 7,
+            "LastProducedUnits (ProductionSystem.cs:243-247)");
+        Assert.Equal("  grain harvest  436  (read, prev GoodStocks[7]) - LastProducedUnits (ProductionSystem.cs:243-247)",
+            GrievanceViewModel.LinkLine(noted).Text);
 
         // Levers: a sector lever names its sectors; a None lever names its reason and no button.
         LeverLine farming = GrievanceViewModel.LeverFor(ChainNode.FarmingShare);
@@ -286,7 +291,68 @@ public class GlassBoxUiTests
         LeverLine weather = GrievanceViewModel.LeverFor(ChainNode.HarvestWeather);
         Assert.True(weather.IsNone);
         Assert.Empty(weather.Sectors);
-        Assert.StartsWith("lever: none - ", weather.Text);
+        Assert.StartsWith("condition, no lever - ", weather.Text);
+        // The link carries its own node's lever: the weather link IS a condition.
+        var weatherLink = new Link(ChainNode.HarvestWeather, "harvest weather", 1.02, LinkKind.Read, SourceWorld.Prev, "HarvestWeather", 0,
+            "a condition, no lever.");
+        Assert.True(GrievanceViewModel.LinkLine(weatherLink).Lever.IsNone);
+        Assert.Equal(weather.Text, GrievanceViewModel.LinkLine(weatherLink).Lever.Text);
+    }
+
+    [Fact]
+    public void Grievance_EveryChainNode_RendersItsOwnLever_NoneNodesNameTheConditionAndNeverTheAllocation()
+    {
+        // Every node the core can put in a chain, walked through the view model
+        // as a READ link carrying a Note: the Note is rendered, and the lever
+        // beside the link is the node's own — a Lever.None node reads
+        // "condition, no lever - <reason>" and never the allocation text; an
+        // allocation node names every one of its sectors and never "no lever".
+        int none = 0, levered = 0;
+        foreach (ChainNode node in Enum.GetValues<ChainNode>())
+        {
+            string note = "note for " + node.ToString();
+            var link = new Link(node, node.ToString(), 1.5, LinkKind.Read, SourceWorld.Prev, "T", 3, note);
+            ChainLine line = GrievanceViewModel.LinkLine(link);
+            Assert.EndsWith(" - " + note, line.Text);
+            Assert.False(line.IsGap);
+
+            Lever lever = Levers.For(node);
+            Assert.Equal(lever.IsNone, line.Lever.IsNone);
+            Assert.Contains(lever.Reason, line.Lever.Text);
+            if (lever.IsNone)
+            {
+                none++;
+                Assert.StartsWith(GrievanceViewModel.NoLeverPrefix, line.Lever.Text);
+                Assert.DoesNotContain(GrievanceViewModel.AllocationPrefix, line.Lever.Text);
+                Assert.DoesNotContain("labour allocation", line.Lever.Text);
+                Assert.Empty(line.Lever.Sectors);
+            }
+            else
+            {
+                levered++;
+                Assert.StartsWith(GrievanceViewModel.AllocationPrefix, line.Lever.Text);
+                // (a levered node's REASON may mention a lever-less side, e.g.
+                // LandVsLabourBinding "the land side has no lever"; the prefix is what
+                // must never appear)
+                Assert.DoesNotContain(GrievanceViewModel.NoLeverPrefix, line.Lever.Text);
+                Assert.Equal(lever.Sectors, line.Lever.Sectors);
+                foreach (int sector in lever.Sectors) Assert.Contains(SectorBarModel.SectorNames[sector], line.Lever.Text);
+            }
+
+            // A GAP link of the same node keeps the node's lever too (the lever of its stored inputs).
+            var gap = new Link(node, node.ToString(), double.NaN, LinkKind.Gap, SourceWorld.None, "", -1, note);
+            ChainLine gapLine = GrievanceViewModel.LinkLine(gap);
+            Assert.True(gapLine.IsGap);
+            Assert.Equal(line.Lever.Text, gapLine.Lever.Text);
+            Assert.Equal(line.Lever.IsNone, gapLine.Lever.IsNone);
+            Assert.Equal(line.Lever.Sectors, gapLine.Lever.Sectors);
+        }
+        // The seven conditions the lever table names (Levers.cs): NutritionalDemand,
+        // ArableLand, HarvestWeather, DepositAbundance, GrainImports, Population,
+        // PersonsPerDwelling — plus NotSimulated. Pinned so a node turning None
+        // (or levered) is a visible change here.
+        Assert.Equal(8, none);
+        Assert.Equal(Enum.GetValues<ChainNode>().Length - 8, levered);
     }
 
     [Fact]
@@ -325,6 +391,38 @@ public class GlassBoxUiTests
         Assert.Contains(Sectors.Farming, primary.Lever.Sectors);
         Assert.Contains(Sectors.Herding, primary.Lever.Sectors);
 
+        // Every link renders with its Note and its OWN lever, cross-checked link
+        // by link against the chain the view was built from: on this rig the
+        // Sustenance chain is 27 links, 24 non-GAP links carry a Note (each
+        // rendered), 3 are GAPs, and 6 links sit on condition nodes — nutritional
+        // demand, arable land, weather, deposit abundance twice (two food
+        // deposits), grain imports — which read "condition, no lever" and never
+        // the allocation text, while the farming-share link names its slider.
+        CausalChain chain = CausalChain.ForNeed(session.PreviousWorld!, session.World, session.Config,
+            new SettlementId(target), new ClassId(peasants.ClassId), BasketBook.SustenanceNeedId)!;
+        Assert.Equal(chain.Links.Length, primary.Chain.Count);
+        Assert.Equal(27, chain.Links.Length);
+        int noted = 0, gaps = 0, conditions = 0;
+        for (int i = 0; i < chain.Links.Length; i++)
+        {
+            Link link = chain.Links[i];
+            ChainLine line = primary.Chain[i];
+            if (link.Kind == LinkKind.Gap) gaps++;
+            else if (link.Note.Length > 0) { noted++; Assert.EndsWith(" - " + link.Note, line.Text); }
+            Assert.Equal(Levers.For(link.Node).IsNone, line.Lever.IsNone);
+            if (line.Lever.IsNone)
+            {
+                conditions++;
+                Assert.StartsWith("condition, no lever - ", line.Lever.Text);
+                Assert.DoesNotContain("labour allocation", line.Lever.Text);
+            }
+        }
+        Assert.Equal(24, noted);
+        Assert.Equal(3, gaps);
+        Assert.Equal(6, conditions);
+        Assert.Contains(primary.Chain, l => l.Text.Contains("weather") && l.Lever.IsNone && l.Lever.Text.Contains("condition, not a control"));
+        Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone && l.Lever.Text.StartsWith("lever: labour allocation - farming ("));
+
         // Happiness sits at the top with both factors and their chains.
         Assert.StartsWith("happiness ", grievance.HappinessLine);
         Assert.Equal(2, grievance.Factors.Count);
@@ -340,7 +438,69 @@ public class GlassBoxUiTests
         Assert.Contains(view.Food, l => l.StartsWith("  built vs decayed: not recorded: "));
         Assert.DoesNotContain(view.Food, l => l.Contains("GAP:"));
         Assert.Contains(view.Migration, l => l.StartsWith("other destinations"));
-        Assert.True(firstDeficit >= 2);
+        // Measured: settlement 0 ordered 0/0/45/45/10 at turn 0 shows its first
+        // positive deficit on turn 2 (the view above is therefore built on turn 3).
+        Assert.Equal(2, firstDeficit);
+        Assert.Equal(3, session.Observations.LastTurn);
+    }
+
+    [Fact]
+    public void Grievance_AClassThatEmptiedThisStep_IsShownByThePrevMembershipRule_NotHidden()
+    {
+        // The starved settlement runs down: stepped past the Starved rig, its
+        // Peasants go 1 -> 0 on turn 5 (measured on this seed). The needs
+        // system iterated PREV's member to write the row on next, so the query
+        // explains the class with ClassPopulation by PREV — and the tab must
+        // use the same rule: the class is SHOWN with the G the system wrote
+        // for it (reproduces exactly), not hidden because next has nobody.
+        Sim.Ui.UiSession session = Starved(out _);
+        int target = session.World.Settlements[0].Id.Value;
+        var id = new SettlementId(target);
+        Sim.Core.Systems.ClassEntry[] classes = session.Config.Registries.Classes;
+        int emptiedClass = -1;
+        for (int t = 0; t < 12 && emptiedClass < 0; t++)
+        {
+            session.EndTurn();
+            for (int c = 0; c < classes.Length && emptiedClass < 0; c++)
+            {
+                var cls = new ClassId(classes[c].Id);
+                long prevPop = 0, nextPop = 0;
+                for (int b = 0; b < session.PreviousWorld!.Buckets.Count; b++)
+                    if (session.PreviousWorld.Buckets[b].Settlement == id && session.PreviousWorld.Buckets[b].Class == cls)
+                        prevPop += session.PreviousWorld.Buckets[b].Count.Value;
+                for (int b = 0; b < session.World.Buckets.Count; b++)
+                    if (session.World.Buckets[b].Settlement == id && session.World.Buckets[b].Class == cls)
+                        nextPop += session.World.Buckets[b].Count.Value;
+                if (prevPop > 0 && nextPop == 0) emptiedClass = classes[c].Id;
+            }
+        }
+        Assert.Equal(classes[0].Id, emptiedClass);                       // Peasants
+        Assert.Equal(5, session.Observations.LastTurn);
+
+        // Next has NOBODY of that class in the settlement, yet its grievance row stands.
+        var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));
+        Assert.Equal(1, explanation.ClassPopulation);                    // by PREV
+        Assert.True(explanation.Total > 0.0);
+        Assert.Equal(explanation.Total, explanation.Recomputed);
+
+        SettlementView? view = ScreenModels.Settlement(session, target);
+        Assert.NotNull(view?.Grievance);
+        ClassGrievanceBlock block = Assert.Single(view.Grievance.Classes);
+        Assert.Equal(emptiedClass, block.ClassId);
+        Assert.Contains("1 people", block.HeaderLine);
+        Assert.Contains("reproduces exactly", block.AccrualLine);
+        Assert.Contains(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"grievance {explanation.Total:F2}"), block.HeaderLine);
+        Assert.NotEmpty(block.Contributors);
+
+        // The turn after, prev has nobody: the system writes 0 and the query
+        // has no row to explain — both rules hide it, and the tab is empty.
+        session.EndTurn();
+        SettlementView? after = ScreenModels.Settlement(session, target);
+        Assert.NotNull(after?.Grievance);
+        Assert.Empty(after.Grievance.Classes);
+        var afterExplanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));
+        Assert.Equal(0, afterExplanation.ClassPopulation);
+        Assert.Equal(0.0, afterExplanation.Total);
     }
 
     // ------------------------------------------------------------------
@@ -393,6 +553,31 @@ public class GlassBoxUiTests
     // B2 — trends
     // ------------------------------------------------------------------
 
+    /// <summary>A one-observation history over hand-built records, for the
+    /// founding-record rule; Series covers the keys the test reads.</summary>
+    private sealed class FakeHistory(TurnObservation only) : IObservationHistory
+    {
+        public IReadOnlyList<TurnObservation> Observations { get; } = [only];
+        public long FirstTurn => only.Turn.Turn;
+        public long LastTurn => only.Turn.Turn;
+        public TurnObservation? At(long turn) => turn == only.Turn.Turn ? only : null;
+        public SettlementRecord? Settlement(long turn, int settlement) =>
+            turn == only.Turn.Turn ? only.Settlements.FirstOrDefault(r => r.Settlement == settlement) : null;
+        public int Series(int settlement, SeriesKey key, Span<double> into, int classId = -1)
+        {
+            SettlementRecord? r = Settlement(only.Turn.Turn, settlement);
+            into[0] = r is null ? double.NaN : key switch
+            {
+                SeriesKey.Population => r.Population.Closing,
+                SeriesKey.Births => r.Population.Births,
+                _ => throw new ArgumentOutOfRangeException(nameof(key)),
+            };
+            return 1;
+        }
+        public IReadOnlyList<PolicyChange> PolicyChanges => [];
+        public IReadOnlyList<PolicyState> PolicyStates => [];
+    }
+
     [Fact]
     public void Trends_ReturnASeriesPerSeriesKey_WithOneValuePerObservedTurn()
     {
@@ -408,18 +593,60 @@ public class GlassBoxUiTests
             int classId = key == SeriesKey.Grievance ? classes[0].Id : -1;
             double[] settlement = TrendsModel.Settlement(history, first, key, classId);
             double[] world = TrendsModel.World(history, key, classId);
-            Assert.Equal(6, settlement.Length);
-            Assert.Equal(6, world.Length);
+            // Six steps observed; the keys with an opening (population, food,
+            // dwellings) carry the turn-0 founding sample in front, the rest
+            // start at turn 1 — no fabricated founding value.
+            int expected = TrendsModel.HasOpening(key) ? 7 : 6;
+            Assert.Equal(expected, settlement.Length);
+            Assert.Equal(expected, world.Length);
             Assert.All(settlement, v => Assert.False(double.IsNaN(v)));
+            if (TrendsModel.HasOpening(key))
+            {
+                SettlementRecord firstRecord = history.Settlement(history.FirstTurn, first)!;
+                Assert.Equal(TrendsModel.Opening(firstRecord, key), settlement[0]);
+                // ... and turns 1..6 are the seam's series, shifted by one.
+                var raw = new double[6];
+                Assert.Equal(6, history.Series(first, key, raw, classId));
+                for (int t = 0; t < 6; t++) Assert.Equal(raw[t], settlement[t + 1]);
+            }
         }
+        Assert.Equal([SeriesKey.Population, SeriesKey.Food, SeriesKey.Dwellings],
+            Enum.GetValues<SeriesKey>().Where(TrendsModel.HasOpening).ToArray());
         Assert.Contains(metrics, m => m.IsPrice);
         Assert.Equal(classes.Length, metrics.Count(m => m.Key == SeriesKey.Grievance && !m.IsPrice));
 
-        // World population through the seam equals the TurnRecord's closing
-        // population on every turn — the sum is the ledger carrier's sum.
+        // World population through the seam: turn 0 is the first TurnRecord's
+        // OPENING (the founding carrier sum) and every later turn equals the
+        // TurnRecord's closing population — the sum is the ledger carrier's sum.
         double[] pop = TrendsModel.World(history, SeriesKey.Population, -1);
+        Assert.Equal(history.Observations[0].Turn.Population.Opening, pop[0]);
         for (int t = 0; t < 6; t++)
-            Assert.Equal(history.Observations[t].Turn.Population.Closing, pop[t]);
+            Assert.Equal(history.Observations[t].Turn.Population.Closing, pop[t + 1]);
+        double[] grain = TrendsModel.World(history, SeriesKey.Food, -1);
+        Assert.Equal(history.Observations[0].Turn.Grain.Opening, grain[0]);
+        double[] dwellings = TrendsModel.World(history, SeriesKey.Dwellings, -1);
+        Assert.Equal(history.Observations[0].Turn.Dwellings.Opening, dwellings[0]);
+        // A settlement never observed, and a key without an opening, read NaN.
+        Assert.True(double.IsNaN(TrendsModel.FoundingValue(history, 9999, SeriesKey.Population)));
+        Assert.True(double.IsNaN(TrendsModel.FoundingValue(history, first, SeriesKey.Births)));
+
+        // A FOUNDING record on the first observation (the settlement did not
+        // exist at turn 0) reads NaN there — never its zero opening — and is
+        // left out of the world's founding sum, which is the openings of the
+        // settlements that existed: on a hand-built history with one prev
+        // settlement (opening 100, closing 12) and one founded that step
+        // (closing 40): settlement series [NaN, 40], world [100, 52].
+        var fake = new FakeHistory(new TurnObservation(
+            Turn(100, 0, 0, 0, 52, true, 0, 100, 0, 0, 0, 0, 100),
+            [Record(0, 100, 12, 0.0), Record(1, 0, 40, 0.0, founded: true)]));
+        Assert.Equal(100.0, TrendsModel.FoundingValue(fake, 0, SeriesKey.Population));
+        Assert.True(double.IsNaN(TrendsModel.FoundingValue(fake, 1, SeriesKey.Population)));
+        double[] founded = TrendsModel.Settlement(fake, 1, SeriesKey.Population, -1);
+        Assert.Equal(2, founded.Length);
+        Assert.True(double.IsNaN(founded[0]));
+        Assert.Equal(40.0, founded[1]);
+        Assert.Equal([100.0, 52.0], TrendsModel.World(fake, SeriesKey.Population, -1));
+        Assert.Equal([6.0], TrendsModel.World(fake, SeriesKey.Births, -1));   // no opening: no turn 0 (births 3 + 3)
         // An intensive key at world scope is a mean, and says so.
         Assert.Contains("mean", TrendsModel.ScopeNote(SeriesKey.Happiness, true));
         Assert.Contains("sum", TrendsModel.ScopeNote(SeriesKey.Births, true));

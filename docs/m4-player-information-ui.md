@@ -70,13 +70,13 @@ verbatim; the card's fraction of the map band is pinned under a tenth).
 | · Population | opening → closing, cohorts, births, deaths (labelled UNSPLIT, §8 gap 1), inflow / outflow, colonists departed (residual) WITH its identity string, class counts; then the T3.9a per-class needs block (the former POPULATION section, unchanged) | `PopulationSection` + `NeedsPanelModel` |
 | · Food | `grain open + harvest − eaten − store losses = close` WITH the identity string, demand / obtained / deficit, per food good produced / demand / eaten, dwellings line, built-vs-decayed as "not recorded: …" | `FoodSection`, `HousingSection` |
 | · Economy | the record's shares in force (flagged "default, never ordered"), variables, class latches, trade legs; then the former MARKET section unchanged: goods / prices / last move rows, the PriceTerms decomposition, the price series | `EconomySection` + `MarketModel` + `HistoryBuffer.Price` |
-| · Grievance — **the centre** (A6–A9, B6) | happiness line (click → the two factors, each click → its chain + lever; the ScopeNote saying happiness omits Comfort and the gate); the AttributionNote; per class present: total, Δ this turn, accrual vs decay with "reproduces exactly"; **PRIMARY first** with its MarginalLift; every bound need as a contributor row (satisfaction, weighted shortfall, marginal lift, gate flag); unbound needs under "not yet simulated"; click a contributor → its CausalChain, one link per line "label  value  (kind, source)", GAP links "label: not recorded: note"; at the bottom the lever — the sectors that reach it with an **open POLICY** button, or the honest None reason | `HappinessExplanation.For(next)`, `GrievanceExplanation.For(prev, next)` per class with members, `CausalChain.ForNeed`, `Levers.For` — `GrievanceViewModel`, composed in `ScreenModels.Grievance` |
+| · Grievance — **the centre** (A6–A9, B6) | happiness line (click → the two factors, each click → its chain + lever; the ScopeNote saying happiness omits Comfort and the gate); the AttributionNote; per class present: total, Δ this turn, accrual vs decay with "reproduces exactly"; **PRIMARY first** with its MarginalLift; every bound need as a contributor row (satisfaction, weighted shortfall, marginal lift, gate flag); unbound needs under "not yet simulated"; click a contributor → its CausalChain, one link per line "label  value  (kind, source) - note" (the query's Note, verbatim, on every link that carries one), GAP links "label: not recorded: note"; **under every link its own node's lever** (`Levers.For(link.Node)`): "lever: labour allocation - farming (This IS the farming slider.)" or, for the causes the core marks as conditions — weather, arable land, deposit abundance, nutritional demand, grain imports — "condition, no lever - reason", so they cannot be read as levered; at the bottom the head-node lever summary — the sectors that reach the need with an **open POLICY** button, or its None reason | `HappinessExplanation.For(next)`, `GrievanceExplanation.For(prev, next)` per class with members ON PREV (the query's own rule — a class that emptied this step is still shown with the G the system wrote from those members; one with nobody on prev has no row and is not), `CausalChain.ForNeed`, `Levers.For` per node — `GrievanceViewModel`, composed in `ScreenModels.Grievance` |
 | · Migration | inflow / outflow; push (prev deficit), pull (prev smoothed attractiveness), food-gate inputs, unplaced; self as destination; **others sorted (attractiveness DESC, id ASC)** with deficit / grain presence / happiness; the push reading; pairwise flows, damping, viability products, gap scale each as "not recorded: …" | `MigrationSection` + `MigrationExplanation.For(prev, next)` |
 | · Orders | orders applied this step targeting this settlement: index / actor / kind / sector / amount | `SettlementRecord.Orders` |
 | **POLICY** (3) — B5, C3 | the policy list (one entry: labour allocation; M5's taxation is the second in the same shape); the T4.18 fixed-sum sliders unchanged; **CURRENT**: the running bars plus declared vs effective side by side per sector; **HISTORY**: `PolicyChange` newest first — "turn 24 · farming 55% -> 73% · player · order #104" — and under each the settlement's record headline (pop, food, deficit, happiness) on the following turns, labelled **"observed on the turns after, not attributed (no counterfactual exists)"**; the per-turn `PolicyState` table behind a checkbox | `IObservationHistory.PolicyChanges / PolicyStates`, `IObservationHistory.Settlement(turn, id)` — `PolicyHistoryModel` |
 | **ECONOMY** (4) | the T3.9b trade summary / flows / goods rows unchanged; plus the **world GoodAccount table** from the latest TurnRecord: opening, produced, inputs consumed, tool wear, eaten, housing materials, construction materials, closing, "ok" / "DISCREPANCY n" | `TradeModel` + `TurnRecord.Goods` — `TurnAuditModel.GoodAccountLines` |
 | **ANNALS** (5) | unchanged | chronicle |
-| **TRENDS** (6) — B2 | ONE graph (the T4.18 PlotLarge, one implementation); metrics: every `SeriesKey` — population, food, deficit, happiness, grievance per registry class, inflow, outflow, births, deaths, harvest, eaten, dwellings — with world / settlement scope, plus **price** from the T3.9a `HistoryBuffer` (the only series the observation history lacks); the scope note states what a world value IS: a sum for extensive keys, an unweighted mean for deficit / happiness / grievance ("not a simulation quantity") | `IObservationHistory.Series` — `TrendsModel` |
+| **TRENDS** (6) — B2 | ONE graph (the T4.18 PlotLarge, one implementation); metrics: every `SeriesKey` — population, food, deficit, happiness, grievance per registry class, inflow, outflow, births, deaths, harvest, eaten, dwellings — with world / settlement scope, plus **price** from the T3.9a `HistoryBuffer` (the only series the observation history lacks); the scope note states what a world value IS: a sum for extensive keys, an unweighted mean for deficit / happiness / grievance ("not a simulation quantity"); **turn 0** (the founding sample the T4.18 HistoryBuffer drew) is kept for the keys whose record carries an opening — see below | `IObservationHistory.Series` + the first record's Opening — `TrendsModel` |
 | **MORE** (7) | unchanged, plus the session file list: manifest, orders, chronicle, trace, telemetry paths | `UiSession.*Path` — `SessionFilesModel` |
 
 **Nothing the old POPULATION and MARKET sections showed became unreachable**:
@@ -91,6 +91,27 @@ ever observed — deliberately, so the UI holds no second copy of the
 key → record-field mapping that could drift from `ObservationLog`. Pinned: the
 world population series equals `TurnRecord.Population.Closing` on every turn
 of a played session.
+
+**Turn 0 — the founding sample.** The observation history holds one record per
+STEP (turns 1..N); the T4.18 `HistoryBuffer` also drew a founding sample at
+turn 0, so a series started where the world did. TRENDS keeps that sample for
+the three keys whose record carries an OPENING — **population**
+(`Population.Opening`), **food** (`Food.GrainOpening`), **dwellings**
+(`Housing.DwellingsOpening`): the first observation's opening IS the founding
+value, read off the record (`TrendsModel.Opening`, the one place the UI maps a
+key to an opening field, because the seam exposes no opening series and this
+lane may not touch the core). It is prepended, so those series have N + 1
+values; a settlement whose first record is a FOUNDING record did not exist at
+turn 0 and reads NaN there, never its zero opening, and is left out of the
+world's founding sum. **The other nine keys have no turn-0 value and get
+none**: inflow, outflow, births, deaths, harvest, eaten are per-step flows —
+nothing flowed before the first step; deficit, happiness and grievance are read
+from rows the step's systems wrote on `next`, and the record keeps no prev-side
+copy of them — a founding value would have to be computed from the world,
+which the graph must not do. Those series have N values and start at turn 1.
+Pinned on a six-step session: 7 values for the opening keys, 6 for the rest;
+world population at turn 0 equals the first `TurnRecord.Population.Opening`
+(likewise grain and dwellings); the founded-record rule on a hand-built history.
 
 **Reads built in the UI that the core lanes did not provide** (all over public
 records, none a simulation formula): the WHERE ranking (`TurnAuditModel`, a
@@ -157,7 +178,7 @@ by `ScreenModels`; `SimUiGame` only renders.
 | 4 | what is the primary grievance? | selection card **grievance** → SETTLEMENT / Grievance → per class "primary grievance: Sustenance (marginal lift 0.6869 …)", the PRIMARY row first | `GrievanceExplanation.PrimaryNeedId` = argmax MarginalLift, (lift DESC, need id ASC) |
 | 5 | what are its contributors? | same tab: every bound need as a row — satisfaction, weighted shortfall w·(1−s), marginal lift S(s_n:=1) − S, gate flag; unbound needs under "not yet simulated" | `GrievanceExplanation.Needs`. **Stated, not hidden:** the decomposition is observer-defined (CES is not additive) — the AttributionNote is printed above the blocks |
 | 6 | what caused the largest contributor? | click the PRIMARY row → its chain: satisfaction ← food fills ← deficit ← grain store / harvest / eaten ← farming share, arable land, weather, tools ← GAPs "tool factor: not recorded: …", "land-vs-labour binding: not recorded: …", "grain imports: not recorded: …" | `CausalChain.ForNeed(prev, next)`; each link cites world, table and row index |
-| 7 | which lever? | bottom of the chain: "lever: labour allocation - farming, herding (…)" → **open POLICY**; or "lever: none - <reason>" for weather, arable land, abundance, population, imports | `Levers.For(head node)`. **Missing layer, honestly:** no player trade lever exists in M4 (§8 gap 12), so the imports branch names none |
+| 7 | which lever? | under EVERY link of the chain its own node's lever: "lever: labour allocation - farming (This IS the farming slider.)", or "condition, no lever - <reason>" for weather, arable land, abundance, nutritional demand, population, imports; at the bottom the head-node summary "lever: labour allocation - farming, herding (…)" → **open POLICY** | `Levers.For(node)` per link, `Levers.For(head node)` for the summary. **Missing layer, honestly:** no player trade lever exists in M4 (§8 gap 12), so the imports link names none |
 | 8 | what was my policy last turn? | POLICY → HISTORY: "turn 24 · farming 55% -> 73% · player · order #104"; or the per-turn table: turn N declared / effective | `PolicyChange`, `PolicyState` (order log + `SectorAllocationRow`, nothing else) |
 | 9 | what is it now? | POLICY → CURRENT: the running bars + declared vs effective per sector "(in force on turn N)" | latest `PolicyState`; the sliders' snap is `Sectors.Share` on the live row |
 | 10 | what changed because of my decision? | POLICY → HISTORY → under each change: "observed on the turns after, not attributed" — turn t+1.. pop / food / deficit / happiness | `IObservationHistory.Settlement(t, id)`. **Missing layer:** attribution of consequences to a decision is NOT possible — the simulation carries no counterfactual; shown as observed, labelled on every block |
@@ -170,26 +191,39 @@ by `ScreenModels`; `SimUiGame` only renders.
 
 - `git diff --stat 2a436f1` — `Sim.Ui/`, `Sim.Ui.Tests/`, this file. No simulation project.
 - `dotnet build -c Release`: 0 warnings, 0 errors (`grep -c warning` on the build log: 0).
-- `Sim.Ui.Tests` (Release): **225 passed, 0 failed, 0 skipped** — 208 pre-existing
+- `Sim.Ui.Tests` (Release): **227 passed, 0 failed, 0 skipped** — 208 pre-existing
   (two T4.18 pins re-aimed at the packet's roster: the leading section is now TURN
-  by the packet's order, and the toggle example uses SETTLEMENT) + 17 new in
+  by the packet's order, and the toggle example uses SETTLEMENT), 18 `[Fact]`s in
+  `GlassBoxUiTests`, and 1 net new `[Fact]` in `GameScreenTests` (9 → 10).
   `GlassBoxUiTests`: routing covers every figure; TURN lines reproduce a hand-built
   record numerically and print the two flag wordings; WHERE is (magnitude DESC,
   id ASC) with a tie-dense case (three equal magnitudes in descending id order);
   the grievance ranking is tie-dense (four equal lifts, descending ids → ascending);
-  GAP links render "not recorded:"; on the STARVED session (settlement 0 ordered to
-  zero farming and herding through `EmitSectorOrders`, stepped to its first deficit
-  — turn 3 — and once more) the primary is Sustenance, first, its chain carries GAP
-  links and the farming share read back as 0, the lever is farming + herding, the
-  five unbound needs are listed; policy history renders old / new / actor / order
-  index and, on a played session with a turn-2 order, the turn-3 change with
-  observed turns 4–6 beneath; every `SeriesKey` returns one value per observed
-  turn at both scopes and the world population series equals the TurnRecord's
-  closing population; camera centring lands interior settlements at the viewport
-  centre to 1e-9 and edge / world-fit cases at the clamp; opening every section
-  and tab and building every view model five times on the starved session leaves
-  the world hash, the previous world's hash, the order log and the observation
-  count unchanged.
+  GAP links render "not recorded:", a link with a Note renders it verbatim, and
+  EVERY `ChainNode` walked through the view model renders its own lever — the 8
+  `Lever.None` nodes as "condition, no lever - <reason>" and never the allocation
+  text, the rest naming every sector; on the STARVED session (settlement 0 ordered to
+  zero farming and herding through `EmitSectorOrders`, stepped to its first positive
+  deficit — **turn 2, pinned exactly** — and once more, so the view is built on turn 3)
+  the primary is Sustenance, first, its 27-link chain carries 3 GAP links, 24 links
+  with their Note rendered and 6 condition links (nutritional demand, arable land,
+  weather, deposit abundance twice, grain imports) worded "condition, no lever",
+  the farming share reads back 0 and names its slider, the head lever is farming +
+  herding, the five unbound needs are listed; stepped on to turn 5 the Peasants
+  empty (1 → 0) and the Grievance tab still SHOWS the class by the PREV membership
+  rule with the G the system wrote (reproduces exactly, "1 people"), and on turn 6
+  — nobody on prev, the row at 0 — it is not shown; policy history renders old /
+  new / actor / order index and, on a played session with a turn-2 order, the
+  turn-3 change with observed turns 4–6 beneath; every `SeriesKey` returns one
+  value per observed turn at both scopes plus the turn-0 founding sample for the
+  three opening keys (7 vs 6 on a six-step session), the world population series
+  equals the first TurnRecord's opening at turn 0 and the TurnRecord's closing on
+  every turn after, and a founding record reads NaN at turn 0 on a hand-built
+  history; camera centring lands interior settlements at the viewport centre to
+  1e-9 and edge / world-fit cases at the clamp; opening every section and tab and
+  building every view model five times on the starved session leaves the world
+  hash, the previous world's hash, the order log and the observation count
+  unchanged.
 - `Sim.Tests` filtered to `Sim.Tests.Observability` (Observability + Explain, the
   only core tests this lane may touch — and touched nothing): **34 passed, 6 failed**
   on this tree. The 6 fail with `LedgerOverdrawException: sinking 67 exceeds
