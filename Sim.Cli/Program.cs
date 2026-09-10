@@ -54,7 +54,8 @@ namespace Sim.Cli
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
                           [--report-jsonl PATH [--report-every N]]
                   sim inspect --manifest runs/session-STAMP.json [--turn N] [--window K]
-                          [--report-jsonl PATH]
+                          [--report-jsonl PATH] [--telemetry OUT.jsonl]
+                          [--settlement ID --turn N]
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
@@ -263,7 +264,7 @@ namespace Sim.Cli
         internal static int Inspect(string[] args)
         {
             var opts = Options.Parse(args, flags: [],
-                valued: ["--manifest", "--turn", "--window", "--report-jsonl"]);
+                valued: ["--manifest", "--turn", "--window", "--report-jsonl", "--telemetry", "--settlement"]);
 
             string manifestPath = opts.Get("--manifest")
                 ?? throw new CliUsageException("inspect requires --manifest PATH");
@@ -310,15 +311,31 @@ namespace Sim.Cli
             string? reportPath = opts.Get("--report-jsonl");
             using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
 
+            // T4.19 — THE GLASS BOX, HEADLESS. --telemetry rebuilds every turn's
+            // record by replaying the log through the same observer the played
+            // session used (§7: records are a pure function of the replay, so
+            // they are never a source of truth); --settlement ID --turn N prints
+            // one settlement's record in full. Both are observers of the
+            // post-step pair and neither feeds back: the Step call is identical
+            // whether or not a log is attached.
+            string? telemetryPath = opts.Get("--telemetry");
+            string? settlementArg = opts.Get("--settlement");
+            Sim.Core.Observability.ObservationLog? log =
+                telemetryPath is not null || settlementArg is not null
+                    ? new Sim.Core.Observability.ObservationLog() : null;
+
             var replayed = new List<SessionTrace.Row>((int)turns + 1)
             {
                 SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0],
             };
             for (long t = 1; t <= turns; t++)
             {
-                world = executor.Step(world);
+                WorldState prev = world;
+                world = executor.Step(prev);
                 replayed.Add(SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0]);
                 if (report is not null) ReplayReport.WriteTurn(report, world, cfg);
+                log?.Observe(prev, world, cfg,
+                    Sim.Core.Observability.OrderApplied.For(orders, prev.Clock.Turn));
             }
 
             Console.WriteLine();
@@ -335,6 +352,36 @@ namespace Sim.Cli
             {
                 Console.WriteLine();
                 Console.WriteLine($"full per-turn state: {reportPath} ({new FileInfo(reportPath).Length} bytes)");
+            }
+
+            if (telemetryPath is not null)
+            {
+                using (FileStream file = File.Create(telemetryPath))
+                {
+                    Sim.Core.Observability.TelemetryWriter.WriteAll(file, log!);
+                }
+                Console.WriteLine();
+                Console.WriteLine($"telemetry: {telemetryPath} ({new FileInfo(telemetryPath).Length} bytes, "
+                    + $"{log!.Observations.Count.ToString(CultureInfo.InvariantCulture)} turns)");
+            }
+
+            if (settlementArg is not null)
+            {
+                if (!int.TryParse(settlementArg, NumberStyles.None, CultureInfo.InvariantCulture, out int settlementId))
+                    throw new CliUsageException($"--settlement must be a settlement id, got '{settlementArg}'");
+                if (focus is not { } at)
+                    throw new CliUsageException("--settlement ID needs --turn N (the turn whose record to print)");
+                Sim.Core.Observability.TurnObservation? observation = log!.At(at);
+                Sim.Core.Observability.SettlementRecord? record = log.Settlement(at, settlementId);
+                if (observation is null)
+                    throw new CliUsageException($"turn {at.ToString(CultureInfo.InvariantCulture)} was not replayed "
+                        + $"(records exist for turns 1..{turns.ToString(CultureInfo.InvariantCulture)})");
+                if (record is null)
+                    throw new CliUsageException($"settlement {settlementId.ToString(CultureInfo.InvariantCulture)} "
+                        + $"has no record on turn {at.ToString(CultureInfo.InvariantCulture)} (not yet founded, or no such id)");
+                Console.WriteLine();
+                using Stream stdout = Console.OpenStandardOutput();
+                Sim.Core.Observability.TelemetryWriter.WriteSettlement(stdout, record, observation.Turn);
             }
             return 0;
         }

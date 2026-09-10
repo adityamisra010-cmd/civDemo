@@ -389,6 +389,9 @@ public sealed class SimUiGame : Game
         // The manifest is NOT rewritten here: it is written once at launch, so
         // that a session ending in a crash is still reproducible.
         _session.ExportTrace(UiSession.TracePath(_sessionLogPath));
+        // T4.19: and the telemetry, same stamp — every turn's world record and
+        // settlement records, the glass box as it was actually played.
+        _session.ExportTelemetry(UiSession.TelemetryPath(_sessionLogPath));
     }
 
     protected override void OnExiting(object sender, ExitingEventArgs args)

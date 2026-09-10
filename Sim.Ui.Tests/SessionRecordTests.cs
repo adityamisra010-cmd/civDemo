@@ -49,6 +49,38 @@ public class SessionRecordTests
         Assert.Equal(
             Path.Combine("runs", "session-20260909-120000-s256-n4.json"),
             Sim.Ui.UiSession.ManifestPath(log));
+        // T4.19: the fifth file, same stamp.
+        Assert.Equal(
+            Path.Combine("runs", "telemetry-20260909-120000-s256-n4.jsonl"),
+            Sim.Ui.UiSession.TelemetryPath(log));
+    }
+
+    [Fact]
+    public void T419_TheSessionObservesEveryEndTurn_AndTheTelemetryExportsOneLinePerTurn()
+    {
+        // The glass box at the session seam: one observation per End Turn (turn
+        // 0 is the world before any step, so it has no record), the manifest
+        // names the fifth file, and the export writes exactly the observed turns.
+        Sim.Ui.UiSession session = Played(6, out string log, "telemetry");
+        Assert.Equal(6, session.Observations.Observations.Count);
+        Assert.Equal(1, session.Observations.FirstTurn);
+        Assert.Equal(6, session.Observations.LastTurn);
+        Assert.True(session.Observations.At(3)!.Turn.Grain.Reconciles);
+        Assert.Equal(4, session.Observations.At(6)!.Settlements.Length);
+        Assert.Equal("telemetry-x.jsonl", session.Manifest("t", "runs/orders-x.bin").TelemetryFile);
+
+        string path = Sim.Ui.UiSession.TelemetryPath(log);
+        try
+        {
+            session.ExportTelemetry(path);
+            string[] lines = File.ReadAllLines(path);
+            Assert.Equal(6, lines.Length);
+            Assert.Contains("\"schema\":\"telemetry/v1\"", lines[0]);
+        }
+        finally
+        {
+            if (Directory.Exists(Path.GetDirectoryName(path)!)) Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
+        }
     }
 
     [Fact]
