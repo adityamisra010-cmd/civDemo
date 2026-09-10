@@ -330,7 +330,6 @@ public static class TelemetryWriter
         json.WriteEndArray();
         json.WriteNumber("prevGrainStock", m.PrevGrainStock);
         json.WriteNumber("prevGrainHarvest", m.PrevGrainHarvest);
-        json.WriteBoolean("grainPresent", m.GrainPresent);
         Num(json, "unplacedDeparture", m.UnplacedDeparture);
         Num(json, "unplacedRemainder", m.UnplacedRemainder);
         json.WriteString("pairwiseFlows", m.PairwiseFlows);

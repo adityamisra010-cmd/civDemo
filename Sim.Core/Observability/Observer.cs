@@ -553,7 +553,7 @@ public static class Observer
             remainder += b.UnplacedRemainder;
         }
         return new MigrationSection(
-            push, pull, all, stock, lastHarvest, stock > 0 || lastHarvest > 0,
+            push, pull, all, stock, lastHarvest,
             unplaced, remainder, PairwiseGap);
     }
 

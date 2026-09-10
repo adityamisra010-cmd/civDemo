@@ -131,8 +131,12 @@ public sealed record MigrationSection(
     double PullAttractiveness,        // READ  prev SmoothedAttractivenessRow.Value (NaN when no row)
     AttractivenessReading[] AllAttractiveness,   // READ  prev SmoothedAttractiveness, every settlement, table order
     long PrevGrainStock,              // READ  prev grain Amount — one input of the anyFood gate (MigrationSystem.cs:173-174)
-    long PrevGrainHarvest,            // READ  prev grain LastProducedUnits — the other input
-    bool GrainPresent,                // the gate's own predicate on the two READ inputs: store > 0 OR last harvest > 0
+    long PrevGrainHarvest,            // READ  prev grain LastProducedUnits — the other input.
+                                      // The gate's PREDICATE on these two (store > 0 || harvest > 0) is
+                                      // deliberately NOT recorded: it is MigrationSystem's private
+                                      // arithmetic, and copying it here would be a sixth field kind
+                                      // §0 does not permit - the day the gate gains a term, a copy lies.
+                                      // The two READ inputs are what the record can honestly carry.
     double UnplacedDeparture,         // SUMMED next Buckets.UnplacedDeparture — demand migration could not place (feeds colonization)
     double UnplacedRemainder,         // SUMMED next Buckets.UnplacedRemainder
     string PairwiseFlows);            // "GAP: ..." — never a matrix

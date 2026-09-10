@@ -195,7 +195,6 @@ rows (lane A2, `Sim.Core/Observability/Explain/`), deliberately not stored.
 | `pullAttractiveness` | READ | prev `SmoothedAttractivenessRow.Value`; `"NaN"` when no row (turn 1, asserted) |
 | `allAttractiveness[] {settlement, value}` | READ | every prev row, table order — the gap the mechanism responds to |
 | `prevGrainStock`, `prevGrainHarvest` | READ | prev grain `Amount`, `LastProducedUnits` — the two inputs of the ADR-012 absolute food gate (MigrationSystem.cs:173-174) |
-| `grainPresent` | READ (predicate) | `store > 0 OR lastHarvest > 0` — the gate's own one-line predicate on the two READ inputs, cited above; stated here rather than hidden so the reader can see it is not a recomputation of viability |
 | `unplacedDeparture`, `unplacedRemainder` | SUMMED | `BucketRow.UnplacedDeparture/UnplacedRemainder` on next — the demand migration could not place, which colonization draws from |
 | `pairwiseFlows` | GAP | string (§8 gap 5) |
 
