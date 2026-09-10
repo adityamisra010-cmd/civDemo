@@ -28,11 +28,15 @@ public class ExplainGrievanceTests
         // step 1→2, so world 2 is the FIRST world carrying it and world 1 does
         // not; Production reads it in the step 2→3, so world 3 is the first with
         // zero harvest and a positive deficit. Measured at seed 42 on the dev
-        // preset: first = 3, deficit(w3) = 0.7722222222222223 at dt 10. If this
-        // moves, the ORDER-DELIVERY semantic moved — not the explanation.
+        // preset: first = 3, deficit(w3) = 0.7722222222222223 at dt 10 — ALL
+        // FOUR asserted, the deficit bit-exact (A2-FIX D5: the first cut
+        // pinned the turn and only wrote the value in this comment). If the
+        // turn moves, the ORDER-DELIVERY semantic moved — not the explanation;
+        // if the value moves at the same turn, consumption or production did.
         Assert.False(ExplainRigs.HasSectorRow(worlds[1], ExplainRigs.Target), "the Turn-1 batch must not be in force in world 1");
         Assert.True(ExplainRigs.HasSectorRow(worlds[2], ExplainRigs.Target), "the Turn-1 batch must land in world 2");
         Assert.Equal(3, first);
+        Assert.Equal(0.7722222222222223, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

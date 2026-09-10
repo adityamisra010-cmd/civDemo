@@ -1,6 +1,7 @@
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Consumption;
+using Sim.Core.Systems.NeedsGrievance;
 
 namespace Sim.Core.Observability.Explain;
 
@@ -110,9 +111,11 @@ public readonly record struct Link(
 ///
 /// NO SECOND IMPLEMENTATION. A chain never computes a harvest, a fill, a
 /// dwelling count or a share of its own: it READS the fields the systems
-/// published, calls the two PUBLIC readers that already exist
+/// published, calls the PUBLIC simulation functions that already exist
 /// (<see cref="SettlementHappiness.HousingSufficiency"/>,
-/// <see cref="Sectors.Share"/>), and stops. Where a system computes a quantity
+/// <see cref="Sectors.Share"/>, <see cref="NeedsGrievanceSystem.Fill(in GoodStockRow)"/>
+/// — the fill ratio is the system's own three-case function, called on the
+/// row it cites, not a quotient this file takes), and stops. Where a system computes a quantity
 /// and throws it away — the tool factor, the land-versus-labour Leontief
 /// branch, the per-recipe labour cap, the built/decayed split — the chain says
 /// "not recorded" rather than recomputing it, because a recomputation is a
@@ -145,7 +148,7 @@ public sealed class CausalChain
 
     /// <summary>The chain for one registry need, dispatched on the need's DATA
     /// binding exactly as NeedsGrievanceSystem.Step dispatches it
-    /// (NeedsGrievanceSystem.cs:249-266): unbound → not simulated;
+    /// (NeedsGrievanceSystem.cs:243-260): unbound → not simulated;
     /// source=housingStock → the Shelter chain; the Sustenance id → the
     /// Sustenance chain (staple substitution, farming); any other basket-bound
     /// need → the crafted-goods chain.</summary>
@@ -162,7 +165,7 @@ public sealed class CausalChain
                 new Link(ChainNode.NotSimulated, need.Name + ": not yet simulated", double.NaN, LinkKind.Gap,
                     SourceWorld.None, "", -1,
                     "Registered but UNBOUND (needs.json bound=false): skipped before any weight is read "
-                    + "(NeedsGrievanceSystem.cs:249), contributes exactly nothing, has no satisfaction row."),
+                    + "(NeedsGrievanceSystem.cs:243), contributes exactly nothing, has no satisfaction row."),
             ]);
         }
         if (need.FromHousingStock) return Shelter(prev, next, cfg, settlement, cls, need);
@@ -181,10 +184,10 @@ public sealed class CausalChain
         var links = new List<Link>();
         SatisfactionLink(links, next, s, cls, need, ChainNode.SustenanceSatisfaction,
             "s = clamp(obtained/wanted) × varietyFactor over the class's food basket, staple substitution "
-            + "included (NeedsGrievanceSystem.cs:320-368); every input is a Prev fill ratio.");
+            + "included (NeedsGrievanceSystem.cs:303-351); every input is a Prev fill ratio.");
 
         // Per food good in THIS class's basket — the lines the system iterates
-        // (NeedsGrievanceSystem.cs:327-351), in the book's (class, need, good) order.
+        // (NeedsGrievanceSystem.cs:310-334), in the book's (class, need, good) order.
         BasketBook book = Book(cfg);
         ReadOnlySpan<BasketLine> basket = book.Basket(cls, need.Id);
         for (int i = 0; i < basket.Length; i++)
@@ -337,7 +340,7 @@ public sealed class CausalChain
     {
         var links = new List<Link>();
         SatisfactionLink(links, next, s, cls, need, ChainNode.ShelterSatisfaction,
-            "s = min(1, dwellings × PersonsPerDwelling / population) on Prev (NeedsGrievanceSystem.cs:137-150); "
+            "s = min(1, dwellings × PersonsPerDwelling / population) on Prev (NeedsGrievanceSystem.cs:133-146); "
             + "settlement-level, so every class carries the same value.");
         HousingSupply(prev, next, cfg, s, links);
         return new CausalChain(need.Id, need.Name, [.. links]);
@@ -360,11 +363,16 @@ public sealed class CausalChain
         into.Add(new Link(ChainNode.HousingSufficiency, "housing sufficiency",
             SettlementHappiness.HousingSufficiency(w, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "Housing", h,
             "SettlementHappiness.HousingSufficiency: clamp(dwellings × PersonsPerDwelling / population, 0, 1) "
-            + "(SettlementHappiness.cs:138-159) — the same expression the Shelter need evaluates."));
+            + "(SettlementHappiness.cs:138-159) — the same expression the Shelter need evaluates."
+            + (h < 0
+                ? " No row: the function reads people-and-no-housing-row as 0.0, nobody-to-house as 1.0 "
+                  + "(SettlementHappiness.cs:149, 158) — a colony before HousingSystem's first step materialises "
+                  + "its row (HousingSystem.cs:96-101)."
+                : "")));
 
         long pop = ExplainRows.Population(w, s);
         into.Add(new Link(ChainNode.Population, "population", pop, LinkKind.Summed, SourceWorld.Prev, "Buckets", -1,
-            "Σ BucketRow.Count over the settlement (NeedsGrievanceSystem.cs:139-141). Demographics and migration "
+            "Σ BucketRow.Count over the settlement (NeedsGrievanceSystem.cs:135-137). Demographics and migration "
             + "move it; no lever."));
         into.Add(new Link(ChainNode.PersonsPerDwelling, "PersonsPerDwelling", housing.PersonsPerDwelling,
             LinkKind.Read, SourceWorld.Config, "SimConfig", -1, "sim.json housing.personsPerDwelling (TUNE)."));
@@ -397,7 +405,7 @@ public sealed class CausalChain
         else
         {
             into.Add(new Link(ChainNode.Dwellings, "dwellings", double.NaN, LinkKind.Gap, SourceWorld.Prev, "Housing", -1,
-                "No housing row: people and no row read Shelter 0.0 (NeedsGrievanceSystem.cs:149); HousingSystem "
+                "No housing row: people and no row read Shelter 0.0 (NeedsGrievanceSystem.cs:145); HousingSystem "
                 + "creates the row on its first step (HousingSystem.cs:96-101)."));
         }
 
@@ -458,7 +466,7 @@ public sealed class CausalChain
         var links = new List<Link>();
         SatisfactionLink(links, next, s, cls, need, ChainNode.ComfortSatisfaction,
             "s = clamp(obtained/wanted) × varietyFactor over the class's basket, no substitution "
-            + "(NeedsGrievanceSystem.cs:352-361); every input is a Prev fill ratio.");
+            + "(NeedsGrievanceSystem.cs:335-344); every input is a Prev fill ratio.");
 
         BasketBook book = Book(cfg);
         ReadOnlySpan<BasketLine> basket = book.Basket(cls, need.Id);
@@ -579,14 +587,20 @@ public sealed class CausalChain
             : new Link(node, need.Name + " satisfaction", double.NaN, LinkKind.Gap, SourceWorld.Next,
                 "NeedSatisfactions", -1,
                 "No satisfaction row published: the class had no members, the settlement was extinct, or it was "
-                + "not in Prev (NeedsGrievanceSystem.cs:191-197, 237-241)."));
+                + "not in Prev (NeedsGrievanceSystem.cs:187-193, 231-235)."));
     }
 
     /// <summary>
-    /// The fill ratio for one good, reproducing the READ NeedsGrievanceSystem.Fill
-    /// performs (NeedsGrievanceSystem.cs:395-404) and stating which of its three
-    /// cases applied. Two READ integers and their quotient; the quotient is not a
-    /// formula of this observer's — it is the definition of the published pair.
+    /// The fill ratio for one good: the two READ integers the system reads, then
+    /// the fill as a CALL to <see cref="NeedsGrievanceSystem.Fill(in GoodStockRow)"/>
+    /// on that same row — RECOMPUTED in the §0 sense. The note says which of the
+    /// system's three cases applied (NeedsGrievanceSystem.cs:378-396), read off
+    /// the row's demand sign; the VALUE never comes from this file. The first
+    /// cut divided the two longs here and called it READ; the verifier's mutant
+    /// (case 3 → 1.0 in THAT copy) survived because nothing tied the copy to
+    /// the system — now there is no copy, the equivalent mutant in the system
+    /// moves this link and the published satisfaction together, and the
+    /// kill-record test pins the quotient (ExplainRecomputedFunctionTests).
     /// </summary>
     private static void FillLinks(
         List<Link> links, IReadOnlyWorldState prev, SimConfig cfg, SettlementId s, GoodId good,
@@ -596,9 +610,10 @@ public sealed class CausalChain
         int i = GoodStockIndex.IndexOf(prev.GoodStocks, s, good);
         if (i < 0)
         {
-            links.Add(new Link(fillNode, name + " fill", 1.0, LinkKind.Gap, SourceWorld.Prev, "GoodStocks", -1,
-                "No stock row for this good here — nothing wanted from a market that is not there; the system "
-                + "reads fill 1.0 (Fill case 1, NeedsGrievanceSystem.cs:398)."));
+            links.Add(new Link(fillNode, name + " fill", NeedsGrievanceSystem.Fill(prev, s, good), LinkKind.Recomputed,
+                SourceWorld.Prev, "GoodStocks", -1,
+                "No row: no stock row for this good here — nothing wanted from a market that is not there; "
+                + "NeedsGrievanceSystem.Fill reads 1.0 (case 1, NeedsGrievanceSystem.cs:380-381)."));
             return;
         }
         GoodStockRow row = prev.GoodStocks[i];
@@ -606,17 +621,12 @@ public sealed class CausalChain
             SourceWorld.Prev, "GoodStocks", i, "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229)."));
         links.Add(new Link(demandedNode, name + " demanded", row.LastConsumptionDemandUnits, LinkKind.Read,
             SourceWorld.Prev, "GoodStocks", i, "LastConsumptionDemandUnits, pre-clamp (ConsumptionSystem.cs:222-228)."));
-        if (row.LastConsumptionDemandUnits <= 0)
-        {
-            links.Add(new Link(fillNode, name + " fill", row.Amount.Value > 0 ? 1.0 : 0.0, LinkKind.Read,
-                SourceWorld.Prev, "GoodStocks", i,
-                "Demand quantised to zero units this turn; the STOCK discriminates — empty store 0.0, else 1.0 "
-                + "(Fill case 2, NeedsGrievanceSystem.cs:400-401)."));
-            return;
-        }
-        links.Add(new Link(fillNode, name + " fill",
-            Math.Clamp(row.LastConsumptionEatenUnits / (double)row.LastConsumptionDemandUnits, 0.0, 1.0),
-            LinkKind.Read, SourceWorld.Prev, "GoodStocks", i,
-            "eaten / demanded, clamped to [0,1] (Fill case 3, NeedsGrievanceSystem.cs:402-403)."));
+        links.Add(new Link(fillNode, name + " fill", NeedsGrievanceSystem.Fill(in row), LinkKind.Recomputed,
+            SourceWorld.Prev, "GoodStocks", i,
+            row.LastConsumptionDemandUnits <= 0
+                ? "NeedsGrievanceSystem.Fill on this row: demand quantised to zero units this turn, so the STOCK "
+                  + "discriminates — empty store 0.0, else 1.0 (case 2, NeedsGrievanceSystem.cs:392-393)."
+                : "NeedsGrievanceSystem.Fill on this row: eaten / demanded, clamped to [0,1] "
+                  + "(case 3, NeedsGrievanceSystem.cs:394-395)."));
     }
 }

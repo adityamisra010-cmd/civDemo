@@ -27,6 +27,15 @@ namespace Sim.Tests.Observability;
 ///   HOMELESS  — the fed prefix, then every dwelling of settlement 0 sunk
 ///               through the Ledger (HousingDecayed, clamp) on the world that
 ///               will be Prev, then one more step: "housed-but-homeless".
+///   COLONY    — the fed prefix, then settlement 0's buckets seeded with
+///               unplaced-departure demand (the T4.4 test construction,
+///               ColonizationTests.SeedDemand) and ONE step of the Colonization
+///               system alone: Next carries a settlement that is not in Prev,
+///               has people and provisions, and has NO HousingRow — the
+///               A2-FIX D3 case, in which every explanation must still cite
+///               honestly. Colonization alone because the full pipeline's
+///               Migration rewrites UnplacedDeparture every turn
+///               (MigrationSystem.cs:319) before Colonization consumes it.
 /// </summary>
 internal static class ExplainRigs
 {
@@ -111,6 +120,34 @@ internal static class ExplainRigs
         Assert.Equal(0, prev.Housing[h].Dwellings.Value);
         WorldState next = Executor(cfg).Step(prev);
         return (cfg, prev, next);
+    }
+
+    /// <summary>Fed prefix, then a colony founded from settlement 0 by the
+    /// Colonization system alone. Asserts the construction: exactly one new
+    /// settlement, absent from Prev, populated, with no housing row on Next.</summary>
+    public static (SimConfig Cfg, WorldState Prev, WorldState Next, SettlementId Colony) Colony(int prefixTurns)
+    {
+        (SimConfig cfg, List<WorldState> worlds) = Fed(prefixTurns);
+        WorldState prev = worlds[^1];
+        for (int i = 0; i < prev.Buckets.Count; i++)
+            if (prev.Buckets[i].Settlement.Value == Target) prev.Buckets.Ref(i).UnplacedDeparture = 12.0;
+
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        var colonizationOnly = new TurnExecutor(
+            EraTableLoader.Load(eraStream), [SystemCatalog.Colonization(cfg, TestConfigs.DevWorldgen())]);
+        WorldState next = colonizationOnly.Step(prev);
+
+        Assert.Equal(prev.Settlements.Count + 1, next.Settlements.Count);
+        SettlementId colony = next.Settlements[^1].Id;
+        for (int i = 0; i < prev.Settlements.Count; i++)
+            Assert.NotEqual(colony, prev.Settlements[i].Id);
+        long party = 0;
+        for (int i = 0; i < next.Buckets.Count; i++)
+            if (next.Buckets[i].Settlement == colony) party += next.Buckets[i].Count.Value;
+        Assert.True(party > 0, "rig vacuous: the colony has nobody");
+        for (int i = 0; i < next.Housing.Count; i++)
+            Assert.NotEqual(colony, next.Housing[i].Settlement);   // ColonizationTests.NewSettlementGetsNoFreeHousing
+        return (cfg, prev, next, colony);
     }
 
     public static bool HasSectorRow(WorldState w, int settlement)

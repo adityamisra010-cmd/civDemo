@@ -14,25 +14,30 @@ public readonly record struct NeedComponent(
 /// <summary>
 /// T4.19 — WHY THIS CLASS IS AGGRIEVED (docs/observability-architecture.md §5).
 ///
-/// WHAT IT REPRODUCES, AND HOW. NeedsGrievanceSystem.Step (NeedsGrievanceSystem.cs:152-302)
-/// is read in full and its reads are repeated here in the same order from the
-/// same tables: settlement population from Prev buckets, the generational
-/// turnover from the PREV SettlementVitals row, the class population from Prev
-/// buckets, the per-need satisfactions the system itself just PUBLISHED on Next,
-/// the registry weights, the Tier-A gate ids from the system's own public array,
-/// the aggregation tuning, and the previous grievance from Prev. It then calls
-/// the same two PUBLIC functions the system calls —
-/// <see cref="NeedsAggregation.ApplyTierAGate"/> and <see cref="NeedsAggregation.Aggregate"/>
-/// — and integrates with the dt the executor used (READ from Next's clock).
-/// <see cref="Recomputed"/> therefore equals <see cref="Total"/> to the bit on
-/// every stepped world, and a test asserts exactly that; the day the system's
-/// arithmetic changes and this does not, that test is what goes red.
-///
-/// THE ONE CONSTANT IT STATES RATHER THAN READS: the expectation baseline is a
-/// private const on the system, fixed at 1.0 (NeedsGrievanceSystem.cs:86), with
-/// habituation deferred (D-018 §4). It is repeated here as a literal and named
-/// in docs/explain-queries.md as such; the exact-reproduction test is the drift
-/// detector for it.
+/// WHAT IT REPRODUCES, AND HOW. NeedsGrievanceSystem.Step (NeedsGrievanceSystem.cs:148-285)
+/// is read in full and its READS are repeated here in the same order from the
+/// same tables: settlement population from Prev buckets, the PREV
+/// SettlementVitals row, the class population from Prev buckets, the per-need
+/// satisfactions the system itself just PUBLISHED on Next, the registry
+/// weights, the aggregation tuning, and the previous grievance from Prev. Its
+/// ARITHMETIC is not repeated: every number derived from those reads comes
+/// from a CALL to the public static pure function the system itself calls on
+/// the same operands — <see cref="NeedsGrievanceSystem.IsTierAGate"/>,
+/// <see cref="NeedsGrievanceSystem.AggregateSatisfaction"/> (the gate + CES),
+/// <see cref="NeedsGrievanceSystem.TurnoverPerYear"/>,
+/// <see cref="NeedsGrievanceSystem.DecayRatePerYear"/>,
+/// <see cref="NeedsGrievanceSystem.AccrualPerYear"/>,
+/// <see cref="NeedsGrievanceSystem.TurnAccrual"/>, <see cref="NeedsGrievanceSystem.TurnDecay"/>
+/// and <see cref="NeedsGrievanceSystem.StepGrievance"/> — integrated with the dt
+/// the executor used (READ from Next's clock). That is what §0 means by
+/// RECOMPUTED, and it is why this file holds no formula of its own: the T4.19
+/// A2 verifier found the first cut re-implementing the system's private
+/// turnover, decay, accrual and Euler step under the RECOMPUTED label (finding
+/// D1), and a copied formula is exactly the second simulation §0 forbids — it
+/// drifts silently the day the system changes. <see cref="Recomputed"/> equals
+/// <see cref="Total"/> to the bit on every stepped world, and a test asserts
+/// exactly that; the day the system stops calling these functions, or calls
+/// them on other operands, that test is what goes red.
 ///
 /// THE DECOMPOSITION IS OBSERVER-DEFINED, AND SAYS SO. W·(1−S) is a CES
 /// aggregate and is NOT additive over needs, so no per-need "share of the
@@ -40,10 +45,11 @@ public readonly record struct NeedComponent(
 /// bound need is (a) the READ satisfaction, (b) WeightedShortfall = w·(1−s), the
 /// plain reading of "how unmet, how much it matters", and (c) MarginalLift =
 /// S(s with s_n := 1) − S: how much the aggregate would rise if this need alone
-/// were fully met, RECOMPUTED through the same gate + aggregate. MarginalLift is
-/// what the primary is ranked by, because it respects the gate — a starving
-/// class's comfort shortfall is correctly near-worthless. Neither number is
-/// labelled as the need's contribution to G, because there is no such number.
+/// were fully met, RECOMPUTED through the same <see cref="NeedsGrievanceSystem.AggregateSatisfaction"/>.
+/// MarginalLift is what the primary is ranked by, because it respects the gate
+/// — a starving class's comfort shortfall is correctly near-worthless. Neither
+/// number is labelled as the need's contribution to G, because there is no
+/// such number.
 ///
 /// THE PRIMARY is argmax MarginalLift with ties broken by LOWEST need id: a
 /// composite key (lift DESC, needId ASC), compared as two explicit halves
@@ -57,14 +63,10 @@ public readonly record struct NeedComponent(
 /// </summary>
 public sealed class GrievanceExplanation
 {
-    /// <summary>NeedsGrievanceSystem's private expectation baseline, restated
-    /// (see the type header). 1.0 = "everything fully met is the expectation".</summary>
-    private const double Expectation = 1.0;
-
     public const string AttributionNote =
         "Observer-defined: W·(1−S) is a CES aggregate (σ<1) and is not additive over needs, so no per-need "
         + "contribution to grievance exists in the simulation. WeightedShortfall = w·(1−s) is the plain reading; "
-        + "MarginalLift = S(s_n:=1) − S is recomputed through NeedsAggregation.ApplyTierAGate + Aggregate and is "
+        + "MarginalLift = S(s_n:=1) − S is recomputed through NeedsGrievanceSystem.AggregateSatisfaction and is "
         + "what the primary is ranked by (lift DESC, need id ASC).";
 
     public SettlementId Settlement { get; }
@@ -87,22 +89,25 @@ public sealed class GrievanceExplanation
     /// <summary>False when the settlement was not in prev.Settlements (founded this step): the system did not step it.</summary>
     public bool SteppedBySystem { get; }
 
-    /// <summary>RECOMPUTED S: the CES aggregate over the bound needs after the Tier-A gate.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.AggregateSatisfaction"/>: S, the CES
+    /// aggregate over the bound needs that published a row, after the Tier-A gate.</summary>
     public double Aggregate { get; }
-    /// <summary>W: Σ raw registry weights of the bound needs that published a row.</summary>
+    /// <summary>W: Σ raw registry weights (READ config) of the bound needs that published a row.</summary>
     public double WeightSum { get; }
-    /// <summary>W × max(0, 1 − S), per year.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.AccrualPerYear"/>(W, S).</summary>
     public double AccrualPerYear { get; }
-    /// <summary>READ prev vitals: (Births + Deaths) / population / row.DtYears; 0 without a row.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.TurnoverPerYear"/> on the READ prev
+    /// vitals row (Births, Deaths, its DtYears) and the SUMMED population; 0 without a row.</summary>
     public double TurnoverPerYear { get; }
-    /// <summary>BaseDecayPerYear + (1 − InheritFraction) × TurnoverPerYear.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.DecayRatePerYear"/>(tuning, turnover).</summary>
     public double DecayRatePerYear { get; }
-    /// <summary>AccrualPerYear × dt — the turn's accrual.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.TurnAccrual"/>(AccrualPerYear, dt).</summary>
     public double Accrual { get; }
-    /// <summary>DecayRatePerYear × Previous × dt — the turn's decay.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.TurnDecay"/>(DecayRatePerYear, Previous, dt).</summary>
     public double Decay { get; }
-    /// <summary>max(0, Previous + Accrual − Decay), or 0 when the class/settlement had nobody —
-    /// the same expression, same association, as NeedsGrievanceSystem.cs:298-299. Equals Total.</summary>
+    /// <summary>RECOMPUTED <see cref="NeedsGrievanceSystem.StepGrievance"/>(Previous, AccrualPerYear,
+    /// DecayRatePerYear, dt) — or 0 when the class or settlement had nobody (the system's two
+    /// zeroing branches), or Previous when the settlement was not stepped. Equals Total.</summary>
     public double Recomputed { get; }
 
     /// <summary>Every registry need, registry order.</summary>
@@ -142,28 +147,28 @@ public sealed class GrievanceExplanation
         // --- READ: the stock before and after, and the dt the step used ------
         int gPrevRow = ExplainRows.Grievance(prev, settlement, cls);
         int gNextRow = ExplainRows.Grievance(next, settlement, cls);
-        double gPrev = gPrevRow >= 0 ? prev.Grievances[gPrevRow].Value : 0.0;   // NeedsGrievanceSystem.cs:287-293
+        double gPrev = gPrevRow >= 0 ? prev.Grievances[gPrevRow].Value : 0.0;   // NeedsGrievanceSystem.cs:274-280
         double gNext = gNextRow >= 0 ? next.Grievances[gNextRow].Value : 0.0;
         double dt = next.Clock.DtYears;
 
-        // --- the system's per-settlement reads, in its order (NeedsGrievanceSystem.cs:176-211)
+        // --- the system's per-settlement reads, in its order (NeedsGrievanceSystem.cs:168-205)
         bool stepped = ExplainRows.SettlementPresent(prev, settlement);
         long settlementPop = ExplainRows.Population(prev, settlement);
         double turnover = 0.0;
         if (settlementPop > 0)
         {
             int v = ExplainRows.Vitals(prev, settlement);
-            if (v >= 0 && prev.SettlementVitals[v].DtYears > 0.0)
+            if (v >= 0)
             {
                 SettlementVitalsRow row = prev.SettlementVitals[v];
-                turnover = (row.Births + row.Deaths) / (double)settlementPop / row.DtYears;
+                turnover = NeedsGrievanceSystem.TurnoverPerYear(row.Births, row.Deaths, settlementPop, row.DtYears);
             }
         }
-        double decayRate = tuning.BaseDecayPerYear + (1.0 - tuning.InheritFraction) * turnover;
+        double decayRate = NeedsGrievanceSystem.DecayRatePerYear(tuning, turnover);
         long classPop = ExplainRows.ClassPopulation(prev, settlement, cls);
 
         // --- the bound needs that PUBLISHED a row, registry order (= the system's
-        // sat[] order: it walks the registry and appends, NeedsGrievanceSystem.cs:244-274)
+        // sat[] order: it walks the registry and appends, NeedsGrievanceSystem.cs:240-268)
         int n = registry.Length;
         var sat = new double[n];
         var weight = new double[n];
@@ -179,33 +184,24 @@ public sealed class GrievanceExplanation
             if (row < 0) continue;      // the system skipped it (empty basket) or published nothing (no members)
             sat[bound] = next.NeedSatisfactions[row].Value;
             weight[bound] = need.Weight;
-            isGate[bound] = IsTierAGate(need.Id);
+            isGate[bound] = NeedsGrievanceSystem.IsTierAGate(need.Id);
             boundIndex[bound] = r;
             rawWeightSum += need.Weight;
             bound++;
         }
 
-        // --- RECOMPUTED through the public gate + aggregate (NeedsGrievanceSystem.cs:276-284)
-        double aggregate = Expectation;
+        // --- RECOMPUTED: the system's own functions on the values read above
+        // (NeedsGrievanceSystem.cs:270-272, 281-282; the functions themselves at 428-483).
         var adjusted = new double[n];
-        if (bound > 0)
-        {
-            NeedsAggregation.ApplyTierAGate(
-                sat.AsSpan(0, bound), isGate.AsSpan(0, bound), weight.AsSpan(0, bound),
-                agg.TierAFloor, agg.TierAGain, agg.TierACollapse, adjusted.AsSpan(0, bound));
-            aggregate = NeedsAggregation.Aggregate(
-                sat.AsSpan(0, bound), adjusted.AsSpan(0, bound), agg.Sigma, agg.SatisfactionFloor);
-        }
-        double accrualPerYear = rawWeightSum * Math.Max(0.0, Expectation - aggregate);
-
-        // Same operands, same association as `gPrev + accrualPerYear * dt - decayRate * gPrev * dt`
-        // (NeedsGrievanceSystem.cs:298): (gPrev + (accrualPerYear·dt)) − ((decayRate·gPrev)·dt).
-        double accrual = accrualPerYear * dt;
-        double decay = decayRate * gPrev * dt;
+        double aggregate = NeedsGrievanceSystem.AggregateSatisfaction(
+            sat.AsSpan(0, bound), isGate.AsSpan(0, bound), weight.AsSpan(0, bound), agg, adjusted.AsSpan(0, bound));
+        double accrualPerYear = NeedsGrievanceSystem.AccrualPerYear(rawWeightSum, aggregate);
+        double accrual = NeedsGrievanceSystem.TurnAccrual(accrualPerYear, dt);
+        double decay = NeedsGrievanceSystem.TurnDecay(decayRate, gPrev, dt);
         double recomputed;
         if (!stepped) recomputed = gPrev;                       // not iterated: the row is whatever founding left
-        else if (settlementPop == 0 || classPop == 0) recomputed = 0.0;   // NeedsGrievanceSystem.cs:191-197, 233-241
-        else recomputed = Math.Max(0.0, gPrev + accrual - decay);
+        else if (settlementPop == 0 || classPop == 0) recomputed = 0.0;   // NeedsGrievanceSystem.cs:187-193, 231-235
+        else recomputed = NeedsGrievanceSystem.StepGrievance(gPrev, accrualPerYear, decayRate, dt);
 
         // --- per-need components + the primary -------------------------------
         var components = new NeedComponent[n];
@@ -221,29 +217,29 @@ public sealed class GrievanceExplanation
             bool published = slot < bound && boundIndex[slot] == r;
             if (!need.Bound)
             {
-                components[r] = new NeedComponent(need.Id, need.Name, false, IsTierAGate(need.Id), need.Weight,
-                    double.NaN, double.NaN, double.NaN, "not yet simulated");
+                components[r] = new NeedComponent(need.Id, need.Name, false, NeedsGrievanceSystem.IsTierAGate(need.Id),
+                    need.Weight, double.NaN, double.NaN, double.NaN, "not yet simulated");
                 continue;
             }
             if (!published)
             {
-                components[r] = new NeedComponent(need.Id, need.Name, false, IsTierAGate(need.Id), need.Weight,
-                    double.NaN, double.NaN, double.NaN,
-                    classPop == 0 || settlementPop == 0
+                components[r] = new NeedComponent(need.Id, need.Name, false, NeedsGrievanceSystem.IsTierAGate(need.Id),
+                    need.Weight, double.NaN, double.NaN, double.NaN,
+                    !stepped
+                        ? "founded this step — not in Prev, so the system did not step it and published no row"
+                        : classPop == 0 || settlementPop == 0
                         ? "no members — no satisfaction row published"
                         : "bound in the registry but this class declares no basket for it — skipped by the system");
                 continue;
             }
 
             double s = sat[slot];
-            // S with THIS need alone fully met, through the same gate + aggregate.
+            // S with THIS need alone fully met, through the same gate + aggregate the system calls.
             sat.AsSpan(0, bound).CopyTo(lifted);
             lifted[slot] = 1.0;
-            NeedsAggregation.ApplyTierAGate(
-                lifted.AsSpan(0, bound), isGate.AsSpan(0, bound), weight.AsSpan(0, bound),
-                agg.TierAFloor, agg.TierAGain, agg.TierACollapse, liftedAdjusted.AsSpan(0, bound));
-            double liftedAggregate = NeedsAggregation.Aggregate(
-                lifted.AsSpan(0, bound), liftedAdjusted.AsSpan(0, bound), agg.Sigma, agg.SatisfactionFloor);
+            double liftedAggregate = NeedsGrievanceSystem.AggregateSatisfaction(
+                lifted.AsSpan(0, bound), isGate.AsSpan(0, bound), weight.AsSpan(0, bound), agg,
+                liftedAdjusted.AsSpan(0, bound));
             double lift = liftedAggregate - aggregate;
 
             components[r] = new NeedComponent(need.Id, need.Name, true, isGate[slot], need.Weight,
@@ -266,14 +262,5 @@ public sealed class GrievanceExplanation
             settlement, cls, ExplainRows.ClassName(cfg, cls), gNext, gPrev, dt,
             settlementPop, classPop, stepped, aggregate, rawWeightSum, accrualPerYear, turnover, decayRate,
             accrual, decay, recomputed, components, best >= 0 ? registry[best].Id : -1, chain);
-    }
-
-    /// <summary>The system's own gate list, read from its public array —
-    /// never a copy (NeedsGrievanceSystem.cs:99).</summary>
-    private static bool IsTierAGate(int needId)
-    {
-        int[] gates = NeedsGrievanceSystem.TierAGateNeedIds;
-        for (int i = 0; i < gates.Length; i++) if (gates[i] == needId) return true;
-        return false;
     }
 }
