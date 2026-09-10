@@ -35,6 +35,29 @@ public class SessionRecordTests
     }
 
     [Fact]
+    public void ADR022_AStartedSessionsManifestCarriesThePlatformThatPlayedIt()
+    {
+        // The manifest must say WHERE the trace was recorded, or `sim inspect`
+        // cannot tell a cross-platform hash divergence (CR-013 §8, expected
+        // from turn 2 off the reference platform) from a determinism defect.
+        // The value is the runtime's own identifier, read in Sim.Ui — legal
+        // here (ADR-009), banned in Sim.Core — and it must survive the file.
+        var session = Sim.Ui.UiSession.Start(7, sizeOverridePx: 256, settlementsOverride: 4);
+        SessionManifest m = session.Manifest("2026-09-09 12:00:00", "runs/orders-x.bin");
+
+        Assert.False(string.IsNullOrWhiteSpace(m.Platform));
+        Assert.True(SessionManifest.IsPlatformRecorded(m.Platform));
+        Assert.Equal(System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier, m.Platform);
+
+        using var buffer = new MemoryStream();
+        m.Write(buffer);
+        buffer.Position = 0;
+        SessionManifest read = SessionManifest.Read(buffer, "test");
+        Assert.Equal(m.Platform, read.Platform);
+        Assert.Equal(m, read);
+    }
+
+    [Fact]
     public void TheThreeCompanionFilesShareTheOrderLogsStamp()
     {
         // Same stamp, different prefix: the four files of one session sort

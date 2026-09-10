@@ -75,6 +75,47 @@ That is a **determinism finding**, not a reporting nicety. Without a live record
 there would be nothing to compare a replay against, and "it replays fine" would
 be a claim about the replay only.
 
+## Which machine played it, and what `sim inspect` will say about that
+
+The manifest (`session-manifest/v2`, ADR-022) records the **platform** that played the
+session — the .NET runtime identifier, `win-x64` on the director's machine, `linux-x64` on CI.
+It is there because the determinism promise is defined on **one reference platform, Linux
+x64**: the goldens and every hash cited as evidence come from there. Windows is supported for
+play, under surveillance, and a Windows session **reproduces on the machine that played it**
+(CR-013 §8.4 measured the Windows runner reproducing the director's own trace exactly) — but
+against a *reference* replay its hashes diverge from turn 2, because the two platforms' `Exp`
+and `Sqrt` differ in the last ulp (CR-013 §8.5: a −2 ulp price term and two weather rows at turn
+2, every integer column equal).
+
+So on a Windows session inspected on Linux — a container, CI — expect this, and read it as the
+notice says, not as a determinism defect:
+
+```
+  platform  played on win-x64 (NOT the reference platform); inspecting on linux-x64 (reference platform); reference is linux-x64 (ADR-022)
+
+  NOTICE: this session was played on win-x64, not the reference platform (linux-x64).
+          A replay on the reference platform is EXPECTED to report REPRODUCTION FAILED from
+          turn 2: the two platforms' Exp/Sqrt differ in the last ulp (CR-013 §8, measured on
+          seed 42). That is a cross-platform divergence, not a determinism defect. The
+          population, food and settlements columns remain comparable — they agreed to the
+          unit on every measured turn (CR-013 §2) — so the turns reported below are still
+          the session's turns. Judge whether the session REPRODUCES on the machine that
+          played it: run sim inspect there.
+  reproduce with: sim replay --founded --seed 42 --orders orders-20260909-143022.bin --turns 91
+
+REPRODUCTION FAILED at turn 2: ...
+```
+
+The turn tables that follow are still the session's turns: population, food and settlement
+count agreed to the unit on every turn measured, so "around turn 85 something went wrong" is
+still answered — by the replay's columns, which match the trace's. What is not answered on
+Linux is whether the session *reproduced*; for that, run `sim inspect` on the Windows machine,
+where the manifest platform and the running platform agree and the hash check is the real one.
+On the reference platform on both sides the line is a single `platform  reference platform on
+both sides: a hash mismatch below is a determinism finding.` A manifest written before v2 says
+`not recorded (pre-v2 session)` and the notice tells you the signature to look for instead of
+guessing.
+
 ## What this is not
 
 It is **not a savegame**. You still cannot quit at turn 60 and resume at turn 60;
@@ -84,6 +125,6 @@ the UI — that gap is unchanged and is still recorded under missing player agen
 in the M4 playtest record.
 
 Nothing here is state. The manifest is the session's argv plus the identity of
-the build that ran it; the trace is six columns read off the world. Neither is
+the build that ran it and the platform that ran it; the trace is six columns read off the world. Neither is
 consulted by any system, and no schema version, golden, corridor or quarantine
 moved for either.

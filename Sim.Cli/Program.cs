@@ -367,6 +367,13 @@ namespace Sim.Cli
             Console.WriteLine($"  world   seed {manifest.Seed.ToString(CultureInfo.InvariantCulture)}"
                 + (manifest.SizePx is { } px ? $", size {px.ToString(CultureInfo.InvariantCulture)}" : "")
                 + (manifest.Settlements is { } n ? $", settlements {n.ToString(CultureInfo.InvariantCulture)}" : ""));
+            // ADR-022: say where the trace was recorded and where this replay
+            // runs BEFORE the verdict, so a cross-platform hash divergence
+            // (CR-013 §8, expected from turn 2) is not read as a determinism
+            // defect. RuntimeIdentifier is provenance printed for a human; it
+            // is never an input to the replay.
+            Console.WriteLine(PlatformNotice.For(
+                manifest.Platform, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier));
             Console.WriteLine($"  reproduce with: {manifest.ReplayCommand(turns)}");
 
             if (turns == 0)
