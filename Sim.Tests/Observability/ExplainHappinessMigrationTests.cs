@@ -1,6 +1,7 @@
 using Sim.Core.Observability.Explain;
 using Sim.Core.State;
 using Sim.Core.Systems;
+using Sim.Core.Systems.Consumption;
 
 namespace Sim.Tests.Observability;
 
@@ -8,6 +9,8 @@ namespace Sim.Tests.Observability;
 /// the public reader and the migration rows say, nothing else.</summary>
 public class ExplainHappinessMigrationTests
 {
+    private const int Peasant = 1;
+
     [Fact]
     public void Happiness_IsThePublicReader_WithItsFactorsAndChains()
     {
@@ -49,6 +52,95 @@ public class ExplainHappinessMigrationTests
         Assert.True(food < 1.0, $"food factor {food} did not fall on a starving settlement");
         Assert.Equal(1.0 - ExplainRigs.Deficit(worlds[first], ExplainRigs.Target), food);
         Assert.True(h.Happiness < 100.0);
+    }
+
+    /// <summary>
+    /// A2-LABEL (lane B's verifier, D4). Every link says which world its value
+    /// was READ from, and that must be the world it was actually read from —
+    /// not a constant the shared block assumed. The first cut's FoodSupply
+    /// wrote Prev on every link it emitted, so the happiness Food chain, built
+    /// on NEXT, printed a Next deficit labelled "prev ConsumptionDeficits";
+    /// beside the Migration tab's genuine prev deficit the two disagreed for
+    /// the same settlement and turn. The checker never saw it because it
+    /// resolved the happiness chain against (next, next), where a Prev label
+    /// and a Next label open the same table.
+    ///
+    /// Pinned on the starved rig at the drawdown turn, where prev and next
+    /// deficits DIFFER (0.772… on world 3, larger on world 4): the happiness
+    /// chain's DeficitRatio says Next and equals next's table; the grievance
+    /// chain's (both the bare Sustenance chain and GrievanceExplanation's
+    /// primary chain) says Prev and equals prev's table; and nothing in either
+    /// happiness chain claims Prev at all.
+    /// </summary>
+    [Fact]
+    public void DeficitRatio_HappinessChainSaysNext_GrievanceChainSaysPrev_EachEqualToItsOwnWorld()
+    {
+        (SimConfig cfg, List<WorldState> worlds, int first) = ExplainRigs.Starved(12);
+        Assert.True(first > 0);
+        Assert.True(first + 1 < worlds.Count);
+        WorldState prev = worlds[first], next = worlds[first + 1];
+        var s = new SettlementId(ExplainRigs.Target);
+        double prevDeficit = ExplainRigs.Deficit(prev, ExplainRigs.Target);
+        double nextDeficit = ExplainRigs.Deficit(next, ExplainRigs.Target);
+        // NON-VACUITY: a label bug is invisible when the two worlds agree.
+        Assert.True(prevDeficit > 0.0);
+        Assert.NotEqual(prevDeficit, nextDeficit);
+
+        // Happiness asks about ONE world — next — and every read is from it.
+        HappinessExplanation h = HappinessExplanation.For(next, cfg, s);
+        Link hd = ExplainGrievanceTests.Single(h.Factors[(int)SettlementHappiness.Factor.Food].Chain, ChainNode.DeficitRatio);
+        Assert.Equal(LinkKind.Read, hd.Kind);
+        Assert.Equal(SourceWorld.Next, hd.World);
+        Assert.Equal("ConsumptionDeficits", hd.SourceTable);
+        Assert.Equal(nextDeficit, hd.Value);
+        Assert.Equal(next.ConsumptionDeficits[hd.SourceIndex].DeficitRatio, hd.Value);
+        Assert.Equal(s, next.ConsumptionDeficits[hd.SourceIndex].Settlement);
+        Assert.Equal(1.0 - hd.Value, h.Factors[(int)SettlementHappiness.Factor.Food].Value);
+        foreach (HappinessFactor f in h.Factors)
+            foreach (Link l in f.Chain)
+                Assert.True(l.World != SourceWorld.Prev, $"happiness {f.Name}: {l.Node} '{l.Label}' claims Prev on a one-world query");
+
+        // The Sustenance chain under a grievance reads the fills and the deficit
+        // off PREV (what the system read, §3.2); only the satisfaction sits on Next.
+        CausalChain chain = CausalChain.ForNeed(prev, next, cfg, s, new ClassId(Peasant), BasketBook.SustenanceNeedId);
+        Link gd = ExplainGrievanceTests.Single(chain.Links, ChainNode.DeficitRatio);
+        Assert.Equal(LinkKind.Read, gd.Kind);
+        Assert.Equal(SourceWorld.Prev, gd.World);
+        Assert.Equal("ConsumptionDeficits", gd.SourceTable);
+        Assert.Equal(prevDeficit, gd.Value);
+        Assert.Equal(prev.ConsumptionDeficits[gd.SourceIndex].DeficitRatio, gd.Value);
+        Assert.Equal(s, prev.ConsumptionDeficits[gd.SourceIndex].Settlement);
+        Assert.NotEqual(hd.Value, gd.Value);
+        foreach (Link l in chain.Links)
+        {
+            if (l.Node == ChainNode.SustenanceSatisfaction) { Assert.Equal(SourceWorld.Next, l.World); continue; }
+            Assert.True(l.World is SourceWorld.Prev or SourceWorld.Config or SourceWorld.None,
+                $"sustenance chain: {l.Node} '{l.Label}' claims {l.World}");
+        }
+
+        // And the chain GrievanceExplanation hangs under its primary is that same chain.
+        GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, s, new ClassId(Peasant));
+        Assert.Equal(BasketBook.SustenanceNeedId, g.PrimaryNeedId);
+        Link pd = ExplainGrievanceTests.Single(g.PrimaryChain!.Links, ChainNode.DeficitRatio);
+        Assert.Equal(SourceWorld.Prev, pd.World);
+        Assert.Equal(prevDeficit, pd.Value);
+    }
+
+    /// <summary>The supply blocks take the world's identity as a parameter and
+    /// refuse one that is not a world: Config and None are not places a row
+    /// can be read from, and a Δdwellings against a next world only makes
+    /// sense when the block is on Prev.</summary>
+    [Fact]
+    public void SupplyBlocks_RefuseAWorldIdentityThatIsNotAWorld()
+    {
+        (SimConfig cfg, List<WorldState> worlds) = ExplainRigs.Fed(1);
+        var s = new SettlementId(ExplainRigs.Target);
+        var into = new List<Link>();
+        Assert.Throws<ArgumentOutOfRangeException>(() => CausalChain.FoodSupply(worlds[1], SourceWorld.Config, cfg, s, into));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CausalChain.FoodSupply(worlds[1], SourceWorld.None, cfg, s, into));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CausalChain.HousingSupply(worlds[1], SourceWorld.None, null, cfg, s, into));
+        Assert.Throws<ArgumentException>(() => CausalChain.HousingSupply(worlds[1], SourceWorld.Next, worlds[1], cfg, s, into));
+        Assert.Empty(into);
     }
 
     [Fact]

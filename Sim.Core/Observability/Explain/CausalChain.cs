@@ -191,10 +191,10 @@ public sealed class CausalChain
         BasketBook book = Book(cfg);
         ReadOnlySpan<BasketLine> basket = book.Basket(cls, need.Id);
         for (int i = 0; i < basket.Length; i++)
-            FillLinks(links, prev, cfg, s, basket[i].Good,
+            FillLinks(links, prev, SourceWorld.Prev, cfg, s, basket[i].Good,
                 ChainNode.FoodGoodEaten, ChainNode.FoodGoodDemanded, ChainNode.FoodGoodFill);
 
-        FoodSupply(prev, cfg, s, links);
+        FoodSupply(prev, SourceWorld.Prev, cfg, s, links);
         return new CausalChain(need.Id, need.Name, [.. links]);
     }
 
@@ -202,11 +202,17 @@ public sealed class CausalChain
     /// The food-supply block, reading ONE world: the deficit and what produced
     /// it. Shared by the Sustenance chain (on Prev) and the happiness Food
     /// factor (on the world happiness was asked about), so the two cannot name
-    /// different causes for the same shortfall.
+    /// different causes for the same shortfall. <paramref name="from"/> is the
+    /// identity of <paramref name="w"/> as the CALLER knows it — Prev or Next —
+    /// and every link emitted here carries it verbatim, because a link's World
+    /// says where its value was read, and this block cannot know that by
+    /// looking at the world (A2-LABEL: the first cut wrote Prev unconditionally,
+    /// so the happiness Food chain labelled a Next deficit as Prev).
     /// </summary>
-    public static void FoodSupply(IReadOnlyWorldState w, SimConfig cfg, SettlementId s, List<Link> into)
+    public static void FoodSupply(IReadOnlyWorldState w, SourceWorld from, SimConfig cfg, SettlementId s, List<Link> into)
     {
         ArgumentNullException.ThrowIfNull(into);
+        Stepped(from);
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("SimConfig.Goods is not loaded.", nameof(cfg));
         var grain = new GoodId(goods.GrainId);
 
@@ -214,17 +220,17 @@ public sealed class CausalChain
         if (d >= 0)
         {
             into.Add(new Link(ChainNode.DeficitRatio, "DeficitRatio", w.ConsumptionDeficits[d].DeficitRatio,
-                LinkKind.Read, SourceWorld.Prev, "ConsumptionDeficits", d,
+                LinkKind.Read, from, "ConsumptionDeficits", d,
                 "Unmet fraction of the nutritional requirement, substitution counted once "
                 + "(ConsumptionSystem.cs:183-190). The famine-flight push and the happiness Food factor read this."));
             into.Add(new Link(ChainNode.NutritionalDemand, "DemandUnits", w.ConsumptionDeficits[d].DemandUnits,
-                LinkKind.Read, SourceWorld.Prev, "ConsumptionDeficits", d,
+                LinkKind.Read, from, "ConsumptionDeficits", d,
                 "Person-year-equivalents required this turn (ConsumptionSystem.cs:183-184): a population fact, no lever."));
         }
         else
         {
             into.Add(new Link(ChainNode.DeficitRatio, "DeficitRatio", double.NaN, LinkKind.Gap,
-                SourceWorld.Prev, "ConsumptionDeficits", -1,
+                from, "ConsumptionDeficits", -1,
                 "No deficit row: consumption has not run for this settlement (a founding turn). "
                 + "SettlementHappiness.FoodSufficiency reads this absence as 1.0 (SettlementHappiness.cs:118-129)."));
         }
@@ -235,21 +241,21 @@ public sealed class CausalChain
         {
             GoodStockRow row = w.GoodStocks[g];
             into.Add(new Link(ChainNode.GrainStore, "grain store (post-step)", row.Amount.Value,
-                LinkKind.Read, SourceWorld.Prev, "GoodStocks", g,
+                LinkKind.Read, from, "GoodStocks", g,
                 "GoodStockRow.Amount after harvest, eating, spoilage and granary overflow (ConsumptionSystem.cs:192-203)."));
             into.Add(new Link(ChainNode.GrainHarvest, "grain harvest", row.LastProducedUnits,
-                LinkKind.Read, SourceWorld.Prev, "GoodStocks", g,
+                LinkKind.Read, from, "GoodStocks", g,
                 "LastProducedUnits — units credited by Farm this turn (ProductionSystem.cs:243-247), "
                 + "= min(arable × yield, farm labour × output × toolFactor) × weather × dt, whole units."));
             into.Add(new Link(ChainNode.GrainEaten, "grain eaten", row.LastConsumptionEatenUnits,
-                LinkKind.Read, SourceWorld.Prev, "GoodStocks", g,
+                LinkKind.Read, from, "GoodStocks", g,
                 "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229). Eaten > Harvest means the "
                 + "store was drawn down; in a standing famine Eaten == Harvest < demand."));
         }
         else
         {
             into.Add(new Link(ChainNode.GrainHarvest, "grain harvest", double.NaN, LinkKind.Gap,
-                SourceWorld.Prev, "GoodStocks", -1,
+                from, "GoodStocks", -1,
                 "No grain stock row: Farm credits nothing (ProductionSystem.cs:191-192) and Fill reads 1.0 (case 1)."));
         }
 
@@ -258,38 +264,38 @@ public sealed class CausalChain
         SectorAllocationRow shares = ExplainRows.SectorRow(w, s, out sectorIdx);
         const string Lag = " IN FORCE for the step reading this world as Prev (§3.2 one-turn lag): it drives the "
             + "NEXT harvest, not the harvest shown above, which was produced under the previous turn's allocation.";
-        into.Add(ShareLink(ChainNode.FarmingShare, "farming share", shares, Sectors.Farming, sectorIdx,
+        into.Add(ShareLink(ChainNode.FarmingShare, "farming share", shares, Sectors.Farming, sectorIdx, from,
             "Sectors.Share(row, Farming) × adults = farm labour (ProductionSystem.cs:157-158).", Lag));
 
         int c = ExplainRows.Catchment(w, s);
         into.Add(c >= 0
             ? new Link(ChainNode.ArableLand, "EffectiveArableKm2", w.CatchmentSummaries[c].EffectiveArableKm2,
-                LinkKind.Read, SourceWorld.Prev, "CatchmentSummaries", c,
+                LinkKind.Read, from, "CatchmentSummaries", c,
                 "Land side of the Leontief: arable × YieldPerArableKm2PerYear (ProductionSystem.cs:202-207, 223). "
                 + "A condition of the site's catchment; no M4 lever.")
             : new Link(ChainNode.ArableLand, "EffectiveArableKm2", double.NaN, LinkKind.Gap,
-                SourceWorld.Prev, "CatchmentSummaries", -1,
+                from, "CatchmentSummaries", -1,
                 "No catchment summary yet: Farm reads arable 0.0 (ProductionSystem.cs:202)."));
 
         int wx = ExplainRows.Weather(w, s);
         into.Add(wx >= 0
             ? new Link(ChainNode.HarvestWeather, "harvest weather multiplier", w.HarvestWeather[wx].Multiplier,
-                LinkKind.Read, SourceWorld.Prev, "HarvestWeather", wx,
+                LinkKind.Read, from, "HarvestWeather", wx,
                 "Multiplies realised farm AND herding output after the Leontief minimum (ProductionSystem.cs:239, "
                 + "171-175, 306). Mean-one AR(1) weather (HarvestWeatherSystem.cs:30-33); a condition, no lever.")
             : new Link(ChainNode.HarvestWeather, "harvest weather multiplier", double.NaN, LinkKind.Gap,
-                SourceWorld.Prev, "HarvestWeather", -1,
+                from, "HarvestWeather", -1,
                 "No weather row for this settlement: Farm uses 1.0 by design (ProductionSystem.cs:329-337)."));
 
         int toolsId = goods.IdOf("tools");
         int t = toolsId > 0 ? GoodStockIndex.IndexOf(w.GoodStocks, s, new GoodId(toolsId)) : -1;
         into.Add(t >= 0
             ? new Link(ChainNode.ToolsStock, "tools stock", w.GoodStocks[t].Amount.Value,
-                LinkKind.Read, SourceWorld.Prev, "GoodStocks", t,
+                LinkKind.Read, from, "GoodStocks", t,
                 "Prev tool stock equips farmers: equipRatio = min(1, stock / (farmLabour × ToolsPerFarmerToEquip)) "
                 + "(ProductionSystem.cs:211-221)." + Lag)
             : new Link(ChainNode.ToolsStock, "tools stock", double.NaN, LinkKind.Gap,
-                SourceWorld.Prev, "GoodStocks", -1, "No tools stock row: equipRatio reads 0 (ProductionSystem.cs:213-220)."));
+                from, "GoodStocks", -1, "No tools stock row: equipRatio reads 0 (ProductionSystem.cs:213-220)."));
         into.Add(new Link(ChainNode.ToolFactor, "tool factor", double.NaN, LinkKind.Gap, SourceWorld.None, "", -1,
             "toolFactor = 1 + ToolYieldBonusMax × equipRatio is computed inside Farm and discarded "
             + "(ProductionSystem.cs:221) — not recorded (§8 item 9)."));
@@ -300,7 +306,7 @@ public sealed class CausalChain
 
         // HERDING/FISHING: every food deposit this settlement holds
         // (ProductionSystem.cs:273-316 with foodSector: true).
-        into.Add(ShareLink(ChainNode.HerdingShare, "herding share", shares, Sectors.Herding, sectorIdx,
+        into.Add(ShareLink(ChainNode.HerdingShare, "herding share", shares, Sectors.Herding, sectorIdx, from,
             "Sectors.Share(row, Herding) × adults = the pool split across food deposits ∝ abundance "
             + "(ProductionSystem.cs:171-175, 300).", Lag));
         for (int i = 0; i < w.Deposits.Count; i++)
@@ -315,11 +321,11 @@ public sealed class CausalChain
             if (st >= 0)
             {
                 into.Add(new Link(ChainNode.DepositFoodProduced, name + " produced", w.GoodStocks[st].LastProducedUnits,
-                    LinkKind.Read, SourceWorld.Prev, "GoodStocks", st,
+                    LinkKind.Read, from, "GoodStocks", st,
                     "LastProducedUnits = workers × OutputPerHerderPerYear × abundance × weather × dt (ProductionSystem.cs:300-315)."));
             }
             into.Add(new Link(ChainNode.DepositAbundance, name + " deposit abundance", dep.Abundance,
-                LinkKind.Read, SourceWorld.Prev, "Deposits", i,
+                LinkKind.Read, from, "Deposits", i,
                 "Founding endowment (DepositRow.Abundance): sets both the labour split and the per-worker rate "
                 + "(ProductionSystem.cs:300-306). A condition, no lever."));
         }
@@ -342,26 +348,32 @@ public sealed class CausalChain
         SatisfactionLink(links, next, s, cls, need, ChainNode.ShelterSatisfaction,
             "s = min(1, dwellings × PersonsPerDwelling / population) on Prev (NeedsGrievanceSystem.cs:133-146); "
             + "settlement-level, so every class carries the same value.");
-        HousingSupply(prev, next, cfg, s, links);
+        HousingSupply(prev, SourceWorld.Prev, next, cfg, s, links);
         return new CausalChain(need.Id, need.Name, [.. links]);
     }
 
     /// <summary>
     /// The housing-supply block: sufficiency (the public reader), the dwelling
-    /// stock and what moves it. <paramref name="next"/> may equal
-    /// <paramref name="w"/> (happiness asks about one world), in which case the
-    /// Δdwellings link is omitted rather than reported as zero.
+    /// stock and what moves it. <paramref name="from"/> is the identity of
+    /// <paramref name="w"/> as the caller knows it (Prev or Next) and is stamped
+    /// on every link read from it. <paramref name="next"/> is the post-step
+    /// world to difference dwellings against, and is only meaningful when
+    /// <paramref name="w"/> is Prev; pass null when happiness asks about one
+    /// world, and the Δdwellings link is omitted rather than reported as zero.
     /// </summary>
     public static void HousingSupply(
-        IReadOnlyWorldState w, IReadOnlyWorldState next, SimConfig cfg, SettlementId s, List<Link> into)
+        IReadOnlyWorldState w, SourceWorld from, IReadOnlyWorldState? next, SimConfig cfg, SettlementId s, List<Link> into)
     {
         ArgumentNullException.ThrowIfNull(into);
+        Stepped(from);
+        if (next is not null && from != SourceWorld.Prev)
+            throw new ArgumentException("Δdwellings is next − prev: a next world is only meaningful when w is Prev.", nameof(next));
         HousingConfig housing = cfg.Housing ?? throw new ArgumentException("SimConfig.Housing is not loaded.", nameof(cfg));
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("SimConfig.Goods is not loaded.", nameof(cfg));
 
         int h = ExplainRows.Housing(w, s);
         into.Add(new Link(ChainNode.HousingSufficiency, "housing sufficiency",
-            SettlementHappiness.HousingSufficiency(w, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "Housing", h,
+            SettlementHappiness.HousingSufficiency(w, s, cfg), LinkKind.Recomputed, from, "Housing", h,
             "SettlementHappiness.HousingSufficiency: clamp(dwellings × PersonsPerDwelling / population, 0, 1) "
             + "(SettlementHappiness.cs:138-159) — the same expression the Shelter need evaluates."
             + (h < 0
@@ -371,7 +383,7 @@ public sealed class CausalChain
                 : "")));
 
         long pop = ExplainRows.Population(w, s);
-        into.Add(new Link(ChainNode.Population, "population", pop, LinkKind.Summed, SourceWorld.Prev, "Buckets", -1,
+        into.Add(new Link(ChainNode.Population, "population", pop, LinkKind.Summed, from, "Buckets", -1,
             "Σ BucketRow.Count over the settlement (NeedsGrievanceSystem.cs:135-137). Demographics and migration "
             + "move it; no lever."));
         into.Add(new Link(ChainNode.PersonsPerDwelling, "PersonsPerDwelling", housing.PersonsPerDwelling,
@@ -381,8 +393,8 @@ public sealed class CausalChain
         {
             HousingRow row = w.Housing[h];
             into.Add(new Link(ChainNode.Dwellings, "dwellings", row.Dwellings.Value, LinkKind.Read,
-                SourceWorld.Prev, "Housing", h, "HousingRow.Dwellings, the conserved stock (HousingSystem.cs:107)."));
-            if (!ReferenceEquals(w, next))
+                from, "Housing", h, "HousingRow.Dwellings, the conserved stock (HousingSystem.cs:107)."));
+            if (next is not null)
             {
                 int hn = ExplainRows.Housing(next, s);
                 if (hn >= 0)
@@ -394,17 +406,17 @@ public sealed class CausalChain
                 }
             }
             into.Add(new Link(ChainNode.MaintenanceFraction, "LastMaintenanceFraction", row.LastMaintenanceFraction,
-                LinkKind.Read, SourceWorld.Prev, "Housing", h,
+                LinkKind.Read, from, "Housing", h,
                 "m = min over materials of available/upkeep-demand, Leontief (HousingSystem.cs:109-117); the "
                 + "unmaintained share decays as exp(−(1−m)·dt/τ) (HousingSystem.cs:127-140)."));
             into.Add(new Link(ChainNode.ConstructionLabourUsed, "LastLaborUsed (adult-years)", row.LastLaborUsed,
-                LinkKind.Read, SourceWorld.Prev, "Housing", h,
+                LinkKind.Read, from, "Housing", h,
                 "Adult-years spent building last turn (HousingSystem.cs:183, 192); PathBuild and Construction subtract "
                 + "it from the same pool at the one-turn lag."));
         }
         else
         {
-            into.Add(new Link(ChainNode.Dwellings, "dwellings", double.NaN, LinkKind.Gap, SourceWorld.Prev, "Housing", -1,
+            into.Add(new Link(ChainNode.Dwellings, "dwellings", double.NaN, LinkKind.Gap, from, "Housing", -1,
                 "No housing row: people and no row read Shelter 0.0 (NeedsGrievanceSystem.cs:145); HousingSystem "
                 + "creates the row on its first step (HousingSystem.cs:96-101)."));
         }
@@ -412,7 +424,7 @@ public sealed class CausalChain
         int sectorIdx;
         SectorAllocationRow shares = ExplainRows.SectorRow(w, s, out sectorIdx);
         const string Lag = " In force for the step reading this world as Prev (§3.2 one-turn lag).";
-        into.Add(ShareLink(ChainNode.ConstructionShare, "construction share", shares, Sectors.Construction, sectorIdx,
+        into.Add(ShareLink(ChainNode.ConstructionShare, "construction share", shares, Sectors.Construction, sectorIdx, from,
             "builderYears = Sectors.Share(row, Construction) × adults × dt; laborCap = builderYears / "
             + "BuildLaborAdultYearsPerDwelling (HousingSystem.cs:145-150, 160-161).", Lag));
 
@@ -420,11 +432,11 @@ public sealed class CausalChain
         int t = timberId > 0 ? GoodStockIndex.IndexOf(w.GoodStocks, s, new GoodId(timberId)) : -1;
         into.Add(t >= 0
             ? new Link(ChainNode.TimberStock, "timber stock", w.GoodStocks[t].Amount.Value, LinkKind.Read,
-                SourceWorld.Prev, "GoodStocks", t,
+                from, "GoodStocks", t,
                 "Upkeep demand dwellings × UpkeepTimberPerDwellingYear × dt against this stock (HousingSystem.cs:111-115); "
                 + "timberCap = stock / BuildTimberPerDwelling (HousingSystem.cs:162-164). Housing reads its OWN shared "
                 + "stock table live, so the value shown is the post-step Prev stock.")
-            : new Link(ChainNode.TimberStock, "timber stock", double.NaN, LinkKind.Gap, SourceWorld.Prev, "GoodStocks", -1,
+            : new Link(ChainNode.TimberStock, "timber stock", double.NaN, LinkKind.Gap, from, "GoodStocks", -1,
                 "No timber row: available reads 0.0 and nothing can be built or maintained (HousingSystem.cs:113, 163)."));
         // Clay is wired in HousingSystem (HousingSystem.cs:114-117, 165-167) but
         // the shipped coefficients are 0.0 (sim.json housing: structural earth is
@@ -436,13 +448,13 @@ public sealed class CausalChain
             int cl = clayId > 0 ? GoodStockIndex.IndexOf(w.GoodStocks, s, new GoodId(clayId)) : -1;
             into.Add(cl >= 0
                 ? new Link(ChainNode.ClayStock, "clay stock", w.GoodStocks[cl].Amount.Value, LinkKind.Read,
-                    SourceWorld.Prev, "GoodStocks", cl,
+                    from, "GoodStocks", cl,
                     "Clay upkeep and build caps (HousingSystem.cs:112-117, 165-167) — a dependency because the "
                     + "config coefficients are non-zero.")
-                : new Link(ChainNode.ClayStock, "clay stock", double.NaN, LinkKind.Gap, SourceWorld.Prev, "GoodStocks", -1,
+                : new Link(ChainNode.ClayStock, "clay stock", double.NaN, LinkKind.Gap, from, "GoodStocks", -1,
                     "No clay row while the config demands clay: available reads 0.0."));
         }
-        into.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx,
+        into.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx, from,
             "Timber is a deposit good produced by the extraction pool (ProductionSystem.cs:176-180, 273-316).", Lag));
         into.Add(new Link(ChainNode.BuiltDecayedSplit, "built / decayed split", double.NaN, LinkKind.Gap,
             SourceWorld.None, "", -1,
@@ -479,7 +491,7 @@ public sealed class CausalChain
         {
             GoodId good = basket[i].Good;
             string name = ExplainRows.GoodName(cfg, good);
-            FillLinks(links, prev, cfg, s, good,
+            FillLinks(links, prev, SourceWorld.Prev, cfg, s, good,
                 ChainNode.ComfortGoodEaten, ChainNode.ComfortGoodDemanded, ChainNode.ComfortGoodFill);
 
             int st = GoodStockIndex.IndexOf(prev.GoodStocks, s, good);
@@ -534,10 +546,10 @@ public sealed class CausalChain
 
         if (anyRecipe)
         {
-            links.Add(ShareLink(ChainNode.CraftingShare, "crafting share", shares, Sectors.Crafting, sectorIdx,
+            links.Add(ShareLink(ChainNode.CraftingShare, "crafting share", shares, Sectors.Crafting, sectorIdx, SourceWorld.Prev,
                 "pool = Sectors.Share(row, Crafting) × adults, split EQUALLY across available recipes "
                 + "(ProductionSystem.cs:181-182, 366-369).", Lag));
-            links.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx,
+            links.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx, SourceWorld.Prev,
                 "Raw inputs (clay, timber, fiber) are deposit goods produced by the extraction pool "
                 + "(ProductionSystem.cs:176-180, 273-316).", Lag));
             links.Add(new Link(ChainNode.RecipeLabourCap, "per-recipe labour cap", double.NaN, LinkKind.Gap,
@@ -547,7 +559,7 @@ public sealed class CausalChain
         }
         else if (anyDeposit)
         {
-            links.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx,
+            links.Add(ShareLink(ChainNode.ExtractionShare, "extraction share", shares, Sectors.Extraction, sectorIdx, SourceWorld.Prev,
                 "The deposit pool (ProductionSystem.cs:176-180).", Lag));
         }
 
@@ -563,11 +575,20 @@ public sealed class CausalChain
     /// is what every consumer applies — the note says so, because a founded
     /// world that was never ordered has NO SectorAllocations row at all.</summary>
     private static Link ShareLink(
-        ChainNode node, string label, in SectorAllocationRow shares, int sector, int sectorIdx,
+        ChainNode node, string label, in SectorAllocationRow shares, int sector, int sectorIdx, SourceWorld from,
         string note, string lag) =>
-        new(node, label, Sectors.Share(shares, sector), LinkKind.Recomputed, SourceWorld.Prev,
+        new(node, label, Sectors.Share(shares, sector), LinkKind.Recomputed, from,
             "SectorAllocations", sectorIdx,
             note + (sectorIdx < 0 ? " No row: Sectors.Default in force." : "") + lag);
+
+    /// <summary>A world a row can be READ from is Prev or Next; Config and None
+    /// are not worlds, and a block handed one would stamp every link with a
+    /// world it did not read.</summary>
+    private static void Stepped(SourceWorld from)
+    {
+        if (from is not (SourceWorld.Prev or SourceWorld.Next))
+            throw new ArgumentOutOfRangeException(nameof(from), from, "a supply block reads Prev or Next.");
+    }
 
     private static BasketBook Book(SimConfig cfg)
     {
@@ -603,26 +624,27 @@ public sealed class CausalChain
     /// kill-record test pins the quotient (ExplainRecomputedFunctionTests).
     /// </summary>
     private static void FillLinks(
-        List<Link> links, IReadOnlyWorldState prev, SimConfig cfg, SettlementId s, GoodId good,
+        List<Link> links, IReadOnlyWorldState prev, SourceWorld from, SimConfig cfg, SettlementId s, GoodId good,
         ChainNode eatenNode, ChainNode demandedNode, ChainNode fillNode)
     {
+        Stepped(from);
         string name = ExplainRows.GoodName(cfg, good);
         int i = GoodStockIndex.IndexOf(prev.GoodStocks, s, good);
         if (i < 0)
         {
             links.Add(new Link(fillNode, name + " fill", NeedsGrievanceSystem.Fill(prev, s, good), LinkKind.Recomputed,
-                SourceWorld.Prev, "GoodStocks", -1,
+                from, "GoodStocks", -1,
                 "No row: no stock row for this good here — nothing wanted from a market that is not there; "
                 + "NeedsGrievanceSystem.Fill reads 1.0 (case 1, NeedsGrievanceSystem.cs:380-381)."));
             return;
         }
         GoodStockRow row = prev.GoodStocks[i];
         links.Add(new Link(eatenNode, name + " eaten", row.LastConsumptionEatenUnits, LinkKind.Read,
-            SourceWorld.Prev, "GoodStocks", i, "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229)."));
+            from, "GoodStocks", i, "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229)."));
         links.Add(new Link(demandedNode, name + " demanded", row.LastConsumptionDemandUnits, LinkKind.Read,
-            SourceWorld.Prev, "GoodStocks", i, "LastConsumptionDemandUnits, pre-clamp (ConsumptionSystem.cs:222-228)."));
+            from, "GoodStocks", i, "LastConsumptionDemandUnits, pre-clamp (ConsumptionSystem.cs:222-228)."));
         links.Add(new Link(fillNode, name + " fill", NeedsGrievanceSystem.Fill(in row), LinkKind.Recomputed,
-            SourceWorld.Prev, "GoodStocks", i,
+            from, "GoodStocks", i,
             row.LastConsumptionDemandUnits <= 0
                 ? "NeedsGrievanceSystem.Fill on this row: demand quantised to zero units this turn, so the STOCK "
                   + "discriminates — empty store 0.0, else 1.0 (case 2, NeedsGrievanceSystem.cs:392-393)."

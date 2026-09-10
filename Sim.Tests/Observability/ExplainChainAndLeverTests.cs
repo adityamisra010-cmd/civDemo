@@ -94,7 +94,14 @@ public class ExplainChainAndLeverTests
                 {
                     HappinessExplanation h = HappinessExplanation.For(next, cfg, next.Settlements[i].Id);
                     foreach (HappinessFactor f in h.Factors)
+                    {
                         AssertSourcesExist(f.Chain, next, next, $"{name} t{t} happiness {f.Name} s{next.Settlements[i].Id.Value}");
+                        // A2-LABEL: happiness asks about ONE world, so no link
+                        // of its chains may claim Prev — the (next, next)
+                        // resolution above cannot tell the two labels apart.
+                        foreach (Link l in f.Chain)
+                            Assert.True(l.World != SourceWorld.Prev, $"{name} t{t} happiness {f.Name}: {l.Node} claims Prev");
+                    }
                 }
             }
         }
