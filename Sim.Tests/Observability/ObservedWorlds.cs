@@ -78,7 +78,10 @@ internal static class ObservedWorlds
     ///     overflow first on turn 1, starvation first on turn 55, trade on 41,
     ///     dwellings never decay; no settlement is founded (12 throughout).
     ///   DRIVEN 300: the same five non-zero on turn 2; starvation on 7, trade on
-    ///     7, decay on 25; no founding; 56 policy changes, all on turn 3.
+    ///     7, decay on 48 (25 on the pre-lane-C founding vector; re-measured at
+    ///     T4.19-A under CR-014 with the unfixed cap as the control arm — same
+    ///     48 — so the founding vector alone moved it); no founding; 56 policy
+    ///     changes, all on turn 3.
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
     ///     settlement 0, party 143, provisions 128; nothing founded after.</summary>
     internal static readonly Lazy<Run> Founded300 =

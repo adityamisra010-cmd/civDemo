@@ -403,14 +403,32 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 }
             }
 
+            // CR-014 (ruled, option 1): the Leontief cap is taken against the
+            // BANK-INCLUSIVE supply, `stockAmount − ConsumeRemainder`, not the
+            // stock alone. The sink below adds the row's banked remainder to
+            // `exactOutput × perOutput` and FLOORS under OverdrawPolicy.Throw;
+            // capped on the stock alone, a bank within a few ulps of 1.0 made
+            // that sum round to `stock + 1.0` and the ledger threw (driven
+            // seed-42 world, turn 213: stock 66, cap 22 × 3 = 66.0, bank
+            // 0.9999999999999929, exactIn 67.0). With the bank inside the cap
+            // the sum is `stock` to within ~4 ulps of `stock`, which floors to
+            // at most `stock` for every stock below 2^51 — four orders above
+            // ConservedMath's documented 1e14 goods ceiling. The Leontief
+            // reading ("what the stock can supply") thereby becomes exact: the
+            // fraction already committed from the bank is part of the answer.
+            // Max(0, ·) keeps an empty row with a positive bank at ZERO output
+            // (the bank is carried, never spent from nothing). When the bank
+            // is 0.0 the expression is bit-identical to the pre-CR-014 cap.
             for (int i = 0; i < recipe.Inputs.Length; i++)
             {
                 var input = new GoodId(goods.IdOf(recipe.Inputs[i].Good));
                 int inRow = GoodStockIndex.IndexOf(stocks, settlement, input);
                 long stockAmount = inRow >= 0 ? stocks[inRow].Amount.Value : 0;
+                double banked = inRow >= 0 ? stocks[inRow].ConsumeRemainder : 0.0;
                 double perOutput = recipe.Inputs[i].PerOutput / recipe.Output.Qty;
+                double supply = Math.Max(0.0, stockAmount - banked);
                 exactOutput = Math.Min(exactOutput, perOutput > 0.0
-                    ? stockAmount / perOutput : exactOutput);
+                    ? supply / perOutput : exactOutput);
             }
             if (exactOutput <= 0.0) continue; // no inputs (or no labor) → NOTHING, never from nothing
 
