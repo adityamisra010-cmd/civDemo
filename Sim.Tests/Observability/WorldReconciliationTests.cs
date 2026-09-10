@@ -98,7 +98,17 @@ public class WorldReconciliationTests
             "turn 2 of the driven world does not carry all five flows");
         Assert.True(log.At(7)!.Turn.Population.Starvation > 0, "no starvation on turn 7");
         Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
-        Assert.True(log.At(25)!.Turn.Dwellings.Decayed > 0, "no decay on turn 25");
+        // T4.19-A (CR-014 ruled): the first-decay sample RE-MEASURED, 25 -> 48.
+        // The 25 was read on the pre-lane-C founding vector (measured on the
+        // lane-obs tree 8f59166, where it still holds). On lane C's vector the
+        // first decayed dwelling is on turn 48 — and it is 48 on BOTH the
+        // unfixed cap (probed to turn 212, before its 213 throw) and the
+        // corrected cap, with identical readings on turns 7, 25 and 48. The
+        // cap change therefore contributes nothing to this sample; the
+        // founding vector is its whole cause. Starvation on 7 and trade on 7
+        // hold on every arm. Reconciliation above is asserted on all 300
+        // turns; this is the non-vacuity sample only.
+        Assert.True(log.At(48)!.Turn.Dwellings.Decayed > 0, "no decay on turn 48");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery: 1464 produced, 638 sunk on turn 5, measured).

@@ -52,8 +52,12 @@ public class IntegratedPinAttributionTests
     /// integrated tree by <see cref="HashAtSchemaV22"/>; the midpoint that lets
     /// the two causes of the driven pin's movement be reported separately.
     /// </summary>
+    /// T4.19 (CR-014 ruled): re-measured on this tree with HashAtSchemaV22 —
+    /// the driven world moved for lane C's founding vector (the cap change alone
+    /// returns the old vector's pin byte for byte; DrivenGoldenTests has the arms).
+    /// OLD 611a1508e650c9b897e3ec3ec0884969ae3add4d8de520fa5a126efbb71926ea.
     internal const string CapacityFloorFixAtSchemaV22 =
-        "611a1508e650c9b897e3ec3ec0884969ae3add4d8de520fa5a126efbb71926ea";
+        "60bd5b208696a25f93469d58d4a4284d8ae8467107aeee3545d3d0f82b61ba14";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -191,15 +195,18 @@ public class IntegratedPinAttributionTests
         // alone.
         const string mainPinBeforeTheFix = "5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb";
 
-        // T4.19 lane C — NOT RE-PINNED, AND THAT IS DELIBERATE. The corrected
-        // founding vector moves this world too, but the driven world now reaches
-        // a LATENT ProductionSystem.Craft overdraw at turn 213 (weaving, fiber,
-        // settlement 10: stock 66, input cap 22 x 3 = 66, banked ConsumeRemainder
-        // 0.9999999999999929, exactIn rounds to 67.0, OverdrawPolicy.Throw) —
-        // the input cap ignores the row's banked remainder. Out of lane C's
-        // scope (a production-system change), reported for a director ruling in
-        // docs/m4-founding-demographics-correction.md §6; this test FAILS by
-        // exception until it is ruled on. Constants below are the pre-T4.19 values.
+        // T4.19 — RE-PINNED under the CR-014 ruling. Lane C's founding vector
+        // moved this world AND carried it into a latent Craft overdraw at turn
+        // 213 (weaving, fiber, settlement 10: stock 66, cap 22 x 3 = 66, banked
+        // ConsumeRemainder 0.9999999999999929, exactIn 67.0, Throw). The cap now
+        // includes the bank (option 1) and the world completes. The two causes
+        // are measured apart in DrivenGoldenTests: the cap change on the OLD
+        // vector returns the old pin byte for byte at turn 300 (a three-turn
+        // transient at 273-275, closed by 276), so the movement of every
+        // constant here is the founding vector; the cap change is what lets it
+        // be measured at all. Both constants below re-measured on this tree via
+        // HashAtSchemaV22 / HashAtSchemaV23; the founded, FirstReign and
+        // synthetic controls in this file are UNMOVED (run, not assumed).
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         string atV22 = HashAtSchemaV22(world);
 
@@ -208,7 +215,8 @@ public class IntegratedPinAttributionTests
 
         // M4-C LAYER — founded world, so Empire rows land here as well. Three
         // causes now compose in this one pin, and each is measured separately.
-        const string beforeM4C = "e2f3c0426f504077c8536f51f7784a7fa2b5925bc85c95ef715b7931f64851ab";
+        // T4.19: OLD e2f3c0426f504077c8536f51f7784a7fa2b5925bc85c95ef715b7931f64851ab.
+        const string beforeM4C = "cf93e0fed26a3e28e9e971498f8240c1534a5a8aa97391fe030adeaf76d4fa75";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);

@@ -1335,3 +1335,13 @@
   turn-1 zero harvest (`CatchmentSummaries` empty at turn 0) is still benign only because of that
   depth. `foodStore` deliberately untouched by lane C (it scales with realised population; per
   capita unchanged to the unit). Whether to found at the cap is a separate ruling.
+- **T4.19-A — CR-014 RULED, option 1, shipped.** `ProductionSystem.Craft` caps each input on the
+  bank-inclusive supply `max(0, stock − ConsumeRemainder) / perOutput`; `OverdrawPolicy.Throw`
+  stays. The turn-213 coincidence is reproduced bit-exactly in `ProductionTests` (red against the
+  old cap) and a 96-row (stock, bank) sweep asserts `sunk ≤ stock` always. The driven golden
+  re-pins `01673381…` → `76f82629…` for TWO causes measured apart: the cap change alone on the
+  old founding vector returns the old pin byte for byte (a three-turn transient at 273–275, gone
+  by 276), so the movement is lane C's founding vector and the cap is what lets the world reach
+  300. `docs/adr/cr-014-…md` §8–§10. `docs/m4-founding-demographics-correction.md` §6 and
+  `docs/t4.19-verification-record.md` §2/§7 still describe the pre-ruling state; the CR is the
+  record that supersedes them.

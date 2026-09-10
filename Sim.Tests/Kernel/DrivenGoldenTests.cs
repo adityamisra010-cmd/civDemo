@@ -262,22 +262,51 @@ public class DrivenGoldenTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272
-        // T4.19 lane C — THIS GOLDEN MOVES (founding.cohortCounts is now the
-        //   kernel's stable age structure; SnapshotTests.FoundedGolden has the
-        //   record) BUT COULD NOT BE RE-PINNED: the driven world now runs into a
-        //   LATENT ProductionSystem.Craft overdraw at turn 213 — recipe 'weaving',
-        //   input fiber, settlement 10: stock 66, exactOutput capped at 66/3 = 22,
-        //   product 66.0, banked ConsumeRemainder 0.9999999999999929, exactIn
-        //   rounds to exactly 67.0 and floors to 67 > 66 under OverdrawPolicy.Throw.
-        //   The Leontief input cap (`stockAmount / perOutput`) ignores the row's
-        //   banked remainder; the sink then adds it. Measured with a temporary
-        //   probe, reverted. Under the OLD vector this world happened never to
-        //   reach that state in 300 turns. Fixing it is a production-system
-        //   change outside lane C and is escalated for a director ruling
-        //   (docs/m4-founding-demographics-correction.md §6). Until then this test
-        //   FAILS BY EXCEPTION at turn 213, deliberately not hidden; the constant
-        //   below is the pre-T4.19 value.
-        const string golden = "01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af";
+        // T4.19 RE-PIN — TWO CAUSES, MEASURED APART (CR-014 ruled, option 1).
+        //   OLD  01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af
+        //   NEW  76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6
+        //   CAUSE (a) lane C: founding.cohortCounts is now the kernel's stable age
+        //         structure (SnapshotTests.FoundedGolden has the record). Under it
+        //         this world reached a LATENT ProductionSystem.Craft overdraw at
+        //         turn 213 — weaving, fiber, settlement 10: stock 66, cap 22 × 3 =
+        //         66.0, banked ConsumeRemainder 0.9999999999999929, exactIn 67.0 —
+        //         so the world could not complete and the pin stood at OLD.
+        //   CAUSE (b) CR-014: the Leontief input cap now includes the row's banked
+        //         remainder (`max(0, stock − ConsumeRemainder) / perOutput`), so
+        //         the sink can never floor above the stock. ProductionTests
+        //         reproduces the turn-213 coincidence exactly and sweeps the
+        //         (stock, bank) space; red-proven against the old cap.
+        //   THE ARMS, every hash measured on the tree it names (per-turn hash
+        //   logs on both sides, first differing turn found by diff):
+        //     OLD  feaf218, old founding vector, old cap ........ 01673381… (turn 300)
+        //     X1   feaf218 + ONLY the cap change ................ 01673381… (turn 300)
+        //          IDENTICAL to OLD at 300, but NOT identical throughout: turns
+        //          273, 274, 275 differ and 276–300 do not. At 273 settlement 9's
+        //          pottery-firing was timber-bound with a 0.25 bank: the new cap
+        //          spends the bank (timber ConsumeRemainder 0.25 → 0), sinks one
+        //          clay unit fewer (LedgerFlows (clay, InputsConsumed) 178143 →
+        //          178142; clay stock 0 → 1) and leaves pottery's ProduceRemainder
+        //          0.5 → 0. The deferred clay unit is consumed by turn 275
+        //          (ledger totals equal again, 178252 both); the only 275
+        //          difference is PriceTerms row 131, computed from the PREV clay
+        //          stock, while the written Prices table is identical on all
+        //          three turns. By 276 no field differs
+        //          (`sim diff`, 40 blocks). The fix's whole effect on the old
+        //          vector is a three-turn transient with no trace at 300.
+        //     X2   this tree: cap change + new founding vector ... 76f82629… = NEW
+        //          X1 → X2 first differs at turn 0 (the founding vector).
+        //          Unfixed new vector → X2 first differs at turn 15 — settlement
+        //          1's weaving, fiber-bound with bank 0.7499999999995453, cloth
+        //          ProduceRemainder 0.9166… → 0.6666… — and on every turn 15..212
+        //          after it (198 of 198); the unfixed run throws at 213.
+        //   So (a) is the whole movement of this pin — (b) alone returns OLD —
+        //   and (b) is what lets the world reach 300. Full table: CR-014 §10.
+        //   NOT A SCHEMA CHANGE: v24; no table, row or field joined or left.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200, FoundedGolden,
+        //   FirstReign and every IntegratedPinAttribution founded/FirstReign
+        //   constant pass unchanged on this tree (no input-bound craft with a
+        //   non-zero bank reaches them differently — measured by running them).
+        const string golden = "76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
@@ -428,6 +457,16 @@ public class DrivenGoldenTests
         // spec said this reuses T3.9b's TradeModel classification. It cannot —
         // TradeModel lives in Sim.Ui and NOTHING references Sim.Ui (ADR-009).
         // The same classification is therefore computed here independently.
+        //
+        // T4.19 READINGS (CR-014 ruled; the world completes again). Measured on
+        // the OLD arm (feaf218, old founding vector — the cap change leaves that
+        // world byte-identical at 300, so the reading is the same with or
+        // without it) and on THIS tree; the difference is the founding vector:
+        //   OLD  totalFlow=3   rows=1  minPathCost=4.9012  cloth moved=3;
+        //        pottery GAP>DEADBAND, every other good GapZero/UnderDeadband
+        //   NEW  totalFlow=20  rows=5  minPathCost=4.0070  cloth moved=20;
+        //        timber, copper-ore, fiber, bronze, pottery GAP>DEADBAND
+        // Neither is asserted (D1 pre-commits that); both are in CR-014 §10.
         (WorldState world, SimConfig cfg) = RunDriven(300);
         var inv = CultureInfo.InvariantCulture;
         int grain = cfg.Goods!.GrainId;
