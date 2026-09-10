@@ -110,7 +110,7 @@ public class SessionRecordTests
     [Theory]
     [InlineData("linux-x64", true)]           // the CI runner (CR-013 §8.4, run 34419607514: "RID: linux-x64")
     [InlineData("ubuntu.24.04-x64", true)]    // the remote-session container (CR-013 §8.2) — measured equal to the runner
-    [InlineData("ubuntu.22.04-x64", true)]    // the same distro RID family; the rule is the family, not one version
+    [InlineData("ubuntu.22.04-x64", false)]   // NOT measured: the set grows by measurement, never by RID-family reasoning
     [InlineData("win-x64", false)]            // the director's machine and windows-latest (CR-013 §2, §8.4)
     [InlineData("osx-arm64", false)]
     [InlineData("linux-arm64", false)]        // x64 is part of the reference, not only the OS

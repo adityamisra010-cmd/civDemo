@@ -99,10 +99,11 @@ public sealed record SessionManifest(
     /// hashes and no more than those two:
     ///   - "linux-x64" — the portable RID Microsoft's build reports; the CI
     ///     runner that pins every golden (CR-013 §8.4, run 34419607514).
-    ///   - "ubuntu.&lt;version&gt;-x64" — the distro-qualified RID the
-    ///     Ubuntu-archive SDK reports (the remote-session container, RID
-    ///     `ubuntu.24.04-x64`), whose turn-1/2/3 saves equal the linux-x64
-    ///     runner's hash for hash (CR-013 §8.2 vs §8.4).
+    ///   - "ubuntu.24.04-x64" — the distro-qualified RID the Ubuntu-archive SDK
+    ///     reports on the remote-session container, whose turn-1/2/3 saves
+    ///     equal the linux-x64 runner's hash for hash (CR-013 §8.2 vs §8.4).
+    ///     This exact spelling, not the ubuntu.* family: 22.04 has not been
+    ///     measured and so is not on the list.
     /// Any other RID — including other glibc distributions that the .NET RID
     /// graph would resolve to linux-x64 — is reported as NOT the reference,
     /// because nobody has measured it. The set grows by measurement (add the
@@ -111,14 +112,13 @@ public sealed record SessionManifest(
     /// which the RID graph says nothing about.
     /// </summary>
     public static bool IsReferencePlatform(string platform)
-    {
-        if (platform == ReferencePlatform) return true;
-        const string distro = "ubuntu.";
-        const string arch = "-x64";
-        return platform.StartsWith(distro, StringComparison.Ordinal)
-            && platform.EndsWith(arch, StringComparison.Ordinal)
-            && platform.Length > distro.Length + arch.Length;
-    }
+        => platform == ReferencePlatform || platform == MeasuredUbuntuRid;
+
+    /// <summary>The one distro-qualified RID measured equal to the reference
+    /// (CR-013 §8.2 vs §8.4). Exactly this spelling: a rule that accepted the
+    /// whole ubuntu.* family would be reasoning about RID inheritance, which
+    /// the comment above says this set does not do.</summary>
+    public const string MeasuredUbuntuRid = "ubuntu.24.04-x64";
 
     /// <summary>Whether the platform is known at all — false for a v1 file.</summary>
     public static bool IsPlatformRecorded(string platform)

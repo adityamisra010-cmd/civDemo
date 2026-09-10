@@ -104,6 +104,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
+          overwrite: true   # a re-run within the same run must not fail at upload
           name: xplat-linux-founded-${{ github.sha }}
           path: out/
           retention-days: 90
@@ -115,6 +116,10 @@ jobs:
   windows-founded:
     name: founded golden — win-x64 (SURVEILLANCE, non-blocking)
     runs-on: windows-latest
+    # needs: when the REFERENCE arm itself fails its golden there is nothing
+    # to compare the Windows hash log against, so this arm is skipped for that
+    # commit and no MATCH/DIVERGED line is written - the reference failure is
+    # the finding on such a commit, not the surveillance.
     needs: linux-founded
     continue-on-error: true   # ADR-022: a Windows divergence is reported, not failed
     timeout-minutes: 30
@@ -210,6 +215,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
+          overwrite: true   # a re-run within the same run must not fail at upload
           name: xplat-win-founded-${{ github.sha }}
           path: out/
           retention-days: 90
@@ -258,6 +264,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          overwrite: true   # a re-run within the same run must not fail at upload
           name: xplat-win-x64-${{ github.sha }}
           path: out/
           retention-days: 30
@@ -299,6 +306,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          overwrite: true   # a re-run within the same run must not fail at upload
           name: xplat-linux-x64-${{ github.sha }}
           path: out/
           retention-days: 30

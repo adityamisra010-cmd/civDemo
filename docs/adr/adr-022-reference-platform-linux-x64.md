@@ -47,7 +47,7 @@ The reference is identified by the .NET runtime identifier, and the accepted spe
 two that have been **measured** to produce the reference hashes, no more:
 
 - `linux-x64` — the portable RID Microsoft's build reports; the CI runner (run `34419607514`).
-- `ubuntu.<version>-x64` — the distro-qualified RID the Ubuntu-archive SDK reports; the
+- `ubuntu.24.04-x64` — the distro-qualified RID the Ubuntu-archive SDK reports; the
   remote-session container (`ubuntu.24.04-x64`, SDK 10.0.110), whose turn-1/2/3 saves equal the
   runner's hash for hash (CR-013 §8.2 vs §8.4).
 
