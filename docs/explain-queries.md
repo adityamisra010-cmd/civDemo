@@ -188,6 +188,19 @@ turn before Prev. The inputs the chain reads off Prev (shares, arable land,
 weather, tool stock) are the ones IN FORCE for the step Prev→Next — they drive
 Next's harvest, not the harvest the chain shows. Every such link's Note says so.
 
+**`World` is the world the value was read from — a parameter, never a guess.**
+The food-supply and housing-supply blocks (`CausalChain.FoodSupply`,
+`CausalChain.HousingSupply`) read ONE world and are shared by the needs chains
+(which hand them Prev) and the happiness query (which hands them the one world
+it was asked about, Next). Since A2-LABEL each block takes that identity as a
+`SourceWorld` argument and stamps it verbatim on every link it emits; the
+first cut wrote `Prev` unconditionally, so a happiness Food chain built on
+Next labelled a Next deficit "prev ConsumptionDeficits" (§9 L1). A block handed
+`Config` or `None` throws — those are not worlds a row can be read from — and
+`HousingSupply` refuses a next world to difference against unless the block is
+on Prev. The `prev.` / `next.` in the source columns below are the needs-chain
+case; under §4 every `prev.` reads `next.`.
+
 ### 2.1 Sustenance
 
 | # | node | kind | source | verified at |
@@ -260,8 +273,10 @@ SUMMED links must sum over a non-empty table; RECOMPUTED links with a row cite
 a real one and those without say `No row` in their note; every GAP has
 `SourceIndex = −1` and a non-empty note. Checked on every chain of every
 (settlement, class, need) of every step of a fed 4-turn run and a starved
-12-turn run, plus both happiness chains of every settlement (§7) — and, since
-A2-FIX, on a **colony**: three fed turns, settlement 0's buckets seeded with
+12-turn run, plus both happiness chains of every settlement (§7), on which no
+link may claim Prev (a one-world query resolved against `(next, next)` could
+not tell the two labels apart — A2-LABEL, §9 L1) — and, since A2-FIX, on a
+**colony**: three fed turns, settlement 0's buckets seeded with
 unplaced-departure demand (the T4.4 construction), one step of the
 Colonization system alone (the full pipeline's Migration rewrites the demand
 before Colonization reads it, MigrationSystem.cs:319). Next then carries a
@@ -321,6 +336,22 @@ Housing hangs the §2.2 housing block (rows 2-14 minus `DwellingsDelta`, which
 needs two worlds and is omitted rather than reported as 0). Same builders as
 the needs chains, so happiness and grievance cannot name different causes for
 the same shortfall.
+
+**Every link of both chains carries `World = Next`** (or `Config` / `None`):
+happiness is asked about one world and reads only it, and the blocks are
+called with `SourceWorld.Next`, never left to assume. So the two queries on the
+same settlement and turn legitimately show two deficits — the happiness
+`DeficitRatio` is the one in Next's `ConsumptionDeficits` (the one
+`SettlementHappiness.FoodSufficiency` read to produce the Food factor shown
+beside it), and the grievance chain's / Migration's push deficit is Prev's.
+Pinned on the starved rig at the drawdown turn (world 3 → 4, deficits
+0.7722222222222223 → 0.92189218921892191, measured): the happiness link says
+Next and equals `next.ConsumptionDeficits[i]`; the Sustenance chain's and
+`GrievanceExplanation.PrimaryChain`'s say Prev and equal `prev`'s; no link of
+either happiness chain claims Prev
+(`DeficitRatio_HappinessChainSaysNext_GrievanceChainSaysPrev_EachEqualToItsOwnWorld`),
+and the §2.4 checker now asserts the same on every happiness chain of every
+settlement of every step of both runs.
 
 `ScopeNote`, carried on the type: **Comfort and the Tier-A gate are absent from
 happiness by design** — happiness feeds migration (a behaviour) and D-021
@@ -487,3 +518,9 @@ the observer calls (§0.1).
 | D4 | `TierAGateNeedIds` was made a public mutable `int[]`; any caller could write it | private again; `public static bool IsTierAGate(int)` is the only read | `IsTierAGate_MarksExactlySustenanceShelterSafety_AndTheObserverAgrees` |
 | D5 | the doc called `0.7722222222222223` "pinned turn-exact" when it was only a comment | asserted bit-exact at world 3 in `Starved_PrimaryIsSustenance_AndChainShowsHarvestBelowEaten` | the assertion passes at this commit |
 | D7 | the lane needs a rebase before merge | NOT done — the integrator merges; this tree is still cut from `ec9daf7` | `git merge-base` unchanged |
+
+### 9.1 A2-LABEL — lane B's verifier, against `84881e6`
+
+| # | finding | closure | evidence |
+| --- | --- | --- | --- |
+| L1 | `HappinessExplanation.For(next)` built its Food chain through `CausalChain.FoodSupply(world)`, which hard-coded `SourceWorld.Prev` on every link, so the panel printed a value read from NEXT as `(read, prev ConsumptionDeficits[0])` while the Migration tab showed a different, genuine Prev deficit for the same settlement and turn | every shared block (`FoodSupply`, `HousingSupply`, the private `ShareLink` and `FillLinks`) takes the world's identity as a `SourceWorld` parameter and stamps it on every link; the needs chains pass Prev, happiness passes Next; `Config`/`None` throw; the `HousingSupply` next-world argument is nullable and refused unless the block is on Prev | mutant (the DeficitRatio link's `from` → `SourceWorld.Prev`, i.e. the old code) killed by the new test AND by the strengthened §2.4 checker (2 of 12 tests in the two classes fail, 1 s); value probe on the starved rig: prev 0.7722222222222223, next 0.92189218921892191; `sim run --seed 42 --turns 50 --founded --hash-log` on this tree: `88321466b6fa395a38fbd26029eb5107188d25cc69fe91ee389daf437e79c319`, unchanged (the explain code is never called by the pipeline); Observability + NeedsGrievance + DrivenGolden + Snapshot filter: 72 passed, 0 failed; the three gate scripts OK |

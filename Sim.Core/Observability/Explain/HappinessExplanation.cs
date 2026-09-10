@@ -19,7 +19,12 @@ public readonly record struct HappinessFactor(
 /// housing-supply block under Housing (dwellings × PersonsPerDwelling /
 /// population, SettlementHappiness.cs:138-159). Same blocks, same world, so
 /// happiness and the needs explanation cannot name different causes for the
-/// same shortfall.
+/// same shortfall. The blocks are told that world's identity —
+/// <see cref="SourceWorld.Next"/>, the one world this query was asked about —
+/// and stamp it on every link, so a reader sees "next ConsumptionDeficits"
+/// here and "prev ConsumptionDeficits" under a grievance for the same
+/// settlement and turn: two different values, each labelled with the table it
+/// was actually read from (A2-LABEL).
 ///
 /// WHAT IT DELIBERATELY IS NOT: the needs aggregate. Happiness omits Comfort
 /// and applies no Tier-A gate, BY DESIGN — it must not read the needs tables
@@ -58,9 +63,9 @@ public sealed class HappinessExplanation
         SettlementHappiness.Factors(world, settlement, cfg, values);
 
         var food = new List<Link>();
-        CausalChain.FoodSupply(world, cfg, settlement, food);
+        CausalChain.FoodSupply(world, SourceWorld.Next, cfg, settlement, food);
         var housing = new List<Link>();
-        CausalChain.HousingSupply(world, world, cfg, settlement, housing);
+        CausalChain.HousingSupply(world, SourceWorld.Next, null, cfg, settlement, housing);
 
         var factors = new HappinessFactor[SettlementHappiness.FactorCount];
         factors[(int)SettlementHappiness.Factor.Food] = new HappinessFactor(
