@@ -262,6 +262,21 @@ public class DrivenGoldenTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272
+        // T4.19 lane C — THIS GOLDEN MOVES (founding.cohortCounts is now the
+        //   kernel's stable age structure; SnapshotTests.FoundedGolden has the
+        //   record) BUT COULD NOT BE RE-PINNED: the driven world now runs into a
+        //   LATENT ProductionSystem.Craft overdraw at turn 213 — recipe 'weaving',
+        //   input fiber, settlement 10: stock 66, exactOutput capped at 66/3 = 22,
+        //   product 66.0, banked ConsumeRemainder 0.9999999999999929, exactIn
+        //   rounds to exactly 67.0 and floors to 67 > 66 under OverdrawPolicy.Throw.
+        //   The Leontief input cap (`stockAmount / perOutput`) ignores the row's
+        //   banked remainder; the sink then adds it. Measured with a temporary
+        //   probe, reverted. Under the OLD vector this world happened never to
+        //   reach that state in 300 turns. Fixing it is a production-system
+        //   change outside lane C and is escalated for a director ruling
+        //   (docs/m4-founding-demographics-correction.md §6). Until then this test
+        //   FAILS BY EXCEPTION at turn 213, deliberately not hidden; the constant
+        //   below is the pre-T4.19 value.
         const string golden = "01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af";
 
         // ---- CAUSE 1 (from main, T4.4) ----

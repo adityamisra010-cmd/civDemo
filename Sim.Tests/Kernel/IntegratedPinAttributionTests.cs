@@ -122,7 +122,10 @@ public class IntegratedPinAttributionTests
         // capacity-floor fix does NOT reach this world — consistent with the
         // pre-integration measurement, which found the fix's blast radius to be
         // the driven golden only.
-        const string mainValue = "f25c5dd3947a53827c1d9615a7e351108c05258bb0ffe0b1ab1a269e9a4626c6";
+        // T4.19 lane C: re-measured on the corrected founding vector (tuning
+        // data; SnapshotTests.FoundedGolden carries the record and the 41-table
+        // turn-0 control). OLD f25c5dd3947a53827c1d9615a7e351108c05258bb0ffe0b1ab1a269e9a4626c6.
+        const string mainValue = "f886efbd159f5717848534efe3af61b826fa599d742e5e244d7afafa067bce22";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -142,7 +145,8 @@ public class IntegratedPinAttributionTests
         // Empire state is the WHOLE delta: no population, food, terrain, deposit,
         // path, production, demographic, migration or economic state moved with
         // it, because any such drift would survive the strip and break this.
-        const string beforeM4C = "16a1c17150f210b90a8c4d866f16a1767bdc13f218f880304f2449437625e015";
+        // T4.19 lane C: OLD 16a1c17150f210b90a8c4d866f16a1767bdc13f218f880304f2449437625e015.
+        const string beforeM4C = "e48d9bcd8883204bb2efa4843923c49a30de86fae9269e7354e6d2018bf8e1f7";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -159,13 +163,16 @@ public class IntegratedPinAttributionTests
         // BEHAVIOURALLY (the lone settlement colonising its way out of the
         // director's 0%-farm order). So "schema only" here is exactly the claim
         // that must not be taken on trust.
-        const string mainValue = "a64a6cf62eb63a4e5c46297fca4e146a543e13cb0f49a53c3687b47da63001e6";
+        // T4.19 lane C: re-measured on the corrected founding vector (tuning
+        // data; FirstReignTests carries the record). OLD a64a6cf62eb63a4e5c46297fca4e146a543e13cb0f49a53c3687b47da63001e6.
+        const string mainValue = "69d6cf178fa536e0582874eacf7adec9fbcbc686c5e14a12292f935aa2694550";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
-        const string beforeM4C = "f79714f955c31cf0f25d323c045a0c1935345e92908fa78758bc8266c6b8ef0b";
+        // T4.19 lane C: OLD f79714f955c31cf0f25d323c045a0c1935345e92908fa78758bc8266c6b8ef0b.
+        const string beforeM4C = "4e7d2e69e7c5ed72444501bed84c341b50a0d77c25d123ead36498ce9b280d7b";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -184,6 +191,15 @@ public class IntegratedPinAttributionTests
         // alone.
         const string mainPinBeforeTheFix = "5b204b455cc5d0ef03031f7b0606af9d491ecc3d2d2c0d68bdb60a3bbd0b69cb";
 
+        // T4.19 lane C — NOT RE-PINNED, AND THAT IS DELIBERATE. The corrected
+        // founding vector moves this world too, but the driven world now reaches
+        // a LATENT ProductionSystem.Craft overdraw at turn 213 (weaving, fiber,
+        // settlement 10: stock 66, input cap 22 x 3 = 66, banked ConsumeRemainder
+        // 0.9999999999999929, exactIn rounds to 67.0, OverdrawPolicy.Throw) —
+        // the input cap ignores the row's banked remainder. Out of lane C's
+        // scope (a production-system change), reported for a director ruling in
+        // docs/m4-founding-demographics-correction.md §6; this test FAILS by
+        // exception until it is ruled on. Constants below are the pre-T4.19 values.
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         string atV22 = HashAtSchemaV22(world);
 

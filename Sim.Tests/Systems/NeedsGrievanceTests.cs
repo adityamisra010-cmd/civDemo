@@ -274,7 +274,18 @@ public class NeedsGrievanceTests
         // starvedBefore, pre-T4.2). Pinned as a VALUE, not re-derived from the
         // rig's parameters — the contrast the test claims (famine grievance
         // exceeds control grievance) is unaffected and still asserted below.
-        Assert.Equal(28, StarvedTotal(control));
+        // T4.19 lane C RE-PIN (VALUE, founding data): 28 -> 38. The rig founds
+        // from sim.json's cohortCounts, which is now the kernel's stable age
+        // structure (docs/m4-founding-demographics-correction.md). The dev N = 1
+        // seed-42 world founds 468 people / 234 adults instead of 459 / 211 and
+        // no longer sheds a fifth of itself before the window opens, so the same
+        // 4,000-seed granary truncation starves ten more people in the control
+        // arm. Turn-0 control: only Buckets, the grain row, the housing row and
+        // the three InitialEndowment ledger rows differ between the two
+        // foundings; Settlements, Deposits, ClassStates and every other table are
+        // identical. The contrast this test claims is unchanged and still
+        // asserted below.
+        Assert.Equal(38, StarvedTotal(control));
         Assert.True(StarvedTotal(famine) > starvedBefore, "rig vacuous: nobody starved in the window");
         Assert.True(Grievance(famine, 0) > Grievance(control, 0) + 1.0,
             $"starvation did not raise grievance above the fed control: "
