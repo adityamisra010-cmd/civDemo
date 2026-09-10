@@ -103,3 +103,46 @@ jobs:
           path: out/
           retention-days: 30
           if-no-files-found: error
+
+  # THE COMPARISON, ON THE RUNNER. This session's egress proxy refuses the
+  # Azure blob host GitHub serves artifacts from, so the two halves cannot be
+  # pulled into the container. The runner can read them, so the runner runs
+  # `sim diff` and prints the answer into a job log - which CAN be read.
+  compare:
+    name: compare-win-vs-linux
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: xplat-win-x64-${{ github.sha }}
+          path: win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: xplat-linux-x64-${{ github.sha }}
+          path: linux
+
+      - name: Hashes from both runners
+        run: |
+          echo "=== WINDOWS ==="; cat win/hashes.txt
+          echo "=== LINUX ===";   cat linux/hashes.txt
+
+      - name: sim diff, turn by turn (exit code is informational here)
+        run: |
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          for n in 1 2 3; do
+            echo "=================== TURN $n: linux vs windows ==================="
+            $CLI diff linux/linux-turn$n.bin win/win-turn$n.bin || echo "(exit $? - streams differ)"
+          done
