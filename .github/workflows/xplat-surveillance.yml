@@ -1,0 +1,362 @@
+# CROSS-PLATFORM DETERMINISM SURVEILLANCE — ADR-022 (the CR-013 ruling,
+# options 1 + 3). Renamed from xplat-diagnostic.yml (T4.19 lane E, dispatch
+# only): that file was an instrument for ONE measurement; this one is a
+# STANDING REPORT that runs on every packet push, every push to main, weekly,
+# and on demand.
+#
+# WHAT IT IS. Linux x64 is the REFERENCE platform: the goldens, the replay
+# evidence and ci.yml's FOUNDED_GOLDEN are defined there. Windows is a
+# SUPPORTED platform under surveillance: this workflow runs the founded golden
+# (the exact `sim run` ci.yml's determinism-xproc job pins) on a Windows
+# runner and reports MATCH or DIVERGED-AT-TURN-N against the reference — into
+# the log and into the run's step summary — with the first differing turn
+# taken from the two runners' hash logs, both uploaded as artifacts.
+#
+# WHAT IT IS NOT. Not a gate. The windows job carries continue-on-error: a
+# Windows divergence is VISIBLE (a warning annotation, the summary, the
+# artifacts) and NEVER BLOCKING, because per ADR-022 it is not a simulation
+# failure — CR-013 §8.5 measured it as last-ulp libm Exp/Sqrt differences that
+# leave every integer column equal. A LINUX divergence from FOUNDED_GOLDEN,
+# by contrast, is a determinism failure on the reference platform; the linux
+# job here exits 1 on it, and ci.yml's determinism-xproc fails independently.
+#
+# WHY IT EXISTS AT ALL if it cannot fail: so the divergence, and the turn it
+# first appears on, is written down at every commit. Option 2 (a
+# correctly-rounded Exp/Sqrt in Sim.Core) was REJECTED FOR NOW and stays
+# reopenable; the trigger ADR-022 names is a first differing turn that MOVES
+# EARLIER or a Windows/Linux integer-column disagreement, and this report is
+# how either would be seen at the commit that caused it.
+#
+# The turn-1/2/3 snapshot jobs and the runner-side `sim diff` are kept as the
+# diagnostic detail: when the founded verdict says DIVERGED, the compare job
+# names the first divergent table/row/field bit-exactly (CR-013 §8.5).
+#
+# FOUNDED_GOLDEN is READ FROM ci.yml, not copied: CiPinAgreementTests guards
+# the two existing copies and asks that a third never be added.
+name: xplat-surveillance
+
+on:
+  push:
+    branches: ['main', 't[0-9]*.*']
+  schedule:
+    - cron: "41 5 * * 1"   # weekly (Monday 05:41 UTC), so a quiet week still produces a report
+  workflow_dispatch:
+
+jobs:
+  # ---------------------------------------------------------------------
+  # THE REFERENCE ARM: the founded golden on the reference platform. Its
+  # hash log is what the windows job diffs against, turn by turn.
+  # ---------------------------------------------------------------------
+  linux-founded:
+    name: founded golden — linux-x64 (reference)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - name: Founded golden (seed 42, 300 turns) with hash log
+        run: |
+          set -euo pipefail
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          mkdir -p out
+          GOLDEN=$(grep -oE 'FOUNDED_GOLDEN=[0-9a-f]{64}' .github/workflows/ci.yml | cut -d= -f2)
+          [ ${#GOLDEN} -eq 64 ] || { echo "ci.yml no longer defines FOUNDED_GOLDEN"; exit 1; }
+          {
+            echo "commit ${{ github.sha }}"
+            echo "runner ubuntu-latest (${{ runner.os }} ${{ runner.arch }})"
+            echo "sdk $(dotnet --version)"
+            dotnet --info | grep 'RID:' | sed 's/^ *//'
+            echo "golden $GOLDEN"
+          } > out/linux-founded-info.txt
+          $CLI run --founded --seed 42 --turns 300 --hash-log out/linux-founded.log
+          FINAL=$(tail -n 1 out/linux-founded.log)
+          echo "final  $FINAL" >> out/linux-founded-info.txt
+          cat out/linux-founded-info.txt
+          {
+            echo "### Founded golden on the reference platform (linux-x64)"
+            echo ""
+            if [ "$FINAL" = "$GOLDEN" ]; then
+              echo "**MATCH** — final hash equals ci.yml's FOUNDED_GOLDEN."
+            else
+              echo "**DIVERGED FROM FOUNDED_GOLDEN ON THE REFERENCE PLATFORM** — this is a determinism failure, not surveillance."
+            fi
+            echo ""
+            echo '```'
+            cat out/linux-founded-info.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$FINAL" != "$GOLDEN" ]; then
+            echo "REFERENCE-PLATFORM DIVERGENCE FROM FOUNDED_GOLDEN:"
+            echo "  expected $GOLDEN"
+            echo "  actual   $FINAL"
+            exit 1
+          fi
+          echo "founded run matches the pinned golden on the reference platform"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          overwrite: true   # a re-run within the same run must not fail at upload
+          name: xplat-linux-founded-${{ github.sha }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # THE SURVEILLANCE ARM: the same command on Windows, reported, never gating.
+  # ---------------------------------------------------------------------
+  windows-founded:
+    name: founded golden — win-x64 (SURVEILLANCE, non-blocking)
+    runs-on: windows-latest
+    # needs: when the REFERENCE arm itself fails its golden there is nothing
+    # to compare the Windows hash log against, so this arm is skipped for that
+    # commit and no MATCH/DIVERGED line is written - the reference failure is
+    # the finding on such a commit, not the surveillance.
+    needs: linux-founded
+    continue-on-error: true   # ADR-022: a Windows divergence is reported, not failed
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: xplat-linux-founded-${{ github.sha }}
+          path: linux
+
+      - name: Founded golden (seed 42, 300 turns) with hash log, compared to the reference
+        shell: pwsh
+        run: |
+          $cli = "Sim.Cli\bin\Release\net10.0\Sim.Cli.dll"
+          New-Item -ItemType Directory -Force out | Out-Null
+          $golden = (Select-String -Path .github/workflows/ci.yml -Pattern 'FOUNDED_GOLDEN=([0-9a-f]{64})').Matches[0].Groups[1].Value
+          if ($golden.Length -ne 64) { Write-Error "ci.yml no longer defines FOUNDED_GOLDEN"; exit 1 }
+          $rid = (dotnet --info | Select-String 'RID:' | ForEach-Object { $_.Line.Trim() })
+          $sdk = (dotnet --version)
+
+          dotnet $cli run --founded --seed 42 --turns 300 --hash-log out\win-founded.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          # The two hash logs are one line per turn, turn 1 first (Sim.Cli Run:
+          # hashLog.Add after every Step). The first differing line is the
+          # first differing TURN; an unequal line count with an equal prefix is
+          # reported at the first turn only one side has.
+          $win = @(Get-Content out\win-founded.log)
+          $lin = @(Get-Content linux\linux-founded.log)
+          $n = [Math]::Min($win.Count, $lin.Count)
+          $firstDiff = 0
+          for ($i = 0; $i -lt $n; $i++) { if ($win[$i] -ne $lin[$i]) { $firstDiff = $i + 1; break } }
+          if ($firstDiff -eq 0 -and $win.Count -ne $lin.Count) { $firstDiff = $n + 1 }
+          $final = $win[$win.Count - 1]
+          $linFinal = $lin[$lin.Count - 1]
+
+          if ($final -eq $golden -and $firstDiff -eq 0) { $verdict = "MATCH" }
+          else { $verdict = "DIVERGED-AT-TURN-$firstDiff" }
+
+          $info = @(
+            "commit ${{ github.sha }}",
+            "runner windows-latest (${{ runner.os }} ${{ runner.arch }})",
+            "sdk $sdk",
+            "$rid",
+            "golden $golden",
+            "final  $final",
+            "linux-final $linFinal",
+            "first-differing-turn $firstDiff",
+            "verdict $verdict"
+          )
+          $info | Out-File -Encoding ascii out\win-founded-info.txt
+          Get-Content out\win-founded-info.txt
+
+          $summary = @(
+            "### Cross-platform determinism SURVEILLANCE — win-x64 vs the reference (ADR-022)",
+            "",
+            "**win-x64 founded golden (seed 42, 300 turns): $verdict**",
+            "",
+            "This job is SURVEILLANCE per ADR-022 — visible, never blocking (continue-on-error).",
+            "The reference platform is linux-x64; a Windows divergence is a cross-platform finding,",
+            "not a simulation failure (CR-013 §8.5: last-ulp libm Exp/Sqrt, integer columns equal).",
+            "A divergence whose first turn moves EARLIER, or that reaches an integer column, is",
+            "the trigger ADR-022 names for reopening CR-013 option 2.",
+            "",
+            '```'
+          ) + $info + @(
+            '```',
+            "",
+            "Artifacts: xplat-win-founded-${{ github.sha }}, xplat-linux-founded-${{ github.sha }} (the two hash logs);",
+            "the turn-1/2/3 saves and the runner-side ``sim diff`` are in the diagnostic jobs below."
+          )
+          $summary | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+          if ($verdict -ne "MATCH") {
+            Write-Output "::warning title=xplat-surveillance::win-x64 founded golden $verdict (reference linux-x64; surveillance per ADR-022, not a failure)"
+            Write-Output "WINDOWS VS REFERENCE: $verdict  (surveillance — reported, not failed)"
+          } else {
+            Write-Output "WINDOWS VS REFERENCE: MATCH"
+          }
+          # The verdict is REPORTED; the job's exit status reflects only whether
+          # the measurement itself ran. continue-on-error absorbs a tool failure.
+          exit 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          overwrite: true   # a re-run within the same run must not fail at upload
+          name: xplat-win-founded-${{ github.sha }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # DIAGNOSTIC DETAIL (lane E's instrument, unchanged): turn-1/2/3 founded
+  # saves on both runners and a runner-side `sim diff`, so a DIVERGED verdict
+  # above comes with the first divergent table/row/field, bit-exact.
+  # ---------------------------------------------------------------------
+  windows-turns:
+    name: turn-1/2/3 saves — win-x64
+    runs-on: windows-latest
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - name: Run seed 42 to turns 1, 2, 3 and hash each save
+        shell: pwsh
+        run: |
+          $cli = "Sim.Cli\bin\Release\net10.0\Sim.Cli.dll"
+          New-Item -ItemType Directory -Force out | Out-Null
+          $info = @("commit ${{ github.sha }}", "runner windows-latest (${{ runner.os }} ${{ runner.arch }})")
+          $info += (dotnet --version | ForEach-Object { "sdk $_" })
+          $info += (dotnet --info | Select-String 'RID:' | ForEach-Object { $_.Line.Trim() })
+          foreach ($n in 1, 2, 3) {
+            dotnet $cli run --founded --seed 42 --turns $n --save-at $n --save out\win-turn$n.bin
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          foreach ($n in 1, 2, 3) {
+            $h = (dotnet $cli hash out\win-turn$n.bin).Trim()
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $info += "turn $n $h"
+          }
+          $info | Out-File -Encoding ascii out\hashes.txt
+          Get-Content out\hashes.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          overwrite: true   # a re-run within the same run must not fail at upload
+          name: xplat-win-x64-${{ github.sha }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
+
+  linux-turns:
+    name: turn-1/2/3 saves — linux-x64
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - name: Run seed 42 to turns 1, 2, 3 and hash each save
+        run: |
+          set -euo pipefail
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          mkdir -p out
+          {
+            echo "commit ${{ github.sha }}"
+            echo "runner ubuntu-latest (${{ runner.os }} ${{ runner.arch }})"
+            echo "sdk $(dotnet --version)"
+            dotnet --info | grep 'RID:' | sed 's/^ *//'
+          } > out/hashes.txt
+          for n in 1 2 3; do
+            $CLI run --founded --seed 42 --turns $n --save-at $n --save out/linux-turn$n.bin
+          done
+          for n in 1 2 3; do
+            echo "turn $n $($CLI hash out/linux-turn$n.bin)" >> out/hashes.txt
+          done
+          cat out/hashes.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          overwrite: true   # a re-run within the same run must not fail at upload
+          name: xplat-linux-x64-${{ github.sha }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
+
+  compare:
+    name: sim diff — win-x64 vs linux-x64 (diagnostic, non-blocking)
+    needs: [windows-turns, linux-turns]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build CLI (Release)
+        run: dotnet build Sim.Cli/Sim.Cli.csproj -c Release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: xplat-win-x64-${{ github.sha }}
+          path: win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: xplat-linux-x64-${{ github.sha }}
+          path: linux
+
+      - name: Hashes from both runners
+        run: |
+          echo "=== WINDOWS ==="; cat win/hashes.txt
+          echo "=== LINUX ===";   cat linux/hashes.txt
+
+      - name: sim diff, turn by turn (exit code is informational here)
+        run: |
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          {
+            echo "### sim diff — win-x64 vs linux-x64, turns 1..3 (diagnostic detail)"
+            echo ""
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          for n in 1 2 3; do
+            echo "=================== TURN $n: linux vs windows ==================="
+            out=$($CLI diff linux/linux-turn$n.bin win/win-turn$n.bin 2>&1) && rc=0 || rc=$?
+            echo "$out"
+            [ $rc -eq 0 ] || echo "(exit $rc - streams differ)"
+            { echo "--- turn $n (exit $rc) ---"; echo "$out" | head -n 12; } >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -32,6 +32,16 @@ namespace Sim.Core.Kernel;
 /// NO WALL CLOCK IS READ HERE. `StartedAt` is a string the CALLER supplies —
 /// Sim.Ui reads the clock, which is legal there (ADR-009) and banned in this
 /// project. The stamp is provenance for a human, never an input to anything.
+///
+/// NO RUNTIME IS INTERROGATED HERE EITHER. `Platform` (v2, ADR-022 / CR-013)
+/// is likewise a string the caller supplies — Sim.Ui hands over
+/// `RuntimeInformation.RuntimeIdentifier`. It exists because the determinism
+/// promise is scoped to ONE reference platform and a session played elsewhere
+/// is expected to diverge from a reference replay (CR-013 §8: last-ulp libm
+/// differences in Exp/Sqrt from turn 2); a reader that does not know where a
+/// trace was recorded cannot tell a platform divergence from a determinism
+/// defect, and `sim inspect` would report the first as the second — which is
+/// exactly what happened to the director's first real session (CR-013 §3).
 /// </summary>
 public sealed record SessionManifest(
     ulong Seed,
@@ -49,11 +59,70 @@ public sealed record SessionManifest(
     // before T4.19 reads back with an empty TelemetryFile rather than failing,
     // because the session it describes is still fully reproducible without it
     // (the telemetry is a pure function of the replay, §7).
-    string TelemetryFile = "")
+    string TelemetryFile = "",
+    // v2 (ADR-022): the runtime identifier of the machine that PLAYED the
+    // session, e.g. "win-x64", "linux-x64", "ubuntu.24.04-x64". Supplied by
+    // the caller; compared against ReferencePlatform by the reader. A v1
+    // file reads back as PlatformNotRecorded, never as a guess.
+    string Platform = SessionManifest.PlatformNotRecorded)
 {
     /// <summary>The schema tag, so a reader can tell which vintage produced a
-    /// file it did not write.</summary>
-    public const string Schema = "session-manifest/v1";
+    /// file it did not write. v2 added `platform`.</summary>
+    public const string Schema = "session-manifest/v2";
+
+    /// <summary>The previous tag. Still READABLE: a v1 session is fully
+    /// reproducible without a platform field — the world is a function of seed
+    /// and order log — so refusing it would lose real sessions to a provenance
+    /// column. It reads back with <see cref="PlatformNotRecorded"/>.</summary>
+    public const string SchemaV1 = "session-manifest/v1";
+
+    /// <summary>
+    /// THE REFERENCE PLATFORM (ADR-022, CR-013 ruling: options 1 + 3). The
+    /// determinism promise — one world per (seed, order log) — is defined on
+    /// Linux x64: the goldens, the replay evidence and CI's pins are all
+    /// produced there. Any other platform is SUPPORTED for play and produces
+    /// session records that reproduce on that machine, under surveillance
+    /// (.github/workflows/xplat-surveillance.yml), never as the canonical
+    /// artifact. The value is the portable .NET RID the reference CI runner
+    /// reports (measured, CR-013 §8.4: `RID: linux-x64` on ubuntu-latest).
+    /// </summary>
+    public const string ReferencePlatform = "linux-x64";
+
+    /// <summary>What a v1 manifest's Platform reads back as.</summary>
+    public const string PlatformNotRecorded = "not recorded (pre-v2 session)";
+
+    /// <summary>
+    /// Whether a recorded platform string IS the reference platform. Pure
+    /// string logic — this type reads no runtime information.
+    ///
+    /// Two spellings are accepted, both MEASURED to produce the reference
+    /// hashes and no more than those two:
+    ///   - "linux-x64" — the portable RID Microsoft's build reports; the CI
+    ///     runner that pins every golden (CR-013 §8.4, run 34419607514).
+    ///   - "ubuntu.24.04-x64" — the distro-qualified RID the Ubuntu-archive SDK
+    ///     reports on the remote-session container, whose turn-1/2/3 saves
+    ///     equal the linux-x64 runner's hash for hash (CR-013 §8.2 vs §8.4).
+    ///     This exact spelling, not the ubuntu.* family: 22.04 has not been
+    ///     measured and so is not on the list.
+    /// Any other RID — including other glibc distributions that the .NET RID
+    /// graph would resolve to linux-x64 — is reported as NOT the reference,
+    /// because nobody has measured it. The set grows by measurement (add the
+    /// RID here with the run that produced the reference hashes), not by
+    /// reasoning about RID inheritance: the CR-013 divergence lives in libm,
+    /// which the RID graph says nothing about.
+    /// </summary>
+    public static bool IsReferencePlatform(string platform)
+        => platform == ReferencePlatform || platform == MeasuredUbuntuRid;
+
+    /// <summary>The one distro-qualified RID measured equal to the reference
+    /// (CR-013 §8.2 vs §8.4). Exactly this spelling: a rule that accepted the
+    /// whole ubuntu.* family would be reasoning about RID inheritance, which
+    /// the comment above says this set does not do.</summary>
+    public const string MeasuredUbuntuRid = "ubuntu.24.04-x64";
+
+    /// <summary>Whether the platform is known at all — false for a v1 file.</summary>
+    public static bool IsPlatformRecorded(string platform)
+        => platform.Length > 0 && platform != PlatformNotRecorded;
 
     /// <summary>
     /// The `sim replay` invocation that reproduces this session, ready to paste.
@@ -94,14 +163,16 @@ public sealed record SessionManifest(
         json.WriteString("chronicleFile", ChronicleFile);
         json.WriteString("traceFile", TraceFile);
         json.WriteString("telemetryFile", TelemetryFile);
+        json.WriteString("platform", Platform);
         json.WriteEndObject();
         json.Flush();
     }
 
     /// <summary>
-    /// Reads a manifest back. Throws with the offending file named when the tag
-    /// is missing or wrong — a reader that silently accepts an unknown vintage
-    /// would replay the wrong world and report the difference as a finding.
+    /// Reads a manifest back — v2, or v1 with the platform reported as not
+    /// recorded. Throws with the offending file named when the tag is missing
+    /// or unknown — a reader that silently accepts an unknown vintage would
+    /// replay the wrong world and report the difference as a finding.
     /// </summary>
     public static SessionManifest Read(Stream input, string describedAs)
     {
@@ -109,10 +180,10 @@ public sealed record SessionManifest(
         JsonElement root = doc.RootElement;
 
         string? schema = root.TryGetProperty("schema", out JsonElement s) ? s.GetString() : null;
-        if (schema != Schema)
+        if (schema != Schema && schema != SchemaV1)
         {
             throw new InvalidDataException(
-                $"{describedAs} is not a {Schema} file (found '{schema ?? "no schema tag"}').");
+                $"{describedAs} is not a {Schema} (or {SchemaV1}) file (found '{schema ?? "no schema tag"}').");
         }
 
         return new SessionManifest(
@@ -126,7 +197,11 @@ public sealed record SessionManifest(
             OrdersFile: root.GetProperty("ordersFile").GetString() ?? "",
             ChronicleFile: root.GetProperty("chronicleFile").GetString() ?? "",
             TraceFile: root.GetProperty("traceFile").GetString() ?? "",
-            TelemetryFile: root.TryGetProperty("telemetryFile", out JsonElement tf) ? tf.GetString() ?? "" : "");
+            TelemetryFile: root.TryGetProperty("telemetryFile", out JsonElement tf) ? tf.GetString() ?? "" : "",
+            // A v1 file has no platform column; a v2 file that somehow lacks
+            // one is read the same way rather than invented.
+            Platform: root.TryGetProperty("platform", out JsonElement pl) && pl.GetString() is { Length: > 0 } p
+                ? p : PlatformNotRecorded);
     }
 
     private static int? Nullable(JsonElement root, string name)

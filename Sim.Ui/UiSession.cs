@@ -273,6 +273,15 @@ public sealed class UiSession
     /// world was built from, and the identity of the build that ran it. Written
     /// ONCE at launch — before a turn is played — because its whole job is to
     /// survive a session that ends in a crash.
+    ///
+    /// ADR-022 (CR-013 ruling): the manifest also records the PLATFORM that
+    /// played the session — the .NET runtime identifier, read HERE because
+    /// Sim.Ui may interrogate the runtime (ADR-009) and Sim.Core may not. A
+    /// session played off the reference platform (Linux x64) is expected to
+    /// diverge from a reference replay at the hash level from turn 2 (CR-013
+    /// §8), and `sim inspect` can only say so if the trace's origin is on
+    /// record; without it the director's real Windows session read as
+    /// "REPRODUCTION FAILED", a determinism finding it was not.
     /// </summary>
     public SessionManifest Manifest(string startedAt, string sessionLogPath) =>
         new(Seed: _seed,
@@ -285,7 +294,8 @@ public sealed class UiSession
             OrdersFile: Path.GetFileName(sessionLogPath),
             ChronicleFile: Path.GetFileName(ChroniclePath(sessionLogPath)),
             TraceFile: Path.GetFileName(TracePath(sessionLogPath)),
-            TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)));
+            TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)),
+            Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier);
 
     /// <summary>Writes the manifest beside the order log.</summary>
     public void ExportManifest(string startedAt, string sessionLogPath)

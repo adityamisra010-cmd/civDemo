@@ -1,8 +1,9 @@
 # CR-013 — THE SAME SEED PRODUCES DIFFERENT WORLDS ON WINDOWS AND LINUX
 
-**Status: OPEN — awaiting director ruling. No simulation code, constant,
-equation, config, golden, corridor, band or quarantine was touched. This file
-and the evidence below are the whole change.**
+**Status: RULED (T4.19-B) — options 1 + 3 ACCEPTED, option 2 REJECTED FOR NOW
+and REOPENABLE. The ruling and what shipped are in §9; the scope statement is
+ADR-022. No simulation code, constant, equation, config, golden, corridor,
+band or quarantine was touched by the CR or by the ruling's implementation.**
 
 Raised under S8 §3 during T4.18. It was found by the T4.17 session trace on its
 **first use against a real played session** — which is what that cross-check was
@@ -286,3 +287,68 @@ the founded golden against the Linux pin, costs nothing now that the workflow
 exists and would have caught this at the commit that introduced it.
 
 No simulation expression was changed for this measurement.
+
+## §9 RULED — options 1 + 3 accepted, option 2 rejected for now (T4.19-B)
+
+**The ruling.** (1) Linux x64 is the canonical **reference platform**: the
+deterministic artifact — goldens, replay evidence, `FOUNDED_GOLDEN` — is
+defined there, and law 5 is scoped to it. Windows is a **supported execution
+platform under determinism surveillance**, not a wrong one: a Windows build
+is for play and for session records that reproduce on that machine (§8.4
+measured the Windows runner reproducing the director's trace exactly).
+(3) The Windows determinism job is a **permanent standing report** that
+surfaces divergence clearly and never treats a Windows divergence as a
+simulation failure. (2) A correctly-rounded `Exp`/`Sqrt` is **rejected for
+now** — no simulation expression changed — and this CR stays reopenable;
+the triggers are listed in ADR-022 §4 and are exactly the movements §8.6
+said to watch for: a first differing turn that moves earlier, a divergence
+outside the two measured tables, or an integer column disagreeing within a
+played horizon.
+
+**What shipped** (branch `t4.19b-cr013`, base `673b95b`):
+
+- `docs/adr/adr-022-reference-platform-linux-x64.md` — the scope statement.
+  No frozen spec was edited.
+- `SessionManifest` v2 (`session-manifest/v2`): a `Platform` field the caller
+  supplies (Sim.Ui hands over `RuntimeInformation.RuntimeIdentifier`; Sim.Core
+  reads no runtime information), `ReferencePlatform = "linux-x64"`, and
+  `IsReferencePlatform`, which accepts exactly the two measured spellings —
+  `linux-x64` (the runner, §8.4) and `ubuntu.<ver>-x64` (the container, §8.2,
+  measured equal to the runner) — and nothing unmeasured. v1 files stay
+  readable and report `not recorded (pre-v2 session)`. `CanonicalSchema` is
+  untouched; no world hash moves.
+- `sim inspect` prints a platform line under the world line, from the pure
+  function `PlatformNotice.For(manifestPlatform, runningPlatform)`: plain
+  "reference platform on both sides" when it is; a NOTICE when the session
+  was played off the reference (expected `REPRODUCTION FAILED` from turn 2
+  per §8, integer columns still comparable per §2, judge reproduction on the
+  machine that played it); a second NOTICE when inspect itself runs off the
+  reference; a distinct NOTICE when both sides are the same non-reference
+  platform (reproduction expected HERE, per §8.4, but not the canonical
+  artifact); and one for a pre-v2 manifest. `PlatformNoticeTests` pins all
+  of them headless.
+- `.github/workflows/xplat-surveillance.yml`, renamed from
+  `xplat-diagnostic.yml`: push to `main` and `t[0-9]*.*`, weekly, dispatch.
+  The windows job runs `sim run --founded --seed 42 --turns 300 --hash-log`
+  (ci.yml's own founded command), compares the final hash to `FOUNDED_GOLDEN`
+  read from ci.yml, and writes `MATCH` / `DIVERGED-AT-TURN-N` (first differing
+  turn against the Linux runner's hash log; both logs are artifacts) to the
+  log and the step summary with a warning annotation; `continue-on-error:
+  true`, and the summary says it is surveillance per ADR-022. The Linux arm
+  exits 1 on a `FOUNDED_GOLDEN` mismatch, because that is a reference-platform
+  failure. The turn-1/2/3 saves and the runner-side `sim diff` are kept as
+  diagnostic detail.
+- `docs/session-records.md`: what to expect from `sim inspect` on a Windows
+  session.
+
+**What did not move, measured on the lane:** `SnapshotTests` (synthetic and
+founded pins), `FirstReign`, `CiPinAgreementTests`, `ReplayTests`,
+`SessionRecordTests` all pass unchanged. The two `DrivenGoldenTests` throw
+`LedgerOverdrawException` at `ProductionSystem.Craft` on the untouched base
+and identically after the lane — CR-014, lane A's, not this ruling's.
+
+**Still open, deliberately.** The first turn on which a `long` column differs
+between the two platforms has not been measured beyond turn 5 (§2). The
+surveillance report records the first differing HASH turn on the 300-turn
+founded golden at every commit; an integer-column horizon is a `sim diff`
+exercise on the uploaded saves and is one of the reopen triggers.
