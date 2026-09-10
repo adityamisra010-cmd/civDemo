@@ -60,6 +60,21 @@ public sealed class UiSession
     public IObservationHistory Observations => _observations;
     private readonly ObservationLog _observations = new();
 
+    /// <summary>T4.19 lane B: the world the last End Turn STEPPED FROM, or null
+    /// before the first. The explain queries are pure functions of (prev, next,
+    /// cfg) — GrievanceExplanation, CausalChain, MigrationExplanation — and the
+    /// observation log deliberately retains no world (§7), so the session holds
+    /// the one previous world the UI needs. Safe to hold: TurnExecutor.Step
+    /// never mutates prev and returns a fresh clone, so this reference is the
+    /// same immutable pair the observer read. Nothing in the executor or any
+    /// system can reach it.</summary>
+    public WorldState? PreviousWorld { get; private set; }
+
+    /// <summary>The loaded SimConfig — the same object the observer and the
+    /// executor recipe load from the data files, exposed so the explain
+    /// queries the UI runs read the registry the simulation ran with.</summary>
+    public SimConfig Config => _simCfg;
+
     /// <summary>The live turn trace, one line per observed turn beneath the
     /// header — what the world looked like as it was actually played.</summary>
     public IReadOnlyList<string> TraceLines => _trace;
@@ -214,6 +229,7 @@ public sealed class UiSession
     {
         WorldState prev = World;
         World = _executor.Step(prev);
+        PreviousWorld = prev;
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
         ObserveChronicle();
         History.Capture(World);
