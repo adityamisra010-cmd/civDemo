@@ -7,9 +7,10 @@ is a pure function of `(prev, next, cfg, ids)` and lives in
 `Sim.Core/Observability/Explain/`.
 
 Every line number below was read from source on this branch at the commit this
-document ships in (NeedsGrievanceSystem.cs numbers are POST the seven-line
-comment this lane added above `TierAGateNeedIds`). A link that is not a real
-modelled dependency in that source does not appear.
+document ships in (NeedsGrievanceSystem.cs numbers are POST the A2-FIX
+extraction of §0.1, which moved every line after the gate array). A link that
+is not a real modelled dependency in that source does not appear. §9 records
+the verifier's findings against the first cut and what closed each.
 
 ---
 
@@ -20,26 +21,53 @@ RECOMPUTED, or GAP — and says which. There is no sixth kind. Where the doc say
 GAP the record carries a string that says *not recorded* and names the line
 where the simulation computes and discards the quantity; nothing is filled in.
 
-The two public simulation functions the queries RECOMPUTE through, and nothing
-else: `NeedsAggregation.ApplyTierAGate` + `NeedsAggregation.Aggregate`
-(NeedsAggregation.cs:230, 122), `SettlementHappiness.Of` / `.Factors` /
-`.HousingSufficiency` (SettlementHappiness.cs:169, 95, 138), `Sectors.Share`
-(WorldState.cs:350).
+The public simulation functions the queries RECOMPUTE through, and nothing
+else — every one of them is a function the owning system itself calls:
 
-**One constant is stated rather than read.** `NeedsGrievanceSystem.Expectation`
-is a private `const double = 1.0` (NeedsGrievanceSystem.cs:86, habituation
-deferred per D-018 §4). It is outside this lane's single permitted visibility
-change, so `GrievanceExplanation` restates `1.0` as a private constant and the
-exact-reproduction test (§1.4) is the drift detector: if the system's constant
-ever moves, `Recomputed != Total` and that test goes red.
+| function | where the system calls it | line |
+| --- | --- | --- |
+| `NeedsGrievanceSystem.IsTierAGate(needId)` | gate marking in Step | NeedsGrievanceSystem.cs:265 → 401-405 |
+| `NeedsGrievanceSystem.AggregateSatisfaction(sat, isGate, weight, tuning, scratch)` — `ApplyTierAGate` then `Aggregate`, or the expectation when nothing is bound | Step | 270-271 → 448-459 |
+| `NeedsGrievanceSystem.TurnoverPerYear(births, deaths, pop, rowDt)` | Step | 202 → 428-432 |
+| `NeedsGrievanceSystem.DecayRatePerYear(tuning, turnover)` | Step | 205 → 436-440 |
+| `NeedsGrievanceSystem.AccrualPerYear(W, S)` | Step | 272 → 464-465 |
+| `NeedsGrievanceSystem.TurnAccrual`, `.TurnDecay`, `.StepGrievance(prev, a, d, dt)` | Step | 281-282 → 468-483 |
+| `NeedsGrievanceSystem.Fill(world, settlement, good)` / `.Fill(in GoodStockRow)` | Satisfaction | 323, 330, 340 → 378-396 |
+| `SettlementHappiness.Of` / `.Factors` / `.HousingSufficiency` | MigrationSystem | SettlementHappiness.cs:169, 95, 138 |
+| `Sectors.Share` | Production, Housing, Construction | WorldState.cs:350 |
 
-**One visibility change, zero behaviour.** `NeedsGrievanceSystem.TierAGateNeedIds`
-went from `private static readonly int[]` to `public static readonly int[]`
-(NeedsGrievanceSystem.cs:99) so the observer classifies gate needs from the
-system's own array. The array's contents, its construction-time registry check
-and every read of it are unchanged; no golden moved (full `Sim.Tests` at this
-commit: 658 passed, 6 skipped, 2 failed — and the 2 are a pre-existing
-quarantine, reproduced on the untouched base commit; see §7).
+### 0.1 The extraction, and why it was necessary
+
+The first cut of this lane restated the system's PRIVATE arithmetic inside
+`GrievanceExplanation` — turnover `(B+D)/pop/dt`, `decay = base + (1−inherit)·turnover`,
+`accrual = W·max(0, 1−S)`, the Euler step `max(0, g + a·dt − d·g·dt)` — and
+`CausalChain` restated the private three-case `Fill`, and labelled the results
+RECOMPUTED. The verifier (§9, D1) correctly ruled that architecture §0
+reserves RECOMPUTED for a CALL to a public simulation function: a copied
+formula is a second simulation, and the mutant of §9 D2 proved the copy was
+tied to nothing. The fix is the one §0 implies — the arithmetic became
+callable. NeedsGrievanceSystem.Step now computes nothing inline that is not
+one of the public static PURE functions in the table above, and the observer
+calls those same functions on the same reads.
+
+**Zero behaviour change, measured, not inferred.** Each extracted body is the
+expression it replaced, operand for operand and in the same association (the
+Euler step is evaluated as `(prev + TurnAccrual) − TurnDecay`, the tree C#
+built for the inline expression; .NET does not contract `a·b + c` into a fused
+multiply-add). `sim run --seed 42 --turns 50 --founded --hash-log` on the parent
+commit `cc7b5de` in a detached control worktree and on this tree:
+`88321466b6fa395a38fbd26029eb5107188d25cc69fe91ee389daf437e79c319` both, and
+the 50 per-turn hashes are byte-identical (`cmp`). Every golden, snapshot,
+replay, pin, NeedsGrievance and Revolt test passes unmoved (§7).
+
+**No constant is restated.** The expectation baseline (`Expectation = 1.0`,
+NeedsGrievanceSystem.cs:86) stays private and lives inside
+`AccrualPerYear` and `AggregateSatisfaction`; the observer never names it.
+
+**The gate is a predicate, not an array.** `TierAGateNeedIds` is private again
+(NeedsGrievanceSystem.cs:95); the observer — and anyone else — asks
+`NeedsGrievanceSystem.IsTierAGate(needId)`. A public mutable `int[]` is a lever
+any caller can pull (§9, D4); a predicate over it is not.
 
 ---
 
@@ -57,20 +85,21 @@ writes Next. The query repeats its reads, in its order, from the same tables:
 | `Delta` | DIFFERENCED | Total − Previous | — |
 | `DtYears` | READ | `next.Clock.DtYears` — the dt the executor integrated with (TurnExecutor.cs:86-87, 108; SimClock.cs:16) | `ctx.DtYears`, 155 |
 | `SettlementPopulation` | SUMMED | `prev.Buckets` | 176-178 |
-| `TurnoverPerYear` | READ | `prev.SettlementVitals`: (Births + Deaths) / pop / row.DtYears, 0 without a row | 201-209 |
-| `DecayRatePerYear` | config × READ | BaseDecayPerYear + (1 − InheritFraction) × turnover | 210-211 |
-| `ClassPopulation` | SUMMED | `prev.Buckets` for the class | 233-236 |
-| per-need `Satisfaction` | READ | `next.NeedSatisfactions` — the rows the system PUBLISHED this step, walked in registry order (registry ids are loader-enforced ascending, NeedsConfig.cs:174-176) | 244-274 |
-| `IsTierAGate` | READ | `NeedsGrievanceSystem.TierAGateNeedIds` | 99, 271 |
-| `Aggregate` (S) | RECOMPUTED | `ApplyTierAGate` then `Aggregate` on the same spans, same tuning | 276-284 |
-| `WeightSum` (W) | config | Σ raw registry weights of the needs that published a row | 272 |
-| `AccrualPerYear` | RECOMPUTED | W × max(0, 1 − S) | 285 |
-| `Accrual`, `Decay` | RECOMPUTED | AccrualPerYear × dt; DecayRate × Previous × dt | 298 |
-| `Recomputed` | RECOMPUTED | max(0, Previous + Accrual − Decay); 0 when class or settlement population is 0 (191-197, 237-241); Previous when the settlement was not in `prev.Settlements` | 298-299 |
+| `TurnoverPerYear` | RECOMPUTED | `NeedsGrievanceSystem.TurnoverPerYear(row.Births, row.Deaths, pop, row.DtYears)` on the READ `prev.SettlementVitals` row; 0 without a row | 197-204 |
+| `DecayRatePerYear` | RECOMPUTED | `NeedsGrievanceSystem.DecayRatePerYear(tuning, turnover)` | 205 |
+| `ClassPopulation` | SUMMED | `prev.Buckets` for the class | 227-230 |
+| per-need `Satisfaction` | READ | `next.NeedSatisfactions` — the rows the system PUBLISHED this step, walked in registry order (registry ids are loader-enforced ascending, NeedsConfig.cs:174-176) | 240-268 |
+| `IsTierAGate` | RECOMPUTED | `NeedsGrievanceSystem.IsTierAGate(need.Id)` | 265, 401-405 |
+| `Aggregate` (S) | RECOMPUTED | `NeedsGrievanceSystem.AggregateSatisfaction` on the same spans, same tuning | 270-271 |
+| `WeightSum` (W) | config | Σ raw registry weights of the needs that published a row | 266 |
+| `AccrualPerYear` | RECOMPUTED | `NeedsGrievanceSystem.AccrualPerYear(W, S)` | 272 |
+| `Accrual`, `Decay` | RECOMPUTED | `NeedsGrievanceSystem.TurnAccrual(a, dt)`; `.TurnDecay(d, Previous, dt)` | 468, 472-473 |
+| `Recomputed` | RECOMPUTED | `NeedsGrievanceSystem.StepGrievance(Previous, a, d, dt)`; 0 when class or settlement population is 0 (187-193, 231-235); Previous when the settlement was not in `prev.Settlements` | 281-282, 481-483 |
 
-The association is the system's: `(gPrev + (accrualPerYear·dt)) − ((decayRate·gPrev)·dt)`
-is what C# evaluates at line 298, and `Previous + Accrual − Decay` with
-`Accrual = accrualPerYear·dt`, `Decay = (decayRate·gPrev)·dt` is the same tree.
+The association is the system's because the function IS the system's:
+`StepGrievance` evaluates `(previous + TurnAccrual) − TurnDecay`, the tree C#
+built for the inline `gPrev + accrualPerYear * dt - decayRate * gPrev * dt` it
+replaced, and Step calls it (281-282).
 
 ### 1.2 The components, and why the attribution is observer-defined
 
@@ -84,9 +113,11 @@ share":
   shortfall; the plain reading of "how unmet, how much it matters".
 - `MarginalLift = S(s with s_n := 1) − S` — how much the aggregate would rise
   if this need alone were fully met, RECOMPUTED by copying the satisfaction
-  span, setting one entry to 1.0, and calling `ApplyTierAGate` + `Aggregate`
-  again. The gate is re-applied to the lifted vector, so a gate need's lift
-  includes the release of the upper needs' collapsed weights.
+  span, setting one entry to 1.0, and calling
+  `NeedsGrievanceSystem.AggregateSatisfaction` again; the subtraction of the
+  two RECOMPUTED values is the only arithmetic. The gate is re-applied to the
+  lifted vector, so a gate need's lift includes the release of the upper
+  needs' collapsed weights.
 
 `MarginalLift` is what the primary is ranked by, because it respects the gate:
 on the homeless rig (§7) Comfort at s = 0.64 has lift **exactly 0.0** while
@@ -98,8 +129,10 @@ sentence and every consumer can print it.
 Unbound registry needs (Safety, Health, Belonging/Faith, Dignity/Liberty,
 Prospects) are listed with `Bound = false`, NaN values and the note
 `not yet simulated` — never omitted. A registry-bound need for which this class
-declares no basket (unreachable in shipped data; NeedsGrievanceSystem.cs:264)
-is listed the same way with a note saying so.
+declares no basket (unreachable in shipped data; NeedsGrievanceSystem.cs:258)
+is listed the same way with a note saying so; a settlement founded THIS step
+(not in Prev, so never stepped — the §2.4 colony) is listed with the note
+`founded this step`.
 
 ### 1.3 The primary, and the tie-break rule
 
@@ -128,16 +161,19 @@ precondition, `Math.Pow(0.5, −1) == 2`, is asserted first.
 `Recomputed == Total` is asserted with **exact equality, no epsilon**, on every
 (settlement, class) of every step of a fed 8-turn run (96 pairs, 96 exact, 32
 with G > 0) and a starved run (60 pairs, 60 exact). A recomputation through the
-same public functions on the same doubles in the same association is not an
-approximation; the only way it can differ is a change in the system this
-observer did not follow, which is the event the assertion exists to catch.
+same public functions on the same doubles is not an approximation; the only
+way it can differ is the system calling different functions, or the same ones
+on different operands, than the observer reads — which is the event the
+assertion exists to catch. It is not tautological: the observer's operands are
+its own reads (Prev buckets, the Prev vitals row, the Next satisfaction rows,
+the Prev grievance row), never the system's locals.
 
 ---
 
 ## 2. `CausalChain` — the §5 chains, link by link, verified in source
 
 `CausalChain.ForNeed(prev, next, cfg, settlement, class, needId)` dispatches on
-the need's DATA binding exactly as the system does (NeedsGrievanceSystem.cs:249-266):
+the need's DATA binding exactly as the system does (NeedsGrievanceSystem.cs:243-260):
 unbound → one GAP link `NotSimulated`; `source = housingStock` → Shelter;
 `BasketBook.SustenanceNeedId` → Sustenance; any other basket-bound need → the
 crafted-goods chain. Each `Link` carries `Node`, `Value`, `Kind`, `World`
@@ -145,7 +181,7 @@ crafted-goods chain. Each `Link` carries `Node`, `Value`, `Kind`, `World`
 the line it was read from.
 
 **The one-turn lag, stated on the links.** A satisfaction on Next was computed
-from fill ratios on Prev (Fill reads Prev, NeedsGrievanceSystem.cs:395-404).
+from fill ratios on Prev (Fill reads Prev, NeedsGrievanceSystem.cs:378-396).
 Those fills were written by the consumption step that produced Prev, from the
 harvest recorded on Prev; that harvest was produced under the inputs of the
 turn before Prev. The inputs the chain reads off Prev (shares, arable land,
@@ -156,8 +192,8 @@ Next's harvest, not the harvest the chain shows. Every such link's Note says so.
 
 | # | node | kind | source | verified at |
 | --- | --- | --- | --- | --- |
-| 1 | `SustenanceSatisfaction` | READ | `next.NeedSatisfactions` | s = clamp(got/wanted) × VarietyFactor, staple substitution: NeedsGrievanceSystem.cs:320-368 (Sustenance branch 327-351, variety 363-367) |
-| 2 | per basket good: `FoodGoodEaten`, `FoodGoodDemanded`, `FoodGoodFill` | READ | `prev.GoodStocks` | the basket lines the system iterates: `BasketBook.Basket(cls, need)` BasketBook.cs:104-114; Fill = eaten/demanded with the three cases (no row → 1.0; demand 0 → stock > 0 ? 1 : 0; else the clamped quotient) NeedsGrievanceSystem.cs:395-404 |
+| 1 | `SustenanceSatisfaction` | READ | `next.NeedSatisfactions` | s = clamp(got/wanted) × VarietyFactor, staple substitution: NeedsGrievanceSystem.cs:303-351 (Sustenance branch 310-334, variety 346-350) |
+| 2 | per basket good: `FoodGoodEaten`, `FoodGoodDemanded` READ; `FoodGoodFill` **RECOMPUTED** | READ / RECOMPUTED | `prev.GoodStocks`; `NeedsGrievanceSystem.Fill(in row)` on that row | the basket lines the system iterates: `BasketBook.Basket(cls, need)` BasketBook.cs:104-114; the fill is the system's own three-case function (no row → 1.0, through `Fill(world, s, good)` with the note `No row`; demand 0 → stock > 0 ? 1 : 0; else the clamped quotient) NeedsGrievanceSystem.cs:378-396, and the note says which case applied |
 | 3 | `DeficitRatio`, `NutritionalDemand` | READ | `prev.ConsumptionDeficits` | ratio = (required − obtained)/required, substitution counted once: ConsumptionSystem.cs:183-190 |
 | 4 | `GrainStore` | READ | `prev.GoodStocks` grain `Amount` | post harvest, eating, spoilage, overflow: ConsumptionSystem.cs:192-203 |
 | 5 | `GrainHarvest` | READ | grain `LastProducedUnits` | Farm credits `harvested` and publishes it: ProductionSystem.cs:243-247 |
@@ -180,9 +216,9 @@ Next's harvest, not the harvest the chain shows. Every such link's Note says so.
 
 | # | node | kind | source | verified at |
 | --- | --- | --- | --- | --- |
-| 1 | `ShelterSatisfaction` | READ | `next.NeedSatisfactions` | min(1, dwellings × PersonsPerDwelling / pop) on Prev: NeedsGrievanceSystem.cs:137-150, dispatched at 252-259 |
-| 2 | `HousingSufficiency` | RECOMPUTED | `SettlementHappiness.HousingSufficiency(prev)` | the same expression, clamped: SettlementHappiness.cs:138-159 |
-| 3 | `Population` | SUMMED | `prev.Buckets` | NeedsGrievanceSystem.cs:139-141 |
+| 1 | `ShelterSatisfaction` | READ | `next.NeedSatisfactions` | min(1, dwellings × PersonsPerDwelling / pop) on Prev: NeedsGrievanceSystem.cs:133-146, dispatched at 246-253 |
+| 2 | `HousingSufficiency` | RECOMPUTED | `SettlementHappiness.HousingSufficiency(prev)` | the same expression, clamped: SettlementHappiness.cs:138-159. **No housing row** (a colony before HousingSystem's first step, HousingSystem.cs:96-101): still RECOMPUTED — the function DEFINES nobody-to-house as 1.0 and people-and-no-row as 0.0 (SettlementHappiness.cs:149, 158) — with `SourceIndex = −1` and a note beginning `No row`; the `Dwellings` link beneath it is the GAP |
+| 3 | `Population` | SUMMED | `prev.Buckets` | NeedsGrievanceSystem.cs:135-137 |
 | 4 | `PersonsPerDwelling` | READ (config) | `cfg.Housing.PersonsPerDwelling` | sim.json housing |
 | 5 | `Dwellings` | READ | `prev.Housing.Dwellings` | HousingSystem.cs:107 |
 | 6 | `DwellingsDelta` | DIFFERENCED | next − prev dwellings | = built − decayed, split not recorded (§8 item 6) |
@@ -203,8 +239,8 @@ maintenance will read.
 
 | # | node | kind | source | verified at |
 | --- | --- | --- | --- | --- |
-| 1 | `ComfortSatisfaction` | READ | `next.NeedSatisfactions` | no substitution: NeedsGrievanceSystem.cs:352-361 |
-| 2 | per basket good: `ComfortGoodEaten`, `ComfortGoodDemanded`, `ComfortGoodFill` | READ | `prev.GoodStocks` | same Fill cases as 2.1 #2 |
+| 1 | `ComfortSatisfaction` | READ | `next.NeedSatisfactions` | no substitution: NeedsGrievanceSystem.cs:335-344 |
+| 2 | per basket good: `ComfortGoodEaten`, `ComfortGoodDemanded` READ; `ComfortGoodFill` RECOMPUTED | READ / RECOMPUTED | `prev.GoodStocks`; `NeedsGrievanceSystem.Fill(in row)` | same Fill cases as 2.1 #2 |
 | 3 | per basket good: `CraftOutputProduced` | READ | `LastProducedUnits` | zeroed then credited per turn: ProductionSystem.cs:134-141, 442 |
 | 4 | per recipe whose `Output.Good` is the basket good, per input: `CraftInputStock` | READ | input `Amount` | Leontief input cap: ProductionSystem.cs:406-414; the recipe book is `cfg.Goods.Recipes` (goods.json: pottery-firing ← clay 2.0 + timber 0.5; weaving ← fiber 3.0) |
 | 5 | per input: `CraftInputDemand` | READ | input `LastInputDemandUnits` | what recipes WANTED from labour alone, pre-cap: ProductionSystem.cs:386-404 |
@@ -224,7 +260,17 @@ SUMMED links must sum over a non-empty table; RECOMPUTED links with a row cite
 a real one and those without say `No row` in their note; every GAP has
 `SourceIndex = −1` and a non-empty note. Checked on every chain of every
 (settlement, class, need) of every step of a fed 4-turn run and a starved
-12-turn run, plus both happiness chains of every settlement (§7).
+12-turn run, plus both happiness chains of every settlement (§7) — and, since
+A2-FIX, on a **colony**: three fed turns, settlement 0's buckets seeded with
+unplaced-departure demand (the T4.4 construction), one step of the
+Colonization system alone (the full pipeline's Migration rewrites the demand
+before Colonization reads it, MigrationSystem.cs:319). Next then carries a
+settlement absent from Prev, populated, with no `HousingRow`, and every chain
+of its every need and class plus both happiness chains pass the same checker;
+the sufficiency link reads 1.0 on the Shelter chain (Prev holds nobody there)
+and 0.0 on the happiness chain (Next holds people and no row), both with
+`No row` in the note. The first cut would have failed this checker on that
+world; no earlier rig founded a colony, so it never ran.
 
 ---
 
@@ -307,10 +353,12 @@ that silently lies the day the system changes.
 
 ## 6. What this lane does NOT do
 
-- No simulation formula is re-implemented. The fill quotient (two READ longs
-  divided, the definition of the published pair) and the per-need shortfall
-  `w·(1−s)` (READ × config) are the only arithmetic outside the public
-  functions, and both are labelled as what they are.
+- No simulation formula is re-implemented. The only arithmetic outside calls
+  to public simulation functions is the per-need shortfall `w·(1−s)` (READ ×
+  config, labelled observer-defined), the `MarginalLift` subtraction of two
+  RECOMPUTED aggregates, and `Delta = Total − Previous` (DIFFERENCED). The fill
+  quotient the first cut took itself is gone: the fill is
+  `NeedsGrievanceSystem.Fill` on the cited row.
 - Nothing is stored. No `WorldState` field, no schema change (v24 stands), no
   table, no observer object that survives the call.
 - No system reads any of it; `check-read-isolation.sh` passes with
@@ -382,17 +430,27 @@ bit-exact (20 with G > 0). Migrants moved over the fed 10-turn run — Σ
 `MigrationFlowRow.Inflow` over every row of worlds 1..10 — is 102, so the
 flow READ assertions are not trivial.
 
-Gates at this commit: `dotnet build -c Release` 0 warnings 0 errors;
-`Sim.Tests` filtered to `Sim.Tests.Observability` 19/19; full `Sim.Tests`
-658 passed / 6 skipped / 2 failed in 16 m 6 s. **The 2 failures are
+Gates at the first cut (`cc7b5de`): `dotnet build -c Release` 0 warnings 0
+errors; `Sim.Tests.Observability` 19/19; full `Sim.Tests` 658 passed / 6
+skipped / 2 failed in 16 m 6 s. **The 2 failures are
 `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand` at seeds 42 and 7
 ("3 / 4 starvation deaths"), the cr-003 §7.6 quarantine tooth, and they fail
 with the same message on the UNTOUCHED base `ec9daf7` built in a separate
 control worktree** — pre-existing, not this lane's, not actioned (the message
 itself says a director ruling on CR-003 is the only thing that changes it).
-Every golden, snapshot, pin, replay, NeedsGrievance and Revolt test passed in
-that run. `check-banned-constructs.sh`, `check-read-isolation.sh`,
-`check-readonly-proof.sh` all OK.
+
+Gates at this commit (A2-FIX), all measured on this tree: `dotnet build -c
+Release` 0 warnings 0 errors; `Sim.Tests.Observability` 24/24 (3 s); the
+families the fix could move — Observability + NeedsGrievanceTests +
+RevoltTests + DrivenGoldenTests + SnapshotTests + CiPinAgreementTests +
+IntegratedPinAttributionTests + ReplayTests + ReplayReportTests — 87/87 in
+1 m 46 s; full `Sim.Tests` 663 passed / 6 skipped / 2 failed in 11 m 36 s, the
+2 being the same `Dev_MalthusCorridors_AllInBand` seeds 42 and 7 with the
+same "3 / 4 starvation deaths" message as at `cc7b5de` and at the untouched
+base — pre-existing, not actioned. No golden, snapshot, pin or replay moved.
+`check-banned-constructs.sh`, `check-read-isolation.sh`,
+`check-readonly-proof.sh` all OK. Before/after hash of the 50-turn founded
+run: §0.1.
 
 ---
 
@@ -409,6 +467,23 @@ this lane's own:
 | Shelter chain | which build cap bound | HousingSystem.cs:168 (§8.9) |
 | Comfort chain | per-recipe labour cap; labour-vs-input binding | ProductionSystem.cs:369, 412-413 (§8.9) |
 | Grievance | per-need accrual — not a simulation quantity; attribution observer-defined | (§8.10) |
-| Grievance | `Expectation` is private (1.0 restated; exact-reproduction test is the detector) | NeedsGrievanceSystem.cs:86 — **this lane's addition** |
 | Migration | pairwise flows, damping, viability products, gap scale | MigrationSystem.cs:409-474, 258-277, 225-235, 348-382 (§8.5) |
-| Any chain | a satisfaction row absent (no members / extinct / founded this step) | NeedsGrievanceSystem.cs:191-197, 237-241 |
+| Any chain | a satisfaction row absent (no members / extinct / founded this step) | NeedsGrievanceSystem.cs:187-193, 231-235 |
+| Shelter / happiness Housing | no housing row yet (a colony before HousingSystem's first step) — the `Dwellings` link; the sufficiency above it is RECOMPUTED with `No row` | HousingSystem.cs:96-101 |
+
+The first cut listed "`Expectation` is private (1.0 restated)" here as a gap
+of its own making; it is gone — the constant is inside the public functions
+the observer calls (§0.1).
+
+---
+
+## 9. A2-FIX — the verifier's findings on the first cut, and their closure
+
+| # | finding (verdict against `cc7b5de`) | closure | evidence |
+| --- | --- | --- | --- |
+| D1 | `GrievanceExplanation` re-implemented the system's private turnover, decay rate, accrual and Euler step, (labelled RECOMPUTED — a label §0 reserves for calls to PUBLIC simulation functions), and `CausalChain.FillLinks` the private three-case `Fill` (its quotient labelled READ, which it was not — it was a formula) | the arithmetic was extracted from `NeedsGrievanceSystem` into public static pure functions the system itself calls (§0 table); the observer calls those | 50-turn founded hash identical before/after (§0.1); every golden/snapshot/replay/pin unmoved (§7); `AccrualAndDecay_ReproduceTheSystemsStock_Exactly` still bit-exact on 156 pairs |
+| D2 | a mutant replacing `Fill` case 3 with `1.0` survived the whole suite: the copied fill was tied to nothing | `ExplainRecomputedFunctionTests`: `Fill` pinned on four case-3 points including both clamp ends, both case-2 branches and case 1; the chain's fill asserted equal to `NeedsGrievanceSystem.Fill` on the cited row AND to the quotient of the two READ links beside it on the starved world (grain 436/3078), with the system's published Sustenance satisfaction below 0.5 | the verifier's mutant (the observer's copy) is no longer expressible — there is no copy; the equivalent mutation in `NeedsGrievanceSystem.Fill` (case 3 → 1.0), applied in a separate tree built from this commit and run against the Observability + NeedsGrievanceTests filter (41 tests, 3 s clean, bounded 15 min), kills 6: the two new tests, `Starved_PrimaryIsSustenance_AndChainShowsHarvestBelowEaten`, and three pre-existing `NeedsGrievanceTests` (`Satisfaction_ClampsAtBothEnds`, `AntiTautology_SatisfactionRESPONDSToTheStandard_PerturbedEitherWay`, `Famine_RaisesGrievance_InTheStarvationWindow`) |
+| D3 | `HousingSupply` emitted a RECOMPUTED sufficiency citing `Housing[−1]` with a note lacking `No row` for a settlement with no `HousingRow` (a colony before HousingSystem steps it); the lane's own checker would have failed there, and no rig reached it | the no-row case carries a `No row` note naming both defined values (1.0 nobody, 0.0 unhoused); a colony rig was added and the checker walks every chain of the colony (§2.4) | `Colony_WithoutAHousingRow_EveryLinkStillCitesHonestly` |
+| D4 | `TierAGateNeedIds` was made a public mutable `int[]`; any caller could write it | private again; `public static bool IsTierAGate(int)` is the only read | `IsTierAGate_MarksExactlySustenanceShelterSafety_AndTheObserverAgrees` |
+| D5 | the doc called `0.7722222222222223` "pinned turn-exact" when it was only a comment | asserted bit-exact at world 3 in `Starved_PrimaryIsSustenance_AndChainShowsHarvestBelowEaten` | the assertion passes at this commit |
+| D7 | the lane needs a rebase before merge | NOT done — the integrator merges; this tree is still cut from `ec9daf7` | `git merge-base` unchanged |

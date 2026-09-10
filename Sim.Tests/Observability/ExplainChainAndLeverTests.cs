@@ -110,6 +110,82 @@ public class ExplainChainAndLeverTests
         Assert.True(gaps > 0, "vacuous: no GAP link was checked");
     }
 
+    /// <summary>
+    /// A2-FIX D3. A colony founded THIS step is in Next and not in Prev, has
+    /// people, and has no HousingRow until HousingSystem's first step
+    /// materialises one. The first cut emitted its housing sufficiency as a
+    /// RECOMPUTED link citing Housing[−1] with a note that did not say so —
+    /// the one shape the checker above rejects — and no rig ever founded a
+    /// colony, so the checker never saw it. Now the same checker walks every
+    /// chain of the colony's every need and class, and both happiness chains.
+    /// The sufficiency link stays RECOMPUTED, because
+    /// SettlementHappiness.HousingSufficiency is a public function that
+    /// DEFINES people-and-no-row as 0.0 (SettlementHappiness.cs:158) — the
+    /// value is a simulation quantity, the missing row is named in the note,
+    /// and the Dwellings link beneath it is the GAP.
+    /// </summary>
+    [Fact]
+    public void Colony_WithoutAHousingRow_EveryLinkStillCitesHonestly()
+    {
+        (SimConfig cfg, WorldState prev, WorldState next, SettlementId colony) = ExplainRigs.Colony(prefixTurns: 3);
+        Assert.Equal(-1, HousingIndex(next, colony));
+        Assert.Equal(-1, HousingIndex(prev, colony));
+
+        int chains = 0, sufficiencyLinks = 0;
+        foreach ((SettlementId s, ClassId c) in ExplainRigs.GrievanceKeys(next))
+        {
+            if (s != colony) continue;
+            GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, s, c);
+            Assert.False(g.SteppedBySystem);
+            Assert.Equal(g.Total, g.Recomputed);          // not stepped: the row is what founding left (0)
+            Assert.Equal(-1, g.PrimaryNeedId);            // nothing published, nothing to rank
+            for (int i = 0; i < g.Needs.Length; i++)             // registry order, registry ids
+                if (cfg.Needs!.Needs[i].Bound) Assert.Contains("founded this step", g.Needs[i].Note);
+
+            foreach (NeedEntry need in cfg.Needs!.Needs)
+            {
+                CausalChain chain = CausalChain.ForNeed(prev, next, cfg, s, c, need.Id);
+                AssertSourcesExist(chain.Links, prev, next, $"colony s{s.Value} c{c.Value} need {need.Id}");
+                chains++;
+                foreach (Link l in chain.Links)
+                {
+                    if (l.Node != ChainNode.HousingSufficiency) continue;
+                    sufficiencyLinks++;
+                    Assert.Equal(LinkKind.Recomputed, l.Kind);
+                    Assert.Equal(-1, l.SourceIndex);
+                    Assert.Contains("No row", l.Note);
+                    // The Shelter chain sits on PREV (what the system read), and
+                    // the colony is not there: nobody to house reads 1.0
+                    // (SettlementHappiness.cs:149). The other branch — people
+                    // and no row, 0.0 — is the happiness chain on Next, below.
+                    Assert.Equal(1.0, l.Value);
+                    Assert.Equal(SettlementHappiness.HousingSufficiency(prev, colony, cfg), l.Value);
+                }
+                if (need.FromHousingStock)
+                    Assert.Equal(LinkKind.Gap, ExplainGrievanceTests.Single(chain.Links, ChainNode.Dwellings).Kind);
+            }
+        }
+        Assert.True(chains > 0, "rig vacuous: the colony has no grievance rows");
+        Assert.True(sufficiencyLinks > 0, "rig vacuous: no Shelter chain was built for the colony");
+
+        HappinessExplanation h = HappinessExplanation.For(next, cfg, colony);
+        foreach (HappinessFactor f in h.Factors)
+            AssertSourcesExist(f.Chain, next, next, $"colony happiness {f.Name}");
+        Link housing = ExplainGrievanceTests.Single(h.Factors[(int)SettlementHappiness.Factor.Housing].Chain, ChainNode.HousingSufficiency);
+        Assert.Equal(LinkKind.Recomputed, housing.Kind);
+        Assert.Equal(-1, housing.SourceIndex);
+        Assert.Contains("No row", housing.Note);
+        Assert.Equal(0.0, housing.Value);                 // people, no row: SettlementHappiness.cs:158
+        Assert.Equal(h.Factors[(int)SettlementHappiness.Factor.Housing].Value, housing.Value);
+        Assert.Equal(LinkKind.Gap, ExplainGrievanceTests.Single(h.Factors[(int)SettlementHappiness.Factor.Housing].Chain, ChainNode.Dwellings).Kind);
+    }
+
+    private static int HousingIndex(WorldState w, SettlementId s)
+    {
+        for (int i = 0; i < w.Housing.Count; i++) if (w.Housing[i].Settlement == s) return i;
+        return -1;
+    }
+
     [Fact]
     public void SustenanceChain_CarriesTheStoredFarmInputs_AndTheDocumentedGaps()
     {
