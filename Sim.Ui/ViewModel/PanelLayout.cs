@@ -59,8 +59,13 @@ public static class PanelLayout
     /// piece of contextual detail worth keeping visible while looking at the
     /// world, because selection is how every other panel is aimed.
     /// </summary>
+    /// T4.19 lane B: 104 → 132 px tall. The card carries a third data line —
+    /// happiness and grievance, the two figures the packet makes clickable —
+    /// and at the 17 px numeric face with 7 px item spacing three data lines
+    /// under the title end at y ≈ 110 inside the window, past the old 104.
+    /// Still under a tenth of the map band (pinned).
     public static readonly PanelRect Selection =
-        new("##selection", Margin, Status.Height + Margin, 268, 104);
+        new("##selection", Margin, Status.Height + Margin, 268, 132);
 
     /// <summary>
     /// The contextual panel — policy, economy, population, market, annals or

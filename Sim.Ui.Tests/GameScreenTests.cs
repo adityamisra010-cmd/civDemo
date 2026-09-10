@@ -42,9 +42,48 @@ public class GameScreenTests
     }
 
     [Fact]
-    public void PolicyLeadsTheRoster_BecauseItIsTheOnlyOneTheDirectorACTSIn()
+    public void T419_TheTabRosterCoversEverySettlementTabExactlyOnce_AndEachHasALabel()
     {
-        Assert.Equal(Section.Policy, GameSections.Order[0]);
+        // T4.19 lane B: the T4.18 POPULATION and MARKET sections became tabs
+        // of SETTLEMENT. The same rule applies one level down — a tab that
+        // exists but is not in Tabs is unreachable, and the former sections'
+        // content would be too.
+        SettlementTab[] all = Enum.GetValues<SettlementTab>();
+        Assert.Equal(all.Length, GameSections.Tabs.Count);
+        foreach (SettlementTab tab in all)
+        {
+            Assert.Contains(tab, GameSections.Tabs);
+            Assert.False(string.IsNullOrWhiteSpace(GameSections.TabLabel(tab)), tab.ToString());
+        }
+        Assert.Equal(GameSections.Tabs.Count, GameSections.Tabs.Distinct().Count());
+        // The two former sections' homes, by name.
+        Assert.Contains(SettlementTab.Population, GameSections.Tabs);
+        Assert.Contains(SettlementTab.Economy, GameSections.Tabs);
+    }
+
+    [Fact]
+    public void T419_TurnLeadsTheRoster_AndTheDigitKeysFollowIt()
+    {
+        // T4.19 lane B reorders the roster to the reading path the packet
+        // names — what changed (TURN), where and why (SETTLEMENT), what I can
+        // do (POLICY) — and binds digits 1..7 to the SAME list, so a key and
+        // the button it mirrors cannot name different sections.
+        Assert.Equal(
+            new[] { Section.Turn, Section.Settlement, Section.Policy, Section.Economy,
+                    Section.Annals, Section.Trends, Section.More },
+            GameSections.Order.ToArray());
+        for (int digit = 1; digit <= 7; digit++)
+            Assert.Equal(GameSections.Order[digit - 1], GameSections.ForDigit(digit));
+        Assert.Equal(Section.None, GameSections.ForDigit(0));
+        Assert.Equal(Section.None, GameSections.ForDigit(8));
+        // A digit OPENS; an unbound digit leaves the state alone; it never closes.
+        Assert.Equal(Section.Trends, GameSections.OnDigit(Section.Policy, 6));
+        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 9));
+        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 3));
+        // Escape closes an open panel and reports that it did; with nothing
+        // open it reports nothing closed (the caller's exit path).
+        Assert.Equal((Section.None, true), GameSections.OnEscape(Section.Trends));
+        Assert.Equal((Section.None, false), GameSections.OnEscape(Section.None));
     }
 
     [Fact]
@@ -54,7 +93,7 @@ public class GameScreenTests
         Assert.Equal(Section.None, GameSections.Toggle(Section.Policy, Section.Policy));
         // ...and clicking a different one switches rather than stacking: only
         // ever one panel, which is the mechanism the packet asked for.
-        Assert.Equal(Section.Market, GameSections.Toggle(Section.Policy, Section.Market));
+        Assert.Equal(Section.Settlement, GameSections.Toggle(Section.Policy, Section.Settlement));
     }
 
     [Fact]

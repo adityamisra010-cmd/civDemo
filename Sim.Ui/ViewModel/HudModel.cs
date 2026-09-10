@@ -34,7 +34,13 @@ public sealed record HudModel(
     double CraftingPct, double ConstructionPct,
     long WorldPopulation, int SettlementCount,
     IReadOnlyList<string>? NeedLines = null, double GrievanceValue = 0.0,
-    string? SettlementName = null)
+    string? SettlementName = null,
+    // T4.19 lane B: the status band's food figure (Σ grain Amount over every
+    // settlement — the same carrier the TurnRecord's grain account sums) and
+    // the selection card's happiness (SettlementHappiness.Of, the public
+    // reader, when a config is given; NaN otherwise — "—", never a fabricated
+    // score).
+    long WorldFood = 0, double Happiness = double.NaN)
 {
     /// <summary>Builds the HUD for one selected settlement. An id not present
     /// in the world (or an empty world) yields the zeros the panel can render
@@ -45,7 +51,7 @@ public sealed record HudModel(
     /// identical across classes at M2 — settlement-wide inputs).</summary>
     public static HudModel From(
         IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null,
-        string? settlementName = null)
+        string? settlementName = null, SimConfig? cfg = null)
     {
         var selected = new SettlementId(selectedSettlementId);
         bool exists = false;
@@ -82,6 +88,11 @@ public sealed record HudModel(
 
         long worldPop = 0;
         for (int i = 0; i < world.Buckets.Count; i++) worldPop += world.Buckets[i].Count.Value;
+        long worldFood = 0;
+        for (int i = 0; i < world.GoodStocks.Count; i++)
+            if (world.GoodStocks[i].Good == UiGoods.Grain) worldFood += world.GoodStocks[i].Amount.Value;
+        double happiness = exists && cfg is not null
+            ? SettlementHappiness.Of(world, selected, cfg) : double.NaN;
 
         // T2.6 needs block: registry order; bound needs read the settlement's
         // satisfaction row (any class — equal at M2), unbound label honestly.
@@ -148,8 +159,28 @@ public sealed record HudModel(
             SettlementCount: world.Settlements.Count,
             NeedLines: needLines,
             GrievanceValue: grievance,
-            SettlementName: settlementName);
+            SettlementName: settlementName,
+            WorldFood: worldFood,
+            Happiness: happiness);
     }
+
+    /// <summary>T4.19 lane B: the status band's clickable figures, split so
+    /// each can be a Selectable of its own — the population figure routes to
+    /// the TURN population account, the food figure to the grain account.</summary>
+    public string WorldPopulationFigure =>
+        string.Create(CultureInfo.InvariantCulture, $"world pop {WorldPopulation}");
+
+    public string SettlementCountFigure =>
+        string.Create(CultureInfo.InvariantCulture, $"({SettlementCount} settlements)");
+
+    public string WorldFoodFigure =>
+        string.Create(CultureInfo.InvariantCulture, $"food {WorldFood}");
+
+    /// <summary>The selection card's third data line, two clickable halves.
+    /// Happiness is "—" without a config or for an absent settlement.</summary>
+    public string HappinessLine => double.IsNaN(Happiness)
+        ? "happiness —"
+        : string.Create(CultureInfo.InvariantCulture, $"happiness {Happiness:F1}");
 
     /// <summary>T2.9: the chronicle name leads; the id stays for cross-
     /// referencing orders/logs. Name defaults keep pre-T2.9 tests valid.</summary>
