@@ -224,39 +224,65 @@ sim diff linux-turn3.bin win-turn3.bin
 sim diff <ci-linux>/linux-turn2.bin <container>/linux-turn2.bin   # runner == container
 ```
 
-### §8.4 Why the Windows half is pending — the exact error
+### §8.4 The Windows half — obtained, and how
 
-Dispatch was attempted twice through the GitHub API, immediately after the
-push and again ~8 minutes later:
+`workflow_dispatch` cannot see a workflow that exists only on a feature branch
+(404, twice), and the session's egress proxy refuses the Azure blob host GitHub
+serves artifacts from, so neither dispatch nor download was available from the
+container. Both were routed around without touching `main`: a push-scoped
+trigger on the branch `t4.19-xplat-run` (cut from this lane's commit) ran the
+two jobs, and a third job on the runner downloaded both artifacts and ran the
+comparison into its own log. Run `34419607514`, commit `d8630e7`; the diff is
+the runner's, the reading below is verbatim from its log.
 
-```
-POST https://api.github.com/repos/adityamisra010-cmd/civdemo/actions/workflows/xplat-diagnostic.yml/dispatches
-→ 404 Not Found
-```
+Windows runner (windows-latest, x64) turn hashes: turn 1 `b9d206c1fcf4…`,
+turn 2 **`545ca00bd1488daa2248fcc63fafce2e0165b2cfd9a19f7d4eab15e94c819757`**,
+turn 3 `605cabce825f…`. **The Windows runner's turn-2 hash equals the
+director's own trace value exactly** (§2, `545ca00bd148…`), so the runner
+reproduces his machine and the comparison below is his session against Linux.
 
-`GET …/actions/workflows` lists two registered workflows (`ci.yml`,
-`ui-artifact.yml`) — the two on `main`. GitHub registers a workflow for
-dispatch-by-filename only from the default branch; a file that exists solely
-on a feature branch is not dispatchable, whatever `ref` is passed. The lane
-mandate was `workflow_dispatch` only and no touch of `main`, so the step
-stopped here as instructed rather than adding a `push` trigger to force a run.
+### §8.5 MEASURED — the first divergent field, turn by turn
 
-**One click for the director, in either of two ways:** (a) merge the lane
-branch (or cherry-pick `39ffd38`'s workflow file) to `main`, then Actions →
-xplat-diagnostic → Run workflow on any ref; or (b) on the lane branch, add
-`push: {branches: [t4.19-lane-xplat]}` beside `workflow_dispatch` and push —
-the run starts itself. Then download the two artifacts and run the four
-`sim diff` lines in §8.3; the output IS the missing measurement, and the
-classification below is what to fill in.
+| turn | first divergent table / row / field | A (Linux) | B (Windows) | ulp | other differing tables |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **none** — 40 blocks, 106,889 bytes walked, identical | | | | |
+| 2 | `PriceTerms[43].Consumption` (Double) | `0.03597173884130919` (`0x3FA26AE343CEAE9C`) | `0.03597173884130918` (`0x3FA26AE343CEAE9A`) | **−2** | `HarvestWeather`: 2 of 12 rows, first row 5 |
+| 3 | `GoodStocks[154].ProduceRemainder` (Double) | `0.587493060415909` (`0x3FE2CCBE3F23A000`) | `0.5874930604168185` (`0x3FE2CCBE3F23C000`) | **8,192** | `HarvestWeather`: 1 row (row 1) |
 
-### §8.5 Classification — deferred to the measurement
+Every other table — `Buckets` (576 rows), `GoodStocks.Amount`, `LedgerFlows`,
+`CatchmentNodes` (934), `CatchmentSummaries`, `SettlementDistances`, `Prices`,
+`Grievance`, `NeedSatisfaction`, every long column everywhere — compares equal
+on all three turns. §2's inference that catchment was the first suspect is
+**refuted by measurement**: `CatchmentSummaries` is identical on every turn.
 
-Not made. Two outcomes are possible and `sim diff` distinguishes them in one
-line: a first divergent field whose ulp distance is ±1 in a double-valued
-column with every long column agreeing across every table (pure last-ulp
-floating-point representation — §4's `Math.Pow`/`Exp`/`Log` or FMA
-signature), versus a divergence that has already reached a long column or a
-row count by turn 3 (propagated into simulation-meaningful state). §2's
-"population, food and settlements agree to the unit" bounds the second case
-but does not exclude it — `Buckets.Count` is one of 576 long columns in the
-stream, and the summary table lists all of them.
+### §8.6 Classification
+
+**Last-ulp transcendental divergence that has already propagated.** At turn 2
+the two differing tables are exactly the two whose values pass through library
+transcendentals: `HarvestWeatherSystem` (`Math.Exp` at :138 and :201,
+`Math.Sqrt` at :134/:139/:141/:197/:199, `Math.Log`/`Math.Cos` in the Gaussian
+at :242) and `PriceSystem`, whose damped step uses `Math.Exp` (header :50). A
+2-ulp difference in a price term and a 2-row difference in the weather
+multipliers is the signature of two platforms' `libm` disagreeing in the last
+bit — not FMA (which would touch plain `a*b+c` sites in every system, and
+`Buckets`/`Catchment` are clean).
+
+By turn 3 the weather multiplier's last-ulp difference has been multiplied into
+a harvest rate and banked as `GoodStocks[154].ProduceRemainder` at 8,192 ulp —
+a remainder that decides the next integer floor. That is **simulation-
+meaningful state**: the first turn on which a `long` column (a stock or a
+population count) differs is not far behind, and once it does the two worlds
+walk apart for good. §2's "population, food and settlements agree at turns
+0–5" was measured on the director's trace and stands; it is a statement about
+how long the integer floors happen to hold, not that they will.
+
+**The recommendation in §6 is now sharpened.** Option 2's "measure first" is
+done and names its targets: `Math.Exp`/`Math.Sqrt` in `HarvestWeatherSystem`
+and `Math.Exp` in `PriceSystem`. The choice is still the director's — a
+correctly-rounded exp/sqrt (an exact-form or a table-driven implementation in
+`Sim.Core`, which moves every golden once) versus declaring Linux x64 the
+reference platform (option 1). Option 3, a Windows determinism job comparing
+the founded golden against the Linux pin, costs nothing now that the workflow
+exists and would have caught this at the commit that introduced it.
+
+No simulation expression was changed for this measurement.
