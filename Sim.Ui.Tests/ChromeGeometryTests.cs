@@ -14,13 +14,27 @@ namespace Sim.Ui.Tests;
 /// the anchor is one eyeball on the gate build. What IS computable before
 /// that hop is asserted here: the rects the renderer draws into (it reads
 /// the same ChromeGeometry, so the pinned rect IS the drawn rect), their
-/// disjointness, and ImGui's label-placement rule applied to them. Every
-/// test in this file was run against the pre-packet geometry and failed
-/// there; the in-file negative controls reconstruct that geometry so the
-/// teeth stay visible without a revert.
+/// disjointness, and ImGui's label-placement rule applied to them. NINE of
+/// the tests here fail against the pre-packet geometry (measured by
+/// temporarily reverting the placements and the close-button rect: 197
+/// passed / 9 failed, then restored); the rest pin structure - the element
+/// table, the label rule itself, the overlap predicate - and the in-file
+/// negative controls reconstruct the old geometry so the teeth stay visible
+/// without a revert.
 /// </summary>
 public class ChromeGeometryTests
 {
+    [Fact]
+    public void TheModelsMarginInsetAndImGuisWindowPaddingAgree_SoTheDrawnRowIsThePinnedRow()
+    {
+        // HeaderRow and StatusTextRow model the first text line at
+        // PanelLayout.Margin, but ImGui places it at WindowPadding. The two are
+        // distinct constants that happen to agree on Y today; this pin makes the
+        // agreement a stated property rather than a coincidence, so a padding
+        // change cannot silently move the drawn row away from the pinned one.
+        Assert.Equal(PanelLayout.Margin, Sim.Ui.Art.UiTheme.WindowPaddingPx.Y);
+    }
+
     private static readonly float Fh = UiTheme.FrameHeightPx;
 
     [Fact]

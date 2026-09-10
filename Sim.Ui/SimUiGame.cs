@@ -894,8 +894,14 @@ public sealed class SimUiGame : Game
         // Spacing) about 755 px against the 607 px below the header — it
         // overflows, so the case occurs. Section content is unchanged.
         ImGui.SetCursorPosY(ChromeGeometry.ContentTop(ChromeGeometry.Context, frameHeight) - PanelLayout.Context.Y);
+        // NoBackground: a child window paints ImGuiCol_ChildBg unless told not
+        // to, and UiTheme sets ChildBg to a 0.55-alpha paper tint - so without
+        // this flag every section's content region would be washed lighter than
+        // its header row, with a hard edge at the child's bounds. The parchment
+        // plate DrawPanelFurniture already painted is the background; the child
+        // exists only to scroll, and must be invisible as a surface.
         ImGui.BeginChild("context-body", System.Numerics.Vector2.Zero,
-            ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
         switch (_openSection)
         {
             case Section.Policy: DrawPolicySection(); break;
