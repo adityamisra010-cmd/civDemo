@@ -292,7 +292,7 @@ public sealed class CausalChain
         into.Add(t >= 0
             ? new Link(ChainNode.ToolsStock, "tools stock", w.GoodStocks[t].Amount.Value,
                 LinkKind.Read, from, "GoodStocks", t,
-                "Prev tool stock equips farmers: equipRatio = min(1, stock / (farmLabour × ToolsPerFarmerToEquip)) "
+                "The tool stock read from the world named on this link equips farmers: equipRatio = min(1, stock / (farmLabour × ToolsPerFarmerToEquip)) "
                 + "(ProductionSystem.cs:211-221)." + Lag)
             : new Link(ChainNode.ToolsStock, "tools stock", double.NaN, LinkKind.Gap,
                 from, "GoodStocks", -1, "No tools stock row: equipRatio reads 0 (ProductionSystem.cs:213-220)."));
@@ -435,7 +435,7 @@ public sealed class CausalChain
                 from, "GoodStocks", t,
                 "Upkeep demand dwellings × UpkeepTimberPerDwellingYear × dt against this stock (HousingSystem.cs:111-115); "
                 + "timberCap = stock / BuildTimberPerDwelling (HousingSystem.cs:162-164). Housing reads its OWN shared "
-                + "stock table live, so the value shown is the post-step Prev stock.")
+                + "stock table live, so the value shown is the post-step stock of the world named on this link.")
             : new Link(ChainNode.TimberStock, "timber stock", double.NaN, LinkKind.Gap, from, "GoodStocks", -1,
                 "No timber row: available reads 0.0 and nothing can be built or maintained (HousingSystem.cs:113, 163)."));
         // Clay is wired in HousingSystem (HousingSystem.cs:114-117, 165-167) but
@@ -524,7 +524,7 @@ public sealed class CausalChain
                     links.Add(new Link(ChainNode.CraftInputStock, inName + " stock (input of " + recipe.Name + ")",
                         inStock.Amount.Value, LinkKind.Read, SourceWorld.Prev, "GoodStocks", inRow,
                         "Leontief cap: output ≤ stock / (PerOutput / Output.Qty) (ProductionSystem.cs:406-414). "
-                        + "Production reads its own shared stock live; this is the post-step Prev stock."));
+                        + "Production reads its own shared stock live; this is the post-step stock of the world named on this link."));
                     links.Add(new Link(ChainNode.CraftInputDemand, inName + " LastInputDemandUnits",
                         inStock.LastInputDemandUnits, LinkKind.Read, SourceWorld.Prev, "GoodStocks", inRow,
                         "Units recipes WANTED from labour alone, before any input cap (ProductionSystem.cs:386-404); "
