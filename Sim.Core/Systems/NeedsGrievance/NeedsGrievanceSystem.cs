@@ -88,8 +88,15 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// <summary>d018:46's Tier A gate needs — Sustenance, Shelter, Safety. Below
     /// the floor these scale superlinearly and collapse the upper needs' weights;
     /// see <see cref="NeedsAggregation.ApplyTierAGate"/>. Data-checked against
-    /// the registry at construction, not assumed.</summary>
-    private static readonly int[] TierAGateNeedIds = [1, 2, 3];
+    /// the registry at construction, not assumed.
+    ///
+    /// PUBLIC since T4.19 (visibility only — no behaviour change): the glass-box
+    /// grievance explanation (Sim.Core/Observability/Explain) recomputes the
+    /// turn's accrual through the same public gate + aggregate this system
+    /// calls, and it must classify gate needs from THIS array rather than from a
+    /// copy that could drift. Read by the observer, written by nobody; no system
+    /// references it (law 6).</summary>
+    public static readonly int[] TierAGateNeedIds = [1, 2, 3];
 
     private readonly NeedsConfig _needs;
     private readonly BasketBook _baskets;
