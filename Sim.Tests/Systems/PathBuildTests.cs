@@ -118,6 +118,11 @@ public class PathBuildTests
         // contract; the assertion stays exact to nine places and now also pins
         // the housing subtraction.
         double housingDrawT3 = world.Housing.Count > 0 ? world.Housing[0].LastLaborUsed : 0.0;
+        // The subtraction must carry a PINNED magnitude, or a spurious or
+        // wrongly-scaled housing draw would be absorbed silently: one dwelling
+        // is built on turn 3 under the corrected founding, and that is exactly
+        // 1.0 adult-year of the construction pool (measured).
+        Assert.Equal(1.0, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the

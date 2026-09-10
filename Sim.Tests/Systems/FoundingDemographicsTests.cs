@@ -197,10 +197,14 @@ public class FoundingDemographicsTests
         // four seeds open 4,800 → 4,920, exactly the D-004 remainder warm-up
         // (16 death-remainder accumulators per settlement start at zero, so
         // the first turn's deaths floor low by ~8 per settlement, once); the
-        // jittered shapes add the rest. The band is ±5 %: wide enough that
-        // neither effect can trip it, far too narrow for a re-opened
-        // transient (−13 % to −16 % on turn 1) to pass. A golden hash cannot
-        // say WHY it moved; this can.
+        // jittered shapes add the rest. The LOWER bound (−5 %) is the tooth:
+        // a re-opened transient (−13 % to −16 % on turn 1) cannot pass it.
+        // The UPPER bound is +10 %, and it is a measured ceiling, not a
+        // regime claim: this test runs seed 42 (max +2.0 % by turn 4), but
+        // the same recipe on seeds 7 / 123 / 2024 reaches +6.3 % / +6.8 % /
+        // +7.5 % by turn 4 — healthy fed growth from a young pyramid, and a
+        // band that only seed 42 fits would be a value pin dressed as a
+        // property. A golden hash cannot say WHY it moved; this can.
         SimConfig cfg = TestConfigs.Sim();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -214,7 +218,7 @@ public class FoundingDemographicsTests
             world = exec.Step(world);
             long pop = Total(CohortVector(world));
             double ratio = pop / (double)founding;
-            Assert.True(ratio is >= 0.95 and <= 1.05,
+            Assert.True(ratio is >= 0.95 and <= 1.10,
                 $"turn {t}: population {pop} is {ratio:F4} of the founding {founding} — outside the stable regime");
             for (int i = 0; i < world.LedgerFlows.Count; i++)
             {
