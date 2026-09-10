@@ -256,7 +256,10 @@ public class SelectionTests
         HudModel hud = HudModel.From(world, selectedSettlementId: 2);
 
         Assert.Equal("Settlement 2", hud.TitleLine);
-        Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
+        // T4.19 lane C: bands of the kernel's own stable founding vector
+        // (sim.json founding._docCohortCounts); 130/200/70 was the old
+        // 17.5%-elder endowment that opened the world in a 22% collapse.
+        Assert.Equal("pop 400  (child 164 / adult 225 / elder 11)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine);

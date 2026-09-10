@@ -669,7 +669,38 @@ public class SnapshotTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048
-        const string golden = "98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983";
+        // T4.19 lane C RE-PIN — TUNING DATA, ONE CAUSE, DIRECTOR-RULED (the T4.18
+        //   diagnosis accepted, the behaviour rejected).
+        //   OLD  98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983
+        //   NEW  917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62
+        //   CAUSE sim.json founding.cohortCounts is now the MEASURED stable age
+        //         structure of the shipped demographic kernel (largest-remainder
+        //         rounded to the same 400; FoundingDemographicsTests re-derives it).
+        //         The old vector held 17.5% of the founding population in the 60+
+        //         cohorts and this world opened 5,140 -> 4,330 -> 4,041 -> 3,987;
+        //         it now opens 5,143 -> 5,245 -> 5,193 -> 5,191 (starvation 0
+        //         throughout, measured) and ends turn 300 at 41,131 people
+        //         against 31,374 — the level shift of a transient that no longer
+        //         happens, at an unchanged fed growth rate (0.000759 -> 0.000758
+        //         per year over years 800-2400, canonical seed 1).
+        //   THE CONTROL THAT PROVES THE CAUSE IS THE FOUNDING VECTOR ALONE: the
+        //         world was founded under the old and the new config and every
+        //         one of the 41 tables was diffed at TURN 0 (seeds 42, 7, 123,
+        //         2024). Only Buckets differ, plus the three quantities founding
+        //         derives DIRECTLY from the realised cohort counts — GoodStocks
+        //         (the grain endowment scales with realised population; food per
+        //         capita is unchanged to two decimals at every settlement),
+        //         Housing (dwellings for the realised population) and the three
+        //         InitialEndowment LedgerFlows rows. Terrain hash, Settlements,
+        //         Deposits, Controls, Polities, Capitals, ClassStates and every
+        //         other table are IDENTICAL. docs/m4-founding-demographics-correction.md.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED (no founding
+        //         in it) and its v22-stripped control still returns 0f94b4ad….
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

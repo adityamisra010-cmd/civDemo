@@ -103,6 +103,26 @@ public class PathBuildTests
         double farmland = world.CatchmentSummaries[0].EffectiveArableKm2;
         double remainder = world.GoodStocks[0].ProduceRemainder;
         long adultsT3 = BandViews.Adults(world.Buckets, new SettlementId(0));
+        // T4.19 lane C — THE HOUSING DRAW ENTERS THE HAND-COMPUTED PIN. T3.8 made
+        // housing draw on the SAME construction pool, published as
+        // HousingRow.LastLaborUsed (adult-years) and subtracted by PathBuild at
+        // the §3.2 one-turn lag (PathBuildSystem: `builderYears = max(0,
+        // builders × dt − prev.Housing.LastLaborUsed)`). This pin never carried
+        // that term because it could never see it: under the old founding vector
+        // the settlement SHRANK over turns 1–3 (459 → 394 → 384 → 386), housing
+        // was in surplus, and LastLaborUsed at turn-3 state was exactly 0.
+        // The corrected founding grows from turn 1 (468 → 479 → 491 → 500), one
+        // dwelling is built on turn 3, LastLaborUsed = 1.0 adult-year, and the
+        // measured accrual is 28.18 against the old formula's 28.20 — the
+        // difference is 0.02 × 1.0 exactly. The identity below is the shipped
+        // contract; the assertion stays exact to nine places and now also pins
+        // the housing subtraction.
+        double housingDrawT3 = world.Housing.Count > 0 ? world.Housing[0].LastLaborUsed : 0.0;
+        // The subtraction must carry a PINNED magnitude, or a spurious or
+        // wrongly-scaled housing draw would be absorbed silently: one dwelling
+        // is built on turn 3 under the corrected founding, and that is exactly
+        // 1.0 adult-year of the construction pool (measured).
+        Assert.Equal(1.0, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the
@@ -136,7 +156,8 @@ public class PathBuildTests
             spent += world.NetworkEdges[e].Cost
                      / cfg.PathBuild.DirtPathSpeedFactor * cfg.PathBuild.BuildCostMultiplier;
         Assert.Equal(1, world.PathProgress.Count);
-        Assert.Equal(cfg.PathBuild.LaborPerAdultPerYear * 0.5 * adultsT3 * 10.0,
+        Assert.Equal(
+            cfg.PathBuild.LaborPerAdultPerYear * Math.Max(0.0, 0.5 * adultsT3 * 10.0 - housingDrawT3),
             world.PathProgress[0].Banked - bankBefore + spent, 9);
     }
 

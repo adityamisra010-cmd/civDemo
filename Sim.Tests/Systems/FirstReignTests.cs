@@ -392,7 +392,20 @@ public class FirstReignTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3
-        const string golden = "7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3";
+        // T4.19 lane C RE-PIN — TUNING DATA, ONE CAUSE, DIRECTOR-RULED.
+        //   OLD  7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3
+        //   NEW  5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a
+        //   CAUSE sim.json founding.cohortCounts is now the kernel's own stable age
+        //         structure (see SnapshotTests.FoundedGolden for the full record and
+        //         the 41-table turn-0 control). The lone settlement founds at 468
+        //         instead of 459 and no longer sheds its elders on turn 1: the
+        //         pre-famine trajectory is 479, 491, 500, 508 (was 394, 384, 386,
+        //         391). THE SHAPE BELOW IS UNCHANGED AND MEASURED: extinction at
+        //         turn 15 (was 13; band (5, 25]), food peak 620 (was 495; the
+        //         ghost mountain stays absent), and the dead world stays dead —
+        //         the director's 0%-farm order still kills everyone.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED.
+        const string golden = "5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

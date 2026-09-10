@@ -1308,3 +1308,30 @@
   on director approval after that audit; no other golden was touched. **M4-D CERTIFIED**: 572 passed
   / 6 failed / 6 skipped, the six being the unchanged mainline quarantine.
 
+- **T4.19 lane C — LATENT `ProductionSystem.Craft` OVERDRAW, reported, not fixed (needs a ruling).**
+  The Leontief input cap (`exactOutput = min(…, stockAmount / perOutput)`,
+  `ProductionSystem.cs:406-412`) ignores the input row's banked `ConsumeRemainder`; the sink then
+  floors `exactOutput × perOutput + ConsumeRemainder` under `OverdrawPolicy.Throw`. When the
+  remainder sits within a few ulps of 1 the sum rounds to `stock + 1.0` and the turn throws.
+  MEASURED on the driven seed-42 world under the corrected founding vector, turn 213: recipe
+  'weaving', fiber, settlement 10, stock 66, cap 22 × 3 = 66.0, remainder 0.9999999999999929,
+  exactIn 67.0, sunk 67. Under the old vector the same world happened not to reach it in 300
+  turns. `DrivenGolden`, `D1_FlowAndItsDecomposition` and the driven `IntegratedPinAttribution`
+  control fail by this exception until it is ruled on; the driven golden cannot be re-pinned
+  before then. Options and evidence: `docs/m4-founding-demographics-correction.md` §6.
+- **T4.19 lane C — two calibration readings and one documented window moved with the founding
+  level, NOT re-banded (director call).** The corrected founding removes a −22 % opening
+  transient, so every canonical world is ~30 % larger from turn 3 on at an UNCHANGED fed growth
+  rate (0.000759 → 0.000758/yr). `canonical.densityPerArableKm2` on the battery seeds: 0.4806 →
+  0.6251 (seed 1), 0.5638 → 0.7421 (seed 2) against the [0.15, 0.6] ceiling lifted at M4
+  completion on 20/20 seeds (max 0.565) — the numerator moved, the denominator did not.
+  `Artisans_EmergeInFedAutoplay` emergence 22 → 4, outside its [10, 95] window, because the
+  population-gated predicate (`> 520`) no longer waits for a collapsed settlement to grow back.
+  Both were measured on the collapsing opening; both need a 20-seed re-derivation, not a widen.
+  Numbers: `docs/m4-founding-demographics-correction.md` §8.
+- **T4.19 lane C — the founding food endowment is still 21 years deep against a 1.5-year granary
+  cap (T4.18 §4), and the population dip that used to sit beside it is gone.** The 93 % turn-1
+  food fall (82,230 → 5,832, seed 42) is now the ONLY large first-turn movement a player sees; the
+  turn-1 zero harvest (`CatchmentSummaries` empty at turn 0) is still benign only because of that
+  depth. `foodStore` deliberately untouched by lane C (it scales with realised population; per
+  capita unchanged to the unit). Whether to found at the cap is a separate ruling.
