@@ -218,10 +218,15 @@ a composite key `(lift DESC, needId ASC)`, the convention Appropriation uses
 (`stock DESC, id ASC`), with a tie-dense test in which every bound need is
 equally unmet. Never table order, never a double-only compare.
 
-**Accrual versus decay** for the turn's ΔG is RECOMPUTED from prev state and
-config through the same public functions; the Tier-A gate need ids are a private
-constant on the system and are exposed as a public static readonly (a
-visibility change, zero behaviour) so the observer cannot drift from it.
+**Accrual versus decay** for the turn's ΔG is RECOMPUTED through the same public
+functions the system itself calls. **Amended after lane A2's verification:** the
+first cut exposed the Tier-A gate need ids as a public array, which any caller
+could have written into; the arithmetic is now callable instead — `IsTierAGate`,
+`AggregateSatisfaction`, `TurnoverPerYear`, `DecayRatePerYear`, `AccrualPerYear`,
+`StepGrievance`, `Fill` are public static PURE functions on
+`NeedsGrievanceSystem` that `Step` calls and the observer calls, and the gate
+array is private again. Zero behaviour change, measured: 50 founded turns hash
+identically before and after.
 
 **The cause behind each component, one link at a time, each verified in source:**
 

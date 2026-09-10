@@ -75,7 +75,7 @@ any caller can pull (§9, D4); a predicate over it is not.
 
 ### 1.1 What it reproduces, line by line
 
-`NeedsGrievanceSystem.Step` (NeedsGrievanceSystem.cs:152-302) reads Prev and
+`NeedsGrievanceSystem.Step` (NeedsGrievanceSystem.cs:148-285) reads Prev and
 writes Next. The query repeats its reads, in its order, from the same tables:
 
 | quantity | kind | source | system line |
