@@ -1,7 +1,9 @@
 # CR-013 — THE SAME SEED PRODUCES DIFFERENT WORLDS ON WINDOWS AND LINUX
 
-**Status: RULED (T4.19-B) — options 1 + 3 ACCEPTED, option 2 REJECTED FOR NOW
-and REOPENABLE. The ruling and what shipped are in §9; the scope statement is
+**Status: CLOSED / ACCEPTED (director, T4.19 finalization) — as implemented in
+T4.19-B and ADR-022: options 1 + 3 ACCEPTED (Linux x64 reference; Windows under
+non-blocking surveillance), option 2 (Math.Exp/Sqrt replacement) REJECTED FOR NOW
+and REOPENABLE; no equation changed. The ruling and what shipped are in §9; the scope statement is
 ADR-022. No simulation code, constant, equation, config, golden, corridor,
 band or quarantine was touched by the CR or by the ruling's implementation.**
 
