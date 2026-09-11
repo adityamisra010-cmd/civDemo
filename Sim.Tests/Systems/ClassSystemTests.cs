@@ -70,6 +70,20 @@ public class ClassSystemTests
         return -1;
     }
 
+    /// <summary>The hysteresis latch for (settlement, class): the ClassStates
+    /// row's Active flag (WorldState.ClassStateRow), written by
+    /// ClassMobilitySystem's latch step. -1 when the row does not exist.
+    /// Index iteration only — no LINQ.</summary>
+    private static int LatchActive(WorldState world, SettlementId settlement, ClassId cls)
+    {
+        for (int i = 0; i < world.ClassStates.Count; i++)
+        {
+            ClassStateRow row = world.ClassStates[i];
+            if (row.Settlement == settlement && row.Class == cls) return row.Active;
+        }
+        return -1;
+    }
+
     // --- emergence in fed autoplay ------------------------------------------
 
     [Fact]
@@ -98,13 +112,34 @@ public class ClassSystemTests
         // world), not at the warm-up exit. Phases key off the measured
         // emergence; the drain arm reaches past the first Malthus crash
         // (~t820 on the refreshed worldgen).
-        int emergenceTurn = -1;
+        //
+        // T4.19-D INSTRUMENT CORRECTION (director finalization ruling, on
+        // docs/t4.19c-remeasurement.md §4.1–§4.3): `emergenceTurn` was the
+        // first turn `AdultsOfClass(S0, Artisans) > 0`. That is "an artisan
+        // adult is PRESENT in settlement 0", which the 20-seed re-measurement
+        // showed can be a MIGRATION event — 1–3 people carried in
+        // class-preserving from a neighbour that latched first, BEFORE S0's
+        // own latch fires (NEW arm seeds 3, 8, 13, 16, 18; OLD arm nine
+        // seeds). "First artisan adult present" is therefore not equivalent
+        // to local class emergence. The event this window exists to bound is
+        // the population-gated mechanism itself, and the mechanism's own
+        // event is the hysteresis latch: the first turn (after exec.Step) at
+        // which the ClassStates row (S0, Artisans).Active == 1, set by
+        // ClassMobilitySystem's latch step on PREV variables. `emergenceTurn`
+        // is now that latch turn; `firstPresentTurn` is kept as a DIAGNOSTIC
+        // only (reported in the failure message, never asserted as the
+        // emergence event). Nothing in the mechanism moved: threshold 520,
+        // surplus 1.3, promotion rate, mobility, founding vector, migration
+        // and the [10, 95] window are all as before this correction.
+        int emergenceTurn = -1;        // the latch: (S0, Artisans).Active == 1
+        int firstPresentTurn = -1;     // diagnostic: first artisan adult present in S0 (may be a migrant)
         double boomPeak = 0.0, minAfterBoom = 1.0;
         for (int t = 1; t <= 900; t++)
         {
             world = exec.Step(world);
             long artisans = ArtisanAdults(world);
-            if (emergenceTurn < 0 && artisans > 0) emergenceTurn = t;
+            if (firstPresentTurn < 0 && artisans > 0) firstPresentTurn = t;
+            if (emergenceTurn < 0 && LatchActive(world, S0, Artisans) == 1) emergenceTurn = t;
             long adults = BandViews.Adults(world.Buckets, S0);
             double share = adults > 0 ? artisans / (double)adults : 0.0;
             if (emergenceTurn > 0 && t <= emergenceTurn + 25)
@@ -152,10 +187,20 @@ public class ClassSystemTests
         // never" half of the mechanism is not weakened at all. The window still
         // holds the mechanism it exists to hold — population-gated, not instant,
         // not never — with 22 sitting 2.2x above the floor.
+        // T4.19-D: the window is asserted on the LATCH turn (see the
+        // instrument note above). It is deliberately NOT widened here: on the
+        // corrected founding vector the latch on this seed fires at turn 4
+        // (remeasurement §4.1, seed 42: latch 4, first-present 4 — the two
+        // coincide on this seed, so the correction changes what is measured,
+        // not the number), and the 20-seed NEW-arm latch distribution is
+        // 13/20 inside [10, 95]. Whether the window is re-banded is a held
+        // calibration question for the director, not this test's to settle.
         Assert.True(emergenceTurn is >= 10 and <= 95,
-            $"artisans emerged at turn {emergenceTurn} — outside the re-measured [10,95] window " +
+            $"settlement 0's artisan class LATCHED at turn {emergenceTurn} — outside the documented [10,95] window " +
             "(population-gated emergence: founding ~350 growing past the 520 threshold, " +
-            "under T3.4b harvest variance and T4.7's enlarged catchments)");
+            "under T3.4b harvest variance and T4.7's enlarged catchments). " +
+            $"Diagnostic, NOT the emergence event: first artisan adult present in S0 at turn {firstPresentTurn} " +
+            "(may precede the latch via migration — remeasurement §4.3 item 2).");
         // Plateau AT the cap during the boom (sustained surplus ≈ 3 → target
         // pins to the cap; relaxation at 0.08/yr closes the gap well within
         // the 25-turn window).
@@ -197,6 +242,62 @@ public class ClassSystemTests
         // computed and reported so the number remains visible to a reader
         // without being asserted on.
         Assert.InRange(minAfterBoom, 0.0, 1.0);   // domain only: a share, not a claim
+    }
+
+    // --- presence is not emergence (T4.19-D) --------------------------------
+
+    [Fact]
+    public void ArtisanPresence_CanPrecedeLocalLatch_ViaMigration_IsNotEmergence()
+    {
+        // REGRESSION PIN for the T4.19-D instrument correction. Migration
+        // moves people class-preserving (T2.5), so a settlement whose own
+        // emergence predicate has NOT fired can hold an artisan adult carried
+        // in from a neighbour that latched first. The corrected instrument
+        // (the ClassStates latch) must not count that as local emergence.
+        //
+        // Seed and preset: the test's own recipe (dev preset, 256 px, N = 4,
+        // production pipeline, canonical era) on seed 16, which
+        // docs/t4.19c-remeasurement.md §4.1 records on the NEW arm as
+        // first-present 22 / latch 39 — the widest immigrant-precedes-latch
+        // gap in the battery. MEASURED on this tree (T4.19-D):
+        // first-present turn = 22, latch turn = 39.
+        // Bounded: the loop stops at the latch (hard ceiling 120 turns).
+        SimConfig cfg = TestConfigs.Sim();
+        TurnExecutor exec = ProductionExecutor(cfg);
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 16);
+        Assert.Equal(0, ArtisanAdults(world));
+        Assert.Equal(0, LatchActive(world, S0, Artisans));
+
+        int firstPresentTurn = -1, latchTurn = -1;
+        int activeAtFirstPresent = -1;
+        long artisansAtFirstPresent = 0;
+        for (int t = 1; t <= 120 && latchTurn < 0; t++)
+        {
+            world = exec.Step(world);
+            long artisans = ArtisanAdults(world);
+            int active = LatchActive(world, S0, Artisans);
+            if (firstPresentTurn < 0 && artisans > 0)
+            {
+                firstPresentTurn = t;
+                activeAtFirstPresent = active;
+                artisansAtFirstPresent = artisans;
+            }
+            if (active == 1) latchTurn = t;
+        }
+
+        Assert.True(latchTurn > 0, "settlement 0 never latched within 120 turns");
+        Assert.True(firstPresentTurn > 0, "no artisan adult ever present in settlement 0");
+        // The migration event precedes the mechanism's event ...
+        Assert.True(firstPresentTurn < latchTurn,
+            $"expected an immigrant artisan before the latch: first-present {firstPresentTurn}, latch {latchTurn}");
+        // ... and on the first-present turn the class is still DORMANT here.
+        Assert.Equal(0, activeAtFirstPresent);
+        // The corrected instrument reports the latch, not the presence.
+        Assert.NotEqual(firstPresentTurn, latchTurn);
+        Assert.Equal(39, latchTurn);
+        Assert.Equal(22, firstPresentTurn);
+        Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
+        Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }
 
     // --- hysteresis teeth ---------------------------------------------------

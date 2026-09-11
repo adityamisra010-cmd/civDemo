@@ -1,6 +1,7 @@
 # CR-014 — THE CRAFT INPUT CAP IGNORES THE BANKED REMAINDER, AND THE LEDGER THROWS
 
-**Status: RULED — option 1 accepted (director, T4.19-A). The cap expression
+**Status: CLOSED / ACCEPTED (director, T4.19 finalization) — option 1 accepted as
+implemented (T4.19-A); its tests are not to be modified, tuned or weakened. The cap expression
 changed; nothing else in the simulation did. §8–§10 record the fix, the unit
 rig and the attribution of the driven golden's movement, every number measured
 on the tree it names.**
