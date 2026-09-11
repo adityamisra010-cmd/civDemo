@@ -134,9 +134,11 @@ public class ClassSystemTests
         // latch at T4.19-D, because presence can be a migration event. The
         // 20-seed re-measurement (docs/t4.19c-remeasurement.md §4.3) then
         // showed the window was never a 20-seed property of either founding
-        // vector: the corrected vector's latch distribution sits 13/20 inside
-        // [10, 95] with seven seeds below 10, and the OLD vector itself was
-        // only 15/20 inside. A single-seed pass at 22 was the window's whole
+        // vector: the emergence-turn (first-present arm) distribution sits
+        // 13/20 inside [10, 95] on the corrected vector (seven seeds below 10)
+        // and 15/20 on the OLD vector (four above 95, one below 10); the latch
+        // itself was 13/20 inside on BOTH vectors (§4.3, row "latch inside").
+        // A single-seed pass at 22 was the window's whole
         // evidence. THE [10, 95] WINDOW IS RETIRED AS AN UNSUPPORTED
         // CALIBRATION INSTRUMENT (docs/t4.19-verification-record.md §10). No
         // timing band of any kind remains here; the latch turn is TELEMETRY.
@@ -285,7 +287,11 @@ public class ClassSystemTests
         // the surplus dies. The equilibrium it waits for does not arrive: the
         // world is pre-Malthusian for its whole horizon (CR-003), surplus stays
         // above the targetShare saturation point for the campaign, and the
-        // recede predicate never fires again after year ~10. It was then carried
+        // recede predicate never fires again after year ~10 (T4.19-E telemetry:
+        // on seed 42 the recede predicate DOES fire again — 19 recessions / 19
+        // re-latches across the 1.1/1.3 band over 900 turns; the arm stays
+        // closed because neither direction is asserted, not because recede is
+        // silent). It was then carried
         // as a CR-003 quarantine asserting the NEGATION — that the drain had
         // NOT happened — which measured 0.035 against a 0.05 guard and went red.
         //
