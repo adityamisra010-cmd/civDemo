@@ -1,12 +1,24 @@
 # TELEMETRY SCHEMA — `telemetry/v2` (T4.19 lane A1; v2 at T4.20)
 
 **VINTAGE v2 (T4.20).** `food.foodProduced` and `food.foodBalance` joined the
-emitted field set, so the tag moved `telemetry/v1` → `telemetry/v2`: the tag
-exists so a reader can tell which vintage produced a file it did not write, and
-the field set is what it names. This is the TELEMETRY vintage ONLY —
-`CanonicalSchema.Version` is unchanged at **24** and nothing in
-`Sim.Core/Observability` is serialized into `WorldState`. v1 readers are
-unaffected: the change is purely additive.
+emitted field set, so the tag moved `telemetry/v1` → `telemetry/v2`.
+
+The PRE-EXISTING purpose of the tag (`TelemetryWriter.cs`, T4.19) is that a
+reader can tell which vintage produced a file it did not write. A rule saying
+"the tag moves whenever the emitted field set does" was NOT written down before
+T4.20; T4.20 takes the view that the pre-existing purpose ENTAILS it — a tag
+that did not move with the field set could not tell a reader what it promises to
+tell — and makes that entailment explicit rather than presenting it as
+pre-existing text.
+
+This is the TELEMETRY vintage ONLY: `CanonicalSchema.Version` is unchanged at
+**24** and nothing in `Sim.Core/Observability` is serialized into `WorldState`.
+
+**Who is affected.** The change is purely additive at the FIELD level, so a
+TOLERANT reader — one that ignores JSON keys it does not know — reads a v2 line
+exactly as it read a v1 line. A reader that VALIDATES the tag string will reject
+a v2 file, BY DESIGN: that is what the tag is for, and it is the reason the tag
+moved rather than being left stale.
 
 The record types in `Sim.Core/Observability/`, the JSONL `sim inspect --telemetry`
 and a played session write, and the identities the tests assert. Built to
@@ -148,10 +160,10 @@ is why the rig is the founding world.
 | `storeLosses` | RESIDUAL | `grainOpening + harvest − eaten − grainClosing`; absorbs spoilage + granary overflow (per settlement by nothing, §8 gap 2), appropriation transfers (§8 gap 4), colony provisions (§8 gap 3) |
 | `storeLossesIdentity` | — | `Observer.StoreLossesIdentity` |
 | `demandUnits`, `deficitRatio` | READ | `ConsumptionDeficitRow` (next); 0 / 0.0 when no row (founding record) |
-| `foodGoods[] {good, name, produced, demand, eaten}` | READ | goods of category `food` (grain, livestock, fish): `LastProducedUnits`, `LastConsumptionDemandUnits`, `LastConsumptionEatenUnits` on next |
+| `foodGoods[] {good, name, produced, demand, eaten}` | READ | the goods of `BasketBook.FoodGoods` — those carrying a Sustenance basket line, ascending by good id (grain, livestock, fish on shipped data): `LastProducedUnits`, `LastConsumptionDemandUnits`, `LastConsumptionEatenUnits` on next. T4.20 moved this from goods.json's `"category":"food"` string, a second rule that merely agreed on shipped data, to the simulation's own rule |
 | `foodObtained` | SUMMED | Σ `foodGoods[].eaten` |
-| `foodProduced` | SUMMED | Σ `foodGoods[].produced` — the SAME integer sum `ClassMobilitySystem.cs:131-135` forms as its food-surplus numerator (T4.20) |
-| `foodBalance` | DIFF | `foodProduced − demandUnits`, both per-turn totals in person-year-equivalents; exact in `long` (T4.20). NOT the same thing as `economy.foodSurplusRatio`, which is published from the PREVIOUS world and lags this by one turn |
+| `foodProduced` | SUMMED | Σ `foodGoods[].produced` over `BasketBook.FoodGoods` — the SAME span, and therefore the SAME integer sum, `ClassMobilitySystem.cs:131-135` forms as its food-surplus numerator (T4.20). One rule, by construction |
+| `foodBalance` | DIFF (cross-sectional, same turn) | `foodProduced − demandUnits`, both per-turn totals in person-year-equivalents; exact in `long` (T4.20). §0 words DIFFERENCED as next − prev, a TEMPORAL difference; this is the same kind of exact integer remainder taken across two same-turn terms instead of two turns (queued for a §0 wording ruling). NOT `economy.foodSurplusRatio`, which is published from the PREVIOUS world and lags this by one turn |
 
 **Asserted** (`StoreLossTests`): Σ `storeLosses` over ALL records ==
 `grain.spoilage + grain.overflow` on every turn of both 300-turn worlds and of

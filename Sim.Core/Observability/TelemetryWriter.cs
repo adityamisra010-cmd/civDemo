@@ -14,11 +14,17 @@ namespace Sim.Core.Observability;
 /// classes × needs, plus a variable number of orders and trade legs), and a
 /// self-describing object per turn adds a good by changing the data, not the
 /// header. <see cref="Schema"/> tags every line so a reader can tell which
-/// vintage produced a file it did not write — so the tag MOVES whenever the
-/// emitted field set does. T4.20 added <c>food.foodProduced</c> and
-/// <c>food.foodBalance</c>: that is a new field set, hence v2. This is the
-/// TELEMETRY vintage only; it is not <c>CanonicalSchema</c> (still v24) and
-/// nothing here is serialized into <see cref="Sim.Core.State.WorldState"/>.
+/// vintage produced a file it did not write.
+///
+/// T4.20 makes an entailment of that PRE-EXISTING purpose explicit: a tag that
+/// did not move when the emitted field set moved could not tell a reader what
+/// it promises to tell, so the tag moves with the field set. This sentence is
+/// T4.20's, not T4.19's — it is a reading of the line above, not a rule that
+/// was already written. <c>food.foodProduced</c> and <c>food.foodBalance</c>
+/// are a new field set, hence v2. TELEMETRY vintage only; it is not
+/// <c>CanonicalSchema</c> (still v24) and nothing here is serialized into
+/// <see cref="Sim.Core.State.WorldState"/>. A reader that ignores unknown keys
+/// is unaffected; one that validates the tag rejects v2, by design.
 ///
 /// NaN is written as the string "NaN": System.Text.Json refuses non-finite
 /// doubles by default, and a reading that is absent (no price row yet, no

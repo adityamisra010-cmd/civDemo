@@ -2,6 +2,7 @@ using Sim.Core;
 using Sim.Core.Observability;
 using Sim.Core.State;
 using Sim.Core.Systems;
+using Sim.Core.Systems.Consumption;
 using Sim.Tests.TestUtil;
 
 namespace Sim.Tests.Observability;
@@ -211,6 +212,43 @@ public class FoodFlowTests
         // MEASURED: in this rig the zero-production records are the founding ones
         // (no rows of any kind on prev); every stranded settlement still produces
         // during the step even with its stocks emptied.
+    }
+
+    /// <summary>THE SELECTION RULE IS THE SIMULATION'S, BY CONSTRUCTION. The
+    /// record's food goods are exactly <c>BasketBook.FoodGoods</c> — the goods
+    /// carrying a Sustenance basket line, which is what ConsumptionSystem
+    /// substitutes into the staple (ConsumptionSystem.cs:328-333) and what
+    /// ClassMobilitySystem sums (ClassMobilitySystem.cs:131-135). It is NOT
+    /// goods.json's "category":"food" string, a second rule that merely agrees
+    /// on shipped data. This test compares the record against the book itself,
+    /// so a tuning edit to needs.json that moves a good out of Sustenance moves
+    /// the record WITH the simulation rather than away from it.</summary>
+    [Fact]
+    public void FoodGoods_AreExactlyBasketBookFoodGoods_NotTheCategoryString()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        var book = new BasketBook(cfg.Needs!, cfg.Goods!);
+        ReadOnlySpan<GoodId> expected = book.FoodGoods;
+
+        ObservationLog log = ObservedWorlds.Founded300.Value.Log;
+        int compared = 0;
+        for (int i = 0; i < log.Observations.Count; i++)
+        {
+            TurnObservation o = log.Observations[i];
+            for (int s = 0; s < o.Settlements.Length; s++)
+            {
+                FoodGood[] goods = o.Settlements[s].Food.FoodGoods;
+                Assert.Equal(expected.Length, goods.Length);
+                for (int g = 0; g < goods.Length; g++)
+                {
+                    Assert.Equal(expected[g].Value, goods[g].Good);
+                    Assert.Equal(cfg.Goods!.ById(expected[g].Value).Name, goods[g].Name);
+                }
+                compared++;
+            }
+        }
+        Assert.True(compared > 1000, $"only {compared} settlement-turns compared");
+        Assert.True(expected.Length > 0, "the basket book declares no food goods");
     }
 
     private static SettlementRecord Find(TurnObservation o, SettlementId id)

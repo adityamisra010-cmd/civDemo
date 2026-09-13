@@ -162,6 +162,27 @@ public class FoodFlowUiTests
         Assert.Contains(lines, l => l == "  food surplus ratio: 1.500");
     }
 
+    /// <summary>D4 TEETH: the verdict word is the SIGN of the balance and
+    /// NOTHING else. A dead band of any width - even +/-1 - is a different rule,
+    /// and these two cases kill it: a balance of +1 on a requirement of 1,000 is
+    /// "surplus", and -1 is "deficit". The doc advertises "no threshold"; this
+    /// is what makes that claim testable rather than decorative.</summary>
+    [Theory]
+    [InlineData(1001, 1, "+1", "surplus")]
+    [InlineData(999, -1, "-1", "deficit")]
+    [InlineData(1000, 0, "0", "balanced")]
+    public void FoodFlow_VerdictIsTheSignAlone_NoDeadBand(
+        long produced, long balance, string shown, string verdict)
+    {
+        var food = new FoodSection(0, 0, 0, 0, 0, "identity", 1000, 0.0,
+            [new FoodGood(1, "grain", produced, 0, 0)], 0, produced, balance);
+        var economy = new EconomySection(
+            [new GoodReading(1, "grain", 0, 0, 0, 0, 0, double.NaN)], [], [],
+            [0.2, 0.2, 0.2, 0.2, 0.2], false, double.NaN, double.NaN, double.NaN, []);
+        IReadOnlyList<string> lines = SettlementInspectorModel.FoodFlowLines(Empty(food, economy), 10.0);
+        Assert.Equal("  balance    " + shown + "        " + verdict, lines[3]);
+    }
+
     private static readonly System.Globalization.CultureInfo C =
         System.Globalization.CultureInfo.InvariantCulture;
 

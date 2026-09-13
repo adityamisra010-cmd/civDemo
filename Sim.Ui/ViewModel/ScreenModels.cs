@@ -64,7 +64,15 @@ public static class ScreenModels
         ArgumentNullException.ThrowIfNull(session);
         IObservationHistory history = session.Observations;
         if (history.Observations.Count == 0 || selected < 0) return null;
-        SettlementRecord? r = history.Settlement(history.LastTurn, selected);
+        // D6: bind the record AND its turn length to ONE observation. Reading
+        // DtYears from Observations[^1] while the record came from At(turn)
+        // is correct only while the two are the same object; dtYears varies
+        // from 10 to 0.5 across eras, so the header would lie the day a
+        // history scrub or a non-latest selection separated them.
+        long turn = history.LastTurn;
+        TurnObservation? observation = history.At(turn);
+        if (observation is null) return null;
+        SettlementRecord? r = history.Settlement(turn, selected);
         if (r is null) return null;
         Func<int, string> name = session.Names.Name;
         WorldState next = session.World;
@@ -83,7 +91,7 @@ public static class ScreenModels
             grievance,
             SettlementInspectorModel.MigrationLines(r, migration, name),
             SettlementInspectorModel.OrderLines(r),
-            SettlementInspectorModel.FoodFlowLines(r, history.Observations[^1].Turn.DtYears));
+            SettlementInspectorModel.FoodFlowLines(r, observation.Turn.DtYears));
     }
 
     /// <summary>The Grievance tab: happiness on next (the world on screen),

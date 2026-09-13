@@ -1363,3 +1363,12 @@
 - **T4.20 — deferred: zero herding-dominant settlement-turns in any canonical world.** The herding sector
   ships, but the default order mix never exercises it, so the grain/livestock/fish asymmetry has never been
   play-tested. CALIBRATION, Phase 4 finding 9.
+- **T4.20 — §0 wording: DIFFERENCED is defined as next − prev (temporal), but `FoodBalance` is a
+  cross-sectional difference of two same-turn terms.** Same exact-integer-remainder discipline, different
+  axis. `docs/observability-architecture.md` §0 was deliberately NOT amended by an implementation packet;
+  the field is labelled "DIFFERENCED (cross-sectional, same turn)" until a director ruling widens the
+  wording or creates a sixth kind.
+- **T4.20 — `Explain/CausalChain.cs:318` still selects food by goods.json's `"category":"food"` string.**
+  T4.20 moved `SettlementRecord.FoodGoods` onto `BasketBook.FoodGoods` (the simulation's own rule); this
+  remaining occurrence was outside the packet's scope and was not touched. Same divergence risk under a
+  needs.json tuning edit. Reconcile in a packet that owns that file.

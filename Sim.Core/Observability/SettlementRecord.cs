@@ -62,14 +62,26 @@ public sealed record FoodSection(
     string StoreLossesIdentity,
     long DemandUnits,                 // READ  ConsumptionDeficitRow.DemandUnits (next)
     double DeficitRatio,              // READ  ConsumptionDeficitRow.DeficitRatio (next)
-    FoodGood[] FoodGoods,             // READ  per good of category "food", registry order
+    // T4.20: the good set is BasketBook.FoodGoods — the goods carrying a
+    // Sustenance basket line, ascending by good id — which is THE SIMULATION'S
+    // OWN rule (ConsumptionSystem.cs:328-333, ClassMobilitySystem.cs:131-135),
+    // reached through the sanctioned shared pure reader rather than restated.
+    // It is NOT goods.json's "category":"food" string: that is a second rule
+    // which merely agrees on shipped data.
+    FoodGood[] FoodGoods,             // READ  per good of BasketBook.FoodGoods, ascending by good id
     long FoodObtained,                // SUMMED FoodGoods.Eaten
-    // T4.20: the two food-legibility derivations. Both are per-TURN totals in
-    // person-year-equivalents of nutrition — the unit every food basket line is
-    // denominated in (BasketBook.FoodGoods), which is what makes a sum across
-    // goods, and a subtraction against the requirement, dimensionally sound.
-    long FoodProduced,                // SUMMED FoodGoods[].Produced over the category "food" goods
-    long FoodBalance);                // DIFFERENCED FoodProduced - DemandUnits (both READ/SUMMED longs)
+    // The two food-legibility derivations. Both are per-TURN totals in
+    // person-year-equivalents of nutrition — the unit every Sustenance basket
+    // line is denominated in — which is what makes a sum across goods, and a
+    // subtraction against the requirement, dimensionally sound.
+    long FoodProduced,                // SUMMED FoodGoods[].Produced over BasketBook.FoodGoods —
+                                      //        the SAME span ClassMobilitySystem sums, by construction
+    long FoodBalance);                // DIFFERENCED (cross-sectional, same turn):
+                                      //        FoodProduced - DemandUnits, both READ/SUMMED longs of
+                                      //        the SAME turn. §0's DIFFERENCED is worded as next-minus-prev
+                                      //        (a temporal difference); this is the same kind of exact
+                                      //        integer remainder taken across two terms instead of two
+                                      //        turns. Flagged in docs/queue.md for a §0 wording ruling.
 
 public readonly record struct FoodGood(int Good, string Name, long Produced, long Demand, long Eaten);
 
