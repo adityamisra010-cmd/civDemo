@@ -15,7 +15,10 @@ public sealed record TurnAuditView(
 public sealed record SettlementView(
     IReadOnlyList<string> Overview, IReadOnlyList<string> Population, IReadOnlyList<string> Food,
     IReadOnlyList<string> Economy, GrievanceView? Grievance, IReadOnlyList<string> Migration,
-    IReadOnlyList<string> Orders);
+    IReadOnlyList<string> Orders,
+    // T4.20: the additive food-flow block, drawn under Food. Separate from
+    // Food so the existing store display and its pins are untouched.
+    IReadOnlyList<string> FoodFlow);
 
 /// <summary>The POLICY section's read-only halves.</summary>
 public sealed record PolicyView(
@@ -79,7 +82,8 @@ public static class ScreenModels
             SettlementInspectorModel.EconomyLines(r, name),
             grievance,
             SettlementInspectorModel.MigrationLines(r, migration, name),
-            SettlementInspectorModel.OrderLines(r));
+            SettlementInspectorModel.OrderLines(r),
+            SettlementInspectorModel.FoodFlowLines(r, history.Observations[^1].Turn.DtYears));
     }
 
     /// <summary>The Grievance tab: happiness on next (the world on screen),

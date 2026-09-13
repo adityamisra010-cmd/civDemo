@@ -393,6 +393,7 @@ public static class Observer
 
         var foods = new List<FoodGood>(3);
         long obtained = 0;
+        long producedTotal = 0;
         for (int g = 0; g < goods.Goods.Length; g++)
         {
             GoodEntry good = goods.Goods[g];
@@ -408,12 +409,26 @@ public static class Observer
             }
             foods.Add(new FoodGood(good.Id, good.Name, produced, demand, ate));
             obtained += ate;
+            // T4.20 FoodProduced: SUMMED over the same READ LastProducedUnits
+            // this loop already carries per good. It is the SAME quantity
+            // ClassMobilitySystem forms as its food-surplus numerator
+            // (ClassMobility/ClassMobilitySystem.cs:131-135) - one definition,
+            // not a second one: no coefficient, no threshold, no formula, just
+            // the integer sum of rows the production system wrote.
+            producedTotal += produced;
         }
 
         return new FoodSection(
             opening, closing, harvest, eaten,
             opening + harvest - eaten - closing, StoreLossesIdentity,
-            demandUnits, deficit, foods.ToArray(), obtained);
+            demandUnits, deficit, foods.ToArray(), obtained,
+            producedTotal,
+            // T4.20 FoodBalance: DIFFERENCED. Both terms are per-turn totals in
+            // person-year-equivalents, so the subtraction is dimensionally
+            // sound and exact in long arithmetic. It is NOT the food surplus
+            // RATIO: that variable is published by ClassMobilitySystem from the
+            // PREVIOUS world and is therefore one turn behind this figure.
+            producedTotal - demandUnits);
     }
 
     private static HousingSection Housing(

@@ -100,6 +100,90 @@ public static class SettlementInspectorModel
         return lines;
     }
 
+    /// <summary>The one-line reason the three per-settlement store quantities
+    /// are not shown. They are NOT zero and NOT unknown-in-principle: the
+    /// simulation computes them, and then keeps them. Recovering them here
+    /// would mean an observer-side copy of ConsumptionSystem's private store
+    /// bounding, which docs/observability-architecture.md §0 forbids even when
+    /// the copy would be numerically exact.</summary>
+    public const string StoreGapReason =
+        "not recorded: ConsumptionSystem writes no per-settlement capacity, spoilage or "
+        + "overflow row; the only honest source would be a copy of its private store-bounding "
+        + "arithmetic, which the observability contract forbids. The WORLD totals for spoilage "
+        + "and overflow are differenced ledger legs and are in the turn record.";
+
+    /// <summary>The lag warning carried with the published surplus ratio.</summary>
+    public const string SurplusRatioLagNote =
+        "  (LAST TURN'S: ClassMobilitySystem publishes it from the PREVIOUS world's "
+        + "production and requirement, so it will not agree with the balance above - that is not a defect)";
+
+    /// <summary>
+    /// T4.20 — THE FOOD FLOW BLOCK, additive and separate from
+    /// <see cref="FoodLines"/> (which keeps the grain STORE account untouched).
+    /// It answers one question: did this settlement, this turn, grow more food
+    /// than it needed? Every figure is a field of the record:
+    /// <c>FoodProduced</c> SUMMED, <c>DemandUnits</c> READ, <c>FoodBalance</c>
+    /// DIFFERENCED, per-good produced/eaten READ, reserve READ from the
+    /// economy section's stock, store losses the existing RESIDUAL printed with
+    /// its own identity. Nothing is divided by the turn length: these are
+    /// whole-turn totals and the header says so. Nothing is recomputed.
+    ///
+    /// The surplus / balanced / deficit word comes from the SIGN of the balance
+    /// and nothing else — no threshold, no new constant. The zero case is
+    /// "balanced" BY DEFINITION (produced == required exactly), not because it
+    /// falls inside a band.
+    ///
+    /// Pure and allocation-light: plain index loops, no LINQ, InvariantCulture
+    /// on every conversion. It runs once per selection rebuild, not per frame,
+    /// but obeys the per-frame rule anyway.
+    /// </summary>
+    public static IReadOnlyList<string> FoodFlowLines(SettlementRecord r, double dtYears)
+    {
+        ArgumentNullException.ThrowIfNull(r);
+        FoodSection f = r.Food;
+        long balance = f.FoodBalance;
+        string verdict = balance > 0 ? "surplus" : balance < 0 ? "deficit" : "balanced";
+        var lines = new List<string>(12)
+        {
+            string.Create(CultureInfo.InvariantCulture,
+                $"FOOD THIS TURN ({dtYears:F1} sim-years) - whole-turn totals, not per-year"),
+            string.Create(CultureInfo.InvariantCulture, $"  produced   {Signed(f.FoodProduced)}"),
+            string.Create(CultureInfo.InvariantCulture, $"  required   {Signed(-f.DemandUnits)}"),
+            string.Create(CultureInfo.InvariantCulture, $"  balance    {Signed(balance)}        {verdict}"),
+        };
+        for (int i = 0; i < f.FoodGoods.Length; i++)
+        {
+            FoodGood g = f.FoodGoods[i];
+            lines.Add(string.Create(CultureInfo.InvariantCulture,
+                $"  {g.Name,-10} produced {N(g.Produced)}  eaten {N(g.Eaten)}"));
+        }
+        if (f.FoodGoods.Length == 0) lines.Add("  no food good has a stock row for this settlement yet");
+        for (int i = 0; i < f.FoodGoods.Length; i++)
+        {
+            FoodGood g = f.FoodGoods[i];
+            lines.Add(string.Create(CultureInfo.InvariantCulture,
+                $"  reserve {g.Name,-10} {N(Reserve(r.Economy, g.Good))}"));
+        }
+        lines.Add(string.Create(CultureInfo.InvariantCulture,
+            $"  store losses {Signed(-f.StoreLosses)}  (residual, grain only)"));
+        lines.Add("  " + f.StoreLossesIdentity);
+        lines.Add(string.Create(CultureInfo.InvariantCulture,
+            $"  food surplus ratio: {R(r.Economy.FoodSurplusRatio)}"));
+        lines.Add(SurplusRatioLagNote);
+        lines.Add("  granary capacity / spoilage / overflow, per settlement: " + StoreGapReason);
+        return lines;
+    }
+
+    /// <summary>The good's closing stock, READ from the economy section's own
+    /// GoodReading (EconomySection.Goods is next's GoodStockRow.Amount). 0 when
+    /// the settlement carries no row for that good. Index loop, no LINQ.</summary>
+    private static long Reserve(EconomySection e, int good)
+    {
+        for (int i = 0; i < e.Goods.Length; i++)
+            if (e.Goods[i].Good == good) return e.Goods[i].Stock;
+        return 0;
+    }
+
     /// <summary>ECONOMY tab, record half (the MarketModel rows and price plot
     /// are the other half): shares in force, variables, class latches, trade legs.</summary>
     public static IReadOnlyList<string> EconomyLines(SettlementRecord r, Func<int, string> name)

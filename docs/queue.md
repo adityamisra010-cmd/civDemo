@@ -1345,3 +1345,21 @@
   300. `docs/adr/cr-014-…md` §8–§10. `docs/m4-founding-demographics-correction.md` §6 and
   `docs/t4.19-verification-record.md` §2/§7 still describe the pre-ruling state; the CR is the
   record that supersedes them.
+- **T4.20 — food semantics ruling wanted.** Grain is bounded, spoils, overflows, is raided, provisions
+  colonies, gates migration and is the founding endowment; livestock and fish are none of those, and
+  `docs/t4.2-manifest.md` never mentions them. The repository records NO intent either way — the only
+  statement is a SCOPE note (`ConsumptionSystem.cs:198-199`). Measured: grain does 88.1 % of the feeding
+  while holding 0.8 % of the food inventory at turn 300. Director ruling + ADR, not an agent's judgement.
+  Evidence: `docs/t4.20-food-semantics.md` Phases 1-3.
+- **T4.20 — deferred, NOT AUTHORIZED: publish `BoundStore`'s capacity and spoil/overflow split as PUBLIC
+  STATICS** so per-settlement granary capacity, spoilage and overflow become legally RECOMPUTED under
+  observability §0 instead of "not recorded". Touches `Sim.Core/Systems` and a golden-pinned system, so it
+  is outside any observability packet's fence. `docs/t4.20-food-semantics.md` Phase 5.
+- **T4.20 — deferred: `FoodSupportedPopulation` / `FoodConstrainedGrowth` were NOT added.** Both presuppose
+  a population-cap semantics no director ruling establishes. Needs the ruling first.
+- **T4.20 — deferred: no food good has ever traded (measured, 0 legs in 3,588 settlement-turns).** Grain is
+  barred structurally as the numéraire (`TradeArbitrageSystem.cs:64-66`); livestock and fish are eligible and
+  simply never move. MISSING CAPABILITY, classified in `docs/t4.20-food-semantics.md` Phase 4 finding 4.
+- **T4.20 — deferred: zero herding-dominant settlement-turns in any canonical world.** The herding sector
+  ships, but the default order mix never exercises it, so the grain/livestock/fish asymmetry has never been
+  play-tested. CALIBRATION, Phase 4 finding 9.

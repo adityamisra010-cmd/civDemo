@@ -63,7 +63,13 @@ public sealed record FoodSection(
     long DemandUnits,                 // READ  ConsumptionDeficitRow.DemandUnits (next)
     double DeficitRatio,              // READ  ConsumptionDeficitRow.DeficitRatio (next)
     FoodGood[] FoodGoods,             // READ  per good of category "food", registry order
-    long FoodObtained);               // SUMMED FoodGoods.Eaten
+    long FoodObtained,                // SUMMED FoodGoods.Eaten
+    // T4.20: the two food-legibility derivations. Both are per-TURN totals in
+    // person-year-equivalents of nutrition — the unit every food basket line is
+    // denominated in (BasketBook.FoodGoods), which is what makes a sum across
+    // goods, and a subtraction against the requirement, dimensionally sound.
+    long FoodProduced,                // SUMMED FoodGoods[].Produced over the category "food" goods
+    long FoodBalance);                // DIFFERENCED FoodProduced - DemandUnits (both READ/SUMMED longs)
 
 public readonly record struct FoodGood(int Good, string Name, long Produced, long Demand, long Eaten);
 

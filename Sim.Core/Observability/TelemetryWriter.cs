@@ -14,7 +14,11 @@ namespace Sim.Core.Observability;
 /// classes × needs, plus a variable number of orders and trade legs), and a
 /// self-describing object per turn adds a good by changing the data, not the
 /// header. <see cref="Schema"/> tags every line so a reader can tell which
-/// vintage produced a file it did not write.
+/// vintage produced a file it did not write — so the tag MOVES whenever the
+/// emitted field set does. T4.20 added <c>food.foodProduced</c> and
+/// <c>food.foodBalance</c>: that is a new field set, hence v2. This is the
+/// TELEMETRY vintage only; it is not <c>CanonicalSchema</c> (still v24) and
+/// nothing here is serialized into <see cref="Sim.Core.State.WorldState"/>.
 ///
 /// NaN is written as the string "NaN": System.Text.Json refuses non-finite
 /// doubles by default, and a reading that is absent (no price row yet, no
@@ -22,7 +26,7 @@ namespace Sim.Core.Observability;
 /// </summary>
 public static class TelemetryWriter
 {
-    public const string Schema = "telemetry/v1";
+    public const string Schema = "telemetry/v2";
 
     /// <summary>Every observation in the history, one line each.</summary>
     public static void WriteAll(Stream output, IObservationHistory history)
@@ -236,6 +240,8 @@ public static class TelemetryWriter
         }
         json.WriteEndArray();
         json.WriteNumber("foodObtained", f.FoodObtained);
+        json.WriteNumber("foodProduced", f.FoodProduced);
+        json.WriteNumber("foodBalance", f.FoodBalance);
         json.WriteEndObject();
 
         HousingSection h = r.Housing;
