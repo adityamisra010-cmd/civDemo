@@ -98,7 +98,10 @@ public class SessionRecordTests
             session.ExportTelemetry(path);
             string[] lines = File.ReadAllLines(path);
             Assert.Equal(6, lines.Length);
-            Assert.Contains("\"schema\":\"telemetry/v1\"", lines[0]);
+            // T4.20: the telemetry vintage moved to v2 when food.foodProduced and
+            // food.foodBalance joined the emitted field set. This is the TELEMETRY
+            // tag only - CanonicalSchema is untouched at v24.
+            Assert.Contains("\"schema\":\"telemetry/v2\"", lines[0]);
         }
         finally
         {

@@ -98,7 +98,7 @@ public class GlassBoxUiTests
     private static SettlementRecord Record(int id, long popOpen, long popClose, double deficit, bool founded = false)
     {
         var population = new PopulationSection(popOpen, popClose, 0, popClose, 0, 0, 3, 1, 0, 0, 0, "identity", []);
-        var food = new FoodSection(100, 90, 50, 60, 0, "identity", 70, deficit, [], 60);
+        var food = new FoodSection(100, 90, 50, 60, 0, "identity", 70, deficit, [], 60, 0, -70);
         var housing = new HousingSection(true, 10, 10, 60, 10, 1.0, 1.0, 0.0, "GAP");
         var economy = new EconomySection([], [], [], [0.55, 0.15, 0.10, 0.12, 0.08], false, double.NaN, double.NaN, double.NaN, []);
         var social = new SocialSection(80.0, [0.9, 1.0], [], []);

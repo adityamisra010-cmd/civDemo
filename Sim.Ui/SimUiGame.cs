@@ -1172,6 +1172,9 @@ public sealed class SimUiGame : Game
     {
         DataLines([_hud.FoodLine]);
         DrawRecordTab(_settlementView?.Food);
+        // T4.20: the food-flow block, ADDITIVE and below the store account.
+        ImGui.Separator();
+        DrawRecordTab(_settlementView?.FoodFlow);
     }
 
     /// <summary>The former MARKET section (T3.9a items 1+2) plus the record's

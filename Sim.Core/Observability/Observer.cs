@@ -1,5 +1,6 @@
 using Sim.Core.State;
 using Sim.Core.Systems;
+using Sim.Core.Systems.Consumption;
 
 namespace Sim.Core.Observability;
 
@@ -59,6 +60,21 @@ public static class Observer
         ArgumentNullException.ThrowIfNull(cfg.Needs);
         ArgumentNullException.ThrowIfNull(orders);
 
+        // THE SIMULATION'S OWN FOOD SET (§0 RECOMPUTED). BasketBook is the
+        // sanctioned shared pure reader of needs.json + goods.json - neither a
+        // system nor a channel between systems, and already read from this
+        // namespace by CausalChain (Explain/CausalChain.cs:593-597). Its
+        // FoodGoods span is EXACTLY the set ConsumptionSystem substitutes into
+        // the staple (ConsumptionSystem.cs:328-333) and ClassMobilitySystem
+        // sums for its surplus numerator (ClassMobilitySystem.cs:131-135): the
+        // goods carrying a Sustenance basket line. Selecting by goods.json's
+        // "category":"food" string instead would be a SECOND rule that happens
+        // to agree on shipped data and would diverge the moment a Sustenance
+        // line was tuned away - and a FoodBalance that subtracted a good no
+        // longer denominated in person-year-equivalents would not be
+        // dimensionally sound. Built ONCE per observed step, not per settlement.
+        var baskets = new BasketBook(cfg.Needs!, cfg.Goods!);
+
         // Settlement records first: the turn record's appropriation detector
         // reads their store-loss residuals.
         int prevCount = prev.Settlements.Count;
@@ -67,13 +83,13 @@ public static class Observer
             if (!HasSettlement(prev, next.Settlements[s].Id)) founded++;
         var settlements = new SettlementRecord[prevCount + founded];
         for (int s = 0; s < prevCount; s++)
-            settlements[s] = Settlement(prev, next, cfg, orders, prev.Settlements[s].Id, founded: false);
+            settlements[s] = Settlement(prev, next, cfg, baskets, orders, prev.Settlements[s].Id, founded: false);
         int f = prevCount;
         for (int s = 0; s < next.Settlements.Count; s++)
         {
             SettlementId id = next.Settlements[s].Id;
             if (HasSettlement(prev, id)) continue;
-            settlements[f++] = Settlement(prev, next, cfg, orders, id, founded: true);
+            settlements[f++] = Settlement(prev, next, cfg, baskets, orders, id, founded: true);
         }
 
         bool unattributed = false;
@@ -291,7 +307,7 @@ public static class Observer
     // ------------------------------------------------------------------ §3 --
 
     private static SettlementRecord Settlement(
-        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg,
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets,
         OrderApplied[] orders, SettlementId id, bool founded)
     {
         GoodsConfig goods = cfg.Goods!;
@@ -310,7 +326,7 @@ public static class Observer
         return new SettlementRecord(
             id.Value, foundedTurn, controller, founded,
             population,
-            Food(prev, next, goods, grain, id),
+            Food(prev, next, goods, baskets, grain, id),
             Housing(prev, next, cfg, id, population.Closing),
             Economy(next, cfg, id, shares, prevRow),
             Social(next, cfg, id),
@@ -372,7 +388,8 @@ public static class Observer
     }
 
     private static FoodSection Food(
-        IReadOnlyWorldState prev, IReadOnlyWorldState next, GoodsConfig goods, GoodId grain, SettlementId id)
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, GoodsConfig goods, BasketBook baskets,
+        GoodId grain, SettlementId id)
     {
         int pi = GoodStockIndex.IndexOf(prev.GoodStocks, id, grain);
         int ni = GoodStockIndex.IndexOf(next.GoodStocks, id, grain);
@@ -391,13 +408,19 @@ public static class Observer
             break;
         }
 
-        var foods = new List<FoodGood>(3);
+        // THE SIMULATION'S FOOD SET, not a second one: BasketBook.FoodGoods,
+        // ascending by good id (BasketBook.cs:78-82). Every good here carries a
+        // Sustenance basket line, so every unit counted below is a
+        // person-year-equivalent of nutrition and commensurable with the
+        // requirement in DemandUnits.
+        ReadOnlySpan<GoodId> foodGoods = baskets.FoodGoods;
+        var foods = new List<FoodGood>(foodGoods.Length);
         long obtained = 0;
-        for (int g = 0; g < goods.Goods.Length; g++)
+        long producedTotal = 0;
+        for (int g = 0; g < foodGoods.Length; g++)
         {
-            GoodEntry good = goods.Goods[g];
-            if (!string.Equals(good.Category, "food", StringComparison.Ordinal)) continue;
-            int idx = GoodStockIndex.IndexOf(next.GoodStocks, id, new GoodId(good.Id));
+            GoodEntry good = goods.ById(foodGoods[g].Value);
+            int idx = GoodStockIndex.IndexOf(next.GoodStocks, id, foodGoods[g]);
             long produced = 0, demand = 0, ate = 0;
             if (idx >= 0)
             {
@@ -408,12 +431,28 @@ public static class Observer
             }
             foods.Add(new FoodGood(good.Id, good.Name, produced, demand, ate));
             obtained += ate;
+            // T4.20 FoodProduced: SUMMED over the same READ LastProducedUnits
+            // this loop already carries per good. It is the SAME quantity
+            // ClassMobilitySystem forms as its food-surplus numerator
+            // (ClassMobility/ClassMobilitySystem.cs:131-135) - one definition,
+            // not a second one, BY CONSTRUCTION and not by coincidence: the
+            // loop iterates the same BasketBook.FoodGoods span that system
+            // iterates. No coefficient, no threshold, no formula, just the
+            // integer sum of rows the production system wrote.
+            producedTotal += produced;
         }
 
         return new FoodSection(
             opening, closing, harvest, eaten,
             opening + harvest - eaten - closing, StoreLossesIdentity,
-            demandUnits, deficit, foods.ToArray(), obtained);
+            demandUnits, deficit, foods.ToArray(), obtained,
+            producedTotal,
+            // T4.20 FoodBalance: DIFFERENCED. Both terms are per-turn totals in
+            // person-year-equivalents, so the subtraction is dimensionally
+            // sound and exact in long arithmetic. It is NOT the food surplus
+            // RATIO: that variable is published by ClassMobilitySystem from the
+            // PREVIOUS world and is therefore one turn behind this figure.
+            producedTotal - demandUnits);
     }
 
     private static HousingSection Housing(
