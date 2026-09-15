@@ -279,3 +279,83 @@ valuable one.
 
 **M3 CLOSES on the director's exit ruling, 2026-08-06.** The exit is the director's play session against the build
 above, and the milestone closes on his ruling.
+
+---
+
+## M4 — Neighbours, conflict, and a world that can run short  *(at the exit gate)*
+
+M4's spec (`docs/m4-spec.md`) was the first written under S8 §4.1, and its own conformance to that
+section was part of the deliverable. It conforms on all four requirements: the foundations audit ran
+as packet one and its findings were promoted into T4.3's named prohibitions; the dimensional
+declaration states its limit rather than papering over it; corridor independence carries its
+standing self-referential example; and the coupling map was revised by T4.1 under the living clause,
+which is the mechanism §4.1 specifies.
+
+### WHAT M4 DELIVERED
+
+The **Empire Control Foundation** — `PolityRow`, `ControlRow`, `CapitalRow`, `CommandSource` and
+`EmpireQuery`. Founding now instantiates the world's one player-commanded Empire in the same
+operation that creates its settlements, so `Found` never returns a playable world whose settlements
+answer to nobody. An order's issuing strategic actor is the **existing** `PolityId` — a projection,
+not a second identity, needing no new field and no serialization change. The **settlement
+construction queue**: an ordered queue whose head is either built whole this turn or waits
+unchanged, competing for the existing construction sector against housing's published draw. Schema
+moved v22 → v23 → **v24** across these.
+
+Beyond the Empire spine: **store bounding** (T4.2), whose pre-registered prediction that stores
+would sit near 1.5 years of demand was met to four decimals; **colonization** (T4.4); **transport and
+the river-aware lattice** (T4.7); **migration** rework (T4.10, T4.12); **comfort as a stock**
+(T4.13); and the **clone architecture** measurement (T4.16).
+
+Four post-certification packets sit on the exit candidate rather than in the certified baseline:
+**T4.17** session records and `sim inspect`; **T4.18** the founding population transient; **T4.19**
+the Glass Box, which ruled CR-013 and CR-014, corrected the founding demographic vector and retired
+the Artisan timing window in favour of structural latch tests; and **T4.20** food legibility, which
+was ruled observability-only after its audit established no defect.
+
+### WHAT M4 DELIBERATELY DID NOT DELIVER
+
+**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6, and under GOV-4 §1 a
+later decision outranks the Spine's earlier "Conflict v1 at M4". Recorded as a certified exclusion,
+not an omission.
+
+**No money, no treasury, no taxation.** **No research, technology or institutions** — CR-005 places
+them in M5 and remains open without blocking M4. **No food trade**: food is excluded by construction
+today, and T4.20 declined to change that. **No food-supported population cap** — the measurement
+found every shortfall to be a production shock rather than growth overshoot, so a cap would have had
+nothing to correct.
+
+**No second food-variety channel.** ADR-023 rules food variety to be represented exclusively by
+D-035-A; a proposed additive dietary-diversity happiness bonus was rejected as double counting of
+the same signal, measured over the same good set from the same field.
+
+### EXIT CRITERIA — STATUS AT HANDBACK
+
+| § 6 criterion | status |
+| --- | --- |
+| All packets accepted, each merged on a director ruling | **MET** for T4.1–T4.16; the four post-certification packets await the director's merge |
+| Scarcity can bite | **MET** — starvation is reachable on the dev world; CR-003 records the corridor disposition and quarantines the two seeds |
+| Determinism suites green; xproc; first-reign shape | **MET** — measured on the candidate, all green |
+| Goldens pinned with dated history; driven golden extended | **MET** — every M4 movement carries control-arm attribution |
+| Calibration battery green across ≥20 seeds, quarantined corridors reported rather than silently gating | **NOT MET** — density reads out of band on 6 of 20 seeds with its quarantine inactive. See the known-open list |
+| The nightly has been green, and someone has read it | **NOT MET** — the same corridor state would breach the nightly gate. The M3 process defect is half closed: the instrument exists, the notification half has no chosen mechanism |
+| Director exit session from the CI zip, replaying hash-identical, with a T3.12a replay report | **AWAITING THE DIRECTOR** — the machinery is complete and tested |
+| `milestones.md` M4 entry with its known-open list; `m4-exit` Release | this entry closes the first half; **the tag is the director's**, at the merge |
+
+### THE KNOWN-OPEN LIST
+
+| # | item | disposition |
+| --- | --- | --- |
+| 1 | **Density out of band on 6/20 seeds** (max 0.74211 against a 0.60 ceiling), quarantine inactive | The director ruled the measurement held for the in-process battery (T4.19 record §9). That ruling did not consider the **nightly**, which reads the same corridor and would breach. **Needs a ruling**, not a re-band — CR-002 and CR-003 both forbid fitting the instrument to the artifact |
+| 2 | **CR-003 Malthus corridor** | Quarantined by standing ruling; two dev seeds red by design |
+| 3 | **Migration below the historical corridor** | Accepted as measured; quarantine active, so it reports rather than gates |
+| 4 | **Two migration tests skipped**, owner recorded as "M4 migration" | T4.10 and T4.12 were that work and did not re-derive the assertions. **Unowned** |
+| 5 | **ADR-017 reads "director certification pending"** while the spec cites its ruling as settled and ADR-018 amends the same decision | Ambiguous; needs a ruling |
+| 6 | **ADR-020 clone architecture** awaiting a director ruling | Packet complete; blocks nothing |
+| 7 | **T4.19-E structural test set S1–S5** flagged for the director's confirmation | The director's own list never arrived; the set is the implementer's reading |
+| 8 | **Grain is storage-bounded; livestock and fish are not** | The repository records no intent either way (T4.20). Needs a ruling before it is either unified or declared deliberate |
+| 9 | **ADR-019 exists only on an unmerged branch** — the ADR sequence on the candidate jumps 018 → 020 | Housekeeping |
+| 10 | **`docs/current-state.md` is stale in four load-bearing claims** | Housekeeping; deliberately not repaired during the closure pass |
+
+**M4 does not close on this entry.** It closes on the director's play session against the candidate
+and his merge ruling, as M3 did.
