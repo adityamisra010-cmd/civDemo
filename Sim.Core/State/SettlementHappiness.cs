@@ -208,7 +208,31 @@ public static class SettlementHappiness
         double span = 1.0 - floor;
         double normalized = span > 0.0 ? (aggregate - floor) / span : aggregate;
 
-        return Math.Clamp(normalized * Max, 0.0, Max);
+        double baseScore = Math.Clamp(normalized * Max, 0.0, Max);
+
+        // M4 DIETARY DIVERSITY — a bounded WELFARE COMPONENT of this same derived
+        // reading, not a second happiness system and not a free-floating buff.
+        // See DietaryDiversity for the formula, for why it is NOT D-035-A
+        // variety, and for the empty-basket rule.
+        //
+        // THE DEPRIVATION GUARD TESTS THE AGGREGATE, NOT FOOD. Happiness reaches
+        // zero only when the floor-normalised aggregate reaches the floor, which
+        // takes EVERY factor at zero — so total deprivation is a property of the
+        // aggregate and the guard has to be written against it. A guard written
+        // against food sufficiency alone would not be the ruled invariant. Once
+        // the base score is at the revolt threshold nothing is added at all, so a
+        // totally deprived settlement stays at EXACTLY 0 and diversity can never
+        // rescue it.
+        //
+        // The two predicates are independent and neither stands in for the other:
+        // DietaryDiversity itself returns 0 when nothing was eaten, and the
+        // combination "no measurable food deficit but nothing eaten" (a colony on
+        // its founding turn, or the NaN-deficit branch above) is reachable — it
+        // correctly scores D = 0 and adds nothing, with no founding-turn grace
+        // clause anywhere.
+        if (baseScore <= RevoltThreshold) return 0.0;
+
+        return Math.Clamp(baseScore + DietaryDiversity.BonusOf(world, settlement, cfg), 0.0, Max);
     }
 
     /// <summary>
