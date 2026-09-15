@@ -125,7 +125,7 @@ public class BuildInfoTests
         // holding, so a stale milestone label must fail the suite, not pass it
         // quietly. Bump it here and in BuildInfo.Describe together, once per
         // milestone exit.
-        Assert.Equal("civ-sim M3 (dev, local)", Sim.Ui.BuildInfo.Describe());
+        Assert.Equal("civ-sim M4 (dev, local)", Sim.Ui.BuildInfo.Describe());
         Assert.Equal("dev", Sim.Ui.BuildInfo.Sha);
         Assert.Equal("local", Sim.Ui.BuildInfo.Date);
     }
