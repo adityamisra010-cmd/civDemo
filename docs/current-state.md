@@ -1,5 +1,21 @@
 # CURRENT STATE — the routing document
 
+> **STALENESS CORRECTION, M4 exit gate (2026-09-16).** The measurement below is dated 2026-08-31 and
+> four of its load-bearing claims have since been overtaken by git. They are corrected inline and
+> marked `CORRECTED`; nothing else in this file was rewritten, per the director's instruction that the
+> remaining stale-document findings stay housekeeping. Re-derive anything you rely on, as §9 says.
+>
+> | claim as written | git, re-derived 2026-09-16 |
+> | --- | --- |
+> | `origin/main` = `070f05b`, schema v22 | **`dbef61a`**, "Merge M4 completion (director-certified): the M4 baseline", schema **v24** |
+> | M4-B/C/D "CERTIFIED … not merged" | **all merged** — main's tip IS the M4 completion merge |
+> | §2's milestone contradiction (`CLAUDE.md:10` reads M3) | **RESOLVED** — `CLAUDE.md` now reads M4 with `docs/m4-spec.md`. §2 is itself now the stale artifact |
+> | open CRs include CR-009, CR-010 | **neither has ever existed on any branch**; CR-008 exists only on `m5-full-build` |
+>
+> The current M4 exit candidate is `t4.19-glass-box`. Its suite, measured in Release at the exit gate:
+> Sim.Tests **722 passed / 4 failed / 6 skipped**, Sim.Ui.Tests **236/236**, three gates green — which
+> supersedes the 541–572 / 6 / 6 counts recorded below.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a
@@ -23,11 +39,11 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Current objective** | M4 "Empire Control Foundation" — the structural minimum for the ratified Empire model |
 | **Governing architecture** | `docs/d042-empire-and-player-control-addendum.md` (D-042) |
 | **Milestone spec** | `docs/m4-spec.md` (R-1, R-2, R-3 ruled 2026-08-07; packet list FINAL) |
-| **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
+| **Authoritative baseline** | `CORRECTED` — `origin/main` = `dbef61a` (M4 completion merge, schema v24). As written: `070f05b` (T4.4 colonization, schema v22) |
 | **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
 | **Integration state** | T4.4 v22 + M4 v23 + capacity-floor fix + D-042 + GOV-4; four goldens re-derived and causally attributed |
-| **Certification** | M4-A merged to `main` at `82ba3fc`. **M4-B, M4-C and M4-D CERTIFIED** on `m4-empire-order-seam` — not merged; the merge is the director's |
-| **Schema version** | **v24** — v22 T4.4's `BucketRow`; v23 M4-A's Polities/Capitals; v24 M4-D's ConstructionQueue/Structures |
+| **Certification** | `CORRECTED` — M4-A, M4-B, M4-C and M4-D are ALL MERGED; `origin/main`'s tip is the M4 completion merge. As written: B/C/D certified but unmerged |
+| **Schema version** | **v24** (unchanged at the M4 exit gate) — v22 T4.4's `BucketRow`; v23 M4-A's Polities/Capitals; v24 M4-D's ConstructionQueue/Structures |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
 `docs/d042-empire-and-player-control-addendum.md` · `docs/spine-s8-governance-freeze.md` ·

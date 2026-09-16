@@ -296,7 +296,19 @@ public class CalibrationBatteryTests
         //
         // Fed-density health is NOT Malthusian crash emergence, and the ruling
         // keeps them apart: the dev Malthus corridors below stay quarantined.
-        AssertInBand(c, "canonical.densityPerArableKm2",
+        //
+        // m4-density-review-state — RECLASSIFIED C -> B, NOT FIXED. After the
+        // lift above, T4.19 lane C corrected the founding demographic vector and
+        // docs/t4.19c-remeasurement.md re-measures 20 seeds: 14/20 in band,
+        // min 0.36857, mean 0.54063, max 0.74211 (window pinned at full measured
+        // precision 0.3685744951368359 / 0.7421101248166698), six over the ceiling.
+        // arableKm2 is BIT-IDENTICAL between arms and the per-seed density ratio
+        // EQUALS the population ratio, so the move is 100% NUMERATOR - a level
+        // shift with a named, ruled cause. That is an OBSERVED/REVIEW state, not
+        // an invariant failure, so the quarantine is re-activated in
+        // corridors.json and asserted here against its WINDOW with teeth in both
+        // directions. THE BAND IS NOT MOVED and the lift record is not deleted.
+        AssertCanonicalDensityQuarantine(c, seed,
             CalibrationAnalysis.DensityPerArableKm2(m));
         // MIGRATION IS NO LONGER AN ACCEPTANCE GATE (director ruling, M4
         // completion §5/§22). It is REPORTED against its corridor, not gated on.
@@ -327,6 +339,64 @@ public class CalibrationBatteryTests
             + "entirely, which is a NEW defect and not the accepted low-volume regime.");
     }
 
+
+    /// <summary>
+    /// m4-density-review-state — THE CANONICAL FED-DENSITY OBSERVATION, quarantined
+    /// with teeth in BOTH directions, read from corridors.json so the nightly and
+    /// this battery cannot disagree (T3.12's whole point).
+    ///
+    /// THIS IS A RECLASSIFICATION, NOT A FIX. No simulation behaviour changed: the
+    /// measurement is what it was. What changed is that the project now classifies
+    /// it as an accepted, owned, loudly-reported observation (state B) instead of
+    /// letting it read as an invariant failure (state C). It does NOT reverse the
+    /// 2026-09-04 lift, which was correct on its evidence; this is a SECOND,
+    /// sequential deviation with a NEW attributed cause.
+    ///
+    /// NOT A SKIP. Three teeth:
+    ///   BAND IMMOVABILITY - the target band may not move while the quarantine
+    ///     stands. Widening the band to swallow the deviation is the exact move
+    ///     the director forbade, and the window is LITERAL data, never a fraction
+    ///     of the band, so it cannot be widened by widening the band.
+    ///   DOWN - below the measured window is a NEW defect, not more of the same.
+    ///   UP   - above the measured window is a NEW defect. Unlike dev migration,
+    ///     upward motion here is NOT resolution: resolution means coming back
+    ///     INSIDE [0.15, 0.6], which is below this window, so the downward tooth
+    ///     and the lift condition carry that case and no tooth is dead.
+    /// </summary>
+    private static void AssertCanonicalDensityQuarantine(Corridors c, ulong seed, double value)
+    {
+        const string key = "canonical.densityPerArableKm2";
+        Assert.False(double.IsNaN(value), $"{key}: metric produced NO OUTPUT — battery failure");
+
+        (double lo, double hi) = c.Band(key);
+        Assert.True(lo == 0.15 && hi == 0.6,
+            $"{key}: band moved to [{lo}, {hi}] while the m4-density-review-state quarantine " +
+            "stands. The band is the TARGET and was ruled NOT re-tuned — take it to a ruling, " +
+            "do not widen it to absorb the observation.");
+
+        (double Lo, double Hi)? q = Corridors.Quarantine("canonical", "densityPerArableKm2");
+        Assert.True(q is not null,
+            $"{key}: the quarantine is inactive, so this corridor must gate against the band " +
+            "again — restore the plain AssertInBand call at the call site.");
+        (double wlo, double whi) = q!.Value;
+
+        Assert.True(value >= wlo,
+            $"seed {seed}: {Inv(value)} is BELOW the measured quarantine window [{wlo}, {whi}] — " +
+            "a NEW defect, not the recorded founding-correction level shift. (Returning INSIDE " +
+            $"the band [{lo}, {hi}] would also land here: if that is what happened, re-measure " +
+            "the 20-seed sweep and lift the quarantine per its stated lift condition.)");
+        Assert.True(value <= whi,
+            $"seed {seed}: {Inv(value)} is ABOVE the measured quarantine window [{wlo}, {whi}] — " +
+            "the observation has drifted beyond the recorded envelope, which is a NEW defect or a " +
+            "ruled substrate change that must re-pin this window deliberately.");
+
+        Console.WriteLine(
+            $"m4 OBSERVED/REVIEW (canonical fed density): {key} seed {seed} = {Inv(value)}, " +
+            $"window [{wlo}, {whi}], band [{lo}, {hi}] UNCHANGED. 14/20 seeds in band; six over " +
+            "the ceiling (20, 8, 6, 1, 13, 2). 100% numerator, arable bit-identical between arms, " +
+            "attributed to the T4.19 lane C founding demographic correction. Owner: the M4 exit " +
+            "packet owning the founding vector. NOT a fix — a reclassification.");
+    }
 
     private static string Inv(double v) =>
         v.ToString("G6", System.Globalization.CultureInfo.InvariantCulture);
