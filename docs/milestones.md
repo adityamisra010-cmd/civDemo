@@ -337,8 +337,8 @@ the same signal, measured over the same good set from the same field.
 | Scarcity can bite | **MET** — starvation is reachable on the dev world; CR-003 records the corridor disposition and quarantines the two seeds |
 | Determinism suites green; xproc; first-reign shape | **MET** — measured on the candidate, all green |
 | Goldens pinned with dated history; driven golden extended | **MET** — every M4 movement carries control-arm attribution |
-| Calibration battery green across ≥20 seeds, quarantined corridors reported rather than silently gating | **NOT MET** — density reads out of band on 6 of 20 seeds with its quarantine inactive. See the known-open list |
-| The nightly has been green, and someone has read it | **NOT MET** — the same corridor state would breach the nightly gate. The M3 process defect is half closed: the instrument exists, the notification half has no chosen mechanism |
+| Calibration battery green across ≥20 seeds, quarantined corridors reported rather than silently gating | **MET at the exit gate** — density's quarantine is re-activated over its measured envelope with teeth in both directions, so the corridor is reported with its measured range rather than gating. The band was NOT re-tuned. See known-open item 1 |
+| The nightly has been green, and someone has read it | **INSTRUMENT MET, READING IS THE DIRECTOR'S** — dry-run against the real gate with the six observations now prints QUARANTINED with the measured range and exits 0, where before it breached and exited 1. Someone still has to read it: see known-open item 11 |
 | Director exit session from the CI zip, replaying hash-identical, with a T3.12a replay report | **AWAITING THE DIRECTOR** — the machinery is complete and tested |
 | `milestones.md` M4 entry with its known-open list; `m4-exit` Release | this entry closes the first half; **the tag is the director's**, at the merge |
 
@@ -360,3 +360,26 @@ the same signal, measured over the same good set from the same field.
 
 **M4 does not close on this entry.** It closes on the director's play session against the candidate
 and his merge ruling, as M3 did.
+
+
+### RECONCILIATION OF THE KNOWN-OPEN LIST (M4 exit-process packet)
+
+Every item above carries exactly one disposition. Nothing was deleted.
+
+| # | disposition | basis |
+| --- | --- | --- |
+| 1 Density out of band / nightly breach | **CLOSED / VERIFIED** | Process gap, not a density defect. The T3.12 quarantine mechanism already expressed the missing state; it was re-activated over the measured envelope with an attributed cause and a stated lift condition. Dry-run against the real gate: QUARANTINED with measured range, **exit 0**; control against the pre-change corridor on the same numbers: breach, **exit 1**. Band never moved |
+| 2 CR-003 Malthus corridor | **OPEN / FUTURE MILESTONE** | Quarantined by standing ruling; two dev seeds red by design. The crash model is not M4 work |
+| 3 Migration below the historical corridor | **CLOSED / VERIFIED** | Accepted as measured by director ruling (2026-09-04) with 20-seed evidence on record; the corridor is retained as a record, not an acceptance gate |
+| 4a `FamineAtOneOfTwelve…` | **OPEN / REQUIRES DIRECTOR RULING** | Measured still red. Its recorded owner is wrong — the blocking observable is famine lethality, not migration. Needs reassignment; not named in `m4-spec` §6 |
+| 4b `MagnitudeCorridor_FedPhaseDrift…` | **OPEN / REQUIRES DIRECTOR RULING** | Measured still red at exactly its recorded ×1.07. The premise is structurally false; the re-derivation was consciously declined. Needs an owner to re-aim the teeth |
+| 5 ADR-017 "certification pending" vs the spec citing it settled | **OPEN / REQUIRES DIRECTOR RULING** | A status contradiction only the director can resolve |
+| 6 ADR-020 clone architecture | **OPEN / REQUIRES DIRECTOR RULING** | Packet complete, awaiting a ruling; blocks nothing |
+| 7 T4.19-E structural set S1–S5 | **OPEN / REQUIRES DIRECTOR RULING** | Flagged for confirmation; the director's own list never arrived, so the set is the implementer's reading |
+| 8 Grain bounded, livestock and fish not | **OPEN / REQUIRES DIRECTOR RULING** | The repository records no intent either way. ADR-023 settles *variety*; it does not settle the *storage* asymmetry |
+| 9 ADR-019 only on an unmerged branch | **OPEN / REQUIRES DIRECTOR RULING** | Merging a branch is the director's call under `CLAUDE.md`; the ADR sequence on the candidate jumps 018 → 020 until then |
+| 10 `docs/current-state.md` stale | **CLOSED / DOCUMENTATION ONLY** | Four load-bearing claims corrected inline and marked; nothing else rewritten |
+| 11 The nightly gate never consults the window *(new, found by this packet)* | **OPEN / REQUIRES DIRECTOR RULING** | `gated()` short-circuits on `quarantine.active` alone, so a quarantined corridor drifting far outside its recorded envelope is caught only by the in-process battery's two seeds, never by the 20-seed nightly. Pre-existing T3.12 behaviour, deliberately not changed here. This is also the unclosed half of the M3 process defect: the instrument reports, but no mechanism makes anyone read it |
+
+**Nothing in this list blocks the candidate.** Items 2, 3 and 10 are disposed; item 1 is closed by
+process; the remainder are rulings the director takes at, or after, the playtest.
