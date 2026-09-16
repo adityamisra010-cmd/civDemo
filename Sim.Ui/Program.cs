@@ -58,5 +58,16 @@ session.ExportManifest(
     sessionLogPath);
 Console.WriteLine($"session manifest: {Sim.Ui.UiSession.ManifestPath(sessionLogPath)}");
 
+// m4-forensic P1: the run record, written beside the manifest and for the same
+// reason — the identity of the run is on disk before a turn is played. The local
+// stamp is handed over (this is Sim.Ui; the clock is legal here, ADR-009) but it
+// is NOT the identity: the runId is derived from seed + overrides + schema +
+// config digest + orders digest, so it is reproducible and checkable.
+session.ExportForensicRun(
+    DateTime.Now.ToString("yyyy-MM-dd HH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture),
+    sessionLogPath);
+Console.WriteLine($"forensic record: {Sim.Ui.UiSession.ForensicPath(sessionLogPath)}"
+    + $"  (run {session.ForensicRunId})");
+
 using var game = new Sim.Ui.SimUiGame(session, sessionLogPath);
 game.Run();

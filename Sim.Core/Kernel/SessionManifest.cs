@@ -64,7 +64,17 @@ public sealed record SessionManifest(
     // session, e.g. "win-x64", "linux-x64", "ubuntu.24.04-x64". Supplied by
     // the caller; compared against ReferencePlatform by the reader. A v1
     // file reads back as PlatformNotRecorded, never as a guess.
-    string Platform = SessionManifest.PlatformNotRecorded)
+    string Platform = SessionManifest.PlatformNotRecorded,
+    // m4-forensic P1: the forensic record beside the other five. A MANIFEST
+    // FIELD, NOT A SCHEMA MOVE — the tag stays session-manifest/v2 deliberately.
+    // `Read` is a tag WHITELIST that throws on an unknown vintage, so a v3 file
+    // would be REJECTED by every binary already built, including the shipped UI
+    // and any previously built `sim inspect`. An ADDITIVE key inside v2 is read
+    // by those binaries exactly as before (they ask for the keys they know by
+    // name and ignore the rest), and reads back here as an empty string on any
+    // manifest written before this packet — the session it describes is still
+    // fully reproducible without it, exactly as TelemetryFile argued.
+    string ForensicFile = "")
 {
     /// <summary>The schema tag, so a reader can tell which vintage produced a
     /// file it did not write. v2 added `platform`.</summary>
@@ -164,6 +174,7 @@ public sealed record SessionManifest(
         json.WriteString("traceFile", TraceFile);
         json.WriteString("telemetryFile", TelemetryFile);
         json.WriteString("platform", Platform);
+        json.WriteString("forensicFile", ForensicFile);
         json.WriteEndObject();
         json.Flush();
     }
@@ -201,7 +212,10 @@ public sealed record SessionManifest(
             // A v1 file has no platform column; a v2 file that somehow lacks
             // one is read the same way rather than invented.
             Platform: root.TryGetProperty("platform", out JsonElement pl) && pl.GetString() is { Length: > 0 } p
-                ? p : PlatformNotRecorded);
+                ? p : PlatformNotRecorded,
+            // Absent on every manifest written before this packet, and on any
+            // session that wrote no forensic record. Empty, never invented.
+            ForensicFile: root.TryGetProperty("forensicFile", out JsonElement ff) ? ff.GetString() ?? "" : "");
     }
 
     private static int? Nullable(JsonElement root, string name)

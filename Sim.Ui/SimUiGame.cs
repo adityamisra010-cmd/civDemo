@@ -427,6 +427,10 @@ public sealed class SimUiGame : Game
         // P0 FINALIZE: on a deliberate exit the telemetry is flushed past the
         // OS buffers, so the artifact is durable and not merely handed over.
         _session.FinalizeTelemetry(UiSession.TelemetryPath(_sessionLogPath));
+        // P1 CLOSE: and only then the forensic close record, which content-hashes
+        // every companion — so it must be written AFTER they are final. Its
+        // ABSENCE is the evidence that a session did not close cleanly.
+        _session.ExportForensicClose(_sessionLogPath);
         base.OnExiting(sender, args);
     }
 

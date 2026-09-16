@@ -49,12 +49,12 @@ namespace Sim.Cli
                 usage:
                   sim run --seed S --turns N [--founded [--size PX] [--settlements N]]
                           [--report] [--save-at K --save PATH] [--orders PATH]
-                          [--hash-log PATH]
+                          [--hash-log PATH] [--emit-session DIR]
                   sim hash SAVEFILE [--size PX]
                   sim diff A.bin B.bin [--size PX]
                   sim replay --seed S --orders PATH --turns N
                           [--founded [--size PX] [--settlements N]] [--hash-log PATH]
-                          [--report-jsonl PATH [--report-every N]]
+                          [--report-jsonl PATH [--report-every N]] [--emit-session DIR]
                   sim inspect --manifest runs/session-STAMP.json [--turn N] [--window K]
                           [--report-jsonl PATH] [--telemetry OUT.jsonl]
                           [--settlement ID --turn N]
@@ -156,7 +156,8 @@ namespace Sim.Cli
         internal static int Run(string[] args)
         {
             var opts = Options.Parse(args, flags: ["--report", "--founded"],
-                valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size", "--settlements"]);
+                valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size",
+                         "--settlements", "--emit-session"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
@@ -179,21 +180,61 @@ namespace Sim.Cli
             if (orders is not null) OrderValidation.ValidateAgainstWorld(orders, world);
 
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
+            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, orders, world);
+
             for (int t = 1; t <= turns; t++)
             {
-                world = executor.Step(world);
+                WorldState previous = world;
+                world = executor.Step(previous);
                 hashLog?.Add(WorldHash.ComputeHex(world));
+                session?.Observe(previous, world);
                 if (t == saveAt)
                 {
                     using var save = File.Create(savePath!);
                     Snapshot.Save(world, save);
                 }
             }
+            CloseEmitter(session);
 
             if (hashLog is not null) WriteHashLog(opts.Get("--hash-log")!, hashLog);
             Console.WriteLine($"run complete: seed {seed}, {turns} turns, hash {WorldHash.ComputeHex(world)}");
             if (opts.Has("--report")) Report(world);
             return 0;
+        }
+
+        /// <summary>
+        /// --emit-session DIR: writes the FULL session record for a headless run
+        /// — manifest, orders, trace, telemetry and the forensic record — using
+        /// the same writers a played session uses. Before this, no CLI verb
+        /// could write any of them, so a reproducible forensic run was not
+        /// possible headlessly at all.
+        ///
+        /// It requires --founded: a session record describes the production
+        /// world, and `sim inspect` rebuilds from a manifest with founded:true.
+        /// Emitting a toy run's metadata would produce a manifest that names a
+        /// world the reader cannot rebuild.
+        ///
+        /// STRICTLY AN OBSERVER. Returning null when the flag is absent is what
+        /// keeps the Step loop identical: there is no emitting branch inside it.
+        /// </summary>
+        private static SessionEmitter? Emitter(
+            Options opts, ulong seed, bool founded, int? sizePx, int? settlements,
+            OrderLog? orders, WorldState start)
+        {
+            if (opts.Get("--emit-session") is not { } dir) return null;
+            if (!founded) throw new CliUsageException("--emit-session requires --founded");
+            return new SessionEmitter(
+                dir, seed, sizePx, settlements, orders ?? new OrderLog(), SimCfg(), start,
+                CliBuildInfo.Sha, CliBuildInfo.Date,
+                System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier);
+        }
+
+        private static void CloseEmitter(SessionEmitter? session)
+        {
+            if (session is null) return;
+            session.Close();
+            Console.WriteLine($"session record: {session.ManifestPath}  (run {session.RunId})");
+            Console.WriteLine($"  inspect it with: sim inspect --manifest {session.ManifestPath}");
         }
 
         internal static int Hash(string[] args)
@@ -277,7 +318,7 @@ namespace Sim.Cli
         {
             var opts = Options.Parse(args, flags: ["--founded"],
                 valued: ["--seed", "--turns", "--orders", "--hash-log", "--size", "--settlements",
-                         "--report-jsonl", "--report-every"]);
+                         "--report-jsonl", "--report-every", "--emit-session"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
@@ -304,13 +345,19 @@ namespace Sim.Cli
             using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
             Sim.Core.Systems.SimConfig? reportCfg = report is not null ? SimCfg() : null;
 
+            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, orders, world);
+
             for (int t = 1; t <= turns; t++)
             {
-                world = executor.Step(world);
+                WorldState previous = world;
+                world = executor.Step(previous);
                 hashLog?.Add(WorldHash.ComputeHex(world));
+                session?.Observe(previous, world);
                 if (report is not null && t % reportEvery == 0)
                     ReplayReport.WriteTurn(report, world, reportCfg!);
             }
+            CloseEmitter(session);
+
             if (hashLog is not null) WriteHashLog(opts.Get("--hash-log")!, hashLog);
             Console.WriteLine($"replay complete: seed {seed}, {turns} turns, hash {WorldHash.ComputeHex(world)}");
             if (reportPath is not null)

@@ -142,12 +142,25 @@ public sealed class UiSession
     /// UI-only preset/era drift breaks that test, not a played session.
     /// </summary>
     public static TurnExecutor BuildProductionExecutor(OrderLog orders)
+        => new(ProductionEra(), ProductionPipeline(), orders);
+
+    /// <summary>The era table the production executor is built from. Split out
+    /// of BuildProductionExecutor so the forensic record can name the dt
+    /// schedule the run actually used without a second loading recipe: the
+    /// executor and the record read the SAME function.</summary>
+    public static EraTable ProductionEra()
     {
-        EraTable era;
-        using (var stream = Sim.Data.DataFiles.OpenEraPacing())
-        {
-            era = EraTableLoader.Load(stream);
-        }
+        using var stream = Sim.Data.DataFiles.OpenEraPacing();
+        return EraTableLoader.Load(stream);
+    }
+
+    /// <summary>The production pipeline, IN ORDER. The system execution order is
+    /// data loaded at startup and is persisted in no existing artifact, although
+    /// every value in every other artifact depends on it — so the forensic run
+    /// record reads it from here, the same array the executor is constructed
+    /// with.</summary>
+    public static SystemRegistration[] ProductionPipeline()
+    {
         SimConfig simCfg;
         using (var stream = Sim.Data.DataFiles.OpenSim())
         using (var needs = Sim.Data.DataFiles.OpenNeeds())
@@ -155,14 +168,19 @@ public sealed class UiSession
         {
             simCfg = SimConfigLoader.Load(stream, needs, goods);
         }
-        SystemRegistration[] pipeline;
-        using (var stream = Sim.Data.DataFiles.OpenPipeline())
-        {
-            using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
-            pipeline = PipelineLoader.Load(stream, SystemCatalog.All(
-                simCfg, Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream)));
-        }
-        return new TurnExecutor(era, pipeline, orders);
+        using var pipe = Sim.Data.DataFiles.OpenPipeline();
+        using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
+        return PipelineLoader.Load(pipe, SystemCatalog.All(
+            simCfg, Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream)));
+    }
+
+    /// <summary>The worldgen configuration the production world is founded from
+    /// — read by the forensic record for the AI-empire count, which is reported
+    /// explicitly including when it is zero.</summary>
+    public static Sim.Core.Worldgen.WorldgenConfig ProductionWorldgen()
+    {
+        using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
+        return Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
     }
 
     /// <summary>The HUD slider's release handler: ONE order, stamped with the
@@ -261,6 +279,13 @@ public sealed class UiSession
             Path.GetFileNameWithoutExtension(sessionLogPath)
                 .Replace("orders-", "telemetry-") + ".jsonl");
 
+    /// <summary>m4-forensic P1: the forensic record path twinned with a session
+    /// log path: same stamp, `forensic-` prefix, `.jsonl`.</summary>
+    public static string ForensicPath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "forensic-") + ".jsonl");
+
     /// <summary>The manifest path twinned with a session log path: same stamp,
     /// `session-` prefix, `.json`.</summary>
     public static string ManifestPath(string sessionLogPath) =>
@@ -295,7 +320,8 @@ public sealed class UiSession
             ChronicleFile: Path.GetFileName(ChroniclePath(sessionLogPath)),
             TraceFile: Path.GetFileName(TracePath(sessionLogPath)),
             TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)),
-            Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier);
+            Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
+            ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)));
 
     /// <summary>Writes the manifest beside the order log.</summary>
     public void ExportManifest(string startedAt, string sessionLogPath)
@@ -401,6 +427,79 @@ public sealed class UiSession
             _telemetryBytesWritten += file.Position - before;
         }
         if (flushToDisk) file.Flush(flushToDisk: true);
+    }
+
+    // --- P1: IDENTITY AND PROVENANCE ---------------------------------------
+    // The sixth file. Written by the SAME assembler the headless CLI uses
+    // (ForensicSession), so a played run and a headless one cannot disagree
+    // about the same world. Everything in it is a READ of what is already in
+    // memory at launch, plus content digests; no simulation state is touched,
+    // and the run id is derived from content, never from the wall clock.
+
+    /// <summary>The run id of this session's forensic record, once written.</summary>
+    public string? ForensicRunId { get; private set; }
+
+    /// <summary>
+    /// Builds the run record for this session. Wall clock is the CALLER'S, as on
+    /// the manifest: Sim.Ui may read one (ADR-009) and hands it over.
+    /// </summary>
+    public Sim.Core.Observability.Forensic.ForensicRunRecord ForensicRun(string startedAt) =>
+        Sim.Core.Observability.Forensic.ForensicSession.BuildRun(
+            seed: _seed,
+            sizePx: _sizePx,
+            settlements: _settlements,
+            founded: true,
+            contentAssembly: typeof(Sim.Data.DataFiles).Assembly,
+            orders: Orders,
+            era: ProductionEra(),
+            pipeline: ProductionPipeline(),
+            aiEmpiresConfigured: ProductionWorldgen().AiEmpires,
+            terrainContentHash: World.Terrain?.ContentHash,
+            buildSha: BuildInfo.Sha,
+            buildDate: BuildInfo.Date,
+            platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
+            startedAt: startedAt);
+
+    /// <summary>Writes the forensic run record beside the order log, ONCE at
+    /// launch — for the manifest's reason: a session that ends in a crash is
+    /// still identified, because the identity is written before a turn is
+    /// played.</summary>
+    public void ExportForensicRun(string startedAt, string sessionLogPath)
+    {
+        ForensicRunId = Sim.Core.Observability.Forensic.ForensicSession.WriteRun(
+            ForensicPath(sessionLogPath), ForensicRun(startedAt));
+    }
+
+    /// <summary>
+    /// APPENDS the close record: how far the session got, the hash it itself
+    /// computed for its final world, and the CONTENT hash of every companion
+    /// artifact — so the set is bound by content and not by a shared filename
+    /// stamp. A swapped same-named companion becomes a named finding instead of
+    /// a reproduction failure that is not one.
+    /// </summary>
+    public void ExportForensicClose(string sessionLogPath)
+    {
+        if (ForensicRunId is not { } runId) return;   // no run record: nothing to close
+        string dir = Path.GetDirectoryName(sessionLogPath) ?? "";
+        // The final world hash is the one the TRACE already carries for this
+        // turn — read from the line this session wrote, never recomputed here,
+        // so the record cannot disagree with the trace about the same world.
+        string[] last = _trace[^1].Split(',');
+        Sim.Core.Observability.Forensic.ForensicSession.WriteClose(
+            ForensicPath(sessionLogPath),
+            new Sim.Core.Observability.Forensic.ForensicCloseRecord(
+                RunId: runId,
+                TurnsReached: World.Clock.Turn,
+                FinalWorldHash: last[^1],
+                FinalWorldHashState: "recorded — READ from this session's own trace line, not recomputed",
+                Artifacts: Sim.Core.Observability.Forensic.ForensicSession.Companions(
+                    dir,
+                    ("manifest", Path.GetFileName(ManifestPath(sessionLogPath))),
+                    ("orders", Path.GetFileName(sessionLogPath)),
+                    ("trace", Path.GetFileName(TracePath(sessionLogPath))),
+                    ("chronicle", Path.GetFileName(ChroniclePath(sessionLogPath))),
+                    ("telemetry", Path.GetFileName(TelemetryPath(sessionLogPath)))),
+                GatesState: "not-recorded — no gate-verdict producer exists in this build"));
     }
 
     /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
