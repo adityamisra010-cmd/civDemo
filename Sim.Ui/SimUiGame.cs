@@ -415,13 +415,18 @@ public sealed class SimUiGame : Game
         // that a session ending in a crash is still reproducible.
         _session.ExportTrace(UiSession.TracePath(_sessionLogPath));
         // T4.19: and the telemetry, same stamp — every turn's world record and
-        // settlement records, the glass box as it was actually played.
+        // settlement records, the glass box as it was actually played. P0: this
+        // APPENDS the turns observed since the last save; it no longer rewrites
+        // the file, so the cost of a save is the size of the new records.
         _session.ExportTelemetry(UiSession.TelemetryPath(_sessionLogPath));
     }
 
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
         SaveSession();
+        // P0 FINALIZE: on a deliberate exit the telemetry is flushed past the
+        // OS buffers, so the artifact is durable and not merely handed over.
+        _session.FinalizeTelemetry(UiSession.TelemetryPath(_sessionLogPath));
         base.OnExiting(sender, args);
     }
 

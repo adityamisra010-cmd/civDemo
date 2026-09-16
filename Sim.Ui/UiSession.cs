@@ -314,16 +314,93 @@ public sealed class UiSession
         File.WriteAllText(path, string.Join("\n", _trace) + "\n");
     }
 
-    /// <summary>T4.19: exports the telemetry — one JSONL line per observed turn,
-    /// rewritten in full from the in-memory log on every save (like the trace),
-    /// so the file on disk is always a complete prefix of the session and a crash
-    /// mid-write loses at most the last End Turn. Byte-identical across two runs
-    /// of the same session (TelemetryWriter, asserted).</summary>
-    public void ExportTelemetry(string path)
+    // --- P0: THE TELEMETRY WRITE PATH (m4-forensic, phase P0) ---------------
+    // WHAT THIS REPLACED, and why it was a defect. ExportTelemetry used to be
+    // File.Create + TelemetryWriter.WriteAll — it truncated the file and
+    // re-serialized EVERY accumulated turn on EVERY End Turn. The bytes written
+    // over an N-turn session were therefore O(N^2) in the record size, and the
+    // last End Turn of a 650-turn session synchronously re-serialized the whole
+    // artifact. It also made the window in which the file is INVALID as long as
+    // the whole file: File.Create truncates first, so a process death mid-save
+    // left a file missing every turn already played, not just the last one.
+    //
+    // THE FIX IS APPEND, and the shape of telemetry/v2 makes it exact: the file
+    // is JSONL with NO header line (the schema tag rides on every line —
+    // TelemetryWriter.Schema is written inside WriteTurn), so an append is a
+    // legal telemetry file by construction and nothing has to be written once.
+    // Each record is written in full and FLUSHED before the next begins, so a
+    // completed prior record is always intact on disk; a death mid-record can
+    // truncate only the record being written, and every line before it still
+    // parses (asserted in Sim.Ui.Tests: TelemetryAppendTests).
+    //
+    // NO SIMULATION STATE IS TOUCHED. This method reads _observations and
+    // writes a file. The two counters below are OBSERVER accounting — the
+    // write-amplification instrument the packet was asked to measure.
+    private string? _telemetryPath;
+    private int _telemetryRecordsWritten;
+    private long _telemetryBytesWritten;
+
+    /// <summary>TOTAL BYTES this session has written to the telemetry file over
+    /// its whole life — the write-amplification instrument. Under the append
+    /// path this converges on the file's own size; under the old rewrite path
+    /// it was the sum of every intermediate file size.</summary>
+    public long TelemetryBytesWritten => _telemetryBytesWritten;
+
+    /// <summary>How many observation records are already on disk.</summary>
+    public int TelemetryRecordsWritten => _telemetryRecordsWritten;
+
+    /// <summary>
+    /// T4.19/P0: exports the telemetry INCREMENTALLY — on each call only the
+    /// records observed since the last call are appended, in observation order,
+    /// each written whole and flushed before the next. The file on disk stays a
+    /// complete prefix of the session at all times.
+    ///
+    /// A path this session has not written before (or a file that has since
+    /// disappeared) is written from the start, so the method is still a
+    /// complete export for any caller that asks for one.
+    /// </summary>
+    public void ExportTelemetry(string path) => ExportTelemetry(path, flushToDisk: false);
+
+    /// <summary>
+    /// The explicit FINALIZE on exit: appends whatever remains and forces the
+    /// bytes past the OS buffers, so the artifact is durable when the process
+    /// ends deliberately rather than merely handed to the OS.
+    /// </summary>
+    public void FinalizeTelemetry(string path) => ExportTelemetry(path, flushToDisk: true);
+
+    private void ExportTelemetry(string path, bool flushToDisk)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        using FileStream file = File.Create(path);
-        TelemetryWriter.WriteAll(file, _observations);
+
+        // Resume only onto the file this session has been appending to. Any
+        // other path — or a file that vanished under us — restarts from record
+        // zero, because appending a suffix onto a file we did not write would
+        // produce an artifact that is not this session.
+        bool resume = _telemetryPath is not null
+            && string.Equals(_telemetryPath, path, StringComparison.Ordinal)
+            && File.Exists(path);
+        if (!resume)
+        {
+            _telemetryPath = path;
+            _telemetryRecordsWritten = 0;
+        }
+
+        IReadOnlyList<TurnObservation> all = _observations.Observations;
+        if (resume && _telemetryRecordsWritten >= all.Count && !flushToDisk) return;
+
+        using var file = new FileStream(
+            path,
+            resume ? FileMode.Append : FileMode.Create,
+            FileAccess.Write, FileShare.Read);
+        for (int i = _telemetryRecordsWritten; i < all.Count; i++)
+        {
+            long before = file.Position;
+            TelemetryWriter.WriteTurn(file, all[i]);
+            file.Flush();                       // the record is whole on disk
+            _telemetryRecordsWritten = i + 1;   // ...and only then counted
+            _telemetryBytesWritten += file.Position - before;
+        }
+        if (flushToDisk) file.Flush(flushToDisk: true);
     }
 
     /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
