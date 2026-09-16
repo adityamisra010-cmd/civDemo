@@ -201,12 +201,42 @@ public static class TrendsModel
         return Prepend(foundingCount == 0 ? double.NaN : founding, result);
     }
 
-    /// <summary>The plot boundary: doubles → floats, NaN → 0 (an absent record
-    /// plots flat, never breaks the line — the HistoryBuffer convention).</summary>
+    /// <summary>
+    /// The plot boundary: doubles → floats, with NO FABRICATED ZERO.
+    ///
+    /// This used to map every non-finite value to 0f. A NaN here means "this
+    /// settlement has no record on this turn" — not yet founded, or absent from
+    /// the observation — and drawing it as 0 asserted a reading that was never
+    /// taken. For happiness that was actively dangerous: 0 is the ratified
+    /// revolt condition (SettlementHappiness.RevoltThreshold), so a missing
+    /// sample was drawn as a settlement in revolt.
+    ///
+    /// The honest treatment, and the one used here: CARRY FORWARD the last
+    /// finite value, which says "no new reading, nothing changed on the chart",
+    /// and OMIT the leading run before any finite value exists rather than
+    /// inventing a value to start from. The series therefore starts where the
+    /// data starts and is shorter than the double series by exactly that
+    /// leading run. An all-non-finite series plots as nothing, which the draw
+    /// code renders as "no data".
+    ///
+    /// This changes only what is DRAWN for a sample that was never measured.
+    /// The double series returned by <see cref="Settlement"/> and
+    /// <see cref="World"/> is untouched, so every value a metric MEASURES, and
+    /// every min/max the axis is computed from, is exactly as before.
+    /// </summary>
     public static float[] ForPlot(double[] series)
     {
-        var plot = new float[series.Length];
-        for (int i = 0; i < series.Length; i++) plot[i] = double.IsFinite(series[i]) ? (float)series[i] : 0f;
+        ArgumentNullException.ThrowIfNull(series);
+        int first = 0;
+        while (first < series.Length && !double.IsFinite(series[first])) first++;
+        if (first == series.Length) return [];
+        var plot = new float[series.Length - first];
+        float carried = (float)series[first];
+        for (int i = first; i < series.Length; i++)
+        {
+            if (double.IsFinite(series[i])) carried = (float)series[i];
+            plot[i - first] = carried;
+        }
         return plot;
     }
 
