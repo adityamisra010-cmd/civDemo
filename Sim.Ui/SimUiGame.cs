@@ -758,6 +758,12 @@ public sealed class SimUiGame : Game
     private void PushDataFont() { if (_fonts is { } f) ImGui.PushFont(f.Numeric); }
     private void PopDataFont() { if (_fonts is not null) ImGui.PopFont(); }
 
+    /// <summary>The small price sparkline. The axis is PINNED THROUGH
+    /// TrendAxisModel rather than passed float.MaxValue/float.MaxValue — those
+    /// two sentinels mean "auto-scale to the series' own min and max", which is
+    /// what made a series in [90, 100] draw its floor sitting on the x-axis.
+    /// A price is non-negative and unbounded, so the floor is 0 and only the
+    /// ceiling follows the data; the bounds are printed underneath.</summary>
     private static void Plot(string label, float[] series)
     {
         if (series.Length == 0)
@@ -765,9 +771,18 @@ public sealed class SimUiGame : Game
             ImGui.TextUnformatted("no data");
             return;
         }
+        PlotDomain domain = TrendAxisModel.PriceDomain(series);
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
         ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
-            float.MaxValue, float.MaxValue, new System.Numerics.Vector2(300, 56));
+            (float)domain.Floor, (float)domain.Ceiling, new System.Numerics.Vector2(300, 56));
+        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, ToDoubles(series)));
+    }
+
+    private static double[] ToDoubles(float[] series)
+    {
+        var wide = new double[series.Length];
+        for (int i = 0; i < series.Length; i++) wide[i] = series[i];
+        return wide;
     }
 
     private void DrawWorldBuffer(VertexBuffer? buffer)
@@ -1475,19 +1490,30 @@ public sealed class SimUiGame : Game
             // Prices: the observation history has no price series (§7), so the
             // T3.9a buffer keeps them — per (settlement, good), never world.
             ImGui.TextUnformatted("price of the good selected under SETTLEMENT / Economy, this settlement");
-            PlotLarge("##trend", _session.History.Price(_selected, _selectedGood));
+            float[] prices = _session.History.Price(_selected, _selectedGood);
+            PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
+            PushDataFont();
+            ImGui.TextUnformatted(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
+            ImGui.TextUnformatted(TrendAxisModel.BandNote(PlotBand.Neutral));
+            PopDataFont();
+            PlotLarge("##trend", prices, priceDomain, PlotBand.Neutral);
             return;
         }
         double[] series = _trendWorldScope
             ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId)
             : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId);
+        PlotDomain domain = TrendAxisModel.Domain(metric.Key, series);
+        PlotBand band = TrendAxisModel.Band(
+            metric.Key, series.Length == 0 ? double.NaN : series[^1]);
         PushDataFont();
         ImGui.TextUnformatted(TrendsModel.LastValueLine(series));
+        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, series));
+        ImGui.TextUnformatted(TrendAxisModel.BandNote(band));
         PopDataFont();
         ImGui.PushTextWrapPos(0f);
         ImGui.TextUnformatted(TrendsModel.ScopeNote(metric.Key, _trendWorldScope));
         ImGui.PopTextWrapPos();
-        PlotLarge("##trend", TrendsModel.ForPlot(series));
+        PlotLarge("##trend", TrendsModel.ForPlot(series), domain, band);
     }
 
     /// <summary>BUILD — the glass-box footer. Diagnostic rather than play
@@ -1511,8 +1537,12 @@ public sealed class SimUiGame : Game
     }
 
     /// <summary>The trends plot: as wide as the panel and tall enough to read,
-    /// which the old 300×56 thumbnails were not.</summary>
-    private static void PlotLarge(string label, float[] series)
+    /// which the old 300×56 thumbnails were not. <paramref name="domain"/> is the axis
+    /// the reader is told about; <paramref name="band"/> colours the line by
+    /// the latest reading against that domain (Neutral pushes no colour, so an
+    /// unbounded metric keeps the theme's own plot colour — see
+    /// TrendAxisModel for why an arbitrary colour would be a lie).</summary>
+    private static void PlotLarge(string label, float[] series, PlotDomain domain, PlotBand band)
     {
         if (series.Length == 0)
         {
@@ -1520,8 +1550,11 @@ public sealed class SimUiGame : Game
             return;
         }
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
+        uint? colour = TrendAxisModel.BandColour(band);
+        if (colour is { } c) ImGui.PushStyleColor(ImGuiCol.PlotLines, c);
         ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
-            float.MaxValue, float.MaxValue,
+            (float)domain.Floor, (float)domain.Ceiling,
             new System.Numerics.Vector2(PanelLayout.Context.Width - 40, 220));
+        if (colour is not null) ImGui.PopStyleColor();
     }
 }

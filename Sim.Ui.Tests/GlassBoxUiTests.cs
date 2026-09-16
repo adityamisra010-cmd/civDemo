@@ -652,8 +652,12 @@ public class GlassBoxUiTests
         Assert.Contains("sum", TrendsModel.ScopeNote(SeriesKey.Births, true));
         double[] happiness = TrendsModel.World(history, SeriesKey.Happiness, -1);
         Assert.All(happiness, h => Assert.InRange(h, 0.0, 100.0));
-        // The plot boundary maps NaN to 0 and keeps finite values.
-        Assert.Equal([1f, 0f, 2.5f], TrendsModel.ForPlot([1.0, double.NaN, 2.5]));
+        // The plot boundary keeps finite values and CARRIES FORWARD a missing
+        // one — it no longer maps NaN to 0. A NaN means "no record on this
+        // turn", and drawing it as 0 asserted a reading never taken; for
+        // happiness it drew the ratified revolt condition. See
+        // TrendAxisModelTests for the full pin.
+        Assert.Equal([1f, 1f, 2.5f], TrendsModel.ForPlot([1.0, double.NaN, 2.5]));
     }
 
     // ------------------------------------------------------------------
