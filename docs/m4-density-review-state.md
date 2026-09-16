@@ -119,8 +119,13 @@ corridor, not one ruling overturned.
 ## 6. The exact proposed change
 
 1. `Sim.Data/content/corridors.json`, `canonical.densityPerArableKm2.quarantine`:
-   `active` false → **true**; `window` `[1.40, 1.80]` → **`[0.36857, 0.74211]`**, the
-   measured NEW min and max at their measured precision (not rounded); `owner`,
+   `active` false → **true**; `window` `[1.40, 1.80]` → **`[0.3685744951368359, 0.7421101248166698]`**, the
+   measured NEW min (seed 3) and max (seed 2) at FULL measured precision, re-measured
+   in-battery at this commit and agreeing with `docs/t4.19c-remeasurement.md`'s
+   0.36857 / 0.74211 rounded to 5 dp. The 5-dp figures could not be used as the bounds:
+   0.74211 rounds the maximum *inward*, which would place seed 2 outside its own measured
+   envelope and fail the upper tooth on a rounding artefact (observed, then corrected).
+   The extremes are not rounded outward either — that would hand the window silent headroom; `owner`,
    `reason` (attributed cause; band is the TARGET and is NOT re-tuned) and a stated
    `liftCondition` for this new quarantine. The existing `history`, `liftedBy` and
    `liftEvidence` text is **preserved entire and appended to** — the lift record is
@@ -151,3 +156,55 @@ assert against the window instead of the band.
 
 The two CR-003 reds MUST remain red and are untouched. Any other test changing state
 is a stop-and-report condition.
+
+---
+
+## 8. Dry run of the ACTUAL nightly jq (director's Task 7)
+
+A `nightly-metrics.json` was constructed with all 20 seeds at their measured NEW-arm
+values from `docs/t4.19c-remeasurement.md` — including the six known out-of-band
+observations — and the two `jq` expressions were lifted from `.github/workflows/ci.yml`
+**unmodified** and run against it.
+
+Status line printed (verbatim, density line):
+
+```
+QUARANTINED  densityPerArableKm2  measured [0.36857, 0.74211]  window [0.3685744951368359,0.7421101248166698]  band [0.15,0.6]  owner: T4.19 lane C founding-demographic correction — …
+QUARANTINED  migrationGrossPerDecade  measured [0.000239, 0.000916]  window [0.0009,0.01]  band [0.001,0.01]  owner: M4 CR-002 packet …
+```
+
+Gate result: `jq -e … | all` printed `true`, **exit code 0**. No
+`NIGHTLY CORRIDOR BREACH`.
+
+Control run, same metrics file against the **pre-change** `corridors.json`
+(`git show HEAD:…`): `GATED densityPerArableKm2 measured [0.36857, 0.74211] band
+[0.15,0.6]`, gate `false`, **exit code 1**. That is state C, and it is exactly what the
+reclassification changes — the measurements in the two runs are identical.
+
+Density therefore classifies as QUARANTINED / REVIEW with its measured range printed,
+and the job exits 0. The corridor was not edited to obtain that exit code: the band is
+untouched at `[0.15, 0.6]` and the six observations remain visible in the printed range.
+
+## 9. Measured results
+
+* Release build: succeeded, 0 warnings, 0 errors.
+* `Sim.Tests` BEFORE (`dac4ffc`, as measured by the director): **722 passed / 4 failed /
+  6 skipped**. AFTER: **724 passed / 2 failed / 6 skipped** (total 732 both ways).
+  The two that changed state are `Canonical_FedCorridors_AllInBand` seeds 1 and 2.
+  **RECLASSIFICATION FROM C TO B, NOT A FIX.**
+  The two CR-003 reds (`Dev_MalthusCorridors_AllInBand` seeds 42 and 7, 3 starvation
+  deaths) are **still red and untouched**. No other test changed state.
+* `Sim.Ui.Tests`: 236/236, unchanged.
+* `scripts/check-banned-constructs.sh`, `check-read-isolation.sh`,
+  `check-readonly-proof.sh`: all exit 0.
+* `CanonicalSchema.Version` is still **24**; no golden file is in the diff.
+* Diff touches only `Sim.Data/content/corridors.json`, `Sim.Tests/…` and `docs/…` —
+  nothing under `Sim.Core`, `Sim.Cli` or `Sim.Ui`.
+
+### One correction made during implementation, recorded rather than hidden
+
+The window was first pinned at the document's 5-dp figures `[0.36857, 0.74211]`. Seed 2's
+true measured value is `0.7421101248166698`, so the 5-dp ceiling rounds *inward* and the
+upper tooth failed seed 2 on a rounding artefact. The window is now pinned at full
+measured precision, `[0.3685744951368359, 0.7421101248166698]`, re-measured in-battery at
+this commit. No bound was rounded outward to create headroom.
