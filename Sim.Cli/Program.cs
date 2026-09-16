@@ -58,6 +58,20 @@ namespace Sim.Cli
                   sim inspect --manifest runs/session-STAMP.json [--turn N] [--window K]
                           [--report-jsonl PATH] [--telemetry OUT.jsonl]
                           [--settlement ID --turn N]
+                          [--answer TOPIC [--settlement ID]]
+                          [--explain KIND --settlement ID --turn N [--class C]]
+
+                --answer reads the SAVED record (telemetry + trace + forensic +
+                manifest) and answers without re-running the simulation. Every
+                answer is tagged KNOWN / DERIVABLE / NOT RECORDED, and a NOT
+                RECORDED answer is never promoted. TOPIC is one of: world,
+                settlements, polities, movements, resources, happiness,
+                migration, artisan, events, hashes, limits, all.
+
+                --explain routes the causal layer headlessly. KIND is one of:
+                happiness, needs, migration, chain. It needs the (prev, next)
+                world pair, which nothing persists, so it is RECONSTRUCTED by
+                replaying to that turn — the output says so on every answer.
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
@@ -388,11 +402,26 @@ namespace Sim.Cli
         internal static int Inspect(string[] args)
         {
             var opts = Options.Parse(args, flags: [],
-                valued: ["--manifest", "--turn", "--window", "--report-jsonl", "--telemetry", "--settlement"]);
+                valued: ["--manifest", "--turn", "--window", "--report-jsonl", "--telemetry", "--settlement",
+                         "--answer", "--explain", "--class"]);
 
             string manifestPath = opts.Get("--manifest")
                 ?? throw new CliUsageException("inspect requires --manifest PATH");
             string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? ".";
+
+            // --- P3: ANSWER FROM THE SAVED RECORD, WITHOUT RE-RUNNING ANYTHING.
+            // Every other path through this verb replays the whole session to
+            // answer anything at all. That is the wrong instrument for a
+            // forensic question: what happened is established by the evidence
+            // the session left behind, not by a fresh run that could differ from
+            // it. --answer therefore returns BEFORE the replay below, and every
+            // line it prints carries its own KNOWN / DERIVABLE / NOT RECORDED
+            // tag. The reader itself lives in Sim.Core/Observability, which the
+            // read-isolation gate allowlists by path prefix.
+            if (opts.Get("--answer") is { } topic)
+            {
+                return AnswerFromRecord(manifestPath, topic, SettlementArg(opts));
+            }
 
             SessionManifest manifest;
             using (FileStream file = File.OpenRead(manifestPath))
@@ -455,6 +484,14 @@ namespace Sim.Cli
                 telemetryPath is not null || settlementArg is not null
                     ? new Sim.Core.Observability.ObservationLog() : null;
 
+            // P3 --explain needs the (prev, next) pair for ONE turn. Only that
+            // pair is retained, and only when asked for: holding every world
+            // would defeat the point of an observer that retains none.
+            long explainAt = opts.Get("--explain") is not null && opts.Get("--turn") is not null
+                ? opts.LongOr("--turn", -1) : -1;
+            WorldState? explainPrev = null;
+            WorldState? explainNext = null;
+
             var replayed = new List<SessionTrace.Row>((int)turns + 1)
             {
                 SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0],
@@ -467,6 +504,7 @@ namespace Sim.Cli
                 if (report is not null) ReplayReport.WriteTurn(report, world, cfg);
                 log?.Observe(prev, world, cfg,
                     Sim.Core.Observability.OrderApplied.For(orders, prev.Clock.Turn));
+                if (t == explainAt) { explainPrev = prev; explainNext = world; }
             }
 
             Console.WriteLine();
@@ -498,8 +536,7 @@ namespace Sim.Cli
 
             if (settlementArg is not null)
             {
-                if (!int.TryParse(settlementArg, NumberStyles.None, CultureInfo.InvariantCulture, out int settlementId))
-                    throw new CliUsageException($"--settlement must be a settlement id, got '{settlementArg}'");
+                int settlementId = SettlementArg(opts)!.Value;
                 if (focus is not { } at)
                     throw new CliUsageException("--settlement ID needs --turn N (the turn whose record to print)");
                 Sim.Core.Observability.TurnObservation? observation = log!.At(at);
@@ -514,6 +551,75 @@ namespace Sim.Cli
                 using Stream stdout = Console.OpenStandardOutput();
                 Sim.Core.Observability.TelemetryWriter.WriteSettlement(stdout, record, observation.Turn);
             }
+
+            // --- P3: the causal layer, HEADLESS. Until this packet
+            // Sim.Core/Observability/Explain had ZERO references from this
+            // project: the deepest causal machinery in the tree could be seen
+            // only in a screenshot of the UI. This routes it, and nothing more —
+            // no new state, no new arithmetic, no new mechanics. It needs the
+            // (prev, next) pair, which this build persists nowhere, so it is
+            // RECONSTRUCTED by the replay above and the output says so.
+            if (opts.Get("--explain") is { } kind)
+            {
+                if (focus is not { } explainTurn)
+                    throw new CliUsageException("--explain needs --turn N (the turn to explain)");
+                if (SettlementArg(opts) is not { } explainSettlement)
+                    throw new CliUsageException("--explain needs --settlement ID");
+                if (explainPrev is null || explainNext is null)
+                    throw new CliUsageException(
+                        $"turn {explainTurn.ToString(CultureInfo.InvariantCulture)} was not replayed "
+                        + $"(this session reached turn {turns.ToString(CultureInfo.InvariantCulture)})");
+
+                Console.WriteLine();
+                Console.Write(Sim.Core.Observability.Forensic.ExplainPrinter.Render(
+                    kind, explainPrev, explainNext, cfg,
+                    new Sim.Core.State.SettlementId(explainSettlement),
+                    new Sim.Core.State.ClassId((int)opts.LongOr("--class", 0)),
+                    explainTurn));
+            }
+            return 0;
+        }
+
+        /// <summary>--settlement ID, parsed once.</summary>
+        private static int? SettlementArg(Options opts)
+        {
+            if (opts.Get("--settlement") is not { } raw) return null;
+            if (!int.TryParse(raw, NumberStyles.None, CultureInfo.InvariantCulture, out int id))
+                throw new CliUsageException($"--settlement must be a settlement id, got '{raw}'");
+            return id;
+        }
+
+        /// <summary>
+        /// Prints the tagged answers for one topic. The query surface lives in
+        /// Sim.Core/Observability; this is flag parsing and printing.
+        /// </summary>
+        private static int AnswerFromRecord(string manifestPath, string topic, int? settlement)
+        {
+            var inspector = Sim.Core.Observability.Forensic.SessionInspector.Open(manifestPath);
+            Sim.Core.Observability.Forensic.Answer[] answers;
+            try
+            {
+                answers = inspector.Answer(topic, settlement);
+            }
+            catch (ArgumentException e)
+            {
+                throw new CliUsageException(e.Message);
+            }
+
+            int notRecorded = 0;
+            for (int i = 0; i < answers.Length; i++)
+            {
+                Sim.Core.Observability.Forensic.Answer a = answers[i];
+                if (a.Evidence == Sim.Core.Observability.Forensic.Evidence.NotRecorded) notRecorded++;
+                Console.WriteLine();
+                Console.WriteLine(a.Header);
+                Console.WriteLine("  basis: " + a.Basis);
+                for (int j = 0; j < a.Lines.Length; j++) Console.WriteLine("  " + a.Lines[j]);
+            }
+            Console.WriteLine();
+            Console.WriteLine($"{answers.Length.ToString(CultureInfo.InvariantCulture)} answer(s); "
+                + $"{notRecorded.ToString(CultureInfo.InvariantCulture)} tagged NOT RECORDED. "
+                + "A NOT RECORDED answer is never promoted to DERIVABLE.");
             return 0;
         }
 
