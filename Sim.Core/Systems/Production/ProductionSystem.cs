@@ -154,8 +154,17 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
 
             long adults = BandViews.Adults(prev.Buckets, settlement);
 
+            // T4.21-1 (CR-015 §3.3): ONE food multiplier per settlement — the
+            // harvest-weather multiplier times the disaster multiplier, both
+            // from PREV with the absent-row-is-1.0 rule. Computed once so
+            // farming and the herding food pathway cannot drift onto two
+            // readings of one signal (the T4.5 rationale). x × 1.0 == x bit for
+            // bit, so a world without a strike produces exactly as before.
+            double foodMultiplier = HarvestWeatherFor(prev, settlement) * DisasterFor(prev, settlement);
+
             Farm(ctx, prev, stocks, settlement,
-                farmLabor: Sectors.Share(shares, Sectors.Farming) * adults);
+                farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
+                foodMultiplier: foodMultiplier);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -172,7 +181,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
                 foodSector: true,
-                weather: HarvestWeatherFor(prev, settlement));
+                weather: foodMultiplier);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
@@ -186,7 +195,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     /// <summary>Farming: the Leontief with the REAL tool factor + tool wear.</summary>
     private void Farm(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
-        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor)
+        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier)
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
@@ -236,7 +245,12 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // ABSENT ROW = 1.0, deliberately: a world with no weather system in its
         // pipeline (every toy preset, and every hand-built test world that does
         // not ask for weather) farms exactly as it did before T3.4b.
-        ratePerYear *= HarvestWeatherFor(prev, settlement);
+        //
+        // T4.21-1: the caller's foodMultiplier is weather × disaster (§3.3),
+        // applied here in weather's own position — once, after the Leontief
+        // min, before dt integration. Without a strike it IS the weather
+        // multiplier (w × 1.0 == w), so this line is bit-identical to T3.4b's.
+        ratePerYear *= foodMultiplier;
 
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
@@ -332,6 +346,26 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         {
             if (prev.HarvestWeather[i].Settlement != settlement) continue;
             return prev.HarvestWeather[i].Multiplier;
+        }
+        return 1.0;
+    }
+
+    /// <summary>
+    /// T4.21-1 (CR-015 §3.3): this settlement's PREV disaster multiplier — the
+    /// famine-class shock's factor on FOOD output this step — or 1.0 when no row
+    /// exists. Same scan shape, same first-match break and same absent-row
+    /// default as HarvestWeatherFor: a world with no disaster system in its
+    /// pipeline (every toy preset and every hand-built rig that does not ask for
+    /// one) produces exactly as it did before. Read where weather is read, so
+    /// a disaster drawn at turn t reduces the food produced at turn t+1 and is
+    /// classified FAMINE by FoodState the turn its deficit first appears.
+    /// </summary>
+    private static double DisasterFor(IReadOnlyWorldState prev, SettlementId settlement)
+    {
+        for (int i = 0; i < prev.Disasters.Count; i++)
+        {
+            if (prev.Disasters[i].Settlement != settlement) continue;
+            return prev.Disasters[i].Multiplier;
         }
         return 1.0;
     }
