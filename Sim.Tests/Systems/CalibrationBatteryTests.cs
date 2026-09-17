@@ -540,21 +540,31 @@ public class CalibrationBatteryTests
         // sides. corridors.json bands are UNTOUCHED — this is the recorded-
         // trajectory pin, re-pinned like a golden with this history line.
         // (v1, T3.2b/CR-003: [70k, 100k] on measured 79,847 / 89,615.)
-        // Envelope RE-MEASURED at T4.21-3 (CR-015 / ADR-026): the tooth in (2)
-        // no longer fires — on the integration tree both seeds carried 3
-        // STRESS-sized weather starvation deaths (the CR-003 §7.6 "NOT
+        // Envelope RE-MEASURED at T4.21-3 (CR-015 / ADR-026). The tooth in (2)
+        // no longer fires: on the integration tree (1735d41) both seeds carried
+        // 3 STRESS-sized weather starvation deaths (the CR-003 §7.6 "NOT
         // ACTIONED" message), and under the effective deficit a shortfall
-        // inside the absorbable band starves nobody: starvation is EXACTLY 0
-        // on both seeds, crashes 0, growth monotone — the pre-Malthusian
-        // regime this quarantine asserts, restored (CR-015 N7's pre-committed
-        // reading for dev.starvationRatePer1000). The finals rose because
-        // G3(b) also lifts the birth suppression those tiny deficits carried
-        // (1 − 3d per turn, compounding over 1000 turns): seed 42 77,654 →
-        // 93,965 (+21 %), seed 7 106,150 → 122,532 (+15 %); founding totals
-        // unchanged (1,581 / 2,058). Envelope [82k, 138k] keeps ~12 % margins
-        // on both sides. corridors.json bands are UNTOUCHED. T4.21-4 owns the
-        // CR-003 message re-read; this is the recorded-trajectory pin, re-pinned
-        // like a golden with this history line.
+        // inside the absorbable band starves nobody — starvation is EXACTLY 0
+        // on both seeds, crashes 0, growth monotone: the pre-Malthusian regime
+        // this quarantine asserts, restored (CR-015 N7's pre-committed reading
+        // for dev.starvationRatePer1000). THE T3.6b FINALS WERE STALE: that
+        // tooth had masked this assertion since, and measured on the
+        // integration HEAD with the tooth bypassed the finals were ALREADY
+        // 100,544 (seed 42) / 139,154 (seed 7) — outside [68k, 119k]. This
+        // packet LOWERS them, to 93,965 / 122,532 (the turn-2 headroom hold
+        // every founded world takes, then chaotic divergence — SnapshotTests
+        // .FoundedGolden has the record); founding totals unchanged (1,581 /
+        // 2,058). Envelope [82k, 138k] keeps ~12 % margins on both sides of
+        // the values measured on THIS tree. corridors.json bands are UNTOUCHED.
+        // T4.21-4 owns the CR-003 message re-read; this is the recorded-
+        // trajectory pin, re-pinned like a golden with this history line.
+        // KNOWN, NOT MINE: seed 7 then reaches AssertDevMigrationQuarantine and
+        // fails it — dev.migrationGrossPerDecade 0.000110 vs the recorded
+        // 0.000800 × 0.75. That drift PRE-DATES this packet: measured on the
+        // integration HEAD with the starvation tooth bypassed, seed 7 read
+        // 6.80E-05 (seed 42 6.42E-05; here 9.43E-05), so this tree moves it UP,
+        // not down. The recorded envelope's re-pin is T4.21-4's deliverable
+        // (spec §4, N7) and is left for it.
         Assert.InRange(m.FinalPopulation, 82_000, 138_000);
     }
 
