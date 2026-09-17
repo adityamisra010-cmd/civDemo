@@ -24,6 +24,15 @@
 > `docs/t4.21-architecture.md`, evidence `docs/t4.21-evidence/`. Code packets T4.21-1..6 follow on
 > their own branches; nothing is merged to `main`. Suite baseline on `45046eb` (Release): 754 passed /
 > 2 failed (`Dev_MalthusCorridors` seeds 42, 7 — red by CR-003 ruling) / 6 skipped. Verify against git.
+> T4.21-1 merged to the integration branch at `05b23e6` (Release suite, measured by the fix lane on
+> the fix tree: Sim.Tests 819 passed / 2 failed / 6 skipped in 5 m 36 s, Sim.Ui.Tests 294/294 — the
+> SAME two `Dev_MalthusCorridors_AllInBand(seed: 42)` and `(seed: 7)` fail on `45046eb` in the fix
+> lane's own worktree with the byte-identical message "3 starvation deaths": INHERITED from the M4
+> playtest build, not caused by the packet; CI on this branch is red until T4.21-4 restores the `Cr003Quarantine` guards and re-reads the
+> `Dev_MalthusCorridors` message). T4.21-1 fix lane (verifier's findings): the measured foundations
+> audit `docs/t4.21-1-foundations-audit.md` (per-settlement `ρ` for seed 42 ± the director's orders and
+> seeds 1–3, F4/F5), the measured mutant kill-record `docs/t4.21-1-mutants.md`, and the M-FS-ABANDON
+> correction in ADR-024 §8 / FoodState.cs (the Share variant is equivalent).
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
