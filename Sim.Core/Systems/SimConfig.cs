@@ -160,6 +160,17 @@ public sealed record ConsumptionConfig(
 ///  - ReboundReleaseRatePerYear: fed-turn drain rate of the reservoir back
 ///    into the births flow (duration of the rebound; at Neolithic dt = 10 a
 ///    rate ≥ 0.1 releases the bulk in the first fed decade).
+/// T4.21 headroom relaxation (ADR-025 §2.4, ADR-026; t4.21-architecture §3.5c/§3.6b):
+///  - HeadroomRelaxationPerYear (k): the per-year rate at which the REMAINING
+///    food headroom of a settlement (N_lim − N, FoodHeadroom.Vacancy) is closed
+///    — by natural growth (the Demographics headroom cap) AND by immigration
+///    (Migration's vacancy bound): cap = (1 − exp(−k·dt)) × V. ONE law, ONE
+///    constant, consumed by both systems. TUNE, CHOSEN per S8 §4.1(c), not
+///    derived: k = ln 2 / 10 within the director's frame "the gap halves per
+///    decade" ((1 − e^{−k·h}) = 3.41 % of remaining headroom per half-year).
+///    No null arm by design — a structural bound has no switch (law 2); the
+///    identity arm is N_lim = +∞ (no deficit row / no demand), where the cap
+///    is vacuous. A rate ≥ 0 is required (finite, non-negative).
 /// </summary>
 public sealed record DemographicsConfig(
     [property: JsonPropertyName("fertilityPerPersonPerYear"), JsonRequired] double[] FertilityPerPersonPerYear,
@@ -169,7 +180,8 @@ public sealed record DemographicsConfig(
     [property: JsonPropertyName("starvationElderMultiplier"), JsonRequired] double StarvationElderMultiplier,
     [property: JsonPropertyName("famineFertilitySuppressionSlope"), JsonRequired] double FamineFertilitySuppressionSlope,
     [property: JsonPropertyName("reboundRecoverableFraction"), JsonRequired] double ReboundRecoverableFraction,
-    [property: JsonPropertyName("reboundReleaseRatePerYear"), JsonRequired] double ReboundReleaseRatePerYear);
+    [property: JsonPropertyName("reboundReleaseRatePerYear"), JsonRequired] double ReboundReleaseRatePerYear,
+    [property: JsonPropertyName("headroomRelaxationPerYear"), JsonRequired] double HeadroomRelaxationPerYear);
 
 /// <summary>
 /// The founding endowment per settlement: people per cohort (exactly
@@ -742,6 +754,7 @@ public static class SimConfigLoader
         RequireRate("demographics.starvationElderMultiplier", cfg.Demographics.StarvationElderMultiplier);
         RequireRate("demographics.famineFertilitySuppressionSlope", cfg.Demographics.FamineFertilitySuppressionSlope);
         RequireRate("demographics.reboundReleaseRatePerYear", cfg.Demographics.ReboundReleaseRatePerYear);
+        RequireRate("demographics.headroomRelaxationPerYear", cfg.Demographics.HeadroomRelaxationPerYear);
         if (!(cfg.Demographics.ReboundRecoverableFraction >= 0.0 && cfg.Demographics.ReboundRecoverableFraction <= 1.0))
             throw new SimConfigException(
                 $"demographics.reboundRecoverableFraction must be in [0,1] (a fraction of suppressed conceptions" +

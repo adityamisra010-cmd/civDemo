@@ -222,6 +222,52 @@ public class SimConfigTests
         Assert.Contains("hazardPerYear", e.Message);
     }
 
+    // ======================================================================
+    // T4.21-1b (ADR-025 §2.4 / ADR-026): demographics.headroomRelaxationPerYear
+    // ======================================================================
+
+    [Theory]
+    [InlineData("-0.01")]      // a negative rate would OPEN headroom instead of closing it
+    [InlineData("NaN")]
+    [InlineData("Infinity")]
+    public void HeadroomRelaxation_NotFiniteNonNegative_RefusesLoad(string bad)
+    {
+        string json = CanonicalJson().Replace(
+            "\"headroomRelaxationPerYear\": 0.0693147180559945",
+            $"\"headroomRelaxationPerYear\": {bad}");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("demographics.headroomRelaxationPerYear", e.Message);
+    }
+
+    [Fact]
+    public void HeadroomRelaxation_Missing_RefusesLoad()
+    {
+        // The typo scenario: a missing key must not bind as 0.0 (which would
+        // freeze every settlement at its current headroom — no growth into V).
+        string json = CanonicalJson().Replace(
+            "\"headroomRelaxationPerYear\":", "\"headroomRelaxationPerYr\":");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("headroomRelaxationPerYear", e.Message);
+    }
+
+    [Fact]
+    public void HeadroomRelaxation_ShippedValue_IsLn2OverTenYears()
+    {
+        // CHOSEN k = ln 2 / 10: "the gap halves per decade" (ADR-026 §3 table; one
+        // constant shared with ADR-025's vacancy bound). Pinned exactly so the
+        // value cannot drift from its stated frame silently.
+        SimConfig cfg = TestConfigs.Sim();
+        Assert.Equal(0.0693147180559945, cfg.Demographics.HeadroomRelaxationPerYear);
+        // The literal is ln 2 / 10 rounded to 16 significant digits (the last
+        // digit 3 of 0.06931471805599453 dropped): |Δ| ≈ 3e-17, one ulp-scale.
+        double k = cfg.Demographics.HeadroomRelaxationPerYear;
+        Assert.InRange(Math.Abs(k - Math.Log(2.0) / 10.0), 0.0, 1e-16);
+        // Frame check: the gap halves per decade.
+        Assert.InRange(Math.Exp(-k * 10.0), 0.5 - 1e-15, 0.5 + 1e-15);
+    }
+
     [Fact]
     public void ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne()
     {
