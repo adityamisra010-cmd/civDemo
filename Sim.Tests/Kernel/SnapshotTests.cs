@@ -733,7 +733,29 @@ public class SnapshotTests
         //   DERIVED TWICE: this in-test harness and the built CLI
         //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1";
+        // T4.21-2 RE-PIN — BOUNDED MIGRATION (ADR-025), BEHAVIOUR, MEASURED.
+        //   OLD  008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1
+        //   NEW  d45f14d3b83601ec1a3507762a621f6a599a2926ecd7221998e7254150f018a1
+        //   CAUSE MigrationSystem's flight is the exact hazard φ = 1 − e^{−profile·K·ω·d·dt}
+        //         on the best exit with shares (spec §3.4); the gap channel is bounded
+        //         at both ends of every basin (§3.5b: measured on this world, the
+        //         basin caps bite in 8–12 of 12 settlements per early turn and cut the
+        //         pair-capped gap inflow ~3× — 14 863 pair-capped vs 5 064 planned
+        //         over 300 turns); the vacancy bound (§3.5c) bites on turn 2 in
+        //         EVERY settlement (turn 1 is the endowment turn with zero harvest,
+        //         so N_lim reads 0 and V = 0 for that one turn) and on 1 settlement-
+        //         turn afterwards (t9); the D-037 readout carries the same hazard
+        //         with ω := 1. No constant moved (CR-015 §6.5).
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 (terrain-less, no
+        //         distances ⇒ no migration) is UNMOVED at b6df7edd…, and its v22 /
+        //         v24 strip controls still return 0f94b4ad… / eec82711… — the
+        //         change stayed inside migration.
+        //   THE T4.21-1 LAYOUT CONTROL is historical from this commit: the strip
+        //         of the disaster layer no longer returns the pre-T4.21 pins (the
+        //         behaviour moved underneath it); IntegratedPinAttribution's
+        //         constants are re-measured on this tree (T4.10/T4.19 precedent).
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "d45f14d3b83601ec1a3507762a621f6a599a2926ecd7221998e7254150f018a1";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

@@ -75,11 +75,19 @@ public class WorldReconciliationTests
         TurnRecord t2 = log.At(2)!.Turn;
         Assert.True(t2.Population.Births > 0, "no births on turn 2");
         Assert.True(t2.Population.NaturalDeaths > 0, "no deaths on turn 2");
-        Assert.True(t2.Flows.MigrantsMoved > 0, "no migration on turn 2");
+        // T4.21-2 (ADR-025): migration's first turn is now turn 3, measured — on
+        // turn 2 every destination reads a zero vacancy (turn 1 is the endowment
+        // turn with zero harvest, so N_lim = 0 for that one turn) and the vacancy
+        // bound refuses every gap flow; turn 3 moves 256 (measured on this tree).
+        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3");
         Assert.True(t2.Grain.Harvest > 0, "no harvest on turn 2");
         Assert.True(t2.Grain.Spoilage > 0, "no spoilage on turn 2");
         Assert.True(log.At(1)!.Turn.Grain.Overflow > 0, "no granary overflow on turn 1");
-        Assert.True(log.At(55)!.Turn.Population.Starvation > 0, "no starvation on turn 55");
+        // T4.21-2 (ADR-025): first starvation RE-MEASURED 55 -> 57 (bounded
+        // migration moved the trajectory; trade on 41 still holds).
+        Assert.Equal(0, log.At(55)!.Turn.Population.Starvation);
+        Assert.True(log.At(57)!.Turn.Population.Starvation > 0, "no starvation on turn 57");
         Assert.True(log.At(41)!.Turn.Flows.TradeUnits > 0, "no trade on turn 41");
         Assert.True(log.At(1)!.Turn.Dwellings.Built > 0, "nothing built on turn 1");
         Assert.Equal(0, t2.Flows.SettlementsFounded);
@@ -93,9 +101,14 @@ public class WorldReconciliationTests
         AssertEveryTurnReconciles(log, "driven");
 
         TurnRecord t2 = log.At(2)!.Turn;
+        // T4.21-2 (ADR-025): migration on turn 2 is refused by the vacancy bound
+        // (the founded world's turn-1 harvest is zero ⇒ N_lim = 0 on turn 2, see
+        // the founded pin above); its first turn is measured at 3.
         Assert.True(t2.Population.Births > 0 && t2.Population.NaturalDeaths > 0
-            && t2.Flows.MigrantsMoved > 0 && t2.Grain.Harvest > 0 && t2.Grain.Spoilage > 0,
-            "turn 2 of the driven world does not carry all five flows");
+            && t2.Grain.Harvest > 0 && t2.Grain.Spoilage > 0,
+            "turn 2 of the driven world does not carry the four non-migration flows");
+        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3 of the driven world");
         Assert.True(log.At(7)!.Turn.Population.Starvation > 0, "no starvation on turn 7");
         Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
         // T4.19-A (CR-014 ruled): the first-decay sample RE-MEASURED, 25 -> 48.
@@ -108,7 +121,10 @@ public class WorldReconciliationTests
         // founding vector is its whole cause. Starvation on 7 and trade on 7
         // hold on every arm. Reconciliation above is asserted on all 300
         // turns; this is the non-vacuity sample only.
-        Assert.True(log.At(48)!.Turn.Dwellings.Decayed > 0, "no decay on turn 48");
+        // T4.21-2 (ADR-025): first decay RE-MEASURED 48 -> 64 (bounded migration
+        // moved the trajectory; starvation on 7 and trade on 7 still hold).
+        Assert.Equal(0, log.At(48)!.Turn.Dwellings.Decayed);
+        Assert.True(log.At(64)!.Turn.Dwellings.Decayed > 0, "no decay on turn 64");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery: 1464 produced, 638 sunk on turn 5, measured).

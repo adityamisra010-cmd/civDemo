@@ -73,15 +73,19 @@ internal static class ObservedWorlds
     /// process and shared: 300 founded + 300 driven turns cost ~90 s, and every
     /// identity below is asserted over the same run rather than a re-run.
     /// MEASURED on this tree (the numbers the tests pin as non-vacuity):
-    ///   FOUNDED 300: births, deaths, migrants, harvest and spoilage are ALL
-    ///     non-zero on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact);
-    ///     overflow first on turn 1, starvation first on turn 55, trade on 41,
+    ///   FOUNDED 300: births, deaths, harvest and spoilage are non-zero on turn
+    ///     2 (turn 1 harvests zero — the T4.18 warm-up artefact); migrants first
+    ///     on turn 3 (T4.21-2: the vacancy bound refuses every gap flow on turn 2,
+    ///     because turn 1's zero harvest reads N_lim = 0 for that one turn);
+    ///     overflow first on turn 1, starvation first on turn 57 (55 before
+    ///     T4.21-2's bounded migration), trade on 26 (41 still carries trade),
     ///     dwellings never decay; no settlement is founded (12 throughout).
-    ///   DRIVEN 300: the same five non-zero on turn 2; starvation on 7, trade on
-    ///     7, decay on 48 (25 on the pre-lane-C founding vector; re-measured at
-    ///     T4.19-A under CR-014 with the unfixed cap as the control arm — same
-    ///     48 — so the founding vector alone moved it); no founding; 56 policy
-    ///     changes, all on turn 3.
+    ///   DRIVEN 300: the same four non-zero on turn 2, migrants on 3; starvation
+    ///     on 7, trade on 7, decay on 64 (T4.21-2 re-measure; 48 on the T4.19-A
+    ///     tree, 25 on the pre-lane-C founding vector — re-measured at T4.19-A
+    ///     under CR-014 with the unfixed cap as the control arm, same 48, so the
+    ///     founding vector alone moved it then; bounded migration moves it now);
+    ///     no founding; 56 policy changes, all on turn 3.
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
     ///     settlement 0, party 143, provisions 128; nothing founded after.</summary>
     internal static readonly Lazy<Run> Founded300 =

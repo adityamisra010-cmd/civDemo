@@ -40,8 +40,13 @@ public class ExplainGrievanceTests
         // docs/m4-founding-demographics-correction.md §7).
         Assert.False(ExplainRigs.HasSectorRow(worlds[1], ExplainRigs.Target), "the Turn-1 batch must not be in force in world 1");
         Assert.True(ExplainRigs.HasSectorRow(worlds[2], ExplainRigs.Target), "the Turn-1 batch must land in world 2");
+        // T4.21-2 RE-PIN: 0.7786416647610336 -> 0.76919291338582674. The turn did
+        // NOT move; the value did, because bounded migration (ADR-025: the turn-2
+        // vacancy refusal — turn 1 is the zero-harvest endowment turn, so every
+        // settlement reads V = 0 on turn 2 — and the basin caps on the gap
+        // channel) leaves the target a different population by the drawdown turn.
         Assert.Equal(3, first);
-        Assert.Equal(0.7786416647610336, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
+        Assert.Equal(0.76919291338582674, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

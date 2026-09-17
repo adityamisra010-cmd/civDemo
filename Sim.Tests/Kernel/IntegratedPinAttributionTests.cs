@@ -58,6 +58,18 @@ namespace Sim.Tests.Kernel;
 /// this control is the measurement that says so, on the tree, not the argument.
 /// The v22/v23 controls below strip the disaster layer too, so every constant
 /// they carry is UNMOVED by this packet.
+///
+/// T4.21-2 (ADR-025, BOUNDED MIGRATION) MOVED THE THREE FOUNDED WORLDS
+/// BEHAVIOURALLY — the exact flight hazard, the basin caps on the gap channel
+/// and the vacancy bound (SnapshotTests.FoundedGolden carries the measured
+/// record). As at T4.10 and T4.19, every founded/FirstReign/driven constant in
+/// this file is therefore RE-MEASURED on this tree (OLD values in the
+/// per-constant comments), and what the strips now prove is the WEAKER claim
+/// that the M4 rows and the disaster layer are separable from the simulation
+/// output they sit beside; "moved for the layout alone" is a historical fact
+/// about commit 1735d41, not a property of this tree. The synthetic
+/// GoldenHashSeed42Turn200 controls are UNMOVED (no distances ⇒ no migration),
+/// which is the measurement that this change stayed inside migration.
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -71,8 +83,10 @@ public class IntegratedPinAttributionTests
     /// the driven world moved for lane C's founding vector (the cap change alone
     /// returns the old vector's pin byte for byte; DrivenGoldenTests has the arms).
     /// OLD 611a1508e650c9b897e3ec3ec0884969ae3add4d8de520fa5a126efbb71926ea.
+    /// T4.21-2 (ADR-025): re-measured on this tree — bounded migration moved the
+    /// driven world. OLD 60bd5b208696a25f93469d58d4a4284d8ae8467107aeee3545d3d0f82b61ba14.
     internal const string CapacityFloorFixAtSchemaV22 =
-        "60bd5b208696a25f93469d58d4a4284d8ae8467107aeee3545d3d0f82b61ba14";
+        "789585bed857ae94888ee8edbdc18b1ee5c9222c23695109b86e7002271b194d";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -187,6 +201,9 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheM4SchemaAlone()
     {
+        // T4.21-2 (ADR-025): re-measured — OLD f886efbd159f5717848534efe3af61b8
+        // 26fa599d742e5e244d7afafa067bce22 (v22), e48d9bcd8883204bb2efa4843923c49a
+        // 30de86fae9269e7354e6d2018bf8e1f7 (v23); bounded migration moved this world.
         // main's post-T4.4 pin. Reappearing under the control proves the
         // capacity-floor fix does NOT reach this world — consistent with the
         // pre-integration measurement, which found the fix's blast radius to be
@@ -194,7 +211,7 @@ public class IntegratedPinAttributionTests
         // T4.19 lane C: re-measured on the corrected founding vector (tuning
         // data; SnapshotTests.FoundedGolden carries the record and the 41-table
         // turn-0 control). OLD f25c5dd3947a53827c1d9615a7e351108c05258bb0ffe0b1ab1a269e9a4626c6.
-        const string mainValue = "f886efbd159f5717848534efe3af61b826fa599d742e5e244d7afafa067bce22";
+        const string mainValue = "05eb271cfec6226716d58eb6ca10859ae2f7a91273b0978574509d96fbb806c3";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -215,7 +232,7 @@ public class IntegratedPinAttributionTests
         // path, production, demographic, migration or economic state moved with
         // it, because any such drift would survive the strip and break this.
         // T4.19 lane C: OLD 16a1c17150f210b90a8c4d866f16a1767bdc13f218f880304f2449437625e015.
-        const string beforeM4C = "e48d9bcd8883204bb2efa4843923c49a30de86fae9269e7354e6d2018bf8e1f7";
+        const string beforeM4C = "f49815f0d222a8a269a042611bc110486527d5112e3262fe591f7524266872ab";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -227,6 +244,9 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheM4SchemaAlone()
     {
+        // T4.21-2 (ADR-025): re-measured — OLD 69d6cf178fa536e0582874eacf7adec9
+        // fbcbc686c5e14a12292f935aa2694550 (v22), 4e7d2e69e7c5ed72444501bed84c341b
+        // 50a0d77c25d123ead36498ce9b280d7b (v23); bounded migration moved this world.
         // The fourth pinned world, and the one that most needs a control: T4.4's
         // own history records an earlier revision of it moving this pin
         // BEHAVIOURALLY (the lone settlement colonising its way out of the
@@ -234,14 +254,14 @@ public class IntegratedPinAttributionTests
         // that must not be taken on trust.
         // T4.19 lane C: re-measured on the corrected founding vector (tuning
         // data; FirstReignTests carries the record). OLD a64a6cf62eb63a4e5c46297fca4e146a543e13cb0f49a53c3687b47da63001e6.
-        const string mainValue = "69d6cf178fa536e0582874eacf7adec9fbcbc686c5e14a12292f935aa2694550";
+        const string mainValue = "7cb35cbdc92e3bf0419dcd091343126acb801eb0a7bc0576627c561af47ca2e1";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
         // T4.19 lane C: OLD f79714f955c31cf0f25d323c045a0c1935345e92908fa78758bc8266c6b8ef0b.
-        const string beforeM4C = "4e7d2e69e7c5ed72444501bed84c341b50a0d77c25d123ead36498ce9b280d7b";
+        const string beforeM4C = "e877c79683265a6dd09055861541c731ecfdfed2eee0188cb6939974541cf6f5";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -281,7 +301,8 @@ public class IntegratedPinAttributionTests
         // M4-C LAYER — founded world, so Empire rows land here as well. Three
         // causes now compose in this one pin, and each is measured separately.
         // T4.19: OLD e2f3c0426f504077c8536f51f7784a7fa2b5925bc85c95ef715b7931f64851ab.
-        const string beforeM4C = "cf93e0fed26a3e28e9e971498f8240c1534a5a8aa97391fe030adeaf76d4fa75";
+        // T4.21-2 (ADR-025): OLD cf93e0fed26a3e28e9e971498f8240c1534a5a8aa97391fe030adeaf76d4fa75.
+        const string beforeM4C = "bdf29a88dcec3385d9bd6ccb8938877ef88459629b10eccf33707e45dcdb0c15";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -297,7 +318,9 @@ public class IntegratedPinAttributionTests
     {
         // The toy pipeline has no disaster system, so this synthetic world gains
         // NO stream rows — its whole movement is the empty Disasters prefix.
-        // The pre-packet pin (SnapshotTests.GoldenHash at 45046eb).
+        // The pre-packet pin (SnapshotTests.GoldenHash at 45046eb). UNMOVED by
+        // T4.21-2 (bounded migration): no distances, no migration — this is the
+        // no-unrelated-movement control for that packet too.
         const string beforeT421 = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
 
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
@@ -310,12 +333,17 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone()
     {
+        // T4.21-2 (ADR-025): the pre-packet pin no longer returns — bounded
+        // migration moved this world; re-measured on this tree (OLD
+        // 917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62 —
+        // the pre-T4.21 pin, which this control returned byte for byte at
+        // 1735d41). What survives is separability: the strip is non-vacuous.
         // The pre-packet pin (SnapshotTests.FoundedGolden and ci.yml's
         // FOUNDED_GOLDEN at 45046eb). hazardPerYear = 0 ⇒ no row is ever
         // written, ProductionSystem multiplies by 1.0 exactly, and the ONLY
         // thing in the stream that is not in the pre-packet stream is one
         // RngStreamRow per settlement plus the empty v25 prefix.
-        const string beforeT421 = "917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62";
+        const string beforeT421 = "7ee73714b054cd3250a0c9a37a59677581cb74a0469e20b29e9bcde65fc05ed6";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -335,12 +363,15 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheDisasterLayoutAlone()
     {
+        // T4.21-2 (ADR-025): re-measured on this tree (OLD 5ee8119e365ad04bdfc45f
+        // 791a8962bb0fb616016ad1616c67b9c74c2d81e9a returned byte for byte at
+        // 1735d41); bounded migration moved this world.
         // The pre-packet pin (FirstReignTests at 45046eb). This is the world
         // whose lone settlement dies under the director's 0%-farm order — an
         // ABANDONMENT famine under the new classification, and this control is
         // what proves the classification's existence moved nothing: FoodState
         // is a static nothing in the pipeline calls yet.
-        const string beforeT421 = "5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a";
+        const string beforeT421 = "8e23b4b32e3a1e0257df6af8fd482d8f5cb177345bb3378f2b4061ac8a561e72";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
@@ -351,8 +382,10 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone()
     {
-        // The pre-packet pin (DrivenGoldenTests at 45046eb).
-        const string beforeT421 = "76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6";
+        // The pre-packet pin (DrivenGoldenTests at 45046eb). T4.21-2 (ADR-025):
+        // re-measured on this tree (OLD 76f82629abbffbc3c0897d2cfab7933e890a5441
+        // 697dfdb82a59cd64d74163a6 returned byte for byte at 1735d41).
+        const string beforeT421 = "cee0c2c0e519f07852229023400f6e9e050900d5b84ac7ba73e9d2bbd8d4f26b";
 
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
