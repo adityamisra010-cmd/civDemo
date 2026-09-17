@@ -316,28 +316,16 @@ public class DrivenGoldenTests
         //         .DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
         //         both and returns the OLD value byte for byte; every v22/v23
         //         constant in that file is UNMOVED.
-        // T4.21-2 RE-PIN — BOUNDED MIGRATION (ADR-025), BEHAVIOUR, MEASURED.
+        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
         //   OLD  73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
-        //   NEW  297b432ccd4eff0257c86a89913bd9c2b0996e5fb3ff3c0aeba5ae30072b4839
-        //   CAUSE MigrationSystem's flight is the exact hazard φ = 1 − e^{−profile·K·ω·d·dt}
-        //         on the best exit with shares (spec §3.4); the gap channel is bounded
-        //         at both ends of every basin (§3.5b: measured on this world, the
-        //         basin caps bite in 8–12 of 12 settlements per early turn and cut the
-        //         pair-capped gap inflow ~3× — 14 863 pair-capped vs 5 064 planned
-        //         over 300 turns); the vacancy bound (§3.5c) bites on turn 2 in
-        //         EVERY settlement (turn 1 is the endowment turn with zero harvest,
-        //         so N_lim reads 0 and V = 0 for that one turn) and on 1 settlement-
-        //         turn afterwards (t9); the D-037 readout carries the same hazard
-        //         with ω := 1. No constant moved (CR-015 §6.5).
-        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 (terrain-less, no
-        //         distances ⇒ no migration) is UNMOVED at b6df7edd…, and its v22 /
-        //         v24 strip controls still return 0f94b4ad… / eec82711… — the
-        //         change stayed inside migration.
-        //   THE T4.21-1 LAYOUT CONTROL is historical from this commit: the strip
-        //         of the disaster layer no longer returns the pre-T4.21 pins (the
-        //         behaviour moved underneath it); IntegratedPinAttribution's
-        //         constants are re-measured on this tree (T4.10/T4.19 precedent).
-        const string golden = "297b432ccd4eff0257c86a89913bd9c2b0996e5fb3ff3c0aeba5ae30072b4839";
+        //   NEW  d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02
+        //   CAUSE the turn-2 headroom hold and the effective deficit — see
+        //         SnapshotTests.FoundedGolden for the record. This driven world
+        //         reads d > 0 turns under the director's orders (starvation first
+        //         on turn 8, was 7 — WorldReconciliationTests), so both channels
+        //         of ADR-026 reach it. 1,535 people at 300 (measured).
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 UNMOVED.
+        const string golden = "d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

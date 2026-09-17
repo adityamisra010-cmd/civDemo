@@ -99,14 +99,14 @@ public class MerchantTests
         // canonical world and asserts the latch flips somewhere — the measured
         // series reaches 3042 units on a settlement by turn 650, well past the
         // threshold of 200.
-        // T4.21-2 RE-RIG (ADR-025, bounded migration): the latch is EPISODIC by
-        // design (recede at trade_volume < 50 on a quiet decade), so "active at
-        // turn 650" was a snapshot that happened to hold on the old trajectory.
-        // MEASURED on this tree: trade_volume first exceeds 200 at turn 123, two
-        // towns latch at turn 124, both recede later, and at turn 650 none is
-        // active (max volume 5 203 by 650, 7 188 by 900). The aim — the class is
-        // REACHABLE in the canonical world — is asserted as "ever latched within
-        // 650 turns", which is what the comment above always said.
+        // T4.21-3 RE-ANCHORED to the test's stated aim ("flips SOMEWHERE"): the
+        // latch has a recede predicate and oscillates on the canonical world —
+        // MEASURED on this tree: first active on turn 128, active on 169 of the
+        // 650 turns, last on 646, RECEDED at 650; on the pre-T4.21-3 tree it
+        // happened to read active at 650 (the same 0/2 flicker at turns
+        // 175/200/225…). Reading the latch at one turn asserted the phase of
+        // an oscillation, not reachability; the loop below asserts the latch
+        // was ever active within the horizon and reports where.
         using var era = Sim.Data.DataFiles.OpenEraPacing();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(EraTableLoader.Load(era),
@@ -114,14 +114,17 @@ public class MerchantTests
         ClassId merchant = MerchantClass();
 
         WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42);
-        int firstLatchTurn = -1;
+        int firstActive = -1, activeTurns = 0;
         for (int t = 1; t <= 650; t++)
         {
             w = exec.Step(w);
+            int activeNow = 0;
             for (int i = 0; i < w.ClassStates.Count; i++)
-                if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0 && firstLatchTurn < 0)
-                    firstLatchTurn = t;
+                if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0) activeNow++;
+            if (activeNow > 0) { activeTurns++; if (firstActive < 0) firstActive = t; }
         }
+        Console.WriteLine($"merchant latch: first active turn {firstActive}, active on {activeTurns} of 650 turns");
+        int active = activeTurns;
 
         Assert.True(firstLatchTurn > 0,
             "no settlement ever became a merchant town in 650 turns — either the predicate "

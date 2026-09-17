@@ -180,40 +180,62 @@ public class DemographyRetuneTests
     }
 
     // --- famine: three measurable phases ------------------------------------
+    //
+    // T4.21-3 (CR-015 "famine is exceptional", spec §13 G2, ADR-026): the
+    // one T2.7 acceptance whose AIM the ruled semantics changed. The ladder
+    // is measured on one schedule with three arms that differ ONLY in what
+    // the famine window does to the food balance:
+    //   STRESS  — a shortfall inside the absorbable band (d ≤ a): NO
+    //             exceptional response (no starvation, no birth deficit,
+    //             nothing banked) — `Stress_DoesNotSpike_...`;
+    //   SEVERE  — the pre-existing rig, MEASURED at worst d = 0.42 (not the
+    //             "≈ 0.2" its T2.7 comment estimated: the T4.19 founding
+    //             vector moved the labour-limited harvest/demand ratio) — the
+    //             ADAPTED response on (d − a)/(1 − a): a mortality spike, a
+    //             birth deficit and the rebound (phases 1–3, the original
+    //             assertions) — `Famine_MortalitySpike_...`;
+    //   FAMINE  — the abandonment twin (the legacy 0 %-farm order's row,
+    //             Farming 0 / Herding 0 / Construction 1.0, in force): the
+    //             whole deficit starves — `Famine_Abandonment_...`.
+    // The G2 ruling names the pre-existing rig STRESS; it is not (0.42 > a),
+    // so "STRESS does NOT spike" is pinned on a rig that IS stress and the
+    // original rig keeps phases 1–3 as the SEVERE arm — every assertion the
+    // ruling wants exists, each on a rig where it is true (ADR-015 §7.2).
 
     [Fact]
     public void Famine_MortalitySpike_BirthDeficit_PostFamineRebound()
     {
-        // Controlled SHALLOW famine on an N = 1 world. Depth is a real design
-        // constraint: at dt = 10, starvation (0.12/yr × ratio × age
-        // multipliers × 10 years) stacked on the pre-modern base mortality
-        // (~0.36/decade) halves a settlement per hot turn — a deep famine
-        // leaves nobody to rebound. The rig: a modest-surplus fed config
-        // (labor-limited harvest ≈ 1.06× demand, founding store just covering
-        // the harvestless first turn), five famine turns at ~77% of demand
-        // (the store cushions ~2, the deficit then holds ≈ 0.2), then the fed
-        // config restored.
+        // Controlled famine on an N = 1 world — the SEVERE arm. Depth is a real
+        // design constraint: at dt = 10, starvation (0.12/yr × effective ratio
+        // × age multipliers × 10 years) stacked on the pre-modern base
+        // mortality (~0.36/decade) halves a settlement per hot turn — a deep
+        // famine leaves nobody to rebound. The rig: a modest-surplus fed
+        // config (labor-limited harvest ≈ 1.06× demand, founding store just
+        // covering the harvestless first turn), five famine turns at ~50 % of
+        // demand (the store cushions ~2 turns; MEASURED worst deficit 0.456 — see
+        // the console line — SEVERE, above the absorbable band), then the
+        // canonical-output config restored (FamineRigRestored).
         //
         // Phases 1–2 (mortality spike, birth deficit) are measured from the
-        // Ledger's per-turn birth/death deltas. Phase 3 (rebound) uses the
-        // T2.5 twin-difference pattern: a LOCKSTEP TWIN with
-        // reboundRecoverableFraction = 0 (suppression identical, banking off)
-        // is bit-identical through the last suppressed turn, so the birth
-        // difference on the FIRST released turn is exactly the reservoir's
-        // contribution — no age-structure bias, no per-capita hand-waving.
-        // The same twin bounds it above: released extra births never exceed
-        // the reservoir observed the turn before (deferred, NOT invented).
-        SimConfig fed = TestConfigs.Sim();
-        fed = fed with
-        {
-            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
-            Founding = fed.Founding with { FoodStore = 4000 },
-        };
+        // Ledger's per-turn birth/death deltas over the FAMINE-READ window —
+        // the turns whose PREV deficit is > 0 (the deficit is Prev-read; a
+        // turn whose prev deficit is 0 is a recovery turn, and on a shrunken
+        // settlement the rebound's own infant deaths would masquerade as a
+        // famine spike). Phase 3 (rebound) uses the T2.5 twin-difference
+        // pattern: a LOCKSTEP TWIN with reboundRecoverableFraction = 0
+        // (suppression identical, banking off) is bit-identical through the
+        // last suppressed turn, so the birth difference on the FIRST released
+        // turn is exactly the reservoir's contribution — no age-structure
+        // bias, no per-capita hand-waving. The same twin bounds it above:
+        // released extra births never exceed the reservoir observed the turn
+        // before (deferred, NOT invented).
+        SimConfig fed = FamineRigFed();
         SimConfig starving = fed with
         {
-            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 0.85 },
+            Farming = fed.Farming with { OutputPerFarmerPerYear = FamineOutput },
         };
-        (long[] births, long[] deaths, double[] deficits, double[] reservoirs, long[] pops) = RunFamineSchedule(fed, starving);
+        SimConfig restored = FamineRigRestored(fed);
+        FamineRun run = RunFamineSchedule(fed, starving, restored);
         SimConfig fedOff = fed with
         {
             Demographics = fed.Demographics with { ReboundRecoverableFraction = 0.0 },
@@ -222,7 +244,13 @@ public class DemographyRetuneTests
         {
             Demographics = starving.Demographics with { ReboundRecoverableFraction = 0.0 },
         };
-        (long[] birthsOff, _, _, double[] reservoirsOff, _) = RunFamineSchedule(fedOff, starvingOff);
+        SimConfig restoredOff = restored with
+        {
+            Demographics = restored.Demographics with { ReboundRecoverableFraction = 0.0 },
+        };
+        FamineRun off = RunFamineSchedule(fedOff, starvingOff, restoredOff);
+        long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
+        double[] deficits = run.Deficits, reservoirs = run.Reservoirs;
 
         // Baseline from fed turns 4–6 (post-founding-transient, pre-famine).
         double baseBirths = (births[3] + births[4] + births[5]) / 3.0;
@@ -232,83 +260,281 @@ public class DemographyRetuneTests
         // phase assert is vacuous) AND stayed shallow (a deep dt = 10 deficit
         // exterminates the settlement and the rebound has nobody to measure —
         // the depth guard keeps the rig honest about what it claims to test).
+        // CLASSIFICATION, measured on the world the kernel reads: every
+        // famine-read turn is SEVERE — above the absorbable band, no cause
+        // row — so the response measured below is the ADAPTED one.
         double worstDeficit = 0.0;
         for (int t = 6; t < 11; t++) worstDeficit = Math.Max(worstDeficit, deficits[t]);
         Assert.True(worstDeficit > 0.12, $"famine rig too weak: worst deficit {worstDeficit:F2} <= 0.12");
         Assert.True(worstDeficit < 0.6, $"famine rig too deep: worst deficit {worstDeficit:F2} >= 0.6");
+        Assert.True(worstDeficit > fed.FoodState.AdaptationAbsorbableShortfall,
+            $"rig is not SEVERE: worst deficit {worstDeficit:F2} inside the absorbable band");
+        int famineReads = 0;
+        for (int t = 7; t < 13; t++)
+        {
+            if (deficits[t - 1] <= 0.0) continue;
+            famineReads++;
+            Assert.Equal(FoodStateKind.Severe, run.PrevStates[t]);
+        }
+        Assert.True(famineReads >= 3, $"only {famineReads} famine-read turns — window vacuous");
 
         // Phase 1 — mortality spike, PER CAPITA (T2.7b: absolute deaths are
         // pop-limited as the settlement shrinks — the honest famine
-        // observable is the death RATE): some famine-window turn kills at
-        // ≥ 1.35× the fed per-capita baseline. (Deficit is Prev-read: the
-        // window extends one turn past the famine configs — turns 8–13.)
+        // observable is the death RATE): some famine-read turn kills at
+        // ≥ 1.35× the fed per-capita baseline, and the starvation channel is
+        // what does it (starvation flow > 0 on the window; STRESS has none).
         double basePerCapita = baseDeaths / ((pops[2] + pops[3] + pops[4]) / 3.0);
         double spikePerCapita = 0.0;
+        long starvedInWindow = 0;
         for (int t = 7; t < 13; t++)
+        {
+            if (deficits[t - 1] <= 0.0) continue;
             spikePerCapita = Math.Max(spikePerCapita, deaths[t] / (double)pops[t - 1]);
+            starvedInWindow += run.Starved[t];
+        }
+        Assert.True(starvedInWindow > 0, "no starvation on a SEVERE window — the adapted channel is inert");
         Assert.True(spikePerCapita > 1.35 * basePerCapita,
             $"no mortality spike: famine per-capita {spikePerCapita:F3} <= 1.35x baseline {basePerCapita:F3}");
 
-        // Phase 2 — birth deficit: some famine-window turn conceives at well
-        // below the fed baseline (suppression, same one-turn lag).
+        // Phase 2 — birth deficit: some famine-read turn conceives at well
+        // below the fed baseline (suppression on the effective deficit, same
+        // one-turn lag).
         double trough = double.MaxValue;
-        for (int t = 7; t < 13; t++) trough = Math.Min(trough, births[t]);
+        for (int t = 7; t < 13; t++)
+        {
+            if (deficits[t - 1] <= 0.0) continue;
+            trough = Math.Min(trough, births[t]);
+        }
         Assert.True(trough < 0.6 * baseBirths,
             $"no birth deficit: min famine births {trough:F0} >= 0.6x baseline {baseBirths:F0}");
 
         // Phase 3 — rebound on the first RELEASED turn: the first turn after
         // the famine window whose PREV deficit was exactly zero (the release
-        // gate). The twin runs are identical until it, so the difference is
-        // the reservoir's release alone.
+        // gate — NOMINAL d, byte-identical under T4.21). The twin runs are
+        // identical until it, so the difference is the reservoir's release alone.
         int release = -1;
         for (int t = 11; t < births.Length; t++)
         {
             if (deficits[t - 1] == 0.0) { release = t; break; }
         }
         Assert.True(release > 0, "no post-famine turn with Prev deficit == 0 — recovery never landed");
-        long extra = births[release] - birthsOff[release];
+        long extra = births[release] - off.Births[release];
         Assert.True(extra >= 0.25 * baseBirths,
             $"rebound not measurable: released extra births {extra} < 0.25x baseline {baseBirths:F0}");
         // Deferred, not invented: bounded by the bank the twin never built.
         Assert.True(extra <= reservoirs[release - 1] + 1.0,
             $"released {extra} exceeds the reservoir {reservoirs[release - 1]:F2} banked before the turn");
-        Assert.True(reservoirsOff[release - 1] == 0.0, "rebound-off twin banked anyway — twin rig broken");
+        Assert.True(off.Reservoirs[release - 1] == 0.0, "rebound-off twin banked anyway — twin rig broken");
 
         Console.WriteLine(
-            $"famine phases: baseline births {baseBirths:F0}/deaths {baseDeaths:F0} per turn; "
+            $"famine phases (SEVERE arm): baseline births {baseBirths:F0}/deaths {baseDeaths:F0} per turn; "
             + $"worst deficit {worstDeficit:F2}, per-capita spike {spikePerCapita:F3} vs base {basePerCapita:F3}, "
             + $"trough {trough:F0}; release turn {release + 1}: births {births[release]} vs twin "
-            + $"{birthsOff[release]} (+{extra}), bank was {reservoirs[release - 1]:F1}");
+            + $"{off.Births[release]} (+{extra}), bank was {reservoirs[release - 1]:F1}");
     }
 
-    /// <summary>6 fed turns, 5 famine turns, 6 fed turns on an N = 1 world;
-    /// returns per-turn birth/death(+starvation) deltas, the settlement's
-    /// deficit ratio, and the summed cohort-0 ReboundReservoir.</summary>
-    private static (long[] Births, long[] Deaths, double[] Deficits, double[] Reservoirs, long[] Pops)
-        RunFamineSchedule(SimConfig fed, SimConfig starving)
+    [Fact]
+    public void Stress_DoesNotSpike_NoBirthDeficit_NothingBanked()
+    {
+        // G2, RE-ANCHORED PHASE 1: "STRESS does NOT spike". The same schedule
+        // with the famine window's harvest at ≈ 78 % of demand — a shortfall
+        // INSIDE the absorbable band (0.12 < worst d ≤ a = 0.20, measured and
+        // asserted; every famine-read turn classifies STRESS). Under CR-015 a
+        // sustained cut of that size is survivable: the exceptional channels
+        // read the effective deficit 0 — starvation is EXACTLY zero over the
+        // whole run, per-capita mortality stays at the fed baseline, births
+        // are not suppressed (G3(b)) and the reservoir banks nothing (there is
+        // no suppressed conception to defer). The pre-T4.21 kernel starved
+        // 0.12 × 0.16 × 10 ≈ 18 % of the adults per decade here.
+        SimConfig fed = FamineRigFed();
+        SimConfig stressed = fed with
+        {
+            Farming = fed.Farming with { OutputPerFarmerPerYear = StressOutput },
+        };
+        FamineRun run = RunFamineSchedule(fed, stressed, FamineRigRestored(fed));
+        long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
+        double[] deficits = run.Deficits;
+
+        double baseBirths = (births[3] + births[4] + births[5]) / 3.0;
+        double baseDeaths = (deaths[3] + deaths[4] + deaths[5]) / 3.0;
+        double basePerCapita = baseDeaths / ((pops[2] + pops[3] + pops[4]) / 3.0);
+
+        double worstDeficit = 0.0;
+        for (int t = 6; t < 11; t++) worstDeficit = Math.Max(worstDeficit, deficits[t]);
+        Assert.True(worstDeficit > 0.12, $"stress rig too weak: worst deficit {worstDeficit:F2} <= 0.12");
+        Assert.True(worstDeficit <= fed.FoodState.AdaptationAbsorbableShortfall,
+            $"stress rig too deep: worst deficit {worstDeficit:F2} above the absorbable band");
+
+        int famineReads = 0;
+        double worstPerCapita = 0.0, troughBirths = double.MaxValue;
+        for (int t = 7; t < 13; t++)
+        {
+            if (deficits[t - 1] <= 0.0) continue;
+            famineReads++;
+            Assert.Equal(FoodStateKind.Stress, run.PrevStates[t]);
+            worstPerCapita = Math.Max(worstPerCapita, deaths[t] / (double)pops[t - 1]);
+            troughBirths = Math.Min(troughBirths, births[t]);
+        }
+        Assert.True(famineReads >= 3, $"only {famineReads} stress-read turns — window vacuous");
+
+        // No exceptional response, all three channels, over the WHOLE run:
+        long starvedTotal = 0;
+        double bankedMax = 0.0;
+        for (int t = 0; t < run.Starved.Length; t++)
+        {
+            starvedTotal += run.Starved[t];
+            bankedMax = Math.Max(bankedMax, run.Reservoirs[t]);
+        }
+        Assert.Equal(0, starvedTotal);                       // exact: nobody starves inside the band
+        Assert.Equal(0.0, bankedMax);                        // exact: nothing suppressed, nothing banked
+        Assert.True(worstPerCapita < 1.1 * basePerCapita,
+            $"STRESS spiked: per-capita {worstPerCapita:F3} vs baseline {basePerCapita:F3}");
+        Assert.True(troughBirths >= 0.9 * baseBirths,
+            $"STRESS suppressed births: trough {troughBirths} vs baseline {baseBirths:F0}");
+
+        Console.WriteLine(
+            $"stress arm: worst deficit {worstDeficit:F3}, per-capita worst {worstPerCapita:F3} vs base {basePerCapita:F3}, "
+            + $"births trough {troughBirths:F0} vs base {baseBirths:F0}, starved {starvedTotal}, bank max {bankedMax}");
+    }
+
+    [Fact]
+    public void Famine_Abandonment_SpikesOnTheWholeDeficit()
+    {
+        // G2, THE ABANDONMENT TWIN: the same schedule, but the famine window
+        // is the legacy 0 %-farm LaborAllocation order's row IN FORCE —
+        // Farming 0 / Herding 0 / Construction 1.0, exactly what
+        // PathBuildSystem writes for pct = 0 — with the FED config (the
+        // harvest is zero because food labour is abandoned, not because the
+        // fields are poor). Two harvestless decades: the store runs dry, the
+        // deficit is whole, and the kernel reads FAMINE/Abandonment — the
+        // response with no adaptation. The original spike assertion lives
+        // here, where it is now true: some famine-read turn kills at ≥ 1.35×
+        // the fed per-capita baseline, through the starvation channel, on a
+        // turn the kernel classified FAMINE.
+        SimConfig fed = FamineRigFed();
+        var abandoned = new SectorAllocationRow(
+            new SettlementId(0), Farming: 0.0, Herding: 0.0, Extraction: 0.0,
+            Crafting: 0.0, Construction: 1.0);
+        FamineRun run = RunFamineSchedule(fed, fed, FamineRigRestored(fed), famineRow: abandoned, famineTurns: 2);
+        long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
+        double[] deficits = run.Deficits;
+
+        double baseDeaths = (deaths[3] + deaths[4] + deaths[5]) / 3.0;
+        double basePerCapita = baseDeaths / ((pops[2] + pops[3] + pops[4]) / 3.0);
+
+        int famineTurn = -1;
+        double spikePerCapita = 0.0;
+        for (int t = 7; t < 13; t++)
+        {
+            if (deficits[t - 1] <= 0.0 || run.PrevStates[t] != FoodStateKind.Famine) continue;
+            double perCapita = deaths[t] / (double)pops[t - 1];
+            if (perCapita > spikePerCapita) { spikePerCapita = perCapita; famineTurn = t; }
+        }
+        Assert.True(famineTurn > 0, "no turn read FAMINE — the abandonment row never bit");
+        Assert.Equal(FamineReason.Abandonment, run.PrevReasons[famineTurn]);
+        Assert.True(deficits[famineTurn - 1] > 0.12, $"famine too shallow: {deficits[famineTurn - 1]:F2}");
+        Assert.True(run.Starved[famineTurn] > 0, "FAMINE turn starved nobody");
+        Assert.True(spikePerCapita > 1.35 * basePerCapita,
+            $"no famine spike: per-capita {spikePerCapita:F3} <= 1.35x baseline {basePerCapita:F3}");
+        Assert.True(births[famineTurn] < 0.6 * (births[3] + births[4] + births[5]) / 3.0,
+            "FAMINE turn did not suppress births");
+
+        Console.WriteLine(
+            $"abandonment twin: famine read on turn {famineTurn + 1} at d {deficits[famineTurn - 1]:F2}, "
+            + $"per-capita {spikePerCapita:F3} vs base {basePerCapita:F3}, starved {run.Starved[famineTurn]}, pop {pops[famineTurn - 1]} -> {pops[famineTurn]}");
+    }
+
+    /// <summary>The famine ladder's fed config: labour-limited harvest ≈ 1.17×
+    /// demand at founding (T4.21-3: the T2.7 rig's 1.45 → 1.06× left the
+    /// settlement AT its food limit by turn 4 — d = 0.010/0.015 measured — so
+    /// under the §28 headroom cap its "fed baseline" was births-replace-deaths,
+    /// not the unconstrained tempo the baseline is meant to be; 1.6 gives a
+    /// 17 % headroom the cap does not bind on: allowed growth 8.5 %/decade
+    /// against a natural 0.8 %), founding store just covering the harvestless
+    /// first turn. The famine-window outputs keep the same harvest FRACTIONS
+    /// of demand: FamineOutput 0.80 (worst d 0.456 — SEVERE, effective 0.32;
+    /// the T2.7 rig's 0.85/1.45 measured 0.42) and StressOutput 1.25 (worst
+    /// d 0.150 — STRESS); both swept and measured on this tree.</summary>
+    private static SimConfig FamineRigFed()
+    {
+        SimConfig fed = TestConfigs.Sim();
+        return fed with
+        {
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.6 },
+            Founding = fed.Founding with { FoodStore = 4000 },
+        };
+    }
+
+    private const double FamineOutput = 0.80;
+    private const double StressOutput = 1.25;
+
+    /// <summary>The post-window RESTORE config: the canonical per-farmer output
+    /// (5.0/yr, harvest ≈ 3.6× demand). T4.21-3: the rebound is released only
+    /// into HEADROOM (§28, strict release) — restoring the 1.17× fed config
+    /// would cap the release turn at 8.5 % growth and hide the reservoir's
+    /// contribution the twin difference exists to measure; the rich restore
+    /// gives the release the room it needs and keeps the fed baseline (turns
+    /// 4–6, pre-window) on the modest config.</summary>
+    private static SimConfig FamineRigRestored(SimConfig fed) => fed with
+    {
+        Farming = fed.Farming with { OutputPerFarmerPerYear = TestConfigs.Sim().Farming.OutputPerFarmerPerYear },
+    };
+
+    private sealed record FamineRun(
+        long[] Births, long[] Deaths, long[] Starved, double[] Deficits, double[] Reservoirs, long[] Pops,
+        FoodStateKind[] PrevStates, FamineReason[] PrevReasons);
+
+    /// <summary>6 fed turns, <paramref name="famineTurns"/> famine turns, then
+    /// <paramref name="restored"/> turns to 17 on an N = 1 world; per-turn birth/death(+starvation)
+    /// deltas, the starvation delta alone, the settlement's deficit ratio, the
+    /// summed cohort-0 ReboundReservoir, the population, and the FoodState the
+    /// kernel READ that turn (classified on the PREV world, exactly the
+    /// kernel's read). The famine window uses <paramref name="starving"/> and,
+    /// when given, <paramref name="famineRow"/> as the sector row in force
+    /// (otherwise the all-farming row every turn).</summary>
+    private static FamineRun RunFamineSchedule(
+        SimConfig fed, SimConfig starving, SimConfig restored,
+        SectorAllocationRow? famineRow = null, int famineTurns = 5)
     {
         TurnExecutor fedExec = ProductionExecutor(fed);
         TurnExecutor famineExec = ProductionExecutor(starving);
+        TurnExecutor restoredExec = ProductionExecutor(restored);
         WorldState world = Founded(fed, settlements: 1);
         // T3.5b: this famine rig's depth calibration assumes all labour farms;
         // the subsistence default would deepen the driven deficit past the
         // rig's own honesty guard. Pinned explicitly (§7.8).
-        world.SectorAllocations.Add(new SectorAllocationRow(
+        var farming = new SectorAllocationRow(
             world.Settlements[0].Id, Farming: 1.0, Herding: 0.0, Extraction: 0.0,
-            Crafting: 0.0, Construction: 0.0));
+            Crafting: 0.0, Construction: 0.0);
+        world.SectorAllocations.Add(farming);
 
-        var births = new long[17];
-        var deaths = new long[17];
-        var deficits = new double[17];
-        var reservoirs = new double[17];
-        var pops = new long[17];
+        const int turns = 17;
+        var births = new long[turns];
+        var deaths = new long[turns];
+        var starvedPerTurn = new long[turns];
+        var deficits = new double[turns];
+        var reservoirs = new double[turns];
+        var pops = new long[turns];
+        var states = new FoodStateKind[turns];
+        var reasons = new FamineReason[turns];
         (long pb, long pd, long ps) = (0, 0, 0);
-        for (int t = 0; t < 17; t++)
+        for (int t = 0; t < turns; t++)
         {
-            world = (t is >= 6 and < 11 ? famineExec : fedExec).Step(world);
+            bool famine = t >= 6 && t < 6 + famineTurns;
+            if (famineRow is not null)
+            {
+                // The row IN FORCE for this step (PathBuild owns the table and
+                // only upserts on orders, so a hand-written row persists).
+                world.SectorAllocations[0] = famine
+                    ? famineRow.Value with { Settlement = world.Settlements[0].Id }
+                    : farming;
+            }
+            states[t] = FoodState.Of(world, world.Settlements[0].Id, fed, out reasons[t]);
+            world = (famine ? famineExec : t < 6 ? fedExec : restoredExec).Step(world);
             (long b, long d, long s) = LedgerVitals(world);
             births[t] = b - pb;
             deaths[t] = d - pd + (s - ps); // famine deaths = base + starvation
+            starvedPerTurn[t] = s - ps;
             deficits[t] = world.ConsumptionDeficits.Count > 0 ? world.ConsumptionDeficits[0].DeficitRatio : 0.0;
             for (int i = 0; i < world.Buckets.Count; i++)
             {
@@ -317,7 +543,7 @@ public class DemographyRetuneTests
             }
             (pb, pd, ps) = (b, d, s);
         }
-        return (births, deaths, deficits, reservoirs, pops);
+        return new FamineRun(births, deaths, starvedPerTurn, deficits, reservoirs, pops, states, reasons);
     }
 
     // --- deferred, not invented: exact reservoir accounting -----------------
@@ -327,8 +553,12 @@ public class DemographyRetuneTests
     {
         // Demographics-only rig against the ADR-011 replica: the fertile pool
         // parked in the ABSORBING 75+ cohort (mortality zeroed — exactly
-        // stationary), deficit 0.2 (PARTIAL suppression at the canonical
-        // slope: factor 0.4), dt = 2.5. TWO famine turns bank suppressed
+        // stationary), deficit 0.4 (T4.21-3 / G3(b): suppression reads the
+        // EFFECTIVE deficit — this Default-sector rig is SEVERE, so the kernel
+        // sees (0.4 − 0.2)/0.8 = 0.25 and PARTIALLY suppresses at the canonical
+        // slope: factor 0.25; the pre-T4.21 rig's nominal 0.2 is now STRESS and
+        // suppresses nothing, which is what the STRESS arm of
+        // D_Suppression_ReadsEffectiveDeficit pins), dt = 2.5. TWO famine turns bank suppressed
         // conceptions, then THREE fed turns drain the bank. Each turn is
         // re-derived by feeding the replica the SYSTEM's integer counts and
         // the carried reservoir/birth-remainder: the reservoir must match
@@ -346,12 +576,14 @@ public class DemographyRetuneTests
                 StarvationMortalityMaxPerYear = 0.0, // isolate fertility: nobody dies
             },
         };
-        const double dt = 2.5, deficit = 0.2;
+        const double dt = 2.5, deficit = 0.4;
         var counts = new long[Cohorts.Count];
         counts[15] = 1000;
 
         WorldState world = PopulationExactnessTests.BucketWorld(counts);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), deficit, 0));
+        double dEff = PopulationExactnessTests.EffectiveDeficit(world, cfg, deficit);
+        Assert.Equal(0.25, dEff);
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
 
         double reservoir = 0.0, birthRemainder = 0.0, banked = 0.0, drained = 0.0;
@@ -360,12 +592,13 @@ public class DemographyRetuneTests
         {
             if (t == 2) world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 0.0, 0);
             double turnDeficit = t < 2 ? deficit : 0.0;
+            double turnEff = t < 2 ? dEff : 0.0;
             var snapshot = new long[Cohorts.Count];
             for (int c = 0; c < Cohorts.Count; c++) snapshot[c] = world.Buckets[c].Count.Value;
 
             world = exec.Step(world);
             DemographicsReplica.Result r = DemographicsReplica.Turn(
-                cfg.Demographics, snapshot, turnDeficit, dt, reservoir);
+                cfg.Demographics, snapshot, turnDeficit, dt, reservoir, dEff: turnEff, suppressionArg: turnEff);
             if (t < 2) banked += r.Reservoir - reservoir;         // famine turns bank
             else drained += reservoir - r.Reservoir;              // fed turns drain
             reservoir = r.Reservoir;
@@ -586,6 +819,7 @@ public class DemographyRetuneTests
         Assert.True(deaths + starved > 0.5 * r.Deaths,
             $"deaths {deaths}+{starved} below half the present-count expectation {r.Deaths:F0} — mid-turn movers dodged mortality");
     }
+
 
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");

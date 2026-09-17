@@ -117,18 +117,19 @@ public class ExplainRecomputedFunctionTests
         Assert.True(fills >= 5, $"vacuous: only {fills} fill links (grain, livestock, fish, pottery, cloth expected)");
         Assert.True(interior > 0, "vacuous: no fill was strictly between 0 and 1 on the drawdown turn");
 
-        // The grain fill on the drawdown turn, measured: 531 eaten of 3657 demanded.
+        // The grain fill on the drawdown turn, measured: 531 eaten of 3790 demanded.
         // (T4.19 lane C re-pin from 436 / 3078: the founding cohort vector moved
-        // the rig's founded population; T4.21-2 re-pin of the demand from 3937:
-        // bounded migration (ADR-025 — the turn-2 vacancy refusal and the basin
-        // caps) leaves the target a different population by the drawdown turn,
-        // the eaten units are the same store remainder; the fill identity below
-        // is what is asserted, the literals only say which world it was measured on.)
+        // the rig's founded population; T4.21-3 re-pin 3937 -> 3790 demanded, 531
+        // eaten unchanged: the turn-2 headroom hold every founded world takes
+        // leaves a smaller population demanding at turn 3, while what was eaten
+        // is the store's whole content, the same endowment. The fill identity
+        // below is what is asserted, the literals only say which world it was
+        // measured on.)
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, Target, grain);
         Assert.Equal(531, prev.GoodStocks[g].LastConsumptionEatenUnits);
-        Assert.Equal(3657, prev.GoodStocks[g].LastConsumptionDemandUnits);
+        Assert.Equal(3790, prev.GoodStocks[g].LastConsumptionDemandUnits);
         Link grainFill = Labelled(sustenance.Links, ChainNode.FoodGoodFill, ExplainRowsName(cfg, grain) + " fill");
-        Assert.Equal(531.0 / 3657.0, grainFill.Value);
+        Assert.Equal(531.0 / 3790.0, grainFill.Value);
         // ...and the satisfaction the SYSTEM published from that fill is below 1.
         Link s = ExplainGrievanceTests.Single(sustenance.Links, ChainNode.SustenanceSatisfaction);
         Assert.Equal(LinkKind.Read, s.Kind);

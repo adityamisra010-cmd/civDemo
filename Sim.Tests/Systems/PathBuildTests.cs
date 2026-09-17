@@ -120,9 +120,19 @@ public class PathBuildTests
         double housingDrawT3 = world.Housing.Count > 0 ? world.Housing[0].LastLaborUsed : 0.0;
         // The subtraction must carry a PINNED magnitude, or a spurious or
         // wrongly-scaled housing draw would be absorbed silently: one dwelling
-        // is built on turn 3 under the corrected founding, and that is exactly
-        // 1.0 adult-year of the construction pool (measured).
-        Assert.Equal(1.0, housingDrawT3);
+        // was built on turn 3 under the corrected founding, exactly 1.0
+        // adult-year of the construction pool (measured, T4.19 lane C).
+        // T4.21-3 RE-MEASURED (ADR-026): 1.0 → 0.0. ONE CAUSE: on turn 2 of a
+        // founded world prev carries a deficit row, a vitals row and a turn-1
+        // harvest of ZERO (the T4.18 warm-up artefact), so the headroom growth
+        // cap reads N_lim = 0 and holds turn-2 births at replacement (spec
+        // §3.6a edge case (3): one turn, clamped); the settlement enters turn 3
+        // at 484 people instead of 500, the housing stock is not yet short by
+        // a dwelling, and LastLaborUsed at turn-3 state is exactly 0 again.
+        // The magnitude is pinned at its measured value so the term cannot
+        // drift silently; NOTE the pin is VACUOUS for the subtraction on this
+        // tree exactly as it was before T4.19 lane C (recorded, not hidden).
+        Assert.Equal(0.0, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the

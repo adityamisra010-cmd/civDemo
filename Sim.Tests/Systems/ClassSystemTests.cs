@@ -328,17 +328,17 @@ public class ClassSystemTests
         // first-present 22 / latch 39 — the widest immigrant-precedes-latch
         // gap in the battery. MEASURED on the T4.19-D tree:
         // first-present turn = 22, latch turn = 39.
-        // T4.21-2 RE-RIG (ADR-025, bounded migration): on seed 16 the phenomenon
-        // no longer occurs (first-present 4 = latch 4: settlement 0 latches
-        // locally with 35 artisans before any immigrant arrives). The battery
-        // was RE-MEASURED on this tree over dev seeds 1–24 (first-present /
-        // latch / artisans at first presence): 2: 81/89/1 · 3: 13/71/1 · 8:
-        // 67/75/1 · 11: 6/16/3 · 14: 7/17/2 · 17: 9/63/1 · 18: 10/41/1 · 21:
-        // 7/11/2 · 22: 7/8/4 show an immigrant before the latch; seeds 4–7, 9,
-        // 10, 12, 13, 15, 16, 19, 20 latch on the presence turn (local
-        // emergence first); 23, 24 never latch within 120. Seed 3 is now the
-        // widest gap with a handful of migrants (1 artisan at turn 13, latch at
-        // 71) and is the rig; the property asserted is unchanged.
+        // T4.21-3 RE-MEASURED (ADR-026): latch turn 39 → 43, first-present 22
+        // UNCHANGED, still one immigrant artisan. ONE CAUSE: on turn 2 of
+        // every founded world prev carries a deficit row, a vitals row and a
+        // turn-1 harvest of ZERO (the T4.18 warm-up artefact — the catchment
+        // is computed on turn 1), so FoodHeadroom.Limit reads N_lim = 0 and
+        // the headroom growth cap holds turn-2 births at replacement (spec
+        // §3.6a edge case (3): one turn, clamped, harmless); every settlement
+        // enters turn 3 a decade of growth smaller and the surplus-ratio
+        // latch fires four turns later. The property this test pins — the
+        // immigrant precedes the local latch, and the instrument reports the
+        // latch — is untouched.
         // Bounded: the loop stops at the latch (hard ceiling 120 turns).
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
@@ -372,8 +372,8 @@ public class ClassSystemTests
         Assert.Equal(0, activeAtFirstPresent);
         // The corrected instrument reports the latch, not the presence.
         Assert.NotEqual(firstPresentTurn, latchTurn);
-        Assert.Equal(71, latchTurn);
-        Assert.Equal(13, firstPresentTurn);
+        Assert.Equal(43, latchTurn);
+        Assert.Equal(22, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

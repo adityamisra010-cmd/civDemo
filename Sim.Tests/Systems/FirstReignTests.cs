@@ -417,29 +417,18 @@ public class FirstReignTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
         //         .FirstReignTurn40_MovedForTheDisasterLayoutAlone strips both and
         //         returns the OLD value byte for byte.
-        // T4.21-2 RE-PIN — BOUNDED MIGRATION (ADR-025), BEHAVIOUR, MEASURED.
+        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
         //   OLD  125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
-        //   NEW  86adfd85673b27b74901162425c3404263ca3f485c7f4f9ebc200081b3e063f8
-        //   CAUSE MigrationSystem's flight is the exact hazard φ = 1 − e^{−profile·K·ω·d·dt}
-        //         on the best exit with shares (spec §3.4); the gap channel is bounded
-        //         at both ends of every basin (§3.5b: measured on this world, the
-        //         basin caps bite in 8–12 of 12 settlements per early turn and cut the
-        //         pair-capped gap inflow ~3× — 14 863 pair-capped vs 5 064 planned
-        //         over 300 turns); the vacancy bound (§3.5c) bites on turn 2 in
-        //         EVERY settlement (turn 1 is the endowment turn with zero harvest,
-        //         so N_lim reads 0 and V = 0 for that one turn) and on 1 settlement-
-        //         turn afterwards (t9); the D-037 readout carries the same hazard
-        //         with ω := 1. No constant moved (CR-015 §6.5).
-        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 (terrain-less, no
-        //         distances ⇒ no migration) is UNMOVED at b6df7edd…, and its v22 /
-        //         v24 strip controls still return 0f94b4ad… / eec82711… — the
-        //         change stayed inside migration.
-        //   THE T4.21-1 LAYOUT CONTROL is historical from this commit: the strip
-        //         of the disaster layer no longer returns the pre-T4.21 pins (the
-        //         behaviour moved underneath it); IntegratedPinAttribution's
-        //         constants are re-measured on this tree (T4.10/T4.19 precedent).
-        //   THE SHAPE ASSERTS BELOW are re-verified on this tree by running them.
-        const string golden = "86adfd85673b27b74901162425c3404263ca3f485c7f4f9ebc200081b3e063f8";
+        //   NEW  ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a
+        //   CAUSE this is the director's 0%-farm world — an ABANDONMENT famine,
+        //         which the kernel now READS: FoodState.Of classifies it FAMINE
+        //         and the exceptional channels run on the whole deficit (dEff = d
+        //         there, so the famine's magnitude is unchanged), plus the turn-2
+        //         headroom hold every founded world takes (SnapshotTests
+        //         .FoundedGolden has the record). THE SHAPE BELOW IS UNCHANGED AND
+        //         MEASURED: the dead world still dies inside the session's shape
+        //         and the ghost mountain stays absent.
+        const string golden = "ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
