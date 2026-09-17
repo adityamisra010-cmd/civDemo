@@ -42,11 +42,13 @@ public sealed class BasketBook
     private readonly BasketLine[] _lines;
     private readonly GoodId[] _goods;       // distinct, ascending
     private readonly GoodId[] _foodGoods;   // distinct, ascending, Sustenance only
+    private readonly GoodId _staple;        // the substitution target (the D-030 grain)
 
     public BasketBook(NeedsConfig needs, GoodsConfig goods)
     {
         ArgumentNullException.ThrowIfNull(needs);
         ArgumentNullException.ThrowIfNull(goods);
+        _staple = new GoodId(goods.GrainId);
 
         BasketEntry[] entries = needs.Baskets.Entries;
         var lines = new BasketLine[entries.Length];
@@ -97,6 +99,12 @@ public sealed class BasketBook
     /// meaningful, and it is why the food-surplus ratio must count all of them
     /// rather than grain alone.</summary>
     public ReadOnlySpan<GoodId> FoodGoods => _foodGoods;
+
+    /// <summary>T4.21-1: the STAPLE — the good ConsumptionSystem's one-directional
+    /// substitution falls back on (goods.json's D-030 numéraire, grain). Exposed on
+    /// the shared book so FoodHeadroom mirrors the substitution against the same
+    /// id Consumption charges it against, rather than a second reading.</summary>
+    public GoodId Staple => _staple;
 
     /// <summary>The lines of one (class, need) basket, in good order. Returns an
     /// empty span for a class that declares no basket for that need — an absent

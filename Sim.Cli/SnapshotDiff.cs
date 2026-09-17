@@ -107,6 +107,8 @@ public static class SnapshotDiff
         new("Capitals", [I("Polity"), I("Place")]),
         new("ConstructionQueue", [I("Settlement"), I("Slot"), I("ProjectId")]),
         new("Structures", [I("Settlement"), I("ProjectId"), L("Count")]),
+        new("Disasters", [I("Settlement"), I("Kind"), D("Severity"), D("RemainingYears"),
+            D("Multiplier"), D("AppliedMultiplier")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

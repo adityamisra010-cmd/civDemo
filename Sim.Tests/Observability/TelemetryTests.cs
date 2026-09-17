@@ -45,7 +45,7 @@ public class TelemetryTests
                 Assert.DoesNotContain("ObservationLog", File.ReadAllText(file));
             }
         }
-        Assert.Equal(24, CanonicalSchema.Version);   // nothing here is serialized into the schema
+        Assert.Equal(25, CanonicalSchema.Version);   // nothing here is serialized into the schema (v25 is T4.21-1's Disasters table)
     }
 
     [Fact]

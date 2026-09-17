@@ -30,6 +30,10 @@ public sealed record SimConfig(
     [property: JsonPropertyName("migration")] MigrationConfig Migration,
     [property: JsonPropertyName("trade")] TradeConfig Trade,
     [property: JsonPropertyName("housing")] HousingConfig Housing,
+    // T4.21-1 (CR-015): the famine-is-exceptional classification and the
+    // explicit famine-class production shock.
+    [property: JsonPropertyName("foodState")] FoodStateConfig FoodState,
+    [property: JsonPropertyName("disaster")] DisasterConfig Disaster,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
@@ -393,6 +397,69 @@ public sealed record HarvestVarianceConfig(
     [property: JsonPropertyName("correlationTimeYears"), JsonRequired] double CorrelationTimeYears,
     [property: JsonPropertyName("spatialSharedFraction"), JsonRequired] double SpatialSharedFraction,
     [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits);
+
+/// <summary>
+/// T4.21-1 (CR-015 §3.1/§3.2) — the food-state classification's one constant.
+/// AdaptationAbsorbableShortfall (a) — CHOSEN 0.20, a TUNE value with a stated
+///   physiological frame. It is BOTH the dead-zone of the effective deficit
+///   (d_eff = 0 for d ≤ a; (d − a)/(1 − a) above, exactly 1 at d = 1) AND the
+///   SEVERE threshold (θ_sev := a), so the state label predicts the kernel's
+///   response: STRESS ⇒ no starvation, SEVERE ⇒ starvation on the unabsorbed
+///   remainder, FAMINE ⇒ starvation on the whole deficit. Frame: sustained
+///   ration cuts of ~15–25% are survivable without excess mortality (WWII
+///   civilian rationing; the Minnesota Starvation Experiment's ~50% cut for 24
+///   weeks with no deaths is the upper bound), while 40–70% cuts (Dutch Hunger
+///   Winter, post-war German rations) carried excess mortality — the band's
+///   midpoint taken. The recorded alternative a = 1/3 aligns the dead zone with
+///   the kernel's birth full-stop (births continue only while nobody starves);
+///   it is not the default because the director's frame puts survivable cuts at
+///   15–25%. The null arm a = 0 reproduces today's linear response bit for bit.
+///   Validated in [0, 1): at 1 the remainder divides by zero.
+/// </summary>
+public sealed record FoodStateConfig(
+    [property: JsonPropertyName("adaptationAbsorbableShortfall"), JsonRequired] double AdaptationAbsorbableShortfall);
+
+/// <summary>
+/// T4.21-1 (CR-015 §3.3) — the explicit FAMINE-CLASS production shock. All TUNE.
+/// HazardPerYear (λ) — CHOSEN. Shipped at 0.0 by T4.21-1 (the plumbing packet:
+///   its golden move is layout + RngStreams only) and armed at 0.01 by T4.21-4:
+///   one famine-class local crop failure per settlement per century. Reference
+///   class: pre-modern European regional famines — England 1300–1700 ≈ 5–6
+///   famine-class events per 400 y (≈ 1/70 y); France by région 1500–1800
+///   1/50–1/100 y; a single settlement's hinterland sees fewer than a région.
+///   Band 1/50–1/150, the round central value. Onset per turn is the exact
+///   integration P = 1 − exp(−λ dt) (law 3). λ = 0 is the null arm: no row is
+///   ever written and the world differs from a no-disaster world by the
+///   RngStreams rows alone (the attribution control).
+/// DurationYears (D) — CHOSEN 5.0 inside the historical band 3–7 y (the 1315–22
+///   Great Famine sequence incl. the murrain, 1601–03, 1695–97, the 1690s "seven
+///   ill years", 1845–49), at the length the band derivation below requires.
+/// SeverityMin / SeverityMax — DERIVED lower edge, historical upper: the fraction
+///   of FOOD output lost per ACTIVE year, uniform on [0.75, 1.0]. Food output at
+///   0–25% of normal in an active year (Irish potato 1846 ≈ 25% of normal;
+///   1601–03 near-total locally). The LOWER EDGE is a dimensional derivation
+///   against the food model's EFFECTIVE buffer at the coarsest era dt: a
+///   famine-class event must be able to exhaust the full buffer of a settlement
+///   at the shipped surplus ratio ALONE, i.e. s_min·D &gt; (dt_max(ρ_ship − 1) + G)/ρ_ship
+///   with dt_max = 10 y, G = 1.5 y (granaryYearsOfDemand) and ρ_ship = 1.3 — the
+///   DECLARED derivation input (Libur's weather-mean grain surplus ratio in the
+///   director's playtest; the world mean ≈ 2.1 is inflated by sparse settlements
+///   that overproduce and spoil). Threshold 3.46 production-years; D = 5 and
+///   s_min = 0.75 give s·D ∈ [3.75, 5.0]. No outcome is targeted: ρ_ship enters
+///   only as the size of the buffer the event must be able to beat. At s_max = 1
+///   the turn multiplier 1 − s·min(D, dt)/dt stays ≥ 0; above 1 it would hand
+///   Ledger.Flow a negative source under Throw, so the loader refuses it.
+/// The band begins beyond the weather's practical reach at the YEAR scale (a
+///   0.25 yearly multiplier is z = −4.57 under the shipped lognormal, once per
+///   ≈ 400,000 settlement-years) — "not every extreme draw is a disaster" holds
+///   by construction; at the DECADE scale the cause row, not the magnitude, is
+///   what distinguishes them (CR-015 G1).
+/// </summary>
+public sealed record DisasterConfig(
+    [property: JsonPropertyName("hazardPerYear"), JsonRequired] double HazardPerYear,
+    [property: JsonPropertyName("durationYears"), JsonRequired] double DurationYears,
+    [property: JsonPropertyName("severityMin"), JsonRequired] double SeverityMin,
+    [property: JsonPropertyName("severityMax"), JsonRequired] double SeverityMax);
 
 /// <summary>
 /// The culture/religion/class registries (T2.1, D-027 incremental delivery):
@@ -797,6 +864,32 @@ public static class SimConfigLoader
                 $"trade.costPerBulkCostUnit must be a finite value > 0 — at 0 the transport-cost deadband " +
                 $"vanishes and every price gap trades regardless of distance, got " +
                 $"{Inv(cfg.Trade.CostPerBulkCostUnit)}.");
+
+        // T4.21-1 (CR-015): the food-state classification and the disaster shock.
+        if (cfg.FoodState is null) throw new SimConfigException("foodState is missing.");
+        if (!(cfg.FoodState.AdaptationAbsorbableShortfall >= 0.0
+              && cfg.FoodState.AdaptationAbsorbableShortfall < 1.0))
+            throw new SimConfigException(
+                $"foodState.adaptationAbsorbableShortfall must be in [0,1) — it is the dead-zone of " +
+                $"the effective deficit AND the SEVERE threshold; at 1 the unabsorbed remainder " +
+                $"(d − a)/(1 − a) divides by zero, and a negative value would starve a fed settlement. " +
+                $"Got {Inv(cfg.FoodState.AdaptationAbsorbableShortfall)}.");
+
+        if (cfg.Disaster is null) throw new SimConfigException("disaster is missing.");
+        RequireRate("disaster.hazardPerYear", cfg.Disaster.HazardPerYear);
+        if (!(cfg.Disaster.DurationYears > 0.0) || !double.IsFinite(cfg.Disaster.DurationYears))
+            throw new SimConfigException(
+                $"disaster.durationYears must be a finite value > 0 — it is the years a crop failure " +
+                $"lasts, and at 0 or below the event is a no-op that still writes rows; got " +
+                $"{Inv(cfg.Disaster.DurationYears)}.");
+        if (!(cfg.Disaster.SeverityMin >= 0.0 && cfg.Disaster.SeverityMin <= 1.0)
+            || !(cfg.Disaster.SeverityMax >= 0.0 && cfg.Disaster.SeverityMax <= 1.0)
+            || !(cfg.Disaster.SeverityMin <= cfg.Disaster.SeverityMax))
+            throw new SimConfigException(
+                $"disaster.severityMin/severityMax must satisfy 0 <= min <= max <= 1 — severity is the " +
+                $"fraction of food output lost per active year, and above 1 the production multiplier " +
+                $"goes negative and Ledger.Flow throws on a negative source; got min " +
+                $"{Inv(cfg.Disaster.SeverityMin)}, max {Inv(cfg.Disaster.SeverityMax)}.");
 
         return cfg;
     }

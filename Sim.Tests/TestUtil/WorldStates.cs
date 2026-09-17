@@ -69,10 +69,16 @@ public static class WorldStates
         // a comparer that skips a table makes every assertion about it vacuous.
         if (!TableEquals(a.ConstructionQueue, b.ConstructionQueue)) return false;
         if (!TableEquals(a.Structures, b.Structures)) return false;
+        // T4.21-1: Disasters, added WITH the table for the same reason as every
+        // entry above it — a comparer blind to a table makes every StateEquals
+        // assertion about it vacuous.
+        if (!TableEquals(a.Disasters, b.Disasters)) return false;
         return true;
     }
 
-    private static bool TableEquals<T>(Table<T> a, Table<T> b) where T : unmanaged, IEquatable<T>
+    /// <summary>Row-by-row equality of one table (T4.21-1: public so a test can
+    /// compare a single table, e.g. the RngStreams of two arms, by the same rule).</summary>
+    public static bool TableEquals<T>(Table<T> a, Table<T> b) where T : unmanaged, IEquatable<T>
     {
         if (a.Count != b.Count) return false;
         for (int i = 0; i < a.Count; i++)
