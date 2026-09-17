@@ -27,10 +27,19 @@ public static class DemographicsReplica
 
     /// <summary>One turn of dt years over initial integer counts at the given
     /// PREV deficit; returns exact (unfloored) flow totals and the final
-    /// double cohort vector. reservoir0 seeds the group's rebound bank.</summary>
+    /// double cohort vector. reservoir0 seeds the group's rebound bank.
+    /// T4.21-3 (ADR-026): <paramref name="dEff"/> is the EFFECTIVE deficit the
+    /// starvation rate reads and <paramref name="suppressionArg"/> the one the
+    /// fertility suppression reads (G3(b) makes them the same scalar in the
+    /// kernel; the replica keeps them separate so both arms are testable);
+    /// both default to <paramref name="deficit"/> — today's linear response —
+    /// and the rebound RELEASE gate always reads the NOMINAL deficit.</summary>
     public static Result Turn(
-        DemographicsConfig d, long[] counts, double deficit, double dt, double reservoir0 = 0.0)
+        DemographicsConfig d, long[] counts, double deficit, double dt, double reservoir0 = 0.0,
+        double? dEff = null, double? suppressionArg = null)
     {
+        double effective = dEff ?? deficit;
+        double suppressionDeficit = suppressionArg ?? deficit;
         int n = Cohorts.Count;
         var pop = new double[n];
         for (int c = 0; c < n; c++) pop[c] = counts[c];
@@ -40,10 +49,10 @@ public static class DemographicsReplica
         {
             double mult = BandViews.IsChild(c) ? d.StarvationChildMultiplier
                 : BandViews.IsElder(c) ? d.StarvationElderMultiplier : 1.0;
-            starveRate[c] = d.StarvationMortalityMaxPerYear * deficit * mult;
+            starveRate[c] = d.StarvationMortalityMaxPerYear * effective * mult;
             totalRate[c] = d.MortalityPerYear[c] + starveRate[c];
         }
-        double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * deficit);
+        double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * suppressionDeficit);
 
         double births = 0.0, deaths = 0.0, starved = 0.0, reservoir = reservoir0;
         var agingOut = new double[n];

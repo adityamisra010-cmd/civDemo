@@ -113,6 +113,14 @@ public class PopulationExactnessTests
 
     private static long Floor(double v) => (long)Math.Floor(v);
 
+    /// <summary>T4.21-3 (ADR-026): the EFFECTIVE deficit the kernel's exceptional
+    /// channels read for this world — derived from the world's own
+    /// classification (FoodState.Of on the rig, exactly the kernel's read), never
+    /// hand-typed, so a rig that is SEVERE feeds the replica the adapted
+    /// remainder and a FAMINE rig feeds it the whole deficit.</summary>
+    internal static double EffectiveDeficit(WorldState world, SimConfig cfg, double nominal) =>
+        FoodState.EffectiveDeficit(nominal, FoodState.Of(world, new SettlementId(0), cfg, out _), cfg);
+
     private static long TotalPop(WorldState world)
     {
         long total = 0;
@@ -132,6 +140,12 @@ public class PopulationExactnessTests
         // reconciliation (floors through the row remainders, births → aging
         // ascending → deaths → starvation). A swapped rate, a dropped kernel
         // factor, a reordered sink or an aging leak all break equality.
+        // T4.21-3 (ADR-026): this Default-sector rig at d = 0.25 classifies
+        // SEVERE (d > a = 0.20, no cause row), so the exceptional channels read
+        // the ADAPTED remainder (0.25 − 0.2)/0.8 = 0.0625 — the replica is fed
+        // that effective deficit (derived from the rig's own classification,
+        // not typed) for BOTH starvation and suppression (G3(b)); the release
+        // gate keeps the nominal 0.25.
         SimConfig cfg = TestConfigs.Sim();
         DemographicsConfig d = cfg.Demographics;
         const double dt = 2.5, deficit = 0.25;
@@ -139,10 +153,13 @@ public class PopulationExactnessTests
         for (int c = 0; c < Cohorts.Count; c++) prev[c] = 10001 + 7 * c; // odd, distinct
         WorldState world = BucketWorld(prev);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), deficit));
+        double dEff = EffectiveDeficit(world, cfg, deficit);
+        Assert.Equal(FoodStateKind.Severe, FoodState.Of(world, new SettlementId(0), cfg, out _));
+        Assert.Equal((deficit - cfg.FoodState.AdaptationAbsorbableShortfall) / (1.0 - cfg.FoodState.AdaptationAbsorbableShortfall), dEff);
 
         var exec = new TurnExecutor(FlatEra(dt), [SystemCatalog.Demographics(cfg)]);
         WorldState next = exec.Step(world);
-        DemographicsReplica.Result r = DemographicsReplica.Turn(d, prev, deficit, dt);
+        DemographicsReplica.Result r = DemographicsReplica.Turn(d, prev, deficit, dt, dEff: dEff, suppressionArg: dEff);
 
         long born = Floor(r.Births);
         // Flow totals: the replica carries exact (unfloored) aggregates; the
@@ -355,10 +372,18 @@ public class PopulationExactnessTests
         Array.Fill(counts, 10000);
         WorldState world = BucketWorld(counts);
         world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 1.0));
+        // T4.21-3 VACUITY GUARD CHECKED: this hand rig has no sector row and
+        // no disaster row, so at d = 1 it classifies SEVERE, and the dead-zone
+        // form gives (1 − 0.2)/0.8 = 1.0 EXACTLY — the whole deficit starves
+        // (nothing is adapted away at total loss, ADR-024 §3 property 2), so
+        // the > 40000 guard below and the replica argument are unchanged.
+        double dEff = EffectiveDeficit(world, cfg, 1.0);
+        Assert.Equal(FoodStateKind.Severe, FoodState.Of(world, new SettlementId(0), cfg, out _));
+        Assert.Equal(1.0, dEff);
         var exec = new TurnExecutor(FlatEra(2.5), [SystemCatalog.Demographics(cfg)]);
         WorldState next = exec.Step(world);
 
-        DemographicsReplica.Result r = DemographicsReplica.Turn(cfg.Demographics, counts, 1.0, 2.5);
+        DemographicsReplica.Result r = DemographicsReplica.Turn(cfg.Demographics, counts, 1.0, 2.5, dEff: dEff, suppressionArg: dEff);
         long starvedFlow = FlowTotal(next, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true);
         Assert.True(starvedFlow > 40000, "starvation rig vacuous");
         Assert.True(Math.Abs(starvedFlow - r.Starved) < Cohorts.Count,
@@ -399,9 +424,14 @@ public class PopulationExactnessTests
 
         // Phase 1: exact starved = 1000 × (1 − e^(−0.12×1.3×10 composed over
         // 20 micro-steps)) = 1000 × (1 − e^(−1.56)) ≈ 790 — never the whole
-        // bucket, no clamp, survivors remain.
+        // bucket, no clamp, survivors remain. (T4.21-3: at d = 1 on this
+        // Default-sector rig the effective deficit is exactly 1.0 — SEVERE,
+        // (1 − a)/(1 − a) — so the ≈ 790 stands; phase 2's 0.25 adapts to
+        // 0.0625 and the replica is fed that.)
         world = exec.Step(world);
-        DemographicsReplica.Result r1 = DemographicsReplica.Turn(cfg.Demographics, counts, 1.0, dt);
+        double dEff1 = EffectiveDeficit(world, cfg, 1.0);
+        Assert.Equal(1.0, dEff1);
+        DemographicsReplica.Result r1 = DemographicsReplica.Turn(cfg.Demographics, counts, 1.0, dt, dEff: dEff1, suppressionArg: dEff1);
         long starved1 = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true);
         Assert.True(Math.Abs(starved1 - r1.Starved) <= 1, $"{starved1} vs replica {r1.Starved:F2}");
         Assert.True(world.Buckets[15].Count.Value > 0, "extermination — exponential survival should not zero a bucket");
@@ -414,10 +444,13 @@ public class PopulationExactnessTests
         long survivors = world.Buckets[15].Count.Value;
         double rem = world.Buckets[15].StarvationRemainder;
         world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 0.25);
+        double dEff2 = EffectiveDeficit(world, cfg, 0.25);
+        Assert.Equal((0.25 - cfg.FoodState.AdaptationAbsorbableShortfall) / (1.0 - cfg.FoodState.AdaptationAbsorbableShortfall), dEff2);
+        Assert.InRange(dEff2, 0.0624, 0.0626);
         world = exec.Step(world);
         var counts2 = new long[Cohorts.Count];
         counts2[15] = survivors;
-        DemographicsReplica.Result r2 = DemographicsReplica.Turn(cfg.Demographics, counts2, 0.25, dt);
+        DemographicsReplica.Result r2 = DemographicsReplica.Turn(cfg.Demographics, counts2, 0.25, dt, dEff: dEff2, suppressionArg: dEff2);
         long starved2 = FlowTotal(world, ConservedQuantityIds.Population, ReasonIds.Starvation, sunk: true) - starved1;
         Assert.Equal(Floor(r2.Starved + rem), starved2);
     }

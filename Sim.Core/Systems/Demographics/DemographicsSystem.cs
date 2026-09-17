@@ -37,9 +37,10 @@ public readonly record struct DemographicsTables(
 ///      famine factor (w(x) = (1−e^(−x))/x, the person-years kernel — people
 ///      dying mid-step bear children for the fraction they lived; λ = base +
 ///      starvation rate). The suppression factor max(0, 1 − slope × PREV
-///      deficit) multiplies fertility; suppressed exact births bank into the
-///      ReboundReservoir and release on fed turns at the TUNE rate — all at
-///      micro-scale, dt-correct by construction.
+///      EFFECTIVE deficit — T4.21-3, see below) multiplies fertility;
+///      suppressed exact births bank into the ReboundReservoir and release on
+///      fed turns (PREV NOMINAL deficit exactly zero) at the TUNE rate — all
+///      at micro-scale, dt-correct by construction.
 ///      NEWBORN CREDIT happens HERE, inside the births step: survivors =
 ///      B × w(λ_0·h) join cohort 0 immediately (the shortfall is an infant
 ///      Death — Births counts live births, Deaths includes in-step infant
@@ -53,8 +54,17 @@ public readonly record struct DemographicsTables(
 ///      structural gain.
 ///   1. Base deaths — pop_c × (1 − e^(−m_c·h)), then
 ///   2. Starvation — remaining × (1 − e^(−s_c·h)), s_c = max rate × PREV
-///      deficit × age multiplier (sequential exponential sinks compose to
-///      e^(−(m+s)h) regardless of order; the order is pinned).
+///      EFFECTIVE deficit × age multiplier (sequential exponential sinks
+///      compose to e^(−(m+s)h) regardless of order; the order is pinned).
+///      THE EFFECTIVE DEFICIT (T4.21-3, CR-015 / ADR-026, "famine is
+///      exceptional"): dEff = FoodState.EffectiveDeficit(d, FoodState.Of(prev))
+///      — in FAMINE (a famine-class disaster applied to the harvest, or food
+///      labour abandoned, with d > 0) it IS the nominal deficit; otherwise the
+///      dead-zone form max(0, d − a)/(1 − a) with a the absorbable shortfall:
+///      STRESS (d ≤ a) starves nobody and suppresses no birth, SEVERE starves
+///      on the unabsorbed remainder. One per-turn scalar feeds BOTH
+///      exceptional channels (mortality and fertility suppression, G3(b));
+///      the rebound release gate reads the NOMINAL d == 0.0.
 ///      Mortality acts on PRESENT counts (ADR-011 §1): per-capita and
 ///      position-independent — people moved by an earlier system this turn
 ///      die where they stand; the Prev-sized dodge class is structurally
@@ -133,10 +143,27 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                     break;
                 }
             }
-            double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * deficit);
+            // T4.21-3 (CR-015, ADR-026 §2.2(i)): the EFFECTIVE deficit — ONE
+            // per-turn scalar, computed once from PREV beside the nominal
+            // deficit and held constant across the micro-loop (so e^(−s·h)
+            // still composes exactly: dt-invariance by construction). Outside
+            // FAMINE adaptation absorbs a shortfall up to `a` and the
+            // exceptional channels read the unabsorbed remainder
+            // (d − a)/(1 − a); in FAMINE (disaster applied or food labour
+            // abandoned, d > 0) dEff == deficit, so ONE argument serves both
+            // regimes — the null arm a = 0 reproduces today's linear response
+            // bit for bit. Both exceptional demographic channels read it
+            // (G3(b)): starvation mortality AND fertility suppression. Every
+            // other reader keeps the NOMINAL deficit — the rebound RELEASE
+            // gate below (`deficit == 0.0`) is byte-identical: release is a
+            // recovery signal (is there any shortfall at all?), not a
+            // response magnitude.
+            FoodStateKind foodState = FoodState.Of(prev, settlement, _cfg, out _);
+            double dEff = FoodState.EffectiveDeficit(deficit, foodState, _cfg);
+            double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * dEff);
             for (int c = 0; c < Cohorts.Count; c++)
             {
-                starveRate[c] = StarvationRate(d, c, deficit);
+                starveRate[c] = StarvationRate(d, c, dEff);
                 totalRate[c] = d.MortalityPerYear[c] + starveRate[c];
             }
 
