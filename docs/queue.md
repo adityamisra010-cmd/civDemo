@@ -62,13 +62,15 @@
   radius — is the thing that has to move, and that is a worldgen/pathfinding cost
   question (stride 2 quadruples the node count and the Dijkstra work) plus a
   golden re-pin, not a tuning change.
-- Post-crash migration ping-pong: an emptied settlement's per-capita attractiveness (capita floor 1) turns it into a magnet, and the dev world settles into a persistent two-turn population slosh (~95% of a settlement shuttling, mostly children) after the first Malthus crash — at CANONICAL rates. Base rates ≥ 2.2× bifurcate into this attractor even pre-crash (measured T2.7 response curve in MagnitudeCorridor test). Needs an attractiveness smoothing constant or migration hysteresis (D-021 revisit) before T2.8 density corridors lean on migration flows. (raised T2.7 retune)
+- Post-crash migration ping-pong: an emptied settlement's per-capita attractiveness (capita floor 1) turns it into a magnet, and the dev world settles into a persistent two-turn population slosh (~95% of a settlement shuttling, mostly children) after the first Malthus crash — at CANONICAL rates. Base rates ≥ 2.2× bifurcate into this attractor even pre-crash (measured T2.7 response curve in MagnitudeCorridor test). Needs an attractiveness smoothing constant or migration hysteresis (D-021 revisit) before T2.8 density corridors lean on migration flows. (raised T2.7 retune) **CLOSED BY T4.21 (CR-015, 2026-09-17):** the smoothing half was already T2.8(b)'s EMA; the remaining half — the refill surge into an emptied settlement — is closed at the SOURCE by the exactly integrated flight fraction (no destination-count multiplication) and at the DESTINATION by the vacancy bound (`V_j = 0` when `d_j > 0`, ADR-025 §2.4); pinned by `M_DestinationCount_DoesNotMultiplyQuantity`, `M_VacantViableDestination_AcceptsUpToCap`, `M_Recovery_FlowsStopWhenDeficitClears`. No hysteresis state was added.
 - T2.8 adversarial pass (minor hardening candidates, no packet conflict):
   (1) infant in-step shortfall uses the combined base+starvation hazard but is
   attributed entirely to Deaths, never Starvation — chronicle semantics only,
   conservation unaffected; (2) rebound reservoir release is gated on
   unsuppressed > 0, so a group whose fertile cohorts all die strands its bank
-  (not a conserved stock); (3) micro-step/reconciliation aging correctness
+  (not a conserved stock) [ANNOTATED T4.21/ADR-026, CR-015 G3(b): the `deficit == 0.0` half of
+  this gate stays on NOMINAL `d`, byte-identical — release is a recovery signal, not a response
+  magnitude; the `unsuppressed > 0` half is untouched and this item stays OPEN]; (3) micro-step/reconciliation aging correctness
   relies on "higher cohort => higher row index within a group" — holds today
   (founding + snapshot ordering), but no invariant test pins it; (4)
   dt-invariance covers dt 10/5/2.5 directly, dt 3 only via era-boundary
@@ -199,7 +201,7 @@
   boundary, then diverges permanently and silently.
 - **Migration test pinned to a realisation, not a property (T3.4b lens 6):** swapping `cos` for `sin`
   in Box–Muller is distribution-preserving — both are standard normal on the same uniform phase —
-  yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family.
+  yet `MigrationTests.FamineAtOneOfTwelve_…` fails its non-vacuity guard. ADR-015 §7.8 family. **CLOSED BY T4.21 (CR-015 N9, 2026-09-17):** the test is re-aimed in T4.21-4 as `S_Abandonment_TriggersFamine` — famine lethality under the four-state ladder on an abandonment (legacy pct-0) rig, asserted as a property (FAMINE state, `d_eff = d`, starvation on the whole deficit), not as a realisation of one RNG phase.
 - **OPEN — owner T3.4d, re-homed from T3.10 (directed packet T3.4d, 2026-07-29) — (corridor &
   measurement teeth): the √(1−ρ²) stationary-variance factor is
   unpinned at every dt (T3.4c review, test-power M6-golden-only).** The factor exists, per its own
@@ -231,7 +233,7 @@
   ×0.836 would FALSE-FIRE the drift tooth. Mitigation, by construction: the per-seed pinned
   values make that loud rather than silent — the failure message names the seed, the recorded
   value and both signatures, and the correct response is a deliberate re-pin under a ruling, not
-  a tolerance widen. (CalibrationBatteryTests.AssertDevMigrationQuarantine.)
+  a tolerance widen. (CalibrationBatteryTests.AssertDevMigrationQuarantine.) **ANNOTATED T4.21 (CR-015 N7, 2026-09-17):** this tooth WILL fire when bounded flight, the basin caps and the vacancy bound move dev migration (direction not pre-committed — reported); the re-pin is a deliberate act under the CR-015 ruling as a recorded envelope, performed in T4.21-4 on the merged tree by the agent who measures it, never a tolerance widen and never fitted.
 
 ## T3.5 review notes (2026-07-27)
 
@@ -831,6 +833,10 @@
   **WHEN it drifted, and FROM WHAT, is unmeasured** — a bisect over the packets between T3.4c's pin
   and `main`, on one cheap metric. **Do not let a future re-pin absorb two causes** (the ruled
   spacing change and this drift) in one act; separate them or state which is being absorbed.
+  **ANNOTATED T4.21 (CR-015 N7, 2026-09-17):** T4.21-6's multi-seed run RE-MEASURES this envelope
+  on the merged tree; the CR-015 mechanism change is a THIRD cause and is recorded as such — the
+  T4.21-4 re-pin names the CR-015 reading and does not absorb the spacing change or the unmeasured
+  drift into it. Not closed silently; the bisect stays owed.
 - **READY TO WRITE — ADR-015 SECTION: AN OPERATION THAT LOOKS LIKE IT SUCCEEDED IS NOT EVIDENCE
   THAT IT DID. OWNER: DIRECTOR, to rule at M4 spec time** (filed by director instruction,
   2026-08-06, into the same candidate register §7.15–§7.17 came from; GOV-1's precedent is that
@@ -1138,6 +1144,13 @@
   sends herders after grain" therefore holds for MIXED settlements (through farming's
   pre-existing weather multiplier) but not for pastoralists. Closing that gap needs diet
   substitution or a pastoralist grain trade — a needs/D-018 question, not an appropriation one.
+  **ANNOTATED T4.21 (CR-015 G6(a), 2026-09-17):** under the four-state ladder the pure pastoralist
+  (farming = 0, herding > 0) is SEVERE FOOD STRESS on its 0.94 turns — never FAMINE (herding is
+  productive by the director's rule) — with `d_eff = 0.925`, i.e. it starves by basket design
+  exactly as today. Ruled NOT a STOP: the famine semantics do not require a substitution change;
+  this is a pre-existing basket fact. `S_Pastoralist_Pipeline` and `S_FarmerOnly_Pipeline`
+  (T4.21-4) pin both single-sector outcomes. The substitution CR is queued for M5 (see the T4.21
+  lines at the end of this file). Stays OPEN.
 - **T4.5 review finding — dt seam at the one-turn lag (law 3, bounded).**
   `AppropriationSystem` takes `DeficitRatio x DemandUnits` from PREV. `DemandUnits` is already
   dt-integrated where it is published, so the take scales linearly with dt in steady state
@@ -1356,7 +1369,7 @@
   observability §0 instead of "not recorded". Touches `Sim.Core/Systems` and a golden-pinned system, so it
   is outside any observability packet's fence. `docs/t4.20-food-semantics.md` Phase 5.
 - **T4.20 — deferred: `FoodSupportedPopulation` / `FoodConstrainedGrowth` were NOT added.** Both presuppose
-  a population-cap semantics no director ruling establishes. Needs the ruling first.
+  a population-cap semantics no director ruling establishes. Needs the ruling first. **CLOSED BY T4.21 (CR-015 N3, 2026-09-17):** the ruling now exists — population approaches the FEEDABLE food-influx limit `N_lim` (`FoodHeadroom.Limit`, the fixed point of one-directional substitution at the standing basket mix) asymptotically via a fertility multiplier on remaining headroom (ADR-026); no serialized cap state. Both readouts become legally RECOMPUTED from the public static in T4.21-5.
 - **T4.20 — deferred: no food good has ever traded (measured, 0 legs in 3,588 settlement-turns).** Grain is
   barred structurally as the numéraire (`TradeArbitrageSystem.cs:64-66`); livestock and fish are eligible and
   simply never move. MISSING CAPABILITY, classified in `docs/t4.20-food-semantics.md` Phase 4 finding 4.
@@ -1372,3 +1385,21 @@
   T4.20 moved `SettlementRecord.FoodGoods` onto `BasketBook.FoodGoods` (the simulation's own rule); this
   remaining occurrence was outside the packet's scope and was not touched. Same divergence risk under a
   needs.json tuning edit. Reconcile in a packet that owns that file.
+
+## T4.21 queue lines (CR-015 / `docs/t4.21-architecture.md` §11, 2026-09-17) — one each, none implemented
+
+- **T4.21 — disaster spatial correlation.** `DisasterSystem` draws per settlement independently; a regional famine (neighbouring hinterlands failing together, the T3.4b spatial argument) needs a shared-field blend like weather's. DEFERRED; ADR-024 §2.3.
+- **T4.21 — weather-conditioned disaster hazard.** λ is constant; a hazard that rises in a bad-weather decade (drought → murrain) is a coupling the mandate did not ask for. DEFERRED.
+- **T4.21 — "granary loss" disaster kind (G8(b), NOT authorized).** An event that also destroys the store via `Ledger.Flow` to a sink would make disasters bite at any `ρ` under the dt-10 buffer pooling; refused in T4.21 as a second mechanism hiding the F4 artefact. Needs the kind registry line below.
+- **T4.21 — exact onset renewal.** Onset time drawn uniformly within the turn, loss spilled into the next turn, superposed onsets multiplying — replaces the accepted ≈ 5 % rate/truncation biases (ADR-024 §4) with an exactly dt-invariant process.
+- **T4.21 — data-driven disaster kind registry with a per-row famine-class predicate.** A second kind with sub-class severities requires `FoodState.struck` to read `Severity·D·ρ_ship ≥ B_eff` per row instead of "any row"; the registry is where the predicate lives.
+- **T4.21 — `a = 1/3` alignment (TUNE).** The dead-zone set to the band in which births still occur (Minnesota's 50 % cut survived without deaths) so the STRESS/SEVERE boundary and the birth full-stop coincide; recorded as the alternative the director may set; not the default.
+- **T4.21 — F1 weather turn-mean factor, ESCALATED (CR-015 §6.4, G1).** `multiplier = exp(√g·x − g·σ²/2)`, `g(dt/τ) = 2(τ/dt)[1 − (τ/dt)(1 − e^{−dt/τ})]` = 0.427 at dt 10; its own packet with its own golden attribution step if the director rules (b). Weather untouched until then.
+- **T4.21 — `HarvestWeatherRow.AppliedMultiplier` in the v25 window.** The APPLIED weather multiplier is not on prev (the row holds the NEXT draw); adding it lets `FoodHeadroom` weather-normalise `S` and gives the F1 audit its permanent READ field. Decide while v25 is still open on the candidate.
+- **T4.21 — CLI chronicle-file gap (`SessionEmitter.cs:90`).** The emitted session carries no chronicle file, so the re-based famine/disaster chronicle events (T4.21-5) are UI-only until the emitter writes them.
+- **T4.21 — per-settlement starvation split in `AutoplayMetrics`.** Starvation deaths are world-summed; the V2/V3 criteria (spec §7) need them per settlement-turn by `FoodState`; done via telemetry in T4.21-6, owed in the metrics.
+- **T4.21 — pastoralist substitution CR (G6(b), M5).** Livestock/fish substituting for grain at a stated conversion — a D-018/D-035 change with its own packet; `FoodHeadroom`'s fixed point and `FoodState`'s semantics both depend on the substitution direction and would follow it.
+- **T4.21 — "stranded by capacity" founding (G7(b), first M5 colonization line).** Extend B1's condition to "no reachable, viable AND vacant destination" and route the vacancy-refused share into `UnplacedDeparture` — an ADR-021 amendment of the CONDITION (T4.4 semantics), one line of code, after the vacancy bound has been measured alone.
+- **T4.21 — per-year food-balance sub-step (G8(c), M5).** The real fix for the dt-vs-buffer artefact (F4): Consumption settling the balance year by year inside the turn so the effective buffer is the physical granary at every dt. Outside CR-012 §5's freeze and the mandate's "preserve the stock-based food model"; the investigation the t4.2 record authorised.
+- **T4.21 — `AutoplayMetrics` famine/disaster counters (`autoplay-metrics/v2`).** FAMINE settlement-turns by reason, disaster onsets per settlement-century, STRESS/SEVERE counts — the V1/V8 criteria as first-class metrics rather than telemetry post-processing.
+- **T4.21 — dt-vs-buffer (already open at `t4.2-review-record.md:382-387`): ANNOTATED — declared F4, derived (`B_eff = G + dt·(ρ − 1)`), pinned as a DIFFERENCE by T4.21 (`D_Classification_DtDifference_Pinned`), ruled G8(a).**

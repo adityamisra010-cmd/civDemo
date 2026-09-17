@@ -15,6 +15,15 @@
 > The current M4 exit candidate is `t4.19-glass-box`. Its suite, measured in Release at the exit gate:
 > Sim.Tests **722 passed / 4 failed / 6 skipped**, Sim.Ui.Tests **236/236**, three gates green — which
 > supersedes the 541–572 / 6 / 6 counts recorded below.
+>
+> **2026-09-17 — T4.21 IN PROGRESS on `claude/civdemo-work-b1z2y4`** (= `main` `dbef61a` + the unmerged
+> M4 playtest build `2807155` + the forensic CLI, `45046eb`): famine semantics, bounded migration and
+> shock integration. Governance landed first (T4.21-0, branch `t4.21-0-governance`):
+> `docs/adr/cr-015-famine-is-exceptional.md` RULED from the director's 2026-09-17 mandate (G1 — the
+> harvest-weather decade variance — ESCALATED and open), ADR-024/025/026, spec
+> `docs/t4.21-architecture.md`, evidence `docs/t4.21-evidence/`. Code packets T4.21-1..6 follow on
+> their own branches; nothing is merged to `main`. Suite baseline on `45046eb` (Release): 754 passed /
+> 2 failed (`Dev_MalthusCorridors` seeds 42, 7 — red by CR-003 ruling) / 6 skipped. Verify against git.
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not

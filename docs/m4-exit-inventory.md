@@ -322,3 +322,13 @@ These are settled. Reopening any of them at M5 startup is out of scope without a
   changes. CR-006 remains open.
 - **Do not fabricate a second polity to activate foreign trade.** The `aiEmpires` seam exists; using
   it is a measured decision.
+
+> **§12 NOTE — SUPERSEDED IN PART BY CR-015 (2026-09-17, director mandate).** The director's
+> 2026-09-17 mandate is the "fresh ruling" this section requires. Bullets 1–2 are superseded FOR THE
+> MECHANISM CHANGES CR-015 ORDERS (bounded migration, ADR-025; effective-deficit mortality and
+> fertility and the headroom growth cap, ADR-026; the derived food state and the disaster shock,
+> ADR-024) and for those only: the TUNING ban stands (no migration constant, no demographic constant,
+> no corridor bound moves), the Malthus quarantine stands with its bands frozen, and no starvation is
+> fabricated — disasters are a mechanism with a derived band. "D-021 stays as-is" is untouched (ω is
+> the Exit valve's openness, not needs/grievance state). "The 10-year atomic turn stays" is untouched
+> (G8(a); the sub-step is queued). See `docs/adr/cr-015-famine-is-exceptional.md` §6.2 N7.
