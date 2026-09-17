@@ -129,4 +129,114 @@ public class SimConfigTests
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
         Assert.Contains("gapClosingFraction", e.Message);
     }
+
+    // ======================================================================
+    // T4.21-1 (CR-015): foodState and disaster sections
+    // ======================================================================
+
+    [Theory]
+    [InlineData("1.0")]    // the remainder (d − a)/(1 − a) divides by zero
+    [InlineData("1.5")]
+    [InlineData("-0.1")]   // a negative dead-zone would starve a fed settlement
+    public void FoodStateAdaptation_OutsideHalfOpenUnitInterval_RefusesLoad(string bad)
+    {
+        string json = CanonicalJson().Replace(
+            "\"adaptationAbsorbableShortfall\": 0.20", $"\"adaptationAbsorbableShortfall\": {bad}");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("foodState.adaptationAbsorbableShortfall", e.Message);
+        Assert.Contains("[0,1)", e.Message);
+    }
+
+    [Theory]
+    [InlineData("0.0")]
+    [InlineData("0.3333333333333333")]   // the recorded a = 1/3 alternative loads
+    [InlineData("0.9999")]
+    public void FoodStateAdaptation_InsideHalfOpenUnitInterval_Loads(string ok)
+    {
+        string json = CanonicalJson().Replace(
+            "\"adaptationAbsorbableShortfall\": 0.20", $"\"adaptationAbsorbableShortfall\": {ok}");
+        SimConfig cfg = SimConfigLoader.Load(json);
+        Assert.Equal(double.Parse(ok, System.Globalization.CultureInfo.InvariantCulture),
+            cfg.FoodState.AdaptationAbsorbableShortfall);
+    }
+
+    [Fact]
+    public void FoodStateSection_Missing_RefusesLoad()
+    {
+        string json = CanonicalJson().Replace(
+            "\"adaptationAbsorbableShortfall\": 0.20", "\"adaptationAbsorbableShortfallX\": 0.20");
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("adaptationAbsorbableShortfall", e.Message);
+    }
+
+    [Theory]
+    [InlineData("-0.01")]
+    [InlineData("NaN")]
+    public void DisasterHazard_Negative_RefusesLoad(string bad)
+    {
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", $"\"hazardPerYear\": {bad}");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("disaster.hazardPerYear", e.Message);
+    }
+
+    [Fact]
+    public void DisasterHazard_Armed_Loads()
+    {
+        // The T4.21-4 value loads today: arming is a data change.
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYear\": 0.01");
+        Assert.Equal(0.01, SimConfigLoader.Load(json).Disaster.HazardPerYear);
+    }
+
+    [Theory]
+    [InlineData("0.0")]
+    [InlineData("-5.0")]
+    public void DisasterDuration_NotPositive_RefusesLoad(string bad)
+    {
+        string json = CanonicalJson().Replace("\"durationYears\": 5.0", $"\"durationYears\": {bad}");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("disaster.durationYears", e.Message);
+    }
+
+    [Theory]
+    [InlineData("0.75", "1.5")]    // max > 1: the multiplier goes negative, Ledger.Flow throws
+    [InlineData("0.9", "0.8")]     // min > max
+    [InlineData("-0.1", "1.0")]    // min < 0
+    public void DisasterSeverityBand_Invalid_RefusesLoad(string min, string max)
+    {
+        string json = CanonicalJson()
+            .Replace("\"severityMin\": 0.75", $"\"severityMin\": {min}")
+            .Replace("\"severityMax\": 1.0", $"\"severityMax\": {max}");
+        Assert.NotEqual(CanonicalJson(), json);
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("disaster.severityMin/severityMax", e.Message);
+    }
+
+    [Fact]
+    public void DisasterSection_Missing_RefusesLoad()
+    {
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYearX\": 0.0");
+        var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+        Assert.Contains("hazardPerYear", e.Message);
+    }
+
+    [Fact]
+    public void ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne()
+    {
+        // T4.21-1 ships λ = 0 (layout-only golden move); the band is the §3.3
+        // derivation: s·D ∈ [3.75, 5.0] > 3.46 production-years at ρ_ship = 1.3.
+        SimConfig cfg = TestConfigs.Sim();
+        Assert.Equal(0.0, cfg.Disaster.HazardPerYear);
+        Assert.Equal(5.0, cfg.Disaster.DurationYears);
+        Assert.Equal(0.75, cfg.Disaster.SeverityMin);
+        Assert.Equal(1.0, cfg.Disaster.SeverityMax);
+        const double rhoShip = 1.3, dtMax = 10.0;
+        double G = cfg.Consumption.GranaryYearsOfDemand;
+        double threshold = (dtMax * (rhoShip - 1.0) + G) / rhoShip;
+        Assert.InRange(threshold, 3.45, 3.47);
+        Assert.True(cfg.Disaster.SeverityMin * cfg.Disaster.DurationYears > threshold);
+        Assert.Equal(0.20, cfg.FoodState.AdaptationAbsorbableShortfall);
+    }
 }

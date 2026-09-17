@@ -224,7 +224,21 @@ public class SnapshotTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
+        // T4.21-1 RE-PIN — SCHEMA v25, LAYOUT ONLY, MEASURED on this tree.
+        //   OLD  eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69
+        //   NEW  b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1
+        //   CAUSE v24 -> v25 appends the Disasters table (CR-015 §3.3). The toy
+        //         pipeline runs no DisasterSystem, so this world gains NO stream
+        //         rows and no disaster rows: its entire movement is one four-byte
+        //         zero count prefix.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV25TrailerAlone drops that
+        //         prefix on this exact world and returns the OLD value byte for
+        //         byte; the v22 strip still returns main's pre-M4 0f94b4ad….
+        //   NOT A BEHAVIOUR CHANGE: FoodState and FoodHeadroom are statics nothing
+        //         in the pipeline calls; ProductionSystem multiplies by 1.0 exactly
+        //         without a strike, and hazardPerYear ships at 0.
+        const string golden = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -700,7 +714,26 @@ public class SnapshotTests
         //         in it) and its v22-stripped control still returns 0f94b4ad….
         //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62";
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62
+        //   NEW  008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1
+        //   CAUSE (1) v24 -> v25 appends the Disasters table (CR-015 §3.3), EMPTY
+        //         in this world because hazardPerYear ships at 0 — one four-byte
+        //         zero prefix; (2) DisasterSystem draws two uniforms per settlement
+        //         per turn UNCONDITIONALLY (so a hazard-0 run and a no-strike run
+        //         consume identical RNG), which adds one RngStreamRow per
+        //         settlement on turn 1. Nothing else: no row, no multiplier ≠ 1.0,
+        //         no caller of the new statics.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
+        //         the disaster streams and the empty table from this exact world
+        //         and returns the OLD value BYTE FOR BYTE; the v22/v23 controls in
+        //         that file are UNMOVED. Any behavioural drift would survive the
+        //         strip and break it.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

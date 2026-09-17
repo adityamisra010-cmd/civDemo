@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Disaster;
 
 namespace Sim.Tests.Kernel;
 
@@ -43,6 +44,20 @@ namespace Sim.Tests.Kernel;
 /// mid-stream rather than in the trailer, so byte-stripping no longer expresses
 /// the question. Clearing the three tables does, for empty and populated worlds
 /// alike, and it degenerates to exactly the old trailer strip when they are empty.
+///
+/// T4.21-1 (CR-015) ADDED A THIRD LAYER, and it is the one this packet is
+/// judged on: schema v25 appends the Disasters table (EMPTY in every canonical
+/// world — the packet ships hazardPerYear = 0, so no row is ever written) and
+/// DisasterSystem draws two uniforms per settlement per turn UNCONDITIONALLY, so
+/// every founded world gains one RngStreamRow per settlement. Those two are the
+/// ENTIRE delta the packet may make: <see cref="StripDisaster"/> removes the
+/// disaster streams and clears the table, <see cref="HashAtSchemaV24"/> also
+/// drops the empty v25 trailer, and the PRE-PACKET pins must return BYTE FOR
+/// BYTE on every pinned world. FoodState and FoodHeadroom are statics nothing
+/// calls yet, and ProductionSystem multiplies by exactly 1.0 without a strike —
+/// this control is the measurement that says so, on the tree, not the argument.
+/// The v22/v23 controls below strip the disaster layer too, so every constant
+/// they carry is UNMOVED by this packet.
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -78,6 +93,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripDisaster(stripped);
         stripped.Polities.Clear();
         stripped.Controls.Clear();
         stripped.Capitals.Clear();
@@ -90,7 +106,11 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        byte[] full = buffer.ToArray();
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables);
+    }
+
+    private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
+    {
         int drop = dropTrailingTables * EmptyTableBytes;
         for (int i = full.Length - drop; i < full.Length; i++)
         {
@@ -100,12 +120,57 @@ public class IntegratedPinAttributionTests
         return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - drop).ToArray()));
     }
 
-    /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.</summary>
-    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 4);
+    /// <summary>
+    /// T4.21-1: remove the packet's two layout contributions IN PLACE — the
+    /// Disasters rows (none exist at hazard 0; cleared regardless so a populated
+    /// world strips the same way) and DisasterSystem's RngStreams rows, which
+    /// the registry appended lazily on turn 1 AFTER HarvestWeather's and which
+    /// therefore sit in the stream exactly where removing them restores the
+    /// pre-packet row sequence. Returns how many stream rows were removed, so a
+    /// caller can assert the strip was not vacuous.
+    /// </summary>
+    private static int StripDisaster(WorldState stripped)
+    {
+        stripped.Disasters.Clear();
+        var kept = new List<RngStreamRow>(stripped.RngStreams.Count);
+        int removed = 0;
+        for (int i = 0; i < stripped.RngStreams.Count; i++)
+        {
+            RngStreamRow row = stripped.RngStreams[i];
+            if (row.System == DisasterSystem.WellKnownId) { removed++; continue; }
+            kept.Add(row);
+        }
+        stripped.RngStreams.Clear();
+        for (int i = 0; i < kept.Count; i++) stripped.RngStreams.Add(kept[i]);
+        return removed;
+    }
+
+    /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.
+    /// Five trailing empty tables since v25: Polities, Capitals (v23),
+    /// ConstructionQueue, Structures (v24), Disasters (v25).</summary>
+    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5);
 
     /// <summary>The stream as v23 — M4-A's tables present but empty, i.e. the
     /// tree exactly as it stood before M4-C's founding wrote them.</summary>
-    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 2);
+    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3);
+
+    /// <summary>
+    /// The stream as v24 — the tree exactly as it stood BEFORE T4.21-1: the
+    /// disaster streams and table removed, the empty v25 trailer dropped, and
+    /// NOTHING ELSE touched (M4's rows stay). The pre-packet pin must return
+    /// byte for byte, or the packet changed behaviour.
+    /// </summary>
+    private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        disasterStreamsRemoved = StripDisaster(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), 1);
+    }
 
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheM4SchemaAlone()
@@ -221,5 +286,77 @@ public class IntegratedPinAttributionTests
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
         Assert.Equal(1, world.Capitals.Count);
+    }
+
+    // ======================================================================
+    // T4.21-1 — THE LAYOUT-ONLY CONTROL FOR SCHEMA v25 + THE DISASTER STREAMS
+    // ======================================================================
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV25TrailerAlone()
+    {
+        // The toy pipeline has no disaster system, so this synthetic world gains
+        // NO stream rows — its whole movement is the empty Disasters prefix.
+        // The pre-packet pin (SnapshotTests.GoldenHash at 45046eb).
+        const string beforeT421 = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
+
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
+        Assert.Equal(0, removed);
+        Assert.Equal(0, world.Disasters.Count);
+        Assert.Equal(25, CanonicalSchema.Version);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone()
+    {
+        // The pre-packet pin (SnapshotTests.FoundedGolden and ci.yml's
+        // FOUNDED_GOLDEN at 45046eb). hazardPerYear = 0 ⇒ no row is ever
+        // written, ProductionSystem multiplies by 1.0 exactly, and the ONLY
+        // thing in the stream that is not in the pre-packet stream is one
+        // RngStreamRow per settlement plus the empty v25 prefix.
+        const string beforeT421 = "917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62";
+
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
+        WorldState world = executor.Run(
+            Sim.Core.Worldgen.WorldFounding.Found(
+                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
+
+        Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
+        Assert.Equal(world.Settlements.Count, removed);   // one disaster stream per settlement — not vacuous
+        Assert.Equal(0, world.Disasters.Count);           // hazard 0: no row, ever
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheDisasterLayoutAlone()
+    {
+        // The pre-packet pin (FirstReignTests at 45046eb). This is the world
+        // whose lone settlement dies under the director's 0%-farm order — an
+        // ABANDONMENT famine under the new classification, and this control is
+        // what proves the classification's existence moved nothing: FoodState
+        // is a static nothing in the pipeline calls yet.
+        const string beforeT421 = "5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a";
+
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
+        Assert.True(removed >= 1, "no disaster stream rows to strip — control vacuous");
+        Assert.Equal(0, world.Disasters.Count);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone()
+    {
+        // The pre-packet pin (DrivenGoldenTests at 45046eb).
+        const string beforeT421 = "76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6";
+
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
+        Assert.Equal(world.Settlements.Count, removed);
+        Assert.Equal(0, world.Disasters.Count);
     }
 }

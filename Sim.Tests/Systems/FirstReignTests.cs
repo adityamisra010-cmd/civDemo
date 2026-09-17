@@ -405,7 +405,19 @@ public class FirstReignTests
         //         ghost mountain stays absent), and the dead world stays dead —
         //         the director's 0%-farm order still kills everyone.
         //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED.
-        const string golden = "5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a";
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a
+        //   NEW  125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
+        //   CAUSE the empty Disasters table's prefix plus DisasterSystem's RNG
+        //         stream rows (two unconditional draws per settlement-turn at
+        //         hazardPerYear 0). THE SHAPE BELOW IS UNCHANGED: this is the
+        //         director's 0%-farm world — an ABANDONMENT famine under CR-015's
+        //         classification — and the classification is a static nothing in
+        //         the pipeline calls yet, so the dead world dies exactly as before.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheDisasterLayoutAlone strips both and
+        //         returns the OLD value byte for byte.
+        const string golden = "125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
