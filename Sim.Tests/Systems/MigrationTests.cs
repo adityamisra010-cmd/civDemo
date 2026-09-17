@@ -744,6 +744,12 @@ public class MigrationTests
         Assert.True(atFull.MigrationFlows[0].Outflow > atHalf.MigrationFlows[0].Outflow,
             "flight does not scale with the factor");
         Assert.Equal(0, atFull.MigrationFlows[1].Outflow);   // the fed side stays put
+        // T4.21-2 (ADR-025 §2.1): the valve is BOUNDED — φ < 1 per bucket, so even
+        // at d = 1 a decade cannot empty the source. Under the pre-amendment linear
+        // form the desire here was 2.4 × count per destination and the overdraw
+        // scaler moved the whole 16 000.
+        Assert.True(atFull.MigrationFlows[0].Outflow < 16_000,
+            $"full-factor flight moved {atFull.MigrationFlows[0].Outflow} of 16 000 — not bounded");
     }
 
     // --- damping distance-dependence (vacuity finding) -----------------------
@@ -796,34 +802,50 @@ public class MigrationTests
         // source bucket. With proportional scaling each receives ~half; with
         // the bypass the first destination grabs everything and the second
         // gets the clamped scraps. Assert near-equal split.
-        // T2.8 rig note: saturation now rides the FAMINE-FLIGHT channel
-        // (deficit 1.0 → desire ≈ 2170 per destination against a 1000-person
-        // bucket) — the gap channel is structurally capped at 0.25 × m* since
-        // the stabilization and can no longer over-desire a bucket by itself.
+        // T2.8 rig note: saturation rode the FAMINE-FLIGHT channel (deficit 1.0 →
+        // desire ≈ 2170 per destination against a 1000-person bucket) — the gap
+        // channel is structurally capped at 0.25 × m* since the stabilization and
+        // can no longer over-desire a bucket by itself.
+        // T4.21-2 RE-RIG (ADR-025 §6; spec §6.3 "overdraw re-rig"): flight is now
+        // the bounded hazard φ = 1 − e^{−profile·K·ω·d·dt} with SHARES w_j
+        // distributing it, so a saturation guard ("moved ≥ 950") is a rig artefact
+        // of the unbounded form and can no longer be met by flight alone. The AIM
+        // — no first-destination grab; two equally reachable destinations receive
+        // equal shares — is kept and asserted directly on the shares: with NO land
+        // (gap channel off) the moved total is floor(1000 × φ) BY CONSTRUCTION,
+        // φ = 1 − e^{−2.4 × damping(5) × viability} ≈ 0.86 at damping e^{−0.2} =
+        // 0.8187, and each destination receives half within flooring. Destinations
+        // carry no demand row, so their pile-up is this rig's declared ignorance of
+        // capacity — the capacity pin is M_Basin_FanIn_Flight_BoundedByVacancy.
         SimConfig cfg = TestConfigs.Sim();
         var counts = new long[Cohorts.Count];
         counts[4] = 1000; // one young-adult bucket — the whole source
         WorldState world = MigrationWorld(counts, AdultsHeavy(10), AdultsHeavy(10));
         Endow(world, 1, 2_000_000);
         Endow(world, 2, 2_000_000);
-        // T4.10: equal land at both destinations (R = 40_000 each, bit-identical
-        // to the old 0.02 × 2_000_000). Saturation here rides the famine-flight
-        // channel, which is untouched by the food-term removal, but the two
-        // destinations must stay symmetric for the proportional-split assertion.
-        Land(world, 1, 512_000.0);
-        Land(world, 2, 512_000.0);
         world.ConsumptionDeficits[0] = new ConsumptionDeficitRow(new SettlementId(0), 1.0, 1);
         Link(world, 0, 1, 5.0); Link(world, 1, 0, 5.0);
         Link(world, 0, 2, 5.0); Link(world, 2, 0, 5.0);
         Link(world, 1, 2, 5.0); Link(world, 2, 1, 5.0);
 
+        Sim.Core.Systems.Migration.MigrationPlan plan = Sim.Core.Systems.Migration.MigrationSystem.Plan(world, cfg, 10.0);
+        Assert.Equal(plan.Damping[0, 1] * plan.Viability[1], plan.ExitOpenness[0]);   // the best exit (both equal)
+        Assert.Equal(plan.Share[0, 1], plan.Share[0, 2]);                               // shares ∝ damping × viability
+        Assert.Equal(0.5, plan.Share[0, 1], 12);
+        int row = -1;
+        for (int i = 0; i < world.Buckets.Count; i++)
+            if (world.Buckets[i].Settlement.Value == 0 && world.Buckets[i].CohortIdx == 4) row = i;
+        double phi = plan.FlightFraction[row];
+        Assert.True(phi > 0.8 && phi < 0.9, $"φ = {phi} — the rig is not the ≈0.86 saturation case");
+        Assert.Equal(1.0, plan.OverdrawScale[row]);                                     // the scaler is NOT what bounds it
+
         WorldState next = MigrationOnly(cfg).Step(world);
         long in1 = next.MigrationFlows[1].Inflow, in2 = next.MigrationFlows[2].Inflow;
         long moved = in1 + in2;
-        Assert.True(moved is >= 950 and <= 1000,
-            $"moved {moved} of 1000 — the scaler did not engage (saturation rig failed)");
-        Assert.True(Math.Abs(in1 - in2) <= moved / 10,
-            $"overdraw split {in1}/{in2} not proportional — first-destination grab");
+        Assert.Equal((long)Math.Floor(1000.0 * phi), moved);
+        Assert.True(moved < 1000, "the source was emptied — flight is not bounded");
+        Assert.True(Math.Abs(in1 - in2) <= 1,
+            $"split {in1}/{in2} not the equal shares — first-destination grab");
     }
 
     // --- chronicle truthfulness (adversarial finding) ------------------------

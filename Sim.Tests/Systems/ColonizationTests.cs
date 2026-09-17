@@ -211,6 +211,52 @@ public class ColonizationTests
     }
 
     [Fact]
+    public void Colonization_PartyNeverEmptiesSource()
+    {
+        // T4.21-2 (ADR-025 §2.5, spec §3.4.4 / §6.3): the readout is the bounded
+        // destination-free hazard (1 − e^{−profile·K·d·dt}) × count, strictly below
+        // the bucket, and DrawParty floors it — so after ONE founding every source
+        // bucket still holds at least ⌈count × e^{−profile·K·d·dt}⌉ people, turn-
+        // exact, and the daughter is exactly Σ floor(readout). This supersedes the
+        // t4.4-review-record §D2 "it can be emptied" behaviour by construction.
+        // The two systems run as two steps (the sibling test's pattern) because in
+        // one handoff turn the gap channel also moves people from the land-rich
+        // ruins INTO the viable source before colonization draws — a same-turn
+        // inflow that only raises the live counts the party is drawn from.
+        (WorldState w, SettlementId src) = StrandedSource();   // d = 0.40
+        SimConfig cfg = TestConfigs.Sim();
+        double k = cfg.Migration.BaseRatePerYear * cfg.Migration.FamineFlightFactor;
+        const double dt = 10.0;                                 // FlatEra(): dtYears 10
+
+        WorldState afterMigration = new TurnExecutor(FlatEra(), [SystemCatalog.Migration(cfg)]).Step(w);
+        WorldState founded = new TurnExecutor(FlatEra(),
+            [SystemCatalog.Colonization(cfg, TestConfigs.Worldgen())]).Step(afterMigration);
+        SettlementId daughter = founded.Settlements[^1].Id;
+        Assert.True(founded.Settlements.Count == w.Settlements.Count + 1, "nothing was founded — the rig is vacuous");
+        long party = PopulationOf(founded, daughter);
+        Assert.True(party > 0, "an empty party");
+
+        long expectedParty = 0;
+        for (int i = 0; i < w.Buckets.Count; i++)
+        {
+            if (w.Buckets[i].Settlement != src) continue;
+            long before = w.Buckets[i].Count.Value;                 // the PREV count the readout multiplied
+            double exponent = cfg.Migration.CohortProfile[w.Buckets[i].CohortIdx] * k * 0.40 * dt;
+            double readout = (1.0 - Math.Exp(-exponent)) * before;
+            Assert.Equal(readout, afterMigration.Buckets[i].UnplacedDeparture);      // turn-exact, bit for bit
+            long take = (long)Math.Floor(readout);
+            expectedParty += take;
+            Assert.Equal(afterMigration.Buckets[i].Count.Value - take, founded.Buckets[i].Count.Value);
+            long floorKept = (long)Math.Ceiling(before * Math.Exp(-exponent));
+            Assert.True(founded.Buckets[i].Count.Value >= floorKept,
+                $"bucket {i}: {before} → {founded.Buckets[i].Count.Value}, below the bound {floorKept}");
+            if (before > 0) Assert.True(founded.Buckets[i].Count.Value > 0, $"bucket {i} was emptied by the founding");
+        }
+        Assert.Equal(expectedParty, party);
+        Assert.Equal(PopulationOf(afterMigration, src) - party, PopulationOf(founded, src));
+    }
+
+    [Fact]
     public void SourceLosesEXACTLYWhatTheDaughterGains()
     {
         // The source is the world's only fed settlement, so it also RECEIVES gap-driven

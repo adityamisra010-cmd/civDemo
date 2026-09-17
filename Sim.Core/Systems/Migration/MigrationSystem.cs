@@ -1,10 +1,11 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Consumption;
 
 namespace Sim.Core.Systems.Migration;
 
 /// <summary>Writable handles to MigrationSystem's tables (built by
-/// SystemCatalog only). Buckets is SHARED with Demographics and ClassMobility
+/// SystemCatalog only). Buckets is SHARED with Demographics/ClassMobility
 /// (see SystemCatalog); MigrationFlows is this system's chronicle table;
 /// SmoothedAttractiveness is its persistent EMA filter state (T2.8).</summary>
 public readonly record struct MigrationTables(
@@ -13,15 +14,50 @@ public readonly record struct MigrationTables(
 
 /// <summary>
 /// Migration (T2.5, m2 spec §3 / D-021 Exit valve; STABILIZED at T2.8 by
-/// director ruling — the ping-pong attractor was a paired-feedback violation):
-/// people are Ledger.Transfers of buckets between settlements — migrants keep
-/// their FULL bucket key. Everything reads Prev (§3.2).
+/// director ruling — the ping-pong attractor was a paired-feedback violation;
+/// BOUNDED at T4.21-2 under CR-015 / ADR-025 — the linear flight surge and
+/// the unbounded basin refill were the two migration causes of the Libur
+/// cascade): people are Ledger.Transfers of buckets between settlements —
+/// migrants keep their FULL bucket key. Everything reads Prev (§3.2).
+/// Step = <see cref="Plan"/> (a pure function of Prev) + a transfer loop that
+/// consumes the plan; the observer calls the same static (spec §3.11).
 ///
-/// DRIVER, per source bucket and destination:
-///   desired/yr = BaseRatePerYear × CohortProfile[cohort] × PREV count
-///                × damping(i→j) × viability(j)
-///                × (gapScale(i→j) × gap(i→j) + FamineFlightFactor × deficit_i)
-///   gap       = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
+/// TWO CHANNELS, per source bucket b of settlement i and destination j
+/// (ADR-025 §2; docs/t4.21-architecture.md §3.4–§3.5):
+///
+///   GAP (T2.8, unchanged in form):
+///     desired = BaseRatePerYear × CohortProfile[cohort] × PREV count × dt
+///               × damping(i→j) × viability(j) × gapScaleExecuted(i→j) × gap(i→j)
+///     gap     = max(0, S_j − S_i) over the SMOOTHED attractiveness S (below).
+///     gapScaleExecuted = gapScale(pair cap, T2.8 a) × destScale_j × srcScale_i
+///               × vacScale_j — each basin/vacancy factor multiplied only when
+///               it is &lt; 1, so the fed world executes T2.8's instruction
+///               sequence bit for bit.
+///
+///   FLIGHT (D-021 Exit valve; the bounded hazard form, ADR-025 §2.1):
+///     ω_i     = max_{j≠i} damping(i→j) × viability(j)      EXIT OPENNESS ∈ [0,1]
+///     Z_i     = Σ_{j≠i} damping(i→j) × viability(j);  w_ij = damping × viability / Z_i
+///     K       = BaseRatePerYear × FamineFlightFactor        (0.24/yr; no constant moved)
+///     φ_b     = 1 − exp(−CohortProfile[cohort] × K × ω_i × d_i × dt)   HOW MANY ∈ [0,1)
+///     flight_b→j = φ_b × count_b × (w_ij × vacScale_j)                  WHERE
+///     d_i     = the source's PREV consumption-deficit ratio, NOMINAL (not the
+///               adapted d_eff of ADR-026 — flight is ordinary pressure at small
+///               d and crisis flight at large d, one continuum; famine's
+///               exceptional response is the mortality channel, not a separate
+///               flight regime).
+///
+///   HOW MANY is separated from WHERE. φ_b depends on the source's deficit and
+///   on the BEST exit only — never on the number of exits: adding a second
+///   identical destination leaves φ_b unchanged and halves each share. The
+///   exact integral 1 − exp(−rate·dt) is the survival-kernel form the
+///   demographics and decay systems use (ADR-011/016 family): two dt = 5 steps
+///   at held (ω, d) compose to one dt = 10 step, and Σ_j flight_b→j ≤ φ_b ×
+///   count_b &lt; count_b — the Exit valve is BOUNDED BY EXACT INTEGRATION; the
+///   overdraw scaler below is the backstop, no longer the only bound (this
+///   replaces ADR-012's "surge by design, bounded by the overdraw scaler
+///   alone", amended by ADR-025 §1). For small exponent φ ≈ profile·K·ω·d·dt
+///   — the pre-amendment gauge with Σ_j replaced by max_j.
+///
 ///   damping   = exp(−travelCost / DampingDecayCostUnits) from Prev
 ///               SettlementDistances; an UNREACHABLE pair stores +∞ and
 ///               exp(−∞) = 0 — zero flow BY CONSTRUCTION, not by branch.
@@ -41,14 +77,15 @@ public readonly record struct MigrationTables(
 ///               cluster indefinitely. Viability multiplies BOTH channels:
 ///               "flee a starving settlement" survives intact (see below);
 ///               "walk into a starving settlement" is dead by construction.
-///   deficit_i = the source's PREV consumption-deficit ratio — famine flight
-///               stays gap-INDEPENDENT (D-021: starving people leave for
-///               anywhere reachable AND VIABLE) and is deliberately NOT
-///               gap-capped: the Exit valve is a surge by design, bounded by
-///               the overdraw scaler alone. When every reachable destination
-///               is itself starving, flight goes to zero: there is no exodus
+///               Viability reads the NOMINAL destination deficit (ADR-025 §2.2).
+///   die at home: ω = max rather than a Σ-normalisation because it keeps
+///               ADR-012's "when every reachable destination is itself
+///               starving, flight goes to zero" BIT-EXACT — φ = 0 iff every
+///               damping × viability = 0, with no 0/0 rule. There is no exodus
 ///               without a destination — people die at home instead of
 ///               circulating between ruins (the exit-session pathology).
+///               Flight stays gap-INDEPENDENT (D-021: starving people leave
+///               for anywhere reachable AND VIABLE) and is not gap-capped.
 ///
 /// T4.10 — THE FOOD TERM IS GONE FROM ATTRACTIVENESS (director ruling,
 /// Option A). R was `FoodWeight × food + LandWeight × farmland`, where `food`
@@ -85,14 +122,27 @@ public readonly record struct MigrationTables(
 ///     EQUALIZE instantaneous per-capita attractiveness has the closed form
 ///       m* = (R_j × P_i − R_i × P_j) / (R_i + R_j),  taken at max(0, ·).
 ///     The pair's total gap-driven desire is scaled so it never exceeds
-///     GapClosingFraction × m* — at f < 1 the post-move gap keeps its sign,
+///     GapClosingFraction × m* — at f &lt; 1 the post-move gap keeps its sign,
 ///     so overshoot is STRUCTURALLY impossible at the pair level. The cap
 ///     reads INSTANTANEOUS physics while desire reads the SMOOTHED signal:
 ///     right after a large move the instantaneous m* says "equalized" and
 ///     the cap zeroes further flow even while the EMA still remembers a gap.
-///     (Multiple sources can share one destination; with f well below 1 and
-///     the ascending-pair execution order the collective inflow stays inside
-///     the basin — pinned empirically by the oscillation regression tests.)
+///     T4.21-2 (ADR-025 §2.3) — BASIN CAPS AT BOTH ENDS, the same derivation
+///     for a basin: multiple sources sharing one destination (fan-in) or one
+///     source feeding many (fan-out) used to sum their pair caps — up to
+///     (k+1)/2 × f × m* with k destinations, measured 6.1–6.4× at Libur t119
+///     — and the collective inflow was only "pinned empirically". Now, for a
+///     destination j with basin B_j = {i : pair-capped gap desire i→j &gt; 0}
+///     of two or more sources, j is pooled with its sources
+///       P_pool = P_j + Σ P_i,  R_pool = R_j + Σ R_i,
+///       M*_j^in = max(0, R_j × P_pool / R_pool − P_j)
+///     and the pair-capped inflow is scaled so it never exceeds f × M*_j^in
+///     (destScale_j); a source i with basin C_i of two or more destinations
+///     is bounded by the mirror M*_i^out = max(0, P_i − R_i × P_pool / R_pool)
+///     on its dest-scaled outflow (srcScale_i). Single-pair basins SKIP (the
+///     pooled formula equals m* algebraically, not in bits), so every
+///     single-source-single-destination rig is bit-identical. Bounded BY
+///     CONSTRUCTION at both ends; no new constant (f, R, P are T2.8's).
 /// (b) ATTRACTIVENESS SMOOTHING: S is a first-order low-pass over A —
 ///       S += (A − S) × min(1, dt / WindowYears)
 ///     (per-year time constant, integrated with dtYears, factor clamped at 1
@@ -106,52 +156,112 @@ public readonly record struct MigrationTables(
 ///     term would be a free-floating modifier stacked on a mechanism that
 ///     already saturates (law 2).
 ///
+/// T4.21-2 — THE VACANCY BOUND ON TOTAL INFLOW (ADR-025 §2.4; spec §3.5c):
+/// HOW MANY a destination can absorb per turn, both channels, one factor:
+///     V_j   = FoodHeadroom.Vacancy(prev, j)      max(0, N_lim,j − N_j), adult-equivalents;
+///                                               +∞ when j carries no demand row
+///     cap_j = (1 − exp(−k × dt)) × V_j          k = demographics.headroomRelaxationPerYear —
+///                                               the SAME relaxation law that bounds births
+///     in_j  = Σ_i Σ_b (gapExecuted_ib→j + φ_b × count_b × w_ij) × cohortWeight[c_b]
+///     vacScale_j = in_j &gt; cap_j ? cap_j / in_j : 1.0
+/// VACANCY ≠ ATTRACTIVENESS made literal: a settlement's population approaches
+/// its food-influx limit at rate k whether the arrivals are born or walk in.
+/// Refused people STAY at their source (no redistribution within the turn;
+/// they do not enter the D-037 readout — CR-015 G7(a)). Absent demand row ⇒
+/// V = +∞ ⇒ vacScale = 1.0 literal, so every hand rig and every settlement's
+/// first turn is untouched by construction.
+///
 /// OVERDRAW DISCIPLINE: desired outflows to ALL destinations are computed from
-/// Prev first (gap components pre-scaled by their pair caps); if their sum
-/// exceeds the bucket's PREV count they are scaled proportionally. Transfers
-/// then execute in the PINNED ascending (source, dest, bucket-key) order
-/// through the per-source-row MigrationRemainder. ClampToAvailable backstops
-/// the floors: a bucket can hit exactly zero, never negative.
+/// Prev first (gap components pre-scaled by their caps, flight by φ and the
+/// shares); if their sum exceeds the bucket's PREV count they are scaled
+/// proportionally — a backstop now, since flight is bounded below count by
+/// construction. Transfers then execute in the PINNED ascending (source, dest,
+/// bucket-key) order through the per-source-row MigrationRemainder.
+/// ClampToAvailable backstops the floors: a bucket can hit exactly zero, never
+/// negative.
 ///
 /// CHRONICLE HOOKS: per-settlement Inflow/Outflow totals rebuilt into
 /// MigrationFlows every step. Slots after ClassMobility, before Demographics.
 /// STATELESS except the EMA filter rows (world state, not system state).
 /// No RNG.
 /// </summary>
-public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
+public sealed class MigrationSystem : ISimSystem<MigrationTables>
 {
     public static readonly SystemId WellKnownId = new(10);
     public const string Name = "migration";
 
-    private readonly SimConfig _cfg = cfg;
+    private readonly SimConfig _cfg;
 
-    /// <summary>The grain stock, read ONLY for the T2.13 ABSOLUTE FOOD GATE
-    /// (`anyFood`) that zeroes a destination's viability when it has neither a
-    /// store nor a harvest. T4.10 removed the attractiveness food term, so the
-    /// stock no longer feeds R — but the gate still needs to know whether there
-    /// is any food at all, which is a presence test, not a magnitude one.</summary>
-    private readonly GoodId _grain = new(cfg.Goods?.GrainId
-        ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3."));
+    /// <summary>T4.21-2: the shared basket book, for <see cref="FoodHeadroom"/>'s
+    /// vacancy (the feedable-food fixed point needs the Sustenance goods and the
+    /// staple). Config, read identically by every system that needs it — not a
+    /// channel between systems (precedent: ClassMobilitySystem).</summary>
+    private readonly BasketBook _baskets;
+
+    public MigrationSystem(SimConfig cfg)
+    {
+        ArgumentNullException.ThrowIfNull(cfg);
+        _cfg = cfg;
+        GoodsConfig goods = cfg.Goods
+            ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3.");
+        NeedsConfig needs = cfg.Needs
+            ?? throw new ArgumentException(
+                "MigrationSystem requires SimConfig.Needs (needs.json) — the T4.21-2 vacancy bound "
+                + "reads FoodHeadroom over the D-035 Sustenance basket.");
+        _baskets = new BasketBook(needs, goods);
+    }
 
     public SystemId Id => WellKnownId;
+
+    /// <summary>
+    /// φ = 1 − exp(−profile × K × ω × d × dt): the per-turn flight fraction of a
+    /// bucket (ADR-025 §2.1), EXACTLY 0 when there is no deficit or no open exit
+    /// (die at home, by branch AND by value). The D-037 B1 readout calls it with
+    /// ω := 1 (§3.4.4). ONE expression, so the tests that pin turn-exact values
+    /// and the observer multiply the same bits.
+    /// </summary>
+    public static double FlightFractionOf(
+        double cohortProfile, double k, double exitOpenness, double deficit, double dtYears)
+    {
+        if (!(deficit > 0.0) || !(exitOpenness > 0.0)) return 0.0;
+        return 1.0 - Math.Exp(-(cohortProfile * k * exitOpenness * deficit * dtYears));
+    }
+
+    /// <summary>The planner with a basket book built from <paramref name="cfg"/>
+    /// (the observer's entry point; Step passes its own book).</summary>
+    public static MigrationPlan Plan(IReadOnlyWorldState prev, SimConfig cfg, double dtYears)
+    {
+        ArgumentNullException.ThrowIfNull(cfg);
+        GoodsConfig goods = cfg.Goods
+            ?? throw new ArgumentException("MigrationSystem.Plan requires SimConfig.Goods (goods.json).");
+        NeedsConfig needs = cfg.Needs
+            ?? throw new ArgumentException("MigrationSystem.Plan requires SimConfig.Needs (needs.json).");
+        return Plan(prev, cfg, dtYears, new BasketBook(needs, goods));
+    }
 
     /// <summary>
     /// T4.21-2 (spec §3.11, ADR-025 §2.6) — THE PLANNER. Everything Step decides
     /// before it moves a person, as a pure function of Prev: the per-settlement
     /// signals, viability, the EMA's NEW smoothed values (the table write stays
     /// in Step), damping, the D-037 B1 readout values (the table write stays in
-    /// Step), the T2.8 pair caps and the per-bucket desired totals. Step is
-    /// `Plan + transfer loop`; the observer calls this same static, so the
-    /// arithmetic exists once. The ORDER of every product is the order the
-    /// inline code multiplied in — the goldens pin that.
+    /// Step), the T2.8 pair caps, exit openness and shares, the flight fraction
+    /// per bucket, the basin caps, the vacancy bound, the per-pair push and the
+    /// per-bucket desired totals with their overdraw scales. Step is `Plan +
+    /// transfer loop`; the observer calls this same static, so the arithmetic
+    /// exists once. On the fed path (d = 0 everywhere, single-pair basins, no
+    /// vacancy bite) the ORDER of every product is the order T2.8's inline code
+    /// multiplied in — the goldens pin that.
     /// </summary>
-    public static MigrationPlan Plan(IReadOnlyWorldState prev, SimConfig cfg, double dtYears)
+    public static MigrationPlan Plan(
+        IReadOnlyWorldState prev, SimConfig cfg, double dtYears, BasketBook baskets)
     {
         ArgumentNullException.ThrowIfNull(prev);
         ArgumentNullException.ThrowIfNull(cfg);
+        ArgumentNullException.ThrowIfNull(baskets);
         MigrationConfig m = cfg.Migration;
         var grain = new GoodId(cfg.Goods?.GrainId
             ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3."));
+        double[] cohortWeights = cfg.Consumption.CohortWeights;
         int n = prev.Settlements.Count;
         var plan = new MigrationPlan(n, prev.Buckets.Count, dtYears);
 
@@ -230,6 +340,9 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         //      conditions. If the move does not actually improve conditions,
         //      happiness does not improve — there is no path by which the act
         //      of migrating pays a happiness bonus.
+        //   T4.21-2: viability reads the NOMINAL destination deficit (ADR-025
+        //   §2.2) — DestinationDeficit_StillRepels and HappinessMigrationTests
+        //   pin it.
         double[] viability = plan.Viability;
         for (int s = 0; s < n; s++)
         {
@@ -302,6 +415,10 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             }
         }
 
+        // K = BaseRatePerYear × FamineFlightFactor — the flight hazard scale
+        // (0.24/yr at the shipped constants; T4.12's ruling untouched).
+        double kFlight = m.BaseRatePerYear * m.FamineFlightFactor;
+
         // === T4.4 (D-037 B1) — THE UNPLACED-DEPARTURE READOUT ==================
         // A PURE VALUE here; Step writes it to BucketRow.UnplacedDeparture. It
         // reads what this planner has already computed, moves no person and
@@ -310,13 +427,11 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // transfer loop can exist.
         //
         // WHAT IT WRITES, and why this is not a second migration model: ADR-012
-        // states the Exit valve's desire is source-driven — "flight desire remains
-        // source-driven (FamineFlightFactor × deficit_source), uncapped by the gap
-        // mechanism, exactly as D-021 ratified" — and that viability "only
-        // redistributes WHERE the fleeing go". This system only ever forms that
-        // desire multiplied by damping(i→j) × viability(j), so when NO destination
-        // is both reachable and viable every product is zero and the desire is
-        // never expressed at all. That is precisely ADR-012's ruled outcome
+        // states the Exit valve's desire is source-driven and that viability
+        // "only redistributes WHERE the fleeing go". This system only ever forms
+        // that desire multiplied by an exit's damping(i→j) × viability(j), so
+        // when NO destination is both reachable and viable (ω_i = 0) the desire
+        // is never expressed at all. That is precisely ADR-012's ruled outcome
         // ("people die at home") and precisely what D-037 B1 extends: "with no
         // viable destination people die at home. Extend it".
         //
@@ -327,6 +442,17 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // trigger lacked, and it is why founding cannot cascade: a settlement
         // founded with provisions has store > 0, so ADR-012's own gate makes it a
         // VIABLE DESTINATION, which zeroes its founder's demand the next turn.
+        // Refugees a destination REFUSES under the vacancy bound do not enter
+        // here — B1's condition is about viability, not capacity (CR-015 G7(a)).
+        //
+        // THE VALUE (T4.21-2, ADR-025 §2.5 / spec §3.4.4) is the DESTINATION-FREE
+        // hazard: (1 − exp(−CohortProfile × K × d × dt)) × count, i.e. φ_b with
+        // ω := 1 on the nominal d. Under B1's own condition ω_i = 0, so reusing
+        // φ_b verbatim would write 0 and kill colonization; ω := 1 is exactly
+        // ADR-012's "flight desire remains source-driven" quantity and ADR-021's
+        // "structurally absent, not discarded". Bounded below count: DrawParty
+        // floors it, so a source is never emptied in one founding (supersedes
+        // t4.4-review-record §D2 "it can be emptied").
         //
         // The gap channel contributes nothing here BY CONSTRUCTION: a gap is
         // max(0, S_dst − S_src) and needs a destination to exist. There is no
@@ -350,10 +476,9 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             foreach (int row in bucketRows[src])
             {
                 BucketRow b = prev.Buckets[row];
-                double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                  * b.Count.Value * dtYears;
-                if (perCount <= 0.0) continue;
-                unplaced[row] = perCount * m.FamineFlightFactor * deficit[src];
+                if (b.Count.Value <= 0) continue;
+                unplaced[row] = FlightFractionOf(m.CohortProfile[b.CohortIdx], kFlight, 1.0, deficit[src], dtYears)
+                                * b.Count.Value;
             }
         }
         // === end T4.4 readout ==================================================
@@ -367,6 +492,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // differs at ULP level between the desire and transfer sites — a
         // pre-T2.13 pattern; ClampToAvailable backstops any ULP overdraw).
         double[,] gapScale = plan.GapScale;
+        double[,] gapPairDesire = plan.GapPairDesire;
         for (int src = 0; src < n; src++)
         {
             for (int dst = 0; dst < n; dst++)
@@ -386,6 +512,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                                  * viability[dst] * gap;
                 }
                 if (gapDesire <= 0.0) continue;
+                gapPairDesire[src, dst] = gapDesire;
 
                 double denom = resources[src] + resources[dst];
                 double equalizing = denom > 0.0
@@ -396,31 +523,195 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             }
         }
 
-        // --- desired outflows (all from Prev), then proportional scaling -----
-        // desiredTotal[bucketRow] = Σ_j (gap-capped + flight) desire; perDest
-        // factors recomputed in the transfer loop (bit-identical products).
-        double[] desiredTotal = plan.DesiredTotal;
+        // --- §3.4: exit openness ω, share normaliser Z, shares w ----------------
+        // ω is a max over a table-ordered scan (order-independent); Z a sum in
+        // ascending destination order (pinned). Both read the same products the
+        // gap channel multiplies. No sort over doubles anywhere in this system.
+        double[] omega = plan.ExitOpenness;
+        double[] zNorm = plan.ShareNormaliser;
+        double[,] share = plan.Share;
         for (int src = 0; src < n; src++)
         {
-            foreach (int row in bucketRows[src])
+            double best = 0.0, z = 0.0;
+            for (int dst = 0; dst < n; dst++)
             {
-                BucketRow b = prev.Buckets[row];
-                double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                  * b.Count.Value * dtYears;
-                if (perCount <= 0.0) continue;
-                double total = 0.0;
+                if (dst == src) continue;
+                double open = damping[src, dst] * viability[dst];
+                if (open > best) best = open;
+                z += open;
+            }
+            omega[src] = best;
+            zNorm[src] = z;
+            if (z > 0.0)
+            {
                 for (int dst = 0; dst < n; dst++)
                 {
                     if (dst == src) continue;
-                    total += perCount * damping[src, dst] * viability[dst]
-                             * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
-                                + m.FamineFlightFactor * deficit[src]);
+                    share[src, dst] = damping[src, dst] * viability[dst] / z;
                 }
-                desiredTotal[row] = total;
             }
         }
 
-        // --- the per-pair push the transfer loop multiplies --------------------
+        // --- §3.4: φ per bucket — HOW MANY, on the best exit and the nominal d --
+        double[] phi = plan.FlightFraction;
+        double[] flightBound = plan.FlightBound;
+        for (int src = 0; src < n; src++)
+        {
+            double bound = 0.0;
+            foreach (int row in bucketRows[src])
+            {
+                BucketRow b = prev.Buckets[row];
+                phi[row] = FlightFractionOf(m.CohortProfile[b.CohortIdx], kFlight, omega[src], deficit[src], dtYears);
+                bound += phi[row] * b.Count.Value;
+            }
+            flightBound[src] = bound;
+        }
+
+        // --- §3.5b: basin caps on the GAP channel, destination end then source end
+        // Basin membership is "pair-capped gap desire > 0". |basin| < 2 ⇒ SKIP —
+        // the pooled M* equals m* algebraically at one member, not in bits, and
+        // the skip is what keeps every single-pair rig bit-identical.
+        double[] destScale = plan.DestScale;
+        double[] gapInflowCap = plan.GapInflowCap;
+        double[] gapInflowPairCapped = plan.GapInflowPairCapped;
+        for (int dst = 0; dst < n; dst++)
+        {
+            int members = 0;
+            double inflow = 0.0;
+            long pPool = population[dst];
+            double rPool = resources[dst];
+            for (int src = 0; src < n; src++)
+            {
+                if (src == dst) continue;
+                double capped = gapScale[src, dst] * gapPairDesire[src, dst];
+                if (capped <= 0.0) continue;
+                members++;
+                inflow += capped;
+                pPool += population[src];
+                rPool += resources[src];
+            }
+            gapInflowPairCapped[dst] = inflow;
+            if (members < 2) continue;
+            double equalizing = rPool > 0.0
+                ? Math.Max(0.0, resources[dst] * pPool / rPool - population[dst])
+                : 0.0;
+            double cap = m.GapClosingFraction * equalizing;
+            gapInflowCap[dst] = cap;
+            destScale[dst] = inflow > cap ? cap / inflow : 1.0;
+        }
+        // Source end: the mirror, on the DEST-SCALED outflow (the chain is
+        // sequential — each stage bounds what the stage before it let through,
+        // so a source already held back by its destinations' basins is not
+        // limited twice for the same people).
+        double[] srcScale = plan.SrcScale;
+        double[] gapOutflowCap = plan.GapOutflowCap;
+        double[] gapOutflowDestScaled = plan.GapOutflowDestScaled;
+        for (int src = 0; src < n; src++)
+        {
+            int members = 0;
+            double outflow = 0.0;
+            long pPool = population[src];
+            double rPool = resources[src];
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                double capped = gapScale[src, dst] * gapPairDesire[src, dst];
+                if (capped <= 0.0) continue;
+                members++;
+                if (destScale[dst] < 1.0) capped *= destScale[dst];
+                outflow += capped;
+                pPool += population[dst];
+                rPool += resources[dst];
+            }
+            gapOutflowDestScaled[src] = outflow;
+            if (members < 2) continue;
+            double equalizing = rPool > 0.0
+                ? Math.Max(0.0, population[src] - resources[src] * pPool / rPool)
+                : 0.0;
+            double cap = m.GapClosingFraction * equalizing;
+            gapOutflowCap[src] = cap;
+            srcScale[src] = outflow > cap ? cap / outflow : 1.0;
+        }
+        // The executed gap scale before vacancy: pair × destination basin ×
+        // source basin, each basin factor multiplied ONLY when it bites.
+        double[,] gapScaleExecuted = plan.GapScaleExecuted;
+        for (int src = 0; src < n; src++)
+        {
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                double gs = gapScale[src, dst];
+                if (destScale[dst] < 1.0) gs *= destScale[dst];
+                if (srcScale[src] < 1.0) gs *= srcScale[src];
+                gapScaleExecuted[src, dst] = gs;
+            }
+        }
+
+        // --- §3.5c: the VACANCY bound on TOTAL inflow ----------------------------
+        // in_j in adult-equivalents over both channels (gap executed through the
+        // basin scales; flight through the shares), against cap_j = (1 − e^{−k·dt})
+        // × V_j. V = +∞ (no demand row) ⇒ cap = +∞ ⇒ vacScale = 1.0 literal.
+        double[] vacancy = plan.Vacancy;
+        double[] vacancyCap = plan.VacancyCap;
+        double[] desiredInflowAe = plan.DesiredInflowAe;
+        double[] vacScale = plan.VacancyScale;
+        double relax = 1.0 - Math.Exp(-(cfg.Demographics.HeadroomRelaxationPerYear * dtYears));
+        for (int dst = 0; dst < n; dst++)
+        {
+            double inflowAe = 0.0;
+            for (int src = 0; src < n; src++)
+            {
+                if (src == dst) continue;
+                double gsBasin = gapScaleExecuted[src, dst];
+                double gap = Math.Max(0.0, smoothed[dst] - smoothed[src]);
+                bool gapOpen = gsBasin > 0.0 && gap > 0.0;
+                bool flightOpen = share[src, dst] > 0.0 && deficit[src] > 0.0 && omega[src] > 0.0;
+                if (!gapOpen && !flightOpen) continue;
+                foreach (int row in bucketRows[src])
+                {
+                    BucketRow b = prev.Buckets[row];
+                    long count = b.Count.Value;
+                    if (count <= 0) continue;
+                    double heads = 0.0;
+                    if (gapOpen)
+                    {
+                        double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx] * count * dtYears;
+                        heads += perCount * damping[src, dst] * viability[dst] * (gsBasin * gap);
+                    }
+                    if (flightOpen) heads += phi[row] * count * share[src, dst];
+                    inflowAe += heads * cohortWeights[b.CohortIdx];
+                }
+            }
+            desiredInflowAe[dst] = inflowAe;
+            double v = FoodHeadroom.Vacancy(prev, prev.Settlements[dst].Id, cohortWeights, baskets);
+            vacancy[dst] = v;
+            if (double.IsPositiveInfinity(v)) continue;     // cap +∞, scale 1.0 (ctor defaults)
+            double cap = relax * v;
+            vacancyCap[dst] = cap;
+            vacScale[dst] = inflowAe > cap ? cap / inflowAe : 1.0;
+        }
+        // Fold vacancy into the executed gap scale and the flight weight.
+        double[,] flightWeight = plan.FlightWeight;
+        for (int src = 0; src < n; src++)
+        {
+            bool sourceHasFlight = deficit[src] > 0.0 && omega[src] > 0.0;
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                if (vacScale[dst] < 1.0) gapScaleExecuted[src, dst] *= vacScale[dst];
+                if (sourceHasFlight && share[src, dst] > 0.0)
+                {
+                    double fw = share[src, dst];
+                    if (vacScale[dst] < 1.0) fw *= vacScale[dst];
+                    flightWeight[src, dst] = fw;
+                }
+            }
+        }
+
+        // --- the per-pair GAP push the transfer loop multiplies -----------------
+        // On the fed path gapScaleExecuted == gapScale and the expression is
+        // T2.8's damping × viability × (gapScale × gap + FamineFlightFactor × 0)
+        // bit for bit (x + 0.0 == x).
         double[,] push = plan.Push;
         for (int src = 0; src < n; src++)
         {
@@ -428,8 +719,55 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             {
                 if (dst == src) continue;
                 push[src, dst] = damping[src, dst] * viability[dst]
-                                 * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
-                                    + m.FamineFlightFactor * deficit[src]);
+                                 * (gapScaleExecuted[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src]));
+            }
+        }
+
+        // --- desired outflows (all from Prev), then proportional scaling -----
+        // desiredTotal[bucketRow] = Σ_j (gap executed + flight) desire; the
+        // transfer loop multiplies the same factors (association differs at ULP
+        // level between the two sites — the pre-T2.13 pattern). The channel
+        // totals record what the loop will ask for, after the overdraw scale.
+        double[] desiredTotal = plan.DesiredTotal;
+        double[] overdrawScale = plan.OverdrawScale;
+        for (int src = 0; src < n; src++)
+        {
+            foreach (int row in bucketRows[src])
+            {
+                BucketRow b = prev.Buckets[row];
+                long count = b.Count.Value;
+                double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                                  * count * dtYears;
+                if (perCount <= 0.0) continue;
+                double total = 0.0;
+                for (int dst = 0; dst < n; dst++)
+                {
+                    if (dst == src) continue;
+                    double term = perCount * damping[src, dst] * viability[dst]
+                                  * (gapScaleExecuted[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src]));
+                    if (flightWeight[src, dst] > 0.0) term += phi[row] * count * flightWeight[src, dst];
+                    total += term;
+                }
+                desiredTotal[row] = total;
+                double scale = total > count ? count / total : 1.0;
+                overdrawScale[row] = scale;
+                for (int dst = 0; dst < n; dst++)
+                {
+                    if (dst == src) continue;
+                    double gapHeads = perCount * push[src, dst];
+                    if (gapHeads > 0.0)
+                    {
+                        gapHeads *= scale;
+                        plan.GapOut[src] += gapHeads;
+                        plan.GapIn[dst] += gapHeads;
+                    }
+                    if (flightWeight[src, dst] > 0.0)
+                    {
+                        double flightHeads = phi[row] * count * flightWeight[src, dst] * scale;
+                        plan.FlightOut[src] += flightHeads;
+                        plan.FlightIn[dst] += flightHeads;
+                    }
+                }
             }
         }
         return plan;
@@ -447,7 +785,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         for (int s = 0; s < n; s++)
             flows.Add(new MigrationFlowRow(prev.Settlements[s].Id, 0, 0));
 
-        MigrationPlan plan = Plan(prev, _cfg, ctx.DtYears);
+        MigrationPlan plan = Plan(prev, _cfg, ctx.DtYears, _baskets);
 
         // --- EMA filter write (T2.8 b): the owned table is the cloned prev ---
         // table; rows update in place, and a settlement without a row (first
@@ -469,6 +807,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
         int[][] bucketRows = plan.BucketRows;
         double[] desiredTotal = plan.DesiredTotal;
+        double[] phi = plan.FlightFraction;
 
         // --- transfers, pinned ascending (source, dest, bucket-key) ----------
         for (int src = 0; src < n; src++)
@@ -477,7 +816,8 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             {
                 if (dst == src) continue;
                 double push = plan.Push[src, dst];
-                if (push <= 0.0) continue;
+                double flightWeight = plan.FlightWeight[src, dst];
+                if (push <= 0.0 && flightWeight <= 0.0) continue;
 
                 for (int k = 0; k < bucketRows[src].Length; k++)
                 {
@@ -488,6 +828,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
                     double desired = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
                                      * prevCount * ctx.DtYears * push;
+                    if (flightWeight > 0.0) desired += phi[srcRow] * prevCount * flightWeight;
                     // Overdraw scaling: never ask for more than the bucket held.
                     double scale = desiredTotal[srcRow] > prevCount
                         ? prevCount / desiredTotal[srcRow] : 1.0;
