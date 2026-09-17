@@ -5,6 +5,7 @@ using Sim.Core.Systems.Catchment;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Consumption;
 using Sim.Core.Systems.Demographics;
+using Sim.Core.Systems.Disaster;
 using Sim.Core.Systems.Harvest;
 using Sim.Core.Systems.Construction;
 using Sim.Core.Systems.Housing;
@@ -140,6 +141,17 @@ public static class SystemCatalog
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<HarvestWeatherTables>(
                 prev, new HarvestWeatherTables(next.HarvestWeather), rng,
                 HarvestWeatherSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>T4.21-1 (CR-015 §3.3): the famine-class production shock — the
+    /// ONLY place its owned Disasters table is handed out (ADR-003).</summary>
+    public static SystemRegistration Disaster(SimConfig cfg)
+    {
+        var system = new DisasterSystem(cfg);
+        return new SystemRegistration(DisasterSystem.WellKnownId, DisasterSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<DisasterTables>(
+                prev, new DisasterTables(next.Disasters), rng,
+                DisasterSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
     public static SystemRegistration Price(SimConfig cfg)
@@ -305,7 +317,7 @@ public static class SystemCatalog
     /// kernel-invariant tests keep running them).
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
-        [Catchment(cfg), HarvestWeather(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
+        [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Weather(), Growth(), Trade()];
 }
