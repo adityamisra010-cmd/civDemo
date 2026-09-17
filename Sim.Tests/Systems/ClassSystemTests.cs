@@ -326,12 +326,23 @@ public class ClassSystemTests
         // production pipeline, canonical era) on seed 16, which
         // docs/t4.19c-remeasurement.md §4.1 records on the NEW arm as
         // first-present 22 / latch 39 — the widest immigrant-precedes-latch
-        // gap in the battery. MEASURED on this tree (T4.19-D):
+        // gap in the battery. MEASURED on the T4.19-D tree:
         // first-present turn = 22, latch turn = 39.
+        // T4.21-2 RE-RIG (ADR-025, bounded migration): on seed 16 the phenomenon
+        // no longer occurs (first-present 4 = latch 4: settlement 0 latches
+        // locally with 35 artisans before any immigrant arrives). The battery
+        // was RE-MEASURED on this tree over dev seeds 1–24 (first-present /
+        // latch / artisans at first presence): 2: 81/89/1 · 3: 13/71/1 · 8:
+        // 67/75/1 · 11: 6/16/3 · 14: 7/17/2 · 17: 9/63/1 · 18: 10/41/1 · 21:
+        // 7/11/2 · 22: 7/8/4 show an immigrant before the latch; seeds 4–7, 9,
+        // 10, 12, 13, 15, 16, 19, 20 latch on the presence turn (local
+        // emergence first); 23, 24 never latch within 120. Seed 3 is now the
+        // widest gap with a handful of migrants (1 artisan at turn 13, latch at
+        // 71) and is the rig; the property asserted is unchanged.
         // Bounded: the loop stops at the latch (hard ceiling 120 turns).
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
-        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 16);
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 3);
         Assert.Equal(0, ArtisanAdults(world));
         Assert.Equal(0, LatchActive(world, S0, Artisans));
 
@@ -361,8 +372,8 @@ public class ClassSystemTests
         Assert.Equal(0, activeAtFirstPresent);
         // The corrected instrument reports the latch, not the presence.
         Assert.NotEqual(firstPresentTurn, latchTurn);
-        Assert.Equal(39, latchTurn);
-        Assert.Equal(22, firstPresentTurn);
+        Assert.Equal(71, latchTurn);
+        Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

@@ -16,34 +16,40 @@ public readonly record struct Destination(
 /// T4.19 — WHY PEOPLE LEFT, WHY THEY CAME (docs/observability-architecture.md §6).
 ///
 /// WHAT IS STORED, read as stored. Per settlement per turn the migration
-/// system records only Inflow and Outflow (MigrationFlowRow, MigrationSystem.cs:146-148,
-/// 469-470). The DRIVERS it read are stored too, on other systems' rows, and
-/// this record shows every one of them:
-///   push — the source's PREV DeficitRatio (famine flight, gap-independent,
-///          MigrationSystem.cs:20-25, 42-46, 297, 400-402);
-///   pull — the SMOOTHED attractiveness S (MigrationSystem.cs:242-255), for this
-///          settlement and EVERY other, because the mechanism responds to the
-///          GAP max(0, S_dst − S_src) and a gap needs both ends visible;
+/// system records only Inflow and Outflow (MigrationFlowRow, MigrationSystem.cs
+/// Step: the chronicle rows and the transfer loop's flows[...] updates). The
+/// DRIVERS it read are stored too, on other systems' rows, and this record
+/// shows every one of them:
+///   push — the source's PREV DeficitRatio (the NOMINAL d that sets the flight
+///          hazard φ = 1 − exp(−profile·K·ω·d·dt), gap-independent;
+///          MigrationSystem.cs header "FLIGHT", Plan: "§3.4: φ per bucket");
+///   pull — the SMOOTHED attractiveness S (MigrationSystem.Plan, "EMA filter
+///          update"), for this settlement and EVERY other, because the
+///          mechanism responds to the GAP max(0, S_dst − S_src) and a gap needs
+///          both ends visible;
 ///   viability — per destination: PREV deficit (repulsion), grain presence
 ///          (store > 0 or last harvest > 0, the absolute food gate) and happiness
-///          (SettlementHappiness.Of on PREV), MigrationSystem.cs:170-174, 225-235;
+///          (SettlementHappiness.Of on PREV), MigrationSystem.Plan "T2.13:
+///          destination viability";
 ///   unplaced — Σ BucketRow.UnplacedDeparture written when NO reachable
-///          destination is viable (MigrationSystem.cs:317-343).
+///          destination is viable (MigrationSystem.Plan "T4.4 (D-037 B1)"; the
+///          value is the destination-free hazard, ADR-025 §2.5).
 ///
 /// THE GAPS ARE FIELDS, NOT RECOMPUTATIONS. The pairwise From→To flows, the
 /// damping matrix exp(−cost/D), the per-destination viability PRODUCTS and the
-/// gap-closing scale are all computed transiently and discarded
-/// (MigrationSystem.cs:258-277, 348-382). They COULD be recomputed here from
-/// Prev — and they are deliberately not, because a recomputation is a second
-/// implementation of MigrationSystem that would silently lie the day the system
-/// changes. Each is a string field that says "not recorded" and where it is
-/// computed (§8 item 5).
+/// gap-closing scale are all computed transiently and discarded (they live in
+/// the MigrationPlan that MigrationSystem.Plan builds and Step consumes). They
+/// COULD be recomputed here from Prev — since T4.21-2 through the SAME public
+/// static the system runs, which is the sanctioned way (spec §3.11: the
+/// observer calls MigrationSystem.Plan; no formula copy). T4.21-5 adds those
+/// RECOMPUTED fields (exit openness ω, φ, the basin caps, the vacancy cap and
+/// scale, the per-destination channel totals); until then each is a string
+/// field that says "not recorded" and where it is computed (§8 item 5).
 ///
 /// PREV versus NEXT, stated. The system reads Prev for every driver and writes
 /// Next: flows are READ from Next; the smoothed signal the gaps used is the
-/// UPDATED value the system computed this step and stored on Next
-/// (MigrationSystem.cs:251-254, then 360, 401); the push deficit and the
-/// viability inputs are READ from Prev.
+/// UPDATED value the system computed this step and stored on Next; the push
+/// deficit and the viability inputs are READ from Prev.
 /// </summary>
 public sealed class MigrationExplanation
 {
@@ -56,9 +62,12 @@ public sealed class MigrationExplanation
     /// <summary>READ prev.ConsumptionDeficits: the source deficit that drives famine flight.</summary>
     public double PushDeficit { get; }
     public const string PushReading =
-        "Famine flight: desired outflow per bucket = BaseRate × CohortProfile × count × dt × damping × viability(dst) "
-        + "× FamineFlightFactor × deficit_source — gap-INDEPENDENT, so a starving settlement empties toward any "
-        + "reachable viable destination (MigrationSystem.cs:20-25, 42-46, 297, 400-402). Zero deficit means no flight desire.";
+        "Famine flight (T4.21-2, ADR-025): per bucket the fraction that leaves in a turn is the bounded hazard "
+        + "φ = 1 − exp(−CohortProfile × K × ω × deficit_source × dt), K = BaseRate × FamineFlightFactor, ω = the best "
+        + "exit's damping × viability(dst); shares w_j = damping × viability / Σ distribute WHERE, and a destination's "
+        + "vacancy bound scales what it accepts — gap-INDEPENDENT, so a stressed settlement empties toward any "
+        + "reachable viable destination at most φ < 1 of each bucket per turn, never all of it (MigrationSystem.cs "
+        + "header \"FLIGHT\"; Plan \"§3.4\"). Zero deficit, or no viable exit (ω = 0), means no flight.";
 
     /// <summary>READ next.SmoothedAttractiveness: this settlement's pull signal after this step's EMA update.</summary>
     public double Pull { get; }
@@ -77,16 +86,18 @@ public sealed class MigrationExplanation
     // --- GAPS, as fields ---------------------------------------------------
     public const string PairwiseFlows =
         "not recorded — the From→To matrix is executed as Ledger.Transfers in ascending (source, dest, bucket) order "
-        + "and only per-settlement totals survive (MigrationSystem.cs:409-474; §8 item 5).";
+        + "and only per-settlement totals survive (MigrationSystem.Step, the transfer loop; §8 item 5). Per-destination "
+        + "CHANNEL totals are recomputable from MigrationSystem.Plan (T4.21-5).";
     public const string Damping =
         "not recorded — damping = exp(−travelCost / DampingDecayCostUnits) is built from Prev SettlementDistances "
-        + "each step and discarded (MigrationSystem.cs:258-277).";
+        + "each step into the MigrationPlan and discarded (MigrationSystem.Plan, \"Damping matrix from Prev distances\").";
     public const string ViabilityProducts =
         "not recorded — viability = max(0, 1 − Repulsion × deficit) × (1 − w + w × happiness), zeroed by the "
-        + "absolute food gate, is computed per destination each step and discarded (MigrationSystem.cs:225-235); "
-        + "its INPUTS are the Destination fields here.";
+        + "absolute food gate, is computed per destination each step and discarded (MigrationSystem.Plan, "
+        + "\"T2.13: destination viability\"); its INPUTS are the Destination fields here.";
     public const string GapScale =
-        "not recorded — the per-pair gap-closing cap f × m* (MigrationSystem.cs:348-382) is transient.";
+        "not recorded — the per-pair gap-closing cap f × m* (MigrationSystem.Plan, \"T2.8 (a)\"), the basin caps at "
+        + "both ends (\"§3.5b\") and the vacancy scale (\"§3.5c\") are transient plan values.";
 
     private MigrationExplanation(
         SettlementId settlement, long inflow, long outflow, double push, double pull, bool pullRecorded,
@@ -110,7 +121,7 @@ public sealed class MigrationExplanation
         long outflow = f >= 0 ? next.MigrationFlows[f].Outflow : 0;
 
         int d = ExplainRows.Deficit(prev, settlement);
-        double push = d >= 0 ? prev.ConsumptionDeficits[d].DeficitRatio : 0.0;   // MigrationSystem.cs:182-184: 0 when absent
+        double push = d >= 0 ? prev.ConsumptionDeficits[d].DeficitRatio : 0.0;   // MigrationSystem.Plan (signals loop): 0 when absent
 
         int sm = ExplainRows.Smoothed(next, settlement);
         double pull = sm >= 0 ? next.SmoothedAttractiveness[sm].Value : double.NaN;
@@ -160,7 +171,7 @@ public sealed class MigrationExplanation
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, id, grain);
         long stock = g >= 0 ? prev.GoodStocks[g].Amount.Value : 0;
         long harvest = g >= 0 ? prev.GoodStocks[g].LastProducedUnits : 0;
-        // The absolute food gate's presence test (MigrationSystem.cs:170-174): two READ longs, either > 0.
+        // The absolute food gate's presence test (MigrationSystem.Plan, the anyFood read): two READ longs, either > 0.
         bool present = stock > 0 || harvest > 0;
         // Only a settlement present in Prev is a destination the system scored;
         // a colony founded this step has no Prev rows and reads 0 / absent.
