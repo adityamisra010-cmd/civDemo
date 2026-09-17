@@ -83,3 +83,7 @@ settlement into healthy neighbors; zero arrivals into severe famine).
   post-fix 3). The small-N no-churn test is NOT a T2.13 detector: it is
   deficit-free by construction (viability ≡ 1) and stands as a T2.8 gap-cap
   regression pin.
+
+---
+
+**AMENDED BY ADR-025 (CR-015, 2026-09-17).** The D-021 Exit-valve paragraph above is amended: flight stays source-driven, gap-independent and zero when no destination is viable ("die at home" — bit-exact, `ω = 0 ⇒ φ = 0`), but it is now bounded by EXACT INTEGRATION of a per-year hazard on the best exit (`φ = 1 − exp(−profile·K·ω·d·dt)`, `ω = max_j damping·viability`) and by the destination's VACANCY, with the overdraw scaler as the backstop; "viability only redistributes WHERE" becomes "viability gates and, through the best exit, scales; vacancy bounds; shares distribute". The viability mechanism itself, the collapse teeth and the refusal of floors/quantization are unchanged.

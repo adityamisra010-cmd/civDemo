@@ -1,0 +1,111 @@
+diff --git a/Sim.Core/Observability/Observer.cs b/Sim.Core/Observability/Observer.cs
+index 050d0c4..9f33b4a 100644
+--- a/Sim.Core/Observability/Observer.cs
++++ b/Sim.Core/Observability/Observer.cs
+@@ -330,7 +330,7 @@ public static class Observer
+             Housing(prev, next, cfg, id, population.Closing),
+             Economy(next, cfg, id, shares, prevRow),
+             Social(next, cfg, id),
+-            Migration(prev, next, grain, id),
++            Migration(prev, next, cfg, grain, id),
+             Policy(next, id, shares),
+             own.ToArray());
+     }
+@@ -567,8 +567,39 @@ public static class Observer
+     }
+ 
+     private static MigrationSection Migration(
+-        IReadOnlyWorldState prev, IReadOnlyWorldState next, GoodId grain, SettlementId id)
++        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, GoodId grain, SettlementId id)
+     {
++        // DIAGNOSTIC pure reads (cascade investigation) — mirrors, never recomputes state.
++        double weatherApplied = double.NaN, weatherNext = double.NaN;
++        for (int i = 0; i < prev.HarvestWeather.Count; i++)
++            if (prev.HarvestWeather[i].Settlement == id) { weatherApplied = prev.HarvestWeather[i].Multiplier; break; }
++        for (int i = 0; i < next.HarvestWeather.Count; i++)
++            if (next.HarvestWeather[i].Settlement == id) { weatherNext = next.HarvestWeather[i].Multiplier; break; }
++        double arableKm2 = 0.0;
++        for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
++            if (prev.CatchmentSummaries[i].Settlement == id) { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; break; }
++        long prevPop = 0;
++        for (int i = 0; i < prev.Buckets.Count; i++)
++            if (prev.Buckets[i].Settlement == id) prevPop += prev.Buckets[i].Count.Value;
++        double resources = cfg.Migration.AttractivenessLandWeight * arableKm2;   // MigrationSystem.cs:188
++        double instant = resources / Math.Max(prevPop, 1);                       // MigrationSystem.cs:189
++        var dampingList = new List<DampingReading>(Math.Max(0, prev.Settlements.Count - 1));
++        for (int s = 0; s < prev.Settlements.Count; s++)
++        {
++            SettlementId other = prev.Settlements[s].Id;
++            if (other == id) continue;
++            double value = 0.0;
++            for (int i = 0; i < prev.SettlementDistances.Count; i++)
++            {
++                SettlementDistanceRow row = prev.SettlementDistances[i];
++                if (row.From != id || row.To != other) continue;
++                double d = Math.Exp(-row.TravelCost / cfg.Migration.DampingDecayCostUnits); // MigrationSystem.cs:276
++                value = double.IsFinite(d) ? d : 0.0;
++                break;
++            }
++            dampingList.Add(new DampingReading(other.Value, value));
++        }
++
+         double push = 0.0;
+         for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)
+             if (prev.ConsumptionDeficits[i].Settlement == id) { push = prev.ConsumptionDeficits[i].DeficitRatio; break; }
+@@ -593,7 +624,8 @@ public static class Observer
+         }
+         return new MigrationSection(
+             push, pull, all, stock, lastHarvest,
+-            unplaced, remainder, PairwiseGap);
++            unplaced, remainder, PairwiseGap,
++            weatherApplied, weatherNext, arableKm2, instant, dampingList.ToArray());
+     }
+ 
+     private static PolicySection Policy(IReadOnlyWorldState next, SettlementId id, double[] effective)
+diff --git a/Sim.Core/Observability/SettlementRecord.cs b/Sim.Core/Observability/SettlementRecord.cs
+index 971b317..17c7e1f 100644
+--- a/Sim.Core/Observability/SettlementRecord.cs
++++ b/Sim.Core/Observability/SettlementRecord.cs
+@@ -157,7 +157,15 @@ public sealed record MigrationSection(
+                                       // The two READ inputs are what the record can honestly carry.
+     double UnplacedDeparture,         // SUMMED next Buckets.UnplacedDeparture — demand migration could not place (feeds colonization)
+     double UnplacedRemainder,         // SUMMED next Buckets.UnplacedRemainder
+-    string PairwiseFlows);            // "GAP: ..." — never a matrix
++    string PairwiseFlows,             // "GAP: ..." — never a matrix
++    // DIAGNOSTIC (cascade investigation, read-only instrumentation; not a production field):
++    double HarvestWeatherApplied = double.NaN, // READ prev HarvestWeatherRow.Multiplier — what ProductionSystem.HarvestWeatherFor(prev, id) used THIS turn (NaN when no row)
++    double HarvestWeatherNext = double.NaN,    // READ next HarvestWeatherRow.Multiplier — the draw made this step, applied NEXT turn (NaN when no row)
++    double EffectiveArableKm2 = 0.0,           // READ prev CatchmentSummaryRow.EffectiveArableKm2 (0 when no row)
++    double InstantAttractiveness = 0.0,        // DERIVED cfg.Migration.AttractivenessLandWeight × EffectiveArableKm2 / max(prev bucket population, 1) — MigrationSystem.cs:188-189 arithmetic
++    DampingReading[]? Damping = null);         // DERIVED exp(−prev TravelCost(id→j) / cfg.Migration.DampingDecayCostUnits) for every OTHER prev settlement, table order (0 when no row / non-finite)
++
++public readonly record struct DampingReading(int Settlement, double Value);
+ 
+ public readonly record struct AttractivenessReading(int Settlement, double Value);
+ 
+diff --git a/Sim.Core/Observability/TelemetryWriter.cs b/Sim.Core/Observability/TelemetryWriter.cs
+index 7038086..964a094 100644
+--- a/Sim.Core/Observability/TelemetryWriter.cs
++++ b/Sim.Core/Observability/TelemetryWriter.cs
+@@ -345,6 +345,21 @@ public static class TelemetryWriter
+         Num(json, "unplacedDeparture", m.UnplacedDeparture);
+         Num(json, "unplacedRemainder", m.UnplacedRemainder);
+         json.WriteString("pairwiseFlows", m.PairwiseFlows);
++        // DIAGNOSTIC (cascade investigation) — pure prev/next reads, see MigrationSection.
++        Num(json, "harvestWeatherApplied", m.HarvestWeatherApplied);
++        Num(json, "harvestWeatherNext", m.HarvestWeatherNext);
++        Num(json, "effectiveArableKm2", m.EffectiveArableKm2);
++        Num(json, "instantAttractiveness", m.InstantAttractiveness);
++        json.WriteStartArray("damping");
++        DampingReading[] damping = m.Damping ?? [];
++        for (int i = 0; i < damping.Length; i++)
++        {
++            json.WriteStartObject();
++            json.WriteNumber("settlement", damping[i].Settlement);
++            Num(json, "value", damping[i].Value);
++            json.WriteEndObject();
++        }
++        json.WriteEndArray();
+         json.WriteEndObject();
+ 
+         PolicySection pol = r.Policy;
