@@ -211,9 +211,10 @@ public class DemographyRetuneTests
         // mortality (~0.36/decade) halves a settlement per hot turn — a deep
         // famine leaves nobody to rebound. The rig: a modest-surplus fed
         // config (labor-limited harvest ≈ 1.06× demand, founding store just
-        // covering the harvestless first turn), five famine turns at ~59 % of
-        // demand (the store cushions ~2 turns; MEASURED worst deficit 0.42 —
-        // SEVERE, effective 0.275), then the fed config restored.
+        // covering the harvestless first turn), five famine turns at ~50 % of
+        // demand (the store cushions ~2 turns; MEASURED worst deficit 0.456 — see
+        // the console line — SEVERE, above the absorbable band), then the
+        // canonical-output config restored (FamineRigRestored).
         //
         // Phases 1–2 (mortality spike, birth deficit) are measured from the
         // Ledger's per-turn birth/death deltas over the FAMINE-READ window —
@@ -231,9 +232,10 @@ public class DemographyRetuneTests
         SimConfig fed = FamineRigFed();
         SimConfig starving = fed with
         {
-            Farming = fed.Farming with { OutputPerFarmerPerYear = 0.85 },
+            Farming = fed.Farming with { OutputPerFarmerPerYear = FamineOutput },
         };
-        FamineRun run = RunFamineSchedule(fed, starving);
+        SimConfig restored = FamineRigRestored(fed);
+        FamineRun run = RunFamineSchedule(fed, starving, restored);
         SimConfig fedOff = fed with
         {
             Demographics = fed.Demographics with { ReboundRecoverableFraction = 0.0 },
@@ -242,7 +244,11 @@ public class DemographyRetuneTests
         {
             Demographics = starving.Demographics with { ReboundRecoverableFraction = 0.0 },
         };
-        FamineRun off = RunFamineSchedule(fedOff, starvingOff);
+        SimConfig restoredOff = restored with
+        {
+            Demographics = restored.Demographics with { ReboundRecoverableFraction = 0.0 },
+        };
+        FamineRun off = RunFamineSchedule(fedOff, starvingOff, restoredOff);
         long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
         double[] deficits = run.Deficits, reservoirs = run.Reservoirs;
 
@@ -331,7 +337,7 @@ public class DemographyRetuneTests
     public void Stress_DoesNotSpike_NoBirthDeficit_NothingBanked()
     {
         // G2, RE-ANCHORED PHASE 1: "STRESS does NOT spike". The same schedule
-        // with the famine window's harvest at ≈ 83 % of demand — a shortfall
+        // with the famine window's harvest at ≈ 78 % of demand — a shortfall
         // INSIDE the absorbable band (0.12 < worst d ≤ a = 0.20, measured and
         // asserted; every famine-read turn classifies STRESS). Under CR-015 a
         // sustained cut of that size is survivable: the exceptional channels
@@ -343,9 +349,9 @@ public class DemographyRetuneTests
         SimConfig fed = FamineRigFed();
         SimConfig stressed = fed with
         {
-            Farming = fed.Farming with { OutputPerFarmerPerYear = 1.22 },
+            Farming = fed.Farming with { OutputPerFarmerPerYear = StressOutput },
         };
-        FamineRun run = RunFamineSchedule(fed, stressed);
+        FamineRun run = RunFamineSchedule(fed, stressed, FamineRigRestored(fed));
         long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
         double[] deficits = run.Deficits;
 
@@ -409,7 +415,7 @@ public class DemographyRetuneTests
         var abandoned = new SectorAllocationRow(
             new SettlementId(0), Farming: 0.0, Herding: 0.0, Extraction: 0.0,
             Crafting: 0.0, Construction: 1.0);
-        FamineRun run = RunFamineSchedule(fed, fed, famineRow: abandoned, famineTurns: 2);
+        FamineRun run = RunFamineSchedule(fed, fed, FamineRigRestored(fed), famineRow: abandoned, famineTurns: 2);
         long[] births = run.Births, deaths = run.Deaths, pops = run.Pops;
         double[] deficits = run.Deficits;
 
@@ -438,24 +444,48 @@ public class DemographyRetuneTests
             + $"per-capita {spikePerCapita:F3} vs base {basePerCapita:F3}, starved {run.Starved[famineTurn]}, pop {pops[famineTurn - 1]} -> {pops[famineTurn]}");
     }
 
-    /// <summary>The famine ladder's fed config: labour-limited harvest ≈ 1.06×
-    /// demand, founding store just covering the harvestless first turn.</summary>
+    /// <summary>The famine ladder's fed config: labour-limited harvest ≈ 1.17×
+    /// demand at founding (T4.21-3: the T2.7 rig's 1.45 → 1.06× left the
+    /// settlement AT its food limit by turn 4 — d = 0.010/0.015 measured — so
+    /// under the §28 headroom cap its "fed baseline" was births-replace-deaths,
+    /// not the unconstrained tempo the baseline is meant to be; 1.6 gives a
+    /// 17 % headroom the cap does not bind on: allowed growth 8.5 %/decade
+    /// against a natural 0.8 %), founding store just covering the harvestless
+    /// first turn. The famine-window outputs keep the same harvest FRACTIONS
+    /// of demand: FamineOutput 0.80 (worst d 0.456 — SEVERE, effective 0.32;
+    /// the T2.7 rig's 0.85/1.45 measured 0.42) and StressOutput 1.25 (worst
+    /// d 0.150 — STRESS); both swept and measured on this tree.</summary>
     private static SimConfig FamineRigFed()
     {
         SimConfig fed = TestConfigs.Sim();
         return fed with
         {
-            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
+            Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.6 },
             Founding = fed.Founding with { FoodStore = 4000 },
         };
     }
+
+    private const double FamineOutput = 0.80;
+    private const double StressOutput = 1.25;
+
+    /// <summary>The post-window RESTORE config: the canonical per-farmer output
+    /// (5.0/yr, harvest ≈ 3.6× demand). T4.21-3: the rebound is released only
+    /// into HEADROOM (§28, strict release) — restoring the 1.17× fed config
+    /// would cap the release turn at 8.5 % growth and hide the reservoir's
+    /// contribution the twin difference exists to measure; the rich restore
+    /// gives the release the room it needs and keeps the fed baseline (turns
+    /// 4–6, pre-window) on the modest config.</summary>
+    private static SimConfig FamineRigRestored(SimConfig fed) => fed with
+    {
+        Farming = fed.Farming with { OutputPerFarmerPerYear = TestConfigs.Sim().Farming.OutputPerFarmerPerYear },
+    };
 
     private sealed record FamineRun(
         long[] Births, long[] Deaths, long[] Starved, double[] Deficits, double[] Reservoirs, long[] Pops,
         FoodStateKind[] PrevStates, FamineReason[] PrevReasons);
 
     /// <summary>6 fed turns, <paramref name="famineTurns"/> famine turns, then
-    /// fed turns to 17 on an N = 1 world; per-turn birth/death(+starvation)
+    /// <paramref name="restored"/> turns to 17 on an N = 1 world; per-turn birth/death(+starvation)
     /// deltas, the starvation delta alone, the settlement's deficit ratio, the
     /// summed cohort-0 ReboundReservoir, the population, and the FoodState the
     /// kernel READ that turn (classified on the PREV world, exactly the
@@ -463,10 +493,12 @@ public class DemographyRetuneTests
     /// when given, <paramref name="famineRow"/> as the sector row in force
     /// (otherwise the all-farming row every turn).</summary>
     private static FamineRun RunFamineSchedule(
-        SimConfig fed, SimConfig starving, SectorAllocationRow? famineRow = null, int famineTurns = 5)
+        SimConfig fed, SimConfig starving, SimConfig restored,
+        SectorAllocationRow? famineRow = null, int famineTurns = 5)
     {
         TurnExecutor fedExec = ProductionExecutor(fed);
         TurnExecutor famineExec = ProductionExecutor(starving);
+        TurnExecutor restoredExec = ProductionExecutor(restored);
         WorldState world = Founded(fed, settlements: 1);
         // T3.5b: this famine rig's depth calibration assumes all labour farms;
         // the subsistence default would deepen the driven deficit past the
@@ -498,7 +530,7 @@ public class DemographyRetuneTests
                     : farming;
             }
             states[t] = FoodState.Of(world, world.Settlements[0].Id, fed, out reasons[t]);
-            world = (famine ? famineExec : fedExec).Step(world);
+            world = (famine ? famineExec : t < 6 ? fedExec : restoredExec).Step(world);
             (long b, long d, long s) = LedgerVitals(world);
             births[t] = b - pb;
             deaths[t] = d - pd + (s - ps); // famine deaths = base + starvation
@@ -787,6 +819,7 @@ public class DemographyRetuneTests
         Assert.True(deaths + starved > 0.5 * r.Deaths,
             $"deaths {deaths}+{starved} below half the present-count expectation {r.Deaths:F0} — mid-turn movers dodged mortality");
     }
+
 
     private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
         $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");

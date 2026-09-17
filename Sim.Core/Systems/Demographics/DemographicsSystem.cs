@@ -1,5 +1,6 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Consumption;
 
 namespace Sim.Core.Systems.Demographics;
 
@@ -77,6 +78,52 @@ public readonly record struct DemographicsTables(
 ///      "newborn cohort spread" of the T2.1 kernel is SUPERSEDED: the spread
 ///      now emerges from integration instead of being imposed.
 ///
+/// THE HEADROOM GROWTH CAP (T4.21-3, CR-015 §28 / ADR-026 §2.2(ii)): under
+/// constant conditions a population rises asymptotically toward N_lim — the
+/// adult-equivalents its last-turn FEEDABLE food influx sustains
+/// (FoodHeadroom.Limit, ONE definition shared with Migration's vacancy bound
+/// and the observer) — and never overshoots into deficit. Once per
+/// settlement per turn: N_lim from PREV; N_now = Σ cohortWeights[c] × pop over
+/// the OWNED buckets at step start (post-migration, post-colonization,
+/// post-revolt: refugees who arrived this turn have used headroom);
+/// H_0 = max(0, N_lim − N_now) — clamped, because the cap is a GROWTH
+/// limiter: decline is the deficit channel's job (unclamped, one ordinary bad
+/// draw with a full granary would cut births 73 %). A stockpile is not an
+/// influx: an abandoned settlement living on its granary (S = 0, d = 0) has
+/// N_lim = 0 ⇒ births ≤ deaths. N_lim = +∞ (no deficit row, DemandUnits 0, no
+/// vitals row — every founding turn and every hand rig) skips the cap ENTIRELY.
+/// Per micro-step the births step is split so the cap is order-consistent
+/// with births-before-sinks: PASS A per group computes the uncapped
+/// candidate (unsuppressed, base = unsuppressed × suppression, the bank from
+/// the UNCAPPED pair, the release from the nominal-d gate, cand = base +
+/// release) with no state mutation; CAP: the standing population's deaths
+/// this step D_pre = Σ pop (1 − e^(−(m+s)h)) w_c and its aging drift
+/// A_step = Σ pop e^(−(m+s)h) (h/width)(w_{c+1} − w_c) are closed forms of the
+/// pre-birth state, allowed = (1 − e^(−k h)) × H_rem, bornMax =
+/// (allowed + D_pre − A_step) / (W(λ_0 h) e^(−λ_0 h) w_0) — newborn survivors
+/// after this step's cohort-0 sinks, heads (weight-neutral aging into cohort
+/// 1 ONLY because cohortWeights[0] == cohortWeights[1], asserted by
+/// D_CohortWeights_NewbornAgingWeightNeutral) — and m = min(1, max(0,
+/// bornMax)/Σ cand); PASS B commits: reservoir += bank, then IF m &lt; 1 the
+/// candidate and the release are scaled (strict, deferred-not-invented: the
+/// unreleased part STAYS banked; headroom-withheld births are never banked —
+/// there is no physiological debt to refund), reservoir −= release, born =
+/// cand, then the newborn credit exactly as before. After the sinks and aging
+/// H_rem −= realised nutritional growth (aging drift included), so when
+/// binding H_rem(end) = H_0 e^(−k dt) whatever the step cut — exact
+/// composition; k = HeadroomRelaxationPerYear. min(1.0, big) returns the
+/// literal 1.0 and the guard keeps the fed path instruction-identical to the
+/// pre-T4.21 kernel. When bornMax ≤ 0 births are 0 but N_nutr may still rise
+/// by A_step − D_pre (children maturing 0.6 → 1.0 outpacing deaths): the exact
+/// bound is N_nutr(end) ≤ N_lim + Σ_steps max(0, A_step − D_pre). H_rem is NOT
+/// clamped (§3.6b as written): after such a step it goes negative and the
+/// later steps of the same turn hold births below replacement at rate k
+/// until the drift excess is paid back — the ONLY decline the cap can
+/// cause, bounded by that same Σ max(0, A_step − D_pre) within the turn
+/// (D_Asymptote_* pins it against an uncapped replica turn). The cap is a
+/// local of the turn, never state; it scales a birth CANDIDATE before it is
+/// realised and never removes a person.
+///
 /// INTEGER RECONCILIATION, once per turn: the micro-integrated exact flow
 /// totals (births, base deaths, starvation, per-cohort aging) floor through
 /// the row's existing D-004 remainder accumulators into Ledger flows, in the
@@ -87,7 +134,7 @@ public readonly record struct DemographicsTables(
 /// are NOT banked; remainders carry only sub-person fractions.
 /// STATELESS: config is immutable tuning, not state.
 /// </summary>
-public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsTables>
+public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
 {
     public static readonly SystemId WellKnownId = new(7);
     public const string Name = "demographics";
@@ -98,13 +145,45 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
     /// integrator (ADR-011).</summary>
     public const double MicroStepYears = 0.5;
 
-    private readonly SimConfig _cfg = cfg;
+    private readonly SimConfig _cfg;
+
+    /// <summary>T4.21-3: the shared basket book FoodHeadroom.Limit reads (which
+    /// food goods exist and which is the staple) and the per-cohort nutritional
+    /// weights (adult-equivalents per head). Both are config, read identically
+    /// by every caller of the one headroom definition — not a channel between
+    /// systems (the ClassMobilitySystem precedent).</summary>
+    private readonly BasketBook _baskets;
+    private readonly double[] _cohortWeights;
+
+    public DemographicsSystem(SimConfig cfg)
+    {
+        _cfg = cfg;
+        GoodsConfig goods = cfg.Goods
+            ?? throw new ArgumentException(
+                "DemographicsSystem requires SimConfig.Goods (goods.json) from T4.21-3.");
+        NeedsConfig needs = cfg.Needs
+            ?? throw new ArgumentException(
+                "DemographicsSystem requires SimConfig.Needs (needs.json) from T4.21-3.");
+        _baskets = new BasketBook(needs, goods);
+        _cohortWeights = cfg.Consumption.CohortWeights;
+    }
 
     public SystemId Id => WellKnownId;
 
     /// <summary>w(x) = (1 − e^(−x))/x, the uniform-exposure survival kernel;
     /// w(0) = 1 (guarded below the double-precision floor, deterministic).</summary>
     internal static double W(double x) => x < 1e-12 ? 1.0 : (1.0 - Math.Exp(-x)) / x;
+
+    /// <summary>T4.21-3 — the settlement's food headroom as READ FROM PREV:
+    /// FoodHeadroom.Vacancy(prev) = max(0, N_lim − N_nutr(prev)), adult-equivalents,
+    /// +∞ on the null arm. For the observer and the chronicle (one definition,
+    /// recomputed, never stored). NOTE it is NOT the H_0 the kernel integrates
+    /// from: H_0 subtracts N_now over the OWNED buckets at step start (after
+    /// this turn's migration, colonization and revolt moved people), so a
+    /// destination that received refugees this turn has H_0 &lt; Headroom(prev)
+    /// by their adult-equivalents (D_Headroom_CountsArrivals).</summary>
+    public static double Headroom(IReadOnlyWorldState prev, SettlementId settlement, SimConfig cfg) =>
+        FoodHeadroom.Vacancy(prev, settlement, cfg.Consumption.CohortWeights, new BasketBook(cfg.Needs!, cfg.Goods!));
 
     public void Step(SimContext<DemographicsTables> ctx)
     {
@@ -126,6 +205,13 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
         var agingExact = new double[rowCount];   // outflow to the NEXT slot
         var starveRate = new double[Cohorts.Count];
         var totalRate = new double[Cohorts.Count];
+        // T4.21-3 PASS A scratch, indexed by the group's anchor (cohort-0) row:
+        // the uncapped candidate and its parts, committed in PASS B.
+        var unsuppressedA = new double[rowCount];
+        var bankA = new double[rowCount];
+        var releaseA = new double[rowCount];
+        var candA = new double[rowCount];
+        double k = d.HeadroomRelaxationPerYear;
 
         // Group anchors: cohort-0 rows; group member rows located once.
         // (Linear scans, law 5 — same access pattern the T2.1 kernel used.)
@@ -176,6 +262,25 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                 birthsExact[i] = deathsExact[i] = starveExact[i] = agingExact[i] = 0.0;
             }
 
+            // T4.21-3 headroom growth cap, once per settlement per turn (header):
+            // N_lim from PREV (one definition, FoodHeadroom.Limit); N_now over
+            // the OWNED buckets at step start; H_0 = max(0, N_lim − N_now).
+            // +∞ ⇒ the cap is skipped ENTIRELY (the fed path below executes the
+            // pre-T4.21 instruction sequence).
+            double nLim = FoodHeadroom.Limit(prev, settlement, _cohortWeights, _baskets);
+            bool capped = !double.IsPositiveInfinity(nLim);
+            double hRem = 0.0;
+            if (capped)
+            {
+                double nNow = 0.0;
+                for (int i = 0; i < rowCount; i++)
+                {
+                    if (buckets[i].Settlement != settlement) continue;
+                    nNow += _cohortWeights[buckets[i].CohortIdx] * pop[i];
+                }
+                hRem = Math.Max(0.0, nLim - nNow);
+            }
+
             // --- the micro-loop -------------------------------------------
             double remaining = dt;
             while (remaining > 1e-9)
@@ -186,6 +291,11 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
 
                 // Per GROUP (anchored at cohort-0 rows): births first, from
                 // pre-sink populations (order pinned; see header).
+                // PASS A (T4.21-3): the uncapped candidate per group — no
+                // state mutation. The same add and the same multiply as the
+                // pre-T4.21 bank/release lines, so the committed arithmetic in
+                // PASS B is bit-identical when the cap does not bind.
+                double sumCand = 0.0;
                 for (int i = 0; i < rowCount; i++)
                 {
                     if (buckets[i].Settlement != settlement || buckets[i].CohortIdx != 0) continue;
@@ -202,15 +312,65 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                     }
 
                     double born = unsuppressed * suppression;
-                    ref BucketRow reservoirRow = ref buckets.Ref(i);
-                    reservoirRow.ReboundReservoir +=
-                        d.ReboundRecoverableFraction * (unsuppressed - born);
+                    // The bank is taken from the UNCAPPED pair: headroom-
+                    // withheld births are not deferred conceptions.
+                    double bank = d.ReboundRecoverableFraction * (unsuppressed - born);
+                    double release = 0.0;
                     if (deficit == 0.0 && unsuppressed > 0.0)
                     {
-                        double release = reservoirRow.ReboundReservoir
-                                         * Math.Min(1.0, d.ReboundReleaseRatePerYear * h);
+                        release = (anchor.ReboundReservoir + bank)
+                                  * Math.Min(1.0, d.ReboundReleaseRatePerYear * h);
+                    }
+                    unsuppressedA[i] = unsuppressed;
+                    bankA[i] = bank;
+                    releaseA[i] = release;
+                    candA[i] = born + release;
+                    sumCand += candA[i];
+                }
+
+                // CAP (T4.21-3, header): skipped entirely at N_lim = +∞.
+                double m = 1.0;
+                double nutritionBefore = 0.0;
+                if (capped)
+                {
+                    double deathsPre = 0.0, agingDrift = 0.0;
+                    for (int i = 0; i < rowCount; i++)
+                    {
+                        if (buckets[i].Settlement != settlement) continue;
+                        int c = buckets[i].CohortIdx;
+                        double w = _cohortWeights[c];
+                        double survive = Math.Exp(-totalRate[c] * h);
+                        nutritionBefore += w * pop[i];
+                        deathsPre += pop[i] * (1.0 - survive) * w;
+                        if (c >= Cohorts.Count - 1) continue;                       // 75+ absorbs
+                        if (FindInGroup(buckets, buckets[i], c + 1) < 0) continue; // mirrors the aging guard
+                        agingDrift += pop[i] * survive * advance * (_cohortWeights[c + 1] - w);
+                    }
+                    double allowed = (1.0 - Math.Exp(-k * h)) * hRem;
+                    double newbornNet = W(totalRate[0] * h) * Math.Exp(-totalRate[0] * h) * _cohortWeights[0];
+                    double bornMax = (allowed + deathsPre - agingDrift) / newbornNet;
+                    m = sumCand > 0.0 ? Math.Min(1.0, Math.Max(0.0, bornMax) / sumCand) : 1.0;
+                }
+
+                // PASS B: commit per group — bank, (scaled) release, births,
+                // the newborn credit. Guarded scaling: the fed path executes
+                // the pre-T4.21 instruction sequence.
+                for (int i = 0; i < rowCount; i++)
+                {
+                    if (buckets[i].Settlement != settlement || buckets[i].CohortIdx != 0) continue;
+
+                    double born = candA[i];
+                    ref BucketRow reservoirRow = ref buckets.Ref(i);
+                    reservoirRow.ReboundReservoir += bankA[i];
+                    if (deficit == 0.0 && unsuppressedA[i] > 0.0)
+                    {
+                        double release = releaseA[i];
+                        if (m < 1.0) { born *= m; release *= m; }
                         reservoirRow.ReboundReservoir -= release;
-                        born += release;
+                    }
+                    else if (m < 1.0)
+                    {
+                        born *= m;
                     }
 
                     // Live births recorded; in-step infant deaths at the
@@ -242,6 +402,21 @@ public sealed class DemographicsSystem(SimConfig cfg) : ISimSystem<DemographicsT
                     pop[i] -= moving;
                     pop[destRow] += moving;
                     agingExact[i] += moving;
+                }
+
+                // T4.21-3: the remaining headroom absorbs the REALISED
+                // nutritional growth of the step (aging drift included), so
+                // that when binding H_rem(end) = H_0 e^(−k dt) exactly,
+                // however dt is cut into steps.
+                if (capped)
+                {
+                    double nutritionAfter = 0.0;
+                    for (int i = 0; i < rowCount; i++)
+                    {
+                        if (buckets[i].Settlement != settlement) continue;
+                        nutritionAfter += _cohortWeights[buckets[i].CohortIdx] * pop[i];
+                    }
+                    hRem -= nutritionAfter - nutritionBefore;
                 }
             }
 
