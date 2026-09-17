@@ -135,24 +135,32 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
     public SystemId Id => WellKnownId;
 
-    public void Step(SimContext<MigrationTables> ctx)
+    /// <summary>
+    /// T4.21-2 (spec §3.11, ADR-025 §2.6) — THE PLANNER. Everything Step decides
+    /// before it moves a person, as a pure function of Prev: the per-settlement
+    /// signals, viability, the EMA's NEW smoothed values (the table write stays
+    /// in Step), damping, the D-037 B1 readout values (the table write stays in
+    /// Step), the T2.8 pair caps and the per-bucket desired totals. Step is
+    /// `Plan + transfer loop`; the observer calls this same static, so the
+    /// arithmetic exists once. The ORDER of every product is the order the
+    /// inline code multiplied in — the goldens pin that.
+    /// </summary>
+    public static MigrationPlan Plan(IReadOnlyWorldState prev, SimConfig cfg, double dtYears)
     {
-        IReadOnlyWorldState prev = ctx.Prev;
-        MigrationConfig m = _cfg.Migration;
+        ArgumentNullException.ThrowIfNull(prev);
+        ArgumentNullException.ThrowIfNull(cfg);
+        MigrationConfig m = cfg.Migration;
+        var grain = new GoodId(cfg.Goods?.GrainId
+            ?? throw new ArgumentException("MigrationSystem requires SimConfig.Goods (goods.json) at M3."));
         int n = prev.Settlements.Count;
-
-        // Chronicle rows exist (zeroed) every turn, even a no-flow one.
-        Table<MigrationFlowRow> flows = ctx.Owned.Flows;
-        flows.Clear();
-        for (int s = 0; s < n; s++)
-            flows.Add(new MigrationFlowRow(prev.Settlements[s].Id, 0, 0));
+        var plan = new MigrationPlan(n, prev.Buckets.Count, dtYears);
 
         // --- Prev-derived per-settlement signals -----------------------------
-        var resources = new double[n];    // R = lw × farmland (T4.10: food term removed)
-        var population = new long[n];     // P (raw, no floor — m* uses physics)
-        var instant = new double[n];      // A = R / max(P, 1)
-        var deficit = new double[n];
-        var anyFood = new bool[n];        // T2.13: store > 0 OR last harvest > 0
+        double[] resources = plan.Resources;    // R = lw × farmland (T4.10: food term removed)
+        long[] population = plan.Population;    // P (raw, no floor — m* uses physics)
+        double[] instant = plan.Instant;        // A = R / max(P, 1)
+        double[] deficit = plan.Deficit;
+        bool[] anyFood = plan.AnyFood;          // T2.13: store > 0 OR last harvest > 0
         int maxId = 0;
         for (int s = 0; s < n; s++) maxId = Math.Max(maxId, prev.Settlements[s].Id.Value);
         var settlementIndex = new int[maxId + 1]; // id → row index (array, law 5: no dictionaries in sim logic)
@@ -169,7 +177,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
 
             long food = 0, lastHarvest = 0;
             for (int i = 0; i < prev.GoodStocks.Count; i++)
-                if (prev.GoodStocks[i].Settlement == id && prev.GoodStocks[i].Good == _grain)
+                if (prev.GoodStocks[i].Settlement == id && prev.GoodStocks[i].Good == grain)
                 { food = prev.GoodStocks[i].Amount.Value; lastHarvest = prev.GoodStocks[i].LastProducedUnits; break; }
             anyFood[s] = food > 0 || lastHarvest > 0;
             // T3.2b: fertility-weighted km² (was fertility-weighted nodes; the
@@ -222,40 +230,39 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         //      conditions. If the move does not actually improve conditions,
         //      happiness does not improve — there is no path by which the act
         //      of migrating pays a happiness bonus.
-        var viability = new double[n];
+        double[] viability = plan.Viability;
         for (int s = 0; s < n; s++)
         {
             if (!anyFood[s]) { viability[s] = 0.0; continue; }
 
             double material = Math.Max(0.0, 1.0 - m.DestinationDeficitRepulsion * deficit[s]);
             double happiness01 =
-                SettlementHappiness.Of(prev, prev.Settlements[s].Id, _cfg) / SettlementHappiness.Max;
+                SettlementHappiness.Of(prev, prev.Settlements[s].Id, cfg) / SettlementHappiness.Max;
             double w = m.AttractivenessHappinessWeight;
             viability[s] = material * (1.0 - w + w * happiness01);
         }
 
-        // --- EMA filter update (T2.8 b): PREV smoothed → owned smoothed ------
-        // The owned table is the cloned prev table; rows update in place, and
-        // a settlement without a row (first sighting) appends one initialized
-        // AT the instantaneous value, in ascending settlement-row order.
-        Table<SmoothedAttractivenessRow> smoothedTable = ctx.Owned.Smoothed;
-        var smoothed = new double[n];
-        double alpha = Math.Min(1.0, ctx.DtYears / m.AttractivenessSmoothingWindowYears);
+        // --- EMA filter update (T2.8 b): PREV smoothed → the NEW value -------
+        // Read from PREV (the owned table is the cloned prev table and nothing
+        // earlier in the pipeline writes it); Step writes the value back in
+        // place, or appends a row for a first sighting initialised AT the
+        // instantaneous value, in ascending settlement-row order.
+        double[] smoothed = plan.Smoothed;
+        double alpha = Math.Min(1.0, dtYears / m.AttractivenessSmoothingWindowYears);
         for (int s = 0; s < n; s++)
         {
             SettlementId id = prev.Settlements[s].Id;
             int rowIdx = -1;
-            for (int i = 0; i < smoothedTable.Count; i++)
-                if (smoothedTable[i].Settlement == id) { rowIdx = i; break; }
-            double prevSmoothed = rowIdx >= 0 ? smoothedTable[rowIdx].Value : instant[s];
+            for (int i = 0; i < prev.SmoothedAttractiveness.Count; i++)
+                if (prev.SmoothedAttractiveness[i].Settlement == id) { rowIdx = i; break; }
+            double prevSmoothed = rowIdx >= 0 ? prev.SmoothedAttractiveness[rowIdx].Value : instant[s];
             double value = prevSmoothed + (instant[s] - prevSmoothed) * alpha;
-            if (rowIdx >= 0) smoothedTable[rowIdx] = smoothedTable[rowIdx] with { Value = value };
-            else smoothedTable.Add(new SmoothedAttractivenessRow(id, value));
+            plan.SmoothedRowIndex[s] = rowIdx;
             smoothed[s] = value;
         }
         // Damping matrix from Prev distances (missing row — e.g. before the
         // first catchment recompute — is unreachable: damping 0, no flow).
-        var damping = new double[n, n];
+        double[,] damping = plan.Damping;
         // T4.4: whether this source has ANY distance row at all. A genuinely
         // unreachable pair STILL HAS A ROW (it stores +inf, and exp(-inf) = 0), so
         // "no row" means the network has not been computed yet — not "nowhere to
@@ -263,7 +270,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // zero flow), but colonization must: only the second is D-037 B1's
         // condition, and treating missing data as isolation would authorise a
         // founding out of an empty table.
-        var hasDistances = new bool[n];
+        bool[] hasDistances = plan.HasDistances;
         for (int i = 0; i < prev.SettlementDistances.Count; i++)
         {
             SettlementDistanceRow row = prev.SettlementDistances[i];
@@ -277,20 +284,30 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         }
 
         // Per-settlement bucket row indices, in table order (the bucket-key order).
-        var bucketRows = new List<int>[n];
-        for (int s = 0; s < n; s++) bucketRows[s] = [];
+        int[][] bucketRows = plan.BucketRows;
+        var bucketCounts = new int[n];
+        for (int i = 0; i < prev.Buckets.Count; i++)
+        {
+            int sid = prev.Buckets[i].Settlement.Value;
+            if (sid <= maxId && settlementIndex[sid] >= 0) bucketCounts[settlementIndex[sid]]++;
+        }
+        for (int s = 0; s < n; s++) { bucketRows[s] = new int[bucketCounts[s]]; bucketCounts[s] = 0; }
         for (int i = 0; i < prev.Buckets.Count; i++)
         {
             int sid = prev.Buckets[i].Settlement.Value;
             if (sid <= maxId && settlementIndex[sid] >= 0)
-                bucketRows[settlementIndex[sid]].Add(i);
+            {
+                int s = settlementIndex[sid];
+                bucketRows[s][bucketCounts[s]++] = i;
+            }
         }
 
         // === T4.4 (D-037 B1) — THE UNPLACED-DEPARTURE READOUT ==================
-        // A PURE WRITE. It reads what this system has already computed and writes
-        // BucketRow.UnplacedDeparture. It moves no person, touches no flow, and is
-        // placed AFTER every input it reads is final and BEFORE any transfer, so
-        // no ordering between it and the transfer loop can exist.
+        // A PURE VALUE here; Step writes it to BucketRow.UnplacedDeparture. It
+        // reads what this planner has already computed, moves no person and
+        // touches no flow; Step's write is placed AFTER every input it reads is
+        // final and BEFORE any transfer, so no ordering between it and the
+        // transfer loop can exist.
         //
         // WHAT IT WRITES, and why this is not a second migration model: ADR-012
         // states the Exit valve's desire is source-driven — "flight desire remains
@@ -314,9 +331,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // The gap channel contributes nothing here BY CONSTRUCTION: a gap is
         // max(0, S_dst − S_src) and needs a destination to exist. There is no
         // destination-free gap desire to leave unplaced.
-        Table<BucketRow> bucketsOut = ctx.Owned.Buckets;
-        for (int i = 0; i < bucketsOut.Count; i++)
-            bucketsOut.Ref(i).UnplacedDeparture = 0.0;   // rewritten every turn, never stale
+        double[] unplaced = plan.Unplaced;              // zero unless written below
         for (int src = 0; src < n; src++)
         {
             bool anyViableDestination = false;
@@ -336,14 +351,14 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             {
                 BucketRow b = prev.Buckets[row];
                 double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                  * b.Count.Value * ctx.DtYears;
+                                  * b.Count.Value * dtYears;
                 if (perCount <= 0.0) continue;
-                bucketsOut.Ref(row).UnplacedDeparture = perCount * m.FamineFlightFactor * deficit[src];
+                unplaced[row] = perCount * m.FamineFlightFactor * deficit[src];
             }
         }
         // === end T4.4 readout ==================================================
 
-        if (n < 2) return;
+        if (n < 2) return plan;
 
         // --- T2.8 (a): per-pair gap-closing caps -----------------------------
         // gapScale[src,dst] scales the pair's ENTIRE gap-driven desire so it
@@ -351,7 +366,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // recomputes the same product terms from the same inputs (association
         // differs at ULP level between the desire and transfer sites — a
         // pre-T2.13 pattern; ClampToAvailable backstops any ULP overdraw).
-        var gapScale = new double[n, n];
+        double[,] gapScale = plan.GapScale;
         for (int src = 0; src < n; src++)
         {
             for (int dst = 0; dst < n; dst++)
@@ -367,7 +382,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                 {
                     BucketRow b = prev.Buckets[row];
                     gapDesire += m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                 * b.Count.Value * ctx.DtYears * damping[src, dst]
+                                 * b.Count.Value * dtYears * damping[src, dst]
                                  * viability[dst] * gap;
                 }
                 if (gapDesire <= 0.0) continue;
@@ -384,14 +399,14 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
         // --- desired outflows (all from Prev), then proportional scaling -----
         // desiredTotal[bucketRow] = Σ_j (gap-capped + flight) desire; perDest
         // factors recomputed in the transfer loop (bit-identical products).
-        var desiredTotal = new double[prev.Buckets.Count];
+        double[] desiredTotal = plan.DesiredTotal;
         for (int src = 0; src < n; src++)
         {
             foreach (int row in bucketRows[src])
             {
                 BucketRow b = prev.Buckets[row];
                 double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
-                                  * b.Count.Value * ctx.DtYears;
+                                  * b.Count.Value * dtYears;
                 if (perCount <= 0.0) continue;
                 double total = 0.0;
                 for (int dst = 0; dst < n; dst++)
@@ -405,19 +420,66 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
             }
         }
 
-        // --- transfers, pinned ascending (source, dest, bucket-key) ----------
-        Table<BucketRow> buckets = ctx.Owned.Buckets;
+        // --- the per-pair push the transfer loop multiplies --------------------
+        double[,] push = plan.Push;
         for (int src = 0; src < n; src++)
         {
             for (int dst = 0; dst < n; dst++)
             {
                 if (dst == src) continue;
-                double push = damping[src, dst] * viability[dst]
-                              * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
-                                 + m.FamineFlightFactor * deficit[src]);
+                push[src, dst] = damping[src, dst] * viability[dst]
+                                 * (gapScale[src, dst] * Math.Max(0.0, smoothed[dst] - smoothed[src])
+                                    + m.FamineFlightFactor * deficit[src]);
+            }
+        }
+        return plan;
+    }
+
+    public void Step(SimContext<MigrationTables> ctx)
+    {
+        IReadOnlyWorldState prev = ctx.Prev;
+        MigrationConfig m = _cfg.Migration;
+        int n = prev.Settlements.Count;
+
+        // Chronicle rows exist (zeroed) every turn, even a no-flow one.
+        Table<MigrationFlowRow> flows = ctx.Owned.Flows;
+        flows.Clear();
+        for (int s = 0; s < n; s++)
+            flows.Add(new MigrationFlowRow(prev.Settlements[s].Id, 0, 0));
+
+        MigrationPlan plan = Plan(prev, _cfg, ctx.DtYears);
+
+        // --- EMA filter write (T2.8 b): the owned table is the cloned prev ---
+        // table; rows update in place, and a settlement without a row (first
+        // sighting) appends one, in ascending settlement-row order.
+        Table<SmoothedAttractivenessRow> smoothedTable = ctx.Owned.Smoothed;
+        for (int s = 0; s < n; s++)
+        {
+            int rowIdx = plan.SmoothedRowIndex[s];
+            if (rowIdx >= 0) smoothedTable[rowIdx] = smoothedTable[rowIdx] with { Value = plan.Smoothed[s] };
+            else smoothedTable.Add(new SmoothedAttractivenessRow(prev.Settlements[s].Id, plan.Smoothed[s]));
+        }
+
+        // --- D-037 B1 readout write: rewritten every turn, never stale --------
+        Table<BucketRow> buckets = ctx.Owned.Buckets;
+        for (int i = 0; i < buckets.Count; i++)
+            buckets.Ref(i).UnplacedDeparture = i < plan.Unplaced.Length ? plan.Unplaced[i] : 0.0;
+
+        if (n < 2) return;
+
+        int[][] bucketRows = plan.BucketRows;
+        double[] desiredTotal = plan.DesiredTotal;
+
+        // --- transfers, pinned ascending (source, dest, bucket-key) ----------
+        for (int src = 0; src < n; src++)
+        {
+            for (int dst = 0; dst < n; dst++)
+            {
+                if (dst == src) continue;
+                double push = plan.Push[src, dst];
                 if (push <= 0.0) continue;
 
-                for (int k = 0; k < bucketRows[src].Count; k++)
+                for (int k = 0; k < bucketRows[src].Length; k++)
                 {
                     int srcRow = bucketRows[src][k];
                     BucketRow b = prev.Buckets[srcRow];
@@ -441,7 +503,7 @@ public sealed class MigrationSystem(SimConfig cfg) : ISimSystem<MigrationTables>
                     // key check are GUARDED for hand-built worlds (review
                     // finding: an unguarded index crashed when a destination
                     // had fewer buckets than the source).
-                    int dstRow = k < bucketRows[dst].Count ? bucketRows[dst][k] : -1;
+                    int dstRow = k < bucketRows[dst].Length ? bucketRows[dst][k] : -1;
                     if (dstRow >= 0)
                     {
                         BucketRow d = prev.Buckets[dstRow];
