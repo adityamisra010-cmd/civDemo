@@ -9,7 +9,7 @@ namespace Sim.Tests.Forensic;
 /// the run id is derived from CONTENT and not from a clock, so it can be
 /// recomputed and therefore checked; every value that could be absent is
 /// explicitly null beside a state that says why; the limitation catalogue is
-/// carried IN the artifact; and none of it moves schema 24.
+/// carried IN the artifact; and none of it moves the canonical schema (v25 since T4.21-1).
 /// </summary>
 public class ForensicIdentityTests
 {
@@ -133,9 +133,9 @@ public class ForensicIdentityTests
         ForensicRunRecord run = Run();
         Assert.Equal("sha256/canonical-stream", run.HashAlgorithm);
         Assert.False(run.HashCoversSchemaVersion);
-        Assert.Equal(24, run.CanonicalSchemaVersion);
-        Assert.Equal(24, CanonicalSchema.Version);   // this packet moves NOTHING
-        Assert.Equal(24, run.Schemas.CanonicalSchemaVersion);
+        Assert.Equal(25, run.CanonicalSchemaVersion);
+        Assert.Equal(25, CanonicalSchema.Version);   // v25: T4.21-1's Disasters table (the forensic record carries it, never covers it)
+        Assert.Equal(25, run.Schemas.CanonicalSchemaVersion);
         Assert.Equal("telemetry/v2", run.Schemas.Telemetry);
         Assert.Equal("session-manifest/v2", run.Schemas.SessionManifest);
         Assert.Equal("forensic/v1", run.Schemas.Forensic);
@@ -212,7 +212,7 @@ public class ForensicIdentityTests
         Assert.Equal(run.Pipeline.Length, read.Run.Pipeline.Length);
         Assert.Equal(run.EraBands.Length, read.Run.EraBands.Length);
         Assert.Equal(run.Limitations.Length, read.Run.Limitations.Length);
-        Assert.Equal(24, read.Run.CanonicalSchemaVersion);
+        Assert.Equal(25, read.Run.CanonicalSchemaVersion);   // v25: T4.21-1 Disasters table
         Assert.NotNull(read.Close);
         Assert.Equal(12, read.Close!.TurnsReached);
         Assert.Null(read.Close.Artifacts[1].Sha256);

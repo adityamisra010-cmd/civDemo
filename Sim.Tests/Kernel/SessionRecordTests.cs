@@ -80,7 +80,7 @@ public class SessionRecordTests
               "seed": 42,
               "sizePx": 256,
               "settlements": 4,
-              "schemaVersion": 24,
+              "schemaVersion": 25,
               "buildSha": "abc1234",
               "buildDate": "2026-09-09",
               "startedAt": "2026-09-09 12:00:00",

@@ -306,7 +306,17 @@ public class DrivenGoldenTests
         //   FirstReign and every IntegratedPinAttribution founded/FirstReign
         //   constant pass unchanged on this tree (no input-bound craft with a
         //   non-zero bank reaches them differently — measured by running them).
-        const string golden = "76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6";
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6
+        //   NEW  73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
+        //   CAUSE the empty Disasters table's prefix plus one RngStreamRow per
+        //         settlement (two unconditional draws per settlement-turn at
+        //         hazardPerYear 0). See SnapshotTests.FoundedGolden for the record.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
+        //         both and returns the OLD value byte for byte; every v22/v23
+        //         constant in that file is UNMOVED.
+        const string golden = "73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

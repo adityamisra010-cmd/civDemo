@@ -2,6 +2,7 @@
   "pipeline": [
     "catchment",
     "harvestweather",
+    "disaster",
     "production",
     "appropriation",
     "consumption",

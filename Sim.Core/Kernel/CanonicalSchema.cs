@@ -74,6 +74,15 @@ public static class CanonicalSchema
     /// (no system writes any of the three yet). Three separate RELATION
     /// tables, never an owner-id field or a boolean flag (T4.3's three named
     /// prohibitions).</summary>
+    /// v25 (T4.21-1, CR-015 §3.3): Disasters table appended after Structures —
+    /// the per-settlement famine-class production shock (Kind, Severity,
+    /// RemainingYears, Multiplier, AppliedMultiplier), rebuilt each step; rows
+    /// only where a shock is active or was just applied. COLLISION NOTE, per the
+    /// director-ruled v22/v23 precedent: the unmerged `m5-full-build` branch also
+    /// carries a "v25" (TaxPolicies, SystemId 22 for GovernanceSystem). Whichever
+    /// lands on main first keeps v25 and the other becomes v26; PipelineLoader
+    /// refuses duplicate ids and names at load, so a merge collision is loud.
+    /// There is exactly one meaning of every version number in this file.
     /// v24 (M4-D): ConstructionQueue and Structures appended after Capitals —
     /// the per-settlement construction queue (ordered by an explicit Slot, never
     /// by row position) and the completed-structure counts. No progress field
@@ -92,7 +101,7 @@ public static class CanonicalSchema
     /// before T4.4 merged. T4.4's v22 is authoritative because it landed on main
     /// first and is certified; these two tables are v23. There is exactly one
     /// meaning of every version number in this file.</summary>
-    public const int Version = 24;
+    public const int Version = 25;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -136,6 +145,7 @@ public static class CanonicalSchema
     private const int CapitalRowWidth = 4 + 4;                      // Polity, Place (v23)
     private const int ConstructionQueueRowWidth = 4 + 4 + 4;        // Settlement, Slot, ProjectId (v24)
     private const int StructureRowWidth = 4 + 4 + 8;                // Settlement, ProjectId, Count (v24)
+    private const int DisasterRowWidth = 4 + 4 + 8 + 8 + 8 + 8;      // Settlement, Kind, Severity, RemainingYears, Multiplier, AppliedMultiplier (v25)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -567,6 +577,19 @@ public static class CanonicalSchema
             writer.Write(row.ProjectId);
             writer.Write(row.Count);
         }
+
+        // 40. Disasters (v25, T4.21-1: famine-class production shocks)
+        writer.Write(world.Disasters.Count);
+        for (int i = 0; i < world.Disasters.Count; i++)
+        {
+            DisasterRow row = world.Disasters[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Kind);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Severity));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.RemainingYears));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Multiplier));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.AppliedMultiplier));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -934,6 +957,17 @@ public static class CanonicalSchema
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
         }
 
+        int disasterCount = reader.ReadInt32();
+        for (int i = 0; i < disasterCount; i++)
+        {
+            world.Disasters.Add(new DisasterRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -983,5 +1017,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Polities.Count * PolityRowWidth
         + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth
         + CountPrefixWidth + (long)world.ConstructionQueue.Count * ConstructionQueueRowWidth
-        + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth;
+        + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth
+        + CountPrefixWidth + (long)world.Disasters.Count * DisasterRowWidth;
 }

@@ -755,6 +755,33 @@ public record struct ConstructionQueueRow(SettlementId Settlement, int Slot, int
 public record struct StructureRow(SettlementId Settlement, int ProjectId, long Count);
 
 /// <summary>
+/// T4.21-1 (CR-015 §3.3): one settlement's famine-class production shock — the
+/// explicit disaster that, together with deliberate abandonment, is what makes a
+/// deficit a FAMINE rather than ordinary shortage. Owned by DisasterSystem;
+/// REBUILT every step (cleared first — the TradeFlows precedent), with rows only
+/// where <c>Multiplier &lt; 1 ∨ AppliedMultiplier &lt; 1 ∨ RemainingYears &gt; 0</c>;
+/// an absent row reads as (Multiplier 1.0, AppliedMultiplier 1.0, RemainingYears 0).
+///
+/// Kind: 1 = crop failure (the single kind at first cut); 0 on the row that only
+/// carries the Applied fact for one turn after the event has run its course.
+/// Severity: the fraction of FOOD output lost per ACTIVE year, in [severityMin,
+/// severityMax] — the physical, era-independent magnitude the famine-class
+/// derivation is stated on. RemainingYears: years of the disaster still ahead
+/// AFTER this step's overlap (0 once it has run its course) — persisted BY
+/// DIMENSION, because a disaster can outlast a late-era turn; this is the one
+/// place "no serialized famine-stress state" is deliberately not read as "no
+/// serialized disaster". Multiplier: what ProductionSystem multiplies the two food
+/// rates by in the step that READS this row (1 − Severity × overlap/dt, dt-exact).
+/// AppliedMultiplier: what ProductionSystem multiplied by in the step that WROTE
+/// this row (= the previous row's Multiplier, or 1.0) — the backward-looking fact
+/// FoodState classifies on, so a strike is FAMINE the same turn its deficit first
+/// appears.
+/// </summary>
+public record struct DisasterRow(
+    SettlementId Settlement, int Kind, double Severity, double RemainingYears,
+    double Multiplier, double AppliedMultiplier);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -818,6 +845,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
     IReadOnlyTable<StructureRow> Structures { get; }
+
+    /// <summary>T4.21-1: per-settlement famine-class production shocks — owned by DisasterSystem.</summary>
+    IReadOnlyTable<DisasterRow> Disasters { get; }
 }
 
 /// <summary>
@@ -958,6 +988,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>M4-D: completed structures, counted per (settlement, project).</summary>
     public Table<StructureRow> Structures { get; }
 
+    /// <summary>T4.21-1 (CR-015 §3.3): famine-class production shocks — owned by DisasterSystem.</summary>
+    public Table<DisasterRow> Disasters { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -997,6 +1030,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<CapitalRow> IReadOnlyWorldState.Capitals => Capitals;
     IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
     IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
+    IReadOnlyTable<DisasterRow> IReadOnlyWorldState.Disasters => Disasters;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1040,6 +1074,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Capitals = new Table<CapitalRow>();
         ConstructionQueue = new Table<ConstructionQueueRow>();
         Structures = new Table<StructureRow>();
+        Disasters = new Table<DisasterRow>();
     }
 
     private WorldState(
@@ -1061,7 +1096,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<HousingRow> housing, Table<ClaimRow> claims, Table<ControlRow> controls,
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
         Table<PolityRow> polities, Table<CapitalRow> capitals,
-        Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures)
+        Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures,
+        Table<DisasterRow> disasters)
     {
         Seed = seed;
         Clock = clock;
@@ -1104,6 +1140,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Capitals = capitals;
         ConstructionQueue = constructionQueue;
         Structures = structures;
+        Disasters = disasters;
     }
 
     /// <summary>
@@ -1123,7 +1160,7 @@ public sealed class WorldState : IReadOnlyWorldState
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
             Polities.Clone(), Capitals.Clone(),
-            ConstructionQueue.Clone(), Structures.Clone())
+            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
