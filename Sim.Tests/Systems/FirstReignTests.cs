@@ -417,7 +417,18 @@ public class FirstReignTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
         //         .FirstReignTurn40_MovedForTheDisasterLayoutAlone strips both and
         //         returns the OLD value byte for byte.
-        const string golden = "125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb";
+        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
+        //   OLD  125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
+        //   NEW  ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a
+        //   CAUSE this is the director's 0%-farm world — an ABANDONMENT famine,
+        //         which the kernel now READS: FoodState.Of classifies it FAMINE
+        //         and the exceptional channels run on the whole deficit (dEff = d
+        //         there, so the famine's magnitude is unchanged), plus the turn-2
+        //         headroom hold every founded world takes (SnapshotTests
+        //         .FoundedGolden has the record). THE SHAPE BELOW IS UNCHANGED AND
+        //         MEASURED: the dead world still dies inside the session's shape
+        //         and the ghost mountain stays absent.
+        const string golden = "ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

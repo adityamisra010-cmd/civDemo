@@ -75,13 +75,15 @@ internal static class ObservedWorlds
     /// MEASURED on this tree (the numbers the tests pin as non-vacuity):
     ///   FOUNDED 300: births, deaths, migrants, harvest and spoilage are ALL
     ///     non-zero on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact);
-    ///     overflow first on turn 1, starvation first on turn 55, trade on 41,
-    ///     dwellings never decay; no settlement is founded (12 throughout).
-    ///   DRIVEN 300: the same five non-zero on turn 2; starvation on 7, trade on
-    ///     7, decay on 48 (25 on the pre-lane-C founding vector; re-measured at
-    ///     T4.19-A under CR-014 with the unfixed cap as the control arm — same
-    ///     48 — so the founding vector alone moved it); no founding; 56 policy
-    ///     changes, all on turn 3.
+    ///     overflow first on turn 1, NO starvation in 300 turns (T4.21-3: was
+    ///     first on 55 — the effective deficit makes weather-sized shortfalls
+    ///     STRESS), trade on 21 (was 41), dwellings never decay; no settlement
+    ///     is founded (12 throughout).
+    ///   DRIVEN 300: the same five non-zero on turn 2; starvation on 8 (was 7),
+    ///     trade on 7, decay on 82 (was 48; 25 on the pre-lane-C founding
+    ///     vector) — T4.21-3 re-measured: the turn-2 headroom hold every
+    ///     founded world takes (SnapshotTests.FoundedGolden), then chaotic
+    ///     divergence; no founding; 56 policy changes, all on turn 3.
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
     ///     settlement 0, party 143, provisions 128; nothing founded after.</summary>
     internal static readonly Lazy<Run> Founded300 =

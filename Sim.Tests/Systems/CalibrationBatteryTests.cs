@@ -540,7 +540,22 @@ public class CalibrationBatteryTests
         // sides. corridors.json bands are UNTOUCHED — this is the recorded-
         // trajectory pin, re-pinned like a golden with this history line.
         // (v1, T3.2b/CR-003: [70k, 100k] on measured 79,847 / 89,615.)
-        Assert.InRange(m.FinalPopulation, 68_000, 119_000);
+        // Envelope RE-MEASURED at T4.21-3 (CR-015 / ADR-026): the tooth in (2)
+        // no longer fires — on the integration tree both seeds carried 3
+        // STRESS-sized weather starvation deaths (the CR-003 §7.6 "NOT
+        // ACTIONED" message), and under the effective deficit a shortfall
+        // inside the absorbable band starves nobody: starvation is EXACTLY 0
+        // on both seeds, crashes 0, growth monotone — the pre-Malthusian
+        // regime this quarantine asserts, restored (CR-015 N7's pre-committed
+        // reading for dev.starvationRatePer1000). The finals rose because
+        // G3(b) also lifts the birth suppression those tiny deficits carried
+        // (1 − 3d per turn, compounding over 1000 turns): seed 42 77,654 →
+        // 93,965 (+21 %), seed 7 106,150 → 122,532 (+15 %); founding totals
+        // unchanged (1,581 / 2,058). Envelope [82k, 138k] keeps ~12 % margins
+        // on both sides. corridors.json bands are UNTOUCHED. T4.21-4 owns the
+        // CR-003 message re-read; this is the recorded-trajectory pin, re-pinned
+        // like a golden with this history line.
+        Assert.InRange(m.FinalPopulation, 82_000, 138_000);
     }
 
     // --- the corridors file itself -------------------------------------------

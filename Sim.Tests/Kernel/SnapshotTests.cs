@@ -733,7 +733,32 @@ public class SnapshotTests
         //   DERIVED TWICE: this in-test harness and the built CLI
         //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1";
+        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
+        //   OLD  008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1
+        //   NEW  8ff6d04a950d920ef2de34316b920a7375a3779c1b0073ede01b1335ec7b4e7a
+        //   CAUSE (behaviour, ONE systematic change + chaotic divergence after it):
+        //         the headroom growth cap (ADR-026 §2.2(ii)) reads N_lim from PREV
+        //         through FoodHeadroom.Limit; on turn 2 of every founded world
+        //         prev carries a deficit row, a vitals row and a turn-1 harvest of
+        //         ZERO (the T4.18 warm-up artefact), so all 12 settlements read
+        //         N_lim = 0 and turn-2 births replace deaths (probe: births 2120
+        //         -> 2022, population 5193 -> 5116 at turn 2; spec §3.6a edge case
+        //         (3), one turn, clamped). From turn 3 on NO canonical settlement
+        //         sits at zero headroom at any sampled turn to 650 (0/12; summed
+        //         vacancy in the thousands), so the cap's only systematic canonical
+        //         footprint is that turn; the trees then diverge chaotically
+        //         (migration, weather-timing) — 39,982 vs 41,131 people at 300.
+        //         The effective deficit (ADR-026 §2.2(i), G3(b)) removes weather-
+        //         driven STRESS starvation and STRESS birth suppression: the
+        //         founded world now starves nobody in 300 turns (was first on 55).
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED (synthetic,
+        //         no demand rows, the cap never reads) and its v22/v24 controls
+        //         still return 0f94b4ad… / eec82711….
+        //   MEASURED on this tree by the agent writing this line (probe + this
+        //         harness); the merge lane re-measures on the merged tree.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "8ff6d04a950d920ef2de34316b920a7375a3779c1b0073ede01b1335ec7b4e7a";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

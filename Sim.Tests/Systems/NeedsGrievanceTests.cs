@@ -285,7 +285,14 @@ public class NeedsGrievanceTests
         // foundings; Settlements, Deposits, ClassStates and every other table are
         // identical. The contrast this test claims is unchanged and still
         // asserted below.
-        Assert.Equal(38, StarvedTotal(control));
+        // T4.21-3 RE-PIN (VALUE, semantics): 38 -> 0. The control arm's
+        // granary-truncation starvation was a STRESS-sized shortfall starving
+        // people under the linear response; under CR-015 / ADR-026 a shortfall
+        // inside the absorbable band starves nobody, and the fed control now
+        // starves EXACTLY zero over the whole run (measured; the famine arm
+        // starves 152 and its grievance 14.75 exceeds the control's 8.14).
+        // The contrast this test claims is unchanged and still asserted below.
+        Assert.Equal(0, StarvedTotal(control));
         Assert.True(StarvedTotal(famine) > starvedBefore, "rig vacuous: nobody starved in the window");
         Assert.True(Grievance(famine, 0) > Grievance(control, 0) + 1.0,
             $"starvation did not raise grievance above the fed control: "
