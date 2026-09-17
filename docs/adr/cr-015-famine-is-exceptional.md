@@ -588,3 +588,17 @@ is specified to be correct under either ruling; spec §7 reports V2/V3 under bot
   way; spec §7 V7 pre-commits no numeric target.
 - **No merged golden digits.** Golden constants are re-measured on the merged tree by the agent
   who writes them (ADR-015 §6).
+
+### 6.6 Post-ruling records (pointers only; nothing above is altered)
+
+- **G8 "the per-settlement `ρ` distribution is reported"** — delivered as
+  `docs/t4.21-1-foundations-audit.md` (T4.21-1 fix lane, 2026-09-17): seed 42 with and without the
+  director's 15 orders and seeds 1–3; every canonical settlement's time-mean `ρ` is 1.78–2.02
+  (`sD*` 5.22–5.79 above the band's 5.0); Libur under the orders is the one settlement exposed at
+  its mean (`ρ` 1.43, `sD*` 4.06); `ρ_ship = 1.3` lies below every time-mean and at
+  Libur-under-orders' median. The band is unchanged; the director judges the declaration against
+  these numbers.
+- **"The all-zero sector row classifies as ABANDONMENT (raw weights …)"** stands; the accompanying
+  code fact stated in spec §3.1 / §13(ii) ("`Share` would divide 0/0") does not — `Sectors.Share`
+  guards the zero sum. Recorded as erratum E1 in `docs/t4.21-architecture.md`'s header block and in
+  ADR-024 §8; the ruling is unaffected.

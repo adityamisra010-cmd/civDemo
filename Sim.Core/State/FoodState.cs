@@ -49,9 +49,13 @@ public enum FamineReason
 /// ABANDONMENT is read on the RAW sector row IN FORCE for the step — the same row
 /// and the same Sectors.Default fallback ProductionSystem uses to decide that farm
 /// labour and the herding pool are zero, so "deliberate abandonment" and "food
-/// labour is zero" are one fact. Raw weights, not Share: the all-zero row (reachable
-/// only from a hand-written log) classifies as abandoned — nothing is farmed —
-/// where Share would divide 0/0. The legacy LaborAllocation pct = 0 order writes
+/// labour is zero" are one fact. Raw weights because that is the field
+/// ProductionSystem reads (one fact, one field) — not because Share is undefined:
+/// Sectors.Share guards the zero row sum and returns 0.0 for the all-zero row, so a
+/// predicate on Share is behaviourally identical to this one for every reachable
+/// row (the Share variant of M-FS-ABANDON is an equivalent mutant, recorded in
+/// docs/t4.21-1-mutants.md). The all-zero row (reachable only from a hand-written
+/// log) classifies as abandoned — nothing is farmed. The legacy LaborAllocation pct = 0 order writes
 /// Farming 0 / Herding 0 / Construction 1.0 and IS abandonment. Single-sector
 /// rows (Farming = 0 ∧ Herding &gt; 0, or Farming &gt; 0 ∧ Herding = 0) are NOT
 /// abandonment (director's rule; the pure pastoralist's food-model outcome is

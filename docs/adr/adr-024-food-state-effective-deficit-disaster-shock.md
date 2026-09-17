@@ -268,6 +268,16 @@ tree, never by merging golden digits.
 - **Foundations audit** (T4.21-1 authoritative over spec §2): `DeficitRatio`, `DemandUnits`,
   `HarvestWeatherRow.Multiplier` (F1 — escalated), `sigmaLogYield`, `correlationTimeYears`,
   `granaryYearsOfDemand` (F4), `SectorAllocationRow` raw weights, `dtYears`.
+  **The measured part (F4/F5) is `docs/t4.21-1-foundations-audit.md`** (added by the T4.21-1 fix
+  lane on the verifier's material finding): the per-settlement `ρ = grain LastProduced ÷ DemandUnits`
+  series for seed 42 with and without the director's 15 orders and for seeds 1–3, `B_eff` and `sD*`
+  per settlement, the per-decade exposure fractions, and the F5 feedable limit against the sum. Its
+  headline facts: every canonical settlement's time-mean `ρ` is 1.78–2.02 (`sD*` 5.22–5.79 > the
+  band's maximal 5.0), so without orders no settlement is exposed to the band in a mean-weather
+  decade; Libur under the director's orders (`ρ` 1.43, `sD*` 4.06) is the one settlement exposed at
+  its mean; exposure otherwise arrives through below-mean weather decades (`ρ_t ≤ 1.70` in 31–51 %
+  of decades per settlement). `ρ_ship = 1.3` sits below every time-mean and at Libur-under-orders'
+  median. The band is unchanged by this record; it is reported for the director's judgement (G8).
 - **Dimensional declaration:** `d`, `d_eff`, `a`, `Multiplier`, `AppliedMultiplier` dimensionless;
   λ per sim-year; `D`, `RemainingYears`, `overlap`, `dt`, `G`, `B_eff` sim-years; `Severity`
   fraction of food output lost per active year; `s·D` production-years; `ρ`, `ρ_ship` dimensionless.
@@ -287,8 +297,17 @@ tree, never by merging golden digits.
 FAMINE iff `d ≥ 0.15` or `weather < 0.7`) · `F_Severe_WhereAdaptationEnds` (threshold == `a`, moves
 with `a`; the birth full-stop asserted as a kernel fact inside SEVERE) · `F_Famine_DisasterApplied`
 (kills **M-FS-DISASTER**; an absorbed disaster with `d = 0` is NORMAL) · `F_NotAbandoned_HerdingAlive`
-/ `F_NotAbandoned_FarmingAlive` · `F_Famine_Abandonment` (kills **M-FS-ABANDON**: predicate reads
-`Share` or `Farming` only; all-zero row and legacy pct-0 row abandoned; absent row not) ·
+/ `F_NotAbandoned_FarmingAlive` · `F_Famine_Abandonment` (all-zero row and legacy pct-0 row
+abandoned; absent row not). **M-FS-ABANDON, corrected by the measured kill-record** (the earlier
+text of this line claimed "predicate reads `Share` or `Farming` only" is killed by
+`F_Famine_Abandonment`; that was an assertion, and it was wrong on both counts): the
+`abandoned := false` variant is killed by `F_Famine_Abandonment`, `F_Famine_Both` and
+`F_AbandonmentTiming_TurnExact`; the **Farming-only** variant is killed by
+`F_NotAbandoned_HerdingAlive` alone (the director's single-sector rule is the property); the
+**Share** variant is an EQUIVALENT mutant — `Sectors.Share` (`WorldState.cs:350-354`) guards the zero
+row sum and returns 0.0 for the all-zero row, so `Share == 0 ⇔ Raw == 0` for every reachable row and
+no test can kill it. `IsAbandoned` reads Raw because it is the field `ProductionSystem` reads, not
+because Share is undefined ·
 `F_Famine_Both` · `F_Stockpile_DecidesFamine` (full pipeline, forced strike: 0.1-y store ⇒ FAMINE;
 1.5-y store at `ρ = 2` ⇒ NORMAL) · `F_AbandonmentTiming_TurnExact` · `F_DisasterTiming_TurnExact` ·
 `D_HazardZero_StripControl` · `D_HazardInfinite_EveryoneStruck` ·
@@ -299,4 +318,16 @@ with `a`; the birth full-stop asserted as a kernel fact inside SEVERE) · `F_Fam
 seeds × 300 turns: zero FAMINE settlement-turns; STRESS/SEVERE occur — non-vacuity) ·
 `S_Disaster_TriggersFamine` · `S_Seed42_NoFamineWithoutCause`. Every mutant run is bounded at 3× the
 clean-suite baseline; a hang is recorded as non-termination (ADR-015 §7.1); each kill names the
-property the system ought to have (§7.2).
+property the system ought to have (§7.2). **The measured kill-record is `docs/t4.21-1-mutants.md`**
+(13 mutants, each with the diff applied, the failing tests, elapsed time against the bound, and the
+property each failing test asserts), written by the agent who ran it on the merged tree.
+
+**Suite status on the packet tree (recorded, not hidden).** The full Sim.Tests suite on `05b23e6` is
+2-red: `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 42)` and `(seed: 7)` fail with
+the message "3 starvation deaths — the dev world is no longer pre-Malthusian…". Both fail with the
+byte-identical message on the pre-packet tree `45046eb` (the M4 playtest build on the integration
+branch) — re-measured by the fix lane in its own worktree at `45046eb` and on `05b23e6`: 2/2 fail on
+each, messages byte-identical after stripping the timing suffix (sha256 `c943a28e4b4c4025…`) — so
+the red is INHERITED, not caused by T4.21-0/1; CI on this branch cannot be green until it
+is addressed, which is T4.21-4's work (the `Cr003Quarantine` guard restoration and the
+`Dev_MalthusCorridors` message re-read, spec §4 T4.21-4).
