@@ -104,7 +104,9 @@ public class GlassBoxUiTests
         var social = new SocialSection(80.0, [0.9, 1.0], [], []);
         var migration = new MigrationSection(0.0, double.NaN, [], 100, 50, 0.0, 0.0, "GAP");
         var policy = new PolicySection([0.55, 0.15, 0.10, 0.12, 0.08], false, [0.55, 0.15, 0.10, 0.12, 0.08]);
-        return new SettlementRecord(id, 0, -1, founded, population, food, housing, economy, social, migration, policy, []);
+        return new SettlementRecord(
+            id, 0, -1, founded, population, food, housing, economy, social, migration, policy, [],
+            RecordSections.Normal(deficit), RecordSections.NoPlan());
     }
 
     [Fact]

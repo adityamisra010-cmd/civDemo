@@ -32,7 +32,13 @@ namespace Sim.Core.Observability;
 /// </summary>
 public static class TelemetryWriter
 {
-    public const string Schema = "telemetry/v2";
+    public const string Schema = "telemetry/v3";
+
+    /// <summary>The vintages <see cref="Sim.Core.Observability.Forensic.TelemetryRecordFile"/>
+    /// accepts, newest first. v3 = v2 + the T4.21-5 foodState/migrationPlan
+    /// sections; every v2 key keeps its v2 meaning, so a v2 line is a v3 line
+    /// with two sections missing and the reader reads it unchanged.</summary>
+    public static readonly string[] ReadableSchemas = ["telemetry/v3", "telemetry/v2"];
 
     /// <summary>Every observation in the history, one line each.</summary>
     public static void WriteAll(Stream output, IObservationHistory history)
@@ -345,6 +351,56 @@ public static class TelemetryWriter
         Num(json, "unplacedDeparture", m.UnplacedDeparture);
         Num(json, "unplacedRemainder", m.UnplacedRemainder);
         json.WriteString("pairwiseFlows", m.PairwiseFlows);
+        json.WriteEndObject();
+
+        // T4.21-5 (spec §3.11): read-only, non-authoritative, appended. Written
+        // BEFORE policy only because the writer emits sections in record order;
+        // every key above is byte-for-byte where v2 put it.
+        FoodStateSection fs = r.FoodState;
+        json.WriteStartObject("foodState");
+        json.WriteBoolean("prevRowsPresent", fs.PrevRowsPresent);
+        json.WriteString("state", fs.State.ToString());
+        json.WriteString("famineReason", fs.Reason.ToString());
+        Num(json, "nominalDeficit", fs.NominalDeficit);
+        Num(json, "effectiveDeficit", fs.EffectiveDeficit);
+        json.WriteBoolean("abandoned", fs.Abandoned);
+        json.WriteBoolean("disasterRowPresent", fs.DisasterRowPresent);
+        json.WriteNumber("disasterKind", fs.DisasterKind);
+        Num(json, "disasterSeverity", fs.DisasterSeverity);
+        Num(json, "disasterMultiplierApplied", fs.DisasterMultiplierApplied);
+        Num(json, "disasterRemainingYears", fs.DisasterRemainingYears);
+        json.WriteBoolean("disasterPendingRowPresent", fs.DisasterPendingRowPresent);
+        json.WriteNumber("disasterPendingKind", fs.DisasterPendingKind);
+        Num(json, "disasterPendingSeverity", fs.DisasterPendingSeverity);
+        Num(json, "disasterPendingMultiplier", fs.DisasterPendingMultiplier);
+        Num(json, "disasterPendingRemainingYears", fs.DisasterPendingRemainingYears);
+        json.WriteBoolean("harvestWeatherRowPresent", fs.HarvestWeatherRowPresent);
+        Num(json, "harvestWeatherApplied", fs.HarvestWeatherApplied);
+        Num(json, "foodLimit", fs.FoodLimit);
+        Num(json, "vacancy", fs.Vacancy);
+        Num(json, "surplusRatio", fs.SurplusRatio);
+        Num(json, "headroom", fs.Headroom);
+        json.WriteEndObject();
+
+        MigrationPlanSection mp = r.MigrationPlan;
+        json.WriteStartObject("migrationPlan");
+        json.WriteBoolean("planRecorded", mp.PlanRecorded);
+        Num(json, "dtYears", mp.DtYears);
+        Num(json, "exitOpenness", mp.ExitOpenness);
+        Num(json, "flightFractionPrime", mp.FlightFractionPrime);
+        Num(json, "flightBound", mp.FlightBound);
+        Num(json, "flightOut", mp.FlightOut);
+        Num(json, "gapOut", mp.GapOut);
+        Num(json, "gapOutflowCap", mp.GapOutflowCap);
+        Num(json, "srcScale", mp.SrcScale);
+        Num(json, "flightIn", mp.FlightIn);
+        Num(json, "gapIn", mp.GapIn);
+        Num(json, "gapInflowCap", mp.GapInflowCap);
+        Num(json, "destScale", mp.DestScale);
+        Num(json, "vacancyCap", mp.VacancyCap);
+        Num(json, "desiredInflowAe", mp.DesiredInflowAe);
+        Num(json, "vacancyScale", mp.VacancyScale);
+        json.WriteString("inflowAeByChannel", mp.InflowAeByChannel);
         json.WriteEndObject();
 
         PolicySection pol = r.Policy;

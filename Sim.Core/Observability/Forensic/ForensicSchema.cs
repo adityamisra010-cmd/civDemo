@@ -22,8 +22,14 @@ namespace Sim.Core.Observability.Forensic;
 /// </summary>
 public static class ForensicSchema
 {
-    /// <summary>The tag on every line. Versioned INDEPENDENTLY of schema 24 and
-    /// of telemetry/v2 — this file's vintage says nothing about theirs.</summary>
+    /// <summary>The tag on every line. Versioned INDEPENDENTLY of the canonical
+    /// schema and of the telemetry vintage — this file's vintage says nothing
+    /// about theirs, which is why it does NOT move when they do. T4.21-5 moved
+    /// telemetry v2 → v3 and this stayed v1 on purpose: the forensic run record
+    /// CARRIES the telemetry tag as a value (Schemas.Telemetry, read straight
+    /// off TelemetryWriter.Schema), and a carried value changing is not this
+    /// file's field set changing. Bumping here would tell a reader that the
+    /// forensic shape moved, which would be false.</summary>
     public const string Schema = "forensic/v1";
 
     /// <summary>The identity record: first line of the file, one per run.</summary>

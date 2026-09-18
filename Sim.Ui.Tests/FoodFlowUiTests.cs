@@ -195,5 +195,7 @@ public class FoodFlowUiTests
             new SocialSection(0, [0.0, 0.0], [], []),
             new MigrationSection(0.0, double.NaN, [], 0, 0, 0.0, 0.0, "GAP: none"),
             new PolicySection([0.2, 0.2, 0.2, 0.2, 0.2], false, [0.2, 0.2, 0.2, 0.2, 0.2]),
-            []);
+            [],
+            RecordSections.Normal(),
+            RecordSections.NoPlan());
 }
