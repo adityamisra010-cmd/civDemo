@@ -248,7 +248,7 @@ public class SimConfigTests
     }
 
     /// <summary>
-    /// Every disaster test below SUBSTITUTES into the shipped JSON by string
+    /// Every disaster test in this file SUBSTITUTES into the shipped JSON by string
     /// replacement anchored on HazardAnchor. If the anchor stops matching — the
     /// director rules a rate and sim.json is re-armed — the substitution becomes
     /// a silent no-op and the test would assert against the UNMODIFIED shipped
