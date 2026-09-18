@@ -40,13 +40,16 @@ public class ExplainGrievanceTests
         // docs/m4-founding-demographics-correction.md §7).
         Assert.False(ExplainRigs.HasSectorRow(worlds[1], ExplainRigs.Target), "the Turn-1 batch must not be in force in world 1");
         Assert.True(ExplainRigs.HasSectorRow(worlds[2], ExplainRigs.Target), "the Turn-1 batch must land in world 2");
-        // T4.21-3 RE-PIN: 0.7786416647610336 -> 0.7736879601044883. The turn
-        // did NOT move; the value did, because world 2 is the turn-2 headroom
-        // hold every founded world takes (births replace deaths that turn —
-        // SnapshotTests.FoundedGolden has the record), so the population whose
-        // demand sets the turn-3 deficit is smaller.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN, MEASURED ON THE MERGED TREE by the
+        // agent writing this line. The turn did NOT move; the VALUE did, twice
+        // over: 0.7786416647610336 pre-packet -> 0.76919291338582674 on the
+        // T4.21-2 branch (bounded migration) -> 0.7736879601044883 on the
+        // T4.21-3 branch (the turn-2 headroom hold: births replace deaths that
+        // turn) -> 0.76528799797005831 here, where both apply. What decides it
+        // is the population the target carries into the drawdown turn, which
+        // both packets move — SnapshotTests.FoundedGolden has the joint record.
         Assert.Equal(3, first);
-        Assert.Equal(0.7736879601044883, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
+        Assert.Equal(0.76528799797005831, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

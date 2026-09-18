@@ -323,22 +323,26 @@ public class ClassSystemTests
         // (the ClassStates latch) must not count that as local emergence.
         //
         // Seed and preset: the test's own recipe (dev preset, 256 px, N = 4,
-        // production pipeline, canonical era) on seed 16, which
-        // docs/t4.19c-remeasurement.md §4.1 records on the NEW arm as
-        // first-present 22 / latch 39 — the widest immigrant-precedes-latch
-        // gap in the battery. MEASURED on the T4.19-D tree:
-        // first-present turn = 22, latch turn = 39.
-        // T4.21-3 RE-MEASURED (ADR-026): latch turn 39 → 43, first-present 22
-        // UNCHANGED, still one immigrant artisan. ONE CAUSE: on turn 2 of
-        // every founded world prev carries a deficit row, a vitals row and a
-        // turn-1 harvest of ZERO (the T4.18 warm-up artefact — the catchment
-        // is computed on turn 1), so FoodHeadroom.Limit reads N_lim = 0 and
-        // the headroom growth cap holds turn-2 births at replacement (spec
-        // §3.6a edge case (3): one turn, clamped, harmless); every settlement
-        // enters turn 3 a decade of growth smaller and the surplus-ratio
-        // latch fires four turns later. The property this test pins — the
-        // immigrant precedes the local latch, and the instrument reports the
-        // latch — is untouched.
+        // production pipeline, canonical era). It ran on SEED 16 through
+        // T4.19-D, which docs/t4.19c-remeasurement.md §4.1 records as
+        // first-present 22 / latch 39 — the widest immigrant-precedes-latch gap
+        // in the battery then.
+        // T4.21-2 RE-RIGGED IT TO SEED 3 (ADR-025, bounded migration): on seed
+        // 16 the phenomenon stopped occurring (first-present 4 = latch 4 —
+        // settlement 0 latches locally before any immigrant arrives), and the
+        // battery was re-measured over dev seeds 1–24 with seed 3 the widest
+        // remaining gap. THE SEED IN THE CODE BELOW IS 3; the 16 / 22 / 43
+        // figures in the T4.21-3 branch's comment were measured against a rig
+        // that no longer exists here and are not carried forward.
+        // T4.21-2 ∥ T4.21-3 MERGE, MEASURED ON THE MERGED TREE by the agent
+        // writing this line: seed 3, first-present turn 13, latch turn 70, one
+        // immigrant artisan at first presence. (Seed 3 on the T4.21-2 branch
+        // alone: 13 / 71.) The latch turn moves with the growth trajectory,
+        // which ADR-026's headroom cap holds back by one turn of growth on turn
+        // 2 of every founded world; the first-present turn is migration's and
+        // did not move. The property this test pins — the immigrant precedes
+        // the local latch, and the instrument reports the latch, not the
+        // presence — is untouched by either packet.
         // Bounded: the loop stops at the latch (hard ceiling 120 turns).
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
@@ -372,8 +376,8 @@ public class ClassSystemTests
         Assert.Equal(0, activeAtFirstPresent);
         // The corrected instrument reports the latch, not the presence.
         Assert.NotEqual(firstPresentTurn, latchTurn);
-        Assert.Equal(43, latchTurn);
-        Assert.Equal(22, firstPresentTurn);
+        Assert.Equal(70, latchTurn);
+        Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

@@ -858,7 +858,15 @@ public class DemographicShockTests
             arrivals += cfg.Consumption.CohortWeights[moved.Buckets[i].CohortIdx]
                         * (moved.Buckets[i].Count.Value - world.Buckets[i].Count.Value);
         }
-        Assert.True(arrivals > 500.0, $"only {arrivals:F0} ae arrived — rig vacuous");
+        // T4.21-2 ∥ T4.21-3 MERGE RE-RIG, MEASURED ON THE MERGED TREE by the
+        // agent writing this line: 142.29999999999998 ae arrive against B's
+        // 300-ae headroom, not the > 500 the T4.21-3 branch measured with
+        // migration unbounded. What decides it is ADR-025 §3.5c's vacancy bound
+        // — B accepts a share of its OWN vacancy instead of the whole of A's
+        // flight. The guard's aim is unchanged and still has teeth: the
+        // arrivals must eat a real part of B's headroom, or the two runs below
+        // could not differ; 142 of 300 is a little under half of it.
+        Assert.True(arrivals > 100.0, $"only {arrivals:F1} ae arrived — rig vacuous");
         Assert.InRange(DemographicsSystem.Headroom(moved, b, cfg), 0.0, Math.Max(0.0, headroomPrev - arrivals) + 1e-6);
 
         WorldState run1 = new TurnExecutor(FlatEra(dt), [SystemCatalog.Migration(cfg), SystemCatalog.Demographics(cfg)]).Step(world);

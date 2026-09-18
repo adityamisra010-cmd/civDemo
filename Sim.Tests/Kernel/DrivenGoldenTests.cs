@@ -316,16 +316,27 @@ public class DrivenGoldenTests
         //         .DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
         //         both and returns the OLD value byte for byte; every v22/v23
         //         constant in that file is UNMOVED.
-        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
-        //   OLD  73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
-        //   NEW  d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02
-        //   CAUSE the turn-2 headroom hold and the effective deficit — see
-        //         SnapshotTests.FoundedGolden for the record. This driven world
-        //         reads d > 0 turns under the director's orders (starvation first
-        //         on turn 8, was 7 — WorldReconciliationTests), so both channels
-        //         of ADR-026 reach it. 1,535 people at 300 (measured).
-        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 UNMOVED.
-        const string golden = "d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02";
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN — BEHAVIOUR, BOTH PACKETS, MEASURED ON
+        // THE MERGED TREE by the agent writing this line (ADR-015 §6).
+        //   OLD (pre-packet, 1735d41)   73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
+        //   OLD (T4.21-2 branch alone)  297b432ccd4eff0257c86a89913bd9c2b0996e5fb3ff3c0aeba5ae30072b4839
+        //   OLD (T4.21-3 branch alone)  d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02
+        //   NEW (merged)                98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   CAUSE both packets reach this world: bounded migration (ADR-025 — the
+        //         exact flight hazard, the basin caps, the vacancy bound) and the
+        //         effective deficit + headroom growth cap (ADR-026). This driven
+        //         world reads d > 0 turns under the director's orders, so ADR-026's
+        //         exceptional channels reach it too. SnapshotTests.FoundedGolden
+        //         carries the joint record.
+        //   MEASURED ON THE MERGED TREE (WorldReconciliationTests has the same
+        //         readings): first migration turn 3 (turn 2 is refused world-wide
+        //         by the vacancy bound), first starvation turn 8, first trade turn
+        //         7, NO dwelling decay in 300 turns, 56 policy changes, 6,373
+        //         people at turn 300. The 1,535 in the T4.21-3 branch comment was
+        //         measured there, not here, and is not carried forward.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 UNMOVED at b6df7edd…,
+        //         both its controls re-measured on the merged tree and unmoved.
+        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

@@ -117,19 +117,22 @@ public class ExplainRecomputedFunctionTests
         Assert.True(fills >= 5, $"vacuous: only {fills} fill links (grain, livestock, fish, pottery, cloth expected)");
         Assert.True(interior > 0, "vacuous: no fill was strictly between 0 and 1 on the drawdown turn");
 
-        // The grain fill on the drawdown turn, measured: 531 eaten of 3790 demanded.
-        // (T4.19 lane C re-pin from 436 / 3078: the founding cohort vector moved
-        // the rig's founded population; T4.21-3 re-pin 3937 -> 3790 demanded, 531
-        // eaten unchanged: the turn-2 headroom hold every founded world takes
-        // leaves a smaller population demanding at turn 3, while what was eaten
-        // is the store's whole content, the same endowment. The fill identity
-        // below is what is asserted, the literals only say which world it was
-        // measured on.)
+        // The grain fill on the drawdown turn, MEASURED ON THE MERGED T4.21-2 +
+        // T4.21-3 TREE by the agent writing this line: 531 eaten of 3548
+        // demanded. (T4.19 lane C re-pin from 436 / 3078: the founding cohort
+        // vector moved the rig's founded population. Demand then moved with each
+        // packet and again with both: 3937 pre-packet -> 3657 on the T4.21-2
+        // branch -> 3790 on the T4.21-3 branch -> 3548 here; 531 EATEN is
+        // unchanged throughout, because what was eaten is the store's whole
+        // content, the same endowment. What decides the demand is the population
+        // the target carries into the drawdown turn, which both packets move.
+        // The fill identity below is what is asserted, the literals only say
+        // which world it was measured on.)
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, Target, grain);
         Assert.Equal(531, prev.GoodStocks[g].LastConsumptionEatenUnits);
-        Assert.Equal(3790, prev.GoodStocks[g].LastConsumptionDemandUnits);
+        Assert.Equal(3548, prev.GoodStocks[g].LastConsumptionDemandUnits);
         Link grainFill = Labelled(sustenance.Links, ChainNode.FoodGoodFill, ExplainRowsName(cfg, grain) + " fill");
-        Assert.Equal(531.0 / 3790.0, grainFill.Value);
+        Assert.Equal(531.0 / 3548.0, grainFill.Value);
         // ...and the satisfaction the SYSTEM published from that fill is below 1.
         Link s = ExplainGrievanceTests.Single(sustenance.Links, ChainNode.SustenanceSatisfaction);
         Assert.Equal(LinkKind.Read, s.Kind);

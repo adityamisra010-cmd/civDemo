@@ -417,18 +417,24 @@ public class FirstReignTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
         //         .FirstReignTurn40_MovedForTheDisasterLayoutAlone strips both and
         //         returns the OLD value byte for byte.
-        // T4.21-3 RE-PIN — BEHAVIOUR (CR-015 / ADR-026), MEASURED.
-        //   OLD  125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
-        //   NEW  ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a
-        //   CAUSE this is the director's 0%-farm world — an ABANDONMENT famine,
-        //         which the kernel now READS: FoodState.Of classifies it FAMINE
-        //         and the exceptional channels run on the whole deficit (dEff = d
-        //         there, so the famine's magnitude is unchanged), plus the turn-2
-        //         headroom hold every founded world takes (SnapshotTests
-        //         .FoundedGolden has the record). THE SHAPE BELOW IS UNCHANGED AND
-        //         MEASURED: the dead world still dies inside the session's shape
-        //         and the ghost mountain stays absent.
-        const string golden = "ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a";
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN — BEHAVIOUR, BOTH PACKETS, MEASURED ON
+        // THE MERGED TREE by the agent writing this line (ADR-015 §6).
+        //   OLD (pre-packet, 1735d41)   125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
+        //   OLD (T4.21-2 branch alone)  86adfd85673b27b74901162425c3404263ca3f485c7f4f9ebc200081b3e063f8
+        //   OLD (T4.21-3 branch alone)  ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a
+        //   NEW (merged)                dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e
+        //   CAUSE both packets: this is the director's 0%-farm world — an
+        //         ABANDONMENT famine, which the kernel now READS (FoodState.Of
+        //         classifies it FAMINE and ADR-026's exceptional channels run on
+        //         the whole deficit, dEff = d there, so the famine's magnitude is
+        //         unchanged), it takes the turn-2 headroom hold every founded
+        //         world takes, and its flight is ADR-025's exact hazard on the
+        //         best exit under the basin caps and the vacancy bound.
+        //         SnapshotTests.FoundedGolden carries the joint record.
+        //   THE SHAPE ASSERTS BELOW ARE UNCHANGED AND RE-VERIFIED BY RUNNING
+        //         THEM on the merged tree: the dead world still dies inside the
+        //         session's shape and the ghost mountain stays absent.
+        const string golden = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

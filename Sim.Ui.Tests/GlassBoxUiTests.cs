@@ -448,11 +448,17 @@ public class GlassBoxUiTests
     public void Grievance_AClassThatEmptiedThisStep_IsShownByThePrevMembershipRule_NotHidden()
     {
         // The starved settlement runs down: stepped past the Starved rig, its
-        // Peasants go 1 -> 0 on turn 5 (measured on this seed). The needs
-        // system iterated PREV's member to write the row on next, so the query
-        // explains the class with ClassPopulation by PREV — and the tab must
-        // use the same rule: the class is SHOWN with the G the system wrote
-        // for it (reproduces exactly), not hidden because next has nobody.
+        // Peasants go 1 -> 0. The needs system iterated PREV's member to write
+        // the row on next, so the query explains the class with ClassPopulation
+        // by PREV — and the tab must use the same rule: the class is SHOWN with
+        // the G the system wrote for it (reproduces exactly), not hidden
+        // because next has nobody.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN, MEASURED ON THE MERGED TREE by the
+        // agent writing this line: the emptying turn is 11 (was 5). What decides
+        // it is the joint trajectory of ADR-025's bounded migration and
+        // ADR-026's effective deficit — the settlement runs down more slowly —
+        // and the loop's 12-turn ceiling still contains it. The rule this test
+        // pins (PREV membership decides what is shown) is untouched.
         Sim.Ui.UiSession session = Starved(out _);
         int target = session.World.Settlements[0].Id.Value;
         var id = new SettlementId(target);
@@ -475,7 +481,7 @@ public class GlassBoxUiTests
             }
         }
         Assert.Equal(classes[0].Id, emptiedClass);                       // Peasants
-        Assert.Equal(5, session.Observations.LastTurn);
+        Assert.Equal(11, session.Observations.LastTurn);
 
         // Next has NOBODY of that class in the settlement, yet its grievance row stands.
         var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));
