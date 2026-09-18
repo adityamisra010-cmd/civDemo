@@ -309,3 +309,30 @@ dev reconciliation rig; 0 famine lines in 20 chronicle events); `WorldReconcilia
 starvation and driven dwelling decay return to ABSENCE pins (zero on all 300 turns, measured);
 `MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth`'s upward rate-lever tooth is quarantined
 in place. `docs/queue.md` carries all of them as open items.
+
+### D.6 A correction to how §2.1's table reads — TWO RIGS, not one (T4.21-8, re-measured)
+
+**§1–§5 are frozen as T4.21-4's evidence and are NOT edited by this paragraph.** What is corrected
+here is the *reading* of §2.1's table, and the NEW prose T4.21-7 wrote from it (the shipped
+`sim.json` `disaster._doc`), which carried "2.5259 per 1000 yr" forward beside the +0.4352 / −1.8220
+pair as though all three came from one run. They do not. Under ADR-015 §6 a number in new prose must
+have been measured by the agent writing it, so both rigs were re-measured, on a worktree pinned to
+`8b59bab` with `disaster.hazardPerYear` = 0.01 and nothing else changed:
+
+| rig | run | Neolithic (dt 10) | Bronze (dt 5) | discontinuity | bar |
+| --- | --- | --- | --- | --- | --- |
+| `CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember` | `RunCanonical(seed **1**, 650 turns)`, windows 1600–2500 / 2500–3400 | **+0.4352** | **−1.8220** | **2.2572** (2.257227 measured directly, not by addition) | 0.1 |
+| `DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator` | `ProductionExecutor`, `Founded(cfg)`, turns 1..450, 1000-yr windows either side of turn 250 | **+0.7616** | **−1.7643** | **2.5259** | 0.1 |
+
+So §2.1's table pairs the BATTERY rig's two component readings with the DEMOGRAPHYRETUNE rig's
+difference. Its heading also says "seed 42"; the battery rig those components come from runs at
+**seed 1**. Both figures are real, both were re-measured above, and both are ~23× and ~25× the 0.1
+bar — **no conclusion in this CR changes, and the decision in D.1 is untouched.** Re-measurable in
+one command on a tree with `hazardPerYear` = 0.01:
+
+```
+dotnet test -c Release --filter "FullyQualifiedName~Canonical_EraBoundaryContinuity_PermanentBatteryMember|FullyQualifiedName~EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator"
+```
+
+`sim.json`'s `disaster._doc` now carries both rigs' figures with their rigs named, rather than one
+number attributed to the other's windows.
