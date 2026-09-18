@@ -55,6 +55,31 @@
 > T4.21-4's deliverable; the `corridors.json` bands and the CR-003 quarantine were NOT touched.
 > The two open T4.21-2 findings (the turn-2 vacancy refusal, the fed-world basin-cap magnitude) stay
 > open in `docs/queue.md` — this lane measured and recorded, it did not act on them. Verify against git.
+>
+> **2026-09-18 — T4.21-4 RULE APPLICATION on `claude/civdemo-work-b1z2y4`.** The orchestrator's two
+> pre-registered rules were applied to the two findings above. **RULE 1: the source basin (fan-out)
+> cap STAYS as shipped** — measured on the canonical founded world (seed 42, no orders), gross
+> migration per decade over turns 2..300 is 0.001021 on the merged tree against 0.001509 pre-packet
+> (`1735d41`), i.e. 0.677x, clearing the 0.4x threshold (0.000604) and inside the corridor band
+> [0.001, 0.01]; both conditions hold, so no mechanism changed and no test or mutant was removed.
+> **RULE 2: `FoodHeadroom.Limit`'s null arm now includes catchment ROW ABSENCE** (ADR-026 §2.1a),
+> keyed on row absence only — never on `production == 0`, which is the abandoned settlement's genuine
+> zero — with `H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero` pinning both
+> arms. **It does NOT close its queue line, and it moves no golden:** measured bit-exact on the
+> canonical founded world (300-turn hash `db7c7a09…` before and after — the ci.yml `FOUNDED_GOLDEN`,
+> reproduced via the ci step's own `sim run --founded --seed 42 --turns 300 --hash-log`; first
+> migration turn 3 both ways) and byte-identical over every turn of the driven world. Catchment is
+> pipeline entry 1 and writes into NEXT, so the turn-1 world — PREV on turn 2 — already carries a row
+> for every founded settlement; the turn-2 refusal comes from that row being PRESENT alongside the
+> turn-1 zero staple harvest, which the rule forbids keying on. No substitute key was designed.
+> Suite on this tree (Release, sequential): Sim.Tests **859 passed / 1 failed / 6 skipped** in 5 m 33 s,
+> Sim.Ui.Tests **294/294**, three gate scripts green, `dotnet build -c Release` 0 warnings 0 errors.
+> The +1 pass over the merge-finish tree is the new null-arm test; the ONE red is still
+> `Dev_MalthusCorridors_AllInBand(seed: 7)` at the identical value (0.000102006), untouched here —
+> `corridors.json` and the CR-003 quarantine were NOT re-pinned. Where the residual pre-packet →
+> merged migration cut sits (vacancy bound, bounded flight, exit-openness rewrite) is ESCALATED to the
+> director per RULE 1's own wording. Records: ADR-025 §2.3a/§2.4a, ADR-026 §2.1a,
+> `docs/t4.21-2-record.md` §9, `docs/queue.md`. Verify against git.
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
