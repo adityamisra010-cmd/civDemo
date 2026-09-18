@@ -238,11 +238,18 @@ public class CalibrationBatteryTests
             $"seed {seed} reached the quarantine helper without a recorded envelope value — " +
             "record it here before asserting against it.");
 
-        Assert.True(value >= recorded * QuarantineDriftTolerance,
-            $"seed {seed}: {Inv(value)} fell below {QuarantineDriftTolerance:F2}× its recorded value " +
-            $"{Inv(recorded)} — the dev world has degraded beyond the quarantined deviation " +
-            "(measured disablement signature ×0.536; largest legitimate correction ×0.836). " +
-            "A NEW defect, or a ruled substrate change that must re-pin this envelope deliberately.");
+        // ORDER MATTERS, AND IT IS THE WHOLE POINT OF THIS BLOCK. The recorded
+        // envelope and the corridor band NO LONGER OVERLAP: recorded × 0.75 is
+        // 0.01113071385 (seed 42) and 0.011887221825 (seed 7), both strictly ABOVE the
+        // ceiling hi = 0.01 — computed by the agent writing this line from the
+        // two constants above. So every value inside [lo, hi] is also below the
+        // downward drift bar. If the drift teeth were evaluated first they would
+        // consume the resolution case and print "degraded … A NEW defect" for
+        // the one outcome this quarantine exists to detect, leaving the
+        // resolution tooth with an empty failure set — a dead tooth plus a false
+        // diagnosis, the exact T3.4b defect. The band read comes FIRST; the
+        // envelope teeth judge only the above-ceiling regime they were pinned in.
+        // The band is still read and never written, and 0.75 is unchanged.
         // T4.21-4 — THE UPWARD TOOTH, SPLIT, BECAUSE ITS OLD DISJUNCTION IS NOW
         // FALSE. The T3.4c version read `value < lo` and called anything else
         // "back INSIDE the corridor … RESOLVED". That was sound while the dev
@@ -263,6 +270,13 @@ public class CalibrationBatteryTests
             $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
             "deviation is RESOLVED for this seed. Re-measure the dev seed set; if the distribution has " +
             "returned, delete AssertDevMigrationQuarantine and restore the plain AssertInBand.");
+
+        Assert.True(value >= recorded * QuarantineDriftTolerance,
+            $"seed {seed}: {Inv(value)} fell below {QuarantineDriftTolerance:F2}× its recorded value " +
+            $"{Inv(recorded)} — the dev world has degraded beyond the quarantined deviation " +
+            "(measured disablement signature ×0.536; largest legitimate correction ×0.836). " +
+            "A NEW defect, or a ruled substrate change that must re-pin this envelope deliberately.");
+
         Assert.True(value <= recorded / QuarantineDriftTolerance,
             $"seed {seed}: {Inv(value)} rose above {1 / QuarantineDriftTolerance:F2}× its recorded value " +
             $"{Inv(recorded)} — the dev world's migration has drifted further into the ABOVE-CEILING " +
@@ -280,6 +294,72 @@ public class CalibrationBatteryTests
             $"0.01484 / 0.01585 against the λ = 0 twin's 8.34E-05 / 1.02E-04 on the same runs. " +
             "Band NOT moved. Escalated with the rest of the arming fallout — " +
             "docs/adr/cr-016-armed-disaster-fallout.md, docs/t4.21-4-record.md §5.");
+    }
+
+    /// <summary>
+    /// T4.21-6 — THE QUARANTINE'S OWN TEETH, EXERCISED. The helper above is
+    /// reached on this tree only through two 1000-turn dev runs that currently
+    /// fail EARLIER, inside AssertMalthusKnownDeviation (CR-016 open), so none
+    /// of its four teeth execute on any run today. That is how the split
+    /// shipped with its resolution tooth UNREACHABLE: the downward drift bar
+    /// (recorded x 0.75 = 0.01113071385 for seed 42, 0.011887221825 for seed 7
+    /// — computed here from the same two constants) sits ABOVE the corridor
+    /// ceiling 0.01, so it swallowed every in-band value and printed
+    /// "degraded ... A NEW defect" for the one outcome the quarantine exists to
+    /// detect. This drives the helper DIRECTLY with synthetic readings, which
+    /// costs no world run, and pins WHICH tooth answers WHICH regime.
+    ///
+    /// It also pins the non-overlap itself, because that is the fact the
+    /// ordering depends on: if a future re-pin brings the envelope back down
+    /// across the ceiling, the first assert below fails and whoever re-pins is
+    /// told to re-read the ordering comment rather than inheriting it silently.
+    /// No band is read from anywhere but Corridors.Load(), and nothing is written.
+    /// </summary>
+    [Fact]
+    public void T4216_DevMigrationQuarantine_EachToothAnswersItsOwnRegime()
+    {
+        Corridors c = Corridors.Load();
+        (double lo, double hi) = c.Band(QuarantinedKey);
+
+        // The premise of the ordering, stated as an assertion.
+        Assert.True(QuarantineRecordedSeed42 * QuarantineDriftTolerance > hi
+                 && QuarantineRecordedSeed7 * QuarantineDriftTolerance > hi,
+            "the recorded envelope has come back down across the corridor ceiling — the envelope " +
+            "bracket and the band now OVERLAP again, so re-read the ordering comment in " +
+            "AssertDevMigrationQuarantine before re-pinning: the band-first ordering was chosen " +
+            "precisely because they did not.");
+
+        foreach (ulong seed in new ulong[] { 42ul, 7ul })
+        {
+            double recorded = seed == 42ul ? QuarantineRecordedSeed42 : QuarantineRecordedSeed7;
+
+            // 1. INSIDE the band — RESOLUTION. This is the case the drift tooth
+            //    used to consume; it must name resolution and nothing else.
+            double inBand = 0.5 * (lo + hi);
+            Assert.True(inBand < recorded * QuarantineDriftTolerance,
+                "the in-band probe must also be below the drift bar, or this case proves nothing");
+            Exception? resolved = Record.Exception(() => AssertDevMigrationQuarantine(c, seed, inBand));
+            Assert.NotNull(resolved);
+            Assert.Contains("RESOLVED", resolved!.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain("degraded beyond", resolved.Message, StringComparison.Ordinal);
+
+            // 2. BELOW the floor — a degradation, not a resolution.
+            Exception? degraded = Record.Exception(() => AssertDevMigrationQuarantine(c, seed, lo * 0.5));
+            Assert.NotNull(degraded);
+            Assert.Contains("degraded beyond", degraded!.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain("RESOLVED", degraded.Message, StringComparison.Ordinal);
+
+            // 3. THE RECORDED REGIME ITSELF — above the ceiling, inside the
+            //    envelope: silence. Without this the helper could pass by
+            //    failing everything.
+            Assert.Null(Record.Exception(() => AssertDevMigrationQuarantine(c, seed, recorded)));
+
+            // 4. ABOVE the envelope — the upward tooth, in its own words.
+            Exception? drifted = Record.Exception(
+                () => AssertDevMigrationQuarantine(c, seed, recorded / QuarantineDriftTolerance * 1.01));
+            Assert.NotNull(drifted);
+            Assert.Contains("ABOVE-CEILING", drifted!.Message, StringComparison.Ordinal);
+        }
     }
 
     // --- canonical corridors (fed era, 650 turns to year 4500) ---------------
