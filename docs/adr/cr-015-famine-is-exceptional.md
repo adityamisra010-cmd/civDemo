@@ -602,3 +602,64 @@ is specified to be correct under either ruling; spec §7 reports V2/V3 under bot
   code fact stated in spec §3.1 / §13(ii) ("`Share` would divide 0/0") does not — `Sectors.Share`
   guards the zero sum. Recorded as erratum E1 in `docs/t4.21-architecture.md`'s header block and in
   ADR-024 §8; the ruling is unaffected.
+
+---
+
+## APPEND-ONLY — T4.21-4, THE ARMING AND ITS DISPOSITIONS (2026-09-18)
+
+Recorded by T4.21-4 on branch `t4.21-4-arm`, cut from `claude/civdemo-work-b1z2y4` @ `8f7f9da`.
+Nothing above this line is edited. Full record: `docs/t4.21-4-record.md`; raw rows:
+`docs/t4.21-evidence/t4.21-4/`.
+
+**THE ARMING.** `sim.json` `disaster.hazardPerYear` **0.0 → 0.01**, per §3.3. Measured, canonical
+founded, 20 seeds × 300 turns: 6,211 onsets over 66,000 settlement-turns = **0.941061 per
+settlement-century**, inside the binomial 99 % band [0.922204, 0.981047] around the
+truncation-corrected expectation 0.9516258, at z = −0.925. λ = 0 control arm: **zero** FAMINE
+settlement-turns, with 352 STRESS and 1 SEVERE still occurring.
+
+**THE TEST DISPOSITIONS THIS CR PRE-COMMITTED, AS EXECUTED.**
+
+- *"`Cr003Quarantine` guards restored"* — two of three. `PopulationTests.Reconciliation_FromLedgerAlone`
+  (starved > 0: measured 5,983 / 6,414 dev, against 0 unarmed) and `ChronicleTests.Annals_TwinIdentical`
+  (a famine line) are RESTORED. `PopulationTests.MalthusLite_OvershootCorrectionCycles` is NOT: measured
+  1 down-crossing and 0 up-crossings — a disaster is an exogenous shock, not a land ceiling, so it
+  produces a decline and not an overshoot–correction cycle, exactly as CR-003 §7.5–7.6 rules. The
+  quarantine stands with its measurement recorded beside it.
+- *"`Dev_MalthusCorridors` messages re-read (their `starvedTotal == 0` tooth re-read — dev starvation
+  may now be non-zero by a disaster)"* — the premise is CONFIRMED (5,983 / 6,414 starvation deaths,
+  2 / 1 crashes, no longer monotone) but the re-aim is NOT taken: all three teeth assert the CR-003
+  premise, and re-aiming them onto a cause-attributed form is a change to the CR-003 quarantine's
+  substance. Escalated in CR-016 §5; both seeds stay RED and are named.
+- *"`AssertDevMigrationQuarantine` becomes a recorded envelope (N7)"* — done, re-pinned to the
+  MEASURED 0.0148409518 (seed 42) and 0.0158496291 (seed 7), cause named, `DriftTolerance` unchanged
+  at 0.75, no band moved. The tooth's upward half had to be SPLIT: it read "not below the floor" as
+  "back inside the corridor — RESOLVED", and the armed value is 1.5× ABOVE the ceiling, so that
+  message would have been false.
+- *"`FamineAtOneOfTwelve` and `MagnitudeCorridor_FedPhaseDrift` skips LIFTED with re-derived
+  assertions (N9)"* — both LIFTED. The first now measures the FLIGHT channel through
+  `MigrationSystem.Plan` (threshold unchanged; measured: flight crosses at turn 4 with 183.4 against
+  139 starvation). The second keeps its corridor on GROSS and re-aims only the rate-lever teeth onto
+  the gap-driven observable (measured ×0.74 / ×1.88). **Recorded, not actioned:** on this tree gross
+  responds ×0.71 / ×1.91, so ADR-018 §11's premise (gap-driven ×3.10 vs gross ×1.07) no longer holds.
+- *"`dev.starvationRatePer1000` RISES from 0 iff a disaster strikes a `ρ ≤ 1.4` dev settlement"* —
+  **CONFIRMED**, and by a wide margin. `corridors.json:136`'s "famine demography must EXIST" is
+  satisfied.
+- *"`migrationGrossPerDecade` direction NOT pre-committed, reported"* — reported: **UP**, by ×19.8
+  and ×205.6, from 20–60 % below the floor to 1.5× above the ceiling.
+- *"No band moves"* — none moved. `corridors.json` is byte-identical to `8f7f9da`.
+- *G2's re-anchored arms "must still pass with the disaster ARMED"* — they do, but only after a RIG
+  CONTROL: `DemographyRetuneTests.FamineRigFed` now pins its own λ to 0, because the rig builds its
+  deficit by hand and ASSERTS THE CLASSIFICATION of it, and a random strike drove the STRESS arm to
+  d = 0.56 (band ceiling 0.20) and would have classified FAMINE where the arm asserts SEVERE. Same
+  control, same reason, for `NeedsGrievanceTests.Famine_RaisesGrievance`, whose FED CONTROL arm had
+  started starving 190 people.
+- *G6(a)* — pinned by `S_Pastoralist_Pipeline` without touching the basket: FAMINE 0, SEVERE 8,
+  worst d 1.0, 208 starved, settlement population 479 → 0. The mirror `S_FarmerOnly_Pipeline` is
+  never short at all.
+
+**WHAT THIS CR DID NOT ANTICIPATE.** The arming's MAGNITUDE against the demographic kernel, and the
+G8 dt artefact becoming load-bearing at the era gate. Both are escalated in
+`docs/adr/cr-016-armed-disaster-fallout.md` (OPEN): measured, the canonical world loses ~74 % of its
+turn-300 population, `canonical.fedGrowthPerYear` falls below its band, the CR-001 permanent
+detonator breaks by 2.5259 per 1000 yr across the dt 10 → 5 gate, and the dev world goes 93,910 → 38
+over 1000 turns. This CR's ruling is not reopened by T4.21-4; the collision is put to the director.

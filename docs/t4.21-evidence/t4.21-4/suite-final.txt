@@ -1,0 +1,74 @@
+Test run for /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Ui.Tests/bin/Release/net10.0/Sim.Ui.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Test run for /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/bin/Release/net10.0/Sim.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   294, Skipped:     0, Total:   294, Duration: 32 s - Sim.Ui.Tests.dll (net10.0)
+[xUnit.net 00:02:23.05]     Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_OreDeadbandCrossing [SKIP]
+[xUnit.net 00:02:23.06]     Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_PixelResolution_RiversAsRoutes [SKIP]
+  Skipped Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_OreDeadbandCrossing [1 ms]
+  Skipped Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_PixelResolution_RiversAsRoutes [1 ms]
+[xUnit.net 00:02:28.59]     Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator [FAIL]
+  Failed Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator [1 s]
+  Error Message:
+   growth discontinuity 2.5259/1000·yr across the dt flip — the CR-001 detonator
+  Stack Trace:
+     at Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/DemographyRetuneTests.cs:line 753
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:19.78]     Sim.Tests.Systems.FoundingVariationItem0Tests.Item0_MeasureTheWorldBeforeDesigningAnything [SKIP]
+  Skipped Sim.Tests.Systems.FoundingVariationItem0Tests.Item0_MeasureTheWorldBeforeDesigningAnything [1 ms]
+[xUnit.net 00:03:20.25]     Sim.Tests.Systems.HousingBeforeColumnTests.BeforeColumn_DirectorSessionReplay_OnMain [SKIP]
+  Skipped Sim.Tests.Systems.HousingBeforeColumnTests.BeforeColumn_DirectorSessionReplay_OnMain [1 ms]
+[xUnit.net 00:05:12.33]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 2) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 2) [50 s]
+  Error Message:
+   seed 2: 0.00355132 is BELOW the measured quarantine window [0.3685744951368359, 0.7421101248166698] — a NEW defect, not the recorded founding-correction level shift. (Returning INSIDE the band [0.15, 0.6] would also land here: if that is what happened, re-measure the 20-seed sweep and lift the quarantine per its stated lift condition.)
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertCanonicalDensityQuarantine(Corridors c, UInt64 seed, Double value) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 419
+   at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 347
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:06:02.99]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 1) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 1) [50 s]
+  Error Message:
+   canonical.fedGrowthPerYear: 0.000407442 outside [0.0005, 0.001]
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertInBand(Corridors c, String key, Double value) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 130
+   at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 304
+   at InvokeStub_CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(Object, Span`1)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:06:04.91]     Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 42) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 42) [1 s]
+  Error Message:
+   seed 42: 5983 starvation deaths — the dev world is no longer pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed evidence) rules that the measured world moved AWAY from Malthusian constraint — more land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the quarantine stays, and only a director ruling on CR-003 changes either.
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertMalthusKnownDeviation(Corridors c, AutoplayMetrics m, UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 544
+   at Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 477
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:06:06.75]     Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7) [1 s]
+  Error Message:
+   seed 7: 6414 starvation deaths — the dev world is no longer pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed evidence) rules that the measured world moved AWAY from Malthusian constraint — more land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the quarantine stays, and only a director ruling on CR-003 changes either.
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertMalthusKnownDeviation(Corridors c, AutoplayMetrics m, UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 544
+   at Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 477
+   at InvokeStub_CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(Object, Span`1)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:06:55.11]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember [48 s]
+  Error Message:
+   growth discontinuity at the Neolithic->Bronze gate: 0.4352/1000-yr vs -1.8220/1000-yr
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 456
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Failed!  - Failed:     6, Passed:   867, Skipped:     4, Total:   877, Duration: 7 m 26 s - Sim.Tests.dll (net10.0)

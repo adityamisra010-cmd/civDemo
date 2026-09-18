@@ -133,7 +133,11 @@ jobs:
           # (SnapshotTests.FoundedGolden). A founding/pipeline bypass inside
           # the CLI that self-diffs cleanly still fails here. Update this hash
           # together with the test constant, deliberately.
-          FOUNDED_GOLDEN=db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+          # T4.21-4: moved with SnapshotTests.FoundedGolden for the arming of
+          # the famine-class disaster (sim.json disaster.hazardPerYear
+          # 0.0 -> 0.01). Re-derived by running THIS step's two CLI processes on
+          # the packet tree: both logs byte-identical, last line the value below.
+          FOUNDED_GOLDEN=a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

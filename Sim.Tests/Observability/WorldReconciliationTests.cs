@@ -92,16 +92,30 @@ public class WorldReconciliationTests
         Assert.True(t2.Grain.Harvest > 0, "no harvest on turn 2");
         Assert.True(t2.Grain.Spoilage > 0, "no spoilage on turn 2");
         Assert.True(log.At(1)!.Turn.Grain.Overflow > 0, "no granary overflow on turn 1");
-        // RE-MEASURED ON THE MERGED TREE (CR-015 / ADR-026 + ADR-025): the
-        // founded world starves NOBODY in 300 turns (55 pre-packet, 57 on the
-        // T4.21-2 branch, none on the T4.21-3 branch) — the effective deficit
-        // makes a weather-sized shortfall STRESS, which starves no one. The
-        // starvation flow is asserted identically ZERO on every turn so the
-        // absence is pinned, not left unobserved. First trade, MEASURED: 41
-        // pre-packet, 21 on the T4.21-3 branch alone, 28 here.
+        // T4.21-4 — THE ABSENCE PIN IS RESOLVED AND THE COVERAGE IS RESTORED.
+        // The merged T4.21-2 + T4.21-3 tree starved NOBODY in 300 founded turns
+        // (55 pre-packet, 57 on the T4.21-2 branch, none on the merge), because
+        // the effective deficit makes a weather-sized shortfall STRESS — and
+        // STRESS starves no one. That is still true of WEATHER. What arming the
+        // famine-class disaster adds is the other cause, and with it the flow is
+        // live again: MEASURED on this tree, 11,060 starvation deaths across 61
+        // of the 300 turns, the first on turn 7. So the zero-pin (which existed
+        // only to keep the absence observed) is REPLACED by the positive
+        // coverage it was standing in for.
+        long starvation = 0;
+        int starvationTurns = 0, firstStarvation = -1;
         for (int t = 1; t <= 300; t++)
-            Assert.Equal(0, log.At(t)!.Turn.Population.Starvation);
-        Assert.True(log.At(28)!.Turn.Flows.TradeUnits > 0, "no trade on turn 28");
+        {
+            long s = log.At(t)!.Turn.Population.Starvation;
+            starvation += s;
+            if (s > 0) { starvationTurns++; if (firstStarvation < 0) firstStarvation = t; }
+        }
+        Assert.True(starvation > 0,
+            "the founded world starved NOBODY in 300 turns — with the famine-class disaster armed "
+            + "(sim.json disaster.hazardPerYear) the starvation account is meant to be exercised here; "
+            + "an all-zero column means the reconciliation covers it only vacuously");
+        Assert.Equal(7, firstStarvation);
+        Assert.True(log.At(31)!.Turn.Flows.TradeUnits > 0, "no trade on turn 31");
         Assert.True(log.At(1)!.Turn.Dwellings.Built > 0, "nothing built on turn 1");
         Assert.Equal(0, t2.Flows.SettlementsFounded);
         Assert.Equal(12, log.At(300)!.Settlements.Length);
@@ -126,9 +140,10 @@ public class WorldReconciliationTests
             "turn 2 of the driven world does not carry the four non-migration flows");
         Assert.Equal(0, t2.Flows.MigrantsMoved);
         Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3 of the driven world");
-        // RE-MEASURED ON THE MERGED TREE: first starvation 7 pre-packet -> 8
-        // here; trade on 7 holds.
-        Assert.True(log.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8");
+        // RE-MEASURED, T4.21-4 (armed): first starvation 7 pre-packet -> 8 on the
+        // merged tree -> 7 again here; trade on 7 holds. 5,189 starvation deaths
+        // across 171 of the 300 turns.
+        Assert.True(log.At(7)!.Turn.Population.Starvation > 0, "no starvation on turn 7");
         Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
         // T4.19-A (CR-014 ruled): the first-decay sample RE-MEASURED, 25 -> 48.
         // The 25 was read on the pre-lane-C founding vector (measured on the
@@ -140,16 +155,15 @@ public class WorldReconciliationTests
         // founding vector is its whole cause. Starvation on 7 and trade on 7
         // hold on every arm. Reconciliation above is asserted on all 300
         // turns; this is the non-vacuity sample only.
-        // RE-MEASURED ON THE MERGED TREE: NO dwelling decays in 300 driven
-        // turns (48 on the T4.19-A tree, 64 on the T4.21-2 branch, 82 on the
-        // T4.21-3 branch). The sample cannot be re-aimed at a turn that does not
-        // exist, so the coverage is kept in the only honest form: the decay flow
-        // is asserted identically ZERO on every one of the 300 turns, so the
-        // absence is PINNED rather than left unobserved, and the dwellings
-        // account's non-vacuity is carried by the Built assert above. What
-        // decides it is the joint trajectory of ADR-025 and ADR-026 (goldens).
-        for (int t = 1; t <= 300; t++)
-            Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
+        // T4.21-4 — THE SAMPLE IS BACK, at the turn that now carries it. The
+        // history: 25 (pre-lane-C vector) -> 48 (T4.19-A) -> 64 (T4.21-2 branch)
+        // -> 82 (T4.21-3 branch) -> NONE AT ALL on the merged tree, which is why
+        // the previous revision degraded the coverage to an all-zero pin. With
+        // the disaster armed the driven world loses population to famine, homes
+        // empty, and decay returns: MEASURED, first decay on turn 86, 640
+        // dwellings decayed across the 300 turns. The zero-pin is replaced by
+        // the positive sample it was standing in for.
+        Assert.True(log.At(86)!.Turn.Dwellings.Decayed > 0, "no dwelling decayed on turn 86");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829

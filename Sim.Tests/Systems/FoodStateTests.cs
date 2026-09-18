@@ -289,7 +289,10 @@ public class FoodStateTests
     /// ρ × demand per year, a grain endowment of <paramref name="storeYears"/> years
     /// of demand, no deposits (the non-staple basket lines substitute to grain).
     /// </summary>
-    private static WorldState BalanceRig(SimConfig cfg, double rho, double storeYears)
+    /// <summary>T4.21-4: shared with FamineScenarioTests, which runs the same
+    /// rig through a longer pipeline (demographics included) — one rig
+    /// definition, two depths of pipeline.</summary>
+    internal static WorldState BalanceRig(SimConfig cfg, double rho, double storeYears)
     {
         var counts = new long[Cohorts.Count];
         counts[5] = 1000;

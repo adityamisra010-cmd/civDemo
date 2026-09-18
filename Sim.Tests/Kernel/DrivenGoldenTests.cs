@@ -81,9 +81,15 @@ public class DrivenGoldenTests
         return log;
     }
 
-    public static (WorldState World, SimConfig Cfg) RunDriven(int turns)
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
+
+    /// <summary>T4.21-4: the same driven run under a CONFIG OVERRIDE, so the
+    /// attribution controls in IntegratedPinAttributionTests can run the λ = 0
+    /// twin of this world — the arming is a pure data change, and a layout
+    /// control must not be asked to absorb a behaviour change.</summary>
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42);
         OrderLog orders = DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
@@ -336,7 +342,23 @@ public class DrivenGoldenTests
         //         measured there, not here, and is not carried forward.
         //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 UNMOVED at b6df7edd…,
         //         both its controls re-measured on the merged tree and unmoved.
-        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: THE ARMING).
+        //   OLD  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   NEW  0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4
+        //   CAUSE  sim.json disaster.hazardPerYear 0.0 -> 0.01 — a DATA change
+        //         and the only change in this packet that reaches running code
+        //         (spec §3.3; CR-015 §3.3).
+        //   ATTRIBUTION, not asserted but PROVED: the two DRIVEN controls in
+        //         IntegratedPinAttributionTests (…_MovedForTheDisasterLayoutAlone
+        //         and …_SeparatesTheSchemaMoveFromTheBehaviouralOne) now run the
+        //         lambda = 0 twin of THIS run and return their v22/v23/v24
+        //         constants byte for byte, so the arming is the entire cause of
+        //         this move and nothing else in the packet reaches this world.
+        //   BLAST RADIUS: every behavioural golden in the tree moves with the
+        //         arming, by design — this is the packet the golden ladder calls
+        //         the last golden move (CR-015 "Golden ladder"). The controls do
+        //         NOT move, which is what makes the ladder a ladder.
+        const string golden = "0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

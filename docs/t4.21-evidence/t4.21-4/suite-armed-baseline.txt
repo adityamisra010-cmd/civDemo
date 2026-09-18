@@ -1,0 +1,310 @@
+Test run for /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Ui.Tests/bin/Release/net10.0/Sim.Ui.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Test run for /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/bin/Release/net10.0/Sim.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   294, Skipped:     0, Total:   294, Duration: 48 s - Sim.Ui.Tests.dll (net10.0)
+[xUnit.net 00:01:17.16]     Sim.Tests.Kernel.SnapshotTests.FoundedGolden_Seed42Turn300_MatchesPinnedConstant [FAIL]
+  Failed Sim.Tests.Kernel.SnapshotTests.FoundedGolden_Seed42Turn300_MatchesPinnedConstant [1 m 9 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "db7c7a0907ad43353b1a44f1a957a407c0ce89ecb"···
+Actual:   "a1def4df5f29c2660a7c95a5c6f15612f91aee9f8"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.SnapshotTests.FoundedGolden_Seed42Turn300_MatchesPinnedConstant() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/SnapshotTests.cs:line 814
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:18.31]     Sim.Tests.Systems.FoundingVariationItem0Tests.Item0_MeasureTheWorldBeforeDesigningAnything [SKIP]
+  Skipped Sim.Tests.Systems.FoundingVariationItem0Tests.Item0_MeasureTheWorldBeforeDesigningAnything [1 ms]
+[xUnit.net 00:01:20.49]     Sim.Tests.Systems.NeedsGrievanceTests.Famine_RaisesGrievance_InTheStarvationWindow [FAIL]
+  Failed Sim.Tests.Systems.NeedsGrievanceTests.Famine_RaisesGrievance_InTheStarvationWindow [72 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   190
+  Stack Trace:
+     at Sim.Tests.Systems.NeedsGrievanceTests.Famine_RaisesGrievance_InTheStarvationWindow() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/NeedsGrievanceTests.cs:line 295
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:29.58]     Sim.Tests.Systems.MerchantTests.MerchantsEmergeInAFoundedWorldOnceTradeVolumeCrossesTheThreshold [FAIL]
+  Failed Sim.Tests.Systems.MerchantTests.MerchantsEmergeInAFoundedWorldOnceTradeVolumeCrossesTheThreshold [1 m 23 s]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 119
+Actual:   87
+  Stack Trace:
+     at Sim.Tests.Systems.MerchantTests.MerchantsEmergeInAFoundedWorldOnceTradeVolumeCrossesTheThreshold() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/MerchantTests.cs:line 137
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:30.47]     Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone [FAIL]
+  Failed Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone [35 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "38de16bab469505e4a4b1966681da8bfd9103a4a9"···
+Actual:   "6f6d4753f02fd06d6f00ecaf7a8d3798819464971"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/IntegratedPinAttributionTests.cs:line 440
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:32.03]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 2) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 2) [1 m 22 s]
+  Error Message:
+   seed 2: 0.00355132 is BELOW the measured quarantine window [0.3685744951368359, 0.7421101248166698] — a NEW defect, not the recorded founding-correction level shift. (Returning INSIDE the band [0.15, 0.6] would also land here: if that is what happened, re-measure the 20-seed sweep and lift the quarantine per its stated lift condition.)
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertCanonicalDensityQuarantine(Corridors c, UInt64 seed, Double value) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 383
+   at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 311
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:01:33.01]     Sim.Tests.Systems.ClassSystemTests.ArtisanPresence_CanPrecedeLocalLatch_ViaMigration_IsNotEmergence [FAIL]
+  Failed Sim.Tests.Systems.ClassSystemTests.ArtisanPresence_CanPrecedeLocalLatch_ViaMigration_IsNotEmergence [340 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 70
+Actual:   84
+  Stack Trace:
+     at Sim.Tests.Systems.ClassSystemTests.ArtisanPresence_CanPrecedeLocalLatch_ViaMigration_IsNotEmergence() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/ClassSystemTests.cs:line 379
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:35.05]     Sim.Tests.Systems.MigrationTests.FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes [SKIP]
+  Skipped Sim.Tests.Systems.MigrationTests.FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes [1 ms]
+[xUnit.net 00:01:35.05]     Sim.Tests.Systems.MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth [SKIP]
+  Skipped Sim.Tests.Systems.MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth [1 ms]
+[xUnit.net 00:02:07.90]     Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheM4SchemaAlone [FAIL]
+  Failed Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheM4SchemaAlone [34 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "364760291d6dd6917cd38ad79dd10da8d23255bbe"···
+Actual:   "deb6bf18b33174a8248bed2247662cbfbe772f401"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheM4SchemaAlone() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/IntegratedPinAttributionTests.cs:line 240
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:22.85]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 1) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(seed: 1) [50 s]
+  Error Message:
+   canonical.fedGrowthPerYear: 0.000407442 outside [0.0005, 0.001]
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertInBand(Corridors c, String key, Double value) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 130
+   at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 268
+   at InvokeStub_CalibrationBatteryTests.Canonical_FedCorridors_AllInBand(Object, Span`1)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:24.83]     Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 42) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 42) [1 s]
+  Error Message:
+   seed 42: 5983 starvation deaths — the dev world is no longer pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed evidence) rules that the measured world moved AWAY from Malthusian constraint — more land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the quarantine stays, and only a director ruling on CR-003 changes either.
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertMalthusKnownDeviation(Corridors c, AutoplayMetrics m, UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 508
+   at Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 441
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:02:26.75]     Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7) [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7) [1 s]
+  Error Message:
+   seed 7: 6414 starvation deaths — the dev world is no longer pre-Malthusian in the strict sense this tooth asserts. DO NOT read this as permission to delete the quarantine: cr-003.md §7.5 (written AFTER T4.7, on 20-seed evidence) rules that the measured world moved AWAY from Malthusian constraint — more land per head, fewer deficits, crashCount 0/20 — and is therefore evidence AGAINST lifting. §7.6 anticipates this exact message and records it as NOT ACTIONED. Isolated starvation is not the crash cycle CR-003 lifts on. The bands stay, the quarantine stays, and only a director ruling on CR-003 changes either.
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.AssertMalthusKnownDeviation(Corridors c, AutoplayMetrics m, UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 508
+   at Sim.Tests.Systems.CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(UInt64 seed) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 441
+   at InvokeStub_CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(Object, Span`1)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:30.63]     Sim.Tests.Systems.SimConfigTests.ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne [FAIL]
+  Failed Sim.Tests.Systems.SimConfigTests.ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   0.01
+  Stack Trace:
+     at Sim.Tests.Systems.SimConfigTests.ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/SimConfigTests.cs:line 277
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:30.65]     Sim.Tests.Systems.SimConfigTests.DisasterHazard_Armed_Loads [FAIL]
+  Failed Sim.Tests.Systems.SimConfigTests.DisasterHazard_Armed_Loads [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0.01
+Actual:   0.010999999999999999
+  Stack Trace:
+     at Sim.Tests.Systems.SimConfigTests.DisasterHazard_Armed_Loads() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/SimConfigTests.cs:line 189
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:41.57]     Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_SeparatesTheSchemaMoveFromTheBehaviouralOne [FAIL]
+  Failed Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_SeparatesTheSchemaMoveFromTheBehaviouralOne [33 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "e3d472c6de20e7032a71e78133c7108d34340f70f"···
+Actual:   "ff477c2a6fbd6947432bf7a20eb060bf4e3242889"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.IntegratedPinAttributionTests.DrivenGoldenSeed42Turn300_SeparatesTheSchemaMoveFromTheBehaviouralOne() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/IntegratedPinAttributionTests.cs:line 325
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:21.74]     Sim.Tests.Kernel.DrivenGoldenTests.DrivenGolden_Seed42Turn300_MatchesPinnedConstant [FAIL]
+  Failed Sim.Tests.Kernel.DrivenGoldenTests.DrivenGolden_Seed42Turn300_MatchesPinnedConstant [45 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c4"···
+Actual:   "0af545ae63d56daf11292f1da6486240ad92228d1"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.DrivenGoldenTests.DrivenGolden_Seed42Turn300_MatchesPinnedConstant() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/DrivenGoldenTests.cs:line 427
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:27.38]     Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone [FAIL]
+  Failed Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone [45 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "1588d1c4a9597a5c69291908236a48869fe8b4bf1"···
+Actual:   "68fb0c89f173ad8e93aceaa79f10e52b0e8d410ef"···
+           ↑ (pos 0)
+  Stack Trace:
+     at Sim.Tests.Kernel.IntegratedPinAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Kernel/IntegratedPinAttributionTests.cs:line 397
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:31.76]     Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember [FAIL]
+  Failed Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember [1 m 5 s]
+  Error Message:
+   growth discontinuity at the Neolithic->Bronze gate: 0.4352/1000-yr vs -1.8220/1000-yr
+  Stack Trace:
+     at Sim.Tests.Systems.CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/CalibrationBatteryTests.cs:line 420
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:54.62]     Sim.Tests.Observability.WorldReconciliationTests.Founded_Seed42_300Turns_EveryQuantityReconcilesEveryTurn [FAIL]
+[xUnit.net 00:03:54.63]     Sim.Tests.Observability.WorldReconciliationTests.Driven_Seed42_300Turns_EveryQuantityReconcilesEveryTurn [FAIL]
+  Failed Sim.Tests.Observability.WorldReconciliationTests.Founded_Seed42_300Turns_EveryQuantityReconcilesEveryTurn [20 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   8
+  Stack Trace:
+     at Sim.Tests.Observability.WorldReconciliationTests.Founded_Seed42_300Turns_EveryQuantityReconcilesEveryTurn() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Observability/WorldReconciliationTests.cs:line 103
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed Sim.Tests.Observability.WorldReconciliationTests.Driven_Seed42_300Turns_EveryQuantityReconcilesEveryTurn [2 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   9
+  Stack Trace:
+     at Sim.Tests.Observability.WorldReconciliationTests.Driven_Seed42_300Turns_EveryQuantityReconcilesEveryTurn() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Observability/WorldReconciliationTests.cs:line 152
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:03:57.09]     Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_OreDeadbandCrossing [SKIP]
+[xUnit.net 00:03:57.09]     Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_PixelResolution_RiversAsRoutes [SKIP]
+  Skipped Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_OreDeadbandCrossing [1 ms]
+  Skipped Sim.Tests.Systems.WaterRouteCounterfactualTests.WaterCounterfactual_PixelResolution_RiversAsRoutes [1 ms]
+[xUnit.net 00:03:59.22]     Sim.Tests.Systems.PopulationTests.Reconciliation_FromLedgerAlone_PersonAndFoodExact [FAIL]
+  Failed Sim.Tests.Systems.PopulationTests.Reconciliation_FromLedgerAlone_PersonAndFoodExact [914 ms]
+  Error Message:
+   CR-003 QUARANTINE RESOLVED — "starved > 0 in 900 turns" is satisfiable again, so the world is no longer pre-Malthusian. Delete the Cr003Quarantine call here and restore the original guard; see docs/adr/cr-003.md before re-banding anything.
+  Stack Trace:
+     at Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(Boolean preconditionOccurred, String guard) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/TestUtil/Cr003Quarantine.cs:line 50
+   at Sim.Tests.Systems.PopulationTests.Reconciliation_FromLedgerAlone_PersonAndFoodExact() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/PopulationTests.cs:line 483
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:04:00.05]     Sim.Tests.Systems.HousingBeforeColumnTests.BeforeColumn_DirectorSessionReplay_OnMain [SKIP]
+  Skipped Sim.Tests.Systems.HousingBeforeColumnTests.BeforeColumn_DirectorSessionReplay_OnMain [1 ms]
+[xUnit.net 00:04:10.53]     Sim.Tests.Observability.TelemetryTests.TheJsonl_IsByteIdenticalAcrossTwoIdenticalSessions [FAIL]
+  Failed Sim.Tests.Observability.TelemetryTests.TheJsonl_IsByteIdenticalAcrossTwoIdenticalSessions [13 s]
+  Error Message:
+   the ratio has no long mantissa — the round-trip check is weak
+  Stack Trace:
+     at Sim.Tests.Observability.TelemetryTests.TheJsonl_IsByteIdenticalAcrossTwoIdenticalSessions() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Observability/TelemetryTests.cs:line 86
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:04:32.68]     Sim.Tests.Systems.DisasterSystemTests.D_HazardZero_StripControl [FAIL]
+  Failed Sim.Tests.Systems.DisasterSystemTests.D_HazardZero_StripControl [9 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   0.01
+  Stack Trace:
+     at Sim.Tests.Systems.DisasterSystemTests.D_HazardZero_StripControl() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/DisasterSystemTests.cs:line 80
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:04:36.57]     Sim.Tests.Systems.DemographyRetuneTests.Stress_DoesNotSpike_NoBirthDeficit_NothingBanked [FAIL]
+[xUnit.net 00:04:36.73]     Sim.Tests.Systems.ChronicleTests.Annals_TwinIdentical_AcrossIdenticalRuns [FAIL]
+  Failed Sim.Tests.Systems.DemographyRetuneTests.Stress_DoesNotSpike_NoBirthDeficit_NothingBanked [176 ms]
+  Error Message:
+   stress rig too deep: worst deficit 0.56 above the absorbable band
+  Stack Trace:
+     at Sim.Tests.Systems.DemographyRetuneTests.Stress_DoesNotSpike_NoBirthDeficit_NothingBanked() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/DemographyRetuneTests.cs:line 365
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed Sim.Tests.Systems.ChronicleTests.Annals_TwinIdentical_AcrossIdenticalRuns [3 s]
+  Error Message:
+   CR-003 QUARANTINE RESOLVED — "a famine line across the first Malthus crash" is satisfiable again, so the world is no longer pre-Malthusian. Delete the Cr003Quarantine call here and restore the original guard; see docs/adr/cr-003.md before re-banding anything.
+  Stack Trace:
+     at Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(Boolean preconditionOccurred, String guard) in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/TestUtil/Cr003Quarantine.cs:line 50
+   at Sim.Tests.Systems.ChronicleTests.Annals_TwinIdentical_AcrossIdenticalRuns() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/ChronicleTests.cs:line 331
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:04:42.44]     Sim.Tests.Systems.DemographyRetuneTests.Famine_MortalitySpike_BirthDeficit_PostFamineRebound [FAIL]
+  Failed Sim.Tests.Systems.DemographyRetuneTests.Famine_MortalitySpike_BirthDeficit_PostFamineRebound [137 ms]
+  Error Message:
+   famine rig too deep: worst deficit 0.64 >= 0.6
+  Stack Trace:
+     at Sim.Tests.Systems.DemographyRetuneTests.Famine_MortalitySpike_BirthDeficit_PostFamineRebound() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/DemographyRetuneTests.cs:line 269
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:04:43.74]     Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator [FAIL]
+  Failed Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator [1 s]
+  Error Message:
+   growth discontinuity 2.5259/1000·yr across the dt flip — the CR-001 detonator
+  Stack Trace:
+     at Sim.Tests.Systems.DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator() in /tmp/claude-0/-home-user-civDemo/aba79415-ffd0-5838-8e88-66b12c4a9a0f/scratchpad/t421/p4/Sim.Tests/Systems/DemographyRetuneTests.cs:line 735
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Failed!  - Failed:    25, Passed:   837, Skipped:     6, Total:   868, Duration: 8 m 43 s - Sim.Tests.dll (net10.0)

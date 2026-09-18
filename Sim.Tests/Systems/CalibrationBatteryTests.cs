@@ -205,8 +205,23 @@ public class CalibrationBatteryTests
     // T4.2 RE-PIN (VALUE, ONE ruled cause): grainSpoilagePerYear = 0.08 and
     // granaryYearsOfDemand = 1.5 move the dev world's migration signature —
     // itemized in the T4.2 fallout table alongside the other four VALUE pins.
-    private const double QuarantineRecordedSeed42 = 7.21744E-05;
-    private const double QuarantineRecordedSeed7 = 0.000799951;
+    // T4.21-4 RE-PIN (ONE ruled cause, MEASURED on this tree; CR-015 N7's
+    // "recorded envelope", never a tolerance widen — the 0.75 factor below is
+    // UNCHANGED). Cause: bounded flight + basin caps + vacancy bound (T4.21-2,
+    // ADR-025) AND the arming of the famine-class disaster (T4.21-4, sim.json
+    // disaster.hazardPerYear 0.0 -> 0.01, CR-015 §3.3), which opens the flight
+    // channel this world had never had. Old -> new recorded values, dev preset,
+    // 1000 turns, measured by the agent writing this line:
+    //     seed 42  7.21744E-05  ->  0.0148409518   (×205.6)
+    //     seed  7  0.000799951  ->  0.0158496291   (× 19.8)
+    // The λ = 0 twin of the same runs measures 8.33694378E-05 and
+    // 0.000102006128 — i.e. the pre-arming level, which is where the T4.21-2
+    // half of the cause lands (seed 7 0.000799951 -> 0.000102006 was the
+    // bounded-migration packet's own move, and it is what made the seed-7 drift
+    // tooth the one inherited red on 8f7f9da). ARMING IS THE OTHER HALF AND IT
+    // DOMINATES: docs/t4.21-4-record.md §2.7 and §4.2.
+    private const double QuarantineRecordedSeed42 = 0.0148409518;
+    private const double QuarantineRecordedSeed7 = 0.0158496291;
     private const double QuarantineDriftTolerance = 0.75;
 
     private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
@@ -228,22 +243,43 @@ public class CalibrationBatteryTests
             $"{Inv(recorded)} — the dev world has degraded beyond the quarantined deviation " +
             "(measured disablement signature ×0.536; largest legitimate correction ×0.836). " +
             "A NEW defect, or a ruled substrate change that must re-pin this envelope deliberately.");
-        // No per-seed UPPER tooth, deliberately: recorded / 0.75 exceeds `lo`
-        // for both call-site seeds, so any such assert would sit behind the
-        // resolution tooth with an empty failure set — the same dead-ceiling
-        // defect (review F6) this fix deletes. Upward motion has exactly one
-        // meaning here, resolution, and exactly one tooth:
-        Assert.True(value < lo,
+        // T4.21-4 — THE UPWARD TOOTH, SPLIT, BECAUSE ITS OLD DISJUNCTION IS NOW
+        // FALSE. The T3.4c version read `value < lo` and called anything else
+        // "back INSIDE the corridor … RESOLVED". That was sound while the dev
+        // world sat 20–60 % BELOW the floor: the only way up was back into the
+        // band. It is no longer sound. MEASURED on the armed tree the dev
+        // world's gross migration is 0.01484 / 0.01585 per decade — ABOVE the
+        // corridor CEILING 0.01, not inside it. Reporting that as "resolved"
+        // would be a false statement written into a failure message, which is
+        // the T3.4b defect this helper exists to have fixed.
+        //
+        // NO BAND MOVES (RULE A / CR-015 N7): `lo` and `hi` are read, never
+        // written, and the immovability assert above still guards both. What
+        // changes is the READING: "inside [lo, hi]" is resolution and keeps its
+        // own loud tooth; "above hi" is a NEW REGIME, is escalated, and is held
+        // by the recorded envelope's own tolerance in both directions — teeth
+        // added, none removed, and the 0.75 factor unchanged.
+        Assert.False(value >= lo && value <= hi,
             $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
             "deviation is RESOLVED for this seed. Re-measure the dev seed set; if the distribution has " +
             "returned, delete AssertDevMigrationQuarantine and restore the plain AssertInBand.");
+        Assert.True(value <= recorded / QuarantineDriftTolerance,
+            $"seed {seed}: {Inv(value)} rose above {1 / QuarantineDriftTolerance:F2}× its recorded value " +
+            $"{Inv(recorded)} — the dev world's migration has drifted further into the ABOVE-CEILING " +
+            "regime T4.21-4 recorded. A NEW defect, or a ruled change that must re-pin this envelope " +
+            "deliberately, like a golden.");
 
+        string where = value < lo ? $"{1 - value / lo:P1} below the floor {lo}"
+            : value > hi ? $"{value / hi - 1:P1} ABOVE the ceiling {hi}"
+            : "inside the band";
         Console.WriteLine(
-            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b): {QuarantinedKey} seed {seed} = " +
-            $"{Inv(value)}, {(1 - value / lo):P1} below the floor {lo}. NOT one seed: 19 of dev seeds " +
-            "1-20 sit below this floor, median -30.5%, worst -64.1%. The SAME corridor on the CANONICAL " +
-            "world is 5/5 IN BAND (+15.0% to +63.6%), which is why this is the preset and not the band. " +
-            "Floor NOT moved; escalated as M4 blocking material B-1b.");
+            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b), T4.21-4 re-pin: {QuarantinedKey} " +
+            $"seed {seed} = {Inv(value)}, {where}. THE DIRECTION REVERSED WHEN THE DISASTER WAS ARMED: " +
+            "this corridor recorded a dev world 20-60% BELOW its floor (T3.4c: 19 of 20 seeds below, " +
+            "median -30.5%); with hazardPerYear = 0.01 the same two seeds sit above the CEILING, " +
+            $"0.01484 / 0.01585 against the λ = 0 twin's 8.34E-05 / 1.02E-04 on the same runs. " +
+            "Band NOT moved. Escalated with the rest of the arming fallout — " +
+            "docs/adr/cr-016-armed-disaster-fallout.md, docs/t4.21-4-record.md §5.");
     }
 
     // --- canonical corridors (fed era, 650 turns to year 4500) ---------------
