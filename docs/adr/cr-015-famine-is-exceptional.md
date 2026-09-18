@@ -663,3 +663,58 @@ G8 dt artefact becoming load-bearing at the era gate. Both are escalated in
 turn-300 population, `canonical.fedGrowthPerYear` falls below its band, the CR-001 permanent
 detonator breaks by 2.5259 per 1000 yr across the dt 10 → 5 gate, and the dev world goes 93,910 → 38
 over 1000 turns. This CR's ruling is not reopened by T4.21-4; the collision is put to the director.
+
+
+---
+
+## APPEND-ONLY — T4.21-7, THE DISARMING (2026-09-18)
+
+Recorded by T4.21-7 directly on `claude/civdemo-work-b1z2y4`. Nothing above this line is edited,
+including the T4.21-4 block, which remains a true record of what was measured AT λ = 0.01.
+
+**THE DISARMING.** `sim.json` `disaster.hazardPerYear` **0.01 → 0.0**. Orchestrator decision on
+`docs/adr/cr-016-armed-disaster-fallout.md`: the famine-class disaster mechanism **ships complete and
+tested but INERT, and the RATE becomes the director's ruling**. `durationYears`, `severityMin`,
+`severityMax` and the §3.3 derivation are UNTOUCHED — the BAND is not what CR-016 disputes — and
+`corridors.json` remains byte-identical to `8f7f9da`.
+
+**THIS DOES NOT REOPEN THIS CR AND DOES NOT MOVE A CONSTANT TO FIT AN OUTCOME.** §6.5's standing
+constraints are the reason the rate was NOT re-chosen here: picking a lower λ that made the world
+survive would be exactly the "no Libur fit" this CR forbids. Declining to ship an unvalidated
+calibration is the constraint being honoured, not evaded. λ's frame, reference class and derivation
+stand as ruled; only the VALUE is unset, and it is one data edit away from live
+(`SimConfigTests.DisasterHazard_Armed_Loads` pins that the derived 0.01 still loads today).
+
+**THE PRE-COMMITTED DISPOSITIONS, AS THEY STAND AT THE SHIPPING VALUE.** Each was executed correctly
+by T4.21-4 for the armed tree and is reverted here with BOTH measurements recorded at the site:
+
+- *`Cr003Quarantine` guards* — both restorations are REVERTED, to two quarantines and one that never
+  lifted. Measured at λ = 0 on the guards' own rigs: `Reconciliation_FromLedgerAlone` starves 0 in
+  900 dev turns (armed: 5,983 / 6,414); `Annals_TwinIdentical` renders 0 famine lines in 20
+  chronicle events (armed: famine prose present). `MalthusLite_OvershootCorrectionCycles` stays
+  quarantined at both values and its measurement is now recorded at both: 0 down / 1 up crossing,
+  long-run mean 34,853 at λ = 0, against 1 down / 0 up and mean 1,087 armed.
+- *`Dev_MalthusCorridors` `starvedTotal == 0` / `crashes == 0` / `peak == final`* — all three PASS
+  again at λ = 0 on both seeds, so the CR-003 re-aim that was escalated to the director is not
+  needed on the shipped tree and was not taken.
+- *`AssertDevMigrationQuarantine`'s recorded envelope* — re-pinned to the measured λ = 0 values
+  8.336943780925534E-05 (seed 42) and 1.0200612834541973E-04 (seed 7), i.e. the T4.21-2
+  bounded-migration level. `DriftTolerance` stays 0.75, no band moved, and the T4.21-6 band-first
+  tooth ORDER is kept (its reason survives: with the envelope an order of magnitude BELOW the floor
+  it is now the UPWARD tooth that would swallow the resolution case). The one INHERITED red of
+  `8f7f9da` — seed 7's drift tooth — is resolved by this re-pin, deliberately, like a golden.
+- *`migrationGrossPerDecade` direction* — reported again: back DOWN, from 1.5× above the ceiling to
+  20–60 % below the floor, i.e. the T3.4c corridor-wide deviation unchanged.
+- *N9's two lifted skips* — `FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes` is
+  abandonment-driven and is UNAFFECTED, live and green. `MagnitudeCorridor_FedPhaseDrift_WithTeeth`
+  keeps its lift, its corridor assertion and both downward teeth; only its UPWARD rate-lever tooth
+  is quarantined in place, measured ×1.0082 at λ = 0 against ×1.88 armed and below ADR-018 §11's own
+  dead signature of ×1.07. Not re-skipped — a skip would have taken the live teeth down with it.
+- *G2's rig controls and `NeedsGrievanceTests`' fed-control arm* — KEPT, though they are now equal to
+  the shipped value. A rig that states its own λ says what it means at whatever rate is ruled.
+
+**THE MANDATE IS STILL SATISFIED, AND WHICH HALF BY WHAT.** Item 1(A), a famine-class natural
+disaster, is IMPLEMENTED, SHIPPED and reachable — proven by the forced-strike rigs, the ladder tests
+and the determinism legs, which arm λ in-rig — with only its RATE unset. Item 1(B), deliberate
+abandonment, is LIVE on the shipped config and is what makes famine reachable in play today
+(`FamineScenarioTests.S_Abandonment_TriggersFamine`).

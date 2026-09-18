@@ -2,7 +2,13 @@
 
 **Status: accepted under CR-015; implementation T4.21-1** (state and shock plumbing; `hazardPerYear`
 shipped at 0 so the packet's golden move is layout + RngStreams only) **and T4.21-4** (arming
-λ = 0.01, the last golden move). Ruling: `docs/adr/cr-015-famine-is-exceptional.md` §6 (mandate
+λ = 0.01, the last golden move) **— and T4.21-7, which DISARMS it again: the shipped
+`hazardPerYear` is 0.0, the mechanism ships COMPLETE AND TESTED BUT INERT, and the RATE is the
+director's ruling on `docs/adr/cr-016-armed-disaster-fallout.md` (orchestrator decision,
+2026-09-18). §10 below is the ARMED measurement and is retained as CR-016's evidence; everything it
+reports was measured AT λ = 0.01 and is not the shipped world. The mechanism, the schema, the
+derived band (D = 5, s ∈ [0.75, 1.0]) and this ADR's semantics are UNCHANGED by the disarming — only
+the rate is unset, and it is one data edit from live.** Ruling: `docs/adr/cr-015-famine-is-exceptional.md` §6 (mandate
 2026-09-17). Spec: `docs/t4.21-architecture.md` §3.1–§3.3, §3.7–§3.10, §6.1–§6.2.
 
 **ADR number:** 024. `adr-023-food-variety-is-d035a-only.md` is the highest on `main`; 019 lives
@@ -337,6 +343,12 @@ is addressed, which is T4.21-4's work (the `Cr003Quarantine` guard restoration a
 
 ## §10. THE ARMED MEASUREMENT (T4.21-4, 2026-09-18) — appended, nothing above is edited
 
+> **T4.21-7 HEADING (2026-09-18): EVERYTHING IN THIS SECTION WAS MEASURED AT λ = 0.01, WHICH IS NOT
+> THE SHIPPING VALUE.** It is retained in full — it is the measurement that CR-016 rests on — but it
+> describes the world the arming produced, not the world that ships. The shipped `hazardPerYear` is
+> 0.0 and the rate is the director's (CR-016, "ORCHESTRATOR DECISION"). §11 below records what
+> T4.21-7 re-measured at the shipping value.
+
 `sim.json` `disaster.hazardPerYear` **0.0 → 0.01**, the value this ADR's §3.3 derivation and the
 `disaster._doc` both name. Measured on branch `t4.21-4-arm` (cut from `claude/civdemo-work-b1z2y4`
 @ `8f7f9da`) by the agent writing this section; raw rows in `docs/t4.21-evidence/t4.21-4/`.
@@ -378,3 +390,48 @@ stays RED — its `starvedTotal == 0` / `crashes == 0` / `peak == final` teeth a
 premise, and re-aiming them onto a cause-attributed form is a change to the CR-003 quarantine's
 substance, which is the director's. Suite: 867 passed / 6 failed / 4 skipped, all six named in
 CR-016 §5.
+
+
+---
+
+## §11. THE DISARMED RE-MEASUREMENT (T4.21-7, 2026-09-18) — appended, nothing above is edited
+
+`sim.json` `disaster.hazardPerYear` **0.01 → 0.0**, the exact inverse of §10's edit, under the
+orchestrator's decision on CR-016: the mechanism ships COMPLETE AND TESTED BUT INERT and the RATE is
+the director's. `durationYears`, `severityMin`, `severityMax`, the derivation and `corridors.json`
+are all untouched. Measured on `claude/civdemo-work-b1z2y4` by the agent writing this section.
+
+**The goldens return BYTE FOR BYTE, which is a stronger attribution than the λ = 0 twins were.**
+`SnapshotTests.FoundedGolden` `a1def4df…` → `db7c7a09…`, `DrivenGoldenTests.DrivenGolden`
+`0af545ae…` → `98ee3a7a…`, `ci.yml` `FOUNDED_GOLDEN` with them (re-derived by reproducing the ci
+step: two Release CLI processes, logs byte-identical, last line `db7c7a09…`). These are the
+PRE-ARMING constants exactly. So the arming was the entire cause of the move in BOTH directions,
+and everything merged since `8f7f9da` — T4.21-5's observability, the chain-link merge fix, T4.21-6's
+eight finding fixes — is now MEASURED to move no world golden rather than claimed to.
+
+**The measured pins return with them.** `ClassSystemTests` artisan latch / first-present 84 / 10 →
+70 / 13; `MerchantTests` first merchant-town latch 87 → 119; `WorldReconciliationTests` founded
+starvation 11,060 over 61 turns → **zero on all 300** (the absence pin restored) and first trade
+31 → 28; driven first starvation 7 → 8 and dwelling decay 86 / 640 → **zero on all 300**;
+`ObservedWorlds` founded / driven populations at turn 300 10,974 / 147 → **40,539 / 6,373**;
+`TelemetryTests`' `foodSurplusRatio` guard restored from `> 0.0` to `> 1.0` on a measured
+1.8972261025743364 (0.988 armed). The dev-migration recorded envelope is re-pinned from
+0.0148409518 / 0.0158496291 to the measured **8.336943780925534E-05 / 1.0200612834541973E-04** —
+the T4.21-2 bounded-migration level — with the 0.75 tolerance and every band unchanged.
+
+**The mechanism is still PROVEN, by tests that arm λ in their own rigs.** A claim exercised only by
+a dead test is a finding, and one was found: the forensic disaster cross-check
+(`InspectionTests.T421_TheFamineDisasterAbandonmentAndRefusalLines_MatchTheRecordBothWays`) fails its
+own two vacuity guards at λ = 0, so it now supplies the derived 0.01 in-rig. So do
+`FamineScenarioTests`' `S_Seed42_NoFamineWithoutCause`, `S_TwentySeeds_FamineFrequencyMatchesHazard`
+and all three `S_Determinism_*` legs. `S_Abandonment_TriggersFamine` deliberately keeps the SHIPPED
+config: with the disaster inert, deliberate abandonment is the cause that is reachable in play today.
+
+**The six reds of CR-016 §5 are RESOLVED by the disarming** — the calibration battery's canonical fed
+corridors at both seeds, both CR-001 dt-continuity detonators, and both dev Malthus seeds — which is
+itself evidence that the arming was their sole cause. What the disarming COSTS is recorded honestly
+rather than hidden: two `Cr003Quarantine` guards go back to quarantined (the dev world starves nobody
+and writes no famine chronicle line at λ = 0 — measured, 0 starvation over the 900-turn rig and 0 of
+20 chronicle events), and `MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth`'s upward
+rate-lever tooth is quarantined in place (×1.0082 at λ = 0 against ×1.88 armed, below ADR-018 §11's
+own recorded dead signature of ×1.07) — its corridor assertion and both downward teeth stay live.

@@ -1,6 +1,11 @@
 # CR-016 — ARMING THE FAMINE-CLASS DISASTER BREAKS THREE FROZEN GATES
 
 **Status: OPEN — ESCALATED TO THE DIRECTOR. Nothing is fixed here.**
+**2026-09-18, T4.21-7: the orchestrator's decision is recorded at the FOOT of this file — the
+disaster mechanism SHIPS COMPLETE AND TESTED BUT INERT (`hazardPerYear` back to 0.0) and the RATE
+is the director's ruling. That settles the TREE, not this CR. §1–§5 below are unedited and remain
+the measured evidence; the measurements in them were taken AT λ = 0.01, which is NOT the shipping
+value.**
 Raised by T4.21-4 (`t4.21-4-arm`, cut from `claude/civdemo-work-b1z2y4` @ `8f7f9da`) under
 CLAUDE.md's STOP rule: *"If implementation reveals a genuine conflict between frozen items, STOP and
 write `docs/adr/cr-NNN.md`."* Every number below was MEASURED by the agent raising this CR on the
@@ -160,3 +165,141 @@ detonator in §2.1 is not wrong, it is working.
 
 Nothing else in the suite is red. The packet's own governance is in
 `docs/t4.21-4-record.md` §4–§5.
+
+---
+
+## ORCHESTRATOR DECISION (2026-09-18) — the mechanism ships inert; the rate is the director's
+
+**Nothing above this line is edited.** §1–§5 are the T4.21-4 measurement and stand as the evidence
+for this CR. This section records what was DONE about them, by T4.21-7 (the disarm-and-settle lane,
+working directly on `claude/civdemo-work-b1z2y4` @ `ee27c17`), and what the director is being asked
+to rule. **This decision does not resolve this CR.** It puts the mechanism in the only state that is
+honest while the CR is open, and it is reversible by one data edit.
+
+### D.1 The decision
+
+**THE DISASTER MECHANISM SHIPS COMPLETE AND TESTED BUT INERT: `hazardPerYear` returns to 0.0, and
+the RATE becomes the director's ruling on CR-016.** The reasoning, recorded verbatim as it was
+given:
+
+1. the mandate's own rule — "IF a proposed change fixes one pathology by creating another THEN
+   reject it" — and a world that dies by construction, plus a broken PERMANENT dt-invariance
+   detonator, is a worse pathology than the one T4.21 fixed;
+2. choosing a lower rate that makes the world survive would be tuning-to-outcome, which CR-015 §6.5
+   forbids ("no constant moved ... no Libur fit") — the honest act is to decline to ship an
+   unvalidated calibration, not to invent a validated-looking one;
+3. the mechanism is PROVEN by forced-strike rigs, the ladder tests and the determinism legs, so
+   mandate item 1(A) (a famine-class natural disaster) is IMPLEMENTED and reachable — only its RATE
+   is unset;
+4. mandate item 1(B) (deliberate abandonment) is live and unaffected, so famine remains reachable in
+   play today;
+5. the collision's root cause is the inherited G8/F4 artefact the director already acknowledged as
+   inherited — its consequence was simply invisible while lambda = 0, and CR-016's option 3 (the
+   queued per-year food-balance sub-step) is the real fix, which is M5-scale.
+
+### D.2 The exact shipping state
+
+| item | shipped | note |
+| --- | --- | --- |
+| `sim.json` `disaster.hazardPerYear` | **0.0** | was 0.01 from T4.21-4's arming commit `f44d5cc` |
+| `disaster.durationYears` | **5.0** | UNCHANGED |
+| `disaster.severityMin` / `severityMax` | **0.75** / **1.0** | UNCHANGED — the BAND is not what this CR disputes |
+| the `disaster._doc` derivation and reference class | UNCHANGED | the `_doc` now states the sequence (shipped at 0 → armed at 0.01 and measured → returned to 0 pending this ruling) instead of reading as a plain "ARMED" |
+| `corridors.json` | UNCHANGED, byte-identical to `8f7f9da` | no band moved at any point in T4.21-4 or T4.21-7 |
+| `DisasterSystem`, `DisasterRow` (v25), `FoodState.struck`, the chronicle/telemetry/forensic surface | SHIPPED AND TESTED | code, schema and observability are exactly what T4.21-1 / -4 / -5 built |
+
+**The mechanism is still PROVEN, by live tests that arm λ in their own rigs** (T4.21-7 step 3 — a
+claim exercised only by a dead test is a finding, and the fix is to give the test its own hazard,
+never to re-arm the shipped value). Named:
+
+- *a disaster CAN cause famine* — `FamineScenarioTests.S_Disaster_TriggersFamine` (forced strike,
+  λ = 1e6 in-rig), `S_Seed42_NoFamineWithoutCause` and
+  `S_TwentySeeds_FamineFrequencyMatchesHazard` (λ = 0.01 in-rig via `ArmedRig()`),
+  `DisasterSystemTests.D_HazardInfinite_EveryoneStruck`, `D_Classification_DtDifference_Pinned`,
+  `FoodStateTests.F_Stockpile_DecidesFamine` / `F_DisasterTiming_TurnExact`.
+- *an ordinary bad harvest CANNOT* — `FamineScenarioTests.S_WeatherOnly_NeverFamine` (λ = 0 in-rig,
+  with its own non-vacuity guard that the weather still BITES).
+- *abandonment CAN* — `FamineScenarioTests.S_Abandonment_TriggersFamine`, on the **shipped** config,
+  deliberately: it is the cause reachable in play today (reason 4 above).
+- *λ = 0 yields zero famine while still yielding STRESS* — `S_WeatherOnly_NeverFamine`, and
+  `DisasterSystemTests.D_HazardZero_StripControl` for the byte-level strip identity.
+- *the onset process matches its hazard, and the ladder holds* —
+  `S_TwentySeeds_FamineFrequencyMatchesHazard` (binomial band computed from the rig's own λ),
+  `D_OnsetProcess_BiasesWithinStatement` (λ = 0.01 in-rig).
+- *determinism with disasters live* — `S_Determinism_TwinIdentical_WithDisastersLive`,
+  `S_Determinism_ReplayReproducesRun_WithDisastersLive`,
+  `S_Determinism_SaveLoadContinue_WithAnActiveDisasterRow`, all three λ = 0.01 in-rig, each with a
+  guard that a disaster actually fired.
+- *the forensic/chronicle surface reports a real strike* —
+  `InspectionTests.T421_TheFamineDisasterAbandonmentAndRefusalLines_MatchTheRecordBothWays`
+  (λ = 0.01 in-rig; its two vacuity guards are what would otherwise have gone quietly dead).
+
+### D.3 What is reversible with ONE data edit
+
+`Sim.Data/content/sim.json` → `disaster.hazardPerYear`. Nothing else. That arming is a DATA change
+and no code path of its own, which is itself pinned by `SimConfigTests.DisasterHazard_Armed_Loads`
+(the derived 0.01 still loads through the shipped loader today) and by
+`SimConfigTests.ShippedDisaster_IsInert_AndTheBandIsTheDerivedOne` (the shipped 0.0 and the
+untouched derived band, asserted together).
+
+What the edit costs, measured, so the director can price it: it moves all four behavioural world
+goldens and `ci.yml`'s `FOUNDED_GOLDEN` back to T4.21-4's armed values, re-pins the dev-migration
+recorded envelope a third time, re-resolves the two CR-003 quarantines that T4.21-7 re-instated, and
+re-opens the six reds of §5. Every one of those is recorded here and in `docs/t4.21-4-record.md`
+with its old and new value, so the round trip is bookkeeping, not re-derivation.
+
+### D.4 What the director is asked to rule
+
+The three options in §4 are unchanged and none of them has been taken. Restated as the question:
+
+1. **Rule the fallout ACCEPTED and re-read the gates** — declare the armed world the world, re-derive
+   `canonical.fedGrowthPerYear` and the Malthus teeth against it, and amend CR-001's detonator to
+   compare like with like. This is the option §4 recommends AGAINST, and T4.21-7 did not take it:
+   the detonator in §2.1 is not wrong, it is working.
+2. **Re-derive λ against the demographic kernel, not against the historical reference class alone** —
+   λ and `starvationMortalityMaxPerYear` are denominated against different references and their
+   product was never checked. This is the option that sets the RATE, and it is the one this decision
+   defers to the director rather than guessing: any rate chosen here to make the world survive would
+   be the Libur fit CR-015 §6.5 forbids.
+3. **Close G8 instead of accepting it** — give the food balance a per-year sub-step so a 5-year
+   failure produces the same deficit PATH at dt 10 and dt 5. **THIS IS THE REAL FIX**: it removes the
+   CAUSE of §2.1 rather than re-reading the gate that detects it, and it is the only option that does.
+   It is **M5-SCALE** — the food balance is the largest of the three blast radii — and it is already
+   queued as G8(c) in `docs/queue.md` ("per-year food-balance sub-step"). Options 2 and 3 are not
+   exclusive: 3 makes the deficit depth dt-invariant, after which 2's derivation has a stable target.
+
+**Recommendation, unchanged from §4: 3 for the cause, 2 for the magnitude, and NEITHER without the
+director.** Until then the mechanism ships inert and the rate is unset — stated, not hidden.
+
+### D.5 The tree this decision leaves behind, MEASURED
+
+By T4.21-7 on `claude/civdemo-work-b1z2y4`, Debug, sequential:
+
+```
+scripts/check-banned-constructs.sh   exit 0
+scripts/check-read-isolation.sh      exit 0
+scripts/check-readonly-proof.sh      exit 0
+dotnet build                         0 warnings, 0 errors
+dotnet test   Sim.Tests      884 passed / 0 failed / 4 skipped   (30 m 31 s)
+              Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   (1 m 35 s)
+```
+
+**THE RED SET IS EMPTY, and that is the check on §5 rather than an assumption.** Every one of the
+six reds §5 left deliberately — `Canonical_FedCorridors_AllInBand(1)` and `(2)`,
+`Canonical_EraBoundaryContinuity_PermanentBatteryMember`,
+`DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator`, and
+`Dev_MalthusCorridors_AllInBand(42)` and `(7)` — passes at λ = 0. None needed chasing, which is
+itself the evidence that the arming was their sole cause: §2's collision is a property of the RATE
+against the mortality kernel and the G8/F4 dt artefact, not of anything else T4.21 built. The one
+red INHERITED from `8f7f9da` (seed 7's migration drift tooth) is resolved deliberately by re-pinning
+the recorded envelope to the measured λ = 0 values, with the cause named, like a golden. The 4 skips
+are the four manual measurement rigs that have always been skipped; CR-015 N9's two lifts are not
+re-skipped.
+
+**What the disarming costs, stated rather than hidden** — each recorded at its own site with BOTH
+readings and with this CR named as what decides it, and each reversed by the same one data edit:
+two `Cr003Quarantine` guards return to quarantined (measured at λ = 0: 0 starvation over the 900-turn
+dev reconciliation rig; 0 famine lines in 20 chronicle events); `WorldReconciliationTests`' founded
+starvation and driven dwelling decay return to ABSENCE pins (zero on all 300 turns, measured);
+`MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth`'s upward rate-lever tooth is quarantined
+in place. `docs/queue.md` carries all of them as open items.

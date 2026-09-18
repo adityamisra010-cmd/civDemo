@@ -98,6 +98,59 @@
 > director per RULE 1's own wording. Records: ADR-025 §2.3a/§2.4a, ADR-026 §2.1a,
 > `docs/t4.21-2-record.md` §9, `docs/queue.md`. Verify against git.
 
+> **2026-09-18 — T4.21-7 THE DISARM-AND-SETTLE LANE, on `claude/civdemo-work-b1z2y4` (worked
+> directly on the integration branch, from `ee27c17`). THE FAMINE-CLASS DISASTER SHIPS COMPLETE AND
+> TESTED BUT INERT.** `sim.json disaster.hazardPerYear` **0.01 → 0.0**, the exact inverse of
+> T4.21-4's arming. This implements the orchestrator's decision on
+> `docs/adr/cr-016-armed-disaster-fallout.md` — recorded there in full under "ORCHESTRATOR DECISION"
+> — that the MECHANISM ships and the RATE becomes the director's ruling, because a world that dies
+> by construction plus a broken PERMANENT dt-invariance detonator is a worse pathology than the one
+> T4.21 fixed, and because choosing a lower rate to make the world survive would be the
+> tuning-to-outcome CR-015 §6.5 forbids. `durationYears`, `severityMin/Max`, the §3.3 derivation and
+> `corridors.json` are UNTOUCHED — the band is not what CR-016 disputes. **CR-016 STAYS OPEN: what
+> is settled is the TREE, not the question.**
+>
+> **Suite, MEASURED by this lane on this tree** (Debug, sequential, `dotnet test`):
+> Sim.Tests **884 passed / 0 failed / 4 skipped** (30 m 31 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 35 s),
+> and all three gate scripts exit 0 (`check-banned-constructs.sh`, `check-read-isolation.sh`,
+> `check-readonly-proof.sh`). **THE RED SET IS EMPTY.** All six reds T4.21-4 escalated (both
+> canonical fed-corridor seeds, both CR-001 dt-continuity detonators, both dev Malthus seeds) are
+> RESOLVED by the disarming, which is itself evidence that the arming was their sole cause — none of
+> them needed chasing. The ONE red inherited from `8f7f9da` (`Dev_MalthusCorridors_AllInBand(7)`,
+> the migration drift tooth) is resolved deliberately, like a golden, by re-pinning the recorded
+> envelope to the measured λ = 0 values. The 4 skips are the four manual measurement rigs
+> (`FoundingVariationItem0Tests`, `WaterRouteCounterfactualTests` ×2, `HousingBeforeColumnTests`);
+> CR-015 N9's two lifts are NOT re-skipped.
+>
+> **All four world goldens and `ci.yml`'s `FOUNDED_GOLDEN` returned to their pre-arming constants
+> BYTE FOR BYTE** (`db7c7a09…`, `98ee3a7a…`; the founded one derived twice — in-test harness and the
+> Release CLI reproducing the ci step). That round trip is a stronger attribution than the λ = 0
+> twin controls were: everything merged since `8f7f9da` (T4.21-5's observability, the chain-link
+> merge fix, T4.21-6's eight finding fixes) is now MEASURED to move no world golden. Every measured
+> pin returned too — artisan latch 70 / 13, merchant latch 119, founded/driven populations
+> 40,539 / 6,373 at turn 300, first trade 28 / 7, and no pin failed to return.
+>
+> **What the disarming COSTS is recorded, not hidden.** Two `Cr003Quarantine` guards go back to
+> quarantined (the dev world starves nobody and writes no famine chronicle line at λ = 0 — measured),
+> `WorldReconciliationTests`' founded-starvation and driven-dwelling-decay coverage returns to
+> ABSENCE pins, and `MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth`'s UPWARD rate-lever
+> tooth is quarantined in place (×1.0082 at λ = 0 against ×1.88 armed — below ADR-018 §11's own dead
+> signature of ×1.07); its corridor assertion and both downward teeth stay live and it is NOT
+> re-skipped. Each site carries BOTH readings and names CR-016 as what decides it, and every one
+> reverses with the same single data edit. `docs/queue.md` carries them as open items.
+>
+> **The MECHANISM is still proven, by tests that arm λ in their own rigs, never by re-arming the
+> shipped value**: a disaster CAN cause famine (forced-strike rigs and the λ = 0.01 in-rig battery
+> arms), an ordinary bad harvest CANNOT, deliberate abandonment CAN on the SHIPPED config (mandate
+> item 1(B), reachable in play today), λ = 0 gives zero famine while still giving STRESS, and the
+> three determinism legs each assert a disaster actually fired. One claim was found exercised only
+> by a dead test — the forensic disaster cross-check — and was given its own hazard.
+>
+> Records: `docs/adr/cr-016-armed-disaster-fallout.md` (decision, options, what the director is
+> asked to rule), ADR-024 §11 (the disarmed re-measurement), CR-015's T4.21-7 append-only block,
+> `docs/t4.21-4-record.md` (RETAINED as CR-016's evidence, now headed as measured AT λ = 0.01),
+> `docs/t4.21-architecture.md` §4 row T4.21-4, `docs/queue.md`. Verify against git.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a
