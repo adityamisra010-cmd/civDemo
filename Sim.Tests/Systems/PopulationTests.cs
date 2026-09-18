@@ -279,31 +279,36 @@ public class PopulationTests
         // ~8x beyond where the demographic clock lands. This is the SAME loss
         // of power the BINDING T3.10 queue line already records, taken to its
         // limit: not one cycle instead of two, but zero.
-        // T4.21-4 — RE-MEASURED WITH THE DISASTER ARMED, AND THE QUARANTINE
-        // STAYS. The other two CR-003 quarantine sites (this file's
-        // Reconciliation_FromLedgerAlone and ChronicleTests'
-        // Annals_TwinIdentical) RESOLVED when sim.json disaster.hazardPerYear
-        // went 0.0 -> 0.01: starvation and a famine chronicle line both exist
-        // again. THIS one did not, and the distinction is the point. The
-        // phenomenon this guard waits for is a MALTHUS-LITE OSCILLATION — the
-        // trajectory crossing its own long-run mean from above AND from below,
-        // i.e. an overshoot of a land ceiling followed by a correction back to
-        // it. A famine-class disaster is an exogenous shock, not a ceiling: it
-        // removes people without the land ever binding, so the trajectory that
-        // results is a decline, not a cycle. MEASURED on this tree, armed, on
-        // this exact rig: 1 down-crossing and 0 up-crossings (long-run mean
-        // 1087 over dev turns 30-1000, seed 42) — the world fell through its
-        // mean once and never came back up, which is the decline, not the
-        // cycle. The guard needs at least one each way. Restoring
-        // the guard here on the strength of the other two sites' resolution
-        // would be reading "famine exists" as "Malthus exists"; CR-003 §7.5-7.6
-        // already rules that isolated starvation is not the crash cycle it
-        // lifts on, and nothing measured here contradicts it. The quarantine
-        // therefore stands with its measurement recorded beside it.
+        // THE QUARANTINE STAYS, AT BOTH VALUES OF λ, AND BOTH WERE MEASURED.
+        // The phenomenon this guard waits for is a MALTHUS-LITE OSCILLATION —
+        // the trajectory crossing its own long-run mean from above AND from
+        // below, i.e. an overshoot of a land ceiling followed by a correction
+        // back to it.
+        //
+        //   ARMED (λ = 0.01, T4.21-4, measured by that agent on this exact
+        //   rig): 1 down-crossing, 0 up-crossings, long-run mean 1,087. The
+        //   other two CR-003 sites RESOLVED at that value; this one did not,
+        //   and the distinction was the point — a famine-class disaster is an
+        //   exogenous shock, not a ceiling, so it produces a DECLINE, not a
+        //   cycle.
+        //
+        //   DISARMED (λ = 0, the value that SHIPS under CR-016 — re-measured
+        //   on THIS tree by the agent writing this line, same rig): 0
+        //   down-crossings, 1 up-crossing, long-run mean 34,853. Monotone
+        //   growth crosses its own mean once, upward, and never comes back:
+        //   the pre-Malthusian regime CR-003 recorded, unchanged.
+        //
+        // Either way the guard needs at least one crossing EACH way and gets
+        // one. Restoring it on the strength of the other two sites' armed
+        // resolution would have been reading "famine exists" as "Malthus
+        // exists"; CR-003 §7.5-7.6 already rules that isolated starvation is
+        // not the crash cycle it lifts on. The quarantine stands with both
+        // measurements recorded beside it.
         Console.WriteLine(
-            $"CR-003 site 2 (MalthusLite oscillation), re-measured T4.21-4 with the disaster ARMED "
-            + $"(hazardPerYear 0.01): {down} down-crossings, {up} up-crossings of the long-run mean "
-            + "over dev turns 30-1000, seed 42. The guard needs >= 1 each way.");
+            $"CR-003 site 2 (MalthusLite oscillation), re-measured T4.21-7 at the SHIPPED hazard "
+            + $"(hazardPerYear 0.0 — the mechanism ships inert, CR-016): {down} down-crossings, "
+            + $"{up} up-crossings of the long-run mean over dev turns 30-1000, seed 42. The guard "
+            + "needs >= 1 each way. T4.21-4 measured the same rig ARMED at 0.01: 1 down, 0 up.");
         Cr003Quarantine.FamineGuardStillDisarmed(down >= 1 && up >= 1,
             $"Malthus-lite oscillation measurable ({down} down-crossings, {up} up-crossings)");
 
@@ -502,27 +507,31 @@ public class PopulationTests
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
         Assert.True(births > 0 && deaths > 0 && harvest > 0 && eaten > 0,
             "reconciliation is vacuous — some flow never occurred in 900 turns");
-        // T4.21-4 — CR-003 QUARANTINE RESOLVED HERE, and the ORIGINAL GUARD IS
-        // RESTORED. The quarantine (T3.2b) recorded that the Starvation flow
-        // never occurred on the pre-Malthusian dev world, so this
-        // reconciliation covered three Population reasons rather than four.
-        // Arming the famine-class disaster (sim.json disaster.hazardPerYear
-        // 0.0 -> 0.01, CR-015 §3.3) restores the fourth: MEASURED on this tree,
-        // dev preset, 1000 turns, 5,983 starvation deaths at seed 42 and 6,414
-        // at seed 7 against 0 in the λ = 0 twin (docs/t4.21-4-record.md §2.7).
-        // The precondition the quarantine asserted ABSENT is present again, so
-        // per its own instruction the call is deleted and the guard restored —
-        // the reconciliation identity is now proven across ALL FOUR reasons.
-        // The starvation here is DISASTER starvation, not the Malthusian
-        // land-ceiling crash CR-003 is about: CR-003 itself stays open, and its
-        // other two quarantine sites are dispositioned separately (this file's
-        // MalthusLite_OvershootCorrectionCycles stays quarantined — the
-        // crossings are still absent — and ChronicleTests' famine line is
-        // restored like this one).
-        Assert.True(starved > 0, "starved == 0 in 900 turns — the Starvation reason never "
-            + "occurred, so the reconciliation covers three Population reasons and not four. "
-            + "Either the disaster was disarmed (sim.json disaster.hazardPerYear) or famine "
-            + "mortality stopped reaching the ledger.");
+        // CR-003 QUARANTINE — RE-INSTATED BY T4.21-7, AND WHY, WITH BOTH
+        // MEASUREMENTS. The original T3.2b quarantine recorded that the
+        // Starvation flow never occurs on the pre-Malthusian dev world, so
+        // this reconciliation covers three Population reasons and not four.
+        //
+        //   ARMED (λ = 0.01, T4.21-4, measured by that agent): RESOLVED —
+        //   dev preset, 1000 turns, 5,983 starvation deaths at seed 42 and
+        //   6,414 at seed 7 (docs/t4.21-4-record.md §2.7). The quarantine call
+        //   was deleted and this guard restored, correctly, FOR THAT TREE.
+        //
+        //   DISARMED (λ = 0, the value that SHIPS — CR-016's orchestrator
+        //   decision, re-measured on THIS tree by the agent writing this line,
+        //   on THIS EXACT RIG, dev preset seed 42, 900 turns): NOT RESOLVED —
+        //   births 4,401,355, deaths 4,320,816, STARVED 0. The precondition is
+        //   absent again, so the restored guard above would fail, and the
+        //   quarantine is what states the truth.
+        //
+        // WHICH READING IS RIGHT IS CR-016'S TO DECIDE, not this file's: the
+        // famine-class disaster mechanism ships COMPLETE AND TESTED BUT INERT
+        // (sim.json disaster.hazardPerYear = 0.0) and its RATE is the
+        // director's ruling (docs/adr/cr-016-armed-disaster-fallout.md). The
+        // moment the rate is ruled non-zero — one data edit — this quarantine
+        // fires, and it must then be deleted and the guard restored again.
+        // CR-003 itself is untouched and stays open.
+        Cr003Quarantine.FamineGuardStillDisarmed(starved > 0, "starved > 0 in 900 turns");
     }
 
     // --- bench report -------------------------------------------------------

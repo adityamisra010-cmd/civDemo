@@ -35,6 +35,20 @@ namespace Sim.Tests.Systems;
 /// recorded evidence (6,211 onsets over 66,000 settlement-turns = 0.941061 per
 /// settlement-century) — and the single-seed canonical arm below re-measures it
 /// in the suite at seed 42.
+///
+/// T4.21-7 — WHAT λ THIS BATTERY RUNS AT, AND WHY IT IS NOT THE SHIPPED ONE.
+/// The famine-class disaster ships COMPLETE, TESTED AND INERT: sim.json
+/// disaster.hazardPerYear is 0.0, and the RATE is the director's ruling on
+/// docs/adr/cr-016-armed-disaster-fallout.md (T4.21-4 armed it at the derived
+/// 0.01, MEASURED the fallout — a world negative by construction and a broken
+/// PERMANENT dt-invariance detonator — and escalated it). Every arm here that
+/// needs a live disaster therefore sets λ IN-RIG through <c>ArmedRig()</c> at
+/// the derived 0.01, so the MECHANISM stays proven and none of these arms goes
+/// vacuous at the shipping value; the arms that need λ = 0 (S_WeatherOnly,
+/// S_EraGate, the sector rigs) set that in-rig too, and have done since
+/// T4.21-4. The one arm that deliberately runs the SHIPPED config is
+/// S_Abandonment_TriggersFamine — mandate item 1(B), the cause that is
+/// reachable in play today.
 /// </summary>
 public class FamineScenarioTests
 {
@@ -42,6 +56,29 @@ public class FamineScenarioTests
 
     private static SimConfig WithHazard(SimConfig cfg, double lambda) =>
         cfg with { Disaster = cfg.Disaster with { HazardPerYear = lambda } };
+
+    /// <summary>
+    /// T4.21-7 — THE ARMED RIG, AND WHY IT IS A RIG AND NOT THE SHIPPED CONFIG.
+    /// The famine-class disaster ships COMPLETE AND TESTED BUT INERT: sim.json
+    /// disaster.hazardPerYear is 0.0 and the RATE is the director's ruling on
+    /// docs/adr/cr-016-armed-disaster-fallout.md. The derived rate is 0.01 and
+    /// T4.21-4 measured the whole world at it; this battery keeps MEASURING at
+    /// that rate — because the mandate's proposition is about a world with the
+    /// disaster in it — and does so by setting λ IN-RIG rather than by leaning
+    /// on the shipped value. Every arm that needs a live disaster uses this, so
+    /// a re-arming (or a different ruled rate) changes the shipped world without
+    /// silently changing what this battery measures, and disarming leaves none
+    /// of these arms vacuous. The SHIPPED value is asserted here, where a silent
+    /// re-arming would matter.
+    /// </summary>
+    private const double ArmedLambda = 0.01;
+
+    private static SimConfig ArmedRig()
+    {
+        SimConfig shipped = TestConfigs.Sim();
+        Assert.Equal(0.0, shipped.Disaster.HazardPerYear);   // CR-016: inert, one data edit from live
+        return WithHazard(shipped, ArmedLambda);
+    }
 
     private static SimConfig WeatherOff(SimConfig cfg) =>
         cfg with { HarvestVariance = cfg.HarvestVariance with { SigmaLogYield = 0.0 } };
@@ -197,20 +234,22 @@ public class FamineScenarioTests
     [Fact]
     public void S_Seed42_NoFamineWithoutCause()
     {
-        // The canonical founded world, 300 turns, shipped config (λ = 0.01). No
-        // orders: every famine here is the disaster's, and every one of them
-        // must carry a reason. V1 is true BY CONSTRUCTION (FoodState.Of assigns
-        // the reason inside the `struck || abandoned` branch) — it is measured
-        // anyway, because "by construction" is a claim about code and this is a
-        // claim about a world.
-        SimConfig cfg = TestConfigs.Sim();
-        Assert.Equal(0.01, cfg.Disaster.HazardPerYear);   // the arming, asserted where it is used
+        // The canonical founded world, 300 turns, λ = 0.01 SET IN-RIG (T4.21-7:
+        // the shipped value is 0.0 — the mechanism ships inert and the rate is
+        // the director's, CR-016 — so this arm supplies its own hazard rather
+        // than inheriting one). No orders: every famine here is the disaster's,
+        // and every one of them must carry a reason. V1 is true BY CONSTRUCTION
+        // (FoodState.Of assigns the reason inside the `struck || abandoned`
+        // branch) — it is measured anyway, because "by construction" is a claim
+        // about code and this is a claim about a world.
+        SimConfig cfg = ArmedRig();
         Census c = Run(cfg, TestConfigs.Worldgen(), CanonicalSeed, 300);
 
         Assert.Equal(0, c.FamineNone);
         Assert.True(c.Famine > 0,
             "no FAMINE settlement-turn in 300 canonical turns — the battery is vacuous, "
-            + "either because the disaster was disarmed or because no strike ever beat a granary");
+            + "either because the rig's hazard stopped arming the disaster or because no strike "
+            + "ever beat a granary");
 
         // V2, the by-construction arm: STRESS is the band adaptation absorbs, so
         // the effective deficit — starvation mortality's ONE input outside
@@ -222,7 +261,8 @@ public class FamineScenarioTests
         Assert.True(c.TurnsBelowSevere > 100,
             $"only {c.TurnsBelowSevere} turns with nothing above STRESS — the V2 arm is thin");
 
-        // REPORTED, not asserted (spec §6.5): the shape of the armed world.
+        // REPORTED, not asserted (spec §6.5): the shape of the armed world —
+        // the world AT λ = 0.01, which is NOT the shipping value (CR-016).
         Console.WriteLine(
             $"S_Seed42_NoFamineWithoutCause: {c.SettlementTurns} settlement-turns — FAMINE {c.Famine} "
             + $"(disaster {c.FamineDisaster}, abandonment {c.FamineAbandonment}, both {c.FamineBoth}, "
@@ -270,7 +310,14 @@ public class FamineScenarioTests
         // the ≤ 5 % bias the disaster._doc states and CR-015 §3.3 accepts. The
         // band is therefore centred on the TRUNCATION-CORRECTED expectation and
         // the raw λ·100 comparison is reported.
-        SimConfig cfg = TestConfigs.Sim();
+        //
+        // T4.21-7: λ = 0.01 is SET IN-RIG. It is the DERIVED rate and the one
+        // the biases are stated at; it is not the shipped value (0.0 — the
+        // mechanism ships inert, CR-016). The band is computed from the rig's
+        // own λ, so this test measures the onset process at whatever rate the
+        // rig arms, and would measure a newly ruled rate by changing one
+        // constant here.
+        SimConfig cfg = ArmedRig();
         WorldgenConfig wg = TestConfigs.DevWorldgen();
         int onsets = 0;
         double settlementYears = 0.0;
@@ -461,6 +508,12 @@ public class FamineScenarioTests
         // which this test deliberately does not duplicate; what is asserted
         // here is the CAUSE, the TIMING and the fact that the twin without the
         // order never reaches FAMINE at that settlement.
+        //
+        // THIS ARM USES THE SHIPPED CONFIG DELIBERATELY, and is the reason
+        // mandate item 1(B) is still reachable in play today: with the
+        // famine-class disaster shipping INERT (hazardPerYear 0.0, CR-016) the
+        // ONLY cause in the shipped world is deliberate abandonment, and this
+        // test proves that cause on the SHIPPED config, not on a rig.
         SimConfig cfg = TestConfigs.Sim();
         var orders = new OrderLog();
         orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
@@ -755,7 +808,10 @@ public class FamineScenarioTests
     [Fact]
     public void S_Determinism_TwinIdentical_WithDisastersLive()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // λ = 0.01 SET IN-RIG (T4.21-7). The shipped hazard is 0.0 (CR-016), and a
+        // determinism leg run on an inert disaster proves nothing about the
+        // disaster — the non-vacuity guard below says so out loud.
+        SimConfig cfg = ArmedRig();
         var hashesA = new List<string>();
         var hashesB = new List<string>();
         (_, int onsets, int famine) = StepCounting(Executor(cfg, TestConfigs.Worldgen()),
@@ -773,7 +829,10 @@ public class FamineScenarioTests
     [Fact]
     public void S_Determinism_ReplayReproducesRun_WithDisastersLive()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // λ = 0.01 SET IN-RIG (T4.21-7). The shipped hazard is 0.0 (CR-016), and a
+        // determinism leg run on an inert disaster proves nothing about the
+        // disaster — the non-vacuity guard below says so out loud.
+        SimConfig cfg = ArmedRig();
         static OrderLog Log()
         {
             var log = new OrderLog();
@@ -803,8 +862,10 @@ public class FamineScenarioTests
         // piece of famine-adjacent state that is SERIALIZED. This leg saves at a
         // turn on which the table is non-empty and continues hash-identically —
         // and asserts the table was non-empty at the save, so it cannot pass by
-        // snapshotting a world with no disaster in it.
-        SimConfig cfg = TestConfigs.Sim();
+        // snapshotting a world with no disaster in it. λ = 0.01 SET IN-RIG
+        // (T4.21-7): the shipped hazard is 0.0 under CR-016, so this leg arms
+        // its own, and the saveAt guard below fails loudly if it ever stops.
+        SimConfig cfg = ArmedRig();
         TurnExecutor exec = Executor(cfg, TestConfigs.Worldgen());
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed);
         int saveAt = -1;

@@ -29,10 +29,18 @@ public class ExplainChainAndLeverTests
         // MERGE T4.21-4 x T4.21-5: reachable only on the MERGED tree. T4.21-5's
         // CausalChain cites Disasters for DisasterMultiplierApplied, but with the
         // hazard disarmed that link is always a GAP, which never reaches this
-        // switch. T4.21-4 arms it (sim.json disaster.hazardPerYear 0.0 -> 0.01),
-        // the row exists, the link becomes a READ, and the name had no entry.
-        // Neither branch could see this alone. Adding it ADDS coverage: the cited
-        // index is now bounds-checked like every other table's.
+        // switch. T4.21-4 armed it (sim.json disaster.hazardPerYear 0.0 -> 0.01),
+        // the row existed, the link became a READ, and the name had no entry.
+        // Neither branch could see this alone.
+        // T4.21-7 disarms the shipped hazard again (CR-016 — the mechanism ships
+        // inert and the rate is the director's), so on the SHIPPED config this
+        // arm is a GAP once more and this entry is unreached by a shipped-config
+        // run. It STAYS: it is a name-resolution table, not a measurement, the
+        // link is exercised the moment any rig arms λ (FamineScenarioTests,
+        // DisasterSystemTests), and it is one data edit from being reached on
+        // the shipped config too. Keeping it ADDS coverage — the cited index is
+        // bounds-checked like every other table's — and deleting it would
+        // re-introduce the exact defect the merge found.
         "Disasters" => w.Disasters.Count,
         _ => throw new InvalidOperationException($"link cites unknown table '{table}'"),
     };

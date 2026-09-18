@@ -175,25 +175,26 @@ public class SimConfigTests
     [InlineData("NaN")]
     public void DisasterHazard_Negative_RefusesLoad(string bad)
     {
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.01", $"\"hazardPerYear\": {bad}");
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", $"\"hazardPerYear\": {bad}");
         Assert.NotEqual(CanonicalJson(), json);
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
         Assert.Contains("disaster.hazardPerYear", e.Message);
     }
 
     [Fact]
-    public void DisasterHazard_Disarmed_Loads()
+    public void DisasterHazard_Armed_Loads()
     {
-        // T4.21-4 ARMED the shipped value (0.0 -> 0.01, sim.json disaster).
-        // The pin that mattered before the arming — "the armed value loads" —
-        // is now the SHIPPED assertion in ShippedDisaster_IsArmed... below, so
-        // this one turns around and pins the other direction: DISARMING is
-        // still a pure data change, which is what makes the lambda = 0 control
-        // arm of the scenario battery (FamineScenarioTests.S_WeatherOnly_*) a
-        // config twin rather than a code path.
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.01", "\"hazardPerYear\": 0.0");
+        // THE PIN THAT MAKES CR-016 REVERSIBLE BY ONE DATA EDIT. T4.21-4 armed
+        // the shipped value (0.0 -> 0.01); T4.21-7 returns it to 0.0 because
+        // the mechanism ships complete and tested but INERT and the RATE is the
+        // director's ruling (docs/adr/cr-016-armed-disaster-fallout.md). This
+        // test is what proves the claim that arming is a DATA change and
+        // nothing else: the derived value still loads today, through the same
+        // loader, with no code path of its own. If the director rules a rate,
+        // that ruling is this one number in sim.json.
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYear\": 0.01");
         Assert.NotEqual(CanonicalJson(), json);
-        Assert.Equal(0.0, SimConfigLoader.Load(json).Disaster.HazardPerYear);
+        Assert.Equal(0.01, SimConfigLoader.Load(json).Disaster.HazardPerYear);
     }
 
     [Theory]
@@ -276,20 +277,26 @@ public class SimConfigTests
     }
 
     [Fact]
-    public void ShippedDisaster_IsArmed_AndTheBandIsTheDerivedOne()
+    public void ShippedDisaster_IsInert_AndTheBandIsTheDerivedOne()
     {
-        // T4.21-1 shipped λ = 0 (its golden move was layout + RngStreams only);
-        // T4.21-4 ARMS it at 0.01 — one famine-class local crop failure per
-        // settlement per century (spec §3.3, the disaster._doc's own
-        // derivation and reference class, CR-015 §3.3). MEASURED on this tree
-        // at that value, canonical founded, 20 seeds × 300 turns: 6,211 onsets
-        // over 66,000 settlement-turns = 0.941061 per settlement-century,
-        // inside the binomial 99 % band [0.922204, 0.981047] around the
-        // truncation-corrected expectation (1 − e^{−λ·dt})/(λ·dt) × λ·100 =
-        // 0.9516258 (docs/t4.21-4-record.md §2.2). The band below is the §3.3
+        // THE SHIPPING STATE, asserted where a change to it must be noticed.
+        // T4.21-1 shipped λ = 0 (its golden move was layout + RngStreams only).
+        // T4.21-4 ARMED it at the derived 0.01 — one famine-class local crop
+        // failure per settlement per century (spec §3.3, the disaster._doc's
+        // derivation and reference class, CR-015 §3.3) — and MEASURED at that
+        // value, canonical founded, 20 seeds × 300 turns: 6,211 onsets over
+        // 66,000 settlement-turns = 0.941061 per settlement-century, inside the
+        // binomial 99 % band [0.922204, 0.981047] around the truncation-
+        // corrected expectation (1 − e^{−λ·dt})/(λ·dt) × λ·100 = 0.9516258
+        // (docs/t4.21-4-record.md §2.2, measured AT λ = 0.01). It also measured
+        // the fallout, which is why λ IS 0 AGAIN: the mechanism ships COMPLETE
+        // AND TESTED BUT INERT and the RATE is the director's ruling on
+        // docs/adr/cr-016-armed-disaster-fallout.md. The onset rate above is
+        // still measured in the suite — FamineScenarioTests arms λ IN-RIG.
+        // The BAND below is untouched by any of that and is the §3.3
         // derivation: s·D ∈ [3.75, 5.0] > 3.46 production-years at ρ_ship = 1.3.
         SimConfig cfg = TestConfigs.Sim();
-        Assert.Equal(0.01, cfg.Disaster.HazardPerYear);
+        Assert.Equal(0.0, cfg.Disaster.HazardPerYear);
         Assert.Equal(5.0, cfg.Disaster.DurationYears);
         Assert.Equal(0.75, cfg.Disaster.SeverityMin);
         Assert.Equal(1.0, cfg.Disaster.SeverityMax);

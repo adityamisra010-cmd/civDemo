@@ -77,13 +77,18 @@ public class DisasterSystemTests
         // world run with the system absent from the pipeline. The only thing
         // the packet adds to a canonical stream is stream rows.
         //
-        // T4.21-4: λ = 0 is no longer the SHIPPED value (0.01, armed), so the
-        // control is now an explicit config twin. Both facts are asserted — the
-        // shipped value, so this test fails loudly if the arming is ever
-        // reverted silently, and the twin's own λ, so the control means what it
-        // says. The strip identity itself is unchanged.
+        // T4.21-4 made λ = 0 an explicit config twin because it had ARMED the
+        // shipped value to 0.01. T4.21-7 DISARMS it again — the mechanism ships
+        // complete and tested but INERT and the rate is the director's ruling
+        // (docs/adr/cr-016-armed-disaster-fallout.md) — so the shipped value is
+        // λ = 0 once more. The explicit twin is KEPT rather than reverted: it
+        // costs nothing, it makes the control say what it means instead of
+        // inheriting it, and it survives whichever way CR-016 is ruled. Both
+        // facts are still asserted — the shipped value, so a silent RE-ARMING
+        // fails loudly here, and the twin's own λ. The strip identity is
+        // unchanged.
         SimConfig shipped = TestConfigs.Sim();
-        Assert.Equal(0.01, shipped.Disaster.HazardPerYear);
+        Assert.Equal(0.0, shipped.Disaster.HazardPerYear);
         SimConfig cfg = WithDisaster(shipped, 0.0);
         Assert.Equal(0.0, cfg.Disaster.HazardPerYear);
 

@@ -541,20 +541,29 @@ public class ChronicleTests
         Assert.Equal(a, b);
         bool anyFamine = false;
         foreach (string line in a) if (line.Contains("famine")) anyFamine = true;
-        // T4.21-4 — CR-003 QUARANTINE RESOLVED HERE, and the ORIGINAL GUARD IS
-        // RESTORED. The quarantine recorded that the pre-Malthusian dev world
-        // never crashed, so the annals carried no famine line and the twin
-        // compared a chronicle without one. Arming the famine-class disaster
-        // (sim.json disaster.hazardPerYear 0.0 -> 0.01, CR-015 §3.3) puts the
-        // line back: MEASURED on this tree, this exact rig (dev preset, seed
-        // 42, 900 turns) now renders famine prose, against none in the λ = 0
-        // twin (docs/t4.21-4-record.md §2.7, §4.3). The guard is restored, so
-        // the twin is again comparing a chronicle that CONTAINS the event class
-        // this test was written to cover — a chronicle without it would be a
-        // weaker twin, not a passing one.
-        Assert.True(anyFamine,
-            "no famine line across 900 turns — the annals twin is comparing a chronicle without "
-            + "the event class this test exists to cover. Either the disaster was disarmed "
-            + "(sim.json disaster.hazardPerYear) or the chronicle's famine latch stopped firing.");
+        // CR-003 QUARANTINE — RE-INSTATED BY T4.21-7, AND WHY, WITH BOTH
+        // MEASUREMENTS. The original quarantine recorded that the
+        // pre-Malthusian dev world never crashed, so the annals carried no
+        // famine line and the twin compared a chronicle without one.
+        //
+        //   ARMED (λ = 0.01, T4.21-4, measured by that agent): RESOLVED — this
+        //   exact rig rendered famine prose (docs/t4.21-4-record.md §2.7,
+        //   §4.3). The quarantine call was deleted and the guard restored,
+        //   correctly, FOR THAT TREE.
+        //
+        //   DISARMED (λ = 0, the value that SHIPS, re-measured on THIS tree by
+        //   the agent writing this line, on THIS EXACT RIG — dev preset, seed
+        //   42, 900 turns): NOT RESOLVED — 20 chronicle events, 0 of them a
+        //   famine line. The restored guard above would fail.
+        //
+        // Twin-identity above — the point of this test — is unaffected and is
+        // still asserted on 20 events. Which reading is right is CR-016's to
+        // decide: the disaster mechanism ships COMPLETE AND TESTED BUT INERT
+        // (sim.json disaster.hazardPerYear = 0.0) and its RATE is the
+        // director's ruling (docs/adr/cr-016-armed-disaster-fallout.md). One
+        // data edit makes this quarantine fire again, and it must then be
+        // deleted and the guard restored.
+        Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
+            anyFamine, "a famine line across the first Malthus crash");
     }
 }

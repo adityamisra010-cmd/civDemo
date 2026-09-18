@@ -197,11 +197,12 @@ public class IntegratedPinAttributionTests
     }
 
     /// <summary>
-    /// T4.21-4 — THE λ = 0 TWIN THE LAYOUT CONTROLS RUN ON, and why.
+    /// T4.21-4 — THE λ = 0 TWIN THE LAYOUT CONTROLS RUN ON, and why; KEPT BY
+    /// T4.21-7 NOW THAT λ = 0 IS THE SHIPPED VALUE AGAIN.
     ///
-    /// T4.21-4 arms the famine-class disaster (sim.json
+    /// T4.21-4 armed the famine-class disaster (sim.json
     /// disaster.hazardPerYear 0.0 -> 0.01). That is a BEHAVIOUR change and it
-    /// moves the behavioural goldens, which are re-pinned where they live
+    /// moved the behavioural goldens, which were re-pinned where they live
     /// (SnapshotTests.FoundedGolden, DrivenGoldenTests.DrivenGolden). The
     /// controls in this file are LAYOUT controls: their question is whether a
     /// stream layer is SEPARABLE from the stream, not what the world did.
@@ -211,16 +212,25 @@ public class IntegratedPinAttributionTests
     /// So they run the λ = 0 twin, which — because DisasterSystem draws both
     /// its uniforms UNCONDITIONALLY (the stated RNG contract) — is bit-identical
     /// to the tree as it stood before the arming commit. Every constant in this
-    /// file therefore returns BYTE FOR BYTE, and that is itself the attribution
-    /// this packet owes: the arming is the ENTIRE cause of the behavioural
-    /// goldens' movement, because nothing else in the packet touches code that
-    /// runs. The shipped value is asserted alongside, so a silent revert of the
-    /// arming fails here too.
+    /// file therefore returns BYTE FOR BYTE, and that was itself the
+    /// attribution T4.21-4 owed: the arming was the ENTIRE cause of the
+    /// behavioural goldens' movement, because nothing else in that packet
+    /// touched code that runs.
+    ///
+    /// T4.21-7 DISARMS the shipped value (CR-016: the mechanism ships complete
+    /// and tested but INERT; the RATE is the director's). The twin is therefore
+    /// now equal to the shipped config — and is KEPT EXPLICIT anyway, for the
+    /// same reason it was introduced: these controls must answer the LAYOUT
+    /// question whatever λ the director rules, and a control that silently
+    /// inherits the shipped value would stop being one the moment the rate is
+    /// ruled non-zero. The shipped value is asserted alongside, so a silent
+    /// RE-ARMING fails here too — and if it is ruled, these constants stay put
+    /// while the behavioural goldens move, which is the whole point.
     /// </summary>
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
         Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
-        Assert.Equal(0.01, shipped.Disaster.HazardPerYear);   // the arming, T4.21-4
+        Assert.Equal(0.0, shipped.Disaster.HazardPerYear);   // inert, T4.21-7 / CR-016
         return shipped with { Disaster = shipped.Disaster with { HazardPerYear = 0.0 } };
     }
 

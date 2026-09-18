@@ -160,6 +160,9 @@ public class CalibrationBatteryTests
     ///   DOWN — below the recorded envelope is a NEW defect, not more of the same.
     ///   UP   — back inside the corridor RESOLVES it and must fail loudly, so it
     ///          cannot rot into silence.
+    ///   UP-DRIFT (added T4.21-4, kept T4.21-7) — above the recorded envelope
+    ///          but NOT into the band is neither the recorded deviation nor its
+    ///          resolution, and gets its own tooth and its own words.
     ///
     /// The envelope is LITERAL and deliberately NOT derived from `lo`: a
     /// quarantine expressible as a fraction of the band it is quarantined against
@@ -193,6 +196,18 @@ public class CalibrationBatteryTests
     /// tooth that could never bite (review F6, verified). Upward motion is the
     /// resolution tooth's job, and for both call-site seeds `lo` is nearer
     /// than any envelope ceiling could be.
+    ///
+    /// T4.21-7 CORRECTION TO THE PARAGRAPH ABOVE, which is now false and is
+    /// left standing only as history. It is `recorded / 0.75` that is nearer,
+    /// by an order of magnitude: 1.1115925041234045E-04 and
+    /// 1.360081711272263E-04 against `lo` = 0.001, computed from the two
+    /// constants below. So an upward tooth CAN bite here, the T4.21-4 split
+    /// gave it one, and T4.21-7 keeps it — see the ordering comment in
+    /// AssertDevMigrationQuarantine and the regime pin in
+    /// T4216_DevMigrationQuarantine_EachToothAnswersItsOwnRegime. The F6
+    /// reasoning is not repudiated; the DISTANCES it was reasoning about moved,
+    /// twice (T4.21-2 bounded migration, then T4.21-4's arming and T4.21-7's
+    /// disarming), which is exactly what a self-verifying envelope is for.
     /// </summary>
     // T4.1b RE-PIN (ADR-018, ONE ruled cause): minSpacingKm 480 -> 95.2.
     // DECOMPOSED before re-pinning (§7.15): the metric is gross / person-years,
@@ -205,23 +220,39 @@ public class CalibrationBatteryTests
     // T4.2 RE-PIN (VALUE, ONE ruled cause): grainSpoilagePerYear = 0.08 and
     // granaryYearsOfDemand = 1.5 move the dev world's migration signature —
     // itemized in the T4.2 fallout table alongside the other four VALUE pins.
-    // T4.21-4 RE-PIN (ONE ruled cause, MEASURED on this tree; CR-015 N7's
-    // "recorded envelope", never a tolerance widen — the 0.75 factor below is
-    // UNCHANGED). Cause: bounded flight + basin caps + vacancy bound (T4.21-2,
-    // ADR-025) AND the arming of the famine-class disaster (T4.21-4, sim.json
-    // disaster.hazardPerYear 0.0 -> 0.01, CR-015 §3.3), which opens the flight
-    // channel this world had never had. Old -> new recorded values, dev preset,
-    // 1000 turns, measured by the agent writing this line:
-    //     seed 42  7.21744E-05  ->  0.0148409518   (×205.6)
-    //     seed  7  0.000799951  ->  0.0158496291   (× 19.8)
-    // The λ = 0 twin of the same runs measures 8.33694378E-05 and
-    // 0.000102006128 — i.e. the pre-arming level, which is where the T4.21-2
-    // half of the cause lands (seed 7 0.000799951 -> 0.000102006 was the
-    // bounded-migration packet's own move, and it is what made the seed-7 drift
-    // tooth the one inherited red on 8f7f9da). ARMING IS THE OTHER HALF AND IT
-    // DOMINATES: docs/t4.21-4-record.md §2.7 and §4.2.
-    private const double QuarantineRecordedSeed42 = 0.0148409518;
-    private const double QuarantineRecordedSeed7 = 0.0158496291;
+    // T4.21-4 RE-PIN, THEN T4.21-7 RE-PIN BACK — the honest history of this
+    // envelope, because both halves were measured and only one of them ships.
+    // CR-015 N7's "recorded envelope", never a tolerance widen: the 0.75 factor
+    // below is UNCHANGED throughout, and no band moves (RULE A).
+    //
+    //   ARMED (T4.21-4, λ = 0.01, measured by that agent, dev preset, 1000
+    //   turns): seed 42 0.0148409518, seed 7 0.0158496291 — ×205.6 and ×19.8
+    //   on the then-recorded 7.21744E-05 / 0.000799951, and 1.5× ABOVE the
+    //   corridor CEILING 0.01. Two causes, split by that agent: bounded flight
+    //   + basin caps + vacancy bound (T4.21-2, ADR-025) put the λ = 0 twin at
+    //   8.33694378E-05 / 0.000102006128, and the arming was the other half and
+    //   dominated (docs/t4.21-4-record.md §2.7, §4.2).
+    //
+    //   DISARMED (T4.21-7, λ = 0 — THE SHIPPING VALUE under CR-016's
+    //   orchestrator decision; RE-MEASURED ON THIS TREE by the agent writing
+    //   this line, same rig, dev preset, 1000 turns):
+    //       seed 42  0.0148409518   ->  8.336943780925534E-05
+    //       seed  7  0.0158496291   ->  1.0200612834541973E-04
+    //   which is the T4.21-2 bounded-migration level and nothing else — the
+    //   arming's whole contribution is gone with the arming. These are the
+    //   values pinned below, so the envelope is again what the shipped world
+    //   measures. The direction is back to the T3.4c one: BELOW the floor
+    //   0.001, not above the ceiling.
+    //
+    // The seed-7 envelope carries the ONE resolved inherited red: on 8f7f9da
+    // seed 7 was the suite's single failure, 0.000102006 against the stale
+    // recorded 0.000799951 × 0.75 (the T4.21-2 move, previously masked by the
+    // Malthus starvation tooth). Re-pinning to the measured value resolves it
+    // deliberately, like a golden, with the cause named. The RATE that would
+    // move these numbers again is the director's — docs/adr/cr-016-armed-
+    // disaster-fallout.md — and re-arming re-pins this envelope a third time.
+    private const double QuarantineRecordedSeed42 = 8.336943780925534E-05;
+    private const double QuarantineRecordedSeed7 = 1.0200612834541973E-04;
     private const double QuarantineDriftTolerance = 0.75;
 
     private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
@@ -238,33 +269,38 @@ public class CalibrationBatteryTests
             $"seed {seed} reached the quarantine helper without a recorded envelope value — " +
             "record it here before asserting against it.");
 
-        // ORDER MATTERS, AND IT IS THE WHOLE POINT OF THIS BLOCK. The recorded
-        // envelope and the corridor band NO LONGER OVERLAP: recorded × 0.75 is
-        // 0.01113071385 (seed 42) and 0.011887221825 (seed 7), both strictly ABOVE the
-        // ceiling hi = 0.01 — computed by the agent writing this line from the
-        // two constants above. So every value inside [lo, hi] is also below the
-        // downward drift bar. If the drift teeth were evaluated first they would
-        // consume the resolution case and print "degraded … A NEW defect" for
-        // the one outcome this quarantine exists to detect, leaving the
-        // resolution tooth with an empty failure set — a dead tooth plus a false
-        // diagnosis, the exact T3.4b defect. The band read comes FIRST; the
-        // envelope teeth judge only the above-ceiling regime they were pinned in.
-        // The band is still read and never written, and 0.75 is unchanged.
-        // T4.21-4 — THE UPWARD TOOTH, SPLIT, BECAUSE ITS OLD DISJUNCTION IS NOW
-        // FALSE. The T3.4c version read `value < lo` and called anything else
-        // "back INSIDE the corridor … RESOLVED". That was sound while the dev
-        // world sat 20–60 % BELOW the floor: the only way up was back into the
-        // band. It is no longer sound. MEASURED on the armed tree the dev
-        // world's gross migration is 0.01484 / 0.01585 per decade — ABOVE the
-        // corridor CEILING 0.01, not inside it. Reporting that as "resolved"
-        // would be a false statement written into a failure message, which is
-        // the T3.4b defect this helper exists to have fixed.
+        // ORDER MATTERS, AND IT IS THE WHOLE POINT OF THIS BLOCK — and the
+        // reason survives the T4.21-7 re-pin unchanged, only with the drift
+        // tooth that would swallow the resolution case swapped for the other
+        // one. The recorded envelope and the corridor band DO NOT OVERLAP:
+        // recorded / 0.75 is 1.1115925041234045E-04 (seed 42) and
+        // 1.360081711272263E-04 (seed 7), both strictly BELOW the floor
+        // lo = 0.001 — computed by the agent writing this line from the two
+        // constants above. So every value inside [lo, hi] is also ABOVE the
+        // upward drift bar. If the drift teeth were evaluated first they would
+        // consume the resolution case and print "rose above … a ruled change"
+        // for the one outcome this quarantine exists to detect, leaving the
+        // resolution tooth with an empty failure set — a dead tooth plus a
+        // false diagnosis, the exact T3.4b defect. The band read comes FIRST;
+        // the envelope teeth judge only the below-floor regime they were
+        // pinned in. The band is still read and never written, and 0.75 is
+        // unchanged. (T4.21-4 shipped this ordering for the mirror-image
+        // reason — recorded × 0.75 then sat ABOVE the ceiling and the DOWNWARD
+        // tooth was the swallowing one; T4.21-6 finding 1 made it reachable.
+        // The ordering correction is independent of the arming and is kept.)
+        //
+        // THE UPWARD TOOTH IS SPLIT FROM RESOLUTION, and stays split. The
+        // T3.4c version read `value < lo` and called anything else "back
+        // INSIDE the corridor … RESOLVED" — a disjunction that is only sound
+        // if the sole way up is into the band. It is not: with the envelope at
+        // ~1E-04 and the floor at 1E-03 there is an order of magnitude of
+        // upward room that is drift, not resolution, and T4.21-4 measured a
+        // world (armed) that went clean past the ceiling. Splitting keeps the
+        // failure message TRUE in every regime, which is what this helper
+        // exists to have fixed.
         //
         // NO BAND MOVES (RULE A / CR-015 N7): `lo` and `hi` are read, never
-        // written, and the immovability assert above still guards both. What
-        // changes is the READING: "inside [lo, hi]" is resolution and keeps its
-        // own loud tooth; "above hi" is a NEW REGIME, is escalated, and is held
-        // by the recorded envelope's own tolerance in both directions — teeth
+        // written, and the immovability assert above still guards both. Teeth
         // added, none removed, and the 0.75 factor unchanged.
         Assert.False(value >= lo && value <= hi,
             $"seed {seed}: {Inv(value)} is back INSIDE the corridor [{lo}, {hi}] — the B-1b dev-preset " +
@@ -279,40 +315,51 @@ public class CalibrationBatteryTests
 
         Assert.True(value <= recorded / QuarantineDriftTolerance,
             $"seed {seed}: {Inv(value)} rose above {1 / QuarantineDriftTolerance:F2}× its recorded value " +
-            $"{Inv(recorded)} — the dev world's migration has drifted further into the ABOVE-CEILING " +
-            "regime T4.21-4 recorded. A NEW defect, or a ruled change that must re-pin this envelope " +
-            "deliberately, like a golden.");
+            $"{Inv(recorded)} — the dev world's migration has drifted UPWARD inside the quarantined " +
+            $"below-floor regime without reaching the corridor floor {lo}, so this is neither the " +
+            "recorded deviation nor its resolution. A NEW defect, or a ruled change that must re-pin " +
+            "this envelope deliberately, like a golden.");
 
         string where = value < lo ? $"{1 - value / lo:P1} below the floor {lo}"
             : value > hi ? $"{value / hi - 1:P1} ABOVE the ceiling {hi}"
             : "inside the band";
         Console.WriteLine(
-            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b), T4.21-4 re-pin: {QuarantinedKey} " +
-            $"seed {seed} = {Inv(value)}, {where}. THE DIRECTION REVERSED WHEN THE DISASTER WAS ARMED: " +
-            "this corridor recorded a dev world 20-60% BELOW its floor (T3.4c: 19 of 20 seeds below, " +
-            "median -30.5%); with hazardPerYear = 0.01 the same two seeds sit above the CEILING, " +
-            $"0.01484 / 0.01585 against the λ = 0 twin's 8.34E-05 / 1.02E-04 on the same runs. " +
-            "Band NOT moved. Escalated with the rest of the arming fallout — " +
-            "docs/adr/cr-016-armed-disaster-fallout.md, docs/t4.21-4-record.md §5.");
+            $"T3.4c CORRIDOR-WIDE QUARANTINE (dev preset, B-1b), T4.21-7 re-pin: {QuarantinedKey} " +
+            $"seed {seed} = {Inv(value)}, {where}. This corridor records a dev world 20-60% BELOW its " +
+            "floor (T3.4c: 19 of 20 seeds below, median -30.5%), and the shipped world is still that " +
+            "world: measured at the SHIPPING hazardPerYear = 0.0, seeds 42 / 7 read 8.34E-05 / " +
+            "1.02E-04. T4.21-4 measured the SAME two seeds at 0.01484 / 0.01585 — 1.5x above the " +
+            "CEILING — with the famine-class disaster ARMED at hazardPerYear = 0.01; that value does " +
+            "NOT ship, the mechanism ships inert, and the RATE is the director's ruling. Band NOT " +
+            "moved. docs/adr/cr-016-armed-disaster-fallout.md, docs/t4.21-4-record.md §5.");
     }
 
     /// <summary>
-    /// T4.21-6 — THE QUARANTINE'S OWN TEETH, EXERCISED. The helper above is
-    /// reached on this tree only through two 1000-turn dev runs that currently
-    /// fail EARLIER, inside AssertMalthusKnownDeviation (CR-016 open), so none
-    /// of its four teeth execute on any run today. That is how the split
-    /// shipped with its resolution tooth UNREACHABLE: the downward drift bar
-    /// (recorded x 0.75 = 0.01113071385 for seed 42, 0.011887221825 for seed 7
-    /// — computed here from the same two constants) sits ABOVE the corridor
-    /// ceiling 0.01, so it swallowed every in-band value and printed
-    /// "degraded ... A NEW defect" for the one outcome the quarantine exists to
-    /// detect. This drives the helper DIRECTLY with synthetic readings, which
-    /// costs no world run, and pins WHICH tooth answers WHICH regime.
+    /// T4.21-6 — THE QUARANTINE'S OWN TEETH, EXERCISED, RE-AIMED BY T4.21-7 AT
+    /// THE DISARMED REGIME. The helper above is reached on a real run only
+    /// through two 1000-turn dev runs, so its teeth were never exercised by
+    /// the ordering that shipped them; that is how the T4.21-4 split shipped
+    /// with its resolution tooth UNREACHABLE (the downward bar then sat ABOVE
+    /// the corridor ceiling and swallowed every in-band value). This drives the
+    /// helper DIRECTLY with synthetic readings, which costs no world run, and
+    /// pins WHICH tooth answers WHICH regime.
+    ///
+    /// WHAT T4.21-7 CHANGED, and what it did not. The ORDERING is unchanged and
+    /// so is its reason — the envelope and the band must not overlap, and the
+    /// band read must come first or a drift tooth eats the resolution case.
+    /// What flipped is WHICH drift tooth would eat it: with the envelope
+    /// re-pinned to the SHIPPED λ = 0 world (8.34E-05 / 1.02E-04, both an order
+    /// of magnitude BELOW the floor 0.001, CR-016) the bracket sits below the
+    /// band, so an in-band value is above the UPWARD bar, not below the
+    /// downward one. The probes move with it: "below the envelope" is now
+    /// recorded × 0.5 rather than lo × 0.5, because lo × 0.5 is five times the
+    /// whole envelope.
     ///
     /// It also pins the non-overlap itself, because that is the fact the
-    /// ordering depends on: if a future re-pin brings the envelope back down
-    /// across the ceiling, the first assert below fails and whoever re-pins is
-    /// told to re-read the ordering comment rather than inheriting it silently.
+    /// ordering depends on: if a future re-pin (re-arming the disaster is the
+    /// obvious one) brings the envelope back across the floor, the first assert
+    /// below fails and whoever re-pins is told to re-read the ordering comment
+    /// rather than inheriting it silently.
     /// No band is read from anywhere but Corridors.Load(), and nothing is written.
     /// </summary>
     [Fact]
@@ -321,11 +368,13 @@ public class CalibrationBatteryTests
         Corridors c = Corridors.Load();
         (double lo, double hi) = c.Band(QuarantinedKey);
 
-        // The premise of the ordering, stated as an assertion.
-        Assert.True(QuarantineRecordedSeed42 * QuarantineDriftTolerance > hi
-                 && QuarantineRecordedSeed7 * QuarantineDriftTolerance > hi,
-            "the recorded envelope has come back down across the corridor ceiling — the envelope " +
-            "bracket and the band now OVERLAP again, so re-read the ordering comment in " +
+        // The premise of the ordering, stated as an assertion: the envelope
+        // bracket [recorded × 0.75, recorded / 0.75] and the band [lo, hi] are
+        // DISJOINT. Today the envelope lies wholly below the floor.
+        Assert.True(QuarantineRecordedSeed42 / QuarantineDriftTolerance < lo
+                 && QuarantineRecordedSeed7 / QuarantineDriftTolerance < lo,
+            "the recorded envelope has risen into (or across) the corridor band — the envelope " +
+            "bracket and the band now OVERLAP, so re-read the ordering comment in " +
             "AssertDevMigrationQuarantine before re-pinning: the band-first ordering was chosen " +
             "precisely because they did not.");
 
@@ -333,32 +382,41 @@ public class CalibrationBatteryTests
         {
             double recorded = seed == 42ul ? QuarantineRecordedSeed42 : QuarantineRecordedSeed7;
 
-            // 1. INSIDE the band — RESOLUTION. This is the case the drift tooth
-            //    used to consume; it must name resolution and nothing else.
+            // 1. INSIDE the band — RESOLUTION. This is the case a drift tooth
+            //    would consume if the order were wrong; it must name resolution
+            //    and nothing else.
             double inBand = 0.5 * (lo + hi);
-            Assert.True(inBand < recorded * QuarantineDriftTolerance,
-                "the in-band probe must also be below the drift bar, or this case proves nothing");
+            Assert.True(inBand > recorded / QuarantineDriftTolerance,
+                "the in-band probe must also be above the upward drift bar, or this case proves nothing");
             Exception? resolved = Record.Exception(() => AssertDevMigrationQuarantine(c, seed, inBand));
             Assert.NotNull(resolved);
             Assert.Contains("RESOLVED", resolved!.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain("rose above", resolved.Message, StringComparison.Ordinal);
             Assert.DoesNotContain("degraded beyond", resolved.Message, StringComparison.Ordinal);
 
-            // 2. BELOW the floor — a degradation, not a resolution.
-            Exception? degraded = Record.Exception(() => AssertDevMigrationQuarantine(c, seed, lo * 0.5));
+            // 2. BELOW the envelope — a degradation, not a resolution. (lo × 0.5
+            //    no longer probes this regime: it is five times the envelope.)
+            Exception? degraded = Record.Exception(
+                () => AssertDevMigrationQuarantine(c, seed, recorded * 0.5));
             Assert.NotNull(degraded);
             Assert.Contains("degraded beyond", degraded!.Message, StringComparison.Ordinal);
             Assert.DoesNotContain("RESOLVED", degraded.Message, StringComparison.Ordinal);
 
-            // 3. THE RECORDED REGIME ITSELF — above the ceiling, inside the
+            // 3. THE RECORDED REGIME ITSELF — below the floor, inside the
             //    envelope: silence. Without this the helper could pass by
             //    failing everything.
             Assert.Null(Record.Exception(() => AssertDevMigrationQuarantine(c, seed, recorded)));
 
-            // 4. ABOVE the envelope — the upward tooth, in its own words.
-            Exception? drifted = Record.Exception(
-                () => AssertDevMigrationQuarantine(c, seed, recorded / QuarantineDriftTolerance * 1.01));
+            // 4. ABOVE the envelope but STILL BELOW the floor — the upward
+            //    tooth, in its own words, in the gap that is drift and not
+            //    resolution. The order-of-magnitude gap between recorded / 0.75
+            //    and lo is exactly what makes this tooth worth having.
+            double up = recorded / QuarantineDriftTolerance * 1.01;
+            Assert.True(up < lo, "the upward probe must stay below the floor, or it probes resolution");
+            Exception? drifted = Record.Exception(() => AssertDevMigrationQuarantine(c, seed, up));
             Assert.NotNull(drifted);
-            Assert.Contains("ABOVE-CEILING", drifted!.Message, StringComparison.Ordinal);
+            Assert.Contains("rose above", drifted!.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain("RESOLVED", drifted.Message, StringComparison.Ordinal);
         }
     }
 
