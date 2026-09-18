@@ -105,7 +105,8 @@ public class TelemetryTests
         JsonElement s = doc.RootElement.GetProperty("settlement");
         Assert.Equal(100, doc.RootElement.GetProperty("turn").GetInt64());
         Assert.Equal(4, s.GetProperty("settlement").GetInt32());
-        foreach (string section in new[] { "population", "food", "housing", "economy", "social", "migration", "policy", "orders" })
+        foreach (string section in new[] { "population", "food", "housing", "economy", "social", "migration",
+                                          "policy", "orders", "foodState", "migrationPlan" })
             Assert.True(s.TryGetProperty(section, out _), $"section {section} missing");
         Assert.Equal(Observer.StoreLossesIdentity, s.GetProperty("food").GetProperty("storeLossesIdentity").GetString());
         Assert.StartsWith("GAP:", s.GetProperty("housing").GetProperty("builtDecayedSplit").GetString());
@@ -114,6 +115,76 @@ public class TelemetryTests
         Assert.True(s.GetProperty("social").GetProperty("grievance").GetArrayLength() >= 2);
         Assert.True(s.GetProperty("social").GetProperty("needSatisfaction").GetArrayLength() >= 3);
         Assert.Equal(12, s.GetProperty("migration").GetProperty("allAttractiveness").GetArrayLength());
+    }
+
+    /// <summary>
+    /// T4.21-5 (spec §6.6) — NOTHING THIS PACKET ADDED IS SERIALIZED, and the
+    /// observer that now RUNS THE MIGRATION PLANNER still cannot touch the
+    /// world.
+    ///
+    /// The second half is the one that is new and needed. Until this packet the
+    /// observer only read rows; it now calls MigrationSystem.Plan — the
+    /// simulation's own planner — once per observed step. That is the sanctioned
+    /// way to avoid a second implementation (spec §3.11), but it means the fence
+    /// has to be re-proven rather than inherited: a planner that mutated its
+    /// input, or an observer that kept its output anywhere the kernel can see,
+    /// would move a hash. Measured here on 30 turns of the canonical world,
+    /// observing every step, against an unobserved twin.
+    /// </summary>
+    [Fact]
+    public void T421_TheNewSections_MoveNoHash_AndAppearNowhereInTheSerializedSchema()
+    {
+        // (1) THE FENCE, with the planner inside the observer.
+        ObservedWorlds.Run observed = ObservedWorlds.Observed(ObservedWorlds.Founded(), null, 30);
+        WorldState quiet = ObservedWorlds.Executor(TestConfigs.Sim(), null).Run(ObservedWorlds.Founded(), 30);
+        Assert.Equal(WorldHash.ComputeHex(quiet), WorldHash.ComputeHex(observed.Final));
+        Assert.True(WorldStates.StateEquals(quiet, observed.Final));
+
+        // (2) OBSERVING TWICE IS OBSERVING ONCE: the observation is a pure
+        // function of the pair, so a second call on the same worlds produces the
+        // same bytes and leaves the worlds where it found them.
+        WorldState prev = ObservedWorlds.Founded();
+        WorldState next = ObservedWorlds.Executor(TestConfigs.Sim(), null).Step(prev);
+        string beforeHash = WorldHash.ComputeHex(prev), afterHash = WorldHash.ComputeHex(next);
+        static byte[] Bytes(WorldState p, WorldState n)
+        {
+            using var ms = new MemoryStream();
+            TelemetryWriter.WriteTurn(ms, Observer.Observe(p, n, TestConfigs.Sim(), []));
+            return ms.ToArray();
+        }
+        Assert.Equal(Bytes(prev, next), Bytes(prev, next));
+        Assert.Equal(beforeHash, WorldHash.ComputeHex(prev));
+        Assert.Equal(afterHash, WorldHash.ComputeHex(next));
+
+        // (3) NOT IN THE SCHEMA. The canonical version is T4.21-1's v25 and this
+        // packet did not touch it; neither the section types nor their JSON keys
+        // appear in the serializer or in WorldState.
+        Assert.Equal(25, CanonicalSchema.Version);
+        string root = RepoPaths.Root();
+        foreach (string file in new[] { "Sim.Core/Kernel/CanonicalSchema.cs", "Sim.Core/State/WorldState.cs" })
+        {
+            string text = File.ReadAllText(Path.Combine(root, file));
+            foreach (string token in new[]
+                     { "FoodStateSection", "MigrationPlanSection", "foodState", "migrationPlan",
+                       "SettlementRecord", "TelemetryWriter" })
+                Assert.DoesNotContain(token, text, StringComparison.Ordinal);
+        }
+
+        // (4) The sections ARE in the telemetry, with the keys the schema tag
+        // promises — otherwise (3) would pass by the fields not existing.
+        using var line = new MemoryStream();
+        TelemetryWriter.WriteTurn(line, Observer.Observe(prev, next, TestConfigs.Sim(), []));
+        string text2 = System.Text.Encoding.UTF8.GetString(line.ToArray());
+        Assert.Contains("\"schema\":\"telemetry/v3\"", text2, StringComparison.Ordinal);
+        foreach (string key in new[]
+                 { "\"foodState\"", "\"state\"", "\"famineReason\"", "\"effectiveDeficit\"", "\"abandoned\"",
+                   "\"disasterMultiplierApplied\"", "\"harvestWeatherApplied\"", "\"foodLimit\"",
+                   "\"surplusRatio\"", "\"headroom\"", "\"migrationPlan\"", "\"exitOpenness\"",
+                   "\"flightFractionPrime\"", "\"vacancyCap\"", "\"vacancyScale\"" })
+            Assert.Contains(key, text2, StringComparison.Ordinal);
+        // Non-finite readings stay STRINGS, so +infinity (FoodHeadroom's null
+        // arm on the founding turn) is not silently written as a number or lost.
+        Assert.Contains("\"foodLimit\":\"Infinity\"", text2, StringComparison.Ordinal);
     }
 
     [Fact]
