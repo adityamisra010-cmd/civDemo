@@ -331,3 +331,50 @@ each, messages byte-identical after stripping the timing suffix (sha256 `c943a28
 the red is INHERITED, not caused by T4.21-0/1; CI on this branch cannot be green until it
 is addressed, which is T4.21-4's work (the `Cr003Quarantine` guard restoration and the
 `Dev_MalthusCorridors` message re-read, spec §4 T4.21-4).
+
+
+---
+
+## §10. THE ARMED MEASUREMENT (T4.21-4, 2026-09-18) — appended, nothing above is edited
+
+`sim.json` `disaster.hazardPerYear` **0.0 → 0.01**, the value this ADR's §3.3 derivation and the
+`disaster._doc` both name. Measured on branch `t4.21-4-arm` (cut from `claude/civdemo-work-b1z2y4`
+@ `8f7f9da`) by the agent writing this section; raw rows in `docs/t4.21-evidence/t4.21-4/`.
+
+**The onset process, against its own derivation.** Canonical founded, 20 seeds × 300 turns:
+6,211 onsets over 66,000 settlement-turns = **0.941061 per settlement-century**. The once-per-turn
+booking truncation at dt 10 is exact — `(1 − e^{−λ·dt})/(λ·dt) = 0.9516258`, the ≈ 4.7 % this ADR
+accepts — so the truncation-corrected expectation is 0.9516258 and the binomial 99 % band on 66,000
+Bernoulli trials at p = 0.0951626 is **[0.922204, 0.981047]**. The measurement sits inside it at
+**z = −0.925**. The accepted bias is therefore confirmed at the value it was accepted for.
+
+**The ladder, on whole worlds.** 1,540 FAMINE settlement-turns across those seeds, **0** with
+`FamineReason.None`; 263 STRESS settlement-turns with `d_eff` **exactly 0.0** on every one; 0
+starvation deaths on all 4,745 turns whose PREV world held nobody above STRESS; the one SEVERE turn
+killed 23. The λ = 0 control arm produces **ZERO** FAMINE settlement-turns while still producing 352
+STRESS and 1 SEVERE — weather is never famine, and the claim is not vacuous.
+
+**The attribution.** Every layout control in `IntegratedPinAttributionTests` now runs the λ = 0 twin
+and returns its v22/v23/v24 constant BYTE FOR BYTE, which is exact because `DisasterSystem` draws
+both uniforms unconditionally (§4's RNG contract). The tree minus the arming is bit-identical to
+`8f7f9da`, so the arming is the ENTIRE cause of the behavioural goldens' move
+(`FoundedGolden` `db7c7a09…` → `a1def4df…`, `DrivenGolden` `98ee3a7a…` → `0af545ae…`, `ci.yml`
+`FOUNDED_GOLDEN` with them; the founded value derived twice, in-test and by the built CLI).
+
+**THE FALLOUT IS ESCALATED, NOT ABSORBED.** At this λ against the shipped mortality kernel the
+canonical world loses roughly three quarters of its turn-300 population (median ratio 0.26 over 20
+seeds), `canonical.fedGrowthPerYear` falls below its band, the CR-001 permanent dt-continuity
+detonator breaks at the era gate by 2.5259 per 1000 yr (+0.4352 before, −1.8220 after), and the dev
+world is extinguished (93,910 → 38 at seed 42 over 1000 turns). The mechanism is the G8/F4 dt
+artefact this ADR accepted while λ = 0 made it unobservable. `docs/adr/cr-016-armed-disaster-fallout.md`
+is OPEN with three options and a recommendation; no band, no constant and no derivation was moved by
+T4.21-4.
+
+**Suite status on the packet tree, recorded.** The §9 note above ("which is T4.21-4's work") is
+discharged in part: the `Cr003Quarantine` guards at `PopulationTests :483` and `ChronicleTests :331`
+are RESTORED (the phenomena returned and were measured), `:282` stays quarantined with its
+measurement recorded (1 down-crossing, 0 up-crossings), and `Dev_MalthusCorridors` is re-read but
+stays RED — its `starvedTotal == 0` / `crashes == 0` / `peak == final` teeth all assert the CR-003
+premise, and re-aiming them onto a cause-attributed form is a change to the CR-003 quarantine's
+substance, which is the director's. Suite: 867 passed / 6 failed / 4 skipped, all six named in
+CR-016 §5.

@@ -24,6 +24,23 @@
 > `docs/t4.21-architecture.md`, evidence `docs/t4.21-evidence/`. Code packets T4.21-1..6 follow on
 > their own branches; nothing is merged to `main`. Suite baseline on `45046eb` (Release): 754 passed /
 > 2 failed (`Dev_MalthusCorridors` seeds 42, 7 — red by CR-003 ruling) / 6 skipped. Verify against git.
+> **2026-09-18 — T4.21-4 DONE, on branch `t4.21-4-arm` (cut from `claude/civdemo-work-b1z2y4` @
+> `8f7f9da`), NOT merged.** The famine-class disaster is ARMED (`sim.json disaster.hazardPerYear`
+> 0.0 → 0.01). Record: `docs/t4.21-4-record.md`. **ESCALATION — READ BEFORE RELYING ON THIS TREE:**
+> `docs/adr/cr-016-armed-disaster-fallout.md` is OPEN — the ruled arming breaks the CR-001 permanent
+> dt-continuity detonator at the era gate (measured 2.5259 per 1000 yr against a 0.1 bar), puts
+> `canonical.fedGrowthPerYear` below its band, and extinguishes the dev world (93,910 → 38 over 1000
+> turns). No band, constant or derivation was moved; six tests are left RED and named in CR-016 §5.
+> Suite on the packet tree, MEASURED in Release: Sim.Tests **867 passed / 6 failed / 4 skipped**
+> (the 6 skips became 4: `MigrationTests.cs:378` and `:532` were LIFTED under CR-015 N9),
+> Sim.Ui.Tests **294/294**, and all three gate scripts green
+> (`check-banned-constructs.sh`, `check-read-isolation.sh`, `check-readonly-proof.sh`). The ONE
+> inherited red on `8f7f9da` (`Dev_MalthusCorridors_AllInBand(seed: 7)`, the migration drift tooth)
+> is RESOLVED — its envelope was re-pinned to the measured value — but both seeds of that theory are
+> now red for the CR-003 Malthus teeth instead. Goldens moved for the arming alone, proved
+> bit-exactly: every layout control returns its constant byte for byte on the λ = 0 twin.
+> Verify against git.
+>
 > T4.21-1 merged to the integration branch at `05b23e6` (Release suite, measured by the fix lane on
 > the fix tree: Sim.Tests 819 passed / 2 failed / 6 skipped in 5 m 36 s, Sim.Ui.Tests 294/294 — the
 > SAME two `Dev_MalthusCorridors_AllInBand(seed: 42)` and `(seed: 7)` fail on `45046eb` in the fix
