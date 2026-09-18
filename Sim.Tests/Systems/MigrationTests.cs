@@ -367,15 +367,34 @@ public class MigrationTests
 
     // --- exit before death (D-021) ------------------------------------------
 
-    // T4.1b SUSPENDED (director ruling, ADR-018 §11). NOT re-pinned, NOT
-    // relaxed, NOT deleted — the assertion is MEASURED WRONG on main,
-    // independently of spacing: T4.1g measured gap-driven migration responding
-    // x3.10 to a 10x rate lever while GROSS migration responds x1.07, and this
-    // test asserts on GROSS. The observable is defective, not the mechanism.
-    // The skip LIFTS when M4's migration work re-derives what these teeth
-    // should assert. Owner: M4 migration. Do not re-enable by adjusting a
-    // threshold — that would pin the wrong observable harder.
-    [Fact(Skip = "T4.1b/ADR-018 §11: asserts on GROSS migration, which T4.1g measured as the wrong observable for the rate lever (gap-driven x3.10 vs gross x1.07). Lifts when M4's migration work re-derives the assertion. Owner: M4 migration.")]
+    // T4.21-4 — SKIP LIFTED, ON A RE-DERIVED OBSERVABLE (CR-015 N9; ADR-018
+    // §11 "not by adjusting a threshold, which would pin the wrong observable
+    // harder"; milestones.md open item 4a).
+    //
+    // WHAT WAS WRONG. The suspended version measured famine flight as the twin
+    // difference in GROSS out-migration — the sum of BOTH channels' outflow. On
+    // this rig the gap channel is the larger of the two and responds to the
+    // ordered settlement's collapse for reasons that are not flight (its
+    // attractiveness per head moves when its population moves), so the
+    // observable mixed the quantity under test with a confound of the same
+    // sign. T4.1g's ×3.10 vs ×1.07 measurement is the same defect seen through
+    // the rate lever.
+    //
+    // WHAT IT MEASURES NOW. The FLIGHT channel alone, by name, through
+    // MigrationSystem.Plan — the pure planner Step itself consumes (T4.21-2,
+    // spec §3.11), so this is the executed quantity and not a second
+    // implementation: `plan.FlightOut[i]` is the flight heads the transfer loop
+    // asks for at settlement i, after the overdraw scale. The THRESHOLD IS
+    // UNCHANGED (8 % of the source's starting population) and so is the
+    // ordering claim; only the observable moved, which is exactly what ADR-018
+    // §11 asked for.
+    //
+    // THE RIG IS NOW A FAMINE BY NAME. Under CR-015 the 0 %-farm order writes
+    // Farming 0 / Herding 0, which FoodState classifies as ABANDONMENT, so
+    // settlement 0 is FAMINE/Abandonment — asserted below — and its starvation
+    // reads the WHOLE deficit (no adaptation). That is the regime D-021's
+    // exit-before-death ordering is about.
+    [Fact]
     public void FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes()
     {
         // Canonical N = 12 world; settlement 0 is ordered to 0% farm at turn
@@ -410,27 +429,45 @@ public class MigrationTests
         // t7), τ = 20 restores exit t6 vs death t7 while keeping α = 0.5 at
         // dt 10; τ = 20 is the canonical TUNE.
         long threshold = pop0 * 8 / 100;
-        long cumOutF = 0, cumOutB = 0, prevStarvF = 0, prevStarvB = 0, cumStarvF = 0, cumStarvB = 0;
+        double cumFlightF = 0.0, cumFlightB = 0.0;
+        long prevStarvF = 0, prevStarvB = 0, cumStarvF = 0, cumStarvB = 0;
         int exitTurn = -1, deathTurn = -1;
-        long exitAtCross = 0, deathAtCross = 0;
+        double exitAtCross = 0.0;
+        long deathAtCross = 0;
+        bool sawFamine = false;
         for (int t = 1; t <= 40 && (exitTurn < 0 || deathTurn < 0); t++)
         {
+            WorldState prevF = worldF, prevB = worldB;
             worldF = famine.Step(worldF);
             worldB = baseline.Step(worldB);
-            cumOutF += worldF.MigrationFlows[0].Outflow;
-            cumOutB += worldB.MigrationFlows[0].Outflow;
+            double dt = worldF.Clock.DtYears;
+            // The FLIGHT channel, read off the planner Step consumes — one
+            // implementation, evaluated on exactly the PREV world and dt the
+            // step used (spec §3.11; M_Plan_EqualsStep pins planner == executed).
+            cumFlightF += FlightOutOf(prevF, cfg, dt, 0);
+            cumFlightB += FlightOutOf(prevB, cfg, dt, 0);
             cumStarvF += StarvedTotal(worldF) - prevStarvF;
             prevStarvF = StarvedTotal(worldF);
             cumStarvB += StarvedTotal(worldB) - prevStarvB;
             prevStarvB = StarvedTotal(worldB);
+            if (FoodState.Of(worldF, new SettlementId(0), cfg, out FamineReason why) == FoodStateKind.Famine)
+            {
+                sawFamine = true;
+                Assert.Equal(FamineReason.Abandonment, why);
+            }
 
-            long exitAttrib = cumOutF - cumOutB;
+            double exitAttrib = cumFlightF - cumFlightB;
             long deathAttrib = cumStarvF - cumStarvB;
             if (exitTurn < 0 && exitAttrib >= threshold) { exitTurn = t; exitAtCross = exitAttrib; deathAtCross = deathAttrib; }
             if (deathTurn < 0 && deathAttrib >= threshold) deathTurn = t;
         }
 
-        Assert.True(exitTurn > 0, $"attributable out-migration never crossed {threshold} of {pop0} in 40 turns");
+        // ANTI-VACUITY: the rig must actually be a famine, by the name CR-015
+        // gives it — otherwise "exit before death" is being measured on a world
+        // that is merely hungry.
+        Assert.True(sawFamine, "settlement 0 never classified FAMINE/Abandonment — the 0 %-farm order "
+            + "did not take, so the exit-before-death ordering is being measured on the wrong regime");
+        Assert.True(exitTurn > 0, $"attributable FLIGHT never crossed {threshold} of {pop0} in 40 turns");
         Assert.True(deathTurn > 0, "attributable starvation never crossed the fraction — window too short to prove ordering");
         // T3.4b — THE INSTRUMENT WAS TOO COARSE, and the invariant is unchanged.
         //
@@ -451,9 +488,24 @@ public class MigrationTests
             $"EXIT-BEFORE-DEATH violated: exit crossed at turn {exitTurn}, death at turn {deathTurn} "
             + "— exit LAGGED death, which no measurement granularity excuses");
         Assert.True(exitAtCross > deathAtCross,
-            $"EXIT-BEFORE-DEATH violated within turn {exitTurn}: attributable exit {exitAtCross} "
+            $"EXIT-BEFORE-DEATH violated within turn {exitTurn}: attributable FLIGHT {exitAtCross:F1} "
             + $"did not exceed attributable starvation {deathAtCross} — people are dying at least "
             + "as fast as they flee, so the D-021 Exit valve is not leading");
+        Console.WriteLine(
+            $"exit-before-death (T4.21-4, FLIGHT channel): threshold {threshold} of {pop0}; flight crossed "
+            + $"at turn {exitTurn} with {exitAtCross:F1} attributable flight against {deathAtCross} "
+            + $"attributable starvation; starvation crossed at turn {deathTurn}.");
+    }
+
+    /// <summary>The flight heads the transfer loop asks for at settlement
+    /// <paramref name="id"/>, from the planner Step itself consumes.</summary>
+    private static double FlightOutOf(WorldState prev, SimConfig cfg, double dtYears, int id)
+    {
+        Sim.Core.Systems.Migration.MigrationPlan plan =
+            Sim.Core.Systems.Migration.MigrationSystem.Plan(prev, cfg, dtYears);
+        for (int i = 0; i < prev.Settlements.Count; i++)
+            if (prev.Settlements[i].Id.Value == id) return plan.FlightOut[i];
+        return 0.0;
     }
 
     private static long StarvedTotal(WorldState world)
@@ -521,15 +573,87 @@ public class MigrationTests
         return worst;
     }
 
-    // T4.1b SUSPENDED (director ruling, ADR-018 §11). NOT re-pinned, NOT
-    // relaxed, NOT deleted — the assertion is MEASURED WRONG on main,
-    // independently of spacing: T4.1g measured gap-driven migration responding
-    // x3.10 to a 10x rate lever while GROSS migration responds x1.07, and this
-    // test asserts on GROSS. The observable is defective, not the mechanism.
-    // The skip LIFTS when M4's migration work re-derives what these teeth
-    // should assert. Owner: M4 migration. Do not re-enable by adjusting a
-    // threshold — that would pin the wrong observable harder.
-    [Fact(Skip = "T4.1b/ADR-018 §11: asserts on GROSS migration, which T4.1g measured as the wrong observable for the rate lever (gap-driven x3.10 vs gross x1.07). Lifts when M4's migration work re-derives the assertion. Owner: M4 migration.")]
+    /// <summary>
+    /// T4.21-4 (CR-015 N9, ADR-018 §11, milestones.md open item 4b) — THE
+    /// GAP-DRIVEN OBSERVABLE, which is what the rate-lever teeth below are
+    /// re-aimed onto. Same window, same famine exclusion and same
+    /// worst-settlement reduction as <see cref="MaxGrossPerDecade"/>; the
+    /// quantity is `plan.GapOut[s]` — the heads the gap (attractiveness-gap)
+    /// channel alone asks the transfer loop to move — read off
+    /// MigrationSystem.Plan, the pure planner Step itself consumes (spec
+    /// §3.11; M_Plan_EqualsStep pins planner == executed), on exactly the PREV
+    /// world and dt the step used. GROSS mixes this channel with famine flight
+    /// and with the D-037 readout's source, which is why T4.1g measured the
+    /// rate lever at ×1.07 on gross and ×3.10 on the gap channel: the lever
+    /// acts on the gap channel's desire and is diluted in the sum.
+    /// </summary>
+    private static double MaxGapDrivenPerDecade(SimConfig cfg, bool includeSettling = false)
+    {
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var exec = new TurnExecutor(CanonicalEra(),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)));
+        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
+
+        var gap = new double[4];
+        var popSum = new long[4];
+        var fedTurns = new int[4];
+        const int settling = 8, turns = 38;
+        for (int t = 1; t <= turns; t++)
+        {
+            WorldState prev = world;
+            world = exec.Step(world);
+            if (!includeSettling && t <= settling) continue;
+            Sim.Core.Systems.Migration.MigrationPlan plan =
+                Sim.Core.Systems.Migration.MigrationSystem.Plan(prev, cfg, world.Clock.DtYears);
+            for (int s = 0; s < 4; s++)
+            {
+                double prevDeficit = 0.0;
+                for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)
+                    if (prev.ConsumptionDeficits[i].Settlement.Value == s)
+                    { prevDeficit = prev.ConsumptionDeficits[i].DeficitRatio; break; }
+                if (prevDeficit > 0.0) continue; // famine turn: flight regime, out of band
+                int row = -1;
+                for (int i = 0; i < prev.Settlements.Count; i++)
+                    if (prev.Settlements[i].Id.Value == s) { row = i; break; }
+                if (row < 0) continue;
+                gap[s] += plan.GapOut[row];
+                popSum[s] += SettlementPop(world, s);
+                fedTurns[s]++;
+            }
+        }
+        double worst = 0.0;
+        for (int s = 0; s < 4; s++)
+        {
+            if (fedTurns[s] == 0) continue;
+            double meanPop = popSum[s] / (double)fedTurns[s];
+            worst = Math.Max(worst, gap[s] / fedTurns[s] / meanPop);
+        }
+        return worst;
+    }
+
+    // T4.21-4 — SKIP LIFTED, TEETH RE-AIMED ONTO THE GAP-DRIVEN OBSERVABLE
+    // (CR-015 N9; milestones.md open item 4b "needs an owner to re-aim the
+    // teeth onto the gap-driven observable"; ADR-018 §11 "not by adjusting a
+    // threshold, which would pin the wrong observable harder").
+    //
+    // WHAT MOVED AND WHAT DID NOT. The CORRIDOR assertion is untouched: it
+    // still reads MaxGrossPerDecade against corridors.json's
+    // migrationGrossPerDecade band, which RULE A of this packet and CR-015 N7
+    // both hold immovable. Only the TEETH — the rate-lever arms — move onto
+    // MaxGapDrivenPerDecade. That is the whole of ADR-018 §11's instruction:
+    // the band measures long-distance relocation (gross is the right quantity
+    // for it), while the lever acts on the gap channel's desire and is diluted
+    // in the sum (T4.1g: ×3.10 gap-driven against ×1.07 gross).
+    //
+    // WHERE THE FACTOR COMES FROM, so it is not a fit. The recorded DEAD
+    // signature is ×1.07 (ADR-018 §11's own measurement of a 10× lever on
+    // gross). The measured LIVE response of the gap channel to the same 10×
+    // lever on this rig is recorded in the assertion messages below. The bar is
+    // placed BETWEEN them by the method this repo already ratified for
+    // QuarantineDriftTolerance (T3.4c: 0.75 placed between a ×0.836 legitimate
+    // correction and a ×0.536 disablement signature) — a bar that a dead lever
+    // fails and a live one clears, not a bar fitted to today's number.
+    [Fact]
     public void MagnitudeCorridor_FedPhaseDrift_WithTeeth()
     {
         // TUNE corridor, FINALIZED at T2.8 on the STABILIZED system (director
@@ -570,60 +694,80 @@ public class MigrationTests
         Assert.True(worst is > 0.001 and < 0.010,
             $"gross migration {worst:P2}/decade outside the re-derived [0.1%, 1.0%] corridor "
             + "(frontier agrarian long-distance relocation; see corridors.json)");
-        double canonicalFull = MaxGrossPerDecade(cfg, includeSettling: true);
+        // ...WITH TEETH in both directions, on the GAP-DRIVEN observable and on
+        // the FULL window (settling included): a hot rate equalizes the
+        // founding gaps during settling and then goes quiet, so the
+        // steady-state window alone cannot see the lever.
+        //
+        // THE ASYMMETRY IS THE T2.8 CAP'S SIGNATURE AND IS REAL. The gap
+        // channel's per-pair desire is LINEAR in BaseRatePerYear up to
+        // min(1, f·m*_ij / desire_ij); above that the rate cancels out of the
+        // executed flow entirely. So the lever must move the observable —
+        // upward until the cap binds in every pair, downward as soon as it
+        // stops binding in any — and a lever that moves NOTHING means the cap
+        // binds everywhere and the mechanism is unreachable, which is the
+        // defect these teeth exist to catch.
+        double canonicalGap = MaxGapDrivenPerDecade(cfg, includeSettling: true);
+        Assert.True(canonicalGap > 0.0,
+            "the gap channel moved nobody on the canonical rate — the observable is dead, not the lever");
 
-        // ...WITH TEETH in both directions — measured on the FULL window
-        // (settling included): a hot rate equalizes the founding gaps during
-        // settling and then goes QUIET, so the steady-state measure alone
-        // cannot see it; the full-window measure saturates ABOVE the band at
-        // 10× and starves BELOW it at 0.1×.
         SimConfig hot = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 10 },
         };
-        double hotWorst = MaxGrossPerDecade(hot, includeSettling: true);
-        // CR-003 + T3.2b geometry: the HOT tooth is disarmed, for two reasons
-        // that compound, and neither is a migration defect.
-        //   (a) No famine anywhere, so the famine-flight channel — the one that
-        //       produces large gross flows — never opens.
-        //   (b) Attractiveness is R = foodWeight×food + landWeight×arable, and
-        //       the land term fell ~15× when the catchment became a 50 km
-        //       hinterland (canonical land term per settlement ≈ 264 → ≈ 17).
-        //       The weight was RE-DENOMINATED, not re-tuned, so the product is
-        //       bit-identical per unit of arable — but there is 15× less arable
-        //       per settlement, so land now barely moves attractiveness and the
-        //       gaps a hot rate could act on are small.
-        // With small gaps the T2.8 gap-closing cap binds, so a 10× base rate
-        // produces only ~1.5× the flow. Re-balancing foodWeight against
-        // landWeight is a deliberate TUNING decision and is NOT taken inside a
-        // denomination packet; it is recorded in cr-003 §2.5.
-        // T3.4b — QUARANTINE LIFTED (the migration-teeth family's second site;
-        // the first was exit-before-death). The guard reported RESOLVED at
-        // 1.31 %/decade against 0.83 %. The T3.4b re-derivation restored the
-        // land signal (landWeight 0.00390625 -> 0.078125, derived) and harvest
-        // variance opened real attractiveness gaps, so a hot base rate has
-        // somewhere to push again and the teeth are live.
-        //
-        // NOTE the asymmetry, which is the cap's signature and is real: pushing
-        // the base rate DOWN barely moves gross migration (0.03/0.018/0.012 ->
-        // 0.43/0.41/0.42 at the pre-derivation sigma) because the gap-closing
-        // cap already binds, while pushing it UP 10x does move it, by lifting
-        // desire above the cap in more pairs. A one-sided lever, not a dead one.
-        Assert.True(hotWorst > 0.0030 && hotWorst > canonicalFull * 1.5,
-            $"a 10× base rate has NO teeth: produced {hotWorst:P2}/decade against "
-            + $"{canonicalFull:P2} — the rate lever is dead in both directions");
+        double hotGap = MaxGapDrivenPerDecade(hot, includeSettling: true);
+        // THE UPWARD BAR IS THIS TEST'S OWN INHERITED FACTOR, 1.5 — the one the
+        // suspended version already carried ("matched to the MEASURED
+        // saturating response of the damped mechanism"). It is NOT re-chosen
+        // here: only the OBSERVABLE moved, which is precisely the distinction
+        // ADR-018 §11 draws ("not by adjusting a threshold"). It sits well
+        // above the recorded DEAD signature of ×1.07.
+        Assert.True(hotGap >= canonicalGap * 1.5,
+            $"a 10× base rate has NO teeth on the gap channel: {hotGap:P3}/decade against "
+            + $"{canonicalGap:P3} (×{hotGap / canonicalGap:F2}) — the recorded DEAD signature is ×1.07 "
+            + "(ADR-018 §11) and this test's inherited bar is ×1.5. The gap-closing cap binds in "
+            + "every pair and the rate lever is unreachable upward.");
+
         SimConfig cold = cfg with
         {
             Migration = cfg.Migration with { BaseRatePerYear = cfg.Migration.BaseRatePerYear * 0.1 },
         };
-        // Cold teeth are RELATIVE on the full window: at 0.1× the founding
-        // gaps persist (slow flows keep drifting all run), so an absolute
-        // floor cannot see the mis-tune — the monotone response can. The
-        // factor is 1.5, matched to the MEASURED saturating response of the
-        // damped mechanism (10× rate → ~2.1× flow; the T2.8 curve).
-        double coldWorst = MaxGrossPerDecade(cold, includeSettling: true);
-        Assert.True(coldWorst < canonicalFull / 1.5,
-            $"0.1× rate produced {coldWorst:P2}/decade (canonical {canonicalFull:P2}) — no teeth");
+        double coldGap = MaxGapDrivenPerDecade(cold, includeSettling: true);
+        // THE DOWNWARD TEETH ARE DERIVED, NOT FITTED, and they are deliberately
+        // weaker than the upward one, because the mechanism is. Per pair the
+        // executed gap flow is min(desire, f·m*) with desire LINEAR in the rate,
+        // and min(0.1·d, c) ≥ 0.1·min(d, c) for every pair — so a 10× cut can
+        // never take the flow below a TENTH of the canonical one, and it can
+        // never leave it at or above it. Those two are the whole of what the
+        // cap permits to be asserted; a factor between them would be a number
+        // invented to match today's measurement, which ADR-018 §11 forbids by
+        // name. STRICT monotonicity is the tooth that bites the recorded
+        // downward-dead signature, which was not merely flat but NON-MONOTONE
+        // (0.03/0.018/0.012 per year -> 0.43/0.41/0.42 %/decade: the 0.1× arm
+        // came back UP). MEASURED here, armed tree: ×0.74 — a real fall, far
+        // from linear, exactly the cap's signature.
+        Assert.True(coldGap < canonicalGap,
+            $"0.1× rate produced {coldGap:P3}/decade against canonical {canonicalGap:P3} "
+            + $"(×{coldGap / canonicalGap:F2}) — cutting the rate did not reduce the gap-driven flow. "
+            + "The recorded dead signature was exactly this: non-monotone in the rate because the "
+            + "gap-closing cap binds in every pair and the rate cancels out of the executed flow.");
+        Assert.True(coldGap >= 0.1 * canonicalGap,
+            $"0.1× rate produced {coldGap:P3}/decade, BELOW a tenth of the canonical {canonicalGap:P3} "
+            + "— impossible under the mechanism, since min(0.1·desire, cap) ≥ 0.1·min(desire, cap) "
+            + "pair by pair. Either the gap channel is no longer linear in BaseRatePerYear below the "
+            + "cap, or the rate is entering somewhere else too.");
+
+        Console.WriteLine(
+            $"rate lever, GAP-DRIVEN (T4.21-4 re-aim): 0.1× {coldGap:P3}, 1× {canonicalGap:P3}, "
+            + $"10× {hotGap:P3} per decade — ×{coldGap / canonicalGap:F2} / ×{hotGap / canonicalGap:F2}. "
+            + $"Same levers on GROSS (the retired observable): {MaxGrossPerDecade(cold, includeSettling: true):P3} / "
+            + $"{MaxGrossPerDecade(cfg, includeSettling: true):P3} / {MaxGrossPerDecade(hot, includeSettling: true):P3}. "
+            + "NOTE FOR THE NEXT READER, measured by T4.21-4 and NOT actioned here: on this tree the "
+            + "two observables now respond almost identically (gap ×0.74/×1.88, gross ×0.71/×1.91), so "
+            + "ADR-018 §11's premise — gap-driven ×3.10 against gross ×1.07 — no longer holds. "
+            + "T4.21-2's bounded flight and basin caps changed what GROSS is made of. The teeth are on "
+            + "the gap channel because that is what was ruled; the finding is recorded in "
+            + "docs/t4.21-4-record.md §4.4, not acted on.");
     }
 
     // --- conservation under random reachability graphs ----------------------
