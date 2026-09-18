@@ -100,13 +100,17 @@ public class MerchantTests
         // series reaches 3042 units on a settlement by turn 650, well past the
         // threshold of 200.
         // T4.21-3 RE-ANCHORED to the test's stated aim ("flips SOMEWHERE"): the
-        // latch has a recede predicate and oscillates on the canonical world —
-        // MEASURED on this tree: first active on turn 128, active on 169 of the
-        // 650 turns, last on 646, RECEDED at 650; on the pre-T4.21-3 tree it
-        // happened to read active at 650 (the same 0/2 flicker at turns
-        // 175/200/225…). Reading the latch at one turn asserted the phase of
-        // an oscillation, not reachability; the loop below asserts the latch
-        // was ever active within the horizon and reports where.
+        // latch has a recede predicate and oscillates on the canonical world, so
+        // reading it at ONE turn asserts the phase of an oscillation rather than
+        // reachability. The loop below asserts the latch was ever active within
+        // the horizon (the non-vacuity guard) AND pins where it first flipped.
+        // MEASURED on the merged T4.21-2 + T4.21-3 tree: first active on turn
+        // 119, active on 164 of the 650 turns. Both numbers move with the
+        // trajectory — what decides them is the trade_volume series, i.e. the
+        // migration/population trajectory the two packets changed (T4.21-2 alone
+        // measured 124; T4.21-3 alone measured 128).
+        // T4.21-2's first-latch pin and T4.21-3's loop form both survive here:
+        // the guard is on activeTurns, the turn-exact pin on firstActive.
         using var era = Sim.Data.DataFiles.OpenEraPacing();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(EraTableLoader.Load(era),
@@ -126,11 +130,11 @@ public class MerchantTests
         Console.WriteLine($"merchant latch: first active turn {firstActive}, active on {activeTurns} of 650 turns");
         int active = activeTurns;
 
-        Assert.True(firstLatchTurn > 0,
+        Assert.True(active > 0,
             "no settlement ever became a merchant town in 650 turns — either the predicate "
             + "threshold is above anything the world produces, or trade_volume is not reaching "
             + "the predicate. Merchants would be configured but unreachable.");
-        Assert.Equal(124, firstLatchTurn);   // measured on this tree (T4.21-2); moves with the trajectory
+        Assert.Equal(119, firstActive);   // measured on the merged tree; moves with the trajectory
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)
