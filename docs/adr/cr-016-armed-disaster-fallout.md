@@ -370,3 +370,26 @@ dotnet test -c Release --filter "FullyQualifiedName~Canonical_EraBoundaryContinu
 
 `sim.json`'s `disaster._doc` now carries both rigs' figures with their rigs named, rather than one
 number attributed to the other's windows.
+
+**The same pairing propagated into four other T4.21-4-era records, and they are DELIBERATELY LEFT
+ALONE** — `gov-4` §6: *never rewrite a frozen document because a later decision supersedes part of
+it; record the ambiguity and leave the document alone.* Every one of them is a measurement record of
+what the world does at λ = 0.01, and rewriting them would destroy the provenance the freeze exists
+to protect. **This paragraph IS that record — it is the single correction all four should be read
+through:**
+
+| site | what it says | status |
+| --- | --- | --- |
+| `docs/t4.21-4-record.md` §5 | "discontinuity **2.5259** per 1000 yr … : +0.4352 before, **−1.8220** after" | the conflated pair — FROZEN record, `docs/t4.21-4-record.md`'s own header says "nothing in this file was rewritten"; read via this table |
+| `docs/t4.21-4-record.md` §5 red table | `Canonical_EraBoundaryContinuity_PermanentBatteryMember` — "the CR-001 detonator, 2.5259 per 1000 yr" | attributes the DemographyRetune rig's figure to the BATTERY test by name; that test's own discontinuity is **2.2572**. FROZEN; read via this table |
+| `docs/queue.md` entry T4.21-4 | "breaks … by 2.5259 per 1000 yr (+0.4352 before, −1.8220 after)" | the conflated pair; T4.21-4's escalation entry, left as written |
+| `docs/adr/adr-024…` §disaster | "breaks at the era gate by 2.5259 per 1000 yr (+0.4352 before, −1.8220 after)" | the conflated pair, left as written |
+
+Two further sites give **2.5259 alone**, with no seed and no window attached — `docs/adr/cr-015…`
+and `docs/current-state.md`. Those are **CORRECT as written** for the DemographyRetune rig and need
+nothing; they are listed so a reader checking this table does not think they were missed.
+
+**Only NEW prose was corrected**, which is precisely what ADR-015 §6 governs: the shipped
+`sim.json` `disaster._doc` (T4.21-7-authored) and this section (T4.21-8-authored). No number in any
+frozen record moved, and the one that mattered — *is the detonator broken?* — is answered the same
+way by both rigs and by every one of these six sites: **yes, by ~23–25× the bar.**
