@@ -63,8 +63,17 @@ namespace Sim.Core.State;
 /// for every founded settlement; the turn-2 refusal comes from that row being
 /// PRESENT alongside the turn-1 zero staple harvest, which this key is forbidden to
 /// read. The arm therefore fires only where a settlement is genuinely younger than
-/// its first catchment recompute. See ADR-025 §null-arm for the residual and the
-/// queue line that carries it.
+/// its first catchment recompute. WHERE IT DOES FIRE — a settlement in its first
+/// turn after founding — it yields Limit = +∞, hence V = +∞: one turn with no
+/// vacancy bound and no growth cap, bounded to exactly one turn by
+/// CatchmentSystem.IsStale's summary-count check (CatchmentSystem.cs:178), which
+/// gives the new settlement its row on the very next turn. That one-turn
+/// unbounded-inflow window is a real semantic change from the pre-T4.21-4
+/// behaviour, under which a colony with a demand row and no catchment row read
+/// N_lim = 0 and refused every arrival. No integration world on this tree
+/// exercises it (the canonical founded world founds no colonies over 300 turns);
+/// the evidence is H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero
+/// alone. See ADR-025 §null-arm for the residual and the queue line that carries it.
 /// </summary>
 public static class FoodHeadroom
 {

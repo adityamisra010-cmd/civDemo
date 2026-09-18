@@ -154,18 +154,36 @@ The orchestrator's pre-registered RULE 1 put a threshold on it: the source basin
 merged tree's canonical gross migration per decade is `≥ 0.4 ×` the pre-packet arm AND inside the
 corridor band `[0.001, 0.01]`.
 
-**MEASURED (T4.21-4, canonical founded seed 42, no orders, `sim autoplay --seeds 1 --seed-base 42
---turns 300 --metrics`; gross migration per decade = `Σ_{t=2..300} migrationGross / Σ_{t=2..300}
-population × dtYears × 10`, the `CalibrationAnalysis.MigrationGrossPerDecade` formula restricted to
-turns 2..300):**
+**MEASURED (T4.21-4, `sim autoplay --seeds 1 --seed-base <S> --turns 300 --metrics`, no orders;
+gross migration per decade = `Σ_{t=2..300} migrationGross / Σ_{t=2..300} population × dtYears × 10`,
+the `CalibrationAnalysis.MigrationGrossPerDecade` formula restricted to turns 2..300). RULE 1 named
+FOUR worlds — the canonical seed 42 *and* seeds 1, 2, 3. All four arms below were re-measured by the
+T4.21-4 fix lane on its own worktrees (arm (a) a fresh `1735d41` worktree, arm (b) the lane tree at
+`3671ed0`, which is `a621c86` plus the RULE 2 null arm of §2.4a and test/doc commits); the seed-42
+row reproduces the originally recorded values and world hashes exactly:**
 
-| arm | commit | gross/decade | world hash |
-| --- | --- | --- | --- |
-| (a) pre-packet | `1735d41` | **0.001509** | `008aa28ceeb73659…` |
-| (b) merged | `a621c86` (≡ `8a945f3`, test/doc-only since) | **0.001021** | `db7c7a0907ad4335…` |
+| seed | (a) pre-packet `1735d41` | (b) merged `3671ed0` | ratio (b)/(a) | 0.4 × (a) | (a) in band | (b) in band |
+| --- | --- | --- | --- | --- | --- | --- |
+| **42 (canonical)** | **0.001509** (`008aa28ceeb73659…`) | **0.001021** (`db7c7a0907ad4335…`) | **0.677** | 0.000604 | yes | **yes** |
+| 1 | 0.000968 (`677c8aeac61c1427…`) | 0.000795 (`41a6c4ffed9a3628…`) | 0.821 | 0.000387 | **no** | no |
+| 2 | 0.001406 (`b4f34852febbd64b…`) | 0.000799 (`23f53129663c3bec…`) | 0.568 | 0.000563 | yes | **no** |
+| 3 | 0.001736 (`98a13ba7455717f8…`) | 0.001131 (`af18ab8ea6e4c913…`) | 0.652 | 0.000694 | yes | yes |
 
-`0.001021 ≥ 0.4 × 0.001509 = 0.000604` (it is `0.677 ×` arm (a)) **and** `0.001021 ∈ [0.001, 0.01]`.
-Both conditions hold ⇒ **the source basin cap STAYS as shipped**; no mechanism changes, and
+**The RATIO half of RULE 1's condition holds on all four worlds** (0.568–0.821, every one ≥ 0.4).
+**The BAND half holds on the canonical world and on seed 3, and fails on seeds 1 and 2.** The two
+failures are not the same failure: seed 1 reads 0.000968 *pre-packet*, i.e. it was already below the
+corridor floor 0.001 before this packet and the packet did not put it there; **seed 2 CROSSES OUT of
+the band because of the packet** (0.001406 → 0.000799).
+
+**Ruling as taken: the source basin cap STAYS as shipped.** The decision rests on reading RULE 1's
+"arm (b)'s canonical gross migration" as **the seed-42 canonical world**, where both halves hold
+(`0.001021 ≥ 0.000604` and `0.001021 ∈ [0.001, 0.01]`), with seeds 1–3 as supporting evidence for
+the ratio half only; `corridors.json` rules migration a RECORD rather than an acceptance gate, so the
+band is not itself a gate that seeds 1 and 2 fail. **For the director, in the same breath as the
+escalation below:** seed 2's band exit `0.001406 → 0.000799` is a same-cause reading of the residual
+pre-packet → merged cut that is already escalated at the end of this section — it is the largest of
+the four cuts (0.568×) and the only one that changes a world's band membership, and it should be
+ruled on together with where that cut sits. No mechanism changes here, and
 `M_Basin_FanOut_AggregateOutflowBounded`, `M_Basin_FanIn_AggregateInflowBounded`,
 `M_Basin_FanIn_Flight_BoundedByVacancy` and the **M-MIG-FANOUT** / **M-MIG-FANIN** mutants all stay.
 The fed-world magnitude is **the specified physics, measured and accepted**.
@@ -217,6 +235,32 @@ comes from that row being **PRESENT** alongside the turn-1 zero staple harvest, 
 zero is exactly what RULE 2 forbids (it is the abandoned settlement's genuine zero). The arm fires
 only where a settlement is genuinely younger than its first catchment recompute; the canonical world
 founds no colonies over 300 turns (12 settlements throughout), which is why the no-op is bit-exact.
+
+**What it DOES where it fires** (the scope above is stated negatively; this is the positive half).
+A settlement in its first turn after founding reads `Limit = +∞`, hence `V = +∞`: **one turn with
+no vacancy bound and no growth cap**, bounded to exactly one turn by `CatchmentSystem.IsStale`'s
+summary-count check (`CatchmentSystem.cs:178`, `prev.CatchmentSummaries.Count != prev.Settlements.Count
+⇒ recompute`), which gives the new settlement its row on the very next turn. That one-turn
+unbounded-inflow window is a REAL semantic change from the pre-RULE-2 behaviour, under which a
+colony with a demand row and no catchment row read `N_lim = 0` and refused every arrival. **No
+integration world on this tree exercises it** — the canonical founded world founds no colonies over
+300 turns and its 300-turn hash `db7c7a0907ad4335…` and first-migration turn are unchanged by the
+arm — so the evidence for it is
+`FoodHeadroomTests.H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero` alone.
+
+**DEVIATION FROM RULE 2 — DIRECTOR SIGN-OFF REQUIRED.** RULE 2's stated acceptance criterion — a
+test proving "the first migration turn returns to 2 on founded and driven seed 42", and "close the
+queue line" — is **MEASURED AND NOT MET**, and it is **not attainable under RULE 2's own prohibition
+on keying the arm on `production == 0`**. The rule's factual premise is refuted: the turn-1 world
+already carries a catchment row for every founded settlement (`Sim.Data/content/pipeline.json`
+entry 1; `CatchmentSystem.cs:121-141` emits one row per settlement in `prev.Settlements` into NEXT,
+and `:178`'s summary-count check makes turn 1 the first recompute), so there is no row absence on
+turn 2 to key on — the refusal comes from the row being PRESENT beside the turn-1 zero staple
+harvest, which is exactly what the rule forbids reading. Measured on this tree: first migration turn
+is **3** on the packet arm against **2** pre-packet, before and after the arm. The lane implemented
+the permitted key, recorded the residual and left the queue line OPEN, which is the only
+self-consistent option the rule leaves it; but the unmet criterion is a deviation from a
+pre-registered rule and is recorded here for the director's ruling, not absorbed silently.
 
 **Residual, NOT taken here** (no new design under the rule): the turn-2 refusal stands. Closing it
 needs either a key that separates "the row did not exist when the production ran" from "the row

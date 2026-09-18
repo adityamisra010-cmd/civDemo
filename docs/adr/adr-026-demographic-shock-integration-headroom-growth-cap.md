@@ -31,8 +31,9 @@ T4.21-2 ∥ T4.21-3 share no hunk). Ruling: `docs/adr/cr-015-famine-is-exception
   are closed; `FoodSupportedPopulation`/`FoodConstrainedGrowth` become legally RECOMPUTED from
   `FoodHeadroom`.
 - `docs/queue.md:66-70` (T2.8 adversarial item (2), rebound release gated on `unsuppressed > 0`):
-  ANNOTATED — the release gate stays on NOMINAL `d == 0.0` (`DemographicsSystem.cs:181`,
-  byte-identical); the `unsuppressed > 0` half is untouched and the item stays open.
+  ANNOTATED — the release gate stays on NOMINAL `d == 0.0` (now evaluated twice,
+  `DemographicsSystem.cs:319` in PASS A and `:365` in PASS B — see §2.2(i); the reservoir arithmetic
+  is bit-identical to `1735d41`); the `unsuppressed > 0` half is untouched and the item stays open.
 
 **Does NOT change:** ADR-011 exponential survival `1 − e^{−m h}`, `1 − e^{−s h}` (`:204-209`);
 `MicroStepYears` 0.5; ADR-010 aging (`:211-218`); the rebound reservoir's bank/release arithmetic
@@ -119,6 +120,13 @@ vitals arms.
   a zero-arable row are the same number to attractiveness and only the `FoodHeadroom` arm moves.
 
 See ADR-025 §2.4a for the measured scope of this arm and for what it does **not** close.
+The residual recorded there is **not migration-only**: the same turn-1 zero staple harvest gives
+`N_lim = 0` on turn 2 for every settlement, so the growth cap of §2.2(ii) also holds births to
+replacement world-wide for that one turn (MEASURED, T4.21-4 fix lane, founded seed 42 under the
+15-order `--labor` corpus: turn 1 harvest 0 in 12/12 settlements; turn 2 births ≤ deaths in 12/12
+settlements, against 4/12 on turn 1 and 6/12 on turn 3; world totals turn 1 opening 5143, births
+2157, deaths 2055 → 5245, turn 2 births 2070, deaths 2167 → 5148 — population falling on a turn with
+no deficit and no suppression).
 
 ### 2.2 Kernel changes (`DemographicsSystem.cs:122-141, 162-195`)
 
@@ -126,8 +134,16 @@ See ADR-025 §2.4a for the measured scope of this arm and for what it does **not
 beside `deficit` (`:128-135`): `state = FoodState.Of(prev, s, cfg, out _)`, `dEff =
 FoodState.EffectiveDeficit(deficit, state, cfg)`. Then `:136` `suppression = max(0, 1 − slope ×
 dEff)` and `:139` `starveRate[c] = StarvationRate(d, c, dEff)`. In FAMINE `dEff == deficit`, so both
-channels read the whole deficit; outside FAMINE both read the adapted remainder. `:181` (release
-gate `deficit == 0.0`) is byte-identical on nominal `d`. dt-invariance holds by construction:
+channels read the whole deficit; outside FAMINE both read the adapted remainder. The release GATE still reads the
+NOMINAL deficit and the reservoir's bank/release arithmetic is unchanged from `1735d41`'s
+`:179-185` — the same two `double` operations (`R + bank`, then `× min(1, r h)`) in the same order,
+so the fed path is bit-identical by construction. The gate itself now appears TWICE rather than once
+at `:181`: **PASS A** (`DemographicsSystem.cs:319`, `deficit == 0.0 && unsuppressed > 0.0`) evaluates
+it to build the candidate, and **PASS B** (`:365`, `deficit == 0.0 && unsuppressedA[i] > 0.0`) to
+commit it — because the candidate must exist before the settlement-level multiplier `m` can be
+formed. PASS B's `if`/`else if` is equivalent to the unconditional pseudo-code in §2.2(ii): when the
+gate is closed `release == 0`, so `reservoir -= release` is a no-op, and `unsuppressedA[i]` holds the
+same `double` PASS A computed. dt-invariance holds by construction:
 `dEff` is a per-turn scalar and `e^{−s h}` composes. The birth full-stop sits at nominal
 `d = a + (1 − a)/3 = 0.4667` outside FAMINE and at `1/3` inside it.
 
