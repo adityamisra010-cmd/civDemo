@@ -88,6 +88,11 @@ Dev preset (256², N = 4), 1000 turns:
 | 7 | λ = 0 | 0 | 0 | 123,600 | 123,600 |
 | 7 | λ = 0.01 | 6,414 | 1 | 4,165 | **62** |
 
+And the CANONICAL 1024² DRIVEN world — the one the goldens and the observability suite run on — goes
+the same way over 300 turns: **6,373 → 147 people** at turn 300 (`ObservedWorlds.Driven300`,
+re-measured). The founded world holds at 10,974 against 40,539, so the collapse is not universal at
+300 turns; it is the LONGER horizons and the DRIVEN world that die.
+
 ### 2.5 The dev migration corridor reverses direction
 
 `dev.migrationGrossPerDecade`, dev preset, 1000 turns: seed 42 **8.34E-05 → 0.0148**, seed 7
