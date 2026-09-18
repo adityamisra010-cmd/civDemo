@@ -349,12 +349,17 @@ public class GlassBoxUiTests
             Assert.Equal(line.Lever.IsNone, gapLine.Lever.IsNone);
             Assert.Equal(line.Lever.Sectors, gapLine.Lever.Sectors);
         }
-        // The seven conditions the lever table names (Levers.cs): NutritionalDemand,
+        // The conditions the lever table names (Levers.cs): NutritionalDemand,
         // ArableLand, HarvestWeather, DepositAbundance, GrainImports, Population,
-        // PersonsPerDwelling — plus NotSimulated. Pinned so a node turning None
-        // (or levered) is a visible change here.
-        Assert.Equal(8, none);
-        Assert.Equal(Enum.GetValues<ChainNode>().Length - 8, levered);
+        // PersonsPerDwelling — plus NotSimulated, plus T4.21-5's
+        // DisasterMultiplierApplied, which is the ONE famine cause no order can
+        // avert (the other, abandonment, is the two food sliders at zero and is
+        // therefore levered). Pinned so a node turning None (or levered) is a
+        // visible change here.
+        Assert.Equal(9, none);
+        Assert.Equal(Enum.GetValues<ChainNode>().Length - 9, levered);
+        Assert.True(Levers.For(ChainNode.DisasterMultiplierApplied).IsNone);
+        Assert.False(Levers.For(ChainNode.Abandoned).IsNone);
     }
 
     [Fact]
@@ -403,7 +408,7 @@ public class GlassBoxUiTests
         CausalChain chain = CausalChain.ForNeed(session.PreviousWorld!, session.World, session.Config,
             new SettlementId(target), new ClassId(peasants.ClassId), BasketBook.SustenanceNeedId)!;
         Assert.Equal(chain.Links.Length, primary.Chain.Count);
-        Assert.Equal(27, chain.Links.Length);
+        Assert.Equal(31, chain.Links.Length);   // T4.21-5 adds four: FoodState, effective deficit, disaster multiplier, abandoned
         int noted = 0, gaps = 0, conditions = 0;
         for (int i = 0; i < chain.Links.Length; i++)
         {
@@ -419,9 +424,26 @@ public class GlassBoxUiTests
                 Assert.DoesNotContain("labour allocation", line.Lever.Text);
             }
         }
-        Assert.Equal(24, noted);
-        Assert.Equal(3, gaps);
-        Assert.Equal(6, conditions);
+        // T4.21-5 adds four links to the food-supply block. MEASURED on this
+        // rig: FoodState, the effective deficit and Abandoned carry notes
+        // (24 -> 27); the settlement has no DisasterRow, so the applied-
+        // multiplier link is a GAP (3 -> 4) whose lever is None (6 -> 7).
+        Assert.Equal(27, noted);
+        Assert.Equal(4, gaps);
+        Assert.Equal(7, conditions);
+        // The state word and its CAUSE are on the chain, beside the deficit —
+        // and on this rig the cause is the point. The starved session orders
+        // 0/0/45/45/10: farming AND herding are zero, so the shortfall is not a
+        // bad decade, it is FAMINE BY ABANDONMENT, and the chain names it.
+        Assert.Contains(primary.Chain, l => l.Text.Contains("FoodState = Famine (Abandonment)"));
+        Assert.Contains(primary.Chain, l => l.Text.Contains("food labour abandoned"));
+        Assert.Contains(primary.Chain, l => l.Text.Contains("effective deficit"));
+        // FAMINE's effective deficit IS the nominal one (no adaptation is
+        // possible), which is exactly what distinguishes it from STRESS.
+        ChainLine dRatio = Assert.Single(primary.Chain, l => l.Text.Contains("DeficitRatio"));
+        ChainLine dEff = Assert.Single(primary.Chain, l => l.Text.Contains("effective deficit"));
+        Assert.Equal(
+            dRatio.Text.Split("  ")[2], dEff.Text.Split("  ")[2]);
         Assert.Contains(primary.Chain, l => l.Text.Contains("weather") && l.Lever.IsNone && l.Lever.Text.Contains("condition, not a control"));
         Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone && l.Lever.Text.StartsWith("lever: labour allocation - farming ("));
 
