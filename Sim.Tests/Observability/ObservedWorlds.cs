@@ -72,18 +72,28 @@ internal static class ObservedWorlds
     /// <summary>The three worlds at the packet's horizon, stepped ONCE per test
     /// process and shared: 300 founded + 300 driven turns cost ~90 s, and every
     /// identity below is asserted over the same run rather than a re-run.
-    /// MEASURED on this tree (the numbers the tests pin as non-vacuity):
-    ///   FOUNDED 300: births, deaths, migrants, harvest and spoilage are ALL
-    ///     non-zero on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact);
-    ///     overflow first on turn 1, NO starvation in 300 turns (T4.21-3: was
-    ///     first on 55 — the effective deficit makes weather-sized shortfalls
-    ///     STRESS), trade on 21 (was 41), dwellings never decay; no settlement
-    ///     is founded (12 throughout).
-    ///   DRIVEN 300: the same five non-zero on turn 2; starvation on 8 (was 7),
-    ///     trade on 7, decay on 82 (was 48; 25 on the pre-lane-C founding
-    ///     vector) — T4.21-3 re-measured: the turn-2 headroom hold every
-    ///     founded world takes (SnapshotTests.FoundedGolden), then chaotic
-    ///     divergence; no founding; 56 policy changes, all on turn 3.
+    /// MEASURED ON THE MERGED T4.21-2 + T4.21-3 TREE by the agent writing this
+    /// comment (the numbers the tests pin as non-vacuity). Every FIRST TURN below
+    /// is a measured value, not a claim about the mechanism; what decides the
+    /// migration line in particular is the VACANCY BOUND'S NULL ARM (ADR-025
+    /// §3.5c — turn 1 is the zero-harvest endowment turn, so N_lim = 0 and V = 0
+    /// on turn 2 and every gap flow is refused world-wide for that one turn;
+    /// docs/queue.md carries it as a measured finding, and a future packet that
+    /// changes that null arm moves these turns):
+    ///   FOUNDED 300: births, deaths and spoilage first non-zero on turn 1,
+    ///     harvest on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact),
+    ///     migrants first on turn 3 (0 on turn 2, 252 on turn 3); overflow first
+    ///     on turn 1, NO starvation in 300 turns (55 pre-packet, 57 on the
+    ///     T4.21-2 branch — the effective deficit makes weather-sized shortfalls
+    ///     STRESS), first trade on turn 28 (41 pre-packet, 21 on the T4.21-3
+    ///     branch), dwellings never decay; no settlement is founded (12
+    ///     throughout); 40,539 people at turn 300.
+    ///   DRIVEN 300: the same four non-zero by turn 2 and migrants on turn 3;
+    ///     starvation first on 8 (7 pre-packet), trade on 7, and NO dwelling
+    ///     decay in 300 turns (48 on the T4.19-A tree, 64 on the T4.21-2 branch,
+    ///     82 on the T4.21-3 branch — measured absent here); no founding; 56
+    ///     policy changes, all on turn 3; pottery on turn 5: 1829 produced, 845
+    ///     eaten, 0 sunk as inputs; 6,373 people at turn 300.
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
     ///     settlement 0, party 143, provisions 128; nothing founded after.</summary>
     internal static readonly Lazy<Run> Founded300 =
