@@ -145,6 +145,86 @@ destination j:
 - **Order of scales is pinned:** pair → destination basin → source basin → vacancy → overdraw; each
   a pure function of prev, so the whole plan is computable before the transfer loop.
 
+### 2.3a The source (fan-out) basin cap — T4.21-4 RULE 1: **STAYS**, fed-world magnitude MEASURED and ACCEPTED
+
+§2.3 above expected the basin bounds to "bite on the multi-source refill after a collapse". T4.21-2
+measured that with 11 destinations per source **every basin is multi-member**, so the caps are active
+every turn in the fed canonical world, and raised it for ruling (`queue.md`, `docs/t4.21-2-record.md`).
+The orchestrator's pre-registered RULE 1 put a threshold on it: the source basin cap stays iff the
+merged tree's canonical gross migration per decade is `≥ 0.4 ×` the pre-packet arm AND inside the
+corridor band `[0.001, 0.01]`.
+
+**MEASURED (T4.21-4, canonical founded seed 42, no orders, `sim autoplay --seeds 1 --seed-base 42
+--turns 300 --metrics`; gross migration per decade = `Σ_{t=2..300} migrationGross / Σ_{t=2..300}
+population × dtYears × 10`, the `CalibrationAnalysis.MigrationGrossPerDecade` formula restricted to
+turns 2..300):**
+
+| arm | commit | gross/decade | world hash |
+| --- | --- | --- | --- |
+| (a) pre-packet | `1735d41` | **0.001509** | `008aa28ceeb73659…` |
+| (b) merged | `a621c86` (≡ `8a945f3`, test/doc-only since) | **0.001021** | `db7c7a0907ad4335…` |
+
+`0.001021 ≥ 0.4 × 0.001509 = 0.000604` (it is `0.677 ×` arm (a)) **and** `0.001021 ∈ [0.001, 0.01]`.
+Both conditions hold ⇒ **the source basin cap STAYS as shipped**; no mechanism changes, and
+`M_Basin_FanOut_AggregateOutflowBounded`, `M_Basin_FanIn_AggregateInflowBounded`,
+`M_Basin_FanIn_Flight_BoundedByVacancy` and the **M-MIG-FANOUT** / **M-MIG-FANIN** mutants all stay.
+The fed-world magnitude is **the specified physics, measured and accepted**.
+
+Two findings from the diagnostic arms, recorded because they bear on §2.3's own reasoning (measured
+by the T4.21-4 diagnostic lane in throwaway worktrees, one-line edits `srcScale[src] = 1.0` at
+`MigrationSystem.cs:633` and `destScale[dst] = 1.0` at `:600`; four divergent trajectories, not a
+counterfactual on one world):
+
+- **Neither basin cap is what moved (a) → (b).** Disabling the source cap moves canonical gross
+  migration to `0.000922` — *down* 9.7 % — and disabling the destination cap to `0.000939`. The
+  residual cut sits in the vacancy bound (§2.4), the bounded flight (§2.1), the exit-openness / exact
+  hazard rewrite, or the turn-2 artefact below; RULE 1 does not decide those, and they are escalated
+  to the director rather than settled here.
+- **The source cap is separately evidenced on single-turn fractions**, which is the pathology §2.3
+  names. On the driven seed-42 world, turning it off raises max inflow fraction `0.1754 → 0.1987`
+  (Libur t119) and roughly doubles settlement 9's t3 outflow fraction, `0.0965 → 0.1834` — exactly
+  the multi-destination turns the cap exists for. Its 300-turn gross effect is small; its per-turn
+  effect is not.
+- **Finding (A)'s ~3× headline is mostly the DESTINATION stage.** On the merged tree the source
+  basin binds on 13.8 % of settlement-turns against the destination stage's 37.4 %, and the
+  destination cap alone removes 57.6 % of pair-capped desire.
+
+### 2.4a The vacancy bound's turn-2 refusal, and what the T4.21-4 RULE 2 null arm does and does not close
+
+§2.4's stated null arm ("absent demand row ⇒ `V_j = +∞`") covers the founding turn. It does **not**
+cover the turn AFTER founding, and T4.21-2 measured the consequence: on turn 2 every settlement reads
+`N_lim = 0 ⇒ V = 0` and the vacancy bound refuses **every gap flow world-wide** for that one turn
+(founded and driven seed 42: migration's first turn moved 2 → 3). The cause is the T4.18 warm-up
+artefact — the founding turn harvests zero because `ProductionSystem.Farm` reads
+`prev.CatchmentSummaries` for arable and on turn 1 no catchment row exists yet.
+
+RULE 2 amends the null arm to add **catchment row absence** (ADR-026 §2.1a). **MEASURED (T4.21-4):
+that arm does NOT restore the turn-2 flows, and moves no golden.**
+
+- Founded seed 42, 300 turns: hash `db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9`
+  **before and after** — the `ci.yml` `FOUNDED_GOLDEN`, reproduced via the ci step's own
+  `sim run --founded --seed 42 --turns 300 --hash-log`. Gross migration per decade over turns 2..300
+  is `0.001021` both ways; `migrationGross[1..6] = [0, 0, 252, 215, 149, 110]` both ways; **first
+  migration turn 3 both ways**.
+- Driven world (`sim run --founded --seed 42 --turns 300 --orders`, the ci corpus from
+  `scripts/gen-sample-orders.py … 300 --labor`): the 300-turn hash log is **byte-identical every
+  turn**, final `998c68f2f60871e3…`.
+
+**Why.** Catchment is pipeline entry 1 (`Sim.Data/content/pipeline.json`) and writes into **NEXT**
+(`CatchmentSystem.cs:138-140`, one row per settlement in `prev.Settlements`). So the turn-1 world —
+which is PREV on turn 2 — *already carries a row* for every founded settlement. The turn-2 refusal
+comes from that row being **PRESENT** alongside the turn-1 zero staple harvest, and keying on that
+zero is exactly what RULE 2 forbids (it is the abandoned settlement's genuine zero). The arm fires
+only where a settlement is genuinely younger than its first catchment recompute; the canonical world
+founds no colonies over 300 turns (12 settlements throughout), which is why the no-op is bit-exact.
+
+**Residual, NOT taken here** (no new design under the rule): the turn-2 refusal stands. Closing it
+needs either a key that separates "the row did not exist when the production ran" from "the row
+existed since founding" — no such key is computable from `prev` alone without a new field or a
+warm-up marker — or the structural T4.18 warm-up fix already on the queue (founded worlds carrying
+their catchment summaries, so turn 1 harvests and no null arm is needed at all). The queue line stays
+open on that basis, with this measurement attached.
+
 ### 2.5 D-037 B1 readout (ADR-021) — value follows, condition does not
 
 Condition (`:320-333`) UNCHANGED. Value (`:338-341`) becomes the DESTINATION-FREE hazard:

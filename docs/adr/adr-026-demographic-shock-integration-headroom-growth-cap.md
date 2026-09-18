@@ -87,6 +87,39 @@ Vacancy(prev, s, …) = max(0, Limit(…) − N_nutr(prev, s))    // N_nutr = Σ
 - **Identity arm:** `+∞` whenever the inputs are absent — every hand-built rig
   (`new ConsumptionDeficitRow(s, d)` defaults `DemandUnits` to 0) and every founding turn.
 
+#### 2.1a The null arm — AMENDED T4.21-4 (RULE 2): catchment ROW ABSENCE
+
+The null arm's meaning is **"the influx is UNMEASURED"**, and a settlement whose catchment has never
+been computed could not have produced. `FoodHeadroom.Limit` therefore returns `+∞` when
+`prev.CatchmentSummaries` carries **no row** for the settlement, ahead of the deficit / demand /
+vitals arms.
+
+- **Mechanism, confirmed at file:line.** `ProductionSystem.Farm` (`ProductionSystem.cs:211-216`)
+  scans `prev.CatchmentSummaries` for `EffectiveArableKm2`; with no row `arableKm2` stays `0.0`, so
+  `landSide = 0` and `ratePerYear = min(landSide, laborSide) = 0` (`:230-233`). `S = 0` gives the
+  fixed point `X = 0` and `N_lim = 0` — a **structural unavailability of the measurement**, not a
+  measured zero capacity.
+- **Keyed on ROW ABSENCE ONLY — never on `production == 0` and never on `arable == 0`.** A zero
+  influx with the catchment computed is the **ABANDONED** settlement's *genuine* zero, which must
+  keep `N_lim = 0` (`D_Cap_NoGrowthOnAGranary`, the abandonment semantics). `CatchmentSystem`
+  (`CatchmentSystem.cs:138-140`) emits one row per settlement in `prev.Settlements` unconditionally
+  on labour and sectors, so a real abandoned settlement always has its row and never reaches this
+  arm; and `FoodState.IsAbandoned` (`FoodState.cs:119-129`) reads the raw sector row, nothing to do
+  with the catchment.
+- **Test.** `FoodHeadroomTests.H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero`
+  asserts both arms of the one decision together: no row (every other input present) ⇒ `Limit` and
+  `Vacancy` are `+∞`, the same rig WITH the row is finite, and a row with `arable > 0` and zero food
+  production ⇒ `Limit == 0`, `Vacancy == 0`. Keying on `arable == 0` or on `S == 0` collapses the
+  second case into the first and fails it.
+- **Rigs.** Rigs that assumed the finite arm now carry the row they implied: `FoodHeadroomTests.Rig`
+  (new `catchmentRow` parameter, default true), `DemographicShockTests.CappedRig` (arable 5000 — the
+  abandoned case above), `D_Headroom_CountsArrivals`'s inline world and `MigrationBoundedTests.Vacant`.
+  The migration rigs take **arable 0**, which is attractiveness-neutral by construction:
+  `MigrationSystem.cs:296-299` leaves `arableKm2` at `0.0` when no row matches, so an absent row and
+  a zero-arable row are the same number to attractiveness and only the `FoodHeadroom` arm moves.
+
+See ADR-025 §2.4a for the measured scope of this arm and for what it does **not** close.
+
 ### 2.2 Kernel changes (`DemographicsSystem.cs:122-141, 162-195`)
 
 **(i) Mortality and fertility on the effective deficit (G3(b)).** Once per settlement from PREV
