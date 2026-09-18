@@ -41,8 +41,30 @@ namespace Sim.Core.State;
 ///
 /// NULL / IDENTITY ARM: +∞ whenever the inputs are absent — no deficit row,
 /// DemandUnits == 0 (every hand-built exactness rig: `new ConsumptionDeficitRow(s, d)`
-/// defaults DemandUnits to 0) or no vitals row — so every founding turn and every
-/// existing rig is untouched by construction, not by tuning.
+/// defaults DemandUnits to 0), no vitals row, or NO CATCHMENT SUMMARY ROW — so
+/// every founding turn and every existing rig is untouched by construction, not
+/// by tuning.
+///
+/// THE CATCHMENT ARM (T4.21-4, RULE 2; ADR-025 §null-arm, ADR-026 §null-arm).
+/// The null arm's meaning is "the influx is UNMEASURED", and a settlement whose
+/// catchment has never been computed could not have produced: `ProductionSystem.Farm`
+/// reads `prev.CatchmentSummaries` for its arable (ProductionSystem.cs:211-216), so
+/// with no row the land side is 0 and the staple harvest is 0 — an S of 0 that is a
+/// STRUCTURAL UNAVAILABILITY of the measurement, not a measured zero capacity.
+/// Keyed on ROW ABSENCE ONLY — never on "production == 0", which is the ABANDONED
+/// settlement's genuine zero influx and must keep N_lim = 0 (D_Cap_NoGrowthOnAGranary
+/// and the abandonment semantics depend on it; CatchmentSystem emits a row per
+/// settlement in `prev.Settlements` regardless of labour or sectors, so an abandoned
+/// settlement in a real world always has one).
+///
+/// MEASURED SCOPE OF THIS ARM (T4.21-4, canonical founded seed 42, 300 turns): it
+/// does NOT restore the turn-2 gap flows. Catchment is pipeline entry 1 and writes
+/// into NEXT, so the turn-1 world — which is PREV on turn 2 — already carries a row
+/// for every founded settlement; the turn-2 refusal comes from that row being
+/// PRESENT alongside the turn-1 zero staple harvest, which this key is forbidden to
+/// read. The arm therefore fires only where a settlement is genuinely younger than
+/// its first catchment recompute. See ADR-025 §null-arm for the residual and the
+/// queue line that carries it.
 /// </summary>
 public static class FoodHeadroom
 {
@@ -53,6 +75,18 @@ public static class FoodHeadroom
         IReadOnlyWorldState prev, SettlementId s, double[] cohortWeights, BasketBook baskets)
     {
         _ = cohortWeights;
+
+        // ROW ABSENCE of the catchment summary ⇒ the influx is unmeasured (see the
+        // type comment). Deliberately NOT "arable == 0" and NOT "production == 0":
+        // an abandoned settlement keeps its row and keeps N_lim = 0.
+        bool haveCatchment = false;
+        for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
+        {
+            if (prev.CatchmentSummaries[i].Settlement != s) continue;
+            haveCatchment = true;
+            break;
+        }
+        if (!haveCatchment) return double.PositiveInfinity;
 
         long demand = 0;
         bool haveDemand = false;

@@ -271,10 +271,19 @@ public class DemographicShockTests
     /// a deficit row with d = 0 and a positive DemandUnits, a vitals row at dt,
     /// and (unless <paramref name="stapleProduced"/> is null) a grain stock row
     /// whose LastProducedUnits is the influx S — N_lim = S / dt. With no grain
-    /// row S = 0 and N_lim = 0 (an abandoned settlement on its granary).</summary>
+    /// row S = 0 and N_lim = 0 (an abandoned settlement on its granary).
+    /// T4.21-4 (RULE 2): the rig carries a CATCHMENT SUMMARY ROW with arable > 0.
+    /// That is the whole point of the new null arm's key — row ABSENCE means the
+    /// influx was never measured (+∞), while a settlement that HAS a catchment and
+    /// still produced no staple is the abandoned settlement whose zero influx is
+    /// genuine and must keep N_lim = 0. CatchmentSystem emits one row per settlement
+    /// in `prev.Settlements` regardless of labour or sectors, so a real abandoned
+    /// settlement always has one; this rig now matches that world.</summary>
     private static WorldState CappedRig(SimConfig cfg, long[] counts, double dt, long? stapleProduced, double deficit = 0.0)
     {
         WorldState w = PopulationExactnessTests.BucketWorld(counts);
+        w.CatchmentSummaries.Add(new CatchmentSummaryRow(
+            S0, NodeCount: 1, EffectiveArableKm2: 5000.0, NetworkRevision: 0, LastRecomputeTurn: 0));
         w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, deficit, 1_000_000));
         w.SettlementVitals.Add(new SettlementVitalsRow(S0, 0, 0, dt));
         if (stapleProduced is long s)
@@ -834,6 +843,19 @@ public class DemographicShockTests
                         ReasonIds.InitialEndowment, n, FlowDirection.Source, OverdrawPolicy.Throw);
             }
         }
+        // T4.21-4 (RULE 2): both settlements carry a catchment summary row, because
+        // the finite FoodHeadroom arm now requires one (row ABSENCE is "the influx
+        // was never measured" ⇒ +∞). Arable 0 keeps it ATTRACTIVENESS-NEUTRAL —
+        // MigrationSystem.cs:296-299 leaves arableKm2 at 0.0 when no row matches, so
+        // the zero-arable row is the same number to attractiveness as no row, and
+        // the measured 142.3 ae arrival below is unmoved by its presence.
+        for (int sIdx = 0; sIdx < 2; sIdx++)
+        {
+            world.CatchmentSummaries.Add(new CatchmentSummaryRow(
+                sIdx == 0 ? a : b, NodeCount: 1, EffectiveArableKm2: 0.0,
+                NetworkRevision: 0, LastRecomputeTurn: 0));
+        }
+
         double nB = 0.0;
         for (int c = 0; c < Cohorts.Count; c++) nB += cfg.Consumption.CohortWeights[c] * countsB[c];
         long stapleB = (long)((nB + 300.0) * dt);

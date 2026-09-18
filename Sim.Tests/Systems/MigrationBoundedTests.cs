@@ -115,10 +115,22 @@ public class MigrationBoundedTests
     /// <paramref name="demand"/> units, a vitals row with dt_prev
     /// <paramref name="dtPrev"/>, and a last grain harvest of <paramref name="harvest"/>
     /// (which also satisfies the absolute food gate). N_lim = harvest / dtPrev
-    /// adult-equivalents per year (spec §3.6a; every non-staple reads 0 here).</summary>
+    /// adult-equivalents per year (spec §3.6a; every non-staple reads 0 here).
+    /// T4.21-4 (RULE 2): also ensures the CATCHMENT SUMMARY ROW the finite arm now
+    /// requires — a settlement whose catchment has never been computed reads +∞
+    /// (FoodHeadroom's null arm), which is the opposite of what this helper means.
+    /// Added only when <see cref="Land"/> has not already added one, so the two
+    /// helpers compose without duplicating a row, and added with arable 0 so it is
+    /// ATTRACTIVENESS-NEUTRAL: MigrationSystem.cs:296-299 leaves arableKm2 at 0.0
+    /// when no row matches, so an absent row and a zero-arable row are the same
+    /// number to attractiveness, and only the FoodHeadroom arm moves.</summary>
     private static void Vacant(WorldState w, int settlement, long demand, double dtPrev, long harvest)
     {
         var id = new SettlementId(settlement);
+        bool haveCatchment = false;
+        for (int i = 0; i < w.CatchmentSummaries.Count; i++)
+            if (w.CatchmentSummaries[i].Settlement == id) { haveCatchment = true; break; }
+        if (!haveCatchment) Land(w, settlement, 0.0);
         w.ConsumptionDeficits[settlement] = w.ConsumptionDeficits[settlement] with { DemandUnits = demand };
         w.SettlementVitals.Add(new SettlementVitalsRow(id, 0, 0, dtPrev));
         w.GoodStocks.Ref(settlement).LastProducedUnits = harvest;

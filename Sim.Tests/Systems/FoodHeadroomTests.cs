@@ -21,14 +21,23 @@ public class FoodHeadroomTests
     private sealed record Food(string Good, long Produced, long Demanded);
 
     /// <summary>A hand world holding exactly the rows FoodHeadroom reads: the
-    /// deficit row (DemandUnits), the vitals row (DtYears) and one grain stock
+    /// catchment summary row (T4.21-4 RULE 2 — its ABSENCE is the "influx never
+    /// measured" null arm, so the finite arm requires it; arable is irrelevant to
+    /// FoodHeadroom, which reads produced units, so any positive value serves),
+    /// the deficit row (DemandUnits), the vitals row (DtYears) and one grain stock
     /// row per food good with its LastProduced / LastConsumptionDemand units.</summary>
     private static WorldState Rig(
         SimConfig cfg, long demand, double dt, Food[] foods,
-        bool deficitRow = true, bool vitalsRow = true, long[]? adults = null)
+        bool deficitRow = true, bool vitalsRow = true, long[]? adults = null,
+        bool catchmentRow = true)
     {
         var w = new WorldState(7);
         w.Settlements.Add(new SettlementRow(S0, SiteCell: 0, FoundedTurn: 0));
+        if (catchmentRow)
+        {
+            w.CatchmentSummaries.Add(new CatchmentSummaryRow(
+                S0, NodeCount: 1, EffectiveArableKm2: 5000.0, NetworkRevision: 0, LastRecomputeTurn: 0));
+        }
         if (deficitRow) w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(S0, 0.0, demand));
         if (vitalsRow) w.SettlementVitals.Add(new SettlementVitalsRow(S0, 0, 0, dt));
         foreach (Food f in foods)
@@ -133,6 +142,50 @@ public class FoodHeadroomTests
         // Vacancy on the null arm is +∞ too (no bound).
         Assert.Equal(double.PositiveInfinity,
             FoodHeadroom.Vacancy(Rig(cfg, 0, 10.0, LiburT110), S0, cw, book));
+    }
+
+    [Fact]
+    public void H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero()
+    {
+        // T4.21-4 RULE 2 — the null arm's key is ROW ABSENCE, never "production
+        // == 0". The two arms of one decision, asserted together so neither can
+        // be satisfied by weakening the other:
+        //
+        //  (i) NO catchment summary row ⇒ the food influx was never MEASURED
+        //      (ProductionSystem.Farm reads prev.CatchmentSummaries for arable, so
+        //      with no row the land side is 0 and the staple harvest is 0 — a
+        //      structural unavailability, not a measured zero capacity) ⇒ +∞: no
+        //      growth cap and no vacancy bound for that settlement.
+        // (ii) A catchment row PRESENT with arable > 0 and zero food production is
+        //      the ABANDONED settlement: its zero influx is genuine ⇒ N_lim = 0 and
+        //      the growth cap still binds (the D_Cap_NoGrowthOnAGranary semantics).
+        //
+        // KILLS the mutation "key the arm on EffectiveArableKm2 == 0 / on S == 0"
+        // — either one collapses (ii) into (i) and this test's second half fails.
+        SimConfig cfg = TestConfigs.Sim();
+        BasketBook book = Book(cfg);
+        double[] cw = cfg.Consumption.CohortWeights;
+
+        // (i) Every other input present and finite — only the catchment row is gone.
+        WorldState noRow = Rig(cfg, 6291, 10.0, LiburT110, catchmentRow: false);
+        Assert.Equal(double.PositiveInfinity, FoodHeadroom.Limit(noRow, S0, cw, book));
+        Assert.Equal(double.PositiveInfinity, FoodHeadroom.Vacancy(noRow, S0, cw, book));
+        // The SAME rig with the row present is finite — the row is the only cause.
+        WorldState withRow = Rig(cfg, 6291, 10.0, LiburT110);
+        Assert.Equal(7458.0 / (1.0 - ((315 / 6291.0) + (314 / 6291.0))) / 10.0,
+            FoodHeadroom.Limit(withRow, S0, cw, book));
+
+        // (ii) Row present, arable > 0, nothing produced: the abandoned settlement.
+        WorldState abandoned = Rig(cfg, 6291, 10.0, []);
+        bool arableRowPresent = false;
+        for (int i = 0; i < abandoned.CatchmentSummaries.Count; i++)
+        {
+            CatchmentSummaryRow r = abandoned.CatchmentSummaries[i];
+            if (r.Settlement == S0 && r.EffectiveArableKm2 > 0.0) { arableRowPresent = true; break; }
+        }
+        Assert.True(arableRowPresent, "the abandoned arm needs a catchment row with arable > 0");
+        Assert.Equal(0.0, FoodHeadroom.Limit(abandoned, S0, cw, book));
+        Assert.Equal(0.0, FoodHeadroom.Vacancy(abandoned, S0, cw, book));
     }
 
     [Fact]
