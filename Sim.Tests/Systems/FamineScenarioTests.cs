@@ -74,6 +74,39 @@ public class FamineScenarioTests
         public double MaxStressEffectiveDeficit;
         public long FinalPopulation;
 
+        /// <summary>T4.21-6 (spec §6.5 row 1, §7) — THE PER-SETTLEMENT ρ SERIES,
+        /// accumulated so it can be REPORTED. ρ_t is the foundations audit's own
+        /// definition (docs/t4.21-1-foundations-audit.md §2): grain
+        /// LastProducedUnits ÷ ConsumptionDeficitRow.DemandUnits, counted only on
+        /// turns where both are positive (the founding turn harvests nothing).
+        /// Indexed BY SETTLEMENT ID, in arrays, so the order is the table's and
+        /// not a dictionary's (law 5). Reported, never asserted: ρ_ship = 1.3 is
+        /// the whole declared input of §3.3's derivation, so the one number the
+        /// director needs beside it is where the shipped world's ρ actually
+        /// sits.</summary>
+        public readonly List<double> RhoSum = [];
+        public readonly List<int> RhoCount = [];
+
+        public void AddRho(int settlementId, double rho)
+        {
+            while (RhoSum.Count <= settlementId) { RhoSum.Add(0.0); RhoCount.Add(0); }
+            RhoSum[settlementId] += rho;
+            RhoCount[settlementId]++;
+        }
+
+        /// <summary>Each settlement's TIME-MEAN ρ, in ascending value order with
+        /// the settlement id as a stable integer tie-break (CLAUDE.md: any
+        /// ordering over doubles ships a composite key).</summary>
+        public (int Id, double Mean)[] RhoMeans()
+        {
+            var list = new List<(int Id, double Mean)>();
+            for (int id = 0; id < RhoSum.Count; id++)
+                if (RhoCount[id] > 0) list.Add((id, RhoSum[id] / RhoCount[id]));
+            (int Id, double Mean)[] a = [.. list];
+            Array.Sort(a, static (x, y) => x.Mean != y.Mean ? x.Mean.CompareTo(y.Mean) : x.Id.CompareTo(y.Id));
+            return a;
+        }
+
         public int SettlementTurns => Famine + Severe + Stress + Normal;
         public double OnsetsPerSettlementCentury => Onsets / (SettlementYears / 100.0);
     }
@@ -109,10 +142,21 @@ public class FamineScenarioTests
             prevStarvCum = cum;
             c.Starvation += starvedThisStep;
 
+            var grain = new GoodId(cfg.Goods!.GrainId);
             FoodStateKind worst = FoodStateKind.Normal;
             for (int i = 0; i < world.Settlements.Count; i++)
             {
                 SettlementId sid = world.Settlements[i].Id;
+
+                // ρ_t for the reported series — the foundations audit's definition.
+                int gi = GoodStockIndex.IndexOf(world.GoodStocks, sid, grain);
+                long produced = gi >= 0 ? world.GoodStocks[gi].LastProducedUnits : 0;
+                long demand = 0;
+                for (int q = 0; q < world.ConsumptionDeficits.Count; q++)
+                    if (world.ConsumptionDeficits[q].Settlement == sid)
+                    { demand = world.ConsumptionDeficits[q].DemandUnits; break; }
+                if (produced > 0 && demand > 0) c.AddRho(sid.Value, (double)produced / demand);
+
                 FoodStateKind k = FoodState.Of(world, sid, cfg, out FamineReason reason);
                 if (k > worst) worst = k;
                 switch (k)
@@ -186,6 +230,25 @@ public class FamineScenarioTests
             + $"{c.Onsets} onsets over {Inv(c.SettlementYears)} settlement-years = "
             + $"{Inv(c.OnsetsPerSettlementCentury)}/settlement-century; starvation {c.Starvation}; "
             + $"final population {c.FinalPopulation}.");
+
+        // REPORTED, not asserted (spec §6.5 row 1, §7): THE PER-SETTLEMENT ρ
+        // SERIES. ρ_ship = 1.3 is the whole declared input of the §3.3
+        // derivation, so this is the number the director checks that derivation
+        // against — and until T4.21-6 it was the one number this test did not
+        // print. The distribution over the full 300 turns, per settlement and
+        // in full, is docs/t4.21-1-foundations-audit.md §4; what is printed here
+        // is the same quantity on THIS run, so the two are comparable.
+        (int Id, double Mean)[] rho = c.RhoMeans();
+        Assert.True(rho.Length > 0, "no settlement produced a ρ series — the report is empty");
+        var sb = new System.Text.StringBuilder();
+        sb.Append(CultureInfo.InvariantCulture,
+            $"S_Seed42_NoFamineWithoutCause ρ (grain produced / demand, time-mean per settlement, "
+            + $"{rho.Length} settlements): min {Inv(rho[0].Mean)} (s{rho[0].Id}), median "
+            + $"{Inv(rho[rho.Length / 2].Mean)}, max {Inv(rho[^1].Mean)} (s{rho[^1].Id}); "
+            + $"ρ_ship = 1.3. Full series:");
+        for (int i = 0; i < rho.Length; i++)
+            sb.Append(CultureInfo.InvariantCulture, $" s{rho[i].Id}={Inv(rho[i].Mean)}");
+        Console.WriteLine(sb.ToString());
     }
 
     // ======================================================================
@@ -289,20 +352,31 @@ public class FamineScenarioTests
     [Fact]
     public void S_Disaster_TriggersFamine()
     {
-        // ONE forced strike, TWO settlements that differ only in their food
-        // balance. λ is forced so the strike is certain (a config twin — the
-        // same instrument F_DisasterTiming_TurnExact uses); the strike then
-        // lands on BOTH rigs identically, and the outcome differs because the
-        // balance differs. FAMINE iff d > 0: the thin-store ρ = 1.3 settlement
-        // classifies FAMINE/Disaster, the ρ = 2 settlement behind a full
-        // granary classifies NORMAL under the same strike — "decided by the
-        // food balance" (CR-003 §3 with CR-015's cause qualifier), asserted on
-        // the DEMOGRAPHIC consequence too, not on the label alone.
+        // ONE forced strike, THREE settlements. λ is forced so the strike is
+        // certain (a config twin — the same instrument F_DisasterTiming_TurnExact
+        // uses); it then lands on every rig identically, and the outcome differs
+        // because the BALANCE differs. FAMINE iff d > 0.
+        //
+        // WHICH VARIABLE DECIDES, ISOLATED (T4.21-6). The first two arms differ
+        // in BOTH ρ and store (1.3 / 0.1 y against 2.0 / 1.5 y), so on their own
+        // they cannot tell "a rich granary absorbs it" from "the surplus ratio
+        // absorbs it". The THIRD arm holds the store at the THIN value and moves
+        // only ρ, and it is the arm that settles it: ρ = 2.0 behind a 0.1-year
+        // store absorbs the same strike exactly as the full granary does. The
+        // SURPLUS RATIO is the discriminator at dt 10 — grain spoilage at
+        // 0.08/yr eats most of a decade-scale store before the strike lands, so
+        // the store barely moves d. "The balance decides" is what this rig
+        // shows; "a rich granary absorbs it" is not, and is not claimed.
+        //
+        // Asserted on the DEMOGRAPHIC consequence too, not on the label alone.
         SimConfig cfg = WithHazard(TestConfigs.Sim(), 1e6);
         var thinExec = FullBalanceExecutor(cfg);
         var fatExec = FullBalanceExecutor(cfg);
+        var richThinStoreExec = FullBalanceExecutor(cfg);
         WorldState thin = FoodStateTests.BalanceRig(cfg, rho: 1.3, storeYears: 0.1);
         WorldState fat = FoodStateTests.BalanceRig(cfg, rho: 2.0, storeYears: 1.5);
+        // The ISOLATING arm: the fat rig's ρ behind the THIN rig's store.
+        WorldState richThinStore = FoodStateTests.BalanceRig(cfg, rho: 2.0, storeYears: 0.1);
 
         // TIMING. The strike is drawn at turn 1 and APPLIED to the harvest of
         // step 2, so the state after turn 2 is the one that classifies, and
@@ -312,18 +386,31 @@ public class FamineScenarioTests
         // diverged, and the fat rig's own growth (it is fed) would open a small
         // deficit that has nothing to do with the strike.
         thin = thinExec.Step(thin); fat = fatExec.Step(fat);            // turn 1: the draw
+        richThinStore = richThinStoreExec.Step(richThinStore);
         thin = thinExec.Step(thin); fat = fatExec.Step(fat);            // turn 2: the strike lands
-        FoodStateKind thinKind = FoodState.Of(thin, new SettlementId(0), cfg, out FamineReason thinReason);
-        FoodStateKind fatKind = FoodState.Of(fat, new SettlementId(0), cfg, out FamineReason fatReason);
-        double thinD = FoodState.DeficitRatio(thin, new SettlementId(0));
-        double fatD = FoodState.DeficitRatio(fat, new SettlementId(0));
+        richThinStore = richThinStoreExec.Step(richThinStore);
+        var rig0 = new SettlementId(0);
+        FoodStateKind thinKind = FoodState.Of(thin, rig0, cfg, out FamineReason thinReason);
+        FoodStateKind fatKind = FoodState.Of(fat, rig0, cfg, out FamineReason fatReason);
+        FoodStateKind richKind = FoodState.Of(richThinStore, rig0, cfg, out FamineReason richReason);
+        double thinD = FoodState.DeficitRatio(thin, rig0);
+        double fatD = FoodState.DeficitRatio(fat, rig0);
+        double richD = FoodState.DeficitRatio(richThinStore, rig0);
         thin = thinExec.Step(thin); fat = fatExec.Step(fat);            // turn 3: the kernel spends it
+        richThinStore = richThinStoreExec.Step(richThinStore);
         long thinStarved = StarvedTotalOf(thin), fatStarved = StarvedTotalOf(fat);
+        long richStarved = StarvedTotalOf(richThinStore);
 
         Assert.True(thin.Disasters.Count == 1 && thin.Disasters[0].AppliedMultiplier < 1.0,
             "no strike was applied to the thin rig — the forced-λ twin is vacuous");
         Assert.True(fat.Disasters.Count == 1 && fat.Disasters[0].AppliedMultiplier < 1.0,
             "no strike was applied to the fat rig — the two arms did not receive the same event");
+        Assert.True(richThinStore.Disasters.Count == 1 && richThinStore.Disasters[0].AppliedMultiplier < 1.0,
+            "no strike was applied to the isolating rig");
+        // THE SAME EVENT, BIT FOR BIT, ON ALL THREE. Without this the comparison
+        // could be reading three different strikes.
+        Assert.Equal(thin.Disasters[0].AppliedMultiplier, fat.Disasters[0].AppliedMultiplier);
+        Assert.Equal(thin.Disasters[0].AppliedMultiplier, richThinStore.Disasters[0].AppliedMultiplier);
 
         Assert.True(thinD > 0.0, "the thin store absorbed the strike — rig vacuous");
         Assert.Equal(FoodStateKind.Famine, thinKind);
@@ -337,10 +424,23 @@ public class FamineScenarioTests
         // of the balance and not on the other.
         Assert.True(thinStarved > 0, "FAMINE at ρ = 1.3 killed nobody — the exceptional channel is dead");
         Assert.Equal(0, fatStarved);
+
+        // THE ISOLATING ARM. ρ = 2.0 behind the THIN rig's 0.1-year store
+        // absorbs the same strike: the discriminator is the surplus ratio, not
+        // the granary. If this ever fails, the attribution in the comment above
+        // is wrong and the prose must change with it.
+        Assert.Equal(0.0, richD);
+        Assert.Equal(FoodStateKind.Normal, richKind);
+        Assert.Equal(FamineReason.None, richReason);
+        Assert.Equal(0, richStarved);
+
         Console.WriteLine(
-            $"S_Disaster_TriggersFamine: same strike, ρ = 1.3 thin store -> {thinKind}/{thinReason}, "
-            + $"d = {Inv(thinD)}, starved {thinStarved}; ρ = 2.0 full granary -> {fatKind}/{fatReason}, "
-            + $"d = {Inv(fatD)}, starved {fatStarved}.");
+            $"S_Disaster_TriggersFamine: same strike (applied multiplier "
+            + $"{Inv(thin.Disasters[0].AppliedMultiplier)} on all three arms) — "
+            + $"ρ = 1.3 / 0.1 y store -> {thinKind}/{thinReason}, d = {Inv(thinD)}, starved {thinStarved}; "
+            + $"ρ = 2.0 / 1.5 y store -> {fatKind}/{fatReason}, d = {Inv(fatD)}, starved {fatStarved}; "
+            + $"ρ = 2.0 / 0.1 y store -> {richKind}/{richReason}, d = {Inv(richD)}, starved {richStarved} "
+            + "— the SURPLUS RATIO is the discriminator, the store is not.");
     }
 
     // ======================================================================
@@ -573,6 +673,21 @@ public class FamineScenarioTests
         // DisasterSystemTests.D_Classification_DtDifference_Pinned and NEVER
         // asserted equal. See docs/t4.21-4-record.md §5 for what arming made of
         // it.
+        //
+        // AND WHAT ITS GREEN IS WORTH, MEASURED (T4.21-6). The window is
+        // COMPLETELY QUIET: on this tree it reports "FAMINE 0 before / 0 after;
+        // STRESS+SEVERE 0 / 0" — there is no food-state activity of any kind on
+        // either side of the gate. With λ = 0 and no orders FAMINE is unreachable
+        // BY CONSTRUCTION (FoodState.Of needs `struck || abandoned`, and neither
+        // exists here), so the two FAMINE asserts below cannot fail for any
+        // dt-related reason — only for a regression in the CAUSE GATE itself,
+        // which is a real property but not the one the test's name suggests. The
+        // §6.5 row it implements is satisfied TRIVIALLY. Do not read this green
+        // as dt coverage: the dt-dependence of a straddling strike is real, is
+        // pinned as a DIFFERENCE by D_Classification_DtDifference_Pinned, and is
+        // escalated in CR-016 §2.1. Giving this test teeth means running the
+        // ARMED arm beside the λ = 0 one and asserting that pinned difference,
+        // which belongs with whatever CR-016 option the director takes.
         SimConfig cfg = WithHazard(TestConfigs.Sim(), 0.0);
         TurnExecutor exec = Executor(cfg, TestConfigs.Worldgen());
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed);
