@@ -26,6 +26,14 @@ public class ExplainChainAndLeverTests
         "Deposits" => w.Deposits.Count,
         "Housing" => w.Housing.Count,
         "Buckets" => w.Buckets.Count,
+        // MERGE T4.21-4 x T4.21-5: reachable only on the MERGED tree. T4.21-5's
+        // CausalChain cites Disasters for DisasterMultiplierApplied, but with the
+        // hazard disarmed that link is always a GAP, which never reaches this
+        // switch. T4.21-4 arms it (sim.json disaster.hazardPerYear 0.0 -> 0.01),
+        // the row exists, the link becomes a READ, and the name had no entry.
+        // Neither branch could see this alone. Adding it ADDS coverage: the cited
+        // index is now bounds-checked like every other table's.
+        "Disasters" => w.Disasters.Count,
         _ => throw new InvalidOperationException($"link cites unknown table '{table}'"),
     };
 
