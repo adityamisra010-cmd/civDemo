@@ -8,6 +8,17 @@ namespace Sim.Tests.Systems;
 // typo'd key must fail the load, never silently bind as 0.0.
 public class SimConfigTests
 {
+    /// <summary>
+    /// The shipped literal the disaster-arming substitutions anchor on, WITH ITS
+    /// TRAILING COMMA. The comma is load-bearing: without it "hazardPerYear": 0.0
+    /// is a PREFIX of "hazardPerYear": 0.01, so on a tree where the director has
+    /// ruled the rate and re-armed sim.json the same Replace would rewrite 0.01
+    /// into 0.011 and DisasterHazard_Armed_Loads would silently stop testing what
+    /// it names. Pinned by HazardAnchor_IsValueExact_NotAPrefix below.
+    /// </summary>
+    private const string HazardAnchor = "\"hazardPerYear\": 0.0,";
+    private const string ArmedHazard = "\"hazardPerYear\": 0.01,";
+
     private static string CanonicalJson()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
@@ -175,8 +186,8 @@ public class SimConfigTests
     [InlineData("NaN")]
     public void DisasterHazard_Negative_RefusesLoad(string bad)
     {
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", $"\"hazardPerYear\": {bad}");
-        Assert.NotEqual(CanonicalJson(), json);
+        string json = CanonicalJson().Replace(HazardAnchor, $"\"hazardPerYear\": {bad},");
+        AssertAnchorMatched(json);
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
         Assert.Contains("disaster.hazardPerYear", e.Message);
     }
@@ -192,9 +203,76 @@ public class SimConfigTests
         // nothing else: the derived value still loads today, through the same
         // loader, with no code path of its own. If the director rules a rate,
         // that ruling is this one number in sim.json.
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYear\": 0.01");
-        Assert.NotEqual(CanonicalJson(), json);
+        string json = CanonicalJson().Replace(HazardAnchor, ArmedHazard);
+        AssertAnchorMatched(json);
         Assert.Equal(0.01, SimConfigLoader.Load(json).Disaster.HazardPerYear);
+    }
+
+    [Fact]
+    public void HazardAnchor_IsValueExact_NotAPrefix()
+    {
+        // THE TEST THAT WOULD HAVE CAUGHT IT (T4.21-8 finding 2). CR-016 §D.3
+        // prices the disarm as ONE data edit; the edit's reversibility is
+        // asserted by DisasterHazard_Armed_Loads, which SUBSTITUTES the armed
+        // value into the shipped JSON by string replacement. With the old
+        // anchor ("hazardPerYear": 0.0, no comma) that substitution is
+        // PREFIX-SENSITIVE: applied to an already-armed sim.json it matches
+        // inside "hazardPerYear": 0.01 and yields 0.011. Measured on an armed
+        // tree before this fix, DisasterHazard_Armed_Loads failed with
+        // "Expected: 0.01 / Actual: 0.010999999999999999" — loud, but the trap
+        // is that a future agent re-arming the tree repairs it by moving the
+        // EXPECTED value instead of the search string, after which the test
+        // named "the derived 0.01 still loads" asserts 0.011 forever.
+        //
+        // This test makes the defect visible on the SHIPPED 0.0 tree, where it
+        // otherwise cannot be: apply the substitution to its OWN OUTPUT. A
+        // value-exact anchor is idempotent under re-application (the armed JSON
+        // no longer contains the shipped literal, so the second pass is a
+        // no-op); a prefix anchor compounds. It is the re-armed tree, simulated
+        // without needing one.
+        string canonical = CanonicalJson();
+        Assert.True(CountOccurrences(canonical, HazardAnchor) == 1,
+            "HazardAnchor must match the shipped sim.json disaster.hazardPerYear literal EXACTLY " +
+            "once. If the director has ruled a rate and sim.json is re-armed, move the SEARCH " +
+            "STRINGS (HazardAnchor / ArmedHazard, trailing comma included) — NEVER the expected " +
+            "VALUE. See docs/adr/cr-016-armed-disaster-fallout.md §D.3.");
+
+        string armed = canonical.Replace(HazardAnchor, ArmedHazard);
+        Assert.NotEqual(canonical, armed);
+        Assert.Equal(0.01, SimConfigLoader.Load(armed).Disaster.HazardPerYear);
+
+        // The re-armed tree: the SAME substitution, run again on the armed JSON.
+        string rearmed = armed.Replace(HazardAnchor, ArmedHazard);
+        Assert.Equal(armed, rearmed);
+        Assert.Equal(0.01, SimConfigLoader.Load(rearmed).Disaster.HazardPerYear);
+    }
+
+    /// <summary>
+    /// Every disaster test below SUBSTITUTES into the shipped JSON by string
+    /// replacement anchored on HazardAnchor. If the anchor stops matching — the
+    /// director rules a rate and sim.json is re-armed — the substitution becomes
+    /// a silent no-op and the test would assert against the UNMODIFIED shipped
+    /// config. Fail loudly and say what to move, because the tempting repair is
+    /// the expected VALUE and that is exactly what makes the test stop testing
+    /// what it names (T4.21-8 finding 2).
+    /// </summary>
+    private static void AssertAnchorMatched(string substituted) => Assert.True(
+        substituted != CanonicalJson(),
+        "the disaster-arming substitution found nothing: SimConfigTests.HazardAnchor no longer " +
+        "matches the shipped sim.json disaster.hazardPerYear literal. If the director has ruled a " +
+        "rate and sim.json is re-armed, move the SEARCH STRINGS (HazardAnchor / ArmedHazard, " +
+        "trailing comma included) — NEVER the expected VALUE. See " +
+        "docs/adr/cr-016-armed-disaster-fallout.md §D.3.");
+
+    private static int CountOccurrences(string haystack, string needle)
+    {
+        int n = 0;
+        for (int i = haystack.IndexOf(needle, System.StringComparison.Ordinal); i >= 0;
+             i = haystack.IndexOf(needle, i + needle.Length, System.StringComparison.Ordinal))
+        {
+            n++;
+        }
+        return n;
     }
 
     [Theory]
@@ -225,7 +303,8 @@ public class SimConfigTests
     [Fact]
     public void DisasterSection_Missing_RefusesLoad()
     {
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYearX\": 0.0");
+        string json = CanonicalJson().Replace(HazardAnchor, "\"hazardPerYearX\": 0.0,");
+        AssertAnchorMatched(json);
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
         Assert.Contains("hazardPerYear", e.Message);
     }

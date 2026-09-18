@@ -248,6 +248,40 @@ recorded envelope a third time, re-resolves the two CR-003 quarantines that T4.2
 re-opens the six reds of §5. Every one of those is recorded here and in `docs/t4.21-4-record.md`
 with its old and new value, so the round trip is bookkeeping, not re-derivation.
 
+**And it re-aims six `SimConfigTests`, which this cost list previously did not mention (T4.21-8
+finding 2, measured on a worktree pinned to `8b59bab` with `hazardPerYear` = 0.01 and the T4.21-8
+anchor fix applied: 6 failed / 31 passed of 37, against 37 / 37 on the shipped tree).** "Nothing
+else" above is true of the DATA — one key, one value. It was never true of the tests that
+*substitute into* that key, and the omission mattered:
+
+| test | why the one data edit re-aims it |
+| --- | --- |
+| `ShippedDisaster_IsInert_AndTheBandIsTheDerivedOne` | **BY DESIGN — this is the tripwire.** It asserts the shipped 0.0 and the untouched derived band together; ruling a rate is exactly what must trip it. |
+| `DisasterHazard_Armed_Loads` | its substitution anchors on the shipped literal, so on a re-armed tree there is nothing left to substitute |
+| `HazardAnchor_IsValueExact_NotAPrefix` | same anchor (added by T4.21-8, below) |
+| `DisasterHazard_Negative_RefusesLoad` (×2 cases) | same anchor |
+| `DisasterSection_Missing_RefusesLoad` | same anchor |
+
+These five were ALWAYS re-aimed by the edit. Before T4.21-8 two of them merely hid it: the anchor
+was the comma-less `"hazardPerYear": 0.0`, which is a **PREFIX** of `"hazardPerYear": 0.01`, so on a
+re-armed tree the substitution matched inside the armed value and produced `0.011`. Measured on the
+armed tree before the fix: `DisasterHazard_Armed_Loads` failed with `Expected: 0.01 / Actual:
+0.010999999999999999` — the test that exists to prove *the derived 0.01 still loads* was asserting
+against 0.011; and `DisasterHazard_Negative_RefusesLoad` PASSED, but on `-0.011` / `NaN1`, not on
+the values it names. Nothing was silently wrong on the SHIPPED tree, but the trap was live: the
+tempting repair is the expected VALUE, and taking it makes the test stop testing what it names
+forever.
+
+T4.21-8 anchors all of them on `SimConfigTests.HazardAnchor` = `"hazardPerYear": 0.0,` **with its
+trailing comma**, so the prefix collision cannot arise at whichever value ships, and routes every
+one through `AssertAnchorMatched`, which fails with the remedy in the message: *move the SEARCH
+STRINGS, never the expected VALUE.* Whoever executes the director's ruling therefore gets six loud,
+self-describing reds and no silent substitution. `HazardAnchor_IsValueExact_NotAPrefix` is the guard
+that makes the defect visible on the SHIPPED tree, where it otherwise cannot be seen: it applies the
+substitution to its own output, which a value-exact anchor leaves unchanged and a prefix anchor
+compounds. Teeth measured — reverting `HazardAnchor` to the comma-less literal fails it, and it
+alone, with `Actual: ···"hazardPerYear": 0.011···`.
+
 ### D.4 What the director is asked to rule
 
 The three options in §4 are unchanged and none of them has been taken. Restated as the question:
