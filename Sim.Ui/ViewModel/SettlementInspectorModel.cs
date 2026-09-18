@@ -127,9 +127,17 @@ public static class SettlementInspectorModel
             string.Create(CultureInfo.InvariantCulture,
                 $"food state: {StateWord(fs.State)}{ReasonSuffix(fs)}  (nominal {fs.NominalDeficit:F3}, effective {fs.EffectiveDeficit:F3})"),
         };
-        lines.Add(fs.DisasterRowPresent && fs.DisasterMultiplierApplied < 1.0
+        // T4.21-6 — KEYED ON THE FIELD THE CLASSIFICATION IS KEYED ON. The line
+        // above says FAMINE because FoodState.IsStruck read prev
+        // DisasterRow.AppliedMultiplier below 1; this line must read the SAME
+        // number or it contradicts the line it sits under. It used to read
+        // DisasterRow.Multiplier — this step's forward-looking factor — and so
+        // printed "none applied to this harvest" directly beneath
+        // "FAMINE - a ruined harvest" on the ordinary canonical case, where a
+        // dt-10 disaster has already run its course and this step's factor is 1.
+        lines.Add(fs.DisasterRowPresent && fs.DisasterAppliedMultiplier < 1.0
             ? string.Create(CultureInfo.InvariantCulture,
-                $"  disaster: severity {fs.DisasterSeverity:F2}, food rates x {fs.DisasterMultiplierApplied:F3} this turn, {fs.DisasterRemainingYears:F1} years still to run")
+                $"  disaster: severity {fs.DisasterSeverity:F2}, the harvest that produced this deficit was cut x {fs.DisasterAppliedMultiplier:F3}; this turn's rates x {fs.DisasterMultiplierThisStep:F3}, {fs.DisasterRemainingYears:F1} years still to run")
             : "  disaster: none applied to this harvest");
         if (fs.DisasterPendingRowPresent && fs.DisasterPendingMultiplier < 1.0)
             lines.Add(string.Create(CultureInfo.InvariantCulture,

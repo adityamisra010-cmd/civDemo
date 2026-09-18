@@ -209,8 +209,18 @@ public sealed record FoodStateSection(
     bool DisasterRowPresent,          // whether prev carried a DisasterRow for this settlement
     int DisasterKind,                 // READ  prev DisasterRow.Kind
     double DisasterSeverity,          // READ  prev DisasterRow.Severity
-    double DisasterMultiplierApplied, // READ  prev DisasterRow.Multiplier — what Production multiplied the two
-                                      //       food rates by in THIS step (WorldState.cs DisasterRow doc)
+    double DisasterMultiplierThisStep, // READ  prev DisasterRow.Multiplier — what Production multiplied the
+                                      //       two food rates by in THIS step (WorldState.cs DisasterRow doc).
+                                      //       FORWARD-looking. It is NOT what the classification above is
+                                      //       decided on, and it was named DisasterMultiplierApplied until
+                                      //       T4.21-6, where that name was found to collide with the field
+                                      //       below and to put a false disaster line beside a FAMINE record.
+    double DisasterAppliedMultiplier, // READ  prev DisasterRow.AppliedMultiplier — what Production multiplied
+                                      //       by in the step that WROTE this row, i.e. the step that produced
+                                      //       the deficit above. BACKWARD-looking, and the ONE field
+                                      //       FoodState.IsStruck — and therefore State and Reason — is
+                                      //       decided on. Any surface asking "was this harvest struck?"
+                                      //       reads THIS, below 1.0, or it disagrees with its own record.
     double DisasterRemainingYears,    // READ  prev DisasterRow.RemainingYears
     bool DisasterPendingRowPresent,   // NEXT side, named as pending: the row the step just wrote
     int DisasterPendingKind,          // READ  next DisasterRow.Kind

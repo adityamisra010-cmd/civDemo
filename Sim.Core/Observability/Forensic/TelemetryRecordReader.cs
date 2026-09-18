@@ -33,13 +33,25 @@ public readonly record struct FlowsTotals(
 public readonly record struct TelemetryFoodState(
     bool Recorded, string State, string FamineReason,
     double NominalDeficit, double EffectiveDeficit, bool Abandoned,
-    bool DisasterRowPresent, double DisasterSeverity, double DisasterMultiplierApplied,
+    bool DisasterRowPresent, double DisasterSeverity, double DisasterMultiplierThisStep,
+    double DisasterAppliedMultiplier,
     double DisasterRemainingYears, double HarvestWeatherApplied,
     double FoodLimit, double Vacancy, double SurplusRatio, double Headroom)
 {
+    /// <summary>THE STRIKE PREDICATE, ON THE FILE SIDE, ONCE (T4.21-6). This is
+    /// <c>FoodState.IsStruck</c>'s own reading — prev DisasterRow.AppliedMultiplier
+    /// below 1.0 — and every file-reading surface that wants to say "a disaster
+    /// struck this harvest" calls it instead of restating the predicate on a
+    /// field of its own choosing. Restating it on
+    /// <see cref="DisasterMultiplierThisStep"/> is what made the inspector print
+    /// "disaster: none applied to this harvest" directly beneath a FAMINE line
+    /// whose reason was Disaster. FALSE on a telemetry/v2 line: unrecorded is
+    /// not "not struck".</summary>
+    public bool Struck => Recorded && DisasterRowPresent && DisasterAppliedMultiplier < 1.0;
+
     public static TelemetryFoodState Absent => new(
         false, "", "", double.NaN, double.NaN, false, false, double.NaN, double.NaN,
-        double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+        double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
 
     /// <summary>The file said FAMINE for this settlement-turn. False for a v2
     /// line — unrecorded, not "no famine".</summary>
@@ -283,7 +295,8 @@ public sealed class TelemetryRecordFile
         return new TelemetryFoodState(
             true, Str(f, "state") ?? "", Str(f, "famineReason") ?? "",
             Dbl(f, "nominalDeficit"), Dbl(f, "effectiveDeficit"), Bln(f, "abandoned"),
-            Bln(f, "disasterRowPresent"), Dbl(f, "disasterSeverity"), Dbl(f, "disasterMultiplierApplied"),
+            Bln(f, "disasterRowPresent"), Dbl(f, "disasterSeverity"), Dbl(f, "disasterMultiplierThisStep"),
+            Dbl(f, "disasterAppliedMultiplier"),
             Dbl(f, "disasterRemainingYears"), Dbl(f, "harvestWeatherApplied"),
             Dbl(f, "foodLimit"), Dbl(f, "vacancy"), Dbl(f, "surplusRatio"), Dbl(f, "headroom"));
     }

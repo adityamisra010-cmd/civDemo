@@ -301,7 +301,11 @@ public class ExplainRecomputedFunctionTests
                 Assert.Equal(present, fs.DisasterRowPresent);
                 Assert.Equal(row.Kind, fs.DisasterKind);
                 Bits(row.Severity, fs.DisasterSeverity, "disasterSeverity");
-                Bits(row.Multiplier, fs.DisasterMultiplierApplied, "disasterMultiplierApplied");
+                Bits(row.Multiplier, fs.DisasterMultiplierThisStep, "disasterMultiplierThisStep");
+                // T4.21-6 — the OTHER multiplier, and the one that decides State.
+                // Only this field is below 1 on the tail row a dt-10 disaster
+                // leaves behind, which is the canonical shape.
+                Bits(row.AppliedMultiplier, fs.DisasterAppliedMultiplier, "disasterAppliedMultiplier");
                 Bits(row.RemainingYears, fs.DisasterRemainingYears, "disasterRemainingYears");
                 (bool pending, DisasterRow next) = DisasterRow_(world, id);
                 Assert.Equal(pending, fs.DisasterPendingRowPresent);
@@ -380,7 +384,11 @@ public class ExplainRecomputedFunctionTests
         Assert.Equal(reason, rec.FoodState.Reason);
         Assert.True(rec.FoodState.Abandoned);
         Assert.True(rec.FoodState.DisasterRowPresent);
-        Bits(0.25, rec.FoodState.DisasterMultiplierApplied, "the applied multiplier is READ, not derived");
+        // THE TWO FIELDS DIFFER ON THIS RIG ON PURPOSE (T4.21-6): the row is
+        // Multiplier 0.60 / AppliedMultiplier 0.25, so a mapping that read the
+        // wrong one is caught here instead of passing because both were 0.25.
+        Bits(0.60, rec.FoodState.DisasterMultiplierThisStep, "this step's multiplier is READ, not derived");
+        Bits(0.25, rec.FoodState.DisasterAppliedMultiplier, "the applied multiplier is READ, not derived");
         // In FAMINE there is no adaptation: d_eff is d, bit for bit.
         Bits(rec.FoodState.NominalDeficit, rec.FoodState.EffectiveDeficit, "famine d_eff == d");
         Bits(FoodState.EffectiveDeficit(0.5, state, cfg), rec.FoodState.EffectiveDeficit, "effectiveDeficit");
@@ -396,13 +404,69 @@ public class ExplainRecomputedFunctionTests
             "outside FAMINE the absorbable shortfall must come off the deficit");
     }
 
+    /// <summary>
+    /// T4.21-6 — THE TAIL ROW, WHICH IS THE ORDINARY CANONICAL CASE, NOT A CORNER.
+    /// At canonical dt 10 with durationYears 5 a disaster has always run its
+    /// course by the turn its deficit is classified, so DisasterSystem's
+    /// surviving row is <c>new DisasterRow(id, 0, 0.0, 0.0, 1.0, applied)</c>:
+    /// Kind 0, Severity 0, THIS step's multiplier 1.0, and the strike recorded
+    /// ONLY in AppliedMultiplier. FoodState.IsStruck reads that field, so the
+    /// settlement is FAMINE / Disaster while every field a reader might mistake
+    /// for "the disaster" reads its own identity.
+    ///
+    /// This is the shape the shipped record could not express: with one
+    /// multiplier field, fed from DisasterRow.Multiplier, the record said
+    /// "multiplier 1, severity 0" beside "State = Famine, Reason = Disaster",
+    /// and two observability surfaces keyed on it printed "no disaster" under
+    /// their own famine line. The assertion here is the CONJUNCTION — the state
+    /// and both multipliers together — because either half alone passes on the
+    /// broken mapping.
+    /// </summary>
+    [Fact]
+    public void T4216_TheTailRow_IsFamineWithThisStepsMultiplierAtIdentity()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState prev = ObservedWorlds.Founded();
+        SettlementId id = prev.Settlements[0].Id;
+        // Exactly what DisasterSystem writes when an event has run its course.
+        prev.Disasters.Add(new DisasterRow(id, 0, 0.0, 0.0, 1.0, 0.30));
+        SetDeficit(prev, id, 0.5);
+        WorldState next = prev.Clone();
+        next.Clock = new SimClock(prev.Clock.Turn + 1, prev.Clock.SimDays + 3600, 3600);
+
+        SettlementRecord rec = Find(Observer.Observe(prev, next, cfg, []), id.Value);
+        FoodStateSection fs = rec.FoodState;
+
+        Assert.True(FoodState.IsStruck(prev, id), "the tail row IS the strike — AppliedMultiplier < 1");
+        Assert.Equal(FoodStateKind.Famine, fs.State);
+        Assert.Equal(FamineReason.Disaster, fs.Reason);
+        Bits(0.30, fs.DisasterAppliedMultiplier, "the harvest that produced this deficit was cut x0.30");
+        Bits(1.0, fs.DisasterMultiplierThisStep, "THIS step's rates are untouched — the event is over");
+        Bits(0.0, fs.DisasterSeverity, "the tail row carries no severity, by construction");
+
+        // The UI half of this property is pinned in Sim.Ui.Tests
+        // (SettlementInspectorDisasterLineTests) — Sim.Tests keeps zero UI
+        // dependencies (D-003 amendment, ADR-009).
+    }
+
+    private static void SetDeficit(WorldState w, SettlementId id, double d)
+    {
+        for (int i = 0; i < w.ConsumptionDeficits.Count; i++)
+        {
+            if (w.ConsumptionDeficits[i].Settlement != id) continue;
+            w.ConsumptionDeficits[i] = w.ConsumptionDeficits[i] with { DeficitRatio = d };
+            return;
+        }
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(id, d, 1000));
+    }
+
     /// <summary>A struck AND abandoned settlement with a real deficit, built by
     /// hand: the canonical 40-turn world does not reach this corner.</summary>
     private static (WorldState Prev, WorldState Next) StruckPair(SimConfig cfg, out SettlementId id)
     {
         WorldState prev = ObservedWorlds.Founded();
         id = prev.Settlements[0].Id;
-        prev.Disasters.Add(new DisasterRow(id, 1, 0.75, 12.0, 0.25, 0.25));
+        prev.Disasters.Add(new DisasterRow(id, 1, 0.75, 12.0, 0.60, 0.25));
         prev.SectorAllocations.Add(new SectorAllocationRow(id, 0.0, 0.0, 0.4, 0.3, 0.3));
         bool found = false;
         for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)

@@ -680,7 +680,13 @@ public static class Observer
 
         return new FoodStateSection(
             prevPresent, state, reason, d, dEff, abandoned,
-            applied, appliedRow.Kind, appliedRow.Severity, appliedRow.Multiplier, appliedRow.RemainingYears,
+            applied, appliedRow.Kind, appliedRow.Severity,
+            // BOTH multipliers, named for what they are (T4.21-6). Multiplier is
+            // THIS step's factor; AppliedMultiplier is the one the step that WROTE
+            // the row applied, which is what FoodState.IsStruck — and so State and
+            // Reason two lines up — is decided on. Recording only the first put a
+            // "disaster: none applied" line beside a FAMINE classification.
+            appliedRow.Multiplier, appliedRow.AppliedMultiplier, appliedRow.RemainingYears,
             pending, pendingRow.Kind, pendingRow.Severity, pendingRow.Multiplier, pendingRow.RemainingYears,
             weather, weatherMultiplier,
             limit, vacancy, surplusRatio,

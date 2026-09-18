@@ -616,16 +616,23 @@ public sealed class SessionInspector
                     }
                     famine[s.Settlement] = nowFamine;
 
-                    bool nowStruck = s.FoodState.DisasterRowPresent && s.FoodState.DisasterMultiplierApplied < 1.0;
+                    // T4.21-6: the strike predicate is TelemetryFoodState.Struck —
+                    // FoodState.IsStruck's own reading, on the file side, once.
+                    // Restating it here on disasterMultiplierThisStep put every
+                    // DISASTER line one turn away from the FAMINE it caused.
+                    bool nowStruck = s.FoodState.Struck;
                     if (nowStruck && !(struck.TryGetValue(s.Settlement, out bool wasStruck) && wasStruck))
                     {
                         lines.Add(Event(turn.Turn, "DISASTER", s.Settlement,
                             "severity " + s.FoodState.DisasterSeverity.ToString("0.###", CultureInfo.InvariantCulture)
-                                + ", food rates multiplied by "
-                                + s.FoodState.DisasterMultiplierApplied.ToString("0.###", CultureInfo.InvariantCulture)
+                                + ", the harvest that produced this deficit was multiplied by "
+                                + s.FoodState.DisasterAppliedMultiplier.ToString("0.###", CultureInfo.InvariantCulture)
+                                + ", this step's rates by "
+                                + s.FoodState.DisasterMultiplierThisStep.ToString("0.###", CultureInfo.InvariantCulture)
                                 + ", " + s.FoodState.DisasterRemainingYears.ToString("0.#", CultureInfo.InvariantCulture)
                                 + " years still to run",
-                            "KNOWN — settlements[].foodState.disaster* (READ from the DisasterRow the step applied)"));
+                            "KNOWN — settlements[].foodState.disaster* (READ from the DisasterRow the step applied); "
+                                + "the strike is disasterAppliedMultiplier < 1, the field FoodState.IsStruck reads"));
                     }
                     struck[s.Settlement] = nowStruck;
 

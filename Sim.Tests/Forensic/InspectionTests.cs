@@ -442,7 +442,16 @@ public class InspectionTests
             if (line.Contains("DISASTER", StringComparison.Ordinal))
             {
                 disasterLines++;
-                Assert.True(row.FoodState.DisasterRowPresent && row.FoodState.DisasterMultiplierApplied < 1.0);
+                // T4.21-6 — NOT the inspector's own predicate restated. Until this
+                // packet the assertion here re-stated exactly the expression
+                // SessionInspector used to emit the line, on exactly the field it
+                // used, so it held whichever field that was — including the WRONG
+                // one, which is how the DISASTER lines shipped systematically one
+                // turn away from the FAMINE they caused. The cross-check now runs
+                // against FoodState.IsStruck's own reading, via TelemetryFoodState.Struck.
+                Assert.True(row.FoodState.Struck,
+                    $"turn {turn} settlement {id}: a DISASTER line on a settlement-turn the record does not "
+                    + "call struck — the line and FoodState.IsStruck read different fields");
             }
             if (line.Contains("ABANDONMENT", StringComparison.Ordinal))
             {
@@ -477,6 +486,46 @@ public class InspectionTests
         Assert.Equal(expectedFamine, famineLines);
         Assert.Equal(expectedRefused, refusedLines);
         Assert.True(disasterLines >= 0 && abandonLines >= 0);
+
+        // T4.21-6 — THE CROSS-CHECK THE DISASTER BLOCK LACKED. Two properties
+        // that are not the inspector talking to itself:
+        //   (a) every FAMINE-with-reason-Disaster settlement-turn carries an
+        //       APPLIED multiplier below 1 — the classification and the recorded
+        //       disaster fields are the same fact, so the panel beneath a FAMINE
+        //       line can never read "none applied to this harvest";
+        //   (b) the struck settlement-turns are NON-EMPTY on this session, so
+        //       (a) is not vacuously true.
+        // On the shipped mapping (a) failed on the dominant canonical shape: at
+        // dt 10 with durationYears 5 the event has run its course by the turn its
+        // deficit classifies, so the surviving row reads Multiplier 1.0 and the
+        // strike lives only in AppliedMultiplier.
+        int famineByDisaster = 0, struckTurns = 0;
+        foreach (TelemetryTurn t in s.Telemetry.Turns)
+        {
+            foreach (TelemetrySettlement row in t.Settlements)
+            {
+                if (row.FoodState.Struck) struckTurns++;
+                if (!row.FoodState.IsFamine) continue;
+                if (!row.FoodState.FamineReason.Contains("Disaster", StringComparison.Ordinal)) continue;
+                famineByDisaster++;
+                Assert.True(row.FoodState.DisasterRowPresent,
+                    $"turn {t.Turn} settlement {row.Settlement}: FAMINE for reason "
+                    + $"{row.FoodState.FamineReason} with no disaster row recorded");
+                Assert.True(row.FoodState.DisasterAppliedMultiplier < 1.0,
+                    $"turn {t.Turn} settlement {row.Settlement}: FAMINE for reason "
+                    + $"{row.FoodState.FamineReason}, yet the recorded applied multiplier is "
+                    + row.FoodState.DisasterAppliedMultiplier.ToString(
+                        System.Globalization.CultureInfo.InvariantCulture)
+                    + " — the classification and the disaster block disagree");
+                Assert.True(row.FoodState.Struck, "IsStruck's own reading must agree with the reason");
+            }
+        }
+        Assert.True(famineByDisaster > 0,
+            "no FAMINE-by-disaster settlement-turn in this session — the cross-check above is vacuous");
+        Assert.True(struckTurns > 0, "no struck settlement-turn recorded — the disaster block is untested");
+        Console.WriteLine(
+            $"T4.21-6 disaster cross-check: {famineByDisaster} FAMINE-by-disaster settlement-turns, "
+            + $"{struckTurns} struck settlement-turns, {disasterLines} DISASTER lines.");
 
         // The answer's own text must warn that ABSENCE on an older record means
         // "the file does not say", not "it did not happen".

@@ -22,7 +22,7 @@ internal static class RecordSections
         EffectiveDeficit: 0.0,
         Abandoned: false,
         DisasterRowPresent: false, DisasterKind: 0, DisasterSeverity: 0.0,
-        DisasterMultiplierApplied: 1.0, DisasterRemainingYears: 0.0,
+        DisasterMultiplierThisStep: 1.0, DisasterAppliedMultiplier: 1.0, DisasterRemainingYears: 0.0,
         DisasterPendingRowPresent: false, DisasterPendingKind: 0, DisasterPendingSeverity: 0.0,
         DisasterPendingMultiplier: 1.0, DisasterPendingRemainingYears: 0.0,
         HarvestWeatherRowPresent: false, HarvestWeatherApplied: double.NaN,
@@ -30,20 +30,32 @@ internal static class RecordSections
         SurplusRatio: double.NaN, Headroom: double.PositiveInfinity);
 
     /// <summary>A settlement in FAMINE for the named reason, struck by a
-    /// disaster of the given severity and applied multiplier.</summary>
+    /// disaster of the given severity.
+    ///
+    /// TWO MULTIPLIERS, AND THEY ARE NOT THE SAME NUMBER (T4.21-6).
+    /// <paramref name="appliedMultiplier"/> is prev DisasterRow.AppliedMultiplier —
+    /// what the harvest that produced this deficit was cut by, and the ONE field
+    /// FoodState.IsStruck and therefore FAMINE is decided on.
+    /// <paramref name="multiplierThisStep"/> is prev DisasterRow.Multiplier, what
+    /// THIS step's rates are multiplied by; it defaults to 1.0 because that is the
+    /// DOMINANT canonical shape — at dt 10 with durationYears 5 an event has always
+    /// run its course by the turn its deficit classifies, so the tail row reads
+    /// Multiplier 1.0, Severity 0, and a surface keyed on it says "no disaster"
+    /// under a FAMINE line.</summary>
     internal static FoodStateSection Famine(
-        FamineReason reason, double nominalDeficit, double severity, double multiplier,
-        double remainingYears = 0.0, bool abandoned = false) => Normal() with
+        FamineReason reason, double nominalDeficit, double severity, double appliedMultiplier,
+        double remainingYears = 0.0, bool abandoned = false, double multiplierThisStep = 1.0) => Normal() with
     {
         State = FoodStateKind.Famine,
         Reason = reason,
         NominalDeficit = nominalDeficit,
         EffectiveDeficit = nominalDeficit,
         Abandoned = abandoned,
-        DisasterRowPresent = multiplier < 1.0,
-        DisasterKind = multiplier < 1.0 ? 1 : 0,
+        DisasterRowPresent = appliedMultiplier < 1.0 || multiplierThisStep < 1.0,
+        DisasterKind = appliedMultiplier < 1.0 || multiplierThisStep < 1.0 ? 1 : 0,
         DisasterSeverity = severity,
-        DisasterMultiplierApplied = multiplier,
+        DisasterMultiplierThisStep = multiplierThisStep,
+        DisasterAppliedMultiplier = appliedMultiplier,
         DisasterRemainingYears = remainingYears,
     };
 

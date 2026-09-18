@@ -367,7 +367,8 @@ public static class TelemetryWriter
         json.WriteBoolean("disasterRowPresent", fs.DisasterRowPresent);
         json.WriteNumber("disasterKind", fs.DisasterKind);
         Num(json, "disasterSeverity", fs.DisasterSeverity);
-        Num(json, "disasterMultiplierApplied", fs.DisasterMultiplierApplied);
+        Num(json, "disasterMultiplierThisStep", fs.DisasterMultiplierThisStep);
+        Num(json, "disasterAppliedMultiplier", fs.DisasterAppliedMultiplier);
         Num(json, "disasterRemainingYears", fs.DisasterRemainingYears);
         json.WriteBoolean("disasterPendingRowPresent", fs.DisasterPendingRowPresent);
         json.WriteNumber("disasterPendingKind", fs.DisasterPendingKind);

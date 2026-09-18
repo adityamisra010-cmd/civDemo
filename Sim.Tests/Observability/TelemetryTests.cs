@@ -187,7 +187,8 @@ public class TelemetryTests
         Assert.Contains("\"schema\":\"telemetry/v3\"", text2, StringComparison.Ordinal);
         foreach (string key in new[]
                  { "\"foodState\"", "\"state\"", "\"famineReason\"", "\"effectiveDeficit\"", "\"abandoned\"",
-                   "\"disasterMultiplierApplied\"", "\"harvestWeatherApplied\"", "\"foodLimit\"",
+                   "\"disasterMultiplierThisStep\"", "\"disasterAppliedMultiplier\"",
+                   "\"harvestWeatherApplied\"", "\"foodLimit\"",
                    "\"surplusRatio\"", "\"headroom\"", "\"migrationPlan\"", "\"exitOpenness\"",
                    "\"flightFractionPrime\"", "\"vacancyCap\"", "\"vacancyScale\"" })
             Assert.Contains(key, text2, StringComparison.Ordinal);
