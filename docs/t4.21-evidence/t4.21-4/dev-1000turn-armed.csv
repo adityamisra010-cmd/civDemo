@@ -1,0 +1,4 @@
+# dev preset, hazard=0.01 turns=1000
+seed,starvTotal,crashes020,peak,final,monotone,migrationGrossPerDecade,famineSettlementTurns,severeSettlementTurns,stressSettlementTurns,onsets,settlementYears,famineChronicleLines,density,artisanShare
+42,5983,2,4722,38,False,0.0148409518,175,0,7,218,22000,-,0.000580388456,-
+7,6414,1,4165,62,False,0.0158496291,167,0,4,204,22000,-,0.000955411559,-
