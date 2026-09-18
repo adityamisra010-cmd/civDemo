@@ -175,18 +175,25 @@ public class SimConfigTests
     [InlineData("NaN")]
     public void DisasterHazard_Negative_RefusesLoad(string bad)
     {
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", $"\"hazardPerYear\": {bad}");
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.01", $"\"hazardPerYear\": {bad}");
         Assert.NotEqual(CanonicalJson(), json);
         var e = Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
         Assert.Contains("disaster.hazardPerYear", e.Message);
     }
 
     [Fact]
-    public void DisasterHazard_Armed_Loads()
+    public void DisasterHazard_Disarmed_Loads()
     {
-        // The T4.21-4 value loads today: arming is a data change.
-        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.0", "\"hazardPerYear\": 0.01");
-        Assert.Equal(0.01, SimConfigLoader.Load(json).Disaster.HazardPerYear);
+        // T4.21-4 ARMED the shipped value (0.0 -> 0.01, sim.json disaster).
+        // The pin that mattered before the arming — "the armed value loads" —
+        // is now the SHIPPED assertion in ShippedDisaster_IsArmed... below, so
+        // this one turns around and pins the other direction: DISARMING is
+        // still a pure data change, which is what makes the lambda = 0 control
+        // arm of the scenario battery (FamineScenarioTests.S_WeatherOnly_*) a
+        // config twin rather than a code path.
+        string json = CanonicalJson().Replace("\"hazardPerYear\": 0.01", "\"hazardPerYear\": 0.0");
+        Assert.NotEqual(CanonicalJson(), json);
+        Assert.Equal(0.0, SimConfigLoader.Load(json).Disaster.HazardPerYear);
     }
 
     [Theory]
@@ -269,12 +276,20 @@ public class SimConfigTests
     }
 
     [Fact]
-    public void ShippedDisaster_IsUnarmed_AndTheBandIsTheDerivedOne()
+    public void ShippedDisaster_IsArmed_AndTheBandIsTheDerivedOne()
     {
-        // T4.21-1 ships λ = 0 (layout-only golden move); the band is the §3.3
+        // T4.21-1 shipped λ = 0 (its golden move was layout + RngStreams only);
+        // T4.21-4 ARMS it at 0.01 — one famine-class local crop failure per
+        // settlement per century (spec §3.3, the disaster._doc's own
+        // derivation and reference class, CR-015 §3.3). MEASURED on this tree
+        // at that value, canonical founded, 20 seeds × 300 turns: 6,211 onsets
+        // over 66,000 settlement-turns = 0.941061 per settlement-century,
+        // inside the binomial 99 % band [0.922204, 0.981047] around the
+        // truncation-corrected expectation (1 − e^{−λ·dt})/(λ·dt) × λ·100 =
+        // 0.9516258 (docs/t4.21-4-record.md §2.2). The band below is the §3.3
         // derivation: s·D ∈ [3.75, 5.0] > 3.46 production-years at ρ_ship = 1.3.
         SimConfig cfg = TestConfigs.Sim();
-        Assert.Equal(0.0, cfg.Disaster.HazardPerYear);
+        Assert.Equal(0.01, cfg.Disaster.HazardPerYear);
         Assert.Equal(5.0, cfg.Disaster.DurationYears);
         Assert.Equal(0.75, cfg.Disaster.SeverityMin);
         Assert.Equal(1.0, cfg.Disaster.SeverityMax);

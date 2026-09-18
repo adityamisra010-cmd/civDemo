@@ -455,6 +455,23 @@ public class DemographyRetuneTests
     /// of demand: FamineOutput 0.80 (worst d 0.456 — SEVERE, effective 0.32;
     /// the T2.7 rig's 0.85/1.45 measured 0.42) and StressOutput 1.25 (worst
     /// d 0.150 — STRESS); both swept and measured on this tree.</summary>
+    /// <summary>
+    /// T4.21-4 — THE RIG CONTROL, added when λ was armed. These three arms
+    /// (SEVERE / STRESS / abandonment) build their deficit schedule BY HAND out
+    /// of a farming-output twin, and two of them assert the CLASSIFICATION of
+    /// that hand-built deficit (`Assert.Equal(FoodStateKind.Severe/Stress, …)`).
+    /// A second, random, famine-CLASS shock is not noise in such a rig — it
+    /// changes the answer: measured on the armed tree, a strike inside the
+    /// 17-turn window drove the STRESS arm's worst deficit to 0.56 (against the
+    /// absorbable band's 0.20 ceiling) and the SEVERE arm's to 0.64 (against
+    /// its 0.6 depth guard), and a struck turn would classify FAMINE, not
+    /// SEVERE, making the arm's own name false. λ = 0 here is therefore the
+    /// CONTROL that lets the rig mean what it says, not a dodge of the arming:
+    /// the abandonment twin still supplies its own cause explicitly (a
+    /// Farming 0 / Herding 0 row), and the DISASTER cause is covered on the
+    /// full pipeline by FamineScenarioTests.S_Disaster_TriggersFamine and by
+    /// FoodStateTests.F_Stockpile_DecidesFamine / F_DisasterTiming_TurnExact.
+    /// </summary>
     private static SimConfig FamineRigFed()
     {
         SimConfig fed = TestConfigs.Sim();
@@ -462,6 +479,7 @@ public class DemographyRetuneTests
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.6 },
             Founding = fed.Founding with { FoodStore = 4000 },
+            Disaster = fed.Disaster with { HazardPerYear = 0.0 },
         };
     }
 

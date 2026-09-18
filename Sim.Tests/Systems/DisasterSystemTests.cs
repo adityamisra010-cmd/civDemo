@@ -72,11 +72,19 @@ public class DisasterSystemTests
     [Fact]
     public void D_HazardZero_StripControl()
     {
-        // λ = 0 (the shipped value): the world with the system in its pipeline,
-        // its disaster streams removed and its (empty) table cleared, is BYTE
-        // FOR BYTE the world run with the system absent from the pipeline. The
-        // only thing the packet adds to a canonical stream is stream rows.
-        SimConfig cfg = TestConfigs.Sim();
+        // λ = 0: the world with the system in its pipeline, its disaster
+        // streams removed and its (empty) table cleared, is BYTE FOR BYTE the
+        // world run with the system absent from the pipeline. The only thing
+        // the packet adds to a canonical stream is stream rows.
+        //
+        // T4.21-4: λ = 0 is no longer the SHIPPED value (0.01, armed), so the
+        // control is now an explicit config twin. Both facts are asserted — the
+        // shipped value, so this test fails loudly if the arming is ever
+        // reverted silently, and the twin's own λ, so the control means what it
+        // says. The strip identity itself is unchanged.
+        SimConfig shipped = TestConfigs.Sim();
+        Assert.Equal(0.01, shipped.Disaster.HazardPerYear);
+        SimConfig cfg = WithDisaster(shipped, 0.0);
         Assert.Equal(0.0, cfg.Disaster.HazardPerYear);
 
         WorldState with = CanonicalExecutor(cfg).Run(DevFounded(cfg), 30);
