@@ -463,7 +463,21 @@ public class ChronicleTests
             new ChronicleEvent(ChronicleEventType.Disaster, 11, 110.0, 0, 0.60, 0.25), cfg, names);
         Assert.Contains(name, disaster);
         Assert.Contains("75", disaster);   // 1 - 0.25 applied, as a percentage
-        Assert.Contains("60", disaster);   // severity, as a percentage
+        // T4.21-6 — THE SEVERITY CLAUSE IS GONE FROM THE SHIPPED TEMPLATE, and
+        // this is the assertion that says so rather than leaving a reader to
+        // wonder. The Disaster event fires on the rising edge of
+        // FoodState.IsStruck; at canonical dt 10 with durationYears 5 the struck
+        // row is the TAIL row, whose Severity is 0 by construction, so the clause
+        // rendered "the blight has 0 in a hundred of the fields still" on
+        // essentially every canonical-era disaster (measured on the armed
+        // canonical session: 55 of 60 rising edges carry severity 0). The loss
+        // figure, which comes from AppliedMultiplier, carries the magnitude.
+        Assert.DoesNotContain("in a hundred of the fields", disaster, StringComparison.Ordinal);
+        // The same event as the canonical case actually records it: severity 0.
+        string tail = ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.Disaster, 11, 110.0, 0, 0.0, 0.30), cfg, names);
+        Assert.Contains("70", tail);       // 1 - 0.30 applied — the magnitude survives
+        Assert.DoesNotContain("0 in a hundred", tail, StringComparison.Ordinal);
         string shortfall = ChronicleProse.Render(
             new ChronicleEvent(ChronicleEventType.FoodShortfallOnset, 12, 120.0, 0, 0.07, 0.0), cfg, names);
         Assert.Contains("7", shortfall);

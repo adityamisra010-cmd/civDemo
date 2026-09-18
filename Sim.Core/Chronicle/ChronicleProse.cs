@@ -52,6 +52,16 @@ public static class ChronicleProse
             ChronicleEventType.MigrationSurge => line
                 .Replace("{count}", Whole(e.Magnitude1))
                 .Replace("{sharePct}", Whole(e.Magnitude2 * 100.0)),
+            // T4.21-6: {severityPct} is still SUBSTITUTABLE, but the shipped
+            // template no longer uses it. The Disaster event fires on the rising
+            // edge of FoodState.IsStruck, and at canonical dt 10 with
+            // durationYears 5 the row that is struck is the TAIL row, whose
+            // Severity is 0 by construction (DisasterSystem writes
+            // new DisasterRow(id, 0, 0.0, 0.0, 1.0, applied)) — measured on the
+            // armed canonical session, 55 of 60 rising edges carry severity 0, so
+            // the clause read "0 in a hundred of the fields still" on essentially
+            // every canonical-era disaster. {lossPct}, from AppliedMultiplier,
+            // carries the magnitude and is the one the reader can act on.
             ChronicleEventType.Disaster => line
                 .Replace("{severityPct}", Whole(e.Magnitude1 * 100.0))
                 .Replace("{lossPct}", Whole((1.0 - e.Magnitude2) * 100.0)),

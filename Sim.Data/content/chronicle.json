@@ -42,14 +42,14 @@
     "migrationSurgeFraction": 0.04
   },
   "templates": {
-    "_doc": "Placeholders per event: founding {year} {name} {population}; famineOnset {year} {name} {deficitPct} {reason}; famineEnd {year} {name} {years} {deaths}; extinction {year} {name} {lastPopulation}; firstArtisans {year} {name} {count}; migrationSurge {year} {name} {count} {sharePct}; disaster {year} {name} {severityPct} {lossPct}; foodShortfallOnset {year} {name} {deficitPct}; foodShortfallEnd {year} {name} {years}.",
+    "_doc": "Placeholders per event: founding {year} {name} {population}; famineOnset {year} {name} {deficitPct} {reason}; famineEnd {year} {name} {years} {deaths}; extinction {year} {name} {lastPopulation}; firstArtisans {year} {name} {count}; migrationSurge {year} {name} {count} {sharePct}; disaster {year} {name} {lossPct} (and {severityPct}, which the SHIPPED template deliberately does not use: the Disaster event fires on the rising edge of FoodState.IsStruck, and at canonical dt 10 with durationYears 5 the row that is struck is the tail row, whose Severity is 0 by construction - measured on the armed canonical session, 55 of 60 rising edges carry severity 0, so the clause rendered a zero-in-a-hundred residual on essentially every canonical-era disaster. The loss figure carries the magnitude, from AppliedMultiplier. T4.21-6); foodShortfallOnset {year} {name} {deficitPct}; foodShortfallEnd {year} {name} {years}.",
     "founding": "In the year {year}, {name} was founded, {population} souls strong.",
     "famineOnset": "In {year}, famine gripped {name} - {reason}: {deficitPct} of every hundred measures of need went unmet.",
     "famineEnd": "In {year}, the famine at {name} lifted after {years} years; {deaths} were dead of it.",
     "extinction": "In {year}, {name} fell silent - the last {lastPopulation} souls perished, and no smoke rose again.",
     "firstArtisans": "In {year}, the first artisans set up their workshops at {name}, {count} masters and hands.",
     "migrationSurge": "In {year}, {count} souls quit {name} in a single season - {sharePct} of every hundred who lived there.",
-    "disaster": "In {year}, the harvest at {name} failed outright - {lossPct} of every hundred measures of the season's yield were lost, and the blight has {severityPct} in a hundred of the fields still.",
+    "disaster": "In {year}, the harvest at {name} failed outright - {lossPct} of every hundred measures of the season's yield were lost.",
     "foodShortfallOnset": "In {year}, the stores at {name} ran short: {deficitPct} of every hundred measures of need went unmet.",
     "foodShortfallEnd": "In {year}, {name} ate its fill again after {years} lean years."
   }
