@@ -33,6 +33,28 @@
 > audit `docs/t4.21-1-foundations-audit.md` (per-settlement `ρ` for seed 42 ± the director's orders and
 > seeds 1–3, F4/F5), the measured mutant kill-record `docs/t4.21-1-mutants.md`, and the M-FS-ABANDON
 > correction in ADR-024 §8 / FoodState.cs (the Share variant is equivalent).
+>
+> **2026-09-18 — T4.21-2 ∥ T4.21-3 MERGED AND FINISHED on `claude/civdemo-work-b1z2y4`.** The merge
+> commit `a621c86` (T4.21-2 bounded migration, ADR-025 + T4.21-3 shock integration, CR-015/ADR-026)
+> was left unfinished: a `-999` placeholder in `MerchantTests`, every golden and measured pin resolved
+> to the T4.21-3 side (both parents measured against `1735d41` with the other absent, so neither
+> value can hold on a tree carrying both), and a conflict of fact — T4.21-3 asserted migrants move on
+> turn 2, T4.21-2's vacancy bound refuses every gap flow that turn. The merge-finish lane resolved all
+> three BY MEASUREMENT on the merged tree, changing NO mechanism (the diff against `a621c86` touches
+> `Sim.Tests`, `Sim.Ui.Tests`, `ci.yml`, `docs/queue.md` only): T4.21-2's form is the measured truth —
+> `MigrantsMoved` 0 on turn 2, 252 on turn 3, founded and driven. Four world goldens, ci.yml's
+> `FOUNDED_GOLDEN` (reproduced with two separate CLI processes, byte-identical), every
+> `IntegratedPinAttribution` strip and every measured-value pin re-measured; the synthetic
+> `GoldenHash_Seed42Turn200` and both its strips are UNMOVED, which is the no-unrelated-movement
+> control. Suite measured on the finished tree (Release): Sim.Tests **858 passed / 1 failed / 6
+> skipped** in 6 m 31 s, Sim.Ui.Tests **294/294**, three gate scripts green. The ONE red is
+> `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7)` — the dev migration quarantine's
+> drift tooth, red on BOTH parent branches for the same pre-existing, previously masked cause
+> (measured here: seed 7 `dev.migrationGrossPerDecade` 1.0200612834541973E-04 against a recorded
+> 0.000799951; seed 42 8.336943780925534E-05 against 7.21744E-05, which passes). Its re-pin is
+> T4.21-4's deliverable; the `corridors.json` bands and the CR-003 quarantine were NOT touched.
+> The two open T4.21-2 findings (the turn-2 vacancy refusal, the fed-world basin-cap magnitude) stay
+> open in `docs/queue.md` — this lane measured and recorded, it did not act on them. Verify against git.
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not

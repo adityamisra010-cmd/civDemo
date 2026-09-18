@@ -559,12 +559,28 @@ public class CalibrationBatteryTests
         // T4.21-4 owns the CR-003 message re-read; this is the recorded-
         // trajectory pin, re-pinned like a golden with this history line.
         // KNOWN, NOT MINE: seed 7 then reaches AssertDevMigrationQuarantine and
-        // fails it — dev.migrationGrossPerDecade 0.000110 vs the recorded
-        // 0.000800 × 0.75. That drift PRE-DATES this packet: measured on the
-        // integration HEAD with the starvation tooth bypassed, seed 7 read
-        // 6.80E-05 (seed 42 6.42E-05; here 9.43E-05), so this tree moves it UP,
-        // not down. The recorded envelope's re-pin is T4.21-4's deliverable
-        // (spec §4, N7) and is left for it.
+        // fails it — dev.migrationGrossPerDecade vs the recorded 0.000800 ×
+        // 0.75. That drift PRE-DATES both T4.21 packets: measured on the
+        // integration HEAD (1735d41) with the starvation tooth bypassed, seed 7
+        // read 6.80E-05 (seed 42 6.42E-05), already below the tooth and masked
+        // by it. The recorded envelope's re-pin is T4.21-4's deliverable (spec
+        // §4, N7) and is left for it.
+        // T4.21-2 ∥ T4.21-3 MERGE-FINISH LANE — COMMENT ONLY. No band, no
+        // tooth, no envelope and no recorded value is changed here; the two
+        // figures above (93,965 / 122,532) were measured on the T4.21-3 branch
+        // with bounded migration ABSENT. RE-MEASURED ON THE MERGED TREE by the
+        // agent writing this line, 1000 dev turns each:
+        //   seed 42: founding 1,581, final 93,910, peak 93,910 (monotone),
+        //            starvation 0, crashes 0, migrationGrossPerDecade
+        //            8.336943780925534E-05 — above its recorded 7.21744E-05 ×
+        //            0.75, so seed 42 passes the drift tooth and is GREEN.
+        //   seed  7: founding 2,058, final 123,600, peak 123,600 (monotone),
+        //            starvation 0, crashes 0, migrationGrossPerDecade
+        //            1.0200612834541973E-04 — 0.128× its recorded 0.000799951,
+        //            so the drift tooth fires and seed 7 is RED, for the
+        //            PRE-EXISTING, previously masked cause above.
+        // The envelope [82k, 138k] asserted below HOLDS on both seeds as
+        // measured here, so it is not re-pinned.
         Assert.InRange(m.FinalPopulation, 82_000, 138_000);
     }
 

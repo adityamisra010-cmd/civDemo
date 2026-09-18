@@ -95,7 +95,8 @@ internal static class ObservedWorlds
     ///     policy changes, all on turn 3; pottery on turn 5: 1829 produced, 845
     ///     eaten, 0 sunk as inputs; 6,373 people at turn 300.
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
-    ///     settlement 0, party 143, provisions 128; nothing founded after.</summary>
+    ///     settlement 0, party 135, provisions 145 (RE-MEASURED on the merged
+    ///     tree; 143 / 128 pre-packet); nothing founded after.</summary>
     internal static readonly Lazy<Run> Founded300 =
         new(() => FoundedRun(300), LazyThreadSafetyMode.ExecutionAndPublication);
     internal static readonly Lazy<Run> Driven300 =

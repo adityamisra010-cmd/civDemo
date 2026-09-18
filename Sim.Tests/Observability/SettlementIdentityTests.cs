@@ -108,7 +108,8 @@ public class SettlementIdentityTests
         Assert.Empty(colony.Orders);
 
         // THE SOURCE: its residual is exactly the party that left it (one
-        // founding this turn, from settlement 0 — measured: 143 people).
+        // founding this turn, from settlement 0 — RE-MEASURED on the merged
+        // T4.21-2 + T4.21-3 tree: 135 people, 143 pre-packet).
         Assert.Equal(colony.Population.Closing, source.Population.ColonistsDeparted);
         Assert.True(source.Population.Deaths > 0 && source.Population.Inflow > 0,
             "the source turn is not a real turn — deaths and inflow should both flow on it");

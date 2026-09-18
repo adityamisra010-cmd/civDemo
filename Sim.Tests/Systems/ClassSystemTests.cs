@@ -337,12 +337,12 @@ public class ClassSystemTests
         // T4.21-2 ∥ T4.21-3 MERGE, MEASURED ON THE MERGED TREE by the agent
         // writing this line: seed 3, first-present turn 13, latch turn 70, one
         // immigrant artisan at first presence. (Seed 3 on the T4.21-2 branch
-        // alone: 13 / 71.) The latch turn moves with the growth trajectory,
-        // which ADR-026's headroom cap holds back by one turn of growth on turn
-        // 2 of every founded world; the first-present turn is migration's and
-        // did not move. The property this test pins — the immigrant precedes
-        // the local latch, and the instrument reports the latch, not the
-        // presence — is untouched by either packet.
+        // alone: 13 / 71 — the merged latch is ONE TURN EARLIER, not later.)
+        // The latch turn moves with the surplus-ratio trajectory, which both
+        // packets move; the first-present turn is migration's and is unchanged
+        // from the T4.21-2 branch. The property this test pins — the immigrant
+        // precedes the local latch, and the instrument reports the latch, not
+        // the presence — is untouched by either packet.
         // Bounded: the loop stops at the latch (hard ceiling 120 turns).
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
