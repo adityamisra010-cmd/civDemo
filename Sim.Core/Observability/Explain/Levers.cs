@@ -59,6 +59,22 @@ public static class Levers
         ChainNode.DeficitRatio => Lever.Allocation(
             "Food obtained over food required; obtained is produced by the farming and herding pools.",
             Sectors.Farming, Sectors.Herding),
+        // --- T4.21-5 / CR-015 -------------------------------------------
+        ChainNode.FoodStateClassification => Lever.Allocation(
+            "The classification is the food balance plus its cause: the balance is the farming and herding shares; "
+            + "the ABANDONMENT cause is those same two sliders set to zero. The DISASTER cause has no lever at all.",
+            Sectors.Farming, Sectors.Herding),
+        ChainNode.EffectiveDeficit => Lever.Allocation(
+            "The adapted form of the deficit above, so the same two pools reach it; the absorbable shortfall itself "
+            + "is a tuning constant (sim.json foodState.adaptationAbsorbableShortfall), not an order.",
+            Sectors.Farming, Sectors.Herding),
+        ChainNode.DisasterMultiplierApplied => Lever.None(
+            "A rare famine-class crop failure (DisasterSystem): drawn from a per-year hazard against a settlement's "
+            + "own stream, reading no population, no store and no policy. A condition, and the one cause of famine "
+            + "no order can avert."),
+        ChainNode.Abandoned => Lever.Allocation(
+            "This IS the two food sliders at zero — the only famine cause a player can both create and undo.",
+            Sectors.Farming, Sectors.Herding),
         ChainNode.NutritionalDemand => Lever.None(
             "A population fact (cohort-weighted heads × basket rates); demographics and migration move it, no order does."),
         ChainNode.GrainStore or ChainNode.GrainHarvest or ChainNode.GrainEaten => Lever.Allocation(

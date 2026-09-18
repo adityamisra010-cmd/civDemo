@@ -23,6 +23,45 @@ public readonly record struct FlowsTotals(
     long MigrantsMoved, int SettlementsFounded, int ControlLost, long TradeUnits, int TradeFlowCount,
     bool UnattributedGrainTransfer);
 
+/// <summary>
+/// T4.21-5: the exceptional-famine readout as the file carries it, or
+/// <see cref="Absent"/> when the line is a telemetry/v2 line that predates the
+/// section. ABSENT IS NOT ZERO and it is not Normal: a v2 file does not say what
+/// the food state was, and <see cref="Recorded"/> is how the inspector knows to
+/// say so instead of answering from a default.
+/// </summary>
+public readonly record struct TelemetryFoodState(
+    bool Recorded, string State, string FamineReason,
+    double NominalDeficit, double EffectiveDeficit, bool Abandoned,
+    bool DisasterRowPresent, double DisasterSeverity, double DisasterMultiplierApplied,
+    double DisasterRemainingYears, double HarvestWeatherApplied,
+    double FoodLimit, double Vacancy, double SurplusRatio, double Headroom)
+{
+    public static TelemetryFoodState Absent => new(
+        false, "", "", double.NaN, double.NaN, false, false, double.NaN, double.NaN,
+        double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+
+    /// <summary>The file said FAMINE for this settlement-turn. False for a v2
+    /// line — unrecorded, not "no famine".</summary>
+    public bool IsFamine => Recorded && string.Equals(State, "Famine", StringComparison.Ordinal);
+}
+
+/// <summary>T4.21-5: the planner readings as the file carries them, or
+/// <see cref="Absent"/> on a telemetry/v2 line.</summary>
+public readonly record struct TelemetryMigrationPlan(
+    bool Recorded, double ExitOpenness, double FlightFractionPrime,
+    double FlightBound, double FlightOut, double FlightIn, double GapIn,
+    double GapInflowCap, double VacancyCap, double DesiredInflowAe, double VacancyScale)
+{
+    public static TelemetryMigrationPlan Absent => new(
+        false, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN,
+        double.NaN, double.NaN, double.NaN, double.NaN);
+
+    /// <summary>The destination refused part of what wanted in (spec §3.11:
+    /// "REFUGEES REFUSED" is vacancyScale &lt; 1). False when unrecorded.</summary>
+    public bool RefugeesRefused => Recorded && VacancyScale < 1.0;
+}
+
 /// <summary>One settlement on one turn, as the saved telemetry record carries
 /// it. Every field here is READ from the file — nothing is recomputed, and
 /// nothing the file does not contain appears.</summary>
@@ -34,7 +73,8 @@ public sealed record TelemetrySettlement(
     long StoreLosses, string StoreLossesIdentity, long DemandUnits, double DeficitRatio,
     bool HousingHasRow, long DwellingsOpening, long DwellingsClosing,
     double Happiness, double[] HappinessFactors,
-    ClassActiveRow[] ClassActive);
+    ClassActiveRow[] ClassActive,
+    TelemetryFoodState FoodState, TelemetryMigrationPlan MigrationPlan);
 
 /// <summary>One observed step, as the saved telemetry record carries it.</summary>
 public sealed record TelemetryTurn(
@@ -50,10 +90,20 @@ public sealed record TelemetryTurn(
 /// could be read only by eye. Adding forensic fields without adding a reader
 /// would have added data no tool can read.
 ///
-/// STRICT ON THE TAG, TOLERANT OF KEYS: a line whose schema is not
-/// <see cref="TelemetryWriter.Schema"/> is refused with the file and line named,
-/// because a reader that silently accepts an unknown vintage would report the
-/// difference as a finding. Unknown keys are ignored.
+/// STRICT ON THE TAG, TOLERANT OF KEYS: a line whose schema is not one of
+/// <see cref="TelemetryWriter.ReadableSchemas"/> is refused with the file and
+/// line named, because a reader that silently accepts an unknown vintage would
+/// report the difference as a finding. Unknown keys are ignored.
+///
+/// TWO VINTAGES, ENUMERATED (T4.21-5). telemetry/v3 is telemetry/v2 PLUS the
+/// foodState and migrationPlan sections; no v2 key changed name, position or
+/// meaning. So the list is a whitelist of two, not a relaxation: reading a v2
+/// line yields <see cref="TelemetryFoodState.Absent"/> and
+/// <see cref="TelemetryMigrationPlan.Absent"/>, whose Recorded flag is FALSE —
+/// the reader says "the file does not say", which is the same answer this class
+/// gives everywhere else, and never a defaulted zero that would read as a fact.
+/// Sessions the director already played (telemetry/v2) therefore still answer
+/// `sim inspect --answer`.
 ///
 /// IT RECOMPUTES NOTHING. Every value it returns was written by the observer
 /// that watched the step. Where the record cannot answer a question, the
@@ -81,15 +131,25 @@ public sealed class TelemetryRecordFile
             using JsonDocument doc = JsonDocument.Parse(line);
             JsonElement root = doc.RootElement;
             string? schema = Str(root, "schema");
-            if (schema != TelemetryWriter.Schema)
+            if (!IsReadable(schema))
             {
                 throw new InvalidDataException(
-                    $"{describedAs} line {number}: not a {TelemetryWriter.Schema} record "
+                    $"{describedAs} line {number}: not one of {string.Join(", ", TelemetryWriter.ReadableSchemas)} "
                     + $"(found '{schema ?? "no schema tag"}').");
             }
             turns.Add(ReadTurn(root));
         }
         return new TelemetryRecordFile(turns);
+    }
+
+    /// <summary>Whether this reader accepts the tag (an enumerated whitelist —
+    /// <see cref="TelemetryWriter.ReadableSchemas"/>; null or unknown is false).</summary>
+    public static bool IsReadable(string? schema)
+    {
+        if (schema is null) return false;
+        string[] ok = TelemetryWriter.ReadableSchemas;
+        for (int i = 0; i < ok.Length; i++) if (string.Equals(ok[i], schema, StringComparison.Ordinal)) return true;
+        return false;
     }
 
     /// <summary>The record for a turn, or null when the file does not cover it.</summary>
@@ -207,12 +267,41 @@ public sealed class TelemetryRecordFile
             DwellingsClosing: Lng(housing, "dwellingsClosing"),
             Happiness: Dbl(social, "happiness"),
             HappinessFactors: [.. factors],
-            ClassActive: [.. active]);
+            ClassActive: [.. active],
+            FoodState: ReadFoodState(s),
+            MigrationPlan: ReadMigrationPlan(s));
+    }
+
+    /// <summary>The foodState section, or Absent when the line does not carry
+    /// one (a telemetry/v2 line). Presence is decided by the SECTION, not by a
+    /// value inside it — a section that exists but reads zero is a recorded zero.</summary>
+    private static TelemetryFoodState ReadFoodState(JsonElement s)
+    {
+        if (s.ValueKind != JsonValueKind.Object
+            || !s.TryGetProperty("foodState", out JsonElement f) || f.ValueKind != JsonValueKind.Object)
+            return TelemetryFoodState.Absent;
+        return new TelemetryFoodState(
+            true, Str(f, "state") ?? "", Str(f, "famineReason") ?? "",
+            Dbl(f, "nominalDeficit"), Dbl(f, "effectiveDeficit"), Bln(f, "abandoned"),
+            Bln(f, "disasterRowPresent"), Dbl(f, "disasterSeverity"), Dbl(f, "disasterMultiplierApplied"),
+            Dbl(f, "disasterRemainingYears"), Dbl(f, "harvestWeatherApplied"),
+            Dbl(f, "foodLimit"), Dbl(f, "vacancy"), Dbl(f, "surplusRatio"), Dbl(f, "headroom"));
+    }
+
+    private static TelemetryMigrationPlan ReadMigrationPlan(JsonElement s)
+    {
+        if (s.ValueKind != JsonValueKind.Object
+            || !s.TryGetProperty("migrationPlan", out JsonElement m) || m.ValueKind != JsonValueKind.Object)
+            return TelemetryMigrationPlan.Absent;
+        return new TelemetryMigrationPlan(
+            true, Dbl(m, "exitOpenness"), Dbl(m, "flightFractionPrime"),
+            Dbl(m, "flightBound"), Dbl(m, "flightOut"), Dbl(m, "flightIn"), Dbl(m, "gapIn"),
+            Dbl(m, "gapInflowCap"), Dbl(m, "vacancyCap"), Dbl(m, "desiredInflowAe"), Dbl(m, "vacancyScale"));
     }
 
     // --- JSON primitives -----------------------------------------------------
     //
-    // telemetry/v2 writes a non-finite double as the STRING "NaN" / "Infinity"
+    // telemetry/v2 and v3 write a non-finite double as the STRING "NaN" / "Infinity"
     // (TelemetryWriter, deliberately, so an absent reading stays distinguishable
     // from a reading of zero). The reader therefore has to accept both shapes.
     // That convention is NOT changed here: moving it would move the telemetry

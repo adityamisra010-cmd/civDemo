@@ -1,4 +1,5 @@
 using System.Globalization;
+using Sim.Core.State;
 
 namespace Sim.Core.Chronicle;
 
@@ -22,6 +23,9 @@ public static class ChronicleProse
             ChronicleEventType.Extinction => cfg.Templates.Extinction,
             ChronicleEventType.FirstArtisans => cfg.Templates.FirstArtisans,
             ChronicleEventType.MigrationSurge => cfg.Templates.MigrationSurge,
+            ChronicleEventType.Disaster => cfg.Templates.Disaster,
+            ChronicleEventType.FoodShortfallOnset => cfg.Templates.FoodShortfallOnset,
+            ChronicleEventType.FoodShortfallEnd => cfg.Templates.FoodShortfallEnd,
             _ => throw new InvalidOperationException($"unknown event type {e.Type}"),
         };
 
@@ -32,8 +36,12 @@ public static class ChronicleProse
         {
             ChronicleEventType.Founding => line
                 .Replace("{population}", Whole(e.Magnitude1)),
+            // {reason} binds the RECORDED FamineReason ordinal (M2), so the
+            // annals name the cause CR-015 made the classifier carry and cannot
+            // name one detection never recorded.
             ChronicleEventType.FamineOnset => line
-                .Replace("{deficitPct}", Whole(e.Magnitude1 * 100.0)),
+                .Replace("{deficitPct}", Whole(e.Magnitude1 * 100.0))
+                .Replace("{reason}", Reason(e.Magnitude2)),
             ChronicleEventType.FamineEnd => line
                 .Replace("{years}", Whole(e.Magnitude1))
                 .Replace("{deaths}", Whole(e.Magnitude2)),
@@ -44,6 +52,13 @@ public static class ChronicleProse
             ChronicleEventType.MigrationSurge => line
                 .Replace("{count}", Whole(e.Magnitude1))
                 .Replace("{sharePct}", Whole(e.Magnitude2 * 100.0)),
+            ChronicleEventType.Disaster => line
+                .Replace("{severityPct}", Whole(e.Magnitude1 * 100.0))
+                .Replace("{lossPct}", Whole((1.0 - e.Magnitude2) * 100.0)),
+            ChronicleEventType.FoodShortfallOnset => line
+                .Replace("{deficitPct}", Whole(e.Magnitude1 * 100.0)),
+            ChronicleEventType.FoodShortfallEnd => line
+                .Replace("{years}", Whole(e.Magnitude1)),
             _ => line,
         };
 
@@ -53,6 +68,18 @@ public static class ChronicleProse
                 $"chronicle template for {e.Type} uses a placeholder detection never recorded: '{line}'");
         return line;
     }
+
+    /// <summary>The recorded <see cref="FamineReason"/> ordinal as prose. An
+    /// ordinal the enum does not cover renders as itself rather than as a
+    /// guess — the renderer never invents a cause.</summary>
+    private static string Reason(double ordinal) => ((int)ordinal) switch
+    {
+        (int)FamineReason.Disaster => "a ruined harvest",
+        (int)FamineReason.Abandonment => "fields left untilled",
+        (int)FamineReason.Both => "a ruined harvest and fields left untilled",
+        (int)FamineReason.None => "no recorded cause",
+        _ => "cause " + ((int)ordinal).ToString(CultureInfo.InvariantCulture),
+    };
 
     /// <summary>Sim-years since epoch, whole years (presentation may later map
     /// to BCE/CE; the annals speak in campaign years).</summary>

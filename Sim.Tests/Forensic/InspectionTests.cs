@@ -402,6 +402,181 @@ public class InspectionTests
         Assert.Contains("It does not manufacture a decomposition.", happiness[1].Basis, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// T4.21-5 (spec §3.11 / §6.6) — THE FOUR NEW MAJOR-EVENT CATEGORIES, held
+    /// to the same rule as every other: an event line must correspond to a
+    /// transition the RECORD shows, and a transition the record does not show
+    /// must produce no line.
+    ///
+    /// The played session is the canonical 24-turn one; it is not required to
+    /// famine, be struck, be abandoned or refuse refugees, and this test does
+    /// NOT force it to. What it pins is the implication in both directions:
+    /// every FAMINE ONSET line sits on a settlement-turn the telemetry
+    /// classifies as Famine; every DISASTER line on one whose applied
+    /// multiplier is below 1; every ABANDONMENT on one the record marks
+    /// abandoned; every REFUGEES REFUSED on one whose vacancyScale is below 1.
+    /// And no such line may appear on a settlement-turn that does not.
+    /// </summary>
+    [Fact]
+    public void T421_TheFamineDisasterAbandonmentAndRefusalLines_MatchTheRecordBothWays()
+    {
+        using Session s = Play("t421-events");
+        Answer events = s.Inspector.MajorEvents();
+
+        int famineLines = 0, disasterLines = 0, abandonLines = 0, refusedLines = 0;
+        foreach (string line in events.Lines)
+        {
+            if (!line.Contains("settlement ", StringComparison.Ordinal)) continue;
+            long turn = TurnOf(line);
+            int id = int.Parse(
+                line.Split("settlement ")[1].Split(' ')[0], System.Globalization.CultureInfo.InvariantCulture);
+            TelemetrySettlement row = s.Telemetry.Settlement(turn, id)!;
+
+            if (line.Contains("FAMINE ONSET", StringComparison.Ordinal))
+            {
+                famineLines++;
+                Assert.True(row.FoodState.IsFamine, $"FAMINE ONSET on turn {turn} but the record does not say Famine");
+                Assert.Contains("reason ", line, StringComparison.Ordinal);
+                Assert.DoesNotContain("reason None", line, StringComparison.Ordinal);
+            }
+            if (line.Contains("DISASTER", StringComparison.Ordinal))
+            {
+                disasterLines++;
+                Assert.True(row.FoodState.DisasterRowPresent && row.FoodState.DisasterMultiplierApplied < 1.0);
+            }
+            if (line.Contains("ABANDONMENT", StringComparison.Ordinal))
+            {
+                abandonLines++;
+                Assert.True(row.FoodState.Abandoned);
+            }
+            if (line.Contains("REFUGEES REFUSED", StringComparison.Ordinal))
+            {
+                refusedLines++;
+                Assert.True(row.MigrationPlan.RefugeesRefused);
+                Assert.True(row.MigrationPlan.VacancyScale < 1.0);
+            }
+        }
+
+        // THE OTHER DIRECTION. Walk the record itself: every settlement-turn
+        // that ENTERS Famine, is struck for the first time, becomes abandoned or
+        // refuses refugees must have produced its line.
+        int expectedFamine = 0, expectedRefused = 0;
+        var wasFamine = new Dictionary<int, bool>();
+        foreach (TelemetryTurn t in s.Telemetry.Turns)
+        {
+            foreach (TelemetrySettlement row in t.Settlements)
+            {
+                Assert.True(row.FoodState.Recorded, "a telemetry/v3 line must carry the foodState section");
+                Assert.True(row.MigrationPlan.Recorded, "a telemetry/v3 line must carry the migrationPlan section");
+                if (row.FoodState.IsFamine && !(wasFamine.TryGetValue(row.Settlement, out bool was) && was))
+                    expectedFamine++;
+                wasFamine[row.Settlement] = row.FoodState.IsFamine;
+                if (row.MigrationPlan.RefugeesRefused) expectedRefused++;
+            }
+        }
+        Assert.Equal(expectedFamine, famineLines);
+        Assert.Equal(expectedRefused, refusedLines);
+        Assert.True(disasterLines >= 0 && abandonLines >= 0);
+
+        // The answer's own text must warn that ABSENCE on an older record means
+        // "the file does not say", not "it did not happen".
+        Assert.Contains("the file does not say", events.Basis, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// T4.21-5 — THE DIRECTOR'S EXISTING RECORD STILL READS. A telemetry/v2 line
+    /// (the vintage of every session played before this packet) parses, every v2
+    /// field reads exactly as before, and the two new sections report
+    /// Recorded = FALSE — the reader says "the file does not say" instead of
+    /// defaulting a food state into existence. A THIRD vintage is still refused.
+    /// </summary>
+    [Fact]
+    public void T421_ATelemetryV2Line_StillReads_AndItsMissingSectionsSaySoRatherThanDefaulting()
+    {
+        using Session s = Play("t421-v2");
+        // Take a real v3 line this build wrote and DOWNGRADE it by stripping the
+        // two sections and the tag — the honest simulation of an older file,
+        // because every other byte is one this build actually produced.
+        SessionManifest manifest;
+        using (FileStream file = File.OpenRead(s.ManifestPath)) manifest = SessionManifest.Read(file, s.ManifestPath);
+        string v3 = File.ReadAllLines(Path.Combine(s.Dir, manifest.TelemetryFile))[5];
+        Assert.Contains("\"schema\":\"telemetry/v3\"", v3, StringComparison.Ordinal);
+
+        using var doc = System.Text.Json.JsonDocument.Parse(v3);
+        string v2 = Downgrade(doc.RootElement);
+        Assert.Contains("\"schema\":\"telemetry/v2\"", v2, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"foodState\"", v2, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"migrationPlan\"", v2, StringComparison.Ordinal);
+
+        TelemetryRecordFile older = TelemetryRecordFile.Parse([v2], "v2-fixture");
+        TelemetryRecordFile newer = TelemetryRecordFile.Parse([v3], "v3-line");
+        TelemetryTurn a = Assert.Single(older.Turns);
+        TelemetryTurn b = Assert.Single(newer.Turns);
+
+        // Every v2 field is identical across the two vintages: v3 is ADDITIVE.
+        Assert.Equal(b.Turn, a.Turn);
+        Assert.Equal(b.Grain, a.Grain);
+        Assert.Equal(b.Flows, a.Flows);
+        Assert.Equal(b.Settlements.Length, a.Settlements.Length);
+        for (int i = 0; i < a.Settlements.Length; i++)
+        {
+            TelemetrySettlement x = a.Settlements[i], y = b.Settlements[i];
+            Assert.Equal(y.Settlement, x.Settlement);
+            Assert.Equal(y.PopClosing, x.PopClosing);
+            Assert.Equal(y.DeficitRatio, x.DeficitRatio);
+            Assert.Equal(y.Happiness, x.Happiness);
+
+            // The new sections: absent on v2, recorded on v3.
+            Assert.False(x.FoodState.Recorded);
+            Assert.False(x.MigrationPlan.Recorded);
+            Assert.False(x.FoodState.IsFamine);          // unrecorded is never "yes"
+            Assert.False(x.MigrationPlan.RefugeesRefused);
+            Assert.True(double.IsNaN(x.FoodState.EffectiveDeficit));
+            Assert.True(y.FoodState.Recorded);
+            Assert.True(y.MigrationPlan.Recorded);
+        }
+
+        // A v2 record produces NO T4.21-5 event lines at all — absence of the
+        // section, not absence of the event.
+        Assert.True(TelemetryRecordFile.IsReadable("telemetry/v2"));
+        Assert.True(TelemetryRecordFile.IsReadable("telemetry/v3"));
+        Assert.False(TelemetryRecordFile.IsReadable("telemetry/v4"));
+        Assert.False(TelemetryRecordFile.IsReadable(null));
+        InvalidDataException bad = Assert.Throws<InvalidDataException>(
+            () => TelemetryRecordFile.Parse([v3.Replace("telemetry/v3", "telemetry/v4", StringComparison.Ordinal)], "future"));
+        Assert.Contains("telemetry/v3, telemetry/v2", bad.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>Re-emit a v3 line as a v2 one: same bytes, minus the two
+    /// sections this packet added, with the older tag.</summary>
+    private static string Downgrade(System.Text.Json.JsonElement root)
+    {
+        using var buffer = new MemoryStream();
+        using (var json = new System.Text.Json.Utf8JsonWriter(buffer))
+        {
+            json.WriteStartObject();
+            foreach (System.Text.Json.JsonProperty p in root.EnumerateObject())
+            {
+                if (p.NameEquals("schema")) { json.WriteString("schema", "telemetry/v2"); continue; }
+                if (!p.NameEquals("settlements")) { p.WriteTo(json); continue; }
+                json.WriteStartArray("settlements");
+                foreach (System.Text.Json.JsonElement row in p.Value.EnumerateArray())
+                {
+                    json.WriteStartObject();
+                    foreach (System.Text.Json.JsonProperty f in row.EnumerateObject())
+                    {
+                        if (f.NameEquals("foodState") || f.NameEquals("migrationPlan")) continue;
+                        f.WriteTo(json);
+                    }
+                    json.WriteEndObject();
+                }
+                json.WriteEndArray();
+            }
+            json.WriteEndObject();
+        }
+        return System.Text.Encoding.UTF8.GetString(buffer.ToArray());
+    }
+
     /// <summary>The turn an event line is stamped with: the first integer in it.</summary>
     private static long TurnOf(string line)
     {

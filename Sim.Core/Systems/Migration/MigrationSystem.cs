@@ -227,6 +227,23 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
         return 1.0 - Math.Exp(-(cohortProfile * k * exitOpenness * deficit * dtYears));
     }
 
+    /// <summary>
+    /// K = BaseRatePerYear × FamineFlightFactor — the flight hazard SCALE
+    /// (ADR-025 §2.1; 0.24/yr at the shipped constants, no constant moved).
+    /// T4.21-5 EXTRACTED this product from <see cref="Plan"/>'s body without
+    /// changing it: the same two factors in the same order, so the expression is
+    /// bit-identical and the goldens do not move. It is public because the
+    /// observer needs φ at profile 1 and an observer-side `BaseRatePerYear *
+    /// FamineFlightFactor` would be a SECOND implementation of this product —
+    /// the one thing docs/observability-architecture.md §0 forbids. Plan itself
+    /// calls this static, so there is exactly one.
+    /// </summary>
+    public static double FlightHazardScale(MigrationConfig m)
+    {
+        ArgumentNullException.ThrowIfNull(m);
+        return m.BaseRatePerYear * m.FamineFlightFactor;
+    }
+
     /// <summary>The planner with a basket book built from <paramref name="cfg"/>
     /// (the observer's entry point; Step passes its own book).</summary>
     public static MigrationPlan Plan(IReadOnlyWorldState prev, SimConfig cfg, double dtYears)
@@ -417,7 +434,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
 
         // K = BaseRatePerYear × FamineFlightFactor — the flight hazard scale
         // (0.24/yr at the shipped constants; T4.12's ruling untouched).
-        double kFlight = m.BaseRatePerYear * m.FamineFlightFactor;
+        double kFlight = FlightHazardScale(m);
 
         // === T4.4 (D-037 B1) — THE UNPLACED-DEPARTURE READOUT ==================
         // A PURE VALUE here; Step writes it to BucketRow.UnplacedDeparture. It

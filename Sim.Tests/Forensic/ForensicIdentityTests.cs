@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Sim.Core.Kernel;
+using Sim.Core.Observability;
 using Sim.Core.Observability.Forensic;
 
 namespace Sim.Tests.Forensic;
@@ -136,7 +137,11 @@ public class ForensicIdentityTests
         Assert.Equal(25, run.CanonicalSchemaVersion);
         Assert.Equal(25, CanonicalSchema.Version);   // v25: T4.21-1's Disasters table (the forensic record carries it, never covers it)
         Assert.Equal(25, run.Schemas.CanonicalSchemaVersion);
-        Assert.Equal("telemetry/v2", run.Schemas.Telemetry);
+        // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
+        // moved to v3 with the foodState/migrationPlan sections. The forensic
+        // tag below did NOT move — this file's own field set is unchanged.
+        Assert.Equal("telemetry/v3", run.Schemas.Telemetry);
+        Assert.Equal(TelemetryWriter.Schema, run.Schemas.Telemetry);
         Assert.Equal("session-manifest/v2", run.Schemas.SessionManifest);
         Assert.Equal("forensic/v1", run.Schemas.Forensic);
     }

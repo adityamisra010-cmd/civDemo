@@ -1,6 +1,8 @@
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Consumption;
+using Sim.Core.Systems.Demographics;
+using Sim.Core.Systems.Migration;
 
 namespace Sim.Core.Observability;
 
@@ -53,6 +55,18 @@ public static class Observer
         "GAP: the From->To flow matrix, damping, viability products and gap scale are "
         + "computed inside MigrationSystem and discarded; only per-settlement totals are recorded";
 
+    /// <summary>T4.21-5: the plan carries the destination's desired inflow in
+    /// adult-equivalents as ONE number over BOTH channels (MigrationPlan
+    /// DesiredInflowAe) — it is what the vacancy bound compares against, so the
+    /// planner never forms the split. Stating it is the honest answer; forming
+    /// it here would be an observer-side re-derivation of a quantity the
+    /// simulation does not compute.</summary>
+    internal const string InflowAeByChannelGap =
+        "GAP: MigrationPlan.DesiredInflowAe is the adult-equivalent inflow the vacancy bound tests, summed "
+        + "over the gap AND flight channels together (MigrationSystem.Plan, the vacancy-bound loop); the "
+        + "planner forms no per-channel adult-equivalent split, so none is recorded. The per-channel HEAD "
+        + "counts are recorded (gapIn, flightIn).";
+
     public static TurnObservation Observe(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, OrderApplied[] orders)
     {
@@ -75,6 +89,15 @@ public static class Observer
         // dimensionally sound. Built ONCE per observed step, not per settlement.
         var baskets = new BasketBook(cfg.Needs!, cfg.Goods!);
 
+        // T4.21-5 (spec §3.11): the migration planner, called ONCE per observed
+        // step through the PUBLIC static MigrationSystem.Step itself consumes,
+        // on the SAME prev at the SAME dt. next.Clock.DtYears IS the dt the step
+        // integrated (TurnExecutor.Step: the clock is stamped with the dtDays
+        // the pipeline ran on), so this is not a second choice of dt either.
+        // The observer indexes the plan; it recomputes nothing from it.
+        MigrationPlan plan = MigrationSystem.Plan(prev, cfg, next.Clock.DtYears, baskets);
+        int[] planRow = PlanRowBySettlementId(prev);
+
         // Settlement records first: the turn record's appropriation detector
         // reads their store-loss residuals.
         int prevCount = prev.Settlements.Count;
@@ -83,13 +106,13 @@ public static class Observer
             if (!HasSettlement(prev, next.Settlements[s].Id)) founded++;
         var settlements = new SettlementRecord[prevCount + founded];
         for (int s = 0; s < prevCount; s++)
-            settlements[s] = Settlement(prev, next, cfg, baskets, orders, prev.Settlements[s].Id, founded: false);
+            settlements[s] = Settlement(prev, next, cfg, baskets, plan, planRow, orders, prev.Settlements[s].Id, founded: false);
         int f = prevCount;
         for (int s = 0; s < next.Settlements.Count; s++)
         {
             SettlementId id = next.Settlements[s].Id;
             if (HasSettlement(prev, id)) continue;
-            settlements[f++] = Settlement(prev, next, cfg, baskets, orders, id, founded: true);
+            settlements[f++] = Settlement(prev, next, cfg, baskets, plan, planRow, orders, id, founded: true);
         }
 
         bool unattributed = false;
@@ -308,7 +331,7 @@ public static class Observer
 
     private static SettlementRecord Settlement(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets,
-        OrderApplied[] orders, SettlementId id, bool founded)
+        MigrationPlan plan, int[] planRow, OrderApplied[] orders, SettlementId id, bool founded)
     {
         GoodsConfig goods = cfg.Goods!;
         var grain = new GoodId(goods.GrainId);
@@ -332,7 +355,9 @@ public static class Observer
             Social(next, cfg, id),
             Migration(prev, next, grain, id),
             Policy(next, id, shares),
-            own.ToArray());
+            own.ToArray(),
+            FoodStateOf(prev, next, cfg, baskets, id),
+            MigrationPlanOf(prev, next, cfg, plan, planRow, id));
     }
 
     private static PopulationSection Population(
@@ -594,6 +619,133 @@ public static class Observer
         return new MigrationSection(
             push, pull, all, stock, lastHarvest,
             unplaced, remainder, PairwiseGap);
+    }
+
+    // ------------------------------------------------- §3.11 (T4.21-5) --
+
+    /// <summary>
+    /// The exceptional-famine readout. EVERY value is either READ from a row of
+    /// the named world or RECOMPUTED by calling a PUBLIC static of the
+    /// simulation on the SAME world the simulation called it on. No predicate,
+    /// no threshold and no quotient is restated here — the one division
+    /// (X / D) is the RATIO of two values this method obtained, not a re-derivation
+    /// of either.
+    /// </summary>
+    private static FoodStateSection FoodStateOf(
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets, SettlementId id)
+    {
+        bool prevPresent = HasSettlement(prev, id);
+
+        // The classification in force for the step just observed (spec §3.11:
+        // PREV at every caller — the deficit this step read, the disaster
+        // multiplier its harvest carried, the sector row its production obeyed).
+        FoodStateKind state = Sim.Core.State.FoodState.Of(prev, id, cfg, out FamineReason reason);
+        double d = Sim.Core.State.FoodState.DeficitRatio(prev, id);
+        double dEff = Sim.Core.State.FoodState.EffectiveDeficit(d, state, cfg);
+        bool abandoned = Sim.Core.State.FoodState.IsAbandoned(prev, id);
+
+        (bool applied, DisasterRow appliedRow) = Disaster(prev, id);
+        (bool pending, DisasterRow pendingRow) = Disaster(next, id);
+
+        bool weather = false;
+        double weatherMultiplier = double.NaN;
+        for (int i = 0; i < prev.HarvestWeather.Count; i++)
+        {
+            if (prev.HarvestWeather[i].Settlement != id) continue;
+            weather = true;
+            weatherMultiplier = prev.HarvestWeather[i].Multiplier;
+            break;
+        }
+
+        double[] cohortWeights = cfg.Consumption.CohortWeights;
+        double limit = FoodHeadroom.Limit(prev, id, cohortWeights, baskets);
+        double vacancy = FoodHeadroom.Vacancy(prev, id, cohortWeights, baskets);
+
+        // X / D. D is READ (the prev demand row); X is RECOMPUTED through
+        // FoodHeadroom.FeedableAtLimit — the same fixed point Limit uses. With
+        // no row, or D <= 0, the ratio HAS no denominator: NaN, which the
+        // telemetry writes as "NaN" and which stays distinguishable from 0.
+        long demand = 0;
+        bool haveDemand = false;
+        for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)
+        {
+            if (prev.ConsumptionDeficits[i].Settlement != id) continue;
+            demand = prev.ConsumptionDeficits[i].DemandUnits;
+            haveDemand = true;
+            break;
+        }
+        double surplusRatio = haveDemand && demand > 0
+            ? FoodHeadroom.FeedableAtLimit(prev, id, baskets, demand) / demand
+            : double.NaN;
+
+        return new FoodStateSection(
+            prevPresent, state, reason, d, dEff, abandoned,
+            applied, appliedRow.Kind, appliedRow.Severity, appliedRow.Multiplier, appliedRow.RemainingYears,
+            pending, pendingRow.Kind, pendingRow.Severity, pendingRow.Multiplier, pendingRow.RemainingYears,
+            weather, weatherMultiplier,
+            limit, vacancy, surplusRatio,
+            DemographicsSystem.Headroom(prev, id, cfg));
+    }
+
+    /// <summary>The settlement's DisasterRow in the world passed in, and whether
+    /// it had one. The absent row reads as the identity the simulation reads:
+    /// multiplier 1.0, nothing pending (DisasterSystem: "absent → 1.0").</summary>
+    private static (bool Present, DisasterRow Row) Disaster(IReadOnlyWorldState w, SettlementId id)
+    {
+        for (int i = 0; i < w.Disasters.Count; i++)
+            if (w.Disasters[i].Settlement == id) return (true, w.Disasters[i]);
+        return (false, new DisasterRow(id, 0, 0.0, 0.0, 1.0, 1.0));
+    }
+
+    /// <summary>prev settlement id → its row index in the plan's arrays, −1 for
+    /// an id prev does not carry. An array, not a dictionary (law 5).</summary>
+    private static int[] PlanRowBySettlementId(IReadOnlyWorldState prev)
+    {
+        int maxId = 0;
+        for (int s = 0; s < prev.Settlements.Count; s++)
+            maxId = Math.Max(maxId, prev.Settlements[s].Id.Value);
+        var index = new int[maxId + 1];
+        Array.Fill(index, -1);
+        for (int s = 0; s < prev.Settlements.Count; s++) index[prev.Settlements[s].Id.Value] = s;
+        return index;
+    }
+
+    /// <summary>
+    /// The planner's decisions for this settlement, INDEXED out of the plan the
+    /// simulation's own static built. The only value not indexed is φ at cohort
+    /// profile 1, and it is obtained by CALLING MigrationSystem's two statics —
+    /// <c>FlightFractionOf</c> (the one expression Plan multiplies per bucket)
+    /// and <c>FlightHazardScale</c> (the one product K) — never by restating
+    /// either. A settlement absent from prev was never planned: PlanRecorded
+    /// false and every reading NaN, because "not planned" is not "planned to
+    /// zero".
+    /// </summary>
+    private static MigrationPlanSection MigrationPlanOf(
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg,
+        MigrationPlan plan, int[] planRow, SettlementId id)
+    {
+        double dt = next.Clock.DtYears;
+        int i = id.Value >= 0 && id.Value < planRow.Length ? planRow[id.Value] : -1;
+        if (i < 0)
+        {
+            return new MigrationPlanSection(
+                false, dt,
+                double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN,
+                double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN,
+                InflowAeByChannelGap);
+        }
+
+        double omega = plan.ExitOpenness[i];
+        double phiPrime = MigrationSystem.FlightFractionOf(
+            1.0, MigrationSystem.FlightHazardScale(cfg.Migration), omega, plan.Deficit[i], plan.DtYears);
+
+        return new MigrationPlanSection(
+            true, dt,
+            omega, phiPrime, plan.FlightBound[i], plan.FlightOut[i],
+            plan.GapOut[i], plan.GapOutflowCap[i], plan.SrcScale[i],
+            plan.FlightIn[i], plan.GapIn[i], plan.GapInflowCap[i], plan.DestScale[i],
+            plan.VacancyCap[i], plan.DesiredInflowAe[i], plan.VacancyScale[i],
+            InflowAeByChannelGap);
     }
 
     private static PolicySection Policy(IReadOnlyWorldState next, SettlementId id, double[] effective)

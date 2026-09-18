@@ -104,7 +104,9 @@ public sealed class UiSession
             _chronicleCfg = Sim.Core.Chronicle.ChronicleConfigLoader.Load(stream);
         }
         Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, world.Seed, world);
-        _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg);
+        // T4.21-5: the chronicle's famine event is the simulation's own
+        // FoodState classification, so the collector needs the sim config.
+        _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg, _simCfg);
         ObserveChronicle(); // founding events fire on first sight
         History.Capture(World); // the founding sample (turn 0)
         CaptureTrace();         // turn 0 — the world before any order lands

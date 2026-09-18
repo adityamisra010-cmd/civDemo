@@ -1,3 +1,4 @@
+using Sim.Core.Observability;
 using System.Text.Json;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Sim.Ui.Tests;
 /// path did not: bytes written per turn is O(the new record) and not O(the
 /// file); a record already on disk survives a process death mid-write; and the
 /// resulting file is still exactly the file the write-all path produced, line
-/// for line and byte for byte, so no reader of telemetry/v2 can tell.
+/// for line and byte for byte, so no reader of the telemetry vintage can tell.
 /// </summary>
 public class TelemetryAppendTests
 {
@@ -33,7 +34,7 @@ public class TelemetryAppendTests
     public void AppendingEachTurnProducesEXACTLYTheFileTheWriteAllPathProduced()
     {
         // The compatibility pin. If this ever fails the artifact contract moved,
-        // and telemetry/v2 promises it did not.
+        // and the telemetry vintage promises it did not.
         string dir = Dir("identical");
         try
         {
@@ -125,7 +126,7 @@ public class TelemetryAppendTests
         // A process death is simulated by truncating the artifact at an
         // arbitrary byte — the state a half-written record leaves behind. The
         // property: every line that had already been completed (every '\n'
-        // before the cut) still parses as a whole telemetry/v2 record. Under the
+        // before the cut) still parses as a whole telemetry record. Under the
         // old File.Create path the equivalent cut left a file that was missing
         // EVERY turn, because the truncation happened before any byte was
         // rewritten.
@@ -156,7 +157,7 @@ public class TelemetryAppendTests
                 for (int i = 0; i < completed; i++)
                 {
                     using JsonDocument doc = JsonDocument.Parse(lines[i]);
-                    Assert.Equal("telemetry/v2", doc.RootElement.GetProperty("schema").GetString());
+                    Assert.Equal(TelemetryWriter.Schema, doc.RootElement.GetProperty("schema").GetString());
                     Assert.Equal(i + 1, doc.RootElement.GetProperty("turn").GetProperty("turn").GetInt64());
                 }
             }

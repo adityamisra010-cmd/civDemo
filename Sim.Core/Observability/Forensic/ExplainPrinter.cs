@@ -143,6 +143,21 @@ public static class ExplainPrinter
           .Append(x.PullRecorded ? Fmt(x.Pull) : "no row yet")
           .Append("   [KNOWN — the inputs the mechanism READ]\n\n");
 
+        // T4.21-5 (spec §3.11): the SOURCE bound, RECOMPUTED through the same
+        // public planner MigrationSystem.Step consumes. phi' is the flight
+        // fraction at cohort profile 1 — the mix-free gauge.
+        sb.Append("source bound, at dt ").Append(Fmt(x.DtYears)).Append(" (RECOMPUTED — MigrationSystem.Plan):\n");
+        sb.Append("    exit openness w ").Append(Fmt(x.ExitOpenness))
+          .Append("   flight fraction at profile 1 ").Append(Fmt(x.FlightFractionPrime))
+          .Append("   flight bound ").Append(Fmt(x.FlightBound)).Append(" heads\n");
+        sb.Append("    executed: flight out ").Append(Fmt(x.FlightOut))
+          .Append("   gap out ").Append(Fmt(x.GapOut))
+          .Append("   basin out-cap ").Append(Fmt(x.GapOutflowCap))
+          .Append("   srcScale ").Append(Fmt(x.SrcScale)).Append('\n');
+        if (!x.PlanRecorded)
+            sb.Append("    (NOT PLANNED: this settlement is absent from the previous world)\n");
+        sb.Append('\n');
+
         sb.Append("candidate destinations, by the inputs the mechanism read (NOT by where anyone went):\n");
         for (int i = 0; i < x.Others.Length; i++)
         {
@@ -153,6 +168,18 @@ public static class ExplainPrinter
               .Append("   grain ").Append(d.GrainStock.ToString(CultureInfo.InvariantCulture))
               .Append(" (present: ").Append(d.GrainPresent ? "yes" : "no").Append(')')
               .Append("   happiness ").Append(Fmt(d.Happiness))
+              .Append('\n');
+            // T4.21-5: what this destination could ACCEPT, and what it refused.
+            sb.Append("             bounds: vacancy ").Append(Fmt(d.Vacancy))
+              .Append("   cap ").Append(Fmt(d.VacancyCap))
+              .Append("   wanted in ").Append(Fmt(d.DesiredInflowAe)).Append(" ae")
+              .Append("   vacScale ").Append(Fmt(d.VacancyScale))
+              .Append(d.PlanRecorded && d.VacancyScale < 1.0 ? "  <- REFUGEES REFUSED" : "")
+              .Append('\n');
+            sb.Append("             channels: gap in ").Append(Fmt(d.GapIn))
+              .Append("   flight in ").Append(Fmt(d.FlightIn))
+              .Append("   basin in-cap ").Append(Fmt(d.GapInflowCap))
+              .Append("   destScale ").Append(Fmt(d.DestScale))
               .Append('\n');
         }
 

@@ -1,3 +1,5 @@
+using Sim.Core.State;
+
 namespace Sim.Core.Observability;
 
 /// <summary>
@@ -36,7 +38,15 @@ public sealed record SettlementRecord(
     SocialSection Social,
     MigrationSection Migration,
     PolicySection Policy,
-    OrderApplied[] Orders);           // READ  the step's orders whose decoded Settlement is this one
+    OrderApplied[] Orders,            // READ  the step's orders whose decoded Settlement is this one
+    // T4.21-5 (spec §3.11) — APPENDED, so every field above keeps its position.
+    // Both sections are read-only and non-authoritative: every number in them is
+    // READ from a prev/next row or RECOMPUTED by calling a PUBLIC static of the
+    // simulation on the SAME state (FoodState, FoodHeadroom, MigrationSystem.Plan,
+    // DemographicsSystem.Headroom). Nothing here is a second implementation and
+    // nothing here is serialized into WorldState.
+    FoodStateSection FoodState,
+    MigrationPlanSection MigrationPlan);
 
 public sealed record PopulationSection(
     long Opening,                     // SUMMED prev Buckets.Count + prev Notables.Count for this settlement
@@ -169,3 +179,92 @@ public sealed record PolicySection(
     double[] DeclaredWeights,         // READ  next SectorAllocationRow raw weights; Sectors.Default raw when no row
     bool DeclaredRowPresent,
     double[] EffectiveShares);        // RECOMPUTED Sectors.Share on the prev row — same array as Economy.SectorShares
+
+/// <summary>
+/// T4.21-5 (spec §3.11, CR-015 mandate item 9) — THE EXCEPTIONAL-FAMINE
+/// READOUT, per settlement per step. Read-only and non-authoritative: the
+/// classification here is not consulted by any system, it is the SAME static
+/// the kernel consults, called on the SAME world.
+///
+/// EVERY FIELD IS PREV-SIDE, and that is the point. <c>FoodState.Of</c> is the
+/// state IN FORCE for the step just observed — the deficit the step read, the
+/// disaster multiplier the step's harvest was multiplied by, the sector row the
+/// step's production obeyed. A NEXT-side classification would name the state of
+/// the step that has not run yet. The one deliberate exception is the PENDING
+/// disaster block, which is next-side and named so.
+///
+/// A FOUNDING RECORD (present in next, absent from prev) has no prev rows at
+/// all: <see cref="PrevRowsPresent"/> is false, the classification reads the
+/// same absences every system reads (deficit 0, no strike, Sectors.Default ⇒
+/// not abandoned ⇒ Normal), and the headroom readings take FoodHeadroom's own
+/// null arm (+∞). Nothing is invented for it.
+/// </summary>
+public sealed record FoodStateSection(
+    bool PrevRowsPresent,             // the settlement is a row of prev.Settlements (false on a founding record)
+    FoodStateKind State,              // RECOMPUTED FoodState.Of(prev, s, cfg)
+    FamineReason Reason,              // RECOMPUTED the same call's out parameter; None outside Famine
+    double NominalDeficit,            // RECOMPUTED FoodState.DeficitRatio(prev, s) — d, the classifier's input
+    double EffectiveDeficit,          // RECOMPUTED FoodState.EffectiveDeficit(d, state, cfg)
+    bool Abandoned,                   // RECOMPUTED FoodState.IsAbandoned(prev, s)
+    bool DisasterRowPresent,          // whether prev carried a DisasterRow for this settlement
+    int DisasterKind,                 // READ  prev DisasterRow.Kind
+    double DisasterSeverity,          // READ  prev DisasterRow.Severity
+    double DisasterMultiplierApplied, // READ  prev DisasterRow.Multiplier — what Production multiplied the two
+                                      //       food rates by in THIS step (WorldState.cs DisasterRow doc)
+    double DisasterRemainingYears,    // READ  prev DisasterRow.RemainingYears
+    bool DisasterPendingRowPresent,   // NEXT side, named as pending: the row the step just wrote
+    int DisasterPendingKind,          // READ  next DisasterRow.Kind
+    double DisasterPendingSeverity,   // READ  next DisasterRow.Severity
+    double DisasterPendingMultiplier, // READ  next DisasterRow.Multiplier — what the NEXT step will apply
+    double DisasterPendingRemainingYears, // READ  next DisasterRow.RemainingYears
+    bool HarvestWeatherRowPresent,
+    double HarvestWeatherApplied,     // READ  prev HarvestWeatherRow.Multiplier — permanent, because the
+                                      //       F1/G1 decade-variance audit needs it (spec §3.11, R6 (3))
+    double FoodLimit,                 // RECOMPUTED FoodHeadroom.Limit(prev, s, cohortWeights, baskets) — N_lim
+    double Vacancy,                   // RECOMPUTED FoodHeadroom.Vacancy(prev, ...) — V_j
+    double SurplusRatio,              // RECOMPUTED FoodHeadroom.FeedableAtLimit(prev, s, baskets, D) / D = X/D;
+                                      //       NaN when prev carries no demand row or D <= 0 (the ratio has no
+                                      //       denominator — an ABSENCE, not a zero)
+    double Headroom);                 // RECOMPUTED DemographicsSystem.Headroom(prev, s, cfg) — H_0
+
+/// <summary>
+/// T4.21-5 (spec §3.11) — WHAT THE MIGRATION PLANNER DECIDED, per settlement.
+///
+/// Every value here is READ OUT OF <see cref="Sim.Core.Systems.Migration.MigrationPlan"/>
+/// built by the PUBLIC static <c>MigrationSystem.Plan(prev, cfg, dt)</c> — the
+/// same planner <c>MigrationSystem.Step</c> consumes, on the same prev, at the
+/// same dt. There is ONE implementation of this arithmetic and the observer is
+/// not it. The only value formed here rather than indexed out of the plan is
+/// <see cref="FlightFractionPrime"/>, and it is formed by CALLING the system's
+/// own <c>FlightFractionOf</c> and <c>FlightHazardScale</c> statics — not by
+/// restating either expression.
+///
+/// SOURCE SIDE and DESTINATION SIDE are both present because this settlement is
+/// both: it is source i of its own flight and destination j of everyone else's.
+/// The names say which.
+///
+/// THE PAIRWISE MATRIX IS STILL NOT RECORDED. Per-destination CHANNEL totals are
+/// (the plan carries them); the From→To flows are not, and
+/// <see cref="MigrationSection.PairwiseFlows"/> keeps saying so verbatim.
+/// </summary>
+public sealed record MigrationPlanSection(
+    bool PlanRecorded,                // false on a founding record: a settlement absent from prev was never planned
+    double DtYears,                   // READ  next.Clock.DtYears — the dt the step integrated, hence Plan's argument
+    // --- source side (§3.4) ---
+    double ExitOpenness,              // RECOMPUTED plan.ExitOpenness[i] — ω_i = max_j damping × viability
+    double FlightFractionPrime,       // RECOMPUTED MigrationSystem.FlightFractionOf(1.0, FlightHazardScale(cfg), ω, d, dt):
+                                      //       φ at cohort profile 1, the mix-free gauge of how hard this settlement flees
+    double FlightBound,               // RECOMPUTED plan.FlightBound[i] — Σ_b φ_b × count_b, heads, before shares/vacancy
+    double FlightOut,                 // RECOMPUTED plan.FlightOut[i] — the flight channel total after the overdraw scale
+    double GapOut,                    // RECOMPUTED plan.GapOut[i]
+    double GapOutflowCap,             // RECOMPUTED plan.GapOutflowCap[i] — f × M*_i^out; +∞ when the basin is < 2
+    double SrcScale,                  // RECOMPUTED plan.SrcScale[i]
+    // --- destination side (§3.5) ---
+    double FlightIn,                  // RECOMPUTED plan.FlightIn[j], heads
+    double GapIn,                     // RECOMPUTED plan.GapIn[j], heads
+    double GapInflowCap,              // RECOMPUTED plan.GapInflowCap[j] — f × M*_j^in; +∞ when the basin is < 2
+    double DestScale,                 // RECOMPUTED plan.DestScale[j]
+    double VacancyCap,                // RECOMPUTED plan.VacancyCap[j] — cap_j = (1 − e^{−k·dt}) × V_j
+    double DesiredInflowAe,           // RECOMPUTED plan.DesiredInflowAe[j] — BOTH channels, adult-equivalents
+    double VacancyScale,              // RECOMPUTED plan.VacancyScale[j]; < 1 IS "refugees refused"
+    string InflowAeByChannel);        // "GAP: ..." — never a number

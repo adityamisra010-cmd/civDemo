@@ -1,3 +1,4 @@
+using Sim.Core.Observability;
 using Sim.Core.Kernel;
 using Xunit;
 
@@ -101,7 +102,11 @@ public class SessionRecordTests
             // T4.20: the telemetry vintage moved to v2 when food.foodProduced and
             // food.foodBalance joined the emitted field set. This is the TELEMETRY
             // tag only - CanonicalSchema is untouched at v24.
-            Assert.Contains("\"schema\":\"telemetry/v2\"", lines[0]);
+            // T4.21-5: the vintage moved with the field set (foodState /
+            // migrationPlan). Pinned against the writer rather than a literal,
+            // so this test tracks the tag instead of re-pinning it every bump.
+            Assert.Contains("\"schema\":\"" + TelemetryWriter.Schema + "\"", lines[0]);
+            Assert.Equal("telemetry/v3", TelemetryWriter.Schema);
         }
         finally
         {

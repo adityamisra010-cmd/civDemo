@@ -1,4 +1,21 @@
-# TELEMETRY SCHEMA — `telemetry/v2` (T4.19 lane A1; v2 at T4.20)
+# TELEMETRY SCHEMA — `telemetry/v3` (T4.19 lane A1; v2 at T4.20; v3 at T4.21-5)
+
+**VINTAGE v3 (T4.21-5).** Two SECTIONS joined the emitted field set — `foodState`
+and `migrationPlan` (spec `docs/t4.21-architecture.md` §3.11, CR-015 mandate item
+9) — so the tag moved `telemetry/v2` → `telemetry/v3` under the same rule v2
+established.
+
+**THE READER ACCEPTS BOTH.** `TelemetryRecordFile` validates the tag against an
+enumerated whitelist of exactly two vintages (`TelemetryWriter.ReadableSchemas`
+= v3, v2), and a third is still refused with the file and line named. The reason
+this is a whitelist and not a relaxation: v3 is v2 PLUS two sections — no v2 key
+was renamed, moved or re-meant — so a v2 line is a v3 line with two sections
+missing, and the director's already-played telemetry/v2 sessions still answer
+`sim inspect --answer` unchanged. What the reader does NOT do is default them:
+a v2 line yields `TelemetryFoodState.Absent` / `TelemetryMigrationPlan.Absent`
+whose `Recorded` flag is FALSE, and `SessionInspector.MajorEvents` emits none of
+the T4.21-5 categories on such a file. Their absence there means *the file does
+not say*, never *it did not happen*, and the answer's own Basis says so.
 
 **VINTAGE v2 (T4.20).** `food.foodProduced` and `food.foodBalance` joined the
 emitted field set, so the tag moved `telemetry/v1` → `telemetry/v2`.
@@ -11,8 +28,11 @@ that did not move with the field set could not tell a reader what it promises to
 tell — and makes that entailment explicit rather than presenting it as
 pre-existing text.
 
-This is the TELEMETRY vintage ONLY: `CanonicalSchema.Version` is unchanged at
-**24** and nothing in `Sim.Core/Observability` is serialized into `WorldState`.
+This is the TELEMETRY vintage ONLY: `CanonicalSchema.Version` is **25**
+(T4.21-1's `Disasters` table — not this packet) and nothing in
+`Sim.Core/Observability` is serialized into `WorldState`. `ForensicSchema.Schema`
+stays `forensic/v1`: the forensic run record CARRIES the telemetry tag as a
+value, and a carried value moving is not that file's field set moving.
 
 **Who is affected.** The change is purely additive at the FIELD level, so a
 TOLERANT reader — one that ignores JSON keys it does not know — reads a v2 line
@@ -24,8 +44,8 @@ The record types in `Sim.Core/Observability/`, the JSONL `sim inspect --telemetr
 and a played session write, and the identities the tests assert. Built to
 `docs/observability-architecture.md` §2, §3, §4, §7; every field carries its
 §0 KIND. Nothing here is serialized into `WorldState` or `CanonicalSchema`
-(schema stays v24, pinned in `TelemetryTests`); no system references the
-namespace (asserted at source level in the same test).
+(schema stays v25 — T4.21-1's, untouched here — pinned in `TelemetryTests`); no
+system references the namespace (asserted at source level in the same test).
 
 **KIND legend (§0):** READ — copied from a row a system wrote · SUMMED — integer
 sum over READ rows · DIFF — next − prev of a READ/SUMMED quantity · RESIDUAL —
@@ -52,7 +72,7 @@ One line per observed step (turn 1 is the first — turn 0 is the world before
 any step and has no record):
 
 ```
-{ "schema": "telemetry/v2", "turn": <TurnRecord>, "settlements": [ <SettlementRecord>… ] }
+{ "schema": "telemetry/v3", "turn": <TurnRecord>, "settlements": [ <SettlementRecord>… ] }
 ```
 
 Written by `TelemetryWriter.WriteTurn` (Utf8JsonWriter, doubles round-trippable,
@@ -229,6 +249,59 @@ rows (lane A2, `Sim.Core/Observability/Explain/`), deliberately not stored.
 
 ### orders
 `orders[]` — the step's `OrderApplied` rows whose decoded settlement is this one.
+
+### foodState (T4.21-5, spec §3.11 — PREV-side, read-only, non-authoritative)
+Every RECOMP below is a call to the PUBLIC static the KERNEL calls, on the SAME
+world, and `ExplainRecomputedFunctionTests` compares the emitted value to that
+static BIT FOR BIT. The section is prev-side on purpose: it describes the state
+IN FORCE for the step just observed — the deficit the step read, the multiplier
+its harvest carried, the sector row its production obeyed. The one exception is
+the `disasterPending*` block, which is next-side and named so.
+
+| field | kind | source |
+| --- | --- | --- |
+| `prevRowsPresent` | READ | the settlement is a row of `prev.Settlements`; FALSE on a founding record, where the classification below reads the same absences every system reads |
+| `state` | RECOMP | `FoodState.Of(prev, s, cfg)` — `Normal` / `Stress` / `Severe` / `Famine`, as the enum NAME |
+| `famineReason` | RECOMP | the same call's out parameter — `None` / `Disaster` / `Abandonment` / `Both` |
+| `nominalDeficit` | RECOMP | `FoodState.DeficitRatio(prev, s)` — `d`, the classifier's input (0 when the row is absent, as every system reads it) |
+| `effectiveDeficit` | RECOMP | `FoodState.EffectiveDeficit(d, state, cfg)` — exactly 0 inside the dead zone, `d` itself in FAMINE |
+| `abandoned` | RECOMP | `FoodState.IsAbandoned(prev, s)` — the RAW sector row in force, the field `ProductionSystem` reads |
+| `disasterRowPresent`, `disasterKind`, `disasterSeverity`, `disasterRemainingYears` | READ | `prev.Disasters[s]` |
+| `disasterMultiplierApplied` | READ | `prev.Disasters[s].Multiplier` — what Production multiplied the two food rates by in THIS step (`WorldState.cs` `DisasterRow`) |
+| `disasterPendingRowPresent`, `disasterPendingKind`, `disasterPendingSeverity`, `disasterPendingMultiplier`, `disasterPendingRemainingYears` | READ | `next.Disasters[s]` — the row the step just wrote, for the step that has not run |
+| `harvestWeatherRowPresent`, `harvestWeatherApplied` | READ | `prev.HarvestWeather[s].Multiplier` — PERMANENT, because the F1/G1 decade-variance audit needs it (spec §3.11 R6 (3)) |
+| `foodLimit` | RECOMP | `FoodHeadroom.Limit(prev, s, cohortWeights, baskets)` — `N_lim`; `"Infinity"` on the null arm |
+| `vacancy` | RECOMP | `FoodHeadroom.Vacancy(prev, …)` — `V_j` |
+| `surplusRatio` | RECOMP | `FoodHeadroom.FeedableAtLimit(prev, s, baskets, D) / D` = `X/D`, the per-settlement ρ §3.3's derivation depends on; `"NaN"` when prev carries no demand row or `D ≤ 0` — an ABSENCE, not a zero |
+| `headroom` | RECOMP | `DemographicsSystem.Headroom(prev, s, cfg)` — `H_0`; equal to `vacancy` BY CONSTRUCTION, and the test pins that it is equal BIT FOR BIT rather than approximately |
+
+### migrationPlan (T4.21-5, spec §3.11 — RECOMPUTED via `MigrationSystem.Plan`)
+One call to the PUBLIC planner per observed step, on the same `prev`, at
+`next.Clock.DtYears` (the dt `TurnExecutor` stamped, hence the dt the step
+integrated). Every field is INDEXED out of the resulting `MigrationPlan`, which
+is the object `MigrationSystem.Step` itself consumes — there is one
+implementation of this arithmetic and the observer is not it. `planRecorded` is
+FALSE for a settlement absent from prev, and every reading is then `"NaN"`,
+because *not planned* is not *planned to zero*.
+
+| field | kind | source |
+| --- | --- | --- |
+| `planRecorded`, `dtYears` | READ | whether prev carried the settlement; `next.Clock.DtYears` |
+| `exitOpenness` | RECOMP | `plan.ExitOpenness[i]` — ω_i = max_j damping × viability; 0 means die at home |
+| `flightFractionPrime` | RECOMP | `MigrationSystem.FlightFractionOf(1.0, MigrationSystem.FlightHazardScale(cfg.Migration), ω, d, dt)` — φ at cohort profile 1, the mix-free gauge. BOTH factors are the system's own statics; `FlightHazardScale` was EXTRACTED from `Plan`'s body at T4.21-5 (same two factors, same order, bit-identical) precisely so no observer-side `BaseRatePerYear × FamineFlightFactor` exists |
+| `flightBound` | RECOMP | `plan.FlightBound[i]` — Σ_b φ_b × count_b, heads, before shares and vacancy |
+| `flightOut`, `gapOut` | RECOMP | `plan.FlightOut[i]`, `plan.GapOut[i]` — channel totals in heads, after the overdraw scale |
+| `gapOutflowCap`, `srcScale` | RECOMP | the SOURCE basin bound; `"Infinity"` when the basin is < 2 |
+| `flightIn`, `gapIn` | RECOMP | `plan.FlightIn[i]`, `plan.GapIn[i]` — this settlement AS A DESTINATION, heads |
+| `gapInflowCap`, `destScale` | RECOMP | the DESTINATION basin bound; `"Infinity"` when the basin is < 2 |
+| `vacancyCap` | RECOMP | `plan.VacancyCap[i]` — `cap_j = (1 − e^{−k·dt}) × V_j` |
+| `desiredInflowAe` | RECOMP | `plan.DesiredInflowAe[i]` — BOTH channels, adult-equivalents; what the vacancy bound compares against |
+| `vacancyScale` | RECOMP | `plan.VacancyScale[i]`; below 1 IS "refugees refused" and is what `SessionInspector` emits that line on |
+| `inflowAeByChannel` | GAP | the planner forms no per-channel adult-equivalent split, so none is recorded; the per-channel HEAD counts above are what exists |
+
+**Still not recorded.** The pairwise From→To matrix, the damping matrix and the
+per-PAIR gap-closing scale. `ForensicSchema.MigrationPairwiseAnswer` and
+`MigrationExplanation.PairwiseFlows` are untouched and verbatim.
 
 ---
 

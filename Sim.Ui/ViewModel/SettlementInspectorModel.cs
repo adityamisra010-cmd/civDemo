@@ -1,6 +1,7 @@
 using System.Globalization;
 using Sim.Core.Observability;
 using Sim.Core.Observability.Explain;
+using Sim.Core.State;
 
 namespace Sim.Ui.ViewModel;
 
@@ -85,6 +86,7 @@ public static class SettlementInspectorModel
             "  " + f.StoreLossesIdentity,
             string.Create(CultureInfo.InvariantCulture, $"demand {N(f.DemandUnits)} units  obtained {N(f.FoodObtained)}  deficit {f.DeficitRatio:F3}"),
         };
+        lines.AddRange(FoodStateLines(r.FoodState));
         for (int i = 0; i < f.FoodGoods.Length; i++)
         {
             FoodGood g = f.FoodGoods[i];
@@ -99,6 +101,59 @@ public static class SettlementInspectorModel
         lines.Add("  built vs decayed: " + Gap(h.BuiltDecayedSplit));
         return lines;
     }
+
+    /// <summary>
+    /// T4.21-5 (spec §3.11, CR-015) — WHAT KIND OF SHORTFALL, beside the deficit
+    /// that has always been shown. READ-ONLY and non-authoritative: every value
+    /// is a field of the record the observer built by calling the simulation's
+    /// own statics, and this method neither classifies nor thresholds anything.
+    ///
+    /// The deficit line above answers "how much"; these answer "what kind", and
+    /// the distinction is the whole of CR-015: a 25% shortfall in a bad decade
+    /// is STRESS and nobody dies of it, the same 25% after a crop failure is
+    /// FAMINE. Without the state word beside the number the two look identical.
+    ///
+    /// A record whose prev rows are absent (a founding turn) says so rather than
+    /// rendering NORMAL as if the settlement had been observed and found well.
+    /// </summary>
+    public static IReadOnlyList<string> FoodStateLines(FoodStateSection fs)
+    {
+        ArgumentNullException.ThrowIfNull(fs);
+        if (!fs.PrevRowsPresent)
+            return ["food state: not classified - this settlement did not exist in the previous world"];
+
+        var lines = new List<string>(3)
+        {
+            string.Create(CultureInfo.InvariantCulture,
+                $"food state: {StateWord(fs.State)}{ReasonSuffix(fs)}  (nominal {fs.NominalDeficit:F3}, effective {fs.EffectiveDeficit:F3})"),
+        };
+        lines.Add(fs.DisasterRowPresent && fs.DisasterMultiplierApplied < 1.0
+            ? string.Create(CultureInfo.InvariantCulture,
+                $"  disaster: severity {fs.DisasterSeverity:F2}, food rates x {fs.DisasterMultiplierApplied:F3} this turn, {fs.DisasterRemainingYears:F1} years still to run")
+            : "  disaster: none applied to this harvest");
+        if (fs.DisasterPendingRowPresent && fs.DisasterPendingMultiplier < 1.0)
+            lines.Add(string.Create(CultureInfo.InvariantCulture,
+                $"  disaster PENDING for next turn: severity {fs.DisasterPendingSeverity:F2}, food rates x {fs.DisasterPendingMultiplier:F3}"));
+        return lines;
+    }
+
+    private static string StateWord(FoodStateKind state) => state switch
+    {
+        FoodStateKind.Normal => "NORMAL - no shortfall",
+        FoodStateKind.Stress => "STRESS - the cut is absorbed, nobody starves",
+        FoodStateKind.Severe => "SEVERE - adaptation exhausted, starvation begins",
+        FoodStateKind.Famine => "FAMINE",
+        _ => state.ToString(),
+    };
+
+    /// <summary>The cause, from the RECORDED FamineReason and nothing else.</summary>
+    private static string ReasonSuffix(FoodStateSection fs) => fs.Reason switch
+    {
+        FamineReason.Disaster => " - a ruined harvest",
+        FamineReason.Abandonment => " - fields left untilled",
+        FamineReason.Both => " - a ruined harvest AND fields left untilled",
+        _ => fs.Abandoned ? " (food labour is zero, but the store still covers it)" : "",
+    };
 
     /// <summary>The one-line reason the three per-settlement store quantities
     /// are not shown. They are NOT zero and NOT unknown-in-principle: the
@@ -250,7 +305,16 @@ public static class SettlementInspectorModel
                 Destination d = explanation.Others[i];
                 lines.Add(string.Create(CultureInfo.InvariantCulture,
                     $"  {name(d.Id.Value),-14} pull {R(d.SmoothedAttractiveness)}  deficit {d.DestinationDeficit:F3}  grain {(d.GrainPresent ? "present" : "ABSENT")}  happiness {R(d.Happiness)}"));
+                // T4.21-5: what that destination could ACCEPT this turn, and
+                // whether it turned anyone away. RECOMPUTED via MigrationSystem
+                // .Plan by the explanation; printed, never re-derived.
+                if (d.PlanRecorded)
+                    lines.Add(string.Create(CultureInfo.InvariantCulture,
+                        $"                 vacancy {R(d.Vacancy)}  cap {R(d.VacancyCap)}  wanted {d.DesiredInflowAe:F1} ae  vacScale {d.VacancyScale:F3}{(d.VacancyScale < 1.0 ? "  <- REFUGEES REFUSED" : "")}"));
             }
+            if (explanation.PlanRecorded)
+                lines.Add(string.Create(CultureInfo.InvariantCulture,
+                    $"source bound: exit openness {explanation.ExitOpenness:F4}  flight fraction at profile 1 {explanation.FlightFractionPrime:F4}  bound {explanation.FlightBound:F1} heads  (dt {explanation.DtYears:F1}y)"));
             lines.Add("  " + MigrationExplanation.PushReading);
         }
         lines.Add("pairwise flows: " + Gap(m.PairwiseFlows));
