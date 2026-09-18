@@ -110,10 +110,12 @@
 > `corridors.json` are UNTOUCHED — the band is not what CR-016 disputes. **CR-016 STAYS OPEN: what
 > is settled is the TREE, not the question.**
 >
-> **Suite, MEASURED by this lane on this tree** (Debug, sequential, `dotnet test`):
-> Sim.Tests **884 passed / 0 failed / 4 skipped** (30 m 31 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 35 s),
-> and all three gate scripts exit 0 (`check-banned-constructs.sh`, `check-read-isolation.sh`,
-> `check-readonly-proof.sh`). **THE RED SET IS EMPTY.** All six reds T4.21-4 escalated (both
+> **Suite, MEASURED by this lane on this tree, in BOTH configurations, sequential.** Debug:
+> Sim.Tests **884 passed / 0 failed / 4 skipped** (30 m 31 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 35 s).
+> Release (the configuration CI and the earlier T4.21 records use): Sim.Tests **884 / 0 / 4**
+> (8 m 6 s), Sim.Ui.Tests **296 / 0 / 0** (33 s) — the two agree test for test. `dotnet build` and
+> `dotnet build -c Release` both 0 warnings 0 errors, and all three gate scripts exit 0
+> (`check-banned-constructs.sh`, `check-read-isolation.sh`, `check-readonly-proof.sh`). **THE RED SET IS EMPTY.** All six reds T4.21-4 escalated (both
 > canonical fed-corridor seeds, both CR-001 dt-continuity detonators, both dev Malthus seeds) are
 > RESOLVED by the disarming, which is itself evidence that the arming was their sole cause — none of
 > them needed chasing. The ONE red inherited from `8f7f9da` (`Dev_MalthusCorridors_AllInBand(7)`,

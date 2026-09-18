@@ -273,16 +273,22 @@ director.** Until then the mechanism ships inert and the rate is unset — state
 
 ### D.5 The tree this decision leaves behind, MEASURED
 
-By T4.21-7 on `claude/civdemo-work-b1z2y4`, Debug, sequential:
+By T4.21-7 on `claude/civdemo-work-b1z2y4`, sequential, in BOTH configurations:
 
 ```
-scripts/check-banned-constructs.sh   exit 0
-scripts/check-read-isolation.sh      exit 0
-scripts/check-readonly-proof.sh      exit 0
-dotnet build                         0 warnings, 0 errors
-dotnet test   Sim.Tests      884 passed / 0 failed / 4 skipped   (30 m 31 s)
-              Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   (1 m 35 s)
+scripts/check-banned-constructs.sh          exit 0
+scripts/check-read-isolation.sh             exit 0
+scripts/check-readonly-proof.sh             exit 0
+dotnet build                                0 warnings, 0 errors
+dotnet build -c Release                     0 warnings, 0 errors
+dotnet test              Sim.Tests      884 passed / 0 failed / 4 skipped   (30 m 31 s)
+                         Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   (1 m 35 s)
+dotnet test -c Release   Sim.Tests      884 passed / 0 failed / 4 skipped   ( 8 m  6 s)
+                         Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   (    33 s)
 ```
+
+Release is the configuration the earlier T4.21 records and CI measure in, so it is reported
+alongside Debug rather than instead of it; the two agree test for test.
 
 **THE RED SET IS EMPTY, and that is the check on §5 rather than an assumption.** Every one of the
 six reds §5 left deliberately — `Canonical_FedCorridors_AllInBand(1)` and `(2)`,
