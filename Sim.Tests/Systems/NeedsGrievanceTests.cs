@@ -239,6 +239,16 @@ public class NeedsGrievanceTests
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
             Founding = fed.Founding with { FoodStore = 4000 },
+            // T4.21-4 RIG CONTROL. This is a TWO-ARM CONTRAST in which only the
+            // harvest is allowed to differ; a famine-class disaster is a second,
+            // random shortfall that lands in whichever arm it likes and destroys
+            // the isolation the test is built on. Measured before this line: with
+            // the shipped λ = 0.01 the FED CONTROL starved 190 people, against
+            // the 0 its own pin records — i.e. the control arm was carrying a
+            // famine. λ = 0 is the control that lets the contrast mean "the
+            // harvest did it"; the disaster's own contrast is
+            // FamineScenarioTests.S_Disaster_TriggersFamine.
+            Disaster = fed.Disaster with { HazardPerYear = 0.0 },
         };
         SimConfig starving = fed with
         {

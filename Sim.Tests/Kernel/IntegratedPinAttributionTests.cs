@@ -196,6 +196,34 @@ public class IntegratedPinAttributionTests
         return HashDroppingTrailer(buffer.ToArray(), 1);
     }
 
+    /// <summary>
+    /// T4.21-4 — THE λ = 0 TWIN THE LAYOUT CONTROLS RUN ON, and why.
+    ///
+    /// T4.21-4 arms the famine-class disaster (sim.json
+    /// disaster.hazardPerYear 0.0 -> 0.01). That is a BEHAVIOUR change and it
+    /// moves the behavioural goldens, which are re-pinned where they live
+    /// (SnapshotTests.FoundedGolden, DrivenGoldenTests.DrivenGolden). The
+    /// controls in this file are LAYOUT controls: their question is whether a
+    /// stream layer is SEPARABLE from the stream, not what the world did.
+    /// Re-measuring them against the armed world would answer a different
+    /// question and would quietly drop the attribution.
+    ///
+    /// So they run the λ = 0 twin, which — because DisasterSystem draws both
+    /// its uniforms UNCONDITIONALLY (the stated RNG contract) — is bit-identical
+    /// to the tree as it stood before the arming commit. Every constant in this
+    /// file therefore returns BYTE FOR BYTE, and that is itself the attribution
+    /// this packet owes: the arming is the ENTIRE cause of the behavioural
+    /// goldens' movement, because nothing else in the packet touches code that
+    /// runs. The shipped value is asserted alongside, so a silent revert of the
+    /// arming fails here too.
+    /// </summary>
+    private static Sim.Core.Systems.SimConfig Unarmed()
+    {
+        Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
+        Assert.Equal(0.01, shipped.Disaster.HazardPerYear);   // the arming, T4.21-4
+        return shipped with { Disaster = shipped.Disaster with { HazardPerYear = 0.0 } };
+    }
+
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheM4SchemaAlone()
     {
@@ -232,10 +260,10 @@ public class IntegratedPinAttributionTests
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
+                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
@@ -318,7 +346,7 @@ public class IntegratedPinAttributionTests
         // be measured at all. Both constants below re-measured on this tree via
         // HashAtSchemaV22 / HashAtSchemaV23; the founded, FirstReign and
         // synthetic controls in this file are UNMOVED (run, not assumed).
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
         string atV22 = HashAtSchemaV22(world);
 
         Assert.NotEqual(mainPinBeforeTheFix, atV22);
@@ -389,10 +417,10 @@ public class IntegratedPinAttributionTests
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
+                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);   // one disaster stream per settlement — not vacuous
@@ -436,7 +464,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) d6a0554e6c419cc6b8f3bd364b30f9721fb9b1ad1fb00675f265ae309ab1f1a1.
         const string beforeT421 = "38de16bab469505e4a4b1966681da8bfd9103a4a96d3bb7c09951496aa0479fe";
 
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);
         Assert.Equal(0, world.Disasters.Count);

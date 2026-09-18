@@ -83,7 +83,16 @@ public class TelemetryTests
                 Assert.Equal(BitConverter.DoubleToInt64Bits(s0.Economy.SectorShares[i]), BitConverter.DoubleToInt64Bits(shares[i].GetDouble()));
             Assert.Equal(BitConverter.DoubleToInt64Bits(s0.Economy.FoodSurplusRatio),
                 BitConverter.DoubleToInt64Bits(economy.GetProperty("foodSurplusRatio").GetDouble()));
-            Assert.True(s0.Economy.FoodSurplusRatio > 1.0 && s0.Economy.FoodSurplusRatio != Math.Round(s0.Economy.FoodSurplusRatio, 3),
+            // T4.21-4: the "> 1.0" half of this guard is REPLACED by "> 0.0".
+            // Its job was never the magnitude — it was a proxy for "this is a
+            // real computed ratio, not a degenerate reading" — and with the
+            // famine-class disaster armed a settlement below 1.0 at turn 20 is
+            // an ordinary state of the world rather than a sign the rig broke.
+            // MEASURED here: 0.9880226938432444, whose mantissa is exactly what
+            // this check needs (it is not its own 3-dp rounding, 0.988). The
+            // LONG-MANTISSA requirement — the part that actually makes the
+            // bit-for-bit round-trip meaningful — is unchanged and still asserted.
+            Assert.True(s0.Economy.FoodSurplusRatio > 0.0 && s0.Economy.FoodSurplusRatio != Math.Round(s0.Economy.FoodSurplusRatio, 3),
                 "the ratio has no long mantissa — the round-trip check is weak");
         }
         Assert.Contains("\"sectorShares\":[0.7,0.1,0.05,0.05,0.1]", lines[19]);

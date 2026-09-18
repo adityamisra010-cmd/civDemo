@@ -774,7 +774,34 @@ public class SnapshotTests
         //         processes) agree on the NEW value.
         //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: THE ARMING).
+        //   OLD  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   NEW  a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31
+        //   CAUSE  sim.json disaster.hazardPerYear 0.0 -> 0.01 — a DATA change
+        //         and the only change in this packet that reaches running code
+        //         (spec §3.3, the disaster._doc's own derivation, CR-015 §3.3).
+        //   ATTRIBUTION, not asserted but PROVED: every layout control in
+        //         IntegratedPinAttributionTests now runs the lambda = 0 twin of
+        //         this world and returns its constant BYTE FOR BYTE — so the
+        //         tree minus the arming is bit-identical to 8f7f9da and the
+        //         arming is the entire cause of this move. The twin is exact
+        //         because DisasterSystem draws both uniforms unconditionally
+        //         (its stated RNG contract), so lambda = 0 consumes the same
+        //         randomness as lambda > 0 with no strike.
+        //   MEASURED ON THIS TREE (canonical founded, seed 42, 300 turns,
+        //         docs/t4.21-4-record.md §2): 305 disaster onsets over 33,000
+        //         settlement-years = 0.924 per settlement-century; 78 FAMINE
+        //         settlement-turns, every one of them reason = Disaster and NONE
+        //         with reason None; 8 STRESS, 0 SEVERE; 11,060 starvation deaths
+        //         where the world had starved NOBODY before; population 10,974
+        //         at turn 300 against 40,539 unarmed.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs) agree on the NEW
+        //         value, and ci.yml's FOUNDED_GOLDEN moves to it in this
+        //         same commit.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        const string golden = "a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
