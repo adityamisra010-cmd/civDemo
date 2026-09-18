@@ -651,13 +651,34 @@ public sealed class SessionInspector
                 // second refusal, not a continuation of the first.
                 if (s.MigrationPlan.RefugeesRefused)
                 {
+                    // T4.21-6 — NO VACANCY AT ALL IS NOT A DECISION. "The
+                    // destination fed what it could and turned the rest away"
+                    // asserts a choice, and on a cap of exactly zero with zero
+                    // vacancy no choice was made: there was nothing to refuse
+                    // from. That case is the recorded founding-harvest warm-up
+                    // artefact (docs/queue.md; ADR-025 §2.4a; ADR-026) —
+                    // ProductionSystem.Farm reads prev.CatchmentSummaries, absent
+                    // on turn 1, so on turn 2 every settlement reads a zero food
+                    // influx and its vacancy cap is 0. MEASURED on the armed
+                    // canonical session (seed 42, 60 turns, founded): 11 of the
+                    // 43 REFUGEES REFUSED lines in the whole run fall on turn 2,
+                    // one for 11 of 12 settlements. The event is NOT suppressed —
+                    // the record shows the refusal and the forensic layer reports
+                    // what the record shows — it simply stops narrating a
+                    // decision the record does not contain.
+                    bool noVacancyAtAll = s.MigrationPlan.VacancyCap <= 0.0 && s.FoodState.Vacancy <= 0.0;
                     lines.Add(Event(turn.Turn, "REFUGEES REFUSED", s.Settlement,
                         "vacancyScale " + s.MigrationPlan.VacancyScale.ToString("0.####", CultureInfo.InvariantCulture)
-                            + " < 1: desired inflow "
-                            + s.MigrationPlan.DesiredInflowAe.ToString("0.##", CultureInfo.InvariantCulture)
-                            + " adult-equivalents against a vacancy cap of "
-                            + s.MigrationPlan.VacancyCap.ToString("0.##", CultureInfo.InvariantCulture)
-                            + " — the destination fed what it could and turned the rest away",
+                            + (noVacancyAtAll
+                                ? ": the destination had no vacancy at all this turn (no food headroom "
+                                  + "recorded) — desired inflow "
+                                  + s.MigrationPlan.DesiredInflowAe.ToString("0.##", CultureInfo.InvariantCulture)
+                                  + " adult-equivalents against a vacancy cap of 0"
+                                : " < 1: desired inflow "
+                                  + s.MigrationPlan.DesiredInflowAe.ToString("0.##", CultureInfo.InvariantCulture)
+                                  + " adult-equivalents against a vacancy cap of "
+                                  + s.MigrationPlan.VacancyCap.ToString("0.##", CultureInfo.InvariantCulture)
+                                  + " — the destination fed what it could and turned the rest away"),
                         "KNOWN — settlements[].migrationPlan.vacancyScale, RECOMPUTED through MigrationSystem.Plan"));
                 }
 

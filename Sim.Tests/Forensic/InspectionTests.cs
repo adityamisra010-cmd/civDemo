@@ -424,6 +424,7 @@ public class InspectionTests
         Answer events = s.Inspector.MajorEvents();
 
         int famineLines = 0, disasterLines = 0, abandonLines = 0, refusedLines = 0;
+        int zeroVacancyRefusals = 0;
         foreach (string line in events.Lines)
         {
             if (!line.Contains("settlement ", StringComparison.Ordinal)) continue;
@@ -463,6 +464,19 @@ public class InspectionTests
                 refusedLines++;
                 Assert.True(row.MigrationPlan.RefugeesRefused);
                 Assert.True(row.MigrationPlan.VacancyScale < 1.0);
+                // T4.21-6 — the forensic layer may not assert more than the
+                // record shows. With a vacancy cap of exactly zero and zero
+                // vacancy nothing was refused: there was no capacity to refuse
+                // from, so the line must not narrate a decision. This is the
+                // recorded founding-harvest warm-up artefact (ADR-025 §2.4a,
+                // ADR-026) and it is the DOMINANT shape of this event on a
+                // canonical run.
+                if (row.MigrationPlan.VacancyCap <= 0.0 && row.FoodState.Vacancy <= 0.0)
+                {
+                    Assert.DoesNotContain("turned the rest away", line, StringComparison.Ordinal);
+                    Assert.Contains("no vacancy at all", line, StringComparison.Ordinal);
+                    zeroVacancyRefusals++;
+                }
             }
         }
 
@@ -523,9 +537,12 @@ public class InspectionTests
         Assert.True(famineByDisaster > 0,
             "no FAMINE-by-disaster settlement-turn in this session — the cross-check above is vacuous");
         Assert.True(struckTurns > 0, "no struck settlement-turn recorded — the disaster block is untested");
+        Assert.True(zeroVacancyRefusals > 0,
+            "no zero-vacancy refusal in this session — the neutral-narration arm above is vacuous");
         Console.WriteLine(
             $"T4.21-6 disaster cross-check: {famineByDisaster} FAMINE-by-disaster settlement-turns, "
-            + $"{struckTurns} struck settlement-turns, {disasterLines} DISASTER lines.");
+            + $"{struckTurns} struck settlement-turns, {disasterLines} DISASTER lines; "
+            + $"{refusedLines} REFUGEES REFUSED lines, of which {zeroVacancyRefusals} had no vacancy at all.");
 
         // The answer's own text must warn that ABSENCE on an older record means
         // "the file does not say", not "it did not happen".
