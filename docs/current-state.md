@@ -153,6 +153,35 @@
 > `docs/t4.21-4-record.md` (RETAINED as CR-016's evidence, now headed as measured AT λ = 0.01),
 > `docs/t4.21-architecture.md` §4 row T4.21-4, `docs/queue.md`. Verify against git.
 
+> **2026-09-18 — T4.21-8 THE FIX LANE, on `claude/civdemo-work-b1z2y4` from `8b59bab`. Three MINOR
+> verifier findings, all fixed; NOTHING about the CR-016 decision is reopened.** (1) The shipped
+> `sim.json` `disaster._doc` and CR-016 §2.1 pair the discontinuity **2.5259** with the components
+> **+0.4352 / −1.8220**. Those are TWO DIFFERENT RIGS — re-measured by this lane at λ = 0.01:
+> `Canonical_EraBoundaryContinuity_PermanentBatteryMember` (seed **1**, windows 1600–2500 /
+> 2500–3400) is +0.4352 → −1.8220, discontinuity **2.2572**;
+> `EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator` (turns 1..450) is +0.7616 → −1.7643,
+> discontinuity **2.5259**. Both ~23–25× the 0.1 bar, so NO conclusion changes and the detonator is
+> broken on both rigs. Only NEW prose was corrected (the `_doc`, and CR-016 §D.6, which is this
+> lane's own section); the four frozen T4.21-4-era records carrying the same pairing are LEFT ALONE
+> per `gov-4` §6 and tabulated in §D.6. (2) `SimConfigTests`' disaster substitutions anchored on
+> `"hazardPerYear": 0.0` — a PREFIX of `"hazardPerYear": 0.01`, so on a re-armed tree
+> `DisasterHazard_Armed_Loads` asserted against **0.011** (measured). All five sites now anchor on
+> the literal WITH ITS TRAILING COMMA and fail through `AssertAnchorMatched`, whose message says to
+> move the search string and never the expected value; `HazardAnchor_IsValueExact_NotAPrefix` is the
+> new guard that makes the defect visible on the SHIPPED tree, and CR-016 §D.3's cost list now
+> prices all six tests the director's ruling re-aims. (3) `docs/t4.21-architecture.md`'s constants
+> table carries the disarm inline, like every other rate-bearing document.
+>
+> **Suite, MEASURED by this lane on THIS tree (`1fa8c1d`), in BOTH configurations, sequential.**
+> Release (the configuration CI uses): Sim.Tests **885 / 0 / 4** (7 m 54 s), Sim.Ui.Tests **296 / 0 / 0**
+> (33 s). Debug:
+> Sim.Tests **885 / 0 / 4** (28 m 3 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 3 s). `dotnet build` and `dotnet build -c Release`
+> both 0 warnings 0 errors; all three gate scripts exit 0. **THE RED SET IS EMPTY.** The +1 against
+> T4.21-7's 884 is `HazardAnchor_IsValueExact_NotAPrefix`. The 4 skips are unchanged.
+>
+> Records: `docs/adr/cr-016-armed-disaster-fallout.md` §D.3 and §D.6, `docs/queue.md`,
+> `docs/t4.21-architecture.md` §the disaster constants table. Verify against git.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a

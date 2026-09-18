@@ -262,15 +262,25 @@ else" above is true of the DATA — one key, one value. It was never true of the
 | `DisasterHazard_Negative_RefusesLoad` (×2 cases) | same anchor |
 | `DisasterSection_Missing_RefusesLoad` | same anchor |
 
-These five were ALWAYS re-aimed by the edit. Before T4.21-8 two of them merely hid it: the anchor
-was the comma-less `"hazardPerYear": 0.0`, which is a **PREFIX** of `"hazardPerYear": 0.01`, so on a
-re-armed tree the substitution matched inside the armed value and produced `0.011`. Measured on the
-armed tree before the fix: `DisasterHazard_Armed_Loads` failed with `Expected: 0.01 / Actual:
-0.010999999999999999` — the test that exists to prove *the derived 0.01 still loads* was asserting
-against 0.011; and `DisasterHazard_Negative_RefusesLoad` PASSED, but on `-0.011` / `NaN1`, not on
-the values it names. Nothing was silently wrong on the SHIPPED tree, but the trap was live: the
-tempting repair is the expected VALUE, and taking it makes the test stop testing what it names
-forever.
+**The four anchor-bound cases that PRE-DATE T4.21-8** — `DisasterHazard_Armed_Loads`,
+`DisasterHazard_Negative_RefusesLoad` (×2) and `DisasterSection_Missing_RefusesLoad` — **were
+always re-aimed by the edit; three of them merely hid it.** The anchor was the comma-less
+`"hazardPerYear": 0.0`, which is a **PREFIX** of `"hazardPerYear": 0.01`, so on a re-armed tree the
+substitution matched inside the armed value instead of failing to match. Measured on the armed tree
+BEFORE the fix — **2 failed / 34 passed of 36**:
+
+- `DisasterHazard_Armed_Loads` FAILED, but with `Expected: 0.01 / Actual: 0.010999999999999999`:
+  the test that exists to prove *the derived 0.01 still loads* was asserting against **0.011**.
+  Visible, but pointing at the value rather than at the search string.
+- `DisasterHazard_Negative_RefusesLoad` (×2) PASSED — on `-0.011` and `NaN1`, not on the values it
+  names.
+- `DisasterSection_Missing_RefusesLoad` PASSED — the mangled key still made the section missing, so
+  the right outcome arrived for a coincidental reason.
+- the second failure was the tripwire, which is correct.
+
+Nothing was silently wrong on the SHIPPED tree, which is why this is MINOR and not blocking. But the
+trap was live: the tempting repair is the expected VALUE, and taking it makes the test stop testing
+what it names forever.
 
 T4.21-8 anchors all of them on `SimConfigTests.HazardAnchor` = `"hazardPerYear": 0.0,` **with its
 trailing comma**, so the prefix collision cannot arise at whichever value ships, and routes every
@@ -393,3 +403,27 @@ nothing; they are listed so a reader checking this table does not think they wer
 `sim.json` `disaster._doc` (T4.21-7-authored) and this section (T4.21-8-authored). No number in any
 frozen record moved, and the one that mattered — *is the detonator broken?* — is answered the same
 way by both rigs and by every one of these six sites: **yes, by ~23–25× the bar.**
+
+### D.7 The tree T4.21-8 leaves behind, MEASURED
+
+By T4.21-8 on `claude/civdemo-work-b1z2y4` @ `1fa8c1d`, sequential, in BOTH configurations. This is
+a re-measurement of D.5's tree with T4.21-8's three fixes on it, not a restatement of D.5:
+
+```
+scripts/check-banned-constructs.sh          exit 0
+scripts/check-read-isolation.sh             exit 0
+scripts/check-readonly-proof.sh             exit 0
+dotnet build                                0 warnings, 0 errors
+dotnet build -c Release                     0 warnings, 0 errors
+dotnet test -c Release   Sim.Tests      885 passed / 0 failed / 4 skipped   ( 7 m 54 s)
+                         Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   (     33 s)
+dotnet test              Sim.Tests      885 passed / 0 failed / 4 skipped   (28 m  3 s)
+                         Sim.Ui.Tests   296 passed / 0 failed / 0 skipped   ( 1 m  3 s)
+```
+
+**THE RED SET IS EMPTY**, in both configurations, which agree test for test. The +1 against D.5's
+884 is exactly one test, `SimConfigTests.HazardAnchor_IsValueExact_NotAPrefix`; the 4 skips are D.5's
+four manual measurement rigs, unchanged. **No golden, pin, band or corridor moved** — T4.21-8's only
+non-documentation change is to `SimConfigTests`' search strings, and its only data change is prose
+inside `disaster._doc`, which no loader reads. **Nothing in D.1 is reopened**: the mechanism still
+ships complete, tested and INERT, and the rate is still the director's ruling.
