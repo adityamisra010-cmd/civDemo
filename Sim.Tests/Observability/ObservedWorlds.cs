@@ -80,28 +80,33 @@ internal static class ObservedWorlds
     /// on turn 2 and every gap flow is refused world-wide for that one turn;
     /// docs/queue.md carries it as a measured finding, and a future packet that
     /// changes that null arm moves these turns):
-    ///   RE-MEASURED BY T4.21-4 (the famine-class disaster is ARMED, sim.json
-    ///   disaster.hazardPerYear 0.0 -> 0.01). The turn numbers that did NOT move
-    ///   are stated as such; the ones that did carry their old value.
+    ///   RE-MEASURED BY T4.21-4 WITH THE DISASTER ARMED (hazardPerYear
+    ///   0.0 -> 0.01), THEN AGAIN BY T4.21-7 AT THE SHIPPING VALUE (0.01 -> 0.0
+    ///   — CR-016's orchestrator decision: the mechanism ships COMPLETE AND
+    ///   TESTED BUT INERT and the RATE is the director's). THE READINGS BELOW
+    ///   ARE THE SHIPPED ONES, re-measured on THIS tree by the agent writing
+    ///   this comment; the ARMED readings are kept beside them, marked, because
+    ///   they are CR-016's evidence and are one data edit from being true again.
     ///   FOUNDED 300: births, deaths and spoilage first non-zero on turn 1,
     ///     harvest on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact),
     ///     migrants first on turn 3 (0 on turn 2, 252 on turn 3 — UNMOVED by the
-    ///     arming); overflow first on turn 1; STARVATION first on turn 7, 11,060
-    ///     deaths across 61 of the 300 turns (NONE on the merged T4.21-2 +
-    ///     T4.21-3 tree, 55 pre-packet, 57 on the T4.21-2 branch — weather-sized
-    ///     shortfalls are STRESS and starve nobody, so all of this is the
-    ///     disaster); first trade on turn 31 (28 on the merged tree, 41
-    ///     pre-packet, 21 on the T4.21-3 branch); dwellings never decay; no
-    ///     settlement is founded (12 throughout); 10,974 people at turn 300
-    ///     (40,539 on the merged tree).
+    ///     arming and by the disarming); overflow first on turn 1; NO STARVATION
+    ///     in 300 turns (55 pre-packet, 57 on the T4.21-2 branch — the effective
+    ///     deficit makes weather-sized shortfalls STRESS, which starve nobody,
+    ///     and at λ = 0 there is no other cause in this world; ARMED: first on
+    ///     turn 7, 11,060 deaths across 61 turns); first trade on turn 28 (41
+    ///     pre-packet, 21 on the T4.21-3 branch; ARMED: 31); dwellings never
+    ///     decay; no settlement is founded (12 throughout); 40,539 people at
+    ///     turn 300 (ARMED: 10,974).
     ///   DRIVEN 300: the same four non-zero by turn 2 and migrants on turn 3;
-    ///     starvation first on turn 7 (8 on the merged tree, 7 pre-packet), trade
-    ///     on 7; DWELLING DECAY first on turn 86, 640 dwellings across the 300
-    ///     turns (NONE on the merged tree, 48 on the T4.19-A tree, 64 on the
-    ///     T4.21-2 branch, 82 on the T4.21-3 branch) — famine empties homes and
-    ///     the decay account is live again; no founding; 56 policy changes, all
-    ///     on turn 3; pottery on turn 5: 1829 produced, 845 eaten, 0 sunk as
-    ///     inputs (UNMOVED); 147 people at turn 300 (6,373 on the merged tree —
+    ///     starvation first on turn 8 (7 pre-packet; ARMED: 7), 5,869 deaths
+    ///     across the 300 turns — the driven world starves without a disaster
+    ///     because its ORDERS drive settlements into deficit; trade on 7; NO
+    ///     DWELLING DECAY in 300 turns (48 on the T4.19-A tree, 64 on the
+    ///     T4.21-2 branch, 82 on the T4.21-3 branch; ARMED: first on turn 86,
+    ///     640 dwellings — famine emptied homes); no founding; 56 policy
+    ///     changes, all on turn 3; pottery on turn 5: 1829 produced, 845 eaten,
+    ///     0 sunk as inputs (UNMOVED); 6,373 people at turn 300 (ARMED: 147 —
     ///     see docs/adr/cr-016-armed-disaster-fallout.md, OPEN).
     ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
     ///     settlement 0, party 135, provisions 145 (RE-MEASURED on the merged

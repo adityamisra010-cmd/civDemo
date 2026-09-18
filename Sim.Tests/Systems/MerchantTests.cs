@@ -134,12 +134,17 @@ public class MerchantTests
             "no settlement ever became a merchant town in 650 turns — either the predicate "
             + "threshold is above anything the world produces, or trade_volume is not reaching "
             + "the predicate. Merchants would be configured but unreachable.");
-        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on this
-        // tree: first active turn 119 -> 87. Famine concentrates the survivors
-        // and moves the trade-volume trajectory this predicate reads, so the
-        // latch arrives EARLIER; the aim ("it flips somewhere, and the predicate
-        // is reachable") is unchanged and is carried by the two asserts above.
-        Assert.Equal(87, firstActive);   // moves with the trajectory; re-measured per packet
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on that
+        // tree: first active turn 119 -> 87 — famine concentrated the survivors
+        // and moved the trade-volume trajectory this predicate reads, so the
+        // latch arrived EARLIER.
+        // T4.21-7 RE-PIN BACK (VALUE, ONE ruled cause: THE DISARMING —
+        // hazardPerYear 0.01 -> 0.0, CR-016's orchestrator decision). MEASURED
+        // on this tree by the agent writing this line: 87 -> 119, exactly the
+        // pre-arming turn, so the arming was the whole of the move. The aim
+        // ("it flips somewhere, and the predicate is reachable") is unchanged at
+        // either value and is carried by the two asserts above.
+        Assert.Equal(119, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

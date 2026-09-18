@@ -358,7 +358,24 @@ public class DrivenGoldenTests
         //         arming, by design — this is the packet the golden ladder calls
         //         the last golden move (CR-015 "Golden ladder"). The controls do
         //         NOT move, which is what makes the ladder a ladder.
-        const string golden = "0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4";
+        // T4.21-7 RE-PIN (VALUE, ONE ruled cause: THE DISARMING).
+        //   OLD  0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4  (armed)
+        //   NEW  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   CAUSE  sim.json disaster.hazardPerYear 0.01 -> 0.0, the exact inverse
+        //         of T4.21-4's arming. CR-016's orchestrator decision: the
+        //         mechanism ships COMPLETE AND TESTED BUT INERT; the RATE is the
+        //         director's (docs/adr/cr-016-armed-disaster-fallout.md).
+        //   ATTRIBUTION, MEASURED not asserted: the value returns to the
+        //         PRE-ARMING constant BYTE FOR BYTE (the harness produced
+        //         98ee3a7a… against the armed pin, measured by the agent writing
+        //         this line). The round trip proves what the λ = 0 twin controls
+        //         proved one way only — nothing merged between 8f7f9da and here
+        //         (T4.21-5, the chain-link merge fix, T4.21-6's findings) moves a
+        //         world golden.
+        //   BLAST RADIUS: the same four behavioural goldens the arming moved,
+        //         moving back. The layout controls do NOT move either way, which
+        //         is what makes the ladder a ladder.
+        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

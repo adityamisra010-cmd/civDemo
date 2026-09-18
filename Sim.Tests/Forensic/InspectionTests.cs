@@ -36,7 +36,24 @@ public class InspectionTests
         return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
     }
 
-    private static Session Play(string tag)
+    /// <summary>
+    /// T4.21-7 — THE ARMED-RIG OVERRIDE, and why one session needs it. The
+    /// famine-class disaster SHIPS COMPLETE AND TESTED BUT INERT
+    /// (`sim.json disaster.hazardPerYear` = 0.0) and its RATE is the director's
+    /// ruling on `docs/adr/cr-016-armed-disaster-fallout.md`. Every session here
+    /// but one is indifferent to λ and keeps the shipped config; the one that is
+    /// NOT is the forensic disaster cross-check, whose own vacuity guards
+    /// ("no FAMINE-by-disaster settlement-turn … the cross-check is vacuous",
+    /// "no struck settlement-turn recorded — the disaster block is untested")
+    /// would fire at λ = 0 and leave the observability claim proven by a dead
+    /// test. It therefore supplies the DERIVED λ = 0.01 in-rig, exactly as
+    /// FamineScenarioTests does, so the record under test contains the event
+    /// class the test exists to cross-check. Never by re-arming the shipped
+    /// value.
+    /// </summary>
+    private const double ArmedLambda = 0.01;
+
+    private static Session Play(string tag, double? hazardPerYear = null)
     {
         string dir = Path.Combine(Path.GetTempPath(), "civsim-p3-" + tag);
         if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
@@ -45,12 +62,21 @@ public class InspectionTests
         // One real order, so the order path is exercised rather than assumed.
         orders.Append(new OrderRecord(2, 1, OrderKind.LaborAllocation, 0, 70.0));
 
+        Sim.Core.Systems.SimConfig cfg = Cfg();
+        if (hazardPerYear is { } lambda)
+            cfg = cfg with { Disaster = cfg.Disaster with { HazardPerYear = lambda } };
+
         WorldState world = Sim.Cli.HeadlessFounding.Found(42, 256, 4);
-        var executor = new TurnExecutor(Sim.Cli.CliRecipes.Era(), Sim.Cli.CliRecipes.ProductionPipeline(), orders);
+        using Stream pipe = Sim.Data.DataFiles.OpenPipeline();
+        TurnExecutor executor = new(
+            Sim.Cli.CliRecipes.Era(),
+            Sim.Core.Kernel.PipelineLoader.Load(
+                pipe, Sim.Core.SystemCatalog.All(cfg, Sim.Cli.CliRecipes.Worldgen())),
+            orders);
 
         string manifestPath;
         using (var emitter = new Sim.Cli.SessionEmitter(
-            dir, 42, 256, 4, orders, Cfg(), world, "testsha", "testdate", "linux-x64"))
+            dir, 42, 256, 4, orders, cfg, world, "testsha", "testdate", "linux-x64"))
         {
             for (int t = 1; t <= Turns; t++)
             {
@@ -420,7 +446,10 @@ public class InspectionTests
     [Fact]
     public void T421_TheFamineDisasterAbandonmentAndRefusalLines_MatchTheRecordBothWays()
     {
-        using Session s = Play("t421-events");
+        // λ = 0.01 SET IN-RIG (T4.21-7 — see Play's ArmedLambda note). The
+        // shipped hazard is 0.0 under CR-016; the two vacuity guards at the
+        // bottom of this test are what would otherwise go quietly dead.
+        using Session s = Play("t421-events", ArmedLambda);
         Answer events = s.Inspector.MajorEvents();
 
         int famineLines = 0, disasterLines = 0, abandonLines = 0, refusedLines = 0;

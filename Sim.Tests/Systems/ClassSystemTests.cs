@@ -376,16 +376,21 @@ public class ClassSystemTests
         Assert.Equal(0, activeAtFirstPresent);
         // The corrected instrument reports the latch, not the presence.
         Assert.NotEqual(firstPresentTurn, latchTurn);
-        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on this
-        // tree: latch 70 -> 84, first-present 13 -> 10. Both move with the
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on that
+        // tree: latch 70 -> 84, first-present 13 -> 10. Both moved with the
         // famine-class disaster: the latch tracks the surplus-ratio trajectory,
         // and the first-present turn tracks migration, which the flight channel
-        // now feeds. The property the test pins — an immigrant artisan precedes
-        // the LOCAL latch, and the instrument reports the latch and not the
-        // presence — is untouched, and the gap it measures WIDENED from 57 turns
-        // to 74.
-        Assert.Equal(84, latchTurn);
-        Assert.Equal(10, firstPresentTurn);
+        // fed. The gap the test measures widened from 57 turns to 74.
+        // T4.21-7 RE-PIN BACK (VALUE, ONE ruled cause: THE DISARMING —
+        // hazardPerYear 0.01 -> 0.0, CR-016's orchestrator decision). MEASURED
+        // on this tree by the agent writing this line: latch 84 -> 70 and
+        // first-present 10 -> 13, i.e. EXACTLY the pre-arming pair, so the
+        // arming was the whole of the move in both directions. The property the
+        // test pins — an immigrant artisan precedes the LOCAL latch, and the
+        // instrument reports the latch and not the presence — is untouched at
+        // either value, and the gap is 57 turns again.
+        Assert.Equal(70, latchTurn);
+        Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

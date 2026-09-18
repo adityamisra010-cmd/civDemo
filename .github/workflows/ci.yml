@@ -135,9 +135,15 @@ jobs:
           # together with the test constant, deliberately.
           # T4.21-4: moved with SnapshotTests.FoundedGolden for the arming of
           # the famine-class disaster (sim.json disaster.hazardPerYear
-          # 0.0 -> 0.01). Re-derived by running THIS step's two CLI processes on
-          # the packet tree: both logs byte-identical, last line the value below.
-          FOUNDED_GOLDEN=a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31
+          # 0.0 -> 0.01), to a1def4df...
+          # T4.21-7: moved BACK with it for the DISARMING (0.01 -> 0.0), which is
+          # CR-016's orchestrator decision — the mechanism ships complete and
+          # tested but INERT and the RATE is the director's ruling
+          # (docs/adr/cr-016-armed-disaster-fallout.md). The value below is the
+          # pre-arming one, returned BYTE FOR BYTE. Re-derived by REPRODUCING
+          # THIS STEP on the disarmed tree: the two CLI processes above, built
+          # from this tree, both logs byte-identical, last line the value below.
+          FOUNDED_GOLDEN=db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

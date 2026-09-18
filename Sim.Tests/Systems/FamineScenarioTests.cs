@@ -774,10 +774,11 @@ public class FamineScenarioTests
     // §6.5 — determinism WITH DISASTERS LIVE
     // ======================================================================
 
-    /// <summary>The canonical founded world under the SHIPPED (armed) config,
-    /// 120 turns — long enough that the measured world contains famine, short
-    /// enough to keep three legs inside the suite budget. Each leg asserts a
-    /// disaster actually fired, so none of them can twin two quiet worlds.</summary>
+    /// <summary>The canonical founded world at λ = 0.01 SET IN-RIG (T4.21-7 —
+    /// the shipped value is 0.0; CR-016), 120 turns — long enough that the
+    /// measured world contains famine, short enough to keep three legs inside
+    /// the suite budget. Each leg asserts a disaster actually fired, so none of
+    /// them can twin two quiet worlds.</summary>
     private const int DeterminismTurns = 120;
 
     private static (WorldState World, int Onsets, int Famine) StepCounting(

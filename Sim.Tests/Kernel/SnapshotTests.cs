@@ -801,7 +801,29 @@ public class SnapshotTests
         //         value, and ci.yml's FOUNDED_GOLDEN moves to it in this
         //         same commit.
         //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
-        const string golden = "a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31";
+        // T4.21-7 RE-PIN — THE ARMING IS REVERTED, AND SO IS ITS GOLDEN, BACK TO
+        //         THE VALUE IT CARRIED ON 8f7f9da. CR-016's orchestrator decision:
+        //         the famine-class disaster mechanism SHIPS COMPLETE AND TESTED
+        //         BUT INERT and the RATE is the director's ruling
+        //         (docs/adr/cr-016-armed-disaster-fallout.md).
+        //   OLD  a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31  (armed)
+        //   NEW  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   CAUSE  sim.json disaster.hazardPerYear 0.01 -> 0.0 — a DATA change,
+        //         and the exact inverse of T4.21-4's. Nothing else moved.
+        //   THE ROUND TRIP IS ITSELF THE ATTRIBUTION, and it is stronger than the
+        //         twin controls were: the value returns to the PRE-ARMING constant
+        //         BYTE FOR BYTE (measured by the agent writing this line — the
+        //         in-test harness produced db7c7a09… against the armed pin). So
+        //         everything merged since 8f7f9da (T4.21-5's observability, the
+        //         chain-link merge fix, T4.21-6's six findings) is confirmed to
+        //         move NO world golden, which is what T4.21-5 claimed of itself
+        //         and is now measured rather than asserted.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs), and ci.yml's
+        //         FOUNDED_GOLDEN moves back with it in this same commit.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        const string golden = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

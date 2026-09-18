@@ -653,6 +653,15 @@ public class MigrationTests
     // QuarantineDriftTolerance (T3.4c: 0.75 placed between a ×0.836 legitimate
     // correction and a ×0.536 disablement signature) — a bar that a dead lever
     // fails and a live one clears, not a bar fitted to today's number.
+    //
+    // T4.21-7 — THE LIFT SURVIVES; ONE OF ITS FOUR TEETH DOES NOT. The skip is
+    // NOT re-instated: the corridor assertion and both downward teeth are LIVE
+    // and measured green at the shipped hazardPerYear = 0.0. What the lift
+    // rested on that is no longer true is the UPWARD tooth — it cleared ×1.5 at
+    // λ = 0.01 and measures ×1.0082 at λ = 0, below ADR-018 §11's own dead
+    // signature — so that ONE assert is quarantined in place, with both
+    // measurements beside it and CR-016 named as what decides it. Read the
+    // block at the tooth itself before touching any of this.
     [Fact]
     public void MagnitudeCorridor_FedPhaseDrift_WithTeeth()
     {
@@ -722,11 +731,47 @@ public class MigrationTests
         // here: only the OBSERVABLE moved, which is precisely the distinction
         // ADR-018 §11 draws ("not by adjusting a threshold"). It sits well
         // above the recorded DEAD signature of ×1.07.
-        Assert.True(hotGap >= canonicalGap * 1.5,
-            $"a 10× base rate has NO teeth on the gap channel: {hotGap:P3}/decade against "
-            + $"{canonicalGap:P3} (×{hotGap / canonicalGap:F2}) — the recorded DEAD signature is ×1.07 "
-            + "(ADR-018 §11) and this test's inherited bar is ×1.5. The gap-closing cap binds in "
-            + "every pair and the rate lever is unreachable upward.");
+        // T4.21-7 — THE UPWARD TOOTH IS QUARANTINED, BECAUSE ONLY THE ARMING
+        // MADE IT LIVE. Both readings were MEASURED, on this rig, at the two
+        // values of λ:
+        //
+        //   ARMED (λ = 0.01, T4.21-4, that agent's measurement): gap-driven
+        //   ×1.88 upward. The lever was LIVE, the ×1.5 bar cleared, and CR-015
+        //   N9's lift of ADR-018 §11's skip was justified on that tree.
+        //
+        //   DISARMED (λ = 0 — the SHIPPING value under CR-016, re-measured on
+        //   THIS tree by the agent writing this line, same rig, includeSettling):
+        //   0.1× 0.552 %, 1× 0.64876 %, 10× 0.65408 % per decade — ×0.85
+        //   downward and ×1.0082 UPWARD. The gap-closing cap binds in every
+        //   pair again and the upward lever is unreachable; ×1.0082 is BELOW
+        //   ADR-018 §11's own recorded dead signature of ×1.07. (Same levers on
+        //   GROSS, the retired observable: 0.520 / 0.602 / 0.617 %, ×0.86 /
+        //   ×1.02 — dead on both observables, which is ADR-018 §11's premise
+        //   returning rather than a new defect.)
+        //
+        // WHY THE TEST IS NOT RE-SKIPPED. The 8f7f9da disposition was
+        // `[Fact(Skip = …)]`, which took the CORRIDOR assertion and both
+        // DOWNWARD teeth down with it. Those are LIVE and MEASURED GREEN at
+        // λ = 0 (0.649 %/decade inside the re-derived [0.1 %, 1.0 %] corridor;
+        // ×0.85 is a strict fall and is above the mechanism's 0.1× floor), so
+        // skipping them would throw away coverage the disarming did not touch.
+        // This is the Cr003Quarantine pattern instead — the precondition is
+        // asserted ABSENT, so the test fails LOUDLY the moment the lever comes
+        // back, which is exactly when the tooth must be restored. Strictly more
+        // coverage than the skip it replaces, and never less.
+        //
+        // WHAT DECIDES IT: docs/adr/cr-016-armed-disaster-fallout.md. If the
+        // director rules a non-zero rate, the flight channel reopens, this
+        // quarantine fires, and the ×1.5 tooth above is restored verbatim — it
+        // is preserved in the message below and nothing about it is re-chosen.
+        Assert.False(hotGap >= canonicalGap * 1.5,
+            $"CR-003-PATTERN QUARANTINE RESOLVED — a 10× base rate HAS teeth on the gap channel "
+            + $"again: {hotGap:P3}/decade against {canonicalGap:P3} (×{hotGap / canonicalGap:F2}), "
+            + "clearing this test's inherited ×1.5 bar. T4.21-7 quarantined this tooth because at "
+            + "the shipped hazardPerYear = 0.0 the lever measured ×1.0082 — below ADR-018 §11's "
+            + "recorded DEAD signature of ×1.07. It is live again, so DELETE this Assert.False and "
+            + "restore the original tooth: Assert.True(hotGap >= canonicalGap * 1.5, …). See "
+            + "docs/adr/cr-016-armed-disaster-fallout.md.");
 
         SimConfig cold = cfg with
         {
@@ -762,12 +807,16 @@ public class MigrationTests
             + $"10× {hotGap:P3} per decade — ×{coldGap / canonicalGap:F2} / ×{hotGap / canonicalGap:F2}. "
             + $"Same levers on GROSS (the retired observable): {MaxGrossPerDecade(cold, includeSettling: true):P3} / "
             + $"{MaxGrossPerDecade(cfg, includeSettling: true):P3} / {MaxGrossPerDecade(hot, includeSettling: true):P3}. "
-            + "NOTE FOR THE NEXT READER, measured by T4.21-4 and NOT actioned here: on this tree the "
-            + "two observables now respond almost identically (gap ×0.74/×1.88, gross ×0.71/×1.91), so "
-            + "ADR-018 §11's premise — gap-driven ×3.10 against gross ×1.07 — no longer holds. "
-            + "T4.21-2's bounded flight and basin caps changed what GROSS is made of. The teeth are on "
-            + "the gap channel because that is what was ruled; the finding is recorded in "
-            + "docs/t4.21-4-record.md §4.4, not acted on.");
+            + "NOTE FOR THE NEXT READER, both readings MEASURED. At λ = 0.01 (T4.21-4, NOT the "
+            + "shipping value) the two observables responded almost identically — gap ×0.74/×1.88 "
+            + "against gross ×0.71/×1.91 — so ADR-018 §11's premise (gap-driven ×3.10 against gross "
+            + "×1.07) no longer held there, and T4.21-2's bounded flight and basin caps are what "
+            + "changed GROSS. At the SHIPPED λ = 0 (T4.21-7, CR-016) they are again almost identical "
+            + "and both are DEAD upward — gap ×1.0082, gross ×1.02 — so §11's premise returns in the "
+            + "form of a dead lever on either observable. The teeth are on the gap channel because "
+            + "that is what CR-015 N9 ruled; the upward one is quarantined above with both "
+            + "measurements. Findings recorded in docs/t4.21-4-record.md §4.4 and "
+            + "docs/adr/cr-016-armed-disaster-fallout.md, not acted on here.");
     }
 
     // --- conservation under random reachability graphs ----------------------
