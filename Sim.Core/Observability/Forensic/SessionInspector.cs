@@ -550,6 +550,15 @@ public sealed class SessionInspector
 
         var lines = new List<string>();
         var deficit = new Dictionary<int, bool>();
+        // T4.21-5 (spec §3.11): latches for the four events the foodState /
+        // migrationPlan sections make visible. Same shape as the deficit latch
+        // above — TryGetValue only, never iterated, so no ordering exists to be
+        // non-deterministic. A settlement whose line does not CARRY the section
+        // (a telemetry/v2 file) is never latched, so it emits nothing rather
+        // than emitting a default.
+        var famine = new Dictionary<int, bool>();
+        var struck = new Dictionary<int, bool>();
+        var abandoned = new Dictionary<int, bool>();
         var seen = new List<int>();
 
         foreach (TelemetryTurn turn in t.Turns)
@@ -581,6 +590,70 @@ public sealed class SessionInspector
                 }
                 deficit[s.Settlement] = inDeficit;
 
+                // --- T4.21-5, CR-015: the exceptional-famine events -------
+                if (s.FoodState.Recorded)
+                {
+                    bool nowFamine = s.FoodState.IsFamine;
+                    if (famine.TryGetValue(s.Settlement, out bool wasFamine))
+                    {
+                        if (!wasFamine && nowFamine)
+                            lines.Add(Event(turn.Turn, "FAMINE ONSET", s.Settlement,
+                                $"FoodState = Famine, reason {s.FoodState.FamineReason}; deficit "
+                                    + s.FoodState.NominalDeficit.ToString("0.####", CultureInfo.InvariantCulture),
+                                "KNOWN — settlements[].foodState.state/famineReason, RECOMPUTED by the observer "
+                                    + "through FoodState.Of on the world the step read"));
+                        else if (wasFamine && !nowFamine)
+                            lines.Add(Event(turn.Turn, "FAMINE END", s.Settlement,
+                                $"FoodState = {s.FoodState.State}; deficit "
+                                    + s.FoodState.NominalDeficit.ToString("0.####", CultureInfo.InvariantCulture),
+                                "KNOWN — settlements[].foodState.state leaving Famine"));
+                    }
+                    else if (nowFamine)
+                    {
+                        lines.Add(Event(turn.Turn, "FAMINE ONSET", s.Settlement,
+                            $"FoodState = Famine, reason {s.FoodState.FamineReason} (first observed turn for this settlement)",
+                            "KNOWN — settlements[].foodState.state/famineReason"));
+                    }
+                    famine[s.Settlement] = nowFamine;
+
+                    bool nowStruck = s.FoodState.DisasterRowPresent && s.FoodState.DisasterMultiplierApplied < 1.0;
+                    if (nowStruck && !(struck.TryGetValue(s.Settlement, out bool wasStruck) && wasStruck))
+                    {
+                        lines.Add(Event(turn.Turn, "DISASTER", s.Settlement,
+                            "severity " + s.FoodState.DisasterSeverity.ToString("0.###", CultureInfo.InvariantCulture)
+                                + ", food rates multiplied by "
+                                + s.FoodState.DisasterMultiplierApplied.ToString("0.###", CultureInfo.InvariantCulture)
+                                + ", " + s.FoodState.DisasterRemainingYears.ToString("0.#", CultureInfo.InvariantCulture)
+                                + " years still to run",
+                            "KNOWN — settlements[].foodState.disaster* (READ from the DisasterRow the step applied)"));
+                    }
+                    struck[s.Settlement] = nowStruck;
+
+                    if (s.FoodState.Abandoned
+                        && !(abandoned.TryGetValue(s.Settlement, out bool wasAbandoned) && wasAbandoned))
+                    {
+                        lines.Add(Event(turn.Turn, "ABANDONMENT", s.Settlement,
+                            "farming and herding are both zero on the sector row in force — no food labour at all",
+                            "KNOWN — settlements[].foodState.abandoned, RECOMPUTED through FoodState.IsAbandoned"));
+                    }
+                    abandoned[s.Settlement] = s.FoodState.Abandoned;
+                }
+
+                // REFUGEES REFUSED is a per-TURN fact, not a latch: the vacancy
+                // bound bites on the turn it bites, and a second turn of it is a
+                // second refusal, not a continuation of the first.
+                if (s.MigrationPlan.RefugeesRefused)
+                {
+                    lines.Add(Event(turn.Turn, "REFUGEES REFUSED", s.Settlement,
+                        "vacancyScale " + s.MigrationPlan.VacancyScale.ToString("0.####", CultureInfo.InvariantCulture)
+                            + " < 1: desired inflow "
+                            + s.MigrationPlan.DesiredInflowAe.ToString("0.##", CultureInfo.InvariantCulture)
+                            + " adult-equivalents against a vacancy cap of "
+                            + s.MigrationPlan.VacancyCap.ToString("0.##", CultureInfo.InvariantCulture)
+                            + " — the destination fed what it could and turned the rest away",
+                        "KNOWN — settlements[].migrationPlan.vacancyScale, RECOMPUTED through MigrationSystem.Plan"));
+                }
+
                 if (s.Inflow > 0 || s.Outflow > 0)
                 {
                     lines.Add(Event(turn.Turn, "MIGRATION", s.Settlement,
@@ -611,7 +684,10 @@ public sealed class SessionInspector
             "Each event is a READ field or a transition of one, and carries its own tag. NO EVENT IS EMITTED "
                 + "FOR A TRANSITION THE RECORD DOES NOT SHOW: there is no forced displacement, no war and no "
                 + "battle in this build, so those categories are absent because they do not exist, not because "
-                + "they went unobserved.",
+                + "they went unobserved. The same rule governs the T4.21-5 categories (FAMINE ONSET/END, "
+                + "DISASTER, ABANDONMENT, REFUGEES REFUSED): a telemetry/v2 record carries no foodState or "
+                + "migrationPlan section, so on such a file NONE of them is emitted — their absence there means "
+                + "the file does not say, and must not be read as a session in which nothing of the kind happened.",
             [.. lines]);
     }
 

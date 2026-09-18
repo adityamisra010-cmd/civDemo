@@ -43,6 +43,12 @@ public enum ChainNode
     FoodGoodDemanded,
     FoodGoodFill,
     DeficitRatio,
+    // T4.21-5 (spec §3.11, CR-015): the classification the deficit feeds and
+    // the two facts that qualify it. All four RECOMPUTED through public statics.
+    FoodStateClassification,
+    EffectiveDeficit,
+    DisasterMultiplierApplied,
+    Abandoned,
     NutritionalDemand,
     GrainStore,
     GrainHarvest,
@@ -235,6 +241,50 @@ public sealed class CausalChain
                 + "SettlementHappiness.FoodSufficiency reads this absence as 1.0 (SettlementHappiness.cs:118-129)."));
         }
 
+        // T4.21-5 / CR-015 — WHAT KIND OF SHORTFALL THIS IS. The chain stopped
+        // at the deficit ratio, which cannot distinguish a bad decade from a
+        // ruined harvest; the classifier can, and it is a PUBLIC static called
+        // on this same world, not a predicate restated here. FoodState.Of is
+        // RECOMPUTED in the §0 sense (a call to a simulation function on stored
+        // state) — the kind the spec's table calls "Derived".
+        double dRatio = Sim.Core.State.FoodState.DeficitRatio(w, s);
+        FoodStateKind kind = Sim.Core.State.FoodState.Of(w, s, cfg, out FamineReason famineReason);
+        into.Add(new Link(ChainNode.FoodStateClassification, "FoodState = " + kind
+                + (kind == FoodStateKind.Famine ? " (" + famineReason + ")" : ""),
+            (double)(int)kind, LinkKind.Recomputed, from, "ConsumptionDeficits", d,
+            (d < 0 ? "No row in ConsumptionDeficits: the classifier reads the absent deficit as 0, exactly as "
+                   + "every system does, so a settlement consumption has not run for is NORMAL. " : "")
+            + "FoodState.Of(world, settlement, cfg): FAMINE iff d > 0 AND (a famine-class disaster was APPLIED "
+            + "to the harvest that produced d, OR food labour is deliberately abandoned); SEVERE iff d > a; "
+            + "STRESS iff 0 < d <= a; NORMAL iff d = 0 (a = foodState.adaptationAbsorbableShortfall). The "
+            + "label PREDICTS the kernel's response — STRESS means the starvation hazard is identically 0. "
+            + "The value on this link is the enum ORDINAL, ascending by severity. The cause tables it also "
+            + "reads (Disasters, SectorAllocations) are the two links below."));
+        into.Add(new Link(ChainNode.EffectiveDeficit, "effective deficit",
+            Sim.Core.State.FoodState.EffectiveDeficit(dRatio, kind, cfg), LinkKind.Recomputed,
+            from, "ConsumptionDeficits", d,
+            (d < 0 ? "No row in ConsumptionDeficits: d reads 0 and the effective deficit is 0 with it. " : "")
+            + "FoodState.EffectiveDeficit(d, state, cfg) — starvation mortality's ONE input outside FAMINE: "
+            + "d <= a gives exactly 0 (the cut is absorbed, nobody dies), above a it is (d - a)/(1 - a), and "
+            + "in FAMINE no adaptation is possible so it is d itself. Fertility suppression reads this too "
+            + "(CR-015 G3(b)); the rebound release gate and every other reader keep the NOMINAL d above."));
+
+        int dis = -1;
+        for (int i = 0; i < w.Disasters.Count; i++) if (w.Disasters[i].Settlement == s) { dis = i; break; }
+        into.Add(dis >= 0
+            ? new Link(ChainNode.DisasterMultiplierApplied, "disaster multiplier APPLIED",
+                w.Disasters[dis].AppliedMultiplier, LinkKind.Read, from, "Disasters", dis,
+                "DisasterRow.AppliedMultiplier — what ProductionSystem multiplied the farming AND herding "
+                + "rates by in the step that WROTE this row, i.e. the step that produced the deficit above "
+                + "(WorldState.cs DisasterRow). Below 1 is the backward-looking fact FAMINE classifies on. "
+                + "The row's Multiplier field, which the NEXT step will apply, is a different number.")
+            : new Link(ChainNode.DisasterMultiplierApplied, "disaster multiplier APPLIED", double.NaN,
+                LinkKind.Gap, from, "Disasters", -1,
+                "No disaster row for this settlement — and an absent row IS the answer, not a missing one: "
+                + "DisasterSystem's own identity is 1.0, nothing was applied, and FoodState.IsStruck reads "
+                + "false. NaN rather than 1.0 by the precedent of the weather and arable links above, which "
+                + "also decline to print a system's default as if it were a reading."));
+
         // GRAIN: store, harvest, eaten — the store-drawdown reading is Harvest < Eaten.
         int g = GoodStockIndex.IndexOf(w.GoodStocks, s, grain);
         if (g >= 0)
@@ -309,6 +359,20 @@ public sealed class CausalChain
         into.Add(ShareLink(ChainNode.HerdingShare, "herding share", shares, Sectors.Herding, sectorIdx, from,
             "Sectors.Share(row, Herding) × adults = the pool split across food deposits ∝ abundance "
             + "(ProductionSystem.cs:171-175, 300).", Lag));
+
+        // T4.21-5: the two share links above are the INPUTS of this one — the
+        // abandonment predicate reads the RAW weights of the same row, which is
+        // the field ProductionSystem reads (one fact, one field). Called, not
+        // restated: a copy of "farming == 0 && herding == 0" here would be the
+        // second implementation §0 forbids.
+        into.Add(new Link(ChainNode.Abandoned, "food labour abandoned",
+            Sim.Core.State.FoodState.IsAbandoned(w, s) ? 1.0 : 0.0, LinkKind.Recomputed,
+            from, "SectorAllocations", sectorIdx,
+            (sectorIdx < 0 ? "No row: Sectors.Default in force, and the default farms — never abandoned. " : "")
+            + "FoodState.IsAbandoned(world, settlement): Farming == 0 AND Herding == 0 on the RAW row in force "
+            + "(absent row -> Sectors.Default -> never abandoned). Deliberate abandonment is one of the two "
+            + "causes that qualify a shortfall as FAMINE, and it is a POLICY — unlike the disaster above, it "
+            + "is read as IN FORCE (if the row stands, the next harvest is zero too), not as applied."));
         for (int i = 0; i < w.Deposits.Count; i++)
         {
             DepositRow dep = w.Deposits[i];
