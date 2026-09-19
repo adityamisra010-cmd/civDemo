@@ -83,10 +83,10 @@ DIRECTOR DECISION REQUIRED; INFERRED from precedent, M3 closed over a known-open
 
 | # | item | label | basis |
 | --- | --- | --- | --- |
-| D1 | **G8 / CR-016 option 3 — the per-year food-balance sub-step.** The real fix for the dt artefact; M5-scale. | RATIFIED as queued | `docs/adr/cr-016-armed-disaster-fallout.md:305-310`; `docs/queue.md` G8(c) |
+| D1 | **G8 / CR-016 option 3 — the per-year food-balance sub-step.** The real fix for the dt artefact; M5-scale. | MEASURED | `docs/adr/cr-016-armed-disaster-fallout.md:308-313` (option 3, **M5-SCALE**, *"already queued as G8(c) in `docs/queue.md`"*, `:311-312`); the queue entry is `docs/queue.md:1403`. The option is **not adopted** — CR-016 is **OPEN** (`cr-016:3`). Deferring the sub-step to M5 is itself ruled at `cr-015:511-515` (G8(a)) |
 | D2 | **The exact disaster renewal process** (onset time uniform within the turn, loss spilled into the next turn, superposed onsets multiplying). Accepted biases ~4.7 % / ~4.8 % stand. | RATIFIED | `docs/t4.21-architecture.md` §3.3 (onset-process paragraph); ADR-024 §4 |
-| D3 | **Spatial correlation and a weather-conditioned disaster hazard.** | RATIFIED as deferred | `docs/t4.21-architecture.md` §3.3, "Spatial correlation and a weather-conditioned hazard are DEFERRED (queue)" |
-| D4 | **A second disaster kind and the per-row famine-class predicate** (`Severity·D·ρ_ship ≥ B_eff`) it would require. | RATIFIED as queued | `docs/t4.21-architecture.md` §3.3 |
+| D3 | **Spatial correlation and a weather-conditioned disaster hazard.** | RATIFIED | `docs/t4.21-architecture.md` §3.3, `:523-524`, "Spatial correlation and a weather-conditioned hazard are DEFERRED (queue)" |
+| D4 | **A second disaster kind and the per-row famine-class predicate** (`Severity·D·ρ_ship ≥ B_eff`) it would require. | RATIFIED | `docs/t4.21-architecture.md` §3.3, `:521-523` — the predicate is *"queued with the kind registry"* |
 | D5 | **Observability owed:** `recentStress`; `migrationPlan.inflowAeByChannel`; per-settlement / per-`FoodState` starvation in `AutoplayMetrics`; `autoplay-metrics/v2` famine and disaster counters. | MEASURED as owed (SECONDARY) | `docs/t4.21-director-report.md:1358-1372`, each row "CONFIRMED (queue.md)" |
 | D6 | **CR-003 Malthus corridor** (known-open item 2) — quarantined by standing ruling; the crash model is not M4 work. | RATIFIED | `docs/milestones.md:380` "OPEN / FUTURE MILESTONE" |
 | D7 | **The turn-2 structural artefact.** Root cause is the founding warm-up, out of T4.21's scope; ADR-025 §2.4a records the unmet RULE 2 acceptance criterion as a DEVIATION awaiting sign-off. | MEASURED as recorded (SECONDARY) | `docs/t4.21-director-report.md:1200`, `:1441-1444` |
@@ -209,7 +209,7 @@ it. MEASURED (this lane).
   (`docs/t4.21-4-record.md:219-227`, SECONDARY): flight crosses at turn 4 with 183.4 attributable
   flight against 139 attributable starvation; exit leads.
 - **It survived the disarm.** The rig is abandonment-driven, so λ = 0 does not touch it: "UNAFFECTED,
-  live and green". RATIFIED-as-recorded (CR-015 T4.21-7 block, `:707-709`).
+  live and green". MEASURED — recorded in the CR-015 T4.21-7 block, `:707-709`.
 - **FINDING F5.** `docs/milestones.md:360` and `:382` still read "OPEN / REQUIRES DIRECTOR RULING"
   for an item the tree has discharged. The document and the tree disagree. No ruling is required for
   4a any more; a closing edit is.
@@ -320,11 +320,11 @@ it. MEASURED (this lane).
 - **Shipping value: `hazardPerYear = 0.0`.** MEASURED (this lane):
   `Sim.Data/content/sim.json:235`. The rest of the block is `durationYears 5.0` (`:236`),
   `severityMin 0.75` (`:237`), `severityMax 1.0` (`:238`).
-- **The mechanism ships complete and tested but INERT.** RATIFIED as an orchestrator decision, not a
-  Director ruling: `docs/adr/cr-016-armed-disaster-fallout.md:179-198` (D.1). The CR's status line is
+- **The mechanism ships complete and tested but INERT.** MEASURED — recorded as an ORCHESTRATOR
+  decision, not a Director ruling: `docs/adr/cr-016-armed-disaster-fallout.md:179-198` (D.1). The CR's status line is
   `:3` — "**OPEN — ESCALATED TO THE DIRECTOR. Nothing is fixed here.**"
 - **What is proven without the rate.** Forced-strike rigs, ladder tests, the onset-process test and
-  all three determinism legs arm λ in their own rigs. RATIFIED-as-recorded, CR-016 `:210-236` (D.2),
+  all three determinism legs arm λ in their own rigs. MEASURED — recorded at CR-016 `:210-236` (D.2),
   which names each test. Mandate item 1(B), deliberate abandonment, is live on the shipped config and
   is what makes famine reachable in play today (`FamineScenarioTests.S_Abandonment_TriggersFamine`).
 - **One data edit away.** CR-016 `:237-241` (D.3), with the cost priced: four behavioural world
@@ -584,7 +584,8 @@ Offered as design direction only; no packet is proposed and no code is proposed.
 3. **The kind registry already anticipated this.** `t4.21-architecture.md` §3.3 states that a second
    kind with sub-class severities would require `FoodState.struck` to read a per-row famine-class
    predicate `Severity·D·ρ_ship ≥ B_eff`. A catalogue of hazard kinds is the natural carrier of
-   step 1 and step 2 together. RATIFIED as queued (D4); PROPOSED as the chain's landing site.
+   step 1 and step 2 together. The queueing is RATIFIED (D4); the catalogue as the chain's landing
+   site is PROPOSED.
 
 **A TENSION THIS LANE MUST SURFACE AND WILL NOT RESOLVE.** CR-016 option 2 is "re-derive λ against
 the demographic kernel, not against the historical reference class alone" (`cr-016:137-147`). Read
@@ -604,9 +605,11 @@ paragraph; nothing here is a ruling.
 
 ### 5.1 The finding and its derivation
 
-RATIFIED as escalated: `docs/adr/cr-015-famine-is-exceptional.md:524-570` (§6.4), headed
+MEASURED: `docs/adr/cr-015-famine-is-exceptional.md:524-570` (§6.4), headed
 "**ESCALATED — requires a separate director ruling: G1, the harvest-weather decade variance (F1)**".
-Restated in `docs/t4.21-director-report.md:1156-1198` (§15.2).
+Restated in `docs/t4.21-director-report.md:1156-1198` (§15.2). The escalation is recorded text;
+**G1 itself is unruled** — CR-015's status line reads "RULED (mandate 2026-09-17) … G1 open"
+(`cr-015:3`), and the director report heads §15.2 "**UNRESOLVED; DIRECTOR ONLY**" (`:1156`).
 
 `HarvestWeatherSystem.cs:42-45` holds the log-deviation `x` at STATIONARY variance σ² for every dt
 (`ρ_AR = e^{−dt/τ}`, innovation `σ√(1 − ρ²)`) — the deliberately ratified T3.4b/T3.4c invariant that
@@ -747,11 +750,11 @@ The red items are governance, not test results: blockers **B1** (no Director exi
 | U2 | **G1 — the decade variance.** Escalated, interim (a), no ruling; and a fourth path now in play (§5.4) | DIRECTOR DECISION REQUIRED |
 | U3 | **B5 — the density-quarantine window breach**, measured but NOT VERIFIED, invisible to both instruments | MEASURED, not actionable under ADR-015 §6 |
 | U4 | **ADR-018 §11's premise**, false at both rates; the 4b upward tooth quarantined in place | MEASURED (SECONDARY) |
-| U5 | **G8 / F4 — the dt-versus-buffer artefact**, the mechanism behind CR-016, accepted as inherited and queued as M5-scale | RATIFIED as queued |
+| U5 | **G8 / F4 — the dt-versus-buffer artefact**, the mechanism behind CR-016, accepted as inherited and queued as M5-scale | RATIFIED |
 | U6 | **The §28 asymptote is rig-proved but not demonstrated on a real world** — the canonical world sits at ~0.60–0.66 of its limit for 300 turns and never approaches the ceiling; the settling measurement (a constant-weather 1000-turn run) was not run | MEASURED (SECONDARY, report §15.7) |
 | U7 | **The exceptional arm is unexercised in play.** Zero FAMINE turns, zero disasters, zero abandonment across 1 932 + 39 852 measured settlement-turns. Everything validated in play validates the ORDINARY arm | MEASURED (SECONDARY, report §15.6(f)) |
 | U8 | **The adaptation boundary `a` is unfalsifiable on the shipped world** — `a = 0.20` and `a = 1/3` produce bit-identical worlds, because the largest deficit anywhere in 300 turns is 0.0508 | MEASURED (SECONDARY, report §15.6(c)) |
-| U9 | **Known-open items 5, 6, 7, 8, 9, 11**, all still open and unchanged (§3) | RATIFIED as open |
+| U9 | **Known-open items 5, 6, 7, 8, 9, 11**, all still open and unchanged (§3) | MEASURED |
 
 ### 6.4 WHAT THE MERGE WOULD CARRY — THE THREE-WAY DISTINCTION
 
