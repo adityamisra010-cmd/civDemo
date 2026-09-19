@@ -927,6 +927,19 @@ item in this cluster that can block a milestone exit rather than a packet.
    or against any other branch, and `docs/current-state.md:13` records that CR-008 exists only
    on `m5-full-build` while CR-009 and CR-010 have never existed anywhere.
 
+6. **A concurrent sibling lane committed to this branch while this document was being
+   written, and the pin is stated against the tree that was measured, not the tree this
+   commit sits on.** MEASURED: this document's commit has parent `dfe92d7` (*"DESIGN
+   (output C): knowledge architecture"*), which is itself a child of the pinned `31d8718`.
+   `dfe92d7` adds exactly one file, `docs/design/arch-C-knowledge.md`, and touches no code,
+   no data file and no ratified or frozen document — so every `file:line` citation above
+   holds unchanged on the commit this document ships in. Recorded rather than smoothed,
+   because LOCAL, REMOTE and MAIN are three different states and a pin that quietly moved
+   is a pin that proves nothing. **Also recorded: this lane and lane C shared one working
+   tree.** ADR-015 §6 requires one worktree per *verifying* agent; these are design lanes
+   and no verification was performed by either, but the shared tree is stated so a reader
+   can price it.
+
 ---
 
 **WHAT THIS DOCUMENT DID NOT DO.** No system, table, row, schema, predicate, variable,
