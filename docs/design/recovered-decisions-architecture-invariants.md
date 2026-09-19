@@ -10,6 +10,13 @@ clean, in sync with origin; `origin/main` = `dbef61a`. Every `file:line` below w
 tree. Where a source document cites a line that has since moved, the drift is recorded rather than
 silently corrected (GOV-4 §1: the tree wins on facts, the ruling stands on rulings).
 
+**Tree-pin correction (GOV-4 §2 — LOCAL / REMOTE / MAIN are not collapsed).** While this lane was
+reading, two CONCURRENT SIBLING-LANE commits landed on the same branch — `edcc14e` and `4993508`,
+both decision-recovery documents under `docs/design/` — so the branch tip is no longer `9f6c6ae`.
+**Every citation above and below was read at `9f6c6ae` and none is affected:** the two commits add
+files under `docs/design/` only and touch no document this lane cites. The pin is stated rather
+than silently updated, and this note is the record.
+
 **Author authority: none.** The DIRECTOR IS ChatGPT. A decision's STATUS is taken from the
 document, never from this author's judgement — a document that says "awaiting director ruling" is
 recorded OPEN even where the code behaves as though it were settled. Where two documents conflict,
