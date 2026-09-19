@@ -18,6 +18,13 @@ performed. Merging is a Director ruling under `CLAUDE.md` ("the DIRECTOR RULES o
 only then the agent performs the merge to `main` on that explicit ruling"), and this lane does not
 perform it.
 
+**Concurrency note.** While this lane worked, a sibling lane committed `96ddfb1` ("DECISION
+RECOVERY (mandate PART 3)") to the same branch. MEASURED (this lane): it adds one new file,
+`docs/design/recovered-decisions-knowledge-tech.md`, and touches nothing this audit reads. Every
+`file:line` below therefore still resolves as read on `9f6c6ae`. `CLAUDE.md`'s "one worktree per
+verifying agent, never shared" is worth restating: concurrent commits on a shared branch are how
+findings get voided, and this one happened to be harmless.
+
 **Label key** (mandate-imposed; every substantive claim carries exactly one):
 
 | label | meaning |
