@@ -45,8 +45,17 @@ it determines what the M5 spec may contain, so the spec cannot be written withou
 **De-duplication method.** Every conflict row in every `docs/design/` document, plus the M4 closure
 audit's R1–R15, was collected; rows naming the same pair of sources were merged into one entry;
 the entry carries a **"found by"** line listing every lane that surfaced it, so no lane's work is
-lost. **Sixty conflict entries survive from roughly ninety raw rows.** Merges are stated, never
-silent.
+lost. **Sixty-three conflict entries survive from roughly ninety raw rows.** Merges are stated,
+never silent.
+
+**Correction to this pass (label- and citation-discipline review).** Four recovery-lane conflicts had
+been dropped **without the merge note the method above requires**. Three are now entries in their own
+right, because each names a **source pair that no existing entry names** — **P-61**
+(recovery-knowledge **C-11**), **P-62** (**C-05**) and **P-63** (**C-08**). They carry the next free
+ids and sit in the section their blast radius puts them in, so **no existing id moved**. The fourth,
+recovery-knowledge **C-04**, is recorded as an **explicit note on P-11**, whose subject it shares and
+whose source pair it does not. MEASURED: the knowledge lane's **C-01 … C-11** are now all accounted
+for in this document.
 
 ---
 
@@ -62,7 +71,7 @@ silent.
   coupling map that expects golden behaviour change there (`:327`). Its famine semantics name a
   famine-class natural disaster as one of exactly two CAUSES (`:373-376`) — at λ = 0 that cause
   never fires outside a rig.
-- **Source B, RATIFIED as escalated:** CR-016 is **OPEN — ESCALATED TO THE DIRECTOR**
+- **Source B, MEASURED:** CR-016 is **OPEN — ESCALATED TO THE DIRECTOR**
   (`docs/adr/cr-016-armed-disaster-fallout.md:3`). MEASURED at λ = 0.01: CR-001's *permanent*
   dt-continuity detonator breaks by **2.2572** (battery rig) and **2.5259** (DemographyRetune rig)
   per 1000 yr against a **0.1** bar; `canonical.fedGrowthPerYear` falls below its immovable band;
@@ -185,7 +194,7 @@ recovery-architecture **A-136** item 11.
 - **Source B, MEASURED (m4-closure-audit B4):** the entry *"is stale in five places against this
   tree. It cannot be the record of a closed milestone as written"* (findings F1, F2, F3, F5, F8).
   Also MEASURED there: the **`m4-exit` tag does not exist** (`git tag` returns `m3-exit` only).
-- **Related and unresolved, RATIFIED as recorded:** *"a FAILED criterion means the system did the
+- **Related and unresolved, RATIFIED:** *"a FAILED criterion means the system did the
   wrong thing; a WITHDRAWN one means the criterion asked for evidence the world cannot produce"*
   (`docs/milestones.md:229-237`) — the disposition vocabulary a closing edit would have to use.
 
@@ -415,8 +424,22 @@ inherits an unresolved contradiction **in its own ratified source**. And arch-C 
 it: the knowledge architecture is *"the thing that would compute the labels D-011 gates on"*, so
 building it makes the collision concrete rather than latent.
 
-*Found by:* recovery-knowledge **C-03** · recovery-architecture **C-05** · recovery-civics **C-06**
-· arch-C **X-06** · arch-D **§5.4 / Q10** · arch-E **X-E6** · arch-M node 19.
+**ABSORBED HERE, AND RECORDED RATHER THAN MERGED, BECAUSE ITS SOURCE PAIR IS DIFFERENT —
+recovery-knowledge C-04.** *Does knowledge precede advanced military?* The roadmap audit says the
+ratified order already achieves it: *"**Knowledge at M7 already precedes both.** The stated
+sequencing goal is, on this axis, *already satisfied by the ratified order*"*
+(`docs/m5-roadmap-dependency-audit.md:41-45`). The adversarial pass **FALSIFIED** that assumption
+(#2): *"the ratified gate on advanced military is **an era label, not knowledge**"*, and *"military
+does **not** currently descend from capability at all — it descends from an **era label**"*
+(`docs/milestone-architecture-governance.md:110-121`, `:139-153`, `:282-284`). CR-007 §10.2 leaves
+the falsification standing: *"#2 advanced military is era-gated in frozen D-011 … untouched; still a
+genuine Law 4 tension"* (`docs/adr/cr-007-b3-exemplar-reconciliation.md:281-282`). **The pair here is
+the roadmap audit against the governance record's FALSIFIED #2 — a claim about SEQUENCING** — where
+P-11's pair is frozen D-011/D-009-D-010 against law 4 and D-040 B3. Both recorded; neither
+reconciled.
+
+*Found by:* recovery-knowledge **C-03, C-04** · recovery-architecture **C-05** · recovery-civics
+**C-06** · arch-C **X-06** · arch-D **§5.4 / Q10** · arch-E **X-E6** · arch-M node 19.
 
 ---
 
@@ -687,6 +710,7 @@ changes what CR-016's three broken gates are arguing about"* (arch-I **Q3**).
 | **P-32** | **The "M4 Happiness is a FOUNDATION, not the permanent definition of human needs" decision has no locus in the tree.** The nearest citable lines are `SettlementHappiness.cs:36-49`. | the 2026-09-19 mandate (relayed) | MEASURED absence across `docs/`, `docs/adr/` and the source file | arch-JKL Part L preserves the reading and **queries rather than reconstructs**, per the D-035 precedent that *"an uncited ruling is refused and queried, not reconstructed"* | recovery-food **C-07** · arch-JKL **X-05, DQ-L1** |
 | **P-33** | **May happiness read the needs aggregate?** Named a **DIRECTOR'S CALL** in code, in the exit inventory and in ADR-023 §4. It gates the diet-quality path, the unification of the two numbers, and any richer well-being model. | `Sim.Core/State/SettlementHappiness.cs:36-38` | `docs/m4-exit-inventory.md`; ADR-023 §4 | every evolving-needs mechanism arch-JKL designs is **invisible to the player** while the answer is "no" | recovery-food **Q-17** · arch-JKL **DQ-L6** · arch-FGH **Q-G9** |
 | **P-34** | **"Water" carries two incompatible readings in the tree.** `m4-exit-inventory:148` — *"**Absent, and stated rather than stubbed:** WATER is not modelled anywhere"* — is a list of **happiness factors** and means water as a *consumed human need*; the code means **geographic** water (`TerrainSet._water/_moisture/_rivers`, `transport.riverCostFactor`). | `docs/m4-exit-inventory.md:148` | `Sim.Core/Worldgen/TerrainSet.cs:21,23,26`; `sim.json:21-22` | a future reader meets the unqualified sentence without its §4 heading. Related: **is water a ninth need, a happiness factor, or neither** — two records point in different directions and neither resolves the other | recovery-climate **C-06 / T-11** · recovery-food **Q-19** |
+| **P-61** | **"Education and literacy as MODIFIERS" versus law 2.** The M5 placeholder names *"5. Education and literacy as **modifiers** of knowledge production"* as one of the mechanics it sketches, and lists *"government modifiers"* among the items *"deliberately ABSENT"* until a dedicated M5 design workshop. The governance record flags the shape without ruling it: *"**Law 2 hazard flagged, not a violation:** … A free-floating permanent modifier is the banned construct. **D-035's shipped shape is the legal one** — *'one institution raises one need and lowers another'*, a two-sided mechanism."* | `docs/m5-research-technology-institutions-placeholder.md:73`, `:16` — and the placeholder **declares itself unratified** (`:3-11`) | `docs/milestone-architecture-governance.md:205-209`; law 2 at `CLAUDE.md:17` | whichever packet builds knowledge production: **the hazard is named, not ruled**, and the two-sided D-035 shape is offered as the legal alternative **but has not been ruled to apply here** | recovery-knowledge **C-11** |
 
 ---
 
@@ -720,6 +744,8 @@ changes what CR-016's three broken gates are arguing about"* (arch-I **Q3**).
 | **P-58** | **`docs/observability-architecture.md` is not on `origin/main`.** Its own header says *"Not merged to main"*; it exists on `t4.19-glass-box` and this branch. Four ratified invariants in `arch-O` (I-19…I-21, I-23) are quoted from it. | MEASURED (this lane and arch-FGH **X-5**) | **BR-1.** *"Anything leaning on it as RATIFIED should say which tree it is standing on."* |
 | **P-59** | **The observability taxonomy as the mandate renders it (four kinds) versus as the document reads (five plus GAP).** *"READ / RECOMPUTED / DERIVED / GAP"* vs *"exactly five things"* — **READ · SUMMED · DIFFERENCED · RESIDUAL · RECOMPUTED** — plus **GAP**. **"DERIVED" is not one of the five**; it is the tree's separate word for a *reading*. | the mandate vs `docs/observability-architecture.md:19-32` | **BR-1, a correction to the brief, not a repository defect.** Recorded under GOV-3 B4. **Five sibling lanes recorded it independently** — arch-D §5.1, arch-FGH X-5, arch-I X7, arch-JKL X-07, arch-M X-M6. |
 | **P-60** | **Does D-035-C's carrier list extend to a climate regime?** *"a season"* is on the list, but the list was written for household needs, and *"a multi-decadal regime is a season only by analogy"* — while D-035-C is explicit that *"the seven paths are **not a taxonomy to be extended by analogy**."* | `docs/d035-needs-aggregation.md:91-98` vs arch-I **A1/O6** | **BR-2.** If the answer is no, the climate driver's own carrier is owed. arch-I **O6, Q11**. |
+| **P-62** | **Does knowledge depend on money and taxation through institution funding?** The roadmap audit's chain: *"Institutions need funding; funding needs money and taxation; research needs institutions. **Knowledge is genuinely downstream of the governing loop**, which is why the Spine put it there."* The capability record refutes the middle link: *"GOV-2 §1a rules M5 taxes **in kind**, so institution funding never had to wait for currency. **The shipped proof is Housing** … **Corrected chain:** institutions → **in-kind upkeep** → M5 governing loop → M7 knowledge."* | `docs/m5-roadmap-dependency-audit.md:125-146` (§2) vs `docs/capability-architecture-decision.md:210-222` (§6); the in-kind ruling itself at `docs/m4-pre-spec-dependencies.md:33-41` (GOV-2 §1a) | **BR-2.** Both recorded, neither reconciled — and a third record points in a third direction: *"the economy funds institutions that produce knowledge that changes the economy. **A cycle has no 'precedes.'**"* (`docs/milestone-architecture-governance.md:155-162`, #3 FALSIFIED). Material because the sequencing rationale is what a reader will lean on when placing knowledge, and the refuting record is itself **UNVERIFIED by its own header** (`:29-37`). **Distinct from P-10**, which pairs GOV-2 §1a against `m4-spec.md:48`. Recovery-knowledge **C-05**. |
+| **P-63** | **How many published variables ship — three or four.** The capability record: *"the predicate registry ships only **three** variables (`Variables.cs`)"*. The file ships **four**: `food_surplus_ratio`, `artisan_share`, `population`, `trade_volume`. | `docs/capability-architecture-decision.md:224-228` vs `Sim.Core/State/Variables.cs:93`, ids `:36-37`, `:60`, `:90` — **MEASURED** | **BR-1.** Both recorded. Cause **INFERRED**: the T4.11 merchant variable registered after that document was written. Per GOV-4 the tree wins on the fact and the record's ruling is unaffected — but the same paragraph is the source **P-12** leans on, and P-12 counts four, so a reader meeting the record first gets the wrong count. Related line drift, **MEASURED** this pass: the capability record cites the artisan `emerge` at `sim.json:165` and its `recede` at `:166` (`docs/capability-architecture-decision.md:122`, `:129`), and its `_doc` at `:167` (`:16`); on this tree those three lines are `:169`, `:170` and `:171`. Recovery-knowledge **C-08**. |
 
 ---
 
@@ -850,9 +876,9 @@ instead. Questions asked by several lanes are merged, with every asking lane nam
    (**P-09**, **P-12**); some are a ratified document against a **relayed, unverified** director
    direction (**P-02**, **P-21**, **P-22**). **The third class is the weakest and is marked as such
    every time it appears.**
-4. **Four Part P rows are corrections to prior records rather than live conflicts** — **P-36**,
-   **P-41**, **P-48**, **P-49** — and each says so. They are kept because the uncorrected version
-   still circulates and will mislead the next reader.
+4. **Five Part P rows are corrections to prior records rather than live conflicts** — **P-36**,
+   **P-41**, **P-48**, **P-49**, **P-63** — and each says so. They are kept because the
+   uncorrected version still circulates and will mislead the next reader.
 5. **This lane ran no build, no test, no bench and no experiment.** Every MEASURED claim is a claim
    about what a file says at `26d12d3`, verified by reading it.
 6. **Part Q asks; it does not recommend.** Where a lane attached a recommendation to a question,

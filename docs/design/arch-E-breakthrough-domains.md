@@ -160,7 +160,7 @@ synonyms and picking between them is the most consequential single choice in Par
 | **a measured shortfall** | the food balance `d` in `FoodState` — a ratio of want to have | RATIFIED (F15) | It is a **symptom with no direction**. A settlement short of food learns nothing about *what to do*: plough more land, make more tools, trade, or leave. It cannot aim a breakthrough. |
 | **a deficit after a dead zone** | `FoodState.EffectiveDeficit(d, state, cfg)` — the shortfall net of the band that ordinary variance explains | RATIFIED (F15) | Better: it distinguishes noise from a real bite. Still undirected, and still food-only. |
 | **an unmet need** | `NeedSatisfactionRow` / `GrievanceRow` | RATIFIED **and ENFORCED-FORBIDDEN as a sim-side reader until M5** — `scripts/check-read-isolation.sh` fails CI on any sim-side reference outside its allowlist, because D-021 defers grievance-driven behaviour to M5 (F14) | **Structurally unavailable.** A breakthrough system that reads needs is a read-isolation violation on the current tree, and the fix is a D-021 ruling, not a packet. Recorded as a hard constraint, not an opinion. |
-| **a bound that binds** | which side of a Leontief `min()` is the argmin; whether `equipRatio` has saturated at 1; whether a store is at its capacity ceiling; whether `abundanceSum <= 0.0` | RATIFIED as a first-class derived property (F24) | **PROPOSED: this is the right object.** It is the only one of the four that names *what is in the way*, which is what makes a breakthrough directional rather than generic. |
+| **a bound that binds** | which side of a Leontief `min()` is the argmin; whether `equipRatio` has saturated at 1; whether a store is at its capacity ceiling; whether `abundanceSum <= 0.0` | RATIFIED (F24) | **PROPOSED: this is the right object.** It is the only one of the four that names *what is in the way*, which is what makes a breakthrough directional rather than generic. |
 
 ### 3.1 PROPOSED — the BINDING SIDE, and the PRESSURE TERM
 
@@ -258,8 +258,7 @@ holding makes a discrete upward jump, given that the possibility conjunction hol
 rate, it is per sim-year, it integrates with `dtYears` (law 3), and its integration form is
 not a design choice — `1 − exp(−λ dt)` is the shipped, dt-exact form (F10), and the linear
 form `λ·dt` is the CR-001 dt-fragility the project has already paid for once
-(`Sim.Core/Systems/Consumption/ConsumptionSystem.cs:241-247`, RATIFIED as a shipped
-correction).
+(`Sim.Core/Systems/Consumption/ConsumptionSystem.cs:241-247`, RATIFIED).
 
 **Why the fence is the whole design.** The separation of "exactly zero" from "small" is what
 carries B3's structural exclusion (F3). A landlocked Empire does not have a *low* chance of

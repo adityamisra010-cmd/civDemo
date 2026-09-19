@@ -258,7 +258,7 @@ three:
    unary ('&&' unary)* · unary := '!' unary | '(' orExpr ')' | comparison · compare :=
    operand ('>' '<' '>=' '<=' '==') operand · **operand := variableName | numberLiteral**"*
    (`Predicate.cs:14-18`), *"No functions, no arithmetic (v1)"* (`:20`), parsed once at
-   config load with loud rejection. RATIFIED as a shipped contract; closed at
+   config load with loud rejection. RATIFIED; closed at
    `docs/m2-spec.md:8` under D-020, and closing an open decision at its named spec is not
    an amendment (`docs/spine-s8-governance-freeze.md:22`).
 2. **The predicate text** — **data**, in a data file, alongside the thing it gates. RATIFIED
@@ -357,8 +357,8 @@ body, a season. If none exists, it is an invented modifier and is **refused**."*
 > recede Y < X, a signal oscillating inside the (Y, X) band crosses neither threshold and
 > produces at most one transition. **Recede absent = never recedes.**"*
 
-**RATIFIED as a correction, and this lane builds on the corrected reading as the mandate
-directs.** Two prior records described the latch as *"records that a predicate **has**
+**RATIFIED, and this lane builds on the corrected reading as the mandate directs.**
+Two prior records described the latch as *"records that a predicate **has**
 fired"*. That is wrong and was corrected in place:
 *"**The shipped latch records CURRENT satisfaction under hysteresis, not history** …
 Monotonic acquisition exists **only in the special case of an omitted `recede` clause** — a

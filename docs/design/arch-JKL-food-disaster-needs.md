@@ -85,7 +85,7 @@ where one exists, so the two records can be cross-read.
 | **G8** | **The universal `CapabilitySystem` is REJECTED, and the reason is law 6.** *"Gameplay interdependence is allowed; direct code coupling is not. Systems communicate through World State and kernel contracts, never by calling sibling domain systems."* · *"Economy may depend conceptually on knowledge, government, military, transport and institutions — that never justifies a sibling call."* · *"Do not create a universal God system such as a `CapabilitySystem` that owns every capability or coordinates every domain."* | `docs/d042-empire-and-player-control-addendum.md:136-142` | RATIFIED | F-169 |
 | **G9** | **What replaces it: the D-020 predicate DSL over published variables.** *"The existing D-020 predicate machinery is the foundation for future capability evaluation."* | `docs/d042-empire-and-player-control-addendum.md:146-147` | RATIFIED | F-171 |
 | **G10** | **The seam ships, with two live consumers.** `goods.json`'s `requires` is *"an optional D-020 availability predicate ('requires') — a knowledge gate over published variables, never a calendar date (law 4)"*, and the live datum is `"requires": "artisan_share > 0.05"`. | `Sim.Data/content/goods.json:3`, `:156` (and `:175`) | RATIFIED | — |
-| **G11** | **The capability decision record carries a CORRECTION NOTICE and its §4 recommendation is UNVERIFIED.** *"the adversarial pass returned SURVIVES_WITH_CONDITIONS, not a clean survival"*; *"§4's recommendation is UNVERIFIED and must not be built against until it is attacked."* | `docs/capability-architecture-decision.md:7-27`, `:29-37` | RATIFIED (as a stated verification status) | — |
+| **G11** | **The capability decision record carries a CORRECTION NOTICE and its §4 recommendation is UNVERIFIED.** *"the adversarial pass returned SURVIVES_WITH_CONDITIONS, not a clean survival"*; *"§4's recommendation is UNVERIFIED and must not be built against until it is attacked."* | `docs/capability-architecture-decision.md:7-27`, `:29-37` | MEASURED | — |
 | **G12** | **`BoundStore` applies spoilage then a granary capacity bound, GRAIN ONLY.** Spoilage `1 − exp(−rate·dt)`; capacity `granaryYearsOfDemand × annualGrainDemand`, enforced only when `capacity > 0 && over > 0`; both are Ledger sinks with distinct reasons. Scope comment: *"Grain only. B-2a's base layer is STORED GRAIN; every other good's bounding is enrichment and out of this packet's fence."* | `Sim.Core/Systems/Consumption/ConsumptionSystem.cs:198-199`, `:285-325` | RATIFIED | F-86, F-95 |
 | **G13** | **The two derived store constants and their carriers.** `grainSpoilagePerYear` 0.08, reference class *"mud-brick or pit granary, no chemical protection, no controlled atmosphere… 5-10%/yr to moulds, germination, insects and rodents; the midpoint is taken, not tuned. Carrier: decay."* `granaryYearsOfDemand` 1.5, *"Carrier: a structure of finite size, which grows with the settlement because more households means more granaries."* | `Sim.Data/content/sim.json:43-45` | RATIFIED | F-97, F-98 |
 | **G14** | **One-directional substitution.** *"Unmet non-staple food demand falls back on the staple (grain): a household short of fish eats more bread rather than starving while grain sits in the store. Monotony is then paid in the D-035-A variety term inside satisfaction rather than in calories."* | `Sim.Core/Systems/Consumption/ConsumptionSystem.cs:30-37` | RATIFIED | F-79 |
@@ -105,7 +105,7 @@ where one exists, so the two records can be cross-read.
 | **G28** | **The eight-need ladder is frozen; BOUND grows by milestone; an UNBOUND need contributes exactly nothing.** *"The eight-need ladder is frozen (D-018 3); BOUND grows by milestone… An UNBOUND need contributes EXACTLY nothing whatever its weight says (T2.6 zero-effect gate)."* Shipped: Sustenance, Shelter, Comfort bound; Safety, Health, Belonging/Faith, Dignity/Liberty, Prospects unbound. | `Sim.Data/content/needs.json:2`, `:5-53` | RATIFIED | F-24, F-33, F-34 |
 | **G29** | **Comfort is explicitly an ERA LADDER OF GOODS.** *"consumer goods above basics — the era ladder of pots → textiles → furniture → radios → devices"*. | `docs/d018-classes-and-needs.md:40` | RATIFIED | F-26 |
 | **G30** | **Rising expectations REPLACES era tables; the habituation ratchet and relative deprivation stand.** *"Salience of Comfort, Liberty, and Prospects scales with the bucket's **literacy, urbanization, and media exposure** — computed state (Law 5)."* · *"Expectation baselines drift toward recent consumption: yesterday's luxury is today's floor. Losing accustomed comfort generates more grievance than never having had it."* · *"Grievance also accrues from visible inequality… Gini becomes flammable only when seen."* And the D-035-B supersession note: *"Ratcheting expectations and the relative-deprivation term also stand."* | `docs/d018-classes-and-needs.md:48-50`, `:56` | RATIFIED | F-29, F-30, F-31 |
-| **G31** | **The habituation ratchet is DEFERRED IN IMPLEMENTATION, with a stated condition and a stated home.** *"expectation is FIXED at 1.0 — the D-018 §4 habituation ratchet is deferred to the milestone that gives needs supply curves to habituate to."* The constant: `private const double Expectation = 1.0;`. | `Sim.Core/Systems/NeedsGrievance/NeedsGrievanceSystem.cs:63-64`, `:85-86` | RATIFIED (as a declared deferral) | F-30 |
+| **G31** | **The habituation ratchet is DEFERRED IN IMPLEMENTATION, with a stated condition and a stated home.** *"expectation is FIXED at 1.0 — the D-018 §4 habituation ratchet is deferred to the milestone that gives needs supply curves to habituate to."* The constant: `private const double Expectation = 1.0;`. | `Sim.Core/Systems/NeedsGrievance/NeedsGrievanceSystem.cs:63-64`, `:85-86` | MEASURED | F-30 |
 | **G32** | **Grievance drives NO behaviour until M5, and a CI gate enforces the read isolation.** *"NeedSatisfactions and Grievances are referenced ONLY by this system, serialization, StateEquals, tests, and Sim.Ui — enforced by the CI read-isolation grep; grievance drives NO behavior until M5 ships the unrest valves."* | `Sim.Core/Systems/NeedsGrievance/NeedsGrievanceSystem.cs:74-77` | RATIFIED and ENFORCED | F-35 |
 | **G33** | **The observability taxonomy is FIVE kinds plus GAP, not four.** *"Every field in every record is therefore one of exactly five things"* — **READ · SUMMED · DIFFERENCED · RESIDUAL · RECOMPUTED** — and *"If a quantity would need a formula the simulation does not expose, it is a **GAP**… rather than an observer-side copy of the formula that will drift."* The one rule: *"The logger observes. The simulation calculates. The UI reads. The player issues orders."* | `docs/observability-architecture.md:16-33` | RATIFIED | — |
 | **G34** | **Food entries sum to exactly 1.0 per class by construction.** *"a class's food entries sum to 1.0 by construction, so the basket changes WHAT is eaten and never how much nutrition a person needs."* | `Sim.Data/content/needs.json:67` | RATIFIED | F-78 |
@@ -153,7 +153,7 @@ Three properties of this flow decide everything in Part 12, and all three are al
   measured turns; ~55% of every harvest destroyed by spoilage plus overflow at every dt (G20).
 - **Capacity is denominated in years of the settlement's own demand**, so it is **procyclical**: a
   settlement that loses population loses granary capacity on the same turn, and the surplus that
-  would have fed the survivors is destroyed as overflow. RATIFIED as the shipped property
+  would have fed the survivors is destroyed as overflow. RATIFIED
   (`ConsumptionSystem.cs:245-248`); its counter-cyclical alternative is CR-004 Option C, stated and
   never ruled (secondary: F-112, Q-05).
 - **Only grain participates.** Livestock and fish are an unbounded, imperishable inventory that only
@@ -227,9 +227,10 @@ Any proposal below that cannot pass all three is marked as failing, not quietly 
 already exists on the tree, and what is missing. The stages are **not a ladder with ordered
 thresholds on one accumulator** — arch-D and the capability record both identify ordered thresholds
 `K1 < K2 < K3` on a monotone accumulator as *"tree edges with the edges hidden in the numbers"*
-(`docs/capability-architecture-decision.md:135-140`, RATIFIED as text, INFERRED as reasoning, and
-**UNVERIFIED** per G11). They are parallel conditions, each independently true or false, in the shape
-the Spine calls *"no tree; domain lattice lite"*.
+(`docs/capability-architecture-decision.md:135-140` — **MEASURED** as to the text; the
+identification itself is **INFERRED**, it is that record's reasoning rather than a ruling, and the
+record is UNVERIFIED by its own header per G11). They are parallel conditions, each independently
+true or false, in the shape the Spine calls *"no tree; domain lattice lite"*.
 
 | stage | term moved | direction | D-035-C carrier | what exists at `7fb84eb` | what is missing |
 |---|---|---|---|---|---|
@@ -260,20 +261,28 @@ the Spine calls *"no tree; domain lattice lite"*.
 recipe: the owning system reads a D-020 predicate over published variables, and the predicate's truth
 selects **which value a term takes**, not whether a capability is "owned".
 
-Two shapes are available and they are **not interchangeable**; the choice rule is already ratified
-in the capability record and is mechanical: **does flipping move a conserved stock?**
-(`docs/capability-architecture-decision.md:189-192` — RATIFIED as text; **UNVERIFIED** per G11.)
+Two shapes are available and they are **not interchangeable**, and the choice rule is mechanical:
+**does flipping move a conserved stock?** **PROPOSED.** The rule is **not ratified**. The capability
+record carries the text (`docs/capability-architecture-decision.md:189-192` — MEASURED as to the
+text's existence only), but that document's recommendations are UNVERIFIED by its own header (G11),
+so the text cannot carry the rule. This lane therefore **adopts by reference the disposition
+`arch-D` already gives it** — PROPOSED there too, with the derivation re-done rather than inherited:
+*"the same rule appears in `docs/capability-architecture-decision.md:186-192`, but that document's
+recommendations are UNVERIFIED by its own header at `:29-37`, so this lane re-derives it"*
+(`docs/design/arch-D-technology-capability.md:419-427`). The rule stands on that reasoning, not on
+ratification.
 
-- **Pure derived, no state** — the recipe-gate shape. Correct for T1 and T2, because flipping them
-  moves no people: the next turn's spoilage is simply computed at a different rate. **PROPOSED:** T1
-  and T2 take this shape, which means **a civilization that loses the carrier loses the term in the
-  same turn** — the non-monotonicity the mandate demands, for free, with no "loss" mechanism to
-  write.
-- **A latch with hysteresis** — the class-emergence shape. Required when flipping moves a conserved
-  stock, because an oscillating input would chatter people back and forth every turn. **PROPOSED:**
-  no food-storage term needs this. **INFERRED:** T3 might, if enlarging the bounded set could destroy
-  a large store on a single bad turn and restore it on the next; that oscillation destroys `long`
-  units through the Ledger and is not reversible. Recorded as a hazard, not designed.
+- **Pure derived, no state** — the recipe-gate shape. Correct **under that rule** for T1 and T2,
+  because flipping them moves no people: the next turn's spoilage is simply computed at a different
+  rate. **PROPOSED:** T1 and T2 take this shape, which means **a civilization that loses the carrier
+  loses the term in the same turn** — the non-monotonicity the mandate demands, for free, with no
+  "loss" mechanism to write.
+- **A latch with hysteresis** — the class-emergence shape. Required **under that rule** when
+  flipping moves a conserved stock, because an oscillating input would chatter people back and forth
+  every turn. **PROPOSED:** no food-storage term needs this. **INFERRED:** T3 might, if enlarging
+  the bounded set could destroy a large store on a single bad turn and restore it on the next; that
+  oscillation destroys `long` units through the Ledger and is not reversible. Recorded as a hazard,
+  not designed.
 
 **The latch, read correctly.** RATIFIED, and this lane restates it because the capability record's
 own CORRECTION NOTICE says the earlier description was wrong: the latch *"records **current
@@ -355,8 +364,9 @@ problem the technology solves.
 
 ### 5.4 Seed corn — the only listed item that changes the SHAPE of a bad year
 
-RATIFIED as a Director list item, DEFERRED (G35): seed corn is *"Distinct from spoilage: a
-reservation, not a loss — and it makes a bad year compound into the next one."*
+RATIFIED (G35): seed corn is on the Director's enrichment list, whose staging is unscheduled —
+*"Distinct from spoilage: a reservation, not a loss — and it makes a bad year compound into the next
+one."*
 
 **PROPOSED (this lane), stated because it is the one enrichment item that is not a T1/T2 tuning
 question:** seed corn is a **sixth term** in the sense that it is a *claim on the harvest taken
