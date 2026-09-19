@@ -14,6 +14,15 @@ question (§18), never as a proposal with a preferred answer attached.
 - Branch `claude/civdemo-work-b1z2y4`, **`7fb84eb`** ("DESIGN LANE F/G/H"), working tree clean,
   `origin/claude/civdemo-work-b1z2y4` at the same commit. MEASURED (this lane): every `file:line`
   below was read at `7fb84eb`.
+- **CONCURRENT SIBLING LANE, recorded against the pin.** A sibling lane of this same mandate
+  committed `bcbeb46` ("DESIGN LANE I: climate / environment architecture") onto this branch while
+  this lane was writing, so this document's own commit sits on `bcbeb46` rather than on `7fb84eb`.
+  MEASURED (this lane): `bcbeb46` adds exactly one file, `docs/design/arch-I-climate-environment.md`,
+  and `git diff --stat 7fb84eb bcbeb46 -- Sim.Core Sim.Data Sim.Tests Sim.Cli scripts CLAUDE.md
+  docs/adr` is **empty**. Every `file:line` below therefore reads identically at `7fb84eb` and at
+  `bcbeb46`. This lane did not read `arch-I-climate-environment.md`; where this document's Parts 12
+  and 16 touch climate and terrain it cites `docs/design/recovered-decisions-climate-env-agri.md`
+  (secondary) and the sources it verified directly.
 - **GOV-4 applies to the recovery lanes as it applies to everything else.** This lane read
   `docs/design/recovered-decisions-food-disaster-needs.md` (F-rows),
   `docs/design/recovered-decisions-climate-env-agri.md` (E-rows), `docs/design/m4-closure-audit.md`
