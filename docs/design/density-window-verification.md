@@ -68,7 +68,7 @@ the pre-T4.21 tree shipped.
 The band note (`:63`) adds, and this lane repeats it because it constrains how the number below may
 be read: *"CAUTION FOR WHOEVER RULES: population is NOT what moved and is not what this metric is
 now measuring … this reading is very nearly a statement about catchment GEOMETRY divided into a
-demography-driven numerator."* RATIFIED (`corridors.json:63`). **On the arm measured here that
+demography-driven numerator."* MEASURED (`corridors.json:63`). **On the arm measured here that
 caution inverts** — see §3.2.
 
 ### 1.2 The quarantine — the RECORDED DEVIATION
@@ -332,7 +332,7 @@ direction and an un-sized magnitude is the whole of this finding.
 
 ### 4.1 The nightly
 
-`.github/workflows/ci.yml` at `9f6c6ae`. RATIFIED (quoted verbatim).
+`.github/workflows/ci.yml` at `9f6c6ae`. MEASURED (quoted verbatim).
 
 The **report** step (`:219-227`) does read the window, and prints it:
 

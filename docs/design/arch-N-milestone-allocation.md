@@ -206,7 +206,7 @@ divergence.** Domain lattice lite, diffusion, computed era labels"* —
 **Source B, RATIFIED and equally FROZEN:** *"| **M7** | knowledge & divergence | **was M6** |"* —
 `docs/d011-battle-layer-addendum.md:62`. D-011 is named in the same freeze perimeter (`:16`).
 
-**Source C, RATIFIED (a recorded finding):** GOV-2 §1c calls the Spine row **"stale by one"** and
+**Source C, MEASURED (a recorded finding):** GOV-2 §1c calls the Spine row **"stale by one"** and
 states that reconciliation **"remains REQUIRED"** — `docs/m4-pre-spec-dependencies.md:143-153`.
 **MEASURED, this lane: the reconciliation has not been performed.** The Spine table is unedited at
 `26d12d3`.

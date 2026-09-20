@@ -434,7 +434,7 @@ implement it."*
    G1 is *answered* or merely *bypassed* — a bypassed defect that is never ruled remains in the
    record, and `cr-015:3` reads **"Status: RULED … G1 open."**
 3. **σ = 0.2936 survives this design unchanged, and option (c)'s refusal is the reason.**
-   RATIFIED (F17): σ is `sqrt(ln(1 + CV²))` at a **yearly** CV of 0.30, and (c) was refused
+   MEASURED (F17): σ is `sqrt(ln(1 + CV²))` at a **yearly** CV of 0.30, and (c) was refused
    because *"σ is yearly and correct; re-deriving it is tuning."* A design whose driver is
    defined **per sim-year** has a natural home for exactly that number: σ is the **annual
    amplitude**, unchanged, and the turn value is its honest aggregate. **INFERRED: the fourth
@@ -491,7 +491,7 @@ shapes is *"the standard for any structural gate"* (E-51).
 
 ### 6.3 Where water is NOT allowed to go
 
-RATIFIED (E-88, E-89, and re-read this pass at `SettlementHappiness.cs:41-49`): the D-018 needs
+MEASURED (E-88, E-89, and re-read this pass at `SettlementHappiness.cs:41-49`): the D-018 needs
 ladder is **frozen at eight needs** and water is not among them; water as a human need *"is not
 modelled anywhere"*, and `SettlementHappiness` records it as *"absent rather than stubbed at 1.0,
 which would silently claim every settlement is well watered."* **PROPOSED: this chain adds
@@ -556,7 +556,7 @@ causal relationship rather than a new coefficient — see §9.
 
 ### 6.6 What this chain does NOT reach, stated rather than stubbed
 
-- **Livestock and fish.** RATIFIED (E-81): the three food goods reach the land by two different
+- **Livestock and fish.** MEASURED (E-81): the three food goods reach the land by two different
   routes — grain through `EffectiveArableKm2`, livestock and fish through worldgen **deposit
   channels** keyed on `moisture` and `water`. A soil or fallow model touches **grain only**, and
   leaves two thirds of the food roster untouched. The pure pastoralist is already recorded as
@@ -582,7 +582,7 @@ settlement feels runs through **four physical steps and a non-compensatory aggre
 
 ### 7.1 There is no "industry" object, and none is needed
 
-RATIFIED (F26): the five sectors are Farming, Herding, Extraction, Crafting, Construction.
+MEASURED (F26): the five sectors are Farming, Herding, Extraction, Crafting, Construction.
 **PROPOSED: industrial activity is not a new object — it is recipe execution in the Extraction
 and Crafting sectors**, which already ships, already has per-execution dimensional semantics
 (*"inputs and laborPerOutput are PER EXECUTION of the recipe, and one execution yields output.qty

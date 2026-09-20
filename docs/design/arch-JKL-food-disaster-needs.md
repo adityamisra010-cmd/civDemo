@@ -192,7 +192,7 @@ continues to run.
 
 ### 2.4 The one shipped technology term, and why it is the template
 
-RATIFIED (`ProductionSystem.cs:227-234`, verified this pass): `toolFactor = 1 + 0.3 × equipRatio`,
+MEASURED (`ProductionSystem.cs:227-234`, verified this pass): `toolFactor = 1 + 0.3 × equipRatio`,
 `equipRatio = min(1, toolStock / (farmLabor × ToolsPerFarmerToEquip))`, with a `ToolWear` Ledger sink
 consuming the stock. **INFERRED (this lane):** this is the only end-to-end technology chain the
 simulation actually runs, and it has the four properties every food technology proposed below must
@@ -364,7 +364,7 @@ problem the technology solves.
 
 ### 5.4 Seed corn — the only listed item that changes the SHAPE of a bad year
 
-RATIFIED (G35): seed corn is on the Director's enrichment list, whose staging is unscheduled —
+MEASURED (G35): seed corn is on the Director's enrichment list, whose staging is unscheduled —
 *"Distinct from spoilage: a reservation, not a loss — and it makes a bad year compound into the next
 one."*
 
@@ -581,7 +581,7 @@ Recorded as OWED-K1.
 **Term moved: T5 (§2.2) and T2.** This is the direct bridge between Part 12 and Part 16: a region
 that can move grain to a struck settlement converts a local catastrophe into a regional cost.
 
-**Status: BLOCKED, and measured.** RATIFIED (G38): no food good has ever traded, grain is
+**Status: BLOCKED, and measured.** MEASURED (G38): no food good has ever traded, grain is
 structurally barred as the numéraire, and food trade is a certified M4 exclusion. **INFERRED:** this
 is the single largest missing resilience mechanism in the project — historically, famine relief is
 overwhelmingly a transport and market phenomenon, and the simulation has no channel for it at all.
@@ -787,7 +787,7 @@ denies.
 ### 13.4 What makes a genuinely NEW need emerge
 
 The mandate asks how new needs emerge from technology + production + institutions + urbanization +
-cultural adoption. **RATIFIED (G28), and it constrains the answer hard:** the ladder is frozen at
+cultural adoption. **MEASURED (G28), and it constrains the answer hard:** the ladder is frozen at
 eight, *"BOUND grows by milestone"*, and *"An UNBOUND need contributes EXACTLY nothing whatever its
 weight says."*
 
@@ -831,7 +831,7 @@ change. Getting this wrong is how a "rising expectations" feature becomes a free
 
 **Three fences this lane proposes on itself, each traceable to a ratified rejection:**
 
-1. **Nothing in Part L reaches happiness.** RATIFIED (G27): what happiness may read is a **DIRECTOR'S
+1. **Nothing in Part L reaches happiness.** MEASURED (G27): what happiness may read is a **DIRECTOR'S
    CALL**, and the read-isolation gate makes a single reference from `SettlementHappiness.cs` to the
    needs tables a CI failure (G32, and `SettlementHappiness.cs` is **not** on the gate's allowlist —
    secondary F-67). An evolving-needs design that moved happiness would be activating D-021 as a side

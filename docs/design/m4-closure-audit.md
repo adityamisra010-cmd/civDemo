@@ -60,7 +60,7 @@ Blockers to CLOSING M4 — not blockers to the suite, which is green.
 
 | # | blocker | label | basis |
 | --- | --- | --- | --- |
-| B1 | **The Director's exit session against the candidate, replaying hash-identical, with a T3.12a replay report.** Not run. | RATIFIED (criterion) | `docs/milestones.md:350` — "AWAITING THE DIRECTOR — the machinery is complete and tested" |
+| B1 | **The Director's exit session against the candidate, replaying hash-identical, with a T3.12a replay report.** Not run. | MEASURED (criterion) | `docs/milestones.md:350` — "AWAITING THE DIRECTOR — the machinery is complete and tested" |
 | B2 | **The merge ruling for the five post-certification packets.** Not given. | RATIFIED | `docs/milestones.md:344`; `CLAUDE.md` Environment section |
 | B3 | **The `m4-exit` Release tag.** Does not exist. | MEASURED (this lane) | `git tag` returns `m3-exit` only |
 | B4 | **`docs/milestones.md`'s M4 entry is the closing artefact and is stale in five places against this tree.** It cannot be the record of a closed milestone as written. See findings F1, F2, F3, F5, F8 (§3). Repairing it is a living-document edit on a Director ruling; this lane is barred from it. | MEASURED (this lane) + DIRECTOR DECISION REQUIRED | §3 of this file |
@@ -584,7 +584,7 @@ Offered as design direction only; no packet is proposed and no code is proposed.
 3. **The kind registry already anticipated this.** `t4.21-architecture.md` §3.3 states that a second
    kind with sub-class severities would require `FoodState.struck` to read a per-row famine-class
    predicate `Severity·D·ρ_ship ≥ B_eff`. A catalogue of hazard kinds is the natural carrier of
-   step 1 and step 2 together. The queueing is RATIFIED (D4); the catalogue as the chain's landing
+   step 1 and step 2 together. The queueing is MEASURED (D4); the catalogue as the chain's landing
    site is PROPOSED.
 
 **A TENSION THIS LANE MUST SURFACE AND WILL NOT RESOLVE.** CR-016 option 2 is "re-derive λ against

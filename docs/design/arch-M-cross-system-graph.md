@@ -330,7 +330,7 @@ code); **PROPOSED/INFERRED** for the rest, as marked.
 
 **C-17 — THE DERIVATION CYCLE: buffer → severity → buffer.**
 
-- **Source A, RATIFIED (shipped data):** the famine-class disaster's severity floor is derived so
+- **Source A, MEASURED (shipped data):** the famine-class disaster's severity floor is derived so
   the event *"can exhaust the full EFFECTIVE buffer of a settlement at the shipped surplus ratio
   ALONE at the coarsest era dt"* — `s_min · D > (dt_max(ρ_ship − 1) + G)/ρ_ship`
   (`Sim.Data/content/sim.json:234`).
@@ -483,7 +483,7 @@ in map terms"* — arch-I §3.3 and recovery-lane E-32/E-40. arch-I X4 adds that
 designed and that no lane proposes to keep.
 
 **X-M4 — `StructureRow` is written, counted, and read by no equation.**
-*Source A, RATIFIED (shipped data):* `sim.json:43` states the granary constant's carrier as *"a
+*Source A, MEASURED (shipped data):* `sim.json:43` states the granary constant's carrier as *"a
 structure of finite size, which grows with the settlement."*
 *Source B, MEASURED (two independent lanes):* `StructureRow` is read by **no resolution equation**
 in `Sim.Core`; the constant scales with population instead (arch-E X-E8, arch-JKL X-02).
