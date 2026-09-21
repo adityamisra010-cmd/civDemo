@@ -99,3 +99,7 @@ Consequently the readout's condition stays **binary** (no reachable, viable dest
 Broadening B1 to be land-driven, and reinterpreting the graded land-gap signal as partial unplaced
 demand, are both **ruled out**; `docs/t4.4-review-record.md` §1.1 records the measurement-based
 reason the graded reading also fails on its own merits.
+
+---
+
+**AMENDED BY ADR-025 (CR-015, 2026-09-17).** The `UnplacedDeparture` VALUE (row at line 34) follows the bounded destination-free hazard on the nominal deficit, `(1 − exp(−profile·K·d·dt)) × count` (ω := 1); the CONDITION stays binary exactly as ruled above, and the D-004 remainder semantics are unchanged. "What this ADR does NOT change" was true at T4.4 and is historical for the flight channel from CR-015 on. Refugees refused by the vacancy bound do not enter the readout (CR-015 G7(a)).

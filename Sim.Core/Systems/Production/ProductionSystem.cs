@@ -154,8 +154,17 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
 
             long adults = BandViews.Adults(prev.Buckets, settlement);
 
+            // T4.21-1 (CR-015 §3.3): ONE food multiplier per settlement — the
+            // harvest-weather multiplier times the disaster multiplier, both
+            // from PREV with the absent-row-is-1.0 rule. Computed once so
+            // farming and the herding food pathway cannot drift onto two
+            // readings of one signal (the T4.5 rationale). x × 1.0 == x bit for
+            // bit, so a world without a strike produces exactly as before.
+            double foodMultiplier = HarvestWeatherFor(prev, settlement) * DisasterFor(prev, settlement);
+
             Farm(ctx, prev, stocks, settlement,
-                farmLabor: Sectors.Share(shares, Sectors.Farming) * adults);
+                farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
+                foodMultiplier: foodMultiplier);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -172,7 +181,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
                 foodSector: true,
-                weather: HarvestWeatherFor(prev, settlement));
+                weather: foodMultiplier);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
@@ -186,7 +195,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     /// <summary>Farming: the Leontief with the REAL tool factor + tool wear.</summary>
     private void Farm(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
-        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor)
+        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier)
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
@@ -236,7 +245,12 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // ABSENT ROW = 1.0, deliberately: a world with no weather system in its
         // pipeline (every toy preset, and every hand-built test world that does
         // not ask for weather) farms exactly as it did before T3.4b.
-        ratePerYear *= HarvestWeatherFor(prev, settlement);
+        //
+        // T4.21-1: the caller's foodMultiplier is weather × disaster (§3.3),
+        // applied here in weather's own position — once, after the Leontief
+        // min, before dt integration. Without a strike it IS the weather
+        // multiplier (w × 1.0 == w), so this line is bit-identical to T3.4b's.
+        ratePerYear *= foodMultiplier;
 
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
@@ -336,6 +350,26 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         return 1.0;
     }
 
+    /// <summary>
+    /// T4.21-1 (CR-015 §3.3): this settlement's PREV disaster multiplier — the
+    /// famine-class shock's factor on FOOD output this step — or 1.0 when no row
+    /// exists. Same scan shape, same first-match break and same absent-row
+    /// default as HarvestWeatherFor: a world with no disaster system in its
+    /// pipeline (every toy preset and every hand-built rig that does not ask for
+    /// one) produces exactly as it did before. Read where weather is read, so
+    /// a disaster drawn at turn t reduces the food produced at turn t+1 and is
+    /// classified FAMINE by FoodState the turn its deficit first appears.
+    /// </summary>
+    private static double DisasterFor(IReadOnlyWorldState prev, SettlementId settlement)
+    {
+        for (int i = 0; i < prev.Disasters.Count; i++)
+        {
+            if (prev.Disasters[i].Settlement != settlement) continue;
+            return prev.Disasters[i].Multiplier;
+        }
+        return 1.0;
+    }
+
     private bool InSector(GoodId good, bool foodSector)
     {
         bool isFood = good == _livestock || good == _fish;
@@ -403,14 +437,32 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 }
             }
 
+            // CR-014 (ruled, option 1): the Leontief cap is taken against the
+            // BANK-INCLUSIVE supply, `stockAmount − ConsumeRemainder`, not the
+            // stock alone. The sink below adds the row's banked remainder to
+            // `exactOutput × perOutput` and FLOORS under OverdrawPolicy.Throw;
+            // capped on the stock alone, a bank within a few ulps of 1.0 made
+            // that sum round to `stock + 1.0` and the ledger threw (driven
+            // seed-42 world, turn 213: stock 66, cap 22 × 3 = 66.0, bank
+            // 0.9999999999999929, exactIn 67.0). With the bank inside the cap
+            // the sum is `stock` to within ~4 ulps of `stock`, which floors to
+            // at most `stock` for every stock below 2^51 — four orders above
+            // ConservedMath's documented 1e14 goods ceiling. The Leontief
+            // reading ("what the stock can supply") thereby becomes exact: the
+            // fraction already committed from the bank is part of the answer.
+            // Max(0, ·) keeps an empty row with a positive bank at ZERO output
+            // (the bank is carried, never spent from nothing). When the bank
+            // is 0.0 the expression is bit-identical to the pre-CR-014 cap.
             for (int i = 0; i < recipe.Inputs.Length; i++)
             {
                 var input = new GoodId(goods.IdOf(recipe.Inputs[i].Good));
                 int inRow = GoodStockIndex.IndexOf(stocks, settlement, input);
                 long stockAmount = inRow >= 0 ? stocks[inRow].Amount.Value : 0;
+                double banked = inRow >= 0 ? stocks[inRow].ConsumeRemainder : 0.0;
                 double perOutput = recipe.Inputs[i].PerOutput / recipe.Output.Qty;
+                double supply = Math.Max(0.0, stockAmount - banked);
                 exactOutput = Math.Min(exactOutput, perOutput > 0.0
-                    ? stockAmount / perOutput : exactOutput);
+                    ? supply / perOutput : exactOutput);
             }
             if (exactOutput <= 0.0) continue; // no inputs (or no labor) → NOTHING, never from nothing
 

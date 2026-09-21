@@ -239,6 +239,16 @@ public class NeedsGrievanceTests
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },
             Founding = fed.Founding with { FoodStore = 4000 },
+            // T4.21-4 RIG CONTROL. This is a TWO-ARM CONTRAST in which only the
+            // harvest is allowed to differ; a famine-class disaster is a second,
+            // random shortfall that lands in whichever arm it likes and destroys
+            // the isolation the test is built on. Measured before this line: with
+            // the shipped λ = 0.01 the FED CONTROL starved 190 people, against
+            // the 0 its own pin records — i.e. the control arm was carrying a
+            // famine. λ = 0 is the control that lets the contrast mean "the
+            // harvest did it"; the disaster's own contrast is
+            // FamineScenarioTests.S_Disaster_TriggersFamine.
+            Disaster = fed.Disaster with { HazardPerYear = 0.0 },
         };
         SimConfig starving = fed with
         {
@@ -274,7 +284,25 @@ public class NeedsGrievanceTests
         // starvedBefore, pre-T4.2). Pinned as a VALUE, not re-derived from the
         // rig's parameters — the contrast the test claims (famine grievance
         // exceeds control grievance) is unaffected and still asserted below.
-        Assert.Equal(28, StarvedTotal(control));
+        // T4.19 lane C RE-PIN (VALUE, founding data): 28 -> 38. The rig founds
+        // from sim.json's cohortCounts, which is now the kernel's stable age
+        // structure (docs/m4-founding-demographics-correction.md). The dev N = 1
+        // seed-42 world founds 468 people / 234 adults instead of 459 / 211 and
+        // no longer sheds a fifth of itself before the window opens, so the same
+        // 4,000-seed granary truncation starves ten more people in the control
+        // arm. Turn-0 control: only Buckets, the grain row, the housing row and
+        // the three InitialEndowment ledger rows differ between the two
+        // foundings; Settlements, Deposits, ClassStates and every other table are
+        // identical. The contrast this test claims is unchanged and still
+        // asserted below.
+        // T4.21-3 RE-PIN (VALUE, semantics): 38 -> 0. The control arm's
+        // granary-truncation starvation was a STRESS-sized shortfall starving
+        // people under the linear response; under CR-015 / ADR-026 a shortfall
+        // inside the absorbable band starves nobody, and the fed control now
+        // starves EXACTLY zero over the whole run (measured; the famine arm
+        // starves 152 and its grievance 14.75 exceeds the control's 8.14).
+        // The contrast this test claims is unchanged and still asserted below.
+        Assert.Equal(0, StarvedTotal(control));
         Assert.True(StarvedTotal(famine) > starvedBefore, "rig vacuous: nobody starved in the window");
         Assert.True(Grievance(famine, 0) > Grievance(control, 0) + 1.0,
             $"starvation did not raise grievance above the fed control: "

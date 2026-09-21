@@ -392,7 +392,49 @@ public class FirstReignTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 51ba9b1187ef48b3ae0953096b53c92e6efa6a61e667fd1c6cbaf7b4bc3854e3
-        const string golden = "7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3";
+        // T4.19 lane C RE-PIN — TUNING DATA, ONE CAUSE, DIRECTOR-RULED.
+        //   OLD  7a9c3de745eac824c5c1b5783d527cf959ada9c558e7012423bea5f92a6361a3
+        //   NEW  5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a
+        //   CAUSE sim.json founding.cohortCounts is now the kernel's own stable age
+        //         structure (see SnapshotTests.FoundedGolden for the full record and
+        //         the 41-table turn-0 control). The lone settlement founds at 468
+        //         instead of 459 and no longer sheds its elders on turn 1: the
+        //         pre-famine trajectory is 479, 491, 500, 508 (was 394, 384, 386,
+        //         391). THE SHAPE BELOW IS UNCHANGED AND MEASURED: extinction at
+        //         turn 15 (was 13; band (5, 25]), food peak 620 (was 495; the
+        //         ghost mountain stays absent), and the dead world stays dead —
+        //         the director's 0%-farm order still kills everyone.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED.
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  5ee8119e365ad04dbdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a
+        //   NEW  125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
+        //   CAUSE the empty Disasters table's prefix plus DisasterSystem's RNG
+        //         stream rows (two unconditional draws per settlement-turn at
+        //         hazardPerYear 0). THE SHAPE BELOW IS UNCHANGED: this is the
+        //         director's 0%-farm world — an ABANDONMENT famine under CR-015's
+        //         classification — and the classification is a static nothing in
+        //         the pipeline calls yet, so the dead world dies exactly as before.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheDisasterLayoutAlone strips both and
+        //         returns the OLD value byte for byte.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN — BEHAVIOUR, BOTH PACKETS, MEASURED ON
+        // THE MERGED TREE by the agent writing this line (ADR-015 §6).
+        //   OLD (pre-packet, 1735d41)   125e0186ef5d12584024b36b5ae6ec4de217dcf331c34567f2b0ab5c5b1028bb
+        //   OLD (T4.21-2 branch alone)  86adfd85673b27b74901162425c3404263ca3f485c7f4f9ebc200081b3e063f8
+        //   OLD (T4.21-3 branch alone)  ccc169edc1903c82837db8c6dc023b2efd42a280b14ebc2d98fd9c48ca30566a
+        //   NEW (merged)                dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e
+        //   CAUSE both packets: this is the director's 0%-farm world — an
+        //         ABANDONMENT famine, which the kernel now READS (FoodState.Of
+        //         classifies it FAMINE and ADR-026's exceptional channels run on
+        //         the whole deficit, dEff = d there, so the famine's magnitude is
+        //         unchanged), it takes the turn-2 headroom hold every founded
+        //         world takes, and its flight is ADR-025's exact hazard on the
+        //         best exit under the basin caps and the vacancy bound.
+        //         SnapshotTests.FoundedGolden carries the joint record.
+        //   THE SHAPE ASSERTS BELOW ARE UNCHANGED AND RE-VERIFIED BY RUNNING
+        //         THEM on the merged tree: the dead world still dies inside the
+        //         session's shape and the ghost mountain stays absent.
+        const string golden = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -115,7 +115,10 @@ public class HudViewModelTests
         // HUD must render these via TextUnformatted, and these are the exact
         // strings it hands over — '%' characters deliberately included).
         Assert.Equal("Settlement 0", hud.TitleLine);
-        Assert.Equal("pop 400  (child 130 / adult 200 / elder 70)", hud.PopulationLine);
+        // T4.19 lane C: the founding vector is now the kernel's own stable age
+        // structure (sim.json founding._docCohortCounts); 130/200/70 was the
+        // old 17.5%-elder endowment that opened the world in a 22% collapse.
+        Assert.Equal("pop 400  (child 164 / adult 225 / elder 11)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose

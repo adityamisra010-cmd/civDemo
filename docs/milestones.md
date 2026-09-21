@@ -279,3 +279,289 @@ valuable one.
 
 **M3 CLOSES on the director's exit ruling, 2026-08-06.** The exit is the director's play session against the build
 above, and the milestone closes on his ruling.
+
+---
+
+## M4 — Neighbours, conflict, and a world that can run short  *(at the exit gate)*
+
+M4's spec (`docs/m4-spec.md`) was the first written under S8 §4.1, and its own conformance to that
+section was part of the deliverable. It conforms on all four requirements: the foundations audit ran
+as packet one and its findings were promoted into T4.3's named prohibitions; the dimensional
+declaration states its limit rather than papering over it; corridor independence carries its
+standing self-referential example; and the coupling map was revised by T4.1 under the living clause,
+which is the mechanism §4.1 specifies.
+
+### WHAT M4 DELIVERED
+
+The **Empire Control Foundation** — `PolityRow`, `ControlRow`, `CapitalRow`, `CommandSource` and
+`EmpireQuery`. Founding now instantiates the world's one player-commanded Empire in the same
+operation that creates its settlements, so `Found` never returns a playable world whose settlements
+answer to nobody. An order's issuing strategic actor is the **existing** `PolityId` — a projection,
+not a second identity, needing no new field and no serialization change. The **settlement
+construction queue**: an ordered queue whose head is either built whole this turn or waits
+unchanged, competing for the existing construction sector against housing's published draw. Schema
+moved v22 → v23 → **v24** across these.
+
+Beyond the Empire spine: **store bounding** (T4.2), whose pre-registered prediction that stores
+would sit near 1.5 years of demand was met to four decimals; **colonization** (T4.4); **transport and
+the river-aware lattice** (T4.7); **migration** rework (T4.10, T4.12); **comfort as a stock**
+(T4.13); and the **clone architecture** measurement (T4.16).
+
+Four post-certification packets sit on the exit candidate rather than in the certified baseline:
+**T4.17** session records and `sim inspect`; **T4.18** the founding population transient; **T4.19**
+the Glass Box, which ruled CR-013 and CR-014, corrected the founding demographic vector and retired
+the Artisan timing window in favour of structural latch tests; and **T4.20** food legibility, which
+was ruled observability-only after its audit established no defect.
+
+A fifth post-certification packet, **T4.21** — famine semantics, bounded migration and shock
+integration — sits in the same place (spec `docs/t4.21-architecture.md`; governance
+`docs/adr/cr-015-famine-is-exceptional.md`, ruled from the director's 2026-09-17 mandate, with
+ADR-024/025/026; G1, the harvest-weather decade variance, is escalated and open). It is IN PROGRESS
+on `claude/civdemo-work-b1z2y4` and is not part of the certified baseline or of this entry's
+measurements; "No food-supported population cap" below is superseded by CR-015 N3 for T4.21 (the
+feedable food-influx limit is a fertility multiplier, not a serialized cap).
+
+### WHAT M4 DELIBERATELY DID NOT DELIVER
+
+**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6, and under GOV-4 §1 a
+later decision outranks the Spine's earlier "Conflict v1 at M4". Recorded as a certified exclusion,
+not an omission.
+
+**No money, no treasury, no taxation.** **No research, technology or institutions** — CR-005 places
+them in M5 and remains open without blocking M4. **No food trade**: food is excluded by construction
+today, and T4.20 declined to change that. **No food-supported population cap** — the measurement
+found every shortfall to be a production shock rather than growth overshoot, so a cap would have had
+nothing to correct.
+
+**No second food-variety channel.** ADR-023 rules food variety to be represented exclusively by
+D-035-A; a proposed additive dietary-diversity happiness bonus was rejected as double counting of
+the same signal, measured over the same good set from the same field.
+
+### EXIT CRITERIA — STATUS AT HANDBACK
+
+| § 6 criterion | status |
+| --- | --- |
+| All packets accepted, each merged on a director ruling | **MET** for T4.1–T4.16; the four post-certification packets await the director's merge |
+| Scarcity can bite | **MET** — starvation is reachable on the dev world; CR-003 records the corridor disposition and quarantines the two seeds |
+| Determinism suites green; xproc; first-reign shape | **MET** — measured on the candidate, all green |
+| Goldens pinned with dated history; driven golden extended | **MET** — every M4 movement carries control-arm attribution |
+| Calibration battery green across ≥20 seeds, quarantined corridors reported rather than silently gating | **MET at the exit gate** — density's quarantine is re-activated over its measured envelope with teeth in both directions, so the corridor is reported with its measured range rather than gating. The band was NOT re-tuned. See known-open item 1 |
+| The nightly has been green, and someone has read it | **INSTRUMENT MET, READING IS THE DIRECTOR'S** — dry-run against the real gate with the six observations now prints QUARANTINED with the measured range and exits 0, where before it breached and exited 1. Someone still has to read it: see known-open item 11 |
+| Director exit session from the CI zip, replaying hash-identical, with a T3.12a replay report | **AWAITING THE DIRECTOR** — the machinery is complete and tested |
+| `milestones.md` M4 entry with its known-open list; `m4-exit` Release | this entry closes the first half; **the tag is the director's**, at the merge |
+
+### THE KNOWN-OPEN LIST
+
+| # | item | disposition |
+| --- | --- | --- |
+| 1 | **Density out of band on 6/20 seeds** (max 0.74211 against a 0.60 ceiling), quarantine inactive | The director ruled the measurement held for the in-process battery (T4.19 record §9). That ruling did not consider the **nightly**, which reads the same corridor and would breach. **Needs a ruling**, not a re-band — CR-002 and CR-003 both forbid fitting the instrument to the artifact |
+| 2 | **CR-003 Malthus corridor** | Quarantined by standing ruling; two dev seeds red by design |
+| 3 | **Migration below the historical corridor** | Accepted as measured; quarantine active, so it reports rather than gates |
+| 4a | **`FamineAtOneOfTwelve_ExitCrossesTheFractionBeforeDeathDoes`** (`MigrationTests.cs:378`) | MEASURED at the exit gate: still red when un-skipped, but on a **different assertion than its Skip reason blames**. The gross-exit side crosses; the **starvation control** never does — an ordered total-harvest famine at one of twelve no longer kills 8 % of the settlement within 40 turns. The blocking observable is famine lethality under T4.2 store bounding, not migration, so the recorded owner "M4 migration" is **wrong** and T4.10/T4.12 could not have discharged it. **OPEN, needs reassignment; currently unowned.** Not named in `m4-spec` §6 → **OWNED BY T4.21-4 (CR-015 N9, 2026-09-17): re-aimed as famine lethality under the four-state ladder, `S_Abandonment_TriggersFamine`; the skip lifts with a re-derived assertion, never a moved threshold** |
+| 4b | **`MagnitudeCorridor_FedPhaseDrift_WithTeeth`** (`MigrationTests.cs:532`) | MEASURED at the exit gate: still red when un-skipped. The corridor band itself passes; the **rate-lever tooth** fails at exactly the recorded ×1.07 (0.69 % → 0.74 %/decade against a ≥1.5× requirement), confirming T4.1g's diagnosis live — the base rate cancels out of the gap-closing expression, so the assertion's premise is structurally false. T4.12 closed OUTCOME C and **consciously declined** the re-derivation. Governed by the `migrationGrossPerDecade` quarantine ruling, which accepts current migration behaviour and states §6's calibration criterion is explicitly **not** discharged for migration. **OPEN, needs an owner to re-aim the teeth onto the gap-driven observable.** Does not block the candidate → **OWNED BY T4.21-4 (CR-015 N9, 2026-09-17): the teeth are re-aimed onto the gap-driven observable when T4.21-2's bounded flight lands** |
+| 5 | **ADR-017 reads "director certification pending"** while the spec cites its ruling as settled and ADR-018 amends the same decision | Ambiguous; needs a ruling |
+| 6 | **ADR-020 clone architecture** awaiting a director ruling | Packet complete; blocks nothing |
+| 7 | **T4.19-E structural test set S1–S5** flagged for the director's confirmation | The director's own list never arrived; the set is the implementer's reading |
+| 8 | **Grain is storage-bounded; livestock and fish are not** | The repository records no intent either way (T4.20). Needs a ruling before it is either unified or declared deliberate |
+| 9 | **ADR-019 exists only on an unmerged branch** — the ADR sequence on the candidate jumps 018 → 020 | Housekeeping |
+| 10 | **`docs/current-state.md` is stale in four load-bearing claims** | Housekeeping; deliberately not repaired during the closure pass |
+
+**M4 does not close on this entry.** It closes on the director's play session against the candidate
+and his merge ruling, as M3 did.
+
+
+### RECONCILIATION OF THE KNOWN-OPEN LIST (M4 exit-process packet)
+
+Every item above carries exactly one disposition. Nothing was deleted.
+
+| # | disposition | basis |
+| --- | --- | --- |
+| 1 Density out of band / nightly breach | **CLOSED / VERIFIED** | Process gap, not a density defect. The T3.12 quarantine mechanism already expressed the missing state; it was re-activated over the measured envelope with an attributed cause and a stated lift condition. Dry-run against the real gate: QUARANTINED with measured range, **exit 0**; control against the pre-change corridor on the same numbers: breach, **exit 1**. Band never moved |
+| 2 CR-003 Malthus corridor | **OPEN / FUTURE MILESTONE** | Quarantined by standing ruling; two dev seeds red by design. The crash model is not M4 work |
+| 3 Migration below the historical corridor | **CLOSED / VERIFIED** | Accepted as measured by director ruling (2026-09-04) with 20-seed evidence on record; the corridor is retained as a record, not an acceptance gate |
+| 4a `FamineAtOneOfTwelve…` | **OPEN / REQUIRES DIRECTOR RULING** | Measured still red. Its recorded owner is wrong — the blocking observable is famine lethality, not migration. Needs reassignment; not named in `m4-spec` §6. **OWNED BY T4.21-4 (CR-015 N9)** |
+| 4b `MagnitudeCorridor_FedPhaseDrift…` | **OPEN / REQUIRES DIRECTOR RULING** | Measured still red at exactly its recorded ×1.07. The premise is structurally false; the re-derivation was consciously declined. Needs an owner to re-aim the teeth. **OWNED BY T4.21-4 (CR-015 N9)** |
+| 5 ADR-017 "certification pending" vs the spec citing it settled | **OPEN / REQUIRES DIRECTOR RULING** | A status contradiction only the director can resolve |
+| 6 ADR-020 clone architecture | **OPEN / REQUIRES DIRECTOR RULING** | Packet complete, awaiting a ruling; blocks nothing |
+| 7 T4.19-E structural set S1–S5 | **OPEN / REQUIRES DIRECTOR RULING** | Flagged for confirmation; the director's own list never arrived, so the set is the implementer's reading |
+| 8 Grain bounded, livestock and fish not | **OPEN / REQUIRES DIRECTOR RULING** | The repository records no intent either way. ADR-023 settles *variety*; it does not settle the *storage* asymmetry |
+| 9 ADR-019 only on an unmerged branch | **OPEN / REQUIRES DIRECTOR RULING** | Merging a branch is the director's call under `CLAUDE.md`; the ADR sequence on the candidate jumps 018 → 020 until then |
+| 10 `docs/current-state.md` stale | **CLOSED / DOCUMENTATION ONLY** | Four load-bearing claims corrected inline and marked; nothing else rewritten |
+| 11 The nightly gate never consults the window *(new, found by this packet)* | **OPEN / REQUIRES DIRECTOR RULING** | `gated()` short-circuits on `quarantine.active` alone, so a quarantined corridor drifting far outside its recorded envelope is caught only by the in-process battery's two seeds, never by the 20-seed nightly. Pre-existing T3.12 behaviour, deliberately not changed here. This is also the unclosed half of the M3 process defect: the instrument reports, but no mechanism makes anyone read it |
+
+**Nothing in this list blocks the candidate.** Items 2, 3 and 10 are disposed; item 1 is closed by
+process; the remainder are rulings the director takes at, or after, the playtest.
+
+---
+
+### M4 FINAL CLOSURE AUDIT (2026-09-21) — DISPOSITIONS AGAINST THE CANDIDATE
+
+**APPEND-ONLY. Nothing above this line was edited or deleted.** The entry above is the record
+as it stood at the exit gate; this block is the record of what the tree says now. Where the two
+disagree, this block is the later measurement and the entry above is the history. Every row was
+MEASURED on `claude/civdemo-work-b1z2y4` at **`52d0e1b`** unless stated.
+
+**The candidate has moved since the entry above was written.** `main` is `dbef61a` (v24); the
+candidate is 161+ commits ahead and is schema **v25** (`CanonicalSchema.cs` — T4.21-1's
+`Disasters` table). Suite on the candidate: **Sim.Tests 885 passed / 0 failed / 4 skipped**,
+**Sim.Ui.Tests 296 / 0**; all three gate scripts PASS; Release build 0 warnings / 0 errors.
+
+| claim above | disposition, 2026-09-21 |
+| --- | --- |
+| `:302` "Schema moved v22 → v23 → **v24**" | ACCURATE as the history of M4-A…M4-D and as `main`. The CANDIDATE is **v25**. |
+| `:305` store bounding "met to four decimals" | OVERSTATED. `docs/t4.2-review-record.md` measures **1.275–1.320 years** against a 1.5-year prediction and calls it CORROBORATED with one refinement — stores settle at ≈88 % of capacity, not at it. Agreement to ~12 %, not to four decimals. |
+| `:319` T4.21 "is IN PROGRESS" | **COMPLETE.** T4.21-0…-8 all landed, plus the director's report and two closure audits. |
+| `:317` T4.21's governance list | INCOMPLETE: it names CR-015 and G1 but not **CR-016**, which is OPEN and is the reason the famine mechanism ships INERT at `hazardPerYear = 0.0`. |
+| `:331` "**No food trade**" | OVERBROAD. Only **grain** is excluded, as the numeraire — *"structural, not incidental"* (`TradeArbitrageSystem.cs:133-137`). Livestock and fish are food goods and DO trade. |
+| exit row 1 "the **four** post-certification packets" | **FIVE**: T4.17, T4.18, T4.19, T4.20, T4.21 — which `:316` already says. |
+| exit row 2 "Scarcity can bite — starvation is reachable on the **dev** world" | The ratified criterion (`m4-spec.md:377`) names the **canonical** world under a stated condition, not the dev world. **MET, and re-measured on the canonical world at the SHIPPED config**: seed 42, settlement 0 ordered to 0 % farm at turn 1 → FAMINE/Abandonment, **139 starvation deaths at turn 4**, 159 across 40 turns, ledger reconciling exactly (discrepancy 0) at every turn. The orderless twin never reaches FAMINE there. |
+| exit row 5 "quarantined corridors reported with measured ranges" | **NOT SATISFIED ON THIS TREE, and now visible.** The band is untouched at [0.15, 0.6] and the quarantine is active, but the recorded WINDOW no longer covers the candidate — see B5 below. |
+| exit row 6 "prints QUARANTINED with the measured range and exits 0" | ACCURATE as to the exit code, but the range printed was the STALE window, and nothing compared the two. Repaired — see B5. |
+| exit rows 3, 4, 7, 8 | ACCURATE and unchanged. The `m4-exit` tag still does not exist (`git tag` → `m3-exit` only). |
+| known-open 1 "quarantine **inactive** … the nightly **would breach**" | Both facts are stale: the quarantine is `active: true`, and the nightly did NOT breach — `gated()` short-circuited on `quarantine.active` and exited 0. That is the blind spot, not a pass. |
+| known-open 2 "two dev seeds **red by design**" | **GREEN.** T4.21-4's arming turned them red; T4.21-7's disarm resolved them and re-instated the quarantine, which now asserts the ABSENCE of starvation. The suite's red set is empty. |
+| known-open 4a / 4b, and their reconciliation rows | **DISCHARGED by T4.21-4.** Neither test carries a `Skip` attribute any longer; both are live and green in the 885. 4b's line number was also wrong — the test is at `MigrationTests.cs:666`, not `:532`. One narrower residue survives: 4b's upward rate-lever tooth is quarantined in place pending CR-016. |
+| known-open 10 "`current-state.md` … deliberately not repaired" | Superseded: `current-state.md` now opens with a dated STALENESS CORRECTION block covering those four claims. Six FURTHER stale claims in that file are recorded in the audit and remain unrepaired. |
+| known-open 3, 5, 6, 7, 8, 9 | ACCURATE and unchanged. |
+| reconciliation closing line "**Nothing in this list blocks the candidate.**" | Stale as written. B5 below does bear on a ratified §6 criterion, and CR-016 is OPEN. Neither is a simulation defect. |
+
+**B5 — THE DENSITY QUARANTINE'S WINDOW, AND THE INSTRUMENT THAT COULD NOT SEE IT.**
+`canonical.densityPerArableKm2` at seed 3 measures **0.35415668759623087** against a recorded
+window floor of **0.3685744951368359** — **3.9118 % below**. Attributed: T4.21 moved the
+population (133,750 → 128,518, the same −3.9117757 % to every digit) with arable bit-identical.
+No shipped instrument could see it: the nightly's `gated()` never read `quarantine.window`, and
+the battery's canonical theory runs seeds 1 and 2, both comfortably inside.
+
+The instrument is repaired (`Sim.Core/Kernel/CorridorStatus.cs`, `sim corridors`, 11 tests,
+5 mutants killed; **ADR-027**). Run against the same 20-seed sweep, the old gate exits 0 in
+silence and the new one reports **two** window breaches — density at 3.9118 % and **migration at
+74.1210 %**, the second of which no instrument had ever shown.
+
+**AND THE FULLER PICTURE, WHICH THE FIRST DRAFT OF THIS BLOCK DID NOT STATE.** An adversarial
+review of this audit refuted the framing of B5 as purely a window question, and it was right.
+Measured per seed on the candidate:
+
+| corridor | inside the TARGET band | inside the recorded window |
+| --- | --- | --- |
+| `densityPerArableKm2` | **17/20** — seeds 2 (0.71647), 13 (0.62273), 1 (0.60732) above the 0.6 ceiling | **19/20** — seed 3 below the floor |
+| `migrationGrossPerDecade` | **0/20** | **0/20** |
+
+The band is the TARGET and the window is the RECORDED DEVIATION; they are different objects, and
+reporting only one of them is how the previous blind spot was made. `sim corridors` now prints
+both. Nothing is repaired: per T3.12 a quarantined corridor REPORTS and does not gate, and
+**a corridor's disposition is the director's**. CR-002 and CR-003 both forbid fitting the
+instrument to the artifact, and the quarantine's own `liftCondition` reserves re-derivation to an
+explicit director ruling.
+
+**WHAT REMAINS, AND WHOSE IT IS.** The exit session (`m4-spec.md:384`) names an act with a named
+actor, and `CLAUDE.md:34` forbids an agent's own tests substituting for a stated acceptance
+criterion. Its measurement half is done and attached (`docs/m4-exit-session.md`, written here as
+T4.15's missing session brief); the play-and-judge half, the merge ruling, the `m4-exit` tag, and
+the B5 / CR-016 / G1 rulings are the director's. `docs/gov-4-repository-freshness.md:89-91`
+forbids an agent merging branches as ordinary implementation work, so no merge was performed.
+
+**M4 still does not close on this entry.** It closes where the entry above says it closes.
+
+---
+
+### DIRECTOR FINAL M4 CLOSURE RULING (2026-09-21)
+
+**APPEND-ONLY. Nothing above this line is edited or deleted**, including the earlier statement
+*"M4 does not close on this entry. It closes on the director's play session against the candidate
+and his merge ruling, as M3 did."* That sentence was true when written. This block records the
+rulings that discharge it. Recorded on `claude/civdemo-work-b1z2y4`; every measurement below was
+taken by the agent recording it.
+
+#### B1 — THE EXIT SESSION: DISCHARGED BY DIRECTOR WAIVER, NOT BY A SESSION
+
+**The Director waived the requirement for an additional live human play session as a separate
+engineering deliverable, and accepted the existing evidence package as sufficient for M4 closure.**
+
+**This is a Director ruling. It is NOT a claim that a human session occurred.** No live
+play session has been held against this candidate, and nothing in this repository should ever be
+read as saying one was. `docs/m4-exit-session.md` remains available for whenever one is played.
+
+The accepted evidence package, MEASURED on the candidate:
+
+| item | result |
+| --- | --- |
+| CI artifact | `sim-ui-win-x64-95faa61`, 80,854,949 bytes, sha256 `51967e0f…f848`, run 35568905793 |
+| director's own M3 order log, replayed | live-run hash **=** replay hash, `fbfe9821…e6f7` |
+| hash logs compared | **650 per-turn hashes, bit-identical** — not merely the final value |
+| independent second live run | reproduces run 1 **bit-for-bit** |
+| empty-order control, seed 42 | run = replay, `1901dfbd…3d12` |
+| second seed, seed 3, held-exit log | run = replay, `8e1cd11b…9331` |
+| T3.12a replay report | **650/650 turns**, `replay-report/v1`, terminal hash equal to the run's |
+| re-verified at final closure | the same 650-turn hash log is **bit-identical to `95faa61`**, so no closure work moved simulation behaviour |
+
+The Director's instruction was explicit: the remaining human gameplay observation is a Director
+acceptance act, not an engineering task to be reproduced or replaced. **No substitute session was
+built, and none should be.**
+
+#### B5 — CLOSED AS AN INSTRUMENTATION AND ACCEPTANCE MATTER, WITH NO TUNING
+
+**Ruled: the new corridor instrumentation is correct; the measured deviations are accepted as
+evidence against the candidate, not as gameplay defects.** Nothing was tuned to fit them — no
+migration constant, no population mechanic, no density behaviour, no band, no window, no
+quarantine threshold, no golden.
+
+The measurements STAND AS MEASURED and are not relabelled as a pass:
+
+| corridor | inside the TARGET band | inside the recorded window |
+| --- | --- | --- |
+| `canonical.densityPerArableKm2` | **17/20** — seeds 2 (0.71647), 13 (0.62273), 1 (0.60732) above the 0.6 ceiling | **19/20** — seed 3 at 0.35415668759623087, 3.9118 % below the floor |
+| `canonical.migrationGrossPerDecade` | **0/20** | **0/20** — measured [0.00023291101986838497, 0.0004277757577755924] against [0.0009, 0.01] |
+
+**THE DISTINCTION THE DIRECTOR REQUIRED, MADE EXPLICIT.** A recorded corridor window is a
+**historical calibration and measurement reference**. It is **not** an active M4 acceptance
+criterion against which the simulation must be tuned. For migration this is not a new position —
+it is the standing ruling, and the code already implements it:
+
+- `corridors.json` `canonical.migrationGrossPerDecade.disposition`: *"ACCEPTED AS MEASURED (M4
+  completion, director ruling 2026-09-04) — NOT tuned, NOT re-banded … The corridor is retained as
+  a RECORD of a historical expectation this world no longer meets, not as an acceptance gate."*
+- `CalibrationBatteryTests` already enacts it: the canonical migration band assertion *"is removed
+  rather than widened. What stays is the LIVENESS tooth: the metric must still be produced and
+  still be positive, so a migration system that silently stopped moving anyone would still fail
+  loudly."* The **0/20** figure is therefore the expected reading of an ACCEPT-AS-IS corridor, not
+  a regression — and it is now visible for the first time, which is the whole point of the repair.
+
+**One consequence, recorded rather than quietly absorbed.** That same `disposition` field states
+§6's calibration criterion is *"discharged for density (lifted, 20/20 in band)"*. That half is
+stale: density is **17/20** on this candidate. The density corridor's quarantine is active and its
+`liftCondition` is unmet, so the corridor remains a recorded deviation under quarantine — reported,
+not gating. No band moved.
+
+#### CR-016 — DOES NOT BLOCK M4
+
+The disaster mechanism stays **present, complete, tested and UNARMED at `hazardPerYear = 0.0`**.
+No rate was derived and no geographically unsupported hazard mechanics were manufactured to close
+M4. The future architecture is POST-M4 and, when built, must run hazard type → **empirical
+real-world frequency** → geographic eligibility → local exposure → event → spatial footprint →
+vulnerability → impact → response/recovery, with flood, earthquake, storm/cyclone, drought,
+wildfire, landslide, volcanic and extreme temperature modelled separately **where the physical
+world model supports them**. Frequency is to be grounded in empirical hazard data translated
+through geographic exposure, never calibrated from desired gameplay outcomes. The engineering
+survey of what this world model can and cannot honestly support is `cr-016` §D.6.
+
+#### G1 — DOES NOT BLOCK M4
+
+No climate-variance tuning was authorised or performed. No sigma moved. The OU turn-mean variance
+measurement (factor 0.427 at dt 10) stands as an open post-M4 research and design item and must not
+be silently changed, nor used to justify any M4 simulation modification.
+
+#### B2 / B3 — MERGE AND TAG AUTHORISED
+
+The Director explicitly authorised this agent to perform the M4 closure merge and to create the
+`m4-exit` tag, overriding the standing prohibition for this one operation. Both were performed
+under that authorisation; the merge SHA and tag are recorded in `docs/m4-exit-inventory.md` and in
+the commit itself.
+
+#### THE KNOWN-OPEN ITEMS THAT TRAVEL PAST M4
+
+CR-016 · G1 · the density quarantine's disposition · ADR-017's "certification pending" ·
+ADR-020 · the T4.19-E S1–S5 set · grain-vs-livestock storage bounding · ADR-019's gap in the ADR
+sequence · ADR-027's sign-off on `CorridorStatus.cs` living under `Sim.Core/Kernel/` · the six
+remaining stale claims in `docs/current-state.md`. None blocks M4 under these rulings.
+
+**M4 CLOSES ON THIS BLOCK.**

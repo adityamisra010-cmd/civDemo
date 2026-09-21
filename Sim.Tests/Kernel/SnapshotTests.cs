@@ -224,7 +224,21 @@ public class SnapshotTests
         //         and its four trailing prefixes on this exact world and returns
         //         the pre-M4 value byte for byte; stripping only the two v24
         //         prefixes returns the pre-M4-D value. Layout, not behaviour.
-        const string golden = "eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69";
+        // T4.21-1 RE-PIN — SCHEMA v25, LAYOUT ONLY, MEASURED on this tree.
+        //   OLD  eec82711bbb257ea4ad2a6537ae31945cede7008f1c512b99af936831e3afe69
+        //   NEW  b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1
+        //   CAUSE v24 -> v25 appends the Disasters table (CR-015 §3.3). The toy
+        //         pipeline runs no DisasterSystem, so this world gains NO stream
+        //         rows and no disaster rows: its entire movement is one four-byte
+        //         zero count prefix.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV25TrailerAlone drops that
+        //         prefix on this exact world and returns the OLD value byte for
+        //         byte; the v22 strip still returns main's pre-M4 0f94b4ad….
+        //   NOT A BEHAVIOUR CHANGE: FoodState and FoodHeadroom are statics nothing
+        //         in the pipeline calls; ProductionSystem multiplies by 1.0 exactly
+        //         without a strike, and hazardPerYear ships at 0.
+        const string golden = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -669,7 +683,147 @@ public class SnapshotTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 8759fcb8dadbc91905cdc410cb1933e9211b830f8195c829ecbab887025e4048
-        const string golden = "98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983";
+        // T4.19 lane C RE-PIN — TUNING DATA, ONE CAUSE, DIRECTOR-RULED (the T4.18
+        //   diagnosis accepted, the behaviour rejected).
+        //   OLD  98a89d18b014fa1726ab3ee611a8662b2982bf4fbac0b10ada00718e4eebd983
+        //   NEW  917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62
+        //   CAUSE sim.json founding.cohortCounts is now the MEASURED stable age
+        //         structure of the shipped demographic kernel (largest-remainder
+        //         rounded to the same 400; FoundingDemographicsTests re-derives it).
+        //         The old vector held 17.5% of the founding population in the 60+
+        //         cohorts and this world opened 5,140 -> 4,330 -> 4,041 -> 3,987;
+        //         it now opens 5,143 -> 5,245 -> 5,193 -> 5,191 (starvation 0
+        //         throughout, measured) and ends turn 300 at 41,131 people
+        //         against 31,374 — the level shift of a transient that no longer
+        //         happens, at an unchanged fed growth rate (0.000759 -> 0.000758
+        //         per year over years 800-2400, canonical seed 1).
+        //   THE CONTROL THAT PROVES THE CAUSE IS THE FOUNDING VECTOR ALONE: the
+        //         world was founded under the old and the new config and every
+        //         one of the 41 tables was diffed at TURN 0 (seeds 42, 7, 123,
+        //         2024). Only Buckets differ, plus the three quantities founding
+        //         derives DIRECTLY from the realised cohort counts — GoodStocks
+        //         (the grain endowment scales with realised population; food per
+        //         capita is unchanged to two decimals at every settlement),
+        //         Housing (dwellings for the realised population) and the three
+        //         InitialEndowment LedgerFlows rows. Terrain hash, Settlements,
+        //         Deposits, Controls, Polities, Capitals, ClassStates and every
+        //         other table are IDENTICAL. docs/m4-founding-demographics-correction.md.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED (no founding
+        //         in it) and its v22-stripped control still returns 0f94b4ad….
+        //   NOT A SCHEMA CHANGE: CanonicalSchema stays at v24.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  917993b2b5367cd6141c46f4b0d2d81bfd74516198b87209a82be6a643637d62
+        //   NEW  008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1
+        //   CAUSE (1) v24 -> v25 appends the Disasters table (CR-015 §3.3), EMPTY
+        //         in this world because hazardPerYear ships at 0 — one four-byte
+        //         zero prefix; (2) DisasterSystem draws two uniforms per settlement
+        //         per turn UNCONDITIONALLY (so a hazard-0 run and a no-strike run
+        //         consume identical RNG), which adds one RngStreamRow per
+        //         settlement on turn 1. Nothing else: no row, no multiplier ≠ 1.0,
+        //         no caller of the new statics.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
+        //         the disaster streams and the empty table from this exact world
+        //         and returns the OLD value BYTE FOR BYTE; the v22/v23 controls in
+        //         that file are UNMOVED. Any behavioural drift would survive the
+        //         strip and break it.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300`) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN — BEHAVIOUR, BOTH PACKETS, MEASURED ON
+        // THE MERGED TREE by the agent writing this line (ADR-015 §6). Neither
+        // parent's value survives a merge of two behavioural packets: each was
+        // measured against 1735d41 with the other absent.
+        //   OLD (pre-packet, 1735d41)   008aa28ceeb73659bd3c69e8131603737dee34b709783dcaeffa4d293e72b0f1
+        //   OLD (T4.21-2 branch alone)  d45f14d3b83601ec1a3507762a621f6a599a2926ecd7221998e7254150f018a1
+        //   OLD (T4.21-3 branch alone)  8ff6d04a950d920ef2de34316b920a7375a3779c1b0073ede01b1335ec7b4e7a
+        //   NEW (merged)                db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   CAUSE, the two packets composed:
+        //     T4.21-2 (ADR-025) — MigrationSystem's flight is the exact hazard
+        //         φ = 1 − e^{−profile·K·ω·d·dt} on the best exit with shares (spec
+        //         §3.4); the gap channel is bounded at both ends of every basin
+        //         (§3.5b) and by the destination's vacancy (§3.5c). MEASURED HERE:
+        //         migration's first turn is 3, not 2 — on turn 2 every settlement
+        //         reads N_lim = 0 (turn 1 is the zero-harvest endowment turn) so
+        //         V = 0 and the vacancy bound refuses every gap flow world-wide
+        //         for that one turn (queue.md carries this as a measured finding).
+        //     T4.21-3 (CR-015 / ADR-026) — the effective deficit removes weather-
+        //         driven STRESS starvation and STRESS birth suppression, and the
+        //         headroom growth cap reads N_lim from PREV through
+        //         FoodHeadroom.Limit, which holds turn-2 births at replacement in
+        //         every founded world for the same reason (spec §3.6a edge case
+        //         (3), one turn, clamped).
+        //     The two meet on the SAME turn-2 reading of N_lim = 0 and then the
+        //         trajectories diverge chaotically. MEASURED ON THE MERGED TREE:
+        //         the founded world starves NOBODY in 300 turns, no dwelling ever
+        //         decays, first trade is turn 28, first migration turn 3 (252
+        //         movers), population 40,539 at turn 300
+        //         (WorldReconciliationTests and ObservedWorlds carry the same
+        //         readings; the per-branch figures 39,982 / 41,131 were measured
+        //         on the parents, not here).
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 is UNMOVED at
+        //         b6df7edd… (synthetic: no distances ⇒ no migration; no demand
+        //         rows ⇒ the cap never reads) and BOTH its controls still return
+        //         0f94b4ad… (v22) and eec82711… (v24) byte for byte — re-measured
+        //         on the merged tree.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300`, two separate
+        //         processes) agree on the NEW value.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: THE ARMING).
+        //   OLD  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   NEW  a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31
+        //   CAUSE  sim.json disaster.hazardPerYear 0.0 -> 0.01 — a DATA change
+        //         and the only change in this packet that reaches running code
+        //         (spec §3.3, the disaster._doc's own derivation, CR-015 §3.3).
+        //   ATTRIBUTION, not asserted but PROVED: every layout control in
+        //         IntegratedPinAttributionTests now runs the lambda = 0 twin of
+        //         this world and returns its constant BYTE FOR BYTE — so the
+        //         tree minus the arming is bit-identical to 8f7f9da and the
+        //         arming is the entire cause of this move. The twin is exact
+        //         because DisasterSystem draws both uniforms unconditionally
+        //         (its stated RNG contract), so lambda = 0 consumes the same
+        //         randomness as lambda > 0 with no strike.
+        //   MEASURED ON THIS TREE (canonical founded, seed 42, 300 turns,
+        //         docs/t4.21-4-record.md §2): 305 disaster onsets over 33,000
+        //         settlement-years = 0.924 per settlement-century; 78 FAMINE
+        //         settlement-turns, every one of them reason = Disaster and NONE
+        //         with reason None; 8 STRESS, 0 SEVERE; 11,060 starvation deaths
+        //         where the world had starved NOBODY before; population 10,974
+        //         at turn 300 against 40,539 unarmed.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs) agree on the NEW
+        //         value, and ci.yml's FOUNDED_GOLDEN moves to it in this
+        //         same commit.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        // T4.21-7 RE-PIN — THE ARMING IS REVERTED, AND SO IS ITS GOLDEN, BACK TO
+        //         THE VALUE IT CARRIED ON 8f7f9da. CR-016's orchestrator decision:
+        //         the famine-class disaster mechanism SHIPS COMPLETE AND TESTED
+        //         BUT INERT and the RATE is the director's ruling
+        //         (docs/adr/cr-016-armed-disaster-fallout.md).
+        //   OLD  a1def4df5f29c2660a7c95a5c6f15612f91aee9f8d9256d02283bcf00f72da31  (armed)
+        //   NEW  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   CAUSE  sim.json disaster.hazardPerYear 0.01 -> 0.0 — a DATA change,
+        //         and the exact inverse of T4.21-4's. Nothing else moved.
+        //   THE ROUND TRIP IS ITSELF THE ATTRIBUTION, and it is stronger than the
+        //         twin controls were: the value returns to the PRE-ARMING constant
+        //         BYTE FOR BYTE (measured by the agent writing this line — the
+        //         in-test harness produced db7c7a09… against the armed pin). So
+        //         everything merged since 8f7f9da (T4.21-5's observability, the
+        //         chain-link merge fix, T4.21-6's six findings) is confirmed to
+        //         move NO world golden, which is what T4.21-5 claimed of itself
+        //         and is now measured rather than asserted.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs), and ci.yml's
+        //         FOUNDED_GOLDEN moves back with it in this same commit.
+        //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
+        const string golden = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

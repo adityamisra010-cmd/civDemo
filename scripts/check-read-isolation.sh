@@ -32,6 +32,13 @@
 #     untouched by something that only prints it. The allowlist predates
 #     reporters and had no entry for one; T3.12a landed and this gate has been
 #     RED ON main ever since, taking the whole build-and-test job with it.
+#   Sim.Core/Observability/                    - T4.19 glass-box observers: the SAME
+#     standing as ReplayReport above, generalised. Pure read-only records built
+#     from (prev, next, cfg, orders) after a step, consulted by NO system, never
+#     serialized into WorldState, never in the pipeline. They exist so the UI and
+#     the CLI can read one explanation instead of two; the D-021 property -
+#     grievance drives no BEHAVIOUR - is untouched by something that only reads.
+#     docs/observability-architecture.md §0 states the five permitted field kinds.
 #   Sim.Ui/, Sim.Ui.Tests/, Sim.Tests/         - display + tests (packet-sanctioned)
 #
 # WHAT THIS GUARD ACTUALLY MATCHES, stated because it is weaker than its name
@@ -46,7 +53,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b'
-ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs)'
+ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs|Sim\.Core/Observability/)'
 
 matches=$(grep -RnE --include='*.cs' --exclude-dir=bin --exclude-dir=obj \
   "$PATTERN" Sim.Core Sim.Data Sim.Cli 2>/dev/null || true)

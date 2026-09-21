@@ -88,7 +88,10 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// <summary>d018:46's Tier A gate needs — Sustenance, Shelter, Safety. Below
     /// the floor these scale superlinearly and collapse the upper needs' weights;
     /// see <see cref="NeedsAggregation.ApplyTierAGate"/>. Data-checked against
-    /// the registry at construction, not assumed.</summary>
+    /// the registry at construction, not assumed. PRIVATE: a caller classifies a
+    /// need through <see cref="IsTierAGate"/>, never by reading — or writing —
+    /// the array (T4.19 A2-FIX D4: a public mutable array is a lever anyone can
+    /// pull; a predicate over it is not).</summary>
     private static readonly int[] TierAGateNeedIds = [1, 2, 3];
 
     private readonly NeedsConfig _needs;
@@ -196,12 +199,10 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
             {
                 SettlementVitalsRow v = prev.SettlementVitals[i];
                 if (v.Settlement != settlement) continue;
-                if (v.DtYears > 0.0)
-                    turnoverPerYear = (v.Births + v.Deaths) / (double)settlementPop / v.DtYears;
+                turnoverPerYear = TurnoverPerYear(v.Births, v.Deaths, settlementPop, v.DtYears);
                 break;
             }
-            double decayRate = tuning.BaseDecayPerYear
-                               + (1.0 - tuning.InheritFraction) * turnoverPerYear;
+            double decayRate = DecayRatePerYear(tuning, turnoverPerYear);
 
             for (int g = 0; g < grievances.Count; g++)
             {
@@ -266,16 +267,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     bound++;
                 }
 
-                double aggregate = Expectation;
-                if (bound > 0)
-                {
-                    NeedsAggregation.ApplyTierAGate(
-                        sat[..bound], isGate[..bound], weight[..bound],
-                        agg.TierAFloor, agg.TierAGain, agg.TierACollapse, adjusted[..bound]);
-                    aggregate = NeedsAggregation.Aggregate(
-                        sat[..bound], adjusted[..bound], agg.Sigma, agg.SatisfactionFloor);
-                }
-                double accrualPerYear = rawWeightSum * Math.Max(0.0, Expectation - aggregate);
+                double aggregate = AggregateSatisfaction(
+                    sat[..bound], isGate[..bound], weight[..bound], agg, adjusted[..bound]);
+                double accrualPerYear = AccrualPerYear(rawWeightSum, aggregate);
 
                 double gPrev = 0.0;
                 for (int i = 0; i < prev.Grievances.Count; i++)
@@ -284,12 +278,8 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                         && prev.Grievances[i].Class == cls)
                     { gPrev = prev.Grievances[i].Value; break; }
                 }
-                // Explicit Euler, floored at 0: a decayRate × dt > 1 step (huge
-                // turnover at Neolithic dt) must bottom out, not oscillate
-                // negative. The floor is the stock's own domain bound, not a
-                // conservation clamp.
-                double gNext = gPrev + accrualPerYear * dt - decayRate * gPrev * dt;
-                grievances[g] = grievances[g] with { Value = Math.Max(0.0, gNext) };
+                grievances[g] = grievances[g] with
+                { Value = StepGrievance(gPrev, accrualPerYear, decayRate, dt) };
             }
         }
     }
@@ -385,20 +375,110 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// at 0.005-0.06 moved the quantisation threshold from about two people to
     /// two hundred. Inherited shape, T3.5 reachability, T3.5 fix.
     /// </summary>
-    private static double Fill(IReadOnlyWorldState prev, SettlementId settlement, GoodId good)
+    public static double Fill(IReadOnlyWorldState prev, SettlementId settlement, GoodId good)
     {
         int i = GoodStockIndex.IndexOf(prev.GoodStocks, settlement, good);
         if (i < 0) return 1.0;                                   // case 1
-        long demanded = prev.GoodStocks[i].LastConsumptionDemandUnits;
-        if (demanded <= 0)                                       // case 2
-            return prev.GoodStocks[i].Amount.Value > 0 ? 1.0 : 0.0;
-        return Math.Clamp(                                       // case 3
-            prev.GoodStocks[i].LastConsumptionEatenUnits / (double)demanded, 0.0, 1.0);
+        return Fill(prev.GoodStocks[i]);
     }
 
-    private static bool IsTierAGate(int needId)
+    /// <summary>Cases 2 and 3 of <see cref="Fill(IReadOnlyWorldState, SettlementId, GoodId)"/>
+    /// on a row that exists: demand quantised to zero → the STOCK discriminates
+    /// (empty store 0.0, else 1.0); positive demand → eaten / demanded clamped
+    /// to [0, 1]. Pure — the row is the whole input.</summary>
+    public static double Fill(in GoodStockRow row)
+    {
+        long demanded = row.LastConsumptionDemandUnits;
+        if (demanded <= 0)                                       // case 2
+            return row.Amount.Value > 0 ? 1.0 : 0.0;
+        return Math.Clamp(                                       // case 3
+            row.LastConsumptionEatenUnits / (double)demanded, 0.0, 1.0);
+    }
+
+    /// <summary>Whether <paramref name="needId"/> is one of d018:46's Tier A gate
+    /// needs (Sustenance, Shelter, Safety) — the predicate this system's own
+    /// gate marking uses, and the ONLY way the gate list is read from outside.</summary>
+    public static bool IsTierAGate(int needId)
     {
         for (int i = 0; i < TierAGateNeedIds.Length; i++) if (TierAGateNeedIds[i] == needId) return true;
         return false;
     }
+
+    // =====================================================================
+    // THE GRIEVANCE ARITHMETIC, AS CALLABLE FUNCTIONS (T4.19 A2-FIX, D1)
+    //
+    // Step above calls exactly these, in this order, on the values it read;
+    // nothing is computed inline there that is not one of these. They are
+    // public and PURE so that an observer (Sim.Core/Observability/Explain) can
+    // reproduce the turn's accrual and decay by CALLING the simulation instead
+    // of copying its arithmetic — docs/observability-architecture.md §0
+    // reserves RECOMPUTED for calls to public simulation functions, and a
+    // private formula copied into a logger drifts the day this file changes.
+    // Extracted with NO behaviour change: each body is the expression it
+    // replaced, operand for operand and in the same association, so the
+    // Euler step's floating-point result is bit-identical (measured: the
+    // 50-turn founded hash is unchanged across the extraction; every golden,
+    // snapshot, replay and pin test passes unmoved).
+    // =====================================================================
+
+    /// <summary>D-021 §8 generational turnover: (PREV births + deaths) / PREV
+    /// population, per year via the vitals ROW's own dt (which keeps the rate
+    /// per-year across era-pacing transitions). A row with dt ≤ 0 — and the
+    /// absent row on a first turn — reads 0.</summary>
+    public static double TurnoverPerYear(long births, long deaths, long population, double rowDtYears)
+    {
+        if (rowDtYears <= 0.0) return 0.0;
+        return (births + deaths) / (double)population / rowDtYears;
+    }
+
+    /// <summary>decayRate = BaseDecayPerYear + (1 − InheritFraction) × turnover:
+    /// children inherit a fraction of their parents' grudges (D-021 §8).</summary>
+    public static double DecayRatePerYear(GrievanceTuning tuning, double turnoverPerYear)
+    {
+        ArgumentNullException.ThrowIfNull(tuning);
+        return tuning.BaseDecayPerYear + (1.0 - tuning.InheritFraction) * turnoverPerYear;
+    }
+
+    /// <summary>S: the D-035-B aggregate over the bound needs that published a
+    /// row — d018:46's Tier A gate reweights them, then the CES combines them
+    /// (<see cref="NeedsAggregation.ApplyTierAGate"/>, <see cref="NeedsAggregation.Aggregate"/>).
+    /// With NO bound need the aggregate is the expectation itself — nothing is
+    /// unmet — so the accrual below reads exactly 0. <paramref name="adjusted"/>
+    /// is scratch of the same length, overwritten with the gated weights.</summary>
+    public static double AggregateSatisfaction(
+        ReadOnlySpan<double> satisfaction, ReadOnlySpan<bool> isGate, ReadOnlySpan<double> weight,
+        AggregationTuning tuning, Span<double> adjusted)
+    {
+        ArgumentNullException.ThrowIfNull(tuning);
+        if (satisfaction.Length == 0) return Expectation;
+        NeedsAggregation.ApplyTierAGate(
+            satisfaction, isGate, weight,
+            tuning.TierAFloor, tuning.TierAGain, tuning.TierACollapse, adjusted);
+        return NeedsAggregation.Aggregate(
+            satisfaction, adjusted, tuning.Sigma, tuning.SatisfactionFloor);
+    }
+
+    /// <summary>W × (expectation − S)⁺ per year: the raw bound-weight sum times
+    /// the aggregate's shortfall below the (fixed, 1.0) expectation. The
+    /// expectation baseline lives HERE and nowhere else.</summary>
+    public static double AccrualPerYear(double rawWeightSum, double aggregate) =>
+        rawWeightSum * Math.Max(0.0, Expectation - aggregate);
+
+    /// <summary>The turn's accrual: accrualPerYear × dt.</summary>
+    public static double TurnAccrual(double accrualPerYear, double dtYears) => accrualPerYear * dtYears;
+
+    /// <summary>The turn's decay: (decayRate × previous) × dt — that association,
+    /// because it is the one the Euler step below has always evaluated.</summary>
+    public static double TurnDecay(double decayRatePerYear, double previous, double dtYears) =>
+        decayRatePerYear * previous * dtYears;
+
+    /// <summary>Explicit Euler, floored at 0: a decayRate × dt > 1 step (huge
+    /// turnover at Neolithic dt) must bottom out, not oscillate negative. The
+    /// floor is the stock's own domain bound, not a conservation clamp.
+    /// Evaluates <c>max(0, previous + accrualPerYear·dt − decayRate·previous·dt)</c>
+    /// as <c>(previous + TurnAccrual) − TurnDecay</c>, the tree C# built for the
+    /// inline expression this replaced.</summary>
+    public static double StepGrievance(double previous, double accrualPerYear, double decayRatePerYear, double dtYears) =>
+        Math.Max(0.0,
+            previous + TurnAccrual(accrualPerYear, dtYears) - TurnDecay(decayRatePerYear, previous, dtYears));
 }

@@ -38,18 +38,19 @@
     "maxSyllables": 3
   },
   "thresholds": {
-    "_doc": "Data-driven threshold functions over observable rows. Two-sided rigs in ChronicleTests pin each one: just-below must not fire, at-or-above must.",
-    "famineOnsetDeficit": 0.15,
-    "famineEndDeficit": 0.0,
+    "_doc": "Data-driven threshold functions over observable rows. Two-sided rigs in ChronicleTests pin each one: just-below must not fire, at-or-above must. T4.21-5 (CR-015 'famine is exceptional') RETIRED famineOnsetDeficit (0.15) and famineEndDeficit (0.0): they were the chronicle's own definition of famine, and an ordinary bad-weather decade cleared 0.15, so the annals recorded famines the simulation was not having. FoodState.Of now decides, and it carries the reason; what the deficit crossing zero produces is a FOOD SHORTFALL event instead. The chronicle owns no famine threshold because famine is not a threshold. What is left is editorial: how large an exodus is worth a line.",
     "migrationSurgeFraction": 0.04
   },
   "templates": {
-    "_doc": "Placeholders per event: founding {year} {name} {population}; famineOnset {year} {name} {deficitPct}; famineEnd {year} {name} {years} {deaths}; extinction {year} {name} {lastPopulation}; firstArtisans {year} {name} {count}; migrationSurge {year} {name} {count} {sharePct}.",
+    "_doc": "Placeholders per event: founding {year} {name} {population}; famineOnset {year} {name} {deficitPct} {reason}; famineEnd {year} {name} {years} {deaths}; extinction {year} {name} {lastPopulation}; firstArtisans {year} {name} {count}; migrationSurge {year} {name} {count} {sharePct}; disaster {year} {name} {lossPct} (and {severityPct}, which the SHIPPED template deliberately does not use: the Disaster event fires on the rising edge of FoodState.IsStruck, and at canonical dt 10 with durationYears 5 the row that is struck is the tail row, whose Severity is 0 by construction - measured on the armed canonical session, 55 of 60 rising edges carry severity 0, so the clause rendered a zero-in-a-hundred residual on essentially every canonical-era disaster. The loss figure carries the magnitude, from AppliedMultiplier. T4.21-6); foodShortfallOnset {year} {name} {deficitPct}; foodShortfallEnd {year} {name} {years}.",
     "founding": "In the year {year}, {name} was founded, {population} souls strong.",
-    "famineOnset": "In {year}, famine gripped {name}: {deficitPct} of every hundred measures of need went unmet.",
+    "famineOnset": "In {year}, famine gripped {name} - {reason}: {deficitPct} of every hundred measures of need went unmet.",
     "famineEnd": "In {year}, the famine at {name} lifted after {years} years; {deaths} were dead of it.",
     "extinction": "In {year}, {name} fell silent - the last {lastPopulation} souls perished, and no smoke rose again.",
     "firstArtisans": "In {year}, the first artisans set up their workshops at {name}, {count} masters and hands.",
-    "migrationSurge": "In {year}, {count} souls quit {name} in a single season - {sharePct} of every hundred who lived there."
+    "migrationSurge": "In {year}, {count} souls quit {name} in a single season - {sharePct} of every hundred who lived there.",
+    "disaster": "In {year}, the harvest at {name} failed outright - {lossPct} of every hundred measures of the season's yield were lost.",
+    "foodShortfallOnset": "In {year}, the stores at {name} ran short: {deficitPct} of every hundred measures of need went unmet.",
+    "foodShortfallEnd": "In {year}, {name} ate its fill again after {years} lean years."
   }
 }

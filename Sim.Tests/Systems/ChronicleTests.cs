@@ -21,6 +21,39 @@ public class ChronicleTests
         return ChronicleConfigLoader.Load(stream);
     }
 
+    /// <summary>T4.21-5: the collector classifies famine through FoodState, so
+    /// every rig hands it the shipped sim config — the same one the kernel runs.</summary>
+    private static ChronicleCollector Collector(ChronicleConfig? cfg = null) =>
+        new(cfg ?? Config(), TestConfigs.Sim());
+
+    /// <summary>a — the absorbable shortfall. Below it a settlement is STRESS,
+    /// above it SEVERE; neither is famine, whatever the depth.</summary>
+    private static double Absorbable => TestConfigs.Sim().FoodState.AdaptationAbsorbableShortfall;
+
+    private static void SetDeficit(WorldState w, int row, double d) =>
+        w.ConsumptionDeficits[row] = w.ConsumptionDeficits[row] with { DeficitRatio = d };
+
+    /// <summary>Strike the settlement: a DisasterRow whose AppliedMultiplier is
+    /// below 1 IS "a famine-class multiplier was applied to the harvest that
+    /// produced this world's food" (FoodState.IsStruck).</summary>
+    private static void Strike(WorldState w, SettlementId id, double severity, double applied)
+    {
+        for (int i = 0; i < w.Disasters.Count; i++)
+        {
+            if (w.Disasters[i].Settlement != id) continue;
+            w.Disasters[i] = w.Disasters[i] with { Severity = severity, AppliedMultiplier = applied };
+            return;
+        }
+        w.Disasters.Add(new DisasterRow(id, 1, severity, 0.0, 1.0, applied));
+    }
+
+    private static void Lift(WorldState w, SettlementId id)
+    {
+        for (int i = 0; i < w.Disasters.Count; i++)
+            if (w.Disasters[i].Settlement == id)
+                w.Disasters[i] = w.Disasters[i] with { AppliedMultiplier = 1.0, Severity = 0.0 };
+    }
+
     // --- rig: a hand world the collector reads directly ----------------------
 
     private static WorldState Rig(long pop = 1000, int settlements = 1)
@@ -112,7 +145,7 @@ public class ChronicleTests
     [Fact]
     public void Founding_FiresOnFirstSight_WithPopulationMagnitude()
     {
-        var c = new ChronicleCollector(Config());
+        var c = Collector();
         WorldState world = Rig(pop: 640, settlements: 3);
         c.Observe(world);
         List<ChronicleEvent> founds = OfType(c, ChronicleEventType.Founding);
@@ -123,52 +156,198 @@ public class ChronicleTests
         Assert.Equal(3, OfType(c, ChronicleEventType.Founding).Count);
     }
 
-    // --- famine onset/end: two-sided at the documented thresholds ------------
+    // --- famine: the CLASSIFICATION, two-sided (T4.21-5 / CR-015) ------------
 
+    /// <summary>
+    /// THE PACKET'S CENTRAL TWO-SIDED TEST. The annals say "famine" when
+    /// FoodState says FAMINE, and at no other time. The negative arm is the one
+    /// that matters: a deficit of 0.60 — four times the RETIRED 0.15 constant
+    /// and three times the absorbable shortfall, a settlement genuinely starving
+    /// — produces NO famine event, because nothing struck it and its fields are
+    /// tilled. Under the pre-T4.21-5 collector every one of these turns was a
+    /// famine line. It is a FOOD SHORTFALL instead, and that event fires.
+    /// </summary>
     [Fact]
-    public void FamineOnset_TwoSided_AtDocumentedThreshold_HysteresisOnEnd()
+    public void Famine_FiresOnTheClassificationAndItsReason_NotOnAnOrdinaryBadHarvest()
     {
-        ChronicleConfig cfg = Config();
-        double onset = cfg.Thresholds.FamineOnsetDeficit;
-        var c = new ChronicleCollector(cfg);
+        ChronicleCollector c = Collector();
         WorldState world = Rig();
+        var id = new SettlementId(0);
         c.Observe(world);
 
-        // Just below: silent.
-        Advance(world);
-        world.ConsumptionDeficits[0] = world.ConsumptionDeficits[0] with { DeficitRatio = onset - 1e-9 };
-        c.Observe(world);
+        // ORDINARY BAD HARVEST, at every depth the old constant would have
+        // called famine: STRESS, then SEVERE. No strike, fields tilled.
+        foreach (double d in new[] { Absorbable - 1e-9, 0.15, Absorbable + 1e-9, 0.60, 0.99 })
+        {
+            Advance(world);
+            SetDeficit(world, 0, d);
+            world.SettlementVitals[0] = world.SettlementVitals[0] with { Deaths = 40 };
+            c.Observe(world);
+        }
         Assert.Empty(OfType(c, ChronicleEventType.FamineOnset));
+        Assert.Empty(OfType(c, ChronicleEventType.Disaster));
+        // The shortfall IS recorded — the event is not lost, it is named correctly.
+        ChronicleEvent shortfall = Assert.Single(OfType(c, ChronicleEventType.FoodShortfallOnset));
+        Assert.Equal(Absorbable - 1e-9, shortfall.Magnitude1);
 
-        // At threshold: fires, magnitude = the triggering deficit.
+        // THE STRIKE. Same deficit, now with a famine-class multiplier applied
+        // to the harvest that produced it: FAMINE, reason Disaster.
         Advance(world);
-        world.ConsumptionDeficits[0] = world.ConsumptionDeficits[0] with { DeficitRatio = onset };
+        Strike(world, id, severity: 0.8, applied: 0.25);
+        SetDeficit(world, 0, 0.60);
         world.SettlementVitals[0] = world.SettlementVitals[0] with { Deaths = 40 };
         c.Observe(world);
-        ChronicleEvent onsetEvent = Assert.Single(OfType(c, ChronicleEventType.FamineOnset));
-        Assert.Equal(onset, onsetEvent.Magnitude1);
-        Assert.Equal(world.Clock.Turn, onsetEvent.Turn);
-        Assert.Equal(0, onsetEvent.SettlementId);
+        ChronicleEvent onset = Assert.Single(OfType(c, ChronicleEventType.FamineOnset));
+        Assert.Equal(0.60, onset.Magnitude1);
+        Assert.Equal((double)(int)FamineReason.Disaster, onset.Magnitude2);
+        Assert.Equal(world.Clock.Turn, onset.Turn);
+        Assert.Equal(0, onset.SettlementId);
 
-        // Deficit eases BELOW onset but ABOVE end: hysteresis holds the latch
-        // (no end event, no second onset).
+        // A DEEP deficit does not END a famine, and a shallow one does not
+        // start one: only the classification moves the latch. Still struck,
+        // still famine, no second onset.
         Advance(world);
-        world.ConsumptionDeficits[0] = world.ConsumptionDeficits[0] with { DeficitRatio = 0.05 };
+        SetDeficit(world, 0, 0.05);
         world.SettlementVitals[0] = world.SettlementVitals[0] with { Deaths = 25 };
         c.Observe(world);
-        Assert.Empty(OfType(c, ChronicleEventType.FamineEnd));
         Assert.Single(OfType(c, ChronicleEventType.FamineOnset));
+        Assert.Empty(OfType(c, ChronicleEventType.FamineEnd));
 
-        // Deficit returns to the end threshold: fires with duration years and
-        // the deaths summed over the famine turns (40 at onset + 25 + 10).
+        // The strike lifts: the classification leaves Famine and the annals
+        // close it, with the duration and the deaths summed over famine turns.
         Advance(world);
-        world.ConsumptionDeficits[0] = world.ConsumptionDeficits[0] with
-        { DeficitRatio = cfg.Thresholds.FamineEndDeficit };
+        Lift(world, id);
+        SetDeficit(world, 0, 0.05);
         world.SettlementVitals[0] = world.SettlementVitals[0] with { Deaths = 10 };
         c.Observe(world);
         ChronicleEvent end = Assert.Single(OfType(c, ChronicleEventType.FamineEnd));
-        Assert.Equal(20.0, end.Magnitude1); // onset year -> end year = 2 turns x dt 10
+        Assert.Equal(20.0, end.Magnitude1);                 // 2 turns x dt 10
         Assert.Equal(40.0 + 25.0 + 10.0, end.Magnitude2);
+    }
+
+    /// <summary>The OTHER reason, so the reason field is not a constant: fields
+    /// left untilled (Farming == 0 and Herding == 0 on the raw row in force)
+    /// with a deficit is FAMINE by abandonment, with no disaster anywhere.</summary>
+    [Fact]
+    public void Famine_AbandonmentReason_IsRecordedDistinctlyFromDisaster()
+    {
+        ChronicleCollector c = Collector();
+        WorldState world = Rig();
+        var id = new SettlementId(0);
+        c.Observe(world);
+
+        Advance(world);
+        world.SectorAllocations.Add(new SectorAllocationRow(id, 0.0, 0.0, 0.3, 0.3, 0.4));
+        SetDeficit(world, 0, 0.10);   // BELOW the absorbable shortfall: STRESS, were it not abandoned
+        c.Observe(world);
+
+        ChronicleEvent onset = Assert.Single(OfType(c, ChronicleEventType.FamineOnset));
+        Assert.Equal((double)(int)FamineReason.Abandonment, onset.Magnitude2);
+        Assert.Empty(OfType(c, ChronicleEventType.Disaster));
+    }
+
+    // --- disaster: two-sided, and an EDGE not a per-turn repeat --------------
+
+    [Fact]
+    public void Disaster_FiresOnTheAppliedMultiplier_OncePerEvent_NotOnBadWeather()
+    {
+        ChronicleCollector c = Collector();
+        WorldState world = Rig();
+        var id = new SettlementId(0);
+        c.Observe(world);
+
+        // Bad weather is not a disaster: a harvest-weather row far below one,
+        // and a deficit to go with it, emit nothing. The disaster event reads
+        // the DisasterRow and only the DisasterRow.
+        Advance(world);
+        world.HarvestWeather.Add(new HarvestWeatherRow(id, -1.2, 0.30));
+        SetDeficit(world, 0, 0.45);
+        c.Observe(world);
+        Assert.Empty(OfType(c, ChronicleEventType.Disaster));
+
+        // A row whose AppliedMultiplier is exactly 1.0 is a row, not a strike:
+        // the predicate is < 1, and presence alone must not fire it.
+        Advance(world);
+        Strike(world, id, severity: 0.0, applied: 1.0);
+        c.Observe(world);
+        Assert.Empty(OfType(c, ChronicleEventType.Disaster));
+
+        // Below one: fires, carrying severity and the multiplier applied.
+        Advance(world);
+        Strike(world, id, severity: 0.7, applied: 0.65);
+        c.Observe(world);
+        ChronicleEvent e = Assert.Single(OfType(c, ChronicleEventType.Disaster));
+        Assert.Equal(0.7, e.Magnitude1);
+        Assert.Equal(0.65, e.Magnitude2);
+
+        // Still struck next turn: ONE line per event, not one per turn.
+        Advance(world);
+        c.Observe(world);
+        Assert.Single(OfType(c, ChronicleEventType.Disaster));
+
+        // Lifted, then struck again: a NEW event is a new line.
+        Advance(world);
+        Lift(world, id);
+        c.Observe(world);
+        Advance(world);
+        Strike(world, id, severity: 0.5, applied: 0.5);
+        c.Observe(world);
+        Assert.Equal(2, OfType(c, ChronicleEventType.Disaster).Count);
+    }
+
+    // --- food shortfall: two-sided on the sign of the deficit -----------------
+
+    [Fact]
+    public void FoodShortfall_TwoSided_OnTheDeficitCrossingZero()
+    {
+        ChronicleCollector c = Collector();
+        WorldState world = Rig();
+        c.Observe(world);
+
+        // Exactly zero is not a shortfall (the crossing is > 0, not >= 0).
+        Advance(world);
+        SetDeficit(world, 0, 0.0);
+        c.Observe(world);
+        Assert.Empty(OfType(c, ChronicleEventType.FoodShortfallOnset));
+
+        // The smallest positive deficit is one — no band, no threshold.
+        Advance(world);
+        SetDeficit(world, 0, double.Epsilon);
+        c.Observe(world);
+        ChronicleEvent onset = Assert.Single(OfType(c, ChronicleEventType.FoodShortfallOnset));
+        Assert.Equal(double.Epsilon, onset.Magnitude1);
+
+        // Still short: no repeat.
+        Advance(world);
+        SetDeficit(world, 0, 0.3);
+        c.Observe(world);
+        Assert.Single(OfType(c, ChronicleEventType.FoodShortfallOnset));
+        Assert.Empty(OfType(c, ChronicleEventType.FoodShortfallEnd));
+
+        // Back to zero: the end fires with the duration in sim-years.
+        Advance(world);
+        SetDeficit(world, 0, 0.0);
+        c.Observe(world);
+        ChronicleEvent end = Assert.Single(OfType(c, ChronicleEventType.FoodShortfallEnd));
+        Assert.Equal(20.0, end.Magnitude1);   // 2 turns x dt 10
+    }
+
+    /// <summary>The retired constants are GONE from the type, not merely
+    /// unread: a threshold nobody reads is a threshold somebody re-reads.</summary>
+    [Fact]
+    public void TheChronicleOwnsNoFamineThreshold_AnyMore()
+    {
+        Type t = typeof(ChronicleThresholds);
+        Assert.Null(t.GetProperty("FamineOnsetDeficit"));
+        Assert.Null(t.GetProperty("FamineEndDeficit"));
+        Assert.NotNull(t.GetProperty("MigrationSurgeFraction"));
+
+        string json;
+        using (var stream = Sim.Data.DataFiles.OpenChronicle())
+        using (var reader = new StreamReader(stream))
+            json = reader.ReadToEnd();
+        Assert.DoesNotContain("\"famineOnsetDeficit\"", json);
+        Assert.DoesNotContain("\"famineEndDeficit\"", json);
     }
 
     // --- extinction ----------------------------------------------------------
@@ -176,7 +355,7 @@ public class ChronicleTests
     [Fact]
     public void Extinction_FiresOnceWithLastPopulation_Latched()
     {
-        var c = new ChronicleCollector(Config());
+        var c = Collector();
         WorldState world = Rig(pop: 300);
         c.Observe(world);
 
@@ -198,7 +377,7 @@ public class ChronicleTests
     [Fact]
     public void FirstArtisans_FiresOnFirstAdultArtisans_NotOnChildren()
     {
-        var c = new ChronicleCollector(Config());
+        var c = Collector();
         WorldState world = Rig();
         var id = new SettlementId(0);
         // Artisan CHILDREN first — must not fire (the event is workshops, not births).
@@ -234,7 +413,7 @@ public class ChronicleTests
     public void MigrationSurge_TwoSided_AtDocumentedFraction_OfStartOfTurnPopulation()
     {
         ChronicleConfig cfg = Config();
-        var c = new ChronicleCollector(cfg);
+        var c = Collector(cfg);
         WorldState world = Rig(pop: 1000);
         c.Observe(world);
 
@@ -265,11 +444,47 @@ public class ChronicleTests
         NameRegistry names = NameRegistry.Build(cfg, 42, world);
         string name = names.Name(0);
 
-        var onset = new ChronicleEvent(ChronicleEventType.FamineOnset, 10, 100.0, 0, 0.42, 0.0);
+        var onset = new ChronicleEvent(
+            ChronicleEventType.FamineOnset, 10, 100.0, 0, 0.42, (double)(int)FamineReason.Disaster);
         string line = ChronicleProse.Render(onset, cfg, names);
         Assert.Contains(name, line);
         Assert.Contains("famine", line);
         Assert.Contains("42", line); // the deficit magnitude, as a percentage
+        // T4.21-5: {reason} binds the RECORDED FamineReason ordinal, and the two
+        // reasons read differently — a constant string would pass neither arm.
+        Assert.Contains("ruined harvest", line);
+        string abandoned = ChronicleProse.Render(
+            onset with { Magnitude2 = (double)(int)FamineReason.Abandonment }, cfg, names);
+        Assert.Contains("untilled", abandoned);
+        Assert.DoesNotContain("ruined harvest", abandoned);
+
+        // The three T4.21-5 events render from their own recorded magnitudes.
+        string disaster = ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.Disaster, 11, 110.0, 0, 0.60, 0.25), cfg, names);
+        Assert.Contains(name, disaster);
+        Assert.Contains("75", disaster);   // 1 - 0.25 applied, as a percentage
+        // T4.21-6 — THE SEVERITY CLAUSE IS GONE FROM THE SHIPPED TEMPLATE, and
+        // this is the assertion that says so rather than leaving a reader to
+        // wonder. The Disaster event fires on the rising edge of
+        // FoodState.IsStruck; at canonical dt 10 with durationYears 5 the struck
+        // row is the TAIL row, whose Severity is 0 by construction, so the clause
+        // rendered "the blight has 0 in a hundred of the fields still" on
+        // essentially every canonical-era disaster (measured on the armed
+        // canonical session: 55 of 60 rising edges carry severity 0). The loss
+        // figure, which comes from AppliedMultiplier, carries the magnitude.
+        Assert.DoesNotContain("in a hundred of the fields", disaster, StringComparison.Ordinal);
+        // The same event as the canonical case actually records it: severity 0.
+        string tail = ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.Disaster, 11, 110.0, 0, 0.0, 0.30), cfg, names);
+        Assert.Contains("70", tail);       // 1 - 0.30 applied — the magnitude survives
+        Assert.DoesNotContain("0 in a hundred", tail, StringComparison.Ordinal);
+        string shortfall = ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.FoodShortfallOnset, 12, 120.0, 0, 0.07, 0.0), cfg, names);
+        Assert.Contains("7", shortfall);
+        Assert.DoesNotContain("famine", shortfall);
+        string recovered = ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.FoodShortfallEnd, 13, 130.0, 0, 40.0, 0.0), cfg, names);
+        Assert.Contains("40", recovered);
 
         var end = new ChronicleEvent(ChronicleEventType.FamineEnd, 13, 130.0, 0, 30.0, 217.0);
         string endLine = ChronicleProse.Render(end, cfg, names);
@@ -308,7 +523,7 @@ public class ChronicleTests
                 PipelineLoader.Load(pipeStream, SystemCatalog.All(sim)));
             WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), sim, 42, null);
             NameRegistry names = NameRegistry.Build(cfg, world.Seed, world);
-            var collector = new ChronicleCollector(cfg);
+            var collector = new ChronicleCollector(cfg, sim);
             collector.Observe(world);
             // 900 turns crosses the first Malthus crash (~t820 on the T3.1
             // refreshed worldgen — moist river valleys raised capacity and
@@ -326,8 +541,28 @@ public class ChronicleTests
         Assert.Equal(a, b);
         bool anyFamine = false;
         foreach (string line in a) if (line.Contains("famine")) anyFamine = true;
-        // CR-003: no crash, so no famine line. Twin-identity above (the point
-        // of this test) is unaffected and still asserted on 5+ events.
+        // CR-003 QUARANTINE — RE-INSTATED BY T4.21-7, AND WHY, WITH BOTH
+        // MEASUREMENTS. The original quarantine recorded that the
+        // pre-Malthusian dev world never crashed, so the annals carried no
+        // famine line and the twin compared a chronicle without one.
+        //
+        //   ARMED (λ = 0.01, T4.21-4, measured by that agent): RESOLVED — this
+        //   exact rig rendered famine prose (docs/t4.21-4-record.md §2.7,
+        //   §4.3). The quarantine call was deleted and the guard restored,
+        //   correctly, FOR THAT TREE.
+        //
+        //   DISARMED (λ = 0, the value that SHIPS, re-measured on THIS tree by
+        //   the agent writing this line, on THIS EXACT RIG — dev preset, seed
+        //   42, 900 turns): NOT RESOLVED — 20 chronicle events, 0 of them a
+        //   famine line. The restored guard above would fail.
+        //
+        // Twin-identity above — the point of this test — is unaffected and is
+        // still asserted on 20 events. Which reading is right is CR-016's to
+        // decide: the disaster mechanism ships COMPLETE AND TESTED BUT INERT
+        // (sim.json disaster.hazardPerYear = 0.0) and its RATE is the
+        // director's ruling (docs/adr/cr-016-armed-disaster-fallout.md). One
+        // data edit makes this quarantine fire again, and it must then be
+        // deleted and the guard restored.
         Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
             anyFamine, "a famine line across the first Malthus crash");
     }

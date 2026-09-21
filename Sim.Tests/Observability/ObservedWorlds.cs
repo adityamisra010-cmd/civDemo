@@ -1,0 +1,154 @@
+using Sim.Core;
+using Sim.Core.Kernel;
+using Sim.Core.Observability;
+using Sim.Core.State;
+using Sim.Core.Systems;
+using Sim.Core.Worldgen;
+using Sim.Tests.Kernel;
+using Sim.Tests.TestUtil;
+
+namespace Sim.Tests.Observability;
+
+/// <summary>
+/// The worlds the T4.19 observability tests run on, and the ONE way they are
+/// stepped: the production executor, with an <see cref="ObservationLog"/> fed
+/// the (prev, next) pair after every step exactly as UiSession.EndTurn and
+/// `sim inspect --telemetry` feed it. Three worlds:
+///
+///   FOUNDED  — WorldFounding seed 42, no orders (the default-mix canonical world).
+///   DRIVEN   — the same world under DrivenGoldenTests.DrivingOrders (T3.11): the
+///              three asymmetric sector mixes, so goods flow and prices move.
+///   FOUNDING — a world in which colonization FIRES under the FULL production
+///              pipeline, built with ColonizationTests' stranded-source rig
+///              (every settlement but one has its grain and last harvest zeroed
+///              by hand, the one is put in deficit). The rig's hand edits happen
+///              BEFORE the observed step, so the step itself is conservative and
+///              every identity below is asserted on it unchanged.
+///
+/// WHY NOT FIRSTREIGN. The lane brief cites "FirstReign founds 1 -> 17
+/// settlements over turns 6-19 per docs". Measured on this tree: that trajectory
+/// was a DEFECT of an earlier T4.4 revision (4d11c02) — daughters founded with
+/// zero provisions — and FirstReignTests records that once the clearing cost was
+/// made binding "no founding is possible here at all". FirstReign stays at 1
+/// settlement for all 40 turns on this tree (measured in
+/// SettlementIdentityTests.FirstReign_FoundsNothing_SoItCannotBeTheFoundingWorld).
+/// </summary>
+internal static class ObservedWorlds
+{
+    internal sealed record Run(ObservationLog Log, WorldState Final, SimConfig Cfg);
+
+    internal static WorldState Founded(ulong seed = 42UL) =>
+        WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), seed);
+
+    internal static TurnExecutor Executor(SimConfig cfg, OrderLog? orders)
+    {
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        return new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+    }
+
+    /// <summary>Steps <paramref name="world"/> for <paramref name="turns"/> turns,
+    /// observing every step. The observation call sits AFTER the step and reads
+    /// both worlds; the Step call is the same one the unobserved twin makes.</summary>
+    internal static Run Observed(WorldState world, OrderLog? orders, int turns)
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        OrderLog log = orders ?? new OrderLog();
+        TurnExecutor exec = Executor(cfg, orders);
+        var observations = new ObservationLog();
+        for (int t = 1; t <= turns; t++)
+        {
+            WorldState prev = world;
+            world = exec.Step(prev);
+            observations.Observe(prev, world, cfg, OrderApplied.For(log, prev.Clock.Turn));
+        }
+        return new Run(observations, world, cfg);
+    }
+
+    internal static Run FoundedRun(int turns) => Observed(Founded(), null, turns);
+
+    /// <summary>The three worlds at the packet's horizon, stepped ONCE per test
+    /// process and shared: 300 founded + 300 driven turns cost ~90 s, and every
+    /// identity below is asserted over the same run rather than a re-run.
+    /// MEASURED ON THE MERGED T4.21-2 + T4.21-3 TREE by the agent writing this
+    /// comment (the numbers the tests pin as non-vacuity). Every FIRST TURN below
+    /// is a measured value, not a claim about the mechanism; what decides the
+    /// migration line in particular is the VACANCY BOUND'S NULL ARM (ADR-025
+    /// §3.5c — turn 1 is the zero-harvest endowment turn, so N_lim = 0 and V = 0
+    /// on turn 2 and every gap flow is refused world-wide for that one turn;
+    /// docs/queue.md carries it as a measured finding, and a future packet that
+    /// changes that null arm moves these turns):
+    ///   RE-MEASURED BY T4.21-4 WITH THE DISASTER ARMED (hazardPerYear
+    ///   0.0 -> 0.01), THEN AGAIN BY T4.21-7 AT THE SHIPPING VALUE (0.01 -> 0.0
+    ///   — CR-016's orchestrator decision: the mechanism ships COMPLETE AND
+    ///   TESTED BUT INERT and the RATE is the director's). THE READINGS BELOW
+    ///   ARE THE SHIPPED ONES, re-measured on THIS tree by the agent writing
+    ///   this comment; the ARMED readings are kept beside them, marked, because
+    ///   they are CR-016's evidence and are one data edit from being true again.
+    ///   FOUNDED 300: births, deaths and spoilage first non-zero on turn 1,
+    ///     harvest on turn 2 (turn 1 harvests zero — the T4.18 warm-up artefact),
+    ///     migrants first on turn 3 (0 on turn 2, 252 on turn 3 — UNMOVED by the
+    ///     arming and by the disarming); overflow first on turn 1; NO STARVATION
+    ///     in 300 turns (55 pre-packet, 57 on the T4.21-2 branch — the effective
+    ///     deficit makes weather-sized shortfalls STRESS, which starve nobody,
+    ///     and at λ = 0 there is no other cause in this world; ARMED: first on
+    ///     turn 7, 11,060 deaths across 61 turns); first trade on turn 28 (41
+    ///     pre-packet, 21 on the T4.21-3 branch; ARMED: 31); dwellings never
+    ///     decay; no settlement is founded (12 throughout); 40,539 people at
+    ///     turn 300 (ARMED: 10,974).
+    ///   DRIVEN 300: the same four non-zero by turn 2 and migrants on turn 3;
+    ///     starvation first on turn 8 (7 pre-packet; ARMED: 7), 5,869 deaths
+    ///     across the 300 turns — the driven world starves without a disaster
+    ///     because its ORDERS drive settlements into deficit; trade on 7; NO
+    ///     DWELLING DECAY in 300 turns (48 on the T4.19-A tree, 64 on the
+    ///     T4.21-2 branch, 82 on the T4.21-3 branch; ARMED: first on turn 86,
+    ///     640 dwellings — famine emptied homes); no founding; 56 policy
+    ///     changes, all on turn 3; pottery on turn 5: 1829 produced, 845 eaten,
+    ///     0 sunk as inputs (UNMOVED); 6,373 people at turn 300 (ARMED: 147 —
+    ///     see docs/adr/cr-016-armed-disaster-fallout.md, OPEN).
+    ///   FOUNDING 5 (turns 2..6): settlement 12 founded on turn 2 from
+    ///     settlement 0, party 135, provisions 145 (RE-MEASURED on the merged
+    ///     tree; 143 / 128 pre-packet); nothing founded after.</summary>
+    internal static readonly Lazy<Run> Founded300 =
+        new(() => FoundedRun(300), LazyThreadSafetyMode.ExecutionAndPublication);
+    internal static readonly Lazy<Run> Driven300 =
+        new(() => DrivenRun(300), LazyThreadSafetyMode.ExecutionAndPublication);
+    internal static readonly Lazy<Run> Founding5 =
+        new(() => FoundingRun(5), LazyThreadSafetyMode.ExecutionAndPublication);
+
+    internal static Run DrivenRun(int turns)
+    {
+        WorldState world = Founded();
+        OrderLog orders = DrivenGoldenTests.DrivingOrders(world.Settlements.Count);
+        OrderValidation.ValidateAgainstWorld(orders, world);
+        return Observed(world, orders, turns);
+    }
+
+    /// <summary>The stranded-source rig (ColonizationTests.StrandedSource), then
+    /// <paramref name="turns"/> FULL-pipeline steps. Founding fires on the first
+    /// step: migration finds no viable destination for the deficit source's
+    /// famine flight and leaves the demand unplaced; colonization draws the
+    /// party from it and outfits it from the source's own granary.</summary>
+    internal static Run FoundingRun(int turns, ulong seed = 1UL)
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Founded(seed);
+        // Warm: one catchment turn so SettlementDistances exists in prev.
+        using (var eraStream = Sim.Data.DataFiles.OpenEraPacing())
+        {
+            w = new TurnExecutor(EraTableLoader.Load(eraStream), [SystemCatalog.Catchment(cfg)]).Step(w);
+        }
+        SettlementId src = w.Settlements[0].Id;
+        for (int s = 0; s < w.Settlements.Count; s++)
+        {
+            if (w.Settlements[s].Id == src) continue;
+            for (int i = 0; i < w.GoodStocks.Count; i++)
+                if (w.GoodStocks[i].Settlement == w.Settlements[s].Id)
+                    w.GoodStocks[i] = w.GoodStocks[i] with { Amount = Conserved.Zero, LastProducedUnits = 0 };
+        }
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(src, 0.40, 1000));
+        return Observed(w, null, turns);
+    }
+}

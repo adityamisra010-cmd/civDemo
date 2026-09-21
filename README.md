@@ -1,4 +1,4 @@
-# civ-sim (M3)
+# civ-sim (M4)
 
 A deterministic, turn-based civilization simulation spanning 6,000 years. One human
 director; AI agents build it, one task packet per session.
@@ -33,7 +33,7 @@ The largest: **goods do not yet trade on the canonical world**, for two measured
 and escalated reasons.
 
 Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution) and
-[`docs/m3-spec.md`](docs/m3-spec.md) (current milestone spec).
+[`docs/m4-spec.md`](docs/m4-spec.md) (current milestone spec); [`docs/m3-spec.md`](docs/m3-spec.md) is the previous one.
 
 ## Prerequisites
 

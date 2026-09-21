@@ -1,5 +1,187 @@
 # CURRENT STATE — the routing document
 
+> **STALENESS CORRECTION, M4 exit gate (2026-09-16).** The measurement below is dated 2026-08-31 and
+> four of its load-bearing claims have since been overtaken by git. They are corrected inline and
+> marked `CORRECTED`; nothing else in this file was rewritten, per the director's instruction that the
+> remaining stale-document findings stay housekeeping. Re-derive anything you rely on, as §9 says.
+>
+> | claim as written | git, re-derived 2026-09-16 |
+> | --- | --- |
+> | `origin/main` = `070f05b`, schema v22 | **`dbef61a`**, "Merge M4 completion (director-certified): the M4 baseline", schema **v24** |
+> | M4-B/C/D "CERTIFIED … not merged" | **all merged** — main's tip IS the M4 completion merge |
+> | §2's milestone contradiction (`CLAUDE.md:10` reads M3) | **RESOLVED** — `CLAUDE.md` now reads M4 with `docs/m4-spec.md`. §2 is itself now the stale artifact |
+> | open CRs include CR-009, CR-010 | **neither has ever existed on any branch**; CR-008 exists only on `m5-full-build` |
+>
+> The current M4 exit candidate is `t4.19-glass-box`. Its suite, measured in Release at the exit gate:
+> Sim.Tests **722 passed / 4 failed / 6 skipped**, Sim.Ui.Tests **236/236**, three gates green — which
+> supersedes the 541–572 / 6 / 6 counts recorded below.
+>
+> **2026-09-17 — T4.21 IN PROGRESS on `claude/civdemo-work-b1z2y4`** (= `main` `dbef61a` + the unmerged
+> M4 playtest build `2807155` + the forensic CLI, `45046eb`): famine semantics, bounded migration and
+> shock integration. Governance landed first (T4.21-0, branch `t4.21-0-governance`):
+> `docs/adr/cr-015-famine-is-exceptional.md` RULED from the director's 2026-09-17 mandate (G1 — the
+> harvest-weather decade variance — ESCALATED and open), ADR-024/025/026, spec
+> `docs/t4.21-architecture.md`, evidence `docs/t4.21-evidence/`. Code packets T4.21-1..6 follow on
+> their own branches; nothing is merged to `main`. Suite baseline on `45046eb` (Release): 754 passed /
+> 2 failed (`Dev_MalthusCorridors` seeds 42, 7 — red by CR-003 ruling) / 6 skipped. Verify against git.
+> **2026-09-18 — T4.21-4 DONE, on branch `t4.21-4-arm` (cut from `claude/civdemo-work-b1z2y4` @
+> `8f7f9da`), NOT merged.** The famine-class disaster is ARMED (`sim.json disaster.hazardPerYear`
+> 0.0 → 0.01). Record: `docs/t4.21-4-record.md`. **ESCALATION — READ BEFORE RELYING ON THIS TREE:**
+> `docs/adr/cr-016-armed-disaster-fallout.md` is OPEN — the ruled arming breaks the CR-001 permanent
+> dt-continuity detonator at the era gate (measured 2.5259 per 1000 yr against a 0.1 bar), puts
+> `canonical.fedGrowthPerYear` below its band, and extinguishes the dev world (93,910 → 38 over 1000
+> turns). No band, constant or derivation was moved; six tests are left RED and named in CR-016 §5.
+> Suite on the packet tree, MEASURED in Release: Sim.Tests **867 passed / 6 failed / 4 skipped**
+> (the 6 skips became 4: `MigrationTests.cs:378` and `:532` were LIFTED under CR-015 N9),
+> Sim.Ui.Tests **294/294**, and all three gate scripts green
+> (`check-banned-constructs.sh`, `check-read-isolation.sh`, `check-readonly-proof.sh`). The ONE
+> inherited red on `8f7f9da` (`Dev_MalthusCorridors_AllInBand(seed: 7)`, the migration drift tooth)
+> is RESOLVED — its envelope was re-pinned to the measured value — but both seeds of that theory are
+> now red for the CR-003 Malthus teeth instead. Goldens moved for the arming alone, proved
+> bit-exactly: every layout control returns its constant byte for byte on the λ = 0 twin.
+> Verify against git.
+>
+> T4.21-1 merged to the integration branch at `05b23e6` (Release suite, measured by the fix lane on
+> the fix tree: Sim.Tests 819 passed / 2 failed / 6 skipped in 5 m 36 s, Sim.Ui.Tests 294/294 — the
+> SAME two `Dev_MalthusCorridors_AllInBand(seed: 42)` and `(seed: 7)` fail on `45046eb` in the fix
+> lane's own worktree with the byte-identical message "3 starvation deaths": INHERITED from the M4
+> playtest build, not caused by the packet; CI on this branch is red until T4.21-4 restores the `Cr003Quarantine` guards and re-reads the
+> `Dev_MalthusCorridors` message). T4.21-1 fix lane (verifier's findings): the measured foundations
+> audit `docs/t4.21-1-foundations-audit.md` (per-settlement `ρ` for seed 42 ± the director's orders and
+> seeds 1–3, F4/F5), the measured mutant kill-record `docs/t4.21-1-mutants.md`, and the M-FS-ABANDON
+> correction in ADR-024 §8 / FoodState.cs (the Share variant is equivalent).
+>
+> **2026-09-18 — T4.21-2 ∥ T4.21-3 MERGED AND FINISHED on `claude/civdemo-work-b1z2y4`.** The merge
+> commit `a621c86` (T4.21-2 bounded migration, ADR-025 + T4.21-3 shock integration, CR-015/ADR-026)
+> was left unfinished: a `-999` placeholder in `MerchantTests`, every golden and measured pin resolved
+> to the T4.21-3 side (both parents measured against `1735d41` with the other absent, so neither
+> value can hold on a tree carrying both), and a conflict of fact — T4.21-3 asserted migrants move on
+> turn 2, T4.21-2's vacancy bound refuses every gap flow that turn. The merge-finish lane resolved all
+> three BY MEASUREMENT on the merged tree, changing NO mechanism (the diff against `a621c86` touches
+> `Sim.Tests`, `Sim.Ui.Tests`, `ci.yml`, `docs/queue.md` only): T4.21-2's form is the measured truth —
+> `MigrantsMoved` 0 on turn 2, 252 on turn 3, founded and driven. Four world goldens, ci.yml's
+> `FOUNDED_GOLDEN` (reproduced with two separate CLI processes, byte-identical), every
+> `IntegratedPinAttribution` strip and every measured-value pin re-measured; the synthetic
+> `GoldenHash_Seed42Turn200` and both its strips are UNMOVED, which is the no-unrelated-movement
+> control. Suite measured on the finished tree (Release): Sim.Tests **858 passed / 1 failed / 6
+> skipped** in 6 m 31 s, Sim.Ui.Tests **294/294**, three gate scripts green. The ONE red is
+> `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand(seed: 7)` — the dev migration quarantine's
+> drift tooth, red on BOTH parent branches for the same pre-existing, previously masked cause
+> (measured here: seed 7 `dev.migrationGrossPerDecade` 1.0200612834541973E-04 against a recorded
+> 0.000799951; seed 42 8.336943780925534E-05 against 7.21744E-05, which passes). Its re-pin is
+> T4.21-4's deliverable; the `corridors.json` bands and the CR-003 quarantine were NOT touched.
+> The two open T4.21-2 findings (the turn-2 vacancy refusal, the fed-world basin-cap magnitude) stay
+> open in `docs/queue.md` — this lane measured and recorded, it did not act on them. Verify against git.
+>
+> **2026-09-18 — T4.21-4 RULE APPLICATION on `claude/civdemo-work-b1z2y4`.** The orchestrator's two
+> pre-registered rules were applied to the two findings above. **RULE 1: the source basin (fan-out)
+> cap STAYS as shipped** — measured on the canonical founded world (seed 42, no orders), gross
+> migration per decade over turns 2..300 is 0.001021 on the merged tree against 0.001509 pre-packet
+> (`1735d41`), i.e. 0.677x, clearing the 0.4x threshold (0.000604) and inside the corridor band
+> [0.001, 0.01]; both conditions hold, so no mechanism changed and no test or mutant was removed.
+> **RULE 2: `FoodHeadroom.Limit`'s null arm now includes catchment ROW ABSENCE** (ADR-026 §2.1a),
+> keyed on row absence only — never on `production == 0`, which is the abandoned settlement's genuine
+> zero — with `H_NullArm_NoCatchmentRow_IsPositiveInfinity_ButAbandonedWithARowIsZero` pinning both
+> arms. **It does NOT close its queue line, and it moves no golden:** measured bit-exact on the
+> canonical founded world (300-turn hash `db7c7a09…` before and after — the ci.yml `FOUNDED_GOLDEN`,
+> reproduced via the ci step's own `sim run --founded --seed 42 --turns 300 --hash-log`; first
+> migration turn 3 both ways) and byte-identical over every turn of the driven world. Catchment is
+> pipeline entry 1 and writes into NEXT, so the turn-1 world — PREV on turn 2 — already carries a row
+> for every founded settlement; the turn-2 refusal comes from that row being PRESENT alongside the
+> turn-1 zero staple harvest, which the rule forbids keying on. No substitute key was designed.
+> Suite on this tree (Release, sequential): Sim.Tests **859 passed / 1 failed / 6 skipped** in 5 m 33 s,
+> Sim.Ui.Tests **294/294**, three gate scripts green, `dotnet build -c Release` 0 warnings 0 errors.
+> The +1 pass over the merge-finish tree is the new null-arm test; the ONE red is still
+> `Dev_MalthusCorridors_AllInBand(seed: 7)` at the identical value (0.000102006), untouched here —
+> `corridors.json` and the CR-003 quarantine were NOT re-pinned. Where the residual pre-packet →
+> merged migration cut sits (vacancy bound, bounded flight, exit-openness rewrite) is ESCALATED to the
+> director per RULE 1's own wording. Records: ADR-025 §2.3a/§2.4a, ADR-026 §2.1a,
+> `docs/t4.21-2-record.md` §9, `docs/queue.md`. Verify against git.
+
+> **2026-09-18 — T4.21-7 THE DISARM-AND-SETTLE LANE, on `claude/civdemo-work-b1z2y4` (worked
+> directly on the integration branch, from `ee27c17`). THE FAMINE-CLASS DISASTER SHIPS COMPLETE AND
+> TESTED BUT INERT.** `sim.json disaster.hazardPerYear` **0.01 → 0.0**, the exact inverse of
+> T4.21-4's arming. This implements the orchestrator's decision on
+> `docs/adr/cr-016-armed-disaster-fallout.md` — recorded there in full under "ORCHESTRATOR DECISION"
+> — that the MECHANISM ships and the RATE becomes the director's ruling, because a world that dies
+> by construction plus a broken PERMANENT dt-invariance detonator is a worse pathology than the one
+> T4.21 fixed, and because choosing a lower rate to make the world survive would be the
+> tuning-to-outcome CR-015 §6.5 forbids. `durationYears`, `severityMin/Max`, the §3.3 derivation and
+> `corridors.json` are UNTOUCHED — the band is not what CR-016 disputes. **CR-016 STAYS OPEN: what
+> is settled is the TREE, not the question.**
+>
+> **Suite, MEASURED by this lane on this tree, in BOTH configurations, sequential.** Debug:
+> Sim.Tests **884 passed / 0 failed / 4 skipped** (30 m 31 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 35 s).
+> Release (the configuration CI and the earlier T4.21 records use): Sim.Tests **884 / 0 / 4**
+> (8 m 6 s), Sim.Ui.Tests **296 / 0 / 0** (33 s) — the two agree test for test. `dotnet build` and
+> `dotnet build -c Release` both 0 warnings 0 errors, and all three gate scripts exit 0
+> (`check-banned-constructs.sh`, `check-read-isolation.sh`, `check-readonly-proof.sh`). **THE RED SET IS EMPTY.** All six reds T4.21-4 escalated (both
+> canonical fed-corridor seeds, both CR-001 dt-continuity detonators, both dev Malthus seeds) are
+> RESOLVED by the disarming, which is itself evidence that the arming was their sole cause — none of
+> them needed chasing. The ONE red inherited from `8f7f9da` (`Dev_MalthusCorridors_AllInBand(7)`,
+> the migration drift tooth) is resolved deliberately, like a golden, by re-pinning the recorded
+> envelope to the measured λ = 0 values. The 4 skips are the four manual measurement rigs
+> (`FoundingVariationItem0Tests`, `WaterRouteCounterfactualTests` ×2, `HousingBeforeColumnTests`);
+> CR-015 N9's two lifts are NOT re-skipped.
+>
+> **All four world goldens and `ci.yml`'s `FOUNDED_GOLDEN` returned to their pre-arming constants
+> BYTE FOR BYTE** (`db7c7a09…`, `98ee3a7a…`; the founded one derived twice — in-test harness and the
+> Release CLI reproducing the ci step). That round trip is a stronger attribution than the λ = 0
+> twin controls were: everything merged since `8f7f9da` (T4.21-5's observability, the chain-link
+> merge fix, T4.21-6's eight finding fixes) is now MEASURED to move no world golden. Every measured
+> pin returned too — artisan latch 70 / 13, merchant latch 119, founded/driven populations
+> 40,539 / 6,373 at turn 300, first trade 28 / 7, and no pin failed to return.
+>
+> **What the disarming COSTS is recorded, not hidden.** Two `Cr003Quarantine` guards go back to
+> quarantined (the dev world starves nobody and writes no famine chronicle line at λ = 0 — measured),
+> `WorldReconciliationTests`' founded-starvation and driven-dwelling-decay coverage returns to
+> ABSENCE pins, and `MigrationTests.MagnitudeCorridor_FedPhaseDrift_WithTeeth`'s UPWARD rate-lever
+> tooth is quarantined in place (×1.0082 at λ = 0 against ×1.88 armed — below ADR-018 §11's own dead
+> signature of ×1.07); its corridor assertion and both downward teeth stay live and it is NOT
+> re-skipped. Each site carries BOTH readings and names CR-016 as what decides it, and every one
+> reverses with the same single data edit. `docs/queue.md` carries them as open items.
+>
+> **The MECHANISM is still proven, by tests that arm λ in their own rigs, never by re-arming the
+> shipped value**: a disaster CAN cause famine (forced-strike rigs and the λ = 0.01 in-rig battery
+> arms), an ordinary bad harvest CANNOT, deliberate abandonment CAN on the SHIPPED config (mandate
+> item 1(B), reachable in play today), λ = 0 gives zero famine while still giving STRESS, and the
+> three determinism legs each assert a disaster actually fired. One claim was found exercised only
+> by a dead test — the forensic disaster cross-check — and was given its own hazard.
+>
+> Records: `docs/adr/cr-016-armed-disaster-fallout.md` (decision, options, what the director is
+> asked to rule), ADR-024 §11 (the disarmed re-measurement), CR-015's T4.21-7 append-only block,
+> `docs/t4.21-4-record.md` (RETAINED as CR-016's evidence, now headed as measured AT λ = 0.01),
+> `docs/t4.21-architecture.md` §4 row T4.21-4, `docs/queue.md`. Verify against git.
+
+> **2026-09-18 — T4.21-8 THE FIX LANE, on `claude/civdemo-work-b1z2y4` from `8b59bab`. Three MINOR
+> verifier findings, all fixed; NOTHING about the CR-016 decision is reopened.** (1) The shipped
+> `sim.json` `disaster._doc` and CR-016 §2.1 pair the discontinuity **2.5259** with the components
+> **+0.4352 / −1.8220**. Those are TWO DIFFERENT RIGS — re-measured by this lane at λ = 0.01:
+> `Canonical_EraBoundaryContinuity_PermanentBatteryMember` (seed **1**, windows 1600–2500 /
+> 2500–3400) is +0.4352 → −1.8220, discontinuity **2.2572**;
+> `EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator` (turns 1..450) is +0.7616 → −1.7643,
+> discontinuity **2.5259**. Both ~23–25× the 0.1 bar, so NO conclusion changes and the detonator is
+> broken on both rigs. Only NEW prose was corrected (the `_doc`, and CR-016 §D.6, which is this
+> lane's own section); the four frozen T4.21-4-era records carrying the same pairing are LEFT ALONE
+> per `gov-4` §6 and tabulated in §D.6. (2) `SimConfigTests`' disaster substitutions anchored on
+> `"hazardPerYear": 0.0` — a PREFIX of `"hazardPerYear": 0.01`, so on a re-armed tree
+> `DisasterHazard_Armed_Loads` asserted against **0.011** (measured). All five sites now anchor on
+> the literal WITH ITS TRAILING COMMA and fail through `AssertAnchorMatched`, whose message says to
+> move the search string and never the expected value; `HazardAnchor_IsValueExact_NotAPrefix` is the
+> new guard that makes the defect visible on the SHIPPED tree, and CR-016 §D.3's cost list now
+> prices all six tests the director's ruling re-aims. (3) `docs/t4.21-architecture.md`'s constants
+> table carries the disarm inline, like every other rate-bearing document.
+>
+> **Suite, MEASURED by this lane on THIS tree (`1fa8c1d`), in BOTH configurations, sequential.**
+> Release (the configuration CI uses): Sim.Tests **885 / 0 / 4** (7 m 54 s), Sim.Ui.Tests **296 / 0 / 0**
+> (33 s). Debug:
+> Sim.Tests **885 / 0 / 4** (28 m 3 s), Sim.Ui.Tests **296 / 0 / 0** (1 m 3 s). `dotnet build` and `dotnet build -c Release`
+> both 0 warnings 0 errors; all three gate scripts exit 0. **THE RED SET IS EMPTY.** The +1 against
+> T4.21-7's 884 is `HazardAnchor_IsValueExact_NotAPrefix`. The 4 skips are unchanged.
+>
+> Records: `docs/adr/cr-016-armed-disaster-fallout.md` §D.3 and §D.6, `docs/queue.md`,
+> `docs/t4.21-architecture.md` §the disaster constants table. Verify against git.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a
@@ -23,11 +205,11 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 | **Current objective** | M4 "Empire Control Foundation" — the structural minimum for the ratified Empire model |
 | **Governing architecture** | `docs/d042-empire-and-player-control-addendum.md` (D-042) |
 | **Milestone spec** | `docs/m4-spec.md` (R-1, R-2, R-3 ruled 2026-08-07; packet list FINAL) |
-| **Authoritative baseline** | `origin/main` = `070f05b` (T4.4 colonization, schema v22) |
+| **Authoritative baseline** | `CORRECTED` — `origin/main` = `dbef61a` (M4 completion merge, schema v24). As written: `070f05b` (T4.4 colonization, schema v22) |
 | **Active implementation branch** | `m4-empire-control-foundation`, rebased onto `origin/main` — see §3 |
 | **Integration state** | T4.4 v22 + M4 v23 + capacity-floor fix + D-042 + GOV-4; four goldens re-derived and causally attributed |
-| **Certification** | M4-A merged to `main` at `82ba3fc`. **M4-B, M4-C and M4-D CERTIFIED** on `m4-empire-order-seam` — not merged; the merge is the director's |
-| **Schema version** | **v24** — v22 T4.4's `BucketRow`; v23 M4-A's Polities/Capitals; v24 M4-D's ConstructionQueue/Structures |
+| **Certification** | `CORRECTED` — M4-A, M4-B, M4-C and M4-D are ALL MERGED; `origin/main`'s tip is the M4 completion merge. As written: B/C/D certified but unmerged |
+| **Schema version** | **v24** (unchanged at the M4 exit gate) — v22 T4.4's `BucketRow`; v23 M4-A's Polities/Capitals; v24 M4-D's ConstructionQueue/Structures |
 
 **Documents required before touching current work:** `CLAUDE.md` · `docs/m4-spec.md` ·
 `docs/d042-empire-and-player-control-addendum.md` · `docs/spine-s8-governance-freeze.md` ·

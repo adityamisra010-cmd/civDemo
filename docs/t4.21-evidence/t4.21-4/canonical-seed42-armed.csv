@@ -1,0 +1,4 @@
+# hazard=0.01 turns=300 dev=False seeds=42
+seed,onsets,settlementYears,onsetsPerSettlementCentury,famine,severe,stress,normal,fReasonNone,fDisaster,fAbandon,fBoth,starvTotal,starvMaxFamineTurns,starvMaxSevereTurns,starvMaxStressTurns,starvMaxNormalTurns,turnsMaxFamine,turnsMaxSevere,turnsMaxStress,turnsMaxNormal,v2Violations,finalPop
+42,305,33000,0.924242424,78,0,8,3514,0,78,0,0,11060,11060,0,0,0,61,0,5,234,0,10974
+# TOTAL onsets=305 settlementYears=33000 perSettlementCentury=0.924242424 famine=78 severe=0 stress=8 famineReasonNone=0 v2Violations=0

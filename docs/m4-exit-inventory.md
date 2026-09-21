@@ -322,3 +322,59 @@ These are settled. Reopening any of them at M5 startup is out of scope without a
   changes. CR-006 remains open.
 - **Do not fabricate a second polity to activate foreign trade.** The `aiEmpires` seam exists; using
   it is a measured decision.
+
+> **§12 NOTE — SUPERSEDED IN PART BY CR-015 (2026-09-17, director mandate).** The director's
+> 2026-09-17 mandate is the "fresh ruling" this section requires. Bullets 1–2 are superseded FOR THE
+> MECHANISM CHANGES CR-015 ORDERS (bounded migration, ADR-025; effective-deficit mortality and
+> fertility and the headroom growth cap, ADR-026; the derived food state and the disaster shock,
+> ADR-024) and for those only: the TUNING ban stands (no migration constant, no demographic constant,
+> no corridor bound moves), the Malthus quarantine stands with its bands frozen, and no starvation is
+> fabricated — disasters are a mechanism with a derived band. "D-021 stays as-is" is untouched (ω is
+> the Exit valve's openness, not needs/grievance state). "The 10-year atomic turn stays" is untouched
+> (G8(a); the sub-step is queued). See `docs/adr/cr-015-famine-is-exceptional.md` §6.2 N7.
+
+---
+
+## M4 CLOSURE — THE MERGE AND THE TAG (2026-09-21)
+
+**APPEND-ONLY.** The 2026-09-05 certification above is unedited; it certified `badef96` at schema
+v24. This block records the closure of the five post-certification packets that sat on the exit
+candidate, under the Director's final closure rulings of 2026-09-21.
+
+| | |
+| --- | --- |
+| candidate | `claude/civdemo-work-b1z2y4` |
+| previous `main` | `dbef61a` ("Merge M4 completion (director-certified): the M4 baseline") |
+| commits merged | 167 · 218 files · +57,902 / −856 against the baseline |
+| schema | v24 → **v25** (`Disasters`, T4.21-1) |
+| tag | **`m4-exit`**, lightweight (the `m3-exit` precedent), at the merge commit |
+| route | **a pull request, not a direct push.** `main` requires 2 status checks, which cannot exist on a commit pushed straight to it; a local merge was made, rejected by `GH006`, and discarded rather than forced. The merge SHA is recorded on the tag and in the closure report. |
+
+**Validated on the merge candidate, and re-validated on the merged tree before the tag:**
+
+| | |
+| --- | --- |
+| `check-banned-constructs.sh` · `check-read-isolation.sh` · `check-readonly-proof.sh` | all **PASS** |
+| `dotnet build -c Release` | **0 warnings, 0 errors** |
+| `Sim.Tests` | **896 passed / 0 failed / 4 skipped** |
+| `Sim.Ui.Tests` | **296 passed / 0 failed / 0 skipped** |
+| suite exit code | **0** |
+
+The four skips are pre-existing manual measurement rigs, each carrying a stated run-manually
+reason; none is a suppressed failure.
+
+**Determinism at closure.** The Director's own M3 session order log replays bit-identically over
+650 per-turn hashes (`fbfe9821…e6f7`), and that hash log is **bit-identical to the one taken at
+`95faa61`** — so none of the closure work moved simulation behaviour.
+
+**B1 — recorded exactly as ruled.** The Director **waived** the requirement for an additional live
+human play session as a separate engineering deliverable and accepted the evidence package.
+**NO LIVE SESSION HAS BEEN PLAYED AGAINST THIS CANDIDATE.** That is a waiver, not a performance,
+and must never be read back as one. `docs/m4-exit-session.md` is the brief, written and unused.
+
+**What travels past M4, none of it blocking:** CR-016 (OPEN, mechanism unarmed at `hazardPerYear`
+= 0.0) · G1 (escalated, no sigma moved) · the density quarantine (active; 17/20 band, 19/20
+window) · the migration corridor (0/20, ACCEPT-AS-IS, a historical calibration reference and not
+an active acceptance criterion) · ADR-017 · ADR-020 · T4.19-E S1–S5 · grain-vs-livestock storage
+bounding · the ADR-019 gap · ADR-027's sign-off on `CorridorStatus.cs` under `Sim.Core/Kernel/` ·
+six remaining stale claims in `docs/current-state.md`.

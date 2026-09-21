@@ -2,6 +2,13 @@ name: ui-artifact
 
 # T1.10 (D-023, formalized): the playable Windows build.
 #   - every packet branch push (t[0-9]*.*) → gate zip for Director Visual Gates
+#   - every candidate branch push (claude/**) → the same, for remote-session
+#     branches. M4's exit criterion asks for a session "from the CI zip"; the
+#     M4 candidate lives on claude/civdemo-work-b1z2y4, which matched none of
+#     the patterns below, so no zip was built for the very commit the exit
+#     session is held against. Found by the M4 final closure audit; the zip for
+#     95faa61 was first produced by workflow_dispatch (run 35568905793,
+#     sim-ui-win-x64-95faa61) and this line is what stops that being manual.
 #   - every push to main      → the "latest playable" artifact per merge
 #   - release: published      → the zip is ATTACHED to the GitHub Release as a
 #     permanent asset (runs on GitHub's runners, so milestone releases become
@@ -12,7 +19,7 @@ name: ui-artifact
 on:
   workflow_dispatch:
   push:
-    branches: ['main', 't[0-9]*.*', 'art-*']
+    branches: ['main', 't[0-9]*.*', 'art-*', 'claude/**']
   release:
     types: [published]
 

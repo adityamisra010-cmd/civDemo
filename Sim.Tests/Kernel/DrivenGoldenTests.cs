@@ -81,9 +81,15 @@ public class DrivenGoldenTests
         return log;
     }
 
-    public static (WorldState World, SimConfig Cfg) RunDriven(int turns)
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
+
+    /// <summary>T4.21-4: the same driven run under a CONFIG OVERRIDE, so the
+    /// attribution controls in IntegratedPinAttributionTests can run the λ = 0
+    /// twin of this world — the arming is a pure data change, and a layout
+    /// control must not be asked to absorb a behaviour change.</summary>
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
         WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42);
         OrderLog orders = DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
@@ -262,7 +268,114 @@ public class DrivenGoldenTests
         //       or table joined or left the stream; the merchant rows are more
         //       rows of types that already existed.
         //   OLD 0b9423d6f451a313003ded645e799056c6d4b7d6a4528894f668aafd04f76272
-        const string golden = "01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af";
+        // T4.19 RE-PIN — TWO CAUSES, MEASURED APART (CR-014 ruled, option 1).
+        //   OLD  01673381e5e4b18753bf19f345e42f5424046a813a8c723a7564be34186820af
+        //   NEW  76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6
+        //   CAUSE (a) lane C: founding.cohortCounts is now the kernel's stable age
+        //         structure (SnapshotTests.FoundedGolden has the record). Under it
+        //         this world reached a LATENT ProductionSystem.Craft overdraw at
+        //         turn 213 — weaving, fiber, settlement 10: stock 66, cap 22 × 3 =
+        //         66.0, banked ConsumeRemainder 0.9999999999999929, exactIn 67.0 —
+        //         so the world could not complete and the pin stood at OLD.
+        //   CAUSE (b) CR-014: the Leontief input cap now includes the row's banked
+        //         remainder (`max(0, stock − ConsumeRemainder) / perOutput`), so
+        //         the sink can never floor above the stock. ProductionTests
+        //         reproduces the turn-213 coincidence exactly and sweeps the
+        //         (stock, bank) space; red-proven against the old cap.
+        //   THE ARMS, every hash measured on the tree it names (per-turn hash
+        //   logs on both sides, first differing turn found by diff):
+        //     OLD  feaf218, old founding vector, old cap ........ 01673381… (turn 300)
+        //     X1   feaf218 + ONLY the cap change ................ 01673381… (turn 300)
+        //          IDENTICAL to OLD at 300, but NOT identical throughout: turns
+        //          273, 274, 275 differ and 276–300 do not. At 273 settlement 9's
+        //          pottery-firing was timber-bound with a 0.25 bank: the new cap
+        //          spends the bank (timber ConsumeRemainder 0.25 → 0), sinks one
+        //          clay unit fewer (LedgerFlows (clay, InputsConsumed) 178143 →
+        //          178142; clay stock 0 → 1) and leaves pottery's ProduceRemainder
+        //          0.5 → 0. The deferred clay unit is consumed by turn 275
+        //          (ledger totals equal again, 178252 both); the only 275
+        //          difference is PriceTerms row 131, computed from the PREV clay
+        //          stock, while the written Prices table is identical on all
+        //          three turns. By 276 no field differs
+        //          (`sim diff`, 40 blocks). The fix's whole effect on the old
+        //          vector is a three-turn transient with no trace at 300.
+        //     X2   this tree: cap change + new founding vector ... 76f82629… = NEW
+        //          X1 → X2 first differs at turn 0 (the founding vector).
+        //          Unfixed new vector → X2 first differs at turn 15 — settlement
+        //          1's weaving, fiber-bound with bank 0.7499999999995453, cloth
+        //          ProduceRemainder 0.9166… → 0.6666… — and on every turn 15..212
+        //          after it (198 of 198); the unfixed run throws at 213.
+        //   So (a) is the whole movement of this pin — (b) alone returns OLD —
+        //   and (b) is what lets the world reach 300. Full table: CR-014 §10.
+        //   NOT A SCHEMA CHANGE: v24; no table, row or field joined or left.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200, FoundedGolden,
+        //   FirstReign and every IntegratedPinAttribution founded/FirstReign
+        //   constant pass unchanged on this tree (no input-bound craft with a
+        //   non-zero bank reaches them differently — measured by running them).
+        // T4.21-1 RE-PIN — SCHEMA v25 + DISASTER RNG STREAMS, LAYOUT ONLY, MEASURED.
+        //   OLD  76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6
+        //   NEW  73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
+        //   CAUSE the empty Disasters table's prefix plus one RngStreamRow per
+        //         settlement (two unconditional draws per settlement-turn at
+        //         hazardPerYear 0). See SnapshotTests.FoundedGolden for the record.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheDisasterLayoutAlone strips
+        //         both and returns the OLD value byte for byte; every v22/v23
+        //         constant in that file is UNMOVED.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN — BEHAVIOUR, BOTH PACKETS, MEASURED ON
+        // THE MERGED TREE by the agent writing this line (ADR-015 §6).
+        //   OLD (pre-packet, 1735d41)   73009964466baecf2820c7d6e2d53690dec7c62170338d404163e449ea218e46
+        //   OLD (T4.21-2 branch alone)  297b432ccd4eff0257c86a89913bd9c2b0996e5fb3ff3c0aeba5ae30072b4839
+        //   OLD (T4.21-3 branch alone)  d620da4a7aaace3b00565b5453f9fa50d3ec0f76d093dff8560ab6afd0a96c02
+        //   NEW (merged)                98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   CAUSE both packets reach this world: bounded migration (ADR-025 — the
+        //         exact flight hazard, the basin caps, the vacancy bound) and the
+        //         effective deficit + headroom growth cap (ADR-026). This driven
+        //         world reads d > 0 turns under the director's orders, so ADR-026's
+        //         exceptional channels reach it too. SnapshotTests.FoundedGolden
+        //         carries the joint record.
+        //   MEASURED ON THE MERGED TREE (WorldReconciliationTests has the same
+        //         readings): first migration turn 3 (turn 2 is refused world-wide
+        //         by the vacancy bound), first starvation turn 8, first trade turn
+        //         7, NO dwelling decay in 300 turns, 56 policy changes, 6,373
+        //         people at turn 300. The 1,535 in the T4.21-3 branch comment was
+        //         measured there, not here, and is not carried forward.
+        //   NO UNRELATED MOVEMENT: GoldenHash_Seed42Turn200 UNMOVED at b6df7edd…,
+        //         both its controls re-measured on the merged tree and unmoved.
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: THE ARMING).
+        //   OLD  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   NEW  0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4
+        //   CAUSE  sim.json disaster.hazardPerYear 0.0 -> 0.01 — a DATA change
+        //         and the only change in this packet that reaches running code
+        //         (spec §3.3; CR-015 §3.3).
+        //   ATTRIBUTION, not asserted but PROVED: the two DRIVEN controls in
+        //         IntegratedPinAttributionTests (…_MovedForTheDisasterLayoutAlone
+        //         and …_SeparatesTheSchemaMoveFromTheBehaviouralOne) now run the
+        //         lambda = 0 twin of THIS run and return their v22/v23/v24
+        //         constants byte for byte, so the arming is the entire cause of
+        //         this move and nothing else in the packet reaches this world.
+        //   BLAST RADIUS: every behavioural golden in the tree moves with the
+        //         arming, by design — this is the packet the golden ladder calls
+        //         the last golden move (CR-015 "Golden ladder"). The controls do
+        //         NOT move, which is what makes the ladder a ladder.
+        // T4.21-7 RE-PIN (VALUE, ONE ruled cause: THE DISARMING).
+        //   OLD  0af545ae63d56daf11292f1da6486240ad92228d14f8d0d3a8d03433411aecb4  (armed)
+        //   NEW  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   CAUSE  sim.json disaster.hazardPerYear 0.01 -> 0.0, the exact inverse
+        //         of T4.21-4's arming. CR-016's orchestrator decision: the
+        //         mechanism ships COMPLETE AND TESTED BUT INERT; the RATE is the
+        //         director's (docs/adr/cr-016-armed-disaster-fallout.md).
+        //   ATTRIBUTION, MEASURED not asserted: the value returns to the
+        //         PRE-ARMING constant BYTE FOR BYTE (the harness produced
+        //         98ee3a7a… against the armed pin, measured by the agent writing
+        //         this line). The round trip proves what the λ = 0 twin controls
+        //         proved one way only — nothing merged between 8f7f9da and here
+        //         (T4.21-5, the chain-link merge fix, T4.21-6's findings) moves a
+        //         world golden.
+        //   BLAST RADIUS: the same four behavioural goldens the arming moved,
+        //         moving back. The layout controls do NOT move either way, which
+        //         is what makes the ladder a ladder.
+        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
@@ -413,6 +526,16 @@ public class DrivenGoldenTests
         // spec said this reuses T3.9b's TradeModel classification. It cannot —
         // TradeModel lives in Sim.Ui and NOTHING references Sim.Ui (ADR-009).
         // The same classification is therefore computed here independently.
+        //
+        // T4.19 READINGS (CR-014 ruled; the world completes again). Measured on
+        // the OLD arm (feaf218, old founding vector — the cap change leaves that
+        // world byte-identical at 300, so the reading is the same with or
+        // without it) and on THIS tree; the difference is the founding vector:
+        //   OLD  totalFlow=3   rows=1  minPathCost=4.9012  cloth moved=3;
+        //        pottery GAP>DEADBAND, every other good GapZero/UnderDeadband
+        //   NEW  totalFlow=20  rows=5  minPathCost=4.0070  cloth moved=20;
+        //        timber, copper-ore, fiber, bronze, pottery GAP>DEADBAND
+        // Neither is asserted (D1 pre-commits that); both are in CR-014 §10.
         (WorldState world, SimConfig cfg) = RunDriven(300);
         var inv = CultureInfo.InvariantCulture;
         int grain = cfg.Goods!.GrainId;

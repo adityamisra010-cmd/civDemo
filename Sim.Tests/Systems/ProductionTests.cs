@@ -267,6 +267,130 @@ public class ProductionTests
         Assert.True(used > 0, "no timber consumed — the shared-input contention is not exercised");
     }
 
+    // --- CR-014: the input cap includes the banked remainder ------------------
+
+    private static int RowOf(WorldState w, SimConfig cfg, string good)
+    {
+        int id = cfg.Goods!.IdOf(good);
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+            if (w.GoodStocks[i].Good.Value == id) return i;
+        return -1;
+    }
+
+    /// <summary>The CR-014 rig: abundant crafting labor, `fiber` at `stock`
+    /// with `bank` already sitting in the row's ConsumeRemainder — exactly the
+    /// state an earlier turn's `exactIn − sunk` leaves behind. Weaving is the
+    /// only ungated recipe with a stocked input here, so it is the only recipe
+    /// that sinks anything.</summary>
+    private static WorldState BankedFiberRig(SimConfig cfg, long stock, double bank)
+    {
+        WorldState world = World(cfg, adults: 100_000,
+            allocation: new SectorAllocationRow(S0, 0.0, 0.0, 0.0, 1.0, 0.0),
+            stocks: [("fiber", stock)]);
+        world.GoodStocks.Ref(RowOf(world, cfg, "fiber")).ConsumeRemainder = bank;
+        return world;
+    }
+
+    [Fact]
+    public void Crafting_InputCapIncludesTheBankedRemainder_TheRecordedCoincidence()
+    {
+        // CR-014, THE RECORDED COINCIDENCE, REPRODUCED EXACTLY. Driven seed-42
+        // world, turn 213, recipe 'weaving', input fiber, settlement 10:
+        // stock 66, perOutput 3, labor wanted more than 22 outputs, banked
+        // ConsumeRemainder 0.9999999999999929. Capped on the STOCK ALONE the
+        // sink computed 22 × 3 + 0.9999999999999929, which is 67 − 2^-47 —
+        // a tie between the doubles 67 − 2^-46 and 67.0 that rounds to even,
+        // 67.0 — floored to 67 and threw LedgerOverdrawException ("sinking 67
+        // exceeds available stock 66"). RED-PROVEN: this test throws that
+        // exception against the pre-CR-014 cap (measured, then the fix applied).
+        //
+        // With the bank inside the cap: supply = 66 − (1 − 2^-47) = 65 + 2^-47,
+        // itself a tie (spacing 2^-46 at 65) that rounds to even, 65.0; the cap
+        // is 65/3; the sink recomputes 65/3 × 3 + bank = 66 − 2^-47, a tie that
+        // rounds to 66.0, floors to 66 ≤ 66. The whole bank is spent with the
+        // stock and the carried remainder is exactly 0.0 — nothing is lost and
+        // nothing is minted; the ledger reconciles to the unit.
+        SimConfig cfg = TestConfigs.Sim();
+        const long stock = 66;
+        const double bank = 0.9999999999999929;
+        // The literal IS the recorded value — 64 ulps below 1.0 — so the rig
+        // reproduces the transcript bit for bit rather than "something close".
+        Assert.Equal(BitConverter.DoubleToInt64Bits(1.0 - Math.ScaleB(1.0, -47)),
+                     BitConverter.DoubleToInt64Bits(bank));
+
+        WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)])
+            .Step(BankedFiberRig(cfg, stock, bank));      // no exception
+
+        // The INPUT cap is what bound (precondition measured, not assumed):
+        // labor alone wanted more fiber than the 66 in stock.
+        Assert.True(InputDemand(next, cfg, "fiber") > stock,
+            $"labor wanted only {InputDemand(next, cfg, "fiber")} fiber — the rig is labor-bound, not input-bound");
+
+        long sunk = FlowOf(next, cfg, "fiber", ReasonIds.InputsConsumed, sunk: true);
+        long left = Stock(next, cfg, "fiber");
+        double carried = next.GoodStocks[RowOf(next, cfg, "fiber")].ConsumeRemainder;
+
+        Assert.True(sunk <= stock, $"sunk {sunk} > stock {stock}");
+        Assert.Equal(stock, left + sunk);                    // EXACT (law 1)
+        Assert.True(carried >= 0.0 && carried < 1.0, $"carried remainder {carried:R} outside [0, 1)");
+        Assert.Equal(66, sunk);                              // the derivation above, measured
+        Assert.Equal(0, left);
+        Assert.Equal(0.0, carried);
+        Assert.Equal(21, Stock(next, cfg, "cloth"));         // floor(65/3) — output follows the corrected cap
+    }
+
+    [Fact]
+    public void Crafting_InputSinkNeverExceedsStock_AcrossBankedRemainders()
+    {
+        // CR-014, THE INVARIANT: floor(exactOutput × perOutput + bank) ≤ stock
+        // for every (stock, bank) the D-004 bank can hold. A deterministic
+        // sweep — fixed arrays, fixed order, no RNG — over stocks including 0
+        // and 1 and banks including 1, 2, 16 and 64 ulps below 1.0 (the last
+        // is the recorded coincidence). Pre-CR-014, 1 − 1 ulp at stock 1 or 3
+        // and 1 − 64 ulps at stock 66 all floored to stock + 1 and threw.
+        // Every row is a fresh one-step rig; every row must reconcile exactly.
+        SimConfig cfg = TestConfigs.Sim();
+        long[] stocks = [0, 1, 2, 3, 4, 5, 7, 66, 67, 100, 999, 1_000_000_000];
+        double oneUlpBelow = Math.BitDecrement(1.0);
+        double[] banks =
+        [
+            0.0, 0.25, 0.5, 0.75,
+            oneUlpBelow,                                   // 1 − 2^-53
+            Math.BitDecrement(oneUlpBelow),                // 1 − 2·2^-53
+            1.0 - 16.0 * Math.ScaleB(1.0, -53),            // 1 − 16 ulps
+            1.0 - Math.ScaleB(1.0, -47),                   // 1 − 64 ulps: 0.9999999999999929
+        ];
+        int inputBound = 0, rows = 0;
+        for (int s = 0; s < stocks.Length; s++)
+        {
+            for (int b = 0; b < banks.Length; b++)
+            {
+                long stock = stocks[s];
+                double bank = banks[b];
+                WorldState next = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Production(cfg)])
+                    .Step(BankedFiberRig(cfg, stock, bank)); // must not throw
+                long sunk = FlowOf(next, cfg, "fiber", ReasonIds.InputsConsumed, sunk: true);
+                long left = Stock(next, cfg, "fiber");
+                double carried = next.GoodStocks[RowOf(next, cfg, "fiber")].ConsumeRemainder;
+                string what = $"stock {stock}, bank {bank:R}";
+
+                Assert.True(sunk <= stock, $"{what}: sunk {sunk} > stock");
+                Assert.True(left >= 0, $"{what}: stock went negative ({left})");
+                Assert.Equal(stock, left + sunk);            // EXACT, no epsilon
+                Assert.True(carried >= 0.0 && carried < 1.0, $"{what}: carried {carried:R}");
+                if (InputDemand(next, cfg, "fiber") > stock) inputBound++;
+                rows++;
+            }
+        }
+        Assert.Equal(stocks.Length * banks.Length, rows);
+        // The sweep is not vacuous: most rows are INPUT-bound (the cap did the
+        // work), and the deep-stock row is labor-bound (the cap did not bind),
+        // so both sides of the Min are exercised.
+        Assert.True(inputBound >= (stocks.Length - 1) * banks.Length,
+            $"only {inputBound} of {rows} rows were input-bound");
+        Assert.True(inputBound < rows, "every row was input-bound — the labor side of the cap is unexercised");
+    }
+
     [Fact]
     public void Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit()
     {

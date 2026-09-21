@@ -86,7 +86,31 @@ public sealed class SimUiGame : Game
     // once — the gate session's 100/0/0/0/0 and the blunt instrument this
     // packet exists to remove.
     private readonly int[] _sectorWeights = new int[Sectors.Count];
+
+    // T4.18: which contextual section is open, or None for a clean world. The
+    // screen's only mode, and it is UI state — nothing in the simulation reads
+    // it, and opening a panel emits no order.
+    private Section _openSection = Section.None;
+    private bool _trendWorldScope = true;
+    private bool _annalsShowAll;
     private HudModel _hud = null!;
+
+    // T4.19 lane B: the glass-box panels' UI-ONLY state — which SETTLEMENT tab
+    // is open, which audit lines / contributors / factors are unfolded, which
+    // trend metric is graphed, whether the per-turn policy table is shown.
+    // None of it is read by the simulation and none of it emits an order; the
+    // headless test walks every section and tab and checks the hash.
+    private SettlementTab _settlementTab = SettlementTab.Overview;
+    private readonly bool[] _auditExpanded = new bool[8];
+    private bool _showHappinessFactors;
+    private int _expandedFactor = -1;
+    private int _expandedClass = -1, _expandedNeed = -1;
+    private bool _policyShowStates;
+    private int _trendIndex;
+    private TurnAuditView? _turnAudit;
+    private SettlementView? _settlementView;
+    private PolicyView? _policyView;
+    private System.Collections.Generic.IReadOnlyList<TrendMetric> _trendMetrics = [];
 
     /// <summary>T2.6: the D-018 needs registry for the HUD needs block —
     /// display data only (names, bound flags); the sim's copy travels inside
@@ -312,7 +336,16 @@ public sealed class SimUiGame : Game
     private void RefreshHud(bool syncSlider)
     {
         _hud = HudModel.From(_world, _selected, _needs,
-            _selected >= 0 ? _session.Names.Name(_selected) : null);
+            _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config);
+
+        // T4.19 lane B: the glass-box view models, rebuilt on the same cadence
+        // (selection change / End Turn) — pure reads over the observation
+        // history and the (prev, next) pair the session holds.
+        _turnAudit = ScreenModels.TurnAudit(_session);
+        _settlementView = ScreenModels.Settlement(_session, _selected);
+        _policyView = ScreenModels.Policy(_session, _selected);
+        _trendMetrics = TrendsModel.Metrics(_displayCfg.Registries.Classes);
+        if (_trendIndex >= _trendMetrics.Count) _trendIndex = 0;
 
 
         // T3.9a: the read-only market/needs/sector displays, recomputed on
@@ -334,9 +367,11 @@ public sealed class SimUiGame : Game
         // cadence rule the retired farm-% slider followed). Weights are the
         // normalized shares as percentages, so what the control shows on
         // arrival is what the sim is actually running.
-        if (syncSlider)
-            for (int s = 0; s < Sectors.Count; s++)
-                _sectorWeights[s] = (int)Math.Round(Sectors.Share(allocation, s) * 100.0);
+        // T4.18: snap through the allocation model, which rounds by largest
+        // remainder. Rounding each share independently loses units — an uneven
+        // split floors in several places at once — so the old form could open
+        // the panel reading 99% before the director had touched anything.
+        if (syncSlider) SectorAllocationModel.FromShares(allocation, _sectorWeights);
 
         // T3.9b: the trade panel's rows — world-level, not per-settlement
         // (trade is a pairwise mechanism over every settlement).
@@ -374,11 +409,28 @@ public sealed class SimUiGame : Game
         _session.Save(_sessionLogPath);
         // T2.9: the chronicle exports beside the order log, same stamp.
         _session.ExportChronicle(UiSession.ChroniclePath(_sessionLogPath));
+        // T4.17: and the turn trace, same stamp again — what the world actually
+        // looked like on each turn, ending in the hash this machine computed.
+        // The manifest is NOT rewritten here: it is written once at launch, so
+        // that a session ending in a crash is still reproducible.
+        _session.ExportTrace(UiSession.TracePath(_sessionLogPath));
+        // T4.19: and the telemetry, same stamp — every turn's world record and
+        // settlement records, the glass box as it was actually played. P0: this
+        // APPENDS the turns observed since the last save; it no longer rewrites
+        // the file, so the cost of a save is the size of the new records.
+        _session.ExportTelemetry(UiSession.TelemetryPath(_sessionLogPath));
     }
 
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
         SaveSession();
+        // P0 FINALIZE: on a deliberate exit the telemetry is flushed past the
+        // OS buffers, so the artifact is durable and not merely handed over.
+        _session.FinalizeTelemetry(UiSession.TelemetryPath(_sessionLogPath));
+        // P1 CLOSE: and only then the forensic close record, which content-hashes
+        // every companion — so it must be written AFTER they are final. Its
+        // ABSENCE is the evidence that a session did not close cleanly.
+        _session.ExportForensicClose(_sessionLogPath);
         base.OnExiting(sender, args);
     }
 
@@ -391,7 +443,18 @@ public sealed class SimUiGame : Game
         Rectangle viewport = Viewport();
         ImGuiIOPtr io = ImGui.GetIO();
 
-        if (keyboard.IsKeyDown(Keys.Escape)) Exit();
+        // T4.19 lane B: Escape CLOSES the open panel; with nothing open it
+        // exits, as T4.18 did. Pressed-edge on polled state (a held key fires
+        // once), and only when ImGui does not want the keyboard — a text field
+        // owns its own Escape. GameSections.OnEscape says which case applied,
+        // so one press is never both "close" and "exit".
+        if (IsActive && !io.WantCaptureKeyboard
+            && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
+        {
+            (Section next, bool closed) = GameSections.OnEscape(_openSection);
+            _openSection = next;
+            if (!closed) Exit();
+        }
 
         if (IsActive && !io.WantCaptureMouse)
         {
@@ -439,6 +502,16 @@ public sealed class SimUiGame : Game
             if (keyboard.IsKeyDown(Keys.A)) dx += panPx;
             if (keyboard.IsKeyDown(Keys.D)) dx -= panPx;
             if (dx != 0 || dy != 0) _camera!.Pan(dx, dy, viewport.Width, viewport.Height);
+
+            // T4.19 lane B: digits 1..7 OPEN sections in roster order (key
+            // edge; the same GameSections.Order the command bar draws, so the
+            // key and the button cannot disagree about which section is which).
+            for (int digit = 1; digit <= GameSections.Order.Count; digit++)
+            {
+                Keys key = Keys.D0 + digit;
+                if (keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key))
+                    _openSection = GameSections.OnDigit(_openSection, digit);
+            }
 
             // T2.4: Tab cycles the selection in settlement-id order (key edge).
             if (keyboard.IsKeyDown(Keys.Tab) && !_lastKeyboard.IsKeyDown(Keys.Tab))
@@ -605,11 +678,18 @@ public sealed class SimUiGame : Game
 
     /// <summary>
     /// Panel furniture (§4 item 5): a parchment plate behind the current
-    /// ImGui window plus a 9-sliced inked border and a header rule under the
-    /// title bar. Drawn on the WINDOW draw list at Begin time, so every
-    /// widget added afterwards sits on top of it.
+    /// ImGui window plus a 9-sliced inked border and a header rule. Drawn on
+    /// the WINDOW draw list at Begin time, so every widget added afterwards
+    /// sits on top of it.
+    ///
+    /// T4.19 lane D: the rule's placement is the ELEMENT's, from
+    /// ChromeGeometry, not "under the title bar" for every window. The
+    /// T4.18 chrome has no title bars, and in the 56 px command bar the
+    /// under-title-bar formula (y = top + frameHeight + 2 = 31..39) crossed
+    /// the button row (12..42). The caller names its element; the rect the
+    /// rule is drawn into is the rect the headless test checks.
     /// </summary>
-    private void DrawPanelFurniture(IntPtr backgroundId = default)
+    private void DrawPanelFurniture(in ChromeElement element, IntPtr backgroundId = default)
     {
         if (_panelId == IntPtr.Zero) return;
         ImDrawListPtr list = ImGui.GetWindowDrawList();
@@ -625,7 +705,7 @@ public sealed class SimUiGame : Game
             list.AddImage(backgroundId, min, max, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
         }
 
-        NineSlice(list, _panelId, min, max, 12f, 64f);
+        NineSlice(list, _panelId, min, max, ChromeGeometry.FrameBorderPx, 64f);
 
         if (_headerRuleId != IntPtr.Zero)
         {
@@ -634,14 +714,12 @@ public sealed class SimUiGame : Game
             // the vertical mapping, horizontal overflow tiled, so the rule's
             // ink weight is identical at every panel width. The same treatment
             // the parchment background above gets, applied horizontally.
-            float y = min.Y + ImGui.GetFrameHeight() + 2f;
-            float h = ViewModel.PanelFurniture.HeaderRuleScreenHeightPx;
-            float w = (max.X - min.X) - 12f;
+            ScreenRect rule = ChromeGeometry.HeaderRule(element, ImGui.GetFrameHeight());
             (float u, float v) = ViewModel.PanelFurniture.HeaderRuleUv(
-                _headerRuleTexture!.Width, _headerRuleTexture.Height, w, h);
+                _headerRuleTexture!.Width, _headerRuleTexture.Height, rule.Width, rule.Height);
             list.AddImage(_headerRuleId,
-                new System.Numerics.Vector2(min.X + 6f, y),
-                new System.Numerics.Vector2(min.X + 6f + w, y + h),
+                new System.Numerics.Vector2(rule.X, rule.Y),
+                new System.Numerics.Vector2(rule.Right, rule.Bottom),
                 System.Numerics.Vector2.Zero, new System.Numerics.Vector2(u, v), 0xFFFFFFFFu);
         }
     }
@@ -674,11 +752,6 @@ public sealed class SimUiGame : Game
     /// — ImGuiCond.FirstUseEver ONLY (never Always, never per-frame forcing),
     /// so the user's drags, resizes and title-bar collapses stick for the
     /// session. Every panel window Begins through this helper.</summary>
-    private static void ApplyPanelDefaults(in PanelRect rect)
-    {
-        ImGui.SetNextWindowPos(new System.Numerics.Vector2(rect.X, rect.Y), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(new System.Numerics.Vector2(rect.Width, rect.Height), ImGuiCond.FirstUseEver);
-    }
 
     // §3 TYPOGRAPHY RULE (T3.9a-b item 3 — THE font-selection site, stated
     // once, applied panel-wide): the companion face (IBM Plex Serif, lining
@@ -694,28 +767,12 @@ public sealed class SimUiGame : Game
     private void PushDataFont() { if (_fonts is { } f) ImGui.PushFont(f.Numeric); }
     private void PopDataFont() { if (_fonts is not null) ImGui.PopFont(); }
 
-    /// <summary>T2.10: the graphs — world totals + the selected settlement,
-    /// straight off the D-028 ring buffer (see HistoryBuffer for the replay/
-    /// mid-game-load semantics). PlotLines autoscales per series; the overlay
-    /// text carries the latest value so the line is readable as a number too.</summary>
-    private void DrawGraphs()
-    {
-        ApplyPanelDefaults(PanelLayout.Graphs);
-        ImGui.Begin(PanelLayout.Graphs.Title);
-        DrawPanelFurniture();
-        ViewModel.HistoryBuffer history = _session.History;
-        ImGui.TextUnformatted("world");
-        Plot("pop##world", history.World(HistoryBuffer.Metric.Population));
-        Plot("food##world", history.World(HistoryBuffer.Metric.Food));
-        Plot("grievance##world", history.World(HistoryBuffer.Metric.Grievance));
-        ImGui.Separator();
-        ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
-        Plot("pop##sel", history.Settlement(_selected, HistoryBuffer.Metric.Population));
-        Plot("food##sel", history.Settlement(_selected, HistoryBuffer.Metric.Food));
-        Plot("grievance##sel", history.Settlement(_selected, HistoryBuffer.Metric.Grievance));
-        ImGui.End();
-    }
-
+    /// <summary>The small price sparkline. The axis is PINNED THROUGH
+    /// TrendAxisModel rather than passed float.MaxValue/float.MaxValue — those
+    /// two sentinels mean "auto-scale to the series' own min and max", which is
+    /// what made a series in [90, 100] draw its floor sitting on the x-axis.
+    /// A price is non-negative and unbounded, so the floor is 0 and only the
+    /// ceiling follows the data; the bounds are printed underneath.</summary>
     private static void Plot(string label, float[] series)
     {
         if (series.Length == 0)
@@ -723,30 +780,436 @@ public sealed class SimUiGame : Game
             ImGui.TextUnformatted("no data");
             return;
         }
+        PlotDomain domain = TrendAxisModel.PriceDomain(series);
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
         ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
-            float.MaxValue, float.MaxValue, new System.Numerics.Vector2(300, 56));
+            (float)domain.Floor, (float)domain.Ceiling, new System.Numerics.Vector2(300, 56));
+        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, ToDoubles(series)));
     }
 
-    /// <summary>T3.9a items 1+2: the market panel — the selected settlement's
-    /// goods with stock, price and last move; the PriceTerms decomposition for
-    /// the selected good (the glass-box artifact, surfaced); and the per-good
-    /// price time series in the same PlotLines idiom as the T2.10 graphs.
-    /// READ-ONLY: no widget in this window emits an order.</summary>
-    private void DrawMarket()
+    private static double[] ToDoubles(float[] series)
     {
-        ApplyPanelDefaults(PanelLayout.Market);
-        ImGui.Begin(PanelLayout.Market.Title);
-        DrawPanelFurniture();
-        ImGui.TextUnformatted(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)");
+        var wide = new double[series.Length];
+        for (int i = 0; i < series.Length; i++) wide[i] = series[i];
+        return wide;
+    }
+
+    private void DrawWorldBuffer(VertexBuffer? buffer)
+    {
+        if (buffer is null) return;
+        GraphicsDevice.SetVertexBuffer(buffer);
+        foreach (EffectPass pass in _worldEffect!.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, buffer.VertexCount / 3);
+        }
+    }
+
+    private void DrawHud(GameTime gameTime)
+    {
+        _imgui!.BeforeLayout(gameTime);
+        if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
+
+        DrawCompassRose();  // art substrate: §4 item 5 furniture
+        DrawNameLabels();   // T2.9: background drawlist — under all chrome
+
+        DrawStatusBand();
+        DrawSelectionCard();
+        DrawContextPanel();
+        DrawCommandBar();
+
+        if (_fonts is not null) ImGui.PopFont();
+        _imgui.AfterLayout();
+    }
+
+    /// <summary>
+    /// Chrome, not a window: positioned every frame, no title bar, no move, no
+    /// resize, no scrollbar. The old panels were FirstUseEver defaults the user
+    /// could drag anywhere — which is why panel overlap was something the gate
+    /// had to keep re-discovering. A frame that can be lost in the middle of the
+    /// map is not a frame.
+    /// </summary>
+    private static void BeginChrome(in PanelRect rect, ImGuiWindowFlags extra = ImGuiWindowFlags.None)
+    {
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(rect.X, rect.Y), ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(rect.Width, rect.Height), ImGuiCond.Always);
+        ImGui.Begin(rect.Title,
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings
+            | ImGuiWindowFlags.NoBringToFrontOnFocus | extra);
+    }
+
+    /// <summary>
+    /// THE ALWAYS-TRUE BAND: when, how many, how much. Four facts that are
+    /// worth screen space on every frame of every turn, laid out horizontally
+    /// so they cost 48 pixels of height instead of a column.
+    ///
+    /// T4.19 lane B: the population and food figures are CLICKABLE — each a
+    /// Selectable sized to its own text, routed through ExplainRouting to the
+    /// TURN account that decomposes it — and the turn digest from the latest
+    /// TurnRecord follows them after the first End Turn. Read-only: the band
+    /// still emits no order.
+    /// </summary>
+    private void DrawStatusBand()
+    {
+        BeginChrome(PanelLayout.Status);
+        DrawPanelFurniture(ChromeGeometry.Status);   // rule along the BOTTOM edge: status | world
+        PushDataFont();
+        ImGui.TextUnformatted(_hud.ClockLine);
+        ImGui.SameLine(0, 28);
+        Figure(_hud.WorldPopulationFigure, ExplainFigure.WorldPopulation);
+        ImGui.SameLine(0, 8);
+        ImGui.TextUnformatted(_hud.SettlementCountFigure);
+        ImGui.SameLine(0, 28);
+        Figure(_hud.WorldFoodFigure, ExplainFigure.WorldFood);
+        if (_turnAudit is { } audit)
+        {
+            ImGui.SameLine(0, 28);
+            ImGui.TextUnformatted("last turn: " + audit.Digest);
+        }
+        PopDataFont();
+        ImGui.End();
+    }
+
+    /// <summary>A clickable figure: a Selectable the size of its text, so it
+    /// reads as the number it was and opens the surface that explains it.</summary>
+    private void Figure(string text, ExplainFigure figure)
+    {
+        if (ImGui.Selectable(text + "##fig-" + figure.ToString(), false,
+                ImGuiSelectableFlags.None, ImGui.CalcTextSize(text)))
+        {
+            Route(ExplainRouting.For(figure));
+        }
+    }
+
+    /// <summary>Applies a click-to-explain route: opens the section (and tab),
+    /// unfolds the TURN account it names, unfolds the happiness factors when
+    /// the route asks for them. Pure UI state.</summary>
+    private void Route(ExplainRoute route)
+    {
+        _openSection = route.Section;
+        if (route.Section == Section.Settlement) _settlementTab = route.Tab;
+        if (route.Expand == AuditExpand.Population) _auditExpanded[0] = true;
+        if (route.Expand == AuditExpand.Grain) _auditExpanded[1] = true;
+        if (route.ShowHappinessFactors) _showHappinessFactors = true;
+    }
+
+    /// <summary>
+    /// The selected settlement, floating over the map: selection is how every
+    /// section is aimed, so losing sight of it while looking at the world would
+    /// make the world view useless for deciding anything.
+    ///
+    /// T4.19 lane B: population, food, happiness and grievance are clickable
+    /// figures routed to the SETTLEMENT tab that decomposes each.
+    /// </summary>
+    private void DrawSelectionCard()
+    {
+        BeginChrome(PanelLayout.Selection);
+        DrawPanelFurniture(ChromeGeometry.Selection);   // under the title line, as before
+        ImGui.TextUnformatted(_hud.TitleLine);
+        PushDataFont();
+        Figure(_hud.PopulationLine, ExplainFigure.SettlementPopulation);
+        Figure(_hud.FoodLine, ExplainFigure.SettlementFood);
+        Figure(_hud.HappinessLine, ExplainFigure.SettlementHappiness);
+        ImGui.SameLine(0, 16);
+        Figure(_hud.GrievanceLine, ExplainFigure.SettlementGrievance);
+        PopDataFont();
+        ImGui.End();
+    }
+
+    /// <summary>
+    /// THE VERBS AND THE WAYS OF LOOKING, on one row. End Turn sits apart from
+    /// the section navigation because it is the only control here that changes
+    /// the world; the rest change only what is on screen.
+    /// </summary>
+    private void DrawCommandBar()
+    {
+        BeginChrome(PanelLayout.Command);
+        DrawPanelFurniture(ChromeGeometry.Command);   // rule along the TOP edge: world | controls
+
+        // T4.19 lane D: every control is placed at the rect ChromeGeometry
+        // computes — cursor set explicitly, not left to WindowPadding and
+        // SameLine spacing — so the row the headless test proves disjoint
+        // from the rule is the row that is drawn. (WindowPadding.x is 14 and
+        // Margin is 12; the old row started at 14 by accident of the style.)
+        //
+        // T3.9a-b item 1 discoverability: the binding is shown ON the button.
+        // Both paths (click here, Space in Update) call EndTurn().
+        PlaceCursor(PanelLayout.Command, ChromeGeometry.EndTurnButton);
+        if (ImGui.Button("End Turn [Space]", Size(ChromeGeometry.EndTurnButton)))
+            EndTurn();
+
+        for (int i = 0; i < GameSections.Order.Count; i++)
+        {
+            Section section = GameSections.Order[i];
+            ScreenRect slot = ChromeGeometry.NavButton(i);
+            PlaceCursor(PanelLayout.Command, slot);
+
+            // The open section reads as pressed, so the row says where you are
+            // as well as where you can go.
+            bool open = _openSection == section;
+            if (open) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
+            if (ImGui.Button(GameSections.Label(section) + "##nav", Size(slot)))
+                _openSection = GameSections.Toggle(_openSection, section);
+            if (open) ImGui.PopStyleColor();
+        }
+
+        ImGui.SetCursorPos(new System.Numerics.Vector2(
+            ChromeGeometry.TerritoryToggleX - PanelLayout.Command.X,
+            ChromeGeometry.ButtonRow.Y - PanelLayout.Command.Y));
+        ImGui.Checkbox("territory", ref _showCatchment);
+        ImGui.End();
+    }
+
+    /// <summary>Moves the ImGui cursor to a ChromeGeometry rect's top-left.
+    /// SetCursorPos is window-local, so the screen rect is re-based on the
+    /// panel it was computed against; scroll offsets are ImGui's to apply.</summary>
+    private static void PlaceCursor(in PanelRect panel, in ScreenRect rect) =>
+        ImGui.SetCursorPos(new System.Numerics.Vector2(rect.X - panel.X, rect.Y - panel.Y));
+
+    private static System.Numerics.Vector2 Size(in ScreenRect rect) => new(rect.Width, rect.Height);
+
+    /// <summary>
+    /// The one contextual surface. Nothing is drawn at all when no section is
+    /// open — that is the state the whole redesign exists to make reachable.
+    /// </summary>
+    private void DrawContextPanel()
+    {
+        if (_openSection == Section.None) return;
+
+        BeginChrome(PanelLayout.Context);
+        DrawPanelFurniture(ChromeGeometry.Context,   // rule under the header row
+            _openSection == Section.Annals ? _annalsId : default);
+
+        // T4.19 lane D — the header row: title at the left, close button
+        // flush right, both a frame height tall. The old button was 24×20
+        // under FramePadding (8,5) and a 19 px face — an 8×10 interior for a
+        // 19 px glyph, which ImGui pins to the interior's top-left rather
+        // than centring (ChromeGeometry.LabelAnchor models the clamp). The
+        // rect is now the view-model's: square, frame-height, Margin from
+        // the panel edge, and the text alignment is pushed explicitly so the
+        // glyph's anchor is the rect's centre by construction. Whether the
+        // GPU draws it there is the one hop no headless test can see.
+        float frameHeight = ImGui.GetFrameHeight();
+        ScreenRect close = ChromeGeometry.CloseButton(ChromeGeometry.Context, frameHeight);
+        ImGui.AlignTextToFramePadding();   // title baseline against the frame-height row
+        ImGui.TextUnformatted(GameSections.Title(_openSection));
+        PlaceCursor(PanelLayout.Context, close);
+        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
+            new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
+        if (ImGui.Button(ChromeGeometry.CloseGlyph + "##close", Size(close)))
+            _openSection = Section.None;
+        ImGui.PopStyleVar();
+
+        // The header rule IS the separator now; content starts under it. The
+        // sections scroll inside a child so the header row is chrome that
+        // stays put, and so a vertical scrollbar — ImGui hangs it on the
+        // window's right edge, x = 381..395 in this 396 px panel — cannot
+        // land on the close button (x = 355..384). Section content overflows
+        // the 607 px below the header routinely now (a Grievance tab with three
+        // classes and an open chain is several hundred lines), so the case
+        // occurs on every tab.
+        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(ChromeGeometry.Context, frameHeight) - PanelLayout.Context.Y);
+        // NoBackground: a child window paints ImGuiCol_ChildBg unless told not
+        // to, and UiTheme sets ChildBg to a 0.55-alpha paper tint - so without
+        // this flag every section's content region would be washed lighter than
+        // its header row, with a hard edge at the child's bounds. The parchment
+        // plate DrawPanelFurniture already painted is the background; the child
+        // exists only to scroll, and must be invisible as a surface.
+        ImGui.BeginChild("context-body", System.Numerics.Vector2.Zero,
+            ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
+        switch (_openSection)
+        {
+            case Section.Turn: DrawTurnSection(); break;
+            case Section.Settlement: DrawSettlementSection(); break;
+            case Section.Policy: DrawPolicySection(); break;
+            case Section.Economy: DrawEconomySection(); break;
+            case Section.Annals: DrawAnnalsSection(); break;
+            case Section.Trends: DrawTrendsSection(); break;
+            case Section.More: DrawBuildSection(); break;
+        }
+        ImGui.EndChild();
+
+        ImGui.End();
+    }
+
+    // --- the shared furniture of the glass-box panels ------------------------
+
+    /// <summary>Data lines in the numeric face, one block.</summary>
+    private void DataLines(IReadOnlyList<string> lines)
+    {
+        PushDataFont();
+        foreach (string line in lines) ImGui.TextUnformatted(line);
+        PopDataFont();
+    }
+
+    /// <summary>A row of small toggle buttons that WRAPS inside the panel
+    /// rather than scrolling off it: the tab row and the trend metrics. The
+    /// pressed one reads as pressed (the command bar's convention).</summary>
+    private bool WrapButton(string label, string id, bool on, ref float rowX)
+    {
+        float width = ImGui.CalcTextSize(label).X + 2f * ImGui.GetStyle().FramePadding.X;
+        float available = ImGui.GetContentRegionAvail().X + ImGui.GetCursorPosX();
+        if (rowX > 0f && rowX + width > available) rowX = 0f;   // next row
+        if (rowX > 0f) ImGui.SameLine();
+        if (on) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
+        bool clicked = ImGui.Button(label + "##" + id);
+        if (on) ImGui.PopStyleColor();
+        rowX += width + ImGui.GetStyle().ItemSpacing.X;
+        return clicked;
+    }
+
+    /// <summary>Selects a settlement and centres the camera on it — the WHERE
+    /// rows' click. Same RefreshHud path as a map click.</summary>
+    private void SelectAndCentre(int settlementId)
+    {
+        if (settlementId != _selected)
+        {
+            _selected = settlementId;
+            RefreshHud(syncSlider: true);
+        }
+        Rectangle viewport = Viewport();
+        CameraFocus.CenterOn(_camera!, _world, settlementId, viewport.Width, viewport.Height);
+    }
+
+    /// <summary>
+    /// TURN — the audit of the last End Turn (B3): WHAT CHANGED, each line
+    /// unfolding to its account's legs; WHERE, each row a click that selects
+    /// and centres; WHY, the causes identities and the reconcile flags as the
+    /// record states them.
+    /// </summary>
+    private void DrawTurnSection()
+    {
+        if (_turnAudit is not { } audit)
+        {
+            ImGui.TextUnformatted("No turn played yet. End a turn to audit it.");
+            return;
+        }
+        PushDataFont();
+        ImGui.TextUnformatted(audit.HeaderLine);
+        PopDataFont();
         ImGui.Separator();
-        PushDataFont();   // §3 rule (see PushDataFont): market rows are data lines
+
+        ImGui.TextUnformatted("WHAT CHANGED  (click a line for its account)");
+        PushDataFont();
+        for (int i = 0; i < audit.Changed.Count; i++)
+        {
+            AuditLine line = audit.Changed[i];
+            if (ImGui.Selectable(line.Line + "##audit-" + line.Key, _auditExpanded[i]))
+                _auditExpanded[i] = !_auditExpanded[i];
+            if (_auditExpanded[i])
+                foreach (string detail in line.Detail) ImGui.TextUnformatted(detail);
+        }
+        PopDataFont();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextUnformatted("WHERE  (click a row to select and centre)");
+        ImGui.TextUnformatted("largest population change");
+        PushDataFont();
+        foreach (WhereRow row in audit.LargestPopulationDelta)
+        {
+            if (ImGui.Selectable(row.Line + "##where-pop-" + row.Settlement.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture), row.Settlement == _selected))
+                SelectAndCentre(row.Settlement);
+        }
+        PopDataFont();
+        ImGui.TextUnformatted("largest deficit");
+        PushDataFont();
+        foreach (WhereRow row in audit.LargestDeficit)
+        {
+            if (ImGui.Selectable(row.Line + "##where-def-" + row.Settlement.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture), row.Settlement == _selected))
+                SelectAndCentre(row.Settlement);
+        }
+        PopDataFont();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextUnformatted("WHY");
+        DataLines(audit.Why);
+    }
+
+    /// <summary>
+    /// SETTLEMENT — the selected settlement, tabbed (B4). The former
+    /// POPULATION and MARKET sections live in the Population and Economy
+    /// tabs; every line they drew is still drawn there.
+    /// </summary>
+    private void DrawSettlementSection()
+    {
+        if (_selected < 0)
+        {
+            ImGui.TextUnformatted("Select a settlement on the map.");
+            return;
+        }
+        ImGui.TextUnformatted(_hud.TitleLine);
+
+        float rowX = 0f;
+        foreach (SettlementTab tab in GameSections.Tabs)
+        {
+            if (WrapButton(GameSections.TabLabel(tab), "tab-" + tab.ToString(), _settlementTab == tab, ref rowX))
+                _settlementTab = tab;
+        }
+        ImGui.Separator();
+
+        switch (_settlementTab)
+        {
+            case SettlementTab.Overview: DrawSettlementOverview(); break;
+            case SettlementTab.Population: DrawSettlementPopulation(); break;
+            case SettlementTab.Food: DrawSettlementFood(); break;
+            case SettlementTab.Economy: DrawSettlementEconomy(); break;
+            case SettlementTab.Grievance: DrawSettlementGrievance(); break;
+            case SettlementTab.Migration: DrawRecordTab(_settlementView?.Migration); break;
+            case SettlementTab.Orders: DrawRecordTab(_settlementView?.Orders); break;
+        }
+    }
+
+    /// <summary>A tab that is only record lines, or the no-record line.</summary>
+    private void DrawRecordTab(IReadOnlyList<string>? lines)
+    {
+        if (lines is null) { ImGui.TextUnformatted(SettlementInspectorModel.NoRecord); return; }
+        DataLines(lines);
+    }
+
+    private void DrawSettlementOverview()
+    {
+        // The T4.18 card figures first (live world), then the record's headline.
+        DataLines([_hud.PopulationLine, _hud.FoodLine, _hud.HappinessLine, _hud.GrievanceLine]);
+        ImGui.Separator();
+        DrawRecordTab(_settlementView?.Overview);
+    }
+
+    private void DrawSettlementPopulation()
+    {
+        DrawRecordTab(_settlementView?.Population);
+        ImGui.Separator();
+        // T3.9a item 3 (the former POPULATION section): needs PER CLASS.
+        foreach (NeedsClassBlock block in _needsBlocks)
+        {
+            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
+            DataLines(block.NeedLines);
+            ImGui.Spacing();
+        }
+    }
+
+    private void DrawSettlementFood()
+    {
+        DataLines([_hud.FoodLine]);
+        DrawRecordTab(_settlementView?.Food);
+        // T4.20: the food-flow block, ADDITIVE and below the store account.
+        ImGui.Separator();
+        DrawRecordTab(_settlementView?.FoodFlow);
+    }
+
+    /// <summary>The former MARKET section (T3.9a items 1+2) plus the record's
+    /// economy lines. READ-ONLY: no widget here emits an order.</summary>
+    private void DrawSettlementEconomy()
+    {
+        DrawRecordTab(_settlementView?.Economy);
+        ImGui.Separator();
+        PushDataFont();
         foreach (MarketGoodRow row in _marketRows)
         {
-            // Selectable rows pick the good whose decomposition + series show
-            // below. TextUnformatted doctrine does not apply to Selectable
-            // labels via printf — Selectable takes the label verbatim, but the
-            // lines contain no '%' anyway (chg is a signed decimal).
             if (ImGui.Selectable(row.Line + "##good" + row.GoodId.ToString(
                     System.Globalization.CultureInfo.InvariantCulture),
                 _selectedGood == row.GoodId))
@@ -769,155 +1232,306 @@ public sealed class SimUiGame : Game
             ImGui.TextUnformatted(breakdown.DriverLine);
         }
         ImGui.Separator();
-        // Item 2 gate criterion: scarcity READS as a rising line. PlotLines
-        // autoscales per series (the T2.10 idiom), so a flat price is a
-        // boring flat line and a spike is unmissable.
+        // Item 2 gate criterion: scarcity READS as a rising line.
         Plot("price##sel-good", _session.History.Price(_selected, _selectedGood));
         PopDataFont();
-        ImGui.End();
     }
 
     /// <summary>
-    /// T3.9b: the trade panel. Its hard case is that on the canonical world
-    /// NOTHING TRADES (T3.6 measured zero flow), and an empty panel reads as a
-    /// broken one. So the panel never renders emptiness: the summary line
-    /// states "no trade" as a counted, deliberate fact, and every good carries
-    /// its own reason — no spread at all (the escalation-2 band-edge pegging,
-    /// with the shared price printed) or a spread under the deadband
-    /// (escalation 1). Both escalations are M4 material; this panel makes the
-    /// measured state legible and changes nothing about it.
+    /// GRIEVANCE — the centre of the packet (A6-A9, B6): happiness and its
+    /// factors, then per class the total, the accrual against the decay, the
+    /// PRIMARY first, every bound need as a contributor; a contributor unfolds
+    /// to its causal chain and ends at its lever with a button that opens
+    /// POLICY. Summary → decomposition → cause → lever, and nothing else.
     /// </summary>
-    private void DrawTrade()
+    private void DrawSettlementGrievance()
     {
-        ApplyPanelDefaults(PanelLayout.Trade);
-        ImGui.Begin(PanelLayout.Trade.Title);
-        DrawPanelFurniture();
-        PushDataFont();   // §3 rule (see PushDataFont): trade rows are data lines
+        if (_settlementView?.Grievance is not { } view)
+        {
+            ImGui.TextUnformatted(_settlementView is null
+                ? SettlementInspectorModel.NoRecord
+                : "the explanation needs the previous world - available from the next End Turn");
+            return;
+        }
+
+        PushDataFont();
+        if (ImGui.Selectable(view.HappinessLine + "##happiness", _showHappinessFactors))
+            _showHappinessFactors = !_showHappinessFactors;
+        PopDataFont();
+        if (_showHappinessFactors)
+        {
+            ImGui.PushTextWrapPos(0f);
+            ImGui.TextUnformatted(view.ScopeNote);
+            ImGui.PopTextWrapPos();
+            PushDataFont();
+            for (int f = 0; f < view.Factors.Count; f++)
+            {
+                HappinessFactorRow factor = view.Factors[f];
+                if (ImGui.Selectable("  " + factor.Line + "##factor-" + f.ToString(
+                        System.Globalization.CultureInfo.InvariantCulture), _expandedFactor == f))
+                    _expandedFactor = _expandedFactor == f ? -1 : f;
+                if (_expandedFactor == f) DrawChain(factor.Chain, factor.Lever, "factor-" + f.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture));
+            }
+            PopDataFont();
+        }
+
+        ImGui.Separator();
+        ImGui.PushTextWrapPos(0f);
+        ImGui.TextUnformatted(view.AttributionNote);
+        ImGui.PopTextWrapPos();
+
+        foreach (ClassGrievanceBlock block in view.Classes)
+        {
+            ImGui.Spacing();
+            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
+            PushDataFont();
+            ImGui.TextUnformatted(block.AccrualLine);
+            ImGui.TextUnformatted(block.PrimaryLine);
+            foreach (ContributorRow row in block.Contributors)
+            {
+                bool open = _expandedClass == block.ClassId && _expandedNeed == row.NeedId;
+                string id = block.ClassId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "-" + row.NeedId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (ImGui.Selectable("  " + row.Line + "##need-" + id, open))
+                {
+                    _expandedClass = open ? -1 : block.ClassId;
+                    _expandedNeed = open ? -1 : row.NeedId;
+                }
+                if (open) DrawChain(row.Chain, row.Lever, "need-" + id);
+            }
+            if (block.NotSimulated.Count > 0)
+            {
+                ImGui.TextUnformatted("  not yet simulated:");
+                foreach (string line in block.NotSimulated) ImGui.TextUnformatted("  " + line);
+            }
+            PopDataFont();
+        }
+    }
+
+    /// <summary>A chain's links, each with ITS OWN node's lever indented under
+    /// it (a weather link reads "condition, no lever", a share link names its
+    /// slider), then the head-node lever summary whose button opens POLICY for
+    /// this settlement. GAP links are already worded "not recorded" by the
+    /// view model; nothing here reinterprets them.</summary>
+    private void DrawChain(IReadOnlyList<ChainLine> chain, LeverLine lever, string id)
+    {
+        ImGui.PushTextWrapPos(0f);
+        foreach (ChainLine link in chain)
+        {
+            ImGui.TextUnformatted("    " + link.Text);
+            ImGui.TextUnformatted("      -> " + link.Lever.Text);
+        }
+        ImGui.TextUnformatted("    " + lever.Text);
+        ImGui.PopTextWrapPos();
+        if (!lever.IsNone)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("open POLICY##lever-" + id)) _openSection = Section.Policy;
+        }
+    }
+
+    /// <summary>
+    /// POLICY — the only section the director ACTS in.
+    ///
+    /// T4.18 workstream B: the five sliders are a FIXED-SUM allocation of 100,
+    /// not five independent numbers with a caption predicting what they would
+    /// mean once divided through. Moving one rebalances the others
+    /// (SectorAllocationModel, deterministic, tested), so the number on the
+    /// slider IS the share the sim will run and the old "applies as …" preview
+    /// has nothing left to say. The order payload is unchanged: D-032 weights,
+    /// submitted as typed, normalized by the consumer.
+    ///
+    /// T4.19 lane B (B5): under the sliders, CURRENT shows declared beside
+    /// effective; HISTORY lists every PolicyChange for this settlement newest
+    /// first with its order number and, under each, the settlement's record
+    /// on the turns after — labelled observed, never attributed; the per-turn
+    /// PolicyState table is one checkbox away. The list of policies has one
+    /// entry; M5's taxation is the second in the same shape.
+    /// </summary>
+    private void DrawPolicySection()
+    {
+        if (_selected < 0)
+        {
+            ImGui.TextUnformatted("Select a settlement on the map to set its labour.");
+            return;
+        }
+
+        ImGui.TextUnformatted(_hud.TitleLine);
+        foreach (PolicyEntry policy in PolicyHistoryModel.Policies)
+            ImGui.TextUnformatted(policy.Name + " - " + policy.Note);
+        ImGui.Separator();
+
+        ImGui.TextUnformatted("labour allocation — always 100%");
+        for (int s = 0; s < Sectors.Count; s++)
+        {
+            int before = _sectorWeights[s];
+            ImGui.SetNextItemWidth(PanelLayout.Context.Width - 150);
+            if (ImGui.SliderInt(SectorBarModel.SectorNames[s], ref _sectorWeights[s], 0, 100)
+                && _sectorWeights[s] != before)
+            {
+                // The others absorb the difference immediately, so the panel is
+                // never in a state that sums to 97 or 104 — not even mid-drag.
+                SectorAllocationModel.Rebalance(_sectorWeights, s, _sectorWeights[s]);
+            }
+        }
+
+        ImGui.Spacing();
+        if (ImGui.Button("Apply labour split", new System.Numerics.Vector2(170, 28)))
+            SubmitSectorOrders();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextUnformatted("CURRENT  (declared vs effective, currently running)");
+        PushDataFont();
+        foreach (SectorBarRow sector in _sectorRows)
+        {
+            ImGui.ProgressBar((float)sector.Fraction,
+                new System.Numerics.Vector2(PanelLayout.Context.Width - 40, ImGui.GetFrameHeight()),
+                sector.Label);
+        }
+        if (_policyView is { } current) foreach (string line in current.Current) ImGui.TextUnformatted(line);
+        ImGui.Spacing();
+        ImGui.TextUnformatted(_hud.FoodLine);
+        ImGui.TextUnformatted(_hud.GrievanceLine);   // T2.6: display only
+        PopDataFont();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextUnformatted("HISTORY  (newest first)");
+        if (_policyView is { } history)
+        {
+            PushDataFont();
+            if (history.History.Count == 0) ImGui.TextUnformatted("no change yet for this settlement");
+            foreach (PolicyChangeView change in history.History)
+            {
+                ImGui.TextUnformatted(change.Line);
+                foreach (string line in change.Consequences) ImGui.TextUnformatted(line);
+            }
+            PopDataFont();
+            ImGui.Spacing();
+            ImGui.Checkbox("per-turn policy table", ref _policyShowStates);
+            if (_policyShowStates) DataLines(history.States);
+        }
+    }
+
+    /// <summary>
+    /// ECONOMY — T3.9b's trade panel. Its hard case is unchanged: on the
+    /// canonical world nothing trades, and an empty panel reads as a broken one,
+    /// so the summary states "no trade" as a counted fact and every good carries
+    /// its own reason. T4.19 lane B: plus the world GoodAccount table from the
+    /// latest TurnRecord — every non-grain good's account and whether it closes.
+    /// </summary>
+    private void DrawEconomySection()
+    {
+        PushDataFont();
         ImGui.TextUnformatted(_tradeSummary);
         ImGui.Separator();
         foreach (TradeFlowLine flow in _tradeFlows) ImGui.TextUnformatted(flow.Line);
         if (_tradeFlows.Count > 0) ImGui.Separator();
         foreach (TradeGoodRow row in _tradeRows) ImGui.TextUnformatted(row.Line);
         PopDataFont();
-        ImGui.End();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextUnformatted("WORLD GOOD ACCOUNTS  (last turn, from the ledger's flow rows)");
+        if (_turnAudit is { } audit) DataLines(audit.GoodAccounts);
+        else ImGui.TextUnformatted("no turn played yet");
     }
 
-    /// <summary>T2.9: the annals — scrollable, newest LAST, auto-scrolled to
-    /// the tail when new lines arrive while the reader is at the tail.</summary>
-    private void DrawAnnals()
+    /// <summary>
+    /// ANNALS — a history log, so it opens on the RECENT end rather than
+    /// dumping six thousand years at a reader who wanted to know what just
+    /// happened. The full chronicle is one click away and nothing is dropped.
+    /// </summary>
+    private void DrawAnnalsSection()
     {
-        ApplyPanelDefaults(PanelLayout.Annals);
-        ImGui.Begin(PanelLayout.Annals.Title);
-        DrawPanelFurniture(_annalsId);   // the scholar's sheet behind the text
-        ImGui.BeginChild("annal-scroll");
-        // TextUnformatted under a wrap pos (T1.8 re-gate doctrine: never the
-        // printf-parsing Text/TextWrapped for content strings).
-        ImGui.PushTextWrapPos(0f);
         IReadOnlyList<string> lines = _session.AnnalLines;
-        for (int i = 0; i < lines.Count; i++) ImGui.TextUnformatted(lines[i]);
+        const int recent = 12;
+        int from = _annalsShowAll ? 0 : Math.Max(0, lines.Count - recent);
+
+        if (lines.Count > recent)
+        {
+            ImGui.Checkbox($"all {lines.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)} entries",
+                ref _annalsShowAll);
+            ImGui.Spacing();
+        }
+
+        ImGui.BeginChild("annal-scroll");
+        ImGui.PushTextWrapPos(0f);
+        for (int i = from; i < lines.Count; i++) ImGui.TextUnformatted(lines[i]);
         ImGui.PopTextWrapPos();
-        if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 1f)
-            ImGui.SetScrollHereY(1f);
+        if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 1f) ImGui.SetScrollHereY(1f);
         ImGui.EndChild();
-        ImGui.End();
     }
 
-    private void DrawWorldBuffer(VertexBuffer? buffer)
+    /// <summary>
+    /// TRENDS — ONE graph, with the metric and the scope chosen rather than six
+    /// thumbnails competing. T4.19 lane B (B2): the metrics are every SeriesKey
+    /// of the observation history (grievance per class) with world or
+    /// settlement scope, plus the price series the T3.9a HistoryBuffer alone
+    /// carries. Same graph, one implementation.
+    /// </summary>
+    private void DrawTrendsSection()
     {
-        if (buffer is null) return;
-        GraphicsDevice.SetVertexBuffer(buffer);
-        foreach (EffectPass pass in _worldEffect!.CurrentTechnique.Passes)
+        float rowX = 0f;
+        for (int i = 0; i < _trendMetrics.Count; i++)
         {
-            pass.Apply();
-            GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, buffer.VertexCount / 3);
+            if (WrapButton(_trendMetrics[i].ButtonLabel, "trend-" + i.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture), _trendIndex == i, ref rowX))
+                _trendIndex = i;
         }
-    }
 
-    private void DrawHud(GameTime gameTime)
-    {
-        _imgui!.BeforeLayout(gameTime);
-        if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
-        DrawCompassRose();  // art substrate: §4 item 5 furniture
-        DrawNameLabels();   // T2.9: background drawlist — under all panels
-        DrawAnnals();       // T2.9
-        DrawGraphs();       // T2.10
-        DrawMarket();       // T3.9a: goods, prices, decomposition, series
-        DrawTrade();        // T3.9b: flows, or WHY nothing flowed
-        ApplyPanelDefaults(PanelLayout.Hud);
-        // T3.9a-b item 4: the HUD has a FIXED default size and scrolls when
-        // content exceeds it (AlwaysAutoResize had no height cap, so the
-        // panel grew past the 800 px window bottom and under the Annals —
-        // the gate's overlap). HorizontalScrollbar so an over-long footer
-        // line scrolls instead of silently clipping at the fixed width.
-        ImGui.Begin(PanelLayout.Hud.Title, ImGuiWindowFlags.HorizontalScrollbar);
-        DrawPanelFurniture();
-
-        // TextUnformatted ONLY (T1.8 re-gate finding 2): ImGui.Text runs printf
-        // parsing, and the SplitLine's '%' rendered as garbage. Every HUD string
-        // is pre-formatted by HudModel and passed through unparsed.
-        PushDataFont();   // §3 rule (see PushDataFont): clock/world are data lines
-        ImGui.TextUnformatted(_hud.ClockLine);
-        ImGui.TextUnformatted(_hud.WorldLine);      // T2.4: the world summary
-        PopDataFont();
-        ImGui.Separator();
-        ImGui.TextUnformatted(_hud.TitleLine);      // T2.4: the selected settlement
-        PushDataFont();   // §3 rule: the settlement data block, one face throughout
-        ImGui.TextUnformatted(_hud.PopulationLine);
-        ImGui.TextUnformatted(_hud.FoodLine);
-        // T3.9a item 4: the five-sector split as five labelled bar rows
-        // (DISPLAY ONLY — the slider below stays the only control until T3.9b).
-        // T3.9a-b item 2: row height is the MEASURED frame height of the
-        // active font (line height + vertical frame padding), never a
-        // literal — the literal 14 sat under the font's line height and
-        // clipped every label top and bottom (gate Q2).
-        foreach (SectorBarRow sector in _sectorRows)
-            ImGui.ProgressBar((float)sector.Fraction,
-                new System.Numerics.Vector2(220, ImGui.GetFrameHeight()), sector.Label);
-        ImGui.TextUnformatted(_hud.GrievanceLine);          // T2.6: display only
-        PopDataFont();
-        ImGui.Separator();
-        // T3.9a item 3: needs PER CLASS (T3.5 baskets differ by class — the
-        // panel shows the difference; unbound needs stay honestly labelled).
-        foreach (NeedsClassBlock block in _needsBlocks)
+        ImGui.Spacing();
+        if (ImGui.RadioButton("world", _trendWorldScope)) _trendWorldScope = true;
+        ImGui.SameLine();
+        if (ImGui.RadioButton(_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)",
+                !_trendWorldScope))
         {
-            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
-            PushDataFont();   // §3 rule: per-need values are data lines
-            foreach (string line in block.NeedLines) ImGui.TextUnformatted(line);
+            _trendWorldScope = false;
+        }
+
+        ImGui.Spacing();
+        if (_trendMetrics.Count == 0) { ImGui.TextUnformatted("no data"); return; }
+        TrendMetric metric = _trendMetrics[_trendIndex];
+        if (metric.IsPrice)
+        {
+            // Prices: the observation history has no price series (§7), so the
+            // T3.9a buffer keeps them — per (settlement, good), never world.
+            ImGui.TextUnformatted("price of the good selected under SETTLEMENT / Economy, this settlement");
+            float[] prices = _session.History.Price(_selected, _selectedGood);
+            PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
+            PushDataFont();
+            ImGui.TextUnformatted(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
+            ImGui.TextUnformatted(TrendAxisModel.BandNote(PlotBand.Neutral));
             PopDataFont();
+            PlotLarge("##trend", prices, priceDomain, PlotBand.Neutral);
+            return;
         }
-        ImGui.Separator();
-
-        // T3.9b: REAL PER-SECTOR CONTROL, replacing the farm-% slider.
-        // Five raw weights, submitted AS TYPED — normalization happens in the
-        // consumer (Sectors.Share), and the preview line below shows exactly
-        // what the sim will run, so normalization is never invisible. Emitted
-        // on an explicit Apply rather than per-slider-release: a five-way
-        // allocation is one decision, and one decision is one batch in the
-        // log (§3.9 log hygiene).
-        for (int s = 0; s < Sectors.Count; s++)
-            ImGui.SliderInt(SectorBarModel.SectorNames[s], ref _sectorWeights[s], 0, 100);
+        double[] series = _trendWorldScope
+            ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId)
+            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId);
+        PlotDomain domain = TrendAxisModel.Domain(metric.Key, series);
+        PlotBand band = TrendAxisModel.Band(
+            metric.Key, series.Length == 0 ? double.NaN : series[^1]);
         PushDataFont();
-        ImGui.TextUnformatted(_selected >= 0
-            ? SectorOrderFactory.PreviewLine(new SettlementId(_selected), _sectorWeights)
-            : "applies as —");
+        ImGui.TextUnformatted(TrendsModel.LastValueLine(series));
+        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, series));
+        ImGui.TextUnformatted(TrendAxisModel.BandNote(band));
         PopDataFont();
-        bool canSubmit = _selected >= 0 && SectorOrderFactory.CanSubmit(_sectorWeights);
-        ImGui.BeginDisabled(!canSubmit);
-        if (ImGui.Button("Apply labor split", new System.Numerics.Vector2(180, 28)))
-            SubmitSectorOrders();
-        ImGui.EndDisabled();
-        if (!canSubmit && _selected >= 0)
-            ImGui.TextUnformatted("give at least one sector a positive weight");
+        ImGui.PushTextWrapPos(0f);
+        ImGui.TextUnformatted(TrendsModel.ScopeNote(metric.Key, _trendWorldScope));
+        ImGui.PopTextWrapPos();
+        PlotLarge("##trend", TrendsModel.ForPlot(series), domain, band);
+    }
 
-        ImGui.Checkbox("territory overlay", ref _showCatchment);
-
-        // T3.9a-b item 1 discoverability: the binding is shown ON the button
-        // itself. Both paths (click here, Space in Update) call EndTurn().
-        if (ImGui.Button("End Turn [Space]", new System.Numerics.Vector2(180, 32)))
-            EndTurn();
-
-        ImGui.Separator();
-        PushDataFont();   // §3 rule: the debug footer is data lines
+    /// <summary>BUILD — the glass-box footer. Diagnostic rather than play
+    /// information, so it no longer costs screen space during play; every line
+    /// it ever carried is still here, plus (T4.19 lane B) the session's five
+    /// files so the director can find them.</summary>
+    private void DrawBuildSection()
+    {
+        PushDataFont();
         ImGui.TextUnformatted(BuildInfo.Describe()); // same identity as the title
         ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, _fps));
         ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
@@ -926,9 +1540,30 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(_art.SummaryLine());
         ImGui.TextUnformatted(_bakeNote);
         if (_fonts is { } f) ImGui.TextUnformatted(f.Note);
+        ImGui.Separator();
+        foreach (string line in SessionFilesModel.Lines(_sessionLogPath)) ImGui.TextUnformatted(line);
         PopDataFont();
-        ImGui.End();
-        if (_fonts is not null) ImGui.PopFont();
-        _imgui.AfterLayout();
+    }
+
+    /// <summary>The trends plot: as wide as the panel and tall enough to read,
+    /// which the old 300×56 thumbnails were not. <paramref name="domain"/> is the axis
+    /// the reader is told about; <paramref name="band"/> colours the line by
+    /// the latest reading against that domain (Neutral pushes no colour, so an
+    /// unbounded metric keeps the theme's own plot colour — see
+    /// TrendAxisModel for why an arbitrary colour would be a lie).</summary>
+    private static void PlotLarge(string label, float[] series, PlotDomain domain, PlotBand band)
+    {
+        if (series.Length == 0)
+        {
+            ImGui.TextUnformatted("no data");
+            return;
+        }
+        string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
+        uint? colour = TrendAxisModel.BandColour(band);
+        if (colour is { } c) ImGui.PushStyleColor(ImGuiCol.PlotLines, c);
+        ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
+            (float)domain.Floor, (float)domain.Ceiling,
+            new System.Numerics.Vector2(PanelLayout.Context.Width - 40, 220));
+        if (colour is not null) ImGui.PopStyleColor();
     }
 }

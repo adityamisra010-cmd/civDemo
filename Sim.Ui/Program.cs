@@ -47,5 +47,27 @@ if (Array.IndexOf(args, "--generate-placeholder-assets") >= 0)
 var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride);
 string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride);
 
+// T4.17: the manifest is written HERE, before the window opens and before a
+// single turn is played. A session that ends in a crash, a force-quit or a
+// power cut is still reproducible, because the one fact that cannot be
+// recovered afterwards — the seed — is already on disk. Everything else the
+// session writes is appended as it goes; this is written once and never
+// rewritten.
+session.ExportManifest(
+    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
+    sessionLogPath);
+Console.WriteLine($"session manifest: {Sim.Ui.UiSession.ManifestPath(sessionLogPath)}");
+
+// m4-forensic P1: the run record, written beside the manifest and for the same
+// reason — the identity of the run is on disk before a turn is played. The local
+// stamp is handed over (this is Sim.Ui; the clock is legal here, ADR-009) but it
+// is NOT the identity: the runId is derived from seed + overrides + schema +
+// config digest + orders digest, so it is reproducible and checkable.
+session.ExportForensicRun(
+    DateTime.Now.ToString("yyyy-MM-dd HH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture),
+    sessionLogPath);
+Console.WriteLine($"forensic record: {Sim.Ui.UiSession.ForensicPath(sessionLogPath)}"
+    + $"  (run {session.ForensicRunId})");
+
 using var game = new Sim.Ui.SimUiGame(session, sessionLogPath);
 game.Run();

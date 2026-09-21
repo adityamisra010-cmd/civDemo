@@ -99,23 +99,52 @@ public class MerchantTests
         // canonical world and asserts the latch flips somewhere — the measured
         // series reaches 3042 units on a settlement by turn 650, well past the
         // threshold of 200.
+        // T4.21-3 RE-ANCHORED to the test's stated aim ("flips SOMEWHERE"): the
+        // latch has a recede predicate and oscillates on the canonical world, so
+        // reading it at ONE turn asserts the phase of an oscillation rather than
+        // reachability. The loop below asserts the latch was ever active within
+        // the horizon (the non-vacuity guard) AND pins where it first flipped.
+        // MEASURED on the merged T4.21-2 + T4.21-3 tree: first active on turn
+        // 119, active on 164 of the 650 turns. Both numbers move with the
+        // trajectory — what decides them is the trade_volume series, i.e. the
+        // migration/population trajectory the two packets changed (T4.21-2 alone
+        // measured 124; T4.21-3 alone measured 128).
+        // T4.21-2's first-latch pin and T4.21-3's loop form both survive here:
+        // the guard is on activeTurns, the turn-exact pin on firstActive.
         using var era = Sim.Data.DataFiles.OpenEraPacing();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(EraTableLoader.Load(era),
             PipelineLoader.Load(pipe, SystemCatalog.All(TestConfigs.Sim(), TestConfigs.Worldgen())));
-
-        WorldState w = exec.Run(
-            WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42), 650);
         ClassId merchant = MerchantClass();
 
-        int active = 0;
-        for (int i = 0; i < w.ClassStates.Count; i++)
-            if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0) active++;
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42);
+        int firstActive = -1, activeTurns = 0;
+        for (int t = 1; t <= 650; t++)
+        {
+            w = exec.Step(w);
+            int activeNow = 0;
+            for (int i = 0; i < w.ClassStates.Count; i++)
+                if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0) activeNow++;
+            if (activeNow > 0) { activeTurns++; if (firstActive < 0) firstActive = t; }
+        }
+        Console.WriteLine($"merchant latch: first active turn {firstActive}, active on {activeTurns} of 650 turns");
+        int active = activeTurns;
 
         Assert.True(active > 0,
             "no settlement ever became a merchant town in 650 turns — either the predicate "
             + "threshold is above anything the world produces, or trade_volume is not reaching "
             + "the predicate. Merchants would be configured but unreachable.");
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on that
+        // tree: first active turn 119 -> 87 — famine concentrated the survivors
+        // and moved the trade-volume trajectory this predicate reads, so the
+        // latch arrived EARLIER.
+        // T4.21-7 RE-PIN BACK (VALUE, ONE ruled cause: THE DISARMING —
+        // hazardPerYear 0.01 -> 0.0, CR-016's orchestrator decision). MEASURED
+        // on this tree by the agent writing this line: 87 -> 119, exactly the
+        // pre-arming turn, so the arming was the whole of the move. The aim
+        // ("it flips somewhere, and the predicate is reachable") is unchanged at
+        // either value and is carried by the two asserts above.
+        Assert.Equal(119, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

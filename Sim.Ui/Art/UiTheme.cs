@@ -25,9 +25,30 @@ public static class UiTheme
 
     public sealed record Fonts(ImFontPtr Body, ImFontPtr Header, ImFontPtr Numeric, string Note);
 
+    // THE DESIGN METRICS, named (T4.19 lane D). They were literals inside
+    // LoadFonts' defaults and Apply's body, which meant the headless
+    // view-model could not know the frame height the renderer would measure
+    // — and the command bar's rule was placed against a frame height nothing
+    // outside the draw call had ever seen. ChromeGeometry derives its rects
+    // from these; Apply and LoadFonts read the SAME constants, so the tested
+    // geometry and the styled screen cannot drift apart.
+    public const float BodyFontPx = 19f;
+    public const float HeaderFontPx = 25f;
+    public const float NumericFontPx = 17f;
+    public static readonly System.Numerics.Vector2 WindowPaddingPx = new(14, 12);
+    public static readonly System.Numerics.Vector2 FramePaddingPx = new(8, 5);
+    public static readonly System.Numerics.Vector2 ItemSpacingPx = new(9, 7);
+
+    /// <summary>ImGui's GetFrameHeight() under the body face: FontSize +
+    /// 2 × FramePadding.y = 29 px. The renderer still passes its MEASURED
+    /// frame height into ChromeGeometry (fonts can fall back); this is the
+    /// design value the headless tests pin against.</summary>
+    public static float FrameHeightPx => BodyFontPx + 2f * FramePaddingPx.Y;
+
     /// <summary>Loads the bible faces into the ImGui atlas. Call BEFORE the
     /// renderer builds its font texture.</summary>
-    public static Fonts LoadFonts(string assetsRoot, float bodyPx = 19f, float headerPx = 25f, float numericPx = 17f)
+    public static Fonts LoadFonts(string assetsRoot,
+        float bodyPx = BodyFontPx, float headerPx = HeaderFontPx, float numericPx = NumericFontPx)
     {
         ImGuiIOPtr io = ImGui.GetIO();
         string fontDir = Path.Combine(assetsRoot, "fonts");
@@ -70,9 +91,9 @@ public static class UiTheme
         style.ScrollbarRounding = 0f;
         style.WindowBorderSize = 1f;
         style.FrameBorderSize = 1f;
-        style.WindowPadding = new System.Numerics.Vector2(14, 12);
-        style.FramePadding = new System.Numerics.Vector2(8, 5);
-        style.ItemSpacing = new System.Numerics.Vector2(9, 7);
+        style.WindowPadding = WindowPaddingPx;
+        style.FramePadding = FramePaddingPx;
+        style.ItemSpacing = ItemSpacingPx;
 
         Set(ImGuiCol.WindowBg, ParchmentPalette.PaperMid, 0.97f);
         Set(ImGuiCol.ChildBg, ParchmentPalette.PaperLight, 0.55f);

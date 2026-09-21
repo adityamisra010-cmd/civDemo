@@ -86,26 +86,29 @@
     "starvationElderMultiplier": 1.3,
     "famineFertilitySuppressionSlope": 3.0,
     "reboundRecoverableFraction": 0.5,
-    "reboundReleaseRatePerYear": 0.08
+    "reboundReleaseRatePerYear": 0.08,
+    "_docHeadroomRelaxation": "T4.21 (ADR-025 2.4 / ADR-026; docs/t4.21-architecture.md 3.5c, 3.6b). headroomRelaxationPerYear (k): the per-year rate at which a settlement's REMAINING food headroom (N_lim - N, Sim.Core/State/FoodHeadroom.cs) is closed by natural growth (the Demographics headroom cap, T4.21-3) AND by immigration (Migration's vacancy bound, T4.21-2): cap = (1 - exp(-k*dt)) * V. ONE law, ONE constant, consumed by both systems. TUNE, CHOSEN per S8 4.1(c) - not derived: k = ln 2 / 10 = 0.0693147180559945 within the director's frame 'the gap halves per decade' ((1 - e^{-k*h}) = 3.41% of remaining headroom per half-year). No null arm by design - a structural bound has no switch (law 2); the identity arm is N_lim = +inf (no deficit row / no demand), where the cap is vacuous. Adding the key (T4.21-1b) changes no behaviour until its consumers ship; the goldens do not move.",
+    "headroomRelaxationPerYear": 0.0693147180559945
   },
   "founding": {
+    "_docCohortCounts": "T4.19 lane C (director ruling on the T4.18 diagnosis, docs/m4-population-transient-investigation.md; record: docs/m4-founding-demographics-correction.md). The previous vector [46,44,40,30,28,26,24,22,20,18,17,15,30,20,12,8] put 70/400 = 17.5% of the founding population in cohorts 12-15 (ages 60-79), where mortalityPerYear runs 0.107-0.305/yr, so the shipped world opened by losing 22% of its people in three turns (seed 42: 5,140 -> 4,330 -> 4,041 -> 3,987) to births-minus-deaths alone - an initialization artefact, not a mechanism. This vector is the MEASURED stable age structure of the shipped fertility/mortality/aging kernel, not a derivation on paper: DemographicsSystem run ALONE (pipeline ['demographics'], deficit 0, dt 10) from the old vector x1000 converges in cohort SHARES by turn 8 to [0.1432 0.1399 0.1271 0.1134 0.0992 0.0853 0.0721 0.0597 0.0482 0.0376 0.0280 0.0198 0.0129 0.0074 0.0037 0.0023] - identical at turns 50/100/200/400, identical at dt 5, identical from a uniform start - and settles at +0.0761 %/yr (CBR 4.172, CDR 4.096 per 100/yr). Those shares apportioned to the SAME total of 400 by largest-remainder rounding (lowest-index tie-break) give this vector; Sim.Tests FoundingDemographicsTests re-derives it from the kernel on every run and pins the equality, so the number cannot drift from its derivation silently. 60+ share is 11/400 = 2.75% against the kernel's 2.63%. NOT CHANGED: foodStore (the food endowment scales with REALISED population, so founding food per capita is unchanged to the unit - measured per settlement, seed 42), endowmentJitter, and every demographic rate. NO startup modifier of any kind exists; the world simply starts on the age structure its own rates support.",
     "cohortCounts": [
-      46,
-      44,
+      57,
+      56,
+      51,
+      45,
       40,
-      30,
-      28,
-      26,
+      34,
+      29,
       24,
-      22,
-      20,
-      18,
-      17,
+      19,
       15,
-      30,
-      20,
-      12,
-      8
+      11,
+      8,
+      5,
+      3,
+      2,
+      1
     ],
     "foodStore": 6000,
     "_docEndowmentJitter": "T3.6b (ADR-017): 0.25 -> 0.69, DERIVED - the RC-1 reference-band FLOOR, the smallest intervention the Item 0 measurement justifies. RC-1 (committed before the measurement was seen, docs/t3.6b-spec.md): Neolithic settlement-size distributions and village-fission founder groups justify founding-population CV 0.4-0.6; the uniform u in [-1,1] jitter realises CV = amplitude/sqrt(3), so the band floor CV 0.4 gives amplitude 0.4*sqrt(3) = 0.6928 ~ 0.69 (measured at 0.25: CV 0.115-0.161 across five seeds, below the band). The T3.1c structure is unchanged: food scales with REALISED population (only the amp/3 per-capita wobble is independent), so founding food-per-capita stays stable and the measured colony-crash mode stays closed. NOT justified by trade and may never be re-tuned against a trade observable (CR-003 5.1; the pre-committed P2 reading predicts trade unchanged by this value).",
@@ -222,5 +225,16 @@
     "correlationTimeYears": 3.0,
     "spatialSharedFraction": 0.6,
     "spatialRangeCostUnits": 40.0
+  },
+  "foodState": {
+    "_doc": "T4.21-1 (CR-015 3.1/3.2, FAMINE IS EXCEPTIONAL). adaptationAbsorbableShortfall (a): CHOSEN 0.20, TUNE, with a stated physiological frame. ONE boundary carries the kernel semantics: a is BOTH the dead-zone of the effective deficit (d_eff = 0 for d <= a; (d - a)/(1 - a) above, exactly 1 at d = 1 - starvation mortality's one input outside FAMINE) AND the SEVERE threshold (theta_sev := a), so the state label predicts the kernel's response: STRESS (0 < d <= a) => no starvation; SEVERE (d > a) => starvation on the unabsorbed remainder; FAMINE (d > 0 with an applied disaster or deliberate abandonment) => starvation on the whole deficit. Frame: sustained ration cuts of ~15-25% are survivable without excess mortality (WWII civilian rationing; the Minnesota Starvation Experiment's ~50% cut for 24 weeks with no deaths is the upper bound), while 40-70% cuts (Dutch Hunger Winter, post-war German rations) carried excess mortality - the band's midpoint taken. RECORDED ALTERNATIVE a = 1/3: aligns the dead zone with the demographic kernel's birth full-stop at d = 1/famineFertilitySuppressionSlope (births continue exactly while nobody starves); not the default because the director's own frame puts survivable cuts at 15-25%. NULL ARM a = 0 reproduces the pre-T4.21 linear response bit for bit. Every OTHER reader of the deficit (fertility suppression, the rebound release gate, destination viability, happiness, appropriation, demote-first) keeps the NOMINAL d. Loader refuses values outside [0,1).",
+    "adaptationAbsorbableShortfall": 0.20
+  },
+  "disaster": {
+    "_doc": "T4.21-1 (CR-015 3.3): the explicit FAMINE-CLASS production shock - one kind (crop failure), multiplying the same two FOOD paths harvest weather multiplies (farming + herding/fishing), never extraction, never stores, never reading population or deficits (like weather it cannot decide famine; FoodState does, from the balance). ALL TUNE. hazardPerYear (lambda): DERIVED AT 0.01, SHIPPED AT 0.0 - THE MECHANISM IS COMPLETE AND TESTED BUT INERT, AND THE RATE IS THE DIRECTOR'S TO RULE. The sequence, truthfully: T4.21-1 SHIPPED IT AT 0.0 (the plumbing packet - its golden move is layout + RngStreams only); T4.21-4 ARMED IT AT THE DERIVED 0.01 - one famine-class local crop failure per settlement per century - and MEASURED the fallout (CR-001's PERMANENT dt-continuity detonator broken across the turn-250 dt 10 -> 5 gate by 2.2572 per 1000 yr on the battery rig (seed 1, windows 1600-2500/2500-3400: +0.4352 -> -1.8220) and 2.5259 per 1000 yr on the DemographyRetuneTests rig (+0.7616 -> -1.7643), against a 0.1 bar on both - see CR-016 D.6, the two are DIFFERENT RIGS and 2.1's table combines them; canonical.fedGrowthPerYear 0.000407442 below its immovable band [0.0005, 0.001]; canonical turn-300 population at a median 0.26 of the unarmed world; the dev world extinguished 93,910 -> 38 over 1000 turns), and escalated it rather than absorbing it; CR-016 (OPEN - docs/adr/cr-016-armed-disaster-fallout.md) RETURNS IT TO 0.0 pending the director's ruling, because choosing a lower rate that made the world survive would be tuning-to-outcome, which CR-015 6.5 forbids, and the honest act is to decline to ship an unvalidated calibration rather than invent a validated-looking one. THIS NUMBER IS THE ONLY THING UNSET: the mechanism is proven by the forced-strike rigs, the ladder tests and the determinism legs, so it is ONE DATA EDIT (0.0 -> 0.01, or whatever the director rules) away from live. The derivation, the reference class and the BAND below are UNCHANGED - they are not what CR-016 disputes. Reference class: pre-modern European regional famines - England 1300-1700 ~5-6 famine-class events / 400 y (~1/70 y); France by region 1500-1800 (Le Roy Ladurie) 1/50-1/100 y; a single settlement's hinterland sees fewer than a region. Band 1/50-1/150; round central value. Per decade per settlement 9.5%. Onset per turn is the exact integration P = 1 - exp(-lambda dt); two uniforms are drawn per settlement per turn UNCONDITIONALLY so lambda = 0 leaves RngStreams bit-identical to lambda > 0 with no strike (the attribution control). Accepted onset-process biases at lambda = 0.01 (CR-015 3.3): no new onset while active plus once-per-turn booking gives ~4.7% of onsets truncated at dt 10 and a ~4.8% rate bias (lambda/(1 + lambda D)) at dt 0.5. durationYears (D): CHOSEN 5.0 inside the historical band 3-7 y (1315-22 Great Famine incl. the murrain, 1601-03, 1695-97, the 1690s seven ill years, 1845-49), at the length the derivation requires; RemainingYears persists BY DIMENSION (a disaster longer than a late-era turn). severityMin/severityMax: fraction of FOOD output lost per ACTIVE year, uniform on [0.75, 1.0] - DERIVED lower edge, historical upper (food output at 0-25% of normal in an active year: Irish potato 1846 ~25% of normal; 1601-03 near-total locally). THE DERIVED BAND: a famine-class event must be able to exhaust the full EFFECTIVE buffer of a settlement at the shipped surplus ratio ALONE at the coarsest era dt: s_min * D > (dt_max (rho_ship - 1) + G) / rho_ship with dt_max = 10, G = 1.5 (consumption.granaryYearsOfDemand) and rho_ship = 1.3 - the DECLARED derivation input (Libur's weather-mean grain surplus ratio in the director's playtest, libur-resources.txt rows 105-116, harvest/eaten 1.03-1.49; the world grain mean ~2.1 is inflated by sparse settlements that overproduce and spoil). Threshold 3.46 production-years; D = 5, s_min = 0.75 gives s*D in [3.75, 5.0]. Dimensional, not a corridor fit: no outcome is targeted, rho_ship enters only as the size of the buffer the event must beat. The turn multiplier is 1 - severity * min(remaining, dt) / dt (dt-exact: a 5-year failure costs 5 s years of food at dt 10 and at dt 0.5 alike); at s_max = 1 it stays >= 0, above 1 it would hand Ledger.Flow a negative source under Throw - the loader refuses s_max > 1, min > max, negative lambda, D <= 0. Where the band sits relative to the weather: a 0.25 yearly multiplier is z = -4.57 under the shipped yearly lognormal (once per ~400,000 settlement-years), so at the year scale the band begins beyond the weather's practical reach; at the decade scale the cause row, not the magnitude, distinguishes them (CR-015 G1, G8).",
+    "hazardPerYear": 0.0,
+    "durationYears": 5.0,
+    "severityMin": 0.75,
+    "severityMax": 1.0
   }
 }
