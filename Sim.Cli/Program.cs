@@ -14,6 +14,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "bench" => Cli.Guard(() => Cli.Bench(args)),
     "autoplay" => Cli.Guard(() => Cli.Autoplay(args)),
     "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
+    "corridors" => Cli.Guard(() => Cli.CorridorsCmd(args)),
     _ => Cli.Usage($"unknown command '{args[0]}'"),
 };
 
@@ -75,6 +76,7 @@ namespace Sim.Cli
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
+                  sim corridors --metrics nightly-metrics.json
 
                 --founded: run the production world (M2: worldgen + settlements +
                 pop/food/pathbuild pipeline) instead of the M0 toy world. Labor
@@ -873,6 +875,132 @@ namespace Sim.Cli
             Console.WriteLine($"metrics written: {metricsPath}");
             return 0;
         }
+
+        /// <summary>
+        /// M4 closure — THE NIGHTLY'S CORRIDOR REPORT, IN TESTED CODE.
+        ///
+        /// Replaces the untested `jq` expression that `ci.yml` carried. That expression
+        /// printed a quarantined corridor's measured range beside its recorded window and
+        /// never compared them, so a corridor drifting clean out of its own window printed
+        /// exactly like one sitting inside it. Its gate short-circuited on
+        /// `quarantine.active`, so nothing downstream looked either. The comparison now
+        /// lives in <see cref="CorridorStatus"/>, which the test suite exercises directly —
+        /// the T3.12 lesson ("nothing checked the checker") applied one level up.
+        ///
+        /// EXIT CODE IS UNCHANGED IN MEANING: 1 only for a liveness failure or a
+        /// NON-quarantined corridor out of band. A quarantined corridor reports and does
+        /// not gate, whatever its window says (T3.12's mechanism, enforced in
+        /// <see cref="CorridorStatus.Gates"/>). This step moves no band, no window and no
+        /// quarantine flag.
+        /// </summary>
+        internal static int CorridorsCmd(string[] args)
+        {
+            var opts = Options.Parse(args, flags: [], valued: ["--metrics"]);
+            string metricsPath = opts.Get("--metrics")
+                ?? throw new CliUsageException("corridors requires --metrics FILE.json");
+
+            using var corridorStream = Sim.Data.DataFiles.OpenCorridors();
+            using var corridorDoc = System.Text.Json.JsonDocument.Parse(corridorStream);
+            using var metricsDoc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(metricsPath));
+
+            System.Text.Json.JsonElement seeds = metricsDoc.RootElement.GetProperty("seeds");
+            if (seeds.GetArrayLength() == 0)
+            {
+                Console.Error.WriteLine("corridors: metrics file carries no seeds — vacuous");
+                return 1;
+            }
+
+            // Fixed, explicit corridor list: an added corridor must be added HERE too, which
+            // is deliberate — a corridor that silently escapes the sweep is the defect.
+            string[] keys = ["densityPerArableKm2", "migrationGrossPerDecade"];
+
+            Console.WriteLine("── corridor status ─────────────────────────────────────────");
+            bool gated = false, needsReading = false;
+
+            for (int k = 0; k < keys.Length; k++)
+            {
+                string key = keys[k];
+                System.Text.Json.JsonElement c =
+                    corridorDoc.RootElement.GetProperty("canonical").GetProperty(key);
+
+                double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
+                foreach (System.Text.Json.JsonElement s in seeds.EnumerateArray())
+                {
+                    double v = s.GetProperty("derived").GetProperty(key).GetDouble();
+                    if (v < lo) lo = v;
+                    if (v > hi) hi = v;
+                }
+
+                System.Text.Json.JsonElement band = c.GetProperty("band");
+                double bandLo = band[0].GetDouble(), bandHi = band[1].GetDouble();
+
+                bool qActive = false;
+                double wLo = double.NaN, wHi = double.NaN;
+                string owner = "";
+                if (c.TryGetProperty("quarantine", out System.Text.Json.JsonElement q))
+                {
+                    qActive = q.TryGetProperty("active", out System.Text.Json.JsonElement a)
+                        && a.GetBoolean();
+                    if (q.TryGetProperty("window", out System.Text.Json.JsonElement w)
+                        && w.GetArrayLength() == 2)
+                    {
+                        wLo = w[0].GetDouble();
+                        wHi = w[1].GetDouble();
+                    }
+                    if (q.TryGetProperty("owner", out System.Text.Json.JsonElement o))
+                        owner = o.GetString() ?? "";
+                }
+
+                CorridorVerdict verdict =
+                    CorridorStatus.Classify(lo, hi, bandLo, bandHi, qActive, wLo, wHi);
+                gated |= CorridorStatus.Gates(verdict);
+                needsReading |= CorridorStatus.NeedsReading(verdict);
+
+                string measured = Interval(lo, hi);
+                string line = $"{CorridorStatus.Word(verdict),-14} {key}  measured {measured}  band {Interval(bandLo, bandHi)}";
+                if (qActive) line += $"  window {Interval(wLo, wHi)}";
+                Console.WriteLine(line);
+
+                if (CorridorStatus.NeedsReading(verdict))
+                {
+                    double overshoot =
+                        CorridorStatus.WindowOvershootFraction(lo, hi, wLo, wHi);
+                    Console.WriteLine(
+                        "               ^^ the quarantined corridor has LEFT its recorded window"
+                        + (double.IsNaN(overshoot)
+                            ? " (no usable window recorded)"
+                            : $" by {(overshoot * 100.0).ToString("F4", CultureInfo.InvariantCulture)} %"));
+                    if (owner.Length > 0) Console.WriteLine($"               owner: {owner}");
+                }
+            }
+
+            // Liveness, unchanged from the jq the step replaces.
+            foreach (System.Text.Json.JsonElement s in seeds.EnumerateArray())
+            {
+                if (s.GetProperty("finalPopulation").GetInt64() > 0) continue;
+                Console.Error.WriteLine("corridors: an extinct world in the sweep — vacuous");
+                gated = true;
+            }
+
+            Console.WriteLine("────────────────────────────────────────────────────────────");
+            if (needsReading)
+            {
+                Console.WriteLine(
+                    "QUARANTINE DRIFT — a quarantined corridor left its recorded window. This does");
+                Console.WriteLine(
+                    "NOT gate (T3.12): the corridor reports. It needs a director ruling, not a re-band.");
+            }
+            if (gated)
+            {
+                Console.Error.WriteLine("NIGHTLY CORRIDOR BREACH — inspect the metrics artifact");
+                return 1;
+            }
+            return 0;
+        }
+
+        private static string Interval(double lo, double hi) =>
+            "[" + lo.ToString("R", CultureInfo.InvariantCulture) + ", "
+                + hi.ToString("R", CultureInfo.InvariantCulture) + "]";
 
         internal static int WorldgenCmd(string[] args)
         {
