@@ -14,6 +14,20 @@ for it: *"Definition of done = the packet's stated acceptance criteria. Your own
 are additive, never a substitute."* No automated scenario discharges this criterion. The
 MEASUREMENT half is already done and is attached below; the play-and-judge half is yours.
 
+> ### STATUS, 2026-09-21 — B1 DISCHARGED BY DIRECTOR WAIVER
+>
+> **The Director waived the requirement for an additional live human play session as a separate
+> engineering deliverable and accepted the evidence package below as sufficient for M4 closure.**
+>
+> **NO LIVE SESSION HAS BEEN PLAYED AGAINST THIS CANDIDATE.** That is a waiver, not a
+> performance, and nothing here should ever be read as saying a session occurred. This brief
+> stays as written for whenever one is played — the steps and the baselines are still the right
+> ones, and the packaging check at the top is still unanswered because no Windows machine has
+> ever opened this zip.
+>
+> No substitute session was built. The Director's instruction was explicit that the remaining
+> human observation is an acceptance act and not an engineering task to be reproduced.
+
 ---
 
 ## BEFORE YOU PLAY — GETTING THE BUILD

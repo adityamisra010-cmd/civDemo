@@ -718,3 +718,20 @@ disaster, is IMPLEMENTED, SHIPPED and reachable — proven by the forced-strike 
 and the determinism legs, which arm λ in-rig — with only its RATE unset. Item 1(B), deliberate
 abandonment, is LIVE on the shipped config and is what makes famine reachable in play today
 (`FamineScenarioTests.S_Abandonment_TriggersFamine`).
+
+---
+
+## DIRECTOR RULING, 2026-09-21 — G1 DOES NOT BLOCK M4 (§6.4 remains ESCALATED and OPEN)
+
+§6.4's escalation is unchanged and unresolved. This ruling settles only G1's relationship to M4
+closure:
+
+- **G1 does not block M4.** M4 closed with the harvest-weather model untouched.
+- **No climate-variance tuning was authorised and none was performed.** `sigmaLogYield`,
+  `correlationTimeYears`, `spatialSharedFraction` and `spatialRangeCostUnits` are unmoved; §6.5's
+  no-move list is intact.
+- **The measurement stands and must not be silently changed.** The turn-mean of the OU process has
+  variance factor `g(dt/τ) = 0.427` at dt 10, so the shipped decade multiplier is 1.5× too variable
+  in σ. It remains an **open post-M4 research and design item**, and it must not be used to justify
+  any M4 simulation modification.
+- **The future bounded climate architecture is POST-M4** and is not begun.

@@ -461,3 +461,107 @@ the B5 / CR-016 / G1 rulings are the director's. `docs/gov-4-repository-freshnes
 forbids an agent merging branches as ordinary implementation work, so no merge was performed.
 
 **M4 still does not close on this entry.** It closes where the entry above says it closes.
+
+---
+
+### DIRECTOR FINAL M4 CLOSURE RULING (2026-09-21)
+
+**APPEND-ONLY. Nothing above this line is edited or deleted**, including the earlier statement
+*"M4 does not close on this entry. It closes on the director's play session against the candidate
+and his merge ruling, as M3 did."* That sentence was true when written. This block records the
+rulings that discharge it. Recorded on `claude/civdemo-work-b1z2y4`; every measurement below was
+taken by the agent recording it.
+
+#### B1 — THE EXIT SESSION: DISCHARGED BY DIRECTOR WAIVER, NOT BY A SESSION
+
+**The Director waived the requirement for an additional live human play session as a separate
+engineering deliverable, and accepted the existing evidence package as sufficient for M4 closure.**
+
+**This is a Director ruling. It is NOT a claim that a human session occurred.** No live
+play session has been held against this candidate, and nothing in this repository should ever be
+read as saying one was. `docs/m4-exit-session.md` remains available for whenever one is played.
+
+The accepted evidence package, MEASURED on the candidate:
+
+| item | result |
+| --- | --- |
+| CI artifact | `sim-ui-win-x64-95faa61`, 80,854,949 bytes, sha256 `51967e0f…f848`, run 35568905793 |
+| director's own M3 order log, replayed | live-run hash **=** replay hash, `fbfe9821…e6f7` |
+| hash logs compared | **650 per-turn hashes, bit-identical** — not merely the final value |
+| independent second live run | reproduces run 1 **bit-for-bit** |
+| empty-order control, seed 42 | run = replay, `1901dfbd…3d12` |
+| second seed, seed 3, held-exit log | run = replay, `8e1cd11b…9331` |
+| T3.12a replay report | **650/650 turns**, `replay-report/v1`, terminal hash equal to the run's |
+| re-verified at final closure | the same 650-turn hash log is **bit-identical to `95faa61`**, so no closure work moved simulation behaviour |
+
+The Director's instruction was explicit: the remaining human gameplay observation is a Director
+acceptance act, not an engineering task to be reproduced or replaced. **No substitute session was
+built, and none should be.**
+
+#### B5 — CLOSED AS AN INSTRUMENTATION AND ACCEPTANCE MATTER, WITH NO TUNING
+
+**Ruled: the new corridor instrumentation is correct; the measured deviations are accepted as
+evidence against the candidate, not as gameplay defects.** Nothing was tuned to fit them — no
+migration constant, no population mechanic, no density behaviour, no band, no window, no
+quarantine threshold, no golden.
+
+The measurements STAND AS MEASURED and are not relabelled as a pass:
+
+| corridor | inside the TARGET band | inside the recorded window |
+| --- | --- | --- |
+| `canonical.densityPerArableKm2` | **17/20** — seeds 2 (0.71647), 13 (0.62273), 1 (0.60732) above the 0.6 ceiling | **19/20** — seed 3 at 0.35415668759623087, 3.9118 % below the floor |
+| `canonical.migrationGrossPerDecade` | **0/20** | **0/20** — measured [0.00023291101986838497, 0.0004277757577755924] against [0.0009, 0.01] |
+
+**THE DISTINCTION THE DIRECTOR REQUIRED, MADE EXPLICIT.** A recorded corridor window is a
+**historical calibration and measurement reference**. It is **not** an active M4 acceptance
+criterion against which the simulation must be tuned. For migration this is not a new position —
+it is the standing ruling, and the code already implements it:
+
+- `corridors.json` `canonical.migrationGrossPerDecade.disposition`: *"ACCEPTED AS MEASURED (M4
+  completion, director ruling 2026-09-04) — NOT tuned, NOT re-banded … The corridor is retained as
+  a RECORD of a historical expectation this world no longer meets, not as an acceptance gate."*
+- `CalibrationBatteryTests` already enacts it: the canonical migration band assertion *"is removed
+  rather than widened. What stays is the LIVENESS tooth: the metric must still be produced and
+  still be positive, so a migration system that silently stopped moving anyone would still fail
+  loudly."* The **0/20** figure is therefore the expected reading of an ACCEPT-AS-IS corridor, not
+  a regression — and it is now visible for the first time, which is the whole point of the repair.
+
+**One consequence, recorded rather than quietly absorbed.** That same `disposition` field states
+§6's calibration criterion is *"discharged for density (lifted, 20/20 in band)"*. That half is
+stale: density is **17/20** on this candidate. The density corridor's quarantine is active and its
+`liftCondition` is unmet, so the corridor remains a recorded deviation under quarantine — reported,
+not gating. No band moved.
+
+#### CR-016 — DOES NOT BLOCK M4
+
+The disaster mechanism stays **present, complete, tested and UNARMED at `hazardPerYear = 0.0`**.
+No rate was derived and no geographically unsupported hazard mechanics were manufactured to close
+M4. The future architecture is POST-M4 and, when built, must run hazard type → **empirical
+real-world frequency** → geographic eligibility → local exposure → event → spatial footprint →
+vulnerability → impact → response/recovery, with flood, earthquake, storm/cyclone, drought,
+wildfire, landslide, volcanic and extreme temperature modelled separately **where the physical
+world model supports them**. Frequency is to be grounded in empirical hazard data translated
+through geographic exposure, never calibrated from desired gameplay outcomes. The engineering
+survey of what this world model can and cannot honestly support is `cr-016` §D.6.
+
+#### G1 — DOES NOT BLOCK M4
+
+No climate-variance tuning was authorised or performed. No sigma moved. The OU turn-mean variance
+measurement (factor 0.427 at dt 10) stands as an open post-M4 research and design item and must not
+be silently changed, nor used to justify any M4 simulation modification.
+
+#### B2 / B3 — MERGE AND TAG AUTHORISED
+
+The Director explicitly authorised this agent to perform the M4 closure merge and to create the
+`m4-exit` tag, overriding the standing prohibition for this one operation. Both were performed
+under that authorisation; the merge SHA and tag are recorded in `docs/m4-exit-inventory.md` and in
+the commit itself.
+
+#### THE KNOWN-OPEN ITEMS THAT TRAVEL PAST M4
+
+CR-016 · G1 · the density quarantine's disposition · ADR-017's "certification pending" ·
+ADR-020 · the T4.19-E S1–S5 set · grain-vs-livestock storage bounding · ADR-019's gap in the ADR
+sequence · ADR-027's sign-off on `CorridorStatus.cs` living under `Sim.Core/Kernel/` · the six
+remaining stale claims in `docs/current-state.md`. None blocks M4 under these rulings.
+
+**M4 CLOSES ON THIS BLOCK.**

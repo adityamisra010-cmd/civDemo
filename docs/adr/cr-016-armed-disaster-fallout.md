@@ -533,3 +533,39 @@ ships complete, tested and inert; and the rate — together with CR-016's own re
 *"3 for the cause, 2 for the magnitude, and NEITHER without the director"* — remains the
 director's ruling. Option 3, which closes G8's dt-dependence via a per-year food-balance sub-step,
 is described by this CR itself as *"already queued for M5"* and *"an M5-sized packet"*.
+
+---
+
+## DIRECTOR RULING, 2026-09-21 — CR-016 DOES NOT BLOCK M4; THE CR STAYS OPEN
+
+**Status is unchanged: OPEN.** This ruling settles CR-016's relationship to M4 closure. It does
+not choose among §4's three options, does not derive a rate, and does not close the CR.
+
+Ruled:
+
+- **CR-016 does not block M4.** M4 closed with the mechanism **present, complete, tested and
+  UNARMED at `hazardPerYear = 0.0`**.
+- **No arbitrary rate may be implemented to close a milestone**, and no geographically unsupported
+  hazard mechanics may be manufactured for that purpose. Neither was done.
+- **The future disaster architecture is POST-M4** and belongs to the civilization architecture
+  phase. When implemented it must run:
+
+  hazard type → **empirical real-world frequency** → geographic eligibility → local exposure →
+  event → spatial footprint → vulnerability → impact → response / recovery
+
+  with **flood, earthquake, storm/cyclone, drought, wildfire, landslide, volcanic activity and
+  extreme temperature modelled separately where the physical world model supports them.**
+- **The real-world-frequency approach is PRESERVED, not rejected.** Hazard frequency must be
+  grounded in empirical hazard data and translated through geographic exposure — never calibrated
+  from desired gameplay outcomes. §D.8's two structural points carry forward: a global disaster
+  count is a numerator with no denominator, and the ratio between occurrence counts and disaster
+  counts *is* the exposure filter, which is the quantity a civilization simulation is actually
+  about.
+
+§D.6's survey stands as the engineering input to that future work, including its refusals:
+**drought already ships** as `HarvestWeatherSystem` and must not be built twice; riverine flood is
+the one genuinely buildable addition; and five of the nine are refusals with stated reasons rather
+than backlog items awaiting effort. §D.8's `[UNVERIFIED-PDF]` tagging still binds — those figures
+must be re-checked against primary sources before any of them derives a rate.
+
+**Do not reopen the disaster question as part of M4.** M4 is closed.
