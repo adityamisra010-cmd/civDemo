@@ -391,3 +391,59 @@ Every item above carries exactly one disposition. Nothing was deleted.
 
 **Nothing in this list blocks the candidate.** Items 2, 3 and 10 are disposed; item 1 is closed by
 process; the remainder are rulings the director takes at, or after, the playtest.
+
+---
+
+### M4 FINAL CLOSURE AUDIT (2026-09-21) — DISPOSITIONS AGAINST THE CANDIDATE
+
+**APPEND-ONLY. Nothing above this line was edited or deleted.** The entry above is the record
+as it stood at the exit gate; this block is the record of what the tree says now. Where the two
+disagree, this block is the later measurement and the entry above is the history. Every row was
+MEASURED on `claude/civdemo-work-b1z2y4` at **`52d0e1b`** unless stated.
+
+**The candidate has moved since the entry above was written.** `main` is `dbef61a` (v24); the
+candidate is 161+ commits ahead and is schema **v25** (`CanonicalSchema.cs` — T4.21-1's
+`Disasters` table). Suite on the candidate: **Sim.Tests 885 passed / 0 failed / 4 skipped**,
+**Sim.Ui.Tests 296 / 0**; all three gate scripts PASS; Release build 0 warnings / 0 errors.
+
+| claim above | disposition, 2026-09-21 |
+| --- | --- |
+| `:302` "Schema moved v22 → v23 → **v24**" | ACCURATE as the history of M4-A…M4-D and as `main`. The CANDIDATE is **v25**. |
+| `:305` store bounding "met to four decimals" | OVERSTATED. `docs/t4.2-review-record.md` measures **1.275–1.320 years** against a 1.5-year prediction and calls it CORROBORATED with one refinement — stores settle at ≈88 % of capacity, not at it. Agreement to ~12 %, not to four decimals. |
+| `:319` T4.21 "is IN PROGRESS" | **COMPLETE.** T4.21-0…-8 all landed, plus the director's report and two closure audits. |
+| `:317` T4.21's governance list | INCOMPLETE: it names CR-015 and G1 but not **CR-016**, which is OPEN and is the reason the famine mechanism ships INERT at `hazardPerYear = 0.0`. |
+| `:331` "**No food trade**" | OVERBROAD. Only **grain** is excluded, as the numeraire — *"structural, not incidental"* (`TradeArbitrageSystem.cs:133-137`). Livestock and fish are food goods and DO trade. |
+| exit row 1 "the **four** post-certification packets" | **FIVE**: T4.17, T4.18, T4.19, T4.20, T4.21 — which `:316` already says. |
+| exit row 2 "Scarcity can bite — starvation is reachable on the **dev** world" | The ratified criterion (`m4-spec.md:377`) names the **canonical** world under a stated condition, not the dev world. **MET, and re-measured on the canonical world at the SHIPPED config**: seed 42, settlement 0 ordered to 0 % farm at turn 1 → FAMINE/Abandonment, **139 starvation deaths at turn 4**, 159 across 40 turns, ledger reconciling exactly (discrepancy 0) at every turn. The orderless twin never reaches FAMINE there. |
+| exit row 5 "quarantined corridors reported with measured ranges" | **NOT SATISFIED ON THIS TREE, and now visible.** The band is untouched at [0.15, 0.6] and the quarantine is active, but the recorded WINDOW no longer covers the candidate — see B5 below. |
+| exit row 6 "prints QUARANTINED with the measured range and exits 0" | ACCURATE as to the exit code, but the range printed was the STALE window, and nothing compared the two. Repaired — see B5. |
+| exit rows 3, 4, 7, 8 | ACCURATE and unchanged. The `m4-exit` tag still does not exist (`git tag` → `m3-exit` only). |
+| known-open 1 "quarantine **inactive** … the nightly **would breach**" | Both facts are stale: the quarantine is `active: true`, and the nightly did NOT breach — `gated()` short-circuited on `quarantine.active` and exited 0. That is the blind spot, not a pass. |
+| known-open 2 "two dev seeds **red by design**" | **GREEN.** T4.21-4's arming turned them red; T4.21-7's disarm resolved them and re-instated the quarantine, which now asserts the ABSENCE of starvation. The suite's red set is empty. |
+| known-open 4a / 4b, and their reconciliation rows | **DISCHARGED by T4.21-4.** Neither test carries a `Skip` attribute any longer; both are live and green in the 885. 4b's line number was also wrong — the test is at `MigrationTests.cs:666`, not `:532`. One narrower residue survives: 4b's upward rate-lever tooth is quarantined in place pending CR-016. |
+| known-open 10 "`current-state.md` … deliberately not repaired" | Superseded: `current-state.md` now opens with a dated STALENESS CORRECTION block covering those four claims. Six FURTHER stale claims in that file are recorded in the audit and remain unrepaired. |
+| known-open 3, 5, 6, 7, 8, 9 | ACCURATE and unchanged. |
+| reconciliation closing line "**Nothing in this list blocks the candidate.**" | Stale as written. B5 below does bear on a ratified §6 criterion, and CR-016 is OPEN. Neither is a simulation defect. |
+
+**B5 — THE DENSITY QUARANTINE'S WINDOW, AND THE INSTRUMENT THAT COULD NOT SEE IT.**
+`canonical.densityPerArableKm2` at seed 3 measures **0.35415668759623087** against a recorded
+window floor of **0.3685744951368359** — **3.9118 % below**. Attributed: T4.21 moved the
+population (133,750 → 128,518, the same −3.9117757 % to every digit) with arable bit-identical.
+No shipped instrument could see it: the nightly's `gated()` never read `quarantine.window`, and
+the battery's canonical theory runs seeds 1 and 2, both comfortably inside.
+
+The instrument is repaired (`Sim.Core/Kernel/CorridorStatus.cs`, `sim corridors`, 11 tests,
+5 mutants killed). Run against the same 20-seed sweep, the old gate exits 0 in silence and the
+new one reports **two** window breaches — density at 3.9118 % and **migration at 74.1210 %**,
+the second of which no instrument had ever shown. Neither is repaired: per T3.12 a quarantined
+corridor REPORTS and does not gate, and **a corridor's disposition is the director's**.
+CR-002 and CR-003 both forbid fitting the instrument to the artifact.
+
+**WHAT REMAINS, AND WHOSE IT IS.** The exit session (`m4-spec.md:384`) names an act with a named
+actor, and `CLAUDE.md:34` forbids an agent's own tests substituting for a stated acceptance
+criterion. Its measurement half is done and attached (`docs/m4-exit-session.md`, written here as
+T4.15's missing session brief); the play-and-judge half, the merge ruling, the `m4-exit` tag, and
+the B5 / CR-016 / G1 rulings are the director's. `docs/gov-4-repository-freshness.md:89-91`
+forbids an agent merging branches as ordinary implementation work, so no merge was performed.
+
+**M4 still does not close on this entry.** It closes where the entry above says it closes.
