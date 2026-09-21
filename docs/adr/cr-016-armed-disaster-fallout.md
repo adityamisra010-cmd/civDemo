@@ -427,3 +427,109 @@ four manual measurement rigs, unchanged. **No golden, pin, band or corridor move
 non-documentation change is to `SimConfigTests`' search strings, and its only data change is prose
 inside `disaster._doc`, which no loader reads. **Nothing in D.1 is reopened**: the mechanism still
 ships complete, tested and INERT, and the rate is still the director's ruling.
+
+---
+
+## APPEND-ONLY — M4 FINAL CLOSURE, THE HAZARD-ARCHITECTURE DISPOSITION (2026-09-21)
+
+**Nothing above this line is edited. `hazardPerYear` stays 0.0. No rate is derived here, no
+option is chosen, and CR-016 remains OPEN.** This section exists because the director's M4
+closure mandate asked, in terms, that if CR-016 is not an M4 requirement the future architecture
+be documented *"clearly enough that the current unarmed state is intentional"* — and because the
+same mandate specified a nine-hazard, geographically-fenced replacement for the single-λ model.
+It was investigated properly. What follows is the result, and the result is mostly a set of
+refusals with reasons.
+
+### D.5 THE GOVERNANCE ANSWER, AND WHY IT IS THE LESSER HALF
+
+No ratified M4 acceptance text names a disaster, hazard or crisis system: not `m4-spec.md` §1,
+§2 or §6, not the T4.1–T4.16 packet list, not the certified `m4-exit-inventory.md`, not the Spine,
+not S8. `DisasterSystem` entered by T4.21, whose placement CR-015 §6.3 records as an
+**orchestrator decision the director may override** (G4), and which is outside the certified
+baseline (`badef96`, schema v24; `DisasterRow` is v25). The Spine puts crisis archetypes at
+**M8** (`civ-sim-architecture-v3-outline.md:112`), and `CLAUDE.md` forbids implementing ahead of
+the ratified spec.
+
+That is sufficient to answer "does CR-016 block M4" — it does not — but it is an argument from
+authority, and the mandate deserved better. So the nine hazards were also tested against the
+world model itself.
+
+### D.6 THE ENGINEERING ANSWER: NINE HAZARDS, TESTED AGAINST THE FIELDS THAT EXIST
+
+The test applied is the repository's own, D-035-C (`d035-needs-aggregation.md:91-93`): *"Name the
+physical carrier … If none exists, it is an invented modifier and is refused."* Operationally:
+**does the field a proposed mask reads have a causal path to the hazard, or only a visual
+resemblance to one?**
+
+What the world actually has: seven immutable 1024² rasters (elevation, water, temperature,
+moisture, fertility, movement-cost, river mask), 12 discharge-ranked river polylines, and three
+scalars. What it does **not** have: latitude, wind, pressure, bathymetry, a coastline object,
+biome, geology, soil, tectonics, stored slope, any atmosphere, any vertical datum — and
+`Hydrology`'s `Accumulation`, which is computed and then **discarded** at `Worldgen.cs:148-150`.
+
+| hazard | verdict | basis |
+| --- | --- | --- |
+| **Drought** | **A — AND IT ALREADY SHIPS** | `HarvestWeatherSystem` *is* the drought mechanism and says so: AR(1) memory, so *"MULTI-YEAR DROUGHTS are reachable — which is the point"* (`:36-38`). Carrier: a season and a harvest. |
+| **Riverine flood** | **B** | Channels and discharge rank survive; the missing piece is upstream contributing area, which is computed at worldgen and thrown away. |
+| **Wildfire** | **B, thin** | The intermediate-productivity predicate over (fertility, moisture, temperature) is a real non-monotone mechanism — but `Moisture` is a STATIC raster and cannot dry out in a bad year, so without conditioning onset on `LogDeviation` it collapses to C. |
+| **Landslide** | **B → C today** | Carrier is real (slope + water), but elevation is **dimensionless**: `Δelevation / 4 km` has no unit, so a slope angle cannot be computed. Needs `metresPerElevationUnit` declared under S8 §4.1(b). |
+| **Coastal flood** | **C** | No storm, no bathymetry — and "coast" is not even defined: `Water` is a global elevation threshold with no ocean-connectivity fill, so an interior basin is indistinguishable from open ocean. |
+| **Earthquake** | **C** | `Worldgen.cs:19-20` states the anti-scope in the repository's own words: *"no plate tectonics, no erosion, no climate simulation."* Elevation is hash-based value-noise fBm. |
+| **Tropical cyclone** | **C** | Five of Gray's six genesis conditions have no field at all, and the sixth — "SST > 26.5 °C" — reduces to a test on the row index. Separately: a cyclone's lifetime is ~7.5 days against a **0.5-year shortest atomic turn**. |
+| **Volcanic** | **C, twice** | No magmatic system; and the scale refuses it independently. This world holds ~3.9 % of Earth's land, so GVP's ~79 eruptions/yr pro-rates to **~3/yr world-wide**, against an EM-DAT exposure filter of 12:1–70:1, across **12 settlements**. A disaster-grade eruption would occur approximately never. |
+| **Extreme temperature** | **C** | The FIELD exists in real units; the HAZARD does not. `Temperature` is static and immutable — a deterministic function of row index and elevation, with no anomaly process and no variance. |
+
+**One verdict deserves emphasis because it is a design ruling, not an inventory note.** Drought is
+already implemented. Adding a "drought event" beside harvest weather would create **a second
+independent driver of the same physical quantity** — precisely the defect `DisasterSystem`'s own
+contract takes such care to avoid (*"It does not decide famine — FoodState does … it reads no
+population, no stores, no deficits and no weather"*). If drought should be *legible*, the correct
+addition is a derived classifier over `LogDeviation`, in the shape of `FoodState` — a derived
+state, never a new event.
+
+### D.7 THE FINDING THAT MATTERS MOST, AND IT IS ABOUT THIS REPOSITORY'S TESTS
+
+A function over the existing rasters emitting a plausible per-cell "earthquake risk", "volcanic
+risk" or "cyclone risk" **would pass every determinism test, every conservation test, every
+dt-exactness test and every replay test in this repository** — while being exactly random
+selection wearing a geographic label. Elevation, slope and the latitude-band temperature field all
+produce maps that *look* geological.
+
+It would be undetectable by the entire suite, **because the suite tests reproducibility and
+lawfulness, not meaning.** The only defence the project has against it is the D-035-C carrier
+test, applied by a person who wants the answer to be no. That is worth knowing before anyone is
+asked to build a hazard layer under time pressure.
+
+### D.8 EMPIRICAL STATUS — STATED SO IT IS NOT MISTAKEN FOR CALIBRATION
+
+Real-world frequencies were researched against EM-DAT/CRED, the WMO Atlas, USGS, the Smithsonian
+GVP and the flood literature. **The session's egress proxy blocked direct retrieval of most
+primary PDFs**, so a substantial share of the figures are search-surfaced text of those same
+publications rather than the publications themselves. They are recorded in the research trail
+tagged `[UNVERIFIED-PDF]` and **must be re-checked against the source documents before any of them
+is written into a ratified record or used to derive a rate.** Nothing from that research has been
+written into `sim.json`, into any corridor, or into any band.
+
+Two methodological points from it are worth carrying forward regardless, because they are
+structural rather than numerical:
+
+1. **A global disaster count is a numerator with no denominator.** EM-DAT's entry criteria are
+   impact thresholds — ≥10 deaths, or ≥100 affected, or a state of emergency, or a call for
+   international assistance — so a flood in an uninhabited basin *does not exist in EM-DAT*. The
+   count measures hazard × exposure × vulnerability × reporting. Deriving a per-settlement
+   probability from it without a stated footprint, denominator area, exposure weighting and
+   catalogue-completeness term is the error the mandate's §6 forbids, in a subtler form than the
+   one it names.
+2. **The occurrence count and the disaster count differ by orders of magnitude**, and the ratio is
+   the exposure filter — which is the quantity a civilization simulation is actually about.
+   Hazard belongs in worldgen; vulnerability belongs to the civilization; they must be separate
+   terms, or technology cannot change the second without falsifying the first.
+
+### D.9 WHAT THIS SECTION DOES **NOT** DO
+
+It derives no rate. It chooses none of §4's three options. It builds nothing, schedules nothing,
+and amends no frozen document. `disaster.hazardPerYear` is **0.0** and untouched; the mechanism
+ships complete, tested and inert; and the rate — together with CR-016's own recommendation of
+*"3 for the cause, 2 for the magnitude, and NEITHER without the director"* — remains the
+director's ruling. Option 3, which closes G8's dt-dependence via a per-year food-balance sub-step,
+is described by this CR itself as *"already queued for M5"* and *"an M5-sized packet"*.
