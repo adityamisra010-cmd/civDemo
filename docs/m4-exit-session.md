@@ -175,15 +175,22 @@ log replay hash-identically **on one build**, which it does, three ways.
 
 ## KNOWN-OPEN, SO YOU ARE NOT SURPRISED MID-SESSION
 
-- **CR-016 — the disaster rate.** OPEN. The mechanism is unarmed. Your ruling.
+- **CR-016.** OPEN, and it is **not merely a rate**. Its own recommendation is *"3 for the cause,
+  2 for the magnitude, and NEITHER without the director"*: option 3 closes **G8**, the
+  dt-dependence of the famine classification, by giving the food balance a per-year sub-step. G8 is
+  an artefact **accepted as INHERITED**, present on the shipped tree at λ = 0 where it is
+  unobservable; option 3 is explicitly *"already queued for M5"* and *"an M5-sized packet"*. The
+  mechanism ships unarmed. Your ruling.
 - **G1 — the harvest-weather decade variance.** Escalated and open; the shipped decade
   multiplier is 1.5× too variable in σ. No sigma was tuned pending your ruling.
-- **B5 — the density quarantine's window.** The corridor is quarantined and its recorded
-  window is now breached: seed 3 measures 0.35415668759623087 against a floor of
-  0.3685744951368359, **3.91 % below**. Until this audit no instrument could see it; the
-  nightly now reports it (and a second breach, migration at 74.12 % below its window, which
-  no instrument had ever shown either). Neither is repaired: a corridor's disposition is
-  yours, and CR-002/CR-003 both forbid fitting the instrument to the artifact.
+- **B5 — the two quarantined corridors.** Measured per seed on the candidate:
+  `densityPerArableKm2` is **17/20 inside the target band** [0.15, 0.6] (seeds 2, 13 and 1 above
+  the ceiling) and **19/20 inside the recorded window** (seed 3 is 3.9118 % below its floor);
+  `migrationGrossPerDecade` is **0/20 against both**. Both are quarantined, which is why nothing
+  gates — but until this audit no instrument compared a measurement to its window at all, so the
+  migration state had never been displayed anywhere. Nothing is repaired: a corridor's disposition
+  is yours, CR-002/CR-003 forbid fitting the instrument to the artifact, and the quarantine's own
+  `liftCondition` reserves re-derivation to your ruling.
 - **The five post-certification packets** — T4.17, T4.18, T4.19, T4.20, T4.21 — are on the
   candidate and are not in the certified baseline. Schema is **v25** against `main`'s v24.
 

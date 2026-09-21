@@ -956,10 +956,26 @@ namespace Sim.Cli
                 gated |= CorridorStatus.Gates(verdict);
                 needsReading |= CorridorStatus.NeedsReading(verdict);
 
+                // For a quarantined corridor, say where it stands against BOTH objects.
+                // The band is the TARGET and the window is the RECORDED DEVIATION; they are
+                // different things, and printing only one of them is how the last blind spot
+                // got made. Counted per seed, not just as an envelope, because an envelope
+                // hides how many seeds are out.
+                int inBand = 0, inWindow = 0, n = 0;
+                foreach (System.Text.Json.JsonElement s in seeds.EnumerateArray())
+                {
+                    double v = s.GetProperty("derived").GetProperty(key).GetDouble();
+                    n++;
+                    if (v >= bandLo && v <= bandHi) inBand++;
+                    if (qActive && !double.IsNaN(wLo) && v >= wLo && v <= wHi) inWindow++;
+                }
+
                 string measured = Interval(lo, hi);
                 string line = $"{CorridorStatus.Word(verdict),-14} {key}  measured {measured}  band {Interval(bandLo, bandHi)}";
                 if (qActive) line += $"  window {Interval(wLo, wHi)}";
                 Console.WriteLine(line);
+                Console.WriteLine($"               per seed: {inBand}/{n} inside the TARGET band"
+                    + (qActive ? $"; {inWindow}/{n} inside the recorded window" : ""));
 
                 if (CorridorStatus.NeedsReading(verdict))
                 {

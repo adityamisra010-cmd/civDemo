@@ -433,11 +433,25 @@ No shipped instrument could see it: the nightly's `gated()` never read `quaranti
 the battery's canonical theory runs seeds 1 and 2, both comfortably inside.
 
 The instrument is repaired (`Sim.Core/Kernel/CorridorStatus.cs`, `sim corridors`, 11 tests,
-5 mutants killed). Run against the same 20-seed sweep, the old gate exits 0 in silence and the
-new one reports **two** window breaches — density at 3.9118 % and **migration at 74.1210 %**,
-the second of which no instrument had ever shown. Neither is repaired: per T3.12 a quarantined
-corridor REPORTS and does not gate, and **a corridor's disposition is the director's**.
-CR-002 and CR-003 both forbid fitting the instrument to the artifact.
+5 mutants killed; **ADR-027**). Run against the same 20-seed sweep, the old gate exits 0 in
+silence and the new one reports **two** window breaches — density at 3.9118 % and **migration at
+74.1210 %**, the second of which no instrument had ever shown.
+
+**AND THE FULLER PICTURE, WHICH THE FIRST DRAFT OF THIS BLOCK DID NOT STATE.** An adversarial
+review of this audit refuted the framing of B5 as purely a window question, and it was right.
+Measured per seed on the candidate:
+
+| corridor | inside the TARGET band | inside the recorded window |
+| --- | --- | --- |
+| `densityPerArableKm2` | **17/20** — seeds 2 (0.71647), 13 (0.62273), 1 (0.60732) above the 0.6 ceiling | **19/20** — seed 3 below the floor |
+| `migrationGrossPerDecade` | **0/20** | **0/20** |
+
+The band is the TARGET and the window is the RECORDED DEVIATION; they are different objects, and
+reporting only one of them is how the previous blind spot was made. `sim corridors` now prints
+both. Nothing is repaired: per T3.12 a quarantined corridor REPORTS and does not gate, and
+**a corridor's disposition is the director's**. CR-002 and CR-003 both forbid fitting the
+instrument to the artifact, and the quarantine's own `liftCondition` reserves re-derivation to an
+explicit director ruling.
 
 **WHAT REMAINS, AND WHOSE IT IS.** The exit session (`m4-spec.md:384`) names an act with a named
 actor, and `CLAUDE.md:34` forbids an agent's own tests substituting for a stated acceptance
