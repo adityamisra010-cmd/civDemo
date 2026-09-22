@@ -355,8 +355,12 @@ path):**
 | the rendered sheet for review without a build | `docs/architecture/glyph-sheet-v0.png` | `git rm` |
 
 Deleting those four things returns the tree to `de5e00e` behaviour exactly; nothing else
-references them. `dotnet build`, `dotnet test`, and the three gate scripts were run after the
-addition — results are in the audit's §9 and in the commit.
+references them. MEASURED after the addition, Release, 2026-09-22: `dotnet build Sim.slnx` 0 warnings
+/ 0 errors; `Sim.Ui.Tests` **306 passed / 0 failed** (296 + the 10 contract tests); `Sim.Tests` **896
+passed / 0 failed / 4 skipped** — identical to the M4 closure baseline, as it must be: `git diff --stat
+de5e00e HEAD -- Sim.Core Sim.Data Sim.Cli Sim.Tests scripts .github` is empty, so no simulation
+file, data file, golden or gate changed; `check-banned-constructs`, `check-read-isolation`,
+`check-readonly-proof` all OK. The sheet was baked by `sim-ui --glyph-sheet` from the same build.
 
 **Not implemented, deliberately:** no wiring into `SimUiGame.Draw`, no atlas upload, no hover or
 tooltip code, no animation clock, no view-model that maps `WorldState` rows to specs. Those are
