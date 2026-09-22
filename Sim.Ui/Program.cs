@@ -40,6 +40,23 @@ if (Array.IndexOf(args, "--generate-placeholder-assets") >= 0)
     return;
 }
 
+// --glyph-sheet [path] (pre-M5 visual-system foundation,
+// docs/architecture/pre-m5-visual-system.md §9): bake the procedural glyph
+// grammar's contact sheet to a PNG and exit WITHOUT opening a window, so the
+// grammar can be reviewed without a build. Nothing in the map draw path
+// consumes the grammar; this flag is its only production entry point.
+if (Array.IndexOf(args, "--glyph-sheet") >= 0)
+{
+    int sheetAt = Array.IndexOf(args, "--glyph-sheet");
+    string sheetPath = sheetAt + 1 < args.Length && !args[sheetAt + 1].StartsWith("--")
+        ? args[sheetAt + 1]
+        : "glyph-sheet.png";
+    Sim.Ui.Art.PngCodec.Write(sheetPath, Sim.Ui.Art.Glyphs.GlyphSheet.Bake());
+    Console.WriteLine($"glyph sheet: {Path.GetFullPath(sheetPath)} "
+        + $"({Sim.Ui.Art.Glyphs.GlyphSheet.Width}x{Sim.Ui.Art.Glyphs.GlyphSheet.Height})");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);

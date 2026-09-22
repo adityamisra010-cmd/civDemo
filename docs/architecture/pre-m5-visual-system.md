@@ -39,12 +39,12 @@ draw path consumes it.
 
 | area | what the tree has | where |
 | --- | --- | --- |
-| Stack | MonoGame DesktopGL 3.8.5 + ImGui.NET 1.91.6.1; `Sim.Ui` referenced by nothing but `Sim.Ui.Tests` | `Sim.Ui/Sim.Ui.csproj:25-26`, `docs/adr/adr-009-ui-stack.md` |
+| Stack | MonoGame DesktopGL 3.8.5 + ImGui.NET 1.91.6.1; `Sim.Ui` referenced by nothing but `Sim.Ui.Tests` | `Sim.Ui/Sim.Ui.csproj` (PackageReference block), `docs/adr/adr-009-ui-stack.md` |
 | Map draw path | terrain texture (SpriteBatch) → world-space vector layers (catchment fill, paths, rivers) → **settlement markers, world-anchored at CONSTANT SCREEN SIZE** (20 px, `SettlementSelection.MarkerScreenPx`) with a gold halo on selection → ImGui HUD → grain overlay multiplied over everything | `Sim.Ui/SimUiGame.cs:547-616` |
-| Sprite/icon system | **one** icon: the generic settlement marker (`AssetKind.SettlementMarker`, an inked ring). No icon tiers, no per-kind glyphs, no atlas. | `Sim.Ui/Art/AssetManifest.cs:16-20`, `PlaceholderArt.cs:245-263` |
+| Sprite/icon system | **one** icon: the generic settlement marker (`AssetKind.SettlementMarker`, an inked ring). No icon tiers, no per-kind glyphs, no atlas. | `Sim.Ui/Art/AssetManifest.cs:16-20`, `PlaceholderArt.cs:249-267` |
 | Procedural baking | **exists and is the precedent**: `HeaderRuleBaker` (analytic coverage → palette-exact RGB + coverage alpha, seamless by construction, 143 lines), `PlaceholderArt` (periodic value-noise paper, washes, panel, compass rose, marker), `TerrainBaker` (byte-deterministic per seed). All pure: `ArtImage(Width, Height, byte[] Rgba)`, no MonoGame types. | `Sim.Ui/Art/HeaderRuleBaker.cs`, `PlaceholderArt.cs`, `PngCodec.cs:7` |
 | Palette | `ParchmentPalette` — the closed set `BibleColors` (18 hexes), saturation gamut helpers, territory ink-wash compositor | `Sim.Ui/Art/ParchmentPalette.cs` |
-| Theme / typography | `UiTheme`: EB Garamond (labels/headers), IBM Plex Serif (numbers); named metrics (`BodyFontPx` 19, `FrameHeightPx` 29, paddings) shared by renderer and headless geometry tests | `Sim.Ui/Art/UiTheme.cs:36-48` |
+| Theme / typography | `UiTheme`: EB Garamond (labels/headers), IBM Plex Serif (numbers); named metrics (`BodyFontPx` 19, `FrameHeightPx` 29, paddings) shared by renderer and headless geometry tests | `Sim.Ui/Art/UiTheme.cs:28-48` |
 | Animation | **none.** `GameTime` is used for camera panning (`:498`) and an FPS smoother (`:549-550`). No tween, no per-frame visual state, no transition of any drawn element. | `Sim.Ui/SimUiGame.cs:439-545`, `:547-550` |
 | Hover / tooltip | **none.** Zero calls to `SetTooltip`/`BeginTooltip`/`IsItemHovered`/`SetItemTooltip` in `Sim.Ui` (MEASURED: grep, 0 hits). Selection is a pure hit-test model over marker discs and measured label rects (`SettlementSelection.HitTest`, 44 px minimum target). | `Sim.Ui/ViewModel/SettlementSelection.cs:28-64` |
 | Information hierarchy | exists for PANELS, not for glyphs: status band → selection card → command bar → one context panel (T4.19 lane B); inspector tabs route to explain queries via `ExplainRouting` | `docs/m4-player-information-ui.md` §1, `Sim.Ui/ViewModel/ExplainRouting.cs` |
