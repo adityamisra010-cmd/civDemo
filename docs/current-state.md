@@ -449,3 +449,13 @@ the list of open CRs. Each is verifiable — the CRs as files under `docs/adr/`,
 from the session record — but none was re-derived from git for this file.
 
 `UNVERIFIED` values are marked inline. There is one: the M3→M4 exit-gate ruling (§2).
+
+> **2026-09-22 — PRE-M5 RECONNAISSANCE (append-only pointer; nothing above is rewritten).** `main` =
+> `origin/main` = `de5e00e` (M4 CLOSED, tag `m4-exit`, schema v25). The pre-M5 architecture
+> reconnaissance lives at `docs/architecture/pre-m5-repository-audit.md` (27 Draft-1 concepts
+> classified against the tree; the fixed-turn vs variable-Δt register; the frozen-item register; 21
+> document-drift rows — several of them in THIS file, §7 rows 1–2; twelve Director decisions) and
+> `docs/architecture/pre-m5-visual-system.md` (the procedural glyph grammar, implemented in
+> `Sim.Ui/Art/Glyphs/` with `Sim.Ui.Tests/GlyphGrammarTests.cs` and the headless `--glyph-sheet` flag;
+> removable in one commit; no simulation file touched — Sim.Tests 896/0/4 unchanged). Re-derive
+> anything you rely on, as §9 says; the audit's own §0 states what it did not have (Draft 1).
