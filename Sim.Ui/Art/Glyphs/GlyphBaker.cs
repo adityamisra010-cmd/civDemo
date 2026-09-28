@@ -795,6 +795,47 @@ public static class GlyphBaker
                 cv.FillPolygon(ink, [M(0.26, 0.66), M(0.74, 0.66), M(0.88, 0.92), M(0.12, 0.92)]);
                 break;
 
+            // --- world visualization marks (objects) --------------------------------------
+            case GlyphDomain.Lyre:        // two curved arms, a crossbar, a sound box, three strings
+                cv.Stroke(ink, [M(0.3, 0.06), M(0.18, 0.22), M(0.2, 0.46), M(0.34, 0.66), M(0.36, 0.84)], mw * 1.3);
+                cv.Stroke(ink, [M(0.7, 0.06), M(0.82, 0.22), M(0.8, 0.46), M(0.66, 0.66), M(0.64, 0.84)], mw * 1.3);
+                cv.Stroke(ink, [M(0.18, 0.18), M(0.82, 0.18)], mw * 1.2);
+                cv.FillPolygon(ink, [M(0.3, 0.8), M(0.7, 0.8), M(0.66, 0.96), M(0.34, 0.96)]);
+                foreach (double u in new[] { 0.42, 0.5, 0.58 })
+                    cv.Stroke(ink, [M(u, 0.2), M(u, 0.8)], mw * 0.6);
+                break;
+            case GlyphDomain.Compass:     // a four-point compass star over a ring
+            {
+                (double cx, double cy) = M(0.5, 0.5);
+                double rr = 0.36 * System.Math.Min(sw, sh);
+                cv.Arc(ink, cx, cy, rr, mw * 0.8);
+                cv.FillPolygon(ink, [M(0.5, 0.0), M(0.58, 0.42), M(1.0, 0.5), M(0.58, 0.58), M(0.5, 1.0), M(0.42, 0.58), M(0.0, 0.5), M(0.42, 0.42)]);
+                break;
+            }
+            case GlyphDomain.Anchor:      // ring, shank, stock, curved arms with flukes
+            {
+                (double rx, double ry) = M(0.5, 0.1);
+                cv.Arc(ink, rx, ry, System.Math.Max(0.9, 0.07 * System.Math.Min(sw, sh)), mw);
+                cv.Stroke(ink, [M(0.5, 0.18), M(0.5, 0.9)], mw * 1.4);
+                cv.Stroke(ink, [M(0.28, 0.3), M(0.72, 0.3)], mw * 1.2);
+                cv.Stroke(ink, [M(0.12, 0.6), M(0.2, 0.78), M(0.36, 0.9), M(0.5, 0.92), M(0.64, 0.9), M(0.8, 0.78), M(0.88, 0.6)], mw * 1.3);
+                cv.FillPolygon(ink, [M(0.04, 0.62), M(0.2, 0.56), M(0.16, 0.72)]);
+                cv.FillPolygon(ink, [M(0.96, 0.62), M(0.8, 0.56), M(0.84, 0.72)]);
+                break;
+            }
+            case GlyphDomain.Drop:        // a water drop with a ripple line beneath
+            {
+                var drop = new (double, double)[13];
+                for (int i = 0; i < 13; i++)
+                {
+                    double a = System.Math.PI * (i / 12.0);   // lower semicircle, left to right
+                    drop[i] = M(0.5 - 0.3 * System.Math.Cos(a), 0.56 + 0.3 * System.Math.Sin(a));
+                }
+                cv.FillPolygon(ink, [M(0.5, 0.02), .. drop]);
+                cv.Stroke(ink, [M(0.08, 0.98), M(0.3, 0.92), M(0.5, 0.98), M(0.7, 0.92), M(0.92, 0.98)], mw);
+                break;
+            }
+
             case GlyphDomain.Civic:
                 cv.FillPolygon(ink, [M(0.4, 0.2), M(0.6, 0.2), M(0.6, 0.85), M(0.4, 0.85)]);
                 cv.FillPolygon(ink, [M(0.22, 0.08), M(0.78, 0.08), M(0.78, 0.2), M(0.22, 0.2)]);

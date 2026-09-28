@@ -133,6 +133,18 @@ public enum GlyphDomain
     Brush = 31,
     /// <summary>An Erlenmeyer flask — the sciences.</summary>
     Flask = 32,
+
+    // --- added by the world visualization foundation (docs/architecture/world-visualization.md).
+    // Objects again, appended so every earlier value — and every earlier bake — is unchanged.
+
+    /// <summary>A lyre — music (musicians, bands).</summary>
+    Lyre = 33,
+    /// <summary>A compass rose — expeditions.</summary>
+    Compass = 34,
+    /// <summary>An anchor — ports and harbours.</summary>
+    Anchor = 35,
+    /// <summary>A water drop — reservoirs and water works.</summary>
+    Drop = 36,
 }
 
 /// <summary>
