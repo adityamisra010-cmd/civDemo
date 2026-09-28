@@ -48,6 +48,27 @@ public class WorldReviewRegressionTests
         foreach (string k in keys) Assert.Equal(bare.FindAgent(Agent(k))!.AttachIndex, barePlus.FindAgent(Agent(k))!.AttachIndex);
     }
 
+    /// <summary>An agent that got its OWN preferred lot (the hash's start lot) can never move on
+    /// any departure: nothing earlier in its probe sequence exists to be freed. (A dense rank —
+    /// lots 0, 1, 2… in arrival order — would move every agent after a departed one.)</summary>
+    [Fact]
+    public void Det2_AnAgentOnItsPreferredLot_NeverMovesWhenAnotherLeaves()
+    {
+        SettlementReport s = SettlementAt("s", 50, 50, ("population", 5000));
+        string[] keys = Enumerable.Range(1, 8).Select(i => $"p-{i:D2}").ToArray();
+        AgentReport[] all = keys.Select((k, i) => AtSettlement(k, "s", i)).ToArray();
+        WorldView v = WorldViewBuilder.Build(Sources([s], agents: all), M);
+        var settled = keys.Where(k => v.FindAgent(Agent(k))!.AttachIndex
+            == StableHash.Index(StableHash.Of("s", k), WorldViewBuilder.FanLotsPerRing)).ToList();
+        Assert.True(settled.Count >= 3, $"only {settled.Count} of 8 on their preferred lot");
+        foreach (string gone in keys)
+        {
+            WorldView less = WorldViewBuilder.Build(Sources([s], agents: all.Where(a => a.Key != gone).ToArray()), M);
+            foreach (string k in settled)
+                if (k != gone) Assert.Equal(v.FindAgent(Agent(k))!.AttachIndex, less.FindAgent(Agent(k))!.AttachIndex);
+        }
+    }
+
     [Fact]
     public void Det2_AttachedPeople_KeepTheirLot_AcrossTheDemoTimeline()
     {
@@ -72,8 +93,9 @@ public class WorldReviewRegressionTests
         var proj = At(10, 10, 20);
         WorldFrame f = Paint(v, M, proj);
         (double x2, double y2) = proj.ToScreen(new WorldPoint(10.4, 10.0));
-        // A point inside both circles but NEARER a02's centre: a01 is drawn over it there.
-        double px = x2 - 4, py = y2;
+        // A point inside both circles but clearly NEARER a02's centre (2 px from it, 6 px from
+        // a01's): a01 is still drawn over it there, so a01 — not the nearer centre — is hit.
+        double px = x2 - 2, py = y2;
         Assert.True(f.Hits.Regions.Count(r => r.Contains(px, py)) >= 2);
         Assert.Equal(Agent("a01"), f.Hits.HitTest(px, py));
     }

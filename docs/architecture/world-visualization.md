@@ -71,7 +71,10 @@ The inspector tags every line it prints as **reported**, **view** (a visual choi
   selectable), `Hidden` (not drawn, not hit, not counted). It is NOT the knowledge model: the ruled shape of that is a
   computed per-polity extent with separable, lagged position and strength channels (D-040 B1 `d040:37`, D-039 A2
   `d039:13`), owned by M7 (D-040 D3 `d040:158`). `WorldSources.Observer` names whose knowledge the bundle is (today
-  always an omniscient observer).
+  always an omniscient observer). A hidden settlement anchors nobody and its structures and
+  resources are neither drawn nor counted; the inspector says only "hidden" about any hidden entity.
+- **Provenance.** A view is DEMO / PLACEHOLDER if its bundle says so **or any of its snapshots** does, so a
+  mixed bundle can never be labelled LIVE; the live map refuses to draw a placeholder view at all.
 - **Inputs.** Named numbers (`ReportedInput`) and named labels (`ReportedLabel`) carried through unchanged; content
   chooses which one drives a visual stage (§5), so a new authoritative input is a content edit, not a renderer change.
 - **Get-only.** Every source member is a getter; every report is an immutable record (pinned by
@@ -83,7 +86,7 @@ The inspector tags every line it prints as **reported**, **view** (a visual choi
 | --- | --- | --- |
 | settlements | `Settlements` + Σ `Buckets.Count` + `CatchmentSummaries.SizeTier` + `Housing.Dwellings` + `EmpireQuery.TryGetController` | position = the site-cell centre the game's marker uses |
 | polities | `Polities` | display name "Polity #n (player)" — the simulation names no polities (WV-05) |
-| structures | `Structures` (M4-D `StructureRow`, a count per settlement × project) | one report per row with `Count > 0`, `Multiplicity = Count`, no `Established`, no polity; never expanded into per-building ids. `ConstructionQueue` rows are **not** drawn (M4-D has no progress; DD-08) |
+| structures | `Structures` (M4-D `StructureRow`, a count per settlement × project) | one report per row with `Count > 0`, `Multiplicity = Count`, no polity; never expanded into per-building ids. `Established` = the row's index: ConstructionSystem appends a row on a project's first completion and nothing reorders or removes rows, so the index is the order structures first stood — a granary built after a workshop never displaces it. `ConstructionQueue` rows are **not** drawn (M4-D has no progress; DD-08) |
 | infrastructure | `NetworkNodes` (junctions at their lattice node) + `NetworkEdges` (transport links) | the one graph (D-009 ¶2). On the live map the game already draws the network, so the layer does not redraw it |
 | resources | `Deposits` (good, abundance) | |
 | mobile agents | `Notables` with `Count > 0`, at their settlement, display type "person" | a vacated row (death, or the old row of a defection) is not a person and is not reported |
@@ -97,9 +100,11 @@ diagnostics rather than a crash or a partial result.
 
 - **Settlement stages.** `settlementStages.drivers` in priority order; the first driver whose input the source REPORTS
   picks the stage. Live reports `sizeTier` (the simulation's own quantized size step, D-017 CLOSED `m3-spec:15`):
-  mapped one to one and shown by number ("sizeTier 2 (stage 3 of 5)"), **never named Town/City** (WV-01). The demo
-  reports only `population`, so its stages come from the `population` driver, whose thresholds are labelled
-  **demonstration**. A stage sets only how many residential blocks the composed sprite shows.
+  mapped one to one and shown by number ("sizeTier 2 (stage 3 of 5)"), **never named Town/City** (WV-01). A driver
+  whose provenance is `demonstration` (the `population` thresholds) **never stages a live bundle**: a live settlement
+  with no sizeTier yet (every settlement at turn 0; a colony on its founding turn) draws the base footprint UNNAMED,
+  "base footprint (sizeTier not reported)". Only placeholder bundles use the demonstration thresholds. A stage sets
+  only how many residential blocks the composed sprite shows.
 - **Structure stages** (`visualTypes[].stages`): cumulative — each stage lists only the parts it **adds**; stage k is the
   union of stages 0..k, so an institution grows and is never replaced by another icon, and an earlier part never moves
   (pinned per type). `stageBy` is either a numeric input (`capacity`, `served`, `staff`, …; `multiplicity` is built in)
@@ -111,11 +116,15 @@ diagnostics rather than a crash or a partial result.
   stage can overflow into a neighbour. Parts cast their contact shadow along `ObjectLight` (one light, D-038 B1/H4).
 - **Icons** reuse the glyph grammar: the type's base + mark (the gallery's mapping — university Portico+Letters,
   hospital Hall+Medicine, factory Tower+Industry, research institute Dome+Flask), the **specialization's** mark when one
-  is reported, the reported **state** through the existing `GlyphState` alphabet (one "under construction" treatment:
-  `InProgress`, never a second one), and the visual stage as the existing maturity-stage pips.
+  is reported, and the reported **state** through the existing `GlyphState` alphabet (one "under construction"
+  treatment: `InProgress`, never a second one). Icons carry **no maturity-stage pips**: the grammar's pips mean
+  building maturity, which no source reports (DD-T5/DD-T9 open); the visual stage is shown by the parts and, tagged
+  "view", in the details.
 - **Infrastructure types** style edges by stage (road: track → road → paved road, by the reported `grade`).
 - **Agent types** choose the silhouette family by category: military → `Standard` (banner), person → `Emblem` (the
   object mark alone), group → `Node` (a circled mark). Never a figure (D-038 C1/C3); the loader rejects a mismatch.
+  (The Trees gallery draws role-bearing people as `Standard` unit classes; the map draws them as persons — see WV-07.)
+  An agent with no reported count is drawn at the BASE size band, never at a size it did not report.
 - **Aggregation** (`individualUpTo`, provisional — D-038 H8 is unruled, WV-03): per settlement and visual type the first
   N reports by (established, key) draw individually; the rest share one cluster token. One report is always one token;
   its multiplicity is a `xN` badge. The civilization legend sums multiplicity over drawable reports.
@@ -133,11 +142,13 @@ structure as a **part of its settlement's one composed sprite**, in a **composit
 coordinates, never shown as a position, never a hit result other than (the structure's id). This interpretation is
 registered for the Director (WV-02); districts and clusters are not implemented.
 
-- **Fixed lattices.** Structure slots (rings of 6/12/18 in sprite units) and residential block lots (eight rings) are
-  fixed by content; neither depends on stage, population or structure count. The loader proves no two slots overlap.
+- **Fixed lattices.** Structure slots (rings of 6/12/18 in sprite units) and residential block lots (twelve rings, 468
+  lots — enough for the largest stage with every slot occupied) are fixed by content; neither depends on stage,
+  population or structure count. The loader proves no two slots overlap, bounds every lattice (at most 24 rings, 360
+  lots a ring, 4,096 lots) before building it, and rejects a stage with more blocks than the lattice has.
 - **Priority.** Claims (the individually drawn structures and cluster tokens) are ordered by (established ascending,
-  unreported last; key ordinal). The demo DERIVES `Established` as an entity's first step, so a later arrival always
-  ranks after what already stands; the live M4-D rows have none, so key order decides.
+  unreported last; key ordinal). The demo DERIVES `Established` as an entity's first step and the live adapter reports
+  the StructureRow's append-only index, so in both a later arrival ranks after what already stands.
 - **Slot.** For each claim: `h = fmix64(FNV-1a64(UTF-8(settlementKey) · 0x00 · UTF-8(claimKey)))`; rings are tried
   inner to outer; on ring r the probe starts at `h mod n_r` and steps +1 (wrapping). At most every slot is probed once;
   if all are taken the claim goes to a fixed spill position. No loop, no `GetHashCode`, no process-dependent value
@@ -148,10 +159,13 @@ registered for the Director (WV-02); districts and clusters are not implemented.
 - **Order of operations.** Stage → slots over ALL of a settlement's reports whatever their visibility → visibility
   filter → level of detail → viewport. Later steps only filter; none re-places, so no filter can move a building.
 - **Guarantees (tested):** identical reports → identical slots, in any input order, in any process; a later arrival
-  never moves an earlier structure; a settlement stage change, a structure stage change, another structure's visibility,
-  a zoom or a pan move nothing; across every consecutive pair of demo steps no structure jumps. **The one accepted
-  relocation is a removal:** a later claim whose probe passed a freed slot may move into it — only earlier in its own
-  probe sequence, and never a claim that ranks before the removed one.
+  never moves an earlier structure (demo and live); a settlement stage change, a structure stage change, another
+  structure's visibility, a zoom or a pan move nothing; across every consecutive pair of demo steps no structure jumps.
+  **The one accepted relocation is a removal:** it never moves a claim that ranks before the removed one; claims ranked
+  after it may move. Without aggregation a moved claim only moves EARLIER in its own probe sequence; with aggregation a
+  removal can promote a clustered report or re-rank the cluster token, so a later claim may also move later (review
+  det-5 / place-3). A source that reports no arrival order at all falls back to key order, and then an arrival with a
+  LOWER key can displace — no shipped source is in that case.
 
 ## 7. The demo world (`demo-world.json`) — DEMONSTRATION / PLACEHOLDER
 
@@ -167,14 +181,16 @@ whatever the file order; duplicate (entity, step) entries are errors. Constructi
 | A | State A — small settlement | 1,500 → 6 blocks | no university, no hospital; one dotted track |
 | A2 | growing | 6,000 | more blocks; the track becomes a road; a granary |
 | B | State B — first university and hospital | 14,000 (Town) | University #123 (stage 1), Hospital #7 (stage 1), granaries ×2, a workshop; more roads |
-| C | State C — developing city | 45,000 (City) | #123 expands (wings); University #131; Hospital #7 ward wing; Factories #40 and #41; reservoir; aqueduct, port, paved road; 10 universities in the realm |
+| C | State C — developing city | 45,000 (City) | #123 expands (wings); University #131; Hospital #7 ward wing; Factories #40 and #41; reservoir; aqueduct, port, paved road; 10 universities across the demo world |
 | D | State D — large city | 180,000 (Large city) | #123 campus; #131 academic block; #140; Hospital #7 medical complex, #19; three factories; military academy; research institute; rail; 20 universities |
-| E | civilization scale | 240,000 | 30 universities across 8 settlements; a fifth Veyra university joins a cluster token; #155 under construction (state only) |
+| E | civilization scale | 240,000 | 30 universities reported across the demo world (all polities) in 8 settlements; a fifth Veyra university joins a cluster token; #155 under construction (state only) |
 
-Mobile agents (Part 14): Army #184 (500 personnel), #77 (50), #12 (5,000), a remembered and a hidden army, Formation
-#21 on the Veyra–Oskar road (graph location), a tank formation, a fleet, a hero, a scientist and an engineer placed
-deliberately overlapping, an artist, a musician, a leader and a notable placed AT Veyra, "The Band" (4 members), a
-cultural group and an expedition — all at fractional coordinates, some with headings.
+Mobile agents (Part 14): Army #184 (500 personnel), #77 (50), #12 (5,000), Formation #21 and the tank formation stand
+ON the road graph (edge + fraction — D-009's ruled shape; the view projects the continuous point); a remembered sighting
+(Army #9, ghosted, at its last known map point) and a hidden army; a fleet at sea; a hero, a scientist and an engineer
+placed deliberately overlapping, an artist, a musician; a leader and a notable placed AT Veyra; "The Band" (4 members),
+a cultural group and an expedition — people and groups at free fractional coordinates, some agents with headings. The
+off-graph positions (the fleet, the sighting, the people) are registered as WV-09.
 
 ## 8. Mobile agents
 
@@ -185,25 +201,32 @@ Tokens sit at their true continuous positions — overlap is allowed — and onl
 connected components of "within 30 px", measured on world deltas × zoom (a pan never regroups them), over every
 drawable agent before any viewport cull; a cluster's labels stack beside its lowest-id member in id order, and each
 stacked label is a hit region for its agent. Settlement-attached agents fan beside the settlement, outside its sprite
-and its click target. **There is no movement, speed, pathfinding, combat, strength, morale, supply or Action Capacity
+and its click target, each at its own **fan lot**: a stable hash of (settlement, agent) into twelve fixed angles, probed
+in arrival order (established, then key) — so an unrelated arrival never moves anyone; the fan's radius follows the
+sprite's current size (a reported growth moves it outward with the footprint). **There is no movement, speed, pathfinding, combat, strength, morale, supply or Action Capacity
 anywhere in this layer** (DD-06, DD-07, DD-10).
 
 ## 9. The scene
 
 ### 9.1 Layers (Part 11)
 Fixed order, each painted into its own list: Background → SettlementFootprint → Infrastructure → Buildings →
-Resources → MobileAgents → Labels → Selection → TransientUi. Within a layer entities draw in DESCENDING id order, so the
-lowest id is on top — the same entity the hit ranking picks.
+Resources → MobileAgents → Labels → Selection → TransientUi. Within EVERY layer (labels included) entities draw in
+DESCENDING id order, so the lowest id is on top — the same entity the hit ranking picks.
 
 ### 9.2 Level of detail
 Sprite pixels per sprite unit = clamp(camera px-per-world-unit × `worldPerUnit`, min, max) — it grows with zoom and then
-stops, so a sprite never implies land it does not occupy. Far: footprint only. Mid: institution icons in their slots.
-Near: building parts, a glyph badge, structure labels. Detail is added with size, never lost to crowding.
+stops, so a sprite never implies land it does not occupy. Far: footprint only. Mid: the structures' composed building
+PARTS in their slots (the composed sprite is the primary treatment at every level — never a ring of icons, D-038 H3),
+with a small state glyph only when a source reports a state other than operational (H6). Near: the parts plus a glyph
+badge (type or specialization mark, state ring) and structure labels. Detail is added with size.
 
 ### 9.3 Selection (Part 12)
-`HitIndex`: a click is admitted by any region containing it; candidates rank by (class priority DESC — agent,
-structure, resource, node, settlement, edge — then squared distance to the entity's anchor ASC, then `WorldEntityId`
-ASC). Hit rects are measured with the headless text measure in every backend. A selection the current state no longer
+`HitIndex`: a click is admitted by any region containing it; candidates rank by class priority DESC, the classes
+following the LAYER order (stacked label, agent, resource, structure, infrastructure, settlement), then — because
+within a class the region is what is drawn and the lowest id is drawn on top — by `WorldEntityId` ASC: what is clicked
+is what is seen. The one exception is a region larger than its drawing (a settlement's standard 44 px target), ranked
+(squared distance ASC, id ASC) like `SettlementSelection`. Hit rects are measured with the headless text measure in
+every backend. A selection the current state no longer
 reports is kept (it returns if the entity does), draws no ring, and the panel says "not reported in the current state";
 it is never re-targeted by index or proximity. One `WorldUiState` per bundle: a selection never crosses live ↔ demo.
 
@@ -220,9 +243,10 @@ is no line for strength, speed or morale.
 - **Live**: the world layer is drawn on the ImGui background list — over the terrain, network and SpriteBatch markers,
   UNDER the name labels and all chrome — through the game's own camera. It adds only what the game does not draw
   (composed footprints from Mid detail up, M4-D structures, deposits, notables); the terrain, the network and the
-  settlement names stay the game's. Settlement clicks stay with `SettlementSelection` and `_selected`; the world layer
-  claims only structures, resources and people, painted with the CURRENT camera, and shows them in a small read-only
-  card under the selection card. The game's `_selected` is passed IN to be highlighted; nothing flows back out, and no
+  settlement names stay the game's. A click goes to `SettlementSelection` FIRST (its marker and its name label are
+  drawn over the layer); only a click it does not admit reaches the world layer (`WorldOverlayHost.LiveClick`), which
+  claims structures, resources and people, painted with the CURRENT camera, and shows them in a small read-only card
+  under the selection card. The game's `_selected` is passed IN to be highlighted; nothing flows back out, and no
   world selection ever reaches an order.
 - **Demo**: a full-screen overlay on its own paper with its own camera and the DEMO banner. Drag pans, the wheel zooms,
   a click selects, Left/Right step the demo timeline (a preview control that changes only the demo's step), V or Esc
@@ -250,13 +274,14 @@ tests (each scenario renders bit-identically twice, carries the DEMO banner, and
 ## 11. Demonstration-only and view-only values
 
 Demonstration (demo file): every population, capacity, served, staff, maturity label, multiplicity, count, name,
-position, heading, visibility and step in `demo-world.json`; the demo polities, their names and ink seeds; the water.
+position, graph location, heading, visibility and step in `demo-world.json`; the demo polities, their names and ink seeds; the water.
 View-only (morphology file): the settlement `population` thresholds 0/3,000/10,000/40,000/150,000 and the stage names;
 block counts per stage; every structure stage threshold (university capacity 0/800/2,000/4,000; hospital served
 0/20,000/80,000; factory staff 0/400/1,500; research capacity 0/600; reservoir capacity 0/5,000; granary and workshop
 multiplicity 0/2; academy maturity ordinals); the parts; road grades; `individualUpTo` 4; LOD thresholds 7.5/14 px per
-unit; sprite scale 1.0 world/unit clamped 1.2–28 px; lattice radii and counts; agent size bands 0/1,000/10,000 →
-0.86/1.0/1.14; token sizes 26/32/40 px; the 30 px declutter radius; polity inks and the ink-by-id rule. None is read by
+unit; sprite scale 1.0 world/unit clamped 1.2–28 px; lattice radii and counts (3 slot rings, 12 block rings);
+agent size bands 0/1,000/10,000 → 0.86/1.0/1.14 (no count → 0.86); token sizes 26/32/40 px; the 12-angle fan; the
+30 px declutter radius; polity inks and the ink-by-id rule. None is read by
 the simulation.
 
 ## 12. Tests (Part 15) — `Sim.Ui.Tests/World`
@@ -284,8 +309,9 @@ obeys; OPEN items are the Director's, and the view slot is where the answer plug
 | **WV-04** | Object-tier composition (settlement sprites, building parts, agent tokens) authored ahead of the inserted visual milestone | OPEN — extends X-VIS-1 | D-038 E1 `:51`, F3 `:67`, H7 `:193`; audit X-VIS-1 | removable by deleting `Sim.Ui/World`, `Sim.Ui/UiContent/world`, `Sim.Ui.Tests/World`, the preview flag/script and the `SimUiGame` hooks |
 | **WV-05** | Polity names and map colours | OPEN | D-042 (roster: identity + command source only) | `PolityReport.DisplayName`, `InkSeed`; `polityInks` (ink = seed mod n, by id alone) |
 | **WV-06** | Are bands and cultural groups simulation entities, and what carries their members? | OPEN — no carrier; demo only | D-038 C1/C3 (depiction as tokens — RULED) | `AgentReport` with category `group`, `Count`, `Members` |
-| **WV-07** | Roles for important people (scientist, engineer, artist, musician, hero, leader) | OPEN — `NotableRow` has no role; live notables are "person" | D-038 C1 (tokens only — RULED); T4.8 notables | `AgentReport.DisplayType` |
+| **WV-07** | Roles for important people (scientist, engineer, artist, musician, hero, leader) — and one depiction: the Trees gallery draws them as `Standard` unit classes, the map as `Emblem` persons | OPEN — `NotableRow` has no role; live notables are "person" | D-038 C1 (tokens only — RULED); T4.8 notables | `AgentReport.DisplayType`; `agentTypes[].glyph` |
 | **WV-08** | The map scale for visual sizing (how big a city sprite is relative to terrain; token sizes) | OPEN — view choice | D-009 sprawl ("footprints ... consuming real farmland") is not implemented | `sprite`, `lod`, token sizes |
+| **WV-09** | Off-graph positions: a fleet at sea (D-009 names no sea-lane edge), a remembered sighting at its last known point (D-039 A2's lagged position channel), people and groups at free coordinates (task Part 9) | OPEN — the demo uses free positions only for these; land armies stand on the graph | D-009 `d009-d010:19, :51`; D-039 A2 `d039:13` | `AgentReport.Position` vs `GraphLocation` |
 | DD-11 / CR-010 | What IS an institution; which milestone owns it; is a university one entity, a count, or a capability? | OPEN | audit §5; C12 | `IStructureViewSource`; `StructureReport` (per-entity OR a multiplicity row) |
 | DD-T5 | What "realized / operational / mature" measure, and who reports stage and progress | OPEN | the-trees-ui §16; C13 (D-038 H2/H5 bind the display side) | `visualTypes[].stageBy` (input or label), `StructureReport.State` |
 | DD-08 | Construction points / banked progress | OPEN (M4-D has none — RULED for M4) | audit §5; C14, C15 | `StructureReport.State` only ("under-construction" if a source reports it); demo forbids progress |
