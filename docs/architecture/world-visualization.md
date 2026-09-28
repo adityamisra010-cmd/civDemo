@@ -295,6 +295,42 @@ the simulation.
 | `LiveWorldTests` | a full live frame leaves `WorldHash` unchanged; settlement rows, population, SizeTier, positions, key order; live stages never named; M4-D structures one per row, never expanded; notables born/defected/died; deposits; snapshot reuse; Latin-1 |
 | `WorldBoundaryTests` | only `Sim.Ui.World.Live` names a Sim.Core type; no Trees model type; sources get-only, reports immutable; banned-construct scan of `Sim.Ui/World/**`; the four new marks distinct and object-named |
 | `GlyphByteIdentityTests` | 25,578 pre-existing glyph specs bake byte-identically to `78e6b58` |
+| `WorldReviewRegressionTests` | one pin per confirmed review finding (§15): attached-people lots, overlap hit order and stacked labels, hidden-resource gaps, removal under aggregation, headings, unreported counts, loader bounds and fallbacks, block counts per stage, mixed-bundle provenance, Mid-detail parts, the live-project map, one light, the contact sheet, hidden/remembered, the demo camera, the live click rule, label order, deep report immutability, declutter under large pans |
+
+### 12.1 Mutation battery (one fix reverted at a time)
+
+Run in a scratch worktree pinned to `e6b89a1` (re-run of four at `8a19711`), each step bounded by `timeout 300` (the clean
+world suite takes 17–23 s including the build). A mutant counts as killed only by the pin written for it.
+
+| mutant (the fix reverted) | result |
+| --- | --- |
+| M1 demonstration drivers stage live bundles | killed — `LiveStages_WithoutSizeTier_…` (also `SettlementStage_Prefers…`) |
+| M2 live structures without arrival order | killed — `LiveStructures_ALaterProject_…` |
+| M3 fan lots ignore arrival order | killed — `Det2_AttachedPeople_KeepTheirLot_…` |
+| M3b fan lots by dense rank instead of hash | survived the first battery; killed after the pin was sharpened — `Det2_AnAgentOnItsPreferredLot_…` |
+| M4 hits ranked by distance within a class | survived the first battery (the click point was equidistant); killed after sharpening — `Det3_PartlyOverlappingTokens_…` |
+| M4b stacked labels in the token class | killed — `Det3_AStackedLabel_…` |
+| M5 unreported count drawn at 1.0 | killed — `Semantics5_…` |
+| M6 maturity pips reinstated | killed — `StructureIcons_CarryNoMaturityPips` |
+| M7 cluster selectable through a remembered member | killed — `Vis2_…` |
+| M8 live-project map consulted second | killed — `Arch6_…` |
+| M9 resource row indexes only visible entries | killed — `Det4_…` |
+| M10 heading keeps −0.0 | killed — `Det6_Headings_…` |
+| M11 per-ring lot bound removed | **survived — equivalent**: the total-lots bound alone stops the loader before any lattice is built |
+| M12b "at least one infrastructure type" removed | killed — `Load2_…` |
+| M13 block lattice back to eight rings | killed — `Blocks1_…` |
+| M14 provenance from the bundle flag only | killed — `Arch3_…` |
+| M15 live map draws a placeholder view | killed — `Arch3_…` |
+| M16 glyph ring at Mid detail | killed — `Arch5_…` |
+| M17 shadow sign reversed | killed — `Arch7_…` |
+| M18 hidden settlement anchors agents | killed — `Vis1_…` |
+| M19b inspector prints hidden state | killed — `Vis1_…` |
+| M20 world hit beats the settlement click | killed — `Auth3_…` |
+| M21 labels drawn ascending | killed — `Doc1_…` |
+| M22 demo camera's non-positive fallback removed | **survived — equivalent**: unreachable with the current fit rules (defence in depth) |
+
+(M12 and M19 were first written as `if (false)`, which does not compile under warnings-as-errors; M12b/M19b are the
+compilable forms.)
 
 ## 13. Decision register
 
@@ -306,7 +342,7 @@ obeys; OPEN items are the Director's, and the view slot is where the answer plug
 | **WV-01** | What makes a settlement a town or a city — are settlement stages named, and by what? | OPEN | D-017 CLOSED (`m3-spec:15`: size drives the render-side footprint); D-038 H3 | `settlementStages.drivers` (live: `sizeTier`, unnamed; demo: `population`, named, DEMONSTRATION) |
 | **WV-02** | Task Part 6 (placement / districts / clusters inside a settlement) vs D-038 H2/H3 and `d009-d010:15` (districts abstracted; no internal map; glyph ring rejected) | OPEN — implemented provisionally as composition slots inside the one composed sprite (H4); no structure has world coordinates | D-038 H2 `:96`, H3 `:146`, H4 `:163` | `CompositionLayout`, `Composition` (§6) |
 | **WV-03** | Past the parts-legibility limit: merge, abstract upward, or show only the most significant? How many individually? | OPEN | D-038 H8 `:201` (explicitly unruled) | `aggregation.individualUpTo` + cluster token; order (established, key) is arbitrary, not a significance judgement |
-| **WV-04** | Object-tier composition (settlement sprites, building parts, agent tokens) authored ahead of the inserted visual milestone | OPEN — extends X-VIS-1 | D-038 E1 `:51`, F3 `:67`, H7 `:193`; audit X-VIS-1 | removable by deleting `Sim.Ui/World`, `Sim.Ui/UiContent/world`, `Sim.Ui.Tests/World`, the preview flag/script and the `SimUiGame` hooks |
+| **WV-04** | Object-tier composition (settlement sprites, building parts, agent tokens) authored ahead of the inserted visual milestone | OPEN — extends X-VIS-1 | D-038 E1 `:51`, F3 `:67`, H7 `:193`; audit X-VIS-1 | removable by deleting `Sim.Ui/World`, `Sim.Ui/UiContent/world`, `Sim.Ui.Tests/World`, the preview flag/script and the `SimUiGame` hooks; the additive grammar pieces (four appended marks, `ObjectLight.ShadowOffsetPx`, the sheet's row formula) change no earlier bake |
 | **WV-05** | Polity names and map colours | OPEN | D-042 (roster: identity + command source only) | `PolityReport.DisplayName`, `InkSeed`; `polityInks` (ink = seed mod n, by id alone) |
 | **WV-06** | Are bands and cultural groups simulation entities, and what carries their members? | OPEN — no carrier; demo only | D-038 C1/C3 (depiction as tokens — RULED) | `AgentReport` with category `group`, `Count`, `Members` |
 | **WV-07** | Roles for important people (scientist, engineer, artist, musician, hero, leader) — and one depiction: the Trees gallery draws them as `Standard` unit classes, the map as `Emblem` persons | OPEN — `NotableRow` has no role; live notables are "person" | D-038 C1 (tokens only — RULED); T4.8 notables | `AgentReport.DisplayType`; `agentTypes[].glyph` |
@@ -329,3 +365,23 @@ No Age rules, attainment or surge; no global Δt; no research points, tech costs
 diffusion; no institutional economic effect; no construction economy; no catch-up; no combat, military strength,
 movement or Action Capacity; no population, city-growth, economic or migration simulation; no person mortality or
 defection logic; no progression-graph authority. The demo's numbers are authored, not simulated.
+
+## 15. Review record
+
+An adversarial review of `4093910` ran six finders (authority, gameplay rules, determinism, correctness, test teeth,
+architecture), each followed by an independent verifier in its own worktree pinned to `4093910` that tried to refute
+every finding and measured before confirming (scratch probes and bounded runs). **39 findings: 36 confirmed, 3
+refuted, 0 undecided.** No fix was applied before its verdict. All 36 confirmed findings are fixed (commits `cf57e51`
+to `9a20b86`; duplicates across dimensions fixed once). The verifiers' severity notes were taken into account — several
+"major" items had no visible in-game effect today (e.g. the turn-0 demonstration stage) — but each property was still one
+the system ought to have. Refuted: per-snapshot placeholder flags never read (auth-4: no shipped mixed bundle — hardened
+anyway under arch-3), the legend pooling polities (semantics-4: wording only; the demo now says "across the demo world"),
+and gallery vs map glyphs (arch-4: intended and documented; noted under WV-07).
+
+Main fixes: live settlements are never staged by demonstration thresholds; live structures compose in StructureRow
+order; attached people take stable hash fan lots; hits rank what is drawn on top; no maturity pips without a maturity
+source; Mid detail draws composed parts; hidden/remembered never leak through anchors, clusters, the legend or the
+inspector; loader bounds and fallbacks; one light (`ObjectLight.ShadowOffsetPx`, additive — no bake changes); contact
+sheet rows follow the alphabet (`glyph-sheet-v1.png` regenerated: the four appended marks fill row 23); land armies on
+the road graph; the live click goes to `SettlementSelection` first; the removal guarantee in §6 corrected. Mutation
+evidence: §12.1.
