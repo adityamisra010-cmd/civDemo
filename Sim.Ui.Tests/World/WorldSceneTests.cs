@@ -268,19 +268,9 @@ public class WorldSceneTests
         Assert.Equal(4, demo.Step);                        // nor the source
     }
 
-    [Fact]
-    public void Painting_DoesNotChangeTheReports()
-    {
-        DemoWorldSource demo = Demo(M, 4);
-        WorldSources b = demo.Sources();
-        string before = string.Join("\n", b.Structures.Current.Items.Select(r => r.ToString()))
-            + string.Join("\n", b.Agents.Current.Items.Select(r => r.ToString()));
-        WorldView v = WorldViewBuilder.Build(b, M);
-        foreach (WorldScenario s in WorldPreview.Scenarios) Paint(v, M, At(s.CenterX, s.CenterY, Math.Max(1, s.Zoom)), new WorldUiState { Selected = WorldPreview.Parse(s.Selected) });
-        string after = string.Join("\n", b.Structures.Current.Items.Select(r => r.ToString()))
-            + string.Join("\n", b.Agents.Current.Items.Select(r => r.ToString()));
-        Assert.Equal(before, after);
-    }
+    // Painting leaves the reports unchanged: pinned DEEPLY (list contents, doubles as bits) by
+    // WorldReviewRegressionTests.Teeth1_PaintingLeavesEveryReportUnchanged_Deeply — the record
+    // ToString comparison that used to stand here could not see a list changing (review teeth-1).
 
     [Fact]
     public void AMissingSelection_IsKept_DrawsNoRing_AndSaysNotReported()
