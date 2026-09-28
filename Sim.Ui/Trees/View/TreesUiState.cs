@@ -145,7 +145,7 @@ public sealed class TreesUiState
             case SetTabAction t: Tab = t.Tab; return true;
             case SetLensAction l:
                 Lens = l.LensId;
-                if (l.LensId is null) FitAll(layout, canvas);
+                if (l.LensId is null) InitialView(layout, canvas);   // readable; the fit button fits everything
                 else
                 {
                     BandBox? band = layout.Bands.FirstOrDefault(b => b.LensId == l.LensId);

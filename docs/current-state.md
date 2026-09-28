@@ -459,3 +459,18 @@ from the session record — but none was re-derived from git for this file.
 > `Sim.Ui/Art/Glyphs/` with `Sim.Ui.Tests/GlyphGrammarTests.cs` and the headless `--glyph-sheet` flag;
 > removable in one commit; no simulation file touched — Sim.Tests 896/0/4 unchanged). Re-derive
 > anything you rely on, as §9 says; the audit's own §0 states what it did not have (Draft 1).
+
+> **2026-09-28 — THE TREES + AGES UI FOUNDATION (append-only pointer; nothing above is rewritten).**
+> Work on `claude/civdemo-work-b1z2y4` (not `main`), UI and data only.
+> `git diff de5e00e -- Sim.Core Sim.Data Sim.Cli Sim.Tests .github` is empty.
+> - **Read first:** `docs/architecture/the-trees-ui.md` (the seven lenses on one graph, the state
+>   boundary, the screens, animation, tests, conflicts, Director decisions DD-T1..DD-T9),
+>   `docs/architecture/ages-ui.md` and `docs/architecture/the-trees-content-schema.md`.
+> - **Content:** editable JSON in `Sim.Ui/UiContent/trees/`. All of it is DEMO or PLACEHOLDER.
+> - **State:** read-only interfaces with a labelled placeholder source; the simulation holds no
+>   Trees or Age state.
+> - **In game:** T or the command-bar button opens the overlay.
+> - **Headless:** `sim-ui --trees-preview` and `scripts/trees-preview.sh`; screenshots in
+>   `docs/architecture/trees-preview/`.
+> - **Amendment:** the glyph-grammar extension is recorded append-only in `pre-m5-visual-system.md`
+>   §11.

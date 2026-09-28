@@ -209,6 +209,18 @@ public static class ChromeGeometry
     /// metrics), so only the anchor is geometry.</summary>
     public static float TerritoryToggleX => NavButton(GameSections.Order.Count - 1).Right + GroupGap;
 
+    /// <summary>Width reserved for the territory toggle (checkbox + label at the body
+    /// font), so the Trees button can be proven clear of it.</summary>
+    public const float TerritoryReserve = 118f;
+
+    public const float TreesWidth = 140f;
+
+    /// <summary>The Trees + Ages overlay's button: flush with the row's right edge,
+    /// outside GameSections.Order (the overlay is not a context section — it covers
+    /// the screen — so the section roster and its digit keys are untouched; its key
+    /// is T). docs/architecture/the-trees-ui.md §8.</summary>
+    public static ScreenRect TreesButton => new(ButtonRow.Right - TreesWidth, ButtonRow.Y, TreesWidth, ButtonHeight);
+
     // ------------------------------------------------------------------
     // Label placement, ImGui's rule made explicit.
     // ------------------------------------------------------------------

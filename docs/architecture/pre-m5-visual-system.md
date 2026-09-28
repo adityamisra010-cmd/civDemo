@@ -390,3 +390,54 @@ one vocabulary rather than inventing three.
 7. **Add one append-only note to D-038** when the pre-M5 architecture is ratified, recording that
    the glyph grammar (procedural infrastructure) was established ahead of the visual milestone by
    Director instruction and is not the object tier (audit conflict X-VIS-1).
+
+---
+
+## §11 AMENDMENT — THE TREES + AGES UI FOUNDATION (2026-09-28, append-only; nothing above is rewritten)
+
+The Director's "THE TREES + AGES" task extended this grammar and put it on screen. Recorded here
+so this document stays true. The full account is in [`the-trees-ui.md`](the-trees-ui.md) §6
+and §9.
+
+**1. The alphabet grew; v0 did not change.** The extension adds:
+
+- the bases Hexagon, Shield, Scroll, Standard (the unit token: a banner carrying an *object* mark,
+  never a figure), Field, Monument, Star and Emblem (the mark alone inside the ring);
+- 24 object marks, including the seven lens emblems, specialisations, system marks and unit-class
+  objects;
+- the state `Discovered`: fifteen short ring dashes around a full outline;
+- `Stage` 0..4, maturity-stage pips on the lower ring from 24 px up. They are the discrete
+  companion to the §2.4 wash, and ink rises with each stage;
+- `CarriesVeterancy` (Formation and Standard).
+
+Every v0 spec still bakes byte-identically: a 7,440-spec sweep hashes the same before and after.
+`GlyphGrammarTests` went from 10 to 14. The sheet is `glyph-sheet-v1.png`; v0 is kept as a record.
+§8.3's measured floors were re-measured over 18 bases × 7 states: minimum area 14.1 %, Discovered
+minimum 14.8 % and minimum peak 239.
+
+**2. Heap and solid marks.** The Heap's v0 mark slot is the crossing of its three disc outlines, so
+a *solid* mark there barely changes the glyph (Anvil: 0.26 % of the box). v0 is kept byte-stable
+rather than moving the slot. Resource and system icons use the Emblem base instead.
+
+**3. §5's animation rule is amended, pending ratification (DD-T1).** The task's §13 asks for a
+research *progress pulse*, construction and training motion, knowledge-diffusion motion and an Age
+transition indication. §5 banned idle loops and glow. The rule applied instead:
+
+- **One-shot animations** (flash ring, shimmer, pip fill) play only on an **observed transition**
+  between two reported states. They are keyed to when the state source's snapshot changed, which
+  for a live source is the turn boundary. The first observation is a baseline and plays nothing.
+- **Steady loops** (pulse, sweep, flow dots) run **only while a reported *process* state holds**:
+  researching, recruiting, training, under construction, a pending Age transition, or a declared
+  diffusion pathway. A glyph in a settled state (researched, mature, passed) never moves.
+- Durations and periods are **content** (`ui-content/trees/animations.json`), not code. The
+  animator returns motion values only; glyphs come from reported state alone (tested). The
+  selection glow and the pulse halo are the only glows.
+- §5's "nothing moves while the state it shows is unchanged" therefore now reads "…unless that
+  state is itself a process". The Director may restore the stricter rule by setting those
+  animations' `kind` to `none` in `animations.json`, with no code change.
+
+**4. §9 "Not implemented" is superseded for the Trees and Ages.** The grammar is now wired into
+`SimUiGame` through the Trees overlay (a backend-agnostic draw list and an ImGui backend with a
+bounded glyph-texture cache). A view-model maps reported state to specs (`NodeVisuals`), and an
+animation clock exists (UI seconds while the overlay is open, presentation only). The **map** draw
+path still does not consume the grammar. That remains the symbology packet's work (D-038 E1).

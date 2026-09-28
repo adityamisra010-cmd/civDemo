@@ -46,6 +46,8 @@ public sealed class TreesHost
     public bool CloseRequested { get; set; }
     /// <summary>Set when the user clicked the search box; the caller gives it keyboard focus.</summary>
     public bool SearchFocusRequested { get; set; }
+    /// <summary>The caller draws the search text itself (a text input placed over the box).</summary>
+    public bool HostDrawsSearchText { get; set; }
 
     public bool Loaded => Content is not null;
 
@@ -56,6 +58,7 @@ public sealed class TreesHost
         ContentLoadResult r = TreesContentLoader.LoadDirectory(_contentDir);
         var diags = new List<ContentDiagnostic>(r.Diagnostics);
         TreesUiState old = Ui;
+        string? selectedId = Graph is not null && old.Selected is int prev && prev < Graph.Count ? Graph.Node(prev).Id : null;
         Content = r.Content;
         Graph = null; Layout = null; Demo = null; Animator = null;
         AgeGuard = new AgeForwardGuard();
@@ -85,8 +88,13 @@ public sealed class TreesHost
         }
         Diagnostics = diags;
 
-        Ui = new TreesUiState { Tab = old.Tab, Lens = old.Lens, LegendOpen = old.LegendOpen };
-        if (Graph is not null && old.Selected is int s && s < Graph.Count) { Ui.Selected = s; Ui.LegendOpen = old.LegendOpen; }
+        // Keep the tab, the lens and the selection BY ID (the node list may have changed).
+        Ui = new TreesUiState { Tab = old.Tab, Lens = old.Lens, LegendOpen = true };
+        if (Graph is not null && selectedId is not null && Graph.TryIndexOf(selectedId, out int keep))
+        {
+            Ui.Selected = keep;
+            Ui.LegendOpen = old.LegendOpen;
+        }
         if (Content is not null && old.Lens is not null && !Content.Trees.Lenses.Any(l => l.Id == old.Lens)) Ui.Lens = null;
     }
 
@@ -106,7 +114,7 @@ public sealed class TreesHost
         if (!Ui.CameraInitialised) Ui.InitialView(Layout, lay.Canvas);
 
         var input = new TreesFrameInput(Content, Graph, Layout, t, a, g, Ui, Animator, now, width, height, measure, session,
-            Demo?.StepLabel, Demo?.Step ?? 0, Demo?.StepCount ?? 0, Diagnostics, AgeGuard);
+            Demo?.StepLabel, Demo?.Step ?? 0, Demo?.StepCount ?? 0, Diagnostics, AgeGuard, HostDrawsSearchText);
         return TreesScreen.Paint(input);
     }
 
@@ -139,7 +147,7 @@ public sealed class TreesHost
         TreesScreenLayout lay = TreesScreenLayout.For(width, height);
         dl.Rect(lay.Screen, ParchmentPalette.PaperMid);
         dl.Rect(lay.Header, ParchmentPalette.InkPrimary);
-        dl.Text(20, 16, "THE TREES — CONTENT DID NOT LOAD", 20, ParchmentPalette.GoldLeaf, TextAlign.Left, FontRole.Caps);
+        dl.Text(20, 16, "THE TREES - CONTENT DID NOT LOAD", 20, ParchmentPalette.GoldLeaf, TextAlign.Left, FontRole.Caps);
         double y = 80;
         dl.Text(20, y, $"Content directory: {_contentDir}", 13, ParchmentPalette.InkPrimary);
         y += 26;

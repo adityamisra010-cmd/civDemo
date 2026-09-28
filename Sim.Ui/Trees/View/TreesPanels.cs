@@ -57,7 +57,7 @@ internal static class TreesPanels
         // State: research and realization, kept visibly distinct.
         y = Chrome.SectionTitle(dl, x, y + 2, w, "State");
         dl.Text(x, y, v.State.Name, 15, InkP, TextAlign.Left, FontRole.Heading);
-        dl.Text(x + w, y + 2, v.State.Track == StateTrack.Realization ? "research ✓ · realization" : v.State.Track.ToString().ToLowerInvariant(),
+        dl.Text(x + w, y + 2, v.State.Track == StateTrack.Realization ? "researched · realization" : v.State.Track.ToString().ToLowerInvariant(),
             11, InkS, TextAlign.Right, FontRole.Caps);
         y += 20;
         Chrome.Wrapped(dl, m, ref y, x, w, v.State.Legend, 12, InkS);
@@ -72,7 +72,7 @@ internal static class TreesPanels
         string costText = cost?.Points is long cp ? $"{cp} RP" : "cost TBD";
         bool researched = v.State.ResearchRole == ResearchRole.Completed;
         string research = researched ? "complete"
-            : st?.ResearchProgress is double rp ? $"{rp * 100:0} %" : v.State.ResearchRole == ResearchRole.Researchable ? "researchable" : "—";
+            : st?.ResearchProgress is double rp ? $"{rp * 100:0} %" : v.State.ResearchRole == ResearchRole.Researchable ? "researchable" : "-";
         if (st?.ResearchPoints is long pts) research += $" · {pts} RP";
         dl.Text(x, y, "Research", 12, InkP);
         dl.Text(x + w, y, $"{research} · {costText}", 12, InkS, TextAlign.Right, FontRole.Numeric);
@@ -95,7 +95,7 @@ internal static class TreesPanels
         if (!string.IsNullOrEmpty(st?.Note)) Chrome.Wrapped(dl, m, ref y, x, w, st!.Note, 11.5, InkS);
 
         // WHY: the path / prerequisite view.
-        y = Chrome.SectionTitle(dl, x, y + 6, w, "Why — what precedes it");
+        y = Chrome.SectionTitle(dl, x, y + 6, w, "Why - what precedes it");
         IReadOnlyList<GraphEdge> ups = g.DirectUpstream(sel);
         if (ups.Count == 0) { dl.Text(x, y, "Nothing precedes it in the content.", 12, InkS); y += 17; }
         foreach (GraphEdge e in ups)
@@ -103,9 +103,7 @@ internal static class TreesPanels
             int o = e.FlowFrom;
             NodeView ov = view.Nodes[o];
             ResearchRole role = ov.State.ResearchRole;
-            string mark = role == ResearchRole.Completed ? "✓" : role == ResearchRole.Researching ? "◐" : "○";
-            Rgba mc = role == ResearchRole.Completed ? ParchmentPalette.Verdigris : InkS;
-            dl.Text(x, y, mark, 13, mc);
+            StatusMark(dl, x + 6, y + 8, role);
             string label = Ink.Fit(m, g.Node(o).Name, 12.5, w - 150);
             dl.Text(x + 18, y, label, 12.5, InkP);
             dl.Text(x + w, y + 1, $"{e.Kind.Name.ToLowerInvariant()} · {ov.State.Name.ToLowerInvariant()}", 10.5, InkS, TextAlign.Right);
@@ -123,7 +121,7 @@ internal static class TreesPanels
             foreach (GraphEdge e in downs)
             {
                 int o = e.FlowTo;
-                dl.Text(x, y, "→", 12.5, InkS);
+                dl.Text(x, y, "->", 12.5, InkS);
                 dl.Text(x + 18, y, Ink.Fit(m, g.Node(o).Name, 12.5, w - 130), 12.5, InkP);
                 dl.Text(x + w, y + 1, e.Kind.Name.ToLowerInvariant(), 10.5, InkS, TextAlign.Right);
                 hits.Add(new Hit(new RectD(x, y - 2, w, 18), new SelectNodeAction(o, Center: true), "Select " + g.Node(o).Name));
@@ -149,7 +147,7 @@ internal static class TreesPanels
         y = Chrome.SectionTitle(dl, x, y + 6, w, "Ages");
         AgesDocument ages = input.Content.Ages;
         string span = v.Def.AgeFrom is null ? "no Age data" :
-            ages.Age(v.Def.AgeFrom).DisplayName + (v.Def.AgeTo is null ? " onward" : v.Def.AgeTo == v.Def.AgeFrom ? "" : " – " + ages.Age(v.Def.AgeTo).DisplayName);
+            ages.Age(v.Def.AgeFrom).DisplayName + (v.Def.AgeTo is null ? " onward" : v.Def.AgeTo == v.Def.AgeFrom ? "" : " - " + ages.Age(v.Def.AgeTo).DisplayName);
         if (v.Def.AgeRefs.Count > 0) span += " · also " + string.Join(", ", v.Def.AgeRefs.Select(a => ages.Age(a).DisplayName));
         dl.Text(x, y, span + (v.Def.Placeholder ? " (demo assignment)" : ""), 12, InkP);
         y += 17;
@@ -178,6 +176,32 @@ internal static class TreesPanels
         dl.Text(x, y + 6, v.Def.Id, 10.5, Ink.With(InkS, 0.7), TextAlign.Left, FontRole.Numeric);
         dl.PopClip();
         return y + 30 - y0;
+    }
+
+    /// <summary>A drawn status mark (no font glyph needed): a tick for researched, a half
+    /// disc for researching, a hollow ring otherwise.</summary>
+    private static void StatusMark(DrawList dl, double cx, double cy, ResearchRole role)
+    {
+        switch (role)
+        {
+            case ResearchRole.Completed:
+                dl.Line(cx - 4.5, cy, cx - 1.5, cy + 3.5, ParchmentPalette.Verdigris, 2);
+                dl.Line(cx - 1.5, cy + 3.5, cx + 4.5, cy - 4, ParchmentPalette.Verdigris, 2);
+                break;
+            case ResearchRole.Researching:
+                dl.Circle(cx, cy, 4.5, null, InkS, 1.3);
+                var half = new (double X, double Y)[9];
+                for (int k = 0; k <= 8; k++)
+                {
+                    double a = System.Math.PI / 2 + System.Math.PI * k / 8.0;   // the left half
+                    half[k] = (cx + System.Math.Cos(a) * 4.5, cy - System.Math.Sin(a) * 4.5);
+                }
+                dl.Polygon(half, InkS);
+                break;
+            default:
+                dl.Circle(cx, cy, 4.5, null, InkS, 1.3);
+                break;
+        }
     }
 
     // --- legend ------------------------------------------------------------------------------------

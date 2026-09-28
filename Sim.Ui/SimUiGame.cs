@@ -154,6 +154,17 @@ public sealed class SimUiGame : Game
 
     private MouseState _lastMouse;
     private KeyboardState _lastKeyboard;
+
+    // THE TREES + AGES overlay (docs/architecture/the-trees-ui.md §8). A read-only
+    // observer: it reads ui-content/ and its state sources, shows the session clock,
+    // and emits no order. Created on first open; T or the command-bar button toggles it.
+    private Sim.Ui.Trees.View.TreesHost? _trees;
+    private ImGuiIntegration.DrawListImGuiBackend? _treesBackend;
+    private bool _treesOpen;
+    private double _treesClock;                 // UI seconds while open — presentation only
+    private bool _treesPress, _treesDragging, _treesPressOnCanvas;
+    private System.Numerics.Vector2 _treesPressAt;
+    private string _treesSearch = "";
     private bool _clickCandidate;   // press began on the map (not over ImGui)
     // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
     // (row-aligned with world.Settlements) and consumed by the click hit-test.
@@ -448,12 +459,33 @@ public sealed class SimUiGame : Game
         // once), and only when ImGui does not want the keyboard — a text field
         // owns its own Escape. GameSections.OnEscape says which case applied,
         // so one press is never both "close" and "exit".
-        if (IsActive && !io.WantCaptureKeyboard
-            && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
+        // The Trees overlay owns Escape first (closing it), and T toggles it — never
+        // while a text field (its own search box) has the keyboard.
+        bool escEdge = keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape);
+        if (IsActive && !io.WantTextInput && keyboard.IsKeyDown(Keys.T) && !_lastKeyboard.IsKeyDown(Keys.T))
+            _treesOpen = !_treesOpen;
+        else if (IsActive && _treesOpen && escEdge && !io.WantTextInput)
+        {
+            _treesOpen = false;
+            escEdge = false;
+        }
+
+        if (IsActive && !_treesOpen && !io.WantCaptureKeyboard && escEdge)
         {
             (Section next, bool closed) = GameSections.OnEscape(_openSection);
             _openSection = next;
             if (!closed) Exit();
+        }
+
+        if (_treesOpen)
+        {
+            // The overlay covers the world: no map pan/zoom/click, no WASD, no section
+            // keys, no End Turn under it. Its own input is read in DrawTreesOverlay.
+            _clickCandidate = false;
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            base.Update(gameTime);
+            return;
         }
 
         if (IsActive && !io.WantCaptureMouse)
@@ -810,13 +842,20 @@ public sealed class SimUiGame : Game
         _imgui!.BeforeLayout(gameTime);
         if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
 
-        DrawCompassRose();  // art substrate: §4 item 5 furniture
-        DrawNameLabels();   // T2.9: background drawlist — under all chrome
+        if (_treesOpen)
+        {
+            DrawTreesOverlay(gameTime);
+        }
+        else
+        {
+            DrawCompassRose();  // art substrate: §4 item 5 furniture
+            DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
-        DrawStatusBand();
-        DrawSelectionCard();
-        DrawContextPanel();
-        DrawCommandBar();
+            DrawStatusBand();
+            DrawSelectionCard();
+            DrawContextPanel();
+            DrawCommandBar();
+        }
 
         if (_fonts is not null) ImGui.PopFont();
         _imgui.AfterLayout();
@@ -958,6 +997,101 @@ public sealed class SimUiGame : Game
             ChromeGeometry.TerritoryToggleX - PanelLayout.Command.X,
             ChromeGeometry.ButtonRow.Y - PanelLayout.Command.Y));
         ImGui.Checkbox("territory", ref _showCatchment);
+
+        // The Trees + Ages overlay: a way of looking, like the sections, but full-screen.
+        PlaceCursor(PanelLayout.Command, ChromeGeometry.TreesButton);
+        if (ImGui.Button("The Trees [T]##trees", Size(ChromeGeometry.TreesButton)))
+            _treesOpen = true;
+        ImGui.End();
+    }
+
+    /// <summary>
+    /// THE TREES + AGES OVERLAY — one full-screen chrome window whose content is painted
+    /// by TreesScreen into a backend-agnostic draw list and replayed here; clicks are
+    /// routed to the frame's hit regions, drags and the wheel to the canvas camera. The
+    /// only live value it reads from the simulation is the session clock, passed as a
+    /// plain SessionContext. It emits no order and holds no reference to the world.
+    /// </summary>
+    private void DrawTreesOverlay(GameTime gameTime)
+    {
+        _trees ??= new Sim.Ui.Trees.View.TreesHost(Sim.Ui.Trees.TreesContentLoader.DefaultDirectory) { HostDrawsSearchText = true };
+        _treesBackend ??= new ImGuiIntegration.DrawListImGuiBackend(_imgui!, GraphicsDevice, _fonts);
+        _treesClock += gameTime.ElapsedGameTime.TotalSeconds;
+        Rectangle viewport = Viewport();
+
+        ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero, ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(viewport.Width, viewport.Height), ImGuiCond.Always);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, System.Numerics.Vector2.Zero);
+        ImGui.Begin("##the-trees",
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollbar
+            | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground);
+        ImGui.PopStyleVar();
+
+        var session = new Sim.Ui.Trees.SessionContext(_world.Clock.Turn, _world.Clock.WorldDateYears, _world.Clock.DtYears);
+        _trees.Ui.Search = _treesSearch;
+        Sim.Ui.Trees.View.TreesFrame frame = _trees.Frame(viewport.Width, viewport.Height, _treesClock, _treesBackend, session);
+        _treesBackend.Render(ImGui.GetWindowDrawList(), frame.Draw);
+
+        // Search: a real text input over the painted box (Trees tab only).
+        bool searchActive = false;
+        if (_trees.Ui.Tab == Sim.Ui.Trees.View.TreesTab.Trees && frame.SearchBox.W > 0)
+        {
+            ImGui.SetCursorScreenPos(new System.Numerics.Vector2((float)frame.SearchBox.X + 24, (float)frame.SearchBox.Y + 1));
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0u);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, 0u);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, 0u);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(2, 1));
+            ImGui.PushItemWidth((float)frame.SearchBox.W - 28);
+            if (_trees.SearchFocusRequested) { ImGui.SetKeyboardFocusHere(); _trees.SearchFocusRequested = false; }
+            ImGui.InputText("##trees-search", ref _treesSearch, 64);
+            searchActive = ImGui.IsItemActive() || ImGui.IsItemHovered();
+            ImGui.PopItemWidth();
+            ImGui.PopStyleVar();
+            ImGui.PopStyleColor(3);
+        }
+
+        // Pointer: click = the topmost hit region; drag on the canvas pans; wheel zooms
+        // the canvas or scrolls the details panel.
+        ImGuiIOPtr io = ImGui.GetIO();
+        System.Numerics.Vector2 m = io.MousePos;
+        bool onCanvas = frame.Layout.Canvas.Contains(m.X, m.Y);
+        if (!searchActive && ImGui.IsWindowHovered())
+        {
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                _treesPress = true; _treesDragging = false; _treesPressOnCanvas = onCanvas; _treesPressAt = m;
+            }
+            if (_treesPress && ImGui.IsMouseDown(ImGuiMouseButton.Left))
+            {
+                if (System.Numerics.Vector2.Distance(m, _treesPressAt) > 4f) _treesDragging = true;
+                if (_treesDragging && _treesPressOnCanvas && _trees.Ui.Tab == Sim.Ui.Trees.View.TreesTab.Trees)
+                    _trees.Ui.Camera.Pan(io.MouseDelta.X, io.MouseDelta.Y);
+            }
+            if (io.MouseWheel != 0)
+            {
+                if (onCanvas && _trees.Ui.Tab == Sim.Ui.Trees.View.TreesTab.Trees)
+                    _trees.Ui.Camera.ZoomAt(m.X, m.Y, frame.Layout.Canvas, Math.Pow(1.2, io.MouseWheel));
+                else if (frame.Layout.Detail.Contains(m.X, m.Y))
+                    _trees.ScrollDetails(-io.MouseWheel * 48.0, frame);
+            }
+            int? hover = onCanvas && frame.HitAt(m.X, m.Y) is Sim.Ui.Trees.View.SelectNodeAction { Node: int hn } ? hn : null;
+            _trees.Ui.Hovered = hover;
+            string? tip = frame.Hits.LastOrDefault(h => h.Rect.Contains(m.X, m.Y))?.Tooltip;
+            // SetTooltip is printf-style: escape '%' so content text is shown, never formatted.
+            if (!string.IsNullOrEmpty(tip) && !_treesDragging) ImGui.SetTooltip(tip.Replace("%", "%%"));
+        }
+        if (_treesPress && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+        {
+            if (!_treesDragging && frame.HitAt(m.X, m.Y) is Sim.Ui.Trees.View.TreesAction action)
+            {
+                _trees.Handle(action, frame);
+                if (action is Sim.Ui.Trees.View.ClearFiltersAction) _treesSearch = "";
+            }
+            _treesPress = false;
+            _treesDragging = false;
+        }
+        if (_trees.CloseRequested) { _treesOpen = false; _trees.CloseRequested = false; }
         ImGui.End();
     }
 

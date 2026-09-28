@@ -40,7 +40,7 @@ public sealed record TreesFrameInput(
     TreesUiState Ui, StateAnimator Animator, double Now, double Width, double Height,
     ITextMeasure Measure, SessionContext? Session = null, string? PreviewStepLabel = null,
     int PreviewStep = 0, int PreviewStepCount = 0, IReadOnlyList<ContentDiagnostic>? Diagnostics = null,
-    AgeForwardGuard? AgeGuard = null)
+    AgeForwardGuard? AgeGuard = null, bool HostDrawsSearchText = false)
 {
     /// <summary>The Age to show as current: the forward-only guard's, else the report's.</summary>
     public string CurrentAgeId => AgeGuard?.DisplayedAgeId ?? Ages.CurrentAgeId;
@@ -127,9 +127,9 @@ public static class TreesScreen
             if (am.EnteredFlashT >= 0) dl.Circle(x + 17, 29, 17 + 14 * am.EnteredFlashT, null, Ink.With(ParchmentPalette.GoldLeaf, 1 - am.EnteredFlashT), 2.5);
             dl.Text(x + 42, 9, age.DisplayName.ToUpperInvariant(), 15, paper, TextAlign.Left, FontRole.Caps);
             if (input.Ages.Transition?.Pending == true && input.Ages.Transition.ToAgeId is string to && ages.TryAge(to, out AgeDef next))
-                dl.Text(x + 48 + m.Width(age.DisplayName.ToUpperInvariant(), 15, FontRole.Caps), 10, "→ " + next.DisplayName.ToUpperInvariant(),
+                dl.Text(x + 48 + m.Width(age.DisplayName.ToUpperInvariant(), 15, FontRole.Caps), 10, "-> " + next.DisplayName.ToUpperInvariant(),
                     12.5, ParchmentPalette.GoldLeaf, TextAlign.Left, FontRole.Caps);
-            string progress = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "— %";
+            string progress = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "- %";
             dl.Text(x + 42, 31, Ink.Fit(m, $"progress {progress}", 12.5, 170), 12.5, paperSoft, TextAlign.Left, FontRole.Numeric);
             dl.Bar(new RectD(x + 42, 48, 150, 4), input.Ages.CurrentProgress ?? 0.0, ParchmentPalette.GoldLeaf, Ink.With(paper, 0.5));
             hits.Add(new Hit(new RectD(x, 6, 200, 46), new SetTabAction(TreesTab.Ages), "Open the Age view"));
@@ -138,7 +138,7 @@ public static class TreesScreen
         // Research line: reported, never computed.
         x = 470;
         ResearchHeader r = input.Trees.Research;
-        string pts = r.PointsPerTurn is long ppt ? $"{ppt} RP / turn" : "RP / turn —";
+        string pts = r.PointsPerTurn is long ppt ? $"{ppt} RP / turn" : "RP / turn -";
         dl.Text(x, 9, "RESEARCH", 11, Ink.With(ParchmentPalette.GoldLeaf, 0.9), TextAlign.Left, FontRole.Caps);
         dl.Text(x + 74, 8, pts, 13, paper, TextAlign.Left, FontRole.Numeric);
         if (r.CurrentTarget is not null && input.Graph.TryIndexOf(r.CurrentTarget, out int ti))
@@ -149,11 +149,11 @@ public static class TreesScreen
             dl.Text(x, 31, line, 13, paperSoft);
             hits.Add(new Hit(new RectD(x, 28, 260, 22), new OpenNodeAction(r.CurrentTarget), "Show the research target"));
         }
-        else dl.Text(x, 31, "Researching: —", 13, paperSoft);
+        else dl.Text(x, 31, "Researching: -", 13, paperSoft);
 
         // Session context (the live simulation's own clock, read-only), when hosted in the game.
         if (input.Session is SessionContext sc)
-            dl.Text(x + 290, 31, $"turn {sc.Turn} · year {sc.WorldYear:0} · Δt {sc.DtYears:0.##} y", 12, paperSoft, TextAlign.Left, FontRole.Numeric);
+            dl.Text(x + 290, 31, $"turn {sc.Turn} · year {sc.WorldYear:0} · dt {sc.DtYears:0.##} y", 12, paperSoft, TextAlign.Left, FontRole.Numeric);
 
         // Tabs and close.
         string[] names = ["THE TREES", "AGES", "GALLERY"];

@@ -125,6 +125,27 @@ public class ChromeGeometryTests
     }
 
     [Fact]
+    public void TreesButton_SitsFlushRight_InTheRow_ClearOfTheTerritoryToggleAndEverySection()
+    {
+        // The Trees + Ages overlay's button (docs/architecture/the-trees-ui.md §8): on the
+        // same row, flush with its right edge, after the territory toggle and the width
+        // reserved for its label — and outside the section roster, so the digit keys and
+        // GameSections.Order are untouched.
+        ScreenRect row = ChromeGeometry.ButtonRow;
+        ScreenRect trees = ChromeGeometry.TreesButton;
+        Assert.True(row.Contains(trees), $"the Trees button {trees} leaves the row");
+        Assert.Equal(row.Right, trees.Right);
+        Assert.Equal(row.Y, trees.Y);
+        Assert.Equal(ChromeGeometry.ButtonHeight, trees.Height);
+        Assert.True(trees.X >= ChromeGeometry.TerritoryToggleX + ChromeGeometry.TerritoryReserve,
+            $"the Trees button at {trees.X} crowds the territory toggle (anchor {ChromeGeometry.TerritoryToggleX} + {ChromeGeometry.TerritoryReserve})");
+        Assert.False(ScreenRect.Overlap(ChromeGeometry.EndTurnButton, trees));
+        for (int i = 0; i < GameSections.Order.Count; i++)
+            Assert.False(ScreenRect.Overlap(ChromeGeometry.NavButton(i), trees), $"overlaps section slot {i}");
+        Assert.Equal(7, GameSections.Order.Count);
+    }
+
+    [Fact]
     public void NavButton_RejectsSlotsOutsideTheRoster()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => ChromeGeometry.NavButton(-1));

@@ -29,7 +29,7 @@ internal static class GalleryPainter
         // Buildings and institutions.
         y = Chrome.SectionTitle(dl, x0, y, w, "Buildings & institutions");
         double tagX = x0 + m.Width("BUILDINGS & INSTITUTIONS", Chrome.Caps, FontRole.Caps) + 12;
-        tagX += Chrome.Tag(dl, m, tagX, y - 22, "PLACEHOLDER — NOT GAMEPLAY OBJECTS", ParchmentPalette.IronRed) + 12;
+        tagX += Chrome.Tag(dl, m, tagX, y - 22, "PLACEHOLDER - NOT GAMEPLAY OBJECTS", ParchmentPalette.IronRed) + 12;
         foreach (MaturityStageDef ms in gal.MaturityStages)
         {
             dl.Glyph(tagX, y - 24, 20, new GlyphSpec(GlyphBase.Hall, GlyphState.Complete, SizeClass.Px24, Stage: ms.Stage,
@@ -49,7 +49,7 @@ internal static class GalleryPainter
         // Units.
         y = Chrome.SectionTitle(dl, x0, y, w, "Units");
         Chrome.Tag(dl, m, x0 + m.Width("UNITS", Chrome.Caps, FontRole.Caps) + 12, y - 22,
-            "PLACEHOLDER — NO COMBAT STATISTICS · VETERANCY HAS NO FORMULA OR MULTIPLIER", ParchmentPalette.IronRed);
+            "PLACEHOLDER - NO COMBAT STATISTICS · VETERANCY HAS NO FORMULA OR MULTIPLIER", ParchmentPalette.IronRed);
         int ucols = 7;
         double uw = (w - (ucols - 1) * 8) / ucols, uh = 104;
         for (int i = 0; i < gal.Units.Count; i++)
@@ -79,7 +79,7 @@ internal static class GalleryPainter
         if (motion.PipFillT >= 0) dl.Circle(r.X + 32, r.Y + 34, 26 + 10 * motion.PipFillT, null, Ink.With(Gold, 1 - motion.PipFillT), 2.5);
         double tx = r.X + 64, tw = r.Right - tx - 6;
         dl.Text(tx, r.Y + 6, Ink.Fit(m, def.Name, 14, tw), 14, InkP);
-        dl.Text(tx, r.Y + 24, stage is null ? "—" : $"{stage.Id} · stage {stage.Stage}/{GlyphSpec.MaxStage}", 10.5, stage is null ? InkS : Gold, TextAlign.Left, FontRole.Caps);
+        dl.Text(tx, r.Y + 24, stage is null ? "-" : $"{stage.Id} · stage {stage.Stage}/{GlyphSpec.MaxStage}", 10.5, stage is null ? InkS : Gold, TextAlign.Left, FontRole.Caps);
         double y = r.Y + 40;
         if (b is not null && b.ConstructionProgress < 1.0)
         {
@@ -129,7 +129,7 @@ internal static class GalleryPainter
         double tx = r.X + 58, tw = r.Right - tx - 5;
         dl.Text(tx, r.Y + 6, Ink.Fit(m, def.Name, 13.5, tw), 13.5, InkP);
         dl.Text(tx, r.Y + 23, Ink.Fit(m, (state?.Name ?? "no state").ToUpperInvariant(), 10, tw), 10, Gold, TextAlign.Left, FontRole.Caps);
-        dl.Text(tx, r.Y + 37, Ink.Fit(m, vet?.Name ?? "—", 11, tw), 11, InkS);
+        dl.Text(tx, r.Y + 37, Ink.Fit(m, vet?.Name ?? "-", 11, tw), 11, InkS);
         double y = r.Y + 58;
         if (u is not null)
         {
@@ -142,7 +142,7 @@ internal static class GalleryPainter
             Row("strength", u.Strength, InkP);
             Row($"xp {u.Experience?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "—"}", u.ExperienceProgress, Gold);
             Row("cohesion", u.Cohesion, ParchmentPalette.Verdigris);
-            string doctrine = u.Doctrine is string d && input.Graph.TryIndexOf(d, out int di) ? input.Graph.Node(di).Name : "—";
+            string doctrine = u.Doctrine is string d && input.Graph.TryIndexOf(d, out int di) ? input.Graph.Node(di).Name : "-";
             dl.Text(r.X + 8, y, Ink.Fit(m, $"{u.Training} · {u.Recovery} · {doctrine}", 10, r.W - 14), 10, InkS);
         }
     }
@@ -172,8 +172,8 @@ internal static class GalleryPainter
             foreach (double t in dots) dl.Circle(sx + t * step * reached, y + 14, 3.2, ParchmentPalette.River);
         }
         double qx = sx + span + 40;
-        dl.Text(qx, y, "Building: planned → construction → partial → completed → maturing → mature", 11.5, InkS);
-        dl.Text(qx, y + 17, "Unit: recruiting → training → ready → deployed → experienced", 11.5, InkS);
-        dl.Text(qx, y + 34, "Age: current → transition indication → new Age → settled (see the Age view)", 11.5, InkS);
+        dl.Text(qx, y, "Building: planned -> construction -> partial -> completed -> maturing -> mature", 11.5, InkS);
+        dl.Text(qx, y + 17, "Unit: recruiting -> training -> ready -> deployed -> experienced", 11.5, InkS);
+        dl.Text(qx, y + 34, "Age: current -> transition indication -> new Age -> settled (see the Age view)", 11.5, InkS);
     }
 }

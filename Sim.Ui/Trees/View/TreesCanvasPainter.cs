@@ -46,8 +46,9 @@ internal static class TreesCanvasPainter
         dl.Rect(search, ParchmentPalette.PaperLight, Ink.With(InkS, 0.8), 1, 3);
         dl.Circle(search.X + 12, search.Y + 11, 5, null, InkS, 1.4);
         dl.Line(search.X + 15.5, search.Y + 14.5, search.X + 19, search.Y + 18, InkS, 1.6);
-        dl.Text(search.X + 26, search.Y + 4, ui.Search.Length > 0 ? Ink.Fit(m, ui.Search, 13, 140) : "Search nodes…", 13,
-            ui.Search.Length > 0 ? InkP : Ink.With(InkS, 0.7));
+        if (!input.HostDrawsSearchText || ui.Search.Length == 0)
+            dl.Text(search.X + 26, search.Y + 4, ui.Search.Length > 0 ? Ink.Fit(m, ui.Search, 13, 140) : "Search nodes...", 13,
+                ui.Search.Length > 0 ? InkP : Ink.With(InkS, 0.7));
         hits.Add(new Hit(search, new FocusSearchAction(), "Search by name or id"));
 
         double x = search.Right + 12;
@@ -75,9 +76,9 @@ internal static class TreesCanvasPainter
 
         // Zoom.
         double zx = t.Right - 3 * 30 - 8;
-        Chrome.Button(dl, hits, new RectD(zx, t.Y + 7, 26, 24), "−", false, new ZoomAction(1 / 1.25), "Zoom out");
+        Chrome.Button(dl, hits, new RectD(zx, t.Y + 7, 26, 24), "-", false, new ZoomAction(1 / 1.25), "Zoom out");
         Chrome.Button(dl, hits, new RectD(zx + 30, t.Y + 7, 26, 24), "+", false, new ZoomAction(1.25), "Zoom in");
-        Chrome.Button(dl, hits, new RectD(zx + 60, t.Y + 7, 26, 24), "⤢", false, new FitAction(), "Fit the graph");
+        Chrome.Button(dl, hits, new RectD(zx + 60, t.Y + 7, 26, 24), "Fit", false, new FitAction(), "Fit the graph");
         return search;
     }
 
@@ -153,7 +154,7 @@ internal static class TreesCanvasPainter
             dl.Glyph(x, y, 32, new GlyphSpec(age.IconBase, GlyphState.Complete, SizeClass.Px32, Domain: age.IconMark,
                 Era: age.Theme.Register, Maturity: input.Ages.CurrentProgress ?? 0.0));
             dl.Text(x + 40, y + 1, age.DisplayName, 14, InkP, TextAlign.Left, FontRole.Heading);
-            string pct = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "—";
+            string pct = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "-";
             dl.Text(x + 40, y + 18, $"progress {pct}", 11.5, InkS, TextAlign.Left, FontRole.Numeric);
             dl.Bar(new RectD(x, y + 38, w, 5), input.Ages.CurrentProgress ?? 0.0, Gold, Ink.With(InkS, 0.6), ParchmentPalette.PaperMid);
             IReadOnlyList<MilestoneDef> ms = ages.MilestonesOf(age.Id);
@@ -172,7 +173,7 @@ internal static class TreesCanvasPainter
                     y += 20;
                 }
             }
-            Chrome.Button(dl, hits, new RectD(x, y + 2, w, 22), "Open the Age view ▸", false, new SetTabAction(TreesTab.Ages));
+            Chrome.Button(dl, hits, new RectD(x, y + 2, w, 22), "Open the Age view »", false, new SetTabAction(TreesTab.Ages));
             y += 30;
         }
 
@@ -194,8 +195,8 @@ internal static class TreesCanvasPainter
         {
             dl.Text(x, y, Ink.Fit(input.Measure, $"step {input.PreviewStep + 1}/{input.PreviewStepCount}: {input.PreviewStepLabel}", 11, w), 11, InkP);
             y += 18;
-            Chrome.Button(dl, hits, new RectD(x, y, 30, 22), "◀", false, new PreviewStepAction(-1), "Previous placeholder step (preview only)");
-            Chrome.Button(dl, hits, new RectD(x + 34, y, 30, 22), "▶", false, new PreviewStepAction(+1), "Next placeholder step (preview only)");
+            Chrome.Button(dl, hits, new RectD(x, y, 30, 22), "«", false, new PreviewStepAction(-1), "Previous placeholder step (preview only)");
+            Chrome.Button(dl, hits, new RectD(x + 34, y, 30, 22), "»", false, new PreviewStepAction(+1), "Next placeholder step (preview only)");
         }
         Chrome.Button(dl, hits, new RectD(x + w - 64, y, 64, 22), "Reload", false, new ReloadContentAction(), "Reload ui-content/trees");
         int warnings = input.Diagnostics?.Count(d => d.Severity == DiagnosticSeverity.Warning) ?? 0;
@@ -241,7 +242,7 @@ internal static class TreesCanvasPainter
             if (z >= 0.85)
             {
                 double dx = lx + gs + 16 + input.Measure.Width(lens.Name.ToUpperInvariant(), ts, FontRole.Caps);
-                dl.Text(dx, band.Y + (strip - 11.5) / 2, Ink.Fit(input.Measure, "— " + lens.ShortDescription, 11.5, canvas.Right - dx - 8), 11.5, Ink.With(InkS, 0.8));
+                dl.Text(dx, band.Y + (strip - 11.5) / 2, Ink.Fit(input.Measure, "- " + lens.ShortDescription, 11.5, canvas.Right - dx - 8), 11.5, Ink.With(InkS, 0.8));
             }
         }
 

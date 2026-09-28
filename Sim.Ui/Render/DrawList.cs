@@ -70,8 +70,43 @@ public sealed class DrawList
     public void Arc(double cx, double cy, double r, double startDeg, double sweepDeg, Rgba color, double width = 1.0) =>
         _cmds.Add(new ArcCmd(cx, cy, r, startDeg, sweepDeg, color, width));
 
+    /// <summary>Text is normalised to Latin-1 (<see cref="Latin1"/>): the game's ImGui font
+    /// atlas carries only that range (UiTheme), so a character outside it would draw as '?'
+    /// in the game while looking fine in an SVG. One normalisation, both backends.</summary>
     public void Text(double x, double y, string text, double size, Rgba color, TextAlign align = TextAlign.Left, FontRole role = FontRole.Body) =>
-        _cmds.Add(new TextCmd(x, y, text, size, color, align, role));
+        _cmds.Add(new TextCmd(x, y, Latin1(text), size, color, align, role));
+
+    /// <summary>Map typographic characters outside Latin-1 to Latin-1 stand-ins; anything
+    /// else outside the range becomes '?'. Content strings (JSON) flow through here too.</summary>
+    public static string Latin1(string text)
+    {
+        bool clean = true;
+        foreach (char c in text) if (c > '\u00FF') { clean = false; break; }
+        if (clean) return text;
+        var sb = new System.Text.StringBuilder(text.Length + 8);
+        foreach (char c in text)
+        {
+            if (c <= '\u00FF') { sb.Append(c); continue; }
+            sb.Append(c switch
+            {
+                '\u2014' or '\u2013' or '\u2212' or '\u2010' or '\u2011' => "-",
+                '\u2026' => "...",
+                '\u2192' => "->",
+                '\u2190' => "<-",
+                '\u2018' or '\u2019' => "'",
+                '\u201C' or '\u201D' => "\"",
+                '\u2022' => "\u00B7",
+                '\u25C0' or '\u2039' => "\u00AB",
+                '\u25B6' or '\u25B8' or '\u203A' => "\u00BB",
+                '\u0394' => "d",
+                '\u2713' or '\u2714' => "+",
+                '\u2264' => "<=",
+                '\u2265' => ">=",
+                _ => "?",
+            });
+        }
+        return sb.ToString();
+    }
 
     public void Glyph(double x, double y, double size, GlyphSpec spec, double alpha = 1.0) =>
         _cmds.Add(new GlyphCmd(x, y, size, spec, alpha));
@@ -171,9 +206,9 @@ public static class Ink
         if (m.Width(text, size, role) <= width) return text;
         for (int n = text.Length - 1; n > 0; n--)
         {
-            string t = text[..n].TrimEnd() + "…";
+            string t = text[..n].TrimEnd() + "...";
             if (m.Width(t, size, role) <= width) return t;
         }
-        return "…";
+        return "...";
     }
 }

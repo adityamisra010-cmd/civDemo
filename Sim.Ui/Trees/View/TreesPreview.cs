@@ -22,8 +22,8 @@ public static class TreesPreview
             h => { Select(h, "institution.engineering-university"); Act(h, new SetFocusAction(FocusMode.Prerequisites)); return Paint(h, 0.8); }),
         new("03-trees-lineage-zoomed", "The demo cross-lens chain as a lineage, zoomed in on Engineering personnel.",
             h => { Select(h, "capability.engineering-personnel", center: true); Act(h, new SetFocusAction(FocusMode.Lineage)); Act(h, new ZoomAction(1.35)); return Paint(h, 1.1); }),
-        new("04-trees-lens-industry-search", "The Industry lens with its cross-lens context, and a search for \"engin\".",
-            h => { Act(h, new SetLensAction("INDUSTRY")); h.Ui.Search = "engin"; return Paint(h, 0.5); }),
+        new("04-trees-lens-industry-search", "The Industry lens with its cross-lens context (other lenses dimmed), and a search for \"machine\".",
+            h => { Act(h, new SetLensAction("INDUSTRY")); h.Ui.Search = "machine"; return Paint(h, 0.5); }),
         new("05-trees-filters", "State filter (researching, developing, operational) and Age filter (Age 02), hide mode.",
             h =>
             {

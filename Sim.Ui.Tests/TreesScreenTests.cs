@@ -175,7 +175,7 @@ public class TreesScreenTests
         Assert.Contains("Mandatory milestones · 3/4".ToUpperInvariant(), t1);
         h.Demo.SetStep(2);
         string[] t2 = Texts(Frame(h, 2.0)).ToArray();
-        Assert.Contains("TRANSITION PENDING → AGE 04", t2);
+        Assert.Contains("TRANSITION PENDING -> AGE 04", t2);
         // Selecting a milestone shows its checklist entry; its node link opens the Trees.
         Act(h, new SelectMilestoneAction("M_03_03"), 2.0);
         TreesFrame f = Frame(h, 2.0);
@@ -287,7 +287,7 @@ public class TreesScreenTests
         TreesFrame d = Frame(h);
         string[] texts = Texts(d).ToArray();
         Assert.Contains("Engineering University", texts);
-        Assert.Contains("WHY — WHAT PRECEDES IT", texts);
+        Assert.Contains("WHY - WHAT PRECEDES IT", texts);
         Assert.Contains("Engineering", texts);
         Assert.Contains("University", texts);
         Assert.Contains(texts, t => t.StartsWith("Availability rule: TBD", StringComparison.Ordinal));
@@ -328,6 +328,21 @@ public class TreesScreenTests
     }
 
     [Fact]
+    public void Reload_KeepsTheTabLensAndSelection_ByNodeId()
+    {
+        TreesHost h = Host();
+        int eu = Node(h, "institution.engineering-university");
+        Act(h, new SelectNodeAction(eu));
+        Act(h, new SetLensAction("INSTITUTIONS"));
+        TreesFrame f = Frame(h);
+        Hit reload = f.Hits.Single(x => x.Action is ReloadContentAction);
+        Click(h, f, reload.Rect.CenterX, reload.Rect.CenterY);
+        Assert.Equal("institution.engineering-university", h.Graph!.Node(h.Ui.Selected!.Value).Id);
+        Assert.Equal("INSTITUTIONS", h.Ui.Lens);
+        Assert.False(h.Ui.LegendOpen);
+    }
+
+    [Fact]
     public void BrokenContent_ShowsTheDiagnostics_InsteadOfCrashing()
     {
         string dir = Path.Combine(Path.GetTempPath(), "trees-bad-" + Guid.NewGuid().ToString("N"));
@@ -340,10 +355,23 @@ public class TreesScreenTests
             var h = new TreesHost(dir);
             Assert.False(h.Loaded);
             string[] texts = Texts(Frame(h)).ToArray();
-            Assert.Contains("THE TREES — CONTENT DID NOT LOAD", texts);
+            Assert.Contains("THE TREES - CONTENT DID NOT LOAD", texts);
             Assert.Contains(texts, t => t.Contains(TreesContentLoader.TreesFile, StringComparison.Ordinal));
         }
         finally { Directory.Delete(dir, true); }
+    }
+
+    [Fact]
+    public void EveryPaintedString_IsLatin1_SoTheGameAtlasCanDrawIt()
+    {
+        // UiTheme loads the faces with ImGui's default range (Basic Latin + Latin-1). A
+        // character outside it draws as '?' in the game while looking fine in an SVG, so
+        // every text command is normalised — including content strings such as "Δt".
+        foreach (TreesPreview.Scenario s in TreesPreview.Scenarios)
+            foreach (TextCmd t in s.Build(Host()).Frame.Draw.Commands.OfType<TextCmd>())
+                Assert.True(t.Text.All(c => c <= '\u00FF'), $"{s.Name}: \"{t.Text}\" leaves Latin-1");
+        Assert.Equal("dt -> A - B... \u00AB \u00BB ?", DrawList.Latin1("Δt → A — B… ◀ ▶ ☃"));
+        Assert.Equal("plain ascii", DrawList.Latin1("plain ascii"));
     }
 
     // --- determinism ------------------------------------------------------------------------------------

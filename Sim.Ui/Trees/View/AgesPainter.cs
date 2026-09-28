@@ -69,7 +69,7 @@ internal static class AgesPainter
             string label = standing switch
             {
                 AgeStanding.Passed => "passed",
-                AgeStanding.Current => "current · " + (st.CurrentProgress is double p ? $"{p * 100:0} %" : "— %"),
+                AgeStanding.Current => "current · " + (st.CurrentProgress is double p ? $"{p * 100:0} %" : "- %"),
                 _ => isNext ? "next · transition pending" : "future",
             };
             dl.Text(x + 46, y + 24, label, 11.5, standing == AgeStanding.Current ? Gold : InkS, TextAlign.Left, FontRole.Caps);
@@ -100,14 +100,14 @@ internal static class AgesPainter
 
         // Progress (reported) and transition status.
         double progress = vs == AgeStanding.Passed ? 1.0 : vs == AgeStanding.Current ? st.CurrentProgress ?? 0.0 : 0.0;
-        string pct = vs == AgeStanding.Current ? (st.CurrentProgress is double pp ? $"{pp * 100:0} %" : "— %") : vs == AgeStanding.Passed ? "passed" : "not begun";
+        string pct = vs == AgeStanding.Current ? (st.CurrentProgress is double pp ? $"{pp * 100:0} %" : "- %") : vs == AgeStanding.Passed ? "passed" : "not begun";
         y += 6;
         dl.Text(cx, y, "PROGRESS", 11, InkS, TextAlign.Left, FontRole.Caps);
         dl.Text(cx + cw, y - 3, pct, 17, InkP, TextAlign.Right, FontRole.Numeric);
         y += 18;
         dl.Bar(new RectD(cx, y, cw, 10), progress, Gold, Ink.With(InkS, 0.7), ParchmentPalette.PaperLight);
         y += 14;
-        dl.Text(cx, y, $"as reported by {st.SourceLabel} — the completion rule is a Director decision (not computed here)", 10.5, Ink.With(InkS, 0.85));
+        dl.Text(cx, y, $"as reported by {st.SourceLabel} - the completion rule is a Director decision (not computed here)", 10.5, Ink.With(InkS, 0.85));
         y += 20;
 
         var banner = new RectD(cx, y, cw, 30);
@@ -121,7 +121,7 @@ internal static class AgesPainter
                 dl.Rect(new RectD(sx - 40, banner.Y, 80, banner.H), Ink.With(Gold, 0.22));
                 dl.PopClip();
             }
-            dl.Text(banner.X + 12, banner.Y + 7, $"TRANSITION PENDING → {next.DisplayName.ToUpperInvariant()}", 13, InkP, TextAlign.Left, FontRole.Caps);
+            dl.Text(banner.X + 12, banner.Y + 7, $"TRANSITION PENDING -> {next.DisplayName.ToUpperInvariant()}", 13, InkP, TextAlign.Left, FontRole.Caps);
             dl.Text(banner.Right - 10, banner.Y + 8, "presentation only", 10.5, InkS, TextAlign.Right);
         }
         else
@@ -129,7 +129,7 @@ internal static class AgesPainter
             dl.Rect(banner, ParchmentPalette.PaperLight, Ink.With(InkS, 0.5), 1, 4);
             AgeDef? after = order.FirstOrDefault(a => a.Order > viewed.Order);
             string msg = vs == AgeStanding.Current
-                ? after is null ? "No later Age in the content." : $"Next transition: {after.DisplayName} — not pending"
+                ? after is null ? "No later Age in the content." : $"Next transition: {after.DisplayName} - not pending"
                 : vs == AgeStanding.Passed ? "This Age is behind the civilization. Ages do not regress." : "A future Age: its milestones are shown for planning only.";
             dl.Text(banner.X + 12, banner.Y + 7, msg, 13, InkS);
         }
@@ -138,8 +138,8 @@ internal static class AgesPainter
         // Previous / next.
         AgeDef? prev = order.LastOrDefault(a => a.Order < viewed.Order);
         AgeDef? nextAge = order.FirstOrDefault(a => a.Order > viewed.Order);
-        if (prev is not null) Chrome.Button(dl, hits, new RectD(cx, y, 170, 24), $"◀ previous · {prev.DisplayName}", false, new SetViewedAgeAction(prev.Id));
-        if (nextAge is not null) Chrome.Button(dl, hits, new RectD(cx + cw - 170, y, 170, 24), $"next · {nextAge.DisplayName} ▶", false, new SetViewedAgeAction(nextAge.Id));
+        if (prev is not null) Chrome.Button(dl, hits, new RectD(cx, y, 170, 24), $"« previous · {prev.DisplayName}", false, new SetViewedAgeAction(prev.Id));
+        if (nextAge is not null) Chrome.Button(dl, hits, new RectD(cx + cw - 170, y, 170, 24), $"next · {nextAge.DisplayName} »", false, new SetViewedAgeAction(nextAge.Id));
         if (viewed.Id != current.Id) Chrome.Button(dl, hits, new RectD(cx + cw / 2 - 60, y, 120, 24), "current Age", false, new SetViewedAgeAction(null));
         y += 36;
 
@@ -164,7 +164,7 @@ internal static class AgesPainter
                 double pv = ms0.Progress ?? (ms0.Completion == MilestoneCompletion.Complete ? 1.0 : 0.0);
                 dl.Bar(new RectD(cx + cw - 132, y + 5, 88, 6), pv, ms0.Completion == MilestoneCompletion.Complete ? ParchmentPalette.Verdigris : Gold, Ink.With(InkS, 0.6), ParchmentPalette.PaperLight);
                 dl.Text(cx + cw, y + 1, $"{pv * 100:0} %", 11.5, InkS, TextAlign.Right, FontRole.Numeric);
-                string sub = md.Prerequisites.Count == 0 ? "" : "after " + string.Join(", ", md.Prerequisites.Select(p0 => ages.Milestone(p0).Name + (st.Milestone(p0).Completion == MilestoneCompletion.Complete ? " ✓" : "")));
+                string sub = md.Prerequisites.Count == 0 ? "" : "after " + string.Join(", ", md.Prerequisites.Select(p0 => ages.Milestone(p0).Name + (st.Milestone(p0).Completion == MilestoneCompletion.Complete ? " (met)" : "")));
                 if (ms0.Evidence.Length > 0) sub += (sub.Length > 0 ? " · " : "") + "evidence: " + ms0.Evidence;
                 if (sub.Length == 0) sub = md.Description;
                 dl.Text(cx + 24, y + 18, Ink.Fit(m, sub, 11.5, cw - 30), 11.5, InkS);
@@ -208,14 +208,14 @@ internal static class AgesPainter
             Chrome.Wrapped(dl, m, ref y, x, w, ss.Evidence.Length > 0 ? "Reported: " + ss.Evidence : "Nothing reported.", 12, InkP);
             Chrome.Wrapped(dl, m, ref y, x, w, sm.EvidenceNotes, 12, InkS);
             y = Chrome.SectionTitle(dl, x, y + 6, w, "Historical source");
-            Chrome.Wrapped(dl, m, ref y, x, w, sm.HistoricalSource.Length > 0 ? sm.HistoricalSource : "—", 12, InkS);
+            Chrome.Wrapped(dl, m, ref y, x, w, sm.HistoricalSource.Length > 0 ? sm.HistoricalSource : "-", 12, InkS);
             if (sm.NodeRefs.Count > 0)
             {
                 y = Chrome.SectionTitle(dl, x, y + 6, w, "In the Trees");
                 foreach (string nid in sm.NodeRefs)
                 {
                     string name = input.Graph.TryIndexOf(nid, out int ni) ? input.Graph.Node(ni).Name : nid;
-                    dl.Text(x, y, "→ " + name, 12.5, InkP);
+                    dl.Text(x, y, "-> " + name, 12.5, InkP);
                     hits.Add(new Hit(new RectD(x, y - 2, w, 18), new OpenNodeAction(nid), "Show in the Trees"));
                     y += 18;
                 }
@@ -233,13 +233,13 @@ internal static class AgesPainter
             y += 4;
         }
         DateRangeDef dr = viewed.DateRange;
-        Field("Date range", $"{dr.StartLabel} – {dr.EndLabel}" + (dr.StartYear is long sy ? $" ({sy}" + (dr.EndYear is long ey ? $"–{ey})" : ")") : "") + (dr.Note.Length > 0 ? ". " + dr.Note : ""));
+        Field("Date range", $"{dr.StartLabel} - {dr.EndLabel}" + (dr.StartYear is long sy ? $" ({sy}" + (dr.EndYear is long ey ? $"-{ey})" : ")") : "") + (dr.Note.Length > 0 ? ". " + dr.Note : ""));
         Field("Visual theme", $"register {viewed.Theme.Register} · accent {viewed.Theme.Accent} · motif {viewed.Theme.Motif}");
         Field("Icon", $"{viewed.IconBase} + {viewed.IconMark}");
         Field("Transition effect", $"{(viewed.TransitionAnimation.Length > 0 ? viewed.TransitionAnimation : "—")}. {viewed.TransitionNote}");
-        Field("Δt (placeholder)", (viewed.DeltaT.YearsPerTurn is double yp ? $"{yp} years / turn. " : "years / turn: —. ") + viewed.DeltaT.Note);
+        Field("Turn length, dt (placeholder)", (viewed.DeltaT.YearsPerTurn is double yp ? $"{yp} years / turn. " : "years / turn: -. ") + viewed.DeltaT.Note);
         Field("Catch-up (placeholder)", (viewed.CatchUp.PathwayBased ? "pathway-based. " : "") + viewed.CatchUp.Note);
         Field("Historical context", viewed.HistoricalContext);
-        Field("Milestones", $"{ms.Count} ({ms.Count(q => q.Mandatory)} mandatory) — click one for its checklist entry");
+        Field("Milestones", $"{ms.Count} ({ms.Count(q => q.Mandatory)} mandatory) - click one for its checklist entry");
     }
 }
