@@ -3,101 +3,175 @@ namespace Sim.Ui.World;
 // THE WORLD VIEW BOUNDARY (docs/architecture/world-visualization.md §2).
 //
 // Everything a map layer draws arrives here as a REPORT: a plain, immutable statement by a
-// source of what exists and what it looks like from the outside. The renderer never
-// decides that a gameplay entity exists — it only depicts reports. There are five narrow
-// sources (settlements, polities, structures, infrastructure, mobile agents); each returns
-// one immutable snapshot, and none has a setter or a command.
+// source of what exists and what can be seen of it from outside. The renderer never decides
+// that a gameplay entity exists — it only depicts reports. There are six narrow sources
+// (settlements, polities, structures, infrastructure, resources, mobile agents); each
+// returns immutable snapshots, and none has a setter or a command.
 //
 // Two kinds of source implement them today:
-//   · LIVE adapters (Sim.Ui/World/Live) over the authoritative IReadOnlyWorldState, for the
-//     things the simulation already holds: settlements, polities, notables, the network.
-//   · the DEMO source (PLACEHOLDER, ui-content/world/demo-world.json) for the things it does
-//     not hold yet: buildings, institutions, armies, roles, cultural groups.
-// A scene is built from ONE bundle — all live or all demo — so demo entities can never be
-// drawn on the real map as if the simulation had produced them.
+//   · LIVE adapters (Sim.Ui/World/Live) over the authoritative IReadOnlyWorldState, for what
+//     the simulation already holds: settlements (with their SizeTier), polities and control,
+//     the M4-D structures, the deposits, the built network, notables.
+//   · the DEMO source (PLACEHOLDER, ui-content/world/demo-world.json) for what it does not
+//     hold yet: institutions, armies, roles for people, cultural groups.
+// A scene is built from ONE bundle — all live or all demo — so a demo entity can never be
+// drawn on the real map as if the simulation had produced it.
 
 /// <summary>What kind of thing an id names. Part of the id: a settlement "12" and a
 /// structure "12" are different entities.</summary>
-public enum WorldEntityKind { Settlement = 0, Structure = 1, Infrastructure = 2, Agent = 3 }
+public enum WorldEntityKind { Settlement = 0, Structure = 1, InfraNode = 2, InfraEdge = 3, Resource = 4, Agent = 5 }
 
 /// <summary>
 /// A STABLE entity id: the kind plus the key the SOURCE assigned (the authoritative id for a
-/// live source, the content id for the demo). The view never mints ids, so an entity keeps
-/// its id for as long as its source reports it.
+/// live source, zero-padded so ordinal order is numeric order; the content key for the demo).
+/// The view never mints ids for entities, so an entity keeps its id for as long as its source
+/// reports it. Ordered by (kind, key ordinal) — the stable tie-break every ranking ends in.
 /// </summary>
 public readonly record struct WorldEntityId(WorldEntityKind Kind, string Key) : IComparable<WorldEntityId>
 {
     public int CompareTo(WorldEntityId other)
     {
-        int k = Kind.CompareTo(other.Kind);
+        int k = ((int)Kind).CompareTo((int)other.Kind);
         return k != 0 ? k : string.CompareOrdinal(Key, other.Key);
     }
 
-    public override string ToString() => $"{Kind.ToString().ToLowerInvariant()}:{Key}";
+    public override string ToString() => Kind switch
+    {
+        WorldEntityKind.Settlement => "settlement:",
+        WorldEntityKind.Structure => "structure:",
+        WorldEntityKind.InfraNode => "node:",
+        WorldEntityKind.InfraEdge => "edge:",
+        WorldEntityKind.Resource => "resource:",
+        _ => "agent:",
+    } + Key;
 }
 
-/// <summary>A continuous world position (double X, double Y) — never a tile index.</summary>
+/// <summary>A continuous world position (double X, double Y) in world units (the live map's
+/// unit is one terrain cell) — never a tile index.</summary>
 public readonly record struct WorldPoint(double X, double Y);
 
-/// <summary>Whether the viewer may see an entity, AS REPORTED. The renderer never computes
-/// visibility; a source without a visibility model reports <see cref="Visible"/> and says so.</summary>
-public enum ReportedVisibility { Visible = 0, Fogged = 1, Hidden = 2 }
+/// <summary>
+/// What a source says about whether the viewer can see an entity. The renderer never
+/// computes visibility. The ruled shape of the future model is a computed per-polity extent
+/// with separate, lagged position and strength channels (D-040 B1, D-039 A2/B3) — not a flag
+/// — so this is a PRESENTATION vocabulary a source maps onto, not that model:
+/// <list type="bullet">
+/// <item><see cref="NotModelled"/>: the source has no knowledge model (the live simulation
+/// today): drawn, and the details say "visibility not modelled — omniscient view".</item>
+/// <item><see cref="Visible"/>: drawn normally.</item>
+/// <item><see cref="Remembered"/>: drawn ghosted and not selectable (last known).</item>
+/// <item><see cref="Hidden"/>: neither drawn nor hit-tested nor counted.</item>
+/// </list></summary>
+public enum ReportedVisibility { NotModelled = 0, Visible = 1, Remembered = 2, Hidden = 3 }
 
-/// <summary>A named number a source reports about a structure or infrastructure element
-/// (capacity, maturity, staff, served, construction, …). Morphology content chooses which
-/// one drives a visual stage, so a future authoritative input needs no renderer change.</summary>
+/// <summary>Which relation a report's polity key names. The simulation keeps these distinct
+/// (a settlement's CONTROLLER, a notable's ALLEGIANCE — D-037/D-042); the details panel
+/// prints the relation, never a generic "owner".</summary>
+public enum PolityRelation { None = 0, Controller = 1, Allegiance = 2, Owner = 3 }
+
+/// <summary>A named number a source reports (capacity, maturity, staff, served, grade,
+/// population, sizeTier, …). Morphology CONTENT chooses which one drives a visual stage, so a
+/// future authoritative input needs a content edit, not a renderer change.</summary>
 public readonly record struct ReportedInput(string Name, double Value);
 
-public sealed record SettlementReport(
-    string Key, string DisplayName, string? PolityKey, WorldPoint Position, long? Population,
-    ReportedVisibility Visibility, string Note);
+/// <summary>A named categorical value a source reports ("maturity" = "ESTABLISHED", …).
+/// Content may map its values onto visual stages through an ordinal table.</summary>
+public readonly record struct ReportedLabel(string Name, string Value);
 
-/// <summary>A polity (owner / affiliation). Its map colour is a VISUAL choice made by the
-/// morphology content from the polity's order, not something a source reports.</summary>
-public sealed record PolityReport(string Key, string DisplayName, string Note);
+internal static class ReportLookup
+{
+    public static double? Input(IReadOnlyList<ReportedInput> inputs, string name)
+    {
+        for (int i = 0; i < inputs.Count; i++) if (string.Equals(inputs[i].Name, name, StringComparison.Ordinal)) return inputs[i].Value;
+        return null;
+    }
+
+    public static string? Label(IReadOnlyList<ReportedLabel> labels, string name)
+    {
+        for (int i = 0; i < labels.Count; i++) if (string.Equals(labels[i].Name, name, StringComparison.Ordinal)) return labels[i].Value;
+        return null;
+    }
+}
+
+/// <summary>A settlement. <see cref="SourceId"/> is the authoritative numeric id when the
+/// source is the live simulation (null for the demo): the ONLY way the game may mirror a
+/// world selection onto its own settlement selection — never by parsing a key.</summary>
+public sealed record SettlementReport(
+    string Key, string DisplayName, string? PolityKey, PolityRelation Relation, WorldPoint Position,
+    IReadOnlyList<ReportedInput> Inputs, ReportedVisibility Visibility, string Note, long? SourceId = null)
+{
+    public double? Input(string name) => ReportLookup.Input(Inputs, name);
+}
+
+/// <summary>A polity. <see cref="InkSeed"/> is a stable number the view maps onto a map ink
+/// (live: the polity id), so a polity's colour depends on the polity alone — never on how
+/// many others are listed.</summary>
+public sealed record PolityReport(string Key, string DisplayName, long InkSeed, string Note);
 
 /// <summary>
-/// A building or institution. <see cref="Position"/> is an AUTHORITATIVE placement when the
-/// source has one (null today: the simulation places no buildings, and the view then places
-/// it deterministically — a visual choice, documented). <see cref="Established"/> is the
-/// source's ordinal of when it came to exist (placement priority only). <see cref="Multiplicity"/>
-/// lets a source report one row standing for several identical institutions.
+/// A building or institution — a CAPABILITY OF ITS SETTLEMENT (D-038 H2): it has no world
+/// coordinates of its own, only the settlement it belongs to. Where it is drawn inside the
+/// settlement's composed sprite is a VISUAL choice (docs/architecture/world-visualization.md
+/// §6). <see cref="Established"/> is the source's ordinal of when the entity was first
+/// reported (composition priority only; null when the source has none — the live M4-D
+/// counts). <see cref="Multiplicity"/> lets one report stand for several identical
+/// structures (the live StructureRow is a count per settlement and project); it is drawn as
+/// ONE token with a ×n badge and is never expanded into invented per-building ids.
 /// </summary>
 public sealed record StructureReport(
-    string Key, string DisplayName, string VisualType, string SettlementKey, string? PolityKey,
-    WorldPoint? Position, long Established, long Multiplicity, IReadOnlyList<ReportedInput> Inputs,
+    string Key, string DisplayName, string VisualType, string SettlementKey, string? PolityKey, PolityRelation Relation,
+    long? Established, long Multiplicity, IReadOnlyList<ReportedInput> Inputs, IReadOnlyList<ReportedLabel> Labels,
     string? Specialization, string? State, ReportedVisibility Visibility, string Note)
 {
-    public double? Input(string name)
-    {
-        foreach (ReportedInput i in Inputs) if (i.Name == name) return i.Value;
-        return null;
-    }
+    public double? Input(string name) => ReportLookup.Input(Inputs, name);
+    public string? Label(string name) => ReportLookup.Label(Labels, name);
 }
 
-/// <summary>An infrastructure element: a network link (a polyline) or a local work (one point).</summary>
-public sealed record InfrastructureReport(
-    string Key, string DisplayName, string VisualType, string? SettlementKey, string? PolityKey,
-    IReadOnlyList<WorldPoint> Path, IReadOnlyList<ReportedInput> Inputs, ReportedVisibility Visibility, string Note)
+/// <summary>A typed node of the one infrastructure graph (D-009 ¶2: junctions, city gates,
+/// ports, stations, airports).</summary>
+public sealed record InfraNodeReport(
+    string Key, string DisplayName, string NodeType, WorldPoint Position, string? SettlementKey,
+    ReportedVisibility Visibility, string Note);
+
+/// <summary>A typed edge of the one infrastructure graph (D-009 ¶2), between two reported
+/// nodes. <see cref="VisualType"/> names the mode (road, rail, canal, …) for the content.</summary>
+public sealed record InfraEdgeReport(
+    string Key, string DisplayName, string VisualType, string NodeA, string NodeB, string? PolityKey, PolityRelation Relation,
+    IReadOnlyList<ReportedInput> Inputs, ReportedVisibility Visibility, string Note)
 {
-    public double? Input(string name)
-    {
-        foreach (ReportedInput i in Inputs) if (i.Name == name) return i.Value;
-        return null;
-    }
+    public double? Input(string name) => ReportLookup.Input(Inputs, name);
 }
+
+/// <summary>A resource at a settlement (live: a deposit — the good and its abundance).</summary>
+public sealed record ResourceReport(
+    string Key, string DisplayName, string ResourceType, string SettlementKey, IReadOnlyList<ReportedInput> Inputs,
+    ReportedVisibility Visibility, string Note)
+{
+    public double? Input(string name) => ReportLookup.Input(Inputs, name);
+}
+
+/// <summary>Where on the infrastructure graph an agent is: an edge and a fraction along it
+/// (0 at NodeA). The ruled shape for armies (D-009: they march on the network graph); a
+/// future live adapter reports this and the view projects it to a map point.</summary>
+public readonly record struct AgentGraphLocation(string EdgeKey, double Fraction);
 
 /// <summary>
 /// A mobile entity — a formation, a fleet, a person, a group — as ONE map entity.
-/// <see cref="Count"/> is the reported number it stands for (personnel, members); the map
-/// never draws one token per person. Position is continuous; heading is optional display.
+/// <see cref="Count"/> is the reported number it stands for (personnel, ships, members); the
+/// map never draws one token per person. Location is exactly one of: a continuous
+/// <see cref="Position"/>, a <see cref="GraphLocation"/>, or an
+/// <see cref="AttachedSettlementKey"/> (a person the simulation places only "at a
+/// settlement", like a notable). <see cref="Members"/> optionally names who a group is.
 /// </summary>
 public sealed record AgentReport(
-    string Key, string DisplayName, string DisplayType, string? PolityKey, WorldPoint Position,
-    double? HeadingDeg, long? Count, string? CountNoun, ReportedVisibility Visibility, string Note);
+    string Key, string DisplayName, string DisplayType, string? PolityKey, PolityRelation Relation,
+    WorldPoint? Position, AgentGraphLocation? GraphLocation, string? AttachedSettlementKey,
+    double? HeadingDeg, long? Count, string? CountNoun, IReadOnlyList<string> Members,
+    ReportedVisibility Visibility, string Note);
 
-/// <summary>One source's report at one moment: immutable, sorted by key, stamped with a
-/// sequence that changes whenever the reported state changes.</summary>
+/// <summary>One source's report at one moment: immutable, sorted by key (ordinal), with a
+/// duplicate key an error. <see cref="Sequence"/> is a CHANGE TOKEN only — it is never
+/// drawn, hashed or serialized.</summary>
 public sealed class Snapshot<T> where T : class
 {
     public Snapshot(long sequence, string sourceLabel, bool isPlaceholder, IEnumerable<T> items, Func<T, string> key)
@@ -105,10 +179,14 @@ public sealed class Snapshot<T> where T : class
         Sequence = sequence;
         SourceLabel = sourceLabel;
         IsPlaceholder = isPlaceholder;
-        Items = items.OrderBy(key, StringComparer.Ordinal).ToArray();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (T item in Items)
-            if (!seen.Add(key(item))) throw new ArgumentException($"{sourceLabel}: duplicate key '{key(item)}'");
+        T[] sorted = items.ToArray();
+        string[] keys = new string[sorted.Length];
+        for (int i = 0; i < sorted.Length; i++) keys[i] = key(sorted[i]);
+        Array.Sort(keys, sorted, StringComparer.Ordinal);
+        for (int i = 1; i < keys.Length; i++)
+            if (string.Equals(keys[i - 1], keys[i], StringComparison.Ordinal))
+                throw new ArgumentException($"{sourceLabel}: duplicate key '{keys[i]}'");
+        Items = sorted;
     }
 
     public long Sequence { get; }
@@ -123,29 +201,38 @@ public sealed class Snapshot<T> where T : class
 public interface ISettlementViewSource { Snapshot<SettlementReport> Current { get; } }
 public interface IPolityViewSource { Snapshot<PolityReport> Current { get; } }
 public interface IStructureViewSource { Snapshot<StructureReport> Current { get; } }
-public interface IInfrastructureViewSource { Snapshot<InfrastructureReport> Current { get; } }
+public interface IInfrastructureViewSource
+{
+    Snapshot<InfraNodeReport> Nodes { get; }
+    Snapshot<InfraEdgeReport> Edges { get; }
+}
+public interface IResourceViewSource { Snapshot<ResourceReport> Current { get; } }
 public interface IMobileAgentViewSource { Snapshot<AgentReport> Current { get; } }
 
 /// <summary>
-/// The five sources a scene reads — a bundle of references, not a manager: it owns nothing,
+/// The six sources a scene reads — a bundle of references, not a manager: it owns nothing,
 /// computes nothing and has no behaviour. <see cref="Label"/> names the bundle ("LIVE
-/// simulation", "DEMO world") for the map's provenance banner.
+/// simulation", "DEMO world") for the map's provenance banner; <see cref="Observer"/> says
+/// whose knowledge the reports are (today always an omniscient observer — there is no
+/// knowledge model yet, D-040 B1).
 /// </summary>
 public sealed record WorldSources(
-    string Label, bool IsPlaceholder,
+    string Label, bool IsPlaceholder, string Observer,
     ISettlementViewSource Settlements, IPolityViewSource Polities, IStructureViewSource Structures,
-    IInfrastructureViewSource Infrastructure, IMobileAgentViewSource Agents);
+    IInfrastructureViewSource Infrastructure, IResourceViewSource Resources, IMobileAgentViewSource Agents);
 
 /// <summary>A source with nothing to report, and a label saying why (e.g. "no authoritative
-/// producer: the simulation has no buildings yet").</summary>
+/// producer: the simulation has no armies yet").</summary>
 public sealed class EmptySource :
-    IStructureViewSource, IInfrastructureViewSource, IMobileAgentViewSource, ISettlementViewSource, IPolityViewSource
+    ISettlementViewSource, IPolityViewSource, IStructureViewSource, IInfrastructureViewSource, IResourceViewSource, IMobileAgentViewSource
 {
-    private readonly string _label;
-    public EmptySource(string label) => _label = label;
-    Snapshot<StructureReport> IStructureViewSource.Current => Snapshot<StructureReport>.Empty(_label, false, r => r.Key);
-    Snapshot<InfrastructureReport> IInfrastructureViewSource.Current => Snapshot<InfrastructureReport>.Empty(_label, false, r => r.Key);
-    Snapshot<AgentReport> IMobileAgentViewSource.Current => Snapshot<AgentReport>.Empty(_label, false, r => r.Key);
-    Snapshot<SettlementReport> ISettlementViewSource.Current => Snapshot<SettlementReport>.Empty(_label, false, r => r.Key);
-    Snapshot<PolityReport> IPolityViewSource.Current => Snapshot<PolityReport>.Empty(_label, false, r => r.Key);
+    public EmptySource(string label) => Label = label;
+    public string Label { get; }
+    Snapshot<SettlementReport> ISettlementViewSource.Current => Snapshot<SettlementReport>.Empty(Label, false, r => r.Key);
+    Snapshot<PolityReport> IPolityViewSource.Current => Snapshot<PolityReport>.Empty(Label, false, r => r.Key);
+    Snapshot<StructureReport> IStructureViewSource.Current => Snapshot<StructureReport>.Empty(Label, false, r => r.Key);
+    Snapshot<InfraNodeReport> IInfrastructureViewSource.Nodes => Snapshot<InfraNodeReport>.Empty(Label, false, r => r.Key);
+    Snapshot<InfraEdgeReport> IInfrastructureViewSource.Edges => Snapshot<InfraEdgeReport>.Empty(Label, false, r => r.Key);
+    Snapshot<ResourceReport> IResourceViewSource.Current => Snapshot<ResourceReport>.Empty(Label, false, r => r.Key);
+    Snapshot<AgentReport> IMobileAgentViewSource.Current => Snapshot<AgentReport>.Empty(Label, false, r => r.Key);
 }

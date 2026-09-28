@@ -1,0 +1,2325 @@
+{
+ "schema": "civ-sim/world-demo@1",
+ "placeholder": true,
+ "notice": "DEMO / PLACEHOLDER WORLD STATE. Every settlement, institution, army, person and group in this file is AUTHORED demonstration content for the world visualization foundation. None of it is simulation output, none of it is read by the simulation, and none of its numbers (populations, capacities, staff, counts) is a gameplay value. Schema: docs/architecture/world-visualization.md section 7.",
+ "world": {
+  "width": 480,
+  "height": 300
+ },
+ "water": [
+  {
+   "x": 0,
+   "y": 262,
+   "w": 480,
+   "h": 38
+  }
+ ],
+ "steps": [
+  {
+   "id": "A",
+   "name": "State A - small settlement",
+   "caption": "A small settlement: no university, no hospital, minimal infrastructure."
+  },
+  {
+   "id": "A2",
+   "name": "Growing settlement",
+   "caption": "The same settlement, larger: more residential blocks and a road."
+  },
+  {
+   "id": "B",
+   "name": "State B - first university and hospital",
+   "caption": "A larger settlement: the first university and the first hospital appear; several buildings and roads."
+  },
+  {
+   "id": "C",
+   "name": "State C - developing city",
+   "caption": "Multiple universities, factories, an expanded hospital and developed infrastructure."
+  },
+  {
+   "id": "D",
+   "name": "State D - large city",
+   "caption": "A large city: many institutions, a campus, a medical complex, rail, denser fabric."
+  },
+  {
+   "id": "E",
+   "name": "Civilization scale",
+   "caption": "Thirty universities reported across the realm: the view counts reports, it never infers them."
+  }
+ ],
+ "polities": [
+  {
+   "key": "p1",
+   "name": "Aurel League (demo)",
+   "inkSeed": 0
+  },
+  {
+   "key": "p2",
+   "name": "Varn Compact (demo)",
+   "inkSeed": 1
+  },
+  {
+   "key": "p3",
+   "name": "Hill Clans (demo)",
+   "inkSeed": 2
+  }
+ ],
+ "settlements": [
+  {
+   "key": "s-veyra",
+   "name": "Veyra",
+   "polity": "p1",
+   "x": 150,
+   "y": 190,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 1500
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 6000
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 14000
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 45000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 180000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 240000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-oskar",
+   "name": "Oskar",
+   "polity": "p1",
+   "x": 215,
+   "y": 118,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 800
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 2500
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 5000
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 12000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 30000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 60000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-tarn",
+   "name": "Tarn",
+   "polity": "p1",
+   "x": 250,
+   "y": 212,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 400
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 900
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 3500
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 9000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 22000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 45000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-lisse",
+   "name": "Lisse",
+   "polity": "p1",
+   "x": 88,
+   "y": 132,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 2000
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 4500
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 11000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 26000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-mora",
+   "name": "Mora",
+   "polity": "p2",
+   "x": 345,
+   "y": 150,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 3000
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 5000
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 9000
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 20000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 50000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 90000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-quell",
+   "name": "Quell",
+   "polity": "p2",
+   "x": 390,
+   "y": 232,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 1200
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 2000
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 3500
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 7000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 15000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 32000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-sel",
+   "name": "Sel",
+   "polity": "p2",
+   "x": 360,
+   "y": 62,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 2500
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 6000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 14000
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "s-dunmar",
+   "name": "Dunmar",
+   "polity": "p3",
+   "x": 60,
+   "y": 238,
+   "timeline": [
+    {
+     "inputs": {
+      "population": 600
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "population": 900
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "population": 1800
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "population": 3000
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "population": 6000
+     },
+     "step": 4
+    },
+    {
+     "inputs": {
+      "population": 9000
+     },
+     "step": 5
+    }
+   ]
+  }
+ ],
+ "structures": [
+  {
+   "key": "u-123",
+   "name": "University #123",
+   "type": "university",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 400
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 2
+    },
+    {
+     "inputs": {
+      "capacity": 1200
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 5000
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 5600
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-131",
+   "name": "University #131",
+   "type": "university",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 300
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 2200
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2600
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-140",
+   "name": "University #140",
+   "type": "university",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 500
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 900
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-155",
+   "name": "University #155",
+   "type": "university",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "state": "under-construction",
+     "specialization": "medicine",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-162",
+   "name": "University #162",
+   "type": "university",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 350
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "h-7",
+   "name": "Hospital #7",
+   "type": "hospital",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "served": 12000
+     },
+     "state": "operational",
+     "step": 2
+    },
+    {
+     "inputs": {
+      "served": 45000
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "served": 120000
+     },
+     "state": "operational",
+     "specialization": "medicine",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "served": 150000
+     },
+     "state": "operational",
+     "specialization": "medicine",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "h-19",
+   "name": "Hospital #19",
+   "type": "hospital",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "served": 8000
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "served": 26000
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "g-1",
+   "name": "Granaries of Veyra",
+   "type": "granary",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "multiplicity": 1,
+     "step": 1
+    },
+    {
+     "multiplicity": 2,
+     "step": 2
+    },
+    {
+     "multiplicity": 3,
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "w-1",
+   "name": "Workshops of Veyra",
+   "type": "workshop",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "multiplicity": 1,
+     "step": 2
+    },
+    {
+     "multiplicity": 2,
+     "step": 3
+    },
+    {
+     "multiplicity": 3,
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "f-40",
+   "name": "Factory #40",
+   "type": "factory",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "staff": 250
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "staff": 1800
+     },
+     "state": "operational",
+     "specialization": "metallurgy",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "staff": 2100
+     },
+     "state": "operational",
+     "specialization": "metallurgy",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "f-41",
+   "name": "Factory #41",
+   "type": "factory",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "staff": 120
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "staff": 600
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "staff": 700
+     },
+     "state": "idle",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "f-44",
+   "name": "Factory #44",
+   "type": "factory",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "staff": 200
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "staff": 450
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "ma-3",
+   "name": "Military Academy #3",
+   "type": "military-academy",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "labels": {
+      "maturity": "ESTABLISHED"
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "labels": {
+      "maturity": "MATURE"
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "ri-12",
+   "name": "Research Institute #12",
+   "type": "research-institute",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 800
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 900
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "rv-2",
+   "name": "Reservoir #2",
+   "type": "reservoir",
+   "settlement": "s-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3000
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 6000
+     },
+     "state": "operational",
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "h-22",
+   "name": "Hospital #22",
+   "type": "hospital",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "served": 6000
+     },
+     "state": "operational",
+     "step": 2
+    },
+    {
+     "inputs": {
+      "served": 15000
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "served": 30000
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "served": 60000
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "f-51",
+   "name": "Factory #51",
+   "type": "factory",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "staff": 90
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "staff": 500
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "staff": 900
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "ma-8",
+   "name": "Military Academy #8",
+   "type": "military-academy",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "labels": {
+      "maturity": "NEW"
+     },
+     "state": "operational",
+     "step": 3
+    },
+    {
+     "labels": {
+      "maturity": "DEVELOPING"
+     },
+     "state": "operational",
+     "step": 4
+    },
+    {
+     "labels": {
+      "maturity": "ESTABLISHED"
+     },
+     "state": "operational",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "g-2",
+   "name": "Granary of Oskar",
+   "type": "granary",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "multiplicity": 1,
+     "step": 0
+    },
+    {
+     "multiplicity": 2,
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "u-201",
+   "name": "University #201",
+   "type": "university",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1000
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-202",
+   "name": "University #202",
+   "type": "university",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1350
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-203",
+   "name": "University #203",
+   "type": "university",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-204",
+   "name": "University #204",
+   "type": "university",
+   "settlement": "s-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3450
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-205",
+   "name": "University #205",
+   "type": "university",
+   "settlement": "s-tarn",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1000
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-206",
+   "name": "University #206",
+   "type": "university",
+   "settlement": "s-tarn",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-207",
+   "name": "University #207",
+   "type": "university",
+   "settlement": "s-tarn",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-208",
+   "name": "University #208",
+   "type": "university",
+   "settlement": "s-quell",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1000
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-209",
+   "name": "University #209",
+   "type": "university",
+   "settlement": "s-quell",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-210",
+   "name": "University #210",
+   "type": "university",
+   "settlement": "s-quell",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "sciences",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-211",
+   "name": "University #211",
+   "type": "university",
+   "settlement": "s-lisse",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1000
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-212",
+   "name": "University #212",
+   "type": "university",
+   "settlement": "s-lisse",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-213",
+   "name": "University #213",
+   "type": "university",
+   "settlement": "s-lisse",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-214",
+   "name": "University #214",
+   "type": "university",
+   "settlement": "s-dunmar",
+   "polity": "p3",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-215",
+   "name": "University #215",
+   "type": "university",
+   "settlement": "s-dunmar",
+   "polity": "p3",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-216",
+   "name": "University #216",
+   "type": "university",
+   "settlement": "s-sel",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-217",
+   "name": "University #217",
+   "type": "university",
+   "settlement": "s-sel",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-218",
+   "name": "University #218",
+   "type": "university",
+   "settlement": "s-sel",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-219",
+   "name": "University #219",
+   "type": "university",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 1000
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 1700
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2400
+     },
+     "state": "operational",
+     "specialization": "maritime",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-220",
+   "name": "University #220",
+   "type": "university",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "engineering",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-221",
+   "name": "University #221",
+   "type": "university",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 3100
+     },
+     "state": "operational",
+     "specialization": "arts",
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "u-mora-colleges",
+   "name": "Colleges of Mora",
+   "type": "university",
+   "settlement": "s-mora",
+   "polity": "p2",
+   "note": "one report standing for several colleges (multiplicity)",
+   "timeline": [
+    {
+     "inputs": {
+      "capacity": 2050
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "multiplicity": 2,
+     "step": 3
+    },
+    {
+     "inputs": {
+      "capacity": 2750
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "multiplicity": 3,
+     "step": 4
+    },
+    {
+     "inputs": {
+      "capacity": 3450
+     },
+     "state": "operational",
+     "specialization": "letters",
+     "multiplicity": 4,
+     "step": 5
+    }
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "key": "n-veyra",
+   "name": "Veyra junction",
+   "type": "junction",
+   "x": 150,
+   "y": 190,
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-oskar",
+   "name": "Oskar junction",
+   "type": "junction",
+   "x": 215,
+   "y": 118,
+   "settlement": "s-oskar",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-tarn",
+   "name": "Tarn junction",
+   "type": "junction",
+   "x": 250,
+   "y": 212,
+   "settlement": "s-tarn",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-lisse",
+   "name": "Lisse junction",
+   "type": "junction",
+   "x": 88,
+   "y": 132,
+   "settlement": "s-lisse",
+   "timeline": [
+    {
+     "step": 2
+    }
+   ]
+  },
+  {
+   "key": "n-mora",
+   "name": "Mora junction",
+   "type": "junction",
+   "x": 345,
+   "y": 150,
+   "settlement": "s-mora",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-quell",
+   "name": "Quell junction",
+   "type": "junction",
+   "x": 390,
+   "y": 232,
+   "settlement": "s-quell",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-sel",
+   "name": "Sel junction",
+   "type": "junction",
+   "x": 360,
+   "y": 62,
+   "settlement": "s-sel",
+   "timeline": [
+    {
+     "step": 3
+    }
+   ]
+  },
+  {
+   "key": "n-dunmar",
+   "name": "Dunmar junction",
+   "type": "junction",
+   "x": 60,
+   "y": 238,
+   "settlement": "s-dunmar",
+   "timeline": [
+    {
+     "step": 0
+    }
+   ]
+  },
+  {
+   "key": "n-harbour",
+   "name": "Veyra harbour",
+   "type": "port",
+   "x": 158,
+   "y": 258,
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 3
+    }
+   ]
+  },
+  {
+   "key": "n-station",
+   "name": "Veyra station",
+   "type": "station",
+   "x": 166,
+   "y": 180,
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "n-spring",
+   "name": "Hill spring",
+   "type": "junction",
+   "x": 112,
+   "y": 168,
+   "timeline": [
+    {
+     "step": 3
+    }
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "key": "e-veyra-oskar",
+   "name": "Veyra - Oskar road",
+   "type": "road",
+   "a": "n-veyra",
+   "b": "n-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 3
+    }
+   ]
+  },
+  {
+   "key": "e-veyra-tarn",
+   "name": "Veyra - Tarn road",
+   "type": "road",
+   "a": "n-veyra",
+   "b": "n-tarn",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-veyra-lisse",
+   "name": "Veyra - Lisse road",
+   "type": "road",
+   "a": "n-veyra",
+   "b": "n-lisse",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "e-veyra-dunmar",
+   "name": "Veyra - Dunmar track",
+   "type": "road",
+   "a": "n-veyra",
+   "b": "n-dunmar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-veyra-harbour",
+   "name": "Harbour road",
+   "type": "road",
+   "a": "n-veyra",
+   "b": "n-harbour",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-oskar-mora",
+   "name": "Oskar - Mora road",
+   "type": "road",
+   "a": "n-oskar",
+   "b": "n-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-tarn-quell",
+   "name": "Tarn - Quell road",
+   "type": "road",
+   "a": "n-tarn",
+   "b": "n-quell",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 2
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "e-mora-quell",
+   "name": "Mora - Quell road",
+   "type": "road",
+   "a": "n-mora",
+   "b": "n-quell",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 0
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 1
+    },
+    {
+     "inputs": {
+      "grade": 2
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-mora-sel",
+   "name": "Mora - Sel road",
+   "type": "road",
+   "a": "n-mora",
+   "b": "n-sel",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 3
+    },
+    {
+     "inputs": {
+      "grade": 1
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-rail-1",
+   "name": "Veyra - Oskar railway",
+   "type": "rail",
+   "a": "n-station",
+   "b": "n-oskar",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 4
+    }
+   ]
+  },
+  {
+   "key": "e-rail-2",
+   "name": "Oskar - Mora railway",
+   "type": "rail",
+   "a": "n-oskar",
+   "b": "n-mora",
+   "polity": "p2",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 5
+    }
+   ]
+  },
+  {
+   "key": "e-aqueduct",
+   "name": "Veyra aqueduct",
+   "type": "aqueduct",
+   "a": "n-spring",
+   "b": "n-veyra",
+   "polity": "p1",
+   "timeline": [
+    {
+     "inputs": {
+      "grade": 0
+     },
+     "step": 3
+    }
+   ]
+  }
+ ],
+ "resources": [
+  {
+   "key": "r-veyra-grain",
+   "name": "Grain deposit",
+   "type": "grain",
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.4
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-veyra-timber",
+   "name": "Timber deposit",
+   "type": "timber",
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 0.9
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-veyra-clay",
+   "name": "Clay deposit",
+   "type": "clay",
+   "settlement": "s-veyra",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.1
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-oskar-stone",
+   "name": "Stone deposit",
+   "type": "stone",
+   "settlement": "s-oskar",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.3
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-oskar-copper-ore",
+   "name": "Copper ore deposit",
+   "type": "copper-ore",
+   "settlement": "s-oskar",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 0.8
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-tarn-fish",
+   "name": "Fish deposit",
+   "type": "fish",
+   "settlement": "s-tarn",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.2
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-mora-tin-ore",
+   "name": "Tin ore deposit",
+   "type": "tin-ore",
+   "settlement": "s-mora",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-mora-timber",
+   "name": "Timber deposit",
+   "type": "timber",
+   "settlement": "s-mora",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.2
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-dunmar-hides",
+   "name": "Hides deposit",
+   "type": "hides",
+   "settlement": "s-dunmar",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 1.1
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-quell-fish",
+   "name": "Fish deposit",
+   "type": "fish",
+   "settlement": "s-quell",
+   "timeline": [
+    {
+     "step": 0,
+     "inputs": {
+      "abundance": 0.9
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-lisse-grain",
+   "name": "Grain deposit",
+   "type": "grain",
+   "settlement": "s-lisse",
+   "timeline": [
+    {
+     "step": 2,
+     "inputs": {
+      "abundance": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "key": "r-sel-stone",
+   "name": "Stone deposit",
+   "type": "stone",
+   "settlement": "s-sel",
+   "timeline": [
+    {
+     "step": 3,
+     "inputs": {
+      "abundance": 0.7
+     }
+    }
+   ]
+  }
+ ],
+ "agents": [
+  {
+   "key": "army-184",
+   "name": "Army #184",
+   "type": "army",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 0,
+     "x": 182.4,
+     "y": 176.25,
+     "count": 500,
+     "heading": 45
+    }
+   ]
+  },
+  {
+   "key": "army-77",
+   "name": "Army #77",
+   "type": "army",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 0,
+     "x": 206.5,
+     "y": 150.75,
+     "count": 50,
+     "heading": 10
+    }
+   ]
+  },
+  {
+   "key": "army-12",
+   "name": "Army #12",
+   "type": "army",
+   "polity": "p2",
+   "timeline": [
+    {
+     "step": 1,
+     "x": 300.2,
+     "y": 165.6,
+     "count": 5000,
+     "heading": 270
+    }
+   ]
+  },
+  {
+   "key": "army-9",
+   "name": "Army #9",
+   "type": "army",
+   "polity": "p2",
+   "note": "a remembered sighting: drawn ghosted, not selectable",
+   "timeline": [
+    {
+     "step": 2,
+     "x": 300.0,
+     "y": 88.0,
+     "count": 1200,
+     "visibility": "remembered"
+    }
+   ]
+  },
+  {
+   "key": "army-31",
+   "name": "Army #31",
+   "type": "army",
+   "polity": "p3",
+   "note": "hidden: never drawn, never hit, never counted",
+   "timeline": [
+    {
+     "step": 2,
+     "x": 95.0,
+     "y": 205.0,
+     "count": 800,
+     "visibility": "hidden"
+    }
+   ]
+  },
+  {
+   "key": "formation-21",
+   "name": "Formation #21",
+   "type": "formation",
+   "polity": "p1",
+   "note": "located ON the network graph (D-009): the view projects its map point",
+   "timeline": [
+    {
+     "step": 3,
+     "edge": "e-veyra-oskar",
+     "fraction": 0.35,
+     "count": 1200
+    },
+    {
+     "step": 4,
+     "edge": "e-veyra-oskar",
+     "fraction": 0.6,
+     "count": 1200
+    }
+   ]
+  },
+  {
+   "key": "tank-5",
+   "name": "3rd Armoured",
+   "type": "tank-formation",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 4,
+     "x": 262.5,
+     "y": 160.0,
+     "count": 240,
+     "heading": 90
+    }
+   ]
+  },
+  {
+   "key": "fleet-3",
+   "name": "Fleet #3",
+   "type": "fleet",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 3,
+     "x": 205.0,
+     "y": 281.0,
+     "count": 14,
+     "heading": 95
+    }
+   ]
+  },
+  {
+   "key": "hero-1",
+   "name": "Maren Voss",
+   "type": "hero",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 2,
+     "x": 171.8,
+     "y": 224.3
+    }
+   ]
+  },
+  {
+   "key": "sci-1",
+   "name": "Ilse Karro",
+   "type": "scientist",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 3,
+     "x": 226.4,
+     "y": 196.85
+    }
+   ]
+  },
+  {
+   "key": "eng-1",
+   "name": "Tomas Brand",
+   "type": "engineer",
+   "polity": "p1",
+   "note": "deliberately overlapping Ilse Karro: tokens overlap, labels stack",
+   "timeline": [
+    {
+     "step": 3,
+     "x": 226.95,
+     "y": 197.3
+    }
+   ]
+  },
+  {
+   "key": "art-1",
+   "name": "Neve Amsel",
+   "type": "artist",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 3,
+     "x": 231.1,
+     "y": 205.5
+    }
+   ]
+  },
+  {
+   "key": "mus-1",
+   "name": "Oren Lark",
+   "type": "musician",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 4,
+     "x": 219.2,
+     "y": 206.7
+    }
+   ]
+  },
+  {
+   "key": "lead-1",
+   "name": "Chancellor Adeyemi",
+   "type": "leader",
+   "polity": "p1",
+   "note": "placed AT a settlement (no map position of its own), fanned beside it",
+   "timeline": [
+    {
+     "step": 3,
+     "settlement": "s-veyra"
+    }
+   ]
+  },
+  {
+   "key": "person-1",
+   "name": "A notable of Veyra",
+   "type": "person",
+   "polity": "p1",
+   "timeline": [
+    {
+     "step": 2,
+     "settlement": "s-veyra"
+    }
+   ]
+  },
+  {
+   "key": "band-1",
+   "name": "The Band",
+   "type": "band",
+   "polity": "p1",
+   "members": [
+    "Ada Frey",
+    "Joss Ren",
+    "Mila Crane",
+    "Ty Varga"
+   ],
+   "timeline": [
+    {
+     "step": 4,
+     "x": 236.6,
+     "y": 190.2,
+     "count": 4
+    }
+   ]
+  },
+  {
+   "key": "group-1",
+   "name": "Hill Chanters",
+   "type": "cultural-group",
+   "polity": "p3",
+   "timeline": [
+    {
+     "step": 1,
+     "x": 78.4,
+     "y": 220.9,
+     "count": 1200
+    }
+   ]
+  },
+  {
+   "key": "exp-1",
+   "name": "Northern Survey",
+   "type": "expedition",
+   "polity": "p2",
+   "timeline": [
+    {
+     "step": 3,
+     "x": 300.7,
+     "y": 30.4,
+     "count": 40,
+     "heading": 350
+    }
+   ]
+  }
+ ]
+}

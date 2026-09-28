@@ -77,6 +77,22 @@ if (Array.IndexOf(args, "--trees-preview") >= 0)
     return;
 }
 
+// --world-preview [dir] (world visualization foundation, docs/architecture/world-visualization.md
+// §10): paint the DEMO world scenarios to SVG and exit WITHOUT opening a window or founding a
+// world. Demo / placeholder content only; scripts/world-preview.sh turns the SVGs into PNGs.
+if (Array.IndexOf(args, "--world-preview") >= 0)
+{
+    int worldAt = Array.IndexOf(args, "--world-preview");
+    string worldDir = worldAt + 1 < args.Length && !args[worldAt + 1].StartsWith("--")
+        ? args[worldAt + 1]
+        : "world-preview";
+    string fontDir = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.World.Scene.WorldPreview.Run(worldDir, Sim.Ui.World.Content.WorldContentLoader.DefaultDirectory,
+                 Directory.Exists(fontDir) ? fontDir : null))
+        Console.WriteLine($"world preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
