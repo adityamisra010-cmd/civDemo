@@ -1,0 +1,620 @@
+{
+  "schema": "civ-sim/ages@1",
+  "placeholder": true,
+  "notice": "PLACEHOLDER AGES. No historical names, dates, milestone definitions or transition rules. Ages move forward only. Age advancement, variable Δt and catch-up are NOT implemented; this file only feeds the Age view. Schema: docs/architecture/the-trees-content-schema.md.",
+  "milestoneCategories": [
+    {
+      "id": "technological",
+      "name": "Technological",
+      "provisional": true
+    },
+    {
+      "id": "material-economic",
+      "name": "Material / economic",
+      "provisional": true
+    },
+    {
+      "id": "institutional-social",
+      "name": "Institutional / social",
+      "provisional": true
+    },
+    {
+      "id": "systemic",
+      "name": "Systemic",
+      "provisional": true
+    }
+  ],
+  "ages": [
+    {
+      "id": "AGE_00",
+      "displayName": "Age 00",
+      "order": 0,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_00_01",
+        "M_00_02",
+        "M_00_03"
+      ],
+      "visualTheme": {
+        "register": "Primitive",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    },
+    {
+      "id": "AGE_01",
+      "displayName": "Age 01",
+      "order": 1,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_01_01",
+        "M_01_02",
+        "M_01_03",
+        "M_01_04"
+      ],
+      "visualTheme": {
+        "register": "Primitive",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    },
+    {
+      "id": "AGE_02",
+      "displayName": "Age 02",
+      "order": 2,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_02_01",
+        "M_02_02",
+        "M_02_03",
+        "M_02_04"
+      ],
+      "visualTheme": {
+        "register": "Classical",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    },
+    {
+      "id": "AGE_03",
+      "displayName": "Age 03",
+      "order": 3,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_03_01",
+        "M_03_02",
+        "M_03_03",
+        "M_03_04",
+        "M_03_05"
+      ],
+      "visualTheme": {
+        "register": "Medieval",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    },
+    {
+      "id": "AGE_04",
+      "displayName": "Age 04",
+      "order": 4,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_04_01",
+        "M_04_02",
+        "M_04_03",
+        "M_04_04"
+      ],
+      "visualTheme": {
+        "register": "Industrial",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    },
+    {
+      "id": "AGE_05",
+      "displayName": "Age 05",
+      "order": 5,
+      "shortDescription": "PLACEHOLDER Age. No historical name, dates or content yet.",
+      "dateRange": {
+        "startLabel": "TBD",
+        "endLabel": "TBD",
+        "startYear": null,
+        "endYear": null,
+        "note": "Display metadata only. Never a gate (CLAUDE.md law 4)."
+      },
+      "milestones": [
+        "M_05_01",
+        "M_05_02",
+        "M_05_03"
+      ],
+      "visualTheme": {
+        "register": "Modern",
+        "accent": "InkPrimary",
+        "motif": "PLACEHOLDER"
+      },
+      "icon": {
+        "base": "Star",
+        "mark": "Hourglass"
+      },
+      "transitionEffect": {
+        "animation": "age-transition",
+        "note": "Presentation only. Age advancement is NOT implemented."
+      },
+      "deltaT": {
+        "placeholder": true,
+        "yearsPerTurn": null,
+        "note": "Variable Δt is NOT implemented. The global Δt rule (player-cycle boundary) is a Director decision (DD-02)."
+      },
+      "catchUp": {
+        "placeholder": true,
+        "pathwayBased": true,
+        "note": "Catch-up is NOT implemented. When designed it is pathway-based (contact, exposure, absorptive capacity), never a universal behind-the-leader modifier (DD-04)."
+      },
+      "historicalContext": "PLACEHOLDER. The Director supplies the historical context.",
+      "placeholder": true
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M_00_01",
+      "age": "AGE_00",
+      "name": "Milestone 00.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "technological",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_00_02",
+      "age": "AGE_00",
+      "name": "Milestone 00.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": true,
+      "prerequisites": [
+        "M_00_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_00_03",
+      "age": "AGE_00",
+      "name": "Milestone 00.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": false,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_01_01",
+      "age": "AGE_01",
+      "name": "Milestone 01.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_01_02",
+      "age": "AGE_01",
+      "name": "Milestone 01.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": true,
+      "prerequisites": [
+        "M_01_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_01_03",
+      "age": "AGE_01",
+      "name": "Milestone 01.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_01_04",
+      "age": "AGE_01",
+      "name": "Milestone 01.04",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "technological",
+      "mandatory": false,
+      "prerequisites": [
+        "M_01_03"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_02_01",
+      "age": "AGE_02",
+      "name": "Milestone 02.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_02_02",
+      "age": "AGE_02",
+      "name": "Milestone 02.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": true,
+      "prerequisites": [
+        "M_02_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_02_03",
+      "age": "AGE_02",
+      "name": "Milestone 02.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "technological",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_02_04",
+      "age": "AGE_02",
+      "name": "Milestone 02.04",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": false,
+      "prerequisites": [
+        "M_02_03"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_03_01",
+      "age": "AGE_03",
+      "name": "Milestone 03.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_03_02",
+      "age": "AGE_03",
+      "name": "Milestone 03.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "technological",
+      "mandatory": true,
+      "prerequisites": [
+        "M_03_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [
+        "institution.medical-university"
+      ],
+      "placeholder": true
+    },
+    {
+      "id": "M_03_03",
+      "age": "AGE_03",
+      "name": "Milestone 03.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [
+        "institution.engineering-university"
+      ],
+      "placeholder": true
+    },
+    {
+      "id": "M_03_04",
+      "age": "AGE_03",
+      "name": "Milestone 03.04",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": true,
+      "prerequisites": [
+        "M_03_03"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_03_05",
+      "age": "AGE_03",
+      "name": "Milestone 03.05",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": false,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_04_01",
+      "age": "AGE_04",
+      "name": "Milestone 04.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "technological",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [
+        "milestone.m-04-01",
+        "capability.industrial-production"
+      ],
+      "placeholder": true
+    },
+    {
+      "id": "M_04_02",
+      "age": "AGE_04",
+      "name": "Milestone 04.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": true,
+      "prerequisites": [
+        "M_04_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_04_03",
+      "age": "AGE_04",
+      "name": "Milestone 04.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_04_04",
+      "age": "AGE_04",
+      "name": "Milestone 04.04",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": false,
+      "prerequisites": [
+        "M_04_03"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_05_01",
+      "age": "AGE_05",
+      "name": "Milestone 05.01",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "material-economic",
+      "mandatory": true,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_05_02",
+      "age": "AGE_05",
+      "name": "Milestone 05.02",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "institutional-social",
+      "mandatory": true,
+      "prerequisites": [
+        "M_05_01"
+      ],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    },
+    {
+      "id": "M_05_03",
+      "age": "AGE_05",
+      "name": "Milestone 05.03",
+      "description": "PLACEHOLDER. The Director defines this milestone.",
+      "category": "systemic",
+      "mandatory": false,
+      "prerequisites": [],
+      "evidenceNotes": "PLACEHOLDER: what evidence would show this milestone met.",
+      "historicalSource": "PLACEHOLDER: reference to be supplied.",
+      "nodeRefs": [],
+      "placeholder": true
+    }
+  ]
+}

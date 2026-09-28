@@ -1,0 +1,39 @@
+{
+  "schema": "civ-sim/ui-animations@1",
+  "notice": "PRESENTATION ONLY. Every animation here is a pure function of (state reported by the state source, the time that state was first observed, the UI clock). None feeds anything back: an animation can never change a state, a number or an order.",
+
+  "animations": [
+    { "id": "research-pulse", "kind": "pulse", "appliesTo": "node-state:researching", "periodSeconds": 2.4, "amplitude": 0.35,
+      "description": "RESEARCH: a slow halo pulse while research points accumulate." },
+    { "id": "research-stalled", "kind": "none", "appliesTo": "node-state:stalled",
+      "description": "Stalled research does not move: the dashed ring already says it." },
+    { "id": "research-complete", "kind": "flash-ring", "trigger": "node-enter:researched", "durationSeconds": 1.6,
+      "description": "RESEARCH: completion. An expanding ring, then the settled completed state." },
+    { "id": "newly-discovered", "kind": "shimmer", "trigger": "node-enter:discovered", "durationSeconds": 1.2,
+      "description": "A brief shimmer when a node first becomes known." },
+    { "id": "realization-step", "kind": "pip-fill", "trigger": "node-stage-up", "durationSeconds": 0.8,
+      "description": "REALIZATION: a pip fills when a node reaches the next stage." },
+    { "id": "capability-degraded", "kind": "flash-ring", "trigger": "node-enter:degraded", "durationSeconds": 1.2,
+      "description": "A single dull flash when a capability degrades." },
+
+    { "id": "construction", "kind": "sweep", "appliesTo": "building-status:under-construction", "periodSeconds": 3.0,
+      "description": "BUILDING: planned, construction, partial, completed, maturing, mature. A sweep crosses the construction bar." },
+    { "id": "building-matured", "kind": "pip-fill", "trigger": "building-stage-up", "durationSeconds": 0.8,
+      "description": "BUILDING: a maturity pip fills." },
+
+    { "id": "unit-training", "kind": "pulse", "appliesTo": "unit-state:training", "periodSeconds": 1.8, "amplitude": 0.3,
+      "description": "UNIT: recruiting, training, ready, deployed, experienced. Training pulses." },
+    { "id": "unit-recruiting", "kind": "pulse", "appliesTo": "unit-state:recruiting", "periodSeconds": 2.6, "amplitude": 0.2,
+      "description": "UNIT: recruiting pulses more slowly." },
+    { "id": "unit-veterancy", "kind": "flash-ring", "trigger": "unit-veterancy-up", "durationSeconds": 1.2,
+      "description": "UNIT: a flash when veterancy rises." },
+
+    { "id": "diffusion-flow", "kind": "flow-dots", "appliesTo": "edge-kind:diffusesTo", "periodSeconds": 3.2, "dots": 3,
+      "description": "KNOWLEDGE DIFFUSION: source, contact channel, exposure, absorption, local development. Dots travel the pathway. Diffusion is NOT implemented; this only draws a pathway the content declares." },
+
+    { "id": "age-transition", "kind": "sweep", "appliesTo": "age:transition", "periodSeconds": 2.5,
+      "description": "AGE TRANSITION: current Age, transition indication, new Age, settled. A sweep crosses the transition banner while the source reports a pending transition." },
+    { "id": "age-entered", "kind": "flash-ring", "trigger": "age-enter", "durationSeconds": 2.0,
+      "description": "AGE TRANSITION: the new Age's icon flashes once, then settles." }
+  ]
+}

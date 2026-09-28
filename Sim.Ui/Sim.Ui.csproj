@@ -25,6 +25,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The Trees + Ages UI content (docs/architecture/the-trees-content-schema.md):
+         editable JSON, copied beside the exe as ui-content/. UI content only - the
+         simulation's own content stays embedded in Sim.Data. -->
+    <None Remove="UiContent\**" />
+    <None Include="UiContent\**\*" Link="ui-content\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>

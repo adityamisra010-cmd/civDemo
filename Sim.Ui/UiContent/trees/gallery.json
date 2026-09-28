@@ -1,0 +1,70 @@
+{
+  "schema": "civ-sim/gallery@1",
+  "placeholder": true,
+  "notice": "PLACEHOLDER buildings and units that exercise the rendering system. They are not gameplay objects: effects, costs, prerequisites, combat statistics and historical availability are TBD. Veterancy has no formula and no multiplier.",
+
+  "maturityStages": [
+    { "id": "NEW", "name": "New", "stage": 1, "legend": "Built; not yet effective." },
+    { "id": "DEVELOPING", "name": "Developing", "stage": 2, "legend": "Staffing and capacity growing." },
+    { "id": "ESTABLISHED", "name": "Established", "stage": 3, "legend": "Working at its intended role." },
+    { "id": "MATURE", "name": "Mature", "stage": 4, "legend": "Fully developed; specializations settled." }
+  ],
+
+  "operationalStatuses": [
+    { "id": "planned", "name": "Planned", "glyphState": "Discovered" },
+    { "id": "under-construction", "name": "Under construction", "glyphState": "InProgress" },
+    { "id": "operational", "name": "Operational", "glyphState": "Complete" },
+    { "id": "partial", "name": "Partly operational", "glyphState": "Available" },
+    { "id": "idle", "name": "Idle", "glyphState": "Stalled" },
+    { "id": "damaged", "name": "Damaged", "glyphState": "Decayed" }
+  ],
+
+  "unitStates": [
+    { "id": "recruiting", "name": "Recruiting", "glyphState": "InProgress", "legend": "Being raised." },
+    { "id": "training", "name": "Training", "glyphState": "InProgress", "legend": "Being trained." },
+    { "id": "ready", "name": "Ready", "glyphState": "Available", "legend": "Raised and trained." },
+    { "id": "deployed", "name": "Deployed", "glyphState": "Complete", "legend": "In the field. Experience shows as veterancy chevrons, not as a state." }
+  ],
+
+  "veterancyLevels": [
+    { "id": "recruit", "name": "Recruit", "chevrons": 0 },
+    { "id": "regular", "name": "Regular", "chevrons": 1 },
+    { "id": "veteran", "name": "Veteran", "chevrons": 2 },
+    { "id": "elite", "name": "Elite", "chevrons": 3 }
+  ],
+
+  "buildings": [
+    { "id": "farm", "name": "Farm", "base": "Field", "mark": "Agriculture", "category": "production", "placeholder": true },
+    { "id": "granary", "name": "Granary", "base": "Hall", "mark": "Agriculture", "category": "storage", "placeholder": true },
+    { "id": "workshop", "name": "Workshop", "base": "Hall", "mark": "Craft", "category": "production", "placeholder": true },
+    { "id": "barracks", "name": "Barracks", "base": "Hall", "mark": "Military", "category": "military", "placeholder": true },
+    { "id": "university", "name": "University", "base": "Portico", "mark": "Letters", "category": "institution", "placeholder": true },
+    { "id": "medical-university", "name": "Medical University", "base": "Portico", "mark": "Medicine", "category": "institution", "placeholder": true },
+    { "id": "engineering-university", "name": "Engineering University", "base": "Portico", "mark": "Dividers", "category": "institution", "placeholder": true },
+    { "id": "hospital", "name": "Hospital", "base": "Hall", "mark": "Medicine", "category": "civic", "placeholder": true },
+    { "id": "factory", "name": "Factory", "base": "Tower", "mark": "Industry", "era": "Industrial", "category": "production", "placeholder": true },
+    { "id": "railway-station", "name": "Railway Station", "base": "Hall", "mark": "Rail", "era": "Industrial", "category": "infrastructure", "placeholder": true },
+    { "id": "airport", "name": "Airport", "base": "Hall", "mark": "Aircraft", "era": "Modern", "category": "infrastructure", "placeholder": true },
+    { "id": "port", "name": "Port", "base": "Hall", "mark": "Maritime", "category": "infrastructure", "placeholder": true },
+    { "id": "fortress", "name": "Fortress", "base": "Ring", "mark": "Military", "category": "military", "placeholder": true },
+    { "id": "research-institute", "name": "Research Institute", "base": "Dome", "mark": "Flask", "category": "institution", "placeholder": true },
+    { "id": "wonder", "name": "Wonder", "base": "Monument", "mark": "Laurel", "category": "wonder", "placeholder": true }
+  ],
+
+  "units": [
+    { "id": "spearman", "name": "Spearman", "base": "Standard", "mark": "Spear", "role": "line", "placeholder": true },
+    { "id": "archer", "name": "Archer", "base": "Standard", "mark": "Bow", "role": "ranged", "placeholder": true },
+    { "id": "cavalry", "name": "Cavalry", "base": "Standard", "mark": "Horseshoe", "role": "mounted", "placeholder": true },
+    { "id": "infantry", "name": "Infantry", "base": "Standard", "mark": "Rifles", "role": "line", "era": "Industrial", "placeholder": true },
+    { "id": "artillery", "name": "Artillery", "base": "Standard", "mark": "Cannon", "role": "fire support", "era": "Industrial", "placeholder": true },
+    { "id": "tank", "name": "Tank", "base": "Standard", "mark": "Tracks", "role": "armour", "era": "Modern", "placeholder": true },
+    { "id": "aircraft", "name": "Aircraft", "base": "Standard", "mark": "Aircraft", "role": "air", "era": "Modern", "placeholder": true },
+    { "id": "naval", "name": "Naval unit", "base": "Standard", "mark": "Ship", "role": "naval", "placeholder": true },
+    { "id": "scout", "name": "Scout", "base": "Standard", "mark": "Eye", "role": "reconnaissance", "placeholder": true },
+    { "id": "general", "name": "General", "base": "Standard", "mark": "StarOfCommand", "role": "command", "placeholder": true },
+    { "id": "hero", "name": "Hero", "base": "Standard", "mark": "Laurel", "role": "renown", "placeholder": true },
+    { "id": "artist", "name": "Artist", "base": "Standard", "mark": "Brush", "role": "culture", "placeholder": true },
+    { "id": "scientist", "name": "Scientist", "base": "Standard", "mark": "Flask", "role": "science", "placeholder": true },
+    { "id": "engineer", "name": "Engineer", "base": "Standard", "mark": "Dividers", "role": "engineering", "placeholder": true }
+  ]
+}

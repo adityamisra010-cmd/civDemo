@@ -19,6 +19,8 @@
     <!-- Art substrate: the tests read the SAME assets/ the game ships,
          so the seamless/palette gates judge the real files. -->
     <None Include="..\assets\**\*" LinkBase="assets" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The Trees + Ages content: the tests load the SAME files the game ships. -->
+    <None Include="..\Sim.Ui\UiContent\**\*" Link="ui-content\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

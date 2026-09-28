@@ -1,0 +1,800 @@
+{
+  "schema": "civ-sim/trees-demo-state@1",
+  "placeholder": true,
+  "notice": "PLACEHOLDER STATE. The simulation has no knowledge, research, Age, building-maturity or veterancy state yet (docs/architecture/pre-m5-repository-audit.md §1). This file stands in for it through read-only interfaces (ITreesStateSource, IAgeStateSource, IGalleryStateSource) so the UI can be built now. Each step lists only what changed from the previous step. Nothing here is a rule, formula or authoritative value.",
+  "civilization": {
+    "name": "Demo Civilization",
+    "placeholder": true
+  },
+  "steps": [
+    {
+      "label": "Step 0 — baseline: Age 03 at 72 %, Engineering University being researched",
+      "research": {
+        "pointsPerTurn": 14,
+        "currentTarget": "institution.engineering-university",
+        "note": "DEMO numbers. Research points have no formula here; the source reports them."
+      },
+      "nodes": [
+        {
+          "id": "knowledge.mathematics",
+          "state": "researched"
+        },
+        {
+          "id": "knowledge.metallurgy",
+          "state": "researched"
+        },
+        {
+          "id": "knowledge.medicine",
+          "state": "researched"
+        },
+        {
+          "id": "knowledge.engineering",
+          "state": "researched"
+        },
+        {
+          "id": "knowledge.engineering-knowledge",
+          "state": "locked"
+        },
+        {
+          "id": "technique.bronze-casting",
+          "state": "mature"
+        },
+        {
+          "id": "technique.irrigation",
+          "state": "degraded",
+          "realizationProgress": 0.35,
+          "note": "DEMO: a capability lost after a collapse. The research is kept and the Age does not regress."
+        },
+        {
+          "id": "technique.masonry",
+          "state": "mature"
+        },
+        {
+          "id": "institution.university",
+          "state": "operational",
+          "realizationProgress": 0.8
+        },
+        {
+          "id": "institution.medical-university",
+          "state": "developing",
+          "realizationProgress": 0.3
+        },
+        {
+          "id": "institution.engineering-university",
+          "state": "researching",
+          "researchProgress": 0.45,
+          "researchPoints": 45
+        },
+        {
+          "id": "capability.engineering-personnel",
+          "state": "locked"
+        },
+        {
+          "id": "policy.public-works-charter",
+          "state": "operational",
+          "realizationProgress": 0.7
+        },
+        {
+          "id": "infrastructure.road",
+          "state": "mature"
+        },
+        {
+          "id": "infrastructure.port",
+          "state": "operational",
+          "realizationProgress": 0.75
+        },
+        {
+          "id": "infrastructure.railway",
+          "state": "discovered"
+        },
+        {
+          "id": "industry.metalworking",
+          "state": "partially-realized",
+          "realizationProgress": 0.5
+        },
+        {
+          "id": "industry.machine-tools",
+          "state": "discovered"
+        },
+        {
+          "id": "industry.shipbuilding",
+          "state": "developing",
+          "realizationProgress": 0.2
+        },
+        {
+          "id": "industry.factory",
+          "state": "locked"
+        },
+        {
+          "id": "capability.industrial-production",
+          "state": "locked"
+        },
+        {
+          "id": "milestone.m-04-01",
+          "state": "locked"
+        },
+        {
+          "id": "unit.archer",
+          "state": "operational",
+          "realizationProgress": 0.9
+        },
+        {
+          "id": "unit.cavalry",
+          "state": "researched"
+        },
+        {
+          "id": "unit.infantry",
+          "state": "locked"
+        },
+        {
+          "id": "military.logistics",
+          "state": "developing",
+          "realizationProgress": 0.4
+        },
+        {
+          "id": "doctrine.formation-drill",
+          "state": "stalled",
+          "researchProgress": 0.3,
+          "researchPoints": 9
+        },
+        {
+          "id": "application.bronze-weapon",
+          "state": "mature"
+        },
+        {
+          "id": "application.steam-engine",
+          "state": "available"
+        },
+        {
+          "id": "application.telephone",
+          "state": "locked"
+        },
+        {
+          "id": "application.automobile",
+          "state": "locked"
+        }
+      ],
+      "ages": {
+        "current": "AGE_03",
+        "progress": 0.72,
+        "transition": null
+      },
+      "milestones": [
+        {
+          "id": "M_00_01",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_00_02",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_00_03",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_01_01",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_01_02",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_01_03",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_01_04",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_02_01",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_02_02",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_02_03",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_02_04",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_03_01",
+          "completion": "complete",
+          "progress": 1.0,
+          "evidence": "DEMO evidence note."
+        },
+        {
+          "id": "M_03_02",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_03_03",
+          "completion": "partial",
+          "progress": 0.5,
+          "evidence": "DEMO: partly met."
+        },
+        {
+          "id": "M_03_04",
+          "completion": "not-started",
+          "progress": 0.0
+        },
+        {
+          "id": "M_03_05",
+          "completion": "partial",
+          "progress": 0.3
+        }
+      ],
+      "buildings": [
+        {
+          "building": "farm",
+          "maturity": "MATURE",
+          "maturityProgress": 1.0,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 40,
+            "capacity": 40
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_01",
+          "status": "operational"
+        },
+        {
+          "building": "granary",
+          "maturity": "ESTABLISHED",
+          "maturityProgress": 0.7,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 6,
+            "capacity": 8
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_01",
+          "status": "operational"
+        },
+        {
+          "building": "workshop",
+          "maturity": "ESTABLISHED",
+          "maturityProgress": 0.6,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 12,
+            "capacity": 16
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "DEMO: bronze work",
+          "ageBuilt": "AGE_01",
+          "status": "operational"
+        },
+        {
+          "building": "barracks",
+          "maturity": "DEVELOPING",
+          "maturityProgress": 0.4,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 20,
+            "capacity": 50
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_02",
+          "status": "partial"
+        },
+        {
+          "building": "university",
+          "maturity": "ESTABLISHED",
+          "maturityProgress": 0.75,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 30,
+            "capacity": 40
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "DEMO: general",
+          "ageBuilt": "AGE_02",
+          "status": "operational"
+        },
+        {
+          "building": "medical-university",
+          "maturity": "NEW",
+          "maturityProgress": 0.1,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 5,
+            "capacity": 30
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "Medicine",
+          "ageBuilt": "AGE_03",
+          "status": "partial"
+        },
+        {
+          "building": "engineering-university",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.4,
+          "personnel": {
+            "current": 0,
+            "capacity": 30
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "Engineering",
+          "ageBuilt": "AGE_03",
+          "status": "under-construction"
+        },
+        {
+          "building": "hospital",
+          "maturity": "DEVELOPING",
+          "maturityProgress": 0.35,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 8,
+            "capacity": 20
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_03",
+          "status": "operational"
+        },
+        {
+          "building": "factory",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.0,
+          "personnel": {
+            "current": 0,
+            "capacity": 0
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": null,
+          "status": "planned"
+        },
+        {
+          "building": "railway-station",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.0,
+          "personnel": {
+            "current": 0,
+            "capacity": 0
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": null,
+          "status": "planned"
+        },
+        {
+          "building": "airport",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.0,
+          "personnel": {
+            "current": 0,
+            "capacity": 0
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": null,
+          "status": "planned"
+        },
+        {
+          "building": "port",
+          "maturity": "MATURE",
+          "maturityProgress": 0.95,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 60,
+            "capacity": 60
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "DEMO: coastal trade",
+          "ageBuilt": "AGE_02",
+          "status": "operational"
+        },
+        {
+          "building": "fortress",
+          "maturity": "ESTABLISHED",
+          "maturityProgress": 0.8,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 100,
+            "capacity": 150
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_02",
+          "status": "damaged"
+        },
+        {
+          "building": "research-institute",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.0,
+          "personnel": {
+            "current": 0,
+            "capacity": 0
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": null,
+          "status": "planned"
+        },
+        {
+          "building": "wonder",
+          "maturity": null,
+          "maturityProgress": 0.0,
+          "constructionProgress": 0.15,
+          "personnel": {
+            "current": 0,
+            "capacity": 0
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": null,
+          "ageBuilt": "AGE_03",
+          "status": "under-construction"
+        }
+      ],
+      "units": [
+        {
+          "unit": "spearman",
+          "state": "deployed",
+          "strength": 0.8,
+          "experience": 120,
+          "veterancy": "veteran",
+          "experienceProgress": 0.4,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": "doctrine.formation-drill",
+          "cohesion": 0.8
+        },
+        {
+          "unit": "archer",
+          "state": "deployed",
+          "strength": 0.6,
+          "experience": 60,
+          "veterancy": "regular",
+          "experienceProgress": 0.7,
+          "training": "complete",
+          "recovery": "recovering",
+          "doctrine": null,
+          "cohesion": 0.55
+        },
+        {
+          "unit": "cavalry",
+          "state": "ready",
+          "strength": 1.0,
+          "experience": 10,
+          "veterancy": "recruit",
+          "experienceProgress": 0.2,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.7
+        },
+        {
+          "unit": "infantry",
+          "state": "recruiting",
+          "strength": 0.3,
+          "experience": 0,
+          "veterancy": "recruit",
+          "experienceProgress": 0.0,
+          "training": "not started",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.4
+        },
+        {
+          "unit": "artillery",
+          "state": "training",
+          "strength": 0.9,
+          "experience": 0,
+          "veterancy": "recruit",
+          "experienceProgress": 0.0,
+          "training": "in progress",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.6
+        },
+        {
+          "unit": "tank",
+          "state": "training",
+          "strength": 1.0,
+          "experience": 0,
+          "veterancy": "recruit",
+          "experienceProgress": 0.0,
+          "training": "in progress",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.6
+        },
+        {
+          "unit": "aircraft",
+          "state": "ready",
+          "strength": 1.0,
+          "experience": 5,
+          "veterancy": "recruit",
+          "experienceProgress": 0.1,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.65
+        },
+        {
+          "unit": "naval",
+          "state": "deployed",
+          "strength": 0.9,
+          "experience": 200,
+          "veterancy": "elite",
+          "experienceProgress": 1.0,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.9
+        },
+        {
+          "unit": "scout",
+          "state": "deployed",
+          "strength": 1.0,
+          "experience": 40,
+          "veterancy": "regular",
+          "experienceProgress": 0.3,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.75
+        },
+        {
+          "unit": "general",
+          "state": "deployed",
+          "strength": 1.0,
+          "experience": 300,
+          "veterancy": "elite",
+          "experienceProgress": 1.0,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": "doctrine.formation-drill",
+          "cohesion": 0.95
+        },
+        {
+          "unit": "hero",
+          "state": "ready",
+          "strength": 1.0,
+          "experience": 150,
+          "veterancy": "veteran",
+          "experienceProgress": 0.5,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.85
+        },
+        {
+          "unit": "artist",
+          "state": "ready",
+          "strength": 1.0,
+          "experience": 0,
+          "veterancy": "recruit",
+          "experienceProgress": 0.0,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.7
+        },
+        {
+          "unit": "scientist",
+          "state": "deployed",
+          "strength": 1.0,
+          "experience": 20,
+          "veterancy": "regular",
+          "experienceProgress": 0.1,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.7
+        },
+        {
+          "unit": "engineer",
+          "state": "deployed",
+          "strength": 1.0,
+          "experience": 80,
+          "veterancy": "veteran",
+          "experienceProgress": 0.2,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.8
+        }
+      ],
+      "diffusion": {
+        "stage": 2,
+        "note": "DEMO: which of the five diffusion stations the sample pathway has reached."
+      }
+    },
+    {
+      "label": "Step 1 — research completes; realization advances; a milestone is met",
+      "research": {
+        "pointsPerTurn": 15,
+        "currentTarget": "industry.machine-tools"
+      },
+      "nodes": [
+        {
+          "id": "institution.engineering-university",
+          "state": "researched"
+        },
+        {
+          "id": "capability.engineering-personnel",
+          "state": "discovered"
+        },
+        {
+          "id": "industry.machine-tools",
+          "state": "researching",
+          "researchProgress": 0.1,
+          "researchPoints": 2
+        },
+        {
+          "id": "institution.medical-university",
+          "state": "operational",
+          "realizationProgress": 0.6
+        },
+        {
+          "id": "industry.shipbuilding",
+          "state": "partially-realized",
+          "realizationProgress": 0.45
+        },
+        {
+          "id": "doctrine.formation-drill",
+          "state": "researching",
+          "researchProgress": 0.55,
+          "researchPoints": 17
+        }
+      ],
+      "ages": {
+        "current": "AGE_03",
+        "progress": 0.86,
+        "transition": null
+      },
+      "milestones": [
+        {
+          "id": "M_03_03",
+          "completion": "complete",
+          "progress": 1.0
+        },
+        {
+          "id": "M_03_05",
+          "completion": "partial",
+          "progress": 0.6
+        }
+      ],
+      "buildings": [
+        {
+          "building": "engineering-university",
+          "maturity": "NEW",
+          "maturityProgress": 0.05,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 4,
+            "capacity": 30
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "Engineering",
+          "ageBuilt": "AGE_03",
+          "status": "partial"
+        },
+        {
+          "building": "medical-university",
+          "maturity": "DEVELOPING",
+          "maturityProgress": 0.4,
+          "constructionProgress": 1.0,
+          "personnel": {
+            "current": 14,
+            "capacity": 30
+          },
+          "capacity": "PLACEHOLDER",
+          "specialization": "Medicine",
+          "ageBuilt": "AGE_03",
+          "status": "operational"
+        }
+      ],
+      "units": [
+        {
+          "unit": "spearman",
+          "state": "deployed",
+          "strength": 0.8,
+          "experience": 160,
+          "veterancy": "elite",
+          "experienceProgress": 0.0,
+          "training": "complete",
+          "recovery": "rested",
+          "doctrine": "doctrine.formation-drill",
+          "cohesion": 0.85
+        },
+        {
+          "unit": "infantry",
+          "state": "training",
+          "strength": 0.7,
+          "experience": 0,
+          "veterancy": "recruit",
+          "experienceProgress": 0.0,
+          "training": "in progress",
+          "recovery": "rested",
+          "doctrine": null,
+          "cohesion": 0.5
+        }
+      ],
+      "diffusion": {
+        "stage": 3
+      }
+    },
+    {
+      "label": "Step 2 — the source reports an Age transition pending",
+      "nodes": [
+        {
+          "id": "institution.engineering-university",
+          "state": "developing",
+          "realizationProgress": 0.2
+        },
+        {
+          "id": "milestone.m-04-01",
+          "state": "discovered"
+        }
+      ],
+      "ages": {
+        "current": "AGE_03",
+        "progress": 1.0,
+        "transition": {
+          "pending": true,
+          "to": "AGE_04",
+          "note": "DEMO: the global player-cycle boundary rule is NOT implemented (DD-02)."
+        }
+      },
+      "milestones": [
+        {
+          "id": "M_03_04",
+          "completion": "complete",
+          "progress": 1.0
+        }
+      ],
+      "diffusion": {
+        "stage": 4
+      }
+    },
+    {
+      "label": "Step 3 — new Age settled",
+      "ages": {
+        "current": "AGE_04",
+        "progress": 0.05,
+        "transition": null
+      },
+      "milestones": [
+        {
+          "id": "M_04_01",
+          "completion": "partial",
+          "progress": 0.1
+        }
+      ],
+      "diffusion": {
+        "stage": 4
+      }
+    }
+  ]
+}
