@@ -18,6 +18,7 @@ public class GlyphGrammarTests
     [
         GlyphState.Locked, GlyphState.Available, GlyphState.InProgress,
         GlyphState.Complete, GlyphState.Stalled, GlyphState.Decayed,
+        GlyphState.Discovered,
     ];
 
     private static IEnumerable<GlyphBase> Bases()
@@ -60,12 +61,17 @@ public class GlyphGrammarTests
         {
             AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(GlyphBase.Node, GlyphState.Complete, SizeClass.Px48, Domain: d)), default);
             AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(GlyphBase.Link, GlyphState.Complete, SizeClass.Px48, Domain: d)), default);
+            AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(GlyphBase.Emblem, GlyphState.Complete, SizeClass.Px48, Domain: d)), default);
+            AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(GlyphBase.Standard, GlyphState.InProgress, SizeClass.Px32, Domain: d, Progress: 0.4)), default);
         }
+        foreach (GlyphBase b in Bases())
+            for (int stage = 1; stage <= GlyphSpec.MaxStage; stage++)
+                AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px32, Maturity: 0.5, Stage: stage)), default);
         foreach (EraRegister e in Enum.GetValues<EraRegister>())
             foreach (GlyphBase b in Bases())
                 AssertPaletteExact(GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px48, Era: e, Maturity: 0.9,
                     Placement: Placement.Map, Veterancy: Veterancy.Elite)), default);
-        Assert.True(checkedGlyphs >= 10 * 6 * 4, $"only {checkedGlyphs} glyphs swept — vacuous");
+        Assert.True(checkedGlyphs >= 18 * 7 * 4, $"only {checkedGlyphs} glyphs swept — vacuous");
     }
 
     private static void AssertPaletteExact(ArtImage img, GlyphSpec spec)
@@ -111,7 +117,10 @@ public class GlyphGrammarTests
         // rarely covers a whole pixel, so "fully opaque" is the wrong bar here;
         // MEASURED peak across every base × state is 239, floor 200.) MEASURED
         // area: Locked is the faintest state by design at 14–21 %; every other
-        // state sits at 19–48 % — the floor is cleared, not rested on.
+        // state sits at 19–48 % — the floor is cleared, not rested on. The
+        // Trees/Ages extension (18 bases × 7 states) re-measured: minimum area
+        // 14.1 % (Formation/Locked), Discovered minimum 14.8 % (Emblem), minimum
+        // peak 239.
         foreach (GlyphSpec spec in Exemplars(SizeClass.Px16))
         {
             ArtImage img = GlyphBaker.Bake(spec);
@@ -171,7 +180,7 @@ public class GlyphGrammarTests
         {
             var loaded = new GlyphSpec(b, GlyphState.Complete, SizeClass.Px16,
                 Domain: GlyphDomain.Medicine, Era: EraRegister.Industrial, Maturity: 0.8,
-                Veterancy: Veterancy.Elite, Strength: 1.0);
+                Veterancy: Veterancy.Elite, Strength: 1.0, Stage: 3);
             var neutral = new GlyphSpec(b, GlyphState.Complete, SizeClass.Px16,
                 Domain: GlyphDomain.None, Era: EraRegister.Primitive, Maturity: 1.0,
                 Veterancy: Veterancy.Recruit, Strength: 1.0);
@@ -222,6 +231,22 @@ public class GlyphGrammarTests
             Assert.False(lower.Contains("figure") || lower.Contains("person") || lower.Contains("soldier") || lower.Contains("character"),
                 $"GlyphBase.{name} names a figure — the anatomy fence (D-038 Part C) forbids one");
         }
+        // The mark alphabet is named for OBJECTS. A role ("General", "Scout",
+        // "Engineer") is mapped onto an object by the CONTENT, so a person-word
+        // appearing in this enum is the first step toward drawing one.
+        string[] personWords =
+        [
+            "figure", "person", "people", "human", "soldier", "character", "man", "woman",
+            "general", "hero", "artist", "scientist", "engineer", "scout", "archer",
+            "spearman", "cavalry", "infantry", "rider", "worker", "citizen",
+        ];
+        foreach (string name in Enum.GetNames<GlyphDomain>())
+        {
+            string lower = name.ToLowerInvariant();
+            foreach (string w in personWords)
+                Assert.False(lower == w || lower.StartsWith(w, StringComparison.Ordinal) || lower.EndsWith(w, StringComparison.Ordinal),
+                    $"GlyphDomain.{name} names a person or role ('{w}') — marks are objects (D-038 C1)");
+        }
         for (int i = 0; i <= 20; i++)
         {
             int n = GlyphBaker.MarkCount(i / 20.0);
@@ -230,6 +255,122 @@ public class GlyphGrammarTests
         Assert.Equal(5, GlyphBaker.MarkCount(1.0));
         Assert.Equal(1, GlyphBaker.MarkCount(0.0));
         Assert.True(GlyphBaker.MarkCount(0.3) <= GlyphBaker.MarkCount(0.9), "marks must thin as strength drops");
+    }
+
+    // --- the mark alphabet (Trees/Ages foundation) --------------------------------
+
+    [Fact]
+    public void Marks_EveryMark_DrawsAndIsPairwiseDistinct_OnTheEmblem()
+    {
+        // The Emblem is the mark alone inside the state ring (domain / lens / class
+        // icons). Every mark must add ink over the bare Emblem and differ from every
+        // other mark. MEASURED minimum pairwise difference: 2.1 % of the box at 32 px
+        // (Medicine vs Aircraft), 3.3 % at 48 px; mark-vs-bare minimum 2.8 % at 48 px
+        // (StarOfCommand). Floor 1.5 %.
+        GlyphDomain[] marks = Enum.GetValues<GlyphDomain>().Where(d => d != GlyphDomain.None).ToArray();
+        Assert.True(marks.Length >= 32, $"only {marks.Length} marks — the alphabet shrank");
+        foreach (SizeClass size in new[] { SizeClass.Px32, SizeClass.Px48 })
+        {
+            ArtImage bare = GlyphBaker.Bake(new GlyphSpec(GlyphBase.Emblem, GlyphState.Complete, size));
+            var bakes = marks.Select(d => GlyphBaker.Bake(new GlyphSpec(GlyphBase.Emblem, GlyphState.Complete, size, Domain: d))).ToArray();
+            for (int i = 0; i < marks.Length; i++)
+            {
+                Assert.True(DifferFraction(bakes[i], bare) >= 0.015, $"{marks[i]} at {size}: the mark adds almost nothing to the bare Emblem");
+                for (int j = i + 1; j < marks.Length; j++)
+                {
+                    double f = DifferFraction(bakes[i], bakes[j]);
+                    Assert.True(f >= 0.015, $"{marks[i]} vs {marks[j]} on the Emblem at {size} differ in only {f:P1} — indistinguishable");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Marks_EveryMark_IsDrawn_InsideEveryMarkCarryingBase()
+    {
+        // A mark must never vanish into a silhouette (clipped away, or drawn in the
+        // wash layer). MEASURED minimum over every carrying base at 48 px ≥ 1.1 %;
+        // the floor is "some ink", 0.3 %. Two exclusions, both by construction:
+        //  · Link carries its domain as a stroke vocabulary, not a mark;
+        //  · Heap's v0 mark slot is the crossing of its three disc outlines, so a
+        //    SOLID mark lands on ink that is already there (MEASURED: Anvil 0.26 %).
+        //    The v0 geometry is kept byte-stable; resource and goods icons use the
+        //    Emblem base instead (docs/architecture/the-trees-ui.md §6).
+        foreach (GlyphBase b in Bases())
+        {
+            if (b is GlyphBase.Link or GlyphBase.Heap) continue;
+            ArtImage bare = GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px48));
+            foreach (GlyphDomain d in Enum.GetValues<GlyphDomain>())
+            {
+                if (d == GlyphDomain.None) continue;
+                double f = DifferFraction(GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px48, Domain: d)), bare);
+                Assert.True(f >= 0.003, $"{d} on {b} at 48 px changes only {f:P2} of the box — the mark vanished");
+            }
+        }
+    }
+
+    // --- maturity stages (Trees/Ages foundation) ---------------------------------
+
+    [Fact]
+    public void Stage_PipsAppearFrom24Px_AndEachReachedStageAddsInk()
+    {
+        // Stage pips are the DISCRETE companion to the maturity wash (NEW …
+        // MATURE). From 24 px up, reaching a stage fills a pip, so total ink rises
+        // strictly with the stage (MEASURED minimum step 48 alpha-units, at 32 px on
+        // Hall); at 16 px they are suppressed byte-identically (the LOD test).
+        foreach (SizeClass size in new[] { SizeClass.Px24, SizeClass.Px32, SizeClass.Px48 })
+        {
+            foreach (GlyphBase b in Bases())
+            {
+                long previous = -1;
+                for (int stage = 0; stage <= GlyphSpec.MaxStage; stage++)
+                {
+                    long ink = Ink(GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, size, Stage: stage)));
+                    Assert.True(ink > previous, $"{b} at {size}: stage {stage} does not add ink over stage {stage - 1} ({previous} → {ink})");
+                    previous = ink;
+                }
+            }
+        }
+        // Out-of-range stages clamp; they never throw and never draw a fifth pip.
+        var spec = new GlyphSpec(GlyphBase.Portico, GlyphState.Complete, SizeClass.Px48);
+        Assert.Equal(GlyphBaker.Bake(spec with { Stage = GlyphSpec.MaxStage }).Rgba, GlyphBaker.Bake(spec with { Stage = 99 }).Rgba);
+        Assert.Equal(GlyphBaker.Bake(spec with { Stage = 0 }).Rgba, GlyphBaker.Bake(spec with { Stage = -3 }).Rgba);
+    }
+
+    [Fact]
+    public void Veterancy_IsCarriedByTheStandard_AndNeutralisedOnNonUnitBases()
+    {
+        // The Standard is the new unit token, so it wears chevrons at 48 px (MEASURED
+        // Elite vs Recruit: 4.6 % of the box). A base that is not a unit ignores the
+        // axis entirely, so two specs that DRAW the same bake the same.
+        ArtImage elite = GlyphBaker.Bake(new GlyphSpec(GlyphBase.Standard, GlyphState.Complete, SizeClass.Px48, Domain: GlyphDomain.Spear, Veterancy: Veterancy.Elite));
+        ArtImage recruit = GlyphBaker.Bake(new GlyphSpec(GlyphBase.Standard, GlyphState.Complete, SizeClass.Px48, Domain: GlyphDomain.Spear));
+        Assert.True(DifferFraction(elite, recruit) >= 0.02, "the Standard does not show veterancy at 48 px");
+        foreach (GlyphBase b in Bases())
+        {
+            if (GlyphSpec.CarriesVeterancy(b)) continue;
+            Assert.Equal(
+                GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px48)).Rgba,
+                GlyphBaker.Bake(new GlyphSpec(b, GlyphState.Complete, SizeClass.Px48, Veterancy: Veterancy.Elite)).Rgba);
+        }
+    }
+
+    private static long Ink(ArtImage img)
+    {
+        long ink = 0;
+        for (int i = 0; i < img.Width * img.Height; i++) ink += img.Rgba[i * 4 + 3];
+        return ink;
+    }
+
+    private static double DifferFraction(ArtImage a, ArtImage b)
+    {
+        int n = a.Width * a.Height, differ = 0;
+        for (int p = 0; p < n; p++)
+        {
+            int o = p * 4;
+            if (a.Rgba[o] != b.Rgba[o] || a.Rgba[o + 1] != b.Rgba[o + 1] || a.Rgba[o + 2] != b.Rgba[o + 2] || a.Rgba[o + 3] != b.Rgba[o + 3]) differ++;
+        }
+        return differ / (double)n;
     }
 
     // --- §8.8 read-only by construction -----------------------------------------

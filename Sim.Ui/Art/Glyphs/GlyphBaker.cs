@@ -71,6 +71,7 @@ public static class GlyphBaker
         {
             GlyphState.Locked => 0.0,
             GlyphState.Available => 0.0,
+            GlyphState.Discovered => 0.0,
             GlyphState.InProgress => s.Progress,
             _ => s.Maturity,
         };
@@ -86,9 +87,12 @@ public static class GlyphBaker
         // 2. Base fill region + outline in the register's vocabulary.
         Func<double, double, bool> region = DrawBase(cv, f, s, outline, weight, outlineDash, washClip, registers);
 
-        // 3. Domain mark.
+        // 3. Domain mark. The Emblem base has no silhouette, so when the LOD contract
+        //    suppresses its mark (16 px) a centre dot keeps the glyph from being a bare ring.
         if (s.Domain != GlyphDomain.None && s.Base != GlyphBase.Link)
             DrawMark(cv, f, s.Base, s.Domain);
+        else if (s.Base == GlyphBase.Emblem)
+            cv.FillCircle(outline, f.C, f.C, System.Math.Max(1.2, f.Len(0.2)));
 
         // 4. State overlay: scaffold hatch for work in progress.
         if (s.State == GlyphState.InProgress)
@@ -97,13 +101,15 @@ public static class GlyphBaker
             cv.Hatch(InkCanvas.Layer.Hatch, f.BoxX, f.BoxY, f.BoxX + f.Side, f.BoxY + f.Side, pitch, region);
         }
 
-        // 5. The state ring.
+        // 5. The state ring, then the maturity-stage pips that sit on it (24 px up).
         DrawRing(cv, f, s);
+        if (s.Stage > 0 && s.Pixels >= (int)SizeClass.Px24)
+            DrawStagePips(cv, f, s.Stage);
 
         // 6. Badges (48 px only).
         if (badges)
         {
-            if (s.Base == GlyphBase.Formation && s.Veterancy != Veterancy.Recruit)
+            if (GlyphSpec.CarriesVeterancy(s.Base) && s.Veterancy != Veterancy.Recruit)
                 DrawChevrons(cv, f, s.Veterancy);
             if (washFraction >= 0.75 && s.State != GlyphState.InProgress)
                 cv.Stroke(InkCanvas.Layer.Gold, [f.P(0.1, 0.985), f.P(0.9, 0.985)], f.Hair * 0.8);
@@ -145,6 +151,33 @@ public static class GlyphBaker
             case GlyphState.Decayed:
                 cv.Arc(primary, f.C, f.C, f.R, f.Hair, dashDeg: (40.0, 20.0));
                 break;
+            case GlyphState.Discovered:
+                // Fifteen short dashes (Locked has ten long ones). MEASURED at 16 px: the
+                // shorter (7,13)/(10,10) patterns left Formation peaking at alpha 191 and
+                // (12,12) left Emblem at 8.6 % area; (15,9) clears every floor with margin
+                // (min area 14.8 %, min peak 239, min pairwise difference 21.9 %).
+                cv.Arc(primary, f.C, f.C, f.R, f.Hair, dashDeg: (15.0, 9.0));
+                break;
+        }
+    }
+
+    /// <summary>MAX_STAGE pips on the lower arc of the ring (from 7:30 to 4:30 o'clock):
+    /// filled for each reached stage, hollow for the rest, so "2 of 4" reads as a count
+    /// rather than a length. The hollow pip's outline lies wholly inside the filled
+    /// disc, so reaching a stage only ever ADDS ink (tested: ink rises with stage).</summary>
+    private static void DrawStagePips(InkCanvas cv, Frame f, int stage)
+    {
+        double r = System.Math.Max(1.1, f.Hair * 1.35);
+        double w = System.Math.Max(0.6, f.Hair * 0.6);
+        for (int i = 0; i < GlyphSpec.MaxStage; i++)
+        {
+            double deg = 225.0 - i * 30.0;                     // 225°, 195°, 165°, 135°: bottom arc, left to right
+            double a = deg * System.Math.PI / 180.0;
+            double px = f.C + System.Math.Sin(a) * f.R, py = f.C - System.Math.Cos(a) * f.R;
+            if (i < stage)
+                cv.FillCircle(InkCanvas.Layer.Primary, px, py, r);
+            else
+                cv.Arc(InkCanvas.Layer.Primary, px, py, r - w / 2.0, w);
         }
     }
 
@@ -336,6 +369,96 @@ public static class GlyphBaker
                 cv.Stroke(soft, [f.P(0.04, 0.94), f.P(0.96, 0.94)], f.Hair * 0.7);
                 return Region;
             }
+            case GlyphBase.Hexagon:
+            {
+                var hex = new (double, double)[6];
+                for (int i = 0; i < 6; i++)
+                {
+                    double a = i * System.Math.PI / 3.0;
+                    hex[i] = f.P(0.5 + 0.47 * System.Math.Sin(a), 0.5 - 0.47 * System.Math.Cos(a));
+                }
+                if (washClip is not null) cv.FillPolygon(wash, hex, washClip);
+                cv.Stroke(outline, hex, w, closed: true, dash: dash);
+                return (x, y) => InkCanvas.InsidePolygon(hex, x, y);
+            }
+            case GlyphBase.Shield:
+            {
+                (double, double)[] body =
+                [
+                    f.P(0.12, 0.08), f.P(0.88, 0.08), f.P(0.88, 0.45), f.P(0.8, 0.66), f.P(0.66, 0.83),
+                    f.P(0.5, 0.94), f.P(0.34, 0.83), f.P(0.2, 0.66), f.P(0.12, 0.45),
+                ];
+                if (washClip is not null) cv.FillPolygon(wash, body, washClip);
+                cv.Stroke(outline, body, w, closed: true, dash: dash);
+                return (x, y) => InkCanvas.InsidePolygon(body, x, y);
+            }
+            case GlyphBase.Scroll:
+            {
+                (double, double)[] body = [f.P(0.16, 0.2), f.P(0.84, 0.2), f.P(0.84, 0.8), f.P(0.16, 0.8)];
+                if (washClip is not null) cv.FillPolygon(wash, body, washClip);
+                cv.Stroke(outline, body, w, closed: true, dash: dash);
+                // The rolled ends: a half-roll along the top and bottom edges.
+                cv.Arc(outline, f.P(0.16, 0.2).Item1, f.P(0.16, 0.2).Item2 + f.Len(0.06), f.Len(0.06), w, 180.0, 180.0);
+                cv.Arc(outline, f.P(0.84, 0.8).Item1, f.P(0.84, 0.8).Item2 - f.Len(0.06), f.Len(0.06), w, 0.0, 180.0);
+                if (registers)
+                {
+                    cv.Stroke(soft, [f.P(0.28, 0.42), f.P(0.72, 0.42)], f.Hair * 0.6);
+                    cv.Stroke(soft, [f.P(0.28, 0.58), f.P(0.64, 0.58)], f.Hair * 0.6);
+                }
+                return (x, y) => InkCanvas.InsidePolygon(body, x, y);
+            }
+            case GlyphBase.Standard:
+            {
+                (double, double)[] body =
+                [
+                    f.P(0.2, 0.06), f.P(0.8, 0.06), f.P(0.8, 0.72), f.P(0.5, 0.58), f.P(0.2, 0.72),
+                ];
+                if (washClip is not null) cv.FillPolygon(wash, body, washClip);
+                cv.Stroke(outline, body, w, closed: true, dash: dash);
+                return (x, y) => InkCanvas.InsidePolygon(body, x, y);
+            }
+            case GlyphBase.Field:
+            {
+                (double, double)[] body = [f.P(0.06, 0.3), f.P(0.94, 0.3), f.P(0.94, 0.92), f.P(0.06, 0.92)];
+                if (washClip is not null) cv.FillPolygon(wash, body, washClip);
+                cv.Stroke(outline, body, w, closed: true, dash: dash);
+                foreach (double v in new[] { 0.46, 0.61, 0.76 })
+                    cv.Stroke(soft, [f.P(0.14, v), f.P(0.86, v)], f.Hair * 0.7);
+                return (x, y) => InkCanvas.InsidePolygon(body, x, y);
+            }
+            case GlyphBase.Monument:
+            {
+                (double, double)[] body =
+                [
+                    f.P(0.06, 0.94), f.P(0.06, 0.72), f.P(0.22, 0.72), f.P(0.22, 0.48), f.P(0.36, 0.48),
+                    f.P(0.36, 0.24), f.P(0.5, 0.06), f.P(0.64, 0.24), f.P(0.64, 0.48), f.P(0.78, 0.48),
+                    f.P(0.78, 0.72), f.P(0.94, 0.72), f.P(0.94, 0.94),
+                ];
+                if (washClip is not null) cv.FillPolygon(wash, body, washClip);
+                cv.Stroke(outline, body, w, closed: true, dash: dash);
+                return (x, y) => InkCanvas.InsidePolygon(body, x, y);
+            }
+            case GlyphBase.Star:
+            {
+                var star = new (double, double)[16];
+                for (int i = 0; i < 16; i++)
+                {
+                    double a = i * System.Math.PI / 8.0;
+                    double rr = i % 2 == 0 ? (i % 4 == 0 ? 0.48 : 0.36) : 0.16;
+                    star[i] = f.P(0.5 + rr * System.Math.Sin(a), 0.5 - rr * System.Math.Cos(a));
+                }
+                if (washClip is not null) cv.FillPolygon(wash, star, washClip);
+                cv.Stroke(outline, star, w, closed: true, dash: dash);
+                return (x, y) => InkCanvas.InsidePolygon(star, x, y);
+            }
+            case GlyphBase.Emblem:
+            {
+                (double cx, double cy) = f.P(0.5, 0.5);
+                double r = f.Len(0.46);
+                bool Region(double x, double y) => (x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r;
+                if (washClip is not null) cv.FillCircle(wash, cx, cy, r, washClip);
+                return Region;
+            }
             case GlyphBase.Link:
             default:
             {
@@ -417,10 +540,19 @@ public static class GlyphBaker
         // The slot: upper-right quadrant for building-like bases and nodes; the
         // centre for the lozenge and the heap; the upper-left corner for the
         // formation bar (whose centre carries the strength marks).
+        //
+        // Trees/Ages foundation: the Emblem base IS its mark (centred, large); the
+        // Standard carries its class mark in the banner's field; the Hexagon and the
+        // Shield carry theirs centred; the Star keeps the upper-right quadrant like a
+        // building.
         (double u0, double v0, double u1, double v1) = b switch
         {
             GlyphBase.Lozenge or GlyphBase.Heap => (0.32, 0.32, 0.68, 0.68),
             GlyphBase.Formation => (0.02, 0.0, 0.34, 0.26),
+            GlyphBase.Emblem => (0.14, 0.14, 0.86, 0.86),
+            GlyphBase.Standard => (0.28, 0.12, 0.72, 0.52),
+            GlyphBase.Hexagon => (0.27, 0.27, 0.73, 0.73),
+            GlyphBase.Shield => (0.29, 0.2, 0.71, 0.62),
             _ => (0.58, 0.04, 0.96, 0.42),
         };
         (double sx0, double sy0) = f.P(u0, v0);
@@ -482,6 +614,187 @@ public static class GlyphBaker
                 cv.Stroke(ink, [M(0.05, 0.6), M(0.3, 0.6)], mw);
                 cv.Stroke(ink, [M(0.7, 0.6), M(0.95, 0.6)], mw);
                 break;
+            // --- the seven Tree lens emblems ---------------------------------------
+            case GlyphDomain.Knowledge:   // an oil lamp: flame over a bowl
+                cv.FillPolygon(ink, [M(0.5, 0.04), M(0.63, 0.3), M(0.6, 0.46), M(0.5, 0.53), M(0.4, 0.46), M(0.37, 0.3)]);
+                cv.FillPolygon(ink, [M(0.14, 0.62), M(0.86, 0.62), M(0.66, 0.9), M(0.34, 0.9)]);
+                break;
+            case GlyphDomain.Techniques:  // a hammer
+                cv.FillPolygon(ink, [M(0.16, 0.1), M(0.84, 0.1), M(0.84, 0.34), M(0.16, 0.34)]);
+                cv.FillPolygon(ink, [M(0.43, 0.34), M(0.57, 0.34), M(0.57, 0.94), M(0.43, 0.94)]);
+                break;
+            case GlyphDomain.Institutions: // a small pediment on three columns
+                cv.FillPolygon(ink, [M(0.06, 0.34), M(0.5, 0.06), M(0.94, 0.34)]);
+                foreach (double u in new[] { 0.24, 0.5, 0.76 })
+                    cv.Stroke(ink, [M(u, 0.4), M(u, 0.82)], mw * 1.2);
+                cv.Stroke(ink, [M(0.08, 0.9), M(0.92, 0.9)], mw * 1.2);
+                break;
+            case GlyphDomain.Infrastructure: // an arch bridge: deck, arch and piers
+            {
+                cv.Stroke(ink, [M(0.02, 0.34), M(0.98, 0.34)], mw * 1.2);
+                (double ax, double ay) = M(0.5, 0.92);
+                cv.Arc(ink, ax, ay, 0.4 * sw, mw * 1.2, 270.0, 180.0);
+                cv.Stroke(ink, [M(0.1, 0.34), M(0.1, 0.94)], mw);
+                cv.Stroke(ink, [M(0.9, 0.34), M(0.9, 0.94)], mw);
+                break;
+            }
+            case GlyphDomain.Industry:    // a sawtooth works with a stack
+                cv.Stroke(ink, [M(0.04, 0.92), M(0.04, 0.56), M(0.3, 0.36), M(0.3, 0.56), M(0.56, 0.36), M(0.56, 0.56), M(0.96, 0.56), M(0.96, 0.92)], mw, closed: true);
+                cv.FillPolygon(ink, [M(0.72, 0.06), M(0.86, 0.06), M(0.86, 0.56), M(0.72, 0.56)]);
+                break;
+            case GlyphDomain.Applications: // an isometric crate
+                cv.Stroke(ink, [M(0.5, 0.06), M(0.92, 0.28), M(0.92, 0.72), M(0.5, 0.94), M(0.08, 0.72), M(0.08, 0.28)], mw, closed: true);
+                cv.Stroke(ink, [M(0.08, 0.28), M(0.5, 0.5), M(0.92, 0.28)], mw);
+                cv.Stroke(ink, [M(0.5, 0.5), M(0.5, 0.94)], mw);
+                break;
+
+            // --- specialisation and system marks ---------------------------------
+            case GlyphDomain.Dividers:    // engineering dividers: two legs, a pivot, a bow
+            {
+                cv.Stroke(ink, [M(0.5, 0.12), M(0.18, 0.94)], mw * 1.2);
+                cv.Stroke(ink, [M(0.5, 0.12), M(0.82, 0.94)], mw * 1.2);
+                (double px, double py) = M(0.5, 0.12);
+                cv.FillCircle(ink, px, py, System.Math.Max(0.8, 0.09 * sw));
+                cv.Stroke(ink, [M(0.3, 0.62), M(0.7, 0.62)], mw);
+                break;
+            }
+            case GlyphDomain.Anvil:       // flat face, pointed horn to the left, narrow waist, footed base
+                cv.FillPolygon(ink, [M(0.02, 0.2), M(0.96, 0.16), M(0.96, 0.4), M(0.72, 0.44), M(0.64, 0.68),
+                                     M(0.88, 0.76), M(0.88, 0.94), M(0.12, 0.94), M(0.12, 0.76), M(0.36, 0.68),
+                                     M(0.34, 0.44), M(0.26, 0.36)]);
+                break;
+            case GlyphDomain.Rail:        // two rails and three ties
+                cv.Stroke(ink, [M(0.3, 0.04), M(0.3, 0.96)], mw * 1.2);
+                cv.Stroke(ink, [M(0.7, 0.04), M(0.7, 0.96)], mw * 1.2);
+                foreach (double v in new[] { 0.2, 0.5, 0.8 })
+                    cv.Stroke(ink, [M(0.12, v), M(0.88, v)], mw);
+                break;
+            case GlyphDomain.Hourglass:
+                cv.Stroke(ink, [M(0.14, 0.06), M(0.86, 0.06)], mw * 1.3);
+                cv.Stroke(ink, [M(0.14, 0.94), M(0.86, 0.94)], mw * 1.3);
+                cv.Stroke(ink, [M(0.24, 0.08), M(0.76, 0.08), M(0.5, 0.5), M(0.76, 0.92), M(0.24, 0.92), M(0.5, 0.5)], mw, closed: true);
+                cv.FillPolygon(ink, [M(0.36, 0.84), M(0.64, 0.84), M(0.5, 0.64)]);
+                break;
+            case GlyphDomain.Links:       // three linked rings
+            {
+                double rr = 0.2 * System.Math.Min(sw, sh);
+                foreach ((double a, double c) in new[] { (0.3, 0.36), (0.7, 0.36), (0.5, 0.7) })
+                {
+                    (double cx, double cy) = M(a, c);
+                    cv.Arc(ink, cx, cy, rr, mw);
+                }
+                break;
+            }
+
+            // --- unit-class marks (objects only) -----------------------------------
+            case GlyphDomain.Spear:       // heavy shaft, leaf-shaped head, butt spike
+                cv.Stroke(ink, [M(0.5, 0.98), M(0.5, 0.36)], mw * 1.6);
+                cv.FillPolygon(ink, [M(0.5, 0.0), M(0.72, 0.28), M(0.5, 0.46), M(0.28, 0.28)]);
+                cv.FillPolygon(ink, [M(0.36, 0.52), M(0.64, 0.52), M(0.64, 0.58), M(0.36, 0.58)]);
+                break;
+            case GlyphDomain.Bow:
+            {
+                (double bx, double by) = M(0.78, 0.5);
+                double br = 0.46 * sh;
+                cv.Arc(ink, bx, by, br, mw * 1.3, 205.0, 130.0);
+                double a0 = 205.0 * System.Math.PI / 180.0, a1 = 335.0 * System.Math.PI / 180.0;
+                cv.Stroke(ink, [(bx + System.Math.Sin(a0) * br, by - System.Math.Cos(a0) * br),
+                                (bx + System.Math.Sin(a1) * br, by - System.Math.Cos(a1) * br)], mw * 0.8);
+                break;
+            }
+            case GlyphDomain.Horseshoe:
+            {
+                (double hx, double hy) = M(0.5, 0.48);
+                double hr = 0.34 * System.Math.Min(sw, sh);
+                cv.Arc(ink, hx, hy, hr, mw * 2.2, 240.0, 240.0);
+                break;
+            }
+            case GlyphDomain.Rifles:      // crossed long arms
+                cv.Stroke(ink, [M(0.1, 0.9), M(0.9, 0.1)], mw * 1.3);
+                cv.Stroke(ink, [M(0.9, 0.9), M(0.1, 0.1)], mw * 1.3);
+                cv.FillPolygon(ink, [M(0.04, 0.84), M(0.2, 0.96), M(0.26, 0.86), M(0.12, 0.76)]);
+                cv.FillPolygon(ink, [M(0.96, 0.84), M(0.8, 0.96), M(0.74, 0.86), M(0.88, 0.76)]);
+                break;
+            case GlyphDomain.Cannon:
+            {
+                cv.Stroke(ink, [M(0.34, 0.62), M(0.94, 0.26)], mw * 2.4);
+                (double wx, double wy) = M(0.34, 0.72);
+                cv.Arc(ink, wx, wy, 0.2 * System.Math.Min(sw, sh), mw * 1.2);
+                break;
+            }
+            case GlyphDomain.Tracks:      // hull, turret, gun, road wheels
+            {
+                cv.Stroke(ink, [M(0.06, 0.56), M(0.94, 0.56), M(0.84, 0.88), M(0.16, 0.88)], mw, closed: true);
+                cv.FillPolygon(ink, [M(0.34, 0.34), M(0.66, 0.34), M(0.66, 0.56), M(0.34, 0.56)]);
+                cv.Stroke(ink, [M(0.66, 0.44), M(0.98, 0.4)], mw * 1.2);
+                foreach (double u in new[] { 0.28, 0.5, 0.72 })
+                {
+                    (double tx, double ty) = M(u, 0.72);
+                    cv.FillCircle(ink, tx, ty, System.Math.Max(0.7, 0.07 * sw));
+                }
+                break;
+            }
+            case GlyphDomain.Aircraft:
+                cv.Stroke(ink, [M(0.5, 0.04), M(0.5, 0.94)], mw * 1.4);
+                cv.FillPolygon(ink, [M(0.04, 0.46), M(0.96, 0.46), M(0.96, 0.58), M(0.04, 0.58)]);
+                cv.FillPolygon(ink, [M(0.3, 0.86), M(0.7, 0.86), M(0.7, 0.94), M(0.3, 0.94)]);
+                break;
+            case GlyphDomain.Ship:
+                cv.FillPolygon(ink, [M(0.04, 0.64), M(0.96, 0.64), M(0.8, 0.9), M(0.2, 0.9)]);
+                cv.Stroke(ink, [M(0.5, 0.06), M(0.5, 0.64)], mw);
+                cv.FillPolygon(ink, [M(0.54, 0.1), M(0.86, 0.56), M(0.54, 0.56)]);
+                break;
+            case GlyphDomain.Eye:         // an almond eye with its pupil
+            {
+                cv.Stroke(ink, [M(0.04, 0.5), M(0.28, 0.24), M(0.5, 0.18), M(0.72, 0.24), M(0.96, 0.5),
+                                M(0.72, 0.76), M(0.5, 0.82), M(0.28, 0.76)], mw, closed: true);
+                (double ex, double ey) = M(0.5, 0.5);
+                cv.FillCircle(ink, ex, ey, System.Math.Max(0.9, 0.16 * System.Math.Min(sw, sh)));
+                break;
+            }
+            case GlyphDomain.StarOfCommand:
+            {
+                var st = new (double, double)[10];
+                for (int i = 0; i < 10; i++)
+                {
+                    double a = i * System.Math.PI / 5.0;
+                    double rr = i % 2 == 0 ? 0.48 : 0.2;
+                    st[i] = M(0.5 + rr * System.Math.Sin(a), 0.52 - rr * System.Math.Cos(a));
+                }
+                cv.FillPolygon(ink, st);
+                break;
+            }
+            case GlyphDomain.Laurel:      // two leafed branches rising from the foot
+            {
+                // Points on a circle about the slot centre; angles clockwise from 12 o'clock.
+                // Left branch 190°→320°, right branch 170°→40°: they meet at the bottom.
+                foreach ((double from, double to) in new[] { (190.0, 320.0), (170.0, 40.0) })
+                {
+                    var branch = new (double, double)[7];
+                    for (int i = 0; i < 7; i++)
+                    {
+                        double a = (from + (to - from) * i / 6.0) * System.Math.PI / 180.0;
+                        branch[i] = M(0.5 + 0.4 * System.Math.Sin(a), 0.5 - 0.4 * System.Math.Cos(a));
+                    }
+                    cv.Stroke(ink, branch, mw);
+                    for (int i = 1; i < 7; i++)
+                    {
+                        (double lx, double ly) = branch[i];
+                        cv.FillCircle(ink, lx, ly, System.Math.Max(0.8, 0.07 * sw));
+                    }
+                }
+                break;
+            }
+            case GlyphDomain.Brush:
+                cv.Stroke(ink, [M(0.86, 0.06), M(0.42, 0.56)], mw * 1.3);
+                cv.FillPolygon(ink, [M(0.36, 0.5), M(0.5, 0.64), M(0.24, 0.94), M(0.08, 0.92), M(0.12, 0.76)]);
+                break;
+            case GlyphDomain.Flask:
+                cv.Stroke(ink, [M(0.4, 0.04), M(0.6, 0.04)], mw * 1.2);
+                cv.Stroke(ink, [M(0.42, 0.06), M(0.42, 0.38), M(0.1, 0.94), M(0.9, 0.94), M(0.58, 0.38), M(0.58, 0.06)], mw);
+                cv.FillPolygon(ink, [M(0.26, 0.66), M(0.74, 0.66), M(0.88, 0.92), M(0.12, 0.92)]);
+                break;
+
             case GlyphDomain.Civic:
                 cv.FillPolygon(ink, [M(0.4, 0.2), M(0.6, 0.2), M(0.6, 0.85), M(0.4, 0.85)]);
                 cv.FillPolygon(ink, [M(0.22, 0.08), M(0.78, 0.08), M(0.78, 0.2), M(0.22, 0.2)]);

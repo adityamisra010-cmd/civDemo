@@ -32,6 +32,28 @@ public enum GlyphBase
     Heap = 8,
     /// <summary>Two small nodes joined by a stroke — infrastructure edges.</summary>
     Link = 9,
+
+    // --- added by the Trees/Ages UI foundation (docs/architecture/the-trees-ui.md §6).
+    // Additive: every spec built from the members above bakes byte-identically.
+
+    /// <summary>Pointy-top hexagon — techniques (reliable know-how).</summary>
+    Hexagon = 10,
+    /// <summary>Heater shield — doctrine.</summary>
+    Shield = 11,
+    /// <summary>A charter scroll with rolled ends — policy.</summary>
+    Scroll = 12,
+    /// <summary>A swallow-tailed banner — a UNIT token (D-011 §4 / D-038 C3): the
+    /// class is an OBJECT mark inside it (a spear, a bow, a flask), never a figure.</summary>
+    Standard = 13,
+    /// <summary>A furrowed plot — farms and worked land.</summary>
+    Field = 14,
+    /// <summary>A stepped monument — wonders.</summary>
+    Monument = 15,
+    /// <summary>An eight-point compass star — Age icons.</summary>
+    Star = 16,
+    /// <summary>No silhouette: the mark alone, centred and large, inside the state ring —
+    /// domain icons, resource/system icons, class icons.</summary>
+    Emblem = 17,
 }
 
 /// <summary>
@@ -52,6 +74,65 @@ public enum GlyphDomain
     Medicine = 6,
     Commerce = 7,
     Civic = 8,
+
+    // --- added by the Trees/Ages UI foundation. Still a VISUAL alphabet: every mark is
+    // named for the OBJECT it draws, never for a role or a person — the content maps a
+    // role onto an object ("General" → StarOfCommand), so the anatomy fence (D-038 C1)
+    // is legible in the enum itself and pinned by GlyphGrammarTests.
+
+    // The seven Tree lens emblems (the-trees-ui.md §2). Military reuses the chevron above.
+    /// <summary>An oil lamp — the Knowledge lens.</summary>
+    Knowledge = 9,
+    /// <summary>A hammer — the Techniques lens.</summary>
+    Techniques = 10,
+    /// <summary>A small pediment on three columns — the Institutions lens.</summary>
+    Institutions = 11,
+    /// <summary>An arch bridge — the Infrastructure lens.</summary>
+    Infrastructure = 12,
+    /// <summary>A sawtooth works with a stack — the Industry lens.</summary>
+    Industry = 13,
+    /// <summary>An isometric crate — the Applications lens (tangible things).</summary>
+    Applications = 14,
+
+    // Specialisation and system marks.
+    /// <summary>Dividers — engineering (Engineering University, engineers).</summary>
+    Dividers = 15,
+    /// <summary>An anvil — metallurgy / metalworking.</summary>
+    Anvil = 16,
+    /// <summary>A rail track — railways.</summary>
+    Rail = 17,
+    /// <summary>An hourglass — Ages.</summary>
+    Hourglass = 18,
+    /// <summary>Three linked rings — systemic.</summary>
+    Links = 19,
+
+    // Unit-class marks: objects only.
+    /// <summary>A spear.</summary>
+    Spear = 20,
+    /// <summary>A strung bow.</summary>
+    Bow = 21,
+    /// <summary>A horseshoe — mounted units.</summary>
+    Horseshoe = 22,
+    /// <summary>Crossed rifles — infantry.</summary>
+    Rifles = 23,
+    /// <summary>A wheeled gun — artillery.</summary>
+    Cannon = 24,
+    /// <summary>A tracked hull with a turret — armour.</summary>
+    Tracks = 25,
+    /// <summary>A fixed-wing airframe.</summary>
+    Aircraft = 26,
+    /// <summary>A hull with a mast and sail — naval units.</summary>
+    Ship = 27,
+    /// <summary>An open eye — scouting.</summary>
+    Eye = 28,
+    /// <summary>A five-point star — command.</summary>
+    StarOfCommand = 29,
+    /// <summary>A laurel wreath — renown.</summary>
+    Laurel = 30,
+    /// <summary>A brush — the arts.</summary>
+    Brush = 31,
+    /// <summary>An Erlenmeyer flask — the sciences.</summary>
+    Flask = 32,
 }
 
 /// <summary>
@@ -84,6 +165,10 @@ public enum GlyphState
     Stalled = 4,
     /// <summary>Ring and outline with gaps.</summary>
     Decayed = 5,
+    /// <summary>Known to exist, not yet available: a finely-dashed ring (fifteen short
+    /// dashes; Locked has ten long ones) around a full outline — Locked ghosts the
+    /// outline, Discovered does not. Added by the Trees UI foundation.</summary>
+    Discovered = 6,
 }
 
 /// <summary>Panel: flat, no shadow (substrate/furniture lighting, style-bible §1).
@@ -124,6 +209,10 @@ public enum Veterancy
 /// <param name="Maturity">Wash fraction ∈ [0,1] (§2.4). Pass 1.0 when no stock exists.</param>
 /// <param name="Progress">Arc fraction ∈ [0,1]; read only for InProgress / Stalled.</param>
 /// <param name="Strength">Formation strength ∈ [0,1] → mark count 1..5; read only for Formation.</param>
+/// <param name="Stage">Maturity-stage pips on the ring, 0..4 (0 = no pips). A discrete
+/// companion to the <paramref name="Maturity"/> wash for things that MATURE in named steps
+/// (NEW · DEVELOPING · ESTABLISHED · MATURE; developing · partially realized · operational ·
+/// mature). Drawn from 24 px up. Default 0, so every pre-existing spec bakes unchanged.</param>
 public readonly record struct GlyphSpec(
     GlyphBase Base,
     GlyphState State,
@@ -134,8 +223,15 @@ public readonly record struct GlyphSpec(
     double Progress = 0.0,
     Placement Placement = Placement.Panel,
     Veterancy Veterancy = Veterancy.Recruit,
-    double Strength = 1.0)
+    double Strength = 1.0,
+    int Stage = 0)
 {
+    /// <summary>The largest maturity stage the pips can show.</summary>
+    public const int MaxStage = 4;
+
+    /// <summary>Bases that carry a unit's veterancy chevrons.</summary>
+    public static bool CarriesVeterancy(GlyphBase b) => b is GlyphBase.Formation or GlyphBase.Standard;
+
     /// <summary>The glyph box in pixels.</summary>
     public int Pixels => (int)Size;
 
@@ -155,6 +251,7 @@ public readonly record struct GlyphSpec(
         GlyphDomain domain = Domain;
         EraRegister era = Era;
         Veterancy vet = Veterancy;
+        int stage = Stage < 0 ? 0 : Stage > MaxStage ? MaxStage : Stage;
 
         switch (Size)
         {
@@ -162,6 +259,7 @@ public readonly record struct GlyphSpec(
                 domain = GlyphDomain.None;
                 era = EraRegister.Primitive;
                 vet = Veterancy.Recruit;
+                stage = 0;                                        // pips arrive at 24 px
                 maturity = maturity >= 0.5 ? 1.0 : 0.0;          // binary wash
                 break;
             case SizeClass.Px24:
@@ -179,13 +277,14 @@ public readonly record struct GlyphSpec(
 
         // Axes that are meaningless for a base are neutralised too, so two specs
         // that DRAW the same bake the same.
-        if (Base != GlyphBase.Formation) { vet = Veterancy.Recruit; strength = 1.0; }
+        if (!CarriesVeterancy(Base)) vet = Veterancy.Recruit;
+        if (Base != GlyphBase.Formation) strength = 1.0;
         if (State != GlyphState.InProgress && State != GlyphState.Stalled) progress = 0.0;
 
         return this with
         {
             Domain = domain, Era = era, Veterancy = vet,
-            Maturity = maturity, Progress = progress, Strength = strength,
+            Maturity = maturity, Progress = progress, Strength = strength, Stage = stage,
         };
     }
 
