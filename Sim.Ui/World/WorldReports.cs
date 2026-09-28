@@ -226,13 +226,34 @@ public sealed record WorldSources(
 public sealed class EmptySource :
     ISettlementViewSource, IPolityViewSource, IStructureViewSource, IInfrastructureViewSource, IResourceViewSource, IMobileAgentViewSource
 {
-    public EmptySource(string label) => Label = label;
+    // One immutable empty snapshot each, made once: an unchanged source returns the same
+    // object, so a view cache keyed on snapshot identity never rebuilds for nothing.
+    private readonly Snapshot<SettlementReport> _settlements;
+    private readonly Snapshot<PolityReport> _polities;
+    private readonly Snapshot<StructureReport> _structures;
+    private readonly Snapshot<InfraNodeReport> _nodes;
+    private readonly Snapshot<InfraEdgeReport> _edges;
+    private readonly Snapshot<ResourceReport> _resources;
+    private readonly Snapshot<AgentReport> _agents;
+
+    public EmptySource(string label)
+    {
+        Label = label;
+        _settlements = Snapshot<SettlementReport>.Empty(label, false, r => r.Key);
+        _polities = Snapshot<PolityReport>.Empty(label, false, r => r.Key);
+        _structures = Snapshot<StructureReport>.Empty(label, false, r => r.Key);
+        _nodes = Snapshot<InfraNodeReport>.Empty(label, false, r => r.Key);
+        _edges = Snapshot<InfraEdgeReport>.Empty(label, false, r => r.Key);
+        _resources = Snapshot<ResourceReport>.Empty(label, false, r => r.Key);
+        _agents = Snapshot<AgentReport>.Empty(label, false, r => r.Key);
+    }
+
     public string Label { get; }
-    Snapshot<SettlementReport> ISettlementViewSource.Current => Snapshot<SettlementReport>.Empty(Label, false, r => r.Key);
-    Snapshot<PolityReport> IPolityViewSource.Current => Snapshot<PolityReport>.Empty(Label, false, r => r.Key);
-    Snapshot<StructureReport> IStructureViewSource.Current => Snapshot<StructureReport>.Empty(Label, false, r => r.Key);
-    Snapshot<InfraNodeReport> IInfrastructureViewSource.Nodes => Snapshot<InfraNodeReport>.Empty(Label, false, r => r.Key);
-    Snapshot<InfraEdgeReport> IInfrastructureViewSource.Edges => Snapshot<InfraEdgeReport>.Empty(Label, false, r => r.Key);
-    Snapshot<ResourceReport> IResourceViewSource.Current => Snapshot<ResourceReport>.Empty(Label, false, r => r.Key);
-    Snapshot<AgentReport> IMobileAgentViewSource.Current => Snapshot<AgentReport>.Empty(Label, false, r => r.Key);
+    Snapshot<SettlementReport> ISettlementViewSource.Current => _settlements;
+    Snapshot<PolityReport> IPolityViewSource.Current => _polities;
+    Snapshot<StructureReport> IStructureViewSource.Current => _structures;
+    Snapshot<InfraNodeReport> IInfrastructureViewSource.Nodes => _nodes;
+    Snapshot<InfraEdgeReport> IInfrastructureViewSource.Edges => _edges;
+    Snapshot<ResourceReport> IResourceViewSource.Current => _resources;
+    Snapshot<AgentReport> IMobileAgentViewSource.Current => _agents;
 }

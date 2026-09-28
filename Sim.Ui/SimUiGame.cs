@@ -165,6 +165,14 @@ public sealed class SimUiGame : Game
     private bool _treesPress, _treesDragging, _treesPressOnCanvas;
     private System.Numerics.Vector2 _treesPressAt;
     private string _treesSearch = "";
+    // THE WORLD LAYER (docs/architecture/world-visualization.md §9). A read-only observer
+    // like the Trees: V cycles Off -> Live (the world view over this map, from the live
+    // adapters) -> Demo (a full-screen PLACEHOLDER world) -> Off. Its selection is its own UI
+    // state and never writes _selected; the game's selection is passed in to be highlighted.
+    private Sim.Ui.World.WorldOverlayHost? _worldHost;
+    private ImGuiIntegration.DrawListImGuiBackend? _worldBackend;
+    private bool _worldPress, _worldDragging;
+    private System.Numerics.Vector2 _worldPressAt;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
     // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
     // (row-aligned with world.Settlements) and consumed by the click hit-test.
@@ -470,6 +478,21 @@ public sealed class SimUiGame : Game
             escEdge = false;
         }
 
+        // V cycles the world layer (never while the Trees overlay or a text field owns the
+        // keyboard); Escape closes the full-screen DEMO overlay before anything else.
+        if (IsActive && !_treesOpen && !io.WantTextInput && keyboard.IsKeyDown(Keys.V) && !_lastKeyboard.IsKeyDown(Keys.V))
+            WorldHost().CycleMode();
+        else if (IsActive && DemoWorldOpen && escEdge && !io.WantTextInput)
+        {
+            _worldHost!.Close();
+            escEdge = false;
+        }
+        if (IsActive && DemoWorldOpen && !io.WantTextInput)
+        {
+            if (keyboard.IsKeyDown(Keys.Right) && !_lastKeyboard.IsKeyDown(Keys.Right)) _worldHost!.DemoStepBy(+1);
+            if (keyboard.IsKeyDown(Keys.Left) && !_lastKeyboard.IsKeyDown(Keys.Left)) _worldHost!.DemoStepBy(-1);
+        }
+
         if (IsActive && !_treesOpen && !io.WantCaptureKeyboard && escEdge)
         {
             (Section next, bool closed) = GameSections.OnEscape(_openSection);
@@ -477,10 +500,11 @@ public sealed class SimUiGame : Game
             if (!closed) Exit();
         }
 
-        if (_treesOpen)
+        if (_treesOpen || DemoWorldOpen)
         {
             // The overlay covers the world: no map pan/zoom/click, no WASD, no section
-            // keys, no End Turn under it. Its own input is read in DrawTreesOverlay.
+            // keys, no End Turn under it. Its own input is read in DrawTreesOverlay /
+            // DrawWorldDemoOverlay.
             _clickCandidate = false;
             _lastMouse = mouse;
             _lastKeyboard = keyboard;
@@ -510,9 +534,20 @@ public sealed class SimUiGame : Game
                 && _clickCandidate
                 && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
             {
-                int hit = SettlementSelection.HitTest(
+                // The live world layer claims only what the game does not draw itself
+                // (structures, resources, people); settlements stay with SettlementSelection.
+                // The frame is painted with the CURRENT camera, never an earlier frame's.
+                Sim.Ui.World.WorldEntityId? worldHit = null;
+                if (_worldHost is { Mode: Sim.Ui.World.WorldLayerMode.Live })
+                {
+                    Sim.Ui.World.Scene.WorldFrame? liveFrame = _worldHost.LiveFrame(LiveProjection(viewport),
+                        Sim.Ui.World.Live.LiveWorld.Key(_selected), Sim.Ui.Render.ApproxTextMeasure.Instance);
+                    worldHit = liveFrame?.Hits.HitTest(mouse.X, mouse.Y);
+                    _worldHost.LiveUi.Selected = worldHit;
+                }
+                int hit = worldHit is null ? SettlementSelection.HitTest(
                     _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height,
-                    _labelRects);   // D-A2: labels are part of the click target
+                    _labelRects) : -1;   // D-A2: labels are part of the click target
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;
@@ -846,10 +881,16 @@ public sealed class SimUiGame : Game
         {
             DrawTreesOverlay(gameTime);
         }
+        else if (DemoWorldOpen)
+        {
+            DrawWorldDemoOverlay();
+        }
         else
         {
             DrawCompassRose();  // art substrate: §4 item 5 furniture
+            DrawLiveWorldLayer();   // over the map and markers, UNDER the name labels
             DrawNameLabels();   // T2.9: background drawlist — under all chrome
+            DrawLiveWorldDetails();
 
             DrawStatusBand();
             DrawSelectionCard();
@@ -1002,6 +1043,119 @@ public sealed class SimUiGame : Game
         PlaceCursor(PanelLayout.Command, ChromeGeometry.TreesButton);
         if (ImGui.Button("The Trees [T]##trees", Size(ChromeGeometry.TreesButton)))
             _treesOpen = true;
+        ImGui.End();
+    }
+
+    private bool DemoWorldOpen => _worldHost is { Mode: Sim.Ui.World.WorldLayerMode.Demo };
+
+    /// <summary>The world layer host, created on first use. The live bundle is the read-only
+    /// adapters over this session's world (Sim.Ui/World/Live): the world view never sees
+    /// anything else of the game.</summary>
+    private Sim.Ui.World.WorldOverlayHost WorldHost()
+    {
+        if (_worldHost is not null) return _worldHost;
+        int latticeSize = _lattice!.Size, stride = _latticeStride;
+        Sim.Ui.World.WorldSources live = Sim.Ui.World.Live.LiveWorld.Sources(
+            () => _world, id => _session.Names.Name(id), _displayCfg.Goods!,
+            node =>
+            {
+                LineGeometry.Vertex v = OverlayMeshes.LatticeNodeCenter(node, latticeSize, stride);
+                return new Sim.Ui.World.WorldPoint(v.X, v.Y);
+            });
+        _worldHost = new Sim.Ui.World.WorldOverlayHost(Sim.Ui.World.Content.WorldContentLoader.DefaultDirectory, live);
+        return _worldHost;
+    }
+
+    private Sim.Ui.World.Scene.WorldProjection LiveProjection(Rectangle viewport) =>
+        new(_camera!.CenterX, _camera.CenterY, _camera.Zoom, viewport.Width, viewport.Height);
+
+    /// <summary>THE LIVE WORLD LAYER: the composed settlement sprites, structures, resources and
+    /// people the simulation reports, drawn on the background list over the map and its
+    /// markers and under the name labels and all chrome. The game keeps the terrain, the
+    /// network and the settlement names; the layer adds only what they do not show.</summary>
+    private void DrawLiveWorldLayer()
+    {
+        if (_worldHost is not { Mode: Sim.Ui.World.WorldLayerMode.Live }) return;
+        _worldBackend ??= new ImGuiIntegration.DrawListImGuiBackend(_imgui!, GraphicsDevice, _fonts);
+        Sim.Ui.World.Scene.WorldFrame? frame = _worldHost.LiveFrame(LiveProjection(Viewport()),
+            Sim.Ui.World.Live.LiveWorld.Key(_selected), _worldBackend);
+        if (frame is not null) _worldBackend.Render(ImGui.GetBackgroundDrawList(), frame.Draw);
+    }
+
+    /// <summary>A world entity selected on the live map: its reported state, from the pure
+    /// inspector, in a small card under the selection card. Read-only; no order.</summary>
+    private void DrawLiveWorldDetails()
+    {
+        if (_worldHost is not { Mode: Sim.Ui.World.WorldLayerMode.Live } host) return;
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(PanelLayout.Margin, PanelLayout.Selection.Y + PanelLayout.Selection.Height + PanelLayout.Margin), ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(320, 0), ImGuiCond.Always);
+        ImGui.Begin("##world-live", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysAutoResize);
+        ImGui.TextUnformatted("WORLD LAYER - LIVE (read-only)   [V] demo / off");
+        Sim.Ui.World.View.WorldView? view = host.LiveView();
+        if (host.Morphology is null) ImGui.TextWrapped("World content did not load: " + string.Join("; ", host.Diagnostics.Take(3)));
+        else if (host.LiveUi.Selected is Sim.Ui.World.WorldEntityId id && view is not null)
+        {
+            Sim.Ui.World.View.InspectorDetails? d = Sim.Ui.World.View.WorldInspector.Details(view, host.Morphology, id);
+            if (d is null) ImGui.TextUnformatted(id + ": not reported in the current state");
+            else
+            {
+                ImGui.TextUnformatted(d.Title + "  (" + d.Kind + ")");
+                foreach (Sim.Ui.World.View.DetailLine line in d.Lines)
+                    ImGui.TextWrapped(line.Label + ": " + line.Value + (line.Tag == Sim.Ui.World.View.DetailTag.View ? "  [view]" : ""));
+            }
+        }
+        else ImGui.TextWrapped("Click a structure, resource or person on the map. Settlements select as before.");
+        ImGui.End();
+    }
+
+    /// <summary>
+    /// THE DEMO WORLD OVERLAY — DEMONSTRATION / PLACEHOLDER content, full screen, on its own
+    /// paper with its own camera, so a demo entity can never be seen on the real map. Drag
+    /// pans, the wheel zooms, a click selects, Left/Right step the demo timeline (read in
+    /// Update), V or Escape close. It holds no reference to the world and emits no order.
+    /// </summary>
+    private void DrawWorldDemoOverlay()
+    {
+        Sim.Ui.World.WorldOverlayHost host = _worldHost!;
+        _worldBackend ??= new ImGuiIntegration.DrawListImGuiBackend(_imgui!, GraphicsDevice, _fonts);
+        Rectangle viewport = Viewport();
+        ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero, ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(viewport.Width, viewport.Height), ImGuiCond.Always);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, System.Numerics.Vector2.Zero);
+        ImGui.Begin("##world-demo",
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollbar
+            | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground);
+        ImGui.PopStyleVar();
+        Sim.Ui.World.Scene.WorldFrame? frame = host.DemoFrame(viewport.Width, viewport.Height, _worldBackend);
+        if (frame is null)
+        {
+            ImGui.TextWrapped("World demo content did not load: " + string.Join("; ", host.Diagnostics.Take(5)) + "   [V/Esc] close");
+            ImGui.End();
+            return;
+        }
+        _worldBackend.Render(ImGui.GetWindowDrawList(), frame.Draw);
+
+        ImGuiIOPtr io = ImGui.GetIO();
+        System.Numerics.Vector2 m = io.MousePos;
+        if (ImGui.IsWindowHovered())
+        {
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left)) { _worldPress = true; _worldDragging = false; _worldPressAt = m; }
+            if (_worldPress && ImGui.IsMouseDown(ImGuiMouseButton.Left))
+            {
+                if (System.Numerics.Vector2.Distance(m, _worldPressAt) > 4f) _worldDragging = true;
+                if (_worldDragging) host.DemoPan(io.MouseDelta.X, io.MouseDelta.Y, viewport.Width, viewport.Height);
+            }
+            if (io.MouseWheel != 0) host.DemoZoomAt(m.X, m.Y, Math.Pow(1.2, io.MouseWheel), viewport.Width, viewport.Height);
+            host.DemoUi.Hovered = frame.Hits.HitTest(m.X, m.Y);
+        }
+        if (_worldPress && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+        {
+            if (!_worldDragging) Sim.Ui.World.WorldOverlayHost.Click(host.DemoUi, frame, m.X, m.Y);
+            _worldPress = false;
+            _worldDragging = false;
+        }
         ImGui.End();
     }
 

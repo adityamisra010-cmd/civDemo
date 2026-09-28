@@ -46,7 +46,7 @@ internal static class LabelPainter
                 dl.Rect(p.Label, Ink.With(ParchmentPalette.PaperLight, 0.9 * alpha), Ink.With(ParchmentPalette.InkSoft, 0.8 * alpha), 0.8, 2);
                 dl.Text(p.Label.X + 6, p.Label.Y + 1.5, SceneGeometry.LabelText(a) + suffix, 12, Ink.With(ParchmentPalette.InkPrimary, alpha));
             }
-            else if (c.Lod != WorldLod.Far || a.Anchor == AgentAnchor.Settlement)
+            else if (c.Lod != WorldLod.Far)
             {
                 WorldPaint.Plate(dl, p.X, p.Y + p.SizePx * 0.55 + 3, a.Report.DisplayName + suffix, 11.5, ParchmentPalette.InkPrimary,
                     TextAlign.Center, FontRole.Body, alpha);
