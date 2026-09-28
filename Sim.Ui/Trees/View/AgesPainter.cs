@@ -36,7 +36,7 @@ internal static class AgesPainter
         IReadOnlyList<AgeDef> order = ages.InOrder();
         AgeDef current = ages.TryAge(input.CurrentAgeId, out AgeDef c0) ? c0 : order[0];
         AgeDef viewed = input.Ui.ViewedAge is string va && ages.TryAge(va, out AgeDef v0) ? v0 : current;
-        string? pendingTo = st.Transition?.Pending == true ? st.Transition.ToAgeId : null;
+        string? pendingTo = input.CurrentTransition?.Pending == true ? input.CurrentTransition.ToAgeId : null;
 
         // --- left: the Age track --------------------------------------------------------------
         var track = new RectD(0, top, 262, H - top);
@@ -56,11 +56,11 @@ internal static class AgesPainter
                 AgeStanding.Current => GlyphState.InProgress,
                 _ => isNext ? GlyphState.Discovered : GlyphState.Locked,
             };
-            double prog = standing == AgeStanding.Passed ? 1.0 : standing == AgeStanding.Current ? st.CurrentProgress ?? 0.0 : 0.0;
+            double prog = standing == AgeStanding.Passed ? 1.0 : standing == AgeStanding.Current ? input.CurrentAgeProgress ?? 0.0 : 0.0;
             var row = new RectD(4, y, track.W - 8, rowH - 4);
             if (a.Id == viewed.Id) dl.Rect(row, Ink.With(Gold, 0.15), Ink.With(Gold, 0.9), 1, 3);
             dl.Glyph(lineX - 18, y + 2, 36, new GlyphSpec(a.IconBase, gs, SizeClass.Px32, Domain: a.IconMark, Era: a.Theme.Register,
-                Maturity: prog, Progress: prog));
+                Maturity: NodeVisuals.Quantise(prog), Progress: NodeVisuals.Quantise(prog)));
             if (standing == AgeStanding.Current && motion.EnteredFlashT >= 0)
                 dl.Circle(lineX, y + 20, 18 + 16 * motion.EnteredFlashT, null, Ink.With(Gold, 1 - motion.EnteredFlashT), 3);
             if (isNext && motion.TransitionSweepT >= 0)
@@ -69,7 +69,7 @@ internal static class AgesPainter
             string label = standing switch
             {
                 AgeStanding.Passed => "passed",
-                AgeStanding.Current => "current · " + (st.CurrentProgress is double p ? $"{p * 100:0} %" : "- %"),
+                AgeStanding.Current => "current · " + (input.CurrentAgeProgress is double p ? $"{p * 100:0} %" : "- %"),
                 _ => isNext ? "next · transition pending" : "future",
             };
             dl.Text(x + 46, y + 24, label, 11.5, standing == AgeStanding.Current ? Gold : InkS, TextAlign.Left, FontRole.Caps);
@@ -90,7 +90,7 @@ internal static class AgesPainter
         AgeStanding vs = Standing(ages, input.CurrentAgeId, viewed);
         dl.Glyph(cx, y, 58, new GlyphSpec(viewed.IconBase, vs == AgeStanding.Future ? GlyphState.Locked : GlyphState.Complete,
             SizeClass.Px48, Domain: viewed.IconMark, Era: viewed.Theme.Register,
-            Maturity: vs == AgeStanding.Passed ? 1.0 : vs == AgeStanding.Current ? st.CurrentProgress ?? 0 : 0));
+            Maturity: NodeVisuals.Quantise(vs == AgeStanding.Passed ? 1.0 : vs == AgeStanding.Current ? input.CurrentAgeProgress ?? 0 : 0)));
         dl.Text(cx + 70, y + 2, viewed.DisplayName.ToUpperInvariant(), 28, InkP, TextAlign.Left, FontRole.Caps);
         double tagX = cx + 70;
         tagX += Chrome.Tag(dl, m, tagX, y + 38, vs.ToString().ToUpperInvariant(), vs == AgeStanding.Current ? Gold : InkS) + 6;
@@ -99,8 +99,8 @@ internal static class AgesPainter
         Chrome.Wrapped(dl, m, ref y, cx, cw, viewed.ShortDescription, 13, InkS);
 
         // Progress (reported) and transition status.
-        double progress = vs == AgeStanding.Passed ? 1.0 : vs == AgeStanding.Current ? st.CurrentProgress ?? 0.0 : 0.0;
-        string pct = vs == AgeStanding.Current ? (st.CurrentProgress is double pp ? $"{pp * 100:0} %" : "- %") : vs == AgeStanding.Passed ? "passed" : "not begun";
+        double progress = vs == AgeStanding.Passed ? 1.0 : vs == AgeStanding.Current ? input.CurrentAgeProgress ?? 0.0 : 0.0;
+        string pct = vs == AgeStanding.Current ? (input.CurrentAgeProgress is double pp ? $"{pp * 100:0} %" : "- %") : vs == AgeStanding.Passed ? "passed" : "not begun";
         y += 6;
         dl.Text(cx, y, "PROGRESS", 11, InkS, TextAlign.Left, FontRole.Caps);
         dl.Text(cx + cw, y - 3, pct, 17, InkP, TextAlign.Right, FontRole.Numeric);
@@ -186,7 +186,7 @@ internal static class AgesPainter
             y = Chrome.SectionTitle(dl, x, y, w, "Milestone");
             GlyphState mg = ss.Completion switch { MilestoneCompletion.Complete => GlyphState.Complete, MilestoneCompletion.Partial => GlyphState.InProgress, _ => GlyphState.Available };
             dl.Glyph(x, y, 40, new GlyphSpec(GlyphBase.Lozenge, mg, SizeClass.Px48, Domain: GlyphDomain.Hourglass,
-                Maturity: ss.Progress ?? 0, Progress: ss.Progress ?? 0));
+                Maturity: NodeVisuals.Quantise(ss.Progress ?? 0), Progress: NodeVisuals.Quantise(ss.Progress ?? 0)));
             dl.Text(x + 50, y + 2, sm.Name, 17, InkP, TextAlign.Left, FontRole.Heading);
             dl.Text(x + 50, y + 24, $"{(sm.Mandatory ? "MANDATORY" : "SUPPORTING")} · {ages.Category(sm.Category).Name.ToUpperInvariant()}", 10.5, InkS, TextAlign.Left, FontRole.Caps);
             y += 50;

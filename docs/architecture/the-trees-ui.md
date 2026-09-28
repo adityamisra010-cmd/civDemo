@@ -384,7 +384,8 @@ Also:
   `BrokenContent_ShowsTheDiagnostics_…`, `Reload_KeepsTheTabLensAndSelection_ByNodeId`;
 - layout: `Layout_IsDeterministic_…`, `Layout_TieDense_EqualBarycentresBreakOnTheNodeIndex`;
 - boundary: `ReadOnlyBoundary_…`;
-- camera and chrome: `Camera_ZoomKeepsThePointUnderTheCursor_…`, `TreesButton_SitsFlushRight_…`.
+- camera and chrome: `Camera_ZoomKeepsThePointUnderTheCursor_…`, `TreesButton_SitsFlushRight_…`;
+- review regressions: `TreesReviewRegressionTests` (19; see §18).
 
 ## §13 Placeholder status
 
@@ -476,3 +477,52 @@ To remove all of it:
   glyph grammar extension and its test additions, and the two `.csproj` item groups.
 
 The simulation projects are unaffected either way.
+
+## §18 Adversarial review
+
+A review workflow (`wf_40fe2a9f-261`) ran on commit `310f831`. It used four reviewers, one per
+lens: content, graph and layout; view semantics; constraints; and game integration. Each worked
+in its own worktree pinned to the commit. Their 29 raw findings deduplicated to 24. The five most
+severe went to independent verifiers, each in its own worktree and asked to refute. **All five
+were confirmed.**
+
+| # | finding (verified) | fix |
+| --- | --- | --- |
+| 1 | **High.** The ImGui dash loop could fail to advance, because a sub-ulp step left it in place, and freeze the game on the overlay's first frame. The dotted legend lines alone triggered it. The SVG path never runs this code, so no test or screenshot could see it. | Dash geometry moved to `StrokeGeometry.Dashes`, which is pure and headless-tested. Every step advances by at least 1e-6 or one ulp, and the walk is capped. |
+| 2 | A milestone that no Age lists and that has no `age` loaded with only a warning, then crashed the details panel. | It is now a loader error, and the panel resolves the Age safely. |
+| 3 | `null` inside a JSON list crashed the loader. | Nulls are scanned before deserialising, and each is reported with its path. |
+| 4 | An unbounded `column` hint overflowed the layout. | The hint must be 0..256 (a loader error otherwise) and is clamped in the layout. |
+| 5 | Stepping the preview backward tripped the forward-only Age guard, and the Age view mis-rendered. | A preview jump re-baselines the guard: it is a chosen snapshot, not a report. |
+
+**Reported but not independently verified.** The rule is that no finding is actionable on the
+finder's word. For each one fixed below, this session wrote a test and measured it **failing**
+before the fix and passing after:
+
+- the details panel scrolled only its header;
+- Clear did nothing when only a lens was focused;
+- the legend's "Clear state filter" cleared everything;
+- hide mode still drew a path edge from a hidden node;
+- empty `nodeTypes` crashed each frame instead of being a load error;
+- numeric and comma-combined enum values were accepted;
+- a duplicate JSON key was silently dropped;
+- a duplicate `alsoIn` lens was accepted;
+- an animation target naming nothing was not warned about;
+- a demo step's omitted Age `progress` reset to empty;
+- the NEW / FOUND markers depended on the state ids `researched` / `discovered` (they now follow
+  research role and ring);
+- a regressed Age report lent its progress and transition to the later Age shown.
+
+Three more were fixed without an in-engine measurement, because the ImGui path cannot run here:
+
+- Age and milestone glyph fractions are now quantised, which bounds the texture cache;
+- polygons are passed to ImGui clockwise (`StrokeGeometry.Clockwise`, tested headless);
+- an overlay click now requires press and release within 4 px.
+
+**Left as documented design.**
+
+- The inline relation fields reserve five kind ids. See the schema document's "Reserved ids".
+- The preview scenarios target the demo content's ids. They are a harness for the demo, not a UI
+  component, and with other content they degrade to "nothing selected".
+- The remaining minor findings are in the workflow journal:
+  `…/subagents/workflows/wf_40fe2a9f-261/journal.jsonl`.
+

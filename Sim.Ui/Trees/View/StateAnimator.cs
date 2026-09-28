@@ -38,6 +38,9 @@ public sealed class StateAnimator
     {
         public string State = "";
         public int Stage;
+        // For nodes: the role and ring of the state entered at EnteredAt, and of the one before.
+        public ResearchRole Role, PrevRole;
+        public Art.Glyphs.GlyphState Ring, PrevRing;
         public double FirstSeen;
         public double EnteredAt = double.NegativeInfinity;
         public double StageUpAt = double.NegativeInfinity;
@@ -69,7 +72,19 @@ public sealed class StateAnimator
             foreach (NodeDef def in trees.Nodes)
             {
                 (StateDef state, _, _) = TreesQueryState.Resolve(trees, def, t.Status(def.Id));
-                Step(_nodes, def.Id, state.Id, state.Stage, baseline, now);
+                bool known = _nodes.ContainsKey(def.Id);
+                Track tr = Step(_nodes, def.Id, state.Id, state.Stage, baseline, now, out bool changed);
+                if (!known)
+                {
+                    // First sight of this node: no previous state to compare with.
+                    tr.Role = tr.PrevRole = state.ResearchRole;
+                    tr.Ring = tr.PrevRing = state.GlyphState;
+                }
+                else if (changed)
+                {
+                    tr.PrevRole = tr.Role; tr.PrevRing = tr.Ring;
+                    tr.Role = state.ResearchRole; tr.Ring = state.GlyphState;
+                }
             }
         }
         if (a.Sequence != _agesSeq)
@@ -91,22 +106,25 @@ public sealed class StateAnimator
             bool baseline = _gallerySeq == long.MinValue;
             _gallerySeq = g.Sequence;
             foreach (BuildingStatus b in g.Buildings)
-                Step(_buildings, b.BuildingId, b.OperationalStatus, gallery.Maturity(b.MaturityStage)?.Stage ?? 0, baseline, now);
+                Step(_buildings, b.BuildingId, b.OperationalStatus, gallery.Maturity(b.MaturityStage)?.Stage ?? 0, baseline, now, out _);
             foreach (UnitStatus u in g.Units)
-                Step(_units, u.UnitId, u.State, gallery.Veterancy(u.VeterancyLevel)?.Chevrons ?? 0, baseline, now);
+                Step(_units, u.UnitId, u.State, gallery.Veterancy(u.VeterancyLevel)?.Chevrons ?? 0, baseline, now, out _);
         }
     }
 
-    private static void Step(Dictionary<string, Track> tracks, string id, string state, int stage, bool baseline, double now)
+    private static Track Step(Dictionary<string, Track> tracks, string id, string state, int stage, bool baseline, double now, out bool changed)
     {
+        changed = false;
         if (!tracks.TryGetValue(id, out Track? tr))
         {
-            tracks[id] = new Track { State = state, Stage = stage, FirstSeen = now, EnteredAt = baseline ? double.NegativeInfinity : now };
-            return;
+            tr = new Track { State = state, Stage = stage, FirstSeen = now, EnteredAt = baseline ? double.NegativeInfinity : now };
+            tracks[id] = tr;
+            return tr;
         }
-        if (tr.State != state) { tr.State = state; tr.EnteredAt = now; }
+        if (tr.State != state) { tr.State = state; tr.EnteredAt = now; changed = true; }
         if (stage > tr.Stage) tr.StageUpAt = now;
         tr.Stage = stage;
+        return tr;
     }
 
     // --- sampling --------------------------------------------------------------------------
@@ -133,8 +151,12 @@ public sealed class StateAnimator
         double pip = -1.0;
         AnimationDef? stageUp = _defs.Transition("node-stage-up");
         if (stageUp is not null) pip = OneShot(stageUp, tr.StageUpAt, now).T;
-        return new NodeMotion(halo, scale, kind, t,
-            newly && tr.State == "researched", newly && tr.State == "discovered", pip);
+        // By ROLE, not by state id, so renaming a state in content keeps the markers:
+        // newly completed = entered a completed-research state from one that was not;
+        // newly discovered = left a locked ring for anything else.
+        bool completed = tr.Role == ResearchRole.Completed && tr.PrevRole != ResearchRole.Completed;
+        bool discovered = !completed && tr.PrevRing == Art.Glyphs.GlyphState.Locked && tr.Ring != Art.Glyphs.GlyphState.Locked;
+        return new NodeMotion(halo, scale, kind, t, newly && completed, newly && discovered, pip);
     }
 
     /// <summary>Positions (0..1 along the edge) of the flow dots for a steady edge

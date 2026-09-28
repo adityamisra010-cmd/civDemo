@@ -64,7 +64,13 @@ public sealed class DemoStateSource : ITreesStateSource, IAgeStateSource, IGalle
         void Warn(string path, string msg) => diags.Add(new(DiagnosticSeverity.Warning, F, path, msg));
 
         DemoStateFileDto? dto;
-        try { dto = JsonSerializer.Deserialize<DemoStateFileDto>(json, TreesJsonOptions.Options); }
+        try
+        {
+            List<string> nulls = TreesJsonOptions.NullListElements(json);
+            foreach (string np in nulls) Error(np, "null is not allowed in a list");
+            if (nulls.Count > 0) return (null, diags);
+            dto = JsonSerializer.Deserialize<DemoStateFileDto>(json, TreesJsonOptions.Options);
+        }
         catch (JsonException ex) { Error(ex.Path ?? "$", $"invalid JSON at line {ex.LineNumber + 1}: {ex.Message}"); return (null, diags); }
         if (dto is null) { Error("$", "empty"); return (null, diags); }
         if (dto.Schema != Schema) Error("schema", $"expected '{Schema}', found '{dto.Schema}'");
@@ -129,6 +135,7 @@ public sealed class DemoStateSource : ITreesStateSource, IAgeStateSource, IGalle
 
             if (step.Ages is not null)
             {
+                string? agePrev = currentAge;
                 string? cur = step.Ages.Current;
                 if (cur is null || !ages.TryAge(cur, out AgeDef curAge)) { Error(p + ".ages.current", $"unknown Age '{cur}'"); }
                 else
@@ -138,7 +145,10 @@ public sealed class DemoStateSource : ITreesStateSource, IAgeStateSource, IGalle
                     currentAge = cur;
                 }
                 if (!Fraction(step.Ages.Progress)) Error(p + ".ages.progress", "must be in [0,1]");
-                ageProgress = step.Ages.Progress;
+                // A step lists only what changed: an omitted progress carries over, unless the
+                // Age itself changed (a new Age starts with no reported progress).
+                bool ageChanged = step.Ages.Current is not null && step.Ages.Current != agePrev;
+                ageProgress = step.Ages.Progress ?? (ageChanged ? null : ageProgress);
                 transition = null;
                 if (step.Ages.Transition is DemoTransitionDto t)
                 {

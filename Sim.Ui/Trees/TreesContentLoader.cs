@@ -35,6 +35,9 @@ public static class TreesContentLoader
     public const string GallerySchema = "civ-sim/gallery@1";
     public const string AnimationsSchema = "civ-sim/ui-animations@1";
 
+    /// <summary>The largest layout-column hint a node may carry.</summary>
+    public const int MaxColumnHint = 256;
+
     /// <summary>The palette tokens a relation kind may name as its ink.</summary>
     public static readonly string[] InkTokens = ["InkPrimary", "InkSoft", "Verdigris", "IronRed", "GoldLeaf", "River"];
 
@@ -101,6 +104,7 @@ public static class TreesContentLoader
         TreesDocument? trees = ages is null ? null : ResolveTrees(treesDto, ages, d);
         GalleryDocument gallery = ResolveGallery(galleryDto, d);
         if (ages is not null && trees is not null) CrossCheckAges(ages, trees, d);
+        if (trees is not null) CrossCheckAnimations(animations, trees, gallery, d);
 
         if (d.HasErrors || trees is null || ages is null) return new(null, d.All);
         var warnings = d.All.Where(x => x.Severity == DiagnosticSeverity.Warning).ToArray();
@@ -113,6 +117,9 @@ public static class TreesContentLoader
     {
         try
         {
+            List<string> nulls = TreesJsonOptions.NullListElements(json);
+            foreach (string p in nulls) d.Error(file, p, "null is not allowed in a list");
+            if (nulls.Count > 0) return null;
             T? dto = JsonSerializer.Deserialize<T>(json, TreesJsonOptions.Options);
             if (dto is null) d.Error(file, "$", "the file is empty or null");
             return dto;
@@ -147,8 +154,8 @@ public static class TreesContentLoader
             if (required) d.Error(file, path, $"required ({typeof(TEnum).Name})");
             return fallback;
         }
-        if (Enum.TryParse(value, ignoreCase: false, out TEnum parsed) && Enum.IsDefined(parsed)
-            && !int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out _))
+        // Names only: no numbers ("1") and no flag combinations ("A, B"), which Enum.TryParse accepts.
+        if (Array.IndexOf(Enum.GetNames<TEnum>(), value) >= 0 && Enum.TryParse(value, ignoreCase: false, out TEnum parsed))
             return parsed;
         d.Error(file, path, $"'{value}' is not a {typeof(TEnum).Name} (one of: {string.Join(", ", Enum.GetNames<TEnum>())})");
         return fallback;
@@ -158,9 +165,9 @@ public static class TreesContentLoader
     private static TEnum ParseWord<TEnum>(string? value, string file, string path, Diagnostics d) where TEnum : struct, Enum
     {
         if (string.IsNullOrWhiteSpace(value)) { d.Error(file, path, "required"); return default; }
-        string pascal = string.Concat(value.Split('-', StringSplitOptions.RemoveEmptyEntries)
-            .Select(w => char.ToUpperInvariant(w[0]) + w[1..]));
-        if (Enum.TryParse(pascal, ignoreCase: false, out TEnum parsed) && Enum.IsDefined(parsed)) return parsed;
+        bool word = value.All(c => (c >= 'a' && c <= 'z') || c == '-') && !value.StartsWith('-') && !value.EndsWith('-') && !value.Contains("--");
+        string pascal = word ? string.Concat(value.Split('-').Select(w => char.ToUpperInvariant(w[0]) + w[1..])) : "";
+        if (word && Array.IndexOf(Enum.GetNames<TEnum>(), pascal) >= 0 && Enum.TryParse(pascal, ignoreCase: false, out TEnum parsed)) return parsed;
         string words = string.Join(", ", Enum.GetNames<TEnum>().Select(Kebab));
         d.Error(file, path, $"'{value}' is not one of: {words}");
         return default;
@@ -301,7 +308,11 @@ public static class TreesContentLoader
         for (int i = 0; i < milestones.Count; i++)
         {
             MilestoneDef m = milestones[i];
-            if (!listedBy.ContainsKey(m.Id)) d.Warn(F, $"milestones[{i}]", $"milestone '{m.Id}' is not listed by any Age");
+            if (!listedBy.ContainsKey(m.Id))
+            {
+                if (m.Age.Length == 0) d.Error(F, $"milestones[{i}]", $"milestone '{m.Id}' belongs to no Age: list it in an Age's milestones or give it an 'age'");
+                else d.Warn(F, $"milestones[{i}]", $"milestone '{m.Id}' is not listed by any Age");
+            }
             if (m.Age.Length > 0 && !doc.TryAge(m.Age, out _)) d.Error(F, $"milestones[{i}].age", $"unknown Age '{m.Age}'");
             foreach (string pre in m.Prerequisites)
                 if (!doc.TryMilestone(pre, out _)) d.Error(F, $"milestones[{i}].prerequisites", $"unknown milestone '{pre}'");
@@ -360,6 +371,7 @@ public static class TreesContentLoader
                 ParseEnum(t.Base, GlyphBase.Node, F, p + ".base", d), ParseEnum(t.Mark, GlyphDomain.None, F, p + ".mark", d, required: false),
                 set, t.Description ?? "");
         }).ToArray();
+        if (types.Length == 0) d.Error(F, "nodeTypes", "at least one node type is required");
         Unique(types, t => t.Id, F, "nodeTypes", d);
 
         var kinds = (dto.RelationKinds ?? []).Select((k, i) =>
@@ -391,6 +403,7 @@ public static class TreesContentLoader
             string domain = Req(n.Domain, F, p + ".domain", d);
             if (domain.Length > 0 && !lensIds.Contains(domain)) d.Error(F, p + ".domain", $"unknown lens '{domain}'");
             List<string> alsoIn = n.AlsoIn ?? [];
+            if (alsoIn.Distinct(StringComparer.Ordinal).Count() != alsoIn.Count) d.Error(F, p + ".alsoIn", "a lens is listed twice");
             foreach (string l in alsoIn)
             {
                 if (!lensIds.Contains(l)) d.Error(F, p + ".alsoIn", $"unknown lens '{l}'");
@@ -419,7 +432,7 @@ public static class TreesContentLoader
             }
             if (n.MilestoneRef is not null && !ages.TryMilestone(n.MilestoneRef, out _))
                 d.Error(F, p + ".milestoneRef", $"unknown milestone '{n.MilestoneRef}'");
-            if (n.Column is int c && c < 0) d.Error(F, p + ".column", "must be ≥ 0");
+            if (n.Column is int c && (c < 0 || c > MaxColumnHint)) d.Error(F, p + ".column", $"must be 0..{MaxColumnHint}");
 
             nodes.Add(new NodeDef(id, domain, alsoIn, typeId, n.Name ?? id, n.ShortDescription ?? "", n.LongDescription ?? "",
                 baseShape, mark, era, n.VisualStyle?.Note ?? "", from, to, ageRefs, cost, n.HistoricalReferences ?? [],
@@ -515,6 +528,30 @@ public static class TreesContentLoader
         for (int i = 0; i < ages.Milestones.Count; i++)
             foreach (string r in ages.Milestones[i].NodeRefs)
                 if (!nodeIds.Contains(r)) d.Error(AgesFile, $"milestones[{i}].nodeRefs", $"unknown node '{r}'");
+    }
+
+    /// <summary>An animation whose target names no state, kind or status never plays; say so.</summary>
+    private static void CrossCheckAnimations(AnimationDocument anims, TreesDocument trees, GalleryDocument gallery, Diagnostics d)
+    {
+        for (int i = 0; i < anims.Animations.Count; i++)
+        {
+            AnimationDef a = anims.Animations[i];
+            string? key = a.AppliesTo ?? a.Trigger;
+            if (key is null) continue;
+            int colon = key.IndexOf(':');
+            if (colon < 0) continue;
+            string prefix = key[..colon], id = key[(colon + 1)..];
+            bool known = prefix switch
+            {
+                "node-state" or "node-enter" => trees.States.Any(x => x.Id == id),
+                "edge-kind" => trees.RelationKinds.Any(x => x.Id == id),
+                "building-status" => gallery.OperationalStatuses.Any(x => x.Id == id),
+                "unit-state" => gallery.UnitStates.Any(x => x.Id == id),
+                "age" => id == "transition",
+                _ => true,
+            };
+            if (!known) d.Warn(AnimationsFile, $"animations[{i}]", $"'{key}' names no {prefix.Replace("-", " ")} '{id}': this animation never plays");
+        }
     }
 
     // --- gallery ---------------------------------------------------------------------------

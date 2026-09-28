@@ -1083,7 +1083,10 @@ public sealed class SimUiGame : Game
         }
         if (_treesPress && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
-            if (!_treesDragging && frame.HitAt(m.X, m.Y) is Sim.Ui.Trees.View.TreesAction action)
+            // A click is press and release within 4 px, whatever the frame rate (a flick
+            // released in the next frame never counts as a click where it lands).
+            bool click = !_treesDragging && System.Numerics.Vector2.Distance(m, _treesPressAt) <= 4f;
+            if (click && frame.HitAt(m.X, m.Y) is Sim.Ui.Trees.View.TreesAction action)
             {
                 _trees.Handle(action, frame);
                 if (action is Sim.Ui.Trees.View.ClearFiltersAction) _treesSearch = "";

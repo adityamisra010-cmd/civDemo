@@ -16,7 +16,40 @@ internal static class TreesJsonOptions
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        // A key written twice (a copy-paste edit) must not silently drop the first value.
+        AllowDuplicateProperties = false,
     };
+
+    /// <summary>JSON <c>null</c> inside a list is not content: report every one with its path
+    /// before deserialising, so it is a diagnostic rather than a null reference later.
+    /// (JsonDocument, not JsonNode: it tolerates a duplicate key, which the serializer then
+    /// reports properly instead of this scan throwing.)</summary>
+    public static List<string> NullListElements(string json)
+    {
+        var paths = new List<string>();
+        using JsonDocument doc = JsonDocument.Parse(json,
+            new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+        void Walk(JsonElement e, string path)
+        {
+            switch (e.ValueKind)
+            {
+                case JsonValueKind.Array:
+                    int i = 0;
+                    foreach (JsonElement item in e.EnumerateArray())
+                    {
+                        string p = $"{path}[{i++}]";
+                        if (item.ValueKind == JsonValueKind.Null) paths.Add(p); else Walk(item, p);
+                    }
+                    break;
+                case JsonValueKind.Object:
+                    foreach (JsonProperty prop in e.EnumerateObject())
+                        Walk(prop.Value, path.Length == 0 ? prop.Name : path + "." + prop.Name);
+                    break;
+            }
+        }
+        Walk(doc.RootElement, "");
+        return paths;
+    }
 }
 
 internal sealed class TreesFileDto

@@ -44,6 +44,11 @@ public sealed record TreesFrameInput(
 {
     /// <summary>The Age to show as current: the forward-only guard's, else the report's.</summary>
     public string CurrentAgeId => AgeGuard?.DisplayedAgeId ?? Ages.CurrentAgeId;
+    /// <summary>The current Age's reported progress — null while the guard is holding a later
+    /// Age than the report, so an earlier Age's progress is never shown against it.</summary>
+    public double? CurrentAgeProgress => AgeGuard?.RegressionReported == true ? null : Ages.CurrentProgress;
+    /// <summary>The reported transition, withheld on the same condition.</summary>
+    public AgeTransitionStatus? CurrentTransition => AgeGuard?.RegressionReported == true ? null : Ages.Transition;
 }
 
 /// <summary>One painted frame: the draw list, the click regions, and where the canvas and
@@ -119,19 +124,19 @@ public static class TreesScreen
         if (ages.TryAge(input.CurrentAgeId, out AgeDef age))
         {
             AgeMotion am = input.Animator.Age(input.Now);
-            var star = new GlyphSpec(age.IconBase, input.Ages.Transition?.Pending == true ? GlyphState.InProgress : GlyphState.Complete,
+            var star = new GlyphSpec(age.IconBase, input.CurrentTransition?.Pending == true ? GlyphState.InProgress : GlyphState.Complete,
                 SizeClass.Px32, Domain: age.IconMark, Era: age.Theme.Register,
-                Maturity: input.Ages.CurrentProgress ?? 0.0, Progress: input.Ages.CurrentProgress ?? 0.0);
+                Maturity: NodeVisuals.Quantise(input.CurrentAgeProgress ?? 0.0), Progress: NodeVisuals.Quantise(input.CurrentAgeProgress ?? 0.0));
             dl.Circle(x + 17, 29, 18.5, ParchmentPalette.PaperLight);
             dl.Glyph(x, 12, 34, star);
             if (am.EnteredFlashT >= 0) dl.Circle(x + 17, 29, 17 + 14 * am.EnteredFlashT, null, Ink.With(ParchmentPalette.GoldLeaf, 1 - am.EnteredFlashT), 2.5);
             dl.Text(x + 42, 9, age.DisplayName.ToUpperInvariant(), 15, paper, TextAlign.Left, FontRole.Caps);
-            if (input.Ages.Transition?.Pending == true && input.Ages.Transition.ToAgeId is string to && ages.TryAge(to, out AgeDef next))
+            if (input.CurrentTransition?.Pending == true && input.CurrentTransition.ToAgeId is string to && ages.TryAge(to, out AgeDef next))
                 dl.Text(x + 48 + m.Width(age.DisplayName.ToUpperInvariant(), 15, FontRole.Caps), 10, "-> " + next.DisplayName.ToUpperInvariant(),
                     12.5, ParchmentPalette.GoldLeaf, TextAlign.Left, FontRole.Caps);
-            string progress = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "- %";
+            string progress = input.CurrentAgeProgress is double p ? $"{p * 100:0} %" : "- %";
             dl.Text(x + 42, 31, Ink.Fit(m, $"progress {progress}", 12.5, 170), 12.5, paperSoft, TextAlign.Left, FontRole.Numeric);
-            dl.Bar(new RectD(x + 42, 48, 150, 4), input.Ages.CurrentProgress ?? 0.0, ParchmentPalette.GoldLeaf, Ink.With(paper, 0.5));
+            dl.Bar(new RectD(x + 42, 48, 150, 4), input.CurrentAgeProgress ?? 0.0, ParchmentPalette.GoldLeaf, Ink.With(paper, 0.5));
             hits.Add(new Hit(new RectD(x, 6, 200, 46), new SetTabAction(TreesTab.Ages), "Open the Age view"));
         }
 

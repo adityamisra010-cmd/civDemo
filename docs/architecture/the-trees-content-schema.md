@@ -15,7 +15,10 @@ No C# change is needed for any of the edits described here. Background: [`the-tr
 JSON path, shown on screen instead of crashing):
 
 - **Strict fields.** An unknown field is an error, so a misspelt field cannot silently drop an
-  edit. Comments (`//`, `/* */`) and trailing commas are allowed.
+  edit. A key written twice in one object is an error, and `null` inside a list is an error.
+  Comments (`//`, `/* */`) and trailing commas are allowed.
+- **Names, not numbers.** Enum-valued fields accept the member name only. `"1"` and flag
+  combinations such as `"A, B"` are rejected.
 - **Ids.** Every id is unique within its list. References use ids.
 - **Glyph names.** They are the C# enum member names: `base` from `GlyphBase`, `mark` from
   `GlyphDomain`, `era` / `register` from `EraRegister`, `glyphState` from `GlyphState`. The
@@ -84,7 +87,7 @@ shows when the source reports nothing.
 | --- | --- | --- |
 | `id` | string | e.g. `knowledge.mathematics` |
 | `domain` | lens id | the primary lens (its band) |
-| `alsoIn` | lens ids | other lenses the node appears in |
+| `alsoIn` | lens ids | other lenses the node appears in (each once) |
 | `type` | node-type id | decides base, default mark and state set |
 | `name`, `shortDescription`, `longDescription` | strings | |
 | `icon` | `{ "base"?, "mark"? }` | overrides the type's glyph |
@@ -100,8 +103,14 @@ shows when the source reports nothing.
 | `historicalReferences` | strings | |
 | `directorNotes` | string | shown under DIRECTOR NOTES |
 | `milestoneRef` | milestone id | for milestone nodes |
-| `column` | integer ≥ 0 | minimum layout column (a hint) |
+| `column` | integer 0..256 | minimum layout column (a hint) |
 | `placeholder` | bool | default true |
+
+**Reserved ids.** The inline fields write the kinds `prerequisite`, `enables`, `dependsOn`,
+`feeds` and `relatedTo`, so those five ids must exist in `relationKinds[]` whenever a node uses
+the matching field. The `related*` lists check their targets against the lens ids `INSTITUTIONS`,
+`INFRASTRUCTURE`, `INDUSTRY`, `MILITARY` and `APPLICATIONS`, as a warning only. Renaming one of
+these ids is a schema change, not a content edit.
 
 **`state`, `progress` and `researchProgress` are not content.** They are runtime values from the
 state source (§5 below). The node's `NodeStatus` carries them as `StateId`, `RealizationProgress`
@@ -159,6 +168,9 @@ with `*`).
 - `nodeRefs` (node ids in the graph, validated);
 - `placeholder`.
 
+A milestone that no Age lists and that has no `age` is an error. A milestone that no Age lists
+but that names its `age` is a warning.
+
 ## §4 `gallery.json` — building and unit placeholders (schema `civ-sim/gallery@1`)
 
 | list | fields |
@@ -183,7 +195,7 @@ may contain these parts:
 | `label` | shown in the state-source panel |
 | `research` | `pointsPerTurn`, `currentTarget` (node id), `note` |
 | `nodes[]` | `id`, `state` (must be in the node type's state set), `researchProgress`, `researchPoints`, `realizationProgress`, `note` |
-| `ages` | `current` (never earlier than the previous step's), `progress`, `transition { pending, to, note }` (`to` after the current Age) |
+| `ages` | `current` (never earlier than the previous step's), `progress` (omitted: carried over, unless the Age changed), `transition { pending, to, note }` (`to` after the current Age; omitted or null clears it) |
 | `milestones[]` | `id`, `completion` (`not-started` · `partial` · `complete`), `progress`, `evidence` |
 | `buildings[]` | `building`, `maturity`, `maturityProgress`, `constructionProgress`, `personnel { current, capacity }`, `capacity`, `specialization`, `ageBuilt`, `status` |
 | `units[]` | `unit`, `state`, `strength`, `experience`, `veterancy`, `experienceProgress`, `training`, `recovery`, `doctrine` (node id), `cohesion` |
@@ -205,5 +217,6 @@ alone (`NoStateSource`). Every node then shows the first state of its set.
     `building-stage-up`, `unit-veterancy-up` or `age-enter`;
 - `periodSeconds` (> 0 for loops), `durationSeconds` (> 0 for one-shots), `amplitude`, `dots`.
 
-An animation can never change a state or a number. The painter draws glyphs from reported state
+A target that names no existing state, relation kind or status is warned about, because such an
+animation never plays. An animation can never change a state or a number. The painter draws glyphs from reported state
 only (tested).

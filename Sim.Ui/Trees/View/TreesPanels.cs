@@ -51,7 +51,7 @@ internal static class TreesPanels
         }
         string lenses = string.Join(" + ", g.LensesOf(sel).Select(l => c.Lens(l).Name));
         dl.Text(hx, y + 2, Ink.Fit(m, $"{v.Type.Name.ToUpperInvariant()} · {lenses.ToUpperInvariant()}", 10.5, w - 58), 10.5, InkS, TextAlign.Left, FontRole.Caps);
-        y = System.Math.Max(y + 22, top + 60);
+        y = System.Math.Max(y + 22, y0 + 56);   // relative to the scrolled origin, so the body scrolls as one
         if (v.Def.Placeholder) { Chrome.Tag(dl, m, x, y, "DEMO CONTENT", ParchmentPalette.IronRed); y += 22; }
 
         // State: research and realization, kept visibly distinct.
@@ -154,7 +154,9 @@ internal static class TreesPanels
         foreach (MilestoneDef md in ages.Milestones.Where(q => q.NodeRefs.Contains(v.Def.Id) || q.Id == v.Def.MilestoneRef))
         {
             Chrome.Check(dl, x, y, input.Ages.Milestone(md.Id).Completion);
-            dl.Text(x + 20, y, Ink.Fit(m, $"{md.Name} ({ages.Age(md.Age.Length > 0 ? md.Age : ages.Ages.First(a => a.Milestones.Contains(md.Id)).Id).DisplayName})", 12, w - 20), 12, InkP);
+            string? mAge = md.Age.Length > 0 ? md.Age : ages.Ages.FirstOrDefault(a => a.Milestones.Contains(md.Id))?.Id;
+            string ageName = mAge is not null && ages.TryAge(mAge, out AgeDef ad) ? ad.DisplayName : "no Age";
+            dl.Text(x + 20, y, Ink.Fit(m, $"{md.Name} ({ageName})", 12, w - 20), 12, InkP);
             hits.Add(new Hit(new RectD(x, y - 2, w, 18), new SelectMilestoneAction(md.Id), "Milestone"));
             y += 19;
         }
@@ -271,6 +273,6 @@ internal static class TreesPanels
         y += (k2 + 1) / 2 * 19 + 4;
         Chrome.Wrapped(dl, m, ref y, x, w, "· marks a kind that does not order the layout (feedback may point backward). Relationships are visualization/data concepts, not simulation rules.", 10.5, InkS);
         if (ui.StateFilter.Count > 0)
-            Chrome.Button(dl, hits, new RectD(x, y + 4, w, 22), "Clear state filter", false, new ClearFiltersAction());
+            Chrome.Button(dl, hits, new RectD(x, y + 4, w, 22), "Clear state filter", false, new ClearStateFilterAction());
     }
 }

@@ -127,7 +127,13 @@ public sealed class TreesHost
             case ReloadContentAction: Reload(); return;
             case FocusSearchAction: SearchFocusRequested = true; return;
             case PreviewStepAction p:
-                if (Demo is not null && ReferenceEquals(TreesSource, Demo)) { if (p.Delta > 0) Demo.Next(); else Demo.Previous(); }
+                if (Demo is not null && ReferenceEquals(TreesSource, Demo))
+                {
+                    if (p.Delta > 0) Demo.Next(); else Demo.Previous();
+                    // A preview jump is a CHOSEN snapshot, not a report sequence: the forward-only
+                    // guard re-baselines, so stepping back is not shown as a regression.
+                    AgeGuard = new AgeForwardGuard();
+                }
                 return;
         }
         if (Graph is not null && Layout is not null) Ui.Apply(action, Graph, Layout, frame.Layout.Canvas);

@@ -104,7 +104,7 @@ public static class TreesQuery
             bool onPath;
             if (focusing) onPath = edge.Directed && edge.Kind.Layering && focus[edge.FlowFrom] && focus[edge.FlowTo];
             else onPath = ui.Selected is int s1 && edge.Directed && edge.Kind.Layering && edge.FlowTo == s1;
-            if (onPath && em > Emphasis.Context) em = Emphasis.Context;
+            if (onPath && em == Emphasis.Dimmed) em = Emphasis.Context;   // a hidden end stays hidden
             edges[e] = new EdgeView(edge, em, onPath, g.IsCrossLens(edge));
         }
 

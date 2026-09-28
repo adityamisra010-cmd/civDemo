@@ -84,6 +84,7 @@ internal static class TreesCanvasPainter
 
     private static string? NextType(TreesDocument c, string? current)
     {
+        if (c.NodeTypes.Count == 0) return null;
         if (current is null) return c.NodeTypes[0].Id;
         int i = c.NodeTypes.ToList().FindIndex(t => t.Id == current);
         return i < 0 || i + 1 >= c.NodeTypes.Count ? null : c.NodeTypes[i + 1].Id;
@@ -152,11 +153,11 @@ internal static class TreesCanvasPainter
         if (ages.TryAge(input.CurrentAgeId, out AgeDef age))
         {
             dl.Glyph(x, y, 32, new GlyphSpec(age.IconBase, GlyphState.Complete, SizeClass.Px32, Domain: age.IconMark,
-                Era: age.Theme.Register, Maturity: input.Ages.CurrentProgress ?? 0.0));
+                Era: age.Theme.Register, Maturity: NodeVisuals.Quantise(input.CurrentAgeProgress ?? 0.0)));
             dl.Text(x + 40, y + 1, age.DisplayName, 14, InkP, TextAlign.Left, FontRole.Heading);
-            string pct = input.Ages.CurrentProgress is double p ? $"{p * 100:0} %" : "-";
+            string pct = input.CurrentAgeProgress is double p ? $"{p * 100:0} %" : "-";
             dl.Text(x + 40, y + 18, $"progress {pct}", 11.5, InkS, TextAlign.Left, FontRole.Numeric);
-            dl.Bar(new RectD(x, y + 38, w, 5), input.Ages.CurrentProgress ?? 0.0, Gold, Ink.With(InkS, 0.6), ParchmentPalette.PaperMid);
+            dl.Bar(new RectD(x, y + 38, w, 5), input.CurrentAgeProgress ?? 0.0, Gold, Ink.With(InkS, 0.6), ParchmentPalette.PaperMid);
             IReadOnlyList<MilestoneDef> ms = ages.MilestonesOf(age.Id);
             int mand = ms.Count(q => q.Mandatory), mandDone = ms.Count(q => q.Mandatory && input.Ages.Milestone(q.Id).Completion == MilestoneCompletion.Complete);
             dl.Text(x, y + 48, $"mandatory milestones {mandDone}/{mand}", 11.5, InkS, TextAlign.Left, FontRole.Numeric);
@@ -199,8 +200,17 @@ internal static class TreesCanvasPainter
             Chrome.Button(dl, hits, new RectD(x + 34, y, 30, 22), "»", false, new PreviewStepAction(+1), "Next placeholder step (preview only)");
         }
         Chrome.Button(dl, hits, new RectD(x + w - 64, y, 64, 22), "Reload", false, new ReloadContentAction(), "Reload ui-content/trees");
+        // Errors in the state file make the host fall back to NO STATE: say so, with the first one.
+        int errors = input.Diagnostics?.Count(d => d.Severity == DiagnosticSeverity.Error) ?? 0;
         int warnings = input.Diagnostics?.Count(d => d.Severity == DiagnosticSeverity.Warning) ?? 0;
-        if (warnings > 0) dl.Text(x + 72, y + 4, $"{warnings} warning(s)", 11, ParchmentPalette.IronRed);
+        if (errors + warnings > 0)
+        {
+            string label = errors > 0 ? $"{errors} error(s), {warnings} warning(s)" : $"{warnings} warning(s)";
+            var r2 = new RectD(x + 72, y + 2, w - 140, 18);
+            dl.Text(r2.X, y + 4, Ink.Fit(input.Measure, label, 11, r2.W), 11, ParchmentPalette.IronRed);
+            ContentDiagnostic first = input.Diagnostics!.OrderByDescending(d => d.Severity).First();
+            hits.Add(new Hit(r2, new InfoAction(), first.ToString()));
+        }
     }
 
     // --- the graph canvas -----------------------------------------------------------------------
@@ -331,12 +341,8 @@ internal static class TreesCanvasPainter
         }
     }
 
-    internal static (double X, double Y) BezierAt((double X, double Y) p0, (double X, double Y) p1, (double X, double Y) p2, (double X, double Y) p3, double t)
-    {
-        double u = 1 - t;
-        double a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
-        return (a * p0.X + b * p1.X + c * p2.X + d * p3.X, a * p0.Y + b * p1.Y + c * p2.Y + d * p3.Y);
-    }
+    internal static (double X, double Y) BezierAt((double X, double Y) p0, (double X, double Y) p1, (double X, double Y) p2, (double X, double Y) p3, double t) =>
+        StrokeGeometry.BezierAt(p0, p1, p2, p3, t);
 
     private static void PaintNode(DrawList dl, List<Hit> hits, TreesFrameInput input, RectD canvas, NodeView v)
     {

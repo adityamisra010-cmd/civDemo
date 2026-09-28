@@ -87,7 +87,10 @@ public sealed record ToggleStateFilterAction(string StateId) : TreesAction;
 public sealed record SetAgeFilterAction(string? AgeId) : TreesAction;
 public sealed record SetTypeFilterAction(string? TypeId) : TreesAction;
 public sealed record SetFilterModeAction(FilterMode Mode) : TreesAction;
+/// <summary>Clear the lens, every filter, the search and the focus.</summary>
 public sealed record ClearFiltersAction : TreesAction;
+/// <summary>Clear the state filter only (the legend's button).</summary>
+public sealed record ClearStateFilterAction : TreesAction;
 public sealed record SelectNodeAction(int? Node, bool Center = false) : TreesAction;
 public sealed record SetFocusAction(FocusMode Mode) : TreesAction;
 public sealed record ZoomAction(double Factor) : TreesAction;
@@ -104,6 +107,8 @@ public sealed record ReloadContentAction : TreesAction;
 public sealed record CloseAction : TreesAction;
 /// <summary>Host: give keyboard focus to the search box.</summary>
 public sealed record FocusSearchAction : TreesAction;
+/// <summary>An inert region that exists for its tooltip (e.g. the first content diagnostic).</summary>
+public sealed record InfoAction : TreesAction;
 
 /// <summary>
 /// THE TREES SCREEN'S UI STATE — tab, lens, filters, search, selection, focus, camera.
@@ -164,7 +169,10 @@ public sealed class TreesUiState
             case SetTypeFilterAction ty: TypeFilter = ty.TypeId; return true;
             case SetFilterModeAction m: FilterMode = m.Mode; return true;
             case ClearFiltersAction:
-                StateFilter.Clear(); AgeFilter = null; TypeFilter = null; Search = ""; Focus = FocusMode.None;
+                StateFilter.Clear(); AgeFilter = null; TypeFilter = null; Search = ""; Focus = FocusMode.None; Lens = null;
+                return true;
+            case ClearStateFilterAction:
+                StateFilter.Clear();
                 return true;
             case SelectNodeAction s:
                 Selected = s.Node is int n && n >= 0 && n < graph.Count ? n : null;

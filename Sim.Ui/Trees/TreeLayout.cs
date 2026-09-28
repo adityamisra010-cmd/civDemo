@@ -175,7 +175,7 @@ public static class TreeLayout
         var ready = new SortedSet<int>();
         for (int i = 0; i < n; i++) if (indegree[i] == 0) ready.Add(i);
         var column = new int[n];
-        for (int i = 0; i < n; i++) column[i] = g.Node(i).ColumnHint ?? 0;
+        for (int i = 0; i < n; i++) column[i] = System.Math.Clamp(g.Node(i).ColumnHint ?? 0, 0, TreesContentLoader.MaxColumnHint);
         var done = new bool[n];
         while (ready.Count > 0)
         {

@@ -70,7 +70,7 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
                     {
                         var pts = new (double, double)[25];
                         for (int i = 0; i <= 24; i++)
-                            pts[i] = Sim.Ui.Trees.View.TreesCanvasPainter.BezierAt(b.P0, b.P1, b.P2, b.P3, i / 24.0);
+                            pts[i] = StrokeGeometry.BezierAt(b.P0, b.P1, b.P2, b.P3, i / 24.0);
                         Dashed(dl, pts, bon, boff, Col(b.Color), b.Width);
                     }
                     else dl.AddBezierCubic(V(b.P0.X, b.P0.Y), V(b.P1.X, b.P1.Y), V(b.P2.X, b.P2.Y), V(b.P3.X, b.P3.Y), Col(b.Color), (float)b.Width, 24);
@@ -78,8 +78,9 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
                 case PolygonCmd p:
                 {
                     if (p.Points.Length < 3) break;
-                    var pts = new Vector2[p.Points.Length];
-                    for (int i = 0; i < pts.Length; i++) pts[i] = V(p.Points[i].X, p.Points[i].Y);
+                    (double X, double Y)[] cw = StrokeGeometry.Clockwise(p.Points);   // ImGui AA fringe goes outside only for clockwise
+                    var pts = new Vector2[cw.Length];
+                    for (int i = 0; i < pts.Length; i++) pts[i] = V(cw[i].X, cw[i].Y);
                     dl.AddConvexPolyFilled(ref pts[0], pts.Length, Col(p.Fill));
                     break;
                 }
@@ -137,33 +138,11 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
         return id;
     }
 
-    /// <summary>Dash a polyline by arc length (ImGui has no dashed strokes).</summary>
+    /// <summary>Dash a polyline by arc length (ImGui has no dashed strokes). The geometry is
+    /// StrokeGeometry.Dashes — pure, headless-tested, guaranteed to terminate.</summary>
     private static void Dashed(ImDrawListPtr dl, (double X, double Y)[] pts, double on, double off, uint col, double width)
     {
-        double period = on + off;
-        if (period <= 0) return;
-        double s = 0;   // arc length at the start of the current segment
-        for (int i = 1; i < pts.Length; i++)
-        {
-            (double x0, double y0) = pts[i - 1];
-            (double x1, double y1) = pts[i];
-            double len = Math.Sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
-            if (len < 1e-9) continue;
-            double t = 0;
-            while (t < len)
-            {
-                double phase = (s + t) % period;
-                bool drawing = phase < on;
-                double run = Math.Min(len - t, drawing ? on - phase : period - phase);
-                if (drawing)
-                {
-                    double ax = x0 + (x1 - x0) * t / len, ay = y0 + (y1 - y0) * t / len;
-                    double bx = x0 + (x1 - x0) * (t + run) / len, by = y0 + (y1 - y0) * (t + run) / len;
-                    dl.AddLine(V(ax, ay), V(bx, by), col, (float)width);
-                }
-                t += run;
-            }
-            s += len;
-        }
+        foreach (((double X, double Y) a, (double X, double Y) b) in StrokeGeometry.Dashes(pts, on, off))
+            dl.AddLine(V(a.X, a.Y), V(b.X, b.Y), col, (float)width);
     }
 }
