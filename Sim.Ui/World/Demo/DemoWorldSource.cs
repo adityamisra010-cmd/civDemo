@@ -120,7 +120,7 @@ public sealed class DemoWorldSource :
                 WorldPoint? pos = m.X is double x && m.Y is double y ? new WorldPoint(x, y) : null;
                 AgentGraphLocation? graph = m.Edge is string edge ? new AgentGraphLocation(edge, m.Fraction ?? 0) : null;
                 agents.Add(new AgentReport(e.Key, e.Name, e.Type!, m.Polity, m.Polity is null ? PolityRelation.None : PolityRelation.Owner,
-                    pos, graph, m.AtSettlement, m.Heading, m.Count, null, e.Members, m.Visibility, Note(e)));
+                    pos, graph, m.AtSettlement, m.Heading, m.Count, null, e.Members, m.Visibility, Note(e), m.FirstStep));
             }
         return new StepReports(
             new Snapshot<SettlementReport>(seq, Label, true, settlements, r => r.Key),

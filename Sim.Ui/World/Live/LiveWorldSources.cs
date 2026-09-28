@@ -153,8 +153,11 @@ internal sealed class LivePolitySource(Func<IReadOnlyWorldState> world)
 
 /// <summary>The M4-D structures: one report per StructureRow with a positive count. The row
 /// is a count per (settlement, project) — so the report is ONE entity with that multiplicity,
-/// never expanded into invented per-building ids; it has no Established ordinal and no
-/// polity (M4-D: the queue and the structures belong to the settlement).</summary>
+/// never expanded into invented per-building ids; it has no polity (M4-D: the queue and the
+/// structures belong to the settlement). Its Established is the row's INDEX in the Structures
+/// table: ConstructionSystem appends a row on a project's first completion and nothing reorders
+/// or removes rows (M4-D), so the index is the order in which structures first stood — the
+/// composition priority that keeps a later-built granary from displacing an existing workshop.</summary>
 internal sealed class LiveStructureSource(Func<IReadOnlyWorldState> world, GoodsConfig goods, Func<int, string> name)
     : LiveSnapshotCache<StructureReport>(world), IStructureViewSource
 {
@@ -171,10 +174,10 @@ internal sealed class LiveStructureSource(Func<IReadOnlyWorldState> world, Goods
             string display = char.ToUpperInvariant(project[0]) + project[1..] + " at " + name(row.Settlement.Value);
             items.Add(new StructureReport(
                 LiveWorld.Key(row.Settlement.Value) + "-p" + LiveWorld.Key(row.ProjectId), display, project,
-                LiveWorld.Key(row.Settlement.Value), null, PolityRelation.None, null, row.Count, [], [], null, null,
+                LiveWorld.Key(row.Settlement.Value), null, PolityRelation.None, i, row.Count, [], [], null, null,
                 ReportedVisibility.NotModelled,
                 "M4-D StructureRow: a count per (settlement, project), owned by the settlement; no per-building identity, "
-                + "no establishment order, no state; " + LiveWorld.VisibilityNote));
+                + "no state; first reported = its row index (rows are appended on first completion); " + LiveWorld.VisibilityNote));
         }
         return items;
     }

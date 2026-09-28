@@ -49,7 +49,8 @@ public class WorldSceneTests
         InspectorDetails d = WorldInspector.Details(v, M, a.Id)!;
         Assert.Contains(d.Lines, l => l.Label == "Personnel" && l.Value == "500" && l.Tag == DetailTag.Reported);
         Assert.Contains(d.Lines, l => l.Label == "Owner" && l.Value.Contains("Aurel", StringComparison.Ordinal));
-        Assert.Contains(d.Lines, l => l.Label == "Position" && l.Value == "(182.40, 176.25) world units");
+        Assert.Contains(d.Lines, l => l.Label == "Position" && l.Value == "on Veyra - Oskar road at 20%");   // D-009: on the graph
+        Assert.Contains(d.Lines, l => l.Label == "Map point (projected)" && l.Tag == DetailTag.View);
         foreach (string banned in new[] { "strength", "speed", "morale", "attack", "defen", "movement" })
             Assert.DoesNotContain(d.Lines, l => l.Label.Contains(banned, StringComparison.OrdinalIgnoreCase));
         Assert.Contains("DEMO", d.Provenance, StringComparison.Ordinal);

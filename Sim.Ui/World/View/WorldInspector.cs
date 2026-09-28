@@ -33,6 +33,11 @@ public static class WorldInspector
         string provenance = view.IsPlaceholder
             ? "DEMO / PLACEHOLDER - authored demonstration content, not simulation output"
             : "LIVE simulation - read-only";
+        // A hidden entity is not seen: its details reveal nothing but that (a stale selection of
+        // one that became hidden must not print its state).
+        if (VisibilityOf(view, id) == ReportedVisibility.Hidden)
+            return new InspectorDetails("Not visible", id.Kind.ToString(), provenance,
+                [new DetailLine("Visibility", "hidden", DetailTag.Reported)], "");
         switch (id.Kind)
         {
             case WorldEntityKind.Settlement when view.FindSettlement(id) is SettlementView s:
@@ -101,7 +106,12 @@ public static class WorldInspector
                         lines.Add(new("Position", "not resolvable - not drawn", DetailTag.NotReported));
                         break;
                 }
-                if (a.HeadingDeg is double h) lines.Add(new("Heading", Morphology.Num(Math.Round(h, 1)) + " deg (display only)", DetailTag.Reported));
+                if (a.HeadingDeg is double h)
+                {
+                    double shown = Math.Round(h, 1);
+                    if (shown >= 360.0) shown = 0.0;   // 359.96 is shown as 0, never as 360
+                    lines.Add(new("Heading", Morphology.Num(shown) + " deg (display only)", DetailTag.Reported));
+                }
                 Visibility(lines, a.Report.Visibility);
                 return new InspectorDetails(a.Report.DisplayName, a.Type.Category == "military" ? "Military formation" : a.Type.Category == "group" ? "Group" : "Person",
                     provenance, lines, a.Report.Note);
@@ -140,6 +150,20 @@ public static class WorldInspector
         }
         return null;
     }
+
+    private static ReportedVisibility? VisibilityOf(WorldView view, WorldEntityId id) => id.Kind switch
+    {
+        WorldEntityKind.Settlement => view.FindSettlement(id)?.Report.Visibility,
+        WorldEntityKind.Structure => view.FindStructure(id) is StructureView s
+            ? view.Settlement(s.Report.SettlementKey)?.Report.Visibility == ReportedVisibility.Hidden ? ReportedVisibility.Hidden : s.Report.Visibility
+            : null,
+        WorldEntityKind.InfraNode => view.FindNode(id)?.Report.Visibility,
+        WorldEntityKind.InfraEdge => view.FindEdge(id)?.Report.Visibility,
+        WorldEntityKind.Resource => view.FindResource(id) is ResourceView r
+            ? view.Settlement(r.Report.SettlementKey)?.Report.Visibility == ReportedVisibility.Hidden ? ReportedVisibility.Hidden : r.Report.Visibility
+            : null,
+        _ => view.FindAgent(id)?.Report.Visibility,
+    };
 
     private static string Title(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 

@@ -335,4 +335,14 @@ public static class ObjectLight
 
     /// <summary>Shadow ink alpha (InkPrimary at 25 %).</summary>
     public const double ShadowAlpha = 0.25;
+
+    /// <summary>The same rule for a drawn box of any pixel size (world-view building parts,
+    /// added by the world visualization foundation): one pixel per sixteen, at least one, signed
+    /// along <see cref="ShadowDirection"/>. Equals <see cref="ShadowOffset"/> at every size class.
+    /// Adds a function; changes no bake.</summary>
+    public static (int Dx, int Dy) ShadowOffsetPx(double boxPx)
+    {
+        int px = System.Math.Max(1, (int)(boxPx / 16.0));
+        return (System.Math.Sign(ShadowDirection.X) * px, System.Math.Sign(ShadowDirection.Y) * px);
+    }
 }

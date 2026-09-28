@@ -45,8 +45,8 @@ public class WorldMorphologyTests
         foreach (StageDriver d in m.Settlements.Drivers)
             for (int k = 1; k < d.Thresholds.Count; k++)
             {
-                Assert.Equal(k, Morphology.Settlement(SettlementAt("s", 0, 0, (d.Input, d.Thresholds[k])), m.Settlements).Index);
-                Assert.Equal(k - 1, Morphology.Settlement(SettlementAt("s", 0, 0, (d.Input, Math.BitDecrement(d.Thresholds[k]))), m.Settlements).Index);
+                Assert.Equal(k, Morphology.Settlement(SettlementAt("s", 0, 0, (d.Input, d.Thresholds[k])), m.Settlements, allowDemonstration: true).Index);
+                Assert.Equal(k - 1, Morphology.Settlement(SettlementAt("s", 0, 0, (d.Input, Math.BitDecrement(d.Thresholds[k]))), m.Settlements, allowDemonstration: true).Index);
             }
     }
 
@@ -116,19 +116,26 @@ public class WorldMorphologyTests
     public void SettlementStage_PrefersTheSimulationsSizeTier_AndNeverNamesIt()
     {
         WorldMorphology m = Morph();
-        StageChoice live = Morphology.Settlement(SettlementAt("s", 0, 0, ("sizeTier", 2), ("population", 900000)), m.Settlements);
+        StageChoice live = Morphology.Settlement(SettlementAt("s", 0, 0, ("sizeTier", 2), ("population", 900000)), m.Settlements, allowDemonstration: false);
         Assert.Equal(2, live.Index);
         Assert.DoesNotContain("Town", live.Name, StringComparison.Ordinal);
         Assert.DoesNotContain("City", live.Name, StringComparison.Ordinal);
         Assert.StartsWith("sizeTier 2", live.Name, StringComparison.Ordinal);
 
-        StageChoice demo = Morphology.Settlement(SettlementAt("s", 0, 0, ("population", 12000)), m.Settlements);
+        StageChoice demo = Morphology.Settlement(SettlementAt("s", 0, 0, ("population", 12000)), m.Settlements, allowDemonstration: true);
         Assert.Equal("Town", demo.Name);
         Assert.Contains("DEMONSTRATION", demo.Explanation, StringComparison.Ordinal);
 
-        StageChoice none = Morphology.Settlement(SettlementAt("s", 0, 0), m.Settlements);
+        StageChoice none = Morphology.Settlement(SettlementAt("s", 0, 0), m.Settlements, allowDemonstration: true);
         Assert.Equal(0, none.Index);
         Assert.False(none.Reported);
+
+        // A LIVE settlement with only a population is never staged by the demonstration thresholds.
+        StageChoice livePopOnly = Morphology.Settlement(SettlementAt("s", 0, 0, ("population", 900000)), m.Settlements, allowDemonstration: false);
+        Assert.Equal(0, livePopOnly.Index);
+        Assert.False(livePopOnly.Reported);
+        Assert.DoesNotContain("DEMONSTRATION", livePopOnly.Explanation, StringComparison.Ordinal);
+        Assert.StartsWith("base footprint", livePopOnly.Name, StringComparison.Ordinal);
     }
 
     [Theory]

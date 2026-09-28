@@ -33,7 +33,7 @@
   {
    "id": "C",
    "name": "State C - developing city",
-   "caption": "Multiple universities, factories, an expanded hospital and developed infrastructure."
+   "caption": "Multiple universities, factories, an expanded hospital and developed infrastructure; 10 universities reported across the demo world."
   },
   {
    "id": "D",
@@ -2058,13 +2058,14 @@
    "name": "Army #184",
    "type": "army",
    "polity": "p1",
+   "note": "on the Veyra - Oskar road (graph location, D-009)",
    "timeline": [
     {
      "step": 0,
-     "x": 182.4,
-     "y": 176.25,
+     "edge": "e-veyra-oskar",
+     "fraction": 0.2,
      "count": 500,
-     "heading": 45
+     "heading": 42
     }
    ]
   },
@@ -2076,10 +2077,10 @@
    "timeline": [
     {
      "step": 0,
-     "x": 206.5,
-     "y": 150.75,
+     "edge": "e-oskar-mora",
+     "fraction": 0.2,
      "count": 50,
-     "heading": 10
+     "heading": 104
     }
    ]
   },
@@ -2091,10 +2092,10 @@
    "timeline": [
     {
      "step": 1,
-     "x": 300.2,
-     "y": 165.6,
+     "edge": "e-mora-quell",
+     "fraction": 0.35,
      "count": 5000,
-     "heading": 270
+     "heading": 331
     }
    ]
   },
@@ -2103,7 +2104,7 @@
    "name": "Army #9",
    "type": "army",
    "polity": "p2",
-   "note": "a remembered sighting: drawn ghosted, not selectable",
+   "note": "a remembered SIGHTING at its last known map point: drawn ghosted, not selectable (off-graph by nature: WV-09)",
    "timeline": [
     {
      "step": 2,
@@ -2123,8 +2124,8 @@
    "timeline": [
     {
      "step": 2,
-     "x": 95.0,
-     "y": 205.0,
+     "edge": "e-veyra-dunmar",
+     "fraction": 0.5,
      "count": 800,
      "visibility": "hidden"
     }
@@ -2159,10 +2160,10 @@
    "timeline": [
     {
      "step": 4,
-     "x": 262.5,
-     "y": 160.0,
+     "edge": "e-oskar-mora",
+     "fraction": 0.55,
      "count": 240,
-     "heading": 90
+     "heading": 104
     }
    ]
   },
@@ -2171,6 +2172,7 @@
    "name": "Fleet #3",
    "type": "fleet",
    "polity": "p1",
+   "note": "at sea: no sea-lane edge exists in the graph yet (WV-09)",
    "timeline": [
     {
      "step": 3,

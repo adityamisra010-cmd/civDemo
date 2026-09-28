@@ -232,6 +232,12 @@ public static class WorldContentLoader
             d.Error("visualTypes", $"a '{WorldViewConstants.FallbackVisualType}' fallback visual type is required");
         if (!agents.Exists(a => a.Id == WorldViewConstants.FallbackAgentType))
             d.Error("agentTypes", $"a '{WorldViewConstants.FallbackAgentType}' fallback agent type is required");
+        if (infra.Count == 0)
+            d.Error("infrastructureTypes", "at least one infrastructure type is required (the first is the fallback for an unknown mode)");
+        if (layout is not null && stages is not null)
+            foreach (SettlementStage st in stages.Stages)
+                if (st.Blocks > layout.BlockCount)
+                    d.Error("settlementStages.stages", $"stage '{st.Id}' shows {st.Blocks} blocks but the block lattice has only {layout.BlockCount} lots");
 
         if (d.HasErrors || sprite is null || lod is null || layout is null || stages is null || aggregation is null)
             return (null, d.List);
@@ -252,22 +258,36 @@ public static class WorldContentLoader
         if (d.HasErrors) return layout;
 
         // The lattice is FIXED; check it once here so no stage can ever collide at draw time.
+        // (Ring sizes are bounded above, so this pairwise check is bounded too; it stops early.)
         LotGeometry[] lots = CompositionGeometry.SlotCentres(layout);
-        for (int i = 0; i < lots.Length; i++)
+        int reported = 0;
+        for (int i = 0; i < lots.Length && reported < 10; i++)
         {
             if (!CompositionGeometry.BoxClearsCircle(lots[i].X, lots[i].Y, slot, plaza))
+            {
                 d.Error("layout.slotRings", $"slot (ring {lots[i].Ring}, lot {lots[i].Index}) overlaps the plaza");
-            for (int j = i + 1; j < lots.Length; j++)
+                reported++;
+            }
+            for (int j = i + 1; j < lots.Length && reported < 10; j++)
                 if (CompositionGeometry.BoxesOverlap(lots[i].X, lots[i].Y, slot, lots[j].X, lots[j].Y, slot))
+                {
                     d.Error("layout.slotRings", $"slots (ring {lots[i].Ring}, lot {lots[i].Index}) and (ring {lots[j].Ring}, lot {lots[j].Index}) overlap");
+                    reported++;
+                }
         }
         return layout;
     }
+
+    /// <summary>Bounds on a lattice, checked before any lattice is built: content can never make
+    /// the loader overflow, allocate without limit, or go quadratic on a typo.</summary>
+    public const int MaxRings = 24, MaxLotsPerRing = 360, MaxLots = 4096;
 
     private static List<LotRing> Rings(List<RingDto>? rings, string path, Diags d)
     {
         var list = new List<LotRing>();
         double prev = 0;
+        long total = 0;
+        if ((rings?.Count ?? 0) > MaxRings) { d.Error(path, $"at most {MaxRings} rings"); return list; }
         for (int i = 0; i < (rings?.Count ?? 0); i++)
         {
             RingDto r = rings![i];
@@ -277,8 +297,11 @@ public static class WorldContentLoader
             prev = radius;
             int lots = r.Lots ?? 0;
             if (lots < 1) d.Error(p + ".lots", "must be at least 1");
+            if (lots > MaxLotsPerRing) { d.Error(p + ".lots", $"at most {MaxLotsPerRing}"); lots = MaxLotsPerRing; }
+            total += Math.Max(1, lots);
             list.Add(new LotRing(radius, Math.Max(1, lots), d.Finite(r.OffsetDeg, p + ".offsetDeg")));
         }
+        if (total > MaxLots) d.Error(path, $"at most {MaxLots} lots in all");
         return list;
     }
 

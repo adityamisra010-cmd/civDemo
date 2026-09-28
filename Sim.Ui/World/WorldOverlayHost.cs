@@ -81,7 +81,8 @@ public sealed class WorldOverlayHost
     public WorldFrame? LiveFrame(WorldProjection proj, string? mirrorSettlementKey, ITextMeasure measure)
     {
         WorldView? view = LiveView();
-        if (view is null) return null;
+        // A placeholder view is never drawn on the real map, whatever the bundle claimed.
+        if (view is null || view.IsPlaceholder) return null;
         LiveUi.MirrorSettlementKey = mirrorSettlementKey;
         ForgetMissing(LiveUi, view);
         return WorldScene.Paint(view, Morphology!, proj, LiveUi, WorldSceneOptions.LiveOverlay, measure);
@@ -101,13 +102,17 @@ public sealed class WorldOverlayHost
 
     public WorldProjection DemoProjection(double width, double height)
     {
-        if (DemoCamera is not (double x, double y, double z))
-        {
-            WorldProjection fit = WorldProjection.FitInto(Demo!.Width, Demo.Height, 352, 74, width - 364, height - 86, width, height);
-            DemoCamera = (fit.CenterX, fit.CenterY, fit.PxPerWorldUnit);
-            return fit;
-        }
-        return new WorldProjection(x, y, z, width, height);
+        if (DemoCamera is (double x, double y, double z) && double.IsFinite(x) && double.IsFinite(y) && double.IsFinite(z) && z > 0)
+            return new WorldProjection(x, y, z, width, height);
+        // Fit into the part of the view the legend leaves free; a viewport too small for that
+        // falls back to a whole-view fit, and a non-positive result is never stored.
+        WorldProjection fit = width > 420 && height > 140
+            ? WorldProjection.FitInto(Demo!.Width, Demo.Height, 352, 74, width - 364, height - 86, width, height)
+            : WorldProjection.Fit(Demo!.Width, Demo.Height, Math.Max(1, width), Math.Max(1, height), 0);
+        if (!(fit.PxPerWorldUnit > 0) || !double.IsFinite(fit.PxPerWorldUnit))
+            fit = new WorldProjection(Demo.Width / 2, Demo.Height / 2, 0.5, width, height);
+        DemoCamera = (fit.CenterX, fit.CenterY, fit.PxPerWorldUnit);
+        return fit;
     }
 
     public void DemoPan(double dxScreen, double dyScreen, double width, double height)
@@ -131,6 +136,12 @@ public sealed class WorldOverlayHost
         if (Demo is null) return;
         if (delta > 0) Demo.Next(); else if (delta < 0) Demo.Previous();
     }
+
+    /// <summary>The live map's click rule, as a pure function: a click the game's
+    /// SettlementSelection admitted (<paramref name="settlementHit"/> ≥ 0 — its marker or its name
+    /// label, both drawn over the world layer) belongs to the settlement and clears the world
+    /// selection; otherwise the world layer's hit (or nothing) is selected.</summary>
+    public static WorldEntityId? LiveClick(int settlementHit, WorldEntityId? worldHit) => settlementHit >= 0 ? null : worldHit;
 
     /// <summary>Select what is under a click in a frame just painted with the current camera
     /// (never a cached earlier frame); a miss clears the selection.</summary>

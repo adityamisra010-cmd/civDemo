@@ -534,20 +534,24 @@ public sealed class SimUiGame : Game
                 && _clickCandidate
                 && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
             {
+                int hit = SettlementSelection.HitTest(
+                    _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height,
+                    _labelRects);   // D-A2: labels are part of the click target
                 // The live world layer claims only what the game does not draw itself
-                // (structures, resources, people); settlements stay with SettlementSelection.
-                // The frame is painted with the CURRENT camera, never an earlier frame's.
-                Sim.Ui.World.WorldEntityId? worldHit = null;
+                // (structures, resources, people), and only a click SettlementSelection did
+                // not admit: the marker and the name label (drawn over the layer) stay the
+                // settlement's. The frame is painted with the CURRENT camera.
                 if (_worldHost is { Mode: Sim.Ui.World.WorldLayerMode.Live })
                 {
-                    Sim.Ui.World.Scene.WorldFrame? liveFrame = _worldHost.LiveFrame(LiveProjection(viewport),
-                        Sim.Ui.World.Live.LiveWorld.Key(_selected), Sim.Ui.Render.ApproxTextMeasure.Instance);
-                    worldHit = liveFrame?.Hits.HitTest(mouse.X, mouse.Y);
-                    _worldHost.LiveUi.Selected = worldHit;
+                    Sim.Ui.World.WorldEntityId? worldHit = null;
+                    if (hit < 0)
+                    {
+                        Sim.Ui.World.Scene.WorldFrame? liveFrame = _worldHost.LiveFrame(LiveProjection(viewport),
+                            Sim.Ui.World.Live.LiveWorld.Key(_selected), Sim.Ui.Render.ApproxTextMeasure.Instance);
+                        worldHit = liveFrame?.Hits.HitTest(mouse.X, mouse.Y);
+                    }
+                    _worldHost.LiveUi.Selected = Sim.Ui.World.WorldOverlayHost.LiveClick(hit, worldHit);
                 }
-                int hit = worldHit is null ? SettlementSelection.HitTest(
-                    _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height,
-                    _labelRects) : -1;   // D-A2: labels are part of the click target
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;

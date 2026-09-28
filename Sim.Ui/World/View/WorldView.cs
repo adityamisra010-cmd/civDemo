@@ -39,11 +39,12 @@ public sealed record StructureView(
     bool Drawable);
 
 /// <summary>The one token that stands for a settlement's structures of one visual type beyond
-/// the individually drawn ones (provisional aggregation, D-038 H8). Selecting it selects its
-/// first member.</summary>
+/// the individually drawn ones (provisional aggregation, D-038 H8). Selecting it selects
+/// <see cref="HitTarget"/>, its first member that is not merely remembered; when every member is
+/// remembered the token is drawn ghosted and cannot be selected.</summary>
 public sealed record ClusterView(
     string Key, string SettlementKey, VisualType Type, LotGeometry Slot, IReadOnlyList<WorldEntityId> Members,
-    long TotalMultiplicity, GlyphSpec Icon);
+    long TotalMultiplicity, GlyphSpec Icon, WorldEntityId? HitTarget, bool Ghost);
 
 public sealed record NodeView(WorldEntityId Id, InfraNodeReport Report, NodeType? Type, bool Drawable);
 
@@ -51,16 +52,17 @@ public sealed record EdgeView(
     WorldEntityId Id, InfraEdgeReport Report, InfraType Type, bool TypeKnown, InfraStage Stage, StageChoice StageChoice,
     WorldPoint A, WorldPoint B, bool Drawable);
 
-/// <summary>A reported resource at its settlement; <see cref="Index"/> orders the settlement's
-/// resources for the row they are drawn in.</summary>
-public sealed record ResourceView(WorldEntityId Id, ResourceReport Report, ResourceType? Type, int Index, bool Drawable);
+/// <summary>A reported resource at its settlement; <see cref="Index"/> of <see cref="RowCount"/>
+/// places it in the row drawn under the settlement (both count every report, whatever its
+/// visibility, so a hidden one leaves a gap rather than shifting the rest).</summary>
+public sealed record ResourceView(WorldEntityId Id, ResourceReport Report, ResourceType? Type, int Index, int RowCount, bool Drawable);
 
 public enum AgentAnchor { Position = 0, Graph = 1, Settlement = 2, Unresolved = 3 }
 
 /// <summary>A reported mobile entity: ONE token whatever its count. <see cref="World"/> is its
 /// world point — reported directly, projected from its graph location, or its settlement's
-/// point (then <see cref="AttachIndex"/> fans it beside the settlement at a constant screen
-/// offset, in id order).</summary>
+/// point (then <see cref="AttachIndex"/> is its fan lot beside the settlement, from the stable
+/// hash of (settlement, agent) — see WorldViewBuilder.FanLots).</summary>
 public sealed record AgentView(
     WorldEntityId Id, AgentReport Report, AgentType Type, bool TypeKnown, string? PolityInk, AgentAnchor Anchor,
     WorldPoint World, int AttachIndex, string? CountLabel, string? CountNoun, double? HeadingDeg, bool Drawable);

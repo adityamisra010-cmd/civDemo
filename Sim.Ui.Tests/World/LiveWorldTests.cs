@@ -74,17 +74,42 @@ public class LiveWorldTests
         Assert.Equal(items.Select(i => i.SourceId).OrderBy(x => x), items.Select(i => i.SourceId));
     }
 
+    /// <summary>At turn 0 the simulation has written no CatchmentSummary, so no live settlement
+    /// reports sizeTier: the DEMONSTRATION population driver must NOT stage it (review auth-1 /
+    /// live-1) — the base footprint is drawn, unnamed, and says why.</summary>
+    [Fact]
+    public void LiveStages_WithoutSizeTier_AreTheUnnamedBase_NeverADemonstrationStage()
+    {
+        (UiSession session, WorldSources sources) = Live();
+        Assert.Equal(0, session.World.CatchmentSummaries.Count);   // the fixture really is the no-summary case
+        WorldView v = WorldViewBuilder.Build(sources, M);
+        Assert.NotEmpty(v.Settlements);
+        foreach (SettlementView s in v.Settlements)
+        {
+            Assert.Null(s.Report.Input("sizeTier"));
+            Assert.Equal(0, s.Stage.Index);
+            Assert.False(s.Stage.Reported);
+            Assert.NotEqual("population", s.Stage.Driver);
+            Assert.DoesNotContain("DEMONSTRATION", s.Stage.Explanation, StringComparison.Ordinal);
+            foreach (string named in new[] { "Town", "City", "settlement" }) Assert.DoesNotContain(named, s.Stage.Name, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void LiveStages_AreTheSimulationsSizeTier_NeverATownOrACity()
     {
-        (_, WorldSources sources) = Live();
+        (UiSession session, WorldSources sources) = Live();
+        session.EndTurn();   // the first turn writes the summaries
         WorldView v = WorldViewBuilder.Build(sources, M);
+        int checkedCount = 0;
         foreach (SettlementView s in v.Settlements)
         {
-            if (s.Report.Input("sizeTier") is not double tier) continue;
+            double tier = Assert.IsType<double>(s.Report.Input("sizeTier"));
             Assert.Equal((int)tier, s.Stage.Index);
             foreach (string named in new[] { "Town", "City", "settlement" }) Assert.DoesNotContain(named, s.Stage.Name, StringComparison.Ordinal);
+            checkedCount++;
         }
+        Assert.True(checkedCount > 0);
     }
 
     [Fact]
@@ -101,7 +126,7 @@ public class LiveWorldTests
         Assert.Equal("granary", r.VisualType);
         Assert.Equal(2, r.Multiplicity);
         Assert.Null(r.PolityKey);          // M4-D: the settlement's, not a polity's
-        Assert.Null(r.Established);        // no establishment order exists
+        Assert.Equal(0, r.Established);    // the row's append-only index: the order structures first stood
         Assert.Equal(LiveWorld.Key(s.Value), r.SettlementKey);
         WorldView v = WorldViewBuilder.Build(sources, M);
         StructureView sv = Assert.Single(v.Structures);
@@ -109,6 +134,45 @@ public class LiveWorldTests
         Assert.Equal("granary", sv.Type.Id);
         Assert.Equal(1, sv.Stage.Index);   // the content's multiplicity driver: 2 granaries
         Assert.Contains(WorldInspector.Details(v, M, sv.Id)!.Lines, l => l.Label == "Count in this report" && l.Value == "2");
+    }
+
+    /// <summary>Review auth-2 / det-1 / place-1: a structure built LATER never displaces one that
+    /// already stands — the live priority is the StructureRow's append-only index.</summary>
+    [Fact]
+    public void LiveStructures_ALaterProject_NeverMovesAnEarlierOne()
+    {
+        int moved = 0;
+        for (int settlementRow = 0; settlementRow < 4; settlementRow++)
+        {
+            (UiSession session, WorldSources sources) = Live();
+            WorldState w = session.World;
+            SettlementId s = w.Settlements[settlementRow].Id;
+            w.Structures.Add(new StructureRow(s, 2, 1));   // a workshop first
+            Advance(w);
+            LotGeometry? before = WorldViewBuilder.Build(sources, M).Structures.Single().Slot;
+            w.Structures.Add(new StructureRow(s, 1, 1));   // then a granary (a LOWER project id)
+            Advance(w);
+            WorldView after = WorldViewBuilder.Build(sources, M);
+            StructureView workshop = after.Structures.Single(x => x.Report.VisualType == "workshop");
+            Assert.Equal(before, workshop.Slot);
+            Assert.Equal(0, workshop.Report.Established);
+            Assert.Equal(1, after.Structures.Single(x => x.Report.VisualType == "granary").Report.Established);
+            if (before != workshop.Slot) moved++;
+        }
+        Assert.Equal(0, moved);
+    }
+
+    /// <summary>Review arch-2 / semantics-2: no source reports building maturity, so no icon
+    /// carries the grammar's maturity-stage pips.</summary>
+    [Fact]
+    public void StructureIcons_CarryNoMaturityPips()
+    {
+        (UiSession session, WorldSources sources) = Live();
+        session.World.Structures.Add(new StructureRow(session.World.Settlements[0].Id, 1, 3));
+        Advance(session.World);
+        Assert.All(WorldViewBuilder.Build(sources, M).Structures, s => Assert.Equal(0, s.Icon.Stage));
+        for (int step = 0; step < 6; step++)
+            Assert.All(WorldTestKit.DemoView(M, step).Structures, s => Assert.Equal(0, s.Icon.Stage));
     }
 
     [Fact]

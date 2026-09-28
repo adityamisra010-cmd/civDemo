@@ -86,7 +86,7 @@ internal static class FootprintPainter
             dl.Circle(cx, cy, Math.Max(1.5, core * 0.35), Ink.With(ink, alpha));
 
             if (c.Options.HitSettlements && s.Report.Visibility != ReportedVisibility.Remembered)
-                hits.Add(new HitRegion(s.Id, HitIndex.SettlementPriority, cx, cy, Math.Max(22.0, core + 4), 0, 0, cx, cy));
+                hits.Add(new HitRegion(s.Id, HitIndex.SettlementPriority, cx, cy, Math.Max(22.0, core + 4), 0, 0, cx, cy, ByDistance: true));
         }
     }
 }
@@ -94,10 +94,10 @@ internal static class FootprintPainter
 /// <summary>Small drawing helpers shared by the world painters.</summary>
 internal static class WorldPaint
 {
-    /// <summary>Contact-shadow offset for a drawn box of <paramref name="sidePx"/>: one pixel per
-    /// sixteen, at least one — the rule ObjectLight.ShadowOffset states for glyphs, along the
-    /// same light (equal x and y components, down-right). One light for glyphs and parts.</summary>
-    public static int ShadowPx(double sidePx) => Math.Max(1, (int)(sidePx / 16.0));
+    /// <summary>Contact-shadow offset (pixels along x and y) for a drawn box of
+    /// <paramref name="sidePx"/> — ObjectLight's rule and ObjectLight's direction, never a twin
+    /// (D-038 B1: one light, stated once). Painters add it as (+Dx, +Dy).</summary>
+    public static int ShadowPx(double sidePx) => ObjectLight.ShadowOffsetPx(sidePx).Dx;
 
     /// <summary>The glyph size class to bake for a drawn size (the bake is scaled to it).</summary>
     public static SizeClass SizeFor(double px) => px >= 40 ? SizeClass.Px48 : px >= 28 ? SizeClass.Px32 : px >= 20 ? SizeClass.Px24 : SizeClass.Px16;

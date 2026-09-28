@@ -157,9 +157,12 @@ public sealed record WorldMorphology(
         return PolityInks[(int)i];
     }
 
+    /// <summary>The token scale for a reported count. No count reported → the BASE band (the one
+    /// starting at 0): a missing value is drawn in the base form, never at a size it did not report.</summary>
     public double SizeScale(long? count)
     {
-        double scale = 1.0;
+        if (SizeBands.Count == 0) return 1.0;
+        double scale = SizeBands[0].Scale;
         if (count is not long c) return scale;
         foreach (SizeBand b in SizeBands) if (c >= b.Min) scale = b.Scale;
         return scale;

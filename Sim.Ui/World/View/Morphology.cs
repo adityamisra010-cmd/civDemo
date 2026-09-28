@@ -30,11 +30,15 @@ public static class Morphology
         return v is double x && double.IsFinite(x) && x >= 0;
     }
 
-    public static StageChoice Settlement(SettlementReport r, SettlementStages content)
+    /// <param name="allowDemonstration">False for a live (non-placeholder) bundle: a driver whose
+    /// thresholds are DEMONSTRATION values never stages live data, and a live settlement with no
+    /// simulation input draws the base footprint UNNAMED ("sizeTier not reported").</param>
+    public static StageChoice Settlement(SettlementReport r, SettlementStages content, bool allowDemonstration)
     {
         int n = content.Stages.Count;
         foreach (StageDriver d in content.Drivers)
         {
+            if (!allowDemonstration && d.Provenance != "simulation") continue;
             if (!Usable(r.Input(d.Input), out double v)) continue;
             int idx = LastAtOrBelow(d.Thresholds, v);
             string name = d.NamedStages
@@ -45,8 +49,9 @@ public static class Morphology
                 : $"DEMONSTRATION threshold: {d.Input} {Num(v)} >= {Num(d.Thresholds[idx])} (view only)";
             return new StageChoice(idx, n, name, d.Input, true, why);
         }
-        string drivers = string.Join(", ", content.Drivers.Select(x => x.Input));
-        return new StageChoice(0, n, content.Stages[0].Name, drivers, false, $"no stage input reported ({drivers}): base footprint");
+        string drivers = string.Join(", ", content.Drivers.Where(x => allowDemonstration || x.Provenance == "simulation").Select(x => x.Input));
+        return new StageChoice(0, n, allowDemonstration ? content.Stages[0].Name : $"base footprint ({drivers} not reported)", drivers, false,
+            $"no stage input reported ({drivers}): base footprint");
     }
 
     /// <summary>The numeric score a stage rule reads from a structure report, or null.</summary>

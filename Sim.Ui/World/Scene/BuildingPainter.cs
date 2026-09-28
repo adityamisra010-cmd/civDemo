@@ -9,11 +9,13 @@ namespace Sim.Ui.World.Scene;
 
 /// <summary>
 /// Buildings and institutions, drawn IN their settlement's composed sprite at the slot the
-/// view assigned (D-038 H4: parts assembled at draw time, one light, one ground plane).
-/// Far: not drawn (the footprint carries the settlement). Mid: a lot pad and the type's
-/// glyph — base + mark, the specialization's mark when one is reported, the state ring, and
-/// stage pips. Near: the stage's cumulative building parts, with the glyph as a badge.
-/// A multiplicity or a cluster shows as a ×n badge on the one token.
+/// view assigned (D-038 H3/H4: one composed sprite, parts assembled at draw time, one light,
+/// one ground plane). Far: not drawn (the footprint carries the settlement). Mid: the stage's
+/// cumulative building PARTS — the composed sprite is the primary treatment at every level of
+/// detail, never a ring of icons (H3) — with a small state glyph only when a source reports a
+/// state other than operational (H6: glyphs say what is happening). Near: the parts plus a
+/// glyph badge — the type's mark, or the specialization's when reported, and the state ring.
+/// A multiplicity or a cluster shows as a badge on the one token.
 /// </summary>
 internal static class BuildingPainter
 {
@@ -24,7 +26,7 @@ internal static class BuildingPainter
         foreach (StructureView s in c.View.Structures)
             if (s.Drawable && s.Slot is not null) items.Add((s.Id, s, null));
         foreach (ClusterView k in c.View.Clusters)
-            items.Add((new WorldEntityId(WorldEntityKind.Structure, k.Members[0].Key), null, k));
+            items.Add((k.Members[0], null, k));
         items.Sort((a, b) => b.Order.CompareTo(a.Order));   // descending id: lowest on top
 
         foreach ((WorldEntityId order, StructureView? s, ClusterView? k) in items)
@@ -34,35 +36,39 @@ internal static class BuildingPainter
             if (sv is null || !sv.Drawable) continue;
             LotGeometry slot = s?.Slot ?? k!.Slot;
             (double x, double y, double side) = c.Geometry.Slot(settlement, slot, c.Morph.Layout);
-            bool ghost = s?.Report.Visibility == ReportedVisibility.Remembered;
+            bool ghost = s is not null ? s.Report.Visibility == ReportedVisibility.Remembered : k!.Ghost;
             double alpha = ghost ? 0.45 : 1.0;
             string? ink = s?.PolityInk ?? sv.PolityInk;
             Pad(dl, x, y, side, ink, alpha);
 
+            // The cluster shows its type's BASE stage: it stands for several reports, none of whose
+            // stages it may claim.
+            VisualType type = s?.Type ?? k!.Type;
+            PartPainter.Paint(dl, type.PartsAt(s?.Stage.Index ?? 0), x, y, side, alpha);
+
             GlyphSpec icon = s?.Icon ?? k!.Icon;
-            if (c.Lod == WorldLod.Near && s is not null)
+            if (c.Lod == WorldLod.Near)
             {
-                PartPainter.Paint(dl, s.Type.PartsAt(s.Stage.Index), x, y, side, alpha);
                 double badge = Math.Clamp(side * 0.34, 20, 30);
                 dl.Glyph(x - side / 2 + 1, y - side / 2 + 1, badge, icon with { Size = WorldPaint.SizeFor(badge) }, alpha);
             }
-            else
+            else if (icon.State != GlyphState.Complete)
             {
-                double g = Math.Clamp(side * 1.05, 22, 44);   // at least 22 px: the mark arrives at 24
-                dl.Glyph(x - g / 2, y - g / 2, g, icon with { Size = WorldPaint.SizeFor(g) }, alpha);
+                const double badge = 16;
+                dl.Glyph(x - side / 2 - 2, y - side / 2 - 2, badge, icon with { Size = SizeClass.Px16 }, alpha);
             }
 
             long times = k is not null ? k.TotalMultiplicity : s!.Report.Multiplicity;
             if (k is not null || times > 1)
             {
                 string text = k is not null ? "+" + Morphology.Num(times) : "x" + Morphology.Num(times);
-                WorldPaint.Badge(dl, x + side / 2 - 4, y + side / 2 - 4, text, 10.5, ParchmentPalette.InkPrimary, ParchmentPalette.PaperLight,
-                    ParchmentPalette.InkPrimary);
+                WorldPaint.Badge(dl, x + side / 2 - 4, y + side / 2 - 4, text, 10.5, Ink.With(ParchmentPalette.InkPrimary, alpha),
+                    Ink.With(ParchmentPalette.PaperLight, alpha), Ink.With(ParchmentPalette.InkPrimary, alpha));
             }
 
-            if (!ghost)
-                hits.Add(new HitRegion(k is not null ? k.Members[0] : s!.Id, HitIndex.StructurePriority,
-                    x - side / 2, y - side / 2, 0, side, side, x, y));
+            WorldEntityId? target = k is not null ? k.HitTarget : ghost ? null : s!.Id;
+            if (target is WorldEntityId t)
+                hits.Add(new HitRegion(t, HitIndex.StructurePriority, x - side / 2, y - side / 2, 0, side, side, x, y));
         }
     }
 

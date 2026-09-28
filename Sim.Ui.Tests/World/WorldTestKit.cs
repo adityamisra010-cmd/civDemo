@@ -84,24 +84,26 @@ internal static class WorldTestKit
         IEnumerable<AgentReport>? agents = null, IEnumerable<InfraNodeReport>? nodes = null, IEnumerable<InfraEdgeReport>? edges = null,
         IEnumerable<ResourceReport>? resources = null, IEnumerable<PolityReport>? polities = null)
     {
+        // Hand-built test reports are not simulation output: the bundle is a placeholder, so the
+        // demonstration drivers apply to it exactly as they do to the demo.
         var s = new FixedSource(settlements ?? [], structures ?? [], agents ?? [], nodes ?? [], edges ?? [], resources ?? [], polities ?? []);
-        return new WorldSources("TEST", false, "test observer", s, s, s, s, s, s);
+        return new WorldSources("TEST", true, "test observer", s, s, s, s, s, s);
     }
 
-    /// <summary>A fixed, test-only source bundle (reports supplied directly).</summary>
+    /// <summary>A fixed, test-only source bundle (reports supplied directly; placeholder).</summary>
     internal sealed class FixedSource(
         IEnumerable<SettlementReport> settlements, IEnumerable<StructureReport> structures, IEnumerable<AgentReport> agents,
         IEnumerable<InfraNodeReport> nodes, IEnumerable<InfraEdgeReport> edges, IEnumerable<ResourceReport> resources,
         IEnumerable<PolityReport> polities)
         : ISettlementViewSource, IPolityViewSource, IStructureViewSource, IInfrastructureViewSource, IResourceViewSource, IMobileAgentViewSource
     {
-        private readonly Snapshot<SettlementReport> _s = new(1, "TEST", false, settlements, r => r.Key);
-        private readonly Snapshot<StructureReport> _st = new(1, "TEST", false, structures, r => r.Key);
-        private readonly Snapshot<AgentReport> _a = new(1, "TEST", false, agents, r => r.Key);
-        private readonly Snapshot<InfraNodeReport> _n = new(1, "TEST", false, nodes, r => r.Key);
-        private readonly Snapshot<InfraEdgeReport> _e = new(1, "TEST", false, edges, r => r.Key);
-        private readonly Snapshot<ResourceReport> _r = new(1, "TEST", false, resources, r => r.Key);
-        private readonly Snapshot<PolityReport> _p = new(1, "TEST", false, polities, r => r.Key);
+        private readonly Snapshot<SettlementReport> _s = new(1, "TEST", true, settlements, r => r.Key);
+        private readonly Snapshot<StructureReport> _st = new(1, "TEST", true, structures, r => r.Key);
+        private readonly Snapshot<AgentReport> _a = new(1, "TEST", true, agents, r => r.Key);
+        private readonly Snapshot<InfraNodeReport> _n = new(1, "TEST", true, nodes, r => r.Key);
+        private readonly Snapshot<InfraEdgeReport> _e = new(1, "TEST", true, edges, r => r.Key);
+        private readonly Snapshot<ResourceReport> _r = new(1, "TEST", true, resources, r => r.Key);
+        private readonly Snapshot<PolityReport> _p = new(1, "TEST", true, polities, r => r.Key);
         Snapshot<SettlementReport> ISettlementViewSource.Current => _s;
         Snapshot<PolityReport> IPolityViewSource.Current => _p;
         Snapshot<StructureReport> IStructureViewSource.Current => _st;

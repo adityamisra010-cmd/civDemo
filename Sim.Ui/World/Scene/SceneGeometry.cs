@@ -82,9 +82,11 @@ public sealed class SceneGeometry
         {
             if (!a.Drawable || a.Anchor != AgentAnchor.Settlement) continue;
             (double sx, double sy) = proj.ToScreen(a.World);
-            // Outside the settlement's sprite and its click target, at a fixed angle per index.
-            double deg = -60.0 + (a.AttachIndex % 7) * 24.0;
-            double r = Math.Max(AttachRadiusPx, SpriteRadiusPx(a.Report.AttachedSettlementKey!) + token * 0.7) + 30.0 * (a.AttachIndex / 7);
+            // Outside the settlement's sprite and its click target, at the agent's own fan lot
+            // (a stable hash lot, WorldViewBuilder.FanLots): 12 fixed angles per ring.
+            int lotInRing = a.AttachIndex % WorldViewBuilder.FanLotsPerRing, ring = a.AttachIndex / WorldViewBuilder.FanLotsPerRing;
+            double deg = (lotInRing + 0.5) * (360.0 / WorldViewBuilder.FanLotsPerRing);
+            double r = Math.Max(AttachRadiusPx, SpriteRadiusPx(a.Report.AttachedSettlementKey!) + token * 0.7) + token * 1.2 * ring;
             double rad = deg * Math.PI / 180.0;
             _agents[a.Id] = new AgentPlacement(sx + r * Math.Sin(rad), sy - r * Math.Cos(rad), token * 0.8, false, default, 1);
         }

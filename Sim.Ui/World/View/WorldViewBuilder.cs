@@ -27,6 +27,14 @@ public static class WorldViewBuilder
         IReadOnlyList<AgentReport> agentReports = sources.Agents.Current.Items;
         var notes = new List<string>();
 
+        // Provenance: the bundle's flag OR any snapshot's — a mixed bundle is never labelled LIVE.
+        bool snapshotsPlaceholder = sources.Settlements.Current.IsPlaceholder || sources.Polities.Current.IsPlaceholder
+            || sources.Structures.Current.IsPlaceholder || sources.Infrastructure.Nodes.IsPlaceholder
+            || sources.Infrastructure.Edges.IsPlaceholder || sources.Resources.Current.IsPlaceholder || sources.Agents.Current.IsPlaceholder;
+        bool placeholder = sources.IsPlaceholder || snapshotsPlaceholder;
+        if (snapshotsPlaceholder && !sources.IsPlaceholder)
+            notes.Add("the bundle mixes placeholder snapshots into a live bundle: the whole view is labelled DEMO / PLACEHOLDER");
+
         var polityByKey = new Dictionary<string, PolityReport>(StringComparer.Ordinal);
         foreach (PolityReport p in polities) polityByKey[p.Key] = p;
         string? Ink(string? key) => key is not null && polityByKey.TryGetValue(key, out PolityReport? p) ? morph.PolityInk(p.InkSeed) : null;
@@ -40,8 +48,6 @@ public static class WorldViewBuilder
                 bySettlement[r.SettlementKey] = list = [];
             list.Add(r);
         }
-        var settlementKeys = new HashSet<string>(StringComparer.Ordinal);
-        foreach (SettlementReport s in settlementReports) settlementKeys.Add(s.Key);
 
         var structureViews = new Dictionary<string, StructureView>(StringComparer.Ordinal);
         var clusters = new List<ClusterView>();
@@ -49,7 +55,8 @@ public static class WorldViewBuilder
 
         foreach (SettlementReport s in settlementReports)
         {
-            StageChoice stage = Morphology.Settlement(s, morph.Settlements);
+            StageChoice stage = Morphology.Settlement(s, morph.Settlements, allowDemonstration: placeholder);
+            bool settlementDrawable = s.Visibility != ReportedVisibility.Hidden;
             List<StructureReport> own = bySettlement.TryGetValue(s.Key, out List<StructureReport>? l) ? l : [];
 
             // Group by visual type; types in ordinal order, reports in composition priority.
@@ -92,26 +99,28 @@ public static class WorldViewBuilder
                 (StructureReport? report, string? clusterKey, VisualType type, List<StructureReport>? members) = claimOwner[c];
                 if (report is not null)
                 {
-                    structureViews[report.Key] = StructureViewOf(report, morph, slots[c], null, Ink(report.PolityKey), true);
+                    structureViews[report.Key] = StructureViewOf(report, morph, slots[c], null, Ink(report.PolityKey), settlementDrawable);
                     if (report.Visibility != ReportedVisibility.Hidden) occupied.Add(slots[c]);
                 }
                 else
                 {
                     var ids = new List<WorldEntityId>();
                     long total = 0;
-                    bool anyShown = false;
+                    WorldEntityId? target = null;   // the first member a click may select: never a remembered one
                     foreach (StructureReport m in members!)
                     {
-                        structureViews[m.Key] = StructureViewOf(m, morph, null, clusterKey, Ink(m.PolityKey), true);
+                        structureViews[m.Key] = StructureViewOf(m, morph, null, clusterKey, Ink(m.PolityKey), settlementDrawable);
                         if (m.Visibility == ReportedVisibility.Hidden) continue;
-                        ids.Add(new WorldEntityId(WorldEntityKind.Structure, m.Key));
+                        var id = new WorldEntityId(WorldEntityKind.Structure, m.Key);
+                        ids.Add(id);
                         total += Math.Max(1, m.Multiplicity);
-                        anyShown = true;
+                        if (target is null && m.Visibility != ReportedVisibility.Remembered) target = id;
                     }
-                    if (anyShown)
+                    if (ids.Count > 0)
                     {
                         clusters.Add(new ClusterView(clusterKey!, s.Key, type, slots[c], ids, total,
-                            new GlyphSpec(type.Glyph.Base, GlyphState.Complete, SizeClass.Px32, type.Glyph.Mark, Placement: Placement.Map)));
+                            new GlyphSpec(type.Glyph.Base, GlyphState.Complete, SizeClass.Px32, type.Glyph.Mark, Placement: Placement.Map),
+                            target, Ghost: target is null));
                         occupied.Add(slots[c]);
                     }
                 }
@@ -120,7 +129,7 @@ public static class WorldViewBuilder
             int blocks = morph.Settlements.Stages[stage.Index].Blocks;
             LotGeometry[] visibleBlocks = Composition.VisibleBlocks(s.Key, blocks, occupied, morph.Layout);
             settlements.Add(new SettlementView(new WorldEntityId(WorldEntityKind.Settlement, s.Key), s, Ink(s.PolityKey),
-                PolityName(s.PolityKey), stage, visibleBlocks, s.Visibility != ReportedVisibility.Hidden));
+                PolityName(s.PolityKey), stage, visibleBlocks, settlementDrawable));
         }
 
         // Structures whose settlement was not reported: kept (the report exists) but not drawable.
@@ -130,9 +139,12 @@ public static class WorldViewBuilder
         {
             if (structureViews.TryGetValue(r.Key, out StructureView? v)) { structures.Add(v); continue; }
             orphans++;
-            structures.Add(StructureViewOf(r, morph, null, null, Ink(r.PolityKey), false));
+            structures.Add(StructureViewOf(r, morph, null, null, Ink(r.PolityKey), settlementDrawable: false));
         }
         if (orphans > 0) notes.Add($"{orphans} structure report(s) name a settlement that is not reported: not drawn");
+
+        var drawableSettlements = new HashSet<string>(StringComparer.Ordinal);
+        foreach (SettlementView sv in settlements) if (sv.Drawable) drawableSettlements.Add(sv.Key);
 
         // --- infrastructure graph
         var nodes = new List<NodeView>(nodeReports.Count);
@@ -160,21 +172,28 @@ public static class WorldViewBuilder
         if (dangling > 0) notes.Add($"{dangling} edge report(s) name a node that is not reported: not drawn");
 
         // --- resources, ordered within their settlement by key
+        // The row index AND the row length count every report of the settlement, whatever its
+        // visibility: a hidden resource leaves a gap where it stands, it never shifts the others.
         var resources = new List<ResourceView>(resourceReports.Count);
         var resourceCount = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (ResourceReport r in resourceReports)
+            resourceCount[r.SettlementKey] = (resourceCount.TryGetValue(r.SettlementKey, out int c) ? c : 0) + 1;
+        var resourceIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (ResourceReport r in resourceReports)
         {
-            int idx = resourceCount.TryGetValue(r.SettlementKey, out int c) ? c : 0;
-            resourceCount[r.SettlementKey] = idx + 1;
-            bool drawable = settlementKeys.Contains(r.SettlementKey) && r.Visibility != ReportedVisibility.Hidden;
-            resources.Add(new ResourceView(new WorldEntityId(WorldEntityKind.Resource, r.Key), r, morph.Resource(r.ResourceType), idx, drawable));
+            int idx = resourceIndex.TryGetValue(r.SettlementKey, out int c) ? c : 0;
+            resourceIndex[r.SettlementKey] = idx + 1;
+            bool drawable = drawableSettlements.Contains(r.SettlementKey) && r.Visibility != ReportedVisibility.Hidden;
+            resources.Add(new ResourceView(new WorldEntityId(WorldEntityKind.Resource, r.Key), r, morph.Resource(r.ResourceType), idx,
+                resourceCount[r.SettlementKey], drawable));
         }
 
         // --- agents: one token each, anchored as reported
         var agents = new List<AgentView>(agentReports.Count);
-        var attachCount = new Dictionary<string, int>(StringComparer.Ordinal);
         var settlementPos = new Dictionary<string, WorldPoint>(StringComparer.Ordinal);
-        foreach (SettlementReport s in settlementReports) settlementPos[s.Key] = s.Position;
+        foreach (SettlementReport s in settlementReports)
+            if (s.Visibility != ReportedVisibility.Hidden) settlementPos[s.Key] = s.Position;   // a hidden settlement anchors nobody
+        Dictionary<string, int> fan = FanLots(agentReports, settlementPos);
         int unresolved = 0;
         foreach (AgentReport r in agentReports)
         {
@@ -194,8 +213,7 @@ public static class WorldViewBuilder
             {
                 anchor = AgentAnchor.Settlement;
                 world = sp;
-                attach = attachCount.TryGetValue(sk, out int c) ? c : 0;
-                attachCount[sk] = attach + 1;
+                attach = fan[r.Key];
             }
             if (anchor == AgentAnchor.Unresolved) unresolved++;
             string? countLabel = r.Count is long n ? n.ToString("#,0", CultureInfo.InvariantCulture) : null;
@@ -206,7 +224,7 @@ public static class WorldViewBuilder
         }
         if (unresolved > 0) notes.Add($"{unresolved} agent report(s) have no resolvable location: not drawn (never placed at a default)");
 
-        return new WorldView(sources.Label, sources.IsPlaceholder, sources.Observer, polities, settlements, structures, clusters,
+        return new WorldView(sources.Label, placeholder, sources.Observer, polities, settlements, structures, clusters,
             nodes, edges, resources, agents, Summary(structures, morph), notes);
     }
 
@@ -215,12 +233,59 @@ public static class WorldViewBuilder
     {
         double h = deg % 360.0;
         if (h < 0) h += 360.0;
-        return h >= 360.0 ? 0.0 : h;
+        return h >= 360.0 || h == 0.0 ? 0.0 : h;   // folds -0.0 to +0.0 as well
     }
 
+    /// <summary>Lots per ring of the fan beside a settlement.</summary>
+    public const int FanLotsPerRing = 12;
+
+    /// <summary>
+    /// The fan lot of every settlement-attached agent: like a composition slot, from the stable
+    /// hash of (settlement, agent) probed in priority order (established, then key) — never from
+    /// a running count, so an unrelated arrival never moves anyone and a later arrival never moves
+    /// an earlier one. A removal may let a later agent move into the freed lot.
+    /// </summary>
+    public static Dictionary<string, int> FanLots(IReadOnlyList<AgentReport> agents, IReadOnlyDictionary<string, WorldPoint> settlements)
+    {
+        var bySettlement = new Dictionary<string, List<AgentReport>>(StringComparer.Ordinal);
+        var order = new List<string>();
+        foreach (AgentReport a in agents)
+        {
+            if (a.Position is not null || a.GraphLocation is not null || a.AttachedSettlementKey is not string sk || !settlements.ContainsKey(sk)) continue;
+            if (!bySettlement.TryGetValue(sk, out List<AgentReport>? l)) { bySettlement[sk] = l = []; order.Add(sk); }
+            l.Add(a);
+        }
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (string sk in order)
+        {
+            List<AgentReport> list = bySettlement[sk];
+            list.Sort((x, y) =>
+            {
+                int c = (x.Established ?? long.MaxValue).CompareTo(y.Established ?? long.MaxValue);
+                return c != 0 ? c : string.CompareOrdinal(x.Key, y.Key);
+            });
+            var used = new HashSet<int>();
+            foreach (AgentReport a in list)
+            {
+                int start = StableHash.Index(StableHash.Of(sk, a.Key), FanLotsPerRing);
+                int lot = -1;
+                for (int ring = 0; lot < 0; ring++)          // bounded: ring r has 12 lots, at most list.Count are used
+                    for (int p = 0; p < FanLotsPerRing; p++)
+                    {
+                        int candidate = ring * FanLotsPerRing + (start + p) % FanLotsPerRing;
+                        if (used.Add(candidate)) { lot = candidate; break; }
+                    }
+                result[a.Key] = lot;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>A reported type through the content's live-project map FIRST (so a remap in
+    /// content always takes effect), then as a visual-type id, then the fallback.</summary>
     public static VisualType ResolveType(string reported, WorldMorphology morph) =>
-        morph.Visual(reported)
-        ?? (morph.LiveVisualType(reported) is string mapped ? morph.Visual(mapped) : null)
+        (morph.LiveVisualType(reported) is string mapped ? morph.Visual(mapped) : null)
+        ?? morph.Visual(reported)
         ?? morph.Visual(WorldViewConstants.FallbackVisualType)!;
 
     /// <summary>Composition priority: established ascending (unreported last), then key ordinal.</summary>
@@ -231,7 +296,7 @@ public static class WorldViewBuilder
     }
 
     private static StructureView StructureViewOf(StructureReport r, WorldMorphology morph, LotGeometry? slot, string? clusterKey,
-        string? ink, bool settlementKnown)
+        string? ink, bool settlementDrawable)
     {
         VisualType type = ResolveType(r.VisualType, morph);
         bool known = morph.Visual(r.VisualType) is not null
@@ -239,10 +304,12 @@ public static class WorldViewBuilder
         StageChoice stage = Morphology.Structure(r, type);
         StateStyle? state = r.State is string sid ? morph.State(sid) : null;
         SpecializationMark? spec = r.Specialization is string spid ? morph.Specialization(spid) : null;
+        // No maturity-stage pips: the grammar's pips mean building MATURITY, which no source reports
+        // (DD-T5/DD-T9 are open). The visual stage is shown by the parts and in the details only.
         var icon = new GlyphSpec(type.Glyph.Base, state?.GlyphState ?? GlyphState.Complete, SizeClass.Px32,
-            spec?.Mark ?? type.Glyph.Mark, Placement: Placement.Map, Stage: Math.Min(stage.Index + 1, GlyphSpec.MaxStage));
+            spec?.Mark ?? type.Glyph.Mark, Placement: Placement.Map);
         return new StructureView(new WorldEntityId(WorldEntityKind.Structure, r.Key), r, type, known, stage, icon, state?.Name, spec,
-            ink, slot, clusterKey, settlementKnown && r.Visibility != ReportedVisibility.Hidden);
+            ink, slot, clusterKey, settlementDrawable && r.Visibility != ReportedVisibility.Hidden);
     }
 
     /// <summary>The civilization summary: per visual type, the SUM of reported multiplicities of

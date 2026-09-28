@@ -15,7 +15,8 @@ namespace Sim.Ui.Art.Glyphs;
 ///                maturity STAGE pips on Portico at 48 px — 0 … 4 (cols 5–9);
 ///   row     20 : veterancy on Formation (cols 0–3) and on a Standard carrying a spear
 ///                (cols 5–8) at 48 px — Recruit, Regular, Veteran, Elite;
-///   rows 21–23 : every domain / object mark on the Emblem base at 48 px, in enum order;
+///   rows 21–23 : every domain / object mark on the Emblem base at 48 px, in enum order
+///                (MarkRows: the block grows with the alphabet — 36 marks fill three rows);
 ///   row     24 : compositions — a base carrying a mark, as the Trees content uses them;
 ///   row     25 : Panel vs Map placement (cols 0–3) and the Link stroke vocabulary (cols 5–9).
 ///
@@ -27,7 +28,10 @@ public static class GlyphSheet
 {
     public const int Cell = 56;
     public const int Columns = 12;
-    public const int Rows = 26;
+    /// <summary>Rows the mark block needs: every non-None mark, twelve to a row.</summary>
+    public static readonly int MarkRows = (Enum.GetValues<GlyphDomain>().Length - 1 + Columns - 1) / Columns;
+    /// <summary>21 axis rows above the marks, the marks, then compositions and placement.</summary>
+    public static readonly int Rows = 21 + MarkRows + 2;
     public const int Gutter = 8;
 
     public static int Width => Columns * Cell + Gutter;

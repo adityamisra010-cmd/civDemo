@@ -34,7 +34,7 @@ public static class WorldPreview
             "Mid detail: university icons in several cities; the legend counts 20 reported universities"),
         new("06-developed-city", "Developed city, several institution types", 4, 157, 196, 25, "structure:h-7",
             "State D: campus, medical complex, factories, academy, institute, reservoir"),
-        new("07-army-500", "Army with 500 personnel", 4, 184, 184, 12, "agent:army-184",
+        new("07-army-500", "Army with 500 personnel", 4, 172, 180, 12, "agent:army-184",
             "One token, one '500' label, one hit region; details show personnel, owner, position only"),
         new("08-mobile-agents", "Several mobile agents", 4, 228, 198, 16, "agent:band-1",
             "People and groups as single tokens; the overlapping pair's labels stack"),

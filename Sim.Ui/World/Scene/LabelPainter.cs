@@ -11,9 +11,12 @@ internal static class LabelPainter
 {
     public static void Paint(SceneContext c, DrawList dl)
     {
+        // Every loop runs in DESCENDING id order, like every other layer: where plates overlap,
+        // the lowest id is on top — the entity the hit ranking picks.
         if (c.Options.DrawSettlementLabels)
-            foreach (SettlementView s in c.View.Settlements)
+            for (int i = c.View.Settlements.Count - 1; i >= 0; i--)
             {
+                SettlementView s = c.View.Settlements[i];
                 if (!s.Drawable) continue;
                 (double x, double y) = c.Geometry.Settlement(s.Key);
                 double below = Math.Max(c.Geometry.SpriteRadiusPx(s.Key), c.Options.CoreMinPx) + 6;
@@ -26,8 +29,9 @@ internal static class LabelPainter
             }
 
         if (c.Lod == WorldLod.Near)
-            foreach (StructureView s in c.View.Structures)
+            for (int i = c.View.Structures.Count - 1; i >= 0; i--)
             {
+                StructureView s = c.View.Structures[i];
                 if (!s.Drawable || s.Slot is not LotGeometry slot) continue;
                 (double x, double y, double side) = c.Geometry.Slot(s.Report.SettlementKey, slot, c.Morph.Layout);
                 if (side < 44) continue;
@@ -36,8 +40,9 @@ internal static class LabelPainter
                     s.Report.Visibility == ReportedVisibility.Remembered ? 0.5 : 1.0);
             }
 
-        foreach (AgentView a in c.View.Agents)
+        for (int i = c.View.Agents.Count - 1; i >= 0; i--)
         {
+            AgentView a = c.View.Agents[i];
             if (!a.Drawable || !c.Geometry.TryAgent(a.Id, out AgentPlacement p)) continue;
             double alpha = a.Report.Visibility == ReportedVisibility.Remembered ? 0.5 : 1.0;
             string suffix = a.Report.Visibility == ReportedVisibility.Remembered ? " (last known)" : "";
@@ -54,8 +59,9 @@ internal static class LabelPainter
         }
 
         if (c.Lod != WorldLod.Far && c.Options.DrawInfrastructure)
-            foreach (NodeView n in c.View.Nodes)
+            for (int i = c.View.Nodes.Count - 1; i >= 0; i--)
             {
+                NodeView n = c.View.Nodes[i];
                 if (!n.Drawable || n.Type?.Glyph is null) continue;
                 (double x, double y) = c.Proj.ToScreen(n.Report.Position);
                 WorldPaint.Plate(dl, x, y + 15, n.Report.DisplayName, 10.5, ParchmentPalette.InkSoft, TextAlign.Center, FontRole.Body);
@@ -93,6 +99,7 @@ internal static class SelectionPainter
                 LotGeometry? slot = st.Slot;
                 if (slot is null && st.ClusterKey is string ck)
                     foreach (ClusterView k in c.View.Clusters) if (k.Key == ck) { slot = k.Slot; break; }
+                if (slot is null && st.ClusterKey is not null) break;   // clustered but its cluster is not drawn
                 if (c.Lod == WorldLod.Far || slot is not LotGeometry g)
                 {
                     (double x, double y) = c.Geometry.Settlement(st.Report.SettlementKey);
@@ -109,9 +116,7 @@ internal static class SelectionPainter
                 break;
             case WorldEntityKind.Resource when c.View.FindResource(id) is ResourceView r && r.Drawable:
             {
-                int n = 0;
-                foreach (ResourceView o in c.View.Resources) if (o.Drawable && o.Report.SettlementKey == r.Report.SettlementKey) n++;
-                (double x, double y) = ResourcePainter.Position(c, r, n);
+                (double x, double y) = ResourcePainter.Position(c, r);
                 dl.Circle(x, y, ResourcePainter.SizePx * 0.55 + 4, null, color, width);
                 break;
             }

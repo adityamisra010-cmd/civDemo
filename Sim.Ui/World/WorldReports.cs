@@ -162,12 +162,15 @@ public readonly record struct AgentGraphLocation(string EdgeKey, double Fraction
 /// <see cref="Position"/>, a <see cref="GraphLocation"/>, or an
 /// <see cref="AttachedSettlementKey"/> (a person the simulation places only "at a
 /// settlement", like a notable). <see cref="Members"/> optionally names who a group is.
+/// <see cref="Established"/> is the source's ordinal of when the agent was first reported (the
+/// order in which settlement-attached agents claim their places beside it; null when the source
+/// has none — then key order decides).
 /// </summary>
 public sealed record AgentReport(
     string Key, string DisplayName, string DisplayType, string? PolityKey, PolityRelation Relation,
     WorldPoint? Position, AgentGraphLocation? GraphLocation, string? AttachedSettlementKey,
     double? HeadingDeg, long? Count, string? CountNoun, IReadOnlyList<string> Members,
-    ReportedVisibility Visibility, string Note);
+    ReportedVisibility Visibility, string Note, long? Established = null);
 
 /// <summary>One source's report at one moment: immutable, sorted by key (ordinal), with a
 /// duplicate key an error. <see cref="Sequence"/> is a CHANGE TOKEN only — it is never
@@ -191,7 +194,8 @@ public sealed class Snapshot<T> where T : class
 
     public long Sequence { get; }
     public string SourceLabel { get; }
-    /// <summary>True for demo / placeholder data; the map labels it wherever it is drawn.</summary>
+    /// <summary>True for demo / placeholder data. The view is placeholder if its bundle says so
+    /// OR any of its snapshots does (WorldViewBuilder), so a mixed bundle can never be labelled LIVE.</summary>
     public bool IsPlaceholder { get; }
     public IReadOnlyList<T> Items { get; }
 

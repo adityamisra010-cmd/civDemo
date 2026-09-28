@@ -73,9 +73,29 @@
         "radius": 8.05,
         "lots": 48,
         "offsetDeg": 0
+      },
+      {
+        "radius": 9.0,
+        "lots": 54,
+        "offsetDeg": 0
+      },
+      {
+        "radius": 9.95,
+        "lots": 60,
+        "offsetDeg": 0
+      },
+      {
+        "radius": 10.9,
+        "lots": 66,
+        "offsetDeg": 0
+      },
+      {
+        "radius": 11.85,
+        "lots": 72,
+        "offsetDeg": 0
       }
     ],
-    "note": "Two FIXED lattices in sprite units: structure slots and residential block lots. Neither depends on stage, population or structure count. A block under an occupied slot is hidden where it stands - never moved."
+    "note": "Two FIXED lattices in sprite units: structure slots and residential block lots. Neither depends on stage, population or structure count. A block under an occupied slot is hidden where it stands - never moved; the next lot in the fixed order is shown instead (the lattice holds 468 lots, enough for the largest stage with every slot occupied)."
   },
   "settlementStages": {
     "note": "The first driver whose input the source REPORTS picks the stage. The live simulation reports sizeTier (CatchmentSummary.SizeTier, D-017): mapped one to one and shown by number, never named. The demo reports only population: its thresholds are DEMONSTRATION values. What makes a settlement a town or a city is a Director decision (WV-01).",

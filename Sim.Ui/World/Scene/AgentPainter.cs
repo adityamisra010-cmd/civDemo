@@ -85,16 +85,13 @@ internal static class ResourcePainter
     public static void Paint(SceneContext c, DrawList dl, HitIndex hits)
     {
         if (c.Lod == WorldLod.Far) return;
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (ResourceView r in c.View.Resources)
-            if (r.Drawable) counts[r.Report.SettlementKey] = (counts.TryGetValue(r.Report.SettlementKey, out int n) ? n : 0) + 1;
         for (int i = c.View.Resources.Count - 1; i >= 0; i--)
         {
             ResourceView r = c.View.Resources[i];
             if (!r.Drawable) continue;
             SettlementView? s = c.View.Settlement(r.Report.SettlementKey);
             if (s is null || !s.Drawable) continue;
-            (double x, double y) = Position(c, r, counts[r.Report.SettlementKey]);
+            (double x, double y) = Position(c, r);
             double alpha = r.Report.Visibility == ReportedVisibility.Remembered ? 0.4 : 1.0;
             dl.Circle(x, y, SizePx * 0.55, Ink.With(ParchmentPalette.PaperLight, 0.9 * alpha), Ink.With(ParchmentPalette.Verdigris, alpha), 1);
             dl.Glyph(x - SizePx / 2, y - SizePx / 2, SizePx,
@@ -103,9 +100,10 @@ internal static class ResourcePainter
         }
     }
 
-    /// <summary>The i-th of n resources: centred in a row just below the settlement's sprite.</summary>
-    public static (double X, double Y) Position(SceneContext c, ResourceView r, int count)
+    /// <summary>The i-th of the settlement's n resource reports: centred in a row just below its sprite.</summary>
+    public static (double X, double Y) Position(SceneContext c, ResourceView r)
     {
+        int count = r.RowCount;
         (double cx, double cy) = c.Geometry.Settlement(r.Report.SettlementKey);
         double pitch = SizePx + 3;
         double below = c.Geometry.SpriteRadiusPx(r.Report.SettlementKey) + SizePx * 0.9 + (c.Options.DrawSettlementLabels ? 30 : 6);
@@ -159,8 +157,8 @@ internal static class AgentPainter
             if (!ghost)
             {
                 hits.Add(new HitRegion(a.Id, HitIndex.AgentPriority, p.X, p.Y, r + 2, 0, 0, p.X, p.Y));
-                if (p.Stacked)
-                    hits.Add(new HitRegion(a.Id, HitIndex.AgentPriority, p.Label.X, p.Label.Y, 0, p.Label.W, p.Label.H, p.X, p.Y));
+                if (p.Stacked)   // the plate is drawn in the later Labels layer: its own, higher class
+                    hits.Add(new HitRegion(a.Id, HitIndex.LabelPriority, p.Label.X, p.Label.Y, 0, p.Label.W, p.Label.H, p.X, p.Y));
             }
         }
     }
