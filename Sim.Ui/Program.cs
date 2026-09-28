@@ -57,6 +57,26 @@ if (Array.IndexOf(args, "--glyph-sheet") >= 0)
     return;
 }
 
+// --trees-preview [dir] (Trees + Ages UI foundation, docs/architecture/the-trees-ui.md
+// §9): paint the Trees / Ages / Gallery screens' preview scenarios to SVG and exit
+// WITHOUT opening a window or founding a world. The screens read ui-content/ only;
+// scripts/trees-preview.sh turns the SVGs into PNG screenshots.
+if (Array.IndexOf(args, "--trees-preview") >= 0)
+{
+    int previewAt = Array.IndexOf(args, "--trees-preview");
+    string previewDir = previewAt + 1 < args.Length && !args[previewAt + 1].StartsWith("--")
+        ? args[previewAt + 1]
+        : "trees-preview";
+    int contentAt = Array.IndexOf(args, "--trees-content");
+    string contentDir = contentAt >= 0 && contentAt + 1 < args.Length
+        ? args[contentAt + 1]
+        : Sim.Ui.Trees.TreesContentLoader.DefaultDirectory;
+    string fontDir = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.Trees.View.TreesPreview.Run(previewDir, contentDir, Directory.Exists(fontDir) ? fontDir : null))
+        Console.WriteLine($"trees preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);

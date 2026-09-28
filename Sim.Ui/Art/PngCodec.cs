@@ -112,6 +112,20 @@ public static class PngCodec
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         using var file = File.Create(path);
+        WriteTo(file, image);
+    }
+
+    /// <summary>The PNG bytes of <paramref name="image"/> — the same bytes <see cref="Write"/>
+    /// puts on disk (the Trees SVG preview embeds glyphs as data URIs).</summary>
+    public static byte[] Encode(ArtImage image)
+    {
+        using var ms = new MemoryStream();
+        WriteTo(ms, image);
+        return ms.ToArray();
+    }
+
+    private static void WriteTo(Stream file, ArtImage image)
+    {
         file.Write(Signature);
 
         Span<byte> ihdr = stackalloc byte[13];

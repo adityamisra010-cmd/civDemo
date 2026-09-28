@@ -3,8 +3,8 @@ namespace Sim.Ui.Trees;
 /// <summary>World-space geometry of the layout, in "graph units" (1 unit = 1 screen pixel
 /// at zoom 1). Tuning these is presentation, not content.</summary>
 public sealed record LayoutOptions(
-    double ColumnWidth = 214.0, double RowHeight = 74.0, double NodeWidth = 172.0, double NodeHeight = 54.0,
-    double BandHeaderHeight = 24.0, double BandPadding = 14.0, double Margin = 36.0, double LensGutter = 132.0,
+    double ColumnWidth = 196.0, double RowHeight = 60.0, double NodeWidth = 162.0, double NodeHeight = 46.0,
+    double BandHeaderHeight = 26.0, double BandPadding = 8.0, double Margin = 24.0, double LensGutter = 12.0,
     int Sweeps = 4);
 
 /// <summary>A node's placed box. <see cref="Column"/> is its layer; <see cref="Band"/> the
