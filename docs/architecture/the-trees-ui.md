@@ -526,3 +526,37 @@ Three more were fixed without an in-engine measurement, because the ImGui path c
 - The remaining minor findings are in the workflow journal:
   `…/subagents/workflows/wf_40fe2a9f-261/journal.jsonl`.
 
+
+## §19 D-043 status note (2026-09-29, append-only; nothing above is rewritten)
+
+The Director's rulings of 2026-09-29 (`docs/d043-civilization-progression-ages-and-mobile-agents.md`)
+answer part of §16 and diverge from some shipped content. **No row, content file, code or test was
+changed by this note.**
+
+**§16, answered in part (D-043 PART G):**
+- **DD-T2.** The seven lenses are confirmed. Milestones are not an eighth Tree.
+- **DD-T6.**
+  - Exactly nine Ages, A1–A9, with the completion rule's shape: all Core milestones plus
+    sufficient Supporting milestones across several categories.
+  - Partial completion has no Age effect.
+  - The milestone lists are DEFERRED.
+- **DD-T8.** §15.2's premise, that the Ages are unnamed, no longer holds. The binding is still
+  open.
+- **DD-T1.** Construction and training need one-shots at initiation and resolution. Persistent
+  loops are "not required". MobileAgent movement must be animated continuously.
+- **DD-T3 and DD-T5.** Informed, not settled, by §8's three steps: research unlock, then
+  realization, then Age-transition modernization.
+
+**Divergences (D-043 PART F):**
+- **F25.** Six placeholder Ages (§13) against nine.
+- **F26.** `PlaceholderAges_Render_WithoutHistoricalNames` forbids words that the ruled Age names
+  contain.
+- **F28.**
+  - A `milestone` node sits inside the INDUSTRY lens.
+  - §1's "Adding an eighth lens is a JSON edit" meets a ruled seven.
+  - The ruling names achieved/unachieved, while the content adds an "In progress" milestone state.
+- **F31.** `ageRange.to` lets development end at an Age, which the ruling forbids when the cause
+  is entering an Age.
+- **F32.** No obsolete state or successor relation exists for automatic unit modernization, and
+  the gallery's `era` tags now read as Age names.
+- **F39.** The steady loops for construction and training are not required by the ruling.

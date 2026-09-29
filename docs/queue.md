@@ -1419,3 +1419,69 @@
 - **T4.21-8 — THE DETONATOR FIGURES COME FROM TWO DIFFERENT RIGS; ambiguity RECORDED per gov-4 §6, frozen documents NOT rewritten.** four T4.21-4-era records — `docs/t4.21-4-record.md` §5 and its red table, this file's T4.21-4 entry, and `docs/adr/adr-024-food-state-effective-deficit-disaster-shock.md` — pair the discontinuity **2.5259** with the components **+0.4352 / −1.8220**. Those are TWO DIFFERENT RIGS: the components are `CalibrationBatteryTests.Canonical_EraBoundaryContinuity_PermanentBatteryMember` (seed **1**, windows 1600–2500 / 2500–3400), whose own discontinuity is **2.2572**; the 2.5259 is `DemographyRetuneTests.EraBoundaryContinuity_NeolithicToBronze_PermanentDetonator` (turns 1..450), whose components are **+0.7616 / −1.7643**. Both re-measured by T4.21-8 at λ = 0.01; both ~23–25× the 0.1 bar, so NO conclusion changes. The single correction is `docs/adr/cr-016-armed-disaster-fallout.md` §D.6 — read those four sites through it. The frozen records are left alone deliberately.
 
 - **World visualization foundation (UI, branch `claude/civdemo-work-b1z2y4`, unratified) — its Director questions are registered, not decided:** `docs/architecture/world-visualization.md` §13 (WV-01..WV-08, mapped onto DD-04/06/07/08/09/10/11, DD-T5/T8/T9, X-VIS-1, D-038 H2/H3/H8). The biggest is WV-02: task Part 6 (placement inside a settlement) implemented as composition slots in the one composed sprite under D-038 H2/H3/H4 — the Director confirms or redirects.
+
+- **D-043 CIVILIZATION PROGRESSION / AGES / THE TREES / MOBILE AGENTS — Director design ruling, recorded 2026-09-29 (branch `claude/civdemo-work-b1z2y4`, not `main`).**
+  `docs/d043-civilization-progression-ages-and-mobile-agents.md` quotes the rulings verbatim.
+  - **Ages.** Exactly nine, A1 Prehistoric / Stone Age … A9 Modern / Contemporary.
+    - They are per-civilization development states, not date brackets.
+    - Progression is irreversible, and each transition is discrete.
+    - A transition needs every Core milestone plus sufficient Supporting milestones, covering
+      several categories.
+    - Milestones are player-visible and are not an eighth Tree. The seven Trees are confirmed.
+    - There is no partial Age modifier.
+  - **The Age Transition Surge.** A per-civilization surge on entering an Age. Its shape is
+    ruled; its model is DD-14.
+  - **Development** is permanent and cumulative.
+  - **Age transitions** unlock capabilities and modernize obsolete units automatically and for
+    free.
+  - **MobileAgents.** A universal MobileAgent with a universal Action Capacity budget and
+    agent-specific actions. The ruling also covers:
+    - special people and cultural groups as MobileAgents;
+    - knowledge owned by the polity;
+    - Armies with internal composition;
+    - off-road movement at continuous x/y;
+    - War Pulses, which are not implemented.
+  - **Construction capacity** is NOT bankable.
+  - **Settlement visuals.**
+    - Visual class is primarily by population.
+    - Institutions are embedded in the settlement and aggregated (1/10/20/30).
+    - Visual change is gradual.
+    - Process animations are one-shots; MobileAgent movement is animated continuously.
+  - **Viability** is causal, with no universal CapabilitySystem.
+  - **Seven collisions with frozen items are filed as CR-017 (OPEN)**
+    (`docs/adr/cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md`):
+    - Law 4 (the Age as an input);
+    - Law 2 (the surge's ~50 % residual);
+    - Law 3 (turn-denominated durations and Action Capacity);
+    - Laws 1/3 and D-011 §2 (free modernization);
+    - D-009/D-010 (off-road movement);
+    - the kernel, the sub-step rule and D-011 (War Pulses, to be ruled with CR-006 §1);
+    - D-010 and Law 1 (special people).
+  - **Non-frozen conflicts and implementation divergences** are in D-043 PART F (43 items plus a
+    term table), each UNRESOLVED with the director as owner. No document was edited. They include:
+    - the shipped PathBuild labour bank against "not bankable" (F19);
+    - six placeholder Ages against nine (F25);
+    - a UI test that forbids the ruled Age names (F26).
+  - Still open: CR-005, CR-006, CR-008, CR-009, CR-010, CR-017. NOT parked to the M10 slice gate.
+- **DD-13 — GENERIC CURRENT-AGE EFFECTS: DEFERRED · DIRECTOR DECISION REQUIRED** (D-043 A7; the
+  explicit TODO the Director ordered "so this cannot be forgotten").
+  - Do NOT implement a generic per-Age table, e.g. "Industrial Age = +20% production" or "Medieval
+    Age = +10% food".
+  - Revisit after the knowledge/research, institutions, infrastructure, industry, population and
+    military systems exist.
+  - The intended philosophy is: Age → possibilities and conditions → those systems → actual
+    consequences.
+  - Bound first by CR-017 §1 (the Age as an input) and §2 (Law 2).
+  - NOT parked to the M10 slice gate.
+- **DD-14 — THE AGE TRANSITION SURGE MODEL: DEFERRED · DIRECTOR DECISION REQUIRED** (D-043 A5).
+  - Ruled: the shape (ramp, peak, plateau, taper to a residual of ~50 % of maximum; ~+20 % at the
+    peak).
+  - Deferred to the Director: the formula, the decay curve and the Age-specific weights, "after
+    the surrounding economic/research/institutional systems exist".
+  - Bound by CR-017 §1–§3 and by D-043 F9, F10 and F24.
+  - NOT parked to the M10 slice gate.
+- **§7.12 finding, filed not fixed (D-043 PART H, H6).**
+  - The world-visualization entry above reads "(WV-01..WV-08, …)".
+  - The register holds WV-01..WV-09; WV-09 is off-graph positions
+    (`docs/architecture/world-visualization.md:350`).
+  - The entry is left as written.

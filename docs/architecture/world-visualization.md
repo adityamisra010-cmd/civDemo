@@ -385,3 +385,40 @@ inspector; loader bounds and fallbacks; one light (`ObjectLight.ShadowOffsetPx`,
 sheet rows follow the alphabet (`glyph-sheet-v1.png` regenerated: the four appended marks fill row 23); land armies on
 the road graph; the live click goes to `SettlementSelection` first; the removal guarantee in §6 corrected. Mutation
 evidence: §12.1.
+
+## 16. D-043 status note (2026-09-29, append-only; nothing above is rewritten)
+
+The Director's rulings of 2026-09-29 (`docs/d043-civilization-progression-ages-and-mobile-agents.md`)
+bear on the §13 register. **No row above is edited, and each keeps its status as written.** The
+rulings are D-043's, their collisions with frozen items are CR-017's, and the map from each row to
+what was ruled is D-043 PART G. No code or content was changed by this note.
+
+- **WV-01.** Settlement visual class is "primarily determined by population" (D-043 D1).
+  - The live `sizeTier` driver diverges from this, as does the rule that a demonstration
+    (population) driver never stages a live settlement (§5, D-043 F36).
+  - Thresholds and names remain open.
+- **WV-02 and WV-03.** Institutions are embedded in the footprint and aggregated per type, with
+  count stages 1 small, 10 expanded, 20 campus and 30 complex, and the number shown at high zoom
+  (D-043 D2). How many distinct types one footprint shows stays with D-038 H8. Three things here
+  diverge:
+  - `individualUpTo` 4;
+  - capacity-based university stages;
+  - the step B–E legend, whose 1/10/20/30 are civilization-wide counts rather than
+    per-settlement stages (§5, §7; D-043 F37).
+- **WV-06 and WV-07.** Bands and cultural groups are MobileAgents. So are role-bearing people,
+  whether special people or others (D-043 B1, B3, B6). What carries their members is D-043 F13
+  and CR-017 §7.
+- **WV-09 and DD-10.** MobileAgents may move off-road at continuous x/y (D-043 B7); the collision
+  with D-009/D-010 is CR-017 §5. Until CR-017 §5 is ruled, "the ruled shape for armies" (§4, §7,
+  §13's DD-10 row; `WorldReports.cs`) is a stale characterisation (D-043 F34). The data model
+  already carries a continuous position.
+- **DD-06 and DD-07.** War Pulses and Action Capacity are now defined at design level only
+  (D-043 B2, B8; CR-017 §3, §6). §8's "no movement … anywhere in this layer" diverges from
+  D-043 D4, under which MobileAgent movement is animated continuously (D-043 F39).
+- **DD-08.** Construction capacity is not bankable (D-043 C1).
+- **DD-11.** Institutions are implied to be countable instances per settlement and type (D-043
+  C2, D2).
+- **DD-04 and DD-T8.** Nine named Ages (D-043 A1). Whether the Age may be read is CR-017 §1; the
+  visual register binding is still open.
+- **Visual pace.** Change is gradual and noticeable over ~10–15 turns (D-043 D3). The only live
+  stage, `sizeTier`, changes "a handful of times per campaign" (D-043 F38).

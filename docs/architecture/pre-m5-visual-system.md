@@ -441,3 +441,28 @@ transition indication. §5 banned idle loops and glow. The rule applied instead:
 bounded glyph-texture cache). A view-model maps reported state to specs (`NodeVisuals`), and an
 animation clock exists (UI seconds while the overlay is open, presentation only). The **map** draw
 path still does not consume the grammar. That remains the symbology packet's work (D-038 E1).
+
+## §12 AMENDMENT NOTE — D-043 (2026-09-29, append-only; nothing above is rewritten)
+
+The Director's rulings of 2026-09-29 (`docs/d043-civilization-progression-ages-and-mobile-agents.md`)
+touch this foundation in four places. **They are recorded here, not resolved. Nothing above is
+edited.**
+
+1. **§5 against process animations (D-043 D4, F39).**
+   - §5 allows "three kinds, nothing else", and none of them is movement. The ruling requires that
+     "MobileAgent movement DOES require actual continuous movement animation".
+   - §5 bans "any animation that implies a sub-turn event the simulation did not produce".
+     - Under War Pulses (D-043 B8), movement inside a turn may be simulated. CR-017 §6 decides
+       that.
+     - Otherwise, movement drawn between two reported positions is §5's permitted interpolation.
+       This reading is INFERRED.
+2. **§11.3 against process animations.** The ruling says construction and training "can receive
+   procedural animations when initiated/resolved" and "do not require multi-turn persistent
+   construction animation". §11.3's steady loops are therefore not required. DD-T1 stays the
+   Director's to ratify or narrow.
+3. **§4, the Age device (D-043 A1, F40).**
+   - The ruling has per-civilization Ages A1–A9 only: no world-level Age and no Early/Mid/Late
+     subdivision.
+   - §4's "the sim never consults it" holds only if CR-017 §1 does not make the Age an input.
+4. **People tokens (D-043 F22).** Continuous movement of person-type MobileAgents must stay token
+   movement. D-038 C1 bans "animation cycles" for figures.

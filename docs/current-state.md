@@ -474,3 +474,22 @@ from the session record — but none was re-derived from git for this file.
 >   `docs/architecture/trees-preview/`.
 > - **Amendment:** the glyph-grammar extension is recorded append-only in `pre-m5-visual-system.md`
 >   §11.
+
+> **2026-09-29 — D-043 CIVILIZATION PROGRESSION / AGES / MOBILE AGENTS (append-only pointer; nothing above is rewritten).**
+> Work on `claude/civdemo-work-b1z2y4` (not `main`), documentation only.
+> `git diff 096677e -- Sim.Core Sim.Data Sim.Cli Sim.Tests Sim.Ui Sim.Ui.Tests .github` is empty.
+> - **Read first:**
+>   - `docs/d043-civilization-progression-ages-and-mobile-agents.md`: the Director's 2026-09-29
+>     rulings, verbatim. Conflicts are in PART F; the answered registers are in PART G.
+>   - `docs/adr/cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md`: OPEN, seven collisions
+>     with frozen items.
+> - **Newly accepted decisions:** the D-043 rulings. They are RATIFIED as Director rulings.
+>   Applying one to a frozen item named in CR-017 is DIRECTOR DECISION REQUIRED until CR-017 is
+>   ruled.
+> - **Deferred, with Director entries:**
+>   - DD-13, generic current-Age effects;
+>   - DD-14, the Age Transition Surge model.
+> - **Newly discovered conflicting documents and code:** D-043 PART F. This includes the shipped
+>   PathBuild labour bank (F19) and the Trees/Ages and world placeholder content (F25–F39).
+>   Nothing was edited.
+> - Re-derive anything you rely on, as §9 says.

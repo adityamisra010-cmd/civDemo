@@ -164,3 +164,41 @@ transition status and the milestone statuses. The placeholder implementation is 
 | the Age-to-visual-register binding | `ages[].visualTheme.register` | DD-T8 |
 
 None of these is implemented. The screen says so at each place.
+
+## §7 D-043 status note (2026-09-29, append-only; nothing above is rewritten)
+
+The Director's rulings of 2026-09-29 (`docs/d043-civilization-progression-ages-and-mobile-agents.md`,
+PART A) bear on this document as follows. **No table row, content file, code or test was changed by
+this note.**
+
+**Consistent with the ruling:**
+- §1 "Forward only" matches the ruled "Age progression is irreversible".
+- §1 "Capability can still degrade" matches the ruled "Permanent Civilization Development":
+  earlier capabilities persist unless they actually degrade.
+- `dateRange` is "display only, never a gate". That fits Ages that are "not date brackets",
+  provided it stays historical reference text.
+
+**Diverging from the ruling:**
+- **The Ages.** §5 has six placeholder Ages; the ruling has exactly nine named Ages, A1–A9
+  (D-043 F25).
+- **"Core" and "Mandatory".** The ruling says "Core". The checklist's "Mandatory" means the same
+  and differs only in name.
+- **Categories.** The ruling categorizes only Supporting milestones, with alternatives inside each
+  category and coverage required across several. §5's four provisional categories apply to every
+  milestone, and the schema cannot express sufficiency, coverage or alternatives (D-043 F27).
+- **The demo transition.** At step 2 the transition is pending with the only supporting milestone
+  at 0.6 (MEASURED; D-043 F27).
+- **The Age view.** §2 lacks three of the things the UI must "eventually" expose: category
+  coverage, alternative pathways and remaining requirements (D-043 F28).
+- **The progress percentage.** §3's per-Age % has no effect, so the ruling does not forbid it
+  ("70% completion does not mean 70% of an Age bonus"). What it should mean remains DD-T6
+  (D-043 F29).
+- **`transitionEffect`.** It is a presentation animation, not the ruled Age Transition Surge
+  (D-043 F30).
+
+**Two Director entries for this view's TBD areas**, recorded in D-043 and in `docs/queue.md`
+rather than as new rows in §6:
+- **DD-13**, generic current-Age effects: DEFERRED · DIRECTOR DECISION REQUIRED.
+- **DD-14**, the Age Transition Surge model: DEFERRED · DIRECTOR DECISION REQUIRED.
+
+**Still open:** whether an Age may be READ by mechanisms, which is CR-017 §1.
