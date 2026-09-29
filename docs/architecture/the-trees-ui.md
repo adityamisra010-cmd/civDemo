@@ -542,9 +542,9 @@ changed by this note.**
   - The milestone lists are DEFERRED.
 - **DD-T8.** §15.2's premise, that the Ages are unnamed, no longer holds. The binding is still
   open.
-- **DD-T1.** Construction and training need one-shots at initiation and resolution. Persistent
+- **DD-T1.** Construction and training may receive one-shots at initiation and resolution. Persistent
   loops are "not required". MobileAgent movement must be animated continuously.
-- **DD-T3 and DD-T5.** Informed, not settled, by §8's three steps: research unlock, then
+- **DD-T3 and DD-T5.** Informed, not settled, by D-043 A8's three steps (dictation §8): research unlock, then
   realization, then Age-transition modernization.
 
 **Divergences (D-043 PART F):**

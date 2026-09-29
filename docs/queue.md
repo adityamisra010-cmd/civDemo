@@ -1444,9 +1444,11 @@
   - **Construction capacity** is NOT bankable.
   - **Settlement visuals.**
     - Visual class is primarily by population.
-    - Institutions are embedded in the settlement and aggregated (1/10/20/30).
+    - Institutions are embedded in the settlement and aggregated per type with data-defined count
+      stages (the ruling's university example: 1/10/20/30).
     - Visual change is gradual.
-    - Process animations are one-shots; MobileAgent movement is animated continuously.
+    - Construction/training may receive one-shots at initiation/resolution (loops not required);
+      MobileAgent movement is animated continuously.
   - **Viability** is causal, with no universal CapabilitySystem.
   - **Seven collisions with frozen items are filed as CR-017 (OPEN)**
     (`docs/adr/cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md`):
@@ -1467,15 +1469,15 @@
   explicit TODO the Director ordered "so this cannot be forgotten").
   - Do NOT implement a generic per-Age table, e.g. "Industrial Age = +20% production" or "Medieval
     Age = +10% food".
-  - Revisit after the knowledge/research, institutions, infrastructure, industry, population and
-    military systems exist.
+  - Revisit "after the relevant systems exist" (e.g. knowledge/research, institutions,
+    infrastructure, industry, population, military, etc. — INFERRED, non-exhaustive).
   - The intended philosophy is: Age → possibilities and conditions → those systems → actual
     consequences.
   - Bound first by CR-017 §1 (the Age as an input) and §2 (Law 2).
   - NOT parked to the M10 slice gate.
 - **DD-14 — THE AGE TRANSITION SURGE MODEL: DEFERRED · DIRECTOR DECISION REQUIRED** (D-043 A5).
-  - Ruled: the shape (ramp, peak, plateau, taper to a residual of ~50 % of maximum; ~+20 % at the
-    peak).
+  - Ruled: the shape (ramp to a civilization-specific maximum, plateau, taper toward ~50 % of
+    maximum). ~+20 % around peak is an initial balancing target, subject to later tuning.
   - Deferred to the Director: the formula, the decay curve and the Age-specific weights, "after
     the surrounding economic/research/institutional systems exist".
   - Bound by CR-017 §1–§3 and by D-043 F9, F10 and F24.

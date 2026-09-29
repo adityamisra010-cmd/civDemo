@@ -464,5 +464,6 @@ edited.**
    - The ruling has per-civilization Ages A1–A9 only: no world-level Age and no Early/Mid/Late
      subdivision.
    - §4's "the sim never consults it" holds only if CR-017 §1 does not make the Age an input.
-4. **People tokens (D-043 F22).** Continuous movement of person-type MobileAgents must stay token
-   movement. D-038 C1 bans "animation cycles" for figures.
+4. **People tokens (D-043 F22). TENSION, UNRESOLVED.** INFERRED reconciling reading: movement of
+   person-type MobileAgents is silhouette/token translation, not a figure animation cycle (D-038
+   C1/C3). The Director confirms.

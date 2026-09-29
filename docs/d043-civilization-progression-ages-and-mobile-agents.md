@@ -33,8 +33,9 @@ house terminology (`docs/design/m4-closure-audit.md:32-37`;
   (`docs/design/ratified-label-audit.md:48-49`). The application of a ruling to a frozen item
   named in CR-017 is therefore labelled this way, even though the ruling itself is RATIFIED.
 
-Two register ids are minted here, because no existing register holds these questions (the
-`world-visualization.md:337` rule): **DD-13** (generic current-Age effects, §7) and **DD-14**
+Two register ids are minted here as the explicit entries the dictation orders (§7 asks for one).
+They narrow the existing DD-04(ii) (`docs/architecture/pre-m5-repository-audit.md:373`) rather
+than replace it: **DD-13** (generic current-Age effects, §7) and **DD-14**
 (the Age Transition Surge model, §5). **Measured: neither id, nor D-043 or CR-017, occurs on any
 of the 85 local and remote refs** (`git grep` over `refs/heads` and `refs/remotes`, 2026-09-29).
 The audit's §5 table is a frozen investigation record and is not edited.
@@ -111,7 +112,7 @@ verbatim:
 - The placeholder milestone schema cannot express "sufficient", "coverage across multiple
   categories" or "multiple alternative milestones exist within categories". Its categories also
   differ from §2's examples (F27).
-- "Core" is the dictated term; the shipped UI says "Mandatory" (F27).
+- The dictation says "Mandatory Core Milestones", so the shipped UI's "Mandatory" matches it.
 - The final milestone lists are DEFERRED (PART E).
 
 ### A3. MILESTONES ARE PLAYER-VISIBLE — **RATIFIED** (dictation §3)
@@ -285,8 +286,8 @@ the explicit TODO that §7 orders, "so this cannot be forgotten".
 - **The intended philosophy (RATIFIED, quoted above).** Age → changes possibilities and
   civilization conditions → Research / Institutions / Infrastructure / Industry / Population /
   Military etc. → actual consequences.
-- **When to revisit.** After the relevant systems exist: knowledge/research, institutions,
-  infrastructure, industry, population and military.
+- **When to revisit.** "after the relevant systems exist" (verbatim). INFERRED, non-exhaustive
+  examples: knowledge/research, institutions, infrastructure, industry, population, military, etc.
 - **What the revisit must first settle.**
   - CR-017 §1: whether the Age may be an input at all.
   - CR-017 §2: whether any Age-keyed effect can pass Law 2.
@@ -892,7 +893,9 @@ TENSION, strong: it needs an explicit Director statement.**
 - **D-040 B4** rules *"Sea travel extends the network's edge types; it is not a separate movement
   mode"* (`d040-discovery-and-control.md:80`).
   - §15 speaks only of land terrain.
-  - A naval MobileAgent at continuous x/y would be the separate mode that B4 rules out.
+  - A naval MobileAgent at continuous x/y would be the separate mode that B4 rules out. It also
+    falls under frozen D-009's one-network clause (`d009-d010-map-population-addendum.md:17`),
+    so it belongs to CR-017 §5 as well.
   - The demo already places "a fleet at sea" at a free position
     (`docs/architecture/world-visualization.md:190`).
 - **D-039 Part C** gives fog states per enemy FORMATION (`d039-command-fog-and-siege.md:80`). §13
@@ -905,7 +908,8 @@ TENSION, strong: it needs an explicit Director statement.**
   originate from population already simulated."* (`d037-emergent-polities.md:14-15`).
 - **The rulings.** A catalogue person recruitable by anyone, and a band that "eventually
   disband[s]", reconcile with A1 only if their members are drawn from simulated buckets. CR-017
-  §7 option A is that reconciliation.
+  §7 option A is that reconciliation for single persons; for bands it must extract and return N
+  members by Transfer (CR-017 §7).
 - **The demo.** It shows a 1,200-member group and a four-member band with no carrier (WV-06).
 
 **F14 — Special people against the ratified M4 notables ruling (R-1) and its shipped lifecycle
@@ -928,8 +932,8 @@ TENSION, strong: it needs an explicit Director statement.**
   - It says special people "do not require persistent relationship/allegiance simulations",
     where R-1 has defection and purchase.
   - Its people may "disappear/retire", which is not a lifecycle operation.
-  - Its recruitment across polities ("Germany may recruit Gandhi") is the purchase event, and
-    that needs money (M5).
+  - INFERRED, conditional: if recruitment takes a person held by another polity, it is R-1's
+    purchase event, whose consideration needs money (M5). §11 itself says nothing of payment.
 - **The open question.** Whether a General (§9) can be a special person decides whether frozen
   D-011's *"general experience"* (`d011-battle-layer-addendum.md:27`) applies to one.
 
@@ -1026,7 +1030,7 @@ a milestone.**
   boosts the outputs that satisfy the next Age's milestones, which triggers the next surge.
 - **What the model must do.** DD-14's model must name the negative loop that pairs with this one.
 
-### F.3 Living documents, placeholder content, UI code and unratified analyses (all changeable without procedure — S8 §1 LIVING, `spine-s8-governance-freeze.md:19-23` — but changing them is outside this documentation-only pass)
+### F.3 Living documents, placeholder content, UI code and unratified analyses (not frozen under S8 §1, `spine-s8-governance-freeze.md:13-17`; changing them is outside this documentation-only pass, and `Sim.Core` code changes only under a packet)
 
 **F25 — Six placeholder Ages against nine (§1). DIVERGES.**
 - **The shipped content.** Six Ages, `AGE_00` to `AGE_05` (`Sim.Ui/UiContent/trees/ages.json:27-252`),
@@ -1100,7 +1104,7 @@ a milestone.**
 - **The PROPOSED design lane** allows *"Forgetting — firmness decays to zero"*
   (`docs/design/arch-C-knowledge.md:337-338`).
 - **What §6 forbids.** Loss *because an Age is entered*. INFERRED: loss by real degradation
-  remains open (Q-20, PART G).
+  remains open (Q-20, `docs/design/arch-PQ-conflicts-and-questions.md:791`).
 
 **F32 — Trees and gallery content against §8. DIVERGES and TERM.**
 - **No slot for modernization.** Unit-class nodes use the realization state set, which has no
@@ -1123,7 +1127,7 @@ a milestone.**
   classes (`Sim.Ui/UiContent/trees/gallery.json:64-68`). §11 separates Special Person
   definitions from Ability definitions.
 
-**F34 — "The ruled shape for armies" (§15). TENSION, a stale characterisation pending CR-017 §5.**
+**F34 — "The ruled shape for armies" (§15). TENSION. D-009's ruled shape governs until CR-017 §5 is ruled; these lines go stale only if that ruling admits off-road movement (DIRECTOR DECISION REQUIRED).**
 - **Four places say land armies stand on the graph because D-009 ruled it:**
   - `docs/architecture/world-visualization.md:66-67`;
   - `docs/architecture/world-visualization.md:188-189`;
@@ -1154,7 +1158,7 @@ different meaning.**
   `docs/architecture/world-visualization.md:128-130`).
 - **Capacity staging.** The university stages by each report's capacity:
   `"stageBy": { "input": "capacity" }`, with the stages "Main building", "Expanded wing",
-  "Academic block" and "Campus" (`Sim.Ui/UiContent/world/morphology.json:171-178`).
+  "Academic block" and "Campus" (`Sim.Ui/UiContent/world/morphology.json:171-223`).
 - **§19 instead** aggregates one visual per type, staged by instance COUNT: 1 small, 10 expanded,
   20 campus, 30 complex, with the number shown at high zoom.
 - **The shipped 1/10/20/30.** These are CIVILIZATION-WIDE summary counts, pinned by
@@ -1179,9 +1183,10 @@ TENSION with its amendment.**
     produce"* (`:256-257`). Under §16, War Pulses really do move agents inside the turn.
 - **The Trees amendment.** It lets steady loops run *"only while a reported process state holds:
   … training, under construction"* (`:429-431`). The content matches: a sweep and pulses loop
-  for the whole state (`Sim.Ui/UiContent/trees/animations.json:19-27`), with no one-shot at the
-  start or finish of construction or training. §22 needs only those one-shots and does not
-  require the loops.
+  for the whole state (`Sim.Ui/UiContent/trees/animations.json:19-27`), with no one-shot keyed to
+  construction or training as such (training has none; construction completion plays one only
+  incidentally, as the `building-stage-up` pip-fill when maturity first appears). §22 permits
+  ("can receive") one-shots at initiation/resolution and does not require the loops.
 - **The world layer.** *"There is no movement, speed, pathfinding, … or Action Capacity anywhere
   in this layer"* (`docs/architecture/world-visualization.md:206-207`).
 
@@ -1278,7 +1283,7 @@ the same refute-first sweep; rows the verifiers rejected are listed under "still
 | **DD-T6** Age list, milestones, completion rule, progress | `docs/architecture/the-trees-ui.md:453` | The list and names: nine, A1–A9. The completion rule's shape (§2). Partial credit has no Age effect (§4). The milestone lists are DEFERRED; what the percentage means is still open | PARTIALLY |
 | **DD-T2** lens list, node types, state vocabulary | `:449` | The seven lenses are confirmed (§3); node types and states are still open | PARTIALLY |
 | **DD-T8** Age → visual register | `:455` | The premise of the-trees-ui §15.2 is gone (F41); the binding is still open | REFRAMED |
-| **DD-T1** process-state animation rule | `:448` | Construction and training get one-shots at initiation/resolution; persistent loops are "not required"; MobileAgent movement is animated continuously (§22) | PARTIALLY |
+| **DD-T1** process-state animation rule | `:448` | Construction and training may receive one-shots at initiation/resolution ("can receive"); persistent loops are "not required"; MobileAgent movement is animated continuously (§22) | PARTIALLY |
 | DD-T3 / DD-T5 availability gate; realization measures | `:450`, `:452` | §8 names three steps: research (known/possible), conditions (realized), Age transition (conversion). The measures are still open | informs, not settled |
 | ages-ui §6, rows 1–4 | `docs/architecture/ages-ui.md:158-161` | Row 1: list and names answered; "dates" reframed (not brackets). Row 2: structure answered; lists DEFERRED. Row 3: the rule's shape answered. Row 4: discrete and irreversible; timing still open | PARTIALLY |
 | **DD-06** War Pulse definition | `docs/architecture/pre-m5-repository-audit.md:375` | A cadence inside the strategic turn, not D-039 E3's decision-point model (F11). Mechanics DEFERRED (CR-017 §6) | PARTIALLY |

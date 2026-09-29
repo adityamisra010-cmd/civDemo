@@ -72,7 +72,7 @@ Non-frozen records that rest on the same law are recorded in D-043 F8:
   consequences"*.
 - §8:
   - *"Entering a new Age can unlock: - new buildings - new institutions - new infrastructure -
-    new units - new techniques - new applications"*;
+    new units - new techniques - new applications - other Age-appropriate capabilities"*;
   - *"Existing obsolete military units can automatically upgrade to their appropriate successor
     unit upon Age transition."*
 
@@ -266,9 +266,9 @@ Two further constraints on any option (INFERRED):
 **The surge's peak.** "Several turns" at peak is decades at dt 10 and a few years at dt 0.5.
 
 **The dt-authority rule makes it unequal.** A laggard that enters an Age while a leader holds
-global dt at 0.5 would get a surge far shorter, in sim-years, than the first entrant's. That runs
-against §5's own *"Every civilization receives its own Age Transition Surge"* and *"duration
-should not scale dramatically"*.
+global dt at 0.5 would get a surge far shorter, in sim-years, than the first entrant's. INFERRED, by
+analogy with §5's size clause *"duration should not scale dramatically"*: the Director may not
+intend a large dt-driven spread. The Director confirms.
 
 **Action Capacity.** A fixed budget per strategic turn buys 20× more actions per sim-year at dt 0.5
 than at dt 10. That is a per-turn amount in kernel §3.4's sense. The audit registered it:
@@ -334,7 +334,8 @@ and budgets generally.
 
 - *"The upgrade: - is automatic - is free - does not require the player to manually rebuild the
   unit - should eventually use historically/causally reasonable changes in attack, health, range,
-  etc. - must not be implemented as arbitrary doubling of stats"*.
+  etc. - must not be implemented as arbitrary doubling of stats merely because the unit belongs to
+  a later Age"*.
 - *"Age transition / unit modernization → existing obsolete formations can be automatically
   converted into the newly appropriate formation"*.
 
@@ -348,9 +349,10 @@ and budgets generally.
   Law 3's "instant transformation" at scale.
 - **The discrete Age flip (§4) is weaker.** It is a latch changing state with no stock attached,
   so it is recorded here as a tension, not a conflict.
-- **MEASURED.** No equipment stock exists in `Sim.Core` today. The only "equipment" is a
-  production-side tool ratio (`Sim.Core/Systems/Production/ProductionSystem.cs:219`), so no code
-  conflicts yet.
+- **MEASURED.** No military equipment stock exists in `Sim.Core` today. The only equipment is the
+  conserved `tools` good that equips farmers and wears out through the Ledger sink ToolWear
+  (`Sim.Core/Systems/Production/ProductionSystem.cs:36-44`). That is a precedent for equipment as
+  a Law 1 good, and it bears on Option B.
 
 ### 4.4 Minimal fix options (≤3; none implemented)
 
@@ -447,8 +449,9 @@ has slope and water terms only (D-043 F35).
 ### 5.6 Recommendation — PROPOSED
 
 - **Option A.** Choose Option B only if a measurement shows the charter's edge budget holds.
-- **Sea movement** is a separate matter. It collides only with non-frozen D-040 B4 and is recorded
-  in D-043 F12.
+- **Sea movement** at continuous x/y falls under the same frozen clause
+  (`d009-d010-map-population-addendum.md:17`) as land off-road movement, so it is part of this
+  collision; non-frozen D-040 B4 is an additional text (D-043 F12).
 
 ---
 
@@ -481,7 +484,7 @@ has slope and water terms only (D-043 F35).
 ### 6.3 Evidence (derivation)
 
 **The sub-step rule already admits sub-stepped systems.** It names battles. War Pulses fit the
-frozen contract if, and only if, three conditions hold:
+frozen contract most simply when three conditions hold:
 1. they are resolved inside the military system's own step;
 2. no other system reads their results before the next turn;
 3. no control returns to the player between pulses.
@@ -498,6 +501,13 @@ per pulse:
 - that is CR-006 §1's mid-turn hand-back;
 - it also contradicts D-039 E3's explicit *"the player does not play out months of movement"*
   (D-043 F11).
+
+**But frozen D-011 already returns control to the player per battle pulse** — *"player battle
+orders append to the order log per pulse"* (`d011-battle-layer-addendum.md:28`) — and says the
+*"Kernel contract: already supports sub-stepped military phases and order-logged player input"*
+(`:70`). So condition 3 comes from non-frozen D-039 E3 and the M4 exit fence, read with the open
+CR-006 §1, not from the kernel alone. Frozen D-011's reading of the kernel and CR-006 §1's differ;
+that is recorded, not resolved, and the Director rules with both in view.
 
 ### 6.4 Minimal fix options (≤3; none implemented)
 
@@ -530,7 +540,7 @@ player control.
 
 ---
 
-## §7 CONFLICT SEVEN — CATALOGUE SPECIAL PEOPLE vs D-010 NOTABLES AND LAW 1
+## §7 CONFLICT SEVEN — CATALOGUE SPECIAL PEOPLE AND CULTURAL GROUPS vs D-010 NOTABLES AND LAW 1
 
 ### 7.1 Frozen items in conflict
 
@@ -555,6 +565,8 @@ player control.
 - *"- have finite lifespans - eventually die/disappear/retire - do not require persistent
   relationship/allegiance simulations"*.
 - *"Germany may recruit Gandhi."*
+- §14, cultural groups (same ground, a group of people): *"generate revenue"* and *"eventually
+  disband/end"*.
 
 ### 7.3 Evidence (derivation)
 
@@ -569,7 +581,11 @@ cannot vanish"*.
 - D-010's notables *emerge from* buckets.
 - §11's are authored catalogue entries.
 
-**Recruitment across polities** ("Germany may recruit Gandhi") is the purchase event. Its
+**Cultural groups (§14)** are groups of people that form, earn and "eventually disband/end"; each
+member's appearance and exit is the same Law 1 / D-010 question, N times over.
+
+**Recruitment across polities** ("Germany may recruit Gandhi"): INFERRED, conditional — if
+recruitment takes a person held by another polity, it is R-1's purchase event, and its
 consideration *"cannot exist until money does"* (`docs/m4-spec.md:431-433`).
 
 ### 7.4 Minimal fix options (≤3; none implemented)
@@ -580,6 +596,8 @@ consideration *"cannot exist until money does"* (`docs/m4-spec.md:431-433`).
 - **Identity.** The person carries the catalogue's name, skills and abilities: §11's Special
   Person and Ability definitions.
 - **Exits.** Retirement returns the person to a bucket by Transfer; death is the existing sink.
+- **Groups.** A band or cultural group extracts N members by Transfer on forming and returns them
+  on disbanding.
 - **What holds.** Law 1, D-037 A1 and D-010 all hold.
 - **What the Director must confirm.** R-1's allegiance lifecycle (defection, purchase, falling
   out) is simply not exercised for special people.

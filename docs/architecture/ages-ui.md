@@ -181,8 +181,6 @@ this note.**
 **Diverging from the ruling:**
 - **The Ages.** §5 has six placeholder Ages; the ruling has exactly nine named Ages, A1–A9
   (D-043 F25).
-- **"Core" and "Mandatory".** The ruling says "Core". The checklist's "Mandatory" means the same
-  and differs only in name.
 - **Categories.** The ruling categorizes only Supporting milestones, with alternatives inside each
   category and coverage required across several. §5's four provisional categories apply to every
   milestone, and the schema cannot express sufficiency, coverage or alternatives (D-043 F27).

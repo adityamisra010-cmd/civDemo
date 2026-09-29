@@ -398,7 +398,8 @@ what was ruled is D-043 PART G. No code or content was changed by this note.
     (population) driver never stages a live settlement (§5, D-043 F36).
   - Thresholds and names remain open.
 - **WV-02 and WV-03.** Institutions are embedded in the footprint and aggregated per type, with
-  count stages 1 small, 10 expanded, 20 campus and 30 complex, and the number shown at high zoom
+  data-defined count stages (the ruling's university example: 1 small, 10 expanded, 20 campus,
+  30 complex), and the number shown at high zoom
   (D-043 D2). How many distinct types one footprint shows stays with D-038 H8. Three things here
   diverge:
   - `individualUpTo` 4;
@@ -409,8 +410,9 @@ what was ruled is D-043 PART G. No code or content was changed by this note.
   whether special people or others (D-043 B1, B3, B6). What carries their members is D-043 F13
   and CR-017 §7.
 - **WV-09 and DD-10.** MobileAgents may move off-road at continuous x/y (D-043 B7); the collision
-  with D-009/D-010 is CR-017 §5. Until CR-017 §5 is ruled, "the ruled shape for armies" (§4, §7,
-  §13's DD-10 row; `WorldReports.cs`) is a stale characterisation (D-043 F34). The data model
+  with D-009/D-010 is CR-017 §5. "The ruled shape for armies" (§4, §7, §13's DD-10 row;
+  `WorldReports.cs`) stands as frozen D-009's shape; whether it goes stale depends on CR-017 §5
+  (DIRECTOR DECISION REQUIRED; D-043 F34). The data model
   already carries a continuous position.
 - **DD-06 and DD-07.** War Pulses and Action Capacity are now defined at design level only
   (D-043 B2, B8; CR-017 §3, §6). §8's "no movement … anywhere in this layer" diverges from
