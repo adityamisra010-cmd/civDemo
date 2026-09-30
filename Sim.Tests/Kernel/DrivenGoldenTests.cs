@@ -375,7 +375,18 @@ public class DrivenGoldenTests
         //   BLAST RADIUS: the same four behavioural goldens the arming moved,
         //         moving back. The layout controls do NOT move either way, which
         //         is what makes the ladder a ladder.
-        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   NEW  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-029 entry: five v26 count
+        //         prefixes plus ResearchSystem's own rows (Eurekas on available
+        //         roots; the driving batch issues no research order, so no target
+        //         and no CLP lands).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips
+        //         them on this exact world and returns the OLD value byte for byte.
+        const string golden = "e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

@@ -434,7 +434,18 @@ public class FirstReignTests
         //   THE SHAPE ASSERTS BELOW ARE UNCHANGED AND RE-VERIFIED BY RUNNING
         //         THEM on the merged tree: the dead world still dies inside the
         //         session's shape and the ghost mountain stays absent.
-        const string golden = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e
+        //   NEW  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   CAUSE five v26 count prefixes plus ResearchSystem's own rows (the
+        //         director's fixture carries no research order). The SHAPE ASSERTS
+        //         BELOW ARE UNCHANGED and pass on this tree: research feeds nothing
+        //         back, so the dead world dies exactly as before.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns the OLD
+        //         value byte for byte.
+        const string golden = "37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
