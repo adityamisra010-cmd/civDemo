@@ -44,9 +44,13 @@ CR-005.
 `scripts/migrate-research-corpus.py` from the Director's corpus `tech-graph-v0.6.json`, which stays at the repository
 root, unchanged and read-only.
 
-- The generator is deterministic: two runs are byte-identical. `--check` fails if either output is stale.
+- The generator is deterministic: two runs are byte-identical. `--check` fails if either output is stale, and
+  the CI `build-and-test` job runs it, so a hand edit to `research.json` or the audit, or a generator change
+  without a regeneration, fails CI.
 - The file records the corpus SHA-256. A test recomputes it (`Canonical_IsInSyncWithTheCorpusFileItWasMigratedFrom`),
-  so the migrated content cannot silently drift from its source.
+  which catches a changed corpus. That test alone does not compare the migrated content with the corpus; the CI
+  `--check` step does. (Corrected after review: the first version of this ADR claimed the SHA test alone prevented
+  drift, and CI did not yet run `--check`.)
 - The generator also writes `docs/research-corpus-audit.md`. It is the full audit D-044 R23 asks for: every node's
   key, tree and subtree, domain, age, depth, cost, prerequisites, Eureka mapping, family and generation, unlock count
   and historical date.
@@ -121,9 +125,14 @@ the data.
 
 | turn | sim-year | nodes complete |
 |---|---|---|
-| 96 | 960 | 50 |
-| 191 | 1910 | 100 |
-| 300 | 2750 (≈ 1250 BCE) | 141 of the 176 Main-tree nodes, plus 1 civic |
+| 99 | 990 | 50 |
+| 196 | 1960 | 100 |
+| 300 | 2750 (≈ 1250 BCE) | 139 of the 176 Main-tree nodes, plus 1 civic |
+| 398 | 3240 | the research stage is reached; all five subtrees open |
+| 1000 | 5500 | 295: Main 176/176, Military 23, Medicine 16, Engineering 41, Natural Science 24, Agriculture 9, Civics 6/6 |
+
+(Re-measured after the review fixes, which made 24 fewer Eureka strings evaluable; the first measurement, at
+`ced5009`, was 50 by turn 96, 100 by 191, 141 + 1 at turn 300, the stage at 388.)
 
 The research stage was not yet reached at turn 300. These are readings, not targets. The pacing depends on the
 provisional CLP function (§6).
@@ -131,7 +140,9 @@ provisional CLP function (§6).
 ### §2.5 Validators (D-044 R24)
 
 The loader is `ResearchContentLoader`. It fails fast and loud: the message names the file path, the node and the
-rule. Each rule has a rejection test in `ResearchContentTests`.
+rule. Each rule has a rejection test in `ResearchContentTests`. JSON is read with `RespectNullableAnnotations`, so an
+explicit `null` in a required non-nullable value is a validation failure naming its path, never a null in the model
+or a `NullReferenceException` (`Rejects_ExplicitNullsInRequiredValues_…`).
 
 | Validator | What it rejects |
 |---|---|
@@ -142,9 +153,9 @@ rule. Each rule has a rejection test in `ResearchContentTests`.
 | Missing prerequisites | An unknown atom |
 | Cyclic prerequisites | A self-reference; any cycle, reported as "prerequisite cycle: a requires d requires a" |
 | NOT | NOT anywhere in a prerequisite |
-| Eureka references | An unknown name or quantity; a condition naming the node itself or any of its descendants (a dead Eureka); a status/condition mismatch |
+| Eureka references | An unknown name or quantity; a status/condition mismatch; a **dead Eureka** — a condition that cannot hold while its node is still researchable. The check is by necessity, not by descendants: it computes everything completable *without* the node (the reachability fixpoint with the node held incomplete, the stage opening only if it can without the node) and rejects a NOT-free condition that is false there even with every comparison taken as true (`Predicate.CanHold`). An OR alternative that needs the node does not kill a condition whose other alternative can hold; a condition naming subtree knowledge on a node the stage itself needs is dead. (Corrected after review: the first check rejected every condition naming a descendant, a false positive for OR-dependents, and missed the stage-gated case.) |
 | Costs | Not finite, or not greater than 0 |
-| Unlock references | An unknown entity; a kind mismatch; a duplicate; disagreement with the reverse index; a civic unlocking anything but an institution |
+| Unlock references | An unknown entity; a kind mismatch; a duplicate ("listed twice"); disagreement with the reverse index; a civic unlocking anything but an institution |
 | Orphans | A node with no dependents, no entity unlocks and no capability |
 | Unreachable nodes | A Main-tree node reachable only through subtree knowledge (for example through a Civic: an invalid cross-tree dependency); a research stage that knowledge available before the stage can never satisfy (a deadlock); a final every-node reachability fixpoint |
 | Entity requirements | Undeclared or stale `unresolved` references; institution cycles; a bad id prefix |
@@ -238,18 +249,38 @@ each rule:
 1. **Exact technology references** — the id or the name — plus four reviewed aliases: fire, sustained fire, adhesive,
    and alphabetic script.
 2. **Exact good names**, including synonyms.
-3. **A hand-reviewed list** of strings whose material is plainly a shipped good.
+3. **A hand-reviewed list.** A string is mapped when it names a shipped good, **or an object shaped directly from
+   one** (a stone mould, a timber frame, a clay tablet, a bronze ram). The mapped condition reads "a controlled
+   settlement holds a positive stock of that good": the material is at hand. There are no object stocks, so it cannot
+   check that the object itself exists; this is the stated approximation.
 
 **Deliberately NOT mapped:**
-- a product of a technique (molten copper, copper wire, heat-treated stone);
+- a **different substance** made from a good (wood ash, lime, molten or smelted metal, copper wire);
+- a form that needs a **separate graph technique** (heat-treated stone → `heat_treatment_stone`, ground-stone axes →
+  `ground_stone_early`);
 - a negation ("not potter's clay");
 - an unstated quantity ("in quantity", "at scale");
-- inseparable lists;
+- inseparable lists (stone, papyrus, ink);
+- **exchange** ("long-distance exchange reaching a tin source") — no trade-network state exists;
 - **institution presence** — 79 strings; no institutions system exists;
 - **contact with a civilization holding the node** — 61 strings; no contact state exists (the D-035-C carrier test).
 
-**Result:** 117 of the 801 strings are evaluable, on 100 technology nodes. Every other string is kept verbatim with its
-status, and the Glass Box shows why it cannot fire.
+**Implied by prerequisites — declared, not evaluated.** A knowledge circumstance that the node's own prerequisites
+already guarantee (plus, for a subtree node, what the stage guarantees) would hold at every moment the node is
+available: a flat 25 % cost cut, not a circumstance. The generator computes each node's must-complete set (an atom
+contributes itself and its must-set; AND = union, OR = intersection) and gives such a string the status
+`implied-by-prerequisites` with no condition. 21 strings are affected; every use of the four aliases is among them.
+They are listed as corpus problem 9 in the audit. `Canonical_NoEvaluableKnowledgeEureka_IsGuaranteedByItsOwnNodesPrerequisites`
+exhibits, for each remaining knowledge condition, a reachable state where the node is available and the condition
+is false.
+
+**Result:** 93 of the 801 strings are evaluable, on 83 technology nodes: 91 good-stock conditions and 2 knowledge
+conditions (`copper_smelting` ← charcoal, `windmill_post` ← gearing). Status counts: evaluable 93, no-state-carrier
+547, institution-state-absent 79, contact-state-absent 61, implied-by-prerequisites 21. Every other string is kept
+verbatim with its status, and the Glass Box shows why it cannot fire. (Corrected after review: the first version
+made 117 strings evaluable, including three that broke its own rule — wood ash, lime or wood ash, and the tin
+exchange, which duplicated `tin_bronze`'s tin-ore Eureka so that one stock fact gave 50 % credit — and 21 that were
+implied by prerequisites.)
 
 ## §8 — THE RESEARCH STAGE AND THE FIVE SUBTREES (D-044 R3, R4, R15)
 
@@ -275,8 +306,9 @@ and a later packet can add an institution-present atom to it without changing en
 **Classification, rule R1 (§13 R-8)**, which produces counts of trunk 176 · Military 37 · Medicine 22 · Engineering 130 ·
 Natural Science 44 · Agriculture 15:
 
-1. **Main Technology Tree** — the stage trigger's prerequisite closure (32 nodes, union over OR), plus every node aged
-   A1–A5. Age is used here as content metadata, never as a runtime gate.
+1. **Main Technology Tree** — the stage trigger's technology prerequisite closure, plus every node aged A1–A5. The
+   closure is 32 nodes, union over OR: 30 technologies, all forced into the trunk, and 2 civics (`law_code`,
+   `legal_code_roman`), which stay in Tree 2. Age is used here as content metadata, never as a runtime gate.
 2. **Otherwise, the primary domain decides:**
 
 | Primary domain | Subtree |
@@ -285,7 +317,7 @@ Natural Science 44 · Agriculture 15:
 | medicine | Medicine |
 | science, environment | Natural Science |
 | agriculture, food | Agriculture |
-| engineering, materials, construction, transport, communication, infrastructure, industry, energy | Engineering (the removed Industry & Energy folds in here, R20-F) |
+| engineering, materials, construction, transport, communication, infrastructure, industry, energy | Engineering. R20-F removes the Industry & Energy subtree but does not place its knowledge; folding `industry` and `energy` in here is implementer resolution §13 R-8 |
 
 **Properties of the result:**
 - No Main-tree node requires a subtree node.
@@ -343,13 +375,17 @@ It adds exactly three things:
 **Resolution order** is fixed: a registered variable, then a quantity, then an atom.
 
 **Introspection** comes with it: `AtomIds` and `QuantityIds` (distinct, in first-appearance order), `ReadsVariables`
-and `UsesNot`. The loader uses them for cycle, reference and dead-Eureka checks; the Glass Box uses them for
-per-prerequisite status.
+and `UsesNot`, and `CanHold(atoms)` — whether a NOT-free expression can be true for some truth values of its
+comparisons given the atoms (with a NOT it answers true, "undecided"). The loader uses them for cycle, reference and
+dead-Eureka checks; the Glass Box uses them for per-prerequisite status.
 
 **What is unchanged:**
 - There are still **no functions and no arithmetic**.
-- `Parse(string)` and `Evaluate(VariableReader)` behave exactly as before. Keywords and bare names still fail with
-  the old messages, and `PredicateTests` plus a legacy pin in `PredicateResearchDialectTests` hold that.
+- `Parse(string)` and `Evaluate(VariableReader)` behave exactly as before: the same results, failures and messages.
+  Keywords and bare names still fail with the old messages, and `PredicateTests` plus a legacy pin in
+  `PredicateResearchDialectTests` hold that. The *code* on that path is not byte-for-byte the old code — the shared
+  parser gained the introspection bookkeeping. (Corrected after review: commit `72f3e18`'s class doc said
+  "untouched" and D-044 T5 said "unchanged byte for byte"; both now say "behaves as before".)
 
 **Status:** D-020 is closed. This extension is recorded here and may be ruled back.
 
@@ -379,9 +415,9 @@ function, never by a private re-implementation. `GlassBoxQueries_MutateNothing` 
 | R-3 | Completion **clears** the target; the player chooses again; there is no queue | R9; D-042 §12's "rigid queue" remains unbuilt |
 | R-4 | CLP = coefficient × adults^exponent over controlled settlements (§6) | §8.1.2 forbids linear; population is the only input present |
 | R-5 | Eurekas are evaluated only for **available** nodes; credit = fraction × EffectiveCost; fraction 0.25 (TUNE) | Causal reading; 0.25 because corpus nodes carry up to four Eurekas |
-| R-6 | Only faithful Eureka mappings are machine conditions (§7) | R10 "where applicable"; R23 "do not fabricate" |
+| R-6 | Only faithful Eureka mappings are machine conditions: a shipped good or an object shaped from one; a circumstance implied by the node's own prerequisites is declared, not evaluated (§7) | R10 "where applicable"; R23 "do not fabricate"; a condition that always holds is a modifier, not a circumstance (law 2) |
 | R-7 | The research stage is the knowledge-level university predicate (§8) | R4 asks for capability plus institutional state; the latter does not exist |
-| R-8 | Rule R1: stage closure + ages A1–A5 go to the trunk; the rest is split by primary domain, naval → Military, industry and energy → Engineering | R15; architecture §8.4.1 and §8.4.5; R20-F |
+| R-8 | Rule R1: stage closure + ages A1–A5 go to the trunk; the rest is split by primary domain, naval → Military, industry and energy → Engineering | R15 (keep the corpus); R20-F removes the Industry & Energy subtree without placing its knowledge, and the corpus domains `industry` and `energy` need a ruled subtree; Engineering's ruled coverage (materials, mechanical engineering) is the nearest. Architecture §8.4.1 now cites this resolution, not the reverse |
 | R-9 | Civics = the six architecture §5.7 candidates, knowledge half only | R12, R23 |
 | R-10 | BaseCost = round10(1000 × 1.12^depth) | The corpus has no cost; monotone along edges |
 | R-11 | Age F → A9 + `frontier` | Architecture §12.7, §17.5 |

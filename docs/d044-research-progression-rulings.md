@@ -769,19 +769,23 @@ If you encounter a genuinely NEW architectural decision that is not covered here
 
 ## PART B — WHAT THE RULINGS SETTLE
 
-These questions are closed by D-044 SETTLED and must not be re-asked. Each points at the controlling section.
+Every row below is answered by a Part A ruling; the instruction states that its decisions "are already ratified
+Director decisions". Rows marked **★** are also on the **D-044 SETTLED** "do not ask again" list and must not be
+re-asked. The unmarked rows are ratified rulings that an implementer does not re-open, but the Director did not
+put them on the do-not-ask list, so they are not closed against the Director's own later revision. Each row
+points at the controlling section, and keeps that section's scope.
 
 | question | ruled | section |
 |---|---|---|
-| How many top-level trees? | Two: Tree 1 Technology, Tree 2 Civics | R3 |
-| How many specialized subtrees of Tree 1? | Exactly five: Military, Medicine, Engineering, Natural Science, Agriculture. No Industry & Energy, no Naval, no Science tree, no 1.3.1 | R3, R20-F |
-| Is Technology linear? | No. AND / OR / nested prerequisite expressions; causal edges; cycles rejected | R8 |
-| Is there a separate Knowledge resource or tree? | No. Technology is the civilization's knowledge; the knowledge base is the set of completed Technology and Civics nodes | R1 |
-| What drives research? | One shared Cognitive Load Point (CLP) pool for Technology, its subtrees and Civics. No Science, Culture, per-branch or second accumulated currency | R2, R12 |
-| Parallel or single target? | One active allocation target at a time. Many nodes may hold partial progress. No manual percentage splits | R9, R20-E |
-| Does unused research accumulate? | No general bank or reserve. Partial progress is stored per node | R20-D |
-| When do the subtrees open? | All five together, when the civilization reaches the university/research institutional stage. Not on an Age. Not faculty by faculty | R4, R20-G |
-| What do specialized universities do? | Reduce the effective research cost of relevant nodes: BaseCost → modifiers → EffectiveCost. No flat science, no second currency, no second queue. The numerical formula is NOT ratified | R5, R20-H |
+| ★ How many top-level trees? | Two: Tree 1 Technology, Tree 2 Civics | R3 |
+| ★ How many specialized subtrees of Tree 1? | Exactly five: Military, Medicine, Engineering, Natural Science, Agriculture. No Industry & Energy, no Naval, no Science tree, no 1.3.1 | R3, R20-F |
+| ★ Is Technology linear? | No. AND / OR / nested prerequisite expressions; causal edges; cycles rejected | R8 |
+| ★ Is there a separate Knowledge resource or tree? | No. Technology is the civilization's knowledge; the knowledge base is the set of completed Technology and Civics nodes | R1 |
+| ★ What drives research? | One shared Cognitive Load Point (CLP) pool for Technology, its subtrees and Civics. No Science, Culture, per-branch or second accumulated currency | R2, R12 |
+| Parallel or single target? | One active allocation target at a time **for the current implementation** (R9's own scope). Many nodes may hold partial progress. No manual percentage splits | R9, R20-E |
+| Does unused research accumulate? | No general bank or reserve. Partial progress is stored per node (★ for "partial progress is retained") | R20-D |
+| ★ When do the subtrees open? | All five together, when the civilization reaches the university/research institutional stage. Not on an Age. Not faculty by faculty | R4, R20-G |
+| ★ What do specialized universities do? | Reduce the effective research cost of relevant nodes: BaseCost → modifiers → EffectiveCost. No flat science, no second currency, no second queue. The numerical formula is NOT ratified | R5, R20-H |
 | Does completion grant the knowledge at once? | Yes. Completion = knowledge acquired + declared capabilities unlocked. No delayed knowledge-realization phase | R11, R20-J |
 | Does completion build things? | No. It makes buildings, institutions, units and infrastructure available; the owning system realizes them | R11, R14 |
 | Do Eurekas depend on the active target? | No. A Eureka credits its own node, is capped at that node's remaining cost, never overflows, and uses the existing predicate architecture | R10 |
@@ -827,11 +831,11 @@ independent work."
 
 | id | tension | reading the implementation takes | why it is not resolved here |
 |---|---|---|---|
-| T1 | **Milestone placement.** The frozen ladder (S8 §1) puts knowledge at M6 and institutions at M7 (Spine `:82-85`, `:109-111`). CR-005 is **OPEN** on `main`; `origin/m5-full-build` records an unmerged "Option C … DO NOT ACTIVATE M6/M7 GAMEPLAY IN M5". `CLAUDE.md:10` still names M4 | The 2026-09-30 instruction orders the research foundation to be built now and not merged without a Director ruling. ADR-029 prices the override in the S8 §2 form (what breaks, which tests and documents change) | Only the Director rules CR-005 and edits `CLAUDE.md:10`. The two recorded positions (this instruction, and the unmerged Option C) cannot both land |
+| T1 | **Milestone placement.** The frozen ladder puts knowledge at **M7** and politics/institutions at **M8**: the Spine outline numbered them M6 and M7 (`:82-85`, `:109-111`), and D-011 §6 inserted the Battle Layer as M6 and moved both down one (S8 §5: on renumbering, the addendum governs over the outline). CR-005 is **OPEN** on `main`; `origin/m5-full-build` records an unmerged "Option C … DO NOT ACTIVATE M6/M7 GAMEPLAY IN M5". `CLAUDE.md:10` still names M4 | The 2026-09-30 instruction orders the research foundation to be built now and not merged without a Director ruling. ADR-029 prices the override in the S8 §2 form (what breaks, which tests and documents change) | Only the Director rules CR-005 and edits `CLAUDE.md:10`. The two recorded positions (this instruction, and the unmerged Option C) cannot both land |
 | T2 | **Spine `:84`** "Knowledge & diffusion \| M6 \| T2 \| no tree; domain lattice lite" (frozen) | R16: one authoritative graph; the two trees and five subtrees are *views* of it, not independent structures. This is the reading the architecture document already takes (§2.4, §3.1) | If the Director reads the Spine row as forbidding player-facing trees at all, a CR is owed under S8 §3 |
 | T3 | **D-040 B3** "NO TECHNOLOGY UNLOCK. LAW 4 BINDS … a tech-tree node opening sea travel is a calendar gate wearing a tree" | R11 and R14: completion makes things *available*; realization still needs computed conditions in the owning system. ADR-028 §3 already ratified "technology-unlocked" availability. B3's concrete case still binds: no node opens sea travel or a network edge type, and the implementation wires no node to any movement or transport mechanism | The wording tension between B3 and ADR-028 §3 predates this record; recorded, not ruled |
 | T4 | **D-021** paired-feedback rule for "research → universities → cheaper research" | R5's seam ships with no live source: no institutions system exists, so no university modifier is ever written and the loop is not closed in this tree | The brake is owed by the packet that first writes a university modifier, in that packet's milestone |
-| T5 | **D-020 closed grammar** ("No functions, no arithmetic in v1 (queue if needed)", `docs/m2-spec.md:8`) | R10 requires "the existing deterministic predicate architecture". Prerequisites (R8) need AND / OR over completed nodes. The grammar is extended, not replaced: keyword aliases, boolean atoms and caller-bound names. There are still no functions and no arithmetic, and the shipped `Parse(string)` path is unchanged byte for byte. ADR-029 §11 records it | An extension of a closed decision is recorded by ADR, and the Director may rule it back |
+| T5 | **D-020 closed grammar** ("No functions, no arithmetic in v1 (queue if needed)", `docs/m2-spec.md:8`) | R10 requires "the existing deterministic predicate architecture". Prerequisites (R8) need AND / OR over completed nodes. The grammar is extended, not replaced: keyword aliases, boolean atoms and caller-bound names. There are still no functions and no arithmetic, and the shipped `Parse(string)` path **behaves as before** — the same results, failures and messages, pinned by `PredicateResearchDialectTests`. Its code is not byte-for-byte the old code: the parser gained the introspection bookkeeping (atom, quantity, variable and NOT tracking) that the dialect shares. ADR-029 §11 records it | An extension of a closed decision is recorded by ADR, and the Director may rule it back |
 | T6 | **Repeatable frontier lines** — 10 corpus nodes carry `research.repeatable` ("Research never runs out") | R11: completion is idempotent. The ten nodes complete once. Their repeatable descriptor is kept as data, and no level mechanic is built — every one of them names a consuming mechanism that does not exist | Whether a completed node may be re-researched at a higher level is a new decision |
 | T7 | **Starting holdings** (architecture §12.6; CR-006) | No node is complete at founding. This is the reading of the Director's "the game begins in the Stone Age" quoted in architecture §12.6 | CR-006 (campaign epoch) is OPEN |
 

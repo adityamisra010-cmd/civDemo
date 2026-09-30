@@ -79,7 +79,7 @@ Nothing else is a player-facing tree. There is no Tree 3, no Industry & Energy t
 
 **5.6** Civics realization connects to M7's *"institutions as modules, regime change, coups/revolts"* (Spine `:111`). **RATIFIED home.**
 
-**5.7 Candidate reclassification (PROPOSED, not applied):** several entries the v0.4 registry filed as institutions read as Civics under this ontology — written law (`law_code`), Roman systematic law (`legal_code_roman`), census, coined wage labour, patent, joint-stock company. Reviewed at the schema step (§17).
+**5.7 Civics reclassification (PROPOSED at `93270cd`; APPLIED by the ADR-029 migration):** several entries the v0.4 registry filed as institutions read as Civics under this ontology — written law (`law_code`), Roman systematic law (`legal_code_roman`), census, coined wage labour, patent, joint-stock company. The migration made these six the Civics tree's nodes (keys 1001–1006, ADR-029 §2.3; D-044 R12). Each registry institution stays an institution whose knowledge requirement is now its civic. No other Civics content was invented. (Original wording in §20.)
 
 ## 6. Cross-domain dependencies
 
@@ -158,11 +158,11 @@ There is **one active allocation target at a time**. **Multiple nodes may retain
 |---|---|---|
 | 1.1 | **Military** | military and naval knowledge |
 | 1.2 | **Medicine** | medical and biological-medical knowledge |
-| 1.3 | **Engineering** | materials, construction, mechanical and civil engineering, transport and communications; and industrial production, power generation, energy systems, manufacturing and industrial processes |
+| 1.3 | **Engineering** | materials, construction, mechanical and civil engineering, transport and communications; and — by implementer resolution, not a ruling (see below) — industrial production, power generation, energy systems, manufacturing and industrial processes |
 | 1.4 | **Natural Science** | the physical, chemical and life sciences as bodies of knowledge |
 | 1.5 | **Agriculture** | cultivation, breeding, food production |
 
-There is no Industry & Energy subtree. Knowledge of that kind is Engineering knowledge, or trunk knowledge if it precedes the research stage. Heavy cross-dependency between subtrees is expected: Engineering → steam engine → industrial machinery, all within Engineering, with prerequisites drawn from Natural Science. **DIRECTOR RULING.**
+There is no Industry & Energy subtree (**DIRECTOR RULING — D-044 R3, R20-F**). D-044 removes the subtree but does not say where its knowledge goes. Placing it in Engineering, or in the trunk if it precedes the research stage, is **implementer resolution ADR-029 §13 R-8 — PROPOSED, overridable by the Director**. Its reason is the corpus: the v0.6 primary domains `industry` and `energy` have no ruled subtree, and Engineering is the ruled subtree whose coverage (materials, mechanical engineering) they extend. Heavy cross-dependency between subtrees is expected: Engineering → steam engine → industrial machinery, with prerequisites drawn from Natural Science.
 
 **8.4.2 Opening.** The five subtrees become available **together**, as research subtrees, when the civilization reaches the **university / research institutional stage**. The trigger is the relevant education, university and research capability and institutional state. It is **not** `Age == X`, and there is no faculty-by-faculty progressive opening. Once the stage exists, the player can research all five using the same CLP pool. The stage exists specifically to support specialized universities (§8.5). **DIRECTOR RULING — D-044 R4, R20-G.** ADR-029 §8 records how the trigger is evaluated from the state that exists today.
 
@@ -366,6 +366,12 @@ D-044 R20 directed the corrections above. Every passage that was replaced is rep
 ````markdown
 | **Technology / Knowledge** | scientific, technical, accumulated knowledge | research (Science) |
 | **Civics** | political, governmental, legal, administrative and social organization | research (Culture), then adoption |
+````
+
+### §5.7 — original
+
+````markdown
+**5.7 Candidate reclassification (PROPOSED, not applied):** several entries the v0.4 registry filed as institutions read as Civics under this ontology — written law (`law_code`), Roman systematic law (`legal_code_roman`), census, coined wage labour, patent, joint-stock company. Reviewed at the schema step (§17).
 ````
 
 ### §7.1 row — original
