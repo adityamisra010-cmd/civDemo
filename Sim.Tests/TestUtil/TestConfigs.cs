@@ -6,12 +6,34 @@ namespace Sim.Tests.TestUtil;
 /// <summary>Canonical data-file configs, loaded fresh per call (records are immutable).</summary>
 public static class TestConfigs
 {
+    /// <summary>The canonical four-file config (ADR-029: research.json rides with it,
+    /// so every production pipeline built from this runs the research engine exactly as
+    /// the CLI and UI do). sim/needs/goods load fresh per call; the research content,
+    /// which is immutable and about 480 KB, is parsed and validated ONCE per test process.</summary>
     public static SimConfig Sim()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
-        return SimConfigLoader.Load(stream, needs, goods);
+        return SimConfigLoader.Load(stream, needs, goods) with { Research = CanonicalResearch.Value };
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> CanonicalResearch = new(() =>
+    {
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        using var research = global::Sim.Data.DataFiles.OpenResearch();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(research, GoodsConfigLoader.Load(goods));
+    });
+
+    /// <summary>The canonical research content (shared, immutable).</summary>
+    public static global::Sim.Core.Systems.Research.ResearchContent Research() => CanonicalResearch.Value;
+
+    /// <summary>The raw canonical research.json text (for loader-rejection tests).</summary>
+    public static string ResearchJson()
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     /// <summary>T4.7: the canonical `transport.riverCostFactor` — the required

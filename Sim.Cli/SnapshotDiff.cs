@@ -54,7 +54,7 @@ public static class SnapshotDiff
     private static Field L(string n) => new(n, Kind.Int64);
     private static Field D(string n) => new(n, Kind.Double);
 
-    /// <summary>CanonicalSchema.Write blocks 3..39, in stream order. Every entry
+    /// <summary>CanonicalSchema.Write blocks 3..45, in stream order. Every entry
     /// is (field, width class) exactly as the writer emits it; widths must sum
     /// to the schema's *RowWidth constants (SnapshotDiffTests proves the sum).</summary>
     public static readonly Table[] Layout =
@@ -109,6 +109,12 @@ public static class SnapshotDiff
         new("Structures", [I("Settlement"), I("ProjectId"), L("Count")]),
         new("Disasters", [I("Settlement"), I("Kind"), D("Severity"), D("RemainingYears"),
             D("Multiplier"), D("AppliedMultiplier")]),
+        // v26 (ADR-029): the research tables.
+        new("ResearchTargets", [I("Polity"), I("Node")]),
+        new("ResearchProgress", [I("Polity"), I("Node"), D("Progress")]),
+        new("ResearchCompleted", [I("Polity"), I("Node")]),
+        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka")]),
+        new("ResearchCostModifiers", [I("Polity"), I("UniversityType"), D("Factor")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

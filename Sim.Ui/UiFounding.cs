@@ -28,8 +28,9 @@ public static class UiFounding
         using (var stream = Sim.Data.DataFiles.OpenSim())
         using (var needs = Sim.Data.DataFiles.OpenNeeds())
         using (var goods = Sim.Data.DataFiles.OpenGoods())
+        using (var research = Sim.Data.DataFiles.OpenResearch())
         {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
+            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
         }
 
         return WorldFounding.Found(worldgenCfg, simCfg, seed, settlementsOverride);

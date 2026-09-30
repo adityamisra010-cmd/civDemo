@@ -354,6 +354,11 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ConstructionQueueRow> ConstructionQueue => prev.ConstructionQueue;
         public IReadOnlyTable<StructureRow> Structures => prev.Structures;
         public IReadOnlyTable<DisasterRow> Disasters => prev.Disasters;
+        public IReadOnlyTable<ResearchTargetRow> ResearchTargets => prev.ResearchTargets;
+        public IReadOnlyTable<ResearchProgressRow> ResearchProgress => prev.ResearchProgress;
+        public IReadOnlyTable<ResearchCompletedRow> ResearchCompleted => prev.ResearchCompleted;
+        public IReadOnlyTable<ResearchEurekaRow> ResearchEurekas => prev.ResearchEurekas;
+        public IReadOnlyTable<ResearchCostModifierRow> ResearchCostModifiers => prev.ResearchCostModifiers;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

@@ -19,10 +19,11 @@ public class HudViewModelTests
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        using var research = global::Sim.Data.DataFiles.OpenResearch();
         // T3.1 note: these view-model tests pin EXACT founded strings, so the
         // canonical endowment jitter is zeroed — formatting is the contract
         // here; the jittered founding has its own pins in Sim.Tests.
-        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods);
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods, research);
         return cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
     }
 

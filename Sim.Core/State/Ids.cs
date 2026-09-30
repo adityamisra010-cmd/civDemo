@@ -109,6 +109,16 @@ public readonly record struct GoodId(int Value) : IComparable<GoodId>
     public int CompareTo(GoodId other) => Value.CompareTo(other.Value);
 }
 
+/// <summary>Identifies a research node — a Technology or Civics node (ADR-029,
+/// D-044). The value is the node's STABLE integer <c>key</c> from research.json,
+/// never a dense position, so save rows and orders keep their meaning when content
+/// grows. Keys are data, strictly ascending across the file; ids and names live in
+/// ResearchContent only (ADR-001).</summary>
+public readonly record struct ResearchNodeId(int Value) : IComparable<ResearchNodeId>
+{
+    public int CompareTo(ResearchNodeId other) => Value.CompareTo(other.Value);
+}
+
 /// <summary>Well-known flow reasons (M0 toy registry).</summary>
 public static class ReasonIds
 {

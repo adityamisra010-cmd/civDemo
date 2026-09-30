@@ -22,7 +22,8 @@ public class MarketPanelModelTests
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
-        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods);
+        using var research = global::Sim.Data.DataFiles.OpenResearch();
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods, research);
         return cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
     }
 

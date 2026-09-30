@@ -134,7 +134,8 @@ public sealed class SimUiGame : Game
         using var sim = Sim.Data.DataFiles.OpenSim();
         using var needs = Sim.Data.DataFiles.OpenNeeds();
         using var goods = Sim.Data.DataFiles.OpenGoods();
-        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
+        using var research = Sim.Data.DataFiles.OpenResearch();
+        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research);
     }
 
     /// <summary>T3.9a: the market panel's selected good — PURE UI STATE like

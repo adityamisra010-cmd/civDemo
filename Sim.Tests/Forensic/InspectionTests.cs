@@ -33,7 +33,8 @@ public class InspectionTests
         using Stream sim = Sim.Data.DataFiles.OpenSim();
         using Stream needs = Sim.Data.DataFiles.OpenNeeds();
         using Stream goods = Sim.Data.DataFiles.OpenGoods();
-        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
+        using Stream research = Sim.Data.DataFiles.OpenResearch();
+        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research);
     }
 
     /// <summary>

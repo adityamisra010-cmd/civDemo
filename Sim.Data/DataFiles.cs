@@ -47,6 +47,12 @@ public static class DataFiles
     /// prose templates — consumed by ChronicleConfigLoader.</summary>
     public static Stream OpenChronicle() => Open("Sim.Data.chronicle.json");
 
+    /// <summary>ADR-029 (D-044): the research graph — Technology (Main tree + five
+    /// subtrees) and Civics — GENERATED from tech-graph-v0.6.json by
+    /// scripts/migrate-research-corpus.py; consumed by ResearchContentLoader
+    /// (attached to SimConfig via the four-stream Load).</summary>
+    public static Stream OpenResearch() => Open("Sim.Data.research.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

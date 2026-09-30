@@ -39,7 +39,10 @@ public sealed record SimConfig(
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
     [property: JsonIgnore] NeedsConfig? Needs = null,
     // T3.2: the D-031 goods registry rides goods.json, attached the same way.
-    [property: JsonIgnore] GoodsConfig? Goods = null);
+    [property: JsonIgnore] GoodsConfig? Goods = null,
+    // ADR-029 (D-044): the research graph rides research.json, attached the same
+    // way by the four-stream Load. Null leaves the ResearchSystem inert.
+    [property: JsonIgnore] Research.ResearchContent? Research = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -633,6 +636,16 @@ public static class SimConfigLoader
             Needs = NeedsConfigLoader.Load(needsJson),
             Goods = GoodsConfigLoader.Load(goodsJson),
         });
+
+    /// <summary>ADR-029: canonical four-file load — the three-file load plus
+    /// research.json (the Technology and Civics graph, D-044), attached as
+    /// SimConfig.Research. The research content is validated against the goods
+    /// registry it names in Eureka conditions (stock_&lt;good&gt;).</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson);
+        return cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+    }
 
     /// <summary>
     /// T3.5b item 4 — the two cross-file guards, at the only point where

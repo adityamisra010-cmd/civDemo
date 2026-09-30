@@ -781,6 +781,76 @@ public record struct DisasterRow(
     SettlementId Settlement, int Kind, double Severity, double RemainingYears,
     double Multiplier, double AppliedMultiplier);
 
+// ---------------------------------------------------------------------------
+// ADR-029 / D-044 — RESEARCH STATE (schema v26). The minimum authoritative
+// research state (D-044 R18): the active target, per-node partial progress,
+// the completed-knowledge set, and the fired-Eureka set. Everything else —
+// availability, subtree opening, effective cost, CLP throughput — is DERIVED
+// from these rows and research.json by ResearchQuery and is never stored.
+// None of it is people, money or goods, so none of it touches the Ledger (law 1):
+// CLP and progress are rates/quantities of the research domain, stored as doubles
+// (law 7), the PathProgressRow.Banked precedent.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// ADR-029: a polity's ONE active research target (D-044 R9) — a Technology or a
+/// Civics node; one pool serves both trees (R2, R12). Owned by ResearchSystem.
+/// At most one row per polity; ABSENCE means no target, and the CLP throughput of
+/// a polity with no target reaches no node and is not stored anywhere (R20-D: no
+/// general bank). Set and cleared only by the SetResearchTarget order (D-042 §6.2:
+/// a persistent directive, not re-issued every turn); cleared by the system when
+/// the target completes.
+/// </summary>
+public record struct ResearchTargetRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: CLP invested in one node by one polity that has NOT completed it
+/// (D-044 R9: partial progress is kept per node; switching target never erases
+/// it). Owned by ResearchSystem. Created lazily on the first credit — the active
+/// target's CLP or a Eureka — and removed when the node completes (completion is
+/// then the fact; the progress is not needed to rebuild anything). Progress is in
+/// CLP, the same unit as the node's cost, and never exceeds the node's effective
+/// cost at the time it was credited.
+/// </summary>
+public record struct ResearchProgressRow(PolityId Polity, ResearchNodeId Node, double Progress);
+
+/// <summary>
+/// ADR-029: one node in one polity's completed knowledge (D-044 R1, R11: the
+/// knowledge base IS the set of completed Technology and Civics nodes). Owned by
+/// ResearchSystem. ROW PRESENCE IS THE FACT (the RecognitionRow idiom); rows are
+/// appended in completion order and never removed — knowledge acquired by the
+/// civilization remains (R1). Completion is idempotent: the system never adds a
+/// second row for the same (polity, node).
+/// </summary>
+public record struct ResearchCompletedRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: one fired Eureka — the Eureka at index <c>Eureka</c> of the node's
+/// list in research.json (D-044 R10). Owned by ResearchSystem. Row presence is the
+/// fact; a fired Eureka never fires again, so its credit is applied exactly once.
+/// </summary>
+public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka);
+
+/// <summary>
+/// ADR-029 §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5). One polity's
+/// effective cost factor for the subtree its specialized-university type serves.
+/// <c>UniversityType</c> is the type's stable key in research.json
+/// (universityTypes[].key). <c>Factor</c> is a multiplicative factor on BaseCost,
+/// in (0, 1]: EffectiveCost = BaseCost × Π Factor over this polity's rows whose
+/// type serves the node's subtree, taken in table order.
+///
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE. Its writer is the future
+/// institutions system, which establishes and matures universities. Diminishing
+/// returns, maturity and local viability (ADR-028 DD-13, DD-14) belong in that
+/// writer's computation of Factor. No such system exists, so NO SYSTEM WRITES
+/// THIS TABLE: the ClaimRow / RecognitionRow precedent of a schema that precedes
+/// its owner. ResearchSystem only reads it, from Prev. In the shipped world it is
+/// always empty, so EffectiveCost == BaseCost. The formula that maps universities
+/// to Factor is NOT ratified (R5), and nothing here invents one. D-021: the first
+/// writer closes the research → university loop and owes its brake (ADR-029 §9).
+/// </summary>
+public record struct ResearchCostModifierRow(PolityId Polity, int UniversityType, double Factor);
+
 /// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
@@ -848,6 +918,22 @@ public interface IReadOnlyWorldState
 
     /// <summary>T4.21-1: per-settlement famine-class production shocks — owned by DisasterSystem.</summary>
     IReadOnlyTable<DisasterRow> Disasters { get; }
+
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — an input contract for the
+    /// future institutions system; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchCostModifierRow> ResearchCostModifiers { get; }
 }
 
 /// <summary>
@@ -991,6 +1077,21 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>T4.21-1 (CR-015 §3.3): famine-class production shocks — owned by DisasterSystem.</summary>
     public Table<DisasterRow> Disasters { get; }
 
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    public Table<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    public Table<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    public Table<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    public Table<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — no system writes it yet.</summary>
+    public Table<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1031,6 +1132,11 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
     IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
     IReadOnlyTable<DisasterRow> IReadOnlyWorldState.Disasters => Disasters;
+    IReadOnlyTable<ResearchTargetRow> IReadOnlyWorldState.ResearchTargets => ResearchTargets;
+    IReadOnlyTable<ResearchProgressRow> IReadOnlyWorldState.ResearchProgress => ResearchProgress;
+    IReadOnlyTable<ResearchCompletedRow> IReadOnlyWorldState.ResearchCompleted => ResearchCompleted;
+    IReadOnlyTable<ResearchEurekaRow> IReadOnlyWorldState.ResearchEurekas => ResearchEurekas;
+    IReadOnlyTable<ResearchCostModifierRow> IReadOnlyWorldState.ResearchCostModifiers => ResearchCostModifiers;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1075,6 +1181,11 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = new Table<ConstructionQueueRow>();
         Structures = new Table<StructureRow>();
         Disasters = new Table<DisasterRow>();
+        ResearchTargets = new Table<ResearchTargetRow>();
+        ResearchProgress = new Table<ResearchProgressRow>();
+        ResearchCompleted = new Table<ResearchCompletedRow>();
+        ResearchEurekas = new Table<ResearchEurekaRow>();
+        ResearchCostModifiers = new Table<ResearchCostModifierRow>();
     }
 
     private WorldState(
@@ -1097,7 +1208,10 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
         Table<PolityRow> polities, Table<CapitalRow> capitals,
         Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures,
-        Table<DisasterRow> disasters)
+        Table<DisasterRow> disasters,
+        Table<ResearchTargetRow> researchTargets, Table<ResearchProgressRow> researchProgress,
+        Table<ResearchCompletedRow> researchCompleted, Table<ResearchEurekaRow> researchEurekas,
+        Table<ResearchCostModifierRow> researchCostModifiers)
     {
         Seed = seed;
         Clock = clock;
@@ -1141,6 +1255,11 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = constructionQueue;
         Structures = structures;
         Disasters = disasters;
+        ResearchTargets = researchTargets;
+        ResearchProgress = researchProgress;
+        ResearchCompleted = researchCompleted;
+        ResearchEurekas = researchEurekas;
+        ResearchCostModifiers = researchCostModifiers;
     }
 
     /// <summary>
@@ -1160,7 +1279,9 @@ public sealed class WorldState : IReadOnlyWorldState
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
             Polities.Clone(), Capitals.Clone(),
-            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone())
+            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone(),
+            ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
+            ResearchEurekas.Clone(), ResearchCostModifiers.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
