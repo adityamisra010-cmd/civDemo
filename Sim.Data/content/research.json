@@ -361,8 +361,8 @@
     },
     {
      "text": "circumstance: sustained fire",
-     "when": "fire_making",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -410,8 +410,8 @@
     },
     {
      "text": "circumstance: adhesive",
-     "when": "adhesive_natural",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -554,8 +554,8 @@
     },
     {
      "text": "circumstance: fire",
-     "when": "fire_making",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -842,8 +842,8 @@
    "eurekas": [
     {
      "text": "circumstance: cordage",
-     "when": "cordage",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: smooth stones",
@@ -1045,8 +1045,8 @@
     },
     {
      "text": "circumstance: cordage",
-     "when": "cordage",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -1094,8 +1094,8 @@
     },
     {
      "text": "circumstance: fire",
-     "when": "fire_making",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -2000,13 +2000,13 @@
    "eurekas": [
     {
      "text": "circumstance: maize",
-     "when": "maize",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: lime or wood ash",
-     "when": "stock_timber > 0",
-     "status": "evaluable"
+     "when": null,
+     "status": "no-state-carrier"
     }
    ],
    "unlocks": {
@@ -2388,8 +2388,8 @@
    "eurekas": [
     {
      "text": "circumstance: mudbrick",
-     "when": "mudbrick",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: clay",
@@ -3525,8 +3525,8 @@
     },
     {
      "text": "circumstance: cordage",
-     "when": "cordage",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -4007,8 +4007,8 @@
     },
     {
      "text": "circumstance: long-distance exchange reaching a tin source",
-     "when": "stock_tin_ore > 0",
-     "status": "evaluable"
+     "when": null,
+     "status": "no-state-carrier"
     }
    ],
    "unlocks": {
@@ -5538,8 +5538,8 @@
     },
     {
      "text": "circumstance: charcoal",
-     "when": "charcoal",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -7664,8 +7664,8 @@
     },
     {
      "text": "circumstance: charcoal",
-     "when": "charcoal",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -7711,8 +7711,8 @@
    "eurekas": [
     {
      "text": "circumstance: cast iron",
-     "when": "cast_iron",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: oxen",
@@ -9543,8 +9543,8 @@
     },
     {
      "text": "circumstance: wood ash",
-     "when": "stock_timber > 0",
-     "status": "evaluable"
+     "when": null,
+     "status": "no-state-carrier"
     }
    ],
    "unlocks": {
@@ -9830,8 +9830,8 @@
    "eurekas": [
     {
      "text": "circumstance: paper",
-     "when": "paper",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: ink",
@@ -9974,8 +9974,8 @@
    "eurekas": [
     {
      "text": "circumstance: paper",
-     "when": "paper",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: printing",
@@ -10516,8 +10516,8 @@
     },
     {
      "text": "circumstance: paper",
-     "when": "paper",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -10559,8 +10559,8 @@
    "eurekas": [
     {
      "text": "circumstance: paper",
-     "when": "paper",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: merchant network",
@@ -10619,8 +10619,8 @@
     },
     {
      "text": "circumstance: alphabetic script (makes movable type economic)",
-     "when": "abjad OR alphabet_vowels",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -11103,8 +11103,8 @@
    "eurekas": [
     {
      "text": "circumstance: cast iron",
-     "when": "cast_iron",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: boring",
@@ -12303,8 +12303,8 @@
     },
     {
      "text": "circumstance: gearing",
-     "when": "gearing",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {
@@ -14501,8 +14501,8 @@
     },
     {
      "text": "circumstance: microscope",
-     "when": "microscope",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     },
     {
      "text": "circumstance: culture media",
@@ -14852,8 +14852,8 @@
     },
     {
      "text": "circumstance: high-pressure steam",
-     "when": "steam_high_pressure",
-     "status": "evaluable"
+     "when": null,
+     "status": "implied-by-prerequisites"
     }
    ],
    "unlocks": {

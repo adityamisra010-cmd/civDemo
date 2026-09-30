@@ -205,12 +205,16 @@ internal static class ResearchRigs
             ledger.Flow(ref w.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
                 ReasonIds.InitialEndowment, adults, FlowDirection.Source, OverdrawPolicy.Throw);
         }
-        foreach ((int good, long qty) in stocks ?? [])
-        {
-            int row = w.GoodStocks.Add(new GoodStockRow(new SettlementId(0), new GoodId(good), Conserved.Zero, 0.0, 0.0));
-            ledger.Flow(ref w.GoodStocks.Ref(row).Amount, ConservedQuantityIds.OfGood(new GoodId(good)),
-                ReasonIds.InitialEndowment, qty, FlowDirection.Source, OverdrawPolicy.Throw);
-        }
+        foreach ((int good, long qty) in stocks ?? []) Stock(w, 0, good, qty);
+        return w;
+    }
+
+    /// <summary>Endows settlement <paramref name="settlement"/> with <paramref name="qty"/> of a good (a ledger Source flow).</summary>
+    public static WorldState Stock(WorldState w, int settlement, int good, long qty)
+    {
+        int row = w.GoodStocks.Add(new GoodStockRow(new SettlementId(settlement), new GoodId(good), Conserved.Zero, 0.0, 0.0));
+        new Ledger(w.LedgerFlows).Flow(ref w.GoodStocks.Ref(row).Amount, ConservedQuantityIds.OfGood(new GoodId(good)),
+            ReasonIds.InitialEndowment, qty, FlowDirection.Source, OverdrawPolicy.Throw);
         return w;
     }
 

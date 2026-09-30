@@ -90,20 +90,66 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_Eurekas_PreserveEveryCorpusString_AndOnlyFaithfulMappingsAreEvaluable()
     {
-        int total = 0, evaluable = 0, institution = 0, contact = 0;
+        var byStatus = new int[6];
+        int total = 0;
         foreach (ResearchNode n in Canonical.Nodes)
             foreach (ResearchEureka e in n.Eurekas)
             {
                 total++;
-                if (e.Status == EurekaStatus.Evaluable) { evaluable++; Assert.NotNull(e.Condition); }
+                byStatus[(int)e.Status]++;
+                if (e.Status == EurekaStatus.Evaluable) Assert.NotNull(e.Condition);
                 else Assert.Null(e.Condition);
-                if (e.Status == EurekaStatus.InstitutionStateAbsent) institution++;
-                if (e.Status == EurekaStatus.ContactStateAbsent) contact++;
             }
         Assert.Equal(801, total);
-        Assert.Equal(117, evaluable);
-        Assert.Equal(79, institution);
-        Assert.Equal(61, contact);
+        Assert.Equal(93, byStatus[(int)EurekaStatus.Evaluable]);
+        Assert.Equal(547, byStatus[(int)EurekaStatus.NoStateCarrier]);
+        Assert.Equal(79, byStatus[(int)EurekaStatus.InstitutionStateAbsent]);
+        Assert.Equal(61, byStatus[(int)EurekaStatus.ContactStateAbsent]);
+        Assert.Equal(21, byStatus[(int)EurekaStatus.ImpliedByPrerequisites]);
+
+        // A circumstance the node's prerequisites guarantee is declared, not evaluated (ADR-029 §7):
+        // "sustained fire" on heat_treatment_stone, which requires fire_making.
+        ResearchEureka fire = Canonical.Nodes[Canonical.IndexOfId("heat_treatment_stone")].Eurekas[1];
+        Assert.Equal("circumstance: sustained fire", fire.Text);
+        Assert.Equal(EurekaStatus.ImpliedByPrerequisites, fire.Status);
+        // A different substance made from a good, and exchange, are not the good (ADR-029 §7 rule).
+        foreach (ResearchNode n in Canonical.Nodes)
+            foreach (ResearchEureka e in n.Eurekas)
+                if (e.Text is "circumstance: wood ash" or "circumstance: lime or wood ash"
+                    or "circumstance: long-distance exchange reaching a tin source")
+                    Assert.Equal(EurekaStatus.NoStateCarrier, e.Status);
+    }
+
+    [Fact]
+    public void Canonical_NoEvaluableKnowledgeEureka_IsGuaranteedByItsOwnNodesPrerequisites()
+    {
+        // For every evaluable condition that reads only knowledge atoms, exhibit a WITNESS: the
+        // largest state reachable without the node and without every atom the condition names.
+        // If the node is available there, the condition is false at a moment the node is
+        // researchable, so it is a circumstance, not a flat cost cut (ADR-029 §7).
+        int checkedConditions = 0;
+        for (int i = 0; i < Canonical.Nodes.Count; i++)
+            foreach (ResearchEureka e in Canonical.Nodes[i].Eurekas)
+            {
+                if (e.Condition is not { } cond || cond.QuantityIds.Count > 0) continue;
+                var excluded = new bool[Canonical.Nodes.Count];
+                excluded[i] = true;
+                foreach (int a in cond.AtomIds) excluded[a] = true;
+                var done = new bool[Canonical.Nodes.Count];
+                for (bool changed = true; changed;)
+                {
+                    changed = false;
+                    bool stage = ResearchQuery.StageReached(Canonical, done);
+                    for (int j = 0; j < done.Length; j++)
+                        if (!done[j] && !excluded[j] && ResearchQuery.IsAvailable(Canonical, j, done, stage))
+                            done[j] = changed = true;
+                }
+                Assert.True(ResearchQuery.IsAvailable(Canonical, i, done, ResearchQuery.StageReached(Canonical, done)),
+                    $"{Canonical.Nodes[i].Id}: no witness state");
+                Assert.False(cond.Evaluate(null, a => done[a], null), $"{Canonical.Nodes[i].Id}: '{cond.Source}' holds in the witness");
+                checkedConditions++;
+            }
+        Assert.Equal(2, checkedConditions); // copper_smelting (charcoal), windmill_post (gearing)
     }
 
     [Fact]
@@ -287,15 +333,68 @@ public class ResearchContentTests
 
         Spec self = Standard();
         self.Technologies[10] = self.Technologies[10] with { Eurekas = [new Eu("circumstance: itself", "w")] };
-        Rejects(self, "is the node itself");
+        Rejects(self, "cannot hold while 'w' is still researchable");
 
         Spec descendant = Standard();
         descendant.Technologies[0] = descendant.Technologies[0] with { Eurekas = [new Eu("circumstance: c", "c")] }; // c requires a
         Rejects(descendant, "a dead Eureka");
 
+        // Behind the stage: c IS the research stage, so the military subtree cannot open while c is
+        // still researchable — a condition naming a subtree node on c can never hold.
+        Spec stageGated = Standard();
+        stageGated.Technologies[2] = stageGated.Technologies[2] with { Eurekas = [new Eu("circumstance: mil", "mil")] };
+        Rejects(stageGated, "cannot hold while 'c' is still researchable");
+
+        // Every alternative needs the node: still dead.
+        Spec allAlternatives = Standard();
+        allAlternatives.Technologies[0] = allAlternatives.Technologies[0] with { Eurekas = [new Eu("circumstance: c or w", "c OR w")] };
+        Rejects(allAlternatives, "cannot hold while 'a' is still researchable");
+
         Spec mismatch = Standard();
         mismatch.Technologies[10] = mismatch.Technologies[10] with { Eurekas = [new Eu("circumstance: timber", "stock_timber > 0", "no-state-carrier")] };
         Rejects(mismatch, "'when' must be present exactly when status is 'evaluable'");
+    }
+
+    [Fact]
+    public void Accepts_EurekasThatCanHoldWhileTheNodeIsResearchable_ThroughAnOrAlternative_OrAfterTheStage()
+    {
+        // d = a OR b: d can complete through b while a is still researchable, so "d" on a is live
+        // (the pre-review check rejected it because d names a in one alternative).
+        Spec orDependent = Standard();
+        orDependent.Technologies[0] = orDependent.Technologies[0] with { Eurekas = [new Eu("circumstance: d", "d")] };
+        Assert.Single(orDependent.Load().Nodes[0].Eurekas);
+
+        // e = (a AND c) OR (b AND d): e completes through b AND d without a.
+        Spec nested = Standard();
+        nested.Technologies[0] = nested.Technologies[0] with { Eurekas = [new Eu("circumstance: e", "e")] };
+        Assert.Single(nested.Load().Nodes[0].Eurekas);
+
+        // One live alternative keeps an OR condition live: c needs a, b does not.
+        Spec oneLive = Standard();
+        oneLive.Technologies[0] = oneLive.Technologies[0] with { Eurekas = [new Eu("circumstance: c or b", "c OR b")] };
+        Assert.Single(oneLive.Load().Nodes[0].Eurekas);
+
+        // A subtree node may name another subtree's node: both open with the stage.
+        Spec crossSubtree = Standard();
+        crossSubtree.Technologies[7] = crossSubtree.Technologies[7] with { Eurekas = [new Eu("circumstance: mil", "mil")] };
+        Assert.Single(crossSubtree.Load().Nodes[7].Eurekas);
+    }
+
+    [Fact]
+    public void Rejects_ExplicitNullsInRequiredValues_AsAValidationFailure_NeverANullReference()
+    {
+        // D-044 R24 "validation failures must be explicit": [JsonRequired] only checks presence,
+        // so each of these used to load a null (or crash with a NullReferenceException).
+        string json = Standard().Json();
+        foreach ((string anchor, string replacement) in new[]
+        {
+            ("\"desc\":\"rig node\"", "\"desc\":null"),
+            ("\"eurekas\":[]", "\"eurekas\":null"),
+            ("\"immediate\":[]", "\"immediate\":null"),
+            ("\"secondaryDomains\":[]", "\"secondaryDomains\":null"),
+            ("\"schema\":\"civ-sim/research@1\"", "\"schema\":null"),
+        })
+            RejectsJson(Mutate(json, anchor, replacement), "missing required values");
     }
 
     [Fact]
@@ -322,6 +421,9 @@ public class ResearchContentTests
         // The reverse index disagreeing with the authoritative entity requirement.
         RejectsJson(Mutate(json, "\"units\":[],\"buildings\":[\"building.hall\"]", "\"units\":[],\"buildings\":[]"),
             "requires this node but is not listed");
+        // The same entity listed twice.
+        RejectsJson(Mutate(json, "\"units\":[],\"buildings\":[\"building.hall\"]", "\"units\":[],\"buildings\":[\"building.hall\",\"building.hall\"]"),
+            "'building.hall' is listed twice");
         // A Civic unlocking a building.
         Spec civicBuilds = Standard();
         civicBuilds.Entities.Add(new Entity("building.court", "building", "law"));

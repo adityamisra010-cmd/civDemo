@@ -7,10 +7,10 @@
 - Technology nodes integrated: **424** (every corpus technology; none dropped).
 - Civics nodes integrated: **6** (the architecture §5.7 candidates).
 - Tree 1 placement (rule R1, ADR-029 §8): trunk 176, military 37, medicine 22, engineering 130, natural_science 44, agriculture 15
-- Eureka strings: 801; machine-evaluable 117; contact-state-absent 61, evaluable 117, institution-state-absent 79, no-state-carrier 544
-- Technology nodes with at least one evaluable Eureka: 100
+- Eureka strings: 801; machine-evaluable 93; contact-state-absent 61, evaluable 93, implied-by-prerequisites 21, institution-state-absent 79, no-state-carrier 547
+- Technology nodes with at least one evaluable Eureka: 83
 - Research stage trigger: `(medicine_hippocratic AND (geometry_axiomatic OR algebra)) AND (cuneiform OR hieroglyphic OR chinese_script OR papyrus OR paper) AND (((cuneiform AND stamp_seal) AND cuneiform) AND legal_code_roman)`
-- Stage-trigger prerequisite closure: 32 nodes (all forced into the trunk)
+- Stage-trigger prerequisite closure: 32 nodes — 30 technologies (all forced into the trunk) and 2 civics
 - Registry entities: 129; with unresolved corpus references: `inst.newspaper` (postal_imperial)
 - Frontier (age F) nodes normalized to A9 + frontier: 16
 - Repeatable descriptors kept as data (levels not implemented): 10
@@ -25,6 +25,7 @@
 6. **Generation numbers are display lineage, not a dependency rule.** 13 nodes break 'gen N requires gen N-1'; not validated (D-044 R7).
 7. **No Civics nodes existed.** The six architecture §5.7 candidates were reclassified; no Civics content was invented.
 8. **`effects.immediate` is empty on every node.** No immediate-effect kind is ratified (law 2), so the loader requires it empty.
+9. **21 Eureka circumstances name knowledge the node's own prerequisites already guarantee** (e.g. "circumstance: fire" on a node that requires fire_making). Evaluated, each would fire the moment the node became available — a flat cost cut, not a circumstance. Declared `implied-by-prerequisites`, not evaluated (ADR-029 §7): `heat_treatment_stone` (fire_making), `microlith` (adhesive_natural), `birch_tar` (fire_making), `sling` (cordage), `raft` (cordage), `dugout` (fire_making), `nixtamalization` (maize), `kiln_updraft` (mudbrick), `sledge` (cordage), `steel_carburized` (charcoal), `cast_iron` (charcoal), `iron_mouldboard` (cast_iron), `woodblock_print` (paper), `paper_money` (paper), `double_entry` (paper), `bill_of_exchange` (paper), `printing_press` (abjad OR alphabet_vowels), `cannon_cast_iron` (cast_iron), `steam_rotary` (gearing), `germ_theory` (microscope), `steam_turbine` (steam_high_pressure).
 
 ## Per-node audit
 
@@ -37,22 +38,22 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 3 | `knapping_levallois` | technology / main | materials | A1 | 0 | 1000 |  | 1/1 | knapping / None | 0 | 1 | ~300 kya |
 | 4 | `knapping_blade` | technology / main | materials | A1 | 1 | 1120 | knapping_levallois | 1/1 | knapping / None | 0 | 4 | ~40 kya Upper Palaeolithic; earlier in Africa (~70 kya) |
 | 5 | `pressure_flaking` | technology / main | materials | A1 | 0 | 1000 |  | 0/2 | knapping / None | 0 | 2 | ~75 kya Blombos (heat-treated silcrete); widespread ~20 kya |
-| 6 | `heat_treatment_stone` | technology / main | materials | A1 | 1 | 1120 | fire_making AND knapping_levallois | 1/2 |  | 0 | 1 | ~164 kya Pinnacle Point |
-| 7 | `microlith` | technology / main | materials | A1 | 2 | 1250 | hafting | 1/2 |  | 0 | 3 | ~65 kya Howiesons Poort; Mesolithic Europe |
+| 6 | `heat_treatment_stone` | technology / main | materials | A1 | 1 | 1120 | fire_making AND knapping_levallois | 0/2 |  | 0 | 1 | ~164 kya Pinnacle Point |
+| 7 | `microlith` | technology / main | materials | A1 | 2 | 1250 | hafting | 0/2 |  | 0 | 3 | ~65 kya Howiesons Poort; Mesolithic Europe |
 | 8 | `ground_stone_early` | technology / main | materials | A1 | 1 | 1120 | knapping_oldowan | 1/2 | ground_stone / None | 1 | 2 | ~35 kya Japan, ~44 kya Australia |
 | 9 | `adhesive_natural` | technology / main | materials | A1 | 0 | 1000 |  | 0/1 | adhesive / None | 0 | 1 | ~200 kya (bitumen, Umm el Tlel) |
-| 10 | `birch_tar` | technology / main | materials | A1 | 1 | 1120 | fire_making AND adhesive_natural | 1/2 | adhesive / None | 0 | 2 | ~200 kya Campitello (Neanderthal); ~50 kya widespread |
+| 10 | `birch_tar` | technology / main | materials | A1 | 1 | 1120 | fire_making AND adhesive_natural | 0/2 | adhesive / None | 0 | 2 | ~200 kya Campitello (Neanderthal); ~50 kya widespread |
 | 11 | `hafting` | technology / main | materials | A1 | 1 | 1120 | cordage AND adhesive_natural | 0/2 |  | 1 | 3 | ~500 kya Kathu Pan (contested); secure ~200 kya |
 | 12 | `cordage` | technology / main | industry | A1 | 0 | 1000 |  | 1/1 | fibre / None | 0 | 4 | ~50 kya Abri du Maras (direct); older inferred |
 | 13 | `basketry` | technology / main | industry | A1 | 1 | 1120 | cordage | 0/1 | fibre / None | 1 | 4 | ~27 kya Pavlov impressions; ~10 kya Guitarrero Cave |
 | 14 | `atlatl` | technology / main | military | A1 | 2 | 1250 | hafting | 1/2 | projectile / None | 0 | 1 | ~30 kya Upper Palaeolithic Europe |
 | 15 | `bow_simple` | technology / main | military | A1 | 1 | 1120 | cordage | 2/2 | bow / None | 1 | 2 | ~64 kya Sibudu (inferred); ~10 kya Stellmoor (preserved) |
-| 16 | `sling` | technology / main | military | A1 | 1 | 1120 | cordage | 2/2 | projectile / None | 1 | 2 | ~10 kya inferred; preserved ~2,500 BCE |
+| 16 | `sling` | technology / main | military | A1 | 1 | 1120 | cordage | 1/2 | projectile / None | 1 | 2 | ~10 kya inferred; preserved ~2,500 BCE |
 | 17 | `shelter_hut` | technology / main | construction | A1 | 1 | 1120 | cordage | 2/2 | shelter / None | 0 | 2 | ~25 kya Mezhirich, Dolní Věstonice |
 | 18 | `hide_working` | technology / main | industry | A1 | 1 | 1120 | knapping_levallois | 1/2 | hide / None | 0 | 3 | ~100 kya (scrapers, ochre) |
 | 19 | `sewing` | technology / main | industry | A1 | 2 | 1250 | hide_working AND cordage | 0/2 | hide / None | 0 | 3 | ~50 kya Denisova; ~30 kya widespread |
-| 20 | `raft` | technology / main | transport | A1 | 1 | 1120 | cordage | 2/2 | watercraft / None | 0 | 2 | inferred ≥50 kya (Sahul crossing); Flores ~1 Mya (contested) |
-| 21 | `dugout` | technology / main | transport | A1 | 2 | 1250 | fire_making AND ground_stone_early | 2/2 | watercraft / None | 0 | 2 | ~8,000 BCE Pesse (oldest preserved); older inferred |
+| 20 | `raft` | technology / main | transport | A1 | 1 | 1120 | cordage | 1/2 | watercraft / None | 0 | 2 | inferred ≥50 kya (Sahul crossing); Flores ~1 Mya (contested) |
+| 21 | `dugout` | technology / main | transport | A1 | 2 | 1250 | fire_making AND ground_stone_early | 1/2 | watercraft / None | 0 | 2 | ~8,000 BCE Pesse (oldest preserved); older inferred |
 | 22 | `fishing_hook` | technology / main | agriculture | A1 | 1 | 1120 | cordage | 0/2 | fishing / None | 1 | 1 | ~42 kya Jerimalai (Timor) |
 | 23 | `grinding_stone` | technology / main | agriculture | A1 | 0 | 1000 |  | 1/2 |  | 0 | 2 | ~30 kya Bilancino; routine in Natufian ~12 kya |
 | 24 | `dog_domestication` | technology / main | science | A1 | 0 | 1000 |  | 0/1 | domestication / None | 0 | 3 | ~15–30 kya |
@@ -71,7 +72,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 37 | `orchard` | technology / main | agriculture | A2 | 2 | 1250 | cereal_cultivation | 0/2 |  | 0 | 3 | ~4,000 BCE Levant (olive); fig possibly ~9,000 BCE |
 | 38 | `sickle` | technology / main | agriculture | A2 | 3 | 1400 | microlith | 0/2 |  | 0 | 1 | ~12,500 BCE Natufian |
 | 39 | `digging_stick_hoe` | technology / main | agriculture | A2 | 2 | 1250 | hafting AND ground_stone_early | 1/2 | tillage / None | 0 | 3 | ~8,000 BCE (stone hoes, China and Levant) |
-| 40 | `nixtamalization` | technology / main | food | A2 | 3 | 1400 | maize AND pottery_open_fired | 2/2 |  | 0 | 1 | ~1,500 BCE Guatemala |
+| 40 | `nixtamalization` | technology / main | food | A2 | 3 | 1400 | maize AND pottery_open_fired | 0/2 |  | 0 | 1 | ~1,500 BCE Guatemala |
 | 41 | `sheep_goat` | technology / main | agriculture | A2 | 1 | 1120 | dog_domestication | 0/1 | herd / None | 1 | 2 | ~10,500 BCE Zagros/Taurus |
 | 42 | `cattle` | technology / main | agriculture | A2 | 2 | 1250 | sheep_goat | 0/1 | herd / None | 1 | 3 | ~8,500 BCE Near East; ~7,000 BCE Indus; possibly Sahara |
 | 43 | `pig` | technology / main | agriculture | A2 | 2 | 1250 | sheep_goat | 0/2 | herd / None | 0 | 1 | ~8,500 BCE Anatolia; ~6,000 BCE China |
@@ -79,7 +80,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 45 | `wool` | technology / main | industry | A2 | 2 | 1250 | sheep_goat AND cordage | 0/1 | secondary_products / None | 0 | 2 | ~4,000 BCE Near East |
 | 46 | `animal_traction` | technology / main | agriculture | A2 | 3 | 1400 | cattle | 0/2 | secondary_products / None | 0 | 3 | ~4,000 BCE (plough marks, Uruk pictographs) |
 | 47 | `pottery_open_fired` | technology / main | materials | A2 | 2 | 1250 | basketry | 1/2 | ceramics / None | 0 | 3 | ~18,000 BCE Xianrendong; ~14,000 BCE Jomon; ~9,000 BCE Near East; ~9,400 BCE Mali |
-| 48 | `kiln_updraft` | technology / main | materials | A2 | 3 | 1400 | pottery_open_fired AND mudbrick | 2/2 | kiln / None | 1 | 3 | ~6,000 BCE Yarim Tepe (Halaf) |
+| 48 | `kiln_updraft` | technology / main | materials | A2 | 3 | 1400 | pottery_open_fired AND mudbrick | 1/2 | kiln / None | 1 | 3 | ~6,000 BCE Yarim Tepe (Halaf) |
 | 49 | `potters_wheel_fast` | technology / main | materials | A2 | 3 | 1400 | pottery_open_fired | 0/2 | wheel / None | 0 | 2 | ~3,500 BCE Uruk |
 | 50 | `mudbrick` | technology / main | construction | A2 | 0 | 1000 |  | 0/2 | earth_building / None | 1 | 3 | ~9,000 BCE Jericho; ~7,500 BCE Çatalhöyük |
 | 51 | `lime_plaster` | technology / main | construction | A2 | 1 | 1120 | mudbrick AND fire_making | 0/2 | lime / None | 0 | 3 | ~8,000 BCE PPNB (Ain Ghazal, Yiftahel) |
@@ -102,7 +103,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 68 | `irrigation_basin` | technology / main | infrastructure | A2 | 2 | 1250 | cereal_cultivation | 0/2 | irrigation / None | 1 | 2 | ~5,000 BCE Egypt |
 | 69 | `irrigation_canal` | technology / main | infrastructure | A2 | 2 | 1250 | cereal_cultivation | 0/2 | irrigation / None | 1 | 3 | ~6,000 BCE Samarra (Choga Mami) |
 | 70 | `terrace` | technology / main | agriculture | A2 | 3 | 1400 | stone_dry AND cereal_cultivation | 1/2 | irrigation / None | 1 | 2 | ~4,000 BCE Yemen; Andes ~2,000 BCE; widespread |
-| 71 | `sledge` | technology / main | transport | A2 | 3 | 1400 | timber_frame | 2/2 | vehicle / None | 0 | 1 | ~7,000 BCE Heinola (Finland) |
+| 71 | `sledge` | technology / main | transport | A2 | 3 | 1400 | timber_frame | 1/2 | vehicle / None | 0 | 1 | ~7,000 BCE Heinola (Finland) |
 | 72 | `wheel_solid` | technology / main | transport | A2 | 4 | 1570 | animal_traction AND ground_stone_early | 1/3 | wheel / None | 0 | 2 | ~3,500 BCE (Bronocice, Ljubljana, Maykop, Uruk — near-simultaneous) |
 | 73 | `cart` | technology / main | transport | A2 | 5 | 1760 | wheel_solid | 0/2 | vehicle / None | 0 | 1 | ~3,500 BCE |
 | 74 | `track_road` | technology / main | transport | A2 | 3 | 1400 | timber_frame | 1/2 | road / None | 3 | 2 | ~3,800 BCE Sweet Track (Somerset) |
@@ -112,7 +113,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 78 | `calendar_lunar` | technology / main | science | A2 | 4 | 1570 | tally_notation | 0/2 | calendar / None | 0 | 2 | ~8,000 BCE Warren Field (Scotland, pit alignment) |
 | 79 | `trepanation` | technology / main | medicine | A2 | 2 | 1250 | knapping_blade | 0/1 |  | 0 | 1 | ~7,000 BCE Ensisheim; widespread Neolithic |
 | 80 | `arsenical_bronze` | technology / main | materials | A3 | 5 | 1760 | copper_smelting | 1/1 | bronze / 1 | 0 | 2 | ~4,000 BCE Caucasus, Anatolia, Iran |
-| 81 | `tin_bronze` | technology / main | materials | A3 | 5 | 1760 | copper_smelting | 3/3 | bronze / 2 | 0 | 4 | ~3,300 BCE Mesopotamia/Anatolia; Vinča possibly ~4,650 BCE |
+| 81 | `tin_bronze` | technology / main | materials | A3 | 5 | 1760 | copper_smelting | 2/3 | bronze / 2 | 0 | 4 | ~3,300 BCE Mesopotamia/Anatolia; Vinča possibly ~4,650 BCE |
 | 82 | `casting_closed` | technology / main | materials | A3 | 6 | 1970 | casting_open AND tin_bronze | 2/2 | casting / None | 0 | 2 | ~3,000 BCE |
 | 83 | `lost_wax` | technology / main | materials | A3 | 7 | 2210 | casting_closed | 1/2 | casting / None | 0 | 3 | ~3,700 BCE Nahal Mishmar; Indus ~2,500 BCE |
 | 84 | `sheet_metal` | technology / main | materials | A3 | 6 | 1970 | tin_bronze | 1/2 |  | 0 | 2 | ~2,500 BCE |
@@ -143,7 +144,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 109 | `beekeeping` | technology / main | agriculture | A3 | 3 | 1400 | pottery_open_fired | 1/2 |  | 0 | 2 | ~2,400 BCE Egypt; ~900 BCE Tel Rehov apiary |
 | 110 | `iron_bloomery` | technology / main | materials | A4 | 4 | 1570 | charcoal | 0/2 | iron / 1 | 1 | 4 | ~1,800 BCE Anatolia; ~1,200 BCE widespread; ~1,000 BCE Sub-Saharan; ~1,200 BCE India |
 | 111 | `bellows` | technology / main | energy | A4 | 4 | 1570 | hide_working AND kiln_updraft | 1/2 |  | 0 | 2 | ~1,500 BCE (depicted in Egyptian tombs) |
-| 112 | `steel_carburized` | technology / main | materials | A4 | 5 | 1760 | iron_bloomery | 1/2 | steel / 1 | 0 | 2 | ~1,200 BCE Cyprus, Anatolia |
+| 112 | `steel_carburized` | technology / main | materials | A4 | 5 | 1760 | iron_bloomery | 0/2 | steel / 1 | 0 | 2 | ~1,200 BCE Cyprus, Anatolia |
 | 113 | `quenching` | technology / main | materials | A4 | 6 | 1970 | steel_carburized | 0/2 | steel / 2 | 0 | 1 | ~1,100 BCE Cyprus (Idalion knife) |
 | 114 | `tempering` | technology / main | materials | A4 | 7 | 2210 | quenching | 0/2 | steel / 3 | 0 | 2 | ~500 BCE Noricum, La Tène |
 | 115 | `wootz` | technology / main | materials | A4 | 6 | 1970 | steel_carburized AND kiln_updraft | 0/2 | steel / 2 | 0 | 2 | ~500 BCE South India (Kodumanal) |
@@ -186,8 +187,8 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 152 | `aqueduct_arcade` | technology / main | infrastructure | A5 | 13 | 4360 | aqueduct_channel AND arch AND surveying | 1/2 | water_supply / None | 2 | 3 | ~312 BCE Aqua Appia; arcades ~144 BCE |
 | 153 | `glass_blowing` | technology / main | materials | A5 | 7 | 2210 | glass_blown_precursor AND iron_bloomery | 0/2 | glass / None | 0 | 2 | ~50 BCE Syro-Palestine |
 | 154 | `window_glass` | technology / main | materials | A5 | 8 | 2480 | glass_blowing | 0/2 | glass / None | 0 | 2 | ~100 CE Rome (Pompeii) |
-| 155 | `cast_iron` | technology / main | materials | A5 | 5 | 1760 | iron_bloomery AND bellows AND kiln_updraft | 1/2 | iron / 2 | 1 | 3 | ~500 BCE China |
-| 156 | `iron_mouldboard` | technology / main | agriculture | A5 | 6 | 1970 | cast_iron AND plough_ard | 1/2 | tillage / None | 0 | 2 | ~100 BCE Han |
+| 155 | `cast_iron` | technology / main | materials | A5 | 5 | 1760 | iron_bloomery AND bellows AND kiln_updraft | 0/2 | iron / 2 | 1 | 3 | ~500 BCE China |
+| 156 | `iron_mouldboard` | technology / main | agriculture | A5 | 6 | 1970 | cast_iron AND plough_ard | 0/2 | tillage / None | 0 | 2 | ~100 BCE Han |
 | 157 | `seed_drill` | technology / main | agriculture | A5 | 7 | 2210 | iron_mouldboard | 0/2 |  | 0 | 3 | ~200 BCE Han |
 | 158 | `collar_harness` | technology / main | transport | A5 | 4 | 1570 | horse_domestication AND hide_working | 0/2 | harness / None | 0 | 2 | ~300 BCE China (breast-strap); collar ~500 CE |
 | 159 | `paper` | technology / main | communication | A5 | 1 | 1120 | cordage | 1/3 | writing_surface / 2 | 3 | 3 | ~100 BCE China (Fangmatan); standardised 105 CE |
@@ -224,16 +225,16 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 190 | `astrolabe` | technology / natural_science | science | A6 | 14 | 4890 | astronomy_geometric AND gearing | 0/2 | instrument / None | 1 | 3 | ~150 CE (theory); ~800 CE Islamic (instrument) |
 | 191 | `cog` | technology / military | naval | A6 | 8 | 2480 | stern_rudder AND plank_boat | 0/2 | hull / None | 0 | 1 | ~1,000 CE Frisia; standard by 1,200 |
 | 192 | `gunpowder` | technology / natural_science | science | A6 | 9 | 2770 | alchemy | 0/2 | gunpowder / 1 | 0 | 3 | ~850 CE China; formula 1044 |
-| 193 | `saltpetre_refining` | technology / natural_science | science | A6 | 10 | 3110 | gunpowder | 1/2 | gunpowder / 2 | 0 | 1 | ~1,000 CE China |
+| 193 | `saltpetre_refining` | technology / natural_science | science | A6 | 10 | 3110 | gunpowder | 0/2 | gunpowder / 2 | 0 | 1 | ~1,000 CE China |
 | 194 | `cannon_early` | technology / military | military | A6 | 10 | 3110 | gunpowder AND cast_iron | 1/2 | cannon / 1 | 1 | 1 | ~1,280 CE China; Europe 1326 |
 | 195 | `trebuchet` | technology / military | military | A6 | 14 | 4890 | torsion_artillery | 1/2 | siege / None | 1 | 1 | ~1,100 CE Byzantium/Islamic world |
 | 196 | `longbow` | technology / military | military | A6 | 2 | 1250 | bow_simple | 0/2 | bow / None | 1 | 1 | ~1,200 CE Wales; English armies 1300s |
 | 197 | `plate_armour` | technology / military | military | A6 | 8 | 2480 | tempering AND sheet_metal | 0/2 |  | 0 | 1 | ~1,350 CE |
 | 198 | `greek_fire` | technology / military | military | A6 | 10 | 3110 | distillation | 0/2 |  | 0 | 1 | ~672 CE Constantinople |
-| 199 | `woodblock_print` | technology / engineering | communication | A6 | 4 | 1570 | paper AND stamp_seal | 1/2 | printing / 1 | 1 | 3 | ~700 CE China/Korea; Diamond Sutra 868 |
+| 199 | `woodblock_print` | technology / engineering | communication | A6 | 4 | 1570 | paper AND stamp_seal | 0/2 | printing / 1 | 1 | 3 | ~700 CE China/Korea; Diamond Sutra 868 |
 | 200 | `movable_type_ceramic` | technology / engineering | communication | A6 | 5 | 1760 | woodblock_print AND kiln_updraft | 1/2 | printing / 2 | 0 | 1 | 1040 CE China |
 | 201 | `movable_type_metal` | technology / engineering | communication | A6 | 7 | 2210 | movable_type_ceramic AND casting_closed | 1/2 | printing / 3 | 0 | 1 | 1234 CE Goryeo |
-| 202 | `paper_money` | technology / engineering | communication | A6 | 13 | 4360 | woodblock_print AND coinage_electrum | 1/2 | money / 4 | 1 | 2 | ~1,020 CE Song |
+| 202 | `paper_money` | technology / engineering | communication | A6 | 13 | 4360 | woodblock_print AND coinage_electrum | 0/2 | money / 4 | 1 | 2 | ~1,020 CE Song |
 | 203 | `hindu_arabic` | technology / main | science | A6 | 9 | 2770 | brahmi AND numeral_sexagesimal | 0/1 | numeral / 3 | 0 | 3 | ~500 CE India; Baghdad ~825; Europe ~1,200 (Fibonacci) |
 | 204 | `algebra` | technology / main | science | A6 | 12 | 3900 | hindu_arabic AND geometry_axiomatic | 0/1 |  | 1 | 3 | ~820 CE Baghdad |
 | 205 | `trigonometry` | technology / natural_science | science | A6 | 13 | 4360 | astronomy_geometric AND hindu_arabic | 0/2 |  | 0 | 3 | ~500 CE India (sine); ~900 Islamic (tangent, spherical) |
@@ -244,9 +245,9 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 210 | `blast_furnace_water` | technology / engineering | materials | A6 | 15 | 5470 | iron_bloomery AND crank_connecting_rod AND charcoal | 0/2 | iron / 2 | 1 | 2 | ~1,150 CE Lapphyttan; widespread 1,400 |
 | 211 | `wire_drawing` | technology / engineering | materials | A6 | 15 | 5470 | iron_bloomery AND crank_connecting_rod | 0/2 |  | 0 | 3 | ~1,000 CE (water-powered ~1,350) |
 | 212 | `canal_lock` | technology / engineering | infrastructure | A6 | 7 | 2210 | irrigation_canal AND mortise_hull | 1/2 |  | 1 | 2 | 984 CE China; ~1,400 Europe |
-| 213 | `double_entry` | technology / natural_science | science | A6 | 13 | 4360 | hindu_arabic AND coinage_electrum AND paper | 1/2 | finance / 1 | 0 | 3 | ~1,300 CE Genoa, Florence |
-| 214 | `bill_of_exchange` | technology / engineering | communication | A6 | 14 | 4890 | double_entry | 1/2 | finance / 2 | 0 | 3 | ~1,150 CE Italy |
-| 215 | `printing_press` | technology / engineering | communication | A7 | 13 | 4360 | casting_closed AND mechanics_archimedean AND paper | 1/3 | printing / 4 | 4 | 2 | ~1,450 CE Mainz |
+| 213 | `double_entry` | technology / natural_science | science | A6 | 13 | 4360 | hindu_arabic AND coinage_electrum AND paper | 0/2 | finance / 1 | 0 | 3 | ~1,300 CE Genoa, Florence |
+| 214 | `bill_of_exchange` | technology / engineering | communication | A6 | 14 | 4890 | double_entry | 0/2 | finance / 2 | 0 | 3 | ~1,150 CE Italy |
+| 215 | `printing_press` | technology / engineering | communication | A7 | 13 | 4360 | casting_closed AND mechanics_archimedean AND paper | 0/3 | printing / 4 | 4 | 2 | ~1,450 CE Mainz |
 | 216 | `type_founding` | technology / engineering | industry | A7 | 14 | 4890 | printing_press | 0/2 |  | 0 | 1 | ~1,450 CE |
 | 217 | `caravel` | technology / military | naval | A7 | 8 | 2480 | lateen AND stern_rudder AND compass_magnetic | 1/2 | ocean_ship / 1 | 1 | 3 | ~1,430 CE Portugal |
 | 218 | `carrack` | technology / military | naval | A7 | 9 | 2770 | caravel AND cog | 0/2 | ocean_ship / 2 | 1 | 2 | ~1,450 CE |
@@ -256,7 +257,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 222 | `mercator` | technology / military | naval | A7 | 15 | 5470 | cartography AND portolan AND trigonometry | 0/1 | navigation / None | 0 | 1 | 1569 CE |
 | 223 | `corned_powder` | technology / natural_science | science | A7 | 11 | 3480 | saltpetre_refining | 0/2 | gunpowder / 3 | 0 | 2 | ~1,420 CE |
 | 224 | `cannon_cast_bronze` | technology / military | military | A7 | 12 | 3900 | cannon_early AND lost_wax AND corned_powder | 0/2 | cannon / 2 | 1 | 2 | ~1,400 CE |
-| 225 | `cannon_cast_iron` | technology / military | military | A7 | 16 | 6130 | cannon_cast_bronze AND blast_furnace_water | 1/2 | cannon / 3 | 1 | 1 | 1543 CE |
+| 225 | `cannon_cast_iron` | technology / military | military | A7 | 16 | 6130 | cannon_cast_bronze AND blast_furnace_water | 0/2 | cannon / 3 | 1 | 1 | 1543 CE |
 | 226 | `matchlock` | technology / military | military | A7 | 11 | 3480 | cannon_early AND crossbow | 0/2 | firearm / 1 | 1 | 1 | ~1,475 CE |
 | 227 | `wheellock` | technology / military | military | A7 | 16 | 6130 | matchlock AND escapement_verge | 0/2 | firearm / 2 | 0 | 2 | ~1,500 CE Germany |
 | 228 | `flintlock` | technology / military | military | A7 | 17 | 6870 | wheellock | 0/2 | firearm / 3 | 1 | 2 | ~1,610 CE France |
@@ -281,7 +282,7 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 247 | `canal_navigation` | technology / engineering | infrastructure | A7 | 10 | 3110 | canal_lock AND surveying | 0/2 |  | 1 | 2 | 1681 CE France; 1761 England |
 | 248 | `steam_separate_condenser` | technology / engineering | energy | A8 | 18 | 7690 | steam_atmospheric AND barometer_vacuum | 0/2 | steam / 2 | 0 | 1 | 1769 CE |
 | 249 | `cylinder_boring` | technology / engineering | industry | A8 | 17 | 6870 | cannon_cast_iron AND water_mill | 0/2 | machine_tool / 1 | 0 | 2 | 1774 CE |
-| 250 | `steam_rotary` | technology / engineering | energy | A8 | 19 | 8610 | steam_separate_condenser AND cylinder_boring AND crank_connecting_rod | 1/2 | steam / 3 | 0 | 2 | 1781 CE |
+| 250 | `steam_rotary` | technology / engineering | energy | A8 | 19 | 8610 | steam_separate_condenser AND cylinder_boring AND crank_connecting_rod | 0/2 | steam / 3 | 0 | 2 | 1781 CE |
 | 251 | `steam_high_pressure` | technology / engineering | energy | A8 | 21 | 10800 | steam_rotary AND puddling | 0/1 | steam / 4 | 0 | 3 | 1804 CE |
 | 252 | `puddling` | technology / engineering | materials | A8 | 20 | 9650 | coke AND steam_rotary | 0/2 | iron / 4 | 0 | 3 | 1784 CE |
 | 253 | `hot_blast` | technology / engineering | materials | A8 | 17 | 6870 | coke | 0/2 |  | 0 | 1 | 1828 CE |
@@ -326,14 +327,14 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | 292 | `petroleum_refining` | technology / natural_science | science | A8 | 10 | 3110 | distillation AND mining_shaft | 0/2 |  | 1 | 2 | 1859 CE |
 | 293 | `vaccination` | technology / medicine | medicine | A8 | 10 | 3110 | inoculation | 0/1 | immunisation / 2 | 0 | 2 | 1796 CE |
 | 294 | `anaesthesia` | technology / medicine | medicine | A8 | 15 | 5470 | chemistry_quantitative AND anatomy_dissection | 0/1 |  | 0 | 1 | 1846 CE |
-| 295 | `germ_theory` | technology / medicine | medicine | A8 | 15 | 5470 | microscope | 1/4 | medicine / 5 | 1 | 3 | 1860-1880 CE |
+| 295 | `germ_theory` | technology / medicine | medicine | A8 | 15 | 5470 | microscope | 0/4 | medicine / 5 | 1 | 3 | 1860-1880 CE |
 | 296 | `antisepsis` | technology / medicine | medicine | A8 | 16 | 6130 | germ_theory AND anaesthesia | 0/2 |  | 0 | 2 | 1867 CE |
 | 297 | `photography` | technology / natural_science | science | A8 | 18 | 7690 | chemistry_quantitative AND glass_lead | 0/2 |  | 0 | 2 | 1839 CE |
 | 298 | `evolution` | technology / natural_science | science | A8 | 5 | 1760 | selective_breeding | 0/2 |  | 0 | 2 | 1858 CE |
 | 299 | `aircraft` | technology / engineering | transport | A9 | 21 | 10800 | internal_combustion | 0/2 | aviation / 1 | 3 | 3 | 1903 CE |
 | 300 | `aircraft_metal` | technology / engineering | transport | A9 | 24 | 15180 | aircraft AND aluminium | 0/2 | aviation / 2 | 0 | 2 | 1915 / 1935 CE |
 | 301 | `jet_engine` | technology / engineering | energy | A9 | 25 | 17000 | aircraft_metal AND steam_turbine AND superalloy | 0/2 | aviation / 3 | 0 | 2 | 1939 CE |
-| 302 | `steam_turbine` | technology / engineering | energy | A9 | 23 | 13550 | steam_high_pressure AND open_hearth | 1/2 | steam / 5 | 1 | 2 | 1884 CE |
+| 302 | `steam_turbine` | technology / engineering | energy | A9 | 23 | 13550 | steam_high_pressure AND open_hearth | 0/2 | steam / 5 | 1 | 2 | 1884 CE |
 | 303 | `automobile_mass` | technology / engineering | transport | A9 | 21 | 10800 | internal_combustion AND interchangeable_parts AND petroleum_refining | 0/2 | ice / 2 | 0 | 3 | 1913 CE |
 | 304 | `tank` | technology / military | military | A9 | 23 | 13550 | internal_combustion AND basic_process AND cannon_cast_iron | 0/2 |  | 1 | 1 | 1916 CE |
 | 305 | `diesel` | technology / engineering | energy | A9 | 23 | 13550 | internal_combustion AND open_hearth | 0/1 | ice / 2 | 0 | 3 | 1897 CE |
@@ -470,30 +471,21 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `knapping_oldowan` | circumstance: knappable stone — quartzite, basalt, chert | `stock_stone > 0` |
 | `knapping_levallois` | circumstance: fine-grained knappable stone | `stock_stone > 0` |
 | `knapping_blade` | circumstance: fine-grained stone, ideally obsidian or flint | `stock_stone > 0` |
-| `heat_treatment_stone` | circumstance: sustained fire | `fire_making` |
-| `microlith` | circumstance: adhesive | `adhesive_natural` |
 | `ground_stone_early` | circumstance: hard fine-grained stone | `stock_stone > 0` |
-| `birch_tar` | circumstance: fire | `fire_making` |
 | `cordage` | circumstance: bast fibre, sinew, hair, or gut | `stock_fiber > 0` |
 | `atlatl` | circumstance: antler or wood thrower | `stock_timber > 0` |
 | `bow_simple` | circumstance: flexible wood (yew, elm, ash) | `stock_timber > 0` |
 | `bow_simple` | circumstance: sinew or fibre string | `stock_fiber > 0` |
-| `sling` | circumstance: cordage | `cordage` |
 | `sling` | circumstance: smooth stones | `stock_stone > 0` |
 | `shelter_hut` | circumstance: mammoth bone or timber | `stock_timber > 0` |
 | `shelter_hut` | circumstance: hides | `stock_hides > 0` |
 | `hide_working` | circumstance: hides | `stock_hides > 0` |
 | `raft` | circumstance: logs or reed bundles | `stock_timber > 0` |
-| `raft` | circumstance: cordage | `cordage` |
 | `dugout` | circumstance: large straight log | `stock_timber > 0` |
-| `dugout` | circumstance: fire | `fire_making` |
 | `grinding_stone` | circumstance: coarse stone slab | `stock_stone > 0` |
 | `lamp` | circumstance: stone bowl | `stock_stone > 0` |
 | `digging_stick_hoe` | circumstance: stone or bone blade | `stock_stone > 0` |
-| `nixtamalization` | circumstance: maize | `maize` |
-| `nixtamalization` | circumstance: lime or wood ash | `stock_timber > 0` |
 | `pottery_open_fired` | circumstance: levigated clay | `stock_clay > 0` |
-| `kiln_updraft` | circumstance: mudbrick | `mudbrick` |
 | `kiln_updraft` | circumstance: clay | `stock_clay > 0` |
 | `timber_frame` | circumstance: felled timber | `stock_timber > 0` |
 | `stone_dry` | circumstance: workable stone in catchment | `stock_stone > 0` |
@@ -507,7 +499,6 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `casting_open` | circumstance: carved stone mould | `stock_stone > 0` |
 | `terrace` | circumstance: stone or earth retaining walls | `stock_stone > 0` |
 | `sledge` | circumstance: timber runners | `stock_timber > 0` |
-| `sledge` | circumstance: cordage | `cordage` |
 | `wheel_solid` | circumstance: planked timber | `stock_timber > 0` |
 | `track_road` | circumstance: timber | `stock_timber > 0` |
 | `plough_ard` | circumstance: timber ard | `stock_timber > 0` |
@@ -517,7 +508,6 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `arsenical_bronze` | circumstance: arsenical copper ore (fahlore) | `stock_copper_ore > 0` |
 | `tin_bronze` | circumstance: copper | `stock_copper_ore > 0` |
 | `tin_bronze` | circumstance: TIN — from Cornwall, Erzgebirge, Afghanistan, Anatolian Taurus, Southeast Asia | `stock_tin_ore > 0` |
-| `tin_bronze` | circumstance: long-distance exchange reaching a tin source | `stock_tin_ore > 0` |
 | `casting_closed` | circumstance: stone or clay bivalve mould | `stock_stone > 0 OR stock_clay > 0` |
 | `casting_closed` | circumstance: bronze | `stock_bronze > 0` |
 | `lost_wax` | circumstance: fine clay | `stock_clay > 0` |
@@ -533,7 +523,6 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `standard_weights` | circumstance: stone weights | `stock_stone > 0` |
 | `beekeeping` | circumstance: clay or straw hives | `stock_clay > 0` |
 | `bellows` | circumstance: tuyère (clay nozzle) | `stock_clay > 0` |
-| `steel_carburized` | circumstance: charcoal | `charcoal` |
 | `brahmi` | circumstance: stone, birch bark, palm leaf | `stock_stone > 0` |
 | `coinage_electrum` | circumstance: precious metal or bronze | `stock_bronze > 0` |
 | `siege_ram` | circumstance: timber frame | `stock_timber > 0` |
@@ -550,8 +539,6 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `road_paved` | circumstance: stone | `stock_stone > 0` |
 | `bridge_stone` | circumstance: cut stone | `stock_stone > 0` |
 | `aqueduct_arcade` | circumstance: stone | `stock_stone > 0` |
-| `cast_iron` | circumstance: charcoal | `charcoal` |
-| `iron_mouldboard` | circumstance: cast iron | `cast_iron` |
 | `paper` | circumstance: bast fibre, rags, bark | `stock_fiber > 0` |
 | `crossbow_repeating` | circumstance: wood | `stock_timber > 0` |
 | `mortise_hull` | circumstance: timber | `stock_timber > 0` |
@@ -564,24 +551,14 @@ Columns: key · id · tree/branch · primary domain · age · depth · BaseCost 
 | `horizontal_loom` | circumstance: timber frame | `stock_timber > 0` |
 | `stern_rudder` | circumstance: timber | `stock_timber > 0` |
 | `watertight_bulkhead` | circumstance: timber | `stock_timber > 0` |
-| `saltpetre_refining` | circumstance: wood ash | `stock_timber > 0` |
 | `cannon_early` | circumstance: cast bronze or iron | `stock_bronze > 0` |
 | `trebuchet` | circumstance: timber | `stock_timber > 0` |
-| `woodblock_print` | circumstance: paper | `paper` |
 | `movable_type_ceramic` | circumstance: clay type | `stock_clay > 0` |
 | `movable_type_metal` | circumstance: bronze | `stock_bronze > 0` |
-| `paper_money` | circumstance: paper | `paper` |
 | `canal_lock` | circumstance: timber gates | `stock_timber > 0` |
-| `double_entry` | circumstance: paper | `paper` |
-| `bill_of_exchange` | circumstance: paper | `paper` |
-| `printing_press` | circumstance: alphabetic script (makes movable type economic) | `abjad OR alphabet_vowels` |
 | `caravel` | circumstance: timber | `stock_timber > 0` |
-| `cannon_cast_iron` | circumstance: cast iron | `cast_iron` |
 | `brass_calamine` | circumstance: copper | `stock_copper_ore > 0` |
-| `steam_rotary` | circumstance: gearing | `gearing` |
 | `screw_propeller` | circumstance: iron or bronze screw | `stock_bronze > 0` |
 | `macadam` | circumstance: crushed stone | `stock_stone > 0` |
 | `portland_cement` | circumstance: clay | `stock_clay > 0` |
-| `germ_theory` | circumstance: microscope | `microscope` |
-| `steam_turbine` | circumstance: high-pressure steam | `steam_high_pressure` |
 

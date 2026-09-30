@@ -41,8 +41,10 @@ public sealed class PredicateFormatException(string message) : Exception(message
 ///   operand  := variableName | quantityName | numberLiteral
 ///
 /// There are still no functions and no arithmetic. <see cref="Parse(string)"/>
-/// is untouched: without a symbol table there are no aliases, atoms or
-/// quantities, so every shipped predicate parses and fails exactly as before.
+/// behaves as before: without a symbol table there are no aliases, atoms or
+/// quantities, so every shipped predicate parses, evaluates and fails with the
+/// same results and messages as before (the code path gained the introspection
+/// bookkeeping, not new behaviour).
 /// </summary>
 public sealed class Predicate
 {
@@ -91,6 +93,25 @@ public sealed class Predicate
     /// need may be null; a predicate that needs a missing reader throws.</summary>
     public bool Evaluate(VariableReader? variables, AtomReader? atoms, QuantityReader? quantities) =>
         Eval(_root, variables, atoms, quantities);
+
+    /// <summary>
+    /// Research dialect: can the expression be TRUE for SOME truth assignment of its
+    /// comparisons, given the atoms? For a NOT-free predicate this is exact, because
+    /// the expression is monotone: take every comparison as true. For a predicate
+    /// with a NOT it answers true, meaning "undecided" — a caller must never reject
+    /// on it. The loader uses this to find Eureka conditions that can never hold
+    /// (ADR-029 §2.5).
+    /// </summary>
+    public bool CanHold(AtomReader atoms) => UsesNot || Optimistic(_root, atoms);
+
+    private static bool Optimistic(Node n, AtomReader atoms) => n switch
+    {
+        OrNode o => Optimistic(o.L, atoms) || Optimistic(o.R, atoms),
+        AndNode a => Optimistic(a.L, atoms) && Optimistic(a.R, atoms),
+        AtomNode at => atoms(at.AtomId),
+        CompareNode => true,
+        _ => true, // NotNode: unreachable, UsesNot short-circuits above
+    };
 
     public static Predicate Parse(string source)
     {

@@ -5,9 +5,11 @@ namespace Sim.Tests.Systems;
 
 /// <summary>
 /// ADR-029 §11 — the research dialect of the ONE D-020 predicate language (D-044 R10:
-/// no second condition language). The legacy entry point must be byte-for-byte what
-/// it was; the dialect adds AND/OR/NOT keywords, boolean atoms and caller-bound
-/// quantities, and nothing else — still no functions and no arithmetic.
+/// no second condition language). The legacy entry point must behave as it did —
+/// same results, same failures, same messages (its code path gained introspection
+/// bookkeeping, so it is not byte-for-byte the old code); the dialect adds AND/OR/NOT
+/// keywords, boolean atoms and caller-bound quantities, and nothing else — still no
+/// functions and no arithmetic.
 /// </summary>
 public class PredicateResearchDialectTests
 {
@@ -84,6 +86,22 @@ public class PredicateResearchDialectTests
     {
         Assert.Contains(fragment, Assert.Throws<PredicateFormatException>(() => Predicate.Parse(src, Symbols)).Message);
     }
+
+    [Theory]
+    // CanHold: can the expression be true for SOME truth values of its comparisons, given the atoms?
+    [InlineData("a", new[] { false, false, false, false }, false)]
+    [InlineData("a", new[] { true, false, false, false }, true)]
+    [InlineData("a AND b", new[] { true, false, false, false }, false)]
+    [InlineData("a OR b", new[] { false, true, false, false }, true)]
+    [InlineData("(a AND c) OR (b AND d)", new[] { false, true, false, true }, true)]
+    [InlineData("(a AND c) OR (b AND d)", new[] { true, true, false, false }, false)]
+    [InlineData("stock_timber > 0", new[] { false, false, false, false }, true)]              // a comparison may hold
+    [InlineData("a AND stock_timber > 0", new[] { false, false, false, false }, false)]
+    [InlineData("a OR food_surplus_ratio > 1", new[] { false, false, false, false }, true)]
+    [InlineData("NOT a", new[] { true, false, false, false }, true)]                          // NOT: undecided, never "cannot"
+    [InlineData("NOT (a OR b) AND c", new[] { false, false, false, false }, true)]
+    public void Dialect_CanHold_IsOptimisticOverComparisons_AndUndecidedWithNot(string src, bool[] atoms, bool expected) =>
+        Assert.Equal(expected, Predicate.Parse(src, Symbols).CanHold(a => atoms[a]));
 
     [Fact]
     public void Dialect_EvaluatingWithoutTheNeededReader_Throws()

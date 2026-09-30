@@ -28,6 +28,11 @@ public enum EurekaStatus
     InstitutionStateAbsent = 3,
     /// <summary>"contact with a civilization holding this" — no contact state exists (D-035-C carrier test).</summary>
     ContactStateAbsent = 4,
+    /// <summary>The circumstance names knowledge the node's own prerequisites already guarantee
+    /// (e.g. "circumstance: fire" on a node that requires fire_making). As a condition it would
+    /// hold whenever the node is available, so it would be a flat cost cut, not a circumstance.
+    /// It is declared instead of evaluated (ADR-029 §7).</summary>
+    ImpliedByPrerequisites = 5,
 }
 
 /// <summary>TUNE values (chosen, not derived — S8 §4.1(c)); see ADR-029 §6–§7.</summary>
@@ -188,10 +193,12 @@ public static class ResearchContentLoader
     public static readonly string[] RuledBranchIds = ["military", "medicine", "engineering", "natural_science", "agriculture"];
 
     private static readonly string[] Ages = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"];
-    private static readonly string[] EurekaStatusNames = ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent"];
+    private static readonly string[] EurekaStatusNames = ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent", "implied-by-prerequisites"];
     private static readonly string[] EntityKindNames = ["building", "infrastructure", "institution", "unit", "activity", "project"];
     private static readonly string[] EntityPrefixes = ["building.", "infra.", "inst.", "unit.", "activity.", "project."];
     private static readonly string[] UnlockListNames = ["buildings", "infrastructure", "institutions", "units", "activities", "projects"];
+
+    private static readonly JsonSerializerOptions JsonOptions = new() { RespectNullableAnnotations = true };
 
     public static ResearchContent Load(Stream json, GoodsConfig? goods)
     {
@@ -204,7 +211,9 @@ public static class ResearchContentLoader
         ResearchFileJson? file;
         try
         {
-            file = JsonSerializer.Deserialize<ResearchFileJson>(json);
+            // RespectNullableAnnotations: an explicit JSON null in a non-nullable member is a
+            // JsonException naming its path, never a null smuggled into the model.
+            file = JsonSerializer.Deserialize<ResearchFileJson>(json, JsonOptions);
         }
         catch (JsonException e)
         {
@@ -391,13 +400,11 @@ public static class ResearchContentLoader
             goods is null
                 ? "a node id (no goods registry is attached, so stock_<good> quantities are unavailable)"
                 : $"a node id, or a quantity ({string.Join(", ", quantityNames)})");
-        var descendants = new bool[n];
         var eurekas = new ResearchEureka[n][];
         for (int i = 0; i < n; i++)
         {
             (NodeJson j, _, string path) = raw[i];
             var list = new ResearchEureka[j.Eurekas.Length];
-            bool descendantsReady = false;
             for (int e = 0; e < j.Eurekas.Length; e++)
             {
                 EurekaJson ej = j.Eurekas[e];
@@ -417,17 +424,6 @@ public static class ResearchContentLoader
                     {
                         throw Fail($"{ep}: invalid Eureka reference — {ex.Message}", ex);
                     }
-                    if (!descendantsReady)
-                    {
-                        Array.Clear(descendants);
-                        foreach (int d in Closure([i], depLists, n)) descendants[d] = true;
-                        descendantsReady = true;
-                    }
-                    foreach (int a in cond.AtomIds)
-                        if (descendants[a])
-                            throw Fail($"{ep}: invalid Eureka reference — '{ids[a]}' " +
-                                       (a == i ? "is the node itself" : $"requires '{j.Id}'") +
-                                       ", so the condition can never hold while the node is still researchable (a dead Eureka).");
                 }
                 list[e] = new ResearchEureka(e, ej.Text, status, cond);
             }
@@ -462,6 +458,35 @@ public static class ResearchContentLoader
         for (int i = 0; i < n; i++)
             if (!reached[i])
                 throw Fail($"{raw[i].Path} ({ids[i]}): unreachable — no sequence of completions satisfies its prerequisites.");
+
+        // ---- dead Eurekas: a condition that cannot hold while its node is still researchable ----
+        // A Eureka is evaluated only while its node is AVAILABLE (not complete). Everything
+        // that can be completed WITHOUT the node is what "reached without i" computes: the
+        // same two-pass fixpoint, with i held incomplete and the stage opening only if it can
+        // without i. A NOT-free condition is dead when it cannot be true even with every
+        // comparison taken as true (Predicate.CanHold). An OR alternative that needs the node
+        // does not kill the condition when another alternative can hold, and a condition
+        // naming subtree knowledge on a node the stage itself needs is dead.
+        for (int i = 0; i < n; i++)
+        {
+            bool[]? without = null;
+            foreach (ResearchEureka eu in eurekas[i])
+            {
+                if (eu.Condition is not { } cond || cond.AtomIds.Count == 0) continue;
+                if (without is null)
+                {
+                    without = new bool[n];
+                    Reach(n, techCount, branchOf, prereq, without, stageOpen: false, excluded: i);
+                    if (stage.Evaluate(null, a => without[a], null))
+                        Reach(n, techCount, branchOf, prereq, without, stageOpen: true, excluded: i);
+                }
+                bool[] w = without;
+                if (!cond.CanHold(a => w[a]))
+                    throw Fail($"{raw[i].Path} ({ids[i]}).eurekas[{eu.Index}]: invalid Eureka reference — the condition " +
+                               $"'{cond.Source}' cannot hold while '{ids[i]}' is still researchable: the knowledge it names can " +
+                               $"only be completed after '{ids[i]}' itself (a dead Eureka).");
+            }
+        }
 
         // ---- assemble ----
         var nodes = new ResearchNode[n];
@@ -808,7 +833,8 @@ public static class ResearchContentLoader
         Closure(roots, Array.ConvertAll(edges, e => (IReadOnlyCollection<int>)e), n);
 
     /// <summary>Fixpoint of "researchable given what is reached", in index order.</summary>
-    private static void Reach(int n, int techCount, int[] branchOf, Predicate?[] prereq, bool[] reached, bool stageOpen)
+    private static void Reach(int n, int techCount, int[] branchOf, Predicate?[] prereq, bool[] reached, bool stageOpen,
+        int excluded = -1)
     {
         bool changed = true;
         while (changed)
@@ -816,7 +842,7 @@ public static class ResearchContentLoader
             changed = false;
             for (int i = 0; i < n; i++)
             {
-                if (reached[i]) continue;
+                if (reached[i] || i == excluded) continue;
                 if (!stageOpen && i < techCount && branchOf[i] >= 0) continue;
                 if (prereq[i] is null || prereq[i]!.Evaluate(null, a => reached[a], null))
                 {

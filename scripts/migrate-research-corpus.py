@@ -107,11 +107,15 @@ GOOD_SYNONYMS = {  # exact whole-string synonyms -> goods.json name
     "fibre": "fiber", "fiber": "fiber", "hides": "hides", "bronze": "bronze",
     "tools": "tools", "pottery": "pottery", "cloth": "cloth",
 }
-# Hand-reviewed circumstance strings whose material is plainly a shipped good.
-# Reviewed one by one; strings that name a PRODUCT of a technique (molten copper,
-# copper wire, heat-treated stone, ground-stone axes), a negation (daub subsoil,
-# "not potter's clay"), an unstated quantity ("in quantity", "at scale") or an
-# inseparable list (stone, papyrus, ink) are deliberately NOT here.
+# Hand-reviewed circumstance strings, one by one. THE RULE (ADR-029 §7): a string is
+# mapped only when it names a shipped good, or an object shaped directly from one
+# (a stone mould, a timber frame, a clay tablet). NOT mapped: a different substance
+# made from a good (wood ash, lime, molten or smelted metal, wire); a form that needs
+# a separate graph technique (heat-treated stone -> heat_treatment_stone, ground-stone
+# axes -> ground_stone_early); a negation (daub subsoil, "not potter's clay"); an
+# unstated quantity ("in quantity", "at scale"); an inseparable list (stone, papyrus,
+# ink); exchange or contact ("long-distance exchange reaching a tin source" — a
+# trade-network state that does not exist); and institutions.
 CURATED_GOODS = {
     "knappable stone — quartzite, basalt, chert": ["stone"],
     "fine-grained knappable stone": ["stone"],
@@ -128,7 +132,6 @@ CURATED_GOODS = {
     "coarse stone slab": ["stone"],
     "stone bowl": ["stone"],
     "stone or bone blade": ["stone"],
-    "lime or wood ash": ["timber"],
     "levigated clay": ["clay"],
     "felled timber": ["timber"],
     "workable stone in catchment": ["stone"],
@@ -146,7 +149,6 @@ CURATED_GOODS = {
     "clay sealings": ["clay"],
     "arsenical copper ore (fahlore)": ["copper-ore"],
     "tin — from cornwall, erzgebirge, afghanistan, anatolian taurus, southeast asia": ["tin-ore"],
-    "long-distance exchange reaching a tin source": ["tin-ore"],
     "stone or clay bivalve mould": ["stone", "clay"],
     "fine clay": ["clay"],
     "picks (antler, bronze)": ["bronze"],
@@ -168,7 +170,6 @@ CURATED_GOODS = {
     "cut stone": ["stone"],
     "bast fibre, rags, bark": ["fiber"],
     "glass or clay still": ["clay"],
-    "wood ash": ["timber"],
     "cast bronze or iron": ["bronze"],
     "clay type": ["clay"],
     "timber gates": ["timber"],
@@ -182,7 +183,8 @@ TECH_ALIASES = {
     "adhesive": "adhesive_natural",
     "alphabetic script (makes movable type economic)": "abjad OR alphabet_vowels",
 }
-EUREKA_STATUSES = ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent"]
+EUREKA_STATUSES = ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent",
+                   "implied-by-prerequisites"]
 
 TOKEN = re.compile(r"[a-z_0-9]+|AND|OR|\(|\)")
 
@@ -384,6 +386,32 @@ def stage_expression(corpus):
     return render(("and", parts))
 
 
+def must_complete(order, prereq_expr):
+    """For every node, the knowledge that is complete WHENEVER the node's prerequisites
+    hold, on every path: an atom contributes itself and its own must-set; AND is the
+    union, OR the intersection. (Computed in topological order.)"""
+    must = {}
+
+    def of(node):
+        if node[0] == "atom":
+            return {node[1]} | must[node[1]]
+        parts = [of(c) for c in node[1]]
+        return set().union(*parts) if node[0] == "and" else set.intersection(*parts)
+    for n in order:
+        must[n] = of(parse(prereq_expr[n])) if prereq_expr[n] else set()
+    return must
+
+
+def holds_on(expr, complete):
+    """Evaluate a corpus-grammar expression with exactly `complete` taken as complete."""
+    def ev(node):
+        if node[0] == "atom":
+            return node[1] in complete
+        vals = [ev(c) for c in node[1]]
+        return all(vals) if node[0] == "and" else any(vals)
+    return ev(parse(expr))
+
+
 def depth_of(order, prereq_atoms):
     depth = {}
     for n in order:
@@ -557,11 +585,25 @@ def build():
                     "repeatable": repeatable})
         return rec
 
+    # A Eureka is evaluated only while its node is available. A node-knowledge condition
+    # that the node's own prerequisites already guarantee (plus, for a subtree node, the
+    # knowledge the research stage guarantees) would hold at every such moment: a flat
+    # cost cut, not a circumstance. It is declared, not evaluated (ADR-029 §7).
+    must = must_complete(order, prereq_expr)
+    must_stage = set()
+    for a in atoms(stage):
+        must_stage |= {a} | must[a]
+    implied = []
     tech_records = []
     for i, t in enumerate(techs):
         eus = []
+        guaranteed = must[t["id"]] | (must_stage if branch[t["id"]] is not None else set())
         for text in t["research"]["eureka"]:
             when, status = map_eureka(text, set(all_ids), names)
+            if (status == "evaluable" and all(a in all_ids for a in TOKEN.findall(when) if a not in ("AND", "OR"))
+                    and holds_on(when, guaranteed)):
+                implied.append((t["id"], text, when))
+                when, status = None, "implied-by-prerequisites"
             eus.append({"text": text, "when": when, "status": status})
         rep = t["research"].get("repeatable")
         if rep is not None:
@@ -614,11 +656,13 @@ def build():
         "entities": entities,
     }
     stats = {"sha": sha, "order": order, "depth": depth, "branch": branch, "stage": stage,
-             "stage_closure": stage_closure, "prereq_atoms": prereq_atoms}
+             "stage_closure": stage_closure, "prereq_atoms": prereq_atoms, "implied": implied}
     return content, stats, corpus
 
 
 def render_audit(content, stats, corpus):
+    def esc(x):
+        return (x or "").replace("|", "\\|")
     techs = content["technologies"]
     civs = content["civics"]
     L = []
@@ -646,7 +690,10 @@ def render_audit(content, stats, corpus):
     nodes_with = sum(1 for t in techs if any(e["status"] == "evaluable" for e in t["eurekas"]))
     L.append(f"- Technology nodes with at least one evaluable Eureka: {nodes_with}")
     L.append(f"- Research stage trigger: `{stats['stage']}`")
-    L.append(f"- Stage-trigger prerequisite closure: {len(stats['stage_closure'])} nodes (all forced into the trunk)")
+    sc = stats["stage_closure"]
+    sc_civ = sum(1 for x in sc if x in CIVICS)
+    L.append(f"- Stage-trigger prerequisite closure: {len(sc)} nodes — {len(sc) - sc_civ} technologies "
+             f"(all forced into the trunk) and {sc_civ} civics")
     unres = [e for e in content["entities"] if e["unresolved"]]
     L.append(f"- Registry entities: {len(content['entities'])}; with unresolved corpus references: "
              + (", ".join(f"`{e['id']}` ({', '.join(e['unresolved'])})" for e in unres) or "none"))
@@ -665,6 +712,11 @@ def render_audit(content, stats, corpus):
     L.append("6. **Generation numbers are display lineage, not a dependency rule.** 13 nodes break 'gen N requires gen N-1'; not validated (D-044 R7).")
     L.append("7. **No Civics nodes existed.** The six architecture §5.7 candidates were reclassified; no Civics content was invented.")
     L.append("8. **`effects.immediate` is empty on every node.** No immediate-effect kind is ratified (law 2), so the loader requires it empty.")
+    imp = stats["implied"]
+    L.append(f"9. **{len(imp)} Eureka circumstances name knowledge the node's own prerequisites already guarantee** "
+             "(e.g. \"circumstance: fire\" on a node that requires fire_making). Evaluated, each would fire the moment the node "
+             "became available — a flat cost cut, not a circumstance. Declared `implied-by-prerequisites`, not evaluated "
+             "(ADR-029 §7): " + ", ".join(f"`{n}` ({esc(w)})" for n, _, w in imp) + ".")
     L.append("")
     L.append("## Per-node audit")
     L.append("")
@@ -673,8 +725,6 @@ def render_audit(content, stats, corpus):
     L.append("| key | id | tree / branch | domain | age | depth | cost | prerequisites | eureka | family / gen | entities | caps | emerged |")
     L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 
-    def esc(x):
-        return (x or "").replace("|", "\\|")
     for t in techs:
         ent = sum(len(t["unlocks"][k]) for k in UNLOCK_KINDS)
         evn = sum(1 for e in t["eurekas"] if e["status"] == "evaluable")

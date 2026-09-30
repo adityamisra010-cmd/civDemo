@@ -130,6 +130,39 @@ public class ResearchEngineTests
         Assert.Equal(0, c.ResearchProgress.Count);
     }
 
+    [Fact]
+    public void Selection_AnUnregisteredActorsOrder_ChangesNothingAtAll()
+    {
+        // ADR-029 §4: the actor must be a registered polity, otherwise the order changes NOTHING —
+        // asserted from the whole state, not only from the registered polity's view.
+        var orders = new OrderLog();
+        orders.Append(Target(0, 2, polity: 9)); // b is available to anyone; polity 9 is not on the roster
+        WorldState w = Executor(Rig, orders).Step(PlayerWorld());
+        Assert.Equal(0, w.ResearchTargets.Count);
+        Assert.Equal(0, w.ResearchProgress.Count);
+        Assert.Equal(0, w.ResearchCompleted.Count);
+        Assert.Equal(0, w.ResearchEurekas.Count);
+    }
+
+    [Fact]
+    public void Roster_ADuplicatedPolityRow_CountsOnce()
+    {
+        // ADR-029 §5: a doubled roster row is one Empire — one turn of CLP, one Eureka credit.
+        WorldState w = PlayerWorld();
+        w.Polities.Add(new PolityRow(P1, CommandSource.Player));
+        var orders = new OrderLog();
+        orders.Append(Target(0, 1));
+        WorldState w1 = Executor(Rig, orders).Step(w);
+        Assert.Equal(1000.0, Progress(w1, 1)); // not 2000
+        Assert.Single(w1.ResearchTargets.ToArrayForTest());
+
+        WorldState e = WithCompleted(PlayerWorld([(4, 50)]), 1);
+        e.Polities.Add(new PolityRow(P1, CommandSource.Player));
+        WorldState e1 = Executor(Rig).Step(e);
+        Assert.Equal(625.0, Progress(e1, 11)); // not 1250
+        Assert.Single(e1.ResearchEurekas.ToArrayForTest());
+    }
+
     // ------------------------------------------------------------------ no bank / partial progress / switching
 
     [Fact]
@@ -184,6 +217,26 @@ public class ResearchEngineTests
         Assert.False(ResearchQuery.TryGetTarget(w, P1, out _));
         Assert.Equal(0.0, Progress(w, 2)); // the overflow went nowhere (no carry, no bank)
         Assert.Equal([Key(1)], ResearchQuery.CompletedBetween(Run(ex, PlayerWorld(), 2), w, P1));
+    }
+
+    [Fact]
+    public void Completion_ReachingTheCost_SetsProgressToExactlyTheCost_NeverOneUlpShort()
+    {
+        // ADR-029 §5 step 4. cost - have is exactly 1000.0, so this turn's 1 000 CLP covers the
+        // remaining cost — but have + 1000 rounds to 1017.6696619502791, one ulp BELOW the cost.
+        // Without the snap the node would stay one ulp short and completion would slip a turn.
+        Spec spec = Standard();
+        spec.Technologies[1] = spec.Technologies[1] with { Cost = 1017.6696619502792 };
+        ResearchContent content = spec.Load();
+        WorldState w = PlayerWorld();
+        w.ResearchProgress.Add(new ResearchProgressRow(P1, Key(2), 17.669661950279135));
+        Assert.True(17.669661950279135 + 1000.0 < 1017.6696619502792); // the premise: plain addition falls short
+        var orders = new OrderLog();
+        orders.Append(Target(0, 2));
+        WorldState w1 = Executor(content, orders).Step(w);
+        Assert.True(Done(w1, 2));
+        Assert.Equal(0, w1.ResearchProgress.Count);
+        Assert.False(ResearchQuery.TryGetTarget(w1, P1, out _));
     }
 
     [Fact]
@@ -372,6 +425,24 @@ public class ResearchEngineTests
         WorldState w1 = Executor(Rig).Step(w);
         Assert.Equal(625.0, Progress(w1, 11, polity: 2));
         Assert.Equal(0.0, Progress(w1, 11, polity: 1));
+    }
+
+    [Fact]
+    public void Eureka_APolityWithSeveralSettlements_FiresWhenAnyOneOfThemHoldsTheGood()
+    {
+        // ANY, not ALL: the player controls both settlements, and only settlement 0 holds timber.
+        WorldState first = WithCompleted(World([Player], [Player, Player], 10_000, [(4, 50)]), 1);
+        WorldState f1 = Executor(Rig).Step(first);
+        Assert.Equal(625.0, Progress(f1, 11));
+        Assert.True(ResearchQuery.EurekaFired(f1, P1, Key(11), 0));
+
+        // ...and not "the first controlled settlement": here only settlement 1 holds timber.
+        WorldState second = WithCompleted(Stock(World([Player], [Player, Player], 10_000), 1, 4, 50), 1);
+        WorldState s1 = Executor(Rig).Step(second);
+        Assert.Equal(625.0, Progress(s1, 11));
+        Assert.True(ResearchQuery.EurekaFired(s1, P1, Key(11), 0));
+        Assert.True(ResearchQuery.EurekaHolds(s1, Rig, P1, Rig.Nodes[Rig.IndexOfId("w")].Eurekas[0],
+            ResearchQuery.CompletedMask(s1, Rig, P1)));
     }
 
     // ------------------------------------------------------------------ specialized universities

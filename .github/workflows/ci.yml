@@ -19,6 +19,9 @@ jobs:
       - name: Read-isolation check (T2.6 — grievance read by nothing but UI/chronicle)
         run: ./scripts/check-read-isolation.sh
 
+      - name: Research content is regenerated from its corpus (ADR-029 §2.1)
+        run: python3 scripts/migrate-research-corpus.py --check
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
