@@ -132,7 +132,8 @@ the data.
 | 1000 | 5500 | 295: Main 176/176, Military 23, Medicine 16, Engineering 41, Natural Science 24, Agriculture 9, Civics 6/6 |
 
 (Re-measured after the review fixes, which made 24 fewer Eureka strings evaluable; the first measurement, at
-`ced5009`, was 50 by turn 96, 100 by 191, 141 + 1 at turn 300, the stage at 388.)
+`ced5009`, was 50 by turn 96, 100 by 191, 141 + 1 at turn 300, the stage at 388. The emitted 1000-turn order log
+replays through `sim run --founded --seed 42 --turns 1000 --orders` to the same world hash, `e67e07fc…`.)
 
 The research stage was not yet reached at turn 300. These are readings, not targets. The pacing depends on the
 provisional CLP function (§6).
@@ -475,3 +476,39 @@ extension, repeatables and starting holdings. In addition:
 | Starting holdings, repeatable levels | §14 |
 | Wiring eligibility into ConstructionSystem | Both shipped projects have null requirements, so it would be a no-op; ADR-028 §4 leaves it to the packet that needs it |
 | AI target selection | No AI decision code exists; D-042 symmetry means AI would use this same order |
+
+## §17 — REVIEW RECORD (adversarial review of `ced5009`)
+
+A 56-agent review workflow checked this packet, with every finding adversarially verified in its own worktree,
+pinned to `ced5009`. Of 25 findings: **3 REFUTED** (R-19 immediate effects; a dt-dependent overflow;
+`arsenical_bronze`), **2 PLAUSIBLE** (dead Eurekas missed behind the stage; 21 node-atom Eurekas implied by
+prerequisites), and **20 CONFIRMED**, which cover 16 distinct defects once four duplicate pairs are merged. Commit `fd49d72` (code, content,
+tests, CI) and commit `09e66dc` (documents) act on the confirmed and plausible findings only (ADR-015 §6: no finding
+is actionable before its verdict).
+
+**Mutation record for the new tests** (commit `fd49d72`, its own detached worktree; each mutant bounded at 10× the
+clean filtered-suite time of 2.7 s; no mutant hung):
+
+| Mutant | What it breaks | Killed by (semantic test) |
+|---|---|---|
+| M9-all | a settlement-scoped Eureka needs ALL controlled settlements | `Eureka_APolityWithSeveralSettlements_FiresWhenAnyOneOfThemHoldsTheGood` |
+| M9b-first | … reads only the first controlled settlement | the same test (stock only in settlement 1) |
+| M2-nosnap | no snap to exactly the cost | `Completion_ReachingTheCost_SetsProgressToExactlyTheCost_NeverOneUlpShort` |
+| M5b-unregistered | an unregistered actor's order is processed | `Selection_AnUnregisteredActorsOrder_ChangesNothingAtAll` |
+| M11-duproster | a doubled roster row runs the polity twice | `Roster_ADuplicatedPolityRow_CountsOnce` |
+| Mdup-unlock | a duplicate unlock is accepted | `Rejects_InvalidUnlockReferences` |
+| Mnull | explicit nulls bind into the model | `Rejects_ExplicitNullsInRequiredValues_…` |
+| Mdead-none | no dead-Eureka check | `Rejects_InvalidEurekaReferences_UnknownNames_AndDeadConditions` |
+| Mdead-stage-open | the stage always opens without the node | the same test (stage-gated case) |
+| Mdead-stage-never | the stage never opens without the node | `Accepts_EurekasThatCanHold…_OrAfterTheStage` (cross-subtree case) |
+| Mdead-noexclude | the node itself is not held incomplete | `Rejects_InvalidEurekaReferences_…` (self case) |
+| Mcan-or-and | `CanHold` treats OR as AND | `Dialect_CanHold_…`; `Accepts_EurekasThatCanHold…` |
+| Mcan-compare-false | `CanHold` treats comparisons as false | `Dialect_CanHold_…` |
+| Mcan-not | `CanHold` decides NOT expressions | `Dialect_CanHold_…` |
+| G1-noimplied | the generator never declares implied-by-prerequisites (regenerated) | `Canonical_NoEvaluableKnowledgeEureka_IsGuaranteedByItsOwnNodesPrerequisites` |
+
+Mdead-stage-never was first written as `if (false)`, which does not compile (unreachable code is an error here). It
+was re-run as a non-constant false and killed. Not mutated: the generator's OR-intersection in `must_complete`. Taking
+the union there would over-declare implied Eurekas; only the count pins (93 evaluable, 2 knowledge conditions) would
+catch it, and those are not semantic kills.
+
