@@ -395,7 +395,18 @@ public class DrivenGoldenTests
         //         order-less world (Eureka credit on available roots). Not architectural truth.
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone
         //         still strips them and returns main's value byte for byte.
-        const string golden = "d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e";
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   NEW  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   CAUSE as SnapshotTests.FoundedGolden's finalization entry: two more empty
+        //         count prefixes, and no research row at turn 300 (measured: all seven
+        //         research tables empty; the driving batch issues no research order).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone returns main's
+        //         98ee3a7a… byte for byte, also with a research driver added.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        const string golden = "464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

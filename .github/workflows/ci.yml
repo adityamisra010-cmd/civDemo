@@ -149,12 +149,16 @@ jobs:
           # pre-arming one, returned BYTE FOR BYTE. Re-derived by REPRODUCING
           # THIS STEP on the disarmed tree: the two CLI processes above, built
           # from this tree, both logs byte-identical, last line the value below.
-          # ADR-029: schema v26 (five research tables) + ResearchSystem's own rows
+          # ADR-029: schema v26 (research tables) + ResearchSystem's own rows
           # (Eurekas on available roots in this order-less world). Derived twice on
           # this tree — the in-test harness and two CLI processes with byte-identical
           # logs; IntegratedPinAttributionTests strips the research layer and returns
           # the previous value (db7c7a09…) byte for byte.
-          FOUNDED_GOLDEN=25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+          # Research finalization (ADR-029 addendum A): two more empty v26 count
+          # prefixes, and this order-less world now writes no research row. Derived
+          # twice on this tree (in-test harness; two CLI processes, byte-identical
+          # logs); the research strip still returns db7c7a09… byte for byte.
+          FOUNDED_GOLDEN=e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

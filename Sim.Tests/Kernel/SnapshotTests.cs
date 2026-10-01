@@ -254,7 +254,19 @@ public class SnapshotTests
         //         are UNMOVED.
         //   DERIVED TWICE: this in-test harness and the built CLI
         //         (`sim run --seed 42 --turns 200`) agree on the NEW value.
-        const string golden = "1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4";
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4
+        //   NEW  c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8
+        //   CAUSE v26 (changed in place, never on main) appends ResearchCredits and
+        //         ResearchExposures. The toy pipeline runs no ResearchSystem, so both are
+        //         EMPTY here: the entire movement is two more four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone drops all
+        //         seven research prefixes and returns main's b6df7edd… byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        const string golden = "c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -871,7 +883,25 @@ public class SnapshotTests
         //         order-less world (Eureka credit on available roots). Not architectural truth.
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone
         //         still strips them and returns main's value byte for byte.
-        const string golden = "25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0";
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   NEW  e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+        //   CAUSE (1) layout: two more empty v26 count prefixes (ResearchCredits,
+        //         ResearchExposures); (2) rows: under the curated Eurekas no evaluable
+        //         condition holds on an available node of this order-less world, so it
+        //         now writes NO research row at turn 300 (measured: all seven tables
+        //         empty), where the D-045 world carried Eureka credit on its roots.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips the
+        //         seven tables and returns main's db7c7a09… byte for byte — for this
+        //         world AND for the same world with a research driver choosing targets
+        //         (the non-vacuous arm: research rows present and stripped).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate
+        //         processes, byte-identical logs) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        const string golden = "e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

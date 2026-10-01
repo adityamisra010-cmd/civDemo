@@ -445,7 +445,18 @@ public class FirstReignTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
         //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns the OLD
         //         value byte for byte.
-        const string golden = "37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58";
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   NEW  4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7
+        //   CAUSE two more empty count prefixes, and no research row at turn 40
+        //         (measured: all seven research tables empty). The SHAPE ASSERTS BELOW
+        //         ARE UNCHANGED and pass on this tree: research feeds nothing back.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns main's
+        //         dacf3c34… byte for byte.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        const string golden = "4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

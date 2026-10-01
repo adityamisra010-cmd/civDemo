@@ -588,3 +588,114 @@ was re-run as a non-constant false and killed. Not mutated: the generator's OR-i
 the union there would over-declare implied Eurekas; only the count pins (93 evaluable, 2 knowledge conditions) would
 catch it, and those are not semantic kills.
 
+
+---
+
+## ADDENDUM A — RESEARCH CORPUS FINALIZATION AND THE RESEARCH-FOUNDATION GATE (append-only, 2026-10-01)
+
+**Authority:** the Director's research corpus finalization rulings and the research-foundation gate, both recorded
+verbatim in **D-046** (`docs/d046-research-foundation-gate-rulings.md`), and **ADR-030** (per-turn Research Points).
+§1–§17 above are **not rewritten**: where this addendum overrides them, the original text stands as the record of what
+was built first. Where the two disagree, this addendum governs. Status of the whole ADR is unchanged: PROPOSED,
+implemented on `research-progression-foundation`, accepted only by the Director's ruling on PR #10.
+
+### A.1 — Overrides of the §13 implementer resolutions
+
+| # | Was (§13, as amended by D-045) | Now | Authority |
+|---|---|---|---|
+| R-4 | RP(P) through the anchors, credited × dtYears / 10 (CR-018 option 1) | **RP per turn = 0.08 × P^0.699, never multiplied by dtYears** (`tuning.rpPerTurn`; anchors 100 → 2, 1,000 → 10 checked by the loader to 0.1 %). P is the polity's total population, as before. One code site: `ResearchSystem` step 3. `rpReferenceTurnYears` is removed | ADR-030; D-046 F§2 |
+| R-5 | 40 % of BASE per full Eureka by condition share, the Eureka's own cap | Each Eureka condition credits **weight × BaseCost once** (default weight = 0.40 ÷ N; authored weights explicit; a node's weights sum to ≤ 0.40). Eureka and foreign exposure share **one pool per node**: ≤ 0.40 × BaseCost across both sources and ≤ the remaining EffectiveCost; nothing overflows to any node; each source's credited amount is kept (`ResearchCredits`). The availability rule stands: credit lands only on available nodes, whatever the target | D-046 F§2, G2 |
+| R-10 | BaseCost = band weight × Age unit | **BaseCost = U × K^magnitude**, U = 92.4, K = 2.0 (`tuning.costModel`); magnitude = the six factors in each node's `costRationale`. No calibration adjustment exists (the loader rejects a non-zero one) and no cost is moved to hit an Age duration. The loader checks every cost against U·K^m to max(5 RP, 0.1 %) — the authored costs are rounded to tens | D-046 F§1, G1 |
+| R-12 | The 10 repeatables complete once; descriptor kept as data | Kept, and named: `researchSets.recursive`. A repeatable is available only when its own prerequisites hold **and every finite node of its own subtree is complete** (`repeatable.availability`, whose `finite_nodes_to_exhaust` the loader checks against the graph; `ResearchQuery.IsAvailable` / `SubtreeExhausted`). Recursive research is excluded from finite exhaustion and from pacing. **Repeat mechanics are DEFERRED** (G4): a repeatable still completes once (D-044 R11) | D-046 F§2, G4 |
+
+### A.2 — Obsolete
+
+- **§1's and §2.4's measured pacing** and **§6's per-year crediting** are obsolete (ADR-030 §4). The current figures are
+  `docs/research-calibration-report.md`: PROVISIONAL CALIBRATION, every population a scenario input, nothing frozen.
+- **§2.1's generator.** The content is now AUTHORED: the finalization proposal's `researchJson`, accepted by the loader.
+  `scripts/migrate-research-corpus.py` and `scripts/research-calibration/nodes.json` are retired, with their CI steps.
+  `scripts/research-content-audit.py` writes `docs/research-corpus-audit.md` from the content, and CI runs its
+  `--check`. The D-045 audit and calibration report are kept as `docs/research-corpus-audit-d045.md` and
+  `docs/research-calibration-report-d045.md`.
+- **§7's 801-string Eureka model** (one Eureka per node, its corpus strings as conditions, A–F categories). Replaced by
+  81 curated Eurekas on 80 nodes, each with `kind`, `justification`, `system`, `class`, `source` and `weight`; 18 are
+  evaluable today.
+
+### A.3 — What the engine gained
+
+| Surface | Change |
+|---|---|
+| EffectiveCost | `max(effectiveCostFloorFraction × BaseCost, BaseCost × Π modifiers)`, floor 0.20 (`ResearchQuery.EffectiveCost`, `EffectiveCostBreakdown.FloorBinds`) |
+| Acceleration pool | Step 2 credits, for every available node in index order: each newly holding Eureka (index order), then the foreign exposure offered and not yet credited — all against one headroom, `ceiling − credited(Eureka) − credited(foreign exposure)`, and each credit capped at the remaining EffectiveCost. `ResearchQuery.AccelerationPoolOf` reports it |
+| Credit-only completion | Allowed, with no minimum RP spend (G2): step 4 completes any available node whose progress reached its EffectiveCost, whatever paid for it |
+| `ResearchCreditRow(Polity, Node, Source, Amount)` | NEW owned table — the per-source provenance. Source 1 = Eureka, 2 = foreign exposure. A row exists only after a positive credit |
+| `ResearchExposureRow(Polity, Node, Offered)` | NEW **input seam**, no writer: the cumulative foreign exposure offered to a node. Research credits only the increment over what it already credited, from the shared pool. No foreign-exposure source is implemented (F§2) |
+| `ResearchEurekaRow(Polity, Node, Eureka)` | The `Condition` field is gone: one Eureka is one condition |
+| Canonical schema | **v26 changed in place** — v26 never reached `main`. Blocks 46 (`ResearchCredits`, 20-byte rows) and 47 (`ResearchExposures`, 16-byte rows) are appended; fired-Eureka rows are 12 bytes. Saves written in this branch's earlier v26 layout are not readable in this one (D-008: no migration) |
+| Content schema | `civ-sim/research@2`: `tuning` (`rpPerTurn`, `effectiveCostFloorFraction`, `accelerationCreditCeilingFraction`, `accelerationCreditSources`, `costModel`), `researchSets`, per-node `costRationale` and `universityRelevance` (domain classification only — no numbers), the curated Eureka fields. The old `clpCoefficient`, `clpAdultExponent` and `eurekaCreditFraction` keys are gone. Strict-null and duplicate-unlock rejection are kept |
+| Validators | Eureka shape (kind, justification, system, class, source, weights all-or-none, each in (0, ceiling], sum ≤ ceiling, `evaluable_now` ⇔ `when`); **implied Eurekas** — a knowledge-only condition that holds on the must-set of every path to its node (prerequisites, plus the research stage for subtree nodes) — are rejected; dead Eurekas as before; cost rationale (factor ranges, magnitude = Σ factors, adjustment 0, content cost = cost, cost ≈ U·K^m); university relevance; research sets (recursive ⇔ repeatable descriptor, tier TR ⇔ recursive, TS ⇔ speculative, no finite node requires a recursive one, the stated exhaustion count) |
+| `Predicate.MustHoldAtoms()` | Introspection on the D-020 dialect: the atoms true in every satisfying assignment (AND unions, OR intersects, a comparison or NOT contributes nothing). No grammar change (§11 stands) |
+| `effects.immediate` | Still required empty (R-19) |
+| Glass Box / CLI | `sim research` reports RP per turn, the floor, the pool and its per-source credits, and each Eureka's class, weight and justification; the trace column is `researchPointsThisTurn` |
+
+### A.4 — New implementer resolutions (each overridable)
+
+| # | Resolution | Why |
+|---|---|---|
+| R-23 | The **last** Eureka of a node to fire pays the node's whole entitlement (total weight × BaseCost) minus what its Eurekas already credited, so a fully satisfied Eureka lands on exactly 40 % of BASE however its parts rounded | F§2 "full Eureka = 40 % of BaseCost" must hold exactly; equal shares of 0.40 do not sum exactly in binary |
+| R-24 | A Eureka whose condition holds fires once even when the pool pays it nothing; it never pays later | Idempotence: a held condition never credits twice |
+| R-25 | Within a node: Eurekas in index order, then foreign exposure; all credit before the turn's RP throughput | Deterministic and explicit; the pool ceiling makes the order matter only at the cap |
+| R-26 | Foreign exposure is cumulative-offered per (polity, node); research credits the increment over its own provenance row | The seam then needs no consumption protocol and no writer coupling (law 6) |
+| R-27 | Cost tolerance max(5 RP, 0.1 % of cost) | The authored costs are U·K^m rounded to tens (largest deviation 19.2 RP on `rocket`, 2.67 % on 180-RP `atlatl`) |
+| R-2 | **Unchanged**: RP past a node's remaining cost, and RP with no target, is not stored | ADR-030 §2 scopes overflow to per-turn semantics without ruling that it carries — a Director decision (D-046 Part D) |
+
+### A.5 — Content repairs the loader required (data only)
+
+The proposal's `researchJson` is shipped as given except for repairs without which it does not load:
+
+- five `depth` fields disagreed with the prerequisites (depth is derived data): `calendar_civil` 6 → 7, `water_clock`
+  → 8, `brass_calamine` → 5, `legal_code_roman` → 8, `census` → 7;
+- the `unlocks` reverse index was regenerated from the Group B entity requirements: `cuneiform` gains
+  `inst.historiography` and `inst.natural_philosophy`; `hieroglyphic` and `chinese_script` each gain `inst.archive`,
+  `inst.historiography`, `inst.natural_philosophy` and `inst.scribal_school`; `alphabet_vowels` loses
+  `inst.historiography` and `inst.natural_philosophy`;
+- the D-045 `baseline` list is kept (the proposal omits it; D-045 §1 still governs it).
+
+### A.6 — Terminology (D-046 G5)
+
+Research Points (RP) is the one research resource; Technology and Civics draw on one shared pool. Code names:
+`ResearchQuery.ResearchPoints`, `ResearchPointPool`, `ResearchProgress`. This ADR's title and §1–§17 keep "CLP" as the
+historical record of what was built; every active code comment, CLI string, content key and active architecture passage
+now says RP (the architecture document preserves its replaced passages verbatim in its §21).
+
+### A.7 — Tests (finalization prompt §4) — where each lives
+
+| Requirement | Test |
+|---|---|
+| Group B: Chinese script alone reaches the stage; cuneiform-free paths to `law_code`, `census`, `geometry_practical`, `astronomy_records`, `abacus`; `numeral_sexagesimal`, `arithmetic_babylonian` still need cuneiform | `ResearchContentTests.GroupB_*` (three tests) |
+| Per-turn RP identical across dtYears; RP 100 → 2, 1,000 → 10; sublinear | `ResearchEngineTests.ResearchPoints_*` |
+| 0 completed at founding | `ResearchEngineTests.Founding_StartsWithZeroCompletedResearchNodes` |
+| Granary and workshop constructible with zero technology | `ResearchContentTests.Baseline_GranaryAndWorkshop_AreConstructibleWithZeroTechnology` |
+| Full Eureka = 40 % of BASE, a modifier does not shrink it; partial (0.40 ÷ N and explicit weights); idempotence; Eureka + foreign exposure ≤ 40 % with provenance; the floor; no overflow; credit-only completion | `ResearchEurekaCreditTests` (the engine's Eureka file; the prompt's table names `ResearchEngineTests`, which keeps the RP and step-semantics tests) |
+| Implied-by-prerequisite invariant; dead-Eureka detection | `ResearchContentTests.Canonical_NoEvaluableKnowledgeEureka_IsGuaranteedByItsOwnNodesPrerequisites`, `Rejects_ImpliedEurekas_*`, `Rejects_InvalidEurekaReferences_UnknownNames_AndDeadConditions` |
+| Null rejection; duplicate-unlock rejection | `ResearchContentTests.Rejects_ExplicitNullsInRequiredValues_*`, `Rejects_InvalidUnlockReferences` (the loader's file; `ResearchSchemaTests` covers the binary schema: populated round trip, per-table hash and equality) |
+| Determinism unchanged | `ResearchDeterminismTests` (twin, replay, save/load mid-research, turn-exact delivery). Its horizon moved 120 → 320 turns: under the content-derived costs the cheapest driver completes 20 nodes by turn 300 on the dev world (measured), so the ≥ 20 anti-vacuity bar is kept, not lowered |
+
+### A.8 — Goldens (re-pinned ONCE, itemised, measured)
+
+| Pin | Old (D-045, `6baafbe`) | New (measured on this tree) | Cause | Control (returns `main`'s pre-research value byte for byte) |
+|---|---|---|---|---|
+| Toy, turn 200 | `1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4` | `c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8` | Layout only: two more empty v26 count prefixes (`ResearchCredits`, `ResearchExposures`); the toy pipeline runs no research | `GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone` (drops all seven prefixes → `b6df7edd…`) |
+| Founded, turn 300 (+ `ci.yml`) | `25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0` | `e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18` | Two more empty prefixes, and the order-less world now writes **no research row** (all seven tables empty at turn 300, measured): none of the 18 evaluable curated Eurekas holds on an available node, where the D-045 world carried Eureka credit on its roots | `FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone` → `db7c7a09…`, now also with a research-driven arm whose rows are present and stripped |
+| Driven, turn 300 | `d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e` | `464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47` | As founded (no research row at turn 300, measured) | `DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone` → `98ee3a7a…`, also with a research-driven arm |
+| FirstReign, turn 40 | `37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58` | `4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7` | As founded (no research row at turn 40, measured); the shape asserts are unchanged and pass | `FirstReignTurn40_MovedForTheResearchLayerAlone` → `dacf3c34…` |
+
+- **How the values were derived:** toy and founded **twice** — the in-test harness and the built CLI (`sim run --seed 42
+  --turns 200 --hash-log`; `sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes with
+  byte-identical logs). Driven and FirstReign by the harness's own worlds, read twice (a probe and the suite).
+- **Research-only:** every strip control returns `main`'s pre-research pin byte for byte, so no population, food,
+  trade, migration or other state moved. The research-driven arms make the founded and driven controls non-vacuous
+  again: under the curated content the order-less worlds write no research row, so a strip of them alone would prove
+  nothing.
+- **The pacing table** is re-measured as `docs/research-calibration-report.md` (provisional; ADR-030 §4).
+- **The re-pin is the Director's ruling** on the PR, as for ADR-029 and D-045 (gov-4 §5).
