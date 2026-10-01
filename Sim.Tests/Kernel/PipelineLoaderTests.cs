@@ -79,7 +79,7 @@ public class PipelineLoaderTests
         Assert.Equal("needsgrievance", pipeline[15].Name); // T2.6, spec §3 pipeline order
         Assert.Equal("pathbuild", pipeline[16].Name);
         // ADR-029 (D-044): research runs LAST. It reads only PREV (the population
-        // that generates CLP, the stocks and variables its Eurekas read) and writes
+        // that generates RP, the stocks and variables its Eurekas read) and writes
         // only its own tables, which no other system reads, so its slot changes no
         // other system's result. Last is legibility: "the turn's physics, then the
         // civilization's research", and the new tables sit at the end of the stream.

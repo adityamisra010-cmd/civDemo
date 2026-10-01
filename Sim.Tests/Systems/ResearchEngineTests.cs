@@ -9,8 +9,8 @@ namespace Sim.Tests.Systems;
 /// <summary>
 /// ADR-029 engine semantics, one D-044 ruling per test group, on the
 /// <see cref="ResearchRigs.Standard"/> graph. The world yields EXACTLY 1 000 RP per
-/// dt-10 turn: 10 000 people at the rig anchors (10 000 → 1 000; exponent 0.5). A full
-/// Eureka is 40 % of base cost (w's two strings share it: 500 each). Every cost is 2 500 unless
+/// turn at any dt: 10 000 people at the rig calibration (10 × P^0.5). A full Eureka is 40 %
+/// of base cost (w's two Eurekas take 0.20 each: 500 of 2 500). Every cost is 2 500 unless
 /// stated, so every expected progress value below is exact — there is no epsilon
 /// anywhere (CLAUDE.md: exact equality).
 /// Keys: a 1, b 2, c 3 (= a AND b; the stage), d 4 (= a OR b), e 5
@@ -22,42 +22,43 @@ public class ResearchEngineTests
     private static readonly ResearchContent Rig = Standard().Load();
     private static readonly PolityId P1 = new(Player);
 
-    // ------------------------------------------------------------------ research capacity (Director ruling 2026-10-01 §2)
+    // ------------------------------------------------------------------ Research Points (ADR-030; D-045 §2 anchors)
 
     private static readonly ResearchTuning Canonical = TestConfigs.Research().Tuning;
 
     [Fact]
-    public void Rp_TheDirectorAnchors_Population100Gives2_And1000Gives10()
+    public void ResearchPoints_TheAnchors_Population100Gives2_And1000Gives10_ToTolerance()
     {
-        Assert.Equal(2.0, ResearchQuery.ResearchCapacity(Canonical, 100));
-        // The second anchor goes through Pow(10, log10 5): 10 to within one rounding of the exponent.
-        Assert.Equal(10.0, ResearchQuery.ResearchCapacity(Canonical, 1_000), 12);
-        Assert.Equal(0.69897, Canonical.RpExponent, 5);  // the ruling's quoted exponent (log10 5)
-        Assert.Equal(0.0, ResearchQuery.ResearchCapacity(Canonical, 0));
+        // 0.08 × P^0.699 — the published calibration values reproduce the Director's anchors to 0.1 %
+        // (2.0003 and 10.002); the exponent is log10 5 rounded to three places.
+        Assert.InRange(ResearchQuery.ResearchPoints(Canonical, 100), 2.0 * (1 - 1e-3), 2.0 * (1 + 1e-3));
+        Assert.InRange(ResearchQuery.ResearchPoints(Canonical, 1_000), 10.0 * (1 - 1e-3), 10.0 * (1 + 1e-3));
+        Assert.Equal(0.0, ResearchQuery.ResearchPoints(Canonical, 0));
+        // The founded civilization of the cost unit's basis: 5,000 people ≈ 30.8 RP per turn.
+        Assert.InRange(ResearchQuery.ResearchPoints(Canonical, 5_000), 30.75, 30.85);
     }
 
     [Fact]
-    public void Rp_IsMonotone_AndSublinear_MoreResearchButLessPerPerson()
+    public void ResearchPoints_AreMonotone_AndSublinear_MoreResearchButLessPerPerson()
     {
         double previous = 0.0, previousPerPerson = double.MaxValue;
-        foreach (double p in new double[] { 10, 100, 1_000, 5_000, 10_000, 100_000, 1_000_000, 100_000_000 })
+        foreach (double p in new double[] { 10, 100, 1_000, 5_000, 10_000, 100_000, 1_000_000, 108_000_000 })
         {
-            double rp = ResearchQuery.ResearchCapacity(Canonical, p);
+            double rp = ResearchQuery.ResearchPoints(Canonical, p);
             Assert.True(rp > previous, $"RP must grow with population ({p})");
             Assert.True(rp / p < previousPerPerson, $"RP per person must fall ({p})");
-            // Doubling the population multiplies research by 2^e < 2 (sublinear), never by 2.
-            Assert.True(ResearchQuery.ResearchCapacity(Canonical, 2 * p) < 2 * rp);
+            Assert.True(ResearchQuery.ResearchPoints(Canonical, 10 * p) < 10 * rp, $"RP(10P) < 10·RP(P) at {p}");
             previous = rp;
             previousPerPerson = rp / p;
         }
     }
 
     [Fact]
-    public void Rp_IsTotalPopulationOfControlledSettlements_PerSimYear()
+    public void ResearchPointPool_IsTotalPopulationOfControlledSettlements_OnePoolPerPolity()
     {
         WorldState w = PlayerWorld();
         Assert.Equal(10_000, ResearchQuery.Population(w, P1));
-        Assert.Equal(100.0, ResearchQuery.ResearchPerYear(w, Rig, P1)); // 1 000 per 10-year reference turn
+        Assert.Equal(1000.0, ResearchQuery.ResearchPointPool(w, Rig, P1)); // 10 × 10 000^0.5
 
         // Two polities, three settlements: polity 1 controls 0 and 2, polity 2 controls 1. Children and
         // elders are population too: 7 000 of each added to settlement 0 count for polity 1 only.
@@ -72,23 +73,30 @@ public class ResearchEngineTests
         }
         Assert.Equal(19_000, ResearchQuery.Population(two, new PolityId(1)));
         Assert.Equal(2_500, ResearchQuery.Population(two, new PolityId(2)));
-        Assert.Equal(50.0, ResearchQuery.ResearchPerYear(two, Rig, new PolityId(2))); // 1000 x (2500/10000)^0.5 / 10
+        Assert.Equal(500.0, ResearchQuery.ResearchPointPool(two, Rig, new PolityId(2))); // 10 × 2500^0.5
 
         // A polity with no settlement generates nothing (and Pow(0, e) is never asked).
         WorldState empty = World([1, 3], [1], 10_000);
-        Assert.Equal(0.0, ResearchQuery.ResearchPerYear(empty, Rig, new PolityId(3)));
+        Assert.Equal(0.0, ResearchQuery.ResearchPointPool(empty, Rig, new PolityId(3)));
     }
 
     [Fact]
-    public void Clp_IsIntegratedOverDtYears_NotPerTurn()
+    public void ResearchPoints_ArePerTurn_IdenticalAcrossDifferentDtYears_TheAdr030Exception()
     {
-        // Law 3: the same world and target at dt 10 and dt 0.5 credit 1000 and 50 CLP.
+        // ADR-030 §5: research is the ONE per-turn quantity. The same world and target at dt 10,
+        // dt 5, dt 1 and dt 0.5 receive the same 1 000 RP — research alone is not dt-integrated.
         var orders = new OrderLog();
         orders.Append(Target(0, 1));
-        WorldState ten = Executor(Rig, orders, 10.0).Step(PlayerWorld());
-        WorldState half = Executor(Rig, orders, 0.5).Step(PlayerWorld());
-        Assert.Equal(1000.0, Progress(ten, 1));
-        Assert.Equal(50.0, Progress(half, 1));
+        foreach (double dt in new[] { 10.0, 5.0, 1.0, 0.5 })
+            Assert.Equal(1000.0, Progress(Executor(Rig, orders, dt).Step(PlayerWorld()), 1));
+    }
+
+    [Fact]
+    public void Founding_StartsWithZeroCompletedResearchNodes()
+    {
+        WorldState w = Sim.Core.Worldgen.WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), 42);
+        Assert.Equal(0, w.ResearchCompleted.Count);
+        Assert.Equal(0, w.ResearchCredits.Count);
     }
 
     // ------------------------------------------------------------------ active selection (turn-exact)
@@ -97,7 +105,7 @@ public class ResearchEngineTests
     public void Selection_AnOrderStampedT_RetargetsTheStepFromT_AndThatStepsClpGoesToIt()
     {
         // D-044 R9 + §3.9 delivery: stamped turn 0 -> world 1 already carries the target
-        // AND 1000 CLP on it. Stamped turn 1 -> world 1 has neither; world 2 does.
+        // AND 1000 RP on it. Stamped turn 1 -> world 1 has neither; world 2 does.
         var early = new OrderLog();
         early.Append(Target(0, 1));
         WorldState e1 = Executor(Rig, early).Step(PlayerWorld());
@@ -163,7 +171,7 @@ public class ResearchEngineTests
     [Fact]
     public void Roster_ADuplicatedPolityRow_CountsOnce()
     {
-        // ADR-029 §5: a doubled roster row is one Empire — one turn of CLP, one Eureka credit.
+        // ADR-029 §5: a doubled roster row is one Empire — one turn of RP, one Eureka credit.
         WorldState w = PlayerWorld();
         w.Polities.Add(new PolityRow(P1, CommandSource.Player));
         var orders = new OrderLog();
@@ -184,7 +192,7 @@ public class ResearchEngineTests
     [Fact]
     public void NoTarget_ClpReachesNoNode_AndNothingIsBanked()
     {
-        // D-044 R20-D: three idle turns, then a target. The target receives ONE turn of CLP,
+        // D-044 R20-D: three idle turns, then a target. The target receives ONE turn of RP,
         // not four — nothing accumulated while idle.
         var orders = new OrderLog();
         orders.Append(Target(3, 1));
@@ -238,7 +246,7 @@ public class ResearchEngineTests
     [Fact]
     public void Completion_ReachingTheCost_SetsProgressToExactlyTheCost_NeverOneUlpShort()
     {
-        // ADR-029 §5 step 4. cost - have is exactly 1000.0, so this turn's 1 000 CLP covers the
+        // ADR-029 §5 step 4. cost - have is exactly 1000.0, so this turn's 1 000 RP covers the
         // remaining cost — but have + 1000 rounds to 1017.6696619502791, one ulp BELOW the cost.
         // Without the snap the node would stay one ulp short and completion would slip a turn.
         Spec spec = Standard();
@@ -278,7 +286,7 @@ public class ResearchEngineTests
         w.Controls.Clear();
         w = Run(Executor(Rig), w, 2);
         Assert.True(Done(w, 1) && Done(w, 2));
-        Assert.Equal(0.0, ResearchQuery.ResearchPerYear(w, Rig, P1));
+        Assert.Equal(0.0, ResearchQuery.ResearchPointPool(w, Rig, P1));
     }
 
     // ------------------------------------------------------------------ prerequisites: AND / OR / nested
@@ -457,7 +465,7 @@ public class ResearchEngineTests
         WorldState s1 = Executor(Rig).Step(second);
         Assert.Equal(500.0, Progress(s1, 11));
         Assert.True(ResearchQuery.EurekaFired(s1, P1, Key(11), 0));
-        Assert.True(ResearchQuery.EurekaHolds(s1, Rig, P1, Rig.Nodes[Rig.IndexOfId("w")].Eurekas[0].Conditions[0],
+        Assert.True(ResearchQuery.EurekaHolds(s1, Rig, P1, Rig.Nodes[Rig.IndexOfId("w")].Eurekas[0].Condition!,
             ResearchQuery.CompletedMask(s1, Rig, P1)));
     }
 
@@ -540,7 +548,7 @@ public class ResearchEngineTests
     public void SharedPool_OneTargetAcrossBothTrees_TotalInvestedEqualsTotalClp()
     {
         // Alternating Technology and Civics targets draw on ONE pool: after four turns
-        // exactly 4000 CLP is invested in total, never 4000 per tree.
+        // exactly 4000 RP is invested in total, never 4000 per tree.
         WorldState w = WithCompleted(PlayerWorld(), 1);
         var orders = new OrderLog();
         orders.Append(Target(0, 2));    // tech b
@@ -640,7 +648,8 @@ public class ResearchEngineTests
         _ = ResearchQuery.CostModifiers(w, Rig, P1);
         _ = ResearchQuery.Prerequisites(w, Rig, P1, Key(5));
         _ = ResearchQuery.Eurekas(w, Rig, P1, Key(11));
-        _ = ResearchQuery.ResearchPerYear(w, Rig, P1);
+        _ = ResearchQuery.ResearchPointPool(w, Rig, P1);
+        _ = ResearchQuery.AccelerationPoolOf(w, Rig, P1, Key(11));
         _ = ResearchQuery.EurekaProgressOf(w, Rig, P1, Key(11));
         _ = ResearchQuery.KnowledgeEligibleEntities(w, Rig, P1);
         _ = ResearchQuery.UnlockedCapabilities(w, Rig, P1);

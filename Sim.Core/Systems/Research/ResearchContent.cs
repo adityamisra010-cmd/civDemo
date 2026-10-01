@@ -17,76 +17,39 @@ public enum ResearchTree { Technology = 1, Civics = 2 }
 /// <summary>Registry entity kinds whose knowledge requirement research.json carries (ADR-029 §10).</summary>
 public enum ResearchEntityKind { Building = 1, Infrastructure = 2, Institution = 3, Unit = 4, Activity = 5, Project = 6 }
 
-/// <summary>Why a Eureka is, or is not, machine-evaluable (ADR-029 §7).</summary>
-public enum EurekaStatus
-{
-    /// <summary>Carries a D-020 research-dialect condition the engine evaluates.</summary>
-    Evaluable = 1,
-    /// <summary>The circumstance names something simulation state does not carry.</summary>
-    NoStateCarrier = 2,
-    /// <summary>"institution present: …" — no institutions system exists.</summary>
-    InstitutionStateAbsent = 3,
-    /// <summary>"contact with a civilization holding this" — no contact state exists (D-035-C carrier test).</summary>
-    ContactStateAbsent = 4,
-    /// <summary>The circumstance names knowledge the node's own prerequisites already guarantee
-    /// (e.g. "circumstance: fire" on a node that requires fire_making). As a condition it would
-    /// hold whenever the node is available, so it would be a flat cost cut, not a circumstance.
-    /// It is declared instead of evaluated (ADR-029 §7).</summary>
-    ImpliedByPrerequisites = 5,
-    /// <summary>A faithful reading of the circumstance names knowledge that can only be
-    /// completed after the node itself: it could never hold while the node is researchable.</summary>
-    Dead = 6,
-    /// <summary>Ambiguous prose that cannot be decomposed into a condition without
-    /// fabricating one; it waits for authoring. The text is preserved.</summary>
-    RequiresAuthoring = 7,
-}
-
 /// <summary>
-/// The Eureka-audit category of one corpus Eureka string (Director ruling 2026-10-01 §7;
-/// ADR-029 §7). Derived from <see cref="EurekaStatus"/> and the condition count, and
-/// stored in data so the audit is readable without the engine.
+/// The sources that draw on a node's ONE shared acceleration-credit pool (ADR-029
+/// addendum A; finalization ruling 4). The pool's ceiling is
+/// accelerationCreditCeilingFraction × BaseCost across all sources together.
+/// <see cref="ForeignExposure"/> is a passive seam: nothing writes it yet.
 /// </summary>
-public enum EurekaCategory
-{
-    /// <summary>A — machine-evaluable, one condition.</summary>
-    SingleCondition = 1,
-    /// <summary>B — machine-evaluable, two or more independently satisfiable conditions.</summary>
-    MultiCondition = 2,
-    /// <summary>C — well defined, but the state it reads belongs to a future system.</summary>
-    FutureSystem = 3,
-    /// <summary>D — implied by the node's own prerequisites (declared, never evaluated).</summary>
-    ImpliedByPrerequisites = 4,
-    /// <summary>E — dead / impossible while the node is researchable.</summary>
-    Dead = 5,
-    /// <summary>F — ambiguous; requires authoring.</summary>
-    RequiresAuthoring = 6,
-}
+public enum AccelerationSource { Eureka = 1, ForeignExposure = 2 }
+
+/// <summary>The content-derived cost model (finalization ruling 1; ADR-029 addendum A):
+/// BaseCost = U × K^magnitude. U and K are calibration values; no per-node adjustment exists.</summary>
+public sealed record ResearchCostModel(double U, double K);
 
 /// <summary>
-/// Research tuning (ADR-029 §6–§7).
-/// <para><b>Research capacity — PROVISIONAL CALIBRATION</b> (Director ruling 2026-10-01 §2):
-/// RP(P) = RP₁ · (P / P₁)^e, the power law through two anchors (P₁, RP₁) and (P₂, RP₂);
-/// e = ln(RP₂/RP₁) / ln(P₂/P₁). The anchors (100 → 2, 1000 → 10) are the Director's; the
-/// curve is calibration, not ratified architecture. The anchors are "RP per turn"; law 3
-/// (dt-correctness) makes the simulated rate per sim-year, so RP(P) is the yield of one
-/// turn of <see cref="RpReferenceTurnYears"/> sim-years and a step credits
-/// RP(P) × dtYears / RpReferenceTurnYears (the per-turn vs per-year reading is OPEN:
-/// docs/adr/cr-018-research-rate-per-turn.md).</para>
-/// <para><b>Eureka</b> (Director ruling 2026-10-01 §5): a fully satisfied Eureka credits
-/// <see cref="EurekaFullCreditFraction"/> (0.40) of the node's BASE cost.</para>
+/// Research tuning (ADR-029 addendum A, ADR-030).
+/// <para><b>Research Points</b> — RP per strategic turn = <see cref="RpCoefficient"/> ×
+/// population^<see cref="RpExponent"/>, NOT multiplied by dtYears (ADR-030: a scoped exception
+/// to law 3). The coefficient and exponent are calibration values (anchors 100 → 2, 1000 → 10);
+/// the per-turn reading is the ruling.</para>
+/// <para><b>EffectiveCost</b> = max(<see cref="EffectiveCostFloorFraction"/> × BaseCost,
+/// BaseCost × Π modifiers).</para>
+/// <para><b>Acceleration credit</b> — Eureka and foreign exposure share one pool per node, at most
+/// <see cref="AccelerationCreditCeilingFraction"/> × BaseCost, and at most the remaining
+/// EffectiveCost; nothing overflows.</para>
 /// </summary>
 public sealed record ResearchTuning(
-    double RpAnchorPopulation, double RpAnchorPerTurn, double RpSecondPopulation, double RpSecondPerTurn,
-    double RpReferenceTurnYears, double EurekaFullCreditFraction)
-{
-    /// <summary>The exponent the two anchors imply: log10(5) = 0.69897… for 100 → 2, 1000 → 10.</summary>
-    public double RpExponent => Math.Log(RpSecondPerTurn / RpAnchorPerTurn) / Math.Log(RpSecondPopulation / RpAnchorPopulation);
-}
+    double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
+    double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel);
 
-/// <summary>A baseline capability (Director ruling 2026-10-01 §1): something a newly founded
-/// civilization can do with ZERO completed research nodes. It lives OUTSIDE the research
-/// graph — no node, no completed row stands for it. <see cref="ProvidedBy"/> names the system
-/// that realizes it, or says that no system simulates it yet.</summary>
+/// <summary>A baseline capability (D-045 §1): something a newly founded civilization can do with
+/// ZERO completed research nodes. It lives OUTSIDE the research graph — no node, no completed row
+/// stands for it. <see cref="ProvidedBy"/> names the system that realizes it, or says that no system
+/// simulates it yet. The ownership of every capability is the contract in
+/// docs/design/research-capability-ownership.md.</summary>
 public sealed record ResearchBaselineCapability(string Id, string Name, string ProvidedBy, bool Simulated);
 
 /// <summary>One of the five Tree-1 subtrees (D-044 R3). <see cref="Index"/> is its
@@ -98,25 +61,31 @@ public sealed record ResearchBranch(int Index, int Key, string Id, string Number
 public sealed record UniversityType(int Key, string Id, string Name, int Branch);
 
 /// <summary>
-/// One corpus Eureka string of a node (ADR-029 §7). A node has ONE Eureka; its strings are
-/// that Eureka's conditions, weighted. <see cref="Share"/> is this string's normalized share
-/// of the node's Eureka (the shares of the counted strings — categories A, B, C, F — sum to
-/// 1; D and E strings have share 0). An evaluable string carries one condition (A) or
-/// several independently satisfiable ones (B) that split its share equally. Each condition
-/// credits EurekaFullCreditFraction × BaseCost × <see cref="ConditionShare"/>, once.
-/// <see cref="Index"/> is the position in the node's list (ResearchEurekaRow.Eureka); a
-/// condition's position in <see cref="Conditions"/> is ResearchEurekaRow.Condition.
+/// One Eureka of a node (ADR-029 §7 and addendum A): a circumstance that, when it first holds
+/// while the node is AVAILABLE, credits <see cref="Weight"/> × BaseCost to the node — once, from
+/// the shared acceleration pool. A node's Eureka weights sum to at most the pool ceiling (0.40).
+/// <see cref="Condition"/> is the machine-evaluable D-020 condition, or null when the state it
+/// reads belongs to a future system (<see cref="System"/>, <see cref="Class"/>). <see cref="Index"/>
+/// is the position in the node's list, which is what ResearchEurekaRow.Eureka carries.
 /// </summary>
 public sealed record ResearchEureka(
-    int Index, string Text, EurekaStatus Status, EurekaCategory Category, double Weight, double Share,
-    IReadOnlyList<Predicate> Conditions, string? Reason, string? FutureSystem)
+    int Index, string Text, Predicate? Condition, string Kind, string Justification, string System,
+    string Class, string Source, double Weight)
 {
-    /// <summary>The one condition of a single-condition (A) string; null otherwise.</summary>
-    public Predicate? Condition => Conditions.Count == 1 ? Conditions[0] : null;
-
-    /// <summary>The share of the node's Eureka each condition of this string carries.</summary>
-    public double ConditionShare => Conditions.Count == 0 ? 0.0 : Share / Conditions.Count;
+    /// <summary>Whether the engine can evaluate the condition today.</summary>
+    public bool EvaluableNow => Condition is not null;
 }
+
+/// <summary>The per-node cost rationale (finalization ruling 1): BaseCost = U × K^magnitude,
+/// magnitude = the sum of the six content factors. CalibrationAdjustment is always 0.</summary>
+public sealed record ResearchCostRationale(
+    string Tier, double Novelty, double Difficulty, double Material, double Institutional, double Breadth,
+    double PrerequisiteComplexity, double Magnitude, double ContentCost, double CalibrationAdjustment, string? Note);
+
+/// <summary>A node's relevance to one specialized-university type — a DOMAIN CLASSIFICATION
+/// only, with no number attached (finalization; D-045 §8). <see cref="Role"/> is
+/// "primary" or "secondary".</summary>
+public sealed record ResearchUniversityRelevance(int UniversityTypeKey, string Role);
 
 /// <summary>
 /// One Technology or Civics node (D-044 R6, R12). Immutable. <see cref="Index"/> is
@@ -142,11 +111,20 @@ public sealed class ResearchNode
     public required IReadOnlyList<string> SecondaryDomains { get; init; }
     public required int Depth { get; init; }
     public required double BaseCost { get; init; }
+    /// <summary>Why the node costs what it does (factor breakdown; never depth).</summary>
+    public required ResearchCostRationale CostRationale { get; init; }
+    /// <summary>University domain classification (no numbers).</summary>
+    public required IReadOnlyList<ResearchUniversityRelevance> UniversityRelevance { get; init; }
     /// <summary>Null for a root node (no prerequisite).</summary>
     public required Predicate? Prerequisite { get; init; }
     /// <summary>Distinct prerequisite node indices, in source order (union over OR).</summary>
     public required IReadOnlyList<int> PrerequisiteNodes { get; init; }
     public required IReadOnlyList<ResearchEureka> Eurekas { get; init; }
+    /// <summary>The node's full Eureka entitlement as a fraction of BaseCost: the ceiling itself
+    /// when the weights are the equal default, else the sum of the explicit weights (≤ ceiling).
+    /// The last Eureka to fire is reconciled against it, so a fully satisfied Eureka lands on
+    /// EXACTLY this × BaseCost.</summary>
+    public required double EurekaTotalWeight { get; init; }
     public required IReadOnlyList<string> Capabilities { get; init; }
     public required IReadOnlyList<string> Techniques { get; init; }
     public required IReadOnlyList<string> Applications { get; init; }
@@ -157,8 +135,13 @@ public sealed class ResearchNode
     public required string? Family { get; init; }
     public required int? Generation { get; init; }
     /// <summary>The corpus's repeatable-frontier descriptor is kept as data; levels
-    /// are NOT implemented — the node completes once (D-044 Part D T6).</summary>
+    /// are NOT implemented — the node completes once (D-044 Part D T6; recursive mechanics deferred).</summary>
     public required bool HasRepeatableDescriptor { get; init; }
+    /// <summary>In researchSets.recursive: available only once every FINITE node of its own
+    /// subtree is complete; excluded from finite exhaustion and pacing.</summary>
+    public required bool IsRecursive { get; init; }
+    /// <summary>In researchSets.speculative_finite: finite, but speculative content.</summary>
+    public required bool IsSpeculative { get; init; }
     public bool IsTrunk => Tree == ResearchTree.Technology && Branch < 0;
 }
 
@@ -201,6 +184,9 @@ public sealed class ResearchContent
     /// <summary>Quantity id → good (roster order). Eureka conditions name them stock_&lt;good&gt;.</summary>
     public required IReadOnlyList<GoodId> QuantityGoods { get; init; }
     public required string CorpusSha256 { get; init; }
+    /// <summary>Per subtree (0..4), the dense indices of its FINITE (non-recursive) technologies —
+    /// what a recursive node of that subtree waits on.</summary>
+    public required IReadOnlyList<IReadOnlyList<int>> FiniteNodesBySubtree { get; init; }
 
     // Lookup arrays, set by the loader: keys ascending (node order), and ids sorted
     // ordinally with the node index each maps to — binary search, never a dictionary.
@@ -256,15 +242,16 @@ public sealed class ResearchContent
 /// </summary>
 public static class ResearchContentLoader
 {
-    public const string Schema = "civ-sim/research@1";
+    public const string Schema = "civ-sim/research@2";
 
     /// <summary>The five subtree ids D-044 R3 rules, in number order 1.1–1.5.</summary>
     public static readonly string[] RuledBranchIds = ["military", "medicine", "engineering", "natural_science", "agriculture"];
 
     private static readonly string[] Ages = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"];
-    private static readonly string[] EurekaStatusNames =
-        ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent", "implied-by-prerequisites", "dead", "requires-authoring"];
-    private static readonly string[] EurekaCategoryLetters = ["A", "B", "C", "D", "E", "F"];
+    private static readonly string[] EurekaSources = ["authored", "inherited"];
+    private static readonly string[] CostTiers = ["T1", "T2", "T3", "T4", "TR", "TS"];
+    /// <summary>The acceleration sources the engine knows, in <see cref="AccelerationSource"/> order.</summary>
+    public static readonly string[] AccelerationSourceIds = ["eureka", "foreign_exposure"];
     private static readonly string[] EntityKindNames = ["building", "infrastructure", "institution", "unit", "activity", "project"];
     private static readonly string[] EntityPrefixes = ["building.", "infra.", "inst.", "unit.", "activity.", "project."];
     private static readonly string[] UnlockListNames = ["buildings", "infrastructure", "institutions", "units", "activities", "projects"];
@@ -334,7 +321,7 @@ public static class ResearchContentLoader
                 throw Fail($"{path} ({j.Id}): age '{j.Age}' is not one of the nine Ages A1..A9 " +
                            "(age F is normalized to A9 with frontier = true; architecture §17.5).");
             if (!(double.IsFinite(j.Cost) && j.Cost > 0.0))
-                throw Fail($"{path} ({j.Id}): cost {Inv(j.Cost)} is invalid — a research cost must be finite and > 0 CLP.");
+                throw Fail($"{path} ({j.Id}): cost {Inv(j.Cost)} is invalid — a research cost must be finite and > 0 RP.");
             if (j.Effects.Immediate.Length != 0)
                 throw Fail($"{path} ({j.Id}): effects.immediate is not empty. No immediate-effect kind is ratified, and a " +
                            "free-floating effect would be a permanent modifier (law 2); completion grants eligibility only.");
@@ -417,7 +404,7 @@ public static class ResearchContentLoader
             depth[i] = d;
             if (raw[i].Json.Depth != d)
                 throw Fail($"{raw[i].Path} ({ids[i]}): depth {raw[i].Json.Depth} does not match the longest prerequisite " +
-                           $"path {d} — regenerate with scripts/migrate-research-corpus.py.");
+                           $"path {d} — the depth field is derived data and must agree with the prerequisites.");
         }
 
         // ---- dependents (derived reverse index, index order) ----
@@ -471,68 +458,58 @@ public static class ResearchContentLoader
             goods is null
                 ? "a node id (no goods registry is attached, so stock_<good> quantities are unavailable)"
                 : $"a node id, or a quantity ({string.Join(", ", quantityNames)})");
+        double ceiling = tuning.AccelerationCreditCeilingFraction;
         var eurekas = new ResearchEureka[n][];
+        var eurekaTotal = new double[n];
         for (int i = 0; i < n; i++)
         {
             (NodeJson j, _, string path) = raw[i];
             var list = new ResearchEureka[j.Eurekas.Length];
-            double totalWeight = 0.0;
-            var weights = new double[j.Eurekas.Length];
+            double total = 0.0;
+            // Weights: explicit on every Eureka of the node, or null on every one — then each is
+            // the equal share ceiling ÷ N (finalization: "the default weight is 0.40 ÷ N").
+            int explicitWeights = 0;
+            foreach (EurekaJson x in j.Eurekas) if (x.Weight is not null) explicitWeights++;
+            if (explicitWeights != 0 && explicitWeights != j.Eurekas.Length)
+                throw Fail($"{path} ({j.Id}).eurekas: weights are explicit on every Eureka of a node or on none (equal shares).");
             for (int e = 0; e < j.Eurekas.Length; e++)
             {
                 EurekaJson ej = j.Eurekas[e];
                 string ep = $"{path} ({j.Id}).eurekas[{e}]";
-                int statusIdx = Array.IndexOf(EurekaStatusNames, ej.Status);
-                if (statusIdx < 0)
-                    throw Fail($"{ep}: status '{ej.Status}' is not one of {string.Join(", ", EurekaStatusNames)}.");
-                var status = (EurekaStatus)(statusIdx + 1);
                 if (string.IsNullOrWhiteSpace(ej.Text)) throw Fail($"{ep}: text is empty.");
-                bool evaluable = status == EurekaStatus.Evaluable;
-                if (evaluable && (ej.When is null) == (ej.Parts is null))
-                    throw Fail($"{ep}: an evaluable string carries exactly one of 'when' (one condition) or 'parts' (several).");
-                if (!evaluable && (ej.When is not null || ej.Parts is not null))
-                    throw Fail($"{ep}: 'when' and 'parts' must be present exactly when status is 'evaluable' (got status '{ej.Status}').");
-                if (ej.Parts is { Length: < 2 })
-                    throw Fail($"{ep}: 'parts' needs two or more conditions; a single condition is 'when'.");
-                if (!evaluable && string.IsNullOrWhiteSpace(ej.Reason))
-                    throw Fail($"{ep}: a non-evaluable Eureka string must keep its reason (status '{ej.Status}').");
-                bool futureSystem = status is EurekaStatus.NoStateCarrier or EurekaStatus.InstitutionStateAbsent or EurekaStatus.ContactStateAbsent;
-                if (futureSystem != (ej.FutureSystem is not null) || (ej.FutureSystem is not null && string.IsNullOrWhiteSpace(ej.FutureSystem)))
-                    throw Fail($"{ep}: 'futureSystem' names the missing system exactly when the status is a future-system one (got status '{ej.Status}').");
-                EurekaCategory category = status switch
+                if (string.IsNullOrWhiteSpace(ej.Kind)) throw Fail($"{ep}: kind is empty.");
+                if (string.IsNullOrWhiteSpace(ej.Justification))
+                    throw Fail($"{ep}: justification is empty — every Eureka keeps the reason it is a circumstance.");
+                if (string.IsNullOrWhiteSpace(ej.System)) throw Fail($"{ep}: system is empty — name the state the condition reads.");
+                if (Array.IndexOf(EurekaSources, ej.Source) < 0)
+                    throw Fail($"{ep}: source '{ej.Source}' is not one of {string.Join(", ", EurekaSources)}.");
+                double weight = ej.Weight ?? ceiling / j.Eurekas.Length;
+                if (!(double.IsFinite(weight) && weight > 0.0 && weight <= ceiling))
+                    throw Fail($"{ep}: weight {Inv(weight)} must be in (0, {Inv(ceiling)}] — a weight is the fraction of " +
+                               "BaseCost the condition credits.");
+                if (ej.EvaluableNow != (ej.When is not null))
+                    throw Fail($"{ep}: evaluable_now must be true exactly when 'when' carries a condition.");
+                string expectedClass = ej.When is not null ? "machine-evaluable" : "future-system:" + ej.System;
+                if (!string.Equals(ej.Class, expectedClass, StringComparison.Ordinal))
+                    throw Fail($"{ep}: class '{ej.Class}' must be '{expectedClass}' (machine-evaluable when a condition is " +
+                               "present; otherwise future-system:<system>).");
+                Predicate? cond = null;
+                if (ej.When is not null)
                 {
-                    EurekaStatus.Evaluable => ej.Parts is null ? EurekaCategory.SingleCondition : EurekaCategory.MultiCondition,
-                    EurekaStatus.ImpliedByPrerequisites => EurekaCategory.ImpliedByPrerequisites,
-                    EurekaStatus.Dead => EurekaCategory.Dead,
-                    EurekaStatus.RequiresAuthoring => EurekaCategory.RequiresAuthoring,
-                    _ => EurekaCategory.FutureSystem,
-                };
-                string letter = EurekaCategoryLetters[(int)category - 1];
-                if (!string.Equals(ej.Category, letter, StringComparison.Ordinal))
-                    throw Fail($"{ep}: category '{ej.Category}' disagrees with its status and conditions, which make it '{letter}'.");
-                bool counted = category is not (EurekaCategory.ImpliedByPrerequisites or EurekaCategory.Dead);
-                if (ej.Weight is { } w)
-                {
-                    if (!counted) throw Fail($"{ep}: a category {letter} string carries no weight — it is not a circumstance.");
-                    if (!(double.IsFinite(w) && w > 0.0)) throw Fail($"{ep}: weight {Inv(w)} must be finite and > 0.");
-                }
-                weights[e] = counted ? ej.Weight ?? 1.0 : 0.0;
-                totalWeight += weights[e];
-                var conditions = new List<Predicate>();
-                foreach (string src in ej.Parts ?? (ej.When is null ? [] : [ej.When]))
-                {
-                    try { conditions.Add(Predicate.Parse(src, eurekaSymbols)); }
+                    try { cond = Predicate.Parse(ej.When, eurekaSymbols); }
                     catch (PredicateFormatException ex)
                     {
                         throw Fail($"{ep}: invalid Eureka reference — {ex.Message}", ex);
                     }
                 }
-                list[e] = new ResearchEureka(e, ej.Text, status, category, weights[e], 0.0, conditions, ej.Reason, ej.FutureSystem);
+                total += weight;
+                list[e] = new ResearchEureka(e, ej.Text, cond, ej.Kind, ej.Justification, ej.System, ej.Class, ej.Source, weight);
             }
-            // Normalize deterministically, in list order: shares of the counted strings sum to 1.
-            for (int e = 0; e < list.Length; e++)
-                list[e] = list[e] with { Share = totalWeight > 0.0 ? weights[e] / totalWeight : 0.0 };
+            if (total > ceiling + 1e-12)
+                throw Fail($"{path} ({j.Id}).eurekas: the weights sum to {Inv(total)}, above the {Inv(ceiling)} acceleration ceiling " +
+                           "— a fully satisfied Eureka can never exceed 40 % of BaseCost.");
             eurekas[i] = list;
+            eurekaTotal[i] = j.Eurekas.Length == 0 ? 0.0 : explicitWeights == 0 ? ceiling : Math.Min(total, ceiling);
         }
 
         // ---- orphans: a node whose completion would change nothing ----
@@ -576,9 +553,8 @@ public static class ResearchContentLoader
         {
             bool[]? without = null;
             foreach (ResearchEureka eu in eurekas[i])
-            foreach (Predicate cond in eu.Conditions)
             {
-                if (cond.AtomIds.Count == 0) continue;
+                if (eu.Condition is not { } cond || cond.AtomIds.Count == 0) continue;
                 if (without is null)
                 {
                     without = new bool[n];
@@ -593,6 +569,55 @@ public static class ResearchContentLoader
                                $"only be completed after '{ids[i]}' itself (a dead Eureka).");
             }
         }
+
+        // ---- implied Eurekas: a knowledge condition every path to the node already satisfies ----
+        // must[i] = the knowledge complete WHENEVER i's prerequisites hold (an atom brings itself
+        // and its own must-set; AND = union, OR = intersection: Predicate.MustHoldAtoms). A subtree
+        // technology also has whatever the research stage guarantees. A knowledge-only condition
+        // that holds on that set would fire the moment the node became available — a flat cost
+        // cut, not a circumstance (D-045 §7; finalization ruling 13).
+        var must = new bool[n][];
+        foreach (int i in topo)
+        {
+            must[i] = new bool[n];
+            if (prereq[i] is null) continue;
+            foreach (int a in prereq[i]!.MustHoldAtoms())
+            {
+                must[i][a] = true;
+                for (int x = 0; x < n; x++) if (must[a][x]) must[i][x] = true;
+            }
+        }
+        var mustStage = new bool[n];
+        foreach (int a in stage.MustHoldAtoms())
+        {
+            mustStage[a] = true;
+            for (int x = 0; x < n; x++) if (must[a][x]) mustStage[x] = true;
+        }
+        for (int i = 0; i < n; i++)
+            foreach (ResearchEureka eu in eurekas[i])
+            {
+                if (eu.Condition is not { } cond || cond.QuantityIds.Count != 0 || cond.ReadsVariables) continue;
+                bool subtree = i < techCount && branchOf[i] >= 0;
+                bool[] guaranteed = must[i];
+                if (cond.Evaluate(null, a => guaranteed[a] || (subtree && mustStage[a]), null))
+                    throw Fail($"{raw[i].Path} ({ids[i]}).eurekas[{eu.Index}]: implied Eureka — the condition '{cond.Source}' " +
+                               $"is satisfied on every path to '{ids[i]}' (its own prerequisites guarantee it), so it would " +
+                               "fire the moment the node became available: a flat cost cut, not a circumstance.");
+            }
+
+        // ---- cost rationale: BaseCost = U × K^magnitude, content-derived, no adjustment ----
+        var rationales = new ResearchCostRationale[n];
+        for (int i = 0; i < n; i++)
+            rationales[i] = ValidateCostRationale(raw[i].Json, raw[i].Path, tuning.CostModel);
+
+        // ---- university relevance: domain classification only, no numbers ----
+        var relevance = new ResearchUniversityRelevance[n][];
+        for (int i = 0; i < n; i++)
+            relevance[i] = ValidateUniversityRelevance(raw[i].Json, raw[i].Tree, raw[i].Path, branchOf[i], universities);
+
+        // ---- research sets: finite, recursive (repeatables), speculative_finite ----
+        (bool[] recursive, bool[] speculative, int[][] finiteBySubtree) =
+            ValidateResearchSets(f.ResearchSets, raw, n, techCount, branchOf, branches, IdLookup, prereqNodes, rationales);
 
         // ---- assemble ----
         var nodes = new ResearchNode[n];
@@ -615,9 +640,12 @@ public static class ResearchContentLoader
                 SecondaryDomains = j.SecondaryDomains,
                 Depth = depth[i],
                 BaseCost = j.Cost,
+                CostRationale = rationales[i],
+                UniversityRelevance = relevance[i],
                 Prerequisite = prereq[i],
                 PrerequisiteNodes = prereqNodes[i],
                 Eurekas = eurekas[i],
+                EurekaTotalWeight = eurekaTotal[i],
                 Capabilities = j.Unlocks.Capabilities,
                 Techniques = j.Unlocks.Techniques,
                 Applications = j.Unlocks.Applications,
@@ -626,6 +654,8 @@ public static class ResearchContentLoader
                 Family = j.Family,
                 Generation = j.Generation,
                 HasRepeatableDescriptor = j.Repeatable.ValueKind == JsonValueKind.Object,
+                IsRecursive = recursive[i],
+                IsSpeculative = speculative[i],
             };
         }
         return new ResearchContent
@@ -640,6 +670,7 @@ public static class ResearchContentLoader
             TechnologyCount = techCount,
             QuantityGoods = quantityGoods,
             CorpusSha256 = f.Source.CorpusSha256,
+            FiniteNodesBySubtree = finiteBySubtree,
             SortedKeys = keys,
             SortedIds = sortedIds,
             SortedIdIndex = idOrder,
@@ -650,23 +681,186 @@ public static class ResearchContentLoader
 
     private static ResearchTuning ValidateTuning(TuningJson t)
     {
-        if (t.RpAnchors.Length != 2)
-            throw Fail($"tuning.rpAnchors must hold exactly two (population, rpPerTurn) anchors; got {t.RpAnchors.Length}.");
-        RpAnchorJson a = t.RpAnchors[0], b = t.RpAnchors[1];
-        foreach (RpAnchorJson x in t.RpAnchors)
-            if (!(double.IsFinite(x.Population) && x.Population > 0.0 && double.IsFinite(x.RpPerTurn) && x.RpPerTurn > 0.0))
-                throw Fail($"tuning.rpAnchors: population {Inv(x.Population)} and rpPerTurn {Inv(x.RpPerTurn)} must be finite and > 0.");
-        if (!(b.Population > a.Population && b.RpPerTurn > a.RpPerTurn))
-            throw Fail("tuning.rpAnchors must ascend in both population and rpPerTurn: research capacity grows with population.");
-        var tuning = new ResearchTuning(a.Population, a.RpPerTurn, b.Population, b.RpPerTurn, t.RpReferenceTurnYears, t.EurekaFullCreditFraction);
-        if (!(tuning.RpExponent < 1.0))
-            throw Fail($"tuning.rpAnchors imply exponent {Inv(tuning.RpExponent)}; it must be < 1: research capacity is sublinear in " +
+        RpPerTurnJson rp = t.RpPerTurn;
+        if (!(double.IsFinite(rp.Coefficient) && rp.Coefficient > 0.0))
+            throw Fail($"tuning.rpPerTurn.coefficient {Inv(rp.Coefficient)} must be finite and > 0.");
+        if (!(double.IsFinite(rp.Exponent) && rp.Exponent > 0.0 && rp.Exponent < 1.0))
+            throw Fail($"tuning.rpPerTurn.exponent {Inv(rp.Exponent)} must be in (0, 1): Research Points are sublinear in " +
                        "population, and 'research = population × constant' is forbidden (architecture §8.1.2).");
-        if (!(double.IsFinite(t.RpReferenceTurnYears) && t.RpReferenceTurnYears > 0.0))
-            throw Fail($"tuning.rpReferenceTurnYears {Inv(t.RpReferenceTurnYears)} must be finite and > 0.");
-        if (!(double.IsFinite(t.EurekaFullCreditFraction) && t.EurekaFullCreditFraction > 0.0 && t.EurekaFullCreditFraction <= 1.0))
-            throw Fail($"tuning.eurekaFullCreditFraction {Inv(t.EurekaFullCreditFraction)} must be in (0, 1].");
-        return tuning;
+        if (rp.Anchors.ValueKind != JsonValueKind.Object)
+            throw Fail("tuning.rpPerTurn.anchors must be an object of population → RP per turn.");
+        var anchors = new List<(double, double)>();
+        foreach (JsonProperty kv in rp.Anchors.EnumerateObject())   // document order
+        {
+            if (!double.TryParse(kv.Name, NumberStyles.Float, CultureInfo.InvariantCulture, out double pop) || !(pop > 0.0))
+                throw Fail($"tuning.rpPerTurn.anchors: key '{kv.Name}' is not a positive population.");
+            if (kv.Value.ValueKind != JsonValueKind.Number) throw Fail($"tuning.rpPerTurn.anchors.{kv.Name} must be a number.");
+            double stated = kv.Value.GetDouble();
+            double model = rp.Coefficient * Math.Pow(pop, rp.Exponent);
+            // The coefficient and exponent are the calibration; the anchors must agree with them
+            // to within 0.1 % (0.08 × 100^0.699 = 2.0003), or the stated anchors are stale.
+            if (!(Math.Abs(model - stated) <= 1e-3 * stated))
+                throw Fail($"tuning.rpPerTurn.anchors: population {kv.Name} gives {Inv(model)} RP/turn under the coefficient " +
+                           $"and exponent, not the stated anchor {Inv(stated)}.");
+            anchors.Add((pop, stated));
+        }
+        if (anchors.Count == 0) throw Fail("tuning.rpPerTurn.anchors is empty: the calibration anchors must be stated.");
+        anchors.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+        if (!(double.IsFinite(t.EffectiveCostFloorFraction) && t.EffectiveCostFloorFraction > 0.0 && t.EffectiveCostFloorFraction <= 1.0))
+            throw Fail($"tuning.effectiveCostFloorFraction {Inv(t.EffectiveCostFloorFraction)} must be in (0, 1].");
+        if (!(double.IsFinite(t.AccelerationCreditCeilingFraction) && t.AccelerationCreditCeilingFraction > 0.0
+              && t.AccelerationCreditCeilingFraction <= 1.0))
+            throw Fail($"tuning.accelerationCreditCeilingFraction {Inv(t.AccelerationCreditCeilingFraction)} must be in (0, 1].");
+        if (t.AccelerationCreditSources.Length != AccelerationSourceIds.Length)
+            throw Fail($"tuning.accelerationCreditSources must be exactly [{string.Join(", ", AccelerationSourceIds)}].");
+        for (int k = 0; k < AccelerationSourceIds.Length; k++)
+            if (!string.Equals(t.AccelerationCreditSources[k], AccelerationSourceIds[k], StringComparison.Ordinal))
+                throw Fail($"tuning.accelerationCreditSources must be exactly [{string.Join(", ", AccelerationSourceIds)}] — " +
+                           "the one shared pool's sources, in provenance order.");
+        CostModelJson cm = t.CostModel;
+        if (!(double.IsFinite(cm.U) && cm.U > 0.0)) throw Fail($"tuning.costModel.U {Inv(cm.U)} must be finite and > 0.");
+        if (!(double.IsFinite(cm.K) && cm.K > 1.0)) throw Fail($"tuning.costModel.K {Inv(cm.K)} must be finite and > 1.");
+        return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
+            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K));
+    }
+
+    private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
+    [
+        ("novelty", 0.5, 2.0), ("difficulty", 0.0, 3.5), ("material", 0.0, 2.0),
+        ("institutional", 0.0, 3.0), ("breadth", 0.0, 1.5), ("prereq_complexity", 0.0, 1.0),
+    ];
+
+    private static ResearchCostRationale ValidateCostRationale(NodeJson j, string path, ResearchCostModel model)
+    {
+        CostRationaleJson c = j.CostRationale;
+        string cp = $"{path} ({j.Id}).costRationale";
+        if (Array.IndexOf(CostTiers, c.Tier) < 0) throw Fail($"{cp}: tier '{c.Tier}' is not one of {string.Join(", ", CostTiers)}.");
+        int count = 0;
+        if (c.Factors.ValueKind == JsonValueKind.Object) foreach (JsonProperty _ in c.Factors.EnumerateObject()) count++;
+        if (c.Factors.ValueKind != JsonValueKind.Object || count != CostFactorRanges.Length)
+            throw Fail($"{cp}.factors must hold exactly {string.Join(", ", Array.ConvertAll(CostFactorRanges, r => r.Name))}.");
+        var v = new double[CostFactorRanges.Length];
+        double sum = 0.0;
+        for (int k = 0; k < CostFactorRanges.Length; k++)
+        {
+            (string name, double min, double max) = CostFactorRanges[k];
+            if (!c.Factors.TryGetProperty(name, out JsonElement fx) || fx.ValueKind != JsonValueKind.Number)
+                throw Fail($"{cp}.factors is missing '{name}'.");
+            double x = fx.GetDouble();
+            if (!(double.IsFinite(x) && x >= min && x <= max))
+                throw Fail($"{cp}.factors.{name} {Inv(x)} is outside its range [{Inv(min)}, {Inv(max)}].");
+            v[k] = x;
+            sum += x;
+        }
+        if (!(Math.Abs(sum - c.Magnitude) <= 1e-9))
+            throw Fail($"{cp}: magnitude {Inv(c.Magnitude)} is not the sum of its factors ({Inv(sum)}).");
+        if (c.CalibrationAdjustment != 0.0)
+            throw Fail($"{cp}: calibration_adjustment {Inv(c.CalibrationAdjustment)} — no calibration adjustment is permitted; " +
+                       "cost is content-derived (finalization ruling 1).");
+        if (c.ContentCost != j.Cost)
+            throw Fail($"{cp}: content_cost {Inv(c.ContentCost)} differs from the node's cost {Inv(j.Cost)}.");
+        double expected = model.U * Math.Pow(model.K, c.Magnitude);
+        // The published costs are U × K^magnitude rounded to tens (chained across half-steps), so
+        // they sit within ±5 RP or ±0.1 % of the formula — whichever is larger.
+        if (!(Math.Abs(j.Cost - expected) <= Math.Max(5.0, 1e-3 * j.Cost)))
+            throw Fail($"{cp}: cost {Inv(j.Cost)} is not U × K^magnitude = {Inv(expected)} to within rounding (±5 RP or " +
+                       "±0.1 %) — the cost must come from the content factors, never be set independently.");
+        return new ResearchCostRationale(c.Tier, v[0], v[1], v[2], v[3], v[4], v[5], c.Magnitude, c.ContentCost,
+            c.CalibrationAdjustment, c.Note);
+    }
+
+    private static ResearchUniversityRelevance[] ValidateUniversityRelevance(
+        NodeJson j, ResearchTree tree, string path, int branch, UniversityType[] universities)
+    {
+        string up = $"{path} ({j.Id}).universityRelevance";
+        var result = new ResearchUniversityRelevance[j.UniversityRelevance.Length];
+        int primaries = 0;
+        for (int k = 0; k < result.Length; k++)
+        {
+            UniversityRelevanceJson r = j.UniversityRelevance[k];
+            int t = -1;
+            for (int x = 0; x < universities.Length; x++) if (universities[x].Key == r.Type) t = x;
+            if (t < 0) throw Fail($"{up}[{k}]: type {r.Type} is not a university type key.");
+            string expectedName = universities[t].Name.EndsWith(" University", StringComparison.Ordinal)
+                ? universities[t].Name[..^" University".Length] : universities[t].Name;
+            if (!string.Equals(r.Name, expectedName, StringComparison.Ordinal))
+                throw Fail($"{up}[{k}]: name '{r.Name}' does not match university type {r.Type} ('{expectedName}').");
+            if (r.Role is not ("primary" or "secondary")) throw Fail($"{up}[{k}]: role '{r.Role}' must be primary or secondary.");
+            for (int p = 0; p < k; p++)
+                if (result[p].UniversityTypeKey == r.Type) throw Fail($"{up}: university type {r.Type} is listed twice.");
+            if (r.Role == "primary")
+            {
+                primaries++;
+                if (branch >= 0 && universities[t].Branch != branch)
+                    throw Fail($"{up}[{k}]: the primary university of a subtree node must serve its own subtree.");
+            }
+            result[k] = new ResearchUniversityRelevance(r.Type, r.Role);
+        }
+        if (tree == ResearchTree.Technology && primaries != 1)
+            throw Fail($"{up}: a technology names exactly one primary university domain (got {primaries}).");
+        if (tree == ResearchTree.Civics && primaries > 1)
+            throw Fail($"{up}: at most one primary university domain.");
+        return result;
+    }
+
+    private static (bool[] Recursive, bool[] Speculative, int[][] FiniteBySubtree) ValidateResearchSets(
+        ResearchSetsJson sets, (NodeJson Json, ResearchTree Tree, string Path)[] raw, int n, int techCount, int[] branchOf,
+        ResearchBranch[] branches, Func<string, int> idLookup, int[][] prereqNodes, ResearchCostRationale[] rationales)
+    {
+        if (string.IsNullOrWhiteSpace(sets.Finite)) throw Fail("researchSets.finite must describe the finite set.");
+        var recursive = new bool[n];
+        foreach (string id in sets.Recursive)
+        {
+            int i = idLookup(id);
+            if (i < 0) throw Fail($"researchSets.recursive: '{id}' is not a node.");
+            if (recursive[i]) throw Fail($"researchSets.recursive: '{id}' is listed twice.");
+            recursive[i] = true;
+        }
+        var speculative = new bool[n];
+        foreach (string id in sets.SpeculativeFinite)
+        {
+            int i = idLookup(id);
+            if (i < 0) throw Fail($"researchSets.speculative_finite: '{id}' is not a node.");
+            if (recursive[i]) throw Fail($"researchSets.speculative_finite: '{id}' is recursive; the speculative set is finite.");
+            speculative[i] = true;
+        }
+        var finiteBySubtree = new List<int>[branches.Length];
+        for (int b = 0; b < branches.Length; b++) finiteBySubtree[b] = [];
+        for (int i = 0; i < techCount; i++)
+            if (branchOf[i] >= 0 && !recursive[i]) finiteBySubtree[branchOf[i]].Add(i);
+        for (int i = 0; i < n; i++)
+        {
+            NodeJson j = raw[i].Json;
+            string path = $"{raw[i].Path} ({j.Id})";
+            bool descriptor = j.Repeatable.ValueKind == JsonValueKind.Object;
+            if (recursive[i] != descriptor)
+                throw Fail($"{path}: a node is in researchSets.recursive exactly when it carries a repeatable descriptor.");
+            if ((rationales[i].Tier == "TR") != recursive[i])
+                throw Fail($"{path}: cost tier TR is the recursive set's tier, and only its.");
+            if ((rationales[i].Tier == "TS") != speculative[i])
+                throw Fail($"{path}: cost tier TS is the speculative_finite set's tier, and only its.");
+            foreach (int p in prereqNodes[i])
+                if (recursive[p] && !recursive[i])
+                    throw Fail($"{path}: requires the recursive node '{raw[p].Json.Id}' — a finite node can never wait on a " +
+                               "repeatable, which itself waits for its subtree's finite research to be exhausted.");
+            if (!recursive[i]) continue;
+            if (i >= techCount || branchOf[i] < 0)
+                throw Fail($"{path}: a recursive node must belong to a subtree — its availability waits on that subtree's " +
+                           "finite research.");
+            if (!j.Repeatable.TryGetProperty("availability", out JsonElement av) || av.ValueKind != JsonValueKind.Object
+                || !av.TryGetProperty("subtree", out JsonElement sub) || sub.ValueKind != JsonValueKind.String
+                || !av.TryGetProperty("finite_nodes_to_exhaust", out JsonElement cnt) || cnt.ValueKind != JsonValueKind.Number)
+                throw Fail($"{path}.repeatable.availability must state its subtree and finite_nodes_to_exhaust.");
+            if (!string.Equals(sub.GetString(), branches[branchOf[i]].Id, StringComparison.Ordinal))
+                throw Fail($"{path}.repeatable.availability.subtree '{sub.GetString()}' is not the node's own subtree " +
+                           $"'{branches[branchOf[i]].Id}'.");
+            if (cnt.GetInt32() != finiteBySubtree[branchOf[i]].Count)
+                throw Fail($"{path}.repeatable.availability.finite_nodes_to_exhaust {cnt.GetInt32()} disagrees with the " +
+                           $"{finiteBySubtree[branchOf[i]].Count} finite nodes of its subtree.");
+        }
+        int[][] finite = new int[branches.Length][];
+        for (int b = 0; b < branches.Length; b++) finite[b] = [.. finiteBySubtree[b]];
+        return (recursive, speculative, finite);
     }
 
     private static ResearchBaselineCapability[] ValidateBaseline(BaselineJson[] baseline, string[] nodeIds)
@@ -1024,7 +1218,13 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("universityTypes"), JsonRequired] UniversityTypeJson[] UniversityTypes,
         [property: JsonPropertyName("technologies"), JsonRequired] NodeJson[] Technologies,
         [property: JsonPropertyName("civics"), JsonRequired] NodeJson[] Civics,
-        [property: JsonPropertyName("entities"), JsonRequired] EntityJson[] Entities);
+        [property: JsonPropertyName("entities"), JsonRequired] EntityJson[] Entities,
+        [property: JsonPropertyName("researchSets"), JsonRequired] ResearchSetsJson ResearchSets);
+
+    private sealed record ResearchSetsJson(
+        [property: JsonPropertyName("finite"), JsonRequired] string Finite,
+        [property: JsonPropertyName("recursive"), JsonRequired] string[] Recursive,
+        [property: JsonPropertyName("speculative_finite"), JsonRequired] string[] SpeculativeFinite);
 
     private sealed record SourceJson(
         [property: JsonPropertyName("corpus"), JsonRequired] string Corpus,
@@ -1033,13 +1233,28 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("generator"), JsonRequired] string Generator);
 
     private sealed record TuningJson(
-        [property: JsonPropertyName("rpAnchors"), JsonRequired] RpAnchorJson[] RpAnchors,
-        [property: JsonPropertyName("rpReferenceTurnYears"), JsonRequired] double RpReferenceTurnYears,
-        [property: JsonPropertyName("eurekaFullCreditFraction"), JsonRequired] double EurekaFullCreditFraction);
+        [property: JsonPropertyName("rpPerTurn"), JsonRequired] RpPerTurnJson RpPerTurn,
+        [property: JsonPropertyName("effectiveCostFloorFraction"), JsonRequired] double EffectiveCostFloorFraction,
+        [property: JsonPropertyName("accelerationCreditCeilingFraction"), JsonRequired] double AccelerationCreditCeilingFraction,
+        [property: JsonPropertyName("accelerationCreditSources"), JsonRequired] string[] AccelerationCreditSources,
+        [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel);
 
-    private sealed record RpAnchorJson(
-        [property: JsonPropertyName("population"), JsonRequired] double Population,
-        [property: JsonPropertyName("rpPerTurn"), JsonRequired] double RpPerTurn);
+    private sealed record RpPerTurnJson(
+        [property: JsonPropertyName("coefficient"), JsonRequired] double Coefficient,
+        [property: JsonPropertyName("exponent"), JsonRequired] double Exponent,
+        [property: JsonPropertyName("input"), JsonRequired] string Input,
+        [property: JsonPropertyName("unit"), JsonRequired] string Unit,
+        [property: JsonPropertyName("anchors"), JsonRequired] JsonElement Anchors,
+        [property: JsonPropertyName("status"), JsonRequired] string Status);
+
+    private sealed record CostModelJson(
+        [property: JsonPropertyName("formula"), JsonRequired] string Formula,
+        [property: JsonPropertyName("U"), JsonRequired] double U,
+        [property: JsonPropertyName("U_basis"), JsonRequired] string UBasis,
+        [property: JsonPropertyName("K"), JsonRequired] double K,
+        [property: JsonPropertyName("K_basis"), JsonRequired] string KBasis,
+        [property: JsonPropertyName("magnitude"), JsonRequired] string Magnitude,
+        [property: JsonPropertyName("status"), JsonRequired] string Status);
 
     private sealed record BaselineJson(
         [property: JsonPropertyName("id"), JsonRequired] string Id,
@@ -1086,19 +1301,35 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("generation"), JsonRequired] int? Generation,
         [property: JsonPropertyName("effects"), JsonRequired] EffectsJson Effects,
         [property: JsonPropertyName("repeatable"), JsonRequired] JsonElement Repeatable,
+        [property: JsonPropertyName("universityRelevance"), JsonRequired] UniversityRelevanceJson[] UniversityRelevance,
+        [property: JsonPropertyName("costRationale"), JsonRequired] CostRationaleJson CostRationale,
         // Present (string or null) on technologies, ABSENT on civics — a JsonElement
         // so "missing" (Undefined) and "null" stay distinguishable.
         [property: JsonPropertyName("branch")] JsonElement Branch = default);
 
     private sealed record EurekaJson(
         [property: JsonPropertyName("text"), JsonRequired] string Text,
-        [property: JsonPropertyName("category"), JsonRequired] string Category,
-        [property: JsonPropertyName("status"), JsonRequired] string Status,
         [property: JsonPropertyName("when"), JsonRequired] string? When,
-        [property: JsonPropertyName("parts"), JsonRequired] string[]? Parts,
+        [property: JsonPropertyName("kind"), JsonRequired] string Kind,
+        [property: JsonPropertyName("justification"), JsonRequired] string Justification,
+        [property: JsonPropertyName("system"), JsonRequired] string System,
+        [property: JsonPropertyName("evaluable_now"), JsonRequired] bool EvaluableNow,
         [property: JsonPropertyName("weight"), JsonRequired] double? Weight,
-        [property: JsonPropertyName("reason"), JsonRequired] string? Reason,
-        [property: JsonPropertyName("futureSystem"), JsonRequired] string? FutureSystem);
+        [property: JsonPropertyName("source"), JsonRequired] string Source,
+        [property: JsonPropertyName("class"), JsonRequired] string Class);
+
+    private sealed record UniversityRelevanceJson(
+        [property: JsonPropertyName("type"), JsonRequired] int Type,
+        [property: JsonPropertyName("name"), JsonRequired] string Name,
+        [property: JsonPropertyName("role"), JsonRequired] string Role);
+
+    private sealed record CostRationaleJson(
+        [property: JsonPropertyName("tier"), JsonRequired] string Tier,
+        [property: JsonPropertyName("factors"), JsonRequired] JsonElement Factors,
+        [property: JsonPropertyName("magnitude"), JsonRequired] double Magnitude,
+        [property: JsonPropertyName("content_cost"), JsonRequired] double ContentCost,
+        [property: JsonPropertyName("calibration_adjustment"), JsonRequired] double CalibrationAdjustment,
+        [property: JsonPropertyName("note"), JsonRequired] string? Note);
 
     private sealed record UnlocksJson(
         [property: JsonPropertyName("capabilities"), JsonRequired] string[] Capabilities,

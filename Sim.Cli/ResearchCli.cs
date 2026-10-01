@@ -49,7 +49,7 @@ internal static class ResearchCli
 
         var milestones = new List<string>();
         StreamWriter? trace = opts.Get("--trace-population") is { } tp ? new StreamWriter(File.Create(tp)) : null;
-        trace?.WriteLine("turn,simYear,dtYears,population,rpPerYear,rpThisTurn");
+        trace?.WriteLine("turn,simYear,dtYears,population,researchPointsThisTurn");
         int lastCompleted = 0;
         bool stageSeen = false;
         for (int t = 1; t <= turns; t++)
@@ -62,10 +62,9 @@ internal static class ResearchCli
             world = executor.Step(world);
             if (trace is not null)
             {
-                double perYear = ResearchQuery.ResearchPerYear(world, content, polity);
                 trace.WriteLine(string.Join(",", world.Clock.Turn.ToString(CultureInfo.InvariantCulture), Year(world),
                     F(world.Clock.DtYears), ResearchQuery.Population(world, polity).ToString(CultureInfo.InvariantCulture),
-                    F(perYear), F(perYear * world.Clock.DtYears)));
+                    F(ResearchQuery.ResearchPointPool(world, content, polity))));
             }
             int done = ResearchQuery.CompletedNodes(world, content, polity).Length;
             if (done / 50 > lastCompleted / 50)
@@ -99,20 +98,18 @@ internal static class ResearchCli
     {
         Console.WriteLine($"research report: seed {seed}, turn {world.Clock.Turn} (sim-year {Year(world)}), polity {polity.Value}, {orderCount} order(s)");
         long population = ResearchQuery.Population(world, polity);
-        double perYear = ResearchQuery.ResearchPerYear(world, content, polity);
         ResearchTuning tu = content.Tuning;
-        Console.WriteLine($"research capacity: RP({population}) = {F(ResearchQuery.ResearchCapacity(tu, population))} per reference turn of {F(tu.RpReferenceTurnYears)} years " +
-                          $"(PROVISIONAL CALIBRATION: {F(tu.RpAnchorPerTurn)} x (P/{F(tu.RpAnchorPopulation)})^{F(tu.RpExponent)}); " +
-                          $"{F(perYear)} per sim-year; {F(perYear * world.Clock.DtYears)} this turn at dt {F(world.Clock.DtYears)}");
+        Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
+                          $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); one shared pool for both trees");
         if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId target))
         {
             ResearchNode n = Node(content, target);
             ResearchQuery.CostBreakdown cost = ResearchQuery.EffectiveCostBreakdown(world, content, polity, target);
-            Console.WriteLine($"active target: {n.Id} ({Where(content, n)}) {F(ResearchQuery.Progress(world, polity, target))} / {F(cost.EffectiveCost)} CLP");
+            Console.WriteLine($"active target: {n.Id} ({Where(content, n)}) {F(ResearchQuery.Progress(world, polity, target))} / {F(cost.EffectiveCost)} RP");
         }
         else
         {
-            Console.WriteLine("active target: none — this turn's CLP reaches no node and is not stored (no general bank, D-044 R20-D)");
+            Console.WriteLine("active target: none — this turn's RP reaches no node and is not stored (no general bank, D-044 R20-D)");
         }
         bool stage = ResearchQuery.IsStageReached(world, content, polity);
         Console.WriteLine($"research stage (university / research institutional stage): {(stage ? "REACHED — all five subtrees open" : "not reached — subtrees closed")}");
@@ -139,7 +136,16 @@ internal static class ResearchCli
         }
         int fired = 0;
         for (int i = 0; i < world.ResearchEurekas.Count; i++) if (world.ResearchEurekas[i].Polity.Value == polity.Value) fired++;
-        Console.WriteLine($"Eureka conditions credited: {fired}");
+        Console.WriteLine($"Eurekas fired: {fired}");
+        double eurekaCredit = 0.0, exposureCredit = 0.0;
+        for (int i = 0; i < world.ResearchCredits.Count; i++)
+        {
+            ResearchCreditRow row = world.ResearchCredits[i];
+            if (row.Polity.Value != polity.Value) continue;
+            if (row.Source == (int)AccelerationSource.Eureka) eurekaCredit += row.Amount; else exposureCredit += row.Amount;
+        }
+        Console.WriteLine($"acceleration credit (one pool per node, <= {F(tu.AccelerationCreditCeilingFraction * 100)}% of base): " +
+                          $"Eureka {F(eurekaCredit)} RP, foreign exposure {F(exposureCredit)} RP (no foreign-exposure source exists yet)");
         ResearchQuery.CostTerm[] modifiers = ResearchQuery.CostModifiers(world, content, polity);
         Console.WriteLine(modifiers.Length == 0
             ? "specialized-university cost modifiers: none (no institutions system writes them yet; EffectiveCost = BaseCost)"
@@ -164,19 +170,22 @@ internal static class ResearchCli
         Console.WriteLine($"  prerequisites: {pre.Expression ?? "(none — a root)"} -> {(pre.Satisfied ? "satisfied" : "not satisfied")}");
         foreach (ResearchQuery.PrerequisiteAtom a in pre.Atoms)
             Console.WriteLine($"    {a.Id,-26} {(a.Completed ? "complete" : "missing")}");
-        Console.WriteLine($"  cost: base {F(cost.BaseCost)} -> effective {F(cost.EffectiveCost)} CLP; progress {F(ResearchQuery.Progress(world, polity, n.Key))}");
+        ResearchCostRationale cr = n.CostRationale;
+        Console.WriteLine($"  cost: base {F(cost.BaseCost)} RP = U x K^{F(cr.Magnitude)} (tier {cr.Tier}; novelty {F(cr.Novelty)}, difficulty {F(cr.Difficulty)}, " +
+                          $"material {F(cr.Material)}, institutional {F(cr.Institutional)}, breadth {F(cr.Breadth)}, prerequisites {F(cr.PrerequisiteComplexity)})" +
+                          (cr.Note is null ? "" : $" — {cr.Note}"));
+        Console.WriteLine($"  effective: max(floor {F(cost.Floor)}, modified {F(cost.Modified)}) = {F(cost.EffectiveCost)} RP{(cost.FloorBinds ? " (the floor binds)" : "")}; " +
+                          $"progress {F(ResearchQuery.Progress(world, polity, n.Key))}{(n.IsRecursive ? "; RECURSIVE: waits for its subtree's finite research" : "")}");
         foreach (ResearchQuery.CostTerm term in cost.Terms)
             Console.WriteLine($"    x{F(term.Factor)} from {term.UniversityId} (modifier row {term.ModifierRow})");
         ResearchQuery.EurekaProgress ep = ResearchQuery.EurekaProgressOf(world, content, polity, n.Key);
-        Console.WriteLine($"  eureka: {ep.Credited}/{ep.Evaluable} evaluable conditions credited; {F(ep.CreditedShare * 100)}% of the full Eureka " +
-                          $"({F(content.Tuning.EurekaFullCreditFraction * 100)}% of base cost when fully satisfied); evaluable share {F(ep.EvaluableShare * 100)}%");
+        ResearchQuery.AccelerationPool pool = ResearchQuery.AccelerationPoolOf(world, content, polity, n.Key);
+        Console.WriteLine($"  acceleration pool: ceiling {F(pool.Ceiling)} RP; credited Eureka {F(pool.Eureka)}, foreign exposure {F(pool.ForeignExposure)} " +
+                          $"(offered {F(pool.ExposureOffered)}); headroom {F(pool.Headroom)}");
+        Console.WriteLine($"  eurekas: {ep.Fired}/{ep.Total} fired ({ep.EvaluableNow} evaluable today); weight fired {F(ep.FiredWeight)} of {F(ep.TotalWeight)}");
         foreach (ResearchQuery.EurekaState e in ResearchQuery.Eurekas(world, content, polity, n.Key))
-        {
-            Console.WriteLine($"  eureka[{e.Index}] {e.Category} {e.Status} share {F(e.Share * 100)}%: \"{e.Text}\"" +
-                              (e.Reason is null ? "" : $" — {e.Reason}") + (e.FutureSystem is null ? "" : $" [future system: {e.FutureSystem}]"));
-            foreach (ResearchQuery.EurekaConditionState c in e.Conditions)
-                Console.WriteLine($"      condition {c.Condition} `{c.Source}` credit {F(c.Credit)} holds-now={c.HoldsNow} credited={c.Credited}");
-        }
+            Console.WriteLine($"  eureka[{e.Index}] {e.Class} weight {F(e.Weight)} (max {F(e.MaxCredit)} RP): \"{e.Text}\" — {e.Justification}" +
+                              (e.Condition is null ? "" : $" when `{e.Condition}` holds-now={e.HoldsNow} fired={e.Fired}"));
         Console.WriteLine($"  unlocks: {n.Capabilities.Count} capabilities, {n.UnlockedEntities.Count} entities, {n.Dependents.Count} dependent nodes");
     }
 

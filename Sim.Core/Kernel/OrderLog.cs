@@ -54,7 +54,7 @@ public enum OrderKind
     /// <summary>
     /// ADR-029 / D-044 R9: set, change or clear the issuing Empire's ONE active
     /// research target. TargetId = the node's STABLE key from research.json (a
-    /// Technology or a Civics node; one CLP pool serves both trees, R2 and R12), or
+    /// Technology or a Civics node; one RP pool serves both trees, R2 and R12), or
     /// -1 to clear the target. Amount is reserved and must be exactly 0. A
     /// persistent directive (D-042 §6.2): the target stays until it completes or
     /// another order changes it.
@@ -63,7 +63,7 @@ public enum OrderKind
     /// and is AVAILABLE to this Empire is content- and state-dependent, so it is
     /// checked where the order is consumed (ResearchSystem, the ConstructionSystem
     /// precedent); an order naming an unavailable node changes nothing. DELIVERY: an
-    /// order stamped turn t retargets the step t → t+1, and that step's CLP already
+    /// order stamped turn t retargets the step t → t+1, and that step's RP already
     /// goes to the new target.
     /// </summary>
     SetResearchTarget = 6,

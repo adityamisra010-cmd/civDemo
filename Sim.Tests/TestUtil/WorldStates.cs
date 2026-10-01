@@ -73,13 +73,15 @@ public static class WorldStates
         // entry above it — a comparer blind to a table makes every StateEquals
         // assertion about it vacuous.
         if (!TableEquals(a.Disasters, b.Disasters)) return false;
-        // ADR-029: the five research tables, added WITH the tables for the same reason
+        // ADR-029: the seven research tables, added WITH the tables for the same reason
         // as every entry above (ResearchSchemaTests proves each one is compared).
         if (!TableEquals(a.ResearchTargets, b.ResearchTargets)) return false;
         if (!TableEquals(a.ResearchProgress, b.ResearchProgress)) return false;
         if (!TableEquals(a.ResearchCompleted, b.ResearchCompleted)) return false;
         if (!TableEquals(a.ResearchEurekas, b.ResearchEurekas)) return false;
         if (!TableEquals(a.ResearchCostModifiers, b.ResearchCostModifiers)) return false;
+        if (!TableEquals(a.ResearchCredits, b.ResearchCredits)) return false;
+        if (!TableEquals(a.ResearchExposures, b.ResearchExposures)) return false;
         return true;
     }
 

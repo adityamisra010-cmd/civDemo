@@ -104,6 +104,39 @@ public sealed class Predicate
     /// </summary>
     public bool CanHold(AtomReader atoms) => UsesNot || Optimistic(_root, atoms);
 
+    /// <summary>
+    /// Research dialect: the atoms that are TRUE whenever the expression is true — AND is the
+    /// union of its sides, OR the intersection, a comparison contributes none, and NOT (anywhere
+    /// above an atom) contributes none (conservative). Distinct, ascending. The loader uses it for
+    /// the knowledge a prerequisite guarantees on every path (implied-Eureka detection, ADR-029 §7).
+    /// </summary>
+    public IReadOnlyList<int> MustHoldAtoms()
+    {
+        var set = new SortedSet<int>(Must(_root));
+        return [.. set];
+    }
+
+    private static IEnumerable<int> Must(Node n)
+    {
+        switch (n)
+        {
+            case AtomNode at: return [at.AtomId];
+            case AndNode a:
+            {
+                var union = new SortedSet<int>(Must(a.L));
+                union.UnionWith(Must(a.R));
+                return union;
+            }
+            case OrNode o:
+            {
+                var inter = new SortedSet<int>(Must(o.L));
+                inter.IntersectWith(Must(o.R));
+                return inter;
+            }
+            default: return [];
+        }
+    }
+
     private static bool Optimistic(Node n, AtomReader atoms) => n switch
     {
         OrNode o => Optimistic(o.L, atoms) || Optimistic(o.R, atoms),

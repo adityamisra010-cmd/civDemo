@@ -22,11 +22,13 @@ public class ResearchContentTests
         return JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RepoPaths.Root(), "tech-graph-v0.6.json")));
     }
 
-    // ------------------------------------------------------------------ the migrated corpus
+    // ------------------------------------------------------------------ the finalized corpus (ADR-029 addendum A)
 
     [Fact]
     public void Canonical_IntegratesEveryCorpusTechnology_InCorpusOrder_WithItsStableId()
     {
+        // Ids, keys and names are the corpus's. Prerequisites, ages and Eurekas were then curated
+        // by the Director's finalization (Group A and Group B), so they are not compared here.
         using JsonDocument corpus = Corpus();
         JsonElement techs = corpus.RootElement.GetProperty("technologies");
         Assert.Equal(424, techs.GetArrayLength());
@@ -39,12 +41,7 @@ public class ResearchContentTests
             Assert.Equal(i + 1, n.Key.Value);
             Assert.Equal(t.GetProperty("name").GetString(), n.Name);
             Assert.Equal(ResearchTree.Technology, n.Tree);
-            JsonElement prereq = t.GetProperty("research").GetProperty("prereq");
-            Assert.Equal(prereq.ValueKind == JsonValueKind.Null ? null : prereq.GetString(), n.Prerequisite?.Source);
-            Assert.Equal(t.GetProperty("research").GetProperty("eureka").GetArrayLength(), n.Eurekas.Count);
-            string age = t.GetProperty("age").GetString()!;
-            Assert.Equal(age == "F" ? "A9" : age, n.Age);
-            Assert.Equal(age == "F", n.Frontier);
+            Assert.Equal(t.GetProperty("age").GetString() == "F", n.Frontier);
         }
     }
 
@@ -81,24 +78,32 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_Tuning_IsTheDirectorsCalibration_AnchorsAndTheFullEureka()
+    public void Canonical_Tuning_PerTurnResearchPoints_TheFloor_TheSharedCeiling_AndTheCostModel()
     {
-        // Director ruling 2026-10-01 §2 (PROVISIONAL CALIBRATION) and §5.
         ResearchTuning t = Canonical.Tuning;
-        Assert.Equal((100.0, 2.0, 1_000.0, 10.0), (t.RpAnchorPopulation, t.RpAnchorPerTurn, t.RpSecondPopulation, t.RpSecondPerTurn));
-        Assert.Equal(0.4, t.EurekaFullCreditFraction);
-        Assert.Equal(10.0, t.RpReferenceTurnYears);   // the CR-018 reading: a campaign-start turn
+        Assert.Equal(0.08, t.RpCoefficient);                     // ADR-030 calibration values (tunable)
+        Assert.Equal(0.699, t.RpExponent);
+        Assert.Equal([(100.0, 2.0), (1_000.0, 10.0)], t.RpAnchors);
+        Assert.Equal(0.2, t.EffectiveCostFloorFraction);         // EffectiveCost floor
+        Assert.Equal(0.4, t.AccelerationCreditCeilingFraction);  // one shared Eureka + foreign-exposure pool
+        Assert.Equal(new ResearchCostModel(92.4, 2.0), t.CostModel);
+        Assert.Equal(["eureka", "foreign_exposure"], ResearchContentLoader.AccelerationSourceIds);
     }
 
     [Fact]
-    public void Canonical_Costs_AreCalibratedNotDepthDerived_EveryNodeHasAnIntentionalPositiveCost()
+    public void Canonical_Costs_AreContentDerived_UTimesKToTheMagnitude_NoCalibrationAdjustment_NeverDepth()
     {
-        // Every node has a cost; and cost is not a function of depth: two nodes of the same Age and
-        // depth carry different costs when their significance bands differ (e.g. sling M1 vs bow_simple M4).
-        foreach (ResearchNode n in Canonical.Nodes) Assert.True(n.BaseCost >= 1.0, n.Id);
-        ResearchNode sling = Canonical.Nodes[Canonical.IndexOfId("sling")], bow = Canonical.Nodes[Canonical.IndexOfId("bow_simple")];
-        Assert.Equal(sling.Age, bow.Age);
-        Assert.True(bow.BaseCost > 3 * sling.BaseCost);
+        ResearchCostModel m = Canonical.Tuning.CostModel;
+        foreach (ResearchNode n in Canonical.Nodes)
+        {
+            ResearchCostRationale r = n.CostRationale;
+            Assert.Equal(0.0, r.CalibrationAdjustment);
+            Assert.Equal(n.BaseCost, r.ContentCost);
+            Assert.True(Math.Abs(r.Novelty + r.Difficulty + r.Material + r.Institutional + r.Breadth + r.PrerequisiteComplexity - r.Magnitude) <= 1e-9, n.Id);
+            double formula = m.U * Math.Pow(m.K, r.Magnitude);
+            Assert.True(Math.Abs(n.BaseCost - formula) <= Math.Max(5.0, 1e-3 * n.BaseCost), $"{n.Id}: {n.BaseCost} vs {formula}");
+        }
+        // Not depth-derived: within one Age and one depth, costs still differ by content.
         var depthCost = new Dictionary<(string, int), double>();   // test-side check, not sim logic
         bool varies = false;
         foreach (ResearchNode n in Canonical.Nodes)
@@ -107,6 +112,8 @@ public class ResearchContentTests
             depthCost[(n.Age, n.Depth)] = n.BaseCost;
         }
         Assert.True(varies, "costs within one Age and depth never differ: they would be depth-derived");
+        // The cheapest A9 node is cheaper than most A2 nodes: content, not Age, sets it.
+        Assert.Equal(740.0, Canonical.Nodes[Canonical.IndexOfId("oral_rehydration")].BaseCost);
     }
 
     [Fact]
@@ -117,46 +124,32 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_Eurekas_PreserveEveryCorpusString_AndOnlyFaithfulMappingsAreEvaluable()
+    public void Canonical_Eurekas_81OnEightyNodes_18EvaluableToday_EveryNodeWithinTheFortyPercentCeiling()
     {
-        var byStatus = new int[8];
-        var byCategory = new int[7];
-        int total = 0;
+        int total = 0, nodes = 0, evaluable = 0, authored = 0, inherited = 0;
         foreach (ResearchNode n in Canonical.Nodes)
+        {
+            if (n.Eurekas.Count > 0) nodes++;
+            double sum = 0.0;
             foreach (ResearchEureka e in n.Eurekas)
             {
                 total++;
-                byStatus[(int)e.Status]++;
-                byCategory[(int)e.Category]++;
-                if (e.Status == EurekaStatus.Evaluable) Assert.NotEmpty(e.Conditions);
-                else
-                {
-                    Assert.Empty(e.Conditions);
-                    Assert.False(string.IsNullOrWhiteSpace(e.Reason), $"{n.Id}: '{e.Text}' lost its reason");
-                }
+                sum += e.Weight;
+                if (e.EvaluableNow) { evaluable++; Assert.Equal("machine-evaluable", e.Class); }
+                else Assert.Equal("future-system:" + e.System, e.Class);
+                Assert.False(string.IsNullOrWhiteSpace(e.Justification), $"{n.Id}: '{e.Text}' lost its justification");
+                if (e.Source == "authored") authored++; else inherited++;
             }
-        Assert.Equal(801, total);
-        Assert.Equal(93, byStatus[(int)EurekaStatus.Evaluable]);
-        Assert.Equal(279, byStatus[(int)EurekaStatus.NoStateCarrier]);
-        Assert.Equal(79, byStatus[(int)EurekaStatus.InstitutionStateAbsent]);
-        Assert.Equal(61, byStatus[(int)EurekaStatus.ContactStateAbsent]);
-        Assert.Equal(21, byStatus[(int)EurekaStatus.ImpliedByPrerequisites]);
-        Assert.Equal(0, byStatus[(int)EurekaStatus.Dead]);
-        Assert.Equal(268, byStatus[(int)EurekaStatus.RequiresAuthoring]);
-        // The audit categories of the Director ruling 2026-10-01 §7: A 93 · B 0 · C 419 · D 21 · E 0 · F 268.
-        Assert.Equal([0, 93, 0, 419, 21, 0, 268], byCategory);
-
-        // A circumstance the node's prerequisites guarantee is declared, not evaluated (ADR-029 §7):
-        // "sustained fire" on heat_treatment_stone, which requires fire_making.
-        ResearchEureka fire = Canonical.Nodes[Canonical.IndexOfId("heat_treatment_stone")].Eurekas[1];
-        Assert.Equal("circumstance: sustained fire", fire.Text);
-        Assert.Equal(EurekaStatus.ImpliedByPrerequisites, fire.Status);
-        // A different substance made from a good, and exchange, are not the good (ADR-029 §7 rule).
-        foreach (ResearchNode n in Canonical.Nodes)
-            foreach (ResearchEureka e in n.Eurekas)
-                if (e.Text is "circumstance: wood ash" or "circumstance: lime or wood ash"
-                    or "circumstance: long-distance exchange reaching a tin source")
-                    Assert.Empty(e.Conditions);
+            Assert.True(sum <= 0.4 + 1e-12, n.Id);
+            Assert.True(n.EurekaTotalWeight <= 0.4, n.Id);
+        }
+        Assert.Equal(81, total);
+        Assert.Equal(80, nodes);
+        Assert.Equal(18, evaluable);
+        Assert.Equal((73, 8), (authored, inherited));
+        // railway is the one node with two conditions: 0.2 each, together the full 0.40.
+        ResearchNode railway = Canonical.Nodes[Canonical.IndexOfId("railway")];
+        Assert.Equal([0.2, 0.2], [railway.Eurekas[0].Weight, railway.Eurekas[1].Weight]);
     }
 
     [Fact]
@@ -174,21 +167,35 @@ public class ResearchContentTests
                 var excluded = new bool[Canonical.Nodes.Count];
                 excluded[i] = true;
                 foreach (int a in cond.AtomIds) excluded[a] = true;
-                var done = new bool[Canonical.Nodes.Count];
-                for (bool changed = true; changed;)
-                {
-                    changed = false;
-                    bool stage = ResearchQuery.StageReached(Canonical, done);
-                    for (int j = 0; j < done.Length; j++)
-                        if (!done[j] && !excluded[j] && ResearchQuery.IsAvailable(Canonical, j, done, stage))
-                            done[j] = changed = true;
-                }
+                bool[] done = ReachWithout(excluded);
                 Assert.True(ResearchQuery.IsAvailable(Canonical, i, done, ResearchQuery.StageReached(Canonical, done)),
                     $"{Canonical.Nodes[i].Id}: no witness state");
                 Assert.False(cond.Evaluate(null, a => done[a], null), $"{Canonical.Nodes[i].Id}: '{cond.Source}' holds in the witness");
                 checkedConditions++;
             }
-        Assert.Equal(2, checkedConditions); // copper_smelting (charcoal), windmill_post (gearing)
+        Assert.Equal(15, checkedConditions);
+    }
+
+    /// <summary>The largest completed set reachable while every excluded node stays incomplete.</summary>
+    private static bool[] ReachWithout(bool[] excluded)
+    {
+        var done = new bool[Canonical.Nodes.Count];
+        for (bool changed = true; changed;)
+        {
+            changed = false;
+            bool stage = ResearchQuery.StageReached(Canonical, done);
+            for (int j = 0; j < done.Length; j++)
+                if (!done[j] && !excluded[j] && ResearchQuery.IsAvailable(Canonical, j, done, stage))
+                    done[j] = changed = true;
+        }
+        return done;
+    }
+
+    private static bool[] Excluding(params string[] ids)
+    {
+        var excluded = new bool[Canonical.Nodes.Count];
+        foreach (string id in ids) excluded[Canonical.IndexOfId(id)] = true;
+        return excluded;
     }
 
     [Fact]
@@ -204,30 +211,101 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_CorpusDefect_NewspaperIsDeclaredUnresolved_AndNeverKnowledgeEligible()
+    public void GroupB_AWorldWithOnlyChineseScript_ReachesTheResearchStage()
     {
-        var all = new bool[Canonical.Nodes.Count];
-        Array.Fill(all, true);
-        int newspaper = Canonical.EntityIndexOf("inst.newspaper");
-        Assert.Equal(["postal_imperial"], Canonical.Entities[newspaper].Unresolved);
-        Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, newspaper, all));
-        Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, Canonical.EntityIndexOf("inst.mass_schooling"), all));
-        Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, Canonical.EntityIndexOf("inst.university"), all));
-        // A null requirement is valid and always met (ADR-028 §3): the granary needs no technology.
-        Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, Canonical.EntityIndexOf("building.granary"), new bool[all.Length]));
+        // Group B: where the real dependency is generic writing, law, numeration or record-keeping,
+        // Chinese script is an alternative pathway — no cuneiform and no hieroglyphic needed.
+        bool[] done = ReachWithout(Excluding("cuneiform", "hieroglyphic"));
+        Assert.True(done[Canonical.IndexOfId("chinese_script")]);
+        Assert.True(ResearchQuery.StageReached(Canonical, done));
+    }
+
+    [Theory]
+    [InlineData("law_code")]
+    [InlineData("census")]
+    [InlineData("geometry_practical")]
+    [InlineData("astronomy_records")]
+    [InlineData("abacus")]
+    public void GroupB_CuneiformFreePaths_ReachTheGenericRecordKeepingNodes(string id)
+    {
+        Assert.True(ReachWithout(Excluding("cuneiform"))[Canonical.IndexOfId(id)], $"{id} needs cuneiform");
+    }
+
+    [Theory]
+    [InlineData("numeral_sexagesimal")]
+    [InlineData("arithmetic_babylonian")]
+    public void GroupB_TheBabylonianNodes_StillRequireCuneiform_SpecificDependenciesKept(string id)
+    {
+        Assert.False(ReachWithout(Excluding("cuneiform"))[Canonical.IndexOfId(id)], $"{id} is reachable without cuneiform");
+        // And structurally: cuneiform is a MUST on every path, directly or through a must-held prerequisite.
+        Assert.Contains(Canonical.IndexOfId("cuneiform"), MustClosure(Canonical.IndexOfId(id)));
+    }
+
+    /// <summary>Every node that holds on EVERY path to <paramref name="index"/>: the prerequisite's
+    /// must-held atoms, closed transitively over their own prerequisites.</summary>
+    private static SortedSet<int> MustClosure(int index)
+    {
+        var must = new SortedSet<int>();
+        var stack = new Stack<int>();
+        stack.Push(index);
+        while (stack.Count > 0)
+            if (Canonical.Nodes[stack.Pop()].Prerequisite is { } p)
+                foreach (int a in p.MustHoldAtoms()) if (must.Add(a)) stack.Push(a);
+        return must;
     }
 
     [Fact]
-    public void Canonical_RepeatableFrontierNodes_KeepTheirDescriptor_ButCompleteOnce()
+    public void Canonical_Newspaper_IsRepaired_ItRequiresThePrintingPressAlone()
     {
-        int repeatable = 0, frontier = 0;
+        int newspaper = Canonical.EntityIndexOf("inst.newspaper");
+        Assert.Empty(Canonical.Entities[newspaper].Unresolved);
+        Assert.Equal("printing_press", Canonical.Entities[newspaper].Requirement!.Source);
+        var mask = new bool[Canonical.Nodes.Count];
+        Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, newspaper, mask));
+        mask[Canonical.IndexOfId("printing_press")] = true;
+        Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, newspaper, mask));
+    }
+
+    [Fact]
+    public void Baseline_GranaryAndWorkshop_AreConstructibleWithZeroTechnology()
+    {
+        // A null requirement is valid and always met (ADR-028 §3): no node owns these.
+        var none = new bool[Canonical.Nodes.Count];
+        foreach (string id in new[] { "building.granary", "building.workshop" })
+        {
+            int e = Canonical.EntityIndexOf(id);
+            Assert.Null(Canonical.Entities[e].Requirement);
+            Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, e, none), id);
+        }
+    }
+
+    [Fact]
+    public void Canonical_RecursiveSet_TheTenRepeatables_WaitForTheirOwnSubtreesFiniteResearch()
+    {
+        int recursive = 0, speculative = 0, finite = 0;
         foreach (ResearchNode n in Canonical.Nodes)
         {
-            if (n.HasRepeatableDescriptor) { repeatable++; Assert.True(n.Frontier); }
-            if (n.Frontier) { frontier++; Assert.Equal("A9", n.Age); }
+            if (n.IsRecursive) { recursive++; Assert.True(n.HasRepeatableDescriptor); Assert.True(n.Frontier); Assert.True(n.Branch >= 0); }
+            else finite++;
+            if (n.IsSpeculative) speculative++;
         }
-        Assert.Equal(10, repeatable);
-        Assert.Equal(16, frontier);
+        Assert.Equal(10, recursive);
+        Assert.Equal(6, speculative);
+        Assert.Equal(420, finite);
+        Assert.Equal([36, 21, 124, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
+
+        // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite
+        // engineering node incomplete and it is not — per-subtree exhaustion, nothing else.
+        int launch = Canonical.IndexOfId("frontier_launch");
+        var all = new bool[Canonical.Nodes.Count];
+        for (int i = 0; i < all.Length; i++) all[i] = !Canonical.Nodes[i].IsRecursive;
+        Assert.True(ResearchQuery.IsAvailable(Canonical, launch, all, true));
+        all[Canonical.IndexOfId("jet_airliner")] = false;
+        Assert.False(ResearchQuery.IsAvailable(Canonical, launch, all, true));
+        // ...and a finite node of ANOTHER subtree does not hold it back.
+        all[Canonical.IndexOfId("jet_airliner")] = true;
+        all[Canonical.Nodes[Canonical.FiniteNodesBySubtree[1][0]].Index] = false;      // a medicine node
+        Assert.True(ResearchQuery.IsAvailable(Canonical, launch, all, true));
     }
 
     // ------------------------------------------------------------------ the rig is valid (baseline for every rejection)
@@ -390,30 +468,97 @@ public class ResearchContentTests
         Rejects(allAlternatives, "cannot hold while 'a' is still researchable");
 
         Spec mismatch = Standard();
-        mismatch.Technologies[10] = mismatch.Technologies[10] with { Eurekas = [new Eu("circumstance: timber", "stock_timber > 0", "no-state-carrier")] };
-        Rejects(mismatch, "must be present exactly when status is 'evaluable'");
+        mismatch.Technologies[10] = mismatch.Technologies[10] with { Eurekas = [new Eu("circumstance: timber", "stock_timber > 0", EvaluableNow: false)] };
+        Rejects(mismatch, "evaluable_now must be true exactly when 'when' carries a condition");
     }
 
     [Fact]
-    public void Rejects_MalformedEurekaStrings_CategoryWeightReasonFutureSystemAndParts()
+    public void Rejects_ImpliedEurekas_AConditionEveryPathToTheNodeAlreadySatisfies()
     {
-        static Spec With(Eu eu)
+        // c = a AND b: "a" holds whenever c is available — a flat cost cut, not a circumstance.
+        Spec onAnd = Standard();
+        onAnd.Technologies[2] = onAnd.Technologies[2] with { Eurekas = [new Eu("circumstance: a", "a")] };
+        Rejects(onAnd, "implied Eureka");
+        // Transitively: e needs (a AND c) OR (b AND d); every path to code (law AND c) passes a.
+        Spec transitive = Standard();
+        transitive.Civics[1] = transitive.Civics[1] with { Eurekas = [new Eu("circumstance: a", "a")] };
+        Rejects(transitive, "implied Eureka");
+        // Behind the stage: mil needs only a, but the stage (c = a AND b) guarantees b too.
+        Spec byStage = Standard();
+        byStage.Technologies[5] = byStage.Technologies[5] with { Eurekas = [new Eu("circumstance: b", "b")] };
+        Rejects(byStage, "implied Eureka");
+        // d = a OR b: "a" is NOT guaranteed (b alone opens d), so it is a real circumstance.
+        Spec onOr = Standard();
+        onOr.Technologies[3] = onOr.Technologies[3] with { Eurekas = [new Eu("circumstance: a", "a")] };
+        Assert.Single(onOr.Load().Nodes[3].Eurekas);
+    }
+
+    [Fact]
+    public void Rejects_MalformedEurekas_ClassWeightCeilingJustificationAndSource()
+    {
+        static Spec With(params Eu[] eurekas)
         {
             Spec spec = Standard();
-            spec.Technologies[10] = spec.Technologies[10] with { Eurekas = [eu] };
+            spec.Technologies[10] = spec.Technologies[10] with { Eurekas = eurekas };
             return spec;
         }
-        // The stored category must agree with the status and the condition count.
-        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Category: "B")), "category 'B' disagrees");
-        // A B string needs two or more parts; a single condition is 'when'.
-        Rejects(With(new Eu("circumstance: timber", null, Parts: ["stock_timber > 0"])), "'parts' needs two or more conditions");
-        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Parts: ["stock_timber > 0", "stock_stone > 0"])), "exactly one of 'when'");
-        // Weights: positive, and only on strings that are circumstances.
-        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Weight: 0.0)), "weight 0 must be finite and > 0");
-        Rejects(With(new Eu("circumstance: a", null, "implied-by-prerequisites", Weight: 1.0)), "carries no weight");
-        // Every non-evaluable string keeps a reason; future-system ones name the system.
-        Rejects(With(new Eu("circumstance: gold", null, "requires-authoring", Reason: " ")), "must keep its reason");
-        Rejects(With(new Eu("circumstance: gold", null, "requires-authoring", FutureSystem: "trade")), "'futureSystem' names the missing system");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Class: "future-system:goods state")), "class 'future-system:goods state' must be 'machine-evaluable'");
+        Rejects(With(new Eu("an obsidian source", null, System: "resources/terrain", Class: "machine-evaluable")), "must be 'future-system:resources/terrain'");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Weight: 0.0)), "weight 0 must be in (0, 0.4]");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Weight: 0.5)), "weight 0.5 must be in (0, 0.4]");
+        Rejects(With(new Eu("t", "stock_timber > 0", Weight: 0.3), new Eu("s", "stock_stone > 0", Weight: 0.2)), "above the 0.4 acceleration ceiling");
+        Rejects(With(new Eu("t", "stock_timber > 0", Weight: 0.2), new Eu("s", "stock_stone > 0")), "explicit on every Eureka of a node or on none");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Justification: " ")), "justification is empty");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Source: "invented")), "source 'invented' is not one of authored, inherited");
+    }
+
+    [Fact]
+    public void Rejects_CostsThatAreNotContentDerived_AdjustmentsMagnitudeFormulaAndFactorRanges()
+    {
+        string json = Standard().Json();
+        RejectsJson(Mutate(json, "\"calibration_adjustment\":0", "\"calibration_adjustment\":120"), "no calibration adjustment is permitted");
+        // a costs 2500 = 50 x 2^5.64: change the stored cost alone and the formula no longer reproduces it.
+        RejectsJson(Mutate(json, "\"depth\":0,\"cost\":2500", "\"depth\":0,\"cost\":2600"), "content_cost 2500 differs from the node's cost 2600");
+        RejectsJson(Mutate(json, "\"content_cost\":2500", "\"content_cost\":2490"), "content_cost 2490 differs");
+        RejectsJson(Mutate(json, "\"novelty\":2,", "\"novelty\":2.5,"), "factors.novelty 2.5 is outside its range");
+        RejectsJson(Mutate(json, "\"tier\":\"T2\"", "\"tier\":\"T9\""), "tier 'T9' is not one of");
+    }
+
+    [Fact]
+    public void Rejects_UniversityRelevance_ThatIsNotADomainClassification()
+    {
+        string json = Standard().Json();
+        RejectsJson(Mutate(json, "\"type\":3,\"name\":\"Engineering\",\"role\":\"primary\"", "\"type\":9,\"name\":\"Engineering\",\"role\":\"primary\""),
+            "type 9 is not a university type key");
+        RejectsJson(Mutate(json, "\"type\":3,\"name\":\"Engineering\",\"role\":\"primary\"", "\"type\":3,\"name\":\"Engineering\",\"role\":\"secondary\""),
+            "names exactly one primary university domain");
+        // mil is a military-subtree node: its primary must be the Military University's domain.
+        RejectsJson(Mutate(json, "\"type\":1,\"name\":\"Military\",\"role\":\"primary\"", "\"type\":3,\"name\":\"Engineering\",\"role\":\"primary\""),
+            "must serve its own subtree");
+    }
+
+    [Fact]
+    public void Rejects_ResearchSets_RecursiveWithoutDescriptor_FiniteWaitingOnRecursive_AndAStaleCount()
+    {
+        Spec ok = Standard();
+        ok.Technologies.Add(new Node(12, "eng_more", "eng", Branch: "engineering"));
+        ok.Recursive.Add("eng_more");
+        Assert.True(ok.Load().Nodes[11].IsRecursive);
+
+        string json = ok.Json();
+        RejectsJson(Mutate(json, "\"finite_nodes_to_exhaust\":1", "\"finite_nodes_to_exhaust\":2"), "disagrees with the 1 finite nodes of its subtree");
+        RejectsJson(Mutate(json, "\"recursive\":[\"eng_more\"]", "\"recursive\":[]"), "exactly when it carries a repeatable descriptor");
+
+        Spec waits = Standard();
+        waits.Technologies.Add(new Node(12, "eng_more", "eng", Branch: "engineering"));
+        waits.Technologies.Add(new Node(13, "eng_after", "eng_more", Branch: "engineering"));
+        waits.Recursive.Add("eng_more");
+        Rejects(waits, "requires the recursive node 'eng_more'");
+
+        Spec trunk = Standard();
+        trunk.Technologies.Add(new Node(12, "loop", "a"));
+        trunk.Recursive.Add("loop");
+        Rejects(trunk, "a recursive node must belong to a subtree");
     }
 
     [Fact]
@@ -453,7 +598,9 @@ public class ResearchContentTests
             ("\"eurekas\":[]", "\"eurekas\":null"),
             ("\"immediate\":[]", "\"immediate\":null"),
             ("\"secondaryDomains\":[]", "\"secondaryDomains\":null"),
-            ("\"schema\":\"civ-sim/research@1\"", "\"schema\":null"),
+            ("\"schema\":\"civ-sim/research@2\"", "\"schema\":null"),
+            ("\"justification\":\"rig justification\"", "\"justification\":null"),
+            ("\"tier\":\"T2\"", "\"tier\":null"),
         })
             RejectsJson(Mutate(json, anchor, replacement), "missing required values");
     }
@@ -522,19 +669,23 @@ public class ResearchContentTests
     [Fact]
     public void Rejects_TuningOutsideItsRanges_LinearPopulationIsForbidden()
     {
-        // Anchors that imply exponent 1 (research = population × constant) are forbidden.
+        // Exponent 1 (research = population × constant) is forbidden: Research Points are sublinear.
         Spec linear = Standard();
-        linear.RpAnchor2 = [100_000, 10_000];
-        Rejects(linear, "it must be < 1: research capacity is sublinear");
-        Spec descending = Standard();
-        descending.RpAnchor2 = [1_000_000, 500];
-        Rejects(descending, "must ascend in both population and rpPerTurn");
-        Spec noReference = Standard();
-        noReference.RpReferenceTurnYears = 0.0;
-        Rejects(noReference, "tuning.rpReferenceTurnYears 0 must be finite and > 0");
-        Spec noEureka = Standard();
-        noEureka.EurekaFullFraction = 0.0;
-        Rejects(noEureka, "tuning.eurekaFullCreditFraction 0 must be in (0, 1]");
+        linear.RpExponent = 1.0;
+        Rejects(linear, "exponent 1 must be in (0, 1)");
+        // The stated anchors must agree with the coefficient and exponent (to 0.1 %).
+        Spec stale = Standard();
+        stale.RpAnchors = [(10_000, 1_100)];
+        Rejects(stale, "not the stated anchor 1100");
+        Spec noFloor = Standard();
+        noFloor.FloorFraction = 0.0;
+        Rejects(noFloor, "tuning.effectiveCostFloorFraction 0 must be in (0, 1]");
+        Spec noCeiling = Standard();
+        noCeiling.CeilingFraction = 1.5;
+        Rejects(noCeiling, "tuning.accelerationCreditCeilingFraction 1.5 must be in (0, 1]");
+        Spec sources = Standard();
+        sources.CreditSources = ["eureka"];
+        Rejects(sources, "tuning.accelerationCreditSources must be exactly [eureka, foreign_exposure]");
     }
 
     [Fact]

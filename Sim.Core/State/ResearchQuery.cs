@@ -7,8 +7,8 @@ namespace Sim.Core.State;
 /// ADR-029 §12 — THE research read seam (D-044 R17). These are pure, read-only
 /// queries over <see cref="IReadOnlyWorldState"/> and the loaded
 /// <see cref="ResearchContent"/>. <b>ResearchSystem computes with these same
-/// statics</b>: availability, subtree opening, effective cost, CLP throughput and
-/// Eureka conditions are each defined ONCE, here. So every Glass Box value is
+/// statics</b>: availability, subtree opening, effective cost, Research Points and
+/// the acceleration-credit pool are each defined ONCE, here. So every Glass Box value is
 /// RECOMPUTED by the function the simulation itself calls, never by a private
 /// re-implementation (observability-architecture §0; the FoodState precedent).
 ///
@@ -96,12 +96,24 @@ public static class ResearchQuery
     public static bool PrerequisitesMet(ResearchContent content, int node, bool[] completed) =>
         content.Nodes[node].Prerequisite is not { } p || p.Evaluate(null, a => completed[a], null);
 
-    /// <summary>AVAILABLE = not completed, its subtree open, and its prerequisite
-    /// expression (AND / OR / nested) satisfied by completed knowledge (D-044 R8).</summary>
-    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached) =>
-        !completed[node]
-        && (content.Nodes[node].Branch < 0 || stageReached)
-        && PrerequisitesMet(content, node, completed);
+    /// <summary>AVAILABLE = not completed, its subtree open, its prerequisite expression
+    /// (AND / OR / nested) satisfied by completed knowledge (D-044 R8), and — for a RECURSIVE
+    /// node only — every finite node of its own subtree complete (finalization ruling 4:
+    /// per-subtree exhaustion; repeat mechanics are deferred, so it still completes once).</summary>
+    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached)
+    {
+        ResearchNode n = content.Nodes[node];
+        if (completed[node] || (n.Branch >= 0 && !stageReached) || !PrerequisitesMet(content, node, completed)) return false;
+        return !n.IsRecursive || SubtreeExhausted(content, n.Branch, completed);
+    }
+
+    /// <summary>Whether every FINITE node of the subtree is complete — what a recursive node
+    /// of that subtree waits for.</summary>
+    public static bool SubtreeExhausted(ResearchContent content, int branch, bool[] completed)
+    {
+        foreach (int i in content.FiniteNodesBySubtree[branch]) if (!completed[i]) return false;
+        return true;
+    }
 
     public static bool[] AvailableMask(ResearchContent content, bool[] completed)
     {
@@ -193,7 +205,7 @@ public static class ResearchQuery
         return false;
     }
 
-    /// <summary>READ: CLP invested in a node the polity has not completed (0 if none).
+    /// <summary>READ: RP invested in a node the polity has not completed (0 if none).
     /// A completed node has no progress row — completion is the fact.</summary>
     public static double Progress(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node)
     {
@@ -222,29 +234,37 @@ public static class ResearchQuery
     /// <summary>One specialized-university term in a node's cost (ADR-029 §9).</summary>
     public readonly record struct CostTerm(int ModifierRow, int UniversityType, string UniversityId, int Branch, double Factor);
 
-    /// <summary>BaseCost → relevant modifiers → EffectiveCost (D-044 R5), decomposed.</summary>
-    public sealed record CostBreakdown(ResearchNodeId Node, double BaseCost, CostTerm[] Terms, double EffectiveCost);
+    /// <summary>BaseCost → relevant modifiers → EffectiveCost (D-044 R5), decomposed. <paramref name="Modified"/>
+    /// is BaseCost × Π Factor; <paramref name="Floor"/> the effective-cost floor; EffectiveCost the larger.</summary>
+    public sealed record CostBreakdown(
+        ResearchNodeId Node, double BaseCost, CostTerm[] Terms, double Modified, double Floor, double EffectiveCost)
+    {
+        /// <summary>Whether the floor, not the modifiers, sets the effective cost.</summary>
+        public bool FloorBinds => Floor > Modified;
+    }
 
     /// <summary>
-    /// EffectiveCost = BaseCost × Π Factor over the polity's ResearchCostModifier rows
-    /// whose university type serves the node's subtree, multiplied in TABLE ORDER
-    /// (a fixed order, so the product is bit-reproducible). Main-tree and Civics nodes
-    /// have no relevant university and cost BaseCost. The seam is the whole of the
+    /// EffectiveCost = max(effectiveCostFloorFraction × BaseCost, BaseCost × Π Factor) — the
+    /// floor (0.20) is the finalization ruling: no modifier stack takes a node below 20 % of its
+    /// base. The product runs over the polity's ResearchCostModifier rows whose university type
+    /// serves the node's subtree, multiplied in TABLE ORDER (a fixed order, so the product is
+    /// bit-reproducible). Main-tree and Civics nodes have no relevant university and cost BaseCost. The seam is the whole of the
     /// mechanism. The Factor values (maturity, viability, diminishing returns) are the
     /// future writer's, and no formula is invented here (D-044 R5). A malformed row
     /// — an unknown type, or a Factor outside (0, 1] — breaks the input contract and
     /// throws.
     /// </summary>
     public static double EffectiveCost(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node) =>
-        Cost(world, content, polity, node, null);
+        Math.Max(content.Tuning.EffectiveCostFloorFraction * content.Nodes[node].BaseCost, Modified(world, content, polity, node, null));
 
     public static CostBreakdown EffectiveCostBreakdown(
         IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
     {
         int index = RequireIndex(content, node);
         var terms = new List<CostTerm>();
-        double effective = Cost(world, content, polity, index, terms);
-        return new CostBreakdown(node, content.Nodes[index].BaseCost, [.. terms], effective);
+        double modified = Modified(world, content, polity, index, terms);
+        double floor = content.Tuning.EffectiveCostFloorFraction * content.Nodes[index].BaseCost;
+        return new CostBreakdown(node, content.Nodes[index].BaseCost, [.. terms], modified, floor, Math.Max(floor, modified));
     }
 
     /// <summary>The polity's specialized-university modifiers, table order — every
@@ -262,7 +282,7 @@ public static class ResearchQuery
         return [.. terms];
     }
 
-    private static double Cost(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node, List<CostTerm>? terms)
+    private static double Modified(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node, List<CostTerm>? terms)
     {
         ResearchNode n = content.Nodes[node];
         double cost = n.BaseCost;
@@ -292,7 +312,7 @@ public static class ResearchQuery
         return content.UniversityTypes[t];
     }
 
-    // ------------------------------------------------------------------ CLP
+    // ------------------------------------------------------------------ Research Points
 
     /// <summary>Adults (cohorts 3..11, every class) in the settlements the polity
     /// controls — each settlement once, credited to its lowest-id controller
@@ -313,7 +333,9 @@ public static class ResearchQuery
     }
 
     /// <summary>Total population (every cohort and class) of the settlements the polity
-    /// controls, each settlement once (lowest-id controller, as <see cref="Adults"/>).</summary>
+    /// controls, each settlement once (lowest-id controller, as <see cref="Adults"/>). The
+    /// military-population weight of the RP input is a calibration parameter that stays inert
+    /// until soldier accounting exists (ADR-030 §6), so every person counts once.</summary>
     public static long Population(IReadOnlyWorldState world, PolityId polity)
     {
         long population = 0;
@@ -331,45 +353,43 @@ public static class ResearchQuery
     }
 
     /// <summary>
-    /// Research capacity per reference turn, RP(P) = RP₁ · (P / P₁)^e (ADR-029 §6) — the
-    /// Director's two-anchor curve, 100 → 2 and 1000 → 10 (e = log10 5 ≈ 0.69897).
-    /// PROVISIONAL CALIBRATION, not ratified architecture (Director ruling 2026-10-01 §2).
-    /// Population is the only input: literacy, education, universities, health and the
-    /// rest are FUTURE modifiers, not part of this base curve. Sublinear by validation.
+    /// Research Points per strategic turn for a population: rpPerTurn.coefficient ×
+    /// population^rpPerTurn.exponent (0.08 × P^0.699; anchors 100 → 2, 1,000 → 10). Sublinear by
+    /// validation (exponent &lt; 1). Calibration values, not ratified constants; the PER-TURN
+    /// reading is the ruling (ADR-030). Population is the only input — literacy, education,
+    /// universities and the rest are FUTURE modifiers, not part of this base curve.
     /// </summary>
-    public static double ResearchCapacity(ResearchTuning tuning, double population) =>
-        population <= 0.0 ? 0.0 : tuning.RpAnchorPerTurn * Math.Pow(population / tuning.RpAnchorPopulation, tuning.RpExponent);
+    public static double ResearchPoints(ResearchTuning tuning, double population) =>
+        population <= 0.0 ? 0.0 : tuning.RpCoefficient * Math.Pow(population, tuning.RpExponent);
 
     /// <summary>
-    /// RP per sim-year for the polity: RP(population) / rpReferenceTurnYears. A step
-    /// credits this × dtYears (law 3), so a turn of exactly rpReferenceTurnYears yields
-    /// RP(P) — the anchors' "per turn". Whether research should instead be per turn
-    /// regardless of dt is OPEN (CR-018).
+    /// The polity's ONE shared Research Point pool for this turn (D-044 R2; finalization
+    /// terminology ruling): the RP the active target receives, whichever tree it is in. Per turn,
+    /// NOT multiplied by dtYears — ADR-030's scoped exception to law 3; the system's throughput
+    /// line is the only place it is spent.
     /// </summary>
-    public static double ResearchPerYear(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
-        ResearchCapacity(content.Tuning, Population(world, polity)) / content.Tuning.RpReferenceTurnYears;
+    public static double ResearchPointPool(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
+        ResearchPoints(content.Tuning, Population(world, polity));
 
-    // ------------------------------------------------------------------ Eureka
+    // ------------------------------------------------------------------ acceleration credit (Eureka + foreign exposure)
 
-    /// <summary>Whether this condition of this Eureka string has already been credited.</summary>
-    public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka, int condition = 0)
+    public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka)
     {
         for (int i = 0; i < world.ResearchEurekas.Count; i++)
         {
             ResearchEurekaRow row = world.ResearchEurekas[i];
-            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value && row.Eureka == eureka && row.Condition == condition)
-                return true;
+            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value && row.Eureka == eureka) return true;
         }
         return false;
     }
 
     /// <summary>
-    /// Whether one Eureka condition holds for the polity NOW (ADR-029 §7). Node atoms
-    /// read the polity's completed knowledge. A condition that reads any
-    /// settlement-scoped operand — a registered variable, or a stock_&lt;good&gt;
-    /// quantity — holds when it holds in AT LEAST ONE settlement the polity controls,
-    /// taken in table order. A condition over node atoms only is evaluated once, at
-    /// polity scope. An unpublished variable reads 0.0 (the ProductionSystem precedent).
+    /// Whether a Eureka condition holds for the polity NOW (ADR-029 §7). Node atoms read the
+    /// polity's completed knowledge. A condition that reads any settlement-scoped operand — a
+    /// registered variable, or a stock_&lt;good&gt; quantity — holds when it holds in AT LEAST ONE
+    /// settlement the polity controls, taken in table order. A condition over node atoms only is
+    /// evaluated once, at polity scope. An unpublished variable reads 0.0 (the ProductionSystem
+    /// precedent).
     /// </summary>
     public static bool EurekaHolds(
         IReadOnlyWorldState world, ResearchContent content, PolityId polity, Predicate condition, bool[] completed)
@@ -387,25 +407,56 @@ public static class ResearchQuery
         return false;
     }
 
-    /// <summary>The credit one condition is worth: EurekaFullCreditFraction × BaseCost × its share.</summary>
-    public static double EurekaConditionCredit(ResearchContent content, ResearchNode node, ResearchEureka eureka) =>
-        content.Tuning.EurekaFullCreditFraction * node.BaseCost * eureka.ConditionShare;
+    /// <summary>The credit one Eureka is worth before the pool caps it: weight × BaseCost.</summary>
+    public static double EurekaCredit(ResearchNode node, ResearchEureka eureka) => eureka.Weight * node.BaseCost;
 
-    /// <summary>One condition of a node's Eureka as the Glass Box shows it.</summary>
-    public sealed record EurekaConditionState(int Condition, string Source, bool Credited, bool HoldsNow, double Credit);
-
-    /// <summary>A node's Eureka strings as the Glass Box shows them.</summary>
-    public sealed record EurekaState(
-        int Index, string Text, EurekaStatus Status, EurekaCategory Category, double Share, string? Reason,
-        string? FutureSystem, EurekaConditionState[] Conditions)
+    /// <summary>The cumulative acceleration credit one source has added to a node (provenance).</summary>
+    public static double CreditedBySource(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, AccelerationSource source)
     {
-        /// <summary>The single condition's source (A strings), else null.</summary>
-        public string? Condition => Conditions.Length == 1 ? Conditions[0].Source : null;
-        /// <summary>True when every condition of the string has been credited (false for a string with none).</summary>
-        public bool Fired => Conditions.Length > 0 && Array.TrueForAll(Conditions, c => c.Credited);
-        /// <summary>Null for a string with no condition; otherwise whether any uncredited condition holds now.</summary>
-        public bool? HoldsNow => Conditions.Length == 0 ? null : Array.Exists(Conditions, c => c.HoldsNow);
+        double total = 0.0;
+        for (int i = 0; i < world.ResearchCredits.Count; i++)
+        {
+            ResearchCreditRow row = world.ResearchCredits[i];
+            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value && row.Source == (int)source) total += row.Amount;
+        }
+        return total;
     }
+
+    /// <summary>The foreign-exposure credit offered to the polity for the node (input seam; 0 when no row).</summary>
+    public static double ExposureOffered(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node)
+    {
+        double total = 0.0;
+        for (int i = 0; i < world.ResearchExposures.Count; i++)
+        {
+            ResearchExposureRow row = world.ResearchExposures[i];
+            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value) total += row.Offered;
+        }
+        return total;
+    }
+
+    /// <summary>A node's shared acceleration pool as the Glass Box shows it: the ceiling
+    /// (accelerationCreditCeilingFraction × BaseCost), what each source has credited, and the
+    /// headroom left. Eureka and foreign exposure draw on this ONE pool.</summary>
+    public sealed record AccelerationPool(
+        ResearchNodeId Node, double Ceiling, double Eureka, double ForeignExposure, double ExposureOffered)
+    {
+        public double Credited => Eureka + ForeignExposure;
+        public double Headroom => Math.Max(0.0, Ceiling - Credited);
+    }
+
+    public static AccelerationPool AccelerationPoolOf(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
+    {
+        ResearchNode n = content.Nodes[RequireIndex(content, node)];
+        return new AccelerationPool(node, content.Tuning.AccelerationCreditCeilingFraction * n.BaseCost,
+            CreditedBySource(world, polity, node, AccelerationSource.Eureka),
+            CreditedBySource(world, polity, node, AccelerationSource.ForeignExposure),
+            ExposureOffered(world, polity, node));
+    }
+
+    /// <summary>One Eureka of a node as the Glass Box shows it.</summary>
+    public sealed record EurekaState(
+        int Index, string Text, string Kind, string Justification, string System, string Class, string Source,
+        double Weight, double MaxCredit, string? Condition, bool Fired, bool? HoldsNow);
 
     public static EurekaState[] Eurekas(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
     {
@@ -416,39 +467,34 @@ public static class ResearchQuery
         for (int e = 0; e < n.Eurekas.Count; e++)
         {
             ResearchEureka eu = n.Eurekas[e];
-            var conditions = new EurekaConditionState[eu.Conditions.Count];
-            for (int c = 0; c < conditions.Length; c++)
-                conditions[c] = new EurekaConditionState(c, eu.Conditions[c].Source, EurekaFired(world, polity, node, e, c),
-                    EurekaHolds(world, content, polity, eu.Conditions[c], completed), EurekaConditionCredit(content, n, eu));
-            result[e] = new EurekaState(e, eu.Text, eu.Status, eu.Category, eu.Share, eu.Reason, eu.FutureSystem, conditions);
+            result[e] = new EurekaState(e, eu.Text, eu.Kind, eu.Justification, eu.System, eu.Class, eu.Source, eu.Weight,
+                EurekaCredit(n, eu), eu.Condition?.Source, EurekaFired(world, polity, node, e),
+                eu.Condition is null ? null : EurekaHolds(world, content, polity, eu.Condition, completed));
         }
         return result;
     }
 
-    /// <summary>The node's Eureka progress (Director ruling 2026-10-01 §6): credited conditions
-    /// k of N evaluable, the credited share of the full Eureka (0..1), and the evaluable share.</summary>
-    public sealed record EurekaProgress(int Credited, int Evaluable, double CreditedShare, double EvaluableShare);
+    /// <summary>The node's Eureka progress (partial Eurekas): fired of total, evaluable today,
+    /// and the weight fired (0 … the node's total weight, at most 0.40).</summary>
+    public sealed record EurekaProgress(int Fired, int Total, int EvaluableNow, double FiredWeight, double TotalWeight);
 
     public static EurekaProgress EurekaProgressOf(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
     {
         ResearchNode n = content.Nodes[RequireIndex(content, node)];
-        int credited = 0, evaluable = 0;
-        double creditedShare = 0.0, evaluableShare = 0.0;
+        int fired = 0, evaluable = 0;
+        double firedWeight = 0.0, totalWeight = 0.0;
         for (int e = 0; e < n.Eurekas.Count; e++)
         {
             ResearchEureka eu = n.Eurekas[e];
-            for (int c = 0; c < eu.Conditions.Count; c++)
-            {
-                evaluable++;
-                evaluableShare += eu.ConditionShare;
-                if (EurekaFired(world, polity, node, e, c)) { credited++; creditedShare += eu.ConditionShare; }
-            }
+            totalWeight += eu.Weight;
+            if (eu.EvaluableNow) evaluable++;
+            if (EurekaFired(world, polity, node, e)) { fired++; firedWeight += eu.Weight; }
         }
-        return new EurekaProgress(credited, evaluable, creditedShare, evaluableShare);
+        return new EurekaProgress(fired, n.Eurekas.Count, evaluable, firedWeight, totalWeight);
     }
 
-    /// <summary>The baseline capabilities (Director ruling 2026-10-01 §1): available to every
-    /// polity with zero completed nodes, because they are not research nodes at all.</summary>
+    /// <summary>The baseline capabilities (D-045 §1): available to every polity with zero
+    /// completed nodes, because they are not research nodes at all.</summary>
     public static IReadOnlyList<ResearchBaselineCapability> BaselineCapabilities(ResearchContent content) => content.Baseline;
 
     private static double Variable(IReadOnlyWorldState world, SettlementId settlement, int varId)

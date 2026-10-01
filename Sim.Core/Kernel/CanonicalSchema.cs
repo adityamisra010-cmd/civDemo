@@ -86,7 +86,7 @@ public static class CanonicalSchema
     /// v26 (ADR-029, D-044): ResearchTargets, ResearchProgress, ResearchCompleted,
     /// ResearchEurekas and ResearchCostModifiers appended after Disasters — the
     /// minimum authoritative research state (the one active target per polity,
-    /// per-node partial progress in CLP, the completed-knowledge relation, the
+    /// per-node partial progress in RP, the completed-knowledge relation, the
     /// fired-Eureka relation) plus the specialized-university cost-factor input
     /// contract, which no system writes yet. Node ids are the STABLE keys of
     /// research.json. COLLISION NOTE, appended to the v25 note above: v25 is
@@ -94,7 +94,11 @@ public static class CanonicalSchema
     /// `m5-full-build` "v25" (TaxPolicies) now takes v27 when it rebases, not v26.
     /// It also holds OrderKind 5 and SystemId 22, and this schema's writer took
     /// OrderKind 6 and SystemId 24 so that neither collides. There is exactly
-    /// one meaning of every version number in this file.
+    /// one meaning of every version number in this file. ADR-029 addendum A
+    /// (research finalization, before v26 reached main) appended ResearchCredits
+    /// (acceleration-credit provenance per source) and ResearchExposures (the
+    /// foreign-exposure input seam, no writer) and gave ResearchEurekas back its
+    /// three-field layout; v26 has never been on main, so its layout changed in place.
     /// v24 (M4-D): ConstructionQueue and Structures appended after Capitals —
     /// the per-settlement construction queue (ordered by an explicit Slot, never
     /// by row position) and the completed-structure counts. No progress field
@@ -161,7 +165,9 @@ public static class CanonicalSchema
     private const int ResearchTargetRowWidth = 4 + 4;               // Polity, Node (v26)
     private const int ResearchProgressRowWidth = 4 + 4 + 8;         // Polity, Node, Progress bits (v26)
     private const int ResearchCompletedRowWidth = 4 + 4;            // Polity, Node (v26)
-    private const int ResearchEurekaRowWidth = 4 + 4 + 4 + 4;       // Polity, Node, Eureka, Condition (v26)
+    private const int ResearchEurekaRowWidth = 4 + 4 + 4;           // Polity, Node, Eureka (v26)
+    private const int ResearchCreditRowWidth = 4 + 4 + 4 + 8;       // Polity, Node, Source, Amount bits (v26, addendum A)
+    private const int ResearchExposureRowWidth = 4 + 4 + 8;         // Polity, Node, Offered bits (v26, addendum A)
     private const int ResearchCostModifierRowWidth = 4 + 4 + 8;     // Polity, UniversityType, Factor bits (v26)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
@@ -617,7 +623,7 @@ public static class CanonicalSchema
             writer.Write(row.Node.Value);
         }
 
-        // 42. ResearchProgress (v26: per-node partial progress, CLP)
+        // 42. ResearchProgress (v26: per-node partial progress, RP)
         writer.Write(world.ResearchProgress.Count);
         for (int i = 0; i < world.ResearchProgress.Count; i++)
         {
@@ -636,7 +642,7 @@ public static class CanonicalSchema
             writer.Write(row.Node.Value);
         }
 
-        // 44. ResearchEurekas (v26: the credited-Eureka-condition relation)
+        // 44. ResearchEurekas (v26: the fired-Eureka relation)
         writer.Write(world.ResearchEurekas.Count);
         for (int i = 0; i < world.ResearchEurekas.Count; i++)
         {
@@ -644,7 +650,6 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.Node.Value);
             writer.Write(row.Eureka);
-            writer.Write(row.Condition);
         }
 
         // 45. ResearchCostModifiers (v26: specialized-university cost factors — input contract)
@@ -655,6 +660,27 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.UniversityType);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Factor));
+        }
+
+        // 46. ResearchCredits (v26, ADR-029 addendum A: acceleration-credit provenance per source)
+        writer.Write(world.ResearchCredits.Count);
+        for (int i = 0; i < world.ResearchCredits.Count; i++)
+        {
+            ResearchCreditRow row = world.ResearchCredits[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(row.Source);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Amount));
+        }
+
+        // 47. ResearchExposures (v26, ADR-029 addendum A: the foreign-exposure input seam)
+        writer.Write(world.ResearchExposures.Count);
+        for (int i = 0; i < world.ResearchExposures.Count; i++)
+        {
+            ResearchExposureRow row = world.ResearchExposures[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Offered));
         }
     }
 
@@ -1060,7 +1086,7 @@ public static class CanonicalSchema
         for (int i = 0; i < researchEurekaCount; i++)
         {
             world.ResearchEurekas.Add(new ResearchEurekaRow(
-                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32()));
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
         int researchCostModifierCount = reader.ReadInt32();
@@ -1068,6 +1094,22 @@ public static class CanonicalSchema
         {
             world.ResearchCostModifiers.Add(new ResearchCostModifierRow(
                 new PolityId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int researchCreditCount = reader.ReadInt32();
+        for (int i = 0; i < researchCreditCount; i++)
+        {
+            world.ResearchCredits.Add(new ResearchCreditRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int researchExposureCount = reader.ReadInt32();
+        for (int i = 0; i < researchExposureCount; i++)
+        {
+            world.ResearchExposures.Add(new ResearchExposureRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
@@ -1126,5 +1168,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.ResearchProgress.Count * ResearchProgressRowWidth
         + CountPrefixWidth + (long)world.ResearchCompleted.Count * ResearchCompletedRowWidth
         + CountPrefixWidth + (long)world.ResearchEurekas.Count * ResearchEurekaRowWidth
-        + CountPrefixWidth + (long)world.ResearchCostModifiers.Count * ResearchCostModifierRowWidth;
+        + CountPrefixWidth + (long)world.ResearchCostModifiers.Count * ResearchCostModifierRowWidth
+        + CountPrefixWidth + (long)world.ResearchCredits.Count * ResearchCreditRowWidth
+        + CountPrefixWidth + (long)world.ResearchExposures.Count * ResearchExposureRowWidth;
 }

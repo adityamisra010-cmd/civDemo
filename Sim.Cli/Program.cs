@@ -83,7 +83,7 @@ namespace Sim.Cli
                           [--auto cheapest] [--emit-orders PATH]
 
                 research (ADR-029) runs the FOUNDED world and prints the Glass Box
-                research report for one polity (default 1): the CLP throughput, the
+                research report for one polity (default 1): the Research Point pool, the
                 active target, completed knowledge per tree and subtree, the research
                 stage, available nodes, partial progress, Eurekas and university cost
                 modifiers. --node ID adds one node's full breakdown. --auto cheapest

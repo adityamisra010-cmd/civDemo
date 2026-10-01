@@ -113,8 +113,11 @@ public static class SnapshotDiff
         new("ResearchTargets", [I("Polity"), I("Node")]),
         new("ResearchProgress", [I("Polity"), I("Node"), D("Progress")]),
         new("ResearchCompleted", [I("Polity"), I("Node")]),
-        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka"), I("Condition")]),
+        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka")]),
         new("ResearchCostModifiers", [I("Polity"), I("UniversityType"), D("Factor")]),
+        // v26, ADR-029 addendum A: acceleration-credit provenance and the foreign-exposure seam.
+        new("ResearchCredits", [I("Polity"), I("Node"), I("Source"), D("Amount")]),
+        new("ResearchExposures", [I("Polity"), I("Node"), D("Offered")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

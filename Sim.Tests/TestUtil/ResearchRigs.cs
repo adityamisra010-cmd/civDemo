@@ -13,20 +13,21 @@ namespace Sim.Tests.TestUtil;
 /// VALID research.json in memory — the real loader validates it, so every rig graph
 /// passes the same rules as the shipped one — and <see cref="World"/> builds a
 /// hand-made world whose research is exact: <c>adults</c> people in cohort 5 of each
-/// controlled settlement, and at the rig anchors (10 000 → 1 000 per 10-year reference
-/// turn; exponent 0.5) a population of 10 000 at dt = 10 years is exactly 1 000 RP per turn.
+/// controlled settlement, and at the rig calibration (RP per turn = 10 × P^0.5) a
+/// population of 10 000 makes EXACTLY 1 000 RP per turn — at any dt (ADR-030).
 /// </summary>
 internal static class ResearchRigs
 {
     public const int Player = 1;
 
-    /// <summary>One Eureka string. <paramref name="When"/> is a single condition (category A);
-    /// <paramref name="Parts"/> several (B). Non-evaluable strings get a reason, and a future
-    /// system for the C statuses, unless given. <paramref name="Category"/> overrides the
-    /// derived letter (to test the loader's agreement check).</summary>
+    /// <summary>One Eureka. <paramref name="When"/> is its machine condition, or null for a
+    /// future-system one. <paramref name="Weight"/> null = the equal default (0.40 ÷ N).
+    /// <paramref name="Class"/> and <paramref name="EvaluableNow"/> override the derived values
+    /// (to test the loader's agreement checks).</summary>
     public sealed record Eu(
-        string Text, string? When, string Status = "evaluable", string[]? Parts = null, double? Weight = null,
-        string? Reason = null, string? FutureSystem = null, string? Category = null);
+        string Text, string? When, double? Weight = null, string? System = null, string? Class = null,
+        bool? EvaluableNow = null, string Kind = "environmental", string Source = "authored",
+        string Justification = "rig justification");
 
     public sealed record Node(
         int Key, string Id, string? Prereq = null, double Cost = 2500.0, string? Branch = null,
@@ -42,13 +43,21 @@ internal static class ResearchRigs
         public List<Node> Civics { get; } = [];
         public List<Entity> Entities { get; } = [];
         public string Stage { get; set; } = "a";
-        /// <summary>Rig anchors: 10 000 people → 1 000 RP per 10-year reference turn, and
-        /// 1 000 000 → 10 000 (exponent exactly 0.5), so a 10 000-person world yields EXACTLY
-        /// 1 000 RP per dt-10 turn and every expected value below stays exact.</summary>
-        public double[] RpAnchor1 { get; set; } = [10_000, 1_000];
-        public double[] RpAnchor2 { get; set; } = [1_000_000, 10_000];
-        public double RpReferenceTurnYears { get; set; } = 10.0;
-        public double EurekaFullFraction { get; set; } = 0.4;
+        /// <summary>Rig calibration: RP per turn = 10 × P^0.5, so 10 000 people make EXACTLY
+        /// 1 000 RP per turn and every expected value below stays exact.</summary>
+        public double RpCoefficient { get; set; } = 10.0;
+        public double RpExponent { get; set; } = 0.5;
+        /// <summary>The stated anchors; null = computed from the coefficient and exponent.</summary>
+        public (double Population, double Rp)[]? RpAnchors { get; set; }
+        public double FloorFraction { get; set; } = 0.2;
+        public double CeilingFraction { get; set; } = 0.4;
+        public string[] CreditSources { get; set; } = ["eureka", "foreign_exposure"];
+        /// <summary>Cost model of the rig: U = 50, K = 2. Every rig node's cost is reproduced
+        /// exactly by magnitude = log2(cost / 50) spread across the six factors.</summary>
+        public double CostU { get; set; } = 50.0;
+        public double CostK { get; set; } = 2.0;
+        public List<string> Recursive { get; } = [];
+        public List<string> Speculative { get; } = [];
         public bool WithBaseline { get; set; } = true;
 
         public string Json()
@@ -81,23 +90,13 @@ internal static class ResearchRigs
                 var eurekas = new JsonArray();
                 foreach (Eu eu in n.Eurekas ?? [])
                 {
-                    bool future = eu.Status is "no-state-carrier" or "institution-state-absent" or "contact-state-absent";
-                    string letter = eu.Category ?? eu.Status switch
-                    {
-                        "evaluable" => eu.Parts is null ? "A" : "B",
-                        "implied-by-prerequisites" => "D",
-                        "dead" => "E",
-                        "requires-authoring" => "F",
-                        _ => "C",
-                    };
-                    JsonArray? parts = null;
-                    if (eu.Parts is not null) { parts = []; foreach (string part in eu.Parts) parts.Add(part); }
+                    string system = eu.System ?? (eu.When is null ? "resources/terrain" : "goods state");
                     eurekas.Add(new JsonObject
                     {
-                        ["text"] = eu.Text, ["category"] = letter, ["status"] = eu.Status, ["when"] = eu.When, ["parts"] = parts,
-                        ["weight"] = eu.Weight,
-                        ["reason"] = eu.Reason ?? (eu.Status == "evaluable" ? null : "rig reason"),
-                        ["futureSystem"] = eu.FutureSystem ?? (future ? "rig future system" : null),
+                        ["text"] = eu.Text, ["when"] = eu.When, ["kind"] = eu.Kind, ["justification"] = eu.Justification,
+                        ["system"] = system, ["evaluable_now"] = eu.EvaluableNow ?? (eu.When is not null),
+                        ["weight"] = eu.Weight, ["source"] = eu.Source,
+                        ["class"] = eu.Class ?? (eu.When is not null ? "machine-evaluable" : "future-system:" + system),
                     });
                 }
                 var o = new JsonObject
@@ -123,7 +122,47 @@ internal static class ResearchRigs
                 o["family"] = null;
                 o["generation"] = null;
                 o["effects"] = new JsonObject { ["immediate"] = new JsonArray() };
-                o["repeatable"] = null;
+                bool recursive = Recursive.Contains(n.Id);
+                if (recursive)
+                {
+                    int finite = Technologies.FindAll(t => t.Branch == n.Branch && !Recursive.Contains(t.Id)).Count;
+                    o["repeatable"] = new JsonObject
+                    {
+                        ["repeatable"] = true,
+                        ["availability"] = new JsonObject { ["subtree"] = n.Branch, ["finite_nodes_to_exhaust"] = finite },
+                    };
+                }
+                else o["repeatable"] = null;
+                var relevance = new JsonArray();
+                if (!civic)
+                {
+                    int primary = n.Branch switch
+                    {
+                        "military" => 1, "medicine" => 2, "natural_science" => 4, "agriculture" => 5, _ => 3,
+                    };
+                    relevance.Add(new JsonObject { ["type"] = primary, ["name"] = UniversityShortNames[primary - 1], ["role"] = "primary" });
+                }
+                o["universityRelevance"] = relevance;
+                // magnitude = log2(cost / U), spread across the factors in order within their ranges.
+                double magnitude = n.Cost > 0.0 ? Math.Log(n.Cost / CostU, CostK) : 0.5; // invalid costs: the cost rule fires first
+                double left = magnitude;
+                double[] max = [2.0, 3.5, 2.0, 3.0, 1.5, 1.0];
+                double[] f = new double[6];
+                f[0] = Math.Min(max[0], Math.Max(0.5, left));
+                left -= f[0];
+                for (int k = 1; k < 6; k++) { f[k] = Math.Min(max[k], Math.Max(0.0, left)); left -= f[k]; }
+                double sum = 0.0;
+                foreach (double x in f) sum += x;
+                o["costRationale"] = new JsonObject
+                {
+                    ["tier"] = recursive ? "TR" : Speculative.Contains(n.Id) ? "TS" : "T2",
+                    ["factors"] = new JsonObject
+                    {
+                        ["novelty"] = f[0], ["difficulty"] = f[1], ["material"] = f[2],
+                        ["institutional"] = f[3], ["breadth"] = f[4], ["prereq_complexity"] = f[5],
+                    },
+                    ["magnitude"] = sum, ["content_cost"] = n.Cost, ["calibration_adjustment"] = 0, ["note"] = null,
+                };
                 return o;
             }
 
@@ -147,11 +186,19 @@ internal static class ResearchRigs
                 },
                 ["tuning"] = new JsonObject
                 {
-                    ["rpAnchors"] = new JsonArray(
-                        new JsonObject { ["population"] = RpAnchor1[0], ["rpPerTurn"] = RpAnchor1[1] },
-                        new JsonObject { ["population"] = RpAnchor2[0], ["rpPerTurn"] = RpAnchor2[1] }),
-                    ["rpReferenceTurnYears"] = RpReferenceTurnYears,
-                    ["eurekaFullCreditFraction"] = EurekaFullFraction,
+                    ["rpPerTurn"] = new JsonObject
+                    {
+                        ["coefficient"] = RpCoefficient, ["exponent"] = RpExponent, ["input"] = "population", ["unit"] = "RP per turn",
+                        ["anchors"] = Anchors(), ["status"] = "rig calibration",
+                    },
+                    ["effectiveCostFloorFraction"] = FloorFraction,
+                    ["accelerationCreditCeilingFraction"] = CeilingFraction,
+                    ["accelerationCreditSources"] = Strings(CreditSources),
+                    ["costModel"] = new JsonObject
+                    {
+                        ["formula"] = "BaseCost = U × K^magnitude", ["U"] = CostU, ["U_basis"] = "rig", ["K"] = CostK,
+                        ["K_basis"] = "rig", ["magnitude"] = "sum of factors", ["status"] = "rig",
+                    },
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject
@@ -175,6 +222,11 @@ internal static class ResearchRigs
                 ["technologies"] = techs,
                 ["civics"] = civs,
                 ["entities"] = ents,
+                ["researchSets"] = new JsonObject
+                {
+                    ["finite"] = "every non-repeatable node", ["recursive"] = Strings([.. Recursive]),
+                    ["speculative_finite"] = Strings([.. Speculative]),
+                },
             };
             return doc.ToJsonString();
         }
@@ -184,8 +236,26 @@ internal static class ResearchRigs
         private static JsonObject Branch(int key, string id, string number, string name) =>
             new() { ["key"] = key, ["id"] = id, ["number"] = number, ["name"] = name };
 
+        private static readonly string[] UniversityShortNames = ["Military", "Medical", "Engineering", "Natural Science", "Agricultural"];
+
         private static JsonObject Uni(int key, string id, string branch) =>
-            new() { ["key"] = key, ["id"] = id, ["name"] = id, ["branch"] = branch };
+            new() { ["key"] = key, ["id"] = id, ["name"] = UniversityShortNames[key - 1] + " University", ["branch"] = branch };
+
+        private JsonObject Anchors()
+        {
+            var o = new JsonObject();
+            foreach ((double pop, double rp) in RpAnchors ?? [(10_000, RpCoefficient * Math.Pow(10_000, RpExponent)),
+                                                             (1_000_000, RpCoefficient * Math.Pow(1_000_000, RpExponent))])
+                o[pop.ToString("R", CultureInfo.InvariantCulture)] = rp;
+            return o;
+        }
+
+        private static JsonArray Strings(string[] values)
+        {
+            var a = new JsonArray();
+            foreach (string v in values) a.Add(v);
+            return a;
+        }
     }
 
     /// <summary>The atoms of a corpus-grammar expression (ids only).</summary>
@@ -208,7 +278,7 @@ internal static class ResearchRigs
     ///  eureka: w (trunk, requires a) "stock_timber &gt; 0" and "c"
     ///  entity: building.hall requires c
     /// </code>
-    /// Every cost is 2500 CLP unless stated.
+    /// Every cost is 2500 RP unless stated.
     /// </summary>
     public static Spec Standard()
     {

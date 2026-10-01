@@ -78,19 +78,21 @@ namespace Sim.Tests.Kernel;
 /// worlds' migration and demographics instead of leaking anywhere they had no
 /// business being.
 ///
-/// ADR-029 (D-044) ADDS A FOURTH LAYER: schema v26 appends the five research
-/// tables — ResearchTargets, ResearchProgress, ResearchCompleted, ResearchEurekas
-/// and ResearchCostModifiers — AFTER Disasters, and the production pipeline gains
+/// ADR-029 (D-044) ADDS A FOURTH LAYER: schema v26 appends the seven research
+/// tables — ResearchTargets, ResearchProgress, ResearchCompleted, ResearchEurekas,
+/// ResearchCostModifiers and (addendum A) ResearchCredits and ResearchExposures —
+/// AFTER Disasters, and the production pipeline gains
 /// the ResearchSystem as its last entry. The system writes ONLY those tables. No
 /// other system reads them, and the system draws no RNG and records no ledger flow.
-/// In an order-less founded world it still writes rows, because Eurekas whose
-/// condition holds on an available root fire. <see cref="StripResearch"/> clears
-/// the five tables, and <see cref="HashAtSchemaV25"/> also drops their five empty
+/// Under the curated Eurekas of addendum A an order-less world writes NO research
+/// row in 300 turns (measured), so each research control also runs a research-DRIVEN
+/// arm, a target chosen whenever one is free, which does. <see cref="StripResearch"/> clears
+/// the seven tables, and <see cref="HashAtSchemaV25"/> also drops their seven empty
 /// count prefixes. The PRE-PACKET pins — the values on main at 93270cd — must
 /// return BYTE FOR BYTE on every pinned world. Any leak of research into
 /// population, food, trade, migration or anything else would survive the strip and
 /// break them. Every older control in this file strips the research layer too and
-/// drops its five prefixes, so every constant it carries is UNMOVED by this packet.
+/// drops its seven prefixes, so every constant it carries is UNMOVED by this packet.
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -186,7 +188,7 @@ public class IntegratedPinAttributionTests
 
     /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.
     /// Ten trailing empty tables since v26: Polities, Capitals (v23),
-    /// ConstructionQueue, Structures (v24), Disasters (v25) and the five research
+    /// ConstructionQueue, Structures (v24), Disasters (v25) and the seven research
     /// tables (v26).</summary>
     private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5 + ResearchTableCount);
 
@@ -194,11 +196,12 @@ public class IntegratedPinAttributionTests
     /// tree exactly as it stood before M4-C's founding wrote them.</summary>
     private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3 + ResearchTableCount);
 
-    /// <summary>ADR-029: the five v26 research tables, appended after Disasters.</summary>
-    private const int ResearchTableCount = 5;
+    /// <summary>ADR-029: the seven v26 research tables, appended after Disasters (two of
+    /// them, ResearchCredits and ResearchExposures, by addendum A).</summary>
+    private const int ResearchTableCount = 7;
 
     /// <summary>
-    /// ADR-029: clear the five research tables IN PLACE. It returns how many rows
+    /// ADR-029: clear the seven research tables IN PLACE. It returns how many rows
     /// were removed, so a caller can tell a populated strip from a vacuous one. The
     /// research system owns nothing else, draws no RNG and writes no ledger flow, so
     /// these tables are its entire footprint in the stream.
@@ -207,18 +210,21 @@ public class IntegratedPinAttributionTests
     {
         int removed = stripped.ResearchTargets.Count + stripped.ResearchProgress.Count
             + stripped.ResearchCompleted.Count + stripped.ResearchEurekas.Count
-            + stripped.ResearchCostModifiers.Count;
+            + stripped.ResearchCostModifiers.Count + stripped.ResearchCredits.Count
+            + stripped.ResearchExposures.Count;
         stripped.ResearchTargets.Clear();
         stripped.ResearchProgress.Clear();
         stripped.ResearchCompleted.Clear();
         stripped.ResearchEurekas.Clear();
         stripped.ResearchCostModifiers.Clear();
+        stripped.ResearchCredits.Clear();
+        stripped.ResearchExposures.Clear();
         return removed;
     }
 
     /// <summary>
     /// The stream as v25 — the tree exactly as it stood BEFORE the research packet
-    /// (main at 93270cd): the research rows removed, the five empty v26 prefixes
+    /// (main at 93270cd): the research rows removed, the seven empty v26 prefixes
     /// dropped, and NOTHING ELSE touched. The pre-packet pin must return byte for
     /// byte, or research changed something outside its own tables.
     /// </summary>
@@ -547,7 +553,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone()
     {
-        // The toy pipeline runs no research system: its whole movement is five empty
+        // The toy pipeline runs no research system: its whole movement is seven empty
         // count prefixes (SnapshotTests.GoldenHash on main).
         const string beforeResearch = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
@@ -569,12 +575,45 @@ public class IntegratedPinAttributionTests
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
-        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out int removed));
-        // Not vacuous: with no order, Eurekas on available roots still fire (ADR-029 §7).
-        Assert.True(world.ResearchEurekas.Count > 0, "no research rows to strip — control vacuous");
-        Assert.True(removed > 0);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
         Assert.Equal(0, world.ResearchTargets.Count);    // nobody chose a target
-        Assert.Equal(0, world.ResearchCompleted.Count);  // Eureka credit alone completes no root here
+        Assert.Equal(0, world.ResearchCompleted.Count);
+        // MEASURED (research finalization, addendum A): with no order, none of the 18 evaluable
+        // curated Eurekas holds on an available node within 300 turns, so the order-less arm
+        // writes NO research row and its strip is vacuous on its own. The research-DRIVEN arm
+        // below supplies the teeth: the same world with a target chosen every time one is free.
+        WorldState researched = RunWithResearchDriver(
+            Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42),
+            new OrderLog(), Unarmed(), 300, researchFrom: 0);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
+        Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+
+    /// <summary>
+    /// Runs a founded world with the measurement driver of ResearchDeterminismTests appending a
+    /// SetResearchTarget for the cheapest available node whenever the player has no target,
+    /// from turn <paramref name="researchFrom"/> on, on top of whatever <paramref name="orders"/>
+    /// already holds. Research writes only its own
+    /// tables, so the stripped stream must equal the pre-research pin byte for byte.
+    /// </summary>
+    private static WorldState RunWithResearchDriver(WorldState world, OrderLog orders, Sim.Core.Systems.SimConfig cfg, int turns, int researchFrom)
+    {
+        Sim.Core.Systems.Research.ResearchContent content = TestUtil.TestConfigs.Research();
+        var player = new PolityId(1);
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestUtil.TestConfigs.Worldgen())), orders);
+        for (int t = 0; t < turns; t++)
+        {
+            if (world.Clock.Turn >= researchFrom && !ResearchQuery.TryGetTarget(world, player, out _)
+                && ResearchQuery.CheapestAvailable(world, content, player) is { } pick)
+                orders.Append(OrderRecord.From(world.Clock.Turn, player, OrderKind.SetResearchTarget, pick.Value, 0.0));
+            world = executor.Step(world);
+        }
+        return world;
     }
 
     [Fact]
@@ -592,7 +631,15 @@ public class IntegratedPinAttributionTests
         // DrivenGoldenTests' golden on main.
         const string beforeResearch = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
-        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out int removed));
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+        // The order-less research arm writes no research row (measured; see the founded control),
+        // so the teeth are the same driven world with the research driver added to its orders.
+        WorldState founded = Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42);
+        WorldState researched = RunWithResearchDriver(founded,
+            DrivenGoldenTests.DrivingOrders(founded.Settlements.Count), Unarmed(), 300,
+            researchFrom: 2); // the log is append-only in turn order, and its batch is stamped turn 2
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
         Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
     }
 }

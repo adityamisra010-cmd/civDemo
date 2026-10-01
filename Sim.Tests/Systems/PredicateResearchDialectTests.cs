@@ -103,6 +103,23 @@ public class PredicateResearchDialectTests
     public void Dialect_CanHold_IsOptimisticOverComparisons_AndUndecidedWithNot(string src, bool[] atoms, bool expected) =>
         Assert.Equal(expected, Predicate.Parse(src, Symbols).CanHold(a => atoms[a]));
 
+    [Theory]
+    // MustHoldAtoms: the atoms true in EVERY satisfying assignment — AND unions, OR intersects,
+    // a comparison and a NOT contribute nothing (an under-approximation, never a false "must").
+    [InlineData("a", new[] { 0 })]
+    [InlineData("a AND b", new[] { 0, 1 })]
+    [InlineData("a OR b", new int[0])]
+    [InlineData("(a AND c) OR (b AND c)", new[] { 2 })]
+    [InlineData("(a AND c) OR (b AND d)", new int[0])]
+    [InlineData("d AND (a OR b) AND c", new[] { 2, 3 })]
+    [InlineData("a AND stock_timber > 0", new[] { 0 })]
+    [InlineData("stock_timber > 0 OR a", new int[0])]
+    [InlineData("NOT a", new int[0])]
+    [InlineData("b AND NOT a", new[] { 1 })]
+    [InlineData("(a OR b) AND (a OR c)", new int[0])]                                          // sound, not complete
+    public void Dialect_MustHoldAtoms_UnionUnderAnd_IntersectionUnderOr_SortedAndDistinct(string src, int[] expected) =>
+        Assert.Equal(expected, Predicate.Parse(src, Symbols).MustHoldAtoms());
+
     [Fact]
     public void Dialect_EvaluatingWithoutTheNeededReader_Throws()
     {

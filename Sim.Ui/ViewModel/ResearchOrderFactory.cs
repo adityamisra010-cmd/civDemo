@@ -28,12 +28,12 @@ public static class ResearchOrderFactory
             return null;
         // Turn semantics (§3.9): stamped with the CURRENT turn, the order is delivered to
         // the step executing FROM this turn's state — the very next End Turn press — and
-        // that step's CLP already goes to the new target.
+        // that step's RP already goes to the new target.
         return OrderRecord.From(world.Clock.Turn, issuer, OrderKind.SetResearchTarget, node.Value, 0.0);
     }
 
     /// <summary>The order that clears the target. Partial progress everywhere is kept
-    /// (D-044 R9). While there is no target, CLP reaches no node (R20-D).</summary>
+    /// (D-044 R9). While there is no target, RP reaches no node (R20-D).</summary>
     public static OrderRecord ClearTarget(long currentTurn, PolityId issuer) =>
         OrderRecord.From(currentTurn, issuer, OrderKind.SetResearchTarget, -1, 0.0);
 }

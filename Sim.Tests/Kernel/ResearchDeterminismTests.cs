@@ -19,7 +19,9 @@ namespace Sim.Tests.Kernel;
 [Trait("suite", "determinism")]
 public class ResearchDeterminismTests
 {
-    private const int Turns = 120;
+    // 320: under addendum A's content-derived costs the cheapest driver completes 20 nodes by
+    // turn 300 on this world (measured), so 320 keeps the >= 20 anti-vacuity bar below unweakened.
+    private const int Turns = 320;
     private static readonly PolityId Player = new(1);
 
     private static TurnExecutor Executor(OrderLog orders)
@@ -119,7 +121,7 @@ public class ResearchDeterminismTests
     public void Research_TurnExactDelivery_OnTheFoundedWorld()
     {
         // The first driver order is stamped turn 0; the world at turn 1 already holds
-        // exactly one turn of research on that node (ResearchPerYear on PREV × dtYears).
+        // exactly one turn of research on that node (ResearchPointPool on PREV — per turn, ADR-030).
         ResearchContent content = TestConfigs.Research();
         WorldState w0 = Found();
         ResearchNodeId pick = ResearchQuery.CheapestAvailable(w0, content, Player)!.Value;
@@ -127,17 +129,11 @@ public class ResearchDeterminismTests
         orders.Append(OrderRecord.From(0, Player, OrderKind.SetResearchTarget, pick.Value, 0.0));
         TurnExecutor ex = Executor(orders);
         WorldState w1 = ex.Step(w0);
-        // The step's dt is the era table's (the founding clock carries none yet).
-        double dtYears = (w1.Clock.SimDays - w0.Clock.SimDays) / (double)SimClock.YearDays;
         double expected = Math.Min(
-            ResearchQuery.ResearchPerYear(w0, content, Player) * dtYears,
+            ResearchQuery.ResearchPointPool(w0, content, Player),
             ResearchQuery.EffectiveCost(w0, content, Player, content.IndexOf(pick)));
         Assert.True(expected > 0.0);
-        double eureka = 0.0; // a credited Eureka condition on the same node also credits it this step
-        ResearchNode pickNode = content.Nodes[content.IndexOf(pick)];
-        for (int i = 0; i < w1.ResearchEurekas.Count; i++)
-            if (w1.ResearchEurekas[i].Node == pick)
-                eureka += ResearchQuery.EurekaConditionCredit(content, pickNode, pickNode.Eurekas[w1.ResearchEurekas[i].Eureka]);
+        double eureka = ResearchQuery.CreditedBySource(w1, Player, pick, AccelerationSource.Eureka); // credited this step too
         double got = ResearchQuery.IsCompleted(w1, Player, pick)
             ? ResearchQuery.EffectiveCost(w0, content, Player, content.IndexOf(pick))
             : ResearchQuery.Progress(w1, Player, pick);

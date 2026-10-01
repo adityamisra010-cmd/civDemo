@@ -784,18 +784,19 @@ public record struct DisasterRow(
 // ---------------------------------------------------------------------------
 // ADR-029 / D-044 — RESEARCH STATE (schema v26). The minimum authoritative
 // research state (D-044 R18): the active target, per-node partial progress,
-// the completed-knowledge set, and the fired-Eureka set. Everything else —
-// availability, subtree opening, effective cost, CLP throughput — is DERIVED
+// the completed-knowledge set, the fired-Eureka set and (addendum A) the
+// acceleration-credit provenance; ResearchExposures is an input seam. Everything else —
+// availability, subtree opening, effective cost, RP throughput — is DERIVED
 // from these rows and research.json by ResearchQuery and is never stored.
 // None of it is people, money or goods, so none of it touches the Ledger (law 1):
-// CLP and progress are rates/quantities of the research domain, stored as doubles
+// RP and progress are rates/quantities of the research domain, stored as doubles
 // (law 7), the PathProgressRow.Banked precedent.
 // ---------------------------------------------------------------------------
 
 /// <summary>
 /// ADR-029: a polity's ONE active research target (D-044 R9) — a Technology or a
 /// Civics node; one pool serves both trees (R2, R12). Owned by ResearchSystem.
-/// At most one row per polity; ABSENCE means no target, and the CLP throughput of
+/// At most one row per polity; ABSENCE means no target, and the RP throughput of
 /// a polity with no target reaches no node and is not stored anywhere (R20-D: no
 /// general bank). Set and cleared only by the SetResearchTarget order (D-042 §6.2:
 /// a persistent directive, not re-issued every turn); cleared by the system when
@@ -804,12 +805,12 @@ public record struct DisasterRow(
 public record struct ResearchTargetRow(PolityId Polity, ResearchNodeId Node);
 
 /// <summary>
-/// ADR-029: CLP invested in one node by one polity that has NOT completed it
+/// ADR-029: RP invested in one node by one polity that has NOT completed it
 /// (D-044 R9: partial progress is kept per node; switching target never erases
 /// it). Owned by ResearchSystem. Created lazily on the first credit — the active
-/// target's CLP or a Eureka — and removed when the node completes (completion is
+/// target's RP or an acceleration credit — and removed when the node completes (completion is
 /// then the fact; the progress is not needed to rebuild anything). Progress is in
-/// CLP, the same unit as the node's cost, and never exceeds the node's effective
+/// RP, the same unit as the node's cost, and never exceeds the node's effective
 /// cost at the time it was credited.
 /// </summary>
 public record struct ResearchProgressRow(PolityId Polity, ResearchNodeId Node, double Progress);
@@ -826,10 +827,32 @@ public record struct ResearchCompletedRow(PolityId Polity, ResearchNodeId Node);
 
 /// <summary>
 /// ADR-029: one fired Eureka — the Eureka at index <c>Eureka</c> of the node's
-/// list in research.json (D-044 R10). Owned by ResearchSystem. Row presence is the
-/// fact; a fired Eureka never fires again, so its credit is applied exactly once.
+/// list in research.json (D-044 R10). Each Eureka carries one condition. Owned by
+/// ResearchSystem. Row presence is the fact; a fired Eureka never fires again, so its
+/// credit is applied exactly once (finalization ruling: idempotence).
 /// </summary>
-public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka, int Condition);
+public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka);
+
+/// <summary>
+/// ADR-029 addendum A — ACCELERATION-CREDIT PROVENANCE. The cumulative credit one source
+/// (<c>Source</c> = <see cref="Sim.Core.Systems.Research.AccelerationSource"/>: 1 Eureka,
+/// 2 foreign exposure) has added to one node of one polity. All sources draw on ONE pool:
+/// their sum per node never exceeds accelerationCreditCeilingFraction × BaseCost (0.40).
+/// Owned by ResearchSystem; kept after completion so the Glass Box can say how a node was
+/// paid for. Created on a source's first credit to the node.
+/// </summary>
+public record struct ResearchCreditRow(PolityId Polity, ResearchNodeId Node, int Source, double Amount);
+
+/// <summary>
+/// ADR-029 addendum A — THE FOREIGN-EXPOSURE SEAM (finalization ruling 4). The CUMULATIVE
+/// foreign-exposure credit offered to one polity for one node (contact, trade, diffusion).
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE: its writer is a future contact/diffusion
+/// system, and NO SYSTEM WRITES IT YET (the ResearchCostModifierRow precedent). ResearchSystem
+/// reads it from Prev and credits the offered amount not yet credited, from the shared pool,
+/// capped at the pool's headroom and the remaining EffectiveCost — so an offer is never paid
+/// twice and never overflows.
+/// </summary>
+public record struct ResearchExposureRow(PolityId Polity, ResearchNodeId Node, double Offered);
 
 /// <summary>
 /// ADR-029 §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5). One polity's
@@ -934,6 +957,12 @@ public interface IReadOnlyWorldState
     /// <summary>ADR-029 §9: specialized-university cost factors — an input contract for the
     /// future institutions system; no system writes it yet.</summary>
     IReadOnlyTable<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchExposureRow> ResearchExposures { get; }
 }
 
 /// <summary>
@@ -1092,6 +1121,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-029 §9: specialized-university cost factors — no system writes it yet.</summary>
     public Table<ResearchCostModifierRow> ResearchCostModifiers { get; }
 
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    public Table<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — no system writes it yet.</summary>
+    public Table<ResearchExposureRow> ResearchExposures { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1137,6 +1172,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ResearchCompletedRow> IReadOnlyWorldState.ResearchCompleted => ResearchCompleted;
     IReadOnlyTable<ResearchEurekaRow> IReadOnlyWorldState.ResearchEurekas => ResearchEurekas;
     IReadOnlyTable<ResearchCostModifierRow> IReadOnlyWorldState.ResearchCostModifiers => ResearchCostModifiers;
+    IReadOnlyTable<ResearchCreditRow> IReadOnlyWorldState.ResearchCredits => ResearchCredits;
+    IReadOnlyTable<ResearchExposureRow> IReadOnlyWorldState.ResearchExposures => ResearchExposures;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1186,6 +1223,8 @@ public sealed class WorldState : IReadOnlyWorldState
         ResearchCompleted = new Table<ResearchCompletedRow>();
         ResearchEurekas = new Table<ResearchEurekaRow>();
         ResearchCostModifiers = new Table<ResearchCostModifierRow>();
+        ResearchCredits = new Table<ResearchCreditRow>();
+        ResearchExposures = new Table<ResearchExposureRow>();
     }
 
     private WorldState(
@@ -1211,7 +1250,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<DisasterRow> disasters,
         Table<ResearchTargetRow> researchTargets, Table<ResearchProgressRow> researchProgress,
         Table<ResearchCompletedRow> researchCompleted, Table<ResearchEurekaRow> researchEurekas,
-        Table<ResearchCostModifierRow> researchCostModifiers)
+        Table<ResearchCostModifierRow> researchCostModifiers, Table<ResearchCreditRow> researchCredits,
+        Table<ResearchExposureRow> researchExposures)
     {
         Seed = seed;
         Clock = clock;
@@ -1260,6 +1300,8 @@ public sealed class WorldState : IReadOnlyWorldState
         ResearchCompleted = researchCompleted;
         ResearchEurekas = researchEurekas;
         ResearchCostModifiers = researchCostModifiers;
+        ResearchCredits = researchCredits;
+        ResearchExposures = researchExposures;
     }
 
     /// <summary>
@@ -1281,7 +1323,7 @@ public sealed class WorldState : IReadOnlyWorldState
             Polities.Clone(), Capitals.Clone(),
             ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone(),
             ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
-            ResearchEurekas.Clone(), ResearchCostModifiers.Clone())
+            ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
