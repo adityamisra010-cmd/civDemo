@@ -93,9 +93,9 @@ public class ResearchEurekaCreditTests
     [Fact]
     public void Partial_AwkwardShares_TheLastConditionStillLandsOnExactly40PercentOfBase()
     {
-        // Three equal shares of an awkward cost: each share is 0.4/3 × 2 390, which does not round
-        // evenly. The last Eureka to fire is reconciled against provenance, so the full Eureka is
-        // EXACTLY the pool ceiling, 0.4 × 2 390.
+        // Three equal shares of 2 390 credited on three different turns: the full Eureka is EXACTLY
+        // the pool ceiling, 0.4 × 2 390. (These three shares happen to sum exactly in binary; the
+        // six-share test below is the case only the last-firing reconciliation makes exact.)
         ResearchContent content = WithX(2390.0, new Eu("timber", Timber), new Eu("stone", Stone), new Eu("clay", Clay));
         TurnExecutor ex = Executor(content);
         WorldState w = ex.Step(Known((4, 1)));
@@ -103,6 +103,23 @@ public class ResearchEurekaCreditTests
         w = ex.Step(AddStock(w, 6));
         Assert.Equal(0.4 * 2390.0, Eureka(w));
         Assert.Equal(0.4 * 2390.0, Progress(w, 12));
+    }
+
+    [Fact]
+    public void Partial_SixEqualShares_TheNaiveSumMissesByAnUlp_TheReconciledLastShareLandsOnExactly40Percent()
+    {
+        // Six default shares of BaseCost 130: (0.4 / 6) × 130 added six times is 51.99999999999999 in
+        // binary, not 52 (measured). Only the last-firing reconciliation against provenance — the
+        // node's entitlement 0.4 × 130 minus what its Eurekas already credited — lands the full
+        // Eureka on EXACTLY the pool ceiling (ADR-029 addendum A, R-23).
+        ResearchContent content = WithX(130.0,
+            new Eu("timber > 0", "stock_timber > 0"), new Eu("timber > 1", "stock_timber > 1"),
+            new Eu("timber > 2", "stock_timber > 2"), new Eu("timber > 3", "stock_timber > 3"),
+            new Eu("timber > 4", "stock_timber > 4"), new Eu("timber > 5", "stock_timber > 5"));
+        WorldState w = Executor(content).Step(Known((4, 10)));
+        Assert.Equal(6, FiredOnX(w));
+        Assert.Equal(52.0, Eureka(w));
+        Assert.Equal(52.0, Progress(w, 12));
     }
 
     [Fact]

@@ -517,8 +517,15 @@ public class ResearchContentTests
     {
         string json = Standard().Json();
         RejectsJson(Mutate(json, "\"calibration_adjustment\":0", "\"calibration_adjustment\":120"), "no calibration adjustment is permitted");
-        // a costs 2500 = 50 x 2^5.64: change the stored cost alone and the formula no longer reproduces it.
+        // a costs 2500 = 50 x 2^5.64: change the stored cost alone and its content_cost no longer matches it.
         RejectsJson(Mutate(json, "\"depth\":0,\"cost\":2500", "\"depth\":0,\"cost\":2600"), "content_cost 2500 differs from the node's cost 2600");
+        // Change both consistently and the FORMULA still rejects it: 2600 is not 50 x 2^5.64 to within rounding.
+        RejectsJson(Mutate(Mutate(json, "\"depth\":0,\"cost\":2500", "\"depth\":0,\"cost\":2600"), "\"content_cost\":2500", "\"content_cost\":2600"),
+            "is not U × K^magnitude");
+        // Within the authored rounding (±5 RP here) the same change is accepted.
+        ResearchContentLoader.Load(Mutate(Mutate(json, "\"depth\":0,\"cost\":2500", "\"depth\":0,\"cost\":2504"), "\"content_cost\":2500", "\"content_cost\":2504"), TestConfigs.Sim().Goods);
+        // magnitude must be the sum of the six factors.
+        RejectsJson(Mutate(json, "\"novelty\":2,", "\"novelty\":1.5,"), "is not the sum of its factors");
         RejectsJson(Mutate(json, "\"content_cost\":2500", "\"content_cost\":2490"), "content_cost 2490 differs");
         RejectsJson(Mutate(json, "\"novelty\":2,", "\"novelty\":2.5,"), "factors.novelty 2.5 is outside its range");
         RejectsJson(Mutate(json, "\"tier\":\"T2\"", "\"tier\":\"T9\""), "tier 'T9' is not one of");

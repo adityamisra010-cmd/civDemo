@@ -102,7 +102,7 @@ public class ResearchEngineTests
     // ------------------------------------------------------------------ active selection (turn-exact)
 
     [Fact]
-    public void Selection_AnOrderStampedT_RetargetsTheStepFromT_AndThatStepsClpGoesToIt()
+    public void Selection_AnOrderStampedT_RetargetsTheStepFromT_AndThatStepsRpGoesToIt()
     {
         // D-044 R9 + §3.9 delivery: stamped turn 0 -> world 1 already carries the target
         // AND 1000 RP on it. Stamped turn 1 -> world 1 has neither; world 2 does.
@@ -190,7 +190,7 @@ public class ResearchEngineTests
     // ------------------------------------------------------------------ no bank / partial progress / switching
 
     [Fact]
-    public void NoTarget_ClpReachesNoNode_AndNothingIsBanked()
+    public void NoTarget_RpReachesNoNode_AndNothingIsBanked()
     {
         // D-044 R20-D: three idle turns, then a target. The target receives ONE turn of RP,
         // not four — nothing accumulated while idle.
@@ -366,7 +366,7 @@ public class ResearchEngineTests
     }
 
     [Fact]
-    public void Subtrees_AllFive_ResearchOnTheSameClpPool()
+    public void Subtrees_AllFive_ResearchOnTheSameRpPool()
     {
         // After the stage, one node in each of the five subtrees is completed in turn, each
         // taking exactly 3 turns of the one pool (2500 / 1000 per turn).
@@ -384,13 +384,13 @@ public class ResearchEngineTests
     // ------------------------------------------------------------------ Eureka
 
     [Fact]
-    public void Eureka_FiresOnce_CreditsItsOwnNode_ByTheTunedFractionOfEffectiveCost()
+    public void Eureka_FiresOnce_CreditsItsOwnNode_ItsWeightTimesBaseCost()
     {
         // w (key 11) is available once a is known; timber (good 4) is stocked.
         WorldState w = WithCompleted(PlayerWorld([(4, 50)]), 1);
         TurnExecutor ex = Executor(Rig);
         WorldState w1 = ex.Step(w);
-        Assert.Equal(500.0, Progress(w1, 11)); // 0.4 x 2500 x share 1/2 (w has two equally weighted evaluable strings)
+        Assert.Equal(500.0, Progress(w1, 11)); // weight 0.4 / 2 x BaseCost 2500 (w has two equally weighted Eurekas)
         Assert.True(ResearchQuery.EurekaFired(w1, P1, Key(11), 0));
         WorldState w2 = ex.Step(w1); // the condition still holds, but a fired Eureka never fires again
         Assert.Equal(500.0, Progress(w2, 11));
@@ -398,7 +398,7 @@ public class ResearchEngineTests
     }
 
     [Fact]
-    public void Eureka_OnAnInactiveTechnology_AcceleratesIt_WhileTheTargetKeepsItsClp()
+    public void Eureka_OnAnInactiveTechnology_AcceleratesIt_WhileTheTargetKeepsItsRp()
     {
         WorldState w = WithCompleted(PlayerWorld([(4, 50)]), 1);
         var orders = new OrderLog();
@@ -545,7 +545,7 @@ public class ResearchEngineTests
     }
 
     [Fact]
-    public void SharedPool_OneTargetAcrossBothTrees_TotalInvestedEqualsTotalClp()
+    public void SharedPool_OneTargetAcrossBothTrees_TotalInvestedEqualsTotalRp()
     {
         // Alternating Technology and Civics targets draw on ONE pool: after four turns
         // exactly 4000 RP is invested in total, never 4000 per tree.
