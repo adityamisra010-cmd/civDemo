@@ -109,34 +109,54 @@ registry institutions: `law_code`, `legal_code_roman`, `census`, `coined_wage`, 
   directions: civics require technologies, and the research stage requires a civic (§8).
 - No other Civics content was invented (R23: do not fabricate).
 
-### §2.4 Costs — TUNE, chosen, not derived
+### §2.4 Costs — calibrated by content significance (D-045 §3, §4)
 
-The corpus has no research cost. The generator writes an explicit per-node `cost`:
+**Rule (RATIFIED, D-045 §3):** cost represents the magnitude of the advance, not graph depth. **Scheme (PROVISIONAL
+CALIBRATION):**
 
 ```
-BaseCost = round_to_10(1000 × 1.12^depth)
+BaseCost = round(BAND_WEIGHT[band] × AGE_UNIT[age])
+BAND_WEIGHT: M1 refinement 1 · M2 notable advance 2 · M3 major advance 3.5 · M4 breakthrough 6 · M5 epochal 10
 ```
 
-`depth` is the node's longest prerequisite path, taking the union over OR alternatives. Depth rises strictly along
-every edge, so a dependent always costs more than each of its prerequisites. Every value can be edited per node in
-the data.
+- **Band (per node).** Every one of the 424 technologies and 6 civics has a band, breadth (narrow / domain /
+  civilization), kind (incremental / advance / breakthrough) and a one-sentence rationale in
+  `scripts/research-calibration/nodes.json`. The band is judged against the node's own Age, weighing novelty,
+  difficulty, breadth, historical significance, prerequisite complexity, material and institutional sophistication,
+  and whether the node is a genuine new generation. The file came from a 13-batch classification pass plus one
+  cross-age consistency review; the review's 7 overrides are recorded beside the original band. The file is
+  hand-editable, and the generator never re-derives it. Band counts: M1 29 · M2 136 · M3 146 · M4 88 · M5 25.
+- **Age unit.** The RP value of one band unit in that Age. `scripts/research-calibration-report.py --derive` derives
+  it from the measured population trace of the canonical world (`scripts/research-calibration/population-trace-seed42.csv`).
+  - **A1–A8:** the largest unit with which the reference civilization finishes the Age's content inside its pacing
+    window, simulated turn by turn.
+  - **A9:** the unit whose research-optimized projection is closest to the 200-turn final-Age target (D-045 §4).
+  - `--check` (run in CI) fails if a unit drifts from its derivation or the report is stale.
+- **Prerequisites and generations** order the work but do not set cost (D-045 §3, §9).
+- **Full numbers:** `docs/research-calibration-report.md` gives cost by Age, the workload, the Eureka effect, a
+  whole-campaign projection and the final-Age pacing with every assumption. The A9 result is 215 turns for the
+  research-optimized civilization (150–250).
 
-**Measured pacing on the canonical founded world (seed 42, one polity, the `--auto cheapest` measurement driver):**
+The depth formula it replaces, BaseCost = round10(1000 × 1.12^depth) (§13 R-10), was a placeholder that D-045 §3
+rules out.
 
-| turn | sim-year | nodes complete |
-|---|---|---|
-| 99 | 990 | 50 |
-| 196 | 1960 | 100 |
-| 300 | 2750 (≈ 1250 BCE) | 139 of the 176 Main-tree nodes, plus 1 civic |
-| 398 | 3240 | the research stage is reached; all five subtrees open |
-| 1000 | 5500 | 295: Main 176/176, Military 23, Medicine 16, Engineering 41, Natural Science 24, Agriculture 9, Civics 6/6 |
+### §2.6 Baseline capabilities (D-045 §1)
 
-(Re-measured after the review fixes, which made 24 fewer Eureka strings evaluable; the first measurement, at
-`ced5009`, was 50 by turn 96, 100 by 191, 141 + 1 at turn 300, the stage at 388. The emitted 1000-turn order log
-replays through `sim run --founded --seed 42 --turns 1000 --orders` to the same world hash, `e67e07fc…`.)
+A founded civilization starts with **zero** completed nodes (§13 R-16, now RATIFIED by D-045 §1), but not zero
+capability. `research.json` carries a `baseline` list. Each entry names one capability and the system that provides it,
+or says that no system simulates it yet:
 
-The research stage was not yet reached at turn 300. These are readings, not targets. The pacing depends on the
-provisional CLP function (§6).
+- settlement founding — ColonizationSystem;
+- scouting and exploration — not yet simulated;
+- basic military (clubmen or equivalent) — not yet simulated;
+- basic food and resource gathering — Production and Harvest;
+- basic internal construction — ConstructionSystem (capacity → project allocation → progress; **no Builder unit**);
+- migration — MigrationSystem.
+
+These are not research nodes. No completed row stands for them, and no research query gates them. The simulated ones
+were already realized by systems that read no research state, so nothing depended on a fake research node and
+nothing had to be replaced. `ResearchQuery.BaselineCapabilities` is the Glass Box view, and `ResearchBaselineTests`
+checks that a 100-turn run with zero completed nodes grows, gathers and keeps its settlements.
 
 ### §2.5 Validators (D-044 R24)
 
@@ -173,7 +193,7 @@ derived and never stored.
 | ResearchTargets | (Polity, Node) | 8 | ResearchSystem | The one active target; at most one row per polity. Absence means no target |
 | ResearchProgress | (Polity, Node, double Progress) | 16 | ResearchSystem | CLP invested in a node not yet complete. Created lazily, removed on completion |
 | ResearchCompleted | (Polity, Node) | 8 | ResearchSystem | The knowledge base. Row presence is the fact, append-only, in completion order |
-| ResearchEurekas | (Polity, Node, int Eureka) | 12 | ResearchSystem | Fired Eurekas. Row presence is the fact; a Eureka fires once |
+| ResearchEurekas | (Polity, Node, int Eureka, int Condition) | 16 | ResearchSystem | Credited Eureka conditions (string index, condition index). Row presence is the fact; each condition is credited once (D-045 §6). The layout gained `Condition` in place: v26 has never been on `main` |
 | ResearchCostModifiers | (Polity, int UniversityType, double Factor) | 16 | **none yet** | §9's input contract. No system writes it (the ClaimRow / RecognitionRow precedent) |
 
 - `Node` is a `ResearchNodeId` holding the content key.
@@ -217,21 +237,27 @@ Availability is always read from PREV, so the dependents of a node completed in 
 draws no RNG, writes no ledger flow and reads no Age (law 4). Removals preserve the relative order of the rows that
 remain. With no research content attached, the system is inert.
 
-## §6 — CLP (D-044 R2) — PROVISIONAL, CHOSEN, NOT DERIVED
+## §6 — RESEARCH CAPACITY (D-044 R2; D-045 §2) — PROVISIONAL CALIBRATION
 
 ```
-CLP per sim-year = clpCoefficient × adults ^ clpAdultExponent        (1.0 and 0.5 shipped)
+RP(P) = RP₁ × (P / P₁)^e,   e = ln(RP₂/RP₁) / ln(P₂/P₁)       anchors (100, 2) and (1000, 10)  →  e = log10 5 = 0.69897…
+credited per step = RP(P) × dtYears / rpReferenceTurnYears                              rpReferenceTurnYears = 10
 ```
 
-- **Adults** are cohorts 3..11, every class, in the settlements the polity controls. Each settlement is credited to
-  its lowest-id controller.
-- **The exponent** is validated in (0, 1), because architecture §8.1.2 forbids linear population.
-- **Inputs not implemented:** population is the only §8.1 input that exists in simulation state. Education,
-  literacy, institutions, health, specialization and connectivity are not guessed at.
-- **Dimensions:** CLP is research effort. Costs and progress are in CLP. The rate is CLP per sim-year, integrated
-  over `dtYears` (law 3).
-- **Loops:** none is closed. Research feeds nothing back, so CLP cannot raise population. D-021 applies when a
-  consumer of research closes a loop.
+- **The anchors are RATIFIED (D-045 §2); the curve is PROVISIONAL CALIBRATION.** It is a power law through the two
+  anchors, so the exponent is computed from them rather than typed in. RP(100) = 2 exactly; RP(1000) = 10 to within
+  one rounding.
+- **P is the polity's total population** (every cohort and class) in the settlements it controls. Each settlement
+  counts once, credited to its lowest-id controller. This replaces adults^0.5 (§13 R-4).
+- **Sublinear by validation:** the anchors must imply e < 1, because research = population × constant is forbidden
+  (architecture §8.1.2). Tests pin 100 → 2, 1000 → 10, monotone growth and falling RP per person.
+- **Per turn vs per sim-year — OPEN, CR-018.** The anchors are "per turn"; law 3 integrates rates over dt. The
+  implemented reading takes RP(P) as the yield of a 10-year reference turn (the campaign-start dt), so the anchors are
+  literal at game start. A dt-0.5 turn yields RP(P)/20.
+- **Future modifiers (FUTURE, D-045 §2, §8, §12):** literacy, education, universities, health, connectivity,
+  institutional maturity and foreign knowledge are not part of this base curve. Each will be a modifier when its system
+  exists. None is guessed at.
+- **Loops:** none is closed. Research feeds nothing back into population.
 
 ## §7 — EUREKA (D-044 R10)
 
@@ -242,7 +268,24 @@ The condition language is the ONE D-020 predicate language (§11). A condition r
 
 A condition with any settlement-scoped operand holds if it holds in AT LEAST ONE settlement the polity controls. A
 condition over node atoms only is evaluated once, for the polity. Eurekas are evaluated only for AVAILABLE nodes (§13
-R-5). A fired Eureka is stored and never fires again.
+R-5).
+
+**Credit (D-045 §5–§6, RATIFIED):**
+- **One Eureka per node.** The node's corpus strings are that Eureka's conditions. (That this is the right reading of
+  the corpus is OPEN-6 in D-045 Part D.)
+- **Weights.** Each string has a `weight`, equal by default. The weights are normalized deterministically, in list
+  order, over the strings that are circumstances (categories A, B, C, F), so their shares sum to 1. D and E strings
+  carry no share.
+- **Multi-condition strings (B).** A B string carries `parts`: independently satisfiable conditions that split its
+  share equally.
+- **What a condition is worth.** eurekaFullCreditFraction (**0.40**) × the node's **BASE** cost × its share.
+- **When it is credited.** In the step it first holds, once. A `ResearchEurekaRow (polity, node, string, condition)`
+  records it, so a condition that stays true for 20 turns pays once, and a later condition pays only its own share.
+- **Total.** The full set pays exactly 40 % of base cost: the shares sum to 1. Strings that cannot be evaluated yet (C,
+  F) keep their share, so a node reaches 40 % only when they become evaluable.
+- **Cap and overflow.** Credit lands on its own node whatever the target, is capped at the remaining EFFECTIVE cost,
+  and never overflows.
+- **Glass Box.** `EurekaProgressOf` reports k/N conditions credited and the credited share.
 
 **Mapping the corpus's 801 prose strings.** Only *faithful* mappings are made machine-evaluable. The generator states
 each rule:
@@ -268,7 +311,7 @@ each rule:
 
 **Implied by prerequisites — declared, not evaluated.** A knowledge circumstance that the node's own prerequisites
 already guarantee (plus, for a subtree node, what the stage guarantees) would hold at every moment the node is
-available: a flat 25 % cost cut, not a circumstance. The generator computes each node's must-complete set (an atom
+available: a flat cost cut, not a circumstance. The generator computes each node's must-complete set (an atom
 contributes itself and its must-set; AND = union, OR = intersection) and gives such a string the status
 `implied-by-prerequisites` with no condition. 21 strings are affected; every use of the four aliases is among them.
 They are listed as corpus problem 9 in the audit. `Canonical_NoEvaluableKnowledgeEureka_IsGuaranteedByItsOwnNodesPrerequisites`
@@ -276,8 +319,20 @@ exhibits, for each remaining knowledge condition, a reachable state where the no
 is false.
 
 **Result:** 93 of the 801 strings are evaluable, on 83 technology nodes: 91 good-stock conditions and 2 knowledge
-conditions (`copper_smelting` ← charcoal, `windmill_post` ← gearing). Status counts: evaluable 93, no-state-carrier
-547, institution-state-absent 79, contact-state-absent 61, implied-by-prerequisites 21. Every other string is kept
+conditions (`copper_smelting` ← charcoal, `windmill_post` ← gearing).
+
+**Audit categories (D-045 §7):**
+
+| Category | Strings | Detail |
+|---|---|---|
+| A — single condition, evaluable | 93 | |
+| B — multi-condition, evaluable | **0** | No corpus string decomposes into independently satisfiable shipped-good or node parts without inference. The classification pass proposed none, and the generator accepts B only as a faithful mapping |
+| C — requires a future system | 419 | Institutions 79, contact or foreign knowledge 61, and 279 more: terrain or resource deposits, fauna and flora range, non-shipped goods, trade network, climate, scale. Each names its future system |
+| D — implied by prerequisites | 21 | |
+| E — dead | 0 | The generator checks every knowledge mapping; none is dead |
+| F — ambiguous, requires authoring | 268 | Kept verbatim, each with its reason |
+
+Every non-evaluable string keeps its reason, and the audit lists all 708. Every other string is kept
 verbatim with its status, and the Glass Box shows why it cannot fire. (Corrected after review: the first version
 made 117 strings evaluable, including three that broke its own rule — wood ash, lime or wood ash, and the tin
 exchange, which duplicated `tin_bronze`'s tin-ore Eureka so that one stock fact gave 50 % credit — and 21 that were
@@ -324,7 +379,14 @@ Natural Science 44 · Agriculture 15:
 - No Main-tree node requires a subtree node.
 - 33 subtree entry nodes depend only on the trunk.
 
-## §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5)
+## §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5; D-045 §8)
+
+**D-045 §8: the seam stays, and nothing behind it is built.** The intended model is a civilization-wide benefit whose
+strength comes from institutional maturity, diminishing returns, specialization, personnel, the local ecosystem and
+spillovers. It is NOT university count × a flat percentage, and a new university does not perform like a mature one.
+That is a FUTURE institutional modifier. No UniversitySystem exists, and no maturation logic, institution data or
+bonus is invented. The input table below keeps the interface. The calibration report models future modifiers as one
+stated assumption (×1.5 for a research-optimized civilization), never as data.
 
 ```
 EffectiveCost = BaseCost × Π Factor
@@ -414,19 +476,19 @@ function, never by a private re-implementation. `GlassBoxQueries_MutateNothing` 
 | R-1 | One active target per polity **spanning both trees** | R9 says "one active allocation target"; R12 says Civics uses the same pool; manual splits are banned |
 | R-2 | CLP with no target, and CLP past a node's remaining cost at completion, is **lost** | R20-D (no general bank); R10's no-overflow principle, applied to throughput |
 | R-3 | Completion **clears** the target; the player chooses again; there is no queue | R9; D-042 §12's "rigid queue" remains unbuilt |
-| R-4 | CLP = coefficient × adults^exponent over controlled settlements (§6) | §8.1.2 forbids linear; population is the only input present |
-| R-5 | Eurekas are evaluated only for **available** nodes; credit = fraction × EffectiveCost; fraction 0.25 (TUNE) | Causal reading; 0.25 because corpus nodes carry up to four Eurekas |
+| R-4 | ~~CLP = coefficient × adults^exponent~~ **Superseded by D-045 §2:** RP(P) through the Director's anchors over total population (§6) | — |
+| R-5 | Eurekas are evaluated only for **available** nodes. ~~credit = 0.25 × EffectiveCost per string~~ **Credit superseded by D-045 §5–§6:** 40 % of BASE cost per full Eureka, by condition share (§7) | Causal reading (the availability rule stands) |
 | R-6 | Only faithful Eureka mappings are machine conditions: a shipped good or an object shaped from one; a circumstance implied by the node's own prerequisites is declared, not evaluated (§7) | R10 "where applicable"; R23 "do not fabricate"; a condition that always holds is a modifier, not a circumstance (law 2) |
 | R-7 | The research stage is the knowledge-level university predicate (§8) | R4 asks for capability plus institutional state; the latter does not exist |
 | R-8 | Rule R1: stage closure + ages A1–A5 go to the trunk; the rest is split by primary domain, naval → Military, industry and energy → Engineering | R15 (keep the corpus); R20-F removes the Industry & Energy subtree without placing its knowledge, and the corpus domains `industry` and `energy` need a ruled subtree; Engineering's ruled coverage (materials, mechanical engineering) is the nearest. Architecture §8.4.1 now cites this resolution, not the reverse |
 | R-9 | Civics = the six architecture §5.7 candidates, knowledge half only | R12, R23 |
-| R-10 | BaseCost = round10(1000 × 1.12^depth) | The corpus has no cost; monotone along edges |
+| R-10 | ~~BaseCost = round10(1000 × 1.12^depth)~~ **Superseded by D-045 §3:** band × Age unit (§2.4) | — |
 | R-11 | Age F → A9 + `frontier` | Architecture §12.7, §17.5 |
 | R-12 | The 10 repeatable frontier nodes complete once; the descriptor is kept as data | R11 idempotence; no consumer exists |
 | R-13 | University seam = the ResearchCostModifier input table, Factor in (0, 1], multiplicative in table order | R5; law 6 (state-mediated, no sibling call) |
 | R-14 | Stable integer keys in data (tech 1..424, civics 1001..) | Saves and orders must not misbind when content grows |
 | R-15 | Registry entities are carried for unlock validation and knowledge eligibility; dangling references are declared, not repaired | `registry.meta.authority`; R24 |
-| R-16 | **No starting knowledge** at founding | Architecture §12.6 quotes "the game begins in the Stone Age"; CR-006 is open |
+| R-16 | **No starting knowledge** at founding — **now RATIFIED by D-045 §1**, with baseline capabilities outside the graph (§2.6) | D-045 §1 |
 | R-17 | Prerequisites and the stage read PREV; dependents open the step after completion | The kernel's one-turn-lag convention |
 | R-18 | Completion order within a step: polity table order, then node index order | Deterministic, explicit |
 | R-19 | `effects.immediate` must be empty | No effect kind is ratified; law 2 |
@@ -443,6 +505,15 @@ extension, repeatables and starting holdings. In addition:
 3. The Eureka carriers for institution presence and contact.
 4. Civics content beyond the six candidates (architecture §19.9).
 5. Whether the Trees UI on `claude/civdemo-work-b1z2y4` is re-pointed at this graph (architecture §19.13).
+6. **D-045 Part D** (2026-10-01):
+   - per-turn vs per-sim-year research (CR-018);
+   - whether completion overflow carries to the next target (R-2; it sets a one-turn-per-node floor);
+   - future research modifiers;
+   - the Age → calendar mapping behind the pacing windows;
+   - recursive research;
+   - whether a node's corpus strings are one Eureka (implemented) or one each;
+   - the 38 Technique candidates;
+   - milestone placement.
 
 ## §15 — GOLDENS AND PINS (measured, not asserted)
 

@@ -21,6 +21,11 @@ superseded clause is left **unedited** in D-042, which gains an append-only poin
 the D-039 note at `docs/d011-battle-layer-addendum.md:77`). Nothing in D-037, CONV-1, D-043, ADR-019 or ADR-028 is amended. DD-13 and DD-14 are not
 renumbered.
 
+**Followed by D-045 (2026-10-01).** `docs/d045-research-calibration-rulings.md` records the next rulings: zero
+starting knowledge with baseline capabilities, the research-capacity anchors, calibrated costs, the final-Age pacing
+target, 40 % partial Eurekas and the Eureka audit. This record is not edited by them; D-045 Part C names the
+provisional choices they replace.
+
 **Clause labels.** Part A's numbered sections are cited as **D-044 R1 … D-044 R25**. For example, "D-044 R9"
 means section 9, RESEARCH PROGRESS. The "do not ask again" list at the end of Part A is cited as
 **D-044 SETTLED**.

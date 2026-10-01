@@ -1263,6 +1263,15 @@
   ownership, which D-042 §4.4/§4.6 now forbid — D-018 is closed and was NOT edited (§14.1).**
   Still open: CR-005, CR-006, CR-008, CR-009, CR-010. NOT parked to the M10 slice gate.
 
+- **D-045 RESEARCH CALIBRATION — Director rulings of 2026-10-01** (`docs/d045-research-calibration-rulings.md`),
+  implemented on `research-progression-foundation` (PR #10, not merged).
+  - RP(P) = 2·(P/100)^0.69897 (PROVISIONAL CALIBRATION).
+  - 40 % partial Eurekas.
+  - Significance-band costs for all 430 nodes; `docs/research-calibration-report.md` puts the final Age at 215 turns
+    for a research-optimized civilization.
+  - Eureka audit: A 93 · B 0 · C 419 · D 21 · E 0 · F 268.
+  - **OPEN (owner: director):** D-045 Part D — CR-018 per-turn vs per-year; completion overflow (R-2); future research
+    modifiers; Age → calendar windows; recursive research; one Eureka per node; 38 Technique candidates.
 - **D-044 RESEARCH AND PROGRESSION — Director rulings of 2026-09-30, recorded verbatim.**
   `docs/d044-research-progression-rulings.md`.
   - **What it rules:** Technology IS knowledge. There is ONE Cognitive Load Point (CLP) pool for
