@@ -19,10 +19,10 @@ jobs:
       - name: Read-isolation check (T2.6 — grievance read by nothing but UI/chronicle)
         run: ./scripts/check-read-isolation.sh
 
-      - name: Research content is regenerated from its corpus (ADR-029 §2.1)
-        run: python3 scripts/migrate-research-corpus.py --check
+      - name: Research content audit is current (ADR-029 addendum A — the content is authored)
+        run: python3 scripts/research-content-audit.py --check
 
-      - name: Research calibration report and Age units are current (ADR-029 §2.4, D-045 §4)
+      - name: Research calibration report is current (provisional — ADR-029 addendum A, ADR-030)
         run: python3 scripts/research-calibration-report.py --check
 
       - name: Setup .NET 10
