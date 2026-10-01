@@ -593,3 +593,21 @@ implementing session, not rulings; they are satisfied by the PR, not recorded he
    The alternative (each string its own 40 % Eureka) would let a node collect up to 160 %.
 7. **Technique candidates:** 38 flagged nodes await the Director's decision; none was moved.
 8. **Milestone placement (CR-005)** remains as recorded in D-044 Part D T1.
+
+---
+
+## PART E — SUPERSESSION NOTE (append-only, 2026-10-01; Parts A–D are not rewritten)
+
+The research corpus finalization and the research-foundation gate (**D-046**; ADR-029 addendum A; ADR-030) change how
+several D-045 rulings are implemented. The D-045 text stands as the record of what was ruled on 2026-10-01 morning.
+
+| D-045 | Now |
+|---|---|
+| §1 zero starting nodes, baseline outside the graph | Unchanged. The `baseline` list is kept; its ownership against the corpus is classified in `docs/design/research-capability-ownership.md` (D-046 G3) |
+| §2 anchors 100 → 2, 1,000 → 10 | Anchors unchanged; the per-turn reading is ruled (ADR-030): RP per turn = 0.08 × P^0.699, never × dt. Part D item 1 (CR-018) is resolved |
+| §3 significance-band costs, §4 final-Age Age units | Replaced by content-derived costs, BaseCost = U × K^magnitude with per-node factors and no calibration adjustment (D-046 F§1). The banded calibration (`scripts/research-calibration/nodes.json`) and its generator are retired; the D-045 report is kept as `docs/research-calibration-report-d045.md` and its pacing is obsolete |
+| §5–§6 Eureka credit, partial Eurekas | 40 % of BASE survives as the ceiling of ONE acceleration pool shared with foreign exposure; credit is weight × BaseCost per condition, once (D-046 F§2) |
+| §7 audit of 801 strings | Replaced by 81 curated Eurekas on 80 nodes. The D-045 audit is kept verbatim as `docs/research-corpus-audit-d045.md`. Part D item 6 (what one corpus "Eureka" is) is moot |
+| §8 university seam | Unchanged (input table, no writer); EffectiveCost gains the 20 % floor |
+| §10 finite vs recursive | The ten are the named recursive set, available per subtree; repeat mechanics DEFERRED (D-046 G4) |
+| §11 technique candidates | Unchanged: 38 flagged, none moved; carried forward in `docs/research-corpus-audit.md` §7 |

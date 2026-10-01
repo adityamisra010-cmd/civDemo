@@ -54,3 +54,15 @@ per sim-year would then be 40 times higher at dt 0.5 than at dt 10 for the same 
 Rule **option 1** or **option 2**. Law 3 is what keeps the simulation dt-correct across the era table. The Director's
 anchors were stated for small populations, which exist only at the campaign start, where option 1 makes them exactly
 true.
+
+---
+
+## RESOLUTION (append-only, 2026-10-01)
+
+**Resolved by ADR-030** (`docs/adr/adr-030-per-turn-research-points.md`), the Director's research corpus finalization
+ruling 2: option 3 above, per turn regardless of dt, as a **scoped exception** to law 3 that covers RP generation,
+allocation and progress only. Law 3's text is not amended, and ADR-030 §3 forbids any reusable per-turn mechanism. The
+§3 remark that "the final-Age costs must be scaled up about 20×" was not applied: costs are now content-derived
+(BaseCost = U × K^magnitude, ADR-029 addendum A), so no cost was scaled to the dt choice. `tuning.rpReferenceTurnYears`
+is removed from `research.json`; the one code site is `ResearchSystem` step 3. The measured pacing in §2 above is
+historical evidence for the per-year reading and is obsolete (ADR-030 §4).

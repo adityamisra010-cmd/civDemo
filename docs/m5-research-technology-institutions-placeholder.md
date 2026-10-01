@@ -9,6 +9,9 @@
 > - **§3 item 8 ("Multiple simultaneous research projects — NOT a single Civ-style queue").** There is one
 >   active research target at a time. Many nodes keep partial progress, and there is no queue (D-044 R9).
 >
+> **TERMINOLOGY — 2026-10-01 (D-046 G5; added later, nothing above rewritten).** The one research pool is now named
+> **Research Points (RP)**; "Cognitive Load Point (CLP)" above is the D-044 name it replaces.
+>
 > The implementation built on those rulings is recorded in `docs/adr/adr-029-research-engine.md`. **The
 > milestone-placement question in CR-005 remains OPEN** and is not ruled by D-044 (D-044 Part D, T1).
 

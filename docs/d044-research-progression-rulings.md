@@ -853,3 +853,16 @@ both trees, what happens to throughput when no target is set, the provisional CL
 "institutional stage" is in state, how Eureka prose becomes a condition, and how nodes are placed in subtrees.
 Each of these is recorded in `docs/adr/adr-029-research-engine.md` §13 as an **implementer resolution**. They are
 not Director rulings. Each one is overridable, and none amends a ratified record.
+
+---
+
+## PART F — RESOLUTION NOTES (append-only, 2026-10-01; Parts A–E above are not rewritten)
+
+**Part D T6 — repeatable frontier lines.** The research corpus finalization (D-046 F§2) and the research-foundation
+gate (D-046 G4) settle T6 as follows. The ten repeatables are kept and named as the **recursive** set
+(`researchSets.recursive` in `research.json`). Each becomes available only when its own prerequisites hold **and every
+finite node of its own subtree is complete**; the rule is carried as data (`repeatable.availability`) and the engine
+applies it (ADR-029 addendum A). Recursive research is excluded from finite exhaustion and from pacing. The **repeat
+mechanics** — re-research at a higher level, cost escalation, effects, repeat-count persistence — are **DEFERRED** by
+the Director (G4): a repeatable still completes once, as R11 requires. T6's question, whether a completed node may be
+re-researched at a higher level, therefore remains open as a deferred implementation, not as an unruled tension.

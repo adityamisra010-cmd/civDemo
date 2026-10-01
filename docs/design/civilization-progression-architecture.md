@@ -10,6 +10,8 @@
 
 **Reconciled 2026-09-30 with D-044** (`docs/d044-research-progression-rulings.md`, Director rulings of 2026-09-30, recorded verbatim). D-044 R20 directed that §3.2, §3.4, §4, §8, §8.2, §8.3, §8.4, §8.4.2 and §8.5 be corrected, together with the wording on literacy, on completion and on Civics. Those passages are rewritten in place below and labelled **D-044**. Every replaced passage is preserved verbatim in **§20**, so the audit trail is intact. The implementation of these rulings is recorded in `docs/adr/adr-029-research-engine.md`. This document itself still contains no code, data, constant, test or golden.
 
+**Reconciled 2026-10-01 with D-046** (`docs/d046-research-foundation-gate-rulings.md`) and ADR-030: the research resource is named **Research Points (RP)** (D-046 G5) and is generated per strategic turn (ADR-030). The passages that carried the earlier name or the open per-turn question are rewritten in place; each is preserved verbatim in **§21**.
+
 **Provenance labels:** RATIFIED (cite) · DIRECTOR RULING (this session; not previously in the tree) · MEASURED (cite tree) · PROPOSED · INFERRED · DIRECTOR DECISION REQUIRED · UNVERIFIED.
 
 ---
@@ -34,7 +36,7 @@
 
 **3.1** A **tree** is a filtered view of the graph, not an independent structure. **DIRECTOR RULING.**
 
-**3.2** Exactly two views are progression trees — things the player directs research into. Both are driven by the **one shared Cognitive Load Point (CLP) pool** (§8):
+**3.2** Exactly two views are progression trees — things the player directs research into. Both are driven by the **one shared Research Point (RP) pool** (§8):
 - **Tree 1 — Technology.** Technology *is* the civilization's knowledge (§4). The tree is a **Main Technology Tree** (the trunk) plus exactly five specialized subtrees: 1.1 Military, 1.2 Medicine, 1.3 Engineering, 1.4 Natural Science and 1.5 Agriculture (§8.4).
 - **Tree 2 — Civics.** It has its own content and semantics (§5) and no numbered subtrees.
 
@@ -42,7 +44,7 @@ Nothing else is a player-facing tree. There is no Tree 3, no Industry & Energy t
 
 **3.3** The remaining domains — Techniques, Institutions, Infrastructure, Industry, Military, Applications — are **lenses**: views of what the civilization can do or has, realized through their own mechanisms (§7, §9). **DIRECTOR RULING**, qualified by §7.2: researchability belongs to the node, so a lens may still contain a researchable node.
 
-**3.4** A **subtree** (also called a *branch*) is a subdivision of Tree 1, not a separate tree. There are five, and they are **views** of the one Technology graph. A node sits in exactly one of them, or in the Main Technology Tree, and is never duplicated. All five draw on the same CLP pool as the Main tree and as Civics. They may depend on each other and on any domain. **DIRECTOR RULING — D-044 R3, R15, R16;** it continues the earlier ruling *"not six independent technology trees — research branches within the Technology/Knowledge progression."* D-044 has since reduced the count from six to five (§20).
+**3.4** A **subtree** (also called a *branch*) is a subdivision of Tree 1, not a separate tree. There are five, and they are **views** of the one Technology graph. A node sits in exactly one of them, or in the Main Technology Tree, and is never duplicated. All five draw on the same RP pool as the Main tree and as Civics. They may depend on each other and on any domain. **DIRECTOR RULING — D-044 R3, R15, R16;** it continues the earlier ruling *"not six independent technology trees — research branches within the Technology/Knowledge progression."* D-044 has since reduced the count from six to five (§20).
 
 **3.5** One word on two axes. **Military** names both a Tree-1 branch (researched military knowledge) and a lens (units, doctrine, academies and military applications that knowledge makes possible). The same node can appear in both views; it is never duplicated. **INFERRED** from §3.3 and §3.4.
 
@@ -52,8 +54,8 @@ Nothing else is a player-facing tree. There is no Tree 3, no Industry & Energy t
 
 | domain | what it represents | typical realization |
 |---|---|---|
-| **Technology** (the civilization's knowledge) | scientific, technical, accumulated knowledge | research (CLP) |
-| **Civics** | political, governmental, legal, administrative and social organization | research (CLP — the same pool), then adoption |
+| **Technology** (the civilization's knowledge) | scientific, technical, accumulated knowledge | research (RP) |
+| **Civics** | political, governmental, legal, administrative and social organization | research (RP — the same pool), then adoption |
 | **Techniques** | practical methods of production; may emerge from knowledge but are not it | practice, or research where codified |
 | **Institutions** | persistent organizational capability | establishment and maturation |
 | **Infrastructure** | constructed physical systems and networks | construction |
@@ -102,7 +104,7 @@ Technology + Civics → administrative capability
 
 | model | means | typical domains |
 |---|---|---|
-| **researched** | progressed with Cognitive Load Points (the one shared pool) until complete | Technology, Civics; a codified Technique |
+| **researched** | progressed with Research Points (the one shared pool) until complete | Technology, Civics; a codified Technique |
 | **established** | founded when conditions hold, then matures | Institutions, some Industry |
 | **constructed** | built by the construction system | Infrastructure, buildings |
 | **practised** | emerges from doing the work | Techniques |
@@ -117,14 +119,14 @@ Technology + Civics → administrative capability
 
 ## 8. Progression resources and the research relationship
 
-### 8.1 The Cognitive Load Point pool — DIRECTOR RULING (D-044 R2)
+### 8.1 The Research Point pool — DIRECTOR RULING (D-044 R2; name D-046 G5)
 
 ```
 Population + education + literacy + institutions + health + specialization + connectivity
                                    ↓
                           Cognitive capacity
                                    ↓
-            COGNITIVE LOAD POINTS (CLP) — one pool, a rate per sim-year
+            RESEARCH POINTS (RP) — one pool, generated per strategic turn (ADR-030)
                                    ↓
                  ONE active research target at a time
        (a Main-tree, subtree or Civics node — the player's choice)
@@ -134,13 +136,13 @@ Population + education + literacy + institutions + health + specialization + con
    Eurekas credit their own node directly, whatever the active target is (§8.6)
 ```
 
-**8.1.1** **Cognitive Load Points (CLP)** is the authoritative name of the one research resource. It replaces both "Research Points" and the earlier term "Cognitive Pool". Everything researchable consumes the same pool: Technology, the five Technology subtrees, and Civics. There are no Science, Culture, Military, Medical, Engineering or Knowledge points, and no second accumulated research currency. **DIRECTOR RULING — D-044 R2, R12.**
+**8.1.1** **Research Points (RP)** is the authoritative name of the one research resource (**D-046 G5**, which replaces the name "Cognitive Load Points (CLP)" used by D-044 R2; code names `ResearchPoints`, `ResearchProgress`, `ResearchPointPool`). Everything researchable consumes the same pool: Technology, the five Technology subtrees, and Civics. There are no Science, Culture, Military, Medical, Engineering or Knowledge points, and no second accumulated research currency. **DIRECTOR RULING — D-044 R2, R12; D-046 G5.**
 
-**8.1.2** Population is an **input**, not a linear multiplier. *"Cognitive Pool = Population × constant"* is forbidden. The pool is a function of population, education, literacy, institutions, health, specialization and connectivity, with diminishing marginal contribution from population. **DIRECTOR RULING** (unchanged). No functional form, coefficient or illustrative number is adopted here. **D-045 §2 (2026-10-01)** gives the Director's calibration anchors — population 100 → 2 RP and 1,000 → 10 RP per turn — and a PROVISIONAL CALIBRATION curve through them, RP(P) = 2·(P/100)^0.69897. ADR-029 §6 implements it over total population, the only one of these inputs that exists in simulation state. The others become FUTURE modifiers when their systems exist, and the per-turn reading is OPEN (CR-018).
+**8.1.2** Population is an **input**, not a linear multiplier. *"Cognitive Pool = Population × constant"* is forbidden. The pool is a function of population, education, literacy, institutions, health, specialization and connectivity, with diminishing marginal contribution from population. **DIRECTOR RULING** (unchanged). No functional form, coefficient or illustrative number is adopted here. **D-045 §2 (2026-10-01)** gives the Director's calibration anchors — population 100 → 2 RP and 1,000 → 10 RP per turn — and a PROVISIONAL CALIBRATION curve through them, RP(P) = 2·(P/100)^0.69897. ADR-029 §6 implements it over total population, the only one of these inputs that exists in simulation state. The others become FUTURE modifiers when their systems exist. **ADR-030 (2026-10-01)** rules the per-turn reading — RP per turn = 0.08 × P^0.699, never multiplied by dt, a scoped exception to law 3 — and resolves CR-018.
 
-**8.1.3** The player does **not** split the pool between channels or between nodes. They choose where the current CLP throughput goes by selecting **one active target**. Manual 70/30, 60/20/20 or any other percentage allocation is not part of the model. Institutions act on research through **cost** (§8.5), not by adding flat CLP. **DIRECTOR RULING — D-044 R9, R5.**
+**8.1.3** The player does **not** split the pool between channels or between nodes. They choose where the current RP throughput goes by selecting **one active target**. Manual 70/30, 60/20/20 or any other percentage allocation is not part of the model. Institutions act on research through **cost** (§8.5), not by adding flat RP. **DIRECTOR RULING — D-044 R9, R5.**
 
-**8.1.4** CLP, Diplomatic Favor and Diplomatic Victory Points are three distinct quantities and must not be conflated. Production and construction capacity is a fourth, separate thing. "Science" and "Culture" are not progression quantities. **DIRECTOR RULING** (the four-quantity ruling, as amended by D-044 R2).
+**8.1.4** RP, Diplomatic Favor and Diplomatic Victory Points are three distinct quantities and must not be conflated. Production and construction capacity is a fourth, separate thing. "Science" and "Culture" are not progression quantities. **DIRECTOR RULING** (the four-quantity ruling, as amended by D-044 R2).
 
 ### 8.2 Accumulation — RULED (D-044 R20-D)
 
@@ -164,7 +166,7 @@ There is **one active allocation target at a time**. **Multiple nodes may retain
 
 There is no Industry & Energy subtree (**DIRECTOR RULING — D-044 R3, R20-F**). D-044 removes the subtree but does not say where its knowledge goes. Placing it in Engineering, or in the trunk if it precedes the research stage, is **implementer resolution ADR-029 §13 R-8 — PROPOSED, overridable by the Director**. Its reason is the corpus: the v0.6 primary domains `industry` and `energy` have no ruled subtree, and Engineering is the ruled subtree whose coverage (materials, mechanical engineering) they extend. Heavy cross-dependency between subtrees is expected: Engineering → steam engine → industrial machinery, with prerequisites drawn from Natural Science.
 
-**8.4.2 Opening.** The five subtrees become available **together**, as research subtrees, when the civilization reaches the **university / research institutional stage**. The trigger is the relevant education, university and research capability and institutional state. It is **not** `Age == X`, and there is no faculty-by-faculty progressive opening. Once the stage exists, the player can research all five using the same CLP pool. The stage exists specifically to support specialized universities (§8.5). **DIRECTOR RULING — D-044 R4, R20-G.** ADR-029 §8 records how the trigger is evaluated from the state that exists today.
+**8.4.2 Opening.** The five subtrees become available **together**, as research subtrees, when the civilization reaches the **university / research institutional stage**. The trigger is the relevant education, university and research capability and institutional state. It is **not** `Age == X`, and there is no faculty-by-faculty progressive opening. Once the stage exists, the player can research all five using the same RP pool. The stage exists specifically to support specialized universities (§8.5). **DIRECTOR RULING — D-044 R4, R20-G.** ADR-029 §8 records how the trigger is evaluated from the state that exists today.
 
 **8.4.3** An Age transition never opens a subtree. Age gives historical context and constrains plausibility only. **DIRECTOR RULING;** consistent with law 4. **RATIFIED.** Also D-044 R13.
 
@@ -182,7 +184,7 @@ There is no Industry & Energy subtree (**DIRECTOR RULING — D-044 R3, R20-F**).
 BaseCost  →  relevant specialized-university modifiers  →  EffectiveCost
 ```
 
-They do not create a separate research currency, do not add flat global CLP and do not create a separate research queue. The exact numerical scaling formula is **not ratified**. The modifier architecture must be able to carry diminishing returns, university maturity and local viability later (ADR-028 §1–§2, DD-13, DD-14). There is no universal `CapabilitySystem`. **DIRECTOR RULING — D-044 R5, R20-H.**
+They do not create a separate research currency, do not add flat global RP and do not create a separate research queue. The exact numerical scaling formula is **not ratified**. The modifier architecture must be able to carry diminishing returns, university maturity and local viability later (ADR-028 §1–§2, DD-13, DD-14). There is no universal `CapabilitySystem`. **DIRECTOR RULING — D-044 R5, R20-H.**
 
 **8.5.2 What stands between the rulings and working universities.** The three kinds of dependency are distinguished as D-044 R20-I requires:
 
@@ -196,7 +198,7 @@ They do not create a separate research currency, do not add flat global CLP and 
 
 The research engine and its BaseCost → EffectiveCost seam are therefore built, and they are not blocked by the missing systems. Only the university **writer** waits for the institutions system and its brake. **DIRECTOR RULING — D-044 R20-I; RATIFIED constraint** (D-021).
 
-**8.5.3** A larger population raising the CLP pool, which raises growth, is a loop that D-021 governs. Diminishing marginal contribution (§8.1.2) is a damping term, not by itself the ratified brake. **INFERRED.** In the implemented engine research feeds nothing back into population, so this loop is not closed in the tree either.
+**8.5.3** A larger population raising the RP pool, which raises growth, is a loop that D-021 governs. Diminishing marginal contribution (§8.1.2) is a damping term, not by itself the ratified brake. **INFERRED.** In the implemented engine research feeds nothing back into population, so this loop is not closed in the tree either.
 
 ### 8.6 Eureka — DIRECTOR RULING (D-044 R10)
 
@@ -259,13 +261,13 @@ A Eureka condition accelerates **its own node**, independently of whether that n
 
 ## 14. Culture and Tourism
 
-**14.1** Culture is **not** a progression channel. Civics is driven by the **same CLP pool** as Technology, and there are no Culture Points and no Culture allocation (**DIRECTOR RULING — D-044 R12, R20-K**). Culture as a progression quantity does not exist. The earlier ruling that it is not Tourism and produces no Culture Victory still stands (§14.2).
+**14.1** Culture is **not** a progression channel. Civics is driven by the **same RP pool** as Technology, and there are no Culture Points and no Culture allocation (**DIRECTOR RULING — D-044 R12, R20-K**). Culture as a progression quantity does not exist. The earlier ruling that it is not Tourism and produces no Culture Victory still stands (§14.2).
 
 **14.2** Culture Victory is removed, and no Tourism placeholder is created, until a genuine cultural-attraction simulation exists to support it. **DIRECTOR RULING.**
 
 **14.3 Naming — MOOT for progression since D-044** (there is no Culture progression channel to name). The paragraph below is kept because it still governs any future use of the word. **Original heading: DIRECTOR DECISION REQUIRED (conflict).** *Culture* is already a shipped mechanical term: the population bucket dimension (`CultureId`, `reg.Cultures`; `WorldFounding.cs:51-88`; Spine `:44`), and the subject of D-041 attachment. CONV-1's claimant rule gives the bare word to the shipped system. The progression channel therefore needs a namespaced internal name, such as `civic culture` or `culture (progression)`. The player-facing label may still read "Culture". The Director's own note — *"Culture is not the same thing as cultural identity"* — is the reason.
 
-**14.4** Moot since D-044: there is no Culture generation model, because Civics consumes CLP (§8.1.1).
+**14.4** Moot since D-044: there is no Culture generation model, because Civics consumes RP (§8.1.1).
 
 ## 15. World Vocabulary
 
@@ -303,14 +305,14 @@ No change is applied by this document. Required, in order: **PROPOSED.**
 | Eight domains | DIRECTOR RULING |
 | Domain ≠ realization mechanism | DIRECTOR RULING |
 | Civics first-class; no policy-card modifiers | DIRECTOR RULING; RATIFIED constraint (ADR-019 Part 3, law 2) |
-| One Cognitive Load Point (CLP) pool; population as a non-linear input | DIRECTOR RULING (D-044 R2) |
-| Technology = knowledge; Civics on the same CLP pool; no Science or Culture quantities | DIRECTOR RULING (D-044 R1, R2, R12) |
+| One Research Point (RP) pool; population as a non-linear input | DIRECTOR RULING (D-044 R2) |
+| Technology = knowledge; Civics on the same RP pool; no Science or Culture quantities | DIRECTOR RULING (D-044 R1, R2, R12) |
 | Two trees; Main Technology Tree + five subtrees opening together at the university/research stage; no Age trigger | DIRECTOR RULING (D-044 R3, R4) |
 | Experimental Method stays an institution | DIRECTOR RULING |
 | Lifecycle, viability, saturation | RATIFIED (ADR-028) |
 | Nine Ages authoritative; dt bands are implementation | DIRECTOR RULING (first record on `main`; previously D-043 on `claude/civdemo-work-b1z2y4`) |
 | Tourism and Culture Victory out | DIRECTOR RULING |
-| No general bank of unused CLP; partial progress per node | **RULED** — D-044 R20-D; D-042 §9.5 superseded (append-only note) |
+| No general bank of unused RP; partial progress per node | **RULED** — D-044 R20-D; D-042 §9.5 superseded (append-only note) |
 | One active target; many nodes keep partial progress | **RULED** — D-044 R9; D-042 §9.3, the §12 queue bullet and the §15 rows superseded (append-only notes) |
 | "Culture" as a bare internal term | **MOOT** for progression (no Culture channel); CONV-1 still governs the word |
 | D-037 C5 justification clause | DIRECTOR DECISION REQUIRED |
@@ -325,7 +327,7 @@ No change is applied by this document. Required, in order: **PROPOSED.**
 2. ~~Concurrency~~ — **RULED** by D-044 R9 (§8.3).
 3. ~~Culture naming~~ — **MOOT** (§14.3).
 4. ~~Culture generation~~ — **MOOT** (§14.4).
-5. **CLP function** — inputs, form and constants, each derived from a stated reference class (§8.1.2). ADR-029 ships a provisional, population-only form, labelled chosen and not derived. **Still open.**
+5. **RP function** — inputs, form and constants, each derived from a stated reference class (§8.1.2). ADR-029 ships a provisional, population-only form, labelled chosen and not derived. **Still open.**
 6. ~~Branch triggers~~ — **RULED** by D-044 R4: one stage, all five subtrees (§8.4.2). How the institutional half of the stage is evaluated once an institutions system exists is ADR-029 §8.
 7. **Age → dt mapping** — reconcile the nine Ages with the seven shipped dt bands (§12.3).
 8. **Campaign start** — Stone Age start against the shipped −4000 Neolithic start (§12.6).
@@ -541,4 +543,128 @@ Heavy cross-dependency between branches is expected (Engineering → steam engin
 
 ````markdown
 11. **D-021 brake** — literacy or another ratified brake before specialized universities are built (§8.5).
+````
+
+## 21. Supersession record — 2026-10-01 (D-046 G5 terminology, ADR-030; original wording preserved)
+
+D-046 G5 standardizes the research resource on **Research Points (RP)**, and ADR-030 rules the per-turn reading. Every line of §1–§19 rewritten for that reason is reproduced here **verbatim**, in document order, as it stood before the rewrite. §20 is not touched: it is itself a verbatim record.
+
+### §3.2 — original
+
+````markdown
+**3.2** Exactly two views are progression trees — things the player directs research into. Both are driven by the **one shared Cognitive Load Point (CLP) pool** (§8):
+````
+
+### §3.4 — original
+
+````markdown
+**3.4** A **subtree** (also called a *branch*) is a subdivision of Tree 1, not a separate tree. There are five, and they are **views** of the one Technology graph. A node sits in exactly one of them, or in the Main Technology Tree, and is never duplicated. All five draw on the same CLP pool as the Main tree and as Civics. They may depend on each other and on any domain. **DIRECTOR RULING — D-044 R3, R15, R16;** it continues the earlier ruling *"not six independent technology trees — research branches within the Technology/Knowledge progression."* D-044 has since reduced the count from six to five (§20).
+````
+
+### §4 (table) — original
+
+````markdown
+| **Technology** (the civilization's knowledge) | scientific, technical, accumulated knowledge | research (CLP) |
+````
+
+### §4 (table) — original
+
+````markdown
+| **Civics** | political, governmental, legal, administrative and social organization | research (CLP — the same pool), then adoption |
+````
+
+### §7 (table) — original
+
+````markdown
+| **researched** | progressed with Cognitive Load Points (the one shared pool) until complete | Technology, Civics; a codified Technique |
+````
+
+### §8.1 heading — original
+
+````markdown
+### 8.1 The Cognitive Load Point pool — DIRECTOR RULING (D-044 R2)
+````
+
+### §8.1 (diagram) — original
+
+````markdown
+            COGNITIVE LOAD POINTS (CLP) — one pool, a rate per sim-year
+````
+
+### §8.1.1 — original
+
+````markdown
+**8.1.1** **Cognitive Load Points (CLP)** is the authoritative name of the one research resource. It replaces both "Research Points" and the earlier term "Cognitive Pool". Everything researchable consumes the same pool: Technology, the five Technology subtrees, and Civics. There are no Science, Culture, Military, Medical, Engineering or Knowledge points, and no second accumulated research currency. **DIRECTOR RULING — D-044 R2, R12.**
+````
+
+### §8.1.2 — original
+
+````markdown
+**8.1.2** Population is an **input**, not a linear multiplier. *"Cognitive Pool = Population × constant"* is forbidden. The pool is a function of population, education, literacy, institutions, health, specialization and connectivity, with diminishing marginal contribution from population. **DIRECTOR RULING** (unchanged). No functional form, coefficient or illustrative number is adopted here. **D-045 §2 (2026-10-01)** gives the Director's calibration anchors — population 100 → 2 RP and 1,000 → 10 RP per turn — and a PROVISIONAL CALIBRATION curve through them, RP(P) = 2·(P/100)^0.69897. ADR-029 §6 implements it over total population, the only one of these inputs that exists in simulation state. The others become FUTURE modifiers when their systems exist, and the per-turn reading is OPEN (CR-018).
+````
+
+### §8.1.3 — original
+
+````markdown
+**8.1.3** The player does **not** split the pool between channels or between nodes. They choose where the current CLP throughput goes by selecting **one active target**. Manual 70/30, 60/20/20 or any other percentage allocation is not part of the model. Institutions act on research through **cost** (§8.5), not by adding flat CLP. **DIRECTOR RULING — D-044 R9, R5.**
+````
+
+### §8.1.4 — original
+
+````markdown
+**8.1.4** CLP, Diplomatic Favor and Diplomatic Victory Points are three distinct quantities and must not be conflated. Production and construction capacity is a fourth, separate thing. "Science" and "Culture" are not progression quantities. **DIRECTOR RULING** (the four-quantity ruling, as amended by D-044 R2).
+````
+
+### §8.4.2 — original
+
+````markdown
+**8.4.2 Opening.** The five subtrees become available **together**, as research subtrees, when the civilization reaches the **university / research institutional stage**. The trigger is the relevant education, university and research capability and institutional state. It is **not** `Age == X`, and there is no faculty-by-faculty progressive opening. Once the stage exists, the player can research all five using the same CLP pool. The stage exists specifically to support specialized universities (§8.5). **DIRECTOR RULING — D-044 R4, R20-G.** ADR-029 §8 records how the trigger is evaluated from the state that exists today.
+````
+
+### §8.5 — original
+
+````markdown
+They do not create a separate research currency, do not add flat global CLP and do not create a separate research queue. The exact numerical scaling formula is **not ratified**. The modifier architecture must be able to carry diminishing returns, university maturity and local viability later (ADR-028 §1–§2, DD-13, DD-14). There is no universal `CapabilitySystem`. **DIRECTOR RULING — D-044 R5, R20-H.**
+````
+
+### §8.5.3 — original
+
+````markdown
+**8.5.3** A larger population raising the CLP pool, which raises growth, is a loop that D-021 governs. Diminishing marginal contribution (§8.1.2) is a damping term, not by itself the ratified brake. **INFERRED.** In the implemented engine research feeds nothing back into population, so this loop is not closed in the tree either.
+````
+
+### §14.1 — original
+
+````markdown
+**14.1** Culture is **not** a progression channel. Civics is driven by the **same CLP pool** as Technology, and there are no Culture Points and no Culture allocation (**DIRECTOR RULING — D-044 R12, R20-K**). Culture as a progression quantity does not exist. The earlier ruling that it is not Tourism and produces no Culture Victory still stands (§14.2).
+````
+
+### §14.4 — original
+
+````markdown
+**14.4** Moot since D-044: there is no Culture generation model, because Civics consumes CLP (§8.1.1).
+````
+
+### §18 (table) — original
+
+````markdown
+| One Cognitive Load Point (CLP) pool; population as a non-linear input | DIRECTOR RULING (D-044 R2) |
+````
+
+### §18 (table) — original
+
+````markdown
+| Technology = knowledge; Civics on the same CLP pool; no Science or Culture quantities | DIRECTOR RULING (D-044 R1, R2, R12) |
+````
+
+### §18 (table) — original
+
+````markdown
+| No general bank of unused CLP; partial progress per node | **RULED** — D-044 R20-D; D-042 §9.5 superseded (append-only note) |
+````
+
+### §19 item 5 — original
+
+````markdown
+5. **CLP function** — inputs, form and constants, each derived from a stated reference class (§8.1.2). ADR-029 ships a provisional, population-only form, labelled chosen and not derived. **Still open.**
 ````
