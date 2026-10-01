@@ -386,7 +386,16 @@ public class DrivenGoldenTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
         //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips
         //         them on this exact world and returns the OLD value byte for byte.
-        const string golden = "e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba";
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   NEW  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        const string golden = "d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

@@ -862,7 +862,16 @@ public class SnapshotTests
         //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
         //         separate processes, byte-identical logs) agree on the NEW value.
         //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
-        const string golden = "740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6";
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+        //   NEW  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        const string golden = "25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

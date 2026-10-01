@@ -535,6 +535,11 @@ extension, repeatables and starting holdings. In addition:
 - **Behavioural statement:** the strips returning main's pins byte for byte is the measurement that no population,
   food, trade, migration or other state moved.
 
+**D-045 re-pin (2026-10-01, reported separately — an intentional gameplay change, not architectural truth):**
+founded turn 300 `740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6` → `25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0` (+ `ci.yml`); driven turn 300 `e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba` → `d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e`. Cause:
+calibrated costs, 40 % partial-Eureka credit and the `Condition` field change only the research rows; the research-strip
+controls still return `main`'s pins byte for byte. Toy and FirstReign did not move.
+
 ## §16 — WHAT WAS NOT BUILT (and why)
 
 | Not built | Why |

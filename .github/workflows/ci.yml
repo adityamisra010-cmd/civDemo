@@ -154,7 +154,7 @@ jobs:
           # this tree — the in-test harness and two CLI processes with byte-identical
           # logs; IntegratedPinAttributionTests strips the research layer and returns
           # the previous value (db7c7a09…) byte for byte.
-          FOUNDED_GOLDEN=740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+          FOUNDED_GOLDEN=25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
