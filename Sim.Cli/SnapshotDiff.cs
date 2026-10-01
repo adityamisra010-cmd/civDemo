@@ -113,7 +113,7 @@ public static class SnapshotDiff
         new("ResearchTargets", [I("Polity"), I("Node")]),
         new("ResearchProgress", [I("Polity"), I("Node"), D("Progress")]),
         new("ResearchCompleted", [I("Polity"), I("Node")]),
-        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka")]),
+        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka"), I("Condition")]),
         new("ResearchCostModifiers", [I("Polity"), I("UniversityType"), D("Factor")]),
     ];
 
