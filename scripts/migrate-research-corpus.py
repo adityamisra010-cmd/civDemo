@@ -21,7 +21,9 @@ What is DERIVED here, with the rule stated at the derivation:
   * the Civics tree (six arch §5.7 candidates)            -> build_civics
   * the research-stage trigger                           -> stage_expression
   * trunk / subtree placement (rule R1)                   -> classify
-  * BaseCost (TUNE, chosen, not derived)                  -> cost_of
+  * BaseCost: content band x Age unit (D-045 §3)          -> cost_of, BAND_WEIGHT, AGE_UNIT
+  * Eureka audit category, reason and future system        -> the Eureka loop in build()
+  * baseline capabilities (outside the graph, D-045 §1)    -> BASELINE
   * machine-evaluable Eureka conditions                  -> map_eureka
   * entity unlock lists (reverse index of the registry)   -> build_entities
 """
@@ -41,20 +43,52 @@ AUDIT = ROOT / "docs" / "research-corpus-audit.md"
 # research.json directly; the loader validates either way.
 # --------------------------------------------------------------------------
 TUNE = {
-    # CLP per sim-year = clpCoefficient * adults ^ clpAdultExponent (ADR-029 §6).
-    # PROVISIONAL: population is the only §8.1 input that exists in state.
-    "clpCoefficient": 1.0,
-    "clpAdultExponent": 0.5,
-    # One fired Eureka credits this fraction of the node's EffectiveCost,
-    # capped at the remaining cost (D-044 R10).
-    "eurekaCreditFraction": 0.25,
+    # Research capacity RP(P) = 2 * (P / 100) ^ e through the Director's two anchors
+    # 100 -> 2 and 1000 -> 10 RP per turn (e = log10 5 = 0.69897...). PROVISIONAL
+    # CALIBRATION (Director ruling 2026-10-01 §2), not ratified architecture. P is the
+    # polity's total population; no other input yet (they are future modifiers).
+    "rpAnchors": [{"population": 100, "rpPerTurn": 2}, {"population": 1000, "rpPerTurn": 10}],
+    # Law 3 integrates rates over dtYears: the anchors' "per turn" is read as a turn of
+    # this many sim-years (the campaign-start Neolithic dt). OPEN: CR-018.
+    "rpReferenceTurnYears": 10,
+    # A fully satisfied Eureka credits this fraction of BASE cost (Director ruling
+    # 2026-10-01 §5); its conditions split it by normalized weight (§6).
+    "eurekaFullCreditFraction": 0.4,
 }
-# BaseCost = round to 10 of COST_BASE * COST_GROWTH ** depth, where depth is the
-# node's longest prerequisite path (union over OR alternatives). Monotone along
-# every edge by construction, so a dependent always costs more than each of its
-# prerequisites.
-COST_BASE = 1000.0
-COST_GROWTH = 1.12
+
+# --------------------------------------------------------------------------
+# COST CALIBRATION (Director ruling 2026-10-01 §3) — content significance -> band ->
+# cost, NOT prerequisite depth. Every node's band, and the reason for it, is in
+# scripts/research-calibration/nodes.json. cost = round(BAND_WEIGHT[band] * AGE_UNIT[age]).
+# BAND_WEIGHT is chosen (TUNE): the relative workload of a refinement vs an epochal
+# breakthrough. AGE_UNIT is the RP value of one band-weight unit in that Age, DERIVED by
+# scripts/research-calibration-report.py --derive from the measured population trace,
+# the Age pacing windows and the final-Age target; the report re-derives and checks it.
+# --------------------------------------------------------------------------
+BAND_WEIGHT = {"M1": 1.0, "M2": 2.0, "M3": 3.5, "M4": 6.0, "M5": 10.0}
+BAND_NAMES = {"M1": "refinement", "M2": "notable advance", "M3": "major advance",
+              "M4": "breakthrough", "M5": "epochal"}
+AGE_UNIT = {"A1": 10.99, "A2": 9.44, "A3": 133.49, "A4": 130.08, "A5": 178.08, "A6": 261.85, "A7": 129.85, "A8": 33.74, "A9": 39.01}
+CALIBRATION = ROOT / "scripts" / "research-calibration" / "nodes.json"
+
+# Baseline capabilities (Director ruling 2026-10-01 §1): what a founded civilization can
+# do with ZERO completed nodes. They live outside the research graph; providedBy names
+# the system that realizes each, or says none simulates it yet. No Builder unit exists:
+# construction is internal (capacity -> project allocation -> progress).
+BASELINE = [
+    ("baseline.settlement_founding", "Settlement founding",
+     "ColonizationSystem — colonies are founded from settlements' surplus population", True),
+    ("baseline.exploration", "Scouting and exploration",
+     "not yet simulated — no mobile agents exist (D-043)", False),
+    ("baseline.basic_military", "Basic military (clubmen or equivalent)",
+     "not yet simulated — the battle layer is a later milestone (D-011)", False),
+    ("baseline.food_gathering", "Basic food and resource gathering",
+     "ProductionSystem / HarvestSystem — sectors produce food and goods with no research", True),
+    ("baseline.construction", "Basic internal construction",
+     "ConstructionSystem — construction capacity -> project allocation -> progress; no Builder unit", True),
+    ("baseline.migration", "Migration and resettlement",
+     "MigrationSystem — people move between settlements with no research", True),
+]
 
 AGES = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]
 TRUNK_AGES = {"A1", "A2", "A3", "A4", "A5"}   # rule R1 stage cut (content metadata, never a runtime gate)
@@ -184,7 +218,9 @@ TECH_ALIASES = {
     "alphabetic script (makes movable type economic)": "abjad OR alphabet_vowels",
 }
 EUREKA_STATUSES = ["evaluable", "no-state-carrier", "institution-state-absent", "contact-state-absent",
-                   "implied-by-prerequisites"]
+                   "implied-by-prerequisites", "dead", "requires-authoring"]
+CATEGORY_OF_STATUS = {"no-state-carrier": "C", "institution-state-absent": "C", "contact-state-absent": "C",
+                      "implied-by-prerequisites": "D", "dead": "E", "requires-authoring": "F"}
 
 TOKEN = re.compile(r"[a-z_0-9]+|AND|OR|\(|\)")
 
@@ -442,8 +478,9 @@ def classify(tech, age, forced_trunk):
     return DOMAIN_TO_BRANCH[dom]
 
 
-def cost_of(depth):
-    return float(int(round(COST_BASE * COST_GROWTH ** depth / 10.0)) * 10)
+def cost_of(band, age):
+    """The calibrated BaseCost: content band x the Age's RP unit (never depth)."""
+    return float(max(1, int(round(BAND_WEIGHT[band] * AGE_UNIT[age]))))
 
 
 def good_quantity(name):
@@ -469,6 +506,23 @@ def map_eureka(text, node_ids, node_names):
     if goods:
         return " OR ".join(f"{good_quantity(g)} > 0" for g in goods), "evaluable"
     return None, "no-state-carrier"
+
+
+def load_calibration(techids):
+    doc = json.loads(CALIBRATION.read_text(encoding="utf-8"))
+    nodes = {}
+    for r in doc["nodes"]:
+        if r["id"] in nodes:
+            fail(f"calibration: duplicate node {r['id']}")
+        if r["band"] not in BAND_WEIGHT:
+            fail(f"calibration: {r['id']} band {r['band']!r} is not one of {sorted(BAND_WEIGHT)}")
+        if not r.get("rationale"):
+            fail(f"calibration: {r['id']} has no rationale")
+        nodes[r["id"]] = r
+    if set(nodes) != set(techids):
+        fail("calibration: node set differs from the corpus technologies")
+    civics = {r["id"]: r for r in doc["civics"]}
+    return {"nodes": nodes, "civics": civics, "doc": doc}
 
 
 def build_entities(corpus, civic_ids):
@@ -579,7 +633,7 @@ def build():
                "emerged": emerged}
         if tree == "technology":
             rec["branch"] = branch[n]
-        rec.update({"domain": dom, "secondaryDomains": sec, "depth": depth[n], "cost": cost_of(depth[n]),
+        rec.update({"domain": dom, "secondaryDomains": sec, "depth": depth[n], "cost": cost_of(band_of[n], age),
                     "prereq": prereq_expr[n], "eurekas": eurekas, "unlocks": u,
                     "family": family, "generation": gen, "effects": {"immediate": []},
                     "repeatable": repeatable})
@@ -593,18 +647,74 @@ def build():
     must_stage = set()
     for a in atoms(stage):
         must_stage |= {a} | must[a]
-    implied = []
+    implied, dead = [], []
+    calib = load_calibration(techids)
+    band_of = {n: calib["nodes"][n]["band"] for n in calib["nodes"]}
+    band_of.update({n: calib["civics"][n]["band"] for n in calib["civics"]})
+    if set(band_of) != set(all_ids):
+        fail("the calibration file must band every technology and civic: missing "
+             + ", ".join(sorted(set(all_ids) - set(band_of))))
+
+    def reached_without(excluded):
+        """Everything completable while `excluded` stays incomplete (the loader's dead-Eureka fixpoint)."""
+        done = set()
+
+        def run(stage_open):
+            changed = True
+            while changed:
+                changed = False
+                for n in all_ids:
+                    if n in done or n == excluded:
+                        continue
+                    if not stage_open and branch.get(n) is not None:
+                        continue
+                    if prereq_expr[n] is None or holds_on(prereq_expr[n], done):
+                        done.add(n)
+                        changed = True
+        run(False)
+        if holds_on(stage, done):
+            run(True)
+        return done
+
     tech_records = []
     for i, t in enumerate(techs):
         eus = []
         guaranteed = must[t["id"]] | (must_stage if branch[t["id"]] is not None else set())
-        for text in t["research"]["eureka"]:
+        authored = {x["index"]: x for x in calib["nodes"][t["id"]]["strings"]}
+        for k, text in enumerate(t["research"]["eureka"]):
             when, status = map_eureka(text, set(all_ids), names)
-            if (status == "evaluable" and all(a in all_ids for a in TOKEN.findall(when) if a not in ("AND", "OR"))
-                    and holds_on(when, guaranteed)):
+            reason, future = None, None
+            knowledge_only = status == "evaluable" and all(
+                a in all_ids for a in TOKEN.findall(when) if a not in ("AND", "OR"))
+            if knowledge_only and holds_on(when, guaranteed):
                 implied.append((t["id"], text, when))
+                reason = f"implied by the node's own prerequisites: '{when}' holds whenever {t['id']} is available"
                 when, status = None, "implied-by-prerequisites"
-            eus.append({"text": text, "when": when, "status": status})
+            elif knowledge_only and not holds_on(when, reached_without(t["id"])):
+                dead.append((t["id"], text, when))
+                reason = f"dead: '{when}' can only be completed after {t['id']} itself"
+                when, status = None, "dead"
+            elif status == "institution-state-absent":
+                reason, future = "names an institution's presence; no institutions system exists", "institutions"
+            elif status == "contact-state-absent":
+                reason, future = ("names contact with a civilization holding the knowledge; no contact state exists "
+                                  "(D-035-C carrier test)"), "contact / foreign knowledge"
+            elif status == "no-state-carrier":
+                a = authored.get(k)
+                if a is None:
+                    fail(f"{t['id']}.eurekas[{k}] {text!r}: unmapped string has no category in the calibration file")
+                if a["category"] == "C":
+                    reason, future = a["reason"], a.get("futureSystem") or fail(f"{t['id']}[{k}]: C needs futureSystem")
+                elif a["category"] == "F":
+                    reason, status = a["reason"], "requires-authoring"
+                else:
+                    fail(f"{t['id']}.eurekas[{k}]: calibration category {a['category']!r} — only C or F are hand-assigned; "
+                         "B decompositions must be faithful generator mappings")
+            if status != "no-state-carrier" and status != "requires-authoring" and k in authored:
+                fail(f"{t['id']}.eurekas[{k}]: the calibration file classifies a string the generator maps itself")
+            category = "A" if status == "evaluable" else CATEGORY_OF_STATUS[status]
+            eus.append({"text": text, "category": category, "status": status, "when": when, "parts": None,
+                        "weight": None, "reason": reason, "futureSystem": future})
         rep = t["research"].get("repeatable")
         if rep is not None:
             rep = dict(rep)
@@ -640,6 +750,7 @@ def build():
         "source": {"corpus": "tech-graph-v0.6.json", "corpusVersion": corpus["version"], "corpusSha256": sha,
                    "generator": "scripts/migrate-research-corpus.py"},
         "tuning": dict(TUNE),
+        "baseline": [{"id": i, "name": nm, "providedBy": by, "simulated": sim} for i, nm, by, sim in BASELINE],
         "trees": [{"id": "technology", "number": "1", "name": "Technology"},
                   {"id": "civics", "number": "2", "name": "Civics"}],
         "branches": [{"key": k, "id": i, "number": num, "name": nm} for k, i, num, nm in BRANCHES],
@@ -656,7 +767,8 @@ def build():
         "entities": entities,
     }
     stats = {"sha": sha, "order": order, "depth": depth, "branch": branch, "stage": stage,
-             "stage_closure": stage_closure, "prereq_atoms": prereq_atoms, "implied": implied}
+             "stage_closure": stage_closure, "prereq_atoms": prereq_atoms, "implied": implied, "dead": dead,
+             "calib": calib, "band_of": band_of}
     return content, stats, corpus
 
 
@@ -682,11 +794,22 @@ def render_audit(content, stats, corpus):
         f"{k} {counts.get(k, 0)}" for k in ["trunk", "military", "medicine", "engineering", "natural_science", "agriculture"]))
     ev = sum(1 for t in techs for e in t["eurekas"] if e["status"] == "evaluable")
     tot = sum(len(t["eurekas"]) for t in techs)
-    by = {}
+    by, cat = {}, {}
     for t in techs:
         for e in t["eurekas"]:
             by[e["status"]] = by.get(e["status"], 0) + 1
-    L.append(f"- Eureka strings: {tot}; machine-evaluable {ev}; " + ", ".join(f"{k} {v}" for k, v in sorted(by.items())))
+            cat[e["category"]] = cat.get(e["category"], 0) + 1
+    L.append(f"- Eureka strings: {tot}; machine-evaluable {ev}; by status: " + ", ".join(f"{k} {v}" for k, v in sorted(by.items())))
+    L.append("- Eureka audit categories (Director ruling 2026-10-01 §7): " + ", ".join(
+        f"{k} {name} **{cat.get(k, 0)}**" for k, name in [
+            ("A", "single-condition evaluable"), ("B", "multi-condition evaluable"), ("C", "requires a future system"),
+            ("D", "implied by prerequisites"), ("E", "dead / impossible"), ("F", "ambiguous, requires authoring")]))
+    bands = {}
+    for t in techs:
+        bands[stats["band_of"][t["id"]]] = bands.get(stats["band_of"][t["id"]], 0) + 1
+    L.append("- Cost bands (technologies): " + ", ".join(f"{b} {BAND_NAMES[b]} {bands.get(b, 0)}" for b in BAND_WEIGHT))
+    tc = [r for r in stats["calib"]["doc"]["nodes"] if r["techniqueCandidate"]]
+    L.append(f"- Technique candidates flagged for the Director (not moved): {len(tc)}")
     nodes_with = sum(1 for t in techs if any(e["status"] == "evaluable" for e in t["eurekas"]))
     L.append(f"- Technology nodes with at least one evaluable Eureka: {nodes_with}")
     L.append(f"- Research stage trigger: `{stats['stage']}`")
@@ -702,7 +825,8 @@ def render_audit(content, stats, corpus):
     L.append("")
     L.append("## Corpus problems found (none repaired silently)")
     L.append("")
-    L.append("1. **No research cost in the corpus.** BaseCost is derived from prerequisite depth (TUNE, chosen).")
+    L.append("1. **No research cost in the corpus.** BaseCost is calibrated: content band × the Age's RP unit "
+             "(`scripts/research-calibration/nodes.json`; `docs/research-calibration-report.md`). Depth no longer sets cost.")
     L.append("2. **Eurekas are prose.** Only faithful mappings are machine-evaluable; the rest keep their text with a status.")
     L.append("3. **`inst.newspaper` references `postal_imperial`,** which is not a technology, civic or institution "
              "(it survives only as a `reclass` entry). Declared unresolved; `inst.newspaper`, and everything that "
@@ -717,6 +841,30 @@ def render_audit(content, stats, corpus):
              "(e.g. \"circumstance: fire\" on a node that requires fire_making). Evaluated, each would fire the moment the node "
              "became available — a flat cost cut, not a circumstance. Declared `implied-by-prerequisites`, not evaluated "
              "(ADR-029 §7): " + ", ".join(f"`{n}` ({esc(w)})" for n, _, w in imp) + ".")
+    dd = stats["dead"]
+    L.append(f"10. **{len(dd)} Eureka circumstances are dead** — a faithful reading names knowledge completable only after the "
+             "node itself" + (": " + ", ".join(f"`{n}` ({esc(w)})" for n, _, w in dd) if dd else "") + ".")
+    L.append(f"11. **{cat.get('F', 0)} Eureka strings are ambiguous prose** that cannot be decomposed without fabricating a "
+             "condition; kept verbatim as `requires-authoring` with a reason (below).")
+    L.append("")
+    L.append("## Technique candidates (Director ruling 2026-10-01 §11 — flagged, NOT moved)")
+    L.append("")
+    L.append("| node | age | reason |")
+    L.append("|---|---|---|")
+    age_of = {t["id"]: t["age"] for t in techs}
+    for r in tc:
+        L.append(f"| `{r['id']}` | {age_of[r['id']]} | {esc(r.get('techniqueReason'))} |")
+    L.append("")
+    L.append("## Cost calibration (every node: band, breadth, kind, cost and the reason)")
+    L.append("")
+    L.append(f"cost = round(BAND_WEIGHT × AGE_UNIT[age]); BAND_WEIGHT {json.dumps(BAND_WEIGHT)}; AGE_UNIT {json.dumps(AGE_UNIT)}.")
+    L.append("")
+    L.append("| id | age | band | breadth | kind | cost | rationale |")
+    L.append("|---|---|---|---|---|---|---|")
+    for r in stats["calib"]["doc"]["nodes"] + stats["calib"]["doc"]["civics"]:
+        n = next(x for x in techs + civs if x["id"] == r["id"])
+        rv = f" *(review: {r['review']['from']}→{r['review']['to']} — {esc(r['review']['reason'])})*" if "review" in r else ""
+        L.append(f"| `{r['id']}` | {n['age']} | {r['band']} | {r['breadth']} | {r['kind']} | {int(n['cost'])} | {esc(r['rationale'])}{rv} |")
     L.append("")
     L.append("## Per-node audit")
     L.append("")
@@ -735,6 +883,15 @@ def render_audit(content, stats, corpus):
         ent = sum(len(c["unlocks"][k]) for k in UNLOCK_KINDS)
         L.append(f"| {c['key']} | `{c['id']}` | civics | {c['domain']} | {c['age']} (derived) | {c['depth']} | {int(c['cost'])} "
                  f"| {esc(c['prereq'])} | 0/0 | | {ent} | 0 | |")
+    L.append("")
+    L.append("## Eureka strings without a machine condition (category, status, reason)")
+    L.append("")
+    L.append("| node | # | cat | status | corpus text | reason | future system |")
+    L.append("|---|---|---|---|---|---|---|")
+    for t in techs:
+        for k, e in enumerate(t["eurekas"]):
+            if e["status"] != "evaluable":
+                L.append(f"| `{t['id']}` | {k} | {e['category']} | {e['status']} | {esc(e['text'])} | {esc(e['reason'])} | {esc(e['futureSystem'])} |")
     L.append("")
     L.append("## Eureka mapping (every evaluable Eureka)")
     L.append("")

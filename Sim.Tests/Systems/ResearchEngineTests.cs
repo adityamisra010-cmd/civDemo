@@ -8,8 +8,9 @@ namespace Sim.Tests.Systems;
 
 /// <summary>
 /// ADR-029 engine semantics, one D-044 ruling per test group, on the
-/// <see cref="ResearchRigs.Standard"/> graph. The world yields EXACTLY 1 000 CLP per
-/// dt-10 turn: 10 000 adults, sqrt, coefficient 1. Every cost is 2 500 CLP unless
+/// <see cref="ResearchRigs.Standard"/> graph. The world yields EXACTLY 1 000 RP per
+/// dt-10 turn: 10 000 people at the rig anchors (10 000 → 1 000; exponent 0.5). A full
+/// Eureka is 40 % of base cost (w's two strings share it: 500 each). Every cost is 2 500 unless
 /// stated, so every expected progress value below is exact — there is no epsilon
 /// anywhere (CLAUDE.md: exact equality).
 /// Keys: a 1, b 2, c 3 (= a AND b; the stage), d 4 (= a OR b), e 5
@@ -21,46 +22,61 @@ public class ResearchEngineTests
     private static readonly ResearchContent Rig = Standard().Load();
     private static readonly PolityId P1 = new(Player);
 
-    // ------------------------------------------------------------------ CLP generation / input
+    // ------------------------------------------------------------------ research capacity (Director ruling 2026-10-01 §2)
+
+    private static readonly ResearchTuning Canonical = TestConfigs.Research().Tuning;
 
     [Fact]
-    public void Clp_IsCoefficientTimesAdultsToTheExponent_PerSimYear()
+    public void Rp_TheDirectorAnchors_Population100Gives2_And1000Gives10()
     {
-        WorldState w = PlayerWorld();
-        Assert.Equal(10_000, ResearchQuery.Adults(w, P1));
-        Assert.Equal(100.0, ResearchQuery.ClpPerYear(w, Rig, P1));
-
-        // Diminishing marginal contribution (architecture §8.1.2): 4x the adults, 2x the CLP.
-        WorldState big = World([Player], [Player], 40_000);
-        Assert.Equal(200.0, ResearchQuery.ClpPerYear(big, Rig, P1));
-
-        // The coefficient scales the pool; the exponent shapes it.
-        var scaled = Standard();
-        scaled.Coefficient = 3.0;
-        Assert.Equal(300.0, ResearchQuery.ClpPerYear(w, scaled.Load(), P1));
+        Assert.Equal(2.0, ResearchQuery.ResearchCapacity(Canonical, 100));
+        // The second anchor goes through Pow(10, log10 5): 10 to within one rounding of the exponent.
+        Assert.Equal(10.0, ResearchQuery.ResearchCapacity(Canonical, 1_000), 12);
+        Assert.Equal(0.69897, Canonical.RpExponent, 5);  // the ruling's quoted exponent (log10 5)
+        Assert.Equal(0.0, ResearchQuery.ResearchCapacity(Canonical, 0));
     }
 
     [Fact]
-    public void Clp_CountsOnlyAdultsInSettlementsThePolityControls()
+    public void Rp_IsMonotone_AndSublinear_MoreResearchButLessPerPerson()
     {
-        // Two polities, three settlements: polity 1 controls 0 and 2, polity 2 controls 1.
-        WorldState w = World([1, 2], [1, 2, 1], 2_500);
-        // Children and elders are not adults: add some to settlement 0; the count must not move.
-        var ledger = new Ledger(w.LedgerFlows);
+        double previous = 0.0, previousPerPerson = double.MaxValue;
+        foreach (double p in new double[] { 10, 100, 1_000, 5_000, 10_000, 100_000, 1_000_000, 100_000_000 })
+        {
+            double rp = ResearchQuery.ResearchCapacity(Canonical, p);
+            Assert.True(rp > previous, $"RP must grow with population ({p})");
+            Assert.True(rp / p < previousPerPerson, $"RP per person must fall ({p})");
+            // Doubling the population multiplies research by 2^e < 2 (sublinear), never by 2.
+            Assert.True(ResearchQuery.ResearchCapacity(Canonical, 2 * p) < 2 * rp);
+            previous = rp;
+            previousPerPerson = rp / p;
+        }
+    }
+
+    [Fact]
+    public void Rp_IsTotalPopulationOfControlledSettlements_PerSimYear()
+    {
+        WorldState w = PlayerWorld();
+        Assert.Equal(10_000, ResearchQuery.Population(w, P1));
+        Assert.Equal(100.0, ResearchQuery.ResearchPerYear(w, Rig, P1)); // 1 000 per 10-year reference turn
+
+        // Two polities, three settlements: polity 1 controls 0 and 2, polity 2 controls 1. Children and
+        // elders are population too: 7 000 of each added to settlement 0 count for polity 1 only.
+        WorldState two = World([1, 2], [1, 2, 1], 2_500);
+        var ledger = new Ledger(two.LedgerFlows);
         foreach (int cohort in new[] { 1, 13 })
         {
-            int row = w.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1), new ReligionId(1), new ClassId(1),
+            int row = two.Buckets.Add(new BucketRow(new SettlementId(0), new CultureId(1), new ReligionId(1), new ClassId(1),
                 cohort, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
-            ledger.Flow(ref w.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
+            ledger.Flow(ref two.Buckets.Ref(row).Count, ConservedQuantityIds.Population,
                 ReasonIds.InitialEndowment, 7_000, FlowDirection.Source, OverdrawPolicy.Throw);
         }
-        Assert.Equal(5_000, ResearchQuery.Adults(w, new PolityId(1)));
-        Assert.Equal(2_500, ResearchQuery.Adults(w, new PolityId(2)));
-        Assert.Equal(50.0, ResearchQuery.ClpPerYear(w, Rig, new PolityId(2)));
+        Assert.Equal(19_000, ResearchQuery.Population(two, new PolityId(1)));
+        Assert.Equal(2_500, ResearchQuery.Population(two, new PolityId(2)));
+        Assert.Equal(50.0, ResearchQuery.ResearchPerYear(two, Rig, new PolityId(2))); // 1000 x (2500/10000)^0.5 / 10
 
         // A polity with no settlement generates nothing (and Pow(0, e) is never asked).
         WorldState empty = World([1, 3], [1], 10_000);
-        Assert.Equal(0.0, ResearchQuery.ClpPerYear(empty, Rig, new PolityId(3)));
+        Assert.Equal(0.0, ResearchQuery.ResearchPerYear(empty, Rig, new PolityId(3)));
     }
 
     [Fact]
@@ -159,7 +175,7 @@ public class ResearchEngineTests
         WorldState e = WithCompleted(PlayerWorld([(4, 50)]), 1);
         e.Polities.Add(new PolityRow(P1, CommandSource.Player));
         WorldState e1 = Executor(Rig).Step(e);
-        Assert.Equal(625.0, Progress(e1, 11)); // not 1250
+        Assert.Equal(500.0, Progress(e1, 11)); // not 1000
         Assert.Single(e1.ResearchEurekas.ToArrayForTest());
     }
 
@@ -262,7 +278,7 @@ public class ResearchEngineTests
         w.Controls.Clear();
         w = Run(Executor(Rig), w, 2);
         Assert.True(Done(w, 1) && Done(w, 2));
-        Assert.Equal(0.0, ResearchQuery.ClpPerYear(w, Rig, P1));
+        Assert.Equal(0.0, ResearchQuery.ResearchPerYear(w, Rig, P1));
     }
 
     // ------------------------------------------------------------------ prerequisites: AND / OR / nested
@@ -366,10 +382,10 @@ public class ResearchEngineTests
         WorldState w = WithCompleted(PlayerWorld([(4, 50)]), 1);
         TurnExecutor ex = Executor(Rig);
         WorldState w1 = ex.Step(w);
-        Assert.Equal(625.0, Progress(w1, 11)); // 0.25 x 2500
+        Assert.Equal(500.0, Progress(w1, 11)); // 0.4 x 2500 x share 1/2 (w has two equally weighted evaluable strings)
         Assert.True(ResearchQuery.EurekaFired(w1, P1, Key(11), 0));
         WorldState w2 = ex.Step(w1); // the condition still holds, but a fired Eureka never fires again
-        Assert.Equal(625.0, Progress(w2, 11));
+        Assert.Equal(500.0, Progress(w2, 11));
         Assert.Single(w2.ResearchEurekas.ToArrayForTest());
     }
 
@@ -381,13 +397,13 @@ public class ResearchEngineTests
         orders.Append(Target(0, 2)); // target b; the Eureka is on w
         WorldState w1 = Executor(Rig, orders).Step(w);
         Assert.Equal(1000.0, Progress(w1, 2));
-        Assert.Equal(625.0, Progress(w1, 11));
+        Assert.Equal(500.0, Progress(w1, 11));
     }
 
     [Fact]
     public void Eureka_IsCappedAtTheRemainingCost_AndNeverOverflows()
     {
-        // w already holds 2400 of 2500: the Eureka is worth 625 but only 100 remain.
+        // w already holds 2400 of 2500: the timber condition is worth 500 but only 100 remain.
         WorldState w = WithCompleted(PlayerWorld([(4, 50)]), 1);
         w.ResearchProgress.Add(new ResearchProgressRow(P1, Key(11), 2400.0));
         WorldState w1 = Executor(Rig).Step(w);
@@ -408,7 +424,7 @@ public class ResearchEngineTests
         WorldState w1 = Executor(Rig).Step(w);
         Assert.False(ResearchQuery.EurekaFired(w1, P1, Key(11), 0));
         Assert.True(ResearchQuery.EurekaFired(w1, P1, Key(11), 1));
-        Assert.Equal(625.0, Progress(w1, 11));
+        Assert.Equal(500.0, Progress(w1, 11));
 
         ResearchQuery.EurekaState[] states = ResearchQuery.Eurekas(w1, Rig, P1, Key(11));
         Assert.False(states[0].Fired);
@@ -423,7 +439,7 @@ public class ResearchEngineTests
         WorldState w = World([1, 2], [2, 1], 10_000, [(4, 50)]);
         foreach (int p in new[] { 1, 2 }) w.ResearchCompleted.Add(new ResearchCompletedRow(new PolityId(p), Key(1)));
         WorldState w1 = Executor(Rig).Step(w);
-        Assert.Equal(625.0, Progress(w1, 11, polity: 2));
+        Assert.Equal(500.0, Progress(w1, 11, polity: 2));
         Assert.Equal(0.0, Progress(w1, 11, polity: 1));
     }
 
@@ -433,15 +449,15 @@ public class ResearchEngineTests
         // ANY, not ALL: the player controls both settlements, and only settlement 0 holds timber.
         WorldState first = WithCompleted(World([Player], [Player, Player], 10_000, [(4, 50)]), 1);
         WorldState f1 = Executor(Rig).Step(first);
-        Assert.Equal(625.0, Progress(f1, 11));
+        Assert.Equal(500.0, Progress(f1, 11));
         Assert.True(ResearchQuery.EurekaFired(f1, P1, Key(11), 0));
 
         // ...and not "the first controlled settlement": here only settlement 1 holds timber.
         WorldState second = WithCompleted(Stock(World([Player], [Player, Player], 10_000), 1, 4, 50), 1);
         WorldState s1 = Executor(Rig).Step(second);
-        Assert.Equal(625.0, Progress(s1, 11));
+        Assert.Equal(500.0, Progress(s1, 11));
         Assert.True(ResearchQuery.EurekaFired(s1, P1, Key(11), 0));
-        Assert.True(ResearchQuery.EurekaHolds(s1, Rig, P1, Rig.Nodes[Rig.IndexOfId("w")].Eurekas[0],
+        Assert.True(ResearchQuery.EurekaHolds(s1, Rig, P1, Rig.Nodes[Rig.IndexOfId("w")].Eurekas[0].Conditions[0],
             ResearchQuery.CompletedMask(s1, Rig, P1)));
     }
 
@@ -624,7 +640,8 @@ public class ResearchEngineTests
         _ = ResearchQuery.CostModifiers(w, Rig, P1);
         _ = ResearchQuery.Prerequisites(w, Rig, P1, Key(5));
         _ = ResearchQuery.Eurekas(w, Rig, P1, Key(11));
-        _ = ResearchQuery.ClpPerYear(w, Rig, P1);
+        _ = ResearchQuery.ResearchPerYear(w, Rig, P1);
+        _ = ResearchQuery.EurekaProgressOf(w, Rig, P1, Key(11));
         _ = ResearchQuery.KnowledgeEligibleEntities(w, Rig, P1);
         _ = ResearchQuery.UnlockedCapabilities(w, Rig, P1);
         _ = ResearchQuery.CheapestAvailable(w, Rig, P1);

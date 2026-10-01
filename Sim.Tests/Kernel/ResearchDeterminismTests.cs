@@ -119,7 +119,7 @@ public class ResearchDeterminismTests
     public void Research_TurnExactDelivery_OnTheFoundedWorld()
     {
         // The first driver order is stamped turn 0; the world at turn 1 already holds
-        // exactly one turn of CLP on that node (ClpPerYear on PREV × dtYears).
+        // exactly one turn of research on that node (ResearchPerYear on PREV × dtYears).
         ResearchContent content = TestConfigs.Research();
         WorldState w0 = Found();
         ResearchNodeId pick = ResearchQuery.CheapestAvailable(w0, content, Player)!.Value;
@@ -130,13 +130,14 @@ public class ResearchDeterminismTests
         // The step's dt is the era table's (the founding clock carries none yet).
         double dtYears = (w1.Clock.SimDays - w0.Clock.SimDays) / (double)SimClock.YearDays;
         double expected = Math.Min(
-            ResearchQuery.ClpPerYear(w0, content, Player) * dtYears,
+            ResearchQuery.ResearchPerYear(w0, content, Player) * dtYears,
             ResearchQuery.EffectiveCost(w0, content, Player, content.IndexOf(pick)));
         Assert.True(expected > 0.0);
-        double eureka = 0.0; // a fired Eureka on the same node also credits it this step
+        double eureka = 0.0; // a credited Eureka condition on the same node also credits it this step
+        ResearchNode pickNode = content.Nodes[content.IndexOf(pick)];
         for (int i = 0; i < w1.ResearchEurekas.Count; i++)
             if (w1.ResearchEurekas[i].Node == pick)
-                eureka += content.Tuning.EurekaCreditFraction * ResearchQuery.EffectiveCost(w0, content, Player, content.IndexOf(pick));
+                eureka += ResearchQuery.EurekaConditionCredit(content, pickNode, pickNode.Eurekas[w1.ResearchEurekas[i].Eureka]);
         double got = ResearchQuery.IsCompleted(w1, Player, pick)
             ? ResearchQuery.EffectiveCost(w0, content, Player, content.IndexOf(pick))
             : ResearchQuery.Progress(w1, Player, pick);

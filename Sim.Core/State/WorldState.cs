@@ -829,7 +829,7 @@ public record struct ResearchCompletedRow(PolityId Polity, ResearchNodeId Node);
 /// list in research.json (D-044 R10). Owned by ResearchSystem. Row presence is the
 /// fact; a fired Eureka never fires again, so its credit is applied exactly once.
 /// </summary>
-public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka);
+public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka, int Condition);
 
 /// <summary>
 /// ADR-029 §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5). One polity's

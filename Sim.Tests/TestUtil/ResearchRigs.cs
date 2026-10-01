@@ -12,15 +12,21 @@ namespace Sim.Tests.TestUtil;
 /// Test rigs for the research engine (ADR-029). <see cref="Spec"/> builds a small,
 /// VALID research.json in memory — the real loader validates it, so every rig graph
 /// passes the same rules as the shipped one — and <see cref="World"/> builds a
-/// hand-made world whose CLP is exact: <c>adults</c> adults in cohort 5 of each
-/// controlled settlement, and CLP/yr = sqrt(total adults) at the rig tuning. At
-/// adults = 10 000 and dt = 10 years that is exactly 1 000 CLP per turn.
+/// hand-made world whose research is exact: <c>adults</c> people in cohort 5 of each
+/// controlled settlement, and at the rig anchors (10 000 → 1 000 per 10-year reference
+/// turn; exponent 0.5) a population of 10 000 at dt = 10 years is exactly 1 000 RP per turn.
 /// </summary>
 internal static class ResearchRigs
 {
     public const int Player = 1;
 
-    public sealed record Eu(string Text, string? When, string Status = "evaluable");
+    /// <summary>One Eureka string. <paramref name="When"/> is a single condition (category A);
+    /// <paramref name="Parts"/> several (B). Non-evaluable strings get a reason, and a future
+    /// system for the C statuses, unless given. <paramref name="Category"/> overrides the
+    /// derived letter (to test the loader's agreement check).</summary>
+    public sealed record Eu(
+        string Text, string? When, string Status = "evaluable", string[]? Parts = null, double? Weight = null,
+        string? Reason = null, string? FutureSystem = null, string? Category = null);
 
     public sealed record Node(
         int Key, string Id, string? Prereq = null, double Cost = 2500.0, string? Branch = null,
@@ -36,9 +42,14 @@ internal static class ResearchRigs
         public List<Node> Civics { get; } = [];
         public List<Entity> Entities { get; } = [];
         public string Stage { get; set; } = "a";
-        public double Coefficient { get; set; } = 1.0;
-        public double Exponent { get; set; } = 0.5;
-        public double EurekaFraction { get; set; } = 0.25;
+        /// <summary>Rig anchors: 10 000 people → 1 000 RP per 10-year reference turn, and
+        /// 1 000 000 → 10 000 (exponent exactly 0.5), so a 10 000-person world yields EXACTLY
+        /// 1 000 RP per dt-10 turn and every expected value below stays exact.</summary>
+        public double[] RpAnchor1 { get; set; } = [10_000, 1_000];
+        public double[] RpAnchor2 { get; set; } = [1_000_000, 10_000];
+        public double RpReferenceTurnYears { get; set; } = 10.0;
+        public double EurekaFullFraction { get; set; } = 0.4;
+        public bool WithBaseline { get; set; } = true;
 
         public string Json()
         {
@@ -69,7 +80,26 @@ internal static class ResearchRigs
                         entityLists[listFor[Array.IndexOf(kinds, e.Kind)]].Add(e.Id);
                 var eurekas = new JsonArray();
                 foreach (Eu eu in n.Eurekas ?? [])
-                    eurekas.Add(new JsonObject { ["text"] = eu.Text, ["when"] = eu.When, ["status"] = eu.Status });
+                {
+                    bool future = eu.Status is "no-state-carrier" or "institution-state-absent" or "contact-state-absent";
+                    string letter = eu.Category ?? eu.Status switch
+                    {
+                        "evaluable" => eu.Parts is null ? "A" : "B",
+                        "implied-by-prerequisites" => "D",
+                        "dead" => "E",
+                        "requires-authoring" => "F",
+                        _ => "C",
+                    };
+                    JsonArray? parts = null;
+                    if (eu.Parts is not null) { parts = []; foreach (string part in eu.Parts) parts.Add(part); }
+                    eurekas.Add(new JsonObject
+                    {
+                        ["text"] = eu.Text, ["category"] = letter, ["status"] = eu.Status, ["when"] = eu.When, ["parts"] = parts,
+                        ["weight"] = eu.Weight,
+                        ["reason"] = eu.Reason ?? (eu.Status == "evaluable" ? null : "rig reason"),
+                        ["futureSystem"] = eu.FutureSystem ?? (future ? "rig future system" : null),
+                    });
+                }
                 var o = new JsonObject
                 {
                     ["key"] = n.Key, ["id"] = n.Id, ["name"] = n.Id.ToUpperInvariant(), ["desc"] = "rig node",
@@ -117,8 +147,19 @@ internal static class ResearchRigs
                 },
                 ["tuning"] = new JsonObject
                 {
-                    ["clpCoefficient"] = Coefficient, ["clpAdultExponent"] = Exponent, ["eurekaCreditFraction"] = EurekaFraction,
+                    ["rpAnchors"] = new JsonArray(
+                        new JsonObject { ["population"] = RpAnchor1[0], ["rpPerTurn"] = RpAnchor1[1] },
+                        new JsonObject { ["population"] = RpAnchor2[0], ["rpPerTurn"] = RpAnchor2[1] }),
+                    ["rpReferenceTurnYears"] = RpReferenceTurnYears,
+                    ["eurekaFullCreditFraction"] = EurekaFullFraction,
                 },
+                ["baseline"] = WithBaseline
+                    ? new JsonArray(new JsonObject
+                    {
+                        ["id"] = "baseline.settlement_founding", ["name"] = "Settlement founding",
+                        ["providedBy"] = "rig system", ["simulated"] = true,
+                    })
+                    : new JsonArray(),
                 ["trees"] = new JsonArray(
                     new JsonObject { ["id"] = "technology", ["number"] = "1", ["name"] = "Technology" },
                     new JsonObject { ["id"] = "civics", ["number"] = "2", ["name"] = "Civics" }),
@@ -218,7 +259,7 @@ internal static class ResearchRigs
         return w;
     }
 
-    /// <summary>One polity (the player), one settlement of 10 000 adults: 1 000 CLP per dt-10 turn.</summary>
+    /// <summary>One polity (the player), one settlement of 10 000 people (all adults): exactly 1 000 RP per dt-10 turn.</summary>
     public static WorldState PlayerWorld((int Good, long Qty)[]? stocks = null) => World([Player], [Player], 10_000, stocks);
 
     public static EraTable FlatEra(double dtYears) => EraTableLoader.Load(

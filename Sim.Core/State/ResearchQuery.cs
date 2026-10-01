@@ -312,47 +312,68 @@ public static class ResearchQuery
         return adults;
     }
 
-    /// <summary>
-    /// CLP per sim-year (ADR-029 §6), the ONE research throughput (D-044 R2). This is
-    /// PROVISIONAL and chosen, not derived: coefficient × adults^exponent. The
-    /// exponent is validated in (0, 1), because population is an input with
-    /// diminishing marginal contribution and "population × constant" is forbidden
-    /// (architecture §8.1.2). Of the section's inputs, population is the only one
-    /// that exists in simulation state; the others — education, literacy,
-    /// institutions, health, specialization, connectivity — are not implemented and
-    /// are not guessed at. A step credits ClpPerYear × dtYears (law 3).
-    /// </summary>
-    public static double ClpPerYear(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+    /// <summary>Total population (every cohort and class) of the settlements the polity
+    /// controls, each settlement once (lowest-id controller, as <see cref="Adults"/>).</summary>
+    public static long Population(IReadOnlyWorldState world, PolityId polity)
     {
-        long adults = Adults(world, polity);
-        if (adults <= 0) return 0.0;
-        return content.Tuning.ClpCoefficient * Math.Pow(adults, content.Tuning.ClpAdultExponent);
+        long population = 0;
+        checked
+        {
+            for (int s = 0; s < world.Settlements.Count; s++)
+            {
+                SettlementId id = world.Settlements[s].Id;
+                if (!EmpireQuery.TryGetController(world, id, out PolityId controller) || controller.Value != polity.Value) continue;
+                for (int b = 0; b < world.Buckets.Count; b++)
+                    if (world.Buckets[b].Settlement.Value == id.Value) population += world.Buckets[b].Count.Value;
+            }
+        }
+        return population;
     }
+
+    /// <summary>
+    /// Research capacity per reference turn, RP(P) = RP₁ · (P / P₁)^e (ADR-029 §6) — the
+    /// Director's two-anchor curve, 100 → 2 and 1000 → 10 (e = log10 5 ≈ 0.69897).
+    /// PROVISIONAL CALIBRATION, not ratified architecture (Director ruling 2026-10-01 §2).
+    /// Population is the only input: literacy, education, universities, health and the
+    /// rest are FUTURE modifiers, not part of this base curve. Sublinear by validation.
+    /// </summary>
+    public static double ResearchCapacity(ResearchTuning tuning, double population) =>
+        population <= 0.0 ? 0.0 : tuning.RpAnchorPerTurn * Math.Pow(population / tuning.RpAnchorPopulation, tuning.RpExponent);
+
+    /// <summary>
+    /// RP per sim-year for the polity: RP(population) / rpReferenceTurnYears. A step
+    /// credits this × dtYears (law 3), so a turn of exactly rpReferenceTurnYears yields
+    /// RP(P) — the anchors' "per turn". Whether research should instead be per turn
+    /// regardless of dt is OPEN (CR-018).
+    /// </summary>
+    public static double ResearchPerYear(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
+        ResearchCapacity(content.Tuning, Population(world, polity)) / content.Tuning.RpReferenceTurnYears;
 
     // ------------------------------------------------------------------ Eureka
 
-    public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka)
+    /// <summary>Whether this condition of this Eureka string has already been credited.</summary>
+    public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka, int condition = 0)
     {
         for (int i = 0; i < world.ResearchEurekas.Count; i++)
         {
             ResearchEurekaRow row = world.ResearchEurekas[i];
-            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value && row.Eureka == eureka) return true;
+            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value && row.Eureka == eureka && row.Condition == condition)
+                return true;
         }
         return false;
     }
 
     /// <summary>
-    /// Whether an evaluable Eureka's condition holds for the polity NOW (ADR-029 §7).
-    /// Node atoms read the polity's completed knowledge. A condition that reads any
+    /// Whether one Eureka condition holds for the polity NOW (ADR-029 §7). Node atoms
+    /// read the polity's completed knowledge. A condition that reads any
     /// settlement-scoped operand — a registered variable, or a stock_&lt;good&gt;
     /// quantity — holds when it holds in AT LEAST ONE settlement the polity controls,
     /// taken in table order. A condition over node atoms only is evaluated once, at
     /// polity scope. An unpublished variable reads 0.0 (the ProductionSystem precedent).
     /// </summary>
     public static bool EurekaHolds(
-        IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchEureka eureka, bool[] completed)
+        IReadOnlyWorldState world, ResearchContent content, PolityId polity, Predicate condition, bool[] completed)
     {
-        if (eureka.Condition is not { } condition) return false;
         Predicate.AtomReader atoms = a => completed[a];
         if (!condition.ReadsVariables && condition.QuantityIds.Count == 0)
             return condition.Evaluate(null, atoms, null);
@@ -366,25 +387,69 @@ public static class ResearchQuery
         return false;
     }
 
-    /// <summary>A node's Eurekas as the Glass Box shows them.</summary>
+    /// <summary>The credit one condition is worth: EurekaFullCreditFraction × BaseCost × its share.</summary>
+    public static double EurekaConditionCredit(ResearchContent content, ResearchNode node, ResearchEureka eureka) =>
+        content.Tuning.EurekaFullCreditFraction * node.BaseCost * eureka.ConditionShare;
+
+    /// <summary>One condition of a node's Eureka as the Glass Box shows it.</summary>
+    public sealed record EurekaConditionState(int Condition, string Source, bool Credited, bool HoldsNow, double Credit);
+
+    /// <summary>A node's Eureka strings as the Glass Box shows them.</summary>
     public sealed record EurekaState(
-        int Index, string Text, EurekaStatus Status, string? Condition, bool Fired, bool? HoldsNow);
+        int Index, string Text, EurekaStatus Status, EurekaCategory Category, double Share, string? Reason,
+        string? FutureSystem, EurekaConditionState[] Conditions)
+    {
+        /// <summary>The single condition's source (A strings), else null.</summary>
+        public string? Condition => Conditions.Length == 1 ? Conditions[0].Source : null;
+        /// <summary>True when every condition of the string has been credited (false for a string with none).</summary>
+        public bool Fired => Conditions.Length > 0 && Array.TrueForAll(Conditions, c => c.Credited);
+        /// <summary>Null for a string with no condition; otherwise whether any uncredited condition holds now.</summary>
+        public bool? HoldsNow => Conditions.Length == 0 ? null : Array.Exists(Conditions, c => c.HoldsNow);
+    }
 
     public static EurekaState[] Eurekas(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
     {
         int index = RequireIndex(content, node);
         bool[] completed = CompletedMask(world, content, polity);
-        IReadOnlyList<ResearchEureka> list = content.Nodes[index].Eurekas;
-        var result = new EurekaState[list.Count];
-        for (int e = 0; e < list.Count; e++)
+        ResearchNode n = content.Nodes[index];
+        var result = new EurekaState[n.Eurekas.Count];
+        for (int e = 0; e < n.Eurekas.Count; e++)
         {
-            ResearchEureka eu = list[e];
-            result[e] = new EurekaState(
-                e, eu.Text, eu.Status, eu.Condition?.Source, EurekaFired(world, polity, node, e),
-                eu.Condition is null ? null : EurekaHolds(world, content, polity, eu, completed));
+            ResearchEureka eu = n.Eurekas[e];
+            var conditions = new EurekaConditionState[eu.Conditions.Count];
+            for (int c = 0; c < conditions.Length; c++)
+                conditions[c] = new EurekaConditionState(c, eu.Conditions[c].Source, EurekaFired(world, polity, node, e, c),
+                    EurekaHolds(world, content, polity, eu.Conditions[c], completed), EurekaConditionCredit(content, n, eu));
+            result[e] = new EurekaState(e, eu.Text, eu.Status, eu.Category, eu.Share, eu.Reason, eu.FutureSystem, conditions);
         }
         return result;
     }
+
+    /// <summary>The node's Eureka progress (Director ruling 2026-10-01 §6): credited conditions
+    /// k of N evaluable, the credited share of the full Eureka (0..1), and the evaluable share.</summary>
+    public sealed record EurekaProgress(int Credited, int Evaluable, double CreditedShare, double EvaluableShare);
+
+    public static EurekaProgress EurekaProgressOf(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
+    {
+        ResearchNode n = content.Nodes[RequireIndex(content, node)];
+        int credited = 0, evaluable = 0;
+        double creditedShare = 0.0, evaluableShare = 0.0;
+        for (int e = 0; e < n.Eurekas.Count; e++)
+        {
+            ResearchEureka eu = n.Eurekas[e];
+            for (int c = 0; c < eu.Conditions.Count; c++)
+            {
+                evaluable++;
+                evaluableShare += eu.ConditionShare;
+                if (EurekaFired(world, polity, node, e, c)) { credited++; creditedShare += eu.ConditionShare; }
+            }
+        }
+        return new EurekaProgress(credited, evaluable, creditedShare, evaluableShare);
+    }
+
+    /// <summary>The baseline capabilities (Director ruling 2026-10-01 §1): available to every
+    /// polity with zero completed nodes, because they are not research nodes at all.</summary>
+    public static IReadOnlyList<ResearchBaselineCapability> BaselineCapabilities(ResearchContent content) => content.Baseline;
 
     private static double Variable(IReadOnlyWorldState world, SettlementId settlement, int varId)
     {

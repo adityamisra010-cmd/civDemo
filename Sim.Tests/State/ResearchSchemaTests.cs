@@ -25,8 +25,8 @@ public class ResearchSchemaTests
         w.ResearchCompleted.Add(new ResearchCompletedRow(new PolityId(1), new ResearchNodeId(1)));
         w.ResearchCompleted.Add(new ResearchCompletedRow(new PolityId(3), new ResearchNodeId(1001)));
         w.ResearchCompleted.Add(new ResearchCompletedRow(new PolityId(1), new ResearchNodeId(2)));
-        w.ResearchEurekas.Add(new ResearchEurekaRow(new PolityId(1), new ResearchNodeId(11), 1));
-        w.ResearchEurekas.Add(new ResearchEurekaRow(new PolityId(3), new ResearchNodeId(11), 0));
+        w.ResearchEurekas.Add(new ResearchEurekaRow(new PolityId(1), new ResearchNodeId(11), 1, 0));
+        w.ResearchEurekas.Add(new ResearchEurekaRow(new PolityId(3), new ResearchNodeId(11), 0, 3));
         w.ResearchCostModifiers.Add(new ResearchCostModifierRow(new PolityId(1), 2, 0.625));
         w.ResearchCostModifiers.Add(new ResearchCostModifierRow(new PolityId(3), 5, 1.0));
         return w;
@@ -42,8 +42,8 @@ public class ResearchSchemaTests
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(world, writer);
         Assert.Equal(CanonicalSchema.ExpectedLength(world), ms.Length);
-        // The tables' own contribution: targets 2×8, progress 4×16, completed 3×8, Eurekas 2×12, modifiers 2×16.
-        Assert.Equal(2 * 8 + 4 * 16 + 3 * 8 + 2 * 12 + 2 * 16,
+        // The tables' own contribution: targets 2×8, progress 4×16, completed 3×8, Eureka conditions 2×16, modifiers 2×16.
+        Assert.Equal(2 * 8 + 4 * 16 + 3 * 8 + 2 * 16 + 2 * 16,
             CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(11)));
 
         ms.Position = 0;
@@ -63,6 +63,7 @@ public class ResearchSchemaTests
         Assert.Equal(0x7FF8_0000_0000_1234, BitConverter.DoubleToInt64Bits(back.ResearchProgress[3].Progress)); // NaN payload survived
         Assert.Equal(new ResearchNodeId(1004), back.ResearchTargets[0].Node);
         Assert.Equal(1, back.ResearchEurekas[0].Eureka);
+        Assert.Equal(3, back.ResearchEurekas[1].Condition);
         Assert.Equal(5, back.ResearchCostModifiers[1].UniversityType);
         Assert.Equal(0.625, back.ResearchCostModifiers[0].Factor);
     }
@@ -73,6 +74,7 @@ public class ResearchSchemaTests
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void SchemaV26_EachResearchTable_IsHashedAndCompared(int table)
     {
         // A world differing in ONE field of ONE row of any research table hashes differently
@@ -85,6 +87,7 @@ public class ResearchSchemaTests
             case 1: b.ResearchProgress[0] = b.ResearchProgress[0] with { Progress = 0.2972070431086825 }; break;
             case 2: b.ResearchCompleted[2] = b.ResearchCompleted[2] with { Node = new ResearchNodeId(3) }; break;
             case 3: b.ResearchEurekas[1] = b.ResearchEurekas[1] with { Eureka = 2 }; break;
+            case 5: b.ResearchEurekas[0] = b.ResearchEurekas[0] with { Condition = 1 }; break;
             default: b.ResearchCostModifiers[0] = b.ResearchCostModifiers[0] with { Factor = 0.6250000000000001 }; break;
         }
         Assert.NotEqual(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));

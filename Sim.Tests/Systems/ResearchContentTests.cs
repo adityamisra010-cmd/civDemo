@@ -81,6 +81,35 @@ public class ResearchContentTests
     }
 
     [Fact]
+    public void Canonical_Tuning_IsTheDirectorsCalibration_AnchorsAndTheFullEureka()
+    {
+        // Director ruling 2026-10-01 §2 (PROVISIONAL CALIBRATION) and §5.
+        ResearchTuning t = Canonical.Tuning;
+        Assert.Equal((100.0, 2.0, 1_000.0, 10.0), (t.RpAnchorPopulation, t.RpAnchorPerTurn, t.RpSecondPopulation, t.RpSecondPerTurn));
+        Assert.Equal(0.4, t.EurekaFullCreditFraction);
+        Assert.Equal(10.0, t.RpReferenceTurnYears);   // the CR-018 reading: a campaign-start turn
+    }
+
+    [Fact]
+    public void Canonical_Costs_AreCalibratedNotDepthDerived_EveryNodeHasAnIntentionalPositiveCost()
+    {
+        // Every node has a cost; and cost is not a function of depth: two nodes of the same Age and
+        // depth carry different costs when their significance bands differ (e.g. sling M1 vs bow_simple M4).
+        foreach (ResearchNode n in Canonical.Nodes) Assert.True(n.BaseCost >= 1.0, n.Id);
+        ResearchNode sling = Canonical.Nodes[Canonical.IndexOfId("sling")], bow = Canonical.Nodes[Canonical.IndexOfId("bow_simple")];
+        Assert.Equal(sling.Age, bow.Age);
+        Assert.True(bow.BaseCost > 3 * sling.BaseCost);
+        var depthCost = new Dictionary<(string, int), double>();   // test-side check, not sim logic
+        bool varies = false;
+        foreach (ResearchNode n in Canonical.Nodes)
+        {
+            if (depthCost.TryGetValue((n.Age, n.Depth), out double c) && c != n.BaseCost) varies = true;
+            depthCost[(n.Age, n.Depth)] = n.BaseCost;
+        }
+        Assert.True(varies, "costs within one Age and depth never differ: they would be depth-derived");
+    }
+
+    [Fact]
     public void Canonical_IsInSyncWithTheCorpusFileItWasMigratedFrom()
     {
         byte[] corpus = File.ReadAllBytes(Path.Combine(RepoPaths.Root(), "tech-graph-v0.6.json"));
@@ -90,22 +119,32 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_Eurekas_PreserveEveryCorpusString_AndOnlyFaithfulMappingsAreEvaluable()
     {
-        var byStatus = new int[6];
+        var byStatus = new int[8];
+        var byCategory = new int[7];
         int total = 0;
         foreach (ResearchNode n in Canonical.Nodes)
             foreach (ResearchEureka e in n.Eurekas)
             {
                 total++;
                 byStatus[(int)e.Status]++;
-                if (e.Status == EurekaStatus.Evaluable) Assert.NotNull(e.Condition);
-                else Assert.Null(e.Condition);
+                byCategory[(int)e.Category]++;
+                if (e.Status == EurekaStatus.Evaluable) Assert.NotEmpty(e.Conditions);
+                else
+                {
+                    Assert.Empty(e.Conditions);
+                    Assert.False(string.IsNullOrWhiteSpace(e.Reason), $"{n.Id}: '{e.Text}' lost its reason");
+                }
             }
         Assert.Equal(801, total);
         Assert.Equal(93, byStatus[(int)EurekaStatus.Evaluable]);
-        Assert.Equal(547, byStatus[(int)EurekaStatus.NoStateCarrier]);
+        Assert.Equal(279, byStatus[(int)EurekaStatus.NoStateCarrier]);
         Assert.Equal(79, byStatus[(int)EurekaStatus.InstitutionStateAbsent]);
         Assert.Equal(61, byStatus[(int)EurekaStatus.ContactStateAbsent]);
         Assert.Equal(21, byStatus[(int)EurekaStatus.ImpliedByPrerequisites]);
+        Assert.Equal(0, byStatus[(int)EurekaStatus.Dead]);
+        Assert.Equal(268, byStatus[(int)EurekaStatus.RequiresAuthoring]);
+        // The audit categories of the Director ruling 2026-10-01 §7: A 93 · B 0 · C 419 · D 21 · E 0 · F 268.
+        Assert.Equal([0, 93, 0, 419, 21, 0, 268], byCategory);
 
         // A circumstance the node's prerequisites guarantee is declared, not evaluated (ADR-029 §7):
         // "sustained fire" on heat_treatment_stone, which requires fire_making.
@@ -117,7 +156,7 @@ public class ResearchContentTests
             foreach (ResearchEureka e in n.Eurekas)
                 if (e.Text is "circumstance: wood ash" or "circumstance: lime or wood ash"
                     or "circumstance: long-distance exchange reaching a tin source")
-                    Assert.Equal(EurekaStatus.NoStateCarrier, e.Status);
+                    Assert.Empty(e.Conditions);
     }
 
     [Fact]
@@ -352,7 +391,29 @@ public class ResearchContentTests
 
         Spec mismatch = Standard();
         mismatch.Technologies[10] = mismatch.Technologies[10] with { Eurekas = [new Eu("circumstance: timber", "stock_timber > 0", "no-state-carrier")] };
-        Rejects(mismatch, "'when' must be present exactly when status is 'evaluable'");
+        Rejects(mismatch, "must be present exactly when status is 'evaluable'");
+    }
+
+    [Fact]
+    public void Rejects_MalformedEurekaStrings_CategoryWeightReasonFutureSystemAndParts()
+    {
+        static Spec With(Eu eu)
+        {
+            Spec spec = Standard();
+            spec.Technologies[10] = spec.Technologies[10] with { Eurekas = [eu] };
+            return spec;
+        }
+        // The stored category must agree with the status and the condition count.
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Category: "B")), "category 'B' disagrees");
+        // A B string needs two or more parts; a single condition is 'when'.
+        Rejects(With(new Eu("circumstance: timber", null, Parts: ["stock_timber > 0"])), "'parts' needs two or more conditions");
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Parts: ["stock_timber > 0", "stock_stone > 0"])), "exactly one of 'when'");
+        // Weights: positive, and only on strings that are circumstances.
+        Rejects(With(new Eu("circumstance: timber", "stock_timber > 0", Weight: 0.0)), "weight 0 must be finite and > 0");
+        Rejects(With(new Eu("circumstance: a", null, "implied-by-prerequisites", Weight: 1.0)), "carries no weight");
+        // Every non-evaluable string keeps a reason; future-system ones name the system.
+        Rejects(With(new Eu("circumstance: gold", null, "requires-authoring", Reason: " ")), "must keep its reason");
+        Rejects(With(new Eu("circumstance: gold", null, "requires-authoring", FutureSystem: "trade")), "'futureSystem' names the missing system");
     }
 
     [Fact]
@@ -461,12 +522,19 @@ public class ResearchContentTests
     [Fact]
     public void Rejects_TuningOutsideItsRanges_LinearPopulationIsForbidden()
     {
+        // Anchors that imply exponent 1 (research = population × constant) are forbidden.
         Spec linear = Standard();
-        linear.Exponent = 1.0;
-        Rejects(linear, "clpAdultExponent 1 must be in (0, 1)");
+        linear.RpAnchor2 = [100_000, 10_000];
+        Rejects(linear, "it must be < 1: research capacity is sublinear");
+        Spec descending = Standard();
+        descending.RpAnchor2 = [1_000_000, 500];
+        Rejects(descending, "must ascend in both population and rpPerTurn");
+        Spec noReference = Standard();
+        noReference.RpReferenceTurnYears = 0.0;
+        Rejects(noReference, "tuning.rpReferenceTurnYears 0 must be finite and > 0");
         Spec noEureka = Standard();
-        noEureka.EurekaFraction = 0.0;
-        Rejects(noEureka, "eurekaCreditFraction 0 must be in (0, 1]");
+        noEureka.EurekaFullFraction = 0.0;
+        Rejects(noEureka, "tuning.eurekaFullCreditFraction 0 must be in (0, 1]");
     }
 
     [Fact]

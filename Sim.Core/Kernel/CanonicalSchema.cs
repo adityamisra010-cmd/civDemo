@@ -161,7 +161,7 @@ public static class CanonicalSchema
     private const int ResearchTargetRowWidth = 4 + 4;               // Polity, Node (v26)
     private const int ResearchProgressRowWidth = 4 + 4 + 8;         // Polity, Node, Progress bits (v26)
     private const int ResearchCompletedRowWidth = 4 + 4;            // Polity, Node (v26)
-    private const int ResearchEurekaRowWidth = 4 + 4 + 4;           // Polity, Node, Eureka (v26)
+    private const int ResearchEurekaRowWidth = 4 + 4 + 4 + 4;       // Polity, Node, Eureka, Condition (v26)
     private const int ResearchCostModifierRowWidth = 4 + 4 + 8;     // Polity, UniversityType, Factor bits (v26)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
@@ -636,7 +636,7 @@ public static class CanonicalSchema
             writer.Write(row.Node.Value);
         }
 
-        // 44. ResearchEurekas (v26: the fired-Eureka relation)
+        // 44. ResearchEurekas (v26: the credited-Eureka-condition relation)
         writer.Write(world.ResearchEurekas.Count);
         for (int i = 0; i < world.ResearchEurekas.Count; i++)
         {
@@ -644,6 +644,7 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.Node.Value);
             writer.Write(row.Eureka);
+            writer.Write(row.Condition);
         }
 
         // 45. ResearchCostModifiers (v26: specialized-university cost factors — input contract)
@@ -1059,7 +1060,7 @@ public static class CanonicalSchema
         for (int i = 0; i < researchEurekaCount; i++)
         {
             world.ResearchEurekas.Add(new ResearchEurekaRow(
-                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32()));
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32()));
         }
 
         int researchCostModifierCount = reader.ReadInt32();

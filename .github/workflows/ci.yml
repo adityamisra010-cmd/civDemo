@@ -22,6 +22,9 @@ jobs:
       - name: Research content is regenerated from its corpus (ADR-029 §2.1)
         run: python3 scripts/migrate-research-corpus.py --check
 
+      - name: Research calibration report and Age units are current (ADR-029 §2.4, D-045 §4)
+        run: python3 scripts/research-calibration-report.py --check
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:

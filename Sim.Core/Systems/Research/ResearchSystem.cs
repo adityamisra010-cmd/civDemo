@@ -22,12 +22,15 @@ public sealed record ResearchTables(
 ///   order naming anything else changes nothing (the ConstructionSystem
 ///   consumption-time precedent). The last valid order wins. An order stamped turn
 ///   t retargets this very step, whose CLP goes to the new target.</item>
-/// <item><b>Eurekas.</b> For every AVAILABLE node, in index order, each unfired
-///   evaluable Eureka whose condition holds on PREV fires ONCE. It credits its OWN
-///   node — whatever the target is — with eurekaCreditFraction × EffectiveCost,
-///   capped at the node's remaining cost. There is no overflow to any other node
+/// <item><b>Eurekas.</b> For every AVAILABLE node, in index order, each uncredited
+///   condition of each evaluable Eureka string (string order, then condition order)
+///   whose condition holds on PREV is credited ONCE. It credits its OWN node —
+///   whatever the target is — with eurekaFullCreditFraction × BaseCost × the
+///   condition's share of the node's Eureka (shares sum to 1, so a fully satisfied
+///   Eureka is exactly 40 % of BASE cost; Director ruling 2026-10-01 §5–§6), capped at
+///   the node's remaining EFFECTIVE cost. There is no overflow to any other node
 ///   (D-044 R10).</item>
-/// <item><b>Throughput.</b> ClpPerYear × dtYears (law 3) goes to the active
+/// <item><b>Throughput.</b> ResearchPerYear × dtYears (law 3) goes to the active
 ///   target, capped at its remaining cost. CLP that reaches no node — no target, or
 ///   the part past completion — is not stored anywhere: there is no general bank
 ///   (D-044 R20-D). Partial progress on every other node is left untouched
@@ -109,7 +112,6 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             }
 
             // 2. Eurekas — independent of the target, capped, no overflow.
-            double fraction = content.Tuning.EurekaCreditFraction;
             for (int i = 0; i < n; i++)
             {
                 if (!available[i]) continue;
@@ -117,19 +119,21 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 for (int e = 0; e < node.Eurekas.Count; e++)
                 {
                     ResearchEureka eureka = node.Eurekas[e];
-                    if (eureka.Condition is null) continue;
-                    if (ResearchQuery.EurekaFired(prev, polity, node.Key, e)) continue;
-                    if (!ResearchQuery.EurekaHolds(prev, content, polity, eureka, completed)) continue;
-                    owned.Eurekas.Add(new ResearchEurekaRow(polity, node.Key, e));
-                    double cost = ResearchQuery.EffectiveCost(prev, content, polity, i);
-                    Credit(owned, rowOf, polity, node, fraction * cost, cost);
+                    for (int c = 0; c < eureka.Conditions.Count; c++)
+                    {
+                        if (ResearchQuery.EurekaFired(prev, polity, node.Key, e, c)) continue;
+                        if (!ResearchQuery.EurekaHolds(prev, content, polity, eureka.Conditions[c], completed)) continue;
+                        owned.Eurekas.Add(new ResearchEurekaRow(polity, node.Key, e, c));
+                        Credit(owned, rowOf, polity, node, ResearchQuery.EurekaConditionCredit(content, node, eureka),
+                            ResearchQuery.EffectiveCost(prev, content, polity, i));
+                    }
                 }
             }
 
             // 3. Throughput to the one active target.
             if (target >= 0)
             {
-                double amount = ResearchQuery.ClpPerYear(prev, content, polity) * ctx.DtYears;
+                double amount = ResearchQuery.ResearchPerYear(prev, content, polity) * ctx.DtYears;
                 if (amount > 0.0)
                     Credit(owned, rowOf, polity, content.Nodes[target], amount,
                         ResearchQuery.EffectiveCost(prev, content, polity, target));
