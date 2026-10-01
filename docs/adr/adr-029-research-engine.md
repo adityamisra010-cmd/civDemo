@@ -699,3 +699,35 @@ now says RP (the architecture document preserves its replaced passages verbatim 
   nothing.
 - **The pacing table** is re-measured as `docs/research-calibration-report.md` (provisional; ADR-030 §4).
 - **The re-pin is the Director's ruling** on the PR, as for ADR-029 and D-045 (gov-4 §5).
+
+### A.9 — Capability ownership matrix (D-046 G3)
+
+`docs/design/research-capability-ownership.md` — 179 items: A BASELINE 48, B TECHNOLOGY-OWNED 0, C REALIZATION 131,
+D MIXED 0. No item is B because completion builds nothing and no system consumes eligibility yet (D-044 R14; ADR-028
+§3; §10 above). Built by a recon → classify → adversarial-verify workflow; the checkers' 24 findings were each verified
+again in their own worktree pinned to `d4ec6cd` (2 CONFIRMED, 16 PLAUSIBLE, 6 REFUTED; only the first two kinds changed
+the matrix). It lists the M5 integration changes and implements none of them: none is needed for schema validity.
+
+### A.10 — Mutation record (ADR-015 §7)
+
+15 mutants over the new logic (floor, shared pool, pool cap, foreign-exposure increment and provenance, last-firing
+reconciliation, Eureka idempotence, credit-only completion, recursive availability, per-turn RP, sublinear RP, implied
+check, must-set OR, weight ceiling, cost formula), each in a detached worktree, each run bounded at 120 s =
+max(120 s, 5 × the clean filtered baseline).
+
+| Run | Pinned to | Clean baseline | Killed | Survived |
+|---|---|---|---|---|
+| 1 | `1642b7d` | 9.9 s, pass | 13 | 2 — RECON-off (no reconciliation) and COST-free (no U·K^m check): missing teeth, fixed in `a5fd4be` |
+| 2 | `a5fd4be` | 8.2 s, pass (5.9 s after) | **15** | 0 |
+
+Every kill is by a semantic test (the filter holds no golden), and each mutant's property is one the rulings require
+(the script records it per mutant). No mutant hung.
+
+### A.11 — Validation at `d4ec6cd`
+
+- `Sim.Tests`: 1069 passed, 0 failed, 4 skipped (the four pre-existing measurement skips). `Sim.Ui.Tests`: 298/298.
+- Gates: banned constructs, read isolation, readonly proof (CI); `research-content-audit.py --check` and
+  `research-calibration-report.py --check`.
+- CI on `d4ec6cd`: build-and-test, determinism (including the CLI founded golden), determinism-xproc and calibration green.
+- Bench, founded seed 42, 300 turns, same load: research step 32.6 ms / 5.5 MB allocated at `d4ec6cd` against
+  46.1 ms / 6.1 MB at `6baafbe`; whole run 52.36 s against 52.57 s.
