@@ -327,6 +327,30 @@ public static class SystemCatalog
                 rng, ResearchSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>ADR-031 (D-047 ruling 12): the thin Age evaluator. Owns only the published
+    /// next-Age eligibility summary. Inert without Age content.</summary>
+    public static SystemRegistration AgeEligibility(SimConfig cfg)
+    {
+        var system = new Systems.Ages.AgeEligibilitySystem(cfg.Ages);
+        return new SystemRegistration(Systems.Ages.AgeEligibilitySystem.WellKnownId, Systems.Ages.AgeEligibilitySystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Ages.AgeEligibilityTables>(
+                prev, new Systems.Ages.AgeEligibilityTables(next.AgeEligibility),
+                rng, Systems.Ages.AgeEligibilitySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-031 (D-047 rulings 13, 14, 18): explicit Age advancement, the surge record,
+    /// and the automatic free modernization of the advancing polity's formations. SOLE OWNER of
+    /// MilitaryUnits (worldgen founds the rows; no other system writes them) — modernization is
+    /// part of the transition instant, see the system's header. Inert without Age content.</summary>
+    public static SystemRegistration AgeTransition(SimConfig cfg)
+    {
+        var system = new Systems.Ages.AgeTransitionSystem(cfg.Ages, cfg.UnitFamilies);
+        return new SystemRegistration(Systems.Ages.AgeTransitionSystem.WellKnownId, Systems.Ages.AgeTransitionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Ages.AgeTransitionTables>(
+                prev, new Systems.Ages.AgeTransitionTables(next.AgeStates, next.AgeTransitions, next.MilitaryUnits, next.UnitConversions),
+                rng, Systems.Ages.AgeTransitionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -335,6 +359,6 @@ public static class SystemCatalog
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
-         Research(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg),
          Weather(), Growth(), Trade()];
 }

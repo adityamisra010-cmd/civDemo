@@ -127,7 +127,10 @@ namespace Sim.Cli
             using var needsStream = Sim.Data.DataFiles.OpenNeeds();
             using var goodsStream = Sim.Data.DataFiles.OpenGoods();
             using var researchStream = Sim.Data.DataFiles.OpenResearch();
-            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream, goodsStream, researchStream);
+            using var agesStream = Sim.Data.DataFiles.OpenAges();
+            using var familiesStream = Sim.Data.DataFiles.OpenUnitFamilies();
+            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream, goodsStream, researchStream,
+                agesStream, familiesStream);
         }
 
         internal static TurnExecutor Executor(OrderLog? orders, bool founded = false)
@@ -1217,8 +1220,10 @@ namespace Sim.Cli
             using (var needs = Sim.Data.DataFiles.OpenNeeds())
             using (var goods = Sim.Data.DataFiles.OpenGoods())
             using (var research = Sim.Data.DataFiles.OpenResearch())
+            using (var ages = Sim.Data.DataFiles.OpenAges())
+            using (var families = Sim.Data.DataFiles.OpenUnitFamilies())
             {
-                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods, research);
+                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods, research, ages, families);
             }
             return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed, settlementsOverride);
         }

@@ -17,6 +17,8 @@
     "demographics",
     "needsgrievance",
     "pathbuild",
-    "research"
+    "research",
+    "ageeligibility",
+    "agetransition"
   ]
 }

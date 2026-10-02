@@ -42,7 +42,12 @@ public sealed record SimConfig(
     [property: JsonIgnore] GoodsConfig? Goods = null,
     // ADR-029 (D-044): the research graph rides research.json, attached the same
     // way by the four-stream Load. Null leaves the ResearchSystem inert.
-    [property: JsonIgnore] Research.ResearchContent? Research = null);
+    [property: JsonIgnore] Research.ResearchContent? Research = null,
+    // ADR-031 (D-047): the Ages (ages.json) and the unit-family graph
+    // (unit-families.json), attached by the six-stream Load. Null leaves the two
+    // Age systems inert and founds no formations.
+    [property: JsonIgnore] Ages.AgeContent? Ages = null,
+    [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -645,6 +650,26 @@ public static class SimConfigLoader
     {
         SimConfig cfg = Load(simJson, needsJson, goodsJson);
         return cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+    }
+
+    /// <summary>ADR-031: canonical six-file load — the four-file load plus ages.json and
+    /// unit-families.json, attached as SimConfig.Ages and SimConfig.UnitFamilies. Unit
+    /// families are validated against research.json's unit entities; every milestone fact
+    /// against the research, goods, class and family content it names.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson,
+        Stream agesJson, Stream unitFamiliesJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson, researchJson);
+        return WithProgression(cfg, agesJson, unitFamiliesJson);
+    }
+
+    /// <summary>ADR-031: attaches ages.json and unit-families.json to an already-loaded config
+    /// (validated against its research, goods and class registries).</summary>
+    public static SimConfig WithProgression(SimConfig cfg, Stream agesJson, Stream unitFamiliesJson)
+    {
+        Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research);
+        Ages.AgeContent ages = Ages.AgeContentLoader.Load(agesJson, cfg.Research, cfg.Goods, cfg.Registries, families);
+        return cfg with { Ages = ages, UnitFamilies = families };
     }
 
     /// <summary>

@@ -67,6 +67,21 @@ public enum OrderKind
     /// goes to the new target.
     /// </summary>
     SetResearchTarget = 6,
+
+    /// <summary>
+    /// ADR-031 / D-047 ruling 13: the issuing Empire's explicit decision to ADVANCE to its
+    /// next Age. TargetId = the Age being entered (2..9, which must be the issuer's current
+    /// Age + 1); Amount = the chosen Age-surge emphasis key (ages.json surges[].key), a whole
+    /// number >= 1 carried exactly by the double. Player and AI issue the same order.
+    ///
+    /// Range-validated at LOAD. Whether the Age is the issuer's NEXT Age, the surge exists and
+    /// the issuer is ELIGIBLE (milestones) is state-dependent and checked where it is consumed
+    /// (AgeTransitionSystem, via AgeQuery.CheckAdvance); an order failing it changes nothing.
+    /// DELIVERY: an order stamped turn t is applied by the step t → t+1 — every other system of
+    /// that step still reads the old Age (nothing retroactive) and the state of turn t+1 is the
+    /// first under the new Age.
+    /// </summary>
+    AdvanceAge = 7,
 }
 
 /// <summary>
@@ -242,11 +257,21 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): SetResearchTarget Amount is reserved and must be 0, got " +
                         $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.AdvanceAge:
+                if (record.TargetId < 2 || record.TargetId > 9)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): AdvanceAge target Age must be in 2..9 " +
+                        $"(the Age being entered), got {record.TargetId}.");
+                if (!(record.Amount >= 1.0) || record.Amount != Math.Floor(record.Amount) || record.Amount > int.MaxValue)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): AdvanceAge surge key must be a whole number >= 1 " +
+                        $"carried exactly by Amount, got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
-                    "4 (EnqueueConstruction) and 6 (SetResearchTarget).");
+                    "4 (EnqueueConstruction), 6 (SetResearchTarget) and 7 (AdvanceAge).");
         }
     }
 }
