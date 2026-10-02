@@ -76,7 +76,9 @@ public class UnitModernizationTests
     {
         UnitFamily heavy = Families.FamilyById("heavy_infantry")!;
         Assert.Null(heavy.Predecessor(Id("warband")));
-        Assert.Equal("bronze_swordsmen", heavy.Successor(Id("warband"))!.Id);
+        Assert.Equal("axe_warriors", heavy.Successor(Id("warband"))!.Id);
+        Assert.Equal("bronze_swordsmen", heavy.Successor(Id("axe_warriors"))!.Id);
+        for (int age = 1; age <= 9; age++) Assert.NotNull(heavy.RealizationAt(age)); // no Age gap in the main infantry line
         Assert.Equal("men_at_arms", heavy.Predecessor(Id("musketeers"))!.Id);
         Assert.Null(heavy.Successor(Id("mechanized_infantry")));
         UnitFamily ranged = Families.FamilyById("ranged_infantry")!;
@@ -106,6 +108,8 @@ public class UnitModernizationTests
     // ------------------------------------------------------------------ the conversion rule, per family
 
     [Theory]
+    [InlineData("warband", 2, "axe_warriors", ModernizationOutcome.Converted)]        // the founding warband's Neolithic successor
+    [InlineData("axe_warriors", 3, "bronze_swordsmen", ModernizationOutcome.Converted)]
     [InlineData("warband", 3, "bronze_swordsmen", ModernizationOutcome.Converted)]
     [InlineData("warband", 5, "legion", ModernizationOutcome.Converted)]             // several Ages at once: the realization AT the new Age
     [InlineData("men_at_arms", 7, "musketeers", ModernizationOutcome.Converted)]
@@ -131,7 +135,8 @@ public class UnitModernizationTests
     }
 
     [Theory]
-    [InlineData("warband", 2)]            // heavy infantry has no A2 identity: the warband waits for the Bronze Age
+    [InlineData("scouts", 2)]             // documented gap: scouts remain the Neolithic light-infantry realization
+    [InlineData("shore_craft", 2)]        // documented gap: dugouts and hide boats remain Neolithic water transport
     [InlineData("cuirassiers", 8)]        // no Industrial heavy cavalry: kept until tanks exist at A9
     [InlineData("archers", 3)]            // archers persist through the Bronze Age
     [InlineData("military_aircraft", 9)]  // already the newest realization
@@ -261,10 +266,10 @@ public class UnitModernizationTests
     }
 
     [Fact]
-    public void AgeTransition_FromTheFoundingWorld_TheWarbandIsPreservedIntoTheNeolithic_ThenBecomesBronzeInfantry()
+    public void AgeTransition_FromTheFoundingWorld_TheWarbandBecomesAxeWarriorsInTheNeolithic_ThenBronzeInfantry()
     {
-        // The canonical founding warband has no A2 realization: entering A2 keeps it (logged as
-        // preserved); entering A3 converts it.
+        // The canonical founding warband converts at A2 to its Neolithic successor (axe warriors),
+        // and at A3 to bronze-armed infantry. Preview == applied at each step.
         WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42);
         foreach (string id in new[] { "cereal_cultivation", "pottery_open_fired", "arsenical_bronze", "proto_writing", "wheel_solid" })
             w.ResearchCompleted.Add(new ResearchCompletedRow(Player, Research.Nodes[Research.IndexOfId(id)].Key));
@@ -272,9 +277,15 @@ public class UnitModernizationTests
         orders.Append(OrderRecord.From(0, Player, OrderKind.AdvanceAge, 2, 1));
         orders.Append(OrderRecord.From(1, Player, OrderKind.AdvanceAge, 3, 1));
         TurnExecutor ex = AgeOnly(orders);
+        UnitConversionPlan[] preview1 = MilitaryQuery.ModernizationPreview(w, Ages, Families, Player);
         WorldState w1 = ex.Step(w);
-        Assert.Equal("warband", Families.IdentityByKey(w1.MilitaryUnits[0].Identity)!.Id);
-        Assert.Equal((int)ModernizationOutcome.PreservedNoSuccessor, w1.UnitConversions[0].Outcome);
+        Assert.Equal(2, AgeQuery.CurrentAge(w1, Ages, Player));
+        Assert.Equal("axe_warriors", Families.IdentityByKey(w1.MilitaryUnits[0].Identity)!.Id);
+        Assert.Equal((int)ModernizationOutcome.Converted, w1.UnitConversions[0].Outcome);
+        Assert.Single(preview1);
+        Assert.Equal((preview1[0].Unit, preview1[0].FromIdentity, preview1[0].ToIdentity, (int)preview1[0].Outcome),
+            (w1.UnitConversions[0].Unit, w1.UnitConversions[0].FromIdentity, w1.UnitConversions[0].ToIdentity, w1.UnitConversions[0].Outcome));
+        Assert.Equal(Id("axe_warriors").Key, preview1[0].ToIdentity);
         WorldState w2 = ex.Step(w1);
         Assert.Equal(3, AgeQuery.CurrentAge(w2, Ages, Player));
         Assert.Equal("bronze_swordsmen", Families.IdentityByKey(w2.MilitaryUnits[0].Identity)!.Id);
