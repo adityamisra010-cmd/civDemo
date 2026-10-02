@@ -190,3 +190,167 @@ Run `docs/architecture/age-and-world-ui/render-previews.sh`, which runs `sim-ui 
 - **Resolved on base c8ceb5f:** the founding Warband now converts to Axe warriors entering Age II (the heavy-infantry gap was closed in unit-families.json). Families with intentional multi-Age spans are documented in that file's GAP AUDIT.
 - **Layer duplication resolved** (§5.1): the in-game legacy territory fills, path mesh, marker sprites and name text are no longer drawn; the lens is the only owner of those layers.
 - **The preview PNGs are headless-SVG renders of the same `DrawList`** the game replays through ImGui. Fonts are approximated by `ApproxTextMeasure`, so in-game glyph metrics can differ slightly.
+
+## 9. Stream U3: the world map shows what IS (M5 integration pass; append-only note, 2026-10-02)
+
+ADR-033 Appendix A, stream U3; the integration directive's "WORLD UI" section. This note is append-only. §1–§8 above remain the record of the first implementation. Where this section disagrees with them, this section describes the lens as shipped. Code: `Sim.Ui/World/` (`WorldLens.cs`, `RoadLens.cs`, `MapInk.cs`, `InstitutionMarkerSource.cs`, `MapLayers.cs`). Simulation code, content, transport (frozen at `997824b`) and goldens are untouched.
+
+### 9.1 Roads by class
+
+- **What is drawn.** `WorldProjection.Routes` holds every travelled `TransportEdges` row (Road mode, complete; ADR-032 §10) in table order. The free dirt-path baseline is unchanged: PathBuild's `NetworkEdges` lattice steps (`WorldProjection.Roads`), dashed at World zoom and cased below.
+- **Geometry: site cell to site cell.** A route row is a settlement pair, and state stores no polyline for it. The simulation's own geometry for a route is a straight line:
+  - its `LengthKm` is the straight-line geographic distance (ADR-032 §12.3);
+  - the Pathfinder lane joins the two origin lattice nodes directly (§10.5).
+
+  No deterministic lattice path is cheaply available from state or queries:
+  - no route polyline is stored;
+  - `Pathfinder.FindPath` between the two origins returns the road's own lane, because that lane is in its overlay;
+  - the dirt network does not join settlement pairs. Measured on the seed-42, 256 px fixture at turn 6: 4 `NetworkEdges`, all running out from settlements toward fertile land.
+
+  A road-free A* corridor would need two things in `Sim.Ui`: a forwarding view of the whole world state, and one A* per route over the 65,536-node lattice of the canonical world. It would also shift whenever unrelated dirt paths are laid. So the lens draws each route straight, which matches its stored length and travel cost.
+- **Style by tier, then class** (`RoadLens.StyleOf`). Colours come from `MapInk`; the new road tokens are taken from the style bible's §2 palette.
+
+  | Class (tier) | World zoom | Regional / Settlement zoom |
+  |---|---|---|
+  | Dirt path (PATH) | dashed umber 1.6 px — exactly the baseline | pale casing + umber line — exactly the baseline |
+  | Trackway (PATH) | solid InkSoft 1.8 px | pale casing + InkSoft line + broken pale centre |
+  | Built road (ROAD) | InkPrimary 2.2 px | dark kerbs + PaperShade bed |
+  | Paved road (ROAD) | InkPrimary 2.6 px | dark kerbs + PaperLight bed + fine dashed centre |
+  | Macadam road (ROAD) | InkPrimary 3.0 px | dark kerbs + UplandUmber bed + thin centre line |
+  | Highway (HIGHWAY) | IronRed 3.2 px | wide dark kerbs + IronRed bed + dashed pale centre |
+
+  - World zoom shows the network as plain weighted strokes. The tier reads from the colour: brown for a path, ink for a road, iron-red for a highway.
+  - Regional and Settlement zoom add the casing and the class marks.
+  - Settlement zoom also names each route at the midpoint of its visible part, set off the line so the text never crosses the road. A whole route reads "Paved road"; a partial one reads "Paved road - 25% to Highway (motor road)".
+- **Partial modernization (ADR-032 §10.3).** A route part-way between classes is drawn as two complementary pieces:
+  - the modernized fraction (`Modernization`) in the TARGET class's style;
+  - the rest in the CURRENT class's (`EdgeType`) style.
+
+  State records how much of the upgrade is done, not where along the route. The lens therefore fixes one deterministic end: the modernized part runs from endpoint A (the lower settlement id) toward B. Both pieces' casings are drawn before either bed, so the two halves read as one road whose bed changes at the split. Upgrades happen in place (§10.2): one row is one drawn line.
+- **One owner per piece of ground.**
+  - A baseline lattice step lies in a route's corridor when both of its node centres are strictly within half a lattice block (stride / 2, in world px) of the route's centre line. The route then draws that ground, and the step is not drawn again (`RoadSegment.CoveredBy`).
+  - A step that crosses a route has its two nodes on opposite sides of it, so it is never absorbed.
+  - A step inside several corridors belongs to the lowest route id: a stable integer key, independent of table order.
+  - `LensFrame.Paths` lists every piece drawn — a baseline step, or a route piece with its class and fraction — with its command count. The pieces' command counts sum exactly to the Paths layer's draw count.
+- **The pin in `WorldLayerOwnershipTests.TerritoryAndPaths_AreDrawnExactlyOncePerRow_NotDoubled` was updated deliberately.** The Paths layer is now accounted piece by piece. With no `TransportEdges` (true of that fixture), the new pin reduces exactly to the previous one, strokes × `NetworkEdges.Count`, with each row drawn once.
+- **Legend.** When no route exists, it reads "Roads: none developed - the free dirt-path baseline only".
+
+### 9.2 One place for map ink: `MapInk`
+
+- `Sim.Ui/World/MapInk.cs` is a record of 30 role tokens (three of them lists) covering every colour the lens draws.
+- `MapInk.Default` holds exactly the colours the old inline literals had, so every earlier renderer pin still holds. `MapInk_Defaults_AreExactlyTheColoursTheLensDrewBefore` pins this.
+- A source guard keeps colour literals out of every other file in `Sim.Ui/World/`.
+- **Era seam.** `WorldLens.Paint(…, ink:)` takes a `MapInk`. A presentation layer derives one from the player's Age (ADR-033 D8) and passes it in. Nothing in `World/` reads a theme.
+- A test proves that a different `MapInk` changes colours only: no command changes its kind, geometry, text or order.
+
+### 9.3 Settlements show what they are (D-038 H5) — supersedes §5's "The style follows the controller's Age"
+
+D-038 H5: *"A settlement shows walls because it HAS walls, a university because it HAS one. No era gate, no date, no unlock."*
+
+The first implementation gated physical features on the Age, though no state in the simulation records walls or a dwelling form:
+- a palisade with stakes at Age II;
+- an octagonal wall with towers at Age III and later;
+- round huts in Age I and square blocks after.
+
+All three gates are removed. The composition now reads state only:
+- **Footprint:** radius from population (unchanged), outlined the same way at every Age.
+- **Dwellings:** one block per 25 dwellings (aggregated, capped at 48), with one form at every Age. No dwelling form is inferred, for two reasons: `HousingRow` carries only a count, and D-043 D1 (ratified) makes population, not a size tier, the driver of a settlement's visual scale and class (D-043 F36 records size-tier staging as divergent). Measured: every settlement of the seed-42, 256 px, 4-settlement fixture is size tier 3–4 at turn 6, so a tier threshold would not distinguish them anyway.
+- **Glyphs:** structure glyphs from `Structures`, institution glyphs from `InstitutionMarkerSource` (§9.4), and the capital star.
+- **No wall,** because no settlement state records one. `goods.json` has no wall project, and `building.city_wall` is knowledge, not a built work. A wall will be drawn when state says a settlement HAS one.
+
+The Age still shows, as the banner: a statement of the polity's Age. `Settlements_AreComposedFromState_IdenticallyAtEveryAge_NoWallsWithoutWallState` paints the real Age II fixture as each of the nine Ages. Everything except the banners must be identical, and no settlement may draw a line. Settlement names now sit on a soft paper plate (`MapInk.NamePlate`), because roads can run under them.
+
+### 9.4 Institutions from real state: `InstitutionMarkerSource` — supersedes §5.1's institution-marker paragraph
+
+- **What changed.** Universities are no longer drawn from `ResearchCostModifiers` rows. Those rows are research-cost effects (ADR-029 §9); under ADR-033 D6, universities write them.
+- **The seam.** `InstitutionMarkerSource.InstitutionsAt(world, cfg, settlement)` is the one function through which the lens reads institution state. The projection calls it once per settlement.
+- **Today it returns nothing.** No institution table exists on this branch (ADR-033 D6, schema v31, belongs to a later stream), so the legend reads "Institutions: none founded".
+- **How the institutions stream plugs in.** It implements that one function over its table (the settlement's founded institution rows, grouped by type key ascending, counted) and changes nothing else.
+- **Rendering.**
+  - Markers stay aggregated inside the settlement: one glyph per type, named with "x n" at Settlement zoom.
+  - Marker keys are `institution:{typeKey}`. Type keys 1–5 (the university types) draw the five emblems.
+  - `Structures` glyphs are unchanged.
+
+### 9.5 Units
+
+- **Current identity.** A token shows its row's CURRENT family emblem and identity name: what the last Age transition's automatic modernization wrote (ADR-031). In the road fixture, after the real advance to Age II:
+  - "Axe warriors" (was Warband);
+  - "Archers" (was Slingers);
+  - "Scouts" (no Age II realization, so preserved).
+- **Fan-out.**
+  - Formations that share an anchor get slots in ascending unit id (`WorldLens.FanSlots`). Two formations share an anchor when they are stationed in the same settlement, or stand at exactly the same field position. Slots use integer keys only, so they do not depend on table order.
+  - A stationed token sits just outside the settlement mark's east edge at mid-height, clear of the name below and the banner above.
+  - At World zoom the fan is a row running east. At Regional and Settlement zoom it is a labelled column.
+  - Paint order stays table order, as the existing pin requires.
+
+### 9.6 Zoom
+
+Thresholds and per-level layer sets are unchanged (§5). The built routes ride the existing layers:
+- `MajorInfrastructure` at World zoom, where they read as a network;
+- `Roads` at Regional and Settlement zoom.
+
+### 9.7 Tests
+
+**`Sim.Ui.Tests/WorldMapStateTests.cs` (new, 23 cases)** runs on a test-only road fixture, `RoadWorldFixture`.
+- The fixture founds seed 42 (256 px, 4 settlements) through `UiSession` and plays 6 End Turns.
+- The real RoadDevelopmentSystem then builds the roads from real `DevelopRoads` orders sent through the session's order log.
+- Only the preconditions are constructed, all with the simulation's own row types:
+  - research rows: Age II eligibility, then each road class in turn (track_road, stone_dry, road_paved, motor_road);
+  - an endowment at the capital through `Ledger.Flow` (InitialEndowment, conserved) of exactly what each phase's plan costs. The last phase gets a quarter of its stone. Its tools are topped up, because farmers wear tools in the same step before roads are paid for.
+  - two formations at the capital (Slingers, Scouts).
+- The player advances to Age II through the real AdvanceAge order.
+- Result (`roads-preview-log.txt`): 3 Trackways, 1 Built road, 1 Paved road, and 1 Paved road 25.19% modernized toward Highway.
+
+The cases cover:
+- **Roads:**
+  - the fixture's classes and its partial route;
+  - routes equal the travelled rows, drawn site to site;
+  - Paths-layer accounting at every zoom: one piece owner per route, or two complementary pieces when partial; each baseline step drawn once unless covered, then never;
+  - a baseline chain laid along a real route is not drawn twice;
+  - corridor ties go to the lowest route id whatever the table order (tie-dense);
+  - the corridor rule on synthetic steps;
+  - class styles distinct per class and per tier, with more detail below World zoom;
+  - drawn strokes equal their class style;
+  - partial modernization drawn proportionally (geometry, split point, label);
+  - the split tracks the fraction for any fraction.
+- **Settlements:** identical composition at all nine Ages, with no walls; dwelling blocks and capital star read from state.
+- **Institutions:** markers come only from the source (a ResearchCostModifiers row draws nothing; a stand-in source draws exactly what it reports); source guard.
+- **Units:** the current Age identity after automatic modernization; the fan-out layout; the fan-out is deterministic, tie-dense and independent of table order.
+- **`MapInk`:** defaults pinned; source guard; a different ink changes colours only.
+- **Zoom:** thresholds kept; the network is visible at every level.
+- **Read-only:** the world hash is unchanged by projecting and painting.
+- **Previews:** the preview writer.
+
+**`WorldLayerOwnershipTests.cs` (updated deliberately):**
+- the path-draw pin (§9.1);
+- institution markers now come from structures plus the seam. The institution fixture's `ResearchCostModifiers` rows are the negative control. The university glyph, name and count rendering is exercised through the seam with a stand-in source;
+- the embedded-glyph count filters by glyph inks, because dwelling blocks are rects at every Age;
+- the institution preview no longer shows universities.
+
+### 9.8 Previews 12–15
+
+`render-previews.sh` now also runs `Preview_RoadFixture_Svg` (with `CIV_ROAD_PREVIEW_OUT` set) and screenshots the result along with the age previews. Files 01–11 are kept unchanged as history; re-running the script regenerates 01–09 with the U3 lens.
+
+| Preview | Shows |
+|---|---|
+| `12-roads-world-zoom.png` | Road fixture, World zoom: the network by tier (brown trackways, ink roads, the iron-red modernized stretch leaving the capital), Age II banners, three formation tokens fanned east of the capital |
+| `13-roads-regional-zoom.png` | Regional zoom: casings and class marks; the partial route's red highway bed for its first quarter from the capital, then paved; the dirt-path baseline still dashed/cased beside the roads; labelled formation column (Axe warriors, Archers, Scouts) |
+| `14-roads-settlement-zoom.png` | Settlement zoom on the capital: road names ("Paved road - 25% to Highway (motor road)", "Built road", "Trackway"), no palisade in Age II, dwelling blocks, the name plate |
+| `15-after-transition-world-u3.png` | `08` re-rendered by the U3 lens from the same real run at turn 293: Age II settlements with no palisade, banner II, Axe warriors, "Roads: none developed" |
+
+### 9.9 Other changes, decisions and gaps
+
+- **Preview race fixed.** `AgePreview.TerrainDataUri` wrote the terrain bake to one fixed temp file per seed, so two previews running at once raced on it: parallel test classes, or two processes sharing `/tmp`. It now writes a file of its own and deletes it afterwards.
+- **Decisions (L6):** the items below are this stream's decisions.
+  - Straight route geometry (§9.1).
+  - The modernized fraction drawn from endpoint A.
+  - The corridor is half a lattice block wide, with ties going to the lowest route id.
+  - One dwelling form.
+  - Institution marker keys are `institution:{typeKey}`.
+  - Tokens are anchored east of the settlement mark.
+  - Settlement names sit on plates.
+  - Road tokens use bible colours.
+- **Gaps:**
+  - No wall or other built-work state exists to compose.
+  - The institution seam returns nothing until the institutions stream lands.
+  - The road fixture's knowledge and materials are constructed; real play builds roads only once the player issues `DevelopRoads`, through the action surface of stream U2.
