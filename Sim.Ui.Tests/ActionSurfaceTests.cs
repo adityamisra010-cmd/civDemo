@@ -357,6 +357,77 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.DoesNotContain(screen.Hits, h => h.Kind == ActionHitKind.LabourSlot);
     }
 
+    [Fact]
+    public void TheSlider_SetsTheValueUnderThePointer_AndADragKeepsTheSum()
+    {
+        // A8: the Fine control — a slider in whole points. A press on the track sets the value UNDER THE POINTER:
+        // repainted, the knob sits where the pointer is (within half a point, the rounding to whole points) — near
+        // the ends too, where a hit region wider than the drawn track would put the knob points away from it.
+        UiSession s8 = UiSession.StartFrom(EraPreview.WorldAt(fx.Session.World, fx.Session.Config.Ages!, Me, 8), 42);
+        EraTheme t8 = ThemeOf(s8, s8.World);
+        (ActionSurfaceScreen screen, _) = Painted(s8, Surface(s8, Capital(s8.World), t8), t8);
+        Assert.Equal(LabourControlKind.Slider, screen.Model!.Control.Kind);
+        int units = screen.Model.Control.Units;
+        ActionHit track = Hit(screen, ActionHitKind.LabourTrack, Sectors.Herding);
+        double halfPoint = track.Rect.W / units / 2;
+
+        double press = track.Rect.X + track.Rect.W * 0.052;                       // near the left end: 5 points
+        screen.Click(press, track.Rect.CenterY);
+        Assert.Equal(5, screen.Draft[Sectors.Herding]);
+        Assert.Equal(100, screen.Draft.ToArray().Sum());
+        Assert.InRange(KnobX(screen, ActionHitKind.LabourTrack, Sectors.Herding) - press, -halfPoint, halfPoint);
+
+        double drag = track.Rect.X + track.Rect.W * 0.948;                        // dragged near the right end: 95
+        Assert.True(screen.Drag(drag));
+        Assert.Equal(95, screen.Draft[Sectors.Herding]);
+        Assert.Equal(100, screen.Draft.ToArray().Sum());
+        Assert.InRange(KnobX(screen, ActionHitKind.LabourTrack, Sectors.Herding) - drag, -halfPoint, halfPoint);
+
+        screen.Release();
+        Assert.False(screen.Drag(track.Rect.X));                                  // released: no drag continues
+        Assert.Equal(95, screen.Draft[Sectors.Herding]);
+        ActionHit plus = Hit(screen, ActionHitKind.LabourPlus, Sectors.Herding);
+        screen.Click(plus.Rect.CenterX, plus.Rect.CenterY);
+        Assert.Equal(96, screen.Draft[Sectors.Herding]);
+        Assert.Equal(100, screen.Draft.ToArray().Sum());
+    }
+
+    [Fact]
+    public void TheLevySlider_SetsTheRateUnderThePointer()
+    {
+        // The same contract for the levy's slider (the governance block at A8, a taxation node known).
+        UiSession known = Knowing(fx.Session, "arithmetic_babylonian");
+        UiSession s8 = UiSession.StartFrom(EraPreview.WorldAt(known.World, known.Config.Ages!, Me, 8), 42);
+        EraTheme t8 = ThemeOf(s8, s8.World);
+        (ActionSurfaceScreen screen, _) = Painted(s8, Surface(s8, Capital(s8.World), t8), t8);
+        ActionHit track = Hit(screen, ActionHitKind.TaxTrack);
+        double halfPoint = track.Rect.W / 100 / 2;
+
+        double press = track.Rect.X + track.Rect.W * 0.052;
+        screen.Click(press, track.Rect.CenterY);
+        Assert.Equal(5, screen.TaxDraft);
+        Assert.InRange(KnobX(screen, ActionHitKind.TaxTrack, 0) - press, -halfPoint, halfPoint);
+
+        double drag = track.Rect.X + track.Rect.W * 0.948;
+        Assert.True(screen.Drag(drag));
+        Assert.Equal(95, screen.TaxDraft);
+        Assert.InRange(KnobX(screen, ActionHitKind.TaxTrack, 0) - drag, -halfPoint, halfPoint);
+        screen.Release();
+        Assert.False(screen.Drag(track.Rect.X));
+        Assert.Equal(95, screen.TaxDraft);
+    }
+
+    /// <summary>Repaints the surface and returns the x of the knob drawn on a slider track (the one circle centred
+    /// on the track's line, within its span).</summary>
+    private static double KnobX(ActionSurfaceScreen screen, ActionHitKind kind, int a)
+    {
+        var d = new DrawList();
+        screen.Paint(d, ApproxTextMeasure.Instance, 0, 0, 360);
+        RectD tr = Hit(screen, kind, a).Rect;
+        return d.Commands.OfType<CircleCmd>()
+            .Single(c => Math.Abs(c.Cy - tr.CenterY) < 1e-9 && c.Cx >= tr.X - 8 && c.Cx <= tr.Right + 8).Cx;
+    }
+
     // ------------------------------------------------------------------ the labour control
 
     [Fact]

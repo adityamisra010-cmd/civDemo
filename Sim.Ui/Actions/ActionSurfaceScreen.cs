@@ -499,7 +499,9 @@ public sealed class ActionSurfaceScreen
                 d.Write(t, minus.CenterX, minus.Y - 1, "-", 12, t.Ink.Text, TextAlign.Center);
                 d.Write(t, plus.CenterX, plus.Y - 1, "+", 12, t.Ink.Text, TextAlign.Center);
                 d.Write(t, r.Right, r.Y + 1, value.ToString(CultureInfo.InvariantCulture) + "%", 12.5, t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
-                _hits.Add(new ActionHit(new RectD(track.X - 4, r.Y - 2, track.W + 8, r.H + 4), ActionHitKind.LabourTrack, sector, 0));
+                // The hit rect spans exactly the track's width (taller, for an easy grip), so the value a click
+                // sets is the value under the pointer: TrackValue maps the rect's x-range onto 0..units.
+                _hits.Add(new ActionHit(new RectD(track.X, r.Y - 2, track.W, r.H + 4), ActionHitKind.LabourTrack, sector, 0));
                 _hits.Add(new ActionHit(minus, ActionHitKind.LabourMinus, sector, 0));
                 _hits.Add(new ActionHit(plus, ActionHitKind.LabourPlus, sector, 0));
                 break;
@@ -692,7 +694,7 @@ public sealed class ActionSurfaceScreen
         d.Rect(new RectD(tr.X, tr.Y, tr.W * percent / 100.0, tr.H), ink);
         d.Circle(tr.X + tr.W * percent / 100.0, tr.CenterY, Math.Max(4, t.Controls.GrabPx * 0.42), t.Material.PanelRaised, t.Material.BorderStrong, 1.1);
         d.Write(t, r.Right, r.Y + 1, percent.ToString(CultureInfo.InvariantCulture) + "%", 12.5, t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
-        _hits.Add(new ActionHit(new RectD(tr.X - 4, r.Y - 2, tr.W + 8, r.H + 4), track, 0, 0));
+        _hits.Add(new ActionHit(new RectD(tr.X, r.Y - 2, tr.W, r.H + 4), track, 0, 0));
         _ = minUnits;
         _ = id;
     }
