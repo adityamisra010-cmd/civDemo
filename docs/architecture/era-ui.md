@@ -91,8 +91,10 @@ estimate to complete.
   `Wrap`) and `ChromeFurniture` (the frame behind each ImGui chrome window).
 - The live renderer replays the same `DrawList` through `DrawListImGuiBackend` (behind the ImGui windows) and
   the previews through `SvgWriter`, so headless rendering runs the same visual-state code as the game.
-- `UiTheme.StyleFor(EraTheme)` is a pure mapping onto ImGui colours and sizes (window backgrounds are
-  transparent because the painted frame is the surface); `UiTheme.Apply` writes it. Fonts: EB Garamond,
+- `UiTheme.StyleFor(EraTheme)` is a pure mapping onto ImGui colours and sizes; `UiTheme.Apply` writes it.
+  Window backgrounds are transparent because the painted frame is the surface: every chrome window
+  (`BeginChrome`) paints its `ChromeFurniture` first, and a new window must do the same (popups and
+  tooltips keep an opaque `PopupBg`). Fonts: EB Garamond,
   IBM Plex Serif and IBM Plex Sans (OFL, `assets/fonts/`), all baked into the atlas before upload with
   Latin-1 glyph ranges. Weights of 600 and above render bold (double strike in the game, font weight in the
   SVG); the themes use 400 for running text because the atlas holds the regular instances.

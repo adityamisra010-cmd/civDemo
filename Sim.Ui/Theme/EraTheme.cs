@@ -114,9 +114,10 @@ public sealed record TypographyTokens(
 }
 
 /// <summary>DENSITY: level 1 (sparse) … 5 (dense); the inner padding and gap of DrawList panels in
-/// px; and how much a research card shows (1: name, Age, cost, state, notches and the cross-lane
-/// label; 2: + Eureka pips; 3: + prerequisite/dependent stubs; 4: + discounts; 5: + the estimate of
-/// turns to complete and the lane's accumulated share).</summary>
+/// px; and how much the research tree shows (1: a card's name, Age, cost, state, notches and
+/// cross-lane label; 2: + Eureka pips; 3: + prerequisite/dependent stubs and each lane segment's
+/// completed share; 4: + discounts and the lane chips' done/total; 5: + the target's estimate of
+/// turns to complete).</summary>
 public sealed record DensityTokens(int Level, double Padding, double Gap, int CardDetail);
 
 /// <summary>CONTROLS: granularity, the progress representation and its segment count, the control
