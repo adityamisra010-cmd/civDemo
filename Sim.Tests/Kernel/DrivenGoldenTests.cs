@@ -419,7 +419,17 @@ public class DrivenGoldenTests
         //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
         //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone
         //         strips the two tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a";
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30 + THE STORED REACH, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a
+        //   NEW  638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-033 D4 entry: one EMPTY TaxPolicies prefix
+        //         (the driving batch levies no tax) and the reach GovernanceSystem writes into
+        //         ControlRow.Strength. No behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone
+        //         returns OLD byte for byte (non-vacuous: Strength rows restored).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        const string golden = "638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

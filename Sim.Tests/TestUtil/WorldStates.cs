@@ -89,6 +89,9 @@ public static class WorldStates
         if (!TableEquals(a.UnitConversions, b.UnitConversions)) return false;
         if (!TableEquals(a.TransportEdges, b.TransportEdges)) return false;
         if (!TableEquals(a.RoadDevelopments, b.RoadDevelopments)) return false;
+        // ADR-033 D4 (v30): tax policy, added WITH the table — a comparer that skips a
+        // table makes every StateEquals assertion about it vacuous.
+        if (!TableEquals(a.TaxPolicies, b.TaxPolicies)) return false;
         return true;
     }
 

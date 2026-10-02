@@ -134,12 +134,50 @@ public readonly record struct ClassActive(int Class, string Name, int Active);
 /// with it. Grievance and satisfaction are READ from the needs system's own rows
 /// on next. The §5 explanation is an on-demand query over the same rows (lane A2)
 /// and is deliberately NOT stored here — a stored copy is a second one, free to
-/// drift.</summary>
+/// drift.
+/// ADR-033 D4: Happiness is the CES reading of the two PROVISION factors
+/// (<see cref="HappinessFactors"/>) MULTIPLIED by the M5 tax burden, so the factors
+/// alone no longer explain it; <see cref="Tax"/> carries the burden and the two
+/// stored facts it is computed from. APPENDED with a default so every positional
+/// constructor keeps its meaning; null = not recorded (a hand-built record).</summary>
 public sealed record SocialSection(
-    double Happiness,                 // RECOMPUTED SettlementHappiness.Of(next)
-    double[] HappinessFactors,        // RECOMPUTED SettlementHappiness.Factors(next): [Food, Housing]
+    double Happiness,                 // RECOMPUTED SettlementHappiness.Of(next) = CES(factors) normalised × Tax.Scale
+    double[] HappinessFactors,        // RECOMPUTED SettlementHappiness.Factors(next): [Food, Housing] — the two CES provision factors; the tax burden is NOT one of them (see Tax)
     GrievanceReading[] Grievance,     // READ  next GrievanceRow per class, table order
-    NeedReading[] NeedSatisfaction);  // READ  next NeedSatisfactionRow per (class, need), table order
+    NeedReading[] NeedSatisfaction,   // READ  next NeedSatisfactionRow per (class, need), table order
+    TaxBurdenReading? Tax = null);    // RECOMPUTED TaxBurdenReading.Of(next) — the multiplier on Happiness (ADR-033 D4)
+
+/// <summary>
+/// ADR-033 D4 — THE TAX BURDEN behind one settlement's happiness, as an EXPLAINED CAUSE: the
+/// factor <c>SettlementHappiness.Of</c> multiplies its normalised CES reading by
+/// (<see cref="SettlementHappiness.TaxSufficiency"/>), decomposed into the two STORED facts it is
+/// computed from — the controller's declared rate (a TaxPolicies row) and the stored administrative
+/// reach (<see cref="ControlRow.Strength"/>). Every value is RECOMPUTED through the public reader the
+/// simulation itself calls on the same world; nothing here is a second formula. Shared by the
+/// settlement record and <c>HappinessExplanation</c> through ONE constructor (<see cref="Of"/>).
+/// The lever is the SetTaxRate order (the declared rate); reach moves with the capital and the roads.
+/// </summary>
+public readonly record struct TaxBurdenReading(
+    int Controller,          // READ        EmpireQuery.TryGetController (lowest PolityId) — −1 when uncontrolled
+    bool PolicyRowPresent,   // READ        whether a TaxPolicies row exists for Controller (false = never legislated)
+    double NominalRate,      // RECOMPUTED  Governance.NominalTaxRate — the declared fraction (0 without a row)
+    double ControlStrength,  // RECOMPUTED  Governance.ControlStrength — READ of ControlRow.Strength, the stored reach (0 uncontrolled)
+    double EffectiveRate,    // RECOMPUTED  Governance.EffectiveTaxRate = nominal × strength (0 when the loop is inert)
+    double Scale)            // RECOMPUTED  SettlementHappiness.TaxSufficiency = 1 − EffectiveRate — what Of multiplies by
+{
+    /// <summary>The reading for <paramref name="settlement"/> in <paramref name="world"/>.</summary>
+    public static TaxBurdenReading Of(IReadOnlyWorldState world, Sim.Core.Systems.SimConfig cfg, SettlementId settlement)
+    {
+        bool controlled = EmpireQuery.TryGetController(world, settlement, out PolityId polity);
+        return new TaxBurdenReading(
+            controlled ? polity.Value : -1,
+            controlled && Governance.HasPolicy(world, polity),
+            controlled ? Governance.NominalTaxRate(world, polity) : 0.0,
+            controlled ? Governance.ControlStrength(world, polity, settlement) : 0.0,
+            Governance.EffectiveTaxRate(world, settlement, cfg),
+            SettlementHappiness.TaxSufficiency(world, settlement, cfg));
+    }
+}
 
 public readonly record struct GrievanceReading(int Class, string Name, double Value);
 

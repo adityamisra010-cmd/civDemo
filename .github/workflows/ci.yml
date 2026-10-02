@@ -162,7 +162,13 @@ jobs:
           # this order-less world). Derived twice on this tree (in-test harness; two CLI
           # processes, byte-identical logs); IntegratedPinAttributionTests strips the two
           # tables and returns the previous value (15c63d65…) byte for byte.
-          FOUNDED_GOLDEN=b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0
+          # ADR-033 D4 (2026-10-02): schema v30 appends one EMPTY TaxPolicies table (no tax is levied in
+          # this order-less world) and GovernanceSystem writes the administrative reach into
+          # ControlRow.Strength. Derived twice on this tree (in-test harness; two CLI processes,
+          # byte-identical logs); IntegratedPinAttributionTests strips the governance layer and returns
+          # the previous value (b2c0032f…) byte for byte. CiPinAgreementTests now compares this value to
+          # SnapshotTests.FoundedGoldenHash EXACTLY (m5-full-build left it behind under a Contains guard).
+          FOUNDED_GOLDEN=64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

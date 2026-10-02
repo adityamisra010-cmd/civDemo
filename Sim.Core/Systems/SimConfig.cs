@@ -51,7 +51,52 @@ public sealed record SimConfig(
     // (unit-families.json), attached by the six-stream Load. Null leaves the two
     // Age systems inert and founds no formations.
     [property: JsonIgnore] Ages.AgeContent? Ages = null,
-    [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null);
+    [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null,
+    // ADR-033 D4 (the M5 governing loop): administrative reach, the extraction response,
+    // the taxation research gate and the AI tax valve. OPTIONAL and in the DEFAULTED TAIL
+    // (Roads above is positional): absent, the governing loop is INERT — GovernanceSystem
+    // applies no SetTaxRate, leaves ControlRow.Strength as founding wrote it, and every
+    // Governance reader returns the neutral value (no tax, extraction ×1, burden ×1). Toy and
+    // hand-written configs therefore run the full catalog unchanged; the canonical sim.json
+    // carries the section.
+    [property: JsonPropertyName("governance")] GovernanceConfig? Governance = null);
+
+/// <summary>
+/// ADR-033 D4 — THE GOVERNING LOOP'S TUNING (ported from <c>m5-full-build</c>, whose AI constants
+/// were code literals and are data here). Every number is TUNE; the two loop constants are
+/// denominated against shipped quantities rather than chosen freely — see sim.json
+/// <c>governance._doc</c> for the full provenance.
+///
+/// <c>AuthorityDecayCostUnits</c>: the e-fold of ADMINISTRATIVE REACH in SettlementDistances
+/// travel-cost units — reach = exp(−travelCost / this) from the capital, the functional form and
+/// the 25.0 of <c>migration.dampingDecayCostUnits</c> (D-040 C3: a distance term over the network
+/// graph, travel cost and not Euclidean distance). <c>TaxExtractionResponseMax</c>: output
+/// multiplier = 1 + this × effectiveRate, framed by <c>production.toolYieldBonusMax</c> (0.3); 0.0
+/// disables the economic arm. <c>TaxationRequires</c>: the RESEARCH GATE of the tax edict, one
+/// requires-expression over research.json node ids in the research dialect (AND / OR / nested,
+/// no NOT, no comparisons), validated against research.json when the four-stream load attaches it
+/// and evaluated by the existing knowledge evaluator (<see cref="State.Governance.CanLevyTax"/>).
+/// <c>Ai</c>: the AI tax valve's constants (<see cref="GovernanceAiConfig"/>).
+/// </summary>
+public sealed record GovernanceConfig(
+    [property: JsonPropertyName("authorityDecayCostUnits"), JsonRequired] double AuthorityDecayCostUnits,
+    [property: JsonPropertyName("taxExtractionResponseMax"), JsonRequired] double TaxExtractionResponseMax,
+    [property: JsonPropertyName("taxationRequires"), JsonRequired] string TaxationRequires,
+    [property: JsonPropertyName("ai"), JsonRequired] GovernanceAiConfig Ai);
+
+/// <summary>
+/// ADR-033 D4 — THE AI TAX VALVE (D-021 valve 6, "the state acts by default"), the four constants
+/// <c>m5-full-build</c>'s AiGovernance carried as literals (60 / 35 / 5 / 40). An AI Empire RAISES
+/// its declared rate by <c>StepPercent</c> while its legitimacy is ≥ <c>ComfortableLegitimacy</c>,
+/// LOWERS it while legitimacy is &lt; <c>TroubledLegitimacy</c>, holds in the dead band between
+/// (the hysteresis that stops a one-step oscillation), and never declares more than
+/// <c>MaxRatePercent</c>. Legitimacies are on the 0..100 happiness scale; rates are percentages.
+/// </summary>
+public sealed record GovernanceAiConfig(
+    [property: JsonPropertyName("comfortableLegitimacy"), JsonRequired] double ComfortableLegitimacy,
+    [property: JsonPropertyName("troubledLegitimacy"), JsonRequired] double TroubledLegitimacy,
+    [property: JsonPropertyName("stepPercent"), JsonRequired] double StepPercent,
+    [property: JsonPropertyName("maxRatePercent"), JsonRequired] double MaxRatePercent);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -704,6 +749,7 @@ public static class SimConfigLoader
         SimConfig cfg = Load(simJson, needsJson, goodsJson);
         cfg = cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
         ValidateRoadsAgainstContent(cfg);
+        ValidateGovernanceAgainstContent(cfg);
         return cfg;
     }
 
@@ -869,6 +915,7 @@ public static class SimConfigLoader
                 + $"ground to be a corridor, and cannot be free), got {Inv(cfg.Transport.RiverCostFactor)}.");
 
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
+        if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)
@@ -1089,6 +1136,48 @@ public static class SimConfigLoader
             foreach (RoadMaterialConfig m in c.MaterialsPerKm)
                 if (cfg.Goods.IdOf(m.Good) < 0)
                     throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} names good '{m.Good}', which goods.json does not define.");
+        }
+    }
+
+    /// <summary>ADR-033 D4: the governing loop's tuning — a positive finite reach e-fold, a finite
+    /// non-negative extraction response, a non-empty taxation requirement, and the AI valve's
+    /// constants on their scales with a real dead band (troubled strictly below comfortable).</summary>
+    private static void ValidateGovernance(GovernanceConfig g)
+    {
+        if (!(g.AuthorityDecayCostUnits > 0.0) || !double.IsFinite(g.AuthorityDecayCostUnits))
+            throw new SimConfigException(
+                $"governance.authorityDecayCostUnits must be a finite value > 0 (it is the e-fold of administrative reach), got {Inv(g.AuthorityDecayCostUnits)}.");
+        RequireRate("governance.taxExtractionResponseMax", g.TaxExtractionResponseMax);
+        if (string.IsNullOrWhiteSpace(g.TaxationRequires))
+            throw new SimConfigException(
+                "governance.taxationRequires is empty — the tax edict is research-gated (ADR-033 D4); name the research.json node ids that make it available.");
+        GovernanceAiConfig? ai = g.Ai;
+        if (ai is null) throw new SimConfigException("governance.ai is missing.");
+        if (!(ai.ComfortableLegitimacy >= 0.0 && ai.ComfortableLegitimacy <= 100.0))
+            throw new SimConfigException($"governance.ai.comfortableLegitimacy must be in [0,100], got {Inv(ai.ComfortableLegitimacy)}.");
+        if (!(ai.TroubledLegitimacy >= 0.0 && ai.TroubledLegitimacy < ai.ComfortableLegitimacy))
+            throw new SimConfigException(
+                $"governance.ai.troubledLegitimacy must be in [0, comfortableLegitimacy) — the dead band between the two is what stops the AI oscillating — got {Inv(ai.TroubledLegitimacy)}.");
+        if (!(ai.StepPercent > 0.0 && ai.StepPercent <= 100.0))
+            throw new SimConfigException($"governance.ai.stepPercent must be in (0,100], got {Inv(ai.StepPercent)}.");
+        if (!(ai.MaxRatePercent >= 0.0 && ai.MaxRatePercent <= 100.0))
+            throw new SimConfigException($"governance.ai.maxRatePercent must be in [0,100] (a legal SetTaxRate percentage), got {Inv(ai.MaxRatePercent)}.");
+    }
+
+    /// <summary>ADR-033 D4: the taxation requirement names real research.json nodes and is a valid
+    /// knowledge expression — parsed by the research dialect's own parser where sim.json and
+    /// research.json meet, so a typo fails the load instead of silently never unlocking taxation.</summary>
+    private static void ValidateGovernanceAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Governance is null || cfg.Research is null) return;
+        try
+        {
+            Systems.Research.ResearchContentLoader.ParseRequirement(
+                cfg.Research, cfg.Governance.TaxationRequires, "governance.taxationRequires");
+        }
+        catch (Systems.Research.ResearchContentException e)
+        {
+            throw new SimConfigException($"sim.json {e.Message}", e);
         }
     }
 

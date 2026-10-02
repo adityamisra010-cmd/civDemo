@@ -134,6 +134,8 @@ public static class SnapshotDiff
             I("TargetClass"), D("Modernization"), D("CostFactor")]),
         new("RoadDevelopments", [L("Turn"), I("Polity"), I("Edge"), I("A"), I("B"), I("FromClass"), I("ToClass"),
             I("Kind"), L("Usage"), L("MaterialUnits"), D("ProgressBefore"), D("ProgressAfter")]),
+        // v30 (ADR-033 D4): the standing tax policy per Empire.
+        new("TaxPolicies", [I("Polity"), D("Rate")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

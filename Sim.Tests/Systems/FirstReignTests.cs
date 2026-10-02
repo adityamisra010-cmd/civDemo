@@ -469,7 +469,16 @@ public class FirstReignTests
         //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
         //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheTransportLayoutAlone
         //         strips the two tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3";
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30, MEASURED on this tree by the agent writing this line.
+        //   OLD  c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3
+        //   NEW  3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3
+        //   CAUSE v29 -> v30 appends TaxPolicies (EMPTY: the first-reign log carries no SetTaxRate).
+        //         The lone settlement is the capital, whose reach is exactly 1.0 — the Strength its
+        //         founding wrote — so the one empty count prefix is the entire movement:
+        //         IntegratedPinAttribution.FirstReignTurn40_MovedForTheGovernanceLayerAlone returns
+        //         OLD byte for byte.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        const string golden = "3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

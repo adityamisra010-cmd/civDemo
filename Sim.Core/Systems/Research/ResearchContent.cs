@@ -258,6 +258,38 @@ public static class ResearchContentLoader
 
     private static readonly JsonSerializerOptions JsonOptions = new() { RespectNullableAnnotations = true };
 
+    /// <summary>
+    /// ADR-033 D4 — a KNOWLEDGE REQUIREMENT AUTHORED OUTSIDE research.json (today: sim.json
+    /// <c>governance.taxationRequires</c>, the tax edict's research gate), parsed in the research
+    /// dialect against THIS content's node ids — the same parser, the same keyword aliases and the
+    /// same atom space (node index) a node prerequisite or an entity's <c>requires</c> uses, so
+    /// <see cref="ResearchQuery.RequirementMet"/> evaluates it with the knowledge evaluator itself.
+    /// The rules are a prerequisite's: node ids only (no variables, quantities or institution
+    /// names) and NO <c>NOT</c> — completing knowledge can never take a capability away (knowledge
+    /// does not decay). Throws <see cref="ResearchContentException"/> naming <paramref name="where"/>.
+    /// Pure: the result depends only on the text and the content, never on iteration order.
+    /// </summary>
+    public static Predicate ParseRequirement(ResearchContent content, string expression, string where)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        if (string.IsNullOrWhiteSpace(expression))
+            throw new ResearchContentException($"{where}: the requirement is empty; name at least one research node id.");
+        var symbols = new PredicateSymbols(content.IndexOfId, _ => -1, "a Technology or Civics node id");
+        Predicate requirement;
+        try { requirement = Predicate.Parse(expression, symbols); }
+        catch (PredicateFormatException e)
+        {
+            throw new ResearchContentException($"{where}: invalid requirement '{expression}' — {e.Message}", e);
+        }
+        if (requirement.QuantityIds.Count != 0 || requirement.ReadsVariables)
+            throw new ResearchContentException($"{where}: a knowledge requirement is an expression over node ids only; it may not compare variables or quantities.");
+        if (requirement.UsesNot)
+            throw new ResearchContentException($"{where}: NOT is not allowed — completing knowledge can never make a capability LESS available.");
+        if (requirement.AtomIds.Count == 0)
+            throw new ResearchContentException($"{where}: the requirement names no research node.");
+        return requirement;
+    }
+
     public static ResearchContent Load(Stream json, GoodsConfig? goods)
     {
         using var reader = new StreamReader(json);

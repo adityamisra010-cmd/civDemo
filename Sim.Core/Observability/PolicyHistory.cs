@@ -26,6 +26,30 @@ public sealed record PolicyState(
     double[] Declared,                // READ next SectorAllocationRow raw weights (Sectors.Default raw when no row)
     double[] Effective);              // RECOMPUTED Sectors.Share on that same row
 
+/// <summary>ADR-033 D4 — THE SECOND POLICY: one Empire's declared tax rate changing — "declared
+/// 0% → 20%, changed by Empire 1, order #104" (§4). Keyed by POLITY, because the tax is an
+/// Empire-level decision (<see cref="TaxPolicyRow"/>); the EFFECTIVE rate each settlement bears
+/// (declared × the stored reach) is on its settlement record (<see cref="TaxBurdenReading"/>).
+/// Rates are the RAW row fractions GovernanceSystem wrote (Amount / 100).</summary>
+public sealed record TaxPolicyChange(
+    long Turn,                        // the turn on whose state the new rate is first visible (next.Clock.Turn)
+    double Year,                      // READ next.Clock.WorldDateYears
+    int Polity,
+    double OldRate,                   // READ prev TaxPolicyRow.Rate, 0 when the Empire never legislated
+    bool OldRowPresent,
+    double NewRate,                   // READ next TaxPolicyRow.Rate
+    int Actor,                        // READ OrderRecord.ActorId of the attributed SetTaxRate; −1 when no order explains it
+    int OrderIndex);                  // the attributed order's position in the OrderLog; −1 when none
+
+/// <summary>ADR-033 D4: the declared tax rate in force for every roster Empire, every turn —
+/// including turns with no change and Empires that never legislated (Declared 0, RowPresent
+/// false), so the rate in force is read, never inferred.</summary>
+public sealed record TaxPolicyState(
+    long Turn,
+    int Polity,
+    double Declared,                  // READ next TaxPolicyRow.Rate (0 when no row — the never-legislated default)
+    bool RowPresent);
+
 /// <summary>
 /// §4 — THE POLICY HISTORY, derived from the two authoritative sources and
 /// nothing else: the ORDER LOG (what was declared, by whom, when; an order's
@@ -42,11 +66,69 @@ public sealed record PolicyState(
 /// OrderIndex −1 rather than dropped: a silent change is the defect this
 /// history exists to make visible.
 ///
-/// M4 has exactly one policy (D-032); M5's taxation is a second in the same two
-/// shapes with a different array width.
+/// M4 has exactly one policy (D-032); M5's taxation (ADR-033 D4) is the second, in
+/// the same two shapes — a change record and a per-turn state record — keyed by the
+/// Empire rather than the settlement, because the tax is an Empire-level decision
+/// (<see cref="ObserveTax"/>).
 /// </summary>
 public static class PolicyHistory
 {
+    /// <summary>
+    /// ADR-033 D4: appends this step's TAX policy changes and states, one state per roster Empire
+    /// in next.Polities order (an id listed twice is one Empire). A change is DETECTED on the row
+    /// (prev raw rate or presence ≠ next, exact compare — the row holds exactly what
+    /// GovernanceSystem wrote) and ATTRIBUTED to the LAST SetTaxRate of this step issued by the
+    /// Empire for itself, because GovernanceSystem applies the batch in log order and the last
+    /// valid order stands (one Empire's orders share one research gate on PREV, so the last one is
+    /// the last valid one). A change no order explains — reachable only in a hand-built world — is
+    /// recorded with Actor −1 and OrderIndex −1 rather than dropped.
+    /// </summary>
+    public static void ObserveTax(
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, OrderApplied[] orders,
+        List<TaxPolicyChange> changes, List<TaxPolicyState> states)
+    {
+        var seen = new List<int>();
+        for (int p = 0; p < next.Polities.Count; p++)
+        {
+            PolityId polity = next.Polities[p].Id;
+            if (seen.Contains(polity.Value)) continue;
+            seen.Add(polity.Value);
+
+            double before = RateOrZero(prev.TaxPolicies, polity, out bool beforePresent);
+            double after = RateOrZero(next.TaxPolicies, polity, out bool afterPresent);
+            if (beforePresent != afterPresent
+                || BitConverter.DoubleToInt64Bits(before) != BitConverter.DoubleToInt64Bits(after))
+            {
+                int actor = -1, index = -1;
+                for (int o = 0; o < orders.Length; o++)
+                {
+                    OrderApplied order = orders[o];
+                    if (order.Kind != OrderKind.SetTaxRate) continue;
+                    if (order.Actor != polity.Value || order.TargetId != polity.Value) continue;
+                    actor = order.Actor;     // last match in log order stands
+                    index = order.Index;
+                }
+                changes.Add(new TaxPolicyChange(
+                    next.Clock.Turn, next.Clock.WorldDateYears, polity.Value,
+                    before, beforePresent, after, actor, index));
+            }
+            states.Add(new TaxPolicyState(next.Clock.Turn, polity.Value, after, afterPresent));
+        }
+    }
+
+    /// <summary>The Empire's raw declared rate, or 0 when it never legislated.</summary>
+    private static double RateOrZero(IReadOnlyTable<TaxPolicyRow> rows, PolityId polity, out bool present)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            if (rows[i].Polity.Value != polity.Value) continue;
+            present = true;
+            return rows[i].Rate;
+        }
+        present = false;
+        return 0.0;
+    }
+
     /// <summary>Appends this step's changes and states. Settlements are walked in
     /// next.Settlements order (founded ones included: their state is Default until
     /// ordered), sectors ascending — a fixed integer order, no sort over doubles.</summary>

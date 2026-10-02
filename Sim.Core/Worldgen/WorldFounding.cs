@@ -323,7 +323,8 @@ public static class WorldFounding
         {
             var holder = new PolityId(1 + (s % polities));
             // Strength 1.0: uncontested control of one's own founding. The field
-            // is T4.3's SLOT and no system computes or decays it yet.
+            // is T4.3's SLOT; since ADR-033 D4 GovernanceSystem rewrites it as the
+            // administrative reach on its first step (this 1.0 is turn 0's value).
             world.Controls.Add(new ControlRow(holder, world.Settlements[s].Id, 1.0));
         }
 

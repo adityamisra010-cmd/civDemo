@@ -133,7 +133,15 @@ public static class CanonicalSchema
     /// were amended on the unmerged branch before any merge (80 / 68 bytes); v29 has
     /// never existed on main with any other layout. No existing row changed width; NetworkEdges (the free
     /// DirtPath baseline) is untouched.
-    public const int Version = 29;
+    /// v30 (ADR-033 D4, the M5 governing loop ported from `m5-full-build`): TaxPolicies appended after
+    /// RoadDevelopments — one standing (Polity, Rate) policy per Empire, 12 bytes; absence = the
+    /// never-legislated zero. No treasury, receipt or stock (CR-008). No existing row changed width;
+    /// ControlRow.Strength keeps its v20 slot and now carries the administrative reach GovernanceSystem
+    /// computes. v27 STAYS PERMANENTLY UNUSED: the v26/v28 notes above reserved it for the
+    /// `m5-full-build` TaxPolicies rebase, but Snapshot requires an exact version match and v28/v29 already
+    /// exist, so the reservation can never be what ships — the tax table is v30, and no stream will ever
+    /// carry v27. There is exactly one meaning of every version number in this file.
+    public const int Version = 30;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -192,6 +200,7 @@ public static class CanonicalSchema
     private const int UnitConversionRowWidth = 8 + 4 * 9;           // Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, FromAge, ToAge, Outcome (v28)
     private const int TransportEdgeRowWidth = 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 8 + 8 + 4 + 8 + 8; // Id, A, B, EdgeType, Mode, State, Capacity, LengthKm bits, Condition, BuiltTurn, UpgradedTurn, TargetClass, Modernization bits, CostFactor bits (v29)
     private const int RoadDevelopmentRowWidth = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8;   // Turn, Polity, Edge, A, B, FromClass, ToClass, Kind, Usage, MaterialUnits, ProgressBefore bits, ProgressAfter bits (v29)
+    private const int TaxPolicyRowWidth = 4 + 8;                    // Polity, Rate bits (v30)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -820,6 +829,15 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.ProgressBefore));
             writer.Write(BitConverter.DoubleToInt64Bits(row.ProgressAfter));
         }
+
+        // 55. TaxPolicies (v30, ADR-033 D4: the standing policy per Empire; absence = zero)
+        writer.Write(world.TaxPolicies.Count);
+        for (int i = 0; i < world.TaxPolicies.Count; i++)
+        {
+            TaxPolicyRow row = world.TaxPolicies[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Rate));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1316,6 +1334,13 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int taxPolicyCount = reader.ReadInt32();
+        for (int i = 0; i < taxPolicyCount; i++)
+        {
+            world.TaxPolicies.Add(new TaxPolicyRow(
+                new PolityId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -1380,5 +1405,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.MilitaryUnits.Count * MilitaryUnitRowWidth
         + CountPrefixWidth + (long)world.UnitConversions.Count * UnitConversionRowWidth
         + CountPrefixWidth + (long)world.TransportEdges.Count * TransportEdgeRowWidth
-        + CountPrefixWidth + (long)world.RoadDevelopments.Count * RoadDevelopmentRowWidth;
+        + CountPrefixWidth + (long)world.RoadDevelopments.Count * RoadDevelopmentRowWidth
+        + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth;
 }

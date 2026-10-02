@@ -279,7 +279,16 @@ public class SnapshotTests
         //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
         //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV29TransportTrailerAlone
         //         strips the two tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151";
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30, MEASURED on this tree by the agent writing this line.
+        //   OLD  4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151
+        //   NEW  bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c
+        //   CAUSE v29 -> v30 appends TaxPolicies (EMPTY here: the toy pipeline runs no governance
+        //         system and this synthetic world has no control rows), so the entire movement is one
+        //         four-byte zero count prefix. IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV30GovernanceTrailerAlone
+        //         drops it and returns OLD byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        const string golden = "bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -927,7 +936,27 @@ public class SnapshotTests
         //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
         //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone (also derived by two CLI processes, byte-identical logs; ci.yml FOUNDED_GOLDEN moves in the same commit)
         //         strips the two tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0";
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30 + THE STORED REACH, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0
+        //   NEW  64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
+        //   CAUSE (1) v29 -> v30 appends TaxPolicies (EMPTY: no order log, so no tax is ever levied);
+        //         (2) GovernanceSystem (SystemId 22, after revolt) rewrites every ControlRow.Strength
+        //         as the administrative reach exp(-travelCost / 25) from the capital over PREV
+        //         SettlementDistances: 11 of the 12 rows read below 1.0 at turn 300 (0.097 to 0.82).
+        //         Only the tax readers read Strength, and with no levy the effective rate is exactly
+        //         0, so production and happiness multiply by exactly 1.0 — no behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone
+        //         clears TaxPolicies, restores every Strength to 1.0, drops the prefix and returns OLD
+        //         byte for byte (and asserts the strip is non-vacuous); every older control strips the
+        //         governance layer as well and is UNMOVED.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes,
+        //         byte-identical logs) agree on the NEW value. ci.yml's FOUNDED_GOLDEN moves in the
+        //         same commit, and CiPinAgreementTests now compares it to THIS constant
+        //         (FoundedGoldenHash) exactly — m5-full-build left ci.yml behind and the old
+        //         Assert.Contains guard passed on a stale "OLD" comment.
+        const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
@@ -957,6 +986,14 @@ public class SnapshotTests
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
         Assert.Equal(golden, WorldHash.ComputeHex(RunFoundedGolden()));
     }
+
+    /// <summary>
+    /// THE founded golden (see FoundedGolden_Seed42Turn300_MatchesPinnedConstant for its history).
+    /// A named constant since ADR-033 D4 so CiPinAgreementTests can compare ci.yml's FOUNDED_GOLDEN
+    /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
+    /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
+    /// </summary>
+    internal const string FoundedGoldenHash = "64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden()

@@ -46,9 +46,12 @@ public class ResearchOrderTests
     [Fact]
     public void AnUnknownKind_NamesEveryKindThisBuildUnderstands()
     {
+        // ADR-033 D4: kind 5 is SetTaxRate now (the reservation became the real kind), so the
+        // first kind this build does NOT understand is 9.
         var e = Assert.Throws<SnapshotFormatException>(() =>
-            RoundTrip(new OrderRecord(3, 1, (OrderKind)5, 0, 0.0)));
-        Assert.Contains("unknown order kind 5", e.Message);
+            RoundTrip(new OrderRecord(3, 1, (OrderKind)9, 0, 0.0)));
+        Assert.Contains("unknown order kind 9", e.Message);
+        Assert.Contains("5 (SetTaxRate)", e.Message);
         Assert.Contains("6 (SetResearchTarget)", e.Message);
     }
 }

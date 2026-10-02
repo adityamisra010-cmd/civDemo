@@ -425,8 +425,17 @@ public class InspectionTests
 
         // The boundary is stated as file:line so a reviewer can CHECK it.
         Assert.Contains("SettlementHappiness.cs", happiness[1].Basis, StringComparison.Ordinal);
-        Assert.Contains("WeightOf is `private static` (:234)", happiness[1].Basis, StringComparison.Ordinal);
+        // ADR-033 D4 moved the cited line (TaxSufficiency inserted after HousingSufficiency).
+        Assert.Contains("WeightOf is `private static` (:258)", happiness[1].Basis, StringComparison.Ordinal);
         Assert.Contains("It does not manufacture a decomposition.", happiness[1].Basis, StringComparison.Ordinal);
+
+        // ADR-033 D4: the one PUBLIC multiplier — the tax burden — is reported, READ from the
+        // telemetry/v4 record (this session levies no tax, so every row reads exactly 1).
+        Assert.Contains("tax scale", happiness[0].Lines[0], StringComparison.Ordinal);
+        Assert.Contains("TaxSufficiency", happiness[0].Basis, StringComparison.Ordinal);
+        Assert.True(happiness[0].Lines.Length > 1);
+        for (int i = 1; i < happiness[0].Lines.Length; i++)
+            Assert.DoesNotContain("not-recorded", happiness[0].Lines[i], StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -519,8 +528,9 @@ public class InspectionTests
         {
             foreach (TelemetrySettlement row in t.Settlements)
             {
-                Assert.True(row.FoodState.Recorded, "a telemetry/v3 line must carry the foodState section");
-                Assert.True(row.MigrationPlan.Recorded, "a telemetry/v3 line must carry the migrationPlan section");
+                Assert.True(row.FoodState.Recorded, "a telemetry/v3+ line must carry the foodState section");
+                Assert.True(row.MigrationPlan.Recorded, "a telemetry/v3+ line must carry the migrationPlan section");
+                Assert.True(row.Tax.Recorded, "a telemetry/v4 line must carry the social.tax object (ADR-033 D4)");
                 if (row.FoodState.IsFamine && !(wasFamine.TryGetValue(row.Settlement, out bool was) && was))
                     expectedFamine++;
                 wasFamine[row.Settlement] = row.FoodState.IsFamine;
@@ -584,28 +594,43 @@ public class InspectionTests
     /// (the vintage of every session played before this packet) parses, every v2
     /// field reads exactly as before, and the two new sections report
     /// Recorded = FALSE — the reader says "the file does not say" instead of
-    /// defaulting a food state into existence. A THIRD vintage is still refused.
+    /// defaulting a food state into existence. An unknown vintage is still refused.
+    /// ADR-033 D4 moved the writer to telemetry/v4 (social.tax): the line this build
+    /// writes is downgraded to BOTH older vintages, and a v3 line reads the tax burden
+    /// as not recorded while every v3 field stays identical.
     /// </summary>
     [Fact]
     public void T421_ATelemetryV2Line_StillReads_AndItsMissingSectionsSaySoRatherThanDefaulting()
     {
         using Session s = Play("t421-v2");
-        // Take a real v3 line this build wrote and DOWNGRADE it by stripping the
-        // two sections and the tag — the honest simulation of an older file,
+        // Take a real v4 line this build wrote and DOWNGRADE it by stripping the
+        // newer sections and the tag — the honest simulation of an older file,
         // because every other byte is one this build actually produced.
         SessionManifest manifest;
         using (FileStream file = File.OpenRead(s.ManifestPath)) manifest = SessionManifest.Read(file, s.ManifestPath);
-        string v3 = File.ReadAllLines(Path.Combine(s.Dir, manifest.TelemetryFile))[5];
-        Assert.Contains("\"schema\":\"telemetry/v3\"", v3, StringComparison.Ordinal);
+        string v4 = File.ReadAllLines(Path.Combine(s.Dir, manifest.TelemetryFile))[5];
+        Assert.Contains("\"schema\":\"telemetry/v4\"", v4, StringComparison.Ordinal);
+        Assert.Contains("\"tax\"", v4, StringComparison.Ordinal);
 
-        using var doc = System.Text.Json.JsonDocument.Parse(v3);
-        string v2 = Downgrade(doc.RootElement);
+        using var doc = System.Text.Json.JsonDocument.Parse(v4);
+        string v3 = Downgrade(doc.RootElement, "telemetry/v3", stripT421Sections: false);
+        string v2 = Downgrade(doc.RootElement, "telemetry/v2", stripT421Sections: true);
+        Assert.Contains("\"schema\":\"telemetry/v3\"", v3, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"tax\"", v3, StringComparison.Ordinal);
+        Assert.Contains("\"foodState\"", v3, StringComparison.Ordinal);
         Assert.Contains("\"schema\":\"telemetry/v2\"", v2, StringComparison.Ordinal);
         Assert.DoesNotContain("\"foodState\"", v2, StringComparison.Ordinal);
         Assert.DoesNotContain("\"migrationPlan\"", v2, StringComparison.Ordinal);
 
+        TelemetryRecordFile oldest = TelemetryRecordFile.Parse([v3], "v3-fixture");
+        foreach (TelemetrySettlement x in Assert.Single(oldest.Turns).Settlements)
+        {
+            Assert.False(x.Tax.Recorded);                 // the file does not say — never "untaxed"
+            Assert.True(double.IsNaN(x.Tax.Scale));
+            Assert.True(x.FoodState.Recorded);            // the v3 sections still read
+        }
         TelemetryRecordFile older = TelemetryRecordFile.Parse([v2], "v2-fixture");
-        TelemetryRecordFile newer = TelemetryRecordFile.Parse([v3], "v3-line");
+        TelemetryRecordFile newer = TelemetryRecordFile.Parse([v4], "v4-line");
         TelemetryTurn a = Assert.Single(older.Turns);
         TelemetryTurn b = Assert.Single(newer.Turns);
 
@@ -630,22 +655,27 @@ public class InspectionTests
             Assert.True(double.IsNaN(x.FoodState.EffectiveDeficit));
             Assert.True(y.FoodState.Recorded);
             Assert.True(y.MigrationPlan.Recorded);
+            Assert.False(x.Tax.Recorded);
+            Assert.True(y.Tax.Recorded);                 // v4 carries the M5 tax burden
+            Assert.Equal(1.0, y.Tax.Scale);              // this session levies no tax
         }
 
         // A v2 record produces NO T4.21-5 event lines at all — absence of the
         // section, not absence of the event.
         Assert.True(TelemetryRecordFile.IsReadable("telemetry/v2"));
         Assert.True(TelemetryRecordFile.IsReadable("telemetry/v3"));
-        Assert.False(TelemetryRecordFile.IsReadable("telemetry/v4"));
+        Assert.True(TelemetryRecordFile.IsReadable("telemetry/v4"));
+        Assert.False(TelemetryRecordFile.IsReadable("telemetry/v5"));
         Assert.False(TelemetryRecordFile.IsReadable(null));
         InvalidDataException bad = Assert.Throws<InvalidDataException>(
-            () => TelemetryRecordFile.Parse([v3.Replace("telemetry/v3", "telemetry/v4", StringComparison.Ordinal)], "future"));
-        Assert.Contains("telemetry/v3, telemetry/v2", bad.Message, StringComparison.Ordinal);
+            () => TelemetryRecordFile.Parse([v4.Replace("telemetry/v4", "telemetry/v5", StringComparison.Ordinal)], "future"));
+        Assert.Contains("telemetry/v4, telemetry/v3, telemetry/v2", bad.Message, StringComparison.Ordinal);
     }
 
-    /// <summary>Re-emit a v3 line as a v2 one: same bytes, minus the two
-    /// sections this packet added, with the older tag.</summary>
-    private static string Downgrade(System.Text.Json.JsonElement root)
+    /// <summary>Re-emit this build's line as an older vintage: same bytes, minus the
+    /// sections the newer vintages added (social.tax for v4; foodState and
+    /// migrationPlan too for v2), with the older tag.</summary>
+    private static string Downgrade(System.Text.Json.JsonElement root, string tag, bool stripT421Sections)
     {
         using var buffer = new MemoryStream();
         using (var json = new System.Text.Json.Utf8JsonWriter(buffer))
@@ -653,7 +683,7 @@ public class InspectionTests
             json.WriteStartObject();
             foreach (System.Text.Json.JsonProperty p in root.EnumerateObject())
             {
-                if (p.NameEquals("schema")) { json.WriteString("schema", "telemetry/v2"); continue; }
+                if (p.NameEquals("schema")) { json.WriteString("schema", tag); continue; }
                 if (!p.NameEquals("settlements")) { p.WriteTo(json); continue; }
                 json.WriteStartArray("settlements");
                 foreach (System.Text.Json.JsonElement row in p.Value.EnumerateArray())
@@ -661,7 +691,15 @@ public class InspectionTests
                     json.WriteStartObject();
                     foreach (System.Text.Json.JsonProperty f in row.EnumerateObject())
                     {
-                        if (f.NameEquals("foodState") || f.NameEquals("migrationPlan")) continue;
+                        if (stripT421Sections && (f.NameEquals("foodState") || f.NameEquals("migrationPlan"))) continue;
+                        if (f.NameEquals("social"))
+                        {
+                            json.WriteStartObject("social");
+                            foreach (System.Text.Json.JsonProperty g in f.Value.EnumerateObject())
+                                if (!g.NameEquals("tax")) g.WriteTo(json);
+                            json.WriteEndObject();
+                            continue;
+                        }
                         f.WriteTo(json);
                     }
                     json.WriteEndObject();

@@ -1,0 +1,221 @@
+using Sim.Core.Kernel;
+using Sim.Core.Systems;
+using Sim.Core.Systems.ClassMobility;
+using Sim.Core.Systems.Research;
+
+namespace Sim.Core.State;
+
+/// <summary>
+/// ADR-033 D4 — THE GOVERNING LOOP'S READERS (ported from <c>m5-full-build</c>). Pure derived
+/// queries over authoritative state: nothing here mutates, nothing here is stored, and no system
+/// calls another system to get an answer (law 6 — systems share these statics through State).
+///
+/// THE LOOP THESE READERS CLOSE, every arrow a real consumer:
+///
+///   tax policy (TaxPolicyRow — an Empire's standing decision, order-set, research-gated)
+///     → administrative REACH (ControlRow.Strength, computed by GovernanceSystem from the
+///       capital over the road-aware SettlementDistances) decides what is actually collected
+///     → EFFECTIVE rate = nominal × Strength
+///     → raises realised production (ProductionSystem, <see cref="ExtractionMultiplier"/>)
+///     → lowers HAPPINESS (<see cref="SettlementHappiness.TaxSufficiency"/>)
+///     → happiness drives migration's destination weight and, at zero, revolt (D-021 valves)
+///     → LEGITIMACY reads the condition of what the Empire still holds
+///     → the AI tax valve (AiGovernance) answers it.
+///
+/// ONE FACT, ONE PLACE. Reach is computed in exactly one function (<see cref="AdministrativeReach"/>),
+/// called by exactly one writer (GovernanceSystem), and stored in exactly one field
+/// (<see cref="ControlRow.Strength"/>). Every consumer — production, happiness, legitimacy, the
+/// UI — reads the stored value through <see cref="ControlStrength"/> and
+/// <see cref="EffectiveTaxRate"/>; none recomputes reach beside it (the defect M5B shipped:
+/// Strength written, never read, while production and happiness recomputed reach).
+///
+/// WHAT THE TAX IS NOT (CR-008: "tax is a policy on flows; no treasury"). It moves no goods,
+/// holds no stock and has no recipient; goods stay in <see cref="GoodStockRow"/> and economic
+/// ownership stays derived through <see cref="ControlRow"/>.
+///
+/// INERT WITHOUT CONFIG. With no <c>governance</c> section every reader returns the neutral
+/// value — effective rate 0, extraction ×1, no levy possible — so a rig that runs the full
+/// catalog on a hand-written config behaves exactly as before the port.
+/// </summary>
+public static class Governance
+{
+    /// <summary>
+    /// What an Empire has DECLARED it will take, a fraction in [0, 1]. Absence of a row is the
+    /// never-legislated default of ZERO (the <see cref="SectorAllocationRow"/> convention); a
+    /// NaN rate reads 0 (an unmeasurable policy is not a levy). First row by table order — the
+    /// system keeps one row per Empire.
+    /// </summary>
+    public static double NominalTaxRate(IReadOnlyWorldState world, PolityId polity)
+    {
+        for (int i = 0; i < world.TaxPolicies.Count; i++)
+        {
+            if (world.TaxPolicies[i].Polity.Value != polity.Value) continue;
+            double rate = world.TaxPolicies[i].Rate;
+            if (double.IsNaN(rate)) return 0.0;
+            return Math.Clamp(rate, 0.0, 1.0);
+        }
+
+        return 0.0;
+    }
+
+    /// <summary>Whether <paramref name="polity"/> has a policy row at all (a declared rate,
+    /// possibly zero) — the difference between "levies 0 %" and "never legislated".</summary>
+    public static bool HasPolicy(IReadOnlyWorldState world, PolityId polity)
+    {
+        for (int i = 0; i < world.TaxPolicies.Count; i++)
+            if (world.TaxPolicies[i].Polity.Value == polity.Value) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// ADMINISTRATIVE REACH of <paramref name="polity"/> at <paramref name="place"/>, in [0, 1] —
+    /// THE WRITER'S COMPUTATION: GovernanceSystem evaluates it on PREV and stores the result in
+    /// <see cref="ControlRow.Strength"/>. Nothing else in the simulation calls it; consumers read
+    /// the stored value (<see cref="ControlStrength"/>).
+    ///
+    /// <c>exp(−travelCost / authorityDecayCostUnits)</c> from the polity's capital over
+    /// <see cref="SettlementDistanceRow"/> — the same table, functional form and default e-fold
+    /// migration's damping uses — so it is a distance term over the NETWORK GRAPH (D-040 C3), and
+    /// because SettlementDistances are the authoritative Pathfinder's costs over the built roads,
+    /// a road that cuts travel cost raises reach (D-040 C6's road–control coupling, realized).
+    ///
+    /// The capital is the origin and administers itself in full (1.0). An Empire with NO capital,
+    /// or whose capital it no longer controls, has no seat and reaches nothing (0.0). A place with
+    /// no distance row from the seat is UNADMINISTERED (0.0), never adjacent — missing data must not
+    /// read as perfect administration; an unreachable place (+∞ cost) reaches 0.0 by construction.
+    /// </summary>
+    public static double AdministrativeReach(
+        IReadOnlyWorldState world, PolityId polity, SettlementId place, GovernanceConfig governance)
+    {
+        ArgumentNullException.ThrowIfNull(governance);
+        if (!EmpireQuery.TryGetCapital(world, polity, out SettlementId seat)) return 0.0;
+        if (!EmpireQuery.ControlsSettlement(world, polity, seat)) return 0.0;   // a lost seat administers nothing
+        if (seat.Value == place.Value) return 1.0;                             // the seat administers itself in full
+
+        double decay = governance.AuthorityDecayCostUnits;
+        if (!(decay > 0.0)) return 0.0;
+
+        for (int i = 0; i < world.SettlementDistances.Count; i++)
+        {
+            SettlementDistanceRow row = world.SettlementDistances[i];
+            if (row.From.Value != seat.Value || row.To.Value != place.Value) continue;
+            double cost = row.TravelCost;
+            if (double.IsNaN(cost)) return 0.0;
+            return Math.Clamp(Math.Exp(-cost / decay), 0.0, 1.0);
+        }
+
+        return 0.0;   // no route on record: unadministered, not adjacent
+    }
+
+    /// <summary>
+    /// THE ONE STORED REACH: <see cref="ControlRow.Strength"/> of the (polity, place) control
+    /// relation, clamped to [0, 1] (NaN reads 0). No relation reads 0. Should a hand-built world
+    /// carry two rows for one relation, the MINIMUM is taken — a function of the row set, never of
+    /// row order (law 5; the <see cref="EmpireQuery.TryGetController"/> precedent).
+    /// </summary>
+    public static double ControlStrength(IReadOnlyWorldState world, PolityId polity, SettlementId place)
+    {
+        bool found = false;
+        double strength = 0.0;
+        for (int i = 0; i < world.Controls.Count; i++)
+        {
+            ControlRow row = world.Controls[i];
+            if (row.Polity.Value != polity.Value || row.Place.Value != place.Value) continue;
+            double s = double.IsNaN(row.Strength) ? 0.0 : Math.Clamp(row.Strength, 0.0, 1.0);
+            if (!found || s < strength) strength = s;
+            found = true;
+        }
+
+        return found ? strength : 0.0;
+    }
+
+    /// <summary>
+    /// What the state ACTUALLY extracts at <paramref name="settlement"/>: the controller's declared
+    /// rate scaled by the stored reach, nominal × <see cref="ControlRow.Strength"/>, in [0, 1].
+    /// The single number every downstream consumer uses — production reads it as effort
+    /// compelled, happiness as burden borne — so the gain and the cost can never drift apart.
+    /// Zero for an uncontrolled settlement, an untaxed Empire, and whenever the config carries no
+    /// governance section (the loop is inert).
+    /// </summary>
+    public static double EffectiveTaxRate(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+    {
+        if (cfg.Governance is null) return 0.0;
+        if (!EmpireQuery.TryGetController(world, settlement, out PolityId polity)) return 0.0;
+        double nominal = NominalTaxRate(world, polity);
+        if (nominal <= 0.0) return 0.0;   // the common case, and it costs nothing
+        return Math.Clamp(nominal * ControlStrength(world, polity, settlement), 0.0, 1.0);
+    }
+
+    /// <summary>
+    /// The multiplier on a settlement's realised production: <c>1 + taxExtractionResponseMax ×
+    /// effectiveRate</c>. A state that taxes harder works its realm harder (corvée, quotas, levied
+    /// labour), so extraction RAISES output while costing the people. Untaxed is EXACTLY 1.0, so an
+    /// untaxed world produces bit-identically to the tree before the port.
+    /// </summary>
+    public static double ExtractionMultiplier(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+    {
+        double rate = EffectiveTaxRate(world, settlement, cfg);
+        if (rate <= 0.0) return 1.0;
+        return 1.0 + cfg.Governance!.TaxExtractionResponseMax * rate;
+    }
+
+    /// <summary>
+    /// LEGITIMACY — how well an Empire is regarded by the people it actually holds, on the 0..100
+    /// happiness scale: the POPULATION-WEIGHTED mean <see cref="SettlementHappiness.Of"/> of the
+    /// settlements it controls. Derived, never stored. An Empire that holds no one has no standing
+    /// (0.0), not a vacuous perfect score. Not a second happiness and not a mood aura: happiness is
+    /// a settlement's material condition, legitimacy an Empire's standing.
+    /// </summary>
+    public static double Legitimacy(IReadOnlyWorldState world, PolityId polity, SimConfig cfg)
+    {
+        double weighted = 0.0;
+        long people = 0;
+
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            SettlementId place = world.Settlements[s].Id;
+            if (!EmpireQuery.ControlsSettlement(world, polity, place)) continue;
+
+            long pop = 0;
+            for (int b = 0; b < world.Buckets.Count; b++)
+                if (world.Buckets[b].Settlement.Value == place.Value) pop += world.Buckets[b].Count.Value;
+            if (pop <= 0) continue;
+
+            weighted += SettlementHappiness.Of(world, place, cfg) * pop;
+            people += pop;
+        }
+
+        if (people <= 0) return 0.0;
+        return Math.Clamp(weighted / people, 0.0, SettlementHappiness.Max);
+    }
+
+    /// <summary>
+    /// THE TAX EDICT'S AVAILABILITY PREDICATE (ADR-033 D4: taxation is research-gated by the
+    /// content). True iff the config carries a governance section AND research content AND the
+    /// polity's completed knowledge satisfies sim.json <c>governance.taxationRequires</c> — today
+    /// "arithmetic_babylonian OR surveying OR standard_weights OR coinage_electrum", the four nodes
+    /// whose unlocked capabilities name taxation. The expression is parsed against the attached
+    /// research content (<see cref="ResearchContentLoader.ParseRequirement"/>; the four-stream load
+    /// validates it once) and evaluated by the existing knowledge evaluator
+    /// (<see cref="ResearchQuery.RequirementMet"/>). No node id is named in C#.
+    ///
+    /// ONE PREDICATE, EVERY CALLER: GovernanceSystem applies a SetTaxRate only when this holds on
+    /// PREV; the AI valve acts only when it holds; the UI emitter refuses when it does not; and the
+    /// available-actions query asks this same function.
+    /// </summary>
+    public static bool CanLevyTax(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        if (cfg.Governance is not { } governance || cfg.Research is not { } research) return false;
+        Predicate requirement = ResearchContentLoader.ParseRequirement(
+            research, governance.TaxationRequires, "sim.json governance.taxationRequires");
+        return ResearchQuery.RequirementMet(research, requirement, ResearchQuery.CompletedMask(world, research, polity));
+    }
+
+    /// <summary>
+    /// THE ONE CONSTRUCTOR of the tax edict, used by the player's factory and the AI valve alike:
+    /// the issuing Empire legislates ITS OWN rate (TargetId = issuer, which OrderValidation
+    /// requires), Amount = the percentage as given (the system converts it to a fraction).
+    /// </summary>
+    public static OrderRecord TaxOrder(long turn, PolityId issuer, double percent)
+        => OrderRecord.From(turn, issuer, OrderKind.SetTaxRate, issuer.Value, percent);
+}

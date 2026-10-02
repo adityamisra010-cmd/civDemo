@@ -74,6 +74,16 @@ public readonly record struct TelemetryMigrationPlan(
     public bool RefugeesRefused => Recorded && VacancyScale < 1.0;
 }
 
+/// <summary>ADR-033 D4 (telemetry/v4): the tax burden the happiness reading was multiplied by,
+/// as the file carries it, or <see cref="Absent"/> on a telemetry/v2 or v3 line — whose Recorded
+/// flag is FALSE, so "the file does not say" is never read as "untaxed".</summary>
+public readonly record struct TelemetryTax(
+    bool Recorded, int Controller, bool PolicyRowPresent, double NominalRate, double ControlStrength,
+    double EffectiveRate, double Scale)
+{
+    public static TelemetryTax Absent => new(false, -1, false, double.NaN, double.NaN, double.NaN, double.NaN);
+}
+
 /// <summary>One settlement on one turn, as the saved telemetry record carries
 /// it. Every field here is READ from the file — nothing is recomputed, and
 /// nothing the file does not contain appears.</summary>
@@ -86,7 +96,8 @@ public sealed record TelemetrySettlement(
     bool HousingHasRow, long DwellingsOpening, long DwellingsClosing,
     double Happiness, double[] HappinessFactors,
     ClassActiveRow[] ClassActive,
-    TelemetryFoodState FoodState, TelemetryMigrationPlan MigrationPlan);
+    TelemetryFoodState FoodState, TelemetryMigrationPlan MigrationPlan,
+    TelemetryTax Tax);
 
 /// <summary>One observed step, as the saved telemetry record carries it.</summary>
 public sealed record TelemetryTurn(
@@ -107,6 +118,8 @@ public sealed record TelemetryTurn(
 /// line named, because a reader that silently accepts an unknown vintage would
 /// report the difference as a finding. Unknown keys are ignored.
 ///
+/// THREE VINTAGES SINCE ADR-033 D4: telemetry/v4 is telemetry/v3 PLUS social.tax (the M5 tax
+/// burden on happiness); a v3 or v2 line reads <see cref="TelemetryTax.Absent"/>.
 /// TWO VINTAGES, ENUMERATED (T4.21-5). telemetry/v3 is telemetry/v2 PLUS the
 /// foodState and migrationPlan sections; no v2 key changed name, position or
 /// meaning. So the list is a whitelist of two, not a relaxation: reading a v2
@@ -281,7 +294,8 @@ public sealed class TelemetryRecordFile
             HappinessFactors: [.. factors],
             ClassActive: [.. active],
             FoodState: ReadFoodState(s),
-            MigrationPlan: ReadMigrationPlan(s));
+            MigrationPlan: ReadMigrationPlan(s),
+            Tax: ReadTax(social));
     }
 
     /// <summary>The foodState section, or Absent when the line does not carry
@@ -310,6 +324,18 @@ public sealed class TelemetryRecordFile
             true, Dbl(m, "exitOpenness"), Dbl(m, "flightFractionPrime"),
             Dbl(m, "flightBound"), Dbl(m, "flightOut"), Dbl(m, "flightIn"), Dbl(m, "gapIn"),
             Dbl(m, "gapInflowCap"), Dbl(m, "vacancyCap"), Dbl(m, "desiredInflowAe"), Dbl(m, "vacancyScale"));
+    }
+
+    /// <summary>The social.tax object, or Absent when the line does not carry one (telemetry/v2
+    /// and v3). Presence is decided by the OBJECT, like the foodState section.</summary>
+    private static TelemetryTax ReadTax(JsonElement social)
+    {
+        if (social.ValueKind != JsonValueKind.Object
+            || !social.TryGetProperty("tax", out JsonElement t) || t.ValueKind != JsonValueKind.Object)
+            return TelemetryTax.Absent;
+        return new TelemetryTax(
+            true, (int)Lng(t, "controller"), Bln(t, "policyRowPresent"), Dbl(t, "nominalRate"),
+            Dbl(t, "controlStrength"), Dbl(t, "effectiveRate"), Dbl(t, "scale"));
     }
 
     // --- JSON primitives -----------------------------------------------------

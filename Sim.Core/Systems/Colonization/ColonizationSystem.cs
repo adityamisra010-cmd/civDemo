@@ -250,8 +250,9 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
         // stateless colony, which is D-037 B1's case and the only way an
         // uncontrolled settlement can persist in a live world.
         //
-        // Strength 1.0 matches founding's own uncontested value; T4.3 owns the
-        // field and no system computes or decays it yet.
+        // Strength 1.0 matches founding's own uncontested value. Since ADR-033 D4
+        // GovernanceSystem (later in this same step) rewrites it as the administrative
+        // reach from PREV — 0.0 for a colony with no distance row yet (GovernanceSystem).
         if (EmpireQuery.TryGetController(prev, source, out PolityId parent))
         {
             ctx.Owned.Controls.Add(new ControlRow(parent, newId, 1.0));

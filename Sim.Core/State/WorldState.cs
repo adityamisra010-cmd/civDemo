@@ -604,6 +604,15 @@ public record struct ClaimRow(PolityId Polity, SettlementId Place, double Streng
 /// loyalty computation exists yet — this field is written by nothing in
 /// this packet, and nothing in this packet enforces the one-or-none
 /// cardinality either (no system exists yet to violate it).
+///
+/// ADR-033 D4 (M5 governing loop, v30): <c>Strength</c> IS NOW THE ADMINISTRATIVE REACH and
+/// has exactly ONE computer, GovernanceSystem, which rewrites it every step as
+/// exp(−travelCost / authorityDecayCostUnits) from the controller's capital over PREV
+/// SettlementDistances (road-aware; D-040 C3/C6) — 1.0 at the capital, 0.0 with no capital or
+/// no route on record. Founding and colonization still write the initial 1.0, which governance
+/// overwrites on its first step. It is the ONE stored reach: the effective tax rate reads it
+/// (<see cref="Governance.EffectiveTaxRate"/>) and nothing recomputes reach beside it. Without
+/// a governance section in the config the loop is inert and the field keeps what founding wrote.
 /// </summary>
 public record struct ControlRow(PolityId Polity, SettlementId Place, double Strength);
 
@@ -985,6 +994,27 @@ public record struct RoadDevelopmentRow(
     double ProgressBefore, double ProgressAfter);
 
 /// <summary>
+/// ADR-033 D4 (the M5 governing loop, ported from <c>m5-full-build</c>) — ONE EMPIRE'S TAX
+/// POLICY. A standing governance decision, owned by GovernanceSystem (SetTaxRate, order kind 5).
+///
+/// <c>Rate</c> is the NOMINAL rate the Empire has declared, a dimensionless fraction in [0, 1]:
+/// what the state ASKS for. What a settlement actually bears is that rate scaled by the
+/// settlement's administrative reach, which is <see cref="ControlRow.Strength"/> — the ONE
+/// stored reach (<see cref="Governance.EffectiveTaxRate"/>). The nominal and the effective rate
+/// are different quantities and are never conflated.
+///
+/// ABSENCE OF A ROW IS THE NEVER-LEGISLATED DEFAULT OF ZERO (the <see cref="SectorAllocationRow"/>
+/// precedent): an Empire that never issued a valid SetTaxRate levies nothing, so every world
+/// founded before v30 behaves exactly as it did.
+///
+/// WHAT THIS ROW IS NOT (CR-008: "tax is a policy on flows; no treasury"): not a treasury, not
+/// a receipt, not a stock and not an owner. No good moves because of it and nothing accumulates
+/// in it; goods stay physically localized in <see cref="GoodStockRow"/>. Keyed by POLITY: taxation
+/// is an Empire-level decision applying to everything the Empire controls.
+/// </summary>
+public record struct TaxPolicyRow(PolityId Polity, double Rate);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -1094,6 +1124,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
     IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments { get; }
+
+    /// <summary>ADR-033 D4: standing tax policy per Empire (absence = the zero default) — owned by GovernanceSystem.</summary>
+    IReadOnlyTable<TaxPolicyRow> TaxPolicies { get; }
 }
 
 /// <summary>
@@ -1279,6 +1312,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
     public Table<RoadDevelopmentRow> RoadDevelopments { get; }
 
+    /// <summary>ADR-033 D4: standing tax policy per Empire — owned by GovernanceSystem.</summary>
+    public Table<TaxPolicyRow> TaxPolicies { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1333,6 +1369,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<UnitConversionRow> IReadOnlyWorldState.UnitConversions => UnitConversions;
     IReadOnlyTable<TransportEdgeRow> IReadOnlyWorldState.TransportEdges => TransportEdges;
     IReadOnlyTable<RoadDevelopmentRow> IReadOnlyWorldState.RoadDevelopments => RoadDevelopments;
+    IReadOnlyTable<TaxPolicyRow> IReadOnlyWorldState.TaxPolicies => TaxPolicies;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1391,6 +1428,7 @@ public sealed class WorldState : IReadOnlyWorldState
         UnitConversions = new Table<UnitConversionRow>();
         TransportEdges = new Table<TransportEdgeRow>();
         RoadDevelopments = new Table<RoadDevelopmentRow>();
+        TaxPolicies = new Table<TaxPolicyRow>();
     }
 
     private WorldState(
@@ -1421,7 +1459,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<AgeStateRow> ageStates, Table<AgeEligibilityRow> ageEligibility,
         Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
         Table<UnitConversionRow> unitConversions,
-        Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments)
+        Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments,
+        Table<TaxPolicyRow> taxPolicies)
     {
         Seed = seed;
         Clock = clock;
@@ -1479,6 +1518,7 @@ public sealed class WorldState : IReadOnlyWorldState
         UnitConversions = unitConversions;
         TransportEdges = transportEdges;
         RoadDevelopments = roadDevelopments;
+        TaxPolicies = taxPolicies;
     }
 
     /// <summary>
@@ -1502,7 +1542,8 @@ public sealed class WorldState : IReadOnlyWorldState
             ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
             ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
-            UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone())
+            UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
+            TaxPolicies.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

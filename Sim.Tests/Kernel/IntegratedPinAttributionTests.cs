@@ -133,6 +133,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
         StripResearch(stripped);
@@ -149,7 +150,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -225,6 +226,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripGovernance(stripped);
         StripRoads(stripped);
         ageRowsRemoved = StripAges(stripped);
         using var buffer = new MemoryStream();
@@ -232,7 +234,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -253,13 +255,58 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripGovernance(stripped);
         roadRowsRemoved = StripRoads(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount);
+    }
+
+    /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
+    /// RoadDevelopments. Every pin in this file predates v30, so every control strips the
+    /// governance layer and drops its count prefix first, then asks its original question
+    /// unchanged.</summary>
+    private const int GovernanceTableCount = 1;
+
+    /// <summary>
+    /// ADR-033 D4: remove the governing loop's ENTIRE footprint in the stream, IN PLACE — the
+    /// TaxPolicies rows (none exist in an order-less or tax-less world; cleared regardless so a
+    /// populated world strips the same way) and the reach GovernanceSystem writes into
+    /// ControlRow.Strength, restored to the 1.0 every control row carried before v30 (founding and
+    /// colonization write exactly 1.0 and, before the port, nothing else ever wrote the field).
+    /// GovernanceSystem draws no RNG and writes no ledger flow, and Strength is read only by the
+    /// tax readers, so with no tax levied this IS the whole delta. Returns how many Strength
+    /// fields were restored, so a caller can tell a populated strip from a vacuous one.
+    /// </summary>
+    private static int StripGovernance(WorldState stripped)
+    {
+        stripped.TaxPolicies.Clear();
+        int restored = 0;
+        for (int i = 0; i < stripped.Controls.Count; i++)
+        {
+            ControlRow row = stripped.Controls[i];
+            if (BitConverter.DoubleToInt64Bits(row.Strength) == BitConverter.DoubleToInt64Bits(1.0)) continue;
+            stripped.Controls[i] = row with { Strength = 1.0 };
+            restored++;
+        }
+        return restored;
+    }
+
+    /// <summary>The stream as v29 — the tree exactly as it stood BEFORE ADR-033 D4: the tax rows
+    /// removed, every Strength back at 1.0, the empty v30 prefix dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
+    {
+        WorldState stripped = world.Clone();
+        strengthsRestored = StripGovernance(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount);
     }
 
     /// <summary>
@@ -293,6 +340,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
         researchRowsRemoved = StripResearch(stripped);
@@ -301,7 +349,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount);
     }
 
     /// <summary>
@@ -313,6 +361,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
         StripResearch(stripped);
@@ -322,7 +371,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount);
     }
 
     /// <summary>
@@ -523,7 +572,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(29, CanonicalSchema.Version);
+        Assert.Equal(30, CanonicalSchema.Version);
     }
 
     [Fact]
@@ -798,5 +847,60 @@ public class IntegratedPinAttributionTests
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
+    }
+
+    // ======================================================================
+    // ADR-033 D4 — THE LAYER CONTROL FOR SCHEMA v30 (the M5 governing loop)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5-integration at ffbb6f8, BEFORE the governing loop
+    // was ported (schema v29). Stripping the governance layer — the TaxPolicies rows, the reach
+    // GovernanceSystem writes into ControlRow.Strength (restored to the 1.0 founding and colonization
+    // wrote), and the empty v30 count prefix — must return it BYTE FOR BYTE. None of these runs
+    // levies a tax (no SetTaxRate order; and none could pass the research gate), so the effective tax
+    // rate is exactly 0 everywhere, production multiplies by exactly 1.0, happiness by exactly 1.0,
+    // and the new table plus the Strength writes are the ENTIRE cause of every re-pin. GovernanceSystem
+    // draws no RNG and writes no ledger flow. A leak of the governing loop into population, food,
+    // migration, trade or anything else would survive the strip and break these.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV30GovernanceTrailerAlone()
+    {
+        // The toy pipeline runs no governance system and the synthetic world has no control rows:
+        // its whole movement is one empty count prefix.
+        const string beforeGovernance = "4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        Assert.Equal(0, restored);
+        Assert.Equal(0, world.TaxPolicies.Count);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0";
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        // Non-vacuous: the founded world's non-capital settlements carry a computed reach < 1.
+        Assert.True(restored > 0, "no Strength differed from 1.0 — the reach computation is invisible and the control vacuous");
+        Assert.Equal(0, world.TaxPolicies.Count);   // no order log: no tax is ever levied
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out _));
+        Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
+        Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries no SetTaxRate order
     }
 }
