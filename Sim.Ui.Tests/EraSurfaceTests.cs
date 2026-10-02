@@ -203,8 +203,6 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
             var texts = Texts(d).Select(t => t.Text).ToHashSet();
             foreach (string label in nav) Assert.Contains(label, texts);
             Assert.Contains(texts, x => x is "JUMP TO TARGET" or "JUMP TO FRONTIER" || x.StartsWith("JUMP TO", StringComparison.Ordinal));
-            foreach (LaneBox lane in s.Layout.Lanes)
-                Assert.Contains(Texts(d), t => t.Text.StartsWith(lane.Name.ToUpperInvariant()[..Math.Min(4, lane.Name.Length)], StringComparison.Ordinal));
             // Every visible card names its Age in full, untruncated, ON THAT CARD, in every era (the
             // full-Age-names rule) — checked per card, so one card's truncated label cannot hide behind
             // another card's whole one.
@@ -219,6 +217,20 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                 Assert.True(runs.Any(r => r.Text == age && card.Contains(r.X + 1, r.Y + 1)), $"{era}: card {v} lacks its full Age name \"{age}\"");
             }
         }
+        // Each lane chip, a navigation control, names its lane in full on the chip, in both trees and
+        // every era (it shrinks to fit rather than lose a word).
+        foreach (UiEra era in UiEras.All)
+            foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+            {
+                (ProgressionScreen s, DrawList d) = Tree(era, tab);
+                List<TextCmd> runs = Texts(d);
+                foreach (LaneBox lane in s.Layout.Lanes)
+                {
+                    RectD chip = s.Hits.Single(h => h.Kind == HitKind.LaneToggle && h.Arg == lane.Index).Rect;
+                    string name = lane.Name.ToUpperInvariant();
+                    Assert.True(runs.Any(r => r.Text == name && chip.Contains(r.X + 1, r.Y + 1)), $"{era} {tab}: lane chip lacks \"{name}\"");
+                }
+            }
         // The game's section roster is data, the same list whatever the era.
         Assert.Equal(7, GameSections.Order.Count);
     }

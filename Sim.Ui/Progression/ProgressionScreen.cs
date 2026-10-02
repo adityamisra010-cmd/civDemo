@@ -719,7 +719,10 @@ public sealed class ProgressionScreen
                 : t.Density.CardDetail >= 4 && !lane.External ? LaneDone(lane.Index).ToString(CultureInfo.InvariantCulture) + "/" + lane.NodeCount.ToString(CultureInfo.InvariantCulture)
                 : lane.NodeCount.ToString(CultureInfo.InvariantCulture);
             double cw = m.Width(t, count, 11, FontRole.Numeric);
-            d.Write(t, chip.X + 22, chip.Y + 5, ThemeText.Fit(m, t, lane.Name.ToUpperInvariant(), 12, w - cw - 36, FontRole.Caps), 12, hue, TextAlign.Left, FontRole.Caps);
+            // A navigation label: it shrinks to fit rather than lose a word.
+            string name = lane.Name.ToUpperInvariant();
+            double ns = ThemeText.FitSize(m, t, name, 12, w - cw - 36, FontRole.Caps);
+            d.Write(t, chip.X + 22, chip.Y + 5 + (12 - ns) / 2, ThemeText.Fit(m, t, name, ns, w - cw - 36, FontRole.Caps), ns, hue, TextAlign.Left, FontRole.Caps);
             d.Write(t, chip.Right - 8, chip.Y + 6, count, 11, t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
         }
         _hits.Add(new HitRegion(chip, HitKind.LaneToggle, lane.Index));
