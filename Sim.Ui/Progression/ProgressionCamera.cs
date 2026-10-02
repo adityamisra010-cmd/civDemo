@@ -8,10 +8,10 @@ namespace Sim.Ui.Progression;
 public sealed class ProgressionCamera
 {
     public const double MinZoom = 0.12, MaxZoom = 1.6;
-    public double Zoom { get; private set; } = 0.8;
+    public double Zoom { get; private set; } = 1.0;
     public double PanX { get; private set; }
     public double PanY { get; private set; }
-    public double TargetZoom { get; private set; } = 0.8;
+    public double TargetZoom { get; private set; } = 1.0;
     public double TargetPanX { get; private set; }
     public double TargetPanY { get; private set; }
 
@@ -61,14 +61,17 @@ public sealed class ProgressionCamera
     /// <summary>Screen pixels of slack the view may show beyond the drawing's edges.</summary>
     public const double EdgeSlackPx = 16;
 
-    /// <summary>Keep the view over the drawing: at most <see cref="EdgeSlackPx"/> of empty field
-    /// may show past any edge, so the tree always fills the canvas from the left; a drawing
-    /// smaller than the canvas on an axis is centred on that axis.</summary>
+    /// <summary>Keep the view over the drawing. Vertically at most <see cref="EdgeSlackPx"/> of
+    /// empty field may show past either end (a drawing shorter than the canvas is centred).
+    /// Horizontally — the axis that must never scroll — a drawing that fits the width is LOCKED
+    /// centred (at zoom 1 the layout is exactly the canvas width, so pan x = 0); only a drawing
+    /// zoomed wider than the canvas may pan, and never past its edges.</summary>
     public void Clamp(double worldW, double worldH, double canvasW, double canvasH)
     {
         static double C(double v, double lo, double hi) => hi < lo ? (lo + hi) / 2.0 : Math.Clamp(v, lo, hi);
         double s = EdgeSlackPx / TargetZoom;
-        TargetPanX = C(TargetPanX, -s, worldW - canvasW / TargetZoom + s);
+        double viewW = canvasW / TargetZoom;
+        TargetPanX = worldW <= viewW + 1e-6 ? (worldW - viewW) / 2.0 : Math.Clamp(TargetPanX, 0, worldW - viewW);
         TargetPanY = C(TargetPanY, -s, worldH - canvasH / TargetZoom + s);
     }
 

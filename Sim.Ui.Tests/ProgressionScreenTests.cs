@@ -121,7 +121,12 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
                     PlacedVertex p = a.Placed[i], q = a.Placed[j];
                     Assert.False(p.X < q.Right && q.X < p.Right && p.Y < q.Bottom && q.Y < p.Bottom, $"{i} overlaps {j}");
                 }
-            foreach (GraphEdge e in g.Edges) Assert.True(a.Placed[e.From].Column < a.Placed[e.To].Column);
+            foreach (GraphEdge e in g.Edges)
+            {
+                Assert.True(a.Placed[e.From].Column < a.Placed[e.To].Column);
+                // Tiers run down the single scroll axis: a prerequisite ends above its dependent.
+                Assert.True(a.Placed[e.From].Bottom < a.Placed[e.To].Y);
+            }
             // Lanes: Technology = trunk + every content subtree; each node in its branch lane.
             if (tree == ResearchTree.Technology)
             {
@@ -310,9 +315,13 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
             double x0 = s.Camera.ToScreenX(p.X, canvas.X), x1 = s.Camera.ToScreenX(p.Right, canvas.X);
             Assert.True(x1 >= canvas.X && x0 <= canvas.Right);
         }
-        // Whole-tree overview still paints every card, once.
+        // The overview zoom paints more cards, each once, and every card in view.
         s.FitAll();
-        Assert.Equal(s.Graph.Vertices.Count, s.VisibleVertices().Count);
+        List<int> fit = s.VisibleVertices();
+        Assert.True(fit.Count > visible.Count);
+        Assert.Equal(fit.Count, fit.Distinct().Count());
+        foreach (PlacedVertex p in s.Layout.Placed)
+            if (s.Camera.ToScreenY(p.Y, canvas.Y) >= canvas.Y && s.Camera.ToScreenY(p.Bottom, canvas.Y) <= canvas.Bottom) Assert.Contains(p.Vertex, fit);
 
         var a = new ProgressionScreen(fx.Content, Me); a.Refresh(fx.Session.World);
         var b = new ProgressionScreen(fx.Content, Me); b.Refresh(fx.Session.World);
@@ -367,8 +376,8 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
                 Assert.InRange(k, lo, hi);
             }
         }
-        Assert.Equal("Age II", ResearchTreeLayout.AgeRangeLabel((2, 2)));
-        Assert.Equal("Ages I-IV", DrawList.Latin1(ResearchTreeLayout.AgeRangeLabel((1, 4))));
+        Assert.Equal("Age II - Neolithic / Agricultural", DrawList.Latin1(ResearchTreeLayout.AgeRangeLabel((2, 2))));
+        Assert.Equal("Ages I-IV - Prehistoric / Stone Age to Iron Age", DrawList.Latin1(ResearchTreeLayout.AgeRangeLabel((1, 4))));
         Assert.Equal("", ResearchTreeLayout.AgeRangeLabel((0, 0)));
         Assert.Equal("III", ResearchTreeLayout.AgeNumeral("A3"));
     }
@@ -393,13 +402,14 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         s.Tab = TreeTab.Technology;
         int main = -1;
         foreach (LaneBox l in s.Layout.Lanes) if (l.Id == "main") main = l.Index;
-        double openH = s.Layout.Lanes[main].Height;
+        Assert.Contains(s.Layout.Segments, g => g.Lane == main);
         s.FitAll();
         s.Paint(W, H, ApproxTextMeasure.Instance);
         HitRegion chip = Find(s, HitKind.LaneToggle, main);
         s.Click(chip.Rect.CenterX, chip.Rect.CenterY);
         Assert.True(s.IsLaneCollapsed(main));
-        Assert.True(s.Layout.Lanes[main].Height < openH);
+        Assert.DoesNotContain(s.Layout.Segments, g => g.Lane == main);   // its width went to the others
+        Assert.True(s.Layout.Width <= s.TreeViewportWidth);
         int hidden = 0;
         foreach (PlacedVertex p in s.Layout.Placed)
             if (p.Lane == main) { Assert.True(p.Hidden); Assert.False(p.Contains(p.X + 1, p.Y)); hidden++; }
@@ -415,28 +425,287 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
     }
 
     [Fact]
-    public void Minimap_NeverCoversTheSelection_AndIsCollapsible()
+    public void OverviewStrip_NeverCoversACard_AndIsCollapsible()
     {
         ProgressionScreen s = Screen();
+        RectD strip = s.MinimapRect();
         RectD c = s.Canvas;
-        RectD dock = s.MinimapRect();   // nothing selected: the default bottom-right dock
-        int ci = s.Snapshot!.TargetIndex!.Value;
-        // Put the selected card right under the default dock, then near every other corner.
-        foreach ((double fx0, double fy0) in new[] { (dock.CenterX, dock.CenterY), (c.X + 120, c.Bottom - 60), (c.CenterX, c.CenterY) })
-        {
-            s.Selected = ci;
-            PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(ci)];
-            double z = s.Camera.Zoom;
-            s.Camera.Set(z, p.CenterX - (fx0 - c.X) / z, p.CenterY - (fy0 - c.Y) / z);
-            s.Paint(W, H, ApproxTextMeasure.Instance);
-            var card = new RectD(s.Camera.ToScreenX(p.X, c.X), s.Camera.ToScreenY(p.Y, c.Y), p.W * s.Camera.Zoom, p.H * s.Camera.Zoom);
-            Assert.False(s.MinimapRect().Inset(-4).Intersects(card), $"minimap covers the selection at ({fx0},{fy0})");
-        }
+        // The strip lies right of the tree viewport, and the layout fits left of it.
+        Assert.True(strip.X >= c.X + s.TreeViewportWidth);
+        foreach (PlacedVertex p in s.Layout.Placed)
+            Assert.True(s.Camera.ToScreenX(p.Right, c.X) <= strip.X, $"card {p.Vertex} under the strip");
+        double narrow = s.Layout.Width;
         HitRegion toggle = Find(s, HitKind.MinimapToggle, 0);
         s.Click(toggle.Rect.CenterX, toggle.Rect.CenterY);
         Assert.False(s.MinimapVisible);
         s.Paint(W, H, ApproxTextMeasure.Instance);
         Assert.DoesNotContain(s.Hits, h => h.Kind == HitKind.Minimap);
+        Assert.True(s.Layout.Width > narrow);   // the tree takes the strip's width back
+        Assert.True(s.Layout.Width <= s.TreeViewportWidth);
+    }
+
+    // ------------------------------------------------------------------ single scroll axis
+
+    [Theory]
+    [InlineData(1024, 700)]
+    [InlineData(1280, 800)]
+    [InlineData(1600, 1000)]
+    [InlineData(1920, 1080)]
+    [InlineData(2560, 1440)]
+    public void DefaultZoom_HasNoHorizontalOverflow_AtAnyViewport_AndNavigationIsVerticalOnly(double w, double h)
+    {
+        foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+        {
+            var s = new ProgressionScreen(fx.Content, Me);
+            s.Refresh(fx.Session.World);
+            s.Tab = tab;
+            s.Paint(w, h, ApproxTextMeasure.Instance);
+            RectD c = s.Canvas;
+            TreeLayout L = s.Layout;
+            Assert.Equal(1.0, s.Camera.Zoom);
+            Assert.True(L.Width <= s.TreeViewportWidth, $"layout {L.Width} > viewport {s.TreeViewportWidth}");
+            foreach (PlacedVertex p in L.Placed)
+            {
+                Assert.True(p.X >= 0 && p.Right <= s.TreeViewportWidth);
+                Assert.InRange(s.Camera.ToScreenX(p.X, c.X), c.X, c.X + s.TreeViewportWidth);
+                Assert.InRange(s.Camera.ToScreenX(p.Right, c.X), c.X, c.X + s.TreeViewportWidth);
+            }
+            // No overlap, and the tiers are ordered down the scroll axis, at this width too.
+            for (int i = 0; i < L.Placed.Count; i++)
+                for (int j = i + 1; j < L.Placed.Count; j++)
+                {
+                    PlacedVertex p = L.Placed[i], q = L.Placed[j];
+                    Assert.False(p.X < q.Right && q.X < p.Right && p.Y < q.Bottom && q.Y < p.Bottom, $"{i} overlaps {j}");
+                }
+            for (int t = 1; t < L.Tiers.Count; t++) Assert.True(L.Tiers[t].Y0 >= L.Tiers[t - 1].Y1);
+            // Sideways input never moves the view: only the vertical axis scrolls.
+            double px = s.Camera.PanX;
+            s.ScrollBy(600, 0); s.Drag(-500, 0); s.Wheel(c.X + 50, c.Y + 50, -2);
+            for (int k = 0; k < 400 && s.Advance(1 / 60.0); k++) { }
+            Assert.Equal(px, s.Camera.PanX);
+            Assert.Equal(0.0, s.Camera.PanX);
+        }
+    }
+
+    [Fact]
+    public void Wheel_ScrollsVertically_CtrlWheelZooms()
+    {
+        ProgressionScreen s = Screen();
+        RectD c = s.Canvas;
+        s.Camera.Set(1.0, 0, 0);
+        s.Wheel(c.X + 100, c.Y + 100, -1);
+        for (int k = 0; k < 400 && s.Advance(1 / 60.0); k++) { }
+        Assert.Equal(ProgressionScreen.WheelStepPx, s.Camera.PanY, 6);
+        Assert.Equal(1.0, s.Camera.Zoom);
+        s.WheelZoom(c.X + 100, c.Y + 100, -1);
+        for (int k = 0; k < 400 && s.Advance(1 / 60.0); k++) { }
+        Assert.True(s.Camera.Zoom < 1.0);
+    }
+
+    // ------------------------------------------------------------------ default scroll
+
+    private static bool[] AllComplete(ResearchGraph g)
+    {
+        var done = new bool[g.Vertices.Count];
+        for (int v = 0; v < g.OwnCount; v++) done[v] = true;
+        return done;
+    }
+
+    private static int Lane(TreeLayout L, string id)
+    {
+        foreach (LaneBox l in L.Lanes) if (l.Id == id) return l.Index;
+        throw new InvalidOperationException(id);
+    }
+
+    /// <summary>The earliest (tier, slot, vertex) own vertex of a lane at or after a tier.</summary>
+    private static int First(TreeLayout L, int lane, int minTier = 0)
+    {
+        int best = -1;
+        for (int v = 0; v < L.Graph.OwnCount; v++)
+        {
+            PlacedVertex p = L.Placed[v];
+            if (p.Lane != lane || p.Column < minTier) continue;
+            if (best < 0 || (p.Column, p.Slot, v).CompareTo((L.Placed[best].Column, L.Placed[best].Slot, best)) < 0) best = v;
+        }
+        return best;
+    }
+
+    [Fact]
+    public void LeastDevelopedFrontier_IsTheLaggingLane_NotTheTargetOrTheMostAdvanced()
+    {
+        ResearchGraph g = ResearchGraph.Build(fx.Content, ResearchTree.Technology);
+        TreeLayout L = ResearchTreeLayout.Compute(g);
+        int main = Lane(L, "main"), eng = Lane(L, "engineering"), med = Lane(L, "medicine");
+
+        // World A: everything known except a mid-tier Medicine node (the laggard) and the
+        // Engineering lane from a far later tier on — where the "target" and the most modern
+        // research sit. The answer is the Medicine node, which lies ABOVE the target.
+        bool[] done = AllComplete(g);
+        int lag = First(L, med, 2);
+        done[lag] = false;
+        int target = First(L, eng, L.Placed[lag].Column + 6);
+        for (int v = 0; v < g.OwnCount; v++) if (L.Placed[v].Lane == eng && L.Placed[v].Column >= L.Placed[target].Column) done[v] = false;
+        Assert.Equal(lag, ResearchTreeLayout.LeastDevelopedFrontier(L, done));
+        Assert.True(L.Placed[lag].Y < L.Placed[target].Y);
+
+        // World B: the main trunk lags further back than Medicine: it wins.
+        int trunk = First(L, main, 1);
+        Assert.True(L.Placed[trunk].Column < L.Placed[lag].Column);
+        done[trunk] = false;
+        Assert.Equal(trunk, ResearchTreeLayout.LeastDevelopedFrontier(L, done));
+
+        // World C (tie-dense): two lanes whose frontiers share a tier — the lower lane index wins;
+        // inside a lane the (tier, slot, vertex) key picks the earliest card.
+        done = AllComplete(g);
+        int t = -1, a = -1, b = -1;
+        for (int c = 0; c < L.Columns && t < 0; c++)
+        {
+            int x = -1, y = -1;
+            for (int v = 0; v < g.OwnCount; v++)
+                if (L.Placed[v].Column == c && L.Placed[v].Lane == eng && x < 0) x = v;
+            for (int v = 0; v < g.OwnCount; v++)
+                if (L.Placed[v].Column == c && L.Placed[v].Lane == med && y < 0) y = v;
+            if (x >= 0 && y >= 0) { t = c; a = x; b = y; }
+        }
+        Assert.True(t >= 0);
+        done[a] = false; done[b] = false;
+        int expected = Math.Min(eng, med) == eng ? a : b;
+        Assert.Equal(expected, ResearchTreeLayout.LeastDevelopedFrontier(L, done));
+        // Every node known: no frontier.
+        Assert.Equal(-1, ResearchTreeLayout.LeastDevelopedFrontier(L, AllComplete(g)));
+    }
+
+    [Fact]
+    public void Screen_OpensScrolledToTheLeastDevelopedFrontier()
+    {
+        foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+        {
+            var s = new ProgressionScreen(fx.Content, Me);
+            s.Refresh(fx.Session.World);
+            s.Tab = tab;
+            s.Paint(W, H, ApproxTextMeasure.Instance);
+            int f = s.DefaultFrontierNode();
+            Assert.True(f >= 0);
+            // Matches the pure definition over the snapshot's completion states.
+            var done = new bool[s.Graph.Vertices.Count];
+            for (int v = 0; v < done.Length; v++) done[v] = s.Snapshot!.Nodes[s.Graph.Vertices[v].ContentIndex].State == NodeState.Completed;
+            Assert.Equal(s.Graph.Vertices[ResearchTreeLayout.LeastDevelopedFrontier(s.Layout, done)].ContentIndex, f);
+            Assert.False(s.Snapshot!.Nodes[f].State == NodeState.Completed);
+            // Its card is in view, and nothing was selected by opening.
+            (double sx, double sy) = ScreenCenter(s, f);
+            Assert.True(s.Canvas.Contains(sx, sy), $"frontier at ({sx},{sy}) not in view");
+            Assert.Equal(-1, s.Selected);
+        }
+        // JUMP TO TARGET remains a control and does select the target.
+        ProgressionScreen t0 = Screen();
+        HitRegion jump = Find(t0, HitKind.Frontier, 0);
+        t0.Click(jump.Rect.CenterX, jump.Rect.CenterY);
+        Assert.Equal(t0.Snapshot!.TargetIndex, t0.Selected);
+    }
+
+    // ------------------------------------------------------------------ highlight and edges
+
+    [Fact]
+    public void Hover_HighlightsExactlyThePrerequisitesAndDependents()
+    {
+        ProgressionScreen s = Screen();
+        ResearchContent c = fx.Content;
+        int checkedNodes = 0;
+        for (int ci = 0; ci < c.Nodes.Count && checkedNodes < 40; ci += 7)
+        {
+            ResearchNode node = c.Nodes[ci];
+            s.Tab = node.Tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
+            s.Focus(ci, jump: true);
+            s.Selected = -1;
+            (double x, double y) = ScreenCenter(s, ci);
+            s.PointerMove(x, y);
+            Assert.Equal(ci, s.Hovered);
+            var pre = new SortedSet<int>(node.PrerequisiteNodes);
+            var dep = new SortedSet<int>();
+            for (int k = 0; k < c.Nodes.Count; k++)
+                if (c.Nodes[k].Tree == node.Tree)
+                    foreach (int p in c.Nodes[k].PrerequisiteNodes) if (p == ci) dep.Add(k);
+            (int[] hp, int[] hd) = s.Highlight();
+            Assert.Equal(pre.ToArray(), hp);
+            Assert.Equal(dep.ToArray(), hd);
+            // The painted highlight uses one colour per side; nothing is drawn when there is none.
+            DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
+            double top = s.Canvas.Y;   // the legend's sample lines sit above the canvas
+            bool prereqLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == ProgressionPalette.PrereqHi);
+            bool depLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == ProgressionPalette.DependentHi);
+            Assert.Equal(pre.Count > 0, prereqLines);
+            Assert.Equal(dep.Count > 0, depLines);
+            checkedNodes++;
+        }
+        Assert.True(checkedNodes >= 20);
+        // No focus: no edges at all (no background spaghetti).
+        s.PointerMove(-1, -1); s.Selected = -1;
+        DrawList none = s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.DoesNotContain(none.Commands, cmd => cmd is LineCmd l && l.Y0 >= s.Canvas.Y && (l.Color == ProgressionPalette.PrereqHi || l.Color == ProgressionPalette.DependentHi));
+    }
+
+    [Fact]
+    public void EdgeRoutes_AreOrthogonal_AndNeverPassUnderACard()
+    {
+        foreach (ResearchTree tree in new[] { ResearchTree.Technology, ResearchTree.Civics })
+        {
+            ResearchGraph g = ResearchGraph.Build(fx.Content, tree);
+            TreeLayout L = ResearchTreeLayout.Compute(g);
+            foreach (GraphEdge e in g.Edges)
+            {
+                (double X, double Y)[] pts = ResearchTreeLayout.Route(L, e);
+                Assert.True(pts.Length >= 4);
+                Assert.Equal((L.Placed[e.From].CenterX, L.Placed[e.From].Bottom), pts[0]);
+                Assert.Equal((L.Placed[e.To].CenterX, L.Placed[e.To].Y), pts[^1]);
+                for (int k = 0; k + 1 < pts.Length; k++)
+                {
+                    (double x0, double y0) = pts[k]; (double x1, double y1) = pts[k + 1];
+                    Assert.True(x0 == x1 || y0 == y1, "not orthogonal");
+                    Assert.InRange(Math.Min(x0, x1), 0, L.Width);
+                    Assert.InRange(Math.Max(x0, x1), 0, L.Width);
+                    foreach (PlacedVertex p in L.Placed)
+                    {
+                        // Interior of every card except where the edge leaves / enters its own ends.
+                        if ((p.Vertex == e.From && k == 0) || (p.Vertex == e.To && k == pts.Length - 2)) continue;
+                        bool hit = Math.Min(x0, x1) < p.Right - 0.5 && Math.Max(x0, x1) > p.X + 0.5
+                                && Math.Min(y0, y1) < p.Bottom - 0.5 && Math.Max(y0, y1) > p.Y + 0.5;
+                        Assert.False(hit, $"edge {e.From}->{e.To} segment {k} passes under card {p.Vertex}");
+                    }
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void AgeNames_AreFull_InLabelsCardsHeadersAndDetail()
+    {
+        string[] names = ["Prehistoric / Stone Age", "Neolithic / Agricultural", "Bronze Age", "Iron Age", "Classical / Imperial",
+            "Medieval", "Early Modern", "Industrial", "Modern / Contemporary"];
+        string[] roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+        for (int k = 1; k <= 9; k++)
+        {
+            string a = "A" + k.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal("Age " + roman[k - 1] + " - " + names[k - 1], DrawList.Latin1(ResearchTreeLayout.AgeLabel(a)));
+            Assert.Contains(names[k - 1], ResearchTreeLayout.AgeShort(a));
+        }
+        ProgressionScreen s = Screen();
+        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
+        var texts = d.Commands.OfType<TextCmd>().Select(t => t.Text).ToList();
+        // Every visible card shows its Age's full name (not just a numeral).
+        foreach (int v in s.VisibleVertices())
+        {
+            if (s.Graph.Vertices[v].External || s.Layout.Placed[v].Hidden) continue;
+            string full = DrawList.Latin1(ResearchTreeLayout.AgeShort(s.Graph.Node(v).Age));
+            Assert.Contains(full, texts);
+        }
+        // Tier strips and the control row name the Ages in full; no bare "Age II".
+        Assert.Contains(texts, t => t.Contains("Prehistoric / Stone Age", StringComparison.Ordinal));
+        Assert.DoesNotContain(texts, t => System.Text.RegularExpressions.Regex.IsMatch(t, @"\bAges? [IVX]+(-[IVX]+)?$"));
+        // Detail panel header carries the full Age name.
+        s.Selected = s.Snapshot!.TargetIndex!.Value;
+        DrawList dd = s.Paint(W, H, ApproxTextMeasure.Instance);
+        string age = names[ResearchTreeLayout.AgeRank(fx.Content.Nodes[s.Selected].Age) - 1].ToUpperInvariant();
+        Assert.Contains(dd.Commands, cmd => cmd is TextCmd tc && tc.Text.Contains(age, StringComparison.Ordinal));
     }
 
     private static HitRegion Find(ProgressionScreen s, HitKind kind, int arg)

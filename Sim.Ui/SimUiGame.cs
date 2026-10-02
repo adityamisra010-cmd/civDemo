@@ -599,7 +599,12 @@ public sealed class SimUiGame : Game
 
         screen.PointerMove(mouse.X, mouse.Y);
         int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
-        if (wheel != 0) screen.Wheel(mouse.X, mouse.Y, wheel / 120.0);
+        if (wheel != 0)
+        {
+            // The wheel scrolls the single (vertical) axis; Ctrl + wheel zooms.
+            if (keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl)) screen.WheelZoom(mouse.X, mouse.Y, wheel / 120.0);
+            else screen.Wheel(mouse.X, mouse.Y, wheel / 120.0);
+        }
 
         if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Released)
         {

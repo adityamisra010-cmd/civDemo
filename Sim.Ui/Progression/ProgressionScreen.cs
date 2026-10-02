@@ -12,7 +12,7 @@ namespace Sim.Ui.Progression;
 /// <summary>The two sibling trees under KNOWLEDGE &amp; TECHNOLOGY (ruling 11).</summary>
 public enum TreeTab { Technology = 0, Civics = 1 }
 
-public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle }
+public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset }
 
 public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 
@@ -62,30 +62,87 @@ public sealed class ProgressionScreen
         Content = content;
         Polity = polity;
         Graphs = [ResearchGraph.Build(content, ResearchTree.Technology), ResearchGraph.Build(content, ResearchTree.Civics)];
-        Layouts = [ResearchTreeLayout.Compute(Graphs[0]), ResearchTreeLayout.Compute(Graphs[1])];
+        var o = new TreeLayoutOptions(ViewportWidth: TreeViewportWidth);
+        Layouts = [ResearchTreeLayout.Compute(Graphs[0], o), ResearchTreeLayout.Compute(Graphs[1], o)];
         _collapsed = [new bool[Layouts[0].Lanes.Count], new bool[Layouts[1].Lanes.Count]];
-        _ageRanges = [ResearchTreeLayout.ColumnAgeRanges(Layouts[0]), ResearchTreeLayout.ColumnAgeRanges(Layouts[1])];
     }
 
     private readonly bool[][] _collapsed;
-    private readonly (int Lo, int Hi)[][] _ageRanges;
+
+    /// <summary>Width of the vertical overview strip docked at the canvas's right edge.</summary>
+    public const double StripW = 64;
+
+    /// <summary>The width the tree must fit at zoom 1: the canvas minus the overview strip. The
+    /// layout is recomputed whenever this changes, so there is never horizontal overflow.</summary>
+    public double TreeViewportWidth => Math.Max(100, _w - DetailW) - (MinimapVisible ? StripW : 0);
+
+    private void EnsureLayouts()
+    {
+        double vw = TreeViewportWidth;
+        for (int t = 0; t < 2; t++)
+            if (Layouts[t].Options.ViewportWidth != vw)
+                Layouts[t] = ResearchTreeLayout.Compute(Graphs[t], Layouts[t].Options with { ViewportWidth = vw }, _collapsed[t]);
+    }
 
     public bool IsLaneCollapsed(int lane) => _collapsed[(int)Tab][lane];
 
-    /// <summary>Collapse or expand one lane of the current tree (UI state only). The layout
-    /// is recomputed; the camera keeps the lane's header where it was on screen.</summary>
+    /// <summary>Collapse or expand one lane of the current tree (UI state only). The collapsed
+    /// lane shrinks to a strip and its width goes to the other lanes; the vertical scroll stays.</summary>
     public void ToggleLane(int lane)
     {
         int t = (int)Tab;
-        double before = Layouts[t].Lanes[lane].Y;
         _collapsed[t][lane] = !_collapsed[t][lane];
         Layouts[t] = ResearchTreeLayout.Compute(Graphs[t], Layouts[t].Options, _collapsed[t]);
-        double after = Layouts[t].Lanes[lane].Y;
-        Camera.Set(Camera.Zoom, Camera.PanX, Camera.PanY + (after - before));
         if (Selected >= 0 && Content.Nodes[Selected].Tree == (ResearchTree)(t + 1) && Layout.Placed[Graph.VertexOf(Selected)].Hidden) Selected = -1;
-        RectD c = Canvas;
-        Camera.Clamp(Layout.Width, Layout.Height, c.W, c.H);
+        ClampCamera();
         Camera.Set(Camera.TargetZoom, Camera.TargetPanX, Camera.TargetPanY);
+    }
+
+    private void ClampCamera()
+    {
+        RectD c = Canvas;
+        Camera.Clamp(Layout.Width, Layout.Height, TreeViewportWidth, c.H);
+    }
+
+    /// <summary>Whether the drawing fits the tree viewport's width at the current zoom (always
+    /// true at zoom ≤ 1): then horizontal motion is ignored — one scroll axis.</summary>
+    public bool WidthFits => Layout.Width * Camera.TargetZoom <= TreeViewportWidth + 0.5;
+
+    /// <summary>The DEFAULT-SCROLL node of the current tree (content index): the frontier of the
+    /// least-developed branch (<see cref="ResearchTreeLayout.LeastDevelopedFrontier"/>), or -1.</summary>
+    public int DefaultFrontierNode()
+    {
+        if (Snapshot is null) return -1;
+        var done = new bool[Graph.Vertices.Count];
+        for (int v = 0; v < done.Length; v++) done[v] = Snapshot.Nodes[Graph.Vertices[v].ContentIndex].State == NodeState.Completed;
+        int f = ResearchTreeLayout.LeastDevelopedFrontier(Layout, done);
+        return f < 0 ? -1 : Graph.Vertices[f].ContentIndex;
+    }
+
+    /// <summary>Fraction of the canvas height above the default-scroll frontier card.</summary>
+    public const double DefaultFrontierAt = 0.28;
+
+    /// <summary>Scroll (without selecting) so the least-developed branch's frontier is in view.</summary>
+    public void ScrollToLeastDeveloped(bool jump = true)
+    {
+        int f = DefaultFrontierNode();
+        RectD c = Canvas;
+        double z = Camera.TargetZoom;
+        double py = f < 0 ? 0 : Layout.Placed[Graph.VertexOf(f)].Y - c.H * DefaultFrontierAt / z;
+        Camera.Set(z, Camera.TargetPanX, py);
+        ClampCamera();
+        if (jump) Camera.Set(Camera.TargetZoom, Camera.TargetPanX, Camera.TargetPanY);
+    }
+
+    /// <summary>The hovered (else selected) node's DIRECT prerequisites and dependents as content
+    /// indices, ascending — exactly the cards and edges the highlight lights up.</summary>
+    public (int[] Prerequisites, int[] Dependents) Highlight()
+    {
+        int focus = Hovered >= 0 ? Hovered : Selected;
+        if (focus < 0 || Graph.VertexOf(focus) < 0) return ([], []);
+        (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, Graph.VertexOf(focus));
+        int[] Map(int[] vs) { var r = new int[vs.Length]; for (int i = 0; i < vs.Length; i++) r[i] = Graph.Vertices[vs[i]].ContentIndex; Array.Sort(r); return r; }
+        return (Map(pre), Map(dep));
     }
 
     /// <summary>The frontier node of the current tree: the research target when it lies in this
@@ -131,7 +188,7 @@ public sealed class ProgressionScreen
         Page = Lenses.Page(Lens, world, Content, Polity);
     }
 
-    public void Resize(double width, double height) { _w = width; _h = height; }
+    public void Resize(double width, double height) { _w = width; _h = height; EnsureLayouts(); }
 
     // ------------------------------------------------------------------ input
 
@@ -147,28 +204,39 @@ public sealed class ProgressionScreen
         return v < 0 ? -1 : Graph.Vertices[v].ContentIndex;
     }
 
+    /// <summary>Pixels the view scrolls per wheel notch.</summary>
+    public const double WheelStepPx = 120;
+
+    /// <summary>The wheel SCROLLS along the single axis (vertical); zoom is <see cref="WheelZoom"/>.</summary>
     public void Wheel(double x, double y, double notches)
     {
         RectD c = Canvas;
         if (Lens != Lens.KnowledgeAndTechnology || !c.Contains(x, y)) return;
+        ScrollBy(0, -notches * WheelStepPx);
+    }
+
+    /// <summary>Zoom about the pointer (Ctrl + wheel in the game). Zoom stays available; above
+    /// zoom 1 the drawing may become wider than the view, the only case horizontal panning works.</summary>
+    public void WheelZoom(double x, double y, double notches)
+    {
+        RectD c = Canvas;
+        if (Lens != Lens.KnowledgeAndTechnology || !c.Contains(x, y)) return;
         Camera.ZoomAt(x - c.X, y - c.Y, Math.Pow(1.18, notches));
-        Camera.Clamp(Layout.Width, Layout.Height, c.W, c.H);
+        ClampCamera();
     }
 
     public void Drag(double dx, double dy)
     {
         if (Lens != Lens.KnowledgeAndTechnology) return;
-        Camera.Drag(dx, dy);
-        RectD c = Canvas;
-        Camera.Clamp(Layout.Width, Layout.Height, c.W, c.H);
+        Camera.Drag(WidthFits ? 0 : dx, dy);
+        ClampCamera();
     }
 
     public void ScrollBy(double dx, double dy)
     {
         if (Lens != Lens.KnowledgeAndTechnology) return;
-        Camera.ScrollBy(dx, dy);
-        RectD c = Canvas;
-        Camera.Clamp(Layout.Width, Layout.Height, c.W, c.H);
+        Camera.ScrollBy(WidthFits ? 0 : dx, dy);
+        ClampCamera();
     }
 
     public bool Advance(double dt) => Camera.Advance(dt);
@@ -193,12 +261,15 @@ public sealed class ProgressionScreen
                 case HitKind.LaneToggle: ToggleLane(h.Arg); return ProgressionCommand.None;
                 case HitKind.Frontier: JumpToFrontier(); return ProgressionCommand.None;
                 case HitKind.Fit: FitAll(); return ProgressionCommand.None;
-                case HitKind.MinimapToggle: MinimapVisible = !MinimapVisible; return ProgressionCommand.None;
+                case HitKind.Reset: ResetView(); return ProgressionCommand.None;
+                case HitKind.MinimapToggle: MinimapVisible = !MinimapVisible; EnsureLayouts(); ClampCamera(); return ProgressionCommand.None;
                 case HitKind.Minimap:
                 {
+                    // The overview strip is one-dimensional: a click scrolls to that height.
                     RectD m = h.Rect;
                     RectD c = Canvas;
-                    Camera.CenterOn((x - m.X) / m.W * Layout.Width, (y - m.Y) / m.H * Layout.Height, c.W, c.H);
+                    Camera.CenterOn(Layout.Width / 2.0, (y - m.Y) / m.H * Layout.Height, TreeViewportWidth, c.H);
+                    ClampCamera();
                     return ProgressionCommand.None;
                 }
             }
@@ -233,18 +304,29 @@ public sealed class ProgressionScreen
         Tab = Content.Nodes[contentIndex].Tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
         PlacedVertex p = Layout.Placed[Graph.VertexOf(contentIndex)];
         RectD c = Canvas;
-        Camera.CenterOn(p.CenterX, p.CenterY, c.W, c.H);
-        Camera.Clamp(Layout.Width, Layout.Height, c.W, c.H);
+        Camera.CenterOn(p.CenterX, p.CenterY, TreeViewportWidth, c.H);
+        ClampCamera();
         if (jump) Camera.Set(Camera.TargetZoom, Camera.TargetPanX, Camera.TargetPanY);
         _framed[(int)Tab] = true;
     }
 
-    /// <summary>Fit the whole tree in the canvas.</summary>
+    /// <summary>Fit the whole tree in the canvas (an overview zoom; the width still fits).</summary>
     public void FitAll()
     {
         RectD c = Canvas;
-        double z = Math.Max(ProgressionCamera.MinZoom, Math.Min(1.0, Math.Min(c.W / Layout.Width, c.H / Layout.Height)));
-        Camera.Set(z, (Layout.Width - c.W / z) / 2.0, -8.0 / z);   // top-aligned: the trunk starts under the header
+        double tw = TreeViewportWidth;
+        double z = Math.Max(ProgressionCamera.MinZoom, Math.Min(1.0, Math.Min(tw / Layout.Width, c.H / Layout.Height)));
+        Camera.Set(z, (Layout.Width - tw / z) / 2.0, -8.0 / z);   // top-aligned
+        ClampCamera();
+        Camera.Set(Camera.TargetZoom, Camera.TargetPanX, Camera.TargetPanY);
+        _framed[(int)Tab] = true;
+    }
+
+    /// <summary>Back to the default view: zoom 1, scrolled to the least-developed frontier.</summary>
+    public void ResetView()
+    {
+        Camera.Set(1.0, 0, Camera.TargetPanY);
+        ScrollToLeastDeveloped();
         _framed[(int)Tab] = true;
     }
 
@@ -252,12 +334,10 @@ public sealed class ProgressionScreen
     {
         if (_framed[(int)Tab] || Snapshot is null) return;
         _framed[(int)Tab] = true;
-        // Open on the frontier: the current target, else the leftmost available node.
-        int focus = FrontierNode();
-        if (focus < 0) { Camera.Set(0.8, 0, 0); return; }
-        int prev = Selected;
-        Focus(focus, jump: true);
-        Selected = prev;
+        // Open at zoom 1 (the width fits) scrolled to the LEAST-DEVELOPED branch's frontier —
+        // not the target, not the most advanced research: what lags is what the player sees first.
+        Camera.Set(1.0, 0, 0);
+        ScrollToLeastDeveloped();
     }
 
     // ------------------------------------------------------------------ paint
@@ -265,6 +345,7 @@ public sealed class ProgressionScreen
     public DrawList Paint(double width, double height, ITextMeasure m)
     {
         Resize(width, height);
+        if (Snapshot is not null && Lens == Lens.KnowledgeAndTechnology) FrameFirstTime();
         var d = new DrawList();
         _hits = [];
         d.Rect(new RectD(0, 0, width, height), Field);
@@ -377,11 +458,6 @@ public sealed class ProgressionScreen
             d.Text(lx + 19, y + 16, label, 11.5, TextSoft);
             lx += 26 + m.Width(label, 11.5, FontRole.Body) + 8;
         }
-        d.Line(lx, y + 24, lx + 22, y + 24, TextSoft, 1.6);
-        d.Text(lx + 26, y + 16, "all of", 11.5, TextSoft);
-        lx += 30 + m.Width("all of", 11.5, FontRole.Body) + 8;
-        d.Line(lx, y + 24, lx + 22, y + 24, TextSoft, 1.6, (4, 3));
-        d.Text(lx + 26, y + 16, "one of", 11.5, TextSoft);
     }
 
     // ---- the tree canvas
@@ -402,6 +478,30 @@ public sealed class ProgressionScreen
         return result;
     }
 
+    /// <summary>Cross-lane prerequisites of a vertex (another lane, or the other tree), in edge order.</summary>
+    public List<int> CrossLanePrerequisites(int vertex)
+    {
+        var r = new List<int>();
+        int lane = Layout.Placed[vertex].Lane;
+        foreach (GraphEdge e in Graph.Edges)
+            if (e.To == vertex && Layout.Placed[e.From].Lane != lane && !r.Contains(e.From)) r.Add(e.From);
+        return r;
+    }
+
+    /// <summary>The chip text naming a card's cross-lane prerequisites, e.g.
+    /// "needs Bronze working (Metallurgy)" or "needs 3: Engineering, Military"; "" when none.</summary>
+    public string CrossLaneLabel(int vertex)
+    {
+        List<int> cross = CrossLanePrerequisites(vertex);
+        if (cross.Count == 0) return "";
+        string LaneName(int v) => Layout.Lanes[Layout.Placed[v].Lane].External
+            ? (Graph.Tree == ResearchTree.Civics ? "Technology" : "Civics") : Layout.Lanes[Layout.Placed[v].Lane].Name;
+        if (cross.Count == 1) return "needs " + Graph.Node(cross[0]).Name + " (" + LaneName(cross[0]) + ")";
+        var names = new List<string>();
+        foreach (int v in cross) if (!names.Contains(LaneName(v))) names.Add(LaneName(v));
+        return "needs " + cross.Count.ToString(CultureInfo.InvariantCulture) + ": " + string.Join(", ", names);
+    }
+
     private void PaintTree(DrawList d, ITextMeasure m)
     {
         RectD c = Canvas;
@@ -410,156 +510,171 @@ public sealed class ProgressionScreen
         double z = cam.Zoom;
         double SX(double wx) => cam.ToScreenX(wx, c.X);
         double SY(double wy) => cam.ToScreenY(wy, c.Y);
-        (double vx0, double vy0, double vx1, double vy1) = VisibleWorld();
         TreeLayoutOptions o = L.Options;
+        double tx0 = SX(0), tx1 = SX(L.Width);
 
         d.PushClip(c);
-        // Depth columns: alternate shading (a column is a prerequisite depth, not an Age).
-        for (int col = 0; col < L.Columns; col++)
+        // Horizontal tier bands: alternate shading and a label strip with the full Age names.
+        foreach (TierBand t in L.Tiers)
         {
-            double x0 = SX(o.Margin + o.LeftGutter + col * o.ColumnWidth);
-            if (col % 2 == 1) d.Rect(new RectD(x0, c.Y, o.ColumnWidth * z, c.H), FieldBand);
+            double y0 = SY(t.Y0), y1 = SY(t.Y1);
+            if (y1 < c.Y || y0 > c.Bottom) continue;
+            if (t.Tier % 2 == 1) d.Rect(new RectD(tx0, y0, tx1 - tx0, y1 - y0), A(0x1A2330, 0.35));
+            d.Line(tx0, y0 + 0.5, tx1, y0 + 0.5, A(0x8C7742, 0.45), 1);
+            if (z >= 0.45)
+            {
+                string label = "TIER " + (t.Tier + 1).ToString(CultureInfo.InvariantCulture);
+                double lx = SX(o.Margin + o.Spine);
+                d.Text(lx, y0 + 5 * z, label, 11.5 * z, Gold, TextAlign.Left, FontRole.Caps);
+                string ages = ResearchTreeLayout.AgeRangeLabel((t.Lo, t.Hi));
+                if (ages.Length > 0) d.Text(lx + m.Width(label, 11.5 * z, FontRole.Caps) + 12 * z, y0 + 5 * z, ages, 11.5 * z, TextSoft, TextAlign.Left);
+            }
         }
-        // Lane bands with a header strip.
-        foreach (LaneBox lane in L.Lanes)
+        // Lane segments: each lane's share of a tier, tinted by its hue with a coloured cap and
+        // its name, so a lane reads as one colour from tier to tier while lanes keep their order.
+        foreach (LaneSegment sg in L.Segments)
         {
+            TierBand t = L.Tiers[sg.Tier];
+            double y0 = SY(t.Y0 + o.TierGap - 14), y1 = SY(t.Y1 - o.RowGap / 2);
+            if (y1 < c.Y || y0 > c.Bottom) continue;
+            LaneBox lane = L.Lanes[sg.Lane];
             Rgba hue = Branch(lane.Id);
-            double y = SY(lane.Y), h = lane.Height * z;
-            if (y > c.Bottom || y + h < c.Y) continue;
-            d.Rect(new RectD(c.X, y, c.W, h), A(Hex(hue), lane.Collapsed ? 0.07 : 0.035));
-            d.Rect(new RectD(c.X, y, c.W, o.LaneHeader * z), A(Hex(hue), 0.06));
-            d.Line(c.X, y, c.Right, y, A(Hex(hue), 0.45), 1);
+            double x0 = SX(sg.X) - 4 * z, w = (sg.Width - o.Gutter) * z + 8 * z;
+            d.Rect(new RectD(x0, y0, w, y1 - y0), A(Hex(hue), 0.05), A(Hex(hue), 0.16), 1, 5 * z);
+            d.Rect(new RectD(x0, y0, w, 2 * z), A(Hex(hue), 0.75));
+            if (z >= 0.45)
+                d.Text(x0 + 6 * z, SY(t.Y0 + o.TierGap - 25), Ink.Fit(m, lane.Name.ToUpperInvariant(), 10 * z, w - 10 * z, FontRole.Caps), 10 * z, hue, TextAlign.Left, FontRole.Caps);
         }
 
         int focus = Hovered >= 0 ? Hovered : Selected;
         int focusV = focus >= 0 ? Graph.VertexOf(focus) : -1;
-
-        // Edges (culled by their bounding box; edges into or out of a collapsed lane are hidden).
-        ResearchSnapshot s0 = Snapshot!;
-        for (int pass = 0; pass < 2; pass++)
-            foreach (GraphEdge e in Graph.Edges)
-            {
-                bool hot = focusV >= 0 && (e.From == focusV || e.To == focusV);
-                if ((pass == 1) != hot) continue;
-                PlacedVertex a = L.Placed[e.From], b = L.Placed[e.To];
-                if (a.Hidden || b.Hidden) continue;
-                double ax = a.Right, ay = a.CenterY, bx = b.X, by = b.CenterY;
-                if (Math.Max(ax, bx) < vx0 || Math.Min(ax, bx) > vx1 || Math.Max(ay, by) < vy0 || Math.Min(ay, by) > vy1) continue;
-                bool done = s0.Nodes[Graph.Vertices[e.From].ContentIndex].State == NodeState.Completed;
-                Rgba col = hot ? (done ? Gold : Cyan) : done ? A(0xB89A50, 0.5) : A(0x5A6878, 0.32);
-                double w = (hot ? 2.4 : 1.2) * Math.Max(0.6, z);
-                double dx = Math.Max(30, (bx - ax) * 0.5);
-                (double, double)? dash = e.Kind == EdgeKind.Or ? (6.0 * Math.Max(0.6, z), 4.0 * Math.Max(0.6, z)) : null;
-                d.Bezier((SX(ax), SY(ay)), (SX(ax + dx), SY(ay)), (SX(bx - dx), SY(by)), (SX(bx), SY(by)), col, w, dash);
-                if (z > 0.35) d.Circle(SX(bx), SY(by), 2.6 * z, col);
-            }
-
-        foreach (int v in VisibleVertices())
-            if (!L.Placed[v].Hidden) PaintCard(d, m, v, SX(L.Placed[v].X), SY(L.Placed[v].Y), z, v == focusV);
-
-        // Lane chips: each lane's chip sits in its own header strip; the lane whose header has
-        // scrolled above the view gets its chip pinned in the control row instead, so a chip never
-        // covers a card. Each chip is the lane's collapse/expand control.
-        double top = c.Y;
-        _pinnedLane = null;
-        double lastChipBottom = double.NegativeInfinity;
-        foreach (LaneBox lane in L.Lanes)
+        if (focusV >= 0 && L.Placed[focusV].Hidden) focusV = -1;
+        var related = new int[Graph.Vertices.Count];   // 0 none, 1 prerequisite, 2 dependent
+        if (focusV >= 0)
         {
-            double ly0 = SY(lane.Y), ly1 = SY(lane.Y + lane.Height);
-            if (ly1 < top || ly0 > c.Bottom) continue;
-            if (ly0 + 2 < top) _pinnedLane = lane;
-            else
-            {
-                // Zoomed far out, lane strips get thinner than a chip: stack chips without overlap.
-                double y = Math.Max(ly0 + Math.Max(1, (o.LaneHeader * z - 22) / 2), lastChipBottom + 3);
-                if (y > c.Bottom) continue;
-                LaneChip(d, m, lane, c.X + 10, y);
-                lastChipBottom = y + 22;
-            }
+            (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, focusV);
+            foreach (int v in dep) related[v] = 2;
+            foreach (int v in pre) related[v] = 1;
         }
 
-        // Sticky column header: prerequisite depth tiers with the honest Age range of each.
+        // Cards first; with a focus, everything unrelated is dimmed.
+        foreach (int v in VisibleVertices())
+        {
+            PlacedVertex p = L.Placed[v];
+            if (p.Hidden) continue;
+            double x = SX(p.X), y = SY(p.Y);
+            PaintCard(d, m, v, x, y, z, v == focusV);
+            if (focusV < 0) continue;
+            var r = new RectD(x - 2, y - 2, p.W * z + 4, p.H * z + 4);
+            if (v == focusV) continue;
+            if (related[v] == 0) d.Rect(r, A(0x0E1319, 0.66), null, 0, 7 * z);
+            else d.Rect(r, null, related[v] == 1 ? PrereqHi : DependentHi, 2.0, 7 * z);
+        }
+
+        // Edges: ONLY the focused node's, routed orthogonally through row gaps and lane gutters,
+        // prerequisites in one colour, dependents in another. No permanent spaghetti.
+        int routed = 0;
+        if (focusV >= 0)
+            foreach (GraphEdge e in Graph.Edges)
+            {
+                if (e.From != focusV && e.To != focusV) continue;
+                (double X, double Y)[] pts = ResearchTreeLayout.Route(L, e, routed++);
+                if (pts.Length == 0) continue;
+                Rgba col = e.To == focusV ? PrereqHi : DependentHi;
+                double w = 2.2 * Math.Max(0.6, z);
+                (double, double)? dash = e.Kind == EdgeKind.Or ? (6.0 * Math.Max(0.6, z), 4.0 * Math.Max(0.6, z)) : null;
+                for (int k = 0; k + 1 < pts.Length; k++)
+                    d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, w, dash);
+                double ex = SX(pts[^1].X), ey = SY(pts[^1].Y);
+                double ah = 6 * Math.Max(0.6, z);
+                d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
+            }
+
         if (MinimapVisible) PaintMinimap(d);
         d.PopClip();
 
-        // Header rows sit above the camera canvas (never over a card).
+        // Header rows sit above the camera canvas (never over a card): the sticky lane header
+        // (lane names and collapse chips — fixed, since the tree never scrolls sideways) and the
+        // control row.
         double hy = c.Y - HeaderH;
         d.PushClip(new RectD(c.X, hy, c.W, HeaderH));
         d.Rect(new RectD(c.X, hy, c.W, ColumnHeaderH), Rgba.Hex(0x0C1117));
-        (int Lo, int Hi)[] ages = _ageRanges[(int)Tab];
-        for (int col = 0; col < L.Columns; col++)
-        {
-            double x0 = SX(o.Margin + o.LeftGutter + col * o.ColumnWidth), x1 = x0 + o.ColumnWidth * z;
-            if (x1 < c.X || x0 > c.Right) continue;
-            d.Line(x0, hy + 8, x0, hy + ColumnHeaderH - 8, Hairline, 1);
-            if (x1 - x0 < 70)
-            {
-                if (x1 - x0 >= 20) d.Text((x0 + x1) / 2, hy + 10, (col + 1).ToString(CultureInfo.InvariantCulture), 11, GoldDim, TextAlign.Center, FontRole.Numeric);
-                continue;
-            }
-            double cx = (x0 + x1) / 2;
-            d.Text(cx, hy + 4, "TIER " + (col + 1).ToString(CultureInfo.InvariantCulture), 12, Gold, TextAlign.Center, FontRole.Caps);
-            string range = ResearchTreeLayout.AgeRangeLabel(ages[col]);
-            if (range.Length > 0) d.Text(cx, hy + 19, range, 10.5, TextSoft, TextAlign.Center, FontRole.Body);
-        }
+        // Lanes keep a fixed order; their chips share the header width in that order.
+        double chipW = (c.W - 24 - 6 * (L.Lanes.Count - 1)) / L.Lanes.Count;
+        foreach (LaneBox lane in L.Lanes)
+            LaneChip(d, m, lane, c.X + 12 + lane.Index * (chipW + 6), hy + (ColumnHeaderH - 24) / 2, chipW);
         d.Line(c.X, hy + ColumnHeaderH, c.Right, hy + ColumnHeaderH, GoldDim, 1);
         PaintControlRow(d, m);
         d.PopClip();
     }
 
-    private LaneBox? _pinnedLane;
-
-    private void LaneChip(DrawList d, ITextMeasure m, LaneBox lane, double x, double y)
+    private void LaneChip(DrawList d, ITextMeasure m, LaneBox lane, double x, double y, double w)
     {
-        const double chipH = 22;
+        const double chipH = 24;
         Rgba hue = Branch(lane.Id);
-        string label = lane.Name.ToUpperInvariant();
-        string count = lane.NodeCount.ToString(CultureInfo.InvariantCulture) + (lane.Collapsed ? " hidden" : "");
-        double tw = m.Width(label, 12, FontRole.Caps) + m.Width(count, 11, FontRole.Numeric) + 64;
-        var chip = new RectD(x, y, tw, chipH);
-        d.Rect(chip, A(0x0A0E13, 0.94), A(Hex(hue), 0.8), 1, 11);
+        var chip = new RectD(x, y, w, chipH);
+        d.Rect(chip, A(0x0A0E13, 0.94), A(Hex(hue), 0.8), 1, 6);
         // Disclosure triangle: right when collapsed, down when expanded.
-        double tx = chip.X + 13, ty = chip.Y + chipH / 2;
+        double tx = chip.X + 11, ty = chip.Y + chipH / 2;
         if (lane.Collapsed) d.Polygon([(tx - 3, ty - 5), (tx + 4, ty), (tx - 3, ty + 5)], hue);
         else d.Polygon([(tx - 5, ty - 3), (tx + 5, ty - 3), (tx, ty + 4)], hue);
-        d.Text(chip.X + 24, chip.Y + 4, label, 12, hue, TextAlign.Left, FontRole.Caps);
-        d.Text(chip.Right - 10, chip.Y + 5, count, 11, TextSoft, TextAlign.Right, FontRole.Numeric);
+        if (w > 60)
+        {
+            string count = lane.NodeCount.ToString(CultureInfo.InvariantCulture) + (lane.Collapsed ? " hidden" : "");
+            double cw = m.Width(count, 11, FontRole.Numeric);
+            d.Text(chip.X + 22, chip.Y + 5, Ink.Fit(m, lane.Name.ToUpperInvariant(), 12, w - cw - 36, FontRole.Caps), 12, hue, TextAlign.Left, FontRole.Caps);
+            d.Text(chip.Right - 8, chip.Y + 6, count, 11, TextSoft, TextAlign.Right, FontRole.Numeric);
+        }
         _hits.Add(new HitRegion(chip, HitKind.LaneToggle, lane.Index));
     }
 
-    /// <summary>The opaque control row under the tier header: on the left, the chip of the lane
-    /// currently scrolled under the header (so its name stays readable and it can still be
-    /// collapsed); on the right, jump to the frontier / target, fit the tree, show/hide the map.</summary>
+    /// <summary>The opaque control row: on the left, the tier (with its full Age names) at the top
+    /// of the view; then the highlight legend; on the right, jump to the target, reset to the
+    /// default view, fit the tree, show/hide the overview strip.</summary>
     private void PaintControlRow(DrawList d, ITextMeasure m)
     {
         RectD c = Canvas;
         var row = new RectD(c.X, c.Y - ControlRowH, c.W, ControlRowH);
         d.Rect(row, Rgba.Hex(0x0F151C));
         d.Line(c.X, row.Bottom, c.Right, row.Bottom, Hairline, 1);
-        if (_pinnedLane is LaneBox pl)
-        {
-            d.Text(c.X + 12, row.Y + 12, "LANE", 10.5, TextDim, TextAlign.Left, FontRole.Caps);
-            LaneChip(d, m, pl, c.X + 52, row.Y + (ControlRowH - 22) / 2);
-        }
         bool hasTarget = Snapshot!.TargetIndex is int t && Content.Nodes[t].Tree == (ResearchTree)((int)Tab + 1);
         (string Label, HitKind Kind, bool On)[] buttons =
         [
             (hasTarget ? "JUMP TO TARGET" : "JUMP TO FRONTIER", HitKind.Frontier, false),
-            ("FIT TREE", HitKind.Fit, false),
+            ("LAGGING BRANCH", HitKind.Reset, false),
+            ("FIT", HitKind.Fit, false),
             (MinimapVisible ? "HIDE MAP" : "SHOW MAP", HitKind.MinimapToggle, MinimapVisible),
         ];
         double x = c.Right - 12, h = 26, y = row.Y + (ControlRowH - h) / 2;
         for (int i = buttons.Length - 1; i >= 0; i--)
         {
-            double w = m.Width(buttons[i].Label, 11.5, FontRole.Caps) + 24;
+            double w = m.Width(buttons[i].Label, 11, FontRole.Caps) + 20;
             x -= w;
             var r = new RectD(x, y, w, h);
             bool primary = buttons[i].Kind == HitKind.Frontier;
             d.Rect(r, primary ? A(0x5FD3E6, 0.16) : A(0x0A0E13, 0.92), primary ? Cyan : buttons[i].On ? GoldDim : Hairline, 1, 5);
-            d.Text(r.X + w / 2, r.Y + 7, buttons[i].Label, 11.5, primary ? Cyan : Text, TextAlign.Center, FontRole.Caps);
+            d.Text(r.X + w / 2, r.Y + 7, buttons[i].Label, 11, primary ? Cyan : Text, TextAlign.Center, FontRole.Caps);
             _hits.Add(new HitRegion(r, buttons[i].Kind, 0));
-            x -= 8;
+            x -= 6;
         }
+        // Legend for the highlight (just left of the buttons).
+        (string Label, Rgba Col, bool Dash)[] keys = [("requires", PrereqHi, false), ("leads to", DependentHi, false), ("one of", TextSoft, true)];
+        double lx = x - 8;
+        for (int i = keys.Length - 1; i >= 0; i--)
+        {
+            double tw = m.Width(keys[i].Label, 11, FontRole.Body);
+            lx -= tw + 30;
+            d.Line(lx, row.Y + 19, lx + 20, row.Y + 19, keys[i].Col, 2, keys[i].Dash ? (4, 3) : null);
+            d.Text(lx + 24, row.Y + 12, keys[i].Label, 11, TextSoft);
+        }
+        // Current tier at the top of the view, with its full Age names.
+        TreeLayout L = Layout;
+        int tier = L.TierAt(Camera.ToWorldY(c.Y + 1, c.Y));
+        TierBand band = L.Tiers[tier];
+        string head = "TIER " + (tier + 1).ToString(CultureInfo.InvariantCulture) + " of " + L.Columns.ToString(CultureInfo.InvariantCulture);
+        d.Text(c.X + 12, row.Y + 11, head, 11.5, Gold, TextAlign.Left, FontRole.Caps);
+        double hx = c.X + 22 + m.Width(head, 11.5, FontRole.Caps);
+        d.Text(hx, row.Y + 11, Ink.Fit(m, ResearchTreeLayout.AgeRangeLabel((band.Lo, band.Hi)), 11.5, Math.Max(0, lx - hx - 16)), 11.5, TextSoft);
     }
 
     private static uint Hex(Rgba c) => ((uint)c.R << 16) | ((uint)c.G << 8) | c.B;
@@ -599,14 +714,14 @@ public sealed class ProgressionScreen
 
         if (z < 0.28) return;   // level of detail: colour only when far out
         bool dim = v.State == NodeState.Locked;
-        double pad = 12 * z;
-        double nameSize = 15.5 * z;
+        double pad = 11 * z;
+        double nameSize = 14.5 * z;
         double iconW = 18 * z;
-        d.Text(x + pad, y + 8 * z, Ink.Fit(m, v.Name, nameSize, w - pad - iconW - 8 * z, FontRole.Heading), nameSize,
+        d.Text(x + pad, y + 7 * z, Ink.Fit(m, v.Name, nameSize, w - pad - iconW - 8 * z, FontRole.Heading), nameSize,
             dim ? TextSoft : Text, TextAlign.Left, FontRole.Heading);
 
         // State icon, top right.
-        double ix = x + w - 15 * z, iy = y + 15 * z;
+        double ix = x + w - 14 * z, iy = y + 14 * z;
         switch (v.State)
         {
             case NodeState.Completed:
@@ -629,74 +744,89 @@ public sealed class ProgressionScreen
         }
 
         if (z < 0.45) return;
-        double small = 12.5 * z;
+        double small = 12 * z;
+        // Row 2: cost (or Known) and any discount; Eureka pips on the right.
         string meta = v.State == NodeState.Completed ? "Known" : Num(v.EffectiveCost) + " RP";
-        d.Text(x + pad, y + 30 * z, meta, small, dim ? TextDim : TextSoft, TextAlign.Left, FontRole.Numeric);
-        // Age badge (per card: a column can hold several Ages, so the Age belongs to the node).
-        string age = ResearchTreeLayout.AgeNumeral(v.Age);
-        double bw = (m.Width(age, 10 * z, FontRole.Caps) + 12 * z);
-        var badge = new RectD(x + w - 10 * z - bw, y + 29 * z, bw, 15 * z);
-        d.Rect(badge, A(0x000000, 0.3), dim ? Hairline : GoldDim, 1, 7 * z);
-        d.Text(badge.X + bw / 2, badge.Y + 2 * z, age, 10 * z, dim ? TextDim : Gold, TextAlign.Center, FontRole.Caps);
+        d.Text(x + pad, y + 27 * z, meta, small, dim ? TextDim : TextSoft, TextAlign.Left, FontRole.Numeric);
         if (v.EffectiveCost < v.BaseCost && v.State != NodeState.Completed)
-            d.Text(badge.X - 6 * z, y + 30 * z, "-" + Pct(1 - v.EffectiveCost / v.BaseCost), small, Green, TextAlign.Right, FontRole.Numeric);
-
-        // Eureka pips.
-        int total = v.Eurekas.Count;
-        double px = x + pad;
-        for (int e = 0; e < total && e < 6; e++)
+            d.Text(x + pad + m.Width(meta, small, FontRole.Numeric) + 6 * z, y + 27 * z, "-" + Pct(1 - v.EffectiveCost / v.BaseCost), small, Green, TextAlign.Left, FontRole.Numeric);
+        int total = Math.Min(6, v.Eurekas.Count);
+        for (int e = 0; e < total; e++)
         {
             bool fired = v.Eurekas[e].Fired;
-            d.Circle(px + e * 11 * z + 3.5 * z, y + h - 13 * z, 3.5 * z, fired ? Gold : null, fired ? null : (dim ? TextDim : GoldDim), 1.1 * z);
+            double px = x + w - 10 * z - (total - e) * 10 * z + 3.5 * z;
+            d.Circle(px, y + 34 * z, 3.3 * z, fired ? Gold : null, fired ? null : (dim ? TextDim : GoldDim), 1.1 * z);
+        }
+
+        // Row 3: the Age — numeral AND full name, always.
+        d.Text(x + pad, y + 44 * z, Ink.Fit(m, ResearchTreeLayout.AgeShort(v.Age), 10.5 * z, w - pad - 8 * z), 10.5 * z,
+            dim ? TextDim : GoldDim, TextAlign.Left, FontRole.Body);
+
+        // Row 4: dependency counts (in / out) and the cross-lane prerequisite port.
+        (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, vertex);
+        double fy = y + 62 * z, fx = x + pad;
+        Rgba cc = dim ? TextDim : TextSoft;
+        d.Polygon([(fx, fy + 9 * z), (fx + 8 * z, fy + 9 * z), (fx + 4 * z, fy + 2 * z)], A(Hex(PrereqHi), dim ? 0.5 : 0.9));
+        string ins = pre.Length.ToString(CultureInfo.InvariantCulture);
+        d.Text(fx + 11 * z, fy, ins, 11 * z, cc, TextAlign.Left, FontRole.Numeric);
+        fx += 11 * z + m.Width(ins, 11 * z, FontRole.Numeric) + 8 * z;
+        d.Polygon([(fx, fy + 2 * z), (fx + 8 * z, fy + 2 * z), (fx + 4 * z, fy + 9 * z)], A(Hex(DependentHi), dim ? 0.5 : 0.9));
+        string outs = dep.Length.ToString(CultureInfo.InvariantCulture);
+        d.Text(fx + 11 * z, fy, outs, 11 * z, cc, TextAlign.Left, FontRole.Numeric);
+        fx += 11 * z + m.Width(outs, 11 * z, FontRole.Numeric) + 10 * z;
+        string cross = CrossLaneLabel(vertex);
+        string tail = cross.Length > 0 ? cross
+            : v.Lock.HasFlag(LockReason.ResearchStage) && !v.Lock.HasFlag(LockReason.MissingPrerequisites) ? "needs university" : "";
+        if (tail.Length > 0)
+        {
+            double cw = x + w - 8 * z - fx;
+            if (cw > 30 * z)
+            {
+                string fit = Ink.Fit(m, tail, 10.5 * z, cw - 10 * z);
+                double tw2 = m.Width(fit, 10.5 * z, FontRole.Body) + 10 * z;
+                var chip = new RectD(x + w - 8 * z - tw2, fy - 2 * z, tw2, 15 * z);
+                Rgba chipCol = cross.Length > 0 ? PrereqHi : Amber;
+                d.Rect(chip, A(0x000000, 0.3), A(Hex(chipCol), dim ? 0.35 : 0.7), 1, 7 * z);
+                d.Text(chip.X + 5 * z, fy, fit, 10.5 * z, cross.Length > 0 ? (dim ? TextDim : TextSoft) : Amber, TextAlign.Left);
+            }
         }
 
         if (v.Progress > 0 && v.State != NodeState.Completed)
         {
-            var bar = new RectD(x + pad + (total > 0 ? Math.Min(6, total) * 11 * z + 6 * z : 0), y + h - 16 * z, 0, 6 * z);
-            bar = bar with { W = x + w - 10 * z - bar.X };
+            var bar = new RectD(x + 6 * z, y + h - 5 * z, w - 12 * z, 3 * z);
             d.Bar(bar, v.Fraction, v.State == NodeState.CurrentTarget ? Cyan : Amber, A(0x000000, 0.0), A(0x000000, 0.45));
         }
-        else if (v.Lock.HasFlag(LockReason.ResearchStage) && !v.Lock.HasFlag(LockReason.MissingPrerequisites))
-            d.Text(x + w - 10 * z, y + h - 19 * z, "needs university", 10.5 * z, Amber, TextAlign.Right);
     }
 
-    /// <summary>The minimap docks in the canvas's bottom-right corner; if the selected or
-    /// hovered card would sit under it there, it moves to the bottom-left corner instead, so it
-    /// never covers the selection.</summary>
+    /// <summary>The overview strip: a narrow vertical bar docked at the canvas's right edge,
+    /// OUTSIDE the tree viewport (the layout is fitted to the width left of it), so it never
+    /// covers a card. It maps the single scroll axis: a click scrolls to that height.</summary>
     public RectD MinimapRect()
     {
         RectD c = Canvas;
-        double mw = 240, mh = Math.Max(40, mw * Layout.Height / Layout.Width);
-        if (mh > 150) { mh = 150; mw = mh * Layout.Width / Layout.Height; }
-        var right = new RectD(c.Right - mw - 18, c.Bottom - mh - 18, mw, mh);
-        int f = Hovered >= 0 ? Hovered : Selected;
-        if (f < 0 || Content.Nodes[f].Tree != (ResearchTree)((int)Tab + 1)) return right;
-        PlacedVertex p = Layout.Placed[Graph.VertexOf(f)];
-        double x0 = Camera.ToScreenX(p.X, c.X), y0 = Camera.ToScreenY(p.Y, c.Y);
-        double x1 = Camera.ToScreenX(p.Right, c.X), y1 = Camera.ToScreenY(p.Bottom, c.Y);
-        RectD g = right.Inset(-8);
-        bool overlaps = x1 > g.X && x0 < g.Right && y1 > g.Y && y0 < g.Bottom;
-        return overlaps ? right with { X = c.X + 18 } : right;
+        return new RectD(c.X + TreeViewportWidth + 10, c.Y + 10, StripW - 18, c.H - 20);
     }
 
     private void PaintMinimap(DrawList d)
     {
         RectD r = MinimapRect();
-        d.Rect(r.Inset(-8), A(0x070A0E, 0.94), GoldDim, 1, 6);
-        double sx = r.W / Layout.Width, sy = r.H / Layout.Height;
+        d.Rect(new RectD(r.X - 6, c0Y(), StripW - 6, Canvas.H), Rgba.Hex(0x0A0E13));
+        d.Rect(r.Inset(-3), A(0x070A0E, 0.94), GoldDim, 1, 4);
+        double sx = r.W / Math.Max(1, Layout.Width), sy = r.H / Math.Max(1, Layout.Height);
         foreach (PlacedVertex p in Layout.Placed)
         {
             if (Graph.Vertices[p.Vertex].External || p.Hidden) continue;
             NodeState st = Snapshot!.Nodes[Graph.Vertices[p.Vertex].ContentIndex].State;
             Rgba col = st switch { NodeState.Completed => Gold, NodeState.CurrentTarget => Cyan, NodeState.Available => AvailableEdge, NodeState.Partial => Amber, _ => Rgba.Hex(0x323B48) };
-            d.Rect(new RectD(r.X + p.X * sx, r.Y + p.Y * sy, Math.Max(1.5, p.W * sx), Math.Max(1.5, p.H * sy)), col);
+            d.Rect(new RectD(r.X + p.X * sx, r.Y + p.Y * sy, Math.Max(1.2, p.W * sx), Math.Max(1.2, p.H * sy)), col);
         }
-        (double x0, double y0, double x1, double y1) = VisibleWorld();
-        double vx0 = Math.Clamp(r.X + x0 * sx, r.X, r.Right), vx1 = Math.Clamp(r.X + x1 * sx, r.X, r.Right);
+        (double _, double y0, double _, double y1) = VisibleWorld();
         double vy0 = Math.Clamp(r.Y + y0 * sy, r.Y, r.Bottom), vy1 = Math.Clamp(r.Y + y1 * sy, r.Y, r.Bottom);
-        d.Rect(new RectD(vx0, vy0, Math.Max(2, vx1 - vx0), Math.Max(2, vy1 - vy0)), A(0xD8B866, 0.08), Gold, 1.2);
+        d.Rect(new RectD(r.X - 2, vy0, r.W + 4, Math.Max(2, vy1 - vy0)), A(0xD8B866, 0.10), Gold, 1.2);
         _hits.Add(new HitRegion(r, HitKind.Minimap, 0));
     }
+
+    private double c0Y() => Canvas.Y;
 
     // ---- the detail panel
 
@@ -771,7 +901,12 @@ public sealed class ProgressionScreen
         {
             Rgba pc = p.Completed ? Gold : Red;
             d.Circle(x + 6, y + 9, 4.5, p.Completed ? pc : null, p.Completed ? null : pc, 1.4);
-            d.Text(x + 18, y + 1, Ink.Fit(m, p.Name, 14, w - 70), 14, p.Completed ? Text : TextSoft);
+            // A prerequisite from another lane (or the other tree) names where it lives.
+            int pv = Graph.VertexOf(p.ContentIndex), nv = Graph.VertexOf(node);
+            string where = "";
+            if (pv >= 0 && nv >= 0 && Layout.Placed[pv].Lane != Layout.Placed[nv].Lane)
+                where = " (" + (Graph.Vertices[pv].External ? (Graph.Tree == ResearchTree.Civics ? "Technology" : "Civics") : Layout.Lanes[Layout.Placed[pv].Lane].Name) + ")";
+            d.Text(x + 18, y + 1, Ink.Fit(m, p.Name + where, 14, w - 70), 14, p.Completed ? Text : TextSoft);
             d.Text(x + w, y + 3, p.Kind == EdgeKind.And ? "required" : "one of", 11, TextDim, TextAlign.Right);
             y += 20;
         }

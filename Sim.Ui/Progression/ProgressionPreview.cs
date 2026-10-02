@@ -42,21 +42,56 @@ public static class ProgressionPreview
 
     public static IReadOnlyList<Shot> Shots { get; } =
     [
-        new("01-technology-frontier", "Technology tree opened on the frontier; the current target (partial progress) selected.",
+        new("01-technology-default-open", "Technology tree as it OPENS: zoom 1, width fitted, scrolled to the least-developed branch's frontier.",
+            (s, c) => { }),
+        new("02-technology-hover-highlight", "Hover on a subtree node: prerequisites and their routed edges in orange, dependents in blue, the rest dimmed.",
+            (s, c) => Hover(s, MostConnected(s, c, ResearchTree.Technology))),
+        new("03-technology-target", "JUMP TO TARGET: the current research target (partial progress) selected, its links highlighted.",
             (s, c) => { if (s.Snapshot!.TargetIndex is int t) s.Focus(t, jump: true); }),
-        new("02-technology-overview", "The whole Technology tree fitted to the canvas: Main trunk + five subtree lanes, Age bands.",
-            (s, c) => { s.Tab = TreeTab.Technology; s.FitAll(); }),
-        new("03-technology-locked-subtree", "A subtree node locked by the research stage, with its Eureka list and university relevance.",
+        new("04-technology-locked-subtree", "A subtree node locked by the research stage, with its Eureka list and university relevance.",
             (s, c) => s.Focus(FirstWithEurekaInSubtree(s, c), jump: true)),
-        new("07-technology-trunk-collapsed", "Main Trunk lane collapsed via its lane chip: the subtrees move up; JUMP TO TARGET re-expands it.",
-            (s, c) => { s.Tab = TreeTab.Technology; s.ToggleLane(LaneIndex(s, "main")); s.FitAll(); }),
-        new("04-civics-tree", "The Civics tree: a separate graph; Technology prerequisites appear as anchor tokens.",
-            (s, c) => { s.Tab = TreeTab.Civics; s.FitAll(); s.Selected = c.TechnologyCount; }),
-        new("05-lens-institutions", "INSTITUTIONS lens: adopted civics and knowledge-eligible institutions (real data).",
+        new("05-technology-overview", "FIT: the whole Technology tree as one vertical strip of tiers; lanes across the width.",
+            (s, c) => { s.Tab = TreeTab.Technology; s.FitAll(); }),
+        new("06-technology-trunk-collapsed", "Main Trunk lane collapsed via its header chip: its width goes to the subtrees.",
+            (s, c) => { s.Tab = TreeTab.Technology; s.ToggleLane(LaneIndex(s, "main")); s.Paint(Width, Height, ApproxTextMeasure.Instance); s.ResetView(); }),
+        new("07-civics-default-open", "The Civics tree as it opens; Technology prerequisites sit in their own lane as anchor tokens.",
+            (s, c) => { s.Tab = TreeTab.Civics; }),
+        new("08-civics-hover-highlight", "Civics hover highlight, including a Technology prerequisite anchor.",
+            (s, c) => { s.Tab = TreeTab.Civics; Hover(s, MostConnected(s, c, ResearchTree.Civics)); }),
+        new("09-lens-institutions", "INSTITUTIONS lens: adopted civics and knowledge-eligible institutions (real data).",
             (s, c) => s.SetLens(Lens.Institutions)),
-        new("06-lens-industry", "INDUSTRY lens: honestly not yet simulated.",
+        new("10-lens-industry", "INDUSTRY lens: honestly not yet simulated.",
             (s, c) => s.SetLens(Lens.Industry)),
     ];
+
+    /// <summary>Scroll a node into view and put the pointer on it (hover).</summary>
+    private static void Hover(ProgressionScreen s, int contentIndex)
+    {
+        s.Tab = s.Content.Nodes[contentIndex].Tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
+        s.Paint(Width, Height, ApproxTextMeasure.Instance);
+        s.Focus(contentIndex, jump: true);
+        s.Selected = -1;
+        PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(contentIndex)];
+        RectD c = s.Canvas;
+        s.PointerMove(s.Camera.ToScreenX(p.CenterX, c.X), s.Camera.ToScreenY(p.CenterY, c.Y));
+    }
+
+    /// <summary>The node with the most cross-lane prerequisites, then most links (ties: lowest index).</summary>
+    private static int MostConnected(ProgressionScreen s, ResearchContent c, ResearchTree tree)
+    {
+        ResearchGraph g = s.Graphs[tree == ResearchTree.Civics ? 1 : 0];
+        TreeLayout L = s.Layouts[tree == ResearchTree.Civics ? 1 : 0];
+        int best = 0; (int, int) key = (-1, -1);
+        for (int v = 0; v < g.OwnCount; v++)
+        {
+            (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(g, v);
+            int cross = 0;
+            foreach (int u in pre) if (L.Placed[u].Lane != L.Placed[v].Lane) cross++;
+            (int, int) k = (Math.Min(cross, 3), Math.Min(pre.Length + dep.Length, 8));
+            if (k.Item1 > key.Item1 || (k.Item1 == key.Item1 && k.Item2 > key.Item2)) { key = k; best = g.Vertices[v].ContentIndex; }
+        }
+        return best;
+    }
 
     private static int LaneIndex(ProgressionScreen s, string id)
     {

@@ -24,6 +24,11 @@ public static class ProgressionPalette
     public static readonly Rgba Red = Rgba.Hex(0xD0605A);
     public static readonly Rgba Green = Rgba.Hex(0x6CC28A);
 
+    /// <summary>Hover / selection highlight: the focused node's prerequisites (and the edges
+    /// into it) in one colour, its dependents (and the edges out of it) in another.</summary>
+    public static readonly Rgba PrereqHi = Rgba.Hex(0xF0A458);
+    public static readonly Rgba DependentHi = Rgba.Hex(0x7CC4FF);
+
     public static readonly Rgba CompletedFill = Rgba.Hex(0x2E2818);
     public static readonly Rgba TargetFill = Rgba.Hex(0x123038);
     public static readonly Rgba AvailableFill = Rgba.Hex(0x1C2733);

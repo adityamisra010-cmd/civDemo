@@ -13,28 +13,40 @@ The screen is a full-screen progression view. Open it with **K** or the **Knowle
   - **INFRASTRUCTURE** and **MILITARY** show which entities the player's knowledge makes eligible, and label that as knowledge eligibility only.
   - **INDUSTRY** shows "not yet simulated". No data is invented for any lens.
 - **Tabs under KNOWLEDGE & TECHNOLOGY.** The Technology tree and the Civics tree are two separate graphs. Press **1** or **2** to switch between them. The tab bar also shows how many nodes are completed in each tree, a capsule for the current target with its progress (or "target ordered, applies at End Turn"), and a legend that separates node states and AND/OR edges.
-- **Canvas.** The canvas is a deterministic layered graph generated from `research.json` through `ResearchContent`:
-  - **Columns** come from content `Depth`. A node is moved right if needed so that every in-tree prerequisite comes earlier. Empty columns are removed.
-  - **Column header = depth tiers.** A sticky header labels each column "TIER n" with the honest *range* of Ages its nodes carry (for example "Ages II-VII"). Columns are prerequisite depth, and one depth holds nodes of several Ages, so the old "dominant Age per column" header read out of order (Age II before Age I); a range never misstates a card. The Age itself is a **per-card badge** (roman numeral). Ages are metadata only: nothing is gated on them (law 4).
-  - **No gutter.** The graph starts at the canvas's left edge; the camera clamp allows at most 16 px of empty field past any edge, so opening on a column-0 frontier no longer leaves half the canvas empty.
-  - **Lane chips** sit in each lane's header strip (name, node count, disclosure triangle). The lane whose header has scrolled above the view gets its chip pinned in the control row, so a chip never covers a card. **Clicking a chip collapses or expands the lane** (the layout is recomputed; hidden cards are not painted, hit-tested or drawn in the minimap, and their edges are hidden).
-  - **Control row** (opaque, under the tier header): JUMP TO TARGET / JUMP TO FRONTIER (selects the target, or the leftmost available node, and re-expands its lane if collapsed), FIT TREE, and SHOW/HIDE MAP.
-  - **Lanes** are Main Trunk plus the content's five subtrees (Military, Medicine, Engineering, Natural Science, Agriculture) in content order. The Civics tree has one lane per domain.
-  - **Cross-tree prerequisites** appear as anchor tokens in their own lane. For example, Written law needs one of three Technology writing systems.
-- **Edges.** Prerequisite edges are Béziers. A solid edge means *all of*: the prerequisite is in `Predicate.MustHoldAtoms`. A dashed edge means *one of*. Edges from completed nodes are gold. Edges into and out of the hovered or selected node are highlighted.
-- **Navigation.** Drag to pan, use the wheel to zoom at the cursor, and use WASD or the arrow keys to scroll. Pan and zoom ease smoothly. Click the minimap to jump. The minimap docks bottom-right on a dark backdrop; if the selected or hovered card would sit under it, it moves to bottom-left, and it can be hidden.
-- **Culling.** Cards and edges outside the view are skipped. Cards are drawn with less detail when zoomed out: colour only below 0.28× zoom, and name only below 0.45× zoom.
-- **Node cards** show:
-  - the name, an Age badge, and a stripe in the branch colour;
-  - the state, which is one of Completed (gold check), Researching (cyan ring with a progress arc), Available, Partly researched, or Locked (padlock);
-  - the EffectiveCost, plus the discount from university modifiers when there is one;
-  - one Eureka pip per Eureka, filled when it has fired;
-  - a progress bar when progress is greater than 0;
-  - "needs university" when only the research stage blocks the node.
+- **Canvas — one scroll axis (vertical).** The canvas is a deterministic layered drawing generated from `research.json` through `ResearchContent`. Director feedback (two items) set two rules: the tree may be scrolled in only one direction, and its background must not be a tangle of lines. So:
+  - **Tiers run top to bottom.** A tier is content `Depth`, pushed down where needed so that every in-tree prerequisite sits in an earlier tier. Empty tiers are removed. Each tier band opens with a label strip, for example "TIER 3 Ages I-VI - Prehistoric / Stone Age to Medieval". The strip gives the honest *range* of Ages in the tier, always with the full Age names. Ages are metadata only (law 4).
+  - **Lanes run across the width, always in the same left-to-right order.** Technology has the external lane (only when present), then Main Trunk, then Military, Medicine, Engineering, Natural Science and Agriculture in content order. Civics has the "From Technology" anchor lane and then one lane per domain.
+  - **Each lane has a segment in each tier.** Most lanes are empty in most tiers (the trunk owns tiers 1-14, and Engineering owns the late tiers). With fixed full-height lane columns the drawing was about 30,000 px tall and mostly empty. Instead, each tier divides the width among the lanes that have nodes in that tier. Each of those lanes gets a *segment*: a box tinted in the lane's hue, with a coloured cap and the lane's name. A cell's nodes wrap into rows of the segment's slot count.
+  - **Allocating slots.** The number of slots across is fixed by the viewport (`floor(width / (min card + gap))`). Slots go one at a time to the lane where the extra slot reduces the rows most. The objective is to minimise (max rows, sum of rows), and ties go to the lowest lane index. Only integers are used, so the result is deterministic.
+  - **The width always fits.** `TreeLayoutOptions.ViewportWidth` is the canvas width minus the overview strip. The layout is recomputed whenever that width changes (window resize, map toggle, lane collapse), so at the default zoom (1.0) there is never horizontal overflow. The camera locks the x axis whenever the drawing fits. Sideways drag, sideways keys and the wheel never move the view horizontally. The wheel scrolls vertically, and **Ctrl+wheel** zooms. Zoom is still available. Above 1.0 the drawing may become wider than the view, and only then can it pan sideways.
+  - **Sticky lane header.** Above the canvas there is one chip per lane, in lane order: name, node count, and a disclosure triangle. **Clicking a chip collapses or expands the lane.** A collapsed lane takes no width in any tier, and its cards are not painted or hit-tested.
+  - **Control row.** It shows the tier at the top of the view (with its full Age range), the highlight legend (*requires*, *leads to*, dashed *one of*), and four buttons: JUMP TO TARGET (or JUMP TO FRONTIER when there is no target in this tree; it selects the node and re-expands its lane), LAGGING BRANCH (returns to the default view), FIT, and HIDE/SHOW MAP.
+  - **Overview strip** (replaces the minimap). It is a narrow vertical bar docked to the right of the tree viewport and outside it, so it can never cover a card. It shows every card coloured by state and the visible band. A click scrolls to that height.
+- **Default scroll: the least-developed branch.** When a tree opens, it is shown at zoom 1, scrolled so that the frontier of the least-developed branch sits about 28% down the canvas. It is neither the target nor the most advanced research. Nothing is selected.
+  - *Definition* (`ResearchTreeLayout.LeastDevelopedFrontier`): consider each non-external lane that has nodes. The lane's **frontier** is its not-yet-completed node (available, target, partial or locked) with the smallest key (tier, slot in its cell, vertex index), which is its earliest node along the scroll axis. The **least-developed lane** is the one whose frontier tier is smallest. Ties go to the lowest lane index (stable lane order). Collapse state is ignored, because it is UI state and tiers come from content. If every node is complete, the view opens at the top.
+  - In the seed-42 world this is the Main Trunk in tier 1. The tests also build worlds where the answer is a mid-tier Medicine node lying above the target and the most modern research.
+- **Edges: no background lines.** Nothing is drawn between cards by default. Each card carries short **stubs**:
+  - an orange up-triangle with its prerequisite count and a blue down-triangle with its dependent count;
+  - a **cross-lane port chip** that names prerequisites living in another lane or in the other tree. One such prerequisite reads "needs Artificial satellite (Engineering)". Several read "needs 3: Engineering, Natural Science".
+- **Hover/selection highlight.** Hovering a card (or, failing that, selecting one) does three things:
+  - Its **direct prerequisites** get an orange ring, and their edges are drawn in orange.
+  - Its **direct dependents** get a blue ring, and their edges are drawn in blue.
+  - **Everything else is dimmed.**
+  - Edges are **orthogonal routes** (`ResearchTreeLayout.Route`). Horizontal runs use only row gaps, which every lane's rows in a tier share, so no card sits in them. Vertical runs use the prerequisite's own column for the short elbow from the last row of a tier into the first row of the next tier. Otherwise they use one of two reserved **edge spines** at the left and right edges, whichever is nearer, so a bundle of edges runs together. A test checks that no route of any edge in either tree passes under a card.
+  - Dashed lines mean *one of* and solid lines mean *all of* (`Predicate.MustHoldAtoms`).
+- **Culling.** Cards outside the view are skipped. Cards are drawn with less detail when zoomed out: colour only below 0.28×, and name only below 0.45×.
+- **Node cards** (about 150-214 px wide, sized to the viewport) show:
+  - the name, the state icon, and a stripe in the branch colour;
+  - the EffectiveCost (plus any university discount), and Eureka pips (filled once fired);
+  - **the Age as numeral plus full name**, for example "II · Neolithic / Agricultural", never a bare numeral;
+  - the dependency stubs and the cross-lane port (or "needs university" when only the research stage blocks the node);
+  - a thin progress bar when progress is greater than 0.
+  - The states are Completed (gold check), Researching (cyan ring with a progress arc), Available, Partly researched, and Locked (padlock).
 - **Detail panel** (for the hovered or selected node) shows:
   - BaseCost, then each specialised-university factor, then EffectiveCost, with a flag when the floor applies;
   - progress in RP, with an estimate of turns at the current RP pool;
-  - the prerequisite expression and each prerequisite, marked done or missing and *required* or *one of*;
+  - the full Age name in the header ("MILITARY · AGE IX - MODERN / CONTEMPORARY");
+  - the prerequisite expression and each prerequisite, marked done or missing and *required* or *one of*, with its lane named when it lives in another lane or tree;
   - lock reasons: missing prerequisites, research stage not reached (with the stage expression), or a recursive node waiting for its subtree;
   - the Eureka pool: credited against the 40% ceiling, split by source (Eureka and foreign exposure, plus any exposure on offer);
   - each Eureka's text, weight, maximum credit, and status (fired, holds now, condition, or not evaluable yet together with the system that owns it);
@@ -47,10 +59,10 @@ The screen is a full-screen progression view. Open it with **K** or the **Knowle
 | File | Role |
 |---|---|
 | `Sim.Ui/Progression/ResearchGraph.cs` | One tree as a graph built from content: vertices, external anchors, and AND/OR edges equal to `PrerequisiteNodes` |
-| `Sim.Ui/Progression/ResearchTreeLayout.cs` | Deterministic layered layout: columns, lanes, Age spans, and barycentre ordering with a (score, vertex) tie-break |
+| `Sim.Ui/Progression/ResearchTreeLayout.cs` | Deterministic single-axis layout: tiers top-to-bottom, per-tier lane segments fitted to the viewport width, barycentre ordering with a (score, vertex) tie-break, orthogonal edge routes, the least-developed frontier, and the full Age names |
 | `Sim.Ui/Progression/ResearchNodeViews.cs` | `ResearchSnapshot`: each node's state, costs, Eurekas, pool and lock reasons, all read through `ResearchQuery` once per world |
 | `Sim.Ui/Progression/Lenses.cs` | The seven lenses and their pages, using real data only |
-| `Sim.Ui/Progression/ProgressionCamera.cs` | Pan and zoom with eased targets, zoom-at-cursor, and clamping |
+| `Sim.Ui/Progression/ProgressionCamera.cs` | Pan and zoom with eased targets and zoom-at-cursor. The clamp locks the x axis whenever the drawing fits. |
 | `Sim.Ui/Progression/ProgressionScreen.cs` | UI state, painting into a `DrawList`, hit regions, and input that returns `ProgressionCommand` (an order, never a write) |
 | `Sim.Ui/Progression/ProgressionPalette.cs` | Colours |
 | `Sim.Ui/Progression/ProgressionPreview.cs` | Headless previews from a real stepped world |
@@ -72,13 +84,16 @@ Run `docs/architecture/research-tree-ui/render-previews.sh [dir]`, which runs `s
 
 | Preview | Shows |
 |---|---|
-| `research-tree-ui/01-technology-frontier.png` | The Technology tree at the frontier. Root and tuber cultivation is being researched at 5% (21 / 440 RP). Five nodes are completed (gold), the available ones are bright, and the rest are locked. |
-| `research-tree-ui/02-technology-overview.png` | All 424 Technology nodes fitted to the canvas (top-aligned): the trunk and five subtree lanes with their chips, and the minimap. |
-| `research-tree-ui/07-technology-trunk-collapsed.png` | The same overview with the Main Trunk lane collapsed via its chip ("176 hidden"): the five subtrees move up. |
-| `research-tree-ui/03-technology-locked-subtree.png` | Magnetic compass (Military): locked by a missing prerequisite **and** the research stage. Shows its Eureka at the 40% ceiling and its university relevance. |
-| `research-tree-ui/04-civics-tree.png` | The separate Civics graph: Technology prerequisites appear as anchor tokens, and Written law's three *one of* edges are dashed. |
-| `research-tree-ui/05-lens-institutions.png` | The INSTITUTIONS lens: adopted civics (0 of 6) and knowledge-eligible institutions. |
-| `research-tree-ui/06-lens-industry.png` | The INDUSTRY lens: not yet simulated. |
+| `research-tree-ui/01-technology-default-open.png` | **The default-opened view.** The tree is at zoom 1, the width is fitted with no horizontal overflow, and the view is scrolled to the least-developed branch's frontier: the Main Trunk, tier 1. Five nodes are completed (gold). Root and tuber cultivation is the target at 5%. Tier 2 wraps the trunk's nodes into rows of six, and a Military segment appears in tier 3. There are no background lines. |
+| `research-tree-ui/02-technology-hover-highlight.png` | **Hover highlight.** Satellite navigation (Military, tier 27) is hovered. Its three prerequisites in Engineering and Natural Science are ringed orange, and their routes run up the left spine. Its three dependents are ringed blue. Everything else is dimmed. |
+| `research-tree-ui/03-technology-target.png` | JUMP TO TARGET: the target is selected and its dependents are highlighted. |
+| `research-tree-ui/04-technology-locked-subtree.png` | A subtree node locked by a missing prerequisite **and** the research stage, with its Eureka and university relevance. |
+| `research-tree-ui/05-technology-overview.png` | FIT: the overview zoom of all 31 tiers as one vertical strip, with the overview strip on the right. |
+| `research-tree-ui/06-technology-trunk-collapsed.png` | The Main Trunk collapsed via its header chip ("176 hidden"). Its width goes to the subtrees, so tiers 1-2 are empty strips. |
+| `research-tree-ui/07-civics-default-open.png` | The Civics tree as it opens. Technology prerequisites appear as anchor tokens in the "From Technology" lane. |
+| `research-tree-ui/08-civics-hover-highlight.png` | Written law hovered: its three *one of* Technology anchors are dashed orange, and Systematic law (its dependent) is blue. |
+| `research-tree-ui/09-lens-institutions.png` | The INSTITUTIONS lens: adopted civics (0 of 6) and knowledge-eligible institutions. |
+| `research-tree-ui/10-lens-industry.png` | The INDUSTRY lens: not yet simulated. |
 
 ## Tests (`Sim.Ui.Tests/ProgressionScreenTests.cs`)
 
@@ -86,23 +101,39 @@ The tests use one real world, stepped as described above.
 
 - The edges are exactly every node's `PrerequisiteNodes`, in source order. Each edge is AND exactly when it is in `MustHoldAtoms`, and both AND and OR edges exist.
 - Technology and Civics are separate graphs: each has its own node count, the Civics tree's anchors are Technology nodes, and the tab switches graph.
-- The layout is bit-identical across two computations, places every vertex, has no overlapping boxes, puts every prerequisite in an earlier column, and puts each node in its branch's lane.
+- The layout is bit-identical across two computations, places every vertex, has no overlapping boxes, puts every prerequisite in an earlier tier **and above its dependent** (`From.Bottom < To.Y`), and puts each node in its branch's lane.
 - A tie-dense cell-order test checks that equal barycentres break on the vertex index.
 - Every node's state, availability, target, progress, EffectiveCost, BaseCost, Eureka pool and lock reason agrees with `ResearchQuery`, compared with exact equality.
 - Clicking an available card returns exactly `ResearchOrderFactory.SetTarget(...)`, leaves the world hash unchanged, and does not re-issue on a second click. Locked, completed and current-target cards only select.
 - The detail button issues the same order. After `EmitResearchOrder` and End Turn, the node is the target (or completed), and the pending hint is cleared.
-- All seven lenses are present. INDUSTRY is not simulated and has no sections. INSTITUTIONS and TECHNIQUES list exactly the completed civics and techniques.
-- Culling draws less than a quarter of the nodes at the frontier zoom, and the fitted overview draws all of them. The SVG output is deterministic.
-- Zoom-at-cursor keeps the world point under the cursor once the easing settles.
-- Every node's Age lies inside its column header's Age range (both trees).
-- At the frontier, the leftmost cards start within the edge slack of the canvas's left edge.
-- Clicking the Main Trunk chip hides exactly that lane's cards (not hit-testable), leaves other lanes intact, and JUMP TO TARGET re-expands it and selects the target.
-- With the selected card placed exactly under the default minimap dock, the minimap does not intersect it (mutant check: removing the dodge fails this test); the map toggle removes the minimap hit region.
+- All seven lenses are present, and only real data is shown.
+- **Single axis.** This test is a theory over 1024×700, 1280×800, 1600×1000, 1920×1080 and 2560×1440, run for both trees. It checks that:
+  - the default zoom is 1;
+  - the layout width and every card's right edge fit the tree viewport;
+  - no card overlaps another;
+  - the tiers are ordered;
+  - sideways scrolling, dragging and the wheel leave `PanX` at exactly 0.
+- The wheel scrolls exactly one step vertically, and Ctrl+wheel zooms.
+- **Least developed.** Pure tests on constructed completion masks:
+  - (A) a mid-tier Medicine laggard wins over an Engineering target placed 6 tiers later, and lies above it;
+  - (B) a trunk node further back wins instead;
+  - (C) tie-dense: two lanes have frontiers in the same tier, and the lower lane index wins;
+  - when every node is complete, the result is -1.
+  - On the screen, for both trees: `DefaultFrontierNode` equals the pure definition over the snapshot, its card is in view on open, nothing is selected, and JUMP TO TARGET still selects the target.
+- **Hover.** For 40+ nodes across both trees, `Highlight()` returns exactly the content's direct prerequisites and the nodes that name this node as a prerequisite. Orange or blue edges are painted exactly when that side is non-empty. With no focus, no edge is painted.
+- **Routes.** Every edge of both trees is routed orthogonally from the prerequisite's bottom to the dependent's top, and no segment passes under any card.
+- **Ages.** `AgeLabel` gives "Age N - full name" for all nine Ages. Every visible card paints its numeral and full name. The tier strips name the Ages in full, no text is a bare "Age II", and the detail header carries the full name.
+- Culling: the default view draws less than a quarter of the nodes. The overview draws more, each once, including every card in view. The SVG output is deterministic.
+- Zoom-at-cursor keeps the world point under the cursor.
+- Every node's Age lies inside its tier's Age range.
+- Clicking the Main Trunk chip hides exactly that lane's cards and removes its segments, the width still fits, and JUMP TO TARGET re-expands the lane.
+- The overview strip lies right of the tree viewport, and every card ends left of it. Hiding the strip gives the tree its width back.
 
 ## Gaps and notes
 
 - `ResearchContent` has no per-node icon or art, so cards use vector primitives only.
-- Lanes are fixed (trunk plus content subtrees). The tall trunk lane is real data; it is handled by collapse/expand and the jump control rather than by compacting the layout.
+- Lanes are fixed (trunk plus content subtrees) and keep their order. A lane's horizontal position varies from tier to tier because each tier shares the width only among the lanes present in it. Lane identity is carried by hue, a cap and a name on every segment, and by the fixed order.
+- Long edges (many tiers) route through a spine at the tree's edge, so they are long, but they are drawn only on hover and run in channels that hold no cards.
 - Lane collapse state is UI-only and per tree; it is not persisted between sessions.
 - The game path, which draws with ImGui's background draw list, could not be run in this container because there is no GL context. Everything except the replay into ImGui is covered headlessly by the same `DrawList` used for the previews.
 - Text in the previews is measured with `ApproxTextMeasure`. In the game it is measured with the real fonts.
