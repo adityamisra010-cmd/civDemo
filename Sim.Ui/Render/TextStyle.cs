@@ -12,8 +12,10 @@ public enum TextCase { AsWritten = 0, Upper = 1 }
 
 /// <summary>
 /// THE TYPESETTING OF A RUN: face, weight (CSS 100–900; the ImGui backend renders 600 and above as
-/// a double strike, the SVG writer as font-weight, so the game and the previews agree), tracking
-/// (extra space after every letter, in em) and case. Carried by <see cref="TextCmd.Style"/>; a null
+/// a double strike, the SVG writer as font-weight, so the game and the previews agree — the game's
+/// atlas holds each face's regular instance, so the themes set running text at 400, never at an
+/// intermediate weight only the previews could show), tracking (extra space after every letter, in
+/// em) and case. Carried by <see cref="TextCmd.Style"/>; a null
 /// style is the pre-theme default for the run's <see cref="FontRole"/>, so painters that predate
 /// the era theme render exactly as before.
 /// </summary>

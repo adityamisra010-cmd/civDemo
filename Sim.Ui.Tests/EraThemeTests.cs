@@ -536,4 +536,39 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
         Assert.True(ApproxTextMeasure.Instance.Width(T(UiEra.Classical), "Bronze working", 14, FontRole.Title) > plain);
         Assert.Equal(string.Create(CultureInfo.InvariantCulture, $"{0.1 * 14:0.##}"), (caps.TrackingPx(14)).ToString("0.##", CultureInfo.InvariantCulture));
     }
+
+    [Fact]
+    public void Typography_UsesOnlyWeightsTheGameCanRender()
+    {
+        // The atlas holds each face's regular instance and the ImGui backend emboldens at 600+, so a
+        // weight strictly between 400 and 600 would show in the previews and never in the game.
+        foreach (EraTheme t in EraThemes.All)
+            foreach (FontRole role in Enum.GetValues<FontRole>())
+            {
+                int w = t.Type.For(role).Weight;
+                Assert.True(w == 400 || w >= TextStyle.BoldWeight, $"{t.Era} {role}: weight {w}");
+            }
+    }
+
+    [Fact]
+    public void PreviewMeasure_FollowsTheFaceAndWeight_TheWayThePreviewsSetThem()
+    {
+        var m = ApproxTextMeasure.Instance;
+        var garamond = new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten);
+        var sans = garamond with { Face = TypeFace.PlexSans };
+        var serif = garamond with { Face = TypeFace.PlexSerif };
+        const string lower = "cultivation of roots", caps = "TECHNOLOGY";
+        // Regular Garamond IS the table: styled and unstyled agree.
+        Assert.Equal(m.Width(lower, 14, FontRole.Body), m.Width(lower, 14, FontRole.Body, garamond), 9);
+        // The Plex faces set lower case a fifth wider than Garamond and capitals narrower.
+        foreach (TextStyle plex in new[] { sans, serif })
+        {
+            Assert.True(m.Width(lower, 14, FontRole.Body, plex) > 1.18 * m.Width(lower, 14, FontRole.Body, garamond), plex.Face.ToString());
+            Assert.True(m.Width(caps, 14, FontRole.Body, plex) < m.Width(caps, 14, FontRole.Body, garamond), plex.Face.ToString());
+        }
+        // Garamond's bold instance widens lower case; the Plex faces embolden synthetically, at
+        // their regular advances.
+        Assert.True(m.Width(lower, 14, FontRole.Body, garamond with { Weight = 700 }) > 1.08 * m.Width(lower, 14, FontRole.Body, garamond));
+        Assert.Equal(m.Width(lower, 14, FontRole.Body, sans), m.Width(lower, 14, FontRole.Body, sans with { Weight = 600 }), 9);
+    }
 }

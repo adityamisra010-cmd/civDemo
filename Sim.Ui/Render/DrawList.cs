@@ -174,36 +174,51 @@ public sealed class ApproxTextMeasure : ITextMeasure
     public double Width(string text, double size, FontRole role) =>
         Em(text, role == FontRole.Caps) * size * (role == FontRole.Numeric ? 1.06 : 1.0);
 
-    /// <summary>The styled width: the cased text in the style's face (Plex Serif ~6 % and Plex Sans
-    /// ~9 % wider than Garamond on the UI's strings; a bold run ~3 % wider), plus the tracking.</summary>
+    /// <summary>
+    /// The styled width: the cased text in the style's face and weight, plus the tracking. The
+    /// per-class factors scale the Garamond table above to each face as the SVG previews set it
+    /// (fitted to Chromium's advances for the UI's strings, keeping the table's few-percent margin
+    /// over real Garamond): IBM Plex Serif and Plex Sans set lower case and figures a fifth to a
+    /// quarter wider than Garamond and capitals slightly narrower; EB Garamond's heavier weights widen
+    /// lower case and figures (+11 % / +14 % at 700); the Plex faces embolden synthetically, at their
+    /// regular advances.
+    /// </summary>
     public double Width(string text, double size, FontRole role, TextStyle? style)
     {
         if (style is not TextStyle s) return Width(text, size, role);
         string set = s.Apply(text);
-        double face = s.Face switch { TypeFace.PlexSerif => 1.06, TypeFace.PlexSans => 1.09, _ => 1.0 };
-        double weight = s.Bold ? 1.03 : 1.0;
+        bool caps = s.Case == TextCase.Upper || role == FontRole.Caps;
+        double k = Math.Clamp((s.Weight - 400) / 300.0, 0.0, 1.5);
+        (double upper, double lower, double figure) = s.Face switch
+        {
+            TypeFace.PlexSerif => (0.96, 1.26, 1.23),
+            TypeFace.PlexSans => (0.90, 1.21, 1.26),
+            _ => (1.0, 1.0 + 0.11 * k, 1.0 + 0.14 * k),
+        };
+        double em = 0;
+        foreach (char c in set)
+            em += Em(c, caps) * (c is >= 'A' and <= 'Z' ? upper : c is >= '0' and <= '9' ? figure : lower);
         double tracking = set.Length > 1 ? s.TrackingPx(size) * (set.Length - 1) : 0.0;
-        return Em(set, s.Case == TextCase.Upper || role == FontRole.Caps) * size * face * weight + tracking;
+        return em * size + tracking;
     }
 
     private static double Em(string text, bool caps)
     {
         double em = 0;
-        foreach (char c in text)
-        {
-            em += c switch
-            {
-                ' ' => 0.25,
-                >= 'A' and <= 'Z' => caps ? 0.72 : 0.66,
-                >= '0' and <= '9' => 0.52,
-                'i' or 'l' or 'j' or 't' or 'f' or 'r' or '.' or ',' or ':' or ';' or '\'' or '|' or '!' => 0.3,
-                'm' or 'w' or 'M' or 'W' => 0.75,
-                '·' or '•' => 0.3,
-                _ => 0.47,
-            };
-        }
+        foreach (char c in text) em += Em(c, caps);
         return em;
     }
+
+    private static double Em(char c, bool caps) => c switch
+    {
+        ' ' => 0.25,
+        >= 'A' and <= 'Z' => caps ? 0.72 : 0.66,
+        >= '0' and <= '9' => 0.52,
+        'i' or 'l' or 'j' or 't' or 'f' or 'r' or '.' or ',' or ':' or ';' or '\'' or '|' or '!' => 0.3,
+        'm' or 'w' or 'M' or 'W' => 0.75,
+        '·' or '•' => 0.3,
+        _ => 0.47,
+    };
 }
 
 /// <summary>Palette helpers shared by the screens: the bible colours (ParchmentPalette)

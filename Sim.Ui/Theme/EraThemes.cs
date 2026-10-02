@@ -69,7 +69,7 @@ public static class EraThemes
         var ink = new InkTokens(Text: Hex(0x241E19), TextSoft: Hex(0x45392E), TextDim: Hex(0x66594A), OnAccent: Hex(0xF3EBDC), Rule: Hex(0x2A221C),
             OnChrome: Hex(0xEADDC6), OnChromeSoft: Hex(0xB9A88E), OnChromeAccent: Hex(0xE0A458));
         var type = new TypographyTokens(
-            Body: new TextStyle(TypeFace.Garamond, 500, 0.0, TextCase.AsWritten),
+            Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 700, 0.005, TextCase.AsWritten),
             Title: new TextStyle(TypeFace.Garamond, 700, 0.01, TextCase.AsWritten),
             Numeric: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
@@ -98,7 +98,7 @@ public static class EraThemes
         var ink = new InkTokens(Text: Hex(0x2B1E14), TextSoft: Hex(0x4D3825), TextDim: Hex(0x6E5841), OnAccent: Hex(0xF6EBD8), Rule: Hex(0x4A3120),
             OnChrome: Hex(0xF0E1C6), OnChromeSoft: Hex(0xC8AE88), OnChromeAccent: Hex(0xE2B865));
         var type = new TypographyTokens(
-            Body: new TextStyle(TypeFace.Garamond, 500, 0.0, TextCase.AsWritten),
+            Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 650, 0.01, TextCase.AsWritten),
             Title: new TextStyle(TypeFace.Garamond, 650, 0.02, TextCase.AsWritten),
             Numeric: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
@@ -127,7 +127,7 @@ public static class EraThemes
         var ink = new InkTokens(Text: Hex(0x281D11), TextSoft: Hex(0x4A3A24), TextDim: Hex(0x6C5B42), OnAccent: Hex(0xF7EEDA), Rule: Hex(0x6E4A1F),
             OnChrome: Hex(0xF5E7C6), OnChromeSoft: Hex(0xD3B884), OnChromeAccent: Hex(0xEFC77A));
         var type = new TypographyTokens(
-            Body: new TextStyle(TypeFace.Garamond, 450, 0.0, TextCase.AsWritten),
+            Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.015, TextCase.AsWritten),
             Title: new TextStyle(TypeFace.Garamond, 600, 0.06, TextCase.Upper),
             Numeric: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
@@ -156,7 +156,7 @@ public static class EraThemes
         var ink = new InkTokens(Text: Hex(0x1C1D1F), TextSoft: Hex(0x3B3D41), TextDim: Hex(0x5E5E5B), OnAccent: Hex(0xF2EEE6), Rule: Hex(0x26282B),
             OnChrome: Hex(0xE8E5DE), OnChromeSoft: Hex(0xA9ACB0), OnChromeAccent: Hex(0xEE9A60));
         var type = new TypographyTokens(
-            Body: new TextStyle(TypeFace.Garamond, 450, 0.0, TextCase.AsWritten),
+            Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 650, 0.01, TextCase.AsWritten),
             Title: new TextStyle(TypeFace.Garamond, 700, 0.06, TextCase.Upper),
             Numeric: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
@@ -256,7 +256,7 @@ public static class EraThemes
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.0, TextCase.AsWritten),
-            Title: new TextStyle(TypeFace.Garamond, 500, 0.01, TextCase.AsWritten),
+            Title: new TextStyle(TypeFace.Garamond, 400, 0.01, TextCase.AsWritten),
             Numeric: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
             Caps: new TextStyle(TypeFace.Garamond, 600, 0.09, TextCase.Upper),
             SizeScale: 0.98, LineHeight: 1.22);
@@ -317,7 +317,7 @@ public static class EraThemes
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.PlexSans, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.PlexSans, 600, 0.0, TextCase.AsWritten),
-            Title: new TextStyle(TypeFace.PlexSans, 500, 0.0, TextCase.AsWritten),
+            Title: new TextStyle(TypeFace.PlexSans, 400, 0.0, TextCase.AsWritten),
             Numeric: new TextStyle(TypeFace.PlexSans, 400, 0.0, TextCase.AsWritten),
             Caps: new TextStyle(TypeFace.PlexSans, 600, 0.08, TextCase.Upper),
             SizeScale: 0.94, LineHeight: 1.16);
