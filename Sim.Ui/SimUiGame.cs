@@ -202,7 +202,8 @@ public sealed class SimUiGame : Game
         unsafe { ImGui.GetIO().NativePtr->IniFilename = null; }
         _fonts = UiTheme.LoadFonts(_art.Root);
         _imgui = new ImGuiRenderer(this, ownsContext: false);
-        UiTheme.Apply();
+        // ADR-033 D8: the interface's era is DERIVED from the player's authoritative Age.
+        UiTheme.Apply(Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(_world, _session.Config.Ages, LaborOrderFactory.PlayerEmpire)));
         _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
 
         // THE PARCHMENT BAKE (§4 items 1–4): terrain wash tiles splatted by the
