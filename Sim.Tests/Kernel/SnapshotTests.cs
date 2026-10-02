@@ -273,7 +273,13 @@ public class SnapshotTests
         //         UnitConversions (and, on founded worlds, the founding warband + per-turn
         //         eligibility rows). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone
         //         strips the five tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296";
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296
+        //   NEW  4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV29TransportTrailerAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -915,7 +921,13 @@ public class SnapshotTests
         //         UnitConversions (and, on founded worlds, the founding warband + per-turn
         //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone
         //         strips the five tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd";
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd
+        //   NEW  b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone (also derived by two CLI processes, byte-identical logs; ci.yml FOUNDED_GOLDEN moves in the same commit)
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a

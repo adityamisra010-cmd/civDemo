@@ -463,7 +463,13 @@ public class FirstReignTests
         //         UnitConversions (and, on founded worlds, the founding warband + per-turn
         //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheAgeLayerAlone
         //         strips the five tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050";
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050
+        //   NEW  c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheTransportLayoutAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

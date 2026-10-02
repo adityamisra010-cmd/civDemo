@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(20, pipeline.Length);   // ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
+        Assert.Equal(21, pipeline.Length);   // ADR-032 `roaddevelopment`; ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -90,6 +90,10 @@ public class PipelineLoaderTests
         // through AgeQuery, never through each other, so their relative order is legibility too.
         Assert.Equal("ageeligibility", pipeline[18].Name);
         Assert.Equal("agetransition", pipeline[19].Name);
+        // ADR-032: road development last. It reads only PREV (plus its own NEXT edge table) and
+        // draws materials from GoodStocks after every other holder has acted, so a road never
+        // spends the stone a same-turn construction or housing draw already counted on.
+        Assert.Equal("roaddevelopment", pipeline[20].Name);
     }
 
     [Fact]
@@ -110,7 +114,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, roaddevelopment, weather, growth, toytrade",
             e.Message);
     }
 

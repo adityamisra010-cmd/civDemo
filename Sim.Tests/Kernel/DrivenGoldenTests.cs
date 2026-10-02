@@ -413,7 +413,13 @@ public class DrivenGoldenTests
         //         UnitConversions (and, on founded worlds, the founding warband + per-turn
         //         eligibility rows). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone
         //         strips the five tables, drops their prefixes and returns OLD byte for byte.
-        const string golden = "f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f";
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f
+        //   NEW  0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

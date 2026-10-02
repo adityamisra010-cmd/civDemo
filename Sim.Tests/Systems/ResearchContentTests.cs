@@ -32,7 +32,11 @@ public class ResearchContentTests
         using JsonDocument corpus = Corpus();
         JsonElement techs = corpus.RootElement.GetProperty("technologies");
         Assert.Equal(424, techs.GetArrayLength());
-        Assert.Equal(424, Canonical.TechnologyCount);
+        // ADR-032 appended ONE authored technology after the corpus (never renumbering it):
+        // motor_road, key 425, the ratified highway class (Director transport ruling 16).
+        Assert.Equal(425, Canonical.TechnologyCount);
+        Assert.Equal("motor_road", Canonical.Nodes[424].Id);
+        Assert.Equal(425, Canonical.Nodes[424].Key.Value);
         for (int i = 0; i < 424; i++)
         {
             JsonElement t = techs[i];
@@ -58,7 +62,7 @@ public class ResearchContentTests
         string[] ids = new string[6];
         for (int i = 0; i < 6; i++)
         {
-            ResearchNode n = Canonical.Nodes[424 + i];
+            ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
             ids[i] = n.Id;
             Assert.Equal(ResearchTree.Civics, n.Tree);
             Assert.Equal(1001 + i, n.Key.Value);
@@ -73,7 +77,7 @@ public class ResearchContentTests
     {
         int[] counts = new int[6]; // trunk, then 1.1..1.5
         for (int i = 0; i < Canonical.TechnologyCount; i++) counts[Canonical.Nodes[i].Branch + 1]++;
-        Assert.Equal([176, 37, 22, 130, 44, 15], counts);
+        Assert.Equal([176, 37, 22, 131, 44, 15], counts);   // ADR-032: motor_road joined engineering
         Assert.Equal(ResearchContentLoader.RuledBranchIds.Length, Canonical.Branches.Count);
         for (int b = 0; b < 5; b++)
         {
@@ -314,8 +318,8 @@ public class ResearchContentTests
         }
         Assert.Equal(10, recursive);
         Assert.Equal(6, speculative);
-        Assert.Equal(420, finite);
-        Assert.Equal([36, 21, 124, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
+        Assert.Equal(421, finite);   // ADR-032: + motor_road
+        Assert.Equal([36, 21, 125, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
 
         // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite
         // engineering node incomplete and it is not — per-subtree exhaustion, nothing else.

@@ -41,7 +41,7 @@ public class ResearchSchemaTests
     [Fact]
     public void SchemaV26_PopulatedResearchTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(28, CanonicalSchema.Version);
+        Assert.Equal(29, CanonicalSchema.Version);
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

@@ -133,6 +133,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripRoads(stripped);
         StripAges(stripped);
         StripResearch(stripped);
         StripDisaster(stripped);
@@ -148,7 +149,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -224,13 +225,41 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripRoads(stripped);
         ageRowsRemoved = StripAges(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount);
+    }
+
+    /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
+    /// this file predates v29, so every control strips them and drops their two count prefixes
+    /// first, then asks its original question unchanged.</summary>
+    private const int RoadTableCount = 2;
+
+    private static int StripRoads(WorldState stripped)
+    {
+        int removed = stripped.TransportEdges.Count + stripped.RoadDevelopments.Count;
+        stripped.TransportEdges.Clear();
+        stripped.RoadDevelopments.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v28 — the tree exactly as it stood BEFORE ADR-032: the transport rows
+    /// removed, the two empty v29 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        roadRowsRemoved = StripRoads(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount);
     }
 
     /// <summary>
@@ -264,6 +293,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripRoads(stripped);
         StripAges(stripped);
         researchRowsRemoved = StripResearch(stripped);
         using var buffer = new MemoryStream();
@@ -271,7 +301,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount);
     }
 
     /// <summary>
@@ -283,6 +313,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripRoads(stripped);
         StripAges(stripped);
         StripResearch(stripped);
         disasterStreamsRemoved = StripDisaster(stripped);
@@ -291,7 +322,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount);
     }
 
     /// <summary>
@@ -492,7 +523,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(28, CanonicalSchema.Version);
+        Assert.Equal(29, CanonicalSchema.Version);
     }
 
     [Fact]
@@ -720,5 +751,52 @@ public class IntegratedPinAttributionTests
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+    }
+
+    // ======================================================================
+    // ADR-032 — THE LAYOUT CONTROL FOR SCHEMA v29 (the inter-city transport graph)
+    // ======================================================================
+    // Each constant is the pin as it stood on this branch at c8ceb5f, BEFORE ADR-032.
+    // Stripping the two transport tables and dropping their count prefixes must return it
+    // BYTE FOR BYTE. None of these runs issues a DevelopRoads order, so the tables are EMPTY
+    // (removed == 0 is the point, not a vacuity): RoadDevelopmentSystem returns at its first
+    // loop, draws no RNG and writes no ledger flow, and the research content change (motor_road,
+    // the dry-dock requirement, the track_road wording) moved no research choice either — the
+    // two empty prefixes are the ENTIRE cause of every re-pin.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV29TransportTrailerAlone()
+    {
+        const string beforeRoads = "498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd";
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // no order log: no road is ever developed
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // the first-reign log carries no DevelopRoads order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
     }
 }
