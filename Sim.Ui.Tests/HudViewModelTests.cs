@@ -392,11 +392,16 @@ public class UiFoundingEquivalenceTests
             Sim.Core.Worldgen.WorldgenConfig wg;
             using (var s = global::Sim.Data.DataFiles.OpenWorldgen())
                 wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(s);
+            // ADR-031: the canonical recipe is the CLI's six-stream load (HeadlessFounding), which
+            // founds the warband formations; the UI now founds with the same recipe.
             Sim.Core.Systems.SimConfig sim;
             using (var s = global::Sim.Data.DataFiles.OpenSim())
             using (var n = global::Sim.Data.DataFiles.OpenNeeds())
             using (var g = global::Sim.Data.DataFiles.OpenGoods())
-                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g);
+            using (var r = global::Sim.Data.DataFiles.OpenResearch())
+            using (var a = global::Sim.Data.DataFiles.OpenAges())
+            using (var f = global::Sim.Data.DataFiles.OpenUnitFamilies())
+                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g, r, a, f);
             canonical = Sim.Core.Worldgen.WorldFounding.Found(wg, sim, 42);
         }
         Assert.Equal(

@@ -125,18 +125,24 @@ public sealed class UiSession
         ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
     {
         var orders = new OrderLog();
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        using (var research = Sim.Data.DataFiles.OpenResearch())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
-        }
+        SimConfig simCfg = UiFounding.ProductionConfig();
         return new UiSession(
             UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
             BuildProductionExecutor(orders), orders,
             seed, sizeOverridePx, settlementsOverride, simCfg);
+    }
+
+    /// <summary>
+    /// A session over an ALREADY-FOUNDED world with the production executor and config — for tests
+    /// and previews that need a constructed situation (e.g. an AI polity that is eligible for its next
+    /// Age). The order pathway, AI policy and End Turn are exactly <see cref="Start"/>'s. Such a session
+    /// replays only from the same starting world, so it is never written as a playable session log.
+    /// </summary>
+    public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+    {
+        var orders = new OrderLog();
+        return new UiSession(founded, BuildProductionExecutor(orders), orders,
+            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig());
     }
 
     /// <summary>
@@ -164,14 +170,7 @@ public sealed class UiSession
     /// with.</summary>
     public static SystemRegistration[] ProductionPipeline()
     {
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        using (var research = Sim.Data.DataFiles.OpenResearch())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
-        }
+        SimConfig simCfg = UiFounding.ProductionConfig();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
         return PipelineLoader.Load(pipe, SystemCatalog.All(
@@ -254,6 +253,51 @@ public sealed class UiSession
         return true;
     }
 
+    /// <summary>The not-yet-stepped orders: the log rows stamped with the current turn, in log order
+    /// (exactly the batch the next End Turn delivers).</summary>
+    public IReadOnlyList<OrderRecord> QueuedOrders()
+    {
+        var queued = new List<OrderRecord>();
+        for (int i = 0; i < Orders.Count; i++)
+            if (Orders[i].Turn == World.Clock.Turn) queued.Add(Orders[i]);
+        return queued;
+    }
+
+    /// <summary>The player's AdvanceAge decision queued this turn, or null.</summary>
+    public PendingAgeAdvance? PendingPlayerAdvance =>
+        Config.Ages is { } ages ? AgeQuery.PendingAdvance(World, ages, QueuedOrders(), LaborOrderFactory.PlayerEmpire) : null;
+
+    /// <summary>
+    /// ADR-031 / D-047 ruling 13: the ADVANCE AGE confirm handler. Appends exactly
+    /// <see cref="AgeQuery.AdvanceOrder"/> for the player's Empire (stamped with the CURRENT turn, so
+    /// the next turn begins in the new Age) — the same order pathway as every other directive; the UI
+    /// never writes Age state. Returns false and appends NOTHING when the session has no Age content,
+    /// when <see cref="AgeQuery.CheckAdvance"/> would reject it, or when an advance is already pending
+    /// this turn (a second order would change nothing but would still sit in the log).
+    /// </summary>
+    public bool EmitAdvanceAge(int toAge, int surgeKey)
+    {
+        if (Config.Ages is not { } ages) return false;
+        PolityId me = LaborOrderFactory.PlayerEmpire;
+        if (AgeQuery.CheckAdvance(World, ages, me, toAge, surgeKey) != AdvanceRejection.None) return false;
+        if (AgeQuery.PendingAdvance(World, ages, QueuedOrders(), me) is not null) return false;
+        Orders.Append(AgeQuery.AdvanceOrder(World, me, toAge, surgeKey));
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-031 §4: before each step the AI polities' Age decisions
+    /// (<see cref="Sim.Core.Systems.Ages.AgeAdvancePolicy.OrdersForAi"/>) are appended to the order
+    /// log like the player's click, so an AI advance replays from the log. Player-commanded polities
+    /// are never touched by the policy: the player is never auto-advanced.
+    /// </summary>
+    private void AppendAiAgeOrders()
+    {
+        if (Config.Ages is not { } ages) return;
+        foreach (OrderRecord order in Sim.Core.Systems.Ages.AgeAdvancePolicy.OrdersForAi(World, ages))
+            Orders.Append(order);
+    }
+
     /// <summary>ADR-029: clears the player's research target (progress is kept, D-044 R9).</summary>
     public void ClearResearchTarget() =>
         Orders.Append(ResearchOrderFactory.ClearTarget(World.Clock.Turn, LaborOrderFactory.PlayerEmpire));
@@ -270,6 +314,7 @@ public sealed class UiSession
     /// indices, so a policy change carries its order number.</summary>
     public void EndTurn()
     {
+        AppendAiAgeOrders();
         WorldState prev = World;
         World = _executor.Step(prev);
         PreviousWorld = prev;
