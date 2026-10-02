@@ -444,3 +444,14 @@ Tests: `FinalRuling3_NewRoadLength_IsGeographic_AndNoOtherRoadsSpeedCanChangeIt`
 highway elsewhere; the new row's `LengthKm` is unchanged) and
 `FinalRuling3_FoundedWorld_AHighwayElsewhereShortensCachedCosts_ButNotAnyCandidateRoutesLength` (the real catchment
 recompute: the cached cost falls, every bare candidate's length is identical).
+
+---
+
+**Coupling note (2026-10-02, ADR-033 D4 — appended; no transport rule or code changed).** Since §10.5 the
+road-aware `SettlementDistances` feed FOUR consumers, recorded together with file:line evidence in
+`docs/m5-governing-loop-port.md` §5 B: (1) administrative reach — `ControlRow.Strength`, the M5 tax's
+collection and burden (new; D-040 C6's road–control coupling realized); (2) migration damping
+(`MigrationSystem.cs:404-411`); (3) the trade arbitrage threshold (`TradeArbitrageSystem.cs:126, :141,
+:238-243`); (4) harvest-weather spatial correlation (`HarvestWeatherSystem.cs:121, :211-226`) —
+ESCALATED: should weather correlation use geographic distance rather than road-aware travel cost? §7's
+"the trade system is unchanged" refers to the freight travel-time hook (`TransportQuery`) only.

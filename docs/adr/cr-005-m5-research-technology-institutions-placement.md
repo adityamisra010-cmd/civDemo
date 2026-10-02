@@ -153,3 +153,18 @@ question this CR needs answered, and it is a director call, not an agent's.
 
 **No option is implemented. Awaiting ruling.** The scope itself is recorded
 separately and is safe to accumulate under any ruling.
+
+---
+
+**Note (2026-10-02, ADR-033 D4 — appended; the status above is UNCHANGED: OPEN, awaiting the Director).**
+The unmerged `origin/m5-full-build` branch carried a §6 "ruled as Option C" text for this CR
+(`83c8c1a`, including "DO NOT ACTIVATE M6/M7 GAMEPLAY IN M5"). That text is deliberately NOT imported by
+the M5 integration pass, which ports only the governing loop from that branch (ADR-033 D4):
+
+- D-044 Part T, row T1 (`docs/d044-research-progression-rulings.md:839`) records that the research
+  foundation instruction and the unmerged Option C "cannot both land".
+- The Director's integration directive of 2026-10-02 ships research (ADR-029/030), the Ages (ADR-031)
+  and the road network (ADR-032) LIVE on the integration branch — the opposite of Option C's
+  "do not activate".
+- The formal disposition of this CR, and the `CLAUDE.md:10` milestone line, remain the Director's.
+  Nothing in the integration pass rules on it.
