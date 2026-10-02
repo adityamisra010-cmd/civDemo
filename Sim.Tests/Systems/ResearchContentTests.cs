@@ -331,6 +331,163 @@ public class ResearchContentTests
         Assert.True(ResearchQuery.IsAvailable(Canonical, launch, all, true));
     }
 
+    // ------------------------------------------------------------------ D-047 (Civ VI reference and progression rulings)
+
+    [Fact]
+    public void D047_TheFiveFoundingActivities_RequireNoNode_AndAreEligibleWithZeroNodes()
+    {
+        var none = new bool[Canonical.Nodes.Count];
+        foreach (string id in new[] { "activity.farming", "activity.herding", "activity.fishing", "activity.logging", "activity.mining" })
+        {
+            int e = Canonical.EntityIndexOf(id);
+            Assert.True(e >= 0, id);
+            Assert.Null(Canonical.Entities[e].Requirement);
+            Assert.Empty(Canonical.Entities[e].NodeAtoms);
+            Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, e, none), id);
+            foreach (ResearchNode n in Canonical.Nodes)
+                Assert.DoesNotContain(e, n.UnlockedEntities);                // the reverse index agrees
+        }
+        // The classes D-047 keeps technology-owned stay gated: fish weirs (ruling 5), improved
+        // coastal/seagoing (sail) and oceanic transport (ruling 7), road classes (ruling 8).
+        foreach (string gated in new[] { "infra.fish_weir", "activity.coastal_shipping", "activity.ocean_shipping",
+                                         "infra.road_track", "infra.road_paved", "infra.road_macadam" })
+            Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, Canonical.EntityIndexOf(gated), none), gated);
+    }
+
+    [Fact]
+    public void D047_ResearchBuildsNoVessel_TheWatercraftNodesUnlockTransportClasses()
+    {
+        // Ruling 7: primitive -> improved coastal/seagoing (sail_square) -> oceanic. The coastal and
+        // oceanic shipping activities are the classes; no node unlocks a building or unit for them.
+        Assert.Equal("sail_square", Canonical.Entities[Canonical.EntityIndexOf("activity.coastal_shipping")].Requirement!.Source);
+        foreach (string ocean in new[] { "caravel", "carrack", "polynesian_canoe" })
+            Assert.Contains(Canonical.EntityIndexOf("activity.ocean_shipping"), Canonical.Nodes[Canonical.IndexOfId(ocean)].UnlockedEntities);
+        Assert.Contains(Canonical.Nodes[Canonical.IndexOfId("sail_square")].Capabilities, c => c.Contains("coastal and seagoing transport class", StringComparison.Ordinal));
+        // Ruling 8: the road nodes are infrastructure-CLASS unlocks, and none was deleted.
+        foreach (string road in new[] { "track_road", "road_paved", "macadam" })
+            Assert.All(Canonical.Nodes[Canonical.IndexOfId(road)].Capabilities, c => Assert.Contains("class", c, StringComparison.Ordinal));
+    }
+
+    /// <summary>The earliest year (CE positive, BCE negative) carrying an explicit era marker
+    /// (CE, BCE, kya, Mya) in an <c>emerged</c> text; null when no date has one. A range
+    /// "1860-1880 CE" counts both ends. The heuristic of gap audit G-34.</summary>
+    internal static double? EarliestMarkedYear(string? emerged)
+    {
+        if (emerged is null) return null;
+        double? best = null;
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(emerged,
+                     @"(\d[\d,]*(?:\.\d+)?)(?:\s*[-–/]\s*(\d[\d,]*(?:\.\d+)?))?\s*(BCE|CE|kya|Mya)\b"))
+            for (int g = 1; g <= 2; g++)
+            {
+                if (!m.Groups[g].Success) continue;
+                double v = double.Parse(m.Groups[g].Value.Replace(",", "", StringComparison.Ordinal), System.Globalization.CultureInfo.InvariantCulture);
+                double y = m.Groups[3].Value switch { "CE" => v, "BCE" => -v, "kya" => -v * 1000.0, _ => -v * 1e6 };
+                if (best is null || y < best) best = y;
+            }
+        return best;
+    }
+
+    [Fact]
+    public void D047_Causal_NoRequiredPrerequisiteEmergedAfterItsDependent()
+    {
+        // Ruling 1 (strict): a prerequisite must be causally and historically possible before the node
+        // it gates. For every dependent dated after 3000 BCE, no must-held (AND) prerequisite may carry
+        // an explicitly dated emergence later than the dependent's. No exemption is needed: the eleven
+        // G-34 hits were fixed or re-scoped by D-047 (per-edge table there). Bare-year texts
+        // (e.g. genome_sequencing "1977", pcr "1983") carry no marker and are reviewed in D-047 by hand.
+        Assert.Equal(1895.0, EarliestMarkedYear("1895 CE"));
+        Assert.Equal(-200.0, EarliestMarkedYear("~100 CE Alexandria; ~200 BCE China"));
+        Assert.Equal(1860.0, EarliestMarkedYear("1860-1880 CE"));
+        Assert.Equal(-44000.0, EarliestMarkedYear("~44 kya Lebombo; ~20 kya Ishango"));
+        Assert.Null(EarliestMarkedYear("1977 Sanger; 2001 human genome"));
+        var violations = new List<string>();
+        int dated = 0, edges = 0;
+        foreach (ResearchNode n in Canonical.Nodes)
+        {
+            if (EarliestMarkedYear(n.Emerged) is not { } y) continue;
+            dated++;
+            if (y <= -3000.0 || n.Prerequisite is null) continue;
+            foreach (int a in n.Prerequisite.MustHoldAtoms())
+            {
+                if (EarliestMarkedYear(Canonical.Nodes[a].Emerged) is not { } ya) continue;
+                edges++;
+                if (ya > y) violations.Add($"{n.Id} ({y}) <- {Canonical.Nodes[a].Id} ({ya})");
+            }
+        }
+        Assert.Empty(violations);
+        Assert.Equal(Canonical.Nodes.Count - 83, dated);      // the 83 marker-free texts are not tested
+        Assert.True(edges > 300, $"only {edges} dated edges checked");
+        // The two Director examples, explicitly.
+        Assert.DoesNotContain(Canonical.IndexOfId("vacuum_tube"), MustClosure(Canonical.IndexOfId("xray")));
+        Assert.DoesNotContain(Canonical.IndexOfId("germ_theory"), MustClosure(Canonical.IndexOfId("canning")));
+    }
+
+    /// <summary>Every node in any prerequisite of <paramref name="index"/> (AND and OR), transitively.</summary>
+    private static SortedSet<int> AnyClosure(int index)
+    {
+        var all = new SortedSet<int>();
+        var stack = new Stack<int>();
+        stack.Push(index);
+        while (stack.Count > 0)
+            foreach (int a in Canonical.Nodes[stack.Pop()].PrerequisiteNodes) if (all.Add(a)) stack.Push(a);
+        return all;
+    }
+
+    [Fact]
+    public void D047_PenicillinsPrerequisiteClosure_ContainsNoSurgeryFamilyNode()
+    {
+        SortedSet<int> closure = AnyClosure(Canonical.IndexOfId("antibiotic_penicillin"));
+        Assert.Contains(Canonical.IndexOfId("germ_theory"), closure);
+        Assert.True(Canonical.Nodes.Count(n => n.Family == "surgery") >= 6);
+        Assert.DoesNotContain(closure, i => Canonical.Nodes[i].Family == "surgery");
+    }
+
+    [Fact]
+    public void D047_Generations_AreLocalToTheirFamily()
+    {
+        // D-044 R7: a generation is an index within its own family, and no prerequisite (direct or
+        // transitive, AND or OR) of a generation-g node is a same-family node of generation >= g.
+        int generational = 0;
+        foreach (ResearchNode n in Canonical.Nodes)
+        {
+            if (n.Generation is not { } g) continue;
+            generational++;
+            Assert.False(string.IsNullOrEmpty(n.Family), $"{n.Id}: a generation without a family");
+            Assert.True(g >= 1, n.Id);
+            foreach (int a in AnyClosure(n.Index))
+            {
+                ResearchNode p = Canonical.Nodes[a];
+                if (p.Family == n.Family && p.Generation is { } pg)
+                    Assert.True(pg < g, $"{n.Id} (gen {g}) requires {p.Id} (gen {pg}) of the same family");
+            }
+        }
+        Assert.True(generational > 50, $"only {generational} generational nodes");
+        // The D-047 finance repair: bills of exchange came first, and double entry builds on them.
+        Assert.Equal(1, Canonical.Nodes[Canonical.IndexOfId("bill_of_exchange")].Generation);
+        Assert.Equal(2, Canonical.Nodes[Canonical.IndexOfId("double_entry")].Generation);
+    }
+
+    [Fact]
+    public void D047_ArsenicalBronzeEureka_IsArsenicalOreExposure_NotAGenericCopperStockCondition()
+    {
+        ResearchNode n = Canonical.Nodes[Canonical.IndexOfId("arsenical_bronze")];
+        ResearchEureka e = Assert.Single(n.Eurekas);
+        Assert.Null(e.Condition);                                   // copper-ore stock is not arsenical evidence
+        Assert.False(e.EvaluableNow);
+        Assert.Equal("authored", e.Source);
+        Assert.Equal("exposure", e.Kind);
+        Assert.Contains("rsenic", e.Text, StringComparison.Ordinal);
+        Assert.Contains("arsenic", e.Justification, StringComparison.Ordinal);
+        Assert.DoesNotContain("stock_copper_ore", e.Text, StringComparison.Ordinal);
+        Assert.True(e.Weight <= 0.4);
+        // No Eureka anywhere still reads the generic copper-ore stock except copper smelting,
+        // whose authored justification ties the ore to the discovery itself.
+        foreach (ResearchNode m in Canonical.Nodes)
+            foreach (ResearchEureka x in m.Eurekas)
+                if (x.Condition is { } c && c.Source.Contains("stock_copper_ore", StringComparison.Ordinal))
+                    Assert.Equal("copper_smelting", m.Id);
+    }
+
     // ------------------------------------------------------------------ the rig is valid (baseline for every rejection)
 
     [Fact]

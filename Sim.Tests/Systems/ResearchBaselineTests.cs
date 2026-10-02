@@ -59,6 +59,45 @@ public class ResearchBaselineTests
     }
 
     [Fact]
+    public void D047_FireHaftingFishingWatercraftShelterAndPaths_AreDeclaredBaseline()
+    {
+        // D-047 rulings 2-8: fire, primitive hafted tools, basic fishing, primitive water transport,
+        // basic shelter and basic paths are baseline -- outside the graph, honest about simulation.
+        ResearchContent content = TestConfigs.Research();
+        IReadOnlyList<ResearchBaselineCapability> baseline = ResearchQuery.BaselineCapabilities(content);
+        (string Id, bool Simulated)[] expected =
+        [
+            ("baseline.fire", false), ("baseline.primitive_hafted_tools", false), ("baseline.basic_fishing", true),
+            ("baseline.primitive_water_transport", false), ("baseline.basic_shelter", true), ("baseline.basic_paths", true),
+        ];
+        foreach ((string id, bool simulated) in expected)
+        {
+            ResearchBaselineCapability b = Assert.Single(baseline, x => x.Id == id);
+            Assert.Equal(simulated, b.Simulated);
+            Assert.Contains(simulated ? "System" : "not ", b.ProvidedBy, StringComparison.Ordinal);
+            Assert.Equal(-1, content.IndexOfId(id));
+        }
+        // G-20: no baseline text names a system that does not exist.
+        foreach (ResearchBaselineCapability b in baseline)
+            Assert.DoesNotContain("/ HarvestSystem", b.ProvidedBy, StringComparison.Ordinal);
+        // The founding nodes that once claimed these are re-scoped to advanced forms (ids and keys kept).
+        Assert.Equal(1, content.Nodes[content.IndexOfId("fire_making")].Key.Value);
+        Assert.Contains("baseline", content.Nodes[content.IndexOfId("fire_making")].Description, StringComparison.Ordinal);
+        Assert.Contains("baseline", content.Nodes[content.IndexOfId("fishing_hook")].Description, StringComparison.Ordinal);
+        Assert.Contains("baseline", content.Nodes[content.IndexOfId("raft")].Description, StringComparison.Ordinal);
+        Assert.Contains("baseline", content.Nodes[content.IndexOfId("hafting")].Description, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void D047_BasicFishingRuns_WithZeroCompletedNodes_AndActivityFishingIsEligible()
+    {
+        ResearchContent content = TestConfigs.Research();
+        int fishing = content.EntityIndexOf("activity.fishing");
+        Assert.True(ResearchQuery.IsKnowledgeEligible(content, fishing, new bool[content.Nodes.Count]));
+        Assert.Equal(0, Found().ResearchCompleted.Count);
+    }
+
+    [Fact]
     public void Baseline_TheSimulatedCapabilitiesWork_WithZeroCompletedNodes()
     {
         // No research order at all: nothing is ever completed, yet the civilization gathers food,
