@@ -112,3 +112,22 @@ Per-asset extra slots:
 - **Permitted and to be pushed hard:** settlements and structures, terrain relief, forests, fields, roads and bridges, ships and carts, army and formation tokens, banners, borders, production and resource glyphs.
 - **Where people must appear they are silhouettes or tokens.** Already ruled for battles — D-011 §4: "each token drawn as a cluster of tiny sprites thinning as strength drops — Ultimate-General-style". D-038 C1 generalises that ruling to the whole visual layer rather than creating a new one.
 - **The fence is also the right design:** at map scale a figure reads as a smudge; a silhouette reads as an army. The constraint costs nothing the game needs.
+
+---
+
+> **NOTE (2026-10-02, append-only) — the UI frame now follows the player's Age (ADR-033 D8).**
+> The §6 acceptance line "The medium reads identically at year −4000 and any later date (frame is
+> era-invariant)" is SUPERSEDED FOR THE UI FRAME by the Director's instruction of 2026-10-02, recorded
+> in `docs/adr/adr-033-m5-integration-pass.md` D8. The interface's panels, chrome, controls and UI
+> typography now take a visual era derived by one pure function from the player's authoritative Age
+> (`UiEra = f(AgeQuery.CurrentAge(...))`, never stored in the simulation), on one token system that evolves
+> across the nine Ages around the same layout regions, navigation, interaction rules and semantic colours
+> (`docs/architecture/era-ui.md`). The superseded line stays in §6 as written, per the S8 §5 audit-trail
+> convention; nothing above this note was edited.
+>
+> **What still holds.** The parchment substrate of §1–§2 is unchanged and remains the A6-centred material:
+> the UI's Medieval era (A6) is this document's palette exactly (paper light, mid and shade; ink primary
+> and soft; iron-red, gold-leaf, verdigris), the centre of the continuum rather than its only point. The
+> map substrate — parchment, washes, coastlines, hydrography — is not re-themed by this change; UI
+> furniture stays lit flat in every era (§1, two-layer rule); the single-cartographer rule for generated
+> art and §7 are untouched. D-002 (ImGui is the game UI) and D-038 (the map shows what IS) are unaffected.
