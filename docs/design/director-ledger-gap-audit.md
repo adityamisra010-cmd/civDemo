@@ -25,11 +25,11 @@
 
 | branch | HEAD | upstream | merge-base with `main` | ahead / behind `main` | last commit | classification |
 |---|---|---|---|---|---|---|
-| `research-progression-foundation` | `5e83e61` | `origin/research-progression-foundation`, in sync | `93270cd` | +19 / −0 | 2026-10-01 | **ACTIVE.** PR #10 is open and not merged. CI is green on `5e83e61`: `build-and-test`, `determinism`, `determinism-xproc` and `calibration` succeeded on 2026-10-01; `calibration-nightly` was skipped |
+| `research-progression-foundation` | `5e83e61` | `origin/research-progression-foundation`, in sync | `93270cd` | +19 / −0, measured at `5e83e61` before this pass's documentation commits | 2026-10-01 | **ACTIVE.** PR #10 is open and not merged. CI is green on `5e83e61`: `build-and-test`, `determinism`, `determinism-xproc` and `calibration` succeeded on 2026-10-01; `calibration-nightly` was skipped |
 | `main` | `93270cd` | — | — | — | 2026-09-30 | accepted truth |
 | `claude/civdemo-work-b1z2y4` | `6dded01` | origin | `de5e00e` | +22 / −6 | 2026-09-30 | **ACTIVE, UNMERGED.** It holds D-043, CR-017 and the Trees, Ages and world UI. It is not an ancestor of `5e83e61` |
-| `m5-full-build` | `9a79d1e` | origin | `dbef61a` | +4 / −174 | 2026-09-05 | **STALE against `main`.** It holds the unmerged M5 governing loop and CR-008 |
-| `t4.19-glass-box` | no remote ref | — | — | — | — | **MERGED.** Its tip `221f883` is an ancestor of `main` |
+| `m5-full-build` | `9a79d1e` | origin | `dbef61a` | +4 / −174 | 2026-09-05 | **STALE against `main`.** It holds the unmerged M5 governing loop, CR-008, and a copy of CR-005 marked RULED (Option C) |
+| `t4.19-glass-box` | `2807155` (local only; no remote ref) | — | — | — | 2026-09-16 | **MERGED.** Its tip `2807155`, and the handoff's `221f883`, are ancestors of `main` |
 
 - **Working tree.** It was clean at `5e83e61` before this pass. This pass adds two documents: the ledger and this audit.
 - **The ledger.** No canonical ledger existed on any of the 157 local and remote refs before this pass (measured).
@@ -205,7 +205,7 @@ asserts zero `Structures` and zero `ConstructionQueue` rows after completion (`:
 
 **Implementation:**
 - **Content.** Entity requirements (`infra.road_*`, `building.harbour`, `infra.fish_weir`, …) are declarations only.
-- **No consumer** reads knowledge eligibility.
+- **No simulation system** consumes knowledge eligibility. Only the `sim research` CLI reports it (`Sim.Cli/ResearchCli.cs:155`).
 - **Construction** accepts any known project, with no technology predicate (`ConstructionSystem.cs:92-97`).
 - **Paths.** PathBuild lays only `DirtPath` edges, and water nodes are impassable
   (`Sim.Core/Pathing/TraversalLattice.cs:14-15`).
@@ -315,8 +315,10 @@ over all 430 nodes:
 
 **G-12 — RATIFIED DIRECTOR DECISION.** It is now recorded in the repository, in the ledger itself.
 - Before this pass, no file on any ref named the five categories (ledger R6.2).
-- D-043 A2 (UNMERGED-B) rules the structure (core plus supporting milestones, with category coverage) but
-  names no categories.
+- D-043 A2 (UNMERGED-B) rules the structure (core plus supporting milestones, with category coverage). It gives
+  example categories (military, economic, institutional, infrastructure, knowledge;
+  `d043-civilization-progression-ages-and-mobile-agents.md:97-107` and F27 `:1063-1064` there) but rules no list,
+  and its examples do not match the five.
 
 **G-13 — IMPLEMENTATION CONFLICT (UNMERGED-B).**
 - **Categories.** `ages.json` has four provisional categories and no Military Realization.
@@ -324,8 +326,10 @@ over all 430 nodes:
   express coverage or a sufficient count (D-043 F27).
 
 **G-14 — OPEN DECISION: AGE-MS-1.** Who owns and evaluates Age milestones (ledger R6.3).
-- **Distinct from CR-005.** CR-005 is the development-milestone placement question. It stays OPEN and is not
-  touched.
+- **Distinct from CR-005.** CR-005 is the development-milestone placement question. It is OPEN on MAIN and
+  PR #10 and is not touched. The unmerged `m5-full-build` carries a copy marked *"RULED 2026-09-05 — OPTION C
+  ACCEPTED"* (`cr-005-m5-research-technology-institutions-placement.md:3` there), which D-044 T1 already records
+  (`d044-research-progression-rulings.md:839`).
 - **Conversational input.** Statement 2.21, headed "CR-005 milestone ownership", maps milestone ownership by
   system. It is AGE-MS-1 input, pending recording.
 - **DEFERRED.** Milestone lists and thresholds (§27).
@@ -368,7 +372,7 @@ over all 430 nodes:
 **G-16 — OPEN DECISION.** Binding the frozen dt rules to Ages is a frozen-item question (ledger R4.14). The
 frozen texts are Spine S3 (`civ-sim-architecture-v3-outline.md:34`) and D-006 (`m0-kernel-spec.md:13`, `:25`).
 - Spine S3 keys global dt to the most advanced polity's **era band**. D-006 indexes on world date until M6.
-- **Where it is held.** Architecture §19 item 7 (OPEN) on PR #10, and DD-T7 on UNMERGED-B.
+- **Where it is held.** Architecture §19 item 7 (OPEN; MAIN and PR #10), and DD-T7 on UNMERGED-B.
 - **A CR is required before any code.** No CR covers the binding; CR-019 is the next free number (not minted).
 
 **G-17 — HISTORICAL / SUPERSEDED IN PART.** ADR-019 §1.3 records *"dt CHANGES TAKE EFFECT IMMEDIATELY … RECORDED
@@ -384,8 +388,8 @@ AS A GAP"* — the Director's earlier preference for a change "at once with an e
 **Implementation:**
 - **Six baseline entries:** `research.json:46-83` lists settlement_founding, exploration, basic_military,
   food_gathering, construction and migration.
-- **Granary and workshop** have null requirements and are constructible with zero completed nodes (pinned in
-  `ResearchContentTests` and `ResearchBaselineTests`).
+- **Granary and workshop** have null requirements and are constructible with zero completed nodes (pinned by
+  `ResearchContentTests.Baseline_GranaryAndWorkshop_AreConstructibleWithZeroTechnology`, `:270`).
 - **Sectors run research-free:** farming, herding and fishing, extraction, crafting and construction.
 - **The matrix** classifies 48 items as A BASELINE (`research-capability-ownership.md:45`).
 
@@ -410,7 +414,7 @@ AS A GAP"* — the Director's earlier preference for a change "at once with an e
 **G-19 — IMPLEMENTATION CONFLICT (content).** Node capability and technique strings claim baseline
 capabilities (matrix §5 item 3, `:78`). The node-by-node review is in §3.
 
-**G-20 — CONTENT GAP.** Baseline `providedBy` texts misdescribe the code (matrix §5 item 2, `:77`).
+**G-20 — STALE DOCUMENTATION (content text).** Baseline `providedBy` texts misdescribe the code (matrix §5 item 2, `:77`).
 - `baseline.food_gathering` names a `HarvestSystem` that does not exist.
 - The settlement-founding and construction texts are also wrong.
 
@@ -484,7 +488,9 @@ branch. Nothing conflicts until a sixth type is wanted.
 **Implementation (measured):**
 - **81 Eurekas on 80 nodes.** `railway` has two, at 0.2 each.
 - **Source:** 73 authored and 8 inherited.
-- **Evaluable today:** 18 (knowledge state). The other 63 are future-system conditions, which are DEFERRED by design:
+- **Evaluable today:** 18. Fifteen read knowledge state; three read goods stocks (`copper_smelting` and
+  `arsenical_bronze`: `stock_copper_ore > 0`; `tin_bronze`: `stock_tin_ore > 0`). The other 63 are future-system
+  conditions, which are DEFERRED by design:
 
   | future system | Eurekas |
   |---|---|
@@ -519,9 +525,10 @@ branch. Nothing conflicts until a sixth type is wanted.
   accelerator logic: *"inherited; the resource is distinctive …"* or *"inherited event condition …"*. They are on
   adhesive_natural, arsenical_bronze, glass_glaze, greek_fire, sulphuric_acid, antiviral_drugs,
   catalytic_converter and stealth. §8.5 asks for review.
-- **(b) A condition broader than its text.** `arsenical_bronze`'s condition `stock_copper_ore > 0` is the only
-  evaluable inherited one. It is broader than its text ("arsenical copper ore (fahlore)") and reads a
-  realization material, which §26 item 27 makes a review case.
+- **(b) Goods-stock conditions.** Three evaluable conditions read a realization material, which §8.5 and §26
+  item 27 allow only with a justification. `copper_smelting` and `tin_bronze` are authored with one.
+  `arsenical_bronze`'s condition, `stock_copper_ore > 0`, is inherited, carries the generic justification, and
+  is broader than its text ("arsenical copper ore (fahlore)"). It is a review case.
 - **Not a finding.** The one `construction` Eureka (`road_paved`, "Built roads already exist") is authored with a
   justification, which §8.5 permits.
 
@@ -545,8 +552,9 @@ contact, understanding, adoption and realization. These are DEFERRED.
 **Implementation:** no MobileAgent, Action Capacity, Army or War Pulse type exists in `Sim.Core` or `Sim.Ui`
 (measured).
 
-**G-27 — OPEN DECISION, plus a record gap.** The MobileAgent rulings exist in the repository only as D-043 B1–B6
-and CR-017, both on UNMERGED-B. CR-017 holds these collisions open:
+**G-27 — OPEN DECISION, plus a record gap.** Apart from D-045 §1's *"Do NOT create a Builder MobileAgent"*
+(`d045-research-calibration-rulings.md:55`, PR #10), the MobileAgent rulings exist in the repository only as
+D-043 B1–B6 and CR-017, both on UNMERGED-B. CR-017 holds these collisions open:
 
 | CR-017 § | collision |
 |---|---|
@@ -565,8 +573,10 @@ simulated — no mobile agents exist (D-043)"*. It cites a record absent from th
 
 **Implementation:**
 - **No armies.** The M4 exit certified *"No AutoResolver and no armies"* (`docs/milestones.md:326`).
-- **Network-only movement.** Movement follows the D-009 network: PathBuild lays `DirtPath` edges, water is
-  impassable, and boats are a later milestone (`PathBuildSystem.cs:42-45`).
+- **Lattice pathing, land only.** Flow pathfinding (catchments, distances, PathBuild routing) runs on the
+  terrain lattice, with network edges as fast lanes (`Sim.Core/Pathing/TraversalLattice.cs:8-10`;
+  `Sim.Core/Pathing/Pathfinder.cs:43`, `:313-329`). It already leaves the roads over land. Positions are discrete
+  lattice nodes, water-majority nodes are impassable, and boats are a later milestone (`PathBuildSystem.cs:42-45`).
 - **No War Pulse** exists.
 
 **Findings:**
@@ -577,6 +587,10 @@ simulated — no mobile agents exist (D-043)"*. It cites a record absent from th
 |---|---|---|
 | §18: off-road movement at continuous x/y, ships on open water | frozen D-009/D-010 (one network) and D-040 B4 (MAIN) | CR-017 §5 |
 | §19: War Pulses that cross turn boundaries, with full operational control | the kernel contract §3.2/§3.4, the sub-step rule and D-011 | CR-017 §6, ruled together with CR-006 §1 |
+
+The shipped lattice already allows off-road paths over land. So for today's code, the live §18 divergences are
+continuous x/y positions and open-water movement, not road-only movement. The frozen D-009/D-010 collision
+concerns MobileAgent movement on the network graph (CR-017 §5).
 
 **G-29 — HISTORICAL / SUPERSEDED IN PART.** Two older texts give way to ledger §19, the later Director
 ruling:
@@ -663,7 +677,7 @@ CONFLICT. The Director must choose between two readings:
 - **The loader checks the set,** and availability requires the subtree to be exhausted (`ResearchQuery.cs:99-116`).
 - **Each completes once.** Levels are not implemented (`ResearchContent.cs:137-142`).
 
-**Test:** `Canonical_RecursiveSet_TheTenRepeatables_WaitForTheirOwnSubtreesFiniteResearch` (`ResearchContentTests.cs:282`).
+**Test:** `Canonical_RecursiveSet_TheTenRepeatables_WaitForTheirOwnSubtreesFiniteResearch` (`ResearchContentTests.cs:283`; the counts are asserted at `:292-295`).
 
 **G-38 — latent; DEFERRED.** `frontier_medicine` waits on all 21 finite medicine nodes, including ones that are
 not causal prerequisites of biomedical research. This binds only once repeat mechanics exist (D-046 G4).
@@ -684,7 +698,8 @@ not causal prerequisites of biomedical research. This binds only once repeat mec
 **G-34 — CONTENT REVIEW: chronology candidates.** These are measured with a heuristic and are not established
 defects.
 - **The test.** A required (AND) prerequisite whose own recorded emergence is later than its dependent's,
-  among dependents dated after 3000 BCE. Each node's date is the earliest date in its `emerged` text.
+  among dependents dated after 3000 BCE. Each node's date is the earliest date in its `emerged` text. Only
+  dates with an explicit era marker (CE, BCE, kya or Mya) count; the 83 nodes whose text has none were not tested.
 - **The result.** 11 hits. One is negligible: `jet_engine` 1939 ← `superalloy` ~1940.
 - **Why they matter.** Architecture §6.2 (RATIFIED) makes prerequisites causal, never chronological. A
   prerequisite recorded as later cannot have been the historical cause, unless the date or the edge is wrong.
@@ -703,6 +718,16 @@ The ten:
 | `cotton_gin_saw` | 265 | 1793 CE | `milling_machine` | ~1818 CE |
 | `cannon_cast_bronze` | 224 | ~1400 CE | `corned_powder` | ~1420 CE |
 | `xray` | 336 | 1895 CE | `vacuum_tube` | 1906 CE |
+
+**Read with bare years as CE,** five more appear:
+- `genome_sequencing` (1977) ← `pcr` (1983);
+- `superconductivity_applied` (1911) ← `quantum_mechanics` (1925);
+- `precision_agriculture` (1990s) ← `gps` (1995);
+- `combat_drone` (1990s) ← `gps` (1995);
+- `cmos_vlsi` (1970s) ← `microprocessor` (1971).
+
+`genome_sequencing` ← `pcr` is the same kind of candidate as `xray` ← `vacuum_tube`. The three decade-dated
+texts sit within their own date precision.
 
 **G-35 — STALE DOCUMENTATION.** The matrix row at `research-capability-ownership.md:1921` mis-anchors two unlock
 lists:
@@ -737,7 +762,7 @@ coastal shipping; and the road-tier nodes.
 - **Handling** is PROPOSED and not applied. It is a Director content decision (D-046 F§1).
 - **No node is deleted.**
   - Keys are stable (`research.json:5`).
-  - The finite and subtree counts are pinned (`ResearchContentTests.cs:282`).
+  - The finite and subtree counts are pinned (`ResearchContentTests.cs:292-295`).
   - A node left with no strings and no dependents is rejected by the loader as an orphan.
 
 | node or entity (key) | line | claims | claim class | handling (PROPOSED) |
@@ -759,7 +784,7 @@ coastal shipping; and the road-tier nodes.
 | **tools** — `knapping_oldowan` (2) | `:232` | "cutting edges", "butchery", "bone-breaking for marrow" | **BASELINE** claims (stone tools) | Record as non-owning. Whether A1 nodes stay researchable is tied to CR-006 and D-044 T7 (OPEN) |
 | `fire_making` (1) | `:167` | fire on demand; fire-hardening of wood, roasting and pit cooking, the thrown spear (`:194-197`) | **UNRESOLVED**: is fire baseline? Baseline cooking and wooden implements presuppose it | Director decides. If fire is baseline, re-scope the node to improved pyrotechnology (7 dependents) |
 | `adhesive_natural` (9) | `:676` | "hafting" | **UNRESOLVED** (with `hafting`) | Director |
-| `hafting` (11) | `:817` | "thrusting spear", "axe", "adze" (`:836-837`); gates `unit.spearmen` (`:28840`) | **UNRESOLVED**: are hafted tools basic, or improved composite tools? The founding unit's equipment depends on the answer (matrix `baseline.basic_military`) | Director |
+| `hafting` (11) | `:817` | "thrusting spear", "axe", "adze" (`:835-837`); gates `unit.spearmen` (`:28840`) | **UNRESOLVED**: are hafted tools basic, or improved composite tools? The founding unit's equipment depends on the answer (matrix `baseline.basic_military`) | Director |
 | `bone_tools` (26) | `:1803` | "harpoons", "awls", "needles", "points" | **BASELINE** claims (basic implements) | Record as non-owning, or re-scope (2 dependents) |
 | `digging_stick_hoe` (39) | `:2656` | "tillage", "weeding", "planting" | **BASELINE** claims (basic agricultural implements); the node is **ADVANCED IMPROVEMENT** (the hafted hoe before the ard) | Re-scope. `plough_ard` depends on it |
 | `sickle` (38) | `:2592` | "efficient cereal harvest" | **ADVANCED IMPROVEMENT** (already efficiency-scoped) | none |
@@ -828,7 +853,7 @@ coastal shipping; and the road-tier nodes.
 | 5 | manual percentage allocation | absent: one target |
 | 6 | Age-gated technology availability | absent: Age never read |
 | 7 | universal CapabilitySystem | absent (measured) |
-| 8 | individual building objects on the map | not on this branch. The world layer on UNMERGED-B draws up to four institutions per settlement individually (D-043 F37) |
+| 8 | individual building objects on the map | not on this branch. The world layer on UNMERGED-B draws up to four reports per visual type per settlement individually (D-043 F37) |
 | 9 | universal institution caps | absent |
 | 10 | RP × `dtYears` | absent (ADR-030 code site) |
 | 11 | reusable per-turn mechanism | absent (ADR-030 §3) |
@@ -837,7 +862,7 @@ coastal shipping; and the road-tier nodes.
 | 14 | mandatory nationality recruitment | absent |
 | 15 | mandatory recruitment payment | absent |
 | 16 | identical movement profiles | no MobileAgents |
-| 17 | road-only movement | no MobileAgents. The shipped network-only pathing for flows is frozen D-009 state, not a reintroduction (G-28) |
+| 17 | road-only movement | absent. No MobileAgents exist, and flow pathing already leaves the roads on the terrain lattice, with roads as fast lanes (area 24) |
 | 18 | blanket no-control rule during War Pulses | no War Pulses exist. D-039 E3 is superseded in part (G-29) |
 | 19 | repricing to hit Age durations | absent: the loader rejects calibration adjustments (`ResearchContent.cs:757-758`) |
 | 20 | fake baseline research nodes | absent: the loader rejects a baseline id that is also a node |
@@ -873,9 +898,9 @@ Director has not ruled acceptance.
 | class | findings |
 |---|---|
 | RATIFIED DIRECTOR DECISION (newly recorded in the repository) | G-12, the five categories. More generally, ledger Part I as a whole |
-| STALE DOCUMENTATION | G-02, G-07, G-11, G-30, G-35, G-37 |
+| STALE DOCUMENTATION | G-02, G-07, G-11, G-20 (content text), G-30, G-35, G-36 (reference), G-37 |
 | IMPLEMENTATION GAP | G-06, G-09, G-21 (content), G-23 (test), G-26 (content), G-27 (code absent) |
-| IMPLEMENTATION CONFLICT | G-10 and G-13 (both UNMERGED-B UI), G-18, G-19, G-20 (text), G-32 (PathBuild), G-33 (NOT) |
+| IMPLEMENTATION CONFLICT | G-10 and G-13 (both UNMERGED-B UI), G-18, G-19, G-32 (PathBuild), G-33 (NOT) |
 | OPEN DECISION | G-01, G-04, G-05, G-08, G-14 (**AGE-MS-1**), G-15, G-16, G-22, G-24, G-25, G-27, G-28, G-31, G-32, G-33, G-34, G-39; and **CR-005**, untouched |
 | DEFERRED | G-06, G-09, G-38; area 22; §27 in full |
 | HISTORICAL / SUPERSEDED | G-03, G-17, G-29; ledger R4.1–R4.6, R4.10, R4.17, R4.19–R4.21 |
@@ -905,5 +930,5 @@ None of these changes is applied.
 | P14 | Reconcile UNMERGED-B with MAIN: D-043, CR-017, and the UI's six Ages and four categories; resolve the DD-13/DD-14 collision | `claude/civdemo-work-b1z2y4` documents and `Sim.Ui/UiContent/trees/ages.json` | UI content | G-10, G-13, G-27, G-30 | ledger §10, §10.4; R4.16 | a Director decision on the branch merge | **LATER** |
 | P15 | Rule CR-017 §1–§7 (Ages as state, the surge, Action Capacity, modernization, movement, War Pulses, special people) | `docs/adr/cr-017-….md` (UNMERGED-B) | — | G-15, G-27, G-28 | ledger §10, §17–§19 | P14 for the record to reach MAIN | **LATER** |
 | P16 | Rule AGE-MS-1 (Age-milestone ownership) | ledger annex R6.3; a future D-record | the future Age system | G-14 | ledger §10.4, §2.3 | P15 §1 (Age as an input) | **LATER** |
-| P17 | Rule CR-005 (development-milestone placement) | `docs/adr/cr-005-….md` | — | the M5 entry | CR-005 options A/B/C | Director | **LATER** (Director's timing) |
+| P17 | Rule CR-005 (development-milestone placement): OPEN on MAIN and PR #10; marked RULED (Option C) only on the unmerged `m5-full-build` | `docs/adr/cr-005-….md` | — | the M5 entry | CR-005 options A/B/C | Director | **LATER** (Director's timing) |
 | P18 | Append notes on ADR-019 §1.3 (dt timing) and D-039 E3 (War Pulses) | `docs/adr/adr-019-….md`; `docs/d039-…md` | none | G-17, G-29 | ledger §10.3, §19 | Q-73 (whether post-freeze D-records are frozen) for D-039 | **NOW** (ADR-019) / **LATER** (D-039) |

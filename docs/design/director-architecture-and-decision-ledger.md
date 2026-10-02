@@ -1420,7 +1420,7 @@ These annexes reconcile Part I with the repository. They are bound by four rules
 | tag | meaning |
 |---|---|
 | **MAIN** | on `origin/main` `93270cd` |
-| **PR #10** | only on `research-progression-foundation` (`5e83e61`; PR #10, open, not merged; 19 commits ahead of MAIN, 0 behind) |
+| **PR #10** | only on `research-progression-foundation` (`5e83e61` when measured, before this pass's documentation commits; PR #10, open, not merged; then 19 commits ahead of MAIN, 0 behind) |
 | **UNMERGED-B** | only on `claude/civdemo-work-b1z2y4` (`6dded01`; not an ancestor of `5e83e61`; not on MAIN) |
 | **M5-BRANCH** | only on `m5-full-build` (`9a79d1e`; not merged) |
 
@@ -1436,7 +1436,7 @@ The "audit" column names the area in `docs/design/director-ledger-gap-audit.md` 
 | §2.4 common order pathway | RATIFIED | D-042 §6.2 (MAIN), cited at `Sim.Core/State/WorldState.cs:801`; the `SetResearchTarget` order (PR #10) | IMPLEMENTED for research | 3 |
 | §2.5 stable identities | RATIFIED | `research.json:5`: "Never renumber a key; append new nodes with new keys" (PR #10) | IMPLEMENTED (keys validated by the loader) | 30 |
 | §3 seven lenses; two trees; five branches | RATIFIED | D-044 R1–R4, R12 (PR #10); architecture §3 (MAIN, and the reconciled copy on PR #10); UI lenses (UNMERGED-B) | Trees and branches: IMPLEMENTED (`ResearchContent.cs` validators). Lenses: N/A in `Sim.Core`. The architecture lists **six** lenses (STALE, R4.7). The UI's seven lenses match Part I | 10, 11, 12 |
-| §4.1 completion grants knowledge and capability; realization separate | RATIFIED | D-044 R11, R14 (PR #10); ADR-028 §3 (MAIN) | IMPLEMENTED. Completion builds nothing (`ResearchSystem.cs:48-50`), and no system consumes eligibility (`ResearchQuery.cs:529-532`) | 7, 8, 9 |
+| §4.1 completion grants knowledge and capability; realization separate | RATIFIED | D-044 R11, R14 (PR #10); ADR-028 §3 (MAIN) | IMPLEMENTED. Completion builds nothing (`ResearchSystem.cs:48-50`), and no system consumes eligibility (`ResearchQuery.cs:529-532`); only the `sim research` CLI reports it | 7, 8, 9 |
 | §4.2 knowledge belongs to the polity | RATIFIED | D-042 §9.2 (MAIN); architecture §4.1; D-043 B4 (UNMERGED-B) | IMPLEMENTED. `ResearchCompletedRow(PolityId, ResearchNodeId)` (`WorldState.cs:826`); no row names an individual holder | 7 |
 | §5.1 RP terminology | RATIFIED | D-046 G5 (PR #10) | IMPLEMENTED. No `CLP` or `Cognitive` identifier in `Sim.Core`, `Sim.Cli`, `Sim.Ui`, `scripts` or `.github` (measured) | 1 |
 | §5.2 one shared pool | RATIFIED | D-044 R2 (PR #10) | IMPLEMENTED | 2 |
@@ -1467,16 +1467,16 @@ The "audit" column names the area in `docs/design/director-ledger-gap-audit.md` 
 | §14 viability | RATIFIED; equations DEFERRED | ADR-028 §1–§2 (MAIN); D-043 C2 (UNMERGED-B) | NOT YET IMPLEMENTED. The only viability code is migration's destination viability (ADR-012) | 25 |
 | §15 construction capacity not bankable | RATIFIED | D-043 C1 (UNMERGED-B) | **CONFLICT.** `ConstructionSystem` conforms; PathBuild banks unused path labour (R4.15) | 27 |
 | §16 building visualization | RATIFIED | D-043 D1, D2 (UNMERGED-B) | Not on this branch. The world layer exists only on UNMERGED-B, where D-043 F36 and F37 record divergences | — |
-| §17 MobileAgents | RATIFIED | D-043 B1–B6 (UNMERGED-B); CR-017 §3, §7, §8 OPEN | NOT YET IMPLEMENTED. No MobileAgent, Action Capacity or Army type exists in `Sim.Core` or `Sim.Ui` (measured) | 23 |
-| §18 movement | RATIFIED | D-043 B7 (UNMERGED-B). It conflicts with frozen D-009/D-010 and with D-040 B4 (MAIN); that conflict is CR-017 §5, OPEN | NOT YET IMPLEMENTED. Paths are network edges, and water nodes are impassable (`Sim.Core/Pathing/TraversalLattice.cs:14-15`) | 24 |
+| §17 MobileAgents | RATIFIED | D-043 B1–B6 (UNMERGED-B); CR-017 §3 and §7 OPEN (its §8 records the INFERRED non-conflicts); D-045 §1, *"Do NOT create a Builder MobileAgent"* (`d045-research-calibration-rulings.md:55`, PR #10) | NOT YET IMPLEMENTED. No MobileAgent, Action Capacity or Army type exists in `Sim.Core` or `Sim.Ui` (measured) | 23 |
+| §18 movement | RATIFIED | D-043 B7 (UNMERGED-B). It conflicts with frozen D-009/D-010 and with D-040 B4 (MAIN); that conflict is CR-017 §5, OPEN | NOT YET IMPLEMENTED for agents. Flow pathing runs on the terrain lattice, with network edges as fast lanes, so it already leaves the roads over land (`Sim.Core/Pathing/TraversalLattice.cs:8-10`). Positions are discrete, and water-majority nodes are impassable (`:14-15`) | 24 |
 | §19 War Pulses | RATIFIED | D-043 B8, superseded in part (UNMERGED-B; R4.10); CR-017 §6 with CR-006 §1, OPEN | NOT YET IMPLEMENTED | 24 |
-| §20 strategic goods conserved | RATIFIED; taxonomy DEFERRED | CLAUDE.md law 1; farm-tool wear through Ledger sink `ToolWear` (`Sim.Core/State/Ids.cs:145`; MAIN) | IMPLEMENTED for the goods that exist | — |
+| §20 strategic goods conserved | RATIFIED; taxonomy DEFERRED | CLAUDE.md law 1; farm-tool wear through Ledger sink `ToolWear` (`Sim.Core/State/Ids.cs:145` at `5e83e61`; `:135` on MAIN) | IMPLEMENTED for the goods that exist | — |
 | §21 capability ownership | RATIFIED | D-046 G3 matrix, `docs/design/research-capability-ownership.md` (PR #10) | PARTIAL. 179 items are classified (A 48 · B 0 · C 131 · D 0). Five activity entities and several node strings still claim baseline capabilities (matrix §5; not applied) | 17; gap audit §3 |
 | §22 recursive research | RATIFIED rule; mechanics DEFERRED | D-046 G4; D-044 Part F T6 note (PR #10) | IMPLEMENTED. Availability is held as data, and each node completes once | 29 |
 | §23 `effects.immediate` empty | RATIFIED | ADR-029 R-19 (PR #10) | IMPLEMENTED. The loader rejects a non-empty list (`ResearchContent.cs:325-326`), pinned at `ResearchContentTests.cs:672-673` | 28 |
 | §24 visualization read-only | RATIFIED | Glass Box (MAIN); world layer (UNMERGED-B) | Not on this branch | — |
 | §25 progression/realization separation | RATIFIED | D-044 R11, R14; ADR-028 §3 | IMPLEMENTED as far as code exists: only the research layer is built, and it collapses no layer | 7 |
-| §26 prohibited reintroductions | RATIFIED | gap audit §5 checks all 27 | None reintroduced. Two pre-existing states conflict with Part I: the PathBuild bank (§15) and graph-only movement (§18) | §5 |
+| §26 prohibited reintroductions | RATIFIED | gap audit §5 checks all 27 | None reintroduced. Two pre-existing states diverge from Part I: the PathBuild bank (§15), and discrete, land-only lattice pathing (§18: no continuous positions, no open water) | §5 |
 | §27 intentionally deferred | DEFERRED | D-043 Part E (UNMERGED-B); D-046 Part D (PR #10) | IMPLEMENTED in the sense that nothing deferred has been built | — |
 | §28 M5 entry gate | RATIFIED | PR #10 (open, not merged) | 9 of 11 conditions MET, 1 PARTIAL (8), 1 NOT MET (9). The Research Foundation is not yet accepted | §6 |
 
@@ -1577,7 +1577,7 @@ relied on.
 - **Part I §10.3.** Global dt is keyed to the Age cycle; the values are DEFERRED.
 - **The open question.** Reading "era band" as "Age" is a reading of a frozen item.
 - **Where it is held.**
-  - On PR #10: architecture §19 item 7.
+  - On MAIN and PR #10: architecture §19 item 7.
   - On UNMERGED-B: DD-T7, and CR-017 §1 on Age as state.
   - No CR covers the dt binding itself. CR-019 is the next free number (measured, R7); it is not minted.
 
@@ -1617,7 +1617,8 @@ relied on.
   - no CapabilitySystem (§2.3).
 
 **R4.18 — Handoff, "Knowledge is M7" and the sequence M5 governing loop · M6 battle · M7 knowledge · M8 politics — NOT superseded.**
-- **What it is.** The frozen-ladder reading that CR-005 (MAIN, OPEN) questions for research.
+- **What it is.** The frozen-ladder reading that CR-005 questions for research. CR-005 is OPEN on MAIN and
+  PR #10; only the unmerged `m5-full-build` marks it RULED (Option C) (R6.1).
 - **Not ruled here.** Development-milestone placement (R6.1).
 
 **R4.19 — Handoff, "10-year atomic turn" — HISTORICAL.**
@@ -1691,6 +1692,10 @@ D-043 F.4 records the term collision (UNMERGED-B).
   the frozen ladder?
 - **Its options.** A renumber, B insert, or C keep the order and add an architecture-only packet. It
   recommends C.
+- **Its status.** OPEN on MAIN and PR #10. The unmerged `m5-full-build` carries a copy marked *"RULED
+  2026-09-05 — OPTION C ACCEPTED"* (`cr-005-m5-research-technology-institutions-placement.md:3` there). D-044
+  T1 already records that this and the research build's position cannot both land
+  (`d044-research-progression-rulings.md:839`).
 - **Part I §28** states when M5 may start. It does not answer CR-005's placement question.
 - **CR-005 stays OPEN. This file does not close it, and it is not the Age-milestone decision.**
 
@@ -1712,7 +1717,8 @@ Part I §10.4 RATIFIES five categories:
 
 Before this file, no repository record named them:
 - **D-043 A2** (UNMERGED-B) rules the structure (core plus supporting milestones, with category
-  coverage) but leaves the categories unnamed.
+  coverage) but rules no category list. Its examples (military, economic, institutional, infrastructure,
+  knowledge) do not match the five.
 - **`Sim.Ui/UiContent/trees/ages.json`** (UNMERGED-B) carries four provisional categories: technological,
   material-economic, institutional-social and systemic. It has no Military Realization (measured;
   D-043 F27).
