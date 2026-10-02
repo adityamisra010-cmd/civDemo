@@ -128,6 +128,11 @@ public static class SnapshotDiff
             D("Experience"), I("Army")]),
         new("UnitConversions", [L("Turn"), I("Unit"), I("Owner"), I("FromFamily"), I("FromIdentity"), I("ToFamily"),
             I("ToIdentity"), I("FromAge"), I("ToAge"), I("Outcome")]),
+        // v29 (ADR-032): the inter-settlement transport multigraph and the road-development log.
+        new("TransportEdges", [I("Id"), I("A"), I("B"), I("EdgeType"), I("Mode"), I("State"),
+            L("CapacityTonnesPerYear"), D("LengthKm"), I("Condition"), L("BuiltTurn"), L("UpgradedTurn")]),
+        new("RoadDevelopments", [L("Turn"), I("Polity"), I("Edge"), I("A"), I("B"), I("FromClass"), I("ToClass"),
+            I("Kind"), L("Usage"), L("MaterialUnits")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

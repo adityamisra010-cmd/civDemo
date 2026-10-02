@@ -366,6 +366,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<AgeTransitionRow> AgeTransitions => prev.AgeTransitions;
         public IReadOnlyTable<MilitaryUnitRow> MilitaryUnits => prev.MilitaryUnits;
         public IReadOnlyTable<UnitConversionRow> UnitConversions => prev.UnitConversions;
+        public IReadOnlyTable<TransportEdgeRow> TransportEdges => prev.TransportEdges;
+        public IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments => prev.RoadDevelopments;
     }
 
     private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)

@@ -65,10 +65,72 @@ public readonly record struct NotableId(int Value) : IComparable<NotableId>
     public int CompareTo(NotableId other) => Value.CompareTo(other.Value);
 }
 
-/// <summary>Network edge types (D-009: path → road → highway …; M1 ships dirt path only).</summary>
+/// <summary>
+/// Network edge types (D-009: path → road → highway …). DirtPath is the free
+/// BASELINE (M1, PathBuildSystem's lattice segments in NetworkEdges — never a
+/// construction project). ADR-032 adds the built inter-city classes, carried by
+/// <see cref="TransportEdgeRow"/>; the RATIFIED hierarchy (D-047 ruling 8, the
+/// Director's transport ruling 5) and nothing more:
+/// PATH tier — DirtPath, Trackway; ROAD tier — BuiltRoad, PavedRoad,
+/// MacadamRoad; HIGHWAY tier — Highway (= MotorRoad). The numeric order IS the
+/// quality order inside the road family (a higher value is a better class).
+/// </summary>
 public static class EdgeTypes
 {
     public const int DirtPath = 1;
+    public const int Trackway = 2;
+    public const int BuiltRoad = 3;
+    public const int PavedRoad = 4;
+    public const int MacadamRoad = 5;
+    public const int Highway = 6;
+
+    /// <summary>Synonym: the motor road IS the highway class (one class, two names).</summary>
+    public const int MotorRoad = Highway;
+
+    /// <summary>The road-family classes, worst to best (DirtPath first).</summary>
+    public static readonly int[] RoadClasses = [DirtPath, Trackway, BuiltRoad, PavedRoad, MacadamRoad, Highway];
+
+    public static bool IsRoadClass(int edgeType) => edgeType >= DirtPath && edgeType <= Highway;
+
+    /// <summary>The D-009 tier of a road-family class: 1 path, 2 road, 3 highway; 0 if not a road class.</summary>
+    public static int TierOf(int edgeType) => edgeType switch
+    {
+        DirtPath or Trackway => RoadTiers.Path,
+        BuiltRoad or PavedRoad or MacadamRoad => RoadTiers.Road,
+        Highway => RoadTiers.Highway,
+        _ => 0,
+    };
+}
+
+/// <summary>ADR-032 — the three D-009 road tiers. An upgrade INSIDE a tier rebuilds the same
+/// physical route; reaching a HIGHER tier is a new alignment (a parallel physical route).</summary>
+public static class RoadTiers
+{
+    public const int Path = 1;
+    public const int Road = 2;
+    public const int Highway = 3;
+}
+
+/// <summary>
+/// ADR-032 — transport modes of a <see cref="TransportEdgeRow"/>. Only Road ships. The mode
+/// field exists so rail, water and air edges can join the SAME graph later as rows with their
+/// own mode, without a second graph and without coupling those systems to roads (ruling 20/21).
+/// No other value is defined until a packet ships it.
+/// </summary>
+public static class TransportModes
+{
+    public const int Road = 1;
+}
+
+/// <summary>
+/// ADR-032 — construction state of a <see cref="TransportEdgeRow"/>. Road development is
+/// atomic within a turn (the M4-D ConstructionSystem precedent: no timer, no partial state),
+/// so every row written today is Complete. The field exists for the schema the Director named
+/// (ruling 19) and for a later multi-turn project; no other value is defined yet.
+/// </summary>
+public static class TransportEdgeStates
+{
+    public const int Complete = 1;
 }
 
 /// <summary>Well-known conserved quantities (M0 toy registry — real registry is data, later milestone).</summary>

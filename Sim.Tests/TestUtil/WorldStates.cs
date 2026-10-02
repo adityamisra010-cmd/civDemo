@@ -87,6 +87,8 @@ public static class WorldStates
         if (!TableEquals(a.AgeTransitions, b.AgeTransitions)) return false;
         if (!TableEquals(a.MilitaryUnits, b.MilitaryUnits)) return false;
         if (!TableEquals(a.UnitConversions, b.UnitConversions)) return false;
+        if (!TableEquals(a.TransportEdges, b.TransportEdges)) return false;
+        if (!TableEquals(a.RoadDevelopments, b.RoadDevelopments)) return false;
         return true;
     }
 

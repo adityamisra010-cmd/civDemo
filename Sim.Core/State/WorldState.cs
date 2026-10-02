@@ -942,6 +942,39 @@ public record struct UnitConversionRow(
     int FromAge, int ToAge, int Outcome);
 
 /// <summary>
+/// ADR-032 — ONE PHYSICAL INTER-SETTLEMENT TRANSPORT EDGE (a built route). Owned by
+/// RoadDevelopmentSystem. <c>Id</c> identifies the physical route, stable and never reused —
+/// the graph is a MULTIGRAPH: any number of rows may join the same two settlements (a
+/// trackway beside a later paved road beside a later highway), and nothing in the model
+/// assumes one edge per settlement pair. <c>A</c> &lt; <c>B</c> (normalized endpoints).
+/// <c>EdgeType</c> is the road class (<see cref="EdgeTypes"/>), <c>Mode</c> the transport mode
+/// (<see cref="TransportModes"/>), <c>State</c> the construction state
+/// (<see cref="TransportEdgeStates"/>), <c>CapacityTonnesPerYear</c> the class's freight
+/// throughput (TUNE), <c>LengthKm</c> the ideal-ground-equivalent length of the baseline route
+/// it was built along (fixed at construction).
+/// <c>Condition</c> is a NEUTRAL, READ-ONLY PLACEHOLDER (the Director's ruling 8/19): written 0,
+/// read by no system, no deterioration, no maintenance, no repair. NO OWNER FIELD, by ruling 6:
+/// a road crosses any territory, claimed or not, and joins settlements of any polity.
+/// The free baseline DirtPath is NOT a row here — it is PathBuild's NetworkEdges plus the
+/// pairwise baseline cost (SettlementDistances); only built classes are rows.
+/// </summary>
+public record struct TransportEdgeRow(
+    int Id, SettlementId A, SettlementId B, int EdgeType, int Mode, int State,
+    long CapacityTonnesPerYear, double LengthKm, int Condition, long BuiltTurn, long UpgradedTurn);
+
+/// <summary>
+/// ADR-032 — ONE ROAD-DEVELOPMENT ACTION (Glass Box log, append-only), owned by
+/// RoadDevelopmentSystem: which route the DevelopRoads order of <c>Polity</c> developed on
+/// <c>Turn</c> (the decision turn; the edge exists in the state of Turn + 1), at what
+/// <c>Usage</c> rank key, from which class to which, whether it UPGRADED an existing physical
+/// edge in place (<c>Kind</c> 1) or laid a NEW PARALLEL route (<c>Kind</c> 2), and the
+/// material units it consumed through the Ledger.
+/// </summary>
+public record struct RoadDevelopmentRow(
+    long Turn, PolityId Polity, int Edge, SettlementId A, SettlementId B,
+    int FromClass, int ToClass, int Kind, long Usage, long MaterialUnits);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -1045,6 +1078,12 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
     IReadOnlyTable<UnitConversionRow> UnitConversions { get; }
+
+    /// <summary>ADR-032: built inter-settlement transport edges (a multigraph) — owned by RoadDevelopmentSystem.</summary>
+    IReadOnlyTable<TransportEdgeRow> TransportEdges { get; }
+
+    /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
+    IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments { get; }
 }
 
 /// <summary>
@@ -1224,6 +1263,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
     public Table<UnitConversionRow> UnitConversions { get; }
 
+    /// <summary>ADR-032: built inter-settlement transport edges (a multigraph) — owned by RoadDevelopmentSystem.</summary>
+    public Table<TransportEdgeRow> TransportEdges { get; }
+
+    /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
+    public Table<RoadDevelopmentRow> RoadDevelopments { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1276,6 +1321,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<AgeTransitionRow> IReadOnlyWorldState.AgeTransitions => AgeTransitions;
     IReadOnlyTable<MilitaryUnitRow> IReadOnlyWorldState.MilitaryUnits => MilitaryUnits;
     IReadOnlyTable<UnitConversionRow> IReadOnlyWorldState.UnitConversions => UnitConversions;
+    IReadOnlyTable<TransportEdgeRow> IReadOnlyWorldState.TransportEdges => TransportEdges;
+    IReadOnlyTable<RoadDevelopmentRow> IReadOnlyWorldState.RoadDevelopments => RoadDevelopments;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1332,6 +1379,8 @@ public sealed class WorldState : IReadOnlyWorldState
         AgeTransitions = new Table<AgeTransitionRow>();
         MilitaryUnits = new Table<MilitaryUnitRow>();
         UnitConversions = new Table<UnitConversionRow>();
+        TransportEdges = new Table<TransportEdgeRow>();
+        RoadDevelopments = new Table<RoadDevelopmentRow>();
     }
 
     private WorldState(
@@ -1361,7 +1410,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<ResearchExposureRow> researchExposures,
         Table<AgeStateRow> ageStates, Table<AgeEligibilityRow> ageEligibility,
         Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
-        Table<UnitConversionRow> unitConversions)
+        Table<UnitConversionRow> unitConversions,
+        Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments)
     {
         Seed = seed;
         Clock = clock;
@@ -1417,6 +1467,8 @@ public sealed class WorldState : IReadOnlyWorldState
         AgeTransitions = ageTransitions;
         MilitaryUnits = militaryUnits;
         UnitConversions = unitConversions;
+        TransportEdges = transportEdges;
+        RoadDevelopments = roadDevelopments;
     }
 
     /// <summary>
@@ -1440,7 +1492,7 @@ public sealed class WorldState : IReadOnlyWorldState
             ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
             ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
-            UnitConversions.Clone())
+            UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

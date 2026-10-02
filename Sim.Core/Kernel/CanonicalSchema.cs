@@ -124,7 +124,13 @@ public static class CanonicalSchema
     /// state and the modernization log. v27 IS SKIPPED ON PURPOSE: the v26 note above
     /// reserves it for the unmerged `m5-full-build` TaxPolicies rebase, so that there
     /// is exactly one meaning of every version number in this file.
-    public const int Version = 28;
+    /// v29 (ADR-032, the transport/inter-city road foundation): TransportEdges and
+    /// RoadDevelopments appended after UnitConversions — the built inter-settlement
+    /// transport MULTIGRAPH (edge id, endpoints, class, mode, construction state,
+    /// capacity, length, a neutral read-only condition placeholder; no owner field) and
+    /// the road-development log. No existing row changed width; NetworkEdges (the free
+    /// DirtPath baseline) is untouched.
+    public const int Version = 29;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -181,6 +187,8 @@ public static class CanonicalSchema
     private const int AgeTransitionRowWidth = 4 + 4 + 4 + 4 + 8 + 8; // Polity, From, To, Surge, DecisionTurn, EffectiveTurn (v28)
     private const int MilitaryUnitRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 4; // Id, Owner, Family, Identity, Location, X, Y, Experience bits, Army (v28)
     private const int UnitConversionRowWidth = 8 + 4 * 9;           // Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, FromAge, ToAge, Outcome (v28)
+    private const int TransportEdgeRowWidth = 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 8 + 8; // Id, A, B, EdgeType, Mode, State, Capacity, LengthKm bits, Condition, BuiltTurn, UpgradedTurn (v29)
+    private const int RoadDevelopmentRowWidth = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8;   // Turn, Polity, Edge, A, B, FromClass, ToClass, Kind, Usage, MaterialUnits (v29)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -769,6 +777,41 @@ public static class CanonicalSchema
             writer.Write(row.ToAge);
             writer.Write(row.Outcome);
         }
+
+        // 53. TransportEdges (v29, ADR-032)
+        writer.Write(world.TransportEdges.Count);
+        for (int i = 0; i < world.TransportEdges.Count; i++)
+        {
+            TransportEdgeRow row = world.TransportEdges[i];
+            writer.Write(row.Id);
+            writer.Write(row.A.Value);
+            writer.Write(row.B.Value);
+            writer.Write(row.EdgeType);
+            writer.Write(row.Mode);
+            writer.Write(row.State);
+            writer.Write(row.CapacityTonnesPerYear);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.LengthKm));
+            writer.Write(row.Condition);
+            writer.Write(row.BuiltTurn);
+            writer.Write(row.UpgradedTurn);
+        }
+
+        // 54. RoadDevelopments (v29, ADR-032)
+        writer.Write(world.RoadDevelopments.Count);
+        for (int i = 0; i < world.RoadDevelopments.Count; i++)
+        {
+            RoadDevelopmentRow row = world.RoadDevelopments[i];
+            writer.Write(row.Turn);
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Edge);
+            writer.Write(row.A.Value);
+            writer.Write(row.B.Value);
+            writer.Write(row.FromClass);
+            writer.Write(row.ToClass);
+            writer.Write(row.Kind);
+            writer.Write(row.Usage);
+            writer.Write(row.MaterialUnits);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1244,6 +1287,25 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
         }
 
+        int transportEdgeCount = reader.ReadInt32();
+        for (int i = 0; i < transportEdgeCount; i++)
+        {
+            world.TransportEdges.Add(new TransportEdgeRow(
+                reader.ReadInt32(), new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), reader.ReadInt32(),
+                reader.ReadInt64(), reader.ReadInt64()));
+        }
+
+        int roadDevelopmentCount = reader.ReadInt32();
+        for (int i = 0; i < roadDevelopmentCount; i++)
+        {
+            world.RoadDevelopments.Add(new RoadDevelopmentRow(
+                reader.ReadInt64(), new PolityId(reader.ReadInt32()), reader.ReadInt32(),
+                new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64(), reader.ReadInt64()));
+        }
+
         return world;
     }
 
@@ -1306,5 +1368,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.AgeEligibility.Count * AgeEligibilityRowWidth
         + CountPrefixWidth + (long)world.AgeTransitions.Count * AgeTransitionRowWidth
         + CountPrefixWidth + (long)world.MilitaryUnits.Count * MilitaryUnitRowWidth
-        + CountPrefixWidth + (long)world.UnitConversions.Count * UnitConversionRowWidth;
+        + CountPrefixWidth + (long)world.UnitConversions.Count * UnitConversionRowWidth
+        + CountPrefixWidth + (long)world.TransportEdges.Count * TransportEdgeRowWidth
+        + CountPrefixWidth + (long)world.RoadDevelopments.Count * RoadDevelopmentRowWidth;
 }
