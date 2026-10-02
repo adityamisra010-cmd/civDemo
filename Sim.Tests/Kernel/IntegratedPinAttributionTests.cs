@@ -133,6 +133,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
@@ -150,7 +151,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -226,6 +227,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
         ageRowsRemoved = StripAges(stripped);
@@ -234,7 +236,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -255,6 +257,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         StripGovernance(stripped);
         roadRowsRemoved = StripRoads(stripped);
         using var buffer = new MemoryStream();
@@ -262,7 +265,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -300,13 +303,52 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         strengthsRestored = StripGovernance(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount);
+    }
+
+    /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
+    /// TaxPolicies. Every pin in this file predates v31, so every control strips the institutions layer and drops
+    /// its two count prefixes first, then asks its original question unchanged.</summary>
+    private const int InstitutionTableCount = 2;
+
+    /// <summary>
+    /// ADR-033 D6 + D10: remove the institutions layer's ENTIRE footprint in the stream, IN PLACE — the
+    /// Institutions rows, the ConstructionLabor rows (D10, rebuilt every step; a row only where a project was
+    /// built) and the ResearchCostModifiers rows InstitutionsSystem now rebuilds every step (empty in any world
+    /// with no university, exactly as the table was empty before it had a writer). InstitutionsSystem draws no
+    /// RNG and writes no ledger flow; with no institution the labour reader returns the raw adult count and the
+    /// mortality seam the literal 1.0, and with no completed project PathBuild subtracts nothing — so in a world
+    /// with neither, these rows (none) and two count prefixes are the whole delta. Returns how many rows were
+    /// removed.
+    /// </summary>
+    private static int StripInstitutions(WorldState stripped)
+    {
+        int removed = stripped.Institutions.Count + stripped.ConstructionLabor.Count + stripped.ResearchCostModifiers.Count;
+        stripped.Institutions.Clear();
+        stripped.ConstructionLabor.Clear();
+        stripped.ResearchCostModifiers.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v30 — the tree exactly as it stood BEFORE ADR-033 D6/D10: the institutions layer
+    /// removed, the two empty v31 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV30(WorldState world, out int institutionRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        institutionRowsRemoved = StripInstitutions(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount);
     }
 
     /// <summary>
@@ -340,6 +382,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
@@ -349,7 +392,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
     }
 
     /// <summary>
@@ -361,6 +404,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
         StripAges(stripped);
@@ -371,7 +415,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
     }
 
     /// <summary>
@@ -572,7 +616,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(30, CanonicalSchema.Version);
+        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
     }
 
     [Fact]
@@ -902,5 +946,57 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
         Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries no SetTaxRate order
+    }
+
+    // ======================================================================
+    // ADR-033 D6 + D10 — THE LAYER CONTROL FOR SCHEMA v31 (institutions; construction spent once)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5-integration at 5e7fa35, BEFORE the institutions layer (schema
+    // v30). Stripping it — the Institutions and ConstructionLabor rows, the ResearchCostModifiers rows its system
+    // now rebuilds, and the two empty v31 count prefixes — must return it BYTE FOR BYTE. None of these runs
+    // founds a university (no EnqueueConstruction order of a university project; none could pass the knowledge
+    // gate) and none completes any construction project (no EnqueueConstruction at all), so: the labour reader
+    // returns the raw adult count (production, housing, paths and capacity unchanged bit for bit), the mortality
+    // seam returns the literal 1.0 (demographics unchanged), PathBuild subtracts no construction labour (D10 null
+    // arm), and the cost-modifier table stays empty. removed == 0 is the point, not a vacuity (the ADR-032
+    // precedent): a leak of the layer into population, food, paths, research or anything else would survive the
+    // strip and break these.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV31InstitutionsTrailerAlone()
+    {
+        // The toy pipeline runs no institutions or construction system: its whole movement is two empty prefixes.
+        const string beforeInstitutions = "bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce";
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // no order log: nothing is built, no university is founded
+        Assert.Equal(0, world.Structures.Count);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // the first-reign log carries no EnqueueConstruction order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // the driven log carries only SectorAllocation orders
     }
 }

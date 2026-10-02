@@ -1015,6 +1015,37 @@ public record struct RoadDevelopmentRow(
 public record struct TaxPolicyRow(PolityId Polity, double Rate);
 
 /// <summary>
+/// ADR-033 D6 (schema v31) — ONE FOUNDED INSTITUTION INSTANCE: today one of the five specialized
+/// universities (D-047 ruling 9), founded through the construction queue and matured by
+/// InstitutionsSystem, its ONLY writer (docs/institutions-universities.md).
+///
+/// <c>Id</c> is stable and never reused (one past the highest id the table has held; rows are not
+/// removed in this pass). <c>Polity</c> is the OWNER — the controller of <c>Settlement</c> when the
+/// institution was founded (0 when it was founded in a stateless settlement): the research effect
+/// accrues to it. It is not a second copy of control: a later change of the settlement's controller
+/// changes <see cref="ControlRow"/>, not this row (transfer on conquest is later work).
+/// <c>Type</c> is the research.json <c>universityTypes[].key</c>. <c>FoundedTurn</c> is the turn of the
+/// first state that contains the row. <c>Maturity</c> ∈ [0, 1] is THE stored quantity of ADR-028 §3
+/// (ACTIVE below matureAt, MATURE at or above it): staffing, viability, every effect and the saturation
+/// reading are DERIVED from it and from published state — nothing else about an institution is stored.
+/// Not a conserved carrier: an institution holds no people and no goods (its scholars stay in Buckets;
+/// its materials left GoodStocks through the Ledger when ConstructionSystem built it).
+/// </summary>
+public record struct InstitutionRow(
+    int Id, PolityId Polity, SettlementId Settlement, int Type, long FoundedTurn, double Maturity);
+
+/// <summary>
+/// ADR-033 D10 (schema v31) — THE CONSTRUCTION LABOUR A SETTLEMENT'S QUEUE CONSUMED THIS STEP, in
+/// adult-years: the project's laborRequired for every queue head ConstructionSystem resolved. Owned by
+/// ConstructionSystem; REBUILT every step (cleared first, a row only where a project was built — the
+/// TradeFlows / Disasters precedent; absence reads 0). PathBuild subtracts it at the standard §3.2
+/// one-turn lag exactly as it subtracts <see cref="HousingRow.LastLaborUsed"/>, so construction capacity
+/// is spent once: what the queue built is no longer also banked toward dirt paths. Observational, not a
+/// stock.
+/// </summary>
+public record struct ConstructionLaborRow(SettlementId Settlement, double LastLaborUsed);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -1127,6 +1158,12 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-033 D4: standing tax policy per Empire (absence = the zero default) — owned by GovernanceSystem.</summary>
     IReadOnlyTable<TaxPolicyRow> TaxPolicies { get; }
+
+    /// <summary>ADR-033 D6 (v31): founded institution instances — owned by InstitutionsSystem.</summary>
+    IReadOnlyTable<InstitutionRow> Institutions { get; }
+
+    /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ConstructionLaborRow> ConstructionLabor { get; }
 }
 
 /// <summary>
@@ -1315,6 +1352,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-033 D4: standing tax policy per Empire — owned by GovernanceSystem.</summary>
     public Table<TaxPolicyRow> TaxPolicies { get; }
 
+    /// <summary>ADR-033 D6 (v31): founded institution instances — owned by InstitutionsSystem.</summary>
+    public Table<InstitutionRow> Institutions { get; }
+
+    /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
+    public Table<ConstructionLaborRow> ConstructionLabor { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1370,6 +1413,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<TransportEdgeRow> IReadOnlyWorldState.TransportEdges => TransportEdges;
     IReadOnlyTable<RoadDevelopmentRow> IReadOnlyWorldState.RoadDevelopments => RoadDevelopments;
     IReadOnlyTable<TaxPolicyRow> IReadOnlyWorldState.TaxPolicies => TaxPolicies;
+    IReadOnlyTable<InstitutionRow> IReadOnlyWorldState.Institutions => Institutions;
+    IReadOnlyTable<ConstructionLaborRow> IReadOnlyWorldState.ConstructionLabor => ConstructionLabor;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1429,6 +1474,8 @@ public sealed class WorldState : IReadOnlyWorldState
         TransportEdges = new Table<TransportEdgeRow>();
         RoadDevelopments = new Table<RoadDevelopmentRow>();
         TaxPolicies = new Table<TaxPolicyRow>();
+        Institutions = new Table<InstitutionRow>();
+        ConstructionLabor = new Table<ConstructionLaborRow>();
     }
 
     private WorldState(
@@ -1460,7 +1507,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
         Table<UnitConversionRow> unitConversions,
         Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments,
-        Table<TaxPolicyRow> taxPolicies)
+        Table<TaxPolicyRow> taxPolicies,
+        Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor)
     {
         Seed = seed;
         Clock = clock;
@@ -1519,6 +1567,8 @@ public sealed class WorldState : IReadOnlyWorldState
         TransportEdges = transportEdges;
         RoadDevelopments = roadDevelopments;
         TaxPolicies = taxPolicies;
+        Institutions = institutions;
+        ConstructionLabor = constructionLabor;
     }
 
     /// <summary>
@@ -1543,7 +1593,7 @@ public sealed class WorldState : IReadOnlyWorldState
             ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
-            TaxPolicies.Clone())
+            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

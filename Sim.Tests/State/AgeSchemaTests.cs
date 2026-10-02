@@ -32,7 +32,7 @@ public class AgeSchemaTests
     [Fact]
     public void SchemaV28_PopulatedAgeTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(30, CanonicalSchema.Version);
+        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

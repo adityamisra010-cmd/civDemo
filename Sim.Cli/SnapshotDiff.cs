@@ -136,6 +136,10 @@ public static class SnapshotDiff
             I("Kind"), L("Usage"), L("MaterialUnits"), D("ProgressBefore"), D("ProgressAfter")]),
         // v30 (ADR-033 D4): the standing tax policy per Empire.
         new("TaxPolicies", [I("Polity"), D("Rate")]),
+        // v31 (ADR-033 D6 + D10): founded institutions with their stored maturity; the construction labour
+        // the queue consumed this step.
+        new("Institutions", [I("Id"), I("Polity"), I("Settlement"), I("Type"), L("FoundedTurn"), D("Maturity")]),
+        new("ConstructionLabor", [I("Settlement"), D("LastLaborUsed")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block
