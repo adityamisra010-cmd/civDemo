@@ -731,3 +731,26 @@ Every kill is by a semantic test (the filter holds no golden), and each mutant's
 - CI on `d4ec6cd`: build-and-test, determinism (including the CLI founded golden), determinism-xproc and calibration green.
 - Bench, founded seed 42, 300 turns, same load: research step 32.6 ms / 5.5 MB allocated at `d4ec6cd` against
   46.1 ms / 6.1 MB at `6baafbe`; whole run 52.36 s against 52.57 s.
+
+## ADDENDUM B — D-047 CONTENT PASS (append-only, 2026-10-02)
+
+**Authority:** D-047 (`docs/d047-civ6-reference-and-progression-rulings.md`), the Director's rulings of 2026-10-02.
+§1–§17 and Addendum A are not rewritten.
+
+### B.1 — What D-047 confirms about the engine as built
+
+- **Completion overflow is LOST** (the 2.2 freeze, recorded in D-047 Part B). R-2 (A.4) is therefore no longer an
+  implementer resolution awaiting a ruling: it is the Director's rule. No code changes.
+- **The five university types are frozen** (ruling 9); §9's cost seam is unchanged.
+- **Eureka ceiling unchanged:** 40 % of BaseCost (ruling 10).
+
+### B.2 — Content changed (data only; the loader and engine are unchanged)
+
+- Causal prerequisite repairs on 13 nodes (D-047 Part C); `depth` regenerated (36 nodes); `prereq_complexity`,
+  `magnitude` and `cost` moved only where the atom count crossed the corpus convention, by the A.1 R-10 formula,
+  with no calibration adjustment.
+- The five founding activity entities require nothing; six baseline entries added; three `providedBy` texts fixed.
+- Baseline-claiming strings re-scoped; six node names changed (ids and keys kept) — the corpus-name pin now lists
+  exactly those six.
+- The eight inherited Eurekas rewritten as authored; evaluable Eurekas 18 → 17 (`arsenical_bronze` becomes a
+  future-system arsenical-ore exposure).

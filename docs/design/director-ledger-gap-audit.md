@@ -932,3 +932,33 @@ None of these changes is applied.
 | P16 | Rule AGE-MS-1 (Age-milestone ownership) | ledger annex R6.3; a future D-record | the future Age system | G-14 | ledger §10.4, §2.3 | P15 §1 (Age as an input) | **LATER** |
 | P17 | Rule CR-005 (development-milestone placement): OPEN on MAIN and PR #10; marked RULED (Option C) only on the unmerged `m5-full-build` | `docs/adr/cr-005-….md` | — | the M5 entry | CR-005 options A/B/C | Director | **LATER** (Director's timing) |
 | P18 | Append notes on ADR-019 §1.3 (dt timing) and D-039 E3 (War Pulses) | `docs/adr/adr-019-….md`; `docs/d039-…md` | none | G-17, G-29 | ledger §10.3, §19 | Q-73 (whether post-freeze D-records are frozen) for D-039 | **NOW** (ADR-019) / **LATER** (D-039) |
+
+---
+
+## 9. Status after D-047 (append-only, 2026-10-02; §1–§8 above are not rewritten)
+
+The Director's rulings of 2026-10-02 are recorded in `docs/d047-civ6-reference-and-progression-rulings.md`. The
+content items were applied on `research-progression-foundation` in the Phase 1 commits that follow this note's
+commit; each status below is measured on that tree.
+
+| item | status after D-047 | by |
+|---|---|---|
+| G-01 completion overflow | **CLOSED** — lost (the 2.2 freeze, recorded in D-047 Part B) | D-047 Part B |
+| G-04 D-044 T3 | **CLOSED** — class unlocks, construction realizes | rulings 7, 8; D-044 Part F note |
+| G-08 Civics lens | **CLOSED** — Technology and Civics under KNOWLEDGE & TECHNOLOGY; adopted effects under INSTITUTIONS | ruling 11 |
+| G-14 AGE-MS-1 | **CLOSED — RATIFIED** | ruling 12 |
+| G-18 activity gates | **CLOSED** — null requirements, pinned | ruling 4; ledger §21 |
+| G-19 baseline-claiming strings | **CLOSED** — re-scoped or recorded as non-owning | rulings 2, 3, 6, 7, 8 |
+| G-20 `providedBy` texts | **CLOSED** | D-047 Part E |
+| G-21 baseline entries | **CLOSED** — fire, primitive hafted tools, basic fishing, primitive water transport, basic shelter, basic paths | rulings 2–8 |
+| G-22 medicine edges | **CLOSED** — reviewed: xray fixed, anaesthesia and antisepsis kept | ruling 1; D-047 Part C |
+| G-23 penicillin test | **CLOSED** — pinned | `ResearchContentTests.D047_PenicillinsPrerequisiteClosure_*` |
+| G-24 communications edges | **CLOSED** — reviewed and kept | ruling 1; D-047 Part C |
+| G-25 sixth university type | **CLOSED** — five types frozen | ruling 9 |
+| G-26 Eureka content | **CLOSED** — the eight rewritten; arsenical_bronze no longer reads generic copper stock | ruling 10; D-047 Part D |
+| G-27 special people | **RULED** (finite charges; recruitment model A); not implemented | rulings 15, 16 |
+| G-34 chronology | **CLOSED** — 11 era-marked hits to 0; bare-year cases judged | ruling 1; D-047 Part C |
+| G-15, G-28 (CR-017 surge, modernization, movement) | **RULED in part** (rulings 13, 14, 17, 18); CR-017 itself is UNMERGED-B and not edited | D-047 Part B |
+| §3 UNRESOLVED rows (fire, hafting, fish weir, fishhook, coastal shipping, track_road, macadam) | **CLOSED** | D-047 Part E |
+| §6 M5 gate items 8 and 9 | **MET for the named content** | D-047 Part B |
+| Every other G-item | unchanged | — |

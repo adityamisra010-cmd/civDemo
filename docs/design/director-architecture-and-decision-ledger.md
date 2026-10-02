@@ -1761,3 +1761,16 @@ The checks covered every remote-tracking ref and every local branch: 157 refs, m
 - **Not reused:**
   - CR-005, the development-milestone placement;
   - CR-009 and CR-010, reserved by reference and never written.
+
+## R8. D-047 — the Director's rulings of 2026-10-02 (append-only pointer)
+
+- **Record:** `docs/d047-civ6-reference-and-progression-rulings.md` holds the Director's rulings 1–18 of
+  2026-10-02 verbatim (Part A), with Civilization VI as the default design reference.
+- **Part I is not edited.** The Director's text between the BEGIN and END markers is unchanged; its SHA-256 was
+  re-measured after this annex was added: `4c18b3b9365118325f9c3a7d009bfdb38e7ca0c097c4f1745b40a9c91872b8a2`.
+- **What it settles that these annexes listed as open:** AGE-MS-1 (R6.3) is **RATIFIED** (ruling 12): owning
+  systems publish milestone facts in the five categories and a thin evaluator reads them. D-044 Part D T3 is resolved
+  (rulings 7 and 8: research unlocks transport and infrastructure CLASSES; it constructs nothing). Age advancement is
+  an explicit player/AI choice effective from the next turn (ruling 13). Completion overflow is LOST (the 2.2 freeze,
+  recorded by D-047 Part B). The full closure table is D-047 Part B; the gap audit's §9 marks each G-item.
+- **R7 update:** D-047 is now minted. ADR-031 and CR-019 remain free.

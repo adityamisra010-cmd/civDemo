@@ -86,6 +86,23 @@ Nothing below is implemented (G3). Content changes touch Director-ratified conte
 
 **Blocked on Director rulings:** D-044 Part D T3 (edge tiers, sea travel); T6 and D-046 G4 (repeat mechanics, e.g. frontier_medicine); whether bronze and tool recipes ever become research-gated; CR-006 (the epoch the 26.0 grain yield assumes).
 
+### 5.R — Resolution of §5 by D-047 (append-only, 2026-10-02; the list above is not rewritten)
+
+The Director's D-047 rulings (`docs/d047-civ6-reference-and-progression-rulings.md`) decide the content items of §5
+and the BLOCKED line:
+
+| §5 item | ruling | resolution (applied on `research-progression-foundation`) |
+|---|---|---|
+| 1 — the five activity entities | 4 (fishing) and ledger §21 | `requires: null` for farming, herding, fishing, logging and mining; removed from the nodes' `unlocks.activities` |
+| 2 — `providedBy` texts | — (text accuracy) | corrected for settlement founding, food gathering and construction ("no Builder" kept) |
+| 3 — baseline-claiming strings | 2, 3, 6, 7, 8 | fire, hafting, adhesive, fishhook, raft, dugout, sail_square, sheep_goat, ground_stone_early, digging_stick_hoe and the road nodes re-scoped to improvements or classes; knapping, cordage, basketry, bone tools, grinding stone and shelter_hut recorded as non-owning (D-047 Part E) |
+| 4 — coastal and ocean shipping | 7 | no longer BLOCKED: `activity.coastal_shipping` (`sail_square`) is the improved coastal/seagoing CLASS and `activity.ocean_shipping` the oceanic CLASS; primitive water transport is baseline (`baseline.primitive_water_transport`) |
+| BLOCKED — D-044 T3 | 7, 8 | resolved: nodes unlock transport and road classes; construction and transport systems realize them (D-044 Part F note) |
+| BLOCKED — fish weir (G3 §3) | 5 | `infra.fish_weir` is technology-owned infrastructure; basic fishing is baseline (`baseline.basic_fishing`) |
+
+Still open and unchanged by D-047: whether bronze or tool recipes become research-gated (no blanket gate), T6/G4
+repeat mechanics, CR-006, and code items 5–8.
+
 ## 6. Index
 
 | item | kind | class | exists at founding | initial existence | related nodes |

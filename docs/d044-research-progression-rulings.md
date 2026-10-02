@@ -866,3 +866,12 @@ applies it (ADR-029 addendum A). Recursive research is excluded from finite exha
 mechanics** — re-research at a higher level, cost escalation, effects, repeat-count persistence — are **DEFERRED** by
 the Director (G4): a repeatable still completes once, as R11 requires. T6's question, whether a completed node may be
 re-researched at a higher level, therefore remains open as a deferred implementation, not as an unruled tension.
+
+**Part D T3 — RESOLVED by D-047 (append-only note, 2026-10-02).** The Director ruled T3 in D-047 rulings 7 and 8
+(`docs/d047-civ6-reference-and-progression-rulings.md`). Research nodes unlock transport and infrastructure CLASSES —
+improved coastal/seagoing transport (`sail_square`), oceanic transport (`caravel`, `carrack`, `polynesian_canoe`),
+and road classes (`track_road`, `road_paved`, `macadam`) — and never construct: the owning infrastructure, transport
+or military systems realize them on computed state. Primitive riverine and shore-hugging craft and basic paths are
+BASELINE, so no node opens water or overland movement as such, which is the concrete case D-040 B3 protects; the
+calendar Age alone is never the gate. T3's text above stands as the record of the tension; D-040 B3's frozen text is
+not edited.
