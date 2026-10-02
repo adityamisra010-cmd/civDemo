@@ -22,7 +22,7 @@ public sealed record RoadDevelopmentTables(
 ///     this system's NEXT route table, so a second Empire's order in the same step sees the
 ///     first's modernization.
 ///  2. PAY, step by step in plan order, from the ISSUING CIVILIZATION's goods (the settlements
-///     it controls, ascending id — <see cref="RoadDevelopmentQuery.PayingSettlements"/>), each
+///     it controls, NEAREST-FIRST to the route, ties by id — <see cref="RoadDevelopmentQuery.PayingSettlements(IReadOnlyWorldState, PolityId, SettlementId, SettlementId)"/>), each
 ///     unit leaving through Ledger.Flow (sink, ReasonIds.ConstructionMaterials). The step's cost
 ///     is that of completing the modernization; if only a proportion p &lt; 1 is affordable,
 ///     floor(p × units) of each good is charged and exactly the modernization those units buy
@@ -85,13 +85,14 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
         RoadDevelopmentStep[] plan = RoadDevelopmentQuery.Plan(
             prev, owned.Edges, _cfg.Research!, roads, _cfg.Goods!, polity, percent);
         if (plan.Length == 0) return;
-        SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(prev, polity);
         long effectiveTurn = prev.Clock.Turn + 1;
 
         for (int p = 0; p < plan.Length; p++)
         {
             RoadDevelopmentStep step = plan[p];
             RouteStatus route = step.Route;
+            // Ruling 1 (final): draw nearest-first to THIS route, ties by settlement id.
+            SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(prev, polity, route.A, route.B);
             double affordable = RoadDevelopmentQuery.AffordableFraction(owned.GoodStocks, payers, step.Cost);
             bool complete = affordable >= 1.0;
 
@@ -165,7 +166,7 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     }
 
     /// <summary>Draws <paramref name="units"/> of a good from the civilization's settlements in
-    /// ascending id through the Ledger (a sink per row touched). The caller has checked the total.</summary>
+    /// the given (nearest-first) order through the Ledger (a sink per row touched). The caller has checked the total.</summary>
     private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units)
     {
         long left = units;

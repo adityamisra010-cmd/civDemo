@@ -77,8 +77,9 @@ public readonly record struct RoadRouteView(
 /// <item><b>The physical route.</b> A pair with route rows modernizes its LOWEST-ID row that is
 ///   below the target (stable: repeated orders continue the same row); a pair with none
 ///   modernizes its baseline path, which gets its route row on the first development. Upgrading
-///   NEVER creates a second row (ruling 6/11). Length is the row's fixed LengthKm, or the cached
-///   travel cost × km per cost unit for a bare baseline path.</item>
+///   NEVER creates a second row (ruling 6/11). Length is the row's fixed LengthKm, or for a bare
+///   baseline path the GEOGRAPHIC straight-line distance between the site cells
+///   (<see cref="GeographicKm"/>) — never the cached travel cost, which the road overlay shortens.</item>
 /// <item><b>Usage proxy.</b> Units of every good that crossed the pair, both directions, in the
 ///   PREV turn's realised trade flows (TradeFlows). Provisional (ruling 9).</item>
 /// <item><b>Target class.</b> The best class whose research entity the issuer is
@@ -90,8 +91,10 @@ public readonly record struct RoadRouteView(
 ///   × (1 − StartFraction)) — proportional to the modernization still to perform; nothing is
 ///   charged for infrastructure that does not exist.</item>
 /// <item><b>Payer.</b> The ISSUING civilization, from its own goods: the GoodStocks of the
-///   settlements it controls, drawn in ascending settlement id (<see cref="PayingSettlements"/>)
-///   — never an endpoint as such, never the capital by default. No second treasury.</item>
+///   settlements it controls, drawn NEAREST-FIRST to the route being developed (squared
+///   site-cell distance to the nearer endpoint, ties by settlement id ascending —
+///   <see cref="PayingSettlements(IReadOnlyWorldState, PolityId, SettlementId, SettlementId)"/>)
+///   — never the capital by default. No second treasury.</item>
 /// </list>
 /// Affordability is applied by the system, in plan order: the affordable PROPORTION of a step
 /// is performed, and a step that is not fully affordable ends the order.
@@ -176,13 +179,47 @@ public static class RoadDevelopmentQuery
             if (a < 0 || b < 0) continue;
             if (anyControl && !EmpireQuery.ControlsSettlement(world, polity, d.From)
                            && !EmpireQuery.ControlsSettlement(world, polity, d.To)) continue;
-            RouteStatus st = Status(roads, edges, d.From, d.To, d.TravelCost * kmPerCost,
+            RouteStatus st = Status(roads, edges, d.From, d.To, GeographicKm(world, d.From, d.To, d.TravelCost * kmPerCost),
                 usage[Math.Min(a, b) * n + Math.Max(a, b)], target);
             if (st.LengthKm > roads.MaxRouteKm) continue;
             result.Add(st);
         }
         result.Sort(static (x, y) => x.A.Value != y.A.Value ? x.A.Value.CompareTo(y.A.Value) : x.B.Value.CompareTo(y.B.Value));
         return [.. result];
+    }
+
+    /// <summary>
+    /// ADR-032 §Length invariant — THE PHYSICAL LENGTH of a new route row, independent of network
+    /// performance. On a world with terrain it is the straight-line (flat-raster Euclidean)
+    /// distance between the two settlements' site cells × km per pixel: pure geography, so no
+    /// road's class, modernization or cost factor can change it. The cached pairwise travel cost
+    /// (SettlementDistances) is NOT used there, because it is a Pathfinder result over the road
+    /// overlay and shrinks as other roads get faster. A terrain-less world (a hand-built toy, in
+    /// which no pathfinder ever runs and the cached rows are supplied by hand) has no positions;
+    /// it falls back to <paramref name="toyFallbackKm"/>, its hand-written baseline km.
+    /// </summary>
+    public static double GeographicKm(IReadOnlyWorldState world, SettlementId a, SettlementId b, double toyFallbackKm)
+    {
+        Worldgen.TerrainSet? terrain = world.Terrain;
+        if (terrain is null) return toyFallbackKm;
+        if (!TrySiteCell(world, a, out int ca) || !TrySiteCell(world, b, out int cb)) return toyFallbackKm;
+        long sq = SquaredPx(terrain.Size, ca, cb);
+        return Math.Sqrt(sq) * terrain.KmPerPx;
+    }
+
+    private static bool TrySiteCell(IReadOnlyWorldState world, SettlementId id, out int cell)
+    {
+        for (int s = 0; s < world.Settlements.Count; s++)
+            if (world.Settlements[s].Id.Value == id.Value) { cell = world.Settlements[s].SiteCell; return true; }
+        cell = -1;
+        return false;
+    }
+
+    /// <summary>Exact squared pixel distance between two row-major cells of a Size×Size raster (integer, tie-exact).</summary>
+    private static long SquaredPx(int size, int c1, int c2)
+    {
+        long dx = c1 % size - c2 % size, dy = c1 / size - c2 / size;
+        return dx * dx + dy * dy;
     }
 
     private static int Lookup(int[] index, int id) => id >= 0 && id < index.Length ? index[id] : -1;
@@ -301,8 +338,9 @@ public static class RoadDevelopmentQuery
 
     /// <summary>
     /// THE ISSUING CIVILIZATION'S RESOURCE BASE (the Director's rulings 12–13): the settlements
-    /// it controls (ControlRow, D-042 §5's single source of truth), ascending settlement id — the
-    /// deterministic draw order. Resources stay physically at settlements (D-042 §10); the
+    /// it controls (ControlRow, D-042 §5's single source of truth), ascending settlement id. This
+    /// is the SET (its sums are order-free); the DRAW ORDER for a given route is the nearest-first
+    /// overload. Resources stay physically at settlements (D-042 §10); the
     /// civilization's economy is their sum, and a development is paid by drawing on them in this
     /// order through the Ledger. No treasury exists. A world with no Controls at all (a toy)
     /// treats every settlement as the issuer's, matching candidate selection.
@@ -319,6 +357,35 @@ public static class RoadDevelopmentQuery
         ids.Sort();
         var result = new SettlementId[ids.Count];
         for (int i = 0; i < ids.Count; i++) result[i] = new SettlementId(ids[i]);
+        return result;
+    }
+
+    /// <summary>
+    /// ADR-032 §Payment order (the Director's final ruling 1): the issuer's paying settlements in
+    /// DRAW ORDER for a development of route (<paramref name="a"/>, <paramref name="b"/>) — ranked by
+    /// physical distance to the route, nearest first, ties by settlement id ascending. The distance
+    /// is GEOGRAPHIC and performance-independent: the exact integer squared pixel distance from the
+    /// settlement's site cell to the NEARER endpoint's site cell (an endpoint the issuer controls is
+    /// at 0). A terrain-less world has no positions: every distance is 0 and the order is ascending id.
+    /// </summary>
+    public static SettlementId[] PayingSettlements(IReadOnlyWorldState world, PolityId polity, SettlementId a, SettlementId b)
+    {
+        SettlementId[] ids = PayingSettlements(world, polity);
+        Worldgen.TerrainSet? terrain = world.Terrain;
+        if (terrain is null || ids.Length < 2) return ids;
+        bool hasA = TrySiteCell(world, a, out int ca), hasB = TrySiteCell(world, b, out int cb);
+        var keys = new (long Dist, int Id)[ids.Length];
+        for (int i = 0; i < ids.Length; i++)
+        {
+            TrySiteCell(world, ids[i], out int c);
+            long d = long.MaxValue;
+            if (hasA) d = Math.Min(d, SquaredPx(terrain.Size, c, ca));
+            if (hasB) d = Math.Min(d, SquaredPx(terrain.Size, c, cb));
+            keys[i] = (d, ids[i].Value);
+        }
+        Array.Sort(keys, static (x, y) => x.Dist != y.Dist ? x.Dist.CompareTo(y.Dist) : x.Id.CompareTo(y.Id));
+        var result = new SettlementId[keys.Length];
+        for (int i = 0; i < keys.Length; i++) result[i] = new SettlementId(keys[i].Id);
         return result;
     }
 

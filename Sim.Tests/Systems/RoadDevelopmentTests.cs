@@ -818,6 +818,200 @@ public class RoadDevelopmentTests
         Assert.Equal(Develop(4, Player, 37.5), back[0]);
     }
 
+    // ------------------------------------------------------------------ FINAL RULING 1: PAYMENT ORDER
+
+    private static readonly Lazy<TerrainSet> SharedTerrain =
+        new(() => WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42).Terrain!);
+
+    /// <summary>Gives a toy world real geography: the founded seed-42 terrain, settlement s at pixel (x, y).</summary>
+    private static WorldState Place(WorldState w, params (int X, int Y)[] at)
+    {
+        TerrainSet t = SharedTerrain.Value;
+        w.Terrain = t;
+        for (int s = 0; s < at.Length; s++)
+            w.Settlements[s] = w.Settlements[s] with { SiteCell = t.Index(at[s].X, at[s].Y) };
+        return w;
+    }
+
+    private static long TotalOf(IReadOnlyWorldState w, int good)
+    {
+        long sum = 0;
+        for (int i = 0; i < w.GoodStocks.Count; i++) if (w.GoodStocks[i].Good.Value == good) sum += w.GoodStocks[i].Amount.Value;
+        return sum;
+    }
+
+    /// <summary>Route (0, 5): endpoint 0 is the player's, 5 the rival's. Payers 1..4 sit at stated
+    /// distances from endpoint 0; 2 and 3 tie (1 px each) and the tie goes to the lower id.</summary>
+    private static WorldState PaymentWorld()
+    {
+        WorldState w = Know(Toy([1, 1, 1, 1, 1, 2], [(0, 5, 999.0)], stock: 0), Player, "track_road");
+        return Place(w, (100, 100), (102, 100), (100, 101), (101, 100), (140, 140), (120, 100));
+    }
+
+    [Fact]
+    public void FinalRuling1_PayingSettlements_AreRankedNearestToTheRouteFirst_TiesById_TieDense()
+    {
+        WorldState w = PaymentWorld();
+        // 0 is an endpoint (0); 3 and 2 at 1 px (tie → id 2 first); 1 at 2 px; 4 far.
+        Assert.Equal([0, 2, 3, 1, 4], RoadDevelopmentQuery.PayingSettlements(w, Player, S0, new SettlementId(5)).Select(s => s.Value));
+        // The SET is unchanged (ascending id), and argument order of the endpoints does not matter.
+        Assert.Equal([0, 1, 2, 3, 4], RoadDevelopmentQuery.PayingSettlements(w, Player).Select(s => s.Value));
+        Assert.Equal([0, 2, 3, 1, 4], RoadDevelopmentQuery.PayingSettlements(w, Player, new SettlementId(5), S0).Select(s => s.Value));
+        // Tie-dense: every payer equidistant (all on one ring point) → pure id order, independent of row order.
+        WorldState dense = Place(Know(Toy([1, 1, 1, 1, 1, 2], [(0, 5, 999.0)], stock: 0), Player, "track_road"),
+            (100, 100), (100, 101), (101, 100), (99, 100), (100, 99), (120, 100));
+        Assert.Equal([0, 1, 2, 3, 4], RoadDevelopmentQuery.PayingSettlements(dense, Player, S0, new SettlementId(5)).Select(s => s.Value));
+        SettlementRow first = dense.Settlements[1];
+        dense.Settlements[1] = dense.Settlements[4];
+        dense.Settlements[4] = first;
+        Assert.Equal([0, 1, 2, 3, 4], RoadDevelopmentQuery.PayingSettlements(dense, Player, S0, new SettlementId(5)).Select(s => s.Value));
+        // No terrain → no positions → ascending id.
+        WorldState flat = Know(Toy([1, 1, 1], [(0, 1, 50.0)], stock: 0), Player, "track_road");
+        Assert.Equal([0, 1, 2], RoadDevelopmentQuery.PayingSettlements(flat, Player, new SettlementId(2), new SettlementId(1)).Select(s => s.Value));
+    }
+
+    [Fact]
+    public void FinalRuling1_Draw_NearestFirst_ExhaustionFallsThrough_NoOverspend_Conserved_Deterministic()
+    {
+        WorldState w = PaymentWorld();
+        ResearchRigs.Stock(w, 2, Timber, 10);
+        ResearchRigs.Stock(w, 3, Timber, 10);
+        ResearchRigs.Stock(w, 1, Timber, 1_000);
+        ResearchRigs.Stock(w, 4, Timber, 1_000);
+        ResearchRigs.Stock(w, 5, Timber, 1_000);   // the rival's: never touched
+        long totalBefore = TotalOf(w, Timber);
+        long cost = RoadDevelopmentQuery.Plan(w, Research, Roads, Cfg.Goods!, Player, 100.0)[0].Cost[0].Units;
+        Assert.True(cost > 20 && cost < 1_020, $"cost {cost} must exhaust 2 and 3 and fall through to 1");
+
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Equal(1.0, after.RoadDevelopments[0].ProgressAfter);
+        Assert.Equal(0, StockOf(after, 2, Timber));                 // nearest (tie, lower id)
+        Assert.Equal(0, StockOf(after, 3, Timber));                 // next, exhausted
+        Assert.Equal(1_000 - (cost - 20), StockOf(after, 1, Timber)); // falls through to the next nearest
+        Assert.Equal(1_000, StockOf(after, 4, Timber));             // the far settlement pays nothing
+        Assert.Equal(1_000, StockOf(after, 5, Timber));             // never another civilization's goods
+        Assert.Equal(cost, after.RoadDevelopments[0].MaterialUnits);
+        Assert.Equal(totalBefore - cost, TotalOf(after, Timber));   // conservation: exactly the charge left
+        Assert.Equal(WorldHash.ComputeHex(after), WorldHash.ComputeHex(StepOnce(PaymentWorldStocked(), Develop(0, Player, 100.0))));
+
+        // No overspend: only 2 and 3 hold anything → exactly 20 spent, a partial step, nothing negative.
+        WorldState poor = PaymentWorld();
+        ResearchRigs.Stock(poor, 2, Timber, 10);
+        ResearchRigs.Stock(poor, 3, Timber, 10);
+        WorldState part = StepOnce(poor, Develop(0, Player, 100.0));
+        Assert.Equal((0L, 0L), (StockOf(part, 2, Timber), StockOf(part, 3, Timber)));
+        Assert.Equal(20, part.RoadDevelopments[0].MaterialUnits);
+        Assert.True(part.RoadDevelopments[0].ProgressAfter < 1.0);
+        Assert.All(part.GoodStocks.Rows(), r => Assert.True(r.Amount.Value >= 0));
+
+        static WorldState PaymentWorldStocked()
+        {
+            WorldState v = PaymentWorld();
+            ResearchRigs.Stock(v, 2, Timber, 10);
+            ResearchRigs.Stock(v, 3, Timber, 10);
+            ResearchRigs.Stock(v, 1, Timber, 1_000);
+            ResearchRigs.Stock(v, 4, Timber, 1_000);
+            ResearchRigs.Stock(v, 5, Timber, 1_000);
+            return v;
+        }
+    }
+
+    // ------------------------------------------------------------------ FINAL RULING 2: TARGET CHANGE
+
+    [Fact]
+    public void FinalRuling2_TargetChangeWhilePartial_KeepsIdAndPaidWork_NoSpeedRegression_SaveLoadAndReplay()
+    {
+        // A Trackway 40% toward BuiltRoad (paid work); the issuer then learns up to Highway.
+        WorldState w = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road", "stone_dry", "road_paved", "macadam", "motor_road");
+        w.TransportEdges.Add(Route(7, 0, 1, EdgeTypes.Trackway, 100.0, EdgeTypes.BuiltRoad, 0.4));
+        double speedBefore = RoadPerformance.EffectiveSpeed(Roads, EdgeTypes.Trackway, EdgeTypes.BuiltRoad, 0.4);
+        RouteStatus r = Assert.Single(RoadDevelopmentQuery.Routes(w, Research, Roads, Player));
+        Assert.Equal((7, EdgeTypes.Highway), (r.Edge, r.TargetClass));
+        Assert.True(r.StartFraction > 0.0);   // paid work is re-expressed, not lost
+
+        long stoneNeeded = RoadDevelopmentQuery.Plan(w, Research, Roads, Cfg.Goods!, Player, 100.0)[0].Cost
+            .Single(c => c.Good.Value == Stone).Units;
+        long purse = stoneNeeded / 2;          // half a purse: a partial step toward the NEW target
+        ResearchRigs.Stock(w, 0, Stone, purse);
+        ResearchRigs.Stock(w, 0, Tools, 1_000);
+        ResearchRigs.Stock(w, 0, Timber, 1_000);
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        TransportEdgeRow e = Assert.Single(after.TransportEdges.Rows());
+        Assert.Equal((7, EdgeTypes.Trackway, EdgeTypes.Highway), (e.Id, e.EdgeType, e.TargetClass));
+        Assert.True(e.Modernization >= r.StartFraction);
+        Assert.True(1.0 / e.CostFactor >= speedBefore - 1e-12, "effective speed regressed on a target change");
+        long spent = purse + 1_000 + 1_000 - StockOf(after, 0, Stone) - StockOf(after, 0, Tools) - StockOf(after, 0, Timber);
+        Assert.Equal(after.RoadDevelopments[0].MaterialUnits, spent);   // no refund, no hidden charge
+
+        // Save/load mid-target-change, then continue identically; and a replay is bit-identical.
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(after, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(after), ms.Length);
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.Equal(WorldHash.ComputeHex(after), WorldHash.ComputeHex(back));
+        ResearchRigs.Stock(after, 1, Stone, 10_000); ResearchRigs.Stock(back, 1, Stone, 10_000);
+        WorldState liveNext = StepOnce(after, Develop(1, Player, 100.0));
+        Assert.Equal(WorldHash.ComputeHex(liveNext), WorldHash.ComputeHex(StepOnce(back, Develop(1, Player, 100.0))));
+        TransportEdgeRow done = Assert.Single(liveNext.TransportEdges.Rows());
+        Assert.Equal((7, EdgeTypes.Highway), (done.Id, done.EdgeType));
+    }
+
+    // ------------------------------------------------------------------ FINAL RULING 3: LENGTH INVARIANT
+
+    [Fact]
+    public void FinalRuling3_NewRoadLength_IsGeographic_AndNoOtherRoadsSpeedCanChangeIt()
+    {
+        // Toy with geography: three player settlements; the cached travel costs are deliberately
+        // different from geography — the length must ignore them.
+        WorldState w = Place(Know(Toy([1, 1, 1], [(0, 1, 50.0), (0, 2, 60.0), (1, 2, 70.0)]), Player, "track_road"),
+            (100, 100), (110, 100), (100, 120));
+        double km01 = 10.0 * w.Terrain!.KmPerPx;
+        RouteStatus before = RoadDevelopmentQuery.Routes(w, Research, Roads, Player).Single(x => x.A == S0 && x.B == S1);
+        Assert.Equal(km01, before.LengthKm);
+
+        // Another road (1,2) becomes a highway and the cached pairwise cost of (0,1) collapses —
+        // exactly what the Pathfinder overlay does. The new road's length must not move.
+        WorldState faster = w.Clone();
+        faster.TransportEdges.Add(Route(1, 1, 2, EdgeTypes.Highway, 70.0));
+        for (int i = 0; i < faster.SettlementDistances.Count; i++)
+            faster.SettlementDistances[i] = faster.SettlementDistances[i] with { TravelCost = faster.SettlementDistances[i].TravelCost / 10.0 };
+        RouteStatus after = RoadDevelopmentQuery.Routes(faster, Research, Roads, Player).Single(x => x.A == S0 && x.B == S1);
+        Assert.Equal(before.LengthKm, after.LengthKm);
+        WorldState built = StepOnce(Trade(faster, 0, 1, 100), Develop(0, Player, 1.0));
+        TransportEdgeRow row = built.TransportEdges.Rows().Single(e => e.A == S0 && e.B == S1);
+        Assert.Equal(km01, row.LengthKm);
+    }
+
+    [Fact]
+    public void FinalRuling3_FoundedWorld_AHighwayElsewhereShortensCachedCosts_ButNotAnyCandidateRoutesLength()
+    {
+        (WorldState w0, TraversalLattice lattice, _, _, double c0) = Founded();
+        var catchment = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Catchment(Cfg)], null);
+        WorldState w1 = catchment.Step(w0);
+        PolityId owner = w1.Controls[0].Polity;
+        Know(w1, owner, "track_road");
+        SettlementId x = w1.Settlements[0].Id, y = w1.Settlements[1].Id;
+        RouteStatus[] r1 = RoadDevelopmentQuery.Routes(w1, Research, Roads, owner);
+
+        WorldState withRoad = w1.Clone();
+        withRoad.TransportEdges.Add(Route(1, Math.Min(x.Value, y.Value), Math.Max(x.Value, y.Value), EdgeTypes.Highway, c0 * LatticeGeometry.KmPerCostUnitOnIdealGround(lattice)));
+        withRoad.RoadDevelopments.Add(new RoadDevelopmentRow(0, owner, 1, x, y, EdgeTypes.DirtPath, EdgeTypes.Highway, 2, 0, 0, 0.0, 1.0));
+        WorldState w2 = catchment.Step(withRoad);
+        Assert.True(Distance(w2, x, y) < Distance(w1, x, y));   // the overlay DID shorten the cached cost
+        RouteStatus[] r2 = RoadDevelopmentQuery.Routes(w2, Research, Roads, owner);
+        int compared = 0;
+        foreach (RouteStatus a in r1)
+        {
+            if (a.Kind != RoadDevelopmentKind.FromBaseline) continue;
+            foreach (RouteStatus b in r2)
+                if (b.A == a.A && b.B == a.B && b.Kind == RoadDevelopmentKind.FromBaseline) { Assert.Equal(a.LengthKm, b.LengthKm); compared++; }
+        }
+        Assert.True(compared > 0, "no bare route to compare — the test proves nothing");
+    }
+
     // ------------------------------------------------------------------ PERSISTENCE (34, 35)
 
     [Fact]

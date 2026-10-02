@@ -295,7 +295,7 @@ substituted; no overspend; no debt; no cost moves to another civilization. Examp
 Macadam → Highway (7 stone + 1 tools/km = 700 + 100); 350 stone held → 50 %, 350 stone + 50 tools charged; the next
 order completes the same route for the remaining 350 + 50.
 
-### 10.4 Payment — the issuing civilization's resource base (a NEW minimal mechanism; see §11 Q1)
+### 10.4 Payment — the issuing civilization's resource base (a NEW minimal mechanism; see §11 Q1) [draw ORDER SUPERSEDED — §12.1]
 
 The repository has no civilization-level drawing mechanism: resources belong economically to the controlling polity
 but stay physically at its settlements (D-042 §10), and the only polity-level reading was `AgeQuery`'s sum over
@@ -351,9 +351,9 @@ deferral).
 
 ### 10.9 Known approximations (recorded, not decisions)
 
-- A bare baseline pair's length is its cached `SettlementDistances` cost × km per cost unit. Once road lanes exist
-  that cost may run over other roads, so a NEW route's length (and cost) can read shorter than the physical ground
-  route. Existing rows keep their fixed `LengthKm`.
+- **[RESOLVED — §12.3]** A bare baseline pair's length was its cached `SettlementDistances` cost × km per cost unit.
+  Once road lanes exist that cost may run over other roads, so a NEW route's length (and cost) could read shorter
+  than the physical ground route. Existing rows keep their fixed `LengthKm`.
 - A partial step charges `floor(p × units)`, so up to one unit per good of rounding is left unspent, never overspent.
 
 ### 10.10 Goldens and performance
@@ -390,3 +390,57 @@ was optimized.
    target). Alternative: finish the old target first, then start the new one. Consequence: the shipped rule never
    loses performance and never strands paid work; the alternative costs a little less in total materials but
    delays the better class.
+
+## §12 — THE DIRECTOR'S FINAL RULINGS ON §11 (2026-10-02)
+
+Everything else in the transport model stays FROZEN: no logistics, shipments, transport time mechanics, congestion,
+new route planner or builder agents.
+
+### 12.1 Payment order — nearest first (§11 Q1, ruled)
+
+The issuing civilization remains the only payer; the SET of paying settlements is unchanged (§10.4). The DRAW ORDER for
+one development step is `RoadDevelopmentQuery.PayingSettlements(world, issuer, A, B)`:
+
+- **Distance (implementation choice, documented here):** the exact INTEGER squared pixel distance, on the terrain
+  raster, from the settlement's site cell to the NEARER of the two endpoints' site cells. It is purely geographic
+  (site cells never move; no travel cost, road class or modernization enters it) and exact, so ties are exact. An
+  endpoint the issuer controls is at distance 0. Distance to the segment interior was not used: the nearer-endpoint
+  measure is simpler and needs no floating point.
+- **Ties:** settlement id ascending. **Terrain-less world** (hand-built toy): no positions, every distance 0, so the
+  order is ascending id (the previous rule).
+- Each good is drawn in that order through `Ledger.Flow` (sink, `ConstructionMaterials`) until covered or the
+  civilization's holding is exhausted; affordability is unchanged (an order-free sum). No debt, no overspend.
+- The AI policy's affordability check uses the sum, so it is unaffected by order.
+
+Tests: `FinalRuling1_PayingSettlements_AreRankedNearestToTheRouteFirst_TiesById_TieDense`,
+`FinalRuling1_Draw_NearestFirst_ExhaustionFallsThrough_NoOverspend_Conserved_Deterministic`.
+
+### 12.2 Mid-upgrade target change — shipped behaviour retained (§11 Q2, ruled)
+
+Unchanged code: the row keeps its id, paid work is kept (re-expressed via `RoadPerformance.RetargetFraction` so the
+effective speed is preserved), nothing is refunded, effective speed never regresses. Added test:
+`FinalRuling2_TargetChangeWhilePartial_KeepsIdAndPaidWork_NoSpeedRegression_SaveLoadAndReplay` (partial step toward
+the new target, exact material accounting, save/load mid-change continues identically, deterministic).
+
+### 12.3 Road length invariant (ruled)
+
+**Invariant:** a road's physical length never depends on current network performance.
+
+**Investigation:** the length of a NEW route row (bare baseline pair) came from `SettlementDistances.TravelCost ×
+km per cost unit`. Since §10.5, CatchmentSystem computes `SettlementDistances` with the authoritative Pathfinder,
+whose overlay includes every road row's lane at its `CostFactor`. So modernizing road (X, Y) shortened the cached cost
+of other pairs routed over it, and a new road's `LengthKm` — and therefore its fixed material cost and all its future
+travel costs — depended on other roads' speed. The invariant was violated; a code change WAS required.
+
+**Fix (minimal):** `RoadDevelopmentQuery.GeographicKm` — on a world with terrain, the straight-line (flat-raster
+Euclidean) distance between the two settlements' site cells × `KmPerPx`. The map is a flat square raster (no wrap),
+so this is the existing geometry. A terrain-less toy world (no pathfinder ever runs; distances are hand-written) keeps
+its hand-written baseline km. `SettlementDistances` is still used for candidacy (a finite, reachable pair) but no longer
+for length; `roads.maxRouteKm` now bounds this geographic length. Existing rows keep their fixed `LengthKm`.
+Consequence: a new route's length (and so its cost) is the crow-flies distance, shorter than a ground path through
+rough terrain — a TUNE-level effect on costs only.
+
+Tests: `FinalRuling3_NewRoadLength_IsGeographic_AndNoOtherRoadsSpeedCanChangeIt` (cached costs collapsed by a
+highway elsewhere; the new row's `LengthKm` is unchanged) and
+`FinalRuling3_FoundedWorld_AHighwayElsewhereShortensCachedCosts_ButNotAnyCandidateRoutesLength` (the real catchment
+recompute: the cached cost falls, every bare candidate's length is identical).
