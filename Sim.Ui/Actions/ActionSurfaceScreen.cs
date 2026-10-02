@@ -742,8 +742,10 @@ public sealed class ActionSurfaceScreen
         foreach (FormationEntry f in mb.Formations)
         {
             EraMarks.State(d, t, x + 7, y + L(13) / 2, 5, MarkKind.Completed, 1, 941 + k, dim: true);
-            string head = f.Identity + " (" + f.Family + ") at " + f.Where;
-            y = Wrapped(d, m, head, x + 18, y, w - 18, 13, t.Semantic.Military, FontRole.Heading);
+            y = Wrapped(d, m, f.Identity + " at " + f.Where, x + 18, y, w - 18, 13, t.Semantic.Military, FontRole.Heading);
+            // The family line and the formation's CURRENT Age identity (ADR-031: it modernizes with the Age).
+            string form = f.Family + (f.IdentityAge > 0 ? " - its Age " + AgePanelModel.Numeral(f.IdentityAge) + " form" : "");
+            y = Wrapped(d, m, form, x + 18, y, w - 18, 11.5, t.Ink.TextSoft);
             if (!flat && f.Line.Length > 0) y = Wrapped(d, m, "line: " + f.Line, x + 18, y, w - 18, 11, t.Ink.TextSoft);
             k++;
         }
