@@ -17,17 +17,32 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
 
     public DrawListImGuiBackend(UiTheme.Fonts? fonts) => _fonts = fonts;
 
-    private ImFontPtr Font(FontRole role) => _fonts is null
-        ? ImGui.GetFont()
-        : role switch
+    /// <summary>The face for a run: its style's face (era typesetting) at the closest rasterised
+    /// size, else the role's pre-theme face.</summary>
+    private ImFontPtr Font(FontRole role, TextStyle? style, double size)
+    {
+        if (_fonts is null) return ImGui.GetFont();
+        if (style is TextStyle s) return _fonts.Face(s.Face, size);
+        return role switch
         {
             FontRole.Numeric => _fonts.Numeric,
-            FontRole.Heading => _fonts.Header,
+            FontRole.Heading or FontRole.Title => _fonts.Header,
             _ => _fonts.Body,
         };
+    }
 
     public double Width(string text, double size, FontRole role) =>
-        string.IsNullOrEmpty(text) ? 0.0 : Font(role).CalcTextSizeA((float)size, float.MaxValue, 0f, text).X;
+        string.IsNullOrEmpty(text) ? 0.0 : Font(role, null, size).CalcTextSizeA((float)size, float.MaxValue, 0f, text).X;
+
+    /// <summary>The width as SET: the cased text in the style's face, plus the tracking between glyphs.</summary>
+    public double Width(string text, double size, FontRole role, TextStyle? style)
+    {
+        if (style is not TextStyle s) return Width(text, size, role);
+        if (string.IsNullOrEmpty(text)) return 0.0;
+        string set = s.Apply(text);
+        double w = Font(role, s, size).CalcTextSizeA((float)size, float.MaxValue, 0f, set).X;
+        return w + (set.Length > 1 ? s.TrackingPx(size) * (set.Length - 1) : 0.0);
+    }
 
     private static uint Col(Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
     private static Vector2 V(double x, double y) => new((float)x, (float)y);
@@ -65,6 +80,14 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
                     dl.AddConvexPolyFilled(ref pts[0], pts.Length, Col(p.Fill));
                     break;
                 }
+                case PolylineCmd pl:
+                {
+                    if (pl.Points.Length < 2) break;
+                    var pts = new Vector2[pl.Points.Length];
+                    for (int i = 0; i < pts.Length; i++) pts[i] = V(pl.Points[i].X, pl.Points[i].Y);
+                    dl.AddPolyline(ref pts[0], pts.Length, Col(pl.Color), pl.Closed ? ImDrawFlags.Closed : ImDrawFlags.None, (float)pl.Width);
+                    break;
+                }
                 case CircleCmd c:
                     if (c.Fill is Rgba cf) dl.AddCircleFilled(V(c.Cx, c.Cy), (float)c.R, Col(cf), 0);
                     if (c.Stroke is Rgba cs) dl.AddCircle(V(c.Cx, c.Cy), (float)c.R, Col(cs), 0, (float)c.StrokeWidth);
@@ -81,7 +104,8 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
                 case TextCmd t:
                 {
                     if (string.IsNullOrEmpty(t.Text)) break;
-                    ImFontPtr font = Font(t.Role);
+                    if (t.Style is TextStyle st) { Styled(dl, t, st); break; }
+                    ImFontPtr font = Font(t.Role, null, t.Size);
                     double w = t.Align == TextAlign.Left ? 0 : font.CalcTextSizeA((float)t.Size, float.MaxValue, 0f, t.Text).X;
                     double x = t.Align switch { TextAlign.Center => t.X - w / 2, TextAlign.Right => t.X - w, _ => t.X };
                     dl.AddText(font, (float)t.Size, V(x, t.Y), Col(t.Color), t.Text);
@@ -93,6 +117,33 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
                 case ClipPopCmd:
                     dl.PopClipRect();
                     break;
+            }
+        }
+    }
+
+    /// <summary>A run set in an era style: cased, in the style's face, tracked glyph by glyph when the
+    /// tracking is non-zero, and struck twice (a hair to the right) when the weight is bold — ImGui
+    /// rasterises one weight per face, and this is the SVG writer's font-weight seen on screen.</summary>
+    private void Styled(ImDrawListPtr dl, TextCmd t, TextStyle st)
+    {
+        ImFontPtr font = Font(t.Role, st, t.Size);
+        string set = st.Apply(t.Text);
+        float size = (float)t.Size;
+        double track = st.TrackingPx(t.Size);
+        double w = Width(t.Text, t.Size, t.Role, st);
+        double x = t.Align switch { TextAlign.Center => t.X - w / 2, TextAlign.Right => t.X - w, _ => t.X };
+        uint col = Col(t.Color);
+        int strikes = st.Bold ? 2 : 1;
+        double bold = Math.Max(0.45, t.Size / 30.0);
+        for (int k = 0; k < strikes; k++)
+        {
+            double ox = x + k * bold;
+            if (track == 0) { dl.AddText(font, size, V(ox, t.Y), col, set); continue; }
+            for (int i = 0; i < set.Length; i++)
+            {
+                string glyph = set[i].ToString();
+                dl.AddText(font, size, V(ox, t.Y), col, glyph);
+                ox += font.CalcTextSizeA(size, float.MaxValue, 0f, glyph).X + track;
             }
         }
     }

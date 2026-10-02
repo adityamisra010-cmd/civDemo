@@ -631,8 +631,9 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
             // The painted highlight uses one colour per side; nothing is drawn when there is none.
             DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
             double top = s.Canvas.Y;   // the legend's sample lines sit above the canvas
-            bool prereqLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == ProgressionPalette.PrereqHi);
-            bool depLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == ProgressionPalette.DependentHi);
+            // (The colours are the era theme's semantic prerequisite / dependent tokens — ADR-033 D8.)
+            bool prereqLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == s.Theme.Semantic.Prerequisite);
+            bool depLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == s.Theme.Semantic.Dependent);
             Assert.Equal(pre.Count > 0, prereqLines);
             Assert.Equal(dep.Count > 0, depLines);
             checkedNodes++;
@@ -641,7 +642,7 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         // No focus: no edges at all (no background spaghetti).
         s.PointerMove(-1, -1); s.Selected = -1;
         DrawList none = s.Paint(W, H, ApproxTextMeasure.Instance);
-        Assert.DoesNotContain(none.Commands, cmd => cmd is LineCmd l && l.Y0 >= s.Canvas.Y && (l.Color == ProgressionPalette.PrereqHi || l.Color == ProgressionPalette.DependentHi));
+        Assert.DoesNotContain(none.Commands, cmd => cmd is LineCmd l && l.Y0 >= s.Canvas.Y && (l.Color == s.Theme.Semantic.Prerequisite || l.Color == s.Theme.Semantic.Dependent));
     }
 
     [Fact]

@@ -13,8 +13,9 @@ namespace Sim.Ui.Render;
 /// </summary>
 public static class SvgWriter
 {
-    /// <param name="fontDirectory">Directory holding EBGaramond-Variable.ttf and
-    /// IBMPlexSerif-Regular.ttf (assets/fonts); null falls back to generic serif faces.</param>
+    /// <param name="fontDirectory">Directory holding EBGaramond-Variable.ttf,
+    /// IBMPlexSerif-Regular.ttf and IBMPlexSans-Regular.ttf (assets/fonts); null falls back to
+    /// generic faces.</param>
     public static string Write(DrawList list, double width, double height, string? fontDirectory = null)
     {
         var sb = new StringBuilder();
@@ -29,8 +30,10 @@ public static class SvgWriter
         {
             string garamond = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "EBGaramond-Variable.ttf")).AbsoluteUri;
             string plex = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "IBMPlexSerif-Regular.ttf")).AbsoluteUri;
+            string sans = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "IBMPlexSans-Regular.ttf")).AbsoluteUri;
             sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'EB Garamond'; src: url('{garamond}'); font-weight: 400 800; }}\n");
             sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Serif'; src: url('{plex}'); }}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Sans'; src: url('{sans}'); }}\n");
         }
         sb.Append(".b { font-family: 'EB Garamond', Georgia, serif; }\n");
         sb.Append(".h { font-family: 'EB Garamond', Georgia, serif; font-weight: 600; }\n");
@@ -69,6 +72,15 @@ public static class SvgWriter
                     Fill(sb, p.Fill);
                     sb.Append("/>\n");
                     break;
+                case PolylineCmd pl:
+                    if (pl.Points.Length < 2) break;
+                    sb.Append(pl.Closed ? "<polygon points=\"" : "<polyline points=\"");
+                    for (int i = 0; i < pl.Points.Length; i++)
+                        sb.Append(CultureInfo.InvariantCulture, $"{(i > 0 ? " " : "")}{N(pl.Points[i].X)},{N(pl.Points[i].Y)}");
+                    sb.Append("\" fill=\"none\"");
+                    Stroke(sb, pl.Color, pl.Width, null);
+                    sb.Append(" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n");
+                    break;
                 case CircleCmd c:
                     sb.Append(CultureInfo.InvariantCulture, $"<circle cx=\"{N(c.Cx)}\" cy=\"{N(c.Cy)}\" r=\"{N(c.R)}\"");
                     Fill(sb, c.Fill);
@@ -88,8 +100,22 @@ public static class SvgWriter
                 }
                 case TextCmd t:
                 {
-                    string cls = t.Role switch { FontRole.Heading => "h", FontRole.Caps => "c", FontRole.Numeric => "n", _ => "b" };
                     string anchor = t.Align switch { TextAlign.Center => "middle", TextAlign.Right => "end", _ => "start" };
+                    if (t.Style is TextStyle st)
+                    {
+                        // Set in the era theme's style. SVG letter-spacing also follows the LAST
+                        // glyph; the ImGui backend and the measures track only between glyphs, so
+                        // an anchored run is shifted back by the trailing amount to land where they do.
+                        double track = st.TrackingPx(t.Size);
+                        double x = t.X + (t.Align == TextAlign.Right ? track : t.Align == TextAlign.Center ? track / 2 : 0);
+                        sb.Append(CultureInfo.InvariantCulture,
+                            $"<text x=\"{N(x)}\" y=\"{N(t.Y + t.Size * 0.82)}\" font-size=\"{N(t.Size)}\" text-anchor=\"{anchor}\" font-family=\"{Family(st.Face)}\" font-weight=\"{st.Weight}\"");
+                        if (track != 0) sb.Append(CultureInfo.InvariantCulture, $" letter-spacing=\"{N(track)}\"");
+                        Fill(sb, t.Color);
+                        sb.Append('>').Append(Escape(st.Apply(t.Text))).Append("</text>\n");
+                        break;
+                    }
+                    string cls = t.Role switch { FontRole.Heading or FontRole.Title => "h", FontRole.Caps => "c", FontRole.Numeric => "n", _ => "b" };
                     sb.Append(CultureInfo.InvariantCulture,
                         $"<text class=\"{cls}\" x=\"{N(t.X)}\" y=\"{N(t.Y + t.Size * 0.82)}\" font-size=\"{N(t.Size)}\" text-anchor=\"{anchor}\"");
                     Fill(sb, t.Color);
@@ -115,6 +141,14 @@ public static class SvgWriter
         sb.Insert(defsAt, "<defs>\n" + symbols + "</defs>\n");
         return sb.ToString();
     }
+
+    /// <summary>The CSS family stack for a face (the @font-face names above, then a fallback).</summary>
+    private static string Family(TypeFace face) => face switch
+    {
+        TypeFace.PlexSerif => "'IBM Plex Serif', Georgia, serif",
+        TypeFace.PlexSans => "'IBM Plex Sans', Arial, sans-serif",
+        _ => "'EB Garamond', Georgia, serif",
+    };
 
     private static (double, double) Polar(double cx, double cy, double r, double deg)
     {

@@ -118,7 +118,11 @@ public static class ProgressionPreview
         var written = new List<string>();
         foreach (Shot shot in Shots)
         {
-            var screen = new ProgressionScreen(content, LaborOrderFactory.PlayerEmpire);
+            var screen = new ProgressionScreen(content, LaborOrderFactory.PlayerEmpire)
+            {
+                // The era is derived from the stepped world's Age, exactly as the game derives it.
+                Theme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(session.World, session.Config.Ages, LaborOrderFactory.PlayerEmpire)),
+            };
             screen.Refresh(session.World);
             screen.Paint(Width, Height, ApproxTextMeasure.Instance);   // first frame: frames the frontier
             shot.Arrange(screen, content);

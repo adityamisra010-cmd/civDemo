@@ -68,6 +68,19 @@ if (Array.IndexOf(args, "--age-preview") >= 0)
     return;
 }
 
+// --era-preview [dir] (docs/architecture/era-ui.md, ADR-033 D8): for each of the nine Ages, on the SAME
+// stepped world with only the player's Age differing, paint the Technology tree, the capital Age panel
+// and a chrome sample in that era's derived theme, to SVG, and exit.
+if (Array.IndexOf(args, "--era-preview") >= 0)
+{
+    int at = Array.IndexOf(args, "--era-preview");
+    string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "era-ui-preview";
+    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.Theme.EraPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+        Console.WriteLine($"era preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
