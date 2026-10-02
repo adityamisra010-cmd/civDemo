@@ -248,8 +248,15 @@ public static class AgePreview
     private static string TerrainDataUri(IReadOnlyWorldState world)
     {
         ParchmentBaker.Result bake = ParchmentBaker.Bake(world.Terrain!, AssetLibrary.Load(), world.Seed);
-        string tmp = Path.Combine(Path.GetTempPath(), "age-preview-terrain-" + world.Seed.ToString(CultureInfo.InvariantCulture) + ".png");
-        PngCodec.Write(tmp, new ArtImage(bake.Size, bake.Size, bake.Rgba));
-        return "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes(tmp));
+        // A file of this call's own: a fixed per-seed name raced when two previews (parallel test classes,
+        // or two processes sharing the temp directory) wrote it at once.
+        string tmp = Path.Combine(Path.GetTempPath(), "age-preview-terrain-" + world.Seed.ToString(CultureInfo.InvariantCulture)
+            + "-" + Guid.NewGuid().ToString("N") + ".png");
+        try
+        {
+            PngCodec.Write(tmp, new ArtImage(bake.Size, bake.Size, bake.Rgba));
+            return "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes(tmp));
+        }
+        finally { File.Delete(tmp); }
     }
 }
