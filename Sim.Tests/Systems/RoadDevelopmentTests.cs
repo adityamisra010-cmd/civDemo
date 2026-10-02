@@ -1,5 +1,6 @@
 using Sim.Core;
 using Sim.Core.Kernel;
+using Sim.Core.Pathing;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Research;
@@ -20,8 +21,9 @@ internal static class TableRows
 }
 
 /// <summary>
-/// ADR-032 — the transport / inter-city road foundation, against the Director's transport rulings
-/// (1–25, 2026-10-02). Most tests run ONLY RoadDevelopmentSystem on a hand-built world whose every
+/// ADR-032 — the transport / inter-city road foundation, against the Director's FINAL transport
+/// rulings (1–34): in-place, proportional modernization; the issuing civilization pays; road class
+/// shapes authoritative pathfinding now. Test numbers in comments are ruling 30's list. Most tests run ONLY RoadDevelopmentSystem on a hand-built world whose every
 /// input is stated: settlements, the cached pairwise baseline (SettlementDistances, in km because a
 /// terrain-less world converts one cost unit to one km), controls, realised trade (the usage proxy),
 /// completed research (the gate) and stocks (the cost). The baseline, replay and AI tests run the
@@ -110,16 +112,31 @@ public class RoadDevelopmentTests
         return r;
     }
 
-    // ------------------------------------------------------------------ baseline (ruling 3)
+    private static readonly SettlementId S0 = new(0), S1 = new(1), S2 = new(2), S3 = new(3);
+
+    /// <summary>A route row as the system would write it: class <paramref name="cls"/>, modernized
+    /// <paramref name="fraction"/> toward <paramref name="target"/> (performance via RoadPerformance).</summary>
+    private static TransportEdgeRow Route(int id, int a, int b, int cls, double km, int target = 0, double fraction = 0.0)
+    {
+        if (target == 0) target = cls;
+        return new TransportEdgeRow(id, new SettlementId(a), new SettlementId(b), cls, TransportModes.Road, TransportEdgeStates.Complete,
+            RoadPerformance.EffectiveCapacity(Roads, cls, target, fraction), km, 0, 1, 1, target, fraction,
+            RoadPerformance.EffectiveCostFactor(Roads, cls, target, fraction));
+    }
+
+    private static RouteStatus Rank(int a, int b, long usage) => new(new SettlementId(a), new SettlementId(b), 1, usage, -1,
+        EdgeTypes.DirtPath, EdgeTypes.DirtPath, 0, EdgeTypes.Trackway, 0, RoadDevelopmentKind.FromBaseline, RouteIneligibility.None);
+
+    // ------------------------------------------------------------------ ROAD MODEL (1–6)
 
     [Fact]
-    public void BaselinePaths_RemainFree_NoOrderNoRoad_TheDirtClassCostsNothing_AndIsNeverAResearchUnlock()
+    public void T01_BaselinePaths_RemainFree_NoOrderNoRoad_TheDirtClassCostsNothing_AndIsNeverAResearchUnlock()
     {
         RoadClassConfig dirt = Roads.ClassOf(EdgeTypes.DirtPath)!;
         Assert.Null(dirt.Entity);
         Assert.Empty(dirt.MaterialsPerKm);
 
-        // The founded production pipeline, no orders at all: PathBuild lays its free dirt paths
+        // 36: the founded production pipeline, no orders: PathBuild still lays its free dirt paths
         // (NetworkEdges, all DirtPath) and the road system builds nothing and spends nothing.
         WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42);
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
@@ -130,8 +147,9 @@ public class RoadDevelopmentTests
         for (int i = 0; i < w.NetworkEdges.Count; i++) Assert.Equal(EdgeTypes.DirtPath, w.NetworkEdges[i].EdgeType);
         Assert.Equal(0, w.TransportEdges.Count);
         Assert.Equal(0, w.RoadDevelopments.Count);
+        Assert.Equal(w.NetworkMeta[0].Revision, RoadPerformance.NetworkRevision(w));   // no road: the revision is PathBuild's alone
 
-        // A DevelopRoads order never builds DirtPath, even with nothing researched.
+        // A DevelopRoads order never builds DirtPath and never charges for it, even with nothing researched.
         WorldState toy = Trade(Toy([1, 1], [(0, 1, 100.0)]), 0, 1, 10);
         WorldState after = StepOnce(toy, Develop(0, Player, 100.0));
         Assert.Equal(0, after.TransportEdges.Count);
@@ -139,180 +157,343 @@ public class RoadDevelopmentTests
         Assert.Equal(RouteIneligibility.NoKnownClass, RoadDevelopmentQuery.Routes(toy, Research, Roads, Player)[0].Ineligible);
     }
 
-    // ------------------------------------------------------------------ ownership and territory (rulings 6, 20)
-
-    [Fact]
-    public void Roads_AreUnowned_CrossUnclaimedTerritory_AndConnectDifferentCivilizations()
+    [Theory]
+    [InlineData(EdgeTypes.DirtPath, EdgeTypes.Trackway, "track_road")]          // 2
+    [InlineData(EdgeTypes.Trackway, EdgeTypes.BuiltRoad, "stone_dry")]          // 3
+    [InlineData(EdgeTypes.BuiltRoad, EdgeTypes.PavedRoad, "road_paved")]        // 4
+    [InlineData(EdgeTypes.PavedRoad, EdgeTypes.MacadamRoad, "macadam")]         // 5
+    [InlineData(EdgeTypes.MacadamRoad, EdgeTypes.Highway, "motor_road")]        // 6
+    public void T02to06_EachRoadClass_IsDistinctFromAndStrictlyBetterThanTheOneBelow(int lower, int higher, string unlockingNode)
     {
-        // 0 player, 1 rival, 2 UNRULED. The player develops both routes touching its settlement.
-        WorldState w = Know(Toy([1, 2, -1], [(0, 1, 50.0), (0, 2, 60.0)]), Player, "track_road");
-        Assert.False(EmpireQuery.TryGetController(w, new SettlementId(2), out _));
-        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
-
-        Assert.Equal([(0, 1), (0, 2)], Pairs(after).OrderBy(p => p.B));
-        // Nothing on the row says whose it is (no owner field exists — TransportSchemaTests); the
-        // rival can route freight over the road the player paid for.
-        TransportQuery.FreightEstimate viaRoad = TransportQuery.EstimateFreight(after, Roads, new SettlementId(1), new SettlementId(0), 100);
-        Assert.True(viaRoad.Reachable);
-        Assert.NotEqual(-1, viaRoad.Links[0]);
-        // A rival-only pair (1, 2) is not the player's to develop: no endpoint is the player's.
-        WorldState w2 = Know(Toy([1, 2, -1], [(1, 2, 40.0)]), Player, "track_road");
-        Assert.Empty(RoadDevelopmentQuery.Routes(w2, Research, Roads, Player));
-        // ...but the RIVAL may develop the very same pair, into unclaimed territory.
-        Know(w2, Rival, "track_road");
-        Assert.Single(StepOnce(w2, Develop(0, Rival, 100.0)).TransportEdges.Rows());
+        Assert.NotEqual(lower, higher);
+        RoadClassConfig lo = Roads.ClassOf(lower)!, hi = Roads.ClassOf(higher)!;
+        Assert.NotEqual(lo.Entity, hi.Entity);
+        Assert.True(hi.SpeedFactor < lo.SpeedFactor, "a better class must be faster");
+        Assert.True(hi.CapacityTonnesPerYear > lo.CapacityTonnesPerYear);
+        Assert.True(RoadPerformance.Speed(Roads, higher) > RoadPerformance.Speed(Roads, lower));
+        // The tier map is exactly the ratified one: PATH {Dirt, Trackway}, ROAD {Built, Paved, Macadam}, HIGHWAY {Highway}.
+        int[] tiers = [0, RoadTiers.Path, RoadTiers.Path, RoadTiers.Road, RoadTiers.Road, RoadTiers.Road, RoadTiers.Highway];
+        Assert.Equal(tiers[higher], EdgeTypes.TierOf(higher));
+        Assert.Equal(EdgeTypes.MotorRoad, EdgeTypes.Highway);
+        // The research step that separates them: without it the polity's best class is below `higher`.
+        string[] ladder = ["track_road", "stone_dry", "road_paved", "macadam", "motor_road"];
+        WorldState w = Toy([1, 1], [(0, 1, 10.0)]);
+        foreach (string n in ladder)
+        {
+            if (n == unlockingNode) break;
+            Know(w, Player, n);
+        }
+        Assert.Equal(lower, RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Player));
+        Know(w, Player, unlockingNode);
+        Assert.Equal(higher, RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Player));
     }
 
-    // ------------------------------------------------------------------ the multigraph (rulings 4, 14, 20)
+    [Fact]
+    public void Config_RejectsANonMonotoneSpeedLadder()
+    {
+        string json = TestConfigs.SimJson().Replace("\"speedFactor\": 0.45", "\"speedFactor\": 0.6", StringComparison.Ordinal);
+        Assert.NotEqual(TestConfigs.SimJson(), json);
+        Assert.Throws<SimConfigException>(() => SimConfigLoader.Load(json));
+    }
+
+    // ------------------------------------------------------------------ UPGRADE MODEL (7–14, 27, 30)
 
     [Fact]
-    public void SameCities_CanCarryParallelPhysicalRoutes_AndASecondRouteDoesNotOverwriteTheFirst()
+    public void T07_08_12_13_27_30_UpgradingModernizesTheSameRouteInPlace_NeverASecondRoad_RepeatedOrdersContinueIt()
     {
         WorldState w = Trade(Know(Toy([1, 1], [(0, 1, 100.0)]), Player, "track_road"), 0, 1, 5);
         WorldState t1 = StepOnce(w, Develop(0, Player, 100.0));
-        TransportEdgeRow track = Assert.Single(t1.TransportEdges.Rows());
-        Assert.Equal(EdgeTypes.Trackway, track.EdgeType);
+        TransportEdgeRow first = Assert.Single(t1.TransportEdges.Rows());
+        Assert.Equal((EdgeTypes.Trackway, EdgeTypes.Trackway, 0.0), (first.EdgeType, first.TargetClass, first.Modernization));
+        Assert.Equal(RoadDevelopmentSystem.KindFromBaseline, t1.RoadDevelopments[^1].Kind);   // the baseline path's route row
 
-        // Built road is a better TIER: a new alignment beside the trackway, which stays as it was.
-        Know(t1, Player, "stone_dry");
-        WorldState t2 = StepOnce(t1, Develop(1, Player, 100.0));
-        Assert.Equal(2, t2.TransportEdges.Count);
-        Assert.Equal(track, t2.TransportEdges[0]);                       // byte-for-byte unchanged
-        Assert.Equal(EdgeTypes.BuiltRoad, t2.TransportEdges[1].EdgeType);
-        Assert.NotEqual(track.Id, t2.TransportEdges[1].Id);
-        Assert.Equal(RoadDevelopmentSystem.KindNewRoute, t2.RoadDevelopments[^1].Kind);
+        // A repeated order at the best known class changes nothing and duplicates nothing (27).
+        WorldState again = StepOnce(t1, Develop(1, Player, 100.0));
+        Assert.Equal(t1.TransportEdges.Rows(), again.TransportEdges.Rows());
+        Assert.Equal(t1.RoadDevelopments.Count, again.RoadDevelopments.Count);
 
-        // Paved is the SAME tier as built: the built road is upgraded IN PLACE (same id), the
-        // trackway still untouched, and no third edge appears.
-        Know(t2, Player, "road_paved");
-        WorldState t3 = StepOnce(t2, Develop(2, Player, 100.0));
-        Assert.Equal(2, t3.TransportEdges.Count);
-        Assert.Equal(track, t3.TransportEdges[0]);
-        Assert.Equal(t2.TransportEdges[1].Id, t3.TransportEdges[1].Id);
-        Assert.Equal(EdgeTypes.PavedRoad, t3.TransportEdges[1].EdgeType);
-        Assert.Equal(RoadDevelopmentSystem.KindUpgrade, t3.RoadDevelopments[^1].Kind);
-        Assert.Equal((EdgeTypes.BuiltRoad, EdgeTypes.PavedRoad), (t3.RoadDevelopments[^1].FromClass, t3.RoadDevelopments[^1].ToClass));
-
-        // The highway is a new alignment again: three parallel edges, three classes, one pair.
-        Know(t3, Player, "motor_road");
-        WorldState t4 = StepOnce(t3, Develop(3, Player, 100.0));
-        Assert.Equal([EdgeTypes.Trackway, EdgeTypes.PavedRoad, EdgeTypes.Highway],
-            TransportQuery.EdgesBetween(t4, new SettlementId(1), new SettlementId(0)).Select(e => e.EdgeType));
-        Assert.Equal(EdgeTypes.Highway, TransportQuery.BestClassBetween(t4, new SettlementId(0), new SettlementId(1)));
+        // Path tier → road tier → highway tier: ONE row throughout, the same id (7, 8, 13, 30).
+        int[] classes = [EdgeTypes.BuiltRoad, EdgeTypes.PavedRoad, EdgeTypes.MacadamRoad, EdgeTypes.Highway];
+        string[][] research = [["stone_dry"], ["road_paved"], ["macadam"], ["motor_road"]];
+        WorldState cur = t1;
+        for (int k = 0; k < classes.Length; k++)
+        {
+            Know(cur, Player, research[k]);
+            int before = cur.TransportEdges[0].EdgeType;
+            cur = StepOnce(cur, Develop(cur.Clock.Turn, Player, 100.0));
+            TransportEdgeRow e = Assert.Single(cur.TransportEdges.Rows());
+            Assert.Equal(first.Id, e.Id);
+            Assert.Equal(first.BuiltTurn, e.BuiltTurn);
+            Assert.Equal(first.LengthKm, e.LengthKm);
+            Assert.Equal(classes[k], e.EdgeType);
+            Assert.Equal(Roads.ClassOf(classes[k])!.SpeedFactor, e.CostFactor);
+            RoadDevelopmentRow log = cur.RoadDevelopments[^1];
+            Assert.Equal((first.Id, before, classes[k], RoadDevelopmentSystem.KindModernize), (log.Edge, log.FromClass, log.ToClass, log.Kind));
+            Assert.Single(TransportQuery.EdgesBetween(cur, S1, S0));   // the old class is not retained as a second road (13)
+        }
     }
 
     [Fact]
-    public void RoadClasses_ArePreserved_OnlyTheDevelopedEdgeChanges_AndReplayOfTheSameLogIsIdentical()
+    public void T09_10_11_EffectivePerformance_InterpolatesFromOldToTarget()
     {
-        WorldState w = Know(Toy([1, 1, 1], [(0, 1, 30.0), (0, 2, 40.0), (1, 2, 50.0)]), Player, "track_road", "stone_dry");
-        Trade(w, 0, 1, 9);
-        var log = Log(Develop(0, Player, 100.0), Develop(1, Player, 100.0));
-        WorldState a = RoadsOnly(log).Run(w, 3);
-        WorldState b = RoadsOnly(log).Run(w.Clone(), 3);
-        Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
-        // Turn 0: the traded pair's usage (9 of 9) covers 100% of demand alone -> one BuiltRoad.
-        // Turn 1: the two remaining eligible pairs carry no trade, so 100% is of the route COUNT -> both.
-        Assert.Equal(3, a.TransportEdges.Count);
-        for (int i = 0; i < a.TransportEdges.Count; i++) Assert.Equal(EdgeTypes.BuiltRoad, a.TransportEdges[i].EdgeType);
-        Assert.Equal(EdgeTypes.BuiltRoad, TransportQuery.BestClassBetween(a, new SettlementId(1), new SettlementId(2)));
+        int from = EdgeTypes.PavedRoad, to = EdgeTypes.Highway;
+        double s0 = RoadPerformance.Speed(Roads, from), s1 = RoadPerformance.Speed(Roads, to);
+        // 0% → exactly the old road; 100% → exactly the target; 50% → the speed midpoint.
+        Assert.Equal(Roads.ClassOf(from)!.SpeedFactor, RoadPerformance.EffectiveCostFactor(Roads, from, to, 0.0));
+        Assert.Equal(Roads.ClassOf(to)!.SpeedFactor, RoadPerformance.EffectiveCostFactor(Roads, from, to, 1.0));
+        Assert.Equal(s0 + 0.5 * (s1 - s0), RoadPerformance.EffectiveSpeed(Roads, from, to, 0.5));
+        Assert.Equal(1.0 / (s0 + 0.5 * (s1 - s0)), RoadPerformance.EffectiveCostFactor(Roads, from, to, 0.5));
+        Assert.Equal(Roads.ClassOf(from)!.CapacityTonnesPerYear, RoadPerformance.EffectiveCapacity(Roads, from, to, 0.0));
+        Assert.Equal(Roads.ClassOf(to)!.CapacityTonnesPerYear, RoadPerformance.EffectiveCapacity(Roads, from, to, 1.0));
+        long c0 = Roads.ClassOf(from)!.CapacityTonnesPerYear, c1 = Roads.ClassOf(to)!.CapacityTonnesPerYear;
+        Assert.Equal(c0 + (c1 - c0) / 2, RoadPerformance.EffectiveCapacity(Roads, from, to, 0.5));
+        // Monotone in the fraction.
+        double prev = double.MaxValue;
+        for (int i = 0; i <= 10; i++)
+        {
+            double f = RoadPerformance.EffectiveCostFactor(Roads, from, to, i / 10.0);
+            Assert.True(f < prev);
+            prev = f;
+        }
+
+        // The SYSTEM writes exactly these values: a 50%-affordable modernization of a 100 km
+        // PavedRoad toward Highway leaves the route at 0.5, cost factor = the midpoint value.
+        WorldState w = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road", "stone_dry", "road_paved", "macadam", "motor_road");
+        w.TransportEdges.Add(Route(1, 0, 1, from, 100.0));
+        ResearchRigs.Stock(w, 0, Stone, 400);       // (12 − 4) × 100 = 800 needed: half
+        ResearchRigs.Stock(w, 0, Tools, 1_000);
+        TransportEdgeRow e = Assert.Single(StepOnce(w, Develop(0, Player, 100.0)).TransportEdges.Rows());
+        Assert.Equal((from, to, 0.5), (e.EdgeType, e.TargetClass, e.Modernization));
+        Assert.Equal(RoadPerformance.EffectiveCostFactor(Roads, from, to, 0.5), e.CostFactor);
+        Assert.Equal(RoadPerformance.EffectiveCapacity(Roads, from, to, 0.5), e.CapacityTonnesPerYear);
     }
 
-    // ------------------------------------------------------------------ junctions (ruling 10)
-
     [Fact]
-    public void Junctions_AreDerivedFromTopology_DegreeEdgesNeighboursModes()
+    public void T14_26_PartialModernization_ConsumesProportionalResources_NeverOverspends_NoDebt()
     {
-        var w = Toy([1, 1, 1, 1, 1], []);
-        void Edge(int id, int a, int b, int cls) => w.TransportEdges.Add(new TransportEdgeRow(id, new SettlementId(a), new SettlementId(b),
-            cls, TransportModes.Road, TransportEdgeStates.Complete, 1, 10.0, 0, 1, 1));
-        Edge(1, 0, 1, EdgeTypes.Trackway);
-        Edge(2, 0, 2, EdgeTypes.PavedRoad);
-        Edge(3, 1, 2, EdgeTypes.Trackway);
-        Edge(4, 0, 3, EdgeTypes.BuiltRoad);
-        Edge(5, 0, 1, EdgeTypes.Highway);   // parallel: a second physical edge 0-1
+        // The Director's example in shape: 100 km MacadamRoad → Highway costs (12 − 5) = 7 stone/km
+        // and 1 tools/km — 700 stone + 100 tools. Stone for exactly half: 350 → 50%, 350 stone and
+        // 50 tools, nothing more.
+        WorldState w = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road", "stone_dry", "road_paved", "macadam", "motor_road");
+        w.TransportEdges.Add(Route(1, 0, 1, EdgeTypes.MacadamRoad, 100.0));
+        ResearchRigs.Stock(w, 0, Stone, 350);
+        ResearchRigs.Stock(w, 0, Tools, 1_000);
+        WorldState half = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Equal(0, StockOf(half, 0, Stone));
+        Assert.Equal(1_000 - 50, StockOf(half, 0, Tools));
+        TransportEdgeRow e = Assert.Single(half.TransportEdges.Rows());
+        Assert.Equal(0.5, e.Modernization);
+        RoadDevelopmentRow log = half.RoadDevelopments[^1];
+        Assert.Equal((400L, 0.0, 0.5), (log.MaterialUnits, log.ProgressBefore, log.ProgressAfter));
 
-        Assert.Equal(4, TransportQuery.Degree(w, new SettlementId(0)));
-        Assert.True(TransportQuery.IsJunction(w, new SettlementId(0)));
-        Assert.Equal(3, TransportQuery.Degree(w, new SettlementId(1)));             // 0-1 twice + 1-2
-        Assert.True(TransportQuery.IsJunction(w, new SettlementId(1)));
-        Assert.False(TransportQuery.IsJunction(w, new SettlementId(2)));            // degree 2: a through-route
-        Assert.False(TransportQuery.IsJunction(w, new SettlementId(3)));            // degree 1: a dead end
-        Assert.False(TransportQuery.IsJunction(w, new SettlementId(4)));            // degree 0
-        Assert.Equal([0, 1], TransportQuery.Junctions(w).Select(s => s.Value));
-        Assert.Equal([1, 2, 3], TransportQuery.Neighbors(w, new SettlementId(0)).Select(s => s.Value));
-        Assert.Equal([1, 2, 4, 5], TransportQuery.EdgesAt(w, new SettlementId(0)).Select(e => e.Id));
-        Assert.Equal([TransportModes.Road], TransportQuery.ModesAt(w, new SettlementId(0)));
-        Assert.Empty(TransportQuery.ModesAt(w, new SettlementId(4)));
-        Assert.Equal([2], TransportQuery.SharedNeighbors(w, new SettlementId(0), new SettlementId(1)).Select(s => s.Value));
-        // No junction entity exists anywhere: the only transport tables are edges and the log.
-        Assert.Equal(0, w.NetworkNodes.Count);
+        // Continuing the SAME route: the remaining half costs the remaining half (350 + 50), and
+        // completes it — same id, no second road.
+        ResearchRigs.Stock(half, 1, Stone, 10_000);
+        WorldState done = StepOnce(half, Develop(1, Player, 100.0));
+        TransportEdgeRow f = Assert.Single(done.TransportEdges.Rows());
+        Assert.Equal((e.Id, EdgeTypes.Highway, 0.0), (f.Id, f.EdgeType, f.Modernization));
+        Assert.Equal(10_000 - 350, StockOf(done, 1, Stone));
+        Assert.Equal(1_000 - 100, StockOf(done, 0, Tools));
+        Assert.Equal((0.5, 1.0), (done.RoadDevelopments[^1].ProgressBefore, done.RoadDevelopments[^1].ProgressAfter));
+
+        // From the baseline: 100 km trackway = 100 timber; 30 held → 30%, exactly 30 spent.
+        WorldState t = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road");
+        ResearchRigs.Stock(t, 0, Timber, 30);
+        WorldState part = StepOnce(t, Develop(0, Player, 100.0));
+        Assert.Equal(0, StockOf(part, 0, Timber));
+        Assert.Equal(0.3, Assert.Single(part.TransportEdges.Rows()).Modernization, 15);
+
+        // Nothing held: nothing happens, no row, no flow, no negative stock.
+        WorldState broke = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road");
+        WorldState none = StepOnce(broke, Develop(0, Player, 100.0));
+        Assert.Equal(0, none.TransportEdges.Count);
+        Assert.Equal(0, none.RoadDevelopments.Count);
+        Assert.Equal(-1, GoodStockIndex.IndexOf(none.GoodStocks, S0, new GoodId(Timber)));
     }
 
-    // ------------------------------------------------------------------ research (ruling 15)
-
     [Fact]
-    public void Research_GatesEligibility_ClassByClass()
+    public void T26_InsufficientResources_ThePartiallyAffordedRouteEndsTheOrder_NothingFurtherDownIsTouched()
     {
-        WorldState w = Toy([1, 1], [(0, 1, 10.0)]);
-        int Best() => RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Player);
-        Assert.Equal(EdgeTypes.DirtPath, Best());
-        Know(w, Player, "track_road");
-        Assert.Equal(EdgeTypes.Trackway, Best());
-        Know(w, Player, "stone_dry");
-        Assert.Equal(EdgeTypes.BuiltRoad, Best());                  // infra.road_built = track_road AND stone_dry
-        Know(w, Player, "road_paved");
-        Assert.Equal(EdgeTypes.PavedRoad, Best());
-        Know(w, Player, "macadam");
-        Assert.Equal(EdgeTypes.MacadamRoad, Best());
-        Assert.False(RoadDevelopmentQuery.IsClassKnown(w, Research, Roads, Player, EdgeTypes.Highway));
-        Know(w, Player, "motor_road");
-        Assert.Equal(EdgeTypes.Highway, Best());
-        // Knowledge is per polity: the rival knows nothing.
-        Assert.Equal(EdgeTypes.DirtPath, RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Rival));
+        // Ranked: (0,1) 100 km, (0,2) 300 km, (0,3) 10 km. Trackway = 1 timber/km: 100, 300, 10.
+        WorldState w = Know(Toy([1, 1, 1, 1], [(0, 1, 100.0), (0, 2, 300.0), (0, 3, 10.0)], stock: 0), Player, "track_road");
+        Trade(w, 0, 1, 30); Trade(w, 0, 2, 20); Trade(w, 0, 3, 10);
+        ResearchRigs.Stock(w, 0, Timber, 250);        // route 1 in full (100), route 2 to 150/300 = 50%
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Equal([(0, 1), (0, 2)], Pairs(after));  // route 3 is cheap but lies after the partial one
+        Assert.Equal((EdgeTypes.Trackway, 0.0), (after.TransportEdges[0].EdgeType, after.TransportEdges[0].Modernization));
+        Assert.Equal((EdgeTypes.DirtPath, EdgeTypes.Trackway, 0.5),
+            (after.TransportEdges[1].EdgeType, after.TransportEdges[1].TargetClass, after.TransportEdges[1].Modernization));
+        Assert.Equal(0, StockOf(after, 0, Timber));    // exactly 250 spent, never below zero
+        Assert.Equal(250, after.RoadDevelopments.Rows().Sum(r => r.MaterialUnits));
     }
 
     [Fact]
-    public void ResearchCompletion_ConstructsNoRoad_OnlyAnOrderDoes()
+    public void RaisingTheTarget_MidModernization_KeepsTheRoutesPerformance_AndTheSameRow()
     {
-        // Research system + road system together, the target completes, and many turns pass:
-        // no road. The SAME world with one DevelopRoads order: a road.
-        WorldState w = Trade(Toy([1, 1], [(0, 1, 10.0)]), 0, 1, 3);
-        Know(w, Player, "track_road");
-        var ex = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Research(Cfg), SystemCatalog.RoadDevelopment(Cfg)], null);
-        WorldState idle = ex.Run(w, 10);
-        Assert.Equal(0, idle.TransportEdges.Count);
-        Assert.True(RoadDevelopmentQuery.Routes(idle, Research, Roads, Player)[0].Eligible);   // eligible, not built
-        WorldState ordered = StepOnce(idle, Develop(idle.Clock.Turn, Player, 100.0));
-        Assert.Equal(1, ordered.TransportEdges.Count);
+        WorldState w = Know(Toy([1, 1], [(0, 1, 100.0)]), Player, "track_road", "stone_dry", "road_paved", "macadam", "motor_road");
+        w.TransportEdges.Add(Route(4, 0, 1, EdgeTypes.BuiltRoad, 100.0, EdgeTypes.PavedRoad, 0.4));
+        RouteStatus r = Assert.Single(RoadDevelopmentQuery.Routes(w, Research, Roads, Player));
+        Assert.Equal((4, EdgeTypes.Highway), (r.Edge, r.TargetClass));
+        double speedNow = RoadPerformance.EffectiveSpeed(Roads, EdgeTypes.BuiltRoad, EdgeTypes.PavedRoad, 0.4);
+        Assert.Equal(speedNow, RoadPerformance.EffectiveSpeed(Roads, EdgeTypes.BuiltRoad, EdgeTypes.Highway, r.StartFraction), 12);
+        Assert.True(r.StartFraction < 0.4 && r.StartFraction > 0.0);
+        // A civilization that does not know the row's target can neither continue nor lower it:
+        // a Trackway part-way to PavedRoad, and a rival that knows only up to BuiltRoad.
+        WorldState v = Know(Toy([2, 2], [(0, 1, 100.0)]), Rival, "track_road", "stone_dry");
+        v.TransportEdges.Add(Route(4, 0, 1, EdgeTypes.Trackway, 100.0, EdgeTypes.PavedRoad, 0.4));
+        Assert.Equal(RouteIneligibility.TargetBeyondIssuerKnowledge, Assert.Single(RoadDevelopmentQuery.Routes(v, Research, Roads, Rival)).Ineligible);
+        Assert.Equal(v.TransportEdges.Rows(), StepOnce(v, Develop(0, Rival, 100.0)).TransportEdges.Rows());
     }
 
-    // ------------------------------------------------------------------ the action (rulings 1, 2, 13)
+    // ------------------------------------------------------------------ PATHFINDING (15–17, 37)
 
-    [Fact]
-    public void PlayerAction_ConstructsRoads_TurnExact_TheEdgeFirstExistsInTheStateAfterTheOrdersTurn()
+    private static (WorldState World, TraversalLattice Lattice, int From, int To, double BaselineCost) Founded()
     {
-        WorldState w0 = Trade(Know(Toy([1, 1], [(0, 1, 25.0)]), Player, "track_road"), 0, 1, 1);
-        var ex = RoadsOnly(Log(Develop(2, Player, 100.0)));
-        WorldState w1 = ex.Step(w0), w2 = ex.Step(w1);
-        Assert.Equal(0, w1.TransportEdges.Count);                       // stamped 2: turns 0 and 1 untouched
-        Assert.Equal(0, w2.TransportEdges.Count);                       // the state OF turn 2 is not retro-edited
-        WorldState w3 = ex.Step(w2);
-        TransportEdgeRow e = Assert.Single(w3.TransportEdges.Rows());
-        Assert.Equal(3L, w3.Clock.Turn);
-        Assert.Equal(3L, e.BuiltTurn);                                  // first visible in turn 3
-        Assert.Equal(2L, w3.RoadDevelopments[0].Turn);                  // decided in turn 2
-        Assert.Equal((EdgeTypes.Trackway, TransportModes.Road, TransportEdgeStates.Complete, 0),
-            (e.EdgeType, e.Mode, e.State, e.Condition));
-        Assert.Equal(Roads.ClassOf(EdgeTypes.Trackway)!.CapacityTonnesPerYear, e.CapacityTonnesPerYear);
-        Assert.Equal(25.0, e.LengthKm);
-        // Cost: 25 km × 1 timber/km = 25 timber, through the Ledger, from the paying endpoint 0.
-        Assert.Equal(StockOf(w0, 0, Timber) - 25, StockOf(w3, 0, Timber));
-        Assert.Equal(StockOf(w0, 1, Timber), StockOf(w3, 1, Timber));
-        Assert.Equal(25, w3.RoadDevelopments[0].MaterialUnits);
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42);
+        TraversalLattice lattice = TraversalLattice.Build(w.Terrain!, Cfg.Transport.RiverCostFactor);
+        int a = LatticeMap.OriginLatticeNode(lattice, w.Terrain!.Size, w.Settlements[0].SiteCell);
+        int b = LatticeMap.OriginLatticeNode(lattice, w.Terrain!.Size, w.Settlements[1].SiteCell);
+        Pathfinder.PathResult baseline = Pathfinder.FindPath(lattice, w, a, b);
+        Assert.True(baseline.Found);
+        return (w, lattice, a, b, baseline.TotalCost);
     }
 
     [Fact]
-    public void HighestUseRoutesFirst_AndThePercentageOfDemandIsRespected()
+    public void T15_BetterRoadClasses_ProduceLowerAuthoritativePathCosts()
+    {
+        (WorldState w, TraversalLattice lattice, int a, int b, double c0) = Founded();
+        double km = c0 * LatticeGeometry.KmPerCostUnitOnIdealGround(lattice);
+        double previous = double.MaxValue;
+        foreach (int cls in EdgeTypes.RoadClasses)
+        {
+            WorldState r = w.Clone();
+            r.TransportEdges.Add(Route(1, w.Settlements[0].Id.Value, w.Settlements[1].Id.Value, cls, km));
+            double cost = Pathfinder.FindPath(lattice, r, a, b).TotalCost;
+            Assert.True(cost < previous, $"class {cls} is not cheaper than the class below it");
+            if (cls != EdgeTypes.DirtPath)
+                Assert.Equal(RoadPerformance.TravelCostUnits(r.TransportEdges[0], LatticeGeometry.KmPerCostUnitOnIdealGround(lattice)), cost);
+            previous = cost;
+        }
+        Assert.True(previous < c0);
+    }
+
+    [Fact]
+    public void T16_PartialModernization_ChangesPathCostProportionally()
+    {
+        (WorldState w, TraversalLattice lattice, int a, int b, double c0) = Founded();
+        double km = c0 * LatticeGeometry.KmPerCostUnitOnIdealGround(lattice);
+        int sa = w.Settlements[0].Id.Value, sb = w.Settlements[1].Id.Value;
+        double Cost(double f)
+        {
+            WorldState r = w.Clone();
+            r.TransportEdges.Add(Route(1, sa, sb, EdgeTypes.Trackway, km, EdgeTypes.Highway, f));
+            return Pathfinder.FindPath(lattice, r, a, b).TotalCost;
+        }
+        double at0 = Cost(0.0), at50 = Cost(0.5), at100 = Cost(1.0);
+        Assert.True(at0 > at50 && at50 > at100);
+        Assert.Equal(km * Roads.ClassOf(EdgeTypes.Trackway)!.SpeedFactor / LatticeGeometry.KmPerCostUnitOnIdealGround(lattice), at0, 9);
+        Assert.Equal(km * Roads.ClassOf(EdgeTypes.Highway)!.SpeedFactor / LatticeGeometry.KmPerCostUnitOnIdealGround(lattice), at100, 9);
+        // Halfway in SPEED: the path cost is the harmonic midpoint of the end costs.
+        Assert.Equal(km * RoadPerformance.EffectiveCostFactor(Roads, EdgeTypes.Trackway, EdgeTypes.Highway, 0.5) / LatticeGeometry.KmPerCostUnitOnIdealGround(lattice), at50, 9);
+        Assert.Equal(2.0 / (1.0 / at0 + 1.0 / at100), at50, 9);
+    }
+
+    [Fact]
+    public void T17_37_PathfindingCatchmentsAndFreight_ShareOneRoadPerformance_AndRecomputeDeterministically()
+    {
+        (WorldState w, TraversalLattice lattice, int a, int b, double c0) = Founded();
+        SettlementId x = w.Settlements[0].Id, y = w.Settlements[1].Id;
+        var catchment = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Catchment(Cfg)], null);
+        WorldState w1 = catchment.Step(w);
+        double before = Distance(w1, x, y);
+        Assert.Equal(c0, before);
+
+        // A highway route row plus its log row (the revision the system's log moves).
+        WorldState withRoad = w1.Clone();
+        withRoad.TransportEdges.Add(Route(1, Math.Min(x.Value, y.Value), Math.Max(x.Value, y.Value), EdgeTypes.Highway, c0 * LatticeGeometry.KmPerCostUnitOnIdealGround(lattice)));
+        withRoad.RoadDevelopments.Add(new RoadDevelopmentRow(0, Player, 1, x, y, EdgeTypes.DirtPath, EdgeTypes.Highway, 2, 0, 0, 0.0, 1.0));
+        Assert.Equal(RoadPerformance.NetworkRevision(w1) + 1, RoadPerformance.NetworkRevision(withRoad));
+        WorldState w2 = catchment.Step(withRoad);
+        Assert.Equal(withRoad.Clock.Turn, w2.CatchmentSummaries[0].LastRecomputeTurn);   // the road was a recompute event
+        double lane = RoadPerformance.TravelCostUnits(withRoad.TransportEdges[0], LatticeGeometry.KmPerCostUnitOnIdealGround(lattice));
+        Assert.Equal(lane, Distance(w2, x, y));                                           // the catchment's pairwise cost IS the lane
+        Assert.Equal(Pathfinder.FindPath(lattice, withRoad, a, b).TotalCost, Distance(w2, x, y));
+
+        // Freight: the same stored performance — the road hop costs TravelKm, and the pairwise
+        // baseline (now the lane) agrees with it.
+        TransportQuery.FreightEstimate est = TransportQuery.EstimateFreight(w2, Roads, x, y, 1000);
+        Assert.Equal(RoadPerformance.TravelKm(withRoad.TransportEdges[0]), est.CostKm, 9);
+        Assert.Equal(lane * TransportQuery.KmPerCostUnit(w2), est.CostKm, 9);
+
+        // Determinism: the same inputs recompute bit-identically, and with no road event the
+        // catchment does not recompute at all.
+        WorldState w2b = catchment.Step(withRoad.Clone());
+        Assert.Equal(WorldHash.ComputeHex(w2), WorldHash.ComputeHex(w2b));
+        WorldState w3 = catchment.Step(w2);
+        Assert.Equal(w2.CatchmentSummaries[0].LastRecomputeTurn, w3.CatchmentSummaries[0].LastRecomputeTurn);
+    }
+
+    private static double Distance(IReadOnlyWorldState w, SettlementId from, SettlementId to)
+    {
+        for (int i = 0; i < w.SettlementDistances.Count; i++)
+            if (w.SettlementDistances[i].From == from && w.SettlementDistances[i].To == to) return w.SettlementDistances[i].TravelCost;
+        throw new InvalidOperationException("no distance row");
+    }
+
+    // ------------------------------------------------------------------ PAYMENT (18–21)
+
+    [Fact]
+    public void T18_19_TheIssuingCivilizationPays_FromItsSettlementsInAscendingId_NotFromTheEndpoint()
+    {
+        // The player controls 0, 1, 2; the route is (1, 2); the endpoints hold NOTHING, settlement
+        // 0 (not an endpoint) holds 30 timber and 3 holds the rest — no, 3 is the rival's: untouched.
+        WorldState w = Know(Toy([1, 1, 1, 2], [(1, 2, 50.0)], stock: 0), Player, "track_road");
+        ResearchRigs.Stock(w, 0, Timber, 30);
+        ResearchRigs.Stock(w, 2, Timber, 0);
+        ResearchRigs.Stock(w, 1, Timber, 100);
+        ResearchRigs.Stock(w, 3, Timber, 1_000);
+        Assert.Equal([0, 1, 2], RoadDevelopmentQuery.PayingSettlements(w, Player).Select(s => s.Value));
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Single(after.TransportEdges.Rows());
+        Assert.Equal(0, StockOf(after, 0, Timber));          // drawn first: lowest id of the CIVILIZATION
+        Assert.Equal(100 - 20, StockOf(after, 1, Timber));   // then the next
+        Assert.Equal(1_000, StockOf(after, 3, Timber));      // never another civilization's goods
+        Assert.Equal(50, after.RoadDevelopments[0].MaterialUnits);
+    }
+
+    [Fact]
+    public void T20_21_RoadsIntoForeignOrUnclaimedTerritory_ChargeTheIssuerOnly_AndAreUnowned()
+    {
+        // 0 player, 1 rival, 2 UNRULED, 3 player (a non-endpoint purse). The rival and the
+        // unruled settlement hold plenty; the player's goods sit only at 3.
+        WorldState w = Know(Toy([1, 2, -1, 1], [(0, 1, 50.0), (0, 2, 60.0)], stock: 0), Player, "track_road");
+        ResearchRigs.Stock(w, 1, Timber, 1_000);
+        ResearchRigs.Stock(w, 2, Timber, 1_000);
+        ResearchRigs.Stock(w, 3, Timber, 500);
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Equal([(0, 1), (0, 2)], Pairs(after));
+        Assert.Equal(500 - 110, StockOf(after, 3, Timber));
+        Assert.Equal(1_000, StockOf(after, 1, Timber));
+        Assert.Equal(1_000, StockOf(after, 2, Timber));
+        Assert.All(after.RoadDevelopments.Rows(), r => Assert.Equal(Player, r.Polity));
+        // Unowned: the rival routes freight over the road the player paid for.
+        TransportQuery.FreightEstimate viaRoad = TransportQuery.EstimateFreight(after, Roads, S1, S0, 100);
+        Assert.NotEqual(-1, viaRoad.Links[0]);
+        // A rival-only pair is not the player's to develop, but the rival may develop it.
+        WorldState w2 = Know(Toy([1, 2, -1], [(1, 2, 40.0)]), Player, "track_road");
+        Assert.Empty(RoadDevelopmentQuery.Routes(w2, Research, Roads, Player));
+        Know(w2, Rival, "track_road");
+        Assert.Single(StepOnce(w2, Develop(0, Rival, 100.0)).TransportEdges.Rows());
+        // A civilization whose purse is empty builds nothing, even though the far endpoint is rich.
+        WorldState poor = Know(Toy([1, 2], [(0, 1, 50.0)], stock: 0), Player, "track_road");
+        ResearchRigs.Stock(poor, 1, Timber, 1_000);
+        Assert.Equal(0, StepOnce(poor, Develop(0, Player, 100.0)).TransportEdges.Count);
+    }
+
+    // ------------------------------------------------------------------ DEVELOPMENT (22–25)
+
+    [Fact]
+    public void T22_24_HighestUseRoutesFirst_AndThePercentageOfDemandIsRespected()
     {
         // Usages: (0,1) 50, (0,2) 30, (0,3) 20 — total 100.
         WorldState w = Know(Toy([1, 1, 1, 1], [(0, 1, 10.0), (0, 2, 10.0), (0, 3, 10.0)]), Player, "track_road");
@@ -323,16 +504,17 @@ public class RoadDevelopmentTests
         Assert.Equal([50L, 30L, 20L], ranked.Select(r => r.Usage));
 
         int[] Built(double pct) => StepOnce(w.Clone(), Develop(0, Player, pct)).TransportEdges.Rows().Select(e => e.B.Value).ToArray();
-        Assert.Equal([1], Built(10.0));          // the first route alone covers 50%
-        Assert.Equal([1], Built(50.0));          // exactly 50 of 100: still one
-        Assert.Equal([1, 2], Built(50.0001));    // just above: the next by usage
+        Assert.Equal([1], Built(10.0));
+        Assert.Equal([1], Built(50.0));
+        Assert.Equal([1, 2], Built(50.0001));
         Assert.Equal([1, 2], Built(80.0));
         Assert.Equal([1, 2, 3], Built(80.5));
         Assert.Equal([1, 2, 3], Built(100.0));
+        Assert.Equal(Built(37.0), Built(37.0));              // the same input, the same coverage
     }
 
     [Fact]
-    public void WithNoTradeYet_ThePercentageIsOfTheRouteCount_RoundedUp_InIdOrder()
+    public void T25_WithNoTradeYet_ThePercentageIsOfTheRouteCount_RoundedUp_InIdOrder()
     {
         WorldState w = Know(Toy([1, 1, 1, 1, 1], [(0, 1, 10.0), (0, 2, 10.0), (0, 3, 10.0), (0, 4, 10.0)]), Player, "track_road");
         int Count(double pct) => StepOnce(w.Clone(), Develop(0, Player, pct)).TransportEdges.Count;
@@ -345,10 +527,8 @@ public class RoadDevelopmentTests
     }
 
     [Fact]
-    public void Ties_AreBrokenByStableEndpointIds_TieDense_AndInsensitiveToRowOrder()
+    public void T23_Ties_AreBrokenByStableEndpointIds_TieDense_AndInsensitiveToRowOrder()
     {
-        // Twelve routes, ALL of equal usage, inserted in a scrambled order: the ranking is (A, B)
-        // ascending whatever the table order, and the built prefix follows it.
         var pairs = new List<(int, int, double)>();
         int[] scramble = [7, 2, 11, 4, 9, 1, 12, 6, 3, 10, 5, 8];
         foreach (int b in scramble) pairs.Add((0, b, 10.0));
@@ -358,100 +538,170 @@ public class RoadDevelopmentTests
         Assert.Equal(Enumerable.Range(1, 12), ranked.Select(r => r.B.Value));
         Assert.Equal([1, 2, 3], StepOnce(w, Develop(0, Player, 25.0)).TransportEdges.Rows().Select(e => e.B.Value));
 
-        // Ties on usage between pairs with different A: A breaks first, then B.
-        var x = new RouteStatus(new SettlementId(2), new SettlementId(3), 1, 5, 1, 2, -1, RoadDevelopmentKind.NewRoute, RouteIneligibility.None);
-        var y = new RouteStatus(new SettlementId(1), new SettlementId(9), 1, 5, 1, 2, -1, RoadDevelopmentKind.NewRoute, RouteIneligibility.None);
-        var z = new RouteStatus(new SettlementId(1), new SettlementId(4), 1, 5, 1, 2, -1, RoadDevelopmentKind.NewRoute, RouteIneligibility.None);
-        var hi = new RouteStatus(new SettlementId(9), new SettlementId(10), 1, 6, 1, 2, -1, RoadDevelopmentKind.NewRoute, RouteIneligibility.None);
+        RouteStatus x = Rank(2, 3, 5), y = Rank(1, 9, 5), z = Rank(1, 4, 5), hi = Rank(9, 10, 6);
         Assert.Equal([hi, z, y, x], RoadDevelopmentQuery.Ranked([x, y, z, hi]));
         Assert.Equal([hi, z, y, x], RoadDevelopmentQuery.Ranked([z, hi, x, y]));
     }
 
     [Fact]
-    public void InsufficientResources_BuildTheAffordablePrefixOnly_NeverOverspend_NeverSkipAhead_NoDebt()
+    public void OneActionPerEmpirePerTurn_AndASecondEmpireSeesTheFirstsModernizationInTheSameStep()
     {
-        // Ranked: (0,1) 100 km, (0,2) 300 km, (0,3) 10 km. Trackway = 1 timber/km: 100, 300, 10.
-        WorldState w = Know(Toy([1, 1, 1, 1], [(0, 1, 100.0), (0, 2, 300.0), (0, 3, 10.0)], stock: 0), Player, "track_road");
-        Trade(w, 0, 1, 30); Trade(w, 0, 2, 20); Trade(w, 0, 3, 10);
-        ResearchRigs.Stock(w, 0, Timber, 110);        // pays route 1 (100) and route 3 (10) — but NOT route 2
-        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
-        Assert.Equal([(0, 1)], Pairs(after));         // route 3 is cheaper but lies AFTER the unaffordable route 2
-        Assert.Equal(10, StockOf(after, 0, Timber));  // exactly 100 spent, nothing more
-        Assert.Single(after.RoadDevelopments.Rows());
-
-        // Exactly enough: spends to zero, never below.
-        WorldState exact = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road");
-        ResearchRigs.Stock(exact, 0, Timber, 100);
-        WorldState paid = StepOnce(exact, Develop(0, Player, 100.0));
-        Assert.Equal(1, paid.TransportEdges.Count);
-        Assert.Equal(0, StockOf(paid, 0, Timber));
-
-        // One short: nothing at all, and nothing consumed.
-        WorldState shortW = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road");
-        ResearchRigs.Stock(shortW, 0, Timber, 99);
-        WorldState unpaid = StepOnce(shortW, Develop(0, Player, 100.0));
-        Assert.Equal(0, unpaid.TransportEdges.Count);
-        Assert.Equal(99, StockOf(unpaid, 0, Timber));
-        // A material the payer holds no row for at all: nothing built, no row conjured.
-        WorldState none = Know(Toy([1, 1], [(0, 1, 100.0)], stock: 0), Player, "track_road");
-        WorldState stillNone = StepOnce(none, Develop(0, Player, 100.0));
-        Assert.Equal(0, stillNone.TransportEdges.Count);
-        Assert.Equal(-1, GoodStockIndex.IndexOf(stillNone.GoodStocks, new SettlementId(0), new GoodId(Timber)));
-    }
-
-    [Fact]
-    public void Cost_IsPerKmFromTuning_AnInTierUpgradePaysOnlyTheDifference_AndThePayerIsTheIssuersEndpoint()
-    {
-        // Endpoint 0 is the RIVAL's, endpoint 1 the player's: the player pays from 1.
-        WorldState w = Know(Toy([2, 1], [(0, 1, 10.0)]), Player, "track_road", "stone_dry");
-        WorldState built = StepOnce(w, Develop(0, Player, 100.0));
-        // BuiltRoad = 2 stone + 0.5 timber per km over 10 km.
-        Assert.Equal(StockOf(w, 1, Stone) - 20, StockOf(built, 1, Stone));
-        Assert.Equal(StockOf(w, 1, Timber) - 5, StockOf(built, 1, Timber));
-        Assert.Equal(StockOf(w, 0, Stone), StockOf(built, 0, Stone));
-        // Upgrade BuiltRoad -> PavedRoad: 4 - 2 = 2 stone/km, timber 0.5 - 0.5 = 0.
-        Know(built, Player, "road_paved");
-        WorldState paved = StepOnce(built, Develop(1, Player, 100.0));
-        Assert.Equal(StockOf(built, 1, Stone) - 20, StockOf(paved, 1, Stone));
-        Assert.Equal(StockOf(built, 1, Timber), StockOf(paved, 1, Timber));
-        Assert.Equal(20, paved.RoadDevelopments[^1].MaterialUnits);
-    }
-
-    [Fact]
-    public void OneActionPerEmpirePerTurn_AndASecondEmpireSeesTheFirstsRoadsInTheSameStep()
-    {
-        // Both empires touch the shared pair (0, 1); the player orders first in the log.
         WorldState w = Know(Know(Toy([1, 2], [(0, 1, 10.0)]), Player, "track_road"), Rival, "track_road");
         WorldState after = StepOnce(w, Develop(0, Player, 100.0), Develop(0, Player, 100.0), Develop(0, Rival, 100.0));
-        TransportEdgeRow e = Assert.Single(after.TransportEdges.Rows());   // never double-built
+        TransportEdgeRow e = Assert.Single(after.TransportEdges.Rows());
         Assert.Equal(Player, after.RoadDevelopments[0].Polity);
         Assert.Single(after.RoadDevelopments.Rows());
         Assert.Equal(EdgeTypes.Trackway, e.EdgeType);
     }
 
-    // ------------------------------------------------------------------ AI and player (ruling 9)
+    // ------------------------------------------------------------------ TOPOLOGY (28, 29)
+
+    [Fact]
+    public void T28_Junctions_AreDerivedFromTopology_DegreeEdgesNeighboursModes()
+    {
+        var w = Toy([1, 1, 1, 1, 1], []);
+        w.TransportEdges.Add(Route(1, 0, 1, EdgeTypes.Trackway, 10.0));
+        w.TransportEdges.Add(Route(2, 0, 2, EdgeTypes.PavedRoad, 10.0));
+        w.TransportEdges.Add(Route(3, 1, 2, EdgeTypes.Trackway, 10.0));
+        w.TransportEdges.Add(Route(4, 0, 3, EdgeTypes.BuiltRoad, 10.0));
+        w.TransportEdges.Add(Route(5, 0, 1, EdgeTypes.Highway, 10.0));   // a genuinely separate second route 0-1
+
+        Assert.Equal(4, TransportQuery.Degree(w, S0));
+        Assert.True(TransportQuery.IsJunction(w, S0));
+        Assert.Equal(3, TransportQuery.Degree(w, S1));
+        Assert.True(TransportQuery.IsJunction(w, S1));
+        Assert.False(TransportQuery.IsJunction(w, S2));
+        Assert.False(TransportQuery.IsJunction(w, S3));
+        Assert.False(TransportQuery.IsJunction(w, new SettlementId(4)));
+        Assert.Equal([0, 1], TransportQuery.Junctions(w).Select(s => s.Value));
+        Assert.Equal([1, 2, 3], TransportQuery.Neighbors(w, S0).Select(s => s.Value));
+        Assert.Equal([1, 2, 4, 5], TransportQuery.EdgesAt(w, S0).Select(e => e.Id));
+        Assert.Equal([TransportModes.Road], TransportQuery.ModesAt(w, S0));
+        Assert.Empty(TransportQuery.ModesAt(w, new SettlementId(4)));
+        Assert.Equal([2], TransportQuery.SharedNeighbors(w, S0, S1).Select(s => s.Value));
+        Assert.Equal(0, w.NetworkNodes.Count);   // no junction entity anywhere
+    }
+
+    [Fact]
+    public void T29_SeparatePhysicalRoutesCoexist_ModernizationTouchesOnlyTheLowestIdRouteBelowTarget()
+    {
+        WorldState w = Know(Toy([1, 1], [(0, 1, 100.0)]), Player, "track_road", "stone_dry");
+        w.TransportEdges.Add(Route(3, 0, 1, EdgeTypes.Trackway, 80.0));    // a separate, shorter alignment
+        w.TransportEdges.Add(Route(9, 0, 1, EdgeTypes.Trackway, 120.0));
+        WorldState a = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Equal(2, a.TransportEdges.Count);
+        Assert.Equal((3, EdgeTypes.BuiltRoad), (a.TransportEdges[0].Id, a.TransportEdges[0].EdgeType));
+        Assert.Equal(w.TransportEdges[1], a.TransportEdges[1]);            // the other route untouched
+        WorldState b = StepOnce(a, Develop(1, Player, 100.0));
+        Assert.Equal(2, b.TransportEdges.Count);                           // continues with route 9, never a third
+        Assert.Equal((9, EdgeTypes.BuiltRoad), (b.TransportEdges[1].Id, b.TransportEdges[1].EdgeType));
+        Assert.Equal(120.0, b.TransportEdges[1].LengthKm);
+    }
+
+    // ------------------------------------------------------------------ RESEARCH (31–33)
+
+    [Fact]
+    public void T31_Research_GatesEligibility_ClassByClass()
+    {
+        WorldState w = Toy([1, 1], [(0, 1, 10.0)]);
+        int Best() => RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Player);
+        Assert.Equal(EdgeTypes.DirtPath, Best());
+        Know(w, Player, "track_road");
+        Assert.Equal(EdgeTypes.Trackway, Best());
+        Know(w, Player, "stone_dry");
+        Assert.Equal(EdgeTypes.BuiltRoad, Best());
+        Know(w, Player, "road_paved");
+        Assert.Equal(EdgeTypes.PavedRoad, Best());
+        Know(w, Player, "macadam");
+        Assert.Equal(EdgeTypes.MacadamRoad, Best());
+        Assert.False(RoadDevelopmentQuery.IsClassKnown(w, Research, Roads, Player, EdgeTypes.Highway));
+        Know(w, Player, "motor_road");
+        Assert.Equal(EdgeTypes.Highway, Best());
+        Assert.Equal(EdgeTypes.DirtPath, RoadDevelopmentQuery.BestKnownClass(w, Research, Roads, Rival));
+    }
+
+    [Fact]
+    public void T32_ResearchCompletion_ConstructsNoRoad_OnlyAnOrderDoes()
+    {
+        WorldState w = Trade(Toy([1, 1], [(0, 1, 10.0)]), 0, 1, 3);
+        Know(w, Player, "track_road");
+        var ex = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Research(Cfg), SystemCatalog.RoadDevelopment(Cfg)], null);
+        WorldState idle = ex.Run(w, 10);
+        Assert.Equal(0, idle.TransportEdges.Count);
+        Assert.True(RoadDevelopmentQuery.Routes(idle, Research, Roads, Player)[0].Eligible);
+        WorldState ordered = StepOnce(idle, Develop(idle.Clock.Turn, Player, 100.0));
+        Assert.Equal(1, ordered.TransportEdges.Count);
+    }
+
+    // ------------------------------------------------------------------ the action, turn-exact
+
+    [Fact]
+    public void PlayerAction_ModernizesRoads_TurnExact_TheEffectFirstExistsInTheStateAfterTheOrdersTurn()
+    {
+        WorldState w0 = Trade(Know(Toy([1, 1], [(0, 1, 25.0)]), Player, "track_road"), 0, 1, 1);
+        var ex = RoadsOnly(Log(Develop(2, Player, 100.0)));
+        WorldState w1 = ex.Step(w0), w2 = ex.Step(w1);
+        Assert.Equal(0, w1.TransportEdges.Count);
+        Assert.Equal(0, w2.TransportEdges.Count);
+        WorldState w3 = ex.Step(w2);
+        TransportEdgeRow e = Assert.Single(w3.TransportEdges.Rows());
+        Assert.Equal(3L, w3.Clock.Turn);
+        Assert.Equal((3L, 3L), (e.BuiltTurn, e.UpgradedTurn));
+        Assert.Equal(2L, w3.RoadDevelopments[0].Turn);
+        Assert.Equal((EdgeTypes.Trackway, TransportModes.Road, TransportEdgeStates.Complete, 0),
+            (e.EdgeType, e.Mode, e.State, e.Condition));
+        Assert.Equal(Roads.ClassOf(EdgeTypes.Trackway)!.CapacityTonnesPerYear, e.CapacityTonnesPerYear);
+        Assert.Equal(25.0, e.LengthKm);
+        Assert.Equal(25, w3.RoadDevelopments[0].MaterialUnits);
+        Assert.Equal(StockOf(w0, 0, Timber) - 25, StockOf(w3, 0, Timber));
+        // The modernization is visible to the network revision in the same state (catchments recompute next step).
+        Assert.Equal(RoadPerformance.NetworkRevision(w2) + 1, RoadPerformance.NetworkRevision(w3));
+    }
+
+    // ------------------------------------------------------------------ UI surface
+
+    [Fact]
+    public void Describe_ExposesEverythingTheRoadUiNeeds_ReadOnly()
+    {
+        WorldState w = Trade(Know(Toy([1, 1, 1], [(0, 1, 100.0), (0, 2, 40.0)]), Player, "track_road", "stone_dry"), 0, 1, 7);
+        w.TransportEdges.Add(Route(5, 0, 1, EdgeTypes.Trackway, 100.0, EdgeTypes.BuiltRoad, 0.25));
+        string hash = WorldHash.ComputeHex(w);
+        RoadRouteView[] views = RoadDevelopmentQuery.Describe(w, Research, Roads, Cfg.Goods!, Player);
+        Assert.Equal(hash, WorldHash.ComputeHex(w));
+        Assert.Equal(2, views.Length);
+        RoadRouteView v = views[0];
+        Assert.Equal((0, 1, 5, EdgeTypes.Trackway, EdgeTypes.BuiltRoad, 7L, true),
+            (v.Route.A.Value, v.Route.B.Value, v.Route.Edge, v.Route.CurrentClass, v.Route.TargetClass, v.Route.Usage, v.Route.Eligible));
+        Assert.Equal(25.0, v.ModernizationPercent);
+        Assert.Equal(w.TransportEdges[0].CostFactor, v.EffectiveCostFactor);
+        Assert.Equal(w.TransportEdges[0].CapacityTonnesPerYear, v.CapacityTonnesPerYear);
+        // Remaining 75% of (2 stone + 0.5 − 1 timber… floored at 0) per km over 100 km: 150 stone, 0 timber.
+        Assert.Equal([(Stone, 150L)], v.EstimatedCost.Select(c => (c.Good.Value, c.Units)));
+        RoadRouteView bare = views[1];
+        Assert.Equal((-1, RoadDevelopmentKind.FromBaseline, 1.0), (bare.Route.Edge, bare.Route.Kind, bare.EffectiveCostFactor));
+    }
+
+    // ------------------------------------------------------------------ AI and player (ruling 25)
 
     [Fact]
     public void AiAndPlayer_InvokeTheSameOperation_SameOrderShape_SameSelection_SameResult()
     {
-        // Mirror worlds: the player in one, the AI in the other, identical inputs.
         WorldState forPlayer = Trade(Know(Toy([1, 1, 1], [(0, 1, 20.0), (0, 2, 30.0)]), Player, "track_road"), 0, 2, 8);
         WorldState forAi = Trade(Know(Toy([2, 2, 2], [(0, 1, 20.0), (0, 2, 30.0)]), Rival, "track_road"), 0, 2, 8);
 
-        Assert.Null(RoadDevelopmentPolicy.Decide(forPlayer, Cfg, Player));    // the player is never auto-ordered
+        Assert.Null(RoadDevelopmentPolicy.Decide(forPlayer, Cfg, Player));
         OrderRecord ai = Assert.Single(RoadDevelopmentPolicy.OrdersForAi(forAi, Cfg));
         Assert.Equal(RoadDevelopmentQuery.DevelopOrder(forAi, Rival, RoadDevelopmentPolicy.TradedPercent), ai);
         OrderRecord player = RoadDevelopmentQuery.DevelopOrder(forPlayer, Player, ai.Amount);
         Assert.Equal((ai.Kind, ai.TargetId, ai.Amount), (player.Kind, player.TargetId, player.Amount));
 
-        // The same selection function answers both, with the same steps.
         RoadDevelopmentStep[] pPlan = RoadDevelopmentQuery.Plan(forPlayer, Research, Roads, Cfg.Goods!, Player, player.Amount);
         RoadDevelopmentStep[] aPlan = RoadDevelopmentQuery.Plan(forAi, Research, Roads, Cfg.Goods!, Rival, ai.Amount);
-        Assert.Equal(pPlan.Select(s => (s.Route, s.Payer)), aPlan.Select(s => (s.Route, s.Payer)));
+        Assert.Equal(pPlan.Select(s => s.Route), aPlan.Select(s => s.Route));
 
         WorldState p1 = StepOnce(forPlayer, player), a1 = StepOnce(forAi, ai);
         Assert.Equal(p1.TransportEdges.Rows(), a1.TransportEdges.Rows());
-        Assert.Equal([(0, 2)], Pairs(a1));                                     // the traded route, 50% of demand
+        Assert.Equal([(0, 2)], Pairs(a1));
     }
 
     [Fact]
@@ -463,27 +713,30 @@ public class RoadDevelopmentTests
         Assert.Empty(RoadDevelopmentPolicy.OrdersForAi(broke, Cfg));
         WorldState able = Know(Toy([2, 2], [(0, 1, 20.0)]), Rival, "track_road");
         Assert.Equal(RoadDevelopmentPolicy.UntradedPercent, Assert.Single(RoadDevelopmentPolicy.OrdersForAi(able, Cfg)).Amount);
+        // Partly affordable is enough to act (the system applies the affordable proportion).
+        WorldState some = Know(Toy([2, 2], [(0, 1, 20.0)], stock: 0), Rival, "track_road");
+        ResearchRigs.Stock(some, 1, Timber, 5);
+        Assert.Single(RoadDevelopmentPolicy.OrdersForAi(some, Cfg));
     }
 
-    // ------------------------------------------------------------------ deterioration (ruling 8)
+    // ------------------------------------------------------------------ deterioration (ruling 18)
 
     [Fact]
     public void Deterioration_HasNoGameplay_ConditionIsInert_AndNothingDecaysOverTime()
     {
         WorldState w = Trade(Know(Toy([1, 1, 1], [(0, 1, 20.0), (1, 2, 20.0), (0, 2, 80.0)]), Player, "track_road"), 0, 1, 2);
         WorldState built = StepOnce(w, Develop(0, Player, 100.0));
-        WorldState aged = RoadsOnly(null).Run(built, 200);                    // 2,000 sim-years, no order
+        WorldState aged = RoadsOnly(null).Run(built, 200);
         Assert.Equal(built.TransportEdges.Rows(), aged.TransportEdges.Rows());
 
-        // Writing ANY condition value changes no query: not travel, not eligibility, not the plan.
         WorldState worn = built.Clone();
         for (int i = 0; i < worn.TransportEdges.Count; i++) worn.TransportEdges[i] = worn.TransportEdges[i] with { Condition = -987 };
-        var from = new SettlementId(0); var to = new SettlementId(2);
-        TransportQuery.FreightEstimate a = TransportQuery.EstimateFreight(built, Roads, from, to, 5000);
-        TransportQuery.FreightEstimate b = TransportQuery.EstimateFreight(worn, Roads, from, to, 5000);
+        TransportQuery.FreightEstimate a = TransportQuery.EstimateFreight(built, Roads, S0, S2, 5000);
+        TransportQuery.FreightEstimate b = TransportQuery.EstimateFreight(worn, Roads, S0, S2, 5000);
         Assert.Equal((a.CostKm, a.TotalDays, a.BottleneckCapacityTonnesPerYear), (b.CostKm, b.TotalDays, b.BottleneckCapacityTonnesPerYear));
         Know(built, Player, "stone_dry"); Know(worn, Player, "stone_dry");
-        Assert.Equal(RoadDevelopmentQuery.Routes(built, Research, Roads, Player), RoadDevelopmentQuery.Routes(worn, Research, Roads, Player));
+        Assert.Equal(RoadDevelopmentQuery.Routes(built, Research, Roads, Player).Select(r => (r.A, r.B, r.Edge, r.Kind)),
+                     RoadDevelopmentQuery.Routes(worn, Research, Roads, Player).Select(r => (r.A, r.B, r.Edge, r.Kind)));
         Assert.Equal(StepOnce(built, Develop(1, Player, 100.0)).RoadDevelopments.Rows(),
                      StepOnce(worn, Develop(1, Player, 100.0)).RoadDevelopments.Rows());
     }
@@ -491,11 +744,10 @@ public class RoadDevelopmentTests
     // ------------------------------------------------------------------ the travel-time hook
 
     [Fact]
-    public void TravelTime_BetterRoadsAreFaster_AndTheDirectorsReferenceFigureHoldsOnTheBaseline()
+    public void TravelTime_BetterAndFurtherModernizedRoadsAreFaster_AndTheDirectorsReferenceFigureHolds()
     {
-        // 3000 km on the free baseline, 5000 t: ~3 in-game months (the Director's figure).
         WorldState w = Toy([1, 1], [(0, 1, 3000.0)]);
-        TransportQuery.FreightEstimate dirt = TransportQuery.EstimateFreight(w, Roads, new SettlementId(0), new SettlementId(1), 5000);
+        TransportQuery.FreightEstimate dirt = TransportQuery.EstimateFreight(w, Roads, S0, S1, 5000);
         Assert.True(dirt.Reachable);
         Assert.Equal(3000.0 / Roads.BaselineKmPerDay, dirt.TransitDays);
         Assert.Equal(5000.0 / Roads.ClassOf(EdgeTypes.DirtPath)!.CapacityTonnesPerYear * TransportQuery.DaysPerYear, dirt.ThroughputDays);
@@ -506,16 +758,22 @@ public class RoadDevelopmentTests
         foreach (int cls in new[] { EdgeTypes.Trackway, EdgeTypes.BuiltRoad, EdgeTypes.PavedRoad, EdgeTypes.MacadamRoad, EdgeTypes.Highway })
         {
             WorldState r = w.Clone();
-            RoadClassConfig c = Roads.ClassOf(cls)!;
-            r.TransportEdges.Add(new TransportEdgeRow(1, new SettlementId(0), new SettlementId(1), cls, TransportModes.Road,
-                TransportEdgeStates.Complete, c.CapacityTonnesPerYear, 3000.0, 0, 1, 1));
-            TransportQuery.FreightEstimate est = TransportQuery.EstimateFreight(r, Roads, new SettlementId(0), new SettlementId(1), 5000);
+            r.TransportEdges.Add(Route(1, 0, 1, cls, 3000.0));
+            TransportQuery.FreightEstimate est = TransportQuery.EstimateFreight(r, Roads, S0, S1, 5000);
             Assert.True(est.TotalDays < previous, $"class {cls} is not faster than the class below it");
             Assert.Equal([1], est.Links);
+            Assert.Equal(RoadPerformance.TravelKm(r.TransportEdges[0]), est.CostKm);
             previous = est.TotalDays;
         }
-        // Throughput is a per-YEAR rate turned into days: twice the tonnage, twice the throughput days.
-        TransportQuery.FreightEstimate twice = TransportQuery.EstimateFreight(w, Roads, new SettlementId(0), new SettlementId(1), 10000);
+        // Partial modernization lies strictly between its end classes.
+        double Days(double f)
+        {
+            WorldState r = w.Clone();
+            r.TransportEdges.Add(Route(1, 0, 1, EdgeTypes.PavedRoad, 3000.0, EdgeTypes.Highway, f));
+            return TransportQuery.EstimateFreight(r, Roads, S0, S1, 5000).TransitDays;
+        }
+        Assert.True(Days(0.0) > Days(0.5) && Days(0.5) > Days(1.0));
+        TransportQuery.FreightEstimate twice = TransportQuery.EstimateFreight(w, Roads, S0, S1, 10000);
         Assert.Equal(2.0 * dirt.ThroughputDays, twice.ThroughputDays);
         Assert.Equal(dirt.TransitDays, twice.TransitDays);
     }
@@ -523,17 +781,13 @@ public class RoadDevelopmentTests
     [Fact]
     public void TravelTime_RoutesThroughAJunction_WhenTheBuiltNetworkBeatsTheDirectBaseline()
     {
-        // Direct baseline 0-2 is 100 km; a highway 0-1-2 (2 × 60 km at speed factor 0.15) is 18 km-equivalent.
         WorldState w = Toy([1, 1, 1], [(0, 1, 60.0), (1, 2, 60.0), (0, 2, 100.0)]);
-        RoadClassConfig hw = Roads.ClassOf(EdgeTypes.Highway)!;
-        w.TransportEdges.Add(new TransportEdgeRow(1, new SettlementId(0), new SettlementId(1), EdgeTypes.Highway, TransportModes.Road,
-            TransportEdgeStates.Complete, hw.CapacityTonnesPerYear, 60.0, 0, 1, 1));
-        w.TransportEdges.Add(new TransportEdgeRow(2, new SettlementId(1), new SettlementId(2), EdgeTypes.Highway, TransportModes.Road,
-            TransportEdgeStates.Complete, hw.CapacityTonnesPerYear, 60.0, 0, 1, 1));
-        TransportQuery.FreightEstimate est = TransportQuery.EstimateFreight(w, Roads, new SettlementId(0), new SettlementId(2), 1);
+        w.TransportEdges.Add(Route(1, 0, 1, EdgeTypes.Highway, 60.0));
+        w.TransportEdges.Add(Route(2, 1, 2, EdgeTypes.Highway, 60.0));
+        TransportQuery.FreightEstimate est = TransportQuery.EstimateFreight(w, Roads, S0, S2, 1);
         Assert.Equal([0, 1, 2], est.Path.Select(s => s.Value));
         Assert.Equal([1, 2], est.Links);
-        Assert.Equal(2 * 60.0 * hw.SpeedFactor, est.CostKm);
+        Assert.Equal(2 * 60.0 * Roads.ClassOf(EdgeTypes.Highway)!.SpeedFactor, est.CostKm);
     }
 
     // ------------------------------------------------------------------ order validation
@@ -564,10 +818,33 @@ public class RoadDevelopmentTests
         Assert.Equal(Develop(4, Player, 37.5), back[0]);
     }
 
-    // ------------------------------------------------------------------ replay determinism on the real pipeline
+    // ------------------------------------------------------------------ PERSISTENCE (34, 35)
 
     [Fact]
-    public void FoundedPipeline_PlayerAndAiRoadOrders_TwinAndReplayAreIdenticalEveryTurn()
+    public void T34_SaveLoad_PreservesRoadStateAndModernizationProgress()
+    {
+        WorldState w = Know(Toy([1, 1, 1], [(0, 1, 100.0), (0, 2, 70.0)], stock: 0), Player, "track_road");
+        ResearchRigs.Stock(w, 0, Timber, 133);   // route (0,1) in full, (0,2) to 33/70
+        WorldState after = StepOnce(w, Develop(0, Player, 100.0));
+        Assert.Contains(after.TransportEdges.Rows(), e => e.Modernization > 0.0 && e.Modernization < 1.0);
+
+        using var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+            CanonicalSchema.Write(after, writer);
+        Assert.Equal(CanonicalSchema.ExpectedLength(after), ms.Length);
+        ms.Position = 0;
+        using var reader = new BinaryReader(ms);
+        WorldState back = CanonicalSchema.Read(reader);
+        Assert.True(WorldStates.StateEquals(after, back));
+        Assert.Equal(WorldHash.ComputeHex(after), WorldHash.ComputeHex(back));
+        Assert.Equal(after.TransportEdges.Rows(), back.TransportEdges.Rows());
+        // The loaded world continues the same route exactly as the live one does.
+        ResearchRigs.Stock(after, 1, Timber, 100); ResearchRigs.Stock(back, 1, Timber, 100);
+        Assert.Equal(WorldHash.ComputeHex(StepOnce(after, Develop(1, Player, 100.0))), WorldHash.ComputeHex(StepOnce(back, Develop(1, Player, 100.0))));
+    }
+
+    [Fact]
+    public void T35_FoundedPipeline_PlayerAndAiRoadOrders_TwinAndReplayAreIdenticalEveryTurn_IncludingTravelTimes()
     {
         WorldState genesis = WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, Cfg, 42);
         foreach (PolityId p in new[] { Player, Rival }) Know(genesis, p, "track_road");
@@ -579,7 +856,6 @@ public class RoadDevelopmentTests
             return new TurnExecutor(era, PipelineLoader.Load(pipeStream, SystemCatalog.All(Cfg, TestConfigs.DevWorldgen() with { AiEmpires = 1 })), log);
         }
 
-        // LIVE: the player's slider every 5 turns, the AI's policy every turn, into one log.
         var live = new OrderLog();
         TurnExecutor ex = Pipe(live);
         WorldState w = genesis.Clone();
@@ -591,11 +867,13 @@ public class RoadDevelopmentTests
             w = ex.Step(w);
             hashes.Add(WorldHash.ComputeHex(w));
         }
-        Assert.True(w.TransportEdges.Count > 0, "no road was built — the replay proves nothing");
+        Assert.True(w.TransportEdges.Count > 0, "no road was developed — the replay proves nothing");
         Assert.Contains(w.RoadDevelopments.Rows(), r => r.Polity == Rival);
         Assert.Contains(w.RoadDevelopments.Rows(), r => r.Polity == Player);
+        // No pair ever carries more than one route row: development never laid a parallel road.
+        foreach (TransportEdgeRow e in w.TransportEdges.Rows())
+            Assert.Single(TransportQuery.EdgesBetween(w, e.A, e.B));
 
-        // REPLAY from the recorded log alone, in a fresh executor, from a fresh founding.
         WorldState genesis2 = WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, Cfg, 42);
         foreach (PolityId p in new[] { Player, Rival }) Know(genesis2, p, "track_road");
         TurnExecutor replay = Pipe(live);
@@ -606,12 +884,16 @@ public class RoadDevelopmentTests
             Assert.Equal(hashes[t], WorldHash.ComputeHex(r));
         }
         Assert.True(WorldStates.StateEquals(w, r));
+        TransportEdgeRow any = w.TransportEdges[0];
+        TransportQuery.FreightEstimate fl = TransportQuery.EstimateFreight(w, Roads, any.A, any.B, 5000);
+        TransportQuery.FreightEstimate fr = TransportQuery.EstimateFreight(r, Roads, any.A, any.B, 5000);
+        Assert.Equal((fl.CostKm, fl.TotalDays), (fr.CostKm, fr.TotalDays));
     }
 
     // ------------------------------------------------------------------ content (rulings 16, 17, 18)
 
     [Fact]
-    public void Content_MotorRoad_Key425_A9Engineering_ThreeRuledPrerequisites_UnlocksTheHighwayEntity_Adr029Cost()
+    public void T33_Content_MotorRoad_Key425_A9Engineering_ThreeRuledPrerequisites_UnlocksTheHighwayEntity_Adr029Cost()
     {
         int i = Research.IndexOfId("motor_road");
         Assert.True(i >= 0);
