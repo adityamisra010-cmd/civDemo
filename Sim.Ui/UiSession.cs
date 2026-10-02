@@ -253,6 +253,23 @@ public sealed class UiSession
         return true;
     }
 
+    /// <summary>
+    /// ADR-033 D4: the tax edict's submit handler — ONE SetTaxRate order, stamped with the CURRENT
+    /// turn, legislated by the player's Empire for itself (<see cref="TaxOrderFactory.Create(long, PolityId, int)"/>,
+    /// i.e. <see cref="Governance.TaxOrder"/>). Returns false and appends NOTHING for a rate outside
+    /// 0..100, or when the Empire cannot levy a tax yet (<see cref="Governance.CanLevyTax"/> — the
+    /// research gate GovernanceSystem applies on the step; the UI never logs an edict the
+    /// simulation would ignore), so the caller can leave the control alone rather than pretend.
+    /// </summary>
+    public bool EmitTaxOrder(int percent)
+    {
+        if (!TaxOrderFactory.CanSubmit(percent)) return false;
+        PolityId me = LaborOrderFactory.PlayerEmpire;
+        if (!Governance.CanLevyTax(World, Config, me)) return false;
+        Orders.Append(TaxOrderFactory.Create(World.Clock.Turn, me, percent));
+        return true;
+    }
+
     /// <summary>The not-yet-stepped orders: the log rows stamped with the current turn, in log order
     /// (exactly the batch the next End Turn delivers).</summary>
     public IReadOnlyList<OrderRecord> QueuedOrders()
