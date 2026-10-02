@@ -318,3 +318,68 @@ panels (streams U2/U4 render `InstitutionsQuery`). A world with no university is
 simulated quantity: the staff reader returns the raw adult count, the mortality seam returns 1.0, the
 modifier table stays empty, and the D10 table stays empty unless a project is built. Only the stream
 layout (two count prefixes) moves the goldens, attributed by `IntegratedPinAttributionTests`.
+
+## 12. Measured results (this stream's tree, Release)
+
+**12.1 Goldens — the v31 layout alone.** Each moved by exactly two empty four-byte count prefixes
+(Institutions, ConstructionLabor): no pinned world issues an EnqueueConstruction order, so nothing is
+built, no university is founded and no construction labour is published. `IntegratedPinAttributionTests`'
+v31 controls strip the layer (and the ResearchCostModifiers its system rebuilds) and return each v30 pin
+byte for byte with `removed == 0`.
+
+| world | v30 | v31 | also derived by |
+|---|---|---|---|
+| synthetic, seed 42, 200 turns | `bbcac046…` | `0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269` | `sim run --seed 42 --turns 200 --hash-log` |
+| founded, seed 42, 300 turns (`ci.yml` FOUNDED_GOLDEN) | `64820f83…` | `74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c` | `sim run --founded --seed 42 --turns 300 --hash-log`, two processes, byte-identical logs |
+| FirstReign, 40 turns | `3613dcc4…` | `481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87` | in-test harness |
+| driven, seed 42, 300 turns | `638d7a09…` | `65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651` | in-test harness |
+
+**12.2 The D-021 brake (`InstitutionBrakeTests`).** Dev world, seed 42, settlement 0 after three turns
+(281 adults, published food surplus 1.3088); market `adults / 16` = 17, staff share raised to 0.8 in the
+rig so each mature instance withdraws 13.6 adults (4.8 %); one production-pipeline step per k:
+
+| k | staff | labour-bound output | food surplus ratio | maturity one step later |
+|---|---|---|---|---|
+| 0 | 0.0 | 1510 | 1.3088 | — |
+| 1 | 13.6 | 1437 | 1.2453 | 1.0000 |
+| 2 | 27.2 | 1365 | 1.1822 | 1.0000 |
+| 3 | 40.8 | 1290 | 1.1187 | 1.0000 |
+| 4 | 54.4 | 1218 | 1.0555 | 0.6308 |
+| 7 | 95.2 | 999 | 0.8655 | 0.6308 |
+| 14 | 190.4 | 487 | 0.4219 | 0.6308 |
+
+The force is exactly linear in k, the output loss grows with k, the surplus falls monotonically, and at
+k* = 4 the host can no longer sustain its scholars: maturity decays (0.6308 = e^(−10 / 21.7), one
+10-year turn) instead of holding at 1. At the canonical σ = 0.05 a host at its market's capacity loses at
+most 5 % of its adults (second test), so the food term binds only within that margin of 1.1.
+
+**12.3 The AI on the canonical world (ADR-033 B; seed 42, `aiEmpires = 1`).** Measured by a probe on the
+production pipeline and by `sim run --founded --seed 42 --turns 400 --ai-empires 1` (the same turn-400
+hash). S2 is the tree this stream was cut from (core-only research goal).
+
+| milestone | S2 | S3 |
+|---|---|---|
+| research targets | grinding_stone t0, cereal_cultivation t19 | grinding_stone t0, knapping_oldowan t19 |
+| first granary ordered | t9 | t9 |
+| first road (DevelopRoads order / RoadDevelopments row) | none in 400 turns | t246 / t247 |
+| first levy (SetTaxRate order / positive rate) | none in 400 turns | t305 / t306 |
+| first university (order / founded row) | none in 400 turns | none in 400; t722 / t724 in a 1,000-turn extension |
+| Age 2 in force | t142 | t382 |
+| Age 3 in force | t396 | t654 (extension) |
+| Ages 4 / 5 in force | — | t744 / t965 (extension) |
+| nodes completed by t400 | 17 | 22 |
+| turn-400 hash | `a25d36ce…` | `e7e587c85173328d5625910299302f4e46fcb8d2482d842629e9ec9295e0d3d1` |
+
+The union reaches the capability gates S2 never reached, and it DELAYS every Age: cheapest-first over the
+union researches the many cheap ancestors of the road, tax and university closures before the core. An
+offline closure computation over base costs (INFERRED: no Eurekas, RP rather than turns) gives the same
+ordering — union: road 9,240 RP, tax 13,640, Age 2 20,530; S2: Age 2 3,890, tax 39,790, road 95,010 — and
+for a goal-SEQUENTIAL variant (work the goal whose remaining closure is cheapest): road 3,850, Age 2 8,620,
+Age 3 24,380. The packet specifies the union; the variant is recorded in `docs/queue.md`, not taken.
+
+**12.4 Universities in the long run (same run, 1,000 turns).** The AI orders its first university at
+t722 (military, settlement 1), founded at t724 (the one-turn lag), and founds fifteen — three of each
+specialty, spread over five settlements — by t742; the saturation stop then holds. Staff at t1000:
+≈ 1,430 adults (100 × Σ M, Σ M = 14.3) in hosts of 64,000–163,000 adults — 0.1–0.5 % of each host. The first draft (staff
+proportional to the host, specialty keyed on X alone) measured 46 universities by t1000 — each specialty
+ordered three turns running — with 14–48 % of the hosts' adults withdrawn (§7.1, §9).
