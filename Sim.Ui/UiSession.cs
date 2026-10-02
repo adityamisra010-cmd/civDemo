@@ -45,6 +45,10 @@ public sealed class UiSession
     private readonly ulong _seed;
     private readonly int? _sizePx;
     private readonly int? _settlements;
+    // ADR-033 D5: the AI-empire override the world was founded with (null = worldgen.json's
+    // aiEmpires, whose default is 0). Recorded in the manifest and the forensic record because a
+    // session founded with AI Empires replays only into the same world.
+    private readonly int? _aiEmpires;
     private readonly int _grainGoodId;
     private readonly List<string> _trace = [SessionTrace.Header];
 
@@ -89,7 +93,7 @@ public sealed class UiSession
 
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
-        ulong seed, int? sizePx, int? settlements, SimConfig simCfg)
+        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null)
     {
         World = world;
         _executor = executor;
@@ -97,6 +101,7 @@ public sealed class UiSession
         _seed = seed;
         _sizePx = sizePx;
         _settlements = settlements;
+        _aiEmpires = aiEmpires;
         _simCfg = simCfg;
         _grainGoodId = simCfg.Goods?.GrainId ?? 0;
         using (var stream = Sim.Data.DataFiles.OpenChronicle())
@@ -120,17 +125,22 @@ public sealed class UiSession
                 _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
     }
 
-    /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.</summary>
+    /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.
+    /// <paramref name="aiEmpiresOverride"/> (ADR-033 D5) founds that many AI-commanded Empires instead of
+    /// worldgen.json's count (default 0); their orders come from <see cref="AiOrders"/> at every End Turn.</summary>
     public static UiSession Start(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
     {
         var orders = new OrderLog();
         SimConfig simCfg = UiFounding.ProductionConfig();
         return new UiSession(
-            UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride),
             BuildProductionExecutor(orders), orders,
-            seed, sizeOverridePx, settlementsOverride, simCfg);
+            seed, sizeOverridePx, settlementsOverride, simCfg, aiEmpiresOverride);
     }
+
+    /// <summary>The AI-empire override this session was founded with, or null for worldgen.json's count.</summary>
+    public int? AiEmpiresOverride => _aiEmpires;
 
     /// <summary>
     /// A session over an ALREADY-FOUNDED world with the production executor and config — for tests
@@ -303,17 +313,13 @@ public sealed class UiSession
     }
 
     /// <summary>
-    /// ADR-031 §4: before each step the AI polities' Age decisions
-    /// (<see cref="Sim.Core.Systems.Ages.AgeAdvancePolicy.OrdersForAi"/>) are appended to the order
-    /// log like the player's click, so an AI advance replays from the log. Player-commanded polities
-    /// are never touched by the policy: the player is never auto-advanced.
+    /// ADR-033 D5 (replacing the Age-only call of ADR-031 §4): before each step every AI polity's orders —
+    /// research target, Age advance, road development, construction (<see cref="AiOrders"/>, the one
+    /// deterministic producer, which reaches them through the player's own order constructors and the same
+    /// domain predicates) — are appended to the order log like the player's clicks, so an AI run replays from
+    /// the log. Player-commanded polities are never touched: the player is never auto-advanced.
     /// </summary>
-    private void AppendAiAgeOrders()
-    {
-        if (Config.Ages is not { } ages) return;
-        foreach (OrderRecord order in Sim.Core.Systems.Ages.AgeAdvancePolicy.OrdersForAi(World, ages))
-            Orders.Append(order);
-    }
+    private void AppendAiOrders() => AiOrders.Append(Orders, World, Config);
 
     /// <summary>ADR-029: clears the player's research target (progress is kept, D-044 R9).</summary>
     public void ClearResearchTarget() =>
@@ -331,7 +337,7 @@ public sealed class UiSession
     /// indices, so a policy change carries its order number.</summary>
     public void EndTurn()
     {
-        AppendAiAgeOrders();
+        AppendAiOrders();
         WorldState prev = World;
         World = _executor.Step(prev);
         PreviousWorld = prev;
@@ -408,7 +414,8 @@ public sealed class UiSession
             TraceFile: Path.GetFileName(TracePath(sessionLogPath)),
             TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)),
             Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
-            ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)));
+            ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)),
+            AiEmpires: _aiEmpires);
 
     /// <summary>Writes the manifest beside the order log.</summary>
     public void ExportManifest(string startedAt, string sessionLogPath)
@@ -540,7 +547,7 @@ public sealed class UiSession
             orders: Orders,
             era: ProductionEra(),
             pipeline: ProductionPipeline(),
-            aiEmpiresConfigured: ProductionWorldgen().AiEmpires,
+            aiEmpiresConfigured: _aiEmpires ?? ProductionWorldgen().AiEmpires,
             terrainContentHash: World.Terrain?.ContentHash,
             buildSha: BuildInfo.Sha,
             buildDate: BuildInfo.Date,
@@ -604,7 +611,7 @@ public sealed class UiSession
     /// canonical-world log at replay time (`sim replay --founded --size PX`).
     /// </summary>
     public static string SessionLogPath(
-        DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null) =>
+        DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null) =>
         Path.Combine("runs",
             "orders-" + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
             + (sizeOverridePx is { } sz
@@ -612,6 +619,11 @@ public sealed class UiSession
                 : "")
             + (settlementsOverride is { } n
                 ? "-n" + n.ToString(CultureInfo.InvariantCulture)
+                : "")
+            // ADR-033 D5: an AI-empire override is recorded IN the name too (…-a1.bin), like the size and
+            // settlement overrides, so such a log is never mistaken for a solo canonical-world log.
+            + (aiEmpiresOverride is { } a
+                ? "-a" + a.ToString(CultureInfo.InvariantCulture)
                 : "")
             + ".bin");
 

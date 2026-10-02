@@ -77,12 +77,21 @@ public sealed record ProjectInput(
 /// (share × adults × dtYears), so the comparison is dimensionally sound and no
 /// conversion constant is invented. There is NO build-time field: how many turns
 /// a project takes is emergent from what the settlement can marshal.
+///
+/// ADR-033 D3 — `Entity` links the project to its research.json registry entity
+/// (e.g. building.granary): the project is AVAILABLE to an issuer only when that
+/// entity is knowledge-eligible for it (ConstructionQuery.IsProjectAvailable), which
+/// makes ADR-028's LOCKED / AVAILABLE expressible. Data, never an id in code; absent
+/// = no knowledge requirement. Cross-validated against research.json at the
+/// four-file load (the entity must exist and be a building, an institution or
+/// infrastructure).
 /// </summary>
 public sealed record ConstructionProjectEntry(
     [property: JsonPropertyName("id"), JsonRequired] int Id,
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("inputs"), JsonRequired] ProjectInput[] Inputs,
-    [property: JsonPropertyName("laborRequired"), JsonRequired] double LaborRequired);
+    [property: JsonPropertyName("laborRequired"), JsonRequired] double LaborRequired,
+    [property: JsonPropertyName("entity")] string? Entity = null);
 
 /// <summary>
 /// The D-031 goods registry + recipe book (T3.2), loaded from goods.json on

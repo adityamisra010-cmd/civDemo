@@ -193,6 +193,28 @@ public static class ResearchQuery
 
     // ------------------------------------------------------------------ target and progress
 
+    /// <summary>
+    /// THE research directive, built the same way for the player and the AI (ADR-033 D5; the
+    /// AgeQuery.AdvanceOrder / RoadDevelopmentQuery.DevelopOrder precedent): the SetResearchTarget order
+    /// that makes <paramref name="node"/> the issuer's one active target, stamped with the CURRENT turn (the
+    /// step executing from this state already spends its RP on it), or null when the node is not AVAILABLE
+    /// to the issuer now — refused by <see cref="IsAvailable"/>, the availability ResearchSystem applies, so
+    /// no caller ever logs an order the simulation would ignore.
+    /// </summary>
+    public static Kernel.OrderRecord? TargetOrder(
+        IReadOnlyWorldState world, ResearchContent content, PolityId issuer, ResearchNodeId node)
+    {
+        int index = content.IndexOf(node);
+        if (index < 0) return null;
+        bool[] completed = CompletedMask(world, content, issuer);
+        if (!IsAvailable(content, index, completed, StageReached(content, completed))) return null;
+        return Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, node.Value, 0.0);
+    }
+
+    /// <summary>The order that clears the issuer's target (progress everywhere is kept, D-044 R9).</summary>
+    public static Kernel.OrderRecord ClearTargetOrder(IReadOnlyWorldState world, PolityId issuer) =>
+        Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, -1, 0.0);
+
     /// <summary>The polity's one active research target (D-044 R9), if any.</summary>
     public static bool TryGetTarget(IReadOnlyWorldState world, PolityId polity, out ResearchNodeId node)
     {

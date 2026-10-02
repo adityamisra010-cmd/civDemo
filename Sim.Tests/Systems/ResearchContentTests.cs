@@ -338,24 +338,111 @@ public class ResearchContentTests
     // ------------------------------------------------------------------ D-047 (Civ VI reference and progression rulings)
 
     [Fact]
-    public void D047_TheFiveFoundingActivities_RequireNoNode_AndAreEligibleWithZeroNodes()
+    public void ADR033_D1_FarmingHerdingLoggingMining_RequireTheirNodes_FishingStaysBaseline_TheSectorsAreNeverGated()
     {
+        // ADR-033 D1 supersedes the D-047 Part E / G-18 implementation closure that this test pinned
+        // ("the five founding activities require no node"): the five SECTORS stay baseline and ungated
+        // (production is unchanged), but the ACTIVITY a sector expresses is knowledge-derived again —
+        // the requirements and reverse indexes the content carried before D-047 Part E. activity.fishing
+        // stays null (D-047 ruling 4: basic fishing is baseline); fishing_hook does NOT list it.
         var none = new bool[Canonical.Nodes.Count];
-        foreach (string id in new[] { "activity.farming", "activity.herding", "activity.fishing", "activity.logging", "activity.mining" })
+        (string Entity, string Requires, string[] Nodes)[] gatedActivities =
+        [
+            ("activity.farming", "cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet",
+             ["cereal_cultivation", "root_crop", "rice_wet", "millet", "maize", "sorghum_pearl_millet"]),
+            ("activity.herding", "sheep_goat OR cattle", ["sheep_goat", "cattle"]),
+            ("activity.logging", "ground_stone_early", ["ground_stone_early"]),
+            ("activity.mining", "mining_shaft", ["mining_shaft"]),
+        ];
+        foreach ((string id, string requires, string[] nodes) in gatedActivities)
         {
             int e = Canonical.EntityIndexOf(id);
             Assert.True(e >= 0, id);
-            Assert.Null(Canonical.Entities[e].Requirement);
-            Assert.Empty(Canonical.Entities[e].NodeAtoms);
-            Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, e, none), id);
-            foreach (ResearchNode n in Canonical.Nodes)
-                Assert.DoesNotContain(e, n.UnlockedEntities);                // the reverse index agrees
+            Assert.Equal(requires, Canonical.Entities[e].Requirement!.Source);
+            Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, e, none), id);     // not at founding
+            for (int i = 0; i < Canonical.Nodes.Count; i++)                            // the reverse index agrees
+                Assert.Equal(Array.IndexOf(nodes, Canonical.Nodes[i].Id) >= 0, Canonical.Nodes[i].UnlockedEntities.Contains(e));
+            foreach (string node in nodes)
+            {
+                var one = new bool[Canonical.Nodes.Count];
+                one[Canonical.IndexOfId(node)] = true;
+                Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, e, one), $"{id} via {node}");
+            }
         }
+        int fishing = Canonical.EntityIndexOf("activity.fishing");
+        Assert.Null(Canonical.Entities[fishing].Requirement);
+        Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, fishing, none));
+        foreach (ResearchNode n in Canonical.Nodes) Assert.DoesNotContain(fishing, n.UnlockedEntities);
+        Assert.DoesNotContain(fishing, Canonical.Nodes[Canonical.IndexOfId("fishing_hook")].UnlockedEntities);
+        // The eight activity entities have display names (they were null).
+        Assert.Equal(
+            ["Farming", "Herding", "Fishing", "Logging", "Mining", "Caravans", "Coastal shipping", "Ocean shipping"],
+            Canonical.Entities.Where(x => x.Kind == ResearchEntityKind.Activity).Select(x => x.Name ?? "(null)").ToArray());
         // The classes D-047 keeps technology-owned stay gated: fish weirs (ruling 5), improved
         // coastal/seagoing (sail) and oceanic transport (ruling 7), road classes (ruling 8).
         foreach (string gated in new[] { "infra.fish_weir", "activity.coastal_shipping", "activity.ocean_shipping",
                                          "infra.road_track", "infra.road_paved", "infra.road_macadam" })
             Assert.False(ResearchQuery.IsKnowledgeEligible(Canonical, Canonical.EntityIndexOf(gated), none), gated);
+    }
+
+    [Fact]
+    public void ADR033_D1_SectorActivities_MapEverySectorOnce_BaselineIdentityThenResearchedIdentities()
+    {
+        IReadOnlyList<SectorActivityContent> map = Canonical.SectorActivities;
+        Assert.Equal(Sectors.Count, map.Count);
+        (int Sector, string Id, string Name, string[] Provided, (string Entity, string Label, SectorActivityMode Mode)[] Researched)[] expected =
+        [
+            (Sectors.Farming, "gathering", "Gathering", ["baseline.food_gathering"],
+                [("activity.farming", "Farming", SectorActivityMode.Replaces)]),
+            (Sectors.Herding, "hunting_fishing", "Hunting & fishing", ["baseline.hunting", "baseline.basic_fishing"],
+                [("activity.herding", "Herding & fishing", SectorActivityMode.Replaces)]),
+            (Sectors.Extraction, "gathering_wood_stone", "Gathering wood & stone", ["baseline.food_gathering"],
+                [("activity.logging", "Logging", SectorActivityMode.Joins), ("activity.mining", "Mining", SectorActivityMode.Joins)]),
+            (Sectors.Crafting, "crafts_toolmaking", "Crafts & toolmaking", ["baseline.primitive_hafted_tools"], []),
+            (Sectors.Construction, "building", "Building", ["baseline.construction", "baseline.basic_shelter", "baseline.basic_paths"], []),
+        ];
+        for (int s = 0; s < expected.Length; s++)
+        {
+            SectorActivityContent m = map[s];
+            Assert.Equal(expected[s].Sector, m.Sector);
+            Assert.Equal(ResearchContentLoader.SectorIds[s], m.SectorId);
+            Assert.Equal(expected[s].Id, m.Baseline.Id);
+            Assert.Equal(expected[s].Name, m.Baseline.Name);
+            Assert.Equal(expected[s].Provided, m.Baseline.Baseline.Select(i => Canonical.Baseline[i].Id).ToArray());
+            Assert.Equal(expected[s].Researched.Length, m.Researched.Count);
+            for (int r = 0; r < m.Researched.Count; r++)
+            {
+                Assert.Equal(expected[s].Researched[r].Entity, Canonical.Entities[m.Researched[r].Entity].Id);
+                Assert.Equal(expected[s].Researched[r].Label, m.Researched[r].Label);
+                Assert.Equal(expected[s].Researched[r].Mode, m.Researched[r].Mode);
+            }
+        }
+        // Hunting is a declared, SIMULATED baseline capability (the Director lists it), honest about how.
+        ResearchBaselineCapability hunting = Assert.Single(Canonical.Baseline, b => b.Id == "baseline.hunting");
+        Assert.True(hunting.Simulated);
+        Assert.Contains("Herding/fishing sector's yield from wild-animal (livestock) deposits", hunting.ProvidedBy, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ADR033_D1_SectorActivities_LoaderRejects_WrongSectorOrder_UnknownBaseline_NonActivity_DoubleMapping_BadMode()
+    {
+        string json = TestConfigs.ResearchJson();
+        // The sectors must be the five, in sector-id order.
+        RejectsJson(Mutate(json, "\"sector\": \"farming\"", "\"sector\": \"crafting\""), "sector 'crafting' must be 'farming'");
+        // A baseline identity names declared baseline capabilities only.
+        // (Single-line anchor: the crafting identity's one providedBy entry — five-space indent, which no
+        // other occurrence of the id has.)
+        RejectsJson(Mutate(json, "     \"baseline.primitive_hafted_tools\"", "     \"baseline.ghost\""),
+            "'baseline.ghost' is not a declared baseline capability");
+        // A researched identity is an ACTIVITY entity...
+        RejectsJson(Mutate(json, "\"entity\": \"activity.farming\"", "\"entity\": \"building.granary\""), "is a Building, not an activity");
+        RejectsJson(Mutate(json, "\"entity\": \"activity.farming\"", "\"entity\": \"activity.ghost\""), "'activity.ghost' is not a registry entity");
+        // ...mapped to one sector only...
+        RejectsJson(Mutate(json, "\"entity\": \"activity.mining\"", "\"entity\": \"activity.logging\""), "'activity.logging' is mapped twice");
+        // ...with a known mode.
+        RejectsJson(Mutate(json, "\"mode\": \"replaces\"", "\"mode\": \"supersedes\""), "mode 'supersedes' is not one of replaces, joins");
+        // The section is required.
+        RejectsJson(Mutate(json, "\"sectorActivities\":", "\"sectorActivitiesX\":"), "missing required values");
     }
 
     [Fact]
