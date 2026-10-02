@@ -205,23 +205,27 @@ public static class UiTheme
         });
         static Vector4 V(ParchmentPalette.Rgba c, double a) => new(c.R / 255f, c.G / 255f, c.B / 255f, (float)a);
         ParchmentPalette.Rgba hover = ThemeColor.Mix(m.PanelRaised, m.Accent, 0.22);
+        ParchmentPalette.Rgba pressed = ThemeColor.Mix(m.PanelRaised, m.Accent, 0.34);   // light enough for the dark ink
         ParchmentPalette.Rgba header = ThemeColor.Mix(m.Panel, m.Accent, 0.20);
         var colors = new List<(ImGuiCol, Vector4)>
         {
             (ImGuiCol.Text, V(ink.Text, 1.0)),
             (ImGuiCol.TextDisabled, V(ink.TextDim, 0.85)),
-            (ImGuiCol.WindowBg, V(m.Panel, 0.97)),
+            // Transparent: every chrome window's surface is painted by its era frame
+            // (ChromeFurniture, SimUiGame.DrawPanelFurniture), whose shape is the era's — a hand-cut
+            // slab, a tablet, a plaque — not ImGui's rectangle.
+            (ImGuiCol.WindowBg, V(m.Panel, 0.0)),
             (ImGuiCol.ChildBg, V(m.PanelRaised, 0.45)),
             (ImGuiCol.PopupBg, V(m.PanelRaised, 0.98)),
             (ImGuiCol.Border, V(m.Border, 0.75)),
             (ImGuiCol.BorderShadow, V(m.PanelSunken, 0.0)),
             (ImGuiCol.FrameBg, V(m.PanelRaised, 0.85)),
             (ImGuiCol.FrameBgHovered, V(hover, 1.0)),
-            (ImGuiCol.FrameBgActive, V(m.Chrome, 1.0)),
-            (ImGuiCol.TitleBg, V(m.Chrome, 0.95)),
-            (ImGuiCol.TitleBgActive, V(m.Chrome, 1.0)),
-            (ImGuiCol.TitleBgCollapsed, V(m.Chrome, 0.7)),
-            (ImGuiCol.MenuBarBg, V(m.Chrome, 1.0)),
+            (ImGuiCol.FrameBgActive, V(pressed, 1.0)),
+            (ImGuiCol.TitleBg, V(m.PanelSunken, 0.95)),
+            (ImGuiCol.TitleBgActive, V(m.PanelSunken, 1.0)),
+            (ImGuiCol.TitleBgCollapsed, V(m.PanelSunken, 0.7)),
+            (ImGuiCol.MenuBarBg, V(m.PanelSunken, 1.0)),
             (ImGuiCol.ScrollbarBg, V(m.PanelSunken, 0.35)),
             (ImGuiCol.ScrollbarGrab, V(ink.TextSoft, 0.55)),
             (ImGuiCol.ScrollbarGrabHovered, V(ink.TextSoft, 0.8)),
@@ -231,7 +235,7 @@ public static class UiTheme
             (ImGuiCol.SliderGrabActive, V(ink.Text, 1.0)),
             (ImGuiCol.Button, V(m.PanelRaised, 0.92)),
             (ImGuiCol.ButtonHovered, V(hover, 0.98)),
-            (ImGuiCol.ButtonActive, V(m.Chrome, 1.0)),
+            (ImGuiCol.ButtonActive, V(pressed, 1.0)),
             (ImGuiCol.Header, V(header, 0.55)),
             (ImGuiCol.HeaderHovered, V(header, 0.85)),
             (ImGuiCol.HeaderActive, V(ThemeColor.Mix(m.Panel, m.Accent, 0.32), 1.0)),
@@ -241,18 +245,18 @@ public static class UiTheme
             (ImGuiCol.ResizeGrip, V(ink.TextSoft, 0.35)),
             (ImGuiCol.ResizeGripHovered, V(ink.TextSoft, 0.6)),
             (ImGuiCol.ResizeGripActive, V(ink.Text, 0.8)),
-            (ImGuiCol.Tab, V(m.Chrome, 0.9)),
+            (ImGuiCol.Tab, V(m.PanelSunken, 0.9)),
             (ImGuiCol.TabHovered, V(hover, 1.0)),
             (ImGuiCol.TabSelected, V(m.PanelRaised, 1.0)),
             (ImGuiCol.TabSelectedOverline, V(m.Accent, 1.0)),
-            (ImGuiCol.TabDimmed, V(m.Chrome, 0.7)),
+            (ImGuiCol.TabDimmed, V(m.PanelSunken, 0.7)),
             (ImGuiCol.TabDimmedSelected, V(m.Panel, 1.0)),
             (ImGuiCol.TabDimmedSelectedOverline, V(m.Accent, 0.6)),
             (ImGuiCol.PlotLines, V(ink.Text, 0.95)),
             (ImGuiCol.PlotLinesHovered, V(t.Semantic.Danger, 1.0)),
             (ImGuiCol.PlotHistogram, V(ink.TextSoft, 0.9)),
             (ImGuiCol.PlotHistogramHovered, V(m.Accent, 1.0)),
-            (ImGuiCol.TableHeaderBg, V(m.Chrome, 1.0)),
+            (ImGuiCol.TableHeaderBg, V(m.PanelSunken, 1.0)),
             (ImGuiCol.TableBorderStrong, V(m.Border, 0.8)),
             (ImGuiCol.TableBorderLight, V(m.Hairline, 0.7)),
             (ImGuiCol.TableRowBg, V(m.Panel, 0.0)),

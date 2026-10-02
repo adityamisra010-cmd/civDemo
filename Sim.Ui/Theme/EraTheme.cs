@@ -37,8 +37,14 @@ public sealed record MaterialTokens(
     Rgba Border, Rgba BorderStrong, Rgba Hairline, Rgba Accent, Rgba AccentSoft,
     Rgba Grain, double GrainDensity, double GrainAlpha, double GrainSize);
 
-/// <summary>INK: text and rule colours on the era's ground.</summary>
-public sealed record InkTokens(Rgba Text, Rgba TextSoft, Rgba TextDim, Rgba OnAccent, Rgba Rule);
+/// <summary>INK: text and rule colours on the era's ground, and the inks for text set directly on
+/// the <see cref="MaterialTokens.Chrome"/> bars. The bars are the era's FRAME material — charred
+/// wood, dark wood, cast bronze, forged iron, porphyry, the binding's leather, printer's black,
+/// Prussian blue, graphite — darker than the content in every era (one consistent structure), so
+/// their text is light: <c>OnChrome</c>, <c>OnChromeSoft</c>, and <c>OnChromeAccent</c> for the
+/// emphasised figure on a bar.</summary>
+public sealed record InkTokens(Rgba Text, Rgba TextSoft, Rgba TextDim, Rgba OnAccent, Rgba Rule,
+    Rgba OnChrome, Rgba OnChromeSoft, Rgba OnChromeAccent);
 
 /// <summary>The content lanes' hues (Technology trunk and subtrees, the external anchor lane, Civics).
 /// Each lane keeps its hue family in every era; only the pigment changes.</summary>

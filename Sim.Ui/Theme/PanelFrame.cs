@@ -46,7 +46,7 @@ public static class PanelFrame
         // 1. The shape, filled. Every outline is convex by construction (the ImGui backend fills
         //    convex polygons), and inside the rect.
         (double X, double Y)[] outline = Outline(r, t, id, kind);
-        if (t.Edge.Corner == CornerStyle.Square || (t.Edge.Corner == CornerStyle.Fine && kind == FrameKind.Bar))
+        if (kind == FrameKind.Bar || t.Edge.Corner == CornerStyle.Square)
             d.Rect(r, f);
         else if (t.Edge.Corner == CornerStyle.Fine)
             d.Rect(r, f, null, 1.0, t.Edge.CornerPx);
@@ -61,7 +61,7 @@ public static class PanelFrame
             FrameKind.Card => 0.45,
             _ => 0.0,
         };
-        if (texture > 0) Texture(d, Interior(r, t), t, id, texture, kind == FrameKind.Card);
+        if (texture > 0) Texture(d, kind == FrameKind.Bar ? r.Inset(m.GrainSize * 1.4 + 1.0) : Interior(r, t), t, id, texture, kind == FrameKind.Card, onDark: kind == FrameKind.Bar);
 
         // 3. The edge in the era's hand.
         if (kind == FrameKind.Bar) { BarEdge(d, r, t, id, e, bw); return; }
@@ -294,7 +294,7 @@ public static class PanelFrame
 
     private static double KindScale(FrameKind kind) => kind switch
     {
-        FrameKind.Card => 0.7,
+        FrameKind.Card => 0.85,
         FrameKind.Chip => 0.45,
         FrameKind.Button => 0.55,
         FrameKind.Bar => 0.8,
@@ -315,10 +315,12 @@ public static class PanelFrame
     private static RectD Interior(RectD r, EraTheme t) =>
         r.Inset(t.Edge.JitterPx + t.Edge.CornerPx * 0.55 + 1.5);
 
-    private static void Texture(DrawList d, RectD r, EraTheme t, int id, double scale, bool card)
+    private static void Texture(DrawList d, RectD r, EraTheme t, int id, double scale, bool card, bool onDark = false)
     {
         MaterialTokens m = t.Material;
         if (r.W <= 1 || r.H <= 1 || m.GrainDensity <= 0 || m.GrainAlpha <= 0) return;
+        if (onDark)   // the frame material's bar: its grain in a light ink, sparser
+            m = m with { Grain = t.Ink.OnChromeSoft, GrainAlpha = m.GrainAlpha * 0.45, PanelRaised = t.Ink.OnChromeSoft, AccentSoft = t.Ink.OnChromeSoft };
         double area = r.W * r.H / 10000.0;
         int n = (int)Math.Min(card ? 40 : 900, Math.Round(area * m.GrainDensity * scale));
         switch (m.Kind)
@@ -368,12 +370,16 @@ public static class PanelFrame
             }
             case MaterialKind.Marble:
             {
+                // a few long, faint veins (the field carries more than a panel or a card)
                 int veins = Math.Max(1, (int)Math.Round(area * m.GrainDensity * scale));
-                for (int i = 0; i < Math.Min(veins, card ? 1 : 4); i++)
+                bool field = scale < 0.5;
+                double alpha = m.GrainAlpha * (field ? 1.0 : card ? 0.45 : 0.5);
+                for (int i = 0; i < Math.Min(veins, card ? 1 : field ? 12 : 3); i++)
                 {
                     double y0 = r.Y + FrameNoise.U(id, 81, i) * r.H, y1 = r.Y + FrameNoise.U(id, 82, i) * r.H;
-                    d.Bezier((r.X, y0), (r.X + r.W * 0.35, y0 + FrameNoise.S(id, 83, i) * r.H * 0.5),
-                        (r.X + r.W * 0.65, y1 + FrameNoise.S(id, 84, i) * r.H * 0.5), (r.Right, y1), Alpha(m.Grain, m.GrainAlpha), 0.7);
+                    double bend = field ? 0.5 : 0.25;
+                    d.Bezier((r.X, y0), (r.X + r.W * 0.35, y0 + FrameNoise.S(id, 83, i) * r.H * bend),
+                        (r.X + r.W * 0.65, y1 + FrameNoise.S(id, 84, i) * r.H * bend), (r.Right, y1), Alpha(m.Grain, alpha), 0.7);
                 }
                 break;
             }
@@ -397,7 +403,7 @@ public static class PanelFrame
             case MaterialKind.Drafting:
             {
                 double step = card ? 12 : 10;
-                Rgba g = Alpha(m.Grain, m.GrainAlpha * (card ? 0.6 : 1.0));
+                Rgba g = Alpha(m.Grain, m.GrainAlpha * (card ? 0.35 : 0.5));
                 for (double x = r.X + step; x < r.Right; x += step) d.Line(x, r.Y, x, r.Bottom, g, 0.4);
                 for (double y = r.Y + step; y < r.Bottom; y += step) d.Line(r.X, y, r.Right, y, g, 0.4);
                 break;
@@ -432,7 +438,8 @@ public static class PanelFrame
                 break;
             }
             case CornerStyle.Fine:
-                d.Rect(r, null, Alpha(e, 0.38), Math.Max(1.0, bw), t.Edge.CornerPx);
+                // a hairline: the graphite border at low alpha; a state-coloured edge (cards) at full
+                d.Rect(r, null, e == m.Border || e == m.Hairline ? Alpha(e, 0.38) : e, Math.Max(1.0, bw), t.Edge.CornerPx);
                 break;
             default:
             {
@@ -450,17 +457,20 @@ public static class PanelFrame
         }
     }
 
+    /// <summary>A bar's lower edge: the era's accent drawn under its frame material (an ochre stroke
+    /// under charred wood, a gold line under porphyry, brass under Prussian blue…).</summary>
     private static void BarEdge(DrawList d, RectD r, EraTheme t, int id, Rgba e, double bw)
     {
-        double y = r.Bottom - Math.Max(0.5, bw / 2.0);
+        Rgba accent = t.Material.Accent;
+        double y = r.Bottom - Math.Max(1.0, bw / 2.0);
         if (t.Edge.Corner == CornerStyle.Organic)
-            d.Polyline(Freehand(r.X, y - 1, r.Right, y - 1, t.Edge.JitterPx * 0.4, id, 25), e, bw * 0.8);
+            d.Polyline(Freehand(r.X, y - 0.5, r.Right, y - 0.5, t.Edge.JitterPx * 0.35, id, 25), accent, Math.Max(2.0, bw * 0.9));
         else if (t.Edge.Corner == CornerStyle.Fine)
-            d.Line(r.X, r.Bottom - 0.5, r.Right, r.Bottom - 0.5, t.Material.Hairline, 1.0);
+            d.Line(r.X, r.Bottom - 1.0, r.Right, r.Bottom - 1.0, accent, 2.0);
         else
         {
-            d.Line(r.X, y, r.Right, y, e, bw * 0.8);
-            if (t.Edge.DoubleRule) d.Line(r.X, y - bw - 1.6, r.Right, y - bw - 1.6, Alpha(e, 0.6), 0.6);
+            d.Line(r.X, y, r.Right, y, accent, Math.Max(1.5, bw * 0.8));
+            if (t.Edge.DoubleRule) d.Line(r.X, y - bw - 1.8, r.Right, y - bw - 1.8, Alpha(accent, 0.55), 0.7);
         }
     }
 

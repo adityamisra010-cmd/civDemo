@@ -142,6 +142,16 @@ public sealed class SimUiGame : Game
     // and the zoom-dependent world lens. Both are read-only projections; the only write path is
     // the AdvanceAge order the session appends.
     private readonly Sim.Ui.Ages.AgeScreen _age = new(LaborOrderFactory.PlayerEmpire);
+
+    // ADR-033 D8: the interface's era, DERIVED from the player's authoritative Age (UiEras.Of) — never
+    // stored in the simulation, re-derived after every End Turn and at load. _eraFade is the short,
+    // presentation-only cross-fade when the Age changes; _frameTheme is what this frame paints with.
+    private Sim.Ui.Theme.EraTheme _theme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEra.Prehistoric);
+    private Sim.Ui.Theme.EraTheme _frameTheme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEra.Prehistoric);
+    private Sim.Ui.Theme.EraTransition? _eraFade;
+
+    private Sim.Ui.Theme.EraTheme DeriveTheme() =>
+        Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(_world, _session.Config.Ages, LaborOrderFactory.PlayerEmpire));
     private bool _agePanelDismissed;
     private Sim.Ui.World.WorldProjection? _lens;
     private long _lensTurn = -1;
@@ -203,7 +213,8 @@ public sealed class SimUiGame : Game
         _fonts = UiTheme.LoadFonts(_art.Root);
         _imgui = new ImGuiRenderer(this, ownsContext: false);
         // ADR-033 D8: the interface's era is DERIVED from the player's authoritative Age.
-        UiTheme.Apply(Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(_world, _session.Config.Ages, LaborOrderFactory.PlayerEmpire)));
+        _theme = _frameTheme = DeriveTheme();
+        UiTheme.Apply(_theme);
         _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
 
         // THE PARCHMENT BAKE (§4 items 1–4): terrain wash tiles splatted by the
@@ -368,6 +379,12 @@ public sealed class SimUiGame : Game
         int ageBefore = _session.Config.Ages is { } a0 ? AgeQuery.CurrentAge(_world, a0, LaborOrderFactory.PlayerEmpire) : 0;
         _session.EndTurn();
         _world = _session.World;
+        Sim.Ui.Theme.EraTheme derived = DeriveTheme();
+        if (!ReferenceEquals(derived, _theme))
+        {
+            _eraFade = new Sim.Ui.Theme.EraTransition(_frameTheme, derived);   // the interface itself transitions
+            _theme = derived;
+        }
         if (_session.Config.Ages is { } a1)
         {
             // The civilization-state change is announced only when the SIMULATION moved the Age.
@@ -419,6 +436,7 @@ public sealed class SimUiGame : Game
 
     protected override void Update(GameTime gameTime)
     {
+        _eraFade?.Advance(gameTime.ElapsedGameTime.TotalSeconds);
         MouseState mouse = Mouse.GetState();
         KeyboardState keyboard = Keyboard.GetState();
         Rectangle viewport = Viewport();
@@ -606,6 +624,7 @@ public sealed class SimUiGame : Game
         _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
 
         if (_session.Config.Ages is null) return;
+        _age.Theme = _frameTheme;
         var top = new Sim.Ui.Render.DrawList();
         _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
         if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), _session.Names.Name(_selected));
@@ -688,6 +707,7 @@ public sealed class SimUiGame : Game
     {
         _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         var screen = _progression!;
+        screen.Theme = _frameTheme;
         System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
         screen.Refresh(_world);
         Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);
@@ -792,75 +812,41 @@ public sealed class SimUiGame : Game
     }
 
     /// <summary>
-    /// Panel furniture (§4 item 5): a parchment plate behind the current
-    /// ImGui window plus a 9-sliced inked border and a header rule. Drawn on
-    /// the WINDOW draw list at Begin time, so every widget added afterwards
-    /// sits on top of it.
+    /// Panel furniture (§4 item 5; ADR-033 D8): the ERA'S frame behind the current ImGui window and the
+    /// era's rule at the ELEMENT's rule rect, painted by the same <c>ChromeFurniture</c> the headless era
+    /// preview paints and replayed into the WINDOW draw list at Begin time, so every widget added
+    /// afterwards sits on top of it. The window background itself is transparent (UiTheme.StyleFor):
+    /// the frame IS the panel, so the A1 slab shows its cut corners over the map. The full window
+    /// rect is the clip while it is drawn (ImGui's inner clip would shave the frame's outer pixels).
     ///
-    /// T4.19 lane D: the rule's placement is the ELEMENT's, from
-    /// ChromeGeometry, not "under the title bar" for every window. The
-    /// T4.18 chrome has no title bars, and in the 56 px command bar the
-    /// under-title-bar formula (y = top + frameHeight + 2 = 31..39) crossed
-    /// the button row (12..42). The caller names its element; the rect the
-    /// rule is drawn into is the rect the headless test checks.
+    /// T4.19 lane D: the rule's placement is the ELEMENT's, from ChromeGeometry, not "under the title
+    /// bar" for every window. The caller names its element; the rect the rule is drawn into is the
+    /// rect the headless test checks. The Annals keep their parchment sheet, laid inside the frame
+    /// and below the rule.
     /// </summary>
     private void DrawPanelFurniture(in ChromeElement element, IntPtr backgroundId = default)
     {
-        if (_panelId == IntPtr.Zero) return;
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         ImDrawListPtr list = ImGui.GetWindowDrawList();
         System.Numerics.Vector2 min = ImGui.GetWindowPos();
         System.Numerics.Vector2 max = min + ImGui.GetWindowSize();
+        float frameHeight = ImGui.GetFrameHeight();
+        var furniture = new Sim.Ui.Render.DrawList();
+        Sim.Ui.Theme.ChromeFurniture.Paint(furniture, _frameTheme, element, frameHeight);
+        list.PushClipRect(min, max, false);
+        _drawListBackend.Render(list, furniture);
+        list.PopClipRect();
 
         if (backgroundId != default)
         {
-            // Tiled parchment sheet: uv spans the window in texture multiples,
+            // Tiled parchment sheet: uv spans the sheet in texture multiples,
             // so the ruled lines keep a constant pitch at any panel size.
-            var uv = new System.Numerics.Vector2(
-                (max.X - min.X) / 128f, (max.Y - min.Y) / 128f);
-            list.AddImage(backgroundId, min, max, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
+            var sheetMin = new System.Numerics.Vector2(min.X + ChromeGeometry.FrameBorderPx,
+                ChromeGeometry.ContentTop(element, frameHeight));
+            var sheetMax = new System.Numerics.Vector2(max.X - ChromeGeometry.FrameBorderPx, max.Y - ChromeGeometry.FrameBorderPx);
+            var uv = new System.Numerics.Vector2((sheetMax.X - sheetMin.X) / 128f, (sheetMax.Y - sheetMin.Y) / 128f);
+            list.AddImage(backgroundId, sheetMin, sheetMax, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
         }
-
-        NineSlice(list, _panelId, min, max, ChromeGeometry.FrameBorderPx, 64f);
-
-        if (_headerRuleId != IntPtr.Zero)
-        {
-            // D-A1 fix (docs/art-gate-defects.md): native dimensions from the
-            // LOADED asset, uv from the pure view-model — uniform scale set by
-            // the vertical mapping, horizontal overflow tiled, so the rule's
-            // ink weight is identical at every panel width. The same treatment
-            // the parchment background above gets, applied horizontally.
-            ScreenRect rule = ChromeGeometry.HeaderRule(element, ImGui.GetFrameHeight());
-            (float u, float v) = ViewModel.PanelFurniture.HeaderRuleUv(
-                _headerRuleTexture!.Width, _headerRuleTexture.Height, rule.Width, rule.Height);
-            list.AddImage(_headerRuleId,
-                new System.Numerics.Vector2(rule.X, rule.Y),
-                new System.Numerics.Vector2(rule.Right, rule.Bottom),
-                System.Numerics.Vector2.Zero, new System.Numerics.Vector2(u, v), 0xFFFFFFFFu);
-        }
-    }
-
-    /// <summary>Classic 9-slice: corners at native size, edges stretched along
-    /// one axis, centre skipped (the panel's own background shows through).</summary>
-    private static void NineSlice(
-        ImDrawListPtr list, IntPtr texture,
-        System.Numerics.Vector2 min, System.Numerics.Vector2 max, float border, float textureSize)
-    {
-        float b = border, uvB = border / textureSize;
-        void Piece(float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1) =>
-            list.AddImage(texture,
-                new System.Numerics.Vector2(x0, y0), new System.Numerics.Vector2(x1, y1),
-                new System.Numerics.Vector2(u0, v0), new System.Numerics.Vector2(u1, v1), 0xFFFFFFFFu);
-
-        // corners
-        Piece(min.X, min.Y, min.X + b, min.Y + b, 0, 0, uvB, uvB);
-        Piece(max.X - b, min.Y, max.X, min.Y + b, 1 - uvB, 0, 1, uvB);
-        Piece(min.X, max.Y - b, min.X + b, max.Y, 0, 1 - uvB, uvB, 1);
-        Piece(max.X - b, max.Y - b, max.X, max.Y, 1 - uvB, 1 - uvB, 1, 1);
-        // edges
-        Piece(min.X + b, min.Y, max.X - b, min.Y + b, uvB, 0, 1 - uvB, uvB);
-        Piece(min.X + b, max.Y - b, max.X - b, max.Y, uvB, 1 - uvB, 1 - uvB, 1);
-        Piece(min.X, min.Y + b, min.X + b, max.Y - b, 0, uvB, uvB, 1 - uvB);
-        Piece(max.X - b, min.Y + b, max.X, max.Y - b, 1 - uvB, uvB, 1, 1 - uvB);
     }
 
     /// <summary>T3.9a-b item 4: first-use defaults from the tested PanelLayout
@@ -879,7 +865,7 @@ public sealed class SimUiGame : Game
     // food line sized differently from its neighbours because the companion-
     // face block boundary was drawn mid-panel, ad hoc. All data-line blocks
     // route through this pair so the choice cannot drift per call site.
-    private void PushDataFont() { if (_fonts is { } f) ImGui.PushFont(f.Numeric); }
+    private void PushDataFont() { if (_fonts is { } f) ImGui.PushFont(f.For(_frameTheme).Numeric); }
     private void PopDataFont() { if (_fonts is not null) ImGui.PopFont(); }
 
     /// <summary>The small price sparkline. The axis is PINNED THROUGH
@@ -922,8 +908,10 @@ public sealed class SimUiGame : Game
 
     private void DrawHud(GameTime gameTime)
     {
+        _frameTheme = _eraFade is { } fade ? fade.Current : _theme;
+        if (_eraFade is { } f0) { UiTheme.Apply(_frameTheme); if (f0.Done) _eraFade = null; }
         _imgui!.BeforeLayout(gameTime);
-        if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
+        if (_fonts is { } fonts) ImGui.PushFont(fonts.For(_frameTheme).Body);
 
         if (_progressionOpen && _progression is not null)
         {

@@ -18,6 +18,28 @@ public static class ThemeText
         TextAlign align = TextAlign.Left, FontRole role = FontRole.Body) =>
         d.Text(x, y, text, t.Type.Size(designSize), color, align, role, t.Type.For(role));
 
+    /// <summary>
+    /// A panel's display title. In the manuscript era (ornament motif <see cref="Motif.Illumination"/>)
+    /// its first letter is an ILLUMINATED INITIAL — rubricated on a square of gold leaf, the way a
+    /// medieval scribe opened a section; in every other era it is set like any title run. The title
+    /// stays ONE run (its text is never split); the initial is the gold square beneath it and the first
+    /// letter re-set in the rubric's red exactly over itself.
+    /// </summary>
+    public static void Title(this DrawList d, ITextMeasure m, EraTheme t, double x, double y, string text, double designSize, Rgba color)
+    {
+        bool illuminate = t.Ornament.Motif == Motif.Illumination && text.Length >= 2 && char.IsLetter(text[0]);
+        double size = t.Type.Size(designSize);
+        if (illuminate)
+        {
+            double gw = m.Width(t, text[..1], designSize, FontRole.Title);
+            var box = new RectD(x - size * 0.14, y - size * 0.08, gw + size * 0.28, size * 1.16);
+            d.Rect(box, t.Material.AccentSoft, t.Ink.Rule, 0.9);
+            d.Rect(box.Inset(2), null, ThemeColor.Alpha(t.Ink.Rule, 0.45), 0.5);
+        }
+        d.Write(t, x, y, text, designSize, color, TextAlign.Left, FontRole.Title);
+        if (illuminate) d.Write(t, x, y, text[..1], designSize, t.Material.Accent, TextAlign.Left, FontRole.Title);
+    }
+
     /// <summary>The width of the run <see cref="Write"/> would set.</summary>
     public static double Width(this ITextMeasure m, EraTheme t, string text, double designSize, FontRole role = FontRole.Body) =>
         m.Width(DrawList.Latin1(text), t.Type.Size(designSize), role, t.Type.For(role));

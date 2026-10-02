@@ -281,18 +281,21 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
     [Fact]
     public void Continuity_OneGroundPolarity_AndLegibleInkInEveryEra()
     {
-        // No Age flips the interface from dark to light: every ground is a light record surface,
-        // every ink is dark, and the ink stays legible on it.
+        // No Age flips the interface from dark to light: in every era the content is a light record
+        // surface with dark ink, and the bars are the era's darker frame material with light ink.
         foreach (EraTheme t in EraThemes.All)
         {
             MaterialTokens m = t.Material;
-            Assert.True(ThemeColor.Lightness(m.Field) > 0.6, $"{t.Era} field");
-            Assert.True(ThemeColor.Lightness(m.Panel) > 0.65, $"{t.Era} panel");
+            Assert.True(ThemeColor.Lightness(m.Field) > 0.55, $"{t.Era} field");
+            Assert.True(ThemeColor.Lightness(m.Panel) > 0.7, $"{t.Era} panel");
+            Assert.True(ThemeColor.Lightness(m.Chrome) < 0.35, $"{t.Era} chrome: the frame material is the darkest surface");
             Assert.True(ThemeColor.Contrast(t.Ink.Text, m.Panel) >= 7.0, $"{t.Era} text/panel");
-            Assert.True(ThemeColor.Contrast(t.Ink.Text, m.Field) >= 7.0, $"{t.Era} text/field");
-            Assert.True(ThemeColor.Contrast(t.Ink.Text, m.Chrome) >= 4.5, $"{t.Era} text/chrome");
+            Assert.True(ThemeColor.Contrast(t.Ink.Text, m.Field) >= 4.5, $"{t.Era} text/field");
             Assert.True(ThemeColor.Contrast(t.Ink.TextSoft, m.Panel) >= 4.5, $"{t.Era} soft/panel");
             Assert.True(ThemeColor.Contrast(t.Ink.TextDim, m.Panel) >= 3.0, $"{t.Era} dim/panel");
+            Assert.True(ThemeColor.Contrast(t.Ink.OnChrome, m.Chrome) >= 7.0, $"{t.Era} on-chrome");
+            Assert.True(ThemeColor.Contrast(t.Ink.OnChromeSoft, m.Chrome) >= 4.5, $"{t.Era} on-chrome soft");
+            Assert.True(ThemeColor.Contrast(t.Ink.OnChromeAccent, m.Chrome) >= 4.5, $"{t.Era} on-chrome accent");
         }
         // Adjacent eras evolve rather than switch: the ground's lightness moves by small steps.
         for (int e = 1; e < 9; e++)
@@ -312,7 +315,10 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
             Assert.Equal(first.Colors.Count, s.Colors.Count);
             // The style's colours ARE the era's tokens.
             Assert.Equal(Vec(t.Ink.Text, 1.0), s.Color(ImGuiNET.ImGuiCol.Text));
-            Assert.Equal(Vec(t.Material.Panel, 0.97), s.Color(ImGuiNET.ImGuiCol.WindowBg));
+            Assert.Equal(Vec(t.Material.Panel, 0.0), s.Color(ImGuiNET.ImGuiCol.WindowBg));   // the era frame is the surface
+            Assert.Equal(Vec(t.Material.PanelRaised, 0.98), s.Color(ImGuiNET.ImGuiCol.PopupBg));
+            // A pressed control stays light enough for the dark ink in every era.
+            Assert.True(ThemeColor.Contrast(t.Ink.Text, ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.34)) >= 4.5, $"{t.Era} pressed");
             Assert.Equal(Vec(t.Material.Border, 0.75), s.Color(ImGuiNET.ImGuiCol.Border));
             Assert.Equal((float)t.Controls.GrabPx, s.GrabMinSize);
         }

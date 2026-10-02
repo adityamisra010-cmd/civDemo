@@ -62,11 +62,12 @@ public static class EraThemes
     private static EraTheme Prehistoric()
     {
         var m = new MaterialTokens(MaterialKind.Stone,
-            Field: Hex(0xC4B69C), FieldAlt: Hex(0xBBAC91), Panel: Hex(0xD5C9B1), PanelRaised: Hex(0xDFD5C2), PanelSunken: Hex(0xAE9F85),
-            Chrome: Hex(0xB7A88D), Border: Hex(0x3A322A), BorderStrong: Hex(0x29231D), Hairline: Hex(0x8D7F69),
-            Accent: Hex(0x9A4529), AccentSoft: Hex(0xB98A41),
-            Grain: Hex(0x5E5142), GrainDensity: 9.0, GrainAlpha: 0.24, GrainSize: 2.6);
-        var ink = new InkTokens(Text: Hex(0x29231E), TextSoft: Hex(0x4B4136), TextDim: Hex(0x6E6252), OnAccent: Hex(0xF3EBDC), Rule: Hex(0x3A322A));
+            Field: Hex(0xAC9A80), FieldAlt: Hex(0xA28F74), Panel: Hex(0xD4C6AB), PanelRaised: Hex(0xDED2BB), PanelSunken: Hex(0xAA987D),
+            Chrome: Hex(0x3F3128), Border: Hex(0x2A221C), BorderStrong: Hex(0x1E1813), Hairline: Hex(0x7E6E58),
+            Accent: Hex(0x93401F), AccentSoft: Hex(0xB98337),
+            Grain: Hex(0x4B3F33), GrainDensity: 16.0, GrainAlpha: 0.30, GrainSize: 3.0);
+        var ink = new InkTokens(Text: Hex(0x241E19), TextSoft: Hex(0x45392E), TextDim: Hex(0x66594A), OnAccent: Hex(0xF3EBDC), Rule: Hex(0x2A221C),
+            OnChrome: Hex(0xEADDC6), OnChromeSoft: Hex(0xB9A88E), OnChromeAccent: Hex(0xE0A458));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 500, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 700, 0.005, TextCase.AsWritten),
@@ -76,7 +77,7 @@ public static class EraThemes
             SizeScale: 1.06, LineHeight: 1.36);
         return new EraTheme(UiEra.Prehistoric, "Stone and ochre", "charcoal and ochre on stone",
             m, ink, Semantics(m, new Pigment(0.60, 0.02)),
-            new EdgeTokens(Roughness: 1.0, JitterPx: 3.0, Corner: CornerStyle.Organic, CornerPx: 9, BorderPx: 2.2, DoubleRule: false, Fasteners: false),
+            new EdgeTokens(Roughness: 1.0, JitterPx: 4.0, Corner: CornerStyle.Organic, CornerPx: 15, BorderPx: 2.8, DoubleRule: false, Fasteners: false),
             new OrnamentTokens(0, Motif.None), type,
             new DensityTokens(Level: 1, Padding: 20, Gap: 12, CardDetail: 1),
             new ControlTokens(ControlGranularity.Coarse, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.4, GrabPx: 16),
@@ -90,11 +91,12 @@ public static class EraThemes
     private static EraTheme Neolithic()
     {
         var m = new MaterialTokens(MaterialKind.Clay,
-            Field: Hex(0xCDB591), FieldAlt: Hex(0xC4AA84), Panel: Hex(0xDDC8A3), PanelRaised: Hex(0xE7D6B5), PanelSunken: Hex(0xB89D75),
-            Chrome: Hex(0xC2A479), Border: Hex(0x4A3320), BorderStrong: Hex(0x35241A), Hairline: Hex(0x977A55),
-            Accent: Hex(0xA5512D), AccentSoft: Hex(0xB89A48),
-            Grain: Hex(0x7A5A3A), GrainDensity: 7.0, GrainAlpha: 0.16, GrainSize: 1.7);
-        var ink = new InkTokens(Text: Hex(0x2E2117), TextSoft: Hex(0x503B29), TextDim: Hex(0x75604A), OnAccent: Hex(0xF6EBD8), Rule: Hex(0x4A3320));
+            Field: Hex(0xBE9C72), FieldAlt: Hex(0xB59168), Panel: Hex(0xDFC8A2), PanelRaised: Hex(0xE8D6B6), PanelSunken: Hex(0xB99871),
+            Chrome: Hex(0x553A26), Border: Hex(0x4A3120), BorderStrong: Hex(0x352216), Hairline: Hex(0x8F7050),
+            Accent: Hex(0xA14B27), AccentSoft: Hex(0xBC9A45),
+            Grain: Hex(0x6C4A2C), GrainDensity: 11.0, GrainAlpha: 0.22, GrainSize: 1.9);
+        var ink = new InkTokens(Text: Hex(0x2B1E14), TextSoft: Hex(0x4D3825), TextDim: Hex(0x6E5841), OnAccent: Hex(0xF6EBD8), Rule: Hex(0x4A3120),
+            OnChrome: Hex(0xF0E1C6), OnChromeSoft: Hex(0xC8AE88), OnChromeAccent: Hex(0xE2B865));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 500, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 650, 0.01, TextCase.AsWritten),
@@ -104,7 +106,7 @@ public static class EraThemes
             SizeScale: 1.04, LineHeight: 1.32);
         return new EraTheme(UiEra.Neolithic, "Clay and reed", "incised clay and woven reed",
             m, ink, Semantics(m, new Pigment(0.68, 0.01)),
-            new EdgeTokens(Roughness: 0.5, JitterPx: 1.4, Corner: CornerStyle.Rounded, CornerPx: 9, BorderPx: 1.9, DoubleRule: false, Fasteners: false),
+            new EdgeTokens(Roughness: 0.5, JitterPx: 1.8, Corner: CornerStyle.Rounded, CornerPx: 11, BorderPx: 2.1, DoubleRule: false, Fasteners: false),
             new OrnamentTokens(1, Motif.Weave), type,
             new DensityTokens(Level: 2, Padding: 18, Gap: 11, CardDetail: 2),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.0, GrabPx: 14),
@@ -118,11 +120,12 @@ public static class EraThemes
     private static EraTheme Bronze()
     {
         var m = new MaterialTokens(MaterialKind.Bronze,
-            Field: Hex(0xCDBE9D), FieldAlt: Hex(0xC4B391), Panel: Hex(0xDDCEAC), PanelRaised: Hex(0xE7DABD), PanelSunken: Hex(0xB4A27F),
-            Chrome: Hex(0xC8AC78), Border: Hex(0x7A5426), BorderStrong: Hex(0x5C3D18), Hairline: Hex(0x9C8460),
-            Accent: Hex(0x996628), AccentSoft: Hex(0x4F7E6C),
-            Grain: Hex(0x7A6040), GrainDensity: 4.0, GrainAlpha: 0.13, GrainSize: 3.2);
-        var ink = new InkTokens(Text: Hex(0x2A2014), TextSoft: Hex(0x4C3C27), TextDim: Hex(0x72624A), OnAccent: Hex(0xF7EEDA), Rule: Hex(0x6A4A22));
+            Field: Hex(0xC4B08A), FieldAlt: Hex(0xBBA67F), Panel: Hex(0xE2D3B1), PanelRaised: Hex(0xEADDC0), PanelSunken: Hex(0xB9A47F),
+            Chrome: Hex(0x573C1A), Border: Hex(0x6E4A1F), BorderStrong: Hex(0x553714), Hairline: Hex(0x98805A),
+            Accent: Hex(0x9C6B2B), AccentSoft: Hex(0x4C7A68),
+            Grain: Hex(0x75572F), GrainDensity: 6.0, GrainAlpha: 0.18, GrainSize: 3.4);
+        var ink = new InkTokens(Text: Hex(0x281D11), TextSoft: Hex(0x4A3A24), TextDim: Hex(0x6C5B42), OnAccent: Hex(0xF7EEDA), Rule: Hex(0x6E4A1F),
+            OnChrome: Hex(0xF5E7C6), OnChromeSoft: Hex(0xD3B884), OnChromeAccent: Hex(0xEFC77A));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 450, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.015, TextCase.AsWritten),
@@ -132,7 +135,7 @@ public static class EraThemes
             SizeScale: 1.02, LineHeight: 1.29);
         return new EraTheme(UiEra.Bronze, "Cast bronze", "cast bronze on sandstone",
             m, ink, Semantics(m, new Pigment(0.76, 0.0)),
-            new EdgeTokens(Roughness: 0.18, JitterPx: 0.5, Corner: CornerStyle.Chamfered, CornerPx: 8, BorderPx: 1.8, DoubleRule: true, Fasteners: true),
+            new EdgeTokens(Roughness: 0.18, JitterPx: 0.5, Corner: CornerStyle.Chamfered, CornerPx: 10, BorderPx: 2.0, DoubleRule: true, Fasteners: true),
             new OrnamentTokens(2, Motif.Chevron), type,
             new DensityTokens(Level: 2, Padding: 17, Gap: 10, CardDetail: 3),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Segments, ProgressSegments: 5, StrokePx: 1.8, GrabPx: 13),
@@ -146,11 +149,12 @@ public static class EraThemes
     private static EraTheme Iron()
     {
         var m = new MaterialTokens(MaterialKind.Iron,
-            Field: Hex(0xC5C1B7), FieldAlt: Hex(0xBCB8AD), Panel: Hex(0xD6D2C8), PanelRaised: Hex(0xE0DDD5), PanelSunken: Hex(0xACA79D),
-            Chrome: Hex(0xA9A59C), Border: Hex(0x2F3134), BorderStrong: Hex(0x1E1F21), Hairline: Hex(0x85817A),
-            Accent: Hex(0xAE532C), AccentSoft: Hex(0x5A6068),
-            Grain: Hex(0x4A4C50), GrainDensity: 3.2, GrainAlpha: 0.10, GrainSize: 4.0);
-        var ink = new InkTokens(Text: Hex(0x1E1F21), TextSoft: Hex(0x3D3F43), TextDim: Hex(0x64635F), OnAccent: Hex(0xF2EEE6), Rule: Hex(0x2F3134));
+            Field: Hex(0xB9B8B2), FieldAlt: Hex(0xB0AFA9), Panel: Hex(0xDAD8D2), PanelRaised: Hex(0xE4E2DD), PanelSunken: Hex(0xADABA4),
+            Chrome: Hex(0x303337), Border: Hex(0x26282B), BorderStrong: Hex(0x18191B), Hairline: Hex(0x84827C),
+            Accent: Hex(0xAE532C), AccentSoft: Hex(0x66707A),
+            Grain: Hex(0x3C3E42), GrainDensity: 5.0, GrainAlpha: 0.13, GrainSize: 4.2);
+        var ink = new InkTokens(Text: Hex(0x1C1D1F), TextSoft: Hex(0x3B3D41), TextDim: Hex(0x5E5E5B), OnAccent: Hex(0xF2EEE6), Rule: Hex(0x26282B),
+            OnChrome: Hex(0xE8E5DE), OnChromeSoft: Hex(0xA9ACB0), OnChromeAccent: Hex(0xEE9A60));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 450, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 650, 0.01, TextCase.AsWritten),
@@ -160,7 +164,7 @@ public static class EraThemes
             SizeScale: 1.0, LineHeight: 1.27);
         return new EraTheme(UiEra.Iron, "Forged iron", "forged iron on lime plaster",
             m, ink, Semantics(m, new Pigment(0.64, -0.01)),
-            new EdgeTokens(Roughness: 0.06, JitterPx: 0.2, Corner: CornerStyle.Square, CornerPx: 0, BorderPx: 3.0, DoubleRule: false, Fasteners: true),
+            new EdgeTokens(Roughness: 0.06, JitterPx: 0.2, Corner: CornerStyle.Square, CornerPx: 0, BorderPx: 3.4, DoubleRule: false, Fasteners: true),
             new OrnamentTokens(2, Motif.Rivet), type,
             new DensityTokens(Level: 3, Padding: 16, Gap: 9, CardDetail: 3),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Segments, ProgressSegments: 8, StrokePx: 2.0, GrabPx: 12),
@@ -174,11 +178,12 @@ public static class EraThemes
     private static EraTheme Classical()
     {
         var m = new MaterialTokens(MaterialKind.Marble,
-            Field: Hex(0xDCD6CA), FieldAlt: Hex(0xD3CCBF), Panel: Hex(0xECE8DF), PanelRaised: Hex(0xF4F1EA), PanelSunken: Hex(0xC9C1B2),
-            Chrome: Hex(0xD9D0BE), Border: Hex(0x5E4A38), BorderStrong: Hex(0x45362A), Hairline: Hex(0xA89E8C),
-            Accent: Hex(0xA8833A), AccentSoft: Hex(0x6E2C3A),
-            Grain: Hex(0x9C9588), GrainDensity: 0.9, GrainAlpha: 0.30, GrainSize: 1.0);
-        var ink = new InkTokens(Text: Hex(0x26211C), TextSoft: Hex(0x48403A), TextDim: Hex(0x6F675C), OnAccent: Hex(0xF7F2E8), Rule: Hex(0x5A4A3A));
+            Field: Hex(0xD6D1C6), FieldAlt: Hex(0xCDC7BB), Panel: Hex(0xF1EEE7), PanelRaised: Hex(0xF7F5F0), PanelSunken: Hex(0xC7C0B1),
+            Chrome: Hex(0x5A2733), Border: Hex(0x5A4636), BorderStrong: Hex(0x42332A), Hairline: Hex(0xA69C8A),
+            Accent: Hex(0xA27C33), AccentSoft: Hex(0x6E2C3A),
+            Grain: Hex(0x8E8678), GrainDensity: 1.2, GrainAlpha: 0.34, GrainSize: 1.0);
+        var ink = new InkTokens(Text: Hex(0x24201B), TextSoft: Hex(0x463E37), TextDim: Hex(0x6A6257), OnAccent: Hex(0xF7F2E8), Rule: Hex(0x5A4636),
+            OnChrome: Hex(0xF3E9DE), OnChromeSoft: Hex(0xCDAEB0), OnChromeAccent: Hex(0xE6C277));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.02, TextCase.AsWritten),
@@ -204,12 +209,13 @@ public static class EraThemes
     {
         var m = new MaterialTokens(MaterialKind.Vellum,
             Field: ParchmentPalette.PaperMid, FieldAlt: Hex(0xDAC8A1), Panel: ParchmentPalette.PaperLight, PanelRaised: Hex(0xF5ECD8),
-            PanelSunken: ParchmentPalette.PaperShade, Chrome: Hex(0xD8C69C),
+            PanelSunken: ParchmentPalette.PaperShade, Chrome: Hex(0x4A3324),
             Border: ParchmentPalette.InkPrimary, BorderStrong: Hex(0x2A2116), Hairline: Hex(0x9A876A),
             Accent: ParchmentPalette.IronRed, AccentSoft: ParchmentPalette.GoldLeaf,
             Grain: ParchmentPalette.InkSoft, GrainDensity: 2.2, GrainAlpha: 0.10, GrainSize: 6.0);
         var ink = new InkTokens(Text: ParchmentPalette.InkPrimary, TextSoft: ParchmentPalette.InkSoft, TextDim: Hex(0x85745A),
-            OnAccent: ParchmentPalette.PaperLight, Rule: ParchmentPalette.InkPrimary);
+            OnAccent: ParchmentPalette.PaperLight, Rule: ParchmentPalette.InkPrimary,
+            OnChrome: ParchmentPalette.PaperLight, OnChromeSoft: ParchmentPalette.PaperShade, OnChromeAccent: Hex(0xD9B35E));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.01, TextCase.AsWritten),
@@ -241,11 +247,12 @@ public static class EraThemes
     private static EraTheme EarlyModern()
     {
         var m = new MaterialTokens(MaterialKind.Paper,
-            Field: Hex(0xE6E0CF), FieldAlt: Hex(0xDDD6C3), Panel: Hex(0xF2EEE2), PanelRaised: Hex(0xF8F5EC), PanelSunken: Hex(0xCFC7B3),
-            Chrome: Hex(0xE0D9C6), Border: Hex(0x1F1B17), BorderStrong: Hex(0x141210), Hairline: Hex(0x9A9282),
+            Field: Hex(0xE5DFCD), FieldAlt: Hex(0xDCD5C1), Panel: Hex(0xF4F0E5), PanelRaised: Hex(0xF9F6EE), PanelSunken: Hex(0xCFC7B3),
+            Chrome: Hex(0x27231F), Border: Hex(0x1F1B17), BorderStrong: Hex(0x141210), Hairline: Hex(0x9A9282),
             Accent: Hex(0xA23A28), AccentSoft: Hex(0x2F4A6A),
-            Grain: Hex(0xA79E89), GrainDensity: 1.0, GrainAlpha: 0.30, GrainSize: 1.0);
-        var ink = new InkTokens(Text: Hex(0x1E1B18), TextSoft: Hex(0x423D36), TextDim: Hex(0x6C665B), OnAccent: Hex(0xFAF6EC), Rule: Hex(0x1F1B17));
+            Grain: Hex(0x9C9380), GrainDensity: 1.0, GrainAlpha: 0.34, GrainSize: 1.0);
+        var ink = new InkTokens(Text: Hex(0x1E1B18), TextSoft: Hex(0x423D36), TextDim: Hex(0x6C665B), OnAccent: Hex(0xFAF6EC), Rule: Hex(0x1F1B17),
+            OnChrome: Hex(0xF4EFE3), OnChromeSoft: Hex(0xB4AC9C), OnChromeAccent: Hex(0xE5806B));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.Garamond, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.Garamond, 600, 0.0, TextCase.AsWritten),
@@ -270,11 +277,12 @@ public static class EraThemes
     private static EraTheme Industrial()
     {
         var m = new MaterialTokens(MaterialKind.Drafting,
-            Field: Hex(0xD6DDE0), FieldAlt: Hex(0xCDD5D9), Panel: Hex(0xEAEFF1), PanelRaised: Hex(0xF3F6F7), PanelSunken: Hex(0xBAC4C9),
-            Chrome: Hex(0xC4CDD2), Border: Hex(0x1F3550), BorderStrong: Hex(0x162740), Hairline: Hex(0x8DA0AE),
+            Field: Hex(0xCEDAE2), FieldAlt: Hex(0xC4D1DA), Panel: Hex(0xEEF3F6), PanelRaised: Hex(0xF6F9FA), PanelSunken: Hex(0xB7C4CD),
+            Chrome: Hex(0x1F3550), Border: Hex(0x1F3550), BorderStrong: Hex(0x142640), Hairline: Hex(0x8AA0B2),
             Accent: Hex(0xA9742C), AccentSoft: Hex(0x5B6B78),
-            Grain: Hex(0x6C8CA8), GrainDensity: 12.0, GrainAlpha: 0.20, GrainSize: 1.0);
-        var ink = new InkTokens(Text: Hex(0x18222E), TextSoft: Hex(0x354558), TextDim: Hex(0x5C6C7A), OnAccent: Hex(0xF4F7F8), Rule: Hex(0x1F3550));
+            Grain: Hex(0x4F7AA3), GrainDensity: 12.0, GrainAlpha: 0.24, GrainSize: 1.0);
+        var ink = new InkTokens(Text: Hex(0x16202C), TextSoft: Hex(0x334356), TextDim: Hex(0x586877), OnAccent: Hex(0xF4F7F8), Rule: Hex(0x1F3550),
+            OnChrome: Hex(0xE6EEF4), OnChromeSoft: Hex(0x9FB4C6), OnChromeAccent: Hex(0xE8B568));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.PlexSerif, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.PlexSans, 600, 0.005, TextCase.AsWritten),
@@ -300,11 +308,12 @@ public static class EraThemes
     private static EraTheme Modern()
     {
         var m = new MaterialTokens(MaterialKind.Glass,
-            Field: Hex(0xE5E5E2), FieldAlt: Hex(0xDCDCD8), Panel: Hex(0xF7F7F4), PanelRaised: Hex(0xFCFCFA), PanelSunken: Hex(0xD3D4D1),
-            Chrome: Hex(0xEDEDEA), Border: Hex(0x2B3036), BorderStrong: Hex(0x1C2024), Hairline: Hex(0xB2B5B5),
+            Field: Hex(0xE4E4E1), FieldAlt: Hex(0xDBDBD7), Panel: Hex(0xF9F9F7), PanelRaised: Hex(0xFDFDFC), PanelSunken: Hex(0xD3D4D1),
+            Chrome: Hex(0x23272C), Border: Hex(0x2B3036), BorderStrong: Hex(0x1C2024), Hairline: Hex(0xB2B5B5),
             Accent: Hex(0xA06A26), AccentSoft: Hex(0x4A5056),
             Grain: Hex(0xB2B5B5), GrainDensity: 0.0, GrainAlpha: 0.0, GrainSize: 1.0);
-        var ink = new InkTokens(Text: Hex(0x1B1F23), TextSoft: Hex(0x3B4249), TextDim: Hex(0x646B71), OnAccent: Hex(0xFFFFFF), Rule: Hex(0x2B3036));
+        var ink = new InkTokens(Text: Hex(0x1B1F23), TextSoft: Hex(0x3B4249), TextDim: Hex(0x646B71), OnAccent: Hex(0xFFFFFF), Rule: Hex(0x2B3036),
+            OnChrome: Hex(0xF1F1EF), OnChromeSoft: Hex(0xA5ABB1), OnChromeAccent: Hex(0xE3A75B));
         var type = new TypographyTokens(
             Body: new TextStyle(TypeFace.PlexSans, 400, 0.0, TextCase.AsWritten),
             Heading: new TextStyle(TypeFace.PlexSans, 600, 0.0, TextCase.AsWritten),

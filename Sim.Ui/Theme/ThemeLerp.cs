@@ -28,7 +28,8 @@ public static class ThemeLerp
             C(ma.Grain, mb.Grain, t), D(ma.GrainDensity, mb.GrainDensity, t), D(ma.GrainAlpha, mb.GrainAlpha, t), D(ma.GrainSize, mb.GrainSize, t));
         InkTokens ia = from.Ink, ib = to.Ink;
         var ink = new InkTokens(C(ia.Text, ib.Text, t), C(ia.TextSoft, ib.TextSoft, t), C(ia.TextDim, ib.TextDim, t),
-            C(ia.OnAccent, ib.OnAccent, t), C(ia.Rule, ib.Rule, t));
+            C(ia.OnAccent, ib.OnAccent, t), C(ia.Rule, ib.Rule, t),
+            C(ia.OnChrome, ib.OnChrome, t), C(ia.OnChromeSoft, ib.OnChromeSoft, t), C(ia.OnChromeAccent, ib.OnChromeAccent, t));
         SemanticTokens sa = from.Semantic, sb = to.Semantic;
         LaneHues la = sa.Lanes, lb = sb.Lanes;
         var semantic = new SemanticTokens(

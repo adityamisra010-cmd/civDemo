@@ -1,57 +1,23 @@
 using Sim.Core.Systems.Research;
+using Sim.Ui.Theme;
 using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.Progression;
 
-/// <summary>The progression screen's colours: a night-ink field with parchment-gold accents,
-/// one hue per lane, one treatment per node state.</summary>
+/// <summary>
+/// The progression screen's colour LOOKUPS. The night-ink palette that lived here (one fixed dark
+/// field, gold and cyan accents) has converged on the era theme (ADR-033 D8): every colour the
+/// screen paints is now an <see cref="EraTheme"/> token — the lane hues are
+/// <see cref="SemanticTokens.Lanes"/>, the state treatments the semantic tokens — so the same
+/// screen is drawn in the era of the player's Age. What remains here is the node-to-lane and
+/// state-to-word mapping.
+/// </summary>
 public static class ProgressionPalette
 {
-    public static Rgba A(uint rgb, double alpha) { Rgba c = Rgba.Hex(rgb); return new(c.R, c.G, c.B, (byte)Math.Round(255 * Math.Clamp(alpha, 0, 1))); }
-
-    public static readonly Rgba Field = Rgba.Hex(0x0E1319);
-    public static readonly Rgba FieldBand = Rgba.Hex(0x121922);
-    public static readonly Rgba Chrome = Rgba.Hex(0x0A0E13);
-    public static readonly Rgba ChromeRaised = Rgba.Hex(0x18202A);
-    public static readonly Rgba Hairline = Rgba.Hex(0x2A3442);
-    public static readonly Rgba Gold = Rgba.Hex(0xD8B866);
-    public static readonly Rgba GoldDim = Rgba.Hex(0x8C7742);
-    public static readonly Rgba Text = Rgba.Hex(0xE8E1CF);
-    public static readonly Rgba TextSoft = Rgba.Hex(0xA9A390);
-    public static readonly Rgba TextDim = Rgba.Hex(0x667080);
-    public static readonly Rgba Cyan = Rgba.Hex(0x5FD3E6);
-    public static readonly Rgba Amber = Rgba.Hex(0xE0A040);
-    public static readonly Rgba Red = Rgba.Hex(0xD0605A);
-    public static readonly Rgba Green = Rgba.Hex(0x6CC28A);
-
-    /// <summary>Hover / selection highlight: the focused node's prerequisites (and the edges
-    /// into it) in one colour, its dependents (and the edges out of it) in another.</summary>
-    public static readonly Rgba PrereqHi = Rgba.Hex(0xF0A458);
-    public static readonly Rgba DependentHi = Rgba.Hex(0x7CC4FF);
-
-    public static readonly Rgba CompletedFill = Rgba.Hex(0x2E2818);
-    public static readonly Rgba TargetFill = Rgba.Hex(0x123038);
-    public static readonly Rgba AvailableFill = Rgba.Hex(0x1C2733);
-    public static readonly Rgba LockedFill = Rgba.Hex(0x131820);
-    public static readonly Rgba AvailableEdge = Rgba.Hex(0xA9C3DA);
-    public static readonly Rgba LockedEdge = Rgba.Hex(0x2B3440);
-
-    /// <summary>The lane hue for a content subtree id, or the trunk/civics hue.</summary>
-    public static Rgba Branch(string laneId) => laneId switch
-    {
-        "main" => Rgba.Hex(0xD8C48A),
-        "military" => Rgba.Hex(0xC8584F),
-        "medicine" => Rgba.Hex(0x4FB57E),
-        "engineering" => Rgba.Hex(0xD98F3E),
-        "natural_science" => Rgba.Hex(0x5E95DC),
-        "agriculture" => Rgba.Hex(0xA4C24E),
-        "external" => Rgba.Hex(0x7A8494),
-        _ => Rgba.Hex(0xB383DA),   // civics domains and any future lane
-    };
-
-    public static Rgba BranchOf(ResearchContent content, ResearchNode node) =>
-        node.Tree == ResearchTree.Civics ? Branch("civics")
-        : node.Branch < 0 ? Branch("main") : Branch(content.Branches[node.Branch].Id);
+    /// <summary>The lane hue of a node in <paramref name="theme"/>: its subtree, the trunk, or civics.</summary>
+    public static Rgba BranchOf(EraTheme theme, ResearchContent content, ResearchNode node) =>
+        node.Tree == ResearchTree.Civics ? theme.Semantic.Lanes.Civics
+        : node.Branch < 0 ? theme.Semantic.Lanes.Main : theme.Semantic.Lanes.Of(content.Branches[node.Branch].Id);
 
     public static string StateLabel(NodeState s) => s switch
     {

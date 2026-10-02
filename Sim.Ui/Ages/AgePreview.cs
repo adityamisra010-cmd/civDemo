@@ -245,7 +245,7 @@ public static class AgePreview
     }
 
     /// <summary>The parchment terrain bake of the real world as a PNG data URI (the game's own map art).</summary>
-    private static string TerrainDataUri(IReadOnlyWorldState world)
+    internal static string TerrainDataUri(IReadOnlyWorldState world)
     {
         ParchmentBaker.Result bake = ParchmentBaker.Bake(world.Terrain!, AssetLibrary.Load(), world.Seed);
         string tmp = Path.Combine(Path.GetTempPath(), "age-preview-terrain-" + world.Seed.ToString(CultureInfo.InvariantCulture) + ".png");
