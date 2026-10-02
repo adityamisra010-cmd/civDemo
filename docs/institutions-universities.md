@@ -209,7 +209,7 @@ coverage(S) = Σ_medical i  M_i · exp(−d(site_i, S) / healthDecayCostUnits)  
 labour, never created or destroyed (they stay in their buckets, age, eat and die as everyone does):
 
 ```
-staff(S) = min(adults(S), Σ_i at S  staffShareAtMaturity · M_i · adults(S))
+staff(S)  = min(adults(S), Σ_i at S  staffShareAtMaturity · adultsPerUniversity · M_i)
 labour(S) = adults(S) − staff(S)
 ```
 
@@ -219,12 +219,22 @@ construction pool's three consumers (HousingSystem, PathBuildSystem, `Constructi
 — sector shares apply to the labour that remains, so a scholar is never also a farmer or a builder (the
 same class of double count as D10). With no institution it returns `(double)adults` exactly.
 
-- **`staffShareAtMaturity` = 0.05.** Reference class: scholars as a share of the host town c. 1300 —
-  Paris ≈ 4,000 / 220,000 (1.8 %), Padua ≈ 800 / 30,000 (2.7 %), Montpellier ≈ 1,000 / 40,000 (2.5 %),
-  Toulouse ≈ 1,000 / 35,000 (2.9 %), Bologna ≈ 2,500 / 55,000 (4.5 %), Cambridge ≈ 700 / 3,500 (20 %),
-  Oxford ≈ 1,500 / 6,500 (23 %) (INFERRED). Median 2.9 % of inhabitants ÷ adult share 0.563 ≈ 5 % of
-  adults. Staff scale with the host (Paris's university was larger than Cambridge's) and with maturity
-  (an institution grows into its staff).
+- **Staffing is per INSTANCE.** Each university at maturity employs the share σ of the market it needs:
+  σ × A_u = 0.05 × 2,000 = 100 adults, grown into as it matures. While the market term holds
+  (n ≤ adults / A_u) a host's scholars therefore never exceed σ of its adults, however large it grows; a
+  large city hosts MORE universities rather than larger ones.
+- **`staffShareAtMaturity` = 0.05**, read as the scholar share of a host at its university market's
+  capacity. Reference class: scholars as a share of the host town c. 1300 — Paris ≈ 4,000 / 220,000
+  (1.8 %), Padua ≈ 800 / 30,000 (2.7 %), Montpellier ≈ 1,000 / 40,000 (2.5 %), Toulouse ≈ 1,000 / 35,000
+  (2.9 %), Bologna ≈ 2,500 / 55,000 (4.5 %), Cambridge ≈ 700 / 3,500 (20 %), Oxford ≈ 1,500 / 6,500 (23 %)
+  (INFERRED). Median 2.9 % of inhabitants ÷ adult share 0.563 ≈ 5 % of adults.
+- **Measured and rejected: staff proportional to the HOST** (σ × M × adults(S) per university, this
+  note's first draft). It compounds with the per-instance market — n ≤ adults / A_u instances, each
+  employing σ of the host, withdraw up to σ × adults / A_u of it — so the share grows with population
+  without bound. MEASURED on the seed-42 `aiEmpires = 1` run at turn 1000 with that formula: the rival's
+  university hosts had 3–14 universities each and 14–48 % of their adults withdrawn (s5: 14 universities,
+  Σ M = 9.6, 48 %). Per-instance staffing keeps the loop's force linear in its amplitude (§7.2) and bounds
+  it by the market.
 
 **7.2 Why this is a negative feedback loop that STRENGTHENS WITH AMPLITUDE.** The positive loop D-021
 names (§8.5.2) is research → universities → cheaper research → more research and more institutions. Its
@@ -233,7 +243,7 @@ A = Σ M_i. The brake:
 
 ```
 more universities / more maturity (A↑)
-  → staff = σ · A_S · adults withdrawn from every sector     (linear in A: the brake's force grows with amplitude)
+  → staff = σ · A_u · A_S withdrawn from every sector        (linear in A: the brake's force grows with amplitude)
   → herding/fishing, extraction, crafting and labour-bound farming output fall
   → food_surplus_ratio falls (and materials and construction capacity for the next university fall)
   → below 1.3 no further university can be founded there; below 1.1 maturity DECAYS
@@ -246,7 +256,10 @@ feedback rule. Two damping terms sit beside it and are not offered as the brake:
 and bounded (S(X) ≤ 1, factor ≥ 2/3), and the market term bounds the number of instances by population.
 The test `InstitutionBrakeTests` MEASURES the brake on the production pipeline: withdrawn labour and lost
 food grow monotonically with the number of mature universities, the surplus crosses the sustaining
-threshold at a finite count, and past it maturity decays instead of growing.
+threshold at a finite count, and past it maturity decays instead of growing (§12.2). Its magnitude: at
+the canonical σ a host at its market's capacity loses at most 5 % of its adults in total, so the food term
+binds where the surplus is within that margin of 1.1 and the market term binds first elsewhere; the rig
+raises σ to show the shape, which does not depend on σ.
 
 ## 8. ADR-033 D10 — construction capacity is spent once (rides the v31 bump)
 
@@ -262,9 +275,15 @@ layout; AI runs (which do build) move, and are re-derived.
 
 - **Construction.** AiConstructionPolicy keeps S2's baseline rule for ordinary projects (granary,
   workshop) and gains ONE university decision per AI polity per turn, made after them: among the
-  university types AVAILABLE to it, the specialty with the lowest maturity-weighted sum X (diminishing
-  returns make the AI diversify; ties to the lower type key), at the controlled settlement with an empty
-  queue where the founding viability holds, every material is present and the construction capacity
+  university types AVAILABLE to it, the specialty it holds FEWEST instances of, counted PROSPECTIVELY
+  (founded rows + buildings completed in its settlements and not yet founded + projects of the type in
+  their queues), then the lowest maturity-weighted sum X, then the lower type key (composite key
+  (n, X, key): diminishing returns make the AI diversify). A type whose prospective count is already
+  SATURATED (S(n) ≥ `saturatedAt`, n ≥ 3) is not founded again — the AI's reading of the derived
+  SATURATED stage, not a cap on the world. (The first draft keyed on X alone; MEASURED on the long AI run
+  it ordered each specialty three times running, because the founding lag and a new university's zero
+  maturity left X at 0 — the prospective count is the fix.) The site is the controlled settlement with an
+  empty queue where the founding viability holds, every material is present and the construction capacity
   covers the labour, choosing the largest spare market (adults − 2,000 × hosted; ties to the lower
   settlement id). Composite keys, tie-dense tests. The order is `ConstructionQuery.EnqueueOrder`, the
   player's constructor.

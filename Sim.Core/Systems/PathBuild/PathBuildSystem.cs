@@ -138,7 +138,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 if (prev.SectorAllocations[i].Settlement == settlement.Id)
                 { shares = prev.SectorAllocations[i]; break; }
             }
-            long allAdults = BandViews.Adults(prev.Buckets, settlement.Id);
+            // ADR-033 D6: the LABOUR adults — adults less institutional staff, through the one
+            // labour reader every sector pool uses (exactly the adult count with no institution).
+            double allAdults = InstitutionStaffing.LabourAdults(prev, _cfg, settlement.Id);
             double builders = Sectors.Share(shares, Sectors.Construction) * allAdults;
 
             // T3.8: housing draws on the SAME construction pool. Its published

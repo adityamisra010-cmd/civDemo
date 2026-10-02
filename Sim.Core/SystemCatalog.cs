@@ -350,8 +350,8 @@ public static class SystemCatalog
     /// <summary>ADR-029 (D-044): the research engine. It owns the research state
     /// (target, progress, completed knowledge, fired Eurekas). It READS the
     /// specialized-university cost factors from Prev and is not handed them, because
-    /// their writer is the future institutions system. Inert when the config carries
-    /// no research content.</summary>
+    /// their writer is the institutions system (ADR-033 D6: <see cref="Institutions"/>).
+    /// Inert when the config carries no research content.</summary>
     public static SystemRegistration Research(SimConfig cfg)
     {
         var system = new ResearchSystem(cfg.Research);
@@ -398,6 +398,21 @@ public static class SystemCatalog
                 rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>ADR-033 D6 (SystemId 28): universities as real institutions — founds an institution row for
+    /// every university building ConstructionSystem completed, matures it while its host is viable, and
+    /// REBUILDS the specialized-university cost seam (ResearchCostModifiers, ADR-029 §9) from the maturities.
+    /// SOLE OWNER of Institutions and of ResearchCostModifiers (ResearchSystem only reads the latter, from
+    /// Prev). Reads Structures, Controls, Buckets, Variables and the roster from Prev only. Inert without an
+    /// institutions section.</summary>
+    public static SystemRegistration Institutions(SimConfig cfg)
+    {
+        var system = new Systems.Institutions.InstitutionsSystem(cfg);
+        return new SystemRegistration(Systems.Institutions.InstitutionsSystem.WellKnownId, Systems.Institutions.InstitutionsSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Institutions.InstitutionsTables>(
+                prev, new Systems.Institutions.InstitutionsTables(next.Institutions, next.ResearchCostModifiers),
+                rng, Systems.Institutions.InstitutionsSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -406,6 +421,6 @@ public static class SystemCatalog
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
-         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg), Institutions(cfg),
          Weather(), Growth(), Trade()];
 }

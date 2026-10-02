@@ -21,10 +21,15 @@ namespace Sim.Core;
 /// PER AI POLITY, in roster order (each polity once; an extinct Empire — no controlled settlement — has
 /// nothing to decide and is skipped), in this fixed order:
 /// <list type="number">
-/// <item><see cref="AiResearchPolicy"/> — a research target when it has none (OrderKind 6).</item>
+/// <item><see cref="AiResearchPolicy"/> — a research target when it has none (OrderKind 6); its goals are the next
+/// Age's core research and the knowledge the AI's own capability-gated actions need (ADR-033 B).</item>
 /// <item><see cref="AgeAdvancePolicy"/> — advance on the first eligible turn (OrderKind 7).</item>
 /// <item><see cref="RoadDevelopmentPolicy"/> — develop roads once a class is known and affordable (OrderKind 8).</item>
-/// <item><see cref="AiConstructionPolicy"/> — one affordable available project per idle settlement (OrderKind 4).</item>
+/// <item><see cref="AiConstructionPolicy"/> — one affordable available project per idle settlement, and at most one
+/// viable, affordable university founding per polity (OrderKind 4; ADR-033 D6). The university's labour is
+/// judged against the length of the turn that produced <c>world</c> (<c>world.Clock.DtYears</c>; the era table
+/// only ever shortens turns, so at an era boundary a founding can wait one more turn in the queue —
+/// ConstructionSystem re-applies its gate and never overspends); none is judged at the founding state.</item>
 /// </list>
 /// then <see cref="Governance"/>, the reconciliation slot for the tax policy (OrderKind 5, stream S1).
 ///
@@ -51,7 +56,8 @@ public static class AiOrders
             if (AiResearchPolicy.Decide(world, cfg, polity) is { } research) result.Add(research);
             if (cfg.Ages is { } ages && AgeAdvancePolicy.Decide(world, ages, polity) is { } advance) result.Add(advance);
             if (RoadDevelopmentPolicy.Decide(world, cfg, polity) is { } roads) result.Add(roads);
-            result.AddRange(AiConstructionPolicy.Decide(world, cfg, polity));
+            result.AddRange(AiConstructionPolicy.Decide(world, cfg, polity,
+                world.Clock.DtYears > 0.0 ? world.Clock.DtYears : null));
         }
         Governance(world, cfg, result);
         return [.. result];

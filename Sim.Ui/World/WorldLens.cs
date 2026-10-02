@@ -167,6 +167,9 @@ public sealed class WorldProjection
             {
                 StructureRow st = world.Structures[k];
                 if (st.Settlement != id || st.Count <= 0) continue;
+                // ADR-033 D6: a project that FOUNDS an institution (a university building) is drawn ONCE, as the
+                // institution, through InstitutionMarkerSource — never also as a generic structure glyph.
+                if (FoundsInstitution(cfg, st.ProjectId)) continue;
                 string pname = ProjectName(cfg, st.ProjectId);
                 structures.Add(new StructureView(st.ProjectId, pname, KindOf(pname), st.Count));
             }
@@ -243,6 +246,9 @@ public sealed class WorldProjection
 
     private static (double, double) Center(int node, int lsize, int stride) =>
         (node % lsize * stride + stride / 2.0, node / lsize * stride + stride / 2.0);
+
+    private static bool FoundsInstitution(SimConfig cfg, int projectId) =>
+        cfg.Goods?.ProjectById(projectId) is { } p && InstitutionContent.FoundsInstitution(p);
 
     private static string ProjectName(SimConfig cfg, int projectId)
     {

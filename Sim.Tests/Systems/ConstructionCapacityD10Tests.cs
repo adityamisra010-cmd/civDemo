@@ -66,7 +66,7 @@ public class ConstructionCapacityD10Tests
         ordered.Append(ConstructionQuery.EnqueueOrder(w, Player, s0, 1));
         SystemRegistration[] pipeline = [SystemCatalog.Construction(Cfg), SystemCatalog.PathBuild(Cfg)];
         double laborRequired = Cfg.Goods!.ProjectById(1)!.LaborRequired;
-        Assert.True(ConstructionQuery.CapacityAdultYears(w, s0, 10.0) >= laborRequired);   // affordable from the pool
+        Assert.True(ConstructionQuery.CapacityAdultYears(w, Cfg, s0, 10.0) >= laborRequired);   // affordable from the pool
 
         // Step 1: the granary is built and its labour PUBLISHED; PathBuild's bank is unchanged this step (the lag).
         WorldState built = Only(ordered, pipeline).Step(w);

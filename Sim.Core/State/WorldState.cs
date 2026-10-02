@@ -880,6 +880,11 @@ public record struct ResearchExposureRow(PolityId Polity, ResearchNodeId Node, d
 /// always empty, so EffectiveCost == BaseCost. The formula that maps universities
 /// to Factor is NOT ratified (R5), and nothing here invents one. D-021: the first
 /// writer closes the research → university loop and owes its brake (ADR-029 §9).
+/// ADR-033 D6 (schema v31): THE WRITER NOW EXISTS. InstitutionsSystem rebuilds this table
+/// every step from the maturities of the polity's universities — Factor = 1 − maxResearch-
+/// CostReduction × (1 − e^−X), X the maturity-weighted count of the type — and ships the
+/// D-021 brake with it (staff withdrawn from labour; docs/institutions-universities.md §7).
+/// The formula is a TUNE implementation choice under R5, not a ratification of one.
 /// </summary>
 public record struct ResearchCostModifierRow(PolityId Polity, int UniversityType, double Factor);
 

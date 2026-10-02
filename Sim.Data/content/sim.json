@@ -262,5 +262,23 @@
       "stepPercent": 5.0,
       "maxRatePercent": 40.0
     }
+  },
+  "institutions": {
+    "_doc": "ADR-033 D6 (docs/institutions-universities.md): universities as real institutions on ADR-028's lifecycle. EVERY NUMBER IS TUNE; each reference class was fixed BEFORE measuring its effect (CR-003 5.1). Historical figures are approximate (INFERRED from standard histories). Other institution types follow the same lifecycle later (out of scope).",
+    "universities": {
+      "_doc": "maturityTauYears 16: DERIVED - median founding-to-recognition interval of six early studia (Bologna c.1088->1158 70y, Paris c.1150->1200 ~48, Oxford c.1167->1214 47, Cambridge 1209->1231 22, Montpellier c.1137->1220 83, Salamanca 1218->1243 25; median 47.5) read as the time to the MATURE reading 1-e^-3, so tau = 47.5/3; viable maturation M' = 1-(1-M)exp(-dt/tau). decayTauYears 21.7: DERIVED - an institution that cannot recruit loses its masters at the rate working adults leave the population: 1 / mean(demographics.mortalityPerYear cohorts 3..11 = 0.415/9 = 0.0461/yr); non-viable decay M' = M exp(-dt/tau). matureAt 0.95: 1-e^-3, the three-e-fold convention for 'at its asymptote'. staffShareAtMaturity 0.05: DERIVED - scholars as a share of the host town c.1300 (Paris 1.8%, Padua 2.7%, Montpellier 2.5%, Toulouse 2.9%, Bologna 4.5%, Cambridge 20%, Oxford 23%; median 2.9% of inhabitants / the founded world's adult share 0.563 = ~5% of adults); read as the scholar share of a host at its university market's capacity: each instance employs this x adultsPerUniversity x maturity adults (100 at maturity), so a host keeps at least 95% of its adults in labour while the market term holds; withdrawn from every sector pool (InstitutionStaffing.LabourAdults). Staff proportional to HOST size was measured and rejected: it compounds with the per-instance market (staff share = this x adults / adultsPerUniversity) and withdrew 14-48% of adults in the AI's university hosts at turn 1000 of the seed-42 aiEmpires=1 run. adultsPerUniversity 2000: DERIVED - the smallest high-medieval university town (Cambridge c.1300 ~3,500 inhabitants) x the adult share 0.563 = 1,970; the market each instance needs (adults >= this x (hosted+1) to found, x hosted to sustain) - a per-instance threshold scaled by population, never a maximum count (ADR-028 1.4/2.3). foundingFoodSurplusRatio 1.3 / sustainingFoodSurplusRatio 1.1: IDENTITY - the Artisans emerge/recede thresholds of registries.classes ('the food exists to feed a non-farmer'); scholars are non-food specialists. maxResearchCostReduction 1/3: DERIVED - the ratified calibration's one stated assumption for future research modifiers, x1.5 throughput for a research-optimized civilization (D-045 Part D 3), read as the ceiling of one specialty's discount on its own branch: factor = 1 - this x (1 - e^-X), X the maturity-weighted count of the owner's universities of the type. saturatedAt 0.95: the SATURATED reading of S(X) = 1-e^-X (X >= ~3: the next university adds < 5% of what the first did). healthType: the research.json universityTypes id whose maturity heals. maxMortalityReduction 0.10: DERIVED - smallpox, ~10% of all deaths in 18th-century Europe, is the largest single cause a pre-modern medical establishment removed (variolation, vaccination); multiplier on BASE mortality = 1 - this x (1 - e^-coverage). healthDecayCostUnits 25.0: IDENTITY with migration.dampingDecayCostUnits and governance.authorityDecayCostUnits ('how far does influence travel over this network'); coverage = sum of medical maturities x exp(-SettlementDistances travel cost / this).",
+      "maturityTauYears": 16.0,
+      "decayTauYears": 21.7,
+      "matureAt": 0.95,
+      "staffShareAtMaturity": 0.05,
+      "adultsPerUniversity": 2000,
+      "foundingFoodSurplusRatio": 1.3,
+      "sustainingFoodSurplusRatio": 1.1,
+      "maxResearchCostReduction": 0.3333333333333333,
+      "saturatedAt": 0.95,
+      "healthType": "medical_university",
+      "maxMortalityReduction": 0.1,
+      "healthDecayCostUnits": 25.0
+    }
   }
 }

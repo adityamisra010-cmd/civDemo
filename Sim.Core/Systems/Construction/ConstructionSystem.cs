@@ -68,6 +68,15 @@ public sealed record ConstructionTables(
 /// row per settlement that built), and PathBuild subtracts them at the §3.2
 /// one-turn lag exactly as it subtracts housing's draw — before this, the labour a
 /// project used was also banked toward dirt paths in the same turn.
+///
+/// ADR-033 D6 — A PROJECT THAT FOUNDS AN INSTITUTION (goods.json <c>founds</c>, the
+/// five universities) resolves only where the host can FOUND one more
+/// (InstitutionViability.ToFound on PREV: the market and the food surplus) — a third
+/// transient gate beside materials and capacity, so the head waits exactly as it
+/// waits for stone. Its completion is counted in Structures like any project;
+/// InstitutionsSystem founds the institution from that count the next step.
+/// Capacity reads the labour left after institutional staff
+/// (InstitutionStaffing.LabourAdults, inside ConstructionQuery.CapacityAdultYears).
 /// </summary>
 public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionTables>
 {
@@ -122,11 +131,13 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
 
             // The settlement's construction labour this turn, in adult-years, less
             // housing's published draw (§3.2 one-turn lag), floored at zero — and every
-            // material present IN FULL, checked before any draw. Both are the shared
-            // ConstructionQuery statics, so the blocker the action surface reports is
+            // material present IN FULL, checked before any draw — and, for a project
+            // that founds an institution, the host's founding viability. All are the
+            // shared State statics, so the blocker the action surface reports is
             // computed by the function that gates the build.
-            if (!(ConstructionQuery.CapacityAdultYears(prev, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
+            if (!(ConstructionQuery.CapacityAdultYears(prev, _cfg, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
             if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, _cfg.Goods, settlement, project)) continue;
+            if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, _cfg, settlement).Viable) continue;
 
             Consume(ctx, settlement, project);
             Complete(ctx.Owned.Structures, settlement, project.Id);

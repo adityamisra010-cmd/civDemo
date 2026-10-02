@@ -152,7 +152,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 { shares = prev.SectorAllocations[i]; break; }
             }
 
-            long adults = BandViews.Adults(prev.Buckets, settlement);
+            // ADR-033 D6: production labour = adults − institutional staff, BEFORE the sector
+            // shares apply — read through the one labour reader (InstitutionStaffing) every
+            // sector pool uses. Scholars are real adults withdrawn from work, never created or
+            // destroyed; with no institution this is exactly the adult count, bit for bit.
+            double adults = InstitutionStaffing.LabourAdults(prev, _cfg, settlement);
 
             // T4.21-1 (CR-015 §3.3): ONE food multiplier per settlement — the
             // harvest-weather multiplier times the disaster multiplier, both

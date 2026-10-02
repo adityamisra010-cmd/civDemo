@@ -91,7 +91,21 @@ public sealed record ConstructionProjectEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("inputs"), JsonRequired] ProjectInput[] Inputs,
     [property: JsonPropertyName("laborRequired"), JsonRequired] double LaborRequired,
-    [property: JsonPropertyName("entity")] string? Entity = null);
+    [property: JsonPropertyName("entity")] string? Entity = null,
+    [property: JsonPropertyName("founds")] ProjectFounds? Founds = null);
+
+/// <summary>
+/// ADR-033 D6 — what a completed project FOUNDS besides its building: an institution (today one of the
+/// five specialized universities). <c>Entity</c> is the institution's research.json entity (e.g.
+/// <c>inst.university</c>): the project is AVAILABLE only when BOTH the project's own <c>entity</c> (the
+/// building it constructs) and this one are knowledge-eligible (ConstructionQuery.IsKnowledgeEligible —
+/// the one availability predicate). <c>UniversityType</c> is the research.json <c>universityTypes[].id</c>
+/// of the institution the completion founds (InstitutionsSystem founds it the step after the building
+/// stands). Data, never an id in code; cross-validated against research.json at the four-file load.
+/// </summary>
+public sealed record ProjectFounds(
+    [property: JsonPropertyName("entity"), JsonRequired] string Entity,
+    [property: JsonPropertyName("universityType"), JsonRequired] string UniversityType);
 
 /// <summary>
 /// The D-031 goods registry + recipe book (T3.2), loaded from goods.json on
@@ -112,6 +126,17 @@ public sealed record GoodsConfig(
     {
         ConstructionProjectEntry[] projects = Projects ?? [];
         for (int i = 0; i < projects.Length; i++) if (projects[i].Id == id) return projects[i];
+        return null;
+    }
+
+    /// <summary>ADR-033 D6: the project whose completion founds a university of research.json type id
+    /// <paramref name="universityTypeId"/> (at most one, validated at load), or null.</summary>
+    public ConstructionProjectEntry? FoundingProjectOf(string universityTypeId)
+    {
+        ConstructionProjectEntry[] projects = Projects ?? [];
+        for (int i = 0; i < projects.Length; i++)
+            if (projects[i].Founds is { } f && string.Equals(f.UniversityType, universityTypeId, StringComparison.Ordinal))
+                return projects[i];
         return null;
     }
 
@@ -301,6 +326,23 @@ public static class GoodsConfigLoader
                 throw new GoodsConfigException(
                     $"projects[{i}] ({pr.Name}).laborRequired must be a finite value > 0 (adult-years), " +
                     $"got {Inv(pr.LaborRequired)}.");
+            // ADR-033 D6: a project that FOUNDS an institution names the institution's entity and its
+            // university type. The shape is checked here; that both exist in research.json is checked
+            // where goods.json meets research.json (SimConfigLoader.ValidateProjectsAgainstContent).
+            if (pr.Founds is { } founds)
+            {
+                if (string.IsNullOrWhiteSpace(founds.Entity))
+                    throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds.entity must be non-empty.");
+                if (string.IsNullOrWhiteSpace(founds.UniversityType))
+                    throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds.universityType must be non-empty.");
+                for (int j = 0; j < i; j++)
+                    if (cfg.Projects[j].Founds is { } other
+                        && string.Equals(other.UniversityType, founds.UniversityType, StringComparison.Ordinal))
+                        throw new GoodsConfigException(
+                            $"projects[{i}] ({pr.Name}) founds university type '{founds.UniversityType}', which " +
+                            $"projects[{j}] ({cfg.Projects[j].Name}) already founds — one project per type, so a " +
+                            "settlement's university count of a type is the count of one project's structures.");
+            }
         }
 
         return cfg with { GrainId = numeraire };

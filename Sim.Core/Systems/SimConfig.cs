@@ -59,7 +59,53 @@ public sealed record SimConfig(
     // Governance reader returns the neutral value (no tax, extraction ×1, burden ×1). Toy and
     // hand-written configs therefore run the full catalog unchanged; the canonical sim.json
     // carries the section.
-    [property: JsonPropertyName("governance")] GovernanceConfig? Governance = null);
+    [property: JsonPropertyName("governance")] GovernanceConfig? Governance = null,
+    // ADR-033 D6 (institutions; docs/institutions-universities.md): the university lifecycle's tuning —
+    // maturation, viability, staffing, the research-cost and health effects. OPTIONAL and in the
+    // defaulted tail: absent, InstitutionsSystem is INERT (founds nothing, writes no cost factor), the
+    // staffing reader returns the raw adult count and the mortality seam returns 1.0, so toy and
+    // hand-written configs run the full catalog unchanged; the canonical sim.json carries the section.
+    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null);
+
+/// <summary>ADR-033 D6 — the institutions section of sim.json. Today it carries the five specialized
+/// universities' tuning only; other institution types follow the same lifecycle later (out of scope).</summary>
+public sealed record InstitutionsConfig(
+    [property: JsonPropertyName("universities"), JsonRequired] UniversitiesConfig Universities);
+
+/// <summary>
+/// ADR-033 D6 — THE UNIVERSITY LIFECYCLE'S TUNING (every number TUNE; each reference class is in
+/// docs/institutions-universities.md and sim.json <c>institutions._doc</c>, fixed before measuring).
+/// <list type="bullet">
+/// <item><c>MaturityTauYears</c> (16): e-fold of the maturity gap while viable, M' = 1 − (1 − M)e^(−dt/τ).</item>
+/// <item><c>DecayTauYears</c> (21.7): e-fold of maturity while NOT viable, M' = M e^(−dt/τ).</item>
+/// <item><c>MatureAt</c> (0.95): the MATURE reading of the stored maturity (1 − e⁻³).</item>
+/// <item><c>StaffShareAtMaturity</c> (0.05): the share of its market (<c>AdultsPerUniversity</c>) a fully
+///   mature university withdraws from labour — σ × A_u = 100 adults per instance, so a host never loses more
+///   than σ of its adults while the market term holds.</item>
+/// <item><c>AdultsPerUniversity</c> (2,000): the host market each university instance needs.</item>
+/// <item><c>FoundingFoodSurplusRatio</c> (1.3) / <c>SustainingFoodSurplusRatio</c> (1.1): the content's
+///   specialist (Artisans) emerge / recede thresholds, applied to founding and to maturation.</item>
+/// <item><c>MaxResearchCostReduction</c> (1/3): the ceiling of one specialty's cost discount on its branch,
+///   factor = 1 − this × (1 − e^(−X)).</item>
+/// <item><c>SaturatedAt</c> (0.95): the SATURATED reading of the effect curve, S(X) ≥ this.</item>
+/// <item><c>HealthType</c> ("medical_university"): the type whose maturity heals; data, not code.</item>
+/// <item><c>MaxMortalityReduction</c> (0.10): the ceiling of the base-mortality reduction.</item>
+/// <item><c>HealthDecayCostUnits</c> (25.0): e-fold of medical coverage over SettlementDistances travel cost.</item>
+/// </list>
+/// </summary>
+public sealed record UniversitiesConfig(
+    [property: JsonPropertyName("maturityTauYears"), JsonRequired] double MaturityTauYears,
+    [property: JsonPropertyName("decayTauYears"), JsonRequired] double DecayTauYears,
+    [property: JsonPropertyName("matureAt"), JsonRequired] double MatureAt,
+    [property: JsonPropertyName("staffShareAtMaturity"), JsonRequired] double StaffShareAtMaturity,
+    [property: JsonPropertyName("adultsPerUniversity"), JsonRequired] long AdultsPerUniversity,
+    [property: JsonPropertyName("foundingFoodSurplusRatio"), JsonRequired] double FoundingFoodSurplusRatio,
+    [property: JsonPropertyName("sustainingFoodSurplusRatio"), JsonRequired] double SustainingFoodSurplusRatio,
+    [property: JsonPropertyName("maxResearchCostReduction"), JsonRequired] double MaxResearchCostReduction,
+    [property: JsonPropertyName("saturatedAt"), JsonRequired] double SaturatedAt,
+    [property: JsonPropertyName("healthType"), JsonRequired] string HealthType,
+    [property: JsonPropertyName("maxMortalityReduction"), JsonRequired] double MaxMortalityReduction,
+    [property: JsonPropertyName("healthDecayCostUnits"), JsonRequired] double HealthDecayCostUnits);
 
 /// <summary>
 /// ADR-033 D4 — THE GOVERNING LOOP'S TUNING (ported from <c>m5-full-build</c>, whose AI constants
@@ -751,6 +797,7 @@ public static class SimConfigLoader
         ValidateRoadsAgainstContent(cfg);
         ValidateGovernanceAgainstContent(cfg);
         ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
+        ValidateInstitutionsAgainstContent(cfg);
         return cfg;
     }
 
@@ -917,6 +964,7 @@ public static class SimConfigLoader
 
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
+        if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)
@@ -1147,6 +1195,71 @@ public static class SimConfigLoader
                 throw new SimConfigException($"goods.json projects: '{p.Name}' names entity '{p.Entity}' of kind {kind} — a " +
                                              "construction project realizes a building, an institution or infrastructure.");
         }
+        // ADR-033 D6: a project that FOUNDS an institution names an institution entity and a university type
+        // research.json defines (one project per type is checked by the goods loader).
+        foreach (ConstructionProjectEntry p in goods.Projects)
+        {
+            if (p.Founds is not { } founds) continue;
+            int e = research.EntityIndexOf(founds.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds entity '{founds.Entity}', which research.json does not define.");
+            if (research.Entities[e].Kind != Research.ResearchEntityKind.Institution)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds entity '{founds.Entity}' of kind {research.Entities[e].Kind} — " +
+                                             "what a project founds is an institution.");
+            bool known = false;
+            foreach (Research.UniversityType u in research.UniversityTypes)
+                if (string.Equals(u.Id, founds.UniversityType, StringComparison.Ordinal)) { known = true; break; }
+            if (!known)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds university type '{founds.UniversityType}', which " +
+                                             "research.json universityTypes does not define.");
+        }
+    }
+
+    /// <summary>ADR-033 D6: the university tuning — positive finite time constants, fractions in their
+    /// ranges (a cost reduction strictly below 1 so every factor stays in (0, 1], ADR-029 §9), the
+    /// sustaining surplus threshold not above the founding one (the hysteresis), a positive market and a
+    /// positive finite diffusion e-fold.</summary>
+    private static void ValidateInstitutions(InstitutionsConfig cfg)
+    {
+        UniversitiesConfig? u = cfg.Universities;
+        if (u is null) throw new SimConfigException("institutions.universities is missing.");
+        const string p = "institutions.universities.";
+        if (!(u.MaturityTauYears > 0.0) || !double.IsFinite(u.MaturityTauYears))
+            throw new SimConfigException($"{p}maturityTauYears must be a finite value > 0, got {Inv(u.MaturityTauYears)}.");
+        if (!(u.DecayTauYears > 0.0) || !double.IsFinite(u.DecayTauYears))
+            throw new SimConfigException($"{p}decayTauYears must be a finite value > 0, got {Inv(u.DecayTauYears)}.");
+        if (!(u.MatureAt > 0.0 && u.MatureAt < 1.0))
+            throw new SimConfigException($"{p}matureAt must be in (0,1) — maturity approaches 1 asymptotically, got {Inv(u.MatureAt)}.");
+        if (!(u.StaffShareAtMaturity >= 0.0 && u.StaffShareAtMaturity <= 1.0))
+            throw new SimConfigException($"{p}staffShareAtMaturity must be in [0,1], got {Inv(u.StaffShareAtMaturity)}.");
+        if (u.AdultsPerUniversity <= 0)
+            throw new SimConfigException($"{p}adultsPerUniversity must be > 0 (the host market of one university).");
+        if (!(u.SustainingFoodSurplusRatio >= 0.0) || !double.IsFinite(u.SustainingFoodSurplusRatio))
+            throw new SimConfigException($"{p}sustainingFoodSurplusRatio must be a finite value >= 0, got {Inv(u.SustainingFoodSurplusRatio)}.");
+        if (!(u.FoundingFoodSurplusRatio >= u.SustainingFoodSurplusRatio) || !double.IsFinite(u.FoundingFoodSurplusRatio))
+            throw new SimConfigException($"{p}foundingFoodSurplusRatio must be finite and >= sustainingFoodSurplusRatio (founding " +
+                                         $"is the harder test), got {Inv(u.FoundingFoodSurplusRatio)}.");
+        if (!(u.MaxResearchCostReduction >= 0.0 && u.MaxResearchCostReduction < 1.0))
+            throw new SimConfigException($"{p}maxResearchCostReduction must be in [0,1) so every factor stays in (0,1] " +
+                                         $"(ADR-029 §9), got {Inv(u.MaxResearchCostReduction)}.");
+        if (!(u.SaturatedAt > 0.0 && u.SaturatedAt < 1.0))
+            throw new SimConfigException($"{p}saturatedAt must be in (0,1), got {Inv(u.SaturatedAt)}.");
+        if (string.IsNullOrWhiteSpace(u.HealthType))
+            throw new SimConfigException($"{p}healthType must name a research.json university type id.");
+        if (!(u.MaxMortalityReduction >= 0.0 && u.MaxMortalityReduction < 1.0))
+            throw new SimConfigException($"{p}maxMortalityReduction must be in [0,1), got {Inv(u.MaxMortalityReduction)}.");
+        if (!(u.HealthDecayCostUnits > 0.0) || !double.IsFinite(u.HealthDecayCostUnits))
+            throw new SimConfigException($"{p}healthDecayCostUnits must be a finite value > 0, got {Inv(u.HealthDecayCostUnits)}.");
+    }
+
+    /// <summary>ADR-033 D6: the health type names a research.json university type.</summary>
+    private static void ValidateInstitutionsAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Institutions is null || cfg.Research is null) return;
+        string health = cfg.Institutions.Universities.HealthType;
+        foreach (Research.UniversityType u in cfg.Research.UniversityTypes)
+            if (string.Equals(u.Id, health, StringComparison.Ordinal)) return;
+        throw new SimConfigException($"institutions.universities.healthType '{health}' is not a research.json universityTypes id.");
     }
 
     /// <summary>ADR-032: every road class's research entity exists in research.json and every
