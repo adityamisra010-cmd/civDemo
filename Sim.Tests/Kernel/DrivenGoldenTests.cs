@@ -406,7 +406,14 @@ public class DrivenGoldenTests
         //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone returns main's
         //         98ee3a7a… byte for byte, also with a research driver added.
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
-        const string golden = "464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47";
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   NEW  f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

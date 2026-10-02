@@ -91,7 +91,7 @@ public class ForensicIdentityTests
         // recorded their bytes, so a session played from a locally built binary
         // (buildSha "dev") recorded NO recoverable configuration at all.
         ConfigResource[] config = ForensicIdentity.ConfigResources(Content);
-        Assert.Equal(10, config.Length);
+        Assert.Equal(12, config.Length);   // ADR-031: ages.json and unit-families.json joined
         for (int i = 1; i < config.Length; i++)
             Assert.True(string.CompareOrdinal(config[i - 1].File, config[i].File) < 0,
                 "config resources must be in ordinal name order, or the digest is not stable");
@@ -134,9 +134,9 @@ public class ForensicIdentityTests
         ForensicRunRecord run = Run();
         Assert.Equal("sha256/canonical-stream", run.HashAlgorithm);
         Assert.False(run.HashCoversSchemaVersion);
-        Assert.Equal(26, run.CanonicalSchemaVersion);
-        Assert.Equal(26, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it)
-        Assert.Equal(26, run.Schemas.CanonicalSchemaVersion);
+        Assert.Equal(28, run.CanonicalSchemaVersion);
+        Assert.Equal(28, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it)
+        Assert.Equal(28, run.Schemas.CanonicalSchemaVersion);
         // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
         // moved to v3 with the foodState/migrationPlan sections. The forensic
         // tag below did NOT move — this file's own field set is unchanged.
@@ -217,7 +217,7 @@ public class ForensicIdentityTests
         Assert.Equal(run.Pipeline.Length, read.Run.Pipeline.Length);
         Assert.Equal(run.EraBands.Length, read.Run.EraBands.Length);
         Assert.Equal(run.Limitations.Length, read.Run.Limitations.Length);
-        Assert.Equal(26, read.Run.CanonicalSchemaVersion);   // v26: ADR-029 research tables
+        Assert.Equal(28, read.Run.CanonicalSchemaVersion);   // v28: ADR-031 Age/military tables
         Assert.NotNull(read.Close);
         Assert.Equal(12, read.Close!.TurnsReached);
         Assert.Null(read.Close.Artifacts[1].Sha256);

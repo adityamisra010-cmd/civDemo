@@ -133,6 +133,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripAges(stripped);
         StripResearch(stripped);
         StripDisaster(stripped);
         stripped.Polities.Clear();
@@ -147,7 +148,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -200,6 +201,38 @@ public class IntegratedPinAttributionTests
     /// them, ResearchCredits and ResearchExposures, by addendum A).</summary>
     private const int ResearchTableCount = 7;
 
+    /// <summary>ADR-031: the five v28 Age/military tables, appended after ResearchExposures.
+    /// Every pin in this file predates v28, so every control strips them and drops their
+    /// five count prefixes first (the two Age systems draw no RNG and write no ledger flow;
+    /// founding formations are tokens), then asks its original question unchanged.</summary>
+    private const int AgeTableCount = 5;
+
+    private static int StripAges(WorldState stripped)
+    {
+        int removed = stripped.AgeStates.Count + stripped.AgeEligibility.Count + stripped.AgeTransitions.Count
+            + stripped.MilitaryUnits.Count + stripped.UnitConversions.Count;
+        stripped.AgeStates.Clear();
+        stripped.AgeEligibility.Clear();
+        stripped.AgeTransitions.Clear();
+        stripped.MilitaryUnits.Clear();
+        stripped.UnitConversions.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v26 — the tree exactly as it stood BEFORE ADR-031: the Age/military
+    /// rows removed, the five empty v28 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        ageRowsRemoved = StripAges(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount);
+    }
+
     /// <summary>
     /// ADR-029: clear the seven research tables IN PLACE. It returns how many rows
     /// were removed, so a caller can tell a populated strip from a vacuous one. The
@@ -231,13 +264,14 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripAges(stripped);
         researchRowsRemoved = StripResearch(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount);
     }
 
     /// <summary>
@@ -249,6 +283,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripAges(stripped);
         StripResearch(stripped);
         disasterStreamsRemoved = StripDisaster(stripped);
         using var buffer = new MemoryStream();
@@ -256,7 +291,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount);
     }
 
     /// <summary>
@@ -457,7 +492,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(26, CanonicalSchema.Version);
+        Assert.Equal(28, CanonicalSchema.Version);
     }
 
     [Fact]
@@ -641,5 +676,49 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
         Assert.True(removed > 0, "no research rows to strip — control vacuous");
         Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+    // ======================================================================
+    // ADR-031 — THE LAYOUT CONTROL FOR SCHEMA v28 (Ages and military formations)
+    // ======================================================================
+    // Each constant is the pin as it stood on this branch at 3e5647f, BEFORE ADR-031.
+    // Stripping the five Age/military tables and dropping their count prefixes must return
+    // it BYTE FOR BYTE: the Age systems draw no RNG, write no ledger flow, and the founding
+    // formations are tokens — so the v28 tables are the ENTIRE cause of every re-pin.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone()
+    {
+        const string beforeAges = "c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.Equal(0, removed); // the toy pipeline runs no Age system and founds no formation
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18";
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+        Assert.Equal(1, world.MilitaryUnits.Count); // the founding warband, unconverted: nobody advanced
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
 }

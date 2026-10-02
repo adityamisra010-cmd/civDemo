@@ -158,7 +158,7 @@ jobs:
           # prefixes, and this order-less world now writes no research row. Derived
           # twice on this tree (in-test harness; two CLI processes, byte-identical
           # logs); the research strip still returns db7c7a09… byte for byte.
-          FOUNDED_GOLDEN=e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+          FOUNDED_GOLDEN=15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

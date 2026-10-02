@@ -15,8 +15,32 @@ public static class TestConfigs
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
-        return SimConfigLoader.Load(stream, needs, goods) with { Research = CanonicalResearch.Value };
+        return SimConfigLoader.Load(stream, needs, goods) with
+        {
+            Research = CanonicalResearch.Value,
+            Ages = CanonicalProgression.Value.Ages,
+            UnitFamilies = CanonicalProgression.Value.UnitFamilies,
+        };
     }
+
+    // ADR-031: ages.json + unit-families.json, parsed and validated once per process against
+    // the canonical research/goods/class content (both are immutable).
+    private static readonly Lazy<SimConfig> CanonicalProgression = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenSim();
+        using var needs = global::Sim.Data.DataFiles.OpenNeeds();
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        using var ages = global::Sim.Data.DataFiles.OpenAges();
+        using var families = global::Sim.Data.DataFiles.OpenUnitFamilies();
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods) with { Research = CanonicalResearch!.Value };
+        return SimConfigLoader.WithProgression(cfg, ages, families);
+    });
+
+    /// <summary>The canonical Age content (shared, immutable).</summary>
+    public static global::Sim.Core.Systems.Ages.AgeContent Ages() => CanonicalProgression.Value.Ages!;
+
+    /// <summary>The canonical unit-family content (shared, immutable).</summary>
+    public static global::Sim.Core.Systems.Ages.UnitFamilyContent UnitFamilies() => CanonicalProgression.Value.UnitFamilies!;
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> CanonicalResearch = new(() =>
     {
