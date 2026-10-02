@@ -1,9 +1,12 @@
 # Universities as real institutions (ADR-033 D6) — design note
 
-**Status:** design committed BEFORE code on `m5i-s3-institutions` (cut from `m5-integration` @ `5e7fa35`).
-Every constant below is TUNE; each carries the reference class it was derived from, fixed here before any
-measurement of its effect (CR-003 §5.1). Numbers marked MEASURED were measured by the agent writing this
-note; historical figures are approximate and marked INFERRED.
+**Status:** design committed BEFORE code on `m5i-s3-institutions` (cut from `m5-integration` @ `5e7fa35`;
+`997c5a1`). Every constant below is TUNE; each carries the reference class it was derived from, fixed here
+before any measurement of its effect (CR-003 §5.1). Two first-draft choices were measured during
+implementation and replaced, and the amendments say so in place: staffing per host became staffing per
+instance (§7.1) and the AI's specialty key gained the prospective count and the saturation stop (§9). §12
+records the measured results. Numbers marked MEASURED were measured by the agent writing this note;
+historical figures are approximate and marked INFERRED.
 
 **Binding inputs.** ADR-033 D6 (the decision); ADR-028 (RATIFIED: viability is hierarchical and
 type-specific, saturation is thresholds plus diminishing returns, LOCKED / AVAILABLE / SATURATED are
