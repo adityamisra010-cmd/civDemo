@@ -10,11 +10,17 @@ namespace Sim.Ui;
 /// </summary>
 public static class UiArgs
 {
-    public static (ulong Seed, int? SizeOverridePx, int? SettlementsOverride) Parse(string[] args)
+    /// <summary>The usage line the UI prints for its launch options (Program.cs, README).</summary>
+    public const string Usage =
+        "sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N]   "
+        + "(--ai-empires: found N AI-commanded Empires to play against; default worldgen.json's aiEmpires, which is 0)";
+
+    public static (ulong Seed, int? SizeOverridePx, int? SettlementsOverride, int? AiEmpiresOverride) Parse(string[] args)
     {
         ulong seed = 42;
         int? sizeOverride = null;
         int? settlementsOverride = null;
+        int? aiEmpiresOverride = null;
         for (int i = 0; i < args.Length - 1; i++)
         {
             if (args[i] == "--seed" && ulong.TryParse(args[i + 1],
@@ -24,7 +30,13 @@ public static class UiArgs
             if (args[i] == "--settlements" && int.TryParse(args[i + 1],
                 NumberStyles.Integer, CultureInfo.InvariantCulture, out int n) && n >= 1)
                 settlementsOverride = n;
+            // ADR-033 D5: play against N AI-commanded Empires. Absent = worldgen.json's count (default 0 —
+            // "turning it on is a measured decision, not a default"); the override is part of the world's
+            // identity, recorded in the session manifest and the log name (…-aN.bin) so the log replays.
+            if (args[i] == "--ai-empires" && int.TryParse(args[i + 1],
+                NumberStyles.Integer, CultureInfo.InvariantCulture, out int ai) && ai >= 0)
+                aiEmpiresOverride = ai;
         }
-        return (seed, sizeOverride, settlementsOverride);
+        return (seed, sizeOverride, settlementsOverride, aiEmpiresOverride);
     }
 }

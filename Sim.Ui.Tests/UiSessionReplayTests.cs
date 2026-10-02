@@ -88,16 +88,38 @@ public class UiSessionReplayTests
     {
         // Replay-fidelity surface: a silently-added default size override would
         // make every played session unreplayable at canonical size.
-        (ulong seed, int? size, int? settlements) = Sim.Ui.UiArgs.Parse([]);
+        (ulong seed, int? size, int? settlements, int? aiEmpires) = Sim.Ui.UiArgs.Parse([]);
         Assert.Equal(42UL, seed);
         Assert.Null(size);
         Assert.Null(settlements); // T2.3: canonical count unless explicitly overridden
+        Assert.Null(aiEmpires);   // ADR-033 D5: worldgen.json's count (0) unless explicitly overridden
 
-        (seed, size, settlements) = Sim.Ui.UiArgs.Parse(
-            ["--seed", "7", "--size", "256", "--settlements", "4"]);
+        (seed, size, settlements, aiEmpires) = Sim.Ui.UiArgs.Parse(
+            ["--seed", "7", "--size", "256", "--settlements", "4", "--ai-empires", "2"]);
         Assert.Equal(7UL, seed);
         Assert.Equal(256, size);
         Assert.Equal(4, settlements);
+        Assert.Equal(2, aiEmpires);
+
+        // An explicit 0 is recorded as an override (the log name says -a0); a negative or non-numeric count is ignored.
+        Assert.Equal(0, Sim.Ui.UiArgs.Parse(["--ai-empires", "0"]).AiEmpiresOverride);
+        Assert.Null(Sim.Ui.UiArgs.Parse(["--ai-empires", "-1"]).AiEmpiresOverride);
+        Assert.Null(Sim.Ui.UiArgs.Parse(["--ai-empires", "two"]).AiEmpiresOverride);
+        Assert.Contains("--ai-empires N", Sim.Ui.UiArgs.Usage);
+    }
+
+    [Fact]
+    public void TheAiEmpiresOption_FoundsThatManyAiEmpires_AndNamesTheLog()
+    {
+        (ulong seed, int? size, int? settlements, int? aiEmpires) = Sim.Ui.UiArgs.Parse(
+            ["--size", "256", "--settlements", "4", "--ai-empires", "1"]);
+        var session = Sim.Ui.UiSession.Start(seed, size, settlements, aiEmpires);
+        int ai = 0;
+        for (int i = 0; i < session.World.Polities.Count; i++)
+            if (session.World.Polities[i].Source == CommandSource.Ai) ai++;
+        Assert.Equal(1, ai);
+        Assert.Equal(1, session.AiEmpiresOverride);
+        Assert.EndsWith("-s256-n4-a1.bin", Sim.Ui.UiSession.SessionLogPath(new DateTime(2026, 10, 2, 12, 0, 0), size, settlements, aiEmpires));
     }
 
     [Fact]

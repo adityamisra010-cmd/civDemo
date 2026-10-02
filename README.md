@@ -225,8 +225,11 @@ for Director Visual Gates.
 
 The window title and debug panel both show `civ-sim M3 (<sha>, <date>)` — the
 build you are holding is never ambiguous. Optional flags: `--seed N` (default
-42) and `--size PX` (dev-preview world size; a non-canonical size is recorded
-in the session-log filename).
+42), `--size PX` (dev-preview world size; a non-canonical size is recorded
+in the session-log filename), `--settlements N`, and `--ai-empires N` (found N
+AI-commanded Empires to play against, ADR-033 D5; default worldgen.json's
+`aiEmpires`, which is 0 — the override is recorded in the session manifest and
+the log name, `-aN`). `--help` prints the usage line.
 
 Each played session autosaves TWO files next to the exe, twinned by the same
 timestamp:
@@ -243,6 +246,7 @@ A session log + its seed replays hash-identically:
 sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
 # played on --size PX? add: --size PX  (the -sPX filename suffix tells you)
 # played with --settlements N? add: --settlements N  (the -nN suffix tells you)
+# played with --ai-empires N? add: --ai-empires N  (the -aN suffix tells you)
 ```
 
 ## Solution layout

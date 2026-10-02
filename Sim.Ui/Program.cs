@@ -6,8 +6,14 @@ using Sim.Core.Worldgen;
 // sim-ui (T1.7/T1.8): found the canonical world, build the production executor
 // and a fresh session order log, open the window. Worldgen runs before the
 // window so the first frame already has terrain (~2 s at 1024²).
-// Args: [--seed N] [--size PX] (size is the D-015 dev-preview escape hatch).
-(ulong seed, int? sizeOverride, int? settlementsOverride) = Sim.Ui.UiArgs.Parse(args);
+// Args: [--seed N] [--size PX] [--settlements N] [--ai-empires N] (size is the D-015 dev-preview escape
+// hatch; --ai-empires founds N AI-commanded Empires to play against, ADR-033 D5). --help prints the usage.
+(ulong seed, int? sizeOverride, int? settlementsOverride, int? aiEmpiresOverride) = Sim.Ui.UiArgs.Parse(args);
+if (Array.IndexOf(args, "--help") >= 0 || Array.IndexOf(args, "-h") >= 0)
+{
+    Console.WriteLine(Sim.Ui.UiArgs.Usage);
+    return;
+}
 
 // --audit-assets [root]: report which manifest keys resolve to REAL art,
 // which are still stand-ins, and which files are orphaned. Headless, no window.
@@ -85,8 +91,8 @@ if (Array.IndexOf(args, "--era-preview") >= 0)
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
 // the log CONTENT records sim turns only.
-var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride);
-string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride);
+var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride, aiEmpiresOverride);
+string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride, aiEmpiresOverride);
 
 // T4.17: the manifest is written HERE, before the window opens and before a
 // single turn is played. A session that ends in a crash, a force-quit or a
