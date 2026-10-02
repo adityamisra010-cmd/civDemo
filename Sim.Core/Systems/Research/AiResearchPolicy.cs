@@ -1,6 +1,7 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Core.Systems.Ages;
+using Sim.Core.Systems.ClassMobility;
 
 namespace Sim.Core.Systems.Research;
 
@@ -12,13 +13,26 @@ namespace Sim.Core.Systems.Research;
 /// research goes through ResearchSystem as the player's does and an AI run replays from its log.
 ///
 /// THE RULE, stated so nothing about it is hidden: an AI-commanded polity orders a target only when it has
-/// none (none was ever set, or the last one completed). It then targets the cheapest AVAILABLE node among
-/// the prerequisite-ancestors (the node itself included) of its NEXT Age's unmet CORE research milestones
-/// (ages.json; e.g. cereal_cultivation for the Neolithic), and failing that the cheapest available node
-/// anywhere. "Cheapest" is the composite key (EffectiveCost, node key): an ascending-key scan that replaces
-/// the best only on a strictly lower cost, so among bit-equal costs the lowest key wins — the house rule for
-/// any argmin over doubles (tie-dense test: AiPolicyTests). No node id appears in code: the goal comes from
-/// ages.json. Strategic research planning is later AI work. Player-commanded polities are never touched.
+/// none (none was ever set, or the last one completed). It then targets the cheapest AVAILABLE node within
+/// its GOAL CLOSURE, and failing that the cheapest available node anywhere. "Cheapest" is the composite key
+/// (EffectiveCost, node key): an ascending-key scan that replaces the best only on a strictly lower cost, so
+/// among bit-equal costs the lowest key wins — the house rule for any argmin over doubles (tie-dense tests:
+/// AiPolicyTests, AiResearchGoalTests).
+///
+/// THE GOAL CLOSURE (ADR-033 B; generalized from S2's core-only goal, which in 320 measured turns never
+/// reached a road class, so roads, taxation and universities stayed dead for AI polities) is the union of
+/// the prerequisite-ancestors (each node included; union over OR) of:
+/// <list type="bullet">
+/// <item>its NEXT Age's unmet CORE research milestones (ages.json; e.g. cereal_cultivation for the Neolithic);</item>
+/// <item>the requirements of the capability-gated actions the AI itself uses, while unmet: the NEXT unknown
+///   road class (the lowest sim.json <c>roads.classes[]</c> above the best known, its <c>entity</c>'s
+///   requirement — RoadDevelopmentPolicy), the taxation requirement (<c>governance.taxationRequires</c> —
+///   AiGovernance), and the university requirement (each founding project's <c>entity</c> and
+///   <c>founds.entity</c> — AiConstructionPolicy, ADR-033 D6). An institution named inside a requirement is
+///   expanded to its own knowledge requirement, the evaluator's own reading.</item>
+/// </list>
+/// No node id appears in code: every goal comes from content. Strategic research planning is later AI work.
+/// Player-commanded polities are never touched.
 /// </summary>
 public static class AiResearchPolicy
 {
@@ -33,17 +47,92 @@ public static class AiResearchPolicy
         if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId current)
             && content.IndexOf(current) is int held and >= 0 && available[held]) return null;
 
-        int choice = Choose(world, content, cfg.Ages, polity, completed, available);
+        int choice = Choose(world, cfg, polity, completed, available);
         return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
     }
 
     /// <summary>The node the rule picks (dense index), or -1 when nothing is available.</summary>
-    public static int Choose(
-        IReadOnlyWorldState world, ResearchContent content, AgeContent? ages, PolityId polity, bool[] completed, bool[] available)
+    public static int Choose(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, bool[] completed, bool[] available)
     {
-        bool[] goal = CoreGoalClosure(world, content, ages, polity);
+        ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
+        bool[] goal = GoalClosure(world, cfg, polity);
         int best = Cheapest(world, content, polity, available, goal);
         return best >= 0 ? best : Cheapest(world, content, polity, available, null);
+    }
+
+    /// <summary>THE GOAL CLOSURE (see the header): <see cref="CoreGoalClosure"/> ∪ <see cref="CapabilityGoalClosure"/>.</summary>
+    public static bool[] GoalClosure(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
+        bool[] goal = CoreGoalClosure(world, content, cfg.Ages, polity);
+        bool[] capability = CapabilityGoalClosure(world, cfg, polity);
+        for (int i = 0; i < goal.Length; i++) goal[i] |= capability[i];
+        return goal;
+    }
+
+    /// <summary>
+    /// The prerequisite-ancestors (each node included; union over OR) of the knowledge requirements of the
+    /// capability-gated actions the AI itself uses, while each is unmet: the next unknown road class, the tax
+    /// edict, and the university founding (see the header). All false when every one is already met.
+    /// </summary>
+    public static bool[] CapabilityGoalClosure(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
+        var stack = new Stack<int>();
+        var expanded = new bool[content.Entities.Count];
+
+        // 1. The NEXT unknown road class: the lowest class above the best the polity knows (RoadDevelopmentPolicy).
+        if (cfg.Roads is { } roads)
+        {
+            int best = RoadDevelopmentQuery.BestKnownClass(world, content, roads, polity);
+            RoadClassConfig? next = null;
+            foreach (RoadClassConfig c in roads.Classes)
+                if (c.Entity is not null && c.EdgeType > best && (next is null || c.EdgeType < next.EdgeType)) next = c;
+            if (next?.Entity is { } entity) PushEntity(content, content.EntityIndexOf(entity), stack, expanded);
+        }
+
+        // 2. The tax edict's research gate while it is unmet (AiGovernance levies through it).
+        if (cfg.Governance is { } governance && !global::Sim.Core.State.Governance.CanLevyTax(world, cfg, polity))
+        {
+            Predicate requirement = ResearchContentLoader.ParseRequirement(
+                content, governance.TaxationRequires, "sim.json governance.taxationRequires");
+            foreach (int atom in requirement.AtomIds)
+                if (atom >= 0 && atom < content.Nodes.Count) stack.Push(atom);
+        }
+
+        // 3. The university requirement while unmet (AiConstructionPolicy founds universities, ADR-033 D6):
+        // each founding project's building entity and the institution it founds.
+        if (cfg.Institutions is not null && cfg.Goods?.Projects is { } projects)
+        {
+            foreach (ConstructionProjectEntry project in projects)
+            {
+                if (project.Founds is not { } founds) continue;
+                if (ConstructionQuery.IsKnowledgeEligible(world, content, polity, project)) continue;
+                if (project.Entity is { } building) PushEntity(content, content.EntityIndexOf(building), stack, expanded);
+                PushEntity(content, content.EntityIndexOf(founds.Entity), stack, expanded);
+            }
+        }
+
+        var goal = new bool[content.Nodes.Count];
+        while (stack.Count > 0)
+        {
+            int i = stack.Pop();
+            if (goal[i]) continue;
+            goal[i] = true;
+            foreach (int p in content.Nodes[i].PrerequisiteNodes) stack.Push(p);
+        }
+        return goal;
+    }
+
+    /// <summary>Pushes an entity's node atoms, expanding every institution it names to that institution's own
+    /// requirement (the knowledge evaluator's reading); each entity once.</summary>
+    private static void PushEntity(ResearchContent content, int entity, Stack<int> stack, bool[] expanded)
+    {
+        if (entity < 0 || expanded[entity]) return;
+        expanded[entity] = true;
+        ResearchEntity e = content.Entities[entity];
+        foreach (int atom in e.NodeAtoms) stack.Push(atom);
+        foreach (int institution in e.InstitutionAtoms) PushEntity(content, institution, stack, expanded);
     }
 
     /// <summary>
