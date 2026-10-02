@@ -426,17 +426,36 @@ public static class AvailableActionsQuery
     // ------------------------------------------------------------------ extension points
 
     /// <summary>
-    /// EXTENSION POINT — GOVERNANCE (ADR-033 D4, stream S1). Lists nothing in this build: no tax edict exists
-    /// here. At reconciliation the orchestrator wires ONE Order descriptor (domain Governance, Id 1,
-    /// OrderKind.SetTaxRate = 5, target = the issuing polity) iff <c>Governance.CanLevyTax(world, cfg, polity)</c>
-    /// — the research-gated predicate SetTaxRate's world validation calls (one predicate, two callers).
+    /// GOVERNANCE (ADR-033 D4; wired at the S1×S2 reconciliation). Lists ONE Order descriptor — the tax edict
+    /// (domain Governance, Id 1, <see cref="OrderKind.SetTaxRate"/>; the order's target is the issuing polity
+    /// itself, so the descriptor carries no target) — iff <c>Governance.CanLevyTax(world, cfg, polity)</c>,
+    /// the research-gated predicate GovernanceSystem applies and the AI valve obeys (one predicate, every
+    /// caller). Nothing is listed before the polity knows a taxation capability, so turn 1 shows no tax control.
+    /// Provenance: the completed nodes named by sim.json <c>governance.taxationRequires</c>, key order.
+    /// Detail: the declared levy (or "no levy declared") and the realm's legitimacy.
     /// </summary>
     public static void Governance(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
     {
-        _ = world;
-        _ = cfg;
-        _ = polity;
-        _ = into;
+        if (!global::Sim.Core.State.Governance.CanLevyTax(world, cfg, polity)) return;
+        ResearchContent research = cfg.Research!;      // CanLevyTax holds only with research and governance content
+        GovernanceConfig governance = cfg.Governance!;
+        global::Sim.Core.Systems.ClassMobility.Predicate requirement = ResearchContentLoader.ParseRequirement(
+            research, governance.TaxationRequires, "sim.json governance.taxationRequires");
+        bool[] completed = ResearchQuery.CompletedMask(world, research, polity);
+        var nodes = new List<(ResearchNodeId Key, string Name)>();
+        foreach (int atom in requirement.AtomIds)
+            if (atom >= 0 && atom < completed.Length && completed[atom])
+                nodes.Add((research.Nodes[atom].Key, research.Nodes[atom].Name));
+        nodes.Sort(static (x, y) => x.Key.Value.CompareTo(y.Key.Value));
+
+        string levy = global::Sim.Core.State.Governance.HasPolicy(world, polity)
+            ? "levy " + (global::Sim.Core.State.Governance.NominalTaxRate(world, polity) * 100.0).ToString("0.#", CultureInfo.InvariantCulture) + "%"
+            : "no levy declared";
+        string detail = levy + " · legitimacy "
+            + global::Sim.Core.State.Governance.Legitimacy(world, polity, cfg).ToString("0.0", CultureInfo.InvariantCulture);
+        into.Add(new ActionDescriptor(
+            ActionDomain.Governance, 1, ActionKind.Order, "governance.tax-edict", "Set the tax levy",
+            OrderKind.SetTaxRate, [], null, Provenance([], [], nodes), detail));
     }
 
     /// <summary>

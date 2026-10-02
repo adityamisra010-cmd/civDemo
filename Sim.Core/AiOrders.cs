@@ -3,6 +3,7 @@ using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Ages;
 using Sim.Core.Systems.Construction;
+using Sim.Core.Systems.Governance;
 using Sim.Core.Systems.Research;
 using Sim.Core.Systems.Roads;
 
@@ -74,16 +75,21 @@ public static class AiOrders
     }
 
     /// <summary>
-    /// RECONCILIATION SLOT — GOVERNANCE (ADR-033 D4/D5). Produces nothing in this build: SetTaxRate (OrderKind 5)
-    /// does not exist here. Stream S1 ports M5's <c>AiGovernance</c>; at reconciliation the orchestrator appends
-    /// <c>AiGovernance.ChooseOrders(world, cfg, world.Clock.Turn)</c> here — it visits the AI Empires in roster
-    /// order itself and emits an order only when an Empire wants to change its rate — keeping its orders after
-    /// every per-polity order above.
+    /// GOVERNANCE (ADR-033 D4/D5; wired at the S1×S2 reconciliation). The tax valve (D-021 valve 6, "the state
+    /// acts by default"): each AI Empire, in roster order, asks <see cref="AiGovernance.OrdersFor"/>, which
+    /// speaks only when the polity is AI-commanded, alive, can levy (<c>Governance.CanLevyTax</c>, the same
+    /// research gate the player's edict obeys) and wants a different rate. Stamped with the executing turn,
+    /// like every other AI order; appended after every per-polity order above.
     /// </summary>
     public static void Governance(IReadOnlyWorldState world, SimConfig cfg, List<OrderRecord> into)
     {
-        _ = world;
-        _ = cfg;
-        _ = into;
+        var seen = new List<int>();
+        for (int i = 0; i < world.Polities.Count; i++)
+        {
+            PolityRow row = world.Polities[i];
+            if (row.Source != CommandSource.Ai || seen.Contains(row.Id.Value)) continue;
+            seen.Add(row.Id.Value);
+            into.AddRange(AiGovernance.OrdersFor(world, cfg, row.Id, world.Clock.Turn));
+        }
     }
 }
