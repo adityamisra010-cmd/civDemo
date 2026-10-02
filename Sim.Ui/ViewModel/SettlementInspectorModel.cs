@@ -45,10 +45,16 @@ public static class SettlementInspectorModel
             string.Create(CultureInfo.InvariantCulture,
                 $"grain {N(r.Food.GrainClosing)}  ({Signed(r.Food.GrainClosing - r.Food.GrainOpening)} this turn)  deficit {r.Food.DeficitRatio:F2}"),
             string.Create(CultureInfo.InvariantCulture,
-                $"happiness {r.Social.Happiness:F1}  (food {r.Social.HappinessFactors[0]:F2}, housing {r.Social.HappinessFactors[1]:F2})"),
+                $"happiness {r.Social.Happiness:F1}  (food {r.Social.HappinessFactors[0]:F2}, housing {r.Social.HappinessFactors[1]:F2})")
+                + (r.Social.Tax is { PolicyRowPresent: true } taxed
+                    ? string.Create(CultureInfo.InvariantCulture, $" x tax burden {taxed.Scale:F2}") : ""),
             string.Create(CultureInfo.InvariantCulture,
                 $"dwellings {N(r.Housing.DwellingsClosing)}  sufficiency {r.Housing.Sufficiency:F2}"),
         };
+        // ADR-033 D4: the tax burden that multiplies happiness, decomposed into its two stored facts.
+        if (r.Social.Tax is { PolicyRowPresent: true } tax)
+            lines.Add(string.Create(CultureInfo.InvariantCulture,
+                $"tax: declared {tax.NominalRate * 100.0:0.#}% x reach {tax.ControlStrength * 100.0:0}% = collects {tax.EffectiveRate * 100.0:0.#}% -> happiness x{tax.Scale:F2}"));
         for (int i = 0; i < r.Social.Grievance.Length; i++)
             lines.Add(string.Create(CultureInfo.InvariantCulture,
                 $"grievance {r.Social.Grievance[i].Name} {r.Social.Grievance[i].Value:F2}"));

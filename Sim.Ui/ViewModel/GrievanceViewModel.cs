@@ -1,4 +1,5 @@
 using System.Globalization;
+using Sim.Core.Observability;
 using Sim.Core.Observability.Explain;
 
 namespace Sim.Ui.ViewModel;
@@ -118,14 +119,19 @@ public static class GrievanceViewModel
         ArgumentNullException.ThrowIfNull(classes);
         ArgumentNullException.ThrowIfNull(chainFor);
 
-        var factors = new HappinessFactorRow[happiness.Factors.Length];
-        for (int i = 0; i < factors.Length; i++)
+        var factors = new List<HappinessFactorRow>(happiness.Factors.Length + 1);
+        for (int i = 0; i < happiness.Factors.Length; i++)
         {
             HappinessFactor f = happiness.Factors[i];
-            factors[i] = new HappinessFactorRow(
+            factors.Add(new HappinessFactorRow(
                 string.Create(CultureInfo.InvariantCulture, $"{f.Name} {f.Value:F3}"),
-                ChainLines(f.Chain), HeadLever(f.Chain));
+                ChainLines(f.Chain), HeadLever(f.Chain)));
         }
+        // ADR-033 D4 (S1 note: this view showed only food and housing): the M5 tax burden, rendered where
+        // happiness is explained. It is NOT a third CES factor — it multiplies the whole reading — so it is
+        // listed after the factors and says so. Shown once the controller has legislated (a TaxPolicies row,
+        // possibly 0 %): before any edict there is no burden to explain.
+        if (BurdenRow(happiness.Burden) is { } burden) factors.Add(burden);
 
         var blocks = new ClassGrievanceBlock[classes.Count];
         for (int c = 0; c < classes.Count; c++) blocks[c] = ClassBlock(classes[c], chainFor);
@@ -133,6 +139,32 @@ public static class GrievanceViewModel
         return new GrievanceView(
             string.Create(CultureInfo.InvariantCulture, $"happiness {happiness.Happiness:F1} (0..100)"),
             factors, HappinessExplanation.ScopeNote, blocks, GrievanceExplanation.AttributionNote);
+    }
+
+    /// <summary>The lever of the tax burden: the tax edict, which the POLICY section's action surface carries.</summary>
+    public const string TaxLever = "lever: the tax edict - the levy, in POLICY (governance)";
+
+    /// <summary>
+    /// The tax burden as a row of the happiness explanation, from <see cref="TaxBurdenReading"/> (the record's
+    /// own constructor: declared rate × the STORED reach = effective rate; scale = 1 − effective), or null when
+    /// the controller has never legislated. Its links are the reading's three facts, each with its own lever:
+    /// the declared rate is the edict's; the reach is a condition (it decays with road-aware travel cost from
+    /// the capital, written by GovernanceSystem).
+    /// </summary>
+    public static HappinessFactorRow? BurdenRow(TaxBurdenReading burden)
+    {
+        if (!burden.PolicyRowPresent) return null;
+        var edict = new LeverLine(TaxLever, false, []);
+        var reach = new LeverLine(NoLeverPrefix + "administrative reach decays with travel cost from the capital; roads raise it", true, []);
+        ChainLine[] chain =
+        [
+            new(string.Create(CultureInfo.InvariantCulture, $"  declared rate  {burden.NominalRate * 100.0:0.#}%  (read, TaxPolicies of polity {burden.Controller})"), false, edict),
+            new(string.Create(CultureInfo.InvariantCulture, $"  administrative reach  {burden.ControlStrength:F3}  (read, ControlRow.Strength - stored by GovernanceSystem)"), false, reach),
+            new(string.Create(CultureInfo.InvariantCulture, $"  effective rate  {burden.EffectiveRate * 100.0:0.#}%  (recomputed, declared x reach)"), false, edict),
+        ];
+        return new HappinessFactorRow(
+            string.Create(CultureInfo.InvariantCulture, $"x tax burden {burden.Scale:F3}  (multiplies the reading: 1 - effective rate {burden.EffectiveRate * 100.0:0.#}%)"),
+            chain, edict);
     }
 
     public static ClassGrievanceBlock ClassBlock(GrievanceExplanation g, Func<int, int, CausalChain?> chainFor)

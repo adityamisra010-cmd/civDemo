@@ -64,12 +64,18 @@ public sealed class SimUiGame : Game
     };
 
     private bool _showCatchment = true; // T2.4: political geography on by default
-    // T3.9b: the five-sector control's widget state (raw weight percentages,
-    // farming..construction). Replaces the retired single farm-% slider, whose
-    // 100 setting zeroed herding, extraction, crafting AND construction at
-    // once — the gate session's 100/0/0/0/0 and the blunt instrument this
-    // packet exists to remove.
-    private readonly int[] _sectorWeights = new int[Sectors.Count];
+
+    // ADR-033 D1/D2 — THE ACTION SURFACE (the POLICY section): what the civilization can do now, built from
+    // AvailableActionsQuery / LabourActivities and painted in the era's hand. The screen owns only UI state
+    // (the labour, tax and road drafts); a click answers with a command dispatched through the session's
+    // guarded emitters. It replaces the five static % sliders and "Apply labour split" (T3.9b/T4.18).
+    private readonly Sim.Ui.Actions.ActionSurfaceScreen _actions = new();
+    private Sim.Ui.Actions.ActionSurfaceModel? _actionModel;
+    private readonly EraTable _eraTable = UiSession.ProductionEra();
+    private ResearchFigure _researchFigure = new("", false);
+    private AgeFigure _ageFigure = new("", Sim.Ui.Ages.AgePanelState.NoContent);
+    private readonly Sim.Ui.Actions.NoticeToast _notices = new();
+    private bool _policyRecord;   // the labour record (declared vs effective, history): folded by default
 
     // T4.18: which contextual section is open, or None for a clean world. The
     // screen's only mode, and it is UI state — nothing in the simulation reads
@@ -124,7 +130,6 @@ public sealed class SimUiGame : Game
     private int _selectedGood;
     private System.Collections.Generic.IReadOnlyList<MarketGoodRow> _marketRows = [];
     private System.Collections.Generic.IReadOnlyList<NeedsClassBlock> _needsBlocks = [];
-    private System.Collections.Generic.IReadOnlyList<SectorBarRow> _sectorRows = [];
     private System.Collections.Generic.IReadOnlyList<TradeGoodRow> _tradeRows = [];
     private System.Collections.Generic.IReadOnlyList<TradeFlowLine> _tradeFlows = [];
     private string _tradeSummary = "";
@@ -155,7 +160,9 @@ public sealed class SimUiGame : Game
 
     private Sim.Ui.Theme.EraTheme DeriveTheme() =>
         Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(_world, _session.Config.Ages, UiPlayer.Empire));
-    private bool _agePanelDismissed;
+    // The capital's Age panel opens ON DEMAND (the status band's Age indicator, the action surface's advance,
+    // the trees' Age chip) — it no longer opens over the map whenever the capital is selected.
+    private bool _agePanelOpen;
     private Sim.Ui.World.WorldProjection? _lens;
     private long _lensTurn = -1;
     private const int AgePanelX = 12, AgePanelY = 202, AgePanelW = 440;
@@ -264,7 +271,7 @@ public sealed class SimUiGame : Game
         _camera.Clamp(Viewport().Width, Viewport().Height);
 
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
-        RefreshHud(syncSlider: true);
+        RefreshHud();
     }
 
     // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
@@ -311,11 +318,9 @@ public sealed class SimUiGame : Game
         return texture;
     }
 
-    /// <summary>Rebuilds the cached HUD snapshot for the current selection;
-    /// optionally snaps the slider to the selected settlement's current split
-    /// (on selection change and startup — never mid-drag, and not after End
-    /// Turn, where a just-emitted order has not applied yet).</summary>
-    private void RefreshHud(bool syncSlider)
+    /// <summary>Rebuilds the cached HUD snapshot for the current selection, the action surface and the
+    /// status band's progression figures (on selection change, End Turn and every dispatched order).</summary>
+    private void RefreshHud()
     {
         _hud = HudModel.From(_world, _selected, _needs,
             _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config);
@@ -330,30 +335,21 @@ public sealed class SimUiGame : Game
         if (_trendIndex >= _trendMetrics.Count) _trendIndex = 0;
 
 
-        // T3.9a: the read-only market/needs/sector displays, recomputed on
-        // the same cadence as the HUD snapshot (selection change / End Turn).
+        // T3.9a: the read-only market/needs displays, recomputed on the same
+        // cadence as the HUD snapshot (selection change / End Turn).
         Sim.Core.Systems.GoodsConfig goods = _displayCfg.Goods!;
         if (_selectedGood == 0)
             foreach (Sim.Core.Systems.GoodEntry g in goods.Goods)
                 if (!g.Numeraire) { _selectedGood = g.Id; break; }
         _marketRows = MarketModel.Rows(_world, _selected, goods);
         _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes);
-        SectorAllocationRow allocation = Sectors.Default(new SettlementId(_selected));
-        for (int i = 0; i < _world.SectorAllocations.Count; i++)
-            if (_world.SectorAllocations[i].Settlement.Value == _selected)
-            { allocation = _world.SectorAllocations[i]; break; }
-        _sectorRows = SectorBarModel.Rows(allocation);
-        // T3.9b: snap the control to the settlement's CURRENT split on
-        // selection change and startup — never mid-edit, and not after End
-        // Turn, where a just-submitted batch has not applied yet (the same
-        // cadence rule the retired farm-% slider followed). Weights are the
-        // normalized shares as percentages, so what the control shows on
-        // arrival is what the sim is actually running.
-        // T4.18: snap through the allocation model, which rounds by largest
-        // remainder. Rounding each share independently loses units — an uneven
-        // split floors in several places at once — so the old form could open
-        // the panel reading 99% before the director had touched anything.
-        if (syncSlider) SectorAllocationModel.FromShares(allocation, _sectorWeights);
+
+        // ADR-033 D1/D2: the action surface, from the query, in the era the interface presents (the target
+        // theme: a new Age's controls take over at once; its colours fade in with the frame theme).
+        _actionModel = Sim.Ui.Actions.ActionSurface.ForSession(_session, _eraTable, _selected, _theme);
+        _actions.Refresh(_actionModel, _world, _session.Config, UiPlayer.Empire, id => _session.Names.Name(id));
+        _researchFigure = StatusFigures.Research(_actionModel.Research);
+        _ageFigure = StatusFigures.Age(Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), UiPlayer.Empire));
 
         // T3.9b: the trade panel's rows — world-level, not per-settlement
         // (trade is a pairwise mechanism over every settlement).
@@ -366,15 +362,37 @@ public sealed class SimUiGame : Game
 
     // Stamping/stepping/persistence all live in UiSession (T1.9 adversarial
     // hardening): the replay-equivalence test drives the SAME code paths.
-    // T3.9b: the five-sector submit. One BATCH of five SectorAllocation
-    // orders for the SELECTED settlement (T2.4 targeting, unchanged). The
-    // session refuses an all-zero allocation and returns false; on refusal
-    // nothing is written and nothing is claimed.
-    private void SubmitSectorOrders()
+    // ADR-033 D2: every order the action surface asks for goes through ONE dispatch to the session's guarded
+    // emitters (each refuses what the simulation would refuse); on refusal nothing is written or claimed.
+    private void DispatchAction(Sim.Ui.Actions.ActionCommand cmd)
     {
-        if (!_session.EmitSectorOrders(_sectorWeights, _selected)) return;
+        switch (cmd.Kind)
+        {
+            case Sim.Ui.Actions.ActionCommandKind.None:
+                return;
+            case Sim.Ui.Actions.ActionCommandKind.OpenResearch:
+                if (!_progressionOpen) ToggleProgression();
+                return;
+            case Sim.Ui.Actions.ActionCommandKind.AdvanceAge:
+                OpenAgePanel(flow: true);
+                return;
+            case Sim.Ui.Actions.ActionCommandKind.SelectSettlement:
+                if (cmd.Settlement >= 0 && cmd.Settlement != _selected) { _selected = cmd.Settlement; RefreshHud(); }
+                return;
+        }
+        if (!cmd.IsOrder || !Sim.Ui.Actions.ActionDispatch.Apply(_session, cmd)) return;
         SaveSession();
-        RefreshHud(syncSlider: false);
+        RefreshHud();
+    }
+
+    /// <summary>Opens the capital's Age panel (and, when eligible, its ADVANCE AGE flow — the unchanged
+    /// AdvanceAge order path).</summary>
+    private void OpenAgePanel(bool flow)
+    {
+        if (_session.Config.Ages is null) return;
+        _agePanelOpen = true;
+        _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+        if (flow) _age.OpenFlow();
     }
 
     private void EndTurn()
@@ -401,7 +419,10 @@ public sealed class SimUiGame : Game
                     AgeQuery.StateRow(_world, UiPlayer.Empire) is { } row ? a1.SurgeByKey(row.Surge)?.Name : null, converted);
             }
         }
-        RefreshHud(syncSlider: false);
+        RefreshHud();
+        // Audit E26: announce what the step changed in the action space — research learned, an activity it
+        // changed, a domain that appeared — with the surface's own notices.
+        _notices.Show(_actionModel?.Notices ?? []);
         SaveSession();
     }
 
@@ -462,6 +483,7 @@ public sealed class SimUiGame : Game
         }
 
         _age.Advance(gameTime.ElapsedGameTime.TotalSeconds);
+        _notices.Advance(gameTime.ElapsedGameTime.TotalSeconds);
         if (UpdateAge(mouse, keyboard))
         {
             _lastMouse = mouse;
@@ -506,8 +528,7 @@ public sealed class SimUiGame : Game
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;
-                    _agePanelDismissed = false;
-                    RefreshHud(syncSlider: true);
+                    RefreshHud();
                 }
             }
             if (mouse.LeftButton == ButtonState.Released) _clickCandidate = false;
@@ -543,7 +564,7 @@ public sealed class SimUiGame : Game
                 if (next >= 0 && next != _selected)
                 {
                     _selected = next;
-                    RefreshHud(syncSlider: true);
+                    RefreshHud();
                 }
             }
         }
@@ -567,11 +588,13 @@ public sealed class SimUiGame : Game
         base.Update(gameTime);
     }
 
-    /// <summary>Whether the player's capital is the selection (the Age panel's trigger).</summary>
-    private bool CapitalSelected =>
-        EmpireQuery.TryGetCapital(_world, UiPlayer.Empire, out SettlementId cap) && cap.Value == _selected;
+    /// <summary>The capital's Age panel is shown only when opened (the compact Age indicator on the status band,
+    /// the action surface's advance, the trees' Age chip) — never by itself over the map at turn 1.</summary>
+    private bool AgePanelVisible => _agePanelOpen && _session.Config.Ages is not null;
 
-    private bool AgePanelVisible => CapitalSelected && !_agePanelDismissed && _session.Config.Ages is not null;
+    /// <summary>The name of the player's capital (the Age panel's heading), or "Capital".</summary>
+    private string CapitalName =>
+        EmpireQuery.TryGetCapital(_world, UiPlayer.Empire, out SettlementId cap) ? _session.Names.Name(cap.Value) : "Capital";
 
     private Sim.Ui.Render.RectD AgePanelRect()
     {
@@ -602,9 +625,9 @@ public sealed class SimUiGame : Game
 
     private void Dispatch(Sim.Ui.Ages.AgeCommand cmd)
     {
-        if (cmd.ClosePanel) _agePanelDismissed = true;
+        if (cmd.ClosePanel) _agePanelOpen = false;
         if (cmd.OpenKnowledge && !_progressionOpen) ToggleProgression();
-        if (cmd.Order is { } order) _session.EmitAdvanceAge(order.TargetId, cmd.SurgeKey);
+        if (cmd.Order is { } order && _session.EmitAdvanceAge(order.TargetId, cmd.SurgeKey)) { SaveSession(); RefreshHud(); }
     }
 
     /// <summary>The world lens over the map (background list: under the chrome), and the Age panel,
@@ -633,9 +656,10 @@ public sealed class SimUiGame : Game
         _age.Theme = _frameTheme;
         var top = new Sim.Ui.Render.DrawList();
         _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
-        if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), _session.Names.Name(_selected));
+        if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), CapitalName);
         _age.PaintFlow(top, _drawListBackend, v.Width, v.Height);
         _age.PaintToast(top, _drawListBackend, v.Width, 60);
+        _notices.Paint(top, _drawListBackend, _frameTheme, v.Width, _age.ToastVisible ? 196 : 60);
         _drawListBackend.Render(ImGui.GetForegroundDrawList(), top);
     }
 
@@ -698,13 +722,12 @@ public sealed class SimUiGame : Game
             {
                 // The Age chip: close the tree and open the Age surface on the capital.
                 _progressionOpen = false;
-                if (EmpireQuery.TryGetCapital(_world, UiPlayer.Empire, out SettlementId cap)) { _selected = cap.Value; _agePanelDismissed = false; RefreshHud(syncSlider: true); }
-                _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
-                _age.OpenFlow();
+                if (EmpireQuery.TryGetCapital(_world, UiPlayer.Empire, out SettlementId cap)) { _selected = cap.Value; RefreshHud(); }
+                OpenAgePanel(flow: true);
             }
             // The screen built the order with ResearchOrderFactory; the session logs it through
             // the same factory (it refuses anything the simulation would ignore).
-            if (cmd.Node is { } node) _session.EmitResearchOrder(node);
+            if (cmd.Node is { } node && _session.EmitResearchOrder(node)) { SaveSession(); RefreshHud(); }
         }
         screen.Advance(dt);
     }
@@ -974,22 +997,49 @@ public sealed class SimUiGame : Game
         DrawPanelFurniture(ChromeGeometry.Status);   // rule along the BOTTOM edge: status | world
         PushDataFont();
         ImGui.TextUnformatted(_hud.ClockLine);
-        ImGui.SameLine(0, 28);
+        ImGui.SameLine(0, 24);
         Figure(_hud.WorldPopulationFigure, ExplainFigure.WorldPopulation);
         ImGui.SameLine(0, 8);
         ImGui.TextUnformatted(_hud.SettlementCountFigure);
-        ImGui.SameLine(0, 28);
+        ImGui.SameLine(0, 24);
         Figure(_hud.WorldFoodFigure, ExplainFigure.WorldFood);
-        if (_turnAudit is { } audit)
+        // Audit E26: research is visible without opening the trees — the target, its progress and the RP a
+        // turn, or that research is idle; a click opens the trees.
+        if (_researchFigure.Text.Length > 0)
         {
-            ImGui.SameLine(0, 28);
-            ImGui.TextUnformatted("last turn: " + audit.Digest);
+            ImGui.SameLine(0, 24);
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_researchFigure.Idle ? _frameTheme.Semantic.Progress : _frameTheme.Semantic.Active));
+            if (ImGui.Selectable(_researchFigure.Text + "##band-research", false, ImGuiSelectableFlags.None, ImGui.CalcTextSize(_researchFigure.Text)))
+                ToggleProgression();
+            ImGui.PopStyleColor();
         }
         PopDataFont();
-        ImGui.SameLine(0, 28);
+        ImGui.SameLine(0, 18);
         if (ImGui.Button("Knowledge [K]##progression")) ToggleProgression();
+        // The compact Age indicator: the full Age name and the eligibility summary; it opens (or closes) the
+        // capital's Age panel on demand, which no longer covers the map by itself.
+        if (_ageFigure.Text.Length > 0)
+        {
+            ImGui.SameLine(0, 18);
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? _frameTheme.Material.Accent : _frameTheme.Ink.TextSoft));
+            if (ImGui.Selectable(_ageFigure.Text + "##band-age", _agePanelOpen, ImGuiSelectableFlags.None, ImGui.CalcTextSize(_ageFigure.Text)))
+            {
+                if (_agePanelOpen) _agePanelOpen = false; else OpenAgePanel(flow: false);
+            }
+            ImGui.PopStyleColor();
+        }
+        if (_turnAudit is { } audit)
+        {
+            ImGui.SameLine(0, 24);
+            PushDataFont();
+            ImGui.TextUnformatted("last turn: " + audit.Digest);
+            PopDataFont();
+        }
         ImGui.End();
     }
+
+    /// <summary>An era colour as ImGui's packed ABGR.</summary>
+    private static uint Col(ParchmentPalette.Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
 
     /// <summary>A clickable figure: a Selectable the size of its text, so it
     /// reads as the number it was and opens the surface that explains it.</summary>
@@ -1186,7 +1236,7 @@ public sealed class SimUiGame : Game
         if (settlementId != _selected)
         {
             _selected = settlementId;
-            RefreshHud(syncSlider: true);
+            RefreshHud();
         }
         Rectangle viewport = Viewport();
         CameraFocus.CenterOn(_camera!, _world, settlementId, viewport.Width, viewport.Height);
@@ -1452,87 +1502,59 @@ public sealed class SimUiGame : Game
     }
 
     /// <summary>
-    /// POLICY — the only section the director ACTS in.
-    ///
-    /// T4.18 workstream B: the five sliders are a FIXED-SUM allocation of 100,
-    /// not five independent numbers with a caption predicting what they would
-    /// mean once divided through. Moving one rebalances the others
-    /// (SectorAllocationModel, deterministic, tested), so the number on the
-    /// slider IS the share the sim will run and the old "applies as …" preview
-    /// has nothing left to say. The order payload is unchanged: D-032 weights,
-    /// submitted as typed, normalized by the consumer.
-    ///
-    /// T4.19 lane B (B5): under the sliders, CURRENT shows declared beside
-    /// effective; HISTORY lists every PolicyChange for this settlement newest
-    /// first with its order number and, under each, the settlement's record
-    /// on the turns after — labelled observed, never attributed; the per-turn
-    /// PolicyState table is one checkbox away. The list of policies has one
-    /// entry; M5's taxation is the second in the same shape.
+    /// POLICY — the only section the director ACTS in: THE ACTION SURFACE (ADR-033 D1/D2; directive "THE
+    /// CENTRAL GAMEPLAY PRINCIPLE", "NO MODERN DASHBOARD AT TURN 1"). What the civilization can do now, built
+    /// only from AvailableActionsQuery / LabourActivities and painted by the same ActionSurfaceScreen the
+    /// headless preview paints: at turn 1 the five baseline activities of the selected (or capital)
+    /// settlement as pebbles, learning, the baseline projects with their blockers, basic fighting and what
+    /// the people do on their own — and more only as the query lists more. It replaces the five static %
+    /// sliders and "Apply labour split" (the M3/M4 dashboard). The labour RECORD (declared vs effective and
+    /// the history of changes, T4.19 B5) is kept, folded, under it: a glass-box record, not a control.
     /// </summary>
     private void DrawPolicySection()
     {
-        if (_selected < 0)
+        if (_actionModel is null) return;
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        _actions.Theme = _frameTheme;
+        System.Numerics.Vector2 origin = ImGui.GetCursorScreenPos();
+        float width = Math.Max(1f, ImGui.GetContentRegionAvail().X - 4f);
+        var surface = new Sim.Ui.Render.DrawList();
+        double height = _actions.Paint(surface, _drawListBackend, origin.X, origin.Y, width);
+        // One invisible item the size of the painted surface: it reserves the scroll extent and takes the
+        // pointer; the click is answered by the screen's own hit regions (painted this frame).
+        ImGui.InvisibleButton("##action-surface", new System.Numerics.Vector2(width, (float)Math.Max(1.0, height)));
+        if (ImGui.IsItemActivated())
         {
-            ImGui.TextUnformatted("Select a settlement on the map to set its labour.");
-            return;
+            System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
+            DispatchAction(_actions.Click(p.X, p.Y));
         }
+        else if (ImGui.IsItemActive()) _actions.Drag(ImGui.GetIO().MousePos.X);
+        if (ImGui.IsItemDeactivated()) _actions.Release();
+        _drawListBackend.Render(ImGui.GetWindowDrawList(), surface);
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        if (_selected < 0 || _policyView is not { } view) return;
+        ImGui.Checkbox("labour record (declared vs effective, history)", ref _policyRecord);
+        if (!_policyRecord) return;
         ImGui.TextUnformatted(_hud.TitleLine);
         foreach (PolicyEntry policy in PolicyHistoryModel.Policies)
             ImGui.TextUnformatted(policy.Name + " - " + policy.Note);
-        ImGui.Separator();
-
-        ImGui.TextUnformatted("labour allocation — always 100%");
-        for (int s = 0; s < Sectors.Count; s++)
-        {
-            int before = _sectorWeights[s];
-            ImGui.SetNextItemWidth(PanelLayout.Context.Width - 150);
-            if (ImGui.SliderInt(SectorBarModel.SectorNames[s], ref _sectorWeights[s], 0, 100)
-                && _sectorWeights[s] != before)
-            {
-                // The others absorb the difference immediately, so the panel is
-                // never in a state that sums to 97 or 104 — not even mid-drag.
-                SectorAllocationModel.Rebalance(_sectorWeights, s, _sectorWeights[s]);
-            }
-        }
-
-        ImGui.Spacing();
-        if (ImGui.Button("Apply labour split", new System.Numerics.Vector2(170, 28)))
-            SubmitSectorOrders();
-
-        ImGui.Spacing();
-        ImGui.Separator();
         ImGui.TextUnformatted("CURRENT  (declared vs effective, currently running)");
-        PushDataFont();
-        foreach (SectorBarRow sector in _sectorRows)
-        {
-            ImGui.ProgressBar((float)sector.Fraction,
-                new System.Numerics.Vector2(PanelLayout.Context.Width - 40, ImGui.GetFrameHeight()),
-                sector.Label);
-        }
-        if (_policyView is { } current) foreach (string line in current.Current) ImGui.TextUnformatted(line);
+        DataLines(view.Current);
         ImGui.Spacing();
-        ImGui.TextUnformatted(_hud.FoodLine);
-        ImGui.TextUnformatted(_hud.GrievanceLine);   // T2.6: display only
-        PopDataFont();
-
-        ImGui.Spacing();
-        ImGui.Separator();
         ImGui.TextUnformatted("HISTORY  (newest first)");
-        if (_policyView is { } history)
+        PushDataFont();
+        if (view.History.Count == 0) ImGui.TextUnformatted("no change yet for this settlement");
+        foreach (PolicyChangeView change in view.History)
         {
-            PushDataFont();
-            if (history.History.Count == 0) ImGui.TextUnformatted("no change yet for this settlement");
-            foreach (PolicyChangeView change in history.History)
-            {
-                ImGui.TextUnformatted(change.Line);
-                foreach (string line in change.Consequences) ImGui.TextUnformatted(line);
-            }
-            PopDataFont();
-            ImGui.Spacing();
-            ImGui.Checkbox("per-turn policy table", ref _policyShowStates);
-            if (_policyShowStates) DataLines(history.States);
+            ImGui.TextUnformatted(change.Line);
+            foreach (string line in change.Consequences) ImGui.TextUnformatted(line);
         }
+        PopDataFont();
+        ImGui.Spacing();
+        ImGui.Checkbox("per-turn policy table", ref _policyShowStates);
+        if (_policyShowStates) DataLines(view.States);
     }
 
     /// <summary>

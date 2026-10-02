@@ -50,13 +50,23 @@ public static class SectorAllocationModel
     /// anything. Largest remainder gives the leftover units to the sectors with
     /// the largest fractional parts, lowest index first.
     /// </summary>
-    public static void FromShares(in SectorAllocationRow row, Span<int> into)
+    public static void FromShares(in SectorAllocationRow row, Span<int> into) => FromShares(row, into, Total);
+
+    /// <summary>
+    /// ADR-033 D1 — the same rounding into <paramref name="total"/> UNITS instead of 100 percentage
+    /// points: the era's labour control places a fixed number of units (10 pebbles at A1, 20 notches,
+    /// 100 points on a precise slider), and the share a settlement is running is shown as the nearest
+    /// whole-unit split that still sums to exactly <paramref name="total"/> (largest remainder, lowest
+    /// sector index first on a tie).
+    /// </summary>
+    public static void FromShares(in SectorAllocationRow row, Span<int> into, int total)
     {
         RequireShape(into);
+        RequireTotal(total);
 
         Span<double> exact = stackalloc double[Sectors.Count];
-        for (int s = 0; s < Sectors.Count; s++) exact[s] = Sectors.Share(row, s) * Total;
-        LargestRemainder(exact, Total, into);
+        for (int s = 0; s < Sectors.Count; s++) exact[s] = Sectors.Share(row, s) * total;
+        LargestRemainder(exact, total, into);
     }
 
     /// <summary>
@@ -78,14 +88,19 @@ public static class SectorAllocationModel
     ///     special is needed, but it is the boundary the invariant is easiest to
     ///     break at, and it has a test.
     /// </summary>
-    public static void Rebalance(Span<int> weights, int moved, int requested)
+    public static void Rebalance(Span<int> weights, int moved, int requested) => Rebalance(weights, moved, requested, Total);
+
+    /// <summary>The same fixed-sum move over <paramref name="total"/> units (the era's labour control
+    /// moves pebbles or notches, not percentage points); see <see cref="Rebalance(Span{int}, int, int)"/>.</summary>
+    public static void Rebalance(Span<int> weights, int moved, int requested, int total)
     {
         RequireShape(weights);
+        RequireTotal(total);
         if (moved < 0 || moved >= Sectors.Count)
             throw new ArgumentOutOfRangeException(nameof(moved), moved, "not a sector index.");
 
-        int target = Math.Clamp(requested, 0, Total);
-        int remaining = Total - target;
+        int target = Math.Clamp(requested, 0, total);
+        int remaining = total - target;
 
         int othersNow = 0;
         for (int s = 0; s < Sectors.Count; s++) if (s != moved) othersNow += weights[s];
@@ -111,16 +126,19 @@ public static class SectorAllocationModel
 
     /// <summary>True when the weights hold the invariant — the assertion a
     /// caller can make after any sequence of moves.</summary>
-    public static bool IsBalanced(ReadOnlySpan<int> weights)
+    public static bool IsBalanced(ReadOnlySpan<int> weights) => IsBalanced(weights, Total);
+
+    /// <summary>The invariant over <paramref name="total"/> units.</summary>
+    public static bool IsBalanced(ReadOnlySpan<int> weights, int total)
     {
         if (weights.Length != Sectors.Count) return false;
         int sum = 0;
         for (int s = 0; s < weights.Length; s++)
         {
-            if (weights[s] is < 0 or > Total) return false;
+            if (weights[s] < 0 || weights[s] > total) return false;
             sum += weights[s];
         }
-        return sum == Total;
+        return sum == total;
     }
 
     /// <summary>
@@ -178,6 +196,11 @@ public static class SectorAllocationModel
             taken[best] = true;
             assigned++;
         }
+    }
+
+    private static void RequireTotal(int total)
+    {
+        if (total < 1) throw new ArgumentOutOfRangeException(nameof(total), total, "an allocation has at least one unit.");
     }
 
     private static void RequireShape(Span<int> weights)
