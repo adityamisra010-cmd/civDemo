@@ -376,18 +376,24 @@ However, we need a proper unit-line architecture so that obsolete units do not r
 ```
 <!-- END DIRECTOR TEXT -->
 
-### A.2 — The decision hierarchy (summary, not verbatim)
+### A.2 — The decision hierarchy (Director text, verbatim from the Director's message of 2026-10-02)
 
-The Director's instruction for this pass makes **Civilization VI the default design reference**. The hierarchy it
-sits in was conveyed to the implementing agent with the instruction, not inside the ruling text above, so it is
-recorded here as a **summary** for the Director to confirm, not as Director text:
+The Director's preceding message ("DIRECTOR RULING: CIVILIZATION VI AS DEFAULT DESIGN REFERENCE"), which this
+record's rulings close, set the hierarchy verbatim:
 
-| level | source | governs |
-|---|---|---|
-| 1 | Director rulings and frozen/ratified records (the ledger Part I, closed D-decisions, this record's Part A) | always; nothing below may contradict them |
-| 2 | Causal and historical possibility (ruling 1, strict) | prerequisite edges, baseline classification |
-| 3 | Civ VI as the default gameplay reference (Eurekas, Great People, Golden/Dedication Age, unit lines, ZOC) | where levels 1–2 are silent; adapted, never copied (no flat Science, no hex ZOC, no paid upgrades) |
-| 4 | Implementer resolution, recorded and overridable | only where levels 1–3 are silent |
+> Decision hierarchy:
+>
+> 1. Explicit Director-ratified civDemo decisions
+> 2. Explicit repository architectural decisions/ADRs
+> 3. Civ VI precedent for the closest analogous mechanic
+> 4. New design only where neither 1 nor 2 nor 3 provides a suitable answer
+
+Causal and historical possibility (ruling 1) is a level-1 Director ruling, so it binds prerequisite edges above any
+Civ VI precedent. Civ VI precedent is adapted, never copied: no flat Science output, no hex-grid ZOC, no paid
+manual upgrades (rulings 9, 17, 18).
+
+*(Correction, 2026-10-02: an earlier draft of this section recorded an agent-reconstructed hierarchy because the
+source text was not available to the drafting agent; the Director's text above replaces it.)*
 
 ### A.3 — Parts 2–9 of the same message (requirements summary, not rulings re-stated)
 
