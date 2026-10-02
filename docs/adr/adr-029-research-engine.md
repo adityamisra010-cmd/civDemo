@@ -754,3 +754,12 @@ Every kill is by a semantic test (the filter holds no golden), and each mutant's
   exactly those six.
 - The eight inherited Eurekas rewritten as authored; evaluable Eurekas 18 → 17 (`arsenical_bronze` becomes a
   future-system arsenical-ore exposure).
+
+### B.3 — Goldens (measured: no re-pin)
+
+The full suite was run on the D-047 content (`387ab0b` content, `d7fd996` tests): `Sim.Tests` 1077 passed, 0
+failed, 4 skipped (the four pre-existing measurement skips); `Sim.Ui.Tests` 298/298. **No golden or research pin
+moved**, so nothing is re-pinned. Measured cause: the order-less founded, driven and FirstReign worlds write no
+research row (A.8), and the content edits change no node a driven test reaches with a different outcome at its pinned
+turn; `arsenical_bronze`'s former `stock_copper_ore > 0` Eureka never fired on an available node in any pinned run
+(had it, the founded/driven research-arm pins would have moved).
