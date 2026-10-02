@@ -21,6 +21,7 @@ namespace Sim.Tests.Systems;
 ///       reads PREV) ─▶ ControlRow.Strength in t+3 (GovernanceSystem reads PREV) ─▶ production in the
 ///       step t+3→t+4 (ProductionSystem reads PREV Strength)
 ///   colony founded by the step t→t+1 ─▶ Strength 0.0 in t+1 and t+2 (no route on record) ─▶ its reach in t+3
+///   founded world (no distances at turn 0) ─▶ every non-capital Strength 0.0 in turn 1 ─▶ its reach in turn 2
 /// </summary>
 public class GovernanceTimingTests
 {
@@ -360,6 +361,49 @@ public class GovernanceTimingTests
         Assert.Equal(Governance.AdministrativeReach(t2, p, colony, Cfg().Governance!), reach);
         Assert.True(reach > 0.0, "the colony is on the network but reads no reach");
         Assert.Equal(0.5 * reach, Governance.EffectiveTaxRate(t3, colony, Cfg()), 12);
+    }
+
+    [Fact]
+    public void AFoundedWorld_ReadsEveryNonCapitalStrengthZeroInTurn1_AndItsReachFromTurn2()
+    {
+        // The colony case at founding. WorldFounding writes the control rows at 1.0 and NO
+        // SettlementDistances (CatchmentSystem computes them inside a step), so the step 0 → 1
+        // rewrites every non-capital Strength from an empty PREV table as 0.0 and the capital's as
+        // 1.0; the step 1 → 2 reads turn 1's distances and writes the reach. An edict stamped turn 0
+        // DOES meet the zero rows: it is policy in turn 1, and production in the step 1 → 2 reads
+        // turn 1's Strength, so for that one step only the capital is taxed.
+        (WorldState genesis, PolityId p) = Founded();
+        Grant(genesis, p);
+        Assert.Equal(0, genesis.SettlementDistances.Count);
+        var orders = new OrderLog();
+        orders.Append(SetTax(0, p, 50.0));
+        List<WorldState> worlds = Run(genesis, orders, 2);
+        WorldState t1 = worlds[1], t2 = worlds[2];
+        SettlementId seat = Seat(t1, p);
+        Assert.True(t1.SettlementDistances.Count > 0, "catchment wrote no distances in the step 0 → 1");
+        Assert.Equal(0.5, Governance.NominalTaxRate(t1, p));
+
+        int others = 0;
+        for (int i = 0; i < t1.Controls.Count; i++)
+        {
+            ControlRow row = t1.Controls[i];
+            if (row.Place == seat) { Assert.Equal(1.0, row.Strength); continue; }
+            others++;
+            Assert.Equal(0.0, row.Strength);
+            Assert.Equal(1.0, Governance.ExtractionMultiplier(t1, row.Place, Cfg()));
+        }
+        Assert.True(others > 0, "the founded rig holds no settlement besides the capital");
+        Assert.Equal(1.0 + 0.3 * 0.5, Governance.ExtractionMultiplier(t1, seat, Cfg()));
+
+        int reached = 0;
+        for (int i = 0; i < t2.Controls.Count; i++)
+        {
+            ControlRow row = t2.Controls[i];
+            double expected = Governance.AdministrativeReach(t1, row.Polity, row.Place, Cfg().Governance!);
+            Assert.Equal(BitConverter.DoubleToInt64Bits(expected), BitConverter.DoubleToInt64Bits(row.Strength));
+            if (row.Place != seat && row.Strength > 0.0) reached++;
+        }
+        Assert.True(reached > 0, "no non-capital settlement reads a reach in turn 2");
     }
 
     private static bool HasRoute(IReadOnlyWorldState w, SettlementId from, SettlementId to)
