@@ -179,6 +179,7 @@
     {
       "id": 1,
       "name": "granary",
+      "entity": "building.granary",
       "_doc": "M4-D first constructible. Sized to be reachable by a founded settlement within a few turns of deliberate construction allocation, so the labour opportunity cost is observable rather than theoretical. TUNE.",
       "inputs": [
         {
@@ -195,6 +196,7 @@
     {
       "id": 2,
       "name": "workshop",
+      "entity": "building.workshop",
       "_doc": "M4-D second constructible, deliberately several times the granary in both materials and labour so a settlement can hold it queued for many turns without any stored timer. TUNE.",
       "inputs": [
         {

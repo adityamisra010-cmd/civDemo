@@ -704,6 +704,7 @@ public static class SimConfigLoader
         SimConfig cfg = Load(simJson, needsJson, goodsJson);
         cfg = cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
         ValidateRoadsAgainstContent(cfg);
+        ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
         return cfg;
     }
 
@@ -1075,6 +1076,30 @@ public static class SimConfigLoader
         // touches ("never NaN" is an acceptance criterion, so it is a load error).
         if (double.IsNaN(value) || double.IsInfinity(value) || value < 0.0)
             throw new SimConfigException($"{name} must be a finite value >= 0, got {Inv(value)}.");
+    }
+
+    /// <summary>
+    /// ADR-033 D3: every construction project's research entity (goods.json projects[].entity) exists in
+    /// research.json and is something a construction queue can build — a building, an institution or
+    /// infrastructure (a unit is recruited and an activity is labour, never queued). Checked where goods.json
+    /// and research.json meet; a project with no entity has no knowledge requirement. Public so the canonical
+    /// content can be checked from a config assembled without the four-file load.
+    /// </summary>
+    public static void ValidateProjectsAgainstContent(GoodsConfig? goods, Research.ResearchContent? research)
+    {
+        if (goods?.Projects is null || research is null) return;
+        foreach (ConstructionProjectEntry p in goods.Projects)
+        {
+            if (p.Entity is null) continue;
+            int e = research.EntityIndexOf(p.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' names entity '{p.Entity}', which research.json does not define.");
+            Research.ResearchEntityKind kind = research.Entities[e].Kind;
+            if (kind is not (Research.ResearchEntityKind.Building or Research.ResearchEntityKind.Institution
+                or Research.ResearchEntityKind.Infrastructure))
+                throw new SimConfigException($"goods.json projects: '{p.Name}' names entity '{p.Entity}' of kind {kind} — a " +
+                                             "construction project realizes a building, an institution or infrastructure.");
+        }
     }
 
     /// <summary>ADR-032: every road class's research entity exists in research.json and every

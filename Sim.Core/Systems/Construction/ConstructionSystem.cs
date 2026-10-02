@@ -17,8 +17,11 @@ public sealed record ConstructionTables(
 ///  1. ENQUEUE. Each EnqueueConstruction order in this turn's batch appends one
 ///     row to the target settlement's queue at the next free SLOT. Log order,
 ///     so two orders in one turn queue in the order they were issued. The
-///     settlement must exist AND the issuing Empire must CONTROL it; both are
-///     checked HERE, at the point of consumption.
+///     settlement must exist, the issuing Empire must CONTROL it, and (ADR-033
+///     D3) the project's research entity must be knowledge-eligible for it; all
+///     are checked HERE, at the point of consumption, by
+///     ConstructionQuery.IsProjectAvailable — the predicate the action surface
+///     lists projects by (one predicate, two callers).
 ///
 ///     WHY HERE AND NOT ONLY IN OrderValidation, which also checks both. That
 ///     pass runs ONCE, before turn 1, against the turn-0 world (Sim.Cli calls
@@ -78,21 +81,20 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         {
             OrderRecord order = ctx.Orders[o];
             if (order.Kind != OrderKind.EnqueueConstruction) continue;
-            if (!SettlementExists(prev, order.TargetId)) continue;
 
             var settlement = new SettlementId(order.TargetId);
-
-            // M4-D §12: an Empire may only build where it rules. The answer comes
-            // from the D-037 control relation, never from the actor id on trust.
-            //
-            // Guarded on a non-empty relation for the same reason OrderValidation
-            // is: a world with no Controls at all has nothing to check against,
-            // and hand-built test worlds are legitimately in that state. In a
-            // FOUNDED world the relation is never empty (M4-C), so this is live.
-            if (prev.Controls.Count > 0
-                && !EmpireQuery.ControlsSettlement(prev, order.Actor, settlement)) continue;
             int projectId = (int)order.Amount;   // load-validated as a whole number
-            if (_cfg.Goods?.ProjectById(projectId) is null) continue;
+
+            // ADR-033 D3 — THE availability predicate, the very function the action
+            // surface lists projects by (one predicate, two callers): the settlement
+            // exists; the issuing Empire CONTROLS it (M4-D §12, from the D-037 control
+            // relation, never the actor id on trust — guarded on a non-empty relation,
+            // because a world with no Controls at all has nothing to check against and
+            // hand-built test worlds are legitimately in that state; in a FOUNDED world
+            // the relation is never empty, M4-C); goods.json defines the project; and
+            // its research entity is knowledge-eligible for the issuer (ADR-028 LOCKED
+            // → AVAILABLE). An order failing it changes nothing.
+            if (!ConstructionQuery.IsProjectAvailable(prev, _cfg, order.Actor, settlement, projectId)) continue;
 
             queue.Add(new ConstructionQueueRow(settlement, NextSlot(queue, settlement), projectId));
         }
@@ -108,55 +110,18 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             ConstructionProjectEntry? project = _cfg.Goods.ProjectById(queue[head].ProjectId);
             if (project is null) continue;   // data changed under a saved queue
 
-            if (!CapacityMeets(prev, ctx, settlement, project.LaborRequired)) continue;
-            if (!MaterialsAvailable(ctx.Owned.GoodStocks, settlement, project)) continue;
+            // The settlement's construction labour this turn, in adult-years, less
+            // housing's published draw (§3.2 one-turn lag), floored at zero — and every
+            // material present IN FULL, checked before any draw. Both are the shared
+            // ConstructionQuery statics, so the blocker the action surface reports is
+            // computed by the function that gates the build.
+            if (!(ConstructionQuery.CapacityAdultYears(prev, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
+            if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, _cfg.Goods, settlement, project)) continue;
 
             Consume(ctx, settlement, project);
             Complete(ctx.Owned.Structures, settlement, project.Id);
             RemoveAt(queue, head);
         }
-    }
-
-    /// <summary>
-    /// The settlement's construction labour this turn, in adult-years, less
-    /// housing's published draw (§3.2 one-turn lag). Floored at zero: the lag
-    /// means a shrinking pool can transiently owe more than it has.
-    /// </summary>
-    private static bool CapacityMeets(
-        IReadOnlyWorldState prev, SimContext<ConstructionTables> ctx,
-        SettlementId settlement, double required)
-    {
-        SectorAllocationRow shares = Sectors.Default(settlement);
-        for (int i = 0; i < prev.SectorAllocations.Count; i++)
-        {
-            if (prev.SectorAllocations[i].Settlement == settlement)
-            { shares = prev.SectorAllocations[i]; break; }
-        }
-
-        long adults = BandViews.Adults(prev.Buckets, settlement);
-        double capacity = Sectors.Share(shares, Sectors.Construction) * adults * ctx.DtYears;
-        for (int i = 0; i < prev.Housing.Count; i++)
-        {
-            if (prev.Housing[i].Settlement != settlement) continue;
-            capacity = Math.Max(0.0, capacity - prev.Housing[i].LastLaborUsed);
-            break;
-        }
-
-        return capacity >= required;
-    }
-
-    /// <summary>Every material present IN FULL — checked before any draw.</summary>
-    private bool MaterialsAvailable(
-        Table<GoodStockRow> stocks, SettlementId settlement, ConstructionProjectEntry project)
-    {
-        for (int i = 0; i < project.Inputs.Length; i++)
-        {
-            ProjectInput input = project.Inputs[i];
-            int idx = FindStock(stocks, settlement, new GoodId(_cfg.Goods!.IdOf(input.Good)));
-            if (idx < 0 || stocks[idx].Amount.Value < input.Qty) return false;
-        }
-
-        return true;
     }
 
     private void Consume(
@@ -233,13 +198,6 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
 
         queue.Clear();
         for (int i = 0; i < n; i++) queue.Add(kept[i]);
-    }
-
-    private static bool SettlementExists(IReadOnlyWorldState world, int settlementId)
-    {
-        for (int i = 0; i < world.Settlements.Count; i++)
-            if (world.Settlements[i].Id.Value == settlementId) return true;
-        return false;
     }
 
     private static int FindStock(Table<GoodStockRow> stocks, SettlementId s, GoodId good)
