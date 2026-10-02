@@ -39,7 +39,13 @@ public class ResearchContentTests
             ResearchNode n = Canonical.Nodes[i];
             Assert.Equal(t.GetProperty("id").GetString(), n.Id);
             Assert.Equal(i + 1, n.Key.Value);
-            Assert.Equal(t.GetProperty("name").GetString(), n.Name);
+            if (D047Renamed.TryGetValue(n.Id, out string? renamed))
+            {
+                // D-047 rulings 2, 3, 6 and 7 re-scoped these baseline-claiming nodes (id and key kept).
+                Assert.Equal(renamed, n.Name);
+                Assert.NotEqual(t.GetProperty("name").GetString(), n.Name);
+            }
+            else Assert.Equal(t.GetProperty("name").GetString(), n.Name);
             Assert.Equal(ResearchTree.Technology, n.Tree);
             Assert.Equal(t.GetProperty("age").GetString() == "F", n.Frontier);
         }
@@ -116,6 +122,17 @@ public class ResearchContentTests
         Assert.Equal(740.0, Canonical.Nodes[Canonical.IndexOfId("oral_rehydration")].BaseCost);
     }
 
+    /// <summary>The D-047 re-scopes: the ONLY nodes whose name departs from the corpus.</summary>
+    private static readonly Dictionary<string, string> D047Renamed = new(StringComparer.Ordinal)
+    {
+        ["fire_making"] = "Controlled-fire pyrotechnology",
+        ["adhesive_natural"] = "Compound adhesives",
+        ["hafting"] = "Composite hafting",
+        ["fishing_hook"] = "Line and pelagic fishing",
+        ["raft"] = "Sea-crossing raft",
+        ["dugout"] = "Load-carrying dugout",
+    };
+
     [Fact]
     public void Canonical_IsInSyncWithTheCorpusFileItWasMigratedFrom()
     {
@@ -124,7 +141,7 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_Eurekas_81OnEightyNodes_18EvaluableToday_EveryNodeWithinTheFortyPercentCeiling()
+    public void Canonical_Eurekas_81OnEightyNodes_17EvaluableToday_AllAuthored_EveryNodeWithinTheFortyPercentCeiling()
     {
         int total = 0, nodes = 0, evaluable = 0, authored = 0, inherited = 0;
         foreach (ResearchNode n in Canonical.Nodes)
@@ -145,8 +162,14 @@ public class ResearchContentTests
         }
         Assert.Equal(81, total);
         Assert.Equal(80, nodes);
-        Assert.Equal(18, evaluable);
-        Assert.Equal((73, 8), (authored, inherited));
+        // D-047 ruling 10: the 8 inherited Eurekas were rewritten as authored, node-specific
+        // circumstances; arsenical_bronze's generic copper-stock condition became a future-system
+        // arsenical-ore exposure, so 18 -> 17 evaluable.
+        Assert.Equal(17, evaluable);
+        Assert.Equal((81, 0), (authored, inherited));
+        foreach (ResearchNode n in Canonical.Nodes)
+            foreach (ResearchEureka e in n.Eurekas)
+                Assert.DoesNotContain("inherited", e.Justification, StringComparison.Ordinal);
         // railway is the one node with two conditions: 0.2 each, together the full 0.40.
         ResearchNode railway = Canonical.Nodes[Canonical.IndexOfId("railway")];
         Assert.Equal([0.2, 0.2], [railway.Eurekas[0].Weight, railway.Eurekas[1].Weight]);

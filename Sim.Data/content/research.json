@@ -47,7 +47,7 @@
   {
    "id": "baseline.settlement_founding",
    "name": "Settlement founding",
-   "providedBy": "ColonizationSystem \u2014 colonies are founded from settlements' surplus population",
+   "providedBy": "ColonizationSystem \u2014 a colony is founded when famine-flight migrants have no viable settlement to move to (MigrationSystem demand); no settler unit or found-settlement order exists",
    "simulated": true
   },
   {
@@ -65,19 +65,55 @@
   {
    "id": "baseline.food_gathering",
    "name": "Basic food and resource gathering",
-   "providedBy": "ProductionSystem / HarvestSystem \u2014 sectors produce food and goods with no research",
+   "providedBy": "ProductionSystem \u2014 the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); the five activity entities require no node",
    "simulated": true
   },
   {
    "id": "baseline.construction",
    "name": "Basic internal construction",
-   "providedBy": "ConstructionSystem \u2014 construction capacity -> project allocation -> progress; no Builder unit",
+   "providedBy": "ConstructionSystem \u2014 an EnqueueConstruction order queues a project, which completes whole in one turn when construction capacity and every input are available (no progress field); no Builder unit",
    "simulated": true
   },
   {
    "id": "baseline.migration",
    "name": "Migration and resettlement",
    "providedBy": "MigrationSystem \u2014 people move between settlements with no research",
+   "simulated": true
+  },
+  {
+   "id": "baseline.fire",
+   "name": "Fire: making, keeping and cooking",
+   "providedBy": "not separately simulated \u2014 fire is known before the simulation begins (D-047 ruling 2); no node gates it, and fire_making is advanced controlled-fire use",
+   "simulated": false
+  },
+  {
+   "id": "baseline.primitive_hafted_tools",
+   "name": "Primitive tools and simple hafting",
+   "providedBy": "not separately simulated \u2014 the tools good comes from crafting recipes that read no research; simple hafting and binding need no node (D-047 ruling 3), composite hafting is technology-owned",
+   "simulated": false
+  },
+  {
+   "id": "baseline.basic_fishing",
+   "name": "Basic fishing (shore, net, trap and spear)",
+   "providedBy": "ProductionSystem \u2014 the Herding/fishing sector produces food from turn 1 with no research; activity.fishing requires no node (D-047 rulings 4-6), fish weirs and line/pelagic fishing are technology-owned",
+   "simulated": true
+  },
+  {
+   "id": "baseline.primitive_water_transport",
+   "name": "Primitive riverine and shore-hugging craft",
+   "providedBy": "not yet simulated as vessels \u2014 no vessel, port or sea route exists; river movement is priced from founding by the TraversalLattice river-corridor coefficient, which reads no research (D-047 ruling 7)",
+   "simulated": false
+  },
+  {
+   "id": "baseline.basic_shelter",
+   "name": "Basic shelter",
+   "providedBy": "HousingSystem \u2014 dwellings are endowed at founding and built and maintained with no research and no order",
+   "simulated": true
+  },
+  {
+   "id": "baseline.basic_paths",
+   "name": "Basic paths and overland movement",
+   "providedBy": "PathBuildSystem \u2014 dirt paths (the DirtPath edge type) accrue from use with no research and no order (D-047 ruling 8)",
    "simulated": true
   }
  ],
@@ -165,11 +201,11 @@
   {
    "key": 1,
    "id": "fire_making",
-   "name": "Fire making",
-   "desc": "Starting fire at will \u2014 friction (drill, saw, plough) or percussion (pyrite on flint).",
+   "name": "Controlled-fire pyrotechnology",
+   "desc": "Advanced, deliberate use of controlled fire \u2014 sustained managed hearths and earth ovens, heat treatment of stone, planned landscape burning. Fire itself (making, keeping, cooking) is baseline and needs no research (D-047 ruling 2).",
    "age": "A1",
    "frontier": false,
-   "emerged": "~400 kya habitual; definite by ~50 kya",
+   "emerged": "~164 kya heat-treated silcrete (Pinnacle Point); routine by ~70 kya",
    "branch": null,
    "domain": "energy",
    "secondaryDomains": [
@@ -181,8 +217,8 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "fire on demand",
-     "hearth-keeping independent of weather"
+     "sustained high-temperature managed hearths",
+     "heat treatment of stone and wood"
     ],
     "units": [],
     "buildings": [],
@@ -191,10 +227,9 @@
     "activities": [],
     "projects": [],
     "techniques": [
-     "Fire-hardening of wood",
-     "Roasting and pit cooking",
-     "Landscape burning",
-     "Thrown spear"
+     "Heat treatment of silcrete and flint",
+     "Earth-oven cooking at scale",
+     "Planned landscape burning"
     ],
     "applications": []
    },
@@ -628,16 +663,14 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "felling",
-     "heavy woodworking"
+     "resharpenable ground-edge felling axe",
+     "efficient heavy woodworking"
     ],
     "units": [],
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.logging"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -674,8 +707,8 @@
   {
    "key": 9,
    "id": "adhesive_natural",
-   "name": "Natural adhesives",
-   "desc": "Using resin, bitumen, or gum as a binder for hafting.",
+   "name": "Compound adhesives",
+   "desc": "Engineered binders \u2014 resin loaded with ochre or beeswax, heat-processed bitumen \u2014 for load-bearing composite hafting. Simple gum, resin and sinew binding is baseline (D-047 ruling 3).",
    "age": "A1",
    "frontier": false,
    "emerged": "~200 kya (bitumen, Umm el Tlel)",
@@ -689,20 +722,20 @@
    "prereq": null,
    "eurekas": [
     {
-     "text": "circumstance: tree resin, bitumen seep, or plant gum",
+     "text": "Resin, bitumen or ochre is already gathered and worked for daily binding",
      "when": null,
-     "kind": "environmental",
-     "justification": "inherited; the resource is distinctive and its presence is a recognised trigger",
+     "kind": "exposure",
+     "justification": "Compound adhesives were refined where people already handled resin, bitumen and ochre every day (Sibudu ochre-loaded resin ~70 kya; Umm el Tlel bitumen): long familiarity with the raw binder under heat and mixing is what revealed the engineered recipe.",
      "system": "resources/terrain",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
+     "source": "authored",
      "class": "future-system:resources/terrain"
     }
    ],
    "unlocks": {
     "capabilities": [
-     "hafting"
+     "load-bearing compound adhesive for composite hafting"
     ],
     "units": [],
     "buildings": [],
@@ -815,8 +848,8 @@
   {
    "key": 11,
    "id": "hafting",
-   "name": "Hafting",
-   "desc": "Binding stone to shaft with cordage and adhesive \u2014 the composite tool.",
+   "name": "Composite hafting",
+   "desc": "Precision-fitted composite tools \u2014 shaped tang, socket or split haft bound with sinew and compound adhesive \u2014 that survive repeated impact. Simple hafted tools are baseline (D-047 ruling 3).",
    "age": "A1",
    "frontier": false,
    "emerged": "~500 kya Kathu Pan (contested); secure ~200 kya",
@@ -832,9 +865,8 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "thrusting spear",
-     "axe",
-     "adze"
+     "durable composite thrusting spear",
+     "socketed composite axe and adze"
     ],
     "units": [
      "unit.spearmen"
@@ -1371,8 +1403,8 @@
   {
    "key": 20,
    "id": "raft",
-   "name": "Raft",
-   "desc": "Lashed logs or reeds \u2014 the first water transport.",
+   "name": "Sea-crossing raft",
+   "desc": "Large lashed log or reed rafts with steering oars, built for open-water crossings beyond sight of land. Simple riverine and shore-hugging craft are baseline (D-047 ruling 7); research unlocks the class and builds no vessel.",
    "age": "A1",
    "frontier": false,
    "emerged": "inferred \u226550 kya (Sahul crossing); Flores ~1 Mya (contested)",
@@ -1387,8 +1419,7 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "river crossing",
-     "short sea crossing"
+     "open-water crossing beyond sight of land"
     ],
     "units": [],
     "buildings": [],
@@ -1436,8 +1467,8 @@
   {
    "key": 21,
    "id": "dugout",
-   "name": "Dugout canoe",
-   "desc": "Log hollowed by fire and adze.",
+   "name": "Load-carrying dugout",
+   "desc": "Large log hollowed by fire and adze into a stable load-carrying hull. Simple log floats and small canoes for river crossing are baseline (D-047 ruling 7); research unlocks the class and builds no vessel.",
    "age": "A1",
    "frontier": false,
    "emerged": "~8,000 BCE Pesse (oldest preserved); older inferred",
@@ -1464,7 +1495,7 @@
    ],
    "unlocks": {
     "capabilities": [
-     "river and lake transport",
+     "lake and estuary freight by dugout",
      "offshore fishing"
     ],
     "units": [],
@@ -1474,7 +1505,7 @@
     "activities": [],
     "projects": [],
     "techniques": [
-     "Paddle"
+     "Large-log hull hollowing"
     ],
     "applications": []
    },
@@ -1515,8 +1546,8 @@
   {
    "key": 22,
    "id": "fishing_hook",
-   "name": "Fishhook",
-   "desc": "Shell or bone hook for line fishing.",
+   "name": "Line and pelagic fishing",
+   "desc": "Specialised hook-and-line gear \u2014 shell or bone hooks, weighted lines, lures \u2014 for deep-water and pelagic species. Basic fishing is baseline and needs no hook or node (D-047 rulings 4 and 6).",
    "age": "A1",
    "frontier": false,
    "emerged": "~42 kya Jerimalai (Timor)",
@@ -1541,15 +1572,14 @@
    ],
    "unlocks": {
     "capabilities": [
-     "pelagic fishing"
+     "pelagic fishing",
+     "deep-water line fishing"
     ],
     "units": [],
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.fishing"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2019,9 +2049,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2160,9 +2188,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2236,9 +2262,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2310,9 +2334,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2374,9 +2396,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2434,9 +2454,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.farming"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2655,7 +2673,7 @@
    "key": 39,
    "id": "digging_stick_hoe",
    "name": "Hoe",
-   "desc": "Hafted blade for tillage \u2014 the cultivation tool before the plough.",
+   "desc": "Hafted blade for tillage \u2014 the cultivation tool before the plough. Digging-stick cultivation is baseline (D-047).",
    "age": "A2",
    "frontier": false,
    "emerged": "~8,000 BCE (stone hoes, China and Levant)",
@@ -2670,9 +2688,8 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "tillage",
-     "weeding",
-     "planting"
+     "hafted-blade tillage of heavier soils",
+     "faster weeding and planting"
     ],
     "units": [],
     "buildings": [],
@@ -2825,15 +2842,13 @@
    "unlocks": {
     "capabilities": [
      "meat on the hoof",
-     "herding sector"
+     "selective flock breeding"
     ],
     "units": [],
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.herding"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [
      "Transhumance",
@@ -2914,9 +2929,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.herding"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -4981,7 +4994,7 @@
    "key": 74,
    "id": "track_road",
    "name": "Trackway",
-   "desc": "Built path \u2014 timber trackway across marsh, cleared and stoned route.",
+   "desc": "Built trackway \u2014 timber causeway across marsh, cleared and stoned route. An infrastructure-class unlock: construction systems build the trackways, and basic paths are baseline (D-047 ruling 8).",
    "age": "A2",
    "frontier": false,
    "emerged": "~3,800 BCE Sweet Track (Somerset)",
@@ -4996,8 +5009,8 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "reliable crossing of wetland",
-     "path improvement"
+     "trackway infrastructure class (timber and stoned routes)",
+     "wetland causeway class"
     ],
     "units": [],
     "buildings": [],
@@ -5371,15 +5384,15 @@
    "prereq": "copper_smelting",
    "eurekas": [
     {
-     "text": "circumstance: arsenical copper ore (fahlore)",
-     "when": "stock_copper_ore > 0",
-     "kind": "environmental",
-     "justification": "inherited; the resource is distinctive and its presence is a recognised trigger",
-     "system": "goods state",
-     "evaluable_now": true,
+     "text": "Arsenic-bearing copper ores (fahlore, enargite, arsenopyrite-rich deposits) are smelted locally",
+     "when": null,
+     "kind": "exposure",
+     "justification": "Arsenical copper arose where smelters worked arsenic-rich ores (Caucasus, Anatolia, Iran) and met its harder, castable metal and garlic-smelling fumes. Generic copper-ore stock carries no arsenic signal, so the condition reads arsenical ore specifically; no goods or resource state distinguishes it yet.",
+     "system": "resources/terrain",
+     "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
-     "class": "machine-evaluable"
+     "source": "authored",
+     "class": "future-system:resources/terrain"
     }
    ],
    "unlocks": {
@@ -5706,9 +5719,7 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [
-     "activity.mining"
-    ],
+    "activities": [],
     "projects": [],
     "techniques": [
      "Fire-setting",
@@ -6264,7 +6275,7 @@
    "key": 94,
    "id": "sail_square",
    "name": "Square sail",
-   "desc": "Wind propulsion \u2014 first on the Nile.",
+   "desc": "Wind propulsion \u2014 first on the Nile. Unlocks the improved coastal and seagoing transport class (D-047 ruling 7); primitive river and shore-hugging craft are baseline, and the realizing systems build the vessels.",
    "age": "A3",
    "frontier": false,
    "emerged": "~3,500 BCE Naqada II depictions; ~5,000 BCE Kuwait (possible)",
@@ -6292,8 +6303,9 @@
    ],
    "unlocks": {
     "capabilities": [
-     "upriver travel without rowing",
-     "river trade at scale"
+     "improved coastal and seagoing transport class (sail)",
+     "upriver travel under sail instead of rowing",
+     "river and coastal trade at scale under sail"
     ],
     "units": [],
     "buildings": [],
@@ -6927,14 +6939,14 @@
    "prereq": "kiln_updraft AND salt_extraction",
    "eurekas": [
     {
-     "text": "circumstance: natron or plant ash",
+     "text": "Natron or plant-ash alkali is already used in washing, embalming or ceramic work",
      "when": null,
-     "kind": "environmental",
-     "justification": "inherited; the resource is distinctive and its presence is a recognised trigger",
+     "kind": "exposure",
+     "justification": "Egyptian faience and the first glazes came from alkali fluxes (Wadi Natrun natron, plant ash) already handled in daily use; firing quartz and copper with them produced the first vitreous surfaces.",
      "system": "resources/terrain",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
+     "source": "authored",
      "class": "future-system:resources/terrain"
     }
    ],
@@ -7076,9 +7088,9 @@
    "secondaryDomains": [
     "communication"
    ],
-   "depth": 10,
-   "cost": 1240.0,
-   "prereq": "surveying",
+   "depth": 6,
+   "cost": 1760.0,
+   "prereq": "token_counting AND (proto_writing OR hieroglyphic)",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -7123,10 +7135,10 @@
      "material": 0.0,
      "institutional": 1.25,
      "breadth": 0.5,
-     "prereq_complexity": 0.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 3.75,
-    "content_cost": 1240,
+    "magnitude": 4.25,
+    "content_cost": 1760,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -8022,7 +8034,7 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 11,
+   "depth": 7,
    "cost": 2960.0,
    "prereq": "standard_weights AND gold_silver_native",
    "eurekas": [],
@@ -8088,7 +8100,7 @@
    "secondaryDomains": [
     "materials"
    ],
-   "depth": 12,
+   "depth": 8,
    "cost": 11830.0,
    "prereq": "hacksilver AND stamp_seal",
    "eurekas": [
@@ -9444,9 +9456,9 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 13,
-   "cost": 7030.0,
-   "prereq": "crossbow AND mechanics_archimedean",
+   "depth": 8,
+   "cost": 4970.0,
+   "prereq": "crossbow",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -9490,10 +9502,10 @@
      "material": 1.5,
      "institutional": 1.25,
      "breadth": 0.5,
-     "prereq_complexity": 0.5
+     "prereq_complexity": 0.0
     },
-    "magnitude": 6.25,
-    "content_cost": 7030,
+    "magnitude": 5.75,
+    "content_cost": 4970,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -9968,7 +9980,7 @@
    "key": 150,
    "id": "road_paved",
    "name": "Engineered paved road",
-   "desc": "Surveyed, layered, cambered, drained, paved \u2014 Via Appia. Inca qhapaq \u00f1an independently (no wheels).",
+   "desc": "Surveyed, layered, cambered, drained, paved \u2014 Via Appia. Inca qhapaq \u00f1an independently (no wheels). An infrastructure-class unlock: construction systems build the roads (D-047 ruling 8).",
    "age": "A5",
    "frontier": false,
    "emerged": "312 BCE Via Appia; Inca ~1,400 CE",
@@ -9995,8 +10007,8 @@
    ],
    "unlocks": {
     "capabilities": [
-     "all-weather bulk transport",
-     "military mobility"
+     "engineered paved road class: all-weather bulk transport",
+     "engineered paved road class: military mobility"
     ],
     "units": [],
     "buildings": [],
@@ -10426,9 +10438,9 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 7,
-   "cost": 1760.0,
-   "prereq": "iron_mouldboard",
+   "depth": 6,
+   "cost": 2490.0,
+   "prereq": "plough_ard AND cast_iron",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -10471,10 +10483,10 @@
      "material": 0.0,
      "institutional": 1.25,
      "breadth": 0.5,
-     "prereq_complexity": 0.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 4.25,
-    "content_cost": 1760,
+    "magnitude": 4.75,
+    "content_cost": 2490,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -11483,9 +11495,9 @@
    "branch": null,
    "domain": "science",
    "secondaryDomains": [],
-   "depth": 8,
-   "cost": 4970.0,
-   "prereq": "glass_blowing",
+   "depth": 9,
+   "cost": 7030.0,
+   "prereq": "copper_smelting AND (chinese_script OR alphabet_vowels)",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -11523,10 +11535,10 @@
      "material": 0.0,
      "institutional": 1.25,
      "breadth": 0.5,
-     "prereq_complexity": 0.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 5.75,
-    "content_cost": 4970,
+    "magnitude": 6.25,
+    "content_cost": 7030,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -11542,9 +11554,9 @@
    "branch": null,
    "domain": "science",
    "secondaryDomains": [],
-   "depth": 9,
-   "cost": 2490.0,
-   "prereq": "alchemy",
+   "depth": 10,
+   "cost": 3520.0,
+   "prereq": "alchemy AND glass_blowing",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -11582,10 +11594,10 @@
      "material": 0.0,
      "institutional": 1.25,
      "breadth": 1.0,
-     "prereq_complexity": 0.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 4.75,
-    "content_cost": 2490,
+    "magnitude": 5.25,
+    "content_cost": 3520,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -11859,7 +11871,7 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 10,
+   "depth": 11,
    "cost": 2090.0,
    "prereq": "fermentation_fruit AND distillation",
    "eurekas": [],
@@ -12679,7 +12691,7 @@
    "secondaryDomains": [
     "military"
    ],
-   "depth": 9,
+   "depth": 10,
    "cost": 4180.0,
    "prereq": "alchemy",
    "eurekas": [
@@ -12757,7 +12769,7 @@
    "branch": "natural_science",
    "domain": "science",
    "secondaryDomains": [],
-   "depth": 10,
+   "depth": 11,
    "cost": 4180.0,
    "prereq": "gunpowder",
    "eurekas": [],
@@ -12816,7 +12828,7 @@
    "secondaryDomains": [
     "materials"
    ],
-   "depth": 10,
+   "depth": 11,
    "cost": 7030.0,
    "prereq": "gunpowder AND cast_iron",
    "eurekas": [],
@@ -12882,7 +12894,7 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 14,
+   "depth": 9,
    "cost": 5910.0,
    "prereq": "torsion_artillery",
    "eurekas": [],
@@ -13071,19 +13083,19 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 10,
+   "depth": 11,
    "cost": 2090.0,
    "prereq": "distillation",
    "eurekas": [
     {
-     "text": "circumstance: petroleum",
+     "text": "Naphtha from surface petroleum seeps is already used as an incendiary",
      "when": null,
-     "kind": "environmental",
-     "justification": "inherited; the resource is distinctive and its presence is a recognised trigger",
+     "kind": "exposure",
+     "justification": "Callinicus's fire (~672 CE) refined a long tradition of naphtha incendiaries; Byzantium drew on Crimean and Caucasian surface petroleum, and the pump-and-siphon weapon grew from handling that liquid fire.",
      "system": "resources/terrain",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
+     "source": "authored",
      "class": "future-system:resources/terrain"
     }
    ],
@@ -13324,7 +13336,7 @@
    "branch": "engineering",
    "domain": "communication",
    "secondaryDomains": [],
-   "depth": 13,
+   "depth": 9,
    "cost": 4970.0,
    "prereq": "woodblock_print AND coinage_electrum",
    "eurekas": [
@@ -14019,9 +14031,9 @@
    "secondaryDomains": [
     "communication"
    ],
-   "depth": 13,
+   "depth": 10,
    "cost": 4180.0,
-   "prereq": "hindu_arabic AND coinage_electrum AND paper",
+   "prereq": "hindu_arabic AND paper AND bill_of_exchange",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -14039,7 +14051,7 @@
     "applications": []
    },
    "family": "finance",
-   "generation": 1,
+   "generation": 2,
    "effects": {
     "immediate": []
    },
@@ -14083,9 +14095,9 @@
    "branch": "engineering",
    "domain": "communication",
    "secondaryDomains": [],
-   "depth": 14,
-   "cost": 2490.0,
-   "prereq": "double_entry",
+   "depth": 9,
+   "cost": 3520.0,
+   "prereq": "coinage_electrum AND (abjad OR chinese_script)",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -14103,7 +14115,7 @@
     "applications": []
    },
    "family": "finance",
-   "generation": 2,
+   "generation": 1,
    "effects": {
     "immediate": []
    },
@@ -14123,10 +14135,10 @@
      "material": 0.75,
      "institutional": 1.25,
      "breadth": 0.5,
-     "prereq_complexity": 0.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 4.75,
-    "content_cost": 2490,
+    "magnitude": 5.25,
+    "content_cost": 3520,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -14272,7 +14284,7 @@
    "key": 217,
    "id": "caravel",
    "name": "Caravel",
-   "desc": "Lateen-rigged, shallow-draft, fast \u2014 the exploration ship of the Portuguese.",
+   "desc": "Lateen-rigged, shallow-draft, fast \u2014 the exploration ship of the Portuguese. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
    "age": "A7",
    "frontier": false,
    "emerged": "~1,430 CE Portugal",
@@ -14340,7 +14352,7 @@
    "key": 218,
    "id": "carrack",
    "name": "Carrack and full-rigged ship",
-   "desc": "Three-masted, square and lateen, high-castled \u2014 the ocean cargo and warship.",
+   "desc": "Three-masted, square and lateen, high-castled \u2014 the ocean cargo and warship. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
    "age": "A7",
    "frontier": false,
    "emerged": "~1,450 CE",
@@ -14407,7 +14419,7 @@
    "key": 219,
    "id": "polynesian_canoe",
    "name": "Polynesian voyaging canoe",
-   "desc": "Double-hulled, crab-claw sail, stellar navigation \u2014 Pacific colonisation without compass or writing.",
+   "desc": "Double-hulled, crab-claw sail, stellar navigation \u2014 Pacific colonisation without compass or writing. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
    "age": "A6",
    "frontier": false,
    "emerged": "~1,000 CE (Hawaii, NZ reached); technology older",
@@ -14680,7 +14692,7 @@
    "secondaryDomains": [
     "military"
    ],
-   "depth": 11,
+   "depth": 12,
    "cost": 2090.0,
    "prereq": "saltpetre_refining",
    "eurekas": [],
@@ -14746,8 +14758,8 @@
     "materials"
    ],
    "depth": 12,
-   "cost": 9950.0,
-   "prereq": "cannon_early AND lost_wax AND corned_powder",
+   "cost": 7030.0,
+   "prereq": "cannon_early AND lost_wax",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -14791,10 +14803,10 @@
      "material": 0.75,
      "institutional": 1.5,
      "breadth": 1.0,
-     "prereq_complexity": 1.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 6.75,
-    "content_cost": 9950,
+    "magnitude": 6.25,
+    "content_cost": 7030,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -14876,7 +14888,7 @@
    "branch": "military",
    "domain": "military",
    "secondaryDomains": [],
-   "depth": 11,
+   "depth": 12,
    "cost": 4180.0,
    "prereq": "cannon_early AND crossbow",
    "eurekas": [],
@@ -15955,7 +15967,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 8,
+   "depth": 7,
    "cost": 2960.0,
    "prereq": "seed_drill OR (crop_rotation_norfolk AND horse_collar)",
    "eurekas": [],
@@ -16141,9 +16153,9 @@
    "branch": "engineering",
    "domain": "materials",
    "secondaryDomains": [],
-   "depth": 17,
-   "cost": 9950.0,
-   "prereq": "glass_blowing AND coke",
+   "depth": 8,
+   "cost": 7030.0,
+   "prereq": "glass_blowing",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -16180,10 +16192,10 @@
      "material": 0.75,
      "institutional": 1.5,
      "breadth": 1.0,
-     "prereq_complexity": 0.5
+     "prereq_complexity": 0.0
     },
-    "magnitude": 6.75,
-    "content_cost": 9950,
+    "magnitude": 6.25,
+    "content_cost": 7030,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -17287,9 +17299,9 @@
    "branch": "engineering",
    "domain": "industry",
    "secondaryDomains": [],
-   "depth": 20,
+   "depth": 16,
    "cost": 5910.0,
-   "prereq": "cotton_gin_roller AND milling_machine",
+   "prereq": "cotton_gin_roller AND wire_drawing",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -17733,7 +17745,7 @@
    "key": 272,
    "id": "macadam",
    "name": "Macadam road",
-   "desc": "McAdam 1820 \u2014 compacted graded stone; cheap all-weather roads.",
+   "desc": "McAdam 1820 \u2014 compacted graded stone; cheap all-weather roads. An infrastructure-class unlock: construction systems build the roads (D-047 ruling 8).",
    "age": "A8",
    "frontier": false,
    "emerged": "~1,820 CE",
@@ -17748,7 +17760,7 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "coaching speed doubled"
+     "macadamised road class: compacted graded stone, all-weather coaching"
     ],
     "units": [],
     "buildings": [],
@@ -17935,20 +17947,20 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 18,
+   "depth": 11,
    "cost": 33450.0,
    "prereq": "distillation AND glass_lead",
    "eurekas": [
     {
-     "text": "circumstance: saltpetre",
+     "text": "Sulphur is burned with saltpetre to make acid for bleaching or metal finishing",
      "when": null,
-     "kind": "environmental",
-     "justification": "inherited; the resource is distinctive and its presence is a recognised trigger",
-     "system": "resources/terrain",
+     "kind": "practical accomplishment",
+     "justification": "Ward's glass-globe process (1736) already burned sulphur with saltpetre to make acid for linen bleaching and metal finishing; Roebuck's lead chamber (1746) scaled that practice, so working the small-batch method is the accelerator.",
+     "system": "goods state",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
-     "class": "future-system:resources/terrain"
+     "source": "authored",
+     "class": "future-system:goods state"
     }
    ],
    "unlocks": {
@@ -18016,7 +18028,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 19,
+   "depth": 15,
    "cost": 11830.0,
    "prereq": "sulphuric_acid AND chemistry_quantitative",
    "eurekas": [],
@@ -18081,7 +18093,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 19,
+   "depth": 12,
    "cost": 4180.0,
    "prereq": "sulphuric_acid",
    "eurekas": [],
@@ -18409,7 +18421,7 @@
    "secondaryDomains": [
     "construction"
    ],
-   "depth": 19,
+   "depth": 15,
    "cost": 23650.0,
    "prereq": "sulphuric_acid AND chemistry_quantitative",
    "eurekas": [
@@ -19054,7 +19066,7 @@
    "secondaryDomains": [
     "energy"
    ],
-   "depth": 10,
+   "depth": 11,
    "cost": 33450.0,
    "prereq": "distillation AND mining_shaft",
    "eurekas": [
@@ -19405,7 +19417,7 @@
    "secondaryDomains": [
     "communication"
    ],
-   "depth": 18,
+   "depth": 15,
    "cost": 33450.0,
    "prereq": "chemistry_quantitative AND glass_lead",
    "eurekas": [
@@ -19708,8 +19720,8 @@
     "transport"
    ],
    "depth": 25,
-   "cost": 16730.0,
-   "prereq": "aircraft_metal AND steam_turbine AND superalloy",
+   "cost": 11830.0,
+   "prereq": "aircraft_metal AND steam_turbine",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -19746,10 +19758,10 @@
      "material": 0.0,
      "institutional": 2.5,
      "breadth": 0.5,
-     "prereq_complexity": 1.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 7.5,
-    "content_cost": 16730,
+    "magnitude": 7.0,
+    "content_cost": 11830,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -21607,9 +21619,9 @@
    "branch": "agriculture",
    "domain": "food",
    "secondaryDomains": [],
-   "depth": 16,
-   "cost": 23650.0,
-   "prereq": "glass_blowing AND sheet_metal AND germ_theory",
+   "depth": 8,
+   "cost": 16730.0,
+   "prereq": "glass_blowing AND sheet_metal",
    "eurekas": [
     {
      "text": "Sustained war requiring army provisioning",
@@ -21658,10 +21670,10 @@
      "material": 1.5,
      "institutional": 2.0,
      "breadth": 0.0,
-     "prereq_complexity": 1.0
+     "prereq_complexity": 0.5
     },
-    "magnitude": 8.0,
-    "content_cost": 23650,
+    "magnitude": 7.5,
+    "content_cost": 16730,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -21823,7 +21835,7 @@
    "branch": "natural_science",
    "domain": "science",
    "secondaryDomains": [],
-   "depth": 19,
+   "depth": 16,
    "cost": 133810.0,
    "prereq": "genetics_mendel AND quantum_mechanics AND photography",
    "eurekas": [],
@@ -21885,7 +21897,7 @@
     "medicine",
     "agriculture"
    ],
-   "depth": 20,
+   "depth": 18,
    "cost": 133810.0,
    "prereq": "dna_structure AND antibiotic_broad",
    "eurekas": [],
@@ -22020,9 +22032,9 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 23,
-   "cost": 47310.0,
-   "prereq": "vacuum_tube AND photography",
+   "depth": 16,
+   "cost": 66910.0,
+   "prereq": "electromagnetism AND barometer_vacuum AND photography",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -22064,10 +22076,10 @@
      "material": 1.5,
      "institutional": 2.5,
      "breadth": 0.5,
-     "prereq_complexity": 0.5
+     "prereq_complexity": 1.0
     },
-    "magnitude": 9.0,
-    "content_cost": 47310,
+    "magnitude": 9.5,
+    "content_cost": 66910,
     "calibration_adjustment": 0,
     "note": null
    }
@@ -24894,19 +24906,19 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 20,
+   "depth": 17,
    "cost": 8360.0,
    "prereq": "dna_structure AND chemistry_quantitative",
    "eurekas": [
     {
-     "text": "circumstance: epidemic viral disease",
+     "text": "A recognised viral epidemic drives a targeted pharmaceutical programme",
      "when": null,
      "kind": "world event",
-     "justification": "inherited event condition; a genuine precursor or pressure",
+     "justification": "Antivirals came from programmes aimed at named viral diseases: nucleoside analogues for herpes (acyclovir 1974) and the AIDS epidemic, which drove AZT (1987) and combination therapy (1996).",
      "system": "world events",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
+     "source": "authored",
      "class": "future-system:world events"
     }
    ],
@@ -24970,7 +24982,7 @@
    "secondaryDomains": [
     "science"
    ],
-   "depth": 20,
+   "depth": 17,
    "cost": 47310.0,
    "prereq": "dna_structure AND vaccine_lab",
    "eurekas": [],
@@ -25033,7 +25045,7 @@
    "branch": "natural_science",
    "domain": "science",
    "secondaryDomains": [],
-   "depth": 20,
+   "depth": 17,
    "cost": 47310.0,
    "prereq": "dna_structure",
    "eurekas": [],
@@ -25095,7 +25107,7 @@
    ],
    "depth": 24,
    "cost": 267620.0,
-   "prereq": "pcr AND computer",
+   "prereq": "dna_structure AND computer",
    "eurekas": [],
    "unlocks": {
     "capabilities": [
@@ -25625,15 +25637,15 @@
    "prereq": "chemistry_quantitative AND automobile_mass",
    "eurekas": [
     {
-     "text": "circumstance: urban air pollution",
+     "text": "Urban photochemical smog has produced vehicle-emission law",
      "when": null,
-     "kind": "world event",
-     "justification": "inherited event condition; a genuine precursor or pressure",
-     "system": "world events",
+     "kind": "institutional",
+     "justification": "The converter answered Los Angeles smog through regulation: the US Clean Air Act (1970) emission limits set its 1975 introduction, so an emission-regulating institution, not the catalyst chemistry, is the accelerator.",
+     "system": "institutions",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
-     "class": "future-system:world events"
+     "source": "authored",
+     "class": "future-system:institutions"
     }
    ],
    "unlocks": {
@@ -26249,14 +26261,14 @@
    "prereq": "composites AND radar AND computer",
    "eurekas": [
     {
-     "text": "circumstance: rival integrated air defence",
+     "text": "A rival integrated radar air-defence network has inflicted aircraft losses",
      "when": null,
      "kind": "world event",
-     "justification": "inherited event condition; a genuine precursor or pressure",
+     "justification": "Have Blue and the F-117 (1977-1981) answered aircraft losses to Soviet-built integrated air defence in Vietnam (1965-1972) and the 1973 Yom Kippur war, which made radar signature the deciding vulnerability.",
      "system": "world events",
      "evaluable_now": false,
      "weight": 0.4,
-     "source": "inherited",
+     "source": "authored",
      "class": "future-system:world events"
     }
    ],
@@ -28024,7 +28036,7 @@
    "secondaryDomains": [
     "communication"
    ],
-   "depth": 13,
+   "depth": 9,
    "cost": 1240.0,
    "prereq": "coinage_electrum",
    "eurekas": [],
@@ -28128,7 +28140,7 @@
    "secondaryDomains": [
     "communication"
    ],
-   "depth": 15,
+   "depth": 10,
    "cost": 2960.0,
    "prereq": "bill_of_exchange AND legal_code_roman",
    "eurekas": [],
@@ -29001,35 +29013,35 @@
    "id": "activity.farming",
    "kind": "activity",
    "name": null,
-   "requires": "cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet",
+   "requires": null,
    "unresolved": []
   },
   {
    "id": "activity.herding",
    "kind": "activity",
    "name": null,
-   "requires": "sheep_goat OR cattle",
+   "requires": null,
    "unresolved": []
   },
   {
    "id": "activity.fishing",
    "kind": "activity",
    "name": null,
-   "requires": "fishing_hook",
+   "requires": null,
    "unresolved": []
   },
   {
    "id": "activity.logging",
    "kind": "activity",
    "name": null,
-   "requires": "ground_stone_early",
+   "requires": null,
    "unresolved": []
   },
   {
    "id": "activity.mining",
    "kind": "activity",
    "name": null,
-   "requires": "mining_shaft",
+   "requires": null,
    "unresolved": []
   },
   {
