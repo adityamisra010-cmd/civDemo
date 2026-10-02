@@ -41,7 +41,18 @@ public sealed record SettlementLensView(
     int Id, string Name, double X, double Y, int Controller, bool IsCapital, bool IsPlayer,
     long Population, long Dwellings, int SizeTier, int Age,
     IReadOnlyList<StructureView> Structures,
-    double[]? Sectors, int RoadsInCatchment, int Notables, int ClassesActive);
+    double[]? Sectors, int RoadsInCatchment, int Notables, int ClassesActive,
+    IReadOnlyList<UniversityView> Universities);
+
+/// <summary>One specialized-university type a polity holds, aggregated: <see cref="Count"/> is the
+/// number of the controller's <c>ResearchCostModifiers</c> rows of that type. Universities are
+/// POLITY-level state; the lens shows them in the polity's capital (its seat), never invents a
+/// per-settlement placement.</summary>
+public sealed record UniversityView(int TypeKey, string Name, long Count);
+
+/// <summary>One institution marker the lens drew: a structure kind (Key "structure:{projectId}") or a
+/// university type (Key "university:{typeKey}") in a settlement, with the aggregated count.</summary>
+public sealed record InstitutionMarker(int Settlement, string Key, long Count);
 
 /// <summary>One military formation token (a MilitaryUnits row).</summary>
 public sealed record UnitLensView(int Id, int Owner, double X, double Y, int FamilyKey, string FamilyName, string IdentityName, int Location);
@@ -149,9 +160,10 @@ public sealed class WorldProjection
             for (int c = 0; c < world.ClassStates.Count; c++) if (world.ClassStates[c].Settlement == id && world.ClassStates[c].Active != 0) classes++;
             int age = ages is not null && ctl >= 0 ? AgeQuery.CurrentAge(world, ages, controller) : 0;
             int cell = row.SiteCell;
+            List<UniversityView> unis = capital ? Universities(world, cfg, controller) : [];
             settlements.Add(new SettlementLensView(
                 id.Value, name(id.Value), cell % size + 0.5, cell / size + 0.5, ctl, capital, ctl == player.Value,
-                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes));
+                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, unis));
         }
 
         var units = new List<UnitLensView>();
@@ -184,6 +196,30 @@ public sealed class WorldProjection
         };
     }
 
+    /// <summary>The polity's universities aggregated by type, in ascending type key; counts are exactly
+    /// the polity's <c>ResearchCostModifiers</c> rows of each type (content-named when the key is known).</summary>
+    public static List<UniversityView> Universities(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        var keys = new List<int>();
+        for (int i = 0; i < world.ResearchCostModifiers.Count; i++)
+        {
+            ResearchCostModifierRow r = world.ResearchCostModifiers[i];
+            if (r.Polity == polity && !keys.Contains(r.UniversityType)) keys.Add(r.UniversityType);
+        }
+        keys.Sort();
+        var result = new List<UniversityView>();
+        foreach (int k in keys)
+        {
+            long n = 0;
+            for (int i = 0; i < world.ResearchCostModifiers.Count; i++)
+                if (world.ResearchCostModifiers[i].Polity == polity && world.ResearchCostModifiers[i].UniversityType == k) n++;
+            string nm = "University type " + k.ToString(CultureInfo.InvariantCulture);
+            if (cfg.Research is { } rc) foreach (Sim.Core.Systems.Research.UniversityType u in rc.UniversityTypes) if (u.Key == k) nm = u.Name;
+            result.Add(new UniversityView(k, nm, n));
+        }
+        return result;
+    }
+
     private static (double, double) Center(int node, int lsize, int stride) =>
         (node % lsize * stride + stride / 2.0, node / lsize * stride + stride / 2.0);
 
@@ -203,8 +239,11 @@ public sealed class WorldProjection
     };
 }
 
-/// <summary>What one lens paint drew — the tests read this instead of pixels.</summary>
-public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers, IReadOnlyList<int> UnitTokens, IReadOnlyList<int> SettlementsDrawn);
+/// <summary>What one lens paint drew — the tests read this instead of pixels.
+/// <c>LayerDraws[(int)MapLayer]</c> counts the draw commands emitted per map layer (draw-call accounting
+/// for the single-owner rule); <c>Institutions</c> lists every institution marker drawn.</summary>
+public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers, IReadOnlyList<int> UnitTokens,
+    IReadOnlyList<int> SettlementsDrawn, IReadOnlyList<int> LayerDraws, IReadOnlyList<InstitutionMarker> Institutions);
 
 /// <summary>
 /// THE WORLD LENS — zoom-dependent drawing of the projection over the map (D-047 Part 5).
@@ -257,15 +296,21 @@ public static class WorldLens
     /// <summary>Paints the lens. <paramref name="toScreen"/> maps world px to screen px; <paramref name="scale"/>
     /// is screen px per world px.</summary>
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
-        Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1)
+        Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
+        bool showTerritory = true)
     {
         IReadOnlyList<WorldLayer> layers = LayersFor(zoom);
+        var draws = new int[MapLayerOwnership.All.Length];
+        var institutions = new List<InstitutionMarker>();
+        int mark = d.Commands.Count;
+        // Draw-call accounting: every command emitted since the last mark is charged to one map layer.
+        void Charge(MapLayer l) { draws[(int)l] += d.Commands.Count - mark; mark = d.Commands.Count; }
         bool On(WorldLayer l) { foreach (WorldLayer x in layers) if (x == l) return true; return false; }
         var unitTokens = new List<int>();
         var drawn = new List<int>();
         Rgba ink = Rgba.Hex(0x3A2E1F);
 
-        if (On(WorldLayer.Territories))
+        if (On(WorldLayer.Territories) && showTerritory)
         {
             double alpha = zoom == WorldZoom.World ? 0.42 : 0.24;
             foreach (TerritoryBlock t in p.Territory)
@@ -276,6 +321,7 @@ public static class WorldLens
                 d.Rect(new RectD(x, y, s + 0.6, s + 0.6), A(PolityInk(t.Polity, p.PlayerPolity), alpha));
             }
         }
+        Charge(MapLayer.Territory);
 
         if (On(WorldLayer.Roads) || On(WorldLayer.MajorInfrastructure))
         {
@@ -289,6 +335,7 @@ public static class WorldLens
                 d.Line(x0, y0, x1, y1, A(Rgba.Hex(0x6B4A2A), major ? 0.75 : 0.95), w, major ? (4, 3) : null);
             }
         }
+        Charge(MapLayer.Paths);
 
         foreach (SettlementLensView s in p.Settlements)
         {
@@ -305,11 +352,13 @@ public static class WorldLens
                 if (s.IsCapital) Star(d, sx, sy, r * 0.75, Rgba.Hex(0xFFF1C4));
                 d.Text(sx, sy + r + 5, s.Name, 12.5, ink, TextAlign.Center, FontRole.Heading);
             }
-            else PaintMorphology(d, m, p, s, sx, sy, scale, zoom, On);
+            else PaintMorphology(d, m, p, s, sx, sy, scale, zoom, On, Charge, institutions);
+            if (s.Id == selected) d.Circle(sx, sy, (zoom == WorldZoom.World ? 20 : FootprintRadius(s, scale, zoom) + 8), null, Rgba.Hex(0xFFD25A), 2.4);
+            Charge(MapLayer.SettlementMarkers);
 
             if (On(WorldLayer.AgeBanners) && s.Age > 0 && s.Controller >= 0)
                 Banner(d, m, sx, sy - (zoom == WorldZoom.World ? 18 : FootprintRadius(s, scale, zoom) + 14), s.Age, pol, s.IsCapital);
-            if (s.Id == selected) d.Circle(sx, sy, (zoom == WorldZoom.World ? 20 : FootprintRadius(s, scale, zoom) + 8), null, Rgba.Hex(0xFFD25A), 2.4);
+            Charge(MapLayer.AgeBanners);
         }
 
         if (On(WorldLayer.MilitaryFormations))
@@ -335,7 +384,8 @@ public static class WorldLens
                 unitTokens.Add(u.Id);
             }
         }
-        return new LensFrame(zoom, layers, unitTokens, drawn);
+        Charge(MapLayer.UnitTokens);
+        return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions);
     }
 
     private static double FootprintRadius(SettlementLensView s, double scale, WorldZoom z)
@@ -346,7 +396,8 @@ public static class WorldLens
     }
 
     private static void PaintMorphology(DrawList d, ITextMeasure m, WorldProjection p, SettlementLensView s,
-        double sx, double sy, double scale, WorldZoom zoom, Func<WorldLayer, bool> on)
+        double sx, double sy, double scale, WorldZoom zoom, Func<WorldLayer, bool> on,
+        Action<MapLayer> charge, List<InstitutionMarker> institutions)
     {
         Rgba ink = Rgba.Hex(0x3A2E1F);
         Rgba pol = PolityInk(s.Controller, p.PlayerPolity);
@@ -388,23 +439,48 @@ public static class WorldLens
         d.Circle(sx, sy, Math.Max(5, r / 6), pol, ink, 1.2);
         if (s.IsCapital) Star(d, sx, sy, Math.Max(4, r / 7), Rgba.Hex(0xFFF1C4));
 
+        charge(MapLayer.SettlementMarkers);
         if (on(WorldLayer.InstitutionalPresence) || on(WorldLayer.InstitutionTypes))
         {
-            // Embedded institution glyphs on the inner ring — one per structure KIND, with counts at settlement zoom.
+            // Embedded institution glyphs inside the footprint — one per structure KIND and one per
+            // university TYPE (aggregated), with names and counts at settlement zoom.
+            bool named = on(WorldLayer.InstitutionTypes);
+            int total = s.Structures.Count + s.Universities.Count;
+            double g = zoom == WorldZoom.Settlement ? 9 : 6;
+            double ring = r * (zoom == WorldZoom.Settlement ? 0.42 : 0.4);
             int k = 0;
+            // Settlement zoom: a key beside the footprint (left, right-aligned) names each embedded glyph
+            // with its aggregated count, so labels never overprint the footprint or each other.
+            void Key(int i, string label, long count, Action<double, double> glyph)
+            {
+                double ky = sy - total * 9 + i * 18 + 9;
+                double kx = sx - r - 18;
+                glyph(kx, ky);
+                d.Text(kx - 12, ky - 7, label + (count > 1 ? " x" + count.ToString(CultureInfo.InvariantCulture) : ""), 11, ink, TextAlign.Right, FontRole.Caps);
+            }
+            (double, double) Slot(int i)
+            {
+                double a = -Math.PI / 2 + Math.PI * 2 * i / Math.Max(1, total);
+                return (sx + Math.Cos(a) * ring, sy + Math.Sin(a) * ring);
+            }
             foreach (StructureView st in s.Structures)
             {
-                double a = -Math.PI / 2 + k * 0.9;
-                double gx = sx + Math.Cos(a) * r * 0.32, gy = sy + Math.Sin(a) * r * 0.32;
-                double g = zoom == WorldZoom.Settlement ? 9 : 6;
+                (double gx, double gy) = Slot(k++);
                 StructureGlyph(d, gx, gy, g, st.Kind);
-                if (on(WorldLayer.InstitutionTypes))
-                    d.Text(gx + g + 3, gy - 6, st.Name + (st.Count > 1 ? " x" + st.Count.ToString(CultureInfo.InvariantCulture) : ""), 11, ink, TextAlign.Left, FontRole.Caps);
-                k++;
+                if (named) Key(k - 1, st.Name, st.Count, (x, y) => StructureGlyph(d, x, y, 7, st.Kind));
+                institutions.Add(new InstitutionMarker(s.Id, "structure:" + st.ProjectId.ToString(CultureInfo.InvariantCulture), st.Count));
             }
-            if (s.Notables > 0 && on(WorldLayer.InstitutionTypes))
-                d.Text(sx, sy + r * 0.32 + 6, s.Notables.ToString(CultureInfo.InvariantCulture) + " notable(s) resident", 10.5, A(ink, 0.8), TextAlign.Center);
+            foreach (UniversityView u in s.Universities)
+            {
+                (double gx, double gy) = Slot(k++);
+                UniversityGlyph(d, gx, gy, g, u.TypeKey);
+                if (named) Key(k - 1, u.Name, u.Count, (x, y) => UniversityGlyph(d, x, y, 7, u.TypeKey));
+                institutions.Add(new InstitutionMarker(s.Id, "university:" + u.TypeKey.ToString(CultureInfo.InvariantCulture), u.Count));
+            }
+            if (s.Notables > 0 && named)
+                d.Text(sx, sy + r * 0.12 + 6, s.Notables.ToString(CultureInfo.InvariantCulture) + " notable(s) resident", 10.5, A(ink, 0.8), TextAlign.Center);
         }
+        charge(MapLayer.InstitutionMarkers);
 
         if (on(WorldLayer.ProductionSignals) && s.Sectors is not null)
         {
@@ -483,6 +559,39 @@ public static class WorldLens
             default:
                 d.Rect(new RectD(x - g / 2, y - g / 2, g, g), Rgba.Hex(0x9A8F7A), ink, 1);
                 break;
+        }
+    }
+
+    /// <summary>Fill of each specialized-university type (keys 1..5: military, medical, engineering,
+    /// natural science, agricultural) — five distinct inks and five distinct emblems.</summary>
+    public static Rgba UniversityInk(int typeKey) => typeKey switch
+    {
+        1 => Rgba.Hex(0x8E3B32),   // military: oxblood
+        2 => Rgba.Hex(0xE8E2D0),   // medical: bone white
+        3 => Rgba.Hex(0x4F6F8F),   // engineering: slate blue
+        4 => Rgba.Hex(0x3E7A6A),   // natural science: verdigris
+        5 => Rgba.Hex(0x9AA344),   // agricultural: barley green
+        _ => Rgba.Hex(0x9A8F7A),
+    };
+
+    /// <summary>A university glyph: a pedimented hall (the institution) in the type's ink, with the
+    /// type's emblem on its face — crossed blades, a cross, a gear, an eye/orbit, a sheaf.</summary>
+    public static void UniversityGlyph(DrawList d, double x, double y, double g, int typeKey)
+    {
+        Rgba ink = Rgba.Hex(0x1E1810);
+        Rgba fill = UniversityInk(typeKey);
+        Rgba mark = typeKey == 2 ? Rgba.Hex(0x9B2B2B) : Rgba.Hex(0xF4EBD3);
+        d.Polygon([(x - g * 0.85, y - g * 0.35), (x, y - g * 0.95), (x + g * 0.85, y - g * 0.35)], ink);
+        d.Rect(new RectD(x - g * 0.75, y - g * 0.35, g * 1.5, g * 1.15), fill, ink, 1);
+        double e = g * 0.38, cy = y + g * 0.22;
+        switch (typeKey)
+        {
+            case 1: d.Line(x - e, cy - e, x + e, cy + e, mark, 1.6); d.Line(x - e, cy + e, x + e, cy - e, mark, 1.6); break;
+            case 2: d.Rect(new RectD(x - e * 0.3, cy - e, e * 0.6, e * 2), mark); d.Rect(new RectD(x - e, cy - e * 0.3, e * 2, e * 0.6), mark); break;
+            case 3: d.Circle(x, cy, e * 0.75, null, mark, 1.6); for (int i = 0; i < 6; i++) { double a = Math.PI * i / 3; d.Line(x + Math.Cos(a) * e * 0.75, cy + Math.Sin(a) * e * 0.75, x + Math.Cos(a) * e * 1.1, cy + Math.Sin(a) * e * 1.1, mark, 1.4); } break;
+            case 4: d.Circle(x, cy, e * 0.35, mark, null); d.Circle(x, cy, e, null, mark, 1.1); break;
+            case 5: d.Line(x, cy + e, x, cy - e, mark, 1.4); d.Line(x, cy - e * 0.2, x - e * 0.7, cy - e * 0.9, mark, 1.2); d.Line(x, cy - e * 0.2, x + e * 0.7, cy - e * 0.9, mark, 1.2); break;
+            default: d.Circle(x, cy, e * 0.5, mark, null); break;
         }
     }
 

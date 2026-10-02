@@ -30,7 +30,6 @@ public sealed class SimUiGame : Game
     private SpriteBatch? _spriteBatch;
     private Texture2D? _terrainTexture;
     private float _terrainDrawScale = 1f;
-    private Texture2D? _markerTexture;
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
 
@@ -57,27 +56,12 @@ public sealed class SimUiGame : Game
     private int _latticeStride;
 
     private VertexBuffer? _riverVertices;
-    private VertexBuffer? _pathVertices;
-    private int _pathVersion = -1;      // NetworkEdges.Count when path mesh was built
-    private VertexBuffer?[] _territoryVertices = [];  // T2.4: one tinted mesh per settlement
-    private long _catchmentVersion = -1; // Σ LastRecomputeTurn when fills were built
     private BasicEffect? _worldEffect;
     private static readonly RasterizerState WorldRasterizer = new()
     {
         CullMode = CullMode.None,
         MultiSampleAntiAlias = true, // ADR-009: MSAA is the anti-aliasing choice
     };
-
-    /// <summary>Built paths draw in INK-SOFT (§2) — a cartographer's road
-    /// hatch, not a colored line. Symbology (road tiers, trade) is DEFERRED.</summary>
-    private static readonly Color PathColor = new(
-        ParchmentPalette.InkSoft.R, ParchmentPalette.InkSoft.G, ParchmentPalette.InkSoft.B, (byte)235);
-
-    /// <summary>Territory fill alpha. Style-bible §2 rule: the twelve political
-    /// colors are INK WASHES over parchment, not opaque fills — ~35% strength,
-    /// so the paper and its terrain washes read through every territory.</summary>
-    private static readonly byte TerritoryAlpha =
-        (byte)Math.Round(255 * ParchmentPalette.TerritoryWashStrength);
 
     private bool _showCatchment = true; // T2.4: political geography on by default
     // T3.9b: the five-sector control's widget state (raw weight percentages,
@@ -261,13 +245,11 @@ public sealed class SimUiGame : Game
         _lattice = TraversalLattice.Build(_world.Terrain, _displayCfg.Transport.RiverCostFactor);
         _latticeStride = OverlayMeshes.LatticeStride(_lattice, size);
 
-        _markerTexture = UploadArt(_art.Get("ui/settlement-marker"));
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
 
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
         RefreshHud(syncSlider: true);
-        RebuildOverlays();
     }
 
     // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
@@ -312,36 +294,6 @@ public sealed class SimUiGame : Game
         var texture = new Texture2D(GraphicsDevice, image.Width, image.Height, false, SurfaceFormat.Color);
         texture.SetData(image.Rgba);
         return texture;
-    }
-
-    private void RebuildOverlays()
-    {
-        if (_world.NetworkEdges.Count != _pathVersion)
-        {
-            _pathVertices?.Dispose();
-            _pathVertices = MakeBuffer(
-                OverlayMeshes.BuildPaths(_world, _lattice!.Size, _latticeStride), PathColor);
-            _pathVersion = _world.NetworkEdges.Count;
-        }
-
-        long catchmentVersion = 0;
-        for (int i = 0; i < _world.CatchmentSummaries.Count; i++)
-            catchmentVersion += _world.CatchmentSummaries[i].LastRecomputeTurn + 1;
-        if (catchmentVersion != _catchmentVersion)
-        {
-            // T2.4: the partition as political geography — one translucent
-            // mesh per settlement, tinted from the deterministic palette.
-            foreach (VertexBuffer? buffer in _territoryVertices) buffer?.Dispose();
-            LineGeometry.Vertex[][] fills =
-                OverlayMeshes.BuildTerritoryFills(_world, _lattice!.Size, _latticeStride);
-            _territoryVertices = new VertexBuffer?[fills.Length];
-            for (int s = 0; s < fills.Length; s++)
-            {
-                ParchmentPalette.Rgba ink = ParchmentPalette.TerritoryInk(_world.Settlements[s].Id.Value);
-                _territoryVertices[s] = MakeBuffer(fills[s], new Color(ink.R, ink.G, ink.B, TerritoryAlpha));
-            }
-            _catchmentVersion = catchmentVersion;
-        }
     }
 
     /// <summary>Rebuilds the cached HUD snapshot for the current selection;
@@ -429,7 +381,6 @@ public sealed class SimUiGame : Game
             }
         }
         RefreshHud(syncSlider: false);
-        RebuildOverlays();
         SaveSession();
     }
 
@@ -650,7 +601,7 @@ public sealed class SimUiGame : Game
         var lens = new Sim.Ui.Render.DrawList();
         Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
             (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
-            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected);
+            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment);
         _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
 
         if (_session.Config.Ages is null) return;
@@ -763,50 +714,17 @@ public sealed class SimUiGame : Game
             0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
         _spriteBatch.End();
 
-        // World-space vector layers: catchment fill (toggle) under paths under rivers.
+        // World-space vector layers. Layer ownership (Sim.Ui/World/MapLayers.cs): this GPU pass owns
+        // ONLY the terrain bake (above) and the vector rivers. Territory, paths, settlement markers and
+        // names, formations, institutions and Age banners are owned by the WorldLens (drawn in
+        // DrawWorldLensAndAge) — the legacy catchment fills, path mesh and marker sprites are no longer
+        // drawn here, so no layer appears twice.
         _worldEffect!.World = transform;
         _worldEffect.Projection = Matrix.CreateOrthographicOffCenter(
             0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
         GraphicsDevice.RasterizerState = WorldRasterizer;
-        GraphicsDevice.BlendState = BlendState.NonPremultiplied; // translucent fill needs alpha
-        if (_showCatchment)
-        {
-            foreach (VertexBuffer? territory in _territoryVertices)
-                DrawWorldBuffer(territory);
-        }
-        DrawWorldBuffer(_pathVertices);
+        GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         DrawWorldBuffer(_riverVertices);
-
-        // Settlement markers: world-anchored, constant SCREEN size — readable at
-        // every zoom by construction (no transform on the sprite pass).
-        // NonPremultiplied: our textures carry straight alpha from the PNG
-        // (UploadArt does not premultiply); SpriteBatch's default AlphaBlend
-        // assumes premultiplied and would rim the real marker's antialiased
-        // edge with a bright halo. The ImGui pass already draws straight alpha.
-        _spriteBatch.Begin(samplerState: SamplerState.LinearClamp, blendState: BlendState.NonPremultiplied);
-        for (int i = 0; i < _world.Settlements.Count; i++)
-        {
-            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
-                _world.Settlements[i], _world.Terrain!.Size);
-            (double sx, double sy) = cam.WorldToScreen(
-                position.X, position.Y, viewport.Width, viewport.Height);
-            const float markerPx = (float)SettlementSelection.MarkerScreenPx;
-            bool isSelected = _world.Settlements[i].Id.Value == _selected;
-            if (isSelected)
-            {
-                // T2.4: the selected marker is unmistakable — a gold halo ring
-                // behind an enlarged marker.
-                const float haloPx = markerPx + 10f;
-                _spriteBatch.Draw(_markerTexture,
-                    new Rectangle((int)(sx - haloPx / 2), (int)(sy - haloPx / 2),
-                        (int)haloPx, (int)haloPx), new Color(0xFF, 0xD2, 0x5A, 0xFF));
-            }
-            float drawPx = isSelected ? markerPx + 4f : markerPx;
-            _spriteBatch.Draw(_markerTexture,
-                new Rectangle((int)(sx - drawPx / 2), (int)(sy - drawPx / 2),
-                    (int)drawPx, (int)drawPx), Color.White);
-        }
-        _spriteBatch.End();
 
         DrawHud(gameTime);
         DrawGrainOverlay();   // §4 item 2: multiplied over EVERYTHING, UI included
@@ -849,7 +767,6 @@ public sealed class SimUiGame : Game
     /// AfterLayout, so DrawHud calls it.</summary>
     private void DrawNameLabels()
     {
-        ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
         Rectangle viewport = Viewport();
         const float markerPx = (float)SettlementSelection.MarkerScreenPx;
         _labelRects.Clear();
@@ -862,9 +779,8 @@ public sealed class SimUiGame : Game
             string name = _session.Names.Name(_world.Settlements[i].Id.Value);
             var pos = new System.Numerics.Vector2(
                 (float)sx + markerPx / 2f + 4f, (float)sy - markerPx / 2f);
-            // Shadowed for readability over any terrain color.
-            drawList.AddText(pos + new System.Numerics.Vector2(1, 1), 0xE0000000u, name);
-            drawList.AddText(pos, 0xFFE8DCC0u, name); // parchment
+            // The name TEXT is the WorldLens's (MapLayer.SettlementMarkers owner); only the click
+            // target is kept here, so a name is never drawn twice.
             // D-A2: the label is part of the click target. The rect is
             // measured HERE (the renderer owns font metrics) and handed to
             // the pure view-model — ImGui never crosses into SettlementSelection.

@@ -212,8 +212,22 @@ public static class AgePreview
         foreach (string a in p.Absent) { d.Text(r.X + 12, y, a, 10.5, Rgba(0x8C4A3A)); y += 15; }
     }
 
+    /// <summary>The world lens of any session at a zoom, over the game's terrain bake, with the legend —
+    /// as an SVG string (used by tests to preview constructed fixture worlds; writes nothing).</summary>
+    public static string LensSvg(UiSession session, WorldZoom zoom, string? fontDir = null) =>
+        Svg(fontDir, d => PaintLens(d, session, zoom, false), TerrainDataUri(session.World), zoom, session, false);
+
     private static string Write(string outDir, string? fontDir, string name, Action<DrawList> paint, string? terrain,
         WorldZoom zoom = WorldZoom.World, UiSession? session = null, bool capitalLeft = false)
+    {
+        string svg = Svg(fontDir, paint, terrain, zoom, session, capitalLeft);
+        string path = Path.Combine(outDir, name + ".svg");
+        File.WriteAllText(path, svg);
+        return path;
+    }
+
+    private static string Svg(string? fontDir, Action<DrawList> paint, string? terrain,
+        WorldZoom zoom, UiSession? session, bool capitalLeft)
     {
         var d = new DrawList();
         paint(d);
@@ -227,9 +241,7 @@ public static class AgePreview
             int at = svg.IndexOf("</style>\n", StringComparison.Ordinal);
             svg = svg.Insert(at < 0 ? 0 : at + 9, "<rect x=\"0\" y=\"0\" width=\"1600\" height=\"1000\" fill=\"#7f97a0\"/>\n" + img + "\n");
         }
-        string path = Path.Combine(outDir, name + ".svg");
-        File.WriteAllText(path, svg);
-        return path;
+        return svg;
     }
 
     /// <summary>The parchment terrain bake of the real world as a PNG data URI (the game's own map art).</summary>
