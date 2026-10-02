@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "status": "PROVISIONAL",
+  "_doc": [
+    "ADR-031 (D-047 Parts 2-3, ruling 18; D-043 A8, B5). Civilization-wide generic UNIT FAMILIES. A family is a military ROLE that persists across Ages; each Age changes how the role is REALIZED (the identity). Civ VI upgrade lines and Age of Empires II unit lines are referenced for the PATTERN only (role persists, realization changes); no list or statistic is copied.",
+    "NO COMBAT STATISTICS. Attack, defence, range and movement are deferred to the military-capability architecture (D-043 A8; D-011 battle layer). Nothing here is read by any combat equation, because none exists.",
+    "line: the family's identities in Age order. identity.age is the first Age in which that identity is the family's realization. The family's realization at Age A is the identity with the greatest age <= A. A family with no identity at or below A does not exist yet at A.",
+    "MODERNIZATION (ruling 18 - automatic and free at Age transition): a unit of identity I in family F converts, when its owner enters Age A, to F's realization at A when that is a later identity than I. If F has no later identity by A the unit is PRESERVED unchanged until one exists. If F's line has ENDED (lineEndsAfterAge < A) the noSuccessor rule applies: preserve, or convert to the named generic family's realization at A. Location, ownership, experience and army membership are preserved.",
+    "equipment is DECLARATIVE: what a realization historically required. It is consumed by nothing - free modernization creates and destroys no conserved stock (law 1; CR-017 §4). realizedBy names the research.json unit entity whose knowledge requirement the identity corresponds to, where one exists; it gates nothing here.",
+    "composition: army_formation = internal composition of an Army MobileAgent (B5: one banner, internal formations); mobile_agent = itself a MobileAgent token (fleets, air wings, strategic forces). Recruitment, movement, supply and Action Capacity are NOT implemented (later milestones)."
+  ],
+  "founding": {
+    "identity": "warband",
+    "formationsPerPolity": 1,
+    "basis": "research.json baseline.basic_military ('Basic military (clubmen or equivalent)') is BASELINE: every founded Empire fields one warband at its capital. A formation token only - no personnel are drawn from the population (people stay conserved in Buckets), no goods are consumed, no combat exists (D-011 deferred)."
+  },
+  "families": [
+    {
+      "key": 1, "id": "light_infantry", "name": "Light Infantry / Scout",
+      "role": "Reconnaissance, screening and skirmishing ahead of the main force.",
+      "historicalEmergence": "Prehistoric hunting parties; formalized skirmishers in the Bronze and Iron Ages.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 101, "id": "scouts", "name": "Scouts", "age": 1, "historicalEmergence": "hunter-scouts", "equipment": ["light spears or throwing sticks"], "reference": "Civ VI Scout" },
+        { "key": 102, "id": "skirmishers", "name": "Skirmishers", "age": 3, "historicalEmergence": "Bronze Age javelin skirmishers", "equipment": ["javelins", "light shields"], "reference": "Civ VI Skirmisher" },
+        { "key": 103, "id": "light_auxiliaries", "name": "Light auxiliaries", "age": 5, "historicalEmergence": "Classical auxilia and peltasts", "equipment": ["javelins", "iron weapons"] },
+        { "key": 104, "id": "rangers", "name": "Rangers", "age": 7, "historicalEmergence": "Early modern rangers and jagers", "equipment": ["rifled firearms"], "reference": "Civ VI Ranger" },
+        { "key": 105, "id": "special_forces", "name": "Special forces", "age": 9, "historicalEmergence": "Twentieth-century special operations", "equipment": ["automatic weapons", "radios"], "reference": "Civ VI Spec Ops" }
+      ]
+    },
+    {
+      "key": 2, "id": "spear_anti_cavalry", "name": "Spear / Anti-Cavalry Infantry",
+      "role": "Close-order infantry that holds a line against mounted attack.",
+      "historicalEmergence": "Composite-hafted spears (Neolithic); hoplite and phalanx formations; medieval pike.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "lineEndsAfterAge": 7,
+      "noSuccessor": { "rule": "generic", "family": "heavy_infantry", "note": "The socket bayonet made the pike obsolete: from the Industrial Age the anti-cavalry role is absorbed by line infantry." },
+      "line": [
+        { "key": 201, "id": "spearmen", "name": "Spearmen", "age": 2, "historicalEmergence": "composite-hafted spears", "equipment": ["hafted spears"], "realizedBy": "unit.spearmen", "reference": "Civ VI Spearman; AoE II Spearman" },
+        { "key": 202, "id": "phalanx", "name": "Phalanx", "age": 4, "historicalEmergence": "Iron Age hoplite phalanx", "equipment": ["iron spearheads", "large shields", "armour"] },
+        { "key": 203, "id": "pikemen", "name": "Pikemen", "age": 6, "historicalEmergence": "medieval pike squares", "equipment": ["pikes"], "reference": "Civ VI Pikeman; AoE II Pikeman" },
+        { "key": 204, "id": "pike_and_shot", "name": "Pike and shot", "age": 7, "historicalEmergence": "tercio pike blocks", "equipment": ["pikes", "matchlocks"], "reference": "Civ VI Pike and Shot" }
+      ]
+    },
+    {
+      "key": 3, "id": "heavy_infantry", "name": "Heavy Infantry / Line Infantry",
+      "role": "The main battle infantry: shock and holding power in close combat, later the line of fire.",
+      "historicalEmergence": "Founding warbands; bronze- and iron-armed heavy infantry; men-at-arms; musket and rifle infantry.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 301, "id": "warband", "name": "Warband", "age": 1, "historicalEmergence": "the founding fighting men (baseline.basic_military)", "equipment": ["clubs", "stone-tipped weapons"], "reference": "Civ VI Warrior; AoE II Militia" },
+        { "key": 302, "id": "bronze_swordsmen", "name": "Bronze-armed infantry", "age": 3, "historicalEmergence": "Bronze Age armoured infantry", "equipment": ["bronze weapons", "shields"], "reference": "Civ VI Swordsman" },
+        { "key": 303, "id": "iron_infantry", "name": "Iron-armed heavy infantry", "age": 4, "historicalEmergence": "Iron Age heavy infantry", "equipment": ["iron weapons", "mail"] },
+        { "key": 304, "id": "legion", "name": "Legionary infantry", "age": 5, "historicalEmergence": "Classical professional heavy infantry", "equipment": ["iron weapons", "armour", "standardized kit"] },
+        { "key": 305, "id": "men_at_arms", "name": "Men-at-arms", "age": 6, "historicalEmergence": "medieval armoured infantry", "equipment": ["steel weapons", "plate or mail"], "reference": "Civ VI Man-at-Arms; AoE II Man-at-Arms" },
+        { "key": 306, "id": "musketeers", "name": "Musket infantry", "age": 7, "historicalEmergence": "early modern musket infantry", "equipment": ["matchlocks or flintlocks", "gunpowder"], "realizedBy": "unit.musketeers", "reference": "Civ VI Musketman" },
+        { "key": 307, "id": "line_infantry", "name": "Rifle line infantry", "age": 8, "historicalEmergence": "industrial rifle infantry", "equipment": ["rifles", "bayonets"], "reference": "Civ VI Line Infantry" },
+        { "key": 308, "id": "mechanized_infantry", "name": "Mechanized infantry", "age": 9, "historicalEmergence": "twentieth-century infantry", "equipment": ["automatic rifles", "motor transport"], "reference": "Civ VI Infantry / Mechanized Infantry" }
+      ]
+    },
+    {
+      "key": 4, "id": "ranged_infantry", "name": "Ranged Infantry",
+      "role": "Infantry that fights at range: missile fire and, later, crew-served direct fire.",
+      "historicalEmergence": "Slings and simple bows (Prehistoric); composite bows; crossbows and longbows; firearms.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [
+        { "atAge": 6, "identities": ["crossbowmen", "longbowmen"], "rule": "The Medieval line branches: crossbowmen are the mainline realization; longbowmen are a regional branch (unit.longbowmen). Automatic conversion always follows the mainline, so it is deterministic." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 401, "id": "slingers", "name": "Slingers", "age": 1, "historicalEmergence": "the sling", "equipment": ["slings"], "realizedBy": "unit.slingers", "reference": "Civ VI Slinger" },
+        { "key": 402, "id": "archers", "name": "Archers", "age": 2, "historicalEmergence": "the simple bow", "equipment": ["simple bows"], "realizedBy": "unit.archers", "reference": "Civ VI Archer; AoE II Archer" },
+        { "key": 403, "id": "composite_archers", "name": "Composite-bow archers", "age": 4, "historicalEmergence": "the composite bow", "equipment": ["composite bows"] },
+        { "key": 404, "id": "crossbowmen", "name": "Crossbowmen", "age": 6, "historicalEmergence": "the crossbow", "equipment": ["crossbows"], "realizedBy": "unit.crossbowmen", "reference": "Civ VI Crossbowman; AoE II Crossbowman" },
+        { "key": 405, "id": "longbowmen", "name": "Longbowmen", "age": 6, "branch": true, "historicalEmergence": "the longbow (regional branch)", "equipment": ["longbows"], "realizedBy": "unit.longbowmen" },
+        { "key": 406, "id": "arquebusiers", "name": "Arquebusiers", "age": 7, "historicalEmergence": "early firearms as missile troops", "equipment": ["arquebuses", "gunpowder"] },
+        { "key": 407, "id": "sharpshooters", "name": "Sharpshooters", "age": 8, "historicalEmergence": "rifled marksmen", "equipment": ["rifles"] },
+        { "key": 408, "id": "machine_gun_teams", "name": "Machine-gun teams", "age": 9, "historicalEmergence": "crew-served automatic weapons", "equipment": ["machine guns"], "reference": "Civ VI Machine Gun" }
+      ]
+    },
+    {
+      "key": 5, "id": "light_cavalry", "name": "Mounted Scout / Light Cavalry",
+      "role": "Fast mounted reconnaissance, raiding and pursuit.",
+      "historicalEmergence": "Horse domestication (Bronze Age); Iron Age riders; hussars; armoured cars.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 501, "id": "horse_scouts", "name": "Mounted scouts", "age": 3, "historicalEmergence": "early riders", "equipment": ["horses"] },
+        { "key": 502, "id": "light_horse", "name": "Light horse", "age": 4, "historicalEmergence": "Iron Age cavalry", "equipment": ["horses", "iron weapons"], "reference": "Civ VI Horseman; AoE II Scout Cavalry" },
+        { "key": 503, "id": "light_lancers", "name": "Light lancers", "age": 6, "historicalEmergence": "medieval light cavalry", "equipment": ["horses", "lances"], "reference": "AoE II Light Cavalry" },
+        { "key": 504, "id": "hussars", "name": "Hussars", "age": 7, "historicalEmergence": "early modern light cavalry", "equipment": ["horses", "sabres", "pistols"], "reference": "AoE II Hussar" },
+        { "key": 505, "id": "carbine_cavalry", "name": "Carbine cavalry", "age": 8, "historicalEmergence": "industrial light cavalry", "equipment": ["horses", "carbines"], "reference": "Civ VI Cavalry" },
+        { "key": 506, "id": "armoured_reconnaissance", "name": "Armoured reconnaissance", "age": 9, "historicalEmergence": "armoured cars and reconnaissance vehicles", "equipment": ["armoured vehicles", "fuel"] }
+      ]
+    },
+    {
+      "key": 6, "id": "heavy_cavalry", "name": "Heavy Cavalry",
+      "role": "Shock troops: mounted (later armoured) units that break enemy lines.",
+      "historicalEmergence": "Chariots (Bronze Age); cataphracts and knights; cuirassiers; tanks.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 601, "id": "chariots", "name": "Chariots", "age": 3, "historicalEmergence": "the war chariot", "equipment": ["spoked-wheel chariots", "horses"], "realizedBy": "unit.chariot", "reference": "Civ VI Heavy Chariot" },
+        { "key": 602, "id": "cataphracts", "name": "Cataphracts", "age": 5, "historicalEmergence": "armoured cavalry", "equipment": ["horses", "scale armour"] },
+        { "key": 603, "id": "knights", "name": "Knights", "age": 6, "historicalEmergence": "stirrup-borne shock cavalry", "equipment": ["horses", "stirrups", "plate armour"], "realizedBy": "unit.heavy_cavalry", "reference": "Civ VI Knight; AoE II Knight" },
+        { "key": 604, "id": "cuirassiers", "name": "Cuirassiers", "age": 7, "historicalEmergence": "armoured pistol cavalry", "equipment": ["horses", "cuirasses", "pistols"], "reference": "Civ VI Cuirassier" },
+        { "key": 605, "id": "tanks", "name": "Tanks", "age": 9, "historicalEmergence": "the tank", "equipment": ["armoured vehicles", "fuel"], "realizedBy": "unit.tank", "reference": "Civ VI Tank" }
+      ]
+    },
+    {
+      "key": 7, "id": "ranged_cavalry", "name": "Ranged Cavalry",
+      "role": "Mounted missile troops: harassment and fire on the move.",
+      "historicalEmergence": "Horse archers (Iron Age steppe); mounted crossbowmen; dragoons.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "lineEndsAfterAge": 7,
+      "noSuccessor": { "rule": "generic", "family": "light_cavalry", "note": "Mounted missile troops became carbine-armed light cavalry; from the Industrial Age the role is absorbed by the light-cavalry line." },
+      "line": [
+        { "key": 701, "id": "horse_archers", "name": "Horse archers", "age": 4, "historicalEmergence": "steppe horse archery", "equipment": ["horses", "composite bows"], "realizedBy": "unit.horse_archers", "reference": "AoE II Cavalry Archer" },
+        { "key": 702, "id": "mounted_crossbowmen", "name": "Mounted crossbowmen", "age": 6, "historicalEmergence": "medieval mounted missile troops", "equipment": ["horses", "crossbows"] },
+        { "key": 703, "id": "dragoons", "name": "Dragoons", "age": 7, "historicalEmergence": "mounted firearm infantry", "equipment": ["horses", "muskets"] }
+      ]
+    },
+    {
+      "key": 8, "id": "siege", "name": "Siege",
+      "role": "Breaching fortifications and, later, indirect fire support.",
+      "historicalEmergence": "Rams and towers (Iron Age); torsion engines; trebuchets; gunpowder artillery.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 801, "id": "siege_rams", "name": "Rams and siege towers", "age": 4, "historicalEmergence": "the battering ram and siege tower", "equipment": ["timber"], "realizedBy": "unit.siege_engine", "reference": "Civ VI Battering Ram; AoE II Battering Ram" },
+        { "key": 802, "id": "torsion_engines", "name": "Torsion engines", "age": 5, "historicalEmergence": "catapults and ballistae", "equipment": ["timber", "sinew cord"], "reference": "Civ VI Catapult" },
+        { "key": 803, "id": "trebuchets", "name": "Trebuchets", "age": 6, "historicalEmergence": "counterweight trebuchet", "equipment": ["timber", "iron fittings"], "reference": "Civ VI Trebuchet; AoE II Trebuchet" },
+        { "key": 804, "id": "bombards", "name": "Bombards", "age": 7, "historicalEmergence": "gunpowder siege artillery", "equipment": ["cast cannon", "gunpowder"], "realizedBy": "unit.artillery", "reference": "Civ VI Bombard" },
+        { "key": 805, "id": "field_artillery", "name": "Field artillery", "age": 8, "historicalEmergence": "industrial rifled artillery", "equipment": ["steel guns", "shells"], "reference": "Civ VI Field Cannon / Artillery" },
+        { "key": 806, "id": "rocket_artillery", "name": "Rocket artillery", "age": 9, "historicalEmergence": "self-propelled and rocket artillery", "equipment": ["rockets", "vehicles"], "reference": "Civ VI Rocket Artillery" }
+      ]
+    },
+    {
+      "key": 9, "id": "naval_combat", "name": "Naval Combat",
+      "role": "Fighting ships: control of rivers, coasts and seas.",
+      "historicalEmergence": "Ram-armed war galleys (Iron Age); sailing warships; steam ironclads; modern navies.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["destroyers", "nuclear_submarines", "aircraft_carriers"], "rule": "The Modern line branches into surface, submarine and carrier forces; automatic conversion follows the mainline (destroyers)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 901, "id": "war_galleys", "name": "War galleys", "age": 4, "historicalEmergence": "the naval ram", "equipment": ["timber hulls", "rams"], "realizedBy": "unit.war_galley", "reference": "Civ VI Galley" },
+        { "key": 902, "id": "quinqueremes", "name": "Heavy galleys", "age": 5, "historicalEmergence": "Classical heavy galleys", "equipment": ["timber hulls", "rams", "boarding bridges"], "reference": "Civ VI Quadrireme" },
+        { "key": 903, "id": "war_cogs", "name": "War cogs", "age": 6, "historicalEmergence": "medieval sailing warships", "equipment": ["timber hulls", "sails"] },
+        { "key": 904, "id": "ships_of_the_line", "name": "Ships of the line", "age": 7, "historicalEmergence": "the broadside sailing warship", "equipment": ["timber hulls", "cast cannon"], "realizedBy": "unit.ship_of_the_line", "reference": "Civ VI Frigate" },
+        { "key": 905, "id": "ironclads", "name": "Steam warships", "age": 8, "historicalEmergence": "screw-driven iron warships", "equipment": ["iron hulls", "steam engines", "coal"], "realizedBy": "unit.ironclad", "reference": "Civ VI Ironclad" },
+        { "key": 906, "id": "destroyers", "name": "Destroyers", "age": 9, "historicalEmergence": "modern surface combatants", "equipment": ["steel hulls", "turbines", "fuel"], "reference": "Civ VI Destroyer" },
+        { "key": 907, "id": "nuclear_submarines", "name": "Nuclear submarines", "age": 9, "branch": true, "historicalEmergence": "nuclear submarines (branch)", "equipment": ["reactors"], "realizedBy": "unit.nuclear_submarine" },
+        { "key": 908, "id": "aircraft_carriers", "name": "Aircraft carriers", "age": 9, "branch": true, "historicalEmergence": "carrier aviation (branch)", "equipment": ["steel hulls", "aircraft"], "realizedBy": "unit.aircraft_carrier" }
+      ]
+    },
+    {
+      "key": 10, "id": "naval_transport", "name": "Naval Transport",
+      "role": "Moving armies and supplies over water.",
+      "historicalEmergence": "Primitive shore-hugging craft (baseline); plank boats; seagoing and oceanic hulls; steam and motor transports.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1001, "id": "shore_craft", "name": "Shore craft", "age": 1, "historicalEmergence": "primitive riverine and coastal craft (baseline.primitive_water_transport)", "equipment": ["timber or reed"] },
+        { "key": 1002, "id": "plank_boats", "name": "Plank-built boats", "age": 3, "historicalEmergence": "plank-built hulls and the square sail", "equipment": ["timber hulls", "sails"] },
+        { "key": 1003, "id": "seagoing_transports", "name": "Seagoing transports", "age": 6, "historicalEmergence": "cogs and seagoing cargo hulls", "equipment": ["timber hulls", "sails"] },
+        { "key": 1004, "id": "oceanic_transports", "name": "Oceanic transports", "age": 7, "historicalEmergence": "carracks and galleons (the oceanic transport class)", "equipment": ["timber hulls", "full rig"] },
+        { "key": 1005, "id": "steam_transports", "name": "Steam transports", "age": 8, "historicalEmergence": "steamships", "equipment": ["iron hulls", "steam engines", "coal"] },
+        { "key": 1006, "id": "amphibious_transports", "name": "Amphibious transports", "age": 9, "historicalEmergence": "motor transports and landing ships", "equipment": ["steel hulls", "diesel"] }
+      ]
+    },
+    {
+      "key": 11, "id": "air", "name": "Air / Aviation",
+      "role": "Air reconnaissance, air superiority and strike.",
+      "historicalEmergence": "Military aviation (early twentieth century).",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["helicopters", "stealth_aircraft", "combat_drones"], "rule": "Rotary-wing, stealth and unmanned branches are realized separately (unit.helicopter, unit.stealth_aircraft, unit.combat_drone); automatic conversion follows the mainline (military aircraft)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1101, "id": "military_aircraft", "name": "Military aircraft", "age": 9, "historicalEmergence": "powered flight", "equipment": ["aircraft", "fuel"], "realizedBy": "unit.military_aircraft", "reference": "Civ VI Biplane / Fighter" },
+        { "key": 1102, "id": "helicopters", "name": "Helicopters", "age": 9, "branch": true, "historicalEmergence": "rotary-wing aviation", "equipment": ["helicopters", "fuel"], "realizedBy": "unit.helicopter" },
+        { "key": 1103, "id": "stealth_aircraft", "name": "Stealth aircraft", "age": 9, "branch": true, "historicalEmergence": "low-observable aircraft", "equipment": ["composites", "fuel"], "realizedBy": "unit.stealth_aircraft" },
+        { "key": 1104, "id": "combat_drones", "name": "Combat drones", "age": 9, "branch": true, "historicalEmergence": "unmanned combat aircraft", "equipment": ["drones", "datalinks"], "realizedBy": "unit.combat_drone" }
+      ]
+    },
+    {
+      "key": 12, "id": "strategic_missile", "name": "Specialized Modern Roles: Strategic Missile Forces",
+      "role": "Long-range missile strike. A modern specialized role with no pre-industrial predecessor.",
+      "historicalEmergence": "Rocketry (mid twentieth century).",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1201, "id": "ballistic_missiles", "name": "Ballistic missile forces", "age": 9, "historicalEmergence": "the rocket", "equipment": ["rockets"], "realizedBy": "unit.missile" },
+        { "key": 1202, "id": "icbm_forces", "name": "Intercontinental missile forces", "age": 9, "branch": true, "historicalEmergence": "the ICBM (branch)", "equipment": ["rockets", "guidance"], "realizedBy": "unit.icbm" }
+      ]
+    }
+  ]
+}
