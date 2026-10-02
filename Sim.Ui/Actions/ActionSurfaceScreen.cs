@@ -512,14 +512,15 @@ public sealed class ActionSurfaceScreen
     private double PaintResearch(DrawList d, ITextMeasure m, ActionSurfaceModel model, ResearchBlock r, double x, double y, double w, bool flat)
     {
         EraTheme t = T;
-        y = Heading(d, m, flat ? "Learning" : "Learning", x, y, w, flat, 830);
-        RectD open = Button(d, m, r.Idle ? "Choose [K]" : "Open the trees [K]", x + w, y - (flat ? L(15) + 2 : 0), 831, primary: r.Idle);
+        y = Heading(d, m, "Learning", x, y, w, flat, 830);
+        // The trees link sits at the right of the block's first line (the trees are where a subject is chosen).
+        RectD open = Button(d, m, r.Idle ? "Choose [K]" : "Open the trees [K]", x + w, y, 831, primary: r.Idle);
         _hits.Add(new ActionHit(open, ActionHitKind.ResearchOpen, 0, 0));
-        double tw = w - open.W - 8;
+        double first = w - open.W - 8;
         if (r.Idle)
         {
-            string idle = r.ClearQueued ? "stopping at End Turn - research will be idle" : "idle - choose what to learn";
-            y = Wrapped(d, m, idle, x, Math.Max(y, open.Bottom + 2), w, 13, t.Semantic.Progress, FontRole.Heading);
+            string idle = r.ClearQueued ? "stopping at End Turn: research will be idle" : "idle - choose what to learn";
+            y = Math.Max(Wrapped(d, m, idle, x, y + 3, first, 13, t.Semantic.Progress, FontRole.Heading), open.Bottom + 2);
             y = Wrapped(d, m, (model.Control.Numerals ? N1(r.PointsPerTurn) + " research points a turn go unused; " : "what our people learn each turn goes unused; ")
                 + r.Available.ToString(CultureInfo.InvariantCulture) + " subjects are open to us.", x, y, w, 11.5, t.Ink.TextSoft);
         }
@@ -527,21 +528,18 @@ public sealed class ActionSurfaceScreen
         {
             ResearchItem item = r.Effective!;
             bool chosenNow = r.Chosen is not null;
-            d.Write(t, x, Math.Max(y, open.Bottom + 2), ThemeText.Fit(m, t, item.Name, 14, w, FontRole.Heading), 14, t.Semantic.Active, TextAlign.Left, FontRole.Heading);
-            y = Math.Max(y, open.Bottom + 2) + L(14) + 2;
+            y = Math.Max(Wrapped(d, m, item.Name, x, y + 3, first, 14, t.Semantic.Active, FontRole.Heading), open.Bottom + 2);
             double frac = item.Cost > 0 ? item.Progress / item.Cost : 0;
             EraMarks.Progress(d, t, new RectD(x, y, Math.Min(220, w * 0.6), 10), frac, t.Semantic.Active, 832);
             y += 14;
-            string line = model.Control.Numerals || model.Layout != SurfaceLayout.Flat
-                ? N0(item.Progress) + " of " + N0(item.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn"
-                : "+" + N1(r.PointsPerTurn) + " research points a turn";
-            if (chosenNow) line = "chosen this turn - research starts at End Turn  (" + line + ")";
-            y = Wrapped(d, m, line, x, y, tw + open.W + 8, 11.5, chosenNow ? t.Semantic.Active : t.Ink.TextSoft);
+            string line = N0(item.Progress) + " of " + N0(item.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn";
+            if (chosenNow) line = "chosen this turn - research starts at End Turn (" + line + ")";
+            y = Wrapped(d, m, line, x, y, w, 11.5, chosenNow ? t.Semantic.Active : t.Ink.TextSoft);
             if (r.CanClear)
             {
                 RectD stop = Button(d, m, "Stop", x + w, y + 2, 833, primary: false, size: 11.5);
                 _hits.Add(new ActionHit(stop, ActionHitKind.ResearchClear, 0, 0));
-                d.Write(t, x, y + 5, ThemeText.Fit(m, t, "kept: progress is never lost when you stop or switch", 11, w - stop.W - 10), 11, t.Ink.TextDim);
+                d.Write(t, x, y + 5, ThemeText.Fit(m, t, "progress is never lost when you stop or switch", 11, w - stop.W - 10), 11, t.Ink.TextDim);
                 y = stop.Bottom + 2;
             }
         }

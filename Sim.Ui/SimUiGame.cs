@@ -1003,26 +1003,21 @@ public sealed class SimUiGame : Game
         ImGui.TextUnformatted(_hud.SettlementCountFigure);
         ImGui.SameLine(0, 24);
         Figure(_hud.WorldFoodFigure, ExplainFigure.WorldFood);
-        // Audit E26: research is visible without opening the trees — the target, its progress and the RP a
-        // turn, or that research is idle; a click opens the trees.
-        if (_researchFigure.Text.Length > 0)
-        {
-            ImGui.SameLine(0, 24);
-            ImGui.PushStyleColor(ImGuiCol.Text, Col(_researchFigure.Idle ? _frameTheme.Semantic.Progress : _frameTheme.Semantic.Active));
-            if (ImGui.Selectable(_researchFigure.Text + "##band-research", false, ImGuiSelectableFlags.None, ImGui.CalcTextSize(_researchFigure.Text)))
-                ToggleProgression();
-            ImGui.PopStyleColor();
-        }
         PopDataFont();
-        ImGui.SameLine(0, 18);
-        if (ImGui.Button("Knowledge [K]##progression")) ToggleProgression();
+        // Audit E26: research is visible without opening the trees — the target, its progress and the RP a
+        // turn, or that research is idle. The figure IS the band's way into the trees (it replaces the
+        // separate "Knowledge [K]" button, so the research state and the Age both fit on the band).
+        ImGui.SameLine(0, 20);
+        ImGui.PushStyleColor(ImGuiCol.Text, Col(_researchFigure.Idle ? _frameTheme.Semantic.Progress : _frameTheme.Semantic.Active));
+        if (ImGui.Button(_researchFigure.Text + "##band-research")) ToggleProgression();
+        ImGui.PopStyleColor();
         // The compact Age indicator: the full Age name and the eligibility summary; it opens (or closes) the
         // capital's Age panel on demand, which no longer covers the map by itself.
         if (_ageFigure.Text.Length > 0)
         {
-            ImGui.SameLine(0, 18);
-            ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? _frameTheme.Material.Accent : _frameTheme.Ink.TextSoft));
-            if (ImGui.Selectable(_ageFigure.Text + "##band-age", _agePanelOpen, ImGuiSelectableFlags.None, ImGui.CalcTextSize(_ageFigure.Text)))
+            ImGui.SameLine(0, 16);
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? _frameTheme.Material.Accent : _frameTheme.Ink.Text));
+            if (ImGui.Button(_ageFigure.Text + "##band-age"))
             {
                 if (_agePanelOpen) _agePanelOpen = false; else OpenAgePanel(flow: false);
             }

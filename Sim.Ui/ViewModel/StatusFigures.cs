@@ -23,29 +23,40 @@ public sealed record AgeFigure(string Text, AgePanelState State)
 /// </summary>
 public static class StatusFigures
 {
-    /// <summary>The research figure, or an empty text when the surface lists no research action at all.</summary>
+    /// <summary>How many characters of a node's name the band shows before an ellipsis.</summary>
+    public const int NameChars = 24;
+
+    /// <summary>
+    /// The research figure — also the band's way into the trees (it replaces the separate "Knowledge [K]"
+    /// button, so the band has room for the research state and the Age): "research idle [K]", "research: Root
+    /// and tuber cultivati... 27% +12.3/turn", "research: Cordage next turn", "research stops at End Turn", or
+    /// "Knowledge [K]" when the surface lists no research action at all.
+    /// </summary>
     public static ResearchFigure Research(ResearchBlock? research)
     {
-        if (research is null) return new ResearchFigure("", false);
+        if (research is null) return new ResearchFigure("Knowledge [K]", false);
         if (research.Idle)
-            return new ResearchFigure(research.ClearQueued ? "research stops at End Turn" : "research idle - choose [K]", true);
+            return new ResearchFigure(research.ClearQueued ? "research stops at End Turn" : "research idle [K]", true);
         ResearchItem item = research.Effective!;
-        if (research.Chosen is not null) return new ResearchFigure("research: " + item.Name + " (from the next turn)", false);
+        string name = item.Name.Length <= NameChars ? item.Name : item.Name[..(NameChars - 3)].TrimEnd() + "...";
+        if (research.Chosen is not null) return new ResearchFigure("research: " + name + " next turn", false);
+        double pct = item.Cost > 0 ? Math.Floor(item.Progress / item.Cost * 100.0) : 0.0;
         return new ResearchFigure(string.Create(CultureInfo.InvariantCulture,
-            $"research: {item.Name} {item.Progress:0}/{item.Cost:0} (+{research.PointsPerTurn:0.0}/turn)"), false);
+            $"research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn"), false);
     }
 
-    /// <summary>The Age indicator: "Age I Prehistoric / Stone Age - next Age: not yet eligible (core 0/2 ...)".</summary>
+    /// <summary>The Age indicator: "Age I Prehistoric / Stone Age - not yet" (eligible for the next Age: not yet; the
+    /// milestones are one click away, in the capital's Age panel).</summary>
     public static AgeFigure Age(AgePanelModel panel)
     {
         string head = "Age " + AgePanelModel.Numeral(panel.CurrentAge) + " " + panel.CurrentAgeName;
         string tail = panel.State switch
         {
             AgePanelState.NoContent => "",
-            AgePanelState.FinalAge => " - the final Age",
+            AgePanelState.FinalAge => " - final Age",
             AgePanelState.Eligible => " - advance available",
-            AgePanelState.Pending => " - advancing next turn",
-            _ => string.Create(CultureInfo.InvariantCulture, $" - next Age not yet (core {panel.CoreMet}/{panel.CoreTotal})"),
+            AgePanelState.Pending => " - advancing",
+            _ => " - not yet",
         };
         return new AgeFigure(panel.State == AgePanelState.NoContent ? "" : head + tail, panel.State);
     }

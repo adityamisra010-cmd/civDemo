@@ -175,15 +175,17 @@ public static class ActionSurfacePreview
             d.Write(t, sx, sy, figure, 15, t.Ink.Text, TextAlign.Left, FontRole.Numeric);
             sx += m.Width(t, figure, 15, FontRole.Numeric) + 22;
         }
+        // The research figure is the band's way into the trees (a button), then the compact Age indicator.
         ResearchFigure rf = StatusFigures.Research(model.Research);
-        d.Write(t, sx, sy, ThemeText.Fit(m, t, rf.Text, 15, 300, FontRole.Numeric), 15, rf.Idle ? t.Semantic.Progress : t.Semantic.Active, TextAlign.Left, FontRole.Numeric);
-        sx += Math.Min(300, m.Width(t, rf.Text, 15, FontRole.Numeric)) + 18;
-        var knowledge = new RectD(sx, sb.Y + 9, 136, 29);
-        PanelFrame.Paint(d, knowledge, t, 21, FrameKind.Button);
-        d.Write(t, knowledge.CenterX, knowledge.Y + 6, "Knowledge [K]", 15, t.Ink.Text, TextAlign.Center);
+        double rw = m.Width(t, rf.Text, 15) + 22;
+        var research = new RectD(sx, sb.Y + 9, rw, 29);
+        PanelFrame.Paint(d, research, t, 21, FrameKind.Button);
+        d.Write(t, research.CenterX, research.Y + 6, rf.Text, 15, rf.Idle ? t.Semantic.Progress : t.Semantic.Active, TextAlign.Center);
         AgeFigure af = StatusFigures.Age(agePanel);
-        double ax = knowledge.Right + 16;
-        d.Write(t, ax, sy, ThemeText.Fit(m, t, af.Text, 13, sb.Width - ax - 16, FontRole.Heading), 13, af.Eligible ? t.Material.Accent : t.Ink.TextSoft, TextAlign.Left, FontRole.Heading);
+        double aw = Math.Min(m.Width(t, af.Text, 15) + 22, sb.Width - research.Right - 28);
+        var ageChip = new RectD(research.Right + 14, sb.Y + 9, aw, 29);
+        PanelFrame.Paint(d, ageChip, t, 23, FrameKind.Button);
+        d.Write(t, ageChip.CenterX, ageChip.Y + 6, ThemeText.Fit(m, t, af.Text, 15, aw - 12), 15, af.Eligible ? t.Material.Accent : t.Ink.Text, TextAlign.Center);
 
         // Selection card.
         PanelRect sc = PanelLayout.Selection;
