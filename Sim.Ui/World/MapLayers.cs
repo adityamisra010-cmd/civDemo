@@ -21,7 +21,8 @@ public enum LayerOwner { MapRenderer = 0, WorldLens = 1 }
 /// <summary>
 /// THE LAYER REGISTRY — the single authority for which renderer owns each map layer. The world
 /// lens owns everything that is zoom-dependent (D-047 Part 5): territory (polity-tinted), paths
-/// (dashed network at world zoom, cased roads below), settlement markers and names (sized marks at
+/// (dashed network at world zoom, cased roads below) and the built roads on them (by class, one owner
+/// per piece of ground — <see cref="RoadLens"/>), settlement markers and names (sized marks at
 /// world zoom, aggregated morphology below), formations, institutions and Age banners. The legacy
 /// GPU pass keeps only the substrate the lens draws over: the terrain bake and the vector rivers.
 /// <c>SimUiGame</c> draws a layer only when this table names <see cref="LayerOwner.MapRenderer"/>;

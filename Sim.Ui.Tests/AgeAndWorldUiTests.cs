@@ -371,7 +371,7 @@ public class AgeAndWorldUiTests(EligibleSessionFixture fx) : IClassFixture<Eligi
             long pop = 0;
             for (int k = 0; k < w.Buckets.Count; k++) if (w.Buckets[k].Settlement.Value == s.Id) pop += w.Buckets[k].Count.Value;
             Assert.Equal(pop, s.Population);
-            Assert.Equal(s with { Sectors = null, Structures = [], Universities = [] }, b.Settlements[i] with { Sectors = null, Structures = [], Universities = [] });
+            Assert.Equal(s with { Sectors = null, Structures = [], Institutions = [] }, b.Settlements[i] with { Sectors = null, Structures = [], Institutions = [] });
             Assert.Equal(AgeQuery.CurrentAge(w, Ages, Me), s.Age);
         }
         DrawList d1 = new(), d2 = new();
