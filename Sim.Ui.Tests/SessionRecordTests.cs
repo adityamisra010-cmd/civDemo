@@ -106,7 +106,8 @@ public class SessionRecordTests
             // migrationPlan). Pinned against the writer rather than a literal,
             // so this test tracks the tag instead of re-pinning it every bump.
             Assert.Contains("\"schema\":\"" + TelemetryWriter.Schema + "\"", lines[0]);
-            Assert.Equal("telemetry/v3", TelemetryWriter.Schema);
+            // ADR-033 D4: v4 adds social.tax (the M5 tax burden on happiness).
+            Assert.Equal("telemetry/v4", TelemetryWriter.Schema);
         }
         finally
         {

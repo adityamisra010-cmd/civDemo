@@ -588,7 +588,8 @@ public static class Observer
             if (row.Settlement != id) continue;
             needs.Add(new NeedReading(row.Class.Value, row.NeedId, NeedName(cfg, row.NeedId), row.Value));
         }
-        return new SocialSection(happiness, factors, grievance.ToArray(), needs.ToArray());
+        return new SocialSection(happiness, factors, grievance.ToArray(), needs.ToArray(),
+            TaxBurdenReading.Of(next, cfg, id));
     }
 
     private static MigrationSection Migration(

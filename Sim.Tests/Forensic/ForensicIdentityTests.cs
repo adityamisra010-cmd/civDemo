@@ -138,9 +138,10 @@ public class ForensicIdentityTests
         Assert.Equal(30, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it)
         Assert.Equal(30, run.Schemas.CanonicalSchemaVersion);
         // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
-        // moved to v3 with the foodState/migrationPlan sections. The forensic
-        // tag below did NOT move — this file's own field set is unchanged.
-        Assert.Equal("telemetry/v3", run.Schemas.Telemetry);
+        // moved to v3 with the foodState/migrationPlan sections, and to v4 with
+        // ADR-033 D4's social.tax object. The forensic tag below did NOT move —
+        // this file's own field set is unchanged.
+        Assert.Equal("telemetry/v4", run.Schemas.Telemetry);
         Assert.Equal(TelemetryWriter.Schema, run.Schemas.Telemetry);
         Assert.Equal("session-manifest/v2", run.Schemas.SessionManifest);
         Assert.Equal("forensic/v1", run.Schemas.Forensic);

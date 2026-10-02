@@ -380,7 +380,7 @@ public sealed class SessionInspector
     {
         if (_telemetry is not { } t) return [NoTelemetry("happiness history")];
 
-        var lines = new List<string> { "  turn   settlement   happiness   factor[Food]   factor[Housing]   branch labels" };
+        var lines = new List<string> { "  turn   settlement   happiness   factor[Food]   factor[Housing]   tax scale   branch labels" };
         foreach (TelemetryTurn turn in t.Turns)
         {
             for (int i = 0; i < turn.Settlements.Length; i++)
@@ -389,8 +389,11 @@ public sealed class SessionInspector
                 if (settlement is { } want && s.Settlement != want) continue;
                 double food = s.HappinessFactors.Length > 0 ? s.HappinessFactors[0] : double.NaN;
                 double housing = s.HappinessFactors.Length > 1 ? s.HappinessFactors[1] : double.NaN;
+                // ADR-033 D4: the tax burden multiplier, READ from the record (telemetry/v4); a v2/v3
+                // record does not carry it and the column says so rather than printing 1.
+                string tax = s.Tax.Recorded ? Dec(s.Tax.Scale, 12) : "  not-recorded";
                 lines.Add(Num(turn.Turn, 6) + Num(s.Settlement, 13) + Dec(s.Happiness, 12)
-                    + Dec(food, 15) + Dec(housing, 18) + "   " + BranchLabels(s));
+                    + Dec(food, 15) + Dec(housing, 18) + tax + "   " + BranchLabels(s));
             }
         }
 
@@ -404,7 +407,11 @@ public sealed class SessionInspector
                 + "called the PUBLIC SettlementHappiness.Of on the post-step world, the same reader the "
                 + "migration system asks — so it is the authoritative number and not a copy of the formula. "
                 + "The two factor values are the PUBLIC SettlementHappiness.Factors, in Factor order "
-                + "[Food, Housing].",
+                + "[Food, Housing] — the two CES PROVISION factors. Since ADR-033 D4 the reading is ALSO "
+                + "MULTIPLIED by the M5 tax burden (the public SettlementHappiness.TaxSufficiency = 1 − the "
+                + "controller's declared tax rate × ControlRow.Strength, the stored administrative reach); the "
+                + "'tax scale' column is that multiplier as the record carries it (telemetry/v4 social.tax, with "
+                + "the declared rate and the stored reach beside it), 'not-recorded' on an older record.",
             [.. lines]);
 
         var decomposition = new Answer(
@@ -414,8 +421,9 @@ public sealed class SessionInspector
             ForensicSchema.HappinessDecompositionWhy,
             [
                 "What IS available, and is printed above: the authoritative value (SettlementHappiness.Of),",
-                "the two factor values (SettlementHappiness.Factors), and the branch labels that follow from",
-                "which ROWS ARE PRESENT.",
+                "the two factor values (SettlementHappiness.Factors), the tax-burden multiplier the value",
+                "was scaled by (SettlementHappiness.TaxSufficiency, telemetry/v4), and the branch labels that",
+                "follow from which ROWS ARE PRESENT.",
                 "",
                 "\"Why was happiness 100?\" is therefore answered exactly as far as the simulation exposes it,",
                 "and no further. No explanation is manufactured to fill the gap.",

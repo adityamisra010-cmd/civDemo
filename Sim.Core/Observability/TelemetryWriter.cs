@@ -32,13 +32,17 @@ namespace Sim.Core.Observability;
 /// </summary>
 public static class TelemetryWriter
 {
-    public const string Schema = "telemetry/v3";
+    public const string Schema = "telemetry/v4";
 
     /// <summary>The vintages <see cref="Sim.Core.Observability.Forensic.TelemetryRecordFile"/>
     /// accepts, newest first. v3 = v2 + the T4.21-5 foodState/migrationPlan
     /// sections; every v2 key keeps its v2 meaning, so a v2 line is a v3 line
-    /// with two sections missing and the reader reads it unchanged.</summary>
-    public static readonly string[] ReadableSchemas = ["telemetry/v3", "telemetry/v2"];
+    /// with two sections missing and the reader reads it unchanged.
+    /// v4 (ADR-033 D4) = v3 + the <c>social.tax</c> object — the M5 tax burden that
+    /// multiplies the happiness reading, with its declared rate and stored reach; every
+    /// v3 key keeps its v3 meaning and position, so a v3 line is a v4 line without the
+    /// tax object, and the reader reports the burden as not recorded.</summary>
+    public static readonly string[] ReadableSchemas = ["telemetry/v4", "telemetry/v3", "telemetry/v2"];
 
     /// <summary>Every observation in the history, one line each.</summary>
     public static void WriteAll(Stream output, IObservationHistory history)
@@ -331,6 +335,21 @@ public static class TelemetryWriter
             json.WriteEndObject();
         }
         json.WriteEndArray();
+        // telemetry/v4 (ADR-033 D4): the tax burden the happiness reading is multiplied by,
+        // with its two stored inputs — appended inside social, after every v3 key. A record
+        // built without it (a hand-built one) writes no "tax" object, and the reader then says
+        // the file does not record it.
+        if (s.Tax is { } tax)
+        {
+            json.WriteStartObject("tax");
+            json.WriteNumber("controller", tax.Controller);
+            json.WriteBoolean("policyRowPresent", tax.PolicyRowPresent);
+            Num(json, "nominalRate", tax.NominalRate);
+            Num(json, "controlStrength", tax.ControlStrength);
+            Num(json, "effectiveRate", tax.EffectiveRate);
+            Num(json, "scale", tax.Scale);
+            json.WriteEndObject();
+        }
         json.WriteEndObject();
 
         MigrationSection m = r.Migration;

@@ -109,21 +109,28 @@ public static class ForensicSchema
     /// than believed. What the simulation exposes publicly is what this layer
     /// reports and nothing more: SettlementHappiness.Of (the authoritative
     /// value), .Factors (the two factor values), .FoodSufficiency,
-    /// .HousingSufficiency, .IsRevoltReady, .RevoltThreshold, and the READ
-    /// branch labels that follow from which rows are PRESENT. The per-factor
-    /// weights, the normalisation, the floor and the span are NOT public, and
-    /// copying them into an observer would be exactly the drifting second
-    /// implementation the observability contract forbids. So a happiness value
-    /// other than an exact 0 or 100 is reported, not decomposed.
+    /// .HousingSufficiency, .TaxSufficiency (ADR-033 D4: the M5 tax-burden
+    /// multiplier, recorded as telemetry/v4 social.tax), .IsRevoltReady,
+    /// .RevoltThreshold, and the READ branch labels that follow from which rows
+    /// are PRESENT. The per-factor weights, the normalisation, the floor and the
+    /// span are NOT public, and copying them into an observer would be exactly the
+    /// drifting second implementation the observability contract forbids. So a
+    /// happiness value other than an exact 0 or 100 is reported, not decomposed
+    /// (beyond the public tax multiplier).
+    /// ADR-033 D4 MOVED THE CITED LINES (TaxSufficiency was inserted after
+    /// HousingSufficiency): re-cited below against the file as it now stands.
     /// </summary>
     public const string HappinessDecompositionWhy =
-        "Sim.Core/State/SettlementHappiness.cs: WeightOf is `private static` (:234); the need-id mapping is "
-        + "`private const int SustenanceNeedId` (:226) and `ShelterNeedId` (:227); and the floor, the span "
-        + "and the normalisation are inline locals inside Of (:169-219), reachable through no public member. "
+        "Sim.Core/State/SettlementHappiness.cs: WeightOf is `private static` (:258); the need-id mapping is "
+        + "`private const int SustenanceNeedId` (:250) and `ShelterNeedId` (:251); and the floor, the span "
+        + "and the normalisation are inline locals inside Of (:191-236), reachable through no public member. "
         + "Raw factor, normalised factor, per-factor weight, per-factor contribution and the aggregate are "
-        + "therefore NOT DERIVABLE from any public function on stored state. This layer reports the "
-        + "authoritative value from SettlementHappiness.Of, the factor values from .Factors, and the branch "
-        + "labels that follow from row presence. It does not manufacture a decomposition.";
+        + "therefore NOT DERIVABLE from any public function on stored state. The one multiplier that IS public "
+        + "is the M5 tax burden, TaxSufficiency (:180-181) = 1 − declared rate × ControlRow.Strength, which Of "
+        + "applies to the normalised reading and the record carries (telemetry/v4 social.tax). This layer reports "
+        + "the authoritative value from SettlementHappiness.Of, the factor values from .Factors, the tax scale from "
+        + ".TaxSufficiency, and the branch labels that follow from row presence. It does not manufacture a "
+        + "decomposition.";
 
     /// <summary>Token for the granary/StoreLosses limitation.</summary>
     public const string LimitStoreLosses = "store-losses-unsplit";
