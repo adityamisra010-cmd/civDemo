@@ -19,7 +19,7 @@ namespace Sim.Ui.Tests;
 /// </summary>
 public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorldFixture>
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
     private const double W = 1600, H = 1000;
     private AgeContent Ages => fx.Session.Config.Ages!;
 

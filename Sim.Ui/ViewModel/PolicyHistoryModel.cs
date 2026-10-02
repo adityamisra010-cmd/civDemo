@@ -41,7 +41,7 @@ public static class PolicyHistoryModel
     public static string ActorName(int actor) => actor switch
     {
         -1 => "unattributed",
-        LaborOrderFactory.UiActorId => "player",
+        UiPlayer.ActorId => "player",
         _ => "actor " + actor.ToString(CultureInfo.InvariantCulture),
     };
 

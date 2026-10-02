@@ -205,18 +205,21 @@ public class SelectionTests
     // --- the slider → order pipe -------------------------------------------
 
     [Fact]
-    public void EmitLaborOrder_CarriesTheSelectedId_Exactly()
+    public void EmitSectorOrders_CarriesTheSelectedId_Exactly()
     {
         var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
-        session.EmitLaborOrder(35, 2);
-        session.EmitLaborOrder(80, 1);
-        session.EmitLaborOrder(50, 99); // ghost settlement: NOTHING emitted
+        Assert.True(session.EmitSectorOrders([35, 0, 0, 0, 65], 2));
+        Assert.True(session.EmitSectorOrders([80, 0, 0, 0, 20], 1));
+        Assert.False(session.EmitSectorOrders([50, 0, 0, 0, 50], 99)); // ghost settlement: NOTHING emitted
 
-        Assert.Equal(2, session.Orders.Count);
-        Assert.Equal(2, session.Orders[0].TargetId);
+        Assert.Equal(2 * Sectors.Count, session.Orders.Count);
+        for (int s = 0; s < Sectors.Count; s++)
+        {
+            Assert.Equal(2 * 8 + s, session.Orders[s].TargetId);
+            Assert.Equal(1 * 8 + s, session.Orders[Sectors.Count + s].TargetId);
+        }
         Assert.Equal(35.0, session.Orders[0].Amount);
-        Assert.Equal(1, session.Orders[1].TargetId);
-        Assert.Equal(80.0, session.Orders[1].Amount);
+        Assert.Equal(80.0, session.Orders[Sectors.Count].Amount);
     }
 
     [Fact]
@@ -226,8 +229,8 @@ public class SelectionTests
         // in one session both follow their own orders (the director proves it
         // visually; this proves it in state).
         var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
-        session.EmitLaborOrder(30, 1);
-        session.EmitLaborOrder(70, 2);
+        Assert.True(session.EmitSectorOrders([30, 0, 0, 0, 70], 1));
+        Assert.True(session.EmitSectorOrders([70, 0, 0, 0, 30], 2));
         session.EndTurn(); // both orders deliver on the very next End Turn
 
         double share1 = -1, share2 = -1, share3 = -1;

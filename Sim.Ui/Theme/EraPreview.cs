@@ -50,14 +50,14 @@ public static class EraPreview
 
     /// <summary>The theme a world presents — the game's derivation.</summary>
     public static EraTheme ThemeOf(UiSession s, IReadOnlyWorldState w) =>
-        EraThemes.For(UiEras.Of(w, s.Config.Ages, LaborOrderFactory.PlayerEmpire));
+        EraThemes.For(UiEras.Of(w, s.Config.Ages, UiPlayer.Empire));
 
     // ------------------------------------------------------------------ the three surfaces
 
     /// <summary>The Technology tree exactly as it opens (zoom 1, the lagging branch's frontier, nothing selected).</summary>
     public static string TreeSvg(UiSession s, WorldState w, string? fontDir)
     {
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         var screen = new ProgressionScreen(s.Config.Research!, me)
         {
             Theme = ThemeOf(s, w),
@@ -72,7 +72,7 @@ public static class EraPreview
     public static string AgeSvg(UiSession s, WorldState w, string? fontDir)
     {
         EraTheme t = ThemeOf(s, w);
-        var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire) { Theme = t };
+        var screen = new AgeScreen(UiPlayer.Empire) { Theme = t };
         screen.Refresh(w, s.Config.Ages, s.Config.UnitFamilies, []);
         var d = new DrawList();
         PanelFrame.Field(d, new RectD(0, 0, AgeW, AgeH), t, 1);
@@ -85,7 +85,7 @@ public static class EraPreview
     public static string ChromeSvg(UiSession s, WorldState w, string? fontDir, string? terrainDataUri)
     {
         EraTheme t = ThemeOf(s, w);
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         var d = new DrawList();
         ITextMeasure m = ApproxTextMeasure.Instance;
 
@@ -279,7 +279,7 @@ public static class EraPreview
     }
 
     private static string CapitalName(UiSession s) =>
-        EmpireQuery.TryGetCapital(s.World, LaborOrderFactory.PlayerEmpire, out SettlementId cap) ? s.Names.Name(cap.Value) : "Capital";
+        EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? s.Names.Name(cap.Value) : "Capital";
 
     /// <summary>The file stem for an era: "era-1-prehistoric".</summary>
     public static string Stem(UiEra era) => "era-" + era.Ordinal().ToString(CultureInfo.InvariantCulture) + "-" + era.ToString().ToLowerInvariant();
@@ -290,7 +290,7 @@ public static class EraPreview
         Directory.CreateDirectory(outDir);
         UiSession s = Session();
         AgeContent ages = s.Config.Ages!;
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         string terrain = AgePreview.TerrainDataUri(s.World);
         var written = new List<string>();
         var log = new List<string>

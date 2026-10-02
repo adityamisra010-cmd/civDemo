@@ -44,42 +44,32 @@ public class HudViewModelTests
             PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), orders);
     }
 
-    // --- slider → order payload ----------------------------------------------
+    // --- labour control → order log → executor ------------------------------
+    // ADR-033 D9: the M1 single-slider path (LaborOrderFactory, OrderKind 2) left Sim.Ui; OrderKind 2
+    // stays in the kernel because shipped order logs replay it (pinned in Sim.Tests). The UI's labour
+    // order is the five-sector SectorAllocation batch; its payload exactness is pinned in
+    // SectorControlTests, and its full path headless is pinned here.
 
     [Fact]
-    public void SliderOrder_PayloadExact()
-    {
-        OrderRecord order = LaborOrderFactory.Create(
-            currentTurn: 17, new SettlementId(0), farmPct: 35);
-        Assert.Equal(17, order.Turn);
-        Assert.Equal(LaborOrderFactory.UiActorId, order.ActorId);
-        Assert.Equal(OrderKind.LaborAllocation, order.Kind);
-        Assert.Equal(0, order.TargetId);
-        Assert.Equal(35.0, order.Amount); // integer percent → exact double
-
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => LaborOrderFactory.Create(1, new SettlementId(0), 101));
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => LaborOrderFactory.Create(1, new SettlementId(0), -1));
-    }
-
-    [Fact]
-    public void SliderOrder_RoundTripsTheOrderLog_AndSteersTheSim()
+    public void SectorBatch_RoundTripsTheOrderLog_AndSteersTheSim()
     {
         // The full UI order path headless: factory → log → save/load → executor.
         SimConfig cfg = SimCfg();
         var orders = new OrderLog();
-        orders.Append(LaborOrderFactory.Create(2, new SettlementId(0), 50));
+        foreach (OrderRecord o in SectorOrderFactory.Create(2, new SettlementId(0), [50, 0, 0, 0, 50])) orders.Append(o);
 
         using var buffer = new MemoryStream();
         orders.Save(buffer);
         buffer.Position = 0;
         OrderLog loaded = OrderLog.Load(buffer); // load-time validation passes
+        Assert.Equal(Sectors.Count, loaded.Count);
 
         TurnExecutor exec = Executor(cfg, loaded);
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         for (int t = 1; t <= 3; t++) world = exec.Step(world);
         Assert.Equal(0.5, world.SectorAllocations[0].Farming);
+        Assert.Equal(0.5, world.SectorAllocations[0].Construction);
+        Assert.Equal(0.0, world.SectorAllocations[0].Herding);
     }
 
     // --- HUD numbers from a founded state ------------------------------------

@@ -11,11 +11,21 @@ namespace Sim.Ui.Tests;
 /// </summary>
 public class SessionRecordTests
 {
+    /// <summary>A session played through the LIVE order paths (audit E38: the replay guarantee must cover what
+    /// a player can do, not an order-free run): the labour control's five-sector batch on two settlements and a
+    /// research choice, each through the session's own guarded emitter, at fixed turns.</summary>
     private static Sim.Ui.UiSession Played(int turns, out string logPath, string tag)
     {
         var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         logPath = Path.Combine(Path.GetTempPath(), $"civsim-{tag}", "orders-20260909-120000-s256-n4.bin");
-        for (int t = 0; t < turns; t++) session.EndTurn();
+        Sim.Core.Systems.Research.ResearchContent research = session.Config.Research!;
+        for (int t = 0; t < turns; t++)
+        {
+            if (t == 0) Assert.True(session.EmitResearchOrder(research.Nodes[research.IndexOfId("cordage")].Key));
+            if (t == 1) Assert.True(session.EmitSectorOrders([45, 20, 15, 12, 8], session.World.Settlements[0].Id.Value));
+            if (t == 2) Assert.True(session.EmitSectorOrders([50, 10, 20, 10, 10], session.World.Settlements[1].Id.Value));
+            session.EndTurn();
+        }
         return session;
     }
 
@@ -140,12 +150,14 @@ public class SessionRecordTests
         // divergence here is a determinism finding, not a reporting one.
         Sim.Ui.UiSession session = Played(12, out _, "reproduce");
         IReadOnlyList<SessionTrace.Row> played = SessionTrace.Parse(session.TraceLines, "trace");
+        Assert.Equal(1 + 2 * Sim.Core.State.Sectors.Count, session.Orders.Count);   // the live orders are in the log
 
         SessionManifest m = session.Manifest("t", "runs/orders-x.bin");
         var orders = new OrderLog();
         for (int i = 0; i < session.Orders.Count; i++) orders.Append(session.Orders[i]);
 
         Sim.Core.State.WorldState world = Sim.Ui.UiFounding.Found(m.Seed, m.SizePx, m.Settlements);
+        OrderValidation.ValidateAgainstWorld(orders, world);   // what `sim replay` / `sim inspect` run first
         TurnExecutor executor = Sim.Ui.UiSession.BuildProductionExecutor(orders);
 
         Assert.Equal(played[0].Hash, WorldHash.ComputeHex(world));

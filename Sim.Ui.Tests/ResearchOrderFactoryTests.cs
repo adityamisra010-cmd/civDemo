@@ -18,7 +18,7 @@ public class ResearchOrderFactoryTests
     {
         var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent content = session.Config.Research!;
-        PolityId player = LaborOrderFactory.PlayerEmpire;
+        PolityId player = UiPlayer.Empire;
 
         ResearchNodeId root = content.Nodes[content.IndexOfId("cordage")].Key;
         OrderRecord order = ResearchOrderFactory.SetTarget(session.World, content, player, root)!.Value;
@@ -31,7 +31,12 @@ public class ResearchOrderFactoryTests
         ResearchNodeId locked = content.Nodes[content.IndexOfId("general_ai")].Key;
         Assert.Null(ResearchOrderFactory.SetTarget(session.World, content, player, locked));
         Assert.Null(ResearchOrderFactory.SetTarget(session.World, content, player, new ResearchNodeId(99_999)));
-        Assert.Equal(-1, ResearchOrderFactory.ClearTarget(7, player).TargetId);
+        OrderRecord clear = ResearchOrderFactory.ClearTarget(session.World, player);
+        Assert.Equal((-1, session.World.Clock.Turn, OrderKind.SetResearchTarget), (clear.TargetId, clear.Turn, clear.Kind));
+
+        // ADR-033 D5: the factory IS the core builder the AI uses — one constructor, two callers.
+        Assert.Equal(ResearchQuery.TargetOrder(session.World, content, player, root), ResearchOrderFactory.SetTarget(session.World, content, player, root));
+        Assert.Equal(ResearchQuery.ClearTargetOrder(session.World, player), clear);
     }
 
     [Fact]
@@ -51,10 +56,10 @@ public class ResearchOrderFactoryTests
         Assert.Equal(worldHash, WorldHash.ComputeHex(session.World)); // the UI wrote no state
 
         session.EndTurn();
-        Assert.True(ResearchQuery.TryGetTarget(session.World, LaborOrderFactory.PlayerEmpire, out ResearchNodeId target)
-                    || ResearchQuery.IsCompleted(session.World, LaborOrderFactory.PlayerEmpire, root));
-        if (!ResearchQuery.IsCompleted(session.World, LaborOrderFactory.PlayerEmpire, root)) Assert.Equal(root, target);
-        Assert.True(ResearchQuery.Progress(session.World, LaborOrderFactory.PlayerEmpire, root) > 0.0
-                    || ResearchQuery.IsCompleted(session.World, LaborOrderFactory.PlayerEmpire, root));
+        Assert.True(ResearchQuery.TryGetTarget(session.World, UiPlayer.Empire, out ResearchNodeId target)
+                    || ResearchQuery.IsCompleted(session.World, UiPlayer.Empire, root));
+        if (!ResearchQuery.IsCompleted(session.World, UiPlayer.Empire, root)) Assert.Equal(root, target);
+        Assert.True(ResearchQuery.Progress(session.World, UiPlayer.Empire, root) > 0.0
+                    || ResearchQuery.IsCompleted(session.World, UiPlayer.Empire, root));
     }
 }

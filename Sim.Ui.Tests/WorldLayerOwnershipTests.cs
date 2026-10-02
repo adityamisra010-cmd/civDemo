@@ -35,7 +35,7 @@ public sealed class InstitutionWorldFixture
         UiSession founded = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         for (int t = 0; t < 6; t++) founded.EndTurn();
         WorldState w = founded.World.Clone();
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         Assert.True(EmpireQuery.TryGetCapital(w, me, out SettlementId cap));
         Capital = cap.Value;
         Second = -1;
@@ -76,7 +76,7 @@ public sealed class InstitutionWorldFixture
 /// </summary>
 public class WorldLayerOwnershipTests(InstitutionWorldFixture fx) : IClassFixture<InstitutionWorldFixture>
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
     private static readonly WorldZoom[] Zooms = [WorldZoom.World, WorldZoom.Regional, WorldZoom.Settlement];
 
     private WorldProjection Project() =>

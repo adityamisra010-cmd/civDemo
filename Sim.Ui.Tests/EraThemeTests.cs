@@ -26,7 +26,7 @@ public sealed class FoundedSessionFixture
 /// </summary>
 public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSessionFixture>
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
     private AgeContent Ages => fx.Session.Config.Ages!;
 
     /// <summary>A copy of <paramref name="w"/> whose ONLY difference is the player's Age row.</summary>

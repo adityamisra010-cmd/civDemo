@@ -5,34 +5,38 @@ using Xunit;
 namespace Sim.Ui.Tests;
 
 // T1.9 adversarial hardening: these tests drive the REAL UI session code —
-// UiSession.Start (UiFounding + the UI's executor recipe), EmitLaborOrder (the
-// slider's actual stamping), EndTurn, Save — and replay the produced log
+// UiSession.Start (UiFounding + the UI's executor recipe), EmitSectorOrders (the
+// labour control's actual stamping), EndTurn, Save — and replay the produced log
 // headlessly. Order-timing drift (Turn+1 stamping), pipeline/era drift in the
 // UI executor, and stamped-filename drift all break HERE now, not in a played
-// session.
+// session. ADR-033 D9 / audit E38: the M1 single-slider path these tests used to
+// drive (EmitLaborOrder, OrderKind 2) left Sim.Ui, so they drive the LIVE labour
+// path — the five-sector batch the action surface emits — and the replay guarantee
+// still covers what a player can actually do.
 public class UiSessionReplayTests
 {
     [Fact]
     public void UiSession_PlayedAndSaved_ReplaysHashForHash()
     {
-        // Play 20 turns through the UI seam, emitting orders the way the HUD does.
+        // Play 20 turns through the UI seam, emitting orders the way the labour control does.
         var session = Sim.Ui.UiSession.Start(42);
+        int capital = session.World.Settlements[0].Id.Value;
         var hashes = new List<string>(20);
         for (int t = 1; t <= 20; t++)
         {
-            if (t == 3) session.EmitLaborOrder(55);
-            if (t == 11) session.EmitLaborOrder(20);
+            if (t == 3) Assert.True(session.EmitSectorOrders([40, 20, 15, 15, 10], capital));
+            if (t == 11) Assert.True(session.EmitSectorOrders([20, 30, 20, 20, 10], capital));
             session.EndTurn();
             hashes.Add(WorldHash.ComputeHex(session.World));
 
             // THE DELIVERY SEMANTIC, pinned (adversarial pass follow-up: a
             // Turn+1 stamping mutant survived the pure replay comparison
             // because a shifted stamp shifts live and replay IDENTICALLY —
-            // replay fidelity alone cannot see it. What it breaks is the HUD's
-            // promise that a released slider applies on the very next End
-            // Turn; that promise is asserted here, turn-exactly).
-            if (t == 3) Assert.Equal(0.55, session.World.SectorAllocations[0].Farming);
-            if (t == 11) Assert.Equal(0.20, session.World.SectorAllocations[0].Farming);
+            // replay fidelity alone cannot see it. What it breaks is the
+            // control's promise that an applied split takes effect on the very
+            // next End Turn; that promise is asserted here, turn-exactly).
+            if (t == 3) Assert.Equal((0.40, 0.20), (session.World.SectorAllocations[0].Farming, session.World.SectorAllocations[0].Herding));
+            if (t == 11) Assert.Equal((0.20, 0.30), (session.World.SectorAllocations[0].Farming, session.World.SectorAllocations[0].Herding));
         }
 
         string logPath = Path.Combine(Path.GetTempPath(), $"orders-ui-replay-{Guid.NewGuid():N}.bin");
@@ -41,7 +45,8 @@ public class UiSessionReplayTests
         {
             OrderLog loaded;
             using (var stream = File.OpenRead(logPath)) loaded = OrderLog.Load(stream);
-            Assert.Equal(2, loaded.Count); // both slider releases, nothing else
+            Assert.Equal(2 * Sectors.Count, loaded.Count); // both applied splits, nothing else
+            for (int i = 0; i < loaded.Count; i++) Assert.Equal(OrderKind.SectorAllocation, loaded[i].Kind);
 
             // Headless replay through the SAME UI recipes (founding + executor).
             TurnExecutor exec = Sim.Ui.UiSession.BuildProductionExecutor(loaded);
@@ -54,6 +59,7 @@ public class UiSessionReplayTests
             }
             // The orders really steered the sim (anti-vacuity).
             Assert.Equal(0.20, world.SectorAllocations[0].Farming);
+            Assert.Equal(0.30, world.SectorAllocations[0].Herding);
         }
         finally
         {

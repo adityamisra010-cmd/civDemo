@@ -26,8 +26,8 @@ public sealed class EligibleSessionFixture
         Session = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         for (int t = 0; t < 12; t++)
         {
-            if (!Sim.Core.State.ResearchQuery.TryGetTarget(Session.World, LaborOrderFactory.PlayerEmpire, out _)
-                && AgePreview.NextNode(Session.World, Session.Config.Research!, Session.Config.Ages!, LaborOrderFactory.PlayerEmpire) is { } n)
+            if (!Sim.Core.State.ResearchQuery.TryGetTarget(Session.World, UiPlayer.Empire, out _)
+                && AgePreview.NextNode(Session.World, Session.Config.Research!, Session.Config.Ages!, UiPlayer.Empire) is { } n)
                 Session.EmitResearchOrder(n);
             Session.EndTurn();
         }
@@ -43,7 +43,7 @@ public sealed class EligibleSessionFixture
 /// </summary>
 public class AgeAndWorldUiTests(EligibleSessionFixture fx) : IClassFixture<EligibleSessionFixture>
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
     private AgeContent Ages => fx.Session.Config.Ages!;
     private UnitFamilyContent Families => fx.Session.Config.UnitFamilies!;
 

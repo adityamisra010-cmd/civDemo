@@ -196,54 +196,70 @@ public sealed class UiSession
         return Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
     }
 
-    /// <summary>The HUD slider's release handler: ONE order, stamped with the
-    /// CURRENT turn (§3.9: delivered to the very next End Turn step), targeting
-    /// the FIRST settlement — the pre-selection shorthand the T1.9 replay
-    /// tests pin; the selection HUD calls the targeted overload below.</summary>
-    public void EmitLaborOrder(int farmPct)
-    {
-        if (World.Settlements.Count == 0) return;
-        EmitLaborOrder(farmPct, World.Settlements[0].Id.Value);
-    }
-
-    /// <summary>T2.4: the targeted form — the slider orders the SELECTED
-    /// settlement. An id not present in the world emits NOTHING (an order for
-    /// a ghost settlement would poison the log at replay validation).</summary>
-    public void EmitLaborOrder(int farmPct, int settlementId)
-    {
-        for (int i = 0; i < World.Settlements.Count; i++)
-        {
-            if (World.Settlements[i].Id.Value == settlementId)
-            {
-                Orders.Append(LaborOrderFactory.Create(
-                    World.Clock.Turn, World.Settlements[i].Id, farmPct));
-                return;
-            }
-        }
-    }
-
     /// <summary>
-    /// T3.9b: the five-sector control's submit handler — a BATCH of five
-    /// SectorAllocation orders (D-032, the order kind T3.3 already shipped),
-    /// all stamped with the CURRENT turn, targeting the SELECTED settlement.
-    /// Same ghost-id rule as the labor order: an id not present in the world
-    /// emits NOTHING, because an order for a settlement that does not exist
-    /// poisons the log at replay validation.
-    /// Returns true when the batch was appended, so the caller can leave the
-    /// widget alone on refusal rather than pretending the order landed.
+    /// T3.9b / ADR-033 D1: the labour control's submit handler — a BATCH of five SectorAllocation orders
+    /// (D-032, through <see cref="SectorOrderFactory"/>), all stamped with the CURRENT turn, for ONE
+    /// settlement. Returns true when the batch was appended, so the caller can leave the widget alone on
+    /// refusal rather than pretending the order landed.
+    ///
+    /// GUARDED BY THE SIMULATION'S OWN PREDICATE (ADR-033 D2, "one predicate, two callers"): the batch is
+    /// appended only when <see cref="LabourActivities.CanAllocate"/> holds for the player's Empire — the
+    /// settlement exists AND the Empire controls it, the rule PathBuildSystem applies when it consumes the
+    /// order and order validation applies at replay. Without it a click on an AI-run, stateless or revolted
+    /// settlement was logged, ignored live, and made replay / `sim inspect` validation throw. A refused
+    /// batch appends NOTHING (a ghost id, an uncontrolled settlement, an all-zero or out-of-range split).
     /// </summary>
     public bool EmitSectorOrders(ReadOnlySpan<int> weights, int settlementId)
     {
         if (!SectorOrderFactory.CanSubmit(weights)) return false;
-        for (int i = 0; i < World.Settlements.Count; i++)
-        {
-            if (World.Settlements[i].Id.Value != settlementId) continue;
-            IReadOnlyList<OrderRecord> batch = SectorOrderFactory.Create(
-                World.Clock.Turn, World.Settlements[i].Id, weights);
-            for (int b = 0; b < batch.Count; b++) Orders.Append(batch[b]);
-            return true;
-        }
-        return false;
+        var settlement = new SettlementId(settlementId);
+        if (!LabourActivities.CanAllocate(World, UiPlayer.Empire, settlement)) return false;
+        IReadOnlyList<OrderRecord> batch = SectorOrderFactory.Create(World.Clock.Turn, UiPlayer.Empire, settlement, weights);
+        for (int b = 0; b < batch.Count; b++) Orders.Append(batch[b]);
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-033 D3: the build button's handler — ONE EnqueueConstruction order for the player's Empire,
+    /// stamped with the CURRENT turn (the next End Turn queues it), built by
+    /// <see cref="ConstructionOrderFactory"/> (= <see cref="ConstructionQuery.EnqueueOrder"/>) and appended
+    /// only when <see cref="ConstructionQuery.IsProjectAvailable"/> holds — the predicate ConstructionSystem
+    /// applies. A project short of materials is legal (it waits at the head of the queue); a settlement the
+    /// Empire does not control, an unknown project or a locked one appends NOTHING.
+    /// </summary>
+    public bool EmitConstructionOrder(int settlementId, int projectId)
+    {
+        if (ConstructionOrderFactory.Create(World, Config, UiPlayer.Empire, new SettlementId(settlementId), projectId) is not { } order)
+            return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-032 / ADR-033 D2: the road-development action's handler — ONE DevelopRoads order for the player's
+    /// Empire ("modernize <paramref name="percent"/>% of eligible demand"), stamped with the CURRENT turn,
+    /// built by <see cref="RoadOrderFactory"/> (= <see cref="RoadDevelopmentQuery.DevelopOrder"/>). Appends
+    /// NOTHING when the percentage is outside the order log's (0, 100], when the selection RoadDevelopmentSystem
+    /// applies is empty (no eligible route for a class the Empire knows), or when the Empire already ordered a
+    /// development this turn — the system applies only the FIRST DevelopRoads per Empire per turn, so a second
+    /// would sit in the log and change nothing.
+    /// </summary>
+    public bool EmitRoadOrder(double percent)
+    {
+        PolityId me = UiPlayer.Empire;
+        if (QueuedRoadOrder() is not null) return false;
+        if (RoadOrderFactory.Create(World, Config, me, percent) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>The player's DevelopRoads order queued this turn (the one the next End Turn applies), or null.</summary>
+    public OrderRecord? QueuedRoadOrder()
+    {
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.DevelopRoads && queued[i].ActorId == UiPlayer.ActorId) return queued[i];
+        return null;
     }
 
     /// <summary>
@@ -257,7 +273,7 @@ public sealed class UiSession
     public bool EmitResearchOrder(ResearchNodeId node)
     {
         if (Config.Research is not { } content) return false;
-        if (ResearchOrderFactory.SetTarget(World, content, LaborOrderFactory.PlayerEmpire, node) is not { } order)
+        if (ResearchOrderFactory.SetTarget(World, content, UiPlayer.Empire, node) is not { } order)
             return false;
         Orders.Append(order);
         return true;
@@ -274,7 +290,7 @@ public sealed class UiSession
     public bool EmitTaxOrder(int percent)
     {
         if (!TaxOrderFactory.CanSubmit(percent)) return false;
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         if (!Governance.CanLevyTax(World, Config, me)) return false;
         Orders.Append(TaxOrderFactory.Create(World.Clock.Turn, me, percent));
         return true;
@@ -292,7 +308,7 @@ public sealed class UiSession
 
     /// <summary>The player's AdvanceAge decision queued this turn, or null.</summary>
     public PendingAgeAdvance? PendingPlayerAdvance =>
-        Config.Ages is { } ages ? AgeQuery.PendingAdvance(World, ages, QueuedOrders(), LaborOrderFactory.PlayerEmpire) : null;
+        Config.Ages is { } ages ? AgeQuery.PendingAdvance(World, ages, QueuedOrders(), UiPlayer.Empire) : null;
 
     /// <summary>
     /// ADR-031 / D-047 ruling 13: the ADVANCE AGE confirm handler. Appends exactly
@@ -305,7 +321,7 @@ public sealed class UiSession
     public bool EmitAdvanceAge(int toAge, int surgeKey)
     {
         if (Config.Ages is not { } ages) return false;
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         if (AgeQuery.CheckAdvance(World, ages, me, toAge, surgeKey) != AdvanceRejection.None) return false;
         if (AgeQuery.PendingAdvance(World, ages, QueuedOrders(), me) is not null) return false;
         Orders.Append(AgeQuery.AdvanceOrder(World, me, toAge, surgeKey));
@@ -321,9 +337,35 @@ public sealed class UiSession
     /// </summary>
     private void AppendAiOrders() => AiOrders.Append(Orders, World, Config);
 
-    /// <summary>ADR-029: clears the player's research target (progress is kept, D-044 R9).</summary>
-    public void ClearResearchTarget() =>
-        Orders.Append(ResearchOrderFactory.ClearTarget(World.Clock.Turn, LaborOrderFactory.PlayerEmpire));
+    /// <summary>
+    /// ADR-029: clears the player's research target (progress is kept, D-044 R9) — ONE SetResearchTarget
+    /// order with target −1 (<see cref="ResearchQuery.ClearTargetOrder"/>), stamped with the CURRENT turn.
+    /// Appends NOTHING (and returns false) when there is nothing to clear: no research content; a clear
+    /// already queued this turn; or no target chosen earlier this turn and none in the world (the condition
+    /// under which the action surface lists "research.clear-target"). ResearchSystem applies a turn's target
+    /// orders in log order, so a clear after a choice made the same turn is a real decision.
+    /// </summary>
+    public bool ClearResearchTarget()
+    {
+        if (Config.Research is null) return false;
+        int? queued = QueuedResearchChoice();
+        if (queued == -1) return false;
+        if (queued is null && !ResearchQuery.TryGetTarget(World, UiPlayer.Empire, out _)) return false;
+        Orders.Append(ResearchOrderFactory.ClearTarget(World, UiPlayer.Empire));
+        return true;
+    }
+
+    /// <summary>The research directive the player queued this turn, as ResearchSystem will apply it — the
+    /// LAST of the player's SetResearchTarget orders in log order: a node key, −1 for a clear, or null when
+    /// none is queued.</summary>
+    public int? QueuedResearchChoice()
+    {
+        int? choice = null;
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.SetResearchTarget && queued[i].ActorId == UiPlayer.ActorId) choice = queued[i].TargetId;
+        return choice;
+    }
 
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
     /// the chronicle observes the new state (detection is read-only).

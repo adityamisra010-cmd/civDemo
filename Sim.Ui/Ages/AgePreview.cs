@@ -28,7 +28,7 @@ public static class AgePreview
     {
         AgeContent ages = session.Config.Ages!;
         ResearchContent research = session.Config.Research!;
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         for (int t = 0; t < maxTurns; t++)
         {
             if (AgeQuery.IsEligible(session.World, ages, me)) return t;
@@ -77,7 +77,7 @@ public static class AgePreview
         Directory.CreateDirectory(outDir);
         var written = new List<string>();
         var log = new List<string>();
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         UiSession session = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         AgeContent ages = session.Config.Ages!;
         string terrain = TerrainDataUri(session.World);
@@ -133,15 +133,15 @@ public static class AgePreview
     private static RectD PanelRect() => new(Width - 520, 70, 500, Height - 90);
 
     private static string CapitalName(UiSession s) =>
-        EmpireQuery.TryGetCapital(s.World, LaborOrderFactory.PlayerEmpire, out SettlementId cap) ? s.Names.Name(cap.Value) : "Capital";
+        EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? s.Names.Name(cap.Value) : "Capital";
 
     /// <summary>The era the session's world presents (the game's derivation, ADR-033 D8).</summary>
     private static Sim.Ui.Theme.EraTheme ThemeOf(UiSession s) =>
-        Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(s.World, s.Config.Ages, LaborOrderFactory.PlayerEmpire));
+        Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(s.World, s.Config.Ages, UiPlayer.Empire));
 
     private static string PanelShot(string outDir, string? fontDir, UiSession session, string terrain, string name)
     {
-        var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire) { Theme = ThemeOf(session) };
+        var screen = new AgeScreen(UiPlayer.Empire) { Theme = ThemeOf(session) };
         screen.Refresh(session.World, session.Config.Ages, session.Config.UnitFamilies, session.QueuedOrders());
         return Write(outDir, fontDir, name, d =>
         {
@@ -157,12 +157,12 @@ public static class AgePreview
             PaintLens(d, session, zoom, capitalLeft: false);
             if (toast && session.Config.Ages is { } ages)
             {
-                var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire) { Theme = ThemeOf(session) };
-                AgeTransitionRow[] tr = AgeQuery.Transitions(session.World, LaborOrderFactory.PlayerEmpire);
+                var screen = new AgeScreen(UiPlayer.Empire) { Theme = ThemeOf(session) };
+                AgeTransitionRow[] tr = AgeQuery.Transitions(session.World, UiPlayer.Empire);
                 if (tr.Length > 0)
                 {
                     int converted = 0;
-                    foreach (UnitConversionRow c in MilitaryQuery.Conversions(session.World, LaborOrderFactory.PlayerEmpire))
+                    foreach (UnitConversionRow c in MilitaryQuery.Conversions(session.World, UiPlayer.Empire))
                         if (c.ToAge == tr[^1].ToAge && c.FromIdentity != c.ToIdentity) converted++;
                     screen.ShowTransition(tr[^1].ToAge, ages.Age(tr[^1].ToAge).Name, ages.SurgeByKey(tr[^1].Surge)?.Name, converted);
                     screen.HoldToast();
@@ -178,7 +178,7 @@ public static class AgePreview
     {
         double size = s.World.Terrain!.Size;
         double cx = size / 2, cy = size / 2;
-        if (EmpireQuery.TryGetCapital(s.World, LaborOrderFactory.PlayerEmpire, out SettlementId cap))
+        if (EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap))
             for (int i = 0; i < s.World.Settlements.Count; i++)
                 if (s.World.Settlements[i].Id == cap) { cx = s.World.Settlements[i].SiteCell % (int)size + 0.5; cy = s.World.Settlements[i].SiteCell / (int)size + 0.5; }
         double zoom = z switch
@@ -195,9 +195,9 @@ public static class AgePreview
     private static void PaintLens(DrawList d, UiSession s, WorldZoom z, bool capitalLeft)
     {
         (double cx, double cy, double zoom) = CameraFor(s, z, capitalLeft);
-        WorldProjection p = WorldProjection.Build(s.World, s.Config, id => s.Names.Name(id), LaborOrderFactory.PlayerEmpire);
+        WorldProjection p = WorldProjection.Build(s.World, s.Config, id => s.Names.Name(id), UiPlayer.Empire);
         WorldZoom level = WorldLens.LevelFor(zoom, Width, Height, p.WorldSize);
-        int sel = EmpireQuery.TryGetCapital(s.World, LaborOrderFactory.PlayerEmpire, out SettlementId cap) ? cap.Value : -1;
+        int sel = EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? cap.Value : -1;
         WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level,
             (x, y) => ((x - cx) * zoom + Width / 2, (y - cy) * zoom + Height / 2), zoom, new RectD(0, 0, Width, Height), sel);
         LensLegend(d, p, level);

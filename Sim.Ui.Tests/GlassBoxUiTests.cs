@@ -540,7 +540,7 @@ public class GlassBoxUiTests
     [Fact]
     public void PolicyHistory_RendersAChangeWithOldNewActorAndOrderIndex()
     {
-        var change = new PolicyChange(24, 230.0, 3, Sectors.Farming, 0.55, 0.73, LaborOrderFactory.UiActorId, 104);
+        var change = new PolicyChange(24, 230.0, 3, Sectors.Farming, 0.55, 0.73, UiPlayer.ActorId, 104);
         Assert.Equal("turn 24 · farming 55% -> 73% · player · order #104", PolicyHistoryModel.ChangeLine(change));
         var orphan = new PolicyChange(5, 40.0, 3, Sectors.Crafting, 0.12, 0.0, -1, -1);
         Assert.Equal("turn 5 · crafting 12% -> 0% · unattributed · no order", PolicyHistoryModel.ChangeLine(orphan));

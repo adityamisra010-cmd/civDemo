@@ -25,7 +25,7 @@ namespace Sim.Ui.ViewModel;
 public static class TaxOrderFactory
 {
     /// <summary>The Empire the human director commands.</summary>
-    public static PolityId PlayerEmpire => LaborOrderFactory.PlayerEmpire;
+    public static PolityId PlayerEmpire => UiPlayer.Empire;
 
     /// <summary>The legislative range in percent — the bounds the order log enforces at load.</summary>
     public const int MinPercent = 0;

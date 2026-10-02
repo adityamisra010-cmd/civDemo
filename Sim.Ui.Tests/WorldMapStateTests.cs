@@ -41,7 +41,7 @@ public sealed class RoadWorldFixture
     public int PartialRoute { get; }
     public IReadOnlyList<string> Log { get; }
 
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
 
     public static void Know(WorldState w, SimConfig cfg, params string[] nodes)
     {
@@ -154,7 +154,7 @@ public sealed class RoadWorldFixture
 /// </summary>
 public class WorldMapStateTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixture>
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
     private static readonly WorldZoom[] Zooms = [WorldZoom.World, WorldZoom.Regional, WorldZoom.Settlement];
 
     private WorldProjection Project() =>

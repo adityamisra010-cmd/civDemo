@@ -25,7 +25,7 @@ public static class ProgressionPreview
     {
         var session = UiSession.Start(seed, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent content = session.Config.Research!;
-        PolityId me = LaborOrderFactory.PlayerEmpire;
+        PolityId me = UiPlayer.Empire;
         for (int turn = 0; turn < maxTurns; turn++)
         {
             int done = ResearchQuery.CompletedNodes(session.World, content, me).Length;
@@ -118,10 +118,10 @@ public static class ProgressionPreview
         var written = new List<string>();
         foreach (Shot shot in Shots)
         {
-            var screen = new ProgressionScreen(content, LaborOrderFactory.PlayerEmpire)
+            var screen = new ProgressionScreen(content, UiPlayer.Empire)
             {
                 // The era is derived from the stepped world's Age, exactly as the game derives it.
-                Theme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(session.World, session.Config.Ages, LaborOrderFactory.PlayerEmpire)),
+                Theme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(session.World, session.Config.Ages, UiPlayer.Empire)),
             };
             screen.Refresh(session.World);
             screen.Paint(Width, Height, ApproxTextMeasure.Instance);   // first frame: frames the frontier
