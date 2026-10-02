@@ -133,9 +133,10 @@ public sealed class AgeScreen(PolityId polity)
         SemanticTokens s = t.Semantic;
         AgePanelModel p = Panel;
         PanelFrame.Paint(d, r, t, 501, FrameKind.Panel);
-        double inset = PanelFrame.ContentInset(t, FrameKind.Panel);
-        double x = r.X + Math.Max(18, inset + 10), w = r.Right - Math.Max(18, inset + 10) - x;
-        double y = r.Y + 14 + (t.Ornament.Motif is Motif.Weave or Motif.Chevron or Motif.Meander ? 8 : 0);
+        // Era-invariant placement (continuity): the content box clears every era's frame and
+        // ornament band, so the regions — and the hit rects — are the same in every era.
+        double x = r.X + 20, w = r.W - 40;
+        double y = r.Y + 20;
         double L(double size) => t.Type.Line(size);
         d.Write(t, x, y, ThemeText.Fit(m, t, "CAPITAL  -  " + capitalName.ToUpperInvariant(), 11, w - 40, FontRole.Caps), 11, t.Material.Accent, TextAlign.Left, FontRole.Caps);
         var close = new RectD(r.Right - 34, r.Y + 10, 22, 22);
@@ -153,11 +154,13 @@ public sealed class AgeScreen(PolityId polity)
         // Current Age banner.
         var banner = new RectD(x, y, w, 64);
         PanelFrame.Paint(d, banner, t, 504, FrameKind.Card, Mix(t.Material.Panel, t.Material.Accent, 0.10), t.Material.Accent, 1.1);
-        d.Title(m, t, banner.X + 14, banner.Y + 10, "AGE " + AgePanelModel.Numeral(p.CurrentAge), 24, t.Material.Accent);
-        d.Write(t, banner.X + 96, banner.Y + 12, ThemeText.Fit(m, t, p.CurrentAgeName, 17, banner.W - 110, FontRole.Heading), 17, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+        string numeral = "AGE " + AgePanelModel.Numeral(p.CurrentAge);
+        d.Title(t, banner.X + 14, banner.Y + 10, numeral, 24, t.Material.Accent);
+        double nx = banner.X + 14 + Math.Max(82, m.Width(t, numeral, 24, FontRole.Title) + 14);   // clear of the numeral in any era's type
+        d.Write(t, nx, banner.Y + 12, ThemeText.Fit(m, t, p.CurrentAgeName, 17, banner.Right - 12 - nx, FontRole.Heading), 17, t.Ink.Text, TextAlign.Left, FontRole.Heading);
         string sub = p.Transitions.Count == 0 ? "founding Age" : "entered turn " + N(p.EnteredTurn)
             + (p.CurrentSurgeName is null ? "" : "  -  surge: " + p.CurrentSurgeName);
-        d.Write(t, banner.X + 96, banner.Y + 38, ThemeText.Fit(m, t, sub, 12, banner.W - 110), 12, t.Ink.TextSoft);
+        d.Write(t, nx, banner.Y + 38, ThemeText.Fit(m, t, sub, 12, banner.Right - 12 - nx), 12, t.Ink.TextSoft);
         y = banner.Bottom + 12;
 
         if (p.State == AgePanelState.FinalAge)
@@ -229,14 +232,14 @@ public sealed class AgeScreen(PolityId polity)
             }
         }
 
-        if (p.Remaining.Count > 0 && y < r.Bottom - 40)
+        if (p.Remaining.Count > 0 && y < r.Bottom - 64)
         {
             y += 4;
             d.Write(t, x, y, "STILL REQUIRED", 11, s.Progress, TextAlign.Left, FontRole.Caps);
             y += 17;
             foreach (string sr in p.Remaining)
             {
-                if (y > r.Bottom - 22 - inset) break;
+                if (y > r.Bottom - 54) break;
                 d.Write(t, x + 10, y, "-  " + ThemeText.Fit(m, t, sr, 12.5, w - 20), 12.5, t.Ink.TextSoft);
                 y += Math.Max(17, L(12.5));
             }
@@ -314,7 +317,7 @@ public sealed class AgeScreen(PolityId polity)
         _panelRect = r;
 
         // Header: from -> to.
-        double top = t.Ornament.Motif is Motif.Weave or Motif.Chevron or Motif.Meander ? 8 : 0;
+        const double top = 6;   // clears every era's ornament band (era-invariant placement)
         d.Write(t, r.X + 28, r.Y + 20 + top, "ADVANCE AGE", 12, t.Material.Accent, TextAlign.Left, FontRole.Caps);
         string from = "Age " + AgePanelModel.Numeral(f.FromAge) + "  " + f.FromAgeName;
         d.Write(t, r.X + 28, r.Y + 40 + top, from, 18, t.Ink.TextSoft, TextAlign.Left, FontRole.Heading);
@@ -441,15 +444,16 @@ public sealed class AgeScreen(PolityId polity)
         EraTheme t = Theme;
         double fade = Math.Clamp(Math.Min(_toastAge / 0.35, (ToastSeconds - _toastAge) / 0.8), 0, 1);
         double w = Math.Min(760, width - 40);
-        var r = new RectD((width - w) / 2, top, w, 104);
+        var r = new RectD((width - w) / 2, top, w, 122);
         // The frame fades with the panel: paint it into a scratch list, then copy with alpha.
         var frame = new DrawList();
         PanelFrame.Paint(frame, r, t, 550, FrameKind.Toast, null, t.Material.Accent, 1.4);
         foreach (DrawCmd c in frame.Commands) d.Add(Faded(c, fade));
-        double ins = PanelFrame.ContentInset(t, FrameKind.Toast) + (t.Ornament.Motif is Motif.Weave or Motif.Chevron or Motif.Meander ? 6 : 0);
+        const double ins = 14;   // clears every era's frame and ornament band
         d.Write(t, r.CenterX, r.Y + ins + 6, _toastTitle!, 12, A(t.Material.Accent, fade), TextAlign.Center, FontRole.Caps);
         d.Write(t, r.CenterX, r.Y + ins + 26, ThemeText.Fit(m, t, _toastHeadline!, 21, r.W - 40, FontRole.Title), 21, A(t.Ink.Text, fade), TextAlign.Center, FontRole.Title);
-        d.Write(t, r.CenterX, r.Y + ins + 56, ThemeText.Fit(m, t, _toastBody! + "  -  records now kept in " + t.Medium, 12.5, r.W - 40), 12.5, A(t.Ink.TextSoft, fade), TextAlign.Center);
+        d.Write(t, r.CenterX, r.Y + ins + 56, ThemeText.Fit(m, t, _toastBody!, 12.5, r.W - 40), 12.5, A(t.Ink.TextSoft, fade), TextAlign.Center);
+        d.Write(t, r.CenterX, r.Y + ins + 78, ThemeText.Fit(m, t, "Records are now kept in " + t.Medium + ".", 11.5, r.W - 40), 11.5, A(t.Material.Accent, fade), TextAlign.Center);
     }
 
     private static DrawCmd Faded(DrawCmd c, double f) => c switch

@@ -65,7 +65,7 @@ public static class EraThemes
             Field: Hex(0xAC9A80), FieldAlt: Hex(0xA28F74), Panel: Hex(0xD4C6AB), PanelRaised: Hex(0xDED2BB), PanelSunken: Hex(0xAA987D),
             Chrome: Hex(0x3F3128), Border: Hex(0x2A221C), BorderStrong: Hex(0x1E1813), Hairline: Hex(0x7E6E58),
             Accent: Hex(0x93401F), AccentSoft: Hex(0xB98337),
-            Grain: Hex(0x4B3F33), GrainDensity: 16.0, GrainAlpha: 0.30, GrainSize: 3.0);
+            Grain: Hex(0x4B3F33), GrainDensity: 18.0, GrainAlpha: 0.34, GrainSize: 3.8);
         var ink = new InkTokens(Text: Hex(0x241E19), TextSoft: Hex(0x45392E), TextDim: Hex(0x66594A), OnAccent: Hex(0xF3EBDC), Rule: Hex(0x2A221C),
             OnChrome: Hex(0xEADDC6), OnChromeSoft: Hex(0xB9A88E), OnChromeAccent: Hex(0xE0A458));
         var type = new TypographyTokens(

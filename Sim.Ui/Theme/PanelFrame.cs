@@ -354,7 +354,9 @@ public static class PanelFrame
                     {
                         double x = r.X + (0.1 + 0.8 * FrameNoise.U(id, 59, i)) * r.W, y = r.Y + (0.15 + 0.7 * FrameNoise.U(id, 60, i)) * r.H;
                         double len = 18 + 30 * FrameNoise.U(id, 61, i), ang = FrameNoise.U(id, 62, i) * Math.PI;
-                        d.Polyline(Freehand(x, y, x + Math.Cos(ang) * len, y + Math.Sin(ang) * len, 1.6, id + i, 63), Alpha(m.Grain, 0.35), 0.8);
+                        double x1 = Math.Clamp(x + Math.Cos(ang) * len, r.X + 2, r.Right - 2), y1 = Math.Clamp(y + Math.Sin(ang) * len, r.Y + 2, r.Bottom - 2);
+                        double amp = Math.Min(1.6, Math.Min(Math.Min(y, y1) - r.Y, r.Bottom - Math.Max(y, y1)) * 0.5);
+                        if (amp > 0) d.Polyline(Freehand(x, y, x1, y1, amp, id + i, 63), Alpha(m.Grain, 0.35), 0.8);
                     }
                 break;
             }
@@ -389,7 +391,8 @@ public static class PanelFrame
                 {
                     double x = r.X + FrameNoise.U(id, 91, i) * r.W, y = r.Y + FrameNoise.U(id, 92, i) * r.H;
                     double ang = FrameNoise.U(id, 93, i) * Math.PI, len = m.GrainSize * (0.5 + FrameNoise.U(id, 94, i));
-                    d.Line(x, y, x + Math.Cos(ang) * len, y + Math.Sin(ang) * len, Alpha(m.Grain, m.GrainAlpha), 0.6);
+                    d.Line(x, y, Math.Clamp(x + Math.Cos(ang) * len, r.X, r.Right), Math.Clamp(y + Math.Sin(ang) * len, r.Y, r.Bottom),
+                        Alpha(m.Grain, m.GrainAlpha), 0.6);
                 }
                 break;
             }

@@ -20,29 +20,40 @@ public static class ThemeText
 
     /// <summary>
     /// A panel's display title. In the manuscript era (ornament motif <see cref="Motif.Illumination"/>)
-    /// its first letter is an ILLUMINATED INITIAL — rubricated on a square of gold leaf, the way a
-    /// medieval scribe opened a section; in every other era it is set like any title run. The title
-    /// stays ONE run (its text is never split); the initial is the gold square beneath it and the first
-    /// letter re-set in the rubric's red exactly over itself.
+    /// its first letter is a DECORATED INITIAL, the way a scribe opened a section: rubricated (the
+    /// rubric's red) in a title of ink, gilded (gold leaf on a dark keyline) in a title already set in
+    /// rubric. In every other era it is set like any title run. The title stays ONE run (its text is
+    /// never split, so readers of the command list see the whole title); the initial is that letter
+    /// re-set exactly over itself, so it can never collide with the letters that follow it.
     /// </summary>
-    public static void Title(this DrawList d, ITextMeasure m, EraTheme t, double x, double y, string text, double designSize, Rgba color)
+    public static void Title(this DrawList d, EraTheme t, double x, double y, string text, double designSize, Rgba color)
     {
-        bool illuminate = t.Ornament.Motif == Motif.Illumination && text.Length >= 2 && char.IsLetter(text[0]);
-        double size = t.Type.Size(designSize);
-        if (illuminate)
-        {
-            double gw = m.Width(t, text[..1], designSize, FontRole.Title);
-            var box = new RectD(x - size * 0.14, y - size * 0.08, gw + size * 0.28, size * 1.16);
-            d.Rect(box, t.Material.AccentSoft, t.Ink.Rule, 0.9);
-            d.Rect(box.Inset(2), null, ThemeColor.Alpha(t.Ink.Rule, 0.45), 0.5);
-        }
         d.Write(t, x, y, text, designSize, color, TextAlign.Left, FontRole.Title);
-        if (illuminate) d.Write(t, x, y, text[..1], designSize, t.Material.Accent, TextAlign.Left, FontRole.Title);
+        if (t.Ornament.Motif != Motif.Illumination || text.Length < 2 || !char.IsLetter(text[0])) return;
+        string initial = text[..1];
+        if (color == t.Material.Accent)
+        {
+            double k = Math.Max(0.8, t.Type.Size(designSize) / 28.0);
+            d.Write(t, x + k, y + k, initial, designSize, t.Ink.Rule, TextAlign.Left, FontRole.Title);
+            d.Write(t, x, y, initial, designSize, t.Material.AccentSoft, TextAlign.Left, FontRole.Title);
+        }
+        else d.Write(t, x, y, initial, designSize, t.Material.Accent, TextAlign.Left, FontRole.Title);
     }
 
     /// <summary>The width of the run <see cref="Write"/> would set.</summary>
     public static double Width(this ITextMeasure m, EraTheme t, string text, double designSize, FontRole role = FontRole.Body) =>
         m.Width(DrawList.Latin1(text), t.Type.Size(designSize), role, t.Type.For(role));
+
+    /// <summary>The design size at which the SET run fits <paramref name="width"/>: the size itself when
+    /// it fits, else scaled down (never below <paramref name="minScale"/> of it). For control and
+    /// navigation labels, which keep every word in every era rather than lose one to an ellipsis.</summary>
+    public static double FitSize(ITextMeasure m, EraTheme t, string text, double designSize, double width, FontRole role = FontRole.Body,
+        double minScale = 0.7)
+    {
+        double w = m.Width(t, text, designSize, role);
+        if (w <= width || w <= 0) return designSize;
+        return Math.Max(designSize * minScale, Math.Floor(designSize * width / w * 20.0) / 20.0);
+    }
 
     /// <summary>Truncates with an ellipsis so the SET run fits <paramref name="width"/>.</summary>
     public static string Fit(ITextMeasure m, EraTheme t, string text, double designSize, double width, FontRole role = FontRole.Body)

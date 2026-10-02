@@ -143,7 +143,9 @@ public static class EraPreview
             // The open section reads as pressed (ImGuiCol.ButtonActive in the game: UiTheme.StyleFor).
             PanelFrame.Paint(d, new RectD(nav.X, nav.Y, nav.Width, nav.Height), t, 30 + i, FrameKind.Button,
                 open ? ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.34) : t.Material.PanelRaised, open ? t.Material.Accent : t.Material.Border, open ? 1.2 : 0.8);
-            d.Write(t, nav.CenterX, nav.Y + 7, ThemeText.Fit(m, t, GameSections.Label(GameSections.Order[i]), 15, nav.Width - 8, FontRole.Caps), 15, t.Ink.Text, TextAlign.Center, FontRole.Caps);
+            string label = GameSections.Label(GameSections.Order[i]);
+            double ns = ThemeText.FitSize(m, t, label, 15, nav.Width - 10, FontRole.Caps);
+            d.Write(t, nav.CenterX, nav.Y + 7 + (15 - ns) / 2, ThemeText.Fit(m, t, label, ns, nav.Width - 8, FontRole.Caps), ns, t.Ink.Text, TextAlign.Center, FontRole.Caps);
         }
         double tx = ChromeGeometry.TerritoryToggleX, ty = ChromeGeometry.ButtonRow.Y + 6;
         PanelFrame.Paint(d, new RectD(tx, ty, 18, 18), t, 40, FrameKind.Chip, t.Material.PanelRaised, t.Material.Border, 1.0);

@@ -416,7 +416,8 @@ public sealed class ProgressionScreen
                 d.Rect(new RectD(r.X + 10, r.Bottom - 4, r.W - 20, 2.5), t.Material.Accent);
             }
             Rgba col = on ? t.Ink.Text : status == LensStatus.NotYetSimulated ? t.Ink.OnChromeSoft : t.Ink.OnChrome;
-            d.Write(t, r.CenterX, r.Y + 6, ThemeText.Fit(m, t, Lenses.Label(l), size, r.W - 8, FontRole.Caps), size, col, TextAlign.Center, FontRole.Caps);
+            double ls = ThemeText.FitSize(m, t, Lenses.Label(l), size, r.W - 8, FontRole.Caps);
+            d.Write(t, r.CenterX, r.Y + 6 + (size - ls) / 2, ThemeText.Fit(m, t, Lenses.Label(l), ls, r.W - 8, FontRole.Caps), ls, col, TextAlign.Center, FontRole.Caps);
             string sub = status switch { LensStatus.Functional => "simulated", LensStatus.PartialData => "partial", _ => "not yet simulated" };
             d.Write(t, r.CenterX, r.Y + 24, sub, 10.5, on ? t.Ink.TextSoft : t.Ink.OnChromeSoft, TextAlign.Center);
             _hits.Add(new HitRegion(r, HitKind.Lens, (int)l));
@@ -758,7 +759,8 @@ public sealed class ProgressionScreen
             bool primary = buttons[i].Kind == HitKind.Frontier;
             PanelFrame.Paint(d, r, t, 170 + i, FrameKind.Button, primary ? t.Semantic.ActiveFill : buttons[i].On ? SelectedFill : t.Material.PanelRaised,
                 primary ? t.Semantic.Active : buttons[i].On ? t.Material.AccentSoft : t.Material.Hairline, primary ? 1.1 : 0.9);
-            d.Write(t, r.X + w / 2, r.Y + 7, ThemeText.Fit(m, t, buttons[i].Label, 11, w - 6, FontRole.Caps), 11, primary ? t.Semantic.Active : t.Ink.Text, TextAlign.Center, FontRole.Caps);
+            double bs = ThemeText.FitSize(m, t, buttons[i].Label, 11, w - 6, FontRole.Caps);
+            d.Write(t, r.X + w / 2, r.Y + 7 + (11 - bs) / 2, ThemeText.Fit(m, t, buttons[i].Label, bs, w - 6, FontRole.Caps), bs, primary ? t.Semantic.Active : t.Ink.Text, TextAlign.Center, FontRole.Caps);
             _hits.Add(new HitRegion(r, buttons[i].Kind, 0));
             x -= 6;
         }
@@ -883,15 +885,12 @@ public sealed class ProgressionScreen
             }
         }
 
-        // Row 3: the Age — numeral AND full name, always; the estimate to complete on the right (A7+).
-        string est = detail >= 5 && v.State == NodeState.CurrentTarget && Snapshot.PointsPerTurn > 0
-            ? "~" + Math.Ceiling(Math.Max(0, v.EffectiveCost - v.Progress) / Snapshot.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " t" : "";
-        double estW = est.Length > 0 ? m.Width(t, est, 10.5 * z, FontRole.Numeric) + 6 * z : 0;
-        d.Write(t, x + pad, y + 44 * z, ThemeText.Fit(m, t, ResearchTreeLayout.AgeShort(v.Age), 10.5 * z, w - pad - ins - 6 * z - estW), 10.5 * z,
+        // Row 3: the Age — numeral AND full name, always, with the row to itself.
+        d.Write(t, x + pad, y + 44 * z, ThemeText.Fit(m, t, ResearchTreeLayout.AgeShort(v.Age), 10.5 * z, w - pad - ins - 6 * z), 10.5 * z,
             dim ? t.Ink.TextDim : t.Material.Accent, TextAlign.Left, FontRole.Body);
-        if (est.Length > 0) d.Write(t, right - 4 * z, y + 44 * z, est, 10.5 * z, s.Active, TextAlign.Right, FontRole.Numeric);
 
-        // Row 4: dependency stubs (A3+) and the cross-lane prerequisite label (every era).
+        // Row 4: dependency stubs (A3+), the target's estimate to complete (A7+) and the cross-lane
+        // prerequisite label (every era).
         double fy = y + 61 * z, fx = x + pad;
         Rgba cc = dim ? t.Ink.TextDim : t.Ink.TextSoft;
         if (detail >= 3)
@@ -905,6 +904,12 @@ public sealed class ProgressionScreen
             string outs = dep.Length.ToString(CultureInfo.InvariantCulture);
             d.Write(t, fx + 11 * z, fy, outs, 11 * z, cc, TextAlign.Left, FontRole.Numeric);
             fx += 11 * z + m.Width(t, outs, 11 * z, FontRole.Numeric) + 10 * z;
+        }
+        if (detail >= 5 && v.State == NodeState.CurrentTarget && Snapshot.PointsPerTurn > 0)
+        {
+            string est = "~" + Math.Ceiling(Math.Max(0, v.EffectiveCost - v.Progress) / Snapshot.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " t";
+            d.Write(t, fx, fy, est, 11 * z, s.Active, TextAlign.Left, FontRole.Numeric);
+            fx += m.Width(t, est, 11 * z, FontRole.Numeric) + 10 * z;
         }
         string cross = CrossLaneLabel(vertex);
         string tail = cross.Length > 0 ? cross
@@ -977,13 +982,15 @@ public sealed class ProgressionScreen
         PanelFrame.Paint(d, panel, t, 190, FrameKind.Panel);
         d.PushClip(panel);
         int node = Hovered >= 0 ? Hovered : Selected;
+        // Era-invariant placement (continuity): the content box clears every era's frame and ornament
+        // band, so the panel's regions — and its button's hit rect — are the same in every era.
         double inset = PanelFrame.ContentInset(t, FrameKind.Panel);
-        double x = panel.X + Math.Max(22, inset + 12), w = panel.Right - Math.Max(22, inset + 12) - x, y = panel.Y + 18 + (t.Ornament.Motif is Motif.Weave or Motif.Chevron or Motif.Meander ? 8 : 0);
+        double x = panel.X + 22, w = DetailW - 44, y = panel.Y + 24;
         double L(double size) => t.Type.Line(size);
         if (node < 0)
         {
             ResearchSnapshot s = Snapshot!;
-            d.Title(m, t, x, y, Graph.Tree == ResearchTree.Technology ? "The Technology Tree" : "The Civics Tree", 24, t.Material.Accent);
+            d.Title(t, x, y, Graph.Tree == ResearchTree.Technology ? "The Technology Tree" : "The Civics Tree", 24, t.Material.Accent);
             y += L(24) + 10;
             string intro = Graph.Tree == ResearchTree.Technology
                 ? "The main trunk and five specialised subtrees. The subtrees open together once the research stage is reached."
@@ -1011,7 +1018,7 @@ public sealed class ProgressionScreen
         bool firstLine = true;
         foreach (string line in ThemeText.Wrap(m, t, n.Name, 25, w, FontRole.Title))
         {
-            if (firstLine) d.Title(m, t, x, y, line, 25, t.Ink.Text);
+            if (firstLine) d.Title(t, x, y, line, 25, t.Ink.Text);
             else d.Write(t, x, y, line, 25, t.Ink.Text, TextAlign.Left, FontRole.Title);
             firstLine = false;
             y += L(25);
@@ -1171,7 +1178,7 @@ public sealed class ProgressionScreen
         LensPage p = Page!;
         RectD c = Canvas;
         double x = c.X + 48, y = c.Y + 36, w = c.W - 96;
-        d.Title(m, t, x, y, p.Title, 34, t.Material.Accent);
+        d.Title(t, x, y, p.Title, 34, t.Material.Accent);
         y += 46;
         d.Write(t, x, y, ThemeText.Fit(m, t, p.Purpose, 16, w), 16, t.Ink.TextSoft);
         y += 30;

@@ -102,13 +102,13 @@ public static class AgePreview
         written.Add(PanelShot(outDir, fontDir, session, terrain, "02-capital-age-panel-eligible"));
 
         // 03: the advance flow with a surge chosen.
-        var screen = new AgeScreen(me);
+        var screen = new AgeScreen(me) { Theme = ThemeOf(session) };
         screen.Refresh(session.World, ages, session.Config.UnitFamilies, session.QueuedOrders());
         screen.OpenFlow();
         screen.SelectedSurge = ages.Surges[Math.Min(1, ages.Surges.Count - 1)].Key;
         written.Add(Write(outDir, fontDir, "03-advance-age-surge-and-modernization", d =>
         {
-            d.Rect(new RectD(0, 0, Width, Height), Rgba(0x0E1319));
+            Sim.Ui.Theme.PanelFrame.Field(d, new RectD(0, 0, Width, Height), screen.Theme, 1);
             screen.PaintPanel(d, ApproxTextMeasure.Instance, PanelRect(), CapitalName(session));
             screen.PaintFlow(d, ApproxTextMeasure.Instance, Width, Height);
         }, null));
@@ -135,9 +135,13 @@ public static class AgePreview
     private static string CapitalName(UiSession s) =>
         EmpireQuery.TryGetCapital(s.World, LaborOrderFactory.PlayerEmpire, out SettlementId cap) ? s.Names.Name(cap.Value) : "Capital";
 
+    /// <summary>The era the session's world presents (the game's derivation, ADR-033 D8).</summary>
+    private static Sim.Ui.Theme.EraTheme ThemeOf(UiSession s) =>
+        Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(s.World, s.Config.Ages, LaborOrderFactory.PlayerEmpire));
+
     private static string PanelShot(string outDir, string? fontDir, UiSession session, string terrain, string name)
     {
-        var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire);
+        var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire) { Theme = ThemeOf(session) };
         screen.Refresh(session.World, session.Config.Ages, session.Config.UnitFamilies, session.QueuedOrders());
         return Write(outDir, fontDir, name, d =>
         {
@@ -153,7 +157,7 @@ public static class AgePreview
             PaintLens(d, session, zoom, capitalLeft: false);
             if (toast && session.Config.Ages is { } ages)
             {
-                var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire);
+                var screen = new AgeScreen(LaborOrderFactory.PlayerEmpire) { Theme = ThemeOf(session) };
                 AgeTransitionRow[] tr = AgeQuery.Transitions(session.World, LaborOrderFactory.PlayerEmpire);
                 if (tr.Length > 0)
                 {
