@@ -129,17 +129,6 @@ public sealed record GoodsConfig(
         return null;
     }
 
-    /// <summary>ADR-033 D6: the project whose completion founds a university of research.json type id
-    /// <paramref name="universityTypeId"/> (at most one, validated at load), or null.</summary>
-    public ConstructionProjectEntry? FoundingProjectOf(string universityTypeId)
-    {
-        ConstructionProjectEntry[] projects = Projects ?? [];
-        for (int i = 0; i < projects.Length; i++)
-            if (projects[i].Founds is { } f && string.Equals(f.UniversityType, universityTypeId, StringComparison.Ordinal))
-                return projects[i];
-        return null;
-    }
-
     public GoodEntry ById(int id)
     {
         for (int i = 0; i < Goods.Length; i++) if (Goods[i].Id == id) return Goods[i];
