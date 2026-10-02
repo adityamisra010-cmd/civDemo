@@ -19,7 +19,10 @@ public readonly record struct PathBuildTables(
 ///
 /// 1. ORDER CONSUMPTION: each LaborAllocationOrder in this turn's batch upserts
 ///    the target settlement's SectorAllocations row (D-032 sector weights),
-///    applied in log order — the last order for a settlement in a turn wins.
+///    applied in log order — the last order for a settlement in a turn wins —
+///    when the issuer may allocate that settlement's labour
+///    (LabourActivities.CanAllocate: it exists and the issuer controls it;
+///    ADR-033 D2, the predicate the action surface lists sectors by).
 ///    Farming and this system's own accrual read the row from PREV (§3.2), so
 ///    an order steers yields exactly one turn after it lands.
 ///
@@ -68,6 +71,13 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         // 1. Orders — applied even before terrain checks: the allocation row is
         // plain state. Log order; unknown settlements were rejected up-front by
         // OrderValidation, so a miss here means a toy world (skip silently).
+        //
+        // ADR-033 D2 — ONE PREDICATE, TWO CALLERS: a labour order applies only
+        // where LabourActivities.CanAllocate holds on PREV — the settlement exists
+        // AND the issuing Empire CONTROLS it (D-037; never the actor id on trust;
+        // a world with no Controls at all is a toy and exempt) — the very predicate
+        // the action surface lists a settlement's sectors by. Before it, an order
+        // could set the labour of a settlement another Empire rules.
         for (int o = 0; o < ctx.Orders.Count; o++)
         {
             OrderRecord order = ctx.Orders[o];
@@ -79,7 +89,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 // sectors zeroed. That is exactly the old two-way split.
                 case OrderKind.LaborAllocation:
                 {
-                    if (!SettlementExists(prev, order.TargetId)) continue;
+                    if (!LabourActivities.CanAllocate(prev, order.Actor, new SettlementId(order.TargetId))) continue;
                     double farm = order.Amount / 100.0;
                     Upsert(ctx.Owned.Allocations, new SectorAllocationRow(
                         new SettlementId(order.TargetId), Farming: farm, Herding: 0.0,
@@ -91,8 +101,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 {
                     int settlementId = order.TargetId >> 3;
                     int sector = order.TargetId & 7;
-                    if (!SettlementExists(prev, settlementId)) continue;
                     var id = new SettlementId(settlementId);
+                    if (!LabourActivities.CanAllocate(prev, order.Actor, id)) continue;
                     SectorAllocationRow row = Sectors.Default(id);
                     for (int i = 0; i < ctx.Owned.Allocations.Count; i++)
                     {
@@ -368,13 +378,6 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<UnitConversionRow> UnitConversions => prev.UnitConversions;
         public IReadOnlyTable<TransportEdgeRow> TransportEdges => prev.TransportEdges;
         public IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments => prev.RoadDevelopments;
-    }
-
-    private static bool SettlementExists(IReadOnlyWorldState prev, int settlementId)
-    {
-        for (int i = 0; i < prev.Settlements.Count; i++)
-            if (prev.Settlements[i].Id.Value == settlementId) return true;
-        return false;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

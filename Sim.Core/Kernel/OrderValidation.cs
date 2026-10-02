@@ -75,6 +75,19 @@ public static class OrderValidation
                     $"{settlementId}, which does not exist in this world " +
                     $"({world.Settlements.Count} settlement(s)). Toy worlds have none — " +
                     "labor orders need a founded world.");
+
+            // ADR-033 D2: an Empire allocates labour only where it rules — the SAME
+            // predicate PathBuildSystem applies at consumption and the action surface
+            // lists sectors by (LabourActivities.CanAllocate; guarded on a non-empty
+            // Controls table exactly as the construction check above). Like that check,
+            // this load-time pass sees only the turn-0 world: it is the fast, actionable
+            // rejection of a bad log; the rule's implementation is the consumer's.
+            if (record.Kind is OrderKind.LaborAllocation or OrderKind.SectorAllocation
+                && !LabourActivities.CanAllocate(world, record.Actor, new SettlementId(settlementId)))
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): {record.Kind} targets settlement " +
+                    $"{settlementId}, which polity {record.ActorId} does not control. An Empire may " +
+                    "only allocate labour where it rules (D-037 control is authoritative).");
         }
     }
 }
