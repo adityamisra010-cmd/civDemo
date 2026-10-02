@@ -351,9 +351,17 @@ public static class Pathfinder
 
     /// <summary>
     /// Per-call network overlay (pure — rebuilt from the tables each query):
-    /// adjacency per lattice node in edge-table row order, both directions.
-    /// Also returns the minimum edge cost per straight-line stride unit for the
-    /// heuristic's admissibility bound.
+    /// adjacency per lattice node, both directions — first PathBuild's lattice
+    /// fast lanes (NetworkEdges, row order), then (ADR-032) every travelled
+    /// inter-city ROUTE in TransportEdges (row order) as a lane between its two
+    /// settlements' origin lattice nodes, costed by the ONE road-performance
+    /// definition: <see cref="RoadPerformance.TravelCostUnits"/> — the route's
+    /// LengthKm × its stored effective (interpolated) cost factor, in cost units.
+    /// A better or further-modernized road is a cheaper lane, so road class shapes
+    /// catchments, pairwise travel costs and PathBuild routing; with no route rows
+    /// the overlay is exactly the pre-ADR-032 one.
+    /// Also returns the minimum lane cost per straight-line stride unit for the
+    /// heuristic's admissibility bound (road lanes included).
     /// </summary>
     private static (int[][] Targets, double[][] Costs, double MinEdgePerUnit) BuildOverlay(
         TraversalLattice lattice, IReadOnlyWorldState world)
@@ -370,22 +378,44 @@ public static class Pathfinder
             anchor[row.Id.Value] = row.LatticeNode;
         }
 
+        // ADR-032 road lanes: settlement endpoints → origin lattice nodes, and the cost.
+        int roadCount = world.TransportEdges.Count;
+        int[] roadA = roadCount == 0 ? [] : new int[roadCount];
+        int[] roadB = roadCount == 0 ? [] : new int[roadCount];
+        double[] roadCost = roadCount == 0 ? [] : new double[roadCount];
+        if (roadCount > 0)
+        {
+            int terrainSize = lattice.Size * lattice.Stride;
+            for (int i = 0; i < roadCount; i++)
+            {
+                TransportEdgeRow r = world.TransportEdges[i];
+                roadA[i] = -1;
+                if (!RoadPerformance.IsTravelled(r)) continue;
+                int sa = SiteOf(world, r.A), sb = SiteOf(world, r.B);
+                if (sa < 0 || sb < 0) continue;
+                int a = LatticeMap.OriginLatticeNode(lattice, terrainSize, sa);
+                int b = LatticeMap.OriginLatticeNode(lattice, terrainSize, sb);
+                if (a == b) continue;
+                roadA[i] = a;
+                roadB[i] = b;
+                roadCost[i] = RoadPerformance.TravelCostUnits(r, LatticeGeometry.KmPerCostUnitOnIdealGround(lattice));
+            }
+        }
+
         double minEdgePerUnit = double.MaxValue;
         for (int i = 0; i < edgeCount; i++)
         {
             NetworkEdgeRow e = world.NetworkEdges[i];
             counts[anchor[e.A.Value]]++;
             counts[anchor[e.B.Value]]++;
-
-            (int ax, int ay) = lattice.Coords(anchor[e.A.Value]);
-            (int bx, int by) = lattice.Coords(anchor[e.B.Value]);
-            double dx = ax - bx, dy = ay - by;
-            double dist = Math.Sqrt(dx * dx + dy * dy);
-            if (dist > 0.0)
-            {
-                double perUnit = e.Cost / dist;
-                if (perUnit < minEdgePerUnit) minEdgePerUnit = perUnit;
-            }
+            MinPerUnit(lattice, anchor[e.A.Value], anchor[e.B.Value], e.Cost, ref minEdgePerUnit);
+        }
+        for (int i = 0; i < roadCount; i++)
+        {
+            if (roadA[i] < 0) continue;
+            counts[roadA[i]]++;
+            counts[roadB[i]]++;
+            MinPerUnit(lattice, roadA[i], roadB[i], roadCost[i], ref minEdgePerUnit);
         }
 
         var targets = new int[n][];
@@ -405,7 +435,34 @@ public static class Pathfinder
             targets[a][fill[a]] = b; costs[a][fill[a]++] = e.Cost;
             targets[b][fill[b]] = a; costs[b][fill[b]++] = e.Cost;
         }
+        for (int i = 0; i < roadCount; i++)
+        {
+            if (roadA[i] < 0) continue;
+            int a = roadA[i], b = roadB[i];
+            targets[a][fill[a]] = b; costs[a][fill[a]++] = roadCost[i];
+            targets[b][fill[b]] = a; costs[b][fill[b]++] = roadCost[i];
+        }
         return (targets, costs, minEdgePerUnit);
+    }
+
+    private static void MinPerUnit(TraversalLattice lattice, int a, int b, double cost, ref double min)
+    {
+        (int ax, int ay) = lattice.Coords(a);
+        (int bx, int by) = lattice.Coords(b);
+        double dx = ax - bx, dy = ay - by;
+        double dist = Math.Sqrt(dx * dx + dy * dy);
+        if (dist > 0.0)
+        {
+            double perUnit = cost / dist;
+            if (perUnit < min) min = perUnit;
+        }
+    }
+
+    private static int SiteOf(IReadOnlyWorldState world, SettlementId id)
+    {
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (world.Settlements[i].Id.Value == id.Value) return world.Settlements[i].SiteCell;
+        return -1;
     }
 
     private static int MaxNodeId(IReadOnlyWorldState world)

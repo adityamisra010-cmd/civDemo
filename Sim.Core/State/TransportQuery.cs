@@ -10,12 +10,13 @@ namespace Sim.Core.State;
 ///
 /// JUNCTIONS ARE DERIVED, NEVER STORED (the Director's ruling 10): a settlement where three or
 /// more built edges meet IS a junction. The graph is a multigraph — every query here returns
-/// all parallel edges between two endpoints; nothing assumes one edge per pair. Edges carry no
+/// every separate physical route between two endpoints; nothing assumes one edge per pair. Edges carry no
 /// owner (ruling 6); nothing here reads territory, claims or controls.
 ///
 /// THE TRAVEL-TIME HOOK (<see cref="EstimateFreight"/>): the deterministic, dt-free answer to
-/// "how long does a shipment of T tonnes take from X to Y over the network as built?". It is
-/// the seam the Director's trade note asks for (bad roads slow trade; a standing "buy 100 steel
+/// "how long does a shipment of T tonnes take from X to Y over the network as built?", using
+/// the same stored effective road performance (<see cref="RoadPerformance"/>) as the
+/// authoritative Pathfinder. It is the seam the Director's trade note asks for (bad roads slow trade; a standing "buy 100 steel
 /// every month" contract is paced by it). No system consumes it yet — see ADR-032 §7 for how
 /// trade will.
 ///
@@ -70,7 +71,7 @@ public static class TransportQuery
         return [.. result];
     }
 
-    /// <summary>Every built PARALLEL edge between two settlements (either order), row order.</summary>
+    /// <summary>Every route row between two settlements (either order), row order — genuinely separate physical routes; modernization never adds one.</summary>
     public static TransportEdgeRow[] EdgesBetween(IReadOnlyWorldState world, SettlementId x, SettlementId y) =>
         EdgesBetween(world.TransportEdges, x, y);
 
@@ -188,8 +189,11 @@ public static class TransportQuery
 
     /// <summary>
     /// THE TRAVEL-TIME HOOK. Shortest route by class-weighted length over the free baseline
-    /// (every SettlementDistances pair, at the DirtPath speed factor and capacity) plus every
-    /// built Road-mode edge (LengthKm × its class speed factor, at its class capacity).
+    /// (every SettlementDistances pair — the authoritative Pathfinder's pairwise cost, which
+    /// already routes over road lanes — at the DirtPath speed factor and capacity) plus every
+    /// travelled route row (<see cref="RoadPerformance.TravelKm"/>: LengthKm × the row's stored
+    /// EFFECTIVE, interpolated cost factor — the very value Pathfinder's overlay uses — at its
+    /// effective capacity). One road-performance definition, never a second one.
     /// Deterministic: Dijkstra keyed (cost, settlement row index); links relaxed in table row
     /// order, a strictly-better cost only (an equal cost keeps the first found).
     /// </summary>
@@ -236,14 +240,12 @@ public static class TransportQuery
             for (int i = 0; i < world.TransportEdges.Count; i++)
             {
                 TransportEdgeRow e = world.TransportEdges[i];
-                if (e.Mode != TransportModes.Road || e.State != TransportEdgeStates.Complete) continue;
+                if (!RoadPerformance.IsTravelled(e)) continue;
                 int other = e.A.Value == uId ? e.B.Value : e.B.Value == uId ? e.A.Value : -1;
                 if (other < 0) continue;
                 int v = IndexOf(world, new SettlementId(other));
                 if (v < 0 || done[v]) continue;
-                RoadClassConfig? c = roads.ClassOf(e.EdgeType);
-                if (c is null) continue;
-                Relax(u, v, e.LengthKm * c.SpeedFactor, e.Id, e.CapacityTonnesPerYear);
+                Relax(u, v, RoadPerformance.TravelKm(e), e.Id, e.CapacityTonnesPerYear);
             }
         }
 

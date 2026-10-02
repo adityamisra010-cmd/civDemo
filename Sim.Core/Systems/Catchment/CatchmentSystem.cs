@@ -88,7 +88,11 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         if (prev.Terrain is null || prev.Settlements.Count == 0 || prev.NetworkMeta.Count == 0)
             return;
 
-        int revision = prev.NetworkMeta[0].Revision;
+        // ADR-032: the COMBINED revision — PathBuild's lattice network plus the road-development
+        // log — so a road modernization (a cheaper lane in Pathfinder's overlay) is a D-016
+        // recompute event exactly like a new dirt path. Equal to NetworkMeta's revision on a
+        // world with no road development.
+        int revision = RoadPerformance.NetworkRevision(prev);
         if (!IsStale(prev, revision)) return; // D-016: no event → no recompute
 
         TraversalLattice lattice = TraversalLattice.Build(prev.Terrain, _cfg.Transport.RiverCostFactor);
