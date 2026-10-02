@@ -236,5 +236,18 @@
     "durationYears": 5.0,
     "severityMin": 0.75,
     "severityMax": 1.0
+  },
+  "roads": {
+    "_doc": "ADR-032 (transport / inter-city road foundation). EVERY NUMBER IS TUNE — a deterministic PLACEHOLDER (Director ruling 12: no cost or speed formula is ratified). baselineKmPerDay 40: freight speed over the free DirtPath baseline on ideal ground; with the DirtPath capacity below it reproduces the Director's reference figure (5000 t over 3000 km on bad roads ~ 3 in-game months: 3000/40 = 75 days in transit + 5000 t / (100000 t/yr) = 18 days of throughput = 93 days). maxRouteKm 600: the longest baseline settlement pair (ideal-ground-equivalent km) treated as an inter-city route. classes: speedFactor = the class's travel cost per km as a fraction of the baseline's (lower = faster); capacityTonnesPerYear = freight throughput of ONE edge; materialsPerKm = goods.json units consumed per km to build the class from nothing (an in-tier upgrade pays only the per-good difference). DirtPath is the free baseline and costs nothing. Scale check on the founded seed-42 dev world: settlements hold ~200-700 timber and single-digit stone, pairs are ~100-210 km apart, so a first trackway is affordable and engineered roads wait for an extraction economy — a placeholder, explicitly left for tuning. entity = the research.json infrastructure entity whose knowledge-eligibility makes the class buildable.",
+    "baselineKmPerDay": 40.0,
+    "maxRouteKm": 600.0,
+    "classes": [
+      { "edgeType": 1, "entity": null, "speedFactor": 1.0, "capacityTonnesPerYear": 100000, "materialsPerKm": [] },
+      { "edgeType": 2, "entity": "infra.road_track", "speedFactor": 0.85, "capacityTonnesPerYear": 150000, "materialsPerKm": [ { "good": "timber", "qty": 1.0 } ] },
+      { "edgeType": 3, "entity": "infra.road_built", "speedFactor": 0.7, "capacityTonnesPerYear": 300000, "materialsPerKm": [ { "good": "stone", "qty": 2.0 }, { "good": "timber", "qty": 0.5 } ] },
+      { "edgeType": 4, "entity": "infra.road_paved", "speedFactor": 0.55, "capacityTonnesPerYear": 600000, "materialsPerKm": [ { "good": "stone", "qty": 4.0 }, { "good": "timber", "qty": 0.5 } ] },
+      { "edgeType": 5, "entity": "infra.road_macadam", "speedFactor": 0.45, "capacityTonnesPerYear": 1200000, "materialsPerKm": [ { "good": "stone", "qty": 5.0 }, { "good": "timber", "qty": 0.5 } ] },
+      { "edgeType": 6, "entity": "infra.road_highway", "speedFactor": 0.15, "capacityTonnesPerYear": 20000000, "materialsPerKm": [ { "good": "stone", "qty": 12.0 }, { "good": "tools", "qty": 1.0 } ] }
+    ]
   }
 }

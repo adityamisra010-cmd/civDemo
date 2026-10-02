@@ -82,6 +82,23 @@ public enum OrderKind
     /// first under the new Age.
     /// </summary>
     AdvanceAge = 7,
+
+    /// <summary>
+    /// ADR-032 (the Director's transport rulings 1, 2, 9, 13): the issuing Empire's road-
+    /// development ACTION — "modernize X% of eligible inter-city transport demand". TargetId is
+    /// reserved and must be 0; Amount = the percentage in (0, 100] (the slider). Player and AI
+    /// issue the SAME order (RoadDevelopmentQuery.DevelopOrder) and it goes through the SAME
+    /// selection (RoadDevelopmentQuery.Plan) — there is no player-only road system.
+    ///
+    /// Range-validated at LOAD. Which routes are eligible (research, existing classes, control
+    /// of an endpoint) and what the issuer can afford are state-dependent and resolved where the
+    /// order is consumed (RoadDevelopmentSystem). One DevelopRoads per Empire per turn takes
+    /// effect — the first in log order; later ones that turn change nothing.
+    /// DELIVERY: an order stamped turn t is applied by the step t → t+1, against the state of
+    /// turn t (usage = turn t's realised trade, research = turn t's completed knowledge); the
+    /// built edges and the consumed materials first appear in the state of turn t+1.
+    /// </summary>
+    DevelopRoads = 8,
 }
 
 /// <summary>
@@ -267,11 +284,20 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): AdvanceAge surge key must be a whole number >= 1 " +
                         $"carried exactly by Amount, got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.DevelopRoads:
+                if (record.TargetId != 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): DevelopRoads TargetId is reserved and must be 0, got {record.TargetId}.");
+                if (!(record.Amount > 0.0 && record.Amount <= 100.0)) // NaN fails this too
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): DevelopRoads percentage must be in (0,100], got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
-                    "4 (EnqueueConstruction), 6 (SetResearchTarget) and 7 (AdvanceAge).");
+                    "4 (EnqueueConstruction), 6 (SetResearchTarget), 7 (AdvanceAge) and 8 (DevelopRoads).");
         }
     }
 }

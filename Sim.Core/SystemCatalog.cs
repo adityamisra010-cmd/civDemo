@@ -47,6 +47,10 @@ namespace Sim.Core;
 ///   HOUSING (T3.8, the FOURTH holder) owns: Amount via Ledger SINK only, reason
 ///     HousingMaterials, on the TIMBER and CLAY rows (build + upkeep draws) —
 ///     never a source, never another good, no remainder field touched.
+///   ROAD DEVELOPMENT (ADR-032, the SIXTH holder) owns: Amount via Ledger SINK
+///     only, reason ConstructionMaterials, on the rows its roads.classes materials
+///     name, at the PAYING endpoint settlement — never a source, no remainder field.
+///     It runs only on a turn carrying a DevelopRoads order.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or
 ///     sink, and NO remainder field (whole units only; sub-unit intent is
@@ -351,6 +355,18 @@ public static class SystemCatalog
                 rng, Systems.Ages.AgeTransitionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>ADR-032: the one authoritative road-development operation (DevelopRoads, player
+    /// and AI alike). SOLE OWNER of TransportEdges and RoadDevelopments; sixth holder of the
+    /// GoodStocks share (see the ownership record above). Inert without roads tuning.</summary>
+    public static SystemRegistration RoadDevelopment(SimConfig cfg)
+    {
+        var system = new Systems.Roads.RoadDevelopmentSystem(cfg);
+        return new SystemRegistration(Systems.Roads.RoadDevelopmentSystem.WellKnownId, Systems.Roads.RoadDevelopmentSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Roads.RoadDevelopmentTables>(
+                prev, new Systems.Roads.RoadDevelopmentTables(next.TransportEdges, next.RoadDevelopments, next.GoodStocks),
+                rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -359,6 +375,6 @@ public static class SystemCatalog
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
-         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg),
          Weather(), Growth(), Trade()];
 }

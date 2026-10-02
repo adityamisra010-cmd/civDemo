@@ -34,6 +34,10 @@ public sealed record SimConfig(
     // explicit famine-class production shock.
     [property: JsonPropertyName("foodState")] FoodStateConfig FoodState,
     [property: JsonPropertyName("disaster")] DisasterConfig Disaster,
+    // ADR-032: inter-city road classes, development cost placeholder and the
+    // travel-time hook. OPTIONAL: absent leaves RoadDevelopmentSystem inert (toy
+    // and hand-written configs); the canonical sim.json carries it.
+    [property: JsonPropertyName("roads")] RoadsConfig? Roads,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
@@ -125,6 +129,53 @@ public sealed record PathBuildConfig(
 /// </summary>
 public sealed record TransportConfig(
     [property: JsonPropertyName("riverCostFactor"), JsonRequired] double RiverCostFactor);
+
+/// <summary>
+/// ADR-032 — inter-city road tuning. EVERY NUMBER IS TUNE, a deterministic PLACEHOLDER
+/// (the Director's ruling 12: no ratified cost or speed formula exists yet). One entry per
+/// road-family class, DirtPath (the free baseline) included so the travel-time hook has a
+/// baseline speed and capacity. Read by RoadDevelopmentSystem (eligibility, cost) and by
+/// <see cref="State.TransportQuery"/> (travel time); no other consumer.
+///
+/// <c>BaselineKmPerDay</c>: freight speed over the free baseline (DirtPath) on IDEAL ground,
+/// calibrated to the Director's figure "5000 t of steel over 3000 km takes ~3 in-game months"
+/// on bad roads: 3000 km / ~90 days = 33.3 km/day. <c>MaxRouteKm</c>: the longest baseline
+/// pair (ideal-ground-equivalent km) treated as an inter-city route — beyond it two places are
+/// not neighbours a road would join directly.
+/// </summary>
+public sealed record RoadsConfig(
+    [property: JsonPropertyName("baselineKmPerDay"), JsonRequired] double BaselineKmPerDay,
+    [property: JsonPropertyName("maxRouteKm"), JsonRequired] double MaxRouteKm,
+    [property: JsonPropertyName("classes"), JsonRequired] RoadClassConfig[] Classes)
+{
+    /// <summary>The entry for <paramref name="edgeType"/>, or null.</summary>
+    public RoadClassConfig? ClassOf(int edgeType)
+    {
+        for (int i = 0; i < Classes.Length; i++)
+            if (Classes[i].EdgeType == edgeType) return Classes[i];
+        return null;
+    }
+}
+
+/// <summary>
+/// ADR-032 — one road class. <c>Entity</c>: the research.json infrastructure entity whose
+/// knowledge-eligibility makes the class buildable (null only for DirtPath, the baseline).
+/// <c>SpeedFactor</c> in (0,1]: the class's travel cost per km as a fraction of the baseline's
+/// (lower = faster; DirtPath 1). <c>CapacityTonnesPerYear</c>: freight throughput of one edge.
+/// <c>MaterialsPerKm</c>: goods consumed per km to build the class from nothing; an upgrade
+/// pays only the per-good DIFFERENCE to the class it replaces (never negative).
+/// </summary>
+public sealed record RoadClassConfig(
+    [property: JsonPropertyName("edgeType"), JsonRequired] int EdgeType,
+    [property: JsonPropertyName("entity")] string? Entity,
+    [property: JsonPropertyName("speedFactor"), JsonRequired] double SpeedFactor,
+    [property: JsonPropertyName("capacityTonnesPerYear"), JsonRequired] long CapacityTonnesPerYear,
+    [property: JsonPropertyName("materialsPerKm"), JsonRequired] RoadMaterialConfig[] MaterialsPerKm);
+
+/// <summary>ADR-032 — <c>Qty</c> units of goods.json good <c>Good</c> per km of road.</summary>
+public sealed record RoadMaterialConfig(
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("qty"), JsonRequired] double Qty);
 
 /// <summary>
 /// Per-cohort consumption weights (T2.1): food per person per sim-year for each
@@ -649,7 +700,9 @@ public static class SimConfigLoader
     public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson)
     {
         SimConfig cfg = Load(simJson, needsJson, goodsJson);
-        return cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+        cfg = cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+        ValidateRoadsAgainstContent(cfg);
+        return cfg;
     }
 
     /// <summary>ADR-031: canonical six-file load — the four-file load plus ages.json and
@@ -812,6 +865,8 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 $"transport.riverCostFactor must be in (0,1] (a river must be cheaper than ideal "
                 + $"ground to be a corridor, and cannot be free), got {Inv(cfg.Transport.RiverCostFactor)}.");
+
+        if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)
@@ -1018,6 +1073,55 @@ public static class SimConfigLoader
         // touches ("never NaN" is an acceptance criterion, so it is a load error).
         if (double.IsNaN(value) || double.IsInfinity(value) || value < 0.0)
             throw new SimConfigException($"{name} must be a finite value >= 0, got {Inv(value)}.");
+    }
+
+    /// <summary>ADR-032: every road class's research entity exists in research.json and every
+    /// material names a goods.json good — checked where the three files meet.</summary>
+    private static void ValidateRoadsAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Roads is null || cfg.Research is null || cfg.Goods is null) return;
+        foreach (RoadClassConfig c in cfg.Roads.Classes)
+        {
+            if (c.Entity is not null && cfg.Research.EntityIndexOf(c.Entity) < 0)
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} names entity '{c.Entity}', which research.json does not define.");
+            foreach (RoadMaterialConfig m in c.MaterialsPerKm)
+                if (cfg.Goods.IdOf(m.Good) < 0)
+                    throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} names good '{m.Good}', which goods.json does not define.");
+        }
+    }
+
+    /// <summary>ADR-032: every road class once, DirtPath present with no entity, factors in (0,1],
+    /// capacities and material quantities non-negative, finite speeds.</summary>
+    private static void ValidateRoads(RoadsConfig roads)
+    {
+        if (!(roads.BaselineKmPerDay > 0.0) || !double.IsFinite(roads.BaselineKmPerDay))
+            throw new SimConfigException($"roads.baselineKmPerDay must be a finite value > 0, got {Inv(roads.BaselineKmPerDay)}.");
+        if (!(roads.MaxRouteKm > 0.0) || !double.IsFinite(roads.MaxRouteKm))
+            throw new SimConfigException($"roads.maxRouteKm must be a finite value > 0, got {Inv(roads.MaxRouteKm)}.");
+        if (roads.Classes is null || roads.Classes.Length == 0) throw new SimConfigException("roads.classes is missing.");
+        foreach (int t in State.EdgeTypes.RoadClasses)
+        {
+            int n = 0;
+            foreach (RoadClassConfig c in roads.Classes) if (c.EdgeType == t) n++;
+            if (n != 1) throw new SimConfigException($"roads.classes must define edgeType {t} exactly once, found {n}.");
+        }
+        foreach (RoadClassConfig c in roads.Classes)
+        {
+            if (!State.EdgeTypes.IsRoadClass(c.EdgeType))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} is not a road class.");
+            if ((c.EdgeType == State.EdgeTypes.DirtPath) != (c.Entity is null))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} — only DirtPath (the free baseline) has no research entity.");
+            if (!(c.SpeedFactor > 0.0 && c.SpeedFactor <= 1.0))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} speedFactor must be in (0,1], got {Inv(c.SpeedFactor)}.");
+            if (c.CapacityTonnesPerYear <= 0)
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} capacityTonnesPerYear must be > 0.");
+            if (c.MaterialsPerKm is null) throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} materialsPerKm is missing.");
+            foreach (RoadMaterialConfig m in c.MaterialsPerKm)
+                if (m.Good is null || !(m.Qty >= 0.0) || !double.IsFinite(m.Qty))
+                    throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} has an invalid material entry.");
+            if (c.EdgeType == State.EdgeTypes.DirtPath && c.MaterialsPerKm.Length != 0)
+                throw new SimConfigException("roads.classes: DirtPath is the FREE baseline — it must cost nothing.");
+        }
     }
 
     private static string Inv(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
