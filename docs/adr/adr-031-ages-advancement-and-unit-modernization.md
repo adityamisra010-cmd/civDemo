@@ -187,3 +187,41 @@ updated in the same commit (CiPinAgreementTests).
 
 Surge formula/magnitude/duration; generic per-Age effects (DD-13 hold); Age-to-dt; recruitment, movement, ZOC
 (ruling 17), supply, combat statistics; special people (rulings 15–16); final milestone thresholds.
+
+## Addendum — founding-warband Neolithic successor, family gap audit, AI integration proof, bench (append-only)
+
+**Warband successor.** The founding warband (`baseline.basic_military`, "clubmen or equivalent") is the
+main close-combat infantry, so it stays in `heavy_infantry`. That family had no Age II identity, so
+the warband stayed a "Warband" in the Neolithic. It now has a Neolithic identity: **`axe_warriors`
+(key 309, age 2)**. These are farming-community fighters armed with ground- and polished-stone axes,
+adzes and mace-heads. Archaeological evidence: LBK massacre sites such as Talheim (c. 5000 BC), with
+adze/axe wounds, and the later stone battle-axes. Research has a matching capability
+("socketed composite axe and adze"), but research.json has no unit entity for it, so the identity
+has no `realizedBy`. Key 309 is appended, so existing identity keys are unchanged. The warband
+now converts at A2 to axe warriors and at A3 to bronze-armed infantry. Preview equals applied
+(UnitModernizationTests).
+
+**Gap audit.** Every Age at which a family's realization does not change is intentional. In each
+case the earlier identity is still the historically appropriate one. The full list is in the
+unit-families.json `_doc` "GAP AUDIT" entry. heavy_infantry is now complete A1–A9. No other
+identity was invented.
+
+**AI pathway.** AgeTransitionSystem and AgeEligibilitySystem never read CommandSource. The AI's
+AdvanceAge is a plain `OrderRecord` built by the same `AgeQuery.AdvanceOrder` and validated by the
+same `CheckAdvance`/`ResolveAdvance`. `AiAgeAdvancementIntegrationTests` runs the real founding path
+(dev worldgen, `aiEmpires = 1`, seed 42) on the production pipeline. Research is reached only by
+SetResearchTarget orders. The player becomes eligible at turn 275 and the AI at turn 346 (both
+measured and pinned). Each advances with an identical-shape order and the change applies at
+decision turn + 1. Both warbands become axe warriors. Finding: `AgeAdvancePolicy` has no
+production caller outside tests. The session/UI is expected to append its orders, which is outside
+this packet.
+
+**Bench** (`sim bench --founded --seed 42 --turns 300`, Release, same container, 3 runs each, ms):
+- 3e5647f (pre-Ages): 30498.9 / 31185.2 / 30654.4 — median **30654.4**
+- HEAD (this commit): 32671.9 / 32171.2 / 31377.7 — median **32171.2**
+- Delta of medians: +1516.8 ms (+4.9%). The Age phases themselves measure ageeligibility 26.7 ms and
+  agetransition 1.8 ms over 300 turns (about 28.6 ms in total). Most of the delta is run-to-run
+  variance; the run ranges overlap within about 1.3 s. Toy bench (1630 turns): 15.2 ms vs 16.9 ms.
+
+**Goldens.** None moved. Unit-family content is not hashed, and no golden run advances an Age.
+`FOUNDED_GOLDEN` is unchanged.
