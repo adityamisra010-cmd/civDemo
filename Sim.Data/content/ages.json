@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "status": "PROVISIONAL",
+  "_doc": [
+    "ADR-031 (D-047 rulings 12-14; ledger §10; D-043 A1-A5). The nine ratified Ages, the five Age-milestone categories, the per-Age ENTRY requirements and the Age-surge emphases.",
+    "PROVISIONAL CONTENT. Ledger §27 defers the FINAL milestone thresholds to the Director. The lists below are real and data-driven - every fact reads state an owning system already publishes - but each threshold is a plausible provisional value, not a historical calibration. Tune freely (D-006); the loader validates every reference.",
+    "AGE IS COMPUTED STATE (law 4). A polity's Age changes only when (a) its entry requirements evaluate true over published state AND (b) the polity issues an AdvanceAge order. No date, era band or turn number appears anywhere in this file.",
+    "entry: the requirements for ENTERING this Age from the one before. core: every core milestone must hold. supporting: at least supportingRequired of them must hold, and the held ones must span at least minCategories distinct categories (D-043 A2: no single easy category can carry an Age).",
+    "fact kinds (owner in parentheses - the system whose published table the fact reads): research = any listed node completed (ResearchSystem: ResearchCompleted); research_count = completed nodes in a tree (ResearchSystem); population = total people in controlled settlements (DemographicsSystem: Buckets); settlements = controlled settlements (Controls: worldgen founding + ColonizationSystem); structures = completed structures, optionally of one project (ConstructionSystem: Structures); good_stock = summed stock of one good over controlled settlements (Production/Consumption/Trade/Housing via the Ledger: GoodStocks); class_active = settlements where a class is active (ClassMobilitySystem: ClassStates); trade_volume = whole units moved last turn into or out of controlled settlements (TradeArbitrageSystem: TradeFlows); dwellings = housing stock (HousingSystem: Housing); formations = military formations owned, optionally of one unit family (AgeTransitionSystem: MilitaryUnits - REAL unit state, never researched technology, ledger §10.4).",
+    "surges: the player (or AI) chooses ONE emphasis when advancing (D-047 ruling 14, the Civ VI dedication pattern adapted). The choice and its start turn are stored. NO NUMERIC EFFECT IS IMPLEMENTED: the formula, magnitude and duration are deferred (ledger §10.5, §27; D-043 DD-14). The fields below are the qualitative description the UI shows."
+  ],
+  "foundingAge": 1,
+  "foundingAgeBasis": "D-044 T7: no node is complete at founding - the reading of the Director's 'the game begins in the Stone Age'. Founding is therefore A1 Prehistoric / Stone Age.",
+  "categories": [
+    { "key": 1, "id": "technological", "name": "Technological" },
+    { "key": 2, "id": "material_economic", "name": "Material-Economic" },
+    { "key": 3, "id": "institutional_social", "name": "Institutional-Social" },
+    { "key": 4, "id": "systemic", "name": "Systemic" },
+    { "key": 5, "id": "military_realization", "name": "Military Realization" }
+  ],
+  "ages": [
+    { "key": 1, "id": "prehistoric", "name": "Prehistoric / Stone Age" },
+    {
+      "key": 2, "id": "neolithic", "name": "Neolithic / Agricultural",
+      "entry": {
+        "core": [
+          { "id": "a2_cultivation", "name": "Cultivated cereals", "description": "The civilization has learned deliberate cereal cultivation.", "category": "technological", "fact": { "kind": "research", "nodes": ["cereal_cultivation"] } }
+        ],
+        "supporting": [
+          { "id": "a2_pottery", "name": "Fired pottery", "description": "Open-fired pottery for storage and cooking.", "category": "technological", "fact": { "kind": "research", "nodes": ["pottery_open_fired"] } },
+          { "id": "a2_herding", "name": "Managed flocks", "description": "Selective flock breeding of sheep and goats.", "category": "technological", "fact": { "kind": "research", "nodes": ["sheep_goat"] } },
+          { "id": "a2_grain_surplus", "name": "Grain surplus", "description": "A stored grain surplus well beyond the founding stores (about twice the canonical founding endowment of 12 x 6,000).", "category": "material_economic", "fact": { "kind": "good_stock", "good": "grain", "min": 150000 } },
+          { "id": "a2_villages", "name": "Settled villages", "description": "A substantial housing stock of permanent dwellings.", "category": "material_economic", "fact": { "kind": "dwellings", "min": 2000 } },
+          { "id": "a2_population", "name": "Growing population", "description": "The civilization supports a larger population than its founders.", "category": "systemic", "fact": { "kind": "population", "min": 6000 } },
+          { "id": "a2_granary", "name": "Communal store", "description": "At least one granary has been built.", "category": "institutional_social", "fact": { "kind": "structures", "project": "granary", "min": 1 } },
+          { "id": "a2_warband", "name": "Standing warband", "description": "The civilization maintains at least one military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 2,
+        "minCategories": 2
+      }
+    },
+    {
+      "key": 3, "id": "bronze", "name": "Bronze Age",
+      "entry": {
+        "core": [
+          { "id": "a3_bronze", "name": "Bronze metallurgy", "description": "Arsenical or tin bronze is known.", "category": "technological", "fact": { "kind": "research", "nodes": ["arsenical_bronze", "tin_bronze"] } }
+        ],
+        "supporting": [
+          { "id": "a3_writing", "name": "Record keeping", "description": "Proto-writing or token accounting records obligations.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["proto_writing", "token_counting"] } },
+          { "id": "a3_law", "name": "Written law", "description": "A written law code.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["law_code"] } },
+          { "id": "a3_wheel", "name": "The wheel", "description": "Solid-wheeled transport.", "category": "technological", "fact": { "kind": "research", "nodes": ["wheel_solid"] } },
+          { "id": "a3_bronze_stock", "name": "Bronze in use", "description": "Bronze is actually produced and held, not merely known.", "category": "material_economic", "fact": { "kind": "good_stock", "good": "bronze", "min": 50 } },
+          { "id": "a3_artisans", "name": "Specialist craftsmen", "description": "An artisan class has emerged in at least one settlement.", "category": "institutional_social", "fact": { "kind": "class_active", "class": "Artisans", "min": 1 } },
+          { "id": "a3_exchange", "name": "Exchange network", "description": "Goods move between the civilization's settlements.", "category": "systemic", "fact": { "kind": "trade_volume", "min": 100 } },
+          { "id": "a3_population", "name": "Dense population", "description": "A population well beyond the Neolithic founding.", "category": "systemic", "fact": { "kind": "population", "min": 9000 } },
+          { "id": "a3_formation", "name": "Organized force", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 2
+      }
+    },
+    {
+      "key": 4, "id": "iron", "name": "Iron Age",
+      "entry": {
+        "core": [
+          { "id": "a4_iron", "name": "Ironworking", "description": "Bloomery iron smelting.", "category": "technological", "fact": { "kind": "research", "nodes": ["iron_bloomery"] } }
+        ],
+        "supporting": [
+          { "id": "a4_alphabet", "name": "Alphabetic script", "description": "A consonantal alphabet.", "category": "technological", "fact": { "kind": "research", "nodes": ["abjad"] } },
+          { "id": "a4_census", "name": "Census", "description": "The state counts its people.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["census"] } },
+          { "id": "a4_tools", "name": "Tool stock", "description": "A working stock of tools across the settlements.", "category": "material_economic", "fact": { "kind": "good_stock", "good": "tools", "min": 300 } },
+          { "id": "a4_workshops", "name": "Workshops", "description": "Two or more workshops built.", "category": "material_economic", "fact": { "kind": "structures", "project": "workshop", "min": 2 } },
+          { "id": "a4_merchants", "name": "Merchant class", "description": "A merchant class has emerged.", "category": "institutional_social", "fact": { "kind": "class_active", "class": "Merchants", "min": 1 } },
+          { "id": "a4_expansion", "name": "Expansion", "description": "The civilization has grown to more settlements.", "category": "systemic", "fact": { "kind": "settlements", "min": 14 } },
+          { "id": "a4_formation", "name": "Standing army", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    },
+    {
+      "key": 5, "id": "classical", "name": "Classical / Imperial",
+      "entry": {
+        "core": [
+          { "id": "a5_systematic_law", "name": "Systematic law", "description": "A systematic legal code.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["legal_code_roman"] } },
+          { "id": "a5_coinage", "name": "Coinage", "description": "Struck coinage.", "category": "material_economic", "fact": { "kind": "research", "nodes": ["coinage_electrum"] } }
+        ],
+        "supporting": [
+          { "id": "a5_geometry", "name": "Axiomatic geometry", "description": "Deductive geometry.", "category": "technological", "fact": { "kind": "research", "nodes": ["geometry_axiomatic"] } },
+          { "id": "a5_roads", "name": "Paved roads", "description": "The paved-road infrastructure class is known.", "category": "systemic", "fact": { "kind": "research", "nodes": ["road_paved"] } },
+          { "id": "a5_concrete", "name": "Concrete", "description": "Pozzolanic concrete.", "category": "technological", "fact": { "kind": "research", "nodes": ["concrete_pozzolan"] } },
+          { "id": "a5_wages", "name": "Wage labour", "description": "Wage labour in coin.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["coined_wage"] } },
+          { "id": "a5_trade", "name": "Imperial trade", "description": "A large volume of goods moves through the civilization.", "category": "systemic", "fact": { "kind": "trade_volume", "min": 500 } },
+          { "id": "a5_population", "name": "Imperial population", "description": "A large population.", "category": "systemic", "fact": { "kind": "population", "min": 20000 } },
+          { "id": "a5_heavy_infantry", "name": "Heavy infantry", "description": "Fields a heavy-infantry formation.", "category": "military_realization", "fact": { "kind": "formations", "family": "heavy_infantry", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    },
+    {
+      "key": 6, "id": "medieval", "name": "Medieval",
+      "entry": {
+        "core": [
+          { "id": "a6_heavy_plough", "name": "Heavy plough", "description": "The heavy mouldboard plough.", "category": "technological", "fact": { "kind": "research", "nodes": ["heavy_plough"] } }
+        ],
+        "supporting": [
+          { "id": "a6_paper", "name": "Paper", "description": "Paper making.", "category": "technological", "fact": { "kind": "research", "nodes": ["paper"] } },
+          { "id": "a6_mills", "name": "Mechanized milling", "description": "Water or wind mills.", "category": "material_economic", "fact": { "kind": "research", "nodes": ["water_mill", "windmill_post"] } },
+          { "id": "a6_finance", "name": "Commercial finance", "description": "Double-entry bookkeeping or bills of exchange.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["double_entry", "bill_of_exchange"] } },
+          { "id": "a6_numerals", "name": "Positional numerals", "description": "Hindu-Arabic numerals.", "category": "technological", "fact": { "kind": "research", "nodes": ["hindu_arabic"] } },
+          { "id": "a6_towns", "name": "Network of towns", "description": "Many settlements under one rule.", "category": "systemic", "fact": { "kind": "settlements", "min": 18 } },
+          { "id": "a6_formation", "name": "Retained forces", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    },
+    {
+      "key": 7, "id": "early_modern", "name": "Early Modern",
+      "entry": {
+        "core": [
+          { "id": "a7_printing", "name": "Printing press", "description": "Movable-type printing press.", "category": "technological", "fact": { "kind": "research", "nodes": ["printing_press"] } }
+        ],
+        "supporting": [
+          { "id": "a7_ocean", "name": "Oceanic ships", "description": "The oceanic transport class (caravel).", "category": "systemic", "fact": { "kind": "research", "nodes": ["caravel"] } },
+          { "id": "a7_powder", "name": "Corned gunpowder", "description": "Corned powder.", "category": "technological", "fact": { "kind": "research", "nodes": ["corned_powder"] } },
+          { "id": "a7_science", "name": "Natural philosophy", "description": "Newtonian mechanics.", "category": "technological", "fact": { "kind": "research", "nodes": ["mechanics_newtonian"] } },
+          { "id": "a7_patent", "name": "Patents", "description": "A patent system.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["patent"] } },
+          { "id": "a7_company", "name": "Joint-stock company", "description": "Joint-stock companies.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["joint_stock"] } },
+          { "id": "a7_trade", "name": "Commercial economy", "description": "A large volume of goods moves through the civilization.", "category": "material_economic", "fact": { "kind": "trade_volume", "min": 1500 } },
+          { "id": "a7_formation", "name": "Standing forces", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    },
+    {
+      "key": 8, "id": "industrial", "name": "Industrial",
+      "entry": {
+        "core": [
+          { "id": "a8_steam", "name": "Rotary steam power", "description": "The rotary steam engine.", "category": "technological", "fact": { "kind": "research", "nodes": ["steam_rotary"] } }
+        ],
+        "supporting": [
+          { "id": "a8_iron", "name": "Industrial iron", "description": "Puddled wrought iron.", "category": "material_economic", "fact": { "kind": "research", "nodes": ["puddling"] } },
+          { "id": "a8_rail", "name": "Railways", "description": "Railways.", "category": "systemic", "fact": { "kind": "research", "nodes": ["railway"] } },
+          { "id": "a8_telegraph", "name": "Telegraph", "description": "Electric telegraphy.", "category": "systemic", "fact": { "kind": "research", "nodes": ["telegraph"] } },
+          { "id": "a8_germ", "name": "Germ theory", "description": "Germ theory of disease.", "category": "technological", "fact": { "kind": "research", "nodes": ["germ_theory"] } },
+          { "id": "a8_knowledge", "name": "Broad knowledge base", "description": "A broad base of completed technology.", "category": "institutional_social", "fact": { "kind": "research_count", "tree": "technology", "min": 200 } },
+          { "id": "a8_population", "name": "Industrial population", "description": "A very large population.", "category": "systemic", "fact": { "kind": "population", "min": 60000 } },
+          { "id": "a8_formation", "name": "Modern forces", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    },
+    {
+      "key": 9, "id": "modern", "name": "Modern / Contemporary",
+      "entry": {
+        "core": [
+          { "id": "a9_electricity", "name": "Electric power", "description": "Electricity generation.", "category": "technological", "fact": { "kind": "research", "nodes": ["electricity_generation"] } },
+          { "id": "a9_combustion", "name": "Internal combustion", "description": "The internal combustion engine.", "category": "technological", "fact": { "kind": "research", "nodes": ["internal_combustion"] } }
+        ],
+        "supporting": [
+          { "id": "a9_radio", "name": "Radio", "description": "Radio communication.", "category": "systemic", "fact": { "kind": "research", "nodes": ["radio"] } },
+          { "id": "a9_antibiotics", "name": "Antibiotics", "description": "Penicillin.", "category": "institutional_social", "fact": { "kind": "research", "nodes": ["antibiotic_penicillin"] } },
+          { "id": "a9_computing", "name": "Computing", "description": "The electronic computer.", "category": "technological", "fact": { "kind": "research", "nodes": ["computer"] } },
+          { "id": "a9_knowledge", "name": "Modern knowledge base", "description": "A very broad base of completed technology.", "category": "institutional_social", "fact": { "kind": "research_count", "tree": "technology", "min": 280 } },
+          { "id": "a9_trade", "name": "Mass trade", "description": "A very large volume of goods moves through the civilization.", "category": "material_economic", "fact": { "kind": "trade_volume", "min": 5000 } },
+          { "id": "a9_formation", "name": "Modern military", "description": "The civilization maintains a military formation.", "category": "military_realization", "fact": { "kind": "formations", "min": 1 } }
+        ],
+        "supportingRequired": 3,
+        "minCategories": 3
+      }
+    }
+  ],
+  "surges": [
+    { "key": 1, "id": "knowledge", "name": "Age of Learning", "description": "The transition is channelled into scholarship: new knowledge is absorbed and recorded while the Age's ideas are fresh.", "domain": "Knowledge", "expectedEffect": "temporary acceleration of research throughput", "downstreamSystems": ["research"] },
+    { "key": 2, "id": "works", "name": "Age of Works", "description": "The transition is channelled into building: the new Age's methods are applied to construction and infrastructure.", "domain": "Infrastructure", "expectedEffect": "temporary acceleration of construction and path building", "downstreamSystems": ["construction", "pathbuild", "housing"] },
+    { "key": 3, "id": "plenty", "name": "Age of Plenty", "description": "The transition is channelled into the land: new practices raise what fields, herds and waters yield.", "domain": "Food", "expectedEffect": "temporary rise in food production and population productivity", "downstreamSystems": ["production", "demographics"] },
+    { "key": 4, "id": "commerce", "name": "Age of Commerce", "description": "The transition is channelled into exchange: markets and routes absorb the new Age's opportunities.", "domain": "Trade", "expectedEffect": "temporary rise in trade and economic activity", "downstreamSystems": ["trade", "price"] },
+    { "key": 5, "id": "industry", "name": "Age of Industry", "description": "The transition is channelled into making: crafts and extraction adopt the new Age's techniques.", "domain": "Industry", "expectedEffect": "temporary rise in crafting and resource extraction", "downstreamSystems": ["production"] },
+    { "key": 6, "id": "arms", "name": "Age of Arms", "description": "The transition is channelled into the military: forces are reorganized around the new Age's methods.", "domain": "Military", "expectedEffect": "temporary acceleration of military production and training", "downstreamSystems": ["military (not yet simulated: D-011 battle layer deferred)"] }
+  ],
+  "surgeShape": "temporary: begins on Age entry, ramps toward a peak, holds, then tapers toward roughly half the peak (ledger §10.5, D-043 A5). Formula, magnitude and duration are DEFERRED (ledger §27, DD-14): no numeric effect is applied by any system."
+}

@@ -875,6 +875,73 @@ public record struct ResearchExposureRow(PolityId Polity, ResearchNodeId Node, d
 public record struct ResearchCostModifierRow(PolityId Polity, int UniversityType, double Factor);
 
 /// <summary>
+/// ADR-031 (D-047 rulings 12-14; ledger §10) — ONE POLITY'S AGE. Owned by
+/// AgeTransitionSystem. <c>Age</c> is the ratified Age number 1..9 (ages.json key).
+/// ABSENCE OF A ROW MEANS THE FOUNDING AGE (ages.json foundingAge, A1): a row is
+/// written on the polity's first advance, so every pre-existing world reads
+/// correctly with no backfill. Age is COMPUTED STATE (law 4): it changes only when
+/// the polity's milestone requirements hold over published state AND the polity
+/// issues an AdvanceAge order; it never decreases (ledger §10.1).
+/// <c>EnteredTurn</c> is the first turn whose state shows this Age. <c>Surge</c> is the
+/// chosen surge emphasis key (ages.json surges[].key) and <c>SurgeStartTurn</c> the
+/// turn it began. The surge is stored and queryable; NO numeric effect is applied by
+/// any system (ledger §10.5/§27 defer the formula).
+/// </summary>
+public record struct AgeStateRow(PolityId Polity, int Age, long EnteredTurn, int Surge, long SurgeStartTurn);
+
+/// <summary>
+/// ADR-031 — the published eligibility of one polity for its NEXT Age, owned by
+/// AgeEligibilitySystem (the thin evaluator of D-047 ruling 12). Rebuilt every step,
+/// one row per roster polity below the last Age, in roster order. The facts are read
+/// from PREV (state at turn <c>EvaluatedTurn</c>); the Age they are evaluated against
+/// is the polity's Age in NEXT (an AdvanceAge applied this step is accounted for).
+/// <c>CategoryMask</c> has bit (k-1) set for every category key k covered by a HELD
+/// supporting milestone. Live, per-milestone status is <see cref="AgeQuery"/>.
+/// </summary>
+public record struct AgeEligibilityRow(
+    PolityId Polity, int NextAge, long EvaluatedTurn, int CoreMet, int CoreTotal,
+    int SupportingMet, int SupportingRequired, int CategoryMask, int CategoriesRequired, bool Eligible);
+
+/// <summary>
+/// ADR-031 — ONE AGE TRANSITION (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. The decision was the AdvanceAge order stamped
+/// <c>DecisionTurn</c>; the transition takes effect in the state of
+/// <c>EffectiveTurn</c> = DecisionTurn + 1 (the next turn begins under the new Age;
+/// the deciding turn is not altered retroactively).
+/// </summary>
+public record struct AgeTransitionRow(
+    PolityId Polity, int FromAge, int ToAge, int Surge, long DecisionTurn, long EffectiveTurn);
+
+/// <summary>
+/// ADR-031 (D-047 Parts 2-3; D-043 B5) — ONE MILITARY FORMATION. Minimal state:
+/// identity (<c>Id</c>, stable, never reused), owner, its unit FAMILY and current
+/// IDENTITY (unit-families.json keys), location (the settlement it is stationed at,
+/// or -1 in the field) and continuous position (terrain pixel coordinates, the
+/// D-047 ruling 17 x/y frame), experience and army membership (<c>Army</c> 0 = none).
+/// NOT A CONSERVED CARRIER: a formation holds no people and no goods (the
+/// population stays in Buckets; equipment is declarative), so free modernization
+/// conjures nothing (law 1; CR-017 §4). Owned by AgeTransitionSystem, the only
+/// writer, which converts formations on Age transition (ruling 18). Founded by
+/// worldgen (baseline.basic_military). Recruitment, movement, supply and combat are
+/// later milestones (D-011).
+/// </summary>
+public record struct MilitaryUnitRow(
+    int Id, PolityId Owner, int Family, int Identity, SettlementId Location,
+    double X, double Y, double Experience, int Army);
+
+/// <summary>
+/// ADR-031 — ONE MODERNIZATION OUTCOME (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. Written for EVERY formation of a polity at each Age
+/// transition, including the preserved ones, so "why is this unit still a warband"
+/// is answerable. <c>Outcome</c>: 1 converted to the family successor, 2 converted
+/// to the family's explicit generic successor (another family), 3 preserved (no
+/// successor yet), 4 preserved (family does not auto-modernize).
+/// </summary>
+public record struct UnitConversionRow(
+    long Turn, int Unit, PolityId Owner, int FromFamily, int FromIdentity, int ToFamily, int ToIdentity,
+    int FromAge, int ToAge, int Outcome);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -963,6 +1030,21 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; no system writes it yet.</summary>
     IReadOnlyTable<ResearchExposureRow> ResearchExposures { get; }
+
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    IReadOnlyTable<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    IReadOnlyTable<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<UnitConversionRow> UnitConversions { get; }
 }
 
 /// <summary>
@@ -1127,6 +1209,21 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-029 addendum A: offered foreign-exposure credit — no system writes it yet.</summary>
     public Table<ResearchExposureRow> ResearchExposures { get; }
 
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    public Table<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    public Table<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    public Table<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    public Table<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    public Table<UnitConversionRow> UnitConversions { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1174,6 +1271,11 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ResearchCostModifierRow> IReadOnlyWorldState.ResearchCostModifiers => ResearchCostModifiers;
     IReadOnlyTable<ResearchCreditRow> IReadOnlyWorldState.ResearchCredits => ResearchCredits;
     IReadOnlyTable<ResearchExposureRow> IReadOnlyWorldState.ResearchExposures => ResearchExposures;
+    IReadOnlyTable<AgeStateRow> IReadOnlyWorldState.AgeStates => AgeStates;
+    IReadOnlyTable<AgeEligibilityRow> IReadOnlyWorldState.AgeEligibility => AgeEligibility;
+    IReadOnlyTable<AgeTransitionRow> IReadOnlyWorldState.AgeTransitions => AgeTransitions;
+    IReadOnlyTable<MilitaryUnitRow> IReadOnlyWorldState.MilitaryUnits => MilitaryUnits;
+    IReadOnlyTable<UnitConversionRow> IReadOnlyWorldState.UnitConversions => UnitConversions;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1225,6 +1327,11 @@ public sealed class WorldState : IReadOnlyWorldState
         ResearchCostModifiers = new Table<ResearchCostModifierRow>();
         ResearchCredits = new Table<ResearchCreditRow>();
         ResearchExposures = new Table<ResearchExposureRow>();
+        AgeStates = new Table<AgeStateRow>();
+        AgeEligibility = new Table<AgeEligibilityRow>();
+        AgeTransitions = new Table<AgeTransitionRow>();
+        MilitaryUnits = new Table<MilitaryUnitRow>();
+        UnitConversions = new Table<UnitConversionRow>();
     }
 
     private WorldState(
@@ -1251,7 +1358,10 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<ResearchTargetRow> researchTargets, Table<ResearchProgressRow> researchProgress,
         Table<ResearchCompletedRow> researchCompleted, Table<ResearchEurekaRow> researchEurekas,
         Table<ResearchCostModifierRow> researchCostModifiers, Table<ResearchCreditRow> researchCredits,
-        Table<ResearchExposureRow> researchExposures)
+        Table<ResearchExposureRow> researchExposures,
+        Table<AgeStateRow> ageStates, Table<AgeEligibilityRow> ageEligibility,
+        Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
+        Table<UnitConversionRow> unitConversions)
     {
         Seed = seed;
         Clock = clock;
@@ -1302,6 +1412,11 @@ public sealed class WorldState : IReadOnlyWorldState
         ResearchCostModifiers = researchCostModifiers;
         ResearchCredits = researchCredits;
         ResearchExposures = researchExposures;
+        AgeStates = ageStates;
+        AgeEligibility = ageEligibility;
+        AgeTransitions = ageTransitions;
+        MilitaryUnits = militaryUnits;
+        UnitConversions = unitConversions;
     }
 
     /// <summary>
@@ -1323,7 +1438,9 @@ public sealed class WorldState : IReadOnlyWorldState
             Polities.Clone(), Capitals.Clone(),
             ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone(),
             ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
-            ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone())
+            ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
+            AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
+            UnitConversions.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

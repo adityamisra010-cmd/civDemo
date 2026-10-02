@@ -17,6 +17,8 @@
     <EmbeddedResource Include="content\chronicle.json" LogicalName="Sim.Data.chronicle.json" />
     <EmbeddedResource Include="content\goods.json" LogicalName="Sim.Data.goods.json" />
     <EmbeddedResource Include="content\research.json" LogicalName="Sim.Data.research.json" />
+    <EmbeddedResource Include="content\ages.json" LogicalName="Sim.Data.ages.json" />
+    <EmbeddedResource Include="content\unit-families.json" LogicalName="Sim.Data.unit-families.json" />
   </ItemGroup>
 
 </Project>

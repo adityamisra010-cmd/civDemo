@@ -118,6 +118,16 @@ public static class SnapshotDiff
         // v26, ADR-029 addendum A: acceleration-credit provenance and the foreign-exposure seam.
         new("ResearchCredits", [I("Polity"), I("Node"), I("Source"), D("Amount")]),
         new("ResearchExposures", [I("Polity"), I("Node"), D("Offered")]),
+        // v28 (ADR-031): Ages and military formations.
+        new("AgeStates", [I("Polity"), I("Age"), L("EnteredTurn"), I("Surge"), L("SurgeStartTurn")]),
+        new("AgeEligibility", [I("Polity"), I("NextAge"), L("EvaluatedTurn"), I("CoreMet"), I("CoreTotal"),
+            I("SupportingMet"), I("SupportingRequired"), I("CategoryMask"), I("CategoriesRequired"),
+            new("Eligible", Kind.Bool)]),
+        new("AgeTransitions", [I("Polity"), I("FromAge"), I("ToAge"), I("Surge"), L("DecisionTurn"), L("EffectiveTurn")]),
+        new("MilitaryUnits", [I("Id"), I("Owner"), I("Family"), I("Identity"), I("Location"), D("X"), D("Y"),
+            D("Experience"), I("Army")]),
+        new("UnitConversions", [L("Turn"), I("Unit"), I("Owner"), I("FromFamily"), I("FromIdentity"), I("ToFamily"),
+            I("ToIdentity"), I("FromAge"), I("ToAge"), I("Outcome")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

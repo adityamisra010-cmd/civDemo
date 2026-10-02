@@ -82,6 +82,11 @@ public static class WorldStates
         if (!TableEquals(a.ResearchCostModifiers, b.ResearchCostModifiers)) return false;
         if (!TableEquals(a.ResearchCredits, b.ResearchCredits)) return false;
         if (!TableEquals(a.ResearchExposures, b.ResearchExposures)) return false;
+        if (!TableEquals(a.AgeStates, b.AgeStates)) return false;
+        if (!TableEquals(a.AgeEligibility, b.AgeEligibility)) return false;
+        if (!TableEquals(a.AgeTransitions, b.AgeTransitions)) return false;
+        if (!TableEquals(a.MilitaryUnits, b.MilitaryUnits)) return false;
+        if (!TableEquals(a.UnitConversions, b.UnitConversions)) return false;
         return true;
     }
 
