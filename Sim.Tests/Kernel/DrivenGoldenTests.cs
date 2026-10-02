@@ -375,7 +375,45 @@ public class DrivenGoldenTests
         //   BLAST RADIUS: the same four behavioural goldens the arming moved,
         //         moving back. The layout controls do NOT move either way, which
         //         is what makes the ladder a ladder.
-        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   NEW  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-029 entry: five v26 count
+        //         prefixes plus ResearchSystem's own rows (Eurekas on available
+        //         roots; the driving batch issues no research order, so no target
+        //         and no CLP lands).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips
+        //         them on this exact world and returns the OLD value byte for byte.
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   NEW  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   NEW  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   CAUSE as SnapshotTests.FoundedGolden's finalization entry: two more empty
+        //         count prefixes, and no research row at turn 300 (measured: all seven
+        //         research tables empty; the driving batch issues no research order).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone returns main's
+        //         98ee3a7a… byte for byte, also with a research driver added.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   NEW  f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

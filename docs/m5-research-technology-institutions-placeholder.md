@@ -1,5 +1,20 @@
 # M5 — RESEARCH, TECHNOLOGY & INSTITUTIONS (SCOPE PLACEHOLDER)
 
+> **CORRECTION NOTICE — 2026-09-30 (added later; the original text below is NOT rewritten).** The Director
+> rulings recorded verbatim in `docs/d044-research-progression-rulings.md` (D-044) supersede three scope items
+> below:
+> - **§3 item 1 ("Science as an accumulating resource") and item 2 ("Knowledge as an accumulating
+>   resource").** There is one Cognitive Load Point (CLP) pool, no Science or Knowledge resource, and no
+>   general bank. Technology is the knowledge (D-044 R1, R2, R20-D).
+> - **§3 item 8 ("Multiple simultaneous research projects — NOT a single Civ-style queue").** There is one
+>   active research target at a time. Many nodes keep partial progress, and there is no queue (D-044 R9).
+>
+> **TERMINOLOGY — 2026-10-01 (D-046 G5; added later, nothing above rewritten).** The one research pool is now named
+> **Research Points (RP)**; "Cognitive Load Point (CLP)" above is the D-044 name it replaces.
+>
+> The implementation built on those rulings is recorded in `docs/adr/adr-029-research-engine.md`. **The
+> milestone-placement question in CR-005 remains OPEN** and is not ruled by D-044 (D-044 Part D, T1).
+
 **THIS IS NOT A SPEC AND NOTHING HERE IS RATIFIED.** It is a scope record, made so
 the architectural requirement cannot be lost while M4 continues.
 

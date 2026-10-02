@@ -47,6 +47,21 @@ public static class DataFiles
     /// prose templates — consumed by ChronicleConfigLoader.</summary>
     public static Stream OpenChronicle() => Open("Sim.Data.chronicle.json");
 
+    /// <summary>ADR-029 (D-044, addendum A): the research graph — Technology (Main tree +
+    /// five subtrees) and Civics — AUTHORED content (the finalization proposal; audited by
+    /// scripts/research-content-audit.py); consumed by ResearchContentLoader (attached to
+    /// SimConfig via the four-stream Load).</summary>
+    public static Stream OpenResearch() => Open("Sim.Data.research.json");
+
+    /// <summary>ADR-031 (D-047): the nine Ages, milestone facts and Age-surge emphases —
+    /// PROVISIONAL content; consumed by AgeContentLoader (attached to SimConfig via the
+    /// six-stream Load).</summary>
+    public static Stream OpenAges() => Open("Sim.Data.ages.json");
+
+    /// <summary>ADR-031 (D-047 Part 2): the twelve unit families and their per-Age
+    /// identities — consumed by UnitFamilyContentLoader (the six-stream Load).</summary>
+    public static Stream OpenUnitFamilies() => Open("Sim.Data.unit-families.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

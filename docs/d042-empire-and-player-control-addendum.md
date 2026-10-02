@@ -162,13 +162,25 @@ State → Published Variables → Predicates → Capabilities → Available Acti
 ## §9 KNOWLEDGE AND RESEARCH (future constraints, not M4 work)
 
 1. **Knowledge is distinct from technology and capability.**
+   - **SUPERSEDED IN PART BY D-044 R1** (`docs/d044-research-progression-rulings.md`, Director ruling
+     2026-09-30). The clause above is retained unedited — superseded, not deleted, per S8 §5's append-only
+     audit trail. Technology IS the civilization's knowledge: the knowledge base is the set of completed
+     Technology and Civics nodes, with no separate Knowledge resource or tree. The **capability** half stands:
+     completing a node makes things eligible, and realization stays with the owning system (D-044 R11, R14).
 2. Knowledge is ultimately **Empire-scoped**, while produced/applied through
    settlements, institutions, people and research activities.
 3. **Research activities proceed in PARALLEL.**
+   - **SUPERSEDED BY D-044 R9** (Director ruling 2026-09-30). Retained unedited. There is ONE active research
+     target at a time. Many nodes may hold partial progress, and switching never erases it.
 4. **Knowledge generation is a resource/flow the player ALLOCATES among
    concurrent research activities.**
+   - **SUPERSEDED BY D-044 R2 and R9** (Director ruling 2026-09-30). Retained unedited. Research throughput is
+     ONE shared Cognitive Load Point pool for Technology, its five subtrees and Civics. The player directs it by
+     choosing the active target. There are no percentage splits and no per-domain points.
 5. **Unallocated knowledge ACCUMULATES AS A RESERVE rather than disappearing**,
    and the player may deliberately hold a non-optimal reserve.
+   - **SUPERSEDED BY D-044 R20-D** (Director ruling 2026-09-30). Retained unedited. There is NO general bank or
+     reserve of unused research points. Partial progress is stored per node, and only that is retained.
 6. Knowledge may arise through deliberate research, practical discovery,
    diffusion, external exchange, espionage, or other explicitly defined
    mechanisms; open borders and foreign institutions may contribute.
@@ -201,6 +213,11 @@ direct sibling-system calls · a universal `CapabilitySystem` God object · a ri
 one-at-a-time research queue · calendar-date technology unlocks where computed
 predicates are intended · UI code that mutates simulation state · speculative
 M5–M8 systems inside M4.
+
+> **Note — D-044 R9 (Director ruling 2026-09-30); the paragraph above is retained unedited.** "A rigid
+> one-at-a-time research queue" is superseded only to the extent that it would forbid a single ACTIVE research
+> target. There is still no queue, and switching targets never erases progress. See
+> `docs/d044-research-progression-rulings.md` Part C.
 
 ---
 
@@ -295,6 +312,11 @@ Recorded so these are not re-asked:
 | Is D-020 the capability foundation? | **YES** — §8.1 |
 | Who owns money *in the model*? | **The Empire** — §4.5 |
 | Player/AI architecture | **One pathway** — §6.5/§6.6 |
+
+> **Note — D-044 (Director ruling 2026-09-30); the table above is retained unedited.** Its first two rows are
+> superseded. There is no accumulating reserve: D-044 R20-D stores partial progress per node only. Research does
+> not run in parallel: D-044 R9 sets one active target, and many nodes may hold partial progress. The remaining
+> rows stand.
 
 **Still open and NOT settled here:** which milestone owns money (CR-008) · era
 gates in D-011 vs Law 4 (CR-009) · the definition of "institution" (CR-010) ·

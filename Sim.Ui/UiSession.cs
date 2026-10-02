@@ -129,8 +129,9 @@ public sealed class UiSession
         using (var stream = Sim.Data.DataFiles.OpenSim())
         using (var needs = Sim.Data.DataFiles.OpenNeeds())
         using (var goods = Sim.Data.DataFiles.OpenGoods())
+        using (var research = Sim.Data.DataFiles.OpenResearch())
         {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
+            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
         }
         return new UiSession(
             UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
@@ -167,8 +168,9 @@ public sealed class UiSession
         using (var stream = Sim.Data.DataFiles.OpenSim())
         using (var needs = Sim.Data.DataFiles.OpenNeeds())
         using (var goods = Sim.Data.DataFiles.OpenGoods())
+        using (var research = Sim.Data.DataFiles.OpenResearch())
         {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
+            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
         }
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
@@ -234,6 +236,27 @@ public sealed class UiSession
         }
         return false;
     }
+
+    /// <summary>
+    /// ADR-029 / D-044 R17: the research-target control's submit handler. It
+    /// appends a SetResearchTarget order for the player's Empire, stamped with the
+    /// CURRENT turn — the same order pathway as every other directive; the UI never
+    /// writes research state. Returns false and appends NOTHING when the node is not
+    /// available to the Empire now, or when the session carries no research content,
+    /// so the caller can leave the control alone rather than pretend the order landed.
+    /// </summary>
+    public bool EmitResearchOrder(ResearchNodeId node)
+    {
+        if (Config.Research is not { } content) return false;
+        if (ResearchOrderFactory.SetTarget(World, content, LaborOrderFactory.PlayerEmpire, node) is not { } order)
+            return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>ADR-029: clears the player's research target (progress is kept, D-044 R9).</summary>
+    public void ClearResearchTarget() =>
+        Orders.Append(ResearchOrderFactory.ClearTarget(World.Clock.Turn, LaborOrderFactory.PlayerEmpire));
 
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
     /// the chronicle observes the new state (detection is read-only).

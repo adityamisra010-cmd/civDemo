@@ -238,7 +238,42 @@ public class SnapshotTests
         //   NOT A BEHAVIOUR CHANGE: FoodState and FoodHeadroom are statics nothing
         //         in the pipeline calls; ProductionSystem multiplies by 1.0 exactly
         //         without a strike, and hazardPerYear ships at 0.
-        const string golden = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
+        // ADR-029 RE-PIN — SCHEMA v26, LAYOUT ONLY, MEASURED on this tree by the
+        // agent writing this line.
+        //   OLD  b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1
+        //   NEW  1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4
+        //   CAUSE v25 -> v26 appends the five research tables (ResearchTargets,
+        //         ResearchProgress, ResearchCompleted, ResearchEurekas,
+        //         ResearchCostModifiers). The toy pipeline runs no ResearchSystem,
+        //         so all five are EMPTY here: the entire movement is five four-byte
+        //         zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone drops
+        //         those twenty bytes on this exact world and returns the OLD value
+        //         byte for byte; the v22 (0f94b4ad…) and v24 (eec82711…) controls
+        //         are UNMOVED.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200`) agree on the NEW value.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4
+        //   NEW  c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8
+        //   CAUSE v26 (changed in place, never on main) appends ResearchCredits and
+        //         ResearchExposures. The toy pipeline runs no ResearchSystem, so both are
+        //         EMPTY here: the entire movement is two more four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone drops all
+        //         seven research prefixes and returns main's b6df7edd… byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8
+        //   NEW  498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -823,7 +858,64 @@ public class SnapshotTests
         //         separate processes, byte-identical logs), and ci.yml's
         //         FOUNDED_GOLDEN moves back with it in this same commit.
         //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
-        const string golden = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line (ADR-015 §6).
+        //   OLD  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   NEW  740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+        //   CAUSE (1) v25 -> v26 appends the five research tables — five count
+        //         prefixes; (2) ResearchSystem, now last in pipeline.json, writes
+        //         rows into its OWN tables in this order-less world: with no target
+        //         no CLP lands anywhere (D-044 R20-D), but Eurekas whose condition
+        //         holds on an AVAILABLE root fire (e.g. knapping_oldowan's
+        //         "knappable stone" = stock_stone > 0), crediting a quarter of the
+        //         node's cost. Nothing else: the system draws no RNG, writes no ledger
+        //         flow, and no other system reads a research table.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone clears
+        //         the five tables and drops their prefixes on this exact world and
+        //         returns the OLD value BYTE FOR BYTE, and asserts the strip is not
+        //         vacuous. Every older control in that file strips the research
+        //         layer as well and is UNMOVED. Any leak of research into
+        //         population, food, trade or migration would survive the strip.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+        //   NEW  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   NEW  e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+        //   CAUSE (1) layout: two more empty v26 count prefixes (ResearchCredits,
+        //         ResearchExposures); (2) rows: under the curated Eurekas no evaluable
+        //         condition holds on an available node of this order-less world, so it
+        //         now writes NO research row at turn 300 (measured: all seven tables
+        //         empty), where the D-045 world carried Eureka credit on its roots.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips the
+        //         seven tables and returns main's db7c7a09… byte for byte — for this
+        //         world AND for the same world with a research driver choosing targets
+        //         (the non-vacuous arm: research rows present and stripped).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate
+        //         processes, byte-identical logs) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+        //   NEW  15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd";
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
@@ -851,16 +943,21 @@ public class SnapshotTests
         //         the whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+        Assert.Equal(golden, WorldHash.ComputeHex(RunFoundedGolden()));
+    }
+
+    /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
+    internal static WorldState RunFoundedGolden()
+    {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
                 TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
-        WorldState world = executor.Run(
+        return executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
                 TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
-        Assert.Equal(golden, WorldHash.ComputeHex(world));
     }
 
     [Fact]

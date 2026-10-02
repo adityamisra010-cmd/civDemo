@@ -222,7 +222,40 @@ public static class WorldFounding
         }
 
         FoundInitialEmpire(world, cfg.AiEmpires);
+        FoundInitialFormations(world, simCfg);
         return world;
+    }
+
+    /// <summary>
+    /// ADR-031 (D-047 Parts 2-3; research.json baseline.basic_military): every founded
+    /// Empire that holds a capital fields unit-families.json founding.formationsPerPolity
+    /// formations of the founding identity (the warband), stationed at its capital, in roster
+    /// order, with ids 1, 2, … A FORMATION TOKEN ONLY: it draws no people from the buckets
+    /// and no goods from any stock, so founding conserves exactly what it did before (law 1).
+    /// Position is the capital's site in terrain pixel coordinates (the continuous x/y frame of
+    /// D-047 ruling 17). Without unit-family content nothing is founded, so worlds built from a
+    /// config without unit-families.json are unchanged.
+    /// </summary>
+    private static void FoundInitialFormations(WorldState world, SimConfig simCfg)
+    {
+        if (simCfg.UnitFamilies is not { } families) return;
+        Systems.Ages.UnitIdentity identity = families.FoundingIdentity;
+        int size = world.Terrain?.Size ?? 1;
+        int nextId = 1;
+        for (int p = 0; p < world.Polities.Count; p++)
+        {
+            PolityId polity = world.Polities[p].Id;
+            if (!EmpireQuery.TryGetCapital(world, polity, out SettlementId capital)) continue;
+            int site = 0;
+            for (int s = 0; s < world.Settlements.Count; s++)
+                if (world.Settlements[s].Id.Value == capital.Value) site = world.Settlements[s].SiteCell;
+            for (int k = 0; k < families.FormationsPerPolity; k++)
+            {
+                world.MilitaryUnits.Add(new MilitaryUnitRow(
+                    nextId++, polity, identity.FamilyKey, identity.Key, capital,
+                    site % size, site / size, Experience: 0.0, Army: 0));
+            }
+        }
     }
 
     /// <summary>

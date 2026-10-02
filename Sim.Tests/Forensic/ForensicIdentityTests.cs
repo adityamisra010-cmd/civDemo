@@ -10,7 +10,7 @@ namespace Sim.Tests.Forensic;
 /// the run id is derived from CONTENT and not from a clock, so it can be
 /// recomputed and therefore checked; every value that could be absent is
 /// explicitly null beside a state that says why; the limitation catalogue is
-/// carried IN the artifact; and none of it moves the canonical schema (v25 since T4.21-1).
+/// carried IN the artifact; and none of it moves the canonical schema (v26 since ADR-029's research tables).
 /// </summary>
 public class ForensicIdentityTests
 {
@@ -86,12 +86,12 @@ public class ForensicIdentityTests
     [Fact]
     public void EveryEmbeddedConfigResourceIsRecordedByCONTENT_inAFixedOrder()
     {
-        // The largest provenance hole in the shipped set: all nine content files
-        // are compiled into Sim.Data and nothing recorded their bytes, so a
-        // session played from a locally built binary (buildSha "dev") recorded
-        // NO recoverable configuration at all.
+        // The largest provenance hole in the shipped set: all ten content files
+        // (research.json joined at ADR-029) are compiled into Sim.Data and nothing
+        // recorded their bytes, so a session played from a locally built binary
+        // (buildSha "dev") recorded NO recoverable configuration at all.
         ConfigResource[] config = ForensicIdentity.ConfigResources(Content);
-        Assert.Equal(9, config.Length);
+        Assert.Equal(12, config.Length);   // ADR-031: ages.json and unit-families.json joined
         for (int i = 1; i < config.Length; i++)
             Assert.True(string.CompareOrdinal(config[i - 1].File, config[i].File) < 0,
                 "config resources must be in ordinal name order, or the digest is not stable");
@@ -134,9 +134,9 @@ public class ForensicIdentityTests
         ForensicRunRecord run = Run();
         Assert.Equal("sha256/canonical-stream", run.HashAlgorithm);
         Assert.False(run.HashCoversSchemaVersion);
-        Assert.Equal(25, run.CanonicalSchemaVersion);
-        Assert.Equal(25, CanonicalSchema.Version);   // v25: T4.21-1's Disasters table (the forensic record carries it, never covers it)
-        Assert.Equal(25, run.Schemas.CanonicalSchemaVersion);
+        Assert.Equal(28, run.CanonicalSchemaVersion);
+        Assert.Equal(28, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it)
+        Assert.Equal(28, run.Schemas.CanonicalSchemaVersion);
         // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
         // moved to v3 with the foodState/migrationPlan sections. The forensic
         // tag below did NOT move — this file's own field set is unchanged.
@@ -217,7 +217,7 @@ public class ForensicIdentityTests
         Assert.Equal(run.Pipeline.Length, read.Run.Pipeline.Length);
         Assert.Equal(run.EraBands.Length, read.Run.EraBands.Length);
         Assert.Equal(run.Limitations.Length, read.Run.Limitations.Length);
-        Assert.Equal(25, read.Run.CanonicalSchemaVersion);   // v25: T4.21-1 Disasters table
+        Assert.Equal(28, read.Run.CanonicalSchemaVersion);   // v28: ADR-031 Age/military tables
         Assert.NotNull(read.Close);
         Assert.Equal(12, read.Close!.TurnsReached);
         Assert.Null(read.Close.Artifacts[1].Sha256);

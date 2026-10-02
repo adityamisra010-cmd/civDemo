@@ -781,6 +781,166 @@ public record struct DisasterRow(
     SettlementId Settlement, int Kind, double Severity, double RemainingYears,
     double Multiplier, double AppliedMultiplier);
 
+// ---------------------------------------------------------------------------
+// ADR-029 / D-044 — RESEARCH STATE (schema v26). The minimum authoritative
+// research state (D-044 R18): the active target, per-node partial progress,
+// the completed-knowledge set, the fired-Eureka set and (addendum A) the
+// acceleration-credit provenance; ResearchExposures is an input seam. Everything else —
+// availability, subtree opening, effective cost, RP throughput — is DERIVED
+// from these rows and research.json by ResearchQuery and is never stored.
+// None of it is people, money or goods, so none of it touches the Ledger (law 1):
+// RP and progress are rates/quantities of the research domain, stored as doubles
+// (law 7), the PathProgressRow.Banked precedent.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// ADR-029: a polity's ONE active research target (D-044 R9) — a Technology or a
+/// Civics node; one pool serves both trees (R2, R12). Owned by ResearchSystem.
+/// At most one row per polity; ABSENCE means no target, and the RP throughput of
+/// a polity with no target reaches no node and is not stored anywhere (R20-D: no
+/// general bank). Set and cleared only by the SetResearchTarget order (D-042 §6.2:
+/// a persistent directive, not re-issued every turn); cleared by the system when
+/// the target completes.
+/// </summary>
+public record struct ResearchTargetRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: RP invested in one node by one polity that has NOT completed it
+/// (D-044 R9: partial progress is kept per node; switching target never erases
+/// it). Owned by ResearchSystem. Created lazily on the first credit — the active
+/// target's RP or an acceleration credit — and removed when the node completes (completion is
+/// then the fact; the progress is not needed to rebuild anything). Progress is in
+/// RP, the same unit as the node's cost, and never exceeds the node's effective
+/// cost at the time it was credited.
+/// </summary>
+public record struct ResearchProgressRow(PolityId Polity, ResearchNodeId Node, double Progress);
+
+/// <summary>
+/// ADR-029: one node in one polity's completed knowledge (D-044 R1, R11: the
+/// knowledge base IS the set of completed Technology and Civics nodes). Owned by
+/// ResearchSystem. ROW PRESENCE IS THE FACT (the RecognitionRow idiom); rows are
+/// appended in completion order and never removed — knowledge acquired by the
+/// civilization remains (R1). Completion is idempotent: the system never adds a
+/// second row for the same (polity, node).
+/// </summary>
+public record struct ResearchCompletedRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: one fired Eureka — the Eureka at index <c>Eureka</c> of the node's
+/// list in research.json (D-044 R10). Each Eureka carries one condition. Owned by
+/// ResearchSystem. Row presence is the fact; a fired Eureka never fires again, so its
+/// credit is applied exactly once (finalization ruling: idempotence).
+/// </summary>
+public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka);
+
+/// <summary>
+/// ADR-029 addendum A — ACCELERATION-CREDIT PROVENANCE. The cumulative credit one source
+/// (<c>Source</c> = <see cref="Sim.Core.Systems.Research.AccelerationSource"/>: 1 Eureka,
+/// 2 foreign exposure) has added to one node of one polity. All sources draw on ONE pool:
+/// their sum per node never exceeds accelerationCreditCeilingFraction × BaseCost (0.40).
+/// Owned by ResearchSystem; kept after completion so the Glass Box can say how a node was
+/// paid for. Created on a source's first credit to the node.
+/// </summary>
+public record struct ResearchCreditRow(PolityId Polity, ResearchNodeId Node, int Source, double Amount);
+
+/// <summary>
+/// ADR-029 addendum A — THE FOREIGN-EXPOSURE SEAM (finalization ruling 4). The CUMULATIVE
+/// foreign-exposure credit offered to one polity for one node (contact, trade, diffusion).
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE: its writer is a future contact/diffusion
+/// system, and NO SYSTEM WRITES IT YET (the ResearchCostModifierRow precedent). ResearchSystem
+/// reads it from Prev and credits the offered amount not yet credited, from the shared pool,
+/// capped at the pool's headroom and the remaining EffectiveCost — so an offer is never paid
+/// twice and never overflows.
+/// </summary>
+public record struct ResearchExposureRow(PolityId Polity, ResearchNodeId Node, double Offered);
+
+/// <summary>
+/// ADR-029 §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5). One polity's
+/// effective cost factor for the subtree its specialized-university type serves.
+/// <c>UniversityType</c> is the type's stable key in research.json
+/// (universityTypes[].key). <c>Factor</c> is a multiplicative factor on BaseCost,
+/// in (0, 1]: EffectiveCost = BaseCost × Π Factor over this polity's rows whose
+/// type serves the node's subtree, taken in table order.
+///
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE. Its writer is the future
+/// institutions system, which establishes and matures universities. Diminishing
+/// returns, maturity and local viability (ADR-028 DD-13, DD-14) belong in that
+/// writer's computation of Factor. No such system exists, so NO SYSTEM WRITES
+/// THIS TABLE: the ClaimRow / RecognitionRow precedent of a schema that precedes
+/// its owner. ResearchSystem only reads it, from Prev. In the shipped world it is
+/// always empty, so EffectiveCost == BaseCost. The formula that maps universities
+/// to Factor is NOT ratified (R5), and nothing here invents one. D-021: the first
+/// writer closes the research → university loop and owes its brake (ADR-029 §9).
+/// </summary>
+public record struct ResearchCostModifierRow(PolityId Polity, int UniversityType, double Factor);
+
+/// <summary>
+/// ADR-031 (D-047 rulings 12-14; ledger §10) — ONE POLITY'S AGE. Owned by
+/// AgeTransitionSystem. <c>Age</c> is the ratified Age number 1..9 (ages.json key).
+/// ABSENCE OF A ROW MEANS THE FOUNDING AGE (ages.json foundingAge, A1): a row is
+/// written on the polity's first advance, so every pre-existing world reads
+/// correctly with no backfill. Age is COMPUTED STATE (law 4): it changes only when
+/// the polity's milestone requirements hold over published state AND the polity
+/// issues an AdvanceAge order; it never decreases (ledger §10.1).
+/// <c>EnteredTurn</c> is the first turn whose state shows this Age. <c>Surge</c> is the
+/// chosen surge emphasis key (ages.json surges[].key) and <c>SurgeStartTurn</c> the
+/// turn it began. The surge is stored and queryable; NO numeric effect is applied by
+/// any system (ledger §10.5/§27 defer the formula).
+/// </summary>
+public record struct AgeStateRow(PolityId Polity, int Age, long EnteredTurn, int Surge, long SurgeStartTurn);
+
+/// <summary>
+/// ADR-031 — the published eligibility of one polity for its NEXT Age, owned by
+/// AgeEligibilitySystem (the thin evaluator of D-047 ruling 12). Rebuilt every step,
+/// one row per roster polity below the last Age, in roster order. The facts are read
+/// from PREV (state at turn <c>EvaluatedTurn</c>); the Age they are evaluated against
+/// is the polity's Age in NEXT (an AdvanceAge applied this step is accounted for).
+/// <c>CategoryMask</c> has bit (k-1) set for every category key k covered by a HELD
+/// supporting milestone. Live, per-milestone status is <see cref="AgeQuery"/>.
+/// </summary>
+public record struct AgeEligibilityRow(
+    PolityId Polity, int NextAge, long EvaluatedTurn, int CoreMet, int CoreTotal,
+    int SupportingMet, int SupportingRequired, int CategoryMask, int CategoriesRequired, bool Eligible);
+
+/// <summary>
+/// ADR-031 — ONE AGE TRANSITION (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. The decision was the AdvanceAge order stamped
+/// <c>DecisionTurn</c>; the transition takes effect in the state of
+/// <c>EffectiveTurn</c> = DecisionTurn + 1 (the next turn begins under the new Age;
+/// the deciding turn is not altered retroactively).
+/// </summary>
+public record struct AgeTransitionRow(
+    PolityId Polity, int FromAge, int ToAge, int Surge, long DecisionTurn, long EffectiveTurn);
+
+/// <summary>
+/// ADR-031 (D-047 Parts 2-3; D-043 B5) — ONE MILITARY FORMATION. Minimal state:
+/// identity (<c>Id</c>, stable, never reused), owner, its unit FAMILY and current
+/// IDENTITY (unit-families.json keys), location (the settlement it is stationed at,
+/// or -1 in the field) and continuous position (terrain pixel coordinates, the
+/// D-047 ruling 17 x/y frame), experience and army membership (<c>Army</c> 0 = none).
+/// NOT A CONSERVED CARRIER: a formation holds no people and no goods (the
+/// population stays in Buckets; equipment is declarative), so free modernization
+/// conjures nothing (law 1; CR-017 §4). Owned by AgeTransitionSystem, the only
+/// writer, which converts formations on Age transition (ruling 18). Founded by
+/// worldgen (baseline.basic_military). Recruitment, movement, supply and combat are
+/// later milestones (D-011).
+/// </summary>
+public record struct MilitaryUnitRow(
+    int Id, PolityId Owner, int Family, int Identity, SettlementId Location,
+    double X, double Y, double Experience, int Army);
+
+/// <summary>
+/// ADR-031 — ONE MODERNIZATION OUTCOME (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. Written for EVERY formation of a polity at each Age
+/// transition, including the preserved ones, so "why is this unit still a warband"
+/// is answerable. <c>Outcome</c>: 1 converted to the family successor, 2 converted
+/// to the family's explicit generic successor (another family), 3 preserved (no
+/// successor yet), 4 preserved (family does not auto-modernize).
+/// </summary>
+public record struct UnitConversionRow(
+    long Turn, int Unit, PolityId Owner, int FromFamily, int FromIdentity, int ToFamily, int ToIdentity,
+    int FromAge, int ToAge, int Outcome);
+
 /// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
@@ -848,6 +1008,43 @@ public interface IReadOnlyWorldState
 
     /// <summary>T4.21-1: per-settlement famine-class production shocks — owned by DisasterSystem.</summary>
     IReadOnlyTable<DisasterRow> Disasters { get; }
+
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — an input contract for the
+    /// future institutions system; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchExposureRow> ResearchExposures { get; }
+
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    IReadOnlyTable<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    IReadOnlyTable<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<UnitConversionRow> UnitConversions { get; }
 }
 
 /// <summary>
@@ -991,6 +1188,42 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>T4.21-1 (CR-015 §3.3): famine-class production shocks — owned by DisasterSystem.</summary>
     public Table<DisasterRow> Disasters { get; }
 
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    public Table<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    public Table<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    public Table<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    public Table<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — no system writes it yet.</summary>
+    public Table<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    public Table<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — no system writes it yet.</summary>
+    public Table<ResearchExposureRow> ResearchExposures { get; }
+
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    public Table<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    public Table<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    public Table<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    public Table<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    public Table<UnitConversionRow> UnitConversions { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1031,6 +1264,18 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
     IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
     IReadOnlyTable<DisasterRow> IReadOnlyWorldState.Disasters => Disasters;
+    IReadOnlyTable<ResearchTargetRow> IReadOnlyWorldState.ResearchTargets => ResearchTargets;
+    IReadOnlyTable<ResearchProgressRow> IReadOnlyWorldState.ResearchProgress => ResearchProgress;
+    IReadOnlyTable<ResearchCompletedRow> IReadOnlyWorldState.ResearchCompleted => ResearchCompleted;
+    IReadOnlyTable<ResearchEurekaRow> IReadOnlyWorldState.ResearchEurekas => ResearchEurekas;
+    IReadOnlyTable<ResearchCostModifierRow> IReadOnlyWorldState.ResearchCostModifiers => ResearchCostModifiers;
+    IReadOnlyTable<ResearchCreditRow> IReadOnlyWorldState.ResearchCredits => ResearchCredits;
+    IReadOnlyTable<ResearchExposureRow> IReadOnlyWorldState.ResearchExposures => ResearchExposures;
+    IReadOnlyTable<AgeStateRow> IReadOnlyWorldState.AgeStates => AgeStates;
+    IReadOnlyTable<AgeEligibilityRow> IReadOnlyWorldState.AgeEligibility => AgeEligibility;
+    IReadOnlyTable<AgeTransitionRow> IReadOnlyWorldState.AgeTransitions => AgeTransitions;
+    IReadOnlyTable<MilitaryUnitRow> IReadOnlyWorldState.MilitaryUnits => MilitaryUnits;
+    IReadOnlyTable<UnitConversionRow> IReadOnlyWorldState.UnitConversions => UnitConversions;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1075,6 +1320,18 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = new Table<ConstructionQueueRow>();
         Structures = new Table<StructureRow>();
         Disasters = new Table<DisasterRow>();
+        ResearchTargets = new Table<ResearchTargetRow>();
+        ResearchProgress = new Table<ResearchProgressRow>();
+        ResearchCompleted = new Table<ResearchCompletedRow>();
+        ResearchEurekas = new Table<ResearchEurekaRow>();
+        ResearchCostModifiers = new Table<ResearchCostModifierRow>();
+        ResearchCredits = new Table<ResearchCreditRow>();
+        ResearchExposures = new Table<ResearchExposureRow>();
+        AgeStates = new Table<AgeStateRow>();
+        AgeEligibility = new Table<AgeEligibilityRow>();
+        AgeTransitions = new Table<AgeTransitionRow>();
+        MilitaryUnits = new Table<MilitaryUnitRow>();
+        UnitConversions = new Table<UnitConversionRow>();
     }
 
     private WorldState(
@@ -1097,7 +1354,14 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
         Table<PolityRow> polities, Table<CapitalRow> capitals,
         Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures,
-        Table<DisasterRow> disasters)
+        Table<DisasterRow> disasters,
+        Table<ResearchTargetRow> researchTargets, Table<ResearchProgressRow> researchProgress,
+        Table<ResearchCompletedRow> researchCompleted, Table<ResearchEurekaRow> researchEurekas,
+        Table<ResearchCostModifierRow> researchCostModifiers, Table<ResearchCreditRow> researchCredits,
+        Table<ResearchExposureRow> researchExposures,
+        Table<AgeStateRow> ageStates, Table<AgeEligibilityRow> ageEligibility,
+        Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
+        Table<UnitConversionRow> unitConversions)
     {
         Seed = seed;
         Clock = clock;
@@ -1141,6 +1405,18 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = constructionQueue;
         Structures = structures;
         Disasters = disasters;
+        ResearchTargets = researchTargets;
+        ResearchProgress = researchProgress;
+        ResearchCompleted = researchCompleted;
+        ResearchEurekas = researchEurekas;
+        ResearchCostModifiers = researchCostModifiers;
+        ResearchCredits = researchCredits;
+        ResearchExposures = researchExposures;
+        AgeStates = ageStates;
+        AgeEligibility = ageEligibility;
+        AgeTransitions = ageTransitions;
+        MilitaryUnits = militaryUnits;
+        UnitConversions = unitConversions;
     }
 
     /// <summary>
@@ -1160,7 +1436,11 @@ public sealed class WorldState : IReadOnlyWorldState
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
             Polities.Clone(), Capitals.Clone(),
-            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone())
+            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone(),
+            ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
+            ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
+            AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
+            UnitConversions.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

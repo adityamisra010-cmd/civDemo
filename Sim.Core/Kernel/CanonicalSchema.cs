@@ -83,6 +83,22 @@ public static class CanonicalSchema
     /// lands on main first keeps v25 and the other becomes v26; PipelineLoader
     /// refuses duplicate ids and names at load, so a merge collision is loud.
     /// There is exactly one meaning of every version number in this file.
+    /// v26 (ADR-029, D-044): ResearchTargets, ResearchProgress, ResearchCompleted,
+    /// ResearchEurekas and ResearchCostModifiers appended after Disasters — the
+    /// minimum authoritative research state (the one active target per polity,
+    /// per-node partial progress in RP, the completed-knowledge relation, the
+    /// fired-Eureka relation) plus the specialized-university cost-factor input
+    /// contract, which no system writes yet. Node ids are the STABLE keys of
+    /// research.json. COLLISION NOTE, appended to the v25 note above: v25 is
+    /// T4.21-1's Disasters (it landed on main first), so the unmerged
+    /// `m5-full-build` "v25" (TaxPolicies) now takes v27 when it rebases, not v26.
+    /// It also holds OrderKind 5 and SystemId 22, and this schema's writer took
+    /// OrderKind 6 and SystemId 24 so that neither collides. There is exactly
+    /// one meaning of every version number in this file. ADR-029 addendum A
+    /// (research finalization, before v26 reached main) appended ResearchCredits
+    /// (acceleration-credit provenance per source) and ResearchExposures (the
+    /// foreign-exposure input seam, no writer) and gave ResearchEurekas back its
+    /// three-field layout; v26 has never been on main, so its layout changed in place.
     /// v24 (M4-D): ConstructionQueue and Structures appended after Capitals —
     /// the per-settlement construction queue (ordered by an explicit Slot, never
     /// by row position) and the completed-structure counts. No progress field
@@ -101,7 +117,14 @@ public static class CanonicalSchema
     /// before T4.4 merged. T4.4's v22 is authoritative because it landed on main
     /// first and is certified; these two tables are v23. There is exactly one
     /// meaning of every version number in this file.</summary>
-    public const int Version = 25;
+    /// v28 (ADR-031, D-047 rulings 12-14 and 18): AgeStates, AgeEligibility,
+    /// AgeTransitions, MilitaryUnits and UnitConversions appended after
+    /// ResearchExposures — the polity Age (absence = founding Age), the published
+    /// next-Age eligibility, the Age-transition log, the minimal military-formation
+    /// state and the modernization log. v27 IS SKIPPED ON PURPOSE: the v26 note above
+    /// reserves it for the unmerged `m5-full-build` TaxPolicies rebase, so that there
+    /// is exactly one meaning of every version number in this file.
+    public const int Version = 28;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -146,6 +169,18 @@ public static class CanonicalSchema
     private const int ConstructionQueueRowWidth = 4 + 4 + 4;        // Settlement, Slot, ProjectId (v24)
     private const int StructureRowWidth = 4 + 4 + 8;                // Settlement, ProjectId, Count (v24)
     private const int DisasterRowWidth = 4 + 4 + 8 + 8 + 8 + 8;      // Settlement, Kind, Severity, RemainingYears, Multiplier, AppliedMultiplier (v25)
+    private const int ResearchTargetRowWidth = 4 + 4;               // Polity, Node (v26)
+    private const int ResearchProgressRowWidth = 4 + 4 + 8;         // Polity, Node, Progress bits (v26)
+    private const int ResearchCompletedRowWidth = 4 + 4;            // Polity, Node (v26)
+    private const int ResearchEurekaRowWidth = 4 + 4 + 4;           // Polity, Node, Eureka (v26)
+    private const int ResearchCreditRowWidth = 4 + 4 + 4 + 8;       // Polity, Node, Source, Amount bits (v26, addendum A)
+    private const int ResearchExposureRowWidth = 4 + 4 + 8;         // Polity, Node, Offered bits (v26, addendum A)
+    private const int ResearchCostModifierRowWidth = 4 + 4 + 8;     // Polity, UniversityType, Factor bits (v26)
+    private const int AgeStateRowWidth = 4 + 4 + 8 + 4 + 8;         // Polity, Age, EnteredTurn, Surge, SurgeStartTurn (v28)
+    private const int AgeEligibilityRowWidth = 4 + 4 + 8 + 4 * 6 + 1; // Polity, NextAge, EvaluatedTurn, six ints, Eligible byte (v28)
+    private const int AgeTransitionRowWidth = 4 + 4 + 4 + 4 + 8 + 8; // Polity, From, To, Surge, DecisionTurn, EffectiveTurn (v28)
+    private const int MilitaryUnitRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 4; // Id, Owner, Family, Identity, Location, X, Y, Experience bits, Army (v28)
+    private const int UnitConversionRowWidth = 8 + 4 * 9;           // Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, FromAge, ToAge, Outcome (v28)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -590,6 +625,150 @@ public static class CanonicalSchema
             writer.Write(BitConverter.DoubleToInt64Bits(row.Multiplier));
             writer.Write(BitConverter.DoubleToInt64Bits(row.AppliedMultiplier));
         }
+
+        // 41. ResearchTargets (v26, ADR-029: one active target per polity)
+        writer.Write(world.ResearchTargets.Count);
+        for (int i = 0; i < world.ResearchTargets.Count; i++)
+        {
+            ResearchTargetRow row = world.ResearchTargets[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+        }
+
+        // 42. ResearchProgress (v26: per-node partial progress, RP)
+        writer.Write(world.ResearchProgress.Count);
+        for (int i = 0; i < world.ResearchProgress.Count; i++)
+        {
+            ResearchProgressRow row = world.ResearchProgress[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Progress));
+        }
+
+        // 43. ResearchCompleted (v26: the completed-knowledge relation)
+        writer.Write(world.ResearchCompleted.Count);
+        for (int i = 0; i < world.ResearchCompleted.Count; i++)
+        {
+            ResearchCompletedRow row = world.ResearchCompleted[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+        }
+
+        // 44. ResearchEurekas (v26: the fired-Eureka relation)
+        writer.Write(world.ResearchEurekas.Count);
+        for (int i = 0; i < world.ResearchEurekas.Count; i++)
+        {
+            ResearchEurekaRow row = world.ResearchEurekas[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(row.Eureka);
+        }
+
+        // 45. ResearchCostModifiers (v26: specialized-university cost factors — input contract)
+        writer.Write(world.ResearchCostModifiers.Count);
+        for (int i = 0; i < world.ResearchCostModifiers.Count; i++)
+        {
+            ResearchCostModifierRow row = world.ResearchCostModifiers[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.UniversityType);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Factor));
+        }
+
+        // 46. ResearchCredits (v26, ADR-029 addendum A: acceleration-credit provenance per source)
+        writer.Write(world.ResearchCredits.Count);
+        for (int i = 0; i < world.ResearchCredits.Count; i++)
+        {
+            ResearchCreditRow row = world.ResearchCredits[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(row.Source);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Amount));
+        }
+
+        // 47. ResearchExposures (v26, ADR-029 addendum A: the foreign-exposure input seam)
+        writer.Write(world.ResearchExposures.Count);
+        for (int i = 0; i < world.ResearchExposures.Count; i++)
+        {
+            ResearchExposureRow row = world.ResearchExposures[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Offered));
+        }
+
+        // 48. AgeStates (v28, ADR-031)
+        writer.Write(world.AgeStates.Count);
+        for (int i = 0; i < world.AgeStates.Count; i++)
+        {
+            AgeStateRow row = world.AgeStates[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Age);
+            writer.Write(row.EnteredTurn);
+            writer.Write(row.Surge);
+            writer.Write(row.SurgeStartTurn);
+        }
+
+        // 49. AgeEligibility (v28, ADR-031)
+        writer.Write(world.AgeEligibility.Count);
+        for (int i = 0; i < world.AgeEligibility.Count; i++)
+        {
+            AgeEligibilityRow row = world.AgeEligibility[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.NextAge);
+            writer.Write(row.EvaluatedTurn);
+            writer.Write(row.CoreMet);
+            writer.Write(row.CoreTotal);
+            writer.Write(row.SupportingMet);
+            writer.Write(row.SupportingRequired);
+            writer.Write(row.CategoryMask);
+            writer.Write(row.CategoriesRequired);
+            writer.Write(row.Eligible);
+        }
+
+        // 50. AgeTransitions (v28, ADR-031)
+        writer.Write(world.AgeTransitions.Count);
+        for (int i = 0; i < world.AgeTransitions.Count; i++)
+        {
+            AgeTransitionRow row = world.AgeTransitions[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.FromAge);
+            writer.Write(row.ToAge);
+            writer.Write(row.Surge);
+            writer.Write(row.DecisionTurn);
+            writer.Write(row.EffectiveTurn);
+        }
+
+        // 51. MilitaryUnits (v28, ADR-031)
+        writer.Write(world.MilitaryUnits.Count);
+        for (int i = 0; i < world.MilitaryUnits.Count; i++)
+        {
+            MilitaryUnitRow row = world.MilitaryUnits[i];
+            writer.Write(row.Id);
+            writer.Write(row.Owner.Value);
+            writer.Write(row.Family);
+            writer.Write(row.Identity);
+            writer.Write(row.Location.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.X));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Y));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Experience));
+            writer.Write(row.Army);
+        }
+
+        // 52. UnitConversions (v28, ADR-031)
+        writer.Write(world.UnitConversions.Count);
+        for (int i = 0; i < world.UnitConversions.Count; i++)
+        {
+            UnitConversionRow row = world.UnitConversions[i];
+            writer.Write(row.Turn);
+            writer.Write(row.Unit);
+            writer.Write(row.Owner.Value);
+            writer.Write(row.FromFamily);
+            writer.Write(row.FromIdentity);
+            writer.Write(row.ToFamily);
+            writer.Write(row.ToIdentity);
+            writer.Write(row.FromAge);
+            writer.Write(row.ToAge);
+            writer.Write(row.Outcome);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -968,6 +1147,103 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int researchTargetCount = reader.ReadInt32();
+        for (int i = 0; i < researchTargetCount; i++)
+        {
+            world.ResearchTargets.Add(new ResearchTargetRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32())));
+        }
+
+        int researchProgressCount = reader.ReadInt32();
+        for (int i = 0; i < researchProgressCount; i++)
+        {
+            world.ResearchProgress.Add(new ResearchProgressRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int researchCompletedCount = reader.ReadInt32();
+        for (int i = 0; i < researchCompletedCount; i++)
+        {
+            world.ResearchCompleted.Add(new ResearchCompletedRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32())));
+        }
+
+        int researchEurekaCount = reader.ReadInt32();
+        for (int i = 0; i < researchEurekaCount; i++)
+        {
+            world.ResearchEurekas.Add(new ResearchEurekaRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32()));
+        }
+
+        int researchCostModifierCount = reader.ReadInt32();
+        for (int i = 0; i < researchCostModifierCount; i++)
+        {
+            world.ResearchCostModifiers.Add(new ResearchCostModifierRow(
+                new PolityId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int researchCreditCount = reader.ReadInt32();
+        for (int i = 0; i < researchCreditCount; i++)
+        {
+            world.ResearchCredits.Add(new ResearchCreditRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int researchExposureCount = reader.ReadInt32();
+        for (int i = 0; i < researchExposureCount; i++)
+        {
+            world.ResearchExposures.Add(new ResearchExposureRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int ageStateCount = reader.ReadInt32();
+        for (int i = 0; i < ageStateCount; i++)
+        {
+            world.AgeStates.Add(new AgeStateRow(
+                new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64(),
+                reader.ReadInt32(), reader.ReadInt64()));
+        }
+
+        int ageEligibilityCount = reader.ReadInt32();
+        for (int i = 0; i < ageEligibilityCount; i++)
+        {
+            world.AgeEligibility.Add(new AgeEligibilityRow(
+                new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64(),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadBoolean()));
+        }
+
+        int ageTransitionCount = reader.ReadInt32();
+        for (int i = 0; i < ageTransitionCount; i++)
+        {
+            world.AgeTransitions.Add(new AgeTransitionRow(
+                new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt64(), reader.ReadInt64()));
+        }
+
+        int militaryUnitCount = reader.ReadInt32();
+        for (int i = 0; i < militaryUnitCount; i++)
+        {
+            world.MilitaryUnits.Add(new MilitaryUnitRow(
+                reader.ReadInt32(), new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32(),
+                new SettlementId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), reader.ReadInt32()));
+        }
+
+        int unitConversionCount = reader.ReadInt32();
+        for (int i = 0; i < unitConversionCount; i++)
+        {
+            world.UnitConversions.Add(new UnitConversionRow(
+                reader.ReadInt64(), reader.ReadInt32(), new PolityId(reader.ReadInt32()),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
+        }
+
         return world;
     }
 
@@ -1018,5 +1294,17 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.Capitals.Count * CapitalRowWidth
         + CountPrefixWidth + (long)world.ConstructionQueue.Count * ConstructionQueueRowWidth
         + CountPrefixWidth + (long)world.Structures.Count * StructureRowWidth
-        + CountPrefixWidth + (long)world.Disasters.Count * DisasterRowWidth;
+        + CountPrefixWidth + (long)world.Disasters.Count * DisasterRowWidth
+        + CountPrefixWidth + (long)world.ResearchTargets.Count * ResearchTargetRowWidth
+        + CountPrefixWidth + (long)world.ResearchProgress.Count * ResearchProgressRowWidth
+        + CountPrefixWidth + (long)world.ResearchCompleted.Count * ResearchCompletedRowWidth
+        + CountPrefixWidth + (long)world.ResearchEurekas.Count * ResearchEurekaRowWidth
+        + CountPrefixWidth + (long)world.ResearchCostModifiers.Count * ResearchCostModifierRowWidth
+        + CountPrefixWidth + (long)world.ResearchCredits.Count * ResearchCreditRowWidth
+        + CountPrefixWidth + (long)world.ResearchExposures.Count * ResearchExposureRowWidth
+        + CountPrefixWidth + (long)world.AgeStates.Count * AgeStateRowWidth
+        + CountPrefixWidth + (long)world.AgeEligibility.Count * AgeEligibilityRowWidth
+        + CountPrefixWidth + (long)world.AgeTransitions.Count * AgeTransitionRowWidth
+        + CountPrefixWidth + (long)world.MilitaryUnits.Count * MilitaryUnitRowWidth
+        + CountPrefixWidth + (long)world.UnitConversions.Count * UnitConversionRowWidth;
 }

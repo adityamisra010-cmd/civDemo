@@ -1263,6 +1263,35 @@
   ownership, which D-042 §4.4/§4.6 now forbid — D-018 is closed and was NOT edited (§14.1).**
   Still open: CR-005, CR-006, CR-008, CR-009, CR-010. NOT parked to the M10 slice gate.
 
+- **D-045 RESEARCH CALIBRATION — Director rulings of 2026-10-01** (`docs/d045-research-calibration-rulings.md`),
+  implemented on `research-progression-foundation` (PR #10, not merged).
+  - RP(P) = 2·(P/100)^0.69897 (PROVISIONAL CALIBRATION).
+  - 40 % partial Eurekas.
+  - Significance-band costs for all 430 nodes; `docs/research-calibration-report.md` puts the final Age at 215 turns
+    for a research-optimized civilization.
+  - Eureka audit: A 93 · B 0 · C 419 · D 21 · E 0 · F 268.
+  - **OPEN (owner: director):** D-045 Part D — CR-018 per-turn vs per-year; completion overflow (R-2); future research
+    modifiers; Age → calendar windows; recursive research; one Eureka per node; 38 Technique candidates.
+- **D-044 RESEARCH AND PROGRESSION — Director rulings of 2026-09-30, recorded verbatim.**
+  `docs/d044-research-progression-rulings.md`.
+  - **What it rules:** Technology IS knowledge. There is ONE Cognitive Load Point (CLP) pool for
+    Technology, its five subtrees and Civics. There are two trees: Technology (Main tree + Military,
+    Medicine, Engineering, Natural Science, Agriculture) and Civics. The five subtrees open together at the
+    university/research institutional stage. There is one active research target, and progress is kept per
+    node. There is no general bank of unused CLP. Specialized universities reduce EffectiveCost; the formula
+    is NOT ratified. Eurekas credit their own node, are capped, never overflow, and use D-020. Completion is
+    immediate and idempotent and never spawns entities. Age is metadata only.
+  - **What it supersedes:** D-042 §9.1 (in part), §9.3, §9.4, §9.5, the §12 queue bullet and the first two
+    §15 rows. Those clauses are left unedited, with append-only notes beside them. **This supersedes the
+    D-042 line above that reads "knowledge IS an allocatable flow whose unallocated remainder ACCUMULATES AS
+    A RESERVE … research runs in parallel"** — that line is kept as written.
+  - **Architecture reconciliation:** `docs/design/civilization-progression-architecture.md` is reconciled in
+    place, with the original wording preserved in its §20.
+  - **Implementation:** ADR-029, branch `research-progression-foundation` (not merged).
+  - **UNRESOLVED (D-044 Part D, owner: director):** CR-005 milestone placement, the Spine `:84` "no tree"
+    reading, the D-040 B3 wording, the D-021 brake owed by the first university-modifier writer, the D-020
+    grammar extension, repeatable frontier lines, and starting holdings (CR-006).
+
 - **Repository freshness protocol (GOV-4) — `docs/current-state.md` is now the entry point.**
   An agent resuming with no conversation context should read `docs/current-state.md` for current
   milestone, baseline, active branch and open blockers, then verify those claims against git before

@@ -15,6 +15,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "autoplay" => Cli.Guard(() => Cli.Autoplay(args)),
     "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
     "corridors" => Cli.Guard(() => Cli.CorridorsCmd(args)),
+    "research" => Cli.Guard(() => ResearchCli.Run(args)),
     _ => Cli.Usage($"unknown command '{args[0]}'"),
 };
 
@@ -77,6 +78,20 @@ namespace Sim.Cli
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
                   sim corridors --metrics nightly-metrics.json
+                  sim research --seed S --turns N [--settlements N] [--size PX]
+                          [--orders PATH] [--polity P] [--node ID]
+                          [--auto cheapest] [--emit-orders PATH]
+
+                research (ADR-029) runs the FOUNDED world and prints the Glass Box
+                research report for one polity (default 1): the Research Point pool, the
+                active target, completed knowledge per tree and subtree, the research
+                stage, available nodes, partial progress, Eurekas and university cost
+                modifiers. --node ID adds one node's full breakdown. --auto cheapest
+                is a MEASUREMENT DRIVER, not an AI: whenever the polity has no target
+                it appends a SetResearchTarget order for the cheapest available node
+                (EffectiveCost, then key) to the order log, so the run exercises the
+                real order pathway. --emit-orders writes that log for `sim run
+                --founded --orders` replay.
 
                 --founded: run the production world (M2: worldgen + settlements +
                 pop/food/pathbuild pipeline) instead of the M0 toy world. Labor
@@ -106,15 +121,19 @@ namespace Sim.Cli
             return world;
         }
 
-        private static Sim.Core.Systems.SimConfig SimCfg()
+        internal static Sim.Core.Systems.SimConfig SimCfg()
         {
             using var simStream = Sim.Data.DataFiles.OpenSim();
             using var needsStream = Sim.Data.DataFiles.OpenNeeds();
             using var goodsStream = Sim.Data.DataFiles.OpenGoods();
-            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream, goodsStream);
+            using var researchStream = Sim.Data.DataFiles.OpenResearch();
+            using var agesStream = Sim.Data.DataFiles.OpenAges();
+            using var familiesStream = Sim.Data.DataFiles.OpenUnitFamilies();
+            return Sim.Core.Systems.SimConfigLoader.Load(simStream, needsStream, goodsStream, researchStream,
+                agesStream, familiesStream);
         }
 
-        private static TurnExecutor Executor(OrderLog? orders, bool founded = false)
+        internal static TurnExecutor Executor(OrderLog? orders, bool founded = false)
         {
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
             // Default = toy preset + toy world: keeps the cross-process
@@ -140,11 +159,11 @@ namespace Sim.Cli
         }
 
         /// <summary>The starting world: M0 toy genesis, or the founded production world.</summary>
-        private static WorldState StartWorld(
+        internal static WorldState StartWorld(
             ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null) =>
             founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride) : Genesis(seed);
 
-        private static int? SizeOpt(Options opts, bool founded)
+        internal static int? SizeOpt(Options opts, bool founded)
         {
             long size = opts.LongOr("--size", -1);
             if (size < 0) return null;
@@ -152,7 +171,7 @@ namespace Sim.Cli
             return (int)size;
         }
 
-        private static int? SettlementsOpt(Options opts, bool founded)
+        internal static int? SettlementsOpt(Options opts, bool founded)
         {
             long n = opts.LongOr("--settlements", -1);
             if (n < 0) return null;
@@ -161,7 +180,7 @@ namespace Sim.Cli
             return (int)n;
         }
 
-        private static OrderLog LoadOrders(string path)
+        internal static OrderLog LoadOrders(string path)
         {
             using var stream = File.OpenRead(path);
             return OrderLog.Load(stream);
@@ -1200,8 +1219,11 @@ namespace Sim.Cli
             using (var stream = Sim.Data.DataFiles.OpenSim())
             using (var needs = Sim.Data.DataFiles.OpenNeeds())
             using (var goods = Sim.Data.DataFiles.OpenGoods())
+            using (var research = Sim.Data.DataFiles.OpenResearch())
+            using (var ages = Sim.Data.DataFiles.OpenAges())
+            using (var families = Sim.Data.DataFiles.OpenUnitFamilies())
             {
-                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods);
+                simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods, research, ages, families);
             }
             return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed, settlementsOverride);
         }

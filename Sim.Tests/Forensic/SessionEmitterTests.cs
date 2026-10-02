@@ -26,8 +26,9 @@ public class SessionEmitterTests
         using (Stream sim = Sim.Data.DataFiles.OpenSim())
         using (Stream needs = Sim.Data.DataFiles.OpenNeeds())
         using (Stream goods = Sim.Data.DataFiles.OpenGoods())
+        using (Stream research = Sim.Data.DataFiles.OpenResearch())
         {
-            cfg = Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
+            cfg = Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research);
         }
         var orders = new OrderLog();
         WorldState world = Sim.Cli.HeadlessFounding.Found(42, 256, 4);

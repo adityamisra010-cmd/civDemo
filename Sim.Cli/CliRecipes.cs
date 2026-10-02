@@ -29,8 +29,11 @@ public static class CliRecipes
         using (var sim = Sim.Data.DataFiles.OpenSim())
         using (var needs = Sim.Data.DataFiles.OpenNeeds())
         using (var goods = Sim.Data.DataFiles.OpenGoods())
+        using (var research = Sim.Data.DataFiles.OpenResearch())
+        using (var ages = Sim.Data.DataFiles.OpenAges())
+        using (var families = Sim.Data.DataFiles.OpenUnitFamilies())
         {
-            cfg = Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods);
+            cfg = Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research, ages, families);
         }
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         return Sim.Core.Kernel.PipelineLoader.Load(

@@ -39,7 +39,15 @@ public sealed record SimConfig(
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
     [property: JsonIgnore] NeedsConfig? Needs = null,
     // T3.2: the D-031 goods registry rides goods.json, attached the same way.
-    [property: JsonIgnore] GoodsConfig? Goods = null);
+    [property: JsonIgnore] GoodsConfig? Goods = null,
+    // ADR-029 (D-044): the research graph rides research.json, attached the same
+    // way by the four-stream Load. Null leaves the ResearchSystem inert.
+    [property: JsonIgnore] Research.ResearchContent? Research = null,
+    // ADR-031 (D-047): the Ages (ages.json) and the unit-family graph
+    // (unit-families.json), attached by the six-stream Load. Null leaves the two
+    // Age systems inert and founds no formations.
+    [property: JsonIgnore] Ages.AgeContent? Ages = null,
+    [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -633,6 +641,36 @@ public static class SimConfigLoader
             Needs = NeedsConfigLoader.Load(needsJson),
             Goods = GoodsConfigLoader.Load(goodsJson),
         });
+
+    /// <summary>ADR-029: canonical four-file load — the three-file load plus
+    /// research.json (the Technology and Civics graph, D-044), attached as
+    /// SimConfig.Research. The research content is validated against the goods
+    /// registry it names in Eureka conditions (stock_&lt;good&gt;).</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson);
+        return cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+    }
+
+    /// <summary>ADR-031: canonical six-file load — the four-file load plus ages.json and
+    /// unit-families.json, attached as SimConfig.Ages and SimConfig.UnitFamilies. Unit
+    /// families are validated against research.json's unit entities; every milestone fact
+    /// against the research, goods, class and family content it names.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson,
+        Stream agesJson, Stream unitFamiliesJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson, researchJson);
+        return WithProgression(cfg, agesJson, unitFamiliesJson);
+    }
+
+    /// <summary>ADR-031: attaches ages.json and unit-families.json to an already-loaded config
+    /// (validated against its research, goods and class registries).</summary>
+    public static SimConfig WithProgression(SimConfig cfg, Stream agesJson, Stream unitFamiliesJson)
+    {
+        Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research);
+        Ages.AgeContent ages = Ages.AgeContentLoader.Load(agesJson, cfg.Research, cfg.Goods, cfg.Registries, families);
+        return cfg with { Ages = ages, UnitFamilies = families };
+    }
 
     /// <summary>
     /// T3.5b item 4 — the two cross-file guards, at the only point where

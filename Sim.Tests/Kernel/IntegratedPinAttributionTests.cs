@@ -77,6 +77,22 @@ namespace Sim.Tests.Kernel;
 /// which is the measurement showing the two packets stayed inside the founded
 /// worlds' migration and demographics instead of leaking anywhere they had no
 /// business being.
+///
+/// ADR-029 (D-044) ADDS A FOURTH LAYER: schema v26 appends the seven research
+/// tables — ResearchTargets, ResearchProgress, ResearchCompleted, ResearchEurekas,
+/// ResearchCostModifiers and (addendum A) ResearchCredits and ResearchExposures —
+/// AFTER Disasters, and the production pipeline gains
+/// the ResearchSystem as its last entry. The system writes ONLY those tables. No
+/// other system reads them, and the system draws no RNG and records no ledger flow.
+/// Under the curated Eurekas of addendum A an order-less world writes NO research
+/// row in 300 turns (measured), so each research control also runs a research-DRIVEN
+/// arm, a target chosen whenever one is free, which does. <see cref="StripResearch"/> clears
+/// the seven tables, and <see cref="HashAtSchemaV25"/> also drops their seven empty
+/// count prefixes. The PRE-PACKET pins — the values on main at 93270cd — must
+/// return BYTE FOR BYTE on every pinned world. Any leak of research into
+/// population, food, trade, migration or anything else would survive the strip and
+/// break them. Every older control in this file strips the research layer too and
+/// drops its seven prefixes, so every constant it carries is UNMOVED by this packet.
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -117,6 +133,8 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripAges(stripped);
+        StripResearch(stripped);
         StripDisaster(stripped);
         stripped.Polities.Clear();
         stripped.Controls.Clear();
@@ -130,7 +148,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -170,13 +188,91 @@ public class IntegratedPinAttributionTests
     }
 
     /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.
-    /// Five trailing empty tables since v25: Polities, Capitals (v23),
-    /// ConstructionQueue, Structures (v24), Disasters (v25).</summary>
-    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5);
+    /// Ten trailing empty tables since v26: Polities, Capitals (v23),
+    /// ConstructionQueue, Structures (v24), Disasters (v25) and the seven research
+    /// tables (v26).</summary>
+    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5 + ResearchTableCount);
 
     /// <summary>The stream as v23 — M4-A's tables present but empty, i.e. the
     /// tree exactly as it stood before M4-C's founding wrote them.</summary>
-    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3);
+    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3 + ResearchTableCount);
+
+    /// <summary>ADR-029: the seven v26 research tables, appended after Disasters (two of
+    /// them, ResearchCredits and ResearchExposures, by addendum A).</summary>
+    private const int ResearchTableCount = 7;
+
+    /// <summary>ADR-031: the five v28 Age/military tables, appended after ResearchExposures.
+    /// Every pin in this file predates v28, so every control strips them and drops their
+    /// five count prefixes first (the two Age systems draw no RNG and write no ledger flow;
+    /// founding formations are tokens), then asks its original question unchanged.</summary>
+    private const int AgeTableCount = 5;
+
+    private static int StripAges(WorldState stripped)
+    {
+        int removed = stripped.AgeStates.Count + stripped.AgeEligibility.Count + stripped.AgeTransitions.Count
+            + stripped.MilitaryUnits.Count + stripped.UnitConversions.Count;
+        stripped.AgeStates.Clear();
+        stripped.AgeEligibility.Clear();
+        stripped.AgeTransitions.Clear();
+        stripped.MilitaryUnits.Clear();
+        stripped.UnitConversions.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v26 — the tree exactly as it stood BEFORE ADR-031: the Age/military
+    /// rows removed, the five empty v28 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        ageRowsRemoved = StripAges(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount);
+    }
+
+    /// <summary>
+    /// ADR-029: clear the seven research tables IN PLACE. It returns how many rows
+    /// were removed, so a caller can tell a populated strip from a vacuous one. The
+    /// research system owns nothing else, draws no RNG and writes no ledger flow, so
+    /// these tables are its entire footprint in the stream.
+    /// </summary>
+    private static int StripResearch(WorldState stripped)
+    {
+        int removed = stripped.ResearchTargets.Count + stripped.ResearchProgress.Count
+            + stripped.ResearchCompleted.Count + stripped.ResearchEurekas.Count
+            + stripped.ResearchCostModifiers.Count + stripped.ResearchCredits.Count
+            + stripped.ResearchExposures.Count;
+        stripped.ResearchTargets.Clear();
+        stripped.ResearchProgress.Clear();
+        stripped.ResearchCompleted.Clear();
+        stripped.ResearchEurekas.Clear();
+        stripped.ResearchCostModifiers.Clear();
+        stripped.ResearchCredits.Clear();
+        stripped.ResearchExposures.Clear();
+        return removed;
+    }
+
+    /// <summary>
+    /// The stream as v25 — the tree exactly as it stood BEFORE the research packet
+    /// (main at 93270cd): the research rows removed, the seven empty v26 prefixes
+    /// dropped, and NOTHING ELSE touched. The pre-packet pin must return byte for
+    /// byte, or research changed something outside its own tables.
+    /// </summary>
+    private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripAges(stripped);
+        researchRowsRemoved = StripResearch(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount);
+    }
 
     /// <summary>
     /// The stream as v24 — the tree exactly as it stood BEFORE T4.21-1: the
@@ -187,13 +283,15 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripAges(stripped);
+        StripResearch(stripped);
         disasterStreamsRemoved = StripDisaster(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount);
     }
 
     /// <summary>
@@ -394,7 +492,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(25, CanonicalSchema.Version);
+        Assert.Equal(28, CanonicalSchema.Version);
     }
 
     [Fact]
@@ -478,5 +576,149 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);
         Assert.Equal(0, world.Disasters.Count);
+    }
+
+    // ======================================================================
+    // ADR-029 — THE LAYOUT CONTROL FOR SCHEMA v26 + THE RESEARCH ROWS
+    // ======================================================================
+    // Each constant below is the value the world's own golden carried on main at
+    // 93270cd, before the research packet. The strip returning it BYTE FOR BYTE is
+    // the measurement that the research layer is the ENTIRE delta.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone()
+    {
+        // The toy pipeline runs no research system: its whole movement is seven empty
+        // count prefixes (SnapshotTests.GoldenHash on main).
+        const string beforeResearch = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
+    {
+        // SnapshotTests.FoundedGolden and ci.yml's FOUNDED_GOLDEN on main.
+        const string beforeResearch = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+        WorldState world = executor.Run(
+            Sim.Core.Worldgen.WorldFounding.Found(
+                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+        Assert.Equal(0, world.ResearchTargets.Count);    // nobody chose a target
+        Assert.Equal(0, world.ResearchCompleted.Count);
+        // MEASURED (research finalization, addendum A): with no order, none of the 18 evaluable
+        // curated Eurekas holds on an available node within 300 turns, so the order-less arm
+        // writes NO research row and its strip is vacuous on its own. The research-DRIVEN arm
+        // below supplies the teeth: the same world with a target chosen every time one is free.
+        WorldState researched = RunWithResearchDriver(
+            Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42),
+            new OrderLog(), Unarmed(), 300, researchFrom: 0);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
+        Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+
+    /// <summary>
+    /// Runs a founded world with the measurement driver of ResearchDeterminismTests appending a
+    /// SetResearchTarget for the cheapest available node whenever the player has no target,
+    /// from turn <paramref name="researchFrom"/> on, on top of whatever <paramref name="orders"/>
+    /// already holds. Research writes only its own
+    /// tables, so the stripped stream must equal the pre-research pin byte for byte.
+    /// </summary>
+    private static WorldState RunWithResearchDriver(WorldState world, OrderLog orders, Sim.Core.Systems.SimConfig cfg, int turns, int researchFrom)
+    {
+        Sim.Core.Systems.Research.ResearchContent content = TestUtil.TestConfigs.Research();
+        var player = new PolityId(1);
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestUtil.TestConfigs.Worldgen())), orders);
+        for (int t = 0; t < turns; t++)
+        {
+            if (world.Clock.Turn >= researchFrom && !ResearchQuery.TryGetTarget(world, player, out _)
+                && ResearchQuery.CheapestAvailable(world, content, player) is { } pick)
+                orders.Append(OrderRecord.From(world.Clock.Turn, player, OrderKind.SetResearchTarget, pick.Value, 0.0));
+            world = executor.Step(world);
+        }
+        return world;
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheResearchLayerAlone()
+    {
+        // FirstReignTests' golden on main.
+        const string beforeResearch = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
+    {
+        // DrivenGoldenTests' golden on main.
+        const string beforeResearch = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+        // The order-less research arm writes no research row (measured; see the founded control),
+        // so the teeth are the same driven world with the research driver added to its orders.
+        WorldState founded = Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42);
+        WorldState researched = RunWithResearchDriver(founded,
+            DrivenGoldenTests.DrivingOrders(founded.Settlements.Count), Unarmed(), 300,
+            researchFrom: 2); // the log is append-only in turn order, and its batch is stamped turn 2
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
+        Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+    // ======================================================================
+    // ADR-031 — THE LAYOUT CONTROL FOR SCHEMA v28 (Ages and military formations)
+    // ======================================================================
+    // Each constant is the pin as it stood on this branch at 3e5647f, BEFORE ADR-031.
+    // Stripping the five Age/military tables and dropping their count prefixes must return
+    // it BYTE FOR BYTE: the Age systems draw no RNG, write no ledger flow, and the founding
+    // formations are tokens — so the v28 tables are the ENTIRE cause of every re-pin.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone()
+    {
+        const string beforeAges = "c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.Equal(0, removed); // the toy pipeline runs no Age system and founds no formation
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18";
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+        Assert.Equal(1, world.MilitaryUnits.Count); // the founding warband, unconverted: nobody advanced
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
 }

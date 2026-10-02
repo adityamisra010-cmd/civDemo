@@ -434,7 +434,36 @@ public class FirstReignTests
         //   THE SHAPE ASSERTS BELOW ARE UNCHANGED AND RE-VERIFIED BY RUNNING
         //         THEM on the merged tree: the dead world still dies inside the
         //         session's shape and the ghost mountain stays absent.
-        const string golden = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e
+        //   NEW  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   CAUSE five v26 count prefixes plus ResearchSystem's own rows (the
+        //         director's fixture carries no research order). The SHAPE ASSERTS
+        //         BELOW ARE UNCHANGED and pass on this tree: research feeds nothing
+        //         back, so the dead world dies exactly as before.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns the OLD
+        //         value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   NEW  4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7
+        //   CAUSE two more empty count prefixes, and no research row at turn 40
+        //         (measured: all seven research tables empty). The SHAPE ASSERTS BELOW
+        //         ARE UNCHANGED and pass on this tree: research feeds nothing back.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns main's
+        //         dacf3c34… byte for byte.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7
+        //   NEW  259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        const string golden = "259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
