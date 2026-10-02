@@ -558,6 +558,15 @@ no settler or found order), `food_gathering` (no HarvestSystem; HarvestWeatherSy
 forms of these exist without the nodes; the node strings describe the improved forms or historical context and gate
 nothing. `infra.fish_weir` keeps `basketry` (ruling 5).
 
+> **Append-only note, 2026-10-02 (ADR-033 D1; the Director's integration directive of 2026-10-02).** The G-18
+> closure above — `requires: null` for `activity.farming`, `.herding`, `.logging` and `.mining`, and their removal
+> from the crop, `sheep_goat`, `cattle`, `ground_stone_early` and `mining_shaft` reverse indexes — is SUPERSEDED for
+> those four activities: their pre-Part-E requirements and reverse indexes are restored, and research.json's
+> `sectorActivities` presents each labour sector as the activity it expresses (Gathering until a farming node is
+> complete, then Farming; Hunting & fishing, then Herding & fishing; Logging and Mining join Gathering wood & stone).
+> The five SECTORS stay baseline and ungated, and production, yields and calibration are unchanged. `activity.fishing`
+> is UNCHANGED (`requires: null`, ruling 4; `fishing_hook` does not list it). The text above is not edited.
+
 ---
 
 ## PART F — APPEND-ONLY NOTES MADE BY THIS RECORD

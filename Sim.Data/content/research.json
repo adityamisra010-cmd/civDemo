@@ -7,7 +7,8 @@
   "cost: content-derived, BaseCost = U \u00d7 K^magnitude (tuning.costModel); costRationale carries the six factors per node. Calibration adjustments: none. Never depth-derived (ADR-029 R-10 is overridden).",
   "tuning.rpPerTurn: Research Points per strategic turn, never multiplied by dt (ADR-030). Coefficient and exponent are calibration values.",
   "eurekas[].weight: the fraction of BaseCost the condition credits once; a node's weights sum to at most tuning.accelerationCreditCeilingFraction. Eureka and foreign exposure share that one pool.",
-  "baseline: capabilities a founded civilization has with zero completed nodes (D-045 \u00a71) \u2014 outside the graph; ownership contract in docs/design/research-capability-ownership.md."
+  "baseline: capabilities a founded civilization has with zero completed nodes (D-045 \u00a71) \u2014 outside the graph; ownership contract in docs/design/research-capability-ownership.md.",
+  "sectorActivities: the five labour sectors (code, kernel-contract surface) and the ACTIVITY each one expresses (ADR-033 D1). Every sector is baseline and never gated; its turn-1 identity is a baseline identity (providedBy names baseline entries), and a researched identity (an activity entity) REPLACES it or JOINS it once the entity is knowledge-eligible. Presentation only: production, yields and shares are unchanged. label overrides the entity's name for the sector (herding also fishes)."
  ],
  "source": {
   "corpus": "tech-graph-v0.6.json",
@@ -65,7 +66,7 @@
   {
    "id": "baseline.food_gathering",
    "name": "Basic food and resource gathering",
-   "providedBy": "ProductionSystem \u2014 the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); the five activity entities require no node",
+   "providedBy": "ProductionSystem \u2014 the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); no sector is gated: research changes the ACTIVITY a sector expresses (activity.farming, .herding, .logging, .mining; sectorActivities), never its output (ADR-033 D1)",
    "simulated": true
   },
   {
@@ -115,6 +116,92 @@
    "name": "Basic paths and overland movement",
    "providedBy": "PathBuildSystem \u2014 dirt paths (the DirtPath edge type) accrue from use with no research and no order (D-047 ruling 8)",
    "simulated": true
+  },
+  {
+   "id": "baseline.hunting",
+   "name": "Hunting",
+   "providedBy": "ProductionSystem \u2014 SIMULATED as the Herding/fishing sector's yield from wild-animal (livestock) deposits: the sector's labour turns each settlement's livestock deposit into livestock with no research. No separate hunting sector, prey population or hunting mechanism exists (the Director lists hunting as baseline, integration directive 2026-10-02; ADR-033 D1)",
+   "simulated": true
+  }
+ ],
+ "sectorActivities": [
+  {
+   "sector": "farming",
+   "baseline": {
+    "id": "gathering",
+    "name": "Gathering",
+    "providedBy": [
+     "baseline.food_gathering"
+    ]
+   },
+   "researched": [
+    {
+     "entity": "activity.farming",
+     "mode": "replaces"
+    }
+   ]
+  },
+  {
+   "sector": "herding_fishing",
+   "baseline": {
+    "id": "hunting_fishing",
+    "name": "Hunting & fishing",
+    "providedBy": [
+     "baseline.hunting",
+     "baseline.basic_fishing"
+    ]
+   },
+   "researched": [
+    {
+     "entity": "activity.herding",
+     "mode": "replaces",
+     "label": "Herding & fishing"
+    }
+   ]
+  },
+  {
+   "sector": "extraction",
+   "baseline": {
+    "id": "gathering_wood_stone",
+    "name": "Gathering wood & stone",
+    "providedBy": [
+     "baseline.food_gathering"
+    ]
+   },
+   "researched": [
+    {
+     "entity": "activity.logging",
+     "mode": "joins"
+    },
+    {
+     "entity": "activity.mining",
+     "mode": "joins"
+    }
+   ]
+  },
+  {
+   "sector": "crafting",
+   "baseline": {
+    "id": "crafts_toolmaking",
+    "name": "Crafts & toolmaking",
+    "providedBy": [
+     "baseline.primitive_hafted_tools"
+    ]
+   },
+   "researched": []
+  },
+  {
+   "sector": "construction",
+   "baseline": {
+    "id": "building",
+    "name": "Building",
+    "providedBy": [
+     "baseline.construction",
+     "baseline.basic_shelter",
+     "baseline.basic_paths"
+    ]
+   },
+   "researched": []
   }
  ],
  "trees": [
@@ -670,7 +757,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.logging"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2049,7 +2138,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2188,7 +2279,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2262,7 +2355,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2334,7 +2429,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2396,7 +2493,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2454,7 +2553,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.farming"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -2848,7 +2949,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.herding"
+    ],
     "projects": [],
     "techniques": [
      "Transhumance",
@@ -2929,7 +3032,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.herding"
+    ],
     "projects": [],
     "techniques": [],
     "applications": []
@@ -5719,7 +5824,9 @@
     "buildings": [],
     "institutions": [],
     "infrastructure": [],
-    "activities": [],
+    "activities": [
+     "activity.mining"
+    ],
     "projects": [],
     "techniques": [
      "Fire-setting",
@@ -29080,56 +29187,56 @@
   {
    "id": "activity.farming",
    "kind": "activity",
-   "name": null,
-   "requires": null,
+   "name": "Farming",
+   "requires": "cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet",
    "unresolved": []
   },
   {
    "id": "activity.herding",
    "kind": "activity",
-   "name": null,
-   "requires": null,
+   "name": "Herding",
+   "requires": "sheep_goat OR cattle",
    "unresolved": []
   },
   {
    "id": "activity.fishing",
    "kind": "activity",
-   "name": null,
+   "name": "Fishing",
    "requires": null,
    "unresolved": []
   },
   {
    "id": "activity.logging",
    "kind": "activity",
-   "name": null,
-   "requires": null,
+   "name": "Logging",
+   "requires": "ground_stone_early",
    "unresolved": []
   },
   {
    "id": "activity.mining",
    "kind": "activity",
-   "name": null,
-   "requires": null,
+   "name": "Mining",
+   "requires": "mining_shaft",
    "unresolved": []
   },
   {
    "id": "activity.caravans",
    "kind": "activity",
-   "name": null,
+   "name": "Caravans",
    "requires": "donkey OR camel",
    "unresolved": []
   },
   {
    "id": "activity.coastal_shipping",
    "kind": "activity",
-   "name": null,
+   "name": "Coastal shipping",
    "requires": "sail_square",
    "unresolved": []
   },
   {
    "id": "activity.ocean_shipping",
    "kind": "activity",
-   "name": null,
+   "name": "Ocean shipping",
    "requires": "carrack OR caravel OR polynesian_canoe",
    "unresolved": []
   },

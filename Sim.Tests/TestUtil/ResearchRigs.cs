@@ -207,6 +207,9 @@ internal static class ResearchRigs
                         ["providedBy"] = "rig system", ["simulated"] = true,
                     })
                     : new JsonArray(),
+                // ADR-033 D1: every sector maps to a baseline identity the rig's one baseline
+                // capability provides, and to no researched identity (the rig has no activity entity).
+                ["sectorActivities"] = SectorActivities(),
                 ["trees"] = new JsonArray(
                     new JsonObject { ["id"] = "technology", ["number"] = "1", ["name"] = "Technology" },
                     new JsonObject { ["id"] = "civics", ["number"] = "2", ["name"] = "Civics" }),
@@ -232,6 +235,25 @@ internal static class ResearchRigs
         }
 
         public ResearchContent Load() => ResearchContentLoader.Load(Json(), TestConfigs.Sim().Goods);
+
+        /// <summary>The rig's sectorActivities: the five sectors in order, each a baseline identity
+        /// "rig_&lt;sector&gt;" provided by baseline.settlement_founding, with no researched identity.</summary>
+        private static JsonArray SectorActivities()
+        {
+            var sectors = new JsonArray();
+            foreach (string sector in ResearchContentLoader.SectorIds)
+                sectors.Add(new JsonObject
+                {
+                    ["sector"] = sector,
+                    ["baseline"] = new JsonObject
+                    {
+                        ["id"] = "rig_" + sector, ["name"] = "Rig " + sector,
+                        ["providedBy"] = new JsonArray("baseline.settlement_founding"),
+                    },
+                    ["researched"] = new JsonArray(),
+                });
+            return sectors;
+        }
 
         private static JsonObject Branch(int key, string id, string number, string name) =>
             new() { ["key"] = key, ["id"] = id, ["number"] = number, ["name"] = name };

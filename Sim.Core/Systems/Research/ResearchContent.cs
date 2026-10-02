@@ -52,6 +52,37 @@ public sealed record ResearchTuning(
 /// docs/design/research-capability-ownership.md.</summary>
 public sealed record ResearchBaselineCapability(string Id, string Name, string ProvidedBy, bool Simulated);
 
+/// <summary>How a researched activity identity relates to its sector's baseline identity (ADR-033 D1).</summary>
+public enum SectorActivityMode
+{
+    /// <summary>Once knowledge-eligible, the researched identity REPLACES the baseline identity
+    /// (Farming replaces Gathering on the same sector, same share, same output).</summary>
+    Replaces = 1,
+    /// <summary>Once knowledge-eligible, the researched identity is listed BESIDE the baseline identity
+    /// (Logging and Mining join Gathering wood &amp; stone: the sector still gathers fiber and hides).</summary>
+    Joins = 2,
+}
+
+/// <summary>A sector's BASELINE activity identity (ADR-033 D1): what the sector expresses with zero
+/// completed nodes. <see cref="Baseline"/> holds indices into <see cref="ResearchContent.Baseline"/> — the
+/// baseline capabilities that provide it, in content order.</summary>
+public sealed record SectorBaselineIdentity(string Id, string Name, IReadOnlyList<int> Baseline);
+
+/// <summary>A RESEARCHED activity identity of a sector (ADR-033 D1): the activity entity
+/// (<see cref="Entity"/>, an index into <see cref="ResearchContent.Entities"/>) whose knowledge
+/// eligibility makes it appear, the label it is shown under on this sector, and whether it replaces
+/// or joins the baseline identity.</summary>
+public sealed record SectorResearchedIdentity(int Entity, string Label, SectorActivityMode Mode);
+
+/// <summary>
+/// ADR-033 D1 — ONE LABOUR SECTOR AND THE ACTIVITY IT EXPRESSES. The five sectors are code
+/// (<see cref="Sim.Core.State.Sectors"/>, kernel-contract surface) and are never gated: this record
+/// changes what a sector is CALLED as knowledge grows, never what it produces. <see cref="Sector"/> is the
+/// sector id (Sectors.Farming..Construction), <see cref="SectorId"/> its content name.
+/// </summary>
+public sealed record SectorActivityContent(
+    int Sector, string SectorId, SectorBaselineIdentity Baseline, IReadOnlyList<SectorResearchedIdentity> Researched);
+
 /// <summary>One of the five Tree-1 subtrees (D-044 R3). <see cref="Index"/> is its
 /// position 0..4; <see cref="Key"/> its stable data key.</summary>
 public sealed record ResearchBranch(int Index, int Key, string Id, string Number, string Name);
@@ -173,6 +204,9 @@ public sealed class ResearchContent
     public required ResearchTuning Tuning { get; init; }
     /// <summary>Capabilities a founded civilization has with zero completed nodes (outside the graph).</summary>
     public required IReadOnlyList<ResearchBaselineCapability> Baseline { get; init; }
+    /// <summary>ADR-033 D1: the activity each labour sector expresses, indexed by sector id
+    /// (Sectors.Farming..Construction) — exactly <see cref="Sim.Core.State.Sectors.Count"/> entries.</summary>
+    public required IReadOnlyList<SectorActivityContent> SectorActivities { get; init; }
     public required IReadOnlyList<ResearchBranch> Branches { get; init; }
     public required IReadOnlyList<UniversityType> UniversityTypes { get; init; }
     /// <summary>The university / research institutional stage (D-044 R4) — a
@@ -238,7 +272,7 @@ public sealed class ResearchContent
 /// prerequisite cycles · Eureka references · costs · unlock references and the
 /// reverse-index agreement · orphans · unreachable nodes · cross-tree and
 /// cross-subtree dependencies · subtree assignment · stage deadlock · immediate
-/// effects (none is ratified) · tuning ranges.
+/// effects (none is ratified) · tuning ranges · the sector → activity mapping (ADR-033 D1).
 /// </summary>
 public static class ResearchContentLoader
 {
@@ -255,6 +289,12 @@ public static class ResearchContentLoader
     private static readonly string[] EntityKindNames = ["building", "infrastructure", "institution", "unit", "activity", "project"];
     private static readonly string[] EntityPrefixes = ["building.", "infra.", "inst.", "unit.", "activity.", "project."];
     private static readonly string[] UnlockListNames = ["buildings", "infrastructure", "institutions", "units", "activities", "projects"];
+
+    /// <summary>ADR-033 D1: the content names of the five labour sectors, indexed by sector id
+    /// (Sectors.Farming = 0 … Sectors.Construction = 4). sectorActivities lists them in this order.</summary>
+    public static readonly string[] SectorIds = ["farming", "herding_fishing", "extraction", "crafting", "construction"];
+
+    private static readonly string[] SectorActivityModes = ["replaces", "joins"];
 
     private static readonly JsonSerializerOptions JsonOptions = new() { RespectNullableAnnotations = true };
 
@@ -658,10 +698,12 @@ public static class ResearchContentLoader
                 IsSpeculative = speculative[i],
             };
         }
+        ResearchBaselineCapability[] baseline = ValidateBaseline(f.Baseline, ids);
         return new ResearchContent
         {
             Tuning = tuning,
-            Baseline = ValidateBaseline(f.Baseline, ids),
+            Baseline = baseline,
+            SectorActivities = ValidateSectorActivities(f.SectorActivities, baseline, entities),
             Branches = branches,
             UniversityTypes = universities,
             Stage = stage,
@@ -882,6 +924,84 @@ public static class ResearchContentLoader
             if (Array.IndexOf(nodeIds, b.Id) >= 0)
                 throw Fail($"{path}: '{b.Id}' is also a research node — a baseline capability lives outside the graph.");
             result[i] = new ResearchBaselineCapability(b.Id, b.Name, b.ProvidedBy, b.Simulated);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// ADR-033 D1 — the sector → activity-identity mapping. Exactly one entry per labour sector, in
+    /// sector-id order (<see cref="SectorIds"/>); each names a baseline identity provided by declared
+    /// baseline capabilities, and zero or more researched identities, each an ACTIVITY entity (mapped at
+    /// most once across all sectors) that replaces or joins the baseline identity once it is
+    /// knowledge-eligible. A researched identity is shown under its <c>label</c>, or the entity's own name.
+    /// Content only: no node id ever appears in code, and nothing here changes production.
+    /// </summary>
+    private static SectorActivityContent[] ValidateSectorActivities(
+        SectorActivityJson[] sectors, ResearchBaselineCapability[] baseline, ResearchEntity[] entities)
+    {
+        if (SectorIds.Length != Sectors.Count)
+            throw new InvalidOperationException("ResearchContentLoader.SectorIds must name every sector of Sim.Core.State.Sectors.");
+        if (sectors.Length != SectorIds.Length)
+            throw Fail($"sectorActivities has {sectors.Length} entries; it maps each of the {SectorIds.Length} labour sectors " +
+                       $"exactly once, in order [{string.Join(", ", SectorIds)}] (ADR-033 D1).");
+        var result = new SectorActivityContent[sectors.Length];
+        var identityIds = new List<string>();
+        var mapped = new List<int>();
+        for (int s = 0; s < sectors.Length; s++)
+        {
+            SectorActivityJson j = sectors[s];
+            string path = $"sectorActivities[{s}]";
+            if (!string.Equals(j.Sector, SectorIds[s], StringComparison.Ordinal))
+                throw Fail($"{path}: sector '{j.Sector}' must be '{SectorIds[s]}' — the entries follow the sector ids " +
+                           $"[{string.Join(", ", SectorIds)}], one each.");
+
+            SectorBaselineJson b = j.Baseline;
+            if (!IsNodeId(b.Id))
+                throw Fail($"{path} ({j.Sector}).baseline.id '{b.Id}' must match [a-z][a-z0-9_]*.");
+            if (identityIds.Contains(b.Id))
+                throw Fail($"{path} ({j.Sector}).baseline.id '{b.Id}' is used by another sector — an identity id is unique.");
+            identityIds.Add(b.Id);
+            if (string.IsNullOrWhiteSpace(b.Name)) throw Fail($"{path} ({j.Sector}).baseline.name is empty.");
+            if (b.ProvidedBy.Length == 0)
+                throw Fail($"{path} ({j.Sector}).baseline.providedBy is empty — a baseline identity names the baseline " +
+                           "capabilities that provide it.");
+            var provided = new int[b.ProvidedBy.Length];
+            for (int k = 0; k < b.ProvidedBy.Length; k++)
+            {
+                int index = -1;
+                for (int x = 0; x < baseline.Length; x++)
+                    if (string.Equals(baseline[x].Id, b.ProvidedBy[k], StringComparison.Ordinal)) { index = x; break; }
+                if (index < 0)
+                    throw Fail($"{path} ({j.Sector}).baseline.providedBy: '{b.ProvidedBy[k]}' is not a declared baseline capability.");
+                if (Array.IndexOf(provided, index, 0, k) >= 0)
+                    throw Fail($"{path} ({j.Sector}).baseline.providedBy lists '{b.ProvidedBy[k]}' twice.");
+                provided[k] = index;
+            }
+
+            var researched = new SectorResearchedIdentity[j.Researched.Length];
+            for (int r = 0; r < j.Researched.Length; r++)
+            {
+                SectorResearchedJson rj = j.Researched[r];
+                string rp = $"{path} ({j.Sector}).researched[{r}]";
+                int e = -1;
+                for (int x = 0; x < entities.Length; x++)
+                    if (string.Equals(entities[x].Id, rj.Entity, StringComparison.Ordinal)) { e = x; break; }
+                if (e < 0) throw Fail($"{rp}: '{rj.Entity}' is not a registry entity.");
+                if (entities[e].Kind != ResearchEntityKind.Activity)
+                    throw Fail($"{rp}: '{rj.Entity}' is a {entities[e].Kind}, not an activity — a sector expresses activities.");
+                if (mapped.Contains(e))
+                    throw Fail($"{rp}: '{rj.Entity}' is mapped twice — an activity entity belongs to one sector.");
+                mapped.Add(e);
+                int mode = Array.IndexOf(SectorActivityModes, rj.Mode);
+                if (mode < 0)
+                    throw Fail($"{rp}: mode '{rj.Mode}' is not one of {string.Join(", ", SectorActivityModes)}.");
+                string? label = rj.Label ?? entities[e].Name;
+                if (string.IsNullOrWhiteSpace(label))
+                    throw Fail($"{rp}: '{rj.Entity}' has no display name and the entry gives no label — the activity " +
+                               "needs a name to be shown.");
+                researched[r] = new SectorResearchedIdentity(e, label, (SectorActivityMode)(mode + 1));
+            }
+            result[s] = new SectorActivityContent(s, j.Sector, new SectorBaselineIdentity(b.Id, b.Name, provided), researched);
         }
         return result;
     }
@@ -1212,6 +1332,7 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("source"), JsonRequired] SourceJson Source,
         [property: JsonPropertyName("tuning"), JsonRequired] TuningJson Tuning,
         [property: JsonPropertyName("baseline"), JsonRequired] BaselineJson[] Baseline,
+        [property: JsonPropertyName("sectorActivities"), JsonRequired] SectorActivityJson[] SectorActivities,
         [property: JsonPropertyName("trees"), JsonRequired] TreeJson[] Trees,
         [property: JsonPropertyName("branches"), JsonRequired] BranchJson[] Branches,
         [property: JsonPropertyName("researchStage"), JsonRequired] StageJson ResearchStage,
@@ -1261,6 +1382,22 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("name"), JsonRequired] string Name,
         [property: JsonPropertyName("providedBy"), JsonRequired] string ProvidedBy,
         [property: JsonPropertyName("simulated"), JsonRequired] bool Simulated);
+
+    private sealed record SectorActivityJson(
+        [property: JsonPropertyName("sector"), JsonRequired] string Sector,
+        [property: JsonPropertyName("baseline"), JsonRequired] SectorBaselineJson Baseline,
+        [property: JsonPropertyName("researched"), JsonRequired] SectorResearchedJson[] Researched);
+
+    private sealed record SectorBaselineJson(
+        [property: JsonPropertyName("id"), JsonRequired] string Id,
+        [property: JsonPropertyName("name"), JsonRequired] string Name,
+        [property: JsonPropertyName("providedBy"), JsonRequired] string[] ProvidedBy);
+
+    private sealed record SectorResearchedJson(
+        [property: JsonPropertyName("entity"), JsonRequired] string Entity,
+        [property: JsonPropertyName("mode"), JsonRequired] string Mode,
+        // Optional: the label the identity is shown under on this sector; absent = the entity's name.
+        [property: JsonPropertyName("label")] string? Label = null);
 
     private sealed record TreeJson(
         [property: JsonPropertyName("id"), JsonRequired] string Id,
