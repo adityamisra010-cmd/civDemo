@@ -48,6 +48,8 @@ public static class ProgressionPreview
             (s, c) => { s.Tab = TreeTab.Technology; s.FitAll(); }),
         new("03-technology-locked-subtree", "A subtree node locked by the research stage, with its Eureka list and university relevance.",
             (s, c) => s.Focus(FirstWithEurekaInSubtree(s, c), jump: true)),
+        new("07-technology-trunk-collapsed", "Main Trunk lane collapsed via its lane chip: the subtrees move up; JUMP TO TARGET re-expands it.",
+            (s, c) => { s.Tab = TreeTab.Technology; s.ToggleLane(LaneIndex(s, "main")); s.FitAll(); }),
         new("04-civics-tree", "The Civics tree: a separate graph; Technology prerequisites appear as anchor tokens.",
             (s, c) => { s.Tab = TreeTab.Civics; s.FitAll(); s.Selected = c.TechnologyCount; }),
         new("05-lens-institutions", "INSTITUTIONS lens: adopted civics and knowledge-eligible institutions (real data).",
@@ -55,6 +57,12 @@ public static class ProgressionPreview
         new("06-lens-industry", "INDUSTRY lens: honestly not yet simulated.",
             (s, c) => s.SetLens(Lens.Industry)),
     ];
+
+    private static int LaneIndex(ProgressionScreen s, string id)
+    {
+        foreach (LaneBox l in s.Layout.Lanes) if (l.Id == id) return l.Index;
+        return 0;
+    }
 
     private static int FirstWithEurekaInSubtree(ProgressionScreen s, ResearchContent c)
     {

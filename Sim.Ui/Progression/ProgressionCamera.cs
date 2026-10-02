@@ -58,12 +58,18 @@ public sealed class ProgressionCamera
         TargetPanY = wy - canvasH / 2.0 / TargetZoom;
     }
 
-    /// <summary>Keep the view over the drawing (a margin of half the canvas may show beyond it).</summary>
+    /// <summary>Screen pixels of slack the view may show beyond the drawing's edges.</summary>
+    public const double EdgeSlackPx = 16;
+
+    /// <summary>Keep the view over the drawing: at most <see cref="EdgeSlackPx"/> of empty field
+    /// may show past any edge, so the tree always fills the canvas from the left; a drawing
+    /// smaller than the canvas on an axis is centred on that axis.</summary>
     public void Clamp(double worldW, double worldH, double canvasW, double canvasH)
     {
         static double C(double v, double lo, double hi) => hi < lo ? (lo + hi) / 2.0 : Math.Clamp(v, lo, hi);
-        TargetPanX = C(TargetPanX, -canvasW * 0.5 / TargetZoom, worldW - canvasW * 0.5 / TargetZoom);
-        TargetPanY = C(TargetPanY, -canvasH * 0.5 / TargetZoom, worldH - canvasH * 0.5 / TargetZoom);
+        double s = EdgeSlackPx / TargetZoom;
+        TargetPanX = C(TargetPanX, -s, worldW - canvasW / TargetZoom + s);
+        TargetPanY = C(TargetPanY, -s, worldH - canvasH / TargetZoom + s);
     }
 
     /// <summary>Ease toward the target over <paramref name="dt"/> seconds. Returns true while moving.</summary>

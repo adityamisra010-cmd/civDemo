@@ -346,6 +346,99 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         Assert.Contains(d.Commands, cmd => cmd is TextCmd tc && tc.Text == "RESEARCHING");
     }
 
+    // ------------------------------------------------------------------ layout polish (rebase on 3e5647f)
+
+    [Fact]
+    public void ColumnHeaders_AreDepthTiers_WithAnHonestAgeRange_NotADominantAge()
+    {
+        foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+        {
+            ProgressionScreen s = Screen();
+            s.Tab = tab;
+            TreeLayout L = s.Layout;
+            (int Lo, int Hi)[] r = ResearchTreeLayout.ColumnAgeRanges(L);
+            Assert.Equal(L.Columns, r.Length);
+            // Every own node's Age lies inside its column's range: the header never misstates a card.
+            for (int v = 0; v < L.Graph.OwnCount; v++)
+            {
+                int k = ResearchTreeLayout.AgeRank(L.Graph.Node(v).Age);
+                if (k == int.MaxValue) continue;
+                (int lo, int hi) = r[L.Placed[v].Column];
+                Assert.InRange(k, lo, hi);
+            }
+        }
+        Assert.Equal("Age II", ResearchTreeLayout.AgeRangeLabel((2, 2)));
+        Assert.Equal("Ages I-IV", DrawList.Latin1(ResearchTreeLayout.AgeRangeLabel((1, 4))));
+        Assert.Equal("", ResearchTreeLayout.AgeRangeLabel((0, 0)));
+        Assert.Equal("III", ResearchTreeLayout.AgeNumeral("A3"));
+    }
+
+    [Fact]
+    public void Graph_FillsTheCanvasFromTheLeft_NoGutter()
+    {
+        ProgressionScreen s = Screen();
+        s.Focus(s.Snapshot!.TargetIndex!.Value, jump: true);
+        RectD c = s.Canvas;
+        // The leftmost column's cards start within the camera's edge slack + layout margin.
+        double minX = double.MaxValue;
+        foreach (PlacedVertex p in s.Layout.Placed) minX = Math.Min(minX, p.X);
+        double sx = s.Camera.ToScreenX(minX, c.X);
+        Assert.InRange(sx - c.X, 0, ProgressionCamera.EdgeSlackPx + 60);
+    }
+
+    [Fact]
+    public void LaneChip_CollapsesAndExpands_HiddenCardsAreNotHitOrPainted()
+    {
+        ProgressionScreen s = Screen();
+        s.Tab = TreeTab.Technology;
+        int main = -1;
+        foreach (LaneBox l in s.Layout.Lanes) if (l.Id == "main") main = l.Index;
+        double openH = s.Layout.Lanes[main].Height;
+        s.FitAll();
+        s.Paint(W, H, ApproxTextMeasure.Instance);
+        HitRegion chip = Find(s, HitKind.LaneToggle, main);
+        s.Click(chip.Rect.CenterX, chip.Rect.CenterY);
+        Assert.True(s.IsLaneCollapsed(main));
+        Assert.True(s.Layout.Lanes[main].Height < openH);
+        int hidden = 0;
+        foreach (PlacedVertex p in s.Layout.Placed)
+            if (p.Lane == main) { Assert.True(p.Hidden); Assert.False(p.Contains(p.X + 1, p.Y)); hidden++; }
+        Assert.Equal(s.Layout.Lanes[main].NodeCount, hidden);
+        // Other lanes keep every card.
+        foreach (PlacedVertex p in s.Layout.Placed) if (p.Lane != main) Assert.False(p.Hidden);
+        // Jump-to-target re-expands the target's lane and selects it.
+        s.Paint(W, H, ApproxTextMeasure.Instance);
+        HitRegion jump = Find(s, HitKind.Frontier, 0);
+        s.Click(jump.Rect.CenterX, jump.Rect.CenterY);
+        Assert.False(s.IsLaneCollapsed(main));
+        Assert.Equal(s.Snapshot!.TargetIndex, s.Selected);
+    }
+
+    [Fact]
+    public void Minimap_NeverCoversTheSelection_AndIsCollapsible()
+    {
+        ProgressionScreen s = Screen();
+        RectD c = s.Canvas;
+        RectD dock = s.MinimapRect();   // nothing selected: the default bottom-right dock
+        int ci = s.Snapshot!.TargetIndex!.Value;
+        // Put the selected card right under the default dock, then near every other corner.
+        foreach ((double fx0, double fy0) in new[] { (dock.CenterX, dock.CenterY), (c.X + 120, c.Bottom - 60), (c.CenterX, c.CenterY) })
+        {
+            s.Selected = ci;
+            PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(ci)];
+            double z = s.Camera.Zoom;
+            s.Camera.Set(z, p.CenterX - (fx0 - c.X) / z, p.CenterY - (fy0 - c.Y) / z);
+            s.Paint(W, H, ApproxTextMeasure.Instance);
+            var card = new RectD(s.Camera.ToScreenX(p.X, c.X), s.Camera.ToScreenY(p.Y, c.Y), p.W * s.Camera.Zoom, p.H * s.Camera.Zoom);
+            Assert.False(s.MinimapRect().Inset(-4).Intersects(card), $"minimap covers the selection at ({fx0},{fy0})");
+        }
+        HitRegion toggle = Find(s, HitKind.MinimapToggle, 0);
+        s.Click(toggle.Rect.CenterX, toggle.Rect.CenterY);
+        Assert.False(s.MinimapVisible);
+        s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.DoesNotContain(s.Hits, h => h.Kind == HitKind.Minimap);
+    }
+
     private static HitRegion Find(ProgressionScreen s, HitKind kind, int arg)
     {
         foreach (HitRegion h in s.Hits) if (h.Kind == kind && h.Arg == arg) return h;

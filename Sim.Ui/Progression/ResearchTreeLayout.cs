@@ -6,22 +6,22 @@ namespace Sim.Ui.Progression;
 /// Presentation tuning, not content.</summary>
 public sealed record TreeLayoutOptions(
     double ColumnWidth = 236.0, double RowHeight = 84.0, double CardWidth = 196.0, double CardHeight = 68.0,
-    double AnchorHeight = 30.0, double LaneHeader = 30.0, double LaneGap = 26.0, double Margin = 40.0,
-    double AgeHeader = 34.0, double LeftGutter = 150.0, int Sweeps = 4);
+    double AnchorHeight = 30.0, double LaneHeader = 30.0, double LaneGap = 26.0, double Margin = 24.0,
+    double AgeHeader = 0.0, double LeftGutter = 0.0, int Sweeps = 4);
 
 /// <summary>A placed vertex. <see cref="Lane"/> indexes <see cref="TreeLayout.Lanes"/>.</summary>
-public sealed record PlacedVertex(int Vertex, int Column, int Lane, int Slot, double X, double Y, double W, double H)
+public sealed record PlacedVertex(int Vertex, int Column, int Lane, int Slot, double X, double Y, double W, double H, bool Hidden = false)
 {
     public double CenterX => X + W / 2.0;
     public double CenterY => Y + H / 2.0;
     public double Right => X + W;
     public double Bottom => Y + H;
-    public bool Contains(double x, double y) => x >= X && x <= X + W && y >= Y && y <= Y + H;
+    public bool Contains(double x, double y) => !Hidden && x >= X && x <= X + W && y >= Y && y <= Y + H;
 }
 
 /// <summary>One horizontal lane: the Main trunk, a subtree, a Civics domain, or the
 /// external-anchor lane. <see cref="Branch"/> is the content subtree index (-1 = trunk/none).</summary>
-public sealed record LaneBox(int Index, string Id, string Name, int Branch, bool External, double Y, double Height, int Rows);
+public sealed record LaneBox(int Index, string Id, string Name, int Branch, bool External, double Y, double Height, int Rows, bool Collapsed = false, int NodeCount = 0);
 
 /// <summary>A run of consecutive columns whose dominant Age label is the same.</summary>
 public sealed record AgeSpan(string Age, string Label, int FirstColumn, int LastColumn, double X0, double X1);
@@ -50,7 +50,9 @@ public sealed record TreeLayout(
 /// </summary>
 public static class ResearchTreeLayout
 {
-    public static TreeLayout Compute(ResearchGraph g, TreeLayoutOptions? options = null)
+    /// <param name="collapsed">Optional per-lane collapse flags (UI state): a collapsed lane keeps only
+    /// its header strip and its cards are placed Hidden on that strip.</param>
+    public static TreeLayout Compute(ResearchGraph g, TreeLayoutOptions? options = null, IReadOnlyList<bool>? collapsed = null)
     {
         TreeLayoutOptions o = options ?? new TreeLayoutOptions();
         int n = g.Vertices.Count;
@@ -174,8 +176,11 @@ public static class ResearchTreeLayout
             int rows = 1;
             for (int c = 0; c < columns; c++) rows = Math.Max(rows, cells[l, c].Count);
             double rowH = lanes[l].External ? o.AnchorHeight + 14.0 : o.RowHeight;
-            double h = o.LaneHeader + rows * rowH;
-            laneBoxes[l] = new LaneBox(l, lanes[l].Id, lanes[l].Name, lanes[l].Branch, lanes[l].External, y, h, rows);
+            bool shut = collapsed is not null && l < collapsed.Count && collapsed[l];
+            int count = 0;
+            for (int c = 0; c < columns; c++) count += cells[l, c].Count;
+            double h = o.LaneHeader + (shut ? 8.0 : rows * rowH);
+            laneBoxes[l] = new LaneBox(l, lanes[l].Id, lanes[l].Name, lanes[l].Branch, lanes[l].External, y, h, rows, shut, count);
             y += h + o.LaneGap;
         }
         double height = y - o.LaneGap + o.Margin;
@@ -189,8 +194,8 @@ public static class ResearchTreeLayout
             double rowH = ext ? o.AnchorHeight + 14.0 : o.RowHeight;
             double h = ext ? o.AnchorHeight : o.CardHeight;
             double x = o.Margin + o.LeftGutter + column[v] * o.ColumnWidth + (o.ColumnWidth - o.CardWidth) / 2.0;
-            double vy = lane.Y + o.LaneHeader + slot[v] * rowH + (rowH - h) / 2.0;
-            placed[v] = new PlacedVertex(v, column[v], laneOf[v], slot[v], x, vy, o.CardWidth, h);
+            double vy = lane.Collapsed ? lane.Y + o.LaneHeader / 2.0 : lane.Y + o.LaneHeader + slot[v] * rowH + (rowH - h) / 2.0;
+            placed[v] = new PlacedVertex(v, column[v], laneOf[v], slot[v], x, vy, o.CardWidth, lane.Collapsed ? 0 : h, lane.Collapsed);
         }
 
         return new TreeLayout(g, placed, laneBoxes, AgeSpans(g, column, columns, o), columns, width, height, o);
@@ -234,6 +239,45 @@ public static class ResearchTreeLayout
         }
         return [.. spans];
     }
+
+    /// <summary>Numeric rank of an Age label ("A3" → 3); labels of another form rank after all
+    /// numbered Ages (int.MaxValue) so they never break the monotonic order.</summary>
+    public static int AgeRank(string age) =>
+        age.Length >= 2 && age[0] == 'A' && int.TryParse(age.AsSpan(1), System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out int k) ? k : int.MaxValue;
+
+    /// <summary>Short roman numeral of a numbered Age ("A3" → "III"); otherwise the label.</summary>
+    public static string AgeNumeral(string age)
+    {
+        int k = AgeRank(age);
+        return k >= 1 && k <= Roman.Length ? Roman[k - 1] : age;
+    }
+
+    /// <summary>
+    /// The Ages present in each column as an honest RANGE, not a dominant label: columns are
+    /// prerequisite depth, and one depth can hold nodes of several Ages, so a single "dominant"
+    /// Age per column produced non-monotonic headers (I, II, I …). Returns per column the
+    /// lowest and highest Age rank among its own (non-external) visible-or-hidden nodes,
+    /// or (0, 0) for a column with none.
+    /// </summary>
+    public static (int Lo, int Hi)[] ColumnAgeRanges(TreeLayout layout)
+    {
+        var r = new (int Lo, int Hi)[layout.Columns];
+        ResearchGraph g = layout.Graph;
+        for (int v = 0; v < g.OwnCount; v++)
+        {
+            int k = AgeRank(g.Node(v).Age);
+            if (k == int.MaxValue) continue;
+            int c = layout.Placed[v].Column;
+            r[c] = r[c].Lo == 0 ? (k, k) : (Math.Min(r[c].Lo, k), Math.Max(r[c].Hi, k));
+        }
+        return r;
+    }
+
+    public static string AgeRangeLabel((int Lo, int Hi) range) =>
+        range.Lo == 0 ? "" : range.Lo == range.Hi ? "Age " + Numeral(range.Lo) : "Ages " + Numeral(range.Lo) + "\u2013" + Numeral(range.Hi);
+
+    private static string Numeral(int k) => k >= 1 && k <= Roman.Length ? Roman[k - 1] : k.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private static readonly string[] Roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 

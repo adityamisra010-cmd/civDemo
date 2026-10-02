@@ -1,6 +1,6 @@
 # Knowledge & Technology progression screen
 
-Branch `ui-research-trees`, based on `research-progression-foundation` @ 4cb71cb. This is UI only: it touches `Sim.Ui/**`, `Sim.Ui.Tests/**` and `docs/architecture/` (this document, the previews and their render script). The simulation is not changed.
+Branch `ui-research-trees`, based on `research-progression-foundation` @ 3e5647f (rebased; that commit renamed six nodes and changed prerequisites, baseline entries and Eurekas — no test used a fixed name it changed). This is UI only: it touches `Sim.Ui/**`, `Sim.Ui.Tests/**` and `docs/architecture/` (this document, the previews and their render script). The simulation is not changed.
 
 ## What it is
 
@@ -15,14 +15,17 @@ The screen is a full-screen progression view. Open it with **K** or the **Knowle
 - **Tabs under KNOWLEDGE & TECHNOLOGY.** The Technology tree and the Civics tree are two separate graphs. Press **1** or **2** to switch between them. The tab bar also shows how many nodes are completed in each tree, a capsule for the current target with its progress (or "target ordered, applies at End Turn"), and a legend that separates node states and AND/OR edges.
 - **Canvas.** The canvas is a deterministic layered graph generated from `research.json` through `ResearchContent`:
   - **Columns** come from content `Depth`. A node is moved right if needed so that every in-tree prerequisite comes earlier. Empty columns are removed.
-  - **Age bands** sit above the columns. Each band shows the dominant Age of its columns. Ages are metadata only: nothing is gated on them (law 4).
+  - **Column header = depth tiers.** A sticky header labels each column "TIER n" with the honest *range* of Ages its nodes carry (for example "Ages II-VII"). Columns are prerequisite depth, and one depth holds nodes of several Ages, so the old "dominant Age per column" header read out of order (Age II before Age I); a range never misstates a card. The Age itself is a **per-card badge** (roman numeral). Ages are metadata only: nothing is gated on them (law 4).
+  - **No gutter.** The graph starts at the canvas's left edge; the camera clamp allows at most 16 px of empty field past any edge, so opening on a column-0 frontier no longer leaves half the canvas empty.
+  - **Lane chips** sit in each lane's header strip (name, node count, disclosure triangle). The lane whose header has scrolled above the view gets its chip pinned in the control row, so a chip never covers a card. **Clicking a chip collapses or expands the lane** (the layout is recomputed; hidden cards are not painted, hit-tested or drawn in the minimap, and their edges are hidden).
+  - **Control row** (opaque, under the tier header): JUMP TO TARGET / JUMP TO FRONTIER (selects the target, or the leftmost available node, and re-expands its lane if collapsed), FIT TREE, and SHOW/HIDE MAP.
   - **Lanes** are Main Trunk plus the content's five subtrees (Military, Medicine, Engineering, Natural Science, Agriculture) in content order. The Civics tree has one lane per domain.
   - **Cross-tree prerequisites** appear as anchor tokens in their own lane. For example, Written law needs one of three Technology writing systems.
 - **Edges.** Prerequisite edges are Béziers. A solid edge means *all of*: the prerequisite is in `Predicate.MustHoldAtoms`. A dashed edge means *one of*. Edges from completed nodes are gold. Edges into and out of the hovered or selected node are highlighted.
-- **Navigation.** Drag to pan, use the wheel to zoom at the cursor, and use WASD or the arrow keys to scroll. Pan and zoom ease smoothly. Click the minimap to jump.
+- **Navigation.** Drag to pan, use the wheel to zoom at the cursor, and use WASD or the arrow keys to scroll. Pan and zoom ease smoothly. Click the minimap to jump. The minimap docks bottom-right on a dark backdrop; if the selected or hovered card would sit under it, it moves to bottom-left, and it can be hidden.
 - **Culling.** Cards and edges outside the view are skipped. Cards are drawn with less detail when zoomed out: colour only below 0.28× zoom, and name only below 0.45× zoom.
 - **Node cards** show:
-  - the name, the Age, and a stripe in the branch colour;
+  - the name, an Age badge, and a stripe in the branch colour;
   - the state, which is one of Completed (gold check), Researching (cyan ring with a progress arc), Available, Partly researched, or Locked (padlock);
   - the EffectiveCost, plus the discount from university modifiers when there is one;
   - one Eureka pip per Eureka, filled when it has fired;
@@ -70,7 +73,8 @@ Run `docs/architecture/research-tree-ui/render-previews.sh [dir]`, which runs `s
 | Preview | Shows |
 |---|---|
 | `research-tree-ui/01-technology-frontier.png` | The Technology tree at the frontier. Root and tuber cultivation is being researched at 5% (21 / 440 RP). Five nodes are completed (gold), the available ones are bright, and the rest are locked. |
-| `research-tree-ui/02-technology-overview.png` | All 424 Technology nodes fitted to the canvas: the trunk and five subtree lanes, the Age header, and the minimap. |
+| `research-tree-ui/02-technology-overview.png` | All 424 Technology nodes fitted to the canvas (top-aligned): the trunk and five subtree lanes with their chips, and the minimap. |
+| `research-tree-ui/07-technology-trunk-collapsed.png` | The same overview with the Main Trunk lane collapsed via its chip ("176 hidden"): the five subtrees move up. |
 | `research-tree-ui/03-technology-locked-subtree.png` | Magnetic compass (Military): locked by a missing prerequisite **and** the research stage. Shows its Eureka at the 40% ceiling and its university relevance. |
 | `research-tree-ui/04-civics-tree.png` | The separate Civics graph: Technology prerequisites appear as anchor tokens, and Written law's three *one of* edges are dashed. |
 | `research-tree-ui/05-lens-institutions.png` | The INSTITUTIONS lens: adopted civics (0 of 6) and knowledge-eligible institutions. |
@@ -90,12 +94,16 @@ The tests use one real world, stepped as described above.
 - All seven lenses are present. INDUSTRY is not simulated and has no sections. INSTITUTIONS and TECHNIQUES list exactly the completed civics and techniques.
 - Culling draws less than a quarter of the nodes at the frontier zoom, and the fitted overview draws all of them. The SVG output is deterministic.
 - Zoom-at-cursor keeps the world point under the cursor once the easing settles.
+- Every node's Age lies inside its column header's Age range (both trees).
+- At the frontier, the leftmost cards start within the edge slack of the canvas's left edge.
+- Clicking the Main Trunk chip hides exactly that lane's cards (not hit-testable), leaves other lanes intact, and JUMP TO TARGET re-expands it and selects the target.
+- With the selected card placed exactly under the default minimap dock, the minimap does not intersect it (mutant check: removing the dodge fails this test); the map toggle removes the minimap hit region.
 
 ## Gaps and notes
 
 - `ResearchContent` has no per-node icon or art, so cards use vector primitives only.
-- Lanes are fixed (trunk plus content subtrees). A very tall trunk lane (about 20 rows in the early columns) is real data, and the layout does not try to compact it further.
-- The Age header follows the *dominant* Age per column. Because Ages are metadata and depth is not monotonic in Age, adjacent spans can read out of order (for example Age VI before Age IV). That is how the content is, not a layout bug.
+- Lanes are fixed (trunk plus content subtrees). The tall trunk lane is real data; it is handled by collapse/expand and the jump control rather than by compacting the layout.
+- Lane collapse state is UI-only and per tree; it is not persisted between sessions.
 - The game path, which draws with ImGui's background draw list, could not be run in this container because there is no GL context. Everything except the replay into ImGui is covered headlessly by the same `DrawList` used for the previews.
 - Text in the previews is measured with `ApproxTextMeasure`. In the game it is measured with the real fonts.
 - Content changes on the base branch (strings, prerequisites, counts) flow through automatically. No IDs are hard-coded except `law_code` and `cordage` in two tests, which the existing tests already rely on.
