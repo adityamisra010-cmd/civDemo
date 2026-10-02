@@ -199,7 +199,8 @@ public static class AgePreview
         WorldZoom level = WorldLens.LevelFor(zoom, Width, Height, p.WorldSize);
         int sel = EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? cap.Value : -1;
         WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level,
-            (x, y) => ((x - cx) * zoom + Width / 2, (y - cy) * zoom + Height / 2), zoom, new RectD(0, 0, Width, Height), sel);
+            (x, y) => ((x - cx) * zoom + Width / 2, (y - cy) * zoom + Height / 2), zoom, new RectD(0, 0, Width, Height), sel,
+            ink: MapInk.For(ThemeOf(s)));   // the era's map ink, exactly as the game derives it
         LensLegend(d, p, level);
     }
 

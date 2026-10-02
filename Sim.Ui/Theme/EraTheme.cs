@@ -132,49 +132,6 @@ public sealed record IconTokens(IconStyle Style, double StrokePx, double WobbleP
 /// <summary>CHARTS: sophistication 0 (tallies) … 4 (graduated axes and grids), and its parts.</summary>
 public sealed record ChartTokens(int Sophistication, bool GridLines, bool Ticks, bool Labels, double LineWidth);
 
-/// <summary>The founded polities' map inks: the player's, the unknown controller's, and six others.</summary>
-public sealed record PolityInks(Rgba Player, Rgba Unknown, Rgba P0, Rgba P1, Rgba P2, Rgba P3, Rgba P4, Rgba P5)
-{
-    /// <summary>The ink for <paramref name="polity"/> as seen by <paramref name="player"/> — the
-    /// rule WorldLens.PolityInk applies today.</summary>
-    public Rgba Of(int polity, int player)
-    {
-        if (polity == player) return Player;
-        if (polity < 0) return Unknown;
-        return (polity % 6) switch { 0 => P0, 1 => P1, 2 => P2, 3 => P3, 4 => P4, _ => P5 };
-    }
-}
-
-/// <summary>The five labour sectors' map inks, in sector order.</summary>
-public sealed record SectorInks(Rgba Farming, Rgba Herding, Rgba Extraction, Rgba Crafting, Rgba Construction)
-{
-    public Rgba Of(int sector) => sector switch { 0 => Farming, 1 => Herding, 2 => Extraction, 3 => Crafting, _ => Construction };
-}
-
-/// <summary>The five specialised university types' inks (type keys 1..5).</summary>
-public sealed record UniversityInks(Rgba Military, Rgba Medical, Rgba Engineering, Rgba NaturalScience, Rgba Agricultural, Rgba Other)
-{
-    public Rgba Of(int typeKey) => typeKey switch
-    {
-        1 => Military, 2 => Medical, 3 => Engineering, 4 => NaturalScience, 5 => Agricultural, _ => Other,
-    };
-}
-
-/// <summary>
-/// MAP INK — the tokens the world lens (stream U3, <c>Sim.Ui/World/*</c>) adopts in place of its
-/// inline literals. In the parchment era (A6) every token equals today's literal; identity inks
-/// (polities, sectors, universities, the selection ring, the capital star) are the SAME in every
-/// era, so a civilization keeps its colour; only the neutral inks (label and outline ink, the dark
-/// glyph ink, the legend paper) follow the era. The map substrate itself (the parchment bake) is
-/// frozen and never themed (style bible §1).
-/// </summary>
-public sealed record MapInkTokens(
-    Rgba Ink, Rgba InkDark, Rgba Pale, Rgba CapitalStar, Rgba Selection,
-    Rgba RoadCasing, Rgba Road, Rgba Footprint, Rgba Palisade, Rgba Hut, Rgba House,
-    Rgba Granary, Rgba Workshop, Rgba StructureOther, Rgba MedicalMark,
-    Rgba BannerText, Rgba BannerTextCapital, Rgba LegendPaper, Rgba LegendInk, Rgba LegendWarn,
-    PolityInks Polities, SectorInks Sectors, UniversityInks Universities);
-
 // ============================================================================ the theme
 
 /// <summary>
@@ -182,7 +139,9 @@ public sealed record MapInkTokens(
 /// <see cref="EraThemes.For"/> from the era alone, never stored in the simulation, recomputed after
 /// load, and shared by the live ImGui renderer and the headless SVG previews. The same layout regions,
 /// navigation, interaction rules and semantic colours exist in every era (continuity); material,
-/// edge, ornament, typography, density and control granularity evolve with the Age.
+/// edge, ornament, typography, density and control granularity evolve with the Age. The map's ink is
+/// NOT a token group here: the world layer's one complete ink record is <c>Sim.Ui.World.MapInk</c>,
+/// derived from this theme by <c>MapInk.For(theme)</c> (ADR-033 D8 convergence).
 /// </summary>
 public sealed record EraTheme(
     UiEra Era,
@@ -197,8 +156,7 @@ public sealed record EraTheme(
     DensityTokens Density,
     ControlTokens Controls,
     IconTokens Icons,
-    ChartTokens Charts,
-    MapInkTokens Map)
+    ChartTokens Charts)
 {
     /// <summary>The era's ordinal (the Age key it presents), 1..9.</summary>
     public int Ordinal => (int)Era;

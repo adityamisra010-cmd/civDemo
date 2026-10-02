@@ -82,8 +82,7 @@ public static class EraThemes
             new DensityTokens(Level: 1, Padding: 20, Gap: 12, CardDetail: 1),
             new ControlTokens(ControlGranularity.Coarse, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.4, GrabPx: 16),
             new IconTokens(IconStyle.Daubed, StrokePx: 2.4, WobblePx: 1.3, Filled: true),
-            new ChartTokens(Sophistication: 0, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.4),
-            Map(ink, m, UiEra.Prehistoric));
+            new ChartTokens(Sophistication: 0, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.4));
     }
 
     /// <summary>A2 — incised clay and woven reed: smoothed rounded tablets, a woven band, clay-token
@@ -111,8 +110,7 @@ public static class EraThemes
             new DensityTokens(Level: 2, Padding: 18, Gap: 11, CardDetail: 2),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.0, GrabPx: 14),
             new IconTokens(IconStyle.Incised, StrokePx: 2.0, WobblePx: 0.6, Filled: false),
-            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.0),
-            Map(ink, m, UiEra.Neolithic));
+            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.0));
     }
 
     /// <summary>A3 — cast bronze on sandstone: chamfered plaques with studs, a chevron band,
@@ -140,8 +138,7 @@ public static class EraThemes
             new DensityTokens(Level: 2, Padding: 17, Gap: 10, CardDetail: 3),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Segments, ProgressSegments: 5, StrokePx: 1.8, GrabPx: 13),
             new IconTokens(IconStyle.Cast, StrokePx: 1.8, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.8),
-            Map(ink, m, UiEra.Bronze));
+            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.8));
     }
 
     /// <summary>A4 — forged iron on lime plaster: heavy square frames, rivets, a riveted bar, bolder
@@ -169,8 +166,7 @@ public static class EraThemes
             new DensityTokens(Level: 3, Padding: 16, Gap: 9, CardDetail: 3),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Segments, ProgressSegments: 8, StrokePx: 2.0, GrabPx: 12),
             new IconTokens(IconStyle.Forged, StrokePx: 2.0, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.6),
-            Map(ink, m, UiEra.Iron));
+            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.6));
     }
 
     /// <summary>A5 — marble and gilt: a highly structured hierarchy, fine double rules, the meander,
@@ -198,8 +194,7 @@ public static class EraThemes
             new DensityTokens(Level: 3, Padding: 15, Gap: 9, CardDetail: 4),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Segments, ProgressSegments: 10, StrokePx: 1.4, GrabPx: 12),
             new IconTokens(IconStyle.Carved, StrokePx: 1.5, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.5),
-            Map(ink, m, UiEra.Classical));
+            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.5));
     }
 
     /// <summary>A6 — vellum and gold leaf: the style bible's parchment palette exactly (the parchment
@@ -238,8 +233,7 @@ public static class EraThemes
             new DensityTokens(Level: 4, Padding: 14, Gap: 8, CardDetail: 4),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Bar, ProgressSegments: 0, StrokePx: 1.3, GrabPx: 11),
             new IconTokens(IconStyle.Illuminated, StrokePx: 1.4, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 3, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.3),
-            Map(ink, m, UiEra.Medieval));
+            new ChartTokens(Sophistication: 3, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.3));
     }
 
     /// <summary>A7 — print on laid paper: printer's black rules (thick-thin), fleurons, a cartographic
@@ -267,8 +261,7 @@ public static class EraThemes
             new DensityTokens(Level: 4, Padding: 13, Gap: 7, CardDetail: 5),
             new ControlTokens(ControlGranularity.Fine, ProgressStyle.Bar, ProgressSegments: 0, StrokePx: 1.1, GrabPx: 10),
             new IconTokens(IconStyle.Engraved, StrokePx: 1.2, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 3, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.2),
-            Map(ink, m, UiEra.EarlyModern));
+            new ChartTokens(Sophistication: 3, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.2));
     }
 
     /// <summary>A8 — engineering drawings: a pale drafting ground with a fine grid, Prussian-blue
@@ -297,8 +290,7 @@ public static class EraThemes
             new DensityTokens(Level: 5, Padding: 12, Gap: 6, CardDetail: 5),
             new ControlTokens(ControlGranularity.Fine, ProgressStyle.GraduatedBar, ProgressSegments: 10, StrokePx: 1.0, GrabPx: 9),
             new IconTokens(IconStyle.Technical, StrokePx: 1.1, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0),
-            Map(ink, m, UiEra.Industrial));
+            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0));
     }
 
     /// <summary>A9 — a modern civilization's interface: clean coated stock, hairline geometry, Plex
@@ -328,8 +320,7 @@ public static class EraThemes
             new DensityTokens(Level: 5, Padding: 11, Gap: 6, CardDetail: 5),
             new ControlTokens(ControlGranularity.Precise, ProgressStyle.GraduatedBar, ProgressSegments: 20, StrokePx: 1.0, GrabPx: 8),
             new IconTokens(IconStyle.Precise, StrokePx: 1.0, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0),
-            Map(ink, m, UiEra.Modern));
+            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0));
     }
 
     // ======================================================================== shared derivations
@@ -359,28 +350,6 @@ public static class EraThemes
     }
 
     private static Rgba Lane(double hue, double s, double l, Pigment p) => FromHsl(hue, s * p.Saturation, l + p.LightShift);
-
-    /// <summary>The map inks: today's WorldLens literals, constant identity inks in every era, and the
-    /// neutral inks following the era (exactly the literals at A6, the parchment era).</summary>
-    private static MapInkTokens Map(InkTokens ink, MaterialTokens m, UiEra era)
-    {
-        bool parchment = era == UiEra.Medieval;
-        Rgba mapInk = parchment ? Hex(0x3A2E1F) : ink.Text;
-        return new MapInkTokens(
-            Ink: mapInk,
-            InkDark: parchment ? Hex(0x1E1810) : Mix(mapInk, Hex(0x000000), 0.35),
-            Pale: Hex(0xF4EBD3), CapitalStar: Hex(0xFFF1C4), Selection: Hex(0xFFD25A),
-            RoadCasing: Hex(0xF2E6C8), Road: Hex(0x6B4A2A), Footprint: Hex(0xEADBB8), Palisade: Hex(0x6B4A2A),
-            Hut: Hex(0x8F6B4E), House: Hex(0x8C4A3A),
-            Granary: Hex(0xC9A35A), Workshop: Hex(0xB06A44), StructureOther: Hex(0x9A8F7A), MedicalMark: Hex(0x9B2B2B),
-            BannerText: Hex(0xF4EBD3), BannerTextCapital: Hex(0xFFF1C4),
-            LegendPaper: parchment ? Hex(0xF4EBD3) : Mix(m.Panel, Hex(0xFFFFFF), 0.25),
-            LegendInk: parchment ? Hex(0x6B5A3E) : ink.TextSoft,
-            LegendWarn: Hex(0x8C4A3A),
-            Polities: new PolityInks(Hex(0xC8962E), Hex(0x777066), Hex(0x9B3B3B), Hex(0x3F6E8C), Hex(0x5C7F45), Hex(0x7A4F8C), Hex(0x2F7C74), Hex(0x8C6A3F)),
-            Sectors: new SectorInks(Hex(0x8FA34E), Hex(0xC2A060), Hex(0x8A8A86), Hex(0xC07048), Hex(0x6C8FB0)),
-            Universities: new UniversityInks(Hex(0x8E3B32), Hex(0xE8E2D0), Hex(0x4F6F8F), Hex(0x3E7A6A), Hex(0x9AA344), Hex(0x9A8F7A)));
-    }
 }
 
 /// <summary>One semantic token's fixed identity: its hue (degrees) and the base saturation and

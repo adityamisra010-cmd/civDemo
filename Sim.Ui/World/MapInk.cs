@@ -1,3 +1,5 @@
+using Sim.Ui.Art;
+using Sim.Ui.Theme;
 using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.World;
@@ -10,14 +12,50 @@ namespace Sim.Ui.World;
 /// the lens drew before the tokens existed, so every existing renderer pin holds. The road-class tokens
 /// are new; they are taken from the style bible's §2 palette (warm, desaturated; bible hex named in each
 /// comment).</para>
-/// <para>ERA SEAM (ADR-033 D8, one line): a presentation layer derives a <see cref="MapInk"/> from the
-/// player's Age and passes it to <c>WorldLens.Paint(…, ink:)</c>; the map's composition stays a read
-/// of state, only its ink changes. Nothing here reads the Age or any theme.</para>
+/// <para>ERA SEAM (ADR-033 D8): this is the ONE complete map-ink record — the era theme carries no map
+/// tokens of its own. <see cref="For"/> derives the era's ink from the theme the interface paints with,
+/// and the game (and the headless previews) pass it to <c>WorldLens.Paint(…, ink:)</c>; the map's
+/// composition stays a read of state, only its ink changes. Nothing here reads the Age itself.</para>
 /// </summary>
 public sealed record MapInk
 {
-    /// <summary>Today's map: the exact colours the lens has always drawn.</summary>
+    /// <summary>Today's map: the exact colours the lens has always drawn — and the parchment era's
+    /// (A6, the style bible's palette) ink exactly: <c>For(A6) == Default</c>.</summary>
     public static readonly MapInk Default = new();
+
+    /// <summary>
+    /// THE ERA'S MAP INK. IDENTITY inks — the polities, the sectors, the universities and other
+    /// institutions, the structures and dwellings, every road class's fill and marks, the selection ring
+    /// and the capital's mark — are the SAME in every era, so a civilization keeps its colour from A1 to
+    /// A9 and a granary reads as a granary. Only the NEUTRAL inks follow the era: the line-work ink, the
+    /// darkest glyph ink and the engineered roads' kerb casing move with the era's text ink; the pale
+    /// paper inks — the path casing, the name plate under names and the settlement halo (the map's
+    /// legend paper) — move with the era's record surface. Each moves by EXACTLY the era's departure
+    /// from the style bible's parchment (<see cref="ParchmentPalette.InkPrimary"/> for the inks,
+    /// <see cref="ParchmentPalette.PaperLight"/> for the paper), so the parchment era — which IS the
+    /// bible palette — draws today's map byte for byte. Pure: the theme in, the record out; the map
+    /// substrate (the parchment bake) is never themed (style bible §1).
+    /// </summary>
+    public static MapInk For(EraTheme theme)
+    {
+        ArgumentNullException.ThrowIfNull(theme);
+        MapInk d = Default;
+        Rgba ink = theme.Ink.Text, paper = theme.Material.Panel;
+        Rgba Dark(Rgba c) => Shift(c, ink, ParchmentPalette.InkPrimary);
+        Rgba Pale(Rgba c) => Shift(c, paper, ParchmentPalette.PaperLight);
+        return d with
+        {
+            Ink = Dark(d.Ink), GlyphInk = Dark(d.GlyphInk), RoadEdge = Dark(d.RoadEdge),
+            PathCasing = Pale(d.PathCasing), NamePlate = Pale(d.NamePlate), SettlementHalo = Pale(d.SettlementHalo),
+        };
+    }
+
+    /// <summary><paramref name="c"/> moved channel by channel by (<paramref name="era"/> − <paramref name="bible"/>),
+    /// clamped to a byte; alpha kept.</summary>
+    private static Rgba Shift(Rgba c, Rgba era, Rgba bible) =>
+        new(Clamp(c.R + era.R - bible.R), Clamp(c.G + era.G - bible.G), Clamp(c.B + era.B - bible.B), c.A);
+
+    private static byte Clamp(int v) => (byte)Math.Clamp(v, 0, 255);
 
     // ---------------------------------------------------------------- line work and labels
     /// <summary>Primary map ink: names, outlines, banner poles, structure-glyph frames (bible InkPrimary).</summary>

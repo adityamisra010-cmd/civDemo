@@ -38,7 +38,7 @@ EraTheme theme = EraThemes.For(era)              // pure, memoised, deterministi
 | `ControlTokens` | Granularity, progress style (`Notches`, `Segments`, `Bar`, `GraduatedBar`), segment count, stroke, grab size. |
 | `IconTokens` | Icon style (`Daubed` … `Precise`), stroke, wobble, filled. |
 | `ChartTokens` | Sophistication 0–4 (tallies → graduated grids), grid lines, ticks, labels, line width. |
-| `MapInkTokens` | The map overlay inks for the world stream (see §7). |
+| (map ink) | Not a theme token group: the world layer's one ink record is `Sim.Ui.World.MapInk`, derived from the theme by `MapInk.For(theme)` (see §7). |
 
 `EraTheme.Canonical()` is a full `path=value` dump (doubles round-trip, colours as hex); the determinism tests
 compare it, and the preview log records its hash per era.
@@ -118,10 +118,16 @@ the end state.
 - `ProgressionPalette` keeps only `BranchOf(theme, …)` and `StateLabel`; the research screens take every colour
   from the theme (a caller that used its colour constants now reads `theme.Semantic` / `theme.Material`).
 - `UiTheme`'s panel colours come from the theme.
-- `MapInkTokens` give the world stream its overlay inks: at A6 they equal the current `WorldLens` literals, the
-  identity inks (polities, sectors, structures, universities) are constant in every era, and only the overlay
-  ink and legend follow the era. This stream does not edit `Sim.Ui/World/*`; wiring them is the world
-  stream's.
+- ONE MAP-INK SOURCE (stream U2a convergence). The theme's former `MapInkTokens` and the world layer's
+  `MapInk` described the same thing; `MapInk` is now the single complete record the world layer consumes and
+  `MapInkTokens` is deleted (with its dead palisade/hut/house inks). `MapInk.For(theme)` derives it: identity
+  inks (polities, sectors, universities and institutions, structures and dwellings, road-class fills, the
+  selection ring, the capital mark) are constant in every era; the neutral inks follow the era by exactly its
+  departure from the parchment — the line-work ink, the darkest glyph ink and the engineered-road kerb move
+  with the era's text ink, the path casing, name plate and settlement halo (the map's legend paper) with its
+  record surface — so `MapInk.For(A6) == MapInk.Default`, today's map. `SimUiGame` passes it to
+  `WorldLens.Paint` (it fades with the theme during an Age transition), and so do the era and Age previews
+  (`MapInkEraTests`).
 
 ## 8. Adding an era-specific treatment
 

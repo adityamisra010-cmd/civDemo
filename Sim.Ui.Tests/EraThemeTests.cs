@@ -238,11 +238,11 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
         Assert.Equal(ParchmentPalette.GoldLeaf, a6.Semantic.Completed);
         Assert.Equal(ParchmentPalette.IronRed, a6.Semantic.Danger);
         Assert.Equal(ParchmentPalette.Verdigris, a6.Semantic.Positive);
-        // The map inks are today's WorldLens literals in the parchment era.
-        Assert.Equal(Rgba.Hex(0x3A2E1F), a6.Map.Ink);
-        Assert.Equal(Rgba.Hex(0x1E1810), a6.Map.InkDark);
-        Assert.Equal(Rgba.Hex(0xF4EBD3), a6.Map.LegendPaper);
-        Assert.Equal(Rgba.Hex(0x6B5A3E), a6.Map.LegendInk);
+        // The map's ink (derived from the theme: MapInk.For, the one map-ink record) is today's WorldLens
+        // literals in the parchment era — the whole record, not a subset.
+        Assert.Equal(Sim.Ui.World.MapInk.Default, Sim.Ui.World.MapInk.For(a6));
+        Assert.Equal(Rgba.Hex(0x3A2E1F), Sim.Ui.World.MapInk.For(a6).Ink);
+        Assert.Equal(Rgba.Hex(0x1E1810), Sim.Ui.World.MapInk.For(a6).GlyphInk);
     }
 
     // ------------------------------------------------------------------ continuity
@@ -406,12 +406,13 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
             Assert.Equal(a.Canonical(), EraThemes.For(e).Canonical());   // the memo is the build
             Assert.Same(EraThemes.For(e), EraThemes.For(e));
         }
-        // The canonical text covers every token group.
+        // The canonical text covers every token group. (The map's ink is not a theme token group: it is the
+        // world layer's one MapInk record, derived from the theme by MapInk.For — MapInkEraTests.)
         string c = EraThemes.For(UiEra.Bronze).Canonical();
         foreach (string group in new[] { "Material.Field=", "Ink.Text=", "Semantic.Completed=", "Semantic.Lanes.Civics=", "Edge.Roughness=",
-            "Ornament.Motif=", "Type.Caps=", "Density.Level=", "Controls.Progress=", "Icons.Style=", "Charts.Sophistication=",
-            "Map.Polities.Player=", "Map.Universities.Medical=" })
+            "Ornament.Motif=", "Type.Caps=", "Density.Level=", "Controls.Progress=", "Icons.Style=", "Charts.Sophistication=" })
             Assert.Contains(group, c, StringComparison.Ordinal);
+        Assert.DoesNotContain("Map.", c, StringComparison.Ordinal);
         // Nine distinct presentations.
         var hashes = new HashSet<string>();
         foreach (EraTheme t in EraThemes.All) hashes.Add(ThemeCanon.Hash(t));

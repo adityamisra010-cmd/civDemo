@@ -96,7 +96,8 @@ public static class EraPreview
         WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
         int capital = EmpireQuery.TryGetCapital(w, me, out SettlementId cap) ? cap.Value : -1;
         WorldLens.Paint(d, m, p, WorldLens.LevelFor(zoom, ChromeW, ChromeH, size),
-            (x, y) => ((x - cx) * zoom + ChromeW / 2, (y - cy) * zoom + ChromeH / 2 + 4), zoom, new RectD(0, 0, ChromeW, ChromeH), capital);
+            (x, y) => ((x - cx) * zoom + ChromeW / 2, (y - cy) * zoom + ChromeH / 2 + 4), zoom, new RectD(0, 0, ChromeW, ChromeH), capital,
+            ink: MapInk.For(t));   // the era's map ink, exactly as the game derives it
 
         // The four chrome windows: the same furniture painter the game runs behind its ImGui windows.
         float fh = Art.UiTheme.FrameHeightPx;

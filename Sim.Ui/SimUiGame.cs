@@ -149,6 +149,9 @@ public sealed class SimUiGame : Game
     private Sim.Ui.Theme.EraTheme _theme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEra.Prehistoric);
     private Sim.Ui.Theme.EraTheme _frameTheme = Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEra.Prehistoric);
     private Sim.Ui.Theme.EraTransition? _eraFade;
+    // The map ink derived from the frame's theme (MapInk.For), rebuilt only when that theme changes.
+    private Sim.Ui.World.MapInk _mapInk = Sim.Ui.World.MapInk.Default;
+    private Sim.Ui.Theme.EraTheme? _mapInkTheme;
 
     private Sim.Ui.Theme.EraTheme DeriveTheme() =>
         Sim.Ui.Theme.EraThemes.For(Sim.Ui.Theme.UiEras.Of(_world, _session.Config.Ages, UiPlayer.Empire));
@@ -618,9 +621,12 @@ public sealed class SimUiGame : Game
         }
         Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, v.Width, v.Height, cam.WorldSize);
         var lens = new Sim.Ui.Render.DrawList();
+        // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
+        // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
+        if (!ReferenceEquals(_mapInkTheme, _frameTheme)) { _mapInk = Sim.Ui.World.MapInk.For(_frameTheme); _mapInkTheme = _frameTheme; }
         Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
             (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
-            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment);
+            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk);
         _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
 
         if (_session.Config.Ages is null) return;

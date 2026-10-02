@@ -59,15 +59,10 @@ public static class ThemeLerp
         ChartTokens ha = from.Charts, hb = to.Charts;
         var charts = new ChartTokens(I(ha.Sophistication, hb.Sophistication, t), Pick(ha.GridLines, hb.GridLines), Pick(ha.Ticks, hb.Ticks),
             Pick(ha.Labels, hb.Labels), D(ha.LineWidth, hb.LineWidth, t));
-        // Map identity inks are equal in every era; the neutral ones mix.
-        MapInkTokens pa = from.Map, pb = to.Map;
-        MapInkTokens map = pb with
-        {
-            Ink = C(pa.Ink, pb.Ink, t), InkDark = C(pa.InkDark, pb.InkDark, t),
-            LegendPaper = C(pa.LegendPaper, pb.LegendPaper, t), LegendInk = C(pa.LegendInk, pb.LegendInk, t),
-        };
+        // The map's ink is derived from the faded theme (MapInk.For reads its ink and material), so it
+        // fades with it; no map token is carried here.
         return new EraTheme(Pick(from.Era, to.Era), Pick(from.Name, to.Name), Pick(from.Medium, to.Medium),
-            material, ink, semantic, edge, ornament, type, density, controls, icons, charts, map);
+            material, ink, semantic, edge, ornament, type, density, controls, icons, charts);
     }
 
     private static Rgba C(Rgba a, Rgba b, double t) => ThemeColor.Mix(a, b, t);
