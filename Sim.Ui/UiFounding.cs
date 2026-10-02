@@ -14,8 +14,11 @@ namespace Sim.Ui;
 /// </summary>
 public static class UiFounding
 {
+    /// <param name="aiEmpiresOverride">ADR-033 D5: found this many AI-commanded Empires instead of
+    /// worldgen.json's <c>aiEmpires</c> (whose default stays 0). Recorded in the session manifest so the
+    /// session replays (`sim replay --ai-empires N`).</param>
     public static WorldState Found(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
     {
         WorldgenConfig worldgenCfg;
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -23,6 +26,7 @@ public static class UiFounding
             worldgenCfg = WorldgenConfigLoader.Load(stream);
         }
         if (sizeOverridePx is { } sz) worldgenCfg = worldgenCfg with { SizePx = sz };
+        if (aiEmpiresOverride is { } ai) worldgenCfg = worldgenCfg with { AiEmpires = ai };
 
         return WorldFounding.Found(worldgenCfg, ProductionConfig(), seed, settlementsOverride);
     }

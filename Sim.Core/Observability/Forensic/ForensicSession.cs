@@ -118,11 +118,15 @@ public static class ForensicSession
     /// emitted explicitly — including, and especially, when it is zero.
     /// </summary>
     private static string AiNote(int aiEmpires) => aiEmpires == 0
-        ? "aiEmpiresConfigured is 0. There is no AI actor in this build: no system emits an order, and the "
-            + "only polity carries CommandSource.Player. 'What the AI decided' has no subject here — the "
-            + "zero is a recorded fact about the configuration, not a missing field."
-        : "aiEmpiresConfigured is the count worldgen was configured with. This build records the "
-            + "configuration only; per-actor AI decision records do not exist in it.";
+        ? "aiEmpiresConfigured is 0. There is no AI actor in this run: no polity carries CommandSource.Ai, so the "
+            + "AI order producer (AiOrders, ADR-033 D5) emits nothing, and the only polity carries "
+            + "CommandSource.Player. 'What the AI decided' has no subject here — the zero is a recorded fact "
+            + "about the configuration, not a missing field."
+        : "aiEmpiresConfigured is the number of AI-commanded Empires the world was founded with. Their decisions "
+            + "are ORDERS: AiOrders (ADR-033 D5) produces them each turn through the player's own order "
+            + "constructors and domain predicates, and the session appends them to its order log (actor = the "
+            + "AI Empire's PolityId), from which a replay reproduces them. Why a policy chose an order is not "
+            + "recorded; the orders themselves are.";
 
     /// <summary>
     /// THE LIMITATION CATALOGUE, carried IN the artifact so a reviewer's first
@@ -150,11 +154,14 @@ public static class ForensicSession
             ForensicSchema.StoreLossesWhy,
             null),
         new ForensicLimitation(
+            // The token keeps its M4 spelling: it is a schema token readers match on, not a claim.
             ForensicSchema.LimitNoAi,
-            "AI decisions.",
-            "No system in this build emits an order; worldgen's aiEmpires defaults to 0 and the sole polity "
-                + "carries CommandSource.Player. There is no AI decision to record, which is different from "
-                + "an AI decision that went unrecorded.",
+            "AI decision rationale.",
+            "AI-commanded Empires (worldgen aiEmpires > 0; the default is 0) decide through AiOrders (ADR-033 D5), "
+                + "an order producer outside the turn that uses the player's own order constructors and domain "
+                + "predicates: every AI decision is an ORDER in the session's order log and replays from it. What "
+                + "is not recorded is WHY a policy chose an order. With aiEmpires = 0 there is no AI actor and no "
+                + "AI decision to record, which is different from an AI decision that went unrecorded.",
             null),
         new ForensicLimitation(
             ForensicSchema.LimitNoGateProducer,

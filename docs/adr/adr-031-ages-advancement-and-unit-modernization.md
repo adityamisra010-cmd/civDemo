@@ -216,6 +216,12 @@ decision turn + 1. Both warbands become axe warriors. Finding: `AgeAdvancePolicy
 production caller outside tests. The session/UI is expected to append its orders, which is outside
 this packet.
 
+> **Append-only note, 2026-10-02 (ADR-033 D5).** The finding above is superseded. `AgeAdvancePolicy` now has
+> production callers through `AiOrders` (Sim.Core), the one deterministic AI order producer: `UiSession.EndTurn`
+> and the CLI `sim run` loop append every AI-commanded Empire's orders — research target, Age advance (this
+> policy, unchanged), road development and construction — to the session's order log before each step, and a
+> replay of that log reproduces the run. The text above is not edited.
+
 **Bench** (`sim bench --founded --seed 42 --turns 300`, Release, same container, 3 runs each, ms):
 - 3e5647f (pre-Ages): 30498.9 / 31185.2 / 30654.4 — median **30654.4**
 - HEAD (this commit): 32671.9 / 32171.2 / 31377.7 — median **32171.2**

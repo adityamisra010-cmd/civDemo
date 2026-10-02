@@ -49,13 +49,13 @@ namespace Sim.Cli
             if (error is not null) Console.Error.WriteLine($"error: {error}");
             Console.Error.WriteLine("""
                 usage:
-                  sim run --seed S --turns N [--founded [--size PX] [--settlements N]]
+                  sim run --seed S --turns N [--founded [--size PX] [--settlements N] [--ai-empires N]]
                           [--report] [--save-at K --save PATH] [--orders PATH]
                           [--hash-log PATH] [--emit-session DIR]
                   sim hash SAVEFILE [--size PX]
                   sim diff A.bin B.bin [--size PX]
                   sim replay --seed S --orders PATH --turns N
-                          [--founded [--size PX] [--settlements N]] [--hash-log PATH]
+                          [--founded [--size PX] [--settlements N] [--ai-empires N]] [--hash-log PATH]
                           [--report-jsonl PATH [--report-every N]] [--emit-session DIR]
                   sim inspect --manifest runs/session-STAMP.json [--turn N] [--window K]
                           [--report-jsonl PATH] [--telemetry OUT.jsonl]
@@ -99,7 +99,13 @@ namespace Sim.Cli
                 played on a non-canonical world size (runs/orders-*-sPX.bin);
                 --settlements overrides siting.settlementCount (D-029 — the
                 first-reign fixture replays at --settlements 1; a non-canonical
-                count is recorded as runs/orders-*-nN.bin).
+                count is recorded as runs/orders-*-nN.bin). --ai-empires N founds N
+                AI-commanded Empires instead of worldgen.json's aiEmpires (default 0;
+                ADR-033 D5). `run` then appends every AI Empire's orders each turn
+                (AiOrders: research, Age advance, roads, construction — through the
+                player's own order constructors) to the run's order log; `replay`
+                never produces orders, it replays the log, so give it the same
+                --ai-empires and the log the run wrote (--emit-session).
 
                 hash/diff on a FOUNDED save regenerate its terrain from the
                 seed in the header (ADR-008: terrain is not in the stream) at
@@ -160,8 +166,17 @@ namespace Sim.Cli
 
         /// <summary>The starting world: M0 toy genesis, or the founded production world.</summary>
         internal static WorldState StartWorld(
-            ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null) =>
-            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride) : Genesis(seed);
+            ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null,
+            int? aiEmpiresOverride = null) =>
+            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride) : Genesis(seed);
+
+        internal static int? AiEmpiresOpt(Options opts, bool founded)
+        {
+            long n = opts.LongOr("--ai-empires", -1);
+            if (n < 0) return null;
+            if (!founded) throw new CliUsageException("--ai-empires requires --founded");
+            return (int)n;
+        }
 
         internal static int? SizeOpt(Options opts, bool founded)
         {
@@ -192,12 +207,13 @@ namespace Sim.Cli
         {
             var opts = Options.Parse(args, flags: ["--report", "--founded"],
                 valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size",
-                         "--settlements", "--emit-session"]);
+                         "--settlements", "--emit-session", "--ai-empires"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
             int? sizePx = SizeOpt(opts, founded);
             int? settlements = SettlementsOpt(opts, founded);
+            int? aiEmpires = AiEmpiresOpt(opts, founded);
             long saveAt = opts.LongOr("--save-at", -1);
             string? savePath = opts.Get("--save");
             if (saveAt >= 0 && savePath is null)
@@ -207,19 +223,37 @@ namespace Sim.Cli
             if (saveAt == 0 || saveAt > turns)
                 throw new CliUsageException($"--save-at must be in 1..{turns}, got {saveAt}");
 
-            OrderLog? orders = opts.Get("--orders") is { } op ? LoadOrders(op) : null;
-            var executor = Executor(orders, founded);
-            WorldState world = StartWorld(seed, founded, sizePx, settlements);
+            OrderLog? loaded = opts.Get("--orders") is { } op ? LoadOrders(op) : null;
+            WorldState world = StartWorld(seed, founded, sizePx, settlements, aiEmpires);
             // World-dependent order validation happens HERE — before turn 1,
             // never mid-run (payload ranges were already checked at load).
-            if (orders is not null) OrderValidation.ValidateAgainstWorld(orders, world);
+            if (loaded is not null) OrderValidation.ValidateAgainstWorld(loaded, world);
+
+            // ADR-033 D5: a founded world with AI-commanded Empires runs the AI order
+            // producer each turn, headless as in the UI. The executor then reads a
+            // RUN LOG that receives, before each step, the loaded log's rows for that
+            // turn (in their order) followed by the AI's orders — the log the session
+            // record writes and `sim replay` reproduces. Without AI Empires (the
+            // default) nothing changes: the executor reads the loaded log itself.
+            Sim.Core.Systems.SimConfig? aiCfg = founded && AiOrders.HasAiPolity(world) ? SimCfg() : null;
+            OrderLog? orders = aiCfg is not null ? new OrderLog() : loaded;
+            var executor = Executor(orders, founded);
 
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
-            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, orders, world);
+            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, aiEmpires, orders, world);
 
             for (int t = 1; t <= turns; t++)
             {
                 WorldState previous = world;
+                if (aiCfg is not null)
+                {
+                    if (loaded is not null)
+                    {
+                        OrderBatch batch = loaded.BatchFor(previous.Clock.Turn);
+                        for (int b = 0; b < batch.Count; b++) orders!.Append(batch[b]);
+                    }
+                    AiOrders.Append(orders!, previous, aiCfg);
+                }
                 world = executor.Step(previous);
                 hashLog?.Add(WorldHash.ComputeHex(world));
                 session?.Observe(previous, world);
@@ -253,7 +287,7 @@ namespace Sim.Cli
         /// keeps the Step loop identical: there is no emitting branch inside it.
         /// </summary>
         private static SessionEmitter? Emitter(
-            Options opts, ulong seed, bool founded, int? sizePx, int? settlements,
+            Options opts, ulong seed, bool founded, int? sizePx, int? settlements, int? aiEmpires,
             OrderLog? orders, WorldState start)
         {
             if (opts.Get("--emit-session") is not { } dir) return null;
@@ -261,7 +295,7 @@ namespace Sim.Cli
             return new SessionEmitter(
                 dir, seed, sizePx, settlements, orders ?? new OrderLog(), SimCfg(), start,
                 CliBuildInfo.Sha, CliBuildInfo.Date,
-                System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier);
+                System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier, aiEmpires);
         }
 
         private static void CloseEmitter(SessionEmitter? session)
@@ -353,18 +387,20 @@ namespace Sim.Cli
         {
             var opts = Options.Parse(args, flags: ["--founded"],
                 valued: ["--seed", "--turns", "--orders", "--hash-log", "--size", "--settlements",
-                         "--report-jsonl", "--report-every", "--emit-session"]);
+                         "--report-jsonl", "--report-every", "--emit-session", "--ai-empires"]);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
             int? sizePx = SizeOpt(opts, founded);
             int? settlements = SettlementsOpt(opts, founded);
+            int? aiEmpires = AiEmpiresOpt(opts, founded);
             string ordersPath = opts.Get("--orders")
                 ?? throw new CliUsageException("replay requires --orders PATH");
 
             OrderLog orders = LoadOrders(ordersPath);
             var executor = Executor(orders, founded);
-            WorldState world = StartWorld(seed, founded, sizePx, settlements);
+            // A replay never produces orders (ADR-033 D5): the AI's decisions are already in the log.
+            WorldState world = StartWorld(seed, founded, sizePx, settlements, aiEmpires);
             OrderValidation.ValidateAgainstWorld(orders, world);
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
 
@@ -380,7 +416,7 @@ namespace Sim.Cli
             using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
             Sim.Core.Systems.SimConfig? reportCfg = report is not null ? SimCfg() : null;
 
-            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, orders, world);
+            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, aiEmpires, orders, world);
 
             for (int t = 1; t <= turns; t++)
             {
@@ -463,7 +499,8 @@ namespace Sim.Cli
             Console.WriteLine($"  started {manifest.StartedAt}   build {manifest.BuildSha} ({manifest.BuildDate})   schema v{manifest.SchemaVersion}");
             Console.WriteLine($"  world   seed {manifest.Seed.ToString(CultureInfo.InvariantCulture)}"
                 + (manifest.SizePx is { } px ? $", size {px.ToString(CultureInfo.InvariantCulture)}" : "")
-                + (manifest.Settlements is { } n ? $", settlements {n.ToString(CultureInfo.InvariantCulture)}" : ""));
+                + (manifest.Settlements is { } n ? $", settlements {n.ToString(CultureInfo.InvariantCulture)}" : "")
+                + (manifest.AiEmpires is { } ai ? $", AI empires {ai.ToString(CultureInfo.InvariantCulture)}" : ""));
             // ADR-022: say where the trace was recorded and where this replay
             // runs BEFORE the verdict, so a cross-platform hash divergence
             // (CR-013 §8, expected from turn 2) is not read as a determinism
@@ -482,7 +519,7 @@ namespace Sim.Cli
 
             OrderLog orders = LoadOrders(Path.Combine(dir, manifest.OrdersFile));
             WorldState world = StartWorld(
-                manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements);
+                manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
             OrderValidation.ValidateAgainstWorld(orders, world);
 
             var executor = Executor(orders, founded: true);
@@ -1207,7 +1244,7 @@ namespace Sim.Cli
     public static class HeadlessFounding
     {
         public static WorldState Found(
-            ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+            ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
         {
             Sim.Core.Worldgen.WorldgenConfig wgCfg;
             using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -1215,6 +1252,8 @@ namespace Sim.Cli
                 wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(stream);
             }
             if (sizeOverridePx is { } sz) wgCfg = wgCfg with { SizePx = sz };
+            // ADR-033 D5: worldgen.json's aiEmpires (default 0) unless overridden (sim run/replay --ai-empires).
+            if (aiEmpiresOverride is { } ai) wgCfg = wgCfg with { AiEmpires = ai };
             Sim.Core.Systems.SimConfig simCfg;
             using (var stream = Sim.Data.DataFiles.OpenSim())
             using (var needs = Sim.Data.DataFiles.OpenNeeds())

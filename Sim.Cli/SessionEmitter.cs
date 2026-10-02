@@ -37,6 +37,8 @@ public sealed class SessionEmitter : IDisposable
     private readonly int _grain;
     private readonly Sim.Core.Systems.SimConfig _cfg;
     private readonly OrderLog _orders;
+    private readonly string _ordersFile = "";
+    private readonly int _ordersAtLaunch;
     private readonly ObservationLog _log = new();
     private readonly List<string> _trace = [SessionTrace.Header];
     private FileStream? _telemetry;
@@ -45,10 +47,12 @@ public sealed class SessionEmitter : IDisposable
 
     public string RunId { get; }
 
+    /// <param name="aiEmpires">ADR-033 D5: the AI-empire override the world was founded with (null =
+    /// worldgen.json's count). Recorded in the manifest and the forensic record.</param>
     public SessionEmitter(
         string directory, ulong seed, int? sizePx, int? settlements,
         OrderLog orders, Sim.Core.Systems.SimConfig cfg, WorldState start,
-        string buildSha, string buildDate, string platform)
+        string buildSha, string buildDate, string platform, int? aiEmpires = null)
     {
         _dir = directory;
         _orders = orders;
@@ -65,7 +69,7 @@ public sealed class SessionEmitter : IDisposable
             orders: orders,
             era: CliRecipes.Era(),
             pipeline: CliRecipes.ProductionPipeline(),
-            aiEmpiresConfigured: CliRecipes.Worldgen().AiEmpires,
+            aiEmpiresConfigured: aiEmpires ?? CliRecipes.Worldgen().AiEmpires,
             terrainContentHash: start.Terrain?.ContentHash,
             buildSha: buildSha,
             buildDate: buildDate,
@@ -91,10 +95,13 @@ public sealed class SessionEmitter : IDisposable
             TraceFile: "trace-" + _stem + ".csv",
             TelemetryFile: "telemetry-" + _stem + ".jsonl",
             Platform: platform,
-            ForensicFile: "forensic-" + _stem + ".jsonl");
+            ForensicFile: "forensic-" + _stem + ".jsonl",
+            AiEmpires: aiEmpires);
         using (FileStream file = File.Create(Path.Combine(_dir, "session-" + _stem + ".json")))
             manifest.Write(file);
 
+        _ordersFile = manifest.OrdersFile;
+        _ordersAtLaunch = orders.Count;
         using (FileStream file = File.Create(Path.Combine(_dir, manifest.OrdersFile)))
             orders.Save(file);
 
@@ -132,6 +139,12 @@ public sealed class SessionEmitter : IDisposable
     /// which content-hashes every companion and therefore must be written last.</summary>
     public void Close()
     {
+        // ADR-033 D5: a run with AI Empires appends their orders to the log DURING the run, so the file
+        // written at launch is only its prefix. Re-save the complete log (same writer) before the close
+        // record hashes the companions; a run whose log did not grow keeps the launch file untouched.
+        if (_orders.Count != _ordersAtLaunch)
+            using (FileStream file = File.Create(Path.Combine(_dir, _ordersFile)))
+                _orders.Save(file);
         File.WriteAllText(Path.Combine(_dir, "trace-" + _stem + ".csv"), string.Join("\n", _trace) + "\n");
         _telemetry?.Flush(flushToDisk: true);
         _telemetry?.Dispose();

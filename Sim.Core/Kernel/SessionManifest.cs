@@ -74,7 +74,13 @@ public sealed record SessionManifest(
     // name and ignore the rest), and reads back here as an empty string on any
     // manifest written before this packet — the session it describes is still
     // fully reproducible without it, exactly as TelemetryFile argued.
-    string ForensicFile = "")
+    string ForensicFile = "",
+    // ADR-033 D5: the AI-empire override the world was founded with (null = worldgen.json's aiEmpires,
+    // default 0). Part of the world's identity, like SizePx and Settlements: a session played against AI
+    // Empires replays only into a world founded with them. An ADDITIVE key inside v2 (the ForensicFile
+    // argument above): older binaries ignore it, and a manifest written before it reads back as null —
+    // exactly the session it then was, since no override existed.
+    int? AiEmpires = null)
 {
     /// <summary>The schema tag, so a reader can tell which vintage produced a
     /// file it did not write. v2 added `platform`.</summary>
@@ -150,6 +156,7 @@ public sealed record SessionManifest(
         sb.Append(Seed.ToString(CultureInfo.InvariantCulture));
         if (SizePx is { } px) sb.Append(" --size ").Append(px.ToString(CultureInfo.InvariantCulture));
         if (Settlements is { } n) sb.Append(" --settlements ").Append(n.ToString(CultureInfo.InvariantCulture));
+        if (AiEmpires is { } ai) sb.Append(" --ai-empires ").Append(ai.ToString(CultureInfo.InvariantCulture));
         sb.Append(" --orders ").Append(OrdersFile);
         sb.Append(" --turns ").Append(turns.ToString(CultureInfo.InvariantCulture));
         return sb.ToString();
@@ -165,6 +172,9 @@ public sealed record SessionManifest(
         json.WriteNumber("seed", Seed);
         if (SizePx is { } px) json.WriteNumber("sizePx", px); else json.WriteNull("sizePx");
         if (Settlements is { } n) json.WriteNumber("settlements", n); else json.WriteNull("settlements");
+        // ADR-033 D5: written ONLY when an override exists, so every manifest without one is byte-identical
+        // to what this build wrote before the key existed.
+        if (AiEmpires is { } ai) json.WriteNumber("aiEmpires", ai);
         json.WriteNumber("schemaVersion", SchemaVersion);
         json.WriteString("buildSha", BuildSha);
         json.WriteString("buildDate", BuildDate);
@@ -215,7 +225,10 @@ public sealed record SessionManifest(
                 ? p : PlatformNotRecorded,
             // Absent on every manifest written before this packet, and on any
             // session that wrote no forensic record. Empty, never invented.
-            ForensicFile: root.TryGetProperty("forensicFile", out JsonElement ff) ? ff.GetString() ?? "" : "");
+            ForensicFile: root.TryGetProperty("forensicFile", out JsonElement ff) ? ff.GetString() ?? "" : "",
+            // Absent (or null) on every manifest written before ADR-033 D5 and on any session founded with
+            // worldgen.json's own count.
+            AiEmpires: Nullable(root, "aiEmpires"));
     }
 
     private static int? Nullable(JsonElement root, string name)
