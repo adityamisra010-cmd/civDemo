@@ -188,7 +188,7 @@ repeat mechanics, CR-006, and code items 5–8.
 | [`building.bastion_fort`](#buildingbastion_fort) | building | C REALIZATION | no | none | `trace_italienne` |
 | [`building.harbour`](#buildingharbour) | building | C REALIZATION | no | none | `plank_boat`, `stone_dry` |
 | [`building.lighthouse`](#buildinglighthouse) | building | C REALIZATION | no | none | `stone_fortification` |
-| [`building.dry_dock`](#buildingdry_dock) | building | C REALIZATION | no | none | `canal_lock` |
+| [`building.dry_dock`](#buildingdry_dock) | building | C REALIZATION | no | none | `carrack` |
 | [`building.airfield`](#buildingairfield) | building | C REALIZATION | no | none | `aircraft` |
 | [`building.radio_transmitter`](#buildingradio_transmitter) | building | C REALIZATION | no | none | `radio` |
 | [`building.skyscraper`](#buildingskyscraper) | building | C REALIZATION | no | none | `skyscraper` |
@@ -235,6 +235,7 @@ repeat mechanics, CR-006, and code items 5–8.
 | [`infra.road_built`](#infraroad_built) | infrastructure | C REALIZATION | no | none | `track_road`, `stone_dry` |
 | [`infra.road_paved`](#infraroad_paved) | infrastructure | C REALIZATION | no | none | `road_paved` |
 | [`infra.road_macadam`](#infraroad_macadam) | infrastructure | C REALIZATION | no | none | `macadam`, `road_paved` |
+| [`infra.road_highway`](#infraroad_highway) | infrastructure | C REALIZATION | no | none | `motor_road` |
 | [`infra.courier_relay`](#infracourier_relay) | infrastructure | C REALIZATION | no | none | `track_road`, `horse_domestication` |
 | [`infra.bridge`](#infrabridge) | infrastructure | C REALIZATION | no | none | `bridge_stone` |
 | [`infra.basin_irrigation`](#infrabasin_irrigation) | infrastructure | C REALIZATION | no | none | `irrigation_basin`, `cereal_cultivation` |
@@ -1306,8 +1307,8 @@ repeat mechanics, CR-006, and code items 5–8.
 - **Identifier:** `building.dry_dock` (building)
 - **Ownership classification:** **C REALIZATION**
 - **Current simulation source:** Registry only; no simulation system realizes it yet. There are no vessels or shipbuilding (Sim.Data/content/sim.json:21).
-- **Current baseline status:** Not baseline. LOCKED. Requires canal_lock (`research.json` `building.dry_dock` `.requires`; node `research.json` `canal_lock`, A6 d7, engineering, 4,180 RP, prereq irrigation_canal AND mortise_hull). Research-stage gated. Approximate cheapest closure: 30 nodes / 53,930 RP.
-- **Related research node(s):** `canal_lock`
+- **Current baseline status:** Not baseline. LOCKED. Requires carrack (`research.json` `building.dry_dock` `.requires`; ADR-032 replaced the causally wrong canal_lock — a pound lock is canal hydraulics, a graving dock is a shipbuilding facility for hulls too large to beach or careen). Research-stage gated.
+- **Related research node(s):** `carrack`
 - **Realization requirements:** A construction project and a coastal or river site. A harbour must be present: ADR-028 §1.3 names 'a dry dock on a harbour' (adr-028:22), but the requirement does not declare it. Also a shipbuilding mechanism.
 - **Exists at founding:** no
 - **Initial existence (capability / object / both):** none
@@ -1956,7 +1957,7 @@ This is the exact case D-040 B3 rejects as a tech unlock (d040:59-64).
 
 - **Identifier:** `infra.road_track` (infrastructure)
 - **Ownership classification:** **C REALIZATION**
-- **Current simulation source:** Registry only — no simulation system realizes it yet (`research.json` `infra.road_track` `.requires`). The closest system is PathBuildSystem, which lays only EdgeTypes.DirtPath network edges (Sim.Core/Systems/PathBuild/PathBuildSystem.cs:211-215). DirtPath is the only edge type (Sim.Core/State/Ids.cs:69-72). Knowledge eligibility is computed by ResearchQuery.IsKnowledgeEligible (Sim.Core/State/ResearchQuery.cs:534-551); its only caller outside the research system is the CLI count (Sim.Cli/ResearchCli.cs:155).
+- **Current simulation source:** ADR-032: RoadDevelopmentSystem builds this class as a `TransportEdgeRow` (`EdgeTypes.Trackway`) on a `DevelopRoads` order once the issuer is knowledge-eligible for this entity (the D-044 Part D T3 block below is resolved by the Director's transport rulings 2026-10-02). Before ADR-032: Registry only — no simulation system realizes it yet (`research.json` `infra.road_track` `.requires`). The closest system is PathBuildSystem, which lays only EdgeTypes.DirtPath network edges (Sim.Core/Systems/PathBuild/PathBuildSystem.cs:211-215). DirtPath is the only edge type (Sim.Core/State/Ids.cs:69-72). Knowledge eligibility is computed by ResearchQuery.IsKnowledgeEligible (Sim.Core/State/ResearchQuery.cs:534-551); its only caller outside the research system is the CLI count (Sim.Cli/ResearchCli.cs:155).
 - **Current baseline status:** Not baseline. Not knowledge-eligible at founding: track_road is A2 d3 with prereq timber_frame; the heuristic cheapest closure is 6 nodes / 3,850 BaseCost RP, about 125 turns at the founding 30.8 RP/turn. A separate, research-free baseline exists and must not be confused with this entity: automatic dirt paths built from construction-sector labour (PathBuildSystem.cs:26-39; sim.json:15-18). There are no edges at turn 0 (WorldFounding.cs:44). PathBuild explicitly reserves 'better road tiers' for later (PathBuildSystem.cs:50-52).
 - **Related research node(s):** `track_road`
 - **Realization requirements:** track_road only makes the trackway knowledge-eligible (ADR-028 §3). A network builder must then lay or upgrade edges. That needs: banked construction labour, as PathBuild already accrues it (PathBuildSystem.cs:26-39); timber as material (dirt paths consume no goods today); and a reason to exist. The node's capabilities, 'reliable crossing of wetland' and 'path improvement' (`research.json` `track_road` `.unlocks.capabilities`), have no carrier: the movement-cost field is slope-only on land and has no wetland class (Sim.Core/Worldgen/Worldgen.cs:132-145).
@@ -1968,7 +1969,7 @@ This is the exact case D-040 B3 rejects as a tech unlock (d040:59-64).
 
 - **Identifier:** `infra.road_built` (infrastructure)
 - **Ownership classification:** **C REALIZATION**
-- **Current simulation source:** Registry only — no simulation system realizes it yet (`research.json` `infra.road_built` `.requires`). No stone-founded edge tier exists: PathBuild lays only DirtPath (PathBuildSystem.cs:211-215; Ids.cs:69-72).
+- **Current simulation source:** ADR-032: RoadDevelopmentSystem builds this class as a `TransportEdgeRow` (`EdgeTypes.BuiltRoad`) on a `DevelopRoads` order once the issuer is knowledge-eligible for this entity (the D-044 Part D T3 block below is resolved by the Director's transport rulings 2026-10-02). Before ADR-032: Registry only — no simulation system realizes it yet (`research.json` `infra.road_built` `.requires`). No stone-founded edge tier exists: PathBuild lays only DirtPath (PathBuildSystem.cs:211-215; Ids.cs:69-72).
 - **Current baseline status:** Not baseline. Not knowledge-eligible at founding: requires track_road (A2 d3) AND stone_dry (A2 d2, pre ground_stone_early); heuristic cheapest closure 7 nodes / 4,730 RP. The only overlap is the baseline dirt path, which is a distinct, lower tier.
 - **Related research node(s):** `track_road`, `stone_dry`
 - **Realization requirements:** Knowledge makes it eligible; a network builder realizes it. Needs: construction labour, as in the PathBuild bank; stone, which exists and is extracted from turn 1 (goods.json:35) and today is consumed only by the two construction projects (goods.json:179-215); a traversal factor better than DirtPath's 0.5 (sim.json:18). It also depends on the presence of a trackway or path edge to upgrade (hierarchy, ADR-028 §1.3).
@@ -1980,7 +1981,7 @@ This is the exact case D-040 B3 rejects as a tech unlock (d040:59-64).
 
 - **Identifier:** `infra.road_paved` (infrastructure)
 - **Ownership classification:** **C REALIZATION**
-- **Current simulation source:** Registry only — no simulation system realizes it yet (`research.json` `infra.road_paved` `.requires`). There is no paved edge tier (Ids.cs:69-72).
+- **Current simulation source:** ADR-032: RoadDevelopmentSystem builds this class as a `TransportEdgeRow` (`EdgeTypes.PavedRoad`) on a `DevelopRoads` order once the issuer is knowledge-eligible for this entity (the D-044 Part D T3 block below is resolved by the Director's transport rulings 2026-10-02). Before ADR-032: Registry only — no simulation system realizes it yet (`research.json` `infra.road_paved` `.requires`). There is no paved edge tier (Ids.cs:69-72).
 - **Current baseline status:** Not baseline. Requires road_paved (A5 d10, pre surveying); heuristic cheapest closure 7 nodes / 17,370 RP. No founding counterpart.
 - **Related research node(s):** `road_paved`
 - **Realization requirements:** A network builder lays a paved tier with labour and stone, ideally upgrading lower tiers (ADR-028 §1.3). Of its capabilities (`research.json` `road_paved` `.unlocks.capabilities`), 'all-weather bulk transport' would act through edge cost in trade and catchment. 'Military mobility' has no carrier: no military code exists (the only match is a comment at WorldState.cs:695).
@@ -1992,13 +1993,25 @@ This is the exact case D-040 B3 rejects as a tech unlock (d040:59-64).
 
 - **Identifier:** `infra.road_macadam` (infrastructure)
 - **Ownership classification:** **C REALIZATION**
-- **Current simulation source:** Registry only — no simulation system realizes it yet (`research.json` `infra.road_macadam` `.requires`). There is no macadam edge tier (Ids.cs:69-72).
+- **Current simulation source:** ADR-032: RoadDevelopmentSystem builds this class as a `TransportEdgeRow` (`EdgeTypes.MacadamRoad`) on a `DevelopRoads` order once the issuer is knowledge-eligible for this entity (the D-044 Part D T3 block below is resolved by the Director's transport rulings 2026-10-02). Before ADR-032: Registry only — no simulation system realizes it yet (`research.json` `infra.road_macadam` `.requires`). There is no macadam edge tier (Ids.cs:69-72).
 - **Current baseline status:** Not baseline. Requires macadam (A8 d11, branch engineering, pre road_paved). Because macadam is a specialized-subtree node, the subtree must first be opened by the research stage (`research.json` `researchStage`). Heuristic closure 8 nodes / 25,730 RP.
 - **Related research node(s):** `macadam`, `road_paved`
 - **Realization requirements:** Needs a network builder with an upgrade path from the paved tier (hierarchy), crushed-stone material and labour. Its capability, 'coaching speed doubled' (`research.json` `macadam` `.unlocks.capabilities`), presumes a vehicle and coach model, which does not exist.
 - **Exists at founding:** no
 - **Initial existence (capability / object / both):** none
 - **Required code/data changes:** Code: a macadam edge tier. Data: TUNE parameters. No goods change is strictly required, because stone exists (goods.json:35). BLOCKED on a Director ruling on D-044 Part D T3 (UNRESOLVED, owner Director; d044:833,841): under the reading in force no node opens a network edge type and no node is wired to any movement or transport mechanism (adr-029:424-427), which stands against ADR-028 §3 "technology-unlocked" (adr-028:53). The edge-tier mechanism belongs to the open transport conversation (D-040 B4, d040:75-80; queue.md:531-545), not to this matrix.
+
+#### `infra.road_highway`
+
+- **Identifier:** `infra.road_highway` (infrastructure)
+- **Ownership classification:** **C REALIZATION**
+- **Current simulation source:** ADR-032: RoadDevelopmentSystem builds this class as a `TransportEdgeRow` (`EdgeTypes.Highway`, a new alignment beside older roads) on a `DevelopRoads` order.
+- **Current baseline status:** Not baseline. Requires motor_road (key 425, A9, engineering; prereq automobile_mass AND reinforced_concrete AND petroleum_refining).
+- **Related research node(s):** `motor_road`
+- **Realization requirements:** materials per sim.json `roads.classes` (TUNE placeholder).
+- **Exists at founding:** no
+- **Initial existence (capability / object / both):** none
+- **Required code/data changes:** none further for the class; trade consumption of the travel-time hook is a later packet (ADR-032 §7).
 
 #### `infra.courier_relay`
 

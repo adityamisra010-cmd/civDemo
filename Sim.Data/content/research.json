@@ -4994,7 +4994,7 @@
    "key": 74,
    "id": "track_road",
    "name": "Trackway",
-   "desc": "Built trackway \u2014 timber causeway across marsh, cleared and stoned route. An infrastructure-class unlock: construction systems build the trackways, and basic paths are baseline (D-047 ruling 8).",
+   "desc": "Trackway \u2014 an IMPROVED PATH, not an engineered road: timber causeway and corduroy across marsh, cleared and stoned track (Sweet Track). An infrastructure-class unlock (path tier): road development builds the trackways, and basic dirt paths are baseline (D-047 ruling 8; ADR-032). The engineered built road additionally needs dry-stone construction (infra.road_built requires track_road AND stone_dry).",
    "age": "A2",
    "frontier": false,
    "emerged": "~3,800 BCE Sweet Track (Somerset)",
@@ -5009,7 +5009,7 @@
    "eurekas": [],
    "unlocks": {
     "capabilities": [
-     "trackway infrastructure class (timber and stoned routes)",
+     "trackway infrastructure class (path tier: timber causeway and stoned track)",
      "wetland causeway class"
     ],
     "units": [],
@@ -13979,9 +13979,7 @@
      "Grand Canal at full function"
     ],
     "units": [],
-    "buildings": [
-     "building.dry_dock"
-    ],
+    "buildings": [],
     "institutions": [],
     "infrastructure": [],
     "activities": [],
@@ -14371,7 +14369,9 @@
      "Columbus, da Gama"
     ],
     "units": [],
-    "buildings": [],
+    "buildings": [
+     "building.dry_dock"
+    ],
     "institutions": [],
     "infrastructure": [],
     "activities": [
@@ -27003,7 +27003,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27099,7 +27099,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27193,7 +27193,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27284,7 +27284,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27556,7 +27556,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27729,7 +27729,7 @@
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
-     "finite_nodes_to_exhaust": 124,
+     "finite_nodes_to_exhaust": 125,
      "speculative_included": [
       "fusion_power",
       "fault_tolerant_quantum",
@@ -27856,6 +27856,67 @@
     "content_cost": 23650,
     "calibration_adjustment": 0,
     "note": "repeatable: priced as a refinement of an established line; level 1 only \u2014 escalation per level is a calibration range"
+   }
+  },
+  {
+   "key": 425,
+   "id": "motor_road",
+   "name": "Motor road (highway)",
+   "desc": "Graded, surfaced, grade-separated road for motor traffic \u2014 Milano\u2013Laghi autostrada 1924, Cologne\u2013Bonn 1932, Reichsautobahn and US Interstate. An infrastructure-class unlock (highway tier): road development builds the highways as new alignments beside the older roads (ADR-032).",
+   "age": "A9",
+   "frontier": false,
+   "emerged": "1924 CE Milano\u2013Laghi autostrada; 1932 CE Cologne\u2013Bonn",
+   "branch": "engineering",
+   "domain": "transport",
+   "secondaryDomains": [
+    "construction"
+   ],
+   "depth": 23,
+   "cost": 33450.0,
+   "prereq": "automobile_mass AND reinforced_concrete AND petroleum_refining",
+   "eurekas": [],
+   "unlocks": {
+    "capabilities": [
+     "highway infrastructure class: motor road, the bulk road-freight corridor"
+    ],
+    "units": [],
+    "buildings": [],
+    "institutions": [],
+    "infrastructure": [
+     "infra.road_highway"
+    ],
+    "activities": [],
+    "projects": [],
+    "techniques": [],
+    "applications": []
+   },
+   "family": "road",
+   "generation": null,
+   "effects": {
+    "immediate": []
+   },
+   "repeatable": null,
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "costRationale": {
+    "tier": "T2",
+    "factors": {
+     "novelty": 0.5,
+     "difficulty": 2.5,
+     "material": 1.5,
+     "institutional": 2.5,
+     "breadth": 0.5,
+     "prereq_complexity": 1.0
+    },
+    "magnitude": 8.5,
+    "content_cost": 33450,
+    "calibration_adjustment": 0,
+    "note": "ADR-029 methodology: U x K^magnitude = 92.4 x 2^8.5 = 33,449 -> 33,450. Novelty 0.5 (a road class, derivative of the automobile and engineered roads); difficulty 2.5 (grade separation, engineered alignments); material 1.5 (reinforced concrete / bitumen surfaces); institutional 2.5 (state highway authorities and national programmes); breadth 0.5; prerequisite complexity 1.0 (three AND prerequisites across engineering and natural science)."
    }
   }
  ],
@@ -28411,7 +28472,7 @@
    "id": "building.dry_dock",
    "kind": "building",
    "name": "Dry dock",
-   "requires": "canal_lock",
+   "requires": "carrack",
    "unresolved": []
   },
   {
@@ -28510,6 +28571,13 @@
    "kind": "infrastructure",
    "name": "Macadam road",
    "requires": "macadam",
+   "unresolved": []
+  },
+  {
+   "id": "infra.road_highway",
+   "kind": "infrastructure",
+   "name": "Highway (motor road)",
+   "requires": "motor_road",
    "unresolved": []
   },
   {
