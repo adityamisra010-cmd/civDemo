@@ -131,11 +131,7 @@ public sealed class SimUiGame : Game
 
     private static Sim.Core.Systems.SimConfig LoadDisplayCfg()
     {
-        using var sim = Sim.Data.DataFiles.OpenSim();
-        using var needs = Sim.Data.DataFiles.OpenNeeds();
-        using var goods = Sim.Data.DataFiles.OpenGoods();
-        using var research = Sim.Data.DataFiles.OpenResearch();
-        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research);
+        return UiFounding.ProductionConfig();
     }
 
     /// <summary>T3.9a: the market panel's selected good — PURE UI STATE like
@@ -158,6 +154,15 @@ public sealed class SimUiGame : Game
     // KNOWLEDGE & TECHNOLOGY progression screen (docs/architecture/research-tree-ui.md):
     // full-screen, opened with K or the status-band button. Pure UI state; a click on an
     // available node returns the SetResearchTarget order, which the session logs.
+    // ADR-031 / D-047 Part 4 D-G: the Age surfaces (capital panel, advance flow, transition toast)
+    // and the zoom-dependent world lens. Both are read-only projections; the only write path is
+    // the AdvanceAge order the session appends.
+    private readonly Sim.Ui.Ages.AgeScreen _age = new(LaborOrderFactory.PlayerEmpire);
+    private bool _agePanelDismissed;
+    private Sim.Ui.World.WorldProjection? _lens;
+    private long _lensTurn = -1;
+    private const int AgePanelX = 12, AgePanelY = 202, AgePanelW = 440;
+
     private Sim.Ui.Progression.ProgressionScreen? _progression;
     private bool _progressionOpen;
     private DrawListImGuiBackend? _drawListBackend;
@@ -407,8 +412,22 @@ public sealed class SimUiGame : Game
 
     private void EndTurn()
     {
+        int ageBefore = _session.Config.Ages is { } a0 ? AgeQuery.CurrentAge(_world, a0, LaborOrderFactory.PlayerEmpire) : 0;
         _session.EndTurn();
         _world = _session.World;
+        if (_session.Config.Ages is { } a1)
+        {
+            // The civilization-state change is announced only when the SIMULATION moved the Age.
+            int ageAfter = AgeQuery.CurrentAge(_world, a1, LaborOrderFactory.PlayerEmpire);
+            if (ageAfter != ageBefore)
+            {
+                int converted = 0;
+                foreach (UnitConversionRow c in MilitaryQuery.Conversions(_world, LaborOrderFactory.PlayerEmpire))
+                    if (c.ToAge == ageAfter && c.FromIdentity != c.ToIdentity) converted++;
+                _age.ShowTransition(ageAfter, a1.Age(ageAfter).Name,
+                    AgeQuery.StateRow(_world, LaborOrderFactory.PlayerEmpire) is { } row ? a1.SurgeByKey(row.Surge)?.Name : null, converted);
+            }
+        }
         RefreshHud(syncSlider: false);
         RebuildOverlays();
         SaveSession();
@@ -469,6 +488,15 @@ public sealed class SimUiGame : Game
             return;
         }
 
+        _age.Advance(gameTime.ElapsedGameTime.TotalSeconds);
+        if (UpdateAge(mouse, keyboard))
+        {
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            base.Update(gameTime);
+            return;
+        }
+
         if (IsActive && !io.WantCaptureKeyboard
             && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
         {
@@ -505,6 +533,7 @@ public sealed class SimUiGame : Game
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;
+                    _agePanelDismissed = false;
                     RefreshHud(syncSlider: true);
                 }
             }
@@ -565,6 +594,74 @@ public sealed class SimUiGame : Game
         base.Update(gameTime);
     }
 
+    /// <summary>Whether the player's capital is the selection (the Age panel's trigger).</summary>
+    private bool CapitalSelected =>
+        EmpireQuery.TryGetCapital(_world, LaborOrderFactory.PlayerEmpire, out SettlementId cap) && cap.Value == _selected;
+
+    private bool AgePanelVisible => CapitalSelected && !_agePanelDismissed && _session.Config.Ages is not null;
+
+    private Sim.Ui.Render.RectD AgePanelRect()
+    {
+        Rectangle v = Viewport();
+        return new Sim.Ui.Render.RectD(AgePanelX, AgePanelY, AgePanelW, Math.Max(360, v.Height - AgePanelY - 56 - 12));
+    }
+
+    /// <summary>
+    /// The Age surfaces' input. The advance flow is modal (it takes every click and Escape); the
+    /// docked capital panel takes clicks inside its rect. Returns true when the frame's input was
+    /// consumed. A confirm logs exactly the AdvanceAge order through the session — never a write.
+    /// </summary>
+    private bool UpdateAge(MouseState mouse, KeyboardState keyboard)
+    {
+        if (!IsActive || _session.Config.Ages is null) return false;
+        _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+        bool released = mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed;
+        if (_age.FlowOpen)
+        {
+            if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) _age.CloseFlow();
+            if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
+            return true;
+        }
+        if (!AgePanelVisible || !AgePanelRect().Contains(mouse.X, mouse.Y)) return false;
+        if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
+        return mouse.LeftButton == ButtonState.Pressed || released;
+    }
+
+    private void Dispatch(Sim.Ui.Ages.AgeCommand cmd)
+    {
+        if (cmd.ClosePanel) _agePanelDismissed = true;
+        if (cmd.OpenKnowledge && !_progressionOpen) ToggleProgression();
+        if (cmd.Order is { } order) _session.EmitAdvanceAge(order.TargetId, cmd.SurgeKey);
+    }
+
+    /// <summary>The world lens over the map (background list: under the chrome), and the Age panel,
+    /// flow and toast (foreground list: over it).</summary>
+    private void DrawWorldLensAndAge()
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        Rectangle v = Viewport();
+        Camera cam = _camera!;
+        if (_lens is null || _lensTurn != _world.Clock.Turn)
+        {
+            _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), LaborOrderFactory.PlayerEmpire);
+            _lensTurn = _world.Clock.Turn;
+        }
+        Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, v.Width, v.Height, cam.WorldSize);
+        var lens = new Sim.Ui.Render.DrawList();
+        Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
+            (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
+            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected);
+        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
+
+        if (_session.Config.Ages is null) return;
+        var top = new Sim.Ui.Render.DrawList();
+        _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+        if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), _session.Names.Name(_selected));
+        _age.PaintFlow(top, _drawListBackend, v.Width, v.Height);
+        _age.PaintToast(top, _drawListBackend, v.Width, 60);
+        _drawListBackend.Render(ImGui.GetForegroundDrawList(), top);
+    }
+
     private void ToggleProgression()
     {
         if (_session.Config.Research is not { } content) return;
@@ -581,6 +678,7 @@ public sealed class SimUiGame : Game
         var screen = _progression!;
         screen.Resize(viewport.Width, viewport.Height);
         screen.Refresh(_world);
+        screen.Age = Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), LaborOrderFactory.PlayerEmpire);
         if (!IsActive) return;
         if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { _progressionOpen = false; return; }
         if (EndTurnKey.ShouldFire(keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space), false, false))
@@ -619,6 +717,14 @@ public sealed class SimUiGame : Game
         {
             Sim.Ui.Progression.ProgressionCommand cmd = screen.Click(mouse.X, mouse.Y);
             if (cmd.Close) _progressionOpen = false;
+            if (cmd.OpenAge)
+            {
+                // The Age chip: close the tree and open the Age surface on the capital.
+                _progressionOpen = false;
+                if (EmpireQuery.TryGetCapital(_world, LaborOrderFactory.PlayerEmpire, out SettlementId cap)) { _selected = cap.Value; _agePanelDismissed = false; RefreshHud(syncSlider: true); }
+                _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+                _age.OpenFlow();
+            }
             // The screen built the order with ResearchOrderFactory; the session logs it through
             // the same factory (it refuses anything the simulation would ignore).
             if (cmd.Node is { } node) _session.EmitResearchOrder(node);
@@ -911,6 +1017,7 @@ public sealed class SimUiGame : Game
         }
 
         DrawCompassRose();  // art substrate: §4 item 5 furniture
+        DrawWorldLensAndAge();   // ADR-031: zoom lens (background) + Age panel/flow/toast (foreground)
         DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
         DrawStatusBand();

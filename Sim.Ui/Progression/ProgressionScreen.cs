@@ -12,7 +12,7 @@ namespace Sim.Ui.Progression;
 /// <summary>The two sibling trees under KNOWLEDGE &amp; TECHNOLOGY (ruling 11).</summary>
 public enum TreeTab { Technology = 0, Civics = 1 }
 
-public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset }
+public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen }
 
 public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 
@@ -20,6 +20,9 @@ public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 /// choice is returned as the SetResearchTarget order the existing factory built.</summary>
 public sealed record ProgressionCommand(bool Close, OrderRecord? Order, ResearchNodeId? Node)
 {
+    /// <summary>The Age header chip was clicked: the host opens the Age surface (ADR-031).</summary>
+    public bool OpenAge { get; init; }
+
     public static readonly ProgressionCommand None = new(false, null, null);
 }
 
@@ -51,6 +54,8 @@ public sealed class ProgressionScreen
     public int Hovered { get; private set; } = -1;
     /// <summary>A target ordered this turn, awaiting End Turn (UI hint only).</summary>
     public int PendingTarget { get; private set; } = -1;
+    /// <summary>The player's Age status (ADR-031) for the header chip, or null when not set / no Age content.</summary>
+    public Sim.Ui.Ages.AgePanelModel? Age { get; set; }
 
     private IReadOnlyWorldState? _world;
     private readonly bool[] _framed = new bool[2];
@@ -255,6 +260,7 @@ public sealed class ProgressionScreen
             switch (h.Kind)
             {
                 case HitKind.Close: return new ProgressionCommand(true, null, null);
+                case HitKind.AgeOpen: return new ProgressionCommand(false, null, null) { OpenAge = true };
                 case HitKind.Lens: SetLens((Lens)h.Arg); return ProgressionCommand.None;
                 case HitKind.Tab: Tab = (TreeTab)h.Arg; return ProgressionCommand.None;
                 case HitKind.SetTarget: return Issue(h.Arg);
@@ -427,7 +433,9 @@ public sealed class ProgressionScreen
 
         // The current target capsule.
         double cx = 420;
-        var cap = new RectD(cx, y + 7, Math.Min(420, _w - DetailW - cx - 20), TabBarH - 14);
+        bool ageChip = Age is { State: not Sim.Ui.Ages.AgePanelState.NoContent };
+        var cap = new RectD(cx, y + 7, Math.Min(ageChip ? 360 : 420, _w - DetailW - cx - 20), TabBarH - 14);
+        if (ageChip) PaintAgeChip(d, m, new RectD(cap.Right + 12, y + 7, _w - DetailW - 20 - cap.Right - 12, TabBarH - 14));
         if (cap.W > 160)
         {
             d.Rect(cap, Rgba.Hex(0x0F2229), A(0x5FD3E6, 0.5), 1, 5);
@@ -458,6 +466,27 @@ public sealed class ProgressionScreen
             d.Text(lx + 19, y + 16, label, 11.5, TextSoft);
             lx += 26 + m.Width(label, 11.5, FontRole.Body) + 8;
         }
+    }
+
+    /// <summary>The Age header chip: current Age, progress toward the next, and its state; a click opens
+    /// the Age surface (milestones, Advance Age). Read from <see cref="Age"/> (AgeQuery), never invented.</summary>
+    private void PaintAgeChip(DrawList d, ITextMeasure m, RectD r)
+    {
+        if (r.W < 150 || Age is not { } a) return;
+        bool eligible = a.State == Sim.Ui.Ages.AgePanelState.Eligible;
+        bool pending = a.State == Sim.Ui.Ages.AgePanelState.Pending;
+        d.Rect(r, eligible ? Rgba.Hex(0x2A2312) : ChromeRaised, eligible ? Gold : pending ? Cyan : GoldDim, eligible ? 1.8 : 1, 5);
+        d.Text(r.X + 10, r.Y + 4, "AGE " + Sim.Ui.Ages.AgePanelModel.Numeral(a.CurrentAge), 9.5, Gold, TextAlign.Left, FontRole.Caps);
+        d.Text(r.X + 10, r.Y + 16, Ink.Fit(m, a.CurrentAgeName, 13, r.W * 0.5, FontRole.Heading), 13, Text, TextAlign.Left, FontRole.Heading);
+        string right = a.State switch
+        {
+            Sim.Ui.Ages.AgePanelState.FinalAge => "final Age",
+            Sim.Ui.Ages.AgePanelState.Eligible => "ADVANCE AGE available",
+            Sim.Ui.Ages.AgePanelState.Pending => "advancing next turn",
+            _ => "next: core " + a.CoreMet + "/" + a.CoreTotal + " - supp. " + a.SupportingMet + "/" + a.SupportingRequired,
+        };
+        d.Text(r.Right - 10, r.Y + 10, Ink.Fit(m, right, 11.5, r.W * 0.48), 11.5, eligible ? Gold : pending ? Cyan : TextSoft, TextAlign.Right, eligible ? FontRole.Caps : FontRole.Body);
+        _hits.Add(new HitRegion(r, HitKind.AgeOpen, 0));
     }
 
     // ---- the tree canvas
