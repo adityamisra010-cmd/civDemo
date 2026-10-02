@@ -1,0 +1,107 @@
+using System.Numerics;
+using ImGuiNET;
+using Sim.Ui.Art;
+using Sim.Ui.Render;
+using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
+
+namespace Sim.Ui.ImGuiIntegration;
+
+/// <summary>
+/// THE IMGUI BACKEND for <see cref="DrawList"/> — replays the backend-agnostic commands
+/// into an ImGui draw list inside the game, and measures text with the real fonts.
+/// Ported from the Trees UI foundation (claude/civdemo-work-b1z2y4) without the glyph path.
+/// </summary>
+internal sealed class DrawListImGuiBackend : ITextMeasure
+{
+    private readonly UiTheme.Fonts? _fonts;
+
+    public DrawListImGuiBackend(UiTheme.Fonts? fonts) => _fonts = fonts;
+
+    private ImFontPtr Font(FontRole role) => _fonts is null
+        ? ImGui.GetFont()
+        : role switch
+        {
+            FontRole.Numeric => _fonts.Numeric,
+            FontRole.Heading => _fonts.Header,
+            _ => _fonts.Body,
+        };
+
+    public double Width(string text, double size, FontRole role) =>
+        string.IsNullOrEmpty(text) ? 0.0 : Font(role).CalcTextSizeA((float)size, float.MaxValue, 0f, text).X;
+
+    private static uint Col(Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
+    private static Vector2 V(double x, double y) => new((float)x, (float)y);
+
+    public void Render(ImDrawListPtr dl, DrawList list)
+    {
+        foreach (DrawCmd cmd in list.Commands)
+        {
+            switch (cmd)
+            {
+                case RectCmd r:
+                    if (r.Fill is Rgba f) dl.AddRectFilled(V(r.Rect.X, r.Rect.Y), V(r.Rect.Right, r.Rect.Bottom), Col(f), (float)r.Radius);
+                    if (r.Stroke is Rgba s) dl.AddRect(V(r.Rect.X, r.Rect.Y), V(r.Rect.Right, r.Rect.Bottom), Col(s), (float)r.Radius, ImDrawFlags.None, (float)r.StrokeWidth);
+                    break;
+                case LineCmd l:
+                    if (l.Dash is (double on, double off)) Dashed(dl, [(l.X0, l.Y0), (l.X1, l.Y1)], on, off, Col(l.Color), l.Width);
+                    else dl.AddLine(V(l.X0, l.Y0), V(l.X1, l.Y1), Col(l.Color), (float)l.Width);
+                    break;
+                case BezierCmd b:
+                    if (b.Dash is (double bon, double boff))
+                    {
+                        var pts = new (double, double)[25];
+                        for (int i = 0; i <= 24; i++)
+                            pts[i] = StrokeGeometry.BezierAt(b.P0, b.P1, b.P2, b.P3, i / 24.0);
+                        Dashed(dl, pts, bon, boff, Col(b.Color), b.Width);
+                    }
+                    else dl.AddBezierCubic(V(b.P0.X, b.P0.Y), V(b.P1.X, b.P1.Y), V(b.P2.X, b.P2.Y), V(b.P3.X, b.P3.Y), Col(b.Color), (float)b.Width, 24);
+                    break;
+                case PolygonCmd p:
+                {
+                    if (p.Points.Length < 3) break;
+                    (double X, double Y)[] cw = StrokeGeometry.Clockwise(p.Points);   // ImGui AA fringe goes outside only for clockwise
+                    var pts = new Vector2[cw.Length];
+                    for (int i = 0; i < pts.Length; i++) pts[i] = V(cw[i].X, cw[i].Y);
+                    dl.AddConvexPolyFilled(ref pts[0], pts.Length, Col(p.Fill));
+                    break;
+                }
+                case CircleCmd c:
+                    if (c.Fill is Rgba cf) dl.AddCircleFilled(V(c.Cx, c.Cy), (float)c.R, Col(cf), 0);
+                    if (c.Stroke is Rgba cs) dl.AddCircle(V(c.Cx, c.Cy), (float)c.R, Col(cs), 0, (float)c.StrokeWidth);
+                    break;
+                case ArcCmd a:
+                {
+                    // Clockwise from 12 o'clock → ImGui's angle (from +x, y down).
+                    float a0 = (float)((a.StartDeg - 90.0) * Math.PI / 180.0);
+                    float a1 = (float)((a.StartDeg + a.SweepDeg - 90.0) * Math.PI / 180.0);
+                    dl.PathArcTo(V(a.Cx, a.Cy), (float)a.R, a0, a1, 0);
+                    dl.PathStroke(Col(a.Color), ImDrawFlags.None, (float)a.Width);
+                    break;
+                }
+                case TextCmd t:
+                {
+                    if (string.IsNullOrEmpty(t.Text)) break;
+                    ImFontPtr font = Font(t.Role);
+                    double w = t.Align == TextAlign.Left ? 0 : font.CalcTextSizeA((float)t.Size, float.MaxValue, 0f, t.Text).X;
+                    double x = t.Align switch { TextAlign.Center => t.X - w / 2, TextAlign.Right => t.X - w, _ => t.X };
+                    dl.AddText(font, (float)t.Size, V(x, t.Y), Col(t.Color), t.Text);
+                    break;
+                }
+                case ClipPushCmd cp:
+                    dl.PushClipRect(V(cp.Rect.X, cp.Rect.Y), V(cp.Rect.Right, cp.Rect.Bottom), true);
+                    break;
+                case ClipPopCmd:
+                    dl.PopClipRect();
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Dash a polyline by arc length (ImGui has no dashed strokes). The geometry is
+    /// StrokeGeometry.Dashes — pure, headless-tested, guaranteed to terminate.</summary>
+    private static void Dashed(ImDrawListPtr dl, (double X, double Y)[] pts, double on, double off, uint col, double width)
+    {
+        foreach (((double X, double Y) a, (double X, double Y) b) in StrokeGeometry.Dashes(pts, on, off))
+            dl.AddLine(V(a.X, a.Y), V(b.X, b.Y), col, (float)width);
+    }
+}

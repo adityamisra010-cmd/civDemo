@@ -24,15 +24,24 @@ public static class UiFounding
         }
         if (sizeOverridePx is { } sz) worldgenCfg = worldgenCfg with { SizePx = sz };
 
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        using (var research = Sim.Data.DataFiles.OpenResearch())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods, research);
-        }
+        return WorldFounding.Found(worldgenCfg, ProductionConfig(), seed, settlementsOverride);
+    }
 
-        return WorldFounding.Found(worldgenCfg, simCfg, seed, settlementsOverride);
+    /// <summary>
+    /// ADR-031: the ONE config recipe the UI founds, steps and reads with — the six-stream load
+    /// (sim, needs, goods, research, ages, unit families), the same recipe as Sim.Cli's
+    /// <c>CliRecipes</c>. With the four-stream load the Age systems were inert and founding laid
+    /// down no formations; every UI call site reads through here so the founded world, the
+    /// executor's systems and the panels cannot disagree about which content is loaded.
+    /// </summary>
+    public static SimConfig ProductionConfig()
+    {
+        using var stream = Sim.Data.DataFiles.OpenSim();
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        using var research = Sim.Data.DataFiles.OpenResearch();
+        using var ages = Sim.Data.DataFiles.OpenAges();
+        using var families = Sim.Data.DataFiles.OpenUnitFamilies();
+        return SimConfigLoader.Load(stream, needs, goods, research, ages, families);
     }
 }

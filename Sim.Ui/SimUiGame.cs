@@ -30,7 +30,6 @@ public sealed class SimUiGame : Game
     private SpriteBatch? _spriteBatch;
     private Texture2D? _terrainTexture;
     private float _terrainDrawScale = 1f;
-    private Texture2D? _markerTexture;
     private ImGuiRenderer? _imgui;
     private Camera? _camera;
 
@@ -57,27 +56,12 @@ public sealed class SimUiGame : Game
     private int _latticeStride;
 
     private VertexBuffer? _riverVertices;
-    private VertexBuffer? _pathVertices;
-    private int _pathVersion = -1;      // NetworkEdges.Count when path mesh was built
-    private VertexBuffer?[] _territoryVertices = [];  // T2.4: one tinted mesh per settlement
-    private long _catchmentVersion = -1; // Σ LastRecomputeTurn when fills were built
     private BasicEffect? _worldEffect;
     private static readonly RasterizerState WorldRasterizer = new()
     {
         CullMode = CullMode.None,
         MultiSampleAntiAlias = true, // ADR-009: MSAA is the anti-aliasing choice
     };
-
-    /// <summary>Built paths draw in INK-SOFT (§2) — a cartographer's road
-    /// hatch, not a colored line. Symbology (road tiers, trade) is DEFERRED.</summary>
-    private static readonly Color PathColor = new(
-        ParchmentPalette.InkSoft.R, ParchmentPalette.InkSoft.G, ParchmentPalette.InkSoft.B, (byte)235);
-
-    /// <summary>Territory fill alpha. Style-bible §2 rule: the twelve political
-    /// colors are INK WASHES over parchment, not opaque fills — ~35% strength,
-    /// so the paper and its terrain washes read through every territory.</summary>
-    private static readonly byte TerritoryAlpha =
-        (byte)Math.Round(255 * ParchmentPalette.TerritoryWashStrength);
 
     private bool _showCatchment = true; // T2.4: political geography on by default
     // T3.9b: the five-sector control's widget state (raw weight percentages,
@@ -131,11 +115,7 @@ public sealed class SimUiGame : Game
 
     private static Sim.Core.Systems.SimConfig LoadDisplayCfg()
     {
-        using var sim = Sim.Data.DataFiles.OpenSim();
-        using var needs = Sim.Data.DataFiles.OpenNeeds();
-        using var goods = Sim.Data.DataFiles.OpenGoods();
-        using var research = Sim.Data.DataFiles.OpenResearch();
-        return Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research);
+        return UiFounding.ProductionConfig();
     }
 
     /// <summary>T3.9a: the market panel's selected good — PURE UI STATE like
@@ -154,6 +134,24 @@ public sealed class SimUiGame : Game
     private int _selected;
 
     private MouseState _lastMouse;
+
+    // KNOWLEDGE & TECHNOLOGY progression screen (docs/architecture/research-tree-ui.md):
+    // full-screen, opened with K or the status-band button. Pure UI state; a click on an
+    // available node returns the SetResearchTarget order, which the session logs.
+    // ADR-031 / D-047 Part 4 D-G: the Age surfaces (capital panel, advance flow, transition toast)
+    // and the zoom-dependent world lens. Both are read-only projections; the only write path is
+    // the AdvanceAge order the session appends.
+    private readonly Sim.Ui.Ages.AgeScreen _age = new(LaborOrderFactory.PlayerEmpire);
+    private bool _agePanelDismissed;
+    private Sim.Ui.World.WorldProjection? _lens;
+    private long _lensTurn = -1;
+    private const int AgePanelX = 12, AgePanelY = 202, AgePanelW = 440;
+
+    private Sim.Ui.Progression.ProgressionScreen? _progression;
+    private bool _progressionOpen;
+    private DrawListImGuiBackend? _drawListBackend;
+    private bool _progressionDrag;
+    private int _progressionDownX, _progressionDownY;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
     // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
@@ -247,13 +245,11 @@ public sealed class SimUiGame : Game
         _lattice = TraversalLattice.Build(_world.Terrain, _displayCfg.Transport.RiverCostFactor);
         _latticeStride = OverlayMeshes.LatticeStride(_lattice, size);
 
-        _markerTexture = UploadArt(_art.Get("ui/settlement-marker"));
         _camera = new Camera(size);
         _camera.Clamp(Viewport().Width, Viewport().Height);
 
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
         RefreshHud(syncSlider: true);
-        RebuildOverlays();
     }
 
     // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
@@ -298,36 +294,6 @@ public sealed class SimUiGame : Game
         var texture = new Texture2D(GraphicsDevice, image.Width, image.Height, false, SurfaceFormat.Color);
         texture.SetData(image.Rgba);
         return texture;
-    }
-
-    private void RebuildOverlays()
-    {
-        if (_world.NetworkEdges.Count != _pathVersion)
-        {
-            _pathVertices?.Dispose();
-            _pathVertices = MakeBuffer(
-                OverlayMeshes.BuildPaths(_world, _lattice!.Size, _latticeStride), PathColor);
-            _pathVersion = _world.NetworkEdges.Count;
-        }
-
-        long catchmentVersion = 0;
-        for (int i = 0; i < _world.CatchmentSummaries.Count; i++)
-            catchmentVersion += _world.CatchmentSummaries[i].LastRecomputeTurn + 1;
-        if (catchmentVersion != _catchmentVersion)
-        {
-            // T2.4: the partition as political geography — one translucent
-            // mesh per settlement, tinted from the deterministic palette.
-            foreach (VertexBuffer? buffer in _territoryVertices) buffer?.Dispose();
-            LineGeometry.Vertex[][] fills =
-                OverlayMeshes.BuildTerritoryFills(_world, _lattice!.Size, _latticeStride);
-            _territoryVertices = new VertexBuffer?[fills.Length];
-            for (int s = 0; s < fills.Length; s++)
-            {
-                ParchmentPalette.Rgba ink = ParchmentPalette.TerritoryInk(_world.Settlements[s].Id.Value);
-                _territoryVertices[s] = MakeBuffer(fills[s], new Color(ink.R, ink.G, ink.B, TerritoryAlpha));
-            }
-            _catchmentVersion = catchmentVersion;
-        }
     }
 
     /// <summary>Rebuilds the cached HUD snapshot for the current selection;
@@ -398,10 +364,23 @@ public sealed class SimUiGame : Game
 
     private void EndTurn()
     {
+        int ageBefore = _session.Config.Ages is { } a0 ? AgeQuery.CurrentAge(_world, a0, LaborOrderFactory.PlayerEmpire) : 0;
         _session.EndTurn();
         _world = _session.World;
+        if (_session.Config.Ages is { } a1)
+        {
+            // The civilization-state change is announced only when the SIMULATION moved the Age.
+            int ageAfter = AgeQuery.CurrentAge(_world, a1, LaborOrderFactory.PlayerEmpire);
+            if (ageAfter != ageBefore)
+            {
+                int converted = 0;
+                foreach (UnitConversionRow c in MilitaryQuery.Conversions(_world, LaborOrderFactory.PlayerEmpire))
+                    if (c.ToAge == ageAfter && c.FromIdentity != c.ToIdentity) converted++;
+                _age.ShowTransition(ageAfter, a1.Age(ageAfter).Name,
+                    AgeQuery.StateRow(_world, LaborOrderFactory.PlayerEmpire) is { } row ? a1.SurgeByKey(row.Surge)?.Name : null, converted);
+            }
+        }
         RefreshHud(syncSlider: false);
-        RebuildOverlays();
         SaveSession();
     }
 
@@ -449,6 +428,26 @@ public sealed class SimUiGame : Game
         // once), and only when ImGui does not want the keyboard — a text field
         // owns its own Escape. GameSections.OnEscape says which case applied,
         // so one press is never both "close" and "exit".
+        if (IsActive && !io.WantCaptureKeyboard && keyboard.IsKeyDown(Keys.K) && !_lastKeyboard.IsKeyDown(Keys.K))
+            ToggleProgression();
+        if (_progressionOpen)
+        {
+            UpdateProgression(gameTime, mouse, keyboard, viewport);
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            base.Update(gameTime);
+            return;
+        }
+
+        _age.Advance(gameTime.ElapsedGameTime.TotalSeconds);
+        if (UpdateAge(mouse, keyboard))
+        {
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            base.Update(gameTime);
+            return;
+        }
+
         if (IsActive && !io.WantCaptureKeyboard
             && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
         {
@@ -485,6 +484,7 @@ public sealed class SimUiGame : Game
                 if (hit >= 0 && hit != _selected)
                 {
                     _selected = hit;
+                    _agePanelDismissed = false;
                     RefreshHud(syncSlider: true);
                 }
             }
@@ -545,6 +545,154 @@ public sealed class SimUiGame : Game
         base.Update(gameTime);
     }
 
+    /// <summary>Whether the player's capital is the selection (the Age panel's trigger).</summary>
+    private bool CapitalSelected =>
+        EmpireQuery.TryGetCapital(_world, LaborOrderFactory.PlayerEmpire, out SettlementId cap) && cap.Value == _selected;
+
+    private bool AgePanelVisible => CapitalSelected && !_agePanelDismissed && _session.Config.Ages is not null;
+
+    private Sim.Ui.Render.RectD AgePanelRect()
+    {
+        Rectangle v = Viewport();
+        return new Sim.Ui.Render.RectD(AgePanelX, AgePanelY, AgePanelW, Math.Max(360, v.Height - AgePanelY - 56 - 12));
+    }
+
+    /// <summary>
+    /// The Age surfaces' input. The advance flow is modal (it takes every click and Escape); the
+    /// docked capital panel takes clicks inside its rect. Returns true when the frame's input was
+    /// consumed. A confirm logs exactly the AdvanceAge order through the session — never a write.
+    /// </summary>
+    private bool UpdateAge(MouseState mouse, KeyboardState keyboard)
+    {
+        if (!IsActive || _session.Config.Ages is null) return false;
+        _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+        bool released = mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed;
+        if (_age.FlowOpen)
+        {
+            if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) _age.CloseFlow();
+            if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
+            return true;
+        }
+        if (!AgePanelVisible || !AgePanelRect().Contains(mouse.X, mouse.Y)) return false;
+        if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
+        return mouse.LeftButton == ButtonState.Pressed || released;
+    }
+
+    private void Dispatch(Sim.Ui.Ages.AgeCommand cmd)
+    {
+        if (cmd.ClosePanel) _agePanelDismissed = true;
+        if (cmd.OpenKnowledge && !_progressionOpen) ToggleProgression();
+        if (cmd.Order is { } order) _session.EmitAdvanceAge(order.TargetId, cmd.SurgeKey);
+    }
+
+    /// <summary>The world lens over the map (background list: under the chrome), and the Age panel,
+    /// flow and toast (foreground list: over it).</summary>
+    private void DrawWorldLensAndAge()
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        Rectangle v = Viewport();
+        Camera cam = _camera!;
+        if (_lens is null || _lensTurn != _world.Clock.Turn)
+        {
+            _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), LaborOrderFactory.PlayerEmpire);
+            _lensTurn = _world.Clock.Turn;
+        }
+        Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, v.Width, v.Height, cam.WorldSize);
+        var lens = new Sim.Ui.Render.DrawList();
+        Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
+            (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
+            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment);
+        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
+
+        if (_session.Config.Ages is null) return;
+        var top = new Sim.Ui.Render.DrawList();
+        _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+        if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), _session.Names.Name(_selected));
+        _age.PaintFlow(top, _drawListBackend, v.Width, v.Height);
+        _age.PaintToast(top, _drawListBackend, v.Width, 60);
+        _drawListBackend.Render(ImGui.GetForegroundDrawList(), top);
+    }
+
+    private void ToggleProgression()
+    {
+        if (_session.Config.Research is not { } content) return;
+        _progression ??= new Sim.Ui.Progression.ProgressionScreen(content, LaborOrderFactory.PlayerEmpire);
+        _progressionOpen = !_progressionOpen;
+        _progressionDrag = false;
+    }
+
+    /// <summary>The progression screen owns the whole window while open: Escape (or K, or the
+    /// close button) closes it, Space still ends the turn, and every click is routed through the
+    /// pure screen, which answers with the order to log — never a state write.</summary>
+    private void UpdateProgression(GameTime gameTime, MouseState mouse, KeyboardState keyboard, Rectangle viewport)
+    {
+        var screen = _progression!;
+        screen.Resize(viewport.Width, viewport.Height);
+        screen.Refresh(_world);
+        screen.Age = Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), LaborOrderFactory.PlayerEmpire);
+        if (!IsActive) return;
+        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { _progressionOpen = false; return; }
+        if (EndTurnKey.ShouldFire(keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space), false, false))
+            EndTurn();
+
+        double dt = gameTime.ElapsedGameTime.TotalSeconds;
+        double scroll = 900.0 * dt;
+        double sx = 0, sy = 0;
+        if (keyboard.IsKeyDown(Keys.W) || keyboard.IsKeyDown(Keys.Up)) sy -= scroll;
+        if (keyboard.IsKeyDown(Keys.S) || keyboard.IsKeyDown(Keys.Down)) sy += scroll;
+        if (keyboard.IsKeyDown(Keys.A) || keyboard.IsKeyDown(Keys.Left)) sx -= scroll;
+        if (keyboard.IsKeyDown(Keys.D) || keyboard.IsKeyDown(Keys.Right)) sx += scroll;
+        if (sx != 0 || sy != 0) screen.ScrollBy(sx, sy);
+        if (keyboard.IsKeyDown(Keys.D1) && !_lastKeyboard.IsKeyDown(Keys.D1)) screen.Tab = Sim.Ui.Progression.TreeTab.Technology;
+        if (keyboard.IsKeyDown(Keys.D2) && !_lastKeyboard.IsKeyDown(Keys.D2)) screen.Tab = Sim.Ui.Progression.TreeTab.Civics;
+
+        screen.PointerMove(mouse.X, mouse.Y);
+        int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
+        if (wheel != 0)
+        {
+            // The wheel scrolls the single (vertical) axis; Ctrl + wheel zooms.
+            if (keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl)) screen.WheelZoom(mouse.X, mouse.Y, wheel / 120.0);
+            else screen.Wheel(mouse.X, mouse.Y, wheel / 120.0);
+        }
+
+        if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Released)
+        {
+            _progressionDownX = mouse.X; _progressionDownY = mouse.Y; _progressionDrag = false;
+        }
+        if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Pressed)
+        {
+            if (Math.Abs(mouse.X - _progressionDownX) > 4 || Math.Abs(mouse.Y - _progressionDownY) > 4) _progressionDrag = true;
+            if (_progressionDrag) screen.Drag(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y);
+        }
+        if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag)
+        {
+            Sim.Ui.Progression.ProgressionCommand cmd = screen.Click(mouse.X, mouse.Y);
+            if (cmd.Close) _progressionOpen = false;
+            if (cmd.OpenAge)
+            {
+                // The Age chip: close the tree and open the Age surface on the capital.
+                _progressionOpen = false;
+                if (EmpireQuery.TryGetCapital(_world, LaborOrderFactory.PlayerEmpire, out SettlementId cap)) { _selected = cap.Value; _agePanelDismissed = false; RefreshHud(syncSlider: true); }
+                _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
+                _age.OpenFlow();
+            }
+            // The screen built the order with ResearchOrderFactory; the session logs it through
+            // the same factory (it refuses anything the simulation would ignore).
+            if (cmd.Node is { } node) _session.EmitResearchOrder(node);
+        }
+        screen.Advance(dt);
+    }
+
+    private void DrawProgression()
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        var screen = _progression!;
+        System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
+        screen.Refresh(_world);
+        Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);
+        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), list);
+    }
+
     protected override void Draw(GameTime gameTime)
     {
         double dt = gameTime.ElapsedGameTime.TotalSeconds;
@@ -566,50 +714,17 @@ public sealed class SimUiGame : Game
             0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
         _spriteBatch.End();
 
-        // World-space vector layers: catchment fill (toggle) under paths under rivers.
+        // World-space vector layers. Layer ownership (Sim.Ui/World/MapLayers.cs): this GPU pass owns
+        // ONLY the terrain bake (above) and the vector rivers. Territory, paths, settlement markers and
+        // names, formations, institutions and Age banners are owned by the WorldLens (drawn in
+        // DrawWorldLensAndAge) — the legacy catchment fills, path mesh and marker sprites are no longer
+        // drawn here, so no layer appears twice.
         _worldEffect!.World = transform;
         _worldEffect.Projection = Matrix.CreateOrthographicOffCenter(
             0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
         GraphicsDevice.RasterizerState = WorldRasterizer;
-        GraphicsDevice.BlendState = BlendState.NonPremultiplied; // translucent fill needs alpha
-        if (_showCatchment)
-        {
-            foreach (VertexBuffer? territory in _territoryVertices)
-                DrawWorldBuffer(territory);
-        }
-        DrawWorldBuffer(_pathVertices);
+        GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         DrawWorldBuffer(_riverVertices);
-
-        // Settlement markers: world-anchored, constant SCREEN size — readable at
-        // every zoom by construction (no transform on the sprite pass).
-        // NonPremultiplied: our textures carry straight alpha from the PNG
-        // (UploadArt does not premultiply); SpriteBatch's default AlphaBlend
-        // assumes premultiplied and would rim the real marker's antialiased
-        // edge with a bright halo. The ImGui pass already draws straight alpha.
-        _spriteBatch.Begin(samplerState: SamplerState.LinearClamp, blendState: BlendState.NonPremultiplied);
-        for (int i = 0; i < _world.Settlements.Count; i++)
-        {
-            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
-                _world.Settlements[i], _world.Terrain!.Size);
-            (double sx, double sy) = cam.WorldToScreen(
-                position.X, position.Y, viewport.Width, viewport.Height);
-            const float markerPx = (float)SettlementSelection.MarkerScreenPx;
-            bool isSelected = _world.Settlements[i].Id.Value == _selected;
-            if (isSelected)
-            {
-                // T2.4: the selected marker is unmistakable — a gold halo ring
-                // behind an enlarged marker.
-                const float haloPx = markerPx + 10f;
-                _spriteBatch.Draw(_markerTexture,
-                    new Rectangle((int)(sx - haloPx / 2), (int)(sy - haloPx / 2),
-                        (int)haloPx, (int)haloPx), new Color(0xFF, 0xD2, 0x5A, 0xFF));
-            }
-            float drawPx = isSelected ? markerPx + 4f : markerPx;
-            _spriteBatch.Draw(_markerTexture,
-                new Rectangle((int)(sx - drawPx / 2), (int)(sy - drawPx / 2),
-                    (int)drawPx, (int)drawPx), Color.White);
-        }
-        _spriteBatch.End();
 
         DrawHud(gameTime);
         DrawGrainOverlay();   // §4 item 2: multiplied over EVERYTHING, UI included
@@ -652,7 +767,6 @@ public sealed class SimUiGame : Game
     /// AfterLayout, so DrawHud calls it.</summary>
     private void DrawNameLabels()
     {
-        ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
         Rectangle viewport = Viewport();
         const float markerPx = (float)SettlementSelection.MarkerScreenPx;
         _labelRects.Clear();
@@ -665,9 +779,8 @@ public sealed class SimUiGame : Game
             string name = _session.Names.Name(_world.Settlements[i].Id.Value);
             var pos = new System.Numerics.Vector2(
                 (float)sx + markerPx / 2f + 4f, (float)sy - markerPx / 2f);
-            // Shadowed for readability over any terrain color.
-            drawList.AddText(pos + new System.Numerics.Vector2(1, 1), 0xE0000000u, name);
-            drawList.AddText(pos, 0xFFE8DCC0u, name); // parchment
+            // The name TEXT is the WorldLens's (MapLayer.SettlementMarkers owner); only the click
+            // target is kept here, so a name is never drawn twice.
             // D-A2: the label is part of the click target. The rect is
             // measured HERE (the renderer owns font metrics) and handed to
             // the pure view-model — ImGui never crosses into SettlementSelection.
@@ -811,7 +924,16 @@ public sealed class SimUiGame : Game
         _imgui!.BeforeLayout(gameTime);
         if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
 
+        if (_progressionOpen && _progression is not null)
+        {
+            DrawProgression();
+            if (_fonts is not null) ImGui.PopFont();
+            _imgui.AfterLayout();
+            return;
+        }
+
         DrawCompassRose();  // art substrate: §4 item 5 furniture
+        DrawWorldLensAndAge();   // ADR-031: zoom lens (background) + Age panel/flow/toast (foreground)
         DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
         DrawStatusBand();
@@ -869,6 +991,8 @@ public sealed class SimUiGame : Game
             ImGui.TextUnformatted("last turn: " + audit.Digest);
         }
         PopDataFont();
+        ImGui.SameLine(0, 28);
+        if (ImGui.Button("Knowledge [K]##progression")) ToggleProgression();
         ImGui.End();
     }
 
