@@ -153,6 +153,17 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 builderYears = Math.Max(0.0, builderYears - prev.Housing[i].LastLaborUsed);
                 break;
             }
+            // ADR-033 D10: the construction QUEUE draws on the same pool too. Its published
+            // labour (ConstructionLaborRow.LastLaborUsed, rebuilt each step; absent = 0) is
+            // subtracted at the same one-turn lag, so capacity a project consumed is spent ONCE
+            // and never also banked toward dirt paths. No row in any world that built nothing,
+            // so the subtraction is skipped there and the bank is bit-identical.
+            for (int i = 0; i < prev.ConstructionLabor.Count; i++)
+            {
+                if (prev.ConstructionLabor[i].Settlement != settlement.Id) continue;
+                builderYears = Math.Max(0.0, builderYears - prev.ConstructionLabor[i].LastLaborUsed);
+                break;
+            }
 
             double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builderYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);

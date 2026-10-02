@@ -212,7 +212,7 @@ public static class SystemCatalog
         var system = new ConstructionSystem(cfg);
         return new SystemRegistration(ConstructionSystem.WellKnownId, ConstructionSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConstructionTables>(
-                prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks),
+                prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks, next.ConstructionLabor),
                 rng, ConstructionSystem.WellKnownId, dtDays, dtYears, orders,
                 new Ledger(next.LedgerFlows))));
     }
