@@ -40,6 +40,21 @@ if (Array.IndexOf(args, "--generate-placeholder-assets") >= 0)
     return;
 }
 
+// --research-preview [dir] (docs/architecture/research-tree-ui.md): paint the KNOWLEDGE &
+// TECHNOLOGY progression screen from a REAL founded and stepped world to SVG and exit,
+// without opening a window. docs/architecture/research-tree-ui/render-previews.sh turns the SVGs into PNGs.
+if (Array.IndexOf(args, "--research-preview") >= 0)
+{
+    int previewAt = Array.IndexOf(args, "--research-preview");
+    string previewDir = previewAt + 1 < args.Length && !args[previewAt + 1].StartsWith("--")
+        ? args[previewAt + 1]
+        : "research-preview";
+    string fontDir = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.Progression.ProgressionPreview.Run(previewDir, Directory.Exists(fontDir) ? fontDir : null))
+        Console.WriteLine($"research preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);

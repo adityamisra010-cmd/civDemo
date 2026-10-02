@@ -154,6 +154,15 @@ public sealed class SimUiGame : Game
     private int _selected;
 
     private MouseState _lastMouse;
+
+    // KNOWLEDGE & TECHNOLOGY progression screen (docs/architecture/research-tree-ui.md):
+    // full-screen, opened with K or the status-band button. Pure UI state; a click on an
+    // available node returns the SetResearchTarget order, which the session logs.
+    private Sim.Ui.Progression.ProgressionScreen? _progression;
+    private bool _progressionOpen;
+    private DrawListImGuiBackend? _drawListBackend;
+    private bool _progressionDrag;
+    private int _progressionDownX, _progressionDownY;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
     // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
@@ -449,6 +458,17 @@ public sealed class SimUiGame : Game
         // once), and only when ImGui does not want the keyboard — a text field
         // owns its own Escape. GameSections.OnEscape says which case applied,
         // so one press is never both "close" and "exit".
+        if (IsActive && !io.WantCaptureKeyboard && keyboard.IsKeyDown(Keys.K) && !_lastKeyboard.IsKeyDown(Keys.K))
+            ToggleProgression();
+        if (_progressionOpen)
+        {
+            UpdateProgression(gameTime, mouse, keyboard, viewport);
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            base.Update(gameTime);
+            return;
+        }
+
         if (IsActive && !io.WantCaptureKeyboard
             && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
         {
@@ -543,6 +563,72 @@ public sealed class SimUiGame : Game
         _lastMouse = mouse;
         _lastKeyboard = keyboard;
         base.Update(gameTime);
+    }
+
+    private void ToggleProgression()
+    {
+        if (_session.Config.Research is not { } content) return;
+        _progression ??= new Sim.Ui.Progression.ProgressionScreen(content, LaborOrderFactory.PlayerEmpire);
+        _progressionOpen = !_progressionOpen;
+        _progressionDrag = false;
+    }
+
+    /// <summary>The progression screen owns the whole window while open: Escape (or K, or the
+    /// close button) closes it, Space still ends the turn, and every click is routed through the
+    /// pure screen, which answers with the order to log — never a state write.</summary>
+    private void UpdateProgression(GameTime gameTime, MouseState mouse, KeyboardState keyboard, Rectangle viewport)
+    {
+        var screen = _progression!;
+        screen.Resize(viewport.Width, viewport.Height);
+        screen.Refresh(_world);
+        if (!IsActive) return;
+        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { _progressionOpen = false; return; }
+        if (EndTurnKey.ShouldFire(keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space), false, false))
+            EndTurn();
+
+        double dt = gameTime.ElapsedGameTime.TotalSeconds;
+        double scroll = 900.0 * dt;
+        double sx = 0, sy = 0;
+        if (keyboard.IsKeyDown(Keys.W) || keyboard.IsKeyDown(Keys.Up)) sy -= scroll;
+        if (keyboard.IsKeyDown(Keys.S) || keyboard.IsKeyDown(Keys.Down)) sy += scroll;
+        if (keyboard.IsKeyDown(Keys.A) || keyboard.IsKeyDown(Keys.Left)) sx -= scroll;
+        if (keyboard.IsKeyDown(Keys.D) || keyboard.IsKeyDown(Keys.Right)) sx += scroll;
+        if (sx != 0 || sy != 0) screen.ScrollBy(sx, sy);
+        if (keyboard.IsKeyDown(Keys.D1) && !_lastKeyboard.IsKeyDown(Keys.D1)) screen.Tab = Sim.Ui.Progression.TreeTab.Technology;
+        if (keyboard.IsKeyDown(Keys.D2) && !_lastKeyboard.IsKeyDown(Keys.D2)) screen.Tab = Sim.Ui.Progression.TreeTab.Civics;
+
+        screen.PointerMove(mouse.X, mouse.Y);
+        int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
+        if (wheel != 0) screen.Wheel(mouse.X, mouse.Y, wheel / 120.0);
+
+        if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Released)
+        {
+            _progressionDownX = mouse.X; _progressionDownY = mouse.Y; _progressionDrag = false;
+        }
+        if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Pressed)
+        {
+            if (Math.Abs(mouse.X - _progressionDownX) > 4 || Math.Abs(mouse.Y - _progressionDownY) > 4) _progressionDrag = true;
+            if (_progressionDrag) screen.Drag(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y);
+        }
+        if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag)
+        {
+            Sim.Ui.Progression.ProgressionCommand cmd = screen.Click(mouse.X, mouse.Y);
+            if (cmd.Close) _progressionOpen = false;
+            // The screen built the order with ResearchOrderFactory; the session logs it through
+            // the same factory (it refuses anything the simulation would ignore).
+            if (cmd.Node is { } node) _session.EmitResearchOrder(node);
+        }
+        screen.Advance(dt);
+    }
+
+    private void DrawProgression()
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        var screen = _progression!;
+        System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
+        screen.Refresh(_world);
+        Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);
+        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), list);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -811,6 +897,14 @@ public sealed class SimUiGame : Game
         _imgui!.BeforeLayout(gameTime);
         if (_fonts is { } fonts) ImGui.PushFont(fonts.Body);
 
+        if (_progressionOpen && _progression is not null)
+        {
+            DrawProgression();
+            if (_fonts is not null) ImGui.PopFont();
+            _imgui.AfterLayout();
+            return;
+        }
+
         DrawCompassRose();  // art substrate: §4 item 5 furniture
         DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
@@ -869,6 +963,8 @@ public sealed class SimUiGame : Game
             ImGui.TextUnformatted("last turn: " + audit.Digest);
         }
         PopDataFont();
+        ImGui.SameLine(0, 28);
+        if (ImGui.Button("Knowledge [K]##progression")) ToggleProgression();
         ImGui.End();
     }
 
