@@ -107,7 +107,26 @@ What each element draws from:
   - universities exist only as polity-level `ResearchCostModifiers` rows, never placed in a settlement — "none founded" when there are none;
   - "Structures: none built yet".
 
-## 6. Tests (`Sim.Ui.Tests/AgeAndWorldUiTests.cs`, 19 cases)
+### 5.1 Map layer ownership (one owner per layer)
+
+Before this pass the lens was drawn on top of the legacy GPU map layers, so territory, paths and settlement marks/names appeared twice. `Sim.Ui/World/MapLayers.cs` (`MapLayerOwnership`) is now the single authority. Each layer has exactly one owner, and the other renderer does not draw it:
+
+| Map layer | Owner | Drawn by | Notes |
+|---|---|---|---|
+| Terrain (parchment bake) | Map renderer | `SimUiGame.Draw` sprite pass | substrate under everything |
+| Rivers (vector mesh) | Map renderer | `SimUiGame.Draw` `_riverVertices` | zoom-rebuilt width (D-A3) |
+| Territory | **WorldLens** | `WorldLayer.Territories` | polity-tinted catchment blocks at World/Regional zoom; the in-game `territory` checkbox now gates this layer (`Paint(showTerritory:)`). Legacy per-settlement fills **removed**. |
+| Paths / roads | **WorldLens** | `MajorInfrastructure` / `Roads` | dashed network at World zoom, cased roads below. Legacy path mesh **removed**. |
+| Settlement markers and names | **WorldLens** | `MajorSettlements`, `SettlementMorphology`, density, population, production | sized mark + capital star at World zoom, aggregated morphology below; the name is drawn here. Legacy marker sprite and name text **removed**; the legacy label *click rect* is still computed for selection (no drawing). |
+| Unit tokens | **WorldLens** | `MilitaryFormations` | one per `MilitaryUnits` row |
+| Institution markers | **WorldLens** | `InstitutionalPresence` / `InstitutionTypes` | structures and universities, see below |
+| Age banners | **WorldLens** | `AgeBanners` | controller's numeral |
+
+`WorldLens.Paint` charges every draw command it emits to exactly one map layer (`LensFrame.LayerDraws`), so ownership is tested by draw-call accounting on a real world, not by inspection.
+
+**Institution markers.** Aggregated and embedded inside the footprint: one glyph per structure kind (`Structures` rows of the settlement, count > 0) and one per specialized-university type the controlling polity holds. Universities are polity-level `ResearchCostModifiers` rows (ADR-029 §9; no system writes them yet), so they are shown in the polity's **capital** — its seat — and nowhere else; no per-settlement placement is invented. Regional zoom: glyphs only. Settlement zoom: a key beside the footprint names each glyph with its aggregated count ("granary x2", "Engineering University x2", count = rows of that type). The five university types (1 Military, 2 Medical, 3 Engineering, 4 Natural Science, 5 Agricultural) each have a distinct ink and emblem on a pedimented hall (crossed blades, cross, gear, orbit, sheaf). `LensFrame.Institutions` lists every marker drawn.
+
+## 6. Tests (`Sim.Ui.Tests/AgeAndWorldUiTests.cs`, 19 cases; `WorldLayerOwnershipTests.cs`, 10 cases)
 
 The fixture is a real seed-42 session (256 px, 4 settlements) played through the real order pathway. It saves its turn-12 world (not eligible), then plays on until `AgeQuery.IsEligible`, which happens at turn 292.
 
@@ -131,6 +150,16 @@ The fixture is a real seed-42 session (256 px, 4 settlements) played through the
   - Painting it twice gives identical SVG.
 - **Transition.** The real advance through the session changes the projection's Age 1 → 2, the regional banners from all "I" to "II", and the toast text.
 
+**Layer ownership and institutions** (`WorldLayerOwnershipTests`) run on the **institution fixture** (`InstitutionWorldFixture`, test-only): a seed-42 world founded through `UiSession` and played 6 End Turns, cloned, and given rows of the simulation's own types — `StructureRow` granary ×2 and workshop ×1 in the player's capital, granary ×1 in a second settlement; `ResearchCostModifierRow` for all five university types for the player (Engineering twice) plus one row for a polity that controls nothing — then wrapped by `UiSession.StartFrom`. Nothing of it is reachable from production code.
+
+- Every map layer has exactly one owner; the legacy pass keeps only Terrain and Rivers.
+- At every zoom the lens charges zero commands to Terrain/Rivers, every command to exactly one layer, and draws every lens-owned layer at some zoom.
+- Territory draws equal `CatchmentNodes.Count` (World/Regional) and path draws equal `NetworkEdges.Count` × strokes (1 dashed, or 2 casing + road) — not doubled; the territory toggle turns the layer off.
+- A source guard: `SimUiGame.cs` no longer builds or draws the territory fills, path mesh, marker sprite or name text.
+- Institution markers drawn equal exactly the markers implied by `Structures` and `ResearchCostModifiers` (sorted set equality, counts included) at Regional and Settlement zoom; none at World zoom; the "none built / none founded" legend lines disappear.
+- Settlement zoom names and counts ("granary x2", "Engineering University x2", the four others); Regional draws glyphs without names.
+- The five university glyphs and inks are pairwise distinct; glyphs lie inside the capital's footprint; projection and paint are read-only.
+
 Existing tests: two founding-equivalence tests were updated from the four-stream to the six-stream recipe. This is the canonical CLI recipe, which they were meant to pin.
 
 ## 7. Previews (`age-and-world-ui/`)
@@ -148,14 +177,16 @@ Run `docs/architecture/age-and-world-ui/render-previews.sh`, which runs `sim-ui 
 | `07-world-zoom-settlement.png` | Settlement zoom on the capital: population and dwellings, infrastructure density, labour split (honestly "default"), warband on the rim |
 | `08-after-transition-world.png` | Turn 293: the transition toast and Age II settlements (banner II, palisade, house blocks) |
 | `09-capital-age-panel-after-transition.png` | The capital panel in Age II, now tracking Age III requirements |
+| `10-institutions-settlement-zoom.png` | **Institution fixture** (test-only), settlement zoom on the capital: granary/workshop and the five university glyphs embedded in the footprint, key with counts |
+| `11-institutions-regional-zoom.png` | Institution fixture, regional zoom: the same institutions as glyphs only |
+
+`10`/`11` are rendered by `render-institution-preview.sh`, which runs the test `Preview_InstitutionFixture_Svg` with `CIV_INSTITUTION_PREVIEW_OUT` set (the fixture lives in the test project only) and screenshots the SVGs.
 
 ## 8. Gaps (stated, not hidden)
 
 - **The canonical world has no AI Empires** (`worldgen.json` `aiEmpires` = 0). The AI order path is therefore exercised by a constructed world in tests, not by the default game.
-- **No structures are built in the previews.** The preview run issues no construction orders, so the institution-glyph path (granary/workshop with counts) is exercised only when a player builds. The legend then says "Structures: none built yet".
-- **Universities.**
-  - A preview world founds none, so the legend reports none.
-  - They are polity-level in the simulation. The lens does not place them in a settlement and does not invent a settlement-level presence.
+- **No structures are built and no universities exist in the real-play previews** (01–09). The preview run issues no construction orders, and no system writes `ResearchCostModifiers`, so the legend there says "Structures: none built yet" / "Universities: none founded". The institution markers are exercised and previewed on the test-only institution fixture (`10`, `11`).
+- **Universities are polity-level** in the simulation; the lens shows them in the polity's capital and does not invent a settlement-level placement.
 - **The founding warband stays a Warband entering Age II** (ruling 18: no later realization of its family yet). The modernization preview therefore shows a "kept" line. The family-graph column shows the conversions that exist (Slingers → Archers, Spearmen first appearing).
-- **The in-game lens is drawn over the existing map layers** (territory tint, path mesh, markers). Previews draw the lens alone over the terrain bake. In-game, the lens may visually double the existing territory and path drawing. A later pass could hide the legacy meshes when the lens is active. This is a presentation choice and was left unchanged to avoid altering pinned map tests.
+- **Layer duplication resolved** (§5.1): the in-game legacy territory fills, path mesh, marker sprites and name text are no longer drawn; the lens is the only owner of those layers.
 - **The preview PNGs are headless-SVG renders of the same `DrawList`** the game replays through ImGui. Fonts are approximated by `ApproxTextMeasure`, so in-game glyph metrics can differ slightly.
