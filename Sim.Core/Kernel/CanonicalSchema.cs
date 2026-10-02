@@ -127,8 +127,11 @@ public static class CanonicalSchema
     /// v29 (ADR-032, the transport/inter-city road foundation): TransportEdges and
     /// RoadDevelopments appended after UnitConversions — the built inter-settlement
     /// transport MULTIGRAPH (edge id, endpoints, class, mode, construction state,
-    /// capacity, length, a neutral read-only condition placeholder; no owner field) and
-    /// the road-development log. No existing row changed width; NetworkEdges (the free
+    /// capacity, length, a neutral read-only condition placeholder, the in-place
+    /// modernization state — target class, fraction, effective cost factor; no owner
+    /// field) and the road-development log (with progress before/after). The row widths
+    /// were amended on the unmerged branch before any merge (80 / 68 bytes); v29 has
+    /// never existed on main with any other layout. No existing row changed width; NetworkEdges (the free
     /// DirtPath baseline) is untouched.
     public const int Version = 29;
 
@@ -187,8 +190,8 @@ public static class CanonicalSchema
     private const int AgeTransitionRowWidth = 4 + 4 + 4 + 4 + 8 + 8; // Polity, From, To, Surge, DecisionTurn, EffectiveTurn (v28)
     private const int MilitaryUnitRowWidth = 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 4; // Id, Owner, Family, Identity, Location, X, Y, Experience bits, Army (v28)
     private const int UnitConversionRowWidth = 8 + 4 * 9;           // Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, FromAge, ToAge, Outcome (v28)
-    private const int TransportEdgeRowWidth = 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 8 + 8; // Id, A, B, EdgeType, Mode, State, Capacity, LengthKm bits, Condition, BuiltTurn, UpgradedTurn (v29)
-    private const int RoadDevelopmentRowWidth = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8;   // Turn, Polity, Edge, A, B, FromClass, ToClass, Kind, Usage, MaterialUnits (v29)
+    private const int TransportEdgeRowWidth = 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 8 + 8 + 4 + 8 + 8; // Id, A, B, EdgeType, Mode, State, Capacity, LengthKm bits, Condition, BuiltTurn, UpgradedTurn, TargetClass, Modernization bits, CostFactor bits (v29)
+    private const int RoadDevelopmentRowWidth = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8;   // Turn, Polity, Edge, A, B, FromClass, ToClass, Kind, Usage, MaterialUnits, ProgressBefore bits, ProgressAfter bits (v29)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -794,6 +797,9 @@ public static class CanonicalSchema
             writer.Write(row.Condition);
             writer.Write(row.BuiltTurn);
             writer.Write(row.UpgradedTurn);
+            writer.Write(row.TargetClass);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Modernization));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.CostFactor));
         }
 
         // 54. RoadDevelopments (v29, ADR-032)
@@ -811,6 +817,8 @@ public static class CanonicalSchema
             writer.Write(row.Kind);
             writer.Write(row.Usage);
             writer.Write(row.MaterialUnits);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ProgressBefore));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ProgressAfter));
         }
     }
 
@@ -1294,7 +1302,8 @@ public static class CanonicalSchema
                 reader.ReadInt32(), new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
                 reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64(),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()), reader.ReadInt32(),
-                reader.ReadInt64(), reader.ReadInt64()));
+                reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt32(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
         int roadDevelopmentCount = reader.ReadInt32();
@@ -1303,7 +1312,8 @@ public static class CanonicalSchema
             world.RoadDevelopments.Add(new RoadDevelopmentRow(
                 reader.ReadInt64(), new PolityId(reader.ReadInt32()), reader.ReadInt32(),
                 new SettlementId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
-                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64(), reader.ReadInt64()));
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64(), reader.ReadInt64(),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
         return world;

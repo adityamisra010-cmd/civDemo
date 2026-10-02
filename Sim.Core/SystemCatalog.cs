@@ -49,7 +49,8 @@ namespace Sim.Core;
 ///     never a source, never another good, no remainder field touched.
 ///   ROAD DEVELOPMENT (ADR-032, the SIXTH holder) owns: Amount via Ledger SINK
 ///     only, reason ConstructionMaterials, on the rows its roads.classes materials
-///     name, at the PAYING endpoint settlement — never a source, no remainder field.
+///     name, at the ISSUING civilization's controlled settlements in ascending id
+///     (never an endpoint as such) — never a source, no remainder field.
 ///     It runs only on a turn carrying a DevelopRoads order.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or

@@ -102,8 +102,9 @@ public static class EdgeTypes
     };
 }
 
-/// <summary>ADR-032 — the three D-009 road tiers. An upgrade INSIDE a tier rebuilds the same
-/// physical route; reaching a HIGHER tier is a new alignment (a parallel physical route).</summary>
+/// <summary>ADR-032 — the three D-009 road tiers (frozen progression: path → road → highway).
+/// Tiers classify; they do not decide geometry: EVERY modernization, inside a tier or across
+/// tiers, upgrades the same physical route in place (the Director's final ruling 6).</summary>
 public static class RoadTiers
 {
     public const int Path = 1;

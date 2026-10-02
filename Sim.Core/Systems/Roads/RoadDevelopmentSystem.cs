@@ -10,34 +10,38 @@ public sealed record RoadDevelopmentTables(
     Table<TransportEdgeRow> Edges, Table<RoadDevelopmentRow> Log, Table<GoodStockRow> GoodStocks);
 
 /// <summary>
-/// ADR-032 — THE ONE AUTHORITATIVE ROAD-DEVELOPMENT OPERATION (the Director's transport rulings
-/// 1, 2, 9, 12–15). Roads are built by a civilization-level ACTION, never by a builder unit, and
-/// the action is the same for the player and for the AI: a DevelopRoads order (OrderKind 8)
+/// ADR-032 — THE ONE AUTHORITATIVE ROAD-DEVELOPMENT OPERATION (the Director's final transport
+/// rulings 5–17). Roads are developed by a civilization-level ACTION, never by a builder unit,
+/// and the action is the same for the player and for the AI: a DevelopRoads order (OrderKind 8)
 /// asking for X% of eligible inter-city transport demand.
 ///
 /// THE STEP, in order-log order, first DevelopRoads per Empire per turn:
 ///  1. PLAN with <see cref="RoadDevelopmentQuery.Plan(IReadOnlyWorldState, IReadOnlyTable{TransportEdgeRow}, Research.ResearchContent, RoadsConfig, GoodsConfig, PolityId, double)"/>
 ///     — the single selection the UI preview and the AI policy also read. Inputs are PREV
-///     (research, controls, the cached pairwise baseline, last turn's realised trade) plus this
-///     system's NEXT edge table, so a second Empire's order in the same step sees the first's
-///     roads and never double-builds a pair.
-///  2. PAY AND BUILD, step by step in plan order: the payer's live (NEXT) stock must hold EVERY
-///     material in full; then each material leaves through Ledger.Flow (sink,
-///     ReasonIds.ConstructionMaterials — a road is a structure, the M4-D argument) and the edge is
-///     upgraded in place or a new parallel edge is appended. THE FIRST STEP THAT CANNOT BE PAID
-///     ENDS THE ORDER — the built set is the longest affordable PREFIX of the ranking; nothing
-///     cheaper further down is substituted, nothing is overspent, no debt exists.
-///  3. LOG one RoadDevelopmentRow per built step.
+///     (research, controls, the cached pairwise travel costs, last turn's realised trade) plus
+///     this system's NEXT route table, so a second Empire's order in the same step sees the
+///     first's modernization.
+///  2. PAY, step by step in plan order, from the ISSUING CIVILIZATION's goods (the settlements
+///     it controls, ascending id — <see cref="RoadDevelopmentQuery.PayingSettlements"/>), each
+///     unit leaving through Ledger.Flow (sink, ReasonIds.ConstructionMaterials). The step's cost
+///     is that of completing the modernization; if only a proportion p &lt; 1 is affordable,
+///     floor(p × units) of each good is charged and exactly the modernization those units buy
+///     is performed, AND THE ORDER ENDS (its purse is exhausted in at least one good). Nothing is
+///     overspent, no debt exists, no cost moves to another civilization.
+///  3. MODERNIZE IN PLACE: the route row keeps its id; its fraction toward the target grows; at
+///     1 its class becomes the target. A bare baseline path gets its route row (its stable id) on
+///     its first development — the same physical route, never a parallel one. The row's
+///     effective cost factor and capacity are re-derived by <see cref="RoadPerformance"/>.
+///  4. LOG one RoadDevelopmentRow per modernized route (which also moves the combined network
+///     revision, so catchments and pairwise travel costs are recomputed next turn — D-016).
 ///
-/// Construction is atomic within the step (no timer, no partial state — the ConstructionSystem
-/// precedent), so an order stamped turn t shows its roads in the state of turn t+1.
+/// Modernization is atomic within the step (no multi-turn project, no builder): an order stamped
+/// turn t shows its effect in the state of turn t+1.
 ///
-/// WHAT IT NEVER DOES. It never runs without an order (no per-turn scan of anything: a turn with
-/// no DevelopRoads returns at the first loop). It never builds DirtPath — the free baseline is
-/// PathBuild's and costs nothing (ruling 3). Research completion builds nothing (ruling 15): it
-/// only widens what the next order may choose. It writes no owner (ruling 6) and never reads or
-/// changes Condition (ruling 8). No RNG; no dt (a discrete action — law 3 does not apply).
-/// Inert without roads tuning, research content or goods content.
+/// WHAT IT NEVER DOES. It never runs without an order. It never charges for the free baseline
+/// (DirtPath costs nothing; ruling 2). Research completion builds nothing: it only widens what
+/// the next order may choose. It writes no owner and never reads or changes Condition. No RNG;
+/// no dt (a discrete action). Inert without roads tuning, research content or goods content.
 /// </summary>
 public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelopmentTables>
 {
@@ -46,8 +50,8 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     public const string Name = "roaddevelopment";
 
     /// <summary>RoadDevelopmentRow.Kind values.</summary>
-    public const int KindUpgrade = (int)RoadDevelopmentKind.Upgrade;
-    public const int KindNewRoute = (int)RoadDevelopmentKind.NewRoute;
+    public const int KindModernize = (int)RoadDevelopmentKind.Modernize;
+    public const int KindFromBaseline = (int)RoadDevelopmentKind.FromBaseline;
 
     private readonly SimConfig _cfg = cfg;
 
@@ -77,66 +81,105 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     {
         IReadOnlyWorldState prev = ctx.Prev;
         RoadDevelopmentTables owned = ctx.Owned;
+        RoadsConfig roads = _cfg.Roads!;
         RoadDevelopmentStep[] plan = RoadDevelopmentQuery.Plan(
-            prev, owned.Edges, _cfg.Research!, _cfg.Roads!, _cfg.Goods!, polity, percent);
+            prev, owned.Edges, _cfg.Research!, roads, _cfg.Goods!, polity, percent);
+        if (plan.Length == 0) return;
+        SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(prev, polity);
         long effectiveTurn = prev.Clock.Turn + 1;
 
         for (int p = 0; p < plan.Length; p++)
         {
             RoadDevelopmentStep step = plan[p];
-            if (!Affordable(owned.GoodStocks, step)) return;   // the affordable PREFIX ends here
+            RouteStatus route = step.Route;
+            double affordable = RoadDevelopmentQuery.AffordableFraction(owned.GoodStocks, payers, step.Cost);
+            bool complete = affordable >= 1.0;
+
+            // Units charged: the full cost, or floor(p × units) per good. The modernization
+            // performed is what the charged units buy — the minimum charged/full ratio — so a
+            // partial step is never free and never more than paid for.
+            var charge = new long[step.Cost.Length];
+            double bought = 1.0;
+            for (int m = 0; m < step.Cost.Length; m++)
+            {
+                long full = step.Cost[m].Units;
+                charge[m] = complete ? full : (long)Math.Floor(full * affordable);
+                long have = RoadDevelopmentQuery.CivilizationStock(owned.GoodStocks, payers, step.Cost[m].Good);
+                if (charge[m] > have) charge[m] = have;                       // defensive: never overspend
+                if (!complete)
+                {
+                    double ratio = (double)charge[m] / full;
+                    if (ratio < bought) bought = ratio;
+                }
+            }
+            if (!complete && !(bought > 0.0)) return;   // nothing affordable: the order ends here
 
             long units = 0;
             for (int m = 0; m < step.Cost.Length; m++)
             {
-                RoadMaterialCost c = step.Cost[m];
-                int idx = FindStock(owned.GoodStocks, step.Payer, c.Good);
-                ctx.Ledger.Flow(ref owned.GoodStocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(c.Good),
-                    ReasonIds.ConstructionMaterials, c.Units, FlowDirection.Sink, OverdrawPolicy.Throw);
-                units += c.Units;
+                units += charge[m];
+                Draw(ctx, owned.GoodStocks, payers, step.Cost[m].Good, charge[m]);
             }
 
-            RouteStatus route = step.Route;
-            RoadClassConfig cls = _cfg.Roads!.ClassOf(route.TargetClass)!;
-            int edgeId;
-            int fromClass;
-            if (route.Kind == RoadDevelopmentKind.Upgrade)
-            {
-                int at = IndexOfEdge(owned.Edges, route.UpgradeEdge);
-                TransportEdgeRow e = owned.Edges[at];
-                fromClass = e.EdgeType;
-                edgeId = e.Id;
-                owned.Edges[at] = e with
-                {
-                    EdgeType = route.TargetClass, CapacityTonnesPerYear = cls.CapacityTonnesPerYear,
-                    UpgradedTurn = effectiveTurn,
-                };
-            }
-            else
-            {
-                fromClass = route.BestExistingClass;
-                edgeId = NextEdgeId(owned.Edges);
-                owned.Edges.Add(new TransportEdgeRow(
-                    edgeId, route.A, route.B, route.TargetClass, TransportModes.Road, TransportEdgeStates.Complete,
-                    cls.CapacityTonnesPerYear, route.LengthKm, Condition: 0, BuiltTurn: effectiveTurn,
-                    UpgradedTurn: effectiveTurn));
-            }
+            double before = route.StartFraction;
+            double after = complete ? 1.0 : before + (1.0 - before) * bought;
+            if (after >= 1.0) { after = 1.0; complete = true; }
+            int edgeId = WriteRoute(owned.Edges, roads, route, after, effectiveTurn);
 
             owned.Log.Add(new RoadDevelopmentRow(
-                prev.Clock.Turn, polity, edgeId, route.A, route.B, fromClass, route.TargetClass,
-                (int)route.Kind, route.Usage, units));
+                prev.Clock.Turn, polity, edgeId, route.A, route.B, route.CurrentClass, route.TargetClass,
+                (int)route.Kind, route.Usage, units, before, after));
+
+            if (!complete) return;   // the purse ran out part-way: the affordable proportion, then stop
         }
     }
 
-    /// <summary>Every material of the step present IN FULL at the payer — checked before any draw.</summary>
-    private static bool Affordable(Table<GoodStockRow> stocks, RoadDevelopmentStep step)
+    /// <summary>Writes the route's new modernization state IN PLACE (or the first route row of a
+    /// bare baseline path) and returns its stable id.</summary>
+    private static int WriteRoute(Table<TransportEdgeRow> edges, RoadsConfig roads, RouteStatus route, double fraction, long turn)
     {
-        for (int m = 0; m < step.Cost.Length; m++)
+        int cls = route.CurrentClass, target = route.TargetClass;
+        bool done = fraction >= 1.0;
+        int newClass = done ? target : cls;
+        double newFraction = done ? 0.0 : fraction;
+        double factor = done ? roads.ClassOf(target)!.SpeedFactor : RoadPerformance.EffectiveCostFactor(roads, cls, target, fraction);
+        long capacity = done ? roads.ClassOf(target)!.CapacityTonnesPerYear : RoadPerformance.EffectiveCapacity(roads, cls, target, fraction);
+
+        if (route.Kind == RoadDevelopmentKind.Modernize)
         {
-            int idx = FindStock(stocks, step.Payer, step.Cost[m].Good);
-            if (idx < 0 || stocks[idx].Amount.Value < step.Cost[m].Units) return false;
+            int at = IndexOfEdge(edges, route.Edge);
+            edges[at] = edges[at] with
+            {
+                EdgeType = newClass, TargetClass = target, Modernization = newFraction,
+                CostFactor = factor, CapacityTonnesPerYear = capacity, UpgradedTurn = turn,
+            };
+            return route.Edge;
         }
-        return true;
+
+        int id = NextEdgeId(edges);
+        edges.Add(new TransportEdgeRow(
+            id, route.A, route.B, newClass, TransportModes.Road, TransportEdgeStates.Complete,
+            capacity, route.LengthKm, Condition: 0, BuiltTurn: turn, UpgradedTurn: turn,
+            TargetClass: target, Modernization: newFraction, CostFactor: factor));
+        return id;
+    }
+
+    /// <summary>Draws <paramref name="units"/> of a good from the civilization's settlements in
+    /// ascending id through the Ledger (a sink per row touched). The caller has checked the total.</summary>
+    private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units)
+    {
+        long left = units;
+        for (int p = 0; p < payers.Length && left > 0; p++)
+        {
+            int idx = GoodStockIndex.IndexOf(stocks, payers[p], good);
+            if (idx < 0) continue;
+            long take = Math.Min(left, stocks[idx].Amount.Value);
+            if (take <= 0) continue;
+            ctx.Ledger.Flow(ref stocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(good),
+                ReasonIds.ConstructionMaterials, take, FlowDirection.Sink, OverdrawPolicy.Throw);
+            left -= take;
+        }
+        if (left != 0) throw new InvalidOperationException("road development: the civilization's holding was checked but did not cover the charge.");
     }
 
     private static bool IsRosterPolity(IReadOnlyWorldState prev, PolityId polity)
@@ -145,13 +188,6 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
         for (int i = 0; i < prev.Polities.Count; i++)
             if (prev.Polities[i].Id.Value == polity.Value) return true;
         return false;
-    }
-
-    private static int FindStock(Table<GoodStockRow> stocks, SettlementId s, GoodId good)
-    {
-        for (int i = 0; i < stocks.Count; i++)
-            if (stocks[i].Settlement == s && stocks[i].Good == good) return i;
-        return -1;
     }
 
     private static int IndexOfEdge(Table<TransportEdgeRow> edges, int id)

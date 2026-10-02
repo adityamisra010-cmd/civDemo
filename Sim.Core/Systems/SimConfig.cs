@@ -134,8 +134,10 @@ public sealed record TransportConfig(
 /// ADR-032 — inter-city road tuning. EVERY NUMBER IS TUNE, a deterministic PLACEHOLDER
 /// (the Director's ruling 12: no ratified cost or speed formula exists yet). One entry per
 /// road-family class, DirtPath (the free baseline) included so the travel-time hook has a
-/// baseline speed and capacity. Read by RoadDevelopmentSystem (eligibility, cost) and by
-/// <see cref="State.TransportQuery"/> (travel time); no other consumer.
+/// baseline speed and capacity. Read by RoadDevelopmentSystem (eligibility, cost, and the
+/// effective performance it writes onto each route through <see cref="State.RoadPerformance"/>)
+/// and by <see cref="State.TransportQuery"/> (baseline speed and capacity of the travel-time
+/// hook). Pathfinding reads the WRITTEN effective performance, never this config.
 ///
 /// <c>BaselineKmPerDay</c>: freight speed over the free baseline (DirtPath) on IDEAL ground,
 /// calibrated to the Director's figure "5000 t of steel over 3000 km takes ~3 in-game months"
@@ -1121,6 +1123,14 @@ public static class SimConfigLoader
                     throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} has an invalid material entry.");
             if (c.EdgeType == State.EdgeTypes.DirtPath && c.MaterialsPerKm.Length != 0)
                 throw new SimConfigException("roads.classes: DirtPath is the FREE baseline — it must cost nothing.");
+        }
+        // The Director's ruling 22: DirtPath < Trackway < BuiltRoad < PavedRoad < MacadamRoad <
+        // Highway in travel performance — speedFactor (a cost per km) STRICTLY decreasing.
+        for (int i = 1; i < State.EdgeTypes.RoadClasses.Length; i++)
+        {
+            RoadClassConfig lo = roads.ClassOf(State.EdgeTypes.RoadClasses[i - 1])!, hi = roads.ClassOf(State.EdgeTypes.RoadClasses[i])!;
+            if (!(hi.SpeedFactor < lo.SpeedFactor))
+                throw new SimConfigException($"roads.classes: edgeType {hi.EdgeType} must be strictly faster (lower speedFactor) than edgeType {lo.EdgeType}.");
         }
     }
 

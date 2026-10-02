@@ -130,9 +130,10 @@ public static class SnapshotDiff
             I("ToIdentity"), I("FromAge"), I("ToAge"), I("Outcome")]),
         // v29 (ADR-032): the inter-settlement transport multigraph and the road-development log.
         new("TransportEdges", [I("Id"), I("A"), I("B"), I("EdgeType"), I("Mode"), I("State"),
-            L("CapacityTonnesPerYear"), D("LengthKm"), I("Condition"), L("BuiltTurn"), L("UpgradedTurn")]),
+            L("CapacityTonnesPerYear"), D("LengthKm"), I("Condition"), L("BuiltTurn"), L("UpgradedTurn"),
+            I("TargetClass"), D("Modernization"), D("CostFactor")]),
         new("RoadDevelopments", [L("Turn"), I("Polity"), I("Edge"), I("A"), I("B"), I("FromClass"), I("ToClass"),
-            I("Kind"), L("Usage"), L("MaterialUnits")]),
+            I("Kind"), L("Usage"), L("MaterialUnits"), D("ProgressBefore"), D("ProgressAfter")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

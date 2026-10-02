@@ -13,8 +13,8 @@ namespace Sim.Core.Systems.Roads;
 /// exactly as the player's do, and an AI run replays from its log (the AgeAdvancePolicy shape).
 ///
 /// THE RULE, stated so nothing is hidden: an AI-commanded polity orders development when the
-/// plan is non-empty AND its first step is affordable from PREV stocks (it never issues an order
-/// that would build nothing). Its percentage is <see cref="TradedPercent"/> when any candidate
+/// plan is non-empty AND its civilization can afford a positive proportion of the first step from
+/// PREV stocks (it never issues an order that would modernize nothing). Its percentage is <see cref="TradedPercent"/> when any candidate
 /// route carries realised trade, else <see cref="UntradedPercent"/> — a fixed, deterministic,
 /// tie-free choice (one candidate order per polity). Strategic road planning is later AI work.
 /// Player-commanded polities are never touched.
@@ -38,7 +38,9 @@ public static class RoadDevelopmentPolicy
         double percent = ranked[0].Usage > 0 ? TradedPercent : UntradedPercent;
 
         RoadDevelopmentStep[] plan = RoadDevelopmentQuery.Plan(world, cfg.Research, cfg.Roads, cfg.Goods, polity, percent);
-        if (plan.Length == 0 || !Affordable(world, plan[0])) return null;
+        if (plan.Length == 0) return null;
+        SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(world, polity);
+        if (!(RoadDevelopmentQuery.AffordableFraction(world.GoodStocks, payers, plan[0].Cost) > 0.0)) return null;
         return RoadDevelopmentQuery.DevelopOrder(world, polity, percent);
     }
 
@@ -55,15 +57,5 @@ public static class RoadDevelopmentPolicy
             if (Decide(world, cfg, polity) is { } order) result.Add(order);
         }
         return [.. result];
-    }
-
-    private static bool Affordable(IReadOnlyWorldState world, RoadDevelopmentStep step)
-    {
-        for (int m = 0; m < step.Cost.Length; m++)
-        {
-            int idx = GoodStockIndex.IndexOf(world.GoodStocks, step.Payer, step.Cost[m].Good);
-            if (idx < 0 || world.GoodStocks[idx].Amount.Value < step.Cost[m].Units) return false;
-        }
-        return true;
     }
 }

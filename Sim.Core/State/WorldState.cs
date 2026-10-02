@@ -942,37 +942,47 @@ public record struct UnitConversionRow(
     int FromAge, int ToAge, int Outcome);
 
 /// <summary>
-/// ADR-032 — ONE PHYSICAL INTER-SETTLEMENT TRANSPORT EDGE (a built route). Owned by
-/// RoadDevelopmentSystem. <c>Id</c> identifies the physical route, stable and never reused —
-/// the graph is a MULTIGRAPH: any number of rows may join the same two settlements (a
-/// trackway beside a later paved road beside a later highway), and nothing in the model
-/// assumes one edge per settlement pair. <c>A</c> &lt; <c>B</c> (normalized endpoints).
-/// <c>EdgeType</c> is the road class (<see cref="EdgeTypes"/>), <c>Mode</c> the transport mode
-/// (<see cref="TransportModes"/>), <c>State</c> the construction state
-/// (<see cref="TransportEdgeStates"/>), <c>CapacityTonnesPerYear</c> the class's freight
-/// throughput (TUNE), <c>LengthKm</c> the ideal-ground-equivalent length of the baseline route
-/// it was built along (fixed at construction).
-/// <c>Condition</c> is a NEUTRAL, READ-ONLY PLACEHOLDER (the Director's ruling 8/19): written 0,
-/// read by no system, no deterioration, no maintenance, no repair. NO OWNER FIELD, by ruling 6:
-/// a road crosses any territory, claimed or not, and joins settlements of any polity.
-/// The free baseline DirtPath is NOT a row here — it is PathBuild's NetworkEdges plus the
-/// pairwise baseline cost (SettlementDistances); only built classes are rows.
+/// ADR-032 — ONE PHYSICAL INTER-SETTLEMENT TRANSPORT ROUTE (an edge of the built multigraph).
+/// Owned by RoadDevelopmentSystem. <c>Id</c> identifies the PHYSICAL route, stable and never
+/// reused; a route is MODERNIZED IN PLACE (the Director's final ruling 6) — upgrading never
+/// creates a second row. Any number of rows MAY join the same two settlements when they are
+/// genuinely separate physical routes (ruling 11); nothing assumes one edge per pair.
+/// <c>A</c> &lt; <c>B</c> (normalized endpoints).
+/// <para><c>EdgeType</c> is the road class FULLY achieved (<see cref="EdgeTypes"/>);
+/// <c>TargetClass</c> the class the route is being modernized toward (== EdgeType when no
+/// modernization is under way); <c>Modernization</c> the fraction [0, 1) of the
+/// EdgeType → TargetClass upgrade performed (proportional, ruling 7 — reaching 1 promotes
+/// EdgeType to TargetClass and resets it to 0). <c>CostFactor</c> is the EFFECTIVE travel-cost
+/// multiplier per km (relative to the free baseline, lower = faster) interpolated by
+/// <see cref="RoadPerformance"/> — the ONE road-performance value Pathfinder, catchments and
+/// TransportQuery.EstimateFreight all read (ruling 8). <c>CapacityTonnesPerYear</c> is the
+/// effective (interpolated) freight capacity — a physical attribute, read by no route choice
+/// (ruling 19).</para>
+/// <c>Mode</c> the transport mode (<see cref="TransportModes"/>), <c>State</c> the construction
+/// state (<see cref="TransportEdgeStates"/>), <c>LengthKm</c> the ideal-ground-equivalent length
+/// fixed when the route row was first written. <c>Condition</c> is a NEUTRAL, READ-ONLY
+/// PLACEHOLDER (ruling 18): written 0, read by no system. NO OWNER FIELD (ruling 12).
+/// The free baseline DirtPath with no development is NOT a row — it is PathBuild's
+/// NetworkEdges plus the pairwise baseline cost (SettlementDistances).
 /// </summary>
 public record struct TransportEdgeRow(
     int Id, SettlementId A, SettlementId B, int EdgeType, int Mode, int State,
-    long CapacityTonnesPerYear, double LengthKm, int Condition, long BuiltTurn, long UpgradedTurn);
+    long CapacityTonnesPerYear, double LengthKm, int Condition, long BuiltTurn, long UpgradedTurn,
+    int TargetClass, double Modernization, double CostFactor);
 
 /// <summary>
 /// ADR-032 — ONE ROAD-DEVELOPMENT ACTION (Glass Box log, append-only), owned by
-/// RoadDevelopmentSystem: which route the DevelopRoads order of <c>Polity</c> developed on
-/// <c>Turn</c> (the decision turn; the edge exists in the state of Turn + 1), at what
-/// <c>Usage</c> rank key, from which class to which, whether it UPGRADED an existing physical
-/// edge in place (<c>Kind</c> 1) or laid a NEW PARALLEL route (<c>Kind</c> 2), and the
-/// material units it consumed through the Ledger.
+/// RoadDevelopmentSystem: which route the DevelopRoads order of <c>Polity</c> (the ISSUER, who
+/// paid — not an owner) modernized on <c>Turn</c> (the decision turn; the effect exists in the
+/// state of Turn + 1), at what <c>Usage</c> rank key, from which fully-achieved class toward
+/// which target class, whether it modernized an existing route row (<c>Kind</c> 1) or a bare
+/// baseline path whose route row it first wrote (<c>Kind</c> 2), the modernization fraction
+/// before and after, and the material units it consumed through the Ledger.
 /// </summary>
 public record struct RoadDevelopmentRow(
     long Turn, PolityId Polity, int Edge, SettlementId A, SettlementId B,
-    int FromClass, int ToClass, int Kind, long Usage, long MaterialUnits);
+    int FromClass, int ToClass, int Kind, long Usage, long MaterialUnits,
+    double ProgressBefore, double ProgressAfter);
 
 /// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
