@@ -39,6 +39,23 @@ public static class OrderValidation
                     "Empire's PolityId, never a player/AI marker.");
             }
 
+            // ADR-033 D4 (ported from m5-full-build): an Empire sets ITS OWN tax policy and no
+            // one else's. Authority comes from the order's issuing Empire (whose registration the
+            // roster check above already established), never from the order's word for a target.
+            // Whether the issuer CAN levy a tax yet (the research gate) is state-dependent and is
+            // decided where the order is consumed — GovernanceSystem, on PREV.
+            if (record.Kind == OrderKind.SetTaxRate)
+            {
+                if (record.TargetId != record.ActorId)
+                {
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): SetTaxRate targets polity " +
+                        $"{record.TargetId} but was issued by polity {record.ActorId}. An Empire " +
+                        "legislates its own taxes; it does not set another Empire's.");
+                }
+                continue;   // no settlement target to resolve
+            }
+
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction)) continue;
 

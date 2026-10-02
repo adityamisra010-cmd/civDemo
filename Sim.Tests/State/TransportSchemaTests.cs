@@ -35,7 +35,7 @@ public class TransportSchemaTests
     [Fact]
     public void SchemaV29_PopulatedTransportTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(29, CanonicalSchema.Version);
+        Assert.Equal(30, CanonicalSchema.Version);
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

@@ -35,6 +35,9 @@ public readonly record struct RevoltTables(Table<ControlRow> Controls);
 /// zero — an unfed AND unhoused population. This is deliberately not a "low
 /// happiness" band with a tunable threshold: a band would be a policy knob
 /// inviting tuning, while the ruled condition is a corner of the state space.
+/// ADR-033 D4 adds the second corner: the M5 tax burden multiplies the reading
+/// (SettlementHappiness.TaxSufficiency), so a declared 100 % levy at full reach
+/// (the capital, Strength 1.0) also reads exactly zero — total extraction.
 ///
 /// WHAT IT DOES NOT DO. It does not transfer control to another polity, does not
 /// create a rebel polity, does not fight, and does not touch population, goods or

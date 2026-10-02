@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(21, pipeline.Length);   // ADR-032 `roaddevelopment`; ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
+        Assert.Equal(22, pipeline.Length);   // ADR-033 D4 `governance`; ADR-032 `roaddevelopment`; ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -75,25 +75,31 @@ public class PipelineLoaderTests
         // is therefore about legibility rather than correctness — but it is
         // pinned here so a future reorder is a deliberate act, not a diff.
         Assert.Equal("revolt", pipeline[13].Name);
-        Assert.Equal("demographics", pipeline[14].Name);
-        Assert.Equal("needsgrievance", pipeline[15].Name); // T2.6, spec §3 pipeline order
-        Assert.Equal("pathbuild", pipeline[16].Name);
+        // ADR-033 D4 (the M5 governing loop, ported from m5-full-build): governance runs AFTER
+        // revolt and BEFORE demographics. After colonization and revolt because it rewrites the
+        // Strength FIELD of the control rows that survive them (the shared-table split in
+        // SystemCatalog's header: colonization appends, revolt removes, governance updates); it
+        // reads only PREV and writes its own TaxPolicies, so before demographics is legibility.
+        Assert.Equal("governance", pipeline[14].Name);
+        Assert.Equal("demographics", pipeline[15].Name);
+        Assert.Equal("needsgrievance", pipeline[16].Name); // T2.6, spec §3 pipeline order
+        Assert.Equal("pathbuild", pipeline[17].Name);
         // ADR-029 (D-044): research runs LAST. It reads only PREV (the population
         // that generates RP, the stocks and variables its Eurekas read) and writes
         // only its own tables, which no other system reads, so its slot changes no
         // other system's result. Last is legibility: "the turn's physics, then the
         // civilization's research", and the new tables sit at the end of the stream.
-        Assert.Equal("research", pipeline[17].Name);
+        Assert.Equal("research", pipeline[18].Name);
         // ADR-031 (D-047): the thin Age evaluator, then the Age transition. Both read only PREV and
         // write only their own tables (the transition also owns MilitaryUnits), which no other system
         // reads, so their slots change no other system's result. They share the order-resolution rule
         // through AgeQuery, never through each other, so their relative order is legibility too.
-        Assert.Equal("ageeligibility", pipeline[18].Name);
-        Assert.Equal("agetransition", pipeline[19].Name);
+        Assert.Equal("ageeligibility", pipeline[19].Name);
+        Assert.Equal("agetransition", pipeline[20].Name);
         // ADR-032: road development last. It reads only PREV (plus its own NEXT edge table) and
         // draws materials from GoodStocks after every other holder has acted, so a road never
         // spends the stone a same-turn construction or housing draw already counted on.
-        Assert.Equal("roaddevelopment", pipeline[20].Name);
+        Assert.Equal("roaddevelopment", pipeline[21].Name);
     }
 
     [Fact]
@@ -114,7 +120,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, roaddevelopment, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, revolt, governance, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, roaddevelopment, weather, growth, toytrade",
             e.Message);
     }
 

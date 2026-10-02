@@ -541,13 +541,34 @@ public static class ResearchQuery
     {
         if (memo[entity] != 0) return memo[entity] > 0;
         ResearchEntity e = content.Entities[entity];
-        int nodes = content.Nodes.Count;
-        bool ok = e.Requirement is not { } req
-                  || req.Evaluate(null, a => a < nodes ? completed[a]
-                                            : a < nodes + content.Entities.Count && Eligible(content, a - nodes, completed, memo),
-                                  null);
+        bool ok = e.Requirement is not { } req || Holds(content, req, completed, memo);
         memo[entity] = ok ? (sbyte)1 : (sbyte)-1;
         return ok;
+    }
+
+    /// <summary>The ONE atom reader of the knowledge evaluator: a node atom reads completed
+    /// knowledge, an institution atom reads that institution's own eligibility, and the
+    /// declared-unresolved sentinel (and anything past it) reads false.</summary>
+    private static bool Holds(ResearchContent content, Predicate requirement, bool[] completed, sbyte[] memo)
+    {
+        int nodes = content.Nodes.Count;
+        return requirement.Evaluate(null, a => a < nodes ? completed[a]
+                                         : a < nodes + content.Entities.Count && Eligible(content, a - nodes, completed, memo),
+                                    null);
+    }
+
+    /// <summary>
+    /// ADR-033 D4 — does the completed knowledge satisfy a requirement authored OUTSIDE
+    /// research.json (sim.json <c>governance.taxationRequires</c>, parsed by
+    /// <see cref="ResearchContentLoader.ParseRequirement"/>)? Evaluated by EXACTLY the reader an
+    /// entity requirement uses (<see cref="IsKnowledgeEligible"/>), so a gate authored in sim.json
+    /// and one authored on a research.json entity can never disagree about the same knowledge.
+    /// </summary>
+    public static bool RequirementMet(ResearchContent content, Predicate requirement, bool[] completed)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(requirement);
+        return Holds(content, requirement, completed, new sbyte[content.Entities.Count]);
     }
 
     /// <summary>Entity ids whose knowledge requirement the polity meets, entity order.</summary>

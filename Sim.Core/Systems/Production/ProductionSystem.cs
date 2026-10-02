@@ -162,9 +162,24 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // bit, so a world without a strike produces exactly as before.
             double foodMultiplier = HarvestWeatherFor(prev, settlement) * DisasterFor(prev, settlement);
 
+            // ADR-033 D4 (the M5 governing loop, re-anchored from m5-full-build onto this
+            // tree): EXTRACTION. A state that taxes harder works its realm harder — corvée,
+            // quotas, levied labour — so realised output rises with the EFFECTIVE tax rate
+            // (the controller's declared rate × the stored reach, ControlRow.Strength, both read
+            // from PREV). ONE multiplier per settlement, computed once like the food multiplier
+            // and applied at the three sites M5B applied it — farming, the deposit sectors
+            // (herding/fishing AND extraction), crafting — each ONCE, on the realised rate,
+            // before dt integration and before the remainder is added, so it can never be
+            // applied twice and never disturbs the D-004 remainder chain. It is a separate
+            // factor from the food multiplier, not folded into it: extraction is not a food
+            // shock and also reaches ore, stone and craft output. Untaxed (and with no
+            // governance section) it is EXACTLY 1.0, so x × 1.0 == x bit for bit.
+            double extraction = State.Governance.ExtractionMultiplier(prev, settlement, _cfg);
+
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
-                foodMultiplier: foodMultiplier);
+                foodMultiplier: foodMultiplier,
+                extraction: extraction);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -181,21 +196,25 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
                 foodSector: true,
-                weather: foodMultiplier);
+                weather: foodMultiplier,
+                extraction: extraction);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
                 foodSector: false,
-                weather: 1.0);
+                weather: 1.0,
+                extraction: extraction);
             Craft(ctx, prev, stocks, goods, settlement,
-                pool: Sectors.Share(shares, Sectors.Crafting) * adults);
+                pool: Sectors.Share(shares, Sectors.Crafting) * adults,
+                extraction: extraction);
         }
     }
 
     /// <summary>Farming: the Leontief with the REAL tool factor + tool wear.</summary>
     private void Farm(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
-        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier)
+        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier,
+        double extraction)
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
@@ -252,6 +271,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // multiplier (w × 1.0 == w), so this line is bit-identical to T3.4b's.
         ratePerYear *= foodMultiplier;
 
+        // ADR-033 D4: the tax EXTRACTION multiplier, in the same position and the same order
+        // (once, after the Leontief min and the food multiplier, before dt integration). 1.0
+        // exactly when untaxed, so this line is bit-identical to the tree before the port.
+        ratePerYear *= extraction;
+
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
         long harvested = ConservedMath.WholeUnits(exact, $"grain harvest (settlement {settlement.Value})");
@@ -287,7 +311,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void FromDeposits(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, SettlementId settlement,
-        double pool, double perWorkerPerYear, bool foodSector, double weather)
+        double pool, double perWorkerPerYear, bool foodSector, double weather, double extraction)
     {
         if (pool <= 0.0) return;
 
@@ -317,7 +341,9 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // before the remainder is added, so a drought cannot be applied
             // twice and cannot disturb the D-004 remainder chain. Extraction
             // passes 1.0, so this expression is bit-identical there.
-            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather;
+            // ADR-033 D4: the tax EXTRACTION multiplier joins the rate in the same
+            // position, once, for both deposit sectors; 1.0 exactly when untaxed.
+            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather * extraction;
 
             ref GoodStockRow stock = ref stocks.Ref(row);
             double exact = ratePerYear * ctx.DtYears + stock.ProduceRemainder;
@@ -381,7 +407,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void Craft(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, GoodsConfig goods,
-        SettlementId settlement, double pool)
+        SettlementId settlement, double pool, double extraction)
     {
         if (pool <= 0.0 || goods.Recipes.Length == 0) return;
 
@@ -415,7 +441,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // every input's stock — Leontief over labor and materials.
             double laborCapPerYear = recipe.LaborPerOutput > 0.0
                 ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
-            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
+            // ADR-033 D4: extraction applies to crafted output too — the same compelled effort,
+            // on the LABOUR-allowed output BEFORE the input caps below bind, so a levy cannot
+            // conjure output the materials do not support (the Leontief input caps still hold).
+            // 1.0 exactly when untaxed, so this expression is bit-identical there.
+            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty * extraction;
 
             // T3.4 (D-033): publish the input demand this recipe WANTED, from
             // labor alone, BEFORE any input cap binds. Demand that went unmet

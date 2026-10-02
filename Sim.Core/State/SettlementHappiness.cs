@@ -44,9 +44,9 @@ namespace Sim.Core.State;
 /// stubbed at 1.0, which would silently claim every settlement is well watered.
 /// CLOTHING/comfort exists only as a basket-bound need computed inside the needs
 /// system, so taking it would cross the D-021 line above; it is deferred with
-/// the same reasoning. TAXATION does not exist on this tree in any form (M5
-/// owns it) and is not invented here. Adding a factor later is one entry in
-/// <see cref="Factors"/> and its weight — the extension seam is the array.
+/// the same reasoning. TAXATION (M5, ADR-033 D4) is not a provision but a burden on
+/// provision, so it MULTIPLIES the aggregate (<see cref="TaxSufficiency"/>) instead of
+/// joining <see cref="Factors"/>; a new provision factor is one entry there plus its weight.
 ///
 /// AGGREGATION IS NON-COMPENSATORY, and reuses the ratified equation rather than
 /// inventing a second one: <see cref="NeedsAggregation.Aggregate"/>, D-035-B's
@@ -64,8 +64,8 @@ public static class SettlementHappiness
 
     /// <summary>
     /// The revolt threshold (director ruling): happiness of exactly zero is a
-    /// CONFIRMED revolt condition. Zero is reachable only when every factor is
-    /// zero — an unfed, unhoused population — so this is not a near-miss band.
+    /// CONFIRMED revolt condition. Zero is reachable only at total deprivation (an unfed,
+    /// unhoused population) or total extraction (a 100 % levy at full reach) — not a band.
     /// </summary>
     public const double RevoltThreshold = 0.0;
 
@@ -159,7 +159,29 @@ public static class SettlementHappiness
     }
 
     /// <summary>
-    /// The settlement's happiness in [0, 100].
+    /// ADR-033 D4 (ported from <c>m5-full-build</c>) — THE TAX BURDEN, as a sufficiency in [0, 1]:
+    /// one minus the EFFECTIVE tax rate (<see cref="Governance.EffectiveTaxRate"/> = the
+    /// controller's declared rate × the stored reach, <see cref="ControlRow.Strength"/>). It
+    /// MULTIPLIES the normalised reading in <see cref="Of"/>.
+    ///
+    /// AN UNTAXED SETTLEMENT READS EXACTLY 1.0 — no policy row, an uncontrolled settlement, or no
+    /// governance section in the config — and 1.0 is the identity of the multiplication it enters,
+    /// so every untaxed world's happiness is bit-identical to the reading before the port.
+    ///
+    /// WHY A MULTIPLIER AND NOT A THIRD CES FACTOR (the regression M5B's first cut shipped and its
+    /// suite caught): a third factor sitting at 1.0 lifts the floor-anchored aggregate off its
+    /// floor, so an unfed, unhoused, untaxed settlement scored 2.31 instead of 0 and the ruled
+    /// revolt condition (happiness == 0) became unreachable. As a multiplier, total deprivation
+    /// still lands on exactly 0 at EVERY rate, and the burden is felt in proportion at every level
+    /// of provision rather than being bought off by a full granary. A coefficient inside a
+    /// resolution equation (law 2), not a free-floating <c>happiness -= rate</c>. Linear and total:
+    /// a declared 100 % at full reach reads 0.0, which zeroes the reading and fires revolt.
+    /// </summary>
+    public static double TaxSufficiency(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+        => Math.Clamp(1.0 - Governance.EffectiveTaxRate(world, settlement, cfg), 0.0, 1.0);
+
+    /// <summary>
+    /// The settlement's happiness in [0, 100]: the CES provision reading, scaled by the tax burden.
     ///
     /// Weights come from the needs registry so that food and shelter carry the
     /// same relative importance here as they do in D-018's ladder — happiness
@@ -208,7 +230,9 @@ public static class SettlementHappiness
         double span = 1.0 - floor;
         double normalized = span > 0.0 ? (aggregate - floor) / span : aggregate;
 
-        return Math.Clamp(normalized * Max, 0.0, Max);
+        // ADR-033 D4: the tax burden scales the whole reading (TaxSufficiency, above). Untaxed
+        // it is exactly 1.0, so (normalized × Max) × 1.0 is bit-identical to the pre-port value.
+        return Math.Clamp(normalized * Max * TaxSufficiency(world, settlement, cfg), 0.0, Max);
     }
 
     /// <summary>

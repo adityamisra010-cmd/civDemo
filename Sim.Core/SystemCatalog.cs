@@ -66,6 +66,17 @@ namespace Sim.Core;
 /// data-only goods.json edit — puts two systems on one accumulator with two
 /// different meanings, and each turn's carry would clobber the other's. Whoever
 /// adds that recipe must split the field or serialize the two writers.
+///
+/// SANCTIONED SHARED TABLE — Controls (M4 T4.4/T4.13; ADR-033 D4 adds the third
+/// holder), split at FIELD level and by pipeline order (colonization → revolt →
+/// governance):
+///   COLONIZATION APPENDS rows — a colony inherits its parent's controller, at
+///     the founding Strength 1.0 — and touches no existing row.
+///   REVOLT REMOVES rows (a settlement at zero happiness stops obeying),
+///     preserving the relative order of every surviving row.
+///   GOVERNANCE (ADR-033 D4) rewrites ONLY the Strength field of the rows that
+///     exist when it runs, as the administrative reach computed on PREV — never
+///     adds or removes a row, never touches Polity or Place.
 /// </summary>
 public static class SystemCatalog
 {
@@ -294,7 +305,8 @@ public static class SystemCatalog
 
     /// <summary>M4: revolt — a settlement at zero happiness loses its control
     /// relation. Shares the `Controls` table with Colonization (which appends on
-    /// inheritance); the header above records it as a sanctioned shared table.</summary>
+    /// inheritance) and Governance (which rewrites Strength); the header above
+    /// records it as a sanctioned shared table.</summary>
     public static SystemRegistration Revolt(SimConfig cfg)
     {
         var system = new Systems.Revolt.RevoltSystem(cfg);
@@ -304,6 +316,24 @@ public static class SystemCatalog
                 new SimContext<Systems.Revolt.RevoltTables>(
                     prev, new Systems.Revolt.RevoltTables(next.Controls), rng,
                     Systems.Revolt.RevoltSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-033 D4 (the M5 governing loop, SystemId 22): enacts SetTaxRate orders that
+    /// pass the research gate into the TaxPolicies table it owns, and rewrites
+    /// ControlRow.Strength as the administrative reach — the THIRD holder of the shared
+    /// `Controls` table, field-level split recorded in the header above (it runs after
+    /// Colonization and Revolt and touches only Strength). Inert without a governance
+    /// section in the config.</summary>
+    public static SystemRegistration Governance(SimConfig cfg)
+    {
+        var system = new Systems.Governance.GovernanceSystem(cfg);
+        return new SystemRegistration(
+            Systems.Governance.GovernanceSystem.WellKnownId, Systems.Governance.GovernanceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.Governance.GovernanceTables>(
+                    prev, new Systems.Governance.GovernanceTables(next.TaxPolicies, next.Controls), rng,
+                    Systems.Governance.GovernanceSystem.WellKnownId,
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -375,7 +405,7 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg),
          Weather(), Growth(), Trade()];
 }

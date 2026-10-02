@@ -41,6 +41,12 @@ public class CiPinAgreementTests
             "founded golden, delete this test deliberately; do not let it pass vacuously.");
 
         Assert.Contains(ciPin, suite);
+
+        // ADR-033 D4 (the defect m5-full-build shipped): the Contains check above passes when the CI
+        // value survives ANYWHERE in the suite file — m5-full-build re-pinned the suite, left ci.yml
+        // on the old value, and the guard passed because the old value stayed in an "OLD" history
+        // comment. The CI pin must equal the PINNED constant itself, exactly.
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, ciPin);
     }
 
     /// <summary>The 64-hex value following <paramref name="marker"/>.</summary>

@@ -48,8 +48,27 @@ public enum OrderKind
     /// </summary>
     EnqueueConstruction = 4,
 
-    // 5 is held by SetTaxRate on the unmerged `m5-full-build` branch. It is left
-    // unused here so the two kinds cannot silently alias on merge (ADR-029 §4).
+    /// <summary>
+    /// ADR-033 D4 (the M5 governing loop, ported from `m5-full-build`, which held kind 5 since
+    /// ADR-029 §4 reserved it): set the issuing Empire's standing TAX POLICY. TargetId = the
+    /// issuing Empire's own PolityId; Amount = the nominal rate as a PERCENTAGE in [0, 100] (the
+    /// convention LaborAllocation and SectorAllocation use). The five-field OrderRecord already
+    /// encodes this, so the wire format is untouched. Player and AI issue the SAME order
+    /// (<see cref="State.Governance.TaxOrder"/>).
+    ///
+    /// Range-validated at LOAD (Amount in [0, 100], TargetId ≥ 0). That the target is the issuing
+    /// Empire and the issuer is a roster Empire is world-dependent and checked in OrderValidation.
+    /// Whether the issuer can levy a tax at all — the research gate, sim.json
+    /// governance.taxationRequires — is state-dependent and checked where the order is consumed
+    /// (GovernanceSystem, via <see cref="State.Governance.CanLevyTax"/> on PREV, the ResearchSystem
+    /// precedent): an order failing it changes nothing, and the last valid order of a turn wins.
+    /// DELIVERY: an order stamped turn t writes the policy row in the step t → t+1 (first visible
+    /// in the state of turn t+1); production and every system that reads happiness read it from
+    /// PREV, so its first effect on output, migration and revolt lands in the step t+1 → t+2.
+    ///
+    /// A POLICY, NOT A TRANSACTION (CR-008): this order moves no goods and creates no stock.
+    /// </summary>
+    SetTaxRate = 5,
 
     /// <summary>
     /// ADR-029 / D-044 R9: set, change or clear the issuing Empire's ONE active
@@ -264,6 +283,16 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): EnqueueConstruction settlement id must be " +
                         $">= 0, got {record.TargetId}.");
                 break;
+            case OrderKind.SetTaxRate:
+                if (!(record.Amount >= 0.0 && record.Amount <= 100.0)) // NaN fails this too
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetTaxRate percentage must be in " +
+                        $"[0,100], got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetTaxRate target polity id must be " +
+                        $">= 0, got {record.TargetId}.");
+                break;
             case OrderKind.SetResearchTarget:
                 if (record.TargetId != -1 && record.TargetId < 1)
                     throw new SnapshotFormatException(
@@ -297,7 +326,7 @@ public sealed class OrderLog
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
-                    "4 (EnqueueConstruction), 6 (SetResearchTarget), 7 (AdvanceAge) and 8 (DevelopRoads).");
+                    "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge) and 8 (DevelopRoads).");
         }
     }
 }
