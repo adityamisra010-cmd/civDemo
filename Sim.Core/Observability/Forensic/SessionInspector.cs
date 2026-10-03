@@ -710,7 +710,7 @@ public sealed class SessionInspector
             if (turn.Flows.ControlLost > 0)
             {
                 lines.Add(Event(turn.Turn, "CONTROL CHANGED", -1,
-                    $"{turn.Flows.ControlLost.ToString(CultureInfo.InvariantCulture)} control row(s) lost; WHICH settlement and WHY are not recorded",
+                    $"{turn.Flows.ControlLost.ToString(CultureInfo.InvariantCulture)} control row(s) lost (revolt or uprising); WHICH place and WHY are not recorded",
                     "KNOWN — turn.flows.controlLost (a count only)"));
             }
         }

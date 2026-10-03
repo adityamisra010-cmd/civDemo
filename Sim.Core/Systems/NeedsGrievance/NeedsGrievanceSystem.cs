@@ -71,10 +71,15 @@ public readonly record struct NeedsGrievanceTables(
 /// through tables, law 6), whose own DtYears field keeps the rate per-year
 /// across era-pacing transitions. All three knobs are TUNE in needs.json.
 ///
-/// READ ISOLATION (the T2.6 packet's teeth, unchanged): NeedSatisfactions and
-/// Grievances are referenced ONLY by this system, serialization, StateEquals,
-/// tests, and Sim.Ui — enforced by the CI read-isolation grep; grievance drives
-/// NO behavior until M5 ships the unrest valves.
+/// READ ISOLATION (the T2.6 packet's teeth): NeedSatisfactions and Grievances are
+/// referenced ONLY by this system, serialization, StateEquals, tests, Sim.Ui and —
+/// since M5 R2b ships the unrest valves (D-021) — the one State reader
+/// <see cref="Unrest"/>, through which grievance drives protest, discharge and
+/// uprising. Enforced by the CI read-isolation grep.
+///
+/// M5 R2b — DIGNITY (D-035-D) is bound with source "taxBurden": satisfaction =
+/// 1 − the settlement's effective tax rate on PREV; it publishes nothing where
+/// the config carries no governance section (no tax instrument, no carrier).
 /// STATELESS: config is immutable tuning, not state. No RNG.
 /// </summary>
 public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
@@ -94,6 +99,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// pull; a predicate over it is not).</summary>
     private static readonly int[] TierAGateNeedIds = [1, 2, 3];
 
+    private readonly SimConfig _cfg;
     private readonly NeedsConfig _needs;
     private readonly BasketBook _baskets;
     private readonly GoodId _grain;
@@ -101,6 +107,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
 
     public NeedsGrievanceSystem(SimConfig cfg)
     {
+        _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
         _personsPerDwelling = cfg.Housing?.PersonsPerDwelling
             ?? throw new NeedsConfigException(
                 "SimConfig.Housing is not loaded — a housingStock-sourced need reads it (T3.8).");
@@ -202,7 +209,11 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 turnoverPerYear = TurnoverPerYear(v.Births, v.Deaths, settlementPop, v.DtYears);
                 break;
             }
-            double decayRate = DecayRatePerYear(tuning, turnoverPerYear);
+            // M5 R2b (D-021 valve 1): protest's expression vents the stock — the settlement's PREV
+            // protest adds discharge × p to the decay rate (exactly 0 when quiet or unconfigured, so
+            // the rate is then bit-identical to the pre-R2b one).
+            double decayRate = DecayRatePerYear(tuning, turnoverPerYear,
+                Unrest.DischargePerYear(prev, settlement, _cfg));
 
             for (int g = 0; g < grievances.Count; g++)
             {
@@ -243,7 +254,17 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     if (!need.Bound) continue;                       // unbound: skipped before any weight is read
 
                     double value;
-                    if (need.FromHousingStock)
+                    if (need.FromTaxBurden)
+                    {
+                        // M5 R2b — D-035-D, TAXATION → DIGNITY IS DIRECT: the carrier is the tax
+                        // instrument itself, so the satisfaction is one minus the EFFECTIVE rate this
+                        // settlement bears on PREV (declared × reach; 0 uncontrolled or untaxed).
+                        // Where no tax instrument exists at all (no governance section) the need has
+                        // no carrier and publishes nothing — exactly like an empty basket.
+                        if (_cfg.Governance is null) continue;
+                        value = DignitySatisfaction(prev, settlement, _cfg);
+                    }
+                    else if (need.FromHousingStock)
                     {
                         // T3.8: Shelter reads the DWELLING STOCK against the
                         // population — never a flow. Classes carry EQUAL
@@ -438,6 +459,21 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         ArgumentNullException.ThrowIfNull(tuning);
         return tuning.BaseDecayPerYear + (1.0 - tuning.InheritFraction) * turnoverPerYear;
     }
+
+    /// <summary>M5 R2b: the decay rate with protest's DISCHARGE (D-021 valve 1,
+    /// <see cref="Unrest.DischargePerYear"/>) added. A discharge of exactly 0 returns the
+    /// two-term rate above unchanged, bit for bit.</summary>
+    public static double DecayRatePerYear(GrievanceTuning tuning, double turnoverPerYear, double dischargePerYear)
+    {
+        double rate = DecayRatePerYear(tuning, turnoverPerYear);
+        return dischargePerYear > 0.0 ? rate + dischargePerYear : rate;
+    }
+
+    /// <summary>M5 R2b — D-035-D: the Dignity need's satisfaction, 1 − the effective tax rate the
+    /// settlement bears (<see cref="State.Governance.EffectiveTaxRate"/>), in [0, 1]. Public and pure so the
+    /// Glass Box recomputes it by calling this, not by copying it.</summary>
+    public static double DignitySatisfaction(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg) =>
+        Math.Clamp(1.0 - State.Governance.EffectiveTaxRate(world, settlement, cfg), 0.0, 1.0);
 
     /// <summary>S: the D-035-B aggregate over the bound needs that published a
     /// row — d018:46's Tier A gate reweights them, then the CES combines them

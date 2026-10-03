@@ -26,7 +26,7 @@ namespace Sim.Tests.Systems;
 public class GovernancePushbackMeasurement(ITestOutputHelper output)
 {
     private const int Horizon = 300;
-    private static readonly int[] Checkpoints = [100, 300];
+    private static readonly int[] Checkpoints = [20, 50, 100, 200, 300];
 
     private sealed class Arm
     {
@@ -35,13 +35,13 @@ public class GovernancePushbackMeasurement(ITestOutputHelper output)
         public long CapitalHarvest, EmpireHarvest, CapitalOutput, EmpireOutput, Migrants, CapitalIn, CapitalOut;
     }
 
-    [Fact(Skip = "ADR-033 D4 pushback measurement rig (~10 min: 3 canonical founded worlds x 300 turns) — run manually; docs/m5-governing-loop-port.md records the table")]
+    [Fact(Skip = "ADR-033 D4 / M5 R2b pushback measurement rig (~2-3 min: 4 canonical founded worlds x 300 turns) — run manually; docs/m5-integration-coherence-matrix.md §6 records the table")]
     public void TaxPushback_FoundedSeed42_Levies0_40_99()
     {
         SimConfig cfg = TestConfigs.Sim();
         WorldgenConfig wg = TestConfigs.Worldgen();
         var player = new PolityId(1);
-        var arms = new[] { new Arm { Percent = 0.0 }, new Arm { Percent = 40.0 }, new Arm { Percent = 99.0 } };
+        var arms = new[] { new Arm { Percent = 0.0 }, new Arm { Percent = 40.0 }, new Arm { Percent = 70.0 }, new Arm { Percent = 99.0 } };
         var text = new StringBuilder();
 
         foreach (Arm arm in arms)
@@ -85,8 +85,8 @@ public class GovernancePushbackMeasurement(ITestOutputHelper output)
             }
         }
 
-        text.AppendLine("| arm | turn | capital pop | empire pop | settlements held / all | capital happiness | capital eff. rate | empire mean eff. rate | legitimacy | capital grain (cum.) | empire grain (cum.) | capital output (cum., all goods) | empire output (cum.) | migrants moved (cum.) | capital in / out (cum.) |");
-        text.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+        text.AppendLine("| arm | turn | capital pop | empire pop | settlements held / all | capital happiness | capital eff. rate | empire mean eff. rate | legitimacy | capital grain (cum.) | empire grain (cum.) | capital output (cum., all goods) | empire output (cum.) | migrants moved (cum.) | capital in / out (cum.) | capital grievance | max settlement grievance | capital protest | settlements protesting | capital tax grievance |");
+        text.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
         foreach (int cp in Checkpoints)
             foreach (Arm arm in arms)
                 text.AppendLine(arm.Rows[cp]);
@@ -107,11 +107,33 @@ public class GovernancePushbackMeasurement(ITestOutputHelper output)
             empirePop += GovernanceRigs.Population(w, id);
             rateSum += Governance.EffectiveTaxRate(w, id, cfg);
         }
+        double capG = MeanGrievance(w, seat), maxG = 0.0;
+        int protesting = 0;
+        for (int s = 0; s < w.Settlements.Count; s++)
+        {
+            maxG = Math.Max(maxG, MeanGrievance(w, w.Settlements[s].Id));
+            if (Unrest.Protest(w, w.Settlements[s].Id, cfg) > 0.0) protesting++;
+        }
         return string.Create(CultureInfo.InvariantCulture,
             $"| {arm.Percent:F0} % | {w.Clock.Turn} | {capitalPop} | {empirePop} | {held} / {w.Settlements.Count} | " +
             $"{SettlementHappiness.Of(w, seat, cfg):F2} | {Governance.EffectiveTaxRate(w, seat, cfg):F3} | " +
             $"{(held > 0 ? rateSum / held : 0.0):F3} | {Governance.Legitimacy(w, player, cfg):F2} | " +
             $"{arm.CapitalHarvest} | {arm.EmpireHarvest} | {arm.CapitalOutput} | {arm.EmpireOutput} | {arm.Migrants} | " +
-            $"{arm.CapitalIn} / {arm.CapitalOut} |");
+            $"{arm.CapitalIn} / {arm.CapitalOut} | {capG:F2} | {maxG:F2} | {Unrest.Protest(w, seat, cfg):F3} | {protesting} | {Unrest.TaxGrievance(w, seat, cfg):F2} |");
+    }
+
+    /// <summary>Population-weighted mean grievance of one settlement (test-side reporting).</summary>
+    private static double MeanGrievance(WorldState w, SettlementId s)
+    {
+        double acc = 0.0; long pop = 0;
+        for (int g = 0; g < w.Grievances.Count; g++)
+        {
+            if (w.Grievances[g].Settlement != s) continue;
+            long n = 0;
+            for (int b = 0; b < w.Buckets.Count; b++)
+                if (w.Buckets[b].Settlement == s && w.Buckets[b].Class == w.Grievances[g].Class) n += w.Buckets[b].Count.Value;
+            acc += w.Grievances[g].Value * n; pop += n;
+        }
+        return pop > 0 ? acc / pop : 0.0;
     }
 }

@@ -39,6 +39,26 @@ public readonly record struct RevoltTables(Table<ControlRow> Controls);
 /// (SettlementHappiness.TaxSufficiency), so a declared 100 % levy at full reach
 /// (the capital, Strength 1.0) also reads exactly zero — total extraction.
 ///
+/// M5 R2b — THE THIRD PATH, UPRISING (D-021 unrest-lite, D-009/D-010's
+/// "discontent → protest → uprising"): a controlled settlement whose PREV grievance
+/// stands at or above needs.json <c>unrest.uprisingGrievance</c>
+/// (<see cref="Unrest.IsUprising"/>) also throws off its ruler. This is the "revolt
+/// reachable before total deprivation" the Director asked for, and it is NOT a
+/// happiness band: it reads the grievance MEMORY stock, which has to be accrued over
+/// years of unmet needs (since R2b, Dignity injured by the levy, D-035-D) against
+/// generational decay and protest's own discharge — so it is history, not a mood
+/// reading that flicks with one turn's policy. The two zero corners above stand
+/// unchanged. Inert without the unrest section.
+///
+/// IS LOSING LABOUR ORDERS THE INTENDED CONSEQUENCE? Yes (R2b decision, documented in
+/// docs/m5-integration-coherence-matrix.md §6): every order domain asks the D-037
+/// control relation (LabourActivities.CanAllocate, ConstructionQuery, OrderValidation),
+/// so a revolted settlement refuses its former ruler's labour and construction orders.
+/// It is not a deadlock of the WORLD: the settlement keeps its people, stocks, standing
+/// allocation and production, grows, and — once its grievance discharges — is quiet; it
+/// is simply nobody's to command. Re-annexation, reconquest and capital succession have
+/// no ratified mechanism in M5 (M6 war / later politics) and are not invented here.
+///
 /// WHAT IT DOES NOT DO. It does not transfer control to another polity, does not
 /// create a rebel polity, does not fight, and does not touch population, goods or
 /// any other stock — a revolt here is the LOSS of a relation and nothing else.
@@ -77,7 +97,8 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
         {
             SettlementId place = prev.Settlements[i].Id;
             if (!EmpireQuery.TryGetController(prev, place, out _)) continue;  // already stateless
-            if (!SettlementHappiness.IsRevoltReady(prev, place, _cfg)) continue;
+            if (!SettlementHappiness.IsRevoltReady(prev, place, _cfg)
+                && !Unrest.IsUprising(prev, place, _cfg)) continue;
             revolts[i] = true;
             any = true;
         }
