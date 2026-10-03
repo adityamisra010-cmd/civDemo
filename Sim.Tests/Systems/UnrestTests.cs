@@ -286,4 +286,34 @@ public class UnrestTests
         Assert.Equal((revoltA, peakA, quietA), (revoltB, peakB, quietB));
         Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
     }
+
+    // ------------------------------------------------------------------ R2c: the uprising meets city-state research
+
+    /// <summary>R2c interaction (R2a × R2b): a settlement thrown off by an UPRISING has no controller, so it is a
+    /// city-state and researches on its own under its local holder (SettlementKnowledge.LocalHolder) — no extra
+    /// mechanism. Decision (R2c, INFERRED, recorded in ADR-033 R2c): its local record starts EMPTY; it is not seeded
+    /// with the former ruler's knowledge (that would be a knowledge-diffusion mechanic no ruling provides).</summary>
+    [Fact]
+    public void ARevoltedSeat_BecomesACityState_AndResearchesFromAnEmptyLocalRecord()
+    {
+        (WorldState w, int revolt, _, _) = RunLevy(99.0, 40);
+        Assert.True(revolt > 0);
+        (WorldState fresh, PolityId player) = GovernanceRigs.Founded();
+        SettlementId seat = GovernanceRigs.Seat(fresh, player);
+        PolityId local = SettlementKnowledge.LocalHolder(seat);
+        Assert.False(EmpireQuery.TryGetController(w, seat, out _));
+        double progress = 0.0;
+        for (int i = 0; i < w.ResearchProgress.Count; i++)
+            if (w.ResearchProgress[i].Polity == local) progress += w.ResearchProgress[i].Progress;
+        int completed = 0;
+        for (int i = 0; i < w.ResearchCompleted.Count; i++)
+            if (w.ResearchCompleted[i].Polity == local) completed++;
+        Assert.True(progress > 0.0 || completed > 0, "the uncontrolled seat must accumulate its own research");
+        // Started empty: the grant given to the ruler (taxation) is not in the city-state's own record.
+        bool[] own = ResearchQuery.CompletedMask(w, TestConfigs.Research(), local);
+        bool[] ruler = ResearchQuery.CompletedMask(w, TestConfigs.Research(), player);
+        int inherited = 0;
+        for (int i = 0; i < own.Length; i++) if (own[i] && ruler[i]) inherited++;
+        Assert.Equal(0, inherited);
+    }
 }
