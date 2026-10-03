@@ -199,3 +199,30 @@ labour (directive: capacity "generated per turn; unused capacity disappears; no 
 Reconciliation is deterministic: each stream lands on `m5-integration` in the order S1 → S2 → U1 → U2/U3 → S3 →
 institution UI → V, conflicts resolved by the ratified design (never by keeping two implementations), and the
 complete gate suite runs after each landing.
+
+## R2c — reconciliation of R2a + R2b (appended 2026-10-03)
+
+Branch `m5i-r2c-reconcile` = `m5-integration` @ f1fe76f + `m5i-r2a-trade-citystates` @ a529bab + `m5i-r2b-governance-fixes`
+@ 93bb741. Labels: RATIFIED = a Director decision (director-locked-r2 items); IMPLEMENTED = shipped and tested on this
+branch; INFERRED = an implementation choice made by an agent, not a ruling; DEFERRED / OPEN as stated.
+
+- IMPLEMENTED (RATIFIED items 1, 13): Trade is research node key 426 (`trade`); TradeArbitrageSystem moves goods only
+  between two settlements that both know `activity.trade` (TradeQuery.CanTrade). Placement/prerequisites as in R2a's record.
+- IMPLEMENTED (RATIFIED items 4, 12): uncontrolled settlements research under PolityId(−1−settlement), pace 0.25 (INFERRED value, TUNE).
+- IMPLEMENTED (RATIFIED item 9): geographic weather distance; unrest-lite tax brake (needs.json `unrest`, State/Unrest.cs);
+  construction-capacity labels marked as estimates. Item 11: Age military milestones read minIdentityAge; M6-owned facts PENDING.
+- IMPLEMENTED, interaction (INFERRED, R2c): a settlement thrown off by an uprising has no controller and therefore becomes
+  a city-state that researches on its own; no extra mechanism. Its local record starts EMPTY — the former ruler's knowledge
+  is NOT seeded (seeding would be a knowledge-diffusion mechanic with no ruling; OPEN for the Director). Consequence: a
+  revolted seat loses the ruler's crafts (e.g. pottery firing) until it re-learns them. Test:
+  UnrestTests.ARevoltedSeat_BecomesACityState_AndResearchesFromAnEmptyLocalRecord.
+- MEASURED interaction: Trade gate × tax brake — the founded seed-42 pushback table (0/40/70/99 %, turns 20–300) is
+  byte-identical to R2b's AFTER rows; the founded run trades nothing either way. Trade × city-states: a pair trades only if
+  both endpoints know Trade, a city-state included (TradeQuery, R2a tests).
+- Goldens: founded 1368df9f… and first-reign 680a20c5… (R2b's pins; R2a does not move them), driven → efeec45d…; the
+  attribution file strips each layer separately and jointly.
+- DEFERRED (RATIFIED item 5): all 115 unrealized entities stay DEFERRED; 0 realized in R2c. Plan:
+  `docs/deferred-entity-realization-plan.md` (tiers INFERRED).
+- OPEN: `farming.preCultivation` committed OFF (turn-1 Gathering still labelled "makes grain" — item 8 tension, R2a record);
+  capital loss leaves no tax reach (no ratified succession; DEFERRED); quarantined corridors densityPerArableKm2 and
+  migrationGrossPerDecade breach their windows on 4-seed autoplay, as they already did at f1fe76f.

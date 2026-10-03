@@ -251,3 +251,20 @@ values (MEASURED): ClassSystem artisan latch 71 → 70; Merchant first-active 11
   ci.yml determinism-xproc legs run locally: orderless and ordered/replay toy legs, founded xproc (last hash =
   FOUNDED_GOLDEN), founded replay, aiEmpires = 1 leg (186 orders, kinds 3–8, replay equal, inspect VERIFIED).
 - Not run here: `sim bench` (orchestrator benches once).
+
+## 7. R2c — merged R2a + R2b (append-only, 2026-10-03)
+
+| item | status | evidence (MEASURED on `m5i-r2c-reconcile`) |
+|---|---|---|
+| Trade research unlock (node 426) | IMPLEMENTED | TradeResearchUnlockTests; audit `--check` green |
+| City-state research (local holder) | IMPLEMENTED | CityStateProgressionTests; preview `r2-previews/city-state-card.png` |
+| Unrest-lite tax brake | IMPLEMENTED | UnrestTests; pushback table identical to §6 AFTER |
+| Weather over geographic distance | IMPLEMENTED | HarvestWeatherGeographyTests |
+| Uprising → city-state research, empty start | IMPLEMENTED / INFERRED | UnrestTests.ARevoltedSeat_… |
+| Seeding a revolted settlement with its ruler's knowledge | OPEN | no ruling |
+| 115 deferred entities | DEFERRED (0 realized) | docs/deferred-entity-realization-plan.md |
+| Capital succession / tax reach after capital loss | DEFERRED | no ratified mechanism |
+| Quarantined corridor window breaches (density, migration) | OPEN (pre-existing at f1fe76f) | autoplay 4×650 both trees |
+
+Suites: Sim.Tests 1436 passed / 0 failed / 6 skipped (before the R2c test), Sim.Ui.Tests 473/473. Bench founded seed 42
+300 turns, 3 alternated runs: f1fe76f median 34430.70 ms, R2c median 34789.20 ms, ratio 1.010.

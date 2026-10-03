@@ -1,5 +1,9 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-03 — M5 integration R2c on `m5i-r2c-reconcile` (NOT merged).** R2a (Trade as research node 426, city-state
+> research) and R2b (unrest-lite tax brake, geographic weather distance, Age military milestones) reconciled on one tree.
+> Status, goldens and evidence: ADR-033 §R2c and `docs/m5-integration-coherence-matrix.md` §7. Verify against git.
+
 > **STALENESS CORRECTION, M4 exit gate (2026-09-16).** The measurement below is dated 2026-08-31 and
 > four of its load-bearing claims have since been overtaken by git. They are corrected inline and
 > marked `CORRECTED`; nothing else in this file was rewritten, per the director's instruction that the
