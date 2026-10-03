@@ -97,34 +97,40 @@ public class AiPolicyTests
     }
 
     [Fact]
-    public void AiResearch_TargetsTheCheapestNodeOfItsGoalClosure_CoreAndCapabilityGoals_ThenAnythingCheapest()
+    public void AiResearch_WorksTheCheapestRemainingGoal_ItsCheapestAvailableNode_ThenAnythingCheapest()
     {
-        // ADR-033 B: the goal closure is the next Age's core ancestors (A2: cereal_cultivation, so
-        // {grinding_stone, cereal_cultivation}) UNION the ancestors of the requirements of the capability-gated
-        // actions the AI uses (the next road class, the tax gate, the university founding). S2's core-only rule
-        // is the first half and is unchanged.
+        // ADR-033 B + D5 follow-up: the goals are the next Age's core ancestors (A2: cereal_cultivation, so
+        // {grinding_stone, cereal_cultivation}) and the ancestors of the requirements of the capability-gated
+        // actions the AI uses (the next road class, the tax gate, the university founding), worked ONE AT A TIME:
+        // the goal with the cheapest remaining closure, its cheapest available node.
         WorldState w = Duo();
         int grinding = Research.IndexOfId("grinding_stone"), cereal = Research.IndexOfId("cereal_cultivation");
         bool[] goal = AiResearchPolicy.CoreGoalClosure(w, Research, TestConfigs.Ages(), Rival);
         Assert.Equal([grinding, cereal], Enumerable.Range(0, goal.Length).Where(i => goal[i]).OrderBy(i => i));
-        // Turn 0: grinding_stone (370) is still the cheapest available node of the union.
-        Assert.Equal(Research.Nodes[grinding].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
+        // Turn 0 (goal-SEQUENTIAL, ADR-033 D5 follow-up): the goal worked is the one whose REMAINING closure is
+        // cheapest — the next road class (track_road), not the core — and the target is the cheapest available
+        // node of THAT closure, never of the union.
+        bool[] completed0 = ResearchQuery.CompletedMask(w, Research, Rival);
+        bool[] available0 = ResearchQuery.AvailableMask(Research, completed0);
+        bool[][] goals = AiResearchPolicy.Goals(w, Cfg, Rival);
+        Assert.Equal(goal, goals[AiResearchPolicy.CoreGoal]);
+        Assert.Equal(AiResearchPolicy.RoadGoal, AiResearchPolicy.ChooseGoal(w, Research, Rival, goals, completed0, available0));
+        int roadPick = AiResearchPolicy.Cheapest(w, Research, Rival, available0, goals[AiResearchPolicy.RoadGoal]);
+        Assert.Equal("knapping_oldowan", Research.Nodes[roadPick].Id);
+        Assert.Equal(Research.Nodes[roadPick].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
+        // ...though grinding_stone (370) is the cheapest available node of the union (the S3 rule's pick).
+        Assert.Equal(grinding, AiResearchPolicy.Cheapest(w, Research, Rival, available0, AiResearchPolicy.GoalClosure(w, Cfg, Rival)));
         Assert.Null(AiResearchPolicy.Decide(w, Cfg, Human));
 
-        // With grinding_stone known, the cheapest available node of the union is a CAPABILITY goal, not the core:
-        // the 520-RP knapping pair, a bit-equal tie broken to the LOWER key (the composite key, tie-dense).
+        // With grinding_stone known the core's remaining closure is cereal_cultivation alone, cheaper than any other
+        // goal's remainder: the worked goal switches to the CORE (the composite (remainingCost, ordinal) argmin,
+        // recomputed independently by AiResearchGoalTests) and the target is its one available node.
         Complete(w, Rival, "grinding_stone");
         bool[] completed = ResearchQuery.CompletedMask(w, Research, Rival);
         bool[] available = ResearchQuery.AvailableMask(Research, completed);
-        bool[] union = AiResearchPolicy.GoalClosure(w, Cfg, Rival);
-        int[] candidates = Enumerable.Range(0, available.Length).Where(i => available[i] && union[i]).ToArray();
-        double min = candidates.Min(i => ResearchQuery.EffectiveCost(w, Research, Rival, i));
-        int[] tied = candidates.Where(i => ResearchQuery.EffectiveCost(w, Research, Rival, i) == min).ToArray();
-        Assert.True(tied.Length >= 2, "the canonical tie this pins has disappeared");
-        int expected = tied.MinBy(i => Research.Nodes[i].Key.Value);
-        Assert.Equal(Research.Nodes[expected].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
-        Assert.False(goal[expected]);                                                   // not a core ancestor...
-        Assert.True(AiResearchPolicy.CapabilityGoalClosure(w, Cfg, Rival)[expected]);   // ...a capability goal
+        bool[][] goals1 = AiResearchPolicy.Goals(w, Cfg, Rival);
+        Assert.Equal(AiResearchPolicy.CoreGoal, AiResearchPolicy.ChooseGoal(w, Research, Rival, goals1, completed, available));
+        Assert.Equal(Research.Nodes[cereal].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
 
         // A live target is kept (no order).
         w.ResearchTargets.Add(new ResearchTargetRow(Rival, Research.Nodes[cereal].Key));

@@ -15,8 +15,9 @@ namespace Sim.Tests.Systems;
 /// roads, taxation and universities stayed dead for AI polities. The goal closure is now the core closure UNION
 /// the prerequisite closures of: the next unknown road class (sim.json roads.classes[].entity), the tax gate
 /// (governance.taxationRequires) and the university founding (the founding projects' entity + founds.entity),
-/// each only while unmet; the choice is the cheapest AVAILABLE node within the union (composite key
-/// (EffectiveCost, key), tie-dense — AiPolicyTests pins the canonical 520-RP tie).
+/// each only while unmet. The choice is goal-SEQUENTIAL (ADR-033 D5 follow-up): the goal with the cheapest
+/// REMAINING closure (composite key (remainingCost, ordinal), tie-dense below), then its cheapest AVAILABLE node
+/// (composite key (EffectiveCost, key), tie-dense below and in AiPolicyTests).
 /// </summary>
 public class AiResearchGoalTests
 {
@@ -99,23 +100,70 @@ public class AiResearchGoalTests
     }
 
     [Fact]
-    public void TheChoice_IsTheCheapestAvailableNodeOfTheUnion_AndTheCoreGoalIsStillPartOfIt()
+    public void TheChoice_IsGoalSequential_TheCheapestRemainingGoal_ThenItsCheapestAvailableNode()
     {
         WorldState w = Duo();
         bool[] completed = ResearchQuery.CompletedMask(w, Research, Rival);
         bool[] available = ResearchQuery.AvailableMask(Research, completed);
+        bool[][] goals = AiResearchPolicy.Goals(w, Cfg, Rival);
+        Assert.Equal(AiResearchPolicy.GoalCount, goals.Length);
         bool[] union = AiResearchPolicy.GoalClosure(w, Cfg, Rival);
-        bool[] core = AiResearchPolicy.CoreGoalClosure(w, Research, Cfg.Ages, Rival);
-        Assert.True(Subset(core, union));
-        Assert.True(Subset(Goals(w, Cfg), union));
-        // The choice is the composite-key argmin over the available nodes of the union, recomputed independently.
-        int expected = -1;
-        for (int i = 0; i < available.Length; i++)
+        bool[] capability = Goals(w, Cfg);
+        for (int i = 0; i < union.Length; i++)
         {
-            if (!available[i] || !union[i]) continue;
-            if (expected < 0 || ResearchQuery.EffectiveCost(w, Research, Rival, i) < ResearchQuery.EffectiveCost(w, Research, Rival, expected)) expected = i;
+            Assert.Equal(capability[i], goals[1][i] || goals[2][i] || goals[3][i]);
+            Assert.Equal(union[i], goals[0][i] || capability[i]);
         }
+
+        // The goal: an independent recomputation of the (remainingCost, ordinal) argmin over goals with an available node.
+        int expectedGoal = -1;
+        double expectedCost = 0.0;
+        for (int g = 0; g < goals.Length; g++)
+        {
+            double remaining = 0.0;
+            bool reachable = false;
+            for (int i = 0; i < goals[g].Length; i++)
+                if (goals[g][i] && !completed[i]) { remaining += ResearchQuery.EffectiveCost(w, Research, Rival, i); reachable |= available[i]; }
+            if (reachable && (expectedGoal < 0 || remaining < expectedCost)) { expectedGoal = g; expectedCost = remaining; }
+        }
+        Assert.Equal(expectedGoal, AiResearchPolicy.ChooseGoal(w, Research, Rival, goals, completed, available));
+        int expected = AiResearchPolicy.Cheapest(w, Research, Rival, available, goals[expectedGoal]);
+        Assert.True(expected >= 0 && goals[expectedGoal][expected] && available[expected]);
         Assert.Equal(expected, AiResearchPolicy.Choose(w, Cfg, Rival, completed, available));
         Assert.Equal(Research.Nodes[expected].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
+    }
+
+    [Fact]
+    public void GoalChoice_TieDense_BitEqualRemainingCosts_GoToTheLowerOrdinal_AndUnreachableGoalsAreSkipped()
+    {
+        // Two singleton goals over the 520-RP knapping pair (bit-equal EffectiveCost, both available once
+        // grinding_stone is known): whichever order they are listed in, ordinal 0 wins the tie.
+        WorldState w = Duo();
+        Complete(w, "grinding_stone");
+        bool[] completed = ResearchQuery.CompletedMask(w, Research, Rival);
+        bool[] available = ResearchQuery.AvailableMask(Research, completed);
+        int[] tied = Enumerable.Range(0, available.Length).Where(i => available[i]).ToArray();
+        double c0 = tied.Select(i => ResearchQuery.EffectiveCost(w, Research, Rival, i)).GroupBy(c => c).Where(g => g.Count() >= 2).Select(g => g.Key).Min();
+        tied = tied.Where(i => ResearchQuery.EffectiveCost(w, Research, Rival, i) == c0).ToArray();
+        Assert.True(tied.Length >= 2, "the canonical bit-equal tie this pins has disappeared");
+        bool[] Only(int i) { var g = new bool[available.Length]; g[i] = true; return g; }
+        int lo = tied[0], hi = tied[1];
+        bool[] none = new bool[available.Length];
+        Assert.Equal(0, AiResearchPolicy.ChooseGoal(w, Research, Rival, [Only(lo), Only(hi)], completed, available));
+        Assert.Equal(0, AiResearchPolicy.ChooseGoal(w, Research, Rival, [Only(hi), Only(lo)], completed, available));
+        // ...dense: every goal tied → ordinal 0; an empty (met) goal ahead of them is skipped, not chosen.
+        Assert.Equal(1, AiResearchPolicy.ChooseGoal(w, Research, Rival, [none, Only(hi), Only(lo), Only(hi)], completed, available));
+        // A strictly lower remaining cost wins regardless of ordinal: add a second uncompleted node to goal 0.
+        bool[] heavier = Only(lo); heavier[hi] = true;
+        Assert.Equal(1, AiResearchPolicy.ChooseGoal(w, Research, Rival, [heavier, Only(hi)], completed, available));
+        // A goal whose uncompleted nodes are all unavailable has nothing to work on: it is skipped.
+        int blocked = Enumerable.Range(0, available.Length).First(i => !available[i] && !completed[i]);
+        Assert.Equal(1, AiResearchPolicy.ChooseGoal(w, Research, Rival, [Only(blocked), heavier], completed, available));
+        Assert.Equal(-1, AiResearchPolicy.ChooseGoal(w, Research, Rival, [Only(blocked), none], completed, available));
+
+        // Within-goal tie-dense: a goal holding the whole tied set picks the LOWER key, in either listing.
+        bool[] pair = Only(lo); pair[hi] = true;
+        int pick = AiResearchPolicy.Cheapest(w, Research, Rival, available, pair);
+        Assert.Equal(Research.Nodes[lo].Key.Value < Research.Nodes[hi].Key.Value ? lo : hi, pick);
     }
 }
