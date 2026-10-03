@@ -22,7 +22,7 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class ScarcityConflictReachabilityMeasurement(ITestOutputHelper output)
 {
-    [Fact(Skip = "M5 R2b scarcity/conflict diagnostic (~15-25 min) — run manually; docs/m5-integration-coherence-matrix.md §6 records the table")]
+    [Fact(Skip = "M5 R2b scarcity/conflict diagnostic (~8-25 min) — run manually; docs/m5-integration-coherence-matrix.md §6 records the table")]
     public void Reachability_AcrossSeedsHorizonsAndPlay()
     {
         var text = new StringBuilder();

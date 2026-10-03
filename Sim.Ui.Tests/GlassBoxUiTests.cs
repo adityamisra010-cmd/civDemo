@@ -356,8 +356,9 @@ public class GlassBoxUiTests
         // avert (the other, abandonment, is the two food sliders at zero and is
         // therefore levered). Pinned so a node turning None (or levered) is a
         // visible change here.
-        Assert.Equal(9, none);
-        Assert.Equal(Enum.GetValues<ChainNode>().Length - 9, levered);
+        // M5 R2b: + DignitySatisfaction and EffectiveTaxRate — set by the tax edict, a policy order, not a slider.
+        Assert.Equal(11, none);
+        Assert.Equal(Enum.GetValues<ChainNode>().Length - 11, levered);
         Assert.True(Levers.For(ChainNode.DisasterMultiplierApplied).IsNone);
         Assert.False(Levers.For(ChainNode.Abandoned).IsNone);
     }
@@ -385,8 +386,8 @@ public class GlassBoxUiTests
         Assert.Single(peasants.Contributors, c => c.IsPrimary);
         Assert.Contains("primary grievance: Sustenance", peasants.PrimaryLine);
         Assert.Contains("reproduces exactly", peasants.AccrualLine);
-        Assert.Equal(3, peasants.Contributors.Count);          // the three bound needs
-        Assert.Equal(5, peasants.NotSimulated.Count);          // the five unbound, listed not omitted
+        Assert.Equal(4, peasants.Contributors.Count);          // the four bound needs (M5 R2b: + Dignity)
+        Assert.Equal(4, peasants.NotSimulated.Count);          // the four unbound, listed not omitted
         Assert.All(peasants.NotSimulated, line => Assert.Contains("not yet simulated", line));
 
         // The Sustenance chain: the ordered zero farming read back, the tool
