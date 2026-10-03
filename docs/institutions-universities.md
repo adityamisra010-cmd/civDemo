@@ -386,3 +386,36 @@ specialty, spread over five settlements — by t742; the saturation stop then ho
 ≈ 1,430 adults (100 × Σ M, Σ M = 14.3) in hosts of 64,000–163,000 adults — 0.1–0.5 % of each host. The first draft (staff
 proportional to the host, specialty keyed on X alone) measured 46 universities by t1000 — each specialty
 ordered three turns running — with 14–48 % of the hosts' adults withdrawn (§7.1, §9).
+
+**12.5 Goal-SEQUENTIAL research (ADR-033 D5 follow-up, stream S4; appended).** `AiResearchPolicy` no longer
+takes the cheapest available node of the goal UNION: it works ONE goal — the goal whose remaining closure
+(Σ EffectiveCost over its uncompleted nodes) is cheapest among the goals with an available node, composite key
+(remainingCost, ordinal; core 0, road 1, tax 2, university 3) — and targets that goal's cheapest available node,
+composite key (EffectiveCost, node key); with no goal left, the cheapest available node anywhere. Measured on
+`sim run --founded --seed 42 --turns 1000 --ai-empires 1` (Release) and by an in-test probe on the production
+pipeline (the same hashes); `sim replay` of the emitted order log reproduced all 1,000 hash-log lines byte for
+byte. No `aiEmpires = 0` world moves: `sim run --founded --seed 42 --turns 300` = `74306d6a…` (`ci.yml`
+FOUNDED_GOLDEN) and `sim run --seed 42 --turns 200` = `0af7143f…`, unchanged.
+
+| milestone | S3 (union, §12.3) | S4 (goal-sequential) |
+|---|---|---|
+| research targets | grinding_stone t0, knapping_oldowan t19 | knapping_oldowan t0, ground_stone_early t26 |
+| first granary ordered | t9 | t9 |
+| first road (DevelopRoads order / RoadDevelopments row) | t246 / t247 | t141 / t142 |
+| first levy (SetTaxRate order / positive rate) | t305 / t306 | t547 / t548 |
+| first university (order / founded row) | t722 / t724 | t842 / t844 |
+| universities at t1000 | 15 | 15 |
+| Age 2 in force | t382 | t236 |
+| Age 3 in force | t654 | t423 |
+| Age 4 in force | t744 | t650 |
+| Age 5 in force | t965 | t843 |
+| nodes completed by t400 | 22 | 17 |
+| turn-400 hash | `e7e587c8…` | `d05026923e90df2f1f26a19bb33ff5d04e8fcdabfd53080f90502b2a6990e8bf` |
+| turn-1000 hash | — | `67eacc0b51f53b7e46a6dc0183bf7a5fb4af581ee49de371c1896950daadf46e` |
+| replay identical (1,000 turns) | — | yes |
+
+The road comes first (its remaining closure is the cheapest goal at t0), then the core (once grinding_stone is
+known, cereal_cultivation alone is the cheapest remainder), and every Age arrives 94–231 turns earlier than under
+the union. The price is the tax gate (t547, 242 turns later) and the first university (t842, 120 later): their
+closures stay dearer than each successive next-Age core, so they are worked only when an Age's core is momentarily
+more expensive. S2's Age 2 (t142) is still not reached — the road closure (t142) is worked before the core.
