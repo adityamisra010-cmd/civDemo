@@ -1,10 +1,13 @@
 action surface preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world
-turn-1-a1: Turn 1, canonical founded world (seed 42, 12 settlements), Age I; turn 0, world hash 4d05a7f2dd5766236edb75f6860e8e8ff2f4c3cdefa604bf8d46490b1bdd954c, era Prehistoric, control Pebbles, layout Flat, domains Labour/Research/Construction/Military/Standing
-  turn-1-a1-screen.svg  sha256 5c7afb4813d34c679a2f959675903a329b6cfb6bbf703f6d70a2df7a12a398a9
-  turn-1-a1-panel.svg  sha256 06cdb35483a1b55a396f9289393b9c9595e5eb43c0ca62304323a39208796bb9
-later-a3: A later state: a crop, a taxation node and a road class known; Age III; the turn Farming appeared; turn 14, world hash 27f22ceb1cea5507c60482a8a199a3a7c4a9dfad871653a846fdfd0d3b558a81, era Bronze, control Counters, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing
-  later-a3-screen.svg  sha256 341ac6fed9afff1228dc44f7e45d6101d4fab7fa97f33ebfc6c5cd6d0c6bf967
-  later-a3-panel.svg  sha256 e84213eb18dc7177076d24d0ee8bb0f50ca7b6eb1565e51c63fcb13032c07aeb
-later-a8: The same later state with only the Age row changed to Age VIII; turn 14, world hash a6d1fb1aae2fcfa98dc5ab40e28fc66cf468f5d5b10ae3ce3c775a4ce64bedce, era Industrial, control Slider, layout Detailed, domains Labour/Research/Construction/Roads/Military/Governance/Standing
-  later-a8-screen.svg  sha256 e49c2de92b2929b0019db97d4fbb4eb58c4d267d4485098cc7d09b03a959b343
-  later-a8-panel.svg  sha256 66d4d24f1f04e73159d56a3c85c040c682b7cc5fa1fd0ccb066515545ea7849c
+turn-1-a1: Turn 1, canonical founded world (seed 42, 12 settlements), Age I; turn 0, world hash 4d05a7f2dd5766236edb75f6860e8e8ff2f4c3cdefa604bf8d46490b1bdd954c, era Prehistoric, control Pebbles, layout Flat, domains Labour/Research/Construction/Military/Standing/Production
+  turn-1-a1-screen.svg  sha256 8f35a088aaff5694cfa4622dc560dd88d79f0d4de943e5b126e975cc00ed6df7
+  turn-1-a1-panel.svg  sha256 57fab70246fa6279450664f6bfea6673e6128e88c284834f9e4b0f283b35b0fd
+later-a3: A later state: a crop, a taxation node and a road class known; Age III; the turn Farming appeared; turn 14, world hash bb536c70fec2687d463bfbbdb7592d72cd50b259ca8f912e48f92eefb3c800b1, era Bronze, control Counters, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  later-a3-screen.svg  sha256 494a3fcf3361e61600289521ad7082999686fc144651fa23988009684fdb2ba7
+  later-a3-panel.svg  sha256 2d4abac02ea084fddd53df98e4302ad88370e93f358f2fb4077df85e3876cbca
+later-a8: The same later state with only the Age row changed to Age VIII; turn 14, world hash fefc6660cf98e9ea07231c9f303cd476798e5a7dfbace29fb12b1710658e251e, era Industrial, control Slider, layout Detailed, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  later-a8-screen.svg  sha256 4553c24255616c9f001a3a71cd40f913fb8d56dc3005224eada509024b8938e5
+  later-a8-panel.svg  sha256 a1c411c61bcc4ba86dd093003958b59e75afd7a194e10487cd6795e16e22c8fb
+researched-a4: Researched state: agriculture, pottery, bronze casting, taxation, a road class and the university's prerequisites known; Age IV; turn 1, world hash 6999746c90b3e897b308fdfd9ae4660b9dd30ac63378af099c56f40b9c4714b0, era Iron, control Notches, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  researched-a4-screen.svg  sha256 00d20c7a017e06a73b1324ffd9352caa19e73494668edefa7c5f862889652eea
+  researched-a4-panel.svg  sha256 3f78510b524563f61718afb91bb5534e306eb5efe04a4f0ca6af5b60e0444541

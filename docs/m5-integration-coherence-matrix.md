@@ -90,3 +90,30 @@ Legend as in the audit; **FIXED** cites the commit; **REMAINS** is an open gap o
 11. **A1 yield = cereal yield (CR-006)** — the founding food activity yields at the cereal rate.
 12. Also still open from the audit: AI labour decisions [E3]; claims/recognitions/notables have no
     writer [E20]; Age-eligibility table read only by the schema [E30]; harvest weather invisible [E34].
+
+## 5. R1 — research trees drive gameplay (append-only, 2026-10-03)
+
+**Branch:** `m5i-r1-unlock-pipeline` (cut from `m5-integration` @ `ac13c3d`; measured at `c62c594` + this record). Not merged.
+
+- **Recipes [E15] — FIXED.** `research.json` entity kind `recipe`: `recipe.pottery_firing` requires `pottery_open_fired`,
+  `recipe.bronze_casting` requires `tin_bronze`; `recipe.weaving` and `recipe.toolmaking` are declared baseline (null
+  requirement — ownership matrix class A; Director decision recorded in the audit). goods.json recipes link the entity;
+  `CraftingQuery.IsRecipeAvailable` (controller knowledge + the artisan latch) is the one predicate ProductionSystem,
+  LabourActivities and AvailableActionsQuery call. M3a row: eligibility now research-gated.
+- **Action surface.** New `Production` domain (crafts known, generic over goods.json); university founding (the
+  Institutions domain, previously never rendered) joins the build block; notices announce each newly researched action.
+- **Audit.** `docs/research-gameplay-unlock-audit.md` (script + CI `--check`): 431 nodes classified A–J; 115 deferred
+  entities (units M6; buildings, infrastructure and institutions with no realizing system); 2 baseline-claim findings
+  (weaving, toolmaking) left to the Director.
+- **Goldens (MEASURED).** founded `74306d6a…` → `68c629b6…` (ci.yml FOUNDED_GOLDEN moved; two CLI processes agree);
+  driven `65d53a01…` → `7aa20e40…`; FirstReign `481d3717…` → `158bdd4c…`. Recipe-knowledge attribution control: the
+  content twin without the recipe links returns every old pin byte for byte.
+- **Behaviour (MEASURED).** The order-free founded world now trades NOTHING in 300 turns (first trade was turn 28) and,
+  in 650 turns, no merchant town emerges (was turn 119) — crafted goods and the trade economy now wait on research.
+  Calibration battery green; autoplay 4 seeds × 650: every gated corridor in band; the two quarantined corridors move
+  slightly (density breach 3.91 % → 3.62 %, migration 74.12 % → 74.16 %); final populations within 0.3 %.
+- **Suites (MEASURED, Release).** Sim.Tests 1396 / 0 / 5; Sim.Ui.Tests 472 / 0 / 0; banned constructs, read isolation,
+  read-only proof, research content audit, calibration report and the unlock audit `--check` exit 0; ci.yml
+  determinism-xproc (incl. the aiEmpires = 1 leg: 187 orders, kinds 3–8, inspect VERIFIED 601 turns) passes locally.
+- **Remains.** Weaving/toolmaking gating (Director); 115 deferred entities; order-free world has no trade until research
+  (a consequence, reported for a ruling, not retuned).

@@ -198,6 +198,13 @@
 > defect: a mid-game colony's orders made replay/`sim inspect` throw (`7100c77`). Not on `main`, not
 > ruled: everything in this entry. Verify against git.
 
+> **2026-10-03 — R1 (research trees drive gameplay) on `m5i-r1-unlock-pipeline`, cut from `m5-integration` @ `ac13c3d`;
+> NOT merged, NOT on `main`.** Crafting recipes research-gated by content-declared recipe entities (pottery firing,
+> bronze casting); Production domain on the action surface; full-corpus unlock audit
+> `docs/research-gameplay-unlock-audit.md` (CI `--check`). Founded golden `68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655`.
+> Suite MEASURED in Release: Sim.Tests 1396 / 0 / 5, Sim.Ui.Tests 472 / 0 / 0. Record:
+> `docs/m5-integration-coherence-matrix.md` §5. Verify against git.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a
