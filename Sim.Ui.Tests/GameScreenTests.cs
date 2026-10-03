@@ -33,12 +33,16 @@ public class GameScreenTests
     [Fact]
     public void TheNavigationRosterCoversEverySectionExactlyOnce()
     {
-        // A section that exists but is not in Order is unreachable in play —
+        // A section that exists but is not reachable is unreachable in play —
         // the "nothing becomes inaccessible" rule, enforced rather than trusted.
+        // ADR-033 D9 (deliberate roster change): a section is reached either from
+        // the command bar (Order: the player sections plus DEV) or as a DEV tab
+        // (the audit/debug surfaces, kept intact) — exactly one of the two.
         Section[] all = Enum.GetValues<Section>().Where(s => s != Section.None).ToArray();
-        Assert.Equal(all.Length, GameSections.Order.Count);
-        foreach (Section section in all) Assert.Contains(section, GameSections.Order);
-        Assert.Equal(GameSections.Order.Count, GameSections.Order.Distinct().Count());
+        Section[] reachable = GameSections.Order.Concat(GameSections.DeveloperTabs).ToArray();
+        Assert.Equal(all.Length, reachable.Length);
+        foreach (Section section in all) Assert.Contains(section, reachable);
+        Assert.Equal(reachable.Length, reachable.Distinct().Count());
     }
 
     [Fact]
@@ -62,24 +66,31 @@ public class GameScreenTests
     }
 
     [Fact]
-    public void T419_TurnLeadsTheRoster_AndTheDigitKeysFollowIt()
+    public void D9_ThePlaceLeadsThePlayerRoster_AndTheDigitKeysFollowTheRosterOfTheMode()
     {
-        // T4.19 lane B reorders the roster to the reading path the packet
-        // names — what changed (TURN), where and why (SETTLEMENT), what I can
-        // do (POLICY) — and binds digits 1..7 to the SAME list, so a key and
-        // the button it mirrors cannot name different sections.
+        // ADR-033 D9 replaces the T4.19 order (TURN first): the player's bar reads
+        // the place, the empire, what I can do, the institutions, the history, the
+        // trends; the developer toggle adds DEV as the seventh slot. Digits bind to
+        // the SAME list the bar draws in each mode, so a key and the button it
+        // mirrors cannot name different sections.
         Assert.Equal(
-            new[] { Section.Turn, Section.Settlement, Section.Policy, Section.Economy,
-                    Section.Annals, Section.Trends, Section.More },
+            new[] { Section.Place, Section.Empire, Section.Policy, Section.Institutions,
+                    Section.Annals, Section.Trends },
+            GameSections.Roster(developer: false).ToArray());
+        Assert.Equal(
+            new[] { Section.Place, Section.Empire, Section.Policy, Section.Institutions,
+                    Section.Annals, Section.Trends, Section.Developer },
             GameSections.Order.ToArray());
-        for (int digit = 1; digit <= 7; digit++)
-            Assert.Equal(GameSections.Order[digit - 1], GameSections.ForDigit(digit));
+        for (int digit = 1; digit <= 6; digit++)
+            Assert.Equal(GameSections.PlayerOrder[digit - 1], GameSections.ForDigit(digit, developer: false));
+        Assert.Equal(Section.None, GameSections.ForDigit(7, developer: false));
+        Assert.Equal(Section.Developer, GameSections.ForDigit(7, developer: true));
         Assert.Equal(Section.None, GameSections.ForDigit(0));
         Assert.Equal(Section.None, GameSections.ForDigit(8));
         // A digit OPENS; an unbound digit leaves the state alone; it never closes.
-        Assert.Equal(Section.Trends, GameSections.OnDigit(Section.Policy, 6));
-        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 9));
-        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 3));
+        Assert.Equal(Section.Trends, GameSections.OnDigit(Section.Policy, 6, developer: false));
+        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 7, developer: false));
+        Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 3, developer: false));
         // Escape closes an open panel and reports that it did; with nothing
         // open it reports nothing closed (the caller's exit path).
         Assert.Equal((Section.None, true), GameSections.OnEscape(Section.Trends));

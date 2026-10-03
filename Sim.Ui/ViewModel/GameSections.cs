@@ -50,6 +50,21 @@ public enum Section
     /// <summary>Build identity, seed, camera, art provenance, session files —
     /// the glass-box footer, diagnostic rather than play information.</summary>
     More = 7,
+
+    /// <summary>ADR-033 D9 — the PLAYER's view of the selected settlement, in plain language
+    /// (<see cref="PlayerViews.Settlement"/>). Labelled SETTLEMENT; the record tabs of
+    /// <see cref="Settlement"/> are its developer counterpart (RECORDS).</summary>
+    Place = 8,
+
+    /// <summary>ADR-033 D9 — the player's view of the empire (<see cref="PlayerViews.Empire"/>).</summary>
+    Empire = 9,
+
+    /// <summary>ADR-033 D6/D9 — the empire's institutions (<see cref="PlayerViews.Institutions"/>).</summary>
+    Institutions = 10,
+
+    /// <summary>ADR-033 D9 — the developer surfaces (TURN audit, RECORDS, ECONOMY tables, BUILD) behind
+    /// one button, shown only when the developer toggle is on. Its tabs are <see cref="GameSections.DeveloperTabs"/>.</summary>
+    Developer = 11,
 }
 
 /// <summary>The SETTLEMENT section's tabs — a row of buttons inside the panel,
@@ -72,13 +87,57 @@ public enum SettlementTab
 /// row and its test read from one list rather than two.</summary>
 public static class GameSections
 {
-    /// <summary>In navigation order: the audit first, then the place, then the
-    /// decision. The digit keys 1..7 follow this same order (<see cref="ForDigit"/>).</summary>
+    /// <summary>ADR-033 D9 — the PLAYER's command bar, in navigation order: the place, the empire, what
+    /// I can do, the institutions, the history, the trends. Every section here speaks plain language; none is
+    /// a record dump.</summary>
+    public static IReadOnlyList<Section> PlayerOrder { get; } =
+    [
+        Section.Place, Section.Empire, Section.Policy, Section.Institutions,
+        Section.Annals, Section.Trends,
+    ];
+
+    /// <summary>ADR-033 D9 — the developer surfaces, kept intact, reached as the tabs of
+    /// <see cref="Section.Developer"/>: the TURN audit, the settlement RECORDS, the ECONOMY tables, BUILD.</summary>
+    public static IReadOnlyList<Section> DeveloperTabs { get; } =
+    [
+        Section.Turn, Section.Settlement, Section.Economy, Section.More,
+    ];
+
+    /// <summary>Every command-bar slot the layout must hold: the player roster plus the developer button.
+    /// The geometry (ChromeGeometry.NavButton) is sized for this, so turning the developer toggle on never
+    /// overflows the bar.</summary>
     public static IReadOnlyList<Section> Order { get; } =
     [
-        Section.Turn, Section.Settlement, Section.Policy, Section.Economy,
-        Section.Annals, Section.Trends, Section.More,
+        Section.Place, Section.Empire, Section.Policy, Section.Institutions,
+        Section.Annals, Section.Trends, Section.Developer,
     ];
+
+    /// <summary>The command bar's roster: the player sections, plus DEV when the developer toggle is on.
+    /// The digit keys follow it (<see cref="OnDigit(Section, int, bool)"/>).</summary>
+    public static IReadOnlyList<Section> Roster(bool developer) => developer ? Order : PlayerOrder;
+
+    /// <summary>Whether <paramref name="section"/> is a developer surface (a DEV tab or DEV itself).</summary>
+    public static bool IsDeveloper(Section section) =>
+        section == Section.Developer || section == Section.Turn || section == Section.Settlement
+        || section == Section.Economy || section == Section.More;
+
+    /// <summary>
+    /// Where a click-to-explain route lands for the current mode. With the developer toggle on, a developer
+    /// route opens DEV on that tab (the explanation the route names, unchanged). With it off the player is
+    /// sent to the plain-language home of the same figure: the world figures to EMPIRE, the settlement figures
+    /// to SETTLEMENT. Returns the section to open and the DEV tab to show.
+    /// </summary>
+    public static (Section Open, Section DeveloperTab) Resolve(Section routed, bool developer, Section currentTab)
+    {
+        if (!IsDeveloper(routed) || routed == Section.Developer) return (routed, currentTab);
+        if (developer) return (Section.Developer, routed);
+        return (routed == Section.Turn || routed == Section.Economy ? Section.Empire : Section.Place, currentTab);
+    }
+
+    /// <summary>The section to show when the developer toggle changes: turning it off closes a developer
+    /// surface (the player bar no longer has its button); anything else stays open.</summary>
+    public static Section OnDeveloperToggle(Section current, bool developerNow) =>
+        !developerNow && IsDeveloper(current) ? Section.None : current;
 
     /// <summary>The SETTLEMENT tabs in their button order.</summary>
     public static IReadOnlyList<SettlementTab> Tabs { get; } =
@@ -91,12 +150,16 @@ public static class GameSections
     public static string Label(Section section) => section switch
     {
         Section.Turn => "TURN",
-        Section.Settlement => "SETTLEMENT",
+        Section.Settlement => "RECORDS",
         Section.Policy => "POLICY",
         Section.Economy => "ECONOMY",
         Section.Annals => "ANNALS",
         Section.Trends => "TRENDS",
-        Section.More => "MORE",
+        Section.More => "BUILD",
+        Section.Place => "SETTLEMENT",
+        Section.Empire => "EMPIRE",
+        Section.Institutions => "INSTITUTIONS",
+        Section.Developer => "DEV",
         Section.None => "",
         _ => "",
     };
@@ -105,12 +168,16 @@ public static class GameSections
     public static string Title(Section section) => section switch
     {
         Section.Turn => "Turn audit",
-        Section.Settlement => "Settlement",
+        Section.Settlement => "Settlement records",
         Section.Policy => "Policy",
-        Section.Economy => "Economy",
+        Section.Economy => "Economy tables",
         Section.Annals => "Annals",
         Section.Trends => "Trends",
         Section.More => "Build",
+        Section.Place => "Settlement",
+        Section.Empire => "Empire",
+        Section.Institutions => "Institutions",
+        Section.Developer => "Developer",
         Section.None => "",
         _ => "",
     };
@@ -140,15 +207,24 @@ public static class GameSections
     /// <see cref="Order"/>, 7 the last; any other digit opens nothing
     /// (returns <see cref="Section.None"/>, which the caller must NOT apply as
     /// a close — see <see cref="OnDigit"/>).</summary>
-    public static Section ForDigit(int digit) =>
-        digit >= 1 && digit <= Order.Count ? Order[digit - 1] : Section.None;
+    public static Section ForDigit(int digit) => ForDigit(digit, developer: true);
+
+    /// <summary>The section a digit key opens on the roster of the current mode.</summary>
+    public static Section ForDigit(int digit, bool developer)
+    {
+        IReadOnlyList<Section> roster = Roster(developer);
+        return digit >= 1 && digit <= roster.Count ? roster[digit - 1] : Section.None;
+    }
 
     /// <summary>A digit key OPENS its section (the packet's wording), and
     /// leaves the state alone when the digit has no section. It never closes:
     /// Escape does that, so the two keys have one meaning each.</summary>
-    public static Section OnDigit(Section current, int digit)
+    public static Section OnDigit(Section current, int digit) => OnDigit(current, digit, developer: true);
+
+    /// <summary><see cref="OnDigit(Section, int)"/> on the roster of the current mode.</summary>
+    public static Section OnDigit(Section current, int digit, bool developer)
     {
-        Section target = ForDigit(digit);
+        Section target = ForDigit(digit, developer);
         return target == Section.None ? current : target;
     }
 

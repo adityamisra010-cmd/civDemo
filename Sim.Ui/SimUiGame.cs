@@ -99,6 +99,13 @@ public sealed class SimUiGame : Game
     private int _trendIndex;
     private TurnAuditView? _turnAudit;
     private SettlementView? _settlementView;
+    // ADR-033 D9: the player-facing views (plain language, era density), rebuilt on the HUD cadence, and the
+    // developer toggle that reveals the audit/debug surfaces (F12, or --dev at launch).
+    private PlayerView? _placeView;
+    private PlayerView? _empireView;
+    private PlayerView? _institutionsView;
+    private bool _developer;
+    private Section _developerTab = Section.Turn;
     private PolicyView? _policyView;
     private System.Collections.Generic.IReadOnlyList<TrendMetric> _trendMetrics = [];
 
@@ -180,8 +187,9 @@ public sealed class SimUiGame : Game
     private int _clickDownX, _clickDownY;
     private double _fps;
 
-    public SimUiGame(UiSession session, string sessionLogPath)
+    public SimUiGame(UiSession session, string sessionLogPath, bool developer = false)
     {
+        _developer = developer;
         _session = session;
         _world = session.World;
         _sessionLogPath = sessionLogPath;
@@ -331,6 +339,14 @@ public sealed class SimUiGame : Game
         _turnAudit = ScreenModels.TurnAudit(_session);
         _settlementView = ScreenModels.Settlement(_session, _selected);
         _policyView = ScreenModels.Policy(_session, _selected);
+        int density = _theme.Density.Level;
+        Func<int, string> names = _session.Names.Name;
+        Sim.Core.Observability.SettlementRecord? record = _session.Observations.Observations.Count == 0 || _selected < 0
+            ? null : _session.Observations.Settlement(_session.Observations.LastTurn, _selected);
+        _placeView = _selected >= 0
+            ? PlayerViews.Settlement(_world, _session.Config, UiPlayer.Empire, record, _selected, names, density) : null;
+        _empireView = PlayerViews.Empire(_world, _session.Config, UiPlayer.Empire, names, density);
+        _institutionsView = PlayerViews.Institutions(_world, _session.Config, UiPlayer.Empire, names, density);
         _trendMetrics = TrendsModel.Metrics(_displayCfg.Registries.Classes);
         if (_trendIndex >= _trendMetrics.Count) _trendIndex = 0;
 
@@ -550,11 +566,19 @@ public sealed class SimUiGame : Game
             // T4.19 lane B: digits 1..7 OPEN sections in roster order (key
             // edge; the same GameSections.Order the command bar draws, so the
             // key and the button cannot disagree about which section is which).
-            for (int digit = 1; digit <= GameSections.Order.Count; digit++)
+            IReadOnlyList<Section> roster = GameSections.Roster(_developer);
+            for (int digit = 1; digit <= roster.Count; digit++)
             {
                 Keys key = Keys.D0 + digit;
                 if (keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key))
-                    _openSection = GameSections.OnDigit(_openSection, digit);
+                    _openSection = GameSections.OnDigit(_openSection, digit, _developer);
+            }
+
+            // ADR-033 D9: F12 toggles the developer surfaces (key edge); turning them off closes one left open.
+            if (keyboard.IsKeyDown(Keys.F12) && !_lastKeyboard.IsKeyDown(Keys.F12))
+            {
+                _developer = !_developer;
+                _openSection = GameSections.OnDeveloperToggle(_openSection, _developer);
             }
 
             // T2.4: Tab cycles the selection in settlement-id order (key edge).
@@ -1023,7 +1047,7 @@ public sealed class SimUiGame : Game
             }
             ImGui.PopStyleColor();
         }
-        if (_turnAudit is { } audit)
+        if (_developer && _turnAudit is { } audit)
         {
             ImGui.SameLine(0, 24);
             PushDataFont();
@@ -1052,7 +1076,8 @@ public sealed class SimUiGame : Game
     /// the route asks for them. Pure UI state.</summary>
     private void Route(ExplainRoute route)
     {
-        _openSection = route.Section;
+        // ADR-033 D9: the route names the explanation; the mode decides where it is shown.
+        (_openSection, _developerTab) = GameSections.Resolve(route.Section, _developer, _developerTab);
         if (route.Section == Section.Settlement) _settlementTab = route.Tab;
         if (route.Expand == AuditExpand.Population) _auditExpanded[0] = true;
         if (route.Expand == AuditExpand.Grain) _auditExpanded[1] = true;
@@ -1104,9 +1129,10 @@ public sealed class SimUiGame : Game
         if (ImGui.Button("End Turn [Space]", Size(ChromeGeometry.EndTurnButton)))
             EndTurn();
 
-        for (int i = 0; i < GameSections.Order.Count; i++)
+        IReadOnlyList<Section> roster = GameSections.Roster(_developer);
+        for (int i = 0; i < roster.Count; i++)
         {
-            Section section = GameSections.Order[i];
+            Section section = roster[i];
             ScreenRect slot = ChromeGeometry.NavButton(i);
             PlaceCursor(PanelLayout.Command, slot);
 
@@ -1185,17 +1211,69 @@ public sealed class SimUiGame : Game
             ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
         switch (_openSection)
         {
-            case Section.Turn: DrawTurnSection(); break;
-            case Section.Settlement: DrawSettlementSection(); break;
+            case Section.Place: DrawPlayerView(_placeView, "Select a settlement on the map."); break;
+            case Section.Empire: DrawPlayerView(_empireView, ""); break;
+            case Section.Institutions: DrawPlayerView(_institutionsView, ""); break;
             case Section.Policy: DrawPolicySection(); break;
-            case Section.Economy: DrawEconomySection(); break;
             case Section.Annals: DrawAnnalsSection(); break;
             case Section.Trends: DrawTrendsSection(); break;
-            case Section.More: DrawBuildSection(); break;
+            case Section.Developer: DrawDeveloperSection(); break;
+            // A developer surface opened directly (a route resolved with the toggle on lands on DEV, so these
+            // are reached only through DrawDeveloperSection's tabs).
+            case Section.Turn: case Section.Settlement: case Section.Economy: case Section.More:
+                DrawDeveloperTab(_openSection); break;
         }
         ImGui.EndChild();
 
         ImGui.End();
+    }
+
+    /// <summary>
+    /// ADR-033 D9 — a PLAYER VIEW: a title, then each block's heading in the body face and its plain-language
+    /// lines, wrapped to the panel. The block gap follows the era's density token.
+    /// </summary>
+    private void DrawPlayerView(PlayerView? view, string empty)
+    {
+        if (view is null) { ImGui.TextUnformatted(empty); return; }
+        ImGui.PushTextWrapPos(0f);
+        ImGui.TextUnformatted(view.Title);
+        foreach (ViewBlock block in view.Blocks)
+        {
+            ImGui.Dummy(new System.Numerics.Vector2(1f, (float)(_frameTheme.Density.Gap * 0.5)));
+            ImGui.Separator();
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Material.Accent));
+            ImGui.TextUnformatted(block.Heading);
+            ImGui.PopStyleColor();
+            foreach (string line in block.Lines) ImGui.TextUnformatted(line);
+        }
+        ImGui.PopTextWrapPos();
+    }
+
+    /// <summary>
+    /// ADR-033 D9 — DEV: the audit and debug surfaces, intact, behind the developer toggle. A tab row (TURN,
+    /// RECORDS, ECONOMY, BUILD) and the chosen surface exactly as it was drawn as a section.
+    /// </summary>
+    private void DrawDeveloperSection()
+    {
+        float rowX = 0f;
+        foreach (Section tab in GameSections.DeveloperTabs)
+        {
+            if (WrapButton(GameSections.Label(tab), "dev-" + tab.ToString(), _developerTab == tab, ref rowX))
+                _developerTab = tab;
+        }
+        ImGui.Separator();
+        DrawDeveloperTab(_developerTab);
+    }
+
+    private void DrawDeveloperTab(Section tab)
+    {
+        switch (tab)
+        {
+            case Section.Turn: DrawTurnSection(); break;
+            case Section.Settlement: DrawSettlementSection(); break;
+            case Section.Economy: DrawEconomySection(); break;
+            case Section.More: DrawBuildSection(); break;
+        }
     }
 
     // --- the shared furniture of the glass-box panels ------------------------
@@ -1547,6 +1625,8 @@ public sealed class SimUiGame : Game
             foreach (string line in change.Consequences) ImGui.TextUnformatted(line);
         }
         PopDataFont();
+        // ADR-033 D9: the per-turn policy table is a record dump — developer only.
+        if (!_developer) return;
         ImGui.Spacing();
         ImGui.Checkbox("per-turn policy table", ref _policyShowStates);
         if (_policyShowStates) DataLines(view.States);

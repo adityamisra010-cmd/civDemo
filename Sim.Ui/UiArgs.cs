@@ -12,8 +12,13 @@ public static class UiArgs
 {
     /// <summary>The usage line the UI prints for its launch options (Program.cs, README).</summary>
     public const string Usage =
-        "sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N]   "
-        + "(--ai-empires: found N AI-commanded Empires to play against; default worldgen.json's aiEmpires, which is 0)";
+        "sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev]   "
+        + "(--ai-empires: found N AI-commanded Empires to play against; default worldgen.json's aiEmpires, which is 0; "
+        + "--dev: open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play)";
+
+    /// <summary>ADR-033 D9: whether the UI opens with the developer surfaces shown (<c>--dev</c>). Off by
+    /// default: the player command bar shows only the player sections. Not part of the world's identity.</summary>
+    public static bool Developer(string[] args) => Array.IndexOf(args, "--dev") >= 0;
 
     public static (ulong Seed, int? SizeOverridePx, int? SettlementsOverride, int? AiEmpiresOverride) Parse(string[] args)
     {

@@ -129,5 +129,5 @@ session.ExportForensicRun(
 Console.WriteLine($"forensic record: {Sim.Ui.UiSession.ForensicPath(sessionLogPath)}"
     + $"  (run {session.ForensicRunId})");
 
-using var game = new Sim.Ui.SimUiGame(session, sessionLogPath);
+using var game = new Sim.Ui.SimUiGame(session, sessionLogPath, Sim.Ui.UiArgs.Developer(args));
 game.Run();
