@@ -15,6 +15,12 @@ public static class OrderValidation
 {
     public static void ValidateAgainstWorld(OrderLog orders, IReadOnlyWorldState world)
     {
+        // The highest settlement id the validated world holds: colonization allocates
+        // maxId + 1 (ColonizationSystem), so only ids ABOVE it can come into existence later.
+        int maxSettlementId = -1;
+        for (int s = 0; s < world.Settlements.Count; s++)
+            if (world.Settlements[s].Id.Value > maxSettlementId) maxSettlementId = world.Settlements[s].Id.Value;
+
         for (int i = 0; i < orders.Count; i++)
         {
             OrderRecord record = orders[i];
@@ -58,6 +64,17 @@ public static class OrderValidation
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction)) continue;
+
+            // M5-integration (stream V): a settlement FOUNDED MID-GAME is absent from the
+            // validated (turn-0) world, yet the live step applies an order for it. Its
+            // world-dependent checks — existence and control — are DEFERRED to delivery, where
+            // the consumers apply the same predicates on PREV (LabourActivities.CanAllocate,
+            // ConstructionQuery.IsProjectAvailable) and an order failing them changes nothing.
+            // Deferred only when the id could still be founded: above every id the world holds,
+            // in a world that has a settlement to found it from, delivered after the first step
+            // (the Turn-0 batch reads exactly this world). Every turn-0 settlement is checked as before.
+            int targetSettlement = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
+            if (record.Turn >= 1 && maxSettlementId >= 0 && targetSettlement > maxSettlementId) continue;
 
             // M4-D §12: an Empire may only build where it rules. The answer comes
             // from the D-037 control relation, never from the actor id taken on

@@ -465,7 +465,10 @@ public class PathBuildTests
         SimConfig cfg = TestConfigs.Sim();
         WorldState founded = Founded(cfg);
         var bad = new OrderLog();
-        bad.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 7, Amount: 50.0));
+        // Turn 0: the first step's batch reads exactly the validated world, so an id it
+        // does not hold is rejected outright. (A later-turn order for an id above every
+        // turn-0 id is deferred to delivery — it may name a colony; ColonyOrderValidationTests.)
+        bad.Append(new OrderRecord(0, ActorId: 1, OrderKind.LaborAllocation, TargetId: 7, Amount: 50.0));
         var e = Assert.Throws<OrderValidationException>(() =>
             OrderValidation.ValidateAgainstWorld(bad, founded));
         Assert.Contains("settlement 7", e.Message);
