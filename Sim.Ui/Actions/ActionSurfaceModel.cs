@@ -112,7 +112,13 @@ public sealed record ProjectEntry(
 public sealed record QueueEntry(int Slot, int ProjectId, string Name);
 
 /// <summary>This turn's construction labour in adult-years: the construction share's whole pool, what housing
-/// took (its published draw, a one-turn lag) and what is left for projects and path-making.</summary>
+/// took (its published draw, a one-turn lag) and what is left for projects and path-making.
+/// M5 R2b — AN ESTIMATE, AND LABELLED AS ONE: every figure is evaluated on the CURRENT state with the dt the
+/// UI expects for the coming step; ConstructionSystem re-reads the allocation, the labour adults, housing's
+/// draw and the step's own dt when the turn resolves, so the realised capacity can differ. <c>Pool</c> is
+/// computed over LABOUR adults (after institution staff, InstitutionStaffing.LabourAdults — the reader
+/// <see cref="ConstructionQuery.CapacityAdultYears"/> uses), so Pool − Housing = Available whenever the pool
+/// covers housing's draw.</summary>
 public sealed record CapacityLine(double Pool, double Housing, double Available, double DtYears);
 
 /// <summary>The construction projects of the target settlement, its queue, the head's blocker and capacity.</summary>
@@ -498,7 +504,8 @@ public static class ActionSurface
         CapacityLine? capacity = null;
         if (dtYears is { } dt && dt > 0.0)
         {
-            double pool = Sectors.Share(LabourActivities.AllocationOf(w, settlement), Sectors.Construction) * BandViews.Adults(w.Buckets, settlement) * dt;
+            double pool = Sectors.Share(LabourActivities.AllocationOf(w, settlement), Sectors.Construction)
+                * InstitutionStaffing.LabourAdults(w, input.Config, settlement) * dt;
             double housing = 0.0;
             for (int i = 0; i < w.Housing.Count; i++)
                 if (w.Housing[i].Settlement == settlement) { housing = w.Housing[i].LastLaborUsed; break; }
