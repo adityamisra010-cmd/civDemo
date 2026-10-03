@@ -131,7 +131,9 @@ public class TurnOneActionSurfaceTests
         foreach (string locked in new[] { "Farming", "Herding & fishing", "Logging", "Mining" })
             Assert.DoesNotContain(actions, a => a.Domain == ActionDomain.Labour && a.Label.Contains(locked, StringComparison.Ordinal));
         Assert.DoesNotContain(actions, a => a.Provenance.Researched);
-        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8, actions.Length);
+        // R1: the crafts known at founding are exactly the BASELINE recipes (null requirement in content).
+        Assert.Equal(["Weaving", "Toolmaking"], Of(actions, ActionDomain.Production).Select(a => a.Label));
+        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8 + 2, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

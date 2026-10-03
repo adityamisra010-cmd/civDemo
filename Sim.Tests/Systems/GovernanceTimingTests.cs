@@ -142,6 +142,9 @@ public class GovernanceTimingTests
     public void ProductionWithATaxInPlace_RaisesFarmingDepositAndCraftOutput_ByExactlyTheExtractionMultiplier()
     {
         (WorldState w, PolityId p) = Warmed();
+        // R1: pottery firing is research-gated; the subject here is the extraction multiplier at the crafting
+        // site, so the realm knows its crafts (TestConfigs.KnowRecipes — knowledge rows only).
+        TestConfigs.KnowRecipes(w, Cfg());
         SettlementId seat = Seat(w, p);
         Assert.Equal(1.0, Governance.ControlStrength(w, p, seat));
         GoodsConfig goods = Cfg().Goods!;

@@ -24,6 +24,33 @@ public static class TestConfigs
         return cfg with { Goods = goods with { Recipes = recipes } };
     }
 
+    /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
+    /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
+    /// civilization that already knows its crafts. For tests whose subject is the goods economy (crafted goods,
+    /// trade, merchants), not research. Data rows only (ResearchCompleted); returns the same world.</summary>
+    public static global::Sim.Core.State.WorldState KnowRecipes(global::Sim.Core.State.WorldState w, SimConfig cfg)
+    {
+        var research = cfg.Research!;
+        var seen = new bool[research.Nodes.Count];
+        var stack = new Stack<int>();
+        foreach (RecipeEntry r in cfg.Goods!.Recipes)
+        {
+            if (r.Entity is null) continue;
+            foreach (int a in research.Entities[research.EntityIndexOf(r.Entity)].NodeAtoms) stack.Push(a);
+        }
+        while (stack.Count > 0)
+        {
+            int i = stack.Pop();
+            if (seen[i]) continue;
+            seen[i] = true;
+            foreach (int p in research.Nodes[i].PrerequisiteNodes) stack.Push(p);
+        }
+        for (int p = 0; p < w.Polities.Count; p++)
+            for (int i = 0; i < seen.Length; i++)
+                if (seen[i]) w.ResearchCompleted.Add(new global::Sim.Core.State.ResearchCompletedRow(w.Polities[p].Id, research.Nodes[i].Key));
+        return w;
+    }
+
     public static SimConfig Sim()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();

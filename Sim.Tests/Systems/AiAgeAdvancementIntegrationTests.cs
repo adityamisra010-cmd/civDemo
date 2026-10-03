@@ -117,7 +117,8 @@ public class AiAgeAdvancementIntegrationTests
         Assert.Equal(aiDecided!.Clock.Turn, a.Turn);
         Assert.True(a.Turn > 0, "founded eligible: research orders did nothing");
         // MEASURED on the dev world, seed 42: the player is eligible at turn 275, the AI at 346.
-        Assert.Equal((346L, 275L), (a.Turn, pl.Turn));
+        // R1 RE-PIN (2026-10-03; research-gated recipes move the AI's trajectory): AI 346 -> 345, player 275 unchanged.
+        Assert.Equal((345L, 275L), (a.Turn, pl.Turn));
         // Same validation, same answer.
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(aiDecided!, Ages, a));
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(playerDecided!, Ages, pl));

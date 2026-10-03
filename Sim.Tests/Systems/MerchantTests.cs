@@ -117,7 +117,11 @@ public class MerchantTests
             PipelineLoader.Load(pipe, SystemCatalog.All(TestConfigs.Sim(), TestConfigs.Worldgen())));
         ClassId merchant = MerchantClass();
 
-        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42);
+        // R1 (2026-10-03): in the ORDER-FREE canonical world nothing is researched, pottery and bronze are
+        // research-gated, and no trade occurs at all (MEASURED: no merchant town in 650 turns). The subject here
+        // is merchant REACHABILITY from trade volume, so the realm knows its crafts (TestConfigs.KnowRecipes —
+        // knowledge rows only, the world a civilization that has researched pottery and bronze would hold).
+        WorldState w = TestConfigs.KnowRecipes(WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42), TestConfigs.Sim());
         int firstActive = -1, activeTurns = 0;
         for (int t = 1; t <= 650; t++)
         {
@@ -144,6 +148,8 @@ public class MerchantTests
         // pre-arming turn, so the arming was the whole of the move. The aim
         // ("it flips somewhere, and the predicate is reachable") is unchanged at
         // either value and is carried by the two asserts above.
+        // R1 (2026-10-03): with the recipe knowledge seeded the run is the pre-R1 economy, and the pin is UNMOVED —
+        // MEASURED on this tree: first active 119, active on 164 of 650 turns (identical to before R1).
         Assert.Equal(119, firstActive);   // moves with the trajectory; re-measured per packet
     }
 

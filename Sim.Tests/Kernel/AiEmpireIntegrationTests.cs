@@ -113,7 +113,9 @@ public class AiEmpireIntegrationTests
         // decided at turn 235 and in force at 236, the first levy ordered at 547 (a positive rate at 548).
         // S3 (goal union): 19, 9, road 246/247, Age 381/382, levy 305/306. S2 (core-only): 19, 9, no road, 141/142, no tax.
         Assert.Equal((26L, 9L, 235L, 236L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
-        Assert.Equal((141L, 142L, 547L, 548L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
+        // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
+        Assert.Equal((141L, 142L, 537L, 538L), (road.Turn, firstRoad, tax.Turn, firstTax));
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.
         WorldState replayed = WorldFounding.Found(wg, Cfg, 42);

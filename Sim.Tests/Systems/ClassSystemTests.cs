@@ -389,7 +389,11 @@ public class ClassSystemTests
         // test pins — an immigrant artisan precedes the LOCAL latch, and the
         // instrument reports the latch and not the presence — is untouched at
         // either value, and the gap is 57 turns again.
-        Assert.Equal(70, latchTurn);
+        // R1 RE-PIN (2026-10-03; VALUE, ONE cause: research-gated recipes — this world fires no pottery
+        // before pottery_open_fired, which moves the surplus-ratio trajectory by one turn). MEASURED on this
+        // tree by the agent writing this line: latch 70 -> 71, first-present 13 unchanged; the property (the
+        // immigrant precedes the local latch, the instrument reports the latch) is untouched.
+        Assert.Equal(71, latchTurn);
         Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);

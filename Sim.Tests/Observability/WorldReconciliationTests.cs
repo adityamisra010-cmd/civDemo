@@ -114,7 +114,13 @@ public class WorldReconciliationTests
         // disaster-fallout.md is what would put one there).
         for (int t = 1; t <= 300; t++)
             Assert.Equal(0, log.At(t)!.Turn.Population.Starvation);
-        Assert.True(log.At(28)!.Turn.Flows.TradeUnits > 0, "no trade on turn 28");
+        // R1 (2026-10-03): pottery firing and bronze casting are research-gated, and this order-free world
+        // completes no research — so it crafts only cloth and (bronze-less) no tools, and NO TRADE OCCURS in
+        // 300 turns (MEASURED on this tree by the agent writing this line; first trade was turn 28 before R1).
+        // The absence is PINNED; trade reconciliation keeps its positive coverage in the driven world below
+        // (first trade turn 7, measured).
+        for (int t = 1; t <= 300; t++)
+            Assert.Equal(0, log.At(t)!.Turn.Flows.TradeUnits);
         Assert.True(log.At(1)!.Turn.Dwellings.Built > 0, "nothing built on turn 1");
         Assert.Equal(0, t2.Flows.SettlementsFounded);
         Assert.Equal(12, log.At(300)!.Settlements.Length);
@@ -180,9 +186,14 @@ public class WorldReconciliationTests
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829
         // produced, 845 eaten, 0 sunk as inputs; 1464 / 638 pre-packet).
-        GoodAccount pottery = Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "pottery")!;
-        Assert.True(pottery.Produced > 0 && pottery.Eaten + pottery.InputsConsumed > 0,
-            "pottery neither produced nor consumed on turn 5");
+        // R1 RE-AIM (2026-10-03): pottery is research-gated and this run researches nothing, so the crafted
+        // account sampled is CLOTH (weaving is a baseline recipe) — MEASURED on this tree: 1627 produced,
+        // 964 eaten on turn 5; pottery produced 0.
+        GoodAccount cloth = Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "cloth")!;
+        Assert.True(cloth.Produced > 0 && cloth.Eaten + cloth.InputsConsumed > 0,
+            "cloth neither produced nor consumed on turn 5");
+        Assert.Equal(0, Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "pottery")!.Produced);
+        Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
     }
 
     [Fact]
