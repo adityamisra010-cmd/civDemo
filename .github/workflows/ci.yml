@@ -190,6 +190,39 @@ jobs:
           fi
           echo "founded replay: byte-identical to the ordered run over 300 turns"
 
+          # M5 integration (audit E4): the founded world with ONE AI Empire. The player's
+          # orders (kinds 3, 4, 6 — gen-sample-orders.py --founded-mix) are merged with the
+          # AI's (kinds 4-8: construction, tax, research, Age, roads — the AI levies at 547,
+          # hence 600 turns) into the RUN LOG --emit-session writes. Two processes must agree
+          # byte for byte (hash logs and run logs), `sim replay` of that run log (no AI
+          # producer) must reproduce every hash, and `sim inspect` must verify the record.
+          python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix
+          $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-a.log --emit-session ai-a
+          $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-b.log --emit-session ai-b
+          if ! diff ai-a.log ai-b.log > ai-xproc.diff || ! cmp ai-a/orders-*.bin ai-b/orders-*.bin; then
+            echo "AI-EMPIRE CROSS-PROCESS DIVERGENCE:"
+            head -n 5 ai-xproc.diff
+            exit 1
+          fi
+          python3 - ai-a/orders-*.bin <<'PY'
+          import struct, sys
+          b = open(sys.argv[1], "rb").read()
+          n = struct.unpack_from("<i", b, 12)[0]
+          kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
+          missing = set(range(3, 9)) - kinds
+          print(f"run log: {n} orders, kinds {sorted(kinds)}")
+          sys.exit(f"order kinds never issued: {sorted(missing)}" if missing else 0)
+          PY
+          $CLI replay --founded --seed 42 --turns 600 --ai-empires 1 --orders ai-a/orders-*.bin --hash-log ai-replayed.log
+          if ! diff ai-a.log ai-replayed.log > ai-replay.diff; then
+            echo "AI-EMPIRE REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 ai-replay.diff
+            exit 1
+          fi
+          $CLI inspect --manifest ai-a/session-*.json --turn 600 | tee ai-inspect.log
+          grep -q "reproduction VERIFIED" ai-inspect.log
+          echo "ai-empire leg: two processes, replay and inspect agree over 600 turns"
+
   calibration:
     # T2.8: the calibration battery as its own TIME-BOXED job — corridor
     # drift fails CI without hiding inside the main test wall-clock. The
