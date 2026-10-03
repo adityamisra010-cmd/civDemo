@@ -118,3 +118,20 @@ economy is untouched.
 None moved. The founded pin 1368df9f…, first-reign pin 680a20c5… and driven pin efeec45d… all hold on this
 branch. No revolt fires in the pinned runs. The founded ordered twin does revolt at turn 97, and its turn-exact
 assertion now expects the new AI polity.
+
+## 7. Verification (MEASURED, Release, this branch at the commit that adds this section)
+
+- **Sim.Tests:** 1449 passed, 0 failed, 6 skipped (1455 total). The full CalibrationBattery is included and is
+  green, with the forager switch OFF.
+- **Sim.Ui.Tests:** 473 passed out of 473.
+- **Gates:** all green:
+  - banned-constructs
+  - read-isolation
+  - research content audit, calibration report and gameplay-unlock audit (`--check`)
+  - read-only proof
+- **Cross-process determinism:** the `ci.yml` T0.9 step was run locally. It passed on every leg: orderless 400,
+  ordered vs. replay 400, founded, and the AI-empire leg over 600 turns.
+- **Bench:** `sim bench --seed 42 --turns 300 --founded` took 34,859 ms in total; the revolt phase took 58.9 ms.
+- **R2 previews:** regenerated with `docs/architecture/r2-previews/render-previews.sh`. Only the city-state card
+  changed, and it now reads "Food sector: Root and tuber cultivation". The turn-1 card still reads
+  "Gathering · makes grain", because the forager switch stays OFF (§1, OPEN).
