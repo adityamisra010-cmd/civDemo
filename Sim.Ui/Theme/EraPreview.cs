@@ -137,14 +137,14 @@ public static class EraPreview
         ScreenRect end = ChromeGeometry.EndTurnButton;
         PanelFrame.Paint(d, new RectD(end.X, end.Y, end.Width, end.Height), t, 22, FrameKind.Button, ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.2), t.Material.Accent, 1.2);
         d.Write(t, end.CenterX, end.Y + 6, "End Turn [Space]", 17, t.Ink.Text, TextAlign.Center);
-        for (int i = 0; i < GameSections.Order.Count; i++)
+        for (int i = 0; i < GameSections.PlayerOrder.Count; i++)
         {
             ScreenRect nav = ChromeGeometry.NavButton(i);
             bool open = i == 1;
             // The open section reads as pressed (ImGuiCol.ButtonActive in the game: UiTheme.StyleFor).
             PanelFrame.Paint(d, new RectD(nav.X, nav.Y, nav.Width, nav.Height), t, 30 + i, FrameKind.Button,
                 open ? ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.34) : t.Material.PanelRaised, open ? t.Material.Accent : t.Material.Border, open ? 1.2 : 0.8);
-            string label = GameSections.Label(GameSections.Order[i]);
+            string label = GameSections.Label(GameSections.PlayerOrder[i]);
             double ns = ThemeText.FitSize(m, t, label, 15, nav.Width - 10, FontRole.Caps);
             d.Write(t, nav.CenterX, nav.Y + 7 + (15 - ns) / 2, ThemeText.Fit(m, t, label, ns, nav.Width - 8, FontRole.Caps), ns, t.Ink.Text, TextAlign.Center, FontRole.Caps);
         }
