@@ -62,22 +62,36 @@ public static class ConstructionQuery
     }
 
     /// <summary>Whether the project's research entity is knowledge-eligible for the issuer (see the header).
-    /// An entity id the research content does not define is never eligible (content changed under a save).</summary>
+    /// An entity id the research content does not define is never eligible (content changed under a save).
+    /// ADR-033 D6: a project that FOUNDS an institution (goods.json <c>founds</c>) needs the institution's
+    /// entity knowledge-eligible too — a university project builds <c>building.university</c> and founds
+    /// <c>inst.university</c>, and BOTH gate (the research stage's own reading, D-044 R4;
+    /// docs/institutions-universities.md §3). Still the one availability predicate.</summary>
     public static bool IsKnowledgeEligible(
         IReadOnlyWorldState world, ResearchContent? research, PolityId issuer, ConstructionProjectEntry project)
     {
-        if (project.Entity is null || research is null) return true;
-        int entity = research.EntityIndexOf(project.Entity);
-        return entity >= 0 && ResearchQuery.IsKnowledgeEligible(research, entity, ResearchQuery.CompletedMask(world, research, issuer));
+        if (research is null) return true;
+        if (project.Entity is null && project.Founds is null) return true;
+        bool[] completed = ResearchQuery.CompletedMask(world, research, issuer);
+        if (project.Entity is { } building && !Eligible(research, building, completed)) return false;
+        return project.Founds is not { } founds || Eligible(research, founds.Entity, completed);
+    }
+
+    private static bool Eligible(ResearchContent research, string entityId, bool[] completed)
+    {
+        int entity = research.EntityIndexOf(entityId);
+        return entity >= 0 && ResearchQuery.IsKnowledgeEligible(research, entity, completed);
     }
 
     /// <summary>
-    /// The settlement's construction capacity this turn, in adult-years: construction share × adults ×
+    /// The settlement's construction capacity this turn, in adult-years: construction share × LABOUR adults ×
     /// dtYears, less housing's published draw (§3.2 one-turn lag), floored at zero (the lag means a shrinking
     /// pool can transiently owe more than it has). The SAME arithmetic, in the same order, that gates
-    /// ConstructionSystem's queue head — it is the function the system calls.
+    /// ConstructionSystem's queue head — it is the function the system calls. LABOUR adults are the adults
+    /// left after institutional staff (ADR-033 D6, InstitutionStaffing.LabourAdults — the one labour reader;
+    /// exactly the adult count when no institution is staffed).
     /// </summary>
-    public static double CapacityAdultYears(IReadOnlyWorldState world, SettlementId settlement, double dtYears)
+    public static double CapacityAdultYears(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, double dtYears)
     {
         SectorAllocationRow shares = Sectors.Default(settlement);
         for (int i = 0; i < world.SectorAllocations.Count; i++)
@@ -86,7 +100,7 @@ public static class ConstructionQuery
             { shares = world.SectorAllocations[i]; break; }
         }
 
-        long adults = BandViews.Adults(world.Buckets, settlement);
+        double adults = InstitutionStaffing.LabourAdults(world, cfg, settlement);
         double capacity = Sectors.Share(shares, Sectors.Construction) * adults * dtYears;
         for (int i = 0; i < world.Housing.Count; i++)
         {
@@ -130,17 +144,23 @@ public static class ConstructionQuery
     /// <summary>
     /// The transient blocker the action surface shows for an AVAILABLE project, or null when it could be
     /// built this turn: the inputs short ("needs 40 timber (has 12)") and, when the turn's length is known,
-    /// the construction labour short. Information, not a disabled future control (ADR-033 D2).
+    /// the construction labour short; for a project that founds an institution (ADR-033 D6), the host's
+    /// founding viability first ("needs 4000 adults (has 3100)"). Information, not a disabled future
+    /// control (ADR-033 D2) — each reading is the function ConstructionSystem gates the head with.
     /// </summary>
     public static string? Blocker(
-        IReadOnlyWorldState world, GoodsConfig goods, SettlementId settlement, ConstructionProjectEntry project, double? dtYears)
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears)
     {
+        GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("a construction blocker needs goods content", nameof(cfg));
         var parts = new List<string>();
+        if (InstitutionContent.FoundsInstitution(project)
+            && InstitutionViability.ToFound(world, cfg, settlement) is { Viable: false } viability)
+            parts.Add(InstitutionViability.Shortfall(viability));
         foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, settlement, project))
             parts.Add($"{Num(s.Required)} {s.Name} (has {Num(s.Held)})");
         if (dtYears is { } dt && dt > 0.0)
         {
-            double capacity = CapacityAdultYears(world, settlement, dt);
+            double capacity = CapacityAdultYears(world, cfg, settlement, dt);
             if (capacity < project.LaborRequired)
                 parts.Add($"{Num(project.LaborRequired)} adult-years of construction labour (has {Num(capacity)} this turn)");
         }

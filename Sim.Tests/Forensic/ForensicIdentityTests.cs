@@ -134,9 +134,9 @@ public class ForensicIdentityTests
         ForensicRunRecord run = Run();
         Assert.Equal("sha256/canonical-stream", run.HashAlgorithm);
         Assert.False(run.HashCoversSchemaVersion);
-        Assert.Equal(30, run.CanonicalSchemaVersion);   // v30: ADR-033 D4's TaxPolicies
-        Assert.Equal(30, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it)
-        Assert.Equal(30, run.Schemas.CanonicalSchemaVersion);
+        Assert.Equal(31, run.CanonicalSchemaVersion);   // v30: ADR-033 D4's TaxPolicies (v31: ADR-033 D6/D10 Institutions + ConstructionLabor)
+        Assert.Equal(31, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor)
+        Assert.Equal(31, run.Schemas.CanonicalSchemaVersion);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
         // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
         // moved to v3 with the foodState/migrationPlan sections, and to v4 with
         // ADR-033 D4's social.tax object. The forensic tag below did NOT move —
@@ -218,7 +218,7 @@ public class ForensicIdentityTests
         Assert.Equal(run.Pipeline.Length, read.Run.Pipeline.Length);
         Assert.Equal(run.EraBands.Length, read.Run.EraBands.Length);
         Assert.Equal(run.Limitations.Length, read.Run.Limitations.Length);
-        Assert.Equal(30, read.Run.CanonicalSchemaVersion);   // v30: ADR-033 D4 TaxPolicies (v29: ADR-032 transport tables)
+        Assert.Equal(31, read.Run.CanonicalSchemaVersion);   // v30: ADR-033 D4 TaxPolicies (v29: ADR-032 transport tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor)
         Assert.NotNull(read.Close);
         Assert.Equal(12, read.Close!.TurnsReached);
         Assert.Null(read.Close.Artifacts[1].Sha256);

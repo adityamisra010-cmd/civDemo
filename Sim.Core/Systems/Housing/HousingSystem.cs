@@ -142,7 +142,9 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
             }
 
             // ---- 3. build against demand --------------------------------
-            long adults = BandViews.Adults(prev.Buckets, settlement);
+            // ADR-033 D6: the LABOUR adults (adults less institutional staff — the one labour
+            // reader every sector pool uses; exactly the adult count with no institution).
+            double adults = InstitutionStaffing.LabourAdults(prev, _cfg, settlement);
             SectorAllocationRow shares = Sectors.Default(settlement);
             for (int i = 0; i < prev.SectorAllocations.Count; i++)
                 if (prev.SectorAllocations[i].Settlement == settlement)

@@ -577,7 +577,7 @@ public class DisasterSystemTests
         world.Disasters.Add(new DisasterRow(new SettlementId(1), 0, 0.0, 0.0, 1.0, 0.625));
         world.Disasters.Add(new DisasterRow(new SettlementId(2), 7, 5e-324, -0.0, 0.9560546875, 0.4375));
 
-        Assert.Equal(30, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters
+        Assert.Equal(31, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters (v31: ADR-033 D6/D10 Institutions + ConstructionLabor)
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))

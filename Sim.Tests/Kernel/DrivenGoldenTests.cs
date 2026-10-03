@@ -429,7 +429,17 @@ public class DrivenGoldenTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone
         //         returns OLD byte for byte (non-vacuous: Strength rows restored).
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
-        const string golden = "638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a";
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent
+        // writing this line.
+        //   OLD  638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a
+        //   NEW  65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-033 D6 entry: two EMPTY count prefixes
+        //         (Institutions, ConstructionLabor — the driving batch carries only SectorAllocation
+        //         orders, so nothing is built and no university is founded). No behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone
+        //         returns OLD byte for byte (removed == 0).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        const string golden = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

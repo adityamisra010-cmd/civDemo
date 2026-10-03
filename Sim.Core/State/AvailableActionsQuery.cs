@@ -19,7 +19,7 @@ public enum ActionDomain
     Military = 6,
     /// <summary>Extension point: the tax edict (stream S1, OrderKind 5) is wired here at reconciliation.</summary>
     Governance = 7,
-    /// <summary>Extension point: institution actions (stream S3, ADR-033 D6) attach here.</summary>
+    /// <summary>ADR-033 D6 (stream S3): found a specialized university of a type at a settlement.</summary>
     Institutions = 8,
     Standing = 9,
 }
@@ -150,8 +150,13 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 ///   the selection RoadDevelopmentSystem applies (transport is FROZEN: read only).</item>
 /// <item><b>Military</b> (Standing) — <see cref="MilitaryQuery"/>: the roster, its family lines and Age
 ///   identities. No military order exists, so none is offered.</item>
-/// <item><b>Governance</b>, <b>Institutions</b> — documented extension points (see <see cref="Governance"/>
-///   and <see cref="Institutions"/>); they list nothing in this build.</item>
+/// <item><b>Governance</b> (OrderKind 5) — the tax edict, iff the research-gated predicate GovernanceSystem
+///   applies holds (<see cref="Governance"/>).</item>
+/// <item><b>Institutions</b> (OrderKind 4, ADR-033 D6) — found a specialized university of type T at settlement
+///   S, listed exactly where <see cref="ConstructionQuery.IsProjectAvailable"/> admits the founding project (the
+///   predicate ConstructionSystem applies), with the founding viability, materials and capacity as its
+///   transient blocker (<see cref="Institutions"/>). The Construction contributor does not list founding
+///   projects, so nothing is listed twice.</item>
 /// <item><b>Standing</b> — the research.json baseline capabilities flagged simulated.</item>
 /// </list>
 ///
@@ -178,7 +183,7 @@ public static class AvailableActionsQuery
         Roads(world, cfg, polity, actions);
         Military(world, cfg, polity, actions);
         Governance(world, cfg, polity, actions);
-        Institutions(world, cfg, polity, actions);
+        Institutions(world, cfg, polity, context, actions);
         Standing(cfg, actions);
         return Order(actions);
     }
@@ -289,7 +294,8 @@ public static class AvailableActionsQuery
 
     /// <summary>Each (settlement, project) ConstructionQuery.IsProjectAvailable admits — the predicate
     /// ConstructionSystem applies to the order — Id = settlement × 2^32 + project id, with the materials (and,
-    /// when the turn length is known, capacity) the settlement lacks as its blocker.</summary>
+    /// when the turn length is known, capacity) the settlement lacks as its blocker. Projects that FOUND an
+    /// institution (the universities, ADR-033 D6) are listed by <see cref="Institutions"/> instead.</summary>
     public static void Construction(
         IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
     {
@@ -300,6 +306,7 @@ public static class AvailableActionsQuery
             SettlementId settlement = world.Settlements[s].Id;
             foreach (ConstructionProjectEntry project in projects)
             {
+                if (InstitutionContent.FoundsInstitution(project)) continue;   // the Institutions contributor's
                 if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;
                 string name = ProjectName(cfg.Research, project);
                 long built = ConstructionQuery.Built(world, settlement, project.Id);
@@ -311,7 +318,7 @@ public static class AvailableActionsQuery
                     ActionDomain.Construction, ((long)settlement.Value << 32) | (uint)project.Id, ActionKind.Order,
                     $"construction.{Inv(settlement.Value)}.{project.Name}", $"Build {name}", OrderKind.EnqueueConstruction,
                     [SettlementTarget(settlement), new ActionTarget(ActionTargetKind.Project, project.Id, name)],
-                    ConstructionQuery.Blocker(world, goods, settlement, project, context.NextDtYears),
+                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears),
                     ProjectProvenance(world, cfg.Research, polity, project, builders), detail));
             }
         }
@@ -459,17 +466,67 @@ public static class AvailableActionsQuery
     }
 
     /// <summary>
-    /// EXTENSION POINT — INSTITUTIONS (ADR-033 D6, stream S3). Lists nothing in this build: no institution
-    /// table exists here. University projects are construction projects linked to their research entity in
-    /// goods.json, so the Construction contributor lists them as soon as the entity is knowledge-eligible;
-    /// any institution-specific action attaches here, through the institutions domain's own predicate.
+    /// INSTITUTIONS (ADR-033 D6, stream S3) — "Found a &lt;type&gt; University" per (settlement, university type),
+    /// listed EXACTLY where <see cref="ConstructionQuery.IsProjectAvailable"/> admits the type's founding
+    /// project (goods.json <c>founds</c>) — the predicate ConstructionSystem applies to the EnqueueConstruction
+    /// order (one predicate, two callers): the issuer controls the settlement and BOTH the building
+    /// (<c>building.university</c>) and the institution (<c>inst.university</c>) are knowledge-eligible
+    /// (ADR-028 LOCKED → AVAILABLE). A LOCKED type is not listed. Id = settlement × 2^32 + project id (the
+    /// construction packing); targets = the settlement and the project; Order = EnqueueConstruction (the
+    /// founding goes through the existing queue). Blocker = the transient reasons it cannot complete this turn,
+    /// each computed by the function that gates it: the host's FOUNDING viability (the market and the food
+    /// surplus — InstitutionViability.ToFound), the materials, and — when the turn length is known — the
+    /// construction capacity. Provenance: both entities and the completed nodes their requirements name.
+    /// Detail: the subtree it discounts, the cost, how many of the type the settlement hosts, and what one
+    /// more mature university of the type would cut from the issuer's branch costs (diminishing returns).
     /// </summary>
-    public static void Institutions(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
+    public static void Institutions(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
     {
-        _ = world;
-        _ = cfg;
-        _ = polity;
-        _ = into;
+        if (cfg.Goods is not { } goods || goods.Projects is not { Length: > 0 } projects || cfg.Research is not { } research) return;
+        ImmutableArray<string> builders = ConstructionBaseline(research);
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            SettlementId settlement = world.Settlements[s].Id;
+            foreach (ConstructionProjectEntry project in projects)
+            {
+                if (project.Founds is not { } founds) continue;
+                if (InstitutionContent.TypeOf(research, InstitutionContent.TypeKeyOf(research, project)) is not { } type) continue;
+                if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;
+
+                long here = 0;
+                for (int i = 0; i < world.Institutions.Count; i++)
+                    if (world.Institutions[i].Settlement == settlement && world.Institutions[i].Type == type.Key) here++;
+                string detail = research.Branches[type.Branch].Name + " research"
+                    + " · " + Inputs(project) + $" · {Num(project.LaborRequired)} adult-years"
+                    + (here > 0 ? $" · {Inv(here)} here" : "");
+                if (cfg.Institutions is { } institutions)
+                {
+                    double x = InstitutionEffects.MaturityWeighted(world, polity, type.Key);
+                    double cut = institutions.Universities.MaxResearchCostReduction * InstitutionEffects.NextMarginal(x);
+                    detail += $" · a mature one cuts {research.Branches[type.Branch].Name} costs by {Percent(cut)} more";
+                }
+
+                bool[] completed = ResearchQuery.CompletedMask(world, research, polity);
+                var nodes = new List<(ResearchNodeId Key, string Name)>();
+                var entities = ImmutableArray.CreateBuilder<string>();
+                foreach (string id in project.Entity is { } building ? new[] { building, founds.Entity } : [founds.Entity])
+                {
+                    entities.Add(id);
+                    if (research.EntityIndexOf(id) is not (int e and >= 0)) continue;
+                    foreach (int atom in research.Entities[e].NodeAtoms)
+                        if (completed[atom] && !ContainsKey(nodes, research.Nodes[atom].Key)) nodes.Add((research.Nodes[atom].Key, research.Nodes[atom].Name));
+                }
+                nodes.Sort(static (x, y) => x.Key.Value.CompareTo(y.Key.Value));
+
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Institutions, ((long)settlement.Value << 32) | (uint)project.Id, ActionKind.Order,
+                    $"institutions.{Inv(settlement.Value)}.{type.Id}", $"Found {type.Name}", OrderKind.EnqueueConstruction,
+                    [SettlementTarget(settlement), new ActionTarget(ActionTargetKind.Project, project.Id, type.Name)],
+                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears),
+                    Provenance(builders, entities.ToImmutable(), nodes), detail));
+            }
+        }
     }
 
     // ------------------------------------------------------------------ Standing baselines

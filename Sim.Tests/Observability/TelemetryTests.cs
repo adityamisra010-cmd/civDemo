@@ -45,7 +45,7 @@ public class TelemetryTests
                 Assert.DoesNotContain("ObservationLog", File.ReadAllText(file));
             }
         }
-        Assert.Equal(30, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables)
+        Assert.Equal(31, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor)
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class TelemetryTests
         // (3) NOT IN THE SCHEMA. The canonical version is T4.21-1's v25 and this
         // packet did not touch it; neither the section types nor their JSON keys
         // appear in the serializer or in WorldState.
-        Assert.Equal(30, CanonicalSchema.Version);
+        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
         string root = RepoPaths.Root();
         foreach (string file in new[] { "Sim.Core/Kernel/CanonicalSchema.cs", "Sim.Core/State/WorldState.cs" })
         {

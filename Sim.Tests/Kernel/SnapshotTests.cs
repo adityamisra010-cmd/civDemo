@@ -288,7 +288,17 @@ public class SnapshotTests
         //         drops it and returns OLD byte for byte.
         //   DERIVED TWICE: this in-test harness and the built CLI
         //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
-        const string golden = "bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c";
+        // ADR-033 D6 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing this line.
+        //   OLD  bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c
+        //   NEW  0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY here: the toy
+        //         pipeline runs neither the institutions nor the construction system), so the entire
+        //         movement is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV31InstitutionsTrailerAlone
+        //         drops them and returns OLD byte for byte (removed == 0).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        const string golden = "0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -956,6 +966,21 @@ public class SnapshotTests
         //         same commit, and CiPinAgreementTests now compares it to THIS constant
         //         (FoundedGoldenHash) exactly — m5-full-build left ci.yml behind and the old
         //         Assert.Contains guard passed on a stale "OLD" comment.
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing
+        // this line (ADR-015 §6).
+        //   OLD  64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
+        //   NEW  74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY: with no order log
+        //         nothing is built and no university is founded), so the movement is two four-byte zero
+        //         count prefixes. With no institution the labour reader returns the raw adult count, the
+        //         mortality seam the literal 1.0, PathBuild subtracts no construction labour and the cost
+        //         modifiers stay empty — no behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone
+        //         strips the layer, drops the two prefixes and returns OLD byte for byte (removed == 0).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes,
+        //         byte-identical logs) agree on the NEW value. ci.yml's FOUNDED_GOLDEN moves in the same
+        //         commit (CiPinAgreementTests).
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -993,7 +1018,7 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce";
+    internal const string FoundedGoldenHash = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden()

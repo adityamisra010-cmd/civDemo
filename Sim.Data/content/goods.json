@@ -213,6 +213,107 @@
         }
       ],
       "laborRequired": 8.0
+    },
+    {
+      "id": 11,
+      "name": "military university",
+      "entity": "building.university",
+      "founds": {
+        "entity": "inst.university",
+        "universityType": "military_university"
+      },
+      "_doc": "ADR-033 D6 (docs/institutions-universities.md 3): the five specialized-university projects, one per research.json universityTypes entry, ids 10 + the type key. Each BUILDS building.university and FOUNDS inst.university of its type: both entities gate (the research stage's own reading, D-044 R4), checked by the one availability predicate (ConstructionQuery.IsProjectAvailable). The completed building is counted in Structures; InstitutionsSystem founds the institution the next step (maturity 0). TUNE, reference class: the workshop (60 timber, 40 stone, 8.0 adult-years for a ~50 m2 craft workshop) scaled by floor area to a ~1,500 m2 collegiate complex (hall, library/chapel, lodgings round a quadrangle; INFERRED from high-medieval Oxford/Cambridge colleges), x30; the workshop's tools are its own equipment and do not scale. Founding also requires the host's FOUNDING viability (InstitutionViability.ToFound), checked when the queue head resolves.",
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 1800
+        },
+        {
+          "good": "stone",
+          "qty": 1200
+        }
+      ],
+      "laborRequired": 240.0
+    },
+    {
+      "id": 12,
+      "name": "medical university",
+      "entity": "building.university",
+      "founds": {
+        "entity": "inst.university",
+        "universityType": "medical_university"
+      },
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 1800
+        },
+        {
+          "good": "stone",
+          "qty": 1200
+        }
+      ],
+      "laborRequired": 240.0
+    },
+    {
+      "id": 13,
+      "name": "engineering university",
+      "entity": "building.university",
+      "founds": {
+        "entity": "inst.university",
+        "universityType": "engineering_university"
+      },
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 1800
+        },
+        {
+          "good": "stone",
+          "qty": 1200
+        }
+      ],
+      "laborRequired": 240.0
+    },
+    {
+      "id": 14,
+      "name": "natural science university",
+      "entity": "building.university",
+      "founds": {
+        "entity": "inst.university",
+        "universityType": "natural_science_university"
+      },
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 1800
+        },
+        {
+          "good": "stone",
+          "qty": 1200
+        }
+      ],
+      "laborRequired": 240.0
+    },
+    {
+      "id": 15,
+      "name": "agricultural university",
+      "entity": "building.university",
+      "founds": {
+        "entity": "inst.university",
+        "universityType": "agricultural_university"
+      },
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 1800
+        },
+        {
+          "good": "stone",
+          "qty": 1200
+        }
+      ],
+      "laborRequired": 240.0
     }
   ]
 }

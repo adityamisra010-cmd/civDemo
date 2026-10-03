@@ -478,7 +478,15 @@ public class FirstReignTests
         //         IntegratedPinAttribution.FirstReignTurn40_MovedForTheGovernanceLayerAlone returns
         //         OLD byte for byte.
         //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
-        const string golden = "3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3";
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing this line.
+        //   OLD  3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3
+        //   NEW  481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY: the first-reign
+        //         log carries no EnqueueConstruction), so two four-byte zero count prefixes are the entire
+        //         movement: IntegratedPinAttribution.FirstReignTurn40_MovedForTheInstitutionsLayoutAlone
+        //         returns OLD byte for byte (removed == 0).
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        const string golden = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
         Assert.Equal(golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

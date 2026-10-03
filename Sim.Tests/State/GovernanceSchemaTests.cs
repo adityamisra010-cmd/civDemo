@@ -27,7 +27,7 @@ public class GovernanceSchemaTests
     [Fact]
     public void SchemaV30_PopulatedTaxPolicyTable_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(30, CanonicalSchema.Version);
+        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -68,15 +68,18 @@ public class GovernanceSchemaTests
         b.TaxPolicies[0] = b.TaxPolicies[0] with { Rate = BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(0.35000000000000003) + 1) };
         Assert.NotEqual(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));   // one ulp is visible
 
-        // The table is the LAST block (appended after RoadDevelopments): an empty world's stream
-        // ends with its zero count prefix, and a populated one ends with its last row's rate bits.
+        // The table was the LAST block at v30 (appended after RoadDevelopments). Since v31 (ADR-033 D6/D10) the
+        // two institution-era tables follow it — Institutions, ConstructionLabor — which are EMPTY here, so the
+        // populated stream ends with their two zero count prefixes (8 bytes) right after the last row's rate bits.
         var empty = new WorldState(30);
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - 8));
-        Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - 12));
+        const int V31Trailer = 2 * 4;
+        Assert.All(bytes[^V31Trailer..], b => Assert.Equal(0, b));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - V31Trailer - 8));
+        Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - V31Trailer - 12));
         Assert.Equal(CanonicalSchema.ExpectedLength(empty) + 4 * 12 + 16, bytes.Length);
     }
 

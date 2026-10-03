@@ -138,7 +138,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 if (prev.SectorAllocations[i].Settlement == settlement.Id)
                 { shares = prev.SectorAllocations[i]; break; }
             }
-            long allAdults = BandViews.Adults(prev.Buckets, settlement.Id);
+            // ADR-033 D6: the LABOUR adults — adults less institutional staff, through the one
+            // labour reader every sector pool uses (exactly the adult count with no institution).
+            double allAdults = InstitutionStaffing.LabourAdults(prev, _cfg, settlement.Id);
             double builders = Sectors.Share(shares, Sectors.Construction) * allAdults;
 
             // T3.8: housing draws on the SAME construction pool. Its published
@@ -151,6 +153,17 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             {
                 if (prev.Housing[i].Settlement != settlement.Id) continue;
                 builderYears = Math.Max(0.0, builderYears - prev.Housing[i].LastLaborUsed);
+                break;
+            }
+            // ADR-033 D10: the construction QUEUE draws on the same pool too. Its published
+            // labour (ConstructionLaborRow.LastLaborUsed, rebuilt each step; absent = 0) is
+            // subtracted at the same one-turn lag, so capacity a project consumed is spent ONCE
+            // and never also banked toward dirt paths. No row in any world that built nothing,
+            // so the subtraction is skipped there and the bank is bit-identical.
+            for (int i = 0; i < prev.ConstructionLabor.Count; i++)
+            {
+                if (prev.ConstructionLabor[i].Settlement != settlement.Id) continue;
+                builderYears = Math.Max(0.0, builderYears - prev.ConstructionLabor[i].LastLaborUsed);
                 break;
             }
 
@@ -379,6 +392,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<TransportEdgeRow> TransportEdges => prev.TransportEdges;
         public IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments => prev.RoadDevelopments;
         public IReadOnlyTable<TaxPolicyRow> TaxPolicies => prev.TaxPolicies;
+        public IReadOnlyTable<InstitutionRow> Institutions => prev.Institutions;
+        public IReadOnlyTable<ConstructionLaborRow> ConstructionLabor => prev.ConstructionLabor;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

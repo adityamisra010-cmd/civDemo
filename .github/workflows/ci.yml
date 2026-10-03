@@ -168,7 +168,11 @@ jobs:
           # byte-identical logs); IntegratedPinAttributionTests strips the governance layer and returns
           # the previous value (b2c0032f…) byte for byte. CiPinAgreementTests now compares this value to
           # SnapshotTests.FoundedGoldenHash EXACTLY (m5-full-build left it behind under a Contains guard).
-          FOUNDED_GOLDEN=64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
+          # ADR-033 D6 + D10 (2026-10-02): schema v31 appends two EMPTY tables (Institutions,
+          # ConstructionLabor — nothing is built in this order-less world). Derived twice on this tree
+          # (in-test harness; two CLI processes, byte-identical logs); IntegratedPinAttributionTests
+          # strips the institutions layer and returns the previous value (64820f83…) byte for byte.
+          FOUNDED_GOLDEN=74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

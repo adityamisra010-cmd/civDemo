@@ -9,7 +9,9 @@ using Sim.Tests.TestUtil;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// ADR-033 D10 — "construction capacity is spent once": the MEASUREMENT the decision is conditional on.
+/// ADR-033 D10 — "construction capacity is spent once". The decision was conditional on a measurement (the
+/// labour a project consumed was also banked by PathBuild in the same turn); schema v31 lands the fix, and the
+/// measurement is FLIPPED to pin the single spend and its null arm.
 /// </summary>
 public class ConstructionCapacityD10Tests
 {
@@ -45,34 +47,73 @@ public class ConstructionCapacityD10Tests
     private static TurnExecutor Only(OrderLog orders, params SystemRegistration[] systems) =>
         new(ResearchRigs.FlatEra(10.0), systems, orders);
 
-    // ------------------------------------------------------------------ ADR-033 D10 — measured, blocked on the schema
+    // ------------------------------------------------------------------ ADR-033 D10 — the single spend (schema v31)
 
     [Fact]
-    public void D10_Measured_TheLabourAProjectConsumes_IsAlsoBankedByPathBuild_InTheSameTurn()
+    public void D10_TheLabourAProjectConsumes_IsPublished_AndPathBuildBanksItOnlyOnce()
     {
-        // MEASUREMENT (ADR-033 D10, "if measurement confirms"): twin worlds, identical but for one
-        // EnqueueConstruction order that ConstructionSystem resolves the same turn. PathBuild's bank grows by
-        // EXACTLY the same amount in both, although the granary consumed laborRequired adult-years of the very
-        // construction pool PathBuild accrues from: the labour is spent twice. The fix — ConstructionSystem
-        // publishing the labour it used, which PathBuild subtracts as it subtracts HousingRow.LastLaborUsed —
-        // needs a new serialized field (a CanonicalSchema change, outside this stream; reported). When it lands,
-        // this test must FLIP: the ordered twin's bank must be lower by LaborPerAdultPerYear × laborRequired.
+        // FLIPPED (ADR-033 D10, schema v31). Before v31 this test MEASURED the defect: twin worlds identical but for
+        // one EnqueueConstruction order that ConstructionSystem resolved the same turn banked EXACTLY the same
+        // PathBuild labour, although the granary consumed laborRequired adult-years of the very construction pool
+        // PathBuild accrues from — the labour was spent twice. Now ConstructionSystem PUBLISHES what it consumed
+        // (ConstructionLaborRow, rebuilt every step) and PathBuild subtracts it at the standard one-turn lag, exactly
+        // as it subtracts HousingRow.LastLaborUsed: in the step after the build the ordered twin banks
+        // LaborPerAdultPerYear × laborRequired LESS than its order-free twin, and nothing else differs.
         WorldState w = Solo();
         SettlementId s0 = w.Settlements[0].Id;
         foreach (string good in new[] { "timber", "stone" }) TopUp(w, s0, good, 1_000);
         var ordered = new OrderLog();
         ordered.Append(ConstructionQuery.EnqueueOrder(w, Player, s0, 1));
         SystemRegistration[] pipeline = [SystemCatalog.Construction(Cfg), SystemCatalog.PathBuild(Cfg)];
+        double laborRequired = Cfg.Goods!.ProjectById(1)!.LaborRequired;
+        Assert.True(ConstructionQuery.CapacityAdultYears(w, Cfg, s0, 10.0) >= laborRequired);   // affordable from the pool
+
+        // Step 1: the granary is built and its labour PUBLISHED; PathBuild's bank is unchanged this step (the lag).
         WorldState built = Only(ordered, pipeline).Step(w);
         WorldState twin = Only(new OrderLog(), pipeline).Step(w);
-
-        Assert.Equal(1L, ConstructionQuery.Built(built, s0, 1));                 // the project WAS built this turn
+        Assert.Equal(1L, ConstructionQuery.Built(built, s0, 1));
         Assert.Equal(0L, ConstructionQuery.Built(twin, s0, 1));
-        double capacity = ConstructionQuery.CapacityAdultYears(w, s0, 10.0);
-        Assert.True(capacity >= Cfg.Goods!.ProjectById(1)!.LaborRequired);    // from the same construction pool
-        Assert.True(WorldStates.TableEquals(built.PathProgress, twin.PathProgress)); // ...which PathBuild banked in full
-        int row = -1;
-        for (int i = 0; i < built.PathProgress.Count; i++) if (built.PathProgress[i].Settlement == s0) row = i;
-        Assert.True(row >= 0, "PathBuild banked nothing — the measurement would be vacuous");
+        Assert.Equal([new ConstructionLaborRow(s0, laborRequired)], Rows(built.ConstructionLabor));
+        Assert.Equal(0, twin.ConstructionLabor.Count);                            // no build, no row
+        Assert.True(WorldStates.TableEquals(built.PathProgress, twin.PathProgress));
+        Assert.True(Bank(built, s0) > 0.0, "PathBuild banked nothing — the measurement would be vacuous");
+
+        // Step 2: PathBuild subtracts the published labour once; the table is rebuilt (empty: nothing built).
+        WorldState after = Only(new OrderLog(), pipeline).Step(built);
+        WorldState twinAfter = Only(new OrderLog(), pipeline).Step(twin);
+        Assert.Equal(0, after.ConstructionLabor.Count);
+        Assert.True(WorldStates.TableEquals(after.NetworkEdges, twinAfter.NetworkEdges));   // no segment laid differently
+        double spentOnce = Cfg.PathBuild.LaborPerAdultPerYear * laborRequired;
+        Assert.Equal(Bank(twinAfter, s0) - spentOnce, Bank(after, s0), 12);
+        Assert.True(Bank(after, s0) < Bank(twinAfter, s0));
+        // Every other settlement banks identically (the subtraction is per settlement).
+        for (int i = 1; i < w.Settlements.Count; i++)
+            Assert.Equal(Bank(twinAfter, w.Settlements[i].Id), Bank(after, w.Settlements[i].Id));
+    }
+
+    [Fact]
+    public void D10_AWorldThatBuildsNothing_PublishesNoRow_AndPathBuildBanksExactlyAsBefore()
+    {
+        // The null arm, bit for bit: with no completed project the table stays empty and PathBuild skips the
+        // subtraction entirely, so every golden world (none issues EnqueueConstruction) is unmoved by D10.
+        WorldState w = Solo();
+        SystemRegistration[] pipeline = [SystemCatalog.Construction(Cfg), SystemCatalog.PathBuild(Cfg)];
+        WorldState next = Only(new OrderLog(), pipeline).Step(w);
+        Assert.Equal(0, next.ConstructionLabor.Count);
+        WorldState control = Only(new OrderLog(), [SystemCatalog.PathBuild(Cfg)]).Step(w);
+        Assert.True(WorldStates.TableEquals(next.PathProgress, control.PathProgress));
+    }
+
+    private static ConstructionLaborRow[] Rows(Table<ConstructionLaborRow> t)
+    {
+        var rows = new ConstructionLaborRow[t.Count];
+        for (int i = 0; i < t.Count; i++) rows[i] = t[i];
+        return rows;
+    }
+
+    private static double Bank(WorldState w, SettlementId s)
+    {
+        for (int i = 0; i < w.PathProgress.Count; i++) if (w.PathProgress[i].Settlement == s) return w.PathProgress[i].Banked;
+        return 0.0;
     }
 }

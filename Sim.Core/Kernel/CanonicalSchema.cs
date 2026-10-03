@@ -141,7 +141,14 @@ public static class CanonicalSchema
     /// `m5-full-build` TaxPolicies rebase, but Snapshot requires an exact version match and v28/v29 already
     /// exist, so the reservation can never be what ships — the tax table is v30, and no stream will ever
     /// carry v27. There is exactly one meaning of every version number in this file.
-    public const int Version = 30;
+    /// v31 (ADR-033 D6 + D10): Institutions and ConstructionLabor appended after TaxPolicies — one row per
+    /// founded institution instance (stable id, owning polity, settlement, university type key, founding
+    /// turn and the stored MATURITY, 32 bytes; ADR-028 §3: ACTIVE and MATURE are stored, LOCKED, AVAILABLE
+    /// and SATURATED are derived), and the construction labour a settlement's queue consumed this step
+    /// (12 bytes; rebuilt every step, rows only where a project was built), which PathBuild subtracts so
+    /// construction capacity is spent once. No existing row changed width; a world with no institution
+    /// and no completed project carries two empty count prefixes and nothing else.
+    public const int Version = 31;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -201,6 +208,8 @@ public static class CanonicalSchema
     private const int TransportEdgeRowWidth = 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 8 + 8 + 4 + 8 + 8; // Id, A, B, EdgeType, Mode, State, Capacity, LengthKm bits, Condition, BuiltTurn, UpgradedTurn, TargetClass, Modernization bits, CostFactor bits (v29)
     private const int RoadDevelopmentRowWidth = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8;   // Turn, Polity, Edge, A, B, FromClass, ToClass, Kind, Usage, MaterialUnits, ProgressBefore bits, ProgressAfter bits (v29)
     private const int TaxPolicyRowWidth = 4 + 8;                    // Polity, Rate bits (v30)
+    private const int InstitutionRowWidth = 4 + 4 + 4 + 4 + 8 + 8;  // Id, Polity, Settlement, Type, FoundedTurn, Maturity bits (v31)
+    private const int ConstructionLaborRowWidth = 4 + 8;            // Settlement, LastLaborUsed bits (v31)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -838,6 +847,28 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Rate));
         }
+
+        // 56. Institutions (v31, ADR-033 D6: founded institution instances with their stored maturity)
+        writer.Write(world.Institutions.Count);
+        for (int i = 0; i < world.Institutions.Count; i++)
+        {
+            InstitutionRow row = world.Institutions[i];
+            writer.Write(row.Id);
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Type);
+            writer.Write(row.FoundedTurn);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Maturity));
+        }
+
+        // 57. ConstructionLabor (v31, ADR-033 D10: the labour the queue consumed this step)
+        writer.Write(world.ConstructionLabor.Count);
+        for (int i = 0; i < world.ConstructionLabor.Count; i++)
+        {
+            ConstructionLaborRow row = world.ConstructionLabor[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.LastLaborUsed));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1341,6 +1372,21 @@ public static class CanonicalSchema
                 new PolityId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int institutionCount = reader.ReadInt32();
+        for (int i = 0; i < institutionCount; i++)
+        {
+            world.Institutions.Add(new InstitutionRow(
+                reader.ReadInt32(), new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()),
+                reader.ReadInt32(), reader.ReadInt64(), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
+        int constructionLaborCount = reader.ReadInt32();
+        for (int i = 0; i < constructionLaborCount; i++)
+        {
+            world.ConstructionLabor.Add(new ConstructionLaborRow(
+                new SettlementId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -1406,5 +1452,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.UnitConversions.Count * UnitConversionRowWidth
         + CountPrefixWidth + (long)world.TransportEdges.Count * TransportEdgeRowWidth
         + CountPrefixWidth + (long)world.RoadDevelopments.Count * RoadDevelopmentRowWidth
-        + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth;
+        + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth
+        + CountPrefixWidth + (long)world.Institutions.Count * InstitutionRowWidth
+        + CountPrefixWidth + (long)world.ConstructionLabor.Count * ConstructionLaborRowWidth;
 }

@@ -205,6 +205,7 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
         var agingExact = new double[rowCount];   // outflow to the NEXT slot
         var starveRate = new double[Cohorts.Count];
         var totalRate = new double[Cohorts.Count];
+        var baseRate = new double[Cohorts.Count];   // ADR-033 D6: base mortality × the settlement's health multiplier
         // T4.21-3 PASS A scratch, indexed by the group's anchor (cohort-0) row:
         // the uncapped candidate and its parts, committed in PASS B.
         var unsuppressedA = new double[rowCount];
@@ -247,10 +248,19 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
             FoodStateKind foodState = FoodState.Of(prev, settlement, _cfg, out _);
             double dEff = FoodState.EffectiveDeficit(deficit, foodState, _cfg);
             double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * dEff);
+            // ADR-033 D6 — THE ONE PER-SETTLEMENT HEALTH SEAM (InstitutionEffects.MortalityMultiplier,
+            // from PREV): medical universities' coverage, diffused over travel cost, scales every
+            // cohort's BASE mortality by μ ∈ [1 − maxMortalityReduction, 1] (bounded, saturating);
+            // starvation is untouched (medicine feeds nobody). Held constant across the micro-loop
+            // like every rate here, so e^(−m·μ·h) still composes exactly (dt-invariance by
+            // construction). Without a medical university μ is the literal 1.0 and m × 1.0 == m bit
+            // for bit, so the kernel computes the identical values.
+            double health = InstitutionEffects.MortalityMultiplier(prev, _cfg, settlement);
             for (int c = 0; c < Cohorts.Count; c++)
             {
                 starveRate[c] = StarvationRate(d, c, dEff);
-                totalRate[c] = d.MortalityPerYear[c] + starveRate[c];
+                baseRate[c] = d.MortalityPerYear[c] * health;
+                totalRate[c] = baseRate[c] + starveRate[c];
             }
 
             // Seed the micro-state from PRESENT integer counts; zero the flow
@@ -388,7 +398,7 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
                     if (buckets[i].Settlement != settlement) continue;
                     int c = buckets[i].CohortIdx;
 
-                    double dead = pop[i] * (1.0 - Math.Exp(-d.MortalityPerYear[c] * h));
+                    double dead = pop[i] * (1.0 - Math.Exp(-baseRate[c] * h));
                     pop[i] -= dead;
                     deathsExact[i] += dead;
                     double starved = pop[i] * (1.0 - Math.Exp(-starveRate[c] * h));

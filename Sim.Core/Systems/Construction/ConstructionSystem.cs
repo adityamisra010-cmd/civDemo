@@ -5,10 +5,11 @@ namespace Sim.Core.Systems.Construction;
 
 /// <summary>Tables owned by <see cref="ConstructionSystem"/> (M4-D). GoodStocks
 /// is the SANCTIONED SHARED STOCK (see SystemCatalog — construction is its fifth
-/// holder); the queue and the structure counts are this system's own.</summary>
+/// holder); the queue, the structure counts and (ADR-033 D10) the published
+/// construction labour are this system's own.</summary>
 public sealed record ConstructionTables(
     Table<ConstructionQueueRow> Queue, Table<StructureRow> Structures,
-    Table<GoodStockRow> GoodStocks);
+    Table<GoodStockRow> GoodStocks, Table<ConstructionLaborRow> Labor);
 
 /// <summary>
 /// M4-D — THE SETTLEMENT CONSTRUCTION QUEUE, RESOLVED WHOLE OR NOT AT ALL.
@@ -61,6 +62,21 @@ public sealed record ConstructionTables(
 /// ReasonIds.ConstructionMaterials, all of them or none. The all-or-nothing
 /// check runs BEFORE the first draw, so a project can never consume timber and
 /// then discover the stone is missing.
+///
+/// ADR-033 D10 — CAPACITY IS SPENT ONCE. The adult-years a resolved head consumed
+/// are PUBLISHED in the ConstructionLabor table (rebuilt every step: cleared, one
+/// row per settlement that built), and PathBuild subtracts them at the §3.2
+/// one-turn lag exactly as it subtracts housing's draw — before this, the labour a
+/// project used was also banked toward dirt paths in the same turn.
+///
+/// ADR-033 D6 — A PROJECT THAT FOUNDS AN INSTITUTION (goods.json <c>founds</c>, the
+/// five universities) resolves only where the host can FOUND one more
+/// (InstitutionViability.ToFound on PREV: the market and the food surplus) — a third
+/// transient gate beside materials and capacity, so the head waits exactly as it
+/// waits for stone. Its completion is counted in Structures like any project;
+/// InstitutionsSystem founds the institution from that count the next step.
+/// Capacity reads the labour left after institutional staff
+/// (InstitutionStaffing.LabourAdults, inside ConstructionQuery.CapacityAdultYears).
 /// </summary>
 public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionTables>
 {
@@ -99,7 +115,10 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             queue.Add(new ConstructionQueueRow(settlement, NextSlot(queue, settlement), projectId));
         }
 
-        // 2. RESOLVE one head per settlement.
+        // 2. RESOLVE one head per settlement. The published labour is rebuilt from
+        // this step's resolutions (ADR-033 D10): cleared first, so a settlement that
+        // builds nothing this step reads 0 next step.
+        ctx.Owned.Labor.Clear();
         if (_cfg.Goods is null) return;
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
@@ -112,15 +131,18 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
 
             // The settlement's construction labour this turn, in adult-years, less
             // housing's published draw (§3.2 one-turn lag), floored at zero — and every
-            // material present IN FULL, checked before any draw. Both are the shared
-            // ConstructionQuery statics, so the blocker the action surface reports is
+            // material present IN FULL, checked before any draw — and, for a project
+            // that founds an institution, the host's founding viability. All are the
+            // shared State statics, so the blocker the action surface reports is
             // computed by the function that gates the build.
-            if (!(ConstructionQuery.CapacityAdultYears(prev, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
+            if (!(ConstructionQuery.CapacityAdultYears(prev, _cfg, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
             if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, _cfg.Goods, settlement, project)) continue;
+            if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, _cfg, settlement).Viable) continue;
 
             Consume(ctx, settlement, project);
             Complete(ctx.Owned.Structures, settlement, project.Id);
             RemoveAt(queue, head);
+            ctx.Owned.Labor.Add(new ConstructionLaborRow(settlement, project.LaborRequired));
         }
     }
 

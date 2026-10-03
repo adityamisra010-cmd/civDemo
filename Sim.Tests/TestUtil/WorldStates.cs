@@ -92,6 +92,10 @@ public static class WorldStates
         // ADR-033 D4 (v30): tax policy, added WITH the table — a comparer that skips a
         // table makes every StateEquals assertion about it vacuous.
         if (!TableEquals(a.TaxPolicies, b.TaxPolicies)) return false;
+        // ADR-033 D6/D10 (v31): institutions and the published construction labour, added WITH the tables
+        // (InstitutionSchemaTests proves each one is compared).
+        if (!TableEquals(a.Institutions, b.Institutions)) return false;
+        if (!TableEquals(a.ConstructionLabor, b.ConstructionLabor)) return false;
         return true;
     }
 
