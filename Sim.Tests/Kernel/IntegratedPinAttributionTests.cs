@@ -449,9 +449,15 @@ public class IntegratedPinAttributionTests
     /// RE-ARMING fails here too — and if it is ruled, these constants stay put
     /// while the behavioural goldens move, which is the whole point.
     /// </summary>
+    /// <summary>R1: the canonical config with the recipe-knowledge links removed (TestConfigs.PreRecipeKnowledge).
+    /// EVERY layer control in this file runs on it, so each constant it carries is UNMOVED by R1 (the T4.21-4
+    /// precedent: a layout control must not be asked to absorb a behaviour change); R1's own controls at the
+    /// end of the file prove the twin returns the pre-R1 pins byte for byte.</summary>
+    private static Sim.Core.Systems.SimConfig PreR1() => TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.Sim());
+
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
-        Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
+        Sim.Core.Systems.SimConfig shipped = PreR1();
         Assert.Equal(0.0, shipped.Disaster.HazardPerYear);   // inert, T4.21-7 / CR-016
         return shipped with { Disaster = shipped.Disaster with { HazardPerYear = 0.0 } };
     }
@@ -538,7 +544,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) f424daa7da78568c23f475dd0b24dce31ee3b15f8ccf7d50fbf2713e0300d325.
         const string mainValue = "23b0db02a8e2cfef199598bde7b69ebc1e5df09b7516dab5903df3784aacf43c";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
@@ -679,7 +685,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) 77454c587a98f8fadb2ad055ca00509612f32a2a7aa73762e2418e0da30ebdfb.
         const string beforeT421 = "c20bb5a688c132ad050a741d495bfc7497c0c9772f4aeaf79b37cd33ecee1109";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.True(removed >= 1, "no disaster stream rows to strip — control vacuous");
         Assert.Equal(0, world.Disasters.Count);
@@ -780,7 +786,7 @@ public class IntegratedPinAttributionTests
     {
         // FirstReignTests' golden on main.
         const string beforeResearch = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
     }
 
@@ -822,7 +828,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18";
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
         Assert.Equal(1, world.MilitaryUnits.Count); // the founding warband, unconverted: nobody advanced
@@ -832,7 +838,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
@@ -841,7 +847,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
@@ -870,7 +876,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd";
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // no order log: no road is ever developed
     }
@@ -879,7 +885,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the first-reign log carries no DevelopRoads order
     }
@@ -888,7 +894,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
     }
@@ -922,7 +928,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0";
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         // Non-vacuous: the founded world's non-capital settlements carry a computed reach < 1.
         Assert.True(restored > 0, "no Strength differed from 1.0 — the reach computation is invisible and the control vacuous");
@@ -933,7 +939,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out _));
         Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
     }
@@ -942,7 +948,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
         Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries no SetTaxRate order
@@ -976,7 +982,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce";
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // no order log: nothing is built, no university is founded
         Assert.Equal(0, world.Structures.Count);
@@ -986,7 +992,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the first-reign log carries no EnqueueConstruction order
     }
@@ -995,8 +1001,48 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the driven log carries only SectorAllocation orders
+    }
+    // ======================================================================
+    // R1 (research → gameplay unlock pipeline, 2026-10-03) — THE RECIPE-KNOWLEDGE LAYER
+    // ======================================================================
+    // R1 links each goods.json recipe to a research.json recipe entity, and ProductionSystem runs a recipe only
+    // when its entity is knowledge-eligible for the settlement's controller (CraftingQuery). pottery-firing
+    // requires pottery_open_fired and bronze-casting tin_bronze; none of these runs completes either node, so
+    // from turn 1 no settlement fires pottery or casts bronze (and toolmaking, which reads bronze, has none).
+    // That is BEHAVIOUR, so no strip of state can return the old pins: the control is the CONTENT twin. Removing
+    // the four recipe links (TestConfigs.PreRecipeKnowledge — a pure data change, the T4.21-4 precedent) must
+    // return each pre-R1 pin BYTE FOR BYTE: the links are the entire delta, and nothing else in the R1 commit
+    // set moves simulation output. Each OLD constant is the pin on m5-integration at ac13c3d.
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
+        Assert.Equal(preR1, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR1())));
+        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
+        Assert.True(now == SnapshotTests.FoundedGoldenHash, "current founded hash " + now);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
+        Assert.Equal(preR1, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
+        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
+        Assert.True(now == Sim.Tests.Systems.FirstReignTests.PostR1Golden, "current first-reign hash " + now);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        Assert.Equal(preR1, WorldHash.ComputeHex(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        string now = WorldHash.ComputeHex(world);
+        Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);
     }
 }

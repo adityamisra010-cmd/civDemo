@@ -81,6 +81,9 @@ public class DrivenGoldenTests
         return log;
     }
 
+    /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
+    internal const string Golden = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
     /// <summary>T4.21-4: the same driven run under a CONFIG OVERRIDE, so the
@@ -439,7 +442,20 @@ public class DrivenGoldenTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone
         //         returns OLD byte for byte (removed == 0).
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
-        const string golden = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651
+        //   NEW  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.

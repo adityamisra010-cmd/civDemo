@@ -172,7 +172,11 @@ jobs:
           # ConstructionLabor — nothing is built in this order-less world). Derived twice on this tree
           # (in-test harness; two CLI processes, byte-identical logs); IntegratedPinAttributionTests
           # strips the institutions layer and returns the previous value (64820f83…) byte for byte.
-          FOUNDED_GOLDEN=74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
+          # R1 (2026-10-03): research-gated recipes (BEHAVIOUR: no pottery fired or bronze cast before
+          # pottery_open_fired / tin_bronze). Derived twice on this tree (in-test harness; two CLI
+          # processes, byte-identical logs); IntegratedPinAttributionTests' recipe-knowledge control runs
+          # the content twin without the recipe links and returns the previous value (74306d6a…) byte for byte.
+          FOUNDED_GOLDEN=68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

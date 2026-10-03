@@ -981,6 +981,20 @@ public class SnapshotTests
         //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes,
         //         byte-identical logs) agree on the NEW value. ci.yml's FOUNDED_GOLDEN moves in the same
         //         commit (CiPinAgreementTests).
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
+        //   NEW  68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`,
+        //         two separate processes, byte-identical logs); ci.yml FOUNDED_GOLDEN moves in the same commit.
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1018,20 +1032,21 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
+    internal const string FoundedGoldenHash = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
-    internal static WorldState RunFoundedGolden()
+    internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)
     {
+        Sim.Core.Systems.SimConfig cfg = cfgOverride ?? TestUtil.TestConfigs.Sim();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
+                cfg, TestUtil.TestConfigs.Worldgen())));
         return executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
+                TestUtil.TestConfigs.Worldgen(), cfg, 42), 300);
     }
 
     [Fact]

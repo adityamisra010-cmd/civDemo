@@ -24,9 +24,12 @@ public class FirstReignTests
         return OrderLog.Load(stream);
     }
 
-    internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory)
+    /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
+    internal const string PostR1Golden = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
+
+    internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
@@ -486,8 +489,20 @@ public class FirstReignTests
         //         movement: IntegratedPinAttribution.FirstReignTurn40_MovedForTheInstitutionsLayoutAlone
         //         returns OLD byte for byte (removed == 0).
         //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
-        const string golden = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
-        Assert.Equal(golden, WorldHash.ComputeHex(final));
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87
+        //   NEW  158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
         // assert trajectory SEMANTICS, so a ghost-harvest revert plus a

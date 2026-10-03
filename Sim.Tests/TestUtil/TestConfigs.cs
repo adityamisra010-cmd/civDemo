@@ -10,6 +10,20 @@ public static class TestConfigs
     /// so every production pipeline built from this runs the research engine exactly as
     /// the CLI and UI do). sim/needs/goods load fresh per call; the research content,
     /// which is immutable and about 480 KB, is parsed and validated ONCE per test process.</summary>
+    /// <summary>R1 (research → gameplay unlock pipeline): <paramref name="cfg"/> with every goods.json
+    /// recipe's research-entity link removed — the PRE-R1 twin, in which every recipe is knowledge-free
+    /// exactly as before the recipe gate. A pure data change: the attribution controls run the layer
+    /// controls on this twin (the T4.21-4 precedent — a layout control must not be asked to absorb a
+    /// behaviour change), and IntegratedPinAttributionTests' recipe-knowledge controls prove that removing
+    /// the links returns the pre-R1 pins byte for byte.</summary>
+    public static SimConfig PreRecipeKnowledge(SimConfig cfg)
+    {
+        GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("no goods content", nameof(cfg));
+        var recipes = new RecipeEntry[goods.Recipes.Length];
+        for (int i = 0; i < recipes.Length; i++) recipes[i] = goods.Recipes[i] with { Entity = null };
+        return cfg with { Goods = goods with { Recipes = recipes } };
+    }
+
     public static SimConfig Sim()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
