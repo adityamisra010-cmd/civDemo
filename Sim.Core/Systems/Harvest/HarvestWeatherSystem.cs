@@ -120,7 +120,7 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
             for (int j = 0; j < n; j++)
             {
                 SettlementId to = prev.Settlements[j].Id;
-                double w = i == j ? 1.0 : Kernel(prev, i, j, from, to, kmPerCostUnit, h.SpatialRangeCostUnits);
+                double w = i == j ? 1.0 : Kernel(prev, i, j, from, to, kmPerCostUnit, h.SpatialRangeCostUnits, h.LegacyTravelCostKernel);
                 if (w <= 0.0) continue;
                 acc += w * local[j];
                 sumSq += w * w;
@@ -220,14 +220,15 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
     /// strait) shared no weather at all however close. Now no road, route class or reachability can
     /// move it (pinned by HarvestWeatherGeographyTests). A terrain-less world (a hand-built toy,
     /// whose distance rows are written by hand and never road-aware) keeps the hand-written table;
-    /// there an absent pair shares no weather.
+    /// there an absent pair shares no weather. The config value harvestVariance.spatialDistance
+    /// "travelCost" restores the pre-R2b reading; it exists only as the golden-attribution control.
     /// </summary>
     private static double Kernel(
         IReadOnlyWorldState prev, int fromRow, int toRow, SettlementId from, SettlementId to,
-        double kmPerCostUnit, double range)
+        double kmPerCostUnit, double range, bool legacyTravelCost)
     {
         if (!(range > 0.0)) return 0.0;
-        if (GeographicDistance.TryIdealGroundCostUnits(
+        if (!legacyTravelCost && GeographicDistance.TryIdealGroundCostUnits(
                 prev, prev.Settlements[fromRow].SiteCell, prev.Settlements[toRow].SiteCell, kmPerCostUnit, out double geo))
             return Math.Exp(-geo / range);
         for (int i = 0; i < prev.SettlementDistances.Count; i++)

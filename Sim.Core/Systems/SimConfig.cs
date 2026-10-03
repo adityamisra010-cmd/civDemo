@@ -562,7 +562,16 @@ public sealed record HarvestVarianceConfig(
     [property: JsonPropertyName("sigmaLogYield"), JsonRequired] double SigmaLogYield,
     [property: JsonPropertyName("correlationTimeYears"), JsonRequired] double CorrelationTimeYears,
     [property: JsonPropertyName("spatialSharedFraction"), JsonRequired] double SpatialSharedFraction,
-    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits);
+    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits,
+    // M5 R2b: the distance the spatial kernel reads. Absent / "geographic" (shipped) = straight-line
+    // site-to-site distance (GeographicDistance). "travelCost" = the pre-R2b road-aware SettlementDistances,
+    // RETAINED ONLY as the attribution control (IntegratedPinAttributionTests strips the R2b layer with
+    // it; the T4.21-4 content-twin precedent). Any other value fails the load.
+    [property: JsonPropertyName("spatialDistance")] string? SpatialDistance = null)
+{
+    /// <summary>True when the kernel reads the legacy road-aware travel costs (attribution control only).</summary>
+    [JsonIgnore] public bool LegacyTravelCostKernel => string.Equals(SpatialDistance, "travelCost", StringComparison.Ordinal);
+}
 
 /// <summary>
 /// T4.21-1 (CR-015 §3.1/§3.2) — the food-state classification's one constant.
@@ -914,6 +923,10 @@ public static class SimConfigLoader
                 $"sim config is not valid JSON or is missing required values: {e.Message}", e);
         }
         if (cfg is null) throw new SimConfigException("sim config is empty.");
+
+        if (cfg.HarvestVariance is { SpatialDistance: { } spatial } && spatial != "geographic" && spatial != "travelCost")
+            throw new SimConfigException(
+                $"harvestVariance.spatialDistance must be \"geographic\" (shipped) or \"travelCost\" (the pre-R2b attribution control), got \"{spatial}\".");
 
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
         RequireRate("farming.yieldPerArableKm2PerYear", cfg.Farming.YieldPerArableKm2PerYear);
