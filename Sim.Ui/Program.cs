@@ -90,6 +90,16 @@ if (Array.IndexOf(args, "--era-preview") >= 0)
 // --action-preview [dir] (docs/architecture/action-surface.md, ADR-033 D1/D2): paint the REAL action surface
 // — turn 1 on the canonical founded world, and a later state (a crop, a taxation node and a road class known)
 // at Age III and Age VIII — as the game screen with the POLICY panel open and as the panel alone, to SVG.
+// --r2a-preview [dir] (docs/architecture/r2-previews/): turn 1, researched pre-Trade, post-Trade and a city-state.
+if (Array.IndexOf(args, "--r2a-preview") >= 0)
+{
+    int at = Array.IndexOf(args, "--r2a-preview");
+    string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "r2-previews";
+    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.Actions.R2aPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+        Console.WriteLine($"r2a preview: {Path.GetFullPath(p)}");
+    return;
+}
 if (Array.IndexOf(args, "--action-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--action-preview");
