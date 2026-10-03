@@ -187,13 +187,14 @@ public class UnitModernizationTests
     private static TurnExecutor AgeOnly(OrderLog orders) =>
         new(ResearchRigs.FlatEra(10.0), [SystemCatalog.AgeEligibility(Cfg), SystemCatalog.AgeTransition(Cfg)], orders);
 
-    /// <summary>A world of one polity at Age 2, eligible for A3 (core: bronze; supporting: proto_writing
-    /// (Institutional-Social), wheel_solid (Technological), formations (Military)), owning a mixed army.</summary>
+    /// <summary>A world of one polity at Age 2, eligible for A3 (core: bronze; supporting: proto_writing and
+    /// law_code (Institutional-Social), wheel_solid (Technological) — M5 R2b: the army it owns is no longer
+    /// the Bronze Age's military realization, so a third non-military milestone carries it), owning a mixed army.</summary>
     private static WorldState BronzeReady()
     {
         WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42);
         w.AgeStates.Add(new AgeStateRow(Player, 2, 5, 1, 5));
-        foreach (string id in new[] { "arsenical_bronze", "proto_writing", "wheel_solid" })
+        foreach (string id in new[] { "arsenical_bronze", "proto_writing", "wheel_solid", "law_code" })
             w.ResearchCompleted.Add(new ResearchCompletedRow(Player, Research.Nodes[Research.IndexOfId(id)].Key));
         w.MilitaryUnits.Clear();
         w.MilitaryUnits.Add(Unit(10, "warband", experience: 3.5, army: 7, location: 2));
@@ -271,8 +272,11 @@ public class UnitModernizationTests
         // The canonical founding warband converts at A2 to its Neolithic successor (axe warriors),
         // and at A3 to bronze-armed infantry. Preview == applied at each step.
         WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42);
-        foreach (string id in new[] { "cereal_cultivation", "pottery_open_fired", "arsenical_bronze", "proto_writing", "wheel_solid" })
+        foreach (string id in new[] { "cereal_cultivation", "pottery_open_fired", "arsenical_bronze", "proto_writing", "wheel_solid", "law_code" })
             w.ResearchCompleted.Add(new ResearchCompletedRow(Player, Research.Nodes[Research.IndexOfId(id)].Key));
+        // M5 R2b: the warband is not the Neolithic's military realization; a granary is A2's second category.
+        Assert.True(EmpireQuery.TryGetCapital(w, Player, out SettlementId capital));
+        w.Structures.Add(new StructureRow(capital, 1, 1));
         var orders = new OrderLog();
         orders.Append(OrderRecord.From(0, Player, OrderKind.AdvanceAge, 2, 1));
         orders.Append(OrderRecord.From(1, Player, OrderKind.AdvanceAge, 3, 1));

@@ -118,7 +118,11 @@ public class AiAgeAdvancementIntegrationTests
         Assert.True(a.Turn > 0, "founded eligible: research orders did nothing");
         // MEASURED on the dev world, seed 42: the player is eligible at turn 275, the AI at 346.
         // R1 RE-PIN (2026-10-03; research-gated recipes move the AI's trajectory): AI 346 -> 345, player 275 unchanged.
-        Assert.Equal((345L, 275L), (a.Turn, pl.Turn));
+        // M5 R2b RE-PIN (2026-10-03; Director decision 11 — the founding warband no longer satisfies the
+        // Neolithic's military milestone, so A2 needs a second NON-military category): AI 345 -> 385,
+        // player 275 -> 338 (MEASURED). Both still reach A2; the delay is the cost of no longer counting the
+        // founding line as new military realization.
+        Assert.Equal((385L, 338L), (a.Turn, pl.Turn));
         // Same validation, same answer.
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(aiDecided!, Ages, a));
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(playerDecided!, Ages, pl));

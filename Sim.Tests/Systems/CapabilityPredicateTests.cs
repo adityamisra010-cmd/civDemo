@@ -117,6 +117,9 @@ public class CapabilityPredicateTests
     {
         WorldState w = Solo();
         Complete(w, Player, "cereal_cultivation", "pottery_open_fired");
+        // M5 R2b: the founding warband is not the Neolithic's military realization; a granary is the second category.
+        Assert.True(EmpireQuery.TryGetCapital(w, Player, out SettlementId granarySite));
+        w.Structures.Add(new StructureRow(granarySite, 1, 1));
         ActionDescriptor offer = AvailableActionsQuery.For(w, Cfg, Player).Single(a => a.Domain == ActionDomain.Age);
         var orders = new OrderLog();
         orders.Append(AgeQuery.AdvanceOrder(w, Player, (int)offer.Id, (int)offer.Targets[0].Id));
