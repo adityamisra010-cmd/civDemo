@@ -1100,8 +1100,9 @@ public sealed class SimUiGame : Game
         PushDataFont();
         Figure(_hud.PopulationLine, ExplainFigure.SettlementPopulation);
         Figure(_hud.FoodLine, ExplainFigure.SettlementFood);
+        // Item 4: happiness and grievance on lines of their own — side by side they overflowed the card
+        // ("happiness 100.0 grievanc...").
         Figure(_hud.HappinessLine, ExplainFigure.SettlementHappiness);
-        ImGui.SameLine(0, 16);
         Figure(_hud.GrievanceLine, ExplainFigure.SettlementGrievance);
         PopDataFont();
         ImGui.End();

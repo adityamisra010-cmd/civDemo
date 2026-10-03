@@ -64,8 +64,10 @@ public static class PanelLayout
     /// and at the 17 px numeric face with 7 px item spacing three data lines
     /// under the title end at y ≈ 110 inside the window, past the old 104.
     /// Still under a tenth of the map band (pinned).
+    /// ADR-033 integration item 4: 132 → 160 px — happiness and grievance now sit on lines of their own,
+    /// because side by side they overflowed the 268 px card ("happiness 100.0 grievanc…").
     public static readonly PanelRect Selection =
-        new("##selection", Margin, Status.Height + Margin, 268, 132);
+        new("##selection", Margin, Status.Height + Margin, 268, 160);
 
     /// <summary>
     /// The contextual panel — policy, economy, population, market, annals or

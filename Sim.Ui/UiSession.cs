@@ -31,10 +31,12 @@ public sealed class UiSession
     private readonly Sim.Core.Chronicle.ChronicleCollector _chronicle;
     private readonly List<string> _annals = [];
     private int _renderedEvents;
+    // Item 3: the annal events the Sim.Core chronicle does not detect, derived UI-side from (prev, next).
+    private readonly ViewModel.StateChronicle _events = new();
 
     /// <summary>Settlement id → name (deterministic from world seed; ADR-001
     /// registry, never sim rows).</summary>
-    public Sim.Core.Chronicle.NameRegistry Names { get; }
+    public Sim.Core.Chronicle.NameRegistry Names { get; private set; }
 
     /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
     public IReadOnlyList<string> AnnalLines => _annals;
@@ -380,11 +382,23 @@ public sealed class UiSession
     public void EndTurn()
     {
         AppendAiOrders();
+        Step();
+    }
+
+    /// <summary>The step and every UI-side observer, shared by live play and <see cref="Resume"/>'s replay.</summary>
+    private void Step()
+    {
         WorldState prev = World;
         World = _executor.Step(prev);
         PreviousWorld = prev;
+        // Audit E23: a colony founded this step gets its name now. The registry assigns names in ascending
+        // id order with collision re-draws against names already taken, so rebuilding over a world that
+        // only GAINED settlements leaves every existing name unchanged (pinned by a test).
+        if (World.Settlements.Count != prev.Settlements.Count)
+            Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, World.Seed, World);
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
         ObserveChronicle();
+        _events.Observe(prev, World, _simCfg, Names.Name, _annals);
         History.Capture(World);
         CaptureTrace();
     }
@@ -668,6 +682,66 @@ public sealed class UiSession
                 ? "-a" + a.ToString(CultureInfo.InvariantCulture)
                 : "")
             + ".bin");
+
+    /// <summary>
+    /// Audit E32 — RESUME by replay (D-008: replay is the recovery path). Re-founds the world from the session
+    /// manifest (seed, size, settlements, AI empires), then replays the saved order log through the SAME
+    /// executor and the SAME per-step observers live play uses — so the world AND the UI-side records (annals,
+    /// observations, history, trace, names, policy history) are rebuilt, not approximated. The log already
+    /// carries every AI order (they were appended to it live), so the AI producer is NOT re-run while
+    /// replaying. Played turns: the trace's last turn when the trace exists (each replayed turn's hash is then
+    /// checked against it, and a mismatch throws), else the highest order stamp. Orders stamped with the
+    /// final turn were issued but not yet played; they are re-queued.
+    /// </summary>
+    public static UiSession Resume(string manifestPath, out string sessionLogPath)
+    {
+        string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? "";
+        SessionManifest manifest;
+        using (FileStream m = File.OpenRead(manifestPath)) manifest = SessionManifest.Read(m, manifestPath);
+        sessionLogPath = Path.Combine(dir, manifest.OrdersFile);
+        OrderLog saved;
+        using (FileStream o = File.OpenRead(sessionLogPath)) saved = OrderLog.Load(o);
+
+        IReadOnlyList<SessionTrace.Row>? trace = null;
+        string tracePath = Path.Combine(dir, manifest.TraceFile);
+        if (manifest.TraceFile.Length > 0 && File.Exists(tracePath))
+            trace = SessionTrace.Parse(File.ReadAllLines(tracePath), tracePath);
+        long target = 0;
+        if (trace is { Count: > 0 }) target = trace[^1].Turn;
+        else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
+
+        UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
+        session.ReplayTo(saved, target, trace);
+        return session;
+    }
+
+    /// <summary>The replay loop of <see cref="Resume"/>, public for the resume tests: appends the saved
+    /// orders of each turn in log order and steps, until <paramref name="target"/>; then re-queues the
+    /// orders stamped <paramref name="target"/>.</summary>
+    public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null)
+    {
+        ArgumentNullException.ThrowIfNull(saved);
+        int next = 0;
+        while (World.Clock.Turn < target)
+        {
+            long turn = World.Clock.Turn;
+            for (; next < saved.Count && saved[next].Turn <= turn; next++)
+                if (saved[next].Turn == turn) Orders.Append(saved[next]);
+            Step();
+            if (trace is not null)
+                for (int r = 0; r < trace.Count; r++)
+                    if (trace[r].Turn == World.Clock.Turn)
+                    {
+                        string hash = _trace[^1].Split(',')[^1];
+                        if (!string.Equals(hash, trace[r].Hash, StringComparison.Ordinal))
+                            throw new InvalidOperationException(
+                                $"resume diverged at turn {World.Clock.Turn}: replay hash {hash}, saved trace {trace[r].Hash}");
+                        break;
+                    }
+        }
+        for (; next < saved.Count; next++)
+            if (saved[next].Turn == World.Clock.Turn) Orders.Append(saved[next]);
+    }
 
     public void Save(string path)
     {

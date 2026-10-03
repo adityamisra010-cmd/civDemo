@@ -184,9 +184,9 @@ public sealed record HudModel(
 
     /// <summary>T2.9: the chronicle name leads; the id stays for cross-
     /// referencing orders/logs. Name defaults keep pre-T2.9 tests valid.</summary>
-    public string TitleLine => SettlementName is null
-        ? string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}")
-        : string.Create(CultureInfo.InvariantCulture, $"{SettlementName}  (settlement {SettlementId})");
+    /// <remarks>Item 4 (audit E23): player text carries the name only — the id stays in the developer
+    /// records (DEV › RECORDS); "Settlement N" remains only for an unnamed id.</remarks>
+    public string TitleLine => SettlementName ?? string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}");
 
     public string PopulationLine =>
         string.Create(CultureInfo.InvariantCulture,
