@@ -104,6 +104,20 @@ if (Array.IndexOf(args, "--action-preview") >= 0)
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
 // the log CONTENT records sim turns only.
+// Audit E32 / D-008: --resume <session-dir | session-*.json> re-founds the world from the manifest and
+// replays the saved order log (with every check against the saved trace), then continues play into the
+// SAME session files. The manifest and the forensic run record are not rewritten: they describe the
+// session's founding, which a resume does not change.
+if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
+{
+    string manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
+    var resumed = Sim.Ui.UiSession.Resume(manifestPath, out string resumedLog);
+    Console.WriteLine($"resumed {manifestPath} at turn {resumed.TurnsPlayed}");
+    using var resumedGame = new Sim.Ui.SimUiGame(resumed, resumedLog, Sim.Ui.UiArgs.Developer(args));
+    resumedGame.Run();
+    return;
+}
+
 var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride, aiEmpiresOverride);
 string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride, aiEmpiresOverride);
 
