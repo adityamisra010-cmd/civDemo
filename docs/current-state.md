@@ -181,6 +181,22 @@
 >
 > Records: `docs/adr/cr-016-armed-disaster-fallout.md` §D.3 and §D.6, `docs/queue.md`,
 > `docs/t4.21-architecture.md` §the disaster constants table. Verify against git.
+>
+> **2026-10-03 — M5 INTEGRATION ASSEMBLED on `m5-integration` (tip `0b8cb14`), NOT on `main`.** Verified on
+> `m5i-v-verify` (= `0b8cb14` + the verification stream). `origin/main` is `93270cd`, 0 ahead / 113 behind
+> `0b8cb14`: NOTHING below is on `main` — not the frozen transport base `997824b`, not the streams.
+> Stream branches (remote, merged into `m5-integration`): `m5i-s1-governing-loop` `43f38cd`,
+> `m5i-u1-era-theme` `e61e182`, `m5i-s2-capability-actions` `8478b4d`, `m5i-u2a-actions` `09db372`,
+> `m5i-u3-world-map` `0ec37ac`, `m5i-s3-institutions` `93dfcd2`, `m5i-u2b-views` `ecf3aa7`,
+> `m5i-s4-ai-goals` `b952a9f`. Decisions: `docs/adr/adr-033-m5-integration-pass.md`. Status of every
+> mechanic, what each stream fixed and what remains: `docs/m5-integration-coherence-matrix.md`.
+> Schema v31; founded golden `74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c`
+> (`SnapshotTests.FoundedGoldenHash` = `ci.yml` FOUNDED_GOLDEN; unmoved by the verification stream).
+> **Suite, MEASURED on `m5i-v-verify` in Release:** Sim.Tests **1370 / 0 / 5**, Sim.Ui.Tests **469 / 0 / 0**;
+> all three gate scripts and both research `--check` scripts exit 0. Bench (`sim bench --founded --seed 42
+> --turns 300`, median of 3): `997824b` 33,947 ms, this tree 34,515 ms (×1.017). Verification fixed one
+> defect: a mid-game colony's orders made replay/`sim inspect` throw (`7100c77`). Not on `main`, not
+> ruled: everything in this entry. Verify against git.
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
