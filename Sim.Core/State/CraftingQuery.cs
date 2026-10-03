@@ -28,14 +28,9 @@ public static class CraftingQuery
 {
     /// <summary>The knowledge mask that gates recipes in <paramref name="settlement"/>, or null when nothing
     /// gates (no research content, or no control relation in the world). An uncontrolled settlement of a
-    /// controlled world gets the all-false mask (baseline only).</summary>
-    public static bool[]? KnowledgeOf(IReadOnlyWorldState world, ResearchContent? research, SettlementId settlement)
-    {
-        if (research is null || world.Controls.Count == 0) return null;
-        return EmpireQuery.TryGetController(world, settlement, out PolityId controller)
-            ? ResearchQuery.CompletedMask(world, research, controller)
-            : new bool[research.Nodes.Count];
-    }
+    /// controlled world gets its own accumulated knowledge (R2a).</summary>
+    public static bool[]? KnowledgeOf(IReadOnlyWorldState world, ResearchContent? research, SettlementId settlement) =>
+        SettlementKnowledge.MaskOf(world, research, settlement);
 
     /// <summary>Whether the recipe's knowledge requirement is met by <paramref name="completed"/> (null = no gate).</summary>
     public static bool IsKnown(ResearchContent? research, RecipeEntry recipe, bool[]? completed)

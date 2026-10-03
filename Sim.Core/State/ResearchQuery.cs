@@ -347,7 +347,7 @@ public static class ResearchQuery
             for (int s = 0; s < world.Settlements.Count; s++)
             {
                 SettlementId id = world.Settlements[s].Id;
-                if (EmpireQuery.TryGetController(world, id, out PolityId controller) && controller.Value == polity.Value)
+                if (SettlementKnowledge.HolderOf(world, id).Value == polity.Value)
                     adults += BandViews.Adults(world.Buckets, id);
             }
         }
@@ -366,7 +366,7 @@ public static class ResearchQuery
             for (int s = 0; s < world.Settlements.Count; s++)
             {
                 SettlementId id = world.Settlements[s].Id;
-                if (!EmpireQuery.TryGetController(world, id, out PolityId controller) || controller.Value != polity.Value) continue;
+                if (SettlementKnowledge.HolderOf(world, id).Value != polity.Value) continue;
                 for (int b = 0; b < world.Buckets.Count; b++)
                     if (world.Buckets[b].Settlement.Value == id.Value) population += world.Buckets[b].Count.Value;
             }
@@ -392,6 +392,12 @@ public static class ResearchQuery
     /// </summary>
     public static double ResearchPointPool(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
         ResearchPoints(content.Tuning, Population(world, polity));
+
+    /// <summary>R2a: the RP an UNCONTROLLED settlement (a city-state) generates this turn —
+    /// tuning.cityStatePaceFraction × the content's RP curve of the settlement's own population. Per turn,
+    /// never × dtYears (ADR-030 §2, as <see cref="ResearchPointPool"/>).</summary>
+    public static double CityStateResearchPoints(IReadOnlyWorldState world, ResearchContent content, SettlementId settlement) =>
+        content.Tuning.CityStatePaceFraction * ResearchPoints(content.Tuning, Population(world, SettlementKnowledge.LocalHolder(settlement)));
 
     // ------------------------------------------------------------------ acceleration credit (Eureka + foreign exposure)
 
@@ -422,7 +428,7 @@ public static class ResearchQuery
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId id = world.Settlements[s].Id;
-            if (!EmpireQuery.TryGetController(world, id, out PolityId controller) || controller.Value != polity.Value) continue;
+            if (SettlementKnowledge.HolderOf(world, id).Value != polity.Value) continue;
             if (condition.Evaluate(v => Variable(world, id, v), atoms, q => Stock(world, id, content.QuantityGoods[q])))
                 return true;
         }

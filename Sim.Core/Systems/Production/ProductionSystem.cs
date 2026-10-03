@@ -252,8 +252,21 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             ? Math.Min(1.0, prevToolStock / toolsToEquip) : 0.0;
         double toolFactor = 1.0 + _cfg.Production.ToolYieldBonusMax * equipRatio;
 
-        double landSide = arableKm2 * _cfg.Farming.YieldPerArableKm2PerYear;
-        double laborSide = farmLabor * _cfg.Farming.OutputPerFarmerPerYear * toolFactor;
+        // R2a (Director decision 8; isolated content switch farming.preCultivation): before the farming
+        // capability exists for the settlement (its knowledge — SettlementKnowledge.MaskOf — does not make the
+        // Farming sector's researched identity eligible), the sector harvests WILD FOOD at the forager rates; the
+        // CR-003 cultivated yield applies once it does. Disabled or absent: exactly the shipped computation.
+        double yieldPerKm2 = _cfg.Farming.YieldPerArableKm2PerYear;
+        double perWorker = _cfg.Farming.OutputPerFarmerPerYear;
+        if (_cfg.Farming.PreCultivation is { Enabled: true } pre && _cfg.Research is { } research
+            && SettlementKnowledge.MaskOf(prev, research, settlement) is { } known
+            && !LabourActivities.SectorReplacedByResearch(research, known, Sectors.Farming))
+        {
+            yieldPerKm2 = pre.YieldPerArableKm2PerYear;
+            perWorker = pre.OutputPerGathererPerYear;
+        }
+        double landSide = arableKm2 * yieldPerKm2;
+        double laborSide = farmLabor * perWorker * toolFactor;
         double ratePerYear = Math.Min(landSide, laborSide);
 
         // T3.4b (CR-003 ruling §3): weather multiplies REALISED OUTPUT, applied

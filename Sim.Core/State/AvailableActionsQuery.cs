@@ -26,6 +26,10 @@ public enum ActionDomain
     /// baseline). It has no order of its own — the Crafting labour share runs it — so it is a capability entry
     /// whose targets are the settlements where it runs now.</summary>
     Production = 10,
+    /// <summary>R2a: the Trade capability (research-gated; content sim.json trade.entity). No order — the existing
+    /// TradeArbitrageSystem moves goods along connected routes once it is legal — so a capability entry whose
+    /// targets are the issuer's settlements where trade is legal now.</summary>
+    Trade = 11,
 }
 
 /// <summary>Whether an available action is something the issuer can ORDER now, or a STANDING baseline
@@ -195,6 +199,7 @@ public static class AvailableActionsQuery
         Institutions(world, cfg, polity, context, actions);
         Standing(cfg, actions);
         Production(world, cfg, polity, actions);
+        Trade(world, cfg, polity, actions);
         return Order(actions);
     }
 
@@ -587,6 +592,30 @@ public static class AvailableActionsQuery
                 ActionDomain.Production, r + 1, ActionKind.Standing, "production." + recipe.Name, name, null,
                 targets.ToImmutable(), blocker, EntityProvenance(world, research, polity, recipe.Entity, crafters), detail));
         }
+    }
+
+    // ------------------------------------------------------------------ Trade (R2a; no order)
+
+    /// <summary>
+    /// R2a — the Trade capability, listed iff the issuer KNOWS it (<see cref="TradeQuery.KnowsTrade"/>: the content's
+    /// trade entity is knowledge-eligible for the issuer). Targets: the issuer's settlements where
+    /// <see cref="TradeQuery.SettlementKnowsTrade"/> — the predicate TradeArbitrageSystem applies per endpoint —
+    /// holds now. Not listed when the content names no trade entity (trade is then ungated and needs no entry) or
+    /// before the research: a locked future action is never listed.
+    /// </summary>
+    public static void Trade(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
+    {
+        if (cfg.Trade.Entity is not { } entity || cfg.Research is not { } research) return;
+        if (!TradeQuery.KnowsTrade(world, cfg, polity)) return;
+        var targets = ImmutableArray.CreateBuilder<ActionTarget>();
+        foreach (SettlementId s in LabourActivities.ControlledSettlements(world, polity))
+            if (TradeQuery.SettlementKnowsTrade(world, cfg, s)) targets.Add(SettlementTarget(s));
+        int e = research.EntityIndexOf(entity);
+        string name = e >= 0 && research.Entities[e].Name is { Length: > 0 } n ? n : "Trade";
+        into.Add(new ActionDescriptor(
+            ActionDomain.Trade, 1, ActionKind.Standing, "trade." + entity, name, null, targets.ToImmutable(), null,
+            EntityProvenance(world, research, polity, entity, []),
+            "goods flow between connected settlements that both know trade, when a price gap exceeds the transport cost"));
     }
 
     private static string RecipeName(ResearchContent? research, RecipeEntry recipe)

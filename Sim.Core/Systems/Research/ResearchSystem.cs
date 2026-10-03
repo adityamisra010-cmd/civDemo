@@ -45,6 +45,12 @@ public sealed record ResearchTables(
 ///   become available from the NEXT step, because availability is always read from PREV.</item>
 /// </list>
 ///
+/// R2a CITY STATES (docs/city-state-progression.md): after the roster polities, every settlement no Empire
+/// controls is a knowledge holder under its reserved local key (SettlementKnowledge.LocalHolder) and runs the
+/// SAME steps with two differences only — it issues no orders (its target is the cheapest available node,
+/// AiResearchPolicy.Cheapest) and its RP is ResearchQuery.CityStateResearchPoints (tuning.cityStatePaceFraction ×
+/// the RP curve of its own population). A controlled settlement's local rows are dormant, never deleted.
+///
 /// Completion builds nothing (D-044 R14). It makes declared capabilities and entity
 /// eligibility answerable through <see cref="ResearchQuery"/>, and the owning
 /// systems realize them. Age is never read (D-044 R13, law 4).
@@ -76,11 +82,20 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         var targetRemovals = new List<int>();
         var processed = new List<int>();
 
-        for (int pi = 0; pi < prev.Polities.Count; pi++)
+        // R2a: the knowledge holders — the roster polities (table order), then every settlement no Empire
+        // controls, under its reserved local key (settlement-table order; docs/city-state-progression.md).
+        var holders = new List<PolityId>();
+        for (int pi = 0; pi < prev.Polities.Count; pi++) holders.Add(prev.Polities[pi].Id);
+        for (int si = 0; si < prev.Settlements.Count; si++)
+            if (SettlementKnowledge.ResearchesLocally(prev, content, prev.Settlements[si].Id))
+                holders.Add(SettlementKnowledge.LocalHolder(prev.Settlements[si].Id));
+
+        for (int hi = 0; hi < holders.Count; hi++)
         {
-            PolityId polity = prev.Polities[pi].Id;
+            PolityId polity = holders[hi];
             if (processed.Contains(polity.Value)) continue; // a doubled roster row is one Empire
             processed.Add(polity.Value);
+            bool local = SettlementKnowledge.IsLocalHolder(polity);
 
             bool[] completed = ResearchQuery.CompletedMask(prev, content, polity);
             bool[] available = ResearchQuery.AvailableMask(content, completed);
@@ -92,7 +107,10 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 int index = content.IndexOf(current);
                 if (index >= 0 && available[index]) target = index;
             }
-            for (int o = 0; o < ctx.Orders.Count; o++)
+            // A city-state issues no orders: it chooses autonomously — keep a live target, else the cheapest
+            // available node (AiResearchPolicy.Cheapest: composite key (EffectiveCost, key), tie-dense tested).
+            if (local && target < 0) target = AiResearchPolicy.Cheapest(prev, content, polity, available, null);
+            for (int o = 0; o < ctx.Orders.Count && !local; o++)
             {
                 OrderRecord order = ctx.Orders[o];
                 if (order.Kind != OrderKind.SetResearchTarget || order.ActorId != polity.Value) continue;
@@ -160,7 +178,9 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             //    scoped exception to law 3; this is its one code site).
             if (target >= 0)
             {
-                double amount = ResearchQuery.ResearchPointPool(prev, content, polity);
+                double amount = local
+                    ? ResearchQuery.CityStateResearchPoints(prev, content, SettlementKnowledge.SettlementOf(polity))
+                    : ResearchQuery.ResearchPointPool(prev, content, polity);
                 if (amount > 0.0)
                     Credit(owned, rowOf, polity, content.Nodes[target], amount,
                         ResearchQuery.EffectiveCost(prev, content, polity, target));

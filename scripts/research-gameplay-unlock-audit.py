@@ -28,7 +28,7 @@ CONTENT = rl.ROOT / "Sim.Data" / "content"
 
 CLASSES = [
     ("A", "Baseline", "exists with zero research (declared in content: a baseline record or a null requirement)"),
-    ("B", "Research-gated gameplay capability", "gates a production recipe, a labour activity, the tax edict or an Age milestone"),
+    ("B", "Research-gated gameplay capability", "gates a production recipe, a labour activity, trade, the tax edict or an Age milestone"),
     ("C", "Knowledge-only / modifier", "capability strings or immediate effects, no realizing link"),
     ("D", "Institution prerequisite", "gates a REALIZED institution (a founding project) or the research stage"),
     ("E", "Infrastructure prerequisite", "gates a road class RoadDevelopmentSystem builds"),
@@ -46,6 +46,9 @@ CONSUMERS = {
                "Production — crafts we know", "ResearchUnlockPipelineTests.T03–T06"),
     "activity": ("B", "LabourActivities (labour identity; ADR-033 D1 — production unchanged)", "3 SectorAllocation (sector baseline)",
                  "Labour — the sector's activity label", "ResearchUnlockPipelineTests.T01–T02"),
+    "trade": ("B", "TradeArbitrageSystem — TradeQuery.CanTrade (both endpoints' settlement knowledge; SettlementKnowledge.MaskOf)",
+              "none (automatic arbitrage on connected routes once legal; a hand-built SetResearchTarget for an unavailable node is ignored)",
+              "Trade — standing capability (people do on their own)", "TradeResearchUnlockTests.T01–T08"),
     "tax": ("B", "GovernanceSystem — Governance.CanLevyTax", "5 SetTaxRate", "Governance — the tax edict",
             "ResearchUnlockPipelineTests.T07, T08, T15"),
     "age": ("B", "AgeTransitionSystem — AgeQuery.CheckAdvance (milestone fact)", "7 AdvanceAge", "Age — advance",
@@ -103,6 +106,8 @@ def build():
     for c in sim["roads"]["classes"]:
         if c.get("entity"):
             add(c["entity"], "road", f"road class `{c['entity']}`")
+    if sim["trade"].get("entity"):
+        add(sim["trade"]["entity"], "trade", "sim.json trade.entity (trade between settlements)")
     for sa in research["sectorActivities"]:
         for rr in sa["researched"]:
             add(rr["entity"], "activity", f"sector `{sa['sector']}` → {rr['mode']}")
@@ -231,6 +236,9 @@ def build():
                  "FIXED (R1): recipe entities + CraftingQuery; ProductionSystem enforces"))
     disc.append(("fixed", "ActionSurface", "university-founding descriptors (Institutions domain) were never rendered by the action surface",
                  "FIXED (R1): they join the construction block (same EnqueueConstruction button)"))
+
+    disc.append(("fixed", "sim.json trade", "R2a: trade between settlements was an M4 system with no research node",
+                 "FIXED (R2a): node `trade` → entity `activity.trade` → sim.json trade.entity; TradeArbitrageSystem enforces TradeQuery.CanTrade; LIVE"))
 
     # ---- write ---------------------------------------------------------------------------------------------
     L = []

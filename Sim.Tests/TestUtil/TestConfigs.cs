@@ -51,6 +51,54 @@ public static class TestConfigs
         return w;
     }
 
+    /// <summary>R2a: <paramref name="cfg"/> as it was BEFORE the R2a layer — the research content without the
+    /// `trade` node, the `activity.trade` entity and tuning.cityStatePaceFraction (no city-state research), and
+    /// sim.json trade.entity null (trade ungated). A pure data change: the attribution controls run every older
+    /// layer control on PreR1(PreR2a) so each pre-R2a constant is unmoved, and the R2a controls prove that removing
+    /// the layer returns the pre-R2a pins byte for byte.</summary>
+    public static SimConfig PreTradeKnowledge(SimConfig cfg) =>
+        cfg with { Research = PreR2aResearch.Value, Trade = cfg.Trade with { Entity = null } };
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearch = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        var techs = doc["technologies"]!.AsArray();
+        for (int i = techs.Count - 1; i >= 0; i--) if ((string?)techs[i]!["id"] == "trade") techs.RemoveAt(i);
+        var ents = doc["entities"]!.AsArray();
+        for (int i = ents.Count - 1; i >= 0; i--) if ((string?)ents[i]!["id"] == "activity.trade") ents.RemoveAt(i);
+        doc["tuning"]!.AsObject().Remove("cityStatePaceFraction");
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        using var sim = global::Sim.Data.DataFiles.OpenSim();
+        using var needs = global::Sim.Data.DataFiles.OpenNeeds();
+        SimConfig plain = SimConfigLoader.Load(sim, needs, goods);
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), plain.Goods);
+    });
+
+    /// <summary>R2a: the knowledge closure of the Trade capability (sim.json trade.entity), completed for EVERY
+    /// polity of <paramref name="w"/> — for tests whose subject is the trade economy, not research.</summary>
+    public static global::Sim.Core.State.WorldState KnowTrade(global::Sim.Core.State.WorldState w, SimConfig cfg)
+    {
+        var research = cfg.Research!;
+        if (cfg.Trade.Entity is null) return w;
+        var seen = new bool[research.Nodes.Count];
+        var stack = new Stack<int>();
+        foreach (int a in research.Entities[research.EntityIndexOf(cfg.Trade.Entity)].NodeAtoms) stack.Push(a);
+        while (stack.Count > 0)
+        {
+            int i = stack.Pop();
+            if (seen[i]) continue;
+            seen[i] = true;
+            // OR-prerequisites: the closure takes every alternative — knowledge rows only, the subject is trade.
+            foreach (int q in research.Nodes[i].PrerequisiteNodes) stack.Push(q);
+        }
+        for (int p = 0; p < w.Polities.Count; p++)
+            for (int i = 0; i < seen.Length; i++)
+                if (seen[i] && !global::Sim.Core.State.ResearchQuery.IsCompleted(w, w.Polities[p].Id, research.Nodes[i].Key))
+                    w.ResearchCompleted.Add(new global::Sim.Core.State.ResearchCompletedRow(w.Polities[p].Id, research.Nodes[i].Key));
+        return w;
+    }
+
     public static SimConfig Sim()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();

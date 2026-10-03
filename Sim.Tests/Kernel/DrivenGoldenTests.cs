@@ -82,7 +82,7 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+    internal const string Golden = "75124c12e61f8999d9746f213255b29199f89cc669608644f42845e100ce1dfe";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -455,6 +455,17 @@ public class DrivenGoldenTests
         //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
         //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // R2a RE-PIN (2026-10-03) — TRADE IS A RESEARCH UNLOCK (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   NEW  75124c12e61f8999d9746f213255b29199f89cc669608644f42845e100ce1dfe
+        //   CAUSE TradeArbitrageSystem moves goods between two settlements only when both know Trade
+        //         (sim.json trade.entity → research.json activity.trade → node `trade`; TradeQuery.CanTrade).
+        //         This run researches nothing, so the arbitrage flows it had (baseline goods) no longer occur.
+        //         The schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone
+        //         returns OLD byte for byte both with the whole layer removed (TestConfigs.PreTradeKnowledge) and
+        //         with ONLY trade.entity removed (the node and city-state research kept): the gate is the entire cause.
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----

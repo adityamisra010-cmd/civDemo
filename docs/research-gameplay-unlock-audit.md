@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `e376b27943895100…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `678acbaaf54791e3…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | recipe | B | ProductionSystem — CraftingQuery.IsRecipeAvailable | none (the Crafting labour share runs it) | Production — crafts we know | ResearchUnlockPipelineTests.T03–T06 |
 | activity | B | LabourActivities (labour identity; ADR-033 D1 — production unchanged) | 3 SectorAllocation (sector baseline) | Labour — the sector's activity label | ResearchUnlockPipelineTests.T01–T02 |
+| trade | B | TradeArbitrageSystem — TradeQuery.CanTrade (both endpoints' settlement knowledge; SettlementKnowledge.MaskOf) | none (automatic arbitrage on connected routes once legal; a hand-built SetResearchTarget for an unavailable node is ignored) | Trade — standing capability (people do on their own) | TradeResearchUnlockTests.T01–T08 |
 | tax | B | GovernanceSystem — Governance.CanLevyTax | 5 SetTaxRate | Governance — the tax edict | ResearchUnlockPipelineTests.T07, T08, T15 |
 | age | B | AgeTransitionSystem — AgeQuery.CheckAdvance (milestone fact) | 7 AdvanceAge | Age — advance | AgeProgressionTests; ResearchUnlockPipelineTests.T15 |
 | stage | D | ResearchSystem — ResearchQuery.StageReached (research stage opens the subtrees) | 6 SetResearchTarget | Research — available nodes | ResearchEngineTests |
@@ -24,7 +25,7 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | class | name | rule | count |
 |---|---|---|---|
 | A | Baseline | exists with zero research (declared in content: a baseline record or a null requirement) | 25 |
-| B | Research-gated gameplay capability | gates a production recipe, a labour activity, the tax edict or an Age milestone | 52 |
+| B | Research-gated gameplay capability | gates a production recipe, a labour activity, trade, the tax edict or an Age milestone | 53 |
 | C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 259 |
 | D | Institution prerequisite | gates a REALIZED institution (a founding project) or the research stage | 6 |
 | E | Infrastructure prerequisite | gates a road class RoadDevelopmentSystem builds | 4 |
@@ -33,9 +34,9 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 10 |
 | I | Content-only / descriptive | no capability string, no effect, no entity | 0 |
 | J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 70 |
-| | **nodes** | Technology 425 + Civics 6 | **431** |
+| | **nodes** | Technology 426 + Civics 6 | **432** |
 
-Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 5, tax 4.
+Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 5, tax 4, trade 1.
 
 ## 3. Baseline (class A)
 
@@ -73,6 +74,7 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 |---|---|---|---|
 | fixed | `ActionSurface` | university-founding descriptors (Institutions domain) were never rendered by the action surface | FIXED (R1): they join the construction block (same EnqueueConstruction button) |
 | fixed | `goods.json recipes` | E15: crafting recipes ran with no knowledge requirement — pottery and bronze before research | FIXED (R1): recipe entities + CraftingQuery; ProductionSystem enforces |
+| fixed | `sim.json trade` | R2a: trade between settlements was an M4 system with no research node | FIXED (R2a): node `trade` → entity `activity.trade` → sim.json trade.entity; TradeArbitrageSystem enforces TradeQuery.CanTrade; LIVE |
 | baseline-claim | `recipe.toolmaking` | declared BASELINE, but node capability strings mention `tools`: `copper_native`, `copper_smelting`, `arsenical_bronze`, `casting_closed`, `iron_bloomery`, `cast_iron` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
 | baseline-claim | `recipe.weaving` | declared BASELINE, but node capability strings mention `cloth`: `hide_working`, `sewing`, `loom_warp_weighted`, `dyeing`, `silk`, `fulling_mill`, `horizontal_loom`, `power_loom` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
 | deferred | `activity.caravans` | activity entity requires `donkey OR camel`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
@@ -622,6 +624,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `frontier_cyber` | tech | A9 | H | cyber_warfare | information offence and defence relative to rivals | — | — | n/a | — |
 | `frontier_climate` | tech | A9 | H | carbon_capture | environmental remediation | — | — | n/a | — |
 | `motor_road` | tech | A9 | E | automobile_mass AND reinforced_concrete AND petroleum_refining | highway infrastructure class: motor road, the bulk road-freight corridor | `infra.road_highway` → road class `infra.road_highway` | yes | yes | Roads |
+| `trade` | tech | A3 | B | token_counting AND (donkey OR camel OR sail_square) | formal exchange between settlements; commercial arbitrage along connected routes; foreign trade across polity boundaries | `activity.trade` → sim.json trade.entity (trade between settlements) | yes | yes | Trade |
 | `law_code` | civics | A3 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) | — | `age:a3_law` → Age 3 milestone `a3_law` (supporting)<br>`inst.law_code` → no realizing system | yes | partly (rest deferred) | Age |
 | `legal_code_roman` | civics | A4 | B (BDJ) | law_code | — | `age:a5_systematic_law` → Age 5 milestone `a5_systematic_law` (core)<br>`inst.guild` → no realizing system<br>`inst.legal_code_roman` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.university`<br>`inst.university` → project `military university` founds<br>`inst.university` → project `medical university` founds<br>`inst.university` → project `engineering university` founds<br>`inst.university` → project `natural science university` founds<br>`inst.university` → project `agricultural university` founds<br>`stage` → research.json researchStage.requires | yes | partly (rest deferred) | Age, Construction, Research |
 | `census` | civics | A4 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal | — | `age:a4_census` → Age 4 milestone `a4_census` (supporting)<br>`inst.census` → no realizing system<br>`inst.mass_media_broadcast` → no realizing system via `inst.mass_schooling`<br>`inst.mass_schooling` → no realizing system<br>`inst.military_medicine` → no realizing system<br>`inst.mint_institution` → no realizing system<br>`inst.quarantine` → no realizing system<br>`inst.statistics_vital` → no realizing system | yes | partly (rest deferred) | Age |

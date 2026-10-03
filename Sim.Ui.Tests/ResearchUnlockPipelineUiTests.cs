@@ -175,4 +175,20 @@ public class ResearchUnlockPipelineUiTests
         Assert.Equal(research.Nodes[pottery].Name, entry.LearnedFrom);
         Assert.Contains("new: Pottery firing", m.Notices);
     }
+
+    [Fact]
+    public void Trade_AppearsOnTheSurface_OnlyWhenLegallyAvailable()   // R2a — Director decision 15 RESEARCH (UI)
+    {
+        SimConfig cfg = UiFounding.ProductionConfig();
+        WorldState w = WorldFounding.Found(DevWorldgen(), cfg, 42);
+        int capital = Capital(w);
+        ActionSurfaceModel before = Surface(w, cfg, capital);
+        Assert.DoesNotContain(AvailableActionsQuery.For(w, cfg, Me), a => a.Domain == ActionDomain.Trade);
+        Assert.DoesNotContain("Trade", before.Standing?.Items ?? []);
+        foreach (string id in ActionSurfacePreview.WithAncestors(cfg.Research!, "trade"))
+            w.ResearchCompleted.Add(new ResearchCompletedRow(Me, cfg.Research!.Nodes[cfg.Research.IndexOfId(id)].Key));
+        ActionSurfaceModel after = Surface(w, cfg, capital);
+        Assert.Contains(AvailableActionsQuery.For(w, cfg, Me), a => a.Domain == ActionDomain.Trade && a.Label == "Trade");
+        Assert.Contains("Trade", after.Standing!.Items);
+    }
 }

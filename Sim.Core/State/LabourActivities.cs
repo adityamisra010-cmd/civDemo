@@ -97,6 +97,16 @@ public static class LabourActivities
         return world.Controls.Count == 0 || EmpireQuery.ControlsSettlement(world, issuer, settlement);
     }
 
+    /// <summary>R2a — whether a researched identity that REPLACES the sector's baseline identity is knowledge-eligible
+    /// for <paramref name="completed"/> (content: sectorActivities; for Farming, activity.farming). The
+    /// pre-cultivation food yield reads this through the settlement's knowledge — no node id in code.</summary>
+    public static bool SectorReplacedByResearch(ResearchContent content, bool[] completed, int sector)
+    {
+        foreach (SectorResearchedIdentity r in content.SectorActivities[sector].Researched)
+            if (r.Mode == SectorActivityMode.Replaces && ResearchQuery.IsKnowledgeEligible(content, r.Entity, completed)) return true;
+        return false;
+    }
+
     /// <summary>The settlements whose labour the issuer may allocate, in settlement-table order.</summary>
     public static SettlementId[] ControlledSettlements(IReadOnlyWorldState world, PolityId issuer)
     {

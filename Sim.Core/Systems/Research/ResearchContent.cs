@@ -46,7 +46,8 @@ public sealed record ResearchCostModel(double U, double K);
 /// </summary>
 public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
-    double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel);
+    double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
+    double CityStatePaceFraction = 0.0);
 
 /// <summary>A baseline capability (D-045 §1): something a newly founded civilization can do with
 /// ZERO completed research nodes. It lives OUTSIDE the research graph — no node, no completed row
@@ -797,8 +798,11 @@ public static class ResearchContentLoader
         CostModelJson cm = t.CostModel;
         if (!(double.IsFinite(cm.U) && cm.U > 0.0)) throw Fail($"tuning.costModel.U {Inv(cm.U)} must be finite and > 0.");
         if (!(double.IsFinite(cm.K) && cm.K > 1.0)) throw Fail($"tuning.costModel.K {Inv(cm.K)} must be finite and > 1.");
+        if (t.CityStatePaceFraction is double pace && !(double.IsFinite(pace) && pace >= 0.0 && pace < 1.0))
+            throw Fail($"tuning.cityStatePaceFraction {Inv(pace)} must be in [0, 1): an uncontrolled settlement progresses " +
+                       "SLOWER than an organized civilization of the same population (Director decision 4/12); 0 disables it.");
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
-            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K));
+            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1393,7 +1397,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("effectiveCostFloorFraction"), JsonRequired] double EffectiveCostFloorFraction,
         [property: JsonPropertyName("accelerationCreditCeilingFraction"), JsonRequired] double AccelerationCreditCeilingFraction,
         [property: JsonPropertyName("accelerationCreditSources"), JsonRequired] string[] AccelerationCreditSources,
-        [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel);
+        [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel,
+        [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null);
 
     private sealed record RpPerTurnJson(
         [property: JsonPropertyName("coefficient"), JsonRequired] double Coefficient,

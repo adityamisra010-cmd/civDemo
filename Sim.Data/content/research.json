@@ -42,7 +42,9 @@
    "K_basis": "content scale: each magnitude point doubles cognitive effort",
    "magnitude": "novelty + difficulty + material + institutional + breadth + prerequisite complexity; Age enters only as a bounded prior inside difficulty and institutional",
    "status": "content-derived; calibration adjustments: none"
-  }
+  },
+  "cityStatePaceFraction": 0.25,
+  "_cityStatePaceFraction": "R2a (docs/city-state-progression.md; Director decisions 4 and 12). TUNE, CHOSEN (L6): an UNCONTROLLED settlement researches autonomously with RP = cityStatePaceFraction x rpPerTurn(its own population). Reference: Civ VI city-states do not research at all; the Director rules ours progress slowly. 0.25 of the organized rate (before the sublinearity penalty of being one settlement) keeps a city-state substantially slower than a civilization of the same population. 0 disables city-state research."
  },
  "baseline": [
   {
@@ -28031,6 +28033,77 @@
     "calibration_adjustment": 0,
     "note": "ADR-029 methodology: U x K^magnitude = 92.4 x 2^8.5 = 33,449 -> 33,450. Novelty 0.5 (a road class, derivative of the automobile and engineered roads); difficulty 2.5 (grade separation, engineered alignments); material 1.5 (reinforced concrete / bitumen surfaces); institutional 2.5 (state highway authorities and national programmes); breadth 0.5; prerequisite complexity 1.0 (three AND prerequisites across engineering and natural science)."
    }
+  },
+  {
+   "key": 426,
+   "id": "trade",
+   "name": "Trade",
+   "desc": "Formal exchange between communities: goods valued against a counted standard and carried by pack animal or boat to partners beyond the settlement \u2014 the caravan and boat trade of the Uruk expansion and the Old Assyrian merchants of Kanesh. Within-settlement sharing and exchange need no research; trade BETWEEN settlements (domestic or foreign) does. Placement: Civ VI unlocks trade routes and the Trader with the Ancient-Era Foreign Trade civic (after Code of Laws); here the causal prerequisites are a record of quantity (clay tokens) and a carrier for goods over distance (donkey, camel or the square sail).",
+   "age": "A3",
+   "frontier": false,
+   "emerged": "~3,500 BCE Uruk-expansion exchange network; ~1,900 BCE Old Assyrian donkey-caravan trade (Kanesh)",
+   "branch": null,
+   "domain": "communication",
+   "secondaryDomains": [
+    "transport"
+   ],
+   "depth": 6,
+   "cost": 880.0,
+   "prereq": "token_counting AND (donkey OR camel OR sail_square)",
+   "eurekas": [],
+   "unlocks": {
+    "capabilities": [
+     "formal exchange between settlements",
+     "commercial arbitrage along connected routes",
+     "foreign trade across polity boundaries"
+    ],
+    "units": [],
+    "buildings": [],
+    "institutions": [],
+    "infrastructure": [],
+    "activities": [
+     "activity.trade"
+    ],
+    "projects": [],
+    "techniques": [
+     "Counted consignments",
+     "Pack-animal and boat haulage of goods for exchange"
+    ],
+    "applications": []
+   },
+   "family": null,
+   "generation": null,
+   "effects": {
+    "immediate": []
+   },
+   "repeatable": null,
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "costRationale": {
+    "tier": "T2",
+    "factors": {
+     "novelty": 1.0,
+     "difficulty": 0.5,
+     "material": 0.0,
+     "institutional": 0.75,
+     "breadth": 0.5,
+     "prereq_complexity": 0.5
+    },
+    "magnitude": 3.25,
+    "content_cost": 880,
+    "calibration_adjustment": 0,
+    "note": "R2a: the Trade capability (Director decision 1/13). Priced on the existing banded model as a T2 organisational node one tier above its counting prerequisite; same magnitude as arithmetic_babylonian."
+   }
   }
  ],
  "civics": [
@@ -29293,6 +29366,13 @@
    "kind": "recipe",
    "name": "Toolmaking",
    "requires": null,
+   "unresolved": []
+  },
+  {
+   "id": "activity.trade",
+   "kind": "activity",
+   "name": "Trade",
+   "requires": "trade",
    "unresolved": []
   }
  ],

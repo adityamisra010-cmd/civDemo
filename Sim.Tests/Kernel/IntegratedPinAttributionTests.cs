@@ -452,8 +452,11 @@ public class IntegratedPinAttributionTests
     /// <summary>R1: the canonical config with the recipe-knowledge links removed (TestConfigs.PreRecipeKnowledge).
     /// EVERY layer control in this file runs on it, so each constant it carries is UNMOVED by R1 (the T4.21-4
     /// precedent: a layout control must not be asked to absorb a behaviour change); R1's own controls at the
-    /// end of the file prove the twin returns the pre-R1 pins byte for byte.</summary>
-    private static Sim.Core.Systems.SimConfig PreR1() => TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.Sim());
+    /// end of the file prove the twin returns the pre-R1 pins byte for byte.
+    /// R2a: the twin is also PRE-R2a (TestConfigs.PreTradeKnowledge: no trade node/entity, trade ungated, no
+    /// city-state research), so every older control stays unmoved; R2a's own controls are at the end of the file.</summary>
+    private static Sim.Core.Systems.SimConfig PreR1() =>
+        TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()));
 
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
@@ -1041,6 +1044,48 @@ public class IntegratedPinAttributionTests
         const string preR1 = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(preR1, WorldHash.ComputeHex(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        string now = WorldHash.ComputeHex(world);
+        Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);
+    }
+
+    // ======================================================================
+    // R2a (trade as a research unlock; city-state progression, 2026-10-03) — THE TRADE-KNOWLEDGE LAYER
+    // ======================================================================
+    // R2a adds the `trade` node and its `activity.trade` entity, gates TradeArbitrageSystem on it (sim.json
+    // trade.entity) and lets uncontrolled settlements research (tuning.cityStatePaceFraction). Behaviour, so the
+    // control is the CONTENT twin TestConfigs.PreTradeKnowledge (no node, no entity, no gate, no city-state
+    // research): it must return each post-R1 pin (m5-integration @ f1fe76f) BYTE FOR BYTE.
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
+    {
+        const string preR2a = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
+        Assert.Equal(preR2a, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()))));
+        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
+        Assert.True(now == SnapshotTests.FoundedGoldenHash, "current founded hash " + now);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheTradeKnowledgeLayerAlone()
+    {
+        const string preR2a = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
+        Assert.Equal(preR2a, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()))));
+        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
+        Assert.True(now == Sim.Tests.Systems.FirstReignTests.PostR1Golden, "current first-reign hash " + now);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
+    {
+        const string preR2a = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()));
+        Assert.Equal(preR2a, WorldHash.ComputeHex(twin));
+        // Which part of the layer: the TRADE GATE alone (the node, its entity and city-state research kept; only
+        // sim.json trade.entity removed) returns the pre-R2a pin too — the gate is the entire cause here.
+        Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.Sim();
+        (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } });
+        Assert.Equal(preR2a, WorldHash.ComputeHex(gateOnly));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         string now = WorldHash.ComputeHex(world);
         Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);

@@ -34,9 +34,12 @@ public class ResearchContentTests
         Assert.Equal(424, techs.GetArrayLength());
         // ADR-032 appended ONE authored technology after the corpus (never renumbering it):
         // motor_road, key 425, the ratified highway class (Director transport ruling 16).
-        Assert.Equal(425, Canonical.TechnologyCount);
+        // R2a appended the authored Trade technology, key 426 (Director decision 1/13).
+        Assert.Equal(426, Canonical.TechnologyCount);
         Assert.Equal("motor_road", Canonical.Nodes[424].Id);
         Assert.Equal(425, Canonical.Nodes[424].Key.Value);
+        Assert.Equal("trade", Canonical.Nodes[425].Id);
+        Assert.Equal(426, Canonical.Nodes[425].Key.Value);
         for (int i = 0; i < 424; i++)
         {
             JsonElement t = techs[i];
@@ -77,7 +80,7 @@ public class ResearchContentTests
     {
         int[] counts = new int[6]; // trunk, then 1.1..1.5
         for (int i = 0; i < Canonical.TechnologyCount; i++) counts[Canonical.Nodes[i].Branch + 1]++;
-        Assert.Equal([176, 37, 22, 131, 44, 15], counts);   // ADR-032: motor_road joined engineering
+        Assert.Equal([177, 37, 22, 131, 44, 15], counts);   // ADR-032: motor_road joined engineering; R2a: trade joined the trunk
         Assert.Equal(ResearchContentLoader.RuledBranchIds.Length, Canonical.Branches.Count);
         for (int b = 0; b < 5; b++)
         {
@@ -318,7 +321,7 @@ public class ResearchContentTests
         }
         Assert.Equal(10, recursive);
         Assert.Equal(6, speculative);
-        Assert.Equal(421, finite);   // ADR-032: + motor_road
+        Assert.Equal(422, finite);   // ADR-032: + motor_road; R2a: + trade
         Assert.Equal([36, 21, 125, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
 
         // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite
@@ -374,9 +377,9 @@ public class ResearchContentTests
         Assert.True(ResearchQuery.IsKnowledgeEligible(Canonical, fishing, none));
         foreach (ResearchNode n in Canonical.Nodes) Assert.DoesNotContain(fishing, n.UnlockedEntities);
         Assert.DoesNotContain(fishing, Canonical.Nodes[Canonical.IndexOfId("fishing_hook")].UnlockedEntities);
-        // The eight activity entities have display names (they were null).
+        // The activity entities have display names (they were null); R2a appended Trade.
         Assert.Equal(
-            ["Farming", "Herding", "Fishing", "Logging", "Mining", "Caravans", "Coastal shipping", "Ocean shipping"],
+            ["Farming", "Herding", "Fishing", "Logging", "Mining", "Caravans", "Coastal shipping", "Ocean shipping", "Trade"],
             Canonical.Entities.Where(x => x.Kind == ResearchEntityKind.Activity).Select(x => x.Name ?? "(null)").ToArray());
         // The classes D-047 keeps technology-owned stay gated: fish weirs (ruling 5), improved
         // coastal/seagoing (sail) and oceanic transport (ruling 7), road classes (ruling 8).

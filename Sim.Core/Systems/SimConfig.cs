@@ -163,7 +163,21 @@ public sealed record GovernanceAiConfig(
 /// </summary>
 public sealed record FarmingConfig(
     [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
-    [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear);
+    [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear,
+    [property: JsonPropertyName("preCultivation")] PreCultivationConfig? PreCultivation = null);
+
+/// <summary>
+/// R2a (Director decision 8) — THE PRE-CULTIVATION FOOD YIELD, an ISOLATED CONTENT SWITCH. When
+/// <see cref="Enabled"/>, a settlement whose knowledge (SettlementKnowledge.MaskOf) does not make the Farming
+/// sector's researched identity (research.json sectorActivities: activity.farming, mode "replaces") eligible
+/// harvests WILD FOOD at these rates instead of the CR-003 domesticated-cereal yield; the cultivated yield applies
+/// once the farming capability exists for the settlement. Values are DERIVED from a forager reference class
+/// stated in sim.json before any measurement (CR-003 §5.1). Disabled (or absent) = the shipped founding economy.
+/// </summary>
+public sealed record PreCultivationConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
+    [property: JsonPropertyName("outputPerGathererPerYear"), JsonRequired] double OutputPerGathererPerYear);
 
 /// <summary>
 /// Catchment tuning (T3.2b). A settlement's catchment is its ECONOMIC
@@ -724,9 +738,13 @@ public sealed record MigrationConfig(
 ///   anchor on rough routes — the right direction (overland trade harder in
 ///   the mountains, easier along rivers/paths where edges are cheap).
 /// </summary>
+/// R2a — <c>Entity</c>: the research entity (research.json, kind activity) whose knowledge eligibility makes
+/// trade BETWEEN settlements legal (State.TradeQuery.CanTrade; Director decision 1). Data, not code: no node id
+/// appears in C#. Null = ungated (the pre-R2a behaviour, kept for content without it).
 public sealed record TradeConfig(
     [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
-    [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit);
+    [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit,
+    [property: JsonPropertyName("entity")] string? Entity = null);
 
 /// <summary>
 /// T3.8 housing tuning (director ruling: maintenance, not abstract decay).
@@ -796,6 +814,7 @@ public static class SimConfigLoader
         cfg = cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
         ValidateRoadsAgainstContent(cfg);
         ValidateGovernanceAgainstContent(cfg);
+        ValidateTradeAgainstContent(cfg);
         ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
         ValidateInstitutionsAgainstContent(cfg);
         return cfg;
@@ -916,6 +935,11 @@ public static class SimConfigLoader
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
         RequireRate("farming.yieldPerArableKm2PerYear", cfg.Farming.YieldPerArableKm2PerYear);
         RequireRate("farming.outputPerFarmerPerYear", cfg.Farming.OutputPerFarmerPerYear);
+        if (cfg.Farming.PreCultivation is { } pre)
+        {
+            RequireRate("farming.preCultivation.yieldPerArableKm2PerYear", pre.YieldPerArableKm2PerYear);
+            RequireRate("farming.preCultivation.outputPerGathererPerYear", pre.OutputPerGathererPerYear);
+        }
 
         if (cfg.Catchment is null) throw new SimConfigException("catchment is missing.");
         if (!(cfg.Catchment.HinterlandRadiusKm > 0.0)
@@ -1317,6 +1341,16 @@ public static class SimConfigLoader
     /// <summary>ADR-033 D4: the taxation requirement names real research.json nodes and is a valid
     /// knowledge expression — parsed by the research dialect's own parser where sim.json and
     /// research.json meet, so a typo fails the load instead of silently never unlocking taxation.</summary>
+    private static void ValidateTradeAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Trade.Entity is not { } entity || cfg.Research is null) return;
+        int e = cfg.Research.EntityIndexOf(entity);
+        if (e < 0)
+            throw new SimConfigException($"sim.json trade.entity '{entity}' is not a research.json entity — trade would never become legal.");
+        if (cfg.Research.Entities[e].Kind != Systems.Research.ResearchEntityKind.Activity)
+            throw new SimConfigException($"sim.json trade.entity '{entity}' is a {cfg.Research.Entities[e].Kind}, not an activity.");
+    }
+
     private static void ValidateGovernanceAgainstContent(SimConfig cfg)
     {
         if (cfg.Governance is null || cfg.Research is null) return;

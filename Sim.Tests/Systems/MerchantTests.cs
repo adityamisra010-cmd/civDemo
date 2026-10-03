@@ -121,7 +121,10 @@ public class MerchantTests
         // research-gated, and no trade occurs at all (MEASURED: no merchant town in 650 turns). The subject here
         // is merchant REACHABILITY from trade volume, so the realm knows its crafts (TestConfigs.KnowRecipes —
         // knowledge rows only, the world a civilization that has researched pottery and bronze would hold).
-        WorldState w = TestConfigs.KnowRecipes(WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42), TestConfigs.Sim());
+        // R2a: trade between settlements is itself a research unlock now, so the realm also knows Trade
+        // (TestConfigs.KnowTrade — knowledge rows only).
+        WorldState w = TestConfigs.KnowTrade(
+            TestConfigs.KnowRecipes(WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42), TestConfigs.Sim()), TestConfigs.Sim());
         int firstActive = -1, activeTurns = 0;
         for (int t = 1; t <= 650; t++)
         {

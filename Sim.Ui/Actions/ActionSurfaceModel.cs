@@ -676,7 +676,9 @@ public static class ActionSurface
     {
         var items = ImmutableArray.CreateBuilder<string>();
         foreach (ActionDescriptor a in actions)
-            if (a.Domain == ActionDomain.Standing) items.Add(Short(a.Label));
+            // R2a: the Trade capability is automatic (no order — the market moves goods once it is legal), so it
+            // joins what the people do on their own, listed only when the query lists it.
+            if (a.Domain is ActionDomain.Standing or ActionDomain.Trade) items.Add(Short(a.Label));
         return items.Count == 0 ? null : new StandingBlock(items.ToImmutable());
     }
 
