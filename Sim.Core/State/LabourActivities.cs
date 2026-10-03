@@ -107,6 +107,25 @@ public static class LabourActivities
         return false;
     }
 
+    /// <summary>R3 (Director R2-final §15) — the TRUTHFUL label of what a sector actually does with this knowledge:
+    /// the baseline identity's name while no researched identity replaces it, otherwise, for each eligible
+    /// researched identity, the names of the completed nodes that made it eligible (e.g. a settlement that knows only
+    /// root-crop cultivation reads as that, not as the generic entity name "Farming"). Derived from the same
+    /// identities <see cref="For"/> reports; no node id in code.</summary>
+    public static string CapabilityLabel(ResearchContent content, bool[] completed, int sector)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(completed);
+        (ImmutableArray<LabourIdentity> identities, _) = Identities(content, completed, sector);
+        string label = "";
+        foreach (LabourIdentity id in identities)
+        {
+            string part = id.Researched && id.NodeNames.Length > 0 ? string.Join(" / ", id.NodeNames) : id.Name;
+            label = label.Length == 0 ? part : label + " · " + part;
+        }
+        return label;
+    }
+
     /// <summary>The settlements whose labour the issuer may allocate, in settlement-table order.</summary>
     public static SettlementId[] ControlledSettlements(IReadOnlyWorldState world, PolityId issuer)
     {

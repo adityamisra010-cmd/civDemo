@@ -14,7 +14,7 @@ namespace Sim.Core.State;
 /// former polity's knowledge at that instant. Only that instant is copied; afterwards the two holders share no
 /// row and research independently (no link is kept, so nothing flows later in either direction).</item>
 /// <item>ANNEXATION (§4): new owner = union(own, annexed). No annexation or conquest path exists in the
-/// simulation yet (M6 war / later politics — DEFERRED), so this operation is the merge such a path must call; it
+/// simulation yet (the Battle Layer, M7 in the 2026-10-03 roadmap, and later politics — DEFERRED), so this operation is the merge such a path must call; it
 /// is tested at this level and invented nowhere else.</item>
 /// </list>
 /// KNOWLEDGE = COMPLETED NODES ONLY (INFERRED, R3): in-progress RP (<see cref="ResearchProgressRow"/>), fired

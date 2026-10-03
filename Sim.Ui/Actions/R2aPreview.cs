@@ -112,7 +112,7 @@ public static class R2aPreview
             if (CraftingQuery.IsKnown(r, recipe, SettlementKnowledge.MaskOf(w, r, city))) lines.Add("  • " + recipe.Name);
         lines.Add("Trade (TradeQuery): " + (TradeQuery.SettlementKnowsTrade(w, cfg, city) ? "known" : "not yet known"));
         bool[] mask = SettlementKnowledge.MaskOf(w, r, city)!;
-        lines.Add("Food sector: " + (LabourActivities.SectorReplacedByResearch(r, mask, Sectors.Farming) ? "Farming" : "Gathering"));
+        lines.Add("Food sector: " + LabourActivities.CapabilityLabel(r, mask, Sectors.Farming));
 
         EraTheme t = EraThemes.For(UiEra.Prehistoric);
         double h = 60 + 22 * lines.Count;
