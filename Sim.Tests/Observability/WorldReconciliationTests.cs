@@ -154,7 +154,12 @@ public class WorldReconciliationTests
         // drive settlements into deficit — so this is a positive sample at every
         // λ and only the TURN moves. Trade on 7 holds throughout.
         Assert.True(log.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8");
-        Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
+        // R2a (2026-10-03): trade between settlements is a research unlock and this run researches nothing, so NO
+        // TRADE OCCURS in 300 driven turns (MEASURED on this tree by the agent writing this line; first trade was
+        // turn 7). The absence is PINNED; trade's positive coverage is TradeResearchUnlockTests.T02 (the realm
+        // that knows Trade moves goods) — the goods accounts above reconcile every turn either way.
+        for (int t = 1; t <= 300; t++)
+            Assert.Equal(0, log.At(t)!.Turn.Flows.TradeUnits);
         // T4.19-A (CR-014 ruled): the first-decay sample RE-MEASURED, 25 -> 48.
         // The 25 was read on the pre-lane-C founding vector (measured on the
         // lane-obs tree 8f59166, where it still holds). On lane C's vector the
@@ -193,7 +198,6 @@ public class WorldReconciliationTests
         Assert.True(cloth.Produced > 0 && cloth.Eaten + cloth.InputsConsumed > 0,
             "cloth neither produced nor consumed on turn 5");
         Assert.Equal(0, Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "pottery")!.Produced);
-        Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
     }
 
     [Fact]

@@ -290,7 +290,10 @@ public class IntegratedSaveLoadBatteryTests
         // The save points, MEASURED on this tree (dev world, seed 42): partial research progress from turn 1;
         // the player's first completion at 28; the turn-1 road order affords 62% of its first route (turn 2);
         // the university (queued behind the granary on the timber-cut capital) is first mid-maturation at 32.
-        Assert.Equal((1, 28, 2, 32), (
+        // R2a RE-AIM (2026-10-03, MEASURED by the agent writing this line): university mid-maturation 32 -> 36.
+        // Cause: the trade gate (no settlement here knows Trade, so the inter-settlement flows that supplied the
+        // capital's build stop); with ONLY sim.json trade.entity removed the run returns 32.
+        Assert.Equal((1, 28, 2, 36), (
             First((_, w) => PartialProgress(w) > 0.0, "mid-research"),
             First((p, w) => Completed(w) > Completed(p), "after a completion"),
             First((_, w) => PartialRoad(w), "partial road"),
