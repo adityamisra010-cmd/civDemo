@@ -551,8 +551,10 @@ public sealed record PriceConfig(
 ///   "regional bad years are the point". At 0.6 a bad year is mostly shared
 ///   with neighbours and partly local.
 /// SpatialRangeCostUnits — CHOSEN 40.0 cost units. Never derived. The e-folding
-///   distance of the weather field, in the same travel-cost units as
-///   SettlementDistances. Settlements a short journey apart share weather
+///   distance of the weather field, in IDEAL-GROUND travel-cost units applied to the
+///   GEOGRAPHIC straight-line distance between site cells (km / KmPerCostUnit — M5 R2b:
+///   weather does not follow roads, so the road-aware SettlementDistances are no longer
+///   read; a terrain-less toy keeps its hand-written table). Settlements a short journey apart share weather
 ///   strongly; settlements across the map share it weakly. Frame: a weather
 ///   system spans a region, not a continent.
 /// </summary>
