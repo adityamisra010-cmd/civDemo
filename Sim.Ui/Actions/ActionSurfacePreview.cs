@@ -71,6 +71,27 @@ public static class ActionSurfacePreview
             s, s.World, capital);
     }
 
+    /// <summary>R1 — THE RESEARCHED STATE: the canonical founded world with the prerequisite closures of agriculture
+    /// (cereal_cultivation), pottery (pottery_open_fired), bronze casting (tin_bronze), taxation
+    /// (arithmetic_babylonian), a road class (track_road) and the university (building.university and
+    /// inst.university: medicine_hippocratic, geometry_axiomatic, cuneiform, stamp_seal, legal_code_roman) completed
+    /// (ResearchCompleted rows — the constructed part of the rig), the Age row set to A4, then one End Turn through
+    /// the real session. Every control it shows comes from the query: nothing here names a control.</summary>
+    public static State ResearchedRig()
+    {
+        WorldState w = UiFounding.Found(42);
+        SimConfigLike cfg = new(UiFounding.ProductionConfig());
+        ResearchContent research = cfg.Research;
+        foreach (string id in WithAncestors(research, "cereal_cultivation", "pottery_open_fired", "tin_bronze", "arithmetic_babylonian",
+                     "track_road", "medicine_hippocratic", "geometry_axiomatic", "cuneiform", "stamp_seal", "legal_code_roman"))
+            w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId(id)].Key));
+        w = EraPreview.WorldAt(w, cfg.Ages, Me, 4);
+        UiSession s = UiSession.StartFrom(w, 42);
+        s.EndTurn();
+        return new State("researched-a4", "Researched state: agriculture, pottery, bronze casting, taxation, a road class and the university's prerequisites known; Age IV",
+            s, s.World, Capital(s.World));
+    }
+
     /// <summary>The same state with only the player's Age row changed.</summary>
     public static State AtAge(State state, int age, string stem, string description)
     {
@@ -276,7 +297,8 @@ public static class ActionSurfacePreview
         State one = TurnOne();
         State later = LaterRig();
         State industrial = AtAge(later, 8, "later-a8", "The same later state with only the Age row changed to Age VIII");
-        foreach (State s in new[] { one, later, industrial })
+        State researched = ResearchedRig();
+        foreach (State s in new[] { one, later, industrial, researched })
         {
             ActionSurfaceModel model = ModelOf(s);
             log.Add(s.Stem + ": " + s.Description + "; turn " + s.World.Clock.Turn.ToString(CultureInfo.InvariantCulture)

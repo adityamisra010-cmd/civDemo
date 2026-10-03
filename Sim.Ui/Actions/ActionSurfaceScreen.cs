@@ -290,6 +290,7 @@ public sealed class ActionSurfaceScreen
         if (model.Construction is { } construction) y = PaintConstruction(d, m, model, construction, x, y, width, flat) + gap;
         if (model.Roads is { } roads) y = PaintRoads(d, m, model, roads, x, y, width, flat) + gap;
         if (model.Governance is { } gov) y = PaintGovernance(d, m, model, gov, x, y, width, flat) + gap;
+        if (model.Production is { } production) y = PaintProduction(d, m, production, x, y, width, flat) + gap;
         if (model.Military is { } military) y = PaintMilitary(d, m, model, military, x, y, width, flat) + gap;
         if (model.Standing is { } standing) y = PaintStanding(d, m, model, standing, x, y, width, flat);
         return y - y0;
@@ -754,6 +755,27 @@ public sealed class ActionSurfaceScreen
         if (mb.NextAgeName is { } next && !mb.Modernization.IsDefaultOrEmpty)
             y = Wrapped(d, m, "At the next Age (" + next + "): " + string.Join("; ", mb.Modernization), x, y + 1, w, 11.5, t.Ink.TextSoft);
         return Wrapped(d, m, mb.Note, x, y, w, 11, t.Ink.TextDim);
+    }
+
+    // ------------------------------------------------------------------ production (R1)
+
+    private double PaintProduction(DrawList d, ITextMeasure m, ProductionBlock p, double x, double y, double w, bool flat)
+    {
+        EraTheme t = T;
+        y = Heading(d, m, flat ? "Crafts we know" : "Production - crafts we know", x, y, w, flat, 930);
+        int k = 0;
+        foreach (ProductionEntry e in p.Entries)
+        {
+            EraMarks.State(d, t, x + 7, y + L(13) / 2, 5, e.Settlements > 0 ? MarkKind.Completed : MarkKind.Available, 1, 931 + k, dim: e.Settlements == 0);
+            y = Wrapped(d, m, e.Name, x + 18, y, w - 18, 13, t.Ink.Text, FontRole.Heading);
+            string where = e.Settlements > 0
+                ? "made in " + e.Settlements.ToString(CultureInfo.InvariantCulture) + " settlement(s)"
+                : e.Blocker ?? "made nowhere yet";
+            y = Wrapped(d, m, e.Detail + " · " + where, x + 18, y, w - 18, 11.5, t.Ink.TextSoft);
+            if (e.LearnedFrom is { } lf && !flat) y = Wrapped(d, m, "learned: " + lf, x + 18, y, w - 18, 11, t.Ink.TextDim);
+            k++;
+        }
+        return y;
     }
 
     // ------------------------------------------------------------------ standing

@@ -82,8 +82,12 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
 
         Assert.Equal(UiEra.Prehistoric, m.Era);
         Assert.Equal(SurfaceLayout.Flat, m.Layout);   // A1: a short flat list
-        Assert.Equal(new[] { ActionDomain.Labour, ActionDomain.Research, ActionDomain.Construction, ActionDomain.Military, ActionDomain.Standing },
+        Assert.Equal(new[] { ActionDomain.Labour, ActionDomain.Research, ActionDomain.Construction, ActionDomain.Military, ActionDomain.Standing, ActionDomain.Production },
             m.Domains.ToArray());
+        // R1: the crafts known at founding are exactly the content's BASELINE recipes (null requirement) — no
+        // pottery firing (pottery_open_fired) and no bronze casting (tin_bronze) before their research.
+        Assert.Equal(new[] { "Weaving", "Toolmaking" }, m.Production!.Entries.Select(e => e.Name).ToArray());
+        Assert.All(m.Production.Entries, e => Assert.Null(e.LearnedFrom));
         Assert.Null(m.Age);          // not eligible: no advance
         Assert.Null(m.Roads);        // no road class known
         Assert.Null(m.Governance);   // no taxation node known
@@ -141,7 +145,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         List<string> texts = Texts(d);
         Assert.NotEmpty(texts);
         Assert.DoesNotContain(texts, t => t.Contains('%'));
-        foreach (string banned in new[] { "Farming", "Industry", "tax", "Tax", "levy", "Levy", "road", "Road", "nstitution", "niversit", "Advance" })
+        foreach (string banned in new[] { "Farming", "Industry", "tax", "Tax", "levy", "Levy", "road", "Road", "nstitution", "niversit", "Advance", "Pottery", "Bronze casting" })
             Assert.DoesNotContain(texts, t => t.Contains(banned, StringComparison.Ordinal));
 
         // The ONLY interactive regions: the pebbles, the settlement cycle, the trees link and the baseline
@@ -156,7 +160,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ImmutableArray<ActionDescriptor> query = AvailableActionsQuery.For(s.World, s.Config, Me,
             ActionQueryContext.ForNextStep(s.World, Era, s.QueuedOrders()));
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
-        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8, query.Length);
+        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8 + 2, query.Length);   // R1: + the two baseline recipes
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }

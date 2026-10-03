@@ -22,6 +22,10 @@ public enum ActionDomain
     /// <summary>ADR-033 D6 (stream S3): found a specialized university of a type at a settlement.</summary>
     Institutions = 8,
     Standing = 9,
+    /// <summary>R1: a crafting recipe the civilization KNOWS (content-declared recipe entity, research-gated or
+    /// baseline). It has no order of its own — the Crafting labour share runs it — so it is a capability entry
+    /// whose targets are the settlements where it runs now.</summary>
+    Production = 10,
 }
 
 /// <summary>Whether an available action is something the issuer can ORDER now, or a STANDING baseline
@@ -158,6 +162,11 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 ///   transient blocker (<see cref="Institutions"/>). The Construction contributor does not list founding
 ///   projects, so nothing is listed twice.</item>
 /// <item><b>Standing</b> — the research.json baseline capabilities flagged simulated.</item>
+/// <item><b>Production</b> (R1; no order — the Crafting share runs it) — every goods.json recipe the issuer
+///   KNOWS (<see cref="CraftingQuery.IsKnownBy"/>: its content-declared recipe entity is knowledge-eligible), with
+///   the settlements where <see cref="CraftingQuery.IsRecipeAvailable(IReadOnlyWorldState, SimConfig, SettlementId, RecipeEntry)"/>
+///   — the predicate ProductionSystem applies — admits it now as targets. Iterates content: a new recipe and
+///   its entity flow here with no code change.</item>
 /// </list>
 ///
 /// ONLY AVAILABLE ACTIONS ARE LISTED: a locked future action is never returned (the research trees show
@@ -185,6 +194,7 @@ public static class AvailableActionsQuery
         Governance(world, cfg, polity, actions);
         Institutions(world, cfg, polity, context, actions);
         Standing(cfg, actions);
+        Production(world, cfg, polity, actions);
         return Order(actions);
     }
 
@@ -544,6 +554,78 @@ public static class AvailableActionsQuery
                 ActionDomain.Standing, i, ActionKind.Standing, "standing." + b.Id, b.Name, null, [], null,
                 new ActionProvenance([b.Id], [], [], []), b.ProvidedBy));
         }
+    }
+
+    // ------------------------------------------------------------------ Production (R1; no order)
+
+    /// <summary>
+    /// One Standing descriptor per goods.json recipe the issuer KNOWS (Id = recipe index + 1; content order):
+    /// <see cref="CraftingQuery.IsKnownBy"/> — the recipe's research entity is knowledge-eligible (a null
+    /// requirement is baseline). Targets: the issuer's settlements where the full recipe predicate ProductionSystem
+    /// applies (<see cref="CraftingQuery.IsRecipeAvailable(IReadOnlyWorldState, SimConfig, SettlementId, RecipeEntry)"/>:
+    /// knowledge AND the recipe's own D-020 condition) holds now. Blocker when it runs nowhere: the recipe's own
+    /// condition, verbatim from content. Provenance: the Crafting sector's baseline, the entity, and the completed
+    /// nodes its requirement names. A recipe that is not known is not listed (it is future knowledge in the trees).
+    /// </summary>
+    public static void Production(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
+    {
+        if (cfg.Goods is not { } goods || goods.Recipes.Length == 0) return;
+        ResearchContent? research = cfg.Research;
+        ImmutableArray<string> crafters = CraftingBaseline(research);
+        SettlementId[] places = LabourActivities.ControlledSettlements(world, polity);
+        for (int r = 0; r < goods.Recipes.Length; r++)
+        {
+            RecipeEntry recipe = goods.Recipes[r];
+            if (!CraftingQuery.IsKnownBy(world, research, polity, recipe)) continue;
+            var targets = ImmutableArray.CreateBuilder<ActionTarget>();
+            foreach (SettlementId s in places)
+                if (CraftingQuery.IsRecipeAvailable(world, cfg, s, recipe)) targets.Add(SettlementTarget(s));
+            string name = RecipeName(research, recipe);
+            string detail = RecipeInputs(recipe) + " · crafting labour";
+            string? blocker = targets.Count == 0 && recipe.Requires is { } cond ? "runs where " + cond + " (no settlement yet)" : null;
+            into.Add(new ActionDescriptor(
+                ActionDomain.Production, r + 1, ActionKind.Standing, "production." + recipe.Name, name, null,
+                targets.ToImmutable(), blocker, EntityProvenance(world, research, polity, recipe.Entity, crafters), detail));
+        }
+    }
+
+    private static string RecipeName(ResearchContent? research, RecipeEntry recipe)
+    {
+        if (recipe.Entity is { } id && research is not null && research.EntityIndexOf(id) is int e and >= 0
+            && research.Entities[e].Name is { Length: > 0 } name) return name;
+        return recipe.Name;
+    }
+
+    private static string RecipeInputs(RecipeEntry recipe)
+    {
+        var parts = new List<string>();
+        foreach (RecipeInput i in recipe.Inputs) parts.Add($"{Num(i.PerOutput)} {i.Good}");
+        return string.Join(" + ", parts) + $" → {Inv(recipe.Output.Qty)} {recipe.Output.Good}";
+    }
+
+    /// <summary>Provenance of an action resting on one research entity: the given baseline ids, the entity, and the
+    /// issuer's completed nodes its requirement names (key order). No entity → the baseline alone.</summary>
+    private static ActionProvenance EntityProvenance(
+        IReadOnlyWorldState world, ResearchContent? research, PolityId polity, string? entityId, ImmutableArray<string> baseline)
+    {
+        if (entityId is not { } id || research is null || research.EntityIndexOf(id) is not (int e and >= 0))
+            return new ActionProvenance(baseline, [], [], []);
+        bool[] completed = ResearchQuery.CompletedMask(world, research, polity);
+        var nodes = new List<(ResearchNodeId Key, string Name)>();
+        foreach (int atom in research.Entities[e].NodeAtoms)
+            if (completed[atom] && !ContainsKey(nodes, research.Nodes[atom].Key)) nodes.Add((research.Nodes[atom].Key, research.Nodes[atom].Name));
+        nodes.Sort(static (x, y) => x.Key.Value.CompareTo(y.Key.Value));
+        return Provenance(nodes.Count == 0 ? baseline : [], [id], nodes);
+    }
+
+    /// <summary>The baseline capabilities that provide the Crafting sector's baseline identity (content:
+    /// sectorActivities). Data, never an id in code.</summary>
+    private static ImmutableArray<string> CraftingBaseline(ResearchContent? research)
+    {
+        if (research is null) return [];
+        var ids = ImmutableArray.CreateBuilder<string>();
+        foreach (int b in research.SectorActivities[Sectors.Crafting].Baseline.Baseline) ids.Add(research.Baseline[b].Id);
+        return ids.ToImmutable();
     }
 
     // ------------------------------------------------------------------ helpers

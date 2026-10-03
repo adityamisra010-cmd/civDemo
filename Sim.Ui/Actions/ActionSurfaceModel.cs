@@ -147,6 +147,15 @@ public sealed record FormationEntry(long Id, string Identity, string Family, int
 public sealed record MilitaryBlock(
     ImmutableArray<FormationEntry> Formations, string? NextAgeName, ImmutableArray<string> Modernization, string Note, ActionDescriptor Capability);
 
+/// <summary>One crafting recipe the civilization knows (R1): its name, inputs → output, where it runs now (or its
+/// content condition when it runs nowhere yet), and the research it was learned from.</summary>
+public sealed record ProductionEntry(string Name, string Detail, int Settlements, string? Blocker, string? LearnedFrom, ActionDescriptor Action);
+
+/// <summary>The crafts the civilization knows (R1) — exactly the Production descriptors the query returns, in
+/// its order. Generic over content: a newly authored recipe and its knowledge entity appear here with no UI
+/// code change.</summary>
+public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
+
 /// <summary>What the people do on their own — standing capabilities, one compact list, no controls.</summary>
 public sealed record StandingBlock(ImmutableArray<string> Items);
 
@@ -160,7 +169,8 @@ public sealed record StandingBlock(ImmutableArray<string> Items);
 public sealed record ActionSurfaceModel(
     UiEra Era, SurfaceLayout Layout, LabourControlSpec Control, ImmutableArray<ActionDescriptor> Actions,
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
-    MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices)
+    MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
+    ProductionBlock? Production = null)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -176,6 +186,7 @@ public sealed record ActionSurfaceModel(
             if (Military is not null) b.Add(ActionDomain.Military);
             if (Governance is not null) b.Add(ActionDomain.Governance);
             if (Standing is not null) b.Add(ActionDomain.Standing);
+            if (Production is not null) b.Add(ActionDomain.Production);
             return b.ToImmutable();
         }
     }
@@ -221,7 +232,8 @@ public static class ActionSurface
             Military(input, actions),
             Governance(input, actions),
             Standing(actions),
-            Notices(input, actions, notices));
+            Notices(input, actions, notices),
+            Production(actions));
     }
 
     /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
@@ -460,7 +472,9 @@ public static class ActionSurface
         var projects = ImmutableArray.CreateBuilder<ProjectEntry>();
         foreach (ActionDescriptor a in actions)
         {
-            if (a.Domain != ActionDomain.Construction || a.Targets[0].Id != settlement.Value) continue;
+            // ADR-033 D6 + R1: an institution-founding project (a university) is listed by the query's Institutions
+            // contributor; it is built through the same EnqueueConstruction order, so it joins this block.
+            if (a.Domain is not (ActionDomain.Construction or ActionDomain.Institutions) || a.Targets[0].Id != settlement.Value) continue;
             int projectId = (int)a.Targets[1].Id;
             ConstructionProjectEntry p = goods.ProjectById(projectId)!;
             int queuedHere = 0;
@@ -642,6 +656,20 @@ public static class ActionSurface
             edict.Provenance.Researched ? string.Join(", ", edict.Provenance.NodeNames) : null, queued, edict);
     }
 
+    // ------------------------------------------------------------------ production (R1)
+
+    private static ProductionBlock? Production(ImmutableArray<ActionDescriptor> actions)
+    {
+        var entries = ImmutableArray.CreateBuilder<ProductionEntry>();
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Production) continue;
+            entries.Add(new ProductionEntry(a.Label, a.Detail ?? "", a.Targets.IsDefault ? 0 : a.Targets.Length, a.Blocker,
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a));
+        }
+        return entries.Count == 0 ? null : new ProductionBlock(entries.ToImmutable());
+    }
+
     // ------------------------------------------------------------------ standing
 
     private static StandingBlock? Standing(ImmutableArray<ActionDescriptor> actions)
@@ -678,6 +706,17 @@ public static class ActionSurface
                 foreach (ActionDescriptor a in actions) if (a.Domain == d) { now = true; break; }
                 foreach (ActionDescriptor a in before) if (a.Domain == d) { was = true; break; }
                 if (now && !was) lines.Add("new: " + DomainNoun(d));
+            }
+            // R1: every action research made appear at the last End Turn, by name (deduplicated) — generic over
+            // content, so a newly authored node and its consequence are announced with no UI code change.
+            // Labour identities are announced above; research targets are not consequences.
+            foreach (ActionDescriptor a in actions)
+            {
+                if (a.Domain is ActionDomain.Labour or ActionDomain.Research || !a.Provenance.Researched) continue;
+                bool existed = false;
+                foreach (ActionDescriptor b in before) if (b.Domain == a.Domain && b.Id == a.Id) { existed = true; break; }
+                string line = "new: " + Short(a.Label);
+                if (!existed && !lines.Contains(line)) lines.Add(line);
             }
         }
         return [.. lines];
