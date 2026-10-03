@@ -350,8 +350,8 @@ public static class PlayerViews
             MilitaryUnitRow u = world.MilitaryUnits[i];
             if (u.Location != id) continue;
             string unit = fam?.IdentityByKey(u.Identity)?.Name ?? fam?.FamilyByKey(u.Family)?.Name ?? "Formation";
-            string whose = u.Owner.Value == player.Value ? "your" : "empire " + u.Owner.Value.ToString(CultureInfo.InvariantCulture) + "'s";
-            lines.Add(Fig(density, "A " + unit + " (" + whose + ") is stationed here",
+            string whose = u.Owner.Value == player.Value ? "Your" : "The empire of " + u.Owner.Value.ToString(CultureInfo.InvariantCulture) + "'s";
+            lines.Add(Fig(density, whose + " " + unit + " is stationed here",
                 "experience " + u.Experience.ToString("0.0", CultureInfo.InvariantCulture)));
         }
         if (lines.Count == 0) lines.Add("No formations are stationed here.");

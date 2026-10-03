@@ -1,0 +1,9 @@
+player views preview: PlayerViews over real sessions, seed 42, canonical 1024 px world
+turn-1-a1: turn 1 played on the canonical founded world, Age I; turn 1, world hash 8b2162a4376b2ef29ca19f84bd26914e73a57e645c738a520324586b84337a0a, density level 1
+  turn-1-a1-settlement.svg  sha256 3f2f935e2e7aba32c1728e273572ca00e173115ca36b2de15e25b795fc47d7bd
+  turn-1-a1-empire.svg  sha256 75e05024067563822b31471ab89f4b540244365e87d5a40dd2d8992e46bde350
+  turn-1-a1-institutions.svg  sha256 3e042e891155ab544af26b58775331d03afd67199fe8e23042af119ebc2e25f0
+developed-a3: the action-surface later rig at Age III, plus ONE constructed InstitutionRow (first university type, capital, maturity 0.9); turn 14, world hash b9098a2d3dcc92f8369be9103bd4cfd3d92946f588171fe4f13a83dc5836c823, density level 2
+  developed-a3-settlement.svg  sha256 f7c29a02a406f47831bcd3aec0befeb21f8d5b8a4e420b0782674270cec53b67
+  developed-a3-empire.svg  sha256 64676aa2eaec810f566b11673f05ad3d97976c18dcdec7a880b5f665bc357d1f
+  developed-a3-institutions.svg  sha256 cf594c08269132f5f189fe039abbe57c662cf9ee0821d9dcc2f7b445305c8784

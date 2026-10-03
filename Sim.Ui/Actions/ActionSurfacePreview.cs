@@ -192,7 +192,7 @@ public static class ActionSurfacePreview
         double cy0 = sc.Y + PanelLayout.Margin;
         d.Write(t, sc.X + 14, cy0, ThemeText.Fit(m, t, hud.TitleLine, 18, sc.Width - 28, FontRole.Heading), 18, t.Ink.Text, TextAlign.Left, FontRole.Heading);
         cy0 += fh + 6;
-        foreach (string line in new[] { hud.PopulationLine, hud.FoodLine, hud.HappinessLine + "   " + hud.GrievanceLine })
+        foreach (string line in new[] { hud.PopulationLine, hud.FoodLine, hud.HappinessLine, hud.GrievanceLine })
         {
             d.Write(t, sc.X + 14, cy0, ThemeText.Fit(m, t, line, 15, sc.Width - 28, FontRole.Numeric), 15, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
             cy0 += t.Type.Line(15) + 3;

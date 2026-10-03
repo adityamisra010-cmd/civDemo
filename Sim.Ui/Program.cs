@@ -100,6 +100,18 @@ if (Array.IndexOf(args, "--action-preview") >= 0)
     return;
 }
 
+// --player-views-preview [dir] (ADR-033 D9): paint the SETTLEMENT, EMPIRE and INSTITUTIONS player views from
+// real sessions (turn 1 at Age I; a developed Age III state with a university) to SVG and exit.
+if (Array.IndexOf(args, "--player-views-preview") >= 0)
+{
+    int at = Array.IndexOf(args, "--player-views-preview");
+    string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "player-views-preview";
+    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
+    foreach (string p in Sim.Ui.ViewModel.PlayerViewsPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+        Console.WriteLine($"player views preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // Founding, executor recipe, order stamping and log persistence all live in
 // UiSession/UiFounding (T1.9) — pinned by the founding- and replay-equivalence
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
