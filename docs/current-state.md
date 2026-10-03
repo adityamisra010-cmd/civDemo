@@ -1,5 +1,10 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-03 — M5 integration R3 (final R2 reconciliation) on `m5i-r3-final-reconcile` (NOT merged).** Revolt founds
+> a new AI polity with a complete copy of its parent's knowledge; annexation union operation; capital-loss invariants;
+> truthful food label. Turn-1 forager food STOPPED (no founding population passes the bands; switch stays OFF).
+> Record: `docs/r3-final-reconcile-record.md`, ADR-033 §R3, CR-019. Verify against git.
+
 > **2026-10-03 — M5 integration R2c on `m5i-r2c-reconcile` (NOT merged).** R2a (Trade as research node 426, city-state
 > research) and R2b (unrest-lite tax brake, geographic weather distance, Age military milestones) reconciled on one tree.
 > Status, goldens and evidence: ADR-033 §R2c and `docs/m5-integration-coherence-matrix.md` §7. Verify against git.

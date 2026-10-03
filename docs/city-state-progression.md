@@ -48,6 +48,11 @@ relation stays the only answer to "who rules this place".
 
 ## 4. Control changes (decision recorded)
 
+> **R3 SUPERSEDES part of this section (Director R2-final §2, RATIFIED).** A REVOLT no longer leaves the place
+> uncontrolled: it founds a new AI polity holding a complete copy of the former polity's knowledge
+> (`KnowledgeTransfer`); annexation is a knowledge union. Local holders below now apply only to settlements that
+> are uncontrolled for another reason (hand-built / legacy worlds). See `docs/r3-final-reconcile-record.md` §2.
+
 - **Accumulated state persists.** Local-holder rows are never deleted. While a civilization controls the
   settlement the local holder is dormant (it is not iterated; its people count toward the controller's RP).
 - **The settlement's knowledge while controlled = controller's mask ∪ its own accumulated mask.** A craft

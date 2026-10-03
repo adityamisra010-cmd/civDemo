@@ -268,3 +268,15 @@ values (MEASURED): ClassSystem artisan latch 71 → 70; Merchant first-active 11
 
 Suites: Sim.Tests 1436 passed / 0 failed / 6 skipped (before the R2c test), Sim.Ui.Tests 473/473. Bench founded seed 42
 300 turns, 3 alternated runs: f1fe76f median 34430.70 ms, R2c median 34789.20 ms, ratio 1.010.
+
+## 8. R3 — final R2 reconciliation (append-only, 2026-10-03)
+
+| row | status | evidence |
+|---|---|---|
+| Revolt → new AI polity, complete knowledge copy | IMPLEMENTED (RATIFIED §2) | KnowledgeMonotonicTests, RevoltTests, UnrestTests |
+| Parent / child diverge independently | IMPLEMENTED | KnowledgeMonotonicTests.AfterSeparation_… |
+| Annexation = union | IMPLEMENTED as domain operation; no caller (no conquest path) | KnowledgeMonotonicTests.Annexation_… |
+| Capital loss corrupts nothing | IMPLEMENTED (tests); succession DEFERRED | UnrestTests.CapitalLoss_… |
+| Food-sector label from capability | IMPLEMENTED | FoodSectorLabelTests |
+| Turn-1 forager food via smaller founding population | STOPPED — measured fail at N=50/100/200/400 | r3 record §1 |
+| T4.5 raider reachability | OPEN — CR-019 | RevoltTests.RevoltNoLongerProducesStatelessness_… |

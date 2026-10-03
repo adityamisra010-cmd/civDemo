@@ -226,3 +226,24 @@ branch; INFERRED = an implementation choice made by an agent, not a ruling; DEFE
 - OPEN: `farming.preCultivation` committed OFF (turn-1 Gathering still labelled "makes grain" — item 8 tension, R2a record);
   capital loss leaves no tax reach (no ratified succession; DEFERRED); quarantined corridors densityPerArableKm2 and
   migrationGrossPerDecade breach their windows on 4-seed autoplay, as they already did at f1fe76f.
+
+## R3 — final R2 reconciliation (appended 2026-10-03)
+
+Full record: `docs/r3-final-reconcile-record.md`. Labels as above.
+
+- RATIFIED (Director R2-final): (1) knowledge never decays; (2) a revolted settlement becomes a new AI-controlled
+  polity; (3) at separation it inherits the complete knowledge of its former polity; (4) afterwards both progress
+  independently; (5) annexation preserves and merges knowledge (union); (6) capital succession stays DEFERRED;
+  (7) turn-1 primitive food is to use a smaller founding population rather than hidden farming; (8) Trade is a
+  Bronze Age (A3) Technology unlock, 880 RP, `token_counting AND (donkey OR camel OR sail_square)`; (9) city-state
+  autonomous research uses the existing research architecture.
+- IMPLEMENTED: (2)–(5) in RevoltSystem + `State/KnowledgeTransfer.cs` (the R2c INFERRED "empty local record" is
+  SUPERSEDED); capital-loss invariant tests; truthful food-sector label (`LabourActivities.CapabilityLabel`).
+- INFERRED (R3): knowledge = completed nodes (progress/Eurekas not copied); revolted polity gets no capital; a
+  single-settlement polity does not revolt from itself; revolted polity researches at the normal polity rate.
+- STOPPED / OPEN: (7) — no founding population in {50, 100, 200, 400} passes the ratified bands with the forager
+  yield ON (per-capita labour-side ceiling, and no research in order-free calibration runs). `preCultivation`
+  stays OFF; nothing retuned. A Ledger negative-amount exception at N=100 (switch ON) is OPEN.
+- OPEN: CR-019 — revolt no longer produces stateless settlements, so T4.5's raider gate has no producer in a
+  founded world. Annexation has no caller (no conquest path; Battle Layer, M7 in the 2026-10-03 roadmap).
+- Goldens: unmoved (founded 1368df9f…, first-reign 680a20c5…, driven efeec45d…).

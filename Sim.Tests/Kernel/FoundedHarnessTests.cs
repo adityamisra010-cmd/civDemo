@@ -99,7 +99,13 @@ public class FoundedHarnessTests
             // turn-123 100% order is then REFUSED. Turn-exact, on the twin.
             if (t == 94) Assert.Equal(0.0, a.SectorAllocations[0].Farming);
             if (t == 96) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
-            if (t == 97) Assert.False(EmpireQuery.TryGetController(a, settlement0, out _));
+            // R3 (Director R2-final §2): the revolted place becomes a NEW AI polity at once.
+            if (t == 97)
+            {
+                Assert.True(EmpireQuery.TryGetController(a, settlement0, out PolityId founded));
+                Assert.NotEqual(1, founded.Value);
+                Assert.True(EmpireQuery.TryGetCommandSource(a, founded, out CommandSource src) && src == CommandSource.Ai);
+            }
             if (t == 124) Assert.Equal(0.0, a.SectorAllocations[0].Farming);
         }
         // Anti-vacuity (adversarial pass): prove the ORDERS actually fired. Edges
