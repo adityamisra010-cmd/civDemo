@@ -134,7 +134,7 @@ public static class LabourActivities
             SectorAllocationRow shares = AllocationOf(world, settlement);
             for (int sector = 0; sector < Sectors.Count; sector++)
             {
-                (ImmutableArray<GoodId> goods, ImmutableArray<string> names) = GoodsOf(world, cfg.Goods, settlement, sector);
+                (ImmutableArray<GoodId> goods, ImmutableArray<string> names) = GoodsOf(world, cfg.Goods, settlement, sector, cfg.Research);
                 result.Add(new LabourActivity(
                     settlement, sector, ResearchContentLoader.SectorIds[sector], Sectors.Share(shares, sector),
                     labels[sector], identities[sector], goods, names));
@@ -212,12 +212,12 @@ public static class LabourActivities
     /// The goods a sector of this settlement produces, registry (or recipe) order — the same classification
     /// ProductionSystem applies (pinned against its measured output by LabourActivityTests): Farming → the
     /// numeraire (grain); Herding/fishing → the settlement's livestock and fish deposits with abundance &gt; 0;
-    /// Extraction → its every other deposit with abundance &gt; 0; Crafting → the outputs of the recipes whose
-    /// availability predicate holds on the settlement's published variables; Construction → no good
+    /// Extraction → its every other deposit with abundance &gt; 0; Crafting → the outputs of the recipes
+    /// CraftingQuery.IsRecipeAvailable admits (the controller's knowledge + the D-020 gate; R1); Construction → no good
     /// (it builds dwellings, paths and projects).
     /// </summary>
     public static (ImmutableArray<GoodId> Goods, ImmutableArray<string> Names) GoodsOf(
-        IReadOnlyWorldState world, GoodsConfig? goods, SettlementId settlement, int sector)
+        IReadOnlyWorldState world, GoodsConfig? goods, SettlementId settlement, int sector, ResearchContent? research = null)
     {
         if (goods is null) return ([], []);
         var ids = new List<int>();
@@ -240,14 +240,17 @@ public static class LabourActivities
                 break;
             }
             case Sectors.Crafting:
+            {
+                // R1: THE recipe predicate ProductionSystem applies (knowledge + the D-020 gate).
+                bool[]? knowledge = CraftingQuery.KnowledgeOf(world, research, settlement);
                 foreach (RecipeEntry r in goods.Recipes)
                 {
-                    if (r.Requires is { } src
-                        && !Systems.ClassMobility.Predicate.Parse(src).Evaluate(v => Variable(world, settlement, v))) continue;
+                    if (!CraftingQuery.IsRecipeAvailable(world, research, settlement, r, knowledge)) continue;
                     int output = goods.IdOf(r.Output.Good);
                     if (output >= 0 && !ids.Contains(output)) ids.Add(output);
                 }
                 break;
+            }
         }
         var result = ImmutableArray.CreateBuilder<GoodId>(ids.Count);
         var names = ImmutableArray.CreateBuilder<string>(ids.Count);
@@ -264,12 +267,5 @@ public static class LabourActivities
             if (d.Settlement == settlement && d.Good == good) sum += d.Abundance;
         }
         return sum;
-    }
-
-    private static double Variable(IReadOnlyWorldState world, SettlementId settlement, int varId)
-    {
-        for (int i = 0; i < world.Variables.Count; i++)
-            if (world.Variables[i].Settlement == settlement && world.Variables[i].VarId == varId) return world.Variables[i].Value;
-        return 0.0;   // an unpublished variable reads 0.0 (the ProductionSystem precedent)
     }
 }

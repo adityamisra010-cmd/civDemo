@@ -43,13 +43,21 @@ public sealed record RecipeOutput(
 /// the point of use, to get the per-unit coefficient; the 2-tools-per-bronze
 /// ratio is pinned exactly by
 /// ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit.
+///
+/// R1 (research → gameplay unlock pipeline) — `Entity` links the recipe to its research.json registry
+/// entity of kind recipe (e.g. recipe.pottery_firing): the recipe runs in a settlement only when that
+/// entity is knowledge-eligible for the settlement's controller (CraftingQuery.IsRecipeAvailable, the
+/// one recipe predicate). Data, never an id in code; absent = no knowledge requirement; an entity whose
+/// requirement is null is a declared BASELINE recipe. Cross-validated against research.json at the
+/// four-file load (the entity must exist and be a recipe).
 /// </summary>
 public sealed record RecipeEntry(
     [property: JsonPropertyName("name"), JsonRequired] string Name,
     [property: JsonPropertyName("inputs"), JsonRequired] RecipeInput[] Inputs,
     [property: JsonPropertyName("laborPerOutput"), JsonRequired] double LaborPerOutput,
     [property: JsonPropertyName("output"), JsonRequired] RecipeOutput Output,
-    [property: JsonPropertyName("requires")] string? Requires = null);
+    [property: JsonPropertyName("requires")] string? Requires = null,
+    [property: JsonPropertyName("entity")] string? Entity = null);
 
 /// <summary>M4-D: one material requirement of a construction project. Absolute
 /// units, NOT a per-output coefficient — a project is built once, not per unit,

@@ -1182,7 +1182,19 @@ public static class SimConfigLoader
     /// </summary>
     public static void ValidateProjectsAgainstContent(GoodsConfig? goods, Research.ResearchContent? research)
     {
-        if (goods?.Projects is null || research is null) return;
+        if (goods is null || research is null) return;
+        // R1: a recipe's entity link names a research.json entity of kind recipe (CraftingQuery gates on it).
+        foreach (RecipeEntry r in goods.Recipes)
+        {
+            if (r.Entity is null) continue;
+            int e = research.EntityIndexOf(r.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json recipes: '{r.Name}' names entity '{r.Entity}', which research.json does not define.");
+            if (research.Entities[e].Kind != Research.ResearchEntityKind.Recipe)
+                throw new SimConfigException($"goods.json recipes: '{r.Name}' names entity '{r.Entity}' of kind {research.Entities[e].Kind} — " +
+                                             "a recipe's knowledge entity is a recipe.");
+        }
+        if (goods.Projects is null) return;
         foreach (ConstructionProjectEntry p in goods.Projects)
         {
             if (p.Entity is null) continue;

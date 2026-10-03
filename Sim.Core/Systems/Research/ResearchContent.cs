@@ -15,7 +15,10 @@ public sealed class ResearchContentException(string message, Exception? inner = 
 public enum ResearchTree { Technology = 1, Civics = 2 }
 
 /// <summary>Registry entity kinds whose knowledge requirement research.json carries (ADR-029 §10).</summary>
-public enum ResearchEntityKind { Building = 1, Infrastructure = 2, Institution = 3, Unit = 4, Activity = 5, Project = 6 }
+/// <summary>R1 (research → gameplay unlock pipeline): <c>Recipe</c> is a crafting recipe (goods.json
+/// <c>recipes[].entity</c>) — ProductionSystem runs it only for a settlement whose controller's knowledge
+/// makes the entity eligible (CraftingQuery, the one recipe predicate).</summary>
+public enum ResearchEntityKind { Building = 1, Infrastructure = 2, Institution = 3, Unit = 4, Activity = 5, Project = 6, Recipe = 7 }
 
 /// <summary>
 /// The sources that draw on a node's ONE shared acceleration-credit pool (ADR-029
@@ -286,9 +289,9 @@ public static class ResearchContentLoader
     private static readonly string[] CostTiers = ["T1", "T2", "T3", "T4", "TR", "TS"];
     /// <summary>The acceleration sources the engine knows, in <see cref="AccelerationSource"/> order.</summary>
     public static readonly string[] AccelerationSourceIds = ["eureka", "foreign_exposure"];
-    private static readonly string[] EntityKindNames = ["building", "infrastructure", "institution", "unit", "activity", "project"];
-    private static readonly string[] EntityPrefixes = ["building.", "infra.", "inst.", "unit.", "activity.", "project."];
-    private static readonly string[] UnlockListNames = ["buildings", "infrastructure", "institutions", "units", "activities", "projects"];
+    private static readonly string[] EntityKindNames = ["building", "infrastructure", "institution", "unit", "activity", "project", "recipe"];
+    private static readonly string[] EntityPrefixes = ["building.", "infra.", "inst.", "unit.", "activity.", "project.", "recipe."];
+    private static readonly string[] UnlockListNames = ["buildings", "infrastructure", "institutions", "units", "activities", "projects", "recipes"];
 
     /// <summary>ADR-033 D1: the content names of the five labour sectors, indexed by sector id
     /// (Sectors.Farming = 0 … Sectors.Construction = 4). sectorActivities lists them in this order.</summary>
@@ -1213,7 +1216,7 @@ public static class ResearchContentLoader
         string[][] lists =
         [
             j.Unlocks.Buildings, j.Unlocks.Infrastructure, j.Unlocks.Institutions,
-            j.Unlocks.Units, j.Unlocks.Activities, j.Unlocks.Projects,
+            j.Unlocks.Units, j.Unlocks.Activities, j.Unlocks.Projects, j.Unlocks.Recipes ?? [],
         ];
         var listed = new List<int>();
         for (int k = 0; k < lists.Length; k++)
@@ -1509,7 +1512,9 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("activities"), JsonRequired] string[] Activities,
         [property: JsonPropertyName("projects"), JsonRequired] string[] Projects,
         [property: JsonPropertyName("techniques"), JsonRequired] string[] Techniques,
-        [property: JsonPropertyName("applications"), JsonRequired] string[] Applications);
+        [property: JsonPropertyName("applications"), JsonRequired] string[] Applications,
+        // R1: optional — the reverse index of recipe entities (absent = none).
+        [property: JsonPropertyName("recipes")] string[]? Recipes = null);
 
     private sealed record EffectsJson(
         [property: JsonPropertyName("immediate"), JsonRequired] JsonElement[] Immediate);

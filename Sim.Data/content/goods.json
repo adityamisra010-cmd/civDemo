@@ -102,6 +102,7 @@
   "recipes": [
     {
       "name": "pottery-firing",
+      "entity": "recipe.pottery_firing",
       "inputs": [
         {
           "good": "clay",
@@ -120,6 +121,7 @@
     },
     {
       "name": "weaving",
+      "entity": "recipe.weaving",
       "inputs": [
         {
           "good": "fiber",
@@ -134,6 +136,7 @@
     },
     {
       "name": "bronze-casting",
+      "entity": "recipe.bronze_casting",
       "inputs": [
         {
           "good": "copper-ore",
@@ -157,6 +160,7 @@
     },
     {
       "name": "toolmaking",
+      "entity": "recipe.toolmaking",
       "inputs": [
         {
           "good": "bronze",

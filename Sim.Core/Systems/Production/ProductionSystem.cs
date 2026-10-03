@@ -415,14 +415,17 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     {
         if (pool <= 0.0 || goods.Recipes.Length == 0) return;
 
-        // Availability: the D-020 gate against PREV published variables —
-        // identical wiring to ClassMobility's emergence evaluation.
+        // Availability: THE recipe predicate (CraftingQuery.IsRecipeAvailable, R1) on PREV — the
+        // recipe's research entity knowledge-eligible for the settlement's controller (content-declared,
+        // goods.json recipes[].entity; a null requirement is baseline) AND the D-020 gate against PREV
+        // published variables (identical wiring to ClassMobility's emergence evaluation). The labour
+        // and action surfaces call the same function, so they can never list a recipe this step refuses.
+        bool[]? knowledge = CraftingQuery.KnowledgeOf(prev, _cfg.Research, settlement);
         Span<bool> available = stackalloc bool[goods.Recipes.Length];
         int availableCount = 0;
         for (int r = 0; r < goods.Recipes.Length; r++)
         {
-            available[r] = _requires[r] is not { } predicate
-                || predicate.Evaluate(varId => ReadVariable(prev, settlement, varId));
+            available[r] = CraftingQuery.IsRecipeAvailable(prev, _cfg.Research, settlement, goods.Recipes[r], knowledge, _requires[r]);
             if (available[r]) availableCount++;
         }
         if (availableCount == 0) return;

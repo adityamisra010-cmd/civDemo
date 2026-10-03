@@ -3372,7 +3372,10 @@
     "activities": [],
     "projects": [],
     "techniques": [],
-    "applications": []
+    "applications": [],
+    "recipes": [
+     "recipe.pottery_firing"
+    ]
    },
    "family": "ceramics",
    "generation": null,
@@ -5584,7 +5587,10 @@
     "activities": [],
     "projects": [],
     "techniques": [],
-    "applications": []
+    "applications": [],
+    "recipes": [
+     "recipe.bronze_casting"
+    ]
    },
    "family": "bronze",
    "generation": 2,
@@ -29259,6 +29265,34 @@
    "kind": "project",
    "name": "Interstellar probe",
    "requires": "fusion_propulsion",
+   "unresolved": []
+  },
+  {
+   "id": "recipe.pottery_firing",
+   "kind": "recipe",
+   "name": "Pottery firing",
+   "requires": "pottery_open_fired",
+   "unresolved": []
+  },
+  {
+   "id": "recipe.weaving",
+   "kind": "recipe",
+   "name": "Weaving",
+   "requires": null,
+   "unresolved": []
+  },
+  {
+   "id": "recipe.bronze_casting",
+   "kind": "recipe",
+   "name": "Bronze casting",
+   "requires": "tin_bronze",
+   "unresolved": []
+  },
+  {
+   "id": "recipe.toolmaking",
+   "kind": "recipe",
+   "name": "Toolmaking",
+   "requires": null,
    "unresolved": []
   }
  ],
