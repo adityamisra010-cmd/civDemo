@@ -43,7 +43,11 @@ public sealed record SettlementLensView(
     long Population, long Dwellings, int SizeTier, int Age,
     IReadOnlyList<StructureView> Structures,
     double[]? Sectors, int RoadsInCatchment, int Notables, int ClassesActive,
-    IReadOnlyList<InstitutionView> Institutions);
+    IReadOnlyList<InstitutionView> Institutions,
+    // Integration item 5: the knowledge-derived label of the LARGEST sector (LabourActivities — what the
+    // controller's knowledge calls it, never "farming" before farming is known); null when uncontrolled or
+    // never allocated. Ties: the lowest sector index, as the caption's own rule.
+    string? TopSectorLabel = null);
 
 /// <summary>One institution marker the lens drew: a structure kind (Key "structure:{projectId}") or an
 /// institution type from <see cref="InstitutionMarkerSource"/> (Key "institution:{typeKey}") in a
@@ -194,12 +198,20 @@ public sealed class WorldProjection
             int classes = 0;
             for (int c = 0; c < world.ClassStates.Count; c++) if (world.ClassStates[c].Settlement == id && world.ClassStates[c].Active != 0) classes++;
             int age = ages is not null && ctl >= 0 ? AgeQuery.CurrentAge(world, ages, controller) : 0;
+            string? topLabel = null;
+            if (ctl >= 0 && sectors is not null)
+            {
+                int top = 0;
+                for (int k = 1; k < sectors.Length; k++) if (sectors[k] > sectors[top]) top = k;
+                foreach (LabourActivity act in LabourActivities.For(world, cfg, controller))
+                    if (act.Settlement == id && act.Sector == top) { topLabel = act.Label; break; }
+            }
             int cell = row.SiteCell;
             IReadOnlyList<InstitutionView> held = institutions(world, cfg, id);
             if (held.Count > 0) anyInstitution = true;
             settlements.Add(new SettlementLensView(
                 id.Value, name(id.Value), cell % size + 0.5, cell / size + 0.5, ctl, capital, ctl == player.Value,
-                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held));
+                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held, topLabel));
         }
 
         var units = new List<UnitLensView>();
@@ -570,7 +582,8 @@ public static class WorldLens
         {
             int top = 0;
             for (int i = 1; i < 5; i++) if (s.Sectors[i] > s.Sectors[top]) top = i;   // ties: lowest sector index
-            string lab = "labour mostly " + SectorNames[top].ToLowerInvariant() + " (" + Math.Round(s.Sectors[top] * 100).ToString("0", CultureInfo.InvariantCulture) + "%)";
+            string sectorLabel = s.TopSectorLabel ?? SectorNames[top];
+            string lab = "labour mostly " + sectorLabel.ToLowerInvariant() + " (" + Math.Round(s.Sectors[top] * 100).ToString("0", CultureInfo.InvariantCulture) + "%)";
             double lw = m.Width(lab, 11, FontRole.Caps);
             d.Rect(new RectD(sx - lw / 2 - 14, ly + 2, 9, 9), k.Sectors[top], ink, 0.8);
             d.Text(sx + 5, ly, lab, 11, ink, TextAlign.Center, FontRole.Caps);

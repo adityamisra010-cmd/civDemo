@@ -157,3 +157,35 @@ public class ChronicleAndResumeTests
         Assert.Throws<InvalidOperationException>(() => fresh.ReplayTo(live.Orders, 3, bad));
     }
 }
+
+/// <summary>Integration item 5 — what the text says is simulated is what is simulated.</summary>
+public class TruthInTextTests
+{
+    [Fact]
+    public void TheLenses_NoLongerDenyRoadsUniversitiesOrCrafting()
+    {
+        var s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        var content = s.Config.Research!;
+        foreach (Sim.Ui.Progression.Lens lens in new[] { Sim.Ui.Progression.Lens.Infrastructure, Sim.Ui.Progression.Lens.Institutions, Sim.Ui.Progression.Lens.Industry })
+        {
+            Sim.Ui.Progression.LensPage page = Sim.Ui.Progression.Lenses.Page(lens, s.World, content, UiPlayer.Empire);
+            Assert.DoesNotContain("construction of these is not yet simulated", page.StatusNote);
+            Assert.DoesNotContain("No system produces industry state", page.StatusNote);
+            Assert.DoesNotContain("Establishing an institution belongs to its owning system, not yet simulated", page.StatusNote);
+        }
+    }
+
+    [Fact]
+    public void TheWorldCaption_NamesTheTopSectorByItsKnowledgeLabel()
+    {
+        var s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        int capital = s.World.Settlements[0].Id.Value;
+        Assert.True(s.EmitSectorOrders([60, 10, 10, 10, 10], capital));
+        s.EndTurn();
+        Sim.Ui.World.WorldProjection p = Sim.Ui.World.WorldProjection.Build(s.World, s.Config, s.Names.Name, UiPlayer.Empire);
+        Sim.Ui.World.SettlementLensView v = p.Settlements.Single(x => x.Id == capital);
+        string expected = LabourActivities.For(s.World, s.Config, UiPlayer.Empire)
+            .Single(a => a.Settlement.Value == capital && a.Sector == Sectors.Farming).Label;
+        Assert.Equal(expected, v.TopSectorLabel);
+    }
+}

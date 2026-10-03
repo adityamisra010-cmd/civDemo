@@ -445,7 +445,13 @@ public class GlassBoxUiTests
         Assert.Equal(
             dRatio.Text.Split("  ")[2], dEff.Text.Split("  ")[2]);
         Assert.Contains(primary.Chain, l => l.Text.Contains("weather") && l.Lever.IsNone && l.Lever.Text.Contains("condition, not a control"));
-        Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone && l.Lever.Text.StartsWith("lever: labour allocation - farming ("));
+        // Integration item 5 (deliberate change): the lever is still the FARMING sector, but it is named by
+        // the label the player knows it under (LabourActivities); before cereal cultivation that is not
+        // "farming", which the player has not yet learned.
+        Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone
+            && l.Lever.Sectors.SequenceEqual(new[] { Sim.Core.State.Sectors.Farming })
+            && l.Lever.Text.StartsWith(GrievanceViewModel.AllocationPrefix, StringComparison.Ordinal)
+            && !l.Lever.Text.StartsWith(GrievanceViewModel.AllocationPrefix + "farming (", StringComparison.Ordinal));
 
         // Happiness sits at the top with both factors and their chains.
         Assert.StartsWith("happiness ", grievance.HappinessLine);

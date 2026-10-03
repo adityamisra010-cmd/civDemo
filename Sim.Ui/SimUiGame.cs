@@ -1634,10 +1634,10 @@ public sealed class SimUiGame : Game
     }
 
     /// <summary>
-    /// ECONOMY — T3.9b's trade panel. Its hard case is unchanged: on the
-    /// canonical world nothing trades, and an empty panel reads as a broken one,
-    /// so the summary states "no trade" as a counted fact and every good carries
-    /// its own reason. T4.19 lane B: plus the world GoodAccount table from the
+    /// ECONOMY — T3.9b's trade panel. Its hard case: in the opening turns of the
+    /// canonical world nothing trades yet (trade begins once settlements' prices
+    /// diverge), and an empty panel reads as a broken one, so the summary states
+    /// "no trade" as a counted fact and every good carries its own reason. T4.19 lane B: plus the world GoodAccount table from the
     /// latest TurnRecord — every non-grain good's account and whether it closes.
     /// </summary>
     private void DrawEconomySection()

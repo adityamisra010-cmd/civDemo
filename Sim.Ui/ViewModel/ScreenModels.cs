@@ -117,8 +117,15 @@ public static class ScreenModels
             if (pop == 0) continue;
             explanations.Add(GrievanceExplanation.For(prev, next, cfg, id, cls));
         }
+        // Item 5: the lever names each sector by the label the player knows it under (LabourActivities, the
+        // settlement's controller's knowledge), never the registry name of a sector not yet known as such.
+        string[] labels = (string[])SectorBarModel.SectorNames.Clone();
+        if (EmpireQuery.TryGetController(next, id, out PolityId owner))
+            foreach (LabourActivity a in LabourActivities.For(next, cfg, owner))
+                if (a.Settlement == id && a.Sector >= 0 && a.Sector < labels.Length) labels[a.Sector] = a.Label.ToLowerInvariant();
         return GrievanceViewModel.Build(happiness, explanations,
-            (classId, needId) => CausalChain.ForNeed(prev, next, cfg, id, new ClassId(classId), needId));
+            (classId, needId) => CausalChain.ForNeed(prev, next, cfg, id, new ClassId(classId), needId),
+            sector => labels[sector]);
     }
 
     public static PolicyView Policy(UiSession session, int selected)

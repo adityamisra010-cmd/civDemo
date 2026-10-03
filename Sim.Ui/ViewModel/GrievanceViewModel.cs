@@ -68,9 +68,9 @@ public static class GrievanceViewModel
 
     private static string F(double v, string fmt) => double.IsNaN(v) ? "-" : v.ToString(fmt, CultureInfo.InvariantCulture);
 
-    public static ChainLine LinkLine(in Link link)
+    public static ChainLine LinkLine(in Link link, Func<int, string>? sectorLabel = null)
     {
-        LeverLine lever = LeverFor(link.Node);
+        LeverLine lever = LeverFor(link.Node, sectorLabel);
         if (link.Kind == LinkKind.Gap)
             return new ChainLine(string.Create(CultureInfo.InvariantCulture, $"  {link.Label}: not recorded: {link.Note}"), true, lever);
         string source = link.World == SourceWorld.None || link.SourceIndex < 0
@@ -82,17 +82,19 @@ public static class GrievanceViewModel
         return new ChainLine(text, false, lever);
     }
 
-    public static IReadOnlyList<ChainLine> ChainLines(Link[] links)
+    public static IReadOnlyList<ChainLine> ChainLines(Link[] links, Func<int, string>? sectorLabel = null)
     {
         var lines = new ChainLine[links.Length];
-        for (int i = 0; i < links.Length; i++) lines[i] = LinkLine(links[i]);
+        for (int i = 0; i < links.Length; i++) lines[i] = LinkLine(links[i], sectorLabel);
         return lines;
     }
 
     /// <summary>The lever of one node: "lever: labour allocation - &lt;sectors&gt;
     /// (&lt;reason&gt;)" or "condition, no lever - &lt;reason&gt;". The two prefixes
     /// are disjoint so a None node can never read as levered.</summary>
-    public static LeverLine LeverFor(ChainNode node)
+    /// Integration item 5: <paramref name="sectorLabel"/> names a sector the way the player knows it
+    /// (LabourActivities' knowledge-derived label); without it the registry sector name is used.
+    public static LeverLine LeverFor(ChainNode node, Func<int, string>? sectorLabel = null)
     {
         Lever lever = Levers.For(node);
         if (lever.IsNone) return new LeverLine(NoLeverPrefix + lever.Reason, true, []);
@@ -100,20 +102,21 @@ public static class GrievanceViewModel
         for (int i = 0; i < lever.Sectors.Length; i++)
         {
             if (i > 0) text.Append(", ");
-            text.Append(SectorBarModel.SectorNames[lever.Sectors[i]]);
+            text.Append(sectorLabel is null ? SectorBarModel.SectorNames[lever.Sectors[i]] : sectorLabel(lever.Sectors[i]));
         }
         text.Append(" (").Append(lever.Reason).Append(')');
         return new LeverLine(text.ToString(), false, lever.Sectors);
     }
 
     /// <summary>The chain's head-node lever, or None with a reason for an empty chain.</summary>
-    private static LeverLine HeadLever(Link[] links) =>
-        links.Length == 0 ? new LeverLine("no lever - the chain is empty", true, []) : LeverFor(links[0].Node);
+    private static LeverLine HeadLever(Link[] links, Func<int, string>? sectorLabel = null) =>
+        links.Length == 0 ? new LeverLine("no lever - the chain is empty", true, []) : LeverFor(links[0].Node, sectorLabel);
 
     public static GrievanceView Build(
         HappinessExplanation happiness,
         IReadOnlyList<GrievanceExplanation> classes,
-        Func<int, int, CausalChain?> chainFor)
+        Func<int, int, CausalChain?> chainFor,
+        Func<int, string>? sectorLabel = null)
     {
         ArgumentNullException.ThrowIfNull(happiness);
         ArgumentNullException.ThrowIfNull(classes);
@@ -125,7 +128,7 @@ public static class GrievanceViewModel
             HappinessFactor f = happiness.Factors[i];
             factors.Add(new HappinessFactorRow(
                 string.Create(CultureInfo.InvariantCulture, $"{f.Name} {f.Value:F3}"),
-                ChainLines(f.Chain), HeadLever(f.Chain)));
+                ChainLines(f.Chain, sectorLabel), HeadLever(f.Chain, sectorLabel)));
         }
         // ADR-033 D4 (S1 note: this view showed only food and housing): the M5 tax burden, rendered where
         // happiness is explained. It is NOT a third CES factor — it multiplies the whole reading — so it is
@@ -134,7 +137,7 @@ public static class GrievanceViewModel
         if (BurdenRow(happiness.Burden) is { } burden) factors.Add(burden);
 
         var blocks = new ClassGrievanceBlock[classes.Count];
-        for (int c = 0; c < classes.Count; c++) blocks[c] = ClassBlock(classes[c], chainFor);
+        for (int c = 0; c < classes.Count; c++) blocks[c] = ClassBlock(classes[c], chainFor, sectorLabel);
 
         return new GrievanceView(
             string.Create(CultureInfo.InvariantCulture, $"happiness {happiness.Happiness:F1} (0..100)"),
@@ -167,7 +170,7 @@ public static class GrievanceViewModel
             chain, edict);
     }
 
-    public static ClassGrievanceBlock ClassBlock(GrievanceExplanation g, Func<int, int, CausalChain?> chainFor)
+    public static ClassGrievanceBlock ClassBlock(GrievanceExplanation g, Func<int, int, CausalChain?> chainFor, Func<int, string>? sectorLabel = null)
     {
         ArgumentNullException.ThrowIfNull(g);
         string header = string.Create(CultureInfo.InvariantCulture,
@@ -194,7 +197,7 @@ public static class GrievanceViewModel
             rows[i] = new ContributorRow(n.NeedId,
                 string.Create(CultureInfo.InvariantCulture,
                     $"{(primary ? "PRIMARY " : "")}{n.Name}  satisfaction {n.Satisfaction:F3}  weighted shortfall {n.WeightedShortfall:F3}  marginal lift {n.MarginalLift:F4}{(n.IsTierAGate ? "  [tier-A gate]" : "")}"),
-                primary, n.MarginalLift, ChainLines(links), HeadLever(links));
+                primary, n.MarginalLift, ChainLines(links, sectorLabel), HeadLever(links, sectorLabel));
         }
 
         string primaryLine = g.PrimaryNeedId < 0

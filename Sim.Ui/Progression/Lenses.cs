@@ -60,13 +60,13 @@ public static class Lenses
                 for (int i = 0; i < completed.Length; i++)
                     if (completed[i] && content.Nodes[i].Tree == ResearchTree.Civics) civics.Add(content.Nodes[i].Name);
                 return new LensPage(lens, "Institutions", "How the society is organised: adopted civics and the institutions they allow.",
-                    LensStatus.PartialData, "Adopted civics are completed Civics nodes. Establishing an institution belongs to its owning system, not yet simulated.",
+                    LensStatus.PartialData, "Adopted civics are completed Civics nodes. Universities are simulated: one is founded when its building is completed in a town that can sustain it (see INSTITUTIONS); other institutions are knowledge eligibility only.",
                     [new LensSection("Adopted civics", civics.Count + " of " + content.CivicsCount, civics),
                      new LensSection("Institutions within reach of knowledge", "knowledge eligibility only", Eligible(world, content, polity, ResearchEntityKind.Institution))]);
             }
             case Lens.Infrastructure:
                 return new LensPage(lens, "Infrastructure", "Roads, works and networks.",
-                    LensStatus.PartialData, "Knowledge eligibility only - construction of these is not yet simulated.",
+                    LensStatus.PartialData, "Roads are simulated: routes are built and modernized class by class through the road-development order, from real materials. Listed here: the infrastructure your knowledge now allows.",
                     [new LensSection("Infrastructure within reach of knowledge", "", Eligible(world, content, polity, ResearchEntityKind.Infrastructure))]);
             case Lens.Military:
                 return new LensPage(lens, "Military", "Arms, units and the art of war.",
@@ -84,7 +84,7 @@ public static class Lenses
             }
             default:
                 return new LensPage(lens, "Industry", "Workshops, manufactories and production at scale.",
-                    LensStatus.NotYetSimulated, "Not yet simulated. No system produces industry state yet, so this lens has nothing true to show.", []);
+                    LensStatus.NotYetSimulated, "Crafting is simulated as a labour sector turning inputs into goods by recipe (see the Work of each settlement); workshops, manufactories and industrial production at scale are not yet simulated, so this lens lists nothing.", []);
         }
     }
 
