@@ -18,6 +18,9 @@ namespace Sim.Core.State;
 ///     → EFFECTIVE rate = nominal × Strength
 ///     → raises realised production (ProductionSystem, <see cref="ExtractionMultiplier"/>)
 ///     → lowers HAPPINESS (<see cref="SettlementHappiness.TaxSufficiency"/>)
+///     → injures DIGNITY (D-035-D, the need's satisfaction = 1 − effective rate) → GRIEVANCE accrues
+///       → PROTEST (<see cref="Unrest"/>, M5 R2b): output drag, discharge, and at full intensity UPRISING
+///       (the D-021 unrest-lite brake — the negative loop that grows with the levy)
 ///     → happiness drives migration's destination weight and, at zero, revolt (D-021 valves)
 ///     → LEGITIMACY reads the condition of what the Empire still holds
 ///     → the AI tax valve (AiGovernance) answers it.
@@ -157,6 +160,21 @@ public static class Governance
         double rate = EffectiveTaxRate(world, settlement, cfg);
         if (rate <= 0.0) return 1.0;
         return 1.0 + cfg.Governance!.TaxExtractionResponseMax * rate;
+    }
+
+    /// <summary>
+    /// M5 R2b — WHAT REALISED PRODUCTION IS MULTIPLIED BY: the levy's
+    /// <see cref="ExtractionMultiplier"/> times protest's drag (<see cref="Unrest.OutputFactor"/>,
+    /// D-021 unrest-lite: discontent → protest → production drag). The extraction a heavy levy buys is
+    /// therefore paid back in disorder once the grievance it breeds passes the protest onset — the
+    /// brake strengthens with the amplitude of the exaction. A quiet settlement's drag is EXACTLY 1.0,
+    /// so the product is the extraction multiplier bit for bit (and 1.0 untaxed and quiet).
+    /// </summary>
+    public static double OutputMultiplier(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+    {
+        double extraction = ExtractionMultiplier(world, settlement, cfg);
+        double drag = Unrest.OutputFactor(world, settlement, cfg);
+        return drag == 1.0 ? extraction : extraction * drag;
     }
 
     /// <summary>

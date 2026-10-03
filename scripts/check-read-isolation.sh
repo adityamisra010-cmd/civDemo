@@ -39,6 +39,14 @@
 #     the CLI can read one explanation instead of two; the D-021 property -
 #     grievance drives no BEHAVIOUR - is untouched by something that only reads.
 #     docs/observability-architecture.md §0 states the five permitted field kinds.
+#   Sim.Core/State/Unrest.cs                   - M5 integration R2b, D-021 unrest-lite: THE ONE
+#     simulation-side READER of grievance, added deliberately because M5 is the milestone at which
+#     D-021 rules grievance starts to drive behaviour ("the brakes install with the gas pedal" - the
+#     M5 gas pedal is the tax, ADR-033 D4). It turns a settlement's grievance into protest
+#     (production drag), discharge (valve 1) and uprising (revolt). ProductionSystem, RevoltSystem
+#     and the owner's discharge consult THIS reader, never the table, so the gate still pins that
+#     no other system reads needs state directly. A second reader must come through here or be
+#     argued into this list on its own reason.
 #   Sim.Ui/, Sim.Ui.Tests/, Sim.Tests/         - display + tests (packet-sanctioned)
 #
 # WHAT THIS GUARD ACTUALLY MATCHES, stated because it is weaker than its name
@@ -53,7 +61,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b'
-ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs|Sim\.Core/Observability/)'
+ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs|Sim\.Core/Observability/|Sim\.Core/State/Unrest\.cs)'
 
 matches=$(grep -RnE --include='*.cs' --exclude-dir=bin --exclude-dir=obj \
   "$PATTERN" Sim.Core Sim.Data Sim.Cli 2>/dev/null || true)
@@ -62,7 +70,7 @@ if [[ -n "$matches" ]]; then
 fi
 if [[ -n "$matches" ]]; then
   printf 'READ-ISOLATION VIOLATION — grievance/needs tables referenced outside the allowlist:\n%s\n\n' "$matches"
-  echo 'check-read-isolation: FAILED — grievance drives no behavior until M5 (D-021).'
+  echo 'check-read-isolation: FAILED — grievance drives behaviour only through Sim.Core/State/Unrest.cs (D-021 unrest-lite, M5 R2b).'
   exit 1
 fi
 echo 'check-read-isolation: OK — needs/grievance tables read only by their owner, serialization, UI and tests.'

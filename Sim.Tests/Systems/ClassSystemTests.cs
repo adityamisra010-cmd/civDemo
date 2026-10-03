@@ -393,7 +393,10 @@ public class ClassSystemTests
         // before pottery_open_fired, which moves the surplus-ratio trajectory by one turn). MEASURED on this
         // tree by the agent writing this line: latch 70 -> 71, first-present 13 unchanged; the property (the
         // immigrant precedes the local latch, the instrument reports the latch) is untouched.
-        Assert.Equal(71, latchTurn);
+        // M5 R2b RE-PIN (2026-10-03; VALUE): latch 71 -> 70, first-present 13 unchanged — MEASURED. The cause
+        // is the R2b layer set (weather correlation over geographic distance is the INFERRED one: this rig levies
+        // no tax, and no settlement reaches the protest onset); the property is untouched.
+        Assert.Equal(70, latchTurn);
         Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);

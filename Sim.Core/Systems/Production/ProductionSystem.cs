@@ -178,7 +178,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // factor from the food multiplier, not folded into it: extraction is not a food
             // shock and also reaches ore, stone and craft output. Untaxed (and with no
             // governance section) it is EXACTLY 1.0, so x × 1.0 == x bit for bit.
-            double extraction = State.Governance.ExtractionMultiplier(prev, settlement, _cfg);
+            // M5 R2b (D-021 unrest-lite): the same factor also carries PROTEST's output drag
+            // (State.Unrest.OutputFactor, from PREV grievance) — Governance.OutputMultiplier =
+            // extraction × (1 − dragMax × protest). A quiet settlement's factor is EXACTLY 1.0, so
+            // the product is the extraction multiplier bit for bit.
+            double extraction = State.Governance.OutputMultiplier(prev, settlement, _cfg);
 
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,

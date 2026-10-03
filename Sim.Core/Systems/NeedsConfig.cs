@@ -18,7 +18,39 @@ public sealed record NeedsConfig(
     [property: JsonPropertyName("grievance"), JsonRequired] GrievanceTuning Grievance,
     [property: JsonPropertyName("aggregation"), JsonRequired] AggregationTuning Aggregation,
     [property: JsonPropertyName("baskets"), JsonRequired] BasketsConfig Baskets,
-    [property: JsonPropertyName("varietyStandard"), JsonRequired] VarietyStandardConfig VarietyStandard);
+    [property: JsonPropertyName("varietyStandard"), JsonRequired] VarietyStandardConfig VarietyStandard,
+    // M5 integration R2b (D-021 unrest-lite; D-009/D-010 "discontent → protest → uprising"):
+    // OPTIONAL. Absent → grievance drives nothing (the pre-M5 behaviour, kept for hand-written
+    // configs); present → the State reader Unrest turns a settlement's grievance into protest.
+    [property: JsonPropertyName("unrest")] UnrestTuning? Unrest = null);
+
+/// <summary>
+/// M5 integration R2b — D-021 UNREST-LITE, the brake that installs with the M5 gas pedal (the tax).
+/// Grievance (the NeedsGrievance stock, now fed by Dignity through D-035-D's tax-burden carrier)
+/// expresses as PROTEST once it passes an onset, with an intensity that grows linearly to 1 at the
+/// uprising level:
+///
+///   protest p = clamp((G − ProtestOnsetGrievance) / (UprisingGrievance − ProtestOnsetGrievance), 0, 1)
+///
+/// with G the settlement's population-weighted mean grievance on PREV. Three consequences, every one
+/// growing with p (D-021 Part 1: a brake that STRENGTHENS WITH AMPLITUDE), every one exactly inert at
+/// p = 0:
+///   * output: realised production × (1 − ProtestOutputDragMax × p × r), r the settlement's effective
+///     tax rate — d009's "protest (production drag)": the levied effort withheld (strikes against the
+///     corvée, shirked quotas). Its carrier is the levy, so an untaxed (e.g. famine-driven) protest drags
+///     nothing and hunger cannot feed itself through it;
+///   * expression discharges pressure (D-021 valve 1): the grievance decay rate gains
+///     ProtestDischargePerYear × p — the outburst vents the stock even when nothing was fixed, so an
+///     episode ends;
+///   * uprising: at G ≥ UprisingGrievance (p = 1) the settlement throws off its ruler (RevoltSystem
+///     drops the control relation) — revolt reachable before total deprivation.
+/// All four values TUNE; their reference frames are stated in needs.json.
+/// </summary>
+public sealed record UnrestTuning(
+    [property: JsonPropertyName("protestOnsetGrievance"), JsonRequired] double ProtestOnsetGrievance,
+    [property: JsonPropertyName("uprisingGrievance"), JsonRequired] double UprisingGrievance,
+    [property: JsonPropertyName("protestOutputDragMax"), JsonRequired] double ProtestOutputDragMax,
+    [property: JsonPropertyName("protestDischargePerYear"), JsonRequired] double ProtestDischargePerYear);
 
 /// <summary>
 /// T3.5b item 2 — the FIXED NUTRITIONAL DIVERSITY STANDARD (director ruling:
@@ -80,6 +112,12 @@ public sealed record NeedEntry(
 {
     [JsonIgnore] public bool FromHousingStock =>
         string.Equals(Source, "housingStock", StringComparison.Ordinal);
+
+    /// <summary>M5 (D-035-D, "taxation → Dignity is direct"): the need's satisfaction is one minus the
+    /// EFFECTIVE tax rate the settlement bears (Governance.EffectiveTaxRate) — the tax instrument is
+    /// the carrier. Publishes nothing where no tax instrument exists (no governance section).</summary>
+    [JsonIgnore] public bool FromTaxBurden =>
+        string.Equals(Source, "taxBurden", StringComparison.Ordinal);
 }
 
 /// <summary>
@@ -177,9 +215,9 @@ public static class NeedsConfigLoader
             // T3.8: the source field is a closed vocabulary — a typo'd source
             // must not silently fall back to basket (the config-fails-quietly
             // class).
-            if (n.Source is not null && n.Source != "basket" && n.Source != "housingStock")
+            if (n.Source is not null && n.Source != "basket" && n.Source != "housingStock" && n.Source != "taxBurden")
                 throw new NeedsConfigException(
-                    $"needs[{i}] ({n.Name}).source must be \"basket\" or \"housingStock\", got "
+                    $"needs[{i}] ({n.Name}).source must be \"basket\", \"housingStock\" or \"taxBurden\", got "
                     + $"\"{n.Source}\".");
         }
 
@@ -195,17 +233,18 @@ public static class NeedsConfigLoader
 
         ValidateAggregation(cfg.Aggregation);
         ValidateBaskets(cfg);
+        ValidateUnrest(cfg.Unrest);
         // T3.8 AMBIGUITY GUARD: a housingStock-sourced need must have NO
         // basket entries — two satisfaction sources for one need means the
         // code silently picks one, which is how mechanisms rot. Proven RED by
         // deleting this block.
         for (int n = 0; n < cfg.Needs.Length; n++)
         {
-            if (!cfg.Needs[n].FromHousingStock) continue;
+            if (!cfg.Needs[n].FromHousingStock && !cfg.Needs[n].FromTaxBurden) continue;
             for (int i = 0; i < cfg.Baskets!.Entries.Length; i++)
                 if (cfg.Baskets.Entries[i].Need == cfg.Needs[n].Id)
                     throw new NeedsConfigException(
-                        $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) declares source \"housingStock\" "
+                        $"need {cfg.Needs[n].Id} ({cfg.Needs[n].Name}) declares source \"{cfg.Needs[n].Source}\" "
                         + $"but baskets.entries[{i}] still baskets it ({cfg.Baskets.Entries[i].Good}) — "
                         + "a need cannot have two satisfaction sources. Delete the basket lines or the "
                         + "source declaration.");
@@ -231,6 +270,20 @@ public static class NeedsConfigLoader
                 $"varietyStandard.shares must sum to 1.0 (a diet composition), got {Inv(shareSum)}.");
 
         return cfg;
+    }
+
+    private static void ValidateUnrest(UnrestTuning? u)
+    {
+        if (u is null) return;   // optional: absent = grievance drives nothing
+        if (!(u.ProtestOnsetGrievance >= 0.0) || !double.IsFinite(u.ProtestOnsetGrievance))
+            throw new NeedsConfigException($"unrest.protestOnsetGrievance must be a finite value >= 0, got {Inv(u.ProtestOnsetGrievance)}.");
+        if (!(u.UprisingGrievance > u.ProtestOnsetGrievance) || !double.IsFinite(u.UprisingGrievance))
+            throw new NeedsConfigException(
+                $"unrest.uprisingGrievance must be finite and above protestOnsetGrievance ({Inv(u.ProtestOnsetGrievance)}), got {Inv(u.UprisingGrievance)}.");
+        if (!(u.ProtestOutputDragMax >= 0.0) || !(u.ProtestOutputDragMax <= 1.0))
+            throw new NeedsConfigException($"unrest.protestOutputDragMax must be in [0,1] (a fraction of output), got {Inv(u.ProtestOutputDragMax)}.");
+        if (!(u.ProtestDischargePerYear >= 0.0) || !double.IsFinite(u.ProtestDischargePerYear))
+            throw new NeedsConfigException($"unrest.protestDischargePerYear must be a finite rate >= 0, got {Inv(u.ProtestDischargePerYear)}.");
     }
 
     private static void ValidateAggregation(AggregationTuning? a)
@@ -332,7 +385,7 @@ public static class NeedsConfigLoader
             // stock — the guard's purpose (no bound need without a satisfier)
             // is met by the declared source, and the ambiguity guard above
             // separately forbids it ALSO having basket lines.
-            if (cfg.Needs[n].FromHousingStock) continue;
+            if (cfg.Needs[n].FromHousingStock || cfg.Needs[n].FromTaxBurden) continue;
             bool served = false;
             for (int i = 0; i < b.Entries.Length; i++) if (b.Entries[i].Need == cfg.Needs[n].Id) { served = true; break; }
             if (!served)

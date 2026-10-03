@@ -54,10 +54,20 @@ public class AgeProgressionTests
         return w;
     }
 
-    /// <summary>A2 entry holds: core cereal_cultivation; supporting pottery (Technological) and the
-    /// founding warband (Military Realization) — 2 of 2 required, 2 categories of 2.</summary>
-    private static WorldState EligibleForA2(WorldState w, PolityId polity) =>
+    /// <summary>A2 entry holds: core cereal_cultivation; supporting pottery (Technological) and a built
+    /// granary (Institutional-Social) — 2 of 2 required, 2 categories of 2. M5 R2b: the founding warband no
+    /// longer counts as the Neolithic's military realization (it needs a formation realized at Age 2 or
+    /// later — M6 recruitment), so the rig's second category is the granary, a Structures row exactly as
+    /// ConstructionSystem publishes it.</summary>
+    private static WorldState EligibleForA2(WorldState w, PolityId polity)
+    {
         Complete(w, polity, "cereal_cultivation", "pottery_open_fired");
+        Assert.True(EmpireQuery.TryGetCapital(w, polity, out SettlementId capital));
+        w.Structures.Add(new StructureRow(capital, GranaryProject, 1));
+        return w;
+    }
+
+    private const int GranaryProject = 1;   // goods.json projects: granary
 
     private static OrderRecord Advance(long turn, PolityId polity, int toAge, double surge) =>
         OrderRecord.From(turn, polity, OrderKind.AdvanceAge, toAge, surge);
@@ -131,18 +141,61 @@ public class AgeProgressionTests
     // ------------------------------------------------------------------ eligibility
 
     [Fact]
-    public void Founding_NoEmpireIsEligible_OnlyTheWarbandMilestoneHolds_OnTheDevAndTheCanonicalWorld()
+    public void Founding_NoEmpireIsEligible_AndNoMilestoneHolds_TheFoundingWarbandIsNotTheNeolithicsMilitaryRealization()
     {
         // The provisional A2 thresholds sit above the founding endowment (grain stores, dwellings,
-        // population), so founding satisfies exactly one supporting milestone: the warband.
+        // population). M5 R2b (Director decision 11): the founding warband — which exists from turn 1 and
+        // modernizes for free at every entry — satisfies NO Age's military milestone, so founding holds none.
         foreach (WorldState w in new[] { Solo(), WorldFounding.Found(TestConfigs.Worldgen(), Cfg, 42) })
         {
+            Assert.NotEmpty(MilitaryQuery.Units(w, Player));
             AgeEligibilityReport r = AgeQuery.Evaluate(w, Ages, Player)!;
             Assert.Equal(0, r.CoreMet);
-            Assert.Equal(1, r.SupportingMet);
-            Assert.Equal([AgeMilestoneCategory.MilitaryRealization], r.CategoriesCovered);
+            Assert.Equal(0, r.SupportingMet);
+            Assert.Empty(r.CategoriesCovered);
             Assert.False(r.Eligible);
         }
+    }
+
+    [Fact]
+    public void EveryAgesMilitaryMilestone_CountsOnlyFormationsRealizedAtThatAgeOrLater_AndIsMarkedPending()
+    {
+        UnitFamilyContent families = TestConfigs.UnitFamilies();
+        UnitIdentity warband = families.IdentityById("warband")!;
+        for (int a = 2; a <= 9; a++)
+        {
+            AgeMilestone military = Ages.Age(a).Entry!.Supporting.Single(m => m.Category == AgeMilestoneCategory.MilitaryRealization);
+            Assert.Equal(a, military.Fact.MinIdentityAge);
+            Assert.False(string.IsNullOrWhiteSpace(military.Pending));
+            Assert.Contains("M6", military.Pending, StringComparison.Ordinal);
+
+            // The founding line at the PREVIOUS Age's realization (what free modernization leaves it as on the
+            // eve of entering Age a) never counts...
+            WorldState w = Solo();
+            w.MilitaryUnits.Clear();
+            UnitFamily heavy = families.FamilyById("heavy_infantry")!;
+            UnitIdentity eve = heavy.RealizationAt(a - 1) ?? warband;
+            w.MilitaryUnits.Add(new MilitaryUnitRow(1, Player, heavy.Key, eve.Key, new SettlementId(0), 0, 0, 0, 0));
+            Assert.False(AgeQuery.Milestone(w, Player, military).Met, $"A{a}: the founding line at {eve.Id} must not count");
+            // ...while a formation genuinely realized at Age a does (what M6 recruitment would publish).
+            UnitIdentity now = heavy.RealizationAt(a)!;
+            Assert.True(now.Age >= a || now.Key == eve.Key);
+            if (now.Age >= a)
+            {
+                w.MilitaryUnits.Add(new MilitaryUnitRow(2, Player, heavy.Key, now.Key, new SettlementId(0), 0, 0, 0, 0));
+                Assert.True(AgeQuery.Milestone(w, Player, military).Met, $"A{a}: a {now.Id} formation is that Age's realization");
+            }
+        }
+    }
+
+    [Fact]
+    public void AgesJson_AFormationsFactThatTheFoundingLineWouldSatisfy_IsRejected()
+    {
+        string json;
+        using (var reader = new StreamReader(Sim.Data.DataFiles.OpenAges())) json = reader.ReadToEnd();
+        string weakened = json.Replace("\"minIdentityAge\": 3", "\"minIdentityAge\": 1", StringComparison.Ordinal);
+        Assert.NotEqual(json, weakened);
+        Assert.Throws<AgeContentException>(() => AgeContentLoader.Load(weakened, Research, Cfg.Goods, Cfg.Registries, TestConfigs.UnitFamilies()));
     }
 
     [Fact]
@@ -154,9 +207,9 @@ public class AgeProgressionTests
         Assert.Equal(2, r.NextAge);
         Assert.Equal(1, r.CoreMet);
         Assert.Equal(1, r.CoreTotal);
-        Assert.Equal(2, r.SupportingMet); // pottery + warband
-        Assert.Equal([AgeMilestoneCategory.Technological, AgeMilestoneCategory.MilitaryRealization], r.CategoriesCovered);
-        Assert.Equal(0b10001, r.CategoryMask);
+        Assert.Equal(2, r.SupportingMet); // pottery + granary
+        Assert.Equal([AgeMilestoneCategory.Technological, AgeMilestoneCategory.InstitutionalSocial], r.CategoriesCovered);
+        Assert.Equal(0b00101, r.CategoryMask);
         Assert.True(r.Eligible);
         Assert.Empty(r.Remaining);
         Assert.True(AgeQuery.IsEligible(w, Ages, Player));
@@ -168,9 +221,10 @@ public class AgeProgressionTests
         WorldState w = Complete(Solo(), Player, "pottery_open_fired", "sheep_goat");
         AgeEligibilityReport r = AgeQuery.Evaluate(w, Ages, Player)!;
         Assert.Equal(0, r.CoreMet);
-        Assert.Equal(3, r.SupportingMet);
+        Assert.Equal(2, r.SupportingMet);   // M5 R2b: the founding warband no longer counts
         Assert.False(r.Eligible);
-        Assert.Equal(["Core: Cultivated cereals"], r.Remaining);
+        // ...so both supporting milestones are Technological and coverage is short too.
+        Assert.Equal(["Core: Cultivated cereals", "Category coverage: 1 of 2 categories"], r.Remaining);
     }
 
     [Fact]
@@ -191,7 +245,7 @@ public class AgeProgressionTests
     [Fact]
     public void Eligibility_TooFewSupporting_IsNotEligible()
     {
-        WorldState w = Complete(Solo(), Player, "cereal_cultivation"); // core + the warband only
+        WorldState w = Complete(Solo(), Player, "cereal_cultivation", "sheep_goat"); // core + one supporting
         AgeEligibilityReport r = AgeQuery.Evaluate(w, Ages, Player)!;
         Assert.Equal(1, r.SupportingMet);
         Assert.False(r.Eligible);
@@ -208,6 +262,8 @@ public class AgeProgressionTests
         AgeMilestone military = Ages.Age(2).Entry!.Supporting.Single(m => m.Category == AgeMilestoneCategory.MilitaryRealization);
         Assert.False(AgeQuery.Milestone(w, Player, military).Met);
         w.MilitaryUnits.Add(new MilitaryUnitRow(5, Player, 3, 301, new SettlementId(0), 0, 0, 0, 0));
+        Assert.False(AgeQuery.Milestone(w, Player, military).Met);   // M5 R2b: a founding-line warband is not Neolithic realization
+        w.MilitaryUnits[0] = w.MilitaryUnits[0] with { Identity = 309 };   // axe warriors — realized at Age 2
         Assert.True(AgeQuery.Milestone(w, Player, military).Met);
         // Another polity's formation is not ours.
         w.MilitaryUnits[0] = w.MilitaryUnits[0] with { Owner = Rival };
@@ -492,7 +548,7 @@ public class AgeProgressionTests
     public void AgesJson_MilitaryRealizationBackedByResearch_IsRejected()
     {
         string json = AgesJson().Replace(
-            "\"category\": \"military_realization\", \"fact\": { \"kind\": \"formations\", \"min\": 1 }",
+            "\"category\": \"military_realization\", \"fact\": { \"kind\": \"formations\", \"min\": 1, \"minIdentityAge\": 2 }",
             "\"category\": \"military_realization\", \"fact\": { \"kind\": \"research\", \"nodes\": [\"hafting\"] }");
         var e = Assert.Throws<AgeContentException>(() => Load(json));
         Assert.Contains("Military Realization must measure real formations", e.Message);

@@ -266,7 +266,11 @@ public static class AgeQuery
                 for (int i = 0; i < world.MilitaryUnits.Count; i++)
                 {
                     MilitaryUnitRow unit = world.MilitaryUnits[i];
-                    if (unit.Owner.Value == polity.Value && (fact.Ref < 0 || unit.Family == fact.Ref)) count++;
+                    if (unit.Owner.Value != polity.Value || (fact.Ref >= 0 && unit.Family != fact.Ref)) continue;
+                    // M5 R2b: only formations whose CURRENT identity is realized at or after the fact's Age
+                    // count — the founding line, converted for free at each entry, is never new realization.
+                    if (fact.IdentityKeys is { } keys && Array.BinarySearch(keys, unit.Identity) < 0) continue;
+                    count++;
                 }
                 return count;
             }

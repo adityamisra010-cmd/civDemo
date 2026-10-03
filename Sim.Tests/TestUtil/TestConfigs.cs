@@ -24,6 +24,59 @@ public static class TestConfigs
         return cfg with { Goods = goods with { Recipes = recipes } };
     }
 
+    // ======================================================================
+    // M5 R2b — THE ATTRIBUTION TWINS. Each strips ONE R2b layer as content/config (the T4.21-4 / R1
+    // content-twin precedent), so IntegratedPinAttributionTests can prove each layer's movement and every
+    // older layer control keeps running on the pre-R2b world.
+    // ======================================================================
+
+    /// <summary>R2b weather layer stripped: the harvest-weather kernel reads the road-aware travel costs
+    /// again (harvestVariance.spatialDistance "travelCost").</summary>
+    public static SimConfig PreWeatherGeography(SimConfig cfg) =>
+        cfg with { HarvestVariance = cfg.HarvestVariance with { SpatialDistance = "travelCost" } };
+
+    /// <summary>R2b unrest layer stripped: Dignity unbound again and no unrest section — grievance drives
+    /// nothing and the tax injures no need (the pre-R2b needs.json).</summary>
+    public static SimConfig PreUnrest(SimConfig cfg)
+    {
+        NeedsConfig needs = cfg.Needs ?? throw new ArgumentException("no needs content", nameof(cfg));
+        var entries = new NeedEntry[needs.Needs.Length];
+        for (int i = 0; i < entries.Length; i++)
+            entries[i] = needs.Needs[i].FromTaxBurden ? needs.Needs[i] with { Bound = false, Source = null } : needs.Needs[i];
+        return cfg with { Needs = needs with { Needs = entries, Unrest = null } };
+    }
+
+    /// <summary>R2b Age-military layer stripped: every formations fact counts any identity again (the
+    /// founding warband line satisfies every Age's military milestone, as before R2b).</summary>
+    public static SimConfig PreAgeMilitary(SimConfig cfg)
+    {
+        global::Sim.Core.Systems.Ages.AgeContent ages = cfg.Ages ?? throw new ArgumentException("no age content", nameof(cfg));
+        var defs = new global::Sim.Core.Systems.Ages.AgeDefinition[ages.Ages.Count];
+        for (int a = 0; a < defs.Length; a++)
+        {
+            global::Sim.Core.Systems.Ages.AgeDefinition d = ages.Ages[a];
+            if (d.Entry is not { } e) { defs[a] = d; continue; }
+            defs[a] = d with { Entry = e with { Core = Relax(e.Core), Supporting = Relax(e.Supporting) } };
+        }
+        var relaxed = new global::Sim.Core.Systems.Ages.AgeContent
+        {
+            Ages = defs, Categories = ages.Categories, Surges = ages.Surges, FoundingAge = ages.FoundingAge,
+            FoundingAgeBasis = ages.FoundingAgeBasis, SurgeShape = ages.SurgeShape, Status = ages.Status,
+        };
+        return cfg with { Ages = relaxed };
+
+        static global::Sim.Core.Systems.Ages.AgeMilestone[] Relax(IReadOnlyList<global::Sim.Core.Systems.Ages.AgeMilestone> list)
+        {
+            var result = new global::Sim.Core.Systems.Ages.AgeMilestone[list.Count];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = list[i] with { Fact = list[i].Fact with { IdentityKeys = null, MinIdentityAge = 0 }, Pending = null };
+            return result;
+        }
+    }
+
+    /// <summary>Every R2b layer stripped (weather geography, unrest/Dignity, Age military realization).</summary>
+    public static SimConfig PreR2b(SimConfig cfg) => PreAgeMilitary(PreUnrest(PreWeatherGeography(cfg)));
+
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
     /// civilization that already knows its crafts. For tests whose subject is the goods economy (crafted goods,

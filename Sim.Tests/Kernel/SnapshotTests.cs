@@ -995,6 +995,18 @@ public class SnapshotTests
         //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
         //   MEASURED by this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`,
         //         two separate processes, byte-identical logs); ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
+        //   NEW  1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
+        //   CAUSE all three R2b layers move it (each stripped alone still moves the hash): the harvest-weather kernel
+        //           reads geographic distance; Dignity is bound (untaxed it reads 1.0 but enters the CES aggregate, so
+        //           grievance values move — no protest fires, nobody is levied); the AgeEligibility rows no longer count
+        //           the founding warband. No levy, no uprising, no revolt in this run.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1032,7 +1044,7 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
+    internal const string FoundedGoldenHash = "1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)

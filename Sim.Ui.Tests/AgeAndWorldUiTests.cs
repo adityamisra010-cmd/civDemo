@@ -246,6 +246,9 @@ public class AgeAndWorldUiTests(EligibleSessionFixture fx) : IClassFixture<Eligi
         // Constructed eligibility (the Sim.Tests EligibleForA2 precedent): core + one Technological supporting.
         foreach (string id in new[] { "cereal_cultivation", "pottery_open_fired" })
             w.ResearchCompleted.Add(new ResearchCompletedRow(ai, cfg.Research!.Nodes[cfg.Research.IndexOfId(id)].Key));
+        // M5 R2b: the founding warband no longer counts as Neolithic military realization; a granary is the second category.
+        Assert.True(EmpireQuery.TryGetCapital(w, ai, out SettlementId granarySite));
+        w.Structures.Add(new StructureRow(granarySite, 1, 1));
         Assert.True(AgeQuery.IsEligible(w, cfg.Ages!, ai));
 
         UiSession s = UiSession.StartFrom(w, 42, 256, 4);

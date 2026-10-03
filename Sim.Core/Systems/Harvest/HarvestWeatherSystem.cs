@@ -48,7 +48,8 @@ public sealed record HarvestWeatherTables(Table<HarvestWeatherRow> Weather);
 /// of a REGIONAL field and a LOCAL draw:
 ///   e_i = sqrt(k) × regional_i + sqrt(1−k) × local_i
 /// with regional_i an exponential-distance-kernel smoothing of every
-/// settlement's local draw over the SettlementDistances travel costs, normalised
+/// settlement's local draw over the GEOGRAPHIC straight-line distances between
+/// site cells (M5 R2b — never the road-aware travel costs; see Kernel), normalised
 /// to unit variance. Neighbours therefore share weather strongly and distant
 /// settlements weakly. The ruling is explicit about why this matters:
 /// uncorrelated rolls let trade and migration trivially average away all risk,
@@ -111,6 +112,7 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
         // divide out.
         Span<double> regional = n <= 256 ? stackalloc double[n] : new double[n];
         Span<double> sumSqOf = n <= 256 ? stackalloc double[n] : new double[n];
+        double kmPerCostUnit = TransportQuery.KmPerCostUnit(prev);
         for (int i = 0; i < n; i++)
         {
             SettlementId from = prev.Settlements[i].Id;
@@ -118,7 +120,7 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
             for (int j = 0; j < n; j++)
             {
                 SettlementId to = prev.Settlements[j].Id;
-                double w = i == j ? 1.0 : Kernel(prev, from, to, h.SpatialRangeCostUnits);
+                double w = i == j ? 1.0 : Kernel(prev, i, j, from, to, kmPerCostUnit, h.SpatialRangeCostUnits, h.LegacyTravelCostKernel);
                 if (w <= 0.0) continue;
                 acc += w * local[j];
                 sumSq += w * w;
@@ -208,14 +210,27 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
         }
     }
 
-    /// <summary>Exponential distance kernel over the T2.5 travel-cost table.
-    /// Absent pairs (no route) share no weather — correctly, since the kernel is
-    /// a proxy for physical proximity and an unreachable settlement is not a
-    /// neighbour.</summary>
+    /// <summary>
+    /// Exponential distance kernel over GEOGRAPHIC distance (M5 integration R2b, resolving
+    /// docs/m5-governing-loop-port.md §5 B4): exp(−d / range), with d the straight-line distance
+    /// between the two site cells in ideal-ground cost units (<see cref="GeographicDistance"/>).
+    /// The kernel is a proxy for PHYSICAL PROXIMITY, and weather does not follow roads: before this
+    /// it read the road-aware Pathfinder costs in SettlementDistances (ADR-032 §10.5), so building a
+    /// road changed which settlements shared a drought, and a pair with no land route (across a
+    /// strait) shared no weather at all however close. Now no road, route class or reachability can
+    /// move it (pinned by HarvestWeatherGeographyTests). A terrain-less world (a hand-built toy,
+    /// whose distance rows are written by hand and never road-aware) keeps the hand-written table;
+    /// there an absent pair shares no weather. The config value harvestVariance.spatialDistance
+    /// "travelCost" restores the pre-R2b reading; it exists only as the golden-attribution control.
+    /// </summary>
     private static double Kernel(
-        IReadOnlyWorldState prev, SettlementId from, SettlementId to, double range)
+        IReadOnlyWorldState prev, int fromRow, int toRow, SettlementId from, SettlementId to,
+        double kmPerCostUnit, double range, bool legacyTravelCost)
     {
         if (!(range > 0.0)) return 0.0;
+        if (!legacyTravelCost && GeographicDistance.TryIdealGroundCostUnits(
+                prev, prev.Settlements[fromRow].SiteCell, prev.Settlements[toRow].SiteCell, kmPerCostUnit, out double geo))
+            return Math.Exp(-geo / range);
         for (int i = 0; i < prev.SettlementDistances.Count; i++)
         {
             SettlementDistanceRow d = prev.SettlementDistances[i];

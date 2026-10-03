@@ -93,6 +93,10 @@ public enum ChainNode
 
     // --- an unbound registry need
     NotSimulated,
+
+    // --- M5 R2b: Dignity (D-035-D, source taxBurden — NeedsGrievanceSystem.DignitySatisfaction)
+    DignitySatisfaction,
+    EffectiveTaxRate,
 }
 
 /// <summary>
@@ -175,6 +179,7 @@ public sealed class CausalChain
             ]);
         }
         if (need.FromHousingStock) return Shelter(prev, next, cfg, settlement, cls, need);
+        if (need.FromTaxBurden) return Dignity(prev, next, cfg, settlement, cls, need);
         if (needId == BasketBook.SustenanceNeedId) return Sustenance(prev, next, cfg, settlement, cls, need);
         return Basket(prev, next, cfg, settlement, cls, need);
     }
@@ -403,6 +408,23 @@ public sealed class CausalChain
     // =====================================================================
     // SHELTER
     // =====================================================================
+
+    /// <summary>M5 R2b — DIGNITY (D-035-D): the satisfaction row, then the effective tax rate it is
+    /// one minus, RECOMPUTED through the public reader on Prev.</summary>
+    private static CausalChain Dignity(
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg,
+        SettlementId s, ClassId cls, NeedEntry need)
+    {
+        var links = new List<Link>();
+        SatisfactionLink(links, next, s, cls, need, ChainNode.DignitySatisfaction,
+            "s = 1 − the effective tax rate on Prev (NeedsGrievanceSystem.DignitySatisfaction; D-035-D: the tax "
+            + "instrument is the carrier). Settlement-level, so every class carries the same value.");
+        links.Add(new Link(ChainNode.EffectiveTaxRate, "effective tax rate",
+            Governance.EffectiveTaxRate(prev, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "TaxPolicies", -1,
+            "No row: a derived reading. Governance.EffectiveTaxRate: the controller's declared rate × ControlRow.Strength (administrative "
+            + "reach); 0 for an uncontrolled or untaxed settlement. Lever: the tax edict."));
+        return new CausalChain(need.Id, need.Name, [.. links]);
+    }
 
     private static CausalChain Shelter(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg,

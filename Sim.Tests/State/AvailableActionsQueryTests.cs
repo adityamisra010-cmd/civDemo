@@ -184,6 +184,9 @@ public class AvailableActionsQueryTests
         WorldState w = Solo();
         Assert.Empty(Of(AvailableActionsQuery.For(w, Cfg, Player), ActionDomain.Age));   // not eligible
         Complete(w, Player, "cereal_cultivation", "pottery_open_fired");                 // A2 entry holds
+        // M5 R2b: the founding warband is not the Neolithic's military realization; a granary is the second category.
+        Assert.True(EmpireQuery.TryGetCapital(w, Player, out SettlementId granarySite));
+        w.Structures.Add(new StructureRow(granarySite, 1, 1));
         ActionDescriptor advance = Assert.Single(Of(AvailableActionsQuery.For(w, Cfg, Player), ActionDomain.Age));
         Assert.Equal((2L, OrderKind.AdvanceAge, "age.advance.2"), (advance.Id, advance.Order!.Value, advance.Key));
         Assert.Equal(TestConfigs.Ages().Surges.Select(s => (long)s.Key), advance.Targets.Select(t => t.Id));

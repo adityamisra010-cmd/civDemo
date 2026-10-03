@@ -19,7 +19,10 @@ public enum AgePanelState
 
 /// <summary>One milestone line as the panel shows it (name, plain description, met, and the
 /// observed quantity against its threshold — real state read through AgeQuery).</summary>
-public sealed record MilestoneLine(string Id, string Name, string Description, bool Met, long Observed, long Threshold, string Owner);
+/// <remarks>M5 R2b: <c>Pending</c> carries ages.json's pending note (e.g. M6 recruitment) — the panel labels
+/// such a milestone "pending" instead of implying the player can satisfy it today.</remarks>
+public sealed record MilestoneLine(string Id, string Name, string Description, bool Met, long Observed, long Threshold, string Owner,
+    string? Pending = null);
 
 /// <summary>The supporting milestones of one of the five categories, and whether the category is
 /// covered (at least one of its milestones holds).</summary>
@@ -99,7 +102,8 @@ public sealed record AgePanelModel(
     }
 
     private static MilestoneLine Line(MilestoneStatus m) =>
-        new(m.Milestone.Id, m.Milestone.Name, m.Milestone.Description, m.Met, m.Observed, m.Threshold, m.Milestone.Fact.Owner);
+        new(m.Milestone.Id, m.Milestone.Name, m.Milestone.Description, m.Met, m.Observed, m.Threshold, m.Milestone.Fact.Owner,
+            m.Milestone.Pending);
 }
 
 /// <summary>One surge emphasis card — qualitative only (ruling 14: no numeric effect exists, so

@@ -113,6 +113,9 @@ public sealed class RoadWorldFixture
         // Phase 1: Age II through the real AdvanceAge order, and every route a Trackway.
         Know(w, cfg, "cereal_cultivation", "pottery_open_fired", "track_road");
         EndowFor(w, cfg, cap, 100.0, 1.0);
+        // M5 R2b: the founding warband no longer satisfies the Neolithic's military milestone; a granary row is
+        // A2's second supporting category (the Sim.Tests EligibleForA2 precedent).
+        w.Structures.Add(new StructureRow(cap, 1, 1));
         UiSession s = UiSession.StartFrom(w, 42, 256, 4);
         Assert.True(s.EmitAdvanceAge(2, cfg.Ages!.Surges[0].Key));
         s.Orders.Append(RoadDevelopmentQuery.DevelopOrder(s.World, Me, 100.0));

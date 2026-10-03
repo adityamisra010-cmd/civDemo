@@ -296,6 +296,7 @@ public sealed class AgeScreen(PolityId polity)
         Rgba c = l.Met ? t.Semantic.Positive : t.Ink.TextDim;
         EraMarks.Tick(d, t, x + 1, y + 2, 12, l.Met, c, id);
         string count = l.Threshold > 1 ? N(l.Observed) + " / " + N(l.Threshold) : l.Met ? "done" : "not yet";
+        if (!l.Met && l.Pending is not null) count = "pending";   // M5 R2b: an honest label, not a goal the player can reach today
         double cwid = m.Width(t, count, 11.5, FontRole.Numeric) + 6;
         d.Write(t, x + 20, y, ThemeText.Fit(m, t, l.Name, 13, w - 26 - cwid), 13, l.Met ? t.Ink.Text : t.Ink.TextSoft);
         d.Write(t, x + w, y + 1, count, 11.5, l.Met ? t.Semantic.Positive : t.Ink.TextDim, TextAlign.Right, FontRole.Numeric);

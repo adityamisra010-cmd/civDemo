@@ -181,18 +181,19 @@ public class NeedsGrievanceTests
     // --- the canonical registry ---------------------------------------------
 
     [Fact]
-    public void CanonicalRegistry_TheEightNeeds_SustenanceShelterComfortBoundAtM3()
+    public void CanonicalRegistry_TheEightNeeds_SustenanceShelterComfortBoundAtM3_DignityAtM5()
     {
         // The D-018 §3 ladder is FROZEN design: exactly these eight, in this
         // order. WHICH are bound grows by milestone and is the scope fence:
         // M2 bound Sustenance alone; T3.5 binds Shelter and Comfort against
         // real goods baskets; T3.8 moves Shelter's SATISFIER from basket flows
         // to the dwelling stock (still bound — the source changed, not the
-        // binding). The other five stay unbound and inert.
+        // binding). M5 R2b binds Dignity/Liberty through D-035-D's tax-burden
+        // carrier (the tax instrument itself). The other four stay unbound and inert.
         NeedsConfig needs = TestConfigs.Sim().Needs!;
         string[] ladder = ["Sustenance", "Shelter", "Safety", "Health",
                            "Belonging/Faith", "Comfort", "Dignity/Liberty", "Prospects"];
-        string[] boundAtM3 = ["Sustenance", "Shelter", "Comfort"];
+        string[] boundAtM3 = ["Sustenance", "Shelter", "Comfort", "Dignity/Liberty"];
         Assert.Equal(ladder.Length, needs.Needs.Length);
         for (int i = 0; i < ladder.Length; i++)
         {
@@ -209,8 +210,8 @@ public class NeedsGrievanceTests
         {
             bool basketServed = false;
             foreach (BasketEntry e in needs.Baskets.Entries) if (e.Need == need.Id) { basketServed = true; break; }
-            Assert.Equal(need.Bound, basketServed || need.FromHousingStock);
-            Assert.False(basketServed && need.FromHousingStock,
+            Assert.Equal(need.Bound, basketServed || need.FromHousingStock || need.FromTaxBurden);
+            Assert.False(basketServed && (need.FromHousingStock || need.FromTaxBurden),
                 $"{need.Name} is double-sourced — the load guard should have refused this");
         }
         Assert.True(needs.Needs[1].FromHousingStock);  // Shelter, from the stock

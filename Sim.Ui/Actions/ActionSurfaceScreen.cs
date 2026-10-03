@@ -577,10 +577,13 @@ public sealed class ActionSurfaceScreen
         if (c.Capacity is { } cap)
         {
             string line = !model.Control.Numerals
-                ? "This turn our builders can give about " + N0(cap.Available) + " adult-years to projects and paths."
-                : "Builders this turn: " + N1(cap.Pool) + " adult-years; housing took " + N1(cap.Housing) + ", " + N1(cap.Available)
-                  + " left for a project and for path-making.";
+                ? "Estimate for the coming turn: our builders can give about " + N0(cap.Available) + " adult-years to projects and paths."
+                : "Builders, estimated for the coming turn: " + N1(cap.Pool) + " adult-years; housing's last draw " + N1(cap.Housing)
+                  + ", about " + N1(cap.Available) + " left for a project and for path-making.";
             y = Wrapped(d, m, line, x, y, w, 11.5, t.Ink.TextSoft) + 2;
+            if (model.Layout == SurfaceLayout.Detailed)
+                y = Wrapped(d, m, "An estimate from the current state: the turn re-reads labour, housing's draw and its own length when it resolves.",
+                    x, y, w, 11, t.Ink.TextDim) + 2;
             if (model.Layout == SurfaceLayout.Detailed)
                 y = Wrapped(d, m, "Path-making also banks the labour a finished project used (ADR-033 D10, open).", x, y, w, 11, t.Ink.TextDim) + 2;
         }

@@ -117,3 +117,137 @@ Legend as in the audit; **FIXED** cites the commit; **REMAINS** is an open gap o
   determinism-xproc (incl. the aiEmpires = 1 leg: 187 orders, kinds 3–8, inspect VERIFIED 601 turns) passes locally.
 - **Remains.** Weaving/toolmaking gating (Director); 115 deferred entities; order-free world has no trade until research
   (a consequence, reported for a ruling, not retuned).
+
+## 6. R2b — governance and weather gaps (append-only, 2026-10-03)
+
+**Branch:** `m5i-r2b-governance-fixes` (cut from `m5-integration` @ `f1fe76f`). Not merged. Director decisions 9, 10,
+11 (governance and weather parts of 15/16). Status words: RATIFIED (a Director ruling or frozen record), IMPLEMENTED
+(shipped here), INFERRED (an implementation inference — not a ruling), DEFERRED, OPEN.
+
+### 6.1 Tax brake — D-021 unrest-lite (IMPLEMENTED; parameters INFERRED within measured frames)
+
+Chain: tax edict → effective rate (declared × reach) → **Dignity** need bound with source `taxBurden`, satisfaction
+= 1 − effective rate (D-035-D, RATIFIED: "taxation → Dignity is direct") → grievance stock (NeedsGrievance, dt-integrated)
+→ `State.Unrest.TaxGrievance` = the stock × the share of the aggregate shortfall that lifting the levy would close
+(zero where no levy is felt) → protest p = clamp((G_tax − 15)/(50 − 15), 0, 1) →
+(1) output × (1 − 0.5·p·r) (the withheld levied effort; untaxed protest drags nothing, so hunger cannot feed on itself);
+(2) grievance decay + 0.005·p /yr (valve 1, discharge); (3) at p = 1 RevoltSystem drops the control row (uprising).
+Config `needs.json unrest` (optional; absent → inert). Read-isolation gate: `Sim.Core/State/Unrest.cs` allowlisted as
+the single sim-side reader of grievance, reason recorded in the script. Valve 2 (fatigue stock), 3 (an unrest-driven
+exit push) and the ignite-and-burn-out battery entry are NOT shipped (DEFERRED; a dedicated fatigue stock is a new
+serialized table); the AI tax valve (valve 6) already existed; migration's happiness-weighted viability remains the only exit coupling.
+
+**INFERRED simplification:** the levy's share is re-attributed each turn from the current shortfalls rather than
+remembered from the past levy. A first cut keyed protest on the WHOLE grievance stock and was rejected on measurement:
+an untaxed, fed, housed settlement (dev world, labour swing to 60 % farming, pottery not yet researched) reached
+grievance 79.6 and rose at turn 17 — Comfort/variety grievance, not politics.
+
+**Measured (founded seed-42, N = 12, one player Empire holding all, `arithmetic_babylonian` granted, levy from turn 0,
+300 turns; rig `GovernancePushbackMeasurement`, skipped in the suite):**
+
+| arm | turn | capital pop | empire pop | held | capital eff. rate | legitimacy | capital grain cum. | empire grain cum. | migrants cum. | capital protest | capital levy grievance |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BEFORE 0 % | 300 | 3999 | 40594 | 12/12 | 0.000 | 100.00 | 7469751 | 74354301 | 4792 | — | — |
+| BEFORE 40 % | 300 | 4027 | 40902 | 12/12 | 0.400 | 82.92 | 8415477 | 78526064 | 4651 | — | — |
+| BEFORE 99 % | 300 | 4000 | 41014 | 12/12 | 0.990 | 57.67 | 9507973 | 84067961 | 3900 | — | — |
+| AFTER 0 % | 300 | 4000 | 40625 | 12/12 | 0.000 | 100.00 | 7434015 | 73978943 | 4877 | 0.000 | 0.00 |
+| AFTER 40 % | 300 | 4016 | 40779 | 12/12 | 0.400 | 82.91 | 8346336 | 77884849 | 4778 | 0.000 | 7.61 |
+| AFTER 70 % | 300 | 4024 | 40857 | 12/12 | 0.700 | 70.10 | 8462257 | 80250852 | 4669 | 0.187 | 21.56 |
+| AFTER 99 % | 300 | 3990 | 36537 | 11/12 | 0.000 (seat lost) | 100.00 | 7370977 | 73921183 | 4956 | 0.000 | 0.00 |
+
+(BEFORE = `f1fe76f`; the 99 % AFTER arm reads protest 0.918 at turn 20 and has lost its seat by turn 50.) Against the
+untaxed arm: 40 % — capital grain ×1.123, empire ×1.053, no protest at any checkpoint (normal tax viable); 70 % — mild
+protest (p 0.15–0.19), gain shrinks (capital ×1.138, empire ×1.085); 99 % — the seat rises between turns 20 and 50, and
+because a lost seat administers nothing (ADR-033 D4 §2 item 5) the levy then falls nowhere: empire population −10.1 %,
+empire grain −0.1 %, all extraction gone. Before R2b the same 99 % levy was pure gain (+13.1 % empire grain, nothing lost).
+
+### 6.2 Weather distance (IMPLEMENTED)
+
+`HarvestWeatherSystem.Kernel` reads `GeographicDistance` (straight-line site-to-site km / KmPerCostUnit) instead of the
+road-aware `SettlementDistances`; terrain-less toys keep their hand-written table. No road rule or routing code touched.
+`harvestVariance.spatialDistance: "travelCost"` restores the old kernel and exists only as the attribution control.
+Tests: `HarvestWeatherGeographyTests` (halving every travel cost and severing a route leaves 5 steps of weather
+bit-identical; replay deterministic). Resolves §5 B4 of docs/m5-governing-loop-port.md.
+
+### 6.3 Revolt and labour (RETAINED, documented) — capital loss (DEFERRED, total)
+
+A revolted (or risen) settlement refuses its former ruler's labour and construction orders because every order domain
+asks the D-037 control relation. This is the intended consequence (the RevoltSystem header: "a settlement at zero
+happiness stops obeying"), not a world deadlock: the settlement keeps people, stocks, standing allocation and output,
+and its grievance discharges (pinned: `UnrestTests.ExtremeTax_…_TheEpisodeBurnsOut_Deterministically`; turn-exact
+refusal: `FoundedHarnessTests`, revolt at 97). It never returns to control: re-annexation / reconquest have no ratified
+mechanism in M5 (M6 war, later politics) — DEFERRED, not invented. Uncontrolled development is stream R2a's.
+Capital loss: no succession or relocation semantics exist in any ratified record; the existing L6 rule stands — a seat
+the Empire no longer holds administers nothing (reach 0, levy falls nowhere), total and pinned
+(`AnEmpireThatNoLongerControlsItsCapital_ReachesNothing_SoItsTaxFallsNowhere`). It is now REACHABLE in play (the 99 %
+uprising) — OPEN for a Director ruling on succession.
+
+### 6.4 Construction-capacity labels (IMPLEMENTED, UI only)
+
+The action surface now labels the builders' figures "estimated for the coming turn" (detailed layout adds that the
+turn re-reads labour, housing's draw and its own dt); the displayed pool is computed over LABOUR adults (after
+institution staff, the reader the model uses) so pool − housing = available. No model change.
+
+### 6.5 Scarcity / conflict reachability (diagnosed; no retuning)
+
+Rig `ScarcityConflictReachabilityMeasurement` (skipped): canonical founded world, AI rivals through `AiOrders.Append`.
+
+| seed | arm | turns | colonies | control rows lost | stateless at end | deficit settlement-turns | appropriation-armed turns | first loss |
+|---|---|---|---|---|---|---|---|---|
+| 42 | no orders | 500 | 0 | 0 | 0 | 13 | 0 | — |
+| 42 | aiEmpires=1 | 500 | 0 | 0 | 0 | 17 | 0 | — |
+| 42 | tax 40 % | 500 | 0 | 0 | 0 | 12 | 0 | — |
+| 42 | tax 99 % + aiEmpires=1 | 500 | 0 | 1 | 1 | 12 | 0 | 23 |
+| 7 | no orders | 300 | 0 | 0 | 0 | 14 | 0 | — |
+| 7 | aiEmpires=1 | 300 | 0 | 0 | 0 | 14 | 0 | — |
+| 7 | tax 40 % | 300 | 0 | 0 | 0 | 11 | 0 | — |
+| 7 | tax 99 % + aiEmpires=1 | 300 | 0 | 1 | 1 | 15 | 0 | 31 |
+| 1234 | no orders | 300 | 0 | 0 | 0 | 20 | 0 | — |
+| 1234 | aiEmpires=1 | 300 | 0 | 0 | 0 | 23 | 0 | — |
+| 1234 | tax 40 % | 300 | 0 | 0 | 0 | 19 | 0 | — |
+| 1234 | tax 99 % + aiEmpires=1 | 300 | 0 | 1 | 1 | 20 | 1 | 32 |
+
+- **Revolt — (c) was incorrectly conditioned for the M5 governing loop, now (a).** Before R2b only the two zero corners
+  fired it (total deprivation; a 100 % levy at full reach), so no plausible play reached it. With the uprising path it
+  fires deterministically under sustained near-total exaction (turns 23–32 on all three seeds) and never at ≤ 40 %.
+  The deprivation corner stays reachable by player error (FoundedHarness: 0 % food labour → revolt at turn 97).
+- **Appropriation — (a) rare but reachable, correctly conditioned.** Its raider must be stateless and short of food
+  (D-037 B3); statelessness now arises from uprisings, and the trigger armed once (seed 1234). No defect.
+- **Colonization — (a) rare; correctly conditioned, unreached in plausible play.** D-037 B1 founds only from people with
+  NO viable reachable destination; in the canonical frontier world (deficits on 11–23 of 3,600–6,000 settlement-turns)
+  that condition never holds. Unit-tested reachable; not a defect; not retuned.
+- **Scarcity itself** is rare by the CR-003 ruling (a frontier world is not Malthusian until land fills) — not changed.
+
+### 6.6 Age military milestones (IMPLEMENTED; dependency PENDING on M6)
+
+Every Age's Military Realization milestone now counts only formations whose CURRENT identity is realized at or after the
+Age being entered (`minIdentityAge`, loader-enforced ≥ that Age) and carries `pending: "M6 recruitment …"`; the Age
+panel labels it "pending". Under free modernization (ruling 18) the founding line holds Age A−1's identity on the eve
+of A, so in M5 no military milestone can hold — honestly, never manufactured. Measured effect (dev world, seed 42,
+`AiAgeAdvancementIntegrationTests`): player A2 eligibility turn 275 → 338, AI 345 → 385. No Age becomes unreachable:
+every Age keeps ≥ minCategories non-military categories (A2: 2 required of tech/material/institutional/systemic; A3–A9
+likewise) — checked against ages.json, INFERRED for A3–A9 reachability in play (not run to those Ages).
+
+### 6.7 Goldens (MEASURED) and attribution
+
+| golden | old (R1) | new | cause (per-layer twins) |
+|---|---|---|---|
+| founded seed 42 × 300 (ci.yml) | `68c629b6…` | `1368df9f…` | all three layers (each stripped alone still moves it) |
+| driven seed 42 × 300 | `7aa20e40…` | `58e4c47c…` | all three layers |
+| FirstReign × 40 | `158bdd4c…` | `680a20c5…` | Age-military layer alone |
+| toy seed 42 × 200 | unmoved | — | no terrain, no governance |
+
+`TestConfigs.PreR2b` (weather travelCost + Dignity unbound/no unrest + relaxed formations facts) returns each R1 pin byte
+for byte; every older layer control now runs on PreR1 = PreRecipeKnowledge(PreR2b(Sim())) and is unmoved. Re-pinned test
+values (MEASURED): ClassSystem artisan latch 71 → 70; Merchant first-active 119 → 124 (both untaxed: INFERRED weather).
+
+### 6.8 Calibration and suites (MEASURED, Release, this tree)
+
+- Calibration battery (inside Sim.Tests) green. `sim autoplay --seeds 4 --turns 650` + `sim corridors`: exit 0, every
+  gated corridor in band; the two QUARANTINED corridors drift slightly further (density window breach 3.62 % → 4.30 %,
+  migration 74.16 % → 74.21 % below their windows) — report-only by T3.12, no ratified gate fails, nothing retuned.
+- Sim.Tests 1418 / 0 / 6 (new skip: the scarcity rig); Sim.Ui.Tests 472 / 0 / 0. Gates: banned constructs, read
+  isolation, read-only proof, research content audit, calibration report and unlock audit `--check` all exit 0.
+  ci.yml determinism-xproc legs run locally: orderless and ordered/replay toy legs, founded xproc (last hash =
+  FOUNDED_GOLDEN), founded replay, aiEmpires = 1 leg (186 orders, kinds 3–8, replay equal, inspect VERIFIED).
+- Not run here: `sim bench` (orchestrator benches once).

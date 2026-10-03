@@ -454,9 +454,21 @@ public class IntegratedPinAttributionTests
     /// precedent: a layout control must not be asked to absorb a behaviour change); R1's own controls at the
     /// end of the file prove the twin returns the pre-R1 pins byte for byte.
     /// R2a: the twin is also PRE-R2a (TestConfigs.PreTradeKnowledge: no trade node/entity, trade ungated, no
-    /// city-state research), so every older control stays unmoved; R2a's own controls are at the end of the file.</summary>
+    /// city-state research), and M5 R2b: with every R2b layer stripped too (TestConfigs.PreR2b — weather
+    /// geography, unrest/Dignity, Age military realization), so every older control stays unmoved; the R2a, R2b
+    /// and R2c (merged) controls are at the end of the file.</summary>
     private static Sim.Core.Systems.SimConfig PreR1() =>
-        TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()));
+        TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim())));
+
+    /// <summary>M5 R2b: the canonical config with only the R2b layers stripped — on the merged tree, the R2a world.</summary>
+    private static Sim.Core.Systems.SimConfig PreR2b() => TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim());
+
+    /// <summary>R2a: the canonical config with only the R2a trade-knowledge layer stripped — on the merged tree, the R2b world.</summary>
+    private static Sim.Core.Systems.SimConfig PreR2a() => TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim());
+
+    /// <summary>R2c: both R2 layers stripped — the R1 world (m5-integration @ f1fe76f).</summary>
+    private static Sim.Core.Systems.SimConfig PreR2() =>
+        TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim()));
 
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
@@ -1025,8 +1037,8 @@ public class IntegratedPinAttributionTests
     {
         const string preR1 = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
         Assert.Equal(preR1, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR1())));
-        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
-        Assert.True(now == SnapshotTests.FoundedGoldenHash, "current founded hash " + now);
+        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2()));
+        Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
     }
 
     [Fact]
@@ -1034,8 +1046,8 @@ public class IntegratedPinAttributionTests
     {
         const string preR1 = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
         Assert.Equal(preR1, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
-        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
-        Assert.True(now == Sim.Tests.Systems.FirstReignTests.PostR1Golden, "current first-reign hash " + now);
+        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2()));
+        Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
     }
 
     [Fact]
@@ -1044,50 +1056,76 @@ public class IntegratedPinAttributionTests
         const string preR1 = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(preR1, WorldHash.ComputeHex(twin));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2());
         string now = WorldHash.ComputeHex(world);
-        Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);
+        Assert.True(now == PostR1DrivenGolden, "R1 driven hash " + now);
     }
 
     // ======================================================================
-    // R2a (trade as a research unlock; city-state progression, 2026-10-03) — THE TRADE-KNOWLEDGE LAYER
+    // M5 R2b (governance and weather fixes, 2026-10-03) — THREE BEHAVIOURAL LAYERS
     // ======================================================================
-    // R2a adds the `trade` node and its `activity.trade` entity, gates TradeArbitrageSystem on it (sim.json
-    // trade.entity) and lets uncontrolled settlements research (tuning.cityStatePaceFraction). Behaviour, so the
-    // control is the CONTENT twin TestConfigs.PreTradeKnowledge (no node, no entity, no gate, no city-state
-    // research): it must return each post-R1 pin (m5-integration @ f1fe76f) BYTE FOR BYTE.
+    // (1) WEATHER GEOGRAPHY: the harvest-weather kernel reads straight-line site distance, not road-aware travel
+    //     cost; (2) UNREST: Dignity bound to the tax burden (D-035-D) and grievance → protest/discharge/uprising
+    //     (D-021 unrest-lite); (3) AGE MILITARY REALIZATION: formations facts count only identities realized at the
+    //     Age being entered. All three are BEHAVIOUR (or a published eligibility row), so the control is the
+    //     CONTENT/CONFIG twin (TestConfigs.PreR2b), which must return each R1 pin BYTE FOR BYTE: the three layers
+    //     are the entire delta. Each OLD constant is the pin on m5-integration at f1fe76f.
+
+    internal const string PostR1FoundedGolden = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
+    internal const string PostR1FirstReignGolden = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
+    internal const string PostR1DrivenGolden = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+
+    // R2c (merge of R2a + R2b, 2026-10-03): on the merged tree each stream's layer is stripped separately and
+    // jointly. MEASURED: R2a moves only the driven pin; R2b moves all three; the two layers compose without
+    // interaction on these pins (stripping one returns exactly the other stream's own pin).
+    internal const string R2aOnlyDrivenGolden = "75124c12e61f8999d9746f213255b29199f89cc669608644f42845e100ce1dfe";
+    internal const string R2bOnlyFoundedGolden = "1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b";
+    internal const string R2bOnlyFirstReignGolden = "680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d";
+    internal const string R2bOnlyDrivenGolden = "58e4c47cca90b2e46d6fb3961ddf2034bf5bfb57dcbd5998bc3a488c4a5952f2";
 
     [Fact]
-    public void FoundedGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
+    public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
     {
-        const string preR2a = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
-        Assert.Equal(preR2a, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()))));
-        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
-        Assert.True(now == SnapshotTests.FoundedGoldenHash, "current founded hash " + now);
+        Assert.Equal(PostR1FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2b())));
+        Assert.Equal(PostR1FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2())));
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
     }
 
     [Fact]
-    public void FirstReignTurn40_MovedForTheTradeKnowledgeLayerAlone()
+    public void FirstReignTurn40_MovedForTheR2bLayersAlone()
     {
-        const string preR2a = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
-        Assert.Equal(preR2a, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()))));
-        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
-        Assert.True(now == Sim.Tests.Systems.FirstReignTests.PostR1Golden, "current first-reign hash " + now);
+        Assert.Equal(PostR1FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b())));
+        Assert.Equal(PostR1FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b());
+        Assert.Equal(R2aOnlyDrivenGolden, WorldHash.ComputeHex(twin));
+        (WorldState both, _) = DrivenGoldenTests.RunDriven(300, PreR2());
+        Assert.Equal(PostR1DrivenGolden, WorldHash.ComputeHex(both));
+    }
+
+    [Fact]
+    public void FoundedAndFirstReign_UnmovedByTheTradeKnowledgeLayer()
+    {
+        Assert.Equal(R2bOnlyFoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2a())));
+        Assert.Equal(R2bOnlyFirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a())));
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
     {
-        const string preR2a = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim()));
-        Assert.Equal(preR2a, WorldHash.ComputeHex(twin));
-        // Which part of the layer: the TRADE GATE alone (the node, its entity and city-state research kept; only
-        // sim.json trade.entity removed) returns the pre-R2a pin too — the gate is the entire cause here.
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2a());
+        Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(twin));
+        // Which part of the layer: the TRADE GATE alone (node, entity and city-state research kept; only
+        // sim.json trade.entity removed) returns the R2b-only pin too — the gate is the entire R2a cause here.
         Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.Sim();
         (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } });
-        Assert.Equal(preR2a, WorldHash.ComputeHex(gateOnly));
+        Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(gateOnly));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        string now = WorldHash.ComputeHex(world);
-        Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);
+        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
     }
 }

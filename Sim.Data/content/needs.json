@@ -44,7 +44,9 @@
     {
       "id": 7,
       "name": "Dignity/Liberty",
-      "bound": false,
+      "bound": true,
+      "source": "taxBurden",
+      "_doc": "M5 R2b - D-035-D (taxation -> Dignity is DIRECT): bound with source taxBurden, satisfaction = 1 - the settlement's effective tax rate (declared rate x administrative reach, Governance.EffectiveTaxRate) on PREV. The carrier is the tax instrument itself; no basket serves it (the loader refuses one). Publishes nothing in a config with no governance section (no instrument, no carrier). Liberty's other carriers (garrisons, censorship - D-035-C path 6) are later institutions.",
       "weight": 0.4
     },
     {
@@ -162,6 +164,13 @@
   "grievance": {
     "baseDecayPerYear": 0.005,
     "inheritFraction": 0.85
+  },
+  "unrest": {
+    "_doc": "M5 R2b - D-021 UNREST-LITE (the brake ships with the M5 gas pedal, the tax). A settlement's population-weighted grievance G (PREV) expresses as PROTEST p = clamp((G - protestOnsetGrievance) / (uprisingGrievance - protestOnsetGrievance), 0, 1). Consequences, each growing with p and exactly inert at p = 0: realised production x (1 - protestOutputDragMax x p x r), r the settlement's effective tax rate (d009 'protest (production drag)': the levied effort withheld - its carrier is the levy, so an untaxed, e.g. famine-driven, protest drags nothing and hunger cannot feed on itself through it); grievance decay rate + protestDischargePerYear x p (D-021 valve 1, expression discharges pressure, so episodes END); at p = 1 the settlement rises and throws off its ruler (RevoltSystem). ALL TUNE. protestOnsetGrievance 15 and uprisingGrievance 50 are on the scale of the LEVY'S grievance (State.Unrest.TaxGrievance: the stock x the share of the aggregate shortfall that lifting the levy would close - zero wherever no tax is felt, so pottery- or diet-driven grievance never ignites a protest against a ruler who takes nothing). CHOSEN WITHIN A MEASURED FRAME (founded seed-42 world, 300 turns, the seat's levy grievance; docs/m5-integration-coherence-matrix.md section 6): a 40 % levy (the AI ceiling) plateaus at 6.7-7.6 and the onset is twice that, so normal taxation never protests; a 70 % levy plateaus at 20-22 (mild protest, p ~0.15-0.19); a 99 % levy climbs to 47-54 and the uprising sits inside that band, so sustained near-total exaction ends in a rising and nothing short of it does. protestOutputDragMax 0.5: CHOSEN - at full protest under a total levy a settlement works at half its output; framed by production.toolYieldBonusMax 0.3 and governance.taxExtractionResponseMax 0.3, so full protest takes back more than full extraction gives (1.3 x 0.5 < 1). protestDischargePerYear 0.005: CHOSEN - at full protest the stock vents at an extra 0.5 %/yr on top of base and generational decay (~1.5 %/yr measured), which is what ends an episode once its cause stops while staying weak enough that sustained total exaction still reaches the rising (a stronger valve - 0.05 was measured - pins the stock below the rising for any levy, so the brake would never bite).",
+    "protestOnsetGrievance": 15.0,
+    "uprisingGrievance": 50.0,
+    "protestOutputDragMax": 0.5,
+    "protestDischargePerYear": 0.005
   },
   "varietyStandard": {
     "_doc": "T3.5b item 2 (director ruling): the FIXED NUTRITIONAL DIVERSITY STANDARD - the reference composition of a varied pre-modern agrarian diet, independent of both what a class declares and what it receives. DERIVED, not fitted (docs/t3.5b-derivations.md section 2): staple 0.70 / animal-and-fish 0.20 / other 0.10, from diet-history reconstruction anchored to ADR-013's own 'cereals 75% of calories' chain. H* = 0.70^2+0.20^2+0.10^2 = 0.54. The variety factor penalises only EXCESS concentration beyond H*: a diet at or below it takes no penalty (full satisfaction expressible); a grain-only diet (H = 1) takes the full varietyWeight penalty, so the D-035-A reason to trade survives. NOTE the shipped baskets are MORE concentrated than this standard (peasant food H = 0.8152) - a fully supplied frontier grain economy scores 0.910 on Sustenance, not 1.0, which is the honest reading: its diet is monotonous by the standard of a good pre-modern diet, and imports are how it closes the gap.",

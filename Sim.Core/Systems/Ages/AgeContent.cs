@@ -45,7 +45,9 @@ public enum MilestoneFactKind
     /// <summary>At least Min dwellings in controlled settlements (HousingSystem).</summary>
     Dwellings = 9,
     /// <summary>At least Min owned military formations, of one family or any (AgeTransitionSystem's MilitaryUnits —
-    /// REAL formations, never researched technology: ledger §10.4).</summary>
+    /// REAL formations, never researched technology: ledger §10.4), whose CURRENT identity is realized at
+    /// or after the fact's <c>minIdentityAge</c> (M5 R2b: the founding warband line, converted for free at
+    /// each Age entry, never counts as the new Age's military realization).</summary>
     Formations = 10,
 }
 
@@ -55,11 +57,18 @@ public enum MilestoneFactKind
 /// whose published table the fact reads.</summary>
 public sealed record AgeMilestoneFact(
     MilestoneFactKind Kind, IReadOnlyList<int> NodeKeys, IReadOnlyList<string> NodeIds,
-    ResearchTree? Tree, int[] TreeKeys, long Min, int Ref, string? RefName, string Owner);
+    ResearchTree? Tree, int[] TreeKeys, long Min, int Ref, string? RefName, string Owner,
+    // M5 R2b: Formations only — the SORTED unit-identity keys that count (every identity of the family,
+    // or of any family, realized at Age >= MinIdentityAge). Null for every other kind.
+    int[]? IdentityKeys = null, int MinIdentityAge = 0);
 
-/// <summary>One milestone of an Age's entry requirements.</summary>
+/// <summary>One milestone of an Age's entry requirements. <c>Pending</c> (M5 R2b) names the not-yet-built
+/// mechanism a milestone's fact depends on (e.g. M6 recruitment): the fact is still evaluated honestly
+/// over real state, but nothing in the shipped game can produce it yet, and every surface says so
+/// rather than manufacturing evidence. Null when the milestone is reachable today.</summary>
 public sealed record AgeMilestone(
-    string Id, string Name, string Description, AgeMilestoneCategory Category, bool Core, AgeMilestoneFact Fact);
+    string Id, string Name, string Description, AgeMilestoneCategory Category, bool Core, AgeMilestoneFact Fact,
+    string? Pending = null);
 
 /// <summary>The requirements for ENTERING an Age from the one before it (D-043 A2).</summary>
 public sealed record AgeEntryRequirements(
@@ -163,7 +172,7 @@ public static class AgeContentLoader
             if (aj.Key > file.FoundingAge)
             {
                 if (aj.Entry is null) throw Fail($"{path}: an Age above the founding Age must declare its entry requirements.");
-                entry = BuildEntry(aj.Entry, path, milestoneIds, research, goods, registries, families);
+                entry = BuildEntry(aj.Entry, path, aj.Key, milestoneIds, research, goods, registries, families);
             }
             else if (aj.Entry is not null)
             {
@@ -189,18 +198,18 @@ public static class AgeContentLoader
         };
     }
 
-    private static AgeEntryRequirements BuildEntry(EntryJson ej, string path, List<string> milestoneIds,
+    private static AgeEntryRequirements BuildEntry(EntryJson ej, string path, int ageKey, List<string> milestoneIds,
         ResearchContent? research, GoodsConfig? goods, RegistriesConfig registries, UnitFamilyContent? families)
     {
         var core = new AgeMilestone[ej.Core.Length];
         for (int i = 0; i < core.Length; i++)
-            core[i] = BuildMilestone(ej.Core[i], $"{path}.entry.core[{i}]", true, milestoneIds, research, goods, registries, families);
+            core[i] = BuildMilestone(ej.Core[i], $"{path}.entry.core[{i}]", ageKey, true, milestoneIds, research, goods, registries, families);
         var supporting = new AgeMilestone[ej.Supporting.Length];
         var distinct = new bool[CategoryIds.Length + 1];
         int distinctCount = 0;
         for (int i = 0; i < supporting.Length; i++)
         {
-            supporting[i] = BuildMilestone(ej.Supporting[i], $"{path}.entry.supporting[{i}]", false, milestoneIds, research, goods, registries, families);
+            supporting[i] = BuildMilestone(ej.Supporting[i], $"{path}.entry.supporting[{i}]", ageKey, false, milestoneIds, research, goods, registries, families);
             int k = (int)supporting[i].Category;
             if (!distinct[k]) { distinct[k] = true; distinctCount++; }
         }
@@ -213,7 +222,7 @@ public static class AgeContentLoader
         return new AgeEntryRequirements(core, supporting, ej.SupportingRequired, ej.MinCategories);
     }
 
-    private static AgeMilestone BuildMilestone(MilestoneJson mj, string path, bool core, List<string> ids,
+    private static AgeMilestone BuildMilestone(MilestoneJson mj, string path, int ageKey, bool core, List<string> ids,
         ResearchContent? research, GoodsConfig? goods, RegistriesConfig registries, UnitFamilyContent? families)
     {
         if (ids.Contains(mj.Id)) throw Fail($"{path}: duplicate milestone id '{mj.Id}'.");
@@ -227,7 +236,16 @@ public static class AgeContentLoader
         if (cat == AgeMilestoneCategory.MilitaryRealization && fact.Kind != MilestoneFactKind.Formations)
             throw Fail($"{path} ('{mj.Id}'): Military Realization must measure real formations, never research " +
                        "(ledger §10.4: researching a military technology does not satisfy Military Realization).");
-        return new AgeMilestone(mj.Id, mj.Name, mj.Description, cat, core, fact);
+        // M5 R2b (Director decision 11): MILITARY REALIZATION OF AN AGE IS AGE-APPROPRIATE. The founding
+        // warband exists from turn 1 and modernizes for free at every Age entry (ruling 18), so a formations
+        // fact that any identity satisfies is held by the founding line for EVERY Age and measures nothing.
+        // A formations fact must therefore count only identities realized at or after the Age it is entering.
+        if (fact.Kind == MilestoneFactKind.Formations && fact.MinIdentityAge < ageKey)
+            throw Fail($"{path} ('{mj.Id}'): a formations fact entering Age {ageKey} must set minIdentityAge >= {ageKey} — " +
+                       "otherwise the founding warband line (free modernization, ruling 18) satisfies it in every Age.");
+        if (mj.Pending is { } pending && string.IsNullOrWhiteSpace(pending))
+            throw Fail($"{path} ('{mj.Id}'): pending, when present, must name the mechanism the milestone waits for.");
+        return new AgeMilestone(mj.Id, mj.Name, mj.Description, cat, core, fact, mj.Pending);
     }
 
     private static AgeMilestoneFact BuildFact(FactJson fj, string path,
@@ -311,7 +329,24 @@ public static class AgeContentLoader
                     if (families is null) throw Fail($"{path}: a family-specific formations fact needs unit-families.json loaded first.");
                     family = families.FamilyById(id)?.Key ?? throw Fail($"{path}: family '{id}' is not in unit-families.json.");
                 }
-                return new AgeMilestoneFact(MilestoneFactKind.Formations, [], [], null, [], min, family, fj.Family, "agetransition");
+                int minAge = fj.MinIdentityAge ?? 0;
+                int[]? identities = null;
+                if (fj.MinIdentityAge is not null)
+                {
+                    if (minAge < 1 || minAge > AgeContent.AgeCount) throw Fail($"{path}: minIdentityAge must be in 1..{AgeContent.AgeCount}, got {minAge}.");
+                    if (families is null) throw Fail($"{path}: minIdentityAge needs unit-families.json loaded first.");
+                    var keys = new List<int>();
+                    for (int f = 0; f < families.Families.Count; f++)
+                    {
+                        UnitFamily fam = families.Families[f];
+                        if (family >= 0 && fam.Key != family) continue;
+                        for (int i = 0; i < fam.Line.Count; i++) if (fam.Line[i].Age >= minAge) keys.Add(fam.Line[i].Key);
+                    }
+                    identities = [.. keys];
+                    Array.Sort(identities);
+                }
+                return new AgeMilestoneFact(MilestoneFactKind.Formations, [], [], null, [], min, family, fj.Family, "agetransition",
+                    identities, minAge);
             }
             default:
                 throw Fail($"{path}: unknown fact kind '{fj.Kind}' (known: research, research_count, population, settlements, " +
@@ -353,7 +388,8 @@ public static class AgeContentLoader
         [property: JsonPropertyName("name"), JsonRequired] string Name,
         [property: JsonPropertyName("description"), JsonRequired] string Description,
         [property: JsonPropertyName("category"), JsonRequired] string Category,
-        [property: JsonPropertyName("fact"), JsonRequired] FactJson Fact);
+        [property: JsonPropertyName("fact"), JsonRequired] FactJson Fact,
+        [property: JsonPropertyName("pending")] string? Pending = null);
 
     private sealed record FactJson(
         [property: JsonPropertyName("kind"), JsonRequired] string Kind,
@@ -363,7 +399,8 @@ public static class AgeContentLoader
         [property: JsonPropertyName("project")] string? Project,
         [property: JsonPropertyName("good")] string? Good,
         [property: JsonPropertyName("class")] string? Class,
-        [property: JsonPropertyName("family")] string? Family);
+        [property: JsonPropertyName("family")] string? Family,
+        [property: JsonPropertyName("minIdentityAge")] int? MinIdentityAge = null);
 
     private sealed record SurgeJson(
         [property: JsonPropertyName("key"), JsonRequired] int Key,

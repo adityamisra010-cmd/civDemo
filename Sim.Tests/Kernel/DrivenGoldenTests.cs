@@ -82,7 +82,7 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "75124c12e61f8999d9746f213255b29199f89cc669608644f42845e100ce1dfe";
+    internal const string Golden = "efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -466,6 +466,19 @@ public class DrivenGoldenTests
         //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone
         //         returns OLD byte for byte both with the whole layer removed (TestConfigs.PreTradeKnowledge) and
         //         with ONLY trade.entity removed (the node and city-state research kept): the gate is the entire cause.
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   NEW  58e4c47cca90b2e46d6fb3961ddf2034bf5bfb57dcbd5998bc3a488c4a5952f2
+        //   CAUSE the same three R2b layers (each stripped alone still moves it); the driven log levies no tax.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        // M5 R2c RE-PIN (2026-10-03) — MERGE OF R2a + R2b, MEASURED on the merged tree by the agent writing this line.
+        //   R2a alone 75124c12…ce1dfe, R2b alone 58e4c47c…4952f2 → MERGED efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4
+        //   CAUSE both layers together (trade gate + R2b governance/weather/Age layers). CONTROLS
+        //   IntegratedPinAttributionTests.*_R2c*: stripping R2b returns the R2a pin, stripping R2a returns the R2b pin,
+        //   stripping both returns 7aa20e40… (f1fe76f) — byte for byte.
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----
