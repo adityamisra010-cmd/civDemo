@@ -16,7 +16,7 @@ namespace Sim.Ui.Tests;
 /// </summary>
 public class InstitutionMarkerSourceTests
 {
-    private static readonly PolityId Me = LaborOrderFactory.PlayerEmpire;
+    private static readonly PolityId Me = UiPlayer.Empire;
 
     [Fact]
     public void InstitutionsAt_GroupsTheFoundedRowsByType_AscendingAndCounted_FromTheRealTable()

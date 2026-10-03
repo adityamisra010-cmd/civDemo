@@ -478,7 +478,7 @@ public static class ActionSurface
         {
             ConstructionProjectEntry? p = goods.ProjectById(rows[i].ProjectId);
             queue.Add(new QueueEntry(rows[i].Slot, rows[i].ProjectId, p is null ? "project " + Inv(rows[i].ProjectId) : NameOf(projects, rows[i].ProjectId, p.Name)));
-            if (i == 0 && p is not null) headBlocker = ConstructionQuery.Blocker(w, goods, settlement, p, dtYears);
+            if (i == 0 && p is not null) headBlocker = ConstructionQuery.Blocker(w, input.Config, settlement, p, dtYears);
         }
 
         CapacityLine? capacity = null;
@@ -488,7 +488,7 @@ public static class ActionSurface
             double housing = 0.0;
             for (int i = 0; i < w.Housing.Count; i++)
                 if (w.Housing[i].Settlement == settlement) { housing = w.Housing[i].LastLaborUsed; break; }
-            capacity = new CapacityLine(pool, housing, ConstructionQuery.CapacityAdultYears(w, settlement, dt), dt);
+            capacity = new CapacityLine(pool, housing, ConstructionQuery.CapacityAdultYears(w, input.Config, settlement, dt), dt);
         }
 
         int ordered = 0;
