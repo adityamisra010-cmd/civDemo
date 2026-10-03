@@ -82,7 +82,7 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+    internal const string Golden = "58e4c47cca90b2e46d6fb3961ddf2034bf5bfb57dcbd5998bc3a488c4a5952f2";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -455,6 +455,14 @@ public class DrivenGoldenTests
         //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
         //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   NEW  58e4c47cca90b2e46d6fb3961ddf2034bf5bfb57dcbd5998bc3a488c4a5952f2
+        //   CAUSE the same three R2b layers (each stripped alone still moves it); the driven log levies no tax.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----

@@ -25,7 +25,7 @@ public class FirstReignTests
     }
 
     /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
-    internal const string PostR1Golden = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
+    internal const string PostR1Golden = "680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {
@@ -502,6 +502,16 @@ public class FirstReignTests
         //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
         //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
         //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465
+        //   NEW  680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d
+        //   CAUSE the Age-military layer ALONE (measured: stripping only it returns OLD; the weather and unrest
+        //           twins each leave the new value — one settlement has no neighbour to correlate with and no levy):
+        //           the published AgeEligibility row no longer counts the founding warband.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
         Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

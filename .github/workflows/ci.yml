@@ -178,7 +178,10 @@ jobs:
           # pottery_open_fired / tin_bronze). Derived twice on this tree (in-test harness; two CLI
           # processes, byte-identical logs); IntegratedPinAttributionTests' recipe-knowledge control runs
           # the content twin without the recipe links and returns the previous value (74306d6a…) byte for byte.
-          FOUNDED_GOLDEN=68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
+          # M5 R2b RE-PIN (2026-10-03): 68c629b6… -> 1368df9f… — weather over geographic distance, Dignity bound to
+          # the tax burden (untaxed: grievance values only), Age military milestones no longer count the founding
+          # warband. TestConfigs.PreR2b returns 68c629b6… byte for byte (IntegratedPinAttributionTests).
+          FOUNDED_GOLDEN=1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

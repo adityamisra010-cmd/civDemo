@@ -150,7 +150,10 @@ public class MerchantTests
         // either value and is carried by the two asserts above.
         // R1 (2026-10-03): with the recipe knowledge seeded the run is the pre-R1 economy, and the pin is UNMOVED —
         // MEASURED on this tree: first active 119, active on 164 of 650 turns (identical to before R1).
-        Assert.Equal(119, firstActive);   // moves with the trajectory; re-measured per packet
+        // M5 R2b RE-PIN (2026-10-03; VALUE): first active 119 -> 124, MEASURED. Untaxed run, so no protest
+        // fires; the cause is the R2b weather-geography layer moving the harvest series (INFERRED by elimination:
+        // the unrest and Age-military layers act on nothing this run reads). Aim unchanged.
+        Assert.Equal(124, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

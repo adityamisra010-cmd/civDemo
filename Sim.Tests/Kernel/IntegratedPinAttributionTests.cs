@@ -452,8 +452,15 @@ public class IntegratedPinAttributionTests
     /// <summary>R1: the canonical config with the recipe-knowledge links removed (TestConfigs.PreRecipeKnowledge).
     /// EVERY layer control in this file runs on it, so each constant it carries is UNMOVED by R1 (the T4.21-4
     /// precedent: a layout control must not be asked to absorb a behaviour change); R1's own controls at the
-    /// end of the file prove the twin returns the pre-R1 pins byte for byte.</summary>
-    private static Sim.Core.Systems.SimConfig PreR1() => TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.Sim());
+    /// end of the file prove the twin returns the pre-R1 pins byte for byte.
+    /// M5 R2b: and with every R2b layer stripped too (TestConfigs.PreR2b — weather geography, unrest/Dignity, Age
+    /// military realization), for the same reason; R2b's own controls at the end of the file prove the R2b twin
+    /// returns the R1 pins byte for byte.</summary>
+    private static Sim.Core.Systems.SimConfig PreR1() =>
+        TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim()));
+
+    /// <summary>M5 R2b: the canonical config with only the R2b layers stripped — the R1 world.</summary>
+    private static Sim.Core.Systems.SimConfig PreR2b() => TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim());
 
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
@@ -1022,8 +1029,8 @@ public class IntegratedPinAttributionTests
     {
         const string preR1 = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
         Assert.Equal(preR1, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR1())));
-        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
-        Assert.True(now == SnapshotTests.FoundedGoldenHash, "current founded hash " + now);
+        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2b()));
+        Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
     }
 
     [Fact]
@@ -1031,8 +1038,8 @@ public class IntegratedPinAttributionTests
     {
         const string preR1 = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
         Assert.Equal(preR1, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
-        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
-        Assert.True(now == Sim.Tests.Systems.FirstReignTests.PostR1Golden, "current first-reign hash " + now);
+        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b()));
+        Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
     }
 
     [Fact]
@@ -1041,8 +1048,45 @@ public class IntegratedPinAttributionTests
         const string preR1 = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(preR1, WorldHash.ComputeHex(twin));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2b());
         string now = WorldHash.ComputeHex(world);
-        Assert.True(now == DrivenGoldenTests.Golden, "current driven hash " + now);
+        Assert.True(now == PostR1DrivenGolden, "R1 driven hash " + now);
+    }
+
+    // ======================================================================
+    // M5 R2b (governance and weather fixes, 2026-10-03) — THREE BEHAVIOURAL LAYERS
+    // ======================================================================
+    // (1) WEATHER GEOGRAPHY: the harvest-weather kernel reads straight-line site distance, not road-aware travel
+    //     cost; (2) UNREST: Dignity bound to the tax burden (D-035-D) and grievance → protest/discharge/uprising
+    //     (D-021 unrest-lite); (3) AGE MILITARY REALIZATION: formations facts count only identities realized at the
+    //     Age being entered. All three are BEHAVIOUR (or a published eligibility row), so the control is the
+    //     CONTENT/CONFIG twin (TestConfigs.PreR2b), which must return each R1 pin BYTE FOR BYTE: the three layers
+    //     are the entire delta. Each OLD constant is the pin on m5-integration at f1fe76f.
+
+    internal const string PostR1FoundedGolden = "68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655";
+    internal const string PostR1FirstReignGolden = "158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465";
+    internal const string PostR1DrivenGolden = "7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372";
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
+    {
+        Assert.Equal(PostR1FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2b())));
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheR2bLayersAlone()
+    {
+        Assert.Equal(PostR1FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b());
+        Assert.Equal(PostR1DrivenGolden, WorldHash.ComputeHex(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
     }
 }
