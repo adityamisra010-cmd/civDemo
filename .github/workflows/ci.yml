@@ -24,6 +24,8 @@ jobs:
 
       - name: Research calibration report is current (provisional — ADR-029 addendum A, ADR-030)
         run: python3 scripts/research-calibration-report.py --check
+      - name: Research → gameplay unlock audit is current (R1 — every node's content-declared consequence)
+        run: python3 scripts/research-gameplay-unlock-audit.py --check
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
