@@ -289,31 +289,105 @@ public class UnrestTests
 
     // ------------------------------------------------------------------ R2c: the uprising meets city-state research
 
-    /// <summary>R2c interaction (R2a × R2b): a settlement thrown off by an UPRISING has no controller, so it is a
-    /// city-state and researches on its own under its local holder (SettlementKnowledge.LocalHolder) — no extra
-    /// mechanism. Decision (R2c, INFERRED, recorded in ADR-033 R2c): its local record starts EMPTY; it is not seeded
-    /// with the former ruler's knowledge (that would be a knowledge-diffusion mechanic no ruling provides).</summary>
+    /// <summary>R3 (Director R2-final §2, superseding R2c's INFERRED "empty local record"): a settlement thrown off
+    /// by an UPRISING becomes a NEW AI-controlled polity at once and holds a COMPLETE copy of its former ruler's
+    /// knowledge at the instant of separation; the ruler keeps every node it had.</summary>
     [Fact]
-    public void ARevoltedSeat_BecomesACityState_AndResearchesFromAnEmptyLocalRecord()
+    public void ARevoltedSeat_BecomesANewAiPolity_HoldingTheCompleteParentKnowledge()
     {
         (WorldState w, int revolt, _, _) = RunLevy(99.0, 40);
         Assert.True(revolt > 0);
         (WorldState fresh, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(fresh, player);
-        PolityId local = SettlementKnowledge.LocalHolder(seat);
-        Assert.False(EmpireQuery.TryGetController(w, seat, out _));
-        double progress = 0.0;
-        for (int i = 0; i < w.ResearchProgress.Count; i++)
-            if (w.ResearchProgress[i].Polity == local) progress += w.ResearchProgress[i].Progress;
-        int completed = 0;
-        for (int i = 0; i < w.ResearchCompleted.Count; i++)
-            if (w.ResearchCompleted[i].Polity == local) completed++;
-        Assert.True(progress > 0.0 || completed > 0, "the uncontrolled seat must accumulate its own research");
-        // Started empty: the grant given to the ruler (taxation) is not in the city-state's own record.
-        bool[] own = ResearchQuery.CompletedMask(w, TestConfigs.Research(), local);
+        Assert.True(EmpireQuery.TryGetController(w, seat, out PolityId founded));
+        Assert.NotEqual(player.Value, founded.Value);
+        Assert.True(EmpireQuery.TryGetCommandSource(w, founded, out CommandSource source));
+        Assert.Equal(CommandSource.Ai, source);
+        bool[] child = ResearchQuery.CompletedMask(w, TestConfigs.Research(), founded);
         bool[] ruler = ResearchQuery.CompletedMask(w, TestConfigs.Research(), player);
-        int inherited = 0;
-        for (int i = 0; i < own.Length; i++) if (own[i] && ruler[i]) inherited++;
-        Assert.Equal(0, inherited);
+        int taxation = TestConfigs.Research().IndexOfId(GovernanceRigs.TaxationNode);
+        Assert.True(ruler[taxation], "the ruler keeps its knowledge");
+        Assert.True(child[taxation], "the new polity inherits the ruler's knowledge");
+        for (int i = 0; i < ruler.Length; i++)
+            Assert.True(!ruler[i] || child[i], $"node {i}: the ruler knew it at separation, so the new polity must");
+    }
+
+    // ------------------------------------------------------------------ R3 §5: capital loss corrupts nothing
+
+    /// <summary>The 99 % levy raises the CAPITAL (RunLevy's seat) while the ruler researches. Returns the world each
+    /// turn, the revolt turn and the research node the ruler works on.</summary>
+    private static (List<WorldState> Worlds, int RevoltTurn, PolityId Player, SettlementId Seat) RunCapitalLoss(int turns)
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        Sim.Core.Systems.Research.ResearchContent content = TestConfigs.Research();
+        bool[] done = ResearchQuery.CompletedMask(w, content, player);
+        int target = Sim.Core.Systems.Research.AiResearchPolicy.Cheapest(
+            w, content, player, ResearchQuery.AvailableMask(content, done), null);
+        var orders = new OrderLog();
+        orders.Append(Governance.TaxOrder(0, player, 99.0));
+        orders.Append(OrderRecord.From(0, player, OrderKind.SetResearchTarget, content.Nodes[target].Key.Value, 0.0));
+        TurnExecutor ex = UniversityRigs.Production(Cfg, orders);
+        var worlds = new List<WorldState> { w };
+        int revoltTurn = -1;
+        for (int t = 1; t <= turns; t++)
+        {
+            w = ex.Step(w);
+            worlds.Add(w);
+            if (revoltTurn < 0 && !EmpireQuery.ControlsSettlement(w, player, seat)) revoltTurn = t;
+        }
+        return (worlds, revoltTurn, player, seat);
+    }
+
+    [Fact]
+    public void CapitalLoss_ErasesNoKnowledge_ResetsNoResearch_AndLeavesNoTaxSource()
+    {
+        (List<WorldState> worlds, int revolt, PolityId player, SettlementId seat) = RunCapitalLoss(40);
+        Assert.True(revolt > 0, "the capital must be lost within the horizon");
+        Sim.Core.Systems.Research.ResearchContent content = TestConfigs.Research();
+        for (int t = 1; t < worlds.Count; t++)
+        {
+            bool[] before = ResearchQuery.CompletedMask(worlds[t - 1], content, player);
+            bool[] after = ResearchQuery.CompletedMask(worlds[t], content, player);
+            for (int i = 0; i < before.Length; i++)
+                Assert.True(!before[i] || after[i], $"turn {t}: node {i} was known and is gone — knowledge decayed");
+            // Research progress is never reset: per node, progress only grows until the node completes.
+            for (int r = 0; r < worlds[t - 1].ResearchProgress.Count; r++)
+            {
+                ResearchProgressRow row = worlds[t - 1].ResearchProgress[r];
+                if (row.Polity != player) continue;
+                double now = ResearchQuery.Progress(worlds[t], player, row.Node);
+                Assert.True(now >= row.Progress || ResearchQuery.IsCompleted(worlds[t], player, row.Node),
+                    $"turn {t}: progress on node {row.Node.Value} fell {row.Progress} -> {now}");
+            }
+        }
+        WorldState last = worlds[^1];
+        // The ruler survives the loss of its seat (it still holds the rest) …
+        Assert.False(EmpireQuery.IsExtinct(last, player));
+        // … no successor capital is invented (DEFERRED, §5): the ruler is never handed a different seat …
+        Assert.True(!EmpireQuery.TryGetCapital(last, player, out SettlementId capital) || capital == seat);
+        // … so the levy has no source: no settlement the ruler still holds is taxed.
+        for (int s = 0; s < last.Settlements.Count; s++)
+        {
+            SettlementId place = last.Settlements[s].Id;
+            if (EmpireQuery.ControlsSettlement(last, player, place))
+                Assert.Equal(0.0, Governance.EffectiveTaxRate(last, place, Cfg));
+        }
+    }
+
+    [Fact]
+    public void CapitalLoss_SaveLoadAndReplay_AreExact()
+    {
+        (List<WorldState> a, int revolt, _, _) = RunCapitalLoss(40);
+        (List<WorldState> b, _, _, _) = RunCapitalLoss(40);
+        Assert.Equal(WorldHash.ComputeHex(a[^1]), WorldHash.ComputeHex(b[^1]));   // replay twin
+        // Save at the turn the capital fell and load: bit-exact (length, state, hash).
+        WorldState atLoss = a[revolt];
+        using var ms = new MemoryStream();
+        Snapshot.Save(atLoss, ms);
+        ms.Position = 0;
+        WorldState loaded = Snapshot.Load(ms, atLoss.Terrain);   // derived terrain is re-attached, never serialized (ADR-008)
+        Assert.Equal(WorldHash.ComputeHex(atLoss), WorldHash.ComputeHex(loaded));
     }
 }

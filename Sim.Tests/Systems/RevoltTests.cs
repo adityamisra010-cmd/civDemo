@@ -15,6 +15,10 @@ namespace Sim.Tests.Systems;
 /// made every founded settlement controlled. So the file pins three things: the
 /// mechanism fires on total deprivation, it does NOT fire on anything less, and
 /// the state it produces is the one AppropriationSystem's own gate asks for.
+///
+/// R3 (Director R2-final §2) changed the third: a revolted settlement now becomes a
+/// NEW AI-controlled polity at once, so revolt no longer produces statelessness
+/// (docs/adr/cr-019-revolt-polity-vs-t45-raider.md records what that costs T4.5).
 /// </summary>
 public class RevoltTests
 {
@@ -76,10 +80,17 @@ public class RevoltTests
 
         w = RevoltOnly().Step(w);
 
-        Assert.Equal(1, w.Controls.Count);
-        Assert.False(EmpireQuery.TryGetController(w, new SettlementId(0), out _));
+        // R3 (Director R2-final §2): the player LOSES the place, and it becomes a NEW AI polity at once.
+        Assert.Equal(2, w.Controls.Count);
+        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(0), out PolityId founded));
+        Assert.Equal(2, founded.Value);
+        Assert.True(EmpireQuery.TryGetCommandSource(w, founded, out CommandSource source));
+        Assert.Equal(CommandSource.Ai, source);
+        Assert.Equal(2, w.Polities.Count);
+        Assert.False(EmpireQuery.TryGetCapital(w, founded, out _));   // no seat is invented (§5)
         // ...and the comfortable neighbour is untouched, so this is not a purge.
-        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(1), out _));
+        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(1), out PolityId keeper));
+        Assert.Equal(1, keeper.Value);
     }
 
     [Fact]
@@ -113,9 +124,12 @@ public class RevoltTests
         w = RevoltOnly().Step(w);
         int afterFirst = w.Controls.Count;
 
+        int politiesAfterFirst = w.Polities.Count;
         w = RevoltOnly().Step(w);
 
+        // The new polity IS the place: it has no ruler to throw off, so it does not split again (R3).
         Assert.Equal(afterFirst, w.Controls.Count);
+        Assert.Equal(politiesAfterFirst, w.Polities.Count);
     }
 
     [Fact]
@@ -151,36 +165,30 @@ public class RevoltTests
 
         w = RevoltOnly().Step(w);
 
-        Assert.Equal(3, w.Controls.Count);
+        Assert.Equal(4, w.Controls.Count);
         Assert.Equal(0, w.Controls[0].Place.Value);
         Assert.Equal(2, w.Controls[1].Place.Value);
         Assert.Equal(3, w.Controls[2].Place.Value);
+        // R3: the new polity's row is appended after the survivors.
+        Assert.Equal(1, w.Controls[3].Place.Value);
+        Assert.Equal(2, w.Controls[3].Polity.Value);
     }
 
     [Fact]
-    public void RevoltProducesEXACTLYTheStateT45sRaiderGateAsksFor()
+    public void RevoltNoLongerProducesStatelessness_TheRaiderGateLosesItsOnlyProducer_CR019()
     {
-        // The loop this mechanism exists to close. AppropriationSystem's raider
-        // must be STATELESS — and before revolt existed, no founded world could
-        // ever contain one, so the gate could never open. This asserts the
-        // produced state against that gate's own predicate rather than against a
-        // restatement of it.
+        // Before R3 this test pinned the opposite: revolt was the one path to a STATELESS settlement, the
+        // precondition of T4.5's raider. Director R2-final §2 rules that a revolted settlement becomes a NEW
+        // AI-CONTROLLED POLITY immediately, so revolt now produces a governed place and the raider gate has no
+        // producer in a founded world. The conflict is recorded in docs/adr/cr-019-revolt-polity-vs-t45-raider.md;
+        // this test pins the ruled state so the change cannot go unnoticed in either direction.
         WorldState w = Governed(deficit0: 1.0, dwellings0: 0);
         var revolted = new SettlementId(0);
-
-        Assert.True(EmpireQuery.TryGetController(w, revolted, out _),
-            "precondition: the settlement starts governed");
-
         w = RevoltOnly().Step(w);
 
-        // "Stateless" is exactly "no control row names this place" — the same
-        // condition AppropriationSystem.IsStateless evaluates.
         bool stateless = true;
         for (int i = 0; i < w.Controls.Count; i++)
             if (w.Controls[i].Place == revolted) stateless = false;
-
-        Assert.True(stateless,
-            "T4.5's raider precondition is still unreachable — revolt did not produce a "
-            + "stateless settlement, so appropriation remains dead code in a founded world.");
+        Assert.False(stateless);
     }
 }

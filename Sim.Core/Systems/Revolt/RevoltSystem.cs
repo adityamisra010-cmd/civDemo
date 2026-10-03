@@ -7,8 +7,18 @@ namespace Sim.Core.Systems.Revolt;
 /// SHARED table — Colonization appends to it (inheriting a founder's control) and
 /// this system removes from it. They never touch the same row in the same turn:
 /// colonization writes rows for settlements created THIS turn, which cannot yet
-/// have a Prev happiness reading.</summary>
-public readonly record struct RevoltTables(Table<ControlRow> Controls);
+/// have a Prev happiness reading.
+///
+/// R3 (Director R2-final §2): a revolt also FOUNDS the new polity — it appends one
+/// <see cref="PolityRow"/> (CommandSource.Ai) per revolted settlement (Polities has no
+/// other writer after founding), and copies the former polity's knowledge into it by
+/// APPENDING <see cref="ResearchCompletedRow"/>s (<see cref="KnowledgeTransfer"/>).
+/// ResearchCompleted is a SANCTIONED SHARED table split by pipeline order and row key:
+/// revolt (before research) appends rows ONLY for a polity it creates this turn, a key
+/// absent from Prev, so ResearchSystem — which works from Prev's roster and appends its
+/// own completions — never reads or writes the same row.</summary>
+public readonly record struct RevoltTables(
+    Table<ControlRow> Controls, Table<PolityRow> Polities, Table<ResearchCompletedRow> ResearchCompleted);
 
 /// <summary>
 /// M4 — REVOLT: A SETTLEMENT AT ZERO HAPPINESS STOPS OBEYING.
@@ -59,12 +69,20 @@ public readonly record struct RevoltTables(Table<ControlRow> Controls);
 /// is simply nobody's to command. Re-annexation, reconquest and capital succession have
 /// no ratified mechanism in M5 (M6 war / later politics) and are not invented here.
 ///
-/// WHAT IT DOES NOT DO. It does not transfer control to another polity, does not
-/// create a rebel polity, does not fight, and does not touch population, goods or
-/// any other stock — a revolt here is the LOSS of a relation and nothing else.
-/// Who, if anyone, picks the place up afterwards is M5's politics and M6's war;
-/// this is the smallest mechanism that makes the state reachable, which is what
-/// the M4 boundary allows.
+/// R3 — THE REVOLTED SETTLEMENT BECOMES A NEW AI-CONTROLLED POLITY (Director R2-final §2,
+/// RATIFIED; the Singapore/Malaysia model). At the instant of separation the settlement's
+/// control row passes to a NEW polity (id = one above every id in the roster, settlement-table
+/// order when several revolt at once; CommandSource.Ai), and that polity receives a COMPLETE
+/// copy of its former polity's completed knowledge (<see cref="KnowledgeTransfer.MergeInto"/>).
+/// Nothing is filtered and nothing is removed from the parent; afterwards the two research
+/// independently (no link is kept). The new polity has NO capital row — a capital-less Empire
+/// is representable (M4-A) and designating a seat would be a succession rule nobody ratified
+/// (§5, DEFERRED). INFERRED (R3): a settlement whose controller holds no OTHER place does not
+/// revolt — a polity that is only that place has no ruler for it to throw off (without this a
+/// grievance still above the uprising line would split the same settlement again every turn).
+///
+/// WHAT IT DOES NOT DO. It does not fight, does not move control to an EXISTING polity, and
+/// does not touch population, goods or any other stock.
 ///
 /// SIGNALS ARE ALL FROM PREV (§3.2), so the reading that condemns a settlement is
 /// the one every other system saw this turn, and the outcome cannot depend on
@@ -96,7 +114,8 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
         for (int i = 0; i < prev.Settlements.Count; i++)
         {
             SettlementId place = prev.Settlements[i].Id;
-            if (!EmpireQuery.TryGetController(prev, place, out _)) continue;  // already stateless
+            if (!EmpireQuery.TryGetController(prev, place, out PolityId ruler)) continue;  // already stateless
+            if (EmpireQuery.ControlledCount(prev, ruler) <= 1) continue;  // it IS its polity (R3, INFERRED)
             if (!SettlementHappiness.IsRevoltReady(prev, place, _cfg)
                 && !Unrest.IsUprising(prev, place, _cfg)) continue;
             revolts[i] = true;
@@ -119,6 +138,22 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
 
         controls.Clear();
         for (int i = 0; i < kept.Count; i++) controls.Add(kept[i]);
+
+        // Pass 3 (R3): each revolted place, in settlement-table order, becomes a new AI polity
+        // holding a complete copy of its former ruler's knowledge at this instant.
+        int nextId = 0;
+        for (int i = 0; i < ctx.Owned.Polities.Count; i++)
+            nextId = Math.Max(nextId, ctx.Owned.Polities[i].Id.Value);
+        for (int i = 0; i < prev.Settlements.Count; i++)
+        {
+            if (!revolts[i]) continue;
+            SettlementId place = prev.Settlements[i].Id;
+            EmpireQuery.TryGetController(prev, place, out PolityId former);
+            var founded = new PolityId(checked(++nextId));
+            ctx.Owned.Polities.Add(new PolityRow(founded, CommandSource.Ai));
+            controls.Add(new ControlRow(founded, place, 1.0));
+            KnowledgeTransfer.MergeInto(ctx.Owned.ResearchCompleted, former, founded);
+        }
     }
 
     private static bool IsRevolting(IReadOnlyWorldState prev, ReadOnlySpan<bool> revolts, SettlementId place)

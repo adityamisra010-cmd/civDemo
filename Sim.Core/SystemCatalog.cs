@@ -73,7 +73,8 @@ namespace Sim.Core;
 ///   COLONIZATION APPENDS rows — a colony inherits its parent's controller, at
 ///     the founding Strength 1.0 — and touches no existing row.
 ///   REVOLT REMOVES rows (a settlement at zero happiness stops obeying),
-///     preserving the relative order of every surviving row.
+///     preserving the relative order of every surviving row, then (R3) APPENDS one
+///     row per revolted settlement for the new AI polity it founds (Strength 1.0).
 ///   GOVERNANCE (ADR-033 D4) rewrites ONLY the Strength field of the rows that
 ///     exist when it runs, as the administrative reach computed on PREV — never
 ///     adds or removes a row, never touches Polity or Place.
@@ -314,7 +315,7 @@ public static class SystemCatalog
             Systems.Revolt.RevoltSystem.WellKnownId, Systems.Revolt.RevoltSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(
                 new SimContext<Systems.Revolt.RevoltTables>(
-                    prev, new Systems.Revolt.RevoltTables(next.Controls), rng,
+                    prev, new Systems.Revolt.RevoltTables(next.Controls, next.Polities, next.ResearchCompleted), rng,
                     Systems.Revolt.RevoltSystem.WellKnownId,
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
