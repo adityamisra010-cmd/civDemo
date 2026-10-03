@@ -214,6 +214,13 @@ every push and pull request.
 
 ## Download & Play
 
+**M5 playtest build (2026-10-03, branch `m5-integration` @ `08f89c5`, not on `main`)**:
+[ui-artifact run 37139625708](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37139625708)
+→ download `sim-ui-win-x64-08f89c5` (Windows x64, ~78 MB zip; artifact expires 2026-11-02; sign in to GitHub to
+download). Unzip, run `Sim.Ui.exe`. Try `--ai-empires 1` for an AI rival; F12 or `--dev` opens the developer panels;
+`--resume <session-dir>` continues a saved session. Known open items: turn-1 food still uses the cereal yield
+(forager switch off), later-Age military milestones are pending the Battle Layer.
+
 No toolchain needed — download, unzip, run `Sim.Ui.exe`.
 
 **Latest build** (every merge to `main`): Actions → the newest `ui-artifact`
