@@ -234,3 +234,6 @@ missing negative loop; this measurement is the evidence for that escalation.
 - **CR-005** stays OPEN (dated note appended); **CR-008**'s money question (§1.1) stays OPEN.
 - The AI valve drives nothing in a played session until stream S2 wires the single AI producer (and
   `aiEmpires` defaults to 0).
+
+**Append (2026-10-03, R2b):** the unrest-lite escalation (§6, §8) and the weather-distance escalation (§5 B4) are
+IMPLEMENTED on `m5i-r2b-governance-fixes`; record and measurements in `docs/m5-integration-coherence-matrix.md` §6.

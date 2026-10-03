@@ -205,6 +205,13 @@
 > Suite MEASURED in Release: Sim.Tests 1396 / 0 / 5, Sim.Ui.Tests 472 / 0 / 0. Record:
 > `docs/m5-integration-coherence-matrix.md` §5. Verify against git.
 
+> **2026-10-03 — R2b (governance and weather gaps) on `m5i-r2b-governance-fixes`, cut from `m5-integration` @ `f1fe76f`;
+> NOT merged, NOT on `main`.** D-021 unrest-lite tax brake (Dignity bound to the tax burden → levy grievance → protest
+> drag, discharge, uprising); weather correlation over geographic distance; Age military milestones need an
+> age-appropriate formation (pending on M6). Founded golden `1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b`.
+> Suite MEASURED in Release: Sim.Tests 1418 / 0 / 6, Sim.Ui.Tests 472 / 0 / 0. Record:
+> `docs/m5-integration-coherence-matrix.md` §6. Verify against git.
+
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
 the Spine, not a milestone spec, not a D-decision, not an ADR, and it never restates one — where a
