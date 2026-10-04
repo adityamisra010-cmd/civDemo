@@ -118,7 +118,10 @@ public class AiEmpireIntegrationTests
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
-        Assert.Equal((143L, 144L, 546L, 547L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        // R5 RE-PIN (2026-10-04, the dedicated Taxation civic is the single tax gate; MEASURED on this tree by the
+        // agent writing this line): levy 546/547 -> 367/368 — the Taxation closure (token_counting, stamp_seal,
+        // proto_writing, taxation) is cheaper than the old cheapest alternative's; road, Age, targets unchanged.
+        Assert.Equal((143L, 144L, 367L, 368L), (road.Turn, firstRoad, tax.Turn, firstTax));
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.
         WorldState replayed = WorldFounding.Found(wg, Cfg, 42);
