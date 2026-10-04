@@ -417,8 +417,9 @@ public sealed class CausalChain
     {
         var links = new List<Link>();
         SatisfactionLink(links, next, s, cls, need, ChainNode.DignitySatisfaction,
-            "s = 1 − the effective tax rate on Prev (NeedsGrievanceSystem.DignitySatisfaction; D-035-D: the tax "
-            + "instrument is the carrier). Settlement-level, so every class carries the same value.");
+            "s = 1 − r × (1 − offsetMax × P): r the effective tax rate on Prev, P the class's provision (the CES of its "
+            + "other bound needs), offsetMax needs.json unrest.taxBurdenOffsetMax (NeedsGrievanceSystem.DignitySatisfaction; "
+            + "D-035-D: the tax instrument is the carrier; R4: the burden is offset by provision).");
         links.Add(new Link(ChainNode.EffectiveTaxRate, "effective tax rate",
             Governance.EffectiveTaxRate(prev, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "TaxPolicies", -1,
             "No row: a derived reading. Governance.EffectiveTaxRate: the controller's declared rate × ControlRow.Strength (administrative "

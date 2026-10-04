@@ -171,6 +171,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         Span<double> weight = stackalloc double[needCount];
         Span<double> adjusted = stackalloc double[needCount];
         Span<bool> isGate = stackalloc bool[needCount];
+        Span<double> otherSat = stackalloc double[needCount];
+        Span<double> otherWeight = stackalloc double[needCount];
+        Span<bool> otherGate = stackalloc bool[needCount];
 
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
@@ -246,7 +249,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 }
 
                 // --- per-need satisfaction from PREV basket fills -------------
-                int bound = 0;
+                int bound = 0, dignityRow = -1, dignitySlot = -1;
                 double rawWeightSum = 0.0;
                 for (int n = 0; n < needCount; n++)
                 {
@@ -262,7 +265,11 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                         // Where no tax instrument exists at all (no governance section) the need has
                         // no carrier and publishes nothing — exactly like an empty basket.
                         if (_cfg.Governance is null) continue;
-                        value = DignitySatisfaction(prev, settlement, _cfg);
+                        // R4: the OFFSET reads this class's other provisions, so the value is filled in after
+                        // the loop (placeholder here keeps the row order unchanged).
+                        dignityRow = satisfactions.Count;
+                        dignitySlot = bound;
+                        value = 1.0;
                     }
                     else if (need.FromHousingStock)
                     {
@@ -286,6 +293,25 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     isGate[bound] = IsTierAGate(need.Id);
                     rawWeightSum += need.Weight;
                     bound++;
+                }
+
+                if (dignityRow >= 0)
+                {
+                    // R4 — the levy's burden OFFSET by provision: P is the D-035-B aggregate of this class's
+                    // OTHER bound needs (food, shelter, comfort/amenities…), the same CES the grievance uses.
+                    int others = 0;
+                    for (int k = 0; k < bound; k++)
+                    {
+                        if (k == dignitySlot) continue;
+                        otherSat[others] = sat[k]; otherGate[others] = isGate[k]; otherWeight[others] = weight[k];
+                        others++;
+                    }
+                    double provision = others > 0
+                        ? AggregateSatisfaction(otherSat[..others], otherGate[..others], otherWeight[..others], agg, adjusted[..others])
+                        : 0.0;
+                    double dignity = DignitySatisfaction(prev, settlement, _cfg, provision);
+                    sat[dignitySlot] = dignity;
+                    satisfactions[dignityRow] = satisfactions[dignityRow] with { Value = dignity };
                 }
 
                 double aggregate = AggregateSatisfaction(
@@ -474,6 +500,21 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// Glass Box recomputes it by calling this, not by copying it.</summary>
     public static double DignitySatisfaction(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg) =>
         Math.Clamp(1.0 - State.Governance.EffectiveTaxRate(world, settlement, cfg), 0.0, 1.0);
+
+    /// <summary>R4 (Director 2026-10-04: tax burden → pressure OFFSET by food, amenities, services, development and
+    /// capacity) — the Dignity satisfaction with the burden offset by the class's PROVISION P in [0, 1] (the CES
+    /// aggregate of its other bound needs): s = 1 − r × (1 − offsetMax × P), offsetMax = needs.json
+    /// unrest.taxBurdenOffsetMax. A coefficient inside the resolution equation (law 2), not a buff: it scales the
+    /// felt burden and is exactly the R2b 1 − r when the levy is 0, the provision is 0 or offsetMax is 0. A
+    /// well-provided population bears a heavy levy with less indignity; a destitute one feels all of it.</summary>
+    public static double DignitySatisfaction(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg, double provision)
+    {
+        double r = State.Governance.EffectiveTaxRate(world, settlement, cfg);
+        double offsetMax = cfg.Needs?.Unrest?.TaxBurdenOffsetMax ?? 0.0;
+        if (offsetMax <= 0.0) return Math.Clamp(1.0 - r, 0.0, 1.0);
+        double felt = r * (1.0 - offsetMax * Math.Clamp(provision, 0.0, 1.0));
+        return Math.Clamp(1.0 - felt, 0.0, 1.0);
+    }
 
     /// <summary>S: the D-035-B aggregate over the bound needs that published a
     /// row — d018:46's Tier A gate reweights them, then the CES combines them

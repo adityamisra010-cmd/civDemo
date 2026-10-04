@@ -50,7 +50,11 @@ public sealed record UnrestTuning(
     [property: JsonPropertyName("protestOnsetGrievance"), JsonRequired] double ProtestOnsetGrievance,
     [property: JsonPropertyName("uprisingGrievance"), JsonRequired] double UprisingGrievance,
     [property: JsonPropertyName("protestOutputDragMax"), JsonRequired] double ProtestOutputDragMax,
-    [property: JsonPropertyName("protestDischargePerYear"), JsonRequired] double ProtestDischargePerYear);
+    [property: JsonPropertyName("protestDischargePerYear"), JsonRequired] double ProtestDischargePerYear,
+    // R4 (Director 2026-10-04, tax model): the share of the levy's indignity a fully provided population does
+    // NOT feel — the burden is offset by what the population otherwise has (NeedsGrievanceSystem.DignitySatisfaction).
+    // Optional: absent = 0 = the R2b reading (1 − r), bit for bit.
+    [property: JsonPropertyName("taxBurdenOffsetMax")] double TaxBurdenOffsetMax = 0.0);
 
 /// <summary>
 /// T3.5b item 2 — the FIXED NUTRITIONAL DIVERSITY STANDARD (director ruling:
@@ -284,6 +288,8 @@ public static class NeedsConfigLoader
             throw new NeedsConfigException($"unrest.protestOutputDragMax must be in [0,1] (a fraction of output), got {Inv(u.ProtestOutputDragMax)}.");
         if (!(u.ProtestDischargePerYear >= 0.0) || !double.IsFinite(u.ProtestDischargePerYear))
             throw new NeedsConfigException($"unrest.protestDischargePerYear must be a finite rate >= 0, got {Inv(u.ProtestDischargePerYear)}.");
+        if (!(u.TaxBurdenOffsetMax >= 0.0) || !(u.TaxBurdenOffsetMax < 1.0))
+            throw new NeedsConfigException($"unrest.taxBurdenOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxBurdenOffsetMax)}.");
     }
 
     private static void ValidateAggregation(AggregationTuning? a)

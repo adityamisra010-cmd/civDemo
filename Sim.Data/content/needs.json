@@ -170,7 +170,9 @@
     "protestOnsetGrievance": 15.0,
     "uprisingGrievance": 50.0,
     "protestOutputDragMax": 0.5,
-    "protestDischargePerYear": 0.005
+    "protestDischargePerYear": 0.005,
+    "_docTaxBurdenOffsetMax": "R4 (Director 2026-10-04: tax burden is happiness/legitimacy pressure OFFSET by food, amenities, services, development and institutional capacity; 99% extremely burdensome but NOT a deterministic revolt). Dignity's satisfaction is 1 - r x (1 - taxBurdenOffsetMax x P), P = the class's provision (the D-035-B CES of its other bound needs: today sustenance, shelter and comfort; services/development/capacity enter as their needs are bound). CHOSEN 0.5: a fully provided population feels half the levy's indignity, so 99% on a well-off seat reads like ~50% (protest, no rising) while the same levy on a seat short of its comforts still rises. MEASURED in docs/r4a-m5-closure-record.md section 3.",
+    "taxBurdenOffsetMax": 0.5
   },
   "varietyStandard": {
     "_doc": "T3.5b item 2 (director ruling): the FIXED NUTRITIONAL DIVERSITY STANDARD - the reference composition of a varied pre-modern agrarian diet, independent of both what a class declares and what it receives. DERIVED, not fitted (docs/t3.5b-derivations.md section 2): staple 0.70 / animal-and-fish 0.20 / other 0.10, from diet-history reconstruction anchored to ADR-013's own 'cereals 75% of calories' chain. H* = 0.70^2+0.20^2+0.10^2 = 0.54. The variety factor penalises only EXCESS concentration beyond H*: a diet at or below it takes no penalty (full satisfaction expressible); a grain-only diet (H = 1) takes the full varietyWeight penalty, so the D-035-A reason to trade survives. NOTE the shipped baskets are MORE concentrated than this standard (peasant food H = 0.8152) - a fully supplied frontier grain economy scores 0.910 on Sustenance, not 1.0, which is the honest reading: its diet is monotonous by the standard of a good pre-modern diet, and imports are how it closes the gap.",

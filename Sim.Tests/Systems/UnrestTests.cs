@@ -83,7 +83,9 @@ public class UnrestTests
         WorldState untaxed = taxed.Clone();
         Levy(taxed, player, 0.9);
 
-        TurnExecutor ex = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(Cfg));
+        // R4: asserted on the R2b reading (no provision offset), where the satisfaction is exactly 1 − r; the
+        // offset's own law is pinned by Dignity_IsTheBurdenOffsetByProvision_AndExactlyTheR2bReadingAtItsEdges.
+        TurnExecutor ex = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(NoOffset(Cfg)));
         WorldState t1 = ex.Step(taxed), u1 = ex.Step(untaxed);
 
         // D-035-D: the satisfaction IS one minus the effective rate (declared × reach; the seat's reach is 1.0).
@@ -232,20 +234,21 @@ public class UnrestTests
 
     // ------------------------------------------------------------------ the integrated loop
 
-    private static (WorldState World, int RevoltTurn, double PeakCapitalProtest, int QuietAgainTurn) RunLevy(double percent, int turns)
+    private static (WorldState World, int RevoltTurn, double PeakCapitalProtest, int QuietAgainTurn) RunLevy(double percent, int turns, SimConfig? cfg = null)
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         GovernanceRigs.Grant(w, player);
         SettlementId seat = GovernanceRigs.Seat(w, player);
         var orders = new OrderLog();
         if (percent > 0.0) orders.Append(Governance.TaxOrder(0, player, percent));
-        TurnExecutor ex = UniversityRigs.Production(Cfg, orders);
+        cfg ??= Cfg;
+        TurnExecutor ex = UniversityRigs.Production(cfg, orders);
         int revoltTurn = -1, quietTurn = -1;
         double peak = 0.0;
         for (int t = 1; t <= turns; t++)
         {
             w = ex.Step(w);
-            double p = Unrest.Protest(w, seat, Cfg);
+            double p = Unrest.Protest(w, seat, cfg);
             peak = Math.Max(peak, p);
             if (revoltTurn < 0 && !EmpireQuery.ControlsSettlement(w, player, seat)) revoltTurn = t;
             if (revoltTurn > 0 && quietTurn < 0 && p == 0.0) quietTurn = t;
@@ -274,17 +277,87 @@ public class UnrestTests
         Assert.True(Grain(taxed) > Grain(untaxed));
     }
 
+    /// <summary>R2b's integrated loop, kept on the R2b reading (taxBurdenOffsetMax 0): a 99 % levy at full reach
+    /// raises the seat and the episode burns out, deterministically. R4 offsets the burden by provision (below);
+    /// with the offset stripped the R2b behaviour is exactly this.</summary>
     [Fact]
-    public void ExtremeTax_IgnitesProtest_RaisesTheSeat_AndTheEpisodeBurnsOut_Deterministically()
+    public void ExtremeTax_WithoutTheProvisionOffset_IgnitesProtest_RaisesTheSeat_AndTheEpisodeBurnsOut_Deterministically()
     {
         const int Turns = 40;
-        (WorldState a, int revoltA, double peakA, int quietA) = RunLevy(99.0, Turns);
-        (WorldState b, int revoltB, double peakB, int quietB) = RunLevy(99.0, Turns);
-        Assert.True(revoltA > 0, "a 99 % levy at full reach must raise the seat within the horizon");
+        SimConfig r2b = NoOffset(Cfg);
+        (WorldState a, int revoltA, double peakA, int quietA) = RunLevy(99.0, Turns, r2b);
+        (WorldState b, int revoltB, double peakB, int quietB) = RunLevy(99.0, Turns, r2b);
+        Assert.True(revoltA > 0, "a 99 % levy at full reach must raise the seat within the horizon (R2b reading)");
         Assert.True(peakA > 0.0);
         Assert.True(quietA > revoltA, "the episode must end: protest returns to zero after the uprising");
         Assert.Equal((revoltA, peakA, quietA), (revoltB, peakB, quietB));
         Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
+    }
+
+    private static SimConfig NoOffset(SimConfig cfg) =>
+        cfg with { Needs = cfg.Needs! with { Unrest = cfg.Needs!.Unrest! with { TaxBurdenOffsetMax = 0.0 } } };
+
+    /// <summary>R4 (Director 2026-10-04): the levy's burden is OFFSET by provision — Dignity = 1 − r × (1 − m × P).
+    /// Exactly the R2b 1 − r untaxed, at zero provision, or with m = 0; a fully provided population feels (1 − m) of
+    /// the levy.</summary>
+    [Fact]
+    public void Dignity_IsTheBurdenOffsetByProvision_AndExactlyTheR2bReadingAtItsEdges()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        Levy(w, player, 99.0);
+        double r = Governance.EffectiveTaxRate(w, seat, Cfg);
+        Assert.True(r > 0.9);
+        double m = Tuning.TaxBurdenOffsetMax;
+        Assert.Equal(0.5, m);
+        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.0));
+        Assert.Equal(1.0 - r * (1.0 - m), NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 1.0));
+        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, NoOffset(Cfg), 1.0));
+        Assert.True(NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.8) > NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.3));
+        Levy(w, player, 0.0);
+        Assert.Equal(1.0, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.7));
+    }
+
+    /// <summary>Runs a levy on the founded seat; <paramref name="wellProvided"/> tops the seat's every stock and its
+    /// dwellings up before each turn (a population with food, amenities and housing to spare).</summary>
+    private static (int RevoltTurn, double PeakTaxGrievance, double PeakProtest) RunProvided(double percent, int turns, SimConfig cfg)
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        var orders = new OrderLog();
+        orders.Append(Governance.TaxOrder(0, player, percent));
+        TurnExecutor ex = UniversityRigs.Production(cfg, orders);
+        int revolt = -1;
+        double peakG = 0.0, peakP = 0.0;
+        for (int t = 1; t <= turns && revolt < 0; t++)
+        {
+            long pop = GovernanceRigs.Population(w, seat);
+            for (int i = 0; i < w.GoodStocks.Count; i++)
+                if (w.GoodStocks[i].Settlement == seat) GovernanceRigs.AddStock(w, seat, w.GoodStocks[i].Good, 2 * pop + 10);
+            GovernanceRigs.SetDwellings(w, seat, pop + 100);
+            w = ex.Step(w);
+            if (!EmpireQuery.ControlsSettlement(w, player, seat)) revolt = t;
+            peakG = Math.Max(peakG, Unrest.TaxGrievance(w, seat, cfg));
+            peakP = Math.Max(peakP, Unrest.Protest(w, seat, cfg));
+        }
+        return (revolt, peakG, peakP);
+    }
+
+    /// <summary>R4 — THE MEASURED VERDICT: 99 % is extremely burdensome but NOT a deterministic revolt. A
+    /// well-provided seat bears it in protest (output drag) without rising over 80 turns; the same seat on the R2b
+    /// reading (no offset) rises within a few turns. Measured on this tree: R2b rises at turn 6; offset peak tax
+    /// grievance 19.1, protest 0.118 (docs/r4a-m5-closure-record.md §3).</summary>
+    [Fact]
+    public void ExtremeTax_OnAWellProvidedSeat_IsBorneInProtest_NotADeterministicRevolt()
+    {
+        (int revoltR2b, _, _) = RunProvided(99.0, 80, NoOffset(Cfg));
+        Assert.True(revoltR2b > 0, "control: without the offset the well-provided seat rises (R2b)");
+        (int revolt, double peakG, double peakP) = RunProvided(99.0, 80, Cfg);
+        Assert.Equal(-1, revolt);
+        Assert.True(peakP > 0.0, "99 % must still be felt: the seat protests");
+        Assert.True(peakG < Tuning.UprisingGrievance);
     }
 
     // ------------------------------------------------------------------ R2c: the uprising meets city-state research
@@ -295,7 +368,9 @@ public class UnrestTests
     [Fact]
     public void ARevoltedSeat_BecomesANewAiPolity_HoldingTheCompleteParentKnowledge()
     {
-        (WorldState w, int revolt, _, _) = RunLevy(99.0, 40);
+        // R4: the revolt is produced on the R2b reading (no provision offset) — this test's subject is what an
+        // uprising transfers, not what causes one.
+        (WorldState w, int revolt, _, _) = RunLevy(99.0, 40, NoOffset(Cfg));
         Assert.True(revolt > 0);
         (WorldState fresh, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(fresh, player);
@@ -328,7 +403,8 @@ public class UnrestTests
         var orders = new OrderLog();
         orders.Append(Governance.TaxOrder(0, player, 99.0));
         orders.Append(OrderRecord.From(0, player, OrderKind.SetResearchTarget, content.Nodes[target].Key.Value, 0.0));
-        TurnExecutor ex = UniversityRigs.Production(Cfg, orders);
+        // R4: raised on the R2b reading (no provision offset) — the subject is capital loss, not its cause.
+        TurnExecutor ex = UniversityRigs.Production(NoOffset(Cfg), orders);
         var worlds = new List<WorldState> { w };
         int revoltTurn = -1;
         for (int t = 1; t <= turns; t++)
