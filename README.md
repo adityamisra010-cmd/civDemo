@@ -219,12 +219,12 @@ every push and pull request.
 
 ## Download & Play
 
-**M5 playtest build 2 (2026-10-04, branch `m5-integration` @ `c8178de`, not on `main`)**:
-[ui-artifact run 37191263004](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37191263004)
-→ download `sim-ui-win-x64-c8178de` (Windows x64 zip; artifact expires after 30 days; sign in to GitHub to download).
+**M5 playtest build 3 (2026-10-04, branch `m5i-r5-taxation-node` @ `5c364b5`, not on `main`)**:
+[ui-artifact run 37203130829](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37203130829)
+→ download `sim-ui-win-x64-5c364b5` (Windows x64 zip; artifact expires after 30 days; sign in to GitHub to download).
 Unzip, run `Sim.Ui.exe`. Try `--ai-empires 1` for an AI rival; F12 or `--dev` opens the developer panels;
 `--resume <session-dir>` continues a saved session. Turn 1 now lives on gathered wild food (agriculture must be
-researched); later-Age military milestones are pending the Battle Layer (M7).
+researched); the tax edict appears only once the Taxation civic is researched; researched); later-Age military milestones are pending the Battle Layer (M7).
 
 No toolchain needed — download, unzip, run `Sim.Ui.exe`.
 
