@@ -38,3 +38,21 @@ together with annexation.
 
 Still **DEFERRED** (not decided here): conquest, full annexation gameplay, capital succession, and recovery of
 revolted settlements.
+
+## 4. Ruling 8 — annexation (appended 2026-10-04, M5 playtest baseline)
+
+**RATIFIED (Director, 2026-10-04, M5 playtest baseline instruction §8):**
+
+8. **Annexation, when implemented, merges knowledge by union and never removes completed knowledge.**
+
+Ruling 7 above already says that annexation never removes knowledge. This note states the annexation rule as a
+ruling of its own; it does not reword rulings 1–7.
+
+- **Implemented:** the domain operation `KnowledgeTransfer.MergeInto`. It is a union, it is idempotent, and it
+  never deletes a row. It is tested directly in `KnowledgeMonotonicTests`.
+- **Not implemented:** nothing calls it for annexation. No annexation or conquest path exists in the
+  simulation.
+- **Annexation gameplay stays DEFERRED.**
+- Revolt, which does call the operation (rulings 1–7), is implemented behaviour.
+
+Record: `docs/m5-playtest-baseline.md` §8.

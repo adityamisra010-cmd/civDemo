@@ -1,5 +1,14 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-04 — M5 PLAYTEST BASELINE (`m5-integration` @ `bc87ef8`; played build `sim-ui-win-x64-5c364b5`, ui-artifact
+> run 37203130829).** This dated entry is newer than the R3 entry below. It supersedes R3's "forager food STOPPED …
+> switch stays OFF":
+> - **R4a.** The forager layer ships ON at 4.3 / 2.0 with 400 founders (`07832a4`). The ledger crash is fixed
+>   (`e6b7e42`). The Dignity tax offset is in (`95982bd`). D-048 is ratified.
+> - **R5.** The Civics node `taxation` (1007, A3, 1,050 RP) is the only tax gate (`9f7c82b`).
+>
+> Full forensic baseline and decision record: `docs/m5-playtest-baseline.md`. Verify against git.
+
 > **2026-10-03 — Director roadmap rebase (milestone ladder).** COMPLETE: M0 Kernel · M1 Walking Skeleton · M2
 > Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation. **CURRENT: M5 Governing Gameplay —
 > being finished, NOT complete** (integration unmerged, see below). NEXT: **M6 Knowledge / Research / Technology** (large;

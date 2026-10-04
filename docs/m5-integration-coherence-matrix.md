@@ -280,3 +280,17 @@ Suites: Sim.Tests 1436 passed / 0 failed / 6 skipped (before the R2c test), Sim.
 | Food-sector label from capability | IMPLEMENTED | FoodSectorLabelTests |
 | Turn-1 forager food via smaller founding population | STOPPED — measured fail at N=50/100/200/400 | r3 record §1 |
 | T4.5 raider reachability | OPEN — CR-019 | RevoltTests.RevoltNoLongerProducesStatelessness_… |
+
+## 9. Pointer — R4a / R5 (appended 2026-10-04, M5 playtest baseline)
+
+Sections 1–8 are history. Since they were written:
+
+- **Forager layer.** `07832a4` turned the forager layer ON (4.3 / 2.0). This supersedes §4 item 11 and §8's
+  "STOPPED".
+- **Tax burden offset.** `95982bd` offsets the tax burden on Dignity by provision. Measured result: 99 % no
+  longer raises a provided seat. This supersedes §6.5's "fires deterministically under sustained near-total
+  exaction".
+- **Taxation gate.** R5 (`9f7c82b`, `5c364b5`) made the Civics node `taxation` the only tax gate. §6.1's
+  measurement granted `arithmetic_babylonian`, which was valid on its tree and no longer opens the gate.
+
+Current baseline: `docs/m5-playtest-baseline.md`.

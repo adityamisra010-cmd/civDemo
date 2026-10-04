@@ -247,3 +247,25 @@ Full record: `docs/r3-final-reconcile-record.md`. Labels as above.
 - OPEN: CR-019 — revolt no longer produces stateless settlements, so T4.5's raider gate has no producer in a
   founded world. Annexation has no caller (no conquest path; Battle Layer, M7 in the 2026-10-03 roadmap).
 - Goldens: unmoved (founded 1368df9f…, first-reign 680a20c5…, driven efeec45d…).
+
+## R4a / R5 — pointer (appended 2026-10-04, M5 playtest baseline)
+
+The sections above are kept unchanged as history. Two of their statements are superseded:
+
+- **D4's tax gate.** D4 says the edict is available iff any of `arithmetic_babylonian`, `surveying`,
+  `standard_weights` or `coinage_electrum` is completed. That is **superseded** by R5 (`9f7c82b`, Director
+  2026-10-04: "taxation is supposed to be a researchable node").
+  - The only gate is now the Civics node `taxation`: key 1007, A3, 1,050 RP.
+  - Its prerequisites are `token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script)`.
+  - It is wired through `sim.json governance.taxationRequires = "taxation"`.
+  - The four technologies keep their capability text as refinements and no longer gate the edict.
+  - The AI levy pin moved from 546/547 to 367/368 (`5c364b5`).
+- **D1's ESCALATED option (a) and R3's "STOPPED" turn-1 food.** These are **superseded** by R4a (`07832a4`):
+  - `farming.preCultivation` ships ON at 4.3 per gatherer and 2.0 per km², with the founding population
+    unchanged at 400.
+  - The Director ruled on 2026-10-04 that raising primitive gathering yield is a legitimate lever.
+  - The R3 ledger crash is fixed in `e6b7e42`.
+  - Dignity offset R4a: `95982bd`.
+  - Record: `docs/r4a-m5-closure-record.md`.
+
+Baseline record for the playtest: `docs/m5-playtest-baseline.md`.

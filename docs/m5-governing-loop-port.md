@@ -237,3 +237,8 @@ missing negative loop; this measurement is the evidence for that escalation.
 
 **Append (2026-10-03, R2b):** the unrest-lite escalation (§6, §8) and the weather-distance escalation (§5 B4) are
 IMPLEMENTED on `m5i-r2b-governance-fixes`; record and measurements in `docs/m5-integration-coherence-matrix.md` §6.
+
+**Append (2026-10-04, M5 playtest baseline):** §2 item 2's tax gate (`arithmetic_babylonian OR surveying OR
+standard_weights OR coinage_electrum`) is SUPERSEDED by R5 (`9f7c82b`). The single gate is now the Civics node
+`taxation` (key 1007, A3, 1,050 RP), set by `governance.taxationRequires = "taxation"`. The text above is kept as
+history. See `docs/m5-playtest-baseline.md` §4.
