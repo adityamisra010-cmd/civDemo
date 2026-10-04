@@ -40,3 +40,13 @@ fires. Option 1 changes no further code.
 ## 5. Recommendation
 
 Option 1 now. The Director should rule on 2 or 3 when raids or politics are next in scope.
+
+## 6. Status note — 2026-10-04 (Director R4 ruling, §5): DEFERRED
+
+**RATIFIED (Director, 2026-10-04).** CR-019 is **DEFERRED** to the later military and political milestones
+(Battle Layer, M7; Politics / Diplomacy, M8, in the 2026-10-03 roadmap). Option 1 (§3) stands as the current
+state: the raider gate stays reachable only in worlds that contain an uncontrolled settlement, and founded worlds
+do not produce one.
+
+Uncontrolled settlements must **not** be manufactured merely to give raiders a target. Options 2 and 3 stay open
+for the Director when raids or politics are next in scope. Sections 1–5 above are unchanged.

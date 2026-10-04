@@ -135,3 +135,9 @@ assertion now expects the new AI polity.
 - **R2 previews:** regenerated with `docs/architecture/r2-previews/render-previews.sh`. Only the city-state card
   changed, and it now reads "Food sector: Root and tuber cultivation". The turn-1 card still reads
   "Gathering · makes grain", because the forager switch stays OFF (§1, OPEN).
+
+## Supersession note (appended 2026-10-04)
+
+The §2 list "Implementation choices (INFERRED)" (what is copied, no capital, single-settlement polities, research
+pace) is **RATIFIED** by the Director, 2026-10-04. See `docs/d048-knowledge-persistence-rulings.md`. The text
+above is kept unchanged as history.

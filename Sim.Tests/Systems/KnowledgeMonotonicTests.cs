@@ -72,9 +72,61 @@ public class KnowledgeMonotonicTests
         Assert.Equal(CommandSource.Ai, source);
         Assert.Equal(ParentKnowledge, Known(w, P1));     // no knowledge is lost on revolt
         Assert.Equal(ParentKnowledge, Known(w, P2));     // complete copy: no filtering, no subset
-        // Knowledge = completed nodes: in-progress effort stays with the parent (INFERRED, R3).
+        // Knowledge = completed nodes: in-progress effort stays with the parent (D-048 ruling 2, RATIFIED).
         Assert.Equal(700.0, Progress(w, 6, Player));
         Assert.Equal(0.0, Progress(w, 6, 2));
+    }
+
+    /// <summary>D-048 ruling 3 (RATIFIED 2026-10-04): Eureka credit remains with the parent. A fired Eureka row of
+    /// the parent survives the revolt unchanged and the new polity receives none.</summary>
+    [Fact]
+    public void Revolt_LeavesEurekaCreditWithTheParent_D048()
+    {
+        WorldState start = Split();
+        start.ResearchEurekas.Add(new ResearchEurekaRow(P1, Key(6), 0));
+        SimConfig cfg = TestConfigs.Sim() with { Research = Rig };
+        WorldState w = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Revolt(cfg)]).Step(start);   // the revolt alone
+
+        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(1), out PolityId founded));
+        Assert.Equal(P2, founded);
+        int parentRows = 0, newRows = 0;
+        for (int i = 0; i < w.ResearchEurekas.Count; i++)
+        {
+            if (w.ResearchEurekas[i].Polity == P1) parentRows++;
+            if (w.ResearchEurekas[i].Polity == P2) newRows++;
+        }
+        Assert.Equal(1, parentRows);
+        Assert.Equal(0, newRows);
+    }
+
+    /// <summary>D-048 ruling 5 (RATIFIED 2026-10-04): a civilization's final settlement cannot revolt away — also
+    /// when EVERY place of the ruler is in the revolt corner on the same turn. The ruler keeps its capital; the
+    /// other place founds the new polity. Without a capital row the first place in table order is kept.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void WhenEveryPlaceRisesAtOnce_TheRulerKeepsOne_ItsCapitalFirst_D048(bool withCapital)
+    {
+        WorldState w = World([Player], [Player, Player], 10_000);
+        for (int i = 0; i < 2; i++)
+        {
+            var s = new SettlementId(i);
+            w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(s, 1.0, 10_000));   // both destitute
+            w.Housing.Add(new HousingRow(s, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+        }
+        if (withCapital) w.Capitals.Add(new CapitalRow(P1, new SettlementId(1)));
+        Assert.True(SettlementHappiness.IsRevoltReady(w, new SettlementId(0), TestConfigs.Sim()));
+        Assert.True(SettlementHappiness.IsRevoltReady(w, new SettlementId(1), TestConfigs.Sim()));
+
+        WorldState next = RevoltThenResearch().Step(w);
+        int kept = withCapital ? 1 : 0, lost = 1 - kept;
+        Assert.True(EmpireQuery.ControlsSettlement(next, P1, new SettlementId(kept)));
+        Assert.False(EmpireQuery.ControlsSettlement(next, P1, new SettlementId(lost)));
+        Assert.Equal(1, EmpireQuery.ControlledCount(next, P1));
+
+        // And the one place it keeps never revolts away on any later turn.
+        WorldState after = RevoltThenResearch().Step(next);
+        Assert.True(EmpireQuery.ControlsSettlement(after, P1, new SettlementId(kept)));
     }
 
     [Fact]

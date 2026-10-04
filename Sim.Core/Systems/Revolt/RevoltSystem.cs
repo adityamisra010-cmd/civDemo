@@ -115,7 +115,7 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
         {
             SettlementId place = prev.Settlements[i].Id;
             if (!EmpireQuery.TryGetController(prev, place, out PolityId ruler)) continue;  // already stateless
-            if (EmpireQuery.ControlledCount(prev, ruler) <= 1) continue;  // it IS its polity (R3, INFERRED)
+            if (EmpireQuery.ControlledCount(prev, ruler) <= 1) continue;  // it IS its polity (D-048 ruling 5, RATIFIED)
             if (!SettlementHappiness.IsRevoltReady(prev, place, _cfg)
                 && !Unrest.IsUprising(prev, place, _cfg)) continue;
             revolts[i] = true;
@@ -123,6 +123,22 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
         }
 
         if (!any) return;   // the common case writes NOTHING, so no world moves
+
+        // D-048 ruling 5 (RATIFIED 2026-10-04): a civilization's FINAL settlement cannot revolt away — and that
+        // holds when all of a ruler's places rise on the SAME turn, which the per-place guard above cannot see.
+        // A ruler every one of whose places is marked keeps one: its capital if it has one among them, else the
+        // first of them in settlement-table order (an array walk, law 5).
+        for (int i = 0; i < prev.Settlements.Count; i++)
+        {
+            if (!revolts[i]) continue;
+            EmpireQuery.TryGetController(prev, prev.Settlements[i].Id, out PolityId ruler);
+            if (!LosesEveryPlace(prev, revolts, ruler)) continue;
+            int keep = i;
+            if (EmpireQuery.TryGetCapital(prev, ruler, out SettlementId seat))
+                for (int j = 0; j < prev.Settlements.Count; j++)
+                    if (revolts[j] && prev.Settlements[j].Id.Value == seat.Value) { keep = j; break; }
+            revolts[keep] = false;
+        }
 
         // Pass 2: rebuild without the revolted places. `Table` is Add/Clear only,
         // and rebuilding preserves the relative order of every surviving row —
@@ -154,6 +170,18 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
             controls.Add(new ControlRow(founded, place, 1.0));
             KnowledgeTransfer.MergeInto(ctx.Owned.ResearchCompleted, former, founded);
         }
+    }
+
+    /// <summary>Whether every place <paramref name="ruler"/> controls is marked to revolt.</summary>
+    private static bool LosesEveryPlace(IReadOnlyWorldState prev, ReadOnlySpan<bool> revolts, PolityId ruler)
+    {
+        for (int j = 0; j < prev.Settlements.Count; j++)
+        {
+            if (revolts[j]) continue;
+            if (EmpireQuery.TryGetController(prev, prev.Settlements[j].Id, out PolityId other)
+                && other.Value == ruler.Value) return false;
+        }
+        return true;
     }
 
     private static bool IsRevolting(IReadOnlyWorldState prev, ReadOnlySpan<bool> revolts, SettlementId place)
