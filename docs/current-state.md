@@ -225,7 +225,7 @@
 > **2026-10-03 — R2b (governance and weather gaps) on `m5i-r2b-governance-fixes`, cut from `m5-integration` @ `f1fe76f`;
 > NOT merged, NOT on `main`.** D-021 unrest-lite tax brake (Dignity bound to the tax burden → levy grievance → protest
 > drag, discharge, uprising); weather correlation over geographic distance; Age military milestones need an
-> age-appropriate formation (pending on M6; *2026-10-03 rebase: recruitment is now M7 Battle Layer*). Founded golden `1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b`.
+> age-appropriate formation (pending on M6; *2026-10-03 rebase: recruitment is now M7 Battle Layer*). Founded golden `1368df9f…` (superseded by R4a forager layer: `02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2`).
 > Suite MEASURED in Release: Sim.Tests 1418 / 0 / 6, Sim.Ui.Tests 472 / 0 / 0. Record:
 > `docs/m5-integration-coherence-matrix.md` §6. Verify against git.
 
