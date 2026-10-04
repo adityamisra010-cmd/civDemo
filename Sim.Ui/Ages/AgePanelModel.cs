@@ -19,7 +19,7 @@ public enum AgePanelState
 
 /// <summary>One milestone line as the panel shows it (name, plain description, met, and the
 /// observed quantity against its threshold — real state read through AgeQuery).</summary>
-/// <remarks>M5 R2b: <c>Pending</c> carries ages.json's pending note (e.g. M6 recruitment) — the panel labels
+/// <remarks>M5 R2b: <c>Pending</c> carries ages.json's pending note (e.g. Battle Layer (M7) recruitment) — the panel labels
 /// such a milestone "pending" instead of implying the player can satisfy it today.</remarks>
 public sealed record MilestoneLine(string Id, string Name, string Description, bool Met, long Observed, long Threshold, string Owner,
     string? Pending = null);

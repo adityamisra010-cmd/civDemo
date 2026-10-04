@@ -67,7 +67,7 @@ public readonly record struct RevoltTables(
 /// It is not a deadlock of the WORLD: the settlement keeps its people, stocks, standing
 /// allocation and production, grows, and — once its grievance discharges — is quiet; it
 /// is simply nobody's to command. Re-annexation, reconquest and capital succession have
-/// no ratified mechanism in M5 (M6 war / later politics) and are not invented here.
+/// no ratified mechanism in M5 (M7 Battle Layer war / M8 politics) and are not invented here.
 ///
 /// R3 — THE REVOLTED SETTLEMENT BECOMES A NEW AI-CONTROLLED POLITY (Director R2-final §2,
 /// RATIFIED; the Singapore/Malaysia model). At the instant of separation the settlement's

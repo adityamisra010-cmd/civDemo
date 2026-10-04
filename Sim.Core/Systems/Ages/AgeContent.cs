@@ -63,7 +63,7 @@ public sealed record AgeMilestoneFact(
     int[]? IdentityKeys = null, int MinIdentityAge = 0);
 
 /// <summary>One milestone of an Age's entry requirements. <c>Pending</c> (M5 R2b) names the not-yet-built
-/// mechanism a milestone's fact depends on (e.g. M6 recruitment): the fact is still evaluated honestly
+/// mechanism a milestone's fact depends on (e.g. Battle Layer (M7) recruitment): the fact is still evaluated honestly
 /// over real state, but nothing in the shipped game can produce it yet, and every surface says so
 /// rather than manufacturing evidence. Null when the milestone is reachable today.</summary>
 public sealed record AgeMilestone(

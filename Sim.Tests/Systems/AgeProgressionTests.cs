@@ -57,7 +57,7 @@ public class AgeProgressionTests
     /// <summary>A2 entry holds: core cereal_cultivation; supporting pottery (Technological) and a built
     /// granary (Institutional-Social) — 2 of 2 required, 2 categories of 2. M5 R2b: the founding warband no
     /// longer counts as the Neolithic's military realization (it needs a formation realized at Age 2 or
-    /// later — M6 recruitment), so the rig's second category is the granary, a Structures row exactly as
+    /// later — Battle Layer (M7) recruitment), so the rig's second category is the granary, a Structures row exactly as
     /// ConstructionSystem publishes it.</summary>
     private static WorldState EligibleForA2(WorldState w, PolityId polity)
     {
@@ -167,7 +167,7 @@ public class AgeProgressionTests
             AgeMilestone military = Ages.Age(a).Entry!.Supporting.Single(m => m.Category == AgeMilestoneCategory.MilitaryRealization);
             Assert.Equal(a, military.Fact.MinIdentityAge);
             Assert.False(string.IsNullOrWhiteSpace(military.Pending));
-            Assert.Contains("M6", military.Pending, StringComparison.Ordinal);
+            Assert.Contains("Battle Layer (M7)", military.Pending, StringComparison.Ordinal);
 
             // The founding line at the PREVIOUS Age's realization (what free modernization leaves it as on the
             // eve of entering Age a) never counts...
@@ -177,7 +177,7 @@ public class AgeProgressionTests
             UnitIdentity eve = heavy.RealizationAt(a - 1) ?? warband;
             w.MilitaryUnits.Add(new MilitaryUnitRow(1, Player, heavy.Key, eve.Key, new SettlementId(0), 0, 0, 0, 0));
             Assert.False(AgeQuery.Milestone(w, Player, military).Met, $"A{a}: the founding line at {eve.Id} must not count");
-            // ...while a formation genuinely realized at Age a does (what M6 recruitment would publish).
+            // ...while a formation genuinely realized at Age a does (what Battle Layer (M7) recruitment would publish).
             UnitIdentity now = heavy.RealizationAt(a)!;
             Assert.True(now.Age >= a || now.Key == eve.Key);
             if (now.Age >= a)

@@ -637,7 +637,7 @@ public record struct ControlRow(PolityId Polity, SettlementId Place, double Stre
 /// defection is auditable rather than a silent field flip.
 ///
 /// DELIBERATELY ABSENT: competence, traits, experience, and every battle field.
-/// Those parameterize the AutoResolver, which is M6 (m4-spec §1.6, "Strategic war
+/// Those parameterize the AutoResolver, which is M7 Battle Layer (m4-spec §1.6, "Strategic war
 /// is AutoResolver ONLY at M4" — and the resolver itself is deferred). This row
 /// carries identity, place, allegiance and the person. Nothing else.
 /// </summary>
@@ -672,7 +672,7 @@ public struct NotableRow(
 /// (T4.3 PROHIBITED 2), which could only express "recognised by someone" or
 /// a single counterparty, not the many-to-many asymmetric relation D-037
 /// requires. Row PRESENCE is the fact: no payload beyond the two keys is
-/// needed at T4.3 (D-037 C7's diplomatic consequences are a later, M7
+/// needed at T4.3 (D-037 C7's diplomatic consequences are a later, M8
 /// packet).
 /// </summary>
 public record struct RecognitionRow(PolityId Recogniser, PolityId Recognised);
