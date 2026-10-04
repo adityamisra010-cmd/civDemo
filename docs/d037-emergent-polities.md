@@ -179,7 +179,7 @@ computed from actual population identity and loyalty, never scripted); mutual re
 formal renunciation of a claim — which must be a real, costly, legitimacy-affecting act, not a
 free tidy-up.
 
-**E3. MILITARY PATHWAYS (M4 conflict → M6 battle layer).** Conquest converts CONTROL immediately
+**E3. MILITARY PATHWAYS (M4 conflict → M6 battle layer).** *(2026-10-03 roadmap rebase: the battle layer is now **M7**, after M6 knowledge.)* Conquest converts CONTROL immediately
 but converts CLAIM only slowly (C1: conquest is a claim source that strengthens with time and
 continuous possession). Occupation without legitimacy is expensive and generates grievance.
 Insurgency and counterinsurgency operate on a population-support model. A stalemated front becomes

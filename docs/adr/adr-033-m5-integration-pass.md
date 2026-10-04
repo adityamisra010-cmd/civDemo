@@ -141,7 +141,7 @@ brake (ADR-029; `WorldState.cs:872`) and ships it. Every coefficient is TUNE.
 
 **Facts.** Implemented: the founding warband, 12 unit families / 66 identities, automatic free modernization at Age
 transitions (ADR-031). Absent from code: recruitment, movement, Action Capacity, Zone of Control, war pulses, armies
-in motion (M6 battle layer on the frozen ladder; designed in D-043, D-047 and ADR-019).
+in motion (M6 battle layer on the frozen ladder; designed in D-043, D-047 and ADR-019). *(2026-10-03 roadmap rebase: now **M7 Battle Layer**, which follows M6 Knowledge / Research / Technology.)*
 **Decision (L1 frozen ladder; directive "Maintain … Do not redesign"):** nothing is redesigned and no M6 mechanic is
 built. The military surface shows the roster, family lines, Age identities and the modernization preview; "Basic
 fighting" is a capability entry with no order, because no military order exists. **ESCALATED:** scheduling of the
@@ -210,7 +210,7 @@ branch; INFERRED = an implementation choice made by an agent, not a ruling; DEFE
   between two settlements that both know `activity.trade` (TradeQuery.CanTrade). Placement/prerequisites as in R2a's record.
 - IMPLEMENTED (RATIFIED items 4, 12): uncontrolled settlements research under PolityId(−1−settlement), pace 0.25 (INFERRED value, TUNE).
 - IMPLEMENTED (RATIFIED item 9): geographic weather distance; unrest-lite tax brake (needs.json `unrest`, State/Unrest.cs);
-  construction-capacity labels marked as estimates. Item 11: Age military milestones read minIdentityAge; M6-owned facts PENDING.
+  construction-capacity labels marked as estimates. Item 11: Age military milestones read minIdentityAge; M6-owned facts PENDING. *(2026-10-03 roadmap rebase: now **M7 Battle Layer**, which follows M6 Knowledge / Research / Technology.)*
 - IMPLEMENTED, interaction (INFERRED, R2c): a settlement thrown off by an uprising has no controller and therefore becomes
   a city-state that researches on its own; no extra mechanism. Its local record starts EMPTY — the former ruler's knowledge
   is NOT seeded (seeding would be a knowledge-diffusion mechanic with no ruling; OPEN for the Director). Consequence: a

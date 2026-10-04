@@ -1018,7 +1018,7 @@ CONFLICT with a ratified packet spec and shipped code on `main`.**
 **F23 — Where the Ages sit on the frozen ladder (§1, §2). TENSION, not a collision: no ruling moves
 a milestone.**
 - **The frozen text.** The ladder places *"computed era labels"* in the knowledge milestone
-  (`civ-sim-architecture-v3-outline.md:110`), which is M7 after D-011 §6.
+  (`civ-sim-architecture-v3-outline.md:110`), which is M7 after D-011 §6. *(2026-10-03 roadmap rebase: knowledge is now **M6**; the Battle Layer, including military realization, is **M7**.)*
 - **Why it matters.** §2's milestones span military, institutional, infrastructure and knowledge
   conditions. Several of the systems behind them are not built by M7.
 - **Recorded, not scheduled.** The placement is the Director's, with CR-005 (M5/M7 ownership).

@@ -1,5 +1,13 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-03 — Director roadmap rebase (milestone ladder).** COMPLETE: M0 Kernel · M1 Walking Skeleton · M2
+> Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation. **CURRENT: M5 Governing Gameplay —
+> being finished, NOT complete** (integration unmerged, see below). NEXT: **M6 Knowledge / Research / Technology** (large;
+> owns, reviews and completes the research engine, Ages, unlock pipeline and universities already built early on the
+> unmerged integration branches — none of that makes M6 done). FUTURE: M7 Battle Layer (consumes M6's technology/capability
+> state) · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Earlier orderings
+> (M6 battle / M7 knowledge) in this file and elsewhere are superseded; record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".
+
 > **2026-10-03 — M5 integration R3 (final R2 reconciliation) on `m5i-r3-final-reconcile` (NOT merged).** Revolt founds
 > a new AI polity with a complete copy of its parent's knowledge; annexation union operation; capital-loss invariants;
 > truthful food label. Turn-1 forager food STOPPED (no founding population passes the bands; switch stays OFF).
@@ -217,7 +225,7 @@
 > **2026-10-03 — R2b (governance and weather gaps) on `m5i-r2b-governance-fixes`, cut from `m5-integration` @ `f1fe76f`;
 > NOT merged, NOT on `main`.** D-021 unrest-lite tax brake (Dignity bound to the tax burden → levy grievance → protest
 > drag, discharge, uprising); weather correlation over geographic distance; Age military milestones need an
-> age-appropriate formation (pending on M6). Founded golden `1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b`.
+> age-appropriate formation (pending on M6; *2026-10-03 rebase: recruitment is now M7 Battle Layer*). Founded golden `1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b`.
 > Suite MEASURED in Release: Sim.Tests 1418 / 0 / 6, Sim.Ui.Tests 472 / 0 / 0. Record:
 > `docs/m5-integration-coherence-matrix.md` §6. Verify against git.
 
@@ -405,7 +413,7 @@ M4 schema and nothing else. `DrivenGolden_Seed42Turn300` does not, which isolate
 fix as its second, behavioural cause. `ci.yml`'s `FOUNDED_GOLDEN` moved with its test.
 
 **Open change requests awaiting director ruling:** CR-005 (M5 ownership of Research/Technology/
-Institutions) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by
+Institutions — *2026-10-03 roadmap rebase places research/knowledge/technology at M6*) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by
 the author; the record stands) · CR-008 (money owner) · CR-009 (era gates) · CR-010 (institution
 definition) · D-042 §14.1 (D-018 income-column staleness).
 

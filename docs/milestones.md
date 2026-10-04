@@ -1,5 +1,88 @@
 # Milestones
 
+## Roadmap rebase 2026-10-03 (Director) — AUTHORITATIVE MILESTONE SEQUENCE
+
+**Superseded 2026-10-03 (Director roadmap rebase, revised).** This replaces every earlier ordering —
+the Spine v3 ladder (M6 knowledge, M7 politics, M9 Ancient Vertical Slice, M10+ era expansions),
+D-011 §6's resequence (M6 Battle Layer, M7 knowledge, M8 politics, M10 Ancient Vertical Slice,
+M11+ era expansions), and the handoff/ledger reading "M5 governing loop · M6 battle · M7 knowledge ·
+M8 politics". "Ancient Vertical Slice" and "Era Expansions" are obsolete as milestone names. Those
+texts are kept as history, each with a pointer here.
+
+| M | Milestone | Status |
+|---|---|---|
+| M0 | Kernel | COMPLETE |
+| M1 | Walking Skeleton | COMPLETE |
+| M2 | Demography / Food | COMPLETE |
+| M3 | Production / Markets | COMPLETE |
+| M4 | Empire / Strategic Foundation | COMPLETE (closed at its exit gate) |
+| **M5** | **Governing Gameplay** | **CURRENT — in progress, being finished, NOT complete** |
+| **M6** | **Knowledge / Research / Technology** | NEXT (large) |
+| M7 | Battle Layer | future |
+| M8 | Politics / Diplomacy | future |
+| M9 | Society | future |
+| M10 | Integrated Civilization Simulation | future |
+| M11+ | Depth & Content Expansion | future (sequence intentionally open) |
+
+### Dependencies
+
+M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:
+
+- **M5 — Governing Gameplay** establishes the governing/gameplay foundation (taxation, budget,
+  authority, laws-lite, legitimacy, player agency) on which later milestones act.
+- **M6 — Knowledge / Research / Technology** establishes the authoritative Knowledge → Capability
+  layer and its vocabulary.
+- **M7 — Battle Layer** CONSUMES M6's authoritative technology/capability state. No parallel tech
+  vocabulary inside the battle layer, and no "generic battle now, tech later". Illustrative only:
+  Gunpowder / Bronze / Industrial research → capability → legal military assets → the Battle Layer
+  fields them. Military realization previously labelled "M6 recruitment" / "M6 battle" (ADR-033
+  decision 11, D-043, D-047, ADR-031, the deferred-entity plan) is retargeted to M7; D-011's battle
+  mechanics are unchanged — only their milestone number and their dependency on M6.
+- **M8 — Politics / Diplomacy** consumes governance, knowledge and military state and FEEDS BACK
+  into governance, military, knowledge and society. It does not wait for the Battle Layer to be
+  "strictly complete".
+- **M9 — Society** (culture, religion, social structure, opinion, disease/crisis) consumes and feeds
+  back into all preceding systems.
+- **M10 — Integrated Civilization Simulation** integrates and validates the complete civilization
+  model — demography, economy, production, governance, research, knowledge, capabilities,
+  realization, adoption, infrastructure, military, politics, diplomacy, society and Age progression —
+  across the WHOLE Age ladder A1–A9 as one coherent simulation, not era-specific games. Ancient
+  content is not a prerequisite for later Ages.
+- **M11+ — Depth & Content Expansion** adds continued depth: technology/content, institutions,
+  military assets, political/social systems, infrastructure, industries, applications, historical
+  coverage, mechanics, calibration, AI, world detail, refinement and balancing. The exact sequence is
+  intentionally open. It is NOT "adding the later Ages": all nine Ages already belong to the model.
+
+### M6 scope (roadmap level; detailed rules belong to the M6 spec)
+
+M6 is large and substantive: the Technology and Civics trees; research points (RP) and progression;
+prerequisites; Eureka / foreign-exposure acceleration; persistent civilization-owned knowledge;
+capability acquisition; research-gated actions; realization requirements and the capability →
+realization chain; knowledge diffusion; universities and research modifiers; Age integration;
+tech-dependent economic, infrastructure and military capabilities; corpus gameplay audit; automatic
+propagation of authored consequences into legal gameplay; simulation-side rejection of illegal
+actions; UI exposure of legal actions; save/load/replay/determinism coverage; tech-dependent content
+and assets.
+
+*Early work, not completion:* substantial research/knowledge infrastructure was built early on the
+unmerged integration branches — the research engine (ADR-029, ADR-030), Ages (ADR-031), the
+research-driven unlock pipeline and universities. M6 owns that work and will review, reconcile and
+complete it. M6 is NOT done, and this work is not reassigned to M5.
+
+### Ages are a simulation dimension, not development milestones
+
+The nine Ages — A1 Prehistoric/Stone · A2 Neolithic/Agricultural · A3 Bronze · A4 Iron · A5
+Classical/Imperial · A6 Medieval · A7 Early Modern · A8 Industrial · A9 Modern/Contemporary — run on
+the same systems. Development is never "build A1 → validate A1 → build A2 …". The Age/research
+distinction stands: research completion does not advance an Age, and an Age does not simply unlock a
+node. The chain is research → knowledge/capability → realization (institutions, infrastructure,
+materials, personnel, production, construction, logistics, geography) → adoption/realized state →
+Age eligibility evaluated from simulated state. This is not a disguised tech tree.
+
+Every other ratified decision (determinism, RP, Eureka, costs, Ages, MobileAgents, transport, the M4
+and M5 rules, battle mechanics, the capability architecture) is unchanged by this rebase.
+
+
 | M | Scope (one line) | Exit date | Exit commit | Tag |
 |---|---|---|---|---|
 | **M0 — Simulation kernel** | Turn executor, state tables, PCG32 RNG, integer-day clock + era table, Ledger with exact conservation, canonical snapshots/hash/replay, determinism harness (in-process + cross-process CI gates), headless CLI + bench. *No game.* | 2026-07-20 | `2702293` (+ closure docs) | [`m0-exit`](../../tags/m0-exit) |
@@ -323,7 +406,7 @@ feedable food-influx limit is a fertility multiplier, not a serialized cap).
 
 ### WHAT M4 DELIBERATELY DID NOT DELIVER
 
-**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6, and under GOV-4 §1 a
+**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6 (*superseded 2026-10-03, Director roadmap rebase: the Battle Layer is now M7, after M6 Knowledge / Research / Technology — see the top of this file*), and under GOV-4 §1 a
 later decision outranks the Spine's earlier "Conflict v1 at M4". Recorded as a certified exclusion,
 not an omission.
 

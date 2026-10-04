@@ -1,5 +1,9 @@
 # Research capability ownership matrix (D-046 G3)
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+> Its "M6 battle layer" / "M6 formation system" / "siege mechanics … M6" now read **M7 Battle Layer**, which consumes M6's capability state.
+
+
 **Status:** REQUIRED before M5 — the integration contract between the research corpus and the simulation
 (D-046 G3). **Design only:** every change listed here is for the M5 integration packets; none is implemented,
 because none is needed to make the research schema internally valid (G3). Nothing here rules anything: each

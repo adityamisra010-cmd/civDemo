@@ -34,7 +34,7 @@ capacity term today; adding one is a new mechanism and needs its own packet.
 The candidates are `building.mint`, `inst.mint_institution`,
 `inst.coined_wage` (money/tax loop, ADR-033 D4), `inst.law_code`, `inst.legal_code_roman`, `inst.aramaic_admin`
 (governance reach / unrest-lite brake, R2b), `building.library`, `inst.library`, `building.school` (research
-stage), `building.city_wall` (revolt/defence — but the defensive effect is M6 combat, so only its construction
+stage), `building.city_wall` (revolt/defence — but the defensive effect is M7 combat (was "M6" before the 2026-10-03 rebase), so only its construction
 would be M5), `building.harbour`, `building.lighthouse` (trade, now research-gated by R2a).
 
 ## C. Infrastructure with existing research, structurally important
@@ -54,10 +54,13 @@ and shipping are the natural next consumers of the R2a Trade gate but alter tran
 `building.chemical_works`, `building.refinery`, `building.printing_house`, `inst.textile_workshop`,
 `inst.standard_threads`, `inst.guild`.
 
-## E. Military/unit realization — owned by M6 (do not pull forward)
+## E. Military/unit realization — owned by M7 Battle Layer (do not pull forward)
+
+*(2026-10-03 roadmap rebase: heading and text previously said M6; **M7 Battle Layer**, which follows M6 Kheading and text previously said M6;ledge / Research / Technology.)*
+
 
 All 23 `unit.*` entities (archers … war_galley, tank, icbm, …) and `building.castle`, `building.bastion_fort`,
-`building.dry_dock`, `inst.military_medicine`. Recruitment and battle are M6 (ADR-033; decision 11).
+`building.dry_dock`, `inst.military_medicine`. Recruitment and battle are M7 (ADR-033; decision 11 — recorded there as M6 before the 2026-10-03 roadmap rebase). They consume M6's research/capability state.
 
 ## F. Remaining institutions
 
