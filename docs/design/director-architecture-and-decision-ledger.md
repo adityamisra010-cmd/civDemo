@@ -1620,6 +1620,11 @@ relied on.
 - **What it is.** The frozen-ladder reading that CR-005 questions for research. CR-005 is OPEN on MAIN and
   PR #10; only the unmerged `m5-full-build` marks it RULED (Option C) (R6.1).
 - **Not ruled here.** Development-milestone placement (R6.1).
+- **Superseded 2026-10-03 (Director roadmap rebase).** The sequence named in this item's heading (M6 battle, M7 knowledge) is superseded by the
+  Director's roadmap rebase: M5 Governing Gameplay (current) · M6 Knowledge / Research / Technology · M7 Battle
+  Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. The heading's
+  "NOT superseded" status is historical as of this date. Part I's verbatim text is untouched. Record:
+  `docs/milestones.md` §"Roadmap rebase 2026-10-03".
 
 **R4.19 — Handoff, "10-year atomic turn" — HISTORICAL.**
 - **What it describes.** The M4-era first dt band.
@@ -1686,6 +1691,8 @@ D-043 F.4 records the term collision (UNMERGED-B).
 **Development milestones** are the build ladder:
 - The order M0→M11+ is frozen (`spine-s8-governance-freeze.md:17`).
 - `CLAUDE.md:10` names the current milestone: M4.
+- *2026-10-03 (Director roadmap rebase):* `CLAUDE.md:10` now names M5 Governing Gameplay as current (being finished),
+  with M6 Knowledge / Research / Technology next and M7 Battle Layer after it.
 
 **CR-005** (MAIN, OPEN) is about development milestones:
 - **Its question.** Does placing a Research, Technology & Institutions architecture packet in M5 override

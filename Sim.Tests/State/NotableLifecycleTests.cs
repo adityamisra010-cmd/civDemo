@@ -10,7 +10,7 @@ namespace Sim.Tests.State;
 /// the Ledger — the property Option B was taken for".
 ///
 /// So these tests are about CONSERVATION, not about generals. There is no
-/// AutoResolver here, no competence, no traits, no battle: that is M6, and
+/// AutoResolver here, no competence, no traits, no battle: that is M7 (Battle Layer), and
 /// m4-spec §1.6 keeps it there.
 /// </summary>
 public class NotableLifecycleTests
@@ -236,10 +236,10 @@ public class NotableLifecycleTests
     }
 
     [Fact]
-    public void T48_ShipsNoBattleContract_TheResolverIsM6()
+    public void T48_ShipsNoBattleContract_TheResolverIsM7()
     {
         // Scope fence as a test so it cannot rot. m4-spec §1.6: "Strategic war is
-        // AutoResolver ONLY at M4" — and the resolver itself is deferred to M6, so
+        // AutoResolver ONLY at M4" — and the resolver itself is deferred to M7 (Battle Layer), so
         // T4.8's notables half must carry no battle vocabulary at all.
         // CODE, not prose: the file's own comments name BattleSetup/BattleOutcome
         // to say they are absent, and a fence that fired on its own documentation

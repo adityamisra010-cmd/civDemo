@@ -32,7 +32,7 @@ CLASSES = [
     ("C", "Knowledge-only / modifier", "capability strings or immediate effects, no realizing link"),
     ("D", "Institution prerequisite", "gates a REALIZED institution (a founding project) or the research stage"),
     ("E", "Infrastructure prerequisite", "gates a road class RoadDevelopmentSystem builds"),
-    ("F", "Military / unit unlock", "gates a unit entity (load-validated; recruitment is M6)"),
+    ("F", "Military / unit unlock", "gates a unit entity (load-validated; recruitment is M7 Battle Layer)"),
     ("G", "Application / realization", "gates a building a construction project builds"),
     ("H", "Repeatable", "a repeatable node (D-044 T6 / D-046 G4)"),
     ("I", "Content-only / descriptive", "no capability string, no effect, no entity"),
@@ -209,7 +209,7 @@ def build():
     for eid, e in entities.items():
         if e["requires"] and not consumers.get(eid):
             disc.append(("deferred", eid, f"{e['kind']} entity requires `{e['requires']}`; no system of this milestone realizes it",
-                         "DEFERRED — " + ("recruitment is M6 (ADR-033 D7)" if e["kind"] == "unit"
+                         "DEFERRED — " + ("recruitment is M7 Battle Layer (ADR-033 D7)" if e["kind"] == "unit"
                                           else "no owning system yet; knowledge eligibility is shown in the trees and lenses only")))
         if e.get("unresolved"):
             disc.append(("unresolved", eid, f"requirement names declared-unresolved {e['unresolved']} (reads false)", "content (ADR-029)"))

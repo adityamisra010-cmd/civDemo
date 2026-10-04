@@ -1,5 +1,9 @@
 # D-044 — RESEARCH AND PROGRESSION: ONE COGNITIVE LOAD POINT POOL, TWO TREES, FIVE SUBTREES
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+> T1's milestone-placement tension (knowledge at M7) is resolved by the rebase: knowledge/research is **M6**. All D-044 research rulings are unchanged.
+
+
 **Director design ruling.** Decision record — exempt document class under S8 §4. It records, verbatim, the
 Director rulings delivered on **2026-09-30** in the instruction that opened the research-foundation
 implementation. It follows the ADR-028 precedent: rulings decided outside the tree are written into a file so

@@ -47,7 +47,7 @@ Legend as in the audit; **FIXED** cites the commit; **REMAINS** is an open gap o
 | M4h | Disasters | OK | hazard 0.0, CR-016 OPEN | OK | OK | OK | OK | |
 | R | Research | OK | AI researches (`72c0ac4`, `a391471`) | research on the status band ("research idle [K]") | FIXED [E11] | MEASURED (V: mid-research, after completion) | MEASURED (V xproc: kind 6) | ResearchCostModifiers now written by InstitutionsSystem |
 | A | Ages | OK | military milestones met by the founding warband [E29] — REMAINS | OK | FIXED [E12] | MEASURED (V: before/at decision, after entry) | MEASURED (xproc kind 7) | thin mechanical meaning [E28] — REMAINS |
-| U | Units | OK | OK | OK | modernize via AI Age | OK | OK | no military orders (M6) |
+| U | Units | OK | OK | OK | modernize via AI Age | OK | OK | no military orders (M7 Battle Layer) |
 | T | Roads | OK (frozen at `997824b`) | OK | FIXED [E10] (U3) | FIXED [E9] (`b2d2902`) | MEASURED (V: founded world, mid partial route 62%) [E39] | MEASURED (xproc kind 8) | straight geometry — REMAINS |
 | G | Governing loop | FIXED (S1) | research gate | tax control (`TaxControlTests`) | AI levies (`5e7fa35`) | MEASURED (V: before issue, issued-not-in-effect, in force) | MEASURED (xproc kind 5) | D-021 tax pushback — REMAINS |
 | I | Institutions (universities) | FIXED (S3, v31) | lifecycle + brake | institutions view | AI founds | MEASURED (V: mid maturation) | in-process | |
@@ -77,11 +77,11 @@ Legend as in the audit; **FIXED** cites the commit; **REMAINS** is an open gap o
 2. **Recipes are not knowledge-gated** [E15] — Stone-Age bronze casting and pottery before research.
    ADR-033 D1 keeps production unchanged; touches calibration.
 3. **Ages' thin mechanical meaning** [E28] and **the founding warband satisfying every military
-   milestone** [E29] — needs recruitment (M6) or a content ruling.
+   milestone** [E29] — needs recruitment (M7 Battle Layer; was "M6" before the 2026-10-03 rebase) or a content ruling.
 4. **Dormant M4 conflict loop** [E16–E19] — no colony, starvation, revolt or raid in the order-free
    reference runs; CR-016 open.
 5. **Weather correlation rides road-aware distance** [E14] — whether it should use geographic distance.
-6. **No military orders** — armies and mobile agents are M6.
+6. **No military orders** — armies and mobile agents are M7 (Battle Layer; was "M6" before the 2026-10-03 roadmap rebase).
 7. **Straight road geometry** — routes are drawn and costed straight (transport frozen).
 8. **Capital relocation** [E22] — a revolted capital stays the capital; governance reach is anchored on it.
 9. **Revolted settlements refuse orders** — once control is lost, labour/construction orders are refused
@@ -103,7 +103,7 @@ Legend as in the audit; **FIXED** cites the commit; **REMAINS** is an open gap o
 - **Action surface.** New `Production` domain (crafts known, generic over goods.json); university founding (the
   Institutions domain, previously never rendered) joins the build block; notices announce each newly researched action.
 - **Audit.** `docs/research-gameplay-unlock-audit.md` (script + CI `--check`): 431 nodes classified A–J; 115 deferred
-  entities (units M6; buildings, infrastructure and institutions with no realizing system); 2 baseline-claim findings
+  entities (units M7; buildings, infrastructure and institutions with no realizing system); 2 baseline-claim findings
   (weaving, toolmaking) left to the Director.
 - **Goldens (MEASURED).** founded `74306d6a…` → `68c629b6…` (ci.yml FOUNDED_GOLDEN moved; two CLI processes agree);
   driven `65d53a01…` → `7aa20e40…`; FirstReign `481d3717…` → `158bdd4c…`. Recipe-knowledge attribution control: the
@@ -176,7 +176,7 @@ asks the D-037 control relation. This is the intended consequence (the RevoltSys
 happiness stops obeying"), not a world deadlock: the settlement keeps people, stocks, standing allocation and output,
 and its grievance discharges (pinned: `UnrestTests.ExtremeTax_…_TheEpisodeBurnsOut_Deterministically`; turn-exact
 refusal: `FoundedHarnessTests`, revolt at 97). It never returns to control: re-annexation / reconquest have no ratified
-mechanism in M5 (M6 war, later politics) — DEFERRED, not invented. Uncontrolled development is stream R2a's.
+mechanism in M5 (M7 battle-layer war, M8 politics — 2026-10-03 rebase) — DEFERRED, not invented. Uncontrolled development is stream R2a's.
 Capital loss: no succession or relocation semantics exist in any ratified record; the existing L6 rule stands — a seat
 the Empire no longer holds administers nothing (reach 0, levy falls nowhere), total and pinned
 (`AnEmpireThatNoLongerControlsItsCapital_ReachesNothing_SoItsTaxFallsNowhere`). It is now REACHABLE in play (the 99 %
@@ -218,10 +218,10 @@ Rig `ScarcityConflictReachabilityMeasurement` (skipped): canonical founded world
   that condition never holds. Unit-tested reachable; not a defect; not retuned.
 - **Scarcity itself** is rare by the CR-003 ruling (a frontier world is not Malthusian until land fills) — not changed.
 
-### 6.6 Age military milestones (IMPLEMENTED; dependency PENDING on M6)
+### 6.6 Age military milestones (IMPLEMENTED; dependency PENDING on M7 Battle Layer)
 
 Every Age's Military Realization milestone now counts only formations whose CURRENT identity is realized at or after the
-Age being entered (`minIdentityAge`, loader-enforced ≥ that Age) and carries `pending: "M6 recruitment …"`; the Age
+Age being entered (`minIdentityAge`, loader-enforced ≥ that Age) and carries `pending: "Battle Layer (M7) recruitment …"` (retargeted 2026-10-03 roadmap rebase; was "M6 recruitment"); the Age
 panel labels it "pending". Under free modernization (ruling 18) the founding line holds Age A−1's identity on the eve
 of A, so in M5 no military milestone can hold — honestly, never manufactured. Measured effect (dev world, seed 42,
 `AiAgeAdvancementIntegrationTests`): player A2 eligibility turn 275 → 338, AI 345 → 385. No Age becomes unreachable:

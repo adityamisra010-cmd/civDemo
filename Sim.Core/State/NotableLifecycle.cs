@@ -30,7 +30,7 @@ namespace Sim.Core.State;
 /// places at once.
 ///
 /// NOT HERE, DELIBERATELY: competence, traits, experience, BattleSetup,
-/// BattleOutcome, or any resolver contract. Those are M6.
+/// BattleOutcome, or any resolver contract. Those are M7 (Battle Layer).
 /// </summary>
 public static class NotableLifecycle
 {

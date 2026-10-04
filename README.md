@@ -35,6 +35,11 @@ and escalated reasons.
 Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution) and
 [`docs/m4-spec.md`](docs/m4-spec.md) (current milestone spec); [`docs/m3-spec.md`](docs/m3-spec.md) is the previous one.
 
+**Roadmap (Director rebase, 2026-10-03):** M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production /
+Markets · M4 Empire / Strategic Foundation (all complete) · **M5 Governing Gameplay (current, being finished)** · M6
+Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. See [`docs/milestones.md`](docs/milestones.md). (The spec pointer above predates M5 and is
+left as written; M5's decisions are in `docs/adr/adr-033-m5-integration-pass.md`.)
+
 ## Prerequisites
 
 - .NET 10 SDK (`dotnet --version` → 10.0.x)

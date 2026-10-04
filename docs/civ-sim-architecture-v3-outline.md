@@ -90,6 +90,10 @@ Template trimmed from 16 to 12 fields: Purpose & realism target · Fidelity tier
 | Military full (ops, siege, naval) | M9+ | T2 | battle module behind replaceable interface |
 | Espionage/intel uncertainty | M10+ | T3 | estimates-with-error UI only at first |
 | Characters/notables | M10+ | T3 | light layer; no romance sim |
+
+> *Superseded 2026-10-03 (Director roadmap rebase):* the milestone column above is the original v3 placement. Under the
+> current ladder knowledge & diffusion is **M6**, the battle layer **M7**, politics/institutions & diplomacy **M8**,
+> religion/culture/health **M9**, Integrated Civilization Simulation **M10**, Depth & Content Expansion **M11+**. See `docs/milestones.md`.
 | Finance (banking, debt, panics) | era exp. | T2 | staged with early-modern era |
 | Media/nationalism | era exp. | T2 | reuse opinion engine |
 | Chronicle engine | continuous | lite→T1 | event log with names ships at M2 |
@@ -100,6 +104,20 @@ Template trimmed from 16 to 12 fields: Purpose & realism target · Fidelity tier
 ---
 
 ## TIER 2 — BUILD SPINE (milestones; every one ends runnable + tested; autoplay green from M2)
+
+> **Superseded 2026-10-03 (Director roadmap rebase).** The Director has re-sequenced the ladder (explicitly authorizing this edit to the frozen Spine):
+> M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion.
+> M5 establishes the governing/gameplay foundation; **M6** establishes the authoritative
+> research/knowledge/capability vocabulary (Technology and Civics trees, RP, prerequisites, Eureka,
+> persistent knowledge, capability acquisition, research→capability→realization, diffusion,
+> universities, Age integration, legal-action exposure and simulation-side rejection); **M7 Battle
+> Layer** consumes M6's technology/capability state (no parallel tech vocabulary); M8 politics &
+> diplomacy; M9 society; M10 Integrated Civilization Simulation; M11+ Depth & Content Expansion. Full record and M6 scope:
+> `docs/milestones.md` §"Roadmap rebase 2026-10-03". "Ancient Vertical Slice" and "Era expansions" are obsolete milestone names: M10 integrates and validates the whole
+> model across all nine Ages A1–A9 as one simulation (ancient content is not a prerequisite for later Ages), and M11+ adds
+> depth, not "later Ages". **Ages are a simulation dimension, not development milestones** — never "build A1 → validate A1 →
+> build A2". The original v3 ladder below (and the
+> placement column of the system table above) is retained unedited as history.
 
 - **M0 — Kernel.** Turn executor, state tables, RNG registry, determinism harness (same seed ⇒ identical hash over 1,000 turns), CLI runner, CI with conservation property tests. *No game.*
 - **M1 — Walking skeleton (the big restructure).** Small generated map, one settlement, minimal pop+food loop, end-turn button, crude map + 3 numbers + 1 decision. **Playable-ugly inside weeks, not months.** v2 deferred playability to M5; for a motivation-funded solo project that is fatal.
