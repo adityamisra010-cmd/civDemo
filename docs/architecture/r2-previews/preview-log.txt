@@ -1,19 +1,19 @@
 R2a preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world
 turn-1-a1: Turn 1, canonical founded world (seed 42, 12 settlements), Age I; turn 0, world hash 4d05a7f2dd5766236edb75f6860e8e8ff2f4c3cdefa604bf8d46490b1bdd954c, domains Labour/Research/Construction/Military/Standing/Production, standing [Settlement founding, Basic food and resource gathering, Basic internal construction, Migration and resettlement, Basic fishing, Basic shelter, Basic paths and overland movement, Hunting], trade units moved this turn 0
-  turn-1-a1-screen.svg  sha256 8e05d34860432cde4cf635c7a6f79e8bae4018fa64c43c34013c0bc2bf534d66
-  turn-1-a1-panel.svg  sha256 e9e2d0ea6d7b70345870e9770c98501410725fe66786e789aa88379e2cf2803b
+  turn-1-a1-screen.svg  sha256 2b35ff8c094e49e42ceda00d3922d9a77b67789c7481ec12bfcd7831535ac81e
+  turn-1-a1-panel.svg  sha256 1516826907a8c81e9321f4d38385c790d3e242f3943aaee3dc5742fecc0ed9f9
 pre-trade-a3: Researched, pre-Trade: crafts, a crop, taxation, a road class and Trade's prerequisites known; Age III; turn 3, world hash b3f38f6e6246cf18f6a5744aa85ed89c2bdfaddf780e0190ab5a6155d1c32dd0, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production, standing [Settlement founding, Basic food and resource gathering, Basic internal construction, Migration and resettlement, Basic fishing, Basic shelter, Basic paths and overland movement, Hunting], trade units moved this turn 0
-  pre-trade-a3-screen.svg  sha256 a109d2ae8cca63ac0da7b1114487739245e9d1fcb861b3782cb069c1d6f1e4aa
-  pre-trade-a3-panel.svg  sha256 6d4abba2cf827ea480af8d1cfac6971d865f92cfb9e9677ef1672f1ba68b1240
+  pre-trade-a3-screen.svg  sha256 6792025316a3a85161a413c268d729ee5e5e6f74f7c25a349a6eec7a0f471e1a
+  pre-trade-a3-panel.svg  sha256 de7d67c8532a9d289c66b84aad22cdcbdca3241630782e902259b503d764ccf2
 post-trade-a3: Post-Trade: the same world with Trade researched through the order pathway; Age III; turn 30, world hash a17ae1497921ec09cfca928ed5cae5d7290f76b25ab94294f94adfc035ba55cb, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production, standing [Settlement founding, Basic food and resource gathering, Basic internal construction, Migration and resettlement, Basic fishing, Basic shelter, Basic paths and overland movement, Hunting, Trade], trade units moved this turn 8
-  post-trade-a3-screen.svg  sha256 52d90f2fda53a30e63571afe4b4367abd94dbc48bcebe0d7412db347e83a8941
-  post-trade-a3-panel.svg  sha256 a13dad5888a93b17e97ab7263f0ab4d0dd58d352e1a738d99ea16e9645975c81
-city-state: A city-state: settlement 11 released from the realm at founding and left to develop for 600 turns; turn 600, world hash 1b41870c82cc24cc630a88e25255beb412586392ed22a677fd16e45e99f90c34, domains Labour/Research/Construction/Military/Standing/Production, standing [Settlement founding, Basic food and resource gathering, Basic internal construction, Migration and resettlement, Basic fishing, Basic shelter, Basic paths and overland movement, Hunting], trade units moved this turn 0
-  city-state-screen.svg  sha256 d4c8712724dc0b5d91eefb96b0193ae4b842e4b5ae1c4fcb9c36ec61fbafae6a
-  city-state-card.svg  sha256 4c17532e966e60bf0ba2d2b73a807a7137e5249e5b9b607c589dd9e46f3386b9
+  post-trade-a3-screen.svg  sha256 19a7963fdd1881cf038127a53d65167fb2b5b15c37f631c461dc852ba1193be4
+  post-trade-a3-panel.svg  sha256 aa82cc51cd175dceb5e9e701f4875b3508aa130454c22b6714d5efb447e0657f
+city-state: A city-state: settlement 11 released from the realm at founding and left to develop for 600 turns; turn 600, world hash efd3a17e99b7331d7101cafe599535c618e874477a4c7e735d5a19b662ebe1f8, domains Labour/Research/Construction/Military/Standing/Production, standing [Settlement founding, Basic food and resource gathering, Basic internal construction, Migration and resettlement, Basic fishing, Basic shelter, Basic paths and overland movement, Hunting], trade units moved this turn 0
+  city-state-screen.svg  sha256 70505326db905519f6ce8530a71e83f9537286c299dbe1ab24a53b64b005ddd7
+  city-state-card.svg  sha256 8f3ca3487750fd09e41c0257026a24f1b774c6f6f07ce7f285b54df58fe7fe25
     City-state: Dubil (settlement 11) — no Empire controls it
-    Turn 600 · population 7785
-    Research: 10.50 RP/turn (city-state pace 0.25 × its own population's curve)
+    Turn 600 · population 7109
+    Research: 9.85 RP/turn (city-state pace 0.25 × its own population's curve)
     Own accumulated knowledge:
       • Pressure flaking (A1)
       • Compound adhesives (A1)
@@ -22,8 +22,7 @@ city-state: A city-state: settlement 11 released from the realm at founding and 
       • Pigment processing (A1)
       • Root and tuber cultivation (A2)
       • Oldowan flaking (A1)
-      • Prepared-core (Levallois) (A1)
-      researching: Blade production (83 / 260 RP)
+      researching: Prepared-core (Levallois) (478 / 520 RP)
     Crafts legal here (CraftingQuery):
       • weaving
       • toolmaking
