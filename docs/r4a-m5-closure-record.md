@@ -172,3 +172,47 @@ Under the shipped values no measured arm rises from tax alone within 300 turns.
 - The ledger fix and the tax offset move none of these pins: there is no negative staple request, and no run is
   taxed.
 - `ci.yml` FOUNDED_GOLDEN has been moved. Every older layer twin also strips the forager layer.
+
+## 8. Other measured movements caused by the forager layer (re-pinned with history comments)
+
+**Re-pinned values (MEASURED):**
+- **Founded ordered twin** (`FoundedHarnessTests`): settlement 0 now revolts at turn 58, where it revolted at 97.
+  The 30% labour swing of turn 33 starves it on wild food. The later orders are refused.
+- **AI empire** (`AiEmpireIntegrationTests`):
+  - Age decided and in force: 235/236 → 238/239;
+  - road: 141/142 → 143/144;
+  - levy: 537/538 → 546/547. This is still inside the ci.yml 600-turn leg.
+- **Dev A2 eligibility** (`AiAgeAdvancementIntegrationTests`): AI 385 → 394, player 338 → 346.
+- **Artisan latch** (`ClassSystemTests`): 70 → 71.
+- **Glass Box emptying turn** (`GlassBoxUiTests`): 11 → 7.
+- **Driven world dwelling decay** (`WorldReconciliationTests`): decay returns, first on turn 162, with 85 dwellings
+  over 22 turns. The positive sample is restored.
+- **Store-loss vacuity floor** (`StoreLossTests`): 2,500 → 2,000; 2,463 was measured.
+
+**Rigs that hand-compute from, or were calibrated on, the cultivated rates.** These now run on
+`TestConfigs.PreForager`:
+- the land-capped weather rig;
+- the PathBuild order rig;
+- the DemographyRetune rigs;
+- InstitutionEffects and InstitutionBrake;
+- the NeedsGrievance famine contrast;
+- the Unfed world.
+
+## 9. Validation (MEASURED, Release, at 9648f7b)
+
+- **Sim.Tests:** 1458 passed, 0 failed, 6 skipped (1464 total). This includes the CalibrationBattery, the
+  save/load battery, the replay tests and the attribution controls.
+- **Sim.Ui.Tests:** 473 passed out of 473.
+- **Gates, all OK:**
+  - banned-constructs;
+  - read-isolation;
+  - readonly-proof;
+  - research content audit, calibration report and gameplay-unlock audit (`--check`).
+- **ci.yml determinism legs, run locally:**
+  - orderless, 2 processes over 400 turns;
+  - ordered vs. replay over 400 turns;
+  - founded, 2 processes over 300 turns, matching the pinned golden 02c7f9eb…;
+  - founded ordered vs. replay over 300 turns;
+  - AI-empire leg over 600 turns: 2 processes, replay and inspect (`reproduction VERIFIED`, 193 orders, kinds 3–8).
+- **Bench:** `sim bench --seed 42 --turns 300 --founded` took 29,860.75 ms, against 29,167.07 ms at 12754e3
+  (+2.4%). The two runs shared the machine with other agents.
