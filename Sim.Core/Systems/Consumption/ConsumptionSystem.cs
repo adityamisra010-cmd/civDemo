@@ -50,6 +50,15 @@ public readonly record struct ConsumptionTables(
 /// REMAINDER SEMANTICS (documented): ConsumeRemainder carries only the sub-unit
 /// fraction of demand. A clamp shortfall is NOT carried forward as remainder —
 /// hunger is recorded in the deficit ratio, not banked as future double-eating.
+/// R4 (ledger-crash fix): the STAPLE's remainder may also carry a SUBSTITUTION
+/// CREDIT (a negative value). Pass 1 hands the staple each non-staple food's
+/// EXACT shortfall, a signed quantity: a sub-unit fraction lent to the staple
+/// while it is banked in the non-staple's own remainder, repaid (negative) on
+/// the turn that remainder pays out as a whole unit. When the repayment exceeds
+/// the staple's whole request (a settlement whose demand has collapsed), the
+/// staple asks for nothing and the unabsorbed credit is CARRIED in its
+/// remainder, to be settled against its next request — never converted into a
+/// negative ledger amount (which Ledger.Flow rightly refuses) and never dropped.
 ///
 /// DEFICIT RATIO (unchanged in meaning, T2.7/T2.13 consumers depend on it): the
 /// unmet fraction of the settlement's NUTRITIONAL requirement — total food
@@ -219,6 +228,18 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
 
         ref GoodStockRow row = ref stores.Ref(index);
         double want = exact + row.ConsumeRemainder;
+        if (want < 0.0)
+        {
+            // R4 — the violated invariant was "a consumption request is never negative". A net
+            // substitution CREDIT (see the header's remainder semantics) larger than this good's
+            // whole request is not demand: nothing is asked of the store, nothing flows, and the
+            // credit is carried exactly so the demand ledger stays whole. Unreachable for any
+            // non-staple good (its exact demand and remainder are both non-negative).
+            row.ConsumeRemainder = want;
+            row.LastConsumptionDemandUnits = 0;
+            row.LastConsumptionEatenUnits = 0;
+            return;
+        }
         demanded = ConservedMath.WholeUnits(
             want, $"consumption demand (settlement {settlement.Value}, good {good.Value})");
         eaten = ctx.Ledger.Flow(
