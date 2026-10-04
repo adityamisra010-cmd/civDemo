@@ -224,7 +224,7 @@ every push and pull request.
 → download `sim-ui-win-x64-5c364b5` (Windows x64 zip; artifact expires after 30 days; sign in to GitHub to download).
 Unzip, run `Sim.Ui.exe`. Try `--ai-empires 1` for an AI rival; F12 or `--dev` opens the developer panels;
 `--resume <session-dir>` continues a saved session. Turn 1 now lives on gathered wild food (agriculture must be
-researched); the tax edict appears only once the Taxation civic is researched; researched); later-Age military milestones are pending the Battle Layer (M7).
+researched); the tax edict appears only once the Taxation civic is researched; later-Age military milestones are pending the Battle Layer (M7).
 
 No toolchain needed — download, unzip, run `Sim.Ui.exe`.
 
