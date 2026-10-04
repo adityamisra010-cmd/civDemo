@@ -221,7 +221,7 @@ Rig `ScarcityConflictReachabilityMeasurement` (skipped): canonical founded world
 ### 6.6 Age military milestones (IMPLEMENTED; dependency PENDING on M7 Battle Layer)
 
 Every Age's Military Realization milestone now counts only formations whose CURRENT identity is realized at or after the
-Age being entered (`minIdentityAge`, loader-enforced ≥ that Age) and carries `pending: "M6 recruitment …"` (data string predates the 2026-10-03 rebase; recruitment is now M7 Battle Layer); the Age
+Age being entered (`minIdentityAge`, loader-enforced ≥ that Age) and carries `pending: "Battle Layer (M7) recruitment …"` (retargeted 2026-10-03 roadmap rebase; was "M6 recruitment"); the Age
 panel labels it "pending". Under free modernization (ruling 18) the founding line holds Age A−1's identity on the eve
 of A, so in M5 no military milestone can hold — honestly, never manufactured. Measured effect (dev world, seed 42,
 `AiAgeAdvancementIntegrationTests`): player A2 eligibility turn 275 → 338, AI 345 → 385. No Age becomes unreachable:

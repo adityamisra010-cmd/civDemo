@@ -29,7 +29,7 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 259 |
 | D | Institution prerequisite | gates a REALIZED institution (a founding project) or the research stage | 6 |
 | E | Infrastructure prerequisite | gates a road class RoadDevelopmentSystem builds | 4 |
-| F | Military / unit unlock | gates a unit entity (load-validated; recruitment is M6) | 30 |
+| F | Military / unit unlock | gates a unit entity (load-validated; recruitment is M7 Battle Layer) | 30 |
 | G | Application / realization | gates a building a construction project builds | 0 |
 | H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 10 |
 | I | Content-only / descriptive | no capability string, no effect, no entity | 0 |
@@ -169,29 +169,29 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 | deferred | `project.interstellar_probe` | project entity requires `fusion_propulsion`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `project.orbital_launch` | project entity requires `rocket`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `project.probe_acceleration` | project entity requires `laser AND space_solar`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
-| deferred | `unit.aircraft_carrier` | unit entity requires `aircraft AND steam_turbine`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.archers` | unit entity requires `bow_simple`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.artillery` | unit entity requires `cannon_early OR cannon_cast_bronze OR cannon_cast_iron`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.chariot` | unit entity requires `chariot`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.combat_drone` | unit entity requires `combat_drone`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.crossbowmen` | unit entity requires `crossbow`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.heavy_cavalry` | unit entity requires `stirrup`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.helicopter` | unit entity requires `helicopter`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.horse_archers` | unit entity requires `cavalry AND composite_bow`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.icbm` | unit entity requires `icbm`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.ironclad` | unit entity requires `screw_propeller AND iron_hull`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.longbowmen` | unit entity requires `longbow`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.military_aircraft` | unit entity requires `aircraft`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.missile` | unit entity requires `rocket`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.musketeers` | unit entity requires `matchlock OR flintlock`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.nuclear_submarine` | unit entity requires `nuclear_submarine`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.ship_of_the_line` | unit entity requires `ship_of_line`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.siege_engine` | unit entity requires `siege_ram OR torsion_artillery OR trebuchet`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.slingers` | unit entity requires `sling`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.spearmen` | unit entity requires `hafting`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.stealth_aircraft` | unit entity requires `stealth`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.tank` | unit entity requires `tank`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
-| deferred | `unit.war_galley` | unit entity requires `naval_ram`; no system of this milestone realizes it | DEFERRED — recruitment is M6 (ADR-033 D7) |
+| deferred | `unit.aircraft_carrier` | unit entity requires `aircraft AND steam_turbine`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.archers` | unit entity requires `bow_simple`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.artillery` | unit entity requires `cannon_early OR cannon_cast_bronze OR cannon_cast_iron`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.chariot` | unit entity requires `chariot`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.combat_drone` | unit entity requires `combat_drone`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.crossbowmen` | unit entity requires `crossbow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.heavy_cavalry` | unit entity requires `stirrup`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.helicopter` | unit entity requires `helicopter`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.horse_archers` | unit entity requires `cavalry AND composite_bow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.icbm` | unit entity requires `icbm`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.ironclad` | unit entity requires `screw_propeller AND iron_hull`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.longbowmen` | unit entity requires `longbow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.military_aircraft` | unit entity requires `aircraft`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.missile` | unit entity requires `rocket`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.musketeers` | unit entity requires `matchlock OR flintlock`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.nuclear_submarine` | unit entity requires `nuclear_submarine`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.ship_of_the_line` | unit entity requires `ship_of_line`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.siege_engine` | unit entity requires `siege_ram OR torsion_artillery OR trebuchet`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.slingers` | unit entity requires `sling`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.spearmen` | unit entity requires `hafting`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.stealth_aircraft` | unit entity requires `stealth`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.tank` | unit entity requires `tank`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
+| deferred | `unit.war_galley` | unit entity requires `naval_ram`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
 
 ## 5. Every node
 
