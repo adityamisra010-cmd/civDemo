@@ -197,7 +197,11 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         // The SAME sector order: the same packed target, the same kind, the same share and goods.
         Assert.Equal(before.Action.Id, after.Action.Id);
         Assert.Equal((OrderKind?)OrderKind.SectorAllocation, after.Action.Order);
-        Assert.Equal((before.Share, before.Produces), (after.Share, after.Produces));
+        // R4: the same share; the goods text follows the capability — gathered "wild food (grain)" before the crop,
+        // cultivated "grain" after (LabourActivities.HarvestsWildFood, the predicate production's yield reads).
+        Assert.Equal(before.Share, after.Share);
+        Assert.Equal("wild food (grain)", before.Produces);
+        Assert.Equal("grain", after.Produces);
 
         // ...and the control emits exactly the batch it emitted before the crop was known.
         var screen = new ActionSurfaceScreen { Theme = ThemeOf(s1, s1.World) };

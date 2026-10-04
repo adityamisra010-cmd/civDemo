@@ -185,8 +185,13 @@ public class WorldReconciliationTests
         // the dwellings account's non-vacuity is carried by the Built assert
         // above. What decides it is the joint trajectory of ADR-025 and ADR-026
         // (goldens) and, for the famine half, the CR-016 ruling.
-        for (int t = 1; t <= 300; t++)
+        // R4 (2026-10-04, the forager layer, MEASURED on this tree by the agent writing this line): the decay
+        // sample RETURNS. Wild-food harvests leave settlements leaner, homes empty and decay is observed again:
+        // first on turn 162, 85 dwellings across 22 of the 300 turns. The positive sample is restored.
+        Assert.Equal(0, log.At(161)!.Turn.Dwellings.Decayed);
+        for (int t = 1; t < 162; t++)
             Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
+        Assert.True(log.At(162)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 162");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829

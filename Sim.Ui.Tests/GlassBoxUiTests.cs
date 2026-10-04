@@ -512,7 +512,9 @@ public class GlassBoxUiTests
             }
         }
         Assert.Equal(classes[0].Id, emptiedClass);                       // Peasants
-        Assert.Equal(11, session.Observations.LastTurn);
+        // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): the emptying turn is 7 (was 11) — the starved
+        // settlement runs down faster on wild food. The rule pinned is untouched.
+        Assert.Equal(7, session.Observations.LastTurn);
 
         // Next has NOBODY of that class in the settlement, yet its grievance row stands.
         var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));

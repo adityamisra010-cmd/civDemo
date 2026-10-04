@@ -396,7 +396,9 @@ public class ClassSystemTests
         // M5 R2b RE-PIN (2026-10-03; VALUE): latch 71 -> 70, first-present 13 unchanged — MEASURED. The cause
         // is the R2b layer set (weather correlation over geographic distance is the INFERRED one: this rig levies
         // no tax, and no settlement reaches the protest onset); the property is untouched.
-        Assert.Equal(70, latchTurn);
+        // R4 RE-PIN (2026-10-04; VALUE, the forager layer): latch 70 -> 71 MEASURED (first-present 13 unchanged);
+        // the property is untouched.
+        Assert.Equal(71, latchTurn);
         Assert.Equal(13, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);

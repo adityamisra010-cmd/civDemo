@@ -34,6 +34,11 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class InstitutionBrakeTests(ITestOutputHelper output)
 {
+    /// <summary>R4: these rigs measure institutions against the CULTIVATED economy they were calibrated on, so the
+    /// forager layer is stripped (TestConfigs.PreForager); the institutions' own mechanisms are unchanged by it.</summary>
+    private static SimConfig Cfg(long adultsPerUniversity = 100, Func<UniversitiesConfig, UniversitiesConfig>? tune = null) =>
+        TestConfigs.PreForager(UniversityRigs.Cfg(adultsPerUniversity, tune));
+
     private static readonly ResearchContent Research = TestConfigs.Research();
     private static readonly PolityId Player = new(1);
     private const int K = 14;

@@ -79,7 +79,8 @@ public class PathBuildTests
     [Fact]
     public void Order_SetsAllocationRowOnItsTurn_YieldShiftsDtCorrectlyNextTurn_BankAccrues()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // R4: the expected harvest is hand-computed from the CULTIVATED rates, so the forager layer is stripped.
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());
         TurnExecutor exec = ProductionExecutor(cfg, LaborOrder(turn: 2, farmPct: 50.0));
         WorldState world = Founded(cfg);
 

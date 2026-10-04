@@ -64,7 +64,9 @@ public class StoreLossTests
         // MEASURED: 2,895 of 3,600 settlement-turns on the driven world lose
         // grain to the store (the quarry/workshop groups run leaner granaries);
         // the founded world loses on more. The bound guards vacuity, no more.
-        Assert.True(spoiling > 2500, $"{world}: only {spoiling} settlement-turns lost anything to the store");
+        // R4 (forager layer): the driven world MEASURED 2,463 (leaner wild-food stores); the guard is a vacuity
+        // floor, re-set below the measured value.
+        Assert.True(spoiling > 2000, $"{world}: only {spoiling} settlement-turns lost anything to the store");
     }
 
     [Fact]

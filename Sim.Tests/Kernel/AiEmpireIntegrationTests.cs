@@ -112,10 +112,13 @@ public class AiEmpireIntegrationTests
         // granary ordered at turn 9, the first road ordered at 141 (a RoadDevelopments row at 142), the advance
         // decided at turn 235 and in force at 236, the first levy ordered at 547 (a positive rate at 548).
         // S3 (goal union): 19, 9, road 246/247, Age 381/382, levy 305/306. S2 (core-only): 19, 9, no road, 141/142, no tax.
-        Assert.Equal((26L, 9L, 235L, 236L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
+        // R4 RE-PIN (2026-10-04, the forager layer — wild-food harvests until farming is known slow the RP curve;
+        // MEASURED on this tree by the agent writing this line): advance 235/236 -> 238/239; 26 and 9 unchanged.
+        Assert.Equal((26L, 9L, 238L, 239L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
-        Assert.Equal((141L, 142L, 537L, 538L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
+        Assert.Equal((143L, 144L, 546L, 547L), (road.Turn, firstRoad, tax.Turn, firstTax));
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.
         WorldState replayed = WorldFounding.Found(wg, Cfg, 42);

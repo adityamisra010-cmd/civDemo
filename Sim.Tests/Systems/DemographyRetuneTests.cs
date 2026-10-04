@@ -55,7 +55,7 @@ public class DemographyRetuneTests
     /// Cranked yield AND per-farmer output (Leontief: both factors must clear).</summary>
     private static SimConfig FedConfig()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         return cfg with
         {
             Farming = cfg.Farming with
@@ -145,7 +145,7 @@ public class DemographyRetuneTests
         // the deaths charged to cohort 0 before slot-advance promotes the
         // survivors — the model's under-5 loss per 1000 births. (Euler-linear
         // at width 5 by design; the band is the pre-modern 200–300 scale.)
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         cfg = cfg with
         {
             Demographics = cfg.Demographics with
@@ -474,7 +474,7 @@ public class DemographyRetuneTests
     /// </summary>
     private static SimConfig FamineRigFed()
     {
-        SimConfig fed = TestConfigs.Sim();
+        SimConfig fed = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         return fed with
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.6 },
@@ -582,7 +582,7 @@ public class DemographyRetuneTests
         // the carried reservoir/birth-remainder: the reservoir must match
         // BIT-exactly, the births flow person-for-person, and everything ever
         // released is bounded by what was banked (deferred, NOT invented).
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         double[] fertility = new double[Cohorts.Count];
         fertility[15] = 0.1;
         cfg = cfg with
@@ -652,7 +652,7 @@ public class DemographyRetuneTests
         // dt 10 / 5 / 2.5 (the fertile pool sits in the absorbing cohort and
         // the micro-births floor to zero integers, so every input to the
         // reservoir recurrence is dt-independent by construction).
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         double[] fertility = new double[Cohorts.Count];
         fertility[15] = 1e-9; // absorbing cohort: the parent pool never ages away
         cfg = cfg with
@@ -694,7 +694,7 @@ public class DemographyRetuneTests
         // measured spread ≤ 0.001/1000 (the bar is discretization ≪ signal;
         // the signal is +0.76/1000). Founding scaled ×50 so integer flooring
         // stays out of the measurement.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         var scaled = new long[Cohorts.Count];
         for (int c = 0; c < Cohorts.Count; c++) scaled[c] = cfg.Founding.CohortCounts[c] * 50;
         cfg = cfg with
@@ -735,7 +735,7 @@ public class DemographyRetuneTests
         // 0.1/1000·yr bar — the pre-ruling kernel broke here by 4.1/1000
         // (+0.7 flipping to −3.4) and the canonical world died by year
         // +2250. This test exists forever.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
         for (int t = 1; t <= 150; t++) world = exec.Step(world);
@@ -775,7 +775,7 @@ public class DemographyRetuneTests
         // leaves elders behind, and elders are exactly who the mutant would
         // still kill). Fertility and starvation zeroed: base mortality is
         // the isolated observable.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreForager(TestConfigs.Sim());   // R4: rigs calibrated on the cultivated economy
         var uniformProfile = new double[Cohorts.Count];
         Array.Fill(uniformProfile, 1.0);
         cfg = cfg with

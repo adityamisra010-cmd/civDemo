@@ -560,7 +560,8 @@ public class HarvestWeatherTests
         //              labor side is absorbed by the min — no effect at all)
         // Per-turn, live/control must track w to first order. Both mutants
         // are proven RED against exactly this assertion.
-        SimConfig baseCfg = TestConfigs.Sim();
+        // R4: the rig scales the CULTIVATED labour rate, so the forager layer is stripped.
+        SimConfig baseCfg = TestConfigs.PreForager(TestConfigs.Sim());
         SimConfig landCapped = baseCfg with
         {
             Farming = baseCfg.Farming with
