@@ -25,11 +25,11 @@ namespace Sim.Ui.Tests;
 /// </summary>
 public class TaxControlTests
 {
-    /// <summary>Completes arithmetic_babylonian ("tax assessment") for <paramref name="polity"/> in a
-    /// session world — the research gate's cheapest node, named in sim.json taxationRequires.</summary>
+    /// <summary>Completes the Taxation civic for <paramref name="polity"/> in a
+    /// session world — the research gate's single node (R5), named in sim.json taxationRequires.</summary>
     private static void GrantTaxation(WorldState world, SimConfig cfg, PolityId polity)
     {
-        int index = cfg.Research!.IndexOfId("arithmetic_babylonian");
+        int index = cfg.Research!.IndexOfId("taxation");
         Assert.True(index >= 0);
         world.ResearchCompleted.Add(new ResearchCompletedRow(polity, cfg.Research.Nodes[index].Key));
         Assert.True(Governance.CanLevyTax(world, cfg, polity));

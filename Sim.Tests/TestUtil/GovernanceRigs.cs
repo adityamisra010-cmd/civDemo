@@ -13,7 +13,7 @@ namespace Sim.Tests.TestUtil;
 /// </summary>
 internal static class GovernanceRigs
 {
-    public const string TaxationNode = "arithmetic_babylonian";   // "tax assessment" — the gate's cheapest node
+    public const string TaxationNode = "taxation";   // R5: the dedicated Taxation civic — the gate's single node
 
     public static SimConfig Cfg() => TestConfigs.Sim();
 

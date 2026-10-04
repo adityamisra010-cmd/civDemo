@@ -28427,7 +28427,64 @@
     "calibration_adjustment": 0,
     "note": null
    }
+  },
+ {
+  "key": 1007,
+  "id": "taxation",
+  "name": "Taxation",
+  "desc": "Taxation: the levy of tribute in kind \u2014 a counted share of the harvest, herd or craft output owed to the ruler or temple, assessed against the harvest and delivered into sealed stores. Its evidence is the Uruk and Ur III grain-receipt tablets, the sealed storerooms of the Ubaid and Uruk temples, and the Egyptian harvest assessment recorded beside the Nile gauge. A community without a record of what is owed has gifts and feasting, not a levy, so no Stone Age society taxes. Researching it makes the tax edict (SetTaxRate) available to the polity. Related refinements, which no longer gate the edict: tax assessment by computation (arithmetic_babylonian), taxation by area (surveying), by weight (standard_weights) and in coin (coinage_electrum). Placement: Civ VI has no tax technology \u2014 governments and their policies come through civics, starting with the first civic, Code of Laws (Chiefdom); here the causal prerequisites are counted obligations (clay tokens), sealed stores under administrative control (stamp seal) and an administrative record beyond memory (proto-cuneiform, hieroglyphic or Chinese script).",
+  "age": "A3",
+  "frontier": false,
+  "emerged": "~3,300 BCE Uruk temple levy and grain-receipt accounting; ~3,000 BCE Egyptian harvest assessment",
+  "domain": "governance",
+  "secondaryDomains": [
+   "communication"
+  ],
+  "depth": 6,
+  "cost": 1050.0,
+  "prereq": "token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script)",
+  "eurekas": [],
+  "unlocks": {
+   "capabilities": [
+    "the tax edict: a declared levy on the realm's production",
+    "tribute in kind assessed on the harvest",
+    "obligations recorded and owed to the state"
+   ],
+   "units": [],
+   "buildings": [],
+   "institutions": [],
+   "infrastructure": [],
+   "activities": [],
+   "projects": [],
+   "techniques": [
+    "Harvest assessment",
+    "Levy in kind into sealed stores"
+   ],
+   "applications": []
+  },
+  "family": null,
+  "generation": null,
+  "effects": {
+   "immediate": []
+  },
+  "repeatable": null,
+  "universityRelevance": [],
+  "costRationale": {
+   "tier": "T2",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.5,
+   "content_cost": 1050,
+   "calibration_adjustment": 0,
+   "note": "R5: the dedicated Taxation civic (Director 2026-10-04). Priced on the existing banded model as a T2 institutional node: one institutional step above Trade (3.25), below Written law (3.75)."
   }
+ }
  ],
  "entities": [
   {

@@ -164,12 +164,48 @@ public class ResearchUnlockPipelineTests
     [Fact]
     public void T08_Tax_AvailableAfterPrerequisiteResearch()
     {
-        WorldState w = Know(Solo(), Player, "arithmetic_babylonian");
+        WorldState w = Know(Solo(), Player, "taxation");
         Assert.True(Governance.CanLevyTax(w, Cfg, Player));
         ActionDescriptor tax = Actions(w).Single(a => a.Domain == ActionDomain.Governance);
         Assert.Equal(OrderKind.SetTaxRate, tax.Order);
         WorldState next = Step(w, Governance.TaxOrder(w.Clock.Turn, Player, 20));
         Assert.Equal(1, next.TaxPolicies.Count);
+    }
+
+    private static bool Avail(WorldState w, int node) =>
+        ResearchQuery.AvailableMask(Research, ResearchQuery.CompletedMask(w, Research, Player))[node];
+
+    /// <summary>R5 (Director 2026-10-04: "taxation is supposed to be a researchable node"): the Taxation civic is
+    /// not researchable at turn 1, becomes researchable exactly when its prerequisites are known, and the four
+    /// refinement technologies (tax assessment / by area / by weight / in coin) — with their whole ancestry —
+    /// neither list the edict nor let a hand-built SetTaxRate through. Completing Taxation does both.</summary>
+    [Fact]
+    public void T08b_Tax_IsTheTaxationCivic_NotItsRefinements_AndAHandBuiltEdictIsRefusedBeforeIt()
+    {
+        int taxation = Research.IndexOfId("taxation");
+        ResearchNode node = Research.Nodes[taxation];
+        Assert.Equal(ResearchTree.Civics, node.Tree);
+        Assert.Equal(1007, node.Key.Value);
+
+        WorldState w = Solo();
+        Assert.False(Avail(w, taxation));   // turn 1: Stone Age, no tax
+
+        WorldState refined = Know(Solo(), Player, "arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum");
+        Assert.False(ResearchQuery.IsCompleted(refined, Player, node.Key));
+        Assert.False(Governance.CanLevyTax(refined, Cfg, Player));
+        Assert.False(Lists(refined, ActionDomain.Governance));
+        WorldState refused = Step(refined, Governance.TaxOrder(refined.Clock.Turn, Player, 25));
+        Assert.Equal(0, refused.TaxPolicies.Count);
+
+        // Its prerequisites alone make it researchable, not completed.
+        WorldState ready = Know(Solo(), Player, "token_counting", "stamp_seal", "proto_writing");
+        Assert.True(Avail(ready, taxation));
+        Assert.False(Governance.CanLevyTax(ready, Cfg, Player));
+
+        WorldState taxed = Know(refined, Player, "taxation");
+        Assert.True(Governance.CanLevyTax(taxed, Cfg, Player));
+        Assert.True(Lists(taxed, ActionDomain.Governance));
+        Assert.Equal(1, Step(taxed, Governance.TaxOrder(taxed.Clock.Turn, Player, 25)).TaxPolicies.Count);
     }
 
     // ------------------------------------------------------------------ 9–10 roads
@@ -285,7 +321,7 @@ public class ResearchUnlockPipelineTests
     [Fact]
     public void T17_SaveLoad_PreservesCapabilities()
     {
-        WorldState w = Know(Step(Solo()), Player, "pottery_open_fired", "tin_bronze", "arithmetic_babylonian", "track_road");
+        WorldState w = Know(Step(Solo()), Player, "pottery_open_fired", "tin_bronze", "taxation", "track_road");
         using var buffer = new MemoryStream();
         Snapshot.Save(w, buffer);
         buffer.Position = 0;
@@ -298,7 +334,7 @@ public class ResearchUnlockPipelineTests
     [Fact]
     public void T18_Replay_PreservesCapabilityAvailability_TurnByTurn()
     {
-        WorldState start = Know(Solo(), Player, "arithmetic_babylonian");
+        WorldState start = Know(Solo(), Player, "taxation");
         WorldState a = start.Clone(), b = start.Clone();
         for (int t = 0; t < 4; t++)
         {

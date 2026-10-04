@@ -70,7 +70,7 @@ public class ActionSurfaceAgeAndTaxTests(EligibleSessionFixture fx) : IClassFixt
         UiSession s0 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent research = s0.Config.Research!;
         WorldState w = s0.World.Clone();
-        w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId("arithmetic_babylonian")].Key));
+        w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId("taxation")].Key));
         UiSession s = UiSession.StartFrom(w, 42, 256, 4);
         int capital = Capital(s.World);
 

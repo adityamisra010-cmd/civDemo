@@ -144,7 +144,7 @@ public class ActionEmitterGuardTests
         UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         Assert.False(s.EmitTaxOrder(20));
         ResearchContent research = s.Config.Research!;
-        UiSession t = UiSession.StartFrom(Knowing(UiFounding.Found(42, 256, 4), research, "arithmetic_babylonian"), 42, 256, 4);
+        UiSession t = UiSession.StartFrom(Knowing(UiFounding.Found(42, 256, 4), research, "taxation"), 42, 256, 4);
         Assert.True(t.EmitTaxOrder(20));
         Assert.Equal(Governance.TaxOrder(t.World.Clock.Turn, Me, 20), t.Orders[0]);
     }

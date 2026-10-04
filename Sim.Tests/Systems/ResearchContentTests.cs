@@ -59,11 +59,12 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_CivicsAreTheSixArchitectureCandidates_OnTheSameKeySpace()
+    public void Canonical_CivicsAreTheSixArchitectureCandidates_PlusTaxation_OnTheSameKeySpace()
     {
-        Assert.Equal(6, Canonical.CivicsCount);
-        string[] ids = new string[6];
-        for (int i = 0; i < 6; i++)
+        // R5 (Director 2026-10-04) appended the authored Taxation civic, key 1007 (no renumbering).
+        Assert.Equal(7, Canonical.CivicsCount);
+        string[] ids = new string[7];
+        for (int i = 0; i < 7; i++)
         {
             ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
             ids[i] = n.Id;
@@ -72,7 +73,7 @@ public class ResearchContentTests
             Assert.Equal(-1, n.Branch);
             foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, Canonical.Entities[e].Kind);
         }
-        Assert.Equal(["law_code", "legal_code_roman", "census", "coined_wage", "patent", "joint_stock"], ids);
+        Assert.Equal(["law_code", "legal_code_roman", "census", "coined_wage", "patent", "joint_stock", "taxation"], ids);
     }
 
     [Fact]
@@ -321,7 +322,7 @@ public class ResearchContentTests
         }
         Assert.Equal(10, recursive);
         Assert.Equal(6, speculative);
-        Assert.Equal(422, finite);   // ADR-032: + motor_road; R2a: + trade
+        Assert.Equal(423, finite);   // ADR-032: + motor_road; R2a: + trade; R5: + taxation (civic)
         Assert.Equal([36, 21, 125, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
 
         // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite

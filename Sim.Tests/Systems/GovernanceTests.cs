@@ -179,18 +179,35 @@ public class GovernanceTests
         Assert.Equal(0.0, Governance.NominalTaxRate(w, p));
     }
 
+    [Fact]
+    public void TheTaxationCivicOpensTheGate()
+    {
+        (WorldState w, PolityId p) = Founded();
+        Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        Grant(w, p, "taxation");
+        Assert.True(Governance.CanLevyTax(w, Cfg(), p));
+        var content = TestConfigs.Research();
+        var node = content.Nodes[content.IndexOfId("taxation")];
+        Assert.Equal(global::Sim.Core.Systems.Research.ResearchTree.Civics, node.Tree);
+    }
+
+    /// <summary>R5 (Director 2026-10-04): the four refinement nodes keep their taxation capability TEXT but
+    /// no longer open the gate — alone or all together.</summary>
     [Theory]
     [InlineData("arithmetic_babylonian")]   // "tax assessment"
     [InlineData("surveying")]               // "taxation by area"
     [InlineData("standard_weights")]        // "taxation by weight"
     [InlineData("coinage_electrum")]        // "taxation in coin"
-    public void EachOfTheFourTaxationNodesOpensTheGate(string node)
+    public void TheFourTaxationRefinementNodes_NoLongerOpenTheGate(string node)
     {
         (WorldState w, PolityId p) = Founded();
-        Assert.False(Governance.CanLevyTax(w, Cfg(), p));
         Grant(w, p, node);
+        Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        foreach (string other in new[] { "arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum" })
+            Grant(w, p, other);
+        Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        Grant(w, p, "taxation");
         Assert.True(Governance.CanLevyTax(w, Cfg(), p));
-        // ...and the four ARE the nodes whose unlocked capabilities name taxation (content, verified).
         var content = TestConfigs.Research();
         bool namesTax = false;
         foreach (string cap in content.Nodes[content.IndexOfId(node)].Capabilities)
@@ -213,7 +230,7 @@ public class GovernanceTests
         // Rewire the content expression: the same predicate now follows the new data.
         SimConfig cfg = Cfg() with { Governance = G() with { TaxationRequires = "cereal_cultivation" } };
         (WorldState w, PolityId p) = Founded();
-        Grant(w, p, "arithmetic_babylonian");
+        Grant(w, p, "taxation");
         Assert.False(Governance.CanLevyTax(w, cfg, p));
         Grant(w, p, "cereal_cultivation");
         Assert.True(Governance.CanLevyTax(w, cfg, p));
@@ -679,7 +696,7 @@ public class GovernanceTests
         Assert.Equal(Cfg().Migration.DampingDecayCostUnits, g.AuthorityDecayCostUnits);   // the reference class
         Assert.Equal(0.3, g.TaxExtractionResponseMax);
         Assert.Equal(Cfg().Production.ToolYieldBonusMax, g.TaxExtractionResponseMax);    // the measured frame
-        Assert.Equal("arithmetic_babylonian OR surveying OR standard_weights OR coinage_electrum", g.TaxationRequires);
+        Assert.Equal("taxation", g.TaxationRequires);
         Assert.Equal(new GovernanceAiConfig(60.0, 35.0, 5.0, 40.0), g.Ai);
     }
 
@@ -692,7 +709,7 @@ public class GovernanceTests
         return SimConfigLoader.Load(sim, needs, goods, research);
     }
 
-    private const string ShippedRequires = "\"taxationRequires\": \"arithmetic_babylonian OR surveying OR standard_weights OR coinage_electrum\"";
+    private const string ShippedRequires = "\"taxationRequires\": \"taxation\"";
 
     [Fact]
     public void TheTaxationRequirementIsValidatedAgainstResearchWhereTheFilesMeet()

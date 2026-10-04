@@ -230,11 +230,11 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
     [Fact]
     public void ATaxationNode_MakesTheTaxEdictAppear_AndItEmitsTheGovernanceOrder()
     {
-        UiSession s = Knowing(fx.Session, "arithmetic_babylonian");
+        UiSession s = Knowing(fx.Session, "taxation");
         int capital = Capital(s.World);
         ActionSurfaceModel m = Surface(s, capital);
         GovernanceBlock g = m.Governance!;
-        Assert.Equal("Babylonian arithmetic", g.LearnedFrom);
+        Assert.Equal("Taxation", g.LearnedFrom);
         Assert.False(g.HasPolicy);
         Assert.StartsWith("legitimacy ", g.Legitimacy);
         Assert.Equal(12, g.Collection.Length);   // one collection/reach line per settlement the Empire controls
@@ -404,7 +404,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
     public void TheLevySlider_SetsTheRateUnderThePointer()
     {
         // The same contract for the levy's slider (the governance block at A8, a taxation node known).
-        UiSession known = Knowing(fx.Session, "arithmetic_babylonian");
+        UiSession known = Knowing(fx.Session, "taxation");
         UiSession s8 = UiSession.StartFrom(EraPreview.WorldAt(known.World, known.Config.Ages!, Me, 8), 42);
         EraTheme t8 = ThemeOf(s8, s8.World);
         (ActionSurfaceScreen screen, _) = Painted(s8, Surface(s8, Capital(s8.World), t8), t8);

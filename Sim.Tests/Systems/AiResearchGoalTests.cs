@@ -76,9 +76,11 @@ public class AiResearchGoalTests
         // ...known → the NEXT class (infra.road_built ← track_road AND stone_dry) becomes the goal.
         Assert.Equal(Closure("track_road", "stone_dry"), Goals(w, roadsOnly));
 
-        // TAX: the union of the four alternatives' closures while no taxation node is known; nothing once one is.
-        Assert.Equal(Closure("arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum"), Goals(w, taxOnly));
-        Complete(w, "arithmetic_babylonian");
+        // TAX: the Taxation civic's closure while it is unknown; nothing once it is (R5: single gate).
+        Assert.Equal(Closure("taxation"), Goals(w, taxOnly));
+        Complete(w, "arithmetic_babylonian");   // a refinement alone does not close the goal
+        Assert.Equal(Closure("taxation"), Goals(w, taxOnly));
+        Complete(w, "taxation");
         Assert.True(Governance.CanLevyTax(w, Cfg, Rival));
         Assert.DoesNotContain(true, Goals(w, taxOnly));
 

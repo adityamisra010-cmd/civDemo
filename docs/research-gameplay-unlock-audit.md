@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `678acbaaf54791e3…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `44061d465bff5aa2…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -25,8 +25,8 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | class | name | rule | count |
 |---|---|---|---|
 | A | Baseline | exists with zero research (declared in content: a baseline record or a null requirement) | 25 |
-| B | Research-gated gameplay capability | gates a production recipe, a labour activity, trade, the tax edict or an Age milestone | 53 |
-| C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 259 |
+| B | Research-gated gameplay capability | gates a production recipe, a labour activity, trade, the tax edict or an Age milestone | 51 |
+| C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 262 |
 | D | Institution prerequisite | gates a REALIZED institution (a founding project) or the research stage | 6 |
 | E | Infrastructure prerequisite | gates a road class RoadDevelopmentSystem builds | 4 |
 | F | Military / unit unlock | gates a unit entity (load-validated; recruitment is M7 Battle Layer) | 30 |
@@ -34,9 +34,9 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 10 |
 | I | Content-only / descriptive | no capability string, no effect, no entity | 0 |
 | J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 70 |
-| | **nodes** | Technology 426 + Civics 6 | **432** |
+| | **nodes** | Technology 426 + Civics 7 | **433** |
 
-Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 5, tax 4, trade 1.
+Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 5, tax 1, trade 1.
 
 ## 3. Baseline (class A)
 
@@ -290,8 +290,8 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `chinese_script` | tech | A3 | D (DJ) | tally_notation AND bone_tools | royal divination record; continuous script tradition to today | `building.library` → no realizing system<br>`building.school` → no realizing system<br>`inst.aramaic_admin` → no realizing system via `inst.archive`<br>`inst.archive` → no realizing system<br>`inst.guild` → no realizing system via `inst.archive`<br>`inst.historiography` → no realizing system<br>`inst.historiography` → no realizing system via `inst.archive`<br>`inst.historiography` → no realizing system via `inst.scribal_school`<br>`inst.library` → no realizing system via `inst.archive`<br>`inst.library` → no realizing system via `inst.scribal_school`<br>`inst.natural_philosophy` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.archive`<br>`inst.scientific_society` → no realizing system via `inst.scribal_school`<br>`inst.scribal_school` → no realizing system<br>`inst.textile_workshop` → no realizing system via `inst.archive`<br>`inst.translation_movement` → no realizing system via `inst.archive`<br>`inst.translation_movement` → no realizing system via `inst.scribal_school`<br>`inst.university` → project `military university` founds via `inst.archive`<br>`inst.university` → project `medical university` founds via `inst.archive`<br>`inst.university` → project `engineering university` founds via `inst.archive`<br>`inst.university` → project `natural science university` founds via `inst.archive`<br>`inst.university` → project `agricultural university` founds via `inst.archive`<br>`inst.university` → project `military university` founds via `inst.scribal_school`<br>`inst.university` → project `medical university` founds via `inst.scribal_school`<br>`inst.university` → project `engineering university` founds via `inst.scribal_school`<br>`inst.university` → project `natural science university` founds via `inst.scribal_school`<br>`inst.university` → project `agricultural university` founds via `inst.scribal_school` | yes | partly (rest deferred) | Construction |
 | `papyrus` | tech | A3 | J | basketry | portable documents; archives; Egyptian export monopoly | `building.library` → no realizing system | yes | deferred | — |
 | `numeral_sexagesimal` | tech | A3 | C | cuneiform | multiplication; division; fractions; tables | — | — | n/a | — |
-| `arithmetic_babylonian` | tech | A3 | B | numeral_sexagesimal | land measurement; tax assessment; construction calculation | `tax` → sim.json governance.taxationRequires | yes | yes | Governance |
-| `surveying` | tech | A3 | B | arithmetic_babylonian OR hieroglyphic OR chinese_script | land register; taxation by area; construction layout | `tax` → sim.json governance.taxationRequires | yes | yes | Governance |
+| `arithmetic_babylonian` | tech | A3 | C | numeral_sexagesimal | land measurement; tax assessment; construction calculation | — | — | n/a | — |
+| `surveying` | tech | A3 | C | arithmetic_babylonian OR hieroglyphic OR chinese_script | land register; taxation by area; construction layout | — | — | n/a | — |
 | `sail_square` | tech | A3 | J | dugout AND loom_warp_weighted | improved coastal and seagoing transport class (sail); upriver travel under sail instead of rowing; river and coastal trade at scale under sail | `activity.coastal_shipping` → no realizing system | yes | deferred | — |
 | `plank_boat` | tech | A3 | J | dugout AND copper_smelting | cargo vessels; sea-going hulls | `building.harbour` → no realizing system | yes | deferred | — |
 | `horse_domestication` | tech | A3 | J | cattle | riding; fast overland movement; horse traction | `infra.courier_relay` → no realizing system | yes | deferred | — |
@@ -303,7 +303,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `fired_brick` | tech | A3 | J | kiln_updraft AND mudbrick | foundations; drains; baths; monumental work | `infra.sewer` → no realizing system<br>`infra.urban_drainage` → no realizing system | yes | deferred | — |
 | `glass_glaze` | tech | A3 | C | kiln_updraft AND salt_extraction | glazed ware; faience beads | — | — | n/a | — |
 | `glass_core` | tech | A3 | C | glass_glaze | glass vessels; luxury export | — | — | n/a | — |
-| `standard_weights` | tech | A3 | B | token_counting AND (proto_writing OR hieroglyphic) | fair exchange; taxation by weight; silver by weight (proto-money) | `tax` → sim.json governance.taxationRequires | yes | yes | Governance |
+| `standard_weights` | tech | A3 | C | token_counting AND (proto_writing OR hieroglyphic) | fair exchange; taxation by weight; silver by weight (proto-money) | — | — | n/a | — |
 | `calendar_civil` | tech | A3 | C | calendar_lunar AND (cuneiform OR hieroglyphic OR chinese_script) | administrative dating; Nile flood prediction (Sothic rising) | — | — | n/a | — |
 | `water_clock` | tech | A3 | C | pottery_open_fired AND calendar_civil | night hours; temple timing | — | — | n/a | — |
 | `medicine_recorded` | tech | A3 | C | (cuneiform OR hieroglyphic OR chinese_script) | transmissible treatment; surgical procedure record | — | — | n/a | — |
@@ -319,7 +319,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `alphabet_vowels` | tech | A4 | C | abjad | unambiguous phonetic record; literature in vernacular | — | — | n/a | — |
 | `brahmi` | tech | A4 | J | abjad | Indian literate tradition | `building.school` → no realizing system | yes | deferred | — |
 | `hacksilver` | tech | A3 | C | standard_weights AND gold_silver_native | exchange without barter; value store; price in shekels | — | — | n/a | — |
-| `coinage_electrum` | tech | A4 | B (BJ) | hacksilver AND stamp_seal | state-guaranteed money; mercenary pay; market exchange at volume; taxation in coin | `age:a5_coinage` → Age 5 milestone `a5_coinage` (core)<br>`building.mint` → no realizing system<br>`inst.mint_institution` → no realizing system<br>`tax` → sim.json governance.taxationRequires | yes | partly (rest deferred) | Age, Governance |
+| `coinage_electrum` | tech | A4 | B (BJ) | hacksilver AND stamp_seal | state-guaranteed money; mercenary pay; market exchange at volume; taxation in coin | `age:a5_coinage` → Age 5 milestone `a5_coinage` (core)<br>`building.mint` → no realizing system<br>`inst.mint_institution` → no realizing system | yes | partly (rest deferred) | Age |
 | `cavalry` | tech | A4 | F | horse_domestication | horse archery; mobile warfare; steppe raiding | `unit.horse_archers` → no realizing system | yes | deferred | — |
 | `saddle` | tech | A4 | C | cavalry AND hide_working | long-distance riding; lance use (with stirrup) | — | — | n/a | — |
 | `siege_ram` | tech | A4 | F | wheel_solid AND hide_working | breach walls | `unit.siege_engine` → no realizing system | yes | deferred | — |
@@ -631,3 +631,4 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `coined_wage` | civics | A4 | B (BJ) | coinage_electrum | — | `age:a5_wages` → Age 5 milestone `a5_wages` (supporting)<br>`inst.coined_wage` → no realizing system | yes | partly (rest deferred) | Age |
 | `patent` | civics | A7 | B (BJ) | legal_code_roman AND printing_press | — | `age:a7_patent` → Age 7 milestone `a7_patent` (supporting)<br>`inst.patent` → no realizing system | yes | partly (rest deferred) | Age |
 | `joint_stock` | civics | A6 | B (BJ) | bill_of_exchange AND legal_code_roman | — | `age:a7_company` → Age 7 milestone `a7_company` (supporting)<br>`inst.central_bank` → no realizing system<br>`inst.joint_stock` → no realizing system | yes | partly (rest deferred) | Age |
+| `taxation` | civics | A3 | B | token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script) | the tax edict: a declared levy on the realm's production; tribute in kind assessed on the harvest; obligations recorded and owed to the state | `tax` → sim.json governance.taxationRequires | yes | yes | Governance |

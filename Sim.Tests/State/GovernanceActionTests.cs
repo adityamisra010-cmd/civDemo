@@ -24,8 +24,10 @@ public class GovernanceActionTests
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);
 
-    /// <summary>The four nodes sim.json governance.taxationRequires names (their unlocks name a taxation capability).</summary>
-    private static readonly string[] TaxationNodes = ["arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum"];
+    /// <summary>The node sim.json governance.taxationRequires names (R5: the dedicated Taxation civic).</summary>
+    private static readonly string[] TaxationNodes = ["taxation"];
+    /// <summary>The four refinement technologies that name a taxation capability but no longer gate the edict.</summary>
+    private static readonly string[] Refinements = ["arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum"];
 
     private static readonly Lazy<WorldState> Canonical = new(() => WorldFounding.Found(TestConfigs.Worldgen(), Cfg, 42));
     private static readonly Lazy<WorldState> DevDuo = new(() =>
@@ -57,7 +59,7 @@ public class GovernanceActionTests
     [Fact]
     public void ATaxationNodeCompleted_ExactlyOneEdictAppears_WithItsProvenance()
     {
-        WorldState w = Complete(Canonical.Value.Clone(), Player, "arithmetic_babylonian");
+        WorldState w = Complete(Canonical.Value.Clone(), Player, "taxation");
         ActionDescriptor[] gov = GovernanceOf(AvailableActionsQuery.For(w, Cfg, Player));
 
         ActionDescriptor edict = Assert.Single(gov);
@@ -67,7 +69,7 @@ public class GovernanceActionTests
         Assert.Equal("governance.tax-edict", edict.Key);
         Assert.Null(edict.Blocker);
         Assert.True(edict.Provenance.Researched);
-        Assert.Equal([Research.Nodes[Research.IndexOfId("arithmetic_babylonian")].Key], edict.Provenance.Nodes.ToArray());
+        Assert.Equal([Research.Nodes[Research.IndexOfId("taxation")].Key], edict.Provenance.Nodes.ToArray());
         Assert.StartsWith("no levy declared", edict.Detail);
     }
 
@@ -78,6 +80,8 @@ public class GovernanceActionTests
     {
         var rigs = new List<string[]> { Array.Empty<string>(), new[] { "root_crop" } };
         foreach (string node in TaxationNodes) rigs.Add([node]);
+        foreach (string node in Refinements) rigs.Add([node]);
+        rigs.Add(Refinements);
         foreach (string[] nodes in rigs)
         {
             WorldState w = Complete(Canonical.Value.Clone(), Player, nodes);
@@ -95,7 +99,7 @@ public class GovernanceActionTests
         WorldState none = DevDuo.Value.Clone();
         Assert.DoesNotContain(AiOrders.For(none, Cfg), o => o.Kind == OrderKind.SetTaxRate);
 
-        WorldState both = Complete(Complete(DevDuo.Value.Clone(), Rival, "arithmetic_babylonian"), Player, "arithmetic_babylonian");
+        WorldState both = Complete(Complete(DevDuo.Value.Clone(), Rival, "taxation"), Player, "taxation");
         OrderRecord[] taxes = AiOrders.For(both, Cfg).Where(o => o.Kind == OrderKind.SetTaxRate).ToArray();
         OrderRecord[] expected = AiGovernance.OrdersFor(both, Cfg, Rival, both.Clock.Turn);
         Assert.NotEmpty(expected);   // anti-vacuity: at founding the rival's valve does want a rate
