@@ -262,9 +262,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // CR-003 cultivated yield applies once it does. Disabled or absent: exactly the shipped computation.
         double yieldPerKm2 = _cfg.Farming.YieldPerArableKm2PerYear;
         double perWorker = _cfg.Farming.OutputPerFarmerPerYear;
-        if (_cfg.Farming.PreCultivation is { Enabled: true } pre && _cfg.Research is { } research
-            && SettlementKnowledge.MaskOf(prev, research, settlement) is { } known
-            && !LabourActivities.SectorReplacedByResearch(research, known, Sectors.Farming))
+        if (_cfg.Farming.PreCultivation is { } pre && LabourActivities.HarvestsWildFood(prev, _cfg, settlement))
         {
             yieldPerKm2 = pre.YieldPerArableKm2PerYear;
             perWorker = pre.OutputPerGathererPerYear;

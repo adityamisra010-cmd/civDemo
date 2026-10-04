@@ -18,6 +18,7 @@ public static class TestConfigs
     /// the links returns the pre-R1 pins byte for byte.</summary>
     public static SimConfig PreRecipeKnowledge(SimConfig cfg)
     {
+        cfg = PreForager(cfg);
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("no goods content", nameof(cfg));
         var recipes = new RecipeEntry[goods.Recipes.Length];
         for (int i = 0; i < recipes.Length; i++) recipes[i] = goods.Recipes[i] with { Entity = null };
@@ -75,7 +76,16 @@ public static class TestConfigs
     }
 
     /// <summary>Every R2b layer stripped (weather geography, unrest/Dignity, Age military realization).</summary>
-    public static SimConfig PreR2b(SimConfig cfg) => PreAgeMilitary(PreUnrest(PreWeatherGeography(cfg)));
+    public static SimConfig PreR2b(SimConfig cfg) => PreAgeMilitary(PreUnrest(PreWeatherGeography(PreForager(cfg))));
+
+    /// <summary>R4 (2026-10-04) — THE FORAGER LAYER STRIPPED: sim.json farming.preCultivation switched OFF (the
+    /// shipped state through R3). It is the NEWEST layer, so every older layer twin (PreR2b, PreTradeKnowledge,
+    /// PreRecipeKnowledge) strips it as well and keeps returning its pre-R4 constant; on its own it returns the
+    /// R3 pins byte for byte (IntegratedPinAttributionTests' R4 controls).</summary>
+    public static SimConfig PreForager(SimConfig cfg) =>
+        cfg.Farming.PreCultivation is { } pre
+            ? cfg with { Farming = cfg.Farming with { PreCultivation = pre with { Enabled = false } } }
+            : cfg;
 
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
@@ -110,7 +120,7 @@ public static class TestConfigs
     /// layer control on PreR1(PreR2a) so each pre-R2a constant is unmoved, and the R2a controls prove that removing
     /// the layer returns the pre-R2a pins byte for byte.</summary>
     public static SimConfig PreTradeKnowledge(SimConfig cfg) =>
-        cfg with { Research = PreR2aResearch.Value, Trade = cfg.Trade with { Entity = null } };
+        PreForager(cfg) with { Research = PreR2aResearch.Value, Trade = PreForager(cfg).Trade with { Entity = null } };
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearch = new(() =>
     {

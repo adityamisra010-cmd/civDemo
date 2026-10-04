@@ -1122,9 +1122,46 @@ public class IntegratedPinAttributionTests
         Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(twin));
         // Which part of the layer: the TRADE GATE alone (node, entity and city-state research kept; only
         // sim.json trade.entity removed) returns the R2b-only pin too — the gate is the entire R2a cause here.
-        Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.Sim();
+        Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim());
         (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } });
         Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(gateOnly));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
+        Assert.Equal(R3DrivenGolden, WorldHash.ComputeHex(world));
+    }
+
+    // ======================================================================
+    // R4 (M5 closure, 2026-10-04) — THE FORAGER LAYER
+    // ======================================================================
+    // sim.json farming.preCultivation ships ON (2.0 / 4.3). BEHAVIOUR, so the control is the CONFIG twin
+    // TestConfigs.PreForager (switch OFF), which must return each R3 pin BYTE FOR BYTE: the switch is the entire
+    // delta on these pins. The same tree's two other R4 changes are proven inert here by the same equality: the
+    // consumption substitution-credit fix (only a negative staple request differs, and none occurs) and the tax
+    // burden offset (no run levies a tax, so Dignity reads exactly 1.0). Every older control strips the forager
+    // layer too (TestConfigs), so its constant is unmoved. OLD constants are the pins on m5-integration @ 12754e3.
+
+    internal const string R3FoundedGolden = "1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b";
+    internal const string R3FirstReignGolden = "680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d";
+    internal const string R3DrivenGolden = "efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4";
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
+    {
+        Assert.Equal(R3FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheForagerLayerAlone()
+    {
+        Assert.Equal(R3FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
+        Assert.Equal(R3DrivenGolden, WorldHash.ComputeHex(twin));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
         Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
     }

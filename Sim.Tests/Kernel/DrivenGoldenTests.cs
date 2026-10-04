@@ -82,7 +82,7 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4";
+    internal const string Golden = "3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -479,6 +479,10 @@ public class DrivenGoldenTests
         //   CAUSE both layers together (trade gate + R2b governance/weather/Age layers). CONTROLS
         //   IntegratedPinAttributionTests.*_R2c*: stripping R2b returns the R2a pin, stripping R2a returns the R2b pin,
         //   stripping both returns 7aa20e40… (f1fe76f) — byte for byte.
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR), MEASURED on this
+        // tree by the agent writing this line. OLD efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4 -> NEW 3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd. CAUSE wild-food harvest
+        // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
+        // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----

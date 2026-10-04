@@ -139,7 +139,7 @@ public class TurnOneActionSurfaceTests
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)
 
     [Fact]
-    public void RootCropComplete_FarmingReplacesGathering_SameSectorSameShare_ProductionUnchanged()
+    public void RootCropComplete_FarmingReplacesGathering_SameSectorSameShare_CultivatedHarvestExceedsGathered()
     {
         WorldState before = Solo();
         WorldState after = Complete(Solo(), Player, "root_crop");
@@ -161,10 +161,34 @@ public class TurnOneActionSurfaceTests
         for (int sector = 1; sector < Sectors.Count; sector++)
             Assert.Equal(LabourActivities.Of(before, Cfg, Player, s0, sector)!.Label, LabourActivities.Of(after, Cfg, Player, s0, sector)!.Label);
 
-        // Production is unchanged: production reads no research, so stepping both worlds yields the same stocks.
-        WorldState b1 = Production().Step(before), a1 = Production().Step(after);
-        Assert.True(WorldStates.TableEquals(b1.GoodStocks, a1.GoodStocks));
-        Assert.True(WorldStates.TableEquals(b1.Buckets, a1.Buckets));
+        // R4: with the forager switch OFF (TestConfigs.PreForager, the pre-R4 economy) production reads no research,
+        // so stepping both worlds yields the same stocks.
+        TurnExecutor legacy = UniversityRigs.Production(TestConfigs.PreForager(Cfg));
+        WorldState b0 = legacy.Step(before), a0 = legacy.Step(after);
+        Assert.True(WorldStates.TableEquals(b0.GoodStocks, a0.GoodStocks));
+        Assert.True(WorldStates.TableEquals(b0.Buckets, a0.Buckets));
+        Assert.True(WorldStates.TableEquals(b0.SectorAllocations, a0.SectorAllocations));
+        // R4 (shipped, switch ON): AGRICULTURE MEASURABLY INCREASES FOOD. Before the capability the Farming sector
+        // gathers wild food at the forager rates; once root_crop makes it eligible the cultivated rates apply, on
+        // the same sector and the same share.
+        TurnExecutor dev;
+        using (var eraStream = Sim.Data.DataFiles.OpenEraPacing())
+        using (var pipeStream = Sim.Data.DataFiles.OpenPipeline())
+            dev = new TurnExecutor(EraTableLoader.Load(eraStream),
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(Cfg, TestConfigs.DevWorldgen())));
+        WorldState b1 = dev.Run(before, 3), a1 = dev.Run(after, 3);   // the catchment is published on turn 1, harvests follow
+        Assert.True(LabourActivities.HarvestsWildFood(before, Cfg, s0));
+        Assert.False(LabourActivities.HarvestsWildFood(after, Cfg, s0));
+        long Grain(WorldState w)
+        {
+            long total = 0;
+            // The harvest itself, from the ledger (the store is bounded by the granary, so it can saturate).
+            for (int i = 0; i < w.LedgerFlows.Count; i++)
+                if (w.LedgerFlows[i].Quantity == ConservedQuantityIds.OfGood(new GoodId(Cfg.Goods!.GrainId))
+                    && w.LedgerFlows[i].Reason == ReasonIds.Harvest) total += w.LedgerFlows[i].TotalSourced;
+            return total;
+        }
+        Assert.True(Grain(a1) > Grain(b1), $"the cultivated harvest {Grain(a1)} must exceed the gathered {Grain(b1)}");
         Assert.True(WorldStates.TableEquals(b1.SectorAllocations, a1.SectorAllocations));
 
         // The action surface follows: the Farming sector's descriptor is relabelled and carries the node.

@@ -235,7 +235,8 @@ public class NeedsGrievanceTests
         // grievance ABOVE what the same world would have carried without it. So
         // both arms are stepped from one shared prefix over the same turns and
         // only the harvest differs. That is the claim, isolated.
-        SimConfig fed = SustenanceOnlyConfig(TestConfigs.Sim());
+        // R4: the rig sets the CULTIVATED yields explicitly, so the forager switch (shipped ON) is turned off.
+        SimConfig fed = SustenanceOnlyConfig(TestConfigs.PreForager(TestConfigs.Sim()));
         fed = fed with
         {
             Farming = fed.Farming with { YieldPerArableKm2PerYear = 1000.0, OutputPerFarmerPerYear = 1.45 },

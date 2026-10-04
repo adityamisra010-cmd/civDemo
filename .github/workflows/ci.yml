@@ -181,7 +181,9 @@ jobs:
           # M5 R2b RE-PIN (2026-10-03): 68c629b6… -> 1368df9f… — weather over geographic distance, Dignity bound to
           # the tax burden (untaxed: grievance values only), Age military milestones no longer count the founding
           # warband. TestConfigs.PreR2b returns 68c629b6… byte for byte (IntegratedPinAttributionTests).
-          FOUNDED_GOLDEN=1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
+          # R4 RE-PIN (2026-10-04): 1368df9f… -> 02c7f9eb… — the forager layer (farming.preCultivation ON at
+          # 2.0 / 4.3). TestConfigs.PreForager returns 1368df9f… byte for byte (IntegratedPinAttributionTests).
+          FOUNDED_GOLDEN=02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

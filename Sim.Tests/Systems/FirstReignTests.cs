@@ -25,7 +25,7 @@ public class FirstReignTests
     }
 
     /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
-    internal const string PostR1Golden = "680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d";
+    internal const string PostR1Golden = "74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {
@@ -512,6 +512,10 @@ public class FirstReignTests
         //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
         //           formations facts without minIdentityAge) returns OLD byte for byte
         //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR), MEASURED on this
+        // tree by the agent writing this line. OLD 680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d -> NEW 74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419. CAUSE wild-food harvest
+        // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
+        // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
         Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

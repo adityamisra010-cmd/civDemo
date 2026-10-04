@@ -293,7 +293,7 @@ public static class ActionSurface
             string? marker = NewMarker(activity, before, sector);
             if (marker is not null && !notices.Contains(marker)) notices.Add(marker);
             entries.Add(new LabourEntry(
-                sector, a.Label, activity.Identities, Produces(activity), activity.Share, 0, activity.Researched, marker,
+                sector, a.Label, activity.Identities, Produces(activity, w, input.Config, target), activity.Share, 0, activity.Researched, marker,
                 a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a));
         }
 
@@ -346,10 +346,21 @@ public static class ActionSurface
 
     /// <summary>What a sector's labour makes: its goods (LabourActivities, production's own classification), or
     /// for Construction — which makes no good — what its labour builds.</summary>
-    private static string Produces(LabourActivity a)
+    /// R4: before the farming capability exists for the settlement (LabourActivities.HarvestsWildFood — the same
+    /// predicate production's yield reads) the Farming sector's staple is WILD food gathered at forager rates; it is
+    /// still the economy's grain good internally, so it is named truthfully as "wild food (grain)".
+    private static string Produces(LabourActivity a, IReadOnlyWorldState w, SimConfig cfg, SettlementId settlement)
     {
         if (a.Sector == Sectors.Construction) return "dwellings, paths and projects";
-        return a.GoodNames.IsDefaultOrEmpty ? "nothing yet" : string.Join(", ", a.GoodNames);
+        if (a.GoodNames.IsDefaultOrEmpty) return "nothing yet";
+        if (a.Sector == Sectors.Farming && LabourActivities.HarvestsWildFood(w, cfg, settlement))
+        {
+            var names = new string[a.GoodNames.Length];
+            for (int i = 0; i < names.Length; i++)
+                names[i] = a.Goods[i].Value == cfg.Goods?.GrainId ? "wild food (" + a.GoodNames[i] + ")" : a.GoodNames[i];
+            return string.Join(", ", names);
+        }
+        return string.Join(", ", a.GoodNames);
     }
 
     /// <summary>The settlement's allocation row as the next End Turn will leave it, when the player has queued

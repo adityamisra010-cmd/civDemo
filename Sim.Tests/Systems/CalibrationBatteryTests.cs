@@ -251,8 +251,15 @@ public class CalibrationBatteryTests
     // deliberately, like a golden, with the cause named. The RATE that would
     // move these numbers again is the director's — docs/adr/cr-016-armed-
     // disaster-fallout.md — and re-arming re-pins this envelope a third time.
-    private const double QuarantineRecordedSeed42 = 8.336943780925534E-05;
-    private const double QuarantineRecordedSeed7 = 1.0200612834541973E-04;
+    // R4 RE-PIN (2026-10-04, ONE cause: the forager switch ON at 2.0 / 4.3,
+    // docs/r4a-m5-closure-record.md). Measured by the agent writing this line,
+    // dev preset, 1000 turns: seed 42 8.3369E-05 -> 2.486239574664698E-04,
+    // seed 7 1.0201E-04 -> 2.8835491401298867E-04. Up ~3x and still BELOW the
+    // floor 0.001 (the quarantined regime): a wild-food world has a lower,
+    // flatter carrying surface, so land differentials drive more movement.
+    // Layer control: switch OFF returns the T4.21-7 values above. Band unmoved.
+    private const double QuarantineRecordedSeed42 = 2.486239574664698E-04;
+    private const double QuarantineRecordedSeed7 = 2.8835491401298867E-04;
     private const double QuarantineDriftTolerance = 0.75;
 
     private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
@@ -755,7 +762,12 @@ public class CalibrationBatteryTests
         //            PRE-EXISTING, previously masked cause above.
         // The envelope [82k, 138k] asserted below HOLDS on both seeds as
         // measured here, so it is not re-pinned.
-        Assert.InRange(m.FinalPopulation, 82_000, 138_000);
+        // R4 RE-PIN (2026-10-04, ONE cause: the forager switch ON at 2.0 / 4.3).
+        // Measured by the agent writing this line, 1000 dev turns: seed 42
+        // final 80,937 (peak = final, starvation 0), seed 7 final 105,841
+        // (peak = final, starvation 0) — the slower forager growth curve.
+        // Envelope [71k, 119k] keeps ~12 % margins on both. Was [82k, 138k].
+        Assert.InRange(m.FinalPopulation, 71_000, 119_000);
     }
 
     // --- the corridors file itself -------------------------------------------

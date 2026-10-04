@@ -1007,6 +1007,16 @@ public class SnapshotTests
         //           formations facts without minIdentityAge) returns OLD byte for byte
         //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
         //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (sim.json farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR),
+        // MEASURED on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
+        //   NEW  02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2
+        //   CAUSE turn-1 food is gathered at forager rates until the farming capability is known (no polity researches
+        //           it in this run), so harvests, stores and everything downstream move. The R4 ledger fix and the
+        //           tax-burden offset do not move it (untaxed; no negative staple request occurs).
+        //   CONTROL TestConfigs.PreForager (switch OFF) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1044,7 +1054,7 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b";
+    internal const string FoundedGoldenHash = "02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)

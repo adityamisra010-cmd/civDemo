@@ -95,7 +95,8 @@ public class PopulationTests
     {
         // Farming disabled by config — the unfed world eats only its founding store.
         SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with { Farming = cfg.Farming with { YieldPerArableKm2PerYear = 0.0 } };
+        // R4: the forager switch ships ON, so wild food is a harvest too — switch it off with the cultivated yield.
+        cfg = cfg with { Farming = cfg.Farming with { YieldPerArableKm2PerYear = 0.0, PreCultivation = null } };
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
         long founding = TotalPop(world);
@@ -531,7 +532,19 @@ public class PopulationTests
         // moment the rate is ruled non-zero — one data edit — this quarantine
         // fires, and it must then be deleted and the guard restored again.
         // CR-003 itself is untouched and stays open.
-        Cr003Quarantine.FamineGuardStillDisarmed(starved > 0, "starved > 0 in 900 turns");
+        //
+        // R4 (2026-10-04, forager switch ON at 2.0 / 4.3): RESOLVED FOR THIS
+        // RIG, the T4.21-4 precedent. This rig pins ALL labour to food, so
+        // the labour side never binds and the FORAGER LAND CEILING (2.0 per
+        // fertility-weighted km², 13x below the cultivated 26.0) is reached
+        // inside 900 turns: starvation occurs (measured by the agent writing
+        // this line; the quarantine fired). The original guard is restored.
+        // The calibration battery's dev worlds, with the shipped sector mix,
+        // still starve NOBODY (Dev_MalthusCorridors), so CR-003 and its
+        // battery quarantine stay open and untouched. Layer control: with the
+        // switch OFF this rig is the pre-R4 world and the quarantine reading
+        // above (STARVED 0) holds again.
+        Assert.True(starved > 0, "starved > 0 in 900 turns — the forager land ceiling no longer binds in the all-food rig");
     }
 
     // --- bench report -------------------------------------------------------

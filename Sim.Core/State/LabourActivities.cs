@@ -97,6 +97,18 @@ public static class LabourActivities
         return world.Controls.Count == 0 || EmpireQuery.ControlsSettlement(world, issuer, settlement);
     }
 
+    /// <summary>R4 — whether <paramref name="settlement"/>'s Farming sector harvests WILD FOOD this turn: the
+    /// sim.json farming.preCultivation switch is on and the settlement's knowledge (SettlementKnowledge.MaskOf) does
+    /// not make the cultivated identity eligible. The ONE predicate ProductionSystem's yield choice and the UI's
+    /// food label both read, so the label can never claim cultivation the economy is not doing.</summary>
+    public static bool HarvestsWildFood(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement)
+    {
+        ArgumentNullException.ThrowIfNull(cfg);
+        return cfg.Farming.PreCultivation is { Enabled: true } && cfg.Research is { } research
+            && SettlementKnowledge.MaskOf(world, research, settlement) is { } known
+            && !SectorReplacedByResearch(research, known, Sectors.Farming);
+    }
+
     /// <summary>R2a — whether a researched identity that REPLACES the sector's baseline identity is knowledge-eligible
     /// for <paramref name="completed"/> (content: sectorActivities; for Farming, activity.farming). The
     /// pre-cultivation food yield reads this through the settlement's knowledge — no node id in code.</summary>
