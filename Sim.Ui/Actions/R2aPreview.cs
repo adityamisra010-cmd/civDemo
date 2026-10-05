@@ -148,7 +148,7 @@ public static class R2aPreview
             ActionSurfaceModel model = ActionSurfacePreview.ModelOf(s);
             long flows = 0;
             for (int i = 0; i < s.World.TradeFlows.Count; i++) flows += s.World.TradeFlows[i].Quantity;
-            log.Add(s.Stem + ": " + s.Description + "; turn " + s.World.Clock.Turn.ToString(CultureInfo.InvariantCulture)
+            log.Add(s.Stem + ": " + s.Description + "; turn " + Sim.Ui.ViewModel.PlayerTurn.Current(s.World.Clock.Turn).ToString(CultureInfo.InvariantCulture)
                 + ", world hash " + WorldHash.ComputeHex(s.World) + ", domains " + string.Join("/", model.Domains)
                 + ", standing [" + string.Join(", ", model.Standing?.Items ?? []) + "], trade units moved this turn "
                 + flows.ToString(CultureInfo.InvariantCulture));

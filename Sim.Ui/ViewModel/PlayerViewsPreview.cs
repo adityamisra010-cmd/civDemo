@@ -106,7 +106,7 @@ public static class PlayerViewsPreview
             Func<int, string> name = session.Names.Name;
             Sim.Core.Observability.SettlementRecord? record = session.Observations.Observations.Count == 0
                 ? null : session.Observations.Settlement(session.Observations.LastTurn, s.Selected);
-            log.Add(stem + ": " + note + "; turn " + s.World.Clock.Turn.ToString(CultureInfo.InvariantCulture)
+            log.Add(stem + ": " + note + "; turn " + Sim.Ui.ViewModel.PlayerTurn.Current(s.World.Clock.Turn).ToString(CultureInfo.InvariantCulture)
                 + ", world hash " + WorldHash.ComputeHex(s.World) + ", density level " + density.ToString(CultureInfo.InvariantCulture));
             foreach ((string kind, string title, PlayerView view) in new[]
             {

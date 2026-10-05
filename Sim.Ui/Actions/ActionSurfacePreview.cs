@@ -344,7 +344,7 @@ public static class ActionSurfacePreview
         foreach (State s in new[] { one, later, industrial, researched })
         {
             ActionSurfaceModel model = ModelOf(s);
-            log.Add(s.Stem + ": " + s.Description + "; turn " + s.World.Clock.Turn.ToString(CultureInfo.InvariantCulture)
+            log.Add(s.Stem + ": " + s.Description + "; turn " + Sim.Ui.ViewModel.PlayerTurn.Current(s.World.Clock.Turn).ToString(CultureInfo.InvariantCulture)
                 + ", world hash " + WorldHash.ComputeHex(s.World) + ", era " + model.Era + ", control " + model.Control.Kind
                 + ", layout " + model.Layout + ", domains " + string.Join("/", model.Domains));
             string terrain = AgePreview.TerrainDataUri(s.World);

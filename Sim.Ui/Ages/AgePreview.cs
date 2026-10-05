@@ -91,7 +91,7 @@ public static class AgePreview
             session.EndTurn();
         }
         written.Add(PanelShot(outDir, fontDir, session, terrain, "01-capital-age-panel-not-eligible"));
-        log.Add($"01 turn {session.World.Clock.Turn}: eligible={AgeQuery.IsEligible(session.World, ages, me)}");
+        log.Add($"01 turn {Sim.Ui.ViewModel.PlayerTurn.Current(session.World.Clock.Turn)}: eligible={AgeQuery.IsEligible(session.World, ages, me)}");
 
         // World lens at three zooms (same not-yet-advanced world).
         written.Add(LensShot(outDir, fontDir, session, terrain, "05-world-zoom-world", WorldZoom.World));
@@ -99,7 +99,7 @@ public static class AgePreview
         written.Add(LensShot(outDir, fontDir, session, terrain, "07-world-zoom-settlement", WorldZoom.Settlement));
 
         int reached = PlayToEligible(session);
-        log.Add($"eligible after {reached} more turns, at turn {session.World.Clock.Turn}: {AgeQuery.IsEligible(session.World, ages, me)}");
+        log.Add($"eligible after {reached} more turns, at turn {Sim.Ui.ViewModel.PlayerTurn.Current(session.World.Clock.Turn)}: {AgeQuery.IsEligible(session.World, ages, me)}");
         written.Add(PanelShot(outDir, fontDir, session, terrain, "02-capital-age-panel-eligible"));
 
         // 03: the advance flow with a surge chosen.
@@ -121,7 +121,7 @@ public static class AgePreview
         int before = AgeQuery.CurrentAge(session.World, ages, me);
         session.EndTurn();
         int after = AgeQuery.CurrentAge(session.World, ages, me);
-        log.Add($"advance: age {before} -> {after} at turn {session.World.Clock.Turn}");
+        log.Add($"advance: age {before} -> {after} at turn {Sim.Ui.ViewModel.PlayerTurn.Current(session.World.Clock.Turn)}");
 
         // 08: after the transition — the world lens (regional) with the new banner style and the toast.
         written.Add(LensShot(outDir, fontDir, session, terrain, "08-after-transition-world", WorldZoom.Regional, toast: true));
