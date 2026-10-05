@@ -164,7 +164,7 @@ row-turn, conservation exact, no negative stock, and population 13 at turn 900.
 | canonical | 200 | 0 | 20/20 exact | 0 | 0 |
 | canonical | 100 | PENDING | | | |
 | dev, R3 crash rates (1.0 / 2.0) | 100 / 200 / 400 | 0 / 0 / 0 | 60/60 exact | 0 | 0 |
-| dev, R3 crash rates, seeds 21–120 | 100 | PENDING | | | |
+| dev, R3 crash rates, seeds 21–120 (100 seeds) | 100 | 0 | 100/100 exact | 0 | 0 — credit carried on seeds 42 and 99 (2 row-turns) |
 
 Notes on the table:
 
@@ -179,8 +179,8 @@ Notes on the table:
   hash agreement instead.)
 
 **The credit path is rare at the shipped rates.** Across all the shipped-rate runs, 0 row-turns carried a credit.
-In the crash configuration it is reached on seed 42 (1 row-turn) and on no seed in 1–20. The regression test
-therefore remains the instrument that holds it.
+In the crash configuration it is reached on 2 of 120 seeds (42 and 99, one row-turn each), settles without a
+negative amount, and the audit closes exactly. The regression test therefore remains the instrument that holds it.
 
 **Code review of the fix's edges** (INFERRED, read on `e6b7e42`):
 
@@ -309,14 +309,14 @@ player or AI who never researches it (INFERRED). **OPEN for the Director.** The 
 | 1 | 2 | identical | identical | VERIFIED | 0 | `e5f6a4773f67…` |
 | 1 | 3 | identical | identical | VERIFIED | 0 | `f939c23a3cae…` |
 | 1 | 4 | identical | identical | VERIFIED | 0 | `184fa99fac65…` |
-| 1 | 5 | PENDING | | | | |
+| 1 | 5 | identical | identical | VERIFIED | 0 | `2401991d13a3…` |
 | 3 | 1 | identical | identical | VERIFIED | 0 | `8d5f39cbec95…` |
 | 3 | 2 | identical | identical | VERIFIED | 0 | `a880b510da94…` |
 | 3 | 3 | identical | identical | VERIFIED | 0 | `80fd84dfaa9a…` |
 | 3 | 4 | identical | identical | VERIFIED | 0 | `7b8cc53530d4…` |
-| 3 | 5 | PENDING | | | | |
+| 3 | 5 | identical | identical | VERIFIED | 0 | `d484fdda7b13…` |
 
-No run threw. Every CLI step exited 0.
+No run threw. All 50 CLI steps (10 configurations × run A, run B, replay, inspect, `--answer polities`) exited 0.
 
 #### 4.2 AI milestones (MEASURED from the run logs: the order turn; it applies at the next turn)
 
@@ -331,7 +331,7 @@ No run threw. Every CLI step exited 0.
 | ai3 s2 | 2 / 3 / 4 | 6 / 5 / 6 | 196 / 185 / 185 | 485 / 456 / 453 | 40 % | 315 / 297 / 296 | 602 / 569 / 565 |
 | ai3 s3 | 2 / 3 / 4 | 12 / 4 / 2 | 203 / 206 / 211 | 504 / 490 / 506 | 40 % | 328 / 322 / 333 | 624 / 606 / 624 |
 | ai3 s4 | 2 / 3 / 4 | 4 / 6 / 3 | 199 / 201 / 231 | 466 / 491 / 558 | 40 % | 309 / 321 / 369 | 578 / 608 / 684 |
-| ai3 s5 | PENDING | | | | | | |
+| ai3 s5 | 2 / 3 / 4 | 6 / 30 / 9 | 206 / 204 / 204 | 501 / 500 / 493 | 40 % | 328 / 327 / 323 | 619 / 618 / 610 |
 
 - The AI's tax valve never exceeds 40 %.
 - No polity reached A4 within 1000 turns.
@@ -349,9 +349,22 @@ order.
 | arm | AI empires | seeds | exceptions | audit | control-row losses | polities at the end | AI orders produced |
 |---|---|---|---|---|---|---|---|
 | tax 99 % | 1 | 1–5, 1000 t | 0 | exact | **0** | 2 | 137–208 |
-| tax 100 % | 1 | PENDING | | | | | |
-| tax 99 % | 3 | PENDING | | | | | |
+| tax 100 % | 1 | 1–5, 1000 t | 0 | exact | **1** per seed (the capital, turn 2: the 100 %-at-full-reach corner) | 3 (the revolt founds polity 3: capital-less, AI-driven for 998 turns) | 194–605 |
+| tax 99 % | 3 | 1–5, 1000 t | 0 | exact | **0** | 4 | 214–454 |
 | tax 100 % | 3 | PENDING | | | | | |
+
+What this says about the base tree (MEASURED; the model is H2's to change):
+
+- **100 % revolts the capital on turn 2, every seed.** This is the deterministic corner that the Director's §4
+  rejects ("Do NOT implement an instant revolt at 100 % tax").
+- **99 % never revolts in 1000 turns** (10 seed-runs). §5 asks that sustained extreme taxation *eventually* produce
+  instability.
+
+Sibling stream H2's gradual model is built to change both. **Re-run this table after the merge.** The expected
+reading is no turn-2 loss at 100 %, and delayed, segment-based instability under sustained extremes.
+
+The soak's own purpose holds on this tree: a capital-less AI polity founded by revolt was driven by the producer
+for 998 turns on 5 seeds with 0 exceptions and an exact audit.
 
 #### 4.4 Defects found and fixed (both proved, both pinned, no golden moved)
 
@@ -418,5 +431,5 @@ losses in 300 turns.
    layer. Not gates; window literals are the Director's. **OPEN** (CR-003 lineage).
 3. **Colonies (§1).** They behave as ruled. More colonisation in normal play needs the unbuilt "stranded by
    capacity" line or the frontier mechanism. **OPEN / DEFERRED** (no packet).
-4. **AI levy before A3 (§4.2).** Confirmed on 9/9 finished soak runs. The fix belongs to H2; re-measure after the
+4. **AI levy before A3 (§4.2).** Confirmed for every AI polity on 10/10 soak runs (20 polity-runs). The fix belongs to H2; re-measure after the
    merge.
