@@ -103,7 +103,7 @@ world: being alone is B1's condition), `famine` (the player orders gathering to 
 | dev, 1 settlement | lone | **22** (seed 9: 3) | 31 | 152 | **22/22** | — | colony population at 650: 105–9,704 |
 | dev 4, R3 crash rates (1.0 / 2.0), 900 t | none, 100 / 200 / 400 founders | **38 / 43 / 42** in 14–17 of 20 seeds | 1,369–1,696 | ~24,000 | 14 / 11 / 16 alive | 20/20 | a world that cannot feed itself: B1 fires (founded turns 85–889); colonies of 1–20 people, most dying with their world |
 
-Across every arm (525 seed-runs, 206 colonies): **most foundings in one turn = 1**; **0 zero-provision foundings**
+Across every rig run of this record (655 seed-runs, 358 colonies, including the 100-seed crash-rate sweep of §2.2): **most foundings in one turn = 1**; **0 zero-provision foundings**
 (every colony's grain at founding ≥ 1); **0 control mismatches** (every colony's controller is its founder's); 0
 exceptions; conservation exact. Sources with demand that stood at population 0 after the step occur only in the
 collapsing worlds (famine arms, crash rates), where starvation kills in the same step; that a founding itself
@@ -162,7 +162,7 @@ row-turn, conservation exact, no negative stock, and population 13 at turn 900.
 | dev | 100 | 0 | 20/20 exact | 0 | 0 |
 | canonical | 400 | 0 | 20/20 exact | 0 | 0 |
 | canonical | 200 | 0 | 20/20 exact | 0 | 0 |
-| canonical | 100 | PENDING | | | |
+| canonical | 100 | 0 | 20/20 exact | 0 | 0 |
 | dev, R3 crash rates (1.0 / 2.0) | 100 / 200 / 400 | 0 / 0 / 0 | 60/60 exact | 0 | 0 |
 | dev, R3 crash rates, seeds 21–120 (100 seeds) | 100 | 0 | 100/100 exact | 0 | 0 — credit carried on seeds 42 and 99 (2 row-turns) |
 
@@ -174,7 +174,7 @@ Notes on the table:
   - only the staple carries a negative (credit) remainder;
   - every credit is greater than −3;
   - every other remainder is below 1.
-- Every rig run in this record — every arm of §1, §3.3 and §4.3, 525 seed-runs at the time of writing — threw
+- Every rig run in this record — every arm of §1, §2.2, §3.3 and §4.3, 655 seed-runs — threw
   nothing and closed its conservation audit exactly. (The CLI soak runs of §4.1 run no audit; they are checked by
   hash agreement instead.)
 
@@ -351,7 +351,7 @@ order.
 | tax 99 % | 1 | 1–5, 1000 t | 0 | exact | **0** | 2 | 137–208 |
 | tax 100 % | 1 | 1–5, 1000 t | 0 | exact | **1** per seed (the capital, turn 2: the 100 %-at-full-reach corner) | 3 (the revolt founds polity 3: capital-less, AI-driven for 998 turns) | 194–605 |
 | tax 99 % | 3 | 1–5, 1000 t | 0 | exact | **0** | 4 | 214–454 |
-| tax 100 % | 3 | PENDING | | | | | |
+| tax 100 % | 3 | 1–5, 1000 t | 0 | exact | **1** per seed (the capital, turn 2) | 5 (the revolt founds polity 5) | 255–708 |
 
 What this says about the base tree (MEASURED; the model is H2's to change):
 
@@ -409,6 +409,17 @@ semantic pin, and none hung.
 | M4 | The CLI producer is gated at founding again. | `CliRevoltPolityProducerTests` |
 | M5 | Tax authority is deferred as well. | `AFutureActorStillLegislatesOnlyItsOwnTax…` |
 
+**The full `ci.yml` determinism-xproc step on the fixed CLI** (MEASURED: the step's script extracted verbatim, run
+on a CLI built from this branch's code at `cbbc704` — every later commit is documents only — exit 0, 485 s under load). Every leg passed with the baseline's hashes:
+
+| leg | result |
+|---|---|
+| toy orderless, 2 processes × 400 turns | `7f93ac50…` |
+| toy ordered vs replay | `86a31edf…` |
+| founded orderless, 2 processes × 300 turns | `02c7f9eb…`, which equals `FOUNDED_GOLDEN` |
+| founded ordered vs replay | `924059ca…` |
+| AI leg, 600 turns | `2954c51f…`; 194 orders of kinds 3–8; replay identical; `sim inspect` "reproduction VERIFIED: 601 turns" |
+
 **Merge note for the orchestrator.** After H2 merges, revolts become reachable under sustained taxation. If a
 `ci.yml` founded leg that replays the **input** order file (not the emitted run log) ever revolts, its replay will
 legitimately diverge, because the run log now carries the revolt polity's orders. The AI leg already replays the
@@ -417,11 +428,52 @@ losses in 300 turns.
 
 ---
 
-### 5. Bench (PENDING)
+### 5. Bench (MEASURED; `sim bench --founded --seed 42 --turns 300`; the branch CLI, code = `cbbc704`)
+
+The full Sim.Tests suite was finishing on one core during these runs; other agents had gone quiet.
+
+| run | load average (1 min) before | total |
+|---|---|---|
+| 1 | 1.01 | 35,787.96 ms |
+| 2 | 1.49 | 37,569.11 ms |
+| 3 | 1.94 | 36,723.52 ms |
+
+**A/B against the base tree under the same conditions**, alternating binaries. The base is a CLI built from
+`31c3adb`, whose simulation code is `9bb7423`.
+
+| pair | base `9bb7423` | branch `cbbc704` |
+|---|---|---|
+| 1 | 38,285.85 ms (load 1.86) | 37,373.12 ms (load 2.08) |
+| 2 | 36,638.75 ms (load 1.76) | 35,854.89 ms (load 1.39) |
+
+This stream changes no simulation hot path. `sim bench` calls neither the order validation nor `Cli.Run`, and the
+A/B shows no regression.
+
+Against R4a's carried 29,860.75 ms at `9648f7b` (a different load, CARRIED), both binaries here are about 20–28 %
+slower. The A/B places that gap in the environment, not in this branch. Whether `9648f7b` → `9bb7423` (R5:
+content and tests only) costs anything is not separable on a shared machine. INFERRED: nil.
 
 ---
 
-### 6. Open items for the Director (from this stream)
+### 6. Validation of this branch (MEASURED, 2026-10-05)
+
+| gate | result |
+|---|---|
+| `dotnet build Sim.slnx -c Release` | 0 warnings, 0 errors |
+| Sim.Tests (full, `--no-build`) | **1466 passed / 0 failed / 8 skipped (1474)**, 32 m 52 s under load. Baseline 1460 / 0 / 6, plus 6 new passing tests (`RevoltPolityOrderValidationTests` ×5, `CliRevoltPolityProducerTests` ×1) and 2 new skipped rigs (`HardeningMeasurementRigs` ×2, skipped unless `SIM_MEASURE=1`). |
+| Sim.Ui.Tests (full) | **473 / 473** |
+| `CalibrationBatteryTests` | 7 / 7 (§3.1) |
+| `SubstitutionCreditRegressionTests` | 1 / 1 (§2.1) |
+| `scripts/check-banned-constructs.sh` | exit 0 |
+| `scripts/check-read-isolation.sh` | exit 0 |
+| `scripts/check-readonly-proof.sh` | exit 0 (CS0200, CS1061) |
+| `research-content-audit.py`, `research-calibration-report.py`, `research-gameplay-unlock-audit.py` with `--check` | exit 0 ×3 |
+| `ci.yml` determinism-xproc step, verbatim | exit 0, every hash as the baseline (§4.4) |
+| Goldens | **none moved** |
+
+---
+
+### 7. Open items for the Director (from this stream)
 
 1. **Starvation in the order-free world (§3.3).** The forager calibration reintroduces weather-driven starvation on
    about half of all seeds. The ratified bands pass, and the dev tooth passes only on its two seeds. The options
@@ -431,5 +483,23 @@ losses in 300 turns.
    layer. Not gates; window literals are the Director's. **OPEN** (CR-003 lineage).
 3. **Colonies (§1).** They behave as ruled. More colonisation in normal play needs the unbuilt "stranded by
    capacity" line or the frontier mechanism. **OPEN / DEFERRED** (no packet).
-4. **AI levy before A3 (§4.2).** Confirmed for every AI polity on 10/10 soak runs (20 polity-runs). The fix belongs to H2; re-measure after the
-   merge.
+4. **AI levy before A3 (§4.2).** Confirmed for every AI polity on 10/10 soak runs (20 polity-runs). The fix
+   belongs to H2. Re-measure after the merge.
+5. **Revolt corner at 100 %, and no revolt at 99 % in 1000 turns (§4.3).** This is the base tree's tax model. H2
+   replaces it. Re-measure after the merge.
+6. **Replaying a played session that contained a revolt (§4.4, D-H4-1).** Fixed here. Until this branch is merged,
+   `sim replay` and `sim inspect` cannot read such a session.
+
+#### Re-run checklist after the hardening streams merge (for the orchestrator)
+
+Run these with the §0 commands on the merged tree, and append the results as a new dated section.
+
+1. The four `tax99` / `tax100` arms of §4.3. Expected:
+   - no turn-2 capital loss at 100 %;
+   - instability only after accumulation.
+2. The AI soak of §4.1 and §4.2. Expected: each polity's first levy after its A3 order.
+3. The nightly sweep and `NightlyCorridors` of §3.2, and `CalibrationBatteryTests`.
+4. The colony arms of §1.2 for `none`, one AI and `lone`.
+5. The ledger rows of §2.2 for 400 and 100 founders on both worlds.
+6. The `ci.yml` determinism-xproc step. If a founded ordered leg ever records a revolt, replay the emitted run log,
+   not the input file (§4.4 merge note).
