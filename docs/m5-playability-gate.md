@@ -485,11 +485,29 @@ none
 Run **37290932751** (workflow_dispatch on this branch at `f1469ed`):
 <https://github.com/adityamisra010-cmd/civDemo/actions/runs/37290932751> — `ui-artifact` success (published
 `sim-ui-win-x64-f1469ed`), `windows-smoke` success: "Smoke the shipped Sim.Ui.exe (headless ImGui, no GPU)"
-success, "Control - the pre-fix renderer configuration must abort (informational)" success (the control aborted).
-MEASURED via the GitHub API (job and step conclusions; the job logs are served from a host this session cannot
-reach, so later runs also publish the totals line and the control's assertion as run annotations).
+success (71 s); "Control - the pre-fix renderer configuration must abort (informational)" green, but it took 5 min
+01 s — its full watchdog. MEASURED via the GitHub API (job and step conclusions and timestamps; the job logs are
+served from a host this session cannot reach, so later runs publish the totals line and the control's assertion as
+run annotations).
 
-WINDOWS_LATEST
+Run **37291800840** (`369e649`): the same — the control step again took exactly its 5-minute watchdog: it had
+HUNG. ImGui.NET's win-x64 `cimgui.dll` links the C runtime statically (its imports are IMM32, KERNEL32,
+USER32 and SHELL32 only), so a native assert opens the modal "Microsoft Visual C++ Runtime Library — Assertion
+failed!" dialog (the dialog of the Director's crash) and blocks, and ucrtbase's `_set_error_mode` cannot reach it.
+`--smoke` now watches for that dialog on Windows, copies its text to stderr and exits 134; the CI smoke step is
+bounded at 15 minutes.
+
+Run **37292741100** (`1e7357d`, code-identical to this record's commit):
+<https://github.com/adityamisra010-cmd/civDemo/actions/runs/37292741100> — `ui-artifact` success, `windows-smoke`
+success. Its run annotations (MEASURED via the check-run annotations API):
+
+- **windows smoke (exit 0):** `smoke: 8 states, 1213 checks: 1154 pass, 59 not offered, 0 FAIL; 0 problems;
+  33407 frames, 2400 monkey actions; largest draw list 135226 vertices; 43.4 s`
+- **windows control (pre-fix renderer) exit 134** after 5 s: `NATIVE ASSERTION DIALOG: Microsoft Visual C++ Runtime
+  Library | &Abort | &Retry | &Ignore | Assertion failed! Program: …\sim-ui\app\cimgui.DLL File: …\imgui_draw.cpp
+  Line: 2261 Expression: draw_list->_VtxCurrentIdx < (1 << 16) && "Too many vertices in ImDrawList using 16-bit
+  indices. Read comment above"` — the Director's crash, reproduced on Windows through the live UI of the shipped
+  binary with the pre-fix renderer configuration; with the fix the same binary passes every state.
 
 ## 9. Known limitations (reported, not changed)
 
