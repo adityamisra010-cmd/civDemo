@@ -503,3 +503,78 @@ Run these with the §0 commands on the merged tree, and append the results as a 
 5. The ledger rows of §2.2 for 400 and 100 founders on both worlds.
 6. The `ci.yml` determinism-xproc step. If a founded ordered leg ever records a revolt, replay the emitted run log,
    not the input file (§4.4 merge note).
+
+---
+
+## 2026-10-05 — stream F2: order-free forager starvation re-measured and swept (base `b2dd24f`, `m5-hardening`)
+
+**Question (Director §10).** Can the smallest defensible change to the existing forager levers bring order-free
+starvation down to the pre-forager rate (≤ 2/20 canonical seeds at 650 turns; ≤ 1/20 dev seeds at 1000 turns)
+while agriculture stays researched and measurably raises food?
+
+**Rig.** `HardeningMeasurementRigs.ColoniesAndLedger`, arm `none`, no AI, 400 founders, seeds 1–20, counterfactual
+rates via `H4_GATHER` / `H4_KM2` (not shipped). A seed "starves" if any starvation death occurs by the horizon.
+All rows MEASURED on `b2dd24f` (H1–H4 merged), Release build.
+
+### Re-measurement at the shipped values (4.3 per gatherer, 2.0 per km²)
+
+| world, horizon | starving seeds | deaths |
+|---|---|---|
+| canonical, 650 | **11/20** | 2,402 |
+| dev, 650 | 10/20 | — |
+| dev, 1000 | **15/20** | — |
+
+Identical to H4's record (§3.3): the H1–H4 merge did not move the order-free world.
+
+### Sweep
+
+| per gatherer | per km² | canonical 650 (seeds / deaths) | dev 650 | dev 1000 (seeds / deaths) |
+|---|---|---|---|---|
+| 4.3 (shipped) | 2.0 | 11 / 2,402 | 10 | 15 / — |
+| 4.5 | 2.0 | — | 4 | 10 / 31,255 |
+| 4.7 | 2.0 | — | 2 | 10 / 40,798 |
+| 4.9 | 2.0 | — | 1 | 10 / 50,069 |
+| 5.0 | 2.0 | **2 / 423** (target met) | 1 | **10 / 52,868** (target missed) |
+| 4.3 | 2.5 | — | 10 | 13 / 2,752 |
+| 4.3 | 3.0 | — | 10 | 12 / 1,779 |
+| 4.3 | 4.0 | — | 10 | 12 / 1,779 |
+| 4.7 | 3.0 | 4 / 686 | 2 | 2 / 336 |
+| 5.0 | 4.0 | — | 1 | 1 / 185 (target met) |
+
+Pre-forager control (H4 §3.3, same rates of measurement): canonical 2/20 at 650, dev 1/20 at 1000.
+
+### Reading
+
+- **Per gatherer alone cannot reach the dev target.** It removes the early weather form (dev 650: 10 → 1 at
+  4.9–5.0; canonical 650: 11 → 2 at 5.0) but the late land-ceiling form stays at 10/20 dev seeds by 1000 at every
+  value from 4.5 to 5.0, and deaths grow with the rate (faster growth reaches the 2.0 per km² ceiling sooner).
+- **The land ceiling alone does not help** (4.3 with 2.5–4.0: 12–13/20): the early form is labour-bound.
+- **Only the pair reaches both targets**, at roughly 5.0 per gatherer and ≥ 3–4 per km² (4.7 / 3.0 still misses
+  canonical with 4/20 and dev with 2/20).
+- **Neither half of that pair is defensible from the records.**
+  - Per km²: the recorded reference range (`sim.json` farming.preCultivation `_doc`; Binford 2001, Kelly 2013,
+    Kroeber 1939) puts the richest riverine foragers at 0.5–2 per km²; 2.0 already sits at its top. 3–4 is
+    1.5–2× above the richest recorded foragers.
+  - Per gatherer: 5.0 equals the cultivated `outputPerFarmerPerYear` 5.0, so agriculture's per-worker gain would
+    fall from +16 % (5.0 vs 4.3) to **0 %**; agriculture would raise food only through the land ceiling
+    (26 / 2 = 13×, or 26 / 4 = 6.5× at the pair). 5.0 per food-sector worker = 2.75 per adult, inside Kelly's /
+    Kaplan et al.'s 1.7–3×, so it is literature-admissible on its own, but it does not achieve the dev target.
+- **Storage / weather-buffer levers.** The only store parameters (`consumption.grainSpoilagePerYear` 0.08,
+  `granaryYearsOfDemand` 1.5; T4.2) are derived for fixed cereal granaries and apply to every economy; the records
+  hold no forager-specific storage reference class, so they are not a forager lever. Not changed.
+
+### Decision (F2)
+
+**STOP — shipped values kept (4.3 / 2.0).** No defensible setting among the existing levers meets both targets
+with every record honoured. No value, golden, band, tooth or `ci.yml` pin changed. Agriculture is unchanged:
+still researched (not known at founding), land ceiling 13× (26.0 vs 2.0 per km²), per-worker +16 % (5.0 vs 4.3).
+
+**OPEN for the Director** (the sweep above is the evidence):
+- (a) accept 4.3 / 2.0 with the order-free starvation recorded here (a player or AI who researches agriculture
+  lifts the late ceiling; the early form remains on about half the worlds);
+- (b) raise per gatherer to 5.0 only: canonical meets ≤ 2/20 at 650, dev stays 10/20 at 1000 with more deaths, and
+  agriculture's per-worker gain becomes 0 %;
+- (c) rule a forager land density above the recorded 0.5–2 per km² range (≈ 4.0 with 5.0 per gatherer meets both
+  targets on dev; canonical at that pair not measured);
+- (d) re-aim the dev CR-003 tooth / accept land-ceiling Malthus as the honest outcome of a world that never
+  researches agriculture.
