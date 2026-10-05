@@ -21,6 +21,12 @@ public static class OrderValidation
         for (int s = 0; s < world.Settlements.Count; s++)
             if (world.Settlements[s].Id.Value > maxSettlementId) maxSettlementId = world.Settlements[s].Id.Value;
 
+        // The highest polity id the validated roster holds: a revolt founds its new AI polity at the
+        // roster maximum + 1 (RevoltSystem, D-048), so only ids ABOVE it can come into existence later.
+        int maxPolityId = int.MinValue;
+        for (int p = 0; p < world.Polities.Count; p++)
+            if (world.Polities[p].Id.Value > maxPolityId) maxPolityId = world.Polities[p].Id.Value;
+
         for (int i = 0; i < orders.Count; i++)
         {
             OrderRecord record = orders[i];
@@ -36,7 +42,23 @@ public static class OrderValidation
             // order log — including the replay fixtures — for naming an Empire the
             // world never had the chance to register. The seam is in place and
             // becomes live the moment worldgen seeds a roster.
-            if (world.Polities.Count > 0 && !EmpireQuery.TryGetCommandSource(world, record.Actor, out _))
+            //
+            // M5 hardening H4 (2026-10-05) — an Empire FOUNDED MID-GAME. Every revolt founds a new
+            // AI polity (R3 / D-048) and the UI's AI producer drives it from that turn, so a played
+            // log carries orders from a polity the validated turn-0 world never registered — and
+            // `sim replay` / `sim inspect` / `sim run --orders` of that log threw here (measured on
+            // 9bb7423: canonical seed 42, the FoundedHarness labour orders, revolt at turn 58, the
+            // new polity's first order stamped 58). Exactly the stream-V colony rule (`7100c77`),
+            // for actors: the world-dependent checks — existence and control — are DEFERRED to
+            // delivery, where every consumer applies them on PREV (ResearchSystem and AgeQuery read
+            // the roster, RoadDevelopmentSystem.IsRosterPolity, ConstructionQuery / LabourActivities
+            // the control relation, GovernanceSystem enacts only self-targeted edicts) and an order
+            // failing them changes nothing. Deferred only when the actor could still be founded:
+            // above every id the roster holds, delivered after the first step (Turn ≥ 1 — the turn-0
+            // batch reads exactly this world). Every turn-0 actor is checked as before, and the
+            // world-independent tax-authority check below still applies to every actor.
+            bool futureActor = world.Polities.Count > 0 && record.Turn >= 1 && record.ActorId > maxPolityId;
+            if (world.Polities.Count > 0 && !futureActor && !EmpireQuery.TryGetCommandSource(world, record.Actor, out _))
             {
                 throw new OrderValidationException(
                     $"order[{i}] (turn {record.Turn}): {record.Kind} is issued by polity " +
@@ -64,6 +86,9 @@ public static class OrderValidation
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction)) continue;
+
+            // A mid-game Empire (above) holds nothing in the turn-0 world: its control is decided at delivery.
+            if (futureActor) continue;
 
             // M5-integration (stream V): a settlement FOUNDED MID-GAME is absent from the
             // validated (turn-0) world, yet the live step applies an order for it. Its
