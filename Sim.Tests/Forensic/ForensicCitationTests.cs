@@ -48,32 +48,44 @@ public class ForensicCitationTests
         int shelter = Cited(why, @"ShelterNeedId` \(:(\d+)\)");
         Assert.Contains("private const int ShelterNeedId", Line(src, shelter), StringComparison.Ordinal);
 
-        // "inside Of (:A-B)": A is Of's signature line, B its closing brace.
-        Match of = Regex.Match(why, @"inside Of \(:(\d+)-(\d+)\)", RegexOptions.CultureInvariant);
-        Assert.True(of.Success, "the Of range citation is missing");
-        int ofStart = int.Parse(of.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-        int ofEnd = int.Parse(of.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
-        Assert.Contains("public static double Of(", Line(src, ofStart), StringComparison.Ordinal);
-        Assert.Equal("    }", Line(src, ofEnd));
-        // The floor, the span and the normalisation really are inside the cited range.
-        bool floor = false, span = false, normalized = false, burden = false;
-        for (int n = ofStart; n <= ofEnd; n++)
+        // "inside Provision (:A-B)": A is Provision's signature line, B its closing brace (H2: the provision reading
+        // became public and the locals moved there).
+        Match prov = Regex.Match(why, @"inside Provision \(:(\d+)-(\d+)\)", RegexOptions.CultureInvariant);
+        Assert.True(prov.Success, "the Provision range citation is missing");
+        int pStart = int.Parse(prov.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        int pEnd = int.Parse(prov.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Contains("public static double Provision(", Line(src, pStart), StringComparison.Ordinal);
+        Assert.Equal("    }", Line(src, pEnd));
+        bool floor = false, span = false, normalized = false;
+        for (int n = pStart; n <= pEnd; n++)
         {
             string l = Line(src, n);
             floor |= l.Contains("double floor =", StringComparison.Ordinal);
             span |= l.Contains("double span =", StringComparison.Ordinal);
             normalized |= l.Contains("double normalized =", StringComparison.Ordinal);
-            burden |= l.Contains("TaxSufficiency(world, settlement, cfg)", StringComparison.Ordinal);
         }
-        Assert.True(floor && span && normalized, "the floor/span/normalisation locals are not inside the cited Of range");
-        Assert.True(burden, "Of does not apply the tax burden inside the cited range");
+        Assert.True(floor && span && normalized, "the floor/span/normalisation locals are not inside the cited Provision range");
 
-        // "TaxSufficiency (:A-B)": the public multiplier's signature and body.
+        // "Of (:A-B)": Of's signature and the expression that applies the tax burden to the provision reading.
+        Match of = Regex.Match(why, @"Of \(:(\d+)-(\d+)\) multiplies", RegexOptions.CultureInvariant);
+        Assert.True(of.Success, "the Of range citation is missing");
+        int ofStart = int.Parse(of.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        int ofEnd = int.Parse(of.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Contains("public static double Of(", Line(src, ofStart), StringComparison.Ordinal);
+        bool burden = false, provision = false;
+        for (int n = ofStart; n <= ofEnd; n++)
+        {
+            burden |= Line(src, n).Contains("TaxSufficiency(world, settlement, cfg)", StringComparison.Ordinal);
+            provision |= Line(src, n).Contains("Provision(world, settlement, cfg)", StringComparison.Ordinal);
+        }
+        Assert.True(burden && provision, "Of does not multiply the provision reading by the tax burden inside the cited range");
+
+        // "TaxSufficiency (:A-B)": the public multiplier's signature and body (H2: the accumulated levy pressure).
         Match tax = Regex.Match(why, @"TaxSufficiency \(:(\d+)-(\d+)\)", RegexOptions.CultureInvariant);
         Assert.True(tax.Success, "the TaxSufficiency citation is missing");
         Assert.Contains("public static double TaxSufficiency(",
             Line(src, int.Parse(tax.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)), StringComparison.Ordinal);
-        Assert.Contains("Governance.EffectiveTaxRate",
+        Assert.Contains("Unrest.LevyPressure",
             Line(src, int.Parse(tax.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)), StringComparison.Ordinal);
     }
 }

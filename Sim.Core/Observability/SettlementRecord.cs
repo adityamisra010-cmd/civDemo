@@ -150,9 +150,11 @@ public sealed record SocialSection(
 /// <summary>
 /// ADR-033 D4 — THE TAX BURDEN behind one settlement's happiness, as an EXPLAINED CAUSE: the
 /// factor <c>SettlementHappiness.Of</c> multiplies its normalised CES reading by
-/// (<see cref="SettlementHappiness.TaxSufficiency"/>), decomposed into the two STORED facts it is
-/// computed from — the controller's declared rate (a TaxPolicies row) and the stored administrative
-/// reach (<see cref="ControlRow.Strength"/>). Every value is RECOMPUTED through the public reader the
+/// (<see cref="SettlementHappiness.TaxSufficiency"/>), shown beside the two STORED facts the felt levy
+/// starts from — the controller's declared rate (a TaxPolicies row) and the stored administrative
+/// reach (<see cref="ControlRow.Strength"/>). H2 (2026-10-05): the scale is 1 − the ACCUMULATED levy
+/// pressure (State.Unrest.LevyPressure), so it trails the rate — it falls over turns under a levy and
+/// recovers after a cut — rather than being 1 − the effective rate. Every value is RECOMPUTED through the public reader the
 /// simulation itself calls on the same world; nothing here is a second formula. Shared by the
 /// settlement record and <c>HappinessExplanation</c> through ONE constructor (<see cref="Of"/>).
 /// The lever is the SetTaxRate order (the declared rate); reach moves with the capital and the roads.
@@ -163,7 +165,7 @@ public readonly record struct TaxBurdenReading(
     double NominalRate,      // RECOMPUTED  Governance.NominalTaxRate — the declared fraction (0 without a row)
     double ControlStrength,  // RECOMPUTED  Governance.ControlStrength — READ of ControlRow.Strength, the stored reach (0 uncontrolled)
     double EffectiveRate,    // RECOMPUTED  Governance.EffectiveTaxRate = nominal × strength (0 when the loop is inert)
-    double Scale)            // RECOMPUTED  SettlementHappiness.TaxSufficiency = 1 − EffectiveRate — what Of multiplies by
+    double Scale)            // RECOMPUTED  SettlementHappiness.TaxSufficiency = 1 − the accumulated levy pressure (H2) — what Of multiplies by
 {
     /// <summary>The reading for <paramref name="settlement"/> in <paramref name="world"/>.</summary>
     public static TaxBurdenReading Of(IReadOnlyWorldState world, Sim.Core.Systems.SimConfig cfg, SettlementId settlement)

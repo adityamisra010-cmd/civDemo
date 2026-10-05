@@ -248,7 +248,7 @@ public static class SystemCatalog
         var system = new NeedsGrievanceSystem(cfg);
         return new SystemRegistration(NeedsGrievanceSystem.WellKnownId, NeedsGrievanceSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<NeedsGrievanceTables>(
-                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances), rng,
+                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances, next.TaxGrievances), rng,
                 NeedsGrievanceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

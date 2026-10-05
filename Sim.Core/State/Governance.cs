@@ -17,11 +17,14 @@ namespace Sim.Core.State;
 ///       capital over the road-aware SettlementDistances) decides what is actually collected
 ///     → EFFECTIVE rate = nominal × Strength
 ///     → raises realised production (ProductionSystem, <see cref="ExtractionMultiplier"/>)
-///     → lowers HAPPINESS (<see cref="SettlementHappiness.TaxSufficiency"/>)
-///     → injures DIGNITY (D-035-D, the need's satisfaction = 1 − effective rate) → GRIEVANCE accrues
-///       → PROTEST (<see cref="Unrest"/>, M5 R2b): output drag, discharge, and at full intensity UPRISING
-///       (the D-021 unrest-lite brake — the negative loop that grows with the levy)
-///     → happiness drives migration's destination weight and, at zero, revolt (D-021 valves)
+///     → is FELT by each population segment, offset by its provision and the settlement's services
+///       (<see cref="Unrest.FeltBurden"/>; H2) → injures DIGNITY (D-035-D) → the segment's LEVY GRIEVANCE
+///       accumulates (a stock, dt-integrated; H2)
+///       → lowers HAPPINESS as it accumulates (<see cref="SettlementHappiness.TaxSufficiency"/>), never at the edict
+///       → PROTEST (<see cref="Unrest"/>): output drag and discharge; past the segment's own TIPPING POINT a
+///         growing portion of it in revolt; the settlement UPRISING only when the rebels carry it (D-021
+///         unrest-lite, H2 — the negative loop that grows with the levy; no tax → revolt rule anywhere)
+///     → happiness drives migration's destination weight (D-021 valves)
 ///     → LEGITIMACY reads the condition of what the Empire still holds
 ///     → the AI tax valve (AiGovernance) answers it.
 ///

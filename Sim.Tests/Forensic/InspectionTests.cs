@@ -425,8 +425,9 @@ public class InspectionTests
 
         // The boundary is stated as file:line so a reviewer can CHECK it.
         Assert.Contains("SettlementHappiness.cs", happiness[1].Basis, StringComparison.Ordinal);
-        // ADR-033 D4 moved the cited line (TaxSufficiency inserted after HousingSufficiency).
-        Assert.Contains("WeightOf is `private static` (:258)", happiness[1].Basis, StringComparison.Ordinal);
+        // ADR-033 D4 moved the cited line (TaxSufficiency inserted after HousingSufficiency); H2 moved it again
+        // (the public Provision reading split out of Of).
+        Assert.Contains("WeightOf is `private static` (:277)", happiness[1].Basis, StringComparison.Ordinal);
         Assert.Contains("It does not manufacture a decomposition.", happiness[1].Basis, StringComparison.Ordinal);
 
         // ADR-033 D4: the one PUBLIC multiplier — the tax burden — is reported, READ from the

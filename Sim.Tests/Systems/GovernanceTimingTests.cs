@@ -14,9 +14,9 @@ namespace Sim.Tests.Systems;
 /// ran ProductionSystem with a tax in place, and no test pinned when a road change reaches the stored
 /// reach or what a new colony reads.
 ///
-///   SetTaxRate stamped t ─step t→t+1─▶ TaxPolicies row in state t+1 (its ONLY effect by then;
-///       the derived happiness READING of t+1 already carries the burden)
-///     ─step t+1→t+2─▶ first change in production (and in every system that reads happiness from PREV)
+///   SetTaxRate stamped t ─step t→t+1─▶ TaxPolicies row in state t+1 (its ONLY effect by then)
+///     ─step t+1→t+2─▶ first change in production, and (H2) the first levy-grievance rows and the first
+///       fall in the happiness READING of state t+2 ─step t+2→t+3─▶ migration and the AI valve answer it
 ///   DevelopRoads stamped t ─▶ TransportEdges in t+1 ─▶ SettlementDistances in t+2 (CatchmentSystem
 ///       reads PREV) ─▶ ControlRow.Strength in t+3 (GovernanceSystem reads PREV) ─▶ production in the
 ///       step t+3→t+4 (ProductionSystem reads PREV Strength)
@@ -83,10 +83,17 @@ public class GovernanceTimingTests
         Assert.Equal(WorldHash.ComputeHex(u[IssueTurn + 1]), HashWithoutTaxPolicies(t[IssueTurn + 1]));
         Assert.Equal(Produced(u[IssueTurn + 1], seat, grain), Produced(t[IssueTurn + 1], seat, grain));
 
-        // ...while the derived happiness READING of state t+1 already carries the burden (it is a
-        // pure function of that state); the systems that consume it read it in the next step.
+        // H2 (2026-10-05, Director §4: the burden ACCUMULATES): the happiness READING of state t+1 is UNCHANGED —
+        // the levy reaches welfare only through the segments' accumulated levy grievance, which NeedsGrievanceSystem
+        // first accrues in the step t+1 → t+2 (reading the policy from PREV). State t+2 holds the first TaxGrievance
+        // rows and the first fall in happiness; migration and the AI valve read it in the step t+2 → t+3. (ADR-033
+        // D4's first form scaled happiness by 1 − r already in state t+1 — superseded.)
         Assert.Equal(SettlementHappiness.Of(u[IssueTurn], seat, Cfg()), SettlementHappiness.Of(t[IssueTurn], seat, Cfg()));
-        Assert.True(SettlementHappiness.Of(t[IssueTurn + 1], seat, Cfg()) < SettlementHappiness.Of(u[IssueTurn + 1], seat, Cfg()));
+        Assert.Equal(SettlementHappiness.Of(u[IssueTurn + 1], seat, Cfg()), SettlementHappiness.Of(t[IssueTurn + 1], seat, Cfg()));
+        Assert.Equal(0, t[IssueTurn + 1].TaxGrievances.Count);
+        Assert.True(t[IssueTurn + 2].TaxGrievances.Count > 0, "no levy grievance accrued in the step t+1 → t+2");
+        Assert.True(Unrest.LevyPressure(t[IssueTurn + 2], seat, Cfg()) > 0.0);
+        Assert.True(SettlementHappiness.Of(t[IssueTurn + 2], seat, Cfg()) < SettlementHappiness.Of(u[IssueTurn + 2], seat, Cfg()));
 
         // State t+2: the FIRST production change — the capital's harvest is raised by the extraction
         // multiplier 1 + 0.3 × 0.40 × Strength(seat = 1).

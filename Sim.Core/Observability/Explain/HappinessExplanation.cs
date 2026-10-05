@@ -34,7 +34,9 @@ public readonly record struct HappinessFactor(
 ///
 /// ADR-033 D4 — THE TAX BURDEN IS AN EXPLAINED CAUSE. The M5 governing loop multiplies
 /// the normalised CES reading by <see cref="SettlementHappiness.TaxSufficiency"/>
-/// (1 − the effective tax rate), so the two provision factors no longer explain the
+/// (H2, 2026-10-05: 1 − the ACCUMULATED levy pressure of the settlement's segments, which
+/// builds over turns under a levy and decays after it; ADR-033 D4's first form was
+/// 1 − the effective tax rate), so the two provision factors no longer explain the
 /// score on their own. <see cref="Burden"/> carries that multiplier and the two stored
 /// facts it is computed from (the declared rate and ControlRow.Strength, the stored
 /// reach), through the SAME constructor the settlement record uses
@@ -45,8 +47,10 @@ public sealed class HappinessExplanation
 {
     public const string ScopeNote =
         "Happiness reads Food (1 − DeficitRatio) and Housing (dwellings × PersonsPerDwelling / population) as its two "
-        + "provision factors, then MULTIPLIES the normalised reading by the M5 tax burden (TaxSufficiency = 1 − declared "
-        + "tax rate × ControlRow.Strength, the stored administrative reach; exactly 1 when untaxed). "
+        + "provision factors, then MULTIPLIES the normalised reading by the M5 tax burden (TaxSufficiency = 1 − the "
+        + "accumulated levy pressure: the settlement's segments' levy grievance over the uprising level, built up over "
+        + "turns by the felt levy = declared tax rate × ControlRow.Strength offset by provision and services; exactly 1 "
+        + "when no levy has ever been felt). "
         + "Comfort and the Tier-A gate are ABSENT by design: happiness feeds migration, and D-021 forbids the needs "
         + "tables from driving behaviour before M5 (SettlementHappiness.cs:27-38). It is deliberately not the same "
         + "number as the needs aggregate that accrues grievance.";
@@ -54,10 +58,12 @@ public sealed class HappinessExplanation
     /// <summary>How the burden line reads, and what moves it.</summary>
     public const string BurdenNote =
         "The burden multiplies the whole reading (it is not a third factor, so total deprivation still reads 0 at any "
-        + "rate). Effective rate = the controller's declared rate (SetTaxRate, the lever) × the stored reach "
+        + "rate). It is 1 − the ACCUMULATED levy pressure (H2): each segment's levy grievance grows while the levy is "
+        + "felt and decays after it is cut, so the scale falls over turns, not at the edict. The felt levy starts from "
+        + "the effective rate = the controller's declared rate (SetTaxRate, the lever) × the stored reach "
         + "(ControlRow.Strength = exp(−travel cost from the capital / authorityDecayCostUnits), written by "
-        + "GovernanceSystem from the previous turn's road-aware distances). Untaxed, uncontrolled, or no governance "
-        + "section: scale 1.";
+        + "GovernanceSystem from the previous turn's road-aware distances), offset by provision and public services. "
+        + "Never levied, uncontrolled, or no governance section: scale 1.";
 
     public SettlementId Settlement { get; }
     /// <summary>RECOMPUTED SettlementHappiness.Of, on [0, 100].</summary>

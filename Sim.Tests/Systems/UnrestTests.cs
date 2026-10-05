@@ -8,15 +8,22 @@ using Sim.Tests.TestUtil;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// M5 integration R2b — D-021 UNREST-LITE, the tax brake (Director decision 9, item 15 GOVERNANCE):
-/// tax burden → Dignity (D-035-D) → grievance → protest (output drag, discharge) → uprising (revolt).
-/// High tax produces pressure; the pressure has a deterministic gameplay consequence; normal tax remains
-/// viable; revolt is deterministic.
+/// M5 integration R2b — D-021 UNREST-LITE, re-founded by H2 (Director 2026-10-05 §4–§6, §18; RATIFIED in
+/// docs/d049-taxation-and-revolt-model.md) on the POPULATION SEGMENT: the levy → felt burden (offset by provision and
+/// services) → Dignity → the segment's own LEVY GRIEVANCE stock T (TaxGrievances, v32) → protest → the segment's tipping
+/// point → a growing portion of it in revolt → the settlement's uprising only when the rebels carry it. These are the
+/// MECHANISM tests (laws, rows, edges); the temporal A–H behaviour on the full pipeline is TaxPressureTests.
+///
+/// 2026-10-05 (H2): the R2b/R4a tests of the ATTRIBUTION (the levy's grievance as a share of the needs-grievance stock)
+/// and of the settlement-wide uprising at G_tax ≥ 50 were removed with the attribution they pinned; their history is
+/// in git and in docs/r4a-m5-closure-record.md §3. The R2b "no offset" control arms remain (NoOffset).
 /// </summary>
 public class UnrestTests
 {
     private static SimConfig Cfg => GovernanceRigs.Cfg();
     private static UnrestTuning Tuning => Cfg.Needs!.Unrest!;
+    private static readonly ClassId Peasants = new(1);
+    private static readonly ClassId Artisans = new(2);
 
     private static void Levy(WorldState w, PolityId p, double rate)
     {
@@ -25,21 +32,37 @@ public class UnrestTests
         w.TaxPolicies.Add(new TaxPolicyRow(p, rate));
     }
 
-    /// <summary>Sets every class's grievance at <paramref name="s"/> and, unless <paramref name="levyFelt"/> is
-    /// false, publishes a felt levy (Dignity 0.5) as the ONLY satisfaction row of each class — so the whole
-    /// stock is the levy's (TaxGrievance == G exactly: lifting the levy would close the entire shortfall).</summary>
-    private static void SetGrievance(WorldState w, SettlementId s, double value, bool levyFelt = true)
+    /// <summary>Upserts the (settlement, class) LEVY GRIEVANCE row — the rig standing in for NeedsGrievanceSystem's
+    /// accrual, used where a test isolates the READERS of the stock.</summary>
+    private static void SetLevyGrievance(WorldState w, SettlementId s, ClassId c, double value)
     {
-        var keep = new List<NeedSatisfactionRow>();
-        for (int i = 0; i < w.NeedSatisfactions.Count; i++)
-            if (w.NeedSatisfactions[i].Settlement != s) keep.Add(w.NeedSatisfactions[i]);
-        w.NeedSatisfactions.Clear();
-        foreach (NeedSatisfactionRow r in keep) w.NeedSatisfactions.Add(r);
-        for (int i = 0; i < w.Grievances.Count; i++)
+        for (int i = 0; i < w.TaxGrievances.Count; i++)
+            if (w.TaxGrievances[i].Settlement == s && w.TaxGrievances[i].Class == c) { w.TaxGrievances[i] = new TaxGrievanceRow(s, c, value); return; }
+        w.TaxGrievances.Add(new TaxGrievanceRow(s, c, value));
+    }
+
+    /// <summary>Every class of <paramref name="s"/> with members at levy grievance <paramref name="value"/>.</summary>
+    private static void SetLevyGrievance(WorldState w, SettlementId s, double value)
+    {
+        for (int g = 0; g < w.Grievances.Count; g++)
+            if (w.Grievances[g].Settlement == s && Unrest.Members(w, s, w.Grievances[g].Class) > 0)
+                SetLevyGrievance(w, s, w.Grievances[g].Class, value);
+    }
+
+    /// <summary>Moves <paramref name="fraction"/> of every peasant cohort of <paramref name="s"/> into the artisan
+    /// buckets through the Ledger (a sanctioned rig transfer — the ClassSystemTests precedent): a minority segment.</summary>
+    private static void SeedArtisans(WorldState w, SettlementId s, double fraction)
+    {
+        var ledger = new Ledger(w.LedgerFlows);
+        for (int i = 0; i < w.Buckets.Count; i++)
         {
-            if (w.Grievances[i].Settlement != s) continue;
-            w.Grievances[i] = w.Grievances[i] with { Value = value };
-            if (levyFelt) w.NeedSatisfactions.Add(new NeedSatisfactionRow(s, w.Grievances[i].Class, 7, 0.5));
+            if (w.Buckets[i].Settlement != s || w.Buckets[i].Class != Peasants) continue;
+            int dst = -1;
+            for (int j = 0; j < w.Buckets.Count; j++)
+                if (w.Buckets[j].Settlement == s && w.Buckets[j].Class == Artisans && w.Buckets[j].CohortIdx == w.Buckets[i].CohortIdx) { dst = j; break; }
+            long move = (long)Math.Floor(w.Buckets[i].Count.Value * fraction);
+            if (dst < 0 || move <= 0) continue;
+            ledger.Transfer(ref w.Buckets.Ref(i).Count, ref w.Buckets.Ref(dst).Count, move, OverdrawPolicy.Throw);
         }
     }
 
@@ -50,20 +73,26 @@ public class UnrestTests
         return double.NaN;
     }
 
+    private static SimConfig NoOffset(SimConfig cfg) =>
+        cfg with { Needs = cfg.Needs! with { Unrest = cfg.Needs!.Unrest! with { TaxBurdenOffsetMax = 0.0, TaxServiceOffsetMax = 0.0 } } };
+
     // ------------------------------------------------------------------ the content
 
     [Fact]
-    public void TheShippedContent_BindsDignityToTheTaxBurden_AndShipsTheUnrestSection()
+    public void TheShippedContent_BindsDignityToTheTaxBurden_AndShipsTheSegmentModel()
     {
         NeedEntry dignity = Cfg.Needs!.Needs.Single(n => n.Id == 7);
         Assert.True(dignity.Bound);
         Assert.True(dignity.FromTaxBurden);
         Assert.NotNull(Cfg.Needs.Unrest);
         Assert.True(Tuning.UprisingGrievance > Tuning.ProtestOnsetGrievance);
+        // H2: re-derived on the levy-grievance scale (d049 §6), the service offset and the majority rule.
+        Assert.Equal((12.0, 20.0, 0.5, 0.25, 0.5),
+            (Tuning.ProtestOnsetGrievance, Tuning.UprisingGrievance, Tuning.TaxBurdenOffsetMax, Tuning.TaxServiceOffsetMax, Tuning.UprisingPopulationShare));
     }
 
     [Fact]
-    public void ALoaderRefuses_ABasketForTheTaxBurdenNeed_AndAnUprisingBelowTheOnset()
+    public void ALoaderRefuses_ABasketForTheTaxBurdenNeed_AnUprisingBelowTheOnset_AndOutOfRangeSegmentTuning()
     {
         string json;
         using (var reader = new StreamReader(Sim.Data.DataFiles.OpenNeeds())) json = reader.ReadToEnd();
@@ -71,9 +100,13 @@ public class UnrestTests
             System.Text.RegularExpressions.Regex.Replace(json, "\"uprisingGrievance\": [0-9.]+", "\"uprisingGrievance\": 1.0")));
         Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
             json.Replace("\"source\": \"taxBurden\"", "\"source\": \"taxBurdn\"", StringComparison.Ordinal)));
+        Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
+            json.Replace("\"taxServiceOffsetMax\": 0.25", "\"taxServiceOffsetMax\": 1.0", StringComparison.Ordinal)));
+        Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
+            json.Replace("\"uprisingPopulationShare\": 0.5", "\"uprisingPopulationShare\": 1.0", StringComparison.Ordinal)));
     }
 
-    // ------------------------------------------------------------------ high tax → pressure
+    // ------------------------------------------------------------------ the felt burden and Dignity
 
     [Fact]
     public void HighTax_InjuresDignityDirectly_AndGrievanceRisesAboveTheUntaxedTwin()
@@ -83,38 +116,134 @@ public class UnrestTests
         WorldState untaxed = taxed.Clone();
         Levy(taxed, player, 0.9);
 
-        // R4: asserted on the R2b reading (no provision offset), where the satisfaction is exactly 1 − r; the
-        // offset's own law is pinned by Dignity_IsTheBurdenOffsetByProvision_AndExactlyTheR2bReadingAtItsEdges.
+        // Asserted on the R2b reading (no offsets), where the satisfaction is exactly 1 − r.
         TurnExecutor ex = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(NoOffset(Cfg)));
         WorldState t1 = ex.Step(taxed), u1 = ex.Step(untaxed);
-
-        // D-035-D: the satisfaction IS one minus the effective rate (declared × reach; the seat's reach is 1.0).
         Assert.Equal(1.0 - Governance.EffectiveTaxRate(taxed, seat, Cfg), DignityRow(t1, seat));
         Assert.Equal(1.0 - 0.9, DignityRow(t1, seat), 12);
         Assert.Equal(1.0, DignityRow(u1, seat));
         Assert.True(Unrest.Grievance(t1, seat) > Unrest.Grievance(u1, seat));
+        // H2: the levy's OWN stock accrues for the taxed world and does not exist in the untaxed one.
+        Assert.True(Unrest.TaxGrievance(t1, seat, Cfg) > 0.0);
+        Assert.Equal(0, u1.TaxGrievances.Count);
 
-        // ...and keeps rising under a sustained levy until protest's discharge and decay hold it.
         WorldState t = t1, u = u1;
         for (int i = 0; i < 6; i++) { t = ex.Step(t); u = ex.Step(u); }
-        Assert.True(Unrest.Grievance(t, seat) > Unrest.Grievance(t1, seat));
-        Assert.True(Unrest.Grievance(t, seat) - Unrest.Grievance(u, seat) > Unrest.Grievance(t1, seat) - Unrest.Grievance(u1, seat));
+        Assert.True(Unrest.TaxGrievance(t, seat, Cfg) > Unrest.TaxGrievance(t1, seat, Cfg));
+        Assert.Equal(0, u.TaxGrievances.Count);
     }
 
     [Fact]
-    public void WithoutAGovernanceSection_DignityHasNoCarrier_AndPublishesNothing()
+    public void WithoutAGovernanceSection_DignityHasNoCarrier_PublishesNothing_AndNoLevyGrievanceExists()
     {
         SimConfig bare = Cfg with { Governance = null };
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
         WorldState next = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(bare)).Step(w);
         Assert.True(double.IsNaN(DignityRow(next, seat)));
+        Assert.Equal(0, next.TaxGrievances.Count);
     }
 
-    // ------------------------------------------------------------------ the protest law and its consequences
+    /// <summary>R4a + H2: Dignity = 1 − felt, felt = r × (1 − m_P × P) × (1 − m_V × V). Exactly the R2b 1 − r untaxed,
+    /// at zero provision with nothing built, or with both offsets 0; a fully provided population feels (1 − m_P).</summary>
+    [Fact]
+    public void Dignity_IsTheBurdenOffsetByProvision_AndServices_AndExactlyTheR2bReadingAtItsEdges()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        Levy(w, player, 0.99);
+        double r = Governance.EffectiveTaxRate(w, seat, Cfg);
+        Assert.True(r > 0.9);
+        double m = Tuning.TaxBurdenOffsetMax;
+        Assert.Equal(0.0, Unrest.ServiceOffset(w, seat, Cfg));   // nothing built at founding
+        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.0));
+        Assert.Equal(1.0 - r * (1.0 - m), NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 1.0));
+        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, NoOffset(Cfg), 1.0));
+        Assert.True(NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.8) > NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.3));
+        // Services: a granary at the seat (reach 1.0) lightens the felt levy by m_V × (1 − e^-1).
+        w.Structures.Add(new StructureRow(seat, 1, 1));
+        double v = Unrest.ServiceOffset(w, seat, Cfg);
+        Assert.Equal(1.0 - Math.Exp(-1.0), v, 12);
+        Assert.Equal(1.0 - r * (1.0 - m * 0.5) * (1.0 - Tuning.TaxServiceOffsetMax * v),
+            NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.5), 12);
+        Levy(w, player, 0.0);
+        Assert.Equal(1.0, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.7));
+    }
+
+    /// <summary>The service offset is real state only, delivered as far as the state reaches: structures that found no
+    /// institution count one each, institutions their maturity, a university's building is not counted twice, an
+    /// uncontrolled place gets nothing, and the reach scales it.</summary>
+    [Fact]
+    public void ServiceOffset_ReadsPublicWorksAndInstitutions_ScaledByReach()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        SettlementId other = w.Settlements[0].Id == seat ? w.Settlements[1].Id : w.Settlements[0].Id;
+        w.Structures.Add(new StructureRow(seat, 1, 1));                       // granary
+        w.Structures.Add(new StructureRow(seat, 2, 1));                       // workshop
+        w.Structures.Add(new StructureRow(seat, 12, 1));                      // a university building: counted via its institution
+        w.Institutions.Add(new InstitutionRow(1, player, seat, 2, 0, 0.5));   // half-mature university
+        Assert.Equal(1.0 - Math.Exp(-2.5), Unrest.ServiceOffset(w, seat, Cfg), 12);
+        w.Structures.Add(new StructureRow(other, 1, 1));
+        GovernanceRigs.SetStrength(w, player, other, 0.4);
+        Assert.Equal(0.4 * (1.0 - Math.Exp(-1.0)), Unrest.ServiceOffset(w, other, Cfg), 12);
+        GovernanceRigs.SetStrength(w, player, other, 0.0);
+        Assert.Equal(0.0, Unrest.ServiceOffset(w, other, Cfg));
+    }
+
+    // ------------------------------------------------------------------ the levy's accrual: undiluted, poorer → more
+
+    /// <summary>
+    /// H2 §6 — THE ATTRIBUTION FIX: the levy's accrual is what the aggregation charges for the levy ALONE (every other
+    /// need at 1), so a destitute segment's other shortfalls neither dilute nor zero it (under R2b's share they did:
+    /// a homeless seat's tax grievance read 0) — and it grows as the felt levy grows. Monotone in the felt burden.
+    /// </summary>
+    [Fact]
+    public void TheLevysAccrual_IsTheLevyAlone_UndilutedByOtherShortfalls_AndGrowsWithTheFeltBurden()
+    {
+        AggregationTuning agg = Cfg.Needs!.Aggregation;
+        double[] w = [1.0, 0.9, 0.3, 0.4];
+        bool[] gate = [true, true, false, false];
+        double W = 2.6;
+        double Accrual(double[] sat) => NeedsGrievanceSystem.LevyAccrualPerYear(sat, gate, w, 3, W, agg, new double[4], new double[4]);
+        // A homeless, unfed segment and a well-provided one, same felt Dignity: the SAME levy accrual.
+        Assert.Equal(Accrual([1.0, 1.0, 1.0, 0.4]), Accrual([0.0, 0.0, 0.0, 0.4]));
+        // No levy felt: exactly 0.
+        Assert.Equal(0.0, Accrual([0.2, 0.0, 0.1, 1.0]));
+        // Monotone in the felt burden.
+        double previous = 0.0;
+        foreach (double dignity in new[] { 0.9, 0.7, 0.5, 0.3, 0.1, 0.0 })
+        {
+            double a = Accrual([1.0, 1.0, 1.0, dignity]);
+            Assert.True(a > previous, $"dignity {dignity}: accrual {a} not above {previous}");
+            previous = a;
+        }
+    }
+
+    /// <summary>The same rate on a poorly provided segment is FELT more (lower P → lower Dignity), so it accrues more —
+    /// and under R2b's attribution the destitute seat's tax grievance was zero.</summary>
+    [Fact]
+    public void ThePoorerSegment_FeelsTheSameLevyMore_AndAccruesMore_InTheSystem()
+    {
+        (WorldState rich, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(rich, player);
+        SettlementId seat = GovernanceRigs.Seat(rich, player);
+        Levy(rich, player, 0.7);
+        WorldState poor = rich.Clone();
+        GovernanceRigs.WellProvided(rich, seat);
+        GovernanceRigs.Destitute(poor, seat);
+        TurnExecutor ex = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(Cfg));
+        WorldState r1 = ex.Step(rich), p1 = ex.Step(poor);
+        Assert.True(DignityRow(p1, seat) < DignityRow(r1, seat), "the destitute seat felt the levy less");
+        Assert.True(Unrest.TaxGrievance(p1, seat, Cfg) > Unrest.TaxGrievance(r1, seat, Cfg));
+        Assert.True(Unrest.TaxGrievance(p1, seat, Cfg) > 0.0, "the R2b defect: a destitute seat accrued no tax grievance");
+    }
+
+    // ------------------------------------------------------------------ the segment laws
 
     [Fact]
-    public void Protest_IsZeroAtOrBelowTheOnset_LinearBetween_OneAtTheUprising()
+    public void Protest_IsZeroAtOrBelowTheOnset_LinearBetween_OneAtTheTippingPoint()
     {
         UnrestTuning u = Tuning;
         Assert.Equal(0.0, Unrest.ProtestOf(0.0, u));
@@ -125,71 +254,138 @@ public class UnrestTests
         Assert.Equal(0.0, Unrest.ProtestOf(double.NaN, u));
     }
 
+    /// <summary>THE SEGMENT'S TIPPING POINT: risen exactly from uprisingGrievance; past it the rebel fraction grows
+    /// linearly over the protest span and saturates at the whole segment.</summary>
     [Fact]
-    public void Protest_DragsRealisedOutput_AndTheDragGrowsWithItsAmplitude()
+    public void TheTippingPoint_RisenFromU_TheRebelFractionGrowsOverTheProtestSpan()
+    {
+        UnrestTuning u = Tuning;
+        double span = u.UprisingGrievance - u.ProtestOnsetGrievance;
+        Assert.Equal(0.0, Unrest.RebelFractionOf(Math.BitDecrement(u.UprisingGrievance), u));
+        Assert.Equal(0.0, Unrest.RebelFractionOf(u.UprisingGrievance, u));
+        Assert.Equal(0.25, Unrest.RebelFractionOf(u.UprisingGrievance + 0.25 * span, u), 12);
+        Assert.Equal(1.0, Unrest.RebelFractionOf(u.UprisingGrievance + span, u));
+        Assert.Equal(1.0, Unrest.RebelFractionOf(u.UprisingGrievance + 5 * span, u));
+
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        SetLevyGrievance(w, seat, Peasants, Math.BitDecrement(u.UprisingGrievance));
+        Assert.False(Unrest.IsSegmentRisen(w, seat, Peasants, Cfg));
+        SetLevyGrievance(w, seat, Peasants, u.UprisingGrievance);
+        Assert.True(Unrest.IsSegmentRisen(w, seat, Peasants, Cfg));
+        Assert.False(Unrest.IsSegmentRisen(w, seat, Artisans, Cfg));   // a class with no members never rises
+    }
+
+    /// <summary>
+    /// E (mechanism) — A RISING AFFECTS ONLY ITS SEGMENT. A minority segment (artisans, a fifth of the capital) past its
+    /// tipping point with half of it in revolt, the peasants calm: only the artisans are risen; the output factor is
+    /// exactly 1 − r × share × (drag·p·(1 − q) + q) — the peasants withhold nothing; the settlement stays its ruler's
+    /// through the real RevoltSystem. The same rebels as the MAJORITY take the settlement.
+    /// </summary>
+    [Fact]
+    public void ARisenMinority_WithholdsOnlyItsOwnLevy_AndDoesNotTakeTheSettlement_AMajorityDoes()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        SeedArtisans(w, seat, 0.2);
+        Levy(w, player, 0.8);
+        UnrestTuning u = Tuning;
+        double t = u.UprisingGrievance + 0.5 * (u.UprisingGrievance - u.ProtestOnsetGrievance);   // q = 0.5
+        SetLevyGrievance(w, seat, Artisans, t);
+        SetLevyGrievance(w, seat, Peasants, 0.0);
+
+        double share = Unrest.Members(w, seat, Artisans) / (double)Unrest.Population(w, seat);
+        Assert.InRange(share, 0.15, 0.25);
+        Assert.True(Unrest.IsSegmentRisen(w, seat, Artisans, Cfg));
+        Assert.False(Unrest.IsSegmentRisen(w, seat, Peasants, Cfg));
+        Assert.Equal(0.5 * share, Unrest.RebelShare(w, seat, Cfg), 12);
+        double r = Governance.EffectiveTaxRate(w, seat, Cfg);
+        double withheld = share * (u.ProtestOutputDragMax * 1.0 * 0.5 + 0.5);
+        Assert.Equal(1.0 - r * withheld, Unrest.OutputFactor(w, seat, Cfg), 12);
+        Assert.False(Unrest.IsUprising(w, seat, Cfg));
+        TurnExecutor revolt = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.Revolt(Cfg));
+        Assert.True(EmpireQuery.ControlsSettlement(revolt.Step(w), player, seat), "a rebel minority took the settlement");
+
+        // The peasants (the majority) past the point where their rebels outnumber half the people: the settlement falls.
+        SetLevyGrievance(w, seat, Peasants, u.UprisingGrievance + (u.UprisingGrievance - u.ProtestOnsetGrievance));   // q = 1
+        Assert.True(Unrest.IsUprising(w, seat, Cfg));
+        Assert.False(EmpireQuery.ControlsSettlement(revolt.Step(w), player, seat));
+    }
+
+    /// <summary>The settlement uprising boundary, exactly: rebels at the share → held; one ulp of grievance more → lost.</summary>
+    [Fact]
+    public void TheSettlementUprising_IsRebelsAboveTheShare_Strictly()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        UnrestTuning u = Tuning;
+        // One class (peasants) holds everyone at founding: rebels = q. q = 0.5 exactly at T = U + 0.5 × span.
+        double atShare = u.UprisingGrievance + u.UprisingPopulationShare * (u.UprisingGrievance - u.ProtestOnsetGrievance);
+        SetLevyGrievance(w, seat, atShare);
+        Assert.Equal(u.UprisingPopulationShare, Unrest.RebelShare(w, seat, Cfg), 12);
+        Assert.False(Unrest.IsUprising(w, seat, Cfg));
+        SetLevyGrievance(w, seat, atShare + 1e-6);
+        Assert.True(Unrest.IsUprising(w, seat, Cfg));
+    }
+
+    [Fact]
+    public void Protest_DragsRealisedOutput_OnlyUnderALevy_AndTheDragGrowsWithItsAmplitude()
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
         UnrestTuning u = Tuning;
 
-        // Quiet and untaxed: EXACTLY 1.0 (a quiet world produces bit-identically).
-        SetGrievance(w, seat, u.ProtestOnsetGrievance);
+        // Untaxed: EXACTLY 1.0 whatever the levy grievance (the carrier is the levy: no doom loop).
+        SetLevyGrievance(w, seat, u.UprisingGrievance * 2.0);
         Assert.Equal(1.0, Governance.OutputMultiplier(w, seat, Cfg));
 
         Levy(w, player, 0.5);
         double extraction = Governance.ExtractionMultiplier(w, seat, Cfg);
+        SetLevyGrievance(w, seat, u.ProtestOnsetGrievance);
         Assert.Equal(extraction, Governance.OutputMultiplier(w, seat, Cfg));   // quiet: the extraction alone
 
         double previous = extraction;
         foreach (double fraction in new[] { 0.25, 0.5, 0.75, 1.0 })
         {
-            SetGrievance(w, seat, u.ProtestOnsetGrievance + fraction * (u.UprisingGrievance - u.ProtestOnsetGrievance));
+            SetLevyGrievance(w, seat, u.ProtestOnsetGrievance + fraction * (u.UprisingGrievance - u.ProtestOnsetGrievance));
             double expected = extraction * (1.0 - u.ProtestOutputDragMax * fraction * Governance.EffectiveTaxRate(w, seat, Cfg));
             Assert.Equal(expected, Governance.OutputMultiplier(w, seat, Cfg), 12);
             Assert.True(Governance.OutputMultiplier(w, seat, Cfg) < previous);
             previous = Governance.OutputMultiplier(w, seat, Cfg);
         }
-        // At full protest the drag takes back more than full extraction gives (taxExtractionResponseMax 0.3).
-        Assert.True(previous < 1.0);
+        // Past the tipping point the rebels withhold all their levied work: the drag keeps growing.
+        SetLevyGrievance(w, seat, u.UprisingGrievance + 0.5 * (u.UprisingGrievance - u.ProtestOnsetGrievance));
+        Assert.True(Governance.OutputMultiplier(w, seat, Cfg) < previous);
     }
 
     [Fact]
-    public void GrievanceTheLevyDoesNotExplain_IgnitesNothing_SoHungerOrMissingPotteryCannotRaiseARuler()
+    public void NeedsGrievanceTheLevyDidNotCause_IgnitesNothing_SoHungerOrMissingPotteryCannotRaiseARuler()
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
-        SetGrievance(w, seat, Tuning.UprisingGrievance * 4.0, levyFelt: false);
+        for (int i = 0; i < w.Grievances.Count; i++)
+            if (w.Grievances[i].Settlement == seat) w.Grievances[i] = w.Grievances[i] with { Value = 1000.0 };
         Assert.Equal(0.0, Unrest.TaxGrievance(w, seat, Cfg));
         Assert.Equal(0.0, Unrest.Protest(w, seat, Cfg));
         Assert.Equal(1.0, Unrest.OutputFactor(w, seat, Cfg));
         Assert.Equal(0.0, Unrest.DischargePerYear(w, seat, Cfg));
+        Assert.Equal(0.0, Unrest.LevyPressure(w, seat, Cfg));
         Assert.False(Unrest.IsUprising(w, seat, Cfg));
     }
 
     [Fact]
-    public void TheLevysGrievance_IsTheShareOfTheShortfallLiftingTheLevyWouldClose()
-    {
-        (WorldState w, PolityId player) = GovernanceRigs.Founded();
-        SettlementId seat = GovernanceRigs.Seat(w, player);
-        SetGrievance(w, seat, 40.0);
-        Assert.Equal(40.0, Unrest.TaxGrievance(w, seat, Cfg), 9);    // Dignity the only shortfall: all of it
-        // Add an equally weighted second shortfall the levy does not cause: the levy's share falls below 1.
-        for (int i = 0; i < w.Grievances.Count; i++)
-            if (w.Grievances[i].Settlement == seat) w.NeedSatisfactions.Add(new NeedSatisfactionRow(seat, w.Grievances[i].Class, 6, 0.2));
-        double share = Unrest.TaxGrievance(w, seat, Cfg) / 40.0;
-        Assert.InRange(share, 0.01, 0.99);
-    }
-
-    [Fact]
-    public void Protest_Discharges_TheDecayRateGainsDischargeTimesIntensity_AndQuietIsBitIdentical()
+    public void Protest_Discharges_PerSegmentAndForTheSettlement_AndQuietIsBitIdentical()
     {
         GrievanceTuning g = Cfg.Needs!.Grievance;
         Assert.Equal(NeedsGrievanceSystem.DecayRatePerYear(g, 0.07), NeedsGrievanceSystem.DecayRatePerYear(g, 0.07, 0.0));
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
-        SetGrievance(w, seat, Tuning.UprisingGrievance);
-        Assert.Equal(Tuning.ProtestDischargePerYear, Unrest.DischargePerYear(w, seat, Cfg));
-        SetGrievance(w, seat, Tuning.ProtestOnsetGrievance - 1.0);
+        SetLevyGrievance(w, seat, Tuning.UprisingGrievance);
+        Assert.Equal(Tuning.ProtestDischargePerYear, Unrest.SegmentDischargePerYear(w, seat, Peasants, Cfg));
+        Assert.Equal(Tuning.ProtestDischargePerYear, Unrest.DischargePerYear(w, seat, Cfg), 12);
+        SetLevyGrievance(w, seat, Tuning.ProtestOnsetGrievance - 1.0);
+        Assert.Equal(0.0, Unrest.SegmentDischargePerYear(w, seat, Peasants, Cfg));
         Assert.Equal(0.0, Unrest.DischargePerYear(w, seat, Cfg));
     }
 
@@ -199,37 +395,40 @@ public class UnrestTests
         SimConfig inert = Cfg with { Needs = Cfg.Needs! with { Unrest = null } };
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
-        SetGrievance(w, seat, 1000.0);
+        Levy(w, player, 0.9);
+        SetLevyGrievance(w, seat, 1000.0);
         Assert.Equal(0.0, Unrest.Protest(w, seat, inert));
         Assert.Equal(1.0, Unrest.OutputFactor(w, seat, inert));
         Assert.Equal(0.0, Unrest.DischargePerYear(w, seat, inert));
+        Assert.Equal(0.0, Unrest.LevyPressure(w, seat, inert));
         Assert.False(Unrest.IsUprising(w, seat, inert));
+        Assert.Equal(1.0, SettlementHappiness.TaxSufficiency(w, seat, inert));
     }
 
-    // ------------------------------------------------------------------ uprising: deterministic revolt
+    // ------------------------------------------------------------------ happiness reads the accumulated pressure
 
+    /// <summary>
+    /// H2: happiness is scaled by 1 − the ACCUMULATED levy pressure, not by 1 − the edict's rate. A freshly declared
+    /// levy changes nothing until pressure has accrued; the pressure is the population-weighted min(1, T / U); untaxed
+    /// worlds read exactly 1.0; and revolt reads the PROVISION reading, which no levy touches.
+    /// </summary>
     [Fact]
-    public void AnUprising_RevoltsAWellProvidedSettlement_BeforeTotalDeprivation_AndOnlyAtTheThreshold()
+    public void Happiness_FallsWithTheAccumulatedPressure_NotWithTheEdict_AndRevoltReadsProvisionOnly()
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
-        SettlementId seatId = GovernanceRigs.Seat(w, player), place = seatId;
-        for (int i = 0; i < w.Settlements.Count; i++)
-            if (w.Settlements[i].Id != seatId) { place = w.Settlements[i].Id; break; }
-        Assert.NotEqual(seatId, place);
-        GovernanceRigs.WellProvided(w, place);
-        Assert.True(SettlementHappiness.Of(w, place, Cfg) > 50.0);   // nowhere near the zero corner
-
-        TurnExecutor revolt = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.Revolt(Cfg));
-        SetGrievance(w, place, Math.BitDecrement(Tuning.UprisingGrievance));
-        Assert.True(EmpireQuery.ControlsSettlement(revolt.Step(w), player, place));
-
-        SetGrievance(w, place, Tuning.UprisingGrievance);
-        WorldState a = revolt.Step(w), b = revolt.Step(w.Clone());
-        Assert.False(EmpireQuery.ControlsSettlement(a, player, place));
-        Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));   // deterministic
-        // Only the relation is lost: nobody is moved, nothing is destroyed.
-        Assert.True(WorldStates.TableEquals(w.Buckets, a.Buckets));
-        Assert.True(WorldStates.TableEquals(w.GoodStocks, a.GoodStocks));
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        GovernanceRigs.WellProvided(w, seat);
+        double before = SettlementHappiness.Of(w, seat, Cfg);
+        Levy(w, player, 1.0);
+        Assert.Equal(before, SettlementHappiness.Of(w, seat, Cfg));   // the edict alone: no instant effect
+        Assert.False(SettlementHappiness.IsRevoltReady(w, seat, Cfg));
+        SetLevyGrievance(w, seat, Tuning.UprisingGrievance / 4.0);
+        Assert.Equal(0.25, Unrest.LevyPressure(w, seat, Cfg), 12);
+        Assert.Equal(before * 0.75, SettlementHappiness.Of(w, seat, Cfg), 9);
+        SetLevyGrievance(w, seat, Tuning.UprisingGrievance * 3.0);
+        Assert.Equal(0.0, SettlementHappiness.Of(w, seat, Cfg));
+        Assert.Equal(before, SettlementHappiness.Provision(w, seat, Cfg));
+        Assert.False(SettlementHappiness.IsRevoltReady(w, seat, Cfg));   // consumed welfare is not deprivation
     }
 
     // ------------------------------------------------------------------ the integrated loop
@@ -277,50 +476,26 @@ public class UnrestTests
         Assert.True(Grain(taxed) > Grain(untaxed));
     }
 
-    /// <summary>R2b's integrated loop, kept on the R2b reading (taxBurdenOffsetMax 0): a 99 % levy at full reach
-    /// raises the seat and the episode burns out, deterministically. R4 offsets the burden by provision (below);
-    /// with the offset stripped the R2b behaviour is exactly this.</summary>
+    /// <summary>R2b's integrated loop, kept as the NO-OFFSET control: a 99 % levy at full reach on a seat that feels it
+    /// unoffset raises its segments, the rebels carry the seat, and the episode burns out once the levy falls nowhere —
+    /// deterministically. With the shipped offsets the same founded seat is TaxPressureTests' subject.</summary>
     [Fact]
-    public void ExtremeTax_WithoutTheProvisionOffset_IgnitesProtest_RaisesTheSeat_AndTheEpisodeBurnsOut_Deterministically()
+    public void ExtremeTax_WithoutTheOffsets_IgnitesProtest_RaisesTheSeat_AndTheEpisodeBurnsOut_Deterministically()
     {
         const int Turns = 40;
         SimConfig r2b = NoOffset(Cfg);
         (WorldState a, int revoltA, double peakA, int quietA) = RunLevy(99.0, Turns, r2b);
         (WorldState b, int revoltB, double peakB, int quietB) = RunLevy(99.0, Turns, r2b);
-        Assert.True(revoltA > 0, "a 99 % levy at full reach must raise the seat within the horizon (R2b reading)");
+        Assert.True(revoltA > 0, "a 99 % levy felt unoffset at full reach must raise the seat within the horizon");
+        Assert.True(revoltA >= 4, "the seat fell before the accrual bound allows (TaxPressureTests C)");
         Assert.True(peakA > 0.0);
         Assert.True(quietA > revoltA, "the episode must end: protest returns to zero after the uprising");
         Assert.Equal((revoltA, peakA, quietA), (revoltB, peakB, quietB));
         Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
     }
 
-    private static SimConfig NoOffset(SimConfig cfg) =>
-        cfg with { Needs = cfg.Needs! with { Unrest = cfg.Needs!.Unrest! with { TaxBurdenOffsetMax = 0.0 } } };
-
-    /// <summary>R4 (Director 2026-10-04): the levy's burden is OFFSET by provision — Dignity = 1 − r × (1 − m × P).
-    /// Exactly the R2b 1 − r untaxed, at zero provision, or with m = 0; a fully provided population feels (1 − m) of
-    /// the levy.</summary>
-    [Fact]
-    public void Dignity_IsTheBurdenOffsetByProvision_AndExactlyTheR2bReadingAtItsEdges()
-    {
-        (WorldState w, PolityId player) = GovernanceRigs.Founded();
-        GovernanceRigs.Grant(w, player);
-        SettlementId seat = GovernanceRigs.Seat(w, player);
-        Levy(w, player, 99.0);
-        double r = Governance.EffectiveTaxRate(w, seat, Cfg);
-        Assert.True(r > 0.9);
-        double m = Tuning.TaxBurdenOffsetMax;
-        Assert.Equal(0.5, m);
-        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.0));
-        Assert.Equal(1.0 - r * (1.0 - m), NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 1.0));
-        Assert.Equal(1.0 - r, NeedsGrievanceSystem.DignitySatisfaction(w, seat, NoOffset(Cfg), 1.0));
-        Assert.True(NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.8) > NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.3));
-        Levy(w, player, 0.0);
-        Assert.Equal(1.0, NeedsGrievanceSystem.DignitySatisfaction(w, seat, Cfg, 0.7));
-    }
-
-    /// <summary>Runs a levy on the founded seat; <paramref name="wellProvided"/> tops the seat's every stock and its
-    /// dwellings up before each turn (a population with food, amenities and housing to spare).</summary>
+    /// <summary>Runs a levy on the founded seat; the seat's every stock and its dwellings are topped up before each
+    /// turn (a population with food, amenities and housing to spare).</summary>
     private static (int RevoltTurn, double PeakTaxGrievance, double PeakProtest) RunProvided(double percent, int turns, SimConfig cfg)
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
@@ -345,31 +520,26 @@ public class UnrestTests
         return (revolt, peakG, peakP);
     }
 
-    /// <summary>R4 — THE MEASURED VERDICT: 99 % is extremely burdensome but NOT a deterministic revolt. A
-    /// well-provided seat bears it in protest (output drag) without rising over 80 turns; the same seat on the R2b
-    /// reading (no offset) rises within a few turns. Measured on this tree: R2b rises at turn 6; offset peak tax
-    /// grievance 19.1, protest 0.118 (docs/r4a-m5-closure-record.md §3).</summary>
+    /// <summary>R4a's verdict, on the H2 model: 99 % on a well-provided seat is borne in protest, without a rising, over
+    /// 80 turns; the same seat felt unoffset (the control) rises.</summary>
     [Fact]
-    public void ExtremeTax_OnAWellProvidedSeat_IsBorneInProtest_NotADeterministicRevolt()
+    public void ExtremeTax_OnAWellProvidedSeat_IsBorneInProtest_NotARevolt()
     {
-        (int revoltR2b, _, _) = RunProvided(99.0, 80, NoOffset(Cfg));
-        Assert.True(revoltR2b > 0, "control: without the offset the well-provided seat rises (R2b)");
+        (int revoltControl, _, _) = RunProvided(99.0, 80, NoOffset(Cfg));
+        Assert.True(revoltControl > 0, "control: without the offsets the well-provided seat rises");
         (int revolt, double peakG, double peakP) = RunProvided(99.0, 80, Cfg);
         Assert.Equal(-1, revolt);
         Assert.True(peakP > 0.0, "99 % must still be felt: the seat protests");
         Assert.True(peakG < Tuning.UprisingGrievance);
     }
 
-    // ------------------------------------------------------------------ R2c: the uprising meets city-state research
+    // ------------------------------------------------------------------ the uprising meets D-048
 
-    /// <summary>R3 (Director R2-final §2, superseding R2c's INFERRED "empty local record"): a settlement thrown off
-    /// by an UPRISING becomes a NEW AI-controlled polity at once and holds a COMPLETE copy of its former ruler's
-    /// knowledge at the instant of separation; the ruler keeps every node it had.</summary>
+    /// <summary>R3 / D-048: a seat thrown off by an UPRISING becomes a NEW AI-controlled polity at once and holds a
+    /// COMPLETE copy of its former ruler's knowledge at the instant of separation; the ruler keeps every node.</summary>
     [Fact]
     public void ARevoltedSeat_BecomesANewAiPolity_HoldingTheCompleteParentKnowledge()
     {
-        // R4: the revolt is produced on the R2b reading (no provision offset) — this test's subject is what an
-        // uprising transfers, not what causes one.
         (WorldState w, int revolt, _, _) = RunLevy(99.0, 40, NoOffset(Cfg));
         Assert.True(revolt > 0);
         (WorldState fresh, PolityId player) = GovernanceRigs.Founded();
@@ -385,12 +555,12 @@ public class UnrestTests
         Assert.True(child[taxation], "the new polity inherits the ruler's knowledge");
         for (int i = 0; i < ruler.Length; i++)
             Assert.True(!ruler[i] || child[i], $"node {i}: the ruler knew it at separation, so the new polity must");
+        // H2 §8: and its Age — the ruler was in A3 (the tax Age), so is the new polity.
+        Assert.Equal(GovernanceRigs.TaxAge, AgeQuery.CurrentAge(w, TestConfigs.Ages(), founded));
     }
 
     // ------------------------------------------------------------------ R3 §5: capital loss corrupts nothing
 
-    /// <summary>The 99 % levy raises the CAPITAL (RunLevy's seat) while the ruler researches. Returns the world each
-    /// turn, the revolt turn and the research node the ruler works on.</summary>
     private static (List<WorldState> Worlds, int RevoltTurn, PolityId Player, SettlementId Seat) RunCapitalLoss(int turns)
     {
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
@@ -403,7 +573,7 @@ public class UnrestTests
         var orders = new OrderLog();
         orders.Append(Governance.TaxOrder(0, player, 99.0));
         orders.Append(OrderRecord.From(0, player, OrderKind.SetResearchTarget, content.Nodes[target].Key.Value, 0.0));
-        // R4: raised on the R2b reading (no provision offset) — the subject is capital loss, not its cause.
+        // Raised on the no-offset control — the subject is capital loss, not its cause.
         TurnExecutor ex = UniversityRigs.Production(NoOffset(Cfg), orders);
         var worlds = new List<WorldState> { w };
         int revoltTurn = -1;
@@ -428,7 +598,6 @@ public class UnrestTests
             bool[] after = ResearchQuery.CompletedMask(worlds[t], content, player);
             for (int i = 0; i < before.Length; i++)
                 Assert.True(!before[i] || after[i], $"turn {t}: node {i} was known and is gone — knowledge decayed");
-            // Research progress is never reset: per node, progress only grows until the node completes.
             for (int r = 0; r < worlds[t - 1].ResearchProgress.Count; r++)
             {
                 ResearchProgressRow row = worlds[t - 1].ResearchProgress[r];
@@ -439,11 +608,8 @@ public class UnrestTests
             }
         }
         WorldState last = worlds[^1];
-        // The ruler survives the loss of its seat (it still holds the rest) …
         Assert.False(EmpireQuery.IsExtinct(last, player));
-        // … no successor capital is invented (DEFERRED, §5): the ruler is never handed a different seat …
         Assert.True(!EmpireQuery.TryGetCapital(last, player, out SettlementId capital) || capital == seat);
-        // … so the levy has no source: no settlement the ruler still holds is taxed.
         for (int s = 0; s < last.Settlements.Count; s++)
         {
             SettlementId place = last.Settlements[s].Id;
@@ -457,13 +623,13 @@ public class UnrestTests
     {
         (List<WorldState> a, int revolt, _, _) = RunCapitalLoss(40);
         (List<WorldState> b, _, _, _) = RunCapitalLoss(40);
-        Assert.Equal(WorldHash.ComputeHex(a[^1]), WorldHash.ComputeHex(b[^1]));   // replay twin
-        // Save at the turn the capital fell and load: bit-exact (length, state, hash).
+        Assert.Equal(WorldHash.ComputeHex(a[^1]), WorldHash.ComputeHex(b[^1]));
         WorldState atLoss = a[revolt];
+        Assert.True(atLoss.TaxGrievances.Count > 0, "the save must carry levy-grievance rows (a populated v32 table)");
         using var ms = new MemoryStream();
         Snapshot.Save(atLoss, ms);
         ms.Position = 0;
-        WorldState loaded = Snapshot.Load(ms, atLoss.Terrain);   // derived terrain is re-attached, never serialized (ADR-008)
+        WorldState loaded = Snapshot.Load(ms, atLoss.Terrain);
         Assert.Equal(WorldHash.ComputeHex(atLoss), WorldHash.ComputeHex(loaded));
     }
 }

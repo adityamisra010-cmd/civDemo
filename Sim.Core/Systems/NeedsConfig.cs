@@ -54,7 +54,15 @@ public sealed record UnrestTuning(
     // R4 (Director 2026-10-04, tax model): the share of the levy's indignity a fully provided population does
     // NOT feel — the burden is offset by what the population otherwise has (NeedsGrievanceSystem.DignitySatisfaction).
     // Optional: absent = 0 = the R2b reading (1 − r), bit for bit.
-    [property: JsonPropertyName("taxBurdenOffsetMax")] double TaxBurdenOffsetMax = 0.0);
+    [property: JsonPropertyName("taxBurdenOffsetMax")] double TaxBurdenOffsetMax = 0.0,
+    // H2 (Director 2026-10-05 §5; docs/d049-taxation-and-revolt-model.md): the share of the levy's burden a FULLY
+    // SERVED settlement does not feel — public works and institutions the state maintains there, delivered as far as
+    // its reach (State.Unrest.ServiceOffset). Optional: absent = 0 = no service offset.
+    [property: JsonPropertyName("taxServiceOffsetMax")] double TaxServiceOffsetMax = 0.0,
+    // H2 (Director 2026-10-05 §4/§18 "a revolt affects a population segment"): the share of a settlement's people
+    // its RISEN segments (classes whose levy grievance stands at uprisingGrievance) must exceed before the settlement
+    // as a whole throws off its ruler. Below it the rising stays the segment's own. Optional: absent = 0.5 (a majority).
+    [property: JsonPropertyName("uprisingPopulationShare")] double UprisingPopulationShare = 0.5);
 
 /// <summary>
 /// T3.5b item 2 — the FIXED NUTRITIONAL DIVERSITY STANDARD (director ruling:
@@ -290,6 +298,11 @@ public static class NeedsConfigLoader
             throw new NeedsConfigException($"unrest.protestDischargePerYear must be a finite rate >= 0, got {Inv(u.ProtestDischargePerYear)}.");
         if (!(u.TaxBurdenOffsetMax >= 0.0) || !(u.TaxBurdenOffsetMax < 1.0))
             throw new NeedsConfigException($"unrest.taxBurdenOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxBurdenOffsetMax)}.");
+        if (!(u.TaxServiceOffsetMax >= 0.0) || !(u.TaxServiceOffsetMax < 1.0))
+            throw new NeedsConfigException($"unrest.taxServiceOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxServiceOffsetMax)}.");
+        if (!(u.UprisingPopulationShare > 0.0) || !(u.UprisingPopulationShare < 1.0))
+            throw new NeedsConfigException(
+                $"unrest.uprisingPopulationShare must be in (0,1) (the share of a settlement's people its risen segments must exceed), got {Inv(u.UprisingPopulationShare)}.");
     }
 
     private static void ValidateAggregation(AggregationTuning? a)

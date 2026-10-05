@@ -52,20 +52,25 @@ public readonly record struct RevoltTables(
 /// zero — an unfed AND unhoused population. This is deliberately not a "low
 /// happiness" band with a tunable threshold: a band would be a policy knob
 /// inviting tuning, while the ruled condition is a corner of the state space.
-/// ADR-033 D4 adds the second corner: the M5 tax burden multiplies the reading
-/// (SettlementHappiness.TaxSufficiency), so a declared 100 % levy at full reach
-/// (the capital, Strength 1.0) also reads exactly zero — total extraction.
+/// ADR-033 D4 added a second corner — a declared 100 % levy at full reach read
+/// happiness zero, total extraction, and revolted the settlement the next turn. H2
+/// (Director 2026-10-05 §4: "Do NOT create a direct tax >= X → revolt rule") REMOVES
+/// it: this path reads the PROVISION reading (SettlementHappiness.IsRevoltReady →
+/// Provision), which the tax never touches.
 ///
-/// M5 R2b — THE THIRD PATH, UPRISING (D-021 unrest-lite, D-009/D-010's
-/// "discontent → protest → uprising"): a controlled settlement whose PREV grievance
-/// stands at or above needs.json <c>unrest.uprisingGrievance</c>
-/// (<see cref="Unrest.IsUprising"/>) also throws off its ruler. This is the "revolt
-/// reachable before total deprivation" the Director asked for, and it is NOT a
-/// happiness band: it reads the grievance MEMORY stock, which has to be accrued over
-/// years of unmet needs (since R2b, Dignity injured by the levy, D-035-D) against
-/// generational decay and protest's own discharge — so it is history, not a mood
-/// reading that flicks with one turn's policy. The two zero corners above stand
-/// unchanged. Inert without the unrest section.
+/// M5 R2b — THE SECOND PATH, UPRISING (D-021 unrest-lite, D-009/D-010's
+/// "discontent → protest → uprising"). H2 (Director 2026-10-05 §4/§18, RATIFIED in
+/// docs/d049-taxation-and-revolt-model.md) makes it a SEGMENT rising: each population
+/// segment (class × settlement) accrues its own levy grievance over years of felt
+/// exaction (offset by its provision, services and reach) against generational decay
+/// and protest's discharge, and RISES at its own tipping point
+/// (<see cref="Unrest.IsSegmentRisen"/>). A risen minority is that segment's revolt —
+/// its levied labour withheld (ProductionSystem, via Unrest's drag) — and the place
+/// stays its ruler's. Only when the risen segments CARRY the settlement (more than
+/// unrest.uprisingPopulationShare of its people, <see cref="Unrest.IsUprising"/>) does
+/// the settlement throw off its ruler here. History, not a mood reading that flicks
+/// with one turn's policy; delayed by accumulation, never instantaneous. Inert without
+/// the unrest section.
 ///
 /// IS LOSING LABOUR ORDERS THE INTENDED CONSEQUENCE? Yes (R2b decision, documented in
 /// docs/m5-integration-coherence-matrix.md §6): every order domain asks the D-037

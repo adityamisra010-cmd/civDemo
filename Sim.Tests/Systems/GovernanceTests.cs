@@ -391,12 +391,13 @@ public class GovernanceTests
         SetDistance(w, Seat(w, p), place, 500.0);   // a distance that would make reach ~0 if recomputed
         Assert.Equal(0.5, Governance.EffectiveTaxRate(w, place, Cfg()));
         Assert.Equal(1.0 + 0.3 * 0.5, Governance.ExtractionMultiplier(w, place, Cfg()));
-        Assert.Equal(0.5, SettlementHappiness.TaxSufficiency(w, place, Cfg()));
+        // H2: the burden on welfare starts from the FELT levy (unoffset here: provision 0, nothing built).
+        Assert.Equal(0.5, Unrest.FeltBurden(w, place, Cfg(), 0.0));
 
         SetStrength(w, p, place, 0.25);
         Assert.Equal(0.125, Governance.EffectiveTaxRate(w, place, Cfg()));
         Assert.Equal(1.0 + 0.3 * 0.125, Governance.ExtractionMultiplier(w, place, Cfg()));
-        Assert.Equal(0.875, SettlementHappiness.TaxSufficiency(w, place, Cfg()));
+        Assert.Equal(0.125, Unrest.FeltBurden(w, place, Cfg(), 0.0));
     }
 
     // ---- 4. THE ECONOMIC ARM ------------------------------------------------------------------
@@ -436,6 +437,19 @@ public class GovernanceTests
     }
 
     // ---- 5. THE SOCIAL ARM, THROUGH THE EXISTING HAPPINESS ARCHITECTURE --------------------
+    // H2 (Director 2026-10-05 §4, docs/d049-taxation-and-revolt-model.md): the levy reaches happiness only through
+    // the population segments' ACCUMULATED levy grievance (SettlementHappiness.TaxSufficiency = 1 − LevyPressure),
+    // which NeedsGrievanceSystem integrates turn by turn. These cases therefore step that system (Accrue) where the
+    // ADR-033 D4 versions read the declared rate directly; each still asserts the property it was written for.
+
+    /// <summary>Steps ONLY NeedsGrievanceSystem <paramref name="turns"/> times (10-year turns): the levy's grievance
+    /// accrues from the policy rows the rig wrote.</summary>
+    private static WorldState Accrue(WorldState w, int turns)
+    {
+        TurnExecutor ex = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(Cfg()));
+        for (int t = 0; t < turns; t++) w = ex.Step(w);
+        return w;
+    }
 
     [Fact]
     public void TaxationLowersHappinessThroughTheExistingDerivedCalculation()
@@ -445,8 +459,10 @@ public class GovernanceTests
         WellProvided(w, seat);
         double untaxed = SettlementHappiness.Of(w, seat, Cfg());
         w.TaxPolicies.Add(new TaxPolicyRow(p, 0.60));
-        double taxed = SettlementHappiness.Of(w, seat, Cfg());
-        Assert.True(taxed < untaxed, $"tax did not cost happiness ({untaxed} -> {taxed})");
+        Assert.Equal(untaxed, SettlementHappiness.Of(w, seat, Cfg()));   // H2: the edict alone costs nothing yet
+        WorldState later = Accrue(w, 3);
+        double taxed = SettlementHappiness.Of(later, seat, Cfg());
+        Assert.True(taxed < SettlementHappiness.Provision(later, seat, Cfg()), $"tax did not cost happiness ({untaxed} -> {taxed})");
         Assert.InRange(taxed, 0.0, SettlementHappiness.Max);
     }
 
@@ -480,9 +496,13 @@ public class GovernanceTests
         Assert.Equal(Math.Exp(-200.0 / 25.0), Governance.ControlStrength(w, p, far));
 
         w.TaxPolicies.Add(new TaxPolicyRow(p, 1.0));
-        double atSeat = SettlementHappiness.TaxSufficiency(w, seat, Cfg());
-        double atFrontier = SettlementHappiness.TaxSufficiency(w, far, Cfg());
-        Assert.Equal(0.0, atSeat);
+        Assert.Equal(1.0, Unrest.FeltBurden(w, seat, Cfg(), 0.0));
+        Assert.True(Unrest.FeltBurden(w, far, Cfg(), 0.0) < 0.01);
+        // H2: and so the frontier accumulates less pressure and keeps more of its welfare.
+        WorldState later = Accrue(w, 3);
+        double atSeat = SettlementHappiness.TaxSufficiency(later, seat, Cfg());
+        double atFrontier = SettlementHappiness.TaxSufficiency(later, far, Cfg());
+        Assert.True(atSeat < 1.0);
         Assert.True(atFrontier > atSeat,
             $"the barely-reached frontier felt the levy as hard as the capital ({atFrontier} vs {atSeat})");
     }
@@ -510,28 +530,46 @@ public class GovernanceTests
         (WorldState w, PolityId p) = Founded();
         SettlementId seat = Seat(w, p);
         WellProvided(w, seat);
-        double before = SettlementHappiness.Of(w, seat, Cfg());
         w.TaxPolicies.Add(new TaxPolicyRow(p, 0.50));
-        double after = SettlementHappiness.Of(w, seat, Cfg());
+        WorldState later = Accrue(w, 3);
+        double before = SettlementHappiness.Provision(later, seat, Cfg());
+        double after = SettlementHappiness.Of(later, seat, Cfg());
         Assert.True(before > 0.0, "the rig is not providing anything — the test would be vacuous");
         Assert.True(after < before, $"the levy cost nothing ({before} -> {after})");
-        double burden = SettlementHappiness.TaxSufficiency(w, seat, Cfg());
+        double burden = SettlementHappiness.TaxSufficiency(later, seat, Cfg());
         Assert.Equal(before * burden, after, 9);   // proportional: the burden scales the reading
     }
 
+    /// <summary>
+    /// 2026-10-05 (H2) — REPLACES <c>AFullLevyAtFullReachIsTotalExtraction_TheSecondRevoltCorner</c>, which pinned
+    /// "a declared 100 % levy at full reach reads happiness 0 and is revolt-ready". The Director REJECTED that corner
+    /// (M5 hardening §4: "Do NOT implement an instant revolt at 100 % tax. Do NOT create a direct tax >= X → revolt
+    /// rule"; RATIFIED in docs/d049-taxation-and-revolt-model.md). Now: a 100 % levy at full reach is permitted, it
+    /// is NOT revolt-ready (revolt reads the provision reading), happiness is untouched until pressure accrues, and
+    /// even after accrual a well-provided seat is never revolt-ready from the levy. The revolt path of a levy is the
+    /// segment rising (UnrestTests, TaxPressureTests).
+    /// </summary>
     [Fact]
-    public void AFullLevyAtFullReachIsTotalExtraction_TheSecondRevoltCorner()
+    public void AFullLevyAtFullReach_IsNoLongerARevoltCorner_H2()
     {
         (WorldState w, PolityId p) = Founded();
         SettlementId seat = Seat(w, p);
         WellProvided(w, seat);
-        Assert.True(SettlementHappiness.Of(w, seat, Cfg()) > 0.0);
+        double before = SettlementHappiness.Of(w, seat, Cfg());
+        Assert.True(before > 0.0);
         w.TaxPolicies.Add(new TaxPolicyRow(p, 1.0));
-        Assert.Equal(0.0, SettlementHappiness.Of(w, seat, Cfg()));
-        Assert.True(SettlementHappiness.IsRevoltReady(w, seat, Cfg()));
-        // 99 % leaves a sliver: not a revolt, the pushback the measurement record reports.
-        w.TaxPolicies[0] = new TaxPolicyRow(p, 0.99);
+        Assert.Equal(1.0, Governance.EffectiveTaxRate(w, seat, Cfg()));
+        Assert.Equal(before, SettlementHappiness.Of(w, seat, Cfg()));
         Assert.False(SettlementHappiness.IsRevoltReady(w, seat, Cfg()));
+        // One 10-year turn of total levy: felt, but nothing like the old zero.
+        WorldState one = Accrue(w, 1);
+        Assert.InRange(SettlementHappiness.Of(one, seat, Cfg()), double.Epsilon, before - 1e-9);
+        // Thirty years of it on a seat with no public works may exhaust the levy's share of welfare (severe) — but
+        // the PROVISION reading revolt reads is untouched: the levy alone never makes a place revolt-ready.
+        WorldState later = Accrue(one, 2);
+        Assert.True(SettlementHappiness.Of(later, seat, Cfg()) <= SettlementHappiness.Of(one, seat, Cfg()));
+        Assert.False(SettlementHappiness.IsRevoltReady(later, seat, Cfg()));
+        Assert.Equal(SettlementHappiness.Provision(w, seat, Cfg()), SettlementHappiness.Provision(later, seat, Cfg()));
     }
 
     // ---- 6. LEGITIMACY HAS A CONSUMER ------------------------------------------------------------
@@ -543,7 +581,8 @@ public class GovernanceTests
         for (int s = 0; s < w.Settlements.Count; s++) WellProvided(w, w.Settlements[s].Id);
         double before = Governance.Legitimacy(w, p, Cfg());
         w.TaxPolicies.Add(new TaxPolicyRow(p, 0.80));
-        double after = Governance.Legitimacy(w, p, Cfg());
+        Assert.Equal(before, Governance.Legitimacy(w, p, Cfg()));   // H2: no instant effect
+        double after = Governance.Legitimacy(Accrue(w, 3), p, Cfg());
         Assert.True(after < before, $"legitimacy ignored the levy ({before} -> {after})");
         Assert.InRange(after, 0.0, SettlementHappiness.Max);
     }

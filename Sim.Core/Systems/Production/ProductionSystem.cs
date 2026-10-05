@@ -179,9 +179,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // shock and also reaches ore, stone and craft output. Untaxed (and with no
             // governance section) it is EXACTLY 1.0, so x × 1.0 == x bit for bit.
             // M5 R2b (D-021 unrest-lite): the same factor also carries PROTEST's output drag
-            // (State.Unrest.OutputFactor, from PREV grievance) — Governance.OutputMultiplier =
-            // extraction × (1 − dragMax × protest). A quiet settlement's factor is EXACTLY 1.0, so
-            // the product is the extraction multiplier bit for bit.
+            // (State.Unrest.OutputFactor, from PREV) — Governance.OutputMultiplier = extraction ×
+            // (1 − r × withheld). H2: "withheld" is per population segment — its protesting members
+            // hold back dragMax × protest of their levied work, its rebels (past the segment's tipping
+            // point) all of it — weighted by the segments' shares. A quiet settlement's factor is EXACTLY
+            // 1.0, so the product is the extraction multiplier bit for bit.
             double extraction = State.Governance.OutputMultiplier(prev, settlement, _cfg);
 
             Farm(ctx, prev, stocks, settlement,
