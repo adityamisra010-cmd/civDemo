@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # needed only by the release-asset upload step
+    outputs:
+      sha: ${{ steps.ident.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -118,3 +120,66 @@ jobs:
             "sim-ui-win-x64-${{ steps.ident.outputs.sha }}.zip" \
             --repo "${{ github.repository }}" --clobber
           echo "attached sim-ui-win-x64-${{ steps.ident.outputs.sha }}.zip to release ${{ github.event.release.tag_name }}"
+
+  # M5 hardening H1 (Director 2026-10-05 §1/§2/§15): THE SHIPPED BINARY IS GATED ON WINDOWS. The Director's
+  # playtest build passed every test and aborted on the first click of Research (imgui_draw.cpp:2261, a 16-bit
+  # index overflow) because no test ever ran the live ImGui UI. This job takes the exact win-x64 zip the job
+  # above published and runs its own Sim.Ui.exe with --smoke: a real native ImGui context (cimgui.dll from the
+  # zip), the game's real per-frame UI, scripted clicks/keys/wheel/drags over every visible control in eight
+  # states, then a seeded monkey — headless, no window, no GPU. Any exception, frame defect, silent control or
+  # native assertion fails the job. Sim.Ui is a GUI-subsystem exe, so pwsh is told to WAIT for it and its
+  # stdout is redirected to a file; --smoke routes C-runtime assert dialogs to stderr and stops itself after
+  # 45 min (a hang is a failure, not a wait).
+  windows-smoke:
+    needs: ui-artifact
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Download the published win-x64 build
+        uses: actions/download-artifact@v4
+        with:
+          name: sim-ui-win-x64-${{ needs.ui-artifact.outputs.sha }}
+          path: sim-ui
+
+      - name: Smoke the shipped Sim.Ui.exe (headless ImGui, no GPU)
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path "sim-ui/app/Sim.Ui.exe"
+          $p = Start-Process -FilePath $exe -ArgumentList "--smoke","--monkey","300","--report","smoke-report.md" `
+            -NoNewWindow -Wait -PassThru -RedirectStandardOutput smoke-out.txt -RedirectStandardError smoke-err.txt
+          Get-Content smoke-out.txt
+          Get-Content smoke-err.txt
+          Write-Host "Sim.Ui.exe --smoke exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw "the playability smoke gate FAILED on Windows (exit $($p.ExitCode))" }
+          if (-not (Select-String -Path smoke-out.txt -Pattern "SMOKE PASSED" -Quiet)) { throw "no SMOKE PASSED line" }
+
+      - name: Control - the pre-fix renderer configuration must abort (informational)
+        # The same live UI with RendererHasVtxOffset NOT declared, opened on Research: it must die with ImGui's
+        # 16-bit assertion, proving the gate above would have caught the Director's crash on this OS too.
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path "sim-ui/app/Sim.Ui.exe"
+          $p = Start-Process -FilePath $exe -ArgumentList "--smoke-control-prefix","--timeout-minutes","5" `
+            -NoNewWindow -PassThru -RedirectStandardOutput control-out.txt -RedirectStandardError control-err.txt
+          if (-not $p.WaitForExit(360000)) { $p.Kill(); throw "control did not terminate" }
+          Get-Content control-out.txt
+          Get-Content control-err.txt
+          Write-Host "control exit code: $($p.ExitCode)"
+          $text = (Get-Content control-out.txt -Raw) + (Get-Content control-err.txt -Raw)
+          if ($p.ExitCode -eq 0 -or $text -match "CONTROL DID NOT REPRODUCE") { throw "the control did not abort" }
+          if ($text -notmatch "Too many vertices") { Write-Host "aborted (exit $($p.ExitCode)) without the assertion text on stderr" }
+
+      - name: Upload the smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-report-${{ needs.ui-artifact.outputs.sha }}
+          path: |
+            smoke-report.md
+            smoke-out.txt
+            smoke-err.txt
+            control-out.txt
+            control-err.txt
+          if-no-files-found: warn
+          retention-days: 30
