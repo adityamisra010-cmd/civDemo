@@ -122,6 +122,18 @@ public sealed class StateChronicle
                     : " rose up and threw off the rule of " + Polity(was) + "."));
             if (merchant >= 0 && ClassCount(prev, s, merchant) == 0 && ClassCount(next, s, merchant) > 0)
                 annals.Add(y + "a merchant class emerged in " + name(s.Value) + ".");
+
+            // H2 (Director 2026-10-05 §4/§18): a population SEGMENT (class) rising against the levy, or its rising
+            // subsiding — the segment's own tipping point, read through the public Unrest reader on both worlds.
+            ClassEntry[] classes = cfg.Registries.Classes;
+            for (int c = 0; c < classes.Length; c++)
+            {
+                var cls = new ClassId(classes[c].Id);
+                bool rose = Unrest.IsSegmentRisen(prev, s, cls, cfg), risen = Unrest.IsSegmentRisen(next, s, cls, cfg);
+                if (risen == rose) continue;
+                string who = "the " + classes[c].Name.ToLowerInvariant() + " of " + name(s.Value);
+                annals.Add(y + (risen ? who + " rose against the levy." : "the rising of " + who + " subsided."));
+            }
         }
 
         // Units modernized at an Age transition: the conversion-log rows this step appended.

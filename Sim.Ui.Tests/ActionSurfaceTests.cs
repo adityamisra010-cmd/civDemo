@@ -58,6 +58,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ResearchContent research = from.Config.Research!;
         WorldState w = from.World.Clone();
         foreach (string id in nodeIds) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId(id)].Key));
+        if (Array.IndexOf(nodeIds, "taxation") >= 0) TaxAgeRig.EnterTaxAge(w, from.Config, Me);   // H2: the edict's Age
         return UiSession.StartFrom(w, from.World.Seed);
     }
 

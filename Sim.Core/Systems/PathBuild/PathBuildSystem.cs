@@ -394,6 +394,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<TaxPolicyRow> TaxPolicies => prev.TaxPolicies;
         public IReadOnlyTable<InstitutionRow> Institutions => prev.Institutions;
         public IReadOnlyTable<ConstructionLaborRow> ConstructionLabor => prev.ConstructionLabor;
+        // Interface completeness only (forwarded, never read here — the read-isolation allowlist reason above).
+        public IReadOnlyTable<TaxGrievanceRow> TaxGrievances => prev.TaxGrievances;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

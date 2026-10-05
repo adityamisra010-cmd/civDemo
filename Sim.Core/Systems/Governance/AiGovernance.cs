@@ -18,7 +18,8 @@ namespace Sim.Core.Systems.Governance;
 ///
 /// THE RULE, stated so nothing is hidden (constants are sim.json <c>governance.ai</c>, no longer
 /// code literals): an AI-commanded, non-extinct polity that CAN levy a tax
-/// (<see cref="State.Governance.CanLevyTax"/>, the same research gate the player meets) moves its
+/// (<see cref="State.Governance.CanLevyTax"/>, the same knowledge + Age gate the player meets — H2: no AI levy
+/// before A3) moves its
 /// declared rate UP by stepPercent while legitimacy ≥ comfortableLegitimacy, DOWN by stepPercent
 /// while legitimacy &lt; troubledLegitimacy, holds in the dead band between, and clamps to
 /// [0, maxRatePercent]. It speaks only when the rate would change, so a settled world emits nothing.

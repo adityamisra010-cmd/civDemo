@@ -39,6 +39,10 @@ public class IntegratedSaveLoadBatteryTests
     private const int Horizon = 40;
     private const long RoadTurn = 1, RoadAgainTurn = 12, AgeTurn = 3, TaxTurn = 5, ClearTurn = 9, RetargetTurn = 10;
 
+    /// <summary>H2: the Age the player is rigged into at turn 0 — one below the tax edict's Age, so the scripted
+    /// AdvanceAge enters the Age that makes the turn-5 tax order legal.</summary>
+    private static int EntryAge => GovernanceRigs.TaxAge - 1;
+
     private static int UniversityProject => InstitutionContent.ProjectOfType(Cfg, 1)!.Id;
     private const int Granary = 1;
     private const long TimberLeft = 20;
@@ -70,14 +74,20 @@ public class IntegratedSaveLoadBatteryTests
 
     /// <summary>The founded world plus the turn-0 rigs: the player knows the track road's closure, both
     /// university entities, the tax gate and the A2 entry (cereal + pottery; the founding warband is the
-    /// military milestone), and the capital holds the university's materials.</summary>
+    /// military milestone), and the capital holds the university's materials.
+    /// H2 (2026-10-05, Director §7: the tax edict is operational only from A3): the player starts IN A2 (an Age
+    /// row, the rig standing in for the earlier AdvanceAge) and knows the A3 entry — core arsenical bronze (no
+    /// recipe), supporting writing + law code (institutional) and the solid wheel (technological): 3 supporting
+    /// over 2 categories — so the scripted AdvanceAge enters A3 and the later tax order is legal.</summary>
     private static WorldState Start()
     {
         WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, Cfg, 42);
         var known = new List<string>(WithAncestors("track_road"));
         known.AddRange(WithAncestors(UniversityRigs.Knowledge));
         known.AddRange(WithAncestors(GovernanceRigs.TaxationNode, "cereal_cultivation", "pottery_open_fired"));
+        known.AddRange(WithAncestors("arsenical_bronze", "wheel_solid", "law_code"));
         UniversityRigs.Grant(w, Research, Player, known.Distinct().ToArray());
+        GovernanceRigs.EnterAge(w, Player, EntryAge);
         UniversityRigs.Materials(w, Cfg, Capital(w));
         // Road purse rig: the player's timber is cut to a little, through the Ledger, so the turn-0 road
         // order can afford only PART of its first route (the order ends there; the second order continues it).
@@ -133,7 +143,7 @@ public class IntegratedSaveLoadBatteryTests
             log.Append(ConstructionQuery.EnqueueOrder(w, Player, cap, UniversityProject));
         }
         if (t == RoadTurn || t == RoadAgainTurn) log.Append(RoadDevelopmentQuery.DevelopOrder(w, Player, 100.0));
-        if (t == AgeTurn) log.Append(AgeQuery.AdvanceOrder(w, Player, 2, Ages.Surges[0].Key));
+        if (t == AgeTurn) log.Append(AgeQuery.AdvanceOrder(w, Player, EntryAge + 1, Ages.Surges[0].Key));
         if (t == TaxTurn) log.Append(Governance.TaxOrder(t, Player, 10.0));
         if (t == ClearTurn) log.Append(ResearchQuery.ClearTargetOrder(w, Player));
         if (t == RetargetTurn)
@@ -281,8 +291,9 @@ public class IntegratedSaveLoadBatteryTests
         Assert.Contains(Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]), o => o.ActorId == Rival.Value);
 
         // The order-delivery semantics the save points straddle, turn-exact.
-        Assert.Equal(1, AgeQuery.CurrentAge(run.Worlds[(int)AgeTurn], Ages, Player));
-        Assert.Equal(2, AgeQuery.CurrentAge(run.Worlds[(int)AgeTurn + 1], Ages, Player));
+        Assert.Equal(EntryAge, AgeQuery.CurrentAge(run.Worlds[(int)AgeTurn], Ages, Player));
+        Assert.Equal(EntryAge + 1, AgeQuery.CurrentAge(run.Worlds[(int)AgeTurn + 1], Ages, Player));
+        Assert.True(Governance.CanLevyTax(run.Worlds[(int)TaxTurn], Cfg, Player));   // H2: the Age gate is open
         Assert.Equal(0.0, TaxRate(run.Worlds[(int)TaxTurn]));
         Assert.True(TaxRate(run.Worlds[(int)TaxTurn + 1]) > 0.0);
         Assert.Equal(0.10, TaxRate(run.Worlds[(int)TaxTurn + 1]), 12);

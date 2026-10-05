@@ -294,3 +294,20 @@ Sections 1–8 are history. Since they were written:
   measurement granted `arithmetic_babylonian`, which was valid on its tree and no longer opens the gate.
 
 Current baseline: `docs/m5-playtest-baseline.md`.
+
+## 10. Pointer — H2 taxation model (appended 2026-10-05, M5 hardening)
+
+Sections 1–9 are history. Since they were written, the Director's M5 hardening instruction (§4–§6, §17, §18,
+RATIFIED 2026-10-05) replaced §6's unrest-lite on the tax side:
+
+- **The R2b attribution is superseded.** The tax-attributed grievance (the needs grievance × the share of the
+  shortfall that lifting the levy would close, re-computed each turn) is replaced by a stock of its own per
+  population segment (class × settlement), `TaxGrievances`, schema v32, accruing the levy's shortfall alone.
+- **§6's "100 % levy at full reach" second revolt corner is REMOVED.** Happiness is scaled by the accumulated levy
+  pressure, not by `1 − r`; the deprivation revolt reads the provision reading only.
+- **Thresholds re-derived on the new scale:** protest onset 15 → 12, uprising 50 → 20 (now a segment's tipping
+  point); a settlement changes hands only when its rebels exceed half its people; services, development,
+  institutions and state capacity now offset the burden (`taxServiceOffsetMax` 0.25).
+- §6.1's measurement table stays correct for its tree.
+
+Record: `docs/d049-taxation-and-revolt-model.md`.

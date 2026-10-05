@@ -17,11 +17,14 @@ namespace Sim.Core.State;
 ///       capital over the road-aware SettlementDistances) decides what is actually collected
 ///     → EFFECTIVE rate = nominal × Strength
 ///     → raises realised production (ProductionSystem, <see cref="ExtractionMultiplier"/>)
-///     → lowers HAPPINESS (<see cref="SettlementHappiness.TaxSufficiency"/>)
-///     → injures DIGNITY (D-035-D, the need's satisfaction = 1 − effective rate) → GRIEVANCE accrues
-///       → PROTEST (<see cref="Unrest"/>, M5 R2b): output drag, discharge, and at full intensity UPRISING
-///       (the D-021 unrest-lite brake — the negative loop that grows with the levy)
-///     → happiness drives migration's destination weight and, at zero, revolt (D-021 valves)
+///     → is FELT by each population segment, offset by its provision and the settlement's services
+///       (<see cref="Unrest.FeltBurden"/>; H2) → injures DIGNITY (D-035-D) → the segment's LEVY GRIEVANCE
+///       accumulates (a stock, dt-integrated; H2)
+///       → lowers HAPPINESS as it accumulates (<see cref="SettlementHappiness.TaxSufficiency"/>), never at the edict
+///       → PROTEST (<see cref="Unrest"/>): output drag and discharge; past the segment's own TIPPING POINT a
+///         growing portion of it in revolt; the settlement UPRISING only when the rebels carry it (D-021
+///         unrest-lite, H2 — the negative loop that grows with the levy; no tax → revolt rule anywhere)
+///     → happiness drives migration's destination weight (D-021 valves)
 ///     → LEGITIMACY reads the condition of what the Empire still holds
 ///     → the AI tax valve (AiGovernance) answers it.
 ///
@@ -208,25 +211,64 @@ public static class Governance
     }
 
     /// <summary>
-    /// THE TAX EDICT'S AVAILABILITY PREDICATE (ADR-033 D4: taxation is research-gated by the
-    /// content). True iff the config carries a governance section AND research content AND the
-    /// polity's completed knowledge satisfies sim.json <c>governance.taxationRequires</c> — today
-    /// "arithmetic_babylonian OR surveying OR standard_weights OR coinage_electrum", the four nodes
-    /// whose unlocked capabilities name taxation. The expression is parsed against the attached
-    /// research content (<see cref="ResearchContentLoader.ParseRequirement"/>; the four-stream load
-    /// validates it once) and evaluated by the existing knowledge evaluator
-    /// (<see cref="ResearchQuery.RequirementMet"/>). No node id is named in C#.
+    /// THE TAX EDICT'S AVAILABILITY PREDICATE (ADR-033 D4: taxation is research-gated by the content; H2, Director
+    /// 2026-10-05 §7: the capability is operational only from its Age). True iff <see cref="GateOf"/> is
+    /// <see cref="TaxGate.Open"/> — the config carries a governance section AND research content, the polity's
+    /// completed knowledge satisfies sim.json <c>governance.taxationRequires</c> (R5: the single Civics node
+    /// <c>taxation</c>, key 1007), AND the polity's CURRENT Age is at least sim.json <c>governance.taxationMinAge</c>
+    /// (A3, the Bronze Age). Both halves live in content; no node id and no Age number is named in C#.
     ///
-    /// ONE PREDICATE, EVERY CALLER: GovernanceSystem applies a SetTaxRate only when this holds on
-    /// PREV; the AI valve acts only when it holds; the UI emitter refuses when it does not; and the
-    /// available-actions query asks this same function.
+    /// RESEARCH IS NOT AGE-GATED, THE CAPABILITY IS. A polity still in A1 or A2 may complete the Taxation civic (the
+    /// graph reaches it) and holds that knowledge for ever, but the edict is refused until the polity ENTERS the
+    /// minimum Age — and an Age is entered only by the AdvanceAge order on eligibility (ADR-031), so this is computed
+    /// state, never a date (law 4).
+    ///
+    /// ONE PREDICATE, EVERY CALLER: GovernanceSystem applies a SetTaxRate only when this holds on PREV (so a
+    /// hand-built order, a replayed log and a loaded save meet it exactly as a live click does); the AI valve acts
+    /// only when it holds; the UI emitter refuses when it does not; and the available-actions query asks this same
+    /// function. The AI's RESEARCH goal reads only the knowledge half (<see cref="KnowsTaxation"/>), because the Age
+    /// half is not researchable — chasing the other OR-branches of a requirement it already meets would waste research.
     /// </summary>
-    public static bool CanLevyTax(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    public static bool CanLevyTax(IReadOnlyWorldState world, SimConfig cfg, PolityId polity) =>
+        GateOf(world, cfg, polity) == TaxGate.Open;
+
+    /// <summary>Where <paramref name="polity"/> stands at the tax gate, first unmet condition first: the loop is
+    /// inert (no governance or research content), the Taxation knowledge is missing, the minimum Age is not yet
+    /// entered, or the edict is open. The UI states the reason with it; <see cref="CanLevyTax"/> is "== Open".</summary>
+    public static TaxGate GateOf(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        if (cfg.Governance is null || cfg.Research is null) return TaxGate.Inert;
+        if (!KnowsTaxation(world, cfg, polity)) return TaxGate.NeedsKnowledge;
+        if (!MeetsTaxationAge(world, cfg, polity)) return TaxGate.NeedsAge;
+        return TaxGate.Open;
+    }
+
+    /// <summary>
+    /// THE KNOWLEDGE HALF of the gate: the polity's completed knowledge satisfies sim.json
+    /// <c>governance.taxationRequires</c>, parsed against the attached research content
+    /// (<see cref="ResearchContentLoader.ParseRequirement"/>; the four-stream load validates it once) and evaluated by
+    /// the existing knowledge evaluator (<see cref="ResearchQuery.RequirementMet"/>). False without governance or
+    /// research content.
+    /// </summary>
+    public static bool KnowsTaxation(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         if (cfg.Governance is not { } governance || cfg.Research is not { } research) return false;
         Predicate requirement = ResearchContentLoader.ParseRequirement(
             research, governance.TaxationRequires, "sim.json governance.taxationRequires");
         return ResearchQuery.RequirementMet(research, requirement, ResearchQuery.CompletedMask(world, research, polity));
+    }
+
+    /// <summary>
+    /// THE AGE HALF of the gate: true when sim.json <c>governance.taxationMinAge</c> is absent (no Age requirement),
+    /// else when the polity's CURRENT Age (<see cref="AgeQuery.CurrentAge"/>; no Age row = the founding Age) is at
+    /// least it. A declared minimum with NO Age content attached cannot be shown to hold and FAILS CLOSED — a world
+    /// without Ages has no Bronze Age to have entered.
+    /// </summary>
+    public static bool MeetsTaxationAge(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        if (cfg.Governance?.TaxationMinAge is not { } minAge) return true;
+        if (cfg.Ages is not { } ages) return false;
+        return AgeQuery.CurrentAge(world, ages, polity) >= minAge;
     }
 
     /// <summary>
@@ -236,4 +278,17 @@ public static class Governance
     /// </summary>
     public static OrderRecord TaxOrder(long turn, PolityId issuer, double percent)
         => OrderRecord.From(turn, issuer, OrderKind.SetTaxRate, issuer.Value, percent);
+}
+
+/// <summary>Where a polity stands at the tax gate (<see cref="Governance.GateOf"/>), first unmet condition first.</summary>
+public enum TaxGate
+{
+    /// <summary>The config carries no governance or no research content: the governing loop is inert.</summary>
+    Inert = 0,
+    /// <summary>The Taxation knowledge (sim.json governance.taxationRequires) is not complete.</summary>
+    NeedsKnowledge = 1,
+    /// <summary>The knowledge is complete but the polity has not entered sim.json governance.taxationMinAge.</summary>
+    NeedsAge = 2,
+    /// <summary>The edict is operational.</summary>
+    Open = 3,
 }

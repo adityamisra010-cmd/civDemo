@@ -78,6 +78,12 @@ public static class TestConfigs
     /// <summary>Every R2b layer stripped (weather geography, unrest/Dignity, Age military realization).</summary>
     public static SimConfig PreR2b(SimConfig cfg) => PreAgeMilitary(PreUnrest(PreWeatherGeography(PreForager(cfg))));
 
+    /// <summary>H2 (2026-10-05) — THE TAX AGE GATE STRIPPED: sim.json governance.taxationMinAge removed, so the tax
+    /// edict is gated by the Taxation knowledge alone (the R5 gate). The AI-world attribution control
+    /// (AiEmpireIntegrationTests) runs on it and returns the pre-H2 levy turns.</summary>
+    public static SimConfig PreTaxAge(SimConfig cfg) =>
+        cfg.Governance is { } g ? cfg with { Governance = g with { TaxationMinAge = null } } : cfg;
+
     /// <summary>R4 (2026-10-04) — THE FORAGER LAYER STRIPPED: sim.json farming.preCultivation switched OFF (the
     /// shipped state through R3). It is the NEWEST layer, so every older layer twin (PreR2b, PreTradeKnowledge,
     /// PreRecipeKnowledge) strips it as well and keeps returning its pre-R4 constant; on its own it returns the

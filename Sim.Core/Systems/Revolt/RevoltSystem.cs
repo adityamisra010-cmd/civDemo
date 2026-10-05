@@ -16,9 +16,16 @@ namespace Sim.Core.Systems.Revolt;
 /// ResearchCompleted is a SANCTIONED SHARED table split by pipeline order and row key:
 /// revolt (before research) appends rows ONLY for a polity it creates this turn, a key
 /// absent from Prev, so ResearchSystem — which works from Prev's roster and appends its
-/// own completions — never reads or writes the same row.</summary>
+/// own completions — never reads or writes the same row.
+///
+/// H2 (Director 2026-10-05 §8, RATIFIED in docs/d049-taxation-and-revolt-model.md): the new polity INHERITS ITS
+/// PARENT'S CURRENT AGE. AgeStates is a SANCTIONED SHARED table split exactly like ResearchCompleted: revolt
+/// (before agetransition) APPENDS one row ONLY for a polity it creates this turn — a key absent from Prev — and only
+/// when the parent holds a row (absence of a row IS the founding Age, so a founding-Age parent's child needs none);
+/// AgeTransitionSystem works from Prev's roster, so it never reads or writes that row in the same step.</summary>
 public readonly record struct RevoltTables(
-    Table<ControlRow> Controls, Table<PolityRow> Polities, Table<ResearchCompletedRow> ResearchCompleted);
+    Table<ControlRow> Controls, Table<PolityRow> Polities, Table<ResearchCompletedRow> ResearchCompleted,
+    Table<AgeStateRow> AgeStates);
 
 /// <summary>
 /// M4 — REVOLT: A SETTLEMENT AT ZERO HAPPINESS STOPS OBEYING.
@@ -45,20 +52,26 @@ public readonly record struct RevoltTables(
 /// zero — an unfed AND unhoused population. This is deliberately not a "low
 /// happiness" band with a tunable threshold: a band would be a policy knob
 /// inviting tuning, while the ruled condition is a corner of the state space.
-/// ADR-033 D4 adds the second corner: the M5 tax burden multiplies the reading
-/// (SettlementHappiness.TaxSufficiency), so a declared 100 % levy at full reach
-/// (the capital, Strength 1.0) also reads exactly zero — total extraction.
+/// ADR-033 D4 added a second corner — a declared 100 % levy at full reach read
+/// happiness zero, total extraction, and revolted the settlement the next turn. H2
+/// (Director 2026-10-05 §4: "Do NOT create a direct tax >= X → revolt rule") REMOVES
+/// it: this path reads the PROVISION reading (SettlementHappiness.IsRevoltReady →
+/// Provision), which the tax never touches.
 ///
-/// M5 R2b — THE THIRD PATH, UPRISING (D-021 unrest-lite, D-009/D-010's
-/// "discontent → protest → uprising"): a controlled settlement whose PREV grievance
-/// stands at or above needs.json <c>unrest.uprisingGrievance</c>
-/// (<see cref="Unrest.IsUprising"/>) also throws off its ruler. This is the "revolt
-/// reachable before total deprivation" the Director asked for, and it is NOT a
-/// happiness band: it reads the grievance MEMORY stock, which has to be accrued over
-/// years of unmet needs (since R2b, Dignity injured by the levy, D-035-D) against
-/// generational decay and protest's own discharge — so it is history, not a mood
-/// reading that flicks with one turn's policy. The two zero corners above stand
-/// unchanged. Inert without the unrest section.
+/// M5 R2b — THE SECOND PATH, UPRISING (D-021 unrest-lite, D-009/D-010's
+/// "discontent → protest → uprising"). H2 (Director 2026-10-05 §4/§18, RATIFIED in
+/// docs/d049-taxation-and-revolt-model.md) makes it a SEGMENT rising: each population
+/// segment (class × settlement) accrues its own levy grievance over years of felt
+/// exaction (offset by its provision, services and reach) against generational decay
+/// and protest's discharge, and RISES at its own tipping point
+/// (<see cref="Unrest.IsSegmentRisen"/>); past it a growing PORTION of the segment is in
+/// open revolt (<see cref="Unrest.SegmentRebelFraction"/>). A rebel minority is that
+/// segment's revolt — its levied labour withheld (ProductionSystem, via Unrest's drag) —
+/// and the place stays its ruler's. Only when the rebels CARRY the settlement (more than
+/// unrest.uprisingPopulationShare of its people, <see cref="Unrest.IsUprising"/>) does
+/// the settlement throw off its ruler here. History, not a mood reading that flicks
+/// with one turn's policy; delayed by accumulation, never instantaneous. Inert without
+/// the unrest section.
 ///
 /// IS LOSING LABOUR ORDERS THE INTENDED CONSEQUENCE? Yes (R2b decision, documented in
 /// docs/m5-integration-coherence-matrix.md §6): every order domain asks the D-037
@@ -169,7 +182,25 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
             ctx.Owned.Polities.Add(new PolityRow(founded, CommandSource.Ai));
             controls.Add(new ControlRow(founded, place, 1.0));
             KnowledgeTransfer.MergeInto(ctx.Owned.ResearchCompleted, former, founded);
+            InheritAge(prev, ctx.Owned.AgeStates, former, founded);
         }
+    }
+
+    /// <summary>
+    /// H2 (Director 2026-10-05 §8, RATIFIED): A CIVILIZATION CREATED BY REVOLT INHERITS ITS PARENT'S CURRENT AGE —
+    /// never "parent A5 → revolt → child A1 with A5 knowledge". The parent's Age is read from PREV, the state the
+    /// revolt was decided on (the same instant the knowledge copy is taken: the separation). The child's row carries
+    /// the parent's Age and its surge emphasis key (surges have no numeric effect, ADR-031); EnteredTurn and
+    /// SurgeStartTurn are the child's FIRST turn — the first state that shows it in that Age (the AgeStateRow
+    /// contract), not a date it never lived. No AgeTransitionRow is logged (the child made no transition) and no unit
+    /// is converted (a revolt-born polity has no formation). A parent with no Age row is in the founding Age; the
+    /// child then needs none either.
+    /// </summary>
+    private static void InheritAge(IReadOnlyWorldState prev, Table<AgeStateRow> ages, PolityId parent, PolityId child)
+    {
+        if (AgeQuery.StateRow(prev, parent) is not { } row) return;
+        long first = prev.Clock.Turn + 1;
+        ages.Add(new AgeStateRow(child, row.Age, first, row.Surge, first));
     }
 
     /// <summary>Whether every place <paramref name="ruler"/> controls is marked to revolt.</summary>

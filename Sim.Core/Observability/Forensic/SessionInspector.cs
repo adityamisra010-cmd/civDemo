@@ -408,8 +408,9 @@ public sealed class SessionInspector
                 + "migration system asks — so it is the authoritative number and not a copy of the formula. "
                 + "The two factor values are the PUBLIC SettlementHappiness.Factors, in Factor order "
                 + "[Food, Housing] — the two CES PROVISION factors. Since ADR-033 D4 the reading is ALSO "
-                + "MULTIPLIED by the M5 tax burden (the public SettlementHappiness.TaxSufficiency = 1 − the "
-                + "controller's declared tax rate × ControlRow.Strength, the stored administrative reach); the "
+                + "MULTIPLIED by the M5 tax burden (the public SettlementHappiness.TaxSufficiency; since H2 = 1 − the "
+                + "ACCUMULATED levy pressure of the settlement's segments, fed by the controller's declared tax rate × "
+                + "ControlRow.Strength, the stored administrative reach, offset by provision and services); the "
                 + "'tax scale' column is that multiplier as the record carries it (telemetry/v4 social.tax, with "
                 + "the declared rate and the stored reach beside it), 'not-recorded' on an older record.",
             [.. lines]);

@@ -25,7 +25,7 @@ public class FirstReignTests
     }
 
     /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
-    internal const string PostR1Golden = "74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419";
+    internal const string PostR1Golden = "27dd99c66bb7bb13363bd694eeb1b9a1d8b11bfb094c44f27e21f259656baa8a";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {
@@ -516,6 +516,15 @@ public class FirstReignTests
         // tree by the agent writing this line. OLD 680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d -> NEW 74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419. CAUSE wild-food harvest
         // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
         // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419
+        //   NEW  27dd99c66bb7bb13363bd694eeb1b9a1d8b11bfb094c44f27e21f259656baa8a
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the first-reign log carries no SetTaxRate order),
+        //         so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
         Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they

@@ -242,3 +242,8 @@ IMPLEMENTED on `m5i-r2b-governance-fixes`; record and measurements in `docs/m5-i
 standard_weights OR coinage_electrum`) is SUPERSEDED by R5 (`9f7c82b`). The single gate is now the Civics node
 `taxation` (key 1007, A3, 1,050 RP), set by `governance.taxationRequires = "taxation"`. The text above is kept as
 history. See `docs/m5-playtest-baseline.md` §4.
+
+**Append (2026-10-05, H2 — M5 hardening):** the "second zero corner" in the coupling table (a 100 % levy at full
+reach reads happiness 0 and revolts; `AFullLevyAtFullReachIsTotalExtraction_TheSecondRevoltCorner`) is REMOVED, and
+happiness's `× (1 − r)` is replaced by the accumulated levy pressure; the edict is operational only from A3
+(`governance.taxationMinAge`). Text above kept as history. Record: `docs/d049-taxation-and-revolt-model.md`.

@@ -56,3 +56,17 @@ ruling of its own; it does not reword rulings 1–7.
 - Revolt, which does call the operation (rulings 1–7), is implemented behaviour.
 
 Record: `docs/m5-playtest-baseline.md` §8.
+
+## 5. Revolt Age — pointer (appended 2026-10-05, M5 hardening)
+
+**RATIFIED (Director, 2026-10-05, M5 hardening instruction §8):** a civilization created by revolt **inherits its
+parent's CURRENT Age** (never "parent A5 → revolt → child A1 with A5 knowledge"). Rulings 1–7 stand unchanged
+alongside it: completed research copied, no progress, no Eureka credit, no capital, the normal research rate; the
+final settlement still cannot revolt away. §9 of that instruction restates rulings 1–8 unchanged.
+
+- **Implemented:** `RevoltSystem.InheritAge` (H2, `ece2a7b`): the child's `AgeStateRow` carries the parent's Age
+  (read on PREV, the instant of separation) and surge; its entry turn is the child's first turn; no transition is
+  logged. Tests: `RevoltAgeInheritanceTests`.
+- This closes the baseline's OPEN "new polity at Age A1".
+
+Record: `docs/d049-taxation-and-revolt-model.md` §4.

@@ -78,6 +78,14 @@ namespace Sim.Core;
 ///   GOVERNANCE (ADR-033 D4) rewrites ONLY the Strength field of the rows that
 ///     exist when it runs, as the administrative reach computed on PREV — never
 ///     adds or removes a row, never touches Polity or Place.
+///
+/// SANCTIONED SHARED TABLE — AgeStates (H2, Director 2026-10-05 §8: a revolt-born
+/// polity inherits its parent's current Age), split by row KEY and pipeline order
+/// (revolt → agetransition), exactly as ResearchCompleted is:
+///   REVOLT APPENDS one row only for a polity it CREATES this step (a key absent
+///     from PREV), copied from the parent's PREV row; it never touches another row.
+///   AGETRANSITION upserts rows only for polities on PREV's roster, from their
+///     AdvanceAge orders — so it never reads or writes the row revolt appended.
 /// </summary>
 public static class SystemCatalog
 {
@@ -240,7 +248,7 @@ public static class SystemCatalog
         var system = new NeedsGrievanceSystem(cfg);
         return new SystemRegistration(NeedsGrievanceSystem.WellKnownId, NeedsGrievanceSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<NeedsGrievanceTables>(
-                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances), rng,
+                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances, next.TaxGrievances), rng,
                 NeedsGrievanceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -315,7 +323,7 @@ public static class SystemCatalog
             Systems.Revolt.RevoltSystem.WellKnownId, Systems.Revolt.RevoltSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(
                 new SimContext<Systems.Revolt.RevoltTables>(
-                    prev, new Systems.Revolt.RevoltTables(next.Controls, next.Polities, next.ResearchCompleted), rng,
+                    prev, new Systems.Revolt.RevoltTables(next.Controls, next.Polities, next.ResearchCompleted, next.AgeStates), rng,
                     Systems.Revolt.RevoltSystem.WellKnownId,
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }

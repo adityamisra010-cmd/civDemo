@@ -30,14 +30,45 @@ internal static class GovernanceRigs
     }
 
     /// <summary>Completes <paramref name="node"/> for <paramref name="polity"/> — the constructed-knowledge
-    /// rig (a ResearchCompleted row, exactly what ResearchSystem writes on completion).</summary>
+    /// rig (a ResearchCompleted row, exactly what ResearchSystem writes on completion). H2 (2026-10-05): granting
+    /// the TAXATION civic also ENTERS the Age the edict needs (sim.json governance.taxationMinAge, A3) — the rig
+    /// opens the whole gate, knowledge AND Age, as every pre-H2 caller of this rig meant; a test of the Age half
+    /// itself uses <see cref="GrantKnowledgeOnly"/>.</summary>
     public static void Grant(WorldState w, PolityId polity, string node = TaxationNode)
+    {
+        GrantKnowledgeOnly(w, polity, node);
+        if (node == TaxationNode) EnterTaxAge(w, polity);
+    }
+
+    /// <summary>Completes <paramref name="node"/> for <paramref name="polity"/> and nothing else (no Age entered).</summary>
+    public static void GrantKnowledgeOnly(WorldState w, PolityId polity, string node = TaxationNode)
     {
         global::Sim.Core.Systems.Research.ResearchContent content = TestConfigs.Research();
         int index = content.IndexOfId(node);
         if (index < 0) throw new ArgumentException($"no research node '{node}'", nameof(node));
         w.ResearchCompleted.Add(new ResearchCompletedRow(polity, content.Nodes[index].Key));
     }
+
+    /// <summary>H2: the Age the tax edict needs (sim.json governance.taxationMinAge).</summary>
+    public static int TaxAge => Cfg().Governance!.TaxationMinAge ?? 1;
+
+    /// <summary>H2: <paramref name="polity"/> ENTERS Age <paramref name="age"/> — an AgeStateRow upserted, exactly
+    /// what AgeTransitionSystem writes for an AdvanceAge order (the rig stands in for the order on eligibility).
+    /// The founding Age writes nothing (absence of a row IS the founding Age).</summary>
+    public static void EnterAge(WorldState w, PolityId polity, int age, long turn = 0, int surge = 1)
+    {
+        for (int i = 0; i < w.AgeStates.Count; i++)
+        {
+            if (w.AgeStates[i].Polity.Value != polity.Value) continue;
+            w.AgeStates[i] = new AgeStateRow(polity, age, turn, surge, turn);
+            return;
+        }
+        if (age == TestConfigs.Ages().FoundingAge) return;
+        w.AgeStates.Add(new AgeStateRow(polity, age, turn, surge, turn));
+    }
+
+    /// <summary>H2: <paramref name="polity"/> enters the tax edict's Age (see <see cref="TaxAge"/>).</summary>
+    public static void EnterTaxAge(WorldState w, PolityId polity) => EnterAge(w, polity, TaxAge);
 
     public static OrderRecord SetTax(long turn, PolityId p, double percent) => Governance.TaxOrder(turn, p, percent);
 

@@ -140,6 +140,8 @@ public static class SnapshotDiff
         // the queue consumed this step.
         new("Institutions", [I("Id"), I("Polity"), I("Settlement"), I("Type"), L("FoundedTurn"), D("Maturity")]),
         new("ConstructionLabor", [I("Settlement"), D("LastLaborUsed")]),
+        // v32 (H2): the levy's grievance per (settlement, class) population segment.
+        new("TaxGrievance", [I("Settlement"), I("Class"), D("Value")]),
     ];
 
     /// <summary>A field that compares unequal. Row is -1 for the header block

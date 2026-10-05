@@ -952,3 +952,36 @@ All of the following were MEASURED on `bc87ef8`, Release build, 2026-10-04, on a
 
 - `sim bench`.
 - The 20-seed nightly corridor sweep (`ci.yml` calibration-nightly).
+
+---
+
+## 14. Taxation and revolt decision record — H2 (appended 2026-10-05, M5 hardening §18)
+
+**RATIFIED (Director, 2026-10-05, M5 hardening instruction §4–§9, §18).** Full record, model, measurements and
+supersession: `docs/d049-taxation-and-revolt-model.md`.
+
+- **Taxation.** Taxation is a continuous welfare/governance pressure, not an instant-revolt switch.
+- **Extreme taxation.** 100 % tax is permitted as an extreme player action but does not directly or instantly
+  revolt the population.
+- **Revolt.** Revolt emerges after accumulated grievance/unrest/happiness deterioration reaches local tipping
+  conditions.
+- **Population impact.** A revolt affects a population segment, not automatically the entire settlement.
+- **Local conditions.** Food, amenities, housing, comfort goods, services, development and institutions/state
+  capacity can mitigate tax pressure.
+- **Taxation Age.** Taxation is A3/Bronze Age and cannot be operational before A3.
+- **Revolt Age.** A revolted civilization inherits the parent's current Age.
+
+**Implemented (H2, `m5h-h2-tax-revolt`):** a levy-grievance stock per population segment (class × settlement,
+schema v32) accrues the felt burden `r × (1 − 0.5 P) × (1 − 0.25 V)` over years; protest from 12, a segment's
+tipping point at 20, a growing portion of it in revolt past it; the settlement changes hands only when its rebels
+are a majority; happiness and legitimacy fall with the accumulated pressure and recover after a cut;
+`sim.json governance.taxationMinAge = 3` inside `Governance.CanLevyTax`; `RevoltSystem` gives the revolt-born
+polity its parent's Age.
+
+**Superseded in this record (text above kept as history):** §5.2 items 2 and 5–7; §5.3 rows "Public services",
+"Development", "Institutional / state capacity" (now wired: public works, universities and reach, d049 §9); §5.4
+(R4a measurements, historical); §5.5 G1 (the 100 % corner — removed), G2 (happiness now offset through the
+pressure), G3 (partly closed, d049 §9), G4 (closed — a poor place accumulates more), G5 (closed — a stock, not a
+per-turn share); §3.1 A2's "100 % revolt corner"; §4.3 (AI first tax: now 466 in the CI leg, 463/464 in the suite,
+on its first A3 turn); §9's two OPEN tax items and "new polity at Age A1"; §12 rows 11 and 22; §13 rows "Tax
+effect", "Unrest", "Revolt". The D-021 valves 2/3 (G6) stay DEFERRED; `taxBurdenOffsetMax` 0.5 (G7) is kept.

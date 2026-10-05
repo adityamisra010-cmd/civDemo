@@ -96,6 +96,7 @@ public static class WorldStates
         // (InstitutionSchemaTests proves each one is compared).
         if (!TableEquals(a.Institutions, b.Institutions)) return false;
         if (!TableEquals(a.ConstructionLabor, b.ConstructionLabor)) return false;
+        if (!TableEquals(a.TaxGrievances, b.TaxGrievances)) return false;
         return true;
     }
 

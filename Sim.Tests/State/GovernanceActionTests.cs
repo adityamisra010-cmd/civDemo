@@ -44,6 +44,13 @@ public class GovernanceActionTests
         return w;
     }
 
+    /// <summary>H2: the polity enters the tax edict's Age (sim.json governance.taxationMinAge, A3).</summary>
+    private static WorldState InTaxAge(WorldState w, PolityId polity)
+    {
+        GovernanceRigs.EnterTaxAge(w, polity);
+        return w;
+    }
+
     private static ActionDescriptor[] GovernanceOf(ImmutableArray<ActionDescriptor> actions) =>
         actions.Where(a => a.Domain == ActionDomain.Governance).ToArray();
 
@@ -59,7 +66,7 @@ public class GovernanceActionTests
     [Fact]
     public void ATaxationNodeCompleted_ExactlyOneEdictAppears_WithItsProvenance()
     {
-        WorldState w = Complete(Canonical.Value.Clone(), Player, "taxation");
+        WorldState w = InTaxAge(Complete(Canonical.Value.Clone(), Player, "taxation"), Player);
         ActionDescriptor[] gov = GovernanceOf(AvailableActionsQuery.For(w, Cfg, Player));
 
         ActionDescriptor edict = Assert.Single(gov);
@@ -83,12 +90,15 @@ public class GovernanceActionTests
         foreach (string node in Refinements) rigs.Add([node]);
         rigs.Add(Refinements);
         foreach (string[] nodes in rigs)
-        {
-            WorldState w = Complete(Canonical.Value.Clone(), Player, nodes);
-            bool gate = Governance.CanLevyTax(w, Cfg, Player);
-            Assert.Equal(nodes.Any(n => TaxationNodes.Contains(n)), gate);
-            Assert.Equal(gate ? 1 : 0, GovernanceOf(AvailableActionsQuery.For(w, Cfg, Player)).Length);
-        }
+            foreach (bool inTaxAge in new[] { false, true })
+            {
+                // H2: the Age half — knowledge alone in the founding Age never lists the edict.
+                WorldState w = Complete(Canonical.Value.Clone(), Player, nodes);
+                if (inTaxAge) InTaxAge(w, Player);
+                bool gate = Governance.CanLevyTax(w, Cfg, Player);
+                Assert.Equal(inTaxAge && nodes.Any(n => TaxationNodes.Contains(n)), gate);
+                Assert.Equal(gate ? 1 : 0, GovernanceOf(AvailableActionsQuery.For(w, Cfg, Player)).Length);
+            }
     }
 
     /// <summary>The AI tax valve reaches the session only through AiOrders, only for an AI Empire that can levy,
@@ -99,7 +109,11 @@ public class GovernanceActionTests
         WorldState none = DevDuo.Value.Clone();
         Assert.DoesNotContain(AiOrders.For(none, Cfg), o => o.Kind == OrderKind.SetTaxRate);
 
-        WorldState both = Complete(Complete(DevDuo.Value.Clone(), Rival, "taxation"), Player, "taxation");
+        WorldState knowing = Complete(Complete(DevDuo.Value.Clone(), Rival, "taxation"), Player, "taxation");
+        // H2: knowledge in the founding Age — the valve stays silent (the AI cannot bypass the Age gate).
+        Assert.DoesNotContain(AiOrders.For(knowing, Cfg), o => o.Kind == OrderKind.SetTaxRate);
+        Assert.Empty(AiGovernance.OrdersFor(knowing, Cfg, Rival, knowing.Clock.Turn));
+        WorldState both = InTaxAge(InTaxAge(knowing.Clone(), Rival), Player);
         OrderRecord[] taxes = AiOrders.For(both, Cfg).Where(o => o.Kind == OrderKind.SetTaxRate).ToArray();
         OrderRecord[] expected = AiGovernance.OrdersFor(both, Cfg, Rival, both.Clock.Turn);
         Assert.NotEmpty(expected);   // anti-vacuity: at founding the rival's valve does want a rate

@@ -31,7 +31,7 @@ public class InstitutionSchemaTests
     [Fact]
     public void SchemaV31_PopulatedInstitutionTables_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(31, CanonicalSchema.Version);
+        Assert.Equal(32, CanonicalSchema.Version);   // v32: H2 TaxGrievances
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -83,24 +83,29 @@ public class InstitutionSchemaTests
         d.Institutions[1] = d.Institutions[1] with { Polity = new PolityId(2) };
         Assert.NotEqual(WorldHash.ComputeHex(a), WorldHash.ComputeHex(d));    // the owner is state
 
-        // The two tables are the LAST blocks (appended after TaxPolicies, in that order): the stream ends with the
+        // The two tables are the LAST v31 blocks (appended after TaxPolicies, in that order): the stream ends with the
         // last labour row (settlement, labour bits), preceded by the labour count and the last institution row.
+        // H2 (v32, 2026-10-05): one table now follows them — TaxGrievances, EMPTY here — so the v31 blocks end 4
+        // bytes (its zero count prefix) before the stream does.
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0), BitConverter.ToInt64(bytes, bytes.Length - 8));
-        Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - 12));
+        const int v32Trailer = 4;
+        Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - v32Trailer));
+        int end = bytes.Length - v32Trailer;
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0), BitConverter.ToInt64(bytes, end - 8));
+        Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, end - 12));
         int labourBlock = 4 + 3 * 12;
-        Assert.Equal(3, BitConverter.ToInt32(bytes, bytes.Length - labourBlock));
-        Assert.Equal(0x7FF8_0000_0000_0D06, BitConverter.ToInt64(bytes, bytes.Length - labourBlock - 8));
+        Assert.Equal(3, BitConverter.ToInt32(bytes, end - labourBlock));
+        Assert.Equal(0x7FF8_0000_0000_0D06, BitConverter.ToInt64(bytes, end - labourBlock - 8));
 
-        // An empty world's stream ends with the two zero count prefixes.
+        // An empty world's stream ends with the zero count prefixes (the two v31 ones, then v32's).
         var empty = new WorldState(31);
         using var ems = new MemoryStream();
         using (var writer = new BinaryWriter(ems, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(empty, writer);
-        Assert.All(ems.ToArray()[^8..], x => Assert.Equal(0, x));
+        Assert.All(ems.ToArray()[^12..], x => Assert.Equal(0, x));
         Assert.Equal(CanonicalSchema.ExpectedLength(empty), ems.Length);
     }
 
