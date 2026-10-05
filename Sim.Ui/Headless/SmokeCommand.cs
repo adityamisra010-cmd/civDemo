@@ -15,7 +15,7 @@ namespace Sim.Ui.Headless;
 public static class SmokeCommand
 {
     public static bool Wants(string[] args) =>
-        Array.IndexOf(args, "--smoke") >= 0 || Array.IndexOf(args, "--smoke-control-prefix") >= 0;
+        Array.IndexOf(args, "--smoke") >= 0 || Array.IndexOf(args, "--smoke-control-prefix") >= 0 || Array.IndexOf(args, "--frame-cost") >= 0;
 
     public static int Run(string[] args, int? aiEmpires)
     {
@@ -26,6 +26,11 @@ public static class SmokeCommand
         try
         {
             if (Array.IndexOf(args, "--smoke-control-prefix") >= 0) return ControlPrefix(assets, work);
+            if (Array.IndexOf(args, "--frame-cost") >= 0)
+            {
+                Console.Write(FrameCost.Run(assets, Arg(args, "--rounds") ?? 5));
+                return 0;
+            }
             var states = new List<string>();
             for (int i = 0; i + 1 < args.Length; i++) if (args[i] == "--state") states.Add(args[i + 1]);
             var clock = System.Diagnostics.Stopwatch.StartNew();
