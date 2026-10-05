@@ -14,7 +14,9 @@ public static class UiArgs
     public const string Usage =
         "sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--resume DIR|MANIFEST]   "
         + "(--ai-empires: found N AI-commanded Empires to play against; default worldgen.json's aiEmpires, which is 0; "
-        + "--dev: open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play; --resume: continue a saved session by replaying its order log)";
+        + "--dev: open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play; --resume: continue a saved session by replaying its order log)\n"
+        + "sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME] [--report PATH]   (the playability gate, headless: no window, no GPU; exit 0 = passed; docs/m5-playability-gate.md)\n"
+        + "sim-ui --smoke-control-prefix | --frame-cost [--rounds N]   (the gate's crash control; the Research-screen frame cost)";
 
     /// <summary>ADR-033 D9: whether the UI opens with the developer surfaces shown (<c>--dev</c>). Off by
     /// default: the player command bar shows only the player sections. Not part of the world's identity.</summary>
