@@ -269,3 +269,16 @@ The sections above are kept unchanged as history. Two of their statements are su
   - Record: `docs/r4a-m5-closure-record.md`.
 
 Baseline record for the playtest: `docs/m5-playtest-baseline.md`.
+
+## H2 — pointer (appended 2026-10-05, M5 hardening)
+
+- **D4's happiness term `× (1 − r)` is SUPERSEDED.** Happiness and legitimacy are now scaled by
+  `1 − the accumulated levy pressure` (`SettlementHappiness.TaxSufficiency` reads `Unrest.LevyPressure`), which
+  builds over turns under a levy and decays after a cut. D4's reading is the long-run target the new uprising
+  threshold was fitted to (d049 §5.2), not the instant effect.
+- **The "second zero corner" (a declared 100 % levy at full reach reads happiness 0 and revolts) is REMOVED**
+  (Director 2026-10-05 §4: "Do NOT create a direct tax >= X → revolt rule").
+- **The tax gate gains its Age half:** `sim.json governance.taxationMinAge = 3` inside `Governance.CanLevyTax`.
+- **Schema v32** appends `TaxGrievances`.
+
+Record: `docs/d049-taxation-and-revolt-model.md`.

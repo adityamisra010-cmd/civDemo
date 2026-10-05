@@ -216,3 +216,14 @@ Under the shipped values no measured arm rises from tax alone within 300 turns.
   - AI-empire leg over 600 turns: 2 processes, replay and inspect (`reproduction VERIFIED`, 193 orders, kinds 3–8).
 - **Bench:** `sim bench --seed 42 --turns 300 --founded` took 29,860.75 ms, against 29,167.07 ms at 12754e3
   (+2.4%). The two runs shared the machine with other agents.
+
+## 10. Pointer — H2 (appended 2026-10-05, M5 hardening)
+
+§3's "**OPEN for the Director:** a poorly-off settlement never protests the levy" is **resolved** by the Director's
+M5 hardening instruction §6 (RATIFIED 2026-10-05) and its implementation: the levy now accrues into a stock of its
+own per population segment, charged for the levy alone and never diluted by the segment's other shortfalls, so the
+same rate weighs heavier on a poorer place (MEASURED: a poor capital at 70 % protests from turn 5, an ordinary one
+from turn 14). §3's measurement tables and the `taxBurdenOffsetMax` = 0.5 choice stand as history; 0.5 is kept.
+§7's goldens moved again by one empty schema-v32 count prefix (attribution controls return them byte for byte).
+
+Record: `docs/d049-taxation-and-revolt-model.md`.
