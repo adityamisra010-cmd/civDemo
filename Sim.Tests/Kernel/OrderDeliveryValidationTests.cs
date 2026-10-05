@@ -98,8 +98,11 @@ public sealed class OrderDeliveryValidationTests
         OrderValidation.ValidateAtDelivery(ok.BatchFor(3), w, w);
     }
 
-    [Fact]
-    public void TheCli_RejectsAReplayOfAForgedActorLog_WithTheDeliveryDiagnostic()
+    [Theory]
+    [InlineData("replay")]
+    [InlineData("run")]
+    [InlineData("research")]
+    public void TheCli_RejectsAForgedActorLog_WithTheDeliveryDiagnostic(string verb)
     {
         string dir = Path.Combine(Path.GetTempPath(), $"adr034-cli-{Environment.ProcessId}-{Guid.NewGuid():N}");
         Directory.CreateDirectory(dir);
@@ -114,8 +117,46 @@ public sealed class OrderDeliveryValidationTests
             TextWriter old = Console.Error;
             Console.SetError(err);
             int exit;
-            try { exit = (int)entry.Invoke(null, [new[] { "replay", "--founded", "--seed", "42", "--turns", "3", "--orders", path }])!; }
+            string[] args = verb == "research"
+                ? new[] { "research", "--seed", "42", "--turns", "3", "--orders", path }
+                : new[] { verb, "--founded", "--seed", "42", "--turns", "3", "--orders", path };
+            try { exit = (int)entry.Invoke(null, [args])!; }
             finally { Console.SetError(old); }
+            Assert.NotEqual(0, exit);
+            Assert.Contains("polity 999", err.ToString(), StringComparison.Ordinal);
+            Assert.Contains("ADR-034", err.ToString(), StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+    [Fact]
+    public void TheCliInspect_RejectsASessionWhoseOrderLogCarriesAForgedActor_WithTheDeliveryDiagnostic()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"adr034-inspect-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var entry = typeof(Sim.Cli.CliRecipes).Assembly.EntryPoint!;
+            TextWriter oldOut = Console.Out;
+            Console.SetOut(new StringWriter());
+            try
+            {
+                Assert.Equal(0, (int)entry.Invoke(null,
+                    [new[] { "run", "--founded", "--seed", "42", "--turns", "3", "--emit-session", dir }])!);
+            }
+            finally { Console.SetOut(oldOut); }
+            string manifest = Directory.GetFiles(dir, "session-*.json").Single();
+            string ordersFile = Directory.GetFiles(dir, "orders-*.bin").Single();
+            var forged = new OrderLog();
+            forged.Append(OrderRecord.From(1, new PolityId(999), OrderKind.SetResearchTarget, 2, 0.0));
+            using (FileStream f = File.Create(ordersFile)) forged.Save(f);
+
+            var err = new StringWriter();
+            TextWriter oldErr = Console.Error;
+            Console.SetOut(new StringWriter());
+            Console.SetError(err);
+            int exit;
+            try { exit = (int)entry.Invoke(null, [new[] { "inspect", "--manifest", manifest }])!; }
+            finally { Console.SetError(oldErr); Console.SetOut(oldOut); }
             Assert.NotEqual(0, exit);
             Assert.Contains("polity 999", err.ToString(), StringComparison.Ordinal);
             Assert.Contains("ADR-034", err.ToString(), StringComparison.Ordinal);
