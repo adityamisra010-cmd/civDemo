@@ -49,10 +49,12 @@ public sealed class MeasurementFactAttribute : FactAttribute
 /// R4a §1); <c>lone</c> — a one-settlement world, where being alone in the world IS B1's "no viable destination";
 /// <c>famine</c> — at turn 100 the player orders gathering down to 10 % in every settlement it holds (a policy
 /// famine, the FoundedHarness 30 %-farm precedent made world-wide); <c>disaster</c> — COUNTERFACTUAL, not shipped:
-/// the famine-class disaster armed at CR-016's derived λ = 0.01 (shipped 0.0, rate OPEN for the Director).
+/// the famine-class disaster armed at CR-016's derived λ = 0.01 (shipped 0.0, rate OPEN for the Director);
+/// <c>preforager</c> — ATTRIBUTION CONTROL, not shipped: the forager layer switched OFF (`TestConfigs.PreForager`,
+/// the R3 world), no orders, so a reading can be attributed to the forager calibration or not.
 ///
 /// Parameters come from the environment so several arms run as separate processes (the machine is shared):
-/// H4_WORLD (canonical | dev), H4_ARM (none | allgather | lone | famine | disaster), H4_AI (AI empires, default 0),
+/// H4_WORLD (canonical | dev), H4_ARM (none | allgather | lone | famine | disaster | preforager), H4_AI (AI empires, default 0),
 /// H4_FOUNDERS (per settlement, default 400 = shipped; others re-apportioned by largest remainder over the shipped
 /// stable vector, foodStore 15 per founder — the T4.19 / R3 derivation), H4_SEEDS ("a-b"), H4_TURNS, H4_SNAPSHOT
 /// (the turn whose colony/ledger columns are also reported, default 650), H4_OUT (TSV path; colony detail goes to
@@ -101,6 +103,92 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         }
     }
 
+    /// <summary>
+    /// The nightly sweep's metrics file (`sim autoplay --seeds 20 --turns 650 --metrics F`, ci.yml
+    /// calibration-nightly) scored against EVERY canonical corridor in corridors.json, per seed, with the
+    /// battery's own definitions (`CalibrationAnalysis`, `Corridors.WindowYears`) — `sim corridors` reads only
+    /// the two quarantined keys, so the fed corridors the CI battery checks on seeds 1–2 are scored here on all
+    /// twenty. Also the era-boundary continuity pin (|r(1600–2500) − r(2500–3400)| ≤ 0.0001/yr). H4_METRICS is
+    /// the metrics path, H4_OUT the TSV written.
+    /// </summary>
+    [MeasurementFact("H4 nightly corridor scoring, parameters H4_METRICS / H4_OUT")]
+    public void NightlyCorridors()
+    {
+        string metricsPath = Env("H4_METRICS", "nightly-metrics.json");
+        string outPath = Env("H4_OUT", Path.Combine(Path.GetTempPath(), "h4-nightly-corridors.tsv"));
+        Corridors c = Corridors.Load();
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(metricsPath));
+        string[] keys =
+        [
+            "fedGrowthPerYear", "crudeBirthRatePer1000", "crudeDeathRatePer1000", "pyramidChildShare",
+            "pyramidAdultShare", "pyramidElderShare", "densityPerArableKm2", "migrationGrossPerDecade",
+        ];
+        var text = new StringBuilder("seed\t" + string.Join('\t', keys) + "\teraContinuityDelta\tfinalPopulation\tstarvationDeaths\tcrashes\n");
+        var values = new List<double[]>();
+        foreach (System.Text.Json.JsonElement s in doc.RootElement.GetProperty("seeds").EnumerateArray())
+        {
+            var m = new AutoplayMetrics
+            {
+                Seed = s.GetProperty("seed").GetUInt64(),
+                FinalPopulation = s.GetProperty("finalPopulation").GetInt64(),
+                ArableKm2 = s.GetProperty("arableKm2").GetDouble(),
+            };
+            int ci = 0;
+            foreach (System.Text.Json.JsonElement v in s.GetProperty("finalCohortTotals").EnumerateArray())
+                m.FinalCohortTotals[ci++] = v.GetInt64();
+            System.Text.Json.JsonElement series = s.GetProperty("series");
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("year").EnumerateArray()) m.Year.Add(v.GetDouble());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("dtYears").EnumerateArray()) m.DtYears.Add(v.GetDouble());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("population").EnumerateArray()) m.Population.Add(v.GetInt64());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("births").EnumerateArray()) m.Births.Add(v.GetInt64());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("deaths").EnumerateArray()) m.Deaths.Add(v.GetInt64());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("starvationDeaths").EnumerateArray()) m.StarvationDeaths.Add(v.GetInt64());
+            foreach (System.Text.Json.JsonElement v in series.GetProperty("migrationGross").EnumerateArray()) m.MigrationGross.Add(v.GetInt64());
+
+            (double gFrom, double gTo) = Corridors.WindowYears("canonical", "fedGrowthPerYear");
+            (double bFrom, double bTo) = Corridors.WindowYears("canonical", "crudeBirthRatePer1000");
+            (double dFrom, double dTo) = Corridors.WindowYears("canonical", "crudeDeathRatePer1000");
+            (double child, double adult, double elder) = CalibrationAnalysis.PyramidShares(m);
+            double[] row =
+            [
+                CalibrationAnalysis.WindowGrowthPerYear(m, gFrom, gTo),
+                CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Births, bFrom, bTo) * 1000.0,
+                CalibrationAnalysis.CrudeRatePerPersonYear(m, m.Deaths, dFrom, dTo) * 1000.0,
+                child, adult, elder,
+                CalibrationAnalysis.DensityPerArableKm2(m),
+                CalibrationAnalysis.MigrationGrossPerDecade(m),
+            ];
+            values.Add(row);
+            double continuity = Math.Abs(CalibrationAnalysis.WindowGrowthPerYear(m, 1600.0, 2500.0)
+                - CalibrationAnalysis.WindowGrowthPerYear(m, 2500.0, 3400.0));
+            long starved = 0;
+            foreach (long x in m.StarvationDeaths) starved += x;
+            text.Append(m.Seed.ToString(CultureInfo.InvariantCulture));
+            foreach (double v in row) text.Append('\t').Append(v.ToString("R", CultureInfo.InvariantCulture));
+            text.Append(string.Create(CultureInfo.InvariantCulture,
+                $"\t{continuity:R}\t{m.FinalPopulation}\t{starved}\t{CalibrationAnalysis.Crashes(m, 0.20).Count}\n"));
+        }
+        text.Append("# key\tband\tquarantineWindow\tmin\tmax\tinBand\tinWindow\n");
+        for (int k = 0; k < keys.Length; k++)
+        {
+            (double lo, double hi) = c.Band("canonical." + keys[k]);
+            (double Lo, double Hi)? q = Corridors.Quarantine("canonical", keys[k]);
+            double min = double.PositiveInfinity, max = double.NegativeInfinity;
+            int inBand = 0, inWindow = 0;
+            foreach (double[] row in values)
+            {
+                double v = row[k];
+                min = Math.Min(min, v); max = Math.Max(max, v);
+                if (v >= lo && v <= hi) inBand++;
+                if (q is { } w && v >= w.Lo && v <= w.Hi) inWindow++;
+            }
+            text.Append(string.Create(CultureInfo.InvariantCulture,
+                $"# {keys[k]}\t[{lo:R}, {hi:R}]\t{(q is { } qw ? $"[{qw.Lo:R}, {qw.Hi:R}]" : "-")}\t{min:R}\t{max:R}\t{inBand}/{values.Count}\t{(q is null ? "-" : $"{inWindow}/{values.Count}")}\n"));
+        }
+        File.WriteAllText(outPath, text.ToString());
+        output.WriteLine(text.ToString());
+    }
+
     /// <summary>The shipped 400-founder stable vector re-apportioned to <paramref name="n"/> by largest remainder,
     /// ties to the lower cohort index — reproduces the R3 / SubstitutionCredit 100-founder vector exactly.</summary>
     public static long[] Apportion(long[] shipped, int n)
@@ -143,6 +231,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         }
         if (arm == "disaster")
             cfg = cfg with { Disaster = cfg.Disaster with { HazardPerYear = 0.01 } };
+        if (arm == "preforager")
+            cfg = TestConfigs.PreForager(cfg);   // ATTRIBUTION CONTROL: the R3 world (forager layer OFF), no orders
 
         WorldgenConfig wg = (worldName == "dev" ? TestConfigs.DevWorldgen() : TestConfigs.Worldgen()) with { AiEmpires = ai };
         int? settlementsOverride = arm == "lone" ? 1 : null;
