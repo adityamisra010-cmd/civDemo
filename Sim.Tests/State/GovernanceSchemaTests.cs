@@ -27,7 +27,7 @@ public class GovernanceSchemaTests
     [Fact]
     public void SchemaV30_PopulatedTaxPolicyTable_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
+        Assert.Equal(32, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -71,12 +71,13 @@ public class GovernanceSchemaTests
         // The table was the LAST block at v30 (appended after RoadDevelopments). Since v31 (ADR-033 D6/D10) the
         // two institution-era tables follow it — Institutions, ConstructionLabor — which are EMPTY here, so the
         // populated stream ends with their two zero count prefixes (8 bytes) right after the last row's rate bits.
+        // H2 (v32, 2026-10-05): TaxGrievances follows those, also EMPTY here — one more zero prefix (12 bytes in all).
         var empty = new WorldState(30);
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        const int V31Trailer = 2 * 4;
+        const int V31Trailer = 3 * 4;
         Assert.All(bytes[^V31Trailer..], b => Assert.Equal(0, b));
         Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - V31Trailer - 8));
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - V31Trailer - 12));

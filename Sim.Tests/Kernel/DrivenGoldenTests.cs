@@ -82,7 +82,7 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd";
+    internal const string Golden = "6664a9b258c2d999f8f307d6aba4c4729087b9bf22e73c9beca185c02a194f33";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -483,6 +483,15 @@ public class DrivenGoldenTests
         // tree by the agent writing this line. OLD efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4 -> NEW 3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd. CAUSE wild-food harvest
         // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
         // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd
+        //   NEW  6664a9b258c2d999f8f307d6aba4c4729087b9bf22e73c9beca185c02a194f33
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the driven log carries only SectorAllocation
+        //         orders: no levy), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----

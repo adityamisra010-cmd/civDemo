@@ -133,6 +133,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
@@ -151,7 +152,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -227,6 +228,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
@@ -236,7 +238,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -257,6 +259,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
         roadRowsRemoved = StripRoads(stripped);
@@ -265,7 +268,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -303,6 +306,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         strengthsRestored = StripGovernance(stripped);
         using var buffer = new MemoryStream();
@@ -310,7 +314,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
@@ -342,13 +346,51 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV30(WorldState world, out int institutionRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         institutionRowsRemoved = StripInstitutions(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount);
+    }
+
+    /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
+    /// appended after ConstructionLabor. Every pin in this file predates v32, so every control strips it and drops its
+    /// count prefix first, then asks its original question unchanged.</summary>
+    private const int LevyTableCount = 1;
+
+    /// <summary>H2: clear the TaxGrievances rows IN PLACE (the layer's entire footprint in the stream: rows exist only
+    /// where a levy has been felt, so an untaxed world holds none). Returns how many rows were removed.</summary>
+    private static int StripLevy(WorldState stripped)
+    {
+        int removed = stripped.TaxGrievances.Count;
+        stripped.TaxGrievances.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v31 — the tree exactly as it stood BEFORE H2's schema change: the levy-grievance rows
+    /// removed, the empty v32 prefix dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV31(WorldState world, out int levyRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        levyRowsRemoved = StripLevy(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount);
+    }
+
+    /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
+    /// asserted, so the comparison can never hide a behavioural change behind the strip).</summary>
+    private static string V31(WorldState world)
+    {
+        string hash = HashAtSchemaV31(world, out int removed);
+        Assert.Equal(0, removed);
+        return hash;
     }
 
     /// <summary>
@@ -382,6 +424,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
@@ -392,7 +435,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     /// <summary>
@@ -404,6 +447,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
         StripRoads(stripped);
@@ -415,7 +459,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
     }
 
     /// <summary>
@@ -637,7 +681,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(31, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor
+        Assert.Equal(32, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances)
     }
 
     [Fact]
@@ -1036,8 +1080,8 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
     {
         const string preR1 = "74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c";
-        Assert.Equal(preR1, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR1())));
-        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2()));
+        Assert.Equal(preR1, V31(SnapshotTests.RunFoundedGolden(PreR1())));
+        string now = V31(SnapshotTests.RunFoundedGolden(PreR2()));
         Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
     }
 
@@ -1045,8 +1089,8 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone()
     {
         const string preR1 = "481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87";
-        Assert.Equal(preR1, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
-        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2()));
+        Assert.Equal(preR1, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
+        string now = V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2()));
         Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
     }
 
@@ -1055,9 +1099,9 @@ public class IntegratedPinAttributionTests
     {
         const string preR1 = "65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651";
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
-        Assert.Equal(preR1, WorldHash.ComputeHex(twin));
+        Assert.Equal(preR1, V31(twin));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2());
-        string now = WorldHash.ComputeHex(world);
+        string now = V31(world);
         Assert.True(now == PostR1DrivenGolden, "R1 driven hash " + now);
     }
 
@@ -1086,16 +1130,16 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
     {
-        Assert.Equal(PostR1FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2b())));
-        Assert.Equal(PostR1FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2())));
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2b())));
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2())));
         Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheR2bLayersAlone()
     {
-        Assert.Equal(PostR1FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b())));
-        Assert.Equal(PostR1FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2())));
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b())));
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2())));
         Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
     }
 
@@ -1103,30 +1147,30 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
     {
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b());
-        Assert.Equal(R2aOnlyDrivenGolden, WorldHash.ComputeHex(twin));
+        Assert.Equal(R2aOnlyDrivenGolden, V31(twin));
         (WorldState both, _) = DrivenGoldenTests.RunDriven(300, PreR2());
-        Assert.Equal(PostR1DrivenGolden, WorldHash.ComputeHex(both));
+        Assert.Equal(PostR1DrivenGolden, V31(both));
     }
 
     [Fact]
     public void FoundedAndFirstReign_UnmovedByTheTradeKnowledgeLayer()
     {
-        Assert.Equal(R2bOnlyFoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreR2a())));
-        Assert.Equal(R2bOnlyFirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a())));
+        Assert.Equal(R2bOnlyFoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2a())));
+        Assert.Equal(R2bOnlyFirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a())));
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
     {
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2a());
-        Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(twin));
+        Assert.Equal(R2bOnlyDrivenGolden, V31(twin));
         // Which part of the layer: the TRADE GATE alone (node, entity and city-state research kept; only
         // sim.json trade.entity removed) returns the R2b-only pin too — the gate is the entire R2a cause here.
         Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim());
         (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } });
-        Assert.Equal(R2bOnlyDrivenGolden, WorldHash.ComputeHex(gateOnly));
+        Assert.Equal(R2bOnlyDrivenGolden, V31(gateOnly));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
-        Assert.Equal(R3DrivenGolden, WorldHash.ComputeHex(world));
+        Assert.Equal(R3DrivenGolden, V31(world));
     }
 
     // ======================================================================
@@ -1146,14 +1190,14 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
     {
-        Assert.Equal(R3FoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
+        Assert.Equal(R3FoundedGolden, V31(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
         Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheForagerLayerAlone()
     {
-        Assert.Equal(R3FirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
+        Assert.Equal(R3FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
         Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
     }
 
@@ -1161,8 +1205,68 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
     {
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
-        Assert.Equal(R3DrivenGolden, WorldHash.ComputeHex(twin));
+        Assert.Equal(R3DrivenGolden, V31(twin));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
+    }
+
+    // ======================================================================
+    // H2 (Director 2026-10-05, docs/d049-taxation-and-revolt-model.md) — THE LAYER CONTROL FOR SCHEMA v32
+    // (taxation as accumulated pressure per population segment; segment revolt)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5h-h2-tax-revolt at ece2a7b (= main's pins at 9bb7423: the Age half
+    // of the tax gate and the revolt-Age inheritance move none of these runs — none levies, none advances an Age).
+    // The H2 model REPLACES the old revolt rule (a declared 100 % levy at full reach read happiness 0 and was
+    // revolt-ready) with a levy-grievance stock per (settlement, class), and reads it in happiness, legitimacy,
+    // output and revolt. None of these runs levies a tax (no SetTaxRate order; the toy and founded runs have no order
+    // log, the first-reign and driven logs carry none), so on every one of them the old rule and the new one are the
+    // SAME FUNCTION: the effective rate is exactly 0, no TaxGrievance row is ever written, the levy pressure reads
+    // exactly 0, happiness multiplies by exactly 1.0, the protest/rebel output factor is exactly 1.0, the Dignity
+    // satisfaction is exactly 1.0 (as before), and revolt's provision reading IS the old happiness reading. So the
+    // old-rule twin of each run is the run itself, and the entire movement must be the one EMPTY v32 count prefix:
+    // stripping the (asserted absent) rows and dropping that prefix returns each OLD pin BYTE FOR BYTE. Any leak of
+    // the new model into an untaxed world — a row written, a reading moved, a revolt fired — survives the strip and
+    // breaks these. The model's behaviour under a levy is pinned semantically (TaxPressureTests A–H, UnrestTests,
+    // GovernanceTests, TaxAgeGateTests) and is outside every golden: no golden run taxes.
+
+    internal const string V31ToyGolden = "0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269";
+    internal const string V31FoundedGolden = "02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2";
+    internal const string V31FirstReignGolden = "74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419";
+    internal const string V31DrivenGolden = "3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd";
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV32LevyTrailerAlone()
+    {
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(V31ToyGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);
+        Assert.Equal(32, CanonicalSchema.Version);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
+    {
+        WorldState world = SnapshotTests.RunFoundedGolden();
+        Assert.Equal(V31FoundedGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);   // no order log: no levy, so no levy grievance anywhere
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(world));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheV32LevyLayerAlone()
+    {
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        Assert.Equal(V31FirstReignGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(world));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
+    {
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        Assert.Equal(V31DrivenGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
         Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
     }
 }

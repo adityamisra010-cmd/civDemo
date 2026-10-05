@@ -148,7 +148,11 @@ public static class CanonicalSchema
     /// (12 bytes; rebuilt every step, rows only where a project was built), which PathBuild subtracts so
     /// construction capacity is spent once. No existing row changed width; a world with no institution
     /// and no completed project carries two empty count prefixes and nothing else.
-    public const int Version = 31;
+    /// v32 (H2, Director 2026-10-05 §4–§6; docs/d049-taxation-and-revolt-model.md): TaxGrievances appended after
+    /// ConstructionLabor — the levy's grievance per (settlement, class) population segment (Settlement, Class,
+    /// Value bits; 16 bytes), a stock NeedsGrievanceSystem integrates with dt. Rows exist only where a levy has
+    /// been felt, so an untaxed world carries one empty count prefix and nothing else; no existing row changed width.
+    public const int Version = 32;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -210,6 +214,7 @@ public static class CanonicalSchema
     private const int TaxPolicyRowWidth = 4 + 8;                    // Polity, Rate bits (v30)
     private const int InstitutionRowWidth = 4 + 4 + 4 + 4 + 8 + 8;  // Id, Polity, Settlement, Type, FoundedTurn, Maturity bits (v31)
     private const int ConstructionLaborRowWidth = 4 + 8;            // Settlement, LastLaborUsed bits (v31)
+    private const int TaxGrievanceRowWidth = 4 + 4 + 8;             // Settlement, Class, Value bits (v32)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -869,6 +874,16 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.LastLaborUsed));
         }
+
+        // 58. TaxGrievances (v32, H2: the levy's grievance per population segment)
+        writer.Write(world.TaxGrievances.Count);
+        for (int i = 0; i < world.TaxGrievances.Count; i++)
+        {
+            TaxGrievanceRow row = world.TaxGrievances[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Class.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1387,6 +1402,14 @@ public static class CanonicalSchema
                 new SettlementId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        int taxGrievanceCount = reader.ReadInt32();
+        for (int i = 0; i < taxGrievanceCount; i++)
+        {
+            world.TaxGrievances.Add(new TaxGrievanceRow(
+                new SettlementId(reader.ReadInt32()), new ClassId(reader.ReadInt32()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+        }
+
         return world;
     }
 
@@ -1454,5 +1477,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.RoadDevelopments.Count * RoadDevelopmentRowWidth
         + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth
         + CountPrefixWidth + (long)world.Institutions.Count * InstitutionRowWidth
-        + CountPrefixWidth + (long)world.ConstructionLabor.Count * ConstructionLaborRowWidth;
+        + CountPrefixWidth + (long)world.ConstructionLabor.Count * ConstructionLaborRowWidth
+        + CountPrefixWidth + (long)world.TaxGrievances.Count * TaxGrievanceRowWidth;
 }

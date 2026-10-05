@@ -1051,6 +1051,19 @@ public record struct InstitutionRow(
 public record struct ConstructionLaborRow(SettlementId Settlement, double LastLaborUsed);
 
 /// <summary>
+/// H2 (schema v32; Director 2026-10-05 §4–§6, RATIFIED in docs/d049-taxation-and-revolt-model.md) — THE LEVY'S
+/// GRIEVANCE OF ONE POPULATION SEGMENT: the accumulated tax pressure held by the members of one class in one
+/// settlement (a D-010 "grievance stock" whose source is "taxation pain"). A double stock — NOT conserved, never
+/// Ledger (law 1 governs people, money and goods; grievance is manufactured and destroyed). Owned by
+/// NeedsGrievanceSystem, which integrates it per year with dtYears exactly as it integrates the needs grievance:
+/// T' = T + accrual(felt levy) × dt − decay × T × dt. Rows appear only where a levy has been felt (an untaxed
+/// world holds none) and persist while the memory decays; a class with no members, and an extinct settlement, hold
+/// zero (the T2.13 / T3.5b ghost-grievance rule). Read by the simulation ONLY through <see cref="Unrest"/> (the
+/// read-isolation gate).
+/// </summary>
+public record struct TaxGrievanceRow(SettlementId Settlement, ClassId Class, double Value);
+
+/// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
 /// turn's state exclusively through this interface; it exposes only
 /// <see cref="IReadOnlyTable{T}"/> views, so no mutation compiles. Writable access
@@ -1169,6 +1182,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
     IReadOnlyTable<ConstructionLaborRow> ConstructionLabor { get; }
+
+    /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
+    IReadOnlyTable<TaxGrievanceRow> TaxGrievances { get; }
 }
 
 /// <summary>
@@ -1363,6 +1379,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
     public Table<ConstructionLaborRow> ConstructionLabor { get; }
 
+    /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
+    public Table<TaxGrievanceRow> TaxGrievances { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1420,6 +1439,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<TaxPolicyRow> IReadOnlyWorldState.TaxPolicies => TaxPolicies;
     IReadOnlyTable<InstitutionRow> IReadOnlyWorldState.Institutions => Institutions;
     IReadOnlyTable<ConstructionLaborRow> IReadOnlyWorldState.ConstructionLabor => ConstructionLabor;
+    IReadOnlyTable<TaxGrievanceRow> IReadOnlyWorldState.TaxGrievances => TaxGrievances;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1481,6 +1501,7 @@ public sealed class WorldState : IReadOnlyWorldState
         TaxPolicies = new Table<TaxPolicyRow>();
         Institutions = new Table<InstitutionRow>();
         ConstructionLabor = new Table<ConstructionLaborRow>();
+        TaxGrievances = new Table<TaxGrievanceRow>();
     }
 
     private WorldState(
@@ -1513,7 +1534,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<UnitConversionRow> unitConversions,
         Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments,
         Table<TaxPolicyRow> taxPolicies,
-        Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor)
+        Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
+        Table<TaxGrievanceRow> taxGrievances)
     {
         Seed = seed;
         Clock = clock;
@@ -1574,6 +1596,7 @@ public sealed class WorldState : IReadOnlyWorldState
         TaxPolicies = taxPolicies;
         Institutions = institutions;
         ConstructionLabor = constructionLabor;
+        TaxGrievances = taxGrievances;
     }
 
     /// <summary>
@@ -1598,7 +1621,7 @@ public sealed class WorldState : IReadOnlyWorldState
             ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
-            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone())
+            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

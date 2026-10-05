@@ -298,7 +298,16 @@ public class SnapshotTests
         //         drops them and returns OLD byte for byte (removed == 0).
         //   DERIVED TWICE: this in-test harness and the built CLI
         //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
-        const string golden = "0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269";
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269
+        //   NEW  5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the toy pipeline runs no governance and no needs
+        //         system; nothing is levied), so the entire movement is one four-byte zero count prefix.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
+        const string golden = "5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -1017,6 +1026,17 @@ public class SnapshotTests
         //   CONTROL TestConfigs.PreForager (switch OFF) returns OLD byte for byte
         //           (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
         //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2
+        //   NEW  07c6ec45902428d210361719fa1fbf90de5aacd3baf3f18c09aebdccb64f2c61
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (no order log: no levy, so no levy grievance is ever
+        //         felt; the new model reads exactly the old values on an untaxed world), so the entire movement is one
+        //         four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1054,7 +1074,7 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2";
+    internal const string FoundedGoldenHash = "07c6ec45902428d210361719fa1fbf90de5aacd3baf3f18c09aebdccb64f2c61";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)

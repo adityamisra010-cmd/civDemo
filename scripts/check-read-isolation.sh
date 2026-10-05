@@ -47,6 +47,11 @@
 #     and the owner's discharge consult THIS reader, never the table, so the gate still pins that
 #     no other system reads needs state directly. A second reader must come through here or be
 #     argued into this list on its own reason.
+#     H2 (2026-10-05, Director M5 hardening sections 4-6; docs/d049-taxation-and-revolt-model.md): the
+#     second grievance stock, the LEVY'S grievance per population segment (TaxGrievances / TaxGrievanceRow,
+#     schema v32, owned by NeedsGrievanceSystem), is isolated by the SAME rule and the SAME allowlist: the
+#     simulation reads it only through Unrest.cs, which now also feeds SettlementHappiness (the accumulated levy
+#     pressure scales happiness) - a reader of Unrest, not of the table.
 #   Sim.Ui/, Sim.Ui.Tests/, Sim.Tests/         - display + tests (packet-sanctioned)
 #
 # WHAT THIS GUARD ACTUALLY MATCHES, stated because it is weaker than its name
@@ -60,7 +65,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b'
+PATTERN='\bGrievances\b|\bNeedSatisfactions\b|\bGrievanceRow\b|\bNeedSatisfactionRow\b|\bTaxGrievances\b|\bTaxGrievanceRow\b'
 ALLOW='^(Sim\.Core/Systems/NeedsGrievance/|Sim\.Core/State/WorldState\.cs|Sim\.Core/Kernel/CanonicalSchema\.cs|Sim\.Core/SystemCatalog\.cs|Sim\.Core/Worldgen/WorldFounding\.cs|Sim\.Core/Systems/Colonization/|Sim\.Core/Systems/PathBuild/PathBuildSystem\.cs|Sim\.Core/Kernel/ReplayReport\.cs|Sim\.Core/Observability/|Sim\.Core/State/Unrest\.cs)'
 
 matches=$(grep -RnE --include='*.cs' --exclude-dir=bin --exclude-dir=obj \
