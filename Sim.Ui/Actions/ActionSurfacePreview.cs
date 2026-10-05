@@ -333,6 +333,7 @@ public static class ActionSurfacePreview
     /// domains) into <paramref name="outDir"/>.</summary>
     public static IReadOnlyList<string> Run(string outDir, string? fontDir)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         var written = new List<string>();
         var log = new List<string> { "action surface preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world" };

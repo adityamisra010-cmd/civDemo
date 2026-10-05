@@ -15,7 +15,9 @@ public static class SvgWriter
 {
     /// <param name="fontDirectory">Directory holding EBGaramond-Variable.ttf,
     /// IBMPlexSerif-Regular.ttf and IBMPlexSans-Regular.ttf (assets/fonts); null falls back to
-    /// generic faces.</param>
+    /// generic faces. A RELATIVE directory is emitted as a relative URL (resolved against the SVG's own
+    /// location — what the preview runs pass, via <see cref="FontDirectoryFor"/>, so a committed preview's
+    /// bytes do not depend on the checkout path); an absolute one as an absolute file URI.</param>
     public static string Write(DrawList list, double width, double height, string? fontDirectory = null)
     {
         var sb = new StringBuilder();
@@ -28,9 +30,9 @@ public static class SvgWriter
         sb.Append("<style>\n");
         if (fontDirectory is not null)
         {
-            string garamond = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "EBGaramond-Variable.ttf")).AbsoluteUri;
-            string plex = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "IBMPlexSerif-Regular.ttf")).AbsoluteUri;
-            string sans = new Uri(Path.Combine(Path.GetFullPath(fontDirectory), "IBMPlexSans-Regular.ttf")).AbsoluteUri;
+            string garamond = FontUrl(fontDirectory, "EBGaramond-Variable.ttf");
+            string plex = FontUrl(fontDirectory, "IBMPlexSerif-Regular.ttf");
+            string sans = FontUrl(fontDirectory, "IBMPlexSans-Regular.ttf");
             sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'EB Garamond'; src: url('{garamond}'); font-weight: 400 800; }}\n");
             sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Serif'; src: url('{plex}'); }}\n");
             sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Sans'; src: url('{sans}'); }}\n");
@@ -139,6 +141,32 @@ public static class SvgWriter
         while (openGroups-- > 0) sb.Append("</g>\n");
         sb.Append("</svg>\n");
         sb.Insert(defsAt, "<defs>\n" + symbols + "</defs>\n");
+        return sb.ToString();
+    }
+
+    /// <summary>F3 (M5 hardening): the font directory as the preview runs pass it to <see cref="Write"/> — relative
+    /// to the directory the SVG is written to, with '/' separators, so the @font-face URLs (and so the preview
+    /// hashes) are the same from any checkout and the PNG renders (headless Chromium on the file://) still resolve
+    /// them. Null stays null; a font directory with no relative route (another drive) stays absolute.</summary>
+    public static string? FontDirectoryFor(string? fontDirectory, string svgDirectory)
+    {
+        if (fontDirectory is null) return null;
+        string rel = Path.GetRelativePath(Path.GetFullPath(svgDirectory), Path.GetFullPath(fontDirectory));
+        return Path.IsPathRooted(rel) ? rel : rel.Replace('\\', '/');
+    }
+
+    private static string FontUrl(string fontDirectory, string file)
+    {
+        if (Path.IsPathRooted(fontDirectory))
+            return new Uri(Path.Combine(Path.GetFullPath(fontDirectory), file)).AbsoluteUri;
+        string rel = fontDirectory.Replace('\\', '/').TrimEnd('/');
+        string joined = rel.Length == 0 || rel == "." ? file : rel + "/" + file;
+        var sb = new StringBuilder();
+        foreach (string seg in joined.Split('/'))
+        {
+            if (sb.Length > 0) sb.Append('/');
+            sb.Append(Uri.EscapeDataString(seg));
+        }
         return sb.ToString();
     }
 

@@ -131,6 +131,7 @@ public static class R2aPreview
 
     public static IReadOnlyList<string> Run(string outDir, string? fontDir, int cityTurns = 600)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         var written = new List<string>();
         var log = new List<string> { "R2a preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world" };

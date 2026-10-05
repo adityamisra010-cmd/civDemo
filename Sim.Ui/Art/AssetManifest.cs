@@ -177,6 +177,21 @@ public static class AssetManifest
     /// <summary>The assets root: &lt;exe dir&gt;/assets, falling back to the repo
     /// checkout when running from a test binary (so headless tests read the
     /// same files the game ships).</summary>
+    /// <summary>F3 (M5 hardening): the font directory the SVG previews reference — the CHECKOUT's assets/fonts when the
+    /// binary runs inside a checkout (found by walking up to Sim.slnx), so the relative @font-face URL a committed preview
+    /// carries is the same whatever the build configuration or launch path; else the copy beside the binary; null when
+    /// neither exists (generic faces).</summary>
+    public static string? PreviewFontDirectory()
+    {
+        for (string? dir = AppContext.BaseDirectory; dir is not null; dir = Path.GetDirectoryName(dir))
+        {
+            string candidate = Path.Combine(dir, "assets", "fonts");
+            if (File.Exists(Path.Combine(dir, "Sim.slnx")) && Directory.Exists(candidate)) return candidate;
+        }
+        string beside = Path.Combine(DefaultRoot(), "fonts");
+        return Directory.Exists(beside) ? beside : null;
+    }
+
     public static string DefaultRoot()
     {
         string beside = Path.Combine(AppContext.BaseDirectory, "assets");

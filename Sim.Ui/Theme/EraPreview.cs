@@ -288,6 +288,7 @@ public static class EraPreview
     /// <summary>Writes the 27 SVGs (and the log with each SVG's SHA-256) into <paramref name="outDir"/>.</summary>
     public static IReadOnlyList<string> Run(string outDir, string? fontDir)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         UiSession s = Session();
         AgeContent ages = s.Config.Ages!;

@@ -64,8 +64,8 @@ if (Array.IndexOf(args, "--research-preview") >= 0)
     string previewDir = previewAt + 1 < args.Length && !args[previewAt + 1].StartsWith("--")
         ? args[previewAt + 1]
         : "research-preview";
-    string fontDir = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.Progression.ProgressionPreview.Run(previewDir, Directory.Exists(fontDir) ? fontDir : null))
+    string? fontDir = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Progression.ProgressionPreview.Run(previewDir, fontDir))
         Console.WriteLine($"research preview: {Path.GetFullPath(p)}");
     return;
 }
@@ -77,8 +77,8 @@ if (Array.IndexOf(args, "--age-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--age-preview");
     string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "age-preview";
-    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.Ages.AgePreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Ages.AgePreview.Run(dir, fonts))
         Console.WriteLine($"age preview: {Path.GetFullPath(p)}");
     return;
 }
@@ -90,8 +90,8 @@ if (Array.IndexOf(args, "--era-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--era-preview");
     string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "era-ui-preview";
-    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.Theme.EraPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Theme.EraPreview.Run(dir, fonts))
         Console.WriteLine($"era preview: {Path.GetFullPath(p)}");
     return;
 }
@@ -105,8 +105,8 @@ if (Array.IndexOf(args, "--r2a-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--r2a-preview");
     string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "r2-previews";
-    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.Actions.R2aPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Actions.R2aPreview.Run(dir, fonts))
         Console.WriteLine($"r2a preview: {Path.GetFullPath(p)}");
     return;
 }
@@ -114,8 +114,8 @@ if (Array.IndexOf(args, "--action-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--action-preview");
     string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "action-surface-preview";
-    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.Actions.ActionSurfacePreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Actions.ActionSurfacePreview.Run(dir, fonts))
         Console.WriteLine($"action preview: {Path.GetFullPath(p)}");
     return;
 }
@@ -126,8 +126,8 @@ if (Array.IndexOf(args, "--player-views-preview") >= 0)
 {
     int at = Array.IndexOf(args, "--player-views-preview");
     string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "player-views-preview";
-    string fonts = Path.Combine(Sim.Ui.Art.AssetManifest.DefaultRoot(), "fonts");
-    foreach (string p in Sim.Ui.ViewModel.PlayerViewsPreview.Run(dir, Directory.Exists(fonts) ? fonts : null))
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.ViewModel.PlayerViewsPreview.Run(dir, fonts))
         Console.WriteLine($"player views preview: {Path.GetFullPath(p)}");
     return;
 }
