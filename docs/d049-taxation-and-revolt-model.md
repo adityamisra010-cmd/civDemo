@@ -483,3 +483,133 @@ is killed by at least one SEMANTIC test (no golden in the filter).
   window) and both on untaxed autoplay worlds, where this model is inert (§8). Not caused here: INFERRED from the
   inertness proven by the golden controls, not re-measured at the base commit.
 - **Not run:** `sim bench` (excluded by the stream instructions).
+
+---
+
+## 15. F1 fix pass (appended 2026-10-05; nothing above rewritten)
+
+This section records the changes made after the adversarial verifier reviewed H2. The Director's §18 rulings in §1
+remain **RATIFIED** and unchanged. Every choice below is the fix stream's own and is marked **INFERRED**, for the
+Director to ratify. Every number was measured on branch `m5h-f1-tax-fixes` (Release, dev world seed 42, canonical
+era table, levy from turn 0, A3, crafts known) unless it is marked otherwise.
+
+### 15.1 Corrections to the record above
+
+- **§6.4 "40 % never protests, never rises, anywhere" overclaims.** It holds only for the measured conditions:
+  well-off, served, natural and poor (housed for a quarter) capitals, plus every settlement of the 4-settlement dev
+  world. With F1's capacity term those settlements' peak segment T at 40 % over 80 turns is 6.46 (reach 1.0),
+  6.71 (0.81), 6.85 (0.78) and 6.85 (0.68), all below the onset of 12. A capital with no housing at all can
+  protest at 40 % (the verifier's probe P2 measured a peak T of 12.92 and protest 0.115 from turn 14). F1 did not
+  re-measure that case (**INFERRED** to still hold). This fits Director §6: a destitute place protests a levy that
+  an ordinary place bears.
+- **§11.7 "Rebel hunger escalation is bounded" was false for the levied place itself.** The rebels' drag reached
+  every product, food included (factor 1 − r × withheld, which is 0 at r = 1 and q = 1). A final settlement under a
+  99–100 % levy starved to extinction: the verifier's probe P6 had population 0 by turn 39 at 100 %, and F1
+  reproduced it as a failing test. Fixed in §15.2.
+- **§9 "State capacity WIRED" had the wrong sign.** Reach multiplied the effective rate, so a weakly reached place
+  felt less of the same declared levy. Fixed in §15.3.
+
+### 15.2 Rebels withhold the levy, not their own bread (**INFERRED**; BLOCKER fix)
+
+`Governance.FoodOutputMultiplier` = `max(extraction × drag, 1)` when protest drags, and exactly the extraction
+multiplier otherwise. `ProductionSystem` applies it to food: farming and gathering (`Farm`) and the
+herding/fishing pathway. Non-food output (extraction sector, crafts) keeps the full `OutputMultiplier`, so the
+strike against the levied crafts, ore and stone is unchanged.
+
+The reading: protesters and rebels withhold the work the levy COMPELS (the extraction gain), never the work that
+feeds them. Food output under revolt therefore falls back to what the people would produce untaxed, and no lower.
+
+**The minimal alternative, rejected:** withholding only the surplus above the settlement's own consumption. It
+would need a production-side read of demand, which is a new coupling.
+
+**Measured over 300 turns** (`TaxPressureMeasurement.RebelSubsistence_300Turns`, skipped rig; "final" is one
+settlement with colonization off, so it cannot revolt away):
+
+| condition | 0 % | 40 % | 70 % | 99 % | 100 % |
+|---|---|---|---|---|---|
+| well-off: pop t300 / max deficit / lost | 3673 / 0.000 / never | 3781 / 0.000 / never | 3747 / 0.000 / never | 3681 / 0.000 / never | 3667 / 0.000 / never |
+| natural | 3487 / 0.074 / never | 3707 / 0.000 / never | 3750 / 0.000 / never | 3514 / 0.071 / t24 (pop 677) | 3509 / 0.072 / t22 (pop 668) |
+| poor | 3490 / 0.076 / never | 3725 / 0.000 / never | 3583 / 0.073 / never (rebels ≤ 4.9 %) | 3475 / 0.073 / t5 (pop 526) | 3491 / 0.073 / t5 (pop 526) |
+| final settlement | 3521 / 0.057 / — | 3745 / 0.000 / — | 3753 / 0.000 / — | 3519 / 0.055 / — (rebels 1.0, non-food ×0.013) | 3553 / 0.058 / — (rebels 1.0, non-food ×0.000) |
+
+- No arm goes extinct.
+- No arm's food deficit exceeds the untaxed arm's (0.057–0.076).
+- At the change of hands the ordinary capital still holds its population: 677 and 668 people at 99 % and 100 %,
+  against 480 and 436 measured by F1 at the pre-fix commit (the verifier's P7 recorded 129 and 320 in its own 4-settlement read)
+
+Tests: `TaxRebelSubsistenceTests`. The final-settlement case failed first.
+
+### 15.3 State capacity offsets the levy (**INFERRED** form and value; Director §5/§6)
+
+    felt = d × (1 + taxCapacityOffsetMax × (1 − reach)) × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V)
+
+Here d is the DECLARED rate and reach is `ControlRow.Strength`. Collection is unchanged: the settlement yields
+d × reach, which is ADR-033 D4's effective rate, used by extraction and by the rebels' drag. Two consequences:
+
+- The felt burden per unit COLLECTED rises as reach falls.
+- At the same declared rate, and also at the same effective rate, a weakly administered place feels more.
+
+The reading: arbitrary, unpredictable collection by agents the centre does not control.
+
+**Where the term is inert.** At full reach (the capital) it is exactly 1, so every capital number in §5–§6 is
+unchanged. So are every golden (§15.6) and the AI first-levy pins.
+
+**`taxCapacityOffsetMax` = 0.25 (CHOSEN).** It equals `taxServiceOffsetMax`: services and administration are
+treated as the two halves of the fiscal exchange.
+
+**Measured** (all settlements of the dev world, 80 turns):
+
+| rate | reach 1.00 | reach 0.81 | reach 0.78 | reach 0.68 |
+|---|---|---|---|---|
+| 40 %: peak segment T | 6.46 | 6.71 | 6.85 | 6.85 |
+| 70 %: peak protest | 0.135 | 0.202 | 0.227 | 0.235 |
+
+Tests: `TaxStateCapacityTests`, covering equal declared rate, equal effective rate (with and without a granary),
+exact inertness at full reach, and the full pipeline against `taxCapacityOffsetMax = 0`. The tests failed first.
+The H2 pin `TheBurdenFeltIsTheEFFECTIVERateNotTheDeclaredOne` ("the frontier accumulates less pressure") is
+replaced by its opposite. **§9 row "State capacity" now reads:** WIRED, as an aggravating offset of the declared
+burden and as the multiplier of V and of collection.
+
+### 15.4 An uprising against the levy needs the current ruler's levy (**INFERRED**)
+
+`Unrest.IsUprising` additionally requires `Governance.EffectiveTaxRate > 0` at the settlement, meaning its current
+ruler collects a levy there. Levy grievance inherited across a change of hands still decays and still reads as
+protest, but it cannot throw off a ruler that takes nothing. This was the verifier's probe P3.
+
+The drag already carried this condition: with no levy, the output factor is 1.
+
+Test: `UnrestTests.InheritedLevyGrievance_CannotThrowOffARulerThatLeviesNothing`, which failed first.
+`TheSettlementUprising_IsRebelsAboveTheShare_Strictly` now declares a levy.
+
+### 15.5 Other items
+
+- **Ghost rule for levy rows (§2.1) is now pinned:** `UnrestTests.AnEmptyClass_HoldsNoLevyGrievance_TheGhostRuleZeroesItsRow`.
+  Measured to fail with the zeroing line removed (the verifier's surviving mutant V6).
+- **Glass Box Dignity chain:**
+  - It states the shipped formula above. Its nodes are DeclaredTaxRate, AdministrativeReach, ServiceOffset and
+    EffectiveTaxRate (all recomputed on Prev), plus LevyGrievance (the segment's `TaxGrievances` row on Next).
+  - All of them are lever-less.
+  - Test: `DignityChainTests`.
+- **The A3 requirement is cross-validated (INFERRED: validate rather than derive).** The four-stream load refuses a
+  `governance.taxationMinAge` earlier than the earliest Age at which `governance.taxationRequires` can hold, using
+  research.json's node Age tags and the live knowledge evaluator (`SimConfigLoader.EarliestRequirementAge`).
+  - A later minimum stays legal: knowledge first, capability later.
+  - Test: `TaxAgeContentAgreementTests`.
+  - Both statements are kept rather than one derived from the other, because research.json's Age tag is metadata
+    (D-044 R13) and the gate is sim.json's.
+- **Turn pins (Director §17):**
+  - `TaxPressureTests.D` no longer pins (5, 14, 22). It asserts that the stages are ordered and delayed, and
+    monotone in rate and in poverty.
+  - The AI first-levy pins 463/464 are KEPT under the repository's AI-pin convention (dated re-pin history). They
+    were re-measured unchanged after F1: everything before the first levy is untaxed.
+- **Text:**
+  - research.json's taxation description now says the edict is operational only from Age III.
+  - The pushback rig's comment no longer names arithmetic_babylonian.
+  - Sim.Ui Trend comments no longer call happiness 0 the revolt condition. Revolt reads the provision reading.
+
+### 15.6 Goldens
+
+None moved: FOUNDED_GOLDEN 07c6ec45… and every golden, attribution and CI-pin test pass unchanged. The
+`aiEmpires = 0` worlds are untaxed, and every F1 term is exactly inert there: the food floor applies only under
+drag, the capacity term only under a levy, and the uprising condition only adds a requirement. The AI 600-turn
+ci.yml leg has no pinned hash. Its two-process, replay and inspect agreement is recorded in the stream report.

@@ -187,6 +187,43 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         File.WriteAllText(Path.Combine(Path.GetTempPath(), "f1-subsistence.txt"), text.ToString());
     }
 
+    /// <summary>F1 (d049 §15): the AI-ceiling levy (40 %) and 70 % across EVERY settlement of the founded dev world
+    /// (capital and weakly reached colonies), 80 turns: peak levy grievance and whether any segment protests.</summary>
+    [Fact(Skip = "F1 all-settlement 40/70 % probe (~1 min) — run manually; d049 §15 records it")]
+    public void AllSettlements_AtTheAiCeiling()
+    {
+        var text = new StringBuilder();
+        SimConfig cfg = TestConfigs.Sim();
+        foreach (double rate in new[] { 40.0, 70.0 })
+        {
+            (WorldState w, PolityId player) = GovernanceRigs.Founded();
+            TestConfigs.KnowRecipes(w, cfg);
+            GovernanceRigs.Grant(w, player);
+            var orders = new OrderLog();
+            orders.Append(Governance.TaxOrder(0, player, rate));
+            TurnExecutor ex = UniversityRigs.Production(cfg, orders);
+            var peak = new Dictionary<int, (double T, double Reach, double P)>();
+            for (int t = 1; t <= 80; t++)
+            {
+                w = ex.Step(w);
+                for (int i = 0; i < w.Settlements.Count; i++)
+                {
+                    SettlementId s = w.Settlements[i].Id;
+                    if (!EmpireQuery.ControlsSettlement(w, player, s)) continue;
+                    double tg = 0.0;
+                    for (int g = 0; g < w.TaxGrievances.Count; g++)
+                        if (w.TaxGrievances[g].Settlement == s && Unrest.Members(w, s, w.TaxGrievances[g].Class) > 0) tg = Math.Max(tg, w.TaxGrievances[g].Value);
+                    peak.TryGetValue(s.Value, out var old);
+                    peak[s.Value] = (Math.Max(old.T, tg), Governance.ControlStrength(w, player, s), Math.Max(old.P, Unrest.Protest(w, s, cfg)));
+                }
+            }
+            foreach (var kv in peak.OrderBy(k => k.Key))
+                text.AppendLine(string.Create(CultureInfo.InvariantCulture, $"{rate}% settlement {kv.Key}: reach(t80) {kv.Value.Reach:F3} peak segment T {kv.Value.T:F2} peak protest {kv.Value.P:F3}"));
+        }
+        output.WriteLine(text.ToString());
+        File.WriteAllText(Path.Combine(Path.GetTempPath(), "f1-allsettlements.txt"), text.ToString());
+    }
+
     private static string Turn(int index) => index < 0 ? "none" : (index + 1).ToString(CultureInfo.InvariantCulture);
 }
 
