@@ -73,7 +73,7 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         "seed\tworld\tarm\tai\tfounders\tturns\tstatus\texcTurn\texception\tconservedSnap\tconservedEnd\tnegStockTurns\tremainderViolations\tcreditTurns" +
         "\tsettlementsStart\tfoundingsSnap\tfoundingsEnd\tfirstFound\tlastFound\tmaxFoundPerTurn\tfoundingTurns\tunplacedSettlementTurns" +
         "\tdeficitSettlementTurns\tsourcesEmptied\tcoloniesAliveEnd\tcoloniesDiedOut\tcolonyPopEnd\tcolonyMaxPopEnd\tcontrolMismatches" +
-        "\tstarvationSnap\tstarvationEnd\tpopSnap\tpopEnd\tmaxSettlements\tsecondsWall";
+        "\tstarvationSnap\tstarvationEnd\tpopSnap\tpopEnd\tmaxSettlements\tsecondsWall\tpolitiesStart\tpolitiesEnd\tcontrolLosses\tfirstLossTurn\taiOrders";
 
     [MeasurementFact("H4 colonies + ledger stress, parameters from H4_* environment variables")]
     public void ColoniesAndLedger()
@@ -277,6 +277,14 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         var player = new PolityId(1);
         if (arm == "allgather") AppendGatherShare(orders, w, player, 0, 100.0);
         if (arm == "famine") AppendGatherShare(orders, w, player, 100, 10.0);
+        if (arm is "tax99" or "tax100")
+        {
+            // The capability is forced by a COMPLETED taxation node (constructed knowledge, the R2b rig's method),
+            // never by bypassing the gate; the levy is an ordinary player order at turn 0. Its purpose here is the
+            // REVOLT path: every revolt founds a capital-less AI polity that the AI producer then drives.
+            GovernanceRigs.Grant(w, player);
+            orders.Append(Governance.TaxOrder(0, player, arm == "tax99" ? 99.0 : 100.0));
+        }
 
         TurnExecutor ex;
         using (var era = Sim.Data.DataFiles.OpenEraPacing())
@@ -288,6 +296,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         bool trace = Environment.GetEnvironmentVariable("H4_TRACE") == "1";
         string tracePath = errorPath.Replace(".errors.txt", ".starvation.tsv", StringComparison.Ordinal);
         int initial = w.Settlements.Count, maxSettlements = initial;
+        int politiesStart = w.Polities.Count, controlLosses = 0, firstLossTurn = -1;
+        long aiOrders = 0;
         string status = "ok", exception = "", excTurn = "";
         long negStockTurns = 0, remainderViolations = 0, creditTurns = 0;
         long unplacedTurns = 0, deficitTurns = 0, sourcesEmptied = 0;
@@ -302,7 +312,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             for (t = 1; t <= turns; t++)
             {
                 WorldState prev = w;
-                if (hasAi) AiOrders.Append(orders, prev, cfg);
+                // The CLI session loop's rule: run the producer whenever an AI polity exists (a revolt founds one).
+                if (hasAi || AiOrders.HasAiPolity(prev)) aiOrders += AiOrders.Append(orders, prev, cfg);
 
                 // Migration's own B1 readout on PREV (the planner Step itself consumes): which sources have
                 // departure demand with no reachable, viable destination this turn. Only computed when some
@@ -326,6 +337,13 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
                 }
 
                 w = ex.Step(prev);
+                for (int i = 0; i < prev.Controls.Count; i++)
+                {
+                    bool still = false;
+                    for (int j = 0; j < w.Controls.Count; j++)
+                        if (w.Controls[j].Polity == prev.Controls[i].Polity && w.Controls[j].Place == prev.Controls[i].Place) { still = true; break; }
+                    if (!still) { controlLosses++; if (firstLossTurn < 0) firstLossTurn = t; }
+                }
                 if (collector is not null && t <= snapshot) collector.Observe(w);
                 if (collector is not null && t == snapshot) metrics!.Add(collector.Finish(w));
 
@@ -439,7 +457,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             $"{seed}\t{worldName}\t{arm}\t{ai}\t{founders}\t{turns}\t{status}\t{excTurn}\t{exception}\t{conservedSnap}\t{conservedEnd}\t{negStockTurns}\t{remainderViolations}\t{creditTurns}" +
             $"\t{initial}\t{foundingsSnap}\t{w.Settlements.Count - initial}\t{firstFound}\t{lastFound}\t{maxPerTurn}\t{foundingTurnCount}\t{unplacedTurns}" +
             $"\t{deficitTurns}\t{sourcesEmptied}\t{alive}\t{died}\t{colonyPop}\t{colonyMax}\t{controlMismatches}" +
-            $"\t{starvSnap}\t{Starved(w)}\t{popSnap}\t{TotalPop(w)}\t{maxSettlements}\t{clock.Elapsed.TotalSeconds:F0}");
+            $"\t{starvSnap}\t{Starved(w)}\t{popSnap}\t{TotalPop(w)}\t{maxSettlements}\t{clock.Elapsed.TotalSeconds:F0}" +
+            $"\t{politiesStart}\t{w.Polities.Count}\t{controlLosses}\t{firstLossTurn}\t{aiOrders}");
     }
 
     /// <summary>One five-sector SectorAllocation batch per settlement the player controls: gathering (the
