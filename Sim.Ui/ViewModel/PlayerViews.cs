@@ -246,6 +246,7 @@ public static class PlayerViews
             lines.Add(Fig(density, "The tax burden weighs on them",
                 "declared " + Pct(tax.NominalRate) + " x reach " + Pct(tax.ControlStrength) + " = " + Pct(tax.EffectiveRate) + " taken"));
         else lines.Add("No tax is taken here.");
+        UnrestLines(world, cfg, id, density, lines);
 
         // The cause that costs the most: the lowest of the three readings (ties: food, then shelter, then tax —
         // the factor order, a stable integer tie-break).
@@ -257,6 +258,39 @@ public static class PlayerViews
         if (worstValue < 0.98)
             lines.Add("What weighs most: " + (worst == 0 ? "hunger" : worst == 1 ? "lack of shelter" : "the tax burden") + ".");
         return new ViewBlock("Happiness", lines);
+    }
+
+    /// <summary>
+    /// H2 (Director 2026-10-05 §4/§18): what the levy has built up here — the accumulated resentment (levy pressure,
+    /// which scales happiness and fades only slowly after a cut), protest (part of the levied work withheld) and, per
+    /// population segment (class), a RISING: the portion of that segment in open revolt. Read through the public
+    /// State.Unrest readers the simulation itself uses; nothing is computed here.
+    /// </summary>
+    private static void UnrestLines(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density, List<string> lines)
+    {
+        double pressure = Unrest.LevyPressure(world, id, cfg);
+        if (!(pressure > 0.005)) return;
+        lines.Add(Fig(density, "Resentment of the levy has built up - it fades only slowly once the levy eases",
+            Pct(pressure) + " of their contentment consumed"));
+        double protest = Unrest.Protest(world, id, cfg);
+        if (protest > 0.0)
+            lines.Add(Fig(density, "They protest the levy and withhold part of the levied work", Pct(protest) + " protest"));
+        ClassEntry[] classes = cfg.Registries.Classes;
+        for (int c = 0; c < classes.Length; c++)
+        {
+            var cls = new ClassId(classes[c].Id);
+            if (!Unrest.IsSegmentRisen(world, id, cls, cfg)) continue;
+            double rebels = Unrest.SegmentRebelFraction(world, id, cls, cfg);
+            lines.Add(Fig(density, "The " + classes[c].Name.ToLowerInvariant() + " have RISEN against the levy"
+                + (rebels > 0.0 ? " - part of them in open revolt, refusing all levied work" : " - at the brink of revolt"),
+                Pct(rebels) + " of them in revolt"));
+        }
+        double rebelShare = Unrest.RebelShare(world, id, cfg);
+        if (rebelShare > 0.0 && cfg.Needs?.Unrest is { } u)
+            lines.Add(Fig(density, rebelShare > u.UprisingPopulationShare
+                    ? "The rebels carry the settlement - it will throw off its ruler"
+                    : "The settlement holds while the rebels are fewer than " + Pct(u.UprisingPopulationShare) + " of its people",
+                Pct(rebelShare) + " of the people in revolt"));
     }
 
     private static ViewBlock Migration(SettlementRecord? record, Func<int, string> name, int density)

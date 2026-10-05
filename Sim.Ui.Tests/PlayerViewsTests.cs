@@ -132,6 +132,47 @@ public class PlayerViewsTests
         Assert.Contains("You know how to levy a tax, but have declared none.", after.Blocks[3].Lines);
     }
 
+    /// <summary>H2 (Director 2026-10-05 §4/§18): the Happiness block says what the levy has BUILT UP — resentment,
+    /// protest, which population segment has risen and how much of it is in revolt, and whether the rebels carry the
+    /// place — all read through the public State.Unrest readers; an untaxed place says none of it.</summary>
+    [Fact]
+    public void TheHappinessBlock_NamesTheLevysAccumulatedPressure_TheRisenSegment_AndWhetherTheRebelsCarryThePlace()
+    {
+        UiSession s = Played(1);
+        int id = s.World.Settlements[0].Id.Value;
+        var site = new SettlementId(id);
+        IReadOnlyList<string> Happy(WorldState w) => PlayerViews.Settlement(w, s.Config, UiPlayer.Empire, null, id, s.Names.Name, 3).Blocks[3].Lines;
+        Assert.DoesNotContain(Happy(s.World), l => l.Contains("levy", StringComparison.Ordinal) && l.Contains("Resentment", StringComparison.Ordinal));
+
+        UnrestTuning u = s.Config.Needs!.Unrest!;
+        var classes = new List<ClassId>();
+        for (int i = 0; i < s.World.Buckets.Count; i++)
+            if (s.World.Buckets[i].Settlement == site && s.World.Buckets[i].Count.Value > 0 && !classes.Contains(s.World.Buckets[i].Class))
+                classes.Add(s.World.Buckets[i].Class);
+        Assert.NotEmpty(classes);
+
+        // Below the protest onset: resentment only.
+        WorldState mild = s.World.Clone();
+        foreach (ClassId c in classes) mild.TaxGrievances.Add(new TaxGrievanceRow(site, c, u.ProtestOnsetGrievance * 0.5));
+        IReadOnlyList<string> m = Happy(mild);
+        Assert.Contains(m, l => l.StartsWith("Resentment of the levy has built up", StringComparison.Ordinal));
+        Assert.DoesNotContain(m, l => l.StartsWith("They protest the levy", StringComparison.Ordinal));
+        Assert.DoesNotContain(m, l => l.Contains("RISEN", StringComparison.Ordinal));
+
+        // Every segment far past its tipping point: protest, each segment risen and in revolt, the rebels carry it.
+        WorldState hot = s.World.Clone();
+        foreach (ClassId c in classes) hot.TaxGrievances.Add(new TaxGrievanceRow(site, c, 2.0 * u.UprisingGrievance));
+        Assert.True(Unrest.IsUprising(hot, site, s.Config));
+        IReadOnlyList<string> h = Happy(hot);
+        Assert.Contains(h, l => l.StartsWith("They protest the levy", StringComparison.Ordinal));
+        foreach (ClassId c in classes)
+        {
+            string name = Array.Find(s.Config.Registries.Classes, e => e.Id == c.Value)!.Name.ToLowerInvariant();
+            Assert.Contains(h, l => l.StartsWith("The " + name + " have RISEN against the levy - part of them in open revolt", StringComparison.Ordinal));
+        }
+        Assert.Contains(h, l => l.StartsWith("The rebels carry the settlement", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void Trade_IsListedLargestFirst_TiesBrokenByTableOrder()
     {

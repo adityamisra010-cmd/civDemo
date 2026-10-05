@@ -67,6 +67,35 @@ public class ChronicleAndResumeTests
         Assert.EndsWith(" at " + where + " came to maturity.", later[0], StringComparison.Ordinal);
     }
 
+    /// <summary>H2 (Director 2026-10-05 §4/§18): a population segment crossing its own tipping point is one annal
+    /// line ("rose against the levy"), its rising subsiding another — read on both worlds through the public
+    /// Unrest reader.</summary>
+    [Fact]
+    public void ASegmentRisingAgainstTheLevy_AndItsSubsiding_EachBecomeOneAnnalLine()
+    {
+        UiSession s = Played(1);
+        SettlementId site = s.World.Settlements[0].Id;
+        ClassId cls = default;
+        for (int i = 0; i < s.World.Buckets.Count; i++)
+            if (s.World.Buckets[i].Settlement == site && s.World.Buckets[i].Count.Value > 0) { cls = s.World.Buckets[i].Class; break; }
+        string name = Array.Find(s.Config.Registries.Classes, e => e.Id == cls.Value)!.Name.ToLowerInvariant();
+        double tip = s.Config.Needs!.Unrest!.UprisingGrievance;
+
+        WorldState calm = s.World.Clone();
+        calm.TaxGrievances.Add(new TaxGrievanceRow(site, cls, tip * 0.9));
+        WorldState risen = s.World.Clone();
+        risen.TaxGrievances.Add(new TaxGrievanceRow(site, cls, tip));
+
+        List<string> rose = Diff(s, calm, risen);
+        Assert.Single(rose);
+        Assert.StartsWith("In the year ", rose[0], StringComparison.Ordinal);
+        Assert.EndsWith(", the " + name + " of " + s.Names.Name(site.Value) + " rose against the levy.", rose[0], StringComparison.Ordinal);
+        List<string> fell = Diff(s, risen, calm);
+        Assert.Single(fell);
+        Assert.EndsWith("the rising of the " + name + " of " + s.Names.Name(site.Value) + " subsided.", fell[0], StringComparison.Ordinal);
+        Assert.Empty(Diff(s, risen, risen.Clone()));
+    }
+
     [Fact]
     public void ColoniesFoundedMidGame_AreNamed_AndExistingNamesNeverChange()
     {
