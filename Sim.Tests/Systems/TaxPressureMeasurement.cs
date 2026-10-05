@@ -32,15 +32,15 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
     /// <summary>One turn's reading of the capital.</summary>
     public readonly record struct Reading(
         int Turn, double MeanT, double MaxT, double Protest, double Risen, double Rebels, double Happiness, double Legitimacy,
-        bool Controlled, double Felt, double Output, string Segments);
+        bool Controlled, double Felt, double Output, string Segments, long Population = 0, double FoodDeficit = 0.0);
 
     /// <summary>Runs the rig: levy <paramref name="percent"/> from turn 0, cut to <paramref name="cutTo"/> at
     /// <paramref name="cutAt"/> (−1 = never), for <paramref name="turns"/> turns. Returns every turn's reading.</summary>
     public static List<Reading> Run(Condition condition, double percent, int turns, int cutAt = -1, double cutTo = 0.0,
-        SimConfig? config = null, bool canonical = false, double dtYears = 0.0)
+        SimConfig? config = null, bool canonical = false, double dtYears = 0.0, int settlements = 4, bool colonize = true)
     {
         SimConfig cfg = config ?? TestConfigs.Sim();
-        (WorldState w, PolityId player) = canonical ? Canonical(cfg) : GovernanceRigs.Founded();
+        (WorldState w, PolityId player) = canonical ? Canonical(cfg) : GovernanceRigs.Founded(settlements);
         TestConfigs.KnowRecipes(w, cfg);
         GovernanceRigs.Grant(w, player);
         SettlementId seat = GovernanceRigs.Seat(w, player);
@@ -53,12 +53,21 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         if (percent > 0.0) orders.Append(Governance.TaxOrder(0, player, percent));
         if (cutAt >= 0) orders.Append(Governance.TaxOrder(cutAt, player, cutTo));
         TurnExecutor ex;
+        // F1 (2026-10-05): colonize = false runs the catalog with no worldgen config, so ColonizationSystem founds
+        // nothing and a one-settlement Empire's capital stays its FINAL settlement (D-048 ruling 5) for the whole run.
+        Sim.Core.Worldgen.WorldgenConfig? worldgen = colonize ? TestConfigs.Worldgen() : null;
         if (dtYears > 0.0)
         {
             using var pipe = Sim.Data.DataFiles.OpenPipeline();
-            ex = new TurnExecutor(ResearchRigs.FlatEra(dtYears), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            ex = new TurnExecutor(ResearchRigs.FlatEra(dtYears), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, worldgen)), orders);
         }
-        else ex = UniversityRigs.Production(cfg, orders);
+        else if (colonize) ex = UniversityRigs.Production(cfg, orders);
+        else
+        {
+            using var era = Sim.Data.DataFiles.OpenEraPacing();
+            using var pipe = Sim.Data.DataFiles.OpenPipeline();
+            ex = new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, null)), orders);
+        }
         var readings = new List<Reading>();
         for (int t = 1; t <= turns; t++)
         {
@@ -88,7 +97,7 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
             readings.Add(new Reading(t, Unrest.TaxGrievance(w, seat, cfg), maxT, Unrest.Protest(w, seat, cfg),
                 Unrest.RisenShare(w, seat, cfg), Unrest.RebelShare(w, seat, cfg), SettlementHappiness.Of(w, seat, cfg),
                 Governance.Legitimacy(w, player, cfg), EmpireQuery.ControlsSettlement(w, player, seat), 1.0 - DignityAt(w, seat),
-                Governance.OutputMultiplier(w, seat, cfg), seg.ToString().TrimEnd()));
+                Governance.OutputMultiplier(w, seat, cfg), seg.ToString().TrimEnd(), GovernanceRigs.Population(w, seat), DeficitAt(w, seat)));
         }
         return readings;
     }
@@ -99,6 +108,13 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         for (int i = 0; i < w.Polities.Count; i++)
             if (w.Polities[i].Source == CommandSource.Player) return (w, w.Polities[i].Id);
         throw new InvalidOperationException("no player");
+    }
+
+    private static double DeficitAt(IReadOnlyWorldState w, SettlementId s)
+    {
+        for (int i = 0; i < w.ConsumptionDeficits.Count; i++)
+            if (w.ConsumptionDeficits[i].Settlement == s) return w.ConsumptionDeficits[i].DeficitRatio;
+        return 0.0;
     }
 
     private static double DignityAt(IReadOnlyWorldState w, SettlementId s)

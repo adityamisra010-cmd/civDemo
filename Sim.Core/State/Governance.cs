@@ -181,6 +181,24 @@ public static class Governance
     }
 
     /// <summary>
+    /// F1 (2026-10-05, d049 §13) — WHAT REALISED FOOD PRODUCTION (farming, gathering, herding and fishing) IS
+    /// MULTIPLIED BY. Protesters and rebels withhold the work the LEVY compels, never the work that feeds themselves:
+    /// the drag (<see cref="Unrest.OutputFactor"/>) can take back the levy's extraction gain on food, but never pushes
+    /// food output below what the people would produce untaxed (1.0). Non-food output keeps the full
+    /// <see cref="OutputMultiplier"/> (a strike of the levied crafts, ore and stone). Without this floor a final
+    /// settlement (which cannot revolt away, D-048 ruling 5) under a sustained 99–100 % levy starved to extinction
+    /// through its own rebels. EXACTLY <see cref="ExtractionMultiplier"/> when there is no drag, so every quiet or
+    /// untaxed world produces bit-identically.
+    /// </summary>
+    public static double FoodOutputMultiplier(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+    {
+        double extraction = ExtractionMultiplier(world, settlement, cfg);
+        double drag = Unrest.OutputFactor(world, settlement, cfg);
+        if (drag == 1.0) return extraction;
+        return Math.Max(extraction * drag, Math.Min(extraction, 1.0));
+    }
+
+    /// <summary>
     /// LEGITIMACY — how well an Empire is regarded by the people it actually holds, on the 0..100
     /// happiness scale: the POPULATION-WEIGHTED mean <see cref="SettlementHappiness.Of"/> of the
     /// settlements it controls. Derived, never stored. An Empire that holds no one has no standing

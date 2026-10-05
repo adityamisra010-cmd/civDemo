@@ -185,11 +185,15 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // point) all of it — weighted by the segments' shares. A quiet settlement's factor is EXACTLY
             // 1.0, so the product is the extraction multiplier bit for bit.
             double extraction = State.Governance.OutputMultiplier(prev, settlement, _cfg);
+            // F1 (2026-10-05, d049 §13): FOOD carries the same factor floored at the untaxed baseline — rebels and
+            // protesters withhold the levied work, never their own subsistence (Governance.FoodOutputMultiplier; equal
+            // to `extraction` bit for bit whenever there is no drag).
+            double foodExtraction = State.Governance.FoodOutputMultiplier(prev, settlement, _cfg);
 
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
                 foodMultiplier: foodMultiplier,
-                extraction: extraction);
+                extraction: foodExtraction);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -207,7 +211,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
                 foodSector: true,
                 weather: foodMultiplier,
-                extraction: extraction);
+                extraction: foodExtraction);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
