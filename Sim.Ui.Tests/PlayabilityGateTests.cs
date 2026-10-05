@@ -52,12 +52,21 @@ public class PlayabilityGateTests : IDisposable
         foreach (string a in args) psi.ArgumentList.Add(a);
         using Process p = Process.Start(psi)!;
         Task<string> o = p.StandardOutput.ReadToEndAsync(), e = p.StandardError.ReadToEndAsync();
-        if (!p.WaitForExit(limit))
+        try
         {
-            p.Kill(entireProcessTree: true);
-            throw new TimeoutException("Sim.Ui " + string.Join(' ', args) + " did not finish in " + limit + " (non-termination)");
+            if (!p.WaitForExit(limit))
+            {
+                p.Kill(entireProcessTree: true);
+                throw new TimeoutException("Sim.Ui " + string.Join(' ', args) + " did not finish in " + limit + " (non-termination)");
+            }
+            return (p.ExitCode, o.Result, e.Result);
         }
-        return (p.ExitCode, o.Result, e.Result);
+        finally
+        {
+            // An aborted run (the control) cannot clean its own work directory.
+            string work = Path.Combine(Path.GetTempPath(), "sim-ui-smoke-" + p.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            try { if (Directory.Exists(work)) Directory.Delete(work, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
     }
 
     // ------------------------------------------------------------------ out of process
