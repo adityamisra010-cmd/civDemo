@@ -16,9 +16,16 @@ namespace Sim.Core.Systems.Revolt;
 /// ResearchCompleted is a SANCTIONED SHARED table split by pipeline order and row key:
 /// revolt (before research) appends rows ONLY for a polity it creates this turn, a key
 /// absent from Prev, so ResearchSystem — which works from Prev's roster and appends its
-/// own completions — never reads or writes the same row.</summary>
+/// own completions — never reads or writes the same row.
+///
+/// H2 (Director 2026-10-05 §8, RATIFIED in docs/d049-taxation-and-revolt-model.md): the new polity INHERITS ITS
+/// PARENT'S CURRENT AGE. AgeStates is a SANCTIONED SHARED table split exactly like ResearchCompleted: revolt
+/// (before agetransition) APPENDS one row ONLY for a polity it creates this turn — a key absent from Prev — and only
+/// when the parent holds a row (absence of a row IS the founding Age, so a founding-Age parent's child needs none);
+/// AgeTransitionSystem works from Prev's roster, so it never reads or writes that row in the same step.</summary>
 public readonly record struct RevoltTables(
-    Table<ControlRow> Controls, Table<PolityRow> Polities, Table<ResearchCompletedRow> ResearchCompleted);
+    Table<ControlRow> Controls, Table<PolityRow> Polities, Table<ResearchCompletedRow> ResearchCompleted,
+    Table<AgeStateRow> AgeStates);
 
 /// <summary>
 /// M4 — REVOLT: A SETTLEMENT AT ZERO HAPPINESS STOPS OBEYING.
@@ -169,7 +176,25 @@ public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
             ctx.Owned.Polities.Add(new PolityRow(founded, CommandSource.Ai));
             controls.Add(new ControlRow(founded, place, 1.0));
             KnowledgeTransfer.MergeInto(ctx.Owned.ResearchCompleted, former, founded);
+            InheritAge(prev, ctx.Owned.AgeStates, former, founded);
         }
+    }
+
+    /// <summary>
+    /// H2 (Director 2026-10-05 §8, RATIFIED): A CIVILIZATION CREATED BY REVOLT INHERITS ITS PARENT'S CURRENT AGE —
+    /// never "parent A5 → revolt → child A1 with A5 knowledge". The parent's Age is read from PREV, the state the
+    /// revolt was decided on (the same instant the knowledge copy is taken: the separation). The child's row carries
+    /// the parent's Age and its surge emphasis key (surges have no numeric effect, ADR-031); EnteredTurn and
+    /// SurgeStartTurn are the child's FIRST turn — the first state that shows it in that Age (the AgeStateRow
+    /// contract), not a date it never lived. No AgeTransitionRow is logged (the child made no transition) and no unit
+    /// is converted (a revolt-born polity has no formation). A parent with no Age row is in the founding Age; the
+    /// child then needs none either.
+    /// </summary>
+    private static void InheritAge(IReadOnlyWorldState prev, Table<AgeStateRow> ages, PolityId parent, PolityId child)
+    {
+        if (AgeQuery.StateRow(prev, parent) is not { } row) return;
+        long first = prev.Clock.Turn + 1;
+        ages.Add(new AgeStateRow(child, row.Age, first, row.Surge, first));
     }
 
     /// <summary>Whether every place <paramref name="ruler"/> controls is marked to revolt.</summary>

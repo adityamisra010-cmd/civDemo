@@ -1,0 +1,157 @@
+using Sim.Core;
+using Sim.Core.Kernel;
+using Sim.Core.State;
+using Sim.Core.Systems;
+using Sim.Core.Systems.Ages;
+using Sim.Core.Systems.Research;
+using Sim.Tests.TestUtil;
+using static Sim.Tests.TestUtil.ResearchRigs;
+
+namespace Sim.Tests.Systems;
+
+/// <summary>
+/// H2 (Director 2026-10-05 §8, RATIFIED in docs/d049-taxation-and-revolt-model.md) — A CIVILIZATION CREATED BY
+/// REVOLT INHERITS ITS PARENT'S CURRENT AGE. It receives the completed research (D-048 ruling 1), no research
+/// progress (2), no Eureka credit (3), no capital (4), researches at the normal rate (6), and the parent's final
+/// settlement still cannot revolt away (5). The contradiction the ruling forbids — parent A5 → revolt → child A1
+/// holding A5 knowledge — is pinned out here. Exercised through the real RevoltSystem, AgeTransitionSystem and
+/// ResearchSystem in pipeline order.
+/// </summary>
+public class RevoltAgeInheritanceTests
+{
+    private static readonly ResearchContent Rig = Standard().Load();
+    private static readonly SimConfig Cfg = TestConfigs.Sim() with { Research = Rig };
+    private static readonly AgeContent Ages = TestConfigs.Ages();
+    private static readonly PolityId Parent = new(Player);
+    private static readonly PolityId Child = new(2);   // one above the roster: the polity the revolt founds
+    private static readonly int[] ParentKnowledge = [1, 2, 3, 4, 5, 1001];
+
+    /// <summary>Two settlements of 10 000 adults under the parent; settlement 1 is destitute (unfed and unhoused — the
+    /// deprivation corner that revolts it), settlement 0 comfortable. The parent knows <see cref="ParentKnowledge"/>,
+    /// has in-progress research and a fired Eureka, holds settlement 0 as its capital and is in Age
+    /// <paramref name="parentAge"/> (no row for the founding Age).</summary>
+    private static WorldState Split(int parentAge, long enteredTurn = 7, int surge = 2)
+    {
+        WorldState w = World([Player], [Player, Player], 10_000);
+        var ledger = new Ledger(w.LedgerFlows);
+        for (int i = 0; i < 2; i++)
+        {
+            var s = new SettlementId(i);
+            w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(s, i == 1 ? 1.0 : 0.0, 10_000));
+            w.Housing.Add(new HousingRow(s, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+            if (i == 0)
+                ledger.Flow(ref w.Housing.Ref(i).Dwellings, ConservedQuantityIds.Dwellings,
+                    ReasonIds.InitialEndowment, 5_000, FlowDirection.Source, OverdrawPolicy.Throw);
+        }
+        w.Capitals.Add(new CapitalRow(Parent, new SettlementId(0)));
+        WithCompleted(w, ParentKnowledge);
+        w.ResearchProgress.Add(new ResearchProgressRow(Parent, Key(6), 700.0));
+        w.ResearchEurekas.Add(new ResearchEurekaRow(Parent, Key(6), 0));
+        if (parentAge != Ages.FoundingAge) w.AgeStates.Add(new AgeStateRow(Parent, parentAge, enteredTurn, surge, enteredTurn));
+        return w;
+    }
+
+    /// <summary>Revolt, Age transition and research in their pipeline order.</summary>
+    private static TurnExecutor Pipeline(OrderLog? orders = null) =>
+        new(FlatEra(10.0), [SystemCatalog.Revolt(Cfg), SystemCatalog.Research(Cfg), SystemCatalog.AgeTransition(Cfg)], orders);
+
+    [Fact]
+    public void AParentInA5_RevoltsAChildInA5_NotA1_WithItsKnowledge_AndNothingElse()
+    {
+        WorldState before = Split(parentAge: 5);
+        WorldState w = Pipeline().Step(before);
+
+        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(1), out PolityId founded));
+        Assert.Equal(Child, founded);
+        // THE RULING: the child is in its parent's CURRENT Age.
+        Assert.Equal(5, AgeQuery.CurrentAge(w, Ages, Child));
+        Assert.Equal(5, AgeQuery.CurrentAge(w, Ages, Parent));   // the parent keeps its Age
+        AgeStateRow row = AgeQuery.StateRow(w, Child)!.Value;
+        // Its first state in that Age is the state the revolt produced (the AgeStateRow contract); the parent's
+        // surge emphasis is carried, its entry date is not (the child did not live it).
+        Assert.Equal(new AgeStateRow(Child, 5, before.Clock.Turn + 1, 2, before.Clock.Turn + 1), row);
+        Assert.Empty(AgeQuery.Transitions(w, Child));            // inherited, not a transition
+
+        // D-048 rulings 1–4 hold alongside: complete knowledge, no progress, no Eureka, no capital.
+        bool[] parent = ResearchQuery.CompletedMask(w, Rig, Parent);
+        bool[] child = ResearchQuery.CompletedMask(w, Rig, Child);
+        Assert.Equal(parent, child);
+        Assert.Equal(0.0, Progress(w, 6, Child.Value));
+        Assert.Equal(700.0, Progress(w, 6, Parent.Value));
+        for (int i = 0; i < w.ResearchEurekas.Count; i++) Assert.NotEqual(Child, w.ResearchEurekas[i].Polity);
+        Assert.False(EmpireQuery.TryGetCapital(w, Child, out _));
+        Assert.True(EmpireQuery.TryGetCommandSource(w, Child, out CommandSource source) && source == CommandSource.Ai);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(9)]
+    public void EveryInheritedAge_IsTheParentsAge(int parentAge)
+    {
+        WorldState w = Pipeline().Step(Split(parentAge));
+        Assert.Equal(parentAge, AgeQuery.CurrentAge(w, Ages, Child));
+    }
+
+    [Fact]
+    public void AFoundingAgeParent_RevoltsAFoundingAgeChild_AndWritesNoAgeRow()
+    {
+        WorldState w = Pipeline().Step(Split(Ages.FoundingAge));
+        Assert.True(EmpireQuery.TryGetController(w, new SettlementId(1), out PolityId founded));
+        Assert.Equal(Child, founded);
+        Assert.Equal(Ages.FoundingAge, AgeQuery.CurrentAge(w, Ages, Child));
+        Assert.Null(AgeQuery.StateRow(w, Child));
+        Assert.Equal(0, w.AgeStates.Count);   // nothing is written for the founding Age (absence of a row IS it)
+    }
+
+    /// <summary>The child keeps the inherited Age through later steps (AgeTransitionSystem never rewrites a row
+    /// without an order), and its Age makes the Age-gated tax capability operational as it is for the parent: a
+    /// child born in A3+ that inherited Taxation CAN levy (its effective tax is still 0 — no capital, no reach).</summary>
+    [Fact]
+    public void TheInheritedAge_Persists_AndOpensTheAgeGatedTaxForTheChild()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState start = Split(parentAge: GovernanceRigs.TaxAge);
+        // The canonical content's Taxation civic, completed for the parent (the canonical research rides with cfg).
+        ResearchContent research = cfg.Research!;
+        start.ResearchCompleted.Add(new ResearchCompletedRow(Parent, research.Nodes[research.IndexOfId(GovernanceRigs.TaxationNode)].Key));
+        var ex = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Revolt(cfg), SystemCatalog.AgeTransition(cfg)]);
+        WorldState w = ex.Step(start);
+        for (int t = 0; t < 3; t++) w = ex.Step(w);
+        Assert.Equal(GovernanceRigs.TaxAge, AgeQuery.CurrentAge(w, cfg.Ages!, Child));
+        Assert.True(Governance.CanLevyTax(w, cfg, Child));
+        Assert.Equal(0.0, Governance.EffectiveTaxRate(w, new SettlementId(1), cfg));   // no capital: reaches nothing
+    }
+
+    /// <summary>D-048 ruling 5 still holds with Ages: a parent whose only place is destitute keeps it — no child, no
+    /// Age row.</summary>
+    [Fact]
+    public void TheFinalSettlement_StillCannotRevoltAway()
+    {
+        WorldState w = World([Player], [Player], 10_000);
+        w.ConsumptionDeficits.Add(new ConsumptionDeficitRow(new SettlementId(0), 1.0, 10_000));
+        w.Housing.Add(new HousingRow(new SettlementId(0), Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+        w.AgeStates.Add(new AgeStateRow(Parent, 5, 3, 1, 3));
+        Assert.True(SettlementHappiness.IsRevoltReady(w, new SettlementId(0), Cfg));
+        WorldState next = Pipeline().Step(w);
+        Assert.True(EmpireQuery.ControlsSettlement(next, Parent, new SettlementId(0)));
+        Assert.Equal(1, next.Polities.Count);
+        Assert.Equal(1, next.AgeStates.Count);
+    }
+
+    /// <summary>Save/load and replay: the inherited Age row is ordinary serialized state — a snapshot at the revolt
+    /// turn round-trips bit-exactly and two runs agree hash for hash.</summary>
+    [Fact]
+    public void TheInheritedAge_SurvivesSaveLoad_AndReplaysExactly()
+    {
+        WorldState a = Pipeline().Step(Split(parentAge: 4));
+        WorldState b = Pipeline().Step(Split(parentAge: 4));
+        Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
+        using var ms = new MemoryStream();
+        Snapshot.Save(a, ms);
+        ms.Position = 0;
+        WorldState loaded = Snapshot.Load(ms, a.Terrain);
+        Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(loaded));
+        Assert.Equal(4, AgeQuery.CurrentAge(loaded, Ages, Child));
+    }
+}
