@@ -231,6 +231,12 @@ public sealed class GameUi
     public bool TrendWorldScope => _trendWorldScope;
     public int TrendIndex => _trendIndex;
     public bool ShowHappinessFactors => _showHappinessFactors;
+    /// <summary>The unfolded happiness factor (developer SETTLEMENT / Grievance), or -1.</summary>
+    public int ExpandedFactor => _expandedFactor;
+    /// <summary>The unfolded grievance contributor (class, need), or (-1, -1).</summary>
+    public (int Class, int Need) ExpandedNeed => (_expandedClass, _expandedNeed);
+    /// <summary>Whether the developer per-turn policy table is shown (POLICY, labour record).</summary>
+    public bool PolicyShowStates => _policyShowStates;
     /// <summary>Which TURN audit lines are unfolded (developer TURN tab), by line index.</summary>
     public IReadOnlyList<bool> AuditExpanded => _auditExpanded;
     public int SelectedGood => _selectedGood;
@@ -256,7 +262,7 @@ public sealed class GameUi
     /// H1: THE CHROME FOLLOWS THE WINDOW. PanelLayout is the 1280×800 design and stays the tested geometry; in a
     /// window of any other size the status band spans the width, the command bar sits on the bottom edge and the
     /// context panel on the right edge, its height following the window. (Before, a maximised window left the
-    /// command bar floating 265 px above the bottom and the panel 652 px in from the right.) Window-local widget
+    /// command bar ending 209 px above the window's bottom edge and the panel 652 px in from its right edge at 1920×1009.) Window-local widget
     /// offsets are unchanged — every control keeps its place inside its panel — so the design-size layout and
     /// every ChromeGeometry pin are exactly what they were at 1280×800.
     /// </summary>

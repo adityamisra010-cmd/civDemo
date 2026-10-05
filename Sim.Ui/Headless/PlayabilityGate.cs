@@ -1064,6 +1064,22 @@ public static class PlayabilityGate
                     return Expect(ok, "tab " + Ui.DeveloperTab);
                 });
             }
+            Check("developer", "per-turn-table (POLICY labour record)", () =>
+            {
+                h.ClickControl("nav:Policy");
+                for (int k = 0; k < 40 && Ui.Controls.Find("labour-record") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                    h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
+                if (Ui.Controls.Find("labour-record") is null) return (GateResult.NotOffered, "no settlement selected");
+                if (!Ui.PolicyRecordOpen) h.ClickControl("labour-record");
+                for (int k = 0; k < 40 && Ui.Controls.Find("per-turn-table") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                    h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
+                if (Ui.Controls.Find("per-turn-table") is null) return (GateResult.Fail, "not drawn with the record open in developer mode");
+                bool before = Ui.PolicyShowStates;
+                h.ClickControl("per-turn-table");
+                bool flipped = Ui.PolicyShowStates != before;
+                h.ClickControl("nav:Developer");
+                return Expect(flipped, "toggle did not flip");
+            });
             Check("developer", "F12 (off)", () => { h.Key(Keys.F12); return Expect(!Ui.Developer && Ui.OpenSection != Section.Developer, "still on"); });
         }
 
@@ -1091,6 +1107,23 @@ public static class PlayabilityGate
                     {
                         bool factors = Ui.ShowHappinessFactors;
                         if (h.ClickControl("happiness") && Ui.ShowHappinessFactors == factors) ok = false;
+                        if (!Ui.ShowHappinessFactors) h.ClickControl("happiness");
+                        foreach (UiControl c in Ui.Controls.Last)
+                            if (c.Name.StartsWith("factor-", StringComparison.Ordinal) && c.Y1 < Ui.ContextRect.Y + Ui.ContextRect.Height - 10)
+                            {
+                                (double fx, double fy) = h.Aim(c);
+                                h.Click(fx, fy);
+                                if (Ui.ExpandedFactor.ToString(CultureInfo.InvariantCulture) != c.Name[7..]) ok = false;
+                                break;
+                            }
+                        foreach (UiControl c in Ui.Controls.Last)
+                            if (c.Name.StartsWith("need-", StringComparison.Ordinal) && c.Y1 < Ui.ContextRect.Y + Ui.ContextRect.Height - 10)
+                            {
+                                (double nx, double ny) = h.Aim(c);
+                                h.Click(nx, ny);
+                                if (Ui.ExpandedNeed.Need < 0) ok = false;
+                                break;
+                            }
                         foreach (UiControl c in Ui.Controls.Last)
                             if (c.Name.StartsWith("lever-", StringComparison.Ordinal) && c.Y1 < Ui.ContextRect.Y + Ui.ContextRect.Height - 10)
                             { (double lx, double ly) = h.Aim(c); h.Click(lx, ly); if (Ui.OpenSection != Section.Policy) ok = false; break; }
