@@ -16,7 +16,7 @@ namespace Sim.Tests.Systems;
 /// turn through the public readers (<see cref="TaxPressureMeasurement.Run"/>, the rig whose tables d049 §6 records).
 /// Local conditions: WELL-OFF (provided and served), SERVED (public works only), NATURAL (as founded), POOR (housed for
 /// a quarter of its people). The assertions are RELATIONS — progressive, delayed, ordered by local welfare,
-/// recovering — not tuned turn numbers; the one turn pin is the regression record of the measured natural capital.
+/// recovering — not tuned turn numbers (F1: the H2 turn pin was replaced by the properties it stood for).
 /// </summary>
 public class TaxPressureTests
 {
@@ -125,19 +125,37 @@ public class TaxPressureTests
     /// <summary>
     /// On an ordinary capital, sustained total exaction ESCALATES: protest, then the segment's tipping point, then a
     /// growing portion of it in revolt (its levied work withheld — output falls), and in the long run the rebels carry
-    /// the settlement and it throws off its ruler. MEASURED (dev world, seed 42, dt 10; d049 §6): protest from turn 5,
-    /// peasants and artisans past their tipping point at 14, the settlement lost at 22 — pinned here as the regression
-    /// record of the measured behaviour, not as a target.
+    /// the settlement and it throws off its ruler. F1 (2026-10-05, Director §17: no hardcoded turn counts unless the
+    /// model requires them) — the H2 pin (5, 14, 22) is replaced by the properties it stood for: the stages are
+    /// ORDERED, every stage is DELAYED (none at the edict), and the escalation is MONOTONE in the rate (a heavier levy
+    /// reaches each stage no later) and in poverty (a poorer place reaches each stage no later). The measured turns
+    /// are recorded in d049 §6 / §15, not here.
     /// </summary>
     [Fact]
     public void D_SustainedExtremeTaxation_EventuallyProducesSeriousInstability_ThroughStages()
     {
+        (int Protest, int Risen, int Rebels, int Lost) Stages(List<Reading> r) =>
+            (First(r, x => x.Protest > 0.0), First(r, x => x.Risen > 0.0), First(r, x => x.Rebels > 0.0), First(r, x => !x.Controlled));
+        static int Never(int turn) => turn < 0 ? int.MaxValue : turn;
+
         List<Reading> r = R(Condition.Natural, 100.0);
-        int protest = First(r, x => x.Protest > 0.0), risen = First(r, x => x.Risen > 0.0);
-        int rebels = First(r, x => x.Rebels > 0.0), lost = First(r, x => !x.Controlled);
-        Assert.True(protest > 0 && risen > protest && rebels >= risen && lost > rebels, $"stages out of order: {protest}/{risen}/{rebels}/{lost}");
+        (int protest, int risen, int rebels, int lost) = Stages(r);
+        Assert.True(protest > 1 && risen > protest && rebels >= risen && lost > rebels, $"stages out of order or instant: {protest}/{risen}/{rebels}/{lost}");
         Assert.True(r[rebels - 1].Output < r[protest - 1].Output, "the rising withheld no work");
-        Assert.Equal((5, 14, 22), (protest, risen, lost));   // MEASURED pin (d049 §6), not a target
+
+        // Monotone in the rate: 99 % reaches each stage no sooner than 100 %.
+        var s99 = Stages(R(Condition.Natural, 99.0));
+        Assert.True(Never(s99.Protest) >= protest && Never(s99.Risen) >= risen && Never(s99.Lost) >= lost,
+            $"a lighter levy escalated sooner: 99 % {s99} vs 100 % {(protest, risen, rebels, lost)}");
+        // Monotone in poverty: the poor capital reaches each stage no later than the natural one, at 99 % and 100 %.
+        foreach (double rate in new[] { 99.0, 100.0 })
+        {
+            var poor = Stages(R(Condition.Poor, rate));
+            var natural = Stages(R(Condition.Natural, rate));
+            Assert.True(Never(poor.Protest) <= Never(natural.Protest) && Never(poor.Risen) <= Never(natural.Risen) && Never(poor.Lost) <= Never(natural.Lost),
+                $"{rate} %: the poor capital escalated later than the natural one ({poor} vs {natural})");
+            Assert.True(poor.Protest > 1, $"{rate} %: the poor capital protested at the edict");
+        }
     }
 
     // ------------------------------------------------------------------ E. a revolt affects a segment

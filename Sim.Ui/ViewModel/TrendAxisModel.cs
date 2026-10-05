@@ -41,10 +41,15 @@ public readonly record struct PlotDomain(double Floor, double Ceiling, bool Boun
 ///   - log compresses the HIGH end, which is exactly where this data lives —
 ///     it would squash 90..100 harder than a linear axis does, not open it up;
 ///   - it does nothing to separate 90 from 100, which is the actual complaint;
-///   - log(0) is undefined, and a happiness of exactly 0 is the RATIFIED
-///     revolt condition (<see cref="SettlementHappiness.RevoltThreshold"/>),
-///     so the single most important value on the chart is the one a log axis
-///     cannot draw at all.
+///   - log(0) is undefined, and a happiness of exactly 0 is the floor of the
+///     welfare reading — total deprivation, or a levy's accumulated pressure
+///     fully consuming welfare — so the single most important value on the
+///     chart is the one a log axis cannot draw at all. (Superseded 2026-10-05,
+///     d049: happiness 0 is no longer itself the revolt condition. Deprivation
+///     revolt reads the PROVISION reading,
+///     <see cref="SettlementHappiness.IsRevoltReady"/> = provision ≤
+///     <see cref="SettlementHappiness.RevoltThreshold"/>; the levy acts on
+///     revolt only through accumulated segment pressure.)
 /// The real defect is an axis that is unlabelled and unpinned. That is what is
 /// fixed here: pin it where the domain is declared, print it where it is not.
 ///
@@ -65,10 +70,11 @@ public static class TrendAxisModel
     // No declared "unhappy" or "in trouble" constant exists on this tree, and
     // this change is forbidden from inventing one. So the bands are fractions
     // of the metric's OWN declared domain, measured as a health fraction that
-    // runs 0 (worst) to 1 (best). For happiness the worst end IS the ratified
-    // revolt condition — health 0 is exactly RevoltThreshold = 0 — so the red
-    // band is anchored on a ratified quantity and only its WIDTH is a
-    // presentation choice. For deficit the direction is inverted (more unmet
+    // runs 0 (worst) to 1 (best). For happiness the worst end is the floor of
+    // the declared domain (SettlementHappiness 0: welfare wholly consumed —
+    // since d049, 2026-10-05, not by itself the revolt condition, which reads
+    // the provision reading against RevoltThreshold = 0), so the red band is
+    // anchored on a declared bound and only its WIDTH is a presentation choice. For deficit the direction is inverted (more unmet
     // demand is worse), so health = 1 - fraction.
     /// <summary>Health at or below this fraction of the domain draws red.</summary>
     public const double AlarmFraction = 0.25;
@@ -176,7 +182,8 @@ public static class TrendAxisModel
     }
 
     /// <summary>Whether LOW values of a metric are the bad ones. Happiness: yes
-    /// (0 is the revolt condition). Deficit: no — a deficit ratio of 0 is no
+    /// (0 is welfare wholly consumed; since d049 the revolt condition reads
+    /// provision, not happiness). Deficit: no — a deficit ratio of 0 is no
     /// unmet demand, and 1 is total deprivation, so the direction inverts.</summary>
     public static bool LowIsBad(SeriesKey key) => key switch
     {

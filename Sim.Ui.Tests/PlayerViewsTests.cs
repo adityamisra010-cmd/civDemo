@@ -162,6 +162,9 @@ public class PlayerViewsTests
         // Every segment far past its tipping point: protest, each segment risen and in revolt, the rebels carry it.
         WorldState hot = s.World.Clone();
         foreach (ClassId c in classes) hot.TaxGrievances.Add(new TaxGrievanceRow(site, c, 2.0 * u.UprisingGrievance));
+        // F1 (d049 §15.4): an uprising against the levy needs the current ruler's levy collected here.
+        Assert.True(EmpireQuery.TryGetController(hot, site, out PolityId ruler));
+        hot.TaxPolicies.Add(new TaxPolicyRow(ruler, 0.5));
         Assert.True(Unrest.IsUprising(hot, site, s.Config));
         IReadOnlyList<string> h = Happy(hot);
         Assert.Contains(h, l => l.StartsWith("They protest the levy", StringComparison.Ordinal));

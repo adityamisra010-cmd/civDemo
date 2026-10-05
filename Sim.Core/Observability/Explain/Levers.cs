@@ -144,6 +144,10 @@ public static class Levers
         // --- Dignity (M5 R2b, D-035-D) ----------------------------------
         ChainNode.DignitySatisfaction or ChainNode.EffectiveTaxRate => Lever.None(
             "Set by the tax edict (SetTaxRate, a policy order — not a labour slider) and by administrative reach; no allocation moves it."),
+        ChainNode.DeclaredTaxRate => Lever.None("The tax edict (SetTaxRate, a policy order), not a labour slider."),
+        ChainNode.AdministrativeReach => Lever.None("Distance from the capital over the road network; no allocation moves it."),
+        ChainNode.ServiceOffset => Lever.None("Public works and institutions built here, read through the state's reach; no allocation moves it."),
+        ChainNode.LevyGrievance => Lever.None("Accumulated from the felt levy; cut the levy (a policy order) and it decays — no allocation moves it."),
 
         // --- unbound ----------------------------------------------------
         ChainNode.NotSimulated => Lever.None("Not yet simulated: nothing reaches a need that is not computed."),

@@ -32,15 +32,15 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
     /// <summary>One turn's reading of the capital.</summary>
     public readonly record struct Reading(
         int Turn, double MeanT, double MaxT, double Protest, double Risen, double Rebels, double Happiness, double Legitimacy,
-        bool Controlled, double Felt, double Output, string Segments);
+        bool Controlled, double Felt, double Output, string Segments, long Population = 0, double FoodDeficit = 0.0);
 
     /// <summary>Runs the rig: levy <paramref name="percent"/> from turn 0, cut to <paramref name="cutTo"/> at
     /// <paramref name="cutAt"/> (−1 = never), for <paramref name="turns"/> turns. Returns every turn's reading.</summary>
     public static List<Reading> Run(Condition condition, double percent, int turns, int cutAt = -1, double cutTo = 0.0,
-        SimConfig? config = null, bool canonical = false, double dtYears = 0.0)
+        SimConfig? config = null, bool canonical = false, double dtYears = 0.0, int settlements = 4, bool colonize = true)
     {
         SimConfig cfg = config ?? TestConfigs.Sim();
-        (WorldState w, PolityId player) = canonical ? Canonical(cfg) : GovernanceRigs.Founded();
+        (WorldState w, PolityId player) = canonical ? Canonical(cfg) : GovernanceRigs.Founded(settlements);
         TestConfigs.KnowRecipes(w, cfg);
         GovernanceRigs.Grant(w, player);
         SettlementId seat = GovernanceRigs.Seat(w, player);
@@ -53,12 +53,21 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         if (percent > 0.0) orders.Append(Governance.TaxOrder(0, player, percent));
         if (cutAt >= 0) orders.Append(Governance.TaxOrder(cutAt, player, cutTo));
         TurnExecutor ex;
+        // F1 (2026-10-05): colonize = false runs the catalog with no worldgen config, so ColonizationSystem founds
+        // nothing and a one-settlement Empire's capital stays its FINAL settlement (D-048 ruling 5) for the whole run.
+        Sim.Core.Worldgen.WorldgenConfig? worldgen = colonize ? TestConfigs.Worldgen() : null;
         if (dtYears > 0.0)
         {
             using var pipe = Sim.Data.DataFiles.OpenPipeline();
-            ex = new TurnExecutor(ResearchRigs.FlatEra(dtYears), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            ex = new TurnExecutor(ResearchRigs.FlatEra(dtYears), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, worldgen)), orders);
         }
-        else ex = UniversityRigs.Production(cfg, orders);
+        else if (colonize) ex = UniversityRigs.Production(cfg, orders);
+        else
+        {
+            using var era = Sim.Data.DataFiles.OpenEraPacing();
+            using var pipe = Sim.Data.DataFiles.OpenPipeline();
+            ex = new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, null)), orders);
+        }
         var readings = new List<Reading>();
         for (int t = 1; t <= turns; t++)
         {
@@ -88,7 +97,7 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
             readings.Add(new Reading(t, Unrest.TaxGrievance(w, seat, cfg), maxT, Unrest.Protest(w, seat, cfg),
                 Unrest.RisenShare(w, seat, cfg), Unrest.RebelShare(w, seat, cfg), SettlementHappiness.Of(w, seat, cfg),
                 Governance.Legitimacy(w, player, cfg), EmpireQuery.ControlsSettlement(w, player, seat), 1.0 - DignityAt(w, seat),
-                Governance.OutputMultiplier(w, seat, cfg), seg.ToString().TrimEnd()));
+                Governance.OutputMultiplier(w, seat, cfg), seg.ToString().TrimEnd(), GovernanceRigs.Population(w, seat), DeficitAt(w, seat)));
         }
         return readings;
     }
@@ -99,6 +108,13 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         for (int i = 0; i < w.Polities.Count; i++)
             if (w.Polities[i].Source == CommandSource.Player) return (w, w.Polities[i].Id);
         throw new InvalidOperationException("no player");
+    }
+
+    private static double DeficitAt(IReadOnlyWorldState w, SettlementId s)
+    {
+        for (int i = 0; i < w.ConsumptionDeficits.Count; i++)
+            if (w.ConsumptionDeficits[i].Settlement == s) return w.ConsumptionDeficits[i].DeficitRatio;
+        return 0.0;
     }
 
     private static double DignityAt(IReadOnlyWorldState w, SettlementId s)
@@ -147,6 +163,65 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         }
         output.WriteLine(text.ToString());
         File.WriteAllText(Path.Combine(Path.GetTempPath(), "h2-tax-pressure.txt"), text.ToString());
+    }
+
+    /// <summary>F1 (2026-10-05, d049 §15): the rebels' subsistence measurement — population, famine and control over
+    /// 300 turns at 0/40/70/99/100 % on the well-off, natural and poor capital (4 settlements) and on a FINAL settlement
+    /// (one settlement, no colonization).</summary>
+    [Fact(Skip = "F1 subsistence measurement rig (~5-10 min: 20 founded dev worlds x 300 turns) — run manually; d049 §15 records the table")]
+    public void RebelSubsistence_300Turns()
+    {
+        var text = new StringBuilder();
+        foreach ((string name, Condition c, int n, bool col) in new[]
+                 { ("well-off", Condition.WellOff, 4, true), ("natural", Condition.Natural, 4, true), ("poor", Condition.Poor, 4, true), ("final", Condition.Natural, 1, false) })
+            foreach (double rate in new[] { 0.0, 40.0, 70.0, 99.0, 100.0 })
+            {
+                List<Reading> r = Run(c, rate, 300, settlements: n, colonize: col);
+                int lost = r.FindIndex(x => !x.Controlled);
+                long peak = r.Max(x => x.Population);
+                long minAfterPeak = r.Skip(r.FindIndex(x => x.Population == peak)).Min(x => x.Population);
+                text.AppendLine(string.Create(CultureInfo.InvariantCulture,
+                    $"{name} {rate}%: pop t1 {r[0].Population} peak {peak} min-after-peak {minAfterPeak} t300 {r[^1].Population}; max deficit {r.Max(x => x.FoodDeficit):F3}; peak rebels {r.Max(x => x.Rebels):F3}; min out x{r.Min(x => x.Output):F3}; lost {(lost < 0 ? "never" : (lost + 1).ToString(CultureInfo.InvariantCulture))}{(lost > 0 ? string.Create(CultureInfo.InvariantCulture, $" (pop {r[lost - 1].Population})") : "")}; extinct {(r.Any(x => x.Population == 0) ? "YES" : "no")}"));
+            }
+        output.WriteLine(text.ToString());
+        File.WriteAllText(Path.Combine(Path.GetTempPath(), "f1-subsistence.txt"), text.ToString());
+    }
+
+    /// <summary>F1 (d049 §15): the AI-ceiling levy (40 %) and 70 % across EVERY settlement of the founded dev world
+    /// (capital and weakly reached colonies), 80 turns: peak levy grievance and whether any segment protests.</summary>
+    [Fact(Skip = "F1 all-settlement 40/70 % probe (~1 min) — run manually; d049 §15 records it")]
+    public void AllSettlements_AtTheAiCeiling()
+    {
+        var text = new StringBuilder();
+        SimConfig cfg = TestConfigs.Sim();
+        foreach (double rate in new[] { 40.0, 70.0 })
+        {
+            (WorldState w, PolityId player) = GovernanceRigs.Founded();
+            TestConfigs.KnowRecipes(w, cfg);
+            GovernanceRigs.Grant(w, player);
+            var orders = new OrderLog();
+            orders.Append(Governance.TaxOrder(0, player, rate));
+            TurnExecutor ex = UniversityRigs.Production(cfg, orders);
+            var peak = new Dictionary<int, (double T, double Reach, double P)>();
+            for (int t = 1; t <= 80; t++)
+            {
+                w = ex.Step(w);
+                for (int i = 0; i < w.Settlements.Count; i++)
+                {
+                    SettlementId s = w.Settlements[i].Id;
+                    if (!EmpireQuery.ControlsSettlement(w, player, s)) continue;
+                    double tg = 0.0;
+                    for (int g = 0; g < w.TaxGrievances.Count; g++)
+                        if (w.TaxGrievances[g].Settlement == s && Unrest.Members(w, s, w.TaxGrievances[g].Class) > 0) tg = Math.Max(tg, w.TaxGrievances[g].Value);
+                    peak.TryGetValue(s.Value, out var old);
+                    peak[s.Value] = (Math.Max(old.T, tg), Governance.ControlStrength(w, player, s), Math.Max(old.P, Unrest.Protest(w, s, cfg)));
+                }
+            }
+            foreach (var kv in peak.OrderBy(k => k.Key))
+                text.AppendLine(string.Create(CultureInfo.InvariantCulture, $"{rate}% settlement {kv.Key}: reach(t80) {kv.Value.Reach:F3} peak segment T {kv.Value.T:F2} peak protest {kv.Value.P:F3}"));
+        }
+        output.WriteLine(text.ToString());
+        File.WriteAllText(Path.Combine(Path.GetTempPath(), "f1-allsettlements.txt"), text.ToString());
     }
 
     private static string Turn(int index) => index < 0 ? "none" : (index + 1).ToString(CultureInfo.InvariantCulture);

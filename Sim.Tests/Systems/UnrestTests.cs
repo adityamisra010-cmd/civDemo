@@ -104,6 +104,11 @@ public class UnrestTests
             json.Replace("\"taxServiceOffsetMax\": 0.25", "\"taxServiceOffsetMax\": 1.0", StringComparison.Ordinal)));
         Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
             json.Replace("\"uprisingPopulationShare\": 0.5", "\"uprisingPopulationShare\": 1.0", StringComparison.Ordinal)));
+        // F1: the state-capacity offset is a share in [0, 1].
+        Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
+            json.Replace("\"taxCapacityOffsetMax\": 0.25", "\"taxCapacityOffsetMax\": -0.1", StringComparison.Ordinal)));
+        Assert.Throws<NeedsConfigException>(() => NeedsConfigLoader.Load(
+            json.Replace("\"taxCapacityOffsetMax\": 0.25", "\"taxCapacityOffsetMax\": 1.5", StringComparison.Ordinal)));
     }
 
     // ------------------------------------------------------------------ the felt burden and Dignity
@@ -320,6 +325,7 @@ public class UnrestTests
         (WorldState w, PolityId player) = GovernanceRigs.Founded();
         SettlementId seat = GovernanceRigs.Seat(w, player);
         UnrestTuning u = Tuning;
+        Levy(w, player, 0.5);   // F1: an uprising against the levy needs the current ruler's levy
         // One class (peasants) holds everyone at founding: rebels = q. q = 0.5 exactly at T = U + 0.5 × span.
         double atShare = u.UprisingGrievance + u.UprisingPopulationShare * (u.UprisingGrievance - u.ProtestOnsetGrievance);
         SetLevyGrievance(w, seat, atShare);
@@ -327,6 +333,56 @@ public class UnrestTests
         Assert.False(Unrest.IsUprising(w, seat, Cfg));
         SetLevyGrievance(w, seat, atShare + 1e-6);
         Assert.True(Unrest.IsUprising(w, seat, Cfg));
+    }
+
+    /// <summary>
+    /// F1 (2026-10-05, the H2 verifier's probe P3; d049 §15): an uprising AGAINST THE LEVY needs the CURRENT ruler's
+    /// levy. Levy grievance survives a change of hands (d049 §11.5) and keeps decaying, but a ruler that takes nothing
+    /// here — e.g. a revolt-born polity that never declared a tax — cannot be thrown off by grievance inherited from the
+    /// ruler before it. The same stock under a levy the current ruler collects does carry the settlement.
+    /// </summary>
+    [Fact]
+    public void InheritedLevyGrievance_CannotThrowOffARulerThatLeviesNothing()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        SettlementId other = w.Settlements[0].Id == seat ? w.Settlements[1].Id : w.Settlements[0].Id;
+        UnrestTuning u = Tuning;
+        SetLevyGrievance(w, other, u.UprisingGrievance + (u.UprisingGrievance - u.ProtestOnsetGrievance));   // q = 1
+        Assert.Equal(0.0, Governance.EffectiveTaxRate(w, other, Cfg));
+        Assert.Equal(1.0, Unrest.RebelShare(w, other, Cfg), 12);          // the inherited stock is still there
+        Assert.False(Unrest.IsUprising(w, other, Cfg));
+        TurnExecutor revolt = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.Revolt(Cfg));
+        Assert.True(EmpireQuery.ControlsSettlement(revolt.Step(w), player, other), "an untaxing ruler was thrown off by inherited levy grievance");
+
+        Levy(w, player, 0.3);
+        Assert.True(Unrest.IsUprising(w, other, Cfg));
+        Assert.False(EmpireQuery.ControlsSettlement(revolt.Step(w), player, other));
+    }
+
+    /// <summary>
+    /// F1 (2026-10-05, the H2 verifier's surviving mutant V6) — THE GHOST-GRIEVANCE RULE FOR LEVY ROWS (d049 §2.1, the
+    /// T2.13 / T3.5b rule): a class with no members in a living settlement holds NO levy grievance — NeedsGrievanceSystem
+    /// zeroes its row — so a class that refills starts from 0 rather than inheriting a pressure nobody now present felt.
+    /// A class WITH members keeps its stock (decayed, not zeroed).
+    /// </summary>
+    [Fact]
+    public void AnEmptyClass_HoldsNoLevyGrievance_TheGhostRuleZeroesItsRow()
+    {
+        (WorldState w, PolityId player) = GovernanceRigs.Founded();
+        GovernanceRigs.Grant(w, player);
+        SettlementId seat = GovernanceRigs.Seat(w, player);
+        Levy(w, player, 0.5);
+        Assert.Equal(0L, Unrest.Members(w, seat, Artisans));
+        Assert.True(Unrest.Members(w, seat, Peasants) > 0);
+        bool hasRow = false;
+        for (int i = 0; i < w.Grievances.Count; i++) hasRow |= w.Grievances[i].Settlement == seat && w.Grievances[i].Class == Artisans;
+        Assert.True(hasRow, "the seat holds no artisan grievance row");
+        SetLevyGrievance(w, seat, Artisans, 15.0);
+        SetLevyGrievance(w, seat, Peasants, 15.0);
+        WorldState next = UniversityRigs.Only(new OrderLog(), 10.0, SystemCatalog.NeedsGrievance(Cfg)).Step(w);
+        Assert.Equal(0.0, Unrest.SegmentTaxGrievance(next, seat, Artisans));
+        Assert.True(Unrest.SegmentTaxGrievance(next, seat, Peasants) > 0.0, "a populated segment's levy grievance was zeroed");
     }
 
     [Fact]

@@ -11,8 +11,10 @@ namespace Sim.Core.State;
 /// population segment — one class in one settlement, the D-010 bucket with its own grievance — as a burden offset by
 /// what that segment otherwise has and what the state returns to it (<see cref="FeltBurden"/>):
 ///
-///   felt = r × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V)
-///     r  the settlement's EFFECTIVE rate (declared × reach, <see cref="Governance.EffectiveTaxRate"/>);
+///   felt = d × (1 + taxCapacityOffsetMax × (1 − reach)) × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V)
+///     d  the controller's DECLARED rate; reach its stored administrative reach there (state capacity). F1: the
+///        settlement YIELDS d × reach (<see cref="Governance.EffectiveTaxRate"/>), but weak capacity aggravates
+///        the burden felt (d049 §15) — at full reach the factor is exactly 1;
 ///     P  the segment's PROVISION — the D-035-B CES of its other bound needs: food (Sustenance), housing (Shelter),
 ///        comfort goods / amenities (Comfort) — R4a's offset, unchanged;
 ///     V  the settlement's PUBLIC SERVICES delivered (<see cref="ServiceOffset"/>): public works (granary, workshop)
@@ -203,12 +205,16 @@ public static class Unrest
 
     /// <summary>
     /// THE SETTLEMENT'S UPRISING (RevoltSystem executes it — this reader never writes): its REBELS CARRY it, i.e. are
-    /// MORE than unrest.uprisingPopulationShare of its people. Rebels short of that do not take the settlement with
+    /// MORE than unrest.uprisingPopulationShare of its people, AND its current ruler levies a tax collected there (F1). Rebels short of that do not take the settlement with
     /// them: the revolt stays theirs.
     /// </summary>
     public static bool IsUprising(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
     {
         if (cfg.Needs?.Unrest is not { } u) return false;
+        // F1 (2026-10-05, d049 §15): an uprising AGAINST THE LEVY needs the CURRENT ruler's levy collected here.
+        // Levy grievance inherited across a change of hands still decays (and still reads as protest), but it cannot
+        // throw off a ruler that takes nothing.
+        if (!(Governance.EffectiveTaxRate(world, settlement, cfg) > 0.0)) return false;
         return RebelShare(world, settlement, cfg) > u.UprisingPopulationShare;
     }
 
@@ -300,15 +306,29 @@ public static class Unrest
     }
 
     /// <summary>
-    /// THE FELT BURDEN of a levy on a segment with provision <paramref name="provision"/>:
-    /// r × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V), in [0, 1]. EXACTLY 0 untaxed. Coefficients
-    /// inside the resolution equation (law 2), not buffs: each scales the felt burden and none acts without a levy.
+    /// THE FELT BURDEN of a levy on a segment with provision <paramref name="provision"/>, in [0, 1]:
+    ///   felt = d × (1 + taxCapacityOffsetMax × (1 − reach)) × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V),
+    /// d the controller's DECLARED rate and reach its stored reach there (ControlRow.Strength — state capacity). F1
+    /// (2026-10-05, Director §5/§6, d049 §15): state capacity is an OFFSET, not only a collection multiplier — the
+    /// settlement still YIELDS d × reach (<see cref="Governance.EffectiveTaxRate"/>, the collection rule), but the
+    /// burden is felt from the declared demand, heavier where administration is weak; so per unit collected it rises
+    /// as reach falls, and at the same declared or effective rate a weakly administered place feels more. At full
+    /// reach the capacity factor is exactly 1 (the H2 reading bit for bit). EXACTLY 0 untaxed or where nothing is
+    /// collected (uncontrolled, or reach 0). Coefficients inside the resolution equation (law 2), not buffs: each
+    /// scales the felt burden and none acts without a levy.
     /// </summary>
     public static double FeltBurden(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg, double provision)
     {
-        double r = Governance.EffectiveTaxRate(world, settlement, cfg);
-        if (r <= 0.0) return 0.0;
+        if (cfg.Governance is null) return 0.0;
+        if (!EmpireQuery.TryGetController(world, settlement, out PolityId ruler)) return 0.0;
+        double declared = Governance.NominalTaxRate(world, ruler);
+        if (declared <= 0.0) return 0.0;
+        double reach = Math.Clamp(Governance.ControlStrength(world, ruler, settlement), 0.0, 1.0);
+        if (!(reach > 0.0)) return 0.0;   // nothing is collected where the state does not reach at all
         UnrestTuning? u = cfg.Needs?.Unrest;
+        double r = Math.Clamp(declared, 0.0, 1.0);
+        double capacityMax = u?.TaxCapacityOffsetMax ?? 0.0;
+        if (capacityMax > 0.0 && reach < 1.0) r *= 1.0 + capacityMax * (1.0 - reach);
         double offsetMax = u?.TaxBurdenOffsetMax ?? 0.0;
         double felt = offsetMax > 0.0 ? r * (1.0 - offsetMax * Math.Clamp(provision, 0.0, 1.0)) : r;
         double serviceMax = u?.TaxServiceOffsetMax ?? 0.0;

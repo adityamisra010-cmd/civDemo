@@ -13,9 +13,11 @@ namespace Sim.Tests.Systems;
 /// <summary>
 /// ADR-033 D4 — THE TAX'S PUSHBACK, MEASURED (the evidence behind the D-021 unrest-lite escalation:
 /// "taxation without pushback isn't governing", and no branch implements unrest). On the founded
-/// seed-42 world (canonical 1024², N = 12) the player is made able to tax by completing ONE taxation
-/// node (arithmetic_babylonian, a ResearchCompleted row at turn 0 — the rig forces the capability, it
-/// does not bypass the gate), and three arms levy 0 / 40 / 99 % from turn 0 (the edict lands in the
+/// seed-42 world (canonical 1024², N = 12) the player is made able to tax by opening the WHOLE gate
+/// (F1 2026-10-05: the R5 Taxation civic, a ResearchCompleted row at turn 0, AND entry into the edict's
+/// Age, sim.json governance.taxationMinAge = A3 — <see cref="GovernanceRigs.Grant"/>; the rig forces the
+/// capability through real state, it does not bypass the gate; the pre-R5 text named
+/// arithmetic_babylonian, which no longer opens it), and the arms levy 0 / 40 / 70 / 99 % from turn 0 (the edict lands in the
 /// state of turn 1) for 300 turns. Recorded per arm, for the capital and the whole empire: population,
 /// happiness, legitimacy, effective rate, migration and output, plus control (revolts).
 ///
