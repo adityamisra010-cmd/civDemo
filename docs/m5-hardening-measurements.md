@@ -578,3 +578,20 @@ still researched (not known at founding), land ceiling 13× (26.0 vs 2.0 per km�
   targets on dev; canonical at that pair not measured);
 - (d) re-aim the dev CR-003 tooth / accept land-ceiling Malthus as the honest outcome of a world that never
   researches agriculture.
+
+## 2026-10-05 — final integration: forager decision and verifier correction (append-only; the F2 section above is unchanged)
+
+**Correction (F2 verifier, MEASURED on `0fad91d`, dev world, seeds 1–20, 1000 turns).** The F2 reading "only the
+pair reaches both targets, at roughly 5.0 per gatherer and ≥ 3–4 per km²" and option (c)'s "≈ 4.0" overstate the
+land density needed. **5.0 / 3.0 also meets both dev targets**: 1/20 starving at 650, 1/20 by 1000, 185 deaths —
+identical to 5.0 / 4.0. 5.0 / 2.5 gives 1/20 at 650 but 6/20 by 1000 (7,923 deaths); 4.8 / 2.5 gives 2/20 and
+5/20 (5,977). The land-ceiling constraint saturates near 3.0 per km² (4.3/3.0 and 4.3/4.0 are also identical), so
+option (c) should read "5.0 per gatherer with ≈ 3.0 per km² (1.5× the top of the recorded 0.5–2 per km² range)".
+**Canonical and every corridor/band are UNMEASURED at 5.0/3.0 and 5.0/4.0** — no counterfactual pair has canonical
+or corridor evidence.
+
+**Decision (orchestrator, final for this pass): keep the shipped 4.3 per gatherer / 2.0 per km².** Reasons: the
+ratified calibration bands pass at the shipped values; 5.0 per gatherer equals the cultivated 5.0 per farmer and
+would erase agriculture's per-worker gain (+16 % → 0 %); 3.0+ per km² exceeds the recorded forager range; and no
+counterfactual pair has canonical or corridor evidence. **Status: OPEN for the Director** — options (a)–(d) above
+stand, with (c) corrected to 5.0 / ≈ 3.0.
