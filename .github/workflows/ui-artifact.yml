@@ -150,6 +150,9 @@ jobs:
           Get-Content smoke-out.txt
           Get-Content smoke-err.txt
           Write-Host "Sim.Ui.exe --smoke exit code: $($p.ExitCode)"
+          # The totals line as a run annotation, so the result is readable from the run page and the API.
+          $line = (Select-String -Path smoke-out.txt -Pattern "^smoke: " | Select-Object -Last 1).Line
+          Write-Host "::notice title=windows smoke (exit $($p.ExitCode))::$line"
           if ($p.ExitCode -ne 0) { throw "the playability smoke gate FAILED on Windows (exit $($p.ExitCode))" }
           if (-not (Select-String -Path smoke-out.txt -Pattern "SMOKE PASSED" -Quiet)) { throw "no SMOKE PASSED line" }
 
@@ -167,6 +170,8 @@ jobs:
           Get-Content control-err.txt
           Write-Host "control exit code: $($p.ExitCode)"
           $text = (Get-Content control-out.txt -Raw) + (Get-Content control-err.txt -Raw)
+          $assert = if ($text -match "Too many vertices[^\r\n]*") { $Matches[0] } else { "(no assertion text captured)" }
+          Write-Host "::notice title=windows control (pre-fix renderer) exit $($p.ExitCode)::$assert"
           if ($p.ExitCode -eq 0 -or $text -match "CONTROL DID NOT REPRODUCE") { throw "the control did not abort" }
           if ($text -notmatch "Too many vertices") { Write-Host "aborted (exit $($p.ExitCode)) without the assertion text on stderr" }
 
