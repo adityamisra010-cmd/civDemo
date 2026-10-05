@@ -14,7 +14,7 @@ namespace Sim.Core.State;
 ///   felt = d × (1 + taxCapacityOffsetMax × (1 − reach)) × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V)
 ///     d  the controller's DECLARED rate; reach its stored administrative reach there (state capacity). F1: the
 ///        settlement YIELDS d × reach (<see cref="Governance.EffectiveTaxRate"/>), but weak capacity aggravates
-///        the burden felt (d049 §13) — at full reach the factor is exactly 1;
+///        the burden felt (d049 §15) — at full reach the factor is exactly 1;
 ///     P  the segment's PROVISION — the D-035-B CES of its other bound needs: food (Sustenance), housing (Shelter),
 ///        comfort goods / amenities (Comfort) — R4a's offset, unchanged;
 ///     V  the settlement's PUBLIC SERVICES delivered (<see cref="ServiceOffset"/>): public works (granary, workshop)
@@ -211,7 +211,7 @@ public static class Unrest
     public static bool IsUprising(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
     {
         if (cfg.Needs?.Unrest is not { } u) return false;
-        // F1 (2026-10-05, d049 §13): an uprising AGAINST THE LEVY needs the CURRENT ruler's levy collected here.
+        // F1 (2026-10-05, d049 §15): an uprising AGAINST THE LEVY needs the CURRENT ruler's levy collected here.
         // Levy grievance inherited across a change of hands still decays (and still reads as protest), but it cannot
         // throw off a ruler that takes nothing.
         if (!(Governance.EffectiveTaxRate(world, settlement, cfg) > 0.0)) return false;
@@ -309,7 +309,7 @@ public static class Unrest
     /// THE FELT BURDEN of a levy on a segment with provision <paramref name="provision"/>, in [0, 1]:
     ///   felt = d × (1 + taxCapacityOffsetMax × (1 − reach)) × (1 − taxBurdenOffsetMax × P) × (1 − taxServiceOffsetMax × V),
     /// d the controller's DECLARED rate and reach its stored reach there (ControlRow.Strength — state capacity). F1
-    /// (2026-10-05, Director §5/§6, d049 §13): state capacity is an OFFSET, not only a collection multiplier — the
+    /// (2026-10-05, Director §5/§6, d049 §15): state capacity is an OFFSET, not only a collection multiplier — the
     /// settlement still YIELDS d × reach (<see cref="Governance.EffectiveTaxRate"/>, the collection rule), but the
     /// burden is felt from the declared demand, heavier where administration is weak; so per unit collected it rises
     /// as reach falls, and at the same declared or effective rate a weakly administered place feels more. At full

@@ -1377,16 +1377,52 @@ public static class SimConfigLoader
     private static void ValidateGovernanceAgainstContent(SimConfig cfg)
     {
         if (cfg.Governance is null || cfg.Research is null) return;
+        ClassMobility.Predicate requirement;
         try
         {
-            Systems.Research.ResearchContentLoader.ParseRequirement(
+            requirement = Systems.Research.ResearchContentLoader.ParseRequirement(
                 cfg.Research, cfg.Governance.TaxationRequires, "governance.taxationRequires");
         }
         catch (Systems.Research.ResearchContentException e)
         {
             throw new SimConfigException($"sim.json {e.Message}", e);
         }
+        // F1 (2026-10-05, d049 §15): the Age half of the tax gate (sim.json governance.taxationMinAge) and the Age the
+        // gate's research nodes are tagged with (research.json "age") are two statements of one fact (Director §7:
+        // Taxation is an A3 capability). They must not disagree in the direction that matters: the edict can never be
+        // declared operational in an Age EARLIER than the earliest Age at which its knowledge requirement can be met.
+        if (cfg.Governance.TaxationMinAge is { } minAge)
+        {
+            int earliest = EarliestRequirementAge(cfg.Research, requirement);
+            if (minAge < earliest)
+                throw new SimConfigException(
+                    $"sim.json governance.taxationMinAge = {minAge} is earlier than the Age of the research its gate needs "
+                    + $"(governance.taxationRequires '{cfg.Governance.TaxationRequires}' is satisfiable from A{earliest} by research.json's "
+                    + "node Age tags); the tax edict cannot be operational before the knowledge that makes it exists.");
+        }
     }
+
+    /// <summary>F1: the earliest Age (1-based) at which <paramref name="requirement"/> can hold if every research node
+    /// tagged with that Age or earlier is known — AND takes the latest of its sides, OR the earliest (State.ResearchQuery.RequirementMet
+    /// over the Age tags). A node whose tag is not "A&lt;n&gt;" counts as Age 1. Unsatisfiable → int.MaxValue.</summary>
+    public static int EarliestRequirementAge(Systems.Research.ResearchContent research, ClassMobility.Predicate requirement)
+    {
+        ArgumentNullException.ThrowIfNull(research);
+        ArgumentNullException.ThrowIfNull(requirement);
+        var known = new bool[research.Nodes.Count];
+        for (int age = 1; age <= Ages.AgeContent.AgeCount; age++)
+        {
+            for (int n = 0; n < known.Length; n++) known[n] = NodeAge(research.Nodes[n].Age) <= age;
+            // The existing knowledge evaluator (node atoms AND entity atoms), as the live gate evaluates it.
+            if (State.ResearchQuery.RequirementMet(research, requirement, known)) return age;
+        }
+        return int.MaxValue;
+    }
+
+    private static int NodeAge(string tag) =>
+        tag.Length > 1 && tag[0] == 'A'
+        && int.TryParse(tag.AsSpan(1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int n)
+            ? n : 1;
 
     /// <summary>ADR-032: every road class once, DirtPath present with no entity, factors in (0,1],
     /// capacities and material quantities non-negative, finite speeds.</summary>

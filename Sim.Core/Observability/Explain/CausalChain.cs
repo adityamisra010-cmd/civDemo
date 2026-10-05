@@ -98,7 +98,7 @@ public enum ChainNode
     DignitySatisfaction,
     EffectiveTaxRate,
 
-    // --- F1 (2026-10-05, d049 §13): the rest of the shipped felt-burden formula and the stock it accrues into
+    // --- F1 (2026-10-05, d049 §15): the rest of the shipped felt-burden formula and the stock it accrues into
     DeclaredTaxRate,
     AdministrativeReach,
     ServiceOffset,
@@ -415,7 +415,7 @@ public sealed class CausalChain
     // SHELTER
     // =====================================================================
 
-    /// <summary>M5 R2b — DIGNITY (D-035-D), restated for the shipped H2 + F1 formula (d049 §2, §13): the satisfaction
+    /// <summary>M5 R2b — DIGNITY (D-035-D), restated for the shipped H2 + F1 formula (d049 §2, §15): the satisfaction
     /// row; the declared rate, the administrative reach and the service offset it is computed from (RECOMPUTED through
     /// the public readers on Prev); the effective rate the settlement yields; and the levy-grievance stock T of this
     /// segment that the felt burden accrues into (READ from Next).</summary>
@@ -429,7 +429,7 @@ public sealed class CausalChain
             + "controller's DECLARED rate, reach its administrative reach here (state capacity: weak capacity makes the same "
             + "levy weigh heavier), P the class's provision (the CES of its other bound needs: food, housing, comfort goods), "
             + "V the public services delivered here; kC, kP, kV = needs.json unrest.taxCapacityOffsetMax, taxBurdenOffsetMax, "
-            + "taxServiceOffsetMax (State.Unrest.FeltBurden via NeedsGrievanceSystem.DignitySatisfaction; d049 §2, §13).");
+            + "taxServiceOffsetMax (State.Unrest.FeltBurden via NeedsGrievanceSystem.DignitySatisfaction; d049 §2, §15).");
         bool controlled = EmpireQuery.TryGetController(prev, s, out PolityId ruler);
         links.Add(new Link(ChainNode.DeclaredTaxRate, "declared tax rate",
             controlled ? Governance.NominalTaxRate(prev, ruler) : 0.0, LinkKind.Recomputed, SourceWorld.Prev, "TaxPolicies", -1,

@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `44061d465bff5aa2…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `f12da5c1605aec4e…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 

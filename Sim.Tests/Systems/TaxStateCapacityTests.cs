@@ -7,7 +7,7 @@ using Sim.Tests.TestUtil;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// F1 (2026-10-05, Director §5/§6; docs/d049 §13) — STATE CAPACITY OFFSETS THE LEVY. The M5 port's collection rule is
+/// F1 (2026-10-05, Director §5/§6; docs/d049 §15) — STATE CAPACITY OFFSETS THE LEVY. The M5 port's collection rule is
 /// kept: a weakly reached settlement YIELDS less (effective rate = declared × reach). But the burden FELT per unit
 /// collected rises as capacity falls — arbitrary, unpredictable collection by agents the centre does not control — so
 /// at the same declared rate, and at the same effective rate, a weakly administered settlement accumulates MORE

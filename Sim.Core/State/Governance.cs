@@ -181,7 +181,7 @@ public static class Governance
     }
 
     /// <summary>
-    /// F1 (2026-10-05, d049 §13) — WHAT REALISED FOOD PRODUCTION (farming, gathering, herding and fishing) IS
+    /// F1 (2026-10-05, d049 §15) — WHAT REALISED FOOD PRODUCTION (farming, gathering, herding and fishing) IS
     /// MULTIPLIED BY. Protesters and rebels withhold the work the LEVY compels, never the work that feeds themselves:
     /// the drag (<see cref="Unrest.OutputFactor"/>) can take back the levy's extraction gain on food, but never pushes
     /// food output below what the people would produce untaxed (1.0). Non-food output keeps the full

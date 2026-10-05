@@ -165,6 +165,28 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
         File.WriteAllText(Path.Combine(Path.GetTempPath(), "h2-tax-pressure.txt"), text.ToString());
     }
 
+    /// <summary>F1 (2026-10-05, d049 §15): the rebels' subsistence measurement — population, famine and control over
+    /// 300 turns at 0/40/70/99/100 % on the well-off, natural and poor capital (4 settlements) and on a FINAL settlement
+    /// (one settlement, no colonization).</summary>
+    [Fact(Skip = "F1 subsistence measurement rig (~5-10 min: 20 founded dev worlds x 300 turns) — run manually; d049 §15 records the table")]
+    public void RebelSubsistence_300Turns()
+    {
+        var text = new StringBuilder();
+        foreach ((string name, Condition c, int n, bool col) in new[]
+                 { ("well-off", Condition.WellOff, 4, true), ("natural", Condition.Natural, 4, true), ("poor", Condition.Poor, 4, true), ("final", Condition.Natural, 1, false) })
+            foreach (double rate in new[] { 0.0, 40.0, 70.0, 99.0, 100.0 })
+            {
+                List<Reading> r = Run(c, rate, 300, settlements: n, colonize: col);
+                int lost = r.FindIndex(x => !x.Controlled);
+                long peak = r.Max(x => x.Population);
+                long minAfterPeak = r.Skip(r.FindIndex(x => x.Population == peak)).Min(x => x.Population);
+                text.AppendLine(string.Create(CultureInfo.InvariantCulture,
+                    $"{name} {rate}%: pop t1 {r[0].Population} peak {peak} min-after-peak {minAfterPeak} t300 {r[^1].Population}; max deficit {r.Max(x => x.FoodDeficit):F3}; peak rebels {r.Max(x => x.Rebels):F3}; min out x{r.Min(x => x.Output):F3}; lost {(lost < 0 ? "never" : (lost + 1).ToString(CultureInfo.InvariantCulture))}{(lost > 0 ? string.Create(CultureInfo.InvariantCulture, $" (pop {r[lost - 1].Population})") : "")}; extinct {(r.Any(x => x.Population == 0) ? "YES" : "no")}"));
+            }
+        output.WriteLine(text.ToString());
+        File.WriteAllText(Path.Combine(Path.GetTempPath(), "f1-subsistence.txt"), text.ToString());
+    }
+
     private static string Turn(int index) => index < 0 ? "none" : (index + 1).ToString(CultureInfo.InvariantCulture);
 }
 

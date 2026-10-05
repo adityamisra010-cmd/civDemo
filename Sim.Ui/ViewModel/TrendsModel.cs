@@ -207,9 +207,11 @@ public static class TrendsModel
     /// This used to map every non-finite value to 0f. A NaN here means "this
     /// settlement has no record on this turn" — not yet founded, or absent from
     /// the observation — and drawing it as 0 asserted a reading that was never
-    /// taken. For happiness that was actively dangerous: 0 is the ratified
-    /// revolt condition (SettlementHappiness.RevoltThreshold), so a missing
-    /// sample was drawn as a settlement in revolt.
+    /// taken. For happiness that was actively dangerous: 0 is the floor of the
+    /// welfare reading (total deprivation, or welfare wholly consumed by a
+    /// levy's accumulated pressure — since d049, 2026-10-05, the revolt
+    /// condition reads the provision reading, not happiness), so a missing
+    /// sample was drawn as a settlement at its worst.
     ///
     /// The honest treatment, and the one used here: CARRY FORWARD the last
     /// finite value, which says "no new reading, nothing changed on the chart",

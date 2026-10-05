@@ -336,7 +336,7 @@ public class UnrestTests
     }
 
     /// <summary>
-    /// F1 (2026-10-05, the H2 verifier's probe P3; d049 §13): an uprising AGAINST THE LEVY needs the CURRENT ruler's
+    /// F1 (2026-10-05, the H2 verifier's probe P3; d049 §15): an uprising AGAINST THE LEVY needs the CURRENT ruler's
     /// levy. Levy grievance survives a change of hands (d049 §11.5) and keeps decaying, but a ruler that takes nothing
     /// here — e.g. a revolt-born polity that never declared a tax — cannot be thrown off by grievance inherited from the
     /// ruler before it. The same stock under a levy the current ruler collects does carry the settlement.

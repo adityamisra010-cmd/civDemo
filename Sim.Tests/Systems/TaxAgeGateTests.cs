@@ -196,3 +196,54 @@ public class TaxAgeGateTests
         return ids.ToArray();
     }
 }
+
+/// <summary>
+/// F1 (2026-10-05; d049 §15) — the A3 requirement lives in two content places, research.json (the taxation node's Age
+/// tag) and sim.json (governance.taxationMinAge). The four-stream load cross-validates them: the edict may not be
+/// operational in an Age earlier than the earliest Age at which its knowledge requirement can be met.
+/// </summary>
+public class TaxAgeContentAgreementTests
+{
+    private static SimConfig Load(string simJson, string researchJson)
+    {
+        using var sim = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(simJson));
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        using var research = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(researchJson));
+        return SimConfigLoader.Load(sim, needs, goods, research);
+    }
+
+    [Fact]
+    public void TheShippedContent_Agrees_TheGateNodeIsA3_AndTheMinimumIsA3()
+    {
+        SimConfig cfg = Load(TestConfigs.SimJson(), TestConfigs.ResearchJson());
+        var req = Sim.Core.Systems.Research.ResearchContentLoader.ParseRequirement(cfg.Research!, cfg.Governance!.TaxationRequires, "t");
+        Assert.Equal(3, SimConfigLoader.EarliestRequirementAge(cfg.Research!, req));
+        Assert.Equal(3, cfg.Governance.TaxationMinAge);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ALoaderRefuses_AMinimumAgeEarlierThanTheGateNodesAge(int minAge)
+    {
+        string sim = TestConfigs.SimJson().Replace("\"taxationMinAge\": 3", $"\"taxationMinAge\": {minAge}", StringComparison.Ordinal);
+        Assert.NotEqual(TestConfigs.SimJson(), sim);
+        SimConfigException e = Assert.Throws<SimConfigException>(() => Load(sim, TestConfigs.ResearchJson()));
+        Assert.Contains("taxationMinAge", e.Message);
+    }
+
+    [Fact]
+    public void ALoaderRefuses_AGateNodeMovedToALaterAgeThanTheMinimum_AndAcceptsALaterMinimum()
+    {
+        string research = TestConfigs.ResearchJson();
+        int at = research.IndexOf("\"id\": \"taxation\"", StringComparison.Ordinal);
+        Assert.True(at > 0);
+        int tag = research.IndexOf("\"age\": \"A3\"", at, StringComparison.Ordinal);
+        string moved = research[..tag] + "\"age\": \"A4\"" + research[(tag + "\"age\": \"A3\"".Length)..];
+        Assert.Throws<SimConfigException>(() => Load(TestConfigs.SimJson(), moved));
+        // A minimum LATER than the node's Age is a legitimate design (knowledge first, capability later).
+        string later = TestConfigs.SimJson().Replace("\"taxationMinAge\": 3", "\"taxationMinAge\": 5", StringComparison.Ordinal);
+        Assert.Equal(5, Load(later, TestConfigs.ResearchJson()).Governance!.TaxationMinAge);
+    }
+}

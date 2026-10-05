@@ -8,7 +8,7 @@ using Sim.Tests.TestUtil;
 namespace Sim.Tests.Observability;
 
 /// <summary>
-/// F1 (2026-10-05, the H2 verifier's finding on the Glass Box; d049 §13) — the Dignity causal chain states the SHIPPED
+/// F1 (2026-10-05, the H2 verifier's finding on the Glass Box; d049 §15) — the Dignity causal chain states the SHIPPED
 /// felt-burden formula (declared rate, state capacity, provision, services) and links the levy-grievance stock the
 /// felt burden accrues into, with values equal to the public readers.
 /// </summary>

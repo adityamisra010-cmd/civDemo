@@ -397,7 +397,7 @@ public class GovernanceTests
         SetStrength(w, p, place, 0.25);
         Assert.Equal(0.125, Governance.EffectiveTaxRate(w, place, Cfg()));
         Assert.Equal(1.0 + 0.3 * 0.125, Governance.ExtractionMultiplier(w, place, Cfg()));
-        // F1 (d049 §13): the felt burden reads the SAME stored Strength — as state capacity aggravating the declared
+        // F1 (d049 §15): the felt burden reads the SAME stored Strength — as state capacity aggravating the declared
         // levy (0.5 × (1 + k × 0.75)), no longer as the collected share.
         Assert.Equal(0.5 * (1.0 + Cfg().Needs!.Unrest!.TaxCapacityOffsetMax * 0.75), Unrest.FeltBurden(w, place, Cfg(), 0.0));
     }
@@ -488,7 +488,7 @@ public class GovernanceTests
     [Fact]
     public void TheFrontierYieldsTheEFFECTIVERate_ButFeelsTheDeclaredOne_HeavierForWeakCapacity()
     {
-        // F1 (2026-10-05, Director §5/§6; d049 §13) SUPERSEDES the H2 pin "TheBurdenFeltIsTheEFFECTIVERateNotTheDeclaredOne"
+        // F1 (2026-10-05, Director §5/§6; d049 §15) SUPERSEDES the H2 pin "TheBurdenFeltIsTheEFFECTIVERateNotTheDeclaredOne"
         // ("the frontier accumulates less pressure"), which ran opposite to the Director: weak state capacity means
         // GREATER grievance from the same tax rate. The frontier still YIELDS little (collection = declared × reach),
         // but it feels the declared demand, aggravated by the weak administration that collects it.

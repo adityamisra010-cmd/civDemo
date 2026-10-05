@@ -185,7 +185,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // point) all of it — weighted by the segments' shares. A quiet settlement's factor is EXACTLY
             // 1.0, so the product is the extraction multiplier bit for bit.
             double extraction = State.Governance.OutputMultiplier(prev, settlement, _cfg);
-            // F1 (2026-10-05, d049 §13): FOOD carries the same factor floored at the untaxed baseline — rebels and
+            // F1 (2026-10-05, d049 §15): FOOD carries the same factor floored at the untaxed baseline — rebels and
             // protesters withhold the levied work, never their own subsistence (Governance.FoodOutputMultiplier; equal
             // to `extraction` bit for bit whenever there is no drag).
             double foodExtraction = State.Governance.FoodOutputMultiplier(prev, settlement, _cfg);

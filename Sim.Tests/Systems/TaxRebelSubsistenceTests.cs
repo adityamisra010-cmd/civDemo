@@ -8,7 +8,7 @@ using static Sim.Tests.Systems.TaxPressureMeasurement;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// F1 (2026-10-05, the H2 verifier's BLOCKER; docs/d049 §13) — REBELS WITHHOLD THE LEVY, NOT THEIR OWN BREAD. A
+/// F1 (2026-10-05, the H2 verifier's BLOCKER; docs/d049 §15) — REBELS WITHHOLD THE LEVY, NOT THEIR OWN BREAD. A
 /// segment in revolt withholds the work the levy compels; it does not stop feeding itself. Before F1 the rebels'
 /// withholding (1 − r × withheld, withheld → 1) reached every product, food included, so at a 99–100 % levy a FINAL
 /// settlement (which cannot revolt away, D-048 ruling 5) starved to extinction and an ordinary capital lost most of its
