@@ -391,7 +391,7 @@ public sealed class ProgressionScreen
         EraTheme t = Theme;
         PanelFrame.Paint(d, new RectD(0, 0, _w, LensBarH), t, 101, FrameKind.Bar);
         d.Write(t, 20, 10, "PROGRESSION", 11, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
-        d.Write(t, 20, 26, "Turn " + Snapshot!.Turn.ToString(CultureInfo.InvariantCulture), 17, t.Ink.OnChrome, TextAlign.Left, FontRole.Heading);
+        d.Write(t, 20, 26, "Turn " + Sim.Ui.ViewModel.PlayerTurn.Current(Snapshot!.Turn).ToString(CultureInfo.InvariantCulture), 17, t.Ink.OnChrome, TextAlign.Left, FontRole.Heading);
 
         // Slot geometry from the era-invariant measure (the same slots in every era).
         double x0 = 150, right = _w - 150;

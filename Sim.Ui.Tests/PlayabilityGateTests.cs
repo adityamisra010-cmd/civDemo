@@ -314,10 +314,28 @@ public class PlayabilityGateTests : IDisposable
         Assert.Equal((unit.Location, unit.X, unit.Y), (after.Location, after.X, after.Y));
         // The only order the session holds is none: the token click and the gestures emit nothing.
         Assert.Equal(orders, h.Ui.Session.Orders.Count);
-        // And no order kind exists that could move it (the kernel's vocabulary at this commit).
-        foreach (OrderKind k in Enum.GetValues<OrderKind>())
-            Assert.DoesNotContain("Move", k.ToString(), StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(8, Enum.GetValues<OrderKind>().Length);
+        // (F3: the former pin on the kernel's order vocabulary was dropped — the unit not moving is the property.)
+    }
+
+    [Fact]
+    public void NarrowWindow_AtTheMinimumSize_TheCommandBarFits_AndBelowItTheHarnessFlagsTheOverflow()
+    {
+        PlayabilityGate.GateState state = PlayabilityGate.States(null).First(st => st.Name == "narrow window");
+        Assert.Equal((PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight), (state.Width, state.Height));
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-min"), Assets(),
+                   width: PanelLayout.MinWindowWidth, height: PanelLayout.MinWindowHeight))
+        {
+            h.Idle(3);
+            UiControl territory = h.Ui.Controls.Find("territory")!.Value;
+            Assert.True(territory.X1 <= PanelLayout.MinWindowWidth, "territory toggle ends at " + territory.X1);
+            Assert.Empty(h.Problems);
+        }
+        // Control: 1024 px (the old floor-less case the verifier found) — the harness must call it out.
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-1024"), Assets(), width: 1024, height: 640))
+        {
+            h.Idle(2);
+            Assert.Contains(h.Problems, p => p.Contains("'territory' outside", StringComparison.Ordinal));
+        }
     }
 
     [Fact]

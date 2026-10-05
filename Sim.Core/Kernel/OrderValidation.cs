@@ -149,4 +149,53 @@ public static class OrderValidation
                     "only allocate labour where it rules (D-037 control is authoritative).");
         }
     }
+    /// <summary>
+    /// ADR-034 — THE DELIVERY HALF of the deferral above. <see cref="ValidateAgainstWorld"/> cannot reject an
+    /// order whose actor (a polity a revolt may found, H4 9bcad5b) or settlement target (a colony, stream V 7100c77)
+    /// does not exist in the turn-0 world, so a forged id above the turn-0 maxima (e.g. actor 999) passes it. A
+    /// runner that replays a log calls this for each turn's batch against PREV — the world the batch is delivered
+    /// to — before stepping: a DEFERRED actor must by then be a registered Empire and a DEFERRED settlement target
+    /// must by then exist, or the log is rejected with an explicit diagnostic instead of the order being silently
+    /// ignored by its consumer. A live-played log always satisfies this (the UI and the AI producer stamp orders
+    /// for the turn being played, from the state they are delivered to, and the roster never shrinks), so revolt
+    /// and colony replays are unaffected. Orders that the up-front pass already checked are not re-checked here;
+    /// the step itself is unchanged (observer-only: no hash moves).
+    /// </summary>
+    public static void ValidateAtDelivery(OrderBatch batch, IReadOnlyWorldState turnZero, IReadOnlyWorldState prev)
+    {
+        if (batch.Count == 0) return;
+        int maxSettlementId = -1;
+        for (int s = 0; s < turnZero.Settlements.Count; s++)
+            if (turnZero.Settlements[s].Id.Value > maxSettlementId) maxSettlementId = turnZero.Settlements[s].Id.Value;
+        int maxPolityId = int.MinValue;
+        for (int p = 0; p < turnZero.Polities.Count; p++)
+            if (turnZero.Polities[p].Id.Value > maxPolityId) maxPolityId = turnZero.Polities[p].Id.Value;
+
+        for (int i = 0; i < batch.Count; i++)
+        {
+            OrderRecord record = batch[i];
+            bool deferredActor = turnZero.Polities.Count > 0 && record.Turn >= 1 && record.ActorId > maxPolityId;
+            if (deferredActor && !EmpireQuery.TryGetCommandSource(prev, record.Actor, out _))
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): {record.Kind} is issued by polity {record.ActorId}, which is not a " +
+                    $"registered Empire when the order is delivered (turn {prev.Clock.Turn}, {prev.Polities.Count} " +
+                    "registered). Its check was deferred because a revolt could have founded it by then; none did " +
+                    "(ADR-034).");
+
+            if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
+                or OrderKind.EnqueueConstruction)) continue;
+            int target = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
+            bool deferredTarget = record.Turn >= 1 && maxSettlementId >= 0 && target > maxSettlementId;
+            if (!deferredTarget) continue;
+            bool exists = false;
+            for (int s = 0; s < prev.Settlements.Count; s++)
+                if (prev.Settlements[s].Id.Value == target) { exists = true; break; }
+            if (!exists)
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): {record.Kind} targets settlement {target}, which does not exist " +
+                    $"when the order is delivered (turn {prev.Clock.Turn}, {prev.Settlements.Count} settlement(s)). " +
+                    "Its check was deferred because a colony could have been founded with that id by then; none was " +
+                    "(ADR-034).");
+        }
+    }
 }

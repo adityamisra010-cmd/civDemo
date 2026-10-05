@@ -80,6 +80,7 @@ public static class PlayerViewsPreview
     /// <summary>Writes the preview SVGs and a log into <paramref name="outDir"/>.</summary>
     public static IReadOnlyList<string> Run(string outDir, string? fontDir)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         var written = new List<string>();
         var log = new List<string> { "player views preview: PlayerViews over real sessions, seed 42, canonical 1024 px world" };

@@ -513,11 +513,17 @@ success. Its run annotations (MEASURED via the check-run annotations API):
 
 - **Below a 1280-px-wide window** the command bar's last buttons and the context panel no longer fit; the layout is
   designed for 1280×800 and up (INFERRED from the geometry; not part of the gate).
+  - *2026-10-05 note (F3 fix stream):* superseded — the window now has a floor of 1080×640
+    (`PanelLayout.MinWindowWidth/Height`; a resize below it snaps back). Measured with `--smoke`: at 1024 px the
+    territory toggle ended at x = 1056.6, outside the window. The gate now plays a "narrow window" state at exactly
+    1080×640 and the harness fails any frame whose command-bar control leaves the window.
 - **The research tab bar has room for the Age chip only from about 1,366 px wide**; at 1280×800 the Age is reached
   from the status band's Age indicator (gate: "not offered" with that reason; PASS in the wide-window state).
 - **At A1 no Civics node is available** (every Civics node needs a Technology prerequisite); the Civics tree is
   browsable and each card says what it needs.
 - Window title "civ-sim M4" (`BuildInfo.cs`) belongs to stream H3.
+  - *2026-10-05 note (F3 fix stream):* resolved — H3 (ab4c959) changed the window title and debug-panel identity to
+    "civ-sim M5"; the line above is kept as written.
 
 ## 10. Reproduce
 

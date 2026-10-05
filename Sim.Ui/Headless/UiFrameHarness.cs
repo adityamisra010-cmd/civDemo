@@ -96,8 +96,16 @@ public sealed class UiFrameHarness : IDisposable
         if (r.MaxListVertices > MaxListVertices) MaxListVertices = r.MaxListVertices;
         foreach (string v in r.Violations) Problem("draw data: " + v);
         foreach (string d in Ui.Controls.Duplicates) Problem("duplicate ImGui id: " + d);
+        // F3: the fixed chrome's controls (the command bar's row) must be inside the window — at a narrow window the
+        // territory toggle was once drawn past the right edge, unreachable.
+        foreach (UiControl c in Ui.Controls.Last)
+            if (IsBarControl(c.Name) && (c.X0 < 0 || c.Y0 < 0 || c.X1 > Gui.Width || c.Y1 > Gui.Height))
+                Problem("command-bar control '" + c.Name + "' outside the " + Gui.Width + "x" + Gui.Height + " window (x " + c.X0 + ".." + c.X1 + ")");
         foreach (string t in Gui.LastTooltipWindows) Problem("ImGui error tooltip (duplicate-ID warning) in " + t + " at (" + _x + "," + _y + ")");
     }
+
+    private static bool IsBarControl(string name) =>
+        name == "end-turn" || name == "territory" || name.StartsWith("nav:", StringComparison.Ordinal);
 
     private void Problem(string what)
     {

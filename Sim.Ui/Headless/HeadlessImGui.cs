@@ -43,7 +43,7 @@ public sealed class HeadlessImGui : IDisposable
         ImGui.SetCurrentContext(_context);
         ImGuiIOPtr io = ImGui.GetIO();
         unsafe { io.NativePtr->IniFilename = null; }
-        if (vtxOffset) ImGuiDrawData.Configure(io);
+        if (vtxOffset) ImGuiRenderer.PrepareContext(ownsContext: false); // the windowed renderer's own setup
         else io.ConfigDebugHighlightIdConflicts = true;
         Fonts = UiTheme.LoadFonts(assetsRoot);
         unsafe { io.Fonts.GetTexDataAsRGBA32(out byte* _, out int _, out int _, out int _); }

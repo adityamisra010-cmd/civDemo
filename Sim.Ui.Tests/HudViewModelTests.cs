@@ -114,7 +114,7 @@ public class HudViewModelTests
         Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
         Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine); // T2.4, dev N=4
-        Assert.Equal("turn 0   year -4000", hud.ClockLine);
+        Assert.Equal("turn 1   year -4000", hud.ClockLine); // F3: the turn being played (Clock.Turn 0 + 1)
         Assert.Equal("seed 42   fps 60", HudModel.StatusLine(42, 60.4));
         Assert.Equal("camera (128, 128) zoom 1.00x", HudModel.CameraLine(128.0, 128.0, 1.0));
     }

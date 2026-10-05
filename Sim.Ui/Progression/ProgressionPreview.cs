@@ -112,6 +112,7 @@ public static class ProgressionPreview
 
     public static IReadOnlyList<string> Run(string outDir, string? fontDir)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         UiSession session = SteppedSession();
         ResearchContent content = session.Config.Research!;

@@ -102,7 +102,7 @@ public static class R2aPreview
         var lines = new List<string>
         {
             $"City-state: {st.Session.Names.Name(city.Value)} (settlement {city.Value.ToString(CultureInfo.InvariantCulture)}) — no Empire controls it",
-            $"Turn {w.Clock.Turn} · population {ResearchQuery.Population(w, local)}",
+            $"Turn {Sim.Ui.ViewModel.PlayerTurn.Current(w.Clock.Turn)} · population {ResearchQuery.Population(w, local)}",
             $"Research: {ResearchQuery.CityStateResearchPoints(w, r, city).ToString("0.00", CultureInfo.InvariantCulture)} RP/turn (city-state pace {r.Tuning.CityStatePaceFraction.ToString("0.00", CultureInfo.InvariantCulture)} × its own population's curve)",
             "Own accumulated knowledge:",
         };
@@ -131,6 +131,7 @@ public static class R2aPreview
 
     public static IReadOnlyList<string> Run(string outDir, string? fontDir, int cityTurns = 600)
     {
+        fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
         Directory.CreateDirectory(outDir);
         var written = new List<string>();
         var log = new List<string> { "R2a preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world" };

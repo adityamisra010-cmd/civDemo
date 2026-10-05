@@ -63,16 +63,24 @@ public sealed class ImGuiRenderer
     {
         _game = game;
         _device = game.GraphicsDevice;
-        if (ownsContext) ImGui.CreateContext();
-        // M5 hardening H1 (the Research-screen crash): declare that this renderer honours ImDrawCmd.VtxOffset,
-        // so ImGui may let a draw list grow past 65,535 vertices by rebasing its 16-bit indices instead of
-        // asserting. RenderDrawData applies the offset (ImGuiDrawData.Plan).
-        ImGuiDrawData.Configure(ImGui.GetIO());
+        PrepareContext(ownsContext);
         RebuildFontAtlas();
         game.Window.TextInput += (_, e) =>
         {
             if (e.Character != '\t') ImGui.GetIO().AddInputCharacter(e.Character);
         };
+    }
+
+    /// <summary>The device-free half of construction: creates the ImGui context when the renderer owns it,
+    /// then declares this renderer's capabilities on the CURRENT context. M5 hardening H1 (the Research-screen
+    /// crash): the declaration includes <c>RendererHasVtxOffset</c>, so ImGui may let a draw list grow past
+    /// 65,535 vertices by rebasing its 16-bit indices instead of asserting; RenderDrawData applies the offset
+    /// (ImGuiDrawData.Plan). Factored out so the headless harness runs the SAME setup the windowed game does and
+    /// tests can pin it without a GPU (ImGuiRendererSetupTests).</summary>
+    public static void PrepareContext(bool ownsContext)
+    {
+        if (ownsContext) ImGui.CreateContext();
+        ImGuiDrawData.Configure(ImGui.GetIO());
     }
 
     /// <summary>Uploads the ImGui font atlas as a Texture2D and binds it.</summary>
