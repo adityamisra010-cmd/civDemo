@@ -241,6 +241,34 @@ public sealed class GameUi
     /// <summary>The interactive controls drawn in the last frame, with their screen rects (<see cref="UiControls"/>).</summary>
     public UiControls Controls { get; } = new();
 
+    /// <summary>The status band, command bar and context panel as placed in the current window (see
+    /// <see cref="Placed(in PanelRect)"/>).</summary>
+    public PanelRect StatusRect => Placed(PanelLayout.Status);
+    public PanelRect CommandRect => Placed(PanelLayout.Command);
+    public PanelRect ContextRect => Placed(PanelLayout.Context);
+
+    /// <summary>
+    /// H1: THE CHROME FOLLOWS THE WINDOW. PanelLayout is the 1280×800 design and stays the tested geometry; in a
+    /// window of any other size the status band spans the width, the command bar sits on the bottom edge and the
+    /// context panel on the right edge, its height following the window. (Before, a maximised window left the
+    /// command bar floating 265 px above the bottom and the panel 652 px in from the right.) Window-local widget
+    /// offsets are unchanged — every control keeps its place inside its panel — so the design-size layout and
+    /// every ChromeGeometry pin are exactly what they were at 1280×800.
+    /// </summary>
+    public PanelRect Placed(in PanelRect design)
+    {
+        float dw = _viewportWidth - PanelLayout.DesignWidth, dh = _viewportHeight - PanelLayout.DesignHeight;
+        return design.Title switch
+        {
+            "##status" => design with { Width = Math.Max(1f, design.Width + dw) },
+            "##command" => design with { Y = design.Y + dh, Width = Math.Max(1f, design.Width + dw) },
+            "##context" => design with { X = design.X + dw, Height = Math.Max(120f, design.Height + dh) },
+            _ => design,
+        };
+    }
+
+    private ChromeElement Placed(in ChromeElement element) => element with { Panel = Placed(element.Panel) };
+
     public void SetViewport(int width, int height)
     {
         _viewportWidth = Math.Max(1, width);
@@ -910,8 +938,8 @@ public sealed class GameUi
     /// </summary>
     private void DrawStatusBand()
     {
-        BeginChrome(PanelLayout.Status);
-        DrawPanelFurniture(ChromeGeometry.Status);   // rule along the BOTTOM edge: status | world
+        BeginChrome(Placed(PanelLayout.Status));
+        DrawPanelFurniture(Placed(ChromeGeometry.Status));   // rule along the BOTTOM edge: status | world
         PushDataFont();
         ImGui.TextUnformatted(_hud.ClockLine);
         ImGui.SameLine(0, 24);
@@ -1064,8 +1092,8 @@ public sealed class GameUi
     /// </summary>
     private void DrawCommandBar()
     {
-        BeginChrome(PanelLayout.Command);
-        DrawPanelFurniture(ChromeGeometry.Command);   // rule along the TOP edge: world | controls
+        BeginChrome(Placed(PanelLayout.Command));
+        DrawPanelFurniture(Placed(ChromeGeometry.Command));   // rule along the TOP edge: world | controls
 
         // T4.19 lane D: every control is placed at the rect ChromeGeometry
         // computes — cursor set explicitly, not left to WindowPadding and
@@ -1121,8 +1149,8 @@ public sealed class GameUi
     {
         if (_openSection == Section.None) return;
 
-        BeginChrome(PanelLayout.Context);
-        DrawPanelFurniture(ChromeGeometry.Context,   // rule under the header row
+        BeginChrome(Placed(PanelLayout.Context));
+        DrawPanelFurniture(Placed(ChromeGeometry.Context),   // rule under the header row
             _openSection == Section.Annals ? _annalsId : default);
 
         // T4.19 lane D — the header row: title at the left, close button

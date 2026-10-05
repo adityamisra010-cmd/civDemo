@@ -108,6 +108,56 @@ public class PlayabilityGateTests
         Assert.True(h.MaxListVertices > ushort.MaxValue, "max " + h.MaxListVertices);
     }
 
+    /// <summary>The chrome follows the window: at the design size it is exactly PanelLayout; maximised, the command
+    /// bar sits on the bottom edge and the context panel on the right edge, and their controls work there.</summary>
+    [Fact]
+    public void Chrome_FollowsTheWindow_DesignSizeUnchanged_MaximisedAnchoredToTheEdges()
+    {
+        using (UiFrameHarness small = UiFrameHarness.Start(UiSession.Start(42), WorkDir("chrome-1280"), Assets()))
+        {
+            Assert.Equal(PanelLayout.Status, small.Ui.StatusRect);
+            Assert.Equal(PanelLayout.Command, small.Ui.CommandRect);
+            Assert.Equal(PanelLayout.Context, small.Ui.ContextRect);
+            UiControl end = small.Ui.Controls.Find("end-turn")!.Value;
+            Assert.Equal(ChromeGeometry.EndTurnButton.Y, end.Y0, 0.5);
+        }
+        using UiFrameHarness big = UiFrameHarness.Start(UiSession.Start(42), WorkDir("chrome-1920"), Assets(), width: 1920, height: 1009);
+        Assert.Equal(1920f, big.Ui.StatusRect.Width);
+        Assert.Equal(1009f - PanelLayout.Command.Height, big.Ui.CommandRect.Y);
+        Assert.Equal(1920f - PanelLayout.Context.Width - PanelLayout.Margin, big.Ui.ContextRect.X);
+        Assert.Equal(1009f - PanelLayout.Status.Height - PanelLayout.Command.Height - 2 * PanelLayout.Margin, big.Ui.ContextRect.Height);
+        UiControl bigEnd = big.Ui.Controls.Find("end-turn")!.Value;
+        Assert.Equal(big.Ui.CommandRect.Y + (ChromeGeometry.EndTurnButton.Y - PanelLayout.Command.Y), bigEnd.Y0, 0.5);
+        Assert.True(big.ClickControl("nav:Policy"));
+        Assert.Equal(Section.Policy, big.Ui.OpenSection);
+        UiControl close = big.Ui.Controls.Find("close")!.Value;
+        Assert.True(close.X1 <= 1920 - PanelLayout.Margin && close.X0 > big.Ui.ContextRect.X);
+        long turn = big.Ui.World.Clock.Turn;
+        Assert.True(big.ClickControl("end-turn"));
+        Assert.Equal(turn + 1, big.Ui.World.Clock.Turn);
+        Assert.Empty(big.Problems);
+    }
+
+    /// <summary>The context panel's body is one scrolling child for every section: a section opens at its top,
+    /// not at the scroll the previous section was left at (found by the gate: POLICY scrolled to its end opened
+    /// the developer TURN tab with its own tab row scrolled out of sight).</summary>
+    [Fact]
+    public void ContextPanel_ANewSectionOpensAtItsTop_NotAtThePreviousSectionsScroll()
+    {
+        UiSession s = UiSession.Start(42);
+        s.EndTurn();   // a played turn: the TURN audit is long enough to scroll
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("scroll"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        PanelRect p = h.Ui.ContextRect;
+        for (int k = 0; k < 40; k++) h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, -3);
+        h.Key(Keys.F12);
+        Assert.True(h.ClickControl("nav:Developer"));
+        float top = ChromeGeometry.ContentTop(ChromeGeometry.Context, ImGui.GetFrameHeight());
+        UiControl tab = h.Ui.Controls.Find("dev-Turn")!.Value;
+        Assert.True(tab.Y0 >= top - 1, "the DEV tab row opened scrolled out of sight: y " + tab.Y0 + " above " + top);
+        Assert.Empty(h.Problems);
+    }
+
     // ------------------------------------------------------------------ duplicate ids are seen
 
     /// <summary>The gate's id-conflict detection has teeth: two widgets sharing an id are reported by the control

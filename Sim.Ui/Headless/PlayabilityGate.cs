@@ -94,7 +94,7 @@ public sealed class GateReport
 public sealed record GateOptions(
     string AssetsRoot, string WorkDir,
     int? AiEmpires = null, int MonkeySteps = 400, ulong MonkeySeed = 20261005UL,
-    Action<string>? Log = null, IReadOnlyList<string>? OnlyStates = null, int Width = 1280, int Height = 800);
+    Action<string>? Log = null, IReadOnlyList<string>? OnlyStates = null);
 
 /// <summary>
 /// THE M5 PLAYABILITY GATE (Director §2 / §15, M5 hardening H1). For each meaningful game state, it drives the
@@ -111,7 +111,7 @@ public static class PlayabilityGate
     private static readonly PolityId Me = UiPlayer.Empire;
 
     /// <summary>A named state and how it is built (by playing, or by a stated rig).</summary>
-    public sealed record GateState(string Name, string How, Func<UiSession> Build);
+    public sealed record GateState(string Name, string How, Func<UiSession> Build, int Width = 1280, int Height = 800);
 
     /// <summary>The states the Director listed (§2), in order.</summary>
     public static IReadOnlyList<GateState> States(int? aiEmpires)
@@ -124,9 +124,11 @@ public static class PlayabilityGate
         };
         if (aiEmpires is null)
             list.Add(new("one AI", "canonical founded world with --ai-empires 1, turn 1", () => UiSession.Start(42, aiEmpiresOverride: 1)));
+        list.Add(new("wide window" + aiTag, "turn 1 in a maximised 1920x1009 window (the chrome follows the window; the A1 tree opens past 65,535 vertices)",
+            () => UiSession.Start(42, aiEmpiresOverride: ai), 1920, 1009));
         list.Add(new("target set" + aiTag, "turn 1 + the cheapest Technology node ordered, one End Turn", () => TargetSet(ai)));
         list.Add(new("research done" + aiTag, "played: cheapest Technology node targeted and End Turn until one node completes", () => ResearchDone(ai)));
-        list.Add(new("tax available" + aiTag, "rig: Taxation civic and its prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
+        list.Add(new("tax available" + aiTag, "rig: the Taxation civic and a road class (track_road) with their prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
         list.Add(new("age advance" + aiTag, "rig: Age II's research milestones completed; the advance is then made THROUGH THE UI", () => AgeEligible(ai)));
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
         return list;
@@ -146,7 +148,7 @@ public static class PlayabilityGate
             try { session = state.Build(); }
             catch (Exception e) { report.Problems.Add(state.Name + ": rig failed: " + e.GetType().Name + ": " + e.Message); continue; }
             string dir = Path.Combine(o.WorkDir, Slug(state.Name));
-            using UiFrameHarness h = UiFrameHarness.Start(session, dir, o.AssetsRoot, developer: false, o.Width, o.Height);
+            using UiFrameHarness h = UiFrameHarness.Start(session, dir, o.AssetsRoot, developer: false, state.Width, state.Height);
             h.Context = state.Name;
             var run = new StateRun(h, state.Name, report, o.Log);
             try
@@ -236,7 +238,7 @@ public static class PlayabilityGate
     {
         WorldState w = UiFounding.Found(42, aiEmpiresOverride: ai);
         var cfg = UiFounding.ProductionConfig();
-        Complete(w, cfg.Research!, Ancestry(cfg.Research!, "taxation"));
+        Complete(w, cfg.Research!, Ancestry(cfg.Research!, "taxation", "track_road"));
         w = EraPreview.WorldAt(w, cfg.Ages!, Me, 3);
         UiSession s = UiSession.StartFrom(w, 42);
         s.EndTurn();
@@ -386,9 +388,9 @@ public static class PlayabilityGate
             Territory();
             Research();
             CloseEverything();
-            AgeSurfaces();
+            Policy();            // before the Age flow: the POLICY "Advance..." is offered only while eligible
             CloseEverything();
-            Policy();
+            AgeSurfaces();
             CloseEverything();
             Developer();
             CloseEverything();
@@ -842,7 +844,7 @@ public static class PlayabilityGate
         /// <summary>Scrolls the POLICY panel until the hit is inside its visible body, then clicks it.</summary>
         private bool ClickAction(ActionHitKind kind, int a = int.MinValue, int b = int.MinValue)
         {
-            PanelRect p = PanelLayout.Context;
+            PanelRect p = Ui.ContextRect;
             double top = ChromeGeometry.ContentTop(ChromeGeometry.Context, ImGuiNET.ImGui.GetFrameHeight()), bottom = p.Y + p.Height - 10;
             for (int k = 0; k < 60; k++)
             {
@@ -861,7 +863,7 @@ public static class PlayabilityGate
         {
             if (Ui.OpenSection != Section.Policy) h.ClickControl("nav:Policy");
             // back to the top of the panel
-            for (int k = 0; k < 30; k++) h.Wheel(PanelLayout.Context.X + 100, PanelLayout.Context.Y + 300, 3);
+            for (int k = 0; k < 30; k++) h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, 3);
         }
 
         private void Policy()
@@ -1016,8 +1018,8 @@ public static class PlayabilityGate
             Check("policy", "labour-record", () =>
             {
                 OpenPolicy();
-                for (int k = 0; k < 30 && Ui.Controls.Find("labour-record") is { } c && c.Y1 > PanelLayout.Context.Y + PanelLayout.Context.Height - 10; k++)
-                    h.Wheel(PanelLayout.Context.X + 100, PanelLayout.Context.Y + 300, -2);
+                for (int k = 0; k < 30 && Ui.Controls.Find("labour-record") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                    h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
                 if (Ui.Controls.Find("labour-record") is null) return (GateResult.NotOffered, "no settlement selected");
                 bool before = Ui.PolicyRecordOpen;
                 h.ClickControl("labour-record");
@@ -1062,7 +1064,7 @@ public static class PlayabilityGate
                     if (tab == SettlementTab.Economy && Ui.Controls.Last.Count > 0)
                     {
                         foreach (UiControl c in Ui.Controls.Last)
-                            if (c.Name.StartsWith("good", StringComparison.Ordinal) && c.Y1 < PanelLayout.Context.Y + PanelLayout.Context.Height - 10)
+                            if (c.Name.StartsWith("good", StringComparison.Ordinal) && c.Y1 < Ui.ContextRect.Y + Ui.ContextRect.Height - 10)
                             {
                                 (double gx, double gy) = h.Aim(c);
                                 h.Click(gx, gy);
@@ -1075,7 +1077,7 @@ public static class PlayabilityGate
                         bool factors = Ui.ShowHappinessFactors;
                         if (h.ClickControl("happiness") && Ui.ShowHappinessFactors == factors) ok = false;
                         foreach (UiControl c in Ui.Controls.Last)
-                            if (c.Name.StartsWith("lever-", StringComparison.Ordinal) && c.Y1 < PanelLayout.Context.Y + PanelLayout.Context.Height - 10)
+                            if (c.Name.StartsWith("lever-", StringComparison.Ordinal) && c.Y1 < Ui.ContextRect.Y + Ui.ContextRect.Height - 10)
                             { (double lx, double ly) = h.Aim(c); h.Click(lx, ly); if (Ui.OpenSection != Section.Policy) ok = false; break; }
                     }
                     if (Ui.OpenSection != Section.Developer) h.ClickControl("nav:Developer");
@@ -1091,7 +1093,7 @@ public static class PlayabilityGate
             {
                 if (!c.Name.StartsWith("audit-", StringComparison.Ordinal)) continue;
                 int index = audit++;
-                if (c.Y1 > PanelLayout.Context.Y + PanelLayout.Context.Height - 10 || index > 0) continue;
+                if (c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10 || index > 0) continue;
                 UiControl ctl = c;
                 Check("developer: turn", "audit line (unfolds its account)", () =>
                 {
@@ -1105,7 +1107,7 @@ public static class PlayabilityGate
             foreach (UiControl c in Ui.Controls.Last)
             {
                 if (!c.Name.StartsWith("where-", StringComparison.Ordinal)) continue;
-                if (c.Y1 > PanelLayout.Context.Y + PanelLayout.Context.Height - 10) continue;
+                if (c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10) continue;
                 UiControl ctl = c;
                 int id = int.Parse(ctl.Name[(ctl.Name.LastIndexOf('-') + 1)..], CultureInfo.InvariantCulture);
                 Check("developer: turn", "where row (selects and centres)", () =>
@@ -1289,11 +1291,22 @@ public static class PlayabilityGate
                 h.Key(Keys.Escape);
                 return Expect(ok, "turn " + Ui.World.Clock.Turn);
             });
-            Check("notices", "notices (fade)", () =>
+            Check("notices", "notices (shown after End Turn, then fade)", () =>
             {
-                if (!Ui.Notices.Visible) return (GateResult.NotOffered, "nothing new this turn");
+                // Keep ending turns (Space) until the step brings something new — a research completion or a
+                // new activity — and the surface announces it; a research target keeps one coming.
+                ResearchContent c = S.Config.Research!;
+                for (int k = 0; k < 40 && !Ui.Notices.Visible; k++)
+                {
+                    if (!ResearchQuery.TryGetTarget(S.World, Me, out _) && S.QueuedResearchChoice() is null
+                        && ResearchQuery.CheapestAvailable(S.World, c, Me, ResearchTree.Technology) is ResearchNodeId n)
+                        S.EmitResearchOrder(n);
+                    h.Key(Keys.Space);
+                }
+                if (!Ui.Notices.Visible) return (GateResult.NotOffered, "nothing new in 40 turns");
+                int lines = Ui.Notices.Lines.Count;
                 h.Idle(60 * 7);
-                return Expect(!Ui.Notices.Visible, "still visible after 7 s");
+                return Expect(lines > 0 && !Ui.Notices.Visible, "still visible after 7 s");
             });
         }
 

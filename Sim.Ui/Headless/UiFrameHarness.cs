@@ -214,8 +214,9 @@ public sealed class UiFrameHarness : IDisposable
     public (double X, double Y) Aim(UiControl c)
     {
         double right = Math.Min(c.X1, Gui.Width - 1);
-        if (c.X0 >= ViewModel.PanelLayout.Context.X)
-            right = Math.Min(right, ViewModel.PanelLayout.Context.X + ViewModel.PanelLayout.Context.Width - 16);
+        ViewModel.PanelRect context = Ui.ContextRect;
+        if (c.X0 >= context.X)
+            right = Math.Min(right, context.X + context.Width - 16);
         double x = c.X1 <= right ? c.CenterX : Math.Min(c.X0 + 40, (c.X0 + right) / 2);
         return (x, c.CenterY);
     }
