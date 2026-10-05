@@ -229,6 +229,7 @@ namespace Sim.Cli
             // World-dependent order validation happens HERE — before turn 1,
             // never mid-run (payload ranges were already checked at load).
             if (loaded is not null) OrderValidation.ValidateAgainstWorld(loaded, world);
+            WorldState turnZero = world;
 
             // ADR-033 D5: a founded world runs the AI order producer each turn, headless as in
             // the UI (UiSession.EndTurn calls AiOrders.Append on every turn, unconditionally).
@@ -260,6 +261,7 @@ namespace Sim.Cli
                     }
                     AiOrders.Append(orders!, previous, aiCfg);
                 }
+                if (loaded is not null) OrderValidation.ValidateAtDelivery(loaded.BatchFor(previous.Clock.Turn), turnZero, previous); // ADR-034
                 world = executor.Step(previous);
                 hashLog?.Add(WorldHash.ComputeHex(world));
                 session?.Observe(previous, world);
@@ -408,6 +410,7 @@ namespace Sim.Cli
             // A replay never produces orders (ADR-033 D5): the AI's decisions are already in the log.
             WorldState world = StartWorld(seed, founded, sizePx, settlements, aiEmpires);
             OrderValidation.ValidateAgainstWorld(orders, world);
+            WorldState turnZero = world;
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
 
             // T3.12a — THE DIAGNOSTIC REPORTER. Strictly an OBSERVER: the report
@@ -427,6 +430,7 @@ namespace Sim.Cli
             for (int t = 1; t <= turns; t++)
             {
                 WorldState previous = world;
+                OrderValidation.ValidateAtDelivery(orders.BatchFor(previous.Clock.Turn), turnZero, previous); // ADR-034
                 world = executor.Step(previous);
                 hashLog?.Add(WorldHash.ComputeHex(world));
                 session?.Observe(previous, world);
@@ -527,6 +531,7 @@ namespace Sim.Cli
             WorldState world = StartWorld(
                 manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
             OrderValidation.ValidateAgainstWorld(orders, world);
+            WorldState turnZero = world;
 
             var executor = Executor(orders, founded: true);
             Sim.Core.Systems.SimConfig cfg = SimCfg();
@@ -563,6 +568,7 @@ namespace Sim.Cli
             for (long t = 1; t <= turns; t++)
             {
                 WorldState prev = world;
+                OrderValidation.ValidateAtDelivery(orders.BatchFor(prev.Clock.Turn), turnZero, prev); // ADR-034
                 world = executor.Step(prev);
                 replayed.Add(SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0]);
                 if (report is not null) ReplayReport.WriteTurn(report, world, cfg);

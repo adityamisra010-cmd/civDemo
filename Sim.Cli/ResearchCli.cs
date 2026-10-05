@@ -44,6 +44,7 @@ internal static class ResearchCli
         TurnExecutor executor = Cli.Executor(orders, founded: true);
         WorldState world = Cli.StartWorld(seed, true, sizePx, settlements);
         OrderValidation.ValidateAgainstWorld(orders, world);
+        WorldState turnZero = world;
         if (!EmpireQuery.TryGetCommandSource(world, polity, out _))
             throw new CliUsageException($"--polity {polity.Value} is not a registered Empire in this world");
 
@@ -59,6 +60,7 @@ internal static class ResearchCli
             {
                 orders.Append(OrderRecord.From(world.Clock.Turn, polity, OrderKind.SetResearchTarget, pick.Value, 0.0));
             }
+            OrderValidation.ValidateAtDelivery(orders.BatchFor(world.Clock.Turn), turnZero, world); // ADR-034
             world = executor.Step(world);
             if (trace is not null)
             {
