@@ -21,12 +21,23 @@ namespace Sim.Ui.Tests;
 /// runs in-process here where it is safe (the renderer capability is declared, so a past-16-bit list cannot abort).
 /// </summary>
 [Collection("ImGui context")]
-public class PlayabilityGateTests
+public class PlayabilityGateTests : IDisposable
 {
     private static string Assets() => Path.Combine(AppContext.BaseDirectory, "assets");
 
-    private static string WorkDir(string name) =>
-        Path.Combine(Path.GetTempPath(), "sim-ui-gate-tests-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture), name);
+    private readonly string _root = Path.Combine(Path.GetTempPath(),
+        "sim-ui-gate-tests-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+
+    /// <summary>The session files the harness writes (order log, chronicle, trace, telemetry) go here.</summary>
+    private string WorkDir(string name) => Path.Combine(_root, name);
+
+    public void Dispose()
+    {
+        try { if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        GC.SuppressFinalize(this);
+    }
 
     private static (int Exit, string Out, string Err) RunSimUi(TimeSpan limit, params string[] args)
     {
