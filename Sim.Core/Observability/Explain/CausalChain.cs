@@ -97,6 +97,12 @@ public enum ChainNode
     // --- M5 R2b: Dignity (D-035-D, source taxBurden — NeedsGrievanceSystem.DignitySatisfaction)
     DignitySatisfaction,
     EffectiveTaxRate,
+
+    // --- F1 (2026-10-05, d049 §13): the rest of the shipped felt-burden formula and the stock it accrues into
+    DeclaredTaxRate,
+    AdministrativeReach,
+    ServiceOffset,
+    LevyGrievance,
 }
 
 /// <summary>
@@ -409,21 +415,46 @@ public sealed class CausalChain
     // SHELTER
     // =====================================================================
 
-    /// <summary>M5 R2b — DIGNITY (D-035-D): the satisfaction row, then the effective tax rate it is
-    /// one minus, RECOMPUTED through the public reader on Prev.</summary>
+    /// <summary>M5 R2b — DIGNITY (D-035-D), restated for the shipped H2 + F1 formula (d049 §2, §13): the satisfaction
+    /// row; the declared rate, the administrative reach and the service offset it is computed from (RECOMPUTED through
+    /// the public readers on Prev); the effective rate the settlement yields; and the levy-grievance stock T of this
+    /// segment that the felt burden accrues into (READ from Next).</summary>
     private static CausalChain Dignity(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg,
         SettlementId s, ClassId cls, NeedEntry need)
     {
         var links = new List<Link>();
         SatisfactionLink(links, next, s, cls, need, ChainNode.DignitySatisfaction,
-            "s = 1 − r × (1 − offsetMax × P): r the effective tax rate on Prev, P the class's provision (the CES of its "
-            + "other bound needs), offsetMax needs.json unrest.taxBurdenOffsetMax (NeedsGrievanceSystem.DignitySatisfaction; "
-            + "D-035-D: the tax instrument is the carrier; R4: the burden is offset by provision).");
-        links.Add(new Link(ChainNode.EffectiveTaxRate, "effective tax rate",
+            "s = 1 − felt, felt = d × (1 + kC × (1 − reach)) × (1 − kP × P) × (1 − kV × V), clamped to [0, 1]: d the "
+            + "controller's DECLARED rate, reach its administrative reach here (state capacity: weak capacity makes the same "
+            + "levy weigh heavier), P the class's provision (the CES of its other bound needs: food, housing, comfort goods), "
+            + "V the public services delivered here; kC, kP, kV = needs.json unrest.taxCapacityOffsetMax, taxBurdenOffsetMax, "
+            + "taxServiceOffsetMax (State.Unrest.FeltBurden via NeedsGrievanceSystem.DignitySatisfaction; d049 §2, §13).");
+        bool controlled = EmpireQuery.TryGetController(prev, s, out PolityId ruler);
+        links.Add(new Link(ChainNode.DeclaredTaxRate, "declared tax rate",
+            controlled ? Governance.NominalTaxRate(prev, ruler) : 0.0, LinkKind.Recomputed, SourceWorld.Prev, "TaxPolicies", -1,
+            "No row: a derived reading. Governance.NominalTaxRate: the controller's declared levy (0 untaxed or uncontrolled). Lever: the tax edict."));
+        links.Add(new Link(ChainNode.AdministrativeReach, "administrative reach (state capacity)",
+            controlled ? Governance.ControlStrength(prev, ruler, s) : 0.0, LinkKind.Recomputed, SourceWorld.Prev, "Controls", -1,
+            "No row cited: Governance.ControlStrength reads the stored ControlRow.Strength, exp(−travel cost / authorityDecayCostUnits) from the "
+            + "capital. It scales what is COLLECTED (the effective rate) and, as state capacity, offsets the burden FELT."));
+        links.Add(new Link(ChainNode.ServiceOffset, "public services delivered (V)",
+            Unrest.ServiceOffset(prev, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "Structures", -1,
+            "No row: a derived reading. State.Unrest.ServiceOffset: V = reach × (1 − e^−X), X = public works standing here (granary, workshop) + the "
+            + "maturity of the institutions hosted here."));
+        links.Add(new Link(ChainNode.EffectiveTaxRate, "effective tax rate (collected)",
             Governance.EffectiveTaxRate(prev, s, cfg), LinkKind.Recomputed, SourceWorld.Prev, "TaxPolicies", -1,
-            "No row: a derived reading. Governance.EffectiveTaxRate: the controller's declared rate × ControlRow.Strength (administrative "
-            + "reach); 0 for an uncontrolled or untaxed settlement. Lever: the tax edict."));
+            "No row: a derived reading. Governance.EffectiveTaxRate: the declared rate × ControlRow.Strength — what the "
+            + "settlement yields (extraction and the rebels' withholding read it); 0 for an uncontrolled or untaxed settlement."));
+        int row = -1;
+        for (int i = 0; i < next.TaxGrievances.Count; i++)
+            if (next.TaxGrievances[i].Settlement == s && next.TaxGrievances[i].Class == cls) { row = i; break; }
+        links.Add(new Link(ChainNode.LevyGrievance, "the levy's grievance (T)",
+            row >= 0 ? next.TaxGrievances[row].Value : 0.0, row >= 0 ? LinkKind.Read : LinkKind.Recomputed,
+            SourceWorld.Next, "TaxGrievances", row,
+            (row >= 0 ? "" : "No row: this segment has never felt a levy, T = 0. ") + "The segment's accumulated levy pressure: felt accrues into T (the D-035-B aggregation for the levy alone), T decays "
+            + "at the grievance rate plus protest discharge. Protest from unrest.protestOnsetGrievance, tipping point at "
+            + "uprisingGrievance, rebels beyond it; happiness × (1 − min(1, T / uprisingGrievance))."));
         return new CausalChain(need.Id, need.Name, [.. links]);
     }
 

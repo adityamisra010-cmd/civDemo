@@ -357,8 +357,10 @@ public class GlassBoxUiTests
         // therefore levered). Pinned so a node turning None (or levered) is a
         // visible change here.
         // M5 R2b: + DignitySatisfaction and EffectiveTaxRate — set by the tax edict, a policy order, not a slider.
-        Assert.Equal(11, none);
-        Assert.Equal(Enum.GetValues<ChainNode>().Length - 11, levered);
+        // F1 (2026-10-05): + DeclaredTaxRate, AdministrativeReach, ServiceOffset, LevyGrievance — the rest of the shipped
+        // felt-burden formula and the levy-grievance stock, none of them a slider.
+        Assert.Equal(15, none);
+        Assert.Equal(Enum.GetValues<ChainNode>().Length - 15, levered);
         Assert.True(Levers.For(ChainNode.DisasterMultiplierApplied).IsNone);
         Assert.False(Levers.For(ChainNode.Abandoned).IsNone);
     }
