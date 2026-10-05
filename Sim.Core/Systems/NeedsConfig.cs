@@ -59,6 +59,10 @@ public sealed record UnrestTuning(
     // SERVED settlement does not feel — public works and institutions the state maintains there, delivered as far as
     // its reach (State.Unrest.ServiceOffset). Optional: absent = 0 = no service offset.
     [property: JsonPropertyName("taxServiceOffsetMax")] double TaxServiceOffsetMax = 0.0,
+    // F1 (2026-10-05, Director §5/§6; d049 §13): STATE CAPACITY as an offset — the extra share of the DECLARED levy a
+    // settlement the state does not reach at all feels over one it fully reaches (felt ∝ declared × (1 + this × (1 −
+    // reach)), while collection stays declared × reach). Optional: absent = 0 = felt ∝ declared (inert at full reach).
+    [property: JsonPropertyName("taxCapacityOffsetMax")] double TaxCapacityOffsetMax = 0.0,
     // H2 (Director 2026-10-05 §4/§18 "a revolt affects a population segment"): the share of a settlement's people
     // its REBELS (the rebel portions of the segments past their tipping point, State.Unrest.RebelShare) must exceed
     // before the settlement as a whole throws off its ruler. Below it the revolt stays the segment's own. Optional:
@@ -301,6 +305,8 @@ public static class NeedsConfigLoader
             throw new NeedsConfigException($"unrest.taxBurdenOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxBurdenOffsetMax)}.");
         if (!(u.TaxServiceOffsetMax >= 0.0) || !(u.TaxServiceOffsetMax < 1.0))
             throw new NeedsConfigException($"unrest.taxServiceOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxServiceOffsetMax)}.");
+        if (!(u.TaxCapacityOffsetMax >= 0.0) || !(u.TaxCapacityOffsetMax <= 1.0))
+            throw new NeedsConfigException($"unrest.taxCapacityOffsetMax must be in [0,1], got {Inv(u.TaxCapacityOffsetMax)}.");
         if (!(u.UprisingPopulationShare > 0.0) || !(u.UprisingPopulationShare < 1.0))
             throw new NeedsConfigException(
                 $"unrest.uprisingPopulationShare must be in (0,1) (the share of a settlement's people its rebels must exceed), got {Inv(u.UprisingPopulationShare)}.");
