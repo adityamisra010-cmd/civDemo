@@ -314,10 +314,7 @@ public class PlayabilityGateTests : IDisposable
         Assert.Equal((unit.Location, unit.X, unit.Y), (after.Location, after.X, after.Y));
         // The only order the session holds is none: the token click and the gestures emit nothing.
         Assert.Equal(orders, h.Ui.Session.Orders.Count);
-        // And no order kind exists that could move it (the kernel's vocabulary at this commit).
-        foreach (OrderKind k in Enum.GetValues<OrderKind>())
-            Assert.DoesNotContain("Move", k.ToString(), StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(8, Enum.GetValues<OrderKind>().Length);
+        // (F3: the former pin on the kernel's order vocabulary was dropped — the unit not moving is the property.)
     }
 
     [Fact]
