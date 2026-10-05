@@ -129,7 +129,9 @@ jobs:
   # states, then a seeded monkey — headless, no window, no GPU. Any exception, frame defect, silent control or
   # native assertion fails the job. Sim.Ui is a GUI-subsystem exe, so pwsh is told to WAIT for it and its
   # stdout is redirected to a file; --smoke routes C-runtime assert dialogs to stderr and stops itself after
-  # 45 min (a hang is a failure, not a wait).
+  # 15 min here (a hang is a failure, not a wait; the run takes ~70 s). cimgui.dll links the C runtime statically,
+  # so a native assert opens the "Visual C++ Runtime Library" dialog the Director saw; --smoke watches for that
+  # dialog, prints its text to stderr and exits 134 instead of hanging.
   windows-smoke:
     needs: ui-artifact
     runs-on: windows-latest
@@ -145,7 +147,7 @@ jobs:
         shell: pwsh
         run: |
           $exe = Resolve-Path "sim-ui/app/Sim.Ui.exe"
-          $p = Start-Process -FilePath $exe -ArgumentList "--smoke","--monkey","300","--report","smoke-report.md" `
+          $p = Start-Process -FilePath $exe -ArgumentList "--smoke","--monkey","300","--report","smoke-report.md","--timeout-minutes","15" `
             -NoNewWindow -Wait -PassThru -RedirectStandardOutput smoke-out.txt -RedirectStandardError smoke-err.txt
           Get-Content smoke-out.txt
           Get-Content smoke-err.txt
@@ -170,7 +172,7 @@ jobs:
           Get-Content control-err.txt
           Write-Host "control exit code: $($p.ExitCode)"
           $text = (Get-Content control-out.txt -Raw) + (Get-Content control-err.txt -Raw)
-          $assert = if ($text -match "Too many vertices[^\r\n]*") { $Matches[0] } else { "(no assertion text captured)" }
+          $assert = if ($text -match "(NATIVE ASSERTION DIALOG|Assertion)[^\r\n]*") { $Matches[0] } else { "(no assertion text captured)" }
           Write-Host "::notice title=windows control (pre-fix renderer) exit $($p.ExitCode)::$assert"
           if ($p.ExitCode -eq 0 -or $text -match "CONTROL DID NOT REPRODUCE") { throw "the control did not abort" }
           if ($text -notmatch "Too many vertices") { Write-Host "aborted (exit $($p.ExitCode)) without the assertion text on stderr" }

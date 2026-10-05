@@ -106,8 +106,16 @@ public static class SmokeCommand
 
     // ------------------------------------------------------------------ headless process hygiene
 
-    /// <summary>On Windows a failed C-runtime assert in a GUI-subsystem process opens a modal dialog, which would
-    /// hang a CI runner instead of failing it. Route asserts and abort messages to stderr.</summary>
+    /// <summary>
+    /// On Windows a failed C-runtime assert opens a MODAL DIALOG ("Microsoft Visual C++ Runtime Library —
+    /// Assertion failed!", the dialog of the Director's crash), which on a CI runner blocks forever instead of
+    /// failing. ImGui.NET's win-x64 cimgui.dll links the C runtime STATICALLY (its imports are IMM32, KERNEL32,
+    /// USER32, SHELL32 only), so the process-wide <c>_set_error_mode</c> of ucrtbase cannot reach its asserts —
+    /// MEASURED: CI run 37291800840's control hung until its 5-minute watchdog. So a watcher thread looks for that
+    /// dialog among this process's windows, copies its text to stderr and exits 134 (the Linux abort code), so a
+    /// native assertion fails the gate in under a second with the assertion's own words. The ucrtbase setting is
+    /// still applied for any code that uses the shared runtime.
+    /// </summary>
     private static void QuietNativeAsserts()
     {
         if (!OperatingSystem.IsWindows()) return;
@@ -118,7 +126,56 @@ public static class SmokeCommand
         }
         catch (DllNotFoundException) { }
         catch (EntryPointNotFoundException) { }
+        var watcher = new Thread(WatchForAssertDialogs) { IsBackground = true, Name = "smoke-assert-dialog-watcher" };
+        watcher.Start();
     }
+
+    private static void WatchForAssertDialogs()
+    {
+        uint me = (uint)Environment.ProcessId;
+        while (true)
+        {
+            Thread.Sleep(200);
+            IntPtr found = IntPtr.Zero;
+            EnumWindows((hwnd, _) =>
+            {
+                GetWindowThreadProcessId(hwnd, out uint pid);
+                if (pid != me) return true;
+                string title = WindowText(hwnd);
+                if (!title.Contains("Runtime Library", StringComparison.Ordinal) && !title.Contains("Assert", StringComparison.OrdinalIgnoreCase)) return true;
+                found = hwnd;
+                return false;
+            }, IntPtr.Zero);
+            if (found == IntPtr.Zero) continue;
+            var text = new System.Text.StringBuilder(WindowText(found));
+            EnumChildWindows(found, (child, _) => { string t = WindowText(child); if (t.Length > 0) text.Append(" | ").Append(t); return true; }, IntPtr.Zero);
+            Console.Error.WriteLine("NATIVE ASSERTION DIALOG: " + text.ToString().Replace('\n', ' ').Replace('\r', ' '));
+            Console.Error.Flush();
+            Console.Out.Flush();
+            Environment.Exit(134);
+        }
+    }
+
+    private static string WindowText(IntPtr hwnd)
+    {
+        var sb = new System.Text.StringBuilder(2048);
+        GetWindowTextW(hwnd, sb, sb.Capacity);
+        return sb.ToString();
+    }
+
+    private delegate bool EnumProc(IntPtr hwnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr parent, EnumProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowTextW(IntPtr hwnd, System.Text.StringBuilder text, int max);
 
     [DllImport("ucrtbase.dll", CallingConvention = CallingConvention.Cdecl)]
     private static extern int _set_error_mode(int mode);
