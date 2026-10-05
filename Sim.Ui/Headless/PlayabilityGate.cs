@@ -767,6 +767,13 @@ public static class PlayabilityGate
                 h.Click(c.Rect.CenterX, c.Rect.CenterY);
                 return Expect(!Ui.AgePanelOpen, "still open");
             });
+            Check("age", "Escape (closes the Age panel, does not exit)", () =>
+            {
+                h.ClickControl("band-age");
+                int exits = h.ExitRequests;
+                h.Key(Keys.Escape);
+                return Expect(!Ui.AgePanelOpen && h.ExitRequests == exits, "panel " + Ui.AgePanelOpen + ", exit requests +" + (h.ExitRequests - exits));
+            });
             Check("age", "band-age (again: closes)", () =>
             {
                 h.ClickControl("band-age");
@@ -794,6 +801,14 @@ public static class PlayabilityGate
                 if (AgeHit(Sim.Ui.Ages.AgeHit.OpenAdvance) is not { } a) return (GateResult.Fail, "eligible but no advance button");
                 h.Click(a.Rect.CenterX, a.Rect.CenterY);
                 return Expect(Ui.Age.FlowOpen, "flow not open");
+            });
+            Check("age", "flow is modal (the chrome beneath does not answer)", () =>
+            {
+                long turn = S.World.Clock.Turn;
+                if (Ui.Controls.Find("end-turn") is { } end) h.Click(end.CenterX, end.CenterY);
+                if (Ui.Controls.Find("nav:Policy") is { } nav) h.Click(nav.CenterX, nav.CenterY);
+                return Expect(S.World.Clock.Turn == turn && Ui.OpenSection == Section.None && Ui.Age.FlowOpen,
+                    "turn " + turn + " -> " + S.World.Clock.Turn + ", section " + Ui.OpenSection + ", flow " + Ui.Age.FlowOpen);
             });
             Check("age", "flow: CONFIRM before a surge (disabled)", () =>
             {

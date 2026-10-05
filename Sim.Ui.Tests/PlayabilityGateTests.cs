@@ -158,6 +158,58 @@ public class PlayabilityGateTests
         Assert.Empty(h.Problems);
     }
 
+    /// <summary>The ADVANCE AGE flow is modal: it darkens the whole window, so the chrome under it must not answer
+    /// clicks (found by the gate's review: End Turn and the section buttons stayed live beneath the backdrop, so a
+    /// click "outside the dialog" ended the turn under it).</summary>
+    [Fact]
+    public void AgeFlow_IsModal_TheChromeBeneathItDoesNotAnswerClicks()
+    {
+        PlayabilityGate.GateState state = PlayabilityGate.States(null).First(st => st.Name == "age advance");
+        using UiFrameHarness h = UiFrameHarness.Start(state.Build(), WorkDir("modal"), Assets());
+        Assert.True(h.ClickControl("band-age"));
+        Sim.Ui.Ages.AgeHitRegion open = h.Ui.Age.Hits.First(x => x.Kind == Sim.Ui.Ages.AgeHit.OpenAdvance);
+        h.Click(open.Rect.CenterX, open.Rect.CenterY);
+        Assert.True(h.Ui.Age.FlowOpen);
+        long turn = h.Ui.World.Clock.Turn;
+        UiControl end = h.Ui.Controls.Find("end-turn")!.Value;
+        h.Click(end.CenterX, end.CenterY);
+        UiControl nav = h.Ui.Controls.Find("nav:Policy")!.Value;
+        h.Click(nav.CenterX, nav.CenterY);
+        Assert.Equal(turn, h.Ui.World.Clock.Turn);
+        Assert.Equal(Section.None, h.Ui.OpenSection);
+        Assert.True(h.Ui.Age.FlowOpen);
+        h.Key(Keys.Escape);   // the flow's own way out
+        Assert.False(h.Ui.Age.FlowOpen);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>Escape closes the open panel first and exits only when nothing is open — the Age panel included
+    /// (it used to fall through to "nothing open" and ask the window to exit).</summary>
+    [Fact]
+    public void Escape_ClosesTheAgePanel_ItDoesNotExitTheGame()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("esc-age"), Assets());
+        Assert.True(h.ClickControl("band-age"));
+        Assert.True(h.Ui.AgePanelOpen);
+        h.Key(Keys.Escape);
+        Assert.False(h.Ui.AgePanelOpen);
+        Assert.Equal(0, h.ExitRequests);
+        h.Key(Keys.Escape);
+        Assert.Equal(1, h.ExitRequests);   // now nothing is open: Escape is the window's exit, as before
+    }
+
+    /// <summary>The docked Age panel sits under the selection card, in the column the formation card uses, and
+    /// overlaps no chrome window.</summary>
+    [Fact]
+    public void AgePanel_SitsBelowTheSelectionCard()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("age-rect"), Assets());
+        Sim.Ui.Render.RectD r = h.Ui.AgePanelBounds;
+        Assert.True(r.Y >= PanelLayout.Selection.Y + PanelLayout.Selection.Height, "Age panel top " + r.Y);
+        Assert.Equal(GameUi.UnitCardRect.Y, (float)r.Y);
+        Assert.True(r.Bottom <= h.Ui.CommandRect.Y, "Age panel bottom " + r.Bottom);
+    }
+
     // ------------------------------------------------------------------ duplicate ids are seen
 
     /// <summary>The gate's id-conflict detection has teeth: two widgets sharing an id are reported by the control

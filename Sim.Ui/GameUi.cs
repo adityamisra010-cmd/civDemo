@@ -144,7 +144,10 @@ public sealed class GameUi
     private bool _agePanelOpen;
     private Sim.Ui.World.WorldProjection? _lens;
     private long _lensTurn = -1;
-    private const int AgePanelX = 12, AgePanelY = 202, AgePanelW = 440;
+    // H1: the docked Age panel starts under the selection card (it used to begin at y = 202, 18 px over the card's
+    // bottom edge), in the left column the formation card also uses.
+    private const int AgePanelX = 12, AgePanelW = 440;
+    private static readonly int AgePanelY = (int)(PanelLayout.Selection.Y + PanelLayout.Selection.Height + PanelLayout.Margin);
 
     private Sim.Ui.Progression.ProgressionScreen? _progression;
     private bool _progressionOpen;
@@ -232,6 +235,8 @@ public sealed class GameUi
     public IReadOnlyList<bool> AuditExpanded => _auditExpanded;
     public int SelectedGood => _selectedGood;
     public System.Collections.Generic.IReadOnlyList<TrendMetric> TrendMetrics => _trendMetrics;
+    /// <summary>Where the docked Age panel is drawn in the current window.</summary>
+    public Sim.Ui.Render.RectD AgePanelBounds => AgePanelRect();
     /// <summary>The selected military formation's id, or -1.</summary>
     public int SelectedUnit => _selectedUnit;
     /// <summary>The selected formation's card (null when none is selected).</summary>
@@ -469,6 +474,7 @@ public sealed class GameUi
             && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
         {
             if (_selectedUnit >= 0) SelectUnit(-1);   // the formation card closes first
+            else if (AgePanelVisible) _agePanelOpen = false;   // then the docked Age panel (it is a panel too)
             else
             {
                 (Section next, bool closed) = GameSections.OnEscape(_openSection);
@@ -898,11 +904,16 @@ public sealed class GameUi
         DrawWorldLensAndAge();   // ADR-031: zoom lens (background) + Age panel/flow/toast (foreground)
         DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
+        // H1: the ADVANCE AGE flow is MODAL (a full-window backdrop on the foreground list): the chrome under it is
+        // drawn but inert, so a click outside the dialog cannot end the turn or open a section beneath it.
+        bool modal = _age.FlowOpen;
+        if (modal) ImGui.BeginDisabled();
         DrawStatusBand();
         DrawSelectionCard();
         DrawUnitCard();
         DrawContextPanel();
         DrawCommandBar();
+        if (modal) ImGui.EndDisabled();
 
         if (_fonts is not null) ImGui.PopFont();
         Controls.EndFrame();
