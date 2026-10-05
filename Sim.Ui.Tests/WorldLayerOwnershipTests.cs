@@ -173,7 +173,10 @@ public class WorldLayerOwnershipTests(InstitutionWorldFixture fx) : IClassFixtur
     [Fact]
     public void LegacyMapPass_NoLongerDrawsTerritoryPathsMarkersOrNames()
     {
-        string src = File.ReadAllText(Path.Combine(RepoRoot(), "Sim.Ui", "SimUiGame.cs"));
+        // M5 hardening H1: the window is SimUiGame (GPU host: terrain bake, rivers) + GameUi (everything drawn
+        // through ImGui, including the WorldLens) — the map pass is the two together.
+        string src = File.ReadAllText(Path.Combine(RepoRoot(), "Sim.Ui", "SimUiGame.cs"))
+            + File.ReadAllText(Path.Combine(RepoRoot(), "Sim.Ui", "GameUi.cs"));
         foreach (string gone in new[] { "BuildTerritoryFills", "BuildPaths", "_territoryVertices", "_pathVertices", "_markerTexture", "AddText(pos" })
             Assert.DoesNotContain(gone, src, StringComparison.Ordinal);
         Assert.Contains("DrawWorldBuffer(_riverVertices)", src, StringComparison.Ordinal);

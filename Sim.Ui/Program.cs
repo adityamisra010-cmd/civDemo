@@ -15,6 +15,15 @@ if (Array.IndexOf(args, "--help") >= 0 || Array.IndexOf(args, "-h") >= 0)
     return;
 }
 
+// --smoke [--ai-empires N] [--monkey N] [--report PATH] (M5 hardening H1): THE PLAYABILITY GATE, headless — a real
+// native ImGui context and the game's real per-frame UI driven by scripted clicks, keys, wheel and drags over every
+// visible control in every meaningful state, then a seeded monkey. No window, no GPU. Exit 0 = passed.
+if (Sim.Ui.Headless.SmokeCommand.Wants(args))
+{
+    Environment.ExitCode = Sim.Ui.Headless.SmokeCommand.Run(args, aiEmpiresOverride);
+    return;
+}
+
 // --audit-assets [root]: report which manifest keys resolve to REAL art,
 // which are still stand-ins, and which files are orphaned. Headless, no window.
 if (Array.IndexOf(args, "--audit-assets") >= 0)
