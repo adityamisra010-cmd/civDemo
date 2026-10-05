@@ -66,9 +66,10 @@ public sealed class PreviewToolProcessTests : IDisposable
 
     private static string Tail(string s) => s.Length <= 4000 ? s : s[^4000..];
 
-    /// <summary>Every "  NAME  sha256 HEX" line of a preview log names a file in <paramref name="dir"/> whose UTF-8
-    /// bytes hash to HEX, and every SVG in the directory is listed: the log is evidence of what was written.</summary>
-    private static void AssertLogMatchesFiles(string dir, string[] log)
+    /// <summary>Every "  NAME  sha256 HEX[  …]" line of a preview log names a file in <paramref name="dir"/> whose
+    /// bytes hash to HEX; with <paramref name="everySvgListed"/>, every SVG in the directory is listed too — the log
+    /// is evidence of what was written. Returns how many files the log hashes.</summary>
+    private static int AssertLogMatchesFiles(string dir, string[] log, bool everySvgListed = true)
     {
         var listed = new List<string>();
         foreach (string line in log)
@@ -76,15 +77,21 @@ public sealed class PreviewToolProcessTests : IDisposable
             int at = line.IndexOf("  sha256 ", StringComparison.Ordinal);
             if (at < 0) continue;
             string name = line[..at].Trim();
-            string hex = line[(at + "  sha256 ".Length)..].Trim();
+            string rest = line[(at + "  sha256 ".Length)..].TrimStart();
+            int end = rest.IndexOf(' ');
+            string hex = end < 0 ? rest.TrimEnd() : rest[..end];
             string path = Path.Combine(dir, name);
             Assert.True(File.Exists(path), "the log lists " + name + ", which was not written");
             Assert.Equal(hex, Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path))));
             listed.Add(name);
         }
-        string[] svgs = Directory.GetFiles(dir, "*.svg");
-        Assert.Equal(svgs.Length, listed.Count);
-        foreach (string svg in svgs) Assert.Contains(Path.GetFileName(svg), listed);
+        if (everySvgListed)
+        {
+            string[] svgs = Directory.GetFiles(dir, "*.svg");
+            Assert.Equal(svgs.Length, listed.Count);
+            foreach (string svg in svgs) Assert.Contains(Path.GetFileName(svg), listed);
+        }
+        return listed.Count;
     }
 
     private static string StateLine(string[] log, string stem) =>
@@ -161,6 +168,38 @@ public sealed class PreviewToolProcessTests : IDisposable
         // The EMPIRE view states the levy in words: none known at turn 1, the rig's declared levy when developed.
         Assert.Contains("do not yet know how to levy a tax", File.ReadAllText(Path.Combine(dir, "turn-1-a1-empire.svg")), StringComparison.Ordinal);
         Assert.Contains(">You levy a tax (20% declared;", File.ReadAllText(Path.Combine(dir, "developed-a3-empire.svg")), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// THE OTHER FOUR PREVIEW TOOLS, the same way (adjacent hardening, 2026-10-05: none of them was run by any test
+    /// either). Each must exit 0, print one line per file it wrote, and write exactly the SVGs it prints — the
+    /// count is each tool's fixed set of states. <c>--r2a-preview</c> carries the same tax-gate rig as the action
+    /// preview (its pre-/post-Trade states know the Taxation civic) and a 600-turn city-state (~1.5 min).
+    /// </summary>
+    [Theory]
+    [InlineData("--research-preview", "research preview: ", 10)]
+    [InlineData("--age-preview", "age preview: ", 9)]
+    [InlineData("--era-preview", "era preview: ", 27)]
+    [InlineData("--r2a-preview", "r2a preview: ", 8)]
+    public void EveryOtherPreviewTool_AsASeparateProcess_ExitsZero_AndWritesWhatItPrints(string flag, string prefix, int svgs)
+    {
+        string dir = Path.Combine(_root, flag.TrimStart('-'));
+        (int exit, string output, string err) = RunSimUi(TimeSpan.FromMinutes(15), flag, dir);
+        Assert.True(exit == 0, "sim-ui " + flag + " exit " + exit + "\n" + Tail(output) + "\n" + Tail(err));
+
+        var printed = new List<string>();
+        foreach (string line in output.Split('\n'))
+            if (line.StartsWith(prefix, StringComparison.Ordinal)) printed.Add(line[prefix.Length..].TrimEnd('\r'));
+        Assert.Equal(svgs, printed.Count);
+        foreach (string path in printed)
+        {
+            Assert.True(File.Exists(path), flag + " printed " + path + ", which does not exist");
+            Assert.StartsWith(Path.GetFullPath(dir), path, StringComparison.Ordinal);
+        }
+        Assert.Equal(svgs, Directory.GetFiles(dir, "*.svg").Length);
+        // Where the tool logs hashes (era, r2a), each hashed file must match; the age log records the run, not hashes.
+        string log = Path.Combine(dir, "preview-log.txt");
+        if (File.Exists(log)) AssertLogMatchesFiles(dir, File.ReadAllLines(log), everySvgListed: false);
     }
 
     // ------------------------------------------------------------------ the rig, in process
