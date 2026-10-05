@@ -985,3 +985,201 @@ pressure), G3 (partly closed, d049 §9), G4 (closed — a poor place accumulates
 per-turn share); §3.1 A2's "100 % revolt corner"; §4.3 (AI first tax: now 466 in the CI leg, 463/464 in the suite,
 on its first A3 turn); §9's two OPEN tax items and "new polity at Age A1"; §12 rows 11 and 22; §13 rows "Tax
 effect", "Unrest", "Revolt". The D-021 valves 2/3 (G6) stay DEFERRED; `taxBurdenOffsetMax` 0.5 (G7) is kept.
+
+---
+
+## 15. M5 HARDENING PASS — final integration (appended 2026-10-05; nothing above rewritten)
+
+**Scope.** The Director's M5 hardening instruction of 2026-10-05 (§1–§19). Branch `m5-hardening` (not merged, not
+tagged; M6 not started). Labels as in the header; **MEASURED** here means measured on this branch's final tree
+(`6ef1596` code) on 2026-10-05 by the integrating agent unless a stream is named.
+
+### 15.1 Identity
+
+| item | value | label |
+|---|---|---|
+| Branch | `m5-hardening` (`origin/m5-hardening`), cut from the baseline `9bb7423` (`m5i-playtest-baseline`) | MEASURED (git) |
+| Hardening merges | H1 `e2f9661` (UI playability), H2 `cd6dbd3` (tax/revolt), H3 `de4eeb3` (previews/docs), H4 `b2dd24f` (measurements); F1 `1e74c8f` (tax fixes), F2 `42c5af4` (forager, docs only), F3 `473fd6a` (UI/docs fixes, ADR-034) | MEASURED (git) |
+| Integration commits | `f5d7040` (ADR-034 call-site pins), `803bc81` (preview logs use the player turn), `2b049f4` (preview sets regenerated), `6ef1596` (forager decision recorded) | MEASURED (git) |
+| **Playable-build commit** | `6ef1596c00825399322a827ea262adbf613fb2db` | MEASURED |
+| Build artifact | `sim-ui-win-x64-6ef1596`, 81,635,456 bytes, `sha256:146c6fba24927ab05bb14dcb6d43237bed7aeda7769a05b979d8687aa0c8f388`, created 2026-10-05T15:52:12Z, expires 2026-11-04 | MEASURED (GitHub API) |
+| Build run | `ui-artifact` run **37336233575** (workflow_dispatch on `m5-hardening` @ `6ef1596`): job `ui-artifact` success, job `windows-smoke` success | MEASURED (GitHub API) |
+| HEAD vs build | Every commit after `6ef1596` on this branch is documentation only (this section, `docs/current-state.md`, README). `git diff --stat 6ef1596 HEAD` lists only `docs/` and `README.md`. | MEASURED |
+| Window title | `civ-sim M5 (<sha>, <date>)` (`BuildInfo.Milestone = "M5"`, H3) | IMPLEMENTED |
+| Schema | canonical v32 (H2: `TaxGrievances`) | IMPLEMENTED |
+
+### 15.2 Every hardening change (what you will see differently)
+
+**Research crash (Director §1) — FIXED (H1, F3).** Root cause: the renderer honoured `ImDrawCmd.VtxOffset` but
+never declared `ImGuiBackendFlags.RendererHasVtxOffset`, so every ImGui draw list was capped at 65,535 vertices. The
+A1 Technology tree needs 60,310 vertices as it opens at 1280×800, 68,034 with the pointer over it, 88,362 at FIT and
+94,664–130,088 in wider windows (H1, MEASURED) — hence the assertion in `imgui_draw.cpp:2261`. Fix:
+`ImGuiDrawData.Configure` declares the flag (called from `ImGuiRenderer.PrepareContext`, used by both the windowed
+renderer and the headless harness, F3), `ImGuiDrawData.Plan/Check` compute and validate base vertex/index per frame,
+and `DrawListCull` drops off-screen commands. The assertion is not suppressed and the screen is not disabled.
+Regression tests render the real Research screen on the canonical turn-1 world (`ResearchScreenRenderTests`,
+`ImGuiRendererSetupTests`); the shipped Windows binary is smoked in CI with a pre-fix control that must reproduce the
+Director's exact dialog.
+
+**GameUi / headless harness / `--smoke` gate (Director §2, §15) — NEW (H1, F3).** `SimUiGame` is a thin MonoGame
+host; the per-frame UI is `GameUi`, driven headlessly inside a real native ImGui context through the game's own input
+path. Every frame is checked for the 16-bit draw contract, duplicate ImGui ids and command-bar overflow. `Sim.Ui
+--smoke` clicks every control the code draws in 9 states (A1 turn 1; one AI; wide window; target set; research done;
+tax available at A3; Age advance; colony + revolt; narrow window at the 1080×640 minimum), then a seeded monkey pass.
+Coverage: §15.6. Coverage table: `docs/m5-playability-gate.md` §6. Defects the gate found and fixed: chrome ignored
+the window size; context panel kept scroll between sections; Age dialog not modal (End Turn worked underneath);
+Escape on the Age panel exited the game; Age panel overlapped the selection card; Warband token did nothing.
+
+**Windows smoke (Director §19) — NEW (H1).** `ui-artifact.yml` job `windows-smoke` runs the exact published
+`app/Sim.Ui.exe --smoke` on windows-latest; a native assertion dialog is detected and fails the job (exit 134)
+instead of hanging.
+
+**Warband (Director §3) — RESOLVED from the code (H1; F3 test).** No order kind moves a formation; only
+`AgeTransitionSystem` writes `MilitaryUnits` (identity conversion at an Age entry). Movement and battle are the M7
+Battle Layer (ADR-033 D7). Clicking the token now selects it and opens a unit card (owner, station, family line
+Warband → Axe warriors → Bronze-armed infantry, current form, next modernization) that states it cannot be moved or
+ordered until the Battle Layer; its only control is Close.
+
+**Taxation as continuous pressure (Director §4–§6, §17) — IMPLEMENTED (H2, F1).** `docs/d049-taxation-and-revolt-model.md`.
+A levy-grievance stock per population segment (class × settlement, schema v32) integrates the felt burden per
+sim-year; protest from T = 12, a segment's tipping point at T = 20, a growing rebel fraction past it; the settlement
+changes hands only when rebels are a majority of its people. No `tax ≥ X → revolt` rule exists; the 100 % corner is
+removed (`AFullLevyAtFullReach_IsNoLongerARevoltCorner_H2`). Happiness and legitimacy fall with accumulated pressure
+and recover after a cut.
+- **Local conditions:** felt = declared × (1 + 0.25 (1 − reach)) × (1 − 0.5 P) × (1 − 0.25 V) — P provision (food,
+  housing, comfort goods), V services/development (public works, university maturity, reach). A poor place
+  accumulates more from the same rate; a well-off or served capital can sustain 100 % without rising (d049 §6).
+- **Food floor (F1):** rebels and protesters withhold the levied work, never their own food — food output is
+  floored at the untaxed level (`Governance.FoodOutputMultiplier`). Before F1 a final settlement at 100 % starved to
+  0 by turn 39; after, it reaches 3,553 people at turn 300 (F1, MEASURED).
+- **State capacity (F1):** weak administrative reach aggravates the felt burden (`unrest.taxCapacityOffsetMax`
+  0.25); at full reach the factor is exactly 1, so capital behaviour and goldens are unchanged.
+- **Uprising needs the current ruler's levy (F1):** inherited grievance decays but cannot throw off a ruler who
+  levies nothing at that settlement.
+
+**A3 tax gate (Director §7) — IMPLEMENTED (H2, F1).** `sim.json governance.taxationMinAge = 3` inside
+`Governance.CanLevyTax` (knowledge first, then Age; fails closed with no Age content). AI valve, hand-built orders,
+the UI, save/load and replay all use that one predicate. The content loader refuses a `taxationMinAge` earlier than
+the earliest Age at which the Taxation requirement can be met (F1). AI first levy in the `ci.yml` AI leg: Age III
+decided at turn 465, first levy 5 % at turn 466 (MEASURED here from the run log); previously 369 while in A2.
+
+**Revolt-Age inheritance (Director §8–§9) — IMPLEMENTED (H2).** A revolt-born polity takes its parent's current Age
+(`RevoltSystem.InheritAge`), a copy of completed research, no progress, no Eureka credit, no capital, normal
+research rate. The final settlement still cannot revolt away. D-048 rulings unchanged.
+
+**Preview tools (Director §12) — FIXED (H3, F3, this pass).** `--action-preview` and `--player-views-preview` rigs
+complete the content-named Taxation gate and stand at A3; process tests run all six preview flags. SVG font URLs are
+relative (portable hashes, F3). Developer preview logs now print the player turn number. Every committed preview set
+was regenerated once on this tree (`2b049f4`).
+
+**Title, turn numbering, minimum window (Director §13; F3).** Title reads `civ-sim M5`. The player-facing turn is
+`Clock.Turn + 1` everywhere on screen (HUD, research header, previews): the founded world reads **turn 1**. The window
+cannot be resized below 1080×640 (below that the command bar's territory toggle left the window).
+
+**ADR-034 order-validation deferral — PROPOSED (F3; pins added this pass).** `OrderValidation.ValidateAtDelivery`
+(kernel file `Sim.Core/Kernel/OrderValidation.cs`) rejects, at delivery, a deferred actor or settlement id that does
+not exist then. Called by `sim run --orders`, `sim replay`, `sim inspect`, `sim research`; each call site is now
+pinned by a CLI test whose mutant (call removed) was measured to fail. **Awaits the Director's ruling** (kernel
+file); no hash moves (it only reads PREV before Step).
+
+**Colonies, ledger, calibration, AI soak (Director §10, §11, §14, §16) — MEASURED (H4; re-run here, §15.6).**
+Colonies within the ruled behaviour (0 foundings in multi-settlement worlds — B1 is collapse-driven; 42 alive and
+growing in lone-settlement worlds); ledger regression test passes and stress runs show exact conservation; two
+replay defects fixed (revolt-polity actors deferred, `9bcad5b`; CLI drives revolt-born AI, `619b109`).
+
+### 15.3 The Director's §18 decision record — RATIFIED (Director, 2026-10-05)
+
+- **Taxation:** a continuous welfare/governance pressure, not an instant-revolt switch.
+- **Extreme taxation:** 100 % tax is permitted as an extreme player action but does not directly or instantly revolt
+  the population.
+- **Revolt:** emerges after accumulated grievance/unrest/happiness deterioration reaches local tipping conditions.
+- **Population impact:** a revolt affects a population segment, not automatically the entire settlement.
+- **Local conditions:** food, amenities, housing, comfort goods, services, development and institutions/state
+  capacity can mitigate tax pressure.
+- **Taxation Age:** Taxation is A3/Bronze Age and cannot be operational before A3.
+- **Revolt Age:** a revolted civilization inherits the parent's current Age.
+
+### 15.4 Corrections to this record's earlier text
+
+- **§11 (and §13 "Documentation") said `CLAUDE.md` "still reads M4 / `m4-spec.md`". False.** `CLAUDE.md` line 10
+  has read "M5 Governing Gameplay — in progress" since `4448350` (verified on `bc87ef8`, `9bb7423` and this tree).
+- §2.12 / §9 / §12 row 27 "preview rigs crash (KNOWN BUG)": **resolved** (H3).
+- §9 "Revolt-founded polity starts at Age A1 (OPEN)": **resolved** — it inherits the parent's Age (RATIFIED §15.3).
+- §9 "Research is not Age-gated … the AI levies in A2": research remains un-Age-gated by design (law 4); the **tax
+  edict** is now Age-gated (A3), so the AI's levy moved to its first A3 turn.
+- §9 "Colonies not re-measured since the forager layer": **re-measured** (H4) — within ruled behaviour.
+- §9 "Benchmark not measured": measured (§15.6).
+- §12 rows 11 and 22 and §13 rows "Tax gate", "Tax effect", "Unrest", "Revolt", "Units", "UI / map",
+  "Documentation", "Benchmark", "Colonies" are superseded by §15.5 and §15.7.
+
+### 15.5 Playtest checklist — changed rows (replace the §12 rows of the same number)
+
+| # | TEST | EXPECTED BASELINE (hardening) | REGRESSION IF | CAPTURE |
+|---|---|---|---|---|
+| 0 | Research screen | Opens at any window size without an assertion; tree pans/zooms, FIT, hover, target selection all work. | Any ImGui assertion dialog; screen blank or frozen | Screenshot; window size |
+| 1′ | Turn label | The status band reads **turn 1** on the founded world. | "turn 0" on screen | Status band |
+| 6′ | Taxation gate | No tax control until **both** Taxation (Civics, 1,050 RP) is complete **and** your realm is in **Age III**. With Taxation known but Age < III the control is shown disabled with the reason. | Tax control usable before A3; a levy recorded before A3 | Policy panel; Age; order log |
+| 11′ | Unrest | Taxation builds pressure over turns. Even 100 % does not revolt on the next turn. A well-provided capital can sustain 100 % (heavy protest, no rising); a poor or distant settlement accumulates faster. Protest drags non-food output; **food output never falls below the untaxed level**. Cutting the levy lets pressure decay. | Revolt on the turn after a levy; revolt with no levy by the current ruler; food output below untaxed under protest | Grievance / unrest lines per settlement; annals |
+| 21′ | Units | Clicking the Warband opens a unit card that says it cannot be moved or ordered until the Battle Layer (M7). | Clicking it does nothing; any move control | Unit card |
+| 22′ | Revolt | Only a **segment** (class) past its tipping point rises; the settlement changes hands only when rebels are a majority. Your last settlement never revolts away. The revolt-born polity starts in **your current Age**, with your completed knowledge, no progress, no capital. | Whole settlement revolting instantly; new polity at A1 above your Age; last settlement lost | Annals; `--answer polities` |
+| 25′ | AI levy | With `--ai-empires 1` the AI's first levy comes on its first Age III turn (≈ 466 in the canonical CI leg). | AI levy while the AI is in A1/A2 | Order log kind 5, actor 2 |
+| 28 | Window | Cannot be resized below 1080×640; every command-bar button stays visible. | A control off-screen | Screenshot |
+
+### 15.6 Validation on the final tree (MEASURED, Release, 2026-10-05, code `6ef1596`)
+
+Tests were run on `2b049f4`; its code is identical to `6ef1596` (the commits between them change only `docs/`).
+
+| check | result |
+|---|---|
+| Release build `Sim.slnx` | 0 warnings, 0 errors |
+| Sim.Tests (full) | **1531 passed, 0 failed, 12 skipped (manual measurement rigs), 1543 total**, 32 m 8 s |
+| Sim.Ui.Tests (full) | **515 passed, 0 failed, 515 total**, 5 m 48 s |
+| Gates | check-banned-constructs OK; check-read-isolation OK; check-readonly-proof OK; research-content-audit, research-calibration-report and research-gameplay-unlock-audit `--check` all current |
+| `ci.yml` determinism-xproc step, run verbatim | exit 0. Orderless 2×400 identical; ordered vs replay 400 identical; founded 2×300 identical, final hash = FOUNDED_GOLDEN `07c6ec45…`; founded ordered vs replay identical; AI leg 2×600 `--ai-empires 1` identical (hash logs and run logs), 194 orders, kinds 3–8, replay identical (final `492659ef…`, unpinned), `sim inspect` "reproduction VERIFIED: 601 turns" |
+| AI in that leg | A2 at turn 239; A3 decided at 465; first levy 5 % at 466 (one turn after A3) |
+| Integrated save/load battery | `IntegratedSaveLoadBattery*` 8/8 |
+| Calibration battery | `CalibrationBatteryTests` 7/7 |
+| 20-seed autoplay (`autoplay --seeds 20 --turns 650`) | exit 0 (1,090 s) |
+| `sim corridors` on that sweep | exit 0. Every gating corridor passes. The two quarantined corridors report QUARANTINE DRIFT and do not gate: density 19/20 seeds in the band, 18/20 in the recorded window; migration 0/20 in the band, 1/20 in the window. H4 measured the same before this pass. |
+| `Sim.Ui --smoke` | exit 0. 9 states, 1363 checks: 1295 pass, 68 not offered, **0 fail**, 0 problems. 42,019 frames, 3,600 monkey actions, largest draw list 135,226 vertices |
+| `Sim.Ui --smoke --ai-empires 1` | exit 0. 8 states, 1213 checks: 1154 pass, 59 not offered, **0 fail**, 0 problems. 37,498 frames, 3,200 monkey actions |
+| windows-smoke (shipped `Sim.Ui.exe`, run 37336233575) | success. 9 states, 1363 checks: 1295 pass, 68 not offered, 0 fail, 0 problems. 37,474 frames. The pre-fix control reproduces the assertion dialog, as it must. |
+| Preview tools | `--action-preview`, `--player-views-preview`, `--r2a-preview`, `--era-preview`, `--research-preview`, `--age-preview` and the institution/road fixtures all exit 0 through their scripts. PNGs were read: the turn-1 A1 screen shows "turn 1"; the A1 tree is usable; the A3 empire view shows the levy. |
+| ADR-034 call sites | `OrderDeliveryValidationTests` 7/7. Removing the call in `run`, `research` or `inspect` makes the matching test fail (measured for each). |
+| `sim bench --founded --seed 42 --turns 300` ×3, alternating, load 0.95–1.12 | base `9bb7423`: 39,924 / 38,829 / 40,228 ms (mean 39,660). Final: 40,362 / 39,234 / 39,118 ms (mean 39,572). **No regression.** |
+
+### 15.7 Open / deferred list (supersedes §9 where they differ)
+
+| issue | status | reference |
+|---|---|---|
+| Order-free forager starvation (canonical 11/20 seeds starve by 650; dev 15/20 by 1000; pre-forager 2/20, 1/20) | **OPEN** — shipped 4.3 / 2.0 kept; options (a) accept, (b) 5.0 per gatherer only, (c) 5.0 with ≈ 3.0 per km² (meets both dev targets; canonical/corridors unmeasured), (d) re-aim the dev tooth | `docs/m5-hardening-measurements.md` F2 + final-integration sections |
+| ADR-034 (delivery-time order validation in a kernel file) | **PROPOSED** — awaits ruling | `docs/adr/adr-034-order-validation-deferral.md` |
+| d049 §11 / §15 INFERRED choices: segments = classes; deterministic expected-value rebel fraction (no random draw); `uprisingGrievance` 20 chosen inside the fitted 17.4–21.0; food floor at the untaxed level (consequence: a final settlement at a permanent 100 % levy can sit in permanent revolt with non-food output near 0); state-capacity factor 0.25; uprising needs the current ruler's levy | **OPEN** — awaiting ruling | d049 §11, §15 |
+| Colonies dormant in multi-settlement worlds | **BY RULING** (T4.4 §0: B1 is collapse-driven); the "stranded by capacity" line is unbuilt | H4 measurements §1 |
+| Quarantined corridors (density, migration) | **OPEN** (quarantine; not gates) | `corridors.json`; CR-003 lineage |
+| CR-019 raider / revolt-polity conflict | **DEFERRED** M7 / M8 | `docs/adr/cr-019-…` |
+| Conquest, annexation gameplay, capital succession, reintegration of revolted settlements | **DEFERRED** M7 / M8 | §9; D-048 |
+| 115 deferred research entities | **DEFERRED** M6 / M7 / M11+ | `docs/deferred-entity-realization-plan.md` |
+| Later-Age military milestones; recruitment, movement, battle | **DEFERRED** M7 | ADR-033 D7 |
+| Full Trade content | **DEFERRED** M6 / M11+ | R2a record |
+| M6 Knowledge / Research / Technology | **NEXT** — not started | `docs/milestones.md` |
+| M7 Battle Layer | **DEFERRED** | `docs/milestones.md` |
+| AI issues no labour orders | **OPEN** (unchanged) | §3.2 A6 |
+| CR-016, CR-005, CR-008 | **OPEN** (unchanged) | §9 |
+| Window snap-back to the minimum size on resize | **INFERRED** to work (no display in CI); startup size is above the minimum | F3 |
+
+### 15.8 Final baseline table (hardening; supersedes §13 rows of the same system)
+
+| System | Expected baseline | Current implementation | Known issue? | Milestone | Test status |
+|---|---|---|---|---|---|
+| Research screen | Opens and is usable at any size | VtxOffset declared; per-frame check; cull | — | M5 | `ResearchScreenRenderTests`, `ImGuiRendererSetupTests`, `--smoke`, windows-smoke |
+| UI controls | Every drawn control clicked in 9 states | `GameUi` + headless harness | 68 controls not offered (reason shown) | M5 | `PlayabilityGateTests`, `--smoke` |
+| Warband | Selectable, card states M7 limitation | unit card | No movement (M7) | M5 / M7 | `PlayabilityGateTests` (Warband card) |
+| Turn-1 food | Wild food 4.3 / 2.0 | `farming.preCultivation` ON | Order-free starvation OPEN | M5 | battery green; nightly in band |
+| Tax gate | Taxation civic **and** Age ≥ III | `Governance.CanLevyTax` | — | M5 | `TaxAgeGateTests`, `TaxAgeContentAgreementTests` |
+| Tax effect | Continuous pressure per segment; food floor | d049 v32 | INFERRED choices await ruling | M5 | `TaxPressureTests` A–H, `TaxRebelSubsistenceTests`, `TaxStateCapacityTests` |
+| Revolt | Segment past tipping point; majority changes hands; Age inherited | `RevoltSystem` | — | M5 | `RevoltTests`, `RevoltAgeInheritanceTests` |
+| Order validation | Deferred ids checked at delivery | ADR-034 (PROPOSED) | Ruling pending | M5 | `OrderDeliveryValidationTests` (7) |
+| Colonies | Collapse-driven only | `ColonizationSystem` | Dormant in normal worlds (ruled) | M4 | H4 measurements |
+| Goldens | founded `07c6ec45…`; AI leg final `492659ef…` (unpinned) | pins + `ci.yml` | — | — | xproc MEASURED §15.6 |
+| Window / title | `civ-sim M5`; min 1080×640; turn 1 | Sim.Ui | — | M5 | `BuildInfoTests`, `PlayerTurnNumberingTests` |

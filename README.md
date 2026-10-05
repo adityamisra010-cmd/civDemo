@@ -251,6 +251,26 @@ every push and pull request.
 
 ## Download & Play
 
+**M5 hardening build (2026-10-05, branch `m5-hardening` @ `6ef1596`, not on `main`)**:
+[ui-artifact run 37336233575](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37336233575)
+→ download `sim-ui-win-x64-6ef1596` (Windows x64 zip; expires 2026-11-04; sign in to GitHub to download). The same
+run's `windows-smoke` job ran this exact `Sim.Ui.exe --smoke` and it passed with 0 failures. Unzip and double-click
+`Play civ-sim.cmd`. To use flags, run `app\Sim.Ui.exe` from a terminal: `--ai-empires 1` adds an AI rival, F12 or
+`--dev` opens the developer panels, `--resume <session-dir>` continues a saved session, and `--help` lists every
+flag. What changed since build 3:
+- Research no longer crashes.
+- The window title reads `civ-sim M5`, and the first turn is **turn 1**.
+- The Warband opens a card saying it cannot move until the Battle Layer (M7).
+- The tax edict needs both the Taxation civic **and** Age III.
+- Taxation builds pressure gradually: a segment (class) of a settlement can rise past its tipping point, and 100 %
+  never revolts anything on the next turn.
+- A settlement that revolts becomes a polity that starts in its parent's Age.
+- The window can't be made smaller than 1080×640.
+
+Full record: [`docs/m5-playtest-baseline.md`](docs/m5-playtest-baseline.md) §15.
+
+> *Dated note (2026-10-05):* the paragraph below describes the previous build and is kept as history.
+
 **M5 playtest build 3 (2026-10-04, branch `m5i-r5-taxation-node` @ `5c364b5`, not on `main`)**:
 [ui-artifact run 37203130829](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37203130829)
 → download `sim-ui-win-x64-5c364b5` (Windows x64 zip; artifact expires after 30 days; sign in to GitHub to download).

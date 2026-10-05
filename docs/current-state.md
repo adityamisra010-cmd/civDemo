@@ -1,5 +1,16 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-05 — M5 HARDENING PASS (`m5-hardening`, NOT merged, NOT tagged; M6 not started; playable build
+> `sim-ui-win-x64-6ef1596`, ui-artifact run 37336233575, build and windows-smoke jobs green).** Newer than the
+> 2026-10-04 entry below. Research-screen crash fixed at its root (ImGui `RendererHasVtxOffset` never declared);
+> headless `--smoke` playability gate over every drawn control (9 states), also run on the shipped Windows exe;
+> Warband selectable with a card stating movement is M7; taxation is continuous per-segment pressure with no
+> instant revolt, a food floor and state-capacity aggravation (D-049, schema v32); the tax edict needs Taxation
+> **and** Age III; a revolt-born polity inherits its parent's Age; preview tools fixed; title `civ-sim M5`; on-screen
+> turn numbering starts at 1. ADR-034 (delivery-time order validation) is PROPOSED. Forager order-free starvation
+> is OPEN (shipped 4.3 / 2.0 kept). Record: `docs/m5-playtest-baseline.md` §15, `docs/d049-taxation-and-revolt-model.md`,
+> `docs/m5-playability-gate.md`, `docs/m5-hardening-measurements.md`. Verify against git.
+
 > **2026-10-04 — M5 PLAYTEST BASELINE (`m5-integration` @ `bc87ef8`; played build `sim-ui-win-x64-5c364b5`, ui-artifact
 > run 37203130829).** This dated entry is newer than the R3 entry below. It supersedes R3's "forager food STOPPED …
 > switch stays OFF":
