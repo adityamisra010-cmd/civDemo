@@ -95,11 +95,39 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             File.WriteAllText(colonyPath,
                 "seed\tworld\tarm\tai\tfounders\tcolonyId\tfoundedTurn\tsourcesWithDemand\tdemandSourceIds\tcontroller\tsourceControllers\tpopAtFounding\tmaxPop\tpopEnd\tdeathTurn\tgrainAtFounding\n");
 
+        // H4_METRICS_OUT: also write the `sim autoplay` metrics shape (autoplay-metrics/v1) observed over the
+        // first H4_SNAPSHOT turns, so an arm's corridors can be scored by NightlyCorridors exactly like the nightly.
+        string metricsOut = Env("H4_METRICS_OUT", "");
+        List<AutoplayMetrics>? metrics = metricsOut.Length > 0 ? [] : null;
         for (int seed = seedLo; seed <= seedHi; seed++)
         {
-            string line = RunOne((ulong)seed, world, arm, ai, founders, turns, snapshot, colonyPath, outPath + ".errors.txt");
+            string line = RunOne((ulong)seed, world, arm, ai, founders, turns, snapshot, colonyPath, outPath + ".errors.txt", metrics);
             File.AppendAllText(outPath, line + "\n");
             output.WriteLine(line);
+        }
+        if (metrics is not null)
+        {
+            var doc = new
+            {
+                schema = "autoplay-metrics/v1",
+                turns = snapshot,
+                seeds = metrics.Select(m => new
+                {
+                    seed = m.Seed,
+                    worldHash = m.WorldHash,
+                    finalPopulation = m.FinalPopulation,
+                    finalYear = m.FinalYear,
+                    settlementCount = m.SettlementCount,
+                    arableKm2 = m.ArableKm2,
+                    finalCohortTotals = m.FinalCohortTotals,
+                    series = new
+                    {
+                        year = m.Year, dtYears = m.DtYears, population = m.Population, births = m.Births,
+                        deaths = m.Deaths, starvationDeaths = m.StarvationDeaths, migrationGross = m.MigrationGross,
+                    },
+                }).ToArray(),
+            };
+            File.WriteAllText(metricsOut, System.Text.Json.JsonSerializer.Serialize(doc) + "\n");
         }
     }
 
@@ -217,8 +245,9 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
     }
 
     private static string RunOne(ulong seed, string worldName, string arm, int ai, int founders, int turns, int snapshot,
-        string colonyPath, string errorPath)
+        string colonyPath, string errorPath, List<AutoplayMetrics>? metrics)
     {
+        AutoplayCollector? collector = metrics is not null ? new AutoplayCollector(seed) : null;
         var clock = Stopwatch.StartNew();
         SimConfig cfg = TestConfigs.Sim();
         if (founders != 400)
@@ -233,6 +262,12 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             cfg = cfg with { Disaster = cfg.Disaster with { HazardPerYear = 0.01 } };
         if (arm == "preforager")
             cfg = TestConfigs.PreForager(cfg);   // ATTRIBUTION CONTROL: the R3 world (forager layer OFF), no orders
+        // COUNTERFACTUAL forager rates (H4_GATHER per gatherer, H4_KM2 per fertility-weighted km²) — a measurement
+        // of the Director's accepted lever (§10), never the shipped content. Unset = shipped sim.json values.
+        if (Environment.GetEnvironmentVariable("H4_GATHER") is { Length: > 0 } gatherText && cfg.Farming.PreCultivation is { } preG)
+            cfg = cfg with { Farming = cfg.Farming with { PreCultivation = preG with { OutputPerGathererPerYear = double.Parse(gatherText, CultureInfo.InvariantCulture) } } };
+        if (Environment.GetEnvironmentVariable("H4_KM2") is { Length: > 0 } km2Text && cfg.Farming.PreCultivation is { } preK)
+            cfg = cfg with { Farming = cfg.Farming with { PreCultivation = preK with { YieldPerArableKm2PerYear = double.Parse(km2Text, CultureInfo.InvariantCulture) } } };
 
         WorldgenConfig wg = (worldName == "dev" ? TestConfigs.DevWorldgen() : TestConfigs.Worldgen()) with { AiEmpires = ai };
         int? settlementsOverride = arm == "lone" ? 1 : null;
@@ -250,6 +285,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
         bool hasAi = AiOrders.HasAiPolity(w);
         int grain = cfg.Goods!.GrainId;
 
+        bool trace = Environment.GetEnvironmentVariable("H4_TRACE") == "1";
+        string tracePath = errorPath.Replace(".errors.txt", ".starvation.tsv", StringComparison.Ordinal);
         int initial = w.Settlements.Count, maxSettlements = initial;
         string status = "ok", exception = "", excTurn = "";
         long negStockTurns = 0, remainderViolations = 0, creditTurns = 0;
@@ -289,6 +326,8 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
                 }
 
                 w = ex.Step(prev);
+                if (collector is not null && t <= snapshot) collector.Observe(w);
+                if (collector is not null && t == snapshot) metrics!.Add(collector.Finish(w));
 
                 // --- ledger invariants -------------------------------------------------------------------
                 bool neg = false;
@@ -345,6 +384,7 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
                     colonies[c] = ct;
                 }
                 if (w.Settlements.Count > maxSettlements) maxSettlements = w.Settlements.Count;
+                if (trace && Starved(w) > Starved(prev)) TraceStarvation(tracePath, seed, worldName, arm, t, prev, w, cfg);
 
                 if (t == snapshot)
                 {
@@ -415,6 +455,36 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             for (int sector = 0; sector < Sectors.Count; sector++)
                 orders.Append(new OrderRecord(turn, player.Value, OrderKind.SectorAllocation, id.Value * 8 + sector, weights[sector]));
         }
+    }
+
+    /// <summary>H4_TRACE=1: one line per settlement in deficit on every turn that starvation deaths occurred —
+    /// the turn, the deaths that turn, and the settlement's PREV population, PREV deficit ratio (the one demographics reads), PREV grain store, last grain
+    /// harvest and its forager LAND CEILING (fertility-weighted arable km² × the forager per-km² yield, person-years
+    /// per year) so a reading can be classed as a land-bound (Malthusian) or a labour/weather shortfall.</summary>
+    private static void TraceStarvation(string path, ulong seed, string worldName, string arm, int t,
+        IReadOnlyWorldState prev, IReadOnlyWorldState w, SimConfig cfg)
+    {
+        if (!File.Exists(path))
+            File.WriteAllText(path, "seed\tworld\tarm\tturn\tyear\tdt\tstarvedThisTurn\tsettlement\tpop\tdeficitRatio\tgrainStore\tlastGrainHarvest\tarableKm2\tforagerLandCeilingPerYear\n");
+        long delta = Starved(w) - Starved(prev);
+        double perKm2 = cfg.Farming.PreCultivation?.YieldPerArableKm2PerYear ?? double.NaN;
+        var sb = new StringBuilder();
+        // The deficit demographics reads is PREV's (the turn before the deaths); the store and harvest are PREV's too.
+        for (int i = 0; i < prev.ConsumptionDeficits.Count; i++)
+        {
+            ConsumptionDeficitRow d = prev.ConsumptionDeficits[i];
+            if (!(d.DeficitRatio > 0.0)) continue;
+            int gi = GoodStockIndex.IndexOf(prev.GoodStocks, d.Settlement, new GoodId(cfg.Goods!.GrainId));
+            double arable = 0.0;
+            for (int c = 0; c < prev.CatchmentSummaries.Count; c++)
+                if (prev.CatchmentSummaries[c].Settlement == d.Settlement) { arable = prev.CatchmentSummaries[c].EffectiveArableKm2; break; }
+            sb.Append(string.Create(CultureInfo.InvariantCulture,
+                $"{seed}\t{worldName}\t{arm}\t{t}\t{w.Clock.WorldDateYears:F0}\t{w.Clock.DtYears}\t{delta}\t{d.Settlement.Value}\t{Pop(prev, d.Settlement)}\t{d.DeficitRatio:F4}\t{(gi >= 0 ? prev.GoodStocks[gi].Amount.Value : -1)}\t{(gi >= 0 ? prev.GoodStocks[gi].LastProducedUnits : -1)}\t{arable:F0}\t{arable * perKm2:F0}\n"));
+        }
+        if (sb.Length == 0)
+            sb.Append(string.Create(CultureInfo.InvariantCulture,
+                $"{seed}\t{worldName}\t{arm}\t{t}\t{w.Clock.WorldDateYears:F0}\t{w.Clock.DtYears}\t{delta}\t-\t-\t-\t-\t-\t-\t-\n"));
+        File.AppendAllText(path, sb.ToString());
     }
 
     private static long Pop(IReadOnlyWorldState w, SettlementId s)
