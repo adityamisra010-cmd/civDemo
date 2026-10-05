@@ -444,3 +444,42 @@ replay and inspect agreement, §7).
 | tipping point, offsets, schema | `UnrestTests.TheTippingPoint_RisenFromU_TheRebelFractionGrowsOverTheProtestSpan`, `UnrestTests.ServiceOffset_ReadsPublicWorksAndInstitutions_ScaledByReach`, `UnrestTests.ThePoorerSegment_FeelsTheSameLevyMore_AndAccruesMore_InTheSystem`; `TaxGrievanceSchemaTests` (populated: ExpectedLength, round-trip, hash) |
 | Age gate | `TaxAgeGateTests`; AI first-levy pins in `AiEmpireIntegrationTests` |
 | revolt Age | `RevoltAgeInheritanceTests` |
+
+## 13. Mutation record (MEASURED, ADR-015 §7)
+
+Each mutant applied alone to a scratch copy of this branch (never a shared tree), Release build, filter
+`UnrestTests | TaxPressureTests | Systems.GovernanceTests | TaxAgeGateTests | RevoltAgeInheritanceTests` (110 tests;
+clean baseline 110/110 in 98 s). Bound: max(600 s, 5 × baseline) per mutant; none hung (84–100 s each). Every mutant
+is killed by at least one SEMANTIC test (no golden in the filter).
+
+| mutant | killed by (semantic) |
+|---|---|
+| M1 the settlement uprising reads the RISEN share instead of the rebels | `UnrestTests.TheSettlementUprising_IsRebelsAboveTheShare_Strictly`; `TaxPressureTests` D, E, F (4 failed) |
+| M2 no service offset | `UnrestTests.Dignity_IsTheBurdenOffsetByProvision_AndServices_AndExactlyTheR2bReadingAtItsEdges`; `TaxPressureTests.F` (2) |
+| M3 happiness ignores the accumulated pressure | `UnrestTests.Happiness_FallsWithTheAccumulatedPressure_NotWithTheEdict_AndRevoltReadsProvisionOnly`; five `GovernanceTests`; `TaxPressureTests` A, B, F, H (10) |
+| M4 revolt reads the taxed happiness (the old corner restored) | `GovernanceTests.AFullLevyAtFullReach_IsNoLongerARevoltCorner_H2`; `UnrestTests.Happiness_Falls…RevoltReadsProvisionOnly`; `TaxPressureTests` D, E, F (5) |
+| M5 the Age half of the tax gate removed | all five `TaxAgeGateTests` behaviour tests (hand-built edict, AI valve, turn-exact delivery, save/load) (5) |
+| M6 the revolt child does not inherit the Age | six `RevoltAgeInheritanceTests`; `UnrestTests.ARevoltedSeat_BecomesANewAiPolity_HoldingTheCompleteParentKnowledge` (7) |
+| M7 the whole segment revolts at its tipping point | `UnrestTests.TheTippingPoint_RisenFromU_TheRebelFractionGrowsOverTheProtestSpan`, `…ARisenMinority…`, `…TheSettlementUprising…`; `TaxPressureTests` D, E, F (6) |
+| M8 the levy stock decays without protest's discharge | `UnrestTests.ExtremeTax_OnAWellProvidedSeat_IsBorneInProtest_NotARevolt`; `TaxPressureTests` D, E, F, H (5) |
+
+## 14. Validation (MEASURED, Release, 2026-10-05; machine shared with other agents)
+
+- **Sim.Tests** (code at `af316ee`): `Passed! - Failed: 0, Passed: 1500, Skipped: 8, Total: 1508` (34 m 38 s).
+  The 8 skipped are the six pre-existing manual rigs plus this record's two (`TaxPressureMeasurement`,
+  `TaxPressureCalibrationProbe`).
+- **Sim.Ui.Tests** (same build): `Passed! - Failed: 0, Passed: 476, Skipped: 0, Total: 476`.
+- **Gates:** banned-constructs, read-isolation, readonly-proof OK; research content audit, calibration report and
+  gameplay-unlock audit `--check` current.
+- **ci.yml determinism-xproc step, run locally verbatim** (build at `c027c43`; `af316ee` changes comments and
+  content `_doc` strings only): orderless 2 processes × 400 turns byte-identical; ordered vs replay × 400
+  byte-identical; founded 2 processes × 300 byte-identical and equal to `FOUNDED_GOLDEN` `07c6ec45…`; founded
+  ordered vs replay × 300 byte-identical; AI-empire leg 2 processes × 600, replay and `sim inspect`
+  (`reproduction VERIFIED: 601 turns, hash-for-hash`, 194 orders, kinds 3–8) — exit 0.
+- **Calibration battery** (`CalibrationBatteryTests`): 7/7 passed.
+- **Nightly corridor sweep** (`sim autoplay --seeds 20 --turns 650` + `sim corridors`): exit 0 (no gating failure).
+  Two QUARANTINED corridors report window drift (`densityPerArableKm2` 18/20 seeds inside its window,
+  `migrationGrossPerDecade` 1/20) — both quarantined before this branch (t4.21 director report: migration 0/20 in
+  window) and both on untaxed autoplay worlds, where this model is inert (§8). Not caused here: INFERRED from the
+  inertness proven by the golden controls, not re-measured at the base commit.
+- **Not run:** `sim bench` (excluded by the stream instructions).
