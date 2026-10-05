@@ -7,8 +7,9 @@ namespace Sim.Ui.ViewModel;
 /// <summary>One change and the observed turns after it.</summary>
 public sealed record PolicyChangeView(long Turn, string Line, IReadOnlyList<string> Consequences);
 
-/// <summary>One policy in the POLICY section's list. M4 has exactly one; M5's
-/// taxation is the second entry, in this same shape.</summary>
+/// <summary>One policy in the labour record's list (the folded record under the POLICY surface). It holds one
+/// entry, the labour allocation. (2026-10-05: an M4 note here said M5's taxation would become the second entry; it
+/// did not — the tax edict lives in the action surface's Governance block, and its changes in the Annals.)</summary>
 public sealed record PolicyEntry(string Name, string Note);
 
 /// <summary>
