@@ -12,11 +12,31 @@ public static class UiArgs
 {
     /// <summary>The usage line the UI prints for its launch options (Program.cs, README).</summary>
     public const string Usage =
-        "sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--resume DIR|MANIFEST]   "
-        + "(--ai-empires: found N AI-commanded Empires to play against; default worldgen.json's aiEmpires, which is 0; "
-        + "--dev: open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play; --resume: continue a saved session by replaying its order log)\n"
-        + "sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME] [--report PATH]   (the playability gate, headless: no window, no GPU; exit 0 = passed; docs/m5-playability-gate.md)\n"
-        + "sim-ui --smoke-control-prefix | --frame-cost [--rounds N]   (the gate's crash control; the Research-screen frame cost)";
+        "Play:\n"
+        + "  sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--resume DIR|MANIFEST]\n"
+        + "    --seed N            world seed (default 42)\n"
+        + "    --size PX           world size override (developer preview escape hatch; default: canonical size)\n"
+        + "    --settlements N     founding settlement count override\n"
+        + "    --ai-empires N      found N AI-commanded Empires to play against (default worldgen.json's aiEmpires, which is 0)\n"
+        + "    --dev               open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play\n"
+        + "    --resume DIR|FILE   continue a saved session (a session directory or a session-*.json manifest) by replaying its order log\n"
+        + "Check (headless: no window, no GPU):\n"
+        + "  sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME]... [--report PATH] [--timeout-minutes N]\n"
+        + "                        the playability gate; exit 0 = passed (docs/m5-playability-gate.md)\n"
+        + "  sim-ui --smoke-control-prefix   the gate's crash control (the pre-fix renderer configuration)\n"
+        + "  sim-ui --frame-cost [--rounds N] the Research-screen frame cost\n"
+        + "Developer previews (write SVGs to DIR and exit; no window):\n"
+        + "  --research-preview [DIR]       the Knowledge & Technology progression screen (default research-preview)\n"
+        + "  --age-preview [DIR]            the capital Age panel and Age flow (default age-preview)\n"
+        + "  --era-preview [DIR]            the UI theme of each of the nine Ages (default era-ui-preview)\n"
+        + "  --action-preview [DIR]         the action surface (default action-surface-preview)\n"
+        + "  --r2a-preview [DIR]            research R2a states (default r2-previews)\n"
+        + "  --player-views-preview [DIR]   the Settlement, Empire and Institutions views (default player-views-preview)\n"
+        + "Assets:\n"
+        + "  --audit-assets [ROOT]          report which manifest keys resolve to real art\n"
+        + "  --generate-placeholder-assets [ROOT]   write any missing placeholder art\n"
+        + "  --help, -h                     this text";
+
 
     /// <summary>ADR-033 D9: whether the UI opens with the developer surfaces shown (<c>--dev</c>). Off by
     /// default: the player command bar shows only the player sections. Not part of the world's identity.</summary>
