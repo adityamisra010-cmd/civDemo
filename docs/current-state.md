@@ -255,6 +255,11 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 
 ## 1. WHERE THE PROJECT IS
 
+> **Pointer (2026-10-05, M5 hardening H3).** This table and §2 are the 2026-08-31 measurement, kept as written.
+> The current milestone is **M5 Governing Gameplay, in progress** (the dated entries at the top of this file;
+> `docs/milestones.md` roadmap rebase). `CLAUDE.md`'s milestone line reads M5 (verified on `9bb7423`; changed in
+> `4448350`), so §2's contradiction no longer exists.
+
 | | |
 | --- | --- |
 | **Current milestone** | **M4** — see §2 for why this contradicts `CLAUDE.md` |

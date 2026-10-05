@@ -16,9 +16,9 @@ namespace Sim.Ui.Tests;
 /// in, it is refused when the research gate is closed, the panel shows what is COLLECTED beside what is
 /// declared, and the AI reaches the world through the same log the director writes to.
 ///
-/// WHAT CHANGED IN THE PORT. Taxation is research-gated by the content (ADR-033 D4), so a fresh
-/// session cannot tax; the cases that legislate first COMPLETE ONE OF THE TAXATION NODES in the
-/// session's world (the constructed-knowledge rig the Age tests use). The AI valve is a pure policy
+/// WHAT CHANGED IN THE PORT. Taxation is research-gated by the content (ADR-033 D4; since R5 the single
+/// Civics node `taxation`), so a fresh session cannot tax; the cases that legislate first COMPLETE THE
+/// TAXATION CIVIC in the session's world (the constructed-knowledge rig the Age tests use). The AI valve is a pure policy
 /// that this port deliberately does not wire into EndTurn (the single AI order producer is stream
 /// S2's), so the last case appends the valve's orders to the session log exactly as that producer
 /// will, and proves they take effect through the ordinary step.
