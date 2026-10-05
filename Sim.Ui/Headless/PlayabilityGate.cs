@@ -126,6 +126,8 @@ public static class PlayabilityGate
             list.Add(new("one AI", "canonical founded world with --ai-empires 1, turn 1", () => UiSession.Start(42, aiEmpiresOverride: 1)));
         list.Add(new("wide window" + aiTag, "turn 1 in a maximised 1920x1009 window (the chrome follows the window; the A1 tree opens past 65,535 vertices)",
             () => UiSession.Start(42, aiEmpiresOverride: ai), 1920, 1009));
+        list.Add(new("narrow window" + aiTag, "turn 1 in the smallest window the game allows (" + MinSizeText + "; the window cannot be resized below it, and the command bar must fit)",
+            () => UiSession.Start(42, aiEmpiresOverride: ai), PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight));
         list.Add(new("target set" + aiTag, "turn 1 + the cheapest Technology node ordered, one End Turn", () => TargetSet(ai)));
         list.Add(new("research done" + aiTag, "played: cheapest Technology node targeted and End Turn until one node completes", () => ResearchDone(ai)));
         list.Add(new("tax available" + aiTag, "rig: the Taxation civic and a road class (track_road) with their prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
@@ -133,6 +135,9 @@ public static class PlayabilityGate
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
         return list;
     }
+
+    private static string MinSizeText => PanelLayout.MinWindowWidth.ToString(CultureInfo.InvariantCulture) + "x"
+        + PanelLayout.MinWindowHeight.ToString(CultureInfo.InvariantCulture);
 
     public static GateReport Run(GateOptions o)
     {

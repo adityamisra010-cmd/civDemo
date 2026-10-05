@@ -84,7 +84,30 @@ public sealed class SimUiGame : Game
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
+        // F3: a floor under the user-resizable window (PanelLayout.MinWindowWidth/Height) — below it the command
+        // bar's fixed row ran past the right edge. MonoGame has no native minimum, so a resize below the floor is
+        // snapped back to it (the playability gate plays the game at exactly this size).
+        Window.ClientSizeChanged += (_, _) => EnforceMinimumWindowSize();
         Window.Title = BuildInfo.Describe(); // build identity: sha + date (T1.10)
+    }
+
+    private bool _enforcingMinimum;
+
+    private void EnforceMinimumWindowSize()
+    {
+        if (_enforcingMinimum) return;
+        Rectangle b = Window.ClientBounds;
+        if (b.Width <= 0 || b.Height <= 0) return; // minimised
+        int w = Math.Max(b.Width, PanelLayout.MinWindowWidth), h = Math.Max(b.Height, PanelLayout.MinWindowHeight);
+        if (w == b.Width && h == b.Height) return;
+        _enforcingMinimum = true;
+        try
+        {
+            _graphics.PreferredBackBufferWidth = w;
+            _graphics.PreferredBackBufferHeight = h;
+            _graphics.ApplyChanges();
+        }
+        finally { _enforcingMinimum = false; }
     }
 
     protected override void LoadContent()

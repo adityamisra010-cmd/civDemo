@@ -41,6 +41,14 @@ public static class PanelLayout
     public const int DesignWidth = 1280;
     public const int DesignHeight = 800;
 
+    /// <summary>F3 (M5 hardening): the smallest window the game allows. The window is user-resizable and the chrome
+    /// follows it, but the command bar's row (End Turn, the section buttons, the territory toggle) is laid out at fixed
+    /// offsets; below this width its last control was drawn past the window's right edge. SimUiGame snaps the window
+    /// back to this size; the playability gate's "narrow window" state plays the game at exactly this size and the
+    /// harness fails any frame whose command-bar control leaves the window.</summary>
+    public const int MinWindowWidth = 1080;   // measured: the territory toggle ends at x = 1056.6 (H1 fonts), + Margin
+    public const int MinWindowHeight = 640;
+
     /// <summary>Outer margin and inter-element gap, one number so the spacing
     /// is uniform by construction rather than by five separate decisions.</summary>
     public const float Margin = 12;

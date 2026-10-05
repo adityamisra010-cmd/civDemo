@@ -318,6 +318,27 @@ public class PlayabilityGateTests : IDisposable
     }
 
     [Fact]
+    public void NarrowWindow_AtTheMinimumSize_TheCommandBarFits_AndBelowItTheHarnessFlagsTheOverflow()
+    {
+        PlayabilityGate.GateState state = PlayabilityGate.States(null).First(st => st.Name == "narrow window");
+        Assert.Equal((PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight), (state.Width, state.Height));
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-min"), Assets(),
+                   width: PanelLayout.MinWindowWidth, height: PanelLayout.MinWindowHeight))
+        {
+            h.Idle(3);
+            UiControl territory = h.Ui.Controls.Find("territory")!.Value;
+            Assert.True(territory.X1 <= PanelLayout.MinWindowWidth, "territory toggle ends at " + territory.X1);
+            Assert.Empty(h.Problems);
+        }
+        // Control: 1024 px (the old floor-less case the verifier found) — the harness must call it out.
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-1024"), Assets(), width: 1024, height: 640))
+        {
+            h.Idle(2);
+            Assert.Contains(h.Problems, p => p.Contains("'territory' outside", StringComparison.Ordinal));
+        }
+    }
+
+    [Fact]
     public void Warband_Card_ClosesWithItsButton_WithEscape_AndWhenASettlementIsChosen_AndGivesWayToTheAgePanel()
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband-close"), Assets());
