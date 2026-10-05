@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Paints the REAL action surface (sim-ui --action-preview): turn 1 on the canonical founded world (Age I),
-# and a later state — a crop, a taxation node and a road class known — at Age III and Age VIII, each as the
-# game screen with the POLICY panel open and as the panel alone at full height; screenshots each SVG with
-# headless Chromium. The SVGs are deleted after the screenshot (the PNGs and the log are kept).
+# a later state — a crop, the Taxation civic and a road class known — at Age III and Age VIII, and a researched
+# state at Age IV, each as the game screen with the POLICY panel open and as the panel alone at full height;
+# screenshots each SVG with headless Chromium. The SVGs are deleted after the screenshot (the PNGs and the log are kept).
 # Usage (from repo root): docs/architecture/action-surface-preview/render-previews.sh [out-dir]
 set -euo pipefail
 OUT="${1:-docs/architecture/action-surface-preview}"
