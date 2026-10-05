@@ -1,3 +1,3 @@
-01 turn 12: eligible=False
-eligible after 280 more turns, at turn 292: True
-advance: age 1 -> 2 at turn 293
+01 turn 13: eligible=False
+eligible after 285 more turns, at turn 298: True
+advance: age 1 -> 2 at turn 299

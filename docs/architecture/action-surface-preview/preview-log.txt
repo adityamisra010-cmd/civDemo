@@ -1,13 +1,13 @@
 action surface preview: the real ActionSurfaceScreen over ActionSurface.Build, seed 42, canonical 1024 px world
-turn-1-a1: Turn 1, canonical founded world (seed 42, 12 settlements), Age I; turn 0, world hash 4d05a7f2dd5766236edb75f6860e8e8ff2f4c3cdefa604bf8d46490b1bdd954c, era Prehistoric, control Pebbles, layout Flat, domains Labour/Research/Construction/Military/Standing/Production
-  turn-1-a1-screen.svg  sha256 ee78a75bf6142e93ec7754de69e25f8896e080f9ed972e515de8c2ce28d16554
-  turn-1-a1-panel.svg  sha256 57a541d0eb0673ed27a12a3ab15f75a52fcec24695ff161d26102a35d0246a08
-later-a3: A later state: a crop, the Taxation civic and a road class known; Age III; the turn Farming appeared; turn 14, world hash c357adca40a9dda94c6610bf08f82ae6cac6eeaba24d16a80e397d7b506f474e, era Bronze, control Counters, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
-  later-a3-screen.svg  sha256 86865f3a46dc8896adde3910855380223f30970dd2240b6253d3f20de62aa03f
-  later-a3-panel.svg  sha256 6094826e40b8de6ad99420cf3e9d68ea350dd224850981f6d080ac71acad9665
-later-a8: The same later state with only the Age row changed to Age VIII; turn 14, world hash e358333a0fb3ba3a2b03da584a3649ed1d4b85fd28ff1a03285075641781501e, era Industrial, control Slider, layout Detailed, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
-  later-a8-screen.svg  sha256 71e3d5c8f191d39b92c9dfd6bb42efdfed46827899e3a588599e0f4d6612c043
-  later-a8-panel.svg  sha256 be0e9cb72e9ca4eeccb03b766aa84d8d63c31c9c7d9a113223ee269ccbbd978e
-researched-a4: Researched state: agriculture, pottery, bronze casting, taxation, a road class and the university's prerequisites known; Age IV; turn 1, world hash 855b60aff23f8a8f1711047b684c0ab740447d1cdcf623cf353545216f462588, era Iron, control Notches, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
-  researched-a4-screen.svg  sha256 92c8e3ec68db41b086d6098aba03dae0922539df445ae94ae3c4175caf10a53f
-  researched-a4-panel.svg  sha256 66d115352542bb96cd15c2a869622b3120b1dc0c568484139ecf1e86a403e215
+turn-1-a1: Turn 1, canonical founded world (seed 42, 12 settlements), Age I; turn 1, world hash c428dba966ef5ecb038e70646accbad74c3342417c7792a8424c857f1fbce158, era Prehistoric, control Pebbles, layout Flat, domains Labour/Research/Construction/Military/Standing/Production
+  turn-1-a1-screen.svg  sha256 366b8e6a3b8a025dce81dd6e2bf736e43104e7b9f55a3e37473ab7f38349fa5d
+  turn-1-a1-panel.svg  sha256 bcad47d94ca2fc9fa5a83dd82dcae286d0a48d97af9d0f124f63a6ca4ad28608
+later-a3: A later state: a crop, the Taxation civic and a road class known; Age III; the turn Farming appeared; turn 15, world hash 1d13233eff76692432dbeb2133c045d0438e6b4a16b9340244373d50d63db9bc, era Bronze, control Counters, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  later-a3-screen.svg  sha256 3d5d3e688671e588f011f85c66cf60a70d0092fe5812e13aa5dd25f05ab7c84a
+  later-a3-panel.svg  sha256 c5a177d7afbd6de2fd0005e9f0a317afc277f544f2574a63de0e9439f6f09251
+later-a8: The same later state with only the Age row changed to Age VIII; turn 15, world hash 5da331805c7600dad5f9e9798e520055e8f3ae91d9382c2e14735f440b5cc0a6, era Industrial, control Slider, layout Detailed, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  later-a8-screen.svg  sha256 993c9aecb4e4dc8d2fabbd0bdccb2d0e016c8110afbe784473581f5f0dc2814c
+  later-a8-panel.svg  sha256 f199b59211755220eec02f1a08c362935b2115fc32947139f92006554728bbf8
+researched-a4: Researched state: agriculture, pottery, bronze casting, taxation, a road class and the university's prerequisites known; Age IV; turn 2, world hash 04e4681c40ce46f04cb7a1efc79673b979708a359e6b3c4ed637dac089bc1864, era Iron, control Notches, layout Grouped, domains Labour/Research/Construction/Roads/Military/Governance/Standing/Production
+  researched-a4-screen.svg  sha256 e618210dbb311cef6a6ab622eec56010117eb97425d74e5ab9c190600e8702b1
+  researched-a4-panel.svg  sha256 44702abe8474b457a22f86958a3964deea5866f3e47fcc3d5dc8c5c85dcda3ac
