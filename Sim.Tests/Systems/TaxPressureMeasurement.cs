@@ -14,7 +14,7 @@ namespace Sim.Tests.Systems;
 /// §6. On the founded dev world (seed 42, 4 settlements, one player Empire holding all, the canonical era table — dt 10
 /// years per turn at founding, the FASTEST accumulation per turn the game has) the player knows its crafts and the
 /// Taxation civic and stands in A3; a levy is declared at turn 0 (in force from turn 1) and the CAPITAL (reach 1.0) is
-/// read every turn. Three local conditions:
+/// read every turn. Four local conditions:
 /// <list type="bullet">
 /// <item>WELL-OFF: every stock the capital holds topped up to twice its population each turn, housed with room to
 ///   spare, and a granary and a workshop standing (public works: the service offset at full reach);</item>
@@ -153,10 +153,10 @@ public class TaxPressureMeasurement(ITestOutputHelper output)
 }
 
 /// <summary>H2 calibration probe (manual): the natural capital's levy-grievance plateau on the canonical world and
-/// the dev world at 40/70/99/100 %, for the threshold derivation in d049 §6.</summary>
+/// the dev world at 40/70/99/100 %, for the threshold derivation in d049 §5.</summary>
 public class TaxPressureCalibrationProbe(ITestOutputHelper output)
 {
-    [Fact(Skip = "H2 calibration probe (~1 min: 8 founded worlds x 60 turns) — run manually; d049 §6 records the plateaus the thresholds are derived from")]
+    [Fact(Skip = "H2 calibration probe (~1 min: 8 founded worlds x 60 turns) — run manually; d049 §5.1 records the plateaus the thresholds are derived from")]
     public void NaturalPlateaus()
     {
         var text = new StringBuilder();

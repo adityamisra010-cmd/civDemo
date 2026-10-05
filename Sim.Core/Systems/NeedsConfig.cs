@@ -60,8 +60,9 @@ public sealed record UnrestTuning(
     // its reach (State.Unrest.ServiceOffset). Optional: absent = 0 = no service offset.
     [property: JsonPropertyName("taxServiceOffsetMax")] double TaxServiceOffsetMax = 0.0,
     // H2 (Director 2026-10-05 §4/§18 "a revolt affects a population segment"): the share of a settlement's people
-    // its RISEN segments (classes whose levy grievance stands at uprisingGrievance) must exceed before the settlement
-    // as a whole throws off its ruler. Below it the rising stays the segment's own. Optional: absent = 0.5 (a majority).
+    // its REBELS (the rebel portions of the segments past their tipping point, State.Unrest.RebelShare) must exceed
+    // before the settlement as a whole throws off its ruler. Below it the revolt stays the segment's own. Optional:
+    // absent = 0.5 (a majority).
     [property: JsonPropertyName("uprisingPopulationShare")] double UprisingPopulationShare = 0.5);
 
 /// <summary>
@@ -302,7 +303,7 @@ public static class NeedsConfigLoader
             throw new NeedsConfigException($"unrest.taxServiceOffsetMax must be in [0,1) (a levy is never wholly offset), got {Inv(u.TaxServiceOffsetMax)}.");
         if (!(u.UprisingPopulationShare > 0.0) || !(u.UprisingPopulationShare < 1.0))
             throw new NeedsConfigException(
-                $"unrest.uprisingPopulationShare must be in (0,1) (the share of a settlement's people its risen segments must exceed), got {Inv(u.UprisingPopulationShare)}.");
+                $"unrest.uprisingPopulationShare must be in (0,1) (the share of a settlement's people its rebels must exceed), got {Inv(u.UprisingPopulationShare)}.");
     }
 
     private static void ValidateAggregation(AggregationTuning? a)

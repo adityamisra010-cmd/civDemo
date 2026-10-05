@@ -64,9 +64,10 @@ public readonly record struct RevoltTables(
 /// segment (class × settlement) accrues its own levy grievance over years of felt
 /// exaction (offset by its provision, services and reach) against generational decay
 /// and protest's discharge, and RISES at its own tipping point
-/// (<see cref="Unrest.IsSegmentRisen"/>). A risen minority is that segment's revolt —
-/// its levied labour withheld (ProductionSystem, via Unrest's drag) — and the place
-/// stays its ruler's. Only when the risen segments CARRY the settlement (more than
+/// (<see cref="Unrest.IsSegmentRisen"/>); past it a growing PORTION of the segment is in
+/// open revolt (<see cref="Unrest.SegmentRebelFraction"/>). A rebel minority is that
+/// segment's revolt — its levied labour withheld (ProductionSystem, via Unrest's drag) —
+/// and the place stays its ruler's. Only when the rebels CARRY the settlement (more than
 /// unrest.uprisingPopulationShare of its people, <see cref="Unrest.IsUprising"/>) does
 /// the settlement throw off its ruler here. History, not a mood reading that flicks
 /// with one turn's policy; delayed by accumulation, never instantaneous. Inert without

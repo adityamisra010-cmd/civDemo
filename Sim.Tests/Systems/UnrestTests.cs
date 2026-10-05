@@ -86,7 +86,7 @@ public class UnrestTests
         Assert.True(dignity.FromTaxBurden);
         Assert.NotNull(Cfg.Needs.Unrest);
         Assert.True(Tuning.UprisingGrievance > Tuning.ProtestOnsetGrievance);
-        // H2: re-derived on the levy-grievance scale (d049 §6), the service offset and the majority rule.
+        // H2: re-derived on the levy-grievance scale (d049 §5), the service offset and the majority rule.
         Assert.Equal((12.0, 20.0, 0.5, 0.25, 0.5),
             (Tuning.ProtestOnsetGrievance, Tuning.UprisingGrievance, Tuning.TaxBurdenOffsetMax, Tuning.TaxServiceOffsetMax, Tuning.UprisingPopulationShare));
     }
