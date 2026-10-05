@@ -206,7 +206,7 @@ public sealed record HudModel(
             $"world pop {WorldPopulation}  ({SettlementCount} settlements)");
 
     public string ClockLine =>
-        string.Create(CultureInfo.InvariantCulture, $"turn {Turn}   year {Year}");
+        string.Create(CultureInfo.InvariantCulture, $"turn {PlayerTurn.Current(Turn)}   year {Year}");
 
     /// <summary>T2.6: the selected settlement's grievance stock — display only
     /// (the read-isolation doctrine: grievance drives no behavior until M5).

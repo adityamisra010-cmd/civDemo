@@ -102,7 +102,7 @@ public static class R2aPreview
         var lines = new List<string>
         {
             $"City-state: {st.Session.Names.Name(city.Value)} (settlement {city.Value.ToString(CultureInfo.InvariantCulture)}) — no Empire controls it",
-            $"Turn {w.Clock.Turn} · population {ResearchQuery.Population(w, local)}",
+            $"Turn {Sim.Ui.ViewModel.PlayerTurn.Current(w.Clock.Turn)} · population {ResearchQuery.Population(w, local)}",
             $"Research: {ResearchQuery.CityStateResearchPoints(w, r, city).ToString("0.00", CultureInfo.InvariantCulture)} RP/turn (city-state pace {r.Tuning.CityStatePaceFraction.ToString("0.00", CultureInfo.InvariantCulture)} × its own population's curve)",
             "Own accumulated knowledge:",
         };
