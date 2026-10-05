@@ -152,13 +152,15 @@ public class BuildInfoTests
     public void Describe_LocalBuild_FallsBackToDevLocal()
     {
         // Test builds pass no -p:BuildSha/-p:BuildDate → the documented fallback.
-        // MILESTONE LABEL: bumped M2 → M3 at T3.12 (the M3 exit artifact). This
+        // MILESTONE LABEL: bumped M2 → M3 at T3.12 (the M3 exit artifact), M3 → M4 at the M4 exit paperwork (b40fad6), and M4 → M5 on
+        // 2026-10-05 (M5 hardening, Director §13 — the M5 playtest builds still showed "civ-sim M4"). This
         // assert is deliberately EXACT rather than a prefix/contains match — the
         // director reads this string at every gate to know which build he is
         // holding, so a stale milestone label must fail the suite, not pass it
-        // quietly. Bump it here and in BuildInfo.Describe together, once per
-        // milestone exit.
-        Assert.Equal("civ-sim M4 (dev, local)", Sim.Ui.BuildInfo.Describe());
+        // quietly. The label is the CURRENT milestone (docs/milestones.md, the roadmap rebase table): bump it
+        // here and in BuildInfo.Milestone together whenever the current milestone changes.
+        Assert.Equal("civ-sim M5 (dev, local)", Sim.Ui.BuildInfo.Describe());
+        Assert.Equal("M5", Sim.Ui.BuildInfo.Milestone);
         Assert.Equal("dev", Sim.Ui.BuildInfo.Sha);
         Assert.Equal("local", Sim.Ui.BuildInfo.Date);
     }

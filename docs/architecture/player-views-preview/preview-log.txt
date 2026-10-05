@@ -1,9 +1,9 @@
 player views preview: PlayerViews over real sessions, seed 42, canonical 1024 px world
-turn-1-a1: turn 1 played on the canonical founded world, Age I; turn 1, world hash 8b2162a4376b2ef29ca19f84bd26914e73a57e645c738a520324586b84337a0a, density level 1
-  turn-1-a1-settlement.svg  sha256 ed3723452b265d6ffd317f226d85d611de63a63378a1fee97867d6625c54495e
-  turn-1-a1-empire.svg  sha256 42d7a7fcb57ea1019e9309bab5bac6b448b74d75ab2d64630e10af71352effc2
-  turn-1-a1-institutions.svg  sha256 15c1276e24601d1ea9379f1e1e4f84fb0a51112ec3391ba63bc58a549f0408cd
-developed-a3: the action-surface later rig at Age III, plus ONE constructed InstitutionRow (first university type, capital, maturity 0.9); turn 14, world hash b9098a2d3dcc92f8369be9103bd4cfd3d92946f588171fe4f13a83dc5836c823, density level 2
-  developed-a3-settlement.svg  sha256 7f8ea452839f79760cb191135c2ee12328af1f82e6185fa588050b7beb864a2e
-  developed-a3-empire.svg  sha256 4e6cd753ae594f66b3c21289fc07444ca3989294be27ec7c1a86ecaa4f4a49c8
-  developed-a3-institutions.svg  sha256 eed2e849cb343a9d72518867c0d721f974740f4fb5fb64a7244cc2c6b2d55509
+turn-1-a1: turn 1 played on the canonical founded world, Age I; turn 1, world hash d296511e20a2819439a4b914cb5871eb538425ef1f0e7ce4f8e1b90e6c665de1, density level 1
+  turn-1-a1-settlement.svg  sha256 2167b78bdc3402a89f97fd718f0c10f3983dd2d75aead3be0237ba34dfaab6d6
+  turn-1-a1-empire.svg  sha256 174bfb8cafba9ff6b477c7189eda8197e58b5ed906acd301e2d6ea3474f634cd
+  turn-1-a1-institutions.svg  sha256 78ff445cbd25c2786b86df2b7c7570aa229d20cc8eafab3a146d516d7a38df7e
+developed-a3: the action-surface later rig at Age III, plus ONE constructed InstitutionRow (first university type, capital, maturity 0.9); turn 14, world hash b72b42a5e14ce8903ac7d6392d96da52b0045dd39665cde2e7aaa2fafb02d337, density level 2
+  developed-a3-settlement.svg  sha256 e05aeb34d9c39dc2af9c3b4d97b37ebe080a7a4627fb1f541f4892bae4dd605e
+  developed-a3-empire.svg  sha256 9a8273ab286e154f410d122cc1d684d6ec6794069a436eff2eb546bf1b03ddae
+  developed-a3-institutions.svg  sha256 21224ed6c4bf356666fa824de2754c3d2ce6f1376b28e820d9b9be3a14dd7718

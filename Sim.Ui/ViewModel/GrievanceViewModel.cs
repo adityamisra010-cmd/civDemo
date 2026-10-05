@@ -149,7 +149,8 @@ public static class GrievanceViewModel
 
     /// <summary>
     /// The tax burden as a row of the happiness explanation, from <see cref="TaxBurdenReading"/> (the record's
-    /// own constructor: declared rate × the STORED reach = effective rate; scale = 1 − effective), or null when
+    /// own constructor: declared rate × the STORED reach = effective rate; scale = SettlementHappiness.TaxSufficiency,
+    /// what the reading is multiplied by — the row states the scale as read and does not re-derive it), or null when
     /// the controller has never legislated. Its links are the reading's three facts, each with its own lever:
     /// the declared rate is the edict's; the reach is a condition (it decays with road-aware travel cost from
     /// the capital, written by GovernanceSystem).
@@ -166,7 +167,7 @@ public static class GrievanceViewModel
             new(string.Create(CultureInfo.InvariantCulture, $"  effective rate  {burden.EffectiveRate * 100.0:0.#}%  (recomputed, declared x reach)"), false, edict),
         ];
         return new HappinessFactorRow(
-            string.Create(CultureInfo.InvariantCulture, $"x tax burden {burden.Scale:F3}  (multiplies the reading: 1 - effective rate {burden.EffectiveRate * 100.0:0.#}%)"),
+            string.Create(CultureInfo.InvariantCulture, $"x tax burden {burden.Scale:F3}  (multiplies the reading; effective rate {burden.EffectiveRate * 100.0:0.#}%)"),
             chain, edict);
     }
 

@@ -83,12 +83,23 @@ shown as queued ("Set: … takes effect at End Turn", "chosen this turn …", "D
 
 `docs/architecture/action-surface-preview/render-previews.sh` runs `sim-ui --action-preview` and screenshots the
 SVGs with headless Chromium: turn 1 on the canonical founded world (seed 42, 12 settlements, A1), and a later
-rig — the same world with a crop, a taxation node and a road class known (ResearchCompleted rows, the
-constructed part) and the Age row at III, then played through the session (Root and tuber cultivation
-researched to completion, a 20 % levy, a granary queued) — at A3 and, with only the Age row changed, at A8.
+rig — the same world with the Taxation civic and a road class known (their prerequisite closures as
+ResearchCompleted rows, the constructed part) and the Age row at III, then played through the session (Root and
+tuber cultivation researched to completion, a 20 % levy, a granary queued) — at A3 and, with only the Age row
+changed, at A8; and a researched rig (agriculture, pottery, bronze casting, Taxation, a road class and the
+university's prerequisites known) at A4.
 Each state is painted as the game screen with POLICY open and as the panel alone at full height, by the same
 `ActionSurfaceScreen` the game runs; `preview-log.txt` records the SVG hashes (byte-identical across runs).
 The rig's Age row is set directly, so its warband was never modernized (no transition ran).
+
+**Dated note (2026-10-05, M5 hardening H3).** The rigs read the tax edict's research gate from content
+(`ActionSurfacePreview.TaxationGate`: every node named by `sim.json governance.taxationRequires`, since R5 the single
+Civics node `taxation`) and stand at Age III or later, because Taxation is an A3 capability (Director 2026-10-05
+§7). Until this note they granted `arithmetic_babylonian` as "a taxation node"; R5 (`9f7c82b`) made that a
+refinement that no longer opens the gate, and `--action-preview` and `--player-views-preview` crashed with "could
+not declare a 20% levy" (`docs/m5-playtest-baseline.md` §2.12). `Sim.Ui.Tests/PreviewToolProcessTests.cs` now runs
+`--action-preview`, `--player-views-preview` and `--r2a-preview` as separate processes, so a rig that rots fails
+the suite. The PNG sets and logs here were regenerated on 2026-10-05.
 
 ## 6. Limits and open items
 

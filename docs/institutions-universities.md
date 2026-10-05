@@ -419,3 +419,11 @@ known, cereal_cultivation alone is the cheapest remainder), and every Age arrive
 the union. The price is the tax gate (t547, 242 turns later) and the first university (t842, 120 later): their
 closures stay dearer than each successive next-Age core, so they are worked only when an Age's core is momentarily
 more expensive. S2's Age 2 (t142) is still not reached — the road closure (t142) is worked before the core.
+
+**Pointer (appended 2026-10-05, M5 hardening H3).** The "first levy" rows of §12.3 and §12.5 (t305/t306,
+t547/t548) were measured when the tax edict opened on any of the four refinement technologies
+(`arithmetic_babylonian OR surveying OR standard_weights OR coinage_electrum`, ADR-033 D4's first form). R5
+(`9f7c82b`, Director 2026-10-04) made the Civics node `taxation` (key 1007, A3) the single gate, and the AI
+world's pinned levy moved to t367/t368 (`AiEmpireIntegrationTests`, `5c364b5`; it had drifted 547/548 → 537/538
+at R1 and → 546/547 at R4). The tables above are kept as history and are correct for their trees. The current tax
+gate and its evidence: `docs/m5-playtest-baseline.md` §4.

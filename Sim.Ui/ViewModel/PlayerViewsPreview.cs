@@ -17,7 +17,7 @@ namespace Sim.Ui.ViewModel;
 /// at the era's density:
 /// <list type="number">
 /// <item>TURN 1 on the canonical founded world (seed 42), Age I — <see cref="ActionSurfacePreview.TurnOne"/>.</item>
-/// <item>A DEVELOPED STATE at Age III — <see cref="ActionSurfacePreview.LaterRig"/> (a crop, a taxation node
+/// <item>A DEVELOPED STATE at Age III — <see cref="ActionSurfacePreview.LaterRig"/> (a crop, the Taxation civic
 ///   and a road class known, a levy declared, a granary queued, played through the real session) with ONE
 ///   constructed fact added to the world the views read: a university of the first type founded at the
 ///   capital at maturity 0.9 (an InstitutionRow — the constructed part of the rig, stated in the log).</item>

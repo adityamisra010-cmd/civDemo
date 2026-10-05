@@ -97,8 +97,9 @@ if (Array.IndexOf(args, "--era-preview") >= 0)
 }
 
 // --action-preview [dir] (docs/architecture/action-surface.md, ADR-033 D1/D2): paint the REAL action surface
-// — turn 1 on the canonical founded world, and a later state (a crop, a taxation node and a road class known)
-// at Age III and Age VIII — as the game screen with the POLICY panel open and as the panel alone, to SVG.
+// — turn 1 on the canonical founded world, a later state (a crop, the Taxation civic and a road class known) at
+// Age III and Age VIII, and a researched state at Age IV — as the game screen with the POLICY panel open and as the
+// panel alone, to SVG. (Its handler follows --r2a-preview below.)
 // --r2a-preview [dir] (docs/architecture/r2-previews/): turn 1, researched pre-Trade, post-Trade and a city-state.
 if (Array.IndexOf(args, "--r2a-preview") >= 0)
 {

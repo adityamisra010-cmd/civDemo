@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# R2a previews (sim-ui --r2a-preview): turn 1, researched pre-Trade, post-Trade, and a city-state
-# and a later state — a crop, a taxation node and a road class known — at Age III and Age VIII, each as the
-# game screen with the POLICY panel open and as the panel alone at full height; screenshots each SVG with
-# headless Chromium. The SVGs are deleted after the screenshot (the PNGs and the log are kept).
-# Usage (from repo root): docs/architecture/action-surface-preview/render-previews.sh [out-dir]
+# R2a previews (sim-ui --r2a-preview): turn 1 (Age I); researched pre-Trade and post-Trade (Age III: crafts, a
+# crop, the Taxation civic, a road class and Trade's prerequisites known; post-Trade adds Trade through the order
+# pathway); and a city-state left to develop for 600 turns (its screen and a knowledge card). Each state is
+# painted as the game screen with the POLICY panel open and (except the city-state) as the panel alone at full
+# height; screenshots each SVG with headless Chromium. The SVGs are deleted after the screenshot (the PNGs and the
+# log are kept). (2026-10-05: this header was a copy of the action-surface script's until then.)
+# Usage (from repo root): docs/architecture/r2-previews/render-previews.sh [out-dir]
 set -euo pipefail
 OUT="${1:-docs/architecture/r2-previews}"
 dotnet run --project Sim.Ui -c Release -- --r2a-preview "$OUT"

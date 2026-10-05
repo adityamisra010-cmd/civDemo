@@ -1,9 +1,31 @@
-# civ-sim (M4)
+# civ-sim (M5 — Governing Gameplay, in progress)
 
 A deterministic, turn-based civilization simulation spanning 6,000 years. One human
 director; AI agents build it, one task packet per session.
 
-**M3 — The economy arrives.** At M2 every settlement was the same food-machine
+**M5 — Governing Gameplay: the CURRENT milestone, in progress (being finished, NOT complete).** M0–M4 are
+complete (tags `m0-exit` … `m4-exit`). M5 is being finished on the integration branch `m5-integration`, which is
+not merged to `main`; its decisions are ADR-033 ([`docs/adr/adr-033-m5-integration-pass.md`](docs/adr/adr-033-m5-integration-pass.md))
+and its forensic playtest baseline is [`docs/m5-playtest-baseline.md`](docs/m5-playtest-baseline.md). On that branch
+a player can, beyond M4:
+
+- **Research** the Technology and Civics trees — one target at a time, research points from population, Eurekas,
+  progress kept when switching (ADR-029, ADR-030) — and see actions appear from knowledge: turn 1 lives on gathered
+  wild food, and Farming appears only once a crop is researched.
+- **Advance through the Ages** when the realm's simulated state makes it eligible (the AdvanceAge order,
+  ADR-031); the UI's era theme follows the player's Age.
+- **Govern**: levy a tax through the tax edict, which opens with the **Taxation** civic (Civics, an Age III node;
+  `sim.json governance.taxationRequires`); develop the roads between settlements; found universities.
+- **Play against AI empires** (`--ai-empires N`); a settlement that revolts founds a new AI polity carrying its
+  parent's completed knowledge (D-048).
+
+The founding Warband is shown, but recruitment, movement and battle belong to the M7 Battle Layer. The full roadmap
+is below and in [`docs/milestones.md`](docs/milestones.md).
+
+> *Dated note (2026-10-05):* until this date the headline here was M3's, reproduced below unchanged as the
+> M3 summary.
+
+**M3 — The economy arrives (M3 summary).** At M2 every settlement was the same food-machine
 running at a different size. At M3 they are *places that make different things*.
 What the world can now do that it could not before:
 
@@ -32,13 +54,16 @@ milestone deliberately did NOT deliver, each with a measurement and an owner.
 The largest: **goods do not yet trade on the canonical world**, for two measured
 and escalated reasons.
 
-Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution) and
-[`docs/m4-spec.md`](docs/m4-spec.md) (current milestone spec); [`docs/m3-spec.md`](docs/m3-spec.md) is the previous one.
+Start with [`CLAUDE.md`](CLAUDE.md) (agent constitution), [`docs/current-state.md`](docs/current-state.md) (the
+routing document — verify it against git) and M5's decision record,
+[`docs/adr/adr-033-m5-integration-pass.md`](docs/adr/adr-033-m5-integration-pass.md) (M5 has no separate spec file);
+[`docs/m4-spec.md`](docs/m4-spec.md) is the previous milestone's spec.
 
 **Roadmap (Director rebase, 2026-10-03):** M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production /
 Markets · M4 Empire / Strategic Foundation (all complete) · **M5 Governing Gameplay (current, being finished)** · M6
-Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. See [`docs/milestones.md`](docs/milestones.md). (The spec pointer above predates M5 and is
-left as written; M5's decisions are in `docs/adr/adr-033-m5-integration-pass.md`.)
+Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. See [`docs/milestones.md`](docs/milestones.md). Ages (A1–A9) are a
+simulation dimension, not milestones. (2026-10-05: the spec pointer above, which until then named `m4-spec.md` as
+the current spec, now names M5's decision record.)
 
 ## Prerequisites
 
@@ -68,6 +93,11 @@ dotnet run --project Sim.Cli --configuration Release -- run --seed 42 --turns 16
 
 `sim` is a scripting surface: deterministic output; exit code **0** on success,
 **1** on usage errors, **2** on runtime failures — exit codes are its contract.
+
+The block below is the original core. `sim` with no arguments prints the authoritative usage, including what this
+block omits: `--founded [--size PX] [--settlements N] [--ai-empires N]` on `run` and `replay`, and the later
+commands `diff`, `inspect` (the forensic reader of a played session's `runs/` files), `worldgen`, `corridors` and
+`research` (dated note, 2026-10-05).
 
 ```bash
 # Run a campaign; optionally save a snapshot at turn K, log per-turn hashes
@@ -208,11 +238,13 @@ resize is warranted on density grounds.
 > population take the frontier. Reframed in `docs/queue.md` as an expansion
 > opportunity, M4-targeted (colonization / land clearance, CR-003 §5.2(a)).
 
-CI runs three jobs on every push: `build-and-test` (gates + full suite),
-`determinism` (the T0.8 in-process harness), and `determinism-xproc` (T0.9:
+CI runs four jobs on every push and pull request: `build-and-test` (gates + full suite),
+`determinism` (the T0.8 in-process harness), `determinism-xproc` (T0.9:
 two separate `sim run` processes must produce byte-identical hash logs, and
 `sim replay` must reproduce an ordered run byte-identically — separate processes
-surface environment/JIT divergence the in-process twins share).
+surface environment/JIT divergence the in-process twins share), and `calibration` (the battery, time-boxed);
+`calibration-nightly` (the ≥20-seed sweep) runs on the daily schedule or on dispatch. (Until 2026-10-05 this
+paragraph named three jobs.)
 
 CI (`.github/workflows/ci.yml`) runs the banned-constructs check, build, and tests on
 every push and pull request.
@@ -222,11 +254,18 @@ every push and pull request.
 **M5 playtest build 3 (2026-10-04, branch `m5i-r5-taxation-node` @ `5c364b5`, not on `main`)**:
 [ui-artifact run 37203130829](https://github.com/adityamisra010-cmd/civDemo/actions/runs/37203130829)
 → download `sim-ui-win-x64-5c364b5` (Windows x64 zip; artifact expires after 30 days; sign in to GitHub to download).
-Unzip, run `Sim.Ui.exe`. Try `--ai-empires 1` for an AI rival; F12 or `--dev` opens the developer panels;
-`--resume <session-dir>` continues a saved session. Turn 1 now lives on gathered wild food (agriculture must be
+Unzip and double-click `Play civ-sim.cmd` (it starts `app\Sim.Ui.exe`). For flags, open a terminal in the unzipped
+folder and run `app\Sim.Ui.exe` with them: try `--ai-empires 1` for an AI rival; F12 or `--dev` opens the developer
+panels; `--resume <session-dir>` continues a saved session. Turn 1 now lives on gathered wild food (agriculture must be
 researched); the tax edict appears only once the Taxation civic is researched; later-Age military milestones are pending the Battle Layer (M7).
 
-No toolchain needed — download, unzip, run `Sim.Ui.exe`.
+> *Dated note (2026-10-05):* known in build 3 — opening Research aborted the Director's 2026-10-05 playtest with
+> ImGui's assertion "Too many vertices in ImDrawList using 16-bit indices", and its window title reads
+> `civ-sim M4`. The M5 hardening pass is fixing both on its branches; a newer build will replace this paragraph.
+> (Until this date the paragraph said "Unzip, run `Sim.Ui.exe`"; since T3.11 the zip's root holds only the
+> launcher and `app/`.)
+
+No toolchain needed — download, unzip, double-click `Play civ-sim.cmd`.
 
 **Latest build** (every merge to `main`): Actions → the newest `ui-artifact`
 run on `main` → download the `sim-ui-win-x64-<sha>` artifact.
@@ -235,22 +274,32 @@ release automatically attaches its zip as a permanent asset.
 **Gate builds**: every `t<N>.*` packet-branch push produces the same artifact
 for Director Visual Gates.
 
-The window title and debug panel both show `civ-sim M3 (<sha>, <date>)` — the
-build you are holding is never ambiguous. Optional flags: `--seed N` (default
+The window title and debug panel both show `civ-sim M5 (<sha>, <date>)` — the
+build you are holding is never ambiguous (the label is the current milestone, `Sim.Ui/BuildInfo.cs`; M5 playtest
+builds up to build 3 show `civ-sim M4`, and this sentence said `civ-sim M3` until 2026-10-05). Optional flags:
+`--seed N` (default
 42), `--size PX` (dev-preview world size; a non-canonical size is recorded
-in the session-log filename), `--settlements N`, and `--ai-empires N` (found N
+in the session-log filename), `--settlements N`, `--ai-empires N` (found N
 AI-commanded Empires to play against, ADR-033 D5; default worldgen.json's
 `aiEmpires`, which is 0 — the override is recorded in the session manifest and
-the log name, `-aN`). `--help` prints the usage line.
+the log name, `-aN`), `--dev` (open with the developer panels; F12 toggles them) and
+`--resume DIR|MANIFEST` (continue a saved session by replaying its order log). `--help` prints the usage line.
 
-Each played session autosaves TWO files next to the exe, twinned by the same
-timestamp:
+Each played session writes six files into `runs/` (beside the launcher; in the
+current directory when `Sim.Ui.exe` is run directly), twinned by the same
+timestamp and the same `[-sPX][-nN][-aN]` suffixes (until 2026-10-05 this list
+named only the first two):
 
-- `runs/orders-<yyyyMMdd-HHmmss>[-sPX][-nN].bin` — the order log (the replay
+- `orders-<yyyyMMdd-HHmmss>[-sPX][-nN][-aN].bin` — the order log (the replay
   input; lexicographic order = chronological, so back-to-back gate logs sort
   and sweep trivially);
-- `runs/chronicle-<yyyyMMdd-HHmmss>[-sPX][-nN].txt` — the annals export (T2.9),
-  byte-exactly the Annals panel's lines.
+- `chronicle-….txt` — the annals export (T2.9), byte-exactly the Annals panel's lines;
+- `session-….json` — the manifest (seed, overrides, build identity), written once at launch so a session that
+  crashes is still reproducible; `--resume` and `sim inspect --manifest` read it;
+- `trace-….csv` — one line per turn ending in that turn's world hash (`--resume` checks the replay against it);
+- `telemetry-….jsonl` — every turn's world and settlement records, appended each turn;
+- `forensic-….jsonl` — the run record, opened at launch and closed (with every companion's content hash) on a
+  clean exit.
 
 A session log + its seed replays hash-identically:
 
@@ -267,14 +316,20 @@ sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
 |---|---|
 | `Sim.Core/` | Kernel + all simulation systems; zero UI/IO deps beyond data loading. Subfolders: `Kernel/` (turn executor, clock, RNG, state infra, hashing, snapshots), `Systems/` (one folder per system), `State/` (WorldState — single source of truth) |
 | `Sim.Data/` | JSON content files + schema validation (era table lives here) |
-| `Sim.Cli/` | Headless runner: run / hash / replay / bench |
+| `Sim.Cli/` | Headless runner: run / hash / diff / replay / inspect / bench / autoplay / worldgen / corridors / research (`sim` with no arguments prints the usage) |
+| `Sim.Ui/` | The game window (MonoGame + ImGui.NET): map, panels, research trees, Ages, the action surface; also the headless `--*-preview` SVG tools |
 | `Sim.Tests/` | xUnit + FsCheck: unit, property, determinism, golden-run |
+| `Sim.Ui.Tests/` | UI view-model, rendering and preview-tool tests (headless) |
+| `Sim.Tests.ReadOnlyViolation/` | Compile-failure proof that `IReadOnlyWorldState` cannot be mutated (`scripts/check-readonly-proof.sh`; not in `Sim.slnx`) |
 | `docs/` | Specs, addenda, ADRs (`docs/adr/`), amendment queue (`docs/queue.md`) |
 
 **Dependency rule:** systems never reference each other — only `State` and `Kernel`.
 Cross-system communication is exclusively through state tables and events.
 
 ## Milestone status
+
+Statuses brought up to date on 2026-10-05 from `docs/milestones.md` and the exit tags; the descriptions are kept as
+written at each milestone's gate.
 
 - **M0 — Simulation kernel: COMPLETE.** T0.1–T0.9 per `docs/m0-kernel-spec.md`:
   state infrastructure, PCG32 RNG registry, integer-day clock + era pacing,
@@ -286,7 +341,8 @@ Cross-system communication is exclusively through state tables and events.
   lattice + pathfinding, settlement + catchment, population + food loop, labor
   orders + PathBuild, the Sim.Ui window (terrain, overlays, HUD, End Turn),
   founded-world harness + goldens, and the CI Windows artifact.
-- **M2 — Population & Society: at the exit gate.** T2.1–T2.12 per
+- **M2 — Population & Society: COMPLETE** (exit 2026-07-25, tag `m2-exit`; this line read "at the exit gate"
+  until 2026-10-05). T2.1–T2.12 per
   `docs/m2-spec.md`: cohort buckets (D-026), class system + D-020 DSL, plural
   worldgen with partitioned catchments (N = 12), per-settlement UI rule,
   migration (D-021, stabilized: gap-closing caps + EMA-smoothed
@@ -301,7 +357,8 @@ Cross-system communication is exclusively through state tables and events.
   artifact of two compensating errors, corrected at T3.2b — the mechanism is
   intact but the condition that made it visible was false. M2 does not reopen;
   the record states it.)
-- **M3 — The economy arrives: AT THE EXIT GATE.** T3.1–T3.12 per
+- **M3 — The economy arrives: COMPLETE** (Director's exit ruling 2026-08-06, tag `m3-exit`; this line read "AT
+  THE EXIT GATE … Awaiting the director's exit session" until 2026-10-05). T3.1–T3.12 per
   `docs/m3-spec.md`: worldgen refresh + the goods/recipe roster, five-sector
   production (D-032) with the M2 scaffolding demolished, the CR-002 spatial and
   agronomic recalibration, the D-033 price solver on ADR-016 exact integration,
@@ -310,7 +367,15 @@ Cross-system communication is exclusively through state tables and events.
   sector-control UI with the trade panel, and the T3.11 harness work (a DRIVEN
   golden that finally exercises the goods economy). **What it deliberately did
   NOT deliver is recorded beside what it did** — see `docs/milestones.md`.
-  Awaiting the director's exit session.
+- **M4 — Empire / Strategic Foundation: COMPLETE** (closed on the Director's final closure rulings 2026-09-21,
+  tag `m4-exit`): the Empire control foundation (polities, control, capitals, command source), neighbours and
+  conflict, and a world that can run short — see `docs/milestones.md` §M4 and `docs/m4-exit-inventory.md`.
+- **M5 — Governing Gameplay: CURRENT, in progress (being finished, NOT complete)** on the unmerged
+  `m5-integration` branch: see the headline above, ADR-033 and `docs/m5-playtest-baseline.md`.
+- **Next:** M6 Knowledge / Research / Technology (owns and completes the research engine, Ages, unlock pipeline and
+  universities built early on the M5 branches) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10
+  Integrated Civilization Simulation · M11+ Depth & Content Expansion (`docs/milestones.md`, roadmap rebase
+  2026-10-03).
 
 ## Calibration battery
 

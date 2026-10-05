@@ -22,7 +22,7 @@ public sealed class CanonicalTurnOneFixture
 /// ADR-033 D1/D2 at the UI — THE ACTION SURFACE ACCEPTANCE (directive "NO MODERN DASHBOARD AT TURN 1"): on the
 /// canonical founded world at turn 1 the surface holds exactly the civilization's baseline set and no Farming %,
 /// Construction %, Industry %, tax, road, institution or advanced-production control; completing root_crop makes
-/// Farming appear (the same sector order), completing a taxation node makes the tax edict appear, and knowing a
+/// Farming appear (the same sector order), completing the Taxation civic makes the tax edict appear, and knowing a
 /// road class makes road development appear. Every block comes from AvailableActionsQuery / LabourActivities.
 /// </summary>
 public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<CanonicalTurnOneFixture>
@@ -91,7 +91,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.All(m.Production.Entries, e => Assert.Null(e.LearnedFrom));
         Assert.Null(m.Age);          // not eligible: no advance
         Assert.Null(m.Roads);        // no road class known
-        Assert.Null(m.Governance);   // no taxation node known
+        Assert.Null(m.Governance);   // the Taxation civic is not known
         Assert.Empty(m.Notices);
 
         // LABOUR: the capital's five sectors under their BASELINE identities, as SectorAllocation orders.
@@ -404,7 +404,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
     [Fact]
     public void TheLevySlider_SetsTheRateUnderThePointer()
     {
-        // The same contract for the levy's slider (the governance block at A8, a taxation node known).
+        // The same contract for the levy's slider (the governance block at A8, the Taxation civic known).
         UiSession known = Knowing(fx.Session, "taxation");
         UiSession s8 = UiSession.StartFrom(EraPreview.WorldAt(known.World, known.Config.Ages!, Me, 8), 42);
         EraTheme t8 = ThemeOf(s8, s8.World);
