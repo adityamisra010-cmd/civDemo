@@ -11,7 +11,7 @@ namespace Sim.Ui.ImGuiIntegration;
 /// into an ImGui draw list inside the game, and measures text with the real fonts.
 /// Ported from the Trees UI foundation (claude/civdemo-work-b1z2y4) without the glyph path.
 /// </summary>
-internal sealed class DrawListImGuiBackend : ITextMeasure
+public sealed class DrawListImGuiBackend : ITextMeasure
 {
     private readonly UiTheme.Fonts? _fonts;
 
@@ -47,9 +47,36 @@ internal sealed class DrawListImGuiBackend : ITextMeasure
     private static uint Col(Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
     private static Vector2 V(double x, double y) => new((float)x, (float)y);
 
+    /// <summary>Commands dropped by the off-screen cull in the most recent <see cref="Render"/> call.</summary>
+    public int LastCulled { get; private set; }
+
+    /// <summary>Commands replayed into ImGui by the most recent <see cref="Render"/> call.</summary>
+    public int LastReplayed { get; private set; }
+
+    /// <summary>Whether <see cref="Render"/> culls off-screen commands first (on in the game; the frame-cost
+    /// measurement turns it off to show what the cull saves).</summary>
+    public bool Cull { get; set; } = true;
+
+    /// <summary>
+    /// Replays <paramref name="list"/> into <paramref name="dl"/>. M5 hardening H1: commands that cannot touch
+    /// the draw list's CURRENT clip rect (the display for the background/foreground lists, the window's visible
+    /// region for a window list) are dropped first (<see cref="DrawListCull"/>), so a screen that paints more
+    /// than is visible no longer pays ImGui vertices for it. Nothing visible changes: ImGui would have clipped
+    /// those commands to nothing.
+    /// </summary>
     public void Render(ImDrawListPtr dl, DrawList list)
     {
-        foreach (DrawCmd cmd in list.Commands)
+        IReadOnlyList<DrawCmd> commands = list.Commands;
+        LastCulled = 0;
+        if (Cull)
+        {
+            Vector2 cmin = dl.GetClipRectMin(), cmax = dl.GetClipRectMax();
+            commands = DrawListCull.Visible(list.Commands,
+                new RectD(cmin.X, cmin.Y, Math.Max(0, cmax.X - cmin.X), Math.Max(0, cmax.Y - cmin.Y)), out int culled);
+            LastCulled = culled;
+        }
+        LastReplayed = commands.Count;
+        foreach (DrawCmd cmd in commands)
         {
             switch (cmd)
             {

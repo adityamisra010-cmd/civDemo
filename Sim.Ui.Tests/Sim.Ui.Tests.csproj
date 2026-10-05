@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <!-- M5 hardening H1: the ImGui frame tests read the real draw lists (vertex/index buffers) by pointer. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- View-model/logic tests ONLY (T1.7): pure camera math, color mapping,
          texture-bake byte determinism. No Game instantiation, no window, so
          these run headless in CI. Separate from Sim.Tests so the core test
