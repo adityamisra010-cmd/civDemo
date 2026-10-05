@@ -203,8 +203,9 @@ jobs:
 
           # M5 integration (audit E4): the founded world with ONE AI Empire. The player's
           # orders (kinds 3, 4, 6 — gen-sample-orders.py --founded-mix) are merged with the
-          # AI's (kinds 4-8: construction, tax, research, Age, roads — the AI levies at 367
-          # since R5's Taxation civic, 546 before; 600 turns kept) into the RUN LOG --emit-session writes. Two processes must agree
+          # AI's (kinds 4-8: construction, tax, research, Age, roads — H2 (2026-10-05): the AI levies at 466, on its
+          # first A3 turn (A3 decided 465), since the tax edict needs A3; 369 at R5 while still in A2, 549 before;
+          # 600 turns kept) into the RUN LOG --emit-session writes. Two processes must agree
           # byte for byte (hash logs and run logs), `sim replay` of that run log (no AI
           # producer) must reproduce every hash, and `sim inspect` must verify the record.
           python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix

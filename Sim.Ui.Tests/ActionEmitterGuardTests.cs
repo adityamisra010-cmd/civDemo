@@ -144,7 +144,10 @@ public class ActionEmitterGuardTests
         UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         Assert.False(s.EmitTaxOrder(20));
         ResearchContent research = s.Config.Research!;
-        UiSession t = UiSession.StartFrom(Knowing(UiFounding.Found(42, 256, 4), research, "taxation"), 42, 256, 4);
+        // H2 (2026-10-05): knowing Taxation in the founding Age is not enough — the session refuses until A3.
+        WorldState known = Knowing(UiFounding.Found(42, 256, 4), research, "taxation");
+        Assert.False(UiSession.StartFrom(known.Clone(), 42, 256, 4).EmitTaxOrder(20));
+        UiSession t = UiSession.StartFrom(TaxAgeRig.EnterTaxAge(known, s.Config, Me), 42, 256, 4);
         Assert.True(t.EmitTaxOrder(20));
         Assert.Equal(Governance.TaxOrder(t.World.Clock.Turn, Me, 20), t.Orders[0]);
     }

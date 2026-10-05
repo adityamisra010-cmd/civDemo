@@ -451,8 +451,9 @@ public static class AvailableActionsQuery
     /// GOVERNANCE (ADR-033 D4; wired at the S1×S2 reconciliation). Lists ONE Order descriptor — the tax edict
     /// (domain Governance, Id 1, <see cref="OrderKind.SetTaxRate"/>; the order's target is the issuing polity
     /// itself, so the descriptor carries no target) — iff <c>Governance.CanLevyTax(world, cfg, polity)</c>,
-    /// the research-gated predicate GovernanceSystem applies and the AI valve obeys (one predicate, every
-    /// caller). Nothing is listed before the polity knows a taxation capability, so turn 1 shows no tax control.
+    /// the research- and Age-gated predicate GovernanceSystem applies and the AI valve obeys (one predicate, every
+    /// caller). Nothing is listed before the polity knows the Taxation civic AND has entered sim.json
+    /// governance.taxationMinAge (H2: A3), so turn 1 shows no tax control.
     /// Provenance: the completed nodes named by sim.json <c>governance.taxationRequires</c>, key order.
     /// Detail: the declared levy (or "no levy declared") and the realm's legitimacy.
     /// </summary>

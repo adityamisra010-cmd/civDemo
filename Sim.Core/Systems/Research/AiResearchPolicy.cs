@@ -150,9 +150,11 @@ public static class AiResearchPolicy
             if (next?.Entity is { } entity) PushEntity(content, content.EntityIndexOf(entity), road, expanded);
         }
 
-        // 2. The tax edict's research gate while it is unmet (AiGovernance levies through it).
+        // 2. The tax edict's research gate while it is unmet (AiGovernance levies through it). H2: only the KNOWLEDGE
+        // half — the Age half (governance.taxationMinAge) is not researchable, so a polity that knows Taxation and
+        // waits for its Age has no tax research goal (else it would chase the requirement's other OR-branches).
         var tax = new Stack<int>();
-        if (cfg.Governance is { } governance && !global::Sim.Core.State.Governance.CanLevyTax(world, cfg, polity))
+        if (cfg.Governance is { } governance && !global::Sim.Core.State.Governance.KnowsTaxation(world, cfg, polity))
         {
             Predicate requirement = ResearchContentLoader.ParseRequirement(
                 content, governance.TaxationRequires, "sim.json governance.taxationRequires");

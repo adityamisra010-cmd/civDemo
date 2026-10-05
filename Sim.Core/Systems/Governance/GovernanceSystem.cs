@@ -17,7 +17,9 @@ public readonly record struct GovernanceTables(Table<TaxPolicyRow> TaxPolicies, 
 /// <list type="number">
 /// <item><b>ENACTS POLICY.</b> Each SetTaxRate order of this turn's batch, in log order, upserts
 ///   the issuing Empire's <see cref="TaxPolicyRow"/> — IF the issuer can levy a tax on PREV
-///   (<see cref="State.Governance.CanLevyTax"/>, the research gate) and the order targets the
+///   (<see cref="State.Governance.CanLevyTax"/>: the Taxation knowledge AND, since H2, the polity's current Age at
+///   least sim.json governance.taxationMinAge — A3; an Age entered by this very step's AdvanceAge does not count,
+///   because PREV is judged) and the order targets the
 ///   issuer itself. An order failing either changes nothing (the ResearchSystem precedent); the
 ///   LAST valid order of the turn wins. A standing decision: it persists until legislated again.
 ///   The percentage becomes a fraction here (Amount / 100).</item>
@@ -64,7 +66,7 @@ public sealed class GovernanceSystem(SimConfig cfg) : ISimSystem<GovernanceTable
             if (order.Kind != OrderKind.SetTaxRate) continue;
             if (order.TargetId != order.ActorId) continue;                       // an Empire legislates only its own rate
             if (!(order.Amount >= 0.0 && order.Amount <= 100.0)) continue;       // NaN fails this too
-            if (!State.Governance.CanLevyTax(prev, _cfg, order.Actor)) continue; // the research gate, on PREV
+            if (!State.Governance.CanLevyTax(prev, _cfg, order.Actor)) continue; // knowledge + Age gate, on PREV
 
             PolityId polity = order.Actor;
             var row = new TaxPolicyRow(polity, order.Amount / 100.0);

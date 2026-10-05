@@ -71,6 +71,7 @@ public class ActionSurfaceAgeAndTaxTests(EligibleSessionFixture fx) : IClassFixt
         ResearchContent research = s0.Config.Research!;
         WorldState w = s0.World.Clone();
         w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId("taxation")].Key));
+        TaxAgeRig.EnterTaxAge(w, s0.Config, Me);   // H2: the edict is operational from A3
         UiSession s = UiSession.StartFrom(w, 42, 256, 4);
         int capital = Capital(s.World);
 

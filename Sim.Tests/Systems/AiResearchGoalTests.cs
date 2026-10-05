@@ -81,7 +81,11 @@ public class AiResearchGoalTests
         Complete(w, "arithmetic_babylonian");   // a refinement alone does not close the goal
         Assert.Equal(Closure("taxation"), Goals(w, taxOnly));
         Complete(w, "taxation");
-        Assert.True(Governance.CanLevyTax(w, Cfg, Rival));
+        // H2 (2026-10-05): the KNOWLEDGE half closes the research goal; the Age half (A3) is not researchable, so a
+        // rival that knows Taxation in its founding Age has NO tax goal although it cannot levy yet.
+        Assert.True(Governance.KnowsTaxation(w, Cfg, Rival));
+        Assert.Equal(TaxGate.NeedsAge, Governance.GateOf(w, Cfg, Rival));
+        Assert.False(Governance.CanLevyTax(w, Cfg, Rival));
         Assert.DoesNotContain(true, Goals(w, taxOnly));
 
         // UNIVERSITY: building.university's requirement and inst.university's, the latter's institutions expanded

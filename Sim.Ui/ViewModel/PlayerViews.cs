@@ -523,13 +523,19 @@ public static class PlayerViews
         var rule = new List<string>();
         double legitimacy = cfg.Housing is null ? double.NaN : Governance.Legitimacy(world, player, cfg);
         rule.Add(Fig(density, "Your people regard your rule as " + LegitimacyWord(legitimacy), N(legitimacy) + " of 100"));
-        if (Governance.CanLevyTax(world, cfg, player))
+        TaxGate gate = Governance.GateOf(world, cfg, player);
+        if (gate == TaxGate.Open)
         {
             double rate = Governance.NominalTaxRate(world, player);
             rule.Add(Governance.HasPolicy(world, player) && rate > 0.0
                 ? Fig(density, "You levy a tax", Pct(rate) + " declared; distant towns pay less as your reach thins")
                 : "You know how to levy a tax, but have declared none.");
         }
+        else if (gate == TaxGate.NeedsAge && cfg.Ages is { } taxAges && cfg.Governance?.TaxationMinAge is { } taxAge)
+            // H2 (Director 2026-10-05 §7): the knowledge is held, the capability opens with the Age — say so rather
+            // than leave a known civic looking like it does nothing.
+            rule.Add("Your scholars know Taxation, but no levy can be raised before the "
+                + StateChronicle.AgeName(taxAges, taxAge) + " (Age " + taxAge.ToString(CultureInfo.InvariantCulture) + ").");
         else rule.Add("Your people do not yet know how to levy a tax.");
 
         // Roads: travelled routes touching the empire, by class.

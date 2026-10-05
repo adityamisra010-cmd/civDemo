@@ -32,6 +32,9 @@ public class TaxControlTests
         int index = cfg.Research!.IndexOfId("taxation");
         Assert.True(index >= 0);
         world.ResearchCompleted.Add(new ResearchCompletedRow(polity, cfg.Research.Nodes[index].Key));
+        // H2 (2026-10-05): knowledge alone in the founding Age is not the capability — the edict needs A3.
+        Assert.Equal(TaxGate.NeedsAge, Governance.GateOf(world, cfg, polity));
+        TaxAgeRig.EnterTaxAge(world, cfg, polity);
         Assert.True(Governance.CanLevyTax(world, cfg, polity));
     }
 

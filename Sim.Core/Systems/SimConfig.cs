@@ -123,12 +123,17 @@ public sealed record UniversitiesConfig(
 /// no NOT, no comparisons), validated against research.json when the four-stream load attaches it
 /// and evaluated by the existing knowledge evaluator (<see cref="State.Governance.CanLevyTax"/>).
 /// <c>Ai</c>: the AI tax valve's constants (<see cref="GovernanceAiConfig"/>).
+/// <c>TaxationMinAge</c> (H2, Director 2026-10-05 §7; docs/d049-taxation-and-revolt-model.md): THE AGE HALF of
+/// the tax gate — the edict is operational only for a polity whose CURRENT Age (ages.json key, computed state,
+/// law 4) is at least this. Optional: absent = no Age requirement (the pre-H2 gate, knowledge only). Evaluated
+/// inside <see cref="State.Governance.CanLevyTax"/>, never by a caller.
 /// </summary>
 public sealed record GovernanceConfig(
     [property: JsonPropertyName("authorityDecayCostUnits"), JsonRequired] double AuthorityDecayCostUnits,
     [property: JsonPropertyName("taxExtractionResponseMax"), JsonRequired] double TaxExtractionResponseMax,
     [property: JsonPropertyName("taxationRequires"), JsonRequired] string TaxationRequires,
-    [property: JsonPropertyName("ai"), JsonRequired] GovernanceAiConfig Ai);
+    [property: JsonPropertyName("ai"), JsonRequired] GovernanceAiConfig Ai,
+    [property: JsonPropertyName("taxationMinAge")] int? TaxationMinAge = null);
 
 /// <summary>
 /// ADR-033 D4 — THE AI TAX VALVE (D-021 valve 6, "the state acts by default"), the four constants
@@ -1340,6 +1345,9 @@ public static class SimConfigLoader
         if (string.IsNullOrWhiteSpace(g.TaxationRequires))
             throw new SimConfigException(
                 "governance.taxationRequires is empty — the tax edict is research-gated (ADR-033 D4); name the research.json node ids that make it available.");
+        if (g.TaxationMinAge is { } minAge && !(minAge >= 1 && minAge <= Ages.AgeContent.AgeCount))
+            throw new SimConfigException(
+                $"governance.taxationMinAge must be an ages.json key in [1,{Ages.AgeContent.AgeCount}] (the Age from which the tax edict is operational), got {minAge}.");
         GovernanceAiConfig? ai = g.Ai;
         if (ai is null) throw new SimConfigException("governance.ai is missing.");
         if (!(ai.ComfortableLegitimacy >= 0.0 && ai.ComfortableLegitimacy <= 100.0))

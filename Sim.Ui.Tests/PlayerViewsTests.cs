@@ -115,6 +115,23 @@ public class PlayerViewsTests
         Assert.Contains(v.Blocks[3].Lines, l => l.Contains(PlayerViews.LegitimacyWord(legit), StringComparison.Ordinal));
     }
 
+    /// <summary>H2 (Director 2026-10-05 §7): Taxation known before A3 is KNOWLEDGE, not yet the capability — the
+    /// Rule block names the Age the levy waits for instead of reading as if nothing were known; in A3 it offers the
+    /// levy.</summary>
+    [Fact]
+    public void TheEmpireView_SaysTheLevyWaitsForTheBronzeAge_WhenTaxationIsKnownEarlier()
+    {
+        UiSession s = Played(1);
+        WorldState w = s.World.Clone();
+        Sim.Core.Systems.Research.ResearchContent research = s.Config.Research!;
+        w.ResearchCompleted.Add(new ResearchCompletedRow(UiPlayer.Empire, research.Nodes[research.IndexOfId("taxation")].Key));
+        PlayerView before = PlayerViews.Empire(w, s.Config, UiPlayer.Empire, s.Names.Name, 1);
+        Assert.Contains("Your scholars know Taxation, but no levy can be raised before the Bronze Age (Age 3).", before.Blocks[3].Lines);
+        TaxAgeRig.EnterTaxAge(w, s.Config, UiPlayer.Empire);
+        PlayerView after = PlayerViews.Empire(w, s.Config, UiPlayer.Empire, s.Names.Name, 1);
+        Assert.Contains("You know how to levy a tax, but have declared none.", after.Blocks[3].Lines);
+    }
+
     [Fact]
     public void Trade_IsListedLargestFirst_TiesBrokenByTableOrder()
     {

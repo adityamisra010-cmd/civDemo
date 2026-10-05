@@ -161,10 +161,17 @@ public class ResearchUnlockPipelineTests
         Assert.False(Lists(w, ActionDomain.Governance));
     }
 
+    /// <summary>H2: the polity enters the tax edict's Age (sim.json governance.taxationMinAge, A3).</summary>
+    private static WorldState InTaxAge(WorldState w)
+    {
+        GovernanceRigs.EnterTaxAge(w, Player);
+        return w;
+    }
+
     [Fact]
     public void T08_Tax_AvailableAfterPrerequisiteResearch()
     {
-        WorldState w = Know(Solo(), Player, "taxation");
+        WorldState w = InTaxAge(Know(Solo(), Player, "taxation"));
         Assert.True(Governance.CanLevyTax(w, Cfg, Player));
         ActionDescriptor tax = Actions(w).Single(a => a.Domain == ActionDomain.Governance);
         Assert.Equal(OrderKind.SetTaxRate, tax.Order);
@@ -202,7 +209,15 @@ public class ResearchUnlockPipelineTests
         Assert.True(Avail(ready, taxation));
         Assert.False(Governance.CanLevyTax(ready, Cfg, Player));
 
-        WorldState taxed = Know(refined, Player, "taxation");
+        // H2 (Director 2026-10-05 §7): completing Taxation in the founding Age is KNOWLEDGE, not the capability — the
+        // edict is neither listed nor applied (a hand-built order is refused) until the polity enters A3.
+        WorldState known = Know(refined, Player, "taxation");
+        Assert.Equal(TaxGate.NeedsAge, Governance.GateOf(known, Cfg, Player));
+        Assert.False(Governance.CanLevyTax(known, Cfg, Player));
+        Assert.False(Lists(known, ActionDomain.Governance));
+        Assert.Equal(0, Step(known, Governance.TaxOrder(known.Clock.Turn, Player, 25)).TaxPolicies.Count);
+
+        WorldState taxed = InTaxAge(known.Clone());
         Assert.True(Governance.CanLevyTax(taxed, Cfg, Player));
         Assert.True(Lists(taxed, ActionDomain.Governance));
         Assert.Equal(1, Step(taxed, Governance.TaxOrder(taxed.Clock.Turn, Player, 25)).TaxPolicies.Count);
@@ -321,7 +336,7 @@ public class ResearchUnlockPipelineTests
     [Fact]
     public void T17_SaveLoad_PreservesCapabilities()
     {
-        WorldState w = Know(Step(Solo()), Player, "pottery_open_fired", "tin_bronze", "taxation", "track_road");
+        WorldState w = InTaxAge(Know(Step(Solo()), Player, "pottery_open_fired", "tin_bronze", "taxation", "track_road"));
         using var buffer = new MemoryStream();
         Snapshot.Save(w, buffer);
         buffer.Position = 0;
@@ -334,7 +349,7 @@ public class ResearchUnlockPipelineTests
     [Fact]
     public void T18_Replay_PreservesCapabilityAvailability_TurnByTurn()
     {
-        WorldState start = Know(Solo(), Player, "taxation");
+        WorldState start = InTaxAge(Know(Solo(), Player, "taxation"));
         WorldState a = start.Clone(), b = start.Clone();
         for (int t = 0; t < 4; t++)
         {
