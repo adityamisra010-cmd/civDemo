@@ -18,7 +18,7 @@ namespace Sim.Ui.Actions;
 /// action surface is the real ActionSurfaceScreen over ActionSurface.Build (<see cref="ActionSurfacePreview"/>).
 /// <list type="number">
 /// <item>turn 1 (Age I): no Trade capability listed;</item>
-/// <item>researched, pre-Trade (Age III): crafts, a crop, taxation, a road class and Trade's PREREQUISITES
+/// <item>researched, pre-Trade (Age III): crafts, a crop, the Taxation civic, a road class and Trade's PREREQUISITES
 ///   (token_counting, donkey) known — Trade not yet listed, no goods move;</item>
 /// <item>post-Trade: the same plus `trade` completed through the order pathway — Trade listed, goods move;</item>
 /// <item>a city-state: the last settlement released from the realm and left to develop on its own for many
@@ -45,25 +45,29 @@ public static class R2aPreview
 
     private static int Capital(IReadOnlyWorldState w) => EmpireQuery.TryGetCapital(w, Me, out SettlementId c) ? c.Value : -1;
 
-    private static readonly string[] Researched =
-        ["cereal_cultivation", "pottery_open_fired", "tin_bronze", "arithmetic_babylonian", "track_road", "token_counting", "donkey"];
+    /// <summary>The researched pre-Trade knowledge: crafts, a crop, the tax edict's research gate (read from sim.json
+    /// <c>governance.taxationRequires</c> — the Taxation civic since R5; <see cref="ActionSurfacePreview.TaxationGate"/>),
+    /// a road class and Trade's prerequisites. Until 2026-10-05 this granted <c>arithmetic_babylonian</c> as "taxation",
+    /// which stopped opening the gate at R5, so the description's "taxation known" was false.</summary>
+    private static string[] Researched(SimConfig cfg) =>
+        [.. ActionSurfacePreview.TaxationGate(cfg), "cereal_cultivation", "pottery_open_fired", "tin_bronze", "track_road", "token_counting", "donkey"];
 
     public static ActionSurfacePreview.State PreTrade()
     {
         SimConfig cfg = UiFounding.ProductionConfig();
-        WorldState w = Know(UiFounding.Found(42), cfg.Research!, Researched);
-        w = EraPreview.WorldAt(w, cfg.Ages!, Me, 3);
+        WorldState w = Know(UiFounding.Found(42), cfg.Research!, Researched(cfg));
+        w = EraPreview.WorldAt(w, cfg.Ages!, Me, ActionSurfacePreview.RigAge);
         UiSession s = UiSession.StartFrom(w, 42);
         for (int t = 0; t < 3; t++) s.EndTurn();
-        return new("pre-trade-a3", "Researched, pre-Trade: crafts, a crop, taxation, a road class and Trade's prerequisites known; Age III",
+        return new("pre-trade-a3", "Researched, pre-Trade: crafts, a crop, the Taxation civic, a road class and Trade's prerequisites known; Age III",
             s, s.World, Capital(s.World));
     }
 
     public static ActionSurfacePreview.State PostTrade()
     {
         SimConfig cfg = UiFounding.ProductionConfig();
-        WorldState w = Know(UiFounding.Found(42), cfg.Research!, Researched);
-        w = EraPreview.WorldAt(w, cfg.Ages!, Me, 3);
+        WorldState w = Know(UiFounding.Found(42), cfg.Research!, Researched(cfg));
+        w = EraPreview.WorldAt(w, cfg.Ages!, Me, ActionSurfacePreview.RigAge);
         UiSession s = UiSession.StartFrom(w, 42);
         ResearchNodeId trade = cfg.Research!.Nodes[cfg.Research.IndexOfId("trade")].Key;
         if (!s.EmitResearchOrder(trade)) throw new InvalidOperationException("r2a preview: Trade not orderable");

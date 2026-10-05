@@ -21,11 +21,16 @@ namespace Sim.Ui.Actions;
 /// <list type="number">
 /// <item>TURN 1 on the canonical founded world (seed 42, 1024 px, 12 settlements, A1): the whole game screen
 ///   with the POLICY panel open, and the surface alone at full height.</item>
-/// <item>A LATER STATE: the same world with a crop, a taxation node and a road class known (their
-///   ResearchCompleted rows — the constructed part of the rig), the player's Age row set to A3, then played
-///   through the real session: Root and tuber cultivation researched to completion through the order
+/// <item>A LATER STATE: the same world with the Taxation civic and a road class known (their prerequisite
+///   closures as ResearchCompleted rows — the constructed part of the rig), the player's Age row set to A3, then
+///   played through the real session: Root and tuber cultivation researched to completion through the order
 ///   pathway, a levy declared, a granary queued. Painted at A3 and, with only the Age row changed, at A8.</item>
 /// </list>
+/// THE TAX GATE IS READ FROM CONTENT (<see cref="TaxationGate"/>): the rigs complete every node named by sim.json
+/// <c>governance.taxationRequires</c> (since R5 the single Civics node <c>taxation</c>) with its prerequisite closure,
+/// and stand at <see cref="RigAge"/> = Age III or later, because Taxation is an A3 capability (Director 2026-10-05 §7).
+/// Until 2026-10-05 they granted <c>arithmetic_babylonian</c> — a refinement that stopped opening the gate at R5 — and
+/// crashed ("could not declare a 20% levy"); <c>PreviewToolProcessTests</c> now run both tools as separate processes.
 /// Deterministic: the same build writes byte-identical SVGs (their SHA-256 are logged).
 /// </summary>
 public static class ActionSurfacePreview
@@ -45,17 +50,54 @@ public static class ActionSurfacePreview
         return new State("turn-1-a1", "Turn 1, canonical founded world (seed 42, 12 settlements), Age I", s, s.World, Capital(s.World));
     }
 
-    /// <summary>The later rig (see the header), at A3.</summary>
+    /// <summary>The Age the later rig stands at: Age III, the Bronze Age — the first Age in which the Taxation
+    /// capability is operational (Director 2026-10-05 §7), so the rig's levy is legal under the Age half of the gate
+    /// as well as the knowledge half.</summary>
+    public const int RigAge = 3;
+
+    /// <summary>
+    /// THE TAX EDICT'S RESEARCH GATE, read from content: the ids of every research node named by sim.json
+    /// <c>governance.taxationRequires</c>, in the expression's own order (R5: the single Civics node <c>taxation</c>,
+    /// key 1007). Completing all of them — with their prerequisite closure (<see cref="WithAncestors"/>) — satisfies
+    /// the expression whatever its AND/OR shape, because research requirements carry no NOT (monotone, ADR-029 §2.2).
+    /// No node id is named here: when the content moves the gate, the rigs follow it.
+    /// </summary>
+    public static string[] TaxationGate(Sim.Core.Systems.SimConfig cfg)
+    {
+        ResearchContent research = cfg.Research ?? throw new InvalidOperationException("action preview rig: no research content");
+        Sim.Core.Systems.GovernanceConfig governance = cfg.Governance
+            ?? throw new InvalidOperationException("action preview rig: no governance content (sim.json governance)");
+        Sim.Core.Systems.ClassMobility.Predicate requirement = ResearchContentLoader.ParseRequirement(
+            research, governance.TaxationRequires, "sim.json governance.taxationRequires");
+        var ids = new List<string>();
+        foreach (int atom in requirement.AtomIds) ids.Add(research.Nodes[atom].Id);
+        if (ids.Count == 0) throw new InvalidOperationException("action preview rig: governance.taxationRequires names no research node");
+        return [.. ids];
+    }
+
+    /// <summary>Completes, for the player, every node in <paramref name="nodeIds"/> and its prerequisite closure
+    /// (ResearchCompleted rows; a node already complete is not duplicated).</summary>
+    private static void Know(WorldState w, ResearchContent research, params string[] nodeIds)
+    {
+        foreach (string id in WithAncestors(research, nodeIds))
+        {
+            ResearchNodeId key = research.Nodes[research.IndexOfId(id)].Key;
+            if (!ResearchQuery.IsCompleted(w, Me, key)) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, key));
+        }
+    }
+
+    /// <summary>The later rig (see the header), at <see cref="RigAge"/>.</summary>
     public static State LaterRig(int maxTurns = 80)
     {
         WorldState w = UiFounding.Found(42);
         SimConfigLike cfg = new(UiFounding.ProductionConfig());
         ResearchContent research = cfg.Research;
         AgeContent ages = cfg.Ages;
-        foreach (string id in WithAncestors(research, "arithmetic_babylonian", "track_road"))
-            w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId(id)].Key));
-        w = EraPreview.WorldAt(w, ages, Me, 3);
+        Know(w, research, [.. TaxationGate(cfg.Config), "track_road"]);
+        w = EraPreview.WorldAt(w, ages, Me, RigAge);
         UiSession s = UiSession.StartFrom(w, 42);
+        Require(Governance.CanLevyTax(s.World, s.Config, Me),
+            "open the tax gate (sim.json governance.taxationRequires completed, Age " + RigAge.ToString(CultureInfo.InvariantCulture) + ")");
         int capital = Capital(s.World);
         ResearchNodeId crop = research.Nodes[research.IndexOfId("root_crop")].Key;
         Require(s.EmitResearchOrder(crop), "choose Root and tuber cultivation");
@@ -67,13 +109,13 @@ public static class ActionSurfacePreview
         Require(ResearchQuery.IsCompleted(s.World, Me, crop), "Root and tuber cultivation completed within the rig's turns");
         // The turn after the crop is learned: the surface announces it and marks Farming as new.
         if (ResearchQuery.CheapestAvailable(s.World, research, Me, ResearchTree.Technology) is ResearchNodeId next) s.EmitResearchOrder(next);
-        return new State("later-a3", "A later state: a crop, a taxation node and a road class known; Age III; the turn Farming appeared",
+        return new State("later-a3", "A later state: a crop, the Taxation civic and a road class known; Age III; the turn Farming appeared",
             s, s.World, capital);
     }
 
     /// <summary>R1 — THE RESEARCHED STATE: the canonical founded world with the prerequisite closures of agriculture
-    /// (cereal_cultivation), pottery (pottery_open_fired), bronze casting (tin_bronze), taxation
-    /// (arithmetic_babylonian), a road class (track_road) and the university (building.university and
+    /// (cereal_cultivation), pottery (pottery_open_fired), bronze casting (tin_bronze), taxation (the Taxation civic,
+    /// <see cref="TaxationGate"/>), a road class (track_road) and the university (building.university and
     /// inst.university: medicine_hippocratic, geometry_axiomatic, cuneiform, stamp_seal, legal_code_roman) completed
     /// (ResearchCompleted rows — the constructed part of the rig), the Age row set to A4, then one End Turn through
     /// the real session. Every control it shows comes from the query: nothing here names a control.</summary>
@@ -82,11 +124,11 @@ public static class ActionSurfacePreview
         WorldState w = UiFounding.Found(42);
         SimConfigLike cfg = new(UiFounding.ProductionConfig());
         ResearchContent research = cfg.Research;
-        foreach (string id in WithAncestors(research, "cereal_cultivation", "pottery_open_fired", "tin_bronze", "arithmetic_babylonian",
-                     "track_road", "medicine_hippocratic", "geometry_axiomatic", "cuneiform", "stamp_seal", "legal_code_roman"))
-            w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId(id)].Key));
-        w = EraPreview.WorldAt(w, cfg.Ages, Me, 4);
+        Know(w, research, [.. TaxationGate(cfg.Config), "cereal_cultivation", "pottery_open_fired", "tin_bronze",
+            "track_road", "medicine_hippocratic", "geometry_axiomatic", "cuneiform", "stamp_seal", "legal_code_roman"]);
+        w = EraPreview.WorldAt(w, cfg.Ages, Me, 4);   // Age IV: past the Taxation Age (RigAge)
         UiSession s = UiSession.StartFrom(w, 42);
+        Require(Governance.CanLevyTax(s.World, s.Config, Me), "open the tax gate in the researched rig");
         s.EndTurn();
         return new State("researched-a4", "Researched state: agriculture, pottery, bronze casting, taxation, a road class and the university's prerequisites known; Age IV",
             s, s.World, Capital(s.World));
