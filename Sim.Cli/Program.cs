@@ -101,11 +101,12 @@ namespace Sim.Cli
                 first-reign fixture replays at --settlements 1; a non-canonical
                 count is recorded as runs/orders-*-nN.bin). --ai-empires N founds N
                 AI-commanded Empires instead of worldgen.json's aiEmpires (default 0;
-                ADR-033 D5). `run` then appends every AI Empire's orders each turn
-                (AiOrders: research, Age advance, roads, construction — through the
-                player's own order constructors) to the run's order log; `replay`
-                never produces orders, it replays the log, so give it the same
-                --ai-empires and the log the run wrote (--emit-session).
+                ADR-033 D5). A founded `run` appends every AI polity's orders each turn
+                (AiOrders: research, Age advance, roads, construction, tax — through the
+                player's own order constructors) to the run's order log, as the UI does;
+                that includes the AI polity every revolt founds mid-run, with or without
+                --ai-empires. `replay` never produces orders, it replays the log, so give
+                it the same --ai-empires and the log the run wrote (--emit-session).
 
                 hash/diff on a FOUNDED save regenerate its terrain from the
                 seed in the header (ADR-008: terrain is not in the stream) at
@@ -229,13 +230,18 @@ namespace Sim.Cli
             // never mid-run (payload ranges were already checked at load).
             if (loaded is not null) OrderValidation.ValidateAgainstWorld(loaded, world);
 
-            // ADR-033 D5: a founded world with AI-commanded Empires runs the AI order
-            // producer each turn, headless as in the UI. The executor then reads a
-            // RUN LOG that receives, before each step, the loaded log's rows for that
-            // turn (in their order) followed by the AI's orders — the log the session
-            // record writes and `sim replay` reproduces. Without AI Empires (the
-            // default) nothing changes: the executor reads the loaded log itself.
-            Sim.Core.Systems.SimConfig? aiCfg = founded && AiOrders.HasAiPolity(world) ? SimCfg() : null;
+            // ADR-033 D5: a founded world runs the AI order producer each turn, headless as in
+            // the UI (UiSession.EndTurn calls AiOrders.Append on every turn, unconditionally).
+            // The executor reads a RUN LOG that receives, before each step, the loaded log's
+            // rows for that turn (in their order) followed by the AI's orders — the log the
+            // session record writes and `sim replay` reproduces.
+            // M5 hardening H4 (2026-10-05): this was gated on an AI polity existing AT FOUNDING.
+            // That went stale at R3: every revolt founds a new AI polity mid-run (D-048), so a
+            // run without --ai-empires never drove a revolted settlement's polity while the UI
+            // does — the same seed and player orders gave a different world. Every founded run
+            // now takes the run-log path. A world that never holds an AI polity issues no AI
+            // order, so its hashes are unchanged (the ci.yml founded legs reproduce).
+            Sim.Core.Systems.SimConfig? aiCfg = founded ? SimCfg() : null;
             OrderLog? orders = aiCfg is not null ? new OrderLog() : loaded;
             var executor = Executor(orders, founded);
 
