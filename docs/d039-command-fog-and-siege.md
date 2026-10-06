@@ -3,6 +3,12 @@
 Director design ruling. Decision record — exempt document class under S8 §4.
 Closes D-014. Extends D-011/D-012/D-013.
 
+> *Pointer (appended 2026-10-06, M5 polish pass; per the Director roadmap rebase of 2026-10-03; the text below is
+> unchanged):* "M6" in this record names the battle layer under D-011 §6's numbering. The Battle Layer is now **M7**,
+> after M6 Knowledge / Research / Technology, whose capability state it consumes; "the M6 spec", "M6's spec", "the M6
+> symbology" and "M6 owns" (Parts B, C, E, F) read the **M7 Battle Layer** spec. FN-2's "espionage is M11+" stays in
+> M11+ Depth & Content Expansion (sequence intentionally open). Record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".
+
 ## PART A — WHAT VARIES ACROSS ERAS IS KNOWLEDGE AND LATENCY, NOT VERBS
 
 A1. D-011 §1 fixes the order verbs as constant across all eras — "units change,

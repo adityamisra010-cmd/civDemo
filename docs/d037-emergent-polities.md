@@ -7,6 +7,14 @@ material already present in the master vision (Part 16.3 frozen conflicts, Part 
 borders) rather than adding scope. Queue-linked from the colonization/land-clearance item
 (origin: CR-003 §2(a)).
 
+> *Pointer (appended 2026-10-06, M5 polish pass; per the Director roadmap rebase of 2026-10-03; the text below is
+> unchanged):* D-037 numbers milestones on the original Spine ladder. Diplomacy and institutions named **M7** (the
+> header, C1 "M7 institutions" / "M7 diplomacy", the partition clause, C7, Part E's header, E2) are now **M8 Politics /
+> Diplomacy**; E3's battle layer is **M7** (see the note at E3); "M8 (unrest, secession)", "M8's politics" and E6 (M8)
+> stay **M8 Politics / Diplomacy** (unrest-lite itself shipped at M5, D-021); cultural plurality ("M8/M9", C1) belongs
+> to **M9 Society**; espionage (**M10+**, E4) is not individually placed by the rebase (M11+ Depth & Content Expansion,
+> sequence intentionally open). Record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".
+
 ════════════════════════════════════════════════
 ## PART A — GOVERNING PRINCIPLES
 ════════════════════════════════════════════════

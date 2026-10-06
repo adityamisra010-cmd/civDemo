@@ -23,6 +23,8 @@ Part II (repository annexes R1-R7) follows the END marker.
 > - **Placement.**
 >   - The file is in `docs/design/`, as the Director instructed on 2026-10-02.
 >   - It exists on branch `research-progression-foundation` only (LOCAL and REMOTE; **not MAIN**).
+>     *(2026-10-06, M5 polish pass: no longer "only" — the file is also on `m5-integration` and on the M5 candidate
+>     `m5-hardening`; it is still not on MAIN.)*
 >   - No copy is kept at the path an earlier instruction named,
 >     `docs/architecture/director-architecture-and-decision-ledger.md` (R4.21).
 > - **Gap audit.** `docs/design/director-ledger-gap-audit.md` is the read-only audit of the repository
