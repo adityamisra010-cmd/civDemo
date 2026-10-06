@@ -8,7 +8,7 @@ using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.Ages;
 
-public enum AgeHit { OpenAdvance, Surge, Confirm, Cancel, ClosePanel, OpenKnowledge }
+public enum AgeHit { OpenAdvance, Surge, Confirm, Cancel, ClosePanel, OpenKnowledge, FocusNode }
 
 public readonly record struct AgeHitRegion(RectD Rect, AgeHit Kind, int Arg);
 
@@ -17,6 +17,9 @@ public readonly record struct AgeHitRegion(RectD Rect, AgeHit Kind, int Arg);
 public sealed record AgeCommand(bool ClosePanel, bool OpenKnowledge, OrderRecord? Order, int SurgeKey)
 {
     public static readonly AgeCommand None = new(false, false, null, 0);
+
+    /// <summary>M5 polish: the research node (key) to focus in the tree, or -1.</summary>
+    public int FocusNode { get; init; } = -1;
 }
 
 /// <summary>
@@ -26,7 +29,7 @@ public sealed record AgeCommand(bool ClosePanel, bool OpenKnowledge, OrderRecord
 /// it reads the world through <see cref="AgePanelModel"/> / <see cref="AdvanceFlowModel"/>, and a
 /// confirm returns <see cref="AgeQuery.AdvanceOrder"/>, never a write.
 /// </summary>
-public sealed class AgeScreen(PolityId polity)
+public sealed partial class AgeScreen(PolityId polity)
 {
     public PolityId Polity { get; } = polity;
     public AgePanelModel Panel { get; private set; } = AgePanelModel.Empty;
@@ -48,7 +51,7 @@ public sealed class AgeScreen(PolityId polity)
     public void Refresh(IReadOnlyWorldState world, AgeContent? ages, UnitFamilyContent? families, IReadOnlyList<OrderRecord> queued)
     {
         _world = world;
-        Panel = AgePanelModel.Build(world, ages, queued, Polity);
+        Panel = AgePanelModel.Build(world, ages, queued, Polity, Research);
         Flow = AdvanceFlowModel.Build(world, ages, families, Polity);
         if (FlowOpen && !Panel.CanAdvance) FlowOpen = false;
     }
@@ -80,7 +83,8 @@ public sealed class AgeScreen(PolityId polity)
             {
                 case AgeHit.OpenAdvance: OpenFlow(); return AgeCommand.None;
                 case AgeHit.ClosePanel: return new AgeCommand(true, false, null, 0);
-                case AgeHit.OpenKnowledge: return new AgeCommand(false, true, null, 0);
+                case AgeHit.OpenKnowledge: return new AgeCommand(false, true, null, 0) { FocusNode = h.Arg };
+                case AgeHit.FocusNode: return new AgeCommand(false, true, null, 0) { FocusNode = h.Arg };
                 case AgeHit.Surge: SelectedSurge = h.Arg; return AgeCommand.None;
                 case AgeHit.Cancel: FlowOpen = false; return AgeCommand.None;
                 case AgeHit.Confirm: return Confirm();
@@ -128,6 +132,7 @@ public sealed class AgeScreen(PolityId polity)
     public void PaintPanel(DrawList d, ITextMeasure m, RectD r, string capitalName, bool clearHits = true)
     {
         if (clearHits) _hits = [];
+        _info = [];
         _panelRect = r;
         EraTheme t = Theme;
         SemanticTokens s = t.Semantic;
@@ -155,6 +160,7 @@ public sealed class AgeScreen(PolityId polity)
         var banner = new RectD(x, y, w, 64);
         PanelFrame.Paint(d, banner, t, 504, FrameKind.Card, Mix(t.Material.Panel, t.Material.Accent, 0.10), t.Material.Accent, 1.1);
         string numeral = "AGE " + AgePanelModel.Numeral(p.CurrentAge);
+        Info(banner, InfoSubject.OfAge(p.CurrentAge), p.CurrentAgeName);
         d.Title(t, banner.X + 14, banner.Y + 10, numeral, 24, t.Material.Accent);
         double nx = banner.X + 14 + Math.Max(82, m.Width(t, numeral, 24, FontRole.Title) + 14);   // clear of the numeral in any era's type
         d.Write(t, nx, banner.Y + 12, ThemeText.Fit(m, t, p.CurrentAgeName, 17, banner.Right - 12 - nx, FontRole.Heading), 17, t.Ink.Text, TextAlign.Left, FontRole.Heading);
@@ -170,6 +176,7 @@ public sealed class AgeScreen(PolityId polity)
         }
 
         // Next Age + state.
+        Info(new RectD(x, y - 2, w, 20), InfoSubject.OfAge(p.NextAge!.Value), p.NextAgeName ?? "");
         d.Write(t, x, y, "NEXT", 11, t.Ink.TextDim, TextAlign.Left, FontRole.Caps);
         d.Write(t, x + 48, y - 2, ThemeText.Fit(m, t, "Age " + AgePanelModel.Numeral(p.NextAge!.Value) + "  -  " + p.NextAgeName, 15, w - 48, FontRole.Heading), 15, t.Ink.Text, TextAlign.Left, FontRole.Heading);
         y += 26;
@@ -247,7 +254,7 @@ public sealed class AgeScreen(PolityId polity)
 
         var know = new RectD(x, r.Bottom - 34, w, 24);
         d.Write(t, know.CenterX, know.Y + 5, "Open KNOWLEDGE & TECHNOLOGY  [K]", 11.5, s.Knowledge, TextAlign.Center, FontRole.Caps);
-        _hits.Add(new AgeHitRegion(know, AgeHit.OpenKnowledge, 0));
+        _hits.Add(new AgeHitRegion(know, AgeHit.OpenKnowledge, p.SuggestedNodeKey));   // M5 polish: opens at the research next
     }
 
     private void PaintStateBand(DrawList d, ITextMeasure m, RectD r)
@@ -265,6 +272,7 @@ public sealed class AgeScreen(PolityId polity)
                 PanelFrame.Paint(d, btn, t, 511, FrameKind.Button, Mix(t.Material.PanelRaised, t.Material.Accent, 0.28), t.Material.Accent, 2.0);
                 d.Write(t, btn.CenterX, btn.Y + 13, "ADVANCE AGE", 16, t.Ink.Text, TextAlign.Center, FontRole.Caps);
                 _hits.Add(new AgeHitRegion(btn, AgeHit.OpenAdvance, 0));
+                if (p.NextAge is int next) Info(btn, InfoSubject.OfAge(next), p.NextAgeName ?? "");
                 break;
             }
             case AgePanelState.Pending:
@@ -298,9 +306,11 @@ public sealed class AgeScreen(PolityId polity)
         string count = l.Threshold > 1 ? N(l.Observed) + " / " + N(l.Threshold) : l.Met ? "done" : "not yet";
         if (!l.Met && l.Pending is not null) count = "pending";   // M5 R2b: an honest label, not a goal the player can reach today
         double cwid = m.Width(t, count, 11.5, FontRole.Numeric) + 6;
+        Info(new RectD(x + 20, y, Math.Min(w - 26 - cwid, m.Width(t, l.Name, 13)), t.Type.Line(13)), InfoSubject.Milestone(l.AgeKey, l.Id), l.Name);
         d.Write(t, x + 20, y, ThemeText.Fit(m, t, l.Name, 13, w - 26 - cwid), 13, l.Met ? t.Ink.Text : t.Ink.TextSoft);
         d.Write(t, x + w, y + 1, count, 11.5, l.Met ? t.Semantic.Positive : t.Ink.TextDim, TextAlign.Right, FontRole.Numeric);
-        return y + Math.Max(19, t.Type.Line(13));
+        y += Math.Max(19, t.Type.Line(13));
+        return PaintResearchNext(d, m, l, x, y, w);   // M5 polish (§10): the research to do next, clickable
     }
 
     /// <summary>Paints the full-screen ADVANCE AGE flow: surge emphasis cards, the modernization

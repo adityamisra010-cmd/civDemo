@@ -22,7 +22,7 @@ namespace Sim.Ui;
 /// The UI is a VIEW + ORDER SOURCE (T1.7/T1.8, D-023): it reads the session's world and feeds the simulation
 /// exclusively through the session's guarded emitters (the order log). Nothing here is read by the simulation.
 /// </summary>
-public sealed class GameUi
+public sealed partial class GameUi
 {
     private readonly UiSession _session;
     private readonly string _sessionLogPath;
@@ -199,6 +199,7 @@ public sealed class GameUi
         _camera = new Camera(_world.Terrain!.Size);
         _camera.Clamp(_viewportWidth, _viewportHeight);
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
+        _age.Research = session.Config.Research;   // M5 polish: the Age panel names the research to do next
         RefreshHud();
     }
 
@@ -451,6 +452,13 @@ public sealed class GameUi
         _eraFade?.Advance(dtSeconds);
         Rectangle viewport = Viewport();
         ImGuiIOPtr io = ImGui.GetIO();
+        _shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);   // M5 polish: Shift+click = info
+        if (UpdateInfoKeys(keyboard, io))
+        {
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            return;
+        }
 
         // T4.19 lane B: Escape CLOSES the open panel; with nothing open it
         // exits, as T4.18 did. Pressed-edge on polled state (a held key fires
@@ -458,7 +466,11 @@ public sealed class GameUi
         // owns its own Escape. GameSections.OnEscape says which case applied,
         // so one press is never both "close" and "exit".
         if (IsActive && !io.WantCaptureKeyboard && keyboard.IsKeyDown(Keys.K) && !_lastKeyboard.IsKeyDown(Keys.K))
+        {
+            bool opening = !_progressionOpen;
             ToggleProgression();
+            if (opening) FocusAgeSuggestion();   // M5 polish: [K] from the Age panel opens the tree at its next research
+        }
         if (_progressionOpen)
         {
             UpdateProgression(dtSeconds, mouse, keyboard, viewport);
@@ -488,6 +500,8 @@ public sealed class GameUi
                 if (!closed) Exit();
             }
         }
+
+        if (UpdateInfoClick(mouse)) _clickCandidate = false;   // M5 polish: Shift+click on a passive region opens its card
 
         if (IsActive && !io.WantCaptureMouse)
         {
@@ -622,7 +636,8 @@ public sealed class GameUi
             return true;
         }
         if (!AgePanelVisible || !AgePanelRect().Contains(mouse.X, mouse.Y)) return false;
-        if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
+        if (released && _shift && _age.InfoAt(mouse.X, mouse.Y) is { } info) OpenInfo(info.Subject);   // M5 polish: never the click
+        else if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
         return mouse.LeftButton == ButtonState.Pressed || released;
     }
 
@@ -630,6 +645,7 @@ public sealed class GameUi
     {
         if (cmd.ClosePanel) _agePanelOpen = false;
         if (cmd.OpenKnowledge && !_progressionOpen) ToggleProgression();
+        if (cmd.FocusNode >= 0) ShowInTree(new ResearchNodeId(cmd.FocusNode), closeInfo: false);   // M5 polish: research next
         if (cmd.Order is { } order && _session.EmitAdvanceAge(order.TargetId, cmd.SurgeKey)) { SaveSession(); RefreshHud(); }
     }
 
@@ -661,6 +677,7 @@ public sealed class GameUi
                     lens.Rect(new Sim.Ui.Render.RectD(up.X - ts, up.Y - ts * 0.8, 2 * ts, 1.6 * ts), null, _mapInk.Selection, 2.4, 3);
                 }
         _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
+        RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
 
         if (_session.Config.Ages is null) return;
         _age.Theme = _frameTheme;
@@ -707,6 +724,7 @@ public sealed class GameUi
 
         screen.PointerMove(mouse.X, mouse.Y);
         int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
+        if (wheel != 0 && InfoWheelInProgression(mouse.X, mouse.Y, wheel)) wheel = 0;   // M5 polish: the pinned card scrolls itself
         if (wheel != 0)
         {
             // The wheel scrolls the single (vertical) axis; Ctrl + wheel zooms.
@@ -723,7 +741,12 @@ public sealed class GameUi
             if (Math.Abs(mouse.X - _progressionDownX) > 4 || Math.Abs(mouse.Y - _progressionDownY) > 4) _progressionDrag = true;
             if (_progressionDrag) screen.Drag(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y);
         }
-        if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag)
+        if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag
+            && InfoClickInProgression(mouse.X, mouse.Y))
+        {
+            // M5 polish: the pinned card's own controls, or a Shift+click that opened a card — never a research order.
+        }
+        else if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag)
         {
             Sim.Ui.Progression.ProgressionCommand cmd = screen.Click(mouse.X, mouse.Y);
             if (cmd.Close) _progressionOpen = false;
@@ -748,7 +771,9 @@ public sealed class GameUi
         screen.Theme = _frameTheme;
         System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
         screen.Refresh(_world);
+        screen.Config = _session.Config;   // M5 polish: the detail panel's discoverability lines read InfoQuery
         Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);
+        PaintInfoInProgression(list, size.X, size.Y);   // M5 polish: the pinned card over the detail column
         _drawListBackend.Render(ImGui.GetBackgroundDrawList(), list);
     }
 
@@ -896,11 +921,13 @@ public sealed class GameUi
     public void Draw()
     {
         Controls.BeginFrame();
+        InfoRegistry.Clear();   // M5 polish: the frame's inspectable regions, refilled as it paints
         if (_fonts is { } fonts) ImGui.PushFont(fonts.For(_frameTheme).Body);
 
         if (_progressionOpen && _progression is not null)
         {
             DrawProgression();
+            DrawInfoHint();
             if (_fonts is not null) ImGui.PopFont();
             Controls.EndFrame();
             return;
@@ -920,6 +947,7 @@ public sealed class GameUi
         DrawContextPanel();
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
+        if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
 
         if (_fonts is not null) ImGui.PopFont();
         Controls.EndFrame();
@@ -973,7 +1001,9 @@ public sealed class GameUi
         ImGui.PushStyleColor(ImGuiCol.Text, Col(_researchFigure.Idle ? _frameTheme.Semantic.Progress : _frameTheme.Semantic.Active));
         bool research = ImGui.Button(_researchFigure.Text + "##band-research");
         Controls.Record("band-research");
-        if (research) ToggleProgression();
+        RegisterItem(ResearchChipSubject(), _researchFigure.Text);
+        if (research && ImGui.GetIO().KeyShift) OpenInfo(ResearchChipSubject());   // M5 polish: Shift+click = the card
+        else if (research) ToggleProgression();
         ImGui.PopStyleColor();
         // The compact Age indicator: the full Age name and the eligibility summary; it opens (or closes) the
         // capital's Age panel on demand, which no longer covers the map by itself.
@@ -983,7 +1013,9 @@ public sealed class GameUi
             ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? _frameTheme.Material.Accent : _frameTheme.Ink.Text));
             bool ageClicked = ImGui.Button(_ageFigure.Text + "##band-age");
             Controls.Record("band-age");
-            if (ageClicked)
+            RegisterItem(AgeChipSubject(), _ageFigure.Text);
+            if (ageClicked && ImGui.GetIO().KeyShift) OpenInfo(AgeChipSubject());   // M5 polish: Shift+click = the card
+            else if (ageClicked)
             {
                 if (_agePanelOpen) _agePanelOpen = false; else OpenAgePanel(flow: false);
             }
@@ -1079,6 +1111,7 @@ public sealed class GameUi
         ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(card.Title);
+        RegisterItem(InfoSubject.OfFormation(card.UnitId), card.Title, passive: true);
         PlaceCursor(UnitCardRect, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
@@ -1164,6 +1197,7 @@ public sealed class GameUi
     /// </summary>
     private void DrawContextPanel()
     {
+        if (DrawInfoContext()) return;   // M5 polish: a pinned info card takes the right-hand column
         if (_openSection == Section.None) return;
 
         BeginChrome(Placed(PanelLayout.Context));
@@ -1249,7 +1283,12 @@ public sealed class GameUi
             ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Material.Accent));
             ImGui.TextUnformatted(block.Heading);
             ImGui.PopStyleColor();
-            foreach (string line in block.Lines) ImGui.TextUnformatted(line);
+            for (int i = 0; i < block.Lines.Count; i++)
+            {
+                ImGui.TextUnformatted(block.Lines[i]);
+                if (block.Subjects is { } subjects && i < subjects.Count && subjects[i] is { } subject)
+                    RegisterItem(subject, block.Lines[i], passive: true, clipToWindow: true);   // M5 polish
+            }
         }
         ImGui.PopTextWrapPos();
     }
@@ -1613,11 +1652,16 @@ public sealed class GameUi
         if (ImGui.IsItemActivated())
         {
             System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
-            DispatchAction(_actions.Click(p.X, p.Y));
+            // M5 polish: Shift+click on a named thing opens its card; with Shift held the surface never dispatches an
+            // order (a Shift+click on a control with no card changes at most a draft).
+            if (ImGui.GetIO().KeyShift && _actions.InfoAt(p.X, p.Y) is { } info) OpenInfo(info.Subject);
+            else if (ImGui.GetIO().KeyShift) { Sim.Ui.Actions.ActionCommand cmd = _actions.Click(p.X, p.Y); if (!cmd.IsOrder) DispatchAction(cmd); }
+            else DispatchAction(_actions.Click(p.X, p.Y));
         }
         else if (ImGui.IsItemActive()) _actions.Drag(ImGui.GetIO().MousePos.X);
         if (ImGui.IsItemDeactivated()) _actions.Release();
         _drawListBackend.Render(ImGui.GetWindowDrawList(), surface);
+        RegisterInWindow(_actions.InfoHits);   // M5 polish: cut to the scrolled body's visible rect
 
         ImGui.Spacing();
         ImGui.Separator();

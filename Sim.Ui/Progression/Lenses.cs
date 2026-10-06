@@ -11,7 +11,8 @@ public enum Lens { KnowledgeAndTechnology = 0, Techniques, Institutions, Infrast
 /// <summary>How much of a lens the simulation actually backs today.</summary>
 public enum LensStatus { Functional, PartialData, NotYetSimulated }
 
-public sealed record LensSection(string Heading, string Note, IReadOnlyList<string> Items);
+/// <remarks>M5 polish: <c>Subjects</c> (parallel to <c>Items</c>, optional) is each item's info subject for Shift+click.</remarks>
+public sealed record LensSection(string Heading, string Note, IReadOnlyList<string> Items, IReadOnlyList<InfoSubject?>? Subjects = null);
 
 public sealed record LensPage(Lens Lens, string Title, string Purpose, LensStatus Status, string StatusNote, IReadOnlyList<LensSection> Sections);
 
@@ -48,30 +49,32 @@ public static class Lenses
             case Lens.Techniques:
             {
                 var items = new List<string>();
+                var subjects = new List<InfoSubject?>();
                 for (int i = 0; i < completed.Length; i++)
-                    if (completed[i]) foreach (string t in content.Nodes[i].Techniques) items.Add(t + "  -  " + content.Nodes[i].Name);
+                    if (completed[i]) foreach (string t in content.Nodes[i].Techniques) { items.Add(t + "  -  " + content.Nodes[i].Name); subjects.Add(InfoSubject.Node(content.Nodes[i].Key)); }
                 return new LensPage(lens, "Techniques", "Practices the completed knowledge makes possible.",
                     LensStatus.PartialData, "Listed from completed research. Technique adoption and diffusion are not yet simulated.",
-                    [new LensSection("Known techniques", items.Count + " from completed nodes", items)]);
+                    [new LensSection("Known techniques", items.Count + " from completed nodes", items, subjects)]);
             }
             case Lens.Institutions:
             {
                 var civics = new List<string>();
+                var civicSubjects = new List<InfoSubject?>();
                 for (int i = 0; i < completed.Length; i++)
-                    if (completed[i] && content.Nodes[i].Tree == ResearchTree.Civics) civics.Add(content.Nodes[i].Name);
+                    if (completed[i] && content.Nodes[i].Tree == ResearchTree.Civics) { civics.Add(content.Nodes[i].Name); civicSubjects.Add(InfoSubject.Node(content.Nodes[i].Key)); }
                 return new LensPage(lens, "Institutions", "How the society is organised: adopted civics and the institutions they allow.",
                     LensStatus.PartialData, "Adopted civics are completed Civics nodes. Universities are simulated: one is founded when its building is completed in a town that can sustain it (see INSTITUTIONS); other institutions are knowledge eligibility only.",
-                    [new LensSection("Adopted civics", civics.Count + " of " + content.CivicsCount, civics),
-                     new LensSection("Institutions within reach of knowledge", "knowledge eligibility only", Eligible(world, content, polity, ResearchEntityKind.Institution))]);
+                    [new LensSection("Adopted civics", civics.Count + " of " + content.CivicsCount, civics, civicSubjects),
+                     Eligible("Institutions within reach of knowledge", "knowledge eligibility only", world, content, polity, ResearchEntityKind.Institution)]);
             }
             case Lens.Infrastructure:
                 return new LensPage(lens, "Infrastructure", "Roads, works and networks.",
                     LensStatus.PartialData, "Roads are simulated: routes are built and modernized class by class through the road-development order, from real materials. Listed here: the infrastructure your knowledge now allows.",
-                    [new LensSection("Infrastructure within reach of knowledge", "", Eligible(world, content, polity, ResearchEntityKind.Infrastructure))]);
+                    [Eligible("Infrastructure within reach of knowledge", "", world, content, polity, ResearchEntityKind.Infrastructure)]);
             case Lens.Military:
                 return new LensPage(lens, "Military", "Arms, units and the art of war.",
-                    LensStatus.PartialData, "Knowledge eligibility only - recruitment and battle are not yet simulated.",
-                    [new LensSection("Units within reach of knowledge", "", Eligible(world, content, polity, ResearchEntityKind.Unit))]);
+                    LensStatus.PartialData, "Knowledge eligibility only - recruitment and battle arrive with the Battle Layer (M7).",
+                    [Eligible("Units within reach of knowledge", "", world, content, polity, ResearchEntityKind.Unit)]);
             case Lens.Applications:
             {
                 var apps = new List<string>();
@@ -88,15 +91,18 @@ public static class Lenses
         }
     }
 
-    private static List<string> Eligible(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchEntityKind kind)
+    private static LensSection Eligible(string heading, string note, IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchEntityKind kind)
     {
         string[] ids = ResearchQuery.KnowledgeEligibleEntities(world, content, polity);
         var result = new List<string>();
+        var subjects = new List<InfoSubject?>();
         foreach (string id in ids)
         {
             int e = content.EntityIndexOf(id);
-            if (e >= 0 && content.Entities[e].Kind == kind) result.Add(content.Entities[e].Name ?? id);
+            if (e < 0 || content.Entities[e].Kind != kind) continue;
+            result.Add(content.Entities[e].Name ?? id);
+            subjects.Add(InfoSubject.OfEntity(id));
         }
-        return result;
+        return new LensSection(heading, note, result, subjects);
     }
 }

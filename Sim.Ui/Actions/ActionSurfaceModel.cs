@@ -103,10 +103,13 @@ public sealed record ResearchBlock(
 /// <summary>The Age advance — listed only when the query lists it (eligible, not already ordered).</summary>
 public sealed record AgeBlock(int Age, string Name, int NextAge, string NextName, ActionDescriptor Advance);
 
-/// <summary>One construction project available in the target settlement.</summary>
+/// <summary>One construction project available in the target settlement. M5 polish: <c>Effects</c> is what reads a
+/// built one in this build (InfoQuery — the Age facts it counts toward, the levy's public-services offset), and
+/// <c>Chain</c> where a missing material comes from when nothing the player holds makes it (e.g. tools &lt;- Toolmaking
+/// &lt;- bronze &lt;- Bronze casting &lt;- Tin bronze).</summary>
 public sealed record ProjectEntry(
     int ProjectId, string Name, string Materials, double LabourAdultYears, string? Blocker, long Built, int Queued,
-    string? LearnedFrom, ActionDescriptor Action);
+    string? LearnedFrom, ActionDescriptor Action, string? Effects = null, string? Chain = null);
 
 /// <summary>One queued project, head first.</summary>
 public sealed record QueueEntry(int Slot, int ProjectId, string Name);
@@ -155,15 +158,26 @@ public sealed record MilitaryBlock(
 
 /// <summary>One crafting recipe the civilization knows (R1): its name, inputs → output, where it runs now (or its
 /// content condition when it runs nowhere yet), and the research it was learned from.</summary>
-public sealed record ProductionEntry(string Name, string Detail, int Settlements, string? Blocker, string? LearnedFrom, ActionDescriptor Action);
+/// <remarks>M5 polish: <c>Condition</c> is the recipe's D-020 condition with its live value in plain words
+/// (InfoQuery.ConditionReading), never the raw predicate alone; <c>Missing</c> the source chain of an input the
+/// civilization cannot obtain (it is known, but cannot produce).</remarks>
+public sealed record ProductionEntry(string Name, string Detail, int Settlements, string? Blocker, string? LearnedFrom, ActionDescriptor Action,
+    string? Condition = null, string? Missing = null);
 
 /// <summary>The crafts the civilization knows (R1) — exactly the Production descriptors the query returns, in
 /// its order. Generic over content: a newly authored recipe and its knowledge entity appear here with no UI
 /// code change.</summary>
 public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
 
-/// <summary>What the people do on their own — standing capabilities, one compact list, no controls.</summary>
-public sealed record StandingBlock(ImmutableArray<string> Items);
+/// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
+/// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
+public sealed record StandingBlock(ImmutableArray<string> Items, ImmutableArray<InfoSubject> Subjects = default);
+
+/// <summary>M5 polish (verify gap G2 — "visibly disabled", directive §4): a governing domain the player might look for
+/// that is not open yet, with the reason read from the predicate that gates it (Governance.GateOf for the tax edict,
+/// the road-class knowledge query for road development, AgeQuery for the Age advance) — never invented. Shown in
+/// POLICY as a locked line; Shift+click opens <c>Subject</c>'s card.</summary>
+public sealed record LockedDomain(string Label, string Reason, InfoSubject Subject);
 
 /// <summary>
 /// THE ACTION SURFACE — "what can this civilization actually do now?", as one read-only model (ADR-033 D1/D2).
@@ -176,7 +190,7 @@ public sealed record ActionSurfaceModel(
     UiEra Era, SurfaceLayout Layout, LabourControlSpec Control, ImmutableArray<ActionDescriptor> Actions,
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
     MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
-    ProductionBlock? Production = null)
+    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -239,7 +253,8 @@ public static class ActionSurface
             Governance(input, actions),
             Standing(actions),
             Notices(input, actions, notices),
-            Production(actions));
+            Production(input, actions),
+            Locked(input, actions));
     }
 
     /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
@@ -498,7 +513,8 @@ public static class ActionSurface
             foreach (ConstructionQueueRow r in ConstructionQuery.Queue(w, settlement)) if (r.ProjectId == projectId) queuedHere++;
             projects.Add(new ProjectEntry(projectId, a.Targets[1].Label, Materials(p), p.LaborRequired, a.Blocker,
                 ConstructionQuery.Built(w, settlement, projectId), queuedHere,
-                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a));
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a,
+                ProjectEffects(input, p, settlement), MissingChain(input, p, settlement)));
         }
         if (projects.Count == 0) return null;
 
@@ -637,7 +653,7 @@ public static class ActionSurface
                 modern.Add(Inv(l.Count) + " x " + l.From + (l.Changes ? " -> " + l.To : " - " + AdvanceFlowModel.OutcomeText(l.Outcome)));
         }
         return new MilitaryBlock(formations.ToImmutable(), next, modern.ToImmutable(),
-            "Recruitment, movement and battle are not yet simulated: there is no military order.", fighting);
+            "Recruitment, movement and battle arrive with the Battle Layer (M7): there is no military order yet.", fighting);
     }
 
     /// <summary>The family's mainline from the formation's current identity: "Warband -> Axe warriors -> Bronze swordsmen".</summary>
@@ -676,16 +692,99 @@ public static class ActionSurface
 
     // ------------------------------------------------------------------ production (R1)
 
-    private static ProductionBlock? Production(ImmutableArray<ActionDescriptor> actions)
+    private static ProductionBlock? Production(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
     {
         var entries = ImmutableArray.CreateBuilder<ProductionEntry>();
+        GoodsConfig? goods = input.Config.Goods;
         foreach (ActionDescriptor a in actions)
         {
             if (a.Domain != ActionDomain.Production) continue;
+            RecipeEntry? recipe = goods is not null && a.Id >= 1 && a.Id <= goods.Recipes.Length ? goods.Recipes[a.Id - 1] : null;
+            string? condition = recipe?.Requires is { } cond
+                ? InfoQuery.ConditionReading(input.World, input.Config, input.Player, cond, input.Name) : null;
+            string? missing = null;
+            if (recipe is not null)
+                foreach (RecipeInput i in recipe.Inputs)
+                    if (InfoQuery.SourceChain(input.World, input.Config, input.Player, i.Good) is { } chain) { missing = chain; break; }
             entries.Add(new ProductionEntry(a.Label, a.Detail ?? "", a.Targets.IsDefault ? 0 : a.Targets.Length, a.Blocker,
-                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a));
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a, condition, missing));
         }
         return entries.Count == 0 ? null : new ProductionBlock(entries.ToImmutable());
+    }
+
+    // ------------------------------------------------------------------ M5 polish: what a project does, where a material comes from
+
+    /// <summary>What reads a built project in this build, from its info card (InfoQuery): the Age facts it counts toward
+    /// and, for a public work, the levy's public-services offset. Null when nothing does.</summary>
+    private static string? ProjectEffects(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
+    {
+        InfoCard card = InfoQuery.Card(input.World, input.Config, input.Player, InfoSubject.OfProject(p.Id, settlement.Value),
+            settlementName: input.Name, actions: ImmutableArray<ActionDescriptor>.Empty);
+        var parts = new List<string>();
+        foreach (InfoLink l in card.Enables)
+        {
+            if (l.Subject is { Kind: InfoKind.AgeMilestone } s)
+                parts.Add("counts toward Age " + AgePanelModel.Numeral((int)s.Id) + " \"" + l.Label + "\"");
+            else if (l.Subject is { Kind: InfoKind.UniversityType }) parts.Add("founds the " + l.Label);
+            else if (l.Subject is null) parts.Add("once a levy exists, eases how heavily it is felt here");
+        }
+        return parts.Count == 0 ? null : string.Join("; ", parts);
+    }
+
+    /// <summary>The source chain of the first material the settlement lacks that nothing the civilization holds makes.</summary>
+    private static string? MissingChain(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
+    {
+        foreach (MaterialShortfall s in ConstructionQuery.Shortfalls(input.World.GoodStocks, input.Config.Goods!, settlement, p))
+            if (InfoQuery.SourceChain(input.World, input.Config, input.Player, s.Name) is { } chain) return chain;
+        return null;
+    }
+
+    // ------------------------------------------------------------------ M5 polish: the locked governing domains (verify G2)
+
+    /// <summary>
+    /// Each governing domain the player might look for that the query does NOT list, with the reason the gating predicate
+    /// gives (read through InfoQuery's card for it): the tax edict (Governance.GateOf), road development (the road-class
+    /// knowledge query and RoadDevelopmentQuery.Plan) and the Age advance (AgeQuery). A domain the query lists is never
+    /// here, so a locked line and its control never show together.
+    /// </summary>
+    private static ImmutableArray<LockedDomain> Locked(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        var lines = ImmutableArray.CreateBuilder<LockedDomain>();
+        IReadOnlyWorldState w = input.World;
+        SimConfig cfg = input.Config;
+        bool Lists(ActionDomain d) { foreach (ActionDescriptor a in actions) if (a.Domain == d) return true; return false; }
+        InfoCard Card(InfoSubject s) => InfoQuery.Card(w, cfg, input.Player, s, settlementName: input.Name, actions: actions);
+
+        if (!Lists(ActionDomain.Governance) && Sim.Core.State.Governance.GateOf(w, cfg, input.Player) is TaxGate.NeedsKnowledge or TaxGate.NeedsAge)
+        {
+            InfoCard tax = Card(InfoSubject.Tax);
+            lines.Add(new LockedDomain("Tax edict", tax.Summary ?? tax.StatusLine, InfoSubject.Tax));
+        }
+        if (!Lists(ActionDomain.Roads) && cfg.Roads is { } roads && cfg.Research is { } research)
+        {
+            int best = RoadDevelopmentQuery.BestKnownClass(w, research, roads, input.Player);
+            int next = -1;
+            foreach (RoadClassConfig c in roads.Classes)
+                if (c.Entity is not null && c.EdgeType > best && (next < 0 || c.EdgeType < next)) next = c.EdgeType;
+            if (best > EdgeTypes.DirtPath)
+            {
+                InfoCard known = Card(InfoSubject.OfRoadClass(best));
+                lines.Add(new LockedDomain("Road development (" + known.Title + ")", "no route is eligible for it now", InfoSubject.OfRoadClass(best)));
+            }
+            else if (next >= 0)
+            {
+                InfoCard card = Card(InfoSubject.OfRoadClass(next));
+                lines.Add(new LockedDomain("Road development (" + card.Title + ")", card.Summary ?? card.StatusLine, InfoSubject.OfRoadClass(next)));
+            }
+        }
+        if (!Lists(ActionDomain.Age) && cfg.Ages is { } ages && AgeQuery.NextAge(w, ages, input.Player) is { } nextAge
+            && AgeQuery.PendingAdvance(w, ages, input.Queued, input.Player) is null)
+        {
+            InfoCard age = Card(InfoSubject.OfAge(nextAge.Key));
+            lines.Add(new LockedDomain("Advance to Age " + AgePanelModel.Numeral(nextAge.Key) + " (" + nextAge.Name + ")",
+                age.Summary ?? age.StatusLine, InfoSubject.OfAge(nextAge.Key)));
+        }
+        return lines.ToImmutable();
     }
 
     // ------------------------------------------------------------------ standing
@@ -693,11 +792,19 @@ public static class ActionSurface
     private static StandingBlock? Standing(ImmutableArray<ActionDescriptor> actions)
     {
         var items = ImmutableArray.CreateBuilder<string>();
+        var subjects = ImmutableArray.CreateBuilder<InfoSubject>();
         foreach (ActionDescriptor a in actions)
+        {
             // R2a: the Trade capability is automatic (no order — the market moves goods once it is legal), so it
             // joins what the people do on their own, listed only when the query lists it.
-            if (a.Domain is ActionDomain.Standing or ActionDomain.Trade) items.Add(Short(a.Label));
-        return items.Count == 0 ? null : new StandingBlock(items.ToImmutable());
+            if (a.Domain is not (ActionDomain.Standing or ActionDomain.Trade)) continue;
+            items.Add(Short(a.Label));
+            // The descriptor's own provenance names its subject: the baseline id, or the trade entity.
+            subjects.Add(a.Domain == ActionDomain.Standing && !a.Provenance.Baseline.IsDefaultOrEmpty
+                ? InfoSubject.OfBaseline(a.Provenance.Baseline[0])
+                : !a.Provenance.Entities.IsDefaultOrEmpty ? InfoSubject.OfEntity(a.Provenance.Entities[0]) : InfoSubject.Research);
+        }
+        return items.Count == 0 ? null : new StandingBlock(items.ToImmutable(), subjects.ToImmutable());
     }
 
     /// <summary>A content name without its parenthetical gloss ("Basic fishing (shore, net, trap and spear)" → "Basic fishing").</summary>
