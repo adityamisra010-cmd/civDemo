@@ -613,3 +613,7 @@ None moved: FOUNDED_GOLDEN 07c6ec45… and every golden, attribution and CI-pin 
 `aiEmpires = 0` worlds are untaxed, and every F1 term is exactly inert there: the food floor applies only under
 drag, the capacity term only under a levy, and the uprising condition only adds a requirement. The AI 600-turn
 ci.yml leg has no pinned hash. Its two-process, replay and inspect agreement is recorded in the stream report.
+
+
+## §16 — Director rulings 2026-10-06
+The INFERRED choices of §11 and §15 (classes as segments, deterministic expected rebel fraction, uprisingGrievance 20, food floor with permanent revolt of a last settlement, taxCapacityOffsetMax 0.25) are RATIFIED by D-050.

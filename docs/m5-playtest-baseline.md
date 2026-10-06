@@ -1183,3 +1183,7 @@ Tests were run on `2b049f4`; its code is identical to `6ef1596` (the commits bet
 | Colonies | Collapse-driven only | `ColonizationSystem` | Dormant in normal worlds (ruled) | M4 | H4 measurements |
 | Goldens | founded `07c6ec45…`; AI leg final `492659ef…` (unpinned) | pins + `ci.yml` | — | — | xproc MEASURED §15.6 |
 | Window / title | `civ-sim M5`; min 1080×640; turn 1 | Sim.Ui | — | M5 | `BuildInfoTests`, `PlayerTurnNumberingTests` |
+
+
+## §16 — Director rulings 2026-10-06
+See `docs/d050-m5-hardening-rulings.md`: ADR-034 ratified; forager 4.3/2.0 kept; segments = classes; deterministic rebel fraction, uprisingGrievance 20; permanent revolt of a last settlement accepted; capacity factor 0.25; capital succession deferred to M8. These were the open items of §15.
