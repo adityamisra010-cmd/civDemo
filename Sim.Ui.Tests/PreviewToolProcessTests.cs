@@ -130,7 +130,12 @@ public sealed class PreviewToolProcessTests : IDisposable
         // Turn 1 (Age I, nothing researched): no tax edict anywhere on the surface. Every rig past the gate: the
         // Governance domain, the edict's heading and its provenance — the node(s) sim.json names, learned.
         Assert.DoesNotContain("Governance", StateLine(log, "turn-1-a1"), StringComparison.Ordinal);
-        Assert.DoesNotContain("TAX EDICT", File.ReadAllText(Path.Combine(dir, "turn-1-a1-panel.svg")), StringComparison.OrdinalIgnoreCase);
+        // M5 polish (directive §4, verify G2): the edict is named there only as a locked line with Governance.GateOf's
+        // reason, never as the Governance block ("The tax edict") or a control.
+        string a1Panel = File.ReadAllText(Path.Combine(dir, "turn-1-a1-panel.svg"));
+        Assert.DoesNotContain("THE TAX EDICT", a1Panel, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(">Tax edict<", a1Panel, StringComparison.Ordinal);
+        Assert.Contains("needs Taxation (Civics)", a1Panel, StringComparison.Ordinal);
         string[] gate = GateNames(UiFounding.ProductionConfig());
         foreach (string stem in new[] { "later-a3", "later-a8", "researched-a4" })
         {
