@@ -1,10 +1,10 @@
 # ADR-034 — ORDER VALIDATION: DEFERRING CHECKS FOR IDS FOUNDED MID-GAME, AND THE DELIVERY CHECK THAT BOUNDS IT
 
 **Status:** PROPOSED — awaits the Director's acceptance ruling. Written 2026-10-05 by the F3 fix stream of the M5
-
-> **2026-10-06: RATIFIED by the Director (D-050 ruling 1).**
 hardening pass (branch `m5h-f3-ui-docs-fixes`), after a verifier found that two kernel changes had landed without an
 ADR.
+
+> **2026-10-06: RATIFIED by the Director (D-050 ruling 1).**
 
 **Touches the kernel contract:** `Sim.Core/Kernel/OrderValidation.cs` (frozen after M0 without Director sign-off).
 No schema change, no new order kind, no change to `TurnExecutor.Step`, no golden hash moves. This record is the ADR
