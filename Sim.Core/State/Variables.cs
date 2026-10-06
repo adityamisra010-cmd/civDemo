@@ -92,6 +92,22 @@ public static class Variables
     /// <summary>Known names in registration order (parallel to ids 1..N).</summary>
     public static readonly string[] Names = ["food_surplus_ratio", "artisan_share", "population", "trade_volume"];
 
+    /// <summary>M5 polish (directive §9): what each registered variable MEANS, in plain words, parallel to
+    /// <see cref="Names"/> — the registry is where a variable's identity lives, so its reading for the player lives
+    /// beside its name (a D-020 condition such as <c>artisan_share &gt; 0.05</c> is never shown without it).
+    /// Presentation only: no system reads it.</summary>
+    public static readonly string[] Plain =
+    [
+        "food produced last turn over the food the people needed",
+        "share of the adults who are artisans",
+        "people living in the settlement",
+        "units of goods traded in or out last turn",
+    ];
+
+    /// <summary>The plain-language reading of variable <paramref name="id"/>, or its name when none is registered.</summary>
+    public static string Describe(int id) =>
+        id >= 1 && id <= Plain.Length ? Plain[id - 1] : id >= 1 && id <= Names.Length ? Names[id - 1] : "unknown variable";
+
     /// <summary>Name → id; −1 when unknown (callers own the actionable error).</summary>
     public static int IdOf(string name)
     {
