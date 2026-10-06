@@ -90,14 +90,19 @@ Template trimmed from 16 to 12 fields: Purpose & realism target · Fidelity tier
 | Military full (ops, siege, naval) | M9+ | T2 | battle module behind replaceable interface |
 | Espionage/intel uncertainty | M10+ | T3 | estimates-with-error UI only at first |
 | Characters/notables | M10+ | T3 | light layer; no romance sim |
-
-> *Superseded 2026-10-03 (Director roadmap rebase):* the milestone column above is the original v3 placement. Under the
-> current ladder knowledge & diffusion is **M6**, the battle layer **M7**, politics/institutions & diplomacy **M8**,
-> religion/culture/health **M9**, Integrated Civilization Simulation **M10**, Depth & Content Expansion **M11+**. See `docs/milestones.md`.
 | Finance (banking, debt, panics) | era exp. | T2 | staged with early-modern era |
 | Media/nationalism | era exp. | T2 | reuse opinion engine |
 | Chronicle engine | continuous | lite→T1 | event log with names ships at M2 |
 | Calibration battery | continuous | T1 | corridors added as systems land |
+
+> *Superseded 2026-10-03 (Director roadmap rebase):* the milestone column above is the original v3 placement. Under the
+> current ladder knowledge & diffusion is **M6**, the battle layer **M7**, politics/institutions & diplomacy **M8**,
+> religion/culture/health **M9**, Integrated Civilization Simulation **M10**, Depth & Content Expansion **M11+**. See `docs/milestones.md`.
+> *(2026-10-06, M5 polish pass: this note was moved here from between the Characters/notables and Finance rows,
+> where it split the table so that the last four rows did not render; its text above is unchanged.)* Rows not mapped
+> by the note — Environment & climate (M9), Military full (M9+), Espionage (M10+), Characters/notables (M10+), Finance
+> and Media/nationalism ("era exp.") — are not individually placed by the rebase; "era exp." is an obsolete label, and
+> each such system's milestone is set by the spec that takes it up (the M11+ sequence is intentionally open).
 
 **Market solver mandate (closing v2's most dangerous under-specification):** no global Walrasian equilibrium. Each regional market holds a local price per good; prices adjust by damped excess-demand steps with clamps; arbitrage flows between connected markets close gaps at transport-cost thresholds. This is Victoria-3-class local-price architecture: stable, incremental, explainable, and implementable by an agent in bounded sessions. Global-equilibrium solving is permanently anti-scoped.
 

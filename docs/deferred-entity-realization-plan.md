@@ -56,7 +56,7 @@ and shipping are the natural next consumers of the R2a Trade gate but alter tran
 
 ## E. Military/unit realization — owned by M7 Battle Layer (do not pull forward)
 
-*(2026-10-03 roadmap rebase: heading and text previously said M6; **M7 Battle Layer**, which follows M6 Kheading and text previously said M6;ledge / Research / Technology.)*
+*(2026-10-03 roadmap rebase: heading and text previously said M6; now **M7 Battle Layer**, which follows M6 Knowledge / Research / Technology.)* *(2026-10-06, M5 polish pass: the rebase patch `4448350` garbled this note's wording; restored here, meaning unchanged.)*
 
 
 All 23 `unit.*` entities (archers … war_galley, tank, icbm, …) and `building.castle`, `building.bastion_fort`,
