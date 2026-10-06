@@ -595,3 +595,13 @@ ratified calibration bands pass at the shipped values; 5.0 per gatherer equals t
 would erase agriculture's per-worker gain (+16 % → 0 %); 3.0+ per km² exceeds the recorded forager range; and no
 counterfactual pair has canonical or corridor evidence. **Status: OPEN for the Director** — options (a)–(d) above
 stand, with (c) corrected to 5.0 / ≈ 3.0.
+
+## 2026-10-06 — Director rulings (pointer appended in the M5 polish pass; append-only, the sections above are unchanged)
+
+D-050 (`docs/d050-m5-hardening-rulings.md`, Director 2026-10-06) rules this record's forager question. Ruling 2
+keeps **4.3 per gatherer / 2.0 per km²** and rejects the 5.0 / 3.0 alternative: order-free worlds may starve in bad
+weather (11/20 canonical seeds), and a player who neglects food can starve. The four "OPEN for the Director" places
+above — §3.3, §7 item 1, the F2 "Decision (F2)" list and the final-integration "Status: OPEN for the Director" — are
+therefore **RULED: option (a)**, accept the shipped values with this record. §7 items 2 (quarantine windows) and 3
+(colonies) are not addressed by D-050 and keep their status. D-050 ruling 1 also ratifies ADR-034 (the order-
+validation deferral that §4.4's revolt-session replay fix relies on).

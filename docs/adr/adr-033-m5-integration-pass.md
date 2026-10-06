@@ -282,3 +282,18 @@ Baseline record for the playtest: `docs/m5-playtest-baseline.md`.
 - **Schema v32** appends `TaxGrievances`.
 
 Record: `docs/d049-taxation-and-revolt-model.md`.
+
+## D-050 and the AI levy pin — pointer (appended 2026-10-06, M5 polish pass)
+
+The sections above are kept unchanged as history.
+
+- **AI levy pin.** The R4a / R5 pointer's "The AI levy pin moved from 546/547 to 367/368" is superseded by H2's Age half:
+  the pin is **463/464** (SetTaxRate ordered at 463, a positive rate at 464, the AI's first A3 turn), and 367/368 is
+  the stripped-Age-gate control. MEASURED 2026-10-06 on `81ac697`'s code (Release): `AiEmpireIntegrationTests` 2/2
+  passed with those exact-equality pins.
+- **D-050 (Director 2026-10-06).** ADR-034 is RATIFIED. Capital succession (R2c "no ratified succession; DEFERRED",
+  R3) is deferred to **M8 Politics / Diplomacy** by ruling 7; finer population segments go to **M9 Society** by ruling 3;
+  d049's INFERRED choices (classes as segments, the deterministic rebel fraction with `uprisingGrievance` = 20, the
+  food floor with a last settlement's permanent revolt, `taxCapacityOffsetMax` = 0.25) are RATIFIED.
+
+Record: `docs/d050-m5-hardening-rulings.md`.

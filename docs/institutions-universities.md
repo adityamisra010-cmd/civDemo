@@ -427,3 +427,10 @@ t547/t548) were measured when the tax edict opened on any of the four refinement
 world's pinned levy moved to t367/t368 (`AiEmpireIntegrationTests`, `5c364b5`; it had drifted 547/548 → 537/538
 at R1 and → 546/547 at R4). The tables above are kept as history and are correct for their trees. The current tax
 gate and its evidence: `docs/m5-playtest-baseline.md` §4.
+
+*(Dated note appended 2026-10-06, M5 polish pass; the pointer above is unchanged.)* Since H2 (2026-10-05) the edict
+also needs the polity's current Age to be at least Age III (`sim.json governance.taxationMinAge`, inside
+`Governance.CanLevyTax`). The AI world's pinned levy is therefore **t463/t464** (SetTaxRate ordered at 463, positive
+rate at 464, on the AI's first A3 turn), and t367/t368 is the stripped-Age-gate control. MEASURED 2026-10-06 on
+`81ac697`'s code (Release): `AiEmpireIntegrationTests`, 2/2 passed, whose exact-equality pins are (463, 464) and,
+for the control `WithTheTaxAgeGateStripped_TheAiLeviesAtThePreH2Turn_InA2`, (367, 368).
