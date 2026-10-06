@@ -39,19 +39,21 @@ public sealed class NoticeToast
     {
         if (!Visible) return;
         double fade = Math.Clamp(Math.Min(_age / 0.35, (Seconds - _age) / 0.8), 0, 1);
-        double w = Math.Min(640, width - 40);
+        // UR-6: the kicker and the lines by role (Caption caps, Body) in the accent's text ink — they were 11 and 13 px.
+        double cap = TypeScale.Px(t, TypeRole.Caption, FontRole.Caps), body = TypeScale.Px(t, TypeRole.Body, FontRole.Heading);
+        double w = Math.Min(720, width - 40);
         int shown = Math.Min(_lines.Count, 4);
-        var r = new RectD((width - w) / 2, top, w, 30 + shown * t.Type.Line(13) + 12);
+        var r = new RectD((width - w) / 2, top, w, 14 + t.Type.Line(cap) + 4 + shown * t.Type.Line(body) + 14);
         var frame = new DrawList();
         PanelFrame.Paint(frame, r, t, 560, FrameKind.Toast, null, t.Material.Accent, 1.2);
         foreach (DrawCmd c in frame.Commands) d.Add(Faded(c, fade));
-        d.Write(t, r.CenterX, r.Y + 12, "THIS TURN", 11, ThemeColor.Alpha(t.Material.Accent, fade), TextAlign.Center, FontRole.Caps);
-        double y = r.Y + 12 + t.Type.Line(11) + 2;
+        d.Write(t, r.CenterX, r.Y + 14, "THIS TURN", cap, ThemeColor.Alpha(t.TextInk.Accent, fade), TextAlign.Center, FontRole.Caps);
+        double y = r.Y + 14 + t.Type.Line(cap) + 4;
         for (int i = 0; i < shown; i++)
         {
-            d.Write(t, r.CenterX, y, ThemeText.Fit(m, t, _lines[i], 13, r.W - 40, FontRole.Heading), 13, ThemeColor.Alpha(t.Ink.Text, fade),
+            d.Write(t, r.CenterX, y, ThemeText.Fit(m, t, _lines[i], body, r.W - 40, FontRole.Heading), body, ThemeColor.Alpha(t.Ink.Text, fade),
                 TextAlign.Center, FontRole.Heading);
-            y += t.Type.Line(13);
+            y += t.Type.Line(body);
         }
     }
 
