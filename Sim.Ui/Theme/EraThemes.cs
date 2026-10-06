@@ -42,7 +42,7 @@ public static class EraThemes
     }
 
     /// <summary>Builds a theme from scratch (no cache) — what the determinism tests compare.</summary>
-    public static EraTheme Build(UiEra era) => UiEras.FromAge((int)era) switch
+    public static EraTheme Build(UiEra era) => Readable(UiEras.FromAge((int)era) switch
     {
         UiEra.Prehistoric => Prehistoric(),
         UiEra.Neolithic => Neolithic(),
@@ -53,6 +53,27 @@ public static class EraThemes
         UiEra.EarlyModern => EarlyModern(),
         UiEra.Industrial => Industrial(),
         _ => Modern(),
+    });
+
+    /// <summary>The token-level contrast floor of <see cref="InkTokens.TextDim"/> on the panel (UR-1).</summary>
+    public const double TextDimFloor = 5.0;
+
+    /// <summary>
+    /// THE READABILITY FLOORS (M5 polish, UI readability UR-1; Director directive 2026-10-06 §2: gameplay information
+    /// beats decorative texture, and later eras must not shrink type). Applied to every era after its mood tokens:
+    /// <list type="bullet">
+    /// <item>the type scale never shrinks below the reference: <c>SizeScale ≥ 1.0</c> (A7–A9 were 0.98, 0.95, 0.94;
+    /// the face, weight, tracking and case still evolve — ADR-033 D8's evolving type scale, without the shrink);</item>
+    /// <item><see cref="InkTokens.TextDim"/> is darkened toward the body ink until it reaches <see cref="TextDimFloor"/>
+    /// on the panel (it measured 3.55:1 at A6), so even the tertiary ink stays above 4.5:1 once rendered.</item>
+    /// </list>
+    /// The state fills' separation is built in <see cref="Semantics"/>; the semantic text inks are derived
+    /// (<see cref="EraTheme.TextInk"/>).
+    /// </summary>
+    private static EraTheme Readable(EraTheme t) => t with
+    {
+        Ink = t.Ink with { TextDim = TextInks.Darken(t.Ink.TextDim, t.Ink.Text, t.Material.Panel, TextDimFloor) },
+        Type = t.Type with { SizeScale = Math.Max(1.0, t.Type.SizeScale) },
     };
 
     // ======================================================================== the nine eras
@@ -344,9 +365,33 @@ public static class EraThemes
             Food: S(SemanticFamilies.Food), Knowledge: S(SemanticFamilies.Knowledge), Military: S(SemanticFamilies.Military),
             Infrastructure: S(SemanticFamilies.Infrastructure),
             Prerequisite: S(SemanticFamilies.Prerequisite), Dependent: S(SemanticFamilies.Dependent),
-            AvailableFill: Mix(m.Panel, available, 0.10), ActiveFill: Mix(m.Panel, active, 0.16),
-            CompletedFill: Mix(m.Panel, completed, 0.24), LockedFill: Mix(m.Panel, m.PanelSunken, 0.45),
+            AvailableFill: AvailableFillOf(m, available), ActiveFill: Mix(m.Panel, active, 0.16),
+            CompletedFill: Mix(m.Panel, completed, 0.24), LockedFill: LockedFillOf(m, AvailableFillOf(m, available)),
             Lanes: lanes);
+    }
+
+    /// <summary>The minimum lightness ratio between the Available and Locked card fills (UR-1): state is carried by
+    /// SURFACE, not only by a hairline (they were 1.02–1.14:1 apart).</summary>
+    public const double StateFillSeparation = 1.4;
+
+    /// <summary>An available card: the raised surface with a breath of the Available hue.</summary>
+    private static Rgba AvailableFillOf(MaterialTokens m, Rgba available) => Mix(m.PanelRaised, available, 0.08);
+
+    /// <summary>A locked card: the panel sunk toward the well (and, where the era's well is too pale, on toward its
+    /// border) just far enough to sit <see cref="StateFillSeparation"/> below the available fill.</summary>
+    private static Rgba LockedFillOf(MaterialTokens m, Rgba availableFill)
+    {
+        for (int k = 45; k <= 100; k++)
+        {
+            Rgba f = Mix(m.Panel, m.PanelSunken, k / 100.0);
+            if (Contrast(availableFill, f) >= StateFillSeparation) return f;
+        }
+        for (int k = 1; k <= 60; k++)
+        {
+            Rgba f = Mix(m.PanelSunken, m.Border, k / 100.0);
+            if (Contrast(availableFill, f) >= StateFillSeparation) return f;
+        }
+        return Mix(m.PanelSunken, m.Border, 0.6);
     }
 
     private static Rgba Lane(double hue, double s, double l, Pigment p) => FromHsl(hue, s * p.Saturation, l + p.LightShift);

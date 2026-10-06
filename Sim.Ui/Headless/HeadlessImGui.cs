@@ -22,7 +22,7 @@ public sealed class HeadlessImGui : IDisposable
     private readonly IntPtr _context;
     private int _lastScroll;
 
-    public UiTheme.Fonts Fonts { get; }
+    public UiTheme.Fonts Fonts { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
 
@@ -37,18 +37,33 @@ public sealed class HeadlessImGui : IDisposable
     /// <param name="vtxOffset">False reproduces the PRE-FIX configuration (the renderer never declared
     /// <c>RendererHasVtxOffset</c>): a draw list past 65,535 vertices then trips ImGui's assertion and ABORTS the
     /// process. Only the out-of-process control uses it.</param>
-    public HeadlessImGui(string assetsRoot, int width = 1280, int height = 800, bool vtxOffset = true)
+    public HeadlessImGui(string assetsRoot, int width = 1280, int height = 800, bool vtxOffset = true, double uiScale = 1.0)
     {
+        _assetsRoot = assetsRoot;
         _context = ImGui.CreateContext();
         ImGui.SetCurrentContext(_context);
         ImGuiIOPtr io = ImGui.GetIO();
         unsafe { io.NativePtr->IniFilename = null; }
         if (vtxOffset) ImGuiRenderer.PrepareContext(ownsContext: false); // the windowed renderer's own setup
         else io.ConfigDebugHighlightIdConflicts = true;
-        Fonts = UiTheme.LoadFonts(assetsRoot);
+        Fonts = UiTheme.LoadFonts(assetsRoot, uiScale);
         unsafe { io.Fonts.GetTexDataAsRGBA32(out byte* _, out int _, out int _, out int _); }
         io.Fonts.SetTexID(FontAtlasId);
         Resize(width, height);
+    }
+
+    private readonly string _assetsRoot;
+
+    /// <summary>Rebuilds the atlas for UI scale <paramref name="uiScale"/> (between frames), as the windowed host does
+    /// when the window crosses a scale step or the player changes the UI scale. The old <see cref="Fonts"/> handles
+    /// die with the old atlas: hand the new ones to everything that held them.</summary>
+    public void Rebuild(double uiScale)
+    {
+        ImGuiIOPtr io = ImGui.GetIO();
+        io.Fonts.Clear();
+        Fonts = UiTheme.LoadFonts(_assetsRoot, uiScale);
+        unsafe { io.Fonts.GetTexDataAsRGBA32(out byte* _, out int _, out int _, out int _); }
+        io.Fonts.SetTexID(FontAtlasId);
     }
 
     public void Resize(int width, int height)

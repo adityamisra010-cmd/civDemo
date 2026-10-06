@@ -32,58 +32,136 @@ public static class UiTheme
     public const string NumberFontFile = "IBMPlexSerif-Regular.ttf";
     public const string SansFontFile = "IBMPlexSans-Regular.ttf";
 
-    /// <summary>The atlas faces. <c>Body</c>/<c>Header</c>/<c>Numeric</c> are the pre-theme roles
-    /// (EB Garamond 19/25, IBM Plex Serif 17); the init-only faces add Plex Serif at body size and
-    /// Plex Sans at the three sizes, for the eras whose typography sets them.</summary>
-    public sealed record Fonts(ImFontPtr Body, ImFontPtr Header, ImFontPtr Numeric, string Note)
+    /// <summary>
+    /// THE ATLAS FACES (M5 polish UR-1): every face rasterised at a LADDER of sizes, so a run of any size is set from
+    /// the smallest raster at least as large as it — never a raster minified by more than one ladder step (≤ 10 %),
+    /// never the 19 px raster shrunk to 11 px as before. The ladder is <see cref="Ladder"/> (the absolute sizes the
+    /// DrawList screens still set) plus every size of the <see cref="TypeScale"/> at the UI scale. A face whose file
+    /// is missing falls back to EB Garamond's rasters, then to ImGui's built-in face (never fatal).
+    /// </summary>
+    public sealed class Fonts
     {
-        public ImFontPtr SerifBody { get; init; }
-        public ImFontPtr SansNumeric { get; init; }
-        public ImFontPtr SansBody { get; init; }
-        public ImFontPtr SansHeader { get; init; }
+        private readonly (float Px, ImFontPtr Font)[][] _faces;
+        private readonly ImFontPtr _fallback;
 
-        private static bool Has(ImFontPtr f) { unsafe { return f.NativePtr != null; } }
-
-        /// <summary>The atlas font for a face at the rasterisation closest to <paramref name="sizePx"/>
-        /// (falling back to the pre-theme face when a file was missing).</summary>
-        public ImFontPtr Face(TypeFace face, double sizePx)
+        internal Fonts((float Px, ImFontPtr Font)[][] faces, ImFontPtr fallback, float scale, string note)
         {
-            bool large = sizePx >= (BodyFontPx + HeaderFontPx) / 2.0;
-            bool small = sizePx < (NumericFontPx + BodyFontPx) / 2.0;
-            return face switch
-            {
-                TypeFace.PlexSans => large ? Pick(SansHeader, Header) : small ? Pick(SansNumeric, Numeric) : Pick(SansBody, Body),
-                TypeFace.PlexSerif => small ? Numeric : Pick(SerifBody, Numeric),
-                _ => large ? Header : Body,
-            };
+            _faces = faces;
+            _fallback = fallback;
+            Scale = scale;
+            Note = note;
         }
 
-        /// <summary>The chrome's body, header and data faces in <paramref name="theme"/>'s typography.</summary>
-        public (ImFontPtr Body, ImFontPtr Header, ImFontPtr Numeric) For(EraTheme theme) =>
-            (Face(theme.Type.Body.Face, BodyFontPx), Face(theme.Type.Heading.Face, HeaderFontPx), Face(theme.Type.Numeric.Face, NumericFontPx));
+        /// <summary>The UI scale the atlas was rasterised for (<see cref="UiScale"/>).</summary>
+        public float Scale { get; }
 
-        private static ImFontPtr Pick(ImFontPtr wanted, ImFontPtr fallback) => Has(wanted) ? wanted : fallback;
+        /// <summary>Provenance for the developer BUILD tab: faces, licence, raster count, atlas size.</summary>
+        public string Note { get; }
+
+        /// <summary>The rasterised sizes of <paramref name="face"/>, ascending (empty when its file was missing).</summary>
+        public IReadOnlyList<float> Sizes(TypeFace face)
+        {
+            var sizes = new List<float>();
+            foreach ((float px, _) in _faces[(int)face]) sizes.Add(px);
+            return sizes;
+        }
+
+        /// <summary>The atlas font for <paramref name="face"/> at <paramref name="sizePx"/>: the smallest raster at
+        /// least as large (the largest when none is), so text is drawn from a raster of its own size or one ladder
+        /// step above it — never minified further.</summary>
+        public ImFontPtr Face(TypeFace face, double sizePx)
+        {
+            (float Px, ImFontPtr Font)[] rasters = _faces[(int)face];
+            if (rasters.Length == 0) rasters = _faces[(int)TypeFace.Garamond];
+            if (rasters.Length == 0) return _fallback;
+            foreach ((float px, ImFontPtr font) in rasters)
+                if (px >= sizePx - 0.01) return font;
+            return rasters[^1].Font;
+        }
+
+        /// <summary>The raster size <see cref="Face"/> picks for (<paramref name="face"/>, <paramref name="sizePx"/>).</summary>
+        public float RasterPx(TypeFace face, double sizePx)
+        {
+            (float Px, ImFontPtr Font)[] rasters = _faces[(int)face];
+            if (rasters.Length == 0) rasters = _faces[(int)TypeFace.Garamond];
+            if (rasters.Length == 0) return (float)sizePx;
+            foreach ((float px, _) in rasters) if (px >= sizePx - 0.01) return px;
+            return rasters[^1].Px;
+        }
+
+        /// <summary>The font of a <see cref="TypeRole"/> in the face <paramref name="theme"/> sets <paramref name="style"/>
+        /// in, at this atlas's UI scale (the ImGui chrome's faces; era-invariant px per face).</summary>
+        public ImFontPtr Role(EraTheme theme, TypeRole role, FontRole style = FontRole.Body)
+        {
+            TextStyle st = theme.Type.For(style);
+            return Face(st.Face, RolePx(st.Face, role, st.Case == TextCase.Upper));
+        }
+
+        /// <summary>A role's size in px in <paramref name="face"/> at this atlas's scale (rounded to the raster).</summary>
+        public float RolePx(TypeFace face, TypeRole role, bool caps = false) => ScaledPx(TypeScale.Px(role, face, caps), Scale);
+
+        /// <summary>The pre-theme faces: EB Garamond body (20 px × s) and title (27 px × s), Plex Serif data (17 × s).</summary>
+        public ImFontPtr Body => Face(TypeFace.Garamond, RolePx(TypeFace.Garamond, TypeRole.Body));
+        public ImFontPtr Header => Face(TypeFace.Garamond, RolePx(TypeFace.Garamond, TypeRole.Title));
+        public ImFontPtr Numeric => Face(TypeFace.PlexSerif, RolePx(TypeFace.PlexSerif, TypeRole.Data));
+
+        /// <summary>The chrome's body, heading and data faces in <paramref name="theme"/>'s typography.</summary>
+        public (ImFontPtr Body, ImFontPtr Header, ImFontPtr Numeric) For(EraTheme theme) =>
+            (Role(theme, TypeRole.Body), Role(theme, TypeRole.Heading, FontRole.Heading), Role(theme, TypeRole.Data, FontRole.Numeric));
     }
 
-    // THE DESIGN METRICS, named (T4.19 lane D). They were literals inside
-    // LoadFonts' defaults and Apply's body, which meant the headless
-    // view-model could not know the frame height the renderer would measure
-    // — and the command bar's rule was placed against a frame height nothing
-    // outside the draw call had ever seen. ChromeGeometry derives its rects
-    // from these; Apply and LoadFonts read the SAME constants, so the tested
-    // geometry and the styled screen cannot drift apart. ERA-INVARIANT.
-    public const float BodyFontPx = 19f;
-    public const float HeaderFontPx = 25f;
+    /// <summary>A type-scale size at UI scale <paramref name="scale"/>, rounded to the whole pixel the atlas holds.</summary>
+    public static float ScaledPx(double designPx, double scale) => (float)Math.Round(designPx * scale, MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// The absolute raster ladder (px at any UI scale): every whole size from 10 to 24, then steps of at most 10 % to
+    /// 40 — the sizes the DrawList screens that still set literal sizes (research, Age, map) ask for, 9.5 to 40 px.
+    /// </summary>
+    public static IReadOnlyList<float> Ladder { get; } =
+        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 31, 34, 37, 40];
+
+    /// <summary>The sizes rasterised for <paramref name="face"/> at UI scale <paramref name="scale"/>: the
+    /// <see cref="Ladder"/> and every <see cref="TypeScale"/> size of the face × scale, ascending and distinct.</summary>
+    public static float[] RasterSizes(TypeFace face, double scale)
+    {
+        var all = new List<float>(Ladder);
+        foreach (double px in TypeScale.SizesFor(face))
+        {
+            float s = ScaledPx(px, scale);
+            if (!all.Contains(s)) all.Add(s);
+        }
+        all.Sort();
+        return [.. all];
+    }
+
+    // THE DESIGN METRICS, named (T4.19 lane D; M5 polish UR-1). ChromeGeometry derives its rects from these; Apply
+    // and LoadFonts read the SAME values, so the tested geometry and the styled screen cannot drift apart.
+    // ERA-INVARIANT at a given UI scale: the body face changes with the era (Garamond 20 px, Plex 16 px — the same
+    // x-height), and the frame padding's height compensates, so every frame is FrameHeightPx tall in every era.
+    /// <summary>The body role in EB Garamond at s = 1 (TypeScale Body).</summary>
+    public const float BodyFontPx = 20f;
+    /// <summary>The title role in EB Garamond at s = 1 (TypeScale Title).</summary>
+    public const float HeaderFontPx = 27f;
+    /// <summary>The data role in IBM Plex Serif at s = 1 (TypeScale Data).</summary>
     public const float NumericFontPx = 17f;
     public static readonly Vector2 WindowPaddingPx = new(14, 12);
+    /// <summary>The frame padding at s = 1 under the Garamond body face (the A1–A7 eras); the Plex eras pad more
+    /// vertically so the frame height stays <see cref="FrameHeightPx"/> (<see cref="FramePaddingY"/>).</summary>
     public static readonly Vector2 FramePaddingPx = new(8, 5);
     public static readonly Vector2 ItemSpacingPx = new(9, 7);
 
-    /// <summary>ImGui's GetFrameHeight() under the body face: FontSize +
-    /// 2 × FramePadding.y = 29 px. The renderer still passes its MEASURED
-    /// frame height into ChromeGeometry (fonts can fall back); this is the
-    /// design value the headless tests pin against.</summary>
-    public static float FrameHeightPx => BodyFontPx + 2f * FramePaddingPx.Y;
+    /// <summary>ImGui's GetFrameHeight() at s = 1 in every era: body px + 2 × FramePadding.y = 30 px. The renderer
+    /// still passes its MEASURED frame height into ChromeGeometry (fonts can fall back); this is the design value the
+    /// headless tests pin against.</summary>
+    public const float FrameHeightPx = BodyFontPx + 2f * 5f;
+
+    /// <summary>The body face's raster px in <paramref name="theme"/> at UI scale <paramref name="scale"/>.</summary>
+    public static float BodyPx(EraTheme theme, double scale = 1.0) =>
+        ScaledPx(TypeScale.Px(TypeRole.Body, theme.Type.Body.Face), scale);
+
+    /// <summary>The vertical frame padding that keeps every era's frame <see cref="FrameHeightPx"/> × scale tall.</summary>
+    public static float FramePaddingY(EraTheme theme, double scale = 1.0) =>
+        Math.Max(2f, (FrameHeightPx * (float)scale - BodyPx(theme, scale)) / 2f);
 
     // The atlas glyph ranges must outlive the atlas build: pinned once for the process.
     private static readonly ushort[] Ranges = UiText.GlyphRanges();
@@ -95,47 +173,59 @@ public static class UiTheme
         return _rangesHandle.AddrOfPinnedObject();
     }
 
+    private static readonly string[] FaceFiles = [LabelFontFile, NumberFontFile, SansFontFile];
+
     /// <summary>Loads the faces into the ImGui atlas (Latin-1 plus the typographic code points of
-    /// <see cref="UiText"/>), BUILDS it, and applies the text boundary's glyph remaps. Call BEFORE the
-    /// renderer uploads the atlas texture (it then finds the atlas built and keeps the remaps).</summary>
-    public static Fonts LoadFonts(string assetsRoot,
-        float bodyPx = BodyFontPx, float headerPx = HeaderFontPx, float numericPx = NumericFontPx)
+    /// <see cref="UiText"/>) at every size of <see cref="RasterSizes"/> for UI scale <paramref name="scale"/>, BUILDS
+    /// it, and applies the text boundary's glyph remaps. Call BEFORE the renderer uploads the atlas texture (it then
+    /// finds the atlas built and keeps the remaps); to change the scale, <see cref="ImFontAtlasPtr.Clear"/> the atlas
+    /// and load again.</summary>
+    public static Fonts LoadFonts(string assetsRoot, double scale = 1.0)
     {
         ImGuiIOPtr io = ImGui.GetIO();
         string fontDir = Path.Combine(assetsRoot, "fonts");
-        string label = Path.Combine(fontDir, LabelFontFile);
-        string numeric = Path.Combine(fontDir, NumberFontFile);
-        string sans = Path.Combine(fontDir, SansFontFile);
         IntPtr ranges = RangesPtr();
-        ImFontPtr Add(string file, float px) => io.Fonts.AddFontFromFileTTF(file, px, default, ranges);
-
-        Fonts fonts;
-        if (!File.Exists(label) && !File.Exists(numeric))
+        var faces = new (float, ImFontPtr)[3][];
+        int count = 0;
+        var missing = new List<string>();
+        for (int f = 0; f < 3; f++)
         {
-            ImFontPtr fallback = io.Fonts.AddFontDefault();
-            fonts = new Fonts(fallback, fallback, fallback, $"fonts: DEFAULT (no faces in {fontDir})");
-        }
-        else
-        {
-            ImFontPtr body = File.Exists(label) ? Add(label, bodyPx) : io.Fonts.AddFontDefault();
-            ImFontPtr header = File.Exists(label) ? Add(label, headerPx) : body;
-            ImFontPtr numbers = File.Exists(numeric) ? Add(numeric, numericPx) : body;
-            ImFontPtr serifBody = File.Exists(numeric) ? Add(numeric, bodyPx) : default;
-            bool hasSans = File.Exists(sans);
-            string note = File.Exists(label) && File.Exists(numeric)
-                ? "fonts: EB Garamond + IBM Plex Serif" + (hasSans ? " + IBM Plex Sans" : "") + " (OFL 1.1)"
-                : $"fonts: PARTIAL (missing {(File.Exists(label) ? NumberFontFile : LabelFontFile)})";
-            fonts = new Fonts(body, header, numbers, note)
+            string file = Path.Combine(fontDir, FaceFiles[f]);
+            if (!File.Exists(file)) { faces[f] = []; missing.Add(FaceFiles[f]); continue; }
+            float[] sizes = RasterSizes((TypeFace)f, scale);
+            faces[f] = new (float, ImFontPtr)[sizes.Length];
+            for (int i = 0; i < sizes.Length; i++)
             {
-                SerifBody = serifBody,
-                SansNumeric = hasSans ? Add(sans, numericPx) : default,
-                SansBody = hasSans ? Add(sans, bodyPx) : default,
-                SansHeader = hasSans ? Add(sans, headerPx) : default,
-            };
+                ImFontConfigPtr cfg;
+                unsafe { cfg = ImGuiNative.ImFontConfig_ImFontConfig(); }
+                // Horizontal oversampling keeps small runs crisp at fractional x; large runs do not need it, and
+                // skipping it there halves their share of the atlas.
+                cfg.OversampleH = sizes[i] < 20f ? 2 : 1;
+                cfg.OversampleV = 1;
+                faces[f][i] = (sizes[i], io.Fonts.AddFontFromFileTTF(file, sizes[i], cfg, ranges));
+                unsafe { ImGuiNative.ImFontConfig_destroy(cfg.NativePtr); }
+                count++;
+            }
         }
+        ImFontPtr fallback = count == 0 ? io.Fonts.AddFontDefault() : faces[0].Length > 0 ? faces[0][0].Item2 : FirstOf(faces);
+        // ImGui's default face (anything drawn before a font is pushed — its own tooltips, error windows) is the
+        // body role, not the ladder's smallest raster.
+        var fonts = new Fonts(faces, fallback, (float)scale, "");
+        unsafe { io.NativePtr->FontDefault = (count == 0 ? fallback : fonts.Body).NativePtr; }
         io.Fonts.Build();
         ApplyTextBoundary(io.Fonts);
-        return fonts;
+        string note = count == 0
+            ? $"fonts: DEFAULT (no faces in {fontDir})"
+            : (missing.Count == 0 ? "fonts: EB Garamond + IBM Plex Serif + IBM Plex Sans (OFL 1.1)" : "fonts: PARTIAL (missing " + string.Join(", ", missing) + ")")
+              + string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                  $"; {count} rasters at UI scale {scale:0.###}, atlas {io.Fonts.TexWidth}x{io.Fonts.TexHeight}");
+        return new Fonts(faces, fallback, (float)scale, note);
+    }
+
+    private static ImFontPtr FirstOf((float, ImFontPtr)[][] faces)
+    {
+        foreach ((float, ImFontPtr)[] f in faces) if (f.Length > 0) return f[0].Item2;
+        return default;
     }
 
     /// <summary>Whether <paramref name="font"/> resolves <paramref name="c"/> to a glyph of its own
@@ -188,8 +278,9 @@ public static class UiTheme
     /// (density), scrollbar and grab sizes (control granularity). The window border is left to
     /// <see cref="PanelFrame"/>, which paints every chrome window's edge in the era's hand.
     /// </summary>
-    public static StyleSpec StyleFor(EraTheme t)
+    public static StyleSpec StyleFor(EraTheme t, double scale = 1.0)
     {
+        float k = (float)scale;
         MaterialTokens m = t.Material;
         InkTokens ink = t.Ink;
         float round = t.Edge.Corner switch
@@ -210,7 +301,7 @@ public static class UiTheme
         var colors = new List<(ImGuiCol, Vector4)>
         {
             (ImGuiCol.Text, V(ink.Text, 1.0)),
-            (ImGuiCol.TextDisabled, V(ink.TextDim, 0.85)),
+            (ImGuiCol.TextDisabled, V(ink.TextDim, 1.0)),   // UR-1: the floored dim ink, opaque (was α 0.85: 2.83:1 at A6)
             // Transparent: every chrome window's surface is painted by its era frame
             // (ChromeFurniture, SimUiGame.DrawPanelFurniture), whose shape is the era's — a hand-cut
             // slab, a tablet, a plaque — not ImGui's rectangle.
@@ -269,25 +360,27 @@ public static class UiTheme
             (ImGuiCol.NavWindowingDimBg, V(ink.Text, 0.2)),
             (ImGuiCol.ModalWindowDimBg, V(ink.Text, 0.35)),
         };
+        // UR-1: every metric is a design px × the UI scale; the vertical frame padding is the era body face's
+        // complement to the era-invariant frame height (FramePaddingY).
         return new StyleSpec(
-            WindowRounding: round, ChildRounding: round, PopupRounding: round, FrameRounding: round * 0.75f,
-            GrabRounding: round * 0.75f, ScrollbarRounding: round, TabRounding: round * 0.75f,
+            WindowRounding: round * k, ChildRounding: round * k, PopupRounding: round * k, FrameRounding: round * 0.75f * k,
+            GrabRounding: round * 0.75f * k, ScrollbarRounding: round * k, TabRounding: round * 0.75f * k,
             WindowBorderSize: 0f, ChildBorderSize: 0f, PopupBorderSize: 1f,
             FrameBorderSize: (float)Math.Clamp(t.Edge.BorderPx * 0.6, 1.0, 1.6),
-            WindowPadding: WindowPaddingPx,
-            FramePadding: new Vector2(frameX, FramePaddingPx.Y),
-            ItemSpacing: itemSpacing,
-            ItemInnerSpacing: new Vector2(7f - level * 0.4f, 4f),
-            ScrollbarSize: 10f + 4f * grain - level * 0.4f,
-            GrabMinSize: (float)t.Controls.GrabPx,
+            WindowPadding: WindowPaddingPx * k,
+            FramePadding: new Vector2(frameX * k, FramePaddingY(t, scale)),
+            ItemSpacing: itemSpacing * k,
+            ItemInnerSpacing: new Vector2((7f - level * 0.4f) * k, 4f * k),
+            ScrollbarSize: (10f + 4f * grain - level * 0.4f) * k,
+            GrabMinSize: (float)t.Controls.GrabPx * k,
             Colors: colors);
     }
 
     /// <summary>Writes <see cref="StyleFor"/>(<paramref name="theme"/>) into ImGui's style. Cheap enough
     /// to call every frame of an Age-transition cross-fade.</summary>
-    public static void Apply(EraTheme theme)
+    public static void Apply(EraTheme theme, double scale = 1.0)
     {
-        StyleSpec s = StyleFor(theme);
+        StyleSpec s = StyleFor(theme, scale);
         ImGuiStylePtr style = ImGui.GetStyle();
         style.WindowRounding = s.WindowRounding;
         style.ChildRounding = s.ChildRounding;

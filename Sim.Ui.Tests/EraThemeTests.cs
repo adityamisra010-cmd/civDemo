@@ -109,7 +109,10 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
         Assert.Equal(0, a1.Charts.Sophistication);
         foreach (EraTheme t in EraThemes.All)            // the largest type and the loosest leading
         {
+            // M5 polish UR-1 (Director 2026-10-06 §2): no era shrinks the type below the reference — A1 keeps the
+            // largest hand, and every era is at least 1.0 (the pin was "A9 the smallest", 0.94).
             Assert.True(a1.Type.SizeScale >= t.Type.SizeScale);
+            Assert.True(t.Type.SizeScale >= 1.0, t.Era + " shrinks the type");
             Assert.True(a1.Type.LineHeight >= t.Type.LineHeight);
             Assert.True(a1.Edge.Roughness >= t.Edge.Roughness);
         }
@@ -213,7 +216,8 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
         foreach (EraTheme t in EraThemes.All)
         {
             Assert.True(a9.Density.Level >= t.Density.Level);         // high density
-            Assert.True(a9.Type.SizeScale <= t.Type.SizeScale);
+            // UR-1 (Director 2026-10-06 §2): dense, but never smaller type than the reference.
+            Assert.Equal(1.0, a9.Type.SizeScale);
         }
         foreach (FontRole r in new[] { FontRole.Body, FontRole.Heading, FontRole.Title, FontRole.Numeric, FontRole.Caps })
             Assert.Equal(TypeFace.PlexSans, a9.Type.For(r).Face);    // clean typography
@@ -311,7 +315,9 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
             UiTheme.StyleSpec s = UiTheme.StyleFor(t);
             // The chrome geometry (ChromeGeometry, PanelLayout) is computed from these: identical.
             Assert.Equal(UiTheme.WindowPaddingPx, s.WindowPadding);
-            Assert.Equal(UiTheme.FramePaddingPx.Y, s.FramePadding.Y);
+            // UR-1: the body face's px changes with the era (Garamond 20, Plex 16 — the same x-height); the vertical
+            // frame padding compensates, so the FRAME HEIGHT is the era-invariant metric the geometry reads.
+            Assert.Equal(UiTheme.FrameHeightPx, UiTheme.BodyPx(t) + 2f * s.FramePadding.Y);
             Assert.Equal(first.Colors.Count, s.Colors.Count);
             // The style's colours ARE the era's tokens.
             Assert.Equal(Vec(t.Ink.Text, 1.0), s.Color(ImGuiNET.ImGuiCol.Text));
@@ -322,7 +328,7 @@ public class EraThemeTests(FoundedSessionFixture fx) : IClassFixture<FoundedSess
             Assert.Equal(Vec(t.Material.Border, 0.75), s.Color(ImGuiNET.ImGuiCol.Border));
             Assert.Equal((float)t.Controls.GrabPx, s.GrabMinSize);
         }
-        Assert.Equal(29f, UiTheme.FrameHeightPx);
+        Assert.Equal(30f, UiTheme.FrameHeightPx);   // UR-1: the 20 px body role + 2 × 5 (was 19 + 2 × 5)
         // Density shows in the spacing: the modern era is tighter than the primitive one.
         Assert.True(UiTheme.StyleFor(T(UiEra.Modern)).ItemSpacing.Y < first.ItemSpacing.Y);
         Assert.True(UiTheme.StyleFor(T(UiEra.Modern)).FramePadding.X < first.FramePadding.X);

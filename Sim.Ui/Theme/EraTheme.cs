@@ -161,6 +161,45 @@ public sealed record EraTheme(
     /// <summary>The era's ordinal (the Age key it presents), 1..9.</summary>
     public int Ordinal => (int)Era;
 
+    /// <summary>The TEXT inks of the semantic families (UR-1): derived from the pigments, never stored, so a
+    /// cross-faded theme derives them from its own tokens.</summary>
+    public TextInks TextInk => TextInks.Of(this);
+
     /// <summary>The canonical, byte-stable text of every token (<see cref="ThemeCanon"/>).</summary>
     public string Canonical() => ThemeCanon.Describe(this);
+}
+
+/// <summary>
+/// TEXT INKS (M5 polish, UI readability UR-1). The semantic colours are PIGMENTS — for marks, fills, bars and edges —
+/// and several of them are too light to carry words (Progress at A1 was 2.77:1 on the panel, the accent of every
+/// block heading 3.12:1 at A3). Text set in a semantic family uses its INK instead: the same pigment darkened toward
+/// the era's body ink just far enough to reach <see cref="Floor"/> on the panel (≈ 4.5:1 once the fibre overlay and
+/// texture are under it), so the hue family still says "progress" or "danger" while the words stay readable.
+/// Pure: the smallest mix (in steps of 0.02) of the pigment toward <see cref="InkTokens.Text"/> that reaches the floor.
+/// </summary>
+public sealed record TextInks(Rgba Accent, Rgba Progress, Rgba Active, Rgba Positive, Rgba Danger, Rgba Knowledge, Rgba Military)
+{
+    /// <summary>The token-level contrast floor of a text ink on <see cref="MaterialTokens.Panel"/>.</summary>
+    public const double Floor = 5.5;
+
+    /// <summary>The inks of <paramref name="t"/>'s accent and semantic pigments.</summary>
+    public static TextInks Of(EraTheme t) => new(
+        For(t.Material.Accent, t), For(t.Semantic.Progress, t), For(t.Semantic.Active, t), For(t.Semantic.Positive, t),
+        For(t.Semantic.Danger, t), For(t.Semantic.Knowledge, t), For(t.Semantic.Military, t));
+
+    /// <summary>The text ink of <paramref name="pigment"/> in <paramref name="t"/> (opaque).</summary>
+    public static Rgba For(Rgba pigment, EraTheme t) => Darken(pigment, t.Ink.Text, t.Material.Panel, Floor);
+
+    /// <summary>The smallest mix of <paramref name="c"/> toward <paramref name="toward"/> (steps of 0.02) whose
+    /// contrast on <paramref name="ground"/> reaches <paramref name="floor"/>; the full mix when none does.</summary>
+    public static Rgba Darken(Rgba c, Rgba toward, Rgba ground, double floor)
+    {
+        c = new Rgba(c.R, c.G, c.B, 255);
+        for (int k = 0; k <= 50; k++)
+        {
+            Rgba m = ThemeColor.Mix(c, toward, k / 50.0);
+            if (ThemeColor.Contrast(m, ground) >= floor) return m;
+        }
+        return toward;
+    }
 }

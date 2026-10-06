@@ -157,6 +157,23 @@ hashes reproduce anywhere.
 The previews measure text with `ApproxTextMeasure`, whose styled widths are fitted to Chromium's advances for
 the three faces and Garamond's weights; the game measures with the real fonts.
 
+## 9a. Readability floors (M5 polish UR-1/UR-2, 2026-10-06)
+
+> **DATED NOTE 2026-10-06 (Director directive 2026-10-06 §2: later eras must not shrink type; gameplay information
+> beats decorative texture).** The era theme keeps its evolving typography (ADR-033 D8: face, weight, tracking and
+> case still change from A1 to A9) but **no era sets type smaller than the reference**: `TypographyTokens.SizeScale`
+> is floored at 1.0 (`EraThemes.Readable`; A7–A9 were 0.98 / 0.95 / 0.94, and `EraThemeTests` pinned that shrink —
+> the pins now assert the floor instead). Text sizes are set by ROLE (`Sim.Ui/Theme/TypeScale.cs`: Display, Title,
+> Heading, Body, Data, KPI, Secondary, Caption) per face by x-height (Garamond Body 20 px = Plex Body 16 px, both an
+> 8 px x-height), × the UI scale (`UiScale`: `clamp(snap⅛(max(H/1080, dpi)), 1, 2) × user step`), with Caption as the
+> floor. The atlas holds every face at a ladder of sizes and a run is drawn from the smallest raster at least its size
+> (`UiTheme.Fonts.Face`), never a minified one. Text inks: the semantic colours are pigments; words set in a semantic
+> family use its TEXT ink (`EraTheme.TextInk`, darkened toward the body ink to ≥ 5.5:1 on the panel); `TextDim` is
+> floored at 5.0:1; the Available and Locked card fills are ≥ 1.4:1 apart. The ImGui frame height is era-invariant
+> (30 px × s): the Plex eras' smaller body px is padded to it (`UiTheme.FramePaddingY`). Decoration: see the style
+> bible §4 item 2 amendment (fibre overlay at 35 % over the interface) and `PanelFrame` (texture in the frame band,
+> calm under the words).
+
 ## 10. Limits
 
 - The live GPU path (ImGui style, the frames behind the windows, the atlas with remaps, double-strike bold and

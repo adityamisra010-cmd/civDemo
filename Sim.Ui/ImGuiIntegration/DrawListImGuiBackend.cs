@@ -17,18 +17,15 @@ public sealed class DrawListImGuiBackend : ITextMeasure
 
     public DrawListImGuiBackend(UiTheme.Fonts? fonts) => _fonts = fonts;
 
-    /// <summary>The face for a run: its style's face (era typesetting) at the closest rasterised
-    /// size, else the role's pre-theme face.</summary>
+    /// <summary>The face for a run: its style's face (era typesetting), else the role's pre-theme face (Plex Serif
+    /// for numbers, EB Garamond otherwise) — in both cases the smallest raster at least as large as the run
+    /// (UiTheme.Fonts.Face), so no run is drawn from a raster minified by more than one ladder step. (Before UR-1 an
+    /// unstyled heading — the map's names at 12.5 px — was the 25 px raster at half size.)</summary>
     private ImFontPtr Font(FontRole role, TextStyle? style, double size)
     {
         if (_fonts is null) return ImGui.GetFont();
         if (style is TextStyle s) return _fonts.Face(s.Face, size);
-        return role switch
-        {
-            FontRole.Numeric => _fonts.Numeric,
-            FontRole.Heading or FontRole.Title => _fonts.Header,
-            _ => _fonts.Body,
-        };
+        return _fonts.Face(role == FontRole.Numeric ? TypeFace.PlexSerif : TypeFace.Garamond, size);
     }
 
     public double Width(string text, double size, FontRole role) =>
