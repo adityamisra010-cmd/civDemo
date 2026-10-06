@@ -34,7 +34,9 @@ public sealed class SimUiGame : Game
 
     // --- art substrate (style-bible parchment atlas) ----------------------
     private readonly AssetLibrary _art = AssetLibrary.Load();
-    private Texture2D? _grainTexture;
+    // UR-2: the fibre overlay in two passes (FibreOverlay) — the map's remainder before the interface, the
+    // interface's soft share after it.
+    private Texture2D? _fibreRestTexture, _fibreSoftTexture;
     private Texture2D? _panelTexture, _headerRuleTexture, _buttonPlateTexture,
                        _annalsTexture, _compassTexture;
     private UiTheme.Fonts? _fonts;
@@ -135,7 +137,9 @@ public sealed class SimUiGame : Game
         string bakeNote = string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"map {bake.Size}² {bake.MegabytesResident:F0} MB baked in {bake.BakeMilliseconds:F0} ms");
 
-        _grainTexture = UploadArt(_art.Get("parchment/grain"));
+        ArtImage fibre = _art.Get("parchment/grain");
+        _fibreRestTexture = UploadArt(FibreOverlay.Rest(fibre));
+        _fibreSoftTexture = UploadArt(FibreOverlay.Soft(fibre));
         _panelTexture = UploadArt(_art.Get("ui/panel"));
         // D-A1: the header rule is PROCEDURAL (HeaderRuleBaker), drawn with an instrument, in code.
         _headerRuleTexture = UploadArt(Art.HeaderRuleBaker.Bake());
@@ -256,6 +260,7 @@ public sealed class SimUiGame : Game
         GraphicsDevice.RasterizerState = WorldRasterizer;
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         DrawWorldBuffer(_riverVertices);
+        DrawFibreOverlay(_fibreRestTexture);   // UR-2 pass 1: the map's remainder of the fibre (FibreOverlay.Rest)
 
         // The UI: one ImGui frame — GameUi draws it between the renderer's BeforeLayout and AfterLayout.
         ui.Fps = _fps;
@@ -264,22 +269,22 @@ public sealed class SimUiGame : Game
         ui.Draw();
         _imgui.AfterLayout();
 
-        DrawGrainOverlay();   // §4 item 2: multiplied over EVERYTHING, UI included
+        DrawFibreOverlay(_fibreSoftTexture);   // §4 item 2 (amended 2026-10-06): over EVERYTHING, the interface's soft share
         base.Draw(gameTime);
     }
 
 
-    /// <summary>The age/grain overlay (style-bible §4 item 2): one screen-filling
-    /// quad of the tiling grain texture, MULTIPLIED over the finished frame —
-    /// map, panels and text alike — so the whole window reads as one sheet of
-    /// paper rather than a map with widgets floating above it. Near-white
-    /// texture, so the effect is tooth, not dirt.</summary>
-    private void DrawGrainOverlay()
+    /// <summary>The fibre/age overlay (style-bible §4 item 2, amended 2026-10-06 by UR-2): one screen-filling quad of
+    /// a tiling texture MULTIPLIED over the frame, so the whole window reads as one sheet of paper rather than a map
+    /// with widgets floating above it. Drawn twice per frame (<see cref="FibreOverlay"/>): the map's remainder before
+    /// the interface, the soft share over everything after it — the map keeps the full fibre, the words get a calm
+    /// ground.</summary>
+    private void DrawFibreOverlay(Texture2D? texture)
     {
-        if (_grainTexture is null) return;
+        if (texture is null) return;
         Rectangle viewport = Viewport();
         _spriteBatch!.Begin(samplerState: SamplerState.LinearWrap, blendState: MultiplyBlend);
-        _spriteBatch.Draw(_grainTexture, viewport,
+        _spriteBatch.Draw(texture, viewport,
             new Rectangle(0, 0, viewport.Width, viewport.Height), Color.White);
         _spriteBatch.End();
     }

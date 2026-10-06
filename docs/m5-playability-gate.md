@@ -31,6 +31,14 @@ real `ProgressionScreen`, replayed by the real `DrawListImGuiBackend` into a rea
 1.91.6.1's `cimgui`), then `ImGui.Render()`. Without the fix the process aborts with the exact assertion above
 (`imgui_draw.cpp:2261`); `Sim.Ui --smoke-control-prefix` reproduces it through the live UI on demand.
 
+> **DATED NOTE 2026-10-06 (M5 polish, UI readability UR-2).** The calmer card texture (texture in the frame band,
+> one mark in four and faint over the words) brought the A1 tree at the default 1280×800 window under 65,535 vertices
+> (at most 62,618 while hovering, measured). The control and its regression test
+> (`PlayabilityGateTests.ResearchClick_ThroughTheLiveUi_MaximisedWindow_…`) therefore open the maximised 1920×1080
+> window the Director's crash was in, where the A1 tree is ≈ 96,000 vertices as it opens; the fix (the declared
+> `RendererHasVtxOffset`) is unchanged and still required there. The figures in the tables below are the H1
+> measurements, kept as recorded.
+
 **Root cause (IMPLEMENTED, MEASURED).** ImGui indexes vertices with 16-bit indices. A draw list may pass 65,535
 vertices only if the renderer declares `ImGuiBackendFlags.RendererHasVtxOffset`; ImGui then opens a new draw
 command whose `VtxOffset` rebases the indices, and the renderer adds that offset to each command's base vertex.

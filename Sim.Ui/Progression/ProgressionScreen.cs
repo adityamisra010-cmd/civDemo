@@ -642,18 +642,20 @@ public sealed class ProgressionScreen
             foreach (int v in pre) related[v] = 1;
         }
 
-        // Cards first; with a focus, everything unrelated is dimmed.
+        // Cards first. With a focus, the unrelated cards RECEDE — their fill and frame fade a quarter toward the field
+        // — but their words keep their ink (UR-2: a veil may dim fills and frames, never text; the former Field @ 0.5
+        // veil drove locked costs to 1.4:1 and the tree vanished whenever a node was selected). Related cards are
+        // outlined in the prerequisite / dependent colour.
         foreach (int v in VisibleVertices())
         {
             PlacedVertex p = L.Placed[v];
             if (p.Hidden) continue;
             double x = SX(p.X), y = SY(p.Y);
-            PaintCard(d, m, v, x, y, z, v == focusV);
-            if (focusV < 0) continue;
+            bool recede = focusV >= 0 && v != focusV && related[v] == 0;
+            PaintCard(d, m, v, x, y, z, v == focusV, recede);
+            if (focusV < 0 || v == focusV || recede) continue;
             var r = new RectD(x - 2, y - 2, p.W * z + 4, p.H * z + 4);
-            if (v == focusV) continue;
-            if (related[v] == 0) d.Rect(r, A(t.Material.Field, 0.5), null, 0, CornerRadius(z));
-            else d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent,
+            d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent,
                 Math.Max(2.0, t.Icons.StrokePx), closed: true);
         }
 
@@ -795,7 +797,10 @@ public sealed class ProgressionScreen
     /// hover and in the detail panel. Density adds the rest: Eureka pips (A2+), the
     /// prerequisite/dependent stubs (A3+), discounts (A5+), the estimate to complete (A7+).
     /// </summary>
-    private void PaintCard(DrawList d, ITextMeasure m, int vertex, double x, double y, double z, bool focus)
+    /// <summary>The share a receding card's fill and frame fade toward the field while another node has the focus.</summary>
+    public const double RecedeFade = 0.25;
+
+    private void PaintCard(DrawList d, ITextMeasure m, int vertex, double x, double y, double z, bool focus, bool recede = false)
     {
         EraTheme t = Theme;
         SemanticTokens s = t.Semantic;
@@ -833,6 +838,12 @@ public sealed class ProgressionScreen
         Rgba border = v.State == NodeState.Locked ? A(t.Material.Border, 0.5) : t.Material.Border;
         bool hairline = t.Edge.Corner == CornerStyle.Fine;   // the modern card: one hairline, in the state's colour
         if (hairline && inner is Rgba hc && !(selected || focus)) border = hc;
+        if (recede)
+        {
+            fill = ThemeColor.Mix(fill, t.Material.Field, RecedeFade);
+            border = A(border, border.A / 255.0 * (1.0 - RecedeFade * 1.6));
+            if (inner is Rgba ri) inner = A(ri, 1.0 - RecedeFade * 1.6);
+        }
         PanelFrame.Paint(d, r, t, id, FrameKind.Card, fill, selected || focus ? t.Material.BorderStrong : border,
             selected || focus ? 1.5 : hairline && inner is not null ? 1.6 : v.State == NodeState.Locked ? 0.8 : 1.0);
         if (inner is Rgba ic && !hairline)
@@ -888,9 +899,14 @@ public sealed class ProgressionScreen
             }
         }
 
-        // Row 3: the Age — numeral AND full name, always, with the row to itself.
-        d.Write(t, x + pad, y + 44 * z, ThemeText.Fit(m, t, ResearchTreeLayout.AgeShort(v.Age), 10.5 * z, w - pad - ins - 6 * z), 10.5 * z,
-            dim ? t.Ink.TextDim : t.Material.Accent, TextAlign.Left, FontRole.Body);
+        // Row 3: the Age — numeral AND full name, always, with the row to itself. (UR-1: no era shrinks the type any
+        // more, so the wider Plex eras fit the name by setting it a step smaller rather than cutting a word; the
+        // accent's TEXT ink, not its pigment.)
+        string ageName = ResearchTreeLayout.AgeShort(v.Age);
+        double ageW = w - pad - ins - 6 * z;
+        double ageSize = ThemeText.FitSize(m, t, ageName, 10.5 * z, ageW, FontRole.Body, minScale: 0.88);
+        d.Write(t, x + pad, y + 44 * z, ThemeText.Fit(m, t, ageName, ageSize, ageW), ageSize,
+            dim ? t.Ink.TextDim : t.TextInk.Accent, TextAlign.Left, FontRole.Body);
 
         // Row 4: dependency stubs (A3+), the target's estimate to complete (A7+) and the cross-lane
         // prerequisite label (every era).

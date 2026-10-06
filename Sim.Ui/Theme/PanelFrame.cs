@@ -61,7 +61,15 @@ public static class PanelFrame
             FrameKind.Card => 0.45,
             _ => 0.0,
         };
-        if (texture > 0) Texture(d, kind == FrameKind.Bar ? r.Inset(m.GrainSize * 1.4 + 1.0) : Interior(r, t), t, id, texture, kind == FrameKind.Card, onDark: kind == FrameKind.Bar);
+        //    UR-2 (M5 polish, Director 2026-10-06 §2 — gameplay information beats decorative texture): a panel's or a
+        //    card's marks live in its FRAME BAND, between the cut edge and the content; over the content rect, where the
+        //    words are, the texture is sparse and faint (CalmContent). Bars keep their full grain (light ink on dark).
+        if (texture > 0)
+        {
+            if (kind == FrameKind.Bar) Texture(d, r.Inset(m.GrainSize * 1.4 + 1.0), t, id, texture, card: false, onDark: true);
+            else Texture(d, MarkArea(r, t), t, id, texture, kind == FrameKind.Card,
+                calm: ContentRect(r), outline: kind == FrameKind.Bar || t.Edge.Corner is CornerStyle.Square or CornerStyle.Fine ? null : outline);
+        }
 
         // 3. The edge in the era's hand.
         if (kind == FrameKind.Bar) { BarEdge(d, r, t, id, e, bw); return; }
@@ -312,10 +320,52 @@ public static class PanelFrame
 
     /// <summary>The region texture and ornament may occupy: the rect inset past the jitter and the
     /// deepest corner cut, so nothing drawn inside spills over the cut shape.</summary>
-    private static RectD Interior(RectD r, EraTheme t) =>
-        r.Inset(t.Edge.JitterPx + t.Edge.CornerPx * 0.55 + 1.5);
+    /// <summary>How far in from a frame's edge its CONTENT begins — where words go (the ImGui chrome's window
+    /// padding is 14 px): the texture stays out of it (UR-2).</summary>
+    public const double ContentBandPx = 14.0;
 
-    private static void Texture(DrawList d, RectD r, EraTheme t, int id, double scale, bool card, bool onDark = false)
+    /// <summary>The highest alpha a texture mark may have over a content rect (UR-2).</summary>
+    public const double CalmAlpha = 0.06;
+
+    /// <summary>The share of the texture's marks kept over a content rect (UR-2): one in <see cref="CalmKeepEvery"/>.</summary>
+    public const int CalmKeepEvery = 4;
+
+    /// <summary>A frame's content rect: its rect inset by <see cref="ContentBandPx"/>.</summary>
+    public static RectD ContentRect(RectD r) => r.Inset(ContentBandPx);
+
+    /// <summary>Where a frame's texture marks may be centred: the rect inset by the material's largest mark radius
+    /// (so no mark leaves the rect) — the frame band and the content rect together.</summary>
+    private static RectD MarkArea(RectD r, EraTheme t) => t.Material.Kind switch
+    {
+        MaterialKind.Stone or MaterialKind.Clay or MaterialKind.Bronze => r.Inset(Math.Max(1.0, t.Material.GrainSize * 1.4)),
+        _ => r.Inset(1.0),
+    };
+
+    /// <summary>Whether (x, y) lies inside the convex <paramref name="poly"/> (either winding).</summary>
+    private static bool InsideConvex((double X, double Y)[] poly, double x, double y)
+    {
+        int sign = 0;
+        for (int i = 0; i < poly.Length; i++)
+        {
+            (double X, double Y) a = poly[i], b = poly[(i + 1) % poly.Length];
+            double cross = (b.X - a.X) * (y - a.Y) - (b.Y - a.Y) * (x - a.X);
+            if (Math.Abs(cross) < 1e-9) continue;
+            int sg = Math.Sign(cross);
+            if (sign == 0) sign = sg;
+            else if (sg != sign) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// The material's surface texture over <paramref name="r"/>. With a <paramref name="calm"/> content rect (a panel
+    /// or a card, UR-2) a mark centred over the content is kept only one time in <see cref="CalmKeepEvery"/> and at no
+    /// more than <see cref="CalmAlpha"/>, and the stone's cracks are not drawn there: the era's surface shows in the
+    /// frame band — between the cut <paramref name="outline"/> and the content — and the words sit on a calm ground.
+    /// Without one (the field, the bars) the texture is as dense as the material is.
+    /// </summary>
+    private static void Texture(DrawList d, RectD r, EraTheme t, int id, double scale, bool card, bool onDark = false,
+        RectD? calm = null, (double X, double Y)[]? outline = null)
     {
         MaterialTokens m = t.Material;
         if (r.W <= 1 || r.H <= 1 || m.GrainDensity <= 0 || m.GrainAlpha <= 0) return;
@@ -323,6 +373,18 @@ public static class PanelFrame
             m = m with { Grain = t.Ink.OnChromeSoft, GrainAlpha = m.GrainAlpha * 0.45, PanelRaised = t.Ink.OnChromeSoft, AccentSoft = t.Ink.OnChromeSoft };
         double area = r.W * r.H / 10000.0;
         int n = (int)Math.Min(card ? 40 : 900, Math.Round(area * m.GrainDensity * scale));
+        // A mark's alpha where it lies: the calm rule over the content, the material's own in the band. A mark in the
+        // band outside the cut outline (a chipped corner) is not drawn at all (alpha 0).
+        double At(double x, double y, int i, double a)
+        {
+            if (calm is not RectD c) return a;
+            if (c.Contains(x, y)) return i % CalmKeepEvery == 0 ? Math.Min(a, CalmAlpha) : 0.0;
+            if (outline is not null && !InsideConvex(outline, x, y)) return 0.0;
+            return a;
+        }
+        // Full-length strokes (chain lines, grid lines) cross the content: there they are kept one in CalmKeepEvery,
+        // at the calm alpha.
+        double Across(int i, double a) => calm is null ? a : i % CalmKeepEvery == 0 ? Math.Min(a, CalmAlpha) : 0.0;
         switch (m.Kind)
         {
             case MaterialKind.Stone:
@@ -334,10 +396,13 @@ public static class PanelFrame
                     double x = r.X + FrameNoise.U(id, 51, i) * r.W, y = r.Y + FrameNoise.U(id, 52, i) * r.H;
                     double s = m.GrainSize * (0.35 + FrameNoise.U(id, 53, i));
                     double a = m.GrainAlpha * (0.5 + 0.5 * FrameNoise.U(id, 54, i));
+                    bool fleck = m.Kind != MaterialKind.Bronze && i % 5 == 4;
+                    a = At(x, y, i, fleck ? a * 1.6 : a);
+                    if (a <= 0) continue;
                     if (m.Kind == MaterialKind.Bronze)
                         d.Circle(x, y, s, null, Alpha(m.Grain, a), 0.7);   // hammer dimples
-                    else if (i % 5 == 4)
-                        d.Circle(x, y, s * 0.8, Alpha(m.PanelRaised, a * 1.6));   // a lighter fleck
+                    else if (fleck)
+                        d.Circle(x, y, s * 0.8, Alpha(m.PanelRaised, a));   // a lighter fleck
                     else
                         d.Circle(x, y, s * 0.6, Alpha(m.Grain, a));               // a pit
                 }
@@ -347,9 +412,12 @@ public static class PanelFrame
                         bool top = FrameNoise.U(id, 55, i) < 0.5;
                         double x = r.X + FrameNoise.U(id, 56, i) * r.W;
                         double y = top ? r.Y + FrameNoise.U(id, 57, i) * 10 : r.Bottom - FrameNoise.U(id, 57, i) * 10;
-                        d.Circle(x, y, 1.5 + 3 * FrameNoise.U(id, 58, i), Alpha(m.AccentSoft, 0.12));
+                        double rad = 1.5 + 3 * FrameNoise.U(id, 58, i);
+                        // UR-2: in the band only (a patch near the edge that reaches the content would sit under words).
+                        if (calm is RectD vc && (y + rad > vc.Y && y - rad < vc.Bottom)) continue;
+                        d.Circle(x, y, rad, Alpha(m.AccentSoft, 0.12));
                     }
-                if (m.Kind == MaterialKind.Stone && !card && r.W > 120)   // a crack or two
+                if (m.Kind == MaterialKind.Stone && !card && r.W > 120 && calm is null)   // a crack or two (not under words)
                     for (int i = 0; i < 2; i++)
                     {
                         double x = r.X + (0.1 + 0.8 * FrameNoise.U(id, 59, i)) * r.W, y = r.Y + (0.15 + 0.7 * FrameNoise.U(id, 60, i)) * r.H;
@@ -366,7 +434,9 @@ public static class PanelFrame
                 {
                     double x = r.X + FrameNoise.U(id, 71, i) * r.W, y = r.Y + FrameNoise.U(id, 72, i) * r.H;
                     double len = m.GrainSize * (1.2 + 2 * FrameNoise.U(id, 73, i));
-                    d.Line(x, y, Math.Min(r.Right, x + len), y + FrameNoise.S(id, 74, i) * 0.8, Alpha(m.Grain, m.GrainAlpha), 0.8);
+                    double a = At(x, y, i, m.GrainAlpha);
+                    if (a <= 0) continue;
+                    d.Line(x, y, Math.Min(r.Right, x + len), y + FrameNoise.S(id, 74, i) * 0.8, Alpha(m.Grain, a), 0.8);
                 }
                 break;
             }
@@ -376,6 +446,7 @@ public static class PanelFrame
                 int veins = Math.Max(1, (int)Math.Round(area * m.GrainDensity * scale));
                 bool field = scale < 0.5;
                 double alpha = m.GrainAlpha * (field ? 1.0 : card ? 0.45 : 0.5);
+                if (calm is not null) alpha = Math.Min(alpha, CalmAlpha);   // a vein crosses the words: faint
                 for (int i = 0; i < Math.Min(veins, card ? 1 : field ? 12 : 3); i++)
                 {
                     double y0 = r.Y + FrameNoise.U(id, 81, i) * r.H, y1 = r.Y + FrameNoise.U(id, 82, i) * r.H;
@@ -391,24 +462,39 @@ public static class PanelFrame
                 {
                     double x = r.X + FrameNoise.U(id, 91, i) * r.W, y = r.Y + FrameNoise.U(id, 92, i) * r.H;
                     double ang = FrameNoise.U(id, 93, i) * Math.PI, len = m.GrainSize * (0.5 + FrameNoise.U(id, 94, i));
+                    double a = At(x, y, i, m.GrainAlpha);
+                    if (a <= 0) continue;
                     d.Line(x, y, Math.Clamp(x + Math.Cos(ang) * len, r.X, r.Right), Math.Clamp(y + Math.Sin(ang) * len, r.Y, r.Bottom),
-                        Alpha(m.Grain, m.GrainAlpha), 0.6);
+                        Alpha(m.Grain, a), 0.6);
                 }
                 break;
             }
             case MaterialKind.Paper:
             {
                 if (card) break;
-                for (double x = r.X + 12; x < r.Right; x += 24)   // laid paper's chain lines
-                    d.Line(x, r.Y, x, r.Bottom, Alpha(m.Grain, m.GrainAlpha * 0.6), 0.5);
+                int chain = 0;
+                for (double x = r.X + 12; x < r.Right; x += 24, chain++)   // laid paper's chain lines
+                {
+                    double a = Across(chain, m.GrainAlpha * 0.6);
+                    if (a > 0) d.Line(x, r.Y, x, r.Bottom, Alpha(m.Grain, a), 0.5);
+                }
                 break;
             }
             case MaterialKind.Drafting:
             {
                 double step = card ? 12 : 10;
-                Rgba g = Alpha(m.Grain, m.GrainAlpha * (card ? 0.35 : 0.5));
-                for (double x = r.X + step; x < r.Right; x += step) d.Line(x, r.Y, x, r.Bottom, g, 0.4);
-                for (double y = r.Y + step; y < r.Bottom; y += step) d.Line(r.X, y, r.Right, y, g, 0.4);
+                double ga = m.GrainAlpha * (card ? 0.35 : 0.5);
+                int gx = 0, gy = 0;
+                for (double x = r.X + step; x < r.Right; x += step, gx++)
+                {
+                    double a = Across(gx, ga);
+                    if (a > 0) d.Line(x, r.Y, x, r.Bottom, Alpha(m.Grain, a), 0.4);
+                }
+                for (double y = r.Y + step; y < r.Bottom; y += step, gy++)
+                {
+                    double a = Across(gy, ga);
+                    if (a > 0) d.Line(r.X, y, r.Right, y, Alpha(m.Grain, a), 0.4);
+                }
                 break;
             }
         }

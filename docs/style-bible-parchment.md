@@ -56,6 +56,17 @@ Accents (sparingly, for symbology later):
 Each entry: purpose · spec · tiling/format.
 1. **Parchment base texture** — the paper itself. Large, seamless, tileable, subtle (no dominant blotches that repeat visibly). 2048² PNG, tileable. Generate 2–3 variants; renderer picks one per world seed.
 2. **Fibre/age overlay** — a separate faint fibre+mottle layer multiplied over everything (including UI). Very low contrast. 2048² tileable PNG, grayscale.
+
+   > **AMENDED 2026-10-06 (M5 polish, UI readability UR-2; Director directive 2026-10-06 §2 — "gameplay information
+   > beats decorative texture").** The overlay is still multiplied over the whole frame, map and interface alike, so the
+   > window still reads as one sheet of paper — but at two amplitudes: the MAP takes the fibre at full depth; the
+   > INTERFACE (every panel, chip, card and label) takes it at 35 % of its depth (`factor' = 1 − 0.35 × (1 − fibre)`,
+   > mean factor 0.952 instead of 0.864 on the shipped asset). Measured reason: at full depth the overlay consumed a
+   > quarter of the text's contrast budget (A1 body text 9.78:1 on its tokens, 7.57:1 rendered). The asset is
+   > unchanged; the host draws it in two multiply passes (`Sim.Ui/Art/FibreOverlay.cs`: the map's remainder before the
+   > interface, the soft share after it). Panels and cards likewise keep their era texture in the FRAME BAND and are calm
+   > under the words (`PanelFrame`: marks over a content rect are one in four at alpha ≤ 0.06). The sentence above is
+   > kept as written (S8 §5 audit trail); this note is its current reading.
 3. **Terrain wash tiles** — one seamless swatch per land class in §2 (lowland, fertile, plain, arid, upland, peak) + shallows/sea/deep. These are what the shader blends by elevation/moisture/fertility. 1024² each, tileable, in-palette. This single item is the biggest visual upgrade — it replaces flat color fills with painted parchment.
 4. **Coastline ink treatment** — a thin darker ink band the renderer draws where land meets sea (the classic hand-map coast line), plus optional faint parallel "engraved sea" lines offshore. Spec as a shader effect + one hairline texture, not a full asset.
 5. **UI frame furniture** — panel border/corners, a header rule, button plate, a scroll/parchment panel background for the Annals, a compass rose (decorative, corner). In-palette, ink-on-parchment. PNGs with transparile edges (9-slice-friendly where possible).
