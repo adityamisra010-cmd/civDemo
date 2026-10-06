@@ -11,6 +11,9 @@ public sealed record ResearchFigure(string Text, bool Idle);
 /// the capital's Age panel on demand — the panel no longer opens by itself over the map.</summary>
 public sealed record AgeFigure(string Text, AgePanelState State)
 {
+    /// <summary>The indicator without the Age's name ("Age I - not yet"), for a narrow status band (UR-3).</summary>
+    public string Short { get; init; } = Text;
+
     /// <summary>Whether the indicator should draw the eye: an advance is available.</summary>
     public bool Eligible => State == AgePanelState.Eligible;
 }
@@ -35,14 +38,15 @@ public static class StatusFigures
     public static ResearchFigure Research(ResearchBlock? research)
     {
         if (research is null) return new ResearchFigure("Knowledge [K]", false);
+        // UR-3: the idle figure is the turn-1 call to action — it says what to do, not only that nothing happens.
         if (research.Idle)
-            return new ResearchFigure(research.ClearQueued ? "research stops at End Turn" : "research idle [K]", true);
+            return new ResearchFigure(research.ClearQueued ? "Research stops at End Turn" : "Research idle - choose [K]", true);
         ResearchItem item = research.Effective!;
         string name = item.Name.Length <= NameChars ? item.Name : item.Name[..(NameChars - 3)].TrimEnd() + "...";
-        if (research.Chosen is not null) return new ResearchFigure("research: " + name + " next turn", false);
+        if (research.Chosen is not null) return new ResearchFigure("Research: " + name + " next turn", false);
         double pct = item.Cost > 0 ? Math.Floor(item.Progress / item.Cost * 100.0) : 0.0;
         return new ResearchFigure(string.Create(CultureInfo.InvariantCulture,
-            $"research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn"), false);
+            $"Research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn"), false);
     }
 
     /// <summary>The Age indicator: "Age I Prehistoric / Stone Age - not yet" (eligible for the next Age: not yet; the
@@ -58,6 +62,7 @@ public static class StatusFigures
             AgePanelState.Pending => " - advancing",
             _ => " - not yet",
         };
-        return new AgeFigure(panel.State == AgePanelState.NoContent ? "" : head + tail, panel.State);
+        bool none = panel.State == AgePanelState.NoContent;
+        return new AgeFigure(none ? "" : head + tail, panel.State) { Short = none ? "" : "Age " + AgePanelModel.Numeral(panel.CurrentAge) + tail };
     }
 }

@@ -53,7 +53,8 @@ public sealed class UiFrameHarness : IDisposable
     {
         Directory.CreateDirectory(sessionDir);
         string log = Path.Combine(sessionDir, "orders-harness.bin");
-        var gui = new HeadlessImGui(assetsRoot, width, height, vtxOffset);
+        // UR-1: the atlas at the UI scale the window asks for, as the windowed host loads it.
+        var gui = new HeadlessImGui(assetsRoot, width, height, vtxOffset, Theme.UiScale.Auto(height));
         try
         {
             var ui = new GameUi(session, log, developer, AssetLibrary.Load(assetsRoot), gui.Fonts,
@@ -87,6 +88,13 @@ public sealed class UiFrameHarness : IDisposable
         KeyboardState keyboard = Keyboard;
         Ui.SetViewport(Gui.Width, Gui.Height);
         Ui.Update(mouse, keyboard, dt, active: true);
+        if (Math.Abs(Ui.WantedScale - Gui.Fonts.Scale) > 1e-6)
+        {
+            // UR-1: the window crossed a scale step or the player changed the interface size — the host rebuilds
+            // the atlas between frames and hands the new faces over (SimUiGame.FollowUiScale).
+            Gui.Rebuild(Ui.WantedScale);
+            Ui.SetFonts(Gui.Fonts);
+        }
         if (Ui.ExitRequested) { ExitRequests++; Ui.ExitRequested = false; }
         Ui.PrepareFrame();
         Gui.BeginFrame(mouse, keyboard, dt);
@@ -101,7 +109,9 @@ public sealed class UiFrameHarness : IDisposable
         foreach (UiControl c in Ui.Controls.Last)
             if (IsBarControl(c.Name) && (c.X0 < 0 || c.Y0 < 0 || c.X1 > Gui.Width || c.Y1 > Gui.Height))
                 Problem("command-bar control '" + c.Name + "' outside the " + Gui.Width + "x" + Gui.Height + " window (x " + c.X0 + ".." + c.X1 + ")");
-        foreach (string t in Gui.LastTooltipWindows) Problem("ImGui error tooltip (duplicate-ID warning) in " + t + " at (" + _x + "," + _y + ")");
+        foreach (string t in Gui.LastTooltipWindows)
+            Problem("ImGui error tooltip (duplicate-ID warning) in " + t + " at (" + _x + "," + _y + "), section " + Ui.OpenSection
+                + (Ui.ProgressionOpen ? ", research open" : ""));
     }
 
     private static bool IsBarControl(string name) =>

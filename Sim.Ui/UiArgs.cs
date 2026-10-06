@@ -13,12 +13,13 @@ public static class UiArgs
     /// <summary>The usage line the UI prints for its launch options (Program.cs, README).</summary>
     public const string Usage =
         "Play:\n"
-        + "  sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--resume DIR|MANIFEST]\n"
+        + "  sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--ui-scale F] [--resume DIR|MANIFEST]\n"
         + "    --seed N            world seed (default 42)\n"
         + "    --size PX           world size override (developer preview escape hatch; default: canonical size)\n"
         + "    --settlements N     founding settlement count override\n"
         + "    --ai-empires N      found N AI-commanded Empires to play against (default worldgen.json's aiEmpires, which is 0)\n"
         + "    --dev               open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play\n"
+        + "    --ui-scale F        interface size: 0.9, 1, 1.1, 1.25 or 1.5 times the automatic scale (Ctrl+= / Ctrl+- / Ctrl+0 in play)\n"
         + "    --resume DIR|FILE   continue a saved session (a session directory or a session-*.json manifest) by replaying its order log\n"
         + "Check (headless: no window, no GPU):\n"
         + "  sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME]... [--report PATH] [--timeout-minutes N]\n"
@@ -41,6 +42,15 @@ public static class UiArgs
     /// <summary>ADR-033 D9: whether the UI opens with the developer surfaces shown (<c>--dev</c>). Off by
     /// default: the player command bar shows only the player sections. Not part of the world's identity.</summary>
     public static bool Developer(string[] args) => Array.IndexOf(args, "--dev") >= 0;
+
+    /// <summary>M5 polish UR-1: the player's interface size step (<c>--ui-scale F</c>, snapped to
+    /// <see cref="Theme.UiScale.UserSteps"/>), 1 when absent. Presentation only: not part of the world's identity, the
+    /// session or the replay.</summary>
+    public static double UserScale(string[] args)
+    {
+        int at = Array.IndexOf(args, "--ui-scale");
+        return at >= 0 && at + 1 < args.Length && Theme.UiScale.ParseUser(args[at + 1]) is double v ? v : Theme.UiScale.DefaultUser;
+    }
 
     /// <summary>The argument of <c>--resume</c>, or null.</summary>
     public static string? ResumePath(string[] args)

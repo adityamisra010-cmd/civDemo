@@ -33,7 +33,12 @@ public sealed class GameUi
     // --- art substrate: the textures are the host's; the UI holds only the ids it draws with ImGui.Image.
     private readonly AssetLibrary _art;
     private readonly IntPtr _annalsId, _compassId;
-    private readonly UiTheme.Fonts? _fonts;
+    private UiTheme.Fonts? _fonts;
+
+    // M5 polish UR-1: the UI scale. The atlas is rasterised at the scale the host loaded (Scale); the UI asks for the
+    // scale its window and the player want (WantedScale) and the host rebuilds the atlas when they differ (SetFonts).
+    private double _userScale;
+    private double _autoScale = 1.0;
 
     private bool _showCatchment = true; // T2.4: political geography on by default
 
@@ -147,7 +152,6 @@ public sealed class GameUi
     // H1: the docked Age panel starts under the selection card (it used to begin at y = 202, 18 px over the card's
     // bottom edge), in the left column the formation card also uses.
     private const int AgePanelX = 12, AgePanelW = 440;
-    private static readonly int AgePanelY = (int)(PanelLayout.Selection.Y + PanelLayout.Selection.Height + PanelLayout.Margin);
 
     private Sim.Ui.Progression.ProgressionScreen? _progression;
     private bool _progressionOpen;
@@ -170,10 +174,15 @@ public sealed class GameUi
     private int _selectedUnit = -1;
     private UnitCard? _unitCard;
     private Sim.Ui.World.LensFrame? _lensFrame;
-    /// <summary>The unit card's rect: under the selection card, in the left column the Age panel also uses
-    /// (opening either closes the other).</summary>
-    public static readonly PanelRect UnitCardRect = new("##unit-card", PanelLayout.Margin,
-        PanelLayout.Selection.Y + PanelLayout.Selection.Height + PanelLayout.Margin, 300, 268);
+
+    /// <summary>The unit card's width at UI scale 1 (UR-3: its height is its measured content).</summary>
+    public const float UnitCardWidth = 320f;
+
+    // UR-3: the measured chrome of the current frame (the selection card's and the unit card's content-sized rects).
+    private PanelRect _selectionRect = PanelLayout.Selection;
+    private PanelRect _unitCardRect = new("##unit-card", PanelLayout.Margin,
+        PanelLayout.Selection.Y + PanelLayout.Selection.Height + PanelLayout.Margin, UnitCardWidth, 268);
+    private readonly Dictionary<string, float> _labelWidths = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The UI over an existing ImGui context (the caller created it and loaded <paramref name="fonts"/> into its
@@ -181,9 +190,11 @@ public sealed class GameUi
     /// textures; the headless harness passes stand-ins).
     /// </summary>
     public GameUi(UiSession session, string sessionLogPath, bool developer, AssetLibrary art, UiTheme.Fonts? fonts,
-        UiTextureIds textures, int viewportWidth, int viewportHeight)
+        UiTextureIds textures, int viewportWidth, int viewportHeight, double userScale = Sim.Ui.Theme.UiScale.DefaultUser)
     {
         _developer = developer;
+        _userScale = Sim.Ui.Theme.UiScale.NearestStep(userScale);
+        _autoScale = Sim.Ui.Theme.UiScale.Auto(Math.Max(1, viewportHeight));
         _session = session;
         _world = session.World;
         _sessionLogPath = sessionLogPath;
@@ -195,7 +206,7 @@ public sealed class GameUi
         _viewportHeight = Math.Max(1, viewportHeight);
         // ADR-033 D8: the interface's era is DERIVED from the player's authoritative Age.
         _theme = _frameTheme = DeriveTheme();
-        UiTheme.Apply(_theme);
+        UiTheme.Apply(_theme, Scale);
         _camera = new Camera(_world.Terrain!.Size);
         _camera.Clamp(_viewportWidth, _viewportHeight);
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
@@ -258,24 +269,59 @@ public sealed class GameUi
     public PanelRect CommandRect => Placed(PanelLayout.Command);
     public PanelRect ContextRect => Placed(PanelLayout.Context);
 
+    /// <summary>The selection card as drawn last frame (UR-3: its height is its content).</summary>
+    public PanelRect SelectionRect => _selectionRect;
+
+    /// <summary>The formation card as drawn last frame (UR-3: its height is its content).</summary>
+    public PanelRect UnitCardRect => _unitCardRect;
+
+    /// <summary>The UI scale the loaded atlas was rasterised for (UR-1): every chrome metric is × this.</summary>
+    public float Scale => _fonts?.Scale ?? 1f;
+
+    /// <summary>The UI scale the window and the player ask for: the automatic factor (window height, with
+    /// hysteresis) × the player's step. When it differs from <see cref="Scale"/> the host rebuilds the atlas and
+    /// calls <see cref="SetFonts"/>.</summary>
+    public double WantedScale => Sim.Ui.Theme.UiScale.Effective(_autoScale, _userScale);
+
+    /// <summary>The player's interface size step (Ctrl+= / Ctrl+- / Ctrl+0; <c>--ui-scale</c>).</summary>
+    public double UserScale => _userScale;
+
+    /// <summary>Takes a rebuilt atlas (a UI-scale change): restyles ImGui at the new scale and drops everything
+    /// measured with the old faces.</summary>
+    public void SetFonts(UiTheme.Fonts fonts)
+    {
+        _fonts = fonts;
+        _drawListBackend = null;
+        _labelWidths.Clear();
+        UiTheme.Apply(_frameTheme, Scale);
+    }
+
     /// <summary>
-    /// H1: THE CHROME FOLLOWS THE WINDOW. PanelLayout is the 1280×800 design and stays the tested geometry; in a
-    /// window of any other size the status band spans the width, the command bar sits on the bottom edge and the
-    /// context panel on the right edge, its height following the window. (Before, a maximised window left the
-    /// command bar ending 209 px above the window's bottom edge and the panel 652 px in from its right edge at 1920×1009.) Window-local widget
-    /// offsets are unchanged — every control keeps its place inside its panel — so the design-size layout and
-    /// every ChromeGeometry pin are exactly what they were at 1280×800.
+    /// H1: THE CHROME FOLLOWS THE WINDOW. PanelLayout is the 1280×800 design at UI scale 1 and stays the tested
+    /// geometry; in a window of any other size (or scale) the status band spans the width, the command bar sits on
+    /// the bottom edge and the context panel on the right edge, its height following the window. M5 polish UR-1/UR-3:
+    /// the bars' heights are × the UI scale, and the context panel's width follows the window
+    /// (<see cref="PanelLayout.ContextWidth"/>: a quarter of it, 420–560 px × s).
     /// </summary>
     public PanelRect Placed(in PanelRect design)
     {
-        float dw = _viewportWidth - PanelLayout.DesignWidth, dh = _viewportHeight - PanelLayout.DesignHeight;
-        return design.Title switch
+        float s = Scale, w = _viewportWidth, h = _viewportHeight, margin = PanelLayout.Margin * s;
+        float statusH = PanelLayout.Status.Height * s, commandH = PanelLayout.Command.Height * s;
+        switch (design.Title)
         {
-            "##status" => design with { Width = Math.Max(1f, design.Width + dw) },
-            "##command" => design with { Y = design.Y + dh, Width = Math.Max(1f, design.Width + dw) },
-            "##context" => design with { X = design.X + dw, Height = Math.Max(120f, design.Height + dh) },
-            _ => design,
-        };
+            case "##status": return design with { Height = statusH, Width = Math.Max(1f, w) };
+            case "##command": return design with { Y = h - commandH, Height = commandH, Width = Math.Max(1f, w) };
+            case "##context":
+            {
+                float cw = PanelLayout.ContextWidth(w, s);
+                return design with
+                {
+                    X = w - cw - margin, Y = statusH + margin, Width = cw,
+                    Height = Math.Max(120f, h - statusH - commandH - 2f * margin),
+                };
+            }
+            default: return design;
+        }
     }
 
     private ChromeElement Placed(in ChromeElement element) => element with { Panel = Placed(element.Panel) };
@@ -284,6 +330,7 @@ public sealed class GameUi
     {
         _viewportWidth = Math.Max(1, width);
         _viewportHeight = Math.Max(1, height);
+        _autoScale = Sim.Ui.Theme.UiScale.Follow(_autoScale, _viewportHeight);
     }
 
 
@@ -554,6 +601,13 @@ public sealed class GameUi
                     _openSection = GameSections.OnDigit(_openSection, digit, _developer);
             }
 
+            // M5 polish UR-1: Ctrl+= / Ctrl+- step the interface size through UiScale.UserSteps, Ctrl+0 resets it
+            // (key edge); the host rebuilds the atlas at the new scale between frames (WantedScale).
+            bool ctrl = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
+            if (ctrl && (Edge(keyboard, Keys.OemPlus) || Edge(keyboard, Keys.Add))) _userScale = Sim.Ui.Theme.UiScale.StepUser(_userScale, +1);
+            if (ctrl && (Edge(keyboard, Keys.OemMinus) || Edge(keyboard, Keys.Subtract))) _userScale = Sim.Ui.Theme.UiScale.StepUser(_userScale, -1);
+            if (ctrl && Edge(keyboard, Keys.D0)) _userScale = Sim.Ui.Theme.UiScale.DefaultUser;
+
             // ADR-033 D9: F12 toggles the developer surfaces (key edge); turning them off closes one left open.
             if (keyboard.IsKeyDown(Keys.F12) && !_lastKeyboard.IsKeyDown(Keys.F12))
             {
@@ -591,6 +645,8 @@ public sealed class GameUi
         _lastKeyboard = keyboard;
     }
 
+    private bool Edge(KeyboardState keyboard, Keys key) => keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key);
+
     /// <summary>The capital's Age panel is shown only when opened (the compact Age indicator on the status band,
     /// the action surface's advance, the trees' Age chip) — never by itself over the map at turn 1.</summary>
     private bool AgePanelVisible => _agePanelOpen && _session.Config.Ages is not null;
@@ -602,7 +658,9 @@ public sealed class GameUi
     private Sim.Ui.Render.RectD AgePanelRect()
     {
         Rectangle v = Viewport();
-        return new Sim.Ui.Render.RectD(AgePanelX, AgePanelY, AgePanelW, Math.Max(360, v.Height - AgePanelY - 56 - 12));
+        // UR-3: under the selection card as drawn (its height is its content), above the command bar as placed.
+        double y = _selectionRect.Y + _selectionRect.Height + PanelLayout.Margin * Scale;
+        return new Sim.Ui.Render.RectD(AgePanelX, y, AgePanelW, Math.Max(360, v.Height - y - CommandRect.Height - PanelLayout.Margin * Scale));
     }
 
     /// <summary>
@@ -817,7 +875,7 @@ public sealed class GameUi
         System.Numerics.Vector2 max = min + ImGui.GetWindowSize();
         float frameHeight = ImGui.GetFrameHeight();
         var furniture = new Sim.Ui.Render.DrawList();
-        Sim.Ui.Theme.ChromeFurniture.Paint(furniture, _frameTheme, element, frameHeight);
+        Sim.Ui.Theme.ChromeFurniture.Paint(furniture, _frameTheme, element, frameHeight, Scale);
         list.PushClipRect(min, max, false);
         _drawListBackend.Render(list, furniture);
         list.PopClipRect();
@@ -826,9 +884,10 @@ public sealed class GameUi
         {
             // Tiled parchment sheet: uv spans the sheet in texture multiples,
             // so the ruled lines keep a constant pitch at any panel size.
-            var sheetMin = new System.Numerics.Vector2(min.X + ChromeGeometry.FrameBorderPx,
-                ChromeGeometry.ContentTop(element, frameHeight));
-            var sheetMax = new System.Numerics.Vector2(max.X - ChromeGeometry.FrameBorderPx, max.Y - ChromeGeometry.FrameBorderPx);
+            float border = ChromeGeometry.FrameBorderPx * Scale;
+            var sheetMin = new System.Numerics.Vector2(min.X + border,
+                ChromeGeometry.ContentTop(element, frameHeight, Scale));
+            var sheetMax = new System.Numerics.Vector2(max.X - border, max.Y - border);
             var uv = new System.Numerics.Vector2((sheetMax.X - sheetMin.X) / 128f, (sheetMax.Y - sheetMin.Y) / 128f);
             list.AddImage(backgroundId, sheetMin, sheetMax, System.Numerics.Vector2.Zero, uv, 0xFFFFFFFFu);
         }
@@ -868,8 +927,12 @@ public sealed class GameUi
         }
         PlotDomain domain = TrendAxisModel.PriceDomain(series);
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
+        ImGui.PushStyleVar(ImGuiStyleVar.DisabledAlpha, 1f);   // inert, as the trends plot (no hover readout tooltip)
+        ImGui.BeginDisabled();
         ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
             (float)domain.Floor, (float)domain.Ceiling, new System.Numerics.Vector2(300, 56));
+        ImGui.EndDisabled();
+        ImGui.PopStyleVar();
         ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, ToDoubles(series)));
     }
 
@@ -885,7 +948,7 @@ public sealed class GameUi
     public void PrepareFrame()
     {
         _frameTheme = _eraFade is { } fade ? fade.Current : _theme;
-        if (_eraFade is { } f0) { UiTheme.Apply(_frameTheme); if (f0.Done) _eraFade = null; }
+        if (_eraFade is { } f0) { UiTheme.Apply(_frameTheme, Scale); if (f0.Done) _eraFade = null; }
     }
 
     /// <summary>
@@ -942,56 +1005,222 @@ public sealed class GameUi
             | ImGuiWindowFlags.NoBringToFrontOnFocus | extra);
     }
 
+    // ================================================================== UR-1 / UR-3: type roles in the ImGui chrome
+
+    /// <summary>The atlas font of a type role in the frame's era (null without fonts: ImGui's own face).</summary>
+    private ImFontPtr? RoleFont(Sim.Ui.Theme.TypeRole role, Sim.Ui.Render.FontRole style = Sim.Ui.Render.FontRole.Body) =>
+        _fonts?.Role(_frameTheme, role, style);
+
+    /// <summary>A type role's px at the atlas's scale, in the face the frame's era sets <paramref name="style"/> in.</summary>
+    private float RolePx(Sim.Ui.Theme.TypeRole role, Sim.Ui.Render.FontRole style = Sim.Ui.Render.FontRole.Body)
+    {
+        Sim.Ui.Render.TextStyle st = _frameTheme.Type.For(style);
+        return _fonts?.RolePx(st.Face, role, st.Case == Sim.Ui.Render.TextCase.Upper)
+            ?? UiTheme.ScaledPx(Sim.Ui.Theme.TypeScale.Px(role, st.Face, st.Case == Sim.Ui.Render.TextCase.Upper), Scale);
+    }
+
+    private void PushRole(Sim.Ui.Theme.TypeRole role, Sim.Ui.Render.FontRole style = Sim.Ui.Render.FontRole.Body)
+    {
+        if (RoleFont(role, style) is { } f) ImGui.PushFont(f);
+    }
+
+    private void PopRole() { if (_fonts is not null) ImGui.PopFont(); }
+
+    /// <summary>A run in the era's typesetting for <paramref name="style"/> (case, tracking, the double-struck bold) at
+    /// an exact px, set through the DrawList backend into <paramref name="dl"/>; returns its width.</summary>
+    private float StyledRun(ImDrawListPtr dl, float x, float y, string text, float px, Sim.Ui.Render.FontRole style,
+        ParchmentPalette.Rgba color)
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        Sim.Ui.Render.TextStyle st = _frameTheme.Type.For(style);
+        var d = new Sim.Ui.Render.DrawList();
+        d.Text(x, y, text, px, color, Sim.Ui.Render.TextAlign.Left, style, st);
+        _drawListBackend.Render(dl, d);
+        return (float)_drawListBackend.Width(text, px, style, st);
+    }
+
+    /// <summary>The width a styled run of <paramref name="text"/> would take.</summary>
+    private float StyledWidth(string text, float px, Sim.Ui.Render.FontRole style)
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        return (float)_drawListBackend.Width(text, px, style, _frameTheme.Type.For(style));
+    }
+
+    /// <summary>Truncates <paramref name="text"/> with "..." so its styled run fits <paramref name="width"/>.</summary>
+    private string FitStyled(string text, float px, Sim.Ui.Render.FontRole style, float width)
+    {
+        if (StyledWidth(text, px, style) <= width) return text;
+        for (int n = text.Length - 1; n > 0; n--)
+        {
+            string s = text[..n].TrimEnd() + "...";
+            if (StyledWidth(s, px, style) <= width) return s;
+        }
+        return "...";
+    }
+
+    /// <summary>A panel's TITLE (UR-3: the subject — the settlement's name, "Your empire") in the era's title face and
+    /// role size, vertically centred in a <paramref name="rowHeight"/> row at the cursor, fitted to
+    /// <paramref name="width"/>; in the manuscript era its first letter is the decorated initial (ThemeText.Title).
+    /// The row is reserved with a Dummy.</summary>
+    private void TitleRow(string text, float width, float rowHeight)
+    {
+        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
+        float px = RolePx(Sim.Ui.Theme.TypeRole.Title, Sim.Ui.Render.FontRole.Title);
+        string fit = FitStyled(text, px, Sim.Ui.Render.FontRole.Title, width);
+        System.Numerics.Vector2 p = ImGui.GetCursorScreenPos();
+        var d = new Sim.Ui.Render.DrawList();
+        Sim.Ui.Theme.ThemeText.Title(d, _frameTheme, p.X, p.Y + (rowHeight - px) / 2f - 1f, fit, px / _frameTheme.Type.SizeScale, _frameTheme.Ink.Text);
+        _drawListBackend.Render(ImGui.GetWindowDrawList(), d);
+        ImGui.Dummy(new System.Numerics.Vector2(width, rowHeight));
+    }
+
+    /// <summary>A block heading (UR-3: Heading role, the era's heading style, the accent's TEXT ink) at the cursor.</summary>
+    private void HeadingRow(string text)
+    {
+        float px = RolePx(Sim.Ui.Theme.TypeRole.Heading, Sim.Ui.Render.FontRole.Heading);
+        System.Numerics.Vector2 p = ImGui.GetCursorScreenPos();
+        float w = StyledRun(ImGui.GetWindowDrawList(), p.X, p.Y, text, px, Sim.Ui.Render.FontRole.Heading, _frameTheme.TextInk.Accent);
+        ImGui.Dummy(new System.Numerics.Vector2(Math.Max(1f, w), px));
+    }
+
+    /// <summary>The label widths the command bar is laid out from, measured in EVERY era's body face and the widest
+    /// kept, so a button never changes size with the Age (era continuity: geometry is era-invariant).</summary>
+    private float LabelWidth(string label)
+    {
+        if (_labelWidths.TryGetValue(label, out float w)) return w;
+        w = 0f;
+        if (_fonts is { } fonts)
+            foreach (Sim.Ui.Render.TypeFace face in new[] { Sim.Ui.Render.TypeFace.Garamond, Sim.Ui.Render.TypeFace.PlexSerif, Sim.Ui.Render.TypeFace.PlexSans })
+            {
+                float px = fonts.RolePx(face, Sim.Ui.Theme.TypeRole.Body);
+                ImFontPtr f = fonts.Face(face, px);
+                w = Math.Max(w, f.CalcTextSizeA(f.FontSize, float.MaxValue, 0f, label).X);
+            }
+        else w = ImGui.CalcTextSize(label).X;
+        _labelWidths[label] = w;
+        return w;
+    }
+
+    /// <summary>The height of <paramref name="text"/> in <paramref name="font"/> wrapped at <paramref name="wrap"/>.</summary>
+    private static float WrappedHeight(ImFontPtr? font, string text, float wrap)
+    {
+        if (font is not { } f) return ImGui.GetTextLineHeight();
+        return Math.Max(f.FontSize, f.CalcTextSizeA(f.FontSize, float.MaxValue, Math.Max(1f, wrap), text).Y);
+    }
+
     /// <summary>
-    /// THE ALWAYS-TRUE BAND: when, how many, how much. Four facts that are
-    /// worth screen space on every frame of every turn, laid out horizontally
-    /// so they cost 48 pixels of height instead of a column.
-    ///
-    /// T4.19 lane B: the population and food figures are CLICKABLE — each a
-    /// Selectable sized to its own text, routed through ExplainRouting to the
-    /// TURN account that decomposes it — and the turn digest from the latest
-    /// TurnRecord follows them after the first End Turn. Read-only: the band
-    /// still emits no order.
+    /// THE ALWAYS-TRUE BAND (UR-3): when, how many, how much, and what to do next — in three groups. [Turn · Year] |
+    /// [Population · Food], each a caps label over… beside its figure in the KPI face (24 px), the figures clickable
+    /// (T4.19 lane B: each routes through ExplainRouting to the account that decomposes it; a dotted underline on
+    /// hover says so) | [the research chip · the Age chip]. Idle research — the turn-1 call to action — is a warning
+    /// chip in the progress family's TEXT ink with a mark (it measured 2.41:1 as amber text, and read as disabled).
+    /// A narrow window drops the settlement count and the Age's name before anything else. Read-only: the band
+    /// emits no order.
     /// </summary>
     private void DrawStatusBand()
     {
-        BeginChrome(Placed(PanelLayout.Status));
-        DrawPanelFurniture(Placed(ChromeGeometry.Status));   // rule along the BOTTOM edge: status | world
-        PushDataFont();
-        ImGui.TextUnformatted(_hud.ClockLine);
-        ImGui.SameLine(0, 24);
-        Figure(_hud.WorldPopulationFigure, ExplainFigure.WorldPopulation);
-        ImGui.SameLine(0, 8);
-        ImGui.TextUnformatted(_hud.SettlementCountFigure);
-        ImGui.SameLine(0, 24);
-        Figure(_hud.WorldFoodFigure, ExplainFigure.WorldFood);
-        PopDataFont();
-        // Audit E26: research is visible without opening the trees — the target, its progress and the RP a
-        // turn, or that research is idle. The figure IS the band's way into the trees (it replaces the
-        // separate "Knowledge [K]" button, so the research state and the Age both fit on the band).
-        ImGui.SameLine(0, 20);
-        ImGui.PushStyleColor(ImGuiCol.Text, Col(_researchFigure.Idle ? _frameTheme.Semantic.Progress : _frameTheme.Semantic.Active));
-        bool research = ImGui.Button(_researchFigure.Text + "##band-research");
-        Controls.Record("band-research");
-        if (research) ToggleProgression();
-        ImGui.PopStyleColor();
-        // The compact Age indicator: the full Age name and the eligibility summary; it opens (or closes) the
-        // capital's Age panel on demand, which no longer covers the map by itself.
-        if (_ageFigure.Text.Length > 0)
+        PanelRect band = StatusRect;
+        BeginChrome(band);
+        DrawPanelFurniture(new ChromeElement(band, RulePlacement.BottomEdge));
+        float s = Scale, margin = PanelLayout.Margin * s;
+        Sim.Ui.Theme.EraTheme t = _frameTheme;
+        ImDrawListPtr dl = ImGui.GetWindowDrawList();
+        float capPx = RolePx(Sim.Ui.Theme.TypeRole.Caption, Sim.Ui.Render.FontRole.Caps);
+        float kpiPx = RolePx(Sim.Ui.Theme.TypeRole.Kpi, Sim.Ui.Render.FontRole.Numeric);
+        float detailPx = RolePx(Sim.Ui.Theme.TypeRole.Caption);
+        ImFontPtr? kpiFont = RoleFont(Sim.Ui.Theme.TypeRole.Kpi, Sim.Ui.Render.FontRole.Numeric);
+        ImFontPtr? capFont = RoleFont(Sim.Ui.Theme.TypeRole.Caption, Sim.Ui.Render.FontRole.Caps);
+        // Baselines: the caps label and the detail sit on the figure's baseline.
+        float kpiAscent = kpiFont is { } kf ? kf.Ascent * kpiPx / kf.FontSize : kpiPx * 0.8f;
+        float capAscent = capFont is { } cf ? cf.Ascent * capPx / cf.FontSize : capPx * 0.8f;
+        float top = margin;
+        float labelY = top + kpiAscent - capAscent;
+        float gap = 8f * s, groupGap = 30f * s, itemGap = 20f * s;
+        float frameH = ImGui.GetFrameHeight();
+
+        string research = _researchFigure.Text;
+        string age = _ageFigure.Text;
+        (string Label, string Value, string Detail, ExplainFigure? Route)[] figures =
+        [
+            ("Turn", _hud.TurnValue, "", null),
+            ("Year", _hud.YearValue, "", null),
+            ("Population", _hud.WorldPopulationValue, _hud.SettlementCountDetail, ExplainFigure.WorldPopulation),
+            ("Food", _hud.WorldFoodValue, "", ExplainFigure.WorldFood),
+        ];
+        float FigureWidth(int i, bool details) =>
+            StyledWidth(figures[i].Label, capPx, Sim.Ui.Render.FontRole.Caps) + gap
+            + StyledWidth(figures[i].Value, kpiPx, Sim.Ui.Render.FontRole.Numeric)
+            + (details && figures[i].Detail.Length > 0 ? gap + StyledWidth(figures[i].Detail, detailPx, Sim.Ui.Render.FontRole.Body) : 0f);
+        float chipPad = 2f * (12f * s);
+        float markW = 22f * s;
+        float ChipWidth(string text, bool mark) => ImGui.CalcTextSize(text).X + chipPad + (mark ? markW : 0f);
+        float Total(bool details, string ageText) =>
+            FigureWidth(0, details) + itemGap + FigureWidth(1, details) + groupGap + FigureWidth(2, details) + itemGap + FigureWidth(3, details)
+            + groupGap + ChipWidth(research, _researchFigure.Idle) + (ageText.Length > 0 ? itemGap + ChipWidth(ageText, false) : 0f);
+        float room = band.Width - 2f * margin;
+        bool details = true;
+        if (Total(true, age) > room) { details = false; age = _ageFigure.Short; }
+
+        float x = band.X + margin + 4f * s;
+        for (int i = 0; i < figures.Length; i++)
         {
-            ImGui.SameLine(0, 16);
-            ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? _frameTheme.Material.Accent : _frameTheme.Ink.Text));
-            bool ageClicked = ImGui.Button(_ageFigure.Text + "##band-age");
+            (string label, string value, string detail, ExplainFigure? route) = figures[i];
+            float x0 = x;
+            x += StyledRun(dl, x, band.Y + labelY, label, capPx, Sim.Ui.Render.FontRole.Caps, t.Ink.TextSoft) + gap;
+            x += StyledRun(dl, x, band.Y + top, value, kpiPx, Sim.Ui.Render.FontRole.Numeric, t.Ink.Text);
+            if (details && detail.Length > 0)
+                x += gap + StyledRun(dl, x + gap, band.Y + labelY, detail, detailPx, Sim.Ui.Render.FontRole.Body, t.Ink.TextSoft);
+            if (route is ExplainFigure fig)
+            {
+                // The figure is a control: an invisible button over label and value, routed to its explanation.
+                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x0, band.Y + top));
+                bool clicked = ImGui.InvisibleButton("##fig-" + fig.ToString(), new System.Numerics.Vector2(Math.Max(1f, x - x0), kpiPx));
+                Controls.Record("fig:" + fig.ToString());
+                if (ImGui.IsItemHovered()) DottedUnderline(dl, x0, x, band.Y + top + kpiPx + 1f * s, t.Ink.TextSoft);
+                if (clicked) Route(ExplainRouting.For(fig));
+            }
+            x += i == 1 || i == figures.Length - 1 ? groupGap : itemGap;
+            if (i == 1 || i == figures.Length - 1) Separator(dl, x - groupGap / 2f, band.Y + top + 2f * s, band.Y + top + kpiPx - 2f * s);
+        }
+
+        // The research chip — the band's way into the trees.
+        float chipY = band.Y + top + (kpiPx - frameH) / 2f;
+        float rw = Math.Min(ChipWidth(research, _researchFigure.Idle), Math.Max(80f * s, band.X + band.Width - margin - x));
+        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, chipY));
+        ParchmentPalette.Rgba researchInk = _researchFigure.Idle ? t.TextInk.Progress : t.TextInk.Active;
+        ImGui.PushStyleColor(ImGuiCol.Text, Col(researchInk));
+        ImGui.PushStyleColor(ImGuiCol.Button, Col(t.Material.PanelRaised));
+        ImGui.PushStyleColor(ImGuiCol.Border, Col(_researchFigure.Idle ? t.Semantic.Progress : t.Material.Border));
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, (_researchFigure.Idle ? 2f : 1f) * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new System.Numerics.Vector2(_researchFigure.Idle ? 1f : 0.5f, 0.5f));
+        bool researchClicked = ImGui.Button(research + "##band-research", new System.Numerics.Vector2(rw, frameH));
+        Controls.Record("band-research");
+        System.Numerics.Vector2 rmin = ImGui.GetItemRectMin();
+        ImGui.PopStyleVar(2);
+        ImGui.PopStyleColor(3);
+        if (_researchFigure.Idle) AttentionMark(dl, rmin.X + 12f * s + 8f * s, rmin.Y + frameH / 2f, 8f * s, t);
+        if (researchClicked) ToggleProgression();
+        x += rw + itemGap;
+
+        // The compact Age indicator: opens (or closes) the capital's Age panel on demand.
+        if (age.Length > 0)
+        {
+            float aw = Math.Min(ChipWidth(age, false), Math.Max(60f * s, band.X + band.Width - margin - x));
+            ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, chipY));
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? t.TextInk.Accent : t.Ink.Text));
+            ImGui.PushStyleColor(ImGuiCol.Button, Col(_ageFigure.Eligible ? Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.16) : t.Material.PanelRaised));
+            bool ageClicked = ImGui.Button(age + "##band-age", new System.Numerics.Vector2(aw, frameH));
             Controls.Record("band-age");
+            ImGui.PopStyleColor(2);
             if (ageClicked)
             {
                 if (_agePanelOpen) _agePanelOpen = false; else OpenAgePanel(flow: false);
             }
-            ImGui.PopStyleColor();
+            x += aw + itemGap;
         }
         if (_developer && _turnAudit is { } audit)
         {
-            ImGui.SameLine(0, 24);
+            ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, band.Y + top));
             PushDataFont();
             ImGui.TextUnformatted("last turn: " + audit.Digest);
             PopDataFont();
@@ -999,20 +1228,44 @@ public sealed class GameUi
         ImGui.End();
     }
 
+    /// <summary>A short vertical hairline between the band's groups.</summary>
+    private void Separator(ImDrawListPtr dl, float x, float y0, float y1) =>
+        dl.AddLine(new System.Numerics.Vector2(x, y0), new System.Numerics.Vector2(x, y1), Col(Sim.Ui.Theme.ThemeColor.Alpha(_frameTheme.Material.Hairline, 0.9)), Math.Max(1f, Scale));
+
+    /// <summary>A dotted underline: the hover affordance of a clickable figure.</summary>
+    private void DottedUnderline(ImDrawListPtr dl, float x0, float x1, float y, ParchmentPalette.Rgba ink)
+    {
+        float step = 4f * Scale;
+        for (float x = x0; x < x1; x += step)
+            dl.AddLine(new System.Numerics.Vector2(x, y), new System.Numerics.Vector2(Math.Min(x1, x + step * 0.5f), y), Col(ink), Math.Max(1f, Scale));
+    }
+
+    /// <summary>The attention mark of a warning chip: a disc in the progress pigment with an exclamation in the ink on
+    /// the accent (a non-colour cue, UR-3).</summary>
+    private void AttentionMark(ImDrawListPtr dl, float cx, float cy, float r, Sim.Ui.Theme.EraTheme t)
+    {
+        dl.AddCircleFilled(new System.Numerics.Vector2(cx, cy), r, Col(t.Semantic.Progress), 0);
+        float w = Math.Max(1.6f, r * 0.26f);
+        dl.AddLine(new System.Numerics.Vector2(cx, cy - r * 0.55f), new System.Numerics.Vector2(cx, cy + r * 0.12f), Col(t.Ink.OnAccent), w);
+        dl.AddCircleFilled(new System.Numerics.Vector2(cx, cy + r * 0.48f), w * 0.62f, Col(t.Ink.OnAccent), 0);
+    }
+
     /// <summary>An era colour as ImGui's packed ABGR.</summary>
     private static uint Col(ParchmentPalette.Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
 
-    /// <summary>A clickable figure: a Selectable the size of its text, so it
-    /// reads as the number it was and opens the surface that explains it.</summary>
+    /// <summary>A clickable figure line (UR-3: wrapped to the card, in the current font): the text, and an invisible
+    /// button over it that opens the surface that explains it — so it reads as the number it was.</summary>
     private void Figure(string text, ExplainFigure figure)
     {
-        bool clicked = ImGui.Selectable(text + "##fig-" + figure.ToString(), false,
-                ImGuiSelectableFlags.None, ImGui.CalcTextSize(text));
+        System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
+        ImGui.TextUnformatted(text);
+        System.Numerics.Vector2 min = ImGui.GetItemRectMin(), max = ImGui.GetItemRectMax();
+        // The button covers the text exactly, so the cursor ends where the text left it.
+        ImGui.SetCursorScreenPos(at);
+        bool clicked = ImGui.InvisibleButton("##fig-" + figure.ToString(), new System.Numerics.Vector2(Math.Max(1f, max.X - min.X), Math.Max(1f, max.Y - min.Y)));
         Controls.Record("fig:" + figure.ToString());
-        if (clicked)
-        {
-            Route(ExplainRouting.For(figure));
-        }
+        if (ImGui.IsItemHovered()) DottedUnderline(ImGui.GetWindowDrawList(), min.X, max.X, max.Y, _frameTheme.Ink.TextSoft);
+        if (clicked) Route(ExplainRouting.For(figure));
     }
 
     /// <summary>Applies a click-to-explain route: opens the section (and tab),
@@ -1028,27 +1281,58 @@ public sealed class GameUi
         if (route.ShowHappinessFactors) _showHappinessFactors = true;
     }
 
+    /// <summary>The rows the selection card shows: the HUD's figure lines (the food/population stream owns their
+    /// wording), each routed to the panel that decomposes it.</summary>
+    private (string Text, ExplainFigure Route)[] SelectionRows() =>
+    [
+        (_hud.PopulationLine, ExplainFigure.SettlementPopulation),
+        (_hud.FoodLine, ExplainFigure.SettlementFood),
+        (_hud.HappinessLine, ExplainFigure.SettlementHappiness),
+        (_hud.GrievanceLine, ExplainFigure.SettlementGrievance),
+    ];
+
     /// <summary>
     /// The selected settlement, floating over the map: selection is how every
     /// section is aimed, so losing sight of it while looking at the world would
     /// make the world view useless for deciding anything.
     ///
     /// T4.19 lane B: population, food, happiness and grievance are clickable
-    /// figures routed to the SETTLEMENT tab that decomposes each.
+    /// figures routed to the SETTLEMENT tab that decomposes each. UR-3: 320 px × s wide, its TITLE the settlement's
+    /// name in the title face over the era's rule, its rows in the data face wrapped to the card, and its height the
+    /// MEASURED content (the population line once ran through the frame of a fixed 268 × 160 card).
     /// </summary>
     private void DrawSelectionCard()
     {
-        BeginChrome(PanelLayout.Selection);
-        DrawPanelFurniture(ChromeGeometry.Selection);   // under the title line, as before
-        ImGui.TextUnformatted(_hud.TitleLine);
-        PushDataFont();
-        Figure(_hud.PopulationLine, ExplainFigure.SettlementPopulation);
-        Figure(_hud.FoodLine, ExplainFigure.SettlementFood);
-        // Item 4: happiness and grievance on lines of their own — side by side they overflowed the card
-        // ("happiness 100.0 grievanc...").
-        Figure(_hud.HappinessLine, ExplainFigure.SettlementHappiness);
-        Figure(_hud.GrievanceLine, ExplainFigure.SettlementGrievance);
-        PopDataFont();
+        float s = Scale;
+        float frameH = ImGui.GetFrameHeight();
+        float padX = ImGui.GetStyle().WindowPadding.X, width = PanelLayout.SelectionWidth * s;
+        float rowGap = 6f * s, wrap = width - 2f * padX;
+        var element = new ChromeElement(_selectionRect with { Width = width }, RulePlacement.UnderHeaderRow);
+        float content = ChromeGeometry.ContentTop(element, frameH, s) - element.Panel.Y;
+        (string Text, ExplainFigure Route)[] rows = SelectionRows();
+        ImFontPtr? data = RoleFont(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
+        float h = content;
+        foreach ((string text, _) in rows) h += WrappedHeight(data, text, wrap) + rowGap;
+        h += PanelLayout.Margin * s - rowGap + 2f * s;
+        _selectionRect = new PanelRect(PanelLayout.Selection.Title, PanelLayout.Margin * s,
+            StatusRect.Height + PanelLayout.Margin * s, width, (float)Math.Ceiling(h));
+        element = new ChromeElement(_selectionRect, RulePlacement.UnderHeaderRow);
+        // The left column follows the card: the formation card (and the Age panel) start under it.
+        _unitCardRect = _unitCardRect with { Y = _selectionRect.Y + _selectionRect.Height + PanelLayout.Margin * s };
+
+        BeginChrome(_selectionRect);
+        DrawPanelFurniture(element);
+        ScreenRect head = ChromeGeometry.HeaderRow(element, frameH, s);
+        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(_selectionRect.X + padX, head.Y));
+        TitleRow(_hud.TitleLine, wrap, frameH);
+        ImGui.SetCursorPosY(content);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, rowGap));
+        ImGui.PushTextWrapPos(width - padX);
+        PushRole(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
+        foreach ((string text, ExplainFigure route) in rows) Figure(text, route);
+        PopRole();
+        ImGui.PopTextWrapPos();
+        ImGui.PopStyleVar();
         ImGui.End();
     }
 
@@ -1067,84 +1351,143 @@ public sealed class GameUi
     /// <summary>
     /// THE FORMATION CARD (H1, Director §3): name, owner, family line, current Age form, station, what the next
     /// Age does to it — and, in the card's own words, that it cannot be moved or ordered until the Battle Layer
-    /// (M7). Its only control is the close button: nothing on it pretends to move the formation.
+    /// (M7). Its only control is the close button: nothing on it pretends to move the formation. UR-3: its height is
+    /// its measured content (the M7 limitation — its most important sentence — was clipped by a fixed 268 px), and
+    /// the limitation is a callout in the progress family's text ink with an attention mark.
     /// </summary>
     private void DrawUnitCard()
     {
         if (_unitCard is not { } card) return;
-        BeginChrome(UnitCardRect);
-        var element = new ChromeElement(UnitCardRect, RulePlacement.UnderHeaderRow);
+        float s = Scale;
+        float frameH = ImGui.GetFrameHeight();
+        float padX = ImGui.GetStyle().WindowPadding.X, width = UnitCardWidth * s, wrap = width - 2f * padX;
+        float markW = 22f * s;
+        var lines = new List<(string Text, ParchmentPalette.Rgba Ink, bool Callout)>
+        {
+            (card.Owner + " - " + card.Station, _frameTheme.Ink.Text, false),
+            (card.Family + (card.Line.Length > 0 ? ": " + card.Line : ""), _frameTheme.TextInk.Accent, false),
+            (card.AgeForm, _frameTheme.Ink.Text, false),
+        };
+        if (card.NextAge.Length > 0) lines.Add((card.NextAge, _frameTheme.Ink.TextSoft, false));
+        lines.Add((card.Limitation, _frameTheme.TextInk.Progress, true));
+        ImFontPtr? body = RoleFont(Sim.Ui.Theme.TypeRole.Body);
+        float spacing = ImGui.GetStyle().ItemSpacing.Y;
+        var probe = new ChromeElement(new PanelRect("##unit-card", 0, 0, width, 100), RulePlacement.UnderHeaderRow);
+        float h = ChromeGeometry.ContentTop(probe, frameH, s);
+        foreach ((string text, _, bool callout) in lines)
+            h += WrappedHeight(body, text, callout ? wrap - markW : wrap) + spacing + (callout ? 6f * s : 0f);
+        h += PanelLayout.Margin * s;
+        float y = _selectionRect.Y + _selectionRect.Height + PanelLayout.Margin * s;
+        _unitCardRect = new PanelRect("##unit-card", PanelLayout.Margin * s, y, width,
+            (float)Math.Ceiling(Math.Min(h, Math.Max(120f, _viewportHeight - y - CommandRect.Height - PanelLayout.Margin * s))));
+        var element = new ChromeElement(_unitCardRect, RulePlacement.UnderHeaderRow);
+
+        BeginChrome(_unitCardRect);
         DrawPanelFurniture(element);
-        float frameHeight = ImGui.GetFrameHeight();
-        ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight);
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(card.Title);
-        PlaceCursor(UnitCardRect, close);
+        ScreenRect close = ChromeGeometry.CloseButton(element, frameH, s);
+        ScreenRect head = ChromeGeometry.HeaderRow(element, frameH, s);
+        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(head.X + padX - PanelLayout.Margin * s, head.Y));
+        TitleRow(card.Title, close.X - head.X - 8f * s, frameH);
+        PlaceCursor(_unitCardRect, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
         bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##unit-close", Size(close));
         Controls.Record("unit-close");
         ImGui.PopStyleVar();
         if (closeClicked) SelectUnit(-1);
-        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(element, frameHeight) - UnitCardRect.Y);
-        ImGui.PushTextWrapPos(UnitCardRect.Width - ChromeGeometry.FrameBorderPx - PanelLayout.Margin);
-        ImGui.TextUnformatted(card.Owner + " - " + card.Station);
-        ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Material.Accent));
-        ImGui.TextUnformatted(card.Family + (card.Line.Length > 0 ? ": " + card.Line : ""));
-        ImGui.PopStyleColor();
-        ImGui.TextUnformatted(card.AgeForm);
-        if (card.NextAge.Length > 0) ImGui.TextUnformatted(card.NextAge);
-        ImGui.Spacing();
-        ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Semantic.Progress));
-        ImGui.TextUnformatted(card.Limitation);
-        ImGui.PopStyleColor();
-        ImGui.PopTextWrapPos();
+        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(element, frameH, s) - _unitCardRect.Y);
+        foreach ((string text, ParchmentPalette.Rgba ink, bool callout) in lines)
+        {
+            if (callout)
+            {
+                ImGui.Dummy(new System.Numerics.Vector2(1f, 6f * s));
+                System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
+                AttentionMark(ImGui.GetWindowDrawList(), at.X + 8f * s, at.Y + ImGui.GetTextLineHeight() / 2f, 8f * s, _frameTheme);
+                ImGui.SetCursorScreenPos(new System.Numerics.Vector2(at.X + markW, at.Y));
+            }
+            ImGui.PushTextWrapPos(width - padX);
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(ink));
+            ImGui.TextUnformatted(text);
+            ImGui.PopStyleColor();
+            ImGui.PopTextWrapPos();
+        }
         ImGui.End();
     }
 
     /// <summary>
     /// THE VERBS AND THE WAYS OF LOOKING, on one row. End Turn sits apart from
     /// the section navigation because it is the only control here that changes
-    /// the world; the rest change only what is on screen.
+    /// the world; the rest change only what is on screen. UR-3: End Turn is the PRIMARY action — the row's height,
+    /// accent-filled with an accent edge, its label emboldened — and each section button is as wide as its measured
+    /// label (ChromeGeometry.CommandRow; "INSTITUTIONS" and "SETTLEMENT" were clipped); the open section reads as
+    /// SELECTED (a tinted fill and an underline bar), not as pressed.
     /// </summary>
     private void DrawCommandBar()
     {
-        BeginChrome(Placed(PanelLayout.Command));
-        DrawPanelFurniture(Placed(ChromeGeometry.Command));   // rule along the TOP edge: world | controls
+        PanelRect bar = CommandRect;
+        BeginChrome(bar);
+        DrawPanelFurniture(new ChromeElement(bar, RulePlacement.TopEdge));   // rule along the TOP edge: world | controls
+        float s = Scale;
+        Sim.Ui.Theme.EraTheme t = _frameTheme;
+        IReadOnlyList<Section> roster = GameSections.Roster(_developer);
+        var widths = new float[roster.Count];
+        for (int i = 0; i < widths.Length; i++) widths[i] = LabelWidth(GameSections.Label(roster[i]));
+        float territoryW = ImGui.GetFrameHeight() + ImGui.GetStyle().ItemInnerSpacing.X + LabelWidth("territory");
+        CommandRowLayout row = ChromeGeometry.CommandRow(bar, widths, territoryW, s);
 
-        // T4.19 lane D: every control is placed at the rect ChromeGeometry
-        // computes — cursor set explicitly, not left to WindowPadding and
-        // SameLine spacing — so the row the headless test proves disjoint
-        // from the rule is the row that is drawn. (WindowPadding.x is 14 and
-        // Margin is 12; the old row started at 14 by accident of the style.)
-        //
-        // T3.9a-b item 1 discoverability: the binding is shown ON the button.
-        // Both paths (click here, Space in Update) call EndTurn().
-        PlaceCursor(PanelLayout.Command, ChromeGeometry.EndTurnButton);
-        bool endTurn = ImGui.Button("End Turn [Space]", Size(ChromeGeometry.EndTurnButton));
+        // T3.9a-b item 1 discoverability: the binding is shown ON the button. Both paths (click here, Space in
+        // Update) call EndTurn().
+        PlaceCursor(bar, row.EndTurn);
+        ImGui.PushStyleColor(ImGuiCol.Button, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.30)));
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.42)));
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.52)));
+        ImGui.PushStyleColor(ImGuiCol.Border, Col(t.Material.Accent));
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 2f * s);
+        bool endTurn = ImGui.Button("##end-turn", Size(row.EndTurn));
         Controls.Record("end-turn");
+        ImGui.PopStyleVar();
+        ImGui.PopStyleColor(4);
+        {
+            // The label: "End Turn" emboldened in the body face and its key in the caption face, centred as one.
+            ImDrawListPtr dl = ImGui.GetWindowDrawList();
+            float px = RolePx(Sim.Ui.Theme.TypeRole.Body, Sim.Ui.Render.FontRole.Body), kpx = RolePx(Sim.Ui.Theme.TypeRole.Caption);
+            const string verb = "End Turn", key = "Space";
+            float bold = Math.Max(0.6f, px / 30f);
+            float vw = (ImGui.CalcTextSize(verb).X) + bold, kw = (RoleFont(Sim.Ui.Theme.TypeRole.Caption) is { } kf ? kf.CalcTextSizeA(kf.FontSize, float.MaxValue, 0f, key).X : 0f);
+            float gap = 8f * s, total = vw + gap + kw;
+            float x0 = row.EndTurn.X + (row.EndTurn.Width - total) / 2f, cy = row.EndTurn.Y + row.EndTurn.Height / 2f;
+            ImFontPtr font = ImGui.GetFont();
+            float fs = ImGui.GetFontSize();
+            dl.AddText(font, fs, new System.Numerics.Vector2(x0, cy - fs / 2f), Col(t.Ink.Text), verb);
+            dl.AddText(font, fs, new System.Numerics.Vector2(x0 + bold, cy - fs / 2f), Col(t.Ink.Text), verb);
+            if (RoleFont(Sim.Ui.Theme.TypeRole.Caption) is { } cap)
+                dl.AddText(cap, cap.FontSize, new System.Numerics.Vector2(x0 + vw + gap, cy - cap.FontSize / 2f + 1f * s), Col(t.Ink.TextSoft), key);
+            _ = kpx;
+        }
         if (endTurn) EndTurn();
 
-        IReadOnlyList<Section> roster = GameSections.Roster(_developer);
         for (int i = 0; i < roster.Count; i++)
         {
             Section section = roster[i];
-            ScreenRect slot = ChromeGeometry.NavButton(i);
-            PlaceCursor(PanelLayout.Command, slot);
-
-            // The open section reads as pressed, so the row says where you are
-            // as well as where you can go.
+            ScreenRect slot = row.Nav[i];
+            PlaceCursor(bar, slot);
             bool open = _openSection == section;
-            if (open) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
+            if (open) ImGui.PushStyleColor(ImGuiCol.Button, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.14)));
             bool navClicked = ImGui.Button(GameSections.Label(section) + "##nav", Size(slot));
             Controls.Record("nav:" + section.ToString());
+            if (open)
+            {
+                ImGui.PopStyleColor();
+                // Selected: an underline bar in the accent's soft pigment along the button's foot.
+                float bh = 3f * s;
+                ImGui.GetWindowDrawList().AddRectFilled(new System.Numerics.Vector2(slot.X + 6f * s, slot.Bottom - bh - 2f * s),
+                    new System.Numerics.Vector2(slot.Right - 6f * s, slot.Bottom - 2f * s), Col(t.Material.AccentSoft));
+            }
             if (navClicked) _openSection = GameSections.Toggle(_openSection, section);
-            if (open) ImGui.PopStyleColor();
         }
 
-        ImGui.SetCursorPos(new System.Numerics.Vector2(
-            ChromeGeometry.TerritoryToggleX - PanelLayout.Command.X,
-            ChromeGeometry.ButtonRow.Y - PanelLayout.Command.Y));
+        ImGui.SetCursorPos(new System.Numerics.Vector2(row.TerritoryX - bar.X,
+            row.EndTurn.Y + (row.EndTurn.Height - ImGui.GetFrameHeight()) / 2f - bar.Y));
         ImGui.Checkbox("territory", ref _showCatchment);
         Controls.Record("territory");
         ImGui.End();
@@ -1158,6 +1501,17 @@ public sealed class GameUi
 
     private static System.Numerics.Vector2 Size(in ScreenRect rect) => new(rect.Width, rect.Height);
 
+    /// <summary>UR-3: the context panel's title names its SUBJECT — the settlement's name, "Your empire", the
+    /// institutions of the empire, the settlement whose labour the policy panel sets.</summary>
+    private string ContextTitle() => _openSection switch
+    {
+        Section.Place when _placeView is { } v => v.Title,
+        Section.Empire when _empireView is { } v => v.Title,
+        Section.Institutions when _institutionsView is { } v => v.Title,
+        Section.Policy when _actionModel?.Labour is { } l => GameSections.Title(Section.Policy) + " - " + l.Name,
+        _ => GameSections.Title(_openSection),
+    };
+
     /// <summary>
     /// The one contextual surface. Nothing is drawn at all when no section is
     /// open — that is the state the whole redesign exists to make reachable.
@@ -1166,24 +1520,25 @@ public sealed class GameUi
     {
         if (_openSection == Section.None) return;
 
-        BeginChrome(Placed(PanelLayout.Context));
-        DrawPanelFurniture(Placed(ChromeGeometry.Context),   // rule under the header row
+        PanelRect panel = ContextRect;
+        float s = Scale;
+        BeginChrome(panel);
+        var element = new ChromeElement(panel, RulePlacement.UnderHeaderRow);
+        DrawPanelFurniture(element,   // rule under the header row
             _openSection == Section.Annals ? _annalsId : default);
 
         // T4.19 lane D — the header row: title at the left, close button
-        // flush right, both a frame height tall. The old button was 24×20
-        // under FramePadding (8,5) and a 19 px face — an 8×10 interior for a
-        // 19 px glyph, which ImGui pins to the interior's top-left rather
-        // than centring (ChromeGeometry.LabelAnchor models the clamp). The
-        // rect is now the view-model's: square, frame-height, Margin from
-        // the panel edge, and the text alignment is pushed explicitly so the
-        // glyph's anchor is the rect's centre by construction. Whether the
-        // GPU draws it there is the one hop no headless test can see.
+        // flush right, both a frame height tall. The rect is the view-model's:
+        // square, frame-height, Margin from the panel edge, and the text
+        // alignment is pushed explicitly so the glyph's anchor is the rect's
+        // centre by construction. UR-3: the title is the panel's SUBJECT in the
+        // era's title face.
         float frameHeight = ImGui.GetFrameHeight();
-        ScreenRect close = ChromeGeometry.CloseButton(ChromeGeometry.Context, frameHeight);
-        ImGui.AlignTextToFramePadding();   // title baseline against the frame-height row
-        ImGui.TextUnformatted(GameSections.Title(_openSection));
-        PlaceCursor(PanelLayout.Context, close);
+        ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight, s);
+        ScreenRect head = ChromeGeometry.HeaderRow(element, frameHeight, s);
+        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(head.X + 2f * s, head.Y));
+        TitleRow(ContextTitle(), close.X - head.X - 10f * s, frameHeight);
+        PlaceCursor(panel, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
         bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##close", Size(close));
@@ -1194,17 +1549,13 @@ public sealed class GameUi
         // The header rule IS the separator now; content starts under it. The
         // sections scroll inside a child so the header row is chrome that
         // stays put, and so a vertical scrollbar — ImGui hangs it on the
-        // window's right edge, x = 381..395 in this 396 px panel — cannot
-        // land on the close button (x = 355..384). Section content overflows
-        // the 607 px below the header routinely now (a Grievance tab with three
-        // classes and an open chain is several hundred lines), so the case
-        // occurs on every tab.
-        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(ChromeGeometry.Context, frameHeight) - PanelLayout.Context.Y);
+        // window's right edge — cannot land on the close button.
+        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(element, frameHeight, s) - panel.Y);
         // NoBackground: a child window paints ImGuiCol_ChildBg unless told not
-        // to, and UiTheme sets ChildBg to a 0.55-alpha paper tint - so without
-        // this flag every section's content region would be washed lighter than
-        // its header row, with a hard edge at the child's bounds. The parchment
-        // plate DrawPanelFurniture already painted is the background; the child
+        // to, and UiTheme sets ChildBg to a paper tint - so without this flag
+        // every section's content region would be washed lighter than its
+        // header row, with a hard edge at the child's bounds. The panel plate
+        // DrawPanelFurniture already painted is the background; the child
         // exists only to scroll, and must be invisible as a surface.
         // H1: the body is ONE child window for every section, so its scroll used to carry over — POLICY scrolled
         // to its end opened the next section scrolled past its own top. A different section, developer tab or
@@ -1234,24 +1585,69 @@ public sealed class GameUi
     }
 
     /// <summary>
-    /// ADR-033 D9 — a PLAYER VIEW: a title, then each block's heading in the body face and its plain-language
-    /// lines, wrapped to the panel. The block gap follows the era's density token.
+    /// ADR-033 D9 — a PLAYER VIEW (UR-3): the subject is the panel's title (the header row); under it whose it is,
+    /// then each block's heading in the heading face and the accent's text ink, and its rows — the statement wrapped
+    /// at the left, its FIGURE in a right-aligned value column in the data face (a figure too wide for the column
+    /// takes its own line, right-aligned, under the statement). The block gap follows the era's density token.
     /// </summary>
     private void DrawPlayerView(PlayerView? view, string empty)
     {
         if (view is null) { ImGui.TextUnformatted(empty); return; }
-        ImGui.PushTextWrapPos(0f);
-        ImGui.TextUnformatted(view.Title);
+        float s = Scale;
+        float avail = ImGui.GetContentRegionAvail().X;
+        float colGap = 12f * s;
+        ImFontPtr? data = RoleFont(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
+        if (view.Subtitle.Length > 0)
+        {
+            PushRole(Sim.Ui.Theme.TypeRole.Secondary);
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Ink.TextSoft));
+            ImGui.TextUnformatted(view.Subtitle);
+            ImGui.PopStyleColor();
+            PopRole();
+        }
+        bool first = true;
         foreach (ViewBlock block in view.Blocks)
         {
-            ImGui.Dummy(new System.Numerics.Vector2(1f, (float)(_frameTheme.Density.Gap * 0.5)));
-            ImGui.Separator();
-            ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Material.Accent));
-            ImGui.TextUnformatted(block.Heading);
-            ImGui.PopStyleColor();
-            foreach (string line in block.Lines) ImGui.TextUnformatted(line);
+            if (!first || view.Subtitle.Length > 0)
+            {
+                ImGui.Dummy(new System.Numerics.Vector2(1f, (float)(_frameTheme.Density.Gap * 0.5) * s));
+                ImGui.Separator();
+                ImGui.Dummy(new System.Numerics.Vector2(1f, 2f * s));
+            }
+            first = false;
+            if (block.Heading.Length > 0) HeadingRow(block.Heading);
+            foreach (ViewLine row in block.Rows)
+            {
+                if (row.Figure.Length == 0 || data is not { } df)
+                {
+                    ImGui.PushTextWrapPos(0f);
+                    ImGui.TextUnformatted(row.ToString());
+                    ImGui.PopTextWrapPos();
+                    continue;
+                }
+                float fw = df.CalcTextSizeA(df.FontSize, float.MaxValue, 0f, row.Figure).X;
+                bool column = fw <= avail * 0.42f;
+                System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
+                float textW = column ? avail - fw - colGap : avail;
+                ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + textW);
+                ImGui.TextUnformatted(row.Text);
+                ImGui.PopTextWrapPos();
+                System.Numerics.Vector2 after = ImGui.GetCursorScreenPos();
+                ImDrawListPtr dl = ImGui.GetWindowDrawList();
+                if (column)
+                {
+                    // On the first line's baseline: the data face's line is a little shorter than the body's.
+                    float dy = (ImGui.GetTextLineHeight() - df.FontSize) * 0.75f;
+                    dl.AddText(df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, at.Y + dy), Col(_frameTheme.Ink.Text), row.Figure);
+                }
+                else
+                {
+                    ImGui.SetCursorScreenPos(after);
+                    ImGui.Dummy(new System.Numerics.Vector2(1f, df.FontSize));
+                    dl.AddText(df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, after.Y), Col(_frameTheme.Ink.Text), row.Figure);
+                }
+            }
         }
-        ImGui.PopTextWrapPos();
     }
 
     /// <summary>
@@ -1602,6 +1998,10 @@ public sealed class GameUi
         if (_actionModel is null) return;
         _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         _actions.Theme = _frameTheme;
+        _actions.Scale = Scale;
+        // UR-6: the surface's controls answer hover — the pointer, while it is over this panel's scrolling body.
+        System.Numerics.Vector2 mouse = ImGui.GetIO().MousePos;
+        if (ImGui.IsWindowHovered()) _actions.PointerMove(mouse.X, mouse.Y); else _actions.PointerMove(null, null);
         System.Numerics.Vector2 origin = ImGui.GetCursorScreenPos();
         float width = Math.Max(1f, ImGui.GetContentRegionAvail().X - 4f);
         var surface = new Sim.Ui.Render.DrawList();
@@ -1622,8 +2022,14 @@ public sealed class GameUi
         ImGui.Spacing();
         ImGui.Separator();
         if (_selected < 0 || _policyView is not { } view) return;
+        // UR-6: the record is a glass-box fold, not a decision — set at the secondary role, not as the panel's
+        // largest text.
+        PushRole(Sim.Ui.Theme.TypeRole.Secondary);
+        ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Ink.TextSoft));
         ImGui.Checkbox("labour record (declared vs effective, history)", ref _policyRecord);
         Controls.Record("labour-record");
+        ImGui.PopStyleColor();
+        PopRole();
         if (!_policyRecord) return;
         ImGui.TextUnformatted(_hud.TitleLine);
         foreach (PolicyEntry policy in PolicyHistoryModel.Policies)
@@ -1799,9 +2205,17 @@ public sealed class GameUi
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
         uint? colour = TrendAxisModel.BandColour(band);
         if (colour is { } c) ImGui.PushStyleColor(ImGuiCol.PlotLines, c);
+        // The plot is a picture, not a control: drawn inert (full opacity), so ImGui's hover readout — a tooltip the
+        // game otherwise never shows, and which the headless gate rightly treats as its error tooltip — cannot appear.
+        // The values it would read out are the lines above the plot (UR-3: the panel grew, and the gate's pointer
+        // started landing on it).
+        ImGui.PushStyleVar(ImGuiStyleVar.DisabledAlpha, 1f);
+        ImGui.BeginDisabled();
         ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
             (float)domain.Floor, (float)domain.Ceiling,
-            new System.Numerics.Vector2(PanelLayout.Context.Width - 40, 220));
+            new System.Numerics.Vector2(Math.Max(120f, ImGui.GetContentRegionAvail().X - 4f), 220f * (ImGui.GetFontSize() / UiTheme.BodyFontPx)));
+        ImGui.EndDisabled();
+        ImGui.PopStyleVar();
         if (colour is not null) ImGui.PopStyleColor();
     }
 }

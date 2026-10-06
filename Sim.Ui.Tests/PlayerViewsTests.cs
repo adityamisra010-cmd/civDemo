@@ -75,15 +75,19 @@ public class PlayerViewsTests
     }
 
     [Fact]
-    public void DensityFollowsTheEra_WordsAlwaysTheSame_FiguresAndBreakdownAddedWithTheLevel()
+    public void DensityFollowsTheEra_WordsAlwaysTheSame_FiguresAlways_BreakdownAddedWithTheLevel()
     {
         UiSession s = Played(3);
         int id = s.World.Settlements[0].Id.Value;
         SettlementRecord? r = Record(s, id);
         PlayerView sparse = PlayerViews.Settlement(s.World, s.Config, UiPlayer.Empire, r, id, s.Names.Name, 1);
         PlayerView dense = PlayerViews.Settlement(s.World, s.Config, UiPlayer.Empire, r, id, s.Names.Name, 5);
-        // Level 1 speaks in words: the population line carries no figure.
-        Assert.Equal("People live here", sparse.Blocks[0].Lines[0]);
+        // M5 polish UR-3 (Director directive 2026-10-06 §5/§6, deliberately replacing "level 1 speaks in words"):
+        // the primary figures are shown at EVERY level — the A1 panels showed no number at all — and only the
+        // breakdowns follow the density.
+        Assert.StartsWith("People live here (", sparse.Blocks[0].Lines[0], StringComparison.Ordinal);
+        Assert.Equal("People live here", sparse.Blocks[0].Rows[0].Text);
+        Assert.NotEqual("", sparse.Blocks[0].Rows[0].Figure);
         Assert.StartsWith("People live here (", dense.Blocks[0].Lines[0], StringComparison.Ordinal);
         // The dense view says at least as much in every block, and strictly more overall.
         int sparseCount = 0, denseCount = 0;
@@ -227,13 +231,13 @@ public class PlayerViewsTests
         {
             string stage = iv.Stage == InstitutionLifecycle.Mature ? "mature" : "growing";
             Assert.Contains(lines, l => l.StartsWith($"{iv.TypeName} at {s.Names.Name(site.Value)} - {stage}", StringComparison.Ordinal));
-            Assert.Contains("  " + PlayerViews.EffectNow(w, s.Config, iv, 3), lines);
+            Assert.Contains("  " + PlayerViews.EffectNow(w, s.Config, iv, 3).ToString(), lines);
         }
         Assert.Contains(lines, l => l.StartsWith("  employs about ", StringComparison.Ordinal));
         // The healing institution's effect is the query's mortality reading.
         InstitutionInstanceView healer = Array.Find(views, x => x.Heals)!;
         MedicalCoverageView cover = InstitutionsQuery.Health(w, s.Config, site);
-        Assert.Equal(cover.MortalityMultiplier < 1.0, PlayerViews.EffectNow(w, s.Config, healer, 3).StartsWith("Fewer people die here", StringComparison.Ordinal));
+        Assert.Equal(cover.MortalityMultiplier < 1.0, PlayerViews.EffectNow(w, s.Config, healer, 3).Text.StartsWith("Fewer people die here", StringComparison.Ordinal));
         // The settlement view lists the same institutions in its Institutions block.
         PlayerView place = PlayerViews.Settlement(w, s.Config, UiPlayer.Empire, null, site.Value, s.Names.Name, 3);
         Assert.Contains(place.Blocks[7].Lines, l => l.StartsWith(healer.TypeName + " - ", StringComparison.Ordinal));

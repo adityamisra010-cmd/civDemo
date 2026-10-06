@@ -145,7 +145,7 @@ if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
     string manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
     var resumed = Sim.Ui.UiSession.Resume(manifestPath, out string resumedLog);
     Console.WriteLine($"resumed {manifestPath} at turn {resumed.TurnsPlayed}");
-    using var resumedGame = new Sim.Ui.SimUiGame(resumed, resumedLog, Sim.Ui.UiArgs.Developer(args));
+    using var resumedGame = new Sim.Ui.SimUiGame(resumed, resumedLog, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
     resumedGame.Run();
     return;
 }
@@ -175,5 +175,5 @@ session.ExportForensicRun(
 Console.WriteLine($"forensic record: {Sim.Ui.UiSession.ForensicPath(sessionLogPath)}"
     + $"  (run {session.ForensicRunId})");
 
-using var game = new Sim.Ui.SimUiGame(session, sessionLogPath, Sim.Ui.UiArgs.Developer(args));
+using var game = new Sim.Ui.SimUiGame(session, sessionLogPath, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
 game.Run();

@@ -173,7 +173,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ActionSurfaceModel m = Surface(s, Capital(s.World));
         ResearchFigure r = StatusFigures.Research(m.Research);
         Assert.True(r.Idle);
-        Assert.Equal("research idle [K]", r.Text);
+        Assert.Equal("Research idle - choose [K]", r.Text);   // UR-3: the call to action says what to do
         AgeFigure a = StatusFigures.Age(AgePanelModel.Build(s.World, s.Config.Ages, s.QueuedOrders(), Me));
         Assert.Equal(AgePanelState.NotEligible, a.State);
         Assert.StartsWith("Age I " + s.Config.Ages!.Age(1).Name, a.Text);   // the FULL Age name
@@ -291,7 +291,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ResearchContent research = s.Config.Research!;
         ResearchNodeId crop = research.Nodes[research.IndexOfId("root_crop")].Key;
         Assert.True(s.EmitResearchOrder(crop));
-        Assert.Equal("research: Root and tuber cultiv... next turn", StatusFigures.Research(Surface(s, capital).Research).Text);
+        Assert.Equal("Research: Root and tuber cultiv... next turn", StatusFigures.Research(Surface(s, capital).Research).Text);
         for (int t = 0; t < 300 && !ResearchQuery.IsCompleted(s.World, Me, crop); t++)
         {
             s.EndTurn();
@@ -548,7 +548,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal(cordage.Value, running.Target!.Key);
         Assert.True(running.Target.Progress > 0.0);
         ResearchFigure f = StatusFigures.Research(running);
-        Assert.StartsWith("research: Cordage ", f.Text);
+        Assert.StartsWith("Research: Cordage ", f.Text);
         Assert.EndsWith("/turn", f.Text);
         Assert.Contains("% +", f.Text);
 
@@ -561,7 +561,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.True(ActionDispatch.Apply(s, stop));
         Assert.Equal(ResearchQuery.ClearTargetOrder(s.World, Me), s.Orders[^1]);
         Assert.True(Surface(s, capital).Research!.ClearQueued);
-        Assert.Equal("research stops at End Turn", StatusFigures.Research(Surface(s, capital).Research).Text);
+        Assert.Equal("Research stops at End Turn", StatusFigures.Research(Surface(s, capital).Research).Text);
         s.EndTurn();
         ResearchBlock idle = Surface(s, capital).Research!;
         Assert.True(idle.Idle);

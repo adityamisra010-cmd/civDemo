@@ -6,6 +6,7 @@ using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Ui.Art;
 using Sim.Ui.ImGuiIntegration;
+using Sim.Ui.Theme;
 using Sim.Ui.ViewModel;
 
 namespace Sim.Ui;
@@ -66,9 +67,10 @@ public sealed class SimUiGame : Game
     private MouseState _mouse;
     private KeyboardState _keyboard;
 
-    public SimUiGame(UiSession session, string sessionLogPath, bool developer = false)
+    public SimUiGame(UiSession session, string sessionLogPath, bool developer = false, double userScale = UiScale.DefaultUser)
     {
         _developer = developer;
+        _userScale = UiScale.NearestStep(userScale);
         _session = session;
         _sessionLogPath = sessionLogPath;
         _graphics = new GraphicsDeviceManager(this)
@@ -121,7 +123,9 @@ public sealed class SimUiGame : Game
         // T3.9a-b item 4: window state is session-scoped and in-memory ONLY — a stale imgui.ini from an older
         // build would override the PanelLayout defaults, so the ini is disabled.
         unsafe { ImGui.GetIO().NativePtr->IniFilename = null; }
-        _fonts = UiTheme.LoadFonts(_art.Root);
+        // UR-1: the atlas is rasterised at the UI scale of the opening window (and rebuilt when it changes).
+        _uiScale = UiScale.Effective(UiScale.Auto(_graphics.PreferredBackBufferHeight), _userScale);
+        _fonts = UiTheme.LoadFonts(_art.Root, _uiScale);
         _imgui = new ImGuiRenderer(this, ownsContext: false);   // declares RendererHasVtxOffset (H1)
         _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
         WorldState world = _session.World;
@@ -155,10 +159,28 @@ public sealed class SimUiGame : Game
         RebuildRiverBuffer(1.0);
 
         Rectangle v = Viewport();
-        _ui = new GameUi(_session, _sessionLogPath, _developer, _art, _fonts, new UiTextureIds(annalsId, compassId), v.Width, v.Height)
+        _ui = new GameUi(_session, _sessionLogPath, _developer, _art, _fonts, new UiTextureIds(annalsId, compassId), v.Width, v.Height,
+            _userScale)
         {
             BakeNote = bakeNote,
         };
+    }
+
+    private double _uiScale = 1.0;
+    private readonly double _userScale;
+
+    /// <summary>UR-1: when the UI asks for another scale (the window crossed a scale step, or the player pressed
+    /// Ctrl+= / Ctrl+- / Ctrl+0), the atlas is rebuilt at the new sizes between frames and handed to the UI.</summary>
+    private void FollowUiScale()
+    {
+        if (_ui is not { } ui || _imgui is null) return;
+        double wanted = ui.WantedScale;
+        if (Math.Abs(wanted - _uiScale) < 1e-9) return;
+        _uiScale = wanted;
+        ImGui.GetIO().Fonts.Clear();
+        _fonts = UiTheme.LoadFonts(_art.Root, _uiScale);
+        _imgui.RebuildFontAtlas();
+        ui.SetFonts(_fonts);
     }
 
     // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
@@ -225,6 +247,7 @@ public sealed class SimUiGame : Game
             Rectangle v = Viewport();
             ui.SetViewport(v.Width, v.Height);
             ui.Update(_mouse, _keyboard, gameTime.ElapsedGameTime.TotalSeconds, IsActive);
+            FollowUiScale();
             if (ui.ExitRequested) Exit();
         }
         base.Update(gameTime);

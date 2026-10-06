@@ -865,11 +865,15 @@ public static class PlayabilityGate
         private bool ClickAction(ActionHitKind kind, int a = int.MinValue, int b = int.MinValue)
         {
             PanelRect p = Ui.ContextRect;
-            double top = ChromeGeometry.ContentTop(ChromeGeometry.Context, ImGuiNET.ImGui.GetFrameHeight()), bottom = p.Y + p.Height - 10;
+            // The panel's scrolling body ends a window padding above the panel's edge (12 px × the UI scale): a point
+            // in that band is clipped, never a click on the surface. (M5 polish UR-3: the taller controls made a hit's
+            // centre land in it — the gate clicked the clipped band and saw no order.)
+            double top = ChromeGeometry.ContentTop(ChromeGeometry.Context, ImGuiNET.ImGui.GetFrameHeight()),
+                bottom = p.Y + p.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6;
             for (int k = 0; k < 60; k++)
             {
                 if (Find(kind, a, b) is not { } hit) return false;
-                if (hit.Rect.CenterY >= top + 2 && hit.Rect.CenterY <= bottom - 2)
+                if (hit.Rect.CenterY >= top + 2 && hit.Rect.CenterY <= bottom)
                 {
                     h.Click(hit.Rect.CenterX, hit.Rect.CenterY);
                     return true;
@@ -1294,8 +1298,8 @@ public static class PlayabilityGate
                 // The card's only control is its close button: nothing pretends to move the formation.
                 int cardControls = 0;
                 foreach (UiControl c in Ui.Controls.Last)
-                    if (c.X0 >= GameUi.UnitCardRect.X && c.X1 <= GameUi.UnitCardRect.X + GameUi.UnitCardRect.Width
-                        && c.Y0 >= GameUi.UnitCardRect.Y && c.Y1 <= GameUi.UnitCardRect.Y + GameUi.UnitCardRect.Height) cardControls++;
+                    if (c.X0 >= Ui.UnitCardRect.X && c.X1 <= Ui.UnitCardRect.X + Ui.UnitCardRect.Width
+                        && c.Y0 >= Ui.UnitCardRect.Y && c.Y1 <= Ui.UnitCardRect.Y + Ui.UnitCardRect.Height) cardControls++;
                 return Expect(says && cardControls == 1, "limitation stated " + says + ", controls on card " + cardControls);
             });
             Check("map: formation", "right-click / drag on map does not move it", () =>

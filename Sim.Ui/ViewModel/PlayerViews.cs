@@ -6,11 +6,50 @@ using Sim.Core.Systems.Ages;
 
 namespace Sim.Ui.ViewModel;
 
-/// <summary>One headed block of a player view: a heading in the body face and its plain-language lines.</summary>
-public sealed record ViewBlock(string Heading, IReadOnlyList<string> Lines);
+/// <summary>
+/// One line of a player view (M5 polish UR-3): its plain-language <see cref="Text"/> and, when it states a quantity,
+/// that <see cref="Figure"/> — which the panel sets in a VALUE COLUMN (right-aligned, in the data face) rather than at
+/// the end of the sentence. <see cref="ToString"/> is the line as one string, "text (figure)", as it always read.
+/// </summary>
+public sealed record ViewLine(string Text, string Figure = "")
+{
+    public static implicit operator ViewLine(string text) => new(text);
 
-/// <summary>A player-facing view: a title line and its blocks, in reading order.</summary>
-public sealed record PlayerView(string Title, IReadOnlyList<ViewBlock> Blocks);
+    public override string ToString() => Figure.Length == 0 ? Text : Text + " (" + Figure + ")";
+}
+
+/// <summary>One headed block of a player view: a heading and its plain-language rows.</summary>
+public sealed record ViewBlock(string Heading, IReadOnlyList<ViewLine> Rows)
+{
+    /// <summary>A block of figure-less lines.</summary>
+    public ViewBlock(string heading, IReadOnlyList<string> lines) : this(heading, Of(lines)) { }
+
+    /// <summary>Each row as one string ("text (figure)").</summary>
+    public IReadOnlyList<string> Lines
+    {
+        get
+        {
+            var lines = new string[Rows.Count];
+            for (int i = 0; i < lines.Length; i++) lines[i] = Rows[i].ToString();
+            return lines;
+        }
+    }
+
+    private static ViewLine[] Of(IReadOnlyList<string> lines)
+    {
+        var rows = new ViewLine[lines.Count];
+        for (int i = 0; i < rows.Length; i++) rows[i] = new ViewLine(lines[i]);
+        return rows;
+    }
+}
+
+/// <summary>A player-facing view: its SUBJECT (the panel's title — the settlement's name, "Your empire"), a
+/// subtitle (whose it is), and its blocks, in reading order.</summary>
+public sealed record PlayerView(string Title, IReadOnlyList<ViewBlock> Blocks)
+{
+    /// <summary>Under the title: whose the subject is ("yours", "free people, under no empire"), or empty.</summary>
+    public string Subtitle { get; init; } = "";
+}
 
 /// <summary>
 /// ADR-033 D9 / audit E37 — THE PLAYER-FACING VIEWS. The record dumps (SETTLEMENT tabs, ECONOMY tables, the
@@ -20,9 +59,10 @@ public sealed record PlayerView(string Title, IReadOnlyList<ViewBlock> Blocks);
 /// simulation itself calls (SettlementHappiness, TaxBurdenReading, Governance, LabourActivities,
 /// ConstructionQuery, InstitutionsQuery, EmpireQuery). Nothing here is a second formula.
 ///
-/// Information density follows the era theme's <see cref="Sim.Ui.Theme.DensityTokens.Level"/>: level 1
-/// speaks in words only; from level 2 each statement carries its figure; from level 3 the breakdown lines
-/// (births and deaths, the causes' readings, staff and maturity) are added. The words never change with the
+/// Information density follows the era theme's <see cref="Sim.Ui.Theme.DensityTokens.Level"/>: every statement
+/// carries its figure at every level (M5 polish, Director directive 2026-10-06 §5/§6 — the player needs the numbers
+/// in the Age the first hundred turns are played in; density gates only BREAKDOWNS); from level 3 the breakdown
+/// lines (births and deaths, the causes' readings, staff and maturity) are added. The words never change with the
 /// level — only how much is said — so an era change never contradicts what the player read before.
 ///
 /// Deterministic: table and content order; the one ordering (trade flows by quantity) is a composite key
@@ -30,8 +70,9 @@ public sealed record PlayerView(string Title, IReadOnlyList<ViewBlock> Blocks);
 /// </summary>
 public static class PlayerViews
 {
-    /// <summary>Density level at which statements carry their figures.</summary>
-    public const int FiguresFrom = 2;
+    /// <summary>Density level at which statements carry their figures: every level (UR-3; was 2, which left the
+    /// A1 Settlement and Empire panels without a single number).</summary>
+    public const int FiguresFrom = 1;
 
     /// <summary>Density level at which the breakdown lines are added.</summary>
     public const int BreakdownFrom = 3;
@@ -41,9 +82,9 @@ public static class PlayerViews
     private static string Pct(double fraction) => (fraction * 100.0).ToString("0", CultureInfo.InvariantCulture) + "%";
     private static string F2(double v) => v.ToString("0.00", CultureInfo.InvariantCulture);
 
-    /// <summary>"text" at density below <see cref="FiguresFrom"/>, else "text (figure)".</summary>
-    private static string Fig(int level, string text, string figure) =>
-        level >= FiguresFrom ? text + " (" + figure + ")" : text;
+    /// <summary>A statement and its figure (the figure only from <see cref="FiguresFrom"/> — every level).</summary>
+    private static ViewLine Fig(int level, string text, string figure) =>
+        level >= FiguresFrom ? new ViewLine(text, figure) : new ViewLine(text);
 
     // --- words ---------------------------------------------------------------------------------
 
@@ -117,13 +158,13 @@ public static class PlayerViews
         bool exists = false;
         for (int i = 0; i < world.Settlements.Count; i++)
             if (world.Settlements[i].Id == id) { exists = true; break; }
-        if (!exists) return new PlayerView("No settlement selected", [new ViewBlock("", ["Select a settlement on the map."])]);
+        if (!exists) return new PlayerView("No settlement selected", [new ViewBlock("", new[] { "Select a settlement on the map." })]);
 
         bool controlled = EmpireQuery.TryGetController(world, id, out PolityId owner);
         string ownerWord = !controlled ? "free people, under no empire"
             : owner.Value == player.Value ? "yours"
             : "held by empire " + owner.Value.ToString(CultureInfo.InvariantCulture);
-        string title = name(settlementId) + " - " + ownerWord;
+        string title = name(settlementId);
 
         var blocks = new List<ViewBlock>
         {
@@ -137,7 +178,7 @@ public static class PlayerViews
             new ViewBlock("Institutions", InstitutionLinesAt(world, cfg, id, name, density, includeSite: false)),
             Units(world, cfg, id, name, player, density),
         };
-        return new PlayerView(title, blocks);
+        return new PlayerView(title, blocks) { Subtitle = ownerWord };
     }
 
     private static long Population(IReadOnlyWorldState world, SettlementId id)
@@ -151,7 +192,7 @@ public static class PlayerViews
     private static ViewBlock People(IReadOnlyWorldState world, SettlementRecord? record, SettlementId id, int density)
     {
         long pop = Population(world, id);
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         if (pop == 0) { lines.Add("No one lives here any more."); return new ViewBlock("People", lines); }
         lines.Add(Fig(density, "People live here", N(pop) + " people"));
         if (density >= FiguresFrom)
@@ -183,7 +224,7 @@ public static class PlayerViews
             if (world.ConsumptionDeficits[i].Settlement == id)
             { deficit = world.ConsumptionDeficits[i].DeficitRatio; demand = world.ConsumptionDeficits[i].DemandUnits; break; }
 
-        var lines = new List<string>
+        var lines = new List<ViewLine>
         {
             Fig(density, store > 0 ? "Grain is in store" : "The granaries are empty", N(store) + " grain"),
             Fig(density, harvest > 0 ? "The last harvest came in" : "No harvest came in", "+" + N(harvest)),
@@ -213,7 +254,7 @@ public static class PlayerViews
 
     private static ViewBlock Housing(IReadOnlyWorldState world, SimConfig cfg, SettlementRecord? record, SettlementId id, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         long dwellings = -1;
         for (int i = 0; i < world.Housing.Count; i++)
             if (world.Housing[i].Settlement == id) { dwellings = world.Housing[i].Dwellings.Value; break; }
@@ -230,7 +271,7 @@ public static class PlayerViews
 
     private static ViewBlock Happiness(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         if (cfg.Housing is null) { lines.Add("Happiness is not measured in this world."); return new ViewBlock("Happiness", lines); }
         double happiness = SettlementHappiness.Of(world, id, cfg);
         Span<double> factors = stackalloc double[SettlementHappiness.FactorCount];
@@ -266,7 +307,7 @@ public static class PlayerViews
     /// population segment (class), a RISING: the portion of that segment in open revolt. Read through the public
     /// State.Unrest readers the simulation itself uses; nothing is computed here.
     /// </summary>
-    private static void UnrestLines(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density, List<string> lines)
+    private static void UnrestLines(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density, List<ViewLine> lines)
     {
         double pressure = Unrest.LevyPressure(world, id, cfg);
         if (!(pressure > 0.005)) return;
@@ -295,7 +336,7 @@ public static class PlayerViews
 
     private static ViewBlock Migration(SettlementRecord? record, Func<int, string> name, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         if (record is null) { lines.Add("Movement shows after the first turn."); return new ViewBlock("Migration", lines); }
         long inflow = record.Population.Inflow, outflow = record.Population.Outflow, colonists = record.Population.ColonistsDeparted;
         if (inflow == 0 && outflow == 0 && colonists == 0) lines.Add("No one came or left last turn.");
@@ -330,7 +371,7 @@ public static class PlayerViews
 
     private static ViewBlock Work(IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementId id, bool ours, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         if (!ours) { lines.Add("You do not direct the labour here."); return new ViewBlock("Work", lines); }
         foreach (LabourActivity a in LabourActivities.For(world, cfg, player))
         {
@@ -344,7 +385,7 @@ public static class PlayerViews
 
     private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         ConstructionProjectEntry[] projects = cfg.Goods?.Projects ?? [];
         for (int i = 0; i < world.Structures.Count; i++)
         {
@@ -377,7 +418,7 @@ public static class PlayerViews
     private static ViewBlock Units(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId id, Func<int, string> name, PolityId player, int density)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         UnitFamilyContent? fam = cfg.UnitFamilies;
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
         {
@@ -396,10 +437,10 @@ public static class PlayerViews
 
     /// <summary>The institutions founded in <paramref name="settlement"/> (InstitutionsQuery.At): type,
     /// stage and maturity, staff, whether the host sustains it, and the effect it produces now.</summary>
-    public static IReadOnlyList<string> InstitutionLinesAt(
+    public static IReadOnlyList<ViewLine> InstitutionLinesAt(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, Func<int, string> name, int density, bool includeSite)
     {
-        var lines = new List<string>();
+        var lines = new List<ViewLine>();
         InstitutionInstanceView[] here = InstitutionsQuery.At(world, cfg, settlement);
         foreach (InstitutionInstanceView v in here) AddInstitution(lines, world, cfg, v, name, density, includeSite);
         if (lines.Count == 0) lines.Add("No institution has been founded here.");
@@ -407,7 +448,7 @@ public static class PlayerViews
     }
 
     private static void AddInstitution(
-        List<string> lines, IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v,
+        List<ViewLine> lines, IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v,
         Func<int, string> name, int density, bool includeSite)
     {
         string stage = v.Stage == InstitutionLifecycle.Mature ? "mature" : "growing";
@@ -415,7 +456,8 @@ public static class PlayerViews
         lines.Add(Fig(density, head, Pct(v.Maturity) + " mature"));
         if (density >= BreakdownFrom)
             lines.Add("  employs about " + N(v.Staff) + " adults; founded turn " + v.FoundedTurn.ToString(CultureInfo.InvariantCulture));
-        lines.Add("  " + EffectNow(world, cfg, v, density));
+        ViewLine effect = EffectNow(world, cfg, v, density);
+        lines.Add(effect with { Text = "  " + effect.Text });
         if (!v.Viable)
             lines.Add("  At risk: its town cannot sustain it" + (v.ViabilityBlocker is { Length: > 0 } b ? " (" + b + ")" : "") + ".");
     }
@@ -423,7 +465,7 @@ public static class PlayerViews
     /// <summary>The effect an institution produces NOW: the healing type its settlement's mortality multiplier
     /// (InstitutionsQuery.Health); every other type the research-cost factor its owner's branch carries
     /// (InstitutionsQuery.Specialties — the stored modifier ResearchSystem reads).</summary>
-    public static string EffectNow(IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v, int density)
+    public static ViewLine EffectNow(IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v, int density)
     {
         if (v.Heals)
         {
@@ -452,14 +494,14 @@ public static class PlayerViews
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
-        var owned = new List<string>();
+        var owned = new List<ViewLine>();
         foreach (InstitutionInstanceView v in InstitutionsQuery.Instances(world, cfg, player))
             AddInstitution(owned, world, cfg, v, name, density, includeSite: true);
         if (owned.Count == 0)
             owned.Add("Your empire has founded no institution yet. A university is founded when its building is "
                 + "completed in a town large enough to sustain it.");
 
-        var specialties = new List<string>();
+        var specialties = new List<ViewLine>();
         foreach (UniversitySpecialtyView s in InstitutionsQuery.Specialties(world, cfg, player))
         {
             if (s.Count == 0)
@@ -504,7 +546,7 @@ public static class PlayerViews
         // Realm and people.
         long pop = 0;
         foreach (SettlementId id in mine) pop += Population(world, id);
-        var realm = new List<string>
+        var realm = new List<ViewLine>
         {
             Fig(density, "Your empire holds " + (mine.Count == 1 ? "one settlement" : N(mine.Count) + " settlements"), N(pop) + " people"),
         };
@@ -522,7 +564,7 @@ public static class PlayerViews
             for (int i = 0; i < world.ConsumptionDeficits.Count; i++)
                 if (world.ConsumptionDeficits[i].Settlement == id && world.ConsumptionDeficits[i].DeficitRatio > 0.0) { hungry++; break; }
         }
-        var food = new List<string>
+        var food = new List<ViewLine>
         {
             Fig(density, "Grain in your granaries", N(grain)),
             Fig(density, "Last harvest across the empire", "+" + N(harvest)),
@@ -531,7 +573,7 @@ public static class PlayerViews
         };
 
         // Trade in words: the flows touching the empire, largest first (quantity desc, table index asc).
-        var trade = new List<string>();
+        var trade = new List<ViewLine>();
         var idx = new List<int>();
         for (int i = 0; i < world.TradeFlows.Count; i++)
         {
@@ -554,7 +596,7 @@ public static class PlayerViews
         if (trade.Count == 0) trade.Add("No goods were traded last turn - every settlement lived on what it made.");
 
         // Governance: legitimacy and the levy.
-        var rule = new List<string>();
+        var rule = new List<ViewLine>();
         double legitimacy = cfg.Housing is null ? double.NaN : Governance.Legitimacy(world, player, cfg);
         rule.Add(Fig(density, "Your people regard your rule as " + LegitimacyWord(legitimacy), N(legitimacy) + " of 100"));
         TaxGate gate = Governance.GateOf(world, cfg, player);
@@ -573,7 +615,7 @@ public static class PlayerViews
         else rule.Add("Your people do not yet know how to levy a tax.");
 
         // Roads: travelled routes touching the empire, by class.
-        var roads = new List<string>();
+        var roads = new List<ViewLine>();
         int routes = 0;
         double km = 0.0;
         for (int i = 0; i < world.TransportEdges.Count; i++)
@@ -594,7 +636,7 @@ public static class PlayerViews
         // Arms.
         int units = 0;
         for (int i = 0; i < world.MilitaryUnits.Count; i++) if (world.MilitaryUnits[i].Owner.Value == player.Value) units++;
-        var arms = new List<string> { units == 0 ? "You have no formations under arms." : Fig(density, "Formations under arms", N(units)) };
+        var arms = new List<ViewLine> { units == 0 ? "You have no formations under arms." : Fig(density, "Formations under arms", N(units)) };
 
         return new PlayerView("Your empire",
         [
