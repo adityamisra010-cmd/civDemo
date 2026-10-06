@@ -72,7 +72,8 @@ public static partial class PlayabilityGate
                         h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, -1);
                         if (Ui.Actions.Hits.Count > 0 && Math.Abs(Ui.Actions.Hits[0].Rect.Y - before) < 0.5 && step > 2) break;   // the bottom
                     }
-                    return (GateResult.NotOffered, "POLICY paints no " + k + " in this state");
+                    return (GateResult.NotOffered, "POLICY paints no " + k + " in this state"
+                        + (k == InfoKind.ResearchNode ? " (no research target: the sweep's earlier 'Stop' check cleared it; pinned in InfoPanelTests)" : ""));
                 });
             }
 

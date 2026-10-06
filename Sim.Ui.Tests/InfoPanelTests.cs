@@ -123,8 +123,15 @@ public class InfoPanelTests : IDisposable
     public void Registration_EveryRowTheActionSurfacePaints_IsRegisteredWithItsSubject()
     {
         UiSession s = Rigged((w, cfg) => { Know(w, cfg, "root_crop"); });
+        // A research target chosen this turn: the Learning line names it (the gate's sweep clears the target with its
+        // "Stop" check before its info area runs, so this registration is pinned here).
+        ResearchContent rc = s.Config.Research!;
+        ResearchNodeId chosen = rc.Nodes[rc.IndexOfId("grinding_stone")].Key;
+        Assert.True(s.EmitResearchOrder(chosen));
         (ActionSurfaceModel m, ActionSurfaceScreen screen, _) = Painted(s);
         IReadOnlyList<InfoHit> hits = screen.InfoHits;
+        Assert.Equal(chosen.Value, m.Research!.Effective!.Key);
+        Assert.True(Has(hits, InfoSubject.Node(chosen)), "the research target");
         LabourBlock labour = m.Labour!;
         Assert.NotEmpty(labour.Entries);
         foreach (LabourEntry e in labour.Entries)
