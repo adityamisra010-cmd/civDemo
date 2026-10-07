@@ -87,7 +87,7 @@ public static class WorldFounding
                             int row = world.Buckets.Add(new BucketRow(
                                 settlement, new CultureId(culture.Id), new ReligionId(religion.Id),
                                 new ClassId(reg.Classes[cls].Id), cohort, Conserved.Zero,
-                                birthRemainder: 0.0, deathRemainder: 0.0,
+                                birthRemainder: 0.0, deathRemainder: FoundingDeathRemainder,
                                 starvationRemainder: 0.0, agingRemainder: 0.0));
                             long endowed = cls == 0
                                 ? Jittered(founding.CohortCounts[cohort],
@@ -410,6 +410,19 @@ public static class WorldFounding
     /// </summary>
     /// <summary>Slot index of the settlement-COMMON endowment factor.</summary>
     private const int SettlementSlot = 200;
+
+    /// <summary>
+    /// ADR-035 §6 (P-F0) — THE SEED VALUE OF A NEW BUCKET ROW'S D-004 DEATH ACCUMULATOR: 0.5, not 0.0. The
+    /// remainder of a floored flow is, in its stationary state, spread over [0, 1) with mean 1/2; seeding it at 0
+    /// makes the row's FIRST integer reconciliation a pure floor, which leaves about 8 people per settlement alive
+    /// who died in the exact micro-state. They sit in the small high-mortality elder rows and die on turn 2 (the
+    /// "D-004 warm-up" half of the turn-2 dip, measured −24 of seed 42's −94 by the population audit's skeptic).
+    /// Seeded at its stationary mean the first reconciliation ROUNDS, deterministically, as every later one does
+    /// on average. Only the death accumulator is seeded: the measured warm-up is the death remainder alone (birth-
+    /// and aging-only arms do not move turn 2). Shared by ColonizationSystem for a colony's new rows, so turn-zero
+    /// founding and frontier founding cannot drift.
+    /// </summary>
+    public const double FoundingDeathRemainder = 0.5;
 
     private static long Jittered(long baseUnits, double amp, ulong seed, int settlement, int slot)
     {

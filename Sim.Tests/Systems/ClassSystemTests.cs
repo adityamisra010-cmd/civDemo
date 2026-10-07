@@ -401,8 +401,10 @@ public class ClassSystemTests
         // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest — the row-absent land side
         // is unmeasured, not zero). MEASURED: first-present 13 -> 54, latch 71 unchanged; the immigrant still
         // precedes the local latch and the instrument still reports the latch, so the property is untouched.
-        Assert.Equal(71, latchTurn);
-        Assert.Equal(54, firstPresentTurn);
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): latch 71 -> 72.
+        Assert.Equal(72, latchTurn);
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): first-present 54 -> 16 (still before the latch).
+        Assert.Equal(16, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

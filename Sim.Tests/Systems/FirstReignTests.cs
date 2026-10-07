@@ -26,7 +26,8 @@ public class FirstReignTests
 
     /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
     // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 27dd99c66bb7bb13… -> 8f3f86b76a8a0357…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
-    internal const string PostR1Golden = "8f3f86b76a8a035755d0f0369dc4cc0af9a2f058cb8a8cb0daffad32a6808ec4";
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 8f3f86b76a8a0357… -> 0272b21fbd14bce1…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    internal const string PostR1Golden = "0272b21fbd14bce191a6c9992b242f3c9add56b2dfa95449543f937ca7b60149";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {

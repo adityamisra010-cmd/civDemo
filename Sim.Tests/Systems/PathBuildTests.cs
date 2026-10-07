@@ -138,7 +138,9 @@ public class PathBuildTests
         // zero), so turn 2's cap no longer reads N_lim = 0, the settlement grows
         // into a housing shortfall, one dwelling is built on turn 3, and the
         // subtraction is NON-vacuous again (exactly 1.0 adult-year).
-        Assert.Equal(1.0, housingDrawT3);
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 1.0 -> 0.5 — the
+        // settlement enters turn 3 a little smaller (no turn-1 phantom survivors), half a dwelling's labour.
+        Assert.Equal(0.5, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the

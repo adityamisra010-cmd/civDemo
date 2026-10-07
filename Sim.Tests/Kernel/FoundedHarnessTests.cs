@@ -56,15 +56,33 @@ public class FoundedHarnessTests
         WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), Seed);
 
     /// <summary>Orders shaped like a real session: labor swings incl. both boundaries.
-    /// ADR-033 D2: on this world (R4, forager layer) the 30% swing starves settlement 0 into revolt at turn 58,
-    /// so the 80%, 0%, 100% and 45% orders after it are refused — the ordered legs exercise refusal too.</summary>
+    /// ADR-033 D2: the swings starve settlement 0 into revolt at <see cref="RevoltTurn"/>, so the orders landing
+    /// after it are refused — the ordered legs exercise refusal too.</summary>
     private static OrderLog SessionLog()
     {
         var log = new OrderLog();
-        double[] pcts = [60.0, 30.0, 80.0, 0.0, 100.0, 45.0];
-        for (int i = 0; i < pcts.Length; i++)
-            log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, pcts[i]));
+        for (int i = 0; i < SessionPcts.Length; i++)
+            log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, SessionPcts[i]));
         return log;
+    }
+
+    private static readonly double[] SessionPcts = [60.0, 30.0, 80.0, 0.0, 100.0, 45.0];
+
+    /// <summary>The turn settlement 0 revolts on this world under <see cref="SessionLog"/> (MEASURED; history on
+    /// FoundedOrderedTwin_HashIdentical_EveryTurn). CliRevoltPolityProducerTests reads it.</summary>
+    internal const int RevoltTurn = 97;
+
+    /// <summary>The farming share in force at <paramref name="turn"/>: the last order landing (issue turn + 1) at or
+    /// before it and before the revolt — orders landing at or after the revolt are refused.</summary>
+    private static double LastObeyedFarming(int turn)
+    {
+        double farming = -1.0;
+        for (int k = 0; k < SessionPcts.Length; k++)
+        {
+            int landing = 4 + k * 30;
+            if (landing <= turn && landing < RevoltTurn) farming = SessionPcts[k] / 100.0;
+        }
+        return farming;
     }
 
     [Fact]
@@ -95,31 +113,37 @@ public class FoundedHarnessTests
             Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
             // R4 RE-AIM (2026-10-04, the forager layer; MEASURED on this tree by the agent writing this line).
             // Previously (ADR-033 D2, 2026-10-02): the turn-93 0% order landed at 94 and settlement 0 revolted at
-            // 97. With turn-1 food gathered wild, the turn-33 30% order (landing at 34) already starves settlement 0,
-            // unfed and unhoused, into revolt at turn 58; the 80%, 0%, 100% and 45% orders after it are REFUSED
+            // 97. With turn-1 food gathered wild, the turn-33 30% order (landing at 34) already starved settlement 0,
+            // unfed and unhoused, into revolt at turn 58; the 80%, 0%, 100% and 45% orders after it were REFUSED
             // (RevoltSystem: it stops obeying). Turn-exact, on the twin.
-            if (t == 4) Assert.Equal(0.6, a.SectorAllocations[0].Farming);
-            if (t == 34) Assert.Equal(0.3, a.SectorAllocations[0].Farming);
-            // ADR-035 RE-PIN (2026-10-07, one cause: the founding-turn harvest; MEASURED): the revolt moves 58 -> 63.
-            if (t == 62) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
+            // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit by the agent writing this line): P-F1 (the
+            // founding-turn harvest) moved the revolt 58 -> 63; P-F0 (the founding death remainder) 63 -> 97 — the
+            // 30 % and 80 % swings no longer starve it, and the turn-93 0 % order (landing at 94) does, as before R4.
+            // The pin is now written over RevoltTurn: every order landing BEFORE the revolt is obeyed on its landing
+            // turn, every order after it is refused (the allocation stays at the last obeyed order).
+            for (int k = 0; k < SessionPcts.Length; k++)
+            {
+                int landing = 4 + k * 30;
+                if (t == landing) Assert.Equal(LastObeyedFarming(landing), a.SectorAllocations[0].Farming);
+            }
+            if (t == RevoltTurn - 1) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
             // R3 (Director R2-final §2): the revolted place becomes a NEW AI polity at once.
-            if (t == 63)
+            if (t == RevoltTurn)
             {
                 Assert.True(EmpireQuery.TryGetController(a, settlement0, out PolityId founded));
                 Assert.NotEqual(1, founded.Value);
                 Assert.True(EmpireQuery.TryGetCommandSource(a, founded, out CommandSource src) && src == CommandSource.Ai);
             }
-            if (t == 64 || t == 94 || t == 124) Assert.Equal(0.3, a.SectorAllocations[0].Farming);   // refused
         }
         // Anti-vacuity (adversarial pass): prove the ORDERS actually fired. Edges
         // alone can't prove it (path labor exists without orders too). Since
         // ADR-033 D2 the live allocation is the LAST order its issuer was entitled
-        // to give — the 0% swing (all labour to construction) — not the 45% one,
-        // which, like the 100% one, targets a settlement polity 1 no longer rules.
-        // R4: the last order polity 1 was entitled to give is the 30% swing (turn 33).
+        // to give; orders after the revolt target a settlement polity 1 no longer rules.
         Assert.Equal(settlement0, a.SectorAllocations[0].Settlement);
-        Assert.Equal(0.3, a.SectorAllocations[0].Farming);
-        Assert.Equal(0.7, a.SectorAllocations[0].Construction);
+        double lastFarming = LastObeyedFarming(Turns);
+        Assert.Equal(lastFarming, a.SectorAllocations[0].Farming);
+        Assert.Equal(1.0 - lastFarming, a.SectorAllocations[0].Construction, 12);
+        Assert.True(RevoltTurn > 4 + 30 && RevoltTurn <= Turns, "the revolt no longer falls inside the ordered run — re-aim the rig");
         Assert.True(a.NetworkEdges.Count > 0, "ordered run built nothing — vacuous twin");
     }
 

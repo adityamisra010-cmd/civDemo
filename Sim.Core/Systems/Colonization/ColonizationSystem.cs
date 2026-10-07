@@ -287,9 +287,11 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
         {
             BucketRow b = buckets[i];
             if (b.Settlement != source) continue;
+            // ADR-035 §6 (P-F0): a new row's D-004 death accumulator starts at its stationary mean, exactly as at
+            // turn-zero founding (WorldFounding.FoundingDeathRemainder), so the colony's first reconciliation rounds.
             int dst = buckets.Add(new BucketRow(
                 newId, b.Culture, b.Religion, b.Class, b.CohortIdx,
-                Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+                Conserved.Zero, 0.0, Worldgen.WorldFounding.FoundingDeathRemainder, 0.0, 0.0));
             long take = _party[i];
             if (take <= 0) continue;
             ctx.Ledger.Transfer(

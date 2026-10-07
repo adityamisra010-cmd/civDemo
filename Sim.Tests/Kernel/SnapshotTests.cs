@@ -1075,7 +1075,8 @@ public class SnapshotTests
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
     // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 07c6ec45902428d2… -> 33d05c5bf9c6ee57…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
-    internal const string FoundedGoldenHash = "33d05c5bf9c6ee57efa9750653937c9d22d8748d330b47da4e94ae4f2e097022";
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 33d05c5bf9c6ee57… -> 8cbafbb803705b26…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    internal const string FoundedGoldenHash = "8cbafbb803705b262d0d1207e7a695bb1811f6e0df1f4856e5e7c3cf25a04296";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)

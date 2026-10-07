@@ -102,3 +102,36 @@ address. The fed-growth band (0.05–0.1 %/yr) is unchanged.
 
 The deviation recorded there is CLOSED by this ADR: the first migration turn returns to 2 on the founded and
 driven seed-42 worlds. A dated pointer is added to ADR-025; its historical text is not edited.
+
+## 6. P-F0 — a new bucket row's death accumulator starts at its stationary mean
+
+**Context.** Founding (`WorldFounding`) and frontier founding (`ColonizationSystem`) created every bucket row
+with `deathRemainder = 0.0`. D-004's integer reconciliation floors `exact + remainder`, so a row's FIRST
+reconciliation was a pure floor: about 8 people per settlement who died in the exact micro-state stayed alive.
+They sit mostly in the small, high-mortality elder rows and die on turn 2. The skeptic measured this "D-004
+warm-up" at −24.0 of seed 42's −93.8 exact turn-2 change, and showed it was the death remainder alone (birth-
+and aging-only arms do not move turn 2).
+
+**Decision.** `WorldFounding.FoundingDeathRemainder = 0.5` seeds the death accumulator of every new bucket row,
+at turn-zero founding and at frontier founding (ColonizationSystem uses the same constant, so the two cannot
+drift). The remainder of a floored flow is spread over [0, 1) in its stationary state, mean ½; seeding it there
+makes the first reconciliation ROUND, deterministically, as later ones do on average. D-004 fixes the
+convention (floor with a carried remainder), not the initial value. Birth, aging and starvation accumulators
+stay 0.0 (no measured warm-up).
+
+**Tests.** `FoundingRemainderTests`: every founded row carries 0.5 (and only the death accumulator); a colony's
+new rows carry 0.5; on a deaths-only rig the first reconciliation rounds exact deaths with the seed and floors
+them without it.
+
+**Measured** (on the P-F0 commit, P-F1 + P-F0):
+
+| reading | P-F1 | P-F1 + P-F0 |
+|---|---|---|
+| seed 42 world population, turns 0–10 | 5143 5245 5189 5212 5243 5284 5324 5366 5404 5458 5510 | 5143 **5141 5125** 5143 5156 5199 5243 5293 5324 5367 5406 |
+| turn-2 world change, seeds 1–8 | −30 −3 −4 +38 +35 +79 +64 +13 | +11 +18 +36 +67 +63 +99 +90 +36 |
+| world-decline turns in 300, seeds 42 / 1 / 2 / 7 | 1 / 1 / 1 / 0 | 2 (turns 1, 2) / 0 / 0 / 0 |
+| fed growth T80–240, %/yr, seeds 42 / 1 / 2 / 7 | 0.0735 / 0.0726 / 0.0724 / 0.0730 | 0.0733 / 0.0728 / 0.0724 / 0.0729 |
+
+The turn-1 integer gain falls from +102 to −2 on seed 42: the ~100 phantom survivors of the floor are gone, and
+what remains on seed 42 is the composition noise of §7 (P-F0 alone unmasks it, as the skeptic predicted: seed
+42's turn-1 and turn-2 declines are the per-cohort jitter's, removed by P-F2).

@@ -157,7 +157,8 @@ public class MerchantTests
         // fires; the cause is the R2b weather-geography layer moving the harvest series (INFERRED by elimination:
         // the unrest and Age-military layers act on nothing this run reads). Aim unchanged.
         // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest): first active 124 -> 118, MEASURED.
-        Assert.Equal(118, firstActive);   // moves with the trajectory; re-measured per packet
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 118 -> 128.
+        Assert.Equal(128, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

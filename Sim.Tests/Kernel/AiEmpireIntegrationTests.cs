@@ -98,7 +98,8 @@ public class AiEmpireIntegrationTests
         AiRun run = RunUntilFirstLevy(TestConfigs.PreTaxAge(Cfg));
         OrderRecord tax = Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]).First(o => o.Kind == OrderKind.SetTaxRate);
         // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED): 367/368 -> 362/363.
-        Assert.Equal((362L, 363L), (tax.Turn, run.FirstTax));
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 362/363 -> 366/367.
+        Assert.Equal((366L, 367L), (tax.Turn, run.FirstTax));
         Assert.Equal(-1L, run.Age3At);   // levied in A2: exactly the pre-H2 defect
     }
 
@@ -171,7 +172,8 @@ public class AiEmpireIntegrationTests
         // R4 RE-PIN (2026-10-04, the forager layer — wild-food harvests until farming is known slow the RP curve;
         // MEASURED on this tree by the agent writing this line): advance 235/236 -> 238/239; 26 and 9 unchanged.
         // ADR-035 RE-PIN (2026-10-07, one cause: the founding-turn harvest; MEASURED): advance 238/239 -> 233/234.
-        Assert.Equal((26L, 9L, 233L, 234L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): advance 233/234 -> 236/237.
+        Assert.Equal((26L, 9L, 236L, 237L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -186,8 +188,9 @@ public class AiEmpireIntegrationTests
         // WithTheTaxAgeGateStripped_TheAiLeviesAtThePreH2Turn_InA2 returns 367/368 with the Age half stripped.
         // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED): road 143/144 -> 140/141, levy 463/464 ->
         // 458/459 (still on the AI's first A3 turn).
-        Assert.Equal((140L, 141L, 458L, 459L), (road.Turn, firstRoad, tax.Turn, firstTax));
-        Assert.Equal(458L, a3At);                            // the AI entered A3 (decided 457; ADR-035: 463 -> 458) ...
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): road 140/141 -> 141/142, levy 458/459 -> 462/463 (A3 entered 462).
+        Assert.Equal((141L, 142L, 462L, 463L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        Assert.Equal(462L, a3At);                            // the AI entered A3 (decided 461; ADR-035: 463 -> 458 -> 462) ...
         Assert.True(tax.Turn >= a3At, "the AI levied before entering A3");   // ... and levied only after it
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.

@@ -190,10 +190,12 @@ public class WorldReconciliationTests
         // first on turn 162, 85 dwellings across 22 of the 300 turns. The positive sample is restored.
         // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED on this tree by the agent writing this
         // line): first decay 162 -> 148, 85 dwellings across 28 of the 300 turns. The positive sample stays.
-        Assert.Equal(0, log.At(147)!.Turn.Dwellings.Decayed);
-        for (int t = 1; t < 148; t++)
+        // ADR-035 §6 RE-PIN (P-F0, the founding death remainder; MEASURED): first decay 148 -> 150, 81 dwellings
+        // across 24 of the 300 turns.
+        Assert.Equal(0, log.At(149)!.Turn.Dwellings.Decayed);
+        for (int t = 1; t < 150; t++)
             Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
-        Assert.True(log.At(148)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 148");
+        Assert.True(log.At(150)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 150");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829

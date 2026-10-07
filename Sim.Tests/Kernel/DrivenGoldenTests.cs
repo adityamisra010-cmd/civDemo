@@ -83,7 +83,8 @@ public class DrivenGoldenTests
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
     // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 6664a9b258c2d999… -> 983aa6eb0edef68f…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
-    internal const string Golden = "983aa6eb0edef68fe40d49bf286696263a2be8cfebb6760d71997c32f2126943";
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 983aa6eb0edef68f… -> feaaff5a72423b64…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    internal const string Golden = "feaaff5a72423b643e47a47e9c1e095960aef9c87b0688bc126b83ea2bba8ac9";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
