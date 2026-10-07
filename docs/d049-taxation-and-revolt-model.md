@@ -629,3 +629,17 @@ an Empire that lost control of its capital: its edict is refused rather than rec
 nobody (a policy row already in force stays, and collects nothing). Pinned by
 `RevoltAgeInheritanceTests.TheInheritedAge_Persists_ButASeatlessChild_CannotLevyTax_AtAnyCaller` and
 `GovernanceTests.AnEmpireThatNoLongerControlsItsCapital_ReachesNothing_SoItsTaxFallsNowhere`.
+
+## §18 — Note, 2026-10-07 (M5 polish P1, G9): poverty is not destitution
+Directive §15 says poverty alone never triggers revolt. The D-021 deprivation path that survives H2
+(`SettlementHappiness.IsRevoltReady`: the PROVISION reading at 0) needs a DESTITUTE settlement: BOTH provision
+factors at or below D-035-B's satisfaction floor (needs.json `aggregation.satisfactionFloor` = 0.05), i.e. at
+least 95 % unfed AND under 5 % housed. That is destitution, not poverty. A settlement short of food, or of housing,
+or of both, with either factor above the floor, has a positive provision reading and cannot revolt by this path;
+an untaxed one cannot rise either (the segment uprising reads the levy's grievance). Pinned by
+`RevoltTests.APoorButNotDestituteSettlement_AtZeroTax_NeverRevolts`: food deficits 0–1.0 × dwellings 0–100 for
+600 people, a declared 0 % levy, 30 turns each — no poor pair revolts; every destitute pair revolts on its first
+turn in the same rig. MEASURED while writing the pin: a 99 % food deficit with no dwellings IS destitute under the
+floor (food sufficiency 0.01 ≤ 0.05), so "unfed and unhoused" means "at or below the floor", not "exactly zero".
+Whether destitution alone (untaxed) should remain a revolt cause is the Director's (the audit's G9 asks for an
+explicit ruling); this note records what the code does.

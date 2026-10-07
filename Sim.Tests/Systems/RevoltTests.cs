@@ -108,24 +108,29 @@ public class RevoltTests
 
     /// <summary>
     /// G9 (M5 polish; directive §15 "poverty alone never triggers revolt") — a POOR but not DESTITUTE settlement at
-    /// a declared 0 % tax never revolts, however long it stays poor. Swept over food deficits up to 1.0 and dwelling
-    /// stocks down to 0, every pair EXCEPT the one destitute corner (unfed AND unhoused, D-021's deprivation path),
-    /// each held for 30 turns. The destitute corner revolts on its first turn (the teeth: the same rig, the same
-    /// pipeline). Poverty is any shortfall short of that corner; destitution is the corner itself.
+    /// a declared 0 % tax never revolts, however long it stays poor. DESTITUTE is D-021's deprivation corner as the
+    /// code reads it: BOTH provision factors (food, housing) at or below D-035-B's satisfaction floor (needs.json
+    /// aggregation.satisfactionFloor, 0.05 — at least 95 % unfed AND under 5 % housed), where the provision reading
+    /// is 0. Swept over food deficits 0–1.0 and dwelling stocks 0–100 (600 people), each pair held for 30 turns:
+    /// every POOR pair (either factor above the floor) keeps its ruler; every destitute pair revolts on its first
+    /// turn (the teeth: the same rig, the same pipeline).
     /// </summary>
     [Fact]
     public void APoorButNotDestituteSettlement_AtZeroTax_NeverRevolts()
     {
-        double[] deficits = [0.0, 0.5, 0.9, 0.99, 1.0];
+        double[] deficits = [0.0, 0.5, 0.9, 0.94, 0.96, 0.99, 1.0];
         long[] dwellings = [0, 1, 5, 50, 100];
-        int poorCases = 0;
+        int poorCases = 0, destituteCases = 0;
         foreach (double d in deficits)
         {
             foreach (long h in dwellings)
             {
                 WorldState w = Governed(deficit0: d, dwellings0: h);
                 w.TaxPolicies.Add(new TaxPolicyRow(new PolityId(1), 0.0));   // a DECLARED 0 % levy
-                bool destitute = d >= 1.0 && h == 0;
+                double floor = Cfg().Needs!.Aggregation.SatisfactionFloor;
+                bool destitute = SettlementHappiness.FoodSufficiency(w, new SettlementId(0)) <= floor
+                    && SettlementHappiness.HousingSufficiency(w, new SettlementId(0), Cfg()) <= floor;
+                if (destitute) destituteCases++;
                 var exec = RevoltOnly();
                 for (int t = 1; t <= 30; t++)
                 {
@@ -147,7 +152,8 @@ public class RevoltTests
                 }
             }
         }
-        Assert.Equal(24, poorCases);
+        Assert.True(poorCases >= 20, $"only {poorCases} poor cases — sweep too narrow");
+        Assert.True(destituteCases >= 1, "no destitute corner in the sweep — the rig has no teeth");
     }
 
     [Fact]
