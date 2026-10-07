@@ -178,3 +178,40 @@ settlement-common factor is untouched and `FoundingVariationPinTests`' founding-
 world now grows from turn 1 at close to the kernel's stable rate. The FoundedHarness labour-swing rig had to be
 re-rigged (its old swing set no longer starves settlement 0 into revolt in 300 turns); see
 `FoundedHarnessTests.SessionPcts`.
+
+## 8. Golden movement (each cause in its own commit, each constant re-measured on that commit)
+
+| pin | `5ed1370` | P-F1 | P-F0 | P-F2 |
+|---|---|---|---|---|
+| `ci.yml` FOUNDED_GOLDEN / `SnapshotTests.FoundedGoldenHash` | `07c6ec45…` | `33d05c5b…` | `8cbafbb8…` | `e9e089bb…` |
+| `DrivenGoldenTests.Golden` | `6664a9b2…` | `983aa6eb…` | `feaaff5a…` | `5a8c6c64…` |
+| `FirstReignTests.PostR1Golden` | `27dd99c6…` | `8f3f86b7…` | `0272b21f…` | `6720be6a…` |
+
+`IntegratedPinAttributionTests` carries one dated layer paragraph per change, listing its 38 old → new constants;
+the semantic pins carry one dated RE-PIN line per change. The `sim run --founded --seed 42 --turns 300` hash
+equals FOUNDED_GOLDEN at each step (measured by the CLI, not only by the in-test harness).
+
+## 9. Before → after, all three changes (`5ed1370` → P-F1 + P-F0 + P-F2)
+
+| reading | before | after |
+|---|---|---|
+| seed 42 world population, turns 0–10 | 5143 5245 5148 5153 5208 5234 5272 5318 5342 5389 5445 | 5108 5118 5135 5164 5192 5231 5272 5311 5364 5396 5438 |
+| turn-2 world change, seeds 1–8 | −82 −70 −33 −39 −34 −44 −55 −43 | +41 +41 +46 +53 +46 +66 +62 +45 |
+| world-decline turns in 300, seeds 42 / 1 / 2 / 7 | 1 / 2 / 1 / 1 | 0 / 1 / 0 / 0 |
+| colony second turn, `--settlements 1` seed 2 | 89 → 31 (Severe) | 89 → 103 (Normal) |
+| colony second turn, `--settlements 1` seed 5 | 154 → 42 (Severe) | 148 → 200 (Normal) |
+| fed growth T80–240, %/yr, seeds 42 / 1 / 2 / 7 | 0.0735 / 0.0726 / 0.0726 / 0.0728 | 0.0734 / 0.0727 / 0.0725 / 0.0730 |
+
+The fed-growth band (corridors.json `canonical.fedGrowthPerYear` [0.0005, 0.001]) holds on every seed. The one
+remaining decline (seed 1, turn 18, −2) is a weather shortfall with 24 starvation deaths, a genuine food event.
+
+## 10. For the Director
+
+- Accept or reject this ADR (P-F1, P-F0, P-F2 as one founding / warm-up packet).
+- §7 amends ADR-017's per-cohort factor; ADR-017 itself is still "director certification pending".
+- P-F0 reopens the T4.19 lane C acceptance wording ("≤ 2 %, one-off" for the founding offset,
+  `m4-founding-demographics-correction.md` §4): the offset is now gone rather than one-off.
+- `scripts/research-calibration/population-trace-seed42.csv` (the measured trace behind
+  `docs/research-calibration-report.md`) was measured on the pre-ADR-035 world; its `--check` passes because it
+  checks the report against the trace, not the trace against the simulation. Re-measuring it is a calibration
+  task, not done here.
