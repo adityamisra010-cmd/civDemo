@@ -105,10 +105,12 @@ public class RevoltAgeInheritanceTests
     }
 
     /// <summary>The child keeps the inherited Age through later steps (AgeTransitionSystem never rewrites a row
-    /// without an order), and its Age makes the Age-gated tax capability operational as it is for the parent: a
-    /// child born in A3+ that inherited Taxation CAN levy (its effective tax is still 0 — no capital, no reach).</summary>
+    /// without an order). G10 (M5 polish): a child born in A3+ that inherited Taxation has the knowledge and the Age
+    /// but NO SEAT (no capital, D-048 ruling 4), so the ONE predicate refuses it — <see cref="Governance.GateOf"/> is
+    /// NeedsSeat — and every caller agrees: the available-actions query lists no edict, the AI valve writes no tax
+    /// order, and GovernanceSystem applies no policy row for an order the child issues anyway.</summary>
     [Fact]
-    public void TheInheritedAge_Persists_AndOpensTheAgeGatedTaxForTheChild()
+    public void TheInheritedAge_Persists_ButASeatlessChild_CannotLevyTax_AtAnyCaller()
     {
         SimConfig cfg = TestConfigs.Sim();
         WorldState start = Split(parentAge: GovernanceRigs.TaxAge);
@@ -119,8 +121,34 @@ public class RevoltAgeInheritanceTests
         WorldState w = ex.Step(start);
         for (int t = 0; t < 3; t++) w = ex.Step(w);
         Assert.Equal(GovernanceRigs.TaxAge, AgeQuery.CurrentAge(w, cfg.Ages!, Child));
-        Assert.True(Governance.CanLevyTax(w, cfg, Child));
-        Assert.Equal(0.0, Governance.EffectiveTaxRate(w, new SettlementId(1), cfg));   // no capital: reaches nothing
+        Assert.True(Governance.KnowsTaxation(w, cfg, Child));                // knowledge inherited
+        Assert.True(Governance.MeetsTaxationAge(w, cfg, Child));             // Age inherited
+        Assert.False(EmpireQuery.TryGetCapital(w, Child, out _));            // no seat
+
+        // THE PREDICATE.
+        Assert.Equal(TaxGate.NeedsSeat, Governance.GateOf(w, cfg, Child));
+        Assert.False(Governance.CanLevyTax(w, cfg, Child));
+        Assert.Equal(TaxGate.Open, Governance.GateOf(w, cfg, Parent));       // the seated parent still can (control arm)
+
+        // CALLER 1 — the available-actions query (the UI's action list): no edict for the child, one for the parent.
+        var childActions = new List<ActionDescriptor>();
+        AvailableActionsQuery.Governance(w, cfg, Child, childActions);
+        Assert.Empty(childActions);
+        var parentActions = new List<ActionDescriptor>();
+        AvailableActionsQuery.Governance(w, cfg, Parent, parentActions);
+        Assert.Single(parentActions);
+
+        // CALLER 2 — the AI valve: the child is AI-commanded, yet writes no tax row.
+        Assert.True(EmpireQuery.TryGetCommandSource(w, Child, out CommandSource source) && source == CommandSource.Ai);
+        Assert.Empty(Sim.Core.Systems.Governance.AiGovernance.OrdersFor(w, cfg, Child, w.Clock.Turn + 1));
+
+        // CALLER 3 — GovernanceSystem: a SetTaxRate the child issues anyway (a hand-built or replayed order) is
+        // refused on PREV; no policy row is written for it.
+        var orders = new OrderLog();
+        orders.Append(Governance.TaxOrder(w.Clock.Turn + 1, Child, 40.0));
+        WorldState after = new TurnExecutor(FlatEra(10.0), [SystemCatalog.Governance(cfg)], orders).Step(w);
+        Assert.False(Governance.HasPolicy(after, Child));
+        Assert.Equal(0.0, Governance.EffectiveTaxRate(after, new SettlementId(1), cfg));
     }
 
     /// <summary>D-048 ruling 5 still holds with Ages: a parent whose only place is destitute keeps it — no child, no

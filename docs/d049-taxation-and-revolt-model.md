@@ -617,3 +617,15 @@ ci.yml leg has no pinned hash. Its two-process, replay and inspect agreement is 
 
 ## §16 — Director rulings 2026-10-06
 The INFERRED choices of §11 and §15 (classes as segments, deterministic expected rebel fraction, uprisingGrievance 20, food floor with permanent revolt of a last settlement, taxCapacityOffsetMax 0.25) are RATIFIED by D-050.
+
+## §17 — Note, 2026-10-07 (M5 polish P1, G10): the tax predicate requires a seat
+`Governance.GateOf` gains a fourth condition after knowledge and Age: the polity must have a SEAT — a capital it
+controls (`Governance.HasSeat`; `TaxGate.NeedsSeat`). A revolt-born polity is founded without a capital (D-048
+ruling 4), so before this note a child born in A3+ that inherited Taxation passed `CanLevyTax`: the
+available-actions query listed the edict, its AI valve could write a nominal tax row, and GovernanceSystem
+accepted it, although the effective rate was 0 (no reach without a seat). The ONE predicate now refuses it, so all
+four callers (GovernanceSystem, the AI valve, AvailableActionsQuery, UiSession's emitter) agree. The same applies to
+an Empire that lost control of its capital: its edict is refused rather than recorded as a rate that reaches
+nobody (a policy row already in force stays, and collects nothing). Pinned by
+`RevoltAgeInheritanceTests.TheInheritedAge_Persists_ButASeatlessChild_CannotLevyTax_AtAnyCaller` and
+`GovernanceTests.AnEmpireThatNoLongerControlsItsCapital_ReachesNothing_SoItsTaxFallsNowhere`.

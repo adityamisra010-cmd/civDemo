@@ -233,8 +233,8 @@ public static class Governance
     /// 2026-10-05 §7: the capability is operational only from its Age). True iff <see cref="GateOf"/> is
     /// <see cref="TaxGate.Open"/> — the config carries a governance section AND research content, the polity's
     /// completed knowledge satisfies sim.json <c>governance.taxationRequires</c> (R5: the single Civics node
-    /// <c>taxation</c>, key 1007), AND the polity's CURRENT Age is at least sim.json <c>governance.taxationMinAge</c>
-    /// (A3, the Bronze Age). Both halves live in content; no node id and no Age number is named in C#.
+    /// <c>taxation</c>, key 1007), the polity's CURRENT Age is at least sim.json <c>governance.taxationMinAge</c>
+    /// (A3, the Bronze Age), AND (G10, M5 polish) the polity has a seat: a capital it controls (<see cref="HasSeat"/>). The knowledge and Age halves live in content; no node id and no Age number is named in C#.
     ///
     /// RESEARCH IS NOT AGE-GATED, THE CAPABILITY IS. A polity still in A1 or A2 may complete the Taxation civic (the
     /// graph reaches it) and holds that knowledge for ever, but the edict is refused until the polity ENTERS the
@@ -252,14 +252,25 @@ public static class Governance
 
     /// <summary>Where <paramref name="polity"/> stands at the tax gate, first unmet condition first: the loop is
     /// inert (no governance or research content), the Taxation knowledge is missing, the minimum Age is not yet
-    /// entered, or the edict is open. The UI states the reason with it; <see cref="CanLevyTax"/> is "== Open".</summary>
+    /// entered, the polity has no SEAT (G10, M5 polish: no capital, or a capital it no longer controls — a
+    /// revolt-born polity is founded without one, D-048 ruling 17), or the edict is open. A seatless polity's
+    /// effective rate is 0 anyway (<see cref="AdministrativeReach"/> reaches nothing without a seat); the seat
+    /// condition makes the PREDICATE say so, so the system, the AI valve, the available-actions query and the UI
+    /// emitter refuse the edict instead of accepting a nominal rate that can never be collected. The UI states the reason with it; <see cref="CanLevyTax"/> is "== Open".</summary>
     public static TaxGate GateOf(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         if (cfg.Governance is null || cfg.Research is null) return TaxGate.Inert;
         if (!KnowsTaxation(world, cfg, polity)) return TaxGate.NeedsKnowledge;
         if (!MeetsTaxationAge(world, cfg, polity)) return TaxGate.NeedsAge;
+        if (!HasSeat(world, polity)) return TaxGate.NeedsSeat;
         return TaxGate.Open;
     }
+
+    /// <summary>The SEAT condition of the gate (G10): the polity has a capital AND controls it — exactly the two
+    /// conditions <see cref="AdministrativeReach"/> needs to reach anything.</summary>
+    public static bool HasSeat(IReadOnlyWorldState world, PolityId polity) =>
+        EmpireQuery.TryGetCapital(world, polity, out SettlementId seat)
+        && EmpireQuery.ControlsSettlement(world, polity, seat);
 
     /// <summary>
     /// THE KNOWLEDGE HALF of the gate: the polity's completed knowledge satisfies sim.json
@@ -309,4 +320,7 @@ public enum TaxGate
     NeedsAge = 2,
     /// <summary>The edict is operational.</summary>
     Open = 3,
+    /// <summary>Knowledge and Age are met, but the polity has no seat — no capital, or a capital it no longer
+    /// controls (G10: a revolt-born polity). Nothing could be collected, so no edict is accepted.</summary>
+    NeedsSeat = 4,
 }
