@@ -151,7 +151,7 @@ public sealed class GameUi
     private long _lensTurn = -1;
     // H1: the docked Age panel starts under the selection card (it used to begin at y = 202, 18 px over the card's
     // bottom edge), in the left column the formation card also uses.
-    private const int AgePanelX = 12, AgePanelW = 440;
+    private const int AgePanelX = 12, AgePanelW = 480;
 
     private Sim.Ui.Progression.ProgressionScreen? _progression;
     private bool _progressionOpen;
@@ -660,7 +660,9 @@ public sealed class GameUi
         Rectangle v = Viewport();
         // UR-3: under the selection card as drawn (its height is its content), above the command bar as placed.
         double y = _selectionRect.Y + _selectionRect.Height + PanelLayout.Margin * Scale;
-        return new Sim.Ui.Render.RectD(AgePanelX, y, AgePanelW, Math.Max(360, v.Height - y - CommandRect.Height - PanelLayout.Margin * Scale));
+        // UR-5: 480 px × the UI scale (it was 440), never more than 45 % of the window; it scrolls, so any height is whole.
+        double w = Math.Min(AgePanelW * Scale, v.Width * 0.45);
+        return new Sim.Ui.Render.RectD(AgePanelX * Scale, y, w, Math.Max(240 * Scale, v.Height - y - CommandRect.Height - PanelLayout.Margin * Scale));
     }
 
     /// <summary>
@@ -671,17 +673,24 @@ public sealed class GameUi
     private bool UpdateAge(MouseState mouse, KeyboardState keyboard)
     {
         if (!IsActive || _session.Config.Ages is null) return false;
+        _age.Scale = Scale;
         _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
         bool released = mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed;
+        int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
+        bool overPanel = AgePanelVisible && AgePanelRect().Contains(mouse.X, mouse.Y);
+        // UR-5: the surfaces answer hover, and the wheel scrolls the flow's body or the panel (never the map under them).
+        _age.PointerMove(_age.FlowOpen || overPanel ? mouse.X : null, _age.FlowOpen || overPanel ? mouse.Y : null);
         if (_age.FlowOpen)
         {
             if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) _age.CloseFlow();
+            if (wheel != 0) _age.Wheel(mouse.X, mouse.Y, wheel / 120.0);
             if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
             return true;
         }
-        if (!AgePanelVisible || !AgePanelRect().Contains(mouse.X, mouse.Y)) return false;
+        if (!overPanel) return false;
+        if (wheel != 0) _age.Wheel(mouse.X, mouse.Y, wheel / 120.0);
         if (released) Dispatch(_age.Click(mouse.X, mouse.Y));
-        return mouse.LeftButton == ButtonState.Pressed || released;
+        return mouse.LeftButton == ButtonState.Pressed || released || wheel != 0;
     }
 
     private void Dispatch(Sim.Ui.Ages.AgeCommand cmd)
@@ -722,6 +731,7 @@ public sealed class GameUi
 
         if (_session.Config.Ages is null) return;
         _age.Theme = _frameTheme;
+        _age.Scale = Scale;
         var top = new Sim.Ui.Render.DrawList();
         _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
         if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), CapitalName);

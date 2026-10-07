@@ -156,7 +156,8 @@ public class AgeAndWorldUiTests(EligibleSessionFixture fx) : IClassFixture<Eligi
         Assert.Equal(Ages.SurgeByKey(surge)!.Name, pending.PendingSurgeName);
         screen.Refresh(s.World, Ages, Families, s.QueuedOrders());
         screen.PaintPanel(d = new DrawList(), ApproxTextMeasure.Instance, new RectD(0, 0, 500, 900), "Capital");
-        Assert.Contains(Texts(d), t => t.Text.StartsWith("Advancing to Neolithic / Agricultural next turn", StringComparison.Ordinal));
+        // UR-5: the status headline is flowed (wrapped) in the era-invariant reference type: read it as one sentence.
+        Assert.Contains("Advancing to Neolithic / Agricultural next turn", string.Join(" ", Texts(d).Select(t => t.Text)), StringComparison.Ordinal);
         Assert.DoesNotContain(screen.Hits, h => h.Kind == AgeHit.OpenAdvance);
 
         long decided = s.World.Clock.Turn;

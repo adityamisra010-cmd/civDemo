@@ -39,6 +39,15 @@ The panel shows:
 - **When eligible or pending:** a short "Your military will modernize" summary and the selected surge.
 - **A link to KNOWLEDGE & TECHNOLOGY.**
 
+> **DATED NOTE 2026-10-06 (M5 polish UI readability, packet UR-5).** The panel is 480 px × the UI scale and SCROLLS
+> (wheel; a bar and a "more below" mark) — it used to `break`, silently dropping three categories and the whole
+> STILL REQUIRED block at 1280 × 800 and 1366 × 768. Its order is the player's: the banner (Display numeral, full
+> name) → the STATUS (and the ADVANCE AGE button, 48 px, when eligible; the next Age by name) → STILL REQUIRED → the
+> three progress chips (label over figure, the figure in the body ink on the raised surface, ≥ 7:1; they measured
+> 1.78:1) → core and supporting milestones (Body names, Data counts in a right column) → military modernization; the
+> way into Knowledge & Technology is the panel's fixed footer. Text is flowed in the era-invariant reference type
+> (`Sim.Ui/Theme/FlowText.cs`), so the regions and hit rects are the same in every era.
+
 ## 3. The advance flow (Part 4 E, F)
 
 The flow is a large modal (`AgeScreen.PaintFlow`) built from `AdvanceFlowModel.Build(world, ages, families, player)`.
@@ -56,6 +65,13 @@ The flow is a large modal (`AgeScreen.PaintFlow`) built from `AdvanceFlowModel.B
   - *Your formations:* `MilitaryQuery.Summarize(families, MilitaryQuery.ModernizationPreview(...))`. This is the same `PlanFor` the transition applies, so the preview is exactly what will happen. In the seed-42 world (base c8ceb5f) the founding Warband converts to Axe warriors entering Age II (heavy-infantry line, ADR-031 addendum).
   - *Across the unit-family graph:* `MilitaryQuery.FamilyLineChanges(families, current, next)`, which shows what each family becomes. Examples: "Spear / Anti-Cavalry: first appears — Spearmen", "Ranged Infantry: Slingers → Archers". Families with no realization yet read "not yet realized".
 - **Confirm** returns `AgeCommand.Order == AgeQuery.AdvanceOrder(world, player, next, surge)`. The host passes it to `UiSession.EmitAdvanceAge`. The screen writes nothing, and the world hash is pinned unchanged. **Not now** closes the flow, and the player may advance later.
+
+> **DATED NOTE 2026-10-06 (M5 polish UR-5).** The flow is a modal with a fixed header (from → to at the Heading and
+> Display roles), a fixed footer (NOT NOW and CONFIRM ADVANCE, 48 px; CONFIRM reads disabled until a surge is
+> chosen) and a body that SCROLLS: the surge cards in a grid that fits the window (three across from a 1,040 px body,
+> two below), each row as tall as its wordiest card (descriptions at the Body role, never clamped); the surges'
+> shared shape is stated once above the grid instead of on every card; then the formations and the unit-family
+> graph's changes, the families not yet realized in one line.
 
 ## 4. Age in KNOWLEDGE & TECHNOLOGY and INSTITUTIONS (Part 4, deep UI)
 
