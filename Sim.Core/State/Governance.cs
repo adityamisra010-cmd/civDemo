@@ -12,7 +12,8 @@ namespace Sim.Core.State;
 ///
 /// THE LOOP THESE READERS CLOSE, every arrow a real consumer:
 ///
-///   tax policy (TaxPolicyRow — an Empire's standing decision, order-set, research-gated)
+///   tax policy (TaxPolicyRow — an Empire's standing decision, order-set, gated by knowledge AND Age:
+///     <see cref="CanLevyTax"/>)
 ///     → administrative REACH (ControlRow.Strength, computed by GovernanceSystem from the
 ///       capital over the road-aware SettlementDistances) decides what is actually collected
 ///     → EFFECTIVE rate = nominal × Strength

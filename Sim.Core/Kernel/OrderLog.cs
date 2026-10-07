@@ -58,8 +58,9 @@ public enum OrderKind
     ///
     /// Range-validated at LOAD (Amount in [0, 100], TargetId ≥ 0). That the target is the issuing
     /// Empire and the issuer is a roster Empire is world-dependent and checked in OrderValidation.
-    /// Whether the issuer can levy a tax at all — the research gate, sim.json
-    /// governance.taxationRequires — is state-dependent and checked where the order is consumed
+    /// Whether the issuer can levy a tax at all — the tax gate: the Taxation knowledge (sim.json
+    /// governance.taxationRequires, R5) AND the minimum Age (governance.taxationMinAge, Age III,
+    /// H2) — is state-dependent and checked where the order is consumed
     /// (GovernanceSystem, via <see cref="State.Governance.CanLevyTax"/> on PREV, the ResearchSystem
     /// precedent): an order failing it changes nothing, and the last valid order of a turn wins.
     /// DELIVERY: an order stamped turn t writes the policy row in the step t → t+1 (first visible

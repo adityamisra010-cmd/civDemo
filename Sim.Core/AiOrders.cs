@@ -84,7 +84,8 @@ public static class AiOrders
     /// GOVERNANCE (ADR-033 D4/D5; wired at the S1×S2 reconciliation). The tax valve (D-021 valve 6, "the state
     /// acts by default"): each AI Empire, in roster order, asks <see cref="AiGovernance.OrdersFor"/>, which
     /// speaks only when the polity is AI-commanded, alive, can levy (<c>Governance.CanLevyTax</c>, the same
-    /// research gate the player's edict obeys) and wants a different rate. Stamped with the executing turn,
+    /// gate the player's edict obeys: the Taxation knowledge AND the minimum Age, H2) and wants a different
+    /// rate. Stamped with the executing turn,
     /// like every other AI order; appended after every per-polity order above.
     /// </summary>
     public static void Governance(IReadOnlyWorldState world, SimConfig cfg, List<OrderRecord> into)

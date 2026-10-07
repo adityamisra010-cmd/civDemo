@@ -13,8 +13,8 @@ namespace Sim.Ui.ViewModel;
 /// THE ORDER IS THE ONLY WAY IN. The UI never writes state: it emits a SetTaxRate order stamped
 /// with the CURRENT turn, built by <see cref="Governance.TaxOrder"/> — the one constructor the AI
 /// valve uses too — and the sim enacts it in the next step, IF the Empire can levy a tax
-/// (<see cref="Governance.CanLevyTax"/>, the research gate; UiSession.EmitTaxOrder refuses an
-/// edict the simulation would ignore).
+/// (<see cref="Governance.CanLevyTax"/>: the Taxation knowledge AND the minimum Age, H2;
+/// UiSession.EmitTaxOrder refuses an edict the simulation would ignore).
 ///
 /// WHAT THE PANEL SHOWS, and why it is three numbers rather than one. A declared rate is not what
 /// anyone pays: the state collects the declared rate scaled by ADMINISTRATIVE REACH, which decays

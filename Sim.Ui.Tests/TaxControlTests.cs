@@ -13,12 +13,14 @@ namespace Sim.Ui.Tests;
 /// view-model and session seam (headless — no Game, no window), and the AI's use of the SAME order
 /// pathway. The mechanism is pinned in Sim.Tests (GovernanceTests, GovernanceTimingTests). What these
 /// cover is the UI's ability to ISSUE the edict and to REPORT it honestly: the order is the only route
-/// in, it is refused when the research gate is closed, the panel shows what is COLLECTED beside what is
-/// declared, and the AI reaches the world through the same log the director writes to.
+/// in, it is refused while the tax gate is closed (Governance.CanLevyTax: the Taxation knowledge AND the
+/// minimum Age, H2), the panel shows what is COLLECTED beside what is declared, and the AI reaches the
+/// world through the same log the director writes to.
 ///
 /// WHAT CHANGED IN THE PORT. Taxation is research-gated by the content (ADR-033 D4; since R5 the single
-/// Civics node `taxation`), so a fresh session cannot tax; the cases that legislate first COMPLETE THE
-/// TAXATION CIVIC in the session's world (the constructed-knowledge rig the Age tests use). The AI valve is a pure policy
+/// Civics node `taxation`) and, since H2, Age-gated (Age III), so a fresh session cannot tax; the cases
+/// that legislate first COMPLETE THE TAXATION CIVIC in the session's world (the constructed-knowledge rig
+/// the Age tests use) and enter Age III (TaxAgeRig). The AI valve is a pure policy
 /// that this port deliberately does not wire into EndTurn (the single AI order producer is stream
 /// S2's), so the last case appends the valve's orders to the session log exactly as that producer
 /// will, and proves they take effect through the ordinary step.

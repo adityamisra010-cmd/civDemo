@@ -13,7 +13,8 @@ namespace Sim.Tests.Systems;
 /// re-anchored on the integrated tree, plus the port's own pins).
 ///
 /// Organised around the property the loop is accepted on — that it is CAUSALLY EXECUTABLE — so each
-/// block pins a real arrow: policy enters only through the order and the research gate; reach is ONE
+/// block pins a real arrow: policy enters only through the order and the tax gate (the Taxation knowledge
+/// AND, since H2, the minimum Age; the Age half itself is pinned in TaxAgeGateTests); reach is ONE
 /// stored fact (ControlRow.Strength) that every consumer reads; policy raises output and costs
 /// happiness; legitimacy reads it; the AI valve answers it through the same pathway; and without its
 /// config section the whole loop is inert. Timing, save/load and the production sites are in

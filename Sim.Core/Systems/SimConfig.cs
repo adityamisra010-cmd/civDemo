@@ -53,7 +53,8 @@ public sealed record SimConfig(
     [property: JsonIgnore] Ages.AgeContent? Ages = null,
     [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null,
     // ADR-033 D4 (the M5 governing loop): administrative reach, the extraction response,
-    // the taxation research gate and the AI tax valve. OPTIONAL and in the DEFAULTED TAIL
+    // the tax gate (taxationRequires, its research half; taxationMinAge, its Age half, H2)
+    // and the AI tax valve. OPTIONAL and in the DEFAULTED TAIL
     // (Roads above is positional): absent, the governing loop is INERT — GovernanceSystem
     // applies no SetTaxRate, leaves ControlRow.Strength as founding wrote it, and every
     // Governance reader returns the neutral value (no tax, extraction ×1, burden ×1). Toy and

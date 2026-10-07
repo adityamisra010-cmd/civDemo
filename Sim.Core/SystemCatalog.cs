@@ -329,7 +329,8 @@ public static class SystemCatalog
     }
 
     /// <summary>ADR-033 D4 (the M5 governing loop, SystemId 22): enacts SetTaxRate orders that
-    /// pass the research gate into the TaxPolicies table it owns, and rewrites
+    /// pass the tax gate (Governance.CanLevyTax on PREV: the Taxation knowledge AND the minimum
+    /// Age, H2) into the TaxPolicies table it owns, and rewrites
     /// ControlRow.Strength as the administrative reach — the THIRD holder of the shared
     /// `Controls` table, field-level split recorded in the header above (it runs after
     /// Colonization and Revolt and touches only Strength). Inert without a governance
