@@ -35,6 +35,9 @@ public readonly record struct PanelRect(string Title, float X, float Y, float Wi
 /// TARGET RESOLUTION 1280×800 — the project's default window, and what every
 /// gate build opens at. SimUiGame reads DesignWidth/Height from HERE, so the
 /// tested layout and the actual window cannot drift apart.
+/// (M5 polish UR-7, 2026-10-06: the game now OPENS at <see cref="OpeningWindow"/>,
+/// 90 % of the display; 1280×800 stays the design size, the fallback when the
+/// display cannot be read, and a size the gate still plays at.)
 /// </summary>
 public static class PanelLayout
 {
@@ -48,6 +51,24 @@ public static class PanelLayout
     /// harness fails any frame whose command-bar control leaves the window.</summary>
     public const int MinWindowWidth = 1080;   // measured: the territory toggle ends at x = 1056.6 (H1 fonts), + Margin
     public const int MinWindowHeight = 640;
+
+    /// <summary>
+    /// THE OPENING WINDOW (M5 polish UR-7, the UI audit §6.11): the share of the display the game opens at — the
+    /// layout is designed at <see cref="DesignWidth"/> × <see cref="DesignHeight"/> and reflows to any window from
+    /// the floor up, and a 1280 × 800 window on a 1920 × 1080 display left the readable type a third of the screen.
+    /// </summary>
+    public const double OpeningShare = 0.9;
+
+    /// <summary>The window the game opens at on a display of <paramref name="displayWidth"/> × <paramref name="displayHeight"/>:
+    /// <see cref="OpeningShare"/> of it, never below the floor nor above the display; the design size when the display
+    /// is unknown (≤ 0). Pure.</summary>
+    public static (int Width, int Height) OpeningWindow(int displayWidth, int displayHeight)
+    {
+        if (displayWidth <= 0 || displayHeight <= 0) return (DesignWidth, DesignHeight);
+        int w = (int)Math.Round(displayWidth * OpeningShare, MidpointRounding.AwayFromZero);
+        int h = (int)Math.Round(displayHeight * OpeningShare, MidpointRounding.AwayFromZero);
+        return (Math.Min(displayWidth, Math.Max(MinWindowWidth, w)), Math.Min(displayHeight, Math.Max(MinWindowHeight, h)));
+    }
 
     /// <summary>Outer margin and inter-element gap, one number so the spacing
     /// is uniform by construction rather than by five separate decisions.</summary>

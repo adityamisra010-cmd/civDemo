@@ -17,11 +17,29 @@ public class PanelLayoutTests
     [Fact]
     public void DesignResolution_IsTheProjectDefaultWindow()
     {
-        // 1280×800 — SimUiGame's ctor reads its PreferredBackBuffer size FROM
-        // these constants, so the tested layout and the actual default window
-        // cannot drift apart. Re-target deliberately, in both places at once.
+        // 1280×800 — the layout's design size, and the window SimUiGame opens at when it cannot read the display
+        // (PanelLayout.OpeningWindow). Re-target deliberately, in both places at once.
         Assert.Equal(1280, PanelLayout.DesignWidth);
         Assert.Equal(800, PanelLayout.DesignHeight);
+        Assert.Equal((1280, 800), PanelLayout.OpeningWindow(0, 0));
+    }
+
+    /// <summary>M5 polish UR-7 (2026-10-06): the window opens at 90 % of the display — never below the floor, never
+    /// larger than the display (it was 1280 × 800 on every display, a third of a 1920 × 1080 screen's area unused).</summary>
+    [Theory]
+    [InlineData(1920, 1080, 1728, 972)]
+    [InlineData(2560, 1440, 2304, 1296)]
+    [InlineData(3840, 2160, 3456, 1944)]
+    [InlineData(1366, 768, 1229, 691)]
+    [InlineData(1280, 720, 1152, 648)]
+    [InlineData(1024, 600, 1024, 600)]   // below the floor's own size: the display (the floor then snaps the window up)
+    public void TheOpeningWindow_IsNinetyPercentOfTheDisplay_FlooredAndCapped(int dw, int dh, int w, int h)
+    {
+        Assert.Equal((w, h), PanelLayout.OpeningWindow(dw, dh));
+        (int ow, int oh) = PanelLayout.OpeningWindow(dw, dh);
+        Assert.True(ow <= dw && oh <= dh);
+        if (dw >= PanelLayout.MinWindowWidth && dh >= PanelLayout.MinWindowHeight)
+            Assert.True(ow >= PanelLayout.MinWindowWidth && oh >= PanelLayout.MinWindowHeight);
     }
 
     [Fact]

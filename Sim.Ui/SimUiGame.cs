@@ -73,14 +73,17 @@ public sealed class SimUiGame : Game
         _userScale = UiScale.NearestStep(userScale);
         _session = session;
         _sessionLogPath = sessionLogPath;
+        // UR-7 (M5 polish, 2026-10-06): the window OPENS at 90 % of the display (PanelLayout.OpeningWindow, tested) —
+        // it was the layout's 1280×800 design size on every display; the layout reflows to any window from the floor
+        // up (the design size remains the fallback when the display cannot be read).
+        (_displayWidth, _displayHeight) = DisplaySize();
+        (int openW, int openH) = PanelLayout.OpeningWindow(_displayWidth, _displayHeight);
+        OpeningDisplay = new SessionDisplay(openW, openH, _displayWidth, _displayHeight,
+            UiScale.Effective(UiScale.Auto(openH), _userScale), _userScale, DisplayDpiScale());
         _graphics = new GraphicsDeviceManager(this)
         {
-            // T3.9a-b item 4: the default window IS the layout's design
-            // resolution (PanelLayout.DesignWidth/Height = 1280×800) — read
-            // from the tested view-model so the proven-non-overlapping
-            // default layout and the actual window cannot drift apart.
-            PreferredBackBufferWidth = PanelLayout.DesignWidth,
-            PreferredBackBufferHeight = PanelLayout.DesignHeight,
+            PreferredBackBufferWidth = openW,
+            PreferredBackBufferHeight = openH,
             SynchronizeWithVerticalRetrace = true,
             PreferMultiSampling = true,
         };
@@ -96,6 +99,55 @@ public sealed class SimUiGame : Game
     }
 
     private bool _enforcingMinimum;
+    private readonly int _displayWidth, _displayHeight;
+
+    /// <summary>The display the game opens on (UR-7): the session manifest records it (provenance only).</summary>
+    public SessionDisplay OpeningDisplay { get; }
+
+    /// <summary>
+    /// The operating system's display scale (1 = 96 dpi), read from SDL (the library MonoGame's desktop platform
+    /// has already loaded) — best effort: null when it cannot be read. Provenance for the manifest; the UI scale
+    /// follows the window height (UiScale), not this value, until the DPI-aware path is verified on Windows.
+    /// </summary>
+    private static unsafe double? DisplayDpiScale()
+    {
+        try
+        {
+            foreach (string name in new[] { "SDL2", "libSDL2-2.0.so.0", "libSDL2.so", "libSDL2-2.0.0.dylib" })
+            {
+                if (!System.Runtime.InteropServices.NativeLibrary.TryLoad(name, typeof(SimUiGame).Assembly, null, out IntPtr lib)) continue;
+                if (!System.Runtime.InteropServices.NativeLibrary.TryGetExport(lib, "SDL_GetDisplayDPI", out IntPtr fn)) continue;
+                var getDpi = (delegate* unmanaged[Cdecl]<int, float*, float*, float*, int>)fn;
+                float d = 0, h = 0, v = 0;
+                if (getDpi(0, &d, &h, &v) == 0 && d > 0) return Math.Round(d / 96.0, 3);
+                return null;
+            }
+        }
+        catch (Exception) { }
+        return null;
+    }
+
+    /// <summary>The primary display's size, or (0, 0) when it cannot be read.</summary>
+    private static (int, int) DisplaySize()
+    {
+        try
+        {
+            DisplayMode mode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            return (mode.Width, mode.Height);
+        }
+        catch (Exception) { return (0, 0); }
+    }
+
+    protected override void Initialize()
+    {
+        base.Initialize();
+        // Centre the opening window on the display (the window was created before its size was known).
+        if (_displayWidth > 0 && _displayHeight > 0)
+        {
+            Rectangle b = Window.ClientBounds;
+            Window.Position = new Point(Math.Max(0, (_displayWidth - b.Width) / 2), Math.Max(0, (_displayHeight - b.Height) / 2));
+        }
+    }
 
     private void EnforceMinimumWindowSize()
     {

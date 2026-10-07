@@ -34,6 +34,40 @@ public class SessionRecordTests
         Assert.Equal(written, read);   // record equality — every field, not a chosen few
     }
 
+    /// <summary>M5 polish UR-7: the display a session was played on (window, display, UI scale, DPI) — provenance,
+    /// an ADDITIVE key inside v2, written only when present. Round-trips bit-exactly (record equality, doubles
+    /// included), reads back null from a manifest without it, and a manifest without it is byte-identical to what
+    /// this build wrote before the key existed (the keys, in their order).</summary>
+    [Fact]
+    public void TheDisplayRoundTrips_IsAbsentWhenNotGiven_AndNeverChangesAManifestWithoutIt()
+    {
+        SessionManifest withDisplay = Sample() with { Display = new SessionDisplay(1728, 972, 1920, 1080, 1.0, 1.1, 1.25) };
+        using var buffer = new MemoryStream();
+        withDisplay.Write(buffer);
+        string json = Encoding.UTF8.GetString(buffer.ToArray());
+        Assert.Contains("\"display\": {", json);
+        Assert.Contains("\"dpiScale\": 1.25", json);
+        buffer.Position = 0;
+        Assert.Equal(withDisplay, SessionManifest.Read(buffer, "test"));
+
+        // A DPI the host could not read is null, never a guess.
+        SessionManifest noDpi = Sample() with { Display = new SessionDisplay(1280, 800, 0, 0, 1.0, 1.0, null) };
+        using var b2 = new MemoryStream();
+        noDpi.Write(b2);
+        Assert.Contains("\"dpiScale\": null", Encoding.UTF8.GetString(b2.ToArray()));
+        b2.Position = 0;
+        Assert.Null(SessionManifest.Read(b2, "test").Display!.DpiScale);
+
+        // Without a display the file carries no such key, and reads back with none.
+        using var b3 = new MemoryStream();
+        Sample().Write(b3);
+        string plain = Encoding.UTF8.GetString(b3.ToArray());
+        Assert.DoesNotContain("display", plain);
+        b3.Position = 0;
+        Assert.Null(SessionManifest.Read(b3, "test").Display);
+        Assert.Equal("session-manifest/v2", SessionManifest.Schema);
+    }
+
     [Fact]
     public void AWorldWithNoOverridesRoundTripsThoseAsAbsentNotAsZero()
     {

@@ -153,7 +153,11 @@ if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
 var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride, aiEmpiresOverride);
 string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride, aiEmpiresOverride);
 
-// T4.17: the manifest is written HERE, before the window opens and before a
+// UR-7 (M5 polish, 2026-10-06): the game is CONSTRUCTED first — its window exists but is not shown until Run — so the
+// manifest can record the display the session opens on (window, display, UI scale, DPI; provenance only).
+using var game = new Sim.Ui.SimUiGame(session, sessionLogPath, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
+
+// T4.17: the manifest is written HERE, before the window is shown and before a
 // single turn is played. A session that ends in a crash, a force-quit or a
 // power cut is still reproducible, because the one fact that cannot be
 // recovered afterwards — the seed — is already on disk. Everything else the
@@ -161,7 +165,7 @@ string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverri
 // rewritten.
 session.ExportManifest(
     DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
-    sessionLogPath);
+    sessionLogPath, game.OpeningDisplay);
 Console.WriteLine($"session manifest: {Sim.Ui.UiSession.ManifestPath(sessionLogPath)}");
 
 // m4-forensic P1: the run record, written beside the manifest and for the same
@@ -175,5 +179,4 @@ session.ExportForensicRun(
 Console.WriteLine($"forensic record: {Sim.Ui.UiSession.ForensicPath(sessionLogPath)}"
     + $"  (run {session.ForensicRunId})");
 
-using var game = new Sim.Ui.SimUiGame(session, sessionLogPath, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
 game.Run();
