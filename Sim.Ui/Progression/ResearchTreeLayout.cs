@@ -4,12 +4,33 @@ namespace Sim.Ui.Progression;
 
 /// <summary>World-space geometry of the layout (1 unit = 1 screen pixel at zoom 1).
 /// <see cref="ViewportWidth"/> is the canvas width the drawing must fit at zoom 1: the layout
-/// never exceeds it, so the tree scrolls on ONE axis only (vertical). Presentation tuning, not content.</summary>
+/// never exceeds it, so the tree scrolls on ONE axis only (vertical). Presentation tuning, not content.
+/// UR-4 (M5 polish, UI readability): the card is ~208–232 × 116 px at UI scale 1 (it was 150–214 × 84) so its name
+/// is set at the BODY role on up to two lines, never cut; <see cref="MinCardWidth"/> is a floor the layout honours
+/// at every width — a tier whose lanes do not fit side by side WRAPS its lanes into further rows
+/// (<see cref="LaneWrapGap"/> apart) instead of shrinking the cards. <see cref="Scaled"/> grows every length with the
+/// UI scale.</summary>
 public sealed record TreeLayoutOptions(
-    double ViewportWidth = 1196.0, double MinCardWidth = 150.0, double MaxCardWidth = 214.0,
-    double CardHeight = 84.0, double AnchorHeight = 30.0, double RowGap = 16.0, double SlotGap = 10.0,
-    double Gutter = 18.0, double TierGap = 44.0, double CollapsedWidth = 34.0, double Margin = 4.0,
-    double Spine = 22.0, int Sweeps = 4);
+    double ViewportWidth = 1196.0, double MinCardWidth = 200.0, double MaxCardWidth = 232.0,
+    double CardHeight = 116.0, double AnchorHeight = 36.0, double RowGap = 16.0, double SlotGap = 10.0,
+    double Gutter = 18.0, double TierGap = 74.0, double CollapsedWidth = 34.0, double Margin = 4.0,
+    double Spine = 22.0, int Sweeps = 4, double LaneWrapGap = 42.0)
+{
+    /// <summary>The reference options with every length × <paramref name="scale"/> (the UI scale) and the given
+    /// viewport width (already in screen px).</summary>
+    public static TreeLayoutOptions Scaled(double scale, double viewportWidth)
+    {
+        var o = new TreeLayoutOptions();
+        double s = Math.Max(0.5, scale);
+        return o with
+        {
+            ViewportWidth = viewportWidth, MinCardWidth = o.MinCardWidth * s, MaxCardWidth = o.MaxCardWidth * s,
+            CardHeight = o.CardHeight * s, AnchorHeight = o.AnchorHeight * s, RowGap = o.RowGap * s, SlotGap = o.SlotGap * s,
+            Gutter = o.Gutter * s, TierGap = o.TierGap * s, CollapsedWidth = o.CollapsedWidth * s, Margin = o.Margin * s,
+            Spine = o.Spine * s, LaneWrapGap = o.LaneWrapGap * s,
+        };
+    }
+}
 
 /// <summary>A placed vertex. <see cref="Column"/> is the vertex's TIER (prerequisite depth),
 /// which runs top → bottom; <see cref="Row"/> is the wrapped row inside the tier band and
@@ -30,8 +51,11 @@ public sealed record PlacedVertex(int Vertex, int Column, int Lane, int Slot, do
 public sealed record LaneBox(int Index, string Id, string Name, int Branch, bool External, bool Collapsed = false, int NodeCount = 0);
 
 /// <summary>The part of one tier band that one lane occupies: <see cref="Slots"/> cards across,
-/// then a routing gutter. Zero width (and <see cref="Collapsed"/>) when the lane is collapsed.</summary>
-public sealed record LaneSegment(int Lane, int Tier, double X, double Width, int Slots, double Y0, bool Collapsed = false)
+/// then a routing gutter. Zero width (and <see cref="Collapsed"/>) when the lane is collapsed. <see cref="Y0"/> is the
+/// top of the segment's first card row and <see cref="Y1"/> the bottom of its lane row (UR-4: a tier whose lanes
+/// wrap holds several lane rows; <see cref="RowBase"/> is the tier-wide index of this lane row's first card row).</summary>
+public sealed record LaneSegment(int Lane, int Tier, double X, double Width, int Slots, double Y0, bool Collapsed = false,
+    double Y1 = 0, int RowBase = 0)
 {
     public double Right => X + Width;
 }
@@ -209,9 +233,11 @@ public static class ResearchTreeLayout
             for (int c = 0; c < columns; c++) count[l] += cells[l, c].Count;
         }
         double inner = Math.Max(0, o.ViewportWidth - 2 * (o.Margin + o.Spine));
-        // inner = Σ segments = S·(card + gap) + k·(Gutter − gap) for k segments ≤ L.
+        // inner = Σ segments of one lane row = s·(card + gap) + k·(Gutter − gap) for k segments ≤ L and s ≤ S slots.
+        // UR-4: S is what the width holds at the MINIMUM card width — never forced up to the lane count (that drove the
+        // cards to 123 px at 1366×768). A tier with more lanes than slots wraps its lanes into further lane rows.
         double slotSpace = Math.Max(0, inner - L * (o.Gutter - o.SlotGap));
-        int S = Math.Max(L, (int)Math.Floor(slotSpace / (o.MinCardWidth + o.SlotGap)));
+        int S = Math.Max(1, (int)Math.Floor(slotSpace / (o.MinCardWidth + o.SlotGap)));
         double card = Math.Max(24.0, Math.Min(o.MaxCardWidth, slotSpace / S - o.SlotGap));
         double x0 = o.Margin + o.Spine;
 
@@ -231,44 +257,58 @@ public static class ResearchTreeLayout
         for (int c = 0; c < columns; c++)
         {
             var slots = new int[L];
-            int budget = S;
-            for (int l = 0; l < L; l++) if (!shut[l] && cells[l, c].Count > 0) { slots[l] = 1; budget--; }
-            while (budget > 0)
+            // The lanes present in this tier, in the fixed lane order; at most S of them share a lane row.
+            var present = new List<int>();
+            for (int l = 0; l < L; l++) if (!shut[l] && cells[l, c].Count > 0) present.Add(l);
+            int groups = Math.Max(1, (present.Count + S - 1) / S);
+            int per = present.Count == 0 ? 0 : (present.Count + groups - 1) / groups;
+            double y0 = y;
+            double gy = y + o.TierGap;
+            int rowsTotal = 0;
+            for (int l = 0; l < L; l++)
+                if (cells[l, c].Count > 0 && shut[l])
+                    segOf[l, c] = new LaneSegment(l, c, x0, 0, 0, gy, true, gy, 0);   // collapsed: zero width
+            for (int grp = 0; grp < groups; grp++)
             {
-                // Give the next slot to the lane whose rows it reduces most: minimise (max rows, Σ rows),
-                // ties to the lowest lane index. Integers only.
-                (int Max, int Sum) best = TierCost(cells, slots, c);
-                int pick = -1;
+                int from = grp * per, to = Math.Min(present.Count, from + per);
+                if (from >= to) break;
+                var members = new bool[L];
+                int budget = S;
+                for (int k = from; k < to; k++) { members[present[k]] = true; slots[present[k]] = 1; budget--; }
+                while (budget > 0)
+                {
+                    // Give the next slot to the lane whose rows it reduces most: minimise (max rows, Σ rows),
+                    // ties to the lowest lane index. Integers only.
+                    (int Max, int Sum) best = TierCost(cells, slots, c, members);
+                    int pick = -1;
+                    for (int l = 0; l < L; l++)
+                    {
+                        if (!members[l] || slots[l] >= cells[l, c].Count) continue;
+                        slots[l]++;
+                        (int Max, int Sum) k = TierCost(cells, slots, c, members);
+                        slots[l]--;
+                        if (k.Max < best.Max || (k.Max == best.Max && k.Sum < best.Sum)) { best = k; pick = l; }
+                    }
+                    if (pick < 0) break;
+                    slots[pick]++; budget--;
+                }
+                int rows = TierCost(cells, slots, c, members).Max;
+                double x = x0;
                 for (int l = 0; l < L; l++)
                 {
-                    if (slots[l] == 0 || slots[l] >= cells[l, c].Count) continue;
-                    slots[l]++;
-                    (int Max, int Sum) k = TierCost(cells, slots, c);
-                    slots[l]--;
-                    if (k.Max < best.Max || (k.Max == best.Max && k.Sum < best.Sum)) { best = k; pick = l; }
+                    if (!members[l]) continue;
+                    double w = slots[l] * (card + o.SlotGap) - o.SlotGap + o.Gutter;
+                    var seg = new LaneSegment(l, c, x, w, slots[l], gy, false, gy + rows * rowH, rowsTotal);
+                    segments.Add(seg);
+                    segOf[l, c] = seg;
+                    x += w;
                 }
-                if (pick < 0) break;
-                slots[pick]++; budget--;
+                rowsTotal += rows;
+                gy += rows * rowH;
+                if (grp + 1 < groups) gy += o.LaneWrapGap;
             }
-            int rows = TierCost(cells, slots, c).Max;
-            double y0 = y;
-            double x = x0;
-            for (int l = 0; l < L; l++)
-            {
-                if (cells[l, c].Count == 0) continue;
-                if (slots[l] == 0)
-                {
-                    segOf[l, c] = new LaneSegment(l, c, x, 0, 0, y0, true);   // collapsed: zero width
-                    continue;
-                }
-                double w = slots[l] * (card + o.SlotGap) - o.SlotGap + o.Gutter;
-                var seg = new LaneSegment(l, c, x, w, slots[l], y0, false);
-                segments.Add(seg);
-                segOf[l, c] = seg;
-                x += w;
-            }
-            y += o.TierGap + rows * rowH;
-            tiers[c] = new TierBand(c, y0, y, rows, ranges[c].Lo, ranges[c].Hi);
+            y = gy;
+            tiers[c] = new TierBand(c, y0, y, rowsTotal, ranges[c].Lo, ranges[c].Hi);
         }
         double height = y + o.Margin;
         double width = o.ViewportWidth;
@@ -290,20 +330,20 @@ public static class ResearchTreeLayout
             bool ext = g.Vertices[v].External;
             int row = slot[v] / seg.Slots, k = slot[v] % seg.Slots;
             double vx = seg.X + k * (card + o.SlotGap);
-            double vy = t.Y0 + o.TierGap + row * rowH;
-            placed[v] = new PlacedVertex(v, column[v], laneOf[v], slot[v], vx, vy, card, ext ? o.AnchorHeight : o.CardHeight, false, row);
+            double vy = seg.Y0 + row * rowH;
+            placed[v] = new PlacedVertex(v, column[v], laneOf[v], slot[v], vx, vy, card, ext ? o.AnchorHeight : o.CardHeight, false, seg.RowBase + row);
         }
 
         return new TreeLayout(g, placed, laneBoxes, segments, tiers, columns, width, height, o);
     }
 
-    /// <summary>(max rows, Σ rows) of one tier for a slot assignment — the integer objective.</summary>
-    private static (int Max, int Sum) TierCost(List<int>[,] cells, int[] slots, int c)
+    /// <summary>(max rows, Σ rows) of one lane row of a tier for a slot assignment — the integer objective.</summary>
+    private static (int Max, int Sum) TierCost(List<int>[,] cells, int[] slots, int c, bool[] members)
     {
         int mx = 0, sum = 0;
         for (int l = 0; l < slots.Length; l++)
         {
-            if (slots[l] == 0) continue;
+            if (slots[l] == 0 || !members[l]) continue;
             int r = (cells[l, c].Count + slots[l] - 1) / slots[l];
             mx = Math.Max(mx, r); sum += r;
         }

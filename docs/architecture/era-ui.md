@@ -174,6 +174,14 @@ the three faces and Garamond's weights; the game measures with the real fonts.
 > bible §4 item 2 amendment (fibre overlay at 35 % over the interface) and `PanelFrame` (texture in the frame band,
 > calm under the words).
 
+> **DATED NOTE 2026-10-06 (M5 polish UR-4/UR-5/UR-7, stage B).** The research card's content by `CardDetail` (§3)
+> changed: every era's card shows the name (Body role, up to two lines), the cost with the Age NUMERAL, and a state
+> line that carries the estimate to complete in every era (it was A7+); the Age's full name is the tier strip's, the
+> detail panel's and the hover tip's. The four card state fills are made distinct after each era's mood tokens
+> (`EraThemes.DistinctStates`: ΔE ≥ 12 between every pair where the era allows, ≥ 8 everywhere, the body ink ≥ 7:1 on
+> each). Flowing panels (the Age panel and flow, the research detail panel) lay out in the era-invariant reference
+> type (`FlowText`), so §4's continuity — the same regions and hit rects in every era — holds for them too.
+
 ## 10. Limits
 
 - The live GPU path (ImGui style, the frames behind the windows, the atlas with remaps, double-strike bold and

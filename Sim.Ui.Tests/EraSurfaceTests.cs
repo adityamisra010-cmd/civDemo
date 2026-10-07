@@ -142,7 +142,8 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
         // A8: technical lettering, a drafting grid under the tree, the estimate to complete.
         Assert.Contains(Texts(d8), t => t.Role == FontRole.Caps && t.Style!.Value.Face == TypeFace.PlexSans && t.Style.Value.TrackingEm >= 0.1);
         Assert.True(d8.Commands.Count(c => c is LineCmd l && (l.X0 == l.X1 || l.Y0 == l.Y1) && l.Width <= 0.8) > 100);
-        Assert.Contains(Texts(d8), t => System.Text.RegularExpressions.Regex.IsMatch(t.Text, @"^~\d+ t$"));
+        // The estimate to complete: the target's state line (UR-4: every era now — "Researching · 13% · ~7 turns").
+        Assert.Contains(Texts(d8), t => System.Text.RegularExpressions.Regex.IsMatch(t.Text, @"^Researching .* ~\d+ turns$"));
         // A9: clean type, no texture, hairline cards (no freehand or double outlines on the cards).
         Assert.All(Texts(d9), t => Assert.Equal(TypeFace.PlexSans, t.Style!.Value.Face));
         Assert.DoesNotContain(InCards(s9, d9), c => c is PolylineCmd);
@@ -203,9 +204,10 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
             var texts = Texts(d).Select(t => t.Text).ToHashSet();
             foreach (string label in nav) Assert.Contains(label, texts);
             Assert.Contains(texts, x => x is "JUMP TO TARGET" or "JUMP TO FRONTIER" || x.StartsWith("JUMP TO", StringComparison.Ordinal));
-            // Every visible card names its Age in full, untruncated, ON THAT CARD, in every era (the
-            // full-Age-names rule) — checked per card, so one card's truncated label cannot hide behind
-            // another card's whole one.
+            // Every visible card names its Age ON THAT CARD, in every era — the numeral beside the cost (UR-4, dated
+            // 2026-10-06: the full name moved to the tier strip right above the card, the detail panel and the hover
+            // tip, so the card's name can be set at the body role, whole) — checked per card, and every tier strip in
+            // view names its Ages in full.
             List<TextCmd> runs = Texts(d);
             RectD canvas = s.Canvas;
             foreach (int v in s.VisibleVertices())
@@ -213,8 +215,16 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                 PlacedVertex p = s.Layout.Placed[v];
                 if (s.Graph.Vertices[v].External || p.Hidden) continue;
                 var card = new RectD(s.Camera.ToScreenX(p.X, canvas.X), s.Camera.ToScreenY(p.Y, canvas.Y), p.W * s.Camera.Zoom, p.H * s.Camera.Zoom);
-                string age = DrawList.Latin1(ResearchTreeLayout.AgeShort(s.Graph.Node(v).Age));
-                Assert.True(runs.Any(r => r.Text == age && card.Contains(r.X + 1, r.Y + 1)), $"{era}: card {v} lacks its full Age name \"{age}\"");
+                string numeral = ResearchTreeLayout.AgeNumeral(s.Graph.Node(v).Age);
+                Assert.True(runs.Any(r => (r.Text.EndsWith("Age " + numeral, StringComparison.Ordinal) || r.Text.EndsWith(" " + numeral, StringComparison.Ordinal))
+                    && r.Text.Contains(" RP", StringComparison.Ordinal) && card.Contains(r.X + 1, r.Y + 1)), $"{era}: card {v} lacks its Age \"{numeral}\"");
+            }
+            foreach (TierBand tb in s.Layout.Tiers)
+            {
+                double y0 = s.Camera.ToScreenY(tb.Y0, canvas.Y);
+                if (y0 < canvas.Y || y0 > canvas.Bottom - 40 || tb.Lo == 0) continue;
+                string ages = DrawList.Latin1(ResearchTreeLayout.AgeRangeLabel((tb.Lo, tb.Hi)));
+                Assert.Contains(runs, r => r.Text == ages);
             }
         }
         // Each lane chip, a navigation control, names its lane in full on the chip, in both trees and
@@ -227,7 +237,7 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                 foreach (LaneBox lane in s.Layout.Lanes)
                 {
                     RectD chip = s.Hits.Single(h => h.Kind == HitKind.LaneToggle && h.Arg == lane.Index).Rect;
-                    string name = lane.Name.ToUpperInvariant();
+                    string name = lane.Name;   // UR-4: mixed case at the caption role (capitals did not fit at 1600 px)
                     Assert.True(runs.Any(r => r.Text == name && chip.Contains(r.X + 1, r.Y + 1)), $"{era} {tab}: lane chip lacks \"{name}\"");
                 }
             }

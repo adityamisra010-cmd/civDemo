@@ -692,16 +692,18 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         ProgressionScreen s = Screen();
         DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
         var texts = d.Commands.OfType<TextCmd>().Select(t => t.Text).ToList();
-        // Every visible card shows its Age's full name (not just a numeral).
+        // Every visible card shows its Age beside its cost ("260 RP · Age I"); the full name is the tier strip's above
+        // it (UR-4, dated 2026-10-06), the detail panel's and the hover tip's.
         foreach (int v in s.VisibleVertices())
         {
             if (s.Graph.Vertices[v].External || s.Layout.Placed[v].Hidden) continue;
-            string full = DrawList.Latin1(ResearchTreeLayout.AgeShort(s.Graph.Node(v).Age));
-            Assert.Contains(full, texts);
+            string numeral = ResearchTreeLayout.AgeNumeral(s.Graph.Node(v).Age);
+            Assert.Contains(texts, t => t.Contains(" RP", StringComparison.Ordinal) && (t.EndsWith("Age " + numeral, StringComparison.Ordinal) || t.EndsWith(" " + numeral, StringComparison.Ordinal)));
         }
         // Tier strips and the control row name the Ages in full; no bare "Age II".
         Assert.Contains(texts, t => t.Contains("Prehistoric / Stone Age", StringComparison.Ordinal));
-        Assert.DoesNotContain(texts, t => System.Text.RegularExpressions.Regex.IsMatch(t, @"\bAges? [IVX]+(-[IVX]+)?$"));
+        // (A card's cost row ends with its Age numeral — "260 RP · Age I" — under the strip that names it in full.)
+        Assert.DoesNotContain(texts, t => !t.Contains(" RP", StringComparison.Ordinal) && System.Text.RegularExpressions.Regex.IsMatch(t, @"\bAges? [IVX]+(-[IVX]+)?$"));
         // Detail panel header carries the full Age name.
         s.Selected = s.Snapshot!.TargetIndex!.Value;
         DrawList dd = s.Paint(W, H, ApproxTextMeasure.Instance);

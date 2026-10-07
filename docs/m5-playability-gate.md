@@ -39,6 +39,14 @@ real `ProgressionScreen`, replayed by the real `DrawListImGuiBackend` into a rea
 > `RendererHasVtxOffset`) is unchanged and still required there. The figures in the tables below are the H1
 > measurements, kept as recorded.
 
+> **DATED NOTE 2026-10-06 (M5 polish UR-4/UR-7).** The Research screen's cards grew (Body-role names on two lines,
+> ~208–232 × 116 px) and the type with them; the 16-bit regression still renders the A1 tree past 65,535 vertices
+> (asserted by its control) and is extended to 2560 × 1440 at UI scale 1.375 and 3840 × 2160 at UI scale 2
+> (`ReadabilityStageBTests.TheResearchScreen_AtTheLargeWindowsAndTheirScale_…`, every frame inside the draw-data
+> contract). In a window narrower than 1600 px a selected node's detail is an overlay drawer: the gate's research
+> checks skip cards under it (`ProgressionScreen.Obscured`) and its Escape check closes the drawer, then the screen.
+> The game now opens at 90 % of the display (`PanelLayout.OpeningWindow`); the gate's windows are unchanged.
+
 **Root cause (IMPLEMENTED, MEASURED).** ImGui indexes vertices with 16-bit indices. A draw list may pass 65,535
 vertices only if the renderer declares `ImGuiBackendFlags.RendererHasVtxOffset`; ImGui then opens a new draw
 command whose `VtxOffset` rebases the indices, and the renderer adds that offset to each command's base vertex.

@@ -74,7 +74,61 @@ public static class EraThemes
     {
         Ink = t.Ink with { TextDim = TextInks.Darken(t.Ink.TextDim, t.Ink.Text, t.Material.Panel, TextDimFloor) },
         Type = t.Type with { SizeScale = Math.Max(1.0, t.Type.SizeScale) },
+        Semantic = DistinctStates(t.Semantic, t.Material, t.Ink.Text),
     };
+
+    /// <summary>The minimum colour difference (CIE ΔE*ab) between any two of the four research-card state fills —
+    /// Known, Target, Available, Locked (UR-4: the state table's fills are plainly distinct surfaces; Known and Locked
+    /// were ΔE 6 apart at A1 and A6, Known and Target 1.00:1 in lightness).</summary>
+    public const double StateFillDistinct = 12.0;
+
+    /// <summary>The body ink's floor on every state fill (a card's name is primary text: 7:1).</summary>
+    public const double StateFillTextFloor = 7.0;
+
+    /// <summary>
+    /// THE STATE FILLS, MADE DISTINCT (UR-4). Available and Locked are set by their lightness separation
+    /// (<see cref="StateFillSeparation"/>); the Known (Completed gold) and Target (Active teal) fills are then the
+    /// LEAST tinted mixes of the panel or the raised surface toward their pigments that sit at least
+    /// <see cref="StateFillDistinct"/> from every other state fill while the body ink keeps
+    /// <see cref="StateFillTextFloor"/> on them — the era's mood where it already works, a stronger tint only where two
+    /// states were too alike. Integer search, deterministic; the hue family is the pigment's (pinned).
+    /// </summary>
+    private static SemanticTokens DistinctStates(SemanticTokens s, MaterialTokens m, Rgba text)
+    {
+        Rgba avail = s.AvailableFill, locked = s.LockedFill;
+        var done = new List<(Rgba Fill, int K)>();
+        var target = new List<(Rgba Fill, int K)>();
+        foreach (Rgba baseFill in new[] { m.Panel, m.PanelRaised })
+            for (int k = 16; k <= 70; k += 2)
+            {
+                Rgba d = Mix(baseFill, s.Completed, k / 100.0), a = Mix(baseFill, s.Active, k / 100.0);
+                if (Contrast(text, d) >= StateFillTextFloor) done.Add((d, k));
+                if (Contrast(text, a) >= StateFillTextFloor) target.Add((a, k));
+            }
+        if (done.Count == 0 || target.Count == 0) return s;
+        (Rgba Done, Rgba Target, int Cost, double Min) best = (s.CompletedFill, s.ActiveFill, int.MaxValue, MinDelta(s.CompletedFill, s.ActiveFill, avail, locked));
+        bool met = best.Min >= StateFillDistinct;
+        foreach ((Rgba d, int kd) in done)
+            foreach ((Rgba a, int ka) in target)
+            {
+                double min = MinDelta(d, a, avail, locked);
+                bool ok = min >= StateFillDistinct;
+                int cost = kd + ka;
+                // Prefer any candidate that meets the floor, then the least tint (ties: the larger margin); when none
+                // meets it, the largest minimum difference.
+                if (ok && (!met || cost < best.Cost || (cost == best.Cost && min > best.Min))) { best = (d, a, cost, min); met = true; }
+                else if (!ok && !met && min > best.Min) best = (d, a, cost, min);
+            }
+        return s with { CompletedFill = best.Done, ActiveFill = best.Target };
+    }
+
+    private static double MinDelta(Rgba done, Rgba target, Rgba avail, Rgba locked)
+    {
+        double m0 = Math.Min(ThemeColor.DeltaE(done, target), ThemeColor.DeltaE(done, avail));
+        double m1 = Math.Min(ThemeColor.DeltaE(done, locked), ThemeColor.DeltaE(target, avail));
+        double m2 = Math.Min(ThemeColor.DeltaE(target, locked), ThemeColor.DeltaE(avail, locked));
+        return Math.Min(m0, Math.Min(m1, m2));
+    }
 
     // ======================================================================== the nine eras
 

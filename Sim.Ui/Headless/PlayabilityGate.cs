@@ -573,7 +573,19 @@ public static class PlayabilityGate
                 return Expect(!Ui.ProgressionOpen, "still open");
             });
             OpenResearch();
-            Check("research", "Escape (closes)", () => { h.Key(Keys.Escape); return Expect(!Ui.ProgressionOpen, "still open"); });
+            // UR-4: in a narrow window a selected node's detail DRAWER is open over the tree; the first Escape closes the
+            // drawer (the screen stays), the next closes the screen.
+            Check("research", "Escape (closes the detail drawer, then the screen)", () =>
+            {
+                bool drawer = Screen.DrawerOpen;
+                h.Key(Keys.Escape);
+                if (drawer)
+                {
+                    if (!Ui.ProgressionOpen || Screen.DrawerOpen) return (GateResult.Fail, "the first Escape did not close only the drawer");
+                    h.Key(Keys.Escape);
+                }
+                return Expect(!Ui.ProgressionOpen, "still open");
+            });
         }
 
         private void Nodes(TreeTab tab)
@@ -587,7 +599,7 @@ public static class PlayabilityGate
                 if (Screen.Graph.Vertices[v].External || Screen.Layout.Placed[v].Hidden) continue;
                 ResearchNodeView view = Screen.Snapshot!.Nodes[ci];
                 (double x, double y) = CardCentre(v);
-                if (!Screen.Canvas.Contains(x, y) || (Screen.MinimapVisible && Screen.MinimapRect().Contains(x, y))) continue;
+                if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y)) continue;
                 if (view.Available && !view.IsTarget && available < 0) available = v;
                 if (view.State == NodeState.Locked && locked < 0) locked = v;
             }
@@ -637,7 +649,7 @@ public static class PlayabilityGate
                     if (Screen.Graph.Vertices[v].External || Screen.Layout.Placed[v].Hidden) continue;
                     ResearchNodeView view = Screen.Snapshot!.Nodes[ci];
                     (double x, double y) = CardCentre(v);
-                    if (!Screen.Canvas.Contains(x, y) || (Screen.MinimapVisible && Screen.MinimapRect().Contains(x, y))) continue;
+                    if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y)) continue;
                     if (view.Available && !view.IsTarget && Screen.PendingTarget != ci) { pick = v; break; }
                 }
                 if (pick < 0) return (GateResult.NotOffered, "no other available card in view");

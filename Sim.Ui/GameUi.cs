@@ -745,11 +745,13 @@ public sealed class GameUi
     private void UpdateProgression(double dt, MouseState mouse, KeyboardState keyboard, Rectangle viewport)
     {
         var screen = _progression!;
+        screen.Scale = Scale;   // UR-4: the tree's strips, cards and type follow the UI scale
         screen.Resize(viewport.Width, viewport.Height);
         screen.Refresh(_world);
         screen.Age = Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), UiPlayer.Empire);
         if (!IsActive) return;
-        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { _progressionOpen = false; return; }
+        // UR-4: Escape closes the detail drawer first (narrow windows), then the screen.
+        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { if (!screen.CloseDrawer()) _progressionOpen = false; return; }
         if (EndTurnKey.ShouldFire(keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space), false, false))
             EndTurn();
 
@@ -804,6 +806,7 @@ public sealed class GameUi
         _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         var screen = _progression!;
         screen.Theme = _frameTheme;
+        screen.Scale = Scale;
         System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
         screen.Refresh(_world);
         Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);

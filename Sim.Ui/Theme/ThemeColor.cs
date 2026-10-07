@@ -92,6 +92,30 @@ public static class ThemeColor
         return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
     }
 
+    /// <summary>The CIE 1976 colour difference ΔE*ab of two opaque colours (sRGB, D65): ~2.3 is a just-noticeable
+    /// difference; ≥ 12 reads as plainly different surfaces at a glance (UR-4's state fills).</summary>
+    public static double DeltaE(Rgba a, Rgba b)
+    {
+        (double l1, double a1, double b1) = Lab(a);
+        (double l2, double a2, double b2) = Lab(b);
+        return Math.Sqrt((l1 - l2) * (l1 - l2) + (a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2));
+    }
+
+    /// <summary>CIE L*a*b* (D65) of an opaque sRGB colour.</summary>
+    public static (double L, double A, double B) Lab(Rgba c)
+    {
+        static double Lin(byte v)
+        {
+            double s = v / 255.0;
+            return s <= 0.04045 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
+        }
+        double r = Lin(c.R), g = Lin(c.G), b = Lin(c.B);
+        double x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047, y = 0.2126 * r + 0.7152 * g + 0.0722 * b, z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+        static double F(double t) => t > 0.008856 ? Math.Cbrt(t) : 7.787 * t + 16.0 / 116.0;
+        double fx = F(x), fy = F(y), fz = F(z);
+        return (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz));
+    }
+
     /// <summary>The shortest angular distance between two hues, in degrees [0, 180].</summary>
     public static double HueDistance(double a, double b)
     {
