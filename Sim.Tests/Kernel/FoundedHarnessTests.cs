@@ -100,9 +100,10 @@ public class FoundedHarnessTests
             // (RevoltSystem: it stops obeying). Turn-exact, on the twin.
             if (t == 4) Assert.Equal(0.6, a.SectorAllocations[0].Farming);
             if (t == 34) Assert.Equal(0.3, a.SectorAllocations[0].Farming);
-            if (t == 57) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
+            // ADR-035 RE-PIN (2026-10-07, one cause: the founding-turn harvest; MEASURED): the revolt moves 58 -> 63.
+            if (t == 62) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
             // R3 (Director R2-final §2): the revolted place becomes a NEW AI polity at once.
-            if (t == 58)
+            if (t == 63)
             {
                 Assert.True(EmpireQuery.TryGetController(a, settlement0, out PolityId founded));
                 Assert.NotEqual(1, founded.Value);

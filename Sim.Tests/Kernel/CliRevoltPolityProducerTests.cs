@@ -78,7 +78,8 @@ public class CliRevoltPolityProducerTests
         for (int i = 0; i < runLog.Count; i++)
             if (runLog[i].ActorId != 1) { foreign++; if (firstForeignTurn < 0) firstForeignTurn = (int)runLog[i].Turn; }
         Assert.True(foreign > 0, "the CLI run log carries no order from the polity the turn-58 revolt founded — the producer never ran");
-        Assert.Equal(58, firstForeignTurn);   // revolt applied on turn 58; the new polity's first order is stamped there
+        // ADR-035 RE-PIN (2026-10-07, one cause: the founding-turn harvest; MEASURED): 58 -> 63.
+        Assert.Equal(63, firstForeignTurn);   // revolt applied on turn 63; the new polity's first order is stamped there
 
         // 2. EQUIVALENCE: the UI's end-turn loop, replicated in-process (the player's orders of the turn, then the
         //    AI producer on the same world, then one step) gives the same world on every turn.

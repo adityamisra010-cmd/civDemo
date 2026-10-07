@@ -583,7 +583,11 @@ public class HarvestWeatherTests
         (double[] _, long[] produced) ctrl = RunLandCapped(control, turns);
         (double[] _, long[] produced) bind = RunLandCapped(bindCheck, turns);
 
-        Assert.Equal(ctrl.produced, bind.produced); // land binds, or vacuous
+        // ADR-035: turn 1 (index 0) is the ROW-ABSENT turn — PREV holds no catchment summary yet, the
+        // land side is unmeasured (non-binding) and the harvest is labour-limited by design, so the
+        // doubled-labour arm legitimately differs there. Land binds from the first measured turn on.
+        Assert.NotEqual(ctrl.produced[0], bind.produced[0]); // the row-absent turn is labour-limited
+        Assert.Equal(ctrl.produced[1..], bind.produced[1..]); // land binds, or vacuous
 
         int checked_ = 0, varied = 0;
         for (int t = 0; t < turns; t++)

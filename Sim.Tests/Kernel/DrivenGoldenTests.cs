@@ -82,7 +82,8 @@ public class DrivenGoldenTests
     }
 
     /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
-    internal const string Golden = "6664a9b258c2d999f8f307d6aba4c4729087b9bf22e73c9beca185c02a194f33";
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 6664a9b258c2d999… -> 983aa6eb0edef68f…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    internal const string Golden = "983aa6eb0edef68fe40d49bf286696263a2be8cfebb6760d71997c32f2126943";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 

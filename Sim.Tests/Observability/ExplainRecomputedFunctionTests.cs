@@ -135,9 +135,11 @@ public class ExplainRecomputedFunctionTests
         // which world it was measured on.)
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, Target, grain);
         Assert.Equal(531, prev.GoodStocks[g].LastConsumptionEatenUnits);
-        Assert.Equal(3548, prev.GoodStocks[g].LastConsumptionDemandUnits);
+        // ADR-035 RE-PIN (VALUE, one cause: the founding-turn harvest): demand 3548 -> 3776 MEASURED, 531 eaten
+        // unchanged — the target carries more people into the drawdown turn.
+        Assert.Equal(3776, prev.GoodStocks[g].LastConsumptionDemandUnits);
         Link grainFill = Labelled(sustenance.Links, ChainNode.FoodGoodFill, ExplainRowsName(cfg, grain) + " fill");
-        Assert.Equal(531.0 / 3548.0, grainFill.Value);
+        Assert.Equal(531.0 / 3776.0, grainFill.Value);
         // ...and the satisfaction the SYSTEM published from that fill is below 1.
         Link s = ExplainGrievanceTests.Single(sustenance.Links, ChainNode.SustenanceSatisfaction);
         Assert.Equal(LinkKind.Read, s.Kind);

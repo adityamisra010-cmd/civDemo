@@ -1074,7 +1074,8 @@ public class SnapshotTests
     /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
     /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
     /// </summary>
-    internal const string FoundedGoldenHash = "07c6ec45902428d210361719fa1fbf90de5aacd3baf3f18c09aebdccb64f2c61";
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 07c6ec45902428d2… -> 33d05c5bf9c6ee57…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    internal const string FoundedGoldenHash = "33d05c5bf9c6ee57efa9750653937c9d22d8748d330b47da4e94ae4f2e097022";
 
     /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
     internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)

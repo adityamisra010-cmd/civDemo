@@ -17,66 +17,90 @@ namespace Sim.Tests.Systems;
 /// request and was floored into a −1 ledger amount. FIX: the unabsorbed credit is carried in the staple's
 /// remainder and settled against its next request (no clamp, nothing dropped); every non-negative request is
 /// computed exactly as before, so no shipped world moves.
+///
+/// ADR-035 RE-RIG. The original 900-turn forager world reached the state only because every founded settlement
+/// harvested nothing on its founding turn; with the founding-turn harvest restored (ADR-035), no dev seed 1–7
+/// at founding stores 0 / 300 / 1500 carries a credit in 900 turns (measured), and its non-vacuity guard failed.
+/// The state is therefore built DIRECTLY at the consumption level: one settlement whose demand has collapsed
+/// (one adult, a short dt), a non-staple food whose banked remainder pays out a whole unit this turn, so its
+/// signed shortfall (a repayment) exceeds the staple's whole request. Before e6b7e42 that request floored to
+/// a −1 ledger amount and Ledger.Flow threw.
 /// </summary>
 public class SubstitutionCreditRegressionTests
 {
-    /// <summary>The crash configuration exactly as R3 recorded it: forager rates 1.0 / 2.0 (the R2a values,
-    /// pinned here so a later retune of sim.json cannot make this test stop reaching the state), switch ON,
-    /// founding cohorts re-apportioned to 100 (largest remainder over the shipped 400 vector) with foodStore
-    /// 15 per founder.</summary>
-    private static SimConfig CrashConfig()
+    private static readonly SettlementId S0 = new(0);
+
+    private static EraTable FlatEra(double dtYears) => EraTableLoader.Load(
+        $$"""{ "bands": [ { "name": "flat", "startYear": 0, "endYear": 100000, "dtYears": {{dtYears.ToString(System.Globalization.CultureInfo.InvariantCulture)}} } ] }""");
+
+    /// <summary>One adult, a stock row for every good, grain and livestock stocked; livestock's remainder
+    /// banked just below one whole unit (the state an earlier turn's sub-unit eating leaves behind).</summary>
+    private static WorldState CollapsedDemandRig(SimConfig cfg, double livestockBank)
     {
-        SimConfig cfg = TestConfigs.Sim();
-        return cfg with
+        var counts = new long[Cohorts.Count];
+        counts[5] = 1;
+        WorldState world = PopulationExactnessTests.BucketWorld(counts);
+        var ledger = new Ledger(world.LedgerFlows);
+        int livestock = cfg.Goods!.IdOf("livestock");
+        foreach (GoodEntry g in cfg.Goods.Goods)
         {
-            Farming = cfg.Farming with
-            {
-                PreCultivation = new PreCultivationConfig(Enabled: true, YieldPerArableKm2PerYear: 1.0, OutputPerGathererPerYear: 2.0),
-            },
-            Founding = cfg.Founding with
-            {
-                CohortCounts = [14, 14, 13, 11, 10, 9, 7, 6, 5, 4, 3, 2, 1, 1, 0, 0],
-                FoodStore = 1500,
-            },
-        };
+            int row = world.GoodStocks.Add(new GoodStockRow(S0, new GoodId(g.Id), Conserved.Zero, 0.0, 0.0));
+            long amount = g.Id == cfg.Goods.GrainId || g.Id == livestock ? 50 : 0;
+            if (amount > 0)
+                ledger.Flow(ref world.GoodStocks.Ref(row).Amount, ConservedQuantityIds.OfGood(new GoodId(g.Id)),
+                    ReasonIds.InitialEndowment, amount, FlowDirection.Source, OverdrawPolicy.Throw);
+            if (g.Id == livestock) world.GoodStocks.Ref(row).ConsumeRemainder = livestockBank;
+        }
+        return world;
+    }
+
+    private static GoodStockRow Row(WorldState w, int good)
+    {
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+            if (w.GoodStocks[i].Good.Value == good) return w.GoodStocks[i];
+        throw new InvalidOperationException($"no row for good {good}");
     }
 
     [Fact]
-    public void ForagerWorld_100Founders_DevSeed42_RunsPastTheCrashTurn_WithTheCreditCarried_AndTheAuditExact()
+    public void CollapsedDemand_RepaymentExceedsTheStaplesRequest_CreditCarried_NoNegativeLedgerAmount_AuditExact()
     {
-        SimConfig cfg = CrashConfig();
-        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
-        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
-        var exec = new TurnExecutor(EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.DevWorldgen())));
-        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42, null);
+        SimConfig cfg = TestConfigs.Sim();
         int grain = cfg.Goods!.GrainId;
+        int livestock = cfg.Goods.IdOf("livestock");
+        var exec = new TurnExecutor(FlatEra(0.1), [SystemCatalog.Consumption(cfg)]);
+        WorldState world = CollapsedDemandRig(cfg, livestockBank: 0.999);
 
-        int creditTurns = 0;
-        for (int t = 1; t <= 900; t++)   // the recorded crash is at turn 853
+        WorldState next = exec.Step(world);
+
+        // The crash state, reached and measured (non-vacuous): livestock paid out a whole unit, so its signed
+        // shortfall is a repayment, and that repayment exceeded the staple's whole request — the staple's
+        // request (its exact demand + shortfall + remainder) is NEGATIVE, which pre-e6b7e42 floored to −1.
+        Assert.Equal(1L, Row(next, livestock).LastConsumptionEatenUnits);
+        double credit = Row(next, grain).ConsumeRemainder;
+        Assert.True(credit < 0.0, $"no substitution credit carried ({credit}) — the rig no longer reaches the crash state");
+        Assert.True(Math.Floor(credit) <= -1.0, "the pre-fix floor would not have been a negative ledger amount");
+        Assert.True(credit > -3.0, $"credit {credit} beyond the non-staple-count bound");
+        // The fix: the staple asks for nothing, nothing flows, the credit is carried.
+        Assert.Equal(0L, Row(next, grain).LastConsumptionDemandUnits);
+        Assert.Equal(50L, Row(next, grain).Amount.Value);
+        Assert.True(ConservationAuditor.IsConserved(next, out string report), report);
+
+        // Settled against later requests: run on until the credit is repaid; never a negative stock, the
+        // remainder stays in (−3, 1), the audit stays exact.
+        bool settled = false;
+        for (int t = 2; t <= 200 && !settled; t++)
         {
-            world = exec.Step(world);
-            for (int i = 0; i < world.GoodStocks.Count; i++)
+            next = exec.Step(next);
+            for (int i = 0; i < next.GoodStocks.Count; i++)
             {
-                GoodStockRow row = world.GoodStocks[i];
+                GoodStockRow row = next.GoodStocks[i];
                 Assert.True(row.Amount.Value >= 0, $"turn {t}: stock {row.Amount.Value} < 0");
-                if (row.ConsumeRemainder < 0.0)
-                {
-                    // Only the staple ever carries a credit, and it is bounded by the non-staple food count
-                    // (each exact shortfall is > −1).
-                    Assert.Equal(grain, row.Good.Value);
-                    Assert.True(row.ConsumeRemainder > -3.0, $"turn {t}: credit {row.ConsumeRemainder}");
-                    creditTurns++;
-                }
-                else
-                {
-                    Assert.True(row.ConsumeRemainder < 1.0, $"turn {t}: remainder {row.ConsumeRemainder} >= 1");
-                }
+                Assert.True(row.ConsumeRemainder is > -3.0 and < 1.0, $"turn {t}: remainder {row.ConsumeRemainder}");
+                if (row.ConsumeRemainder < 0.0) Assert.Equal(grain, row.Good.Value);
             }
+            settled = Row(next, grain).ConsumeRemainder >= 0.0;
+            Assert.True(ConservationAuditor.IsConserved(next, out string r), $"turn {t}: {r}");
         }
-
-        // Non-vacuous: the failure state (a credit larger than the staple's request) was reached.
-        Assert.True(creditTurns > 0, "no substitution credit was ever carried — the test no longer reaches the crash state");
-        Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
+        Assert.True(settled, "the carried credit was never settled against a later request");
     }
 }

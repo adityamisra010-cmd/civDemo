@@ -133,7 +133,12 @@ public class PathBuildTests
         // The magnitude is pinned at its measured value so the term cannot
         // drift silently; NOTE the pin is VACUOUS for the subtraction on this
         // tree exactly as it was before T4.19 lane C (recorded, not hidden).
-        Assert.Equal(0.0, housingDrawT3);
+        // ADR-035 RE-MEASURED: 0.0 → 1.0. The cause T4.21-3 named is removed: the
+        // founding turn now harvests (the row-absent land side is unmeasured, not
+        // zero), so turn 2's cap no longer reads N_lim = 0, the settlement grows
+        // into a housing shortfall, one dwelling is built on turn 3, and the
+        // subtraction is NON-vacuous again (exactly 1.0 adult-year).
+        Assert.Equal(1.0, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the

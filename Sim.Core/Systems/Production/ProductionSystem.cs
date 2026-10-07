@@ -242,10 +242,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         if (!(farmLabor > 0.0)) return; // NaN fails this too
 
         double arableKm2 = 0.0;
+        bool haveCatchment = false;
         for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
         {
             if (prev.CatchmentSummaries[i].Settlement == settlement)
-            { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; break; }
+            { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; haveCatchment = true; break; }
         }
 
         // Tools equip farmers from the PREV tool stock (one-turn lag like every
@@ -273,7 +274,16 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             yieldPerKm2 = pre.YieldPerArableKm2PerYear;
             perWorker = pre.OutputPerGathererPerYear;
         }
-        double landSide = arableKm2 * yieldPerKm2;
+        // ADR-035 (closes the ADR-025 §2.4a deviation): with NO catchment summary row in PREV — the
+        // founding turn, or a colony's first stepped turn; CatchmentSystem.IsStale gives the row on the
+        // next turn — the land side is UNMEASURED, not zero: it does not bind, and the harvest is
+        // labour-limited. This mirrors FoodHeadroom's null arm (row absence ⇒ unmeasured). Keyed on ROW
+        // ABSENCE ONLY: a present row with arable 0 stays 0 (the abandoned-settlement semantics). A
+        // yield of 0 (farming disabled) keeps the land side at 0 — never ∞ × 0 = NaN, never a phantom
+        // labour-limited harvest.
+        double landSide = haveCatchment
+            ? arableKm2 * yieldPerKm2
+            : (yieldPerKm2 > 0.0 ? double.PositiveInfinity : 0.0);
         double laborSide = farmLabor * perWorker * toolFactor;
         double ratePerYear = Math.Min(landSide, laborSide);
 

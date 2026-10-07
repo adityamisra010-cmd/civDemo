@@ -156,7 +156,8 @@ public class MerchantTests
         // M5 R2b RE-PIN (2026-10-03; VALUE): first active 119 -> 124, MEASURED. Untaxed run, so no protest
         // fires; the cause is the R2b weather-geography layer moving the harvest series (INFERRED by elimination:
         // the unrest and Age-military layers act on nothing this run reads). Aim unchanged.
-        Assert.Equal(124, firstActive);   // moves with the trajectory; re-measured per packet
+        // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest): first active 124 -> 118, MEASURED.
+        Assert.Equal(118, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

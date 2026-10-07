@@ -25,7 +25,8 @@ public class FirstReignTests
     }
 
     /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
-    internal const string PostR1Golden = "27dd99c66bb7bb13363bd694eeb1b9a1d8b11bfb094c44f27e21f259656baa8a";
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 27dd99c66bb7bb13… -> 8f3f86b76a8a0357…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    internal const string PostR1Golden = "8f3f86b76a8a035755d0f0369dc4cc0af9a2f058cb8a8cb0daffad32a6808ec4";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {
