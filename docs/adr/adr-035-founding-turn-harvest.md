@@ -174,7 +174,7 @@ ADR-017 is amended for the per-cohort factor only; a dated pointer is added to i
 | population at turn 300, seeds 42 / 1 / 2 / 7 | 37,938 / 40,255 / 40,954 / 39,612 | 38,208 / 39,626 / 39,732 / 38,139 |
 
 The founding population of seed 42 moves 5143 → 5108 (the per-cohort factors no longer average the same; the
-settlement-common factor is untouched and ' founding-total spread still passes). The
+settlement-common factor is untouched and `FoundingVariationPinTests`' founding-total spread still passes). The
 world now grows from turn 1 at close to the kernel's stable rate. The FoundedHarness labour-swing rig had to be
 re-rigged (its old swing set no longer starves settlement 0 into revolt in 300 turns); see
-.
+`FoundedHarnessTests.SessionPcts`.
