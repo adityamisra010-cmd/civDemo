@@ -135,3 +135,46 @@ them without it.
 The turn-1 integer gain falls from +102 to −2 on seed 42: the ~100 phantom survivors of the floor are gone, and
 what remains on seed 42 is the composition noise of §7 (P-F0 alone unmasks it, as the skeptic predicted: seed
 42's turn-1 and turn-2 declines are the per-cohort jitter's, removed by P-F2).
+
+## 7. P-F2 — founding age composition at demographic scale
+
+**Context.** `WorldFounding.Jittered` multiplied every founding cohort by a settlement-common factor AND an
+independent per-cohort factor, both of amplitude `founding.endowmentJitter` = 0.69 (CV 0.4). ADR-017 derived
+0.69 from RC-1, the reference class for founding SIZE (Neolithic settlement sizes, village-fission founder
+groups). Applied per cohort it is a size reference class used for age COMPOSITION: a 57-person cohort varied by
+up to ±39 people, where a founder group drawn from a stable population varies by about ±7.5. The off-stable
+pyramids it produced were the largest part of the turn-2 dip on the played seed (composition −75 of −94, the
+skeptic's decomposition), and they are what left 4 of 8 seeds falling on turn 2 after P-F1.
+
+**Decision.** The settlement-common factor is kept (RC-1, CV 0.4, carries the founding-TOTAL spread that ADR-017
+and `FoundingVariationPinTests` require). The per-cohort factor gets its own reference class: a founder group of
+n people drawn from the stable age structure is a multinomial draw, whose cohort count has sd ≈ √n_c, i.e.
+CV_c ≈ 1/√n_c with n_c the cohort's expected count after the common factor. A uniform u ∈ [−1, 1] realises
+CV = a/√3, so the per-cohort amplitude is `a_c = min(1, √(3/n_c))` (capped at 1 so the factor stays in [0, 2],
+non-negative and mean-preserving). Age structures still differ between settlements, at the scale real founder
+groups differ.
+
+**Derived tolerance and test.** Pearson's X² of a settlement's cohort counts against the stable vector has mean
+K − 1 for a multinomial founder group (K = 16 cohorts here). `FoundingCompositionTests` requires the mean over
+120 founded settlements (canonical, seeds 1–10) to lie in [0.5, 1.5]·(K − 1) = [7.5, 22.5], and a deterministic
+ceiling on any single cohort's deviation. MEASURED: the superseded scheme gives a mean X² of **53.4** on the
+same 120 settlements (the test is RED against it); the new scheme gives **13.2** (max single-cohort z 2.03).
+
+ADR-017 is amended for the per-cohort factor only; a dated pointer is added to it. ADR-017 was itself
+"director certification pending", so this amendment goes to the same ruling.
+
+**Measured** (on the P-F2 commit, P-F1 + P-F0 + P-F2):
+
+| reading | P-F1 + P-F0 | P-F1 + P-F0 + P-F2 |
+|---|---|---|
+| seed 42 world population, turns 0–10 | 5143 5141 5125 5143 5156 5199 5243 5293 5324 5367 5406 | 5108 5118 5135 5164 5192 5231 5272 5311 5364 5396 5438 |
+| turn-2 world change, seeds 1–8 | +11 +18 +36 +67 +63 +99 +90 +36 | +41 +41 +46 +53 +46 +66 +62 +45 |
+| world-decline turns in 300, seeds 42 / 1 / 2 / 7 | 2 / 0 / 0 / 0 | 0 / 1 (turn 18: −2, 24 starvation deaths in a weather shortfall) / 0 / 0 |
+| fed growth T80–240, %/yr, seeds 42 / 1 / 2 / 7 | 0.0733 / 0.0728 / 0.0724 / 0.0729 | 0.0734 / 0.0727 / 0.0725 / 0.0730 |
+| population at turn 300, seeds 42 / 1 / 2 / 7 | 37,938 / 40,255 / 40,954 / 39,612 | 38,208 / 39,626 / 39,732 / 38,139 |
+
+The founding population of seed 42 moves 5143 → 5108 (the per-cohort factors no longer average the same; the
+settlement-common factor is untouched and ' founding-total spread still passes). The
+world now grows from turn 1 at close to the kernel's stable rate. The FoundedHarness labour-swing rig had to be
+re-rigged (its old swing set no longer starves settlement 0 into revolt in 300 turns); see
+.

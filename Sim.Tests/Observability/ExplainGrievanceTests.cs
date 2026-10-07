@@ -52,7 +52,8 @@ public class ExplainGrievanceTests
         // ADR-035 RE-PIN (VALUE, one cause: the founding-turn harvest): 0.76528799797005831 -> 0.77335557673975219,
         // MEASURED — the rig's target carries a different population into the drawdown turn; first is unchanged.
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): -> 0.77447216890595005.
-        Assert.Equal(0.77447216890595005, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): -> 0.77420936504045113.
+        Assert.Equal(0.77420936504045113, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

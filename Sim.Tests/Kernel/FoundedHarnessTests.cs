@@ -66,11 +66,17 @@ public class FoundedHarnessTests
         return log;
     }
 
-    private static readonly double[] SessionPcts = [60.0, 30.0, 80.0, 0.0, 100.0, 45.0];
+    // ADR-035 §7 RE-RIG (2026-10-07, P-F2; MEASURED): with founding age composition at demographic scale, the old
+    // swing set [60, 30, 80, 0, 100, 45] no longer starves settlement 0 into revolt in 300 turns (the 0 % order
+    // lands at 94 and the 100 % one at 124 rescues it), which would leave the twin without its refusal leg and
+    // CliRevoltPolityProducerTests without a revolt. The 0 % swing moves to the second slot (issued 33, lands 34):
+    // [60, 0, ...] revolts settlement 0 at 39, so the 80, 30, 100 and 45 % orders after it are all REFUSED — both
+    // boundaries (0 and 100) still appear in the log.
+    internal static readonly double[] SessionPcts = [60.0, 0.0, 80.0, 30.0, 100.0, 45.0];
 
     /// <summary>The turn settlement 0 revolts on this world under <see cref="SessionLog"/> (MEASURED; history on
     /// FoundedOrderedTwin_HashIdentical_EveryTurn). CliRevoltPolityProducerTests reads it.</summary>
-    internal const int RevoltTurn = 97;
+    internal const int RevoltTurn = 39;
 
     /// <summary>The farming share in force at <paramref name="turn"/>: the last order landing (issue turn + 1) at or
     /// before it and before the revolt — orders landing at or after the revolt are refused.</summary>
@@ -118,7 +124,8 @@ public class FoundedHarnessTests
             // (RevoltSystem: it stops obeying). Turn-exact, on the twin.
             // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit by the agent writing this line): P-F1 (the
             // founding-turn harvest) moved the revolt 58 -> 63; P-F0 (the founding death remainder) 63 -> 97 — the
-            // 30 % and 80 % swings no longer starve it, and the turn-93 0 % order (landing at 94) does, as before R4.
+            // 30 % and 80 % swings no longer starve it, and the turn-93 0 % order (landing at 94) does, as before R4;
+            // P-F2 (founding composition) re-rigs the swing set (see SessionPcts): the 0 % order lands at 34, revolt 39.
             // The pin is now written over RevoltTurn: every order landing BEFORE the revolt is obeyed on its landing
             // turn, every order after it is refused (the allocation stays at the last obeyed order).
             for (int k = 0; k < SessionPcts.Length; k++)

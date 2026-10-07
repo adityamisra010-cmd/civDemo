@@ -1,6 +1,11 @@
 # ADR-017 — D-025 under T3.6b: siting STANDS; the endowment split moves to its reference band
 
 Status: proposed (director certification pending) · Packet: T3.6b · Date: 2026-07-29
+
+> **2026-10-07 — AMENDED by ADR-035 §7** (`docs/adr/adr-035-founding-turn-harvest.md`, M5 polish P1): the
+> per-slot (per-cohort) founding factor no longer borrows RC-1's amplitude. RC-1 (CV 0.4) now drives the
+> settlement-COMMON factor only; the per-cohort factor is demographic-scale noise, CV ≈ 1/√n_c (a founder group
+> drawn from the stable age structure). The text below is the historical record.
 Evidence: docs/t3.6b-review-record.md (Item 0, 5 seeds, canonical world), rig
 Sim.Tests/Systems/FoundingVariationItem0Tests.cs @ b9d4b3b.
 
