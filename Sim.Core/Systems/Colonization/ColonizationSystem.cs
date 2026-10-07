@@ -133,7 +133,13 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
 
     // Pure function of STATIC terrain (ADR-008), so built once and reused. The
     // PathBuildSystem precedent for a lazily-built lattice inside a system.
+    // KEYED ON THE TERRAIN IT WAS BUILT FROM (M5 polish, food audit P4): a pipeline
+    // instance stepped over a second world (a forecast or tool reusing one pipeline
+    // across seeds) rebuilds it instead of siting colonies on the first world's map.
+    // Reference identity is the key: a world's TerrainSet is immutable and shared by
+    // every Clone of that world, so one world never rebuilds.
     private SettlementSiting.FrontierSiting? _frontier;
+    private TerrainSet? _frontierTerrain;
 
     /// <summary>Per-bucket party sizes for the settlement being founded, indexed by
     /// bucket row. Allocated once and reused (T4.13 F5 precedent: no per-settlement
@@ -153,8 +159,12 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
         int existing = settlements.Count;
         if (existing == 0) return;
 
-        _frontier ??= SettlementSiting.PrepareFrontier(
-            terrain, _worldgen.Siting, _cfg.Transport.RiverCostFactor);
+        if (_frontier is null || !ReferenceEquals(_frontierTerrain, terrain))
+        {
+            _frontier = SettlementSiting.PrepareFrontier(
+                terrain, _worldgen.Siting, _cfg.Transport.RiverCostFactor);
+            _frontierTerrain = terrain;
+        }
 
         // Site cells of every settlement standing, ascending settlement order
         // (law 5: an array scan, never a dictionary walk).
