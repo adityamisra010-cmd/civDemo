@@ -719,7 +719,8 @@ public sealed class GameUi
         if (!ReferenceEquals(_mapInkTheme, _frameTheme)) { _mapInk = Sim.Ui.World.MapInk.For(_frameTheme); _mapInkTheme = _frameTheme; }
         _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
             (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
-            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk);
+            new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
+            theme: _frameTheme, uiScale: Scale);   // UR-7: the map's labels by role, in the era's hand, × the UI scale
         if (_selectedUnit >= 0)
             foreach (Sim.Ui.World.UnitPlacement up in _lensFrame.UnitPlacements)
                 if (up.Id == _selectedUnit)

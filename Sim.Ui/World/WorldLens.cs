@@ -5,6 +5,7 @@ using Sim.Core.Systems;
 using Sim.Core.Systems.Ages;
 using Sim.Ui.Ages;
 using Sim.Ui.Render;
+using Sim.Ui.Theme;
 using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.World;
@@ -334,9 +335,10 @@ public static class WorldLens
     /// <see cref="MapInk"/>; <see cref="MapInk.Default"/> when omitted).</summary>
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
-        bool showTerritory = true, MapInk? ink = null)
+        bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0)
     {
         MapInk k = ink ?? MapInk.Default;
+        _type = new MapType(theme, uiScale);
         IReadOnlyList<WorldLayer> layers = LayersFor(zoom);
         var draws = new int[MapLayerOwnership.All.Length];
         var institutions = new List<InstitutionMarker>();
@@ -380,7 +382,7 @@ public static class WorldLens
                 d.Circle(sx, sy, r + 2, A(k.SettlementHalo, 0.9), k.Ink, 1.2);
                 d.Circle(sx, sy, r, pol, null);
                 if (s.IsCapital) Star(d, sx, sy, r * 0.75, k.CapitalMark);
-                Name(d, m, sx, sy + r + 5, s.Name, 12.5, k);
+                Name(d, m, sx, sy + r + 5, s.Name, TypeRole.Body, k);
             }
             else PaintMorphology(d, m, p, s, sx, sy, scale, zoom, On, Charge, institutions, k);
             if (s.Id == selected) d.Circle(sx, sy, (zoom == WorldZoom.World ? 20 : FootprintRadius(s, scale, zoom) + 8), null, k.Selection, 2.4);
@@ -415,7 +417,7 @@ public static class WorldLens
                 ux += edge + fx;
                 uy += fy;
                 UnitToken(d, ux, uy, tok, u.FamilyKey, k.PolityOf(u.Owner, p.PlayerPolity), k);
-                if (zoom != WorldZoom.World) d.Text(ux + tok + 5, uy - 7, u.IdentityName, 11, k.Ink, TextAlign.Left, FontRole.Caps);
+                if (zoom != WorldZoom.World) _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
                 unitTokens.Add(u.Id);
                 placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]));
             }
@@ -520,10 +522,11 @@ public static class WorldLens
             // with its aggregated count, so labels never overprint the footprint or each other.
             void Key(int i, string label, long count, Action<double, double> glyph)
             {
-                double ky = sy - total * 9 + i * 18 + 9;
+                double pitch = Math.Max(18, _type.Size(TypeRole.Caption, FontRole.Caps) * 1.3);
+                double ky = sy - total * pitch / 2 + i * pitch + pitch / 2;
                 double kx = sx - r - 18;
                 glyph(kx, ky);
-                d.Text(kx - 12, ky - 7, label + (count > 1 ? " x" + count.ToString(CultureInfo.InvariantCulture) : ""), 11, ink, TextAlign.Right, FontRole.Caps);
+                _type.Label(d, kx - 12, ky - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, label + (count > 1 ? " x" + count.ToString(CultureInfo.InvariantCulture) : ""), TypeRole.Caption, FontRole.Caps, ink, TextAlign.Right);
             }
             (double, double) Slot(int i)
             {
@@ -545,7 +548,7 @@ public static class WorldLens
                 institutions.Add(new InstitutionMarker(s.Id, "institution:" + iv.TypeKey.ToString(CultureInfo.InvariantCulture), iv.Count));
             }
             if (s.Notables > 0 && named)
-                d.Text(sx, sy + r * 0.12 + 6, s.Notables.ToString(CultureInfo.InvariantCulture) + " notable(s) resident", 10.5, A(ink, 0.8), TextAlign.Center);
+                _type.Label(d, sx, sy + r * 0.12 + 6, s.Notables.ToString(CultureInfo.InvariantCulture) + " notable(s) resident", TypeRole.Secondary, FontRole.Body, ink, TextAlign.Center);
         }
         charge(MapLayer.InstitutionMarkers);
 
@@ -564,47 +567,78 @@ public static class WorldLens
         }
 
         double ly = sy + r + (on(WorldLayer.ProductionSignals) && s.Sectors is not null ? 18 : 8);
-        Name(d, m, sx, ly, s.Name, zoom == WorldZoom.Settlement ? 15 : 12.5, k);
-        ly += zoom == WorldZoom.Settlement ? 19 : 15;
+        TypeRole nameRole = zoom == WorldZoom.Settlement ? TypeRole.Heading : TypeRole.Body;
+        Name(d, m, sx, ly, s.Name, nameRole, k);
+        ly += _type.Size(nameRole, FontRole.Heading) * 1.35;
+        double data = _type.Size(TypeRole.Data, FontRole.Numeric), second = _type.Size(TypeRole.Secondary, FontRole.Body);
+        double caps = _type.Size(TypeRole.Caption, FontRole.Caps);
         if (on(WorldLayer.PopulationScale))
         {
-            d.Text(sx, ly, s.Population.ToString("#,0", CultureInfo.InvariantCulture) + " people  -  " + s.Dwellings.ToString("#,0", CultureInfo.InvariantCulture) + " dwellings", 11.5, ink, TextAlign.Center, FontRole.Numeric);
-            ly += 15;
+            _type.Label(d, sx, ly, s.Population.ToString("#,0", CultureInfo.InvariantCulture) + " people  -  " + s.Dwellings.ToString("#,0", CultureInfo.InvariantCulture) + " dwellings", TypeRole.Data, FontRole.Numeric, ink, TextAlign.Center);
+            ly += data * 1.3;
         }
         if (on(WorldLayer.InfrastructureDensity))
         {
-            d.Text(sx, ly, s.RoadsInCatchment.ToString(CultureInfo.InvariantCulture) + " path link(s) in catchment  -  size tier " + s.SizeTier.ToString(CultureInfo.InvariantCulture), 11, A(ink, 0.85), TextAlign.Center);
-            ly += 15;
+            _type.Label(d, sx, ly, s.RoadsInCatchment.ToString(CultureInfo.InvariantCulture) + " path link(s) in catchment  -  size tier " + s.SizeTier.ToString(CultureInfo.InvariantCulture), TypeRole.Secondary, FontRole.Body, ink, TextAlign.Center);
+            ly += second * 1.3;
         }
         if (on(WorldLayer.ProductionSignals) && zoom == WorldZoom.Settlement && s.Sectors is null)
-            d.Text(sx, ly, "labour split: default (no allocation ordered)", 11, Ink.With(ink, 0.8), TextAlign.Center, FontRole.Caps);
+            _type.Label(d, sx, ly, "labour split: default (no allocation ordered)", TypeRole.Caption, FontRole.Caps, ink, TextAlign.Center);
         else if (on(WorldLayer.ProductionSignals) && zoom == WorldZoom.Settlement && s.Sectors is not null)
         {
             int top = 0;
             for (int i = 1; i < 5; i++) if (s.Sectors[i] > s.Sectors[top]) top = i;   // ties: lowest sector index
             string sectorLabel = s.TopSectorLabel ?? SectorNames[top];
             string lab = "labour mostly " + sectorLabel.ToLowerInvariant() + " (" + Math.Round(s.Sectors[top] * 100).ToString("0", CultureInfo.InvariantCulture) + "%)";
-            double lw = m.Width(lab, 11, FontRole.Caps);
-            d.Rect(new RectD(sx - lw / 2 - 14, ly + 2, 9, 9), k.Sectors[top], ink, 0.8);
-            d.Text(sx + 5, ly, lab, 11, ink, TextAlign.Center, FontRole.Caps);
+            double lw = _type.Width(m, lab, TypeRole.Caption, FontRole.Caps);
+            d.Rect(new RectD(sx - lw / 2 - 14, ly + caps * 0.25, 9, 9), k.Sectors[top], ink, 0.8);
+            _type.Label(d, sx + 5, ly, lab, TypeRole.Caption, FontRole.Caps, ink, TextAlign.Center);
         }
     }
 
-    /// <summary>A settlement's name on a soft paper plate, so a road running under it never cuts the letters.</summary>
-    private static void Name(DrawList d, ITextMeasure m, double x, double y, string name, double size, MapInk k)
+    /// <summary>A settlement's name on a soft paper plate, so a road running under it never cuts the letters (UR-7: at
+    /// the body role in the era's heading face — it was 12.5 px — and the heading role at settlement zoom).</summary>
+    private static void Name(DrawList d, ITextMeasure m, double x, double y, string name, TypeRole role, MapInk k)
     {
-        double w = m.Width(name, size, FontRole.Heading);
-        d.Rect(new RectD(x - w / 2 - 3, y - 1, w + 6, size + 3), A(k.NamePlate, 0.72), null, 1, 3);
-        d.Text(x, y, name, size, k.Ink, TextAlign.Center, FontRole.Heading);
+        double size = _type.Size(role, FontRole.Heading);
+        double w = _type.Width(m, name, role, FontRole.Heading);
+        d.Rect(new RectD(x - w / 2 - 4, y - 1, w + 8, size * 1.3 + 2), A(k.NamePlate, 0.78), null, 1, 3);
+        _type.Label(d, x, y, name, role, FontRole.Heading, k.Ink, TextAlign.Center);
     }
 
     private static void Banner(DrawList d, ITextMeasure m, double x, double y, int age, Rgba pol, bool capital, MapInk k)
     {
         string t = AgePanelModel.Numeral(age);
-        double w = m.Width(t, 11, FontRole.Caps) + 12;
+        double size = _type.Size(TypeRole.Caption, FontRole.Caps);
+        double w = _type.Width(m, t, TypeRole.Caption, FontRole.Caps) + 12;
+        double h = size * 1.2;
         d.Line(x, y + 16, x, y + 2, k.Ink, 1.4);
-        d.Polygon([(x, y - 10), (x + w, y - 10), (x + w - 4, y - 2), (x + w, y + 6), (x, y + 6)], pol);
-        d.Text(x + 5, y - 8, t, 11, capital ? k.CapitalMark : k.BannerText, TextAlign.Left, FontRole.Caps);
+        d.Polygon([(x, y - h), (x + w, y - h), (x + w - 4, y - h * 0.35), (x + w, y + 6), (x, y + 6)], pol);
+        _type.Label(d, x + 6, y - h + 1, t, TypeRole.Caption, FontRole.Caps, capital ? k.CapitalMark : k.BannerText, TextAlign.Left);
+    }
+
+    /// <summary>The map's type for this paint (UR-7): the era's styles at the type scale's roles × the UI scale; with no
+    /// theme (previews, tests), the same roles in the pre-theme faces.</summary>
+    [ThreadStatic] private static MapType _type;
+
+    private readonly struct MapType(EraTheme? theme, double uiScale)
+    {
+        private double S => uiScale > 0 ? uiScale : 1.0;
+
+        /// <summary>The design size of a role (before the era's size scale, which <see cref="ThemeText.Write"/> applies).</summary>
+        public double Size(TypeRole role, FontRole font) => theme is { } t
+            ? TypeScale.Px(t, role, font) * S
+            : TypeScale.Px(role, font == FontRole.Numeric ? TypeFace.PlexSerif : TypeFace.Garamond, font == FontRole.Caps) * S;
+
+        public double Width(ITextMeasure m, string text, TypeRole role, FontRole font) => theme is { } t
+            ? m.Width(t, text, Size(role, font), font)
+            : m.Width(text, Size(role, font), font);
+
+        public void Label(DrawList d, double x, double y, string text, TypeRole role, FontRole font, Rgba color, TextAlign align)
+        {
+            if (theme is { } t) d.Write(t, x, y, text, Size(role, font), color, align, font);
+            else d.Text(x, y, text, Size(role, font), color, align, font);
+        }
     }
 
     private static void Star(DrawList d, double cx, double cy, double r, Rgba c)

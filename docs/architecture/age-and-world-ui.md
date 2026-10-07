@@ -123,6 +123,11 @@ What each element draws from:
   - universities exist only as polity-level `ResearchCostModifiers` rows, never placed in a settlement — "none founded" when there are none;
   - "Structures: none built yet".
 
+> **DATED NOTE 2026-10-06 (M5 polish UR-7).** The map's labels are set by role in the era's styles × the UI scale
+> (`WorldLens.Paint(…, theme:, uiScale:)`): settlement names at the Body role in the heading face (the Heading role at
+> settlement zoom; they were 12.5 px), the Age banners' numerals and the formations' and institutions' labels at the
+> Caption role, the population line at the Data role, the catchment line at the Secondary role.
+
 ### 5.1 Map layer ownership (one owner per layer)
 
 Before this pass the lens was drawn on top of the legacy GPU map layers, so territory, paths and settlement marks/names appeared twice. `Sim.Ui/World/MapLayers.cs` (`MapLayerOwnership`) is now the single authority. Each layer has exactly one owner, and the other renderer does not draw it:

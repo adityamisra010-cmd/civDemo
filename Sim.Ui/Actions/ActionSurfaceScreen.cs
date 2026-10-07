@@ -293,7 +293,11 @@ public sealed class ActionSurfaceScreen
     private double Px(TypeRole role, FontRole style = FontRole.Body) => TypeScale.Px(T, role, style) * Scale;
     private double Body => Px(TypeRole.Body);
     private double BodyBold => Px(TypeRole.Body, FontRole.Heading);
-    private double Second => Px(TypeRole.Secondary);
+    // UR-7 (the census, M5 polish stage B): 72–88 % of this surface's characters were explanations at the Secondary
+    // role ("makes wild food (grain)", blockers, notes) — what the player reads to decide is set at the BODY role in
+    // the soft ink: the hierarchy is ink and weight (the heading and the labels are bold, the figures a column), not a
+    // smaller size.
+    private double Second => Px(TypeRole.Body);
     private double Caption => Px(TypeRole.Caption);
     private double Data => Px(TypeRole.Data, FontRole.Numeric);
     private double Sp(double px) => px * Scale;
