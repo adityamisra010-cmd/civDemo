@@ -151,6 +151,33 @@ public class RevoltAgeInheritanceTests
         Assert.Equal(0.0, Governance.EffectiveTaxRate(after, new SettlementId(1), cfg));
     }
 
+    /// <summary>G11 (M5 polish) — D-048 ruling 6, "the child researches at the NORMAL rate", pinned directly: after the
+    /// revolt, the child's per-turn Research Points on its target equal the content's RP formula
+    /// (coefficient × P^exponent, <see cref="ResearchQuery.ResearchPoints"/>) of ITS OWN population — not the
+    /// city-state fraction, not the parent's pool, with no progress carried and no Eureka credit — and the parent,
+    /// researching the same node from its own population, gets its own formula value in the same step.</summary>
+    [Fact]
+    public void ARevoltBornChild_ResearchesAtTheFormulaRate_ForItsOwnPopulation()
+    {
+        WorldState born = Pipeline().Step(Split(parentAge: 3));
+        Assert.True(EmpireQuery.TryGetController(born, new SettlementId(1), out PolityId founded));
+        Assert.Equal(Child, founded);
+        Assert.Equal(0.0, Progress(born, 6, Child.Value));                 // nothing inherited (ruling 2)
+
+        var orders = new OrderLog();
+        orders.Append(Target(born.Clock.Turn, 6, Child.Value));
+        WorldState w = Executor(Rig, orders).Step(born);
+
+        double childPop = ResearchQuery.Population(born, Child);   // long → double
+        Assert.Equal(10_000.0, childPop);                                // settlement 1's people
+        double rp = ResearchQuery.ResearchPoints(Rig.Tuning, childPop);
+        double cost = ResearchQuery.EffectiveCost(born, Rig, Child, Rig.IndexOf(Key(6)));
+        Assert.True(rp > 0.0 && rp < cost, $"rp {rp} vs cost {cost}: the step would complete the node, rig vacuous");
+        Assert.Equal(rp, Progress(w, 6, Child.Value));                     // EXACT: one turn of the formula
+        Assert.Equal(rp, ResearchQuery.ResearchPointPool(born, Rig, Child));
+        Assert.NotEqual(Rig.Tuning.CityStatePaceFraction * rp, Progress(w, 6, Child.Value));
+    }
+
     /// <summary>D-048 ruling 5 still holds with Ages: a parent whose only place is destitute keeps it — no child, no
     /// Age row.</summary>
     [Fact]

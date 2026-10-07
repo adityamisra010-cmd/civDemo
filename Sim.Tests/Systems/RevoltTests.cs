@@ -106,6 +106,50 @@ public class RevoltTests
         Assert.Equal(2, w.Controls.Count);
     }
 
+    /// <summary>
+    /// G9 (M5 polish; directive §15 "poverty alone never triggers revolt") — a POOR but not DESTITUTE settlement at
+    /// a declared 0 % tax never revolts, however long it stays poor. Swept over food deficits up to 1.0 and dwelling
+    /// stocks down to 0, every pair EXCEPT the one destitute corner (unfed AND unhoused, D-021's deprivation path),
+    /// each held for 30 turns. The destitute corner revolts on its first turn (the teeth: the same rig, the same
+    /// pipeline). Poverty is any shortfall short of that corner; destitution is the corner itself.
+    /// </summary>
+    [Fact]
+    public void APoorButNotDestituteSettlement_AtZeroTax_NeverRevolts()
+    {
+        double[] deficits = [0.0, 0.5, 0.9, 0.99, 1.0];
+        long[] dwellings = [0, 1, 5, 50, 100];
+        int poorCases = 0;
+        foreach (double d in deficits)
+        {
+            foreach (long h in dwellings)
+            {
+                WorldState w = Governed(deficit0: d, dwellings0: h);
+                w.TaxPolicies.Add(new TaxPolicyRow(new PolityId(1), 0.0));   // a DECLARED 0 % levy
+                bool destitute = d >= 1.0 && h == 0;
+                var exec = RevoltOnly();
+                for (int t = 1; t <= 30; t++)
+                {
+                    w = exec.Step(w);
+                    bool held = EmpireQuery.TryGetController(w, new SettlementId(0), out PolityId ruler) && ruler.Value == 1;
+                    if (destitute)
+                    {
+                        Assert.False(held, "the destitute corner did not revolt — the rig has no teeth");
+                        break;
+                    }
+                    Assert.True(held, $"deficit {d}, dwellings {h}: a poor (not destitute) settlement revolted on turn {t}");
+                    Assert.Equal(1, w.Polities.Count);
+                }
+                if (!destitute)
+                {
+                    poorCases++;
+                    Assert.False(SettlementHappiness.IsRevoltReady(w, new SettlementId(0), Cfg()));
+                    Assert.False(Unrest.IsUprising(w, new SettlementId(0), Cfg()));
+                }
+            }
+        }
+        Assert.Equal(24, poorCases);
+    }
+
     [Fact]
     public void AComfortableWorldIsLeftBitForBitAlone()
     {
