@@ -199,7 +199,113 @@ tests for the same behaviour are in `Sim.Ui.Tests/InfoPanelTests.cs`.
 The §6 tables below were generated before this area existed and were not regenerated. The full run on this
 branch's final commit is in the stream report.
 
-## 4. The controls (enumerated from the code)
+### 3.2 Headless observability (M5 workstream P6, 2026-10-10)
+
+Branch `m5w-p6-headless-observability`, cut from `m5p-d051-fixes` @ `82bde01`. Presentation and test tooling only:
+no simulation, serialization or order code changed.
+
+**What the frame says (IMPLEMENTED).**
+
+| piece | file | what it is |
+|---|---|---|
+| `GameUi.FrameText` | `Sim.Ui/FrameText.cs`, `Sim.Ui/GameUi.Text.cs` | Every string the last frame drew, in draw order, each tagged with its surface (`FrameSurface`: lens, age, notices, status, selection, unit-card, context, info, command, hint, research) and its source: an ImGui text line, a widget's visible label (the part before `##`), a run added straight to a draw list, or a `TextCmd` the DrawList backend replayed (after its off-screen cull). Read-only. It only observes: nothing reads it back. |
+| recording helpers | `Sim.Ui/GameUi.Text.cs` | `Text`, `Button`, `Selectable`, `Checkbox`, `RadioButton`, `InvisibleButton`, `PlotLines`, `AddText`, `BeginWindow`. Each records the string, then makes exactly the ImGui call it wraps. This file is the only place in Sim.Ui that calls ImGui's text and widget functions. |
+| `DrawListImGuiBackend.Replayed` | `Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs` | Told of every `TextCmd` as it is replayed. GameUi's backend reports into FrameText under the surface being drawn. |
+| `GameUi.LastLensCommands` | `Sim.Ui/GameUi.cs` | The world lens's DrawList commands as the last frame painted them (before the cull). Empty in a frame that drew no lens (the research screen). |
+
+**FrameText is complete — two independent proofs (`Sim.Ui.Tests/FrameTextTests.cs`).**
+- *Source guard.* No ImGui call in Sim.Ui that can draw text or submit a widget sits outside an allowlisted file,
+  and each allowlisted file holds exactly its stated count. The calls covered are text, labels, buttons, checkboxes,
+  radios, selectables, trees, tabs, menus, combos, sliders, inputs, plots, tooltips, `Begin`, any draw list's
+  `AddText`, and any `ImGuiNative.ig*`. The allowlist has 10 entries, each with its reason: the 9 helpers, and the
+  backend's 3 `AddText` calls in its `TextCmd` replay. An alias of ImGui (`using static`, `using X =`) is itself a
+  violation. Ten bypass shapes are mutants of the real tree, and each is reported at its line: a direct call, a
+  fully-qualified call, `dl.AddText`, `TextWrapped`, `SetTooltip`, a native call, a call after a string holding `//`,
+  an extra call in an allowlisted file, and both alias forms. A call written inside a comment is not reported.
+- *ImGui's own text log.* ImGui writes everything it renders as text to a file (`LogToFile`) for one frame. Every
+  string it wrote must be one FrameText recorded, leaving only ImGui's own log furniture: button brackets, checkbox
+  and radio markers, separator dashes. This is checked on every surface after a played turn: the map, every section,
+  POLICY with its record open and scrolled, TRENDS in both scopes and the price metric, every developer tab and
+  settlement tab, the grievance factors, the formation card, the Age panel, a pinned info card, and the research
+  screen. The mutant is one direct `ImGui.TextUnformatted` and one `ImGui.Button` added to a real frame. ImGui
+  renders both, FrameText never hears of them, and the check names both. The same frame without them leaves nothing.
+
+Also pinned there:
+- FrameText names the selected settlement on the selection card and follows the selection.
+- In a world with no settlement (the only way nothing is selected), no surface draws any settlement name. The same
+  search finds the name in the canonical frame (the control).
+- Every lens string replayed is among `LastLensCommands`' `TextCmd`s, in paint order.
+- *The recorders only observe.* A live UI that drew and recorded every section, the developer surfaces and the
+  research screen, then ended the turn through its button, holds exactly the bare session's world, hash for hash,
+  before and after the End Turn.
+
+**Gate control coverage (IMPLEMENTED, `Sim.Ui/Headless/UiCoverage.cs`).** Every control and screen region a player
+can act on has a coverage key:
+- `control:<family>`: a recorded ImGui widget. A run of digits reads `#`, and the TURN audit lines are one family,
+  `audit-*`.
+- `hit:<surface>.<kind>`: a hit region of a screen that is showing (research, age, policy, card).
+- `info:<kind>`: an inspectable region.
+
+The harness collects every key drawn in any frame of a state (sweep and monkey). At every press it records the keys
+under the pointer in the frame the player saw. A plain press covers controls and hit kinds. A Shift press covers
+only the inspectable kind, because it inspects and does not click. A gate row covers what it pressed while it ran
+(`GateRow.Covers`), and only a passing row counts.
+
+After the sweep and the monkey, each drawn key that no passing row of that state pressed, and that is not on
+`UiCoverage.Allowlist` with a reason, is a FAIL row. The allowlist is EMPTY: every drawn key is pressed by a passing
+row.
+
+The first run of the check found 18 drawn keys with no row across the states (MEASURED, `--monkey 200`). Rows were
+added for them; no allowlist entry was used:
+- The pinned card's link, Back, close and "Show in research tree", over the map and over the research screen.
+- The research detail panel: SET AS RESEARCH TARGET on an available node selected without ordering it (through its
+  card's "Show in research tree"), the panel's inert body, and the narrow window's drawer close.
+- The Age panel's research-next line.
+- The TURN tab's deficit WHERE rows.
+- The grievance contributor rows and both kinds of lever.
+- An after-End-Turn pass (area suffix ` (after End Turn)`) for the ANNALS "all entries" toggle, the research-next
+  line, and the developer surfaces in the turn-1 states. Those only fill once turns are played; the monkey reached
+  them, but the sweep had not.
+
+The check also exposed three info rows that reported "not offered" while the UI did draw that kind: the Age panel's
+milestone, its research-next node, and "Show in research tree" from a milestone. The panel scrolls and registers
+only what is in view, and the milestones sit below its first screen at 1280x800. These rows now scroll the panel as
+a player would, and they PASS in all 9 states (previously 1 of 9). The TURN tab's first WHERE row was silently
+skipped when it sat below the fold (the narrow window). It is now scrolled into view, and with no turn played it is
+"not offered" with that reason.
+
+**Camera rows: looking changes nothing (IMPLEMENTED).** These rows now also require the world hash and the queued
+order list (every `OrderRecord`, in order) to be exactly as before:
+- W A S D;
+- the map's settlement selection (CameraFocus.CenterOn plus a click);
+- a new "centre on a settlement (CameraFocus.CenterOn)" row;
+- drag pan, and the three wheel zooms;
+- the formation token rows;
+- the developer WHERE rows (select and centre).
+
+This is ShiftCheck's idiom. `PlayabilityGate.CameraRows(h, state, lookMutant)` runs the camera rows alone, exactly as
+the sweep runs them. `lookMutant` is a verification seam, in the precedent of `UiFrameHarness.Start`'s `vtxOffset`
+control, and it is null in every real run. There are two mutant kills (`PlayabilityGateTests.CameraRows_*`). A camera
+operation that queues a labour order fails every camera row on the queued-order leg; the hash cannot see an order
+before the step. A camera operation that steps the world fails every camera row on the hash leg.
+
+**Measured on this branch (Release, a 4-CPU machine shared with other agents).**
+
+| run | result |
+|---|---|
+| base `82bde01`, `--smoke --monkey 200` | 9 states, 1588 checks: 1476 pass, 112 not offered, 0 FAIL; 0 problems; 47,609 frames; largest draw list 100,866 vertices; 129.6 s |
+| P6, `--smoke --monkey 200` | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 60,791 frames; largest draw list 104,004 vertices; 130.6 s |
+| P6, `--smoke --monkey 300` (the windows-smoke setting) | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 65,345 frames; 142.8 s |
+| P6, `--smoke` (default monkey 400) | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 69,890 frames; 146.7 s |
+| P6, `--smoke --ai-empires 1 --monkey 200` | 8 states, 1607 checks: 1513 pass, 94 not offered, 0 FAIL; 0 problems; 54,030 frames; 142.9 s |
+
+The added rows and the after-End-Turn pass cost about 13,000 frames (+28 %) per run. The largest list grew from
+100,866 to 104,004 vertices. That is the research screen in the wide window, now reached with a node selected from
+its card; it is a measurement, not a budget (ADR-009). No pre-existing row changed result except the four noted
+above: three from "not offered" to PASS, and one from silently absent to "not offered" with a reason. The coverage
+summary row passes in every state, at 200, 300 and 400 monkey actions and with one AI.
+
+
 
 | control | where in the code | how the gate drives it | intended transition |
 |---|---|---|---|
