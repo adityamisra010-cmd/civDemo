@@ -10,7 +10,8 @@ settlements and an unclaimed, reachable site. A party of colonists leaves with p
 issuing civilization controls. People and goods move only through the Ledger; nothing is created. The order uses the
 existing colonization founding path. Emergent founding (D-037 B1) continues unchanged. The order is legal only under
 stated conditions: the source has enough people and food, and the site is unclaimed and reachable. The AI uses the
-same order and the same predicates."* D-051 states none of the conditions; this ADR states them.
+same order and the same predicates."* (its bullets joined, words unchanged). D-051 states none of the conditions; this
+ADR states them.
 
 **Touches the kernel contract:** `Sim.Core/Kernel/OrderLog.cs` (a new `OrderKind` value and its load-time range
 case) and `Sim.Core/Kernel/OrderValidation.cs` (the new kind joins the ADR-034 settlement-target lists). The
@@ -165,6 +166,25 @@ t+1 with `FoundedTurn` t+1; its catchment first appears in t+2; GovernanceSystem
   founded run, replay, inspect); `FoundSettlementCiLegTests` pins its script literals as legal and founding.
 - Goldens unchanged: founded `937577ff…`, driven, first-reign, toy, attribution constants and the AI leg — no
   existing run issues kind 9.
+
+**Mutant record** (ADR-015 §6–7; each mutant built and run against the filter `FoundSettlement|IntegratedSaveLoadBattery`,
+clean baseline 11 s / 66 tests, bound 10× = 110 s; no mutant hung; every kill below is a semantic test):
+
+| mutant | killed by (a semantic test) | the property is one the system ought to have because |
+|---|---|---|
+| `Found` stamps FoundedTurn t (not t+1) | the turn-exact delivery pin; the stamp-is-the-key pin; the played-log and CI-leg pins (13 tests) | a settlement exists from the state its founding step produces |
+| `FoundOrder` stamps turn t+1 | the delivery pin, offered ⇔ founded, conservation, multiplicity, battery (24 tests) | an order issued from state t is delivered on the step from t (every order constructor's rule) |
+| the reachability arm skipped | rejection arm `Unreachable` | D-051 §5: "a reachable site" |
+| the provisions transfer omitted | the exact conservation test (colony grain = the share) | D-051 §5: the party "leaves with provisions"; the cascade brake needs food |
+| the emergent loop before the order loop | orders-before-emergent (B1 would take the ordered cell) | §4: an order legal on its state must not be crowded out by same-step drift |
+| allocator remainder from the highest row | the tie-dense allocator test | a stable, stated integer order (CLAUDE.md tie rule) |
+| keep-one dropped | allocator keep-one and the exhaustive sweep | §2.5: the source keeps a person in every non-empty bucket |
+| the claimed arm dropped | rejection arm `Claimed` | §2.4 "unclaimed" (the Director's reading to confirm) |
+| every legal order per source founds | first-legal-per-source-wins | §4: one founding per source per turn |
+| departure not re-checked live | departure-is-live | §3: a party never leaves without provisions |
+| off-map check `>` not `>=` | the off-map world check | cell Size² is off the map |
+| ValidateAtDelivery ignores kind 9 | the ADR-034 deferral test; the played-log forged-source check | ADR-034: a deferred id must exist by delivery |
+| load accepts a fractional cell | the load theory row `cell: 1.5` | a fractional cell is not a place |
 
 ## 7. For the Director
 
