@@ -174,6 +174,7 @@ public sealed partial class GameUi
     private int _selectedUnit = -1;
     private UnitCard? _unitCard;
     private Sim.Ui.World.LensFrame? _lensFrame;
+    private IReadOnlyList<Sim.Ui.Render.DrawCmd> _lastLensCommands = [];
 
     /// <summary>The unit card's width at UI scale 1 (UR-3: its height is its measured content).</summary>
     public const float UnitCardWidth = 320f;
@@ -261,6 +262,10 @@ public sealed partial class GameUi
     public UnitCard? UnitCard => _unitCard;
     /// <summary>What the world lens drew last frame (zoom, layers, where each formation token went).</summary>
     public Sim.Ui.World.LensFrame? LensFrame => _lensFrame;
+    /// <summary>P6: the world lens's DrawList commands as the last frame painted them (before the backend's off-screen
+    /// cull; empty in a frame that drew no lens — the research screen). Read-only: tests run on the live UI the same
+    /// assertions they run on a pure paint (TextCmd text, fills, counts).</summary>
+    public IReadOnlyList<Sim.Ui.Render.DrawCmd> LastLensCommands => _lastLensCommands;
     /// <summary>The interactive controls drawn in the last frame, with their screen rects (<see cref="UiControls"/>).</summary>
     public UiControls Controls { get; } = new();
 
@@ -720,9 +725,9 @@ public sealed partial class GameUi
     /// flow and toast (foreground list: over it).</summary>
     private void DrawWorldLensAndAge()
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         Rectangle v = Viewport();
         Camera cam = _camera!;
+        _surface = FrameSurface.Lens;
         if (_lens is null || _lensTurn != _world.Clock.Turn)
         {
             _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), UiPlayer.Empire);
@@ -733,7 +738,7 @@ public sealed partial class GameUi
         // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
         // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
         if (!ReferenceEquals(_mapInkTheme, _frameTheme)) { _mapInk = Sim.Ui.World.MapInk.For(_frameTheme); _mapInkTheme = _frameTheme; }
-        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, _drawListBackend, _lens, level,
+        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, level,
             (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
             theme: _frameTheme, uiScale: Scale);   // UR-7: the map's labels by role, in the era's hand, × the UI scale
@@ -744,19 +749,26 @@ public sealed partial class GameUi
                     double ts = UnitSelection.TokenSize(_lensFrame.Zoom) + 4;
                     lens.Rect(new Sim.Ui.Render.RectD(up.X - ts, up.Y - ts * 0.8, 2 * ts, 1.6 * ts), null, _mapInk.Selection, 2.4, 3);
                 }
-        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), lens);
+        Backend.Render(ImGui.GetBackgroundDrawList(), lens);
+        _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
 
         if (_session.Config.Ages is null) return;
+        _surface = FrameSurface.Age;
         _age.Theme = _frameTheme;
         _age.Scale = Scale;
         var top = new Sim.Ui.Render.DrawList();
         _age.Refresh(_world, _session.Config.Ages, _session.Config.UnitFamilies, _session.QueuedOrders());
-        if (AgePanelVisible) _age.PaintPanel(top, _drawListBackend, AgePanelRect(), CapitalName);
-        _age.PaintFlow(top, _drawListBackend, v.Width, v.Height);
-        _age.PaintToast(top, _drawListBackend, v.Width, 60);
-        _notices.Paint(top, _drawListBackend, _frameTheme, v.Width, _age.ToastVisible ? 196 : 60);
-        _drawListBackend.Render(ImGui.GetForegroundDrawList(), top);
+        if (AgePanelVisible) _age.PaintPanel(top, Backend, AgePanelRect(), CapitalName);
+        _age.PaintFlow(top, Backend, v.Width, v.Height);
+        _age.PaintToast(top, Backend, v.Width, 60);
+        Backend.Render(ImGui.GetForegroundDrawList(), top);
+        // P6: the notices are replayed on their own, after the Age surfaces, onto the same list (the same commands in
+        // the same order as one replay), so that their text is recorded under their own surface.
+        _surface = FrameSurface.Notices;
+        var notes = new Sim.Ui.Render.DrawList();
+        _notices.Paint(notes, Backend, _frameTheme, v.Width, _age.ToastVisible ? 196 : 60);
+        Backend.Render(ImGui.GetForegroundDrawList(), notes);
     }
 
     private void ToggleProgression()
@@ -837,16 +849,15 @@ public sealed partial class GameUi
 
     private void DrawProgression()
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         var screen = _progression!;
         screen.Theme = _frameTheme;
         screen.Scale = Scale;
         System.Numerics.Vector2 size = ImGui.GetIO().DisplaySize;
         screen.Refresh(_world);
         screen.Config = _session.Config;   // M5 polish: the detail panel's discoverability lines read InfoQuery
-        Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, _drawListBackend);
+        Sim.Ui.Render.DrawList list = screen.Paint(size.X, size.Y, Backend);
         PaintInfoInProgression(list, size.X, size.Y);   // M5 polish: the pinned card over the detail column
-        _drawListBackend.Render(ImGui.GetBackgroundDrawList(), list);
+        Backend.Render(ImGui.GetBackgroundDrawList(), list);
     }
 
     /// <summary>The corner compass rose (§4 item 5, decorative): drawn on the
@@ -908,7 +919,6 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawPanelFurniture(in ChromeElement element, IntPtr backgroundId = default)
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         ImDrawListPtr list = ImGui.GetWindowDrawList();
         System.Numerics.Vector2 min = ImGui.GetWindowPos();
         System.Numerics.Vector2 max = min + ImGui.GetWindowSize();
@@ -916,7 +926,7 @@ public sealed partial class GameUi
         var furniture = new Sim.Ui.Render.DrawList();
         Sim.Ui.Theme.ChromeFurniture.Paint(furniture, _frameTheme, element, frameHeight, Scale);
         list.PushClipRect(min, max, false);
-        _drawListBackend.Render(list, furniture);
+        Backend.Render(list, furniture);
         list.PopClipRect();
 
         if (backgroundId != default)
@@ -957,22 +967,21 @@ public sealed partial class GameUi
     /// what made a series in [90, 100] draw its floor sitting on the x-axis.
     /// A price is non-negative and unbounded, so the floor is 0 and only the
     /// ceiling follows the data; the bounds are printed underneath.</summary>
-    private static void Plot(string label, float[] series)
+    private void Plot(string label, float[] series)
     {
         if (series.Length == 0)
         {
-            ImGui.TextUnformatted("no data");
+            Text("no data");
             return;
         }
         PlotDomain domain = TrendAxisModel.PriceDomain(series);
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
         ImGui.PushStyleVar(ImGuiStyleVar.DisabledAlpha, 1f);   // inert, as the trends plot (no hover readout tooltip)
         ImGui.BeginDisabled();
-        ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
-            (float)domain.Floor, (float)domain.Ceiling, new System.Numerics.Vector2(300, 56));
+        PlotLines(label, series, overlay, (float)domain.Floor, (float)domain.Ceiling, new System.Numerics.Vector2(300, 56));
         ImGui.EndDisabled();
         ImGui.PopStyleVar();
-        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, ToDoubles(series)));
+        Text(TrendAxisModel.AxisLabel(domain, ToDoubles(series)));
     }
 
     private static double[] ToDoubles(float[] series)
@@ -998,15 +1007,19 @@ public sealed partial class GameUi
     public void Draw()
     {
         Controls.BeginFrame();
+        FrameText.BeginFrame();   // P6: the frame's text, recorded as it is drawn
+        _lastLensCommands = [];
         InfoRegistry.Clear();   // M5 polish: the frame's inspectable regions, refilled as it paints
         if (_fonts is { } fonts) ImGui.PushFont(fonts.For(_frameTheme).Body);
 
         if (_progressionOpen && _progression is not null)
         {
+            _surface = FrameSurface.Research;
             DrawProgression();
             DrawInfoHint();
             if (_fonts is not null) ImGui.PopFont();
             Controls.EndFrame();
+            FrameText.EndFrame();
             return;
         }
 
@@ -1028,6 +1041,7 @@ public sealed partial class GameUi
 
         if (_fonts is not null) ImGui.PopFont();
         Controls.EndFrame();
+        FrameText.EndFrame();
     }
 
     /// <summary>
@@ -1037,11 +1051,11 @@ public sealed partial class GameUi
     /// had to keep re-discovering. A frame that can be lost in the middle of the
     /// map is not a frame.
     /// </summary>
-    private static void BeginChrome(in PanelRect rect, ImGuiWindowFlags extra = ImGuiWindowFlags.None)
+    private void BeginChrome(in PanelRect rect, ImGuiWindowFlags extra = ImGuiWindowFlags.None)
     {
         ImGui.SetNextWindowPos(new System.Numerics.Vector2(rect.X, rect.Y), ImGuiCond.Always);
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(rect.Width, rect.Height), ImGuiCond.Always);
-        ImGui.Begin(rect.Title,
+        BeginWindow(rect.Title,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
             | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings
             | ImGuiWindowFlags.NoBringToFrontOnFocus | extra);
@@ -1073,19 +1087,17 @@ public sealed partial class GameUi
     private float StyledRun(ImDrawListPtr dl, float x, float y, string text, float px, Sim.Ui.Render.FontRole style,
         ParchmentPalette.Rgba color)
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         Sim.Ui.Render.TextStyle st = _frameTheme.Type.For(style);
         var d = new Sim.Ui.Render.DrawList();
         d.Text(x, y, text, px, color, Sim.Ui.Render.TextAlign.Left, style, st);
-        _drawListBackend.Render(dl, d);
-        return (float)_drawListBackend.Width(text, px, style, st);
+        Backend.Render(dl, d);
+        return (float)Backend.Width(text, px, style, st);
     }
 
     /// <summary>The width a styled run of <paramref name="text"/> would take.</summary>
     private float StyledWidth(string text, float px, Sim.Ui.Render.FontRole style)
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
-        return (float)_drawListBackend.Width(text, px, style, _frameTheme.Type.For(style));
+        return (float)Backend.Width(text, px, style, _frameTheme.Type.For(style));
     }
 
     /// <summary>Truncates <paramref name="text"/> with "..." so its styled run fits <paramref name="width"/>.</summary>
@@ -1106,13 +1118,12 @@ public sealed partial class GameUi
     /// The row is reserved with a Dummy.</summary>
     private void TitleRow(string text, float width, float rowHeight)
     {
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         float px = RolePx(Sim.Ui.Theme.TypeRole.Title, Sim.Ui.Render.FontRole.Title);
         string fit = FitStyled(text, px, Sim.Ui.Render.FontRole.Title, width);
         System.Numerics.Vector2 p = ImGui.GetCursorScreenPos();
         var d = new Sim.Ui.Render.DrawList();
         Sim.Ui.Theme.ThemeText.Title(d, _frameTheme, p.X, p.Y + (rowHeight - px) / 2f - 1f, fit, px / _frameTheme.Type.SizeScale, _frameTheme.Ink.Text);
-        _drawListBackend.Render(ImGui.GetWindowDrawList(), d);
+        Backend.Render(ImGui.GetWindowDrawList(), d);
         ImGui.Dummy(new System.Numerics.Vector2(width, rowHeight));
     }
 
@@ -1161,6 +1172,7 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawStatusBand()
     {
+        _surface = FrameSurface.Status;
         PanelRect band = StatusRect;
         BeginChrome(band);
         DrawPanelFurniture(new ChromeElement(band, RulePlacement.BottomEdge));
@@ -1216,7 +1228,7 @@ public sealed partial class GameUi
             {
                 // The figure is a control: an invisible button over label and value, routed to its explanation.
                 ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x0, band.Y + top));
-                bool clicked = ImGui.InvisibleButton("##fig-" + fig.ToString(), new System.Numerics.Vector2(Math.Max(1f, x - x0), kpiPx));
+                bool clicked = InvisibleButton("##fig-" + fig.ToString(), new System.Numerics.Vector2(Math.Max(1f, x - x0), kpiPx));
                 Controls.Record("fig:" + fig.ToString());
                 if (ImGui.IsItemHovered()) DottedUnderline(dl, x0, x, band.Y + top + kpiPx + 1f * s, t.Ink.TextSoft);
                 if (clicked) Route(ExplainRouting.For(fig));
@@ -1235,7 +1247,7 @@ public sealed partial class GameUi
         ImGui.PushStyleColor(ImGuiCol.Border, Col(_researchFigure.Idle ? t.Semantic.Progress : t.Material.Border));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, (_researchFigure.Idle ? 2f : 1f) * s);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new System.Numerics.Vector2(_researchFigure.Idle ? 1f : 0.5f, 0.5f));
-        bool researchClicked = ImGui.Button(research + "##band-research", new System.Numerics.Vector2(rw, frameH));
+        bool researchClicked = Button(research + "##band-research", new System.Numerics.Vector2(rw, frameH));
         Controls.Record("band-research");
         RegisterItem(ResearchChipSubject(), research);
         System.Numerics.Vector2 rmin = ImGui.GetItemRectMin();
@@ -1253,7 +1265,7 @@ public sealed partial class GameUi
             ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, chipY));
             ImGui.PushStyleColor(ImGuiCol.Text, Col(_ageFigure.Eligible ? t.TextInk.Accent : t.Ink.Text));
             ImGui.PushStyleColor(ImGuiCol.Button, Col(_ageFigure.Eligible ? Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.16) : t.Material.PanelRaised));
-            bool ageClicked = ImGui.Button(age + "##band-age", new System.Numerics.Vector2(aw, frameH));
+            bool ageClicked = Button(age + "##band-age", new System.Numerics.Vector2(aw, frameH));
             Controls.Record("band-age");
             RegisterItem(AgeChipSubject(), age);
             ImGui.PopStyleColor(2);
@@ -1268,7 +1280,7 @@ public sealed partial class GameUi
         {
             ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, band.Y + top));
             PushDataFont();
-            ImGui.TextUnformatted("last turn: " + audit.Digest);
+            Text("last turn: " + audit.Digest);
             PopDataFont();
         }
         ImGui.End();
@@ -1304,11 +1316,11 @@ public sealed partial class GameUi
     private void Figure(string text, ExplainFigure figure)
     {
         System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
-        ImGui.TextUnformatted(text);
+        Text(text);
         System.Numerics.Vector2 min = ImGui.GetItemRectMin(), max = ImGui.GetItemRectMax();
         // The button covers the text exactly, so the cursor ends where the text left it.
         ImGui.SetCursorScreenPos(at);
-        bool clicked = ImGui.InvisibleButton("##fig-" + figure.ToString(), new System.Numerics.Vector2(Math.Max(1f, max.X - min.X), Math.Max(1f, max.Y - min.Y)));
+        bool clicked = InvisibleButton("##fig-" + figure.ToString(), new System.Numerics.Vector2(Math.Max(1f, max.X - min.X), Math.Max(1f, max.Y - min.Y)));
         Controls.Record("fig:" + figure.ToString());
         if (ImGui.IsItemHovered()) DottedUnderline(ImGui.GetWindowDrawList(), min.X, max.X, max.Y, _frameTheme.Ink.TextSoft);
         if (clicked) Route(ExplainRouting.For(figure));
@@ -1349,6 +1361,7 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawSelectionCard()
     {
+        _surface = FrameSurface.Selection;
         float s = Scale;
         float frameH = ImGui.GetFrameHeight();
         float padX = ImGui.GetStyle().WindowPadding.X, width = PanelLayout.SelectionWidth * s;
@@ -1404,6 +1417,7 @@ public sealed partial class GameUi
     private void DrawUnitCard()
     {
         if (_unitCard is not { } card) return;
+        _surface = FrameSurface.UnitCard;
         float s = Scale;
         float frameH = ImGui.GetFrameHeight();
         float padX = ImGui.GetStyle().WindowPadding.X, width = UnitCardWidth * s, wrap = width - 2f * padX;
@@ -1438,7 +1452,7 @@ public sealed partial class GameUi
         PlaceCursor(_unitCardRect, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
-        bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##unit-close", Size(close));
+        bool closeClicked = Button(ChromeGeometry.CloseGlyph + "##unit-close", Size(close));
         Controls.Record("unit-close");
         ImGui.PopStyleVar();
         if (closeClicked) SelectUnit(-1);
@@ -1454,7 +1468,7 @@ public sealed partial class GameUi
             }
             ImGui.PushTextWrapPos(width - padX);
             ImGui.PushStyleColor(ImGuiCol.Text, Col(ink));
-            ImGui.TextUnformatted(text);
+            Text(text);
             ImGui.PopStyleColor();
             ImGui.PopTextWrapPos();
         }
@@ -1471,6 +1485,7 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawCommandBar()
     {
+        _surface = FrameSurface.Command;
         PanelRect bar = CommandRect;
         BeginChrome(bar);
         DrawPanelFurniture(new ChromeElement(bar, RulePlacement.TopEdge));   // rule along the TOP edge: world | controls
@@ -1490,7 +1505,7 @@ public sealed partial class GameUi
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.52)));
         ImGui.PushStyleColor(ImGuiCol.Border, Col(t.Material.Accent));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 2f * s);
-        bool endTurn = ImGui.Button("##end-turn", Size(row.EndTurn));
+        bool endTurn = Button("##end-turn", Size(row.EndTurn));
         Controls.Record("end-turn");
         ImGui.PopStyleVar();
         ImGui.PopStyleColor(4);
@@ -1505,10 +1520,10 @@ public sealed partial class GameUi
             float x0 = row.EndTurn.X + (row.EndTurn.Width - total) / 2f, cy = row.EndTurn.Y + row.EndTurn.Height / 2f;
             ImFontPtr font = ImGui.GetFont();
             float fs = ImGui.GetFontSize();
-            dl.AddText(font, fs, new System.Numerics.Vector2(x0, cy - fs / 2f), Col(t.Ink.Text), verb);
-            dl.AddText(font, fs, new System.Numerics.Vector2(x0 + bold, cy - fs / 2f), Col(t.Ink.Text), verb);
+            AddText(dl, font, fs, new System.Numerics.Vector2(x0, cy - fs / 2f), Col(t.Ink.Text), verb);
+            AddText(dl, font, fs, new System.Numerics.Vector2(x0 + bold, cy - fs / 2f), Col(t.Ink.Text), verb);
             if (RoleFont(Sim.Ui.Theme.TypeRole.Caption) is { } cap)
-                dl.AddText(cap, cap.FontSize, new System.Numerics.Vector2(x0 + vw + gap, cy - cap.FontSize / 2f + 1f * s), Col(t.Ink.TextSoft), key);
+                AddText(dl, cap, cap.FontSize, new System.Numerics.Vector2(x0 + vw + gap, cy - cap.FontSize / 2f + 1f * s), Col(t.Ink.TextSoft), key);
             _ = kpx;
         }
         if (endTurn) EndTurn();
@@ -1520,7 +1535,7 @@ public sealed partial class GameUi
             PlaceCursor(bar, slot);
             bool open = _openSection == section;
             if (open) ImGui.PushStyleColor(ImGuiCol.Button, Col(Sim.Ui.Theme.ThemeColor.Mix(t.Material.PanelRaised, t.Material.Accent, 0.14)));
-            bool navClicked = ImGui.Button(GameSections.Label(section) + "##nav", Size(slot));
+            bool navClicked = Button(GameSections.Label(section) + "##nav", Size(slot));
             Controls.Record("nav:" + section.ToString());
             if (open)
             {
@@ -1535,7 +1550,7 @@ public sealed partial class GameUi
 
         ImGui.SetCursorPos(new System.Numerics.Vector2(row.TerritoryX - bar.X,
             row.EndTurn.Y + (row.EndTurn.Height - ImGui.GetFrameHeight()) / 2f - bar.Y));
-        ImGui.Checkbox("territory", ref _showCatchment);
+        Checkbox("territory", ref _showCatchment);
         Controls.Record("territory");
         ImGui.End();
     }
@@ -1567,6 +1582,7 @@ public sealed partial class GameUi
     {
         if (DrawInfoContext()) return;   // M5 polish: a pinned info card takes the right-hand column
         if (_openSection == Section.None) return;
+        _surface = FrameSurface.Context;
 
         PanelRect panel = ContextRect;
         float s = Scale;
@@ -1589,7 +1605,7 @@ public sealed partial class GameUi
         PlaceCursor(panel, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
-        bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##close", Size(close));
+        bool closeClicked = Button(ChromeGeometry.CloseGlyph + "##close", Size(close));
         Controls.Record("close");
         if (closeClicked) _openSection = Section.None;
         ImGui.PopStyleVar();
@@ -1640,7 +1656,7 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawPlayerView(PlayerView? view, string empty)
     {
-        if (view is null) { ImGui.TextUnformatted(empty); return; }
+        if (view is null) { Text(empty); return; }
         float s = Scale;
         float avail = ImGui.GetContentRegionAvail().X;
         float colGap = 12f * s;
@@ -1649,7 +1665,7 @@ public sealed partial class GameUi
         {
             PushRole(Sim.Ui.Theme.TypeRole.Secondary);
             ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Ink.TextSoft));
-            ImGui.TextUnformatted(view.Subtitle);
+            Text(view.Subtitle);
             ImGui.PopStyleColor();
             PopRole();
         }
@@ -1673,7 +1689,7 @@ public sealed partial class GameUi
                 if (row.Figure.Length == 0 || data is not { } df)
                 {
                     ImGui.PushTextWrapPos(0f);
-                    ImGui.TextUnformatted(row.ToString());
+                    Text(row.ToString());
                     ImGui.PopTextWrapPos();
                     if (subject is { } plain) RegisterItem(plain, row.ToString(), passive: true, clipToWindow: true);
                     continue;
@@ -1683,7 +1699,7 @@ public sealed partial class GameUi
                 System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
                 float textW = column ? avail - fw - colGap : avail;
                 ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + textW);
-                ImGui.TextUnformatted(row.Text);
+                Text(row.Text);
                 ImGui.PopTextWrapPos();
                 System.Numerics.Vector2 after = ImGui.GetCursorScreenPos();
                 ImDrawListPtr dl = ImGui.GetWindowDrawList();
@@ -1691,13 +1707,13 @@ public sealed partial class GameUi
                 {
                     // On the first line's baseline: the data face's line is a little shorter than the body's.
                     float dy = (ImGui.GetTextLineHeight() - df.FontSize) * 0.75f;
-                    dl.AddText(df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, at.Y + dy), Col(_frameTheme.Ink.Text), row.Figure);
+                    AddText(dl, df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, at.Y + dy), Col(_frameTheme.Ink.Text), row.Figure);
                 }
                 else
                 {
                     ImGui.SetCursorScreenPos(after);
                     ImGui.Dummy(new System.Numerics.Vector2(1f, df.FontSize));
-                    dl.AddText(df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, after.Y), Col(_frameTheme.Ink.Text), row.Figure);
+                    AddText(dl, df, df.FontSize, new System.Numerics.Vector2(at.X + avail - fw, after.Y), Col(_frameTheme.Ink.Text), row.Figure);
                 }
                 if (subject is { } figured)   // the statement and its figure: from the row's top to its last item's foot
                     RegisterRect(new Sim.Ui.Render.RectD(at.X, at.Y, avail, ImGui.GetItemRectMax().Y - at.Y), figured, row.ToString(),
@@ -1739,7 +1755,7 @@ public sealed partial class GameUi
     private void DataLines(IReadOnlyList<string> lines)
     {
         PushDataFont();
-        foreach (string line in lines) ImGui.TextUnformatted(line);
+        foreach (string line in lines) Text(line);
         PopDataFont();
     }
 
@@ -1753,7 +1769,7 @@ public sealed partial class GameUi
         if (rowX > 0f && rowX + width > available) rowX = 0f;   // next row
         if (rowX > 0f) ImGui.SameLine();
         if (on) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
-        bool clicked = ImGui.Button(label + "##" + id);
+        bool clicked = Button(label + "##" + id);
         Controls.Record(id);
         if (on) ImGui.PopStyleColor();
         rowX += width + ImGui.GetStyle().ItemSpacing.X;
@@ -1783,46 +1799,46 @@ public sealed partial class GameUi
     {
         if (_turnAudit is not { } audit)
         {
-            ImGui.TextUnformatted("No turn played yet. End a turn to audit it.");
+            Text("No turn played yet. End a turn to audit it.");
             return;
         }
         PushDataFont();
-        ImGui.TextUnformatted(audit.HeaderLine);
+        Text(audit.HeaderLine);
         PopDataFont();
         ImGui.Separator();
 
-        ImGui.TextUnformatted("WHAT CHANGED  (click a line for its account)");
+        Text("WHAT CHANGED  (click a line for its account)");
         PushDataFont();
         for (int i = 0; i < audit.Changed.Count; i++)
         {
             AuditLine line = audit.Changed[i];
-            bool auditClicked = ImGui.Selectable(line.Line + "##audit-" + line.Key, _auditExpanded[i]);
+            bool auditClicked = Selectable(line.Line + "##audit-" + line.Key, _auditExpanded[i]);
             Controls.Record("audit-" + line.Key);
             if (auditClicked) _auditExpanded[i] = !_auditExpanded[i];
             if (_auditExpanded[i])
-                foreach (string detail in line.Detail) ImGui.TextUnformatted(detail);
+                foreach (string detail in line.Detail) Text(detail);
         }
         PopDataFont();
 
         ImGui.Spacing();
         ImGui.Separator();
-        ImGui.TextUnformatted("WHERE  (click a row to select and centre)");
-        ImGui.TextUnformatted("largest population change");
+        Text("WHERE  (click a row to select and centre)");
+        Text("largest population change");
         PushDataFont();
         foreach (WhereRow row in audit.LargestPopulationDelta)
         {
             string whereId = "where-pop-" + row.Settlement.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            bool whereClicked = ImGui.Selectable(row.Line + "##" + whereId, row.Settlement == _selected);
+            bool whereClicked = Selectable(row.Line + "##" + whereId, row.Settlement == _selected);
             Controls.Record(whereId);
             if (whereClicked) SelectAndCentre(row.Settlement);
         }
         PopDataFont();
-        ImGui.TextUnformatted("largest deficit");
+        Text("largest deficit");
         PushDataFont();
         foreach (WhereRow row in audit.LargestDeficit)
         {
             string whereId = "where-def-" + row.Settlement.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            bool whereClicked = ImGui.Selectable(row.Line + "##" + whereId, row.Settlement == _selected);
+            bool whereClicked = Selectable(row.Line + "##" + whereId, row.Settlement == _selected);
             Controls.Record(whereId);
             if (whereClicked) SelectAndCentre(row.Settlement);
         }
@@ -1830,7 +1846,7 @@ public sealed partial class GameUi
 
         ImGui.Spacing();
         ImGui.Separator();
-        ImGui.TextUnformatted("WHY");
+        Text("WHY");
         DataLines(audit.Why);
     }
 
@@ -1843,10 +1859,10 @@ public sealed partial class GameUi
     {
         if (_selected < 0)
         {
-            ImGui.TextUnformatted("Select a settlement on the map.");
+            Text("Select a settlement on the map.");
             return;
         }
-        ImGui.TextUnformatted(_hud.TitleLine);
+        Text(_hud.TitleLine);
 
         float rowX = 0f;
         foreach (SettlementTab tab in GameSections.Tabs)
@@ -1871,7 +1887,7 @@ public sealed partial class GameUi
     /// <summary>A tab that is only record lines, or the no-record line.</summary>
     private void DrawRecordTab(IReadOnlyList<string>? lines)
     {
-        if (lines is null) { ImGui.TextUnformatted(SettlementInspectorModel.NoRecord); return; }
+        if (lines is null) { Text(SettlementInspectorModel.NoRecord); return; }
         DataLines(lines);
     }
 
@@ -1890,7 +1906,7 @@ public sealed partial class GameUi
         // T3.9a item 3 (the former POPULATION section): needs PER CLASS.
         foreach (NeedsClassBlock block in _needsBlocks)
         {
-            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
+            Text(block.HeaderLine);   // class header: body face
             DataLines(block.NeedLines);
             ImGui.Spacing();
         }
@@ -1915,7 +1931,7 @@ public sealed partial class GameUi
         foreach (MarketGoodRow row in _marketRows)
         {
             string goodId = "good" + row.GoodId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            bool goodClicked = ImGui.Selectable(row.Line + "##" + goodId, _selectedGood == row.GoodId);
+            bool goodClicked = Selectable(row.Line + "##" + goodId, _selectedGood == row.GoodId);
             Controls.Record(goodId);
             if (goodClicked) _selectedGood = row.GoodId;
         }
@@ -1925,13 +1941,13 @@ public sealed partial class GameUi
             : null;
         if (breakdown is null)
         {
-            ImGui.TextUnformatted("price decomposition: not yet measured");
+            Text("price decomposition: not yet measured");
         }
         else
         {
-            ImGui.TextUnformatted(breakdown.HeaderLine);
-            foreach (string line in breakdown.TermLines) ImGui.TextUnformatted(line);
-            ImGui.TextUnformatted(breakdown.DriverLine);
+            Text(breakdown.HeaderLine);
+            foreach (string line in breakdown.TermLines) Text(line);
+            Text(breakdown.DriverLine);
         }
         ImGui.Separator();
         // Item 2 gate criterion: scarcity READS as a rising line.
@@ -1950,28 +1966,28 @@ public sealed partial class GameUi
     {
         if (_settlementView?.Grievance is not { } view)
         {
-            ImGui.TextUnformatted(_settlementView is null
+            Text(_settlementView is null
                 ? SettlementInspectorModel.NoRecord
                 : "the explanation needs the previous world - available from the next End Turn");
             return;
         }
 
         PushDataFont();
-        bool happinessClicked = ImGui.Selectable(view.HappinessLine + "##happiness", _showHappinessFactors);
+        bool happinessClicked = Selectable(view.HappinessLine + "##happiness", _showHappinessFactors);
         Controls.Record("happiness");
         if (happinessClicked) _showHappinessFactors = !_showHappinessFactors;
         PopDataFont();
         if (_showHappinessFactors)
         {
             ImGui.PushTextWrapPos(0f);
-            ImGui.TextUnformatted(view.ScopeNote);
+            Text(view.ScopeNote);
             ImGui.PopTextWrapPos();
             PushDataFont();
             for (int f = 0; f < view.Factors.Count; f++)
             {
                 HappinessFactorRow factor = view.Factors[f];
                 string factorId = "factor-" + f.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                bool factorClicked = ImGui.Selectable("  " + factor.Line + "##" + factorId, _expandedFactor == f);
+                bool factorClicked = Selectable("  " + factor.Line + "##" + factorId, _expandedFactor == f);
                 Controls.Record(factorId);
                 if (factorClicked) _expandedFactor = _expandedFactor == f ? -1 : f;
                 if (_expandedFactor == f) DrawChain(factor.Chain, factor.Lever, "factor-" + f.ToString(
@@ -1982,22 +1998,22 @@ public sealed partial class GameUi
 
         ImGui.Separator();
         ImGui.PushTextWrapPos(0f);
-        ImGui.TextUnformatted(view.AttributionNote);
+        Text(view.AttributionNote);
         ImGui.PopTextWrapPos();
 
         foreach (ClassGrievanceBlock block in view.Classes)
         {
             ImGui.Spacing();
-            ImGui.TextUnformatted(block.HeaderLine);   // class header: body face
+            Text(block.HeaderLine);   // class header: body face
             PushDataFont();
-            ImGui.TextUnformatted(block.AccrualLine);
-            ImGui.TextUnformatted(block.PrimaryLine);
+            Text(block.AccrualLine);
+            Text(block.PrimaryLine);
             foreach (ContributorRow row in block.Contributors)
             {
                 bool open = _expandedClass == block.ClassId && _expandedNeed == row.NeedId;
                 string id = block.ClassId.ToString(System.Globalization.CultureInfo.InvariantCulture)
                     + "-" + row.NeedId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                bool needClicked = ImGui.Selectable("  " + row.Line + "##need-" + id, open);
+                bool needClicked = Selectable("  " + row.Line + "##need-" + id, open);
                 Controls.Record("need-" + id);
                 if (needClicked)
                 {
@@ -2008,8 +2024,8 @@ public sealed partial class GameUi
             }
             if (block.NotSimulated.Count > 0)
             {
-                ImGui.TextUnformatted("  not yet simulated:");
-                foreach (string line in block.NotSimulated) ImGui.TextUnformatted("  " + line);
+                Text("  not yet simulated:");
+                foreach (string line in block.NotSimulated) Text("  " + line);
             }
             PopDataFont();
         }
@@ -2025,15 +2041,15 @@ public sealed partial class GameUi
         ImGui.PushTextWrapPos(0f);
         foreach (ChainLine link in chain)
         {
-            ImGui.TextUnformatted("    " + link.Text);
-            ImGui.TextUnformatted("      -> " + link.Lever.Text);
+            Text("    " + link.Text);
+            Text("      -> " + link.Lever.Text);
         }
-        ImGui.TextUnformatted("    " + lever.Text);
+        Text("    " + lever.Text);
         ImGui.PopTextWrapPos();
         if (!lever.IsNone)
         {
             ImGui.SameLine();
-            bool leverClicked = ImGui.Button("open POLICY##lever-" + id);
+            bool leverClicked = Button("open POLICY##lever-" + id);
             Controls.Record("lever-" + id);
             if (leverClicked) _openSection = Section.Policy;
         }
@@ -2052,7 +2068,6 @@ public sealed partial class GameUi
     private void DrawPolicySection()
     {
         if (_actionModel is null) return;
-        _drawListBackend ??= new DrawListImGuiBackend(_fonts);
         _actions.Theme = _frameTheme;
         _actions.Scale = Scale;
         // UR-6: the surface's controls answer hover — the pointer, while it is over this panel's scrolling body.
@@ -2061,10 +2076,10 @@ public sealed partial class GameUi
         System.Numerics.Vector2 origin = ImGui.GetCursorScreenPos();
         float width = Math.Max(1f, ImGui.GetContentRegionAvail().X - 4f);
         var surface = new Sim.Ui.Render.DrawList();
-        double height = _actions.Paint(surface, _drawListBackend, origin.X, origin.Y, width);
+        double height = _actions.Paint(surface, Backend, origin.X, origin.Y, width);
         // One invisible item the size of the painted surface: it reserves the scroll extent and takes the
         // pointer; the click is answered by the screen's own hit regions (painted this frame).
-        ImGui.InvisibleButton("##action-surface", new System.Numerics.Vector2(width, (float)Math.Max(1.0, height)));
+        InvisibleButton("##action-surface", new System.Numerics.Vector2(width, (float)Math.Max(1.0, height)));
         Controls.Record("action-surface");
         if (ImGui.IsItemActivated())
         {
@@ -2077,7 +2092,7 @@ public sealed partial class GameUi
         }
         else if (ImGui.IsItemActive()) _actions.Drag(ImGui.GetIO().MousePos.X);
         if (ImGui.IsItemDeactivated()) _actions.Release();
-        _drawListBackend.Render(ImGui.GetWindowDrawList(), surface);
+        Backend.Render(ImGui.GetWindowDrawList(), surface);
         RegisterInWindow(_actions.InfoHits);   // M5 polish: cut to the scrolled body's visible rect
 
         ImGui.Spacing();
@@ -2087,30 +2102,30 @@ public sealed partial class GameUi
         // largest text.
         PushRole(Sim.Ui.Theme.TypeRole.Secondary);
         ImGui.PushStyleColor(ImGuiCol.Text, Col(_frameTheme.Ink.TextSoft));
-        ImGui.Checkbox("labour record (declared vs effective, history)", ref _policyRecord);
+        Checkbox("labour record (declared vs effective, history)", ref _policyRecord);
         Controls.Record("labour-record");
         ImGui.PopStyleColor();
         PopRole();
         if (!_policyRecord) return;
-        ImGui.TextUnformatted(_hud.TitleLine);
+        Text(_hud.TitleLine);
         foreach (PolicyEntry policy in PolicyHistoryModel.Policies)
-            ImGui.TextUnformatted(policy.Name + " - " + policy.Note);
-        ImGui.TextUnformatted("CURRENT  (declared vs effective, currently running)");
+            Text(policy.Name + " - " + policy.Note);
+        Text("CURRENT  (declared vs effective, currently running)");
         DataLines(view.Current);
         ImGui.Spacing();
-        ImGui.TextUnformatted("HISTORY  (newest first)");
+        Text("HISTORY  (newest first)");
         PushDataFont();
-        if (view.History.Count == 0) ImGui.TextUnformatted("no change yet for this settlement");
+        if (view.History.Count == 0) Text("no change yet for this settlement");
         foreach (PolicyChangeView change in view.History)
         {
-            ImGui.TextUnformatted(change.Line);
-            foreach (string line in change.Consequences) ImGui.TextUnformatted(line);
+            Text(change.Line);
+            foreach (string line in change.Consequences) Text(line);
         }
         PopDataFont();
         // ADR-033 D9: the per-turn policy table is a record dump — developer only.
         if (!_developer) return;
         ImGui.Spacing();
-        ImGui.Checkbox("per-turn policy table", ref _policyShowStates);
+        Checkbox("per-turn policy table", ref _policyShowStates);
         Controls.Record("per-turn-table");
         if (_policyShowStates) DataLines(view.States);
     }
@@ -2125,18 +2140,18 @@ public sealed partial class GameUi
     private void DrawEconomySection()
     {
         PushDataFont();
-        ImGui.TextUnformatted(_tradeSummary);
+        Text(_tradeSummary);
         ImGui.Separator();
-        foreach (TradeFlowLine flow in _tradeFlows) ImGui.TextUnformatted(flow.Line);
+        foreach (TradeFlowLine flow in _tradeFlows) Text(flow.Line);
         if (_tradeFlows.Count > 0) ImGui.Separator();
-        foreach (TradeGoodRow row in _tradeRows) ImGui.TextUnformatted(row.Line);
+        foreach (TradeGoodRow row in _tradeRows) Text(row.Line);
         PopDataFont();
 
         ImGui.Spacing();
         ImGui.Separator();
-        ImGui.TextUnformatted("WORLD GOOD ACCOUNTS  (last turn, from the ledger's flow rows)");
+        Text("WORLD GOOD ACCOUNTS  (last turn, from the ledger's flow rows)");
         if (_turnAudit is { } audit) DataLines(audit.GoodAccounts);
-        else ImGui.TextUnformatted("no turn played yet");
+        else Text("no turn played yet");
     }
 
     /// <summary>
@@ -2152,7 +2167,7 @@ public sealed partial class GameUi
 
         if (lines.Count > recent)
         {
-            ImGui.Checkbox($"all {lines.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)} entries##annals-all",
+            Checkbox($"all {lines.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)} entries##annals-all",
                 ref _annalsShowAll);
             Controls.Record("annals-all");
             ImGui.Spacing();
@@ -2160,7 +2175,7 @@ public sealed partial class GameUi
 
         ImGui.BeginChild("annal-scroll");
         ImGui.PushTextWrapPos(0f);
-        for (int i = from; i < lines.Count; i++) ImGui.TextUnformatted(lines[i]);
+        for (int i = from; i < lines.Count; i++) Text(lines[i]);
         ImGui.PopTextWrapPos();
         if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 1f) ImGui.SetScrollHereY(1f);
         ImGui.EndChild();
@@ -2184,11 +2199,11 @@ public sealed partial class GameUi
         }
 
         ImGui.Spacing();
-        bool worldScope = ImGui.RadioButton("world##trend-world", _trendWorldScope);
+        bool worldScope = RadioButton("world##trend-world", _trendWorldScope);
         Controls.Record("trend-world");
         if (worldScope) _trendWorldScope = true;
         ImGui.SameLine();
-        bool placeScope = ImGui.RadioButton((_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)") + "##trend-place",
+        bool placeScope = RadioButton((_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)") + "##trend-place",
                 !_trendWorldScope);
         Controls.Record("trend-place");
         if (placeScope)
@@ -2197,18 +2212,18 @@ public sealed partial class GameUi
         }
 
         ImGui.Spacing();
-        if (_trendMetrics.Count == 0) { ImGui.TextUnformatted("no data"); return; }
+        if (_trendMetrics.Count == 0) { Text("no data"); return; }
         TrendMetric metric = _trendMetrics[_trendIndex];
         if (metric.IsPrice)
         {
             // Prices: the observation history has no price series (§7), so the
             // T3.9a buffer keeps them — per (settlement, good), never world.
-            ImGui.TextUnformatted("price of the good selected under SETTLEMENT / Economy, this settlement");
+            Text("price of the good selected under SETTLEMENT / Economy, this settlement");
             float[] prices = _session.History.Price(_selected, _selectedGood);
             PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
             PushDataFont();
-            ImGui.TextUnformatted(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
-            ImGui.TextUnformatted(TrendAxisModel.BandNote(PlotBand.Neutral));
+            Text(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
+            Text(TrendAxisModel.BandNote(PlotBand.Neutral));
             PopDataFont();
             PlotLarge("##trend", prices, priceDomain, PlotBand.Neutral);
             return;
@@ -2220,12 +2235,12 @@ public sealed partial class GameUi
         PlotBand band = TrendAxisModel.Band(
             metric.Key, series.Length == 0 ? double.NaN : series[^1]);
         PushDataFont();
-        ImGui.TextUnformatted(TrendsModel.LastValueLine(series));
-        ImGui.TextUnformatted(TrendAxisModel.AxisLabel(domain, series));
-        ImGui.TextUnformatted(TrendAxisModel.BandNote(band));
+        Text(TrendsModel.LastValueLine(series));
+        Text(TrendAxisModel.AxisLabel(domain, series));
+        Text(TrendAxisModel.BandNote(band));
         PopDataFont();
         ImGui.PushTextWrapPos(0f);
-        ImGui.TextUnformatted(TrendsModel.ScopeNote(metric.Key, _trendWorldScope));
+        Text(TrendsModel.ScopeNote(metric.Key, _trendWorldScope));
         ImGui.PopTextWrapPos();
         PlotLarge("##trend", TrendsModel.ForPlot(series), domain, band);
     }
@@ -2237,16 +2252,16 @@ public sealed partial class GameUi
     private void DrawBuildSection()
     {
         PushDataFont();
-        ImGui.TextUnformatted(BuildInfo.Describe()); // same identity as the title
-        ImGui.TextUnformatted(HudModel.StatusLine(_world.Seed, Fps));
-        ImGui.TextUnformatted(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
+        Text(BuildInfo.Describe()); // same identity as the title
+        Text(HudModel.StatusLine(_world.Seed, Fps));
+        Text(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
         // Art-substrate provenance: which assets are real and which are
         // stand-ins, plus the bake cost — the glass-box habit applied to art.
-        ImGui.TextUnformatted(_art.SummaryLine());
-        ImGui.TextUnformatted(BakeNote);
-        if (_fonts is { } f) ImGui.TextUnformatted(f.Note);
+        Text(_art.SummaryLine());
+        Text(BakeNote);
+        if (_fonts is { } f) Text(f.Note);
         ImGui.Separator();
-        foreach (string line in SessionFilesModel.Lines(_sessionLogPath)) ImGui.TextUnformatted(line);
+        foreach (string line in SessionFilesModel.Lines(_sessionLogPath)) Text(line);
         PopDataFont();
     }
 
@@ -2256,11 +2271,11 @@ public sealed partial class GameUi
     /// the latest reading against that domain (Neutral pushes no colour, so an
     /// unbounded metric keeps the theme's own plot colour — see
     /// TrendAxisModel for why an arbitrary colour would be a lie).</summary>
-    private static void PlotLarge(string label, float[] series, PlotDomain domain, PlotBand band)
+    private void PlotLarge(string label, float[] series, PlotDomain domain, PlotBand band)
     {
         if (series.Length == 0)
         {
-            ImGui.TextUnformatted("no data");
+            Text("no data");
             return;
         }
         string overlay = series[^1].ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
@@ -2272,8 +2287,7 @@ public sealed partial class GameUi
         // started landing on it).
         ImGui.PushStyleVar(ImGuiStyleVar.DisabledAlpha, 1f);
         ImGui.BeginDisabled();
-        ImGui.PlotLines(label, ref series[0], series.Length, 0, overlay,
-            (float)domain.Floor, (float)domain.Ceiling,
+        PlotLines(label, series, overlay, (float)domain.Floor, (float)domain.Ceiling,
             new System.Numerics.Vector2(Math.Max(120f, ImGui.GetContentRegionAvail().X - 4f), 220f * (ImGui.GetFontSize() / UiTheme.BodyFontPx)));
         ImGui.EndDisabled();
         ImGui.PopStyleVar();
