@@ -33,7 +33,9 @@ internal static class GovernanceRigs
     /// rig (a ResearchCompleted row, exactly what ResearchSystem writes on completion). H2 (2026-10-05): granting
     /// the TAXATION civic also ENTERS the Age the edict needs (sim.json governance.taxationMinAge, A3) — the rig
     /// opens the whole gate, knowledge AND Age, as every pre-H2 caller of this rig meant; a test of the Age half
-    /// itself uses <see cref="GrantKnowledgeOnly"/>.</summary>
+    /// itself uses <see cref="GrantKnowledgeOnly"/>. TRAP: any OTHER node is granted in the founding Age, where the
+    /// Age half alone keeps the gate shut — a test that a non-taxation node does NOT open the gate must first
+    /// <see cref="EnterTaxAge"/>, or it cannot see the knowledge half (2026-10-06, GovernanceTests).</summary>
     public static void Grant(WorldState w, PolityId polity, string node = TaxationNode)
     {
         GrantKnowledgeOnly(w, polity, node);

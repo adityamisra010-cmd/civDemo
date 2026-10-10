@@ -10,6 +10,18 @@
 > turn numbering starts at 1. ADR-034 (delivery-time order validation) is PROPOSED. Forager order-free starvation
 > is OPEN (shipped 4.3 / 2.0 kept). Record: `docs/m5-playtest-baseline.md` §15, `docs/d049-taxation-and-revolt-model.md`,
 > `docs/m5-playability-gate.md`, `docs/m5-hardening-measurements.md`. Verify against git.
+>
+> **2026-10-06 — D-050, Director rulings on the hardening open items** (docs-only commits `721cb01`, `81ac697` on
+> `m5-hardening`; still NOT merged, NOT tagged; M6 not started; no code change, so the playable build is still
+> `sim-ui-win-x64-6ef1596`). This dated line supersedes the entry's "ADR-034 … is PROPOSED" and "Forager order-free
+> starvation is OPEN", which are kept as written: (1) ADR-034 is **RATIFIED**; (2) forager food stays **4.3 per
+> gatherer / 2.0 per km²** — the 5.0 / 3.0 alternative is rejected, order-free worlds may starve in bad weather, and
+> a player who neglects food can starve; (3) population segments are classes, finer segments deferred to **M9
+> Society**; (4) the rebel count is a deterministic expected fraction, `uprisingGrievance` = 20; (5) a last
+> settlement under a permanent 100 % levy may sit in permanent revolt (food floored at the untaxed level), no relief
+> mechanic; (6) `taxCapacityOffsetMax` = 0.25; (7) capital succession deferred to **M8 Politics / Diplomacy**
+> (revolt-founded civilizations have no capital and cannot tax until then); (8) the 1080×640 minimum-window snap-back
+> is a Director playtest item. Record: `docs/d050-m5-hardening-rulings.md`. Verify against git.
 
 > **2026-10-04 — M5 PLAYTEST BASELINE (`m5-integration` @ `bc87ef8`; played build `sim-ui-win-x64-5c364b5`, ui-artifact
 > run 37203130829).** This dated entry is newer than the R3 entry below. It supersedes R3's "forager food STOPPED …
@@ -270,6 +282,14 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 > The current milestone is **M5 Governing Gameplay, in progress** (the dated entries at the top of this file;
 > `docs/milestones.md` roadmap rebase). `CLAUDE.md`'s milestone line reads M5 (verified on `9bb7423`; changed in
 > `4448350`), so §2's contradiction no longer exists.
+>
+> *(2026-10-06, M5 polish pass.)* The "Documents required" list below the table is the 2026-08-31 (M4) list too,
+> kept as written. For M5 work read: `CLAUDE.md` · `docs/milestones.md` (the authoritative roadmap) ·
+> `docs/adr/adr-033-m5-integration-pass.md` (M5's decision record; M5 has no separate spec file) ·
+> `docs/d049-taxation-and-revolt-model.md` · `docs/d050-m5-hardening-rulings.md` ·
+> `docs/adr/adr-034-order-validation-deferral.md` · `docs/m5-playtest-baseline.md` §15–§16 ·
+> `docs/m5-playability-gate.md` · `docs/spine-s8-governance-freeze.md` · `docs/gov-4-repository-freshness.md` ·
+> `docs/queue.md`.
 
 | | |
 | --- | --- |
@@ -477,6 +497,20 @@ exception to it.
 **Stale — describes a state the repository has moved past:**
 
 - `CLAUDE.md:10` — the M3 milestone line and its art-substrate amendment (§2).
+  *(2026-10-06 note, M5 polish pass: no longer the M3 line — `CLAUDE.md:10` has named M5 Governing Gameplay (in
+  progress, NOT complete) with the rebased sequence since `4448350`. Still stale on `m5-hardening`, and the
+  Director's to edit: line 10 names `m5-integration` as M5's branch (the candidate is `m5-hardening`, built on
+  it) and keeps the M3-era art-substrate amendment; line 7 still calls `docs/m0-kernel-spec.md` the "current
+  milestone spec" (M5 has no spec file; its decisions are ADR-033, D-049 and D-050).)*
+- Records that number milestones on a pre-2026-10-03 ladder (M6 battle / M7 knowledge / "Ancient Vertical Slice" /
+  "Era Expansions"): superseded by `docs/milestones.md` §"Roadmap rebase 2026-10-03"; they carry dated pointers,
+  except pure history left as written (`docs/handoff-status.md`, `docs/m2-spec.md`, `docs/m4-exit-session.md`) and
+  the read-only research corpus `tech-graph-v0.6.json` (SHA-256-pinned by `ResearchContentTests`) with its `.html`
+  view (D-040's pointer covers their "M7" knowledge reading). The M5 polish pass (2026-10-06) added the pointers that were missing: D-037, D-039,
+  `docs/t4.6-foreign-trade-decision.md` §6, `docs/design/civilization-progression-architecture.md` 5.6,
+  `docs/design/arch-I-climate-environment.md`, `docs/design/recovered-decisions-climate-env-agri.md`,
+  `docs/design/recovered-decisions-food-disaster-needs.md`, `docs/m4-blocking-material.md` (B-2 addendum) and
+  `docs/m4-exit-inventory.md` §7; the Spine's system-table note was moved below the table so the table renders whole.
 - `docs/handoff-status.md` — a previous, measured attempt at this same routing role, dated
   2026-07-28 against `t3.4c-variance-fix` at `719152a`. Its branch table, suite counts and milestone
   are all from M3. **It is superseded by this file for routing purposes and left untouched as a

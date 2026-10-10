@@ -13,7 +13,8 @@ namespace Sim.Tests.Systems;
 /// re-anchored on the integrated tree, plus the port's own pins).
 ///
 /// Organised around the property the loop is accepted on — that it is CAUSALLY EXECUTABLE — so each
-/// block pins a real arrow: policy enters only through the order and the research gate; reach is ONE
+/// block pins a real arrow: policy enters only through the order and the tax gate (the Taxation knowledge
+/// AND, since H2, the minimum Age; the Age half itself is pinned in TaxAgeGateTests); reach is ONE
 /// stored fact (ControlRow.Strength) that every consumer reads; policy raises output and costs
 /// happiness; legitimacy reads it; the AI valve answers it through the same pathway; and without its
 /// config section the whole loop is inert. Timing, save/load and the production sites are in
@@ -192,7 +193,10 @@ public class GovernanceTests
     }
 
     /// <summary>R5 (Director 2026-10-04): the four refinement nodes keep their taxation capability TEXT but
-    /// no longer open the gate — alone or all together.</summary>
+    /// no longer open the gate — alone or all together. Checked IN the tax Age (H2), so the Age half is met and
+    /// the KNOWLEDGE half alone decides; GateOf pins that it is the knowledge that is missing. (Until 2026-10-06
+    /// the checks ran in the founding Age, where the Age half alone kept the gate shut: a refinement wired back
+    /// into sim.json taxationRequires passed this test.)</summary>
     [Theory]
     [InlineData("arithmetic_babylonian")]   // "tax assessment"
     [InlineData("surveying")]               // "taxation by area"
@@ -201,11 +205,15 @@ public class GovernanceTests
     public void TheFourTaxationRefinementNodes_NoLongerOpenTheGate(string node)
     {
         (WorldState w, PolityId p) = Founded();
+        EnterTaxAge(w, p);
+        Assert.True(Governance.MeetsTaxationAge(w, Cfg(), p));   // anti-vacuity: only knowledge can keep it shut
         Grant(w, p, node);
         Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        Assert.Equal(TaxGate.NeedsKnowledge, Governance.GateOf(w, Cfg(), p));
         foreach (string other in new[] { "arithmetic_babylonian", "surveying", "standard_weights", "coinage_electrum" })
             Grant(w, p, other);
         Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        Assert.Equal(TaxGate.NeedsKnowledge, Governance.GateOf(w, Cfg(), p));
         Grant(w, p, "taxation");
         Assert.True(Governance.CanLevyTax(w, Cfg(), p));
         var content = TestConfigs.Research();
@@ -215,13 +223,20 @@ public class GovernanceTests
         Assert.True(namesTax, $"{node} does not name a taxation capability");
     }
 
+    /// <summary>Checked IN the tax Age, like the refinement nodes above, so the knowledge half alone decides.
+    /// (Until 2026-10-06 the check ran in the founding Age, where it could not see the knowledge half.)</summary>
     [Fact]
     public void ANonTaxationNodeDoesNotOpenTheGate()
     {
         (WorldState w, PolityId p) = Founded();
+        EnterTaxAge(w, p);
+        Assert.True(Governance.MeetsTaxationAge(w, Cfg(), p));   // anti-vacuity: only knowledge can keep it shut
         Grant(w, p, "cereal_cultivation");
         Grant(w, p, "numeral_sexagesimal");   // arithmetic_babylonian's prerequisite, not taxation itself
         Assert.False(Governance.CanLevyTax(w, Cfg(), p));
+        Assert.Equal(TaxGate.NeedsKnowledge, Governance.GateOf(w, Cfg(), p));
+        Grant(w, p, "taxation");              // control: this world, in this Age, does open on the real node
+        Assert.True(Governance.CanLevyTax(w, Cfg(), p));
     }
 
     [Fact]

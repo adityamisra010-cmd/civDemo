@@ -286,7 +286,8 @@ public sealed class UiSession
     /// turn, legislated by the player's Empire for itself (<see cref="TaxOrderFactory.Create(long, PolityId, int)"/>,
     /// i.e. <see cref="Governance.TaxOrder"/>). Returns false and appends NOTHING for a rate outside
     /// 0..100, or when the Empire cannot levy a tax yet (<see cref="Governance.CanLevyTax"/> — the
-    /// research gate GovernanceSystem applies on the step; the UI never logs an edict the
+    /// tax gate, the Taxation knowledge AND the minimum Age (H2), that GovernanceSystem applies on
+    /// the step; the UI never logs an edict the
     /// simulation would ignore), so the caller can leave the control alone rather than pretend.
     /// </summary>
     public bool EmitTaxOrder(int percent)

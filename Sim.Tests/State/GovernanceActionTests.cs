@@ -12,10 +12,12 @@ namespace Sim.Tests.State;
 
 /// <summary>
 /// ADR-033 D4 × D2/D5, the S1×S2 reconciliation: the tax edict joins the action surface and the AI producer
-/// through the ONE research gate (<see cref="Governance.CanLevyTax"/>) that GovernanceSystem applies. Turn 1
-/// offers no tax control; completing a node whose content unlocks a taxation capability makes exactly one
-/// Governance descriptor appear; the AI valve's orders reach the session only through <see cref="AiOrders"/>,
-/// only for AI Empires that can levy.
+/// through the ONE predicate (<see cref="Governance.CanLevyTax"/>) that GovernanceSystem applies. Turn 1
+/// offers no tax control; completing the Taxation civic (sim.json governance.taxationRequires, R5) AND entering
+/// governance.taxationMinAge (Age III, H2) makes exactly one Governance descriptor appear, and neither half alone
+/// does; the AI valve's orders reach the session only through <see cref="AiOrders"/>, only for AI Empires that can
+/// levy. (Until 2026-10-06 this summary said "the ONE research gate" and "completing a node whose content unlocks a
+/// taxation capability" — the pre-R5 framing, without the Age half.)
 /// </summary>
 public class GovernanceActionTests
 {

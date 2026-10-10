@@ -81,6 +81,10 @@ Nothing else is a player-facing tree. There is no Tree 3, no Industry & Energy t
 
 **5.6** Civics realization connects to M7's *"institutions as modules, regime change, coups/revolts"* (Spine `:111`). **RATIFIED home.**
 
+*(Pointer appended 2026-10-06, M5 polish pass; per the Director roadmap rebase of 2026-10-03; 5.6 above is unchanged.)
+The Spine's M7 "institutions as modules, regime change, coups/revolts" is now **M8 Politics / Diplomacy**. Record:
+`docs/milestones.md` §"Roadmap rebase 2026-10-03".*
+
 **5.7 Civics reclassification (PROPOSED at `93270cd`; APPLIED by the ADR-029 migration):** several entries the v0.4 registry filed as institutions read as Civics under this ontology — written law (`law_code`), Roman systematic law (`legal_code_roman`), census, coined wage labour, patent, joint-stock company. The migration made these six the Civics tree's nodes (keys 1001–1006, ADR-029 §2.3; D-044 R12). Each registry institution stays an institution whose knowledge requirement is now its civic. No other Civics content was invented. (Original wording in §20.)
 
 ## 6. Cross-domain dependencies

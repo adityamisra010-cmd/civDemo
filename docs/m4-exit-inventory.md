@@ -215,6 +215,9 @@ decision, not a default.
 - **T4.8 notables** — the conservation surface is correct and the lifecycle is implemented, but no
   production driver creates one, so the table is always empty. Strategic war and the AutoResolver
   are M6 by ruling; the pre-army boundary holds.
+  *(Pointer appended 2026-10-06, M5 polish pass; per the Director roadmap rebase of 2026-10-03: "M6" here is
+  the battle layer under D-011 §6's numbering, now the **M7 Battle Layer**. Record: `docs/milestones.md`
+  §"Roadmap rebase 2026-10-03".)*
 - **T4.3 claims and recognitions** — schema only, by design; no writer, no reader.
 - **Foreign trade** — classified but unreachable (§5).
 - **Construction** — the system is live and the control rule is enforced where orders are consumed,

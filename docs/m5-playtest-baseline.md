@@ -1187,3 +1187,8 @@ Tests were run on `2b049f4`; its code is identical to `6ef1596` (the commits bet
 
 ## §16 — Director rulings 2026-10-06
 See `docs/d050-m5-hardening-rulings.md`: ADR-034 ratified; forager 4.3/2.0 kept; segments = classes; deterministic rebel fraction, uprisingGrievance 20; permanent revolt of a last settlement accepted; capacity factor 0.25; capital succession deferred to M8. These were the open items of §15.
+
+*(Dated note appended 2026-10-06, M5 polish pass; the line above is unchanged.)* Two D-050 rulings it does not list:
+ruling 3 places the finer population segments (faith, ethnicity, occupation) at **M9 Society**, and ruling 8 makes the
+untested 1080×640 minimum-window snap-back a Director playtest item. §15.7's and §15.8's OPEN / PROPOSED entries are
+read through §16.

@@ -4,10 +4,13 @@ A deterministic, turn-based civilization simulation spanning 6,000 years. One hu
 director; AI agents build it, one task packet per session.
 
 **M5 — Governing Gameplay: the CURRENT milestone, in progress (being finished, NOT complete).** M0–M4 are
-complete (tags `m0-exit` … `m4-exit`). M5 is being finished on the integration branch `m5-integration`, which is
-not merged to `main`; its decisions are ADR-033 ([`docs/adr/adr-033-m5-integration-pass.md`](docs/adr/adr-033-m5-integration-pass.md))
-and its forensic playtest baseline is [`docs/m5-playtest-baseline.md`](docs/m5-playtest-baseline.md). On that branch
-a player can, beyond M4:
+complete (tags `m0-exit` … `m4-exit`). M5 is being finished on the branch `m5-hardening` (built on the integration
+branch `m5-integration`), which is not merged to `main`; its decisions are ADR-033
+([`docs/adr/adr-033-m5-integration-pass.md`](docs/adr/adr-033-m5-integration-pass.md)), D-049
+([`docs/d049-taxation-and-revolt-model.md`](docs/d049-taxation-and-revolt-model.md)) and D-050
+([`docs/d050-m5-hardening-rulings.md`](docs/d050-m5-hardening-rulings.md)), and its forensic playtest baseline is
+[`docs/m5-playtest-baseline.md`](docs/m5-playtest-baseline.md). (Until 2026-10-06 this paragraph named only
+`m5-integration` as M5's branch.) On that branch a player can, beyond M4:
 
 - **Research** the Technology and Civics trees — one target at a time, research points from population, Eurekas,
   progress kept when switching (ADR-029, ADR-030) — and see actions appear from knowledge: turn 1 lives on gathered
@@ -362,7 +365,7 @@ written at each milestone's gate.
   orders + PathBuild, the Sim.Ui window (terrain, overlays, HUD, End Turn),
   founded-world harness + goldens, and the CI Windows artifact.
 - **M2 — Population & Society: COMPLETE** (exit 2026-07-25, tag `m2-exit`; this line read "at the exit gate"
-  until 2026-10-05). T2.1–T2.12 per
+  until 2026-10-05; roadmap name since 2026-10-03: Demography / Food). T2.1–T2.12 per
   `docs/m2-spec.md`: cohort buckets (D-026), class system + D-020 DSL, plural
   worldgen with partitioned catchments (N = 12), per-settlement UI rule,
   migration (D-021, stabilized: gap-closing caps + EMA-smoothed
@@ -378,7 +381,8 @@ written at each milestone's gate.
   intact but the condition that made it visible was false. M2 does not reopen;
   the record states it.)
 - **M3 — The economy arrives: COMPLETE** (Director's exit ruling 2026-08-06, tag `m3-exit`; this line read "AT
-  THE EXIT GATE … Awaiting the director's exit session" until 2026-10-05). T3.1–T3.12 per
+  THE EXIT GATE … Awaiting the director's exit session" until 2026-10-05; roadmap name since 2026-10-03:
+  Production / Markets). T3.1–T3.12 per
   `docs/m3-spec.md`: worldgen refresh + the goods/recipe roster, five-sector
   production (D-032) with the M2 scaffolding demolished, the CR-002 spatial and
   agronomic recalibration, the D-033 price solver on ADR-016 exact integration,
@@ -391,7 +395,8 @@ written at each milestone's gate.
   tag `m4-exit`): the Empire control foundation (polities, control, capitals, command source), neighbours and
   conflict, and a world that can run short — see `docs/milestones.md` §M4 and `docs/m4-exit-inventory.md`.
 - **M5 — Governing Gameplay: CURRENT, in progress (being finished, NOT complete)** on the unmerged
-  `m5-integration` branch: see the headline above, ADR-033 and `docs/m5-playtest-baseline.md`.
+  `m5-hardening` branch (built on `m5-integration`; until 2026-10-06 this line named only `m5-integration`): see the
+  headline above, ADR-033, D-049, D-050 and `docs/m5-playtest-baseline.md`.
 - **Next:** M6 Knowledge / Research / Technology (owns and completes the research engine, Ages, unlock pipeline and
   universities built early on the M5 branches) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10
   Integrated Civilization Simulation · M11+ Depth & Content Expansion (`docs/milestones.md`, roadmap rebase

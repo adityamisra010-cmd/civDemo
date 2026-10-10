@@ -158,8 +158,8 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 ///   the selection RoadDevelopmentSystem applies (transport is FROZEN: read only).</item>
 /// <item><b>Military</b> (Standing) — <see cref="MilitaryQuery"/>: the roster, its family lines and Age
 ///   identities. No military order exists, so none is offered.</item>
-/// <item><b>Governance</b> (OrderKind 5) — the tax edict, iff the research-gated predicate GovernanceSystem
-///   applies holds (<see cref="Governance"/>).</item>
+/// <item><b>Governance</b> (OrderKind 5) — the tax edict, iff the predicate GovernanceSystem applies holds
+///   (<see cref="Governance.CanLevyTax"/>: the Taxation knowledge AND the minimum Age, H2; <see cref="Governance"/>).</item>
 /// <item><b>Institutions</b> (OrderKind 4, ADR-033 D6) — found a specialized university of type T at settlement
 ///   S, listed exactly where <see cref="ConstructionQuery.IsProjectAvailable"/> admits the founding project (the
 ///   predicate ConstructionSystem applies), with the founding viability, materials and capacity as its

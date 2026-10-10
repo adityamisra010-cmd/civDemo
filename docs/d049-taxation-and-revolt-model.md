@@ -618,6 +618,11 @@ ci.yml leg has no pinned hash. Its two-process, replay and inspect agreement is 
 ## §16 — Director rulings 2026-10-06
 The INFERRED choices of §11 and §15 (classes as segments, deterministic expected rebel fraction, uprisingGrievance 20, food floor with permanent revolt of a last settlement, taxCapacityOffsetMax 0.25) are RATIFIED by D-050.
 
+*(Dated note appended 2026-10-06, M5 polish pass; §11 is unchanged.)* D-050 ruling 3 places the finer segments
+(faith, ethnicity, occupation) at **M9 Society**: §11 item 1's "Finer segments … are Tier-B, DEFERRED to M8" reads
+**M9**. D-050 ruling 7 defers capital succession to **M8 Politics / Diplomacy** (revolt-founded civilizations have no
+capital and cannot tax until then). Record: `docs/d050-m5-hardening-rulings.md`.
+
 ## §17 — Note, 2026-10-07 (M5 polish P1, G10): the tax predicate requires a seat
 `Governance.GateOf` gains a fourth condition after knowledge and Age: the polity must have a SEAT — a capital it
 controls (`Governance.HasSeat`; `TaxGate.NeedsSeat`). A revolt-born polity is founded without a capital (D-048

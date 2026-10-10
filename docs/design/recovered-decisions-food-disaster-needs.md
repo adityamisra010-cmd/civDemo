@@ -1,5 +1,15 @@
 # RECOVERED DECISIONS — FOOD SYSTEM · STORAGE/PRESERVATION · DISASTERS · RESILIENCE · HAPPINESS AND EVOLVING NEEDS
 
+> **Superseded 2026-10-03 (Director roadmap rebase); pointer appended 2026-10-06, M5 polish pass.** The authoritative
+> ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic
+> Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle
+> Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion.
+> The Spine placements quoted below are the original v3 column: the Spine's M8 society layer (religion, culture,
+> opinion, disease, and its first crisis archetypes) is now **M9 Society**; "the slice" is the **M10 Integrated
+> Civilization Simulation** gate (S8 §1 rebase note); Environment & climate (Spine M9) is not individually placed by the
+> rebase.
+> Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+
 **ARCHAEOLOGY, NOT DESIGN.** This document recovers decisions that already exist in the repository.
 It designs nothing, implements nothing, rules nothing and reconciles nothing. No production code,
 schema, golden, corridor, quarantine or ratified/frozen document was touched. Created under the

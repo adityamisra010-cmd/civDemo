@@ -28,6 +28,9 @@ namespace Sim.Tests.Kernel;
 /// its cheapest available node — road order 141, Age 2 in force 236, levy order 547. MEASURED on this tree
 /// (Release) by this harness and by `sim run --founded --seed 42 --turns 400 --ai-empires 1` (turn-400 hash
 /// d0502692…).
+/// (2026-10-06: the turns in this summary are the S3/S4 history. The current pins, with their dated re-pin history,
+/// are asserted in the test bodies below: road 143/144, Age 2 decided 238 / in force 239, and the first levy 463/464
+/// under the Taxation civic + Age III gate, with the stripped-Age control at 367/368.)
 /// </summary>
 [Trait("suite", "determinism")]
 public class AiEmpireIntegrationTests

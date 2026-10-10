@@ -79,7 +79,8 @@ public static class PolicyHistory
     /// (prev raw rate or presence ≠ next, exact compare — the row holds exactly what
     /// GovernanceSystem wrote) and ATTRIBUTED to the LAST SetTaxRate of this step issued by the
     /// Empire for itself, because GovernanceSystem applies the batch in log order and the last
-    /// valid order stands (one Empire's orders share one research gate on PREV, so the last one is
+    /// valid order stands (one Empire's orders share one tax gate, Governance.CanLevyTax on PREV —
+    /// the Taxation knowledge AND the minimum Age — so the last one is
     /// the last valid one). A change no order explains — reachable only in a hand-built world — is
     /// recorded with Actor −1 and OrderIndex −1 rather than dropped.
     /// </summary>

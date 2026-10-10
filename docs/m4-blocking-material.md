@@ -183,6 +183,10 @@ than the battle system — and states B-2 store bounding as a HARD PREREQUISITE:
 cannot starve a city is not a siege." Nothing in B-2 changes; this records that M6's siege model
 now waits on M4's store-bounding packet in addition to the three costumes above.
 
+*(Pointer appended 2026-10-06, M5 polish pass; per the Director roadmap rebase of 2026-10-03; the text above is
+unchanged.) "M6's siege model" is the battle layer under D-011 §6's numbering; the siege model now belongs to the **M7
+Battle Layer**. Record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".*
+
 Reached from a second direction, same dependency (D-039 filing note FN-1): D-039 D1 computes
 fortification from T3.8's SIZE TIER, and the tier is live — the fix-pass measurement reads
 Mothian t29 at TIER 4 and Hikiavur t177 at 4 on the repaired tree. What is distorted is its
