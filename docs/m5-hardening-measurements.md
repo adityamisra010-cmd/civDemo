@@ -605,3 +605,123 @@ above — §3.3, §7 item 1, the F2 "Decision (F2)" list and the final-integrati
 therefore **RULED: option (a)**, accept the shipped values with this record. §7 items 2 (quarantine windows) and 3
 (colonies) are not addressed by D-050 and keep their status. D-050 ruling 1 also ratifies ADR-034 (the order-
 validation deferral that §4.4's revolt-session replay fix relies on).
+
+## 2026-10-10 — map frame cost, `Sim.Ui --frame-cost map` (M5 map workstream P4; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P4 agent on branch `m5w-p4-map-frame-cost` at commit **`86bd07f`** (base `82bde01`
+`m5p-d051-fixes` + `55b71b2` projection stride + `13e3536` the tool + `86bd07f` its run-wide JIT warm-up), 2026-10-10.
+This is a measurement, not a budget: ADR-009 sets no frame budget and none is proposed here.
+
+**Load (read before the numbers).** The machine has 4 CPUs shared with several other agent jobs running at the same
+time; load average was 9.0 when the run started and 8.2 when it ended (68 s). Every millisecond below is wall-clock
+under that load. It is **not performance data for a budget**; read the vertex, command and cull columns (exact, the
+same on any machine) as the structural record, and the milliseconds as an order of magnitude.
+
+**What one frame is.** Exactly the per-frame map path of `GameUi.DrawWorldLensAndAge`: `WorldLens.Paint` of the turn's
+`WorldProjection` (the era's map ink and type, the window's automatic UI scale, the opening selection, territory on)
+→ `DrawListImGuiBackend` replay with the off-screen cull ON (as in the game) into ImGui's background list →
+`ImGui.Render`, with `ImGuiDrawData.Check` on every frame (a violation aborts the run; none occurred). NOT included:
+the GPU terrain bake, rivers and grain (drawn by the MonoGame host, not measurable headless), the chrome, the Age
+panel/flow/toast, and the per-turn projection build (second table).
+
+**The sweep.** From the fit zoom to `Camera.MaxZoom` (32) in wheel notches (×1.25 at the window centre) through the
+real `Camera` and its clamp; at every zoom stop a serpentine pan over a 4×4 grid of the world. Every band (World,
+Regional, Settlement by `WorldLens.LevelFor`) must be crossed or the run fails. A row is one (window, world, band):
+frames per sweep in that band, the median over 5 sweeps of the per-sweep mean ms/frame (after a 3 s run-wide warm-up
+and 2 warm-up sweeps per configuration), the mean total vertices, the largest single draw list, the lens commands per
+frame (mean and max), and the commands the replay cull dropped per frame.
+
+**The worlds** (seed 42, canonical 1024-px size; founded and stepped by the real `UiSession`, in memory only, never
+persisted; no row constructed):
+
+- canonical: turn 150, 12 settlements, 1359 territory blocks, 287 dirt-path steps, 0 built routes, 1 formations
+- high-count: turn 1, 400 settlements, 4978 territory blocks, 0 dirt-path steps, 0 built routes, 1 formations
+
+The high-count world is the simulation's own founding with `--settlements 400` — the existing launch option, at about
+the canonical siting capacity (median 457 over 5 seeds, `worldgen.json` `_docMinSpacing`) — so the gap the plan
+recorded ("no fixture with a high settlement count exists") is closed without appending rows. It is measured at turn 1
+(the first turn with catchment territory) because each of its turns costs tens of seconds to step; it therefore has no
+dirt-path network (none exists at turn 1 on any world) — **DATA GAP: the Paths layer's cost at a high settlement count
+is not measured.** The canonical world is measured at turn 150, when its 12 settlements have laid 287 dirt-path steps.
+Neither world has built routes (no road was ordered); the road world of `RoadWorldFixture` is a 256-px test world and
+was not used for timing.
+
+**Command.**
+
+```
+dotnet build Sim.slnx -c Release
+dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --frame-cost map            # defaults: --rounds 5 --settlements 400 --turns 150
+```
+
+### Lens frame cost per window × world × band (`86bd07f`)
+
+| window | world | band | frames/sweep | median ms/frame | mean vertices | max list vertices | commands/frame | max commands | culled/frame |
+|---|---|---|---|---|---|---|---|---|---|
+| 1280x800 | canonical | World | 32 | 0.24 | 10517 | 11688 | 1658 | 1735 | 20.3 |
+| 1280x800 | canonical | Regional | 96 | 0.11 | 3471 | 12610 | 996 | 2001 | 464.0 |
+| 1280x800 | canonical | Settlement | 144 | 0.05 | 254 | 3030 | 584 | 664 | 571.5 |
+| 1280x800 | high-count | World | 32 | 1.96 | 89094 | 98790 | 7058 | 7693 | 303.3 |
+| 1280x800 | high-count | Regional | 96 | 0.64 | 27241 | 96916 | 2543 | 8061 | 546.7 |
+| 1280x800 | high-count | Settlement | 144 | 0.10 | 4437 | 37100 | 115 | 732 | 42.5 |
+| 1920x1009 | canonical | World | 48 | 0.34 | 10939 | 11688 | 1687 | 1735 | 12.7 |
+| 1920x1009 | canonical | Regional | 96 | 0.12 | 3904 | 12610 | 1039 | 2001 | 439.7 |
+| 1920x1009 | canonical | Settlement | 128 | 0.05 | 368 | 3682 | 586 | 664 | 568.4 |
+| 1920x1009 | high-count | World | 48 | 2.03 | 93918 | 102500 | 7293 | 7783 | 173.7 |
+| 1920x1009 | high-count | Regional | 96 | 0.73 | 32562 | 104138 | 2813 | 8136 | 456.5 |
+| 1920x1009 | high-count | Settlement | 128 | 0.13 | 5872 | 40046 | 133 | 742 | 41.5 |
+| 2560x1440 | canonical | World | 48 | 0.27 | 12118 | 12904 | 1693 | 1735 | 10.8 |
+| 2560x1440 | canonical | Regional | 96 | 0.12 | 3835 | 12790 | 1021 | 2014 | 436.4 |
+| 2560x1440 | canonical | Settlement | 112 | 0.05 | 430 | 3622 | 586 | 664 | 566.8 |
+| 2560x1440 | high-count | World | 48 | 2.24 | 94653 | 102500 | 7301 | 7783 | 115.8 |
+| 2560x1440 | high-count | Regional | 96 | 0.78 | 32161 | 105044 | 2610 | 8129 | 315.9 |
+| 2560x1440 | high-count | Settlement | 112 | 0.15 | 6720 | 39314 | 128 | 690 | 30.3 |
+| 3840x2160 | canonical | World | 48 | 0.29 | 13218 | 13984 | 1693 | 1735 | 10.7 |
+| 3840x2160 | canonical | Regional | 96 | 0.13 | 3942 | 12918 | 1014 | 2014 | 429.5 |
+| 3840x2160 | canonical | Settlement | 80 | 0.06 | 558 | 3668 | 587 | 664 | 563.3 |
+| 3840x2160 | high-count | World | 48 | 2.23 | 94583 | 102500 | 7279 | 7783 | 95.4 |
+| 3840x2160 | high-count | Regional | 96 | 0.78 | 33632 | 104890 | 2494 | 8073 | 204.2 |
+| 3840x2160 | high-count | Settlement | 80 | 0.18 | 9270 | 46026 | 153 | 660 | 27.0 |
+
+### Projection build per turn (`86bd07f`)
+
+| world | turn | settlements | territory blocks | path steps | built routes | formations | projection build ms (median) | lattice build ms (median; no longer run by the projection) |
+|---|---|---|---|---|---|---|---|---|
+| canonical | 150 | 12 | 1359 | 287 | 0 | 1 | 1.07 | 3.89 |
+| high-count | 1 | 400 | 4978 | 0 | 0 | 1 | 52.69 | 3.84 |
+
+The last column is the full-terrain `TraversalLattice.Build` that `WorldProjection.Build` ran every turn before
+`55b71b2` only to read the lattice's size and stride; it now takes both by arithmetic (`WorldProjection.LatticeGrid`).
+On lighter-loaded runs of the same tool it read 2.1–2.6 ms; it is saved once per turn, not per frame.
+
+### Reading (INFERRED from the tables above; nothing here is ruled)
+
+- **Canonical world:** every band's lens frame is at most 0.34 ms here, at every window size, with at most 13,984
+  vertices in one list.
+- **High settlement count:** the World band costs about 2 ms per frame and puts 98,790–102,500 vertices into ONE draw
+  list; the widest Regional views reach 105,044. Both are above the 16-bit 65,535 and carried by the `VtxOffset` path
+  of M5 hardening H1 (no frame violated the draw-data contract). The vertices are not decomposed by layer here
+  (INFERRED: the 4,978 territory blocks plus the 400 settlements' marks, names and banners). Regional costs about
+  0.6–0.8 ms, Settlement 0.1–0.2 ms.
+- **The Paths layer is emitted whole and culled at replay.** At the canonical world's Settlement band ~584 lens
+  commands are emitted per frame and ~570 of them are dropped by the replay cull. `RoadLens.PaintNetwork` has no
+  viewport test: it emits every dirt-path step (two strokes each at this band: 287 × 2 = 574) at every zoom — the
+  audit's "not culled in Paint", now measured. It is cheap at 287 steps (0.05 ms); its growth with a large network is
+  not measured (data gap above).
+- **The projection build scales with the settlement count:** 1.07 ms at 12 settlements, 52.7 ms at 400 — once per turn,
+  not per frame; its per-settlement scans of whole tables (buckets, housing, catchment nodes, network edges, notables,
+  class states) are the likely cause (INFERRED; not profiled).
+- **Warm-up artifact, fixed before this table:** on `13e3536` the first configuration measured (1280×800, canonical,
+  World) read 1.00 ms against 0.25–0.27 ms at every other window; with `DOTNET_TieredCompilation=0` it read 0.15 ms. The
+  tiered JIT had not promoted the paint path. `86bd07f` adds the run-wide warm-up; the first row now reads 0.24 ms.
+
+### The stride change keeps the map byte-identical (`55b71b2`)
+
+MEASURED: the digests of `Sim.Ui.Tests/ProjectionDigest.cs` — every projection field, and for the fit, 3× fit
+(Regional), 10× fit (Settlement) and maximum-zoom cameras the SVG bytes' SHA-256 and the full `LensFrame` — over nine
+worlds (seed 42 turns 0/1/4, seed 7 turns 1/4, seed 3 turn 1 at 1024 px; seed 42 at 250 px, not a multiple of the
+stride, turns 1/4; the `RoadWorldFixture` world with 6 built routes and 2 corridor-covered steps) were computed on
+`82bde01` with the old `Build` and after the change: the 54-line files are identical (SHA-256
+`61b4ccd1a943163494a55aeed4a5e20f23862cd02a350394b40c7cc178cf5d42` both times). The standing pin is
+`Sim.Ui.Tests/WorldProjectionStrideTests.cs`: the arithmetic grid equals the built lattice's geometry on every world,
+the projection built on either draws identical SVG bytes and `LensFrame`s at every band, and a control shows a
+geometry one px wider draws a different map.
