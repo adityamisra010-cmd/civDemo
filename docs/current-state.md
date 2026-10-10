@@ -1,5 +1,16 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-10 — M5 PLAYTEST CANDIDATE `m5p-integration` (LOCAL, NOT pushed, NOT merged; M6 not started).** One tree =
+> `m5-hardening` `81ac697` + `m5p-sim` `4ef911c` + `m5p-docs` `9814383` + `m5p-info` `9205db6` + `m5p-ui` `bf711c8`.
+> Conflicts resolved: `docs/d049` (append-only, both kept); five UI files (m5p-ui layout kept, every m5p-info
+> Shift+click registration ported onto the new geometry). Simulation code = `m5p-sim` (other diffs are comments,
+> read-only `InfoQuery`/`Variables`, `SessionManifest` provenance). MEASURED on this tree (Release, 2026-10-10):
+> Sim.Tests 1559 passed / 0 failed / 12 skipped; Sim.Ui.Tests 583/583; banned-constructs, read-isolation,
+> readonly-proof and the three research `--check`s OK; ci.yml determinism-xproc leg reproduced locally (orderless,
+> replay, founded = `FOUNDED_GOLDEN` `e9e089bb…`, founded replay, 600-turn AI leg with order kinds 3–8, inspect
+> VERIFIED); calibration battery 7/7. ADR-035 still PROPOSED; D-051 rulings ratified, not implemented. Order-free
+> starvation unchanged by ADR-035 (canonical 11/20 seeds by 650; σ_log yield 0.19 counterfactual: 0/20).
+
 > **2026-10-05 — M5 HARDENING PASS (`m5-hardening`, NOT merged, NOT tagged; M6 not started; playable build
 > `sim-ui-win-x64-6ef1596`, ui-artifact run 37336233575, build and windows-smoke jobs green).** Newer than the
 > 2026-10-04 entry below. Research-screen crash fixed at its root (ImGui `RendererHasVtxOffset` never declared);
