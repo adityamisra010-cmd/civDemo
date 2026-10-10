@@ -67,6 +67,195 @@ public class UiSessionReplayTests
         }
     }
 
+    // ---------------------------------------------------------------------------------------------------------
+    // S0 (2026-10-10) — ADR-034 §4 ADOPTED BY THE UI'S RESUME, following the OrderDeliveryValidationTests pattern.
+    // UiSession.ReplayTo used to call neither OrderValidation.ValidateAgainstWorld nor ValidateAtDelivery, so an
+    // order for a deferred id that never came to exist (an actor no revolt founded, a settlement no colony took)
+    // was SILENTLY IGNORED by its consumer on resume while `sim replay` of the same log rejected it. Now the resume
+    // rejects it with the very diagnostic the CLI's replay loop produces (Sim.Cli/Program.cs Replay: the up-front
+    // pass on the founded world, then the delivery check of each turn's batch against PREV before the step), and
+    // the UI launch prints it the way Cli.Guard does ("error: <message>", exit 2). A forged record changes no
+    // hash (its consumer ignores it), so without the checks every case below resumes "fine" — measured as the
+    // mutants in the ADR-034 S0 note.
+    // ---------------------------------------------------------------------------------------------------------
+
+    private const int ForgedSessionTurns = 4;
+
+    private static int MaxSettlement(IReadOnlyWorldState w)
+    {
+        int max = -1;
+        for (int i = 0; i < w.Settlements.Count; i++) max = Math.Max(max, w.Settlements[i].Id.Value);
+        return max;
+    }
+
+    /// <summary>The forged record of each case, built against the founded (turn-0) world.</summary>
+    private static OrderRecord Forge(string kind, IReadOnlyWorldState turnZero)
+    {
+        // A settlement id above every turn-0 id (so its check is deferred) that no colony can have taken by
+        // turn 3: colonization allocates ids one at a time from the maximum.
+        int ghost = MaxSettlement(turnZero) + 1000;
+        return kind switch
+        {
+            // a polity no revolt founded, delivered at turn 2 (the OrderDeliveryValidationTests case)
+            "forged actor, delivered" => OrderRecord.From(2, new PolityId(999), OrderKind.SetResearchTarget, 2, 0.0),
+            // a settlement no colony took, delivered at turn 3
+            "ghost colony, delivered" => OrderRecord.From(3, Sim.Ui.ViewModel.UiPlayer.Empire, OrderKind.LaborAllocation, ghost, 40.0),
+            // a turn-0 order for a settlement that does not exist: not deferred, the up-front pass rejects it
+            "ghost settlement, turn 0" => OrderRecord.From(0, Sim.Ui.ViewModel.UiPlayer.Empire, OrderKind.LaborAllocation, ghost, 40.0),
+            // stamped with the last played turn: re-queued by the resume and delivered by the next End Turn
+            "forged actor, re-queued" => OrderRecord.From(ForgedSessionTurns, new PolityId(999), OrderKind.SetResearchTarget, 2, 0.0),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
+    }
+
+    /// <summary>A real UI session (seed 42, 256 px, 4 settlements; a five-sector split applied at turn 1) played
+    /// <see cref="ForgedSessionTurns"/> turns and written as the game writes it — manifest, trace, order log — with
+    /// <paramref name="bad"/> merged into the log in turn order. Returns the manifest path.</summary>
+    private static string WriteSession(string dir, Func<IReadOnlyWorldState, OrderRecord?> bad, out OrderLog log, out UiSession live)
+    {
+        string path = Path.Combine(dir, "orders-20261010-120000-s256-n4.bin");
+        live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        live.ExportManifest("2026-10-10 12:00:00", path);
+        WorldState turnZero = live.World;
+        int capital = turnZero.Settlements[0].Id.Value;
+        for (int t = 0; t < ForgedSessionTurns; t++)
+        {
+            if (t == 1) Assert.True(live.EmitSectorOrders([40, 20, 15, 15, 10], capital));
+            live.EndTurn();
+        }
+        live.ExportTrace(UiSession.TracePath(path));
+        OrderRecord? forged = bad(turnZero);
+        log = new OrderLog();
+        bool placed = forged is null;
+        for (int i = 0; i < live.Orders.Count; i++)
+        {
+            if (!placed && live.Orders[i].Turn > forged!.Value.Turn) { log.Append(forged.Value); placed = true; }
+            log.Append(live.Orders[i]);
+        }
+        if (!placed) log.Append(forged!.Value);
+        using (FileStream f = File.Create(path)) log.Save(f);
+        return UiSession.ManifestPath(path);
+    }
+
+    /// <summary>`sim replay`'s loop (Sim.Cli/Program.cs Replay) over the same founding and executor recipes, run
+    /// <paramref name="turns"/> turns: the message of the OrderValidationException it rejects the log with, or
+    /// null when it accepts it.</summary>
+    private static string? CliReplayDiagnostic(OrderLog log, long turns)
+    {
+        WorldState world = UiFounding.Found(42, sizeOverridePx: 256, settlementsOverride: 4);
+        TurnExecutor executor = UiSession.BuildProductionExecutor(log);
+        try
+        {
+            OrderValidation.ValidateAgainstWorld(log, world);
+            WorldState turnZero = world;
+            for (long t = 1; t <= turns; t++)
+            {
+                WorldState previous = world;
+                OrderValidation.ValidateAtDelivery(log.BatchFor(previous.Clock.Turn), turnZero, previous);
+                world = executor.Step(previous);
+            }
+        }
+        catch (OrderValidationException e)
+        {
+            return e.Message;
+        }
+        return null;
+    }
+
+    [Theory]
+    [InlineData("forged actor, delivered", "is issued by polity 999, which is not a registered Empire when the order is delivered (turn 2,")]
+    [InlineData("ghost colony, delivered", "which does not exist when the order is delivered (turn 3,")]
+    [InlineData("ghost settlement, turn 0", "which does not exist in this world")]
+    [InlineData("forged actor, re-queued", "is issued by polity 999, which is not a registered Empire when the order is delivered (turn 4,")]
+    public void Resume_RejectsALogWithAnIllegalDeferredId_WithTheDiagnosticSimReplayGives(string kind, string fragment)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"s0-resume-validation-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string manifest = WriteSession(dir, w => Forge(kind, w), out OrderLog forged, out _);
+
+            // What `sim replay` says about this log. The re-queued order is delivered by the turn after the last
+            // played one, so the CLI meets it when it replays one turn further (the turn the UI's next End Turn plays).
+            long cliTurns = kind == "forged actor, re-queued" ? ForgedSessionTurns + 1 : ForgedSessionTurns;
+            string? cli = CliReplayDiagnostic(forged, cliTurns);
+            Assert.NotNull(cli);   // non-vacuous: the CLI rejects this log
+            Assert.Contains(fragment, cli, StringComparison.Ordinal);
+            if (kind != "ghost settlement, turn 0") Assert.Contains("(ADR-034)", cli, StringComparison.Ordinal);
+
+            // The resume rejects it with exactly that diagnostic, instead of ignoring the order.
+            OrderValidationException e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(manifest, out _));
+            Assert.Equal(cli, e.Message);
+
+            // Control: the same session without the forged record resumes, hash for hash with the live one.
+            string clean = WriteSession(dir, _ => null, out _, out UiSession cleanLive);
+            UiSession resumed = UiSession.Resume(clean, out _);
+            Assert.Equal(WorldHash.ComputeHex(cleanLive.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Empty(resumed.ResumeNotice);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ReplayTo_RunsOnlyFromTheFoundedWorld_WhereItsUpFrontCheckIsMeaningful()
+    {
+        // The up-front pass validates against the world the replay starts from; anything but the founded world
+        // with an empty log would validate against the wrong turn-0 world, so it is refused.
+        UiSession played = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        played.EndTurn();
+        InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => played.ReplayTo(new OrderLog(), 3));
+        Assert.Contains("at turn 1", e.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>Runs <c>dotnet Sim.Ui.dll args…</c> from the test's output directory (the PreviewToolProcessTests
+    /// recipe), bounded by <paramref name="limit"/>: a hang is reported as non-termination (ADR-015 §7.1).</summary>
+    private static (int Exit, string Out, string Err) RunSimUi(TimeSpan limit, params string[] args)
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo("dotnet")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            WorkingDirectory = AppContext.BaseDirectory,
+        };
+        psi.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "Sim.Ui.dll"));
+        foreach (string a in args) psi.ArgumentList.Add(a);
+        using System.Diagnostics.Process p = System.Diagnostics.Process.Start(psi)!;
+        Task<string> o = p.StandardOutput.ReadToEndAsync(), e = p.StandardError.ReadToEndAsync();
+        if (!p.WaitForExit(limit))
+        {
+            p.Kill(entireProcessTree: true);
+            throw new TimeoutException("Sim.Ui " + string.Join(' ', args) + " did not finish in " + limit + " (non-termination)");
+        }
+        return (p.ExitCode, o.Result, e.Result);
+    }
+
+    [Fact]
+    public void TheUiResumeLaunch_PrintsTheCliDiagnostic_AndExitsLikeSimReplay_BeforeAnyWindowOpens()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"s0-resume-launch-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            WriteSession(dir, w => Forge("forged actor, delivered", w), out OrderLog forged, out _);
+            string? cli = CliReplayDiagnostic(forged, ForgedSessionTurns);
+            Assert.NotNull(cli);
+
+            (int exit, string stdout, string stderr) = RunSimUi(TimeSpan.FromMinutes(3), "--resume", dir);
+            // Cli.Guard: any exception is "error: <message>" on stderr and exit code 2.
+            Assert.Equal(2, exit);
+            Assert.Equal("error: " + cli, stderr.TrimEnd('\r', '\n'));
+            Assert.DoesNotContain("resumed ", stdout, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     [Fact]
     public void SessionLogPath_StampedFlat_LexicographicIsChronological()
     {

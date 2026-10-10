@@ -137,14 +137,29 @@ if (Array.IndexOf(args, "--player-views-preview") >= 0)
 // tests. Wall-clock stamps are legal here (outside the determinism surface);
 // the log CONTENT records sim turns only.
 // Audit E32 / D-008: --resume <session-dir | session-*.json> re-founds the world from the manifest and
-// replays the saved order log (with every check against the saved trace), then continues play into the
+// replays the saved order log (with every check against the saved trace, schema permitting), then continues play into the
 // SAME session files. The manifest and the forensic run record are not rewritten: they describe the
 // session's founding, which a resume does not change.
+// S0 (ADR-034 §4 adopted): the replay runs the CLI's order checks, and a log they reject ends the launch with the
+// diagnostic and exit code `sim replay` gives (Cli.Guard: "error: <message>", 2) — before any window opens. A session
+// recorded under another schema is resumed by replay without the trace check (D-008) and says so, here and in-game.
 if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
 {
     string manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
-    var resumed = Sim.Ui.UiSession.Resume(manifestPath, out string resumedLog);
+    Sim.Ui.UiSession resumed;
+    string resumedLog;
+    try
+    {
+        resumed = Sim.Ui.UiSession.Resume(manifestPath, out resumedLog);
+    }
+    catch (OrderValidationException e)
+    {
+        Console.Error.WriteLine($"error: {e.Message}");
+        Environment.ExitCode = 2;
+        return;
+    }
     Console.WriteLine($"resumed {manifestPath} at turn {resumed.TurnsPlayed}");
+    foreach (string line in resumed.ResumeNotice) Console.WriteLine($"  {line}");
     using var resumedGame = new Sim.Ui.SimUiGame(resumed, resumedLog, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
     resumedGame.Run();
     return;

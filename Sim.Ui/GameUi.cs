@@ -212,6 +212,9 @@ public sealed partial class GameUi
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
         _age.Research = session.Config.Research;   // M5 polish: the Age panel names the research to do next
         RefreshHud();
+        // S0 (D-008): a session resumed under another schema opens with its notice — the trace was not checked and
+        // the world is this build's replay of the saved orders. The BUILD tab keeps it after the toast fades.
+        if (session.ResumeNotice.Count > 0) _notices.Show(session.ResumeNotice, UiSession.ResumeNoticeKicker);
     }
 
     // --- what the host and the harness read -------------------------------------------------------------
@@ -2247,6 +2250,7 @@ public sealed partial class GameUi
         if (_fonts is { } f) ImGui.TextUnformatted(f.Note);
         ImGui.Separator();
         foreach (string line in SessionFilesModel.Lines(_sessionLogPath)) ImGui.TextUnformatted(line);
+        foreach (string line in _session.ResumeNotice) ImGui.TextUnformatted(line);   // S0: empty unless resumed under another schema
         PopDataFont();
     }
 
