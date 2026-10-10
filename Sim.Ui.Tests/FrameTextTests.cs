@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using Xunit;
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Research;
 using Sim.Ui.Headless;
 using Sim.Ui.Render;
 using Sim.Ui.ViewModel;
@@ -156,6 +157,35 @@ public class FrameTextTests : IDisposable
         Assert.Contains(h.Ui.FrameText.Last, e => e.Surface == FrameSurface.Context && e.Source == FrameTextSource.ImGuiText);
         h.ClickControl("nav:Trends");
         Assert.Contains(h.Ui.FrameText.Last, e => e.Surface == FrameSurface.Context && e.Source == FrameTextSource.WidgetLabel && e.Text == "world");
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>The End Turn notices are recorded under their own surface (the toast is replayed on its own, after the
+    /// Age surfaces): every shown line, nothing of it under the Age surface, and nothing once it has faded.</summary>
+    [Fact]
+    public void Notices_AreRecordedUnderTheirOwnSurface_AndGoWhenTheToastFades()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("notices"), Assets());
+        ResearchContent c = h.Ui.Session.Config.Research!;
+        for (int k = 0; k < 40 && !h.Ui.Notices.Visible; k++)
+        {
+            if (!ResearchQuery.TryGetTarget(h.Ui.Session.World, UiPlayer.Empire, out _) && h.Ui.Session.QueuedResearchChoice() is null
+                && ResearchQuery.CheapestAvailable(h.Ui.Session.World, c, UiPlayer.Empire, ResearchTree.Technology) is ResearchNodeId n)
+                h.Ui.Session.EmitResearchOrder(n);
+            h.Key(Keys.Space);
+        }
+        Assert.True(h.Ui.Notices.Visible, "no notice in 40 turns");
+        IReadOnlyList<string> shown = h.Ui.FrameText.Texts(FrameSurface.Notices);
+        Assert.Contains("THIS TURN", shown);
+        for (int i = 0; i < Math.Min(4, h.Ui.Notices.Lines.Count); i++)
+        {
+            string line = h.Ui.Notices.Lines[i];
+            Assert.Contains(shown, t => t == line || (t.EndsWith("...", StringComparison.Ordinal) && line.StartsWith(t[..^3].TrimEnd(), StringComparison.Ordinal)));
+        }
+        Assert.DoesNotContain("THIS TURN", h.Ui.FrameText.Texts(FrameSurface.Age));
+        h.Idle(60 * 7);
+        Assert.False(h.Ui.Notices.Visible);
+        Assert.Empty(h.Ui.FrameText.Texts(FrameSurface.Notices));
         Assert.Empty(h.Problems);
     }
 
