@@ -54,6 +54,11 @@ public sealed class DrawListImGuiBackend : ITextMeasure
     /// measurement turns it off to show what the cull saves).</summary>
     public bool Cull { get; set; } = true;
 
+    /// <summary>M5 workstream P6: told of every <see cref="TextCmd"/> as it is replayed (after the cull, before its
+    /// glyphs are added) — the game's <c>GameUi.FrameText</c> log. It observes; it changes nothing drawn. Init-only: a
+    /// backend's sink is fixed when it is created, so the game's backend cannot be detached from its log later.</summary>
+    public Action<TextCmd>? Replayed { get; init; }
+
     /// <summary>
     /// Replays <paramref name="list"/> into <paramref name="dl"/>. M5 hardening H1: commands that cannot touch
     /// the draw list's CURRENT clip rect (the display for the background/foreground lists, the window's visible
@@ -128,6 +133,7 @@ public sealed class DrawListImGuiBackend : ITextMeasure
                 case TextCmd t:
                 {
                     if (string.IsNullOrEmpty(t.Text)) break;
+                    Replayed?.Invoke(t);
                     if (t.Style is TextStyle st) { Styled(dl, t, st); break; }
                     ImFontPtr font = Font(t.Role, null, t.Size);
                     double w = t.Align == TextAlign.Left ? 0 : font.CalcTextSizeA((float)t.Size, float.MaxValue, 0f, t.Text).X;

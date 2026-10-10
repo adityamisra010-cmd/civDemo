@@ -241,6 +241,9 @@ public sealed partial class ProgressionScreen
     public TreeLayout Layout => Layouts[(int)Tab];
     public ProgressionCamera Camera => Cameras[(int)Tab];
     public IReadOnlyList<HitRegion> Hits => _hits;
+    /// <summary>M5 workstream P6 (observation only): the last click <see cref="Click"/> resolved to a hit region. The
+    /// playability gate's coverage reads it; nothing in the UI or the simulation does.</summary>
+    public ResolvedClick<HitKind> LastClick { get; private set; }
     public RectD Canvas => Lens == Lens.KnowledgeAndTechnology
         ? new RectD(0, LensBarH + TabBarH + HeaderH, Math.Max(100, Docked ? _w - DetailW : _w), Math.Max(100, _h - LensBarH - TabBarH - HeaderH))
         : new RectD(0, LensBarH, _w, Math.Max(100, _h - LensBarH));
@@ -337,6 +340,7 @@ public sealed partial class ProgressionScreen
         {
             HitRegion h = _hits[i];
             if (!h.Rect.Contains(x, y)) continue;
+            LastClick = LastClick.Next(h.Kind);
             switch (h.Kind)
             {
                 case HitKind.Panel: return ProgressionCommand.None;

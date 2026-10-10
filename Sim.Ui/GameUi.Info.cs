@@ -194,10 +194,10 @@ public sealed partial class GameUi
     private bool DrawInfoContext()
     {
         if (!_inspector.IsOpen) return false;
+        _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
             _session.Names.Name, queued.Count);
-        _drawListBackend ??= new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts);
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -214,7 +214,7 @@ public sealed partial class GameUi
         PlaceCursor(panel, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
-        bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##info-close", Size(close));
+        bool closeClicked = Button(ChromeGeometry.CloseGlyph + "##info-close", Size(close));
         Controls.Record("info-close");
         ImGui.PopStyleVar();
 
@@ -226,8 +226,8 @@ public sealed partial class GameUi
         System.Numerics.Vector2 origin = ImGui.GetCursorScreenPos();
         float width = Math.Max(1f, ImGui.GetContentRegionAvail().X - 4f);
         var card = new Sim.Ui.Render.DrawList();
-        double height = _inspector.Paint(card, _drawListBackend, _frameTheme, origin.X, origin.Y, width, showClose: false);
-        ImGui.InvisibleButton("##info-card", new System.Numerics.Vector2(width, (float)Math.Max(1.0, height)));
+        double height = _inspector.Paint(card, Backend, _frameTheme, origin.X, origin.Y, width, showClose: false);
+        InvisibleButton("##info-card", new System.Numerics.Vector2(width, (float)Math.Max(1.0, height)));
         Controls.Record("info-card");
         RectD visible = CurrentWindowRect();
         if (ImGui.IsItemActivated())
@@ -235,7 +235,7 @@ public sealed partial class GameUi
             System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
             HandleInfo(_inspector.Click(p.X, p.Y, visible));
         }
-        _drawListBackend.Render(ImGui.GetWindowDrawList(), card);
+        Backend.Render(ImGui.GetWindowDrawList(), card);
         ImGui.EndChild();
         ImGui.End();
         if (closeClicked) _inspector.Close();
@@ -260,7 +260,7 @@ public sealed partial class GameUi
     private void PaintInfoInProgression(Sim.Ui.Render.DrawList list, double width, double height)
     {
         RectD panel = InfoOverlayRect();
-        if (_inspector.IsOpen && _drawListBackend is not null)
+        if (_inspector.IsOpen && BackendCreated)
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
@@ -268,7 +268,7 @@ public sealed partial class GameUi
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);
-            _infoContentHeight = _inspector.Paint(list, _drawListBackend, _frameTheme, body.X, body.Y - _inspector.Scroll, body.W, showClose: true);
+            _infoContentHeight = _inspector.Paint(list, Backend, _frameTheme, body.X, body.Y - _inspector.Scroll, body.W, showClose: true);
             list.PopClip();
         }
         if (_progression is not null) InfoRegistry.AddRange(_progression.InfoHits, null, _inspector.IsOpen ? panel : null);
@@ -295,10 +295,10 @@ public sealed partial class GameUi
                 : p.X >= ctx.X && p.X < ctx.X + ctx.Width && p.Y >= ctx.Y && p.Y < ctx.Y + ctx.Height) return;
         }
         if (InfoRegistry.HitTest(p.X, p.Y) is null) return;
-        _drawListBackend ??= new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts);
+        _surface = FrameSurface.Hint;
         var d = new Sim.Ui.Render.DrawList();
-        InfoHintRect = InfoPanel.PaintHint(d, _drawListBackend, _frameTheme, p.X, p.Y, _viewportWidth, _viewportHeight);
+        InfoHintRect = InfoPanel.PaintHint(d, Backend, _frameTheme, p.X, p.Y, _viewportWidth, _viewportHeight);
         InfoHint = InfoPanel.HintText;
-        _drawListBackend.Render(ImGui.GetForegroundDrawList(), d);
+        Backend.Render(ImGui.GetForegroundDrawList(), d);
     }
 }
