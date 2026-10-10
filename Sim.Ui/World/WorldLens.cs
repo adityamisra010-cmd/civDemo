@@ -95,16 +95,35 @@ public sealed class WorldProjection
     /// <summary>Honest empty states: systems the map would show if they existed.</summary>
     public required IReadOnlyList<string> Absent { get; init; }
 
+    /// <summary>The stride every system builds the traversal lattice with (<c>TraversalLattice.Build</c>'s default; the
+    /// m1 spec §3 stride-4 sampling). The lens needs only the lattice's GEOMETRY, never its costs.</summary>
+    public const int LatticeStride = 4;
+
+    /// <summary>
+    /// The traversal lattice's geometry for a terrain of <paramref name="terrainSize"/> px, by arithmetic: nodes per
+    /// side = size / <see cref="LatticeStride"/> (exactly <c>TraversalLattice.Build</c>'s <c>terrain.Size / stride</c>)
+    /// and the block width in terrain px = size / nodes per side (exactly what this projection derived from the built
+    /// lattice before — <c>size / lattice.Size</c>). Building the lattice to learn these two integers cost a full
+    /// pass over every terrain cell each turn (P4); the pin is <c>WorldProjectionStrideTests</c>, which builds the
+    /// lattice and compares both the geometry and the drawn map.
+    /// </summary>
+    public static (int LatticeSize, int Stride) LatticeGrid(int terrainSize)
+    {
+        int lsize = terrainSize / LatticeStride;
+        return (lsize, terrainSize / lsize);
+    }
+
     /// <summary>Builds the projection. <paramref name="institutions"/> replaces the institution seam
-    /// (tests only); the game and previews always read <see cref="InstitutionMarkerSource.InstitutionsAt"/>.</summary>
+    /// (tests only); the game and previews always read <see cref="InstitutionMarkerSource.InstitutionsAt"/>.
+    /// <paramref name="grid"/> replaces the lattice geometry (tests only: the stride pin builds the same projection
+    /// on the geometry of a built <c>TraversalLattice</c>); otherwise <see cref="LatticeGrid"/> of the terrain size.</summary>
     public static WorldProjection Build(IReadOnlyWorldState world, SimConfig cfg, Func<int, string> name, PolityId player,
-        Func<IReadOnlyWorldState, SimConfig, SettlementId, IReadOnlyList<InstitutionView>>? institutions = null)
+        Func<IReadOnlyWorldState, SimConfig, SettlementId, IReadOnlyList<InstitutionView>>? institutions = null,
+        (int LatticeSize, int Stride)? grid = null)
     {
         institutions ??= InstitutionMarkerSource.InstitutionsAt;
         int size = world.Terrain?.Size ?? 256;
-        var lattice = world.Terrain is null ? null
-            : Sim.Core.Pathing.TraversalLattice.Build(world.Terrain, cfg.Transport.RiverCostFactor);
-        int lsize = lattice?.Size ?? 1, stride = lattice is null ? 1 : size / lattice.Size;
+        (int lsize, int stride) = world.Terrain is null ? (1, 1) : grid ?? LatticeGrid(size);
 
         // Network: node id -> lattice node, in table order (ids are table order).
         int maxId = -1;
