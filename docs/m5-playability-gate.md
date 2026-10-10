@@ -468,6 +468,44 @@ failure is not counted as a kill.
 | Map: drag, wheel to Regional and Settlement zoom and back to World | `Update` | drag; wheel | camera moves; lens level changes |
 | Notices | `NoticeToast` | End Turn until the step brings news | shown, then fades after 6 s |
 
+### 3.3 The map rect and the folding panels (M5 workstream P1, 2026-10-10)
+
+Branch `m5w-p1-map-viewport`, cut from `m5w-integration` @ `55640ae`. Presentation only: no simulation, serialization
+or order code changed; the camera and the folds are UI state.
+
+**The map rect (IMPLEMENTED).** `GameUi.MapRect` — under the status band, above the command bar, left of the context
+panel while it is shown (`PanelLayout.MapRect` over the PLACED chrome) — is synced once at the start of every
+`Update`, so one frame's input, GPU pass and lens all frame the map through the same rect. `Camera` takes it in every
+operation: the fit zoom fits it, the clamp keeps it over the world, `CameraFocus.CenterOn` lands at its centre, and
+`Camera.Reframe` keeps the world point under the cursor when it changes (a fit view re-fits). `WorldLens.LevelFor`,
+the lens projection, the settlement hit test, the name-label rects and the host's render matrix (`Camera.Transform`)
+go through it. The map is still drawn full-window beneath the chrome (the lens's cull rect stays the window).
+
+**The folds (IMPLEMENTED).** New controls, each recorded (`Controls.Record`) and each pressed by a gate row:
+
+| control | where | what it does |
+|---|---|---|
+| `panel-fold` (`>`) | the context panel's (or the pinned info card's) header, left of its close button | folds the right-hand column to a tab; the section stays open; the map rect takes the column back |
+| `panel-unfold` (`< POLICY`, `< DETAILS`) | the tab, top right of the map under the status band | unfolds it |
+| `card-fold` (`-` / `+`) | the selection card's header, flush right | folds the card to its title row and back |
+| key **H** | — | folds every panel (column and card); with all folded, unfolds them |
+
+A folded section's own command-bar button and its digit unfold it (they do not close it); another section, or another
+info subject, opens unfolded; Escape still closes it.
+
+**Gate rows (camera rows: the world hash and the queued orders must not change).** `map: panels` — "fold the context
+panel (its fold button)", "unfold the context panel (its tab)", "fold the selection card", "unfold the selection
+card"; `keys` — "H (fold every panel, then unfold them)". They run in every state's sweep and in
+`PlayabilityGate.CameraRows`, whose P6 mutant tests now also require every one of them to FAIL under a camera
+operation that queues an order or steps the world. "centre on a settlement" now also requires, where the clamp lets
+the settlement reach it, a landing within 0.5 px of the MAP RECT's centre. The monkey's keys include H.
+
+**MEASURED on `f874b6d`:** `Sim.Ui --smoke --monkey 200` — 9 states, 1865 checks: 1755 pass,
+110 not offered, **0 FAIL**, 0 problems; 61,320 frames, 1,800 monkey actions; largest draw list 104,004 vertices;
+144.1 s on 4 shared CPUs. Every P1 row passes in all nine states, the narrow 1080×640 and the wide 1920×1009 windows
+included, and the coverage row passes in every state. (Run on the working tree committed as `f874b6d`: `Sim.Ui` byte-
+identical; one test helper in `MapViewportTests` was tightened after the run.) `Sim.Ui.Tests` 681/681 on `f874b6d`.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

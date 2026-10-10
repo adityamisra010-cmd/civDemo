@@ -725,3 +725,53 @@ stride, turns 1/4; the `RoadWorldFixture` world with 6 built routes and 2 corrid
 `Sim.Ui.Tests/WorldProjectionStrideTests.cs`: the arithmetic grid equals the built lattice's geometry on every world,
 the projection built on either draws identical SVG bytes and `LensFrame`s at every band, and a control shows a
 geometry one px wider draws a different map.
+
+## 2026-10-10 — the map rect's share of the window, before and after P1 (M5 map workstream P1; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P1 agent on branch `m5w-p1-map-viewport`: BEFORE on its base **`55640ae`**
+(`m5w-integration`, Wave A integrated) and AFTER on **`f874b6d`**, 2026-10-10, through the live `GameUi` in the headless
+frame harness (`UiFrameHarness`, real native ImGui, the window's automatic UI scale: 1.0 at 1280×800 and 1920×1009,
+1.375 at 2560×1440), canonical founded world, seed 42, turn 1. Geometry, not timing: the numbers are exact on any
+machine.
+
+**What is measured.** The *map rect* is the rectangle the camera frames the map through — under the status band, above
+the command bar, left of the context panel when it is shown (`PanelLayout.MapRect`). Before P1 there was no map rect:
+the camera framed the whole window and the chrome lay over it, so the BEFORE column is the same rectangle computed from
+the same placed chrome (P1 moves no chrome). *Unobstructed* subtracts what floats inside the rect: the selection card
+(and, after P1, the folded column's tab). "+ H" is after the H key (every panel folded; a section stays open).
+
+| window | state | map rect, before | map rect, after | unobstructed, before | unobstructed, after |
+|---|---|---|---|---|---|
+| 1280×800 | no section | 86.00 % | 86.00 % | 81.19 % | 81.19 % |
+| 1280×800 | no section + H | — (no fold) | 86.00 % | — | 84.25 % |
+| 1280×800 | a section open | 56.97 % | 56.97 % | 52.16 % | 52.16 % |
+| 1280×800 | a section open + H | — (no fold) | **86.00 %** | — | **83.63 %** |
+| 1920×1009 | no section | 88.90 % | 88.90 % | 86.36 % | 86.36 % |
+| 1920×1009 | no section + H | — | 88.90 % | — | 87.97 % |
+| 1920×1009 | a section open | 66.12 % | 66.12 % | 63.58 % | 63.58 % |
+| 1920×1009 | a section open + H | — | **88.90 %** | — | **87.65 %** |
+| 2560×1440 | no section | 89.31 % | 89.31 % | 86.82 % | 86.82 % |
+| 2560×1440 | no section + H | — | 89.31 % | — | 88.42 % |
+| 2560×1440 | a section open | 66.40 % | 66.40 % | 63.92 % | 63.92 % |
+| 2560×1440 | a section open + H | — | **89.31 %** | — | **88.09 %** |
+
+The selection card is 320×154 at scale 1 (440×208 at 1.375) and folds to 320×56 (440×74). The two bars are 112 px of
+height at scale 1 (154 px at 1.375) and do not fold.
+
+**The fit.** Before: the fit zoom fitted the WINDOW's shorter side (`min(w, h) / 1024`): 800 / 1009 / 1440 px of world,
+of which 112 / 112 / 154 px of world height sat under the two bars, and at the clamp the world's edges were parked
+under the status band, the command bar and an open panel (they could never be brought into the clear map). After: the
+fit fits the MAP RECT's shorter side — 688 / 897 / 1286 px of world, the WHOLE world inside the clear map, nothing
+under a bar (`CameraTests.MapRect_AtTheFit_NoWorldSitsUnderTheBars_AndTheWholeWorldIsInTheRect`, with the old camera as
+its control) — and the clamp brings every world edge to the clear map's edge
+(`CameraTests.MapRect_Clamp_KeepsTheRectOverTheWorld_AndEveryEdgeOfTheWorldReachesTheClearMap`). The fitted world is
+therefore SMALLER on screen than the old fit's (688 against 800 px at 1280×800) — the old fit's extra 112 px were the
+part under the bars.
+
+**Reading (INFERRED from the table; nothing here is ruled).** The enlargement is the open-section case: folding the
+column gives the map back the panel's 25–30 % of the window (52 → 84 % unobstructed at 1280×800) without closing the
+section. With no section open the chrome already left 86–89 %, and folding the card adds 1.6–3.1 points. What is left
+is structural: the two bars (14 % of a 1280×800 window) and, at the fit, the paper beside a square world in a wide rect
+(296 px each side at 1280×800 — a contain fit). A cover or fit-to-width zoom floor would fill that paper but put world
+outside the clear map at the floor, which the packet's "no world under the bars at fit" excludes; it is recorded in
+`docs/queue.md`, not built.
