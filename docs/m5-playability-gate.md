@@ -305,6 +305,32 @@ its card; it is a measurement, not a budget (ADR-009). No pre-existing row chang
 above: three from "not offered" to PASS, and one from silently absent to "not offered" with a reason. The coverage
 summary row passes in every state, at 200, 300 and 400 monkey actions and with one AI.
 
+**Mutant kill record (ADR-015 §7.1/§7.2; MEASURED).** Each mutant is one source edit, built, and run against the
+P6 tests:
+
+```
+FrameTextTests|PlayabilityGateTests.Coverage|PlayabilityGateTests.CameraRows
+```
+
+The clean filtered run takes 43 s. Each mutant run was bounded at 300 s (about 7×); none hung. Every mutant was
+killed by at least one semantic test:
+
+| mutant | killed by |
+|---|---|
+| M1 `Text()` records nothing | `ImGuisOwnTextLog_HoldsNothingFrameTextMissed_OnEverySurface`, `ImGuisOwnTextLog_CatchesABypassingCall`, `FrameText_RecordsEverySource_…` |
+| M2 the backend's replay is not reported | `SelectionCard_…`, `NothingSelected_…`, `LastLensCommands_…`, `FrameText_RecordsEverySource_…` |
+| M3 `VisibleLabel` keeps the id | `VisibleLabel_…`, both ImGui-log tests, `FrameText_RecordsEverySource_…` |
+| M4 the coverage check counts not-offered rows | `Coverage_AFixtureControlRecordedWithoutAGateRow_FailsTheCheck` |
+| M5 camera rows ignore the queued orders | `CameraRows_AMutantCameraOperationThatQueuesAnOrder_FailsEveryCameraRow` |
+| M6 camera rows ignore the world hash | `CameraRows_AMutantCameraOperationThatStepsTheWorld_IsCaughtByTheHashLeg` |
+| M7 a Shift press covers the clicked controls | `Coverage_APressCoversWhatWasUnderThePointer_AShiftPressOnlyTheInspectableKind` |
+| M8 the notices are recorded under the Age surface | `Notices_AreRecordedUnderTheirOwnSurface_AndGoWhenTheToastFades` |
+
+M8 survived its first run (29/29 passed): no test pinned the notices surface. The notices test was added for it,
+and the rerun kills it. The first runs of M6 and M7 used `if (false)`, which fails to build under
+TreatWarningsAsErrors (CS0162). They were rewritten with non-constant conditions and killed as listed. A build
+failure is not counted as a kill.
+
 
 
 | control | where in the code | how the gate drives it | intended transition |
