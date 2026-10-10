@@ -84,6 +84,17 @@ research node"; "Do not solve this by hiding arbitrary controls with UI-only con
 
 ## D3 — `EnqueueConstruction` gains its availability predicate
 
+> **2026-10-10 — dated note (Director instruction, D-051 §4; not a rewrite of D3).** One exception to "materials are
+> affordability, never a reason to hide the project": a project with a **crafted** input (a good no deposit yields,
+> made only by recipes — tools) that the settlement neither holds in the required amount nor can make now through any
+> available recipe chain is `ProjectAvailability.InputUnobtainable` — not listed, not accepted at enqueue. Measured
+> reason: the Age I Workshop (10 tools; tools only from bronze, `tin_bronze`, Age III) was a legal turn-1 order that
+> froze its settlement's queue (0 of 48 workshops built in 150 turns, seeds 42/1/2/7), and no cancel order exists.
+> Checked at enqueue only (`ConstructionQuery.Availability`); queue-head resolution is unchanged; raw-material
+> shortfalls stay affordability. The surface names such a project in its locked block with the input's source chain.
+> The D-051 §4 pre-bronze toolmaking path itself is NOT implemented: as a plain recipe it consumed every unit of stone
+> and blocked all granaries (0 of 48 built, against 46 of 48 without it) — see the M5 fixes report.
+
 **Decision (L2 ADR-028 §4, L4 content):** a construction project is available iff its research entity is
 knowledge-eligible for the issuer (project ↔ entity link in content) and the existing settlement/control checks
 pass. This makes ADR-028's LOCKED/AVAILABLE states expressible. The project↔entity link is data, not code.

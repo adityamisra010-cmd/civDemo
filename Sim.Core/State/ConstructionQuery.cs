@@ -18,6 +18,10 @@ public enum ProjectAvailability
     UnknownProject = 3,
     /// <summary>The project's research entity is not knowledge-eligible for the issuer — ADR-028 LOCKED.</summary>
     NotKnowledgeEligible = 4,
+    /// <summary>D-051 §4 / Director 2026-10-10: a CRAFTED input of the project (a good no deposit yields, made only
+    /// by recipes — tools) is neither held in the required amount nor producible in the settlement now through any
+    /// available recipe chain, so the project would sit at the head of the queue blocking it indefinitely.</summary>
+    InputUnobtainable = 5,
 }
 
 /// <summary>One input a project lacks in a settlement now: <c>Required</c> units of <c>Good</c>, <c>Held</c> present.</summary>
@@ -39,6 +43,16 @@ public readonly record struct MaterialShortfall(GoodId Good, string Name, long R
 /// content has no knowledge to gate on: every linked project is knowledge-eligible there (the baseline
 /// construction capability predates research). Materials and capacity are AFFORDABILITY — transient
 /// blockers the query reports, never reasons to hide the project.
+///
+/// ONE EXCEPTION, Director 2026-10-10 (D-051 §4; dated note in ADR-033 D3): a CRAFTED input with NO production
+/// path is not a transient blocker. A good no deposit yields and only recipes make (tools) is OBTAINABLE when the
+/// settlement holds the required amount, or when some recipe available there NOW (CraftingQuery.IsRecipeAvailable —
+/// the predicate ProductionSystem applies) makes it from inputs that are themselves obtainable (raw inputs: a
+/// deposit with abundance &gt; 0, or any stock). Otherwise the project is <see cref="ProjectAvailability.InputUnobtainable"/>:
+/// before it, the Age I Workshop (10 tools; tools come only from bronze, tin_bronze, Age III) was a legal order that
+/// froze its settlement's queue for hundreds of turns, and no cancel order exists. This is evaluated at ENQUEUE only
+/// (ConstructionSystem's order intake); queue-head resolution is unchanged. Raw-material shortfalls (stone) stay
+/// affordability.
 /// </summary>
 public static class ConstructionQuery
 {
@@ -58,7 +72,100 @@ public static class ConstructionQuery
             return ProjectAvailability.NotControlled;
         if (cfg.Goods?.ProjectById(projectId) is not { } project) return ProjectAvailability.UnknownProject;
         if (!IsKnowledgeEligible(world, cfg.Research, issuer, project)) return ProjectAvailability.NotKnowledgeEligible;
+        if (UnobtainableInput(world, cfg, settlement, project) is not null) return ProjectAvailability.InputUnobtainable;
         return ProjectAvailability.Available;
+    }
+
+    /// <summary>The first CRAFTED input of <paramref name="project"/> (project input order) that the settlement neither
+    /// holds in the required amount nor can produce now through an available recipe chain — or null when every crafted
+    /// input is obtainable (see the header's exception). Raw and farmed inputs are never checked here.</summary>
+    public static GoodEntry? UnobtainableInput(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project)
+    {
+        if (cfg.Goods is not { } goods) return null;
+        bool[]? knowledge = null;
+        bool knowledgeRead = false;
+        foreach (ProjectInput input in project.Inputs)
+        {
+            int id = goods.IdOf(input.Good);
+            if (id < 0 || input.Qty <= 0 || !IsCrafted(goods, id)) continue;
+            if (Held(world, settlement, id) >= input.Qty) continue;
+            if (!knowledgeRead) { knowledge = CraftingQuery.KnowledgeOf(world, cfg.Research, settlement); knowledgeRead = true; }
+            // The direct input is short of the required amount, so a partial stock does not make it obtainable:
+            // only a recipe that can make more does (nine tools and no way to make a tenth is the permanent block).
+            var visiting = new bool[MaxGoodId(goods) + 1];
+            if (!MadeByAvailableRecipe(world, cfg, goods, settlement, id, knowledge, visiting)) return goods.ById(id);
+        }
+        return null;
+    }
+
+    /// <summary>A good no deposit yields and at least one recipe outputs.</summary>
+    private static bool IsCrafted(GoodsConfig goods, int id)
+    {
+        if (goods.ById(id).DepositChannel is not null) return false;
+        foreach (RecipeEntry r in goods.Recipes)
+            if (goods.IdOf(r.Output.Good) == id) return true;
+        return false;
+    }
+
+    /// <summary>Whether the settlement can come to hold good <paramref name="id"/>: any stock of it; a deposit of it
+    /// (raw goods); or an available recipe that outputs it from producible inputs. <paramref name="visiting"/> breaks
+    /// recipe cycles (a good already on the path is not a source of itself).</summary>
+    private static bool Producible(
+        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, int id,
+        bool[]? knowledge, bool[] visiting)
+    {
+        if (Held(world, settlement, id) > 0) return true;
+        if (goods.ById(id).DepositChannel is not null) return DepositOf(world, settlement, id) > 0.0;
+        return MadeByAvailableRecipe(world, cfg, goods, settlement, id, knowledge, visiting);
+    }
+
+    /// <summary>Whether some recipe available in the settlement now outputs good <paramref name="id"/> from inputs
+    /// that are all <see cref="Producible"/>.</summary>
+    private static bool MadeByAvailableRecipe(
+        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, int id,
+        bool[]? knowledge, bool[] visiting)
+    {
+        if (visiting[id]) return false;
+        visiting[id] = true;
+        bool ok = false;
+        foreach (RecipeEntry r in goods.Recipes)
+        {
+            if (goods.IdOf(r.Output.Good) != id) continue;
+            if (!CraftingQuery.IsRecipeAvailable(world, cfg.Research, settlement, r, knowledge)) continue;
+            bool inputs = true;
+            foreach (RecipeInput ri in r.Inputs)
+            {
+                int inId = goods.IdOf(ri.Good);
+                if (inId < 0 || !Producible(world, cfg, goods, settlement, inId, knowledge, visiting)) { inputs = false; break; }
+            }
+            if (inputs) { ok = true; break; }
+        }
+        visiting[id] = false;
+        return ok;
+    }
+
+    private static long Held(IReadOnlyWorldState world, SettlementId settlement, int id)
+    {
+        for (int i = 0; i < world.GoodStocks.Count; i++)
+            if (world.GoodStocks[i].Settlement == settlement && world.GoodStocks[i].Good.Value == id)
+                return world.GoodStocks[i].Amount.Value;
+        return 0;
+    }
+
+    private static double DepositOf(IReadOnlyWorldState world, SettlementId settlement, int id)
+    {
+        double sum = 0.0;
+        for (int i = 0; i < world.Deposits.Count; i++)
+            if (world.Deposits[i].Settlement == settlement && world.Deposits[i].Good.Value == id) sum += world.Deposits[i].Abundance;
+        return sum;
+    }
+
+    private static int MaxGoodId(GoodsConfig goods)
+    {
+        int max = 0;
+        foreach (GoodEntry g in goods.Goods) if (g.Id > max) max = g.Id;
+        return max;
     }
 
     /// <summary>Whether the project's research entity is knowledge-eligible for the issuer (see the header).

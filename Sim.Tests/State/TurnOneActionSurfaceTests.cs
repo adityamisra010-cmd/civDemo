@@ -101,12 +101,17 @@ public class TurnOneActionSurfaceTests
         Assert.Equal(ResearchQuery.AvailableNodes(w, Research, Player).Select(k => (long)k.Value), research.Targets.Select(t => t.Id));
         Assert.All(research.Targets, t => Assert.False(t.Current));
 
-        // CONSTRUCTION: granary and workshop have null knowledge requirements, so both are AVAILABLE in every
-        // settlement at zero nodes — legal, and blocked only by materials (founding endows grain alone).
+        // CONSTRUCTION: granary and workshop have null knowledge requirements. The granary (raw inputs only) is AVAILABLE
+        // in every settlement at zero nodes — legal, and blocked only by materials (founding endows grain alone). The
+        // workshop is NOT listed (Director 2026-10-10, D-051 §4): its 10 tools have no production path at founding
+        // (tools <- toolmaking <- bronze <- tin_bronze, Age III), so it is InputUnobtainable — before the guard it was
+        // listed here, and an order for it froze the settlement's queue (12 * 2 listed, 12 workshops).
         ActionDescriptor[] construction = Of(actions, ActionDomain.Construction);
-        Assert.Equal(12 * 2, construction.Length);
+        Assert.Equal(12, construction.Length);
         Assert.Equal(12, construction.Count(a => a.Label == "Build Granary"));
-        Assert.Equal(12, construction.Count(a => a.Label == "Build Workshop"));
+        Assert.Equal(0, construction.Count(a => a.Label == "Build Workshop"));
+        for (int i = 0; i < w.Settlements.Count; i++)
+            Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(w, Cfg, Player, w.Settlements[i].Id, 2));
         Assert.All(construction, a => Assert.StartsWith("needs ", a.Blocker));
         Assert.Contains(construction, a => a.Blocker == "needs 40 timber (has 0), 20 stone (has 0)");
 
@@ -133,7 +138,9 @@ public class TurnOneActionSurfaceTests
         Assert.DoesNotContain(actions, a => a.Provenance.Researched);
         // R1: the crafts known at founding are exactly the BASELINE recipes (null requirement in content).
         Assert.Equal(["Weaving", "Toolmaking"], Of(actions, ActionDomain.Production).Select(a => a.Label));
-        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8 + 2, actions.Length);
+        // Construction contributes 12 (one granary per settlement), not 24: the workshop is not listed at founding
+        // (Director 2026-10-10, D-051 §4 — see CONSTRUCTION above).
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

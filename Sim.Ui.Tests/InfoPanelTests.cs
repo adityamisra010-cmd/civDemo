@@ -524,13 +524,18 @@ public class InfoPanelTests : IDisposable
         Assert.Contains("holds no goods", card.RealizedBy);
         Assert.Contains(card.Enables, l => l.Subject is { Kind: InfoKind.AgeMilestone });
 
-        ProjectEntry workshop = construction.Projects.Single(p => p.Name.Contains("orkshop", StringComparison.Ordinal));
-        Assert.NotNull(workshop.Blocker);
-        Assert.Contains("tools", workshop.Blocker);
-        Assert.Equal(InfoQuery.SourceChain(s.World, s.Config, Me, "tools"), workshop.Chain);
-        Assert.StartsWith("tools <- Toolmaking <- bronze <- Bronze casting <- Tin bronze", workshop.Chain);
-        Assert.Contains("(research, Age III)", workshop.Chain);
-        Assert.Contains("comes from: " + workshop.Chain, text);
+        // Director 2026-10-10 (D-051 §4): the workshop is no longer a project the player can ORDER at founding — its
+        // tools have no production path — so it is not in the Construction block. It still names the chain it waits on,
+        // now as a locked line (painted in the "Not open to us yet" block), with the same source chain it showed as a
+        // blocker before.
+        Assert.DoesNotContain(construction.Projects, p => p.Name.Contains("orkshop", StringComparison.Ordinal));
+        LockedDomain workshop = Assert.Single(m.Locked, l => l.Label == "Build Workshop");
+        string chain = InfoQuery.SourceChain(s.World, s.Config, Me, "tools")!;
+        Assert.StartsWith("tools <- Toolmaking <- bronze <- Bronze casting <- Tin bronze", chain);
+        Assert.Contains("(research, Age III)", chain);
+        Assert.Contains("needs tools", workshop.Reason);
+        Assert.Contains("comes from: " + chain, workshop.Reason);
+        Assert.Contains("Build Workshop", text);
     }
 
     [Fact]

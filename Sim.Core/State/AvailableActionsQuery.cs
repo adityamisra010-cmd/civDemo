@@ -339,7 +339,7 @@ public static class AvailableActionsQuery
         }
     }
 
-    private static string ProjectName(ResearchContent? research, ConstructionProjectEntry project)
+    public static string ProjectName(ResearchContent? research, ConstructionProjectEntry project)
     {
         if (project.Entity is { } id && research is not null && research.EntityIndexOf(id) is int e and >= 0
             && research.Entities[e].Name is { Length: > 0 } name) return name;

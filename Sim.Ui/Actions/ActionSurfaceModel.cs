@@ -254,7 +254,7 @@ public static class ActionSurface
             Standing(actions),
             Notices(input, actions, notices),
             Production(input, actions),
-            Locked(input, actions));
+            Locked(input, actions, target));
     }
 
     /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
@@ -747,7 +747,7 @@ public static class ActionSurface
     /// knowledge query and RoadDevelopmentQuery.Plan) and the Age advance (AgeQuery). A domain the query lists is never
     /// here, so a locked line and its control never show together.
     /// </summary>
-    private static ImmutableArray<LockedDomain> Locked(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    private static ImmutableArray<LockedDomain> Locked(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, SettlementId? settlement = null)
     {
         var lines = ImmutableArray.CreateBuilder<LockedDomain>();
         IReadOnlyWorldState w = input.World;
@@ -777,6 +777,18 @@ public static class ActionSurface
                 lines.Add(new LockedDomain("Road development (" + card.Title + ")", card.Summary ?? card.StatusLine, InfoSubject.OfRoadClass(next)));
             }
         }
+        // D-051 §4 / Director 2026-10-10: a project whose crafted input has no production path here yet is not a legal
+        // order (ConstructionQuery.InputUnobtainable), so the query does not list it — name it as locked, with where the
+        // input comes from (the source chain the Construction block used to show as its blocker), rather than let it vanish.
+        if (settlement is { } here && cfg.Goods is { Projects: { } projects } goods)
+            foreach (ConstructionProjectEntry p in projects)
+            {
+                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id) != ProjectAvailability.InputUnobtainable) continue;
+                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p)?.Name ?? "an input";
+                string reason = "needs " + good + ", which " + input.Name(here.Value) + " cannot make yet"
+                    + (InfoQuery.SourceChain(w, cfg, input.Player, good) is { } chain ? " - comes from: " + chain : "");
+                lines.Add(new LockedDomain("Build " + AvailableActionsQuery.ProjectName(cfg.Research, p), reason, InfoSubject.OfProject(p.Id, here.Value)));
+            }
         if (!Lists(ActionDomain.Age) && cfg.Ages is { } ages && AgeQuery.NextAge(w, ages, input.Player) is { } nextAge
             && AgeQuery.PendingAdvance(w, ages, input.Queued, input.Player) is null)
         {

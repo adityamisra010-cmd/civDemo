@@ -236,7 +236,7 @@ public class InfoQueryTests
                 ProjectAvailability av = ConstructionQuery.Availability(w, Cfg, Player, cap, p.Id);
                 string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.Blocker(w, Cfg, cap, p, 10.0) : null;
                 InfoStatus expect = av == ProjectAvailability.Available ? (blocker is null ? InfoStatus.Available : InfoStatus.Blocked)
-                    : av == ProjectAvailability.NotKnowledgeEligible ? InfoStatus.Locked : InfoStatus.Known;
+                    : av is ProjectAvailability.NotKnowledgeEligible or ProjectAvailability.InputUnobtainable ? InfoStatus.Locked : InfoStatus.Known;
                 Assert.Equal(expect, card.Status);
                 if (blocker is not null) Assert.Contains(blocker, card.StatusLine);
                 ActionDescriptor? listed = AvailableActionsQuery.For(w, Cfg, Player, q).SingleOrDefault(a =>

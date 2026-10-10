@@ -784,12 +784,16 @@ public static class InfoQuery
         {
             ProjectAvailability.Available => blocker is null ? InfoStatus.Available : InfoStatus.Blocked,
             ProjectAvailability.NotKnowledgeEligible => InfoStatus.Locked,
+            ProjectAvailability.InputUnobtainable => InfoStatus.Locked,
             _ => InfoStatus.Known,
         };
         b.StatusLine = av switch
         {
             ProjectAvailability.Available => blocker is null ? "Can be built now." : "You may order it; it waits until it " + blocker + ".",
             ProjectAvailability.NotKnowledgeEligible => "Not yet known.",
+            ProjectAvailability.InputUnobtainable => "Cannot be ordered yet: it needs "
+                + (ConstructionQuery.UnobtainableInput(c.W, c.Cfg, new SettlementId(where), p)?.Name ?? "an input")
+                + ", which " + c.Name(where) + " cannot make yet.",
             ProjectAvailability.NotControlled => "You do not rule " + c.Name(where) + ".",
             _ => "No settlement to build it in.",
         };

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
@@ -123,5 +124,130 @@ public class ConstructionAvailabilityTests
         var orders = new OrderLog();
         orders.Append(ConstructionQuery.EnqueueOrder(w, Player, rivals, 1));
         Assert.Equal(0, Only(orders, SystemCatalog.Construction(Cfg)).Step(w).ConstructionQueue.Count);
+    }
+
+    // ------------------------------------------------------------------ D-051 §4 / Director 2026-10-10 — unobtainable crafted inputs
+
+    private const int Granary = 1, Workshop = 2;
+
+    private static string[] WithAncestors(params string[] nodeIds)
+    {
+        var seen = new bool[Research.Nodes.Count];
+        var stack = new Stack<int>();
+        foreach (string id in nodeIds) { int i = Research.IndexOfId(id); Assert.True(i >= 0, id); stack.Push(i); }
+        while (stack.Count > 0)
+        {
+            int i = stack.Pop();
+            if (seen[i]) continue;
+            seen[i] = true;
+            foreach (int p in Research.Nodes[i].PrerequisiteNodes) stack.Push(p);
+        }
+        var result = new List<string>();
+        for (int i = 0; i < seen.Length; i++) if (seen[i]) result.Add(Research.Nodes[i].Id);
+        return [.. result];
+    }
+
+    private static void Artisans(WorldState w, SettlementId s, double share) =>
+        w.Variables.Add(new VariableRow(s, Variables.ArtisanShare, share));
+
+    [Fact]
+    public void Workshop_AtFounding_IsNotALegalOrder_BecauseItsToolsHaveNoProductionPath_WhileTheGranaryIs()
+    {
+        // The Age I trap D-051 §4 names: the workshop needs 10 tools, tools come only from bronze toolmaking
+        // (artisan-gated, bronze from tin_bronze, Age III), and no cancel order exists — so before this guard a turn-1
+        // workshop order sat at the queue head and froze the settlement's construction for hundreds of turns (measured
+        // 2026-10-10: 0 of 48 workshops in 150 turns on seeds 42/1/2/7, while granaries built in 46 of 48). The workshop
+        // is now neither listed nor accepted; the granary (raw inputs only) is unaffected.
+        WorldState w = Solo();
+        SettlementId s0 = w.Settlements[0].Id;
+        Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(w, Cfg, Player, s0, Workshop));
+        Assert.Equal("tools", ConstructionQuery.UnobtainableInput(w, Cfg, s0, Cfg.Goods!.ProjectById(Workshop)!)!.Name);
+        Assert.Equal(ProjectAvailability.Available, ConstructionQuery.Availability(w, Cfg, Player, s0, Granary));
+        ImmutableArray<ActionDescriptor> actions = AvailableActionsQuery.For(w, Cfg, Player);
+        Assert.DoesNotContain(actions, a => a.Key == $"construction.{s0.Value}.workshop");
+        Assert.Contains(actions, a => a.Key == $"construction.{s0.Value}.granary");
+
+        var orders = new OrderLog();
+        orders.Append(ConstructionQuery.EnqueueOrder(w, Player, s0, Workshop));
+        WorldState after = Only(orders, SystemCatalog.Construction(Cfg)).Step(w);
+        for (int i = 0; i < after.ConstructionQueue.Count; i++) Assert.NotEqual(Workshop, after.ConstructionQueue[i].ProjectId);
+        for (int i = 0; i < after.Structures.Count; i++) Assert.NotEqual(Workshop, after.Structures[i].ProjectId);
+    }
+
+    [Fact]
+    public void ARefusedWorkshopOrder_ChangesNothing_TheWorldIsByteIdenticalToNoOrder()
+    {
+        // The guard is a read-only predicate at order intake: a refused order moves no good, writes no row and touches
+        // no ledger total, so the stepped world hashes exactly as the same step with no order at all.
+        WorldState w = Solo();
+        SettlementId s0 = w.Settlements[0].Id;
+        var orders = new OrderLog();
+        orders.Append(ConstructionQuery.EnqueueOrder(w, Player, s0, Workshop));
+        WorldState refused = Only(orders, SystemCatalog.Construction(Cfg)).Step(w.Clone());
+        WorldState none = Only(new OrderLog(), SystemCatalog.Construction(Cfg)).Step(w.Clone());
+        Assert.Equal(WorldHash.ComputeHex(none), WorldHash.ComputeHex(refused));
+    }
+
+    [Fact]
+    public void Workshop_BecomesLegal_ExactlyWhenToolsAreObtainable_HeldOrMadeThroughAnAvailableRecipeChain()
+    {
+        WorldState w = Solo();
+        SettlementId s0 = w.Settlements[0].Id;
+
+        // (1) Held: ten tools in store make the input obtainable whatever the recipes say; nine do not.
+        WorldState held = w.Clone();
+        TopUp(held, s0, "tools", 9);
+        Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(held, Cfg, Player, s0, Workshop));
+        TopUp(held, s0, "tools", 10);
+        Assert.Equal(ProjectAvailability.Available, ConstructionQuery.Availability(held, Cfg, Player, s0, Workshop));
+
+        // (2) One recipe deep: bronze in store, but toolmaking's D-020 artisan gate unmet — still unobtainable.
+        WorldState bronze = w.Clone();
+        TopUp(bronze, s0, "bronze", 1);
+        Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(bronze, Cfg, Player, s0, Workshop));
+        // With artisans present, toolmaking is available and its inputs (bronze held, timber held or deposited) are
+        // obtainable: the workshop is legal, though not yet affordable — that stays a blocker, not a reason to hide it.
+        Artisans(bronze, s0, 0.10);
+        TopUp(bronze, s0, "timber", 1);
+        Assert.Equal(ProjectAvailability.Available, ConstructionQuery.Availability(bronze, Cfg, Player, s0, Workshop));
+
+        // (3) Two recipes deep: no bronze held — bronze-casting must be known (tin_bronze, with its ancestors) and its
+        // ores present as deposits. Knowledge alone is not enough without the ores.
+        WorldState chain = w.Clone();
+        Artisans(chain, s0, 0.10);
+        TopUp(chain, s0, "timber", 1);
+        Complete(chain, Player, WithAncestors("tin_bronze"));
+        int copper = Cfg.Goods!.IdOf("copper-ore"), tin = Cfg.Goods!.IdOf("tin-ore");
+        var kept = new List<DepositRow>();
+        for (int i = 0; i < chain.Deposits.Count; i++)
+        {
+            DepositRow d = chain.Deposits[i];
+            if (d.Settlement == s0 && (d.Good.Value == copper || d.Good.Value == tin)) continue;
+            kept.Add(d);
+        }
+        chain.Deposits.Clear();
+        foreach (DepositRow d in kept) chain.Deposits.Add(d);
+        Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(chain, Cfg, Player, s0, Workshop));
+        chain.Deposits.Add(new DepositRow(s0, new GoodId(Cfg.Goods!.IdOf("copper-ore")), 0.5));
+        chain.Deposits.Add(new DepositRow(s0, new GoodId(Cfg.Goods!.IdOf("tin-ore")), 0.5));
+        Assert.Equal(ProjectAvailability.Available, ConstructionQuery.Availability(chain, Cfg, Player, s0, Workshop));
+    }
+
+    [Fact]
+    public void TheGuard_IsAtEnqueueOnly_AWorkshopAlreadyAtTheQueueHead_StillBlocksIt_QueueSemanticsUnchanged()
+    {
+        // Director 2026-10-10: no cancellation mechanic, no change to queue-head semantics. A workshop already queued
+        // (a save from before the guard) is resolved exactly as before: it stays at the head, unbuilt, and the granary
+        // behind it waits — the guard never reaches into the queue.
+        WorldState w = Solo();
+        SettlementId s0 = w.Settlements[0].Id;
+        TopUp(w, s0, "timber", 1000);
+        TopUp(w, s0, "stone", 1000);
+        w.ConstructionQueue.Add(new ConstructionQueueRow(s0, 0, Workshop));
+        w.ConstructionQueue.Add(new ConstructionQueueRow(s0, 1, Granary));
+        WorldState next = Only(new OrderLog(), SystemCatalog.Construction(Cfg)).Step(w);
+        Assert.Equal(2, next.ConstructionQueue.Count);
+        Assert.Equal(Workshop, next.ConstructionQueue[0].ProjectId);
+        Assert.Equal(0, next.Structures.Count);
     }
 }

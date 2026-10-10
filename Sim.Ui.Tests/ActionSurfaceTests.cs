@@ -118,8 +118,10 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.False(m.Research.CanClear);
         Assert.Equal(10, m.Research.Available);
 
-        // CONSTRUCTION: the two zero-node projects of the capital, legal and blocked by materials.
-        Assert.Equal(new[] { "Granary", "Workshop" }, m.Construction!.Projects.Select(p => p.Name).ToArray());
+        // CONSTRUCTION: the capital's legal zero-node project, blocked by materials. The workshop is a zero-node project
+        // too, but since the Director's 2026-10-10 ruling (D-051 §4) it is not a legal order while its tools have no
+        // production path — it is named in the locked block (TurnOne_NoModernDashboard_… pins its reason).
+        Assert.Equal(new[] { "Granary" }, m.Construction!.Projects.Select(p => p.Name).ToArray());
         Assert.All(m.Construction.Projects, p => Assert.StartsWith("needs ", p.Blocker));
         Assert.Contains(m.Construction.Projects, p => p.Blocker == "needs 40 timber (has 0), 20 stone (has 0)");
 
@@ -174,13 +176,18 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal(new[] { ActionHitKind.LabourSlot, ActionHitKind.ResearchOpen, ActionHitKind.Build, ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement }
             .OrderBy(k => k).ToArray(), kinds);
         Assert.Equal(Sectors.Count * 10, screen.Hits.Count(h => h.Kind == ActionHitKind.LabourSlot));
-        Assert.Equal(2, screen.Hits.Count(h => h.Kind == ActionHitKind.Build));
+        // Director 2026-10-10 (D-051 §4): the workshop is not a legal order at founding (its tools have no production
+        // path), so the granary is the one build button; the workshop is named in the locked block instead.
+        Assert.Equal(1, screen.Hits.Count(h => h.Kind == ActionHitKind.Build));
+        LockedDomain workshopLocked = Assert.Single(m.Locked, l => l.Subject.Kind == Sim.Core.State.InfoKind.Project);
+        Assert.Equal("Build Workshop", workshopLocked.Label);
+        Assert.Contains("tools <- Toolmaking <- bronze <- Bronze casting <- Tin bronze", workshopLocked.Reason, StringComparison.Ordinal);
 
         // Every control is backed by a descriptor the query returned — the UI decides no availability.
         ImmutableArray<ActionDescriptor> query = AvailableActionsQuery.For(s.World, s.Config, Me,
             ActionQueryContext.ForNextStep(s.World, Era, s.QueuedOrders()));
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
-        Assert.Equal(12 * 5 + 1 + 24 + 1 + 8 + 2, query.Length);   // R1: + the two baseline recipes
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4)
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }
