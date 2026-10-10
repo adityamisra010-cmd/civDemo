@@ -210,8 +210,8 @@ public sealed class PreviewToolProcessTests : IDisposable
     /// <summary>
     /// P4: <c>sim-ui --frame-cost map</c>, the map's frame-cost sweep, as a SEPARATE PROCESS on a small configuration
     /// (one round, a 24-settlement high-count world, the canonical world at turn 2). It must exit 0, describe both
-    /// worlds, print one row per window × world × zoom band with the measured columns, and time the projection build
-    /// for both worlds. Bounded: a hang is non-termination (ADR-015 §7.1).
+    /// worlds, print one row per window × world × zoom band with the measured columns, time the projection build for
+    /// both worlds, and report both world hashes unchanged by the sweeps. Bounded: a hang is non-termination (ADR-015 §7.1).
     /// </summary>
     [Fact]
     public void MapFrameCost_AsASeparateProcess_ExitsZero_AndPrintsEveryWindowWorldAndBand()
@@ -241,6 +241,10 @@ public sealed class PreviewToolProcessTests : IDisposable
         Assert.Equal(4 * 2 * 3, seen.Count);
         Assert.Contains(lines, l => l.StartsWith("| canonical | 2 | 12 | ", StringComparison.Ordinal));
         Assert.Contains(lines, l => l.StartsWith("| high-count | 1 | 24 | ", StringComparison.Ordinal));
+        // Looking changes nothing: the tool compares each world's hash before and after its sweeps (and exits non-zero
+        // when they differ).
+        Assert.Contains(lines, l => l.StartsWith("World hash unchanged by every sweep: canonical ", StringComparison.Ordinal));
+        Assert.Contains(lines, l => l.StartsWith("World hash unchanged by every sweep: high-count ", StringComparison.Ordinal));
     }
 
     // ------------------------------------------------------------------ the rig, in process

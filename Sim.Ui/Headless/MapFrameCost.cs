@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using ImGuiNET;
+using Sim.Core.Kernel;
 using Sim.Core.Pathing;
 using Sim.Core.State;
 using Sim.Ui.ImGuiIntegration;
@@ -29,7 +30,8 @@ namespace Sim.Ui.Headless;
 /// world founded by the simulation's own founding with <c>--settlements N</c> (the existing launch option; default
 /// <see cref="DefaultSettlements"/>, about the siting capacity the worldgen record gives) at turn
 /// <see cref="HighCountTurn"/>, the first turn with catchment territory (each of its turns costs tens of seconds).
-/// Nothing is constructed or persisted: the worlds live in this process only.
+/// Nothing is constructed or persisted: the worlds live in this process only. Looking changes nothing: each world's
+/// hash is taken before the sweeps and compared after them; a difference aborts the run.
 ///
 /// Wall-clock: the machine's load moves it, so the table reports the median of the per-sweep means after a run-wide
 /// warm-up (<see cref="GlobalWarmUp"/>) and <see cref="WarmUpSweeps"/> warm-up sweeps per configuration; it is a
@@ -83,6 +85,10 @@ public static class MapFrameCost
             Found("high-count", UiSession.Start(42, settlementsOverride: Math.Max(1, settlements)), HighCountTurn, log),
         };
 
+        // Looking changes nothing: every world's hash before the sweeps must equal its hash after them.
+        var hashes = new List<string>();
+        foreach (MapWorld m in worlds) hashes.Add(WorldHash.ComputeHex(m.Session.World));
+
         var sb = new StringBuilder();
         sb.Append(string.Create(CultureInfo.InvariantCulture,
             $"Map frame cost ({BuildInfo.Describe()}): WorldLens.Paint + ImGui replay (cull on) + ImGui.Render per frame; median of {rounds} sweep(s) after a {GlobalWarmUp.TotalSeconds:0} s run-wide warm-up and {WarmUpSweeps} warm-up sweep(s) per configuration.\n\n"));
@@ -127,6 +133,14 @@ public static class MapFrameCost
             WorldProjection p = m.Projection;
             sb.Append(string.Create(CultureInfo.InvariantCulture,
                 $"| {m.Name} | {world.Clock.Turn} | {p.Settlements.Count} | {p.Territory.Count} | {p.Roads.Count} | {p.Routes.Count} | {p.Units.Count} | {Median(build):0.00} | {Median(lattice):0.00} |\n"));
+        }
+        sb.Append('\n');
+        for (int i = 0; i < worlds.Count; i++)
+        {
+            string after = WorldHash.ComputeHex(worlds[i].Session.World);
+            if (after != hashes[i])
+                throw new InvalidOperationException("frame-cost map: painting the " + worlds[i].Name + " world changed its hash " + hashes[i] + " -> " + after);
+            sb.Append("World hash unchanged by every sweep: ").Append(worlds[i].Name).Append(' ').Append(after).Append('\n');
         }
         return sb.ToString();
     }
