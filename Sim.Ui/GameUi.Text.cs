@@ -94,8 +94,26 @@ public sealed partial class GameUi
         ImGui.Begin(title, flags);
     }
 
+    // ------------------------------------------------------------------ the replay channel
+    //
+    // Most of the game's text reaches the screen as Render.TextCmds replayed by the DrawList backend. The ONE backend
+    // that draws into the game's frame is the one below: it is created only here, always with its Replayed sink (an
+    // init-only property: it cannot be detached afterwards), and the field holding it is named nowhere else in Sim.Ui.
+    // FrameTextTests pins that with a source guard (no other `new DrawListImGuiBackend`, no other declaration that
+    // could hold one, no other reference to the field, every `.Render(` in GameUi's files on `Backend`) and with a
+    // semantic test per replay site (the surface's own text is in FrameText).
+
+    private DrawListImGuiBackend? _drawListBackend;
+
     /// <summary>The DrawList backend, created on first use with its replay reporting each TextCmd to
     /// <see cref="FrameText"/> under the surface being drawn.</summary>
     private DrawListImGuiBackend Backend =>
         _drawListBackend ??= new DrawListImGuiBackend(_fonts) { Replayed = t => Record(FrameTextSource.Replayed, t.Text) };
+
+    /// <summary>Whether <see cref="Backend"/> has been created (and not dropped since).</summary>
+    private bool BackendCreated => _drawListBackend is not null;
+
+    /// <summary>Drops the backend (the atlas was rebuilt): the next <see cref="Backend"/> use creates it again on the new
+    /// faces, with its sink.</summary>
+    private void DropBackend() => _drawListBackend = null;
 }

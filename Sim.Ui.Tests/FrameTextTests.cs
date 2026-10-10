@@ -189,6 +189,94 @@ public class FrameTextTests : IDisposable
         Assert.Empty(h.Problems);
     }
 
+    /// <summary>
+    /// EVERY REPLAY SITE RECORDS ITS SURFACE'S OWN TEXT (review finding: a surface replayed through a DrawList backend
+    /// without the FrameText sink lost its text from FrameText while the source guard and ImGui's own text log — which
+    /// never sees draw-list text — stayed green). Each surface the game replays through the backend, opened in turn: the
+    /// text its OWN model says it shows (not read back from FrameText) is in FrameText as Replayed, under its surface —
+    /// the lens, the status band's styled runs, a card's title row, the Age panel, the POLICY action surface, the hover
+    /// hint, the pinned info card, the formation card and the research screen (the notices: the test above). Replaying
+    /// any one of them through a sink-less backend kills its leg.
+    /// </summary>
+    [Fact]
+    public void EveryReplaySite_RecordsItsSurfacesOwnText_AsReplayed()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("replay-sites"), Assets());
+        bool Replayed(string surface, Func<string, bool> match)
+        {
+            foreach (FrameTextEntry e in h.Ui.FrameText.Last)
+                if (e.Surface == surface && e.Source == FrameTextSource.Replayed && match(e.Text)) return true;
+            return false;
+        }
+        string Dump(string surface) => surface + ": " + string.Join(" | ", h.Ui.FrameText.Texts(surface));
+
+        // The map: the lens, the status band's styled runs (StyledRun), the selection card's title row (TitleRow).
+        string selected = h.Ui.Session.Names.Name(h.Ui.SelectedSettlement);
+        Assert.True(Replayed(FrameSurface.Lens, t => h.Ui.LastLensCommands.Any(c => c is TextCmd tc && tc.Text == t)), Dump(FrameSurface.Lens));
+        Assert.True(Replayed(FrameSurface.Status, t => t == "Turn"), Dump(FrameSurface.Status));
+        Assert.True(Replayed(FrameSurface.Selection, t => t == selected), Dump(FrameSurface.Selection));
+
+        // The Age panel (the foreground list): nothing under its surface while it is closed; open, its heading names the
+        // capital and it states the current Age by name (AgePanelModel).
+        Assert.Empty(h.Ui.FrameText.Texts(FrameSurface.Age));
+        Assert.True(EmpireQuery.TryGetCapital(h.Ui.World, UiPlayer.Empire, out SettlementId capital));
+        string capitalName = h.Ui.Session.Names.Name(capital.Value);
+        Assert.True(h.ClickControl("band-age"));
+        Assert.True(h.Ui.AgePanelOpen);
+        string ageName = h.Ui.Age.Panel.CurrentAgeName;
+        Assert.False(string.IsNullOrEmpty(ageName));
+        Assert.True(Replayed(FrameSurface.Age, t => HasWord(t, capitalName)), Dump(FrameSurface.Age));
+        Assert.True(Replayed(FrameSurface.Age, t => t.Contains(ageName, StringComparison.OrdinalIgnoreCase)), Dump(FrameSurface.Age));
+        Assert.True(h.ClickControl("band-age"));
+        Assert.Empty(h.Ui.FrameText.Texts(FrameSurface.Age));
+
+        // The POLICY action surface (the context window's list): every labour activity its model lists, by name.
+        Assert.True(h.ClickControl("nav:Policy"));
+        Sim.Ui.Actions.LabourBlock labour = h.Ui.Actions.Model!.Labour!;
+        Assert.NotEmpty(labour.Summary.Labels);
+        foreach (string label in labour.Summary.Labels)
+            Assert.True(Replayed(FrameSurface.Context, t => t == label), label + " not replayed; " + Dump(FrameSurface.Context));
+
+        // The hover hint (the foreground list): over an inspectable row the UI shows the hint, and FrameText has it.
+        Sim.Ui.Info.InfoHit row = h.Ui.InfoRegistry.First(InfoKind.LabourSector)!.Value;
+        h.MoveTo(row.Rect.CenterX, row.Rect.CenterY);
+        Assert.Equal(Sim.Ui.Info.InfoPanel.HintText, h.Ui.InfoHint);
+        Assert.True(Replayed(FrameSurface.Hint, t => t == Sim.Ui.Info.InfoPanel.HintText), Dump(FrameSurface.Hint));
+
+        // The pinned info card (its child window's list): the card's own title (InfoQuery's card).
+        h.ShiftClick(row.Rect.CenterX, row.Rect.CenterY);
+        Assert.True(h.Ui.Inspector.IsOpen);
+        string title = h.Ui.Inspector.Card!.Title;
+        Assert.True(Replayed(FrameSurface.Info, t => t == title), title + " not replayed; " + Dump(FrameSurface.Info));
+        h.Key(Keys.Escape);
+        h.ClickControl("close");
+
+        // The formation card's title row.
+        MilitaryUnitRow[] mine = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire);
+        Assert.NotEmpty(mine);
+        if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, mine[0].Location.Value, h.Width, h.Height);
+        h.Idle(2);
+        foreach (UnitPlacement p in h.Ui.LensFrame!.UnitPlacements) if (p.Id == mine[0].Id) { h.Click(p.X, p.Y); break; }
+        Assert.NotNull(h.Ui.UnitCard);
+        string unitTitle = h.Ui.UnitCard!.Title;
+        Assert.True(Replayed(FrameSurface.UnitCard, t => t == unitTitle), unitTitle + " not replayed; " + Dump(FrameSurface.UnitCard));
+        h.Key(Keys.Escape);
+
+        // The research screen (the background list): focused on the cheapest technology the player can learn now, every
+        // word of its name is in a replayed run (a card wraps a long name over two lines).
+        Assert.True(h.ClickControl("band-research"));
+        Assert.True(h.Ui.ProgressionOpen);
+        ResearchContent content = h.Ui.Session.Config.Research!;
+        ResearchNodeId node = ResearchQuery.CheapestAvailable(h.Ui.World, content, UiPlayer.Empire, ResearchTree.Technology)!.Value;
+        Sim.Ui.Progression.ProgressionScreen screen = h.Ui.Progression!;
+        Sim.Ui.Progression.ResearchNodeView view = screen.Snapshot!.Nodes.First(n => n.Key == node);
+        screen.Focus(view.ContentIndex, jump: true);
+        h.Idle(2);
+        foreach (string word in view.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            Assert.True(Replayed(FrameSurface.Research, t => HasWord(t, word)), word + " (of " + view.Name + ") not replayed under research");
+        Assert.Empty(h.Problems);
+    }
+
     [Fact]
     public void LastLensCommands_AreTheLensPaintedLastFrame_AndEmptyUnderTheResearchScreen()
     {
@@ -418,7 +506,7 @@ public class FrameTextTests : IDisposable
     public void SourceGuard_Allowlist_EveryEntryHasAReason_AndPinsTheExactCount()
     {
         var seen = new HashSet<(string, string)>();
-        foreach (FrameTextGuard.Allowance a in FrameTextGuard.Allowed)
+        foreach (FrameTextGuard.Allowance a in FrameTextGuard.Allowed.Concat(FrameTextGuard.ReplayChannel))
         {
             Assert.False(string.IsNullOrWhiteSpace(a.Reason), a.File + " " + a.Call);
             Assert.True(a.Count > 0, a.File + " " + a.Call);
@@ -429,6 +517,16 @@ public class FrameTextTests : IDisposable
         int helpers = 0;
         foreach (FrameTextGuard.Allowance a in FrameTextGuard.Allowed) if (a.File == "Sim.Ui/GameUi.Text.cs") helpers += a.Count;
         Assert.Equal(9, helpers);
+    }
+
+    /// <summary>The backend's FrameText sink is fixed when it is created (init-only): GameUi's backend cannot be detached
+    /// from the log afterwards (<c>Backend.Replayed = null</c> does not compile).</summary>
+    [Fact]
+    public void ReplaySink_IsInitOnly()
+    {
+        System.Reflection.MethodInfo? set = typeof(Sim.Ui.ImGuiIntegration.DrawListImGuiBackend).GetProperty("Replayed")?.SetMethod;
+        Assert.NotNull(set);
+        Assert.Contains(typeof(System.Runtime.CompilerServices.IsExternalInit), set.ReturnParameter.GetRequiredCustomModifiers());
     }
 
     /// <summary>The bypass shapes, each a MUTANT of the real tree (one file's real source, changed in memory): the
@@ -445,6 +543,24 @@ public class FrameTextTests : IDisposable
     [InlineData("Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs", "dl.AddText(font, (float)t.Size, V(x, t.Y), Col(t.Color), t.Text);",
         "dl.AddText(font, (float)t.Size, V(x, t.Y), Col(t.Color), t.Text); dl.AddText(font, (float)t.Size, V(x, t.Y), Col(t.Color), t.Text);", "AddText")]
     [InlineData("Sim.Ui/GameUi.Text.cs", "        ImGui.TextUnformatted(text);", "        ImGui.TextUnformatted(text);\n        ImGui.TextUnformatted(text);", "ImGui.TextUnformatted")]
+    // The replay channel (review finding: a surface replayed through a fresh, sink-less backend lost its text from
+    // FrameText while every other test stayed green). The four sites of the measured mutant, and the other shapes.
+    [InlineData("Sim.Ui/GameUi.cs", "Backend.Render(ImGui.GetForegroundDrawList(), top);",
+        "new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts).Render(ImGui.GetForegroundDrawList(), top);", "new DrawListImGuiBackend")]
+    [InlineData("Sim.Ui/GameUi.cs", "Backend.Render(ImGui.GetWindowDrawList(), surface);",
+        "new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts).Render(ImGui.GetWindowDrawList(), surface);", "new DrawListImGuiBackend")]
+    [InlineData("Sim.Ui/GameUi.Info.cs", "Backend.Render(ImGui.GetWindowDrawList(), card);",
+        "new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts).Render(ImGui.GetWindowDrawList(), card);", "new DrawListImGuiBackend")]
+    [InlineData("Sim.Ui/GameUi.Info.cs", "Backend.Render(ImGui.GetForegroundDrawList(), d);",
+        "new DrawListImGuiBackend(_fonts).Render(ImGui.GetForegroundDrawList(), d);", "new DrawListImGuiBackend")]
+    [InlineData("Sim.Ui/GameUi.Info.cs", "Backend.Render(ImGui.GetForegroundDrawList(), d);", "_hintBackend.Render(ImGui.GetForegroundDrawList(), d);", ".Render( not on Backend")]
+    [InlineData("Sim.Ui/GameUi.cs", "private bool _progressionOpen;",
+        "private bool _progressionOpen; private readonly DrawListImGuiBackend _plain = new(null);", "DrawListImGuiBackend outside")]
+    [InlineData("Sim.Ui/GameUi.cs", "DropBackend();", "_drawListBackend = new(_fonts);", "_drawListBackend")]
+    [InlineData("Sim.Ui/Headless/UiFrameHarness.cs", "public void Dispose()",
+        "private static object Plain(UiTheme.Fonts f) => new ImGuiIntegration.DrawListImGuiBackend(f);\n    public void Dispose()", "new DrawListImGuiBackend")]
+    [InlineData("Sim.Ui/GameUi.Text.cs", "    private bool BackendCreated",
+        "    private DrawListImGuiBackend Plain => new DrawListImGuiBackend(_fonts);\n    private bool BackendCreated", "new DrawListImGuiBackend count 2")]
     public void SourceGuard_EachBypassShape_IsCaught(string file, string find, string replace, string call)
     {
         IReadOnlyList<(string Path, string Source)> sources = FrameTextGuard.Sources(RepoRoot());
@@ -488,6 +604,11 @@ public class FrameTextTests : IDisposable
 /// <c>Begin</c> (its title), any draw list's <c>AddText</c>, any native <c>ImGuiNative.ig*</c> entry point — must sit in
 /// an allowlisted file, as many times as the allowlist says, for the stated reason. An alias of ImGui (<c>using
 /// static</c>, <c>using X = ImGuiNET.ImGui</c>) is itself a violation: it would hide a call from the pattern.
+/// <para>THE REPLAY CHANNEL (<see cref="ReplayChannel"/>): most of the game's text is TextCmds the DrawList backend
+/// replays, and only GameUi's <c>Backend</c> reports them to FrameText. So the backend's type may be named (constructed,
+/// declared, cast, aliased) only at the allowlisted sites, GameUi's backend field only in the helpers' file, and every
+/// <c>.Render(</c> in GameUi's files must be <c>Backend.Render(</c>: a replay through any other backend — a fresh
+/// <c>new DrawListImGuiBackend(_fonts)</c>, the idiom before P6 — would put its text on screen without FrameText.</para>
 /// Comments are blanked before scanning (a call named in a doc comment is not a call); string literals are kept (a
 /// pattern inside a string is reported — conservative).
 /// </summary>
@@ -511,6 +632,32 @@ internal static class FrameTextGuard
         new("Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs", "AddText", 3,
             "the DrawList replay: Render's TextCmd case reports the command through Replayed (GameUi.FrameText) before its glyphs are added — plainly, or by Styled (cased, tracked, double-struck)"),
     ];
+
+    /// <summary>The replay channel's allowlist, count-pinned like <see cref="Allowed"/>: "new DrawListImGuiBackend" (a
+    /// construction), "DrawListImGuiBackend" (any other naming of the type: a declaration, parameter, cast or alias that
+    /// could hold a backend without the sink), "_drawListBackend" (GameUi's backend field).</summary>
+    public static IReadOnlyList<Allowance> ReplayChannel { get; } =
+    [
+        new("Sim.Ui/GameUi.Text.cs", "new DrawListImGuiBackend", 1,
+            "GameUi.Backend: the game frame's one backend, created with its Replayed sink (FrameText) — init-only, so it cannot be detached"),
+        new("Sim.Ui/GameUi.Text.cs", "DrawListImGuiBackend", 2, "the type of GameUi's backend field and of its Backend property"),
+        new("Sim.Ui/GameUi.Text.cs", "_drawListBackend", 4,
+            "the field behind Backend: its declaration, Backend's lazy creation (with the sink), BackendCreated and DropBackend"),
+        new("Sim.Ui/Headless/FrameCost.cs", "new DrawListImGuiBackend", 1,
+            "--frame-cost: replays the research screen into a bare HeadlessImGui frame of its own (no GameUi, no game frame, no FrameText to report to)"),
+        new("Sim.Ui/Headless/FrameCost.cs", "DrawListImGuiBackend", 1, "FrameCost.Sweep's parameter: the measurement's own backend"),
+        new("Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs", "DrawListImGuiBackend", 2, "the class itself: its declaration and its constructor"),
+    ];
+
+    private static readonly Regex Replay = new(
+        @"(?<new>\bnew\s+(?:global::)?(?:\w+\s*\.\s*)*DrawListImGuiBackend\b)|(?<type>\bDrawListImGuiBackend\b)|(?<field>\b_drawListBackend\b)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>A file of the GameUi partial class (the game's frame): its replays must go through <c>Backend</c>.</summary>
+    private static readonly Regex GameUiPartial = new(@"\bpartial\s+class\s+GameUi\b", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>A <c>.Render(</c> call whose receiver is not <c>Backend</c>.</summary>
+    private static readonly Regex RenderNotOnBackend = new(@"(?<!\bBackend\s*)(?:\?\s*)?\.\s*Render\s*\(", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex Calls = new(
         @"\bImGui\.(?<n>Text\w*|LabelText\w*|BulletText\w*|SeparatorText|Button|SmallButton|InvisibleButton|ArrowButton|ImageButton|RadioButton|Checkbox\w*|Selectable|CollapsingHeader|TreeNode\w*|BeginTabItem|TabItemButton|BeginMenu|MenuItem|BeginCombo|Combo|ListBox|ProgressBar|Slider\w*|VSlider\w*|Drag\w*|Input\w*|Plot\w*|Value|LogText|SetTooltip\w*|SetItemTooltip\w*|BeginTooltip|BeginItemTooltip|Begin|Color\w*)\s*\("
@@ -558,10 +705,25 @@ internal static class FrameTextGuard
                 if (allowed is null) { v.Add(path + ":" + LineOf(code, m.Index) + ": " + call + " outside GameUi's recording helpers (FrameText would not see it)"); continue; }
                 counts[(path, call)] = counts.GetValueOrDefault((path, call)) + 1;
             }
+            foreach (Match m in Replay.Matches(code))
+            {
+                string what = m.Groups["new"].Success ? "new DrawListImGuiBackend" : m.Groups["type"].Success ? "DrawListImGuiBackend" : "_drawListBackend";
+                Allowance? allowed = null;
+                foreach (Allowance a in ReplayChannel) if (a.File == path && a.Call == what) allowed = a;
+                if (allowed is null)
+                {
+                    v.Add(path + ":" + LineOf(code, m.Index) + ": " + what + " outside the replay channel's allowlist (a DrawList backend other than GameUi.Backend replays text FrameText never sees)");
+                    continue;
+                }
+                counts[(path, what)] = counts.GetValueOrDefault((path, what)) + 1;
+            }
+            if (GameUiPartial.IsMatch(code))
+                foreach (Match m in RenderNotOnBackend.Matches(code))
+                    v.Add(path + ":" + LineOf(code, m.Index) + ": .Render( not on Backend (GameUi replays only through Backend, whose sink is FrameText)");
         }
         var files = new HashSet<string>();
         foreach ((string path, _) in sources) files.Add(path);
-        foreach (Allowance a in Allowed)
+        foreach (Allowance a in Allowed.Concat(ReplayChannel))
         {
             if (!files.Contains(a.File)) continue;   // a partial scan (a mutant set) checks only the files it holds
             int n = counts.GetValueOrDefault((a.File, a.Call));

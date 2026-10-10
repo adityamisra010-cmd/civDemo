@@ -210,7 +210,7 @@ no simulation, serialization or order code changed.
 |---|---|---|
 | `GameUi.FrameText` | `Sim.Ui/FrameText.cs`, `Sim.Ui/GameUi.Text.cs` | Every string the last frame drew, in draw order, each tagged with its surface (`FrameSurface`: lens, age, notices, status, selection, unit-card, context, info, command, hint, research) and its source: an ImGui text line, a widget's visible label (the part before `##`), a run added straight to a draw list, or a `TextCmd` the DrawList backend replayed (after its off-screen cull). Read-only. It only observes: nothing reads it back. |
 | recording helpers | `Sim.Ui/GameUi.Text.cs` | `Text`, `Button`, `Selectable`, `Checkbox`, `RadioButton`, `InvisibleButton`, `PlotLines`, `AddText`, `BeginWindow`. Each records the string, then makes exactly the ImGui call it wraps. This file is the only place in Sim.Ui that calls ImGui's text and widget functions. |
-| `DrawListImGuiBackend.Replayed` | `Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs` | Told of every `TextCmd` as it is replayed. GameUi's backend reports into FrameText under the surface being drawn. |
+| `DrawListImGuiBackend.Replayed` | `Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs` | Told of every `TextCmd` as it is replayed. Init-only: a backend's sink is fixed when it is created. GameUi's one backend (`Backend`, in `GameUi.Text.cs`) is created there with its sink, and reports into FrameText under the surface being drawn. |
 | `GameUi.LastLensCommands` | `Sim.Ui/GameUi.cs` | The world lens's DrawList commands as the last frame painted them (before the cull). Empty in a frame that drew no lens (the research screen). |
 
 **FrameText is complete — two independent proofs (`Sim.Ui.Tests/FrameTextTests.cs`).**
@@ -222,6 +222,37 @@ no simulation, serialization or order code changed.
   violation. Ten bypass shapes are mutants of the real tree, and each is reported at its line: a direct call, a
   fully-qualified call, `dl.AddText`, `TextWrapped`, `SetTooltip`, a native call, a call after a string holding `//`,
   an extra call in an allowlisted file, and both alias forms. A call written inside a comment is not reported.
+- *The replay channel (review fix).* Most of the game's text is `TextCmd`s that the DrawList backend replays, and only
+  GameUi's `Backend` reports them. Neither proof above saw that channel. ImGui's text log never sees draw-list text,
+  and the guard counted only the backend's own `AddText`. A surface replayed through a fresh
+  `new DrawListImGuiBackend(_fonts)` (the idiom at about 10 GameUi sites before P6) put its text on screen with no
+  FrameText entry, and every P6 test stayed green. The reviewer measured this at 4 sites, and 30/30 tests passed. The
+  guard now pins the channel too, with a count-pinned allowlist of 6 entries, each with its reason:
+  - the backend's type may be constructed only in `GameUi.Text.cs` (with the sink) and in `FrameCost.cs` (the
+    `--frame-cost` measurement, which draws its own bare frame);
+  - the type may be named in any other way (a declaration, parameter, cast or alias) only at those sites and in the
+    class itself;
+  - GameUi's backend field may be named only in `GameUi.Text.cs`;
+  - every `.Render(` in GameUi's files must be `Backend.Render(`.
+
+  Nine more mutants of the real tree are reported: the measured mutant's four sites, a `.Render(` on another receiver,
+  a second backend held in a target-typed field, the field rebound to a new backend, a construction elsewhere in
+  Sim.Ui, and a second construction in the helpers' file. The sink is init-only, so `Backend.Replayed = null` does not
+  compile (`ReplaySink_IsInitOnly`).
+- *Every replay site, semantically.* `EveryReplaySite_RecordsItsSurfacesOwnText_AsReplayed` opens each surface the
+  game replays and requires the text its own model says it shows, under its surface, as `Replayed`:
+  - the lens (one of `LastLensCommands`' texts);
+  - the status band's styled runs;
+  - the selection card's title row;
+  - the Age panel (the capital's name, and `AgePanelModel.CurrentAgeName`), with nothing under the Age surface while
+    the panel is closed;
+  - every labour activity of the POLICY action surface's model;
+  - the hover hint (`InfoPanel.HintText`, while `InfoHint` says it shows);
+  - the pinned info card's `InfoCard.Title`;
+  - the formation card's title;
+  - every word of the research screen's focused node.
+
+  The notices toast is pinned by its own test. The panel furniture's replay has no text.
 - *ImGui's own text log.* ImGui writes everything it renders as text to a file (`LogToFile`) for one frame. Every
   string it wrote must be one FrameText recorded, leaving only ImGui's own log furniture: button brackets, checkbox
   and radio markers, separator dashes. This is checked on every surface after a played turn: the map, every section,
@@ -327,7 +358,30 @@ killed by at least one semantic test:
 | M8 the notices are recorded under the Age surface | `Notices_AreRecordedUnderTheirOwnSurface_AndGoWhenTheToastFades` |
 
 M8 survived its first run (29/29 passed): no test pinned the notices surface. The notices test was added for it,
-and the rerun kills it. The first runs of M6 and M7 used `if (false)`, which fails to build under
+and the rerun kills it.
+
+*Review fix, the replay channel (MEASURED).* Each mutant replaces one `Backend.Render(...)` with
+`new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts).Render(...)`, the reviewer's mutant shape. Each was built
+and run against `FrameTextTests.EveryReplaySite` (the notices site against `FrameTextTests.Notices_`). Each run was
+bounded at 900 s, 180 times the 5 s clean run. Every run finished in 4 to 8 s and none hung. Every mutant was killed
+by a semantic leg, named by its failure message:
+
+| mutant (one site) | killed by |
+|---|---|
+| R1 the Age panel, flow and toast (`GameUi.cs`, foreground list) | `EveryReplaySite_…`, Age leg ("age:" empty); `SourceGuard_NoImGui…` |
+| R2 the POLICY action surface | `EveryReplaySite_…`, POLICY leg ("Gathering not replayed"); `SourceGuard_NoImGui…` |
+| R3 the pinned info card | `EveryReplaySite_…`, info-card leg ("Gathering not replayed; info: DETAILS"); `SourceGuard_NoImGui…` |
+| R4 the hover hint | `EveryReplaySite_…`, hint leg ("hint:" empty); `SourceGuard_NoImGui…` |
+| R5 the research screen | `EveryReplaySite_…`, research leg ("Pressure (of Pressure flaking) not replayed") |
+| R6 the world lens | `EveryReplaySite_…`, lens leg ("lens:" empty) |
+| R7 the styled runs (`StyledRun`: the status band) | `EveryReplaySite_…`, status leg |
+| R8 the title rows (`TitleRow`: the cards' and panels' titles) | `EveryReplaySite_…`, selection leg |
+| R9 the notices toast | `Notices_AreRecordedUnderTheirOwnSurface_AndGoWhenTheToastFades` |
+
+Before the fix, R1 to R4 together survived every P6 test (the reviewer's run: 30/30 passed). The source guard
+also failed under R1 to R4; that was measured in the same runs, with the filter widened to `SourceGuard_NoImGui…`.
+Its theory rows (`SourceGuard_EachBypassShape_IsCaught`) pin R1 to R4's sites and five other shapes. These
+source-level kills are not counted as the semantic kill. The first runs of M6 and M7 used `if (false)`, which fails to build under
 TreatWarningsAsErrors (CS0162). They were rewritten with non-constant conditions and killed as listed. A build
 failure is not counted as a kill.
 

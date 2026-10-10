@@ -155,7 +155,6 @@ public sealed partial class GameUi
 
     private Sim.Ui.Progression.ProgressionScreen? _progression;
     private bool _progressionOpen;
-    private DrawListImGuiBackend? _drawListBackend;
     private bool _progressionDrag;
     private int _progressionDownX, _progressionDownY;
     private KeyboardState _lastKeyboard;
@@ -297,7 +296,7 @@ public sealed partial class GameUi
     public void SetFonts(UiTheme.Fonts fonts)
     {
         _fonts = fonts;
-        _drawListBackend = null;
+        DropBackend();   // P6: the next Backend use rebuilds it on the new faces, with its FrameText sink
         _labelWidths.Clear();
         UiTheme.Apply(_frameTheme, Scale);
     }

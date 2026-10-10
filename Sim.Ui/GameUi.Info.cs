@@ -260,7 +260,7 @@ public sealed partial class GameUi
     private void PaintInfoInProgression(Sim.Ui.Render.DrawList list, double width, double height)
     {
         RectD panel = InfoOverlayRect();
-        if (_inspector.IsOpen && _drawListBackend is not null)
+        if (_inspector.IsOpen && BackendCreated)
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
