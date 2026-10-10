@@ -323,11 +323,15 @@ public class GovernanceTests
         orders.Append(SetTax(0, p, 80.0));
         WorldState next = GovernanceOnly(orders).Step(w);
 
-        Assert.Equal(0.80, Governance.NominalTaxRate(next, p), 9);   // the edict stands...
+        // G10 (M5 polish): a lost seat fails the ONE tax predicate, so the edict is refused outright (it could never
+        // be collected) — before G10 it was recorded as a nominal 80 % that reached nobody.
+        Assert.Equal(TaxGate.NeedsSeat, Governance.GateOf(w, Cfg(), p));
+        Assert.False(Governance.HasPolicy(next, p));                  // the edict is refused...
+        Assert.Equal(0.0, Governance.NominalTaxRate(next, p));
         for (int i = 0; i < next.Controls.Count; i++)
         {
             ControlRow row = next.Controls[i];
-            Assert.Equal(0.0, row.Strength);                          // ...but nobody is reached
+            Assert.Equal(0.0, row.Strength);                          // ...and nobody is reached
             Assert.Equal(0.0, Governance.EffectiveTaxRate(next, row.Place, Cfg()));
             Assert.Equal(1.0, Governance.ExtractionMultiplier(next, row.Place, Cfg()));
             Assert.Equal(1.0, SettlementHappiness.TaxSufficiency(next, row.Place, Cfg()));

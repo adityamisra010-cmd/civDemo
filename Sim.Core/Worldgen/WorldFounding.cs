@@ -87,7 +87,7 @@ public static class WorldFounding
                             int row = world.Buckets.Add(new BucketRow(
                                 settlement, new CultureId(culture.Id), new ReligionId(religion.Id),
                                 new ClassId(reg.Classes[cls].Id), cohort, Conserved.Zero,
-                                birthRemainder: 0.0, deathRemainder: 0.0,
+                                birthRemainder: 0.0, deathRemainder: FoundingDeathRemainder,
                                 starvationRemainder: 0.0, agingRemainder: 0.0));
                             long endowed = cls == 0
                                 ? Jittered(founding.CohortCounts[cohort],
@@ -411,18 +411,46 @@ public static class WorldFounding
     /// <summary>Slot index of the settlement-COMMON endowment factor.</summary>
     private const int SettlementSlot = 200;
 
+    /// <summary>
+    /// ADR-035 §6 (P-F0) — THE SEED VALUE OF A NEW BUCKET ROW'S D-004 DEATH ACCUMULATOR: 0.5, not 0.0. The
+    /// remainder of a floored flow is, in its stationary state, spread over [0, 1) with mean 1/2; seeding it at 0
+    /// makes the row's FIRST integer reconciliation a pure floor, which leaves about 8 people per settlement alive
+    /// who died in the exact micro-state. They sit in the small high-mortality elder rows and die on turn 2 (the
+    /// "D-004 warm-up" half of the turn-2 dip, measured −24 of seed 42's −94 by the population audit's skeptic).
+    /// Seeded at its stationary mean the first reconciliation ROUNDS, deterministically, as every later one does
+    /// on average. Only the death accumulator is seeded: the measured warm-up is the death remainder alone (birth-
+    /// and aging-only arms do not move turn 2). Shared by ColonizationSystem for a colony's new rows, so turn-zero
+    /// founding and frontier founding cannot drift.
+    /// </summary>
+    public const double FoundingDeathRemainder = 0.5;
+
     private static long Jittered(long baseUnits, double amp, ulong seed, int settlement, int slot)
     {
         if (amp <= 0.0 || baseUnits == 0) return baseUnits;
-        // TWO components, both amplitude amp: a settlement-COMMON factor (all
-        // of one settlement's slots scale together, so founding TOTALS spread
-        // by ±amp — independent per-cohort noise alone cancels to ±amp/√16
-        // in the total, which is no variation at all) and a per-slot factor
-        // (age structures and the food:people ratio differ too).
+        // TWO components (ADR-035 §3 / P-F2):
+        //
+        // (1) a settlement-COMMON factor, amplitude amp (RC-1, ADR-017: the founding-SIZE reference class,
+        //     Neolithic settlement sizes and village-fission founder groups, CV 0.4 = amp/√3): all of one
+        //     settlement's slots scale together, so founding TOTALS spread by ±amp.
+        //
+        // (2) a per-cohort factor at DEMOGRAPHIC scale. Reference class: a founder group drawn from a
+        //     population at its stable age structure — a multinomial draw of n founders over the stable
+        //     shares p_c, whose cohort count has sd √(n·p_c·(1−p_c)) ≈ √n_c, i.e. a coefficient of
+        //     variation CV_c ≈ 1/√n_c with n_c the cohort's EXPECTED count (Poisson limit). A uniform
+        //     u ∈ [−1,1] realises CV = a/√3, so a_c = √(3/n_c), capped at 1 so the factor stays in [0, 2]
+        //     and mean-preserving. Before ADR-035 this factor borrowed RC-1's ±0.69 (CV 0.4) for every
+        //     cohort, a SIZE reference class applied to age COMPOSITION: a 57-person cohort varied ±39
+        //     people, against ±7.5 for a real founder group, and the resulting off-stable pyramids caused
+        //     the turn-2 world dip measured in the M5 polish population audit.
+        //
+        // Age structures and the food:people ratio still differ between settlements — at the scale real
+        // founder groups differ, not at the scale settlement sizes differ.
         double us = U(seed, settlement, SettlementSlot);
         double uc = U(seed, settlement, slot);
+        double expected = baseUnits * (1.0 + amp * us);
+        double ampCohort = expected > 0.0 ? Math.Min(1.0, Math.Sqrt(3.0 / expected)) : 0.0;
         long jittered = ConservedMath.WholeUnits(
-            Math.Round(baseUnits * (1.0 + amp * us) * (1.0 + amp * uc)),
+            Math.Round(expected * (1.0 + ampCohort * uc)),
             $"founding endowment (settlement {settlement}, slot {slot})");
         return Math.Max(0L, jittered);
     }

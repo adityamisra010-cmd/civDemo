@@ -570,6 +570,8 @@ public static class PlayerViews
             // than leave a known civic looking like it does nothing.
             rule.Add("Your scholars know Taxation, but no levy can be raised before the "
                 + StateChronicle.AgeName(taxAges, taxAge) + " (Age " + taxAge.ToString(CultureInfo.InvariantCulture) + ").");
+        else if (gate == TaxGate.NeedsSeat)
+            rule.Add("Your realm has no seat of government it controls, so no levy can be raised.");
         else rule.Add("Your people do not yet know how to levy a tax.");
 
         // Roads: travelled routes touching the empire, by class.

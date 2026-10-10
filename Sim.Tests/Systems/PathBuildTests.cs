@@ -133,7 +133,15 @@ public class PathBuildTests
         // The magnitude is pinned at its measured value so the term cannot
         // drift silently; NOTE the pin is VACUOUS for the subtraction on this
         // tree exactly as it was before T4.19 lane C (recorded, not hidden).
-        Assert.Equal(0.0, housingDrawT3);
+        // ADR-035 RE-MEASURED: 0.0 → 1.0. The cause T4.21-3 named is removed: the
+        // founding turn now harvests (the row-absent land side is unmeasured, not
+        // zero), so turn 2's cap no longer reads N_lim = 0, the settlement grows
+        // into a housing shortfall, one dwelling is built on turn 3, and the
+        // subtraction is NON-vacuous again (exactly 1.0 adult-year).
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 1.0 -> 0.5 — the
+        // settlement enters turn 3 a little smaller (no turn-1 phantom survivors), half a dwelling's labour.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): 0.5 -> 1.0.
+        Assert.Equal(1.0, housingDrawT3);
         long harvestBefore = HarvestSourced(world);
         // T3.5b: the subsistence DEFAULT mix banks construction from turn 1
         // (0.08 share), so the bank assertion below is a DELTA across the

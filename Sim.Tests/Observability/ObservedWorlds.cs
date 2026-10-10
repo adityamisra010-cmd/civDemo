@@ -80,6 +80,11 @@ internal static class ObservedWorlds
     /// on turn 2 and every gap flow is refused world-wide for that one turn;
     /// docs/queue.md carries it as a measured finding, and a future packet that
     /// changes that null arm moves these turns):
+    ///   ADR-035 (2026-10-07) MOVES THE FIRST TWO LINES BELOW: the founding turn now
+    ///   harvests (the row-absent land side is unmeasured, not zero), so harvest is
+    ///   first non-zero on turn 1 and migrants first move on turn 2 (247 on founded
+    ///   and driven seed 42, measured), as WorldReconciliationTests pins. The rest of
+    ///   this record is the pre-ADR-035 measurement, kept as history.
     ///   RE-MEASURED BY T4.21-4 WITH THE DISASTER ARMED (hazardPerYear
     ///   0.0 -> 0.01), THEN AGAIN BY T4.21-7 AT THE SHIPPING VALUE (0.01 -> 0.0
     ///   — CR-016's orchestrator decision: the mechanism ships COMPLETE AND

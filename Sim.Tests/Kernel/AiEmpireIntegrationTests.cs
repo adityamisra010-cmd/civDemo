@@ -97,7 +97,10 @@ public class AiEmpireIntegrationTests
     {
         AiRun run = RunUntilFirstLevy(TestConfigs.PreTaxAge(Cfg));
         OrderRecord tax = Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]).First(o => o.Kind == OrderKind.SetTaxRate);
-        Assert.Equal((367L, 368L), (tax.Turn, run.FirstTax));
+        // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED): 367/368 -> 362/363.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 362/363 -> 366/367.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): 366/367 -> 365/366.
+        Assert.Equal((365L, 366L), (tax.Turn, run.FirstTax));
         Assert.Equal(-1L, run.Age3At);   // levied in A2: exactly the pre-H2 defect
     }
 
@@ -169,7 +172,10 @@ public class AiEmpireIntegrationTests
         // S3 (goal union): 19, 9, road 246/247, Age 381/382, levy 305/306. S2 (core-only): 19, 9, no road, 141/142, no tax.
         // R4 RE-PIN (2026-10-04, the forager layer — wild-food harvests until farming is known slow the RP curve;
         // MEASURED on this tree by the agent writing this line): advance 235/236 -> 238/239; 26 and 9 unchanged.
-        Assert.Equal((26L, 9L, 238L, 239L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
+        // ADR-035 RE-PIN (2026-10-07, one cause: the founding-turn harvest; MEASURED): advance 238/239 -> 233/234.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): advance 233/234 -> 236/237.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): advance 236/237 -> 235/236.
+        Assert.Equal((26L, 9L, 235L, 236L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -182,8 +188,12 @@ public class AiEmpireIntegrationTests
         // Taxation civic in A2 as before but the edict is refused until it ENTERS A3 (AdvanceAge decided 462, in
         // force 463); it levies on its first A3 turn. Road, Age 2, targets and granary unchanged. The control
         // WithTheTaxAgeGateStripped_TheAiLeviesAtThePreH2Turn_InA2 returns 367/368 with the Age half stripped.
-        Assert.Equal((143L, 144L, 463L, 464L), (road.Turn, firstRoad, tax.Turn, firstTax));
-        Assert.Equal(463L, a3At);                            // the AI entered A3 (decided 462) ...
+        // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED): road 143/144 -> 140/141, levy 463/464 ->
+        // 458/459 (still on the AI's first A3 turn).
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): road 140/141 -> 141/142, levy 458/459 -> 462/463 (A3 entered 462).
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): levy 462/463 -> 461/462 (A3 entered 461).
+        Assert.Equal((141L, 142L, 461L, 462L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        Assert.Equal(461L, a3At);                            // the AI entered A3 (decided 460; ADR-035: 463 -> 458 -> 462 -> 461) ...
         Assert.True(tax.Turn >= a3At, "the AI levied before entering A3");   // ... and levied only after it
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.

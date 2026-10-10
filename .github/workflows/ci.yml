@@ -187,7 +187,7 @@ jobs:
           # levy in this order-less world; the levy-pressure model reads the old values exactly when untaxed). Derived
           # twice on this tree (in-test harness; CLI processes); IntegratedPinAttributionTests strips the v32 layer and
           # returns 02c7f9eb… byte for byte (docs/d049-taxation-and-revolt-model.md §8).
-          FOUNDED_GOLDEN=07c6ec45902428d210361719fa1fbf90de5aacd3baf3f18c09aebdccb64f2c61
+          FOUNDED_GOLDEN=e9e089bbce9f204904b73946f11b59061d925f5eb19b6b42f3a6a0f5b47a0126
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

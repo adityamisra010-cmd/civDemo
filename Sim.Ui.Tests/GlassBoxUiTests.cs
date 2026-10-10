@@ -516,7 +516,10 @@ public class GlassBoxUiTests
         Assert.Equal(classes[0].Id, emptiedClass);                       // Peasants
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): the emptying turn is 7 (was 11) — the starved
         // settlement runs down faster on wild food. The rule pinned is untouched.
-        Assert.Equal(7, session.Observations.LastTurn);
+        // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit's tree): P-F1 leaves it at 7; P-F0 (the founding death
+        // remainder) 7 -> 6; P-F2 (founding composition) 6 -> 9. Missed by those commits (Sim.Ui.Tests was run on the
+        // final tree only) and re-pinned here. The rule pinned is untouched.
+        Assert.Equal(9, session.Observations.LastTurn);
 
         // Next has NOBODY of that class in the settlement, yet its grievance row stands.
         var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));

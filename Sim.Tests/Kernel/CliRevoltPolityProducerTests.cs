@@ -25,14 +25,16 @@ namespace Sim.Tests.Kernel;
 public class CliRevoltPolityProducerTests
 {
     private const ulong Seed = 42;
-    private const int Turns = 70;          // the FoundedHarness revolt lands at turn 58 (FoundedHarnessTests pin)
+    // The FoundedHarness revolt turn (FoundedHarnessTests.RevoltTurn: 58 at H4; ADR-035 moved it 58 -> 63 -> 97 -> 39),
+    // plus a few turns of the new polity's own orders.
+    private const int Turns = FoundedHarnessTests.RevoltTurn + 6;
 
-    /// <summary>FoundedHarnessTests.SessionLog: labour swings on settlement 0; the 30 % swing (turn 33) starves it
-    /// unfed and unhoused into revolt at turn 58 on this world.</summary>
+    /// <summary>FoundedHarnessTests.SessionLog: labour swings on settlement 0, which starve it unfed and unhoused into
+    /// revolt at FoundedHarnessTests.RevoltTurn on this world.</summary>
     private static OrderLog PlayerLog()
     {
         var log = new OrderLog();
-        double[] pcts = [60.0, 30.0, 80.0, 0.0, 100.0, 45.0];
+        double[] pcts = FoundedHarnessTests.SessionPcts;   // ADR-035 §7: the re-rigged swing set, shared
         for (int i = 0; i < pcts.Length; i++)
             log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, pcts[i]));
         return log;
@@ -77,8 +79,10 @@ public class CliRevoltPolityProducerTests
         int foreign = 0, firstForeignTurn = -1;
         for (int i = 0; i < runLog.Count; i++)
             if (runLog[i].ActorId != 1) { foreign++; if (firstForeignTurn < 0) firstForeignTurn = (int)runLog[i].Turn; }
-        Assert.True(foreign > 0, "the CLI run log carries no order from the polity the turn-58 revolt founded — the producer never ran");
-        Assert.Equal(58, firstForeignTurn);   // revolt applied on turn 58; the new polity's first order is stamped there
+        Assert.True(foreign > 0, "the CLI run log carries no order from the polity the revolt founded — the producer never ran");
+        // ADR-035 RE-PIN (2026-10-07; MEASURED): 58 -> 63 (P-F1) -> 97 (P-F0) -> 39 (P-F2, re-rigged swing set), read
+        // from the FoundedHarness pin.
+        Assert.Equal(FoundedHarnessTests.RevoltTurn, firstForeignTurn);   // the new polity's first order is stamped on the revolt turn
 
         // 2. EQUIVALENCE: the UI's end-turn loop, replicated in-process (the player's orders of the turn, then the
         //    AI producer on the same world, then one step) gives the same world on every turn.

@@ -123,7 +123,10 @@ public class AiAgeAdvancementIntegrationTests
         // player 275 -> 338 (MEASURED). Both still reach A2; the delay is the cost of no longer counting the
         // founding line as new military realization.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): AI 385 -> 394, player 338 -> 346. Both still reach A2.
-        Assert.Equal((394L, 346L), (a.Turn, pl.Turn));
+        // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED): AI 394 -> 393, player 346 -> 344.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): AI 393 -> 396, player 344 -> 347.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): AI 396 -> 391, player 347 -> 343.
+        Assert.Equal((391L, 343L), (a.Turn, pl.Turn));
         // Same validation, same answer.
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(aiDecided!, Ages, a));
         Assert.Equal(AdvanceRejection.None, AgeQuery.CheckAdvance(playerDecided!, Ages, pl));

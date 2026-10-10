@@ -68,7 +68,7 @@
   {
    "id": "baseline.food_gathering",
    "name": "Basic food and resource gathering",
-   "providedBy": "ProductionSystem \u2014 the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); no sector is gated: research changes the ACTIVITY a sector expresses (activity.farming, .herding, .logging, .mining; sectorActivities), never its output (ADR-033 D1)",
+   "providedBy": "ProductionSystem \u2014 the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); no sector is gated: research changes the ACTIVITY a sector expresses (activity.farming, .herding, .logging, .mining; sectorActivities) (ADR-033 D1); one exception changes output: with farming.preCultivation on (sim.json), the Farming sector harvests wild food at the forager rates until activity.farming is eligible for the settlement, and the cultivated yield applies once it is (R2a)",
    "simulated": true
   },
   {

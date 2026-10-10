@@ -67,7 +67,10 @@ public sealed record LabourActivity(
 /// answers "what does each of my settlements' labour do, and what is it called?" from authoritative state
 /// (the control relation, the allocation rows, the deposits, the published variables and the COMPLETED
 /// research the issuer holds) and content (research.json <c>sectorActivities</c>, goods.json). Research
-/// changes the identity a sector is shown under, never what it produces (production reads no research).
+/// changes the identity a sector is shown under. It changes what a sector produces in ONE place only: with
+/// sim.json <c>farming.preCultivation</c> on, the Farming sector's yield depends on whether activity.farming
+/// is eligible for the settlement (<see cref="HarvestsWildFood"/>: wild food at the forager rates before it,
+/// the cultivated yield after — R2a, read by ProductionSystem.Farm).
 ///
 /// <see cref="CanAllocate"/> is THE predicate for OrderKind 3 (SectorAllocation): PathBuildSystem accepts an
 /// allocation order iff it holds on PREV, and <see cref="For"/> lists a settlement's sectors iff it holds on

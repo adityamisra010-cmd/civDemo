@@ -1209,10 +1209,18 @@ public static class PlayabilityGate
             });
             Check("keys", "W A S D (pan)", () =>
             {
+                // All four keys, both directions: a camera already clamped at one map edge (the world's own
+                // geometry decides where the selected settlement sits — after ADR-035 the age-advance rig's camera
+                // starts at the bottom clamp at zoom 1) cannot move further that way, which is not a dead control.
                 double x = Ui.Camera.CenterX, y = Ui.Camera.CenterY;
                 h.Hold(Keys.D, 20);
                 h.Hold(Keys.S, 20);
-                return Expect(Ui.Camera.CenterX != x || Ui.Camera.CenterY != y, "camera did not move");
+                bool forward = Ui.Camera.CenterX != x || Ui.Camera.CenterY != y;
+                double x2 = Ui.Camera.CenterX, y2 = Ui.Camera.CenterY;
+                h.Hold(Keys.A, 20);
+                h.Hold(Keys.W, 20);
+                bool back = Ui.Camera.CenterX != x2 || Ui.Camera.CenterY != y2;
+                return Expect(forward || back, "camera did not move (D/S nor A/W)");
             });
         }
 

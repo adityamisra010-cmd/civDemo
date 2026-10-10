@@ -106,6 +106,12 @@ public class PopulationTests
         {
             world = exec.Step(world);
             AssertRowsSaneAndAuditExact(world, t);
+            // ADR-035 yield-0 arm: turn 1 is the ROW-ABSENT turn (no catchment summary in PREV), where
+            // the land side is unmeasured. With yield 0 it must stay 0 — never ∞ × 0 = NaN, never a
+            // phantom labour-limited harvest. Every turn, the founding one included, harvests nothing.
+            for (int i = 0; i < world.GoodStocks.Count; i++)
+                if (world.GoodStocks[i].Good.Value == cfg.Goods!.GrainId)
+                    Assert.Equal(0L, world.GoodStocks[i].LastProducedUnits);
 
             long store = world.GoodStocks[0].Amount.Value;
             if (firstZeroFoodTurn < 0 && store == 0) firstZeroFoodTurn = t;

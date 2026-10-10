@@ -82,12 +82,13 @@ public class WorldReconciliationTests
         TurnRecord t2 = log.At(2)!.Turn;
         Assert.True(t2.Population.Births > 0, "no births on turn 2");
         Assert.True(t2.Population.NaturalDeaths > 0, "no deaths on turn 2");
-        // MEASURED, and what decides it is the vacancy bound's null arm
-        // (ADR-025 §3.5c): on turn 2 every destination reads a zero vacancy —
-        // turn 1 is the endowment turn with zero harvest, so N_lim = 0 for that
-        // one turn — and the bound refuses every gap flow world-wide; turn 3
-        // moves 252 (merged tree; 256 on the T4.21-2 branch alone).
-        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        // ADR-035 (closes the ADR-025 §2.4a deviation): turn 1 now HARVESTS (the
+        // row-absent land side is unmeasured, not zero), so turn 2 no longer reads
+        // N_lim = 0 and the vacancy bound no longer refuses every gap flow — the
+        // first migration turn returns to 2, which is RULE 2's acceptance criterion.
+        // (Before ADR-035: 0 on turn 2, 252 on turn 3.)
+        Assert.True(t2.Flows.MigrantsMoved > 0, "no migration on turn 2 — the founding-turn harvest is zero again");
+        Assert.True(log.At(1)!.Turn.Grain.Harvest > 0, "no harvest on the founding turn (ADR-035)");
         Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3");
         Assert.True(t2.Grain.Harvest > 0, "no harvest on turn 2");
         Assert.True(t2.Grain.Spoilage > 0, "no spoilage on turn 2");
@@ -135,15 +136,14 @@ public class WorldReconciliationTests
         TurnRecord t2 = log.At(2)!.Turn;
         // THE AIM IS UNCHANGED — the driven world must exercise all five flows
         // early — and it is RE-AIMED AT THE TURNS THAT ACTUALLY DO, measured on
-        // the merged tree: four of them on turn 2, migration on turn 3. What
-        // decides the fifth is the vacancy bound's null arm (ADR-025 §3.5c): the
-        // founded world's turn-1 harvest is zero ⇒ N_lim = 0 ⇒ V = 0 on turn 2,
-        // so every gap flow is refused world-wide for that one turn (see the
-        // founded pin above; docs/queue.md carries it as a measured finding).
+        // the merged tree: four of them on turn 2, migration on turn 3. ADR-035
+        // restores the fifth on turn 2: the founded world's turn-1 harvest is no
+        // longer zero, so N_lim > 0 on turn 2 and gap flows are admitted (see the
+        // founded pin above; the ADR-025 §2.4a deviation is closed).
         Assert.True(t2.Population.Births > 0 && t2.Population.NaturalDeaths > 0
             && t2.Grain.Harvest > 0 && t2.Grain.Spoilage > 0,
             "turn 2 of the driven world does not carry the four non-migration flows");
-        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        Assert.True(t2.Flows.MigrantsMoved > 0, "no migration on turn 2 of the driven world (ADR-035)");
         Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3 of the driven world");
         // The first-starvation sample, MEASURED at both values of λ: 7
         // pre-packet -> 8 on the merged T4.21-2 + T4.21-3 tree -> 7 again with
@@ -188,10 +188,15 @@ public class WorldReconciliationTests
         // R4 (2026-10-04, the forager layer, MEASURED on this tree by the agent writing this line): the decay
         // sample RETURNS. Wild-food harvests leave settlements leaner, homes empty and decay is observed again:
         // first on turn 162, 85 dwellings across 22 of the 300 turns. The positive sample is restored.
-        Assert.Equal(0, log.At(161)!.Turn.Dwellings.Decayed);
-        for (int t = 1; t < 162; t++)
+        // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED on this tree by the agent writing this
+        // line): first decay 162 -> 148, 85 dwellings across 28 of the 300 turns. The positive sample stays.
+        // ADR-035 §6 RE-PIN (P-F0, the founding death remainder; MEASURED): first decay 148 -> 150, 81 dwellings
+        // across 24 of the 300 turns.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first decay 150 -> 149, 86 dwellings across 27 of the 300 turns.
+        Assert.Equal(0, log.At(148)!.Turn.Dwellings.Decayed);
+        for (int t = 1; t < 149; t++)
             Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
-        Assert.True(log.At(162)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 162");
+        Assert.True(log.At(149)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 149");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829
