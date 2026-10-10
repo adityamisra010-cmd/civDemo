@@ -207,6 +207,42 @@ public sealed class PreviewToolProcessTests : IDisposable
         if (File.Exists(log)) AssertLogMatchesFiles(dir, File.ReadAllLines(log), everySvgListed: false);
     }
 
+    /// <summary>
+    /// P4: <c>sim-ui --frame-cost map</c>, the map's frame-cost sweep, as a SEPARATE PROCESS on a small configuration
+    /// (one round, a 24-settlement high-count world, the canonical world at turn 2). It must exit 0, describe both
+    /// worlds, print one row per window × world × zoom band with the measured columns, and time the projection build
+    /// for both worlds. Bounded: a hang is non-termination (ADR-015 §7.1).
+    /// </summary>
+    [Fact]
+    public void MapFrameCost_AsASeparateProcess_ExitsZero_AndPrintsEveryWindowWorldAndBand()
+    {
+        (int exit, string output, string err) = RunSimUi(TimeSpan.FromMinutes(10),
+            "--frame-cost", Sim.Ui.Headless.MapFrameCost.Mode, "--rounds", "1", "--settlements", "24", "--turns", "2");
+        Assert.True(exit == 0, "sim-ui --frame-cost map exit " + exit + "\n" + Tail(output) + "\n" + Tail(err));
+        string[] lines = output.Replace("\r", "", StringComparison.Ordinal).Split('\n');
+        Assert.Contains(lines, l => l.StartsWith("- canonical: turn 2, 12 settlements,", StringComparison.Ordinal));
+        Assert.Contains(lines, l => l.StartsWith("- high-count: turn 1, 24 settlements,", StringComparison.Ordinal));
+
+        var row = new System.Text.RegularExpressions.Regex(
+            @"^\| (\d+)x(\d+) \| (canonical|high-count) \| (World|Regional|Settlement) \| (\d+) \| (\d+\.\d\d) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+\.\d) \|$");
+        var seen = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (string l in lines)
+        {
+            System.Text.RegularExpressions.Match m = row.Match(l);
+            if (!m.Success) continue;
+            Assert.True(seen.Add(m.Groups[1].Value + "x" + m.Groups[2].Value + " " + m.Groups[3].Value + " " + m.Groups[4].Value), "repeated row: " + l);
+            Assert.True(int.Parse(m.Groups[5].Value, CultureInfo.InvariantCulture) > 0, "a band row with no frames: " + l);
+            Assert.True(int.Parse(m.Groups[7].Value, CultureInfo.InvariantCulture) > 0, "a band row that drew nothing: " + l);
+        }
+        foreach ((int w, int h) in Sim.Ui.Headless.MapFrameCost.Windows)
+            foreach (string world in new[] { "canonical", "high-count" })
+                foreach (string band in new[] { "World", "Regional", "Settlement" })
+                    Assert.Contains(w.ToString(CultureInfo.InvariantCulture) + "x" + h.ToString(CultureInfo.InvariantCulture) + " " + world + " " + band, seen);
+        Assert.Equal(4 * 2 * 3, seen.Count);
+        Assert.Contains(lines, l => l.StartsWith("| canonical | 2 | 12 | ", StringComparison.Ordinal));
+        Assert.Contains(lines, l => l.StartsWith("| high-count | 1 | 24 | ", StringComparison.Ordinal));
+    }
+
     // ------------------------------------------------------------------ the rig, in process
 
     [Fact]

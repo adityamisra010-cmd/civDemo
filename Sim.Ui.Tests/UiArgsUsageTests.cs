@@ -25,6 +25,7 @@ public class UiArgsUsageTests
             Path.Combine(root, "Sim.Ui", "UiArgs.cs"),
             Path.Combine(root, "Sim.Ui", "Headless", "SmokeCommand.cs"),
             Path.Combine(root, "Sim.Ui", "Headless", "FrameCost.cs"),
+            Path.Combine(root, "Sim.Ui", "Headless", "MapFrameCost.cs"),
         };
         var flags = new SortedSet<string>(StringComparer.Ordinal);
         foreach (string f in sources)
@@ -34,5 +35,16 @@ public class UiArgsUsageTests
         Assert.Contains("--smoke", flags);
         foreach (string flag in flags)
             Assert.True(Regex.IsMatch(UiArgs.Usage, Regex.Escape(flag) + @"(?![a-z0-9-])"), "--help omits " + flag);
+    }
+
+    /// <summary>P4: a <c>--frame-cost</c> MODE is a word, not a flag, so the scan above cannot see it; the map mode the
+    /// smoke command dispatches on is listed with its own options.</summary>
+    [Fact]
+    public void Usage_lists_the_map_frame_cost_mode_with_its_options()
+    {
+        Match line = Regex.Match(UiArgs.Usage, @"--frame-cost " + Regex.Escape(Sim.Ui.Headless.MapFrameCost.Mode) + @"(?![a-z0-9-])[^\n]*");
+        Assert.True(line.Success, "--help omits --frame-cost " + Sim.Ui.Headless.MapFrameCost.Mode);
+        foreach (string option in new[] { "--rounds", "--settlements", "--turns" })
+            Assert.Contains(option, line.Value, StringComparison.Ordinal);
     }
 }

@@ -26,7 +26,15 @@ public static class SmokeCommand
         try
         {
             if (Array.IndexOf(args, "--smoke-control-prefix") >= 0) return ControlPrefix(assets, work);
-            if (Array.IndexOf(args, "--frame-cost") >= 0)
+            int frameCost = Array.IndexOf(args, "--frame-cost");
+            if (frameCost >= 0 && frameCost + 1 < args.Length && args[frameCost + 1] == MapFrameCost.Mode)
+            {
+                Console.Write(MapFrameCost.Run(assets, Arg(args, "--rounds") ?? 5,
+                    settlements: Arg(args, "--settlements") ?? MapFrameCost.DefaultSettlements, canonicalTurn: Arg(args, "--turns") ?? MapFrameCost.DefaultCanonicalTurn,
+                    log: line => Console.Error.WriteLine(line)));
+                return 0;
+            }
+            if (frameCost >= 0)
             {
                 Console.Write(FrameCost.Run(assets, Arg(args, "--rounds") ?? 5));
                 return 0;
