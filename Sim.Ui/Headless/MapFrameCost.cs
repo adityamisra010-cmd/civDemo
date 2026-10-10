@@ -31,9 +31,9 @@ namespace Sim.Ui.Headless;
 /// <see cref="HighCountTurn"/>, the first turn with catchment territory (each of its turns costs tens of seconds).
 /// Nothing is constructed or persisted: the worlds live in this process only.
 ///
-/// Wall-clock: the machine's load moves it, so the table reports the median of the per-sweep means after
-/// <see cref="WarmUpSweeps"/> warm-up sweeps per configuration; it is a measurement, not a budget (ADR-009 sets
-/// none). The second table times the per-turn projection build, and the full-terrain lattice build it no longer runs
+/// Wall-clock: the machine's load moves it, so the table reports the median of the per-sweep means after a run-wide
+/// warm-up (<see cref="GlobalWarmUp"/>) and <see cref="WarmUpSweeps"/> warm-up sweeps per configuration; it is a
+/// measurement, not a budget (ADR-009 sets none). The second table times the per-turn projection build, and the full-terrain lattice build it no longer runs
 /// (P4: the stride is arithmetic now).
 /// </summary>
 public static class MapFrameCost
@@ -52,8 +52,15 @@ public static class MapFrameCost
     /// <summary>The high-count world's turn: the first with catchment territory (turn 0 has none).</summary>
     public const int HighCountTurn = 1;
 
-    /// <summary>Unmeasured sweeps before each configuration's measured rounds (JIT tiering settles in them).</summary>
+    /// <summary>Unmeasured sweeps before each configuration's measured rounds.</summary>
     public const int WarmUpSweeps = 2;
+
+    /// <summary>The run-wide warm-up before anything is measured: every world is swept at the first window, in turn,
+    /// for at least this long. MEASURED (P4): with only the per-configuration warm-up, the first configuration measured
+    /// read 1.00 ms/frame against 0.25-0.27 at every other window for the same world and band, and 0.15 with
+    /// <c>DOTNET_TieredCompilation=0</c> — the .NET tiered JIT had not yet promoted the paint path; tier-up needs wall
+    /// time (a quiet period after the call counts), not more calls.</summary>
+    public static readonly TimeSpan GlobalWarmUp = TimeSpan.FromSeconds(3);
 
     /// <summary>The window sizes every world is swept at.</summary>
     public static readonly (int W, int H)[] Windows = [(1280, 800), (1920, 1009), (2560, 1440), (3840, 2160)];
@@ -78,12 +85,13 @@ public static class MapFrameCost
 
         var sb = new StringBuilder();
         sb.Append(string.Create(CultureInfo.InvariantCulture,
-            $"Map frame cost ({BuildInfo.Describe()}): WorldLens.Paint + ImGui replay (cull on) + ImGui.Render per frame; median of {rounds} sweep(s) after {WarmUpSweeps} warm-up sweep(s) per configuration.\n\n"));
+            $"Map frame cost ({BuildInfo.Describe()}): WorldLens.Paint + ImGui replay (cull on) + ImGui.Render per frame; median of {rounds} sweep(s) after a {GlobalWarmUp.TotalSeconds:0} s run-wide warm-up and {WarmUpSweeps} warm-up sweep(s) per configuration.\n\n"));
         sb.Append("Worlds (seed 42, canonical size; founded and stepped by the real session, never persisted):\n\n");
         foreach (MapWorld m in worlds) sb.Append("- ").Append(m.Name).Append(": ").Append(m.Note).Append('\n');
         sb.Append('\n');
         sb.Append("| window | world | band | frames/sweep | median ms/frame | mean vertices | max list vertices | commands/frame | max commands | culled/frame |\n");
         sb.Append("|---|---|---|---|---|---|---|---|---|---|\n");
+        WarmUp(assetsRoot, worlds, log);
         foreach ((int w, int h) in Windows)
         {
             log(string.Create(CultureInfo.InvariantCulture, $"map frame cost: {w}x{h}"));
@@ -121,6 +129,22 @@ public static class MapFrameCost
                 $"| {m.Name} | {world.Clock.Turn} | {p.Settlements.Count} | {p.Territory.Count} | {p.Roads.Count} | {p.Routes.Count} | {p.Units.Count} | {Median(build):0.00} | {Median(lattice):0.00} |\n"));
         }
         return sb.ToString();
+    }
+
+    private static void WarmUp(string assetsRoot, List<MapWorld> worlds, Action<string> log)
+    {
+        (int w, int h) = Windows[0];
+        using var gui = new HeadlessImGui(assetsRoot, w, h, uiScale: UiScale.Auto(h));
+        var backend = new DrawListImGuiBackend(gui.Fonts) { Cull = true };
+        long t0 = Stopwatch.GetTimestamp();
+        int sweeps = 0;
+        while (sweeps < 2 * worlds.Count || Stopwatch.GetElapsedTime(t0) < GlobalWarmUp)
+        {
+            MapWorld m = worlds[sweeps % worlds.Count];
+            Sweep(gui, backend, PainterFor(m, backend, gui.Fonts.Scale), m.Projection.WorldSize, w, h);
+            sweeps++;
+        }
+        log(string.Create(CultureInfo.InvariantCulture, $"map frame cost: warm-up {sweeps} sweeps"));
     }
 
     private static MapWorld Found(string name, UiSession s, int turns, Action<string> log)
