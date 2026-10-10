@@ -9,6 +9,9 @@ Status: proposed (director certification pending) · Packet: T3.6b · Date: 2026
 Evidence: docs/t3.6b-review-record.md (Item 0, 5 seeds, canonical world), rig
 Sim.Tests/Systems/FoundingVariationItem0Tests.cs @ b9d4b3b.
 
+> **2026-10-10 — the §7 amendment above is ACCEPTED by the Director** (rationale and measurements in ADR-035's
+> 2026-10-10 status note). This accepts the amendment only; this ADR's own certification is not ruled here.
+
 ## What D-025 said
 
 Two clauses. SITING: "iterative top-score siting with a minimum travel-time spacing

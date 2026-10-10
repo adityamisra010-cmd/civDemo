@@ -5,6 +5,18 @@
 (`scratchpad/m5p/audit-pop.md`, `audit-pop-skeptic.md` §2.4). Closes the **ADR-025 §2.4a deviation** and the
 queue lines T4.21-2 (turn-2 vacancy refusal) and T4.21-6 (turn-2 REFUGEES REFUSED burst).
 
+> **2026-10-10 — Director ruling on P-F2 and the ADR-017 §7 amendment: ACCEPTED** (subject to a final diff review,
+> done the same day on `d6f97b0`: `Jittered` has one call site, the founding cohort counts; founding food scales with
+> the realised population and is untouched; the settlement-common RC-1 factor is unchanged; the cohort factor is
+> mean-preserving and capped to [0, 2]). **Rationale, as measured:** the population difference P-F2 introduces is a
+> bounded FOUNDING OFFSET, not a compounding simulation defect. Four seeds × 300 turns, no orders, on `efd53e4`
+> (P-F1), `0a46b79` (+P-F0) and `d6f97b0` (+P-F2): P-F2's first-turn population change (seed 1 −1.8 %, 2 −3.3 %,
+> 7 −3.1 %, 42 −0.4 %) carries proportionally to turn 300 (−1.6 %, −3.0 %, −3.7 %, +0.7 %); P-F0's likewise
+> (≈ −2 % at turn 1, −1.1 % to −2.5 % at turn 300). Regression coverage: `FoundingCompositionTests` (property test,
+> red on the old scheme). Reverting would cost a re-pin of every chained golden for no behavioural gain.
+> P-F1 and P-F0 were recommended for acceptance in the same review (P-F1 closes the ADR-025 §2.4a deviation; P-F0 is
+> ordinary engineering under D-004); they ship in the playtest candidate. The text below is the proposal as written.
+
 **Touches:** `Sim.Core/Systems/Production/ProductionSystem.cs` (`Farm`, the land side of the Leontief
 minimum) and the type comment of `Sim.Core/State/FoodHeadroom.cs`. No schema change, no kernel change, no
 new order kind, no content change. Goldens move (§4).

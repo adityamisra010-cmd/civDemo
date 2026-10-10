@@ -90,6 +90,12 @@ Physical storage itself (the granary bound and spoilage) is **not transfer wasta
 physical process, applied to the central stockpile. This reading is recorded here; the Director may
 revise it.
 
+> **2026-10-10 — Director: §6 is DEFERRED from the first M5 playtest candidate.** The literal per-civilization
+> stockpile touches ~37 Sim.Core and ~68 Sim.Tests files (every `GoodStocks` reader) and supersedes ADR-024/025/026
+> semantics; it is too broad for the candidate. The schema-free "intra-polity relief pooling" substitute raised in
+> the read-only audit is NOT authorised either — it needs its own design decision. §6 stays ratified and open.
+> Implemented first instead: §4 (pre-bronze toolmaking) and §1(b) (time-averaged decade weather).
+
 ## Not changed by these rulings
 
 Taxation (D-049/D-050), knowledge persistence (D-048), the research engine, the Age gates and the
