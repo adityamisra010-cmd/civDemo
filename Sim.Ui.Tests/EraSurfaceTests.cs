@@ -373,7 +373,7 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                 foreach (UnitPlacement u in f.UnitPlacements)
                 {
                     RectCmd plate = Assert.Single(d.Commands.OfType<RectCmd>(), r => r.Rect == new RectD(u.X - s, u.Y - s * 0.75, 2 * s, 1.5 * s));
-                    Assert.Equal(WorldLens.PlateRadius(EraThemes.For(era).MapHand.Plate, s), plate.Radius);
+                    Assert.Equal(MapInkEraTests.PlateCut(EraThemes.For(era).MapHand.Plate, s), plate.Radius);   // the test's own literals, not the painter's mapping
                 }
             }
         }

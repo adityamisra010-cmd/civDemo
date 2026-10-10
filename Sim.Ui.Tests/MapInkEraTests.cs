@@ -151,6 +151,66 @@ public class MapInkEraTests
         Assert.Equal(ThemeLerp.Between(a, b, 0.25).MapHand, MapInk.For(ThemeLerp.Between(a, b, 0.25)).Hand);
     }
 
+    /// <summary>THE TESTS' OWN ORACLE for the plate cut (P13 review): the corner radius each <see cref="PlateShape"/>
+    /// draws at token half-size <paramref name="s"/>, written as independent literals — never a call to
+    /// <see cref="WorldLens.PlateRadius"/>, so a collapse of the painter's mapping cannot move the oracle with it.</summary>
+    internal static double PlateCut(PlateShape plate, double s) => plate switch
+    {
+        PlateShape.Pebble => 0.75 * s,   // rounds the 2s x 1.5s plate's ends fully
+        PlateShape.Tablet => 0.4 * s,
+        PlateShape.Square => 0.0,
+        PlateShape.Plaque => 2.0,        // today's 2-px plate
+        _ => throw new ArgumentOutOfRangeException(nameof(plate), plate, "no plate cut pinned for this shape"),
+    };
+
+    /// <summary>THE TESTS' OWN ORACLE for the banner fly (P13 review): the cloth's vertices for each
+    /// <see cref="BannerFly"/>, hoisted at <paramref name="x"/>, top <c>y − h</c>, foot <c>y + 6</c>, written as
+    /// independent literals — never a call to <see cref="WorldLens.Fly"/>.</summary>
+    internal static (double X, double Y)[] FlyCloth(BannerFly fly, double x, double y, double w, double h) => fly switch
+    {
+        BannerFly.Tapered => [(x, y - h), (x + w, y - h), (x + w, y), (x, y + 6)],
+        BannerFly.Square => [(x, y - h), (x + w, y - h), (x + w, y + 6), (x, y + 6)],
+        BannerFly.Swallowtail => [(x, y - h), (x + w, y - h), (x + w - 4, y - h * 0.35), (x + w, y + 6), (x, y + 6)],
+        _ => throw new ArgumentOutOfRangeException(nameof(fly), fly, "no banner fly pinned for this cloth"),
+    };
+
+    /// <summary>THE PLATE CUT AND THE BANNER FLY ARE PINNED BY LITERALS (P13 review): each shape's corner radius at
+    /// both token sizes (World 9, Regional/Settlement 12) and each fly's exact vertex list are numbers written here,
+    /// so a mapping that collapses to the parchment's (every plate 2 px, every fly the swallowtail) fails. The four
+    /// cuts and the three flies are pairwise distinct — every era token chooses a mark the player can see.</summary>
+    [Fact]
+    public void ThePlateCut_AndTheBannerFly_ArePinnedByLiterals()
+    {
+        // The plate cut, at the two token half-sizes the lens draws and at round sizes where 0.4 s is exact.
+        Assert.Equal(6.75, WorldLens.PlateRadius(PlateShape.Pebble, 9));
+        Assert.Equal(9.0, WorldLens.PlateRadius(PlateShape.Pebble, 12));
+        Assert.Equal(4.0, WorldLens.PlateRadius(PlateShape.Tablet, 10));
+        Assert.Equal(8.0, WorldLens.PlateRadius(PlateShape.Tablet, 20));
+        Assert.Equal(0.0, WorldLens.PlateRadius(PlateShape.Square, 9));
+        Assert.Equal(0.0, WorldLens.PlateRadius(PlateShape.Square, 12));
+        Assert.Equal(2.0, WorldLens.PlateRadius(PlateShape.Plaque, 9));
+        Assert.Equal(2.0, WorldLens.PlateRadius(PlateShape.Plaque, 12));
+        foreach (PlateShape plate in Enum.GetValues<PlateShape>())
+            foreach (double s in new[] { 9.0, 12.0 })
+                Assert.Equal(PlateCut(plate, s), WorldLens.PlateRadius(plate, s));
+        foreach (double s in new[] { 9.0, 12.0 })
+            Assert.Equal(4, Enum.GetValues<PlateShape>().Select(plate => WorldLens.PlateRadius(plate, s)).Distinct().Count());
+
+        // The banner fly, in a 24 x 20 box hoisted at (100, 200): top 180, foot 206 (20 x 0.35 = 7 is exact).
+        Assert.Equal(new (double, double)[] { (100, 180), (124, 180), (124, 200), (100, 206) },
+            WorldLens.Fly(BannerFly.Tapered, 100, 200, 24, 20));
+        Assert.Equal(new (double, double)[] { (100, 180), (124, 180), (124, 206), (100, 206) },
+            WorldLens.Fly(BannerFly.Square, 100, 200, 24, 20));
+        Assert.Equal(new (double, double)[] { (100, 180), (124, 180), (120, 193), (124, 206), (100, 206) },
+            WorldLens.Fly(BannerFly.Swallowtail, 100, 200, 24, 20));
+        // And in a 48 x 40 box hoisted at (0, 0) (40 x 0.35 = 14 is exact): the fly scales with the box.
+        Assert.Equal(new (double, double)[] { (0, -40), (48, -40), (48, 0), (0, 6) }, WorldLens.Fly(BannerFly.Tapered, 0, 0, 48, 40));
+        Assert.Equal(new (double, double)[] { (0, -40), (48, -40), (48, 6), (0, 6) }, WorldLens.Fly(BannerFly.Square, 0, 0, 48, 40));
+        Assert.Equal(new (double, double)[] { (0, -40), (48, -40), (44, -14), (48, 6), (0, 6) }, WorldLens.Fly(BannerFly.Swallowtail, 0, 0, 48, 40));
+        foreach (BannerFly fly in Enum.GetValues<BannerFly>())
+            Assert.Equal(FlyCloth(fly, 100, 200, 24, 20), WorldLens.Fly(fly, 100, 200, 24, 20));
+    }
+
     /// <summary>Every banner fly stays inside the banner's box (hoist to width, top to the foot) and covers the
     /// numeral's whole field, at the World-zoom caption size and at twice it (UI scale 2).</summary>
     [Fact]
@@ -372,7 +432,12 @@ public class MapHandEraTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixtu
                 {
                     var box = new Sim.Ui.Render.RectD(u.X - s, u.Y - s * 0.75, s * 2, s * 1.5);
                     RectCmd plate = Assert.Single(d.Commands.OfType<RectCmd>(), r => r.Rect == box);
-                    Assert.Equal(WorldLens.PlateRadius(h.Plate, s), plate.Radius);
+                    // The oracle is the test's own literals (MapInkEraTests.PlateCut), never the painter's mapping;
+                    // an era whose cut is not the parchment's draws a radius the parchment plate does not have.
+                    Assert.Equal(MapInkEraTests.PlateCut(h.Plate, s), plate.Radius);
+                    RectCmd plate0 = Assert.Single(d0.Commands.OfType<RectCmd>(), r => r.Rect == box);
+                    if (h.Plate != PlateShape.Plaque) Assert.NotEqual(plate0.Radius, plate.Radius);
+                    else Assert.Equal(plate0.Radius, plate.Radius);
                     Assert.Equal(W(1.4), plate.StrokeWidth);
                     Assert.Equal(k.GlyphInk, plate.Stroke);
                 }
@@ -385,10 +450,13 @@ public class MapHandEraTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixtu
                     {
                         (double X, double Y)[] q = cloth0.Points;   // the parchment's swallowtail
                         double x = q[0].X, w = q[1].X - x, y = q[4].Y - 6, hh = y - q[0].Y;
-                        (double X, double Y)[] want = WorldLens.Fly(h.Banner, x, y, w, hh);
+                        // The oracle is the test's own literals (MapInkEraTests.FlyCloth), never the painter's mapping;
+                        // an era whose fly is not the swallowtail draws a cloth the parchment banner does not have.
+                        (double X, double Y)[] want = MapInkEraTests.FlyCloth(h.Banner, x, y, w, hh);
                         (double X, double Y)[] got = ((PolygonCmd)b).Points;
                         Assert.Equal(want.Length, got.Length);
                         for (int j = 0; j < want.Length; j++) Assert.True(Math.Abs(want[j].X - got[j].X) < 1e-9 && Math.Abs(want[j].Y - got[j].Y) < 1e-9, $"{what}: banner {i}");
+                        Assert.Equal(h.Banner == BannerFly.Swallowtail, got.SequenceEqual(q));
                         Assert.Equal(W(pole0.Width), ((LineCmd)d.Commands[i - 1]).Width);
                         banners++;
                         continue;
