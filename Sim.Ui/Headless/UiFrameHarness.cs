@@ -35,8 +35,15 @@ public sealed class UiFrameHarness : IDisposable
     /// <summary>A label prefixed to problems (the scenario state).</summary>
     public string Context { get; set; } = "";
 
+    /// <summary>P6: every coverage key (<see cref="UiCoverage"/>) the UI drew in any frame so far — controls, the
+    /// showing screens' hit kinds, inspectable kinds — in ordinal order. It only observes.</summary>
+    public SortedSet<string> Seen { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>P6: every left-button press so far, with what was under the pointer in the frame the player saw.</summary>
+    public List<UiPress> Presses { get; } = [];
+
     private int _x = 640, _y = 400, _wheel;
-    private bool _left, _right;
+    private bool _left, _right, _wasLeft;
     private readonly HashSet<Keys> _keys = [];
 
     private UiFrameHarness(HeadlessImGui gui, GameUi ui, string logPath)
@@ -86,6 +93,12 @@ public sealed class UiFrameHarness : IDisposable
     {
         MouseState mouse = Mouse;
         KeyboardState keyboard = Keyboard;
+        if (_left && !_wasLeft)
+        {
+            bool shift = _keys.Contains(Keys.LeftShift) || _keys.Contains(Keys.RightShift);
+            Presses.Add(new UiPress(Frames, _x, _y, shift, UiCoverage.Under(Ui, _x, _y, shift)));
+        }
+        _wasLeft = _left;
         Ui.SetViewport(Gui.Width, Gui.Height);
         Ui.Update(mouse, keyboard, dt, active: true);
         if (Math.Abs(Ui.WantedScale - Gui.Fonts.Scale) > 1e-6)
@@ -100,6 +113,7 @@ public sealed class UiFrameHarness : IDisposable
         Gui.BeginFrame(mouse, keyboard, dt);
         Ui.Draw();
         ImGuiDrawReport r = Gui.EndFrame();
+        UiCoverage.Drawn(Ui, Seen);
         Frames++;
         if (r.MaxListVertices > MaxListVertices) MaxListVertices = r.MaxListVertices;
         foreach (string v in r.Violations) Problem("draw data: " + v);

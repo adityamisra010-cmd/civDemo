@@ -111,6 +111,15 @@ public class PlayabilityGateTests : IDisposable
                      "scroll through the whole tree (Civics)", "band-age (opens the Age panel)", "end-turn", "Space (End Turn)",
                      "select capital", "select formation (click token)", "unit card states the M7 limitation", "wheel zoom to Settlement" })
             Assert.Contains(r.Rows, row => row.Control == control && row.Result == GateResult.Pass);
+        // P6: the coverage check ran and passed — every control, hit kind and inspectable kind drawn in the state was
+        // pressed by a passing row — and a row's coverage is what it pressed.
+        Assert.Contains(r.Rows, row => row.Area == "coverage" && row.Result == GateResult.Pass
+            && row.Control == "every drawn control, hit kind and inspectable kind has a gate row");
+        Assert.DoesNotContain(r.Rows, row => row.Area == "coverage" && row.Result != GateResult.Pass);
+        Assert.Contains(r.Rows, row => row.Control == "nav:Policy" && row.Covers.Contains("control:nav:Policy"));
+        Assert.Contains(r.Rows, row => row.Control == "tab:Civics" && row.Covers.Contains("hit:research.Tab"));
+        Assert.Contains(r.Rows, row => row.Control.StartsWith("shift-click LabourSector", StringComparison.Ordinal) && row.Covers.Contains("info:LabourSector"));
+        Assert.DoesNotContain(r.Rows, row => row.Area == "monkey" && row.Covers.Count > 0);   // the monkey asserts nothing: it covers nothing
     }
 
     /// <summary>The Director's click, through the real UI in a maximised window: the status band's research figure
@@ -402,6 +411,141 @@ public class PlayabilityGateTests : IDisposable
         Assert.Equal(-1, UnitSelection.HitTest(frame, 100 + s + UnitSelection.GripPx + 1, 100));
         Assert.Equal(-1, UnitSelection.HitTest(frame, 100, 100 + s * 0.75 + UnitSelection.GripPx + 1));
         Assert.Equal(-1, UnitSelection.HitTest(null, 100, 100));
+    }
+
+    // ------------------------------------------------------------------ P6: control coverage
+
+    [Fact]
+    public void Coverage_Family_DigitRunsRead_Hash_AndTheAuditLinesAreOneFamily()
+    {
+        Assert.Equal("where-pop-#", UiCoverage.Family("where-pop-12"));
+        Assert.Equal("need-#-#", UiCoverage.Family("need-1-12"));
+        Assert.Equal("lever-need-#-#", UiCoverage.Family("lever-need-0-3"));
+        Assert.Equal("good#", UiCoverage.Family("good3"));
+        Assert.Equal("audit-*", UiCoverage.Family("audit-grain"));
+        Assert.Equal("nav:Policy", UiCoverage.Family("nav:Policy"));
+        Assert.Equal("control:fig:WorldFood", UiCoverage.ControlKey("fig:WorldFood"));
+    }
+
+    [Fact]
+    public void Coverage_Allowlist_EveryEntryIsAKeyWithAReason()
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (CoverageAllowance a in UiCoverage.Allowlist)
+        {
+            Assert.True(a.Key.StartsWith(UiCoverage.ControlPrefix, StringComparison.Ordinal) || a.Key.StartsWith(UiCoverage.HitPrefix, StringComparison.Ordinal)
+                || a.Key.StartsWith(UiCoverage.InfoPrefix, StringComparison.Ordinal), a.Key);
+            Assert.False(string.IsNullOrWhiteSpace(a.Reason), a.Key);
+            Assert.True(keys.Add(a.Key), "duplicate " + a.Key);
+        }
+    }
+
+    /// <summary>THE ACCEPTANCE FIXTURE: a control recorded in a real ImGui frame through the real register, with no gate
+    /// row, fails the coverage check; a PASSING row that pressed it covers it (and only it); a not-offered or failed row
+    /// covers nothing; an allowlist entry excuses it.</summary>
+    [Fact]
+    public void Coverage_AFixtureControlRecordedWithoutAGateRow_FailsTheCheck()
+    {
+        var seen = new SortedSet<string>(StringComparer.Ordinal);
+        using (var gui = new HeadlessImGui(Assets()))
+        {
+            var controls = new UiControls();
+            gui.BeginFrame(new MouseState(), new KeyboardState(), 1.0 / 60.0);
+            controls.BeginFrame();
+            ImGui.Begin("##fixture", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
+            ImGui.Button("fixture##fixture-control");
+            controls.Record("fixture-control");
+            ImGui.Button("row##fixture-row-12");
+            controls.Record("fixture-row-12");
+            ImGui.End();
+            controls.EndFrame();
+            gui.EndFrame();
+            UiCoverage.Controls(controls, seen);
+        }
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"], seen);
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"], UiCoverage.Uncovered(seen, [], []));
+        var pressed = new GateRow("fixture", "area", "a row that pressed the control", GateResult.Pass, "") { Covers = ["control:fixture-control"] };
+        Assert.Equal(["control:fixture-row-#"], UiCoverage.Uncovered(seen, [pressed], []));
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"],
+            UiCoverage.Uncovered(seen, [pressed with { Result = GateResult.NotOffered }, pressed with { Result = GateResult.Fail }], []));
+        Assert.Empty(UiCoverage.Uncovered(seen, [pressed], [new CoverageAllowance("control:fixture-row-#", "fixture")]));
+    }
+
+    /// <summary>A press records what the player saw under the pointer: a plain press its control (and a showing screen's
+    /// hit kind), a Shift press only the inspectable kind (it inspects, it does not click); what any frame drew is Seen.</summary>
+    [Fact]
+    public void Coverage_APressCoversWhatWasUnderThePointer_AShiftPressOnlyTheInspectableKind()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("presses"), Assets());
+        Assert.True(h.ClickControl("territory"));
+        Assert.False(h.Presses[^1].Shift);
+        Assert.Contains("control:territory", h.Presses[^1].Under);
+        Assert.True(h.ClickControl("nav:Policy"));
+        Assert.Contains(h.Seen, k => k.StartsWith("hit:policy.", StringComparison.Ordinal));
+        Assert.Contains("info:LabourSector", h.Seen);
+        Sim.Ui.Info.InfoHit row = h.Ui.InfoRegistry.First(InfoKind.LabourSector)!.Value;
+        h.ShiftClick(row.Rect.CenterX, row.Rect.CenterY);
+        Assert.True(h.Presses[^1].Shift);
+        Assert.Equal(["info:LabourSector"], h.Presses[^1].Under);
+        Assert.Contains("control:info-close", h.Seen);
+        Assert.Empty(h.Problems);
+    }
+
+    // ------------------------------------------------------------------ P6: the camera rows
+
+    private static readonly string[] CameraRowNames =
+    [
+        "W A S D (pan)", "drag pan", "wheel zoom to Regional", "wheel zoom to Settlement", "wheel zoom out to World",
+        "centre on a settlement (CameraFocus.CenterOn)",
+    ];
+
+    [Fact]
+    public void CameraRows_Pass_AndLookingChangesNeitherTheWorldNorTheQueuedOrders()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera"), Assets());
+        string hash = WorldHash.ComputeHex(h.Ui.Session.World);
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "camera");
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.Contains(rows, r => r.Control == "select capital");
+        Assert.All(rows, r => Assert.True(r.Result == GateResult.Pass, r.Control + ": " + r.Result + " " + r.Detail));
+        Assert.Equal(hash, WorldHash.ComputeHex(h.Ui.Session.World));
+        Assert.Empty(h.Ui.Session.QueuedOrders());
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>THE MUTANT (ADR-015): a camera operation that QUEUES AN ORDER — the verification seam runs a labour order
+    /// inside every camera row, after its input. The world hash cannot see it (an order changes nothing until the step);
+    /// the queued-order leg of every camera row does.</summary>
+    [Fact]
+    public void CameraRows_AMutantCameraOperationThatQueuesAnOrder_FailsEveryCameraRow()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera-queue"), Assets());
+        Assert.True(EmpireQuery.TryGetCapital(h.Ui.World, UiPlayer.Empire, out SettlementId capital));
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "mutant",
+            s => Assert.True(s.EmitSectorOrders([20, 20, 20, 20, 20], capital.Value)));
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.All(rows, r =>
+        {
+            Assert.True(r.Result == GateResult.Fail, r.Control + " passed under the mutant");
+            Assert.Contains("queued orders", r.Detail, StringComparison.Ordinal);
+            Assert.Contains("SectorAllocation", r.Detail, StringComparison.Ordinal);
+            Assert.DoesNotContain("world hash", r.Detail, StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>THE SECOND MUTANT: a camera operation that steps the world — the queued list may well be equal (empty
+    /// before, empty after); the world-hash leg of every camera row catches it.</summary>
+    [Fact]
+    public void CameraRows_AMutantCameraOperationThatStepsTheWorld_IsCaughtByTheHashLeg()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera-step"), Assets());
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "mutant", s => s.EndTurn());
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.All(rows, r =>
+        {
+            Assert.True(r.Result == GateResult.Fail, r.Control + " passed under the mutant");
+            Assert.Contains("world hash", r.Detail, StringComparison.Ordinal);
+        });
     }
 
     private static UnitPlacement Placement(UiFrameHarness h, int unit)

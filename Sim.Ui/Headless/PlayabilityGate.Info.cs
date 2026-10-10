@@ -29,6 +29,29 @@ public static partial class PlayabilityGate
             return null;
         }
 
+        /// <summary>P6: the first inspectable region inside the docked Age panel matching <paramref name="match"/>, scrolling
+        /// the panel down (the wheel over it) until one is in view or the panel stops moving.</summary>
+        private InfoHit? ScrollAgePanelTo(Func<InfoHit, bool> match)
+        {
+            for (int step = 0; step < 40; step++)
+            {
+                Sim.Ui.Render.RectD panel = Ui.AgePanelBounds;
+                foreach (InfoHit x in Ui.InfoRegistry.Hits)
+                    if (panel.Contains(x.Rect.CenterX, x.Rect.CenterY) && x.Rect.Y >= panel.Y && x.Rect.Bottom <= panel.Bottom && match(x)) return x;
+                string before = Signature();
+                h.Wheel(panel.CenterX, panel.CenterY, -1);
+                if (Signature() == before && step > 0) break;   // the panel's end
+            }
+            return null;
+
+            string Signature()
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (InfoHit x in Ui.InfoRegistry.Hits) sb.Append(x.Rect.Y.ToString("0.0", CultureInfo.InvariantCulture)).Append(';');
+                return sb.ToString();
+            }
+        }
+
         /// <summary>Shift+clicks <paramref name="hit"/> and checks the card, the order log, the world, then Escape.</summary>
         private (GateResult, string) ShiftCheck(InfoHit hit, Func<bool>? alsoUnchanged = null)
         {
@@ -77,7 +100,9 @@ public static partial class PlayabilityGate
                 });
             }
 
-            // ---- The Age panel: a milestone, the Ages, the research-next line.
+            // ---- The Age panel: a milestone, the Ages, the research-next line. P6 (coverage): the panel SCROLLS and
+            // registers only what is in view, so each check scrolls it (the wheel over it) as a player would before
+            // calling a kind "not offered" — at 1280x800 the milestones sit below the panel's first screen.
             foreach (InfoKind kind in new[] { InfoKind.AgeMilestone, InfoKind.Age, InfoKind.ResearchNode })
             {
                 InfoKind k = kind;
@@ -86,23 +111,20 @@ public static partial class PlayabilityGate
                     CloseEverything();
                     if (Ui.Controls.Find("band-age") is null) return (GateResult.NotOffered, "no Age content");
                     h.ClickControl("band-age");
-                    Sim.Ui.Render.RectD panel = Ui.AgePanelBounds;
-                    if (FirstHit(k, x => panel.Contains(x.Rect.CenterX, x.Rect.CenterY)) is not { } hit)
-                        return (GateResult.NotOffered, "the Age panel paints no " + k + " in this state (a research-next line shows only under an unmet research milestone)");
+                    if (ScrollAgePanelTo(x => x.Subject.Kind == k) is not { } hit)
+                        return (GateResult.NotOffered, "the Age panel paints no " + k + " in this state, scrolled to its end (a research-next line shows only under an unmet research milestone)");
                     return ShiftCheck(hit, () => Ui.AgePanelOpen);
                 });
+                AgePanelHome();
             }
             Check("info", "Show in research tree (from a milestone's card)", () =>
             {
                 CloseEverything();
                 if (Ui.Controls.Find("band-age") is null) return (GateResult.NotOffered, "no Age content");
                 h.ClickControl("band-age");
-                Sim.Ui.Render.RectD panel = Ui.AgePanelBounds;
-                InfoHit? pick = null;
-                foreach (InfoHit x in Ui.InfoRegistry.Hits)
-                    if (x.Subject.Kind == InfoKind.AgeMilestone && panel.Contains(x.Rect.CenterX, x.Rect.CenterY)
-                        && InfoQuery.Card(S.World, S.Config, Me, x.Subject).ResearchNode is not null) { pick = x; break; }
-                if (pick is not { } hit) return (GateResult.NotOffered, "no milestone of the next Age names research (or the final Age)");
+                if (ScrollAgePanelTo(x => x.Subject.Kind == InfoKind.AgeMilestone
+                        && InfoQuery.Card(S.World, S.Config, Me, x.Subject).ResearchNode is not null) is not { } hit)
+                    return (GateResult.NotOffered, "no milestone of the next Age names research (or the final Age), scrolled to the panel's end");
                 int q = Queued;
                 h.ShiftClick(hit.Rect.CenterX, hit.Rect.CenterY);
                 ResearchNodeId? node = Ui.Inspector.Card?.ResearchNode;
@@ -115,6 +137,7 @@ public static partial class PlayabilityGate
                 bool ok = Ui.ProgressionOpen && Ui.Progression!.Selected == c.IndexOf(node.Value) && Queued == q;
                 return Expect(ok, "tree " + Ui.ProgressionOpen + ", selected " + Ui.Progression?.Selected + " (want " + c.IndexOf(node.Value) + "), queued +" + (Queued - q));
             });
+            AgePanelHome();
 
             // ---- The status band's chips: Shift+click shows the card instead of opening the screen.
             foreach (string chip in new[] { "band-research", "band-age" })
@@ -212,6 +235,8 @@ public static partial class PlayabilityGate
                 });
             }
 
+            InfoCardControls();
+
             // ---- The hover hint: painted beside the pointer, never an ImGui tooltip.
             Check("info", "hover hint ('Shift+click: details', painted, not a tooltip)", () =>
             {
@@ -221,6 +246,117 @@ public static partial class PlayabilityGate
                 h.MoveTo(hit.Rect.CenterX, hit.Rect.CenterY);
                 return Expect(Ui.InfoHint == InfoPanel.HintText && h.Gui.LastTooltipWindows.Count == 0,
                     "hint '" + Ui.InfoHint + "', tooltip windows " + h.Gui.LastTooltipWindows.Count.ToString(CultureInfo.InvariantCulture));
+            });
+        }
+
+        /// <summary>The first hit of the pinned card of <paramref name="kind"/> whose centre is inside the card's visible
+        /// region (<paramref name="visible"/>), or null.</summary>
+        private InfoPanelHit? CardHit(InfoHitKind kind, Sim.Ui.Render.RectD visible)
+        {
+            foreach (InfoPanelHit x in Ui.Inspector.Hits)
+                if (x.Kind == kind && visible.Contains(x.Rect.CenterX, x.Rect.CenterY)) return x;
+            return null;
+        }
+
+        /// <summary>The right-hand column the pinned card is drawn in over the map, less its header row and a scrollbar.</summary>
+        private Sim.Ui.Render.RectD CardBody()
+        {
+            PanelRect p = Ui.ContextRect;
+            double top = ChromeGeometry.ContentTop(new ChromeElement(p, RulePlacement.UnderHeaderRow), ImGuiNET.ImGui.GetFrameHeight(), Ui.Scale) + 2;
+            return new Sim.Ui.Render.RectD(p.X, top, p.Width - 20, p.Y + p.Height - 32 - top);
+        }
+
+        /// <summary>
+        /// P6 (coverage): THE PINNED CARD'S OWN CONTROLS, which the info rows above only ever close with Escape — a link
+        /// to another subject and Back, the header's close button, "Show in research tree" over the map, and the card's
+        /// close button over the research screen. Each opens the card on a POLICY subject (or a research card) the way a
+        /// player does, presses the control where the card drew it, and asserts its transition — and that no order was
+        /// queued and the world is unchanged (a card never acts).
+        /// </summary>
+        private void InfoCardControls()
+        {
+            // Opens the card on the first POLICY subject (scrolled into view, in paint order) whose card has a hit of
+            // <kind>; true when one is open.
+            bool OpenCardWith(InfoHitKind kind)
+            {
+                CloseEverything();
+                OpenPolicy();
+                PanelRect p = Ui.ContextRect;
+                var tried = new List<InfoSubject>();
+                for (int step = 0; step < 50 && tried.Count < 12; step++)
+                {
+                    InfoHit? next = null;
+                    foreach (InfoHit x in Ui.InfoRegistry.Hits)
+                        if (!x.Passive && x.Rect.Y > p.Y + 40 && x.Rect.Bottom < p.Y + p.Height - 32 && !tried.Contains(x.Subject)) { next = x; break; }
+                    if (next is { } hit)
+                    {
+                        tried.Add(hit.Subject);
+                        h.ShiftClick(hit.Rect.CenterX, hit.Rect.CenterY);
+                        if (Ui.Inspector.IsOpen && CardHit(kind, CardBody()) is not null) return true;
+                        if (Ui.Inspector.IsOpen) h.Key(Keys.Escape);
+                        continue;
+                    }
+                    double before = Ui.Actions.Hits.Count > 0 ? Ui.Actions.Hits[0].Rect.Y : 0;
+                    h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, -1);
+                    if (Ui.Actions.Hits.Count > 0 && Math.Abs(Ui.Actions.Hits[0].Rect.Y - before) < 0.5 && step > 2) break;
+                }
+                return false;
+            }
+
+            Check("info", "card: a link opens its subject, Back returns", () =>
+            {
+                if (!OpenCardWith(InfoHitKind.Link)) return (GateResult.NotOffered, "no POLICY subject's card links to another subject in this state");
+                int q = Queued;
+                string hash = WorldHash.ComputeHex(S.World);
+                InfoSubject? first = Ui.Inspector.Subject;
+                InfoPanelHit link = CardHit(InfoHitKind.Link, CardBody())!.Value;
+                h.Click(link.Rect.CenterX, link.Rect.CenterY);
+                bool followed = Ui.Inspector.Subject == link.Subject;
+                if (CardHit(InfoHitKind.Back, CardBody()) is not { } back) return (GateResult.Fail, "followed " + followed + ", but no Back on the card");
+                h.Click(back.Rect.CenterX, back.Rect.CenterY);
+                bool returned = Ui.Inspector.Subject == first;
+                return Expect(followed && returned && Queued == q && WorldHash.ComputeHex(S.World) == hash,
+                    "followed " + followed + ", back " + returned + ", queued +" + (Queued - q));
+            });
+            Check("info", "card: the close button (over the map)", () =>
+            {
+                CloseEverything();
+                OpenPolicy();
+                PanelRect p = Ui.ContextRect;
+                if (FirstHit(InfoKind.LabourSector, x => !x.Passive && x.Rect.Y > p.Y + 40 && x.Rect.Bottom < p.Y + p.Height - 32) is not { } any)
+                    return (GateResult.NotOffered, "no labour row to inspect in view");
+                h.ShiftClick(any.Rect.CenterX, any.Rect.CenterY);
+                if (!Ui.Inspector.IsOpen) return (GateResult.Fail, "no card opened");
+                if (!h.ClickControl("info-close")) return (GateResult.Fail, "the card's close button is not drawn");
+                return Expect(!Ui.Inspector.IsOpen && Ui.OpenSection == Section.Policy, "card " + Ui.Inspector.IsOpen + ", section " + Ui.OpenSection);
+            });
+            Check("info", "card: Show in research tree (over the map)", () =>
+            {
+                if (!OpenCardWith(InfoHitKind.ShowInTree)) return (GateResult.NotOffered, "no POLICY subject's card names a research node in this state");
+                int q = Queued;
+                ResearchNodeId node = Ui.Inspector.Card!.ResearchNode!.Value;
+                InfoPanelHit show = CardHit(InfoHitKind.ShowInTree, CardBody())!.Value;
+                h.Click(show.Rect.CenterX, show.Rect.CenterY);
+                h.Idle(10);
+                ResearchContent c = S.Config.Research!;
+                bool ok = Ui.ProgressionOpen && Ui.Progression!.Selected == c.IndexOf(node) && Queued == q;
+                return Expect(ok, "tree " + Ui.ProgressionOpen + ", selected " + Ui.Progression?.Selected + " (want " + c.IndexOf(node) + "), queued +" + (Queued - q));
+            });
+            Check("info", "card: the close button (over the research screen)", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                Screen.ResetView();
+                h.Idle(30);
+                if (FirstHit(InfoKind.ResearchNode, x => Screen.Canvas.Contains(x.Rect.CenterX, x.Rect.CenterY) && !Screen.Obscured(x.Rect.CenterX, x.Rect.CenterY)) is not { } hit)
+                    return (GateResult.NotOffered, "no research card in view");
+                h.ShiftClick(hit.Rect.CenterX, hit.Rect.CenterY);
+                if (!Ui.Inspector.IsOpen) return (GateResult.Fail, "no card opened");
+                InfoPanelHit? close = null;
+                foreach (InfoPanelHit x in Ui.Inspector.Hits) if (x.Kind == InfoHitKind.Close) close = x;
+                if (close is not { } c) return (GateResult.Fail, "the card over the research screen has no close button");
+                h.Click(c.Rect.CenterX, c.Rect.CenterY);
+                return Expect(!Ui.Inspector.IsOpen && Ui.ProgressionOpen, "card " + Ui.Inspector.IsOpen + ", tree " + Ui.ProgressionOpen);
             });
         }
     }

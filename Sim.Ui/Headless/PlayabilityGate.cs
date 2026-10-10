@@ -30,7 +30,12 @@ public enum GateResult
 }
 
 /// <summary>One row of the coverage table.</summary>
-public sealed record GateRow(string State, string Area, string Control, GateResult Result, string Detail);
+public sealed record GateRow(string State, string Area, string Control, GateResult Result, string Detail)
+{
+    /// <summary>P6: the coverage keys (<see cref="UiCoverage"/>) of what the row pressed while it ran — the controls,
+    /// hit kinds and (Shift) inspectable kinds it exercised. A passing row covers them for its state.</summary>
+    public IReadOnlyList<string> Covers { get; init; } = [];
+}
 
 /// <summary>What one gate run found.</summary>
 public sealed class GateReport
@@ -160,6 +165,7 @@ public static partial class PlayabilityGate
             {
                 run.Sweep();
                 run.Monkey(o.MonkeySteps, o.MonkeySeed);
+                run.Coverage();
             }
             catch (Exception e)
             {
@@ -173,6 +179,17 @@ public static partial class PlayabilityGate
         }
         report.Milliseconds = clock.ElapsedMilliseconds;
         return report;
+    }
+
+    /// <summary>P6: the camera rows alone — W A S D, the map's settlement selection (CameraFocus.CenterOn + click),
+    /// CenterOn itself, drag pan and the wheel zooms — exactly as the sweep runs them, on <paramref name="h"/>.
+    /// <paramref name="lookMutant"/> is the verification seam (StateRun's lookMutant): null in every real run.</summary>
+    public static IReadOnlyList<GateRow> CameraRows(UiFrameHarness h, string state, Action<UiSession>? lookMutant = null)
+    {
+        var report = new GateReport();
+        var run = new StateRun(h, state, report, null, lookMutant);
+        run.Camera();
+        return report.Rows;
     }
 
     private static string Slug(string s)
@@ -346,28 +363,110 @@ public static partial class PlayabilityGate
 
     // ================================================================== one state's run
 
-    private sealed partial class StateRun(UiFrameHarness h, string state, GateReport report, Action<string>? log)
+    /// <param name="lookMutant">VERIFICATION SEAM (P6, ADR-015 mutant kill; the precedent is
+    /// <see cref="UiFrameHarness.Start"/>'s <c>vtxOffset</c> control): when set, it runs inside every camera row, after
+    /// the camera input — standing in for a camera operation that writes. Null in every real run.</param>
+    private sealed partial class StateRun(UiFrameHarness h, string state, GateReport report, Action<string>? log,
+        Action<UiSession>? lookMutant = null)
     {
         private GameUi Ui => h.Ui;
         private UiSession S => h.Ui.Session;
 
-        private void Row(string area, string control, GateResult r, string detail = "")
+        /// <summary>P6: appended to every area name while the sweep revisits surfaces after its End Turns.</summary>
+        private string _phase = "";
+
+        /// <summary>P6: whether the first developer pass found a played turn (the TURN audit, the grievance account).</summary>
+        private bool _devHadTurn;
+
+        private void Row(string area, string control, GateResult r, string detail = "", IReadOnlyList<string>? covers = null)
         {
-            report.Rows.Add(new GateRow(state, area, control, r, detail));
+            area += _phase;
+            report.Rows.Add(new GateRow(state, area, control, r, detail) { Covers = covers ?? [] });
             if (r == GateResult.Fail) log?.Invoke("  FAIL " + state + " / " + control + ": " + detail);
         }
 
         private void Check(string area, string control, Func<(GateResult, string)> act)
         {
+            int mark = h.Presses.Count;
             try
             {
                 (GateResult r, string d) = act();
-                Row(area, control, r, d);
+                Row(area, control, r, d, PressedSince(mark));
             }
             catch (Exception e)
             {
                 Row(area, control, GateResult.Fail, "exception: " + e.GetType().Name + ": " + e.Message);
             }
+        }
+
+        /// <summary>P6: the coverage keys under every press made since press <paramref name="mark"/>.</summary>
+        private IReadOnlyList<string> PressedSince(int mark)
+        {
+            var keys = new SortedSet<string>(StringComparer.Ordinal);
+            for (int i = mark; i < h.Presses.Count; i++)
+                foreach (string k in h.Presses[i].Under) keys.Add(k);
+            return [.. keys];
+        }
+
+        /// <summary>
+        /// P6: THE COVERAGE CHECK, after the sweep and the monkey. Every control family, hit kind and inspectable kind
+        /// the UI drew in this state (<see cref="UiFrameHarness.Seen"/>) must have been pressed by a PASSING row of this
+        /// state, or be on <see cref="UiCoverage.Allowlist"/> with its reason; each one that is not is a FAIL row.
+        /// </summary>
+        public void Coverage()
+        {
+            var mine = new List<GateRow>();
+            foreach (GateRow r in report.Rows) if (r.State == state) mine.Add(r);
+            IReadOnlyList<string> missing = UiCoverage.Uncovered(h.Seen, mine, UiCoverage.Allowlist);
+            foreach (string key in missing)
+                Row("coverage", key, GateResult.Fail,
+                    "drawn in this state, but no passing gate row pressed it and it is not on the allowlist (UiCoverage.Allowlist)");
+            int allowed = 0;
+            foreach (CoverageAllowance a in UiCoverage.Allowlist) if (h.Seen.Contains(a.Key)) allowed++;
+            Row("coverage", "every drawn control, hit kind and inspectable kind has a gate row",
+                missing.Count == 0 ? GateResult.Pass : GateResult.Fail,
+                h.Seen.Count.ToString(CultureInfo.InvariantCulture) + " keys drawn: "
+                + (h.Seen.Count - allowed - missing.Count).ToString(CultureInfo.InvariantCulture) + " pressed by a passing row, "
+                + allowed.ToString(CultureInfo.InvariantCulture) + " allowlisted, "
+                + missing.Count.ToString(CultureInfo.InvariantCulture) + " uncovered");
+        }
+
+        /// <summary>
+        /// P6: a CAMERA row — the "looking changes nothing" idiom of ShiftCheck. <paramref name="act"/> drives the camera
+        /// and checks it moved; the row then also requires the world hash and the queued-order list (every
+        /// <see cref="OrderRecord"/>, in order) to be exactly as they were before it.
+        /// </summary>
+        private void LookCheck(string area, string control, Func<(GateResult, string)> act)
+        {
+            Check(area, control, () =>
+            {
+                string hash = WorldHash.ComputeHex(S.World);
+                OrderRecord[] queued = [.. S.QueuedOrders()];
+                (GateResult r, string d) = act();
+                lookMutant?.Invoke(S);
+                if (Changed(hash, queued) is { } changed)
+                    return (GateResult.Fail, (d.Length > 0 ? d + "; " : "") + "LOOKING CHANGED THE GAME: " + changed);
+                return (r, d);
+            });
+        }
+
+        /// <summary>What changed in the world hash and the queued-order list since the snapshot, or null.</summary>
+        private string? Changed(string hash, OrderRecord[] queued)
+        {
+            var what = new List<string>();
+            string now = WorldHash.ComputeHex(S.World);
+            if (now != hash) what.Add("world hash " + hash[..12] + " -> " + now[..12]);
+            IReadOnlyList<OrderRecord> after = S.QueuedOrders();
+            bool same = after.Count == queued.Length;
+            for (int i = 0; same && i < queued.Length; i++) same = after[i] == queued[i];
+            if (!same)
+            {
+                string first = "";
+                for (int i = 0; i < after.Count && first.Length == 0; i++)
+                    if (i >= queued.Length || after[i] != queued[i]) first = "; first difference: " + after[i].Kind + " (actor " + after[i].ActorId.ToString(CultureInfo.InvariantCulture) + ")";
+                what.Add("queued orders " + queued.Length.ToString(CultureInfo.InvariantCulture) + " -> " + after.Count.ToString(CultureInfo.InvariantCulture) + first);
+            }
+            return what.Count == 0 ? null : string.Join("; ", what);
         }
 
         private static (GateResult, string) Expect(bool ok, string what) => ok ? (GateResult.Pass, "") : (GateResult.Fail, what);
@@ -408,6 +507,31 @@ public static partial class PlayabilityGate
             CloseEverything();
             EndTurnChecks();
             CloseEverything();
+            AfterEndTurns();
+            CloseEverything();
+        }
+
+        /// <summary>
+        /// P6: the surfaces that only fill once turns have been played, revisited after <see cref="EndTurnChecks"/> (the
+        /// coverage check found them drawn — the monkey reached them — with no row): the ANNALS' "all entries" toggle
+        /// (past 12 entries), the Age panel's research-next line (an Age advance brings new milestones) and, in a state
+        /// whose first developer pass came before any End Turn, the developer surfaces
+        /// (the TURN audit, the grievance account). Their rows carry the area suffix " (after End Turn)".
+        /// </summary>
+        private void AfterEndTurns()
+        {
+            _phase = " (after End Turn)";
+            h.ClickControl("nav:Annals");
+            Annals();
+            CloseEverything();
+            AgeResearchNextRow();
+            CloseEverything();
+            if (!_devHadTurn)
+            {
+                Developer();
+                CloseEverything();
+            }
+            _phase = "";
         }
 
         // -------------------------------------------------------------- the command bar
@@ -568,6 +692,7 @@ public static partial class PlayabilityGate
                 bool ok = !Ui.ProgressionOpen && (Ui.AgePanelOpen || Ui.Age.FlowOpen);
                 return Expect(ok, "tree open " + Ui.ProgressionOpen + ", Age panel " + Ui.AgePanelOpen);
             });
+            DetailControls();
             CloseEverything();
             OpenResearch();
             Check("research", "close button", () =>
@@ -588,6 +713,78 @@ public static partial class PlayabilityGate
                     h.Key(Keys.Escape);
                 }
                 return Expect(!Ui.ProgressionOpen, "still open");
+            });
+        }
+
+        /// <summary>
+        /// P6 (coverage): the detail panel's own regions — SET AS RESEARCH TARGET for an available node selected WITHOUT
+        /// ordering it (from its card's "Show in research tree": the only way a player selects an available node without
+        /// targeting it once the frontier is the target), the drawer's close button (narrow windows), and the panel's
+        /// body, which is inert (it absorbs a click: nothing under it is selected or ordered).
+        /// </summary>
+        private void DetailControls()
+        {
+            Check("research", "an available node selected from its card (Show in research tree), then SET AS RESEARCH TARGET", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                Screen.ResetView();
+                h.Idle(30);
+                Sim.Ui.Info.InfoHit? pick = null;
+                foreach (Sim.Ui.Info.InfoHit x in Ui.InfoRegistry.Hits)
+                {
+                    if (x.Subject.Kind != InfoKind.ResearchNode || !Screen.Canvas.Contains(x.Rect.CenterX, x.Rect.CenterY) || Screen.Obscured(x.Rect.CenterX, x.Rect.CenterY)) continue;
+                    int ci = Screen.Content.IndexOf(new ResearchNodeId((int)x.Subject.Id));
+                    ResearchNodeView v = Screen.Snapshot!.Nodes[ci];
+                    if (v.Available && !v.IsTarget && Screen.PendingTarget != ci) { pick = x; break; }
+                }
+                if (pick is not { } hit) return (GateResult.NotOffered, "no available node besides the target in view");
+                int node = Screen.Content.IndexOf(new ResearchNodeId((int)hit.Subject.Id));
+                h.ShiftClick(hit.Rect.CenterX, hit.Rect.CenterY);
+                Sim.Ui.Info.InfoPanelHit? show = null;
+                foreach (Sim.Ui.Info.InfoPanelHit x in Ui.Inspector.Hits) if (x.Kind == Sim.Ui.Info.InfoHitKind.ShowInTree) show = x;
+                if (show is not { } sh) return (GateResult.Fail, "the node's card has no Show in research tree");
+                int q = Queued;
+                h.Click(sh.Rect.CenterX, sh.Rect.CenterY);
+                h.Idle(10);
+                if (Screen.Selected != node || Queued != q || Ui.Inspector.IsOpen)
+                    return (GateResult.Fail, "selected " + Screen.Selected + " (want " + node + "), queued +" + (Queued - q) + ", card " + Ui.Inspector.IsOpen);
+                if (!ClickHit(HitKind.SetTarget)) return (GateResult.Fail, "a selected available node shows no SET AS RESEARCH TARGET");
+                return Expect(S.QueuedResearchChoice() == Screen.Content.Nodes[node].Key.Value, "no order for the node");
+            });
+            Check("research", "detail panel body (inert: a click on it selects and orders nothing)", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                if (Screen.Selected < 0) ClickHit(HitKind.Frontier);
+                h.Idle(10);
+                if (FindHit(HitKind.Panel) is not { } panel) return (GateResult.NotOffered, "no detail panel drawn (no node selected, narrow window)");
+                (double X, double Y)? spot = null;
+                for (double y = panel.Rect.Y + 8; y < panel.Rect.Bottom - 8 && spot is null; y += 10)
+                    for (double x = panel.Rect.X + 8; x < panel.Rect.Right - 8 && spot is null; x += 10)
+                    {
+                        bool other = false;
+                        foreach (HitRegion r in Screen.Hits) if (r.Kind != HitKind.Panel && r.Rect.Contains(x, y)) { other = true; break; }
+                        if (!other) spot = (x, y);
+                    }
+                if (spot is not { } at) return (GateResult.NotOffered, "every point of the panel is another control");
+                int selected = Screen.Selected, q = Queued;
+                h.Click(at.X, at.Y);
+                return Expect(Screen.Selected == selected && Queued == q && Ui.ProgressionOpen,
+                    "selected " + selected + " -> " + Screen.Selected + ", queued +" + (Queued - q));
+            });
+            Check("research", "detail drawer close button (narrow windows: deselects, the tree stays)", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                if (Screen.Selected < 0) ClickHit(HitKind.Frontier);
+                h.Idle(10);
+                if (FindHit(HitKind.CloseDetail) is null)
+                    return (GateResult.NotOffered, Screen.Selected < 0 ? "no node selected"
+                        : "the detail panel is docked beside the tree at " + h.Width.ToString(CultureInfo.InvariantCulture) + " px: it has no close button");
+                int q = Queued;
+                ClickHit(HitKind.CloseDetail);
+                return Expect(Screen.Selected == -1 && Ui.ProgressionOpen && Queued == q, "selected " + Screen.Selected + ", tree " + Ui.ProgressionOpen);
             });
         }
 
@@ -758,6 +955,47 @@ public static partial class PlayabilityGate
 
         // -------------------------------------------------------------- Age
 
+        /// <summary>P6 (coverage): the Age panel's research-next line — under an unmet research milestone of the next Age,
+        /// it opens the tree at that node. The panel scrolls, so the line is scrolled into view; run again after the End
+        /// Turns (an Age advance brings the next Age's milestones).</summary>
+        private void AgeResearchNextRow()
+        {
+            Check("age", "Age panel: the research-next line (opens the tree at its node)", () =>
+            {
+                // P6 (coverage): the line under an unmet research milestone; the panel scrolls, so scroll it into view.
+                CloseEverything();
+                if (Ui.Controls.Find("band-age") is null) return (GateResult.NotOffered, "no Age content");
+                h.ClickControl("band-age");
+                AgeHitRegion? line = null;
+                for (int step = 0; step < 40 && (line = AgeHit(Sim.Ui.Ages.AgeHit.FocusNode)) is null; step++)
+                {
+                    RectD panel = Ui.AgePanelBounds;
+                    h.Wheel(panel.CenterX, panel.CenterY, -1);
+                }
+                if (line is not { } r) return (GateResult.NotOffered, "no research-next line: no unmet research milestone names its next node (scrolled to the panel's end)");
+                int q = Queued;
+                h.Click(r.Rect.CenterX, r.Rect.CenterY);
+                int want = S.Config.Research!.IndexOf(new ResearchNodeId(r.Arg));
+                bool ok = Ui.ProgressionOpen && Ui.Progression!.Selected == want && Queued == q;
+                string detail = "tree " + Ui.ProgressionOpen + ", selected " + Ui.Progression?.Selected + " (want " + want + "), queued +" + (Queued - q);
+                CloseEverything();
+                return Expect(ok, detail);
+            });
+            AgePanelHome();
+        }
+
+        /// <summary>P6: opens the docked Age panel and scrolls it back to its top (the wheel over it), then closes it —
+        /// a check that scrolled it must not leave the next one (the ADVANCE AGE button sits at its top) a scrolled panel.</summary>
+        private void AgePanelHome()
+        {
+            CloseEverything();
+            if (Ui.Controls.Find("band-age") is null) return;
+            h.ClickControl("band-age");
+            RectD panel = Ui.AgePanelBounds;
+            for (int k = 0; k < 20; k++) h.Wheel(panel.CenterX, panel.CenterY, 3);
+            CloseEverything();
+        }
+
         private AgeHitRegion? AgeHit(AgeHit kind)
         {
             foreach (AgeHitRegion r in Ui.Age.Hits) if (r.Kind == kind) return r;
@@ -780,6 +1018,7 @@ public static partial class PlayabilityGate
                 CloseEverything();
                 return Expect(ok, "the trees did not open");
             });
+            AgeResearchNextRow();
             Check("age", "Age panel: close button", () =>
             {
                 h.ClickControl("band-age");
@@ -1156,6 +1395,58 @@ public static partial class PlayabilityGate
                     return Expect(ok, "tab " + Ui.SettlementTabOpen + " (or a control inside it did nothing)");
                 });
             }
+            GrievanceControls();
+        }
+
+        /// <summary>P6 (coverage): the grievance account's rows one by one, each scrolled into view — a contributor
+        /// unfolds its chain, and the lever under a factor and under a contributor opens POLICY. (The tab row above
+        /// clicks only what its first screen shows.)</summary>
+        private void GrievanceControls()
+        {
+            void OpenGrievance()
+            {
+                if (Ui.OpenSection != Section.Developer) h.ClickControl("nav:Developer");
+                if (Ui.DeveloperTab != Section.Settlement) h.ClickControl("dev-Settlement");
+                if (Ui.SettlementTabOpen != SettlementTab.Grievance) h.ClickControl("tab-Grievance");
+            }
+            const string noAccount = "the grievance account needs the previous turn's world (the tab says so)";
+            Check("developer: settlement", "grievance contributor (unfolds its chain)", () =>
+            {
+                OpenGrievance();
+                if (ScrollToControl("need-") is not { } ctl) return (GateResult.NotOffered, noAccount);
+                (int, int) before = Ui.ExpandedNeed;
+                (double x, double y) = h.Aim(ctl);
+                h.Click(x, y);
+                return Expect(Ui.ExpandedNeed != before, ctl.Name + " did not unfold or fold");
+            });
+            foreach ((string lever, string unfold, string what) in new[] { ("lever-factor-", "factor-", "a happiness factor"), ("lever-need-", "need-", "a contributor") })
+            {
+                string l = lever, u = unfold;
+                Check("developer: settlement", "lever under " + what + " (opens POLICY)", () =>
+                {
+                    OpenGrievance();
+                    if (u == "factor-" && !Ui.ShowHappinessFactors && ScrollToControl("happiness") is { } hap)
+                    {
+                        (double hx, double hy) = h.Aim(hap);
+                        h.Click(hx, hy);
+                    }
+                    bool open = u == "factor-" ? Ui.ExpandedFactor >= 0 : Ui.ExpandedNeed.Need >= 0;
+                    if (!open && ScrollToControl(u) is { } row)
+                    {
+                        (double rx, double ry) = h.Aim(row);
+                        h.Click(rx, ry);
+                    }
+                    if (ScrollToControl(l) is not { } ctl)
+                        return (GateResult.NotOffered, "no lever under " + what + " in this state (" + noAccount + ", or its chain ends at a condition with no lever)");
+                    (double x, double y) = h.Aim(ctl);
+                    h.Click(x, y);
+                    Section opened = Ui.OpenSection;
+                    h.ClickControl("nav:Developer");
+                    return Expect(opened == Section.Policy, ctl.Name + " opened " + opened);
+                });
+            }
+            OpenGrievance();
+            ScrollContextHome();   // the tab rows are where the next checks click
         }
 
         private void TurnAudit()
@@ -1176,20 +1467,62 @@ public static partial class PlayabilityGate
                 });
             }
             if (audit == 0) Row("developer: turn", "audit line (unfolds its account)", GateResult.NotOffered, "no turn played yet (the tab says so)");
-            foreach (UiControl c in Ui.Controls.Last)
+            // P6 (coverage): the first WHERE row is scrolled into view (it sat below the fold in a narrow window, and the
+            // row was then silently skipped); with none drawn the row says why.
+            LookCheck("developer: turn", "where row (selects and centres)", () =>
             {
-                if (!c.Name.StartsWith("where-", StringComparison.Ordinal)) continue;
-                if (c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10) continue;
-                UiControl ctl = c;
+                if (ScrollToControl("where-") is not { } ctl)
+                    return (GateResult.NotOffered, audit == 0 ? "no turn played yet (the tab says so)" : "the tab lists no WHERE row");
                 int id = int.Parse(ctl.Name[(ctl.Name.LastIndexOf('-') + 1)..], CultureInfo.InvariantCulture);
-                Check("developer: turn", "where row (selects and centres)", () =>
-                {
-                    (double ax, double ay) = h.Aim(ctl);
-                    h.Click(ax, ay);
-                    return Expect(Ui.SelectedSettlement == id, "selected " + Ui.SelectedSettlement);
-                });
-                break;
+                (double ax, double ay) = h.Aim(ctl);
+                h.Click(ax, ay);
+                return Expect(Ui.SelectedSettlement == id, "selected " + Ui.SelectedSettlement);
+            });
+            if (audit > 0) _devHadTurn = true;
+            // P6 (coverage): the deficit WHERE rows — the row above clicks the first 'where-' row, a population one.
+            LookCheck("developer: turn", "where row: largest deficit (selects and centres)", () =>
+            {
+                if (ScrollToControl("where-def-") is not { } ctl)
+                    return (GateResult.NotOffered, audit == 0 ? "no turn played yet (the tab says so)" : "no settlement ran a deficit last turn (the tab lists none)");
+                int id = int.Parse(ctl.Name[(ctl.Name.LastIndexOf('-') + 1)..], CultureInfo.InvariantCulture);
+                (double ax, double ay) = h.Aim(ctl);
+                h.Click(ax, ay);
+                return Expect(Ui.SelectedSettlement == id, "selected " + Ui.SelectedSettlement);
+            });
+            ScrollContextHome();   // the tab row above is where the next checks click
+        }
+
+        /// <summary>P6: scrolls the context panel's body (the wheel over it, Shift + wheel sideways — as a player does)
+        /// until the first control whose name starts with <paramref name="prefix"/> lies wholly inside the visible body;
+        /// null when the panel draws no such control (or it cannot be brought into view).</summary>
+        private UiControl? ScrollToControl(string prefix)
+        {
+            PanelRect p = Ui.ContextRect;
+            double top = ChromeGeometry.ContentTop(new ChromeElement(p, RulePlacement.UnderHeaderRow), ImGuiNET.ImGui.GetFrameHeight(), Ui.Scale) + 2,
+                bottom = p.Y + p.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6,
+                left = p.X + 4, right = p.X + p.Width - 20;
+            for (int k = 0; k < 80; k++)
+            {
+                UiControl? found = null;
+                foreach (UiControl c in Ui.Controls.Last)
+                    if (c.Name.StartsWith(prefix, StringComparison.Ordinal)) { found = c; break; }
+                if (found is not { } ctl) return null;
+                if (ctl.Y0 < top || ctl.Y1 > bottom) h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, ctl.Y0 < top ? 1 : -1);
+                // Sideways only when too little of it shows to aim at (a full-width row runs past the edge by design:
+                // UiFrameHarness.Aim clicks near its start).
+                else if (ctl.X0 > right - 24) h.WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, -1, Keys.LeftShift);
+                else if (ctl.X1 < left + 24) h.WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, 1, Keys.LeftShift);
+                else return ctl;
             }
+            return null;
+        }
+
+        /// <summary>P6: scrolls the context panel's body back to its top-left corner.</summary>
+        private void ScrollContextHome()
+        {
+            PanelRect p = Ui.ContextRect;
+            for (int k = 0; k < 30; k++) h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, 3);
+            for (int k = 0; k < 10; k++) h.WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, 3, Keys.LeftShift);
         }
 
         // -------------------------------------------------------------- keys
@@ -1226,7 +1559,13 @@ public static partial class PlayabilityGate
                 h.Key(Keys.Tab);
                 return Expect(Ui.SelectedSettlement != before || Ui.World.Settlements.Count < 2, "selection unchanged");
             });
-            Check("keys", "W A S D (pan)", () =>
+            WasdRow();
+        }
+
+        /// <summary>The W A S D camera row (a camera row: the world hash and the queued orders must not change).</summary>
+        private void WasdRow()
+        {
+            LookCheck("keys", "W A S D (pan)", () =>
             {
                 // All four keys, both directions: a camera already clamped at one map edge (the world's own
                 // geometry decides where the selected settlement sits — after ADR-035 the age-advance rig's camera
@@ -1247,7 +1586,32 @@ public static partial class PlayabilityGate
 
         private (double X, double Y) Centre() => (h.Width / 2.0, h.Height / 2.0 + 30);
 
+        /// <summary>How far (screen px) a settlement's marker is from the viewport's centre.</summary>
+        private double FromCentre(SettlementRow row)
+        {
+            LineGeometry.Vertex p = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
+            (double sx, double sy) = Ui.Camera.WorldToScreen(p.X, p.Y, h.Width, h.Height);
+            return Math.Sqrt((sx - h.Width / 2.0) * (sx - h.Width / 2.0) + (sy - h.Height / 2.0) * (sy - h.Height / 2.0));
+        }
+
+        /// <summary>The camera rows of <see cref="Keyboard"/> and <see cref="Map"/>, in their sweep order.</summary>
+        public void Camera()
+        {
+            WasdRow();
+            SelectRows();
+            CameraLookRows();
+        }
+
         private void Map()
+        {
+            SelectRows();
+            Units();
+            CameraLookRows();
+        }
+
+        /// <summary>Selecting the capital and two other settlements on the map, where the camera shows them (each a
+        /// camera row: CenterOn and a click select; neither may write).</summary>
+        private void SelectRows()
         {
             IReadOnlyWorldState w = Ui.World;
             EmpireQuery.TryGetCapital(w, Me, out SettlementId cap);
@@ -1259,7 +1623,7 @@ public static partial class PlayabilityGate
             {
                 int target = id;
                 string label = target == cap.Value ? "capital" : "settlement " + target.ToString(CultureInfo.InvariantCulture);
-                Check("map", "select " + label, () =>
+                LookCheck("map", "select " + label, () =>
                 {
                     // Click the settlement's own marker where the camera shows it (centred, at a close zoom).
                     if (Ui.SelectedSettlement == target) { h.Key(Keys.Tab); }
@@ -1273,8 +1637,12 @@ public static partial class PlayabilityGate
                     return Expect(Ui.SelectedSettlement == target, "selected " + Ui.SelectedSettlement);
                 });
             }
-            Units();
-            Check("map", "drag pan", () =>
+        }
+
+        /// <summary>Drag pan, the wheel zooms and CenterOn (camera rows).</summary>
+        private void CameraLookRows()
+        {
+            LookCheck("map", "drag pan", () =>
             {
                 (double x, double y) = Centre();
                 double cx = Ui.Camera.CenterX, cy = Ui.Camera.CenterY;
@@ -1284,18 +1652,37 @@ public static partial class PlayabilityGate
             foreach (WorldZoom level in new[] { WorldZoom.Regional, WorldZoom.Settlement })
             {
                 WorldZoom want = level;
-                Check("map", "wheel zoom to " + want, () =>
+                LookCheck("map", "wheel zoom to " + want, () =>
                 {
                     (double x, double y) = Centre();
                     for (int k = 0; k < 40 && Ui.LensFrame?.Zoom != want; k++) h.Wheel(x, y, 1);
                     return Expect(Ui.LensFrame?.Zoom == want, "lens " + Ui.LensFrame?.Zoom);
                 });
             }
-            Check("map", "wheel zoom out to World", () =>
+            LookCheck("map", "wheel zoom out to World", () =>
             {
                 (double x, double y) = Centre();
                 for (int k = 0; k < 60 && Ui.LensFrame?.Zoom != WorldZoom.World; k++) h.Wheel(x, y, -1);
                 return Expect(Ui.LensFrame?.Zoom == WorldZoom.World, "lens " + Ui.LensFrame?.Zoom);
+            });
+            LookCheck("map", "centre on a settlement (CameraFocus.CenterOn)", () =>
+            {
+                // The first settlement (table order) whose marker is more than 50 px from the viewport's centre; after
+                // CenterOn it must sit no farther from the centre (as near as the camera's clamp allows).
+                IReadOnlyWorldState w = Ui.World;
+                int pick = -1;
+                double before = 0;
+                for (int i = 0; i < w.Settlements.Count && pick < 0; i++)
+                    if (FromCentre(w.Settlements[i]) is var d && d > 50) { before = d; pick = i; }
+                if (pick < 0) return (GateResult.NotOffered, "every settlement is already within 50 px of the centre");
+                double cx = Ui.Camera.CenterX, cy = Ui.Camera.CenterY;
+                bool ok = CameraFocus.CenterOn(Ui.Camera, Ui.World, w.Settlements[pick].Id.Value, h.Width, h.Height);
+                h.Idle(2);
+                double after = FromCentre(Ui.World.Settlements[pick]);
+                bool moved = Ui.Camera.CenterX != cx || Ui.Camera.CenterY != cy;
+                return Expect(ok && after <= before + 0.5,
+                    "CenterOn " + ok + ", " + before.ToString("0.0", CultureInfo.InvariantCulture) + " px from the centre -> "
+                    + after.ToString("0.0", CultureInfo.InvariantCulture) + (moved ? "" : ", camera did not move"));
             });
         }
 
@@ -1304,7 +1691,7 @@ public static partial class PlayabilityGate
             MilitaryUnitRow[] mine = MilitaryQuery.Units(Ui.World, Me);
             if (mine.Length == 0) { Row("map: formation", "select formation", GateResult.NotOffered, "the player has no formation"); return; }
             int unit = mine[0].Id;
-            Check("map: formation", "select formation (click token)", () =>
+            LookCheck("map: formation", "select formation (click token)", () =>
             {
                 if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, h.Width, h.Height);
                 h.Idle(2);
@@ -1325,7 +1712,7 @@ public static partial class PlayabilityGate
                         && c.Y0 >= Ui.UnitCardRect.Y && c.Y1 <= Ui.UnitCardRect.Y + Ui.UnitCardRect.Height) cardControls++;
                 return Expect(says && cardControls == 1, "limitation stated " + says + ", controls on card " + cardControls);
             });
-            Check("map: formation", "right-click / drag on map does not move it", () =>
+            LookCheck("map: formation", "right-click / drag on map does not move it", () =>
             {
                 MilitaryUnitRow before = mine[0];
                 int q = Queued;
