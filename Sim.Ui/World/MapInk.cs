@@ -13,9 +13,12 @@ namespace Sim.Ui.World;
 /// are new; they are taken from the style bible's §2 palette (warm, desaturated; bible hex named in each
 /// comment).</para>
 /// <para>ERA SEAM (ADR-033 D8): this is the ONE complete map-ink record — the era theme carries no map
-/// tokens of its own. <see cref="For"/> derives the era's ink from the theme the interface paints with,
+/// INK tokens of its own. <see cref="For"/> derives the era's ink from the theme the interface paints with,
 /// and the game (and the headless previews) pass it to <c>WorldLens.Paint(…, ink:)</c>; the map's
 /// composition stays a read of state, only its ink changes. Nothing here reads the Age itself.</para>
+/// <para>THE HAND (packet P13): the record also carries the era's <see cref="Hand"/> — stroke weight, plate cut,
+/// banner fly and name-plate ornament, no colour — taken from the theme by <see cref="For"/> like the ink, so the
+/// lens's painters switch on these tokens and never on an era number.</para>
 /// </summary>
 public sealed record MapInk
 {
@@ -47,8 +50,17 @@ public sealed record MapInk
         {
             Ink = Dark(d.Ink), GlyphInk = Dark(d.GlyphInk), RoadEdge = Dark(d.RoadEdge),
             PathCasing = Pale(d.PathCasing), NamePlate = Pale(d.NamePlate), SettlementHalo = Pale(d.SettlementHalo),
+            Hand = theme.MapHand,
         };
     }
+
+    // ---------------------------------------------------------------- the hand (no colour)
+    /// <summary>THE MAP'S HAND (packet P13; era-ui.md §8): how the lens strokes its glyphs, cuts its token plates,
+    /// flies its Age banners and ornaments its name plates in the era — the theme's <see cref="EraTheme.MapHand"/>,
+    /// carried here so the lens reads ONE presentation record. It changes how a mark is drawn, never which marks are
+    /// drawn, where, or how many: the lens's geometry, layers, draw-call accounting and hit regions are the same in
+    /// every era. The default is today's map (<see cref="MapHandTokens.Parchment"/>, the parchment era's hand).</summary>
+    public MapHandTokens Hand { get; init; } = MapHandTokens.Parchment;
 
     /// <summary><paramref name="c"/> moved channel by channel by (<paramref name="era"/> − <paramref name="bible"/>),
     /// clamped to a byte; alpha kept.</summary>

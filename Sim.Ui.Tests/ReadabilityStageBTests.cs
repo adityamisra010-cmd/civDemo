@@ -477,6 +477,50 @@ public class ReadabilityStageBTests(ReadabilityWorldsFixture fx) : IClassFixture
         }
     }
 
+    /// <summary>
+    /// THE MAP'S CENSUS IN ALL NINE ERAS (packet P13: the era's hand must not cost readability). The map painted as the
+    /// game paints it in each era — the world at that Age, its ink, hand and type — with the REAL font atlas: at World
+    /// zoom the full census (nothing below the Caption floor, at least 60 % at the Body role, as the four-era census
+    /// pins every surface), and closer in, on the capital, nothing below the floor. And the hand sets no text of its
+    /// own: each era's census is exactly the census of the same paint in the parchment hand.
+    /// </summary>
+    [Fact]
+    public void TheMapCensus_HoldsInAllNineEras_InTheErasHand()
+    {
+        using var gui = new HeadlessImGui(Assets(), 1920, 1080);
+        var m = new DrawListImGuiBackend(gui.Fonts);
+        var report = new List<string>();
+        for (int age = 1; age <= 9; age++)
+        {
+            WorldState w = fx.At(age);
+            EraTheme theme = EraThemes.For(UiEras.Of(w, Ages, Me));
+            Assert.Equal(age, theme.Ordinal);
+            MapInk ink = MapInk.For(theme);
+            WorldProjection p = WorldProjection.Build(w, fx.Session.Config, id => fx.Session.Names.Name(id), Me);
+            Assert.True(EmpireQuery.TryGetCapital(w, Me, out SettlementId cap));
+            SettlementLensView c = p.Settlements.Single(x => x.Id == cap.Value);
+            foreach ((WorldZoom z, double scale, Func<double, double, (double, double)> toScreen) in new (WorldZoom, double, Func<double, double, (double, double)>)[]
+            {
+                (WorldZoom.World, 1.0, (x, y) => (x + 448, y + 28)),
+                (WorldZoom.Regional, 10.0, (x, y) => ((x - c.X) * 10 + 960, (y - c.Y) * 10 + 540)),
+                (WorldZoom.Settlement, 30.0, (x, y) => ((x - c.X) * 30 + 960, (y - c.Y) * 30 + 540)),
+            })
+            {
+                var dm = new DrawList();
+                WorldLens.Paint(dm, m, p, z, toScreen, scale, new RectD(0, 0, 1920, 1080), ink: ink, theme: theme);
+                var parchment = new DrawList();
+                WorldLens.Paint(parchment, m, p, z, toScreen, scale, new RectD(0, 0, 1920, 1080), ink: ink with { Hand = MapHandTokens.Parchment }, theme: theme);
+                TextCensus x = TextCensus.Of("A" + age + " map " + z, dm), x0 = TextCensus.Of("parchment hand", parchment);
+                report.Add(x.ToString());
+                Assert.True(x.Chars > 0, x.Surface);
+                Assert.True(x.BelowCaption == 0, x + " - below: " + string.Join("; ", x.Below.Take(8)));
+                if (z == WorldZoom.World) Assert.True(x.BodyShare >= 0.60, x.ToString());
+                Assert.Equal((x0.Chars, x0.BelowCaption, x0.AtBody), (x.Chars, x.BelowCaption, x.AtBody));
+            }
+        }
+        Assert.Equal(27, report.Count);
+    }
+
     // ================================================================== the vertex budget at large windows
 
     /// <summary>The 16-bit regression at the large windows and their UI scale (UR-4's bigger type grows the A1 tree's

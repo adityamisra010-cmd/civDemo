@@ -20,7 +20,9 @@ namespace Sim.Ui.Theme;
 /// ornament (rises to the illuminated manuscript, then falls away to the precise modern frame),
 /// typography (heavier Garamond → inscriptional capitals → print Garamond → technical and modern Plex
 /// Sans), density (1 → 5), control granularity (coarse → precise), progress (tally notches →
-/// segments → bar → graduated bar), icons (daubed → precise) and charts (tallies → graduated grids).</item>
+/// segments → bar → graduated bar), icons (daubed → precise), charts (tallies → graduated grids) and the
+/// map's hand (<see cref="MapHandTokens"/>: heavy, irregular strokes on pebble plates under tapering pennants →
+/// fine ruled strokes on square plates under square standards; the parchment era is today's map exactly).</item>
 /// </list>
 /// The values are TUNE: change a hex or a number here and every surface follows.
 /// </summary>
@@ -157,7 +159,8 @@ public static class EraThemes
             new DensityTokens(Level: 1, Padding: 20, Gap: 12, CardDetail: 1),
             new ControlTokens(ControlGranularity.Coarse, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.4, GrabPx: 16),
             new IconTokens(IconStyle.Daubed, StrokePx: 2.4, WobblePx: 1.3, Filled: true),
-            new ChartTokens(Sophistication: 0, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.4));
+            new ChartTokens(Sophistication: 0, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.4),
+            new MapHandTokens(StrokeScale: 1.35, EmblemScale: 1.3, WobblePx: 0.8, Plate: PlateShape.Pebble, Banner: BannerFly.Tapered, NamePlateCornerPx: 6, NamePlateRulePx: 0));
     }
 
     /// <summary>A2 — incised clay and woven reed: smoothed rounded tablets, a woven band, clay-token
@@ -185,7 +188,8 @@ public static class EraThemes
             new DensityTokens(Level: 2, Padding: 18, Gap: 11, CardDetail: 2),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Notches, ProgressSegments: 10, StrokePx: 2.0, GrabPx: 14),
             new IconTokens(IconStyle.Incised, StrokePx: 2.0, WobblePx: 0.6, Filled: false),
-            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.0));
+            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: false, Labels: false, LineWidth: 2.0),
+            new MapHandTokens(StrokeScale: 1.2, EmblemScale: 1.15, WobblePx: 0.4, Plate: PlateShape.Tablet, Banner: BannerFly.Tapered, NamePlateCornerPx: 5, NamePlateRulePx: 1.0));
     }
 
     /// <summary>A3 — cast bronze on sandstone: chamfered plaques with studs, a chevron band,
@@ -213,7 +217,8 @@ public static class EraThemes
             new DensityTokens(Level: 2, Padding: 17, Gap: 10, CardDetail: 3),
             new ControlTokens(ControlGranularity.Simple, ProgressStyle.Segments, ProgressSegments: 5, StrokePx: 1.8, GrabPx: 13),
             new IconTokens(IconStyle.Cast, StrokePx: 1.8, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.8));
+            new ChartTokens(Sophistication: 1, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.8),
+            new MapHandTokens(StrokeScale: 1.15, EmblemScale: 1.1, WobblePx: 0.0, Plate: PlateShape.Plaque, Banner: BannerFly.Square, NamePlateCornerPx: 2, NamePlateRulePx: 1.2));
     }
 
     /// <summary>A4 — forged iron on lime plaster: heavy square frames, rivets, a riveted bar, bolder
@@ -241,7 +246,8 @@ public static class EraThemes
             new DensityTokens(Level: 3, Padding: 16, Gap: 9, CardDetail: 3),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Segments, ProgressSegments: 8, StrokePx: 2.0, GrabPx: 12),
             new IconTokens(IconStyle.Forged, StrokePx: 2.0, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.6));
+            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: false, LineWidth: 1.6),
+            new MapHandTokens(StrokeScale: 1.3, EmblemScale: 1.2, WobblePx: 0.0, Plate: PlateShape.Square, Banner: BannerFly.Square, NamePlateCornerPx: 0, NamePlateRulePx: 1.6));
     }
 
     /// <summary>A5 — marble and gilt: a highly structured hierarchy, fine double rules, the meander,
@@ -269,7 +275,8 @@ public static class EraThemes
             new DensityTokens(Level: 3, Padding: 15, Gap: 9, CardDetail: 4),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Segments, ProgressSegments: 10, StrokePx: 1.4, GrabPx: 12),
             new IconTokens(IconStyle.Carved, StrokePx: 1.5, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.5));
+            new ChartTokens(Sophistication: 2, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.5),
+            new MapHandTokens(StrokeScale: 1.0, EmblemScale: 0.95, WobblePx: 0.0, Plate: PlateShape.Square, Banner: BannerFly.Square, NamePlateCornerPx: 0, NamePlateRulePx: 1.0));
     }
 
     /// <summary>A6 — vellum and gold leaf: the style bible's parchment palette exactly (the parchment
@@ -308,7 +315,8 @@ public static class EraThemes
             new DensityTokens(Level: 4, Padding: 14, Gap: 8, CardDetail: 4),
             new ControlTokens(ControlGranularity.Standard, ProgressStyle.Bar, ProgressSegments: 0, StrokePx: 1.3, GrabPx: 11),
             new IconTokens(IconStyle.Illuminated, StrokePx: 1.4, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 3, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.3));
+            new ChartTokens(Sophistication: 3, GridLines: false, Ticks: true, Labels: true, LineWidth: 1.3),
+            MapHandTokens.Parchment);
     }
 
     /// <summary>A7 — print on laid paper: printer's black rules (thick-thin), fleurons, a cartographic
@@ -336,7 +344,8 @@ public static class EraThemes
             new DensityTokens(Level: 4, Padding: 13, Gap: 7, CardDetail: 5),
             new ControlTokens(ControlGranularity.Fine, ProgressStyle.Bar, ProgressSegments: 0, StrokePx: 1.1, GrabPx: 10),
             new IconTokens(IconStyle.Engraved, StrokePx: 1.2, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 3, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.2));
+            new ChartTokens(Sophistication: 3, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.2),
+            new MapHandTokens(StrokeScale: 0.9, EmblemScale: 0.9, WobblePx: 0.0, Plate: PlateShape.Square, Banner: BannerFly.Swallowtail, NamePlateCornerPx: 0, NamePlateRulePx: 1.0));
     }
 
     /// <summary>A8 — engineering drawings: a pale drafting ground with a fine grid, Prussian-blue
@@ -365,7 +374,8 @@ public static class EraThemes
             new DensityTokens(Level: 5, Padding: 12, Gap: 6, CardDetail: 5),
             new ControlTokens(ControlGranularity.Fine, ProgressStyle.GraduatedBar, ProgressSegments: 10, StrokePx: 1.0, GrabPx: 9),
             new IconTokens(IconStyle.Technical, StrokePx: 1.1, WobblePx: 0.0, Filled: false),
-            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0));
+            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0),
+            new MapHandTokens(StrokeScale: 0.85, EmblemScale: 0.85, WobblePx: 0.0, Plate: PlateShape.Square, Banner: BannerFly.Square, NamePlateCornerPx: 0, NamePlateRulePx: 1.0));
     }
 
     /// <summary>A9 — a modern civilization's interface: clean coated stock, hairline geometry, Plex
@@ -395,7 +405,8 @@ public static class EraThemes
             new DensityTokens(Level: 5, Padding: 11, Gap: 6, CardDetail: 5),
             new ControlTokens(ControlGranularity.Precise, ProgressStyle.GraduatedBar, ProgressSegments: 20, StrokePx: 1.0, GrabPx: 8),
             new IconTokens(IconStyle.Precise, StrokePx: 1.0, WobblePx: 0.0, Filled: true),
-            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0));
+            new ChartTokens(Sophistication: 4, GridLines: true, Ticks: true, Labels: true, LineWidth: 1.0),
+            new MapHandTokens(StrokeScale: 0.85, EmblemScale: 0.85, WobblePx: 0.0, Plate: PlateShape.Tablet, Banner: BannerFly.Square, NamePlateCornerPx: 4, NamePlateRulePx: 0));
     }
 
     // ======================================================================== shared derivations

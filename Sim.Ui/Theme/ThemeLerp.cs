@@ -60,9 +60,15 @@ public static class ThemeLerp
         var charts = new ChartTokens(I(ha.Sophistication, hb.Sophistication, t), Pick(ha.GridLines, hb.GridLines), Pick(ha.Ticks, hb.Ticks),
             Pick(ha.Labels, hb.Labels), D(ha.LineWidth, hb.LineWidth, t));
         // The map's ink is derived from the faded theme (MapInk.For reads its ink and material), so it
-        // fades with it; no map token is carried here.
+        // fades with it; no map INK token is carried here. The map's HAND is a token group (no colour):
+        // its weights, wobble and name-plate ornament interpolate, the plate's cut and the banner's fly
+        // switch at the midpoint — like every other discrete token.
+        MapHandTokens pa = from.MapHand, pb = to.MapHand;
+        var mapHand = new MapHandTokens(D(pa.StrokeScale, pb.StrokeScale, t), D(pa.EmblemScale, pb.EmblemScale, t),
+            D(pa.WobblePx, pb.WobblePx, t), Pick(pa.Plate, pb.Plate), Pick(pa.Banner, pb.Banner),
+            D(pa.NamePlateCornerPx, pb.NamePlateCornerPx, t), D(pa.NamePlateRulePx, pb.NamePlateRulePx, t));
         return new EraTheme(Pick(from.Era, to.Era), Pick(from.Name, to.Name), Pick(from.Medium, to.Medium),
-            material, ink, semantic, edge, ornament, type, density, controls, icons, charts);
+            material, ink, semantic, edge, ornament, type, density, controls, icons, charts, mapHand);
     }
 
     private static Rgba C(Rgba a, Rgba b, double t) => ThemeColor.Mix(a, b, t);
