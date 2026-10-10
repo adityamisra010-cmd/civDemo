@@ -1,5 +1,13 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-10 (later) — `m5p-d051-fixes` (LOCAL, NOT pushed, NOT merged), cut from `m5p-integration` @ `2dc6af2`.**
+> Director rulings recorded (ADR-035 P-F2 + ADR-017 §7 amendment accepted; D-051 §6 deferred). D-051 §4: the Age I
+> workshop trap closed by `ProjectAvailability.InputUnobtainable` (a stone-toolmaking recipe was measured to block all
+> granaries and is NOT shipped). D-051 §1(b): time-averaged decade weather (`timeAveragedHarvest`, off = old goldens).
+> MEASURED on `2444a5c` (Release): Sim.Tests 1568 passed / 2 failed / 12 skipped — the two failures are
+> `Dev_MalthusCorridors_AllInBand` seeds 42 and 7, left RED and escalated in CR-020; Sim.Ui.Tests 583/583; all gates
+> and research checks OK; ci.yml determinism-xproc leg reproduced (founded golden `937577ff…`, AI leg VERIFIED).
+
 > **2026-10-10 — M5 PLAYTEST CANDIDATE `m5p-integration` (LOCAL, NOT pushed, NOT merged; M6 not started).** One tree =
 > `m5-hardening` `81ac697` + `m5p-sim` `4ef911c` + `m5p-docs` `9814383` + `m5p-info` `9205db6` + `m5p-ui` `bf711c8`.
 > Conflicts resolved: `docs/d049` (append-only, both kept); five UI files (m5p-ui layout kept, every m5p-info
