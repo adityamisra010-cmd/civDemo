@@ -57,6 +57,16 @@ namespace Sim.Core;
 ///     sink, and NO remainder field (whole units only; sub-unit intent is
 ///     dropped, not banked — a banked trade remainder would be new serialized
 ///     state the mandate does not ask for). Trade touches no other field.
+///   COLONIZATION (T4.4 — handed next.GoodStocks since T4.4 but first recorded
+///     here at M5 S1b / ADR-036, when the Found Settlement order made it a
+///     second founding path; T4.5 Appropriation, a grain-transfer holder, is
+///     likewise unrecorded in this paragraph and is not this packet's to add) owns: Amount via Ledger.TRANSFER
+///     ONLY, on the GRAIN row, from the founding source to the new settlement
+///     (the provisions share, FoundingQuery.ProvisionsShare — one arithmetic for
+///     the emergent B1 path and the order path) — never a source or sink, no
+///     remainder field. It also APPENDS one row per good for each settlement it
+///     founds, at Amount 0, before any transfer; it touches no existing row's
+///     other fields.
 ///
 /// THE COLLISION THIS RECORD EXISTS TO CATCH (T3.3 adversarial finding — the
 /// paragraph had gone stale and still named Farming, mis-assigning
@@ -71,7 +81,8 @@ namespace Sim.Core;
 /// holder), split at FIELD level and by pipeline order (colonization → revolt →
 /// governance):
 ///   COLONIZATION APPENDS rows — a colony inherits its parent's controller, at
-///     the founding Strength 1.0 — and touches no existing row.
+///     the founding Strength 1.0, whether it was founded by emergent B1 or by a
+///     Found Settlement order (ADR-036) — and touches no existing row.
 ///   REVOLT REMOVES rows (a settlement at zero happiness stops obeying),
 ///     preserving the relative order of every surviving row, then (R3) APPENDS one
 ///     row per revolted settlement for the new AI polity it founds (Strength 1.0).

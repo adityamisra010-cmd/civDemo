@@ -291,5 +291,9 @@
       "maxMortalityReduction": 0.1,
       "healthDecayCostUnits": 25.0
     }
+  },
+  "colonization": {
+    "_doc": "ADR-036 (D-051 section 5, the player/AI Found Settlement order; PROPOSED - the legality terms await the Director's confirmation). orderPartyFraction 0.2: CHOSEN, TUNE. The party a Found Settlement order sends is this fraction of the SOURCE settlement's population, floored to whole people and allocated per bucket by a proportional floor whose remainder goes to the lowest bucket rows first (FoundingQuery.AllocateParty), never emptying a non-empty bucket (the source keeps at least one person in each). The fixed five-field order record carries the source and the site, so the size cannot ride the order. Reference class: D-051 section 5 names Civilization VI settlers as the style - a settler costs one population point and is first affordable in early cities of roughly 3-6 points (INFERRED from play, not measured), i.e. one sixth to one third of the city; 0.2 is one fifth, inside that band. At the turn-zero founding size (founding.cohortCounts, 400 people) it sends 80. The colonists carry provisions = floor(source grain x party / source population) (the existing B1 per-capita share, no new constant), so food per head at the new settlement equals the source's. Read ONLY by the order path: emergent D-037 B1 founding sizes its party from migration's unplaced demand and never reads this (T4.4 section 8 forbids any B1 TUNE). Absent section = no order can form a party (the order is inert).",
+    "orderPartyFraction": 0.2
   }
 }

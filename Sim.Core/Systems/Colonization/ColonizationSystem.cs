@@ -179,6 +179,19 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
         // for simultaneous foundings, and each acceptance immediately grows the
         // exclusion field so a later founder this turn cannot crowd an earlier one.
         int settlementCountAtStart = existing;
+
+        // M5 S1b (D-051 §5, ADR-036): the FOUND SETTLEMENT orders of this step, in log
+        // order, BEFORE the emergent foundings below. A player's or AI's explicit choice
+        // of site is resolved first so that an order legal on the state it was issued from
+        // cannot be crowded out by an emergent founding of the same step; the emergent loop
+        // then spaces itself against every colony the orders founded. A colony founded by
+        // an order is not a B1 source this step (the loop bound was fixed above), exactly
+        // as a B1 newborn is not. With no FoundSettlement order in the batch this does
+        // nothing at all, so the emergent path is byte-identical to before (D-051 §5:
+        // "emergent founding continues unchanged").
+        if (ctx.Orders.Count > 0)
+            occupied = FoundOrdered(ctx, prev, terrain, spacing, occupied);
+
         for (int s = 0; s < settlementCountAtStart; s++)
         {
             SettlementId source = settlements[s].Id;
@@ -225,6 +238,62 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
             grown[^1] = site;
             occupied = grown;
         }
+    }
+
+    /// <summary>
+    /// D-051 §5 / ADR-036 — the FOUND SETTLEMENT ORDER INTAKE. For each FoundSettlement order of
+    /// the step's batch, in log order: skip it if its source already founded this step (the
+    /// FIRST LEGAL order per source per turn founds); judge it with THE predicate,
+    /// <see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>,
+    /// on PREV with this step's standing sites; when it is legal, size the departing party on the
+    /// LIVE tables with <see cref="FoundingQuery.Departure"/> (the same people and food arms) and
+    /// found through the SAME <see cref="Found"/> the emergent path uses — the settlement row,
+    /// inherited control, goods, deposits, Class-A rows, the people and the provisions by
+    /// Ledger.Transfer, and the ADR-012 seed. Then the new site excludes its neighbourhood
+    /// and is occupied for every later order and the emergent loop, exactly as an emergent
+    /// acceptance does. An illegal order writes nothing. Returns the grown occupied list.
+    /// </summary>
+    private int[] FoundOrdered(
+        SimContext<ColonizationTables> ctx, IReadOnlyWorldState prev, TerrainSet terrain,
+        double[] spacing, int[] occupied)
+    {
+        int[]? foundedFrom = null;
+        int foundedCount = 0;
+        for (int o = 0; o < ctx.Orders.Count; o++)
+        {
+            OrderRecord order = ctx.Orders[o];
+            if (order.Kind != OrderKind.FoundSettlement) continue;
+            var source = new SettlementId(order.TargetId);
+
+            bool already = false;
+            for (int k = 0; k < foundedCount; k++) if (foundedFrom![k] == source.Value) { already = true; break; }
+            if (already) continue;
+
+            // LEGALITY, on PREV: the world the order was issued from (FoundingQuery's header).
+            // Only occupancy and spacing are this step's, grown by earlier orders of the batch.
+            int site = FoundingQuery.SiteCellOf(order);
+            if (FoundingQuery.Check(prev, _cfg, _frontier!, spacing, occupied, order.Actor, source, site)
+                != FoundingVerdict.Legal) continue;
+
+            // DEPARTURE, live: the same people and food arms on the people and grain the source
+            // holds now (after this step's harvest, meals and migration), which size the party
+            // that actually leaves. Never empties a bucket; never leaves without provisions.
+            Table<BucketRow> buckets = ctx.Owned.Buckets;
+            if (_party.Length < buckets.Count) _party = new long[buckets.Count];
+            if (FoundingQuery.Departure(buckets, ctx.Owned.Stocks, _cfg, source, _party, out long partyTotal)
+                != FoundingVerdict.Legal) continue;
+            if (!Found(ctx, prev, source, partyTotal, site, terrain)) continue;
+
+            SettlementSiting.AcceptFrontierSite(_frontier!, spacing, site);
+            var grown = new int[occupied.Length + 1];
+            Array.Copy(occupied, grown, occupied.Length);
+            grown[^1] = site;
+            occupied = grown;
+
+            foundedFrom ??= new int[ctx.Orders.Count];
+            foundedFrom[foundedCount++] = source.Value;
+        }
+        return occupied;
     }
 
     /// <summary>
@@ -379,23 +448,14 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
     /// <paramref name="partyHasLeft"/> says whether the party is still counted in
     /// the source's buckets, because the population the share is OF is always the
     /// source PLUS the party.
+    ///
+    /// M5 S1b (ADR-036): the arithmetic now lives in <see cref="FoundingQuery.ProvisionsShare"/> UNCHANGED, so the
+    /// Found Settlement order's "enough food" arm is this same function rather than a copy that could drift.
     /// </summary>
     private long ProvisionsFor(
         Table<GoodStockRow> stocks, Table<BucketRow> buckets,
-        SettlementId source, long party, bool partyHasLeft = false)
-    {
-        long sourcePop = 0;
-        for (int i = 0; i < buckets.Count; i++)
-            if (buckets[i].Settlement == source) sourcePop += buckets[i].Count.Value;
-        long before = partyHasLeft ? sourcePop + party : sourcePop;
-        if (before <= 0 || party <= 0) return 0;
-
-        int from = GoodStockIndex.IndexOf(stocks, source, _grain);
-        if (from < 0) return 0;
-        long store = stocks[from].Amount.Value;
-        if (store <= 0) return 0;
-        return (long)Math.Floor(store * (party / (double)before));
-    }
+        SettlementId source, long party, bool partyHasLeft = false) =>
+        FoundingQuery.ProvisionsShare(stocks, buckets, source, _grain, party, partyHasLeft);
 
     private void TransferProvisions(
         SimContext<ColonizationTables> ctx, SettlementId source, SettlementId dest, long party)

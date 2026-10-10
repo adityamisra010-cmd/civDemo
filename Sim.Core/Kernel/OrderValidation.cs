@@ -86,7 +86,19 @@ public static class OrderValidation
             }
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement)) continue;
+
+            // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
+            // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
+            // world-dependent and is checked here. Terrain is static (ADR-008), so this holds for every actor
+            // and every turn, including a deferred one below. A terrain-less world has no map to found on: the
+            // source-existence check below rejects the order there (such worlds hold no settlement).
+            if (record.Kind == OrderKind.FoundSettlement && world.Terrain is { } terrain
+                && record.Amount >= (double)terrain.Size * terrain.Size)
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): FoundSettlement site cell " +
+                    $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)} is off the map " +
+                    $"(cells are 0..{((long)terrain.Size * terrain.Size - 1).ToString(System.Globalization.CultureInfo.InvariantCulture)}).");
 
             // A mid-game Empire (above) holds nothing in the turn-0 world: its control is decided at delivery.
             if (futureActor) continue;
@@ -136,6 +148,18 @@ public static class OrderValidation
                     $"({world.Settlements.Count} settlement(s)). Toy worlds have none — " +
                     "labor orders need a founded world.");
 
+            // ADR-036: an Empire founds only FROM a settlement it rules (D-051 §5: "the player picks one of their
+            // settlements"). The construction check's guard (a non-empty Controls table) and the same relation;
+            // checked after existence so a missing source is named as missing. Control of a turn-0 settlement by a
+            // turn-0 Empire can only be LOST later (a revolt moves it to a NEW polity, above the roster maximum),
+            // never gained, so a live-played log always passes this. FoundingQuery re-applies it on PREV at delivery.
+            if (record.Kind == OrderKind.FoundSettlement && world.Controls.Count > 0
+                && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(settlementId)))
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): FoundSettlement departs from settlement " +
+                    $"{settlementId}, which polity {record.ActorId} does not control. An Empire may only " +
+                    "found a settlement from one it rules (D-051 §5; D-037 control is authoritative).");
+
             // ADR-033 D2: an Empire allocates labour only where it rules — the SAME
             // predicate PathBuildSystem applies at consumption and the action surface
             // lists sectors by (LabourActivities.CanAllocate; guarded on a non-empty
@@ -184,7 +208,7 @@ public static class OrderValidation
                     "(ADR-034).");
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement)) continue;
             int target = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
             bool deferredTarget = record.Turn >= 1 && maxSettlementId >= 0 && target > maxSettlementId;
             if (!deferredTarget) continue;

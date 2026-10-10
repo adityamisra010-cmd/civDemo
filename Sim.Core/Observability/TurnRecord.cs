@@ -136,12 +136,15 @@ public readonly record struct OrderApplied(
 {
     /// <summary>The settlement the order targets, decoded per kind (OrderKind
     /// doc): SectorAllocation packs settlement × 8 + sector; the others carry
-    /// the settlement id directly. SetRainBias targets a region: −1.</summary>
+    /// the settlement id directly — for FoundSettlement (ADR-036) that is the
+    /// SOURCE the party leaves (the site is a cell, not a settlement). SetRainBias
+    /// targets a region: −1.</summary>
     public int Settlement => Kind switch
     {
         OrderKind.SectorAllocation => TargetId >> 3,
         OrderKind.LaborAllocation => TargetId,
         OrderKind.EnqueueConstruction => TargetId,
+        OrderKind.FoundSettlement => TargetId,
         _ => -1,
     };
 

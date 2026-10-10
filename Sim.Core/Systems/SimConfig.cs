@@ -66,7 +66,23 @@ public sealed record SimConfig(
     // defaulted tail: absent, InstitutionsSystem is INERT (founds nothing, writes no cost factor), the
     // staffing reader returns the raw adult count and the mortality seam returns 1.0, so toy and
     // hand-written configs run the full catalog unchanged; the canonical sim.json carries the section.
-    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null);
+    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null,
+    // ADR-036 (D-051 §5, the Found Settlement order): the party fraction. OPTIONAL and in the defaulted tail:
+    // absent, no Found Settlement order can form a party (FoundingQuery answers NoParty) and the order is inert;
+    // emergent D-037 B1 colonization never reads it. The canonical sim.json carries the section.
+    [property: JsonPropertyName("colonization")] ColonizationConfig? Colonization = null);
+
+/// <summary>
+/// ADR-036 (PROPOSED) — the Found Settlement order's one content number. <c>OrderPartyFraction</c> (TUNE, in (0, 1)):
+/// the party is this fraction of the SOURCE settlement's population, floored to whole people and allocated per
+/// bucket (FoundingQuery.AllocateParty), never emptying a non-empty bucket. The fixed five-field OrderRecord cannot
+/// carry a party size (TargetId = source, Amount = site), so the size is content, not an order payload. It is read
+/// ONLY on the order path: emergent D-037 B1 founding sizes its party from migration's unplaced demand and is
+/// untouched (T4.4 §8 standing prohibition on any B1 threshold or TUNE). Reference class in sim.json
+/// <c>colonization._doc</c>.
+/// </summary>
+public sealed record ColonizationConfig(
+    [property: JsonPropertyName("orderPartyFraction"), JsonRequired] double OrderPartyFraction);
 
 /// <summary>ADR-033 D6 — the institutions section of sim.json. Today it carries the five specialized
 /// universities' tuning only; other institution types follow the same lifecycle later (out of scope).</summary>
@@ -1016,6 +1032,11 @@ public static class SimConfigLoader
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
         if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
+        if (cfg.Colonization is { } colonization
+            && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
+            throw new SimConfigException(
+                "colonization.orderPartyFraction must be in (0,1) — a party is some of the source's people and " +
+                $"never all of them (ADR-036), got {Inv(colonization.OrderPartyFraction)}.");
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)
