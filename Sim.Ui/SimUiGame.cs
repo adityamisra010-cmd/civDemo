@@ -317,10 +317,13 @@ public sealed class SimUiGame : Game
         Camera cam = ui.Camera;
         if (cam.Zoom != _riverBuiltZoom) RebuildRiverBuffer(cam.Zoom);   // D-A3
 
+        // P1: the world is framed through the UI's MAP RECT (its centre shows the camera's centre), from the camera's
+        // own affine map (Camera.Transform) — the same numbers WorldToScreen, the lens and the hit tests use. The map
+        // is still drawn over the whole window, beneath the chrome.
+        (double scale, double offsetX, double offsetY) = cam.Transform(ui.MapRect);
         var transform =
-            Matrix.CreateTranslation((float)-cam.CenterX, (float)-cam.CenterY, 0f)
-            * Matrix.CreateScale((float)cam.Zoom)
-            * Matrix.CreateTranslation(viewport.Width / 2f, viewport.Height / 2f, 0f);
+            Matrix.CreateScale((float)scale)
+            * Matrix.CreateTranslation((float)offsetX, (float)offsetY, 0f);
 
         _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
         _spriteBatch.Draw(_terrainTexture, Vector2.Zero, null, Color.White,

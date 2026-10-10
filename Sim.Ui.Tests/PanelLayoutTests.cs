@@ -1,3 +1,4 @@
+using Sim.Ui.Render;
 using Sim.Ui.ViewModel;
 using Xunit;
 
@@ -79,6 +80,42 @@ public class PanelLayoutTests
         Assert.True(PanelLayout.MapAreaWithContextOpen / viewport > 0.55f,
             $"an open section leaves the map {PanelLayout.MapAreaWithContextOpen / viewport:P0}");
     }
+
+    /// <summary>P1: THE MAP RECT is the area the two pins above measure — under the status band, above the command bar,
+    /// left of an open context panel — so the camera frames exactly the clear map those pins guarantee (both pins kept
+    /// as they were). The selection card floats inside it, as it floats inside the clear area.</summary>
+    [Fact]
+    public void TheMapRect_IsTheClearAreaThePinsMeasure_BetweenTheBars_LeftOfAnOpenPanel()
+    {
+        Assert.Equal(new RectD(0, 52, 1280, 688), PanelLayout.ClearMapRect);
+        Assert.Equal(new RectD(0, 52, 848, 688), PanelLayout.MapRectWithContextOpen);
+        Assert.Equal(PanelLayout.ClearMapArea, (float)(PanelLayout.ClearMapRect.W * PanelLayout.ClearMapRect.H));
+        Assert.Equal(PanelLayout.MapAreaWithContextOpen,
+            (float)(PanelLayout.MapRectWithContextOpen.W * PanelLayout.MapRectWithContextOpen.H));
+        foreach (RectD map in new[] { PanelLayout.ClearMapRect, PanelLayout.MapRectWithContextOpen })
+        {
+            Assert.False(PanelLayout.Overlap(Of(map), PanelLayout.Status));
+            Assert.False(PanelLayout.Overlap(Of(map), PanelLayout.Command));
+            Assert.True(PanelLayout.Overlap(Of(map), PanelLayout.Selection));   // the card floats ON the map
+        }
+        Assert.False(PanelLayout.Overlap(Of(PanelLayout.MapRectWithContextOpen), PanelLayout.Context));
+        Assert.True(PanelLayout.Overlap(Of(PanelLayout.ClearMapRect), PanelLayout.Context));   // folded/closed: the map runs under it
+    }
+
+    /// <summary>P1: the map rect follows whatever window and chrome it is given: a tiny window still yields a positive
+    /// rect, and a panel past the window's edge cannot push the rect's right edge past the window.</summary>
+    [Fact]
+    public void TheMapRect_IsAlwaysAPositiveRectInsideTheWindow()
+    {
+        var status = new PanelRect("##status", 0, 0, 200, 52);
+        var command = new PanelRect("##command", 0, 30, 200, 60);   // bars overlapping in a degenerate window
+        RectD tiny = PanelLayout.MapRect(200, 90, status, command, new PanelRect("##context", -50, 64, 420, 10));
+        Assert.True(tiny.W >= 1 && tiny.H >= 1);
+        RectD wide = PanelLayout.MapRect(1280, 800, PanelLayout.Status, PanelLayout.Command, new PanelRect("##context", 5000, 64, 420, 600));
+        Assert.Equal(1280, wide.Right);
+    }
+
+    private static PanelRect Of(RectD r) => new("map", (float)r.X, (float)r.Y, (float)r.W, (float)r.H);
 
     [Fact]
     public void EverythingThatCanBeOnScreenAtOnce_IsPairwiseDisjoint()

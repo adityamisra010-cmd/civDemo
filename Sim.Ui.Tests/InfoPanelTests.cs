@@ -351,7 +351,7 @@ public class InfoPanelTests : IDisposable
         UiSession s = Small();
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("passive"), Assets());
         MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, Me)[0];
-        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Width, h.Height);
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
         h.Idle(2);
         InfoHit token = h.Ui.InfoRegistry.Hits.First(x => x.Passive && x.Subject == InfoSubject.OfFormation((int)unit.Id));
         // The token's plain click is the map's: it selects the formation; no card.

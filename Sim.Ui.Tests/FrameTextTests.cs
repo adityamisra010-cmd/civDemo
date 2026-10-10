@@ -254,7 +254,7 @@ public class FrameTextTests : IDisposable
         // The formation card's title row.
         MilitaryUnitRow[] mine = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire);
         Assert.NotEmpty(mine);
-        if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, mine[0].Location.Value, h.Width, h.Height);
+        if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, mine[0].Location.Value, h.Ui.MapRect);
         h.Idle(2);
         foreach (UnitPlacement p in h.Ui.LensFrame!.UnitPlacements) if (p.Id == mine[0].Id) { h.Click(p.X, p.Y); break; }
         Assert.NotNull(h.Ui.UnitCard);
@@ -300,7 +300,7 @@ public class FrameTextTests : IDisposable
         }
         // At the closest zoom the selected settlement's name is in the lens's own text.
         string selected = h.Ui.Session.Names.Name(h.Ui.SelectedSettlement);
-        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, h.Ui.SelectedSettlement, h.Width, h.Height);
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, h.Ui.SelectedSettlement, h.Ui.MapRect);
         h.Idle(2);
         Assert.Contains(h.Ui.LastLensCommands, c => c is TextCmd t && t.Text == selected);
 
@@ -444,7 +444,7 @@ public class FrameTextTests : IDisposable
         MilitaryUnitRow[] mine = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire);
         if (mine.Length > 0)
         {
-            if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, mine[0].Location.Value, h.Width, h.Height);
+            if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, mine[0].Location.Value, h.Ui.MapRect);
             h.Idle(2);
             foreach (UnitPlacement p in h.Ui.LensFrame!.UnitPlacements) if (p.Id == mine[0].Id) { h.Click(p.X, p.Y); break; }
             Assert.NotNull(h.Ui.UnitCard);

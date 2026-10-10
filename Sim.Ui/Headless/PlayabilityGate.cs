@@ -475,6 +475,8 @@ public static partial class PlayabilityGate
         {
             if (Ui.Inspector.IsOpen) h.Key(Keys.Escape);   // M5 polish: the info card closes first
             for (int i = 0; i < 4 && (Ui.ProgressionOpen || Ui.Age.FlowOpen); i++) h.Key(Keys.Escape);
+            if (Ui.ContextFolded) h.ClickControl("panel-unfold");   // P1: a folded column's close button is on its panel
+            if (Ui.SelectionFolded) h.ClickControl("card-fold");
             if (Ui.AgePanelOpen) h.ClickControl("band-age");
             if (Ui.SelectedUnit >= 0) h.Key(Keys.Escape);
             if (Ui.OpenSection != Section.None) h.ClickControl("close");
@@ -1584,14 +1586,25 @@ public static partial class PlayabilityGate
 
         // -------------------------------------------------------------- the map
 
-        private (double X, double Y) Centre() => (h.Width / 2.0, h.Height / 2.0 + 30);
+        /// <summary>A point on the map just below its centre (P1: the MAP RECT's centre — the clear map the chrome leaves).</summary>
+        private (double X, double Y) Centre() => (Ui.MapRect.CenterX, Ui.MapRect.CenterY + 30);
 
-        /// <summary>How far (screen px) a settlement's marker is from the viewport's centre.</summary>
+        /// <summary>How far (screen px) a settlement's marker is from the map rect's centre (P1: where CenterOn puts it).</summary>
         private double FromCentre(SettlementRow row)
         {
             LineGeometry.Vertex p = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
-            (double sx, double sy) = Ui.Camera.WorldToScreen(p.X, p.Y, h.Width, h.Height);
-            return Math.Sqrt((sx - h.Width / 2.0) * (sx - h.Width / 2.0) + (sy - h.Height / 2.0) * (sy - h.Height / 2.0));
+            RectD map = Ui.MapRect;
+            (double sx, double sy) = Ui.Camera.WorldToScreen(p.X, p.Y, map);
+            return Math.Sqrt((sx - map.CenterX) * (sx - map.CenterX) + (sy - map.CenterY) * (sy - map.CenterY));
+        }
+
+        /// <summary>P1: whether the camera's clamp lets <paramref name="row"/> sit exactly at the map rect's centre at the
+        /// current zoom (it is at least half the rect's view, in world px, from each world edge on both axes).</summary>
+        private bool ClampAllowsCentre(SettlementRow row)
+        {
+            LineGeometry.Vertex p = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
+            double size = Ui.Camera.WorldSize, hw = Ui.MapRect.W / 2.0 / Ui.Camera.Zoom, hh = Ui.MapRect.H / 2.0 / Ui.Camera.Zoom;
+            return 2 * hw < size && 2 * hh < size && p.X >= hw && p.X <= size - hw && p.Y >= hh && p.Y <= size - hh;
         }
 
         /// <summary>The camera rows of <see cref="Keyboard"/> and <see cref="Map"/>, in their sweep order.</summary>
@@ -1600,6 +1613,7 @@ public static partial class PlayabilityGate
             WasdRow();
             SelectRows();
             CameraLookRows();
+            PanelFoldRows();
         }
 
         private void Map()
@@ -1607,6 +1621,71 @@ public static partial class PlayabilityGate
             SelectRows();
             Units();
             CameraLookRows();
+            PanelFoldRows();
+        }
+
+        /// <summary>
+        /// P1: THE PANELS THE MAP TAKES BACK — the context panel folded to its tab by its fold button and unfolded by the
+        /// tab, the selection card folded to its title and unfolded, and H folding every panel and unfolding them. Each
+        /// is a CAMERA row (folding is looking: the world hash and the queued orders must not change), and each checks
+        /// the map rect: the full window width while the column is folded, the panel's left edge while it is shown.
+        /// </summary>
+        private void PanelFoldRows()
+        {
+            Section first = GameSections.Roster(Ui.Developer)[0];
+            static string Px(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
+            LookCheck("map: panels", "fold the context panel (its fold button)", () =>
+            {
+                CloseEverything();
+                h.ClickControl("nav:" + first);
+                if (!Ui.ContextShown) return (GateResult.Fail, "the " + first + " section did not open");
+                RectD shown = Ui.MapRect;
+                bool clicked = h.ClickControl("panel-fold");
+                h.Idle(1);
+                bool ok = clicked && Ui.ContextFolded && !Ui.ContextShown && Ui.OpenSection == first
+                    && Ui.MapRect.W == h.Width && Ui.MapRect.W > shown.W && Ui.ContextTabRect.Width > 0;
+                return Expect(ok, "clicked " + clicked + ", folded " + Ui.ContextFolded + ", section " + Ui.OpenSection
+                    + ", map rect width " + Px(shown.W) + " -> " + Px(Ui.MapRect.W));
+            });
+            LookCheck("map: panels", "unfold the context panel (its tab)", () =>
+            {
+                if (!Ui.ContextFolded) return (GateResult.Fail, "the column is not folded");
+                bool clicked = h.ClickControl("panel-unfold");
+                h.Idle(1);
+                bool ok = clicked && Ui.ContextShown && Ui.OpenSection == first && Ui.MapRect.Right == Ui.ContextRect.X;
+                return Expect(ok, "clicked " + clicked + ", shown " + Ui.ContextShown + ", section " + Ui.OpenSection
+                    + ", map rect right " + Px(Ui.MapRect.Right) + " vs panel " + Px(Ui.ContextRect.X));
+            });
+            float cardHeight = 0;
+            LookCheck("map: panels", "fold the selection card", () =>
+            {
+                CloseEverything();
+                cardHeight = Ui.SelectionRect.Height;
+                bool clicked = h.ClickControl("card-fold");
+                h.Idle(1);
+                return Expect(clicked && Ui.SelectionFolded && Ui.SelectionRect.Height < cardHeight,
+                    "clicked " + clicked + ", folded " + Ui.SelectionFolded + ", height " + Px(cardHeight) + " -> " + Px(Ui.SelectionRect.Height));
+            });
+            LookCheck("map: panels", "unfold the selection card", () =>
+            {
+                bool clicked = h.ClickControl("card-fold");
+                h.Idle(1);
+                return Expect(clicked && !Ui.SelectionFolded && Ui.SelectionRect.Height == cardHeight,
+                    "clicked " + clicked + ", folded " + Ui.SelectionFolded + ", height " + Px(Ui.SelectionRect.Height) + " (was " + Px(cardHeight) + ")");
+            });
+            LookCheck("keys", "H (fold every panel, then unfold them)", () =>
+            {
+                CloseEverything();
+                h.ClickControl("nav:" + first);
+                h.Key(Keys.H);
+                h.Idle(1);
+                bool folded = Ui.ContextFolded && Ui.SelectionFolded && Ui.MapRect.W == h.Width;
+                h.Key(Keys.H);
+                h.Idle(1);
+                bool unfolded = !Ui.ContextFolded && !Ui.SelectionFolded && Ui.ContextShown && Ui.MapRect.Right == Ui.ContextRect.X;
+                return Expect(folded && unfolded, "folded all " + folded + ", unfolded all " + unfolded);
+            });
+            CloseEverything();
         }
 
         /// <summary>Selecting the capital and two other settlements on the map, where the camera shows them (each a
@@ -1627,12 +1706,12 @@ public static partial class PlayabilityGate
                 {
                     // Click the settlement's own marker where the camera shows it (centred, at a close zoom).
                     if (Ui.SelectedSettlement == target) { h.Key(Keys.Tab); }
-                    CameraFocus.CenterOn(Ui.Camera, Ui.World, target, h.Width, h.Height);
+                    CameraFocus.CenterOn(Ui.Camera, Ui.World, target, Ui.MapRect);
                     h.Idle(2);
                     SettlementRow row = default;
                     for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
                     LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
-                    (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, h.Width, h.Height);
+                    (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
                     h.Click(sx, sy);
                     return Expect(Ui.SelectedSettlement == target, "selected " + Ui.SelectedSettlement);
                 });
@@ -1667,8 +1746,9 @@ public static partial class PlayabilityGate
             });
             LookCheck("map", "centre on a settlement (CameraFocus.CenterOn)", () =>
             {
-                // The first settlement (table order) whose marker is more than 50 px from the viewport's centre; after
-                // CenterOn it must sit no farther from the centre (as near as the camera's clamp allows).
+                // The first settlement (table order) whose marker is more than 50 px from the map rect's centre; after
+                // CenterOn it must sit no farther from the centre (as near as the camera's clamp allows) — and P1: where
+                // the clamp allows it, within 0.5 px of the MAP RECT's centre (not the window's).
                 IReadOnlyWorldState w = Ui.World;
                 int pick = -1;
                 double before = 0;
@@ -1676,13 +1756,15 @@ public static partial class PlayabilityGate
                     if (FromCentre(w.Settlements[i]) is var d && d > 50) { before = d; pick = i; }
                 if (pick < 0) return (GateResult.NotOffered, "every settlement is already within 50 px of the centre");
                 double cx = Ui.Camera.CenterX, cy = Ui.Camera.CenterY;
-                bool ok = CameraFocus.CenterOn(Ui.Camera, Ui.World, w.Settlements[pick].Id.Value, h.Width, h.Height);
+                bool ok = CameraFocus.CenterOn(Ui.Camera, Ui.World, w.Settlements[pick].Id.Value, Ui.MapRect);
                 h.Idle(2);
                 double after = FromCentre(Ui.World.Settlements[pick]);
+                bool allows = ClampAllowsCentre(Ui.World.Settlements[pick]);
                 bool moved = Ui.Camera.CenterX != cx || Ui.Camera.CenterY != cy;
-                return Expect(ok && after <= before + 0.5,
+                return Expect(ok && after <= before + 0.5 && (!allows || after <= 0.5),
                     "CenterOn " + ok + ", " + before.ToString("0.0", CultureInfo.InvariantCulture) + " px from the centre -> "
-                    + after.ToString("0.0", CultureInfo.InvariantCulture) + (moved ? "" : ", camera did not move"));
+                    + after.ToString("0.0", CultureInfo.InvariantCulture) + (allows ? " (the clamp allows the centre)" : "")
+                    + (moved ? "" : ", camera did not move"));
             });
         }
 
@@ -1693,7 +1775,7 @@ public static partial class PlayabilityGate
             int unit = mine[0].Id;
             LookCheck("map: formation", "select formation (click token)", () =>
             {
-                if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, h.Width, h.Height);
+                if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, Ui.MapRect);
                 h.Idle(2);
                 UnitPlacement? at = null;
                 foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == unit) at = p;
@@ -1787,7 +1869,7 @@ public static partial class PlayabilityGate
             ulong Next() { x += 0x9E3779B97F4A7C15UL; ulong z = x; z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL; z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL; return z ^ (z >> 31); }
             int Pick(int n) => (int)(Next() % (ulong)n);
             Keys[] keys = [Keys.K, Keys.Escape, Keys.Tab, Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.F12,
-                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter];
+                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter, Keys.H];
             int endTurns = 0;
             for (int i = 0; i < steps; i++)
             {

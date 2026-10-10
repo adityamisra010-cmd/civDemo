@@ -18,7 +18,12 @@ public static class CameraFocus
     /// <summary>Pans so the settlement sits at the viewport centre (or as near
     /// as the camera's clamp permits). Returns false for an id not in the world
     /// or a world without terrain; the camera is then untouched.</summary>
-    public static bool CenterOn(Camera camera, IReadOnlyWorldState world, int settlementId, int viewportW, int viewportH)
+    public static bool CenterOn(Camera camera, IReadOnlyWorldState world, int settlementId, int viewportW, int viewportH) =>
+        CenterOn(camera, world, settlementId, Camera.Window(viewportW, viewportH));
+
+    /// <summary>P1: pans so the settlement sits at the centre of the MAP RECT — the clear map the chrome leaves, not
+    /// the window (or as near as the camera's clamp against that rect permits).</summary>
+    public static bool CenterOn(Camera camera, IReadOnlyWorldState world, int settlementId, Sim.Ui.Render.RectD view)
     {
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(world);
@@ -27,8 +32,8 @@ public static class CameraFocus
         {
             if (world.Settlements[i].Id.Value != settlementId) continue;
             LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(world.Settlements[i], world.Terrain.Size);
-            (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, viewportW, viewportH);
-            camera.Pan(viewportW / 2.0 - sx, viewportH / 2.0 - sy, viewportW, viewportH);
+            (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, view);
+            camera.Pan(view.CenterX - sx, view.CenterY - sy, view);
             return true;
         }
         return false;

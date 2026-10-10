@@ -64,6 +64,13 @@ public static class SettlementSelection
     public static int HitTest(
         IReadOnlyWorldState world, Camera camera, double clickSx, double clickSy,
         int viewportW, int viewportH,
+        System.Collections.Generic.IReadOnlyList<LabelRect>? labelRects = null) =>
+        HitTest(world, camera, clickSx, clickSy, Camera.Window(viewportW, viewportH), labelRects);
+
+    /// <summary>P1: the same hit test through the camera's MAP RECT (the clear map the chrome leaves) — the rect the
+    /// markers were drawn through, so the click and the mark agree.</summary>
+    public static int HitTest(
+        IReadOnlyWorldState world, Camera camera, double clickSx, double clickSy, Sim.Ui.Render.RectD view,
         System.Collections.Generic.IReadOnlyList<LabelRect>? labelRects = null)
     {
         if (world.Terrain is null) return -1;
@@ -75,7 +82,7 @@ public static class SettlementSelection
         {
             LineGeometry.Vertex pos =
                 OverlayMeshes.SettlementPosition(world.Settlements[i], terrainSize);
-            (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, viewportW, viewportH);
+            (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, view);
             double dx = sx - clickSx, dy = sy - clickSy;
             double distSq = dx * dx + dy * dy;
 

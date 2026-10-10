@@ -196,6 +196,22 @@ public static class ChromeGeometry
         return new ScreenRect(row.Right - frameHeight, row.Y, frameHeight, frameHeight);
     }
 
+    /// <summary>P1: the FOLD button of a panel that also has a close button — the same square, one
+    /// <see cref="FoldGap"/> to the close button's left.</summary>
+    public static ScreenRect FoldButton(in ChromeElement element, float frameHeight, float scale = 1f)
+    {
+        ScreenRect close = CloseButton(element, frameHeight, scale);
+        return close with { X = close.X - FoldGap * scale - frameHeight };
+    }
+
+    /// <summary>P1: between the fold and close buttons.</summary>
+    public const float FoldGap = 4f;
+
+    /// <summary>P1: the fold glyphs, plain ASCII like <see cref="CloseGlyph"/> (every face carries them): the context
+    /// panel folds to the RIGHT edge ('&gt;') and its tab unfolds it back ('&lt;'); the selection card folds UP to its
+    /// title ('-') and unfolds DOWN ('+').</summary>
+    public const string FoldRightGlyph = ">", UnfoldLeftGlyph = "<", FoldUpGlyph = "-", UnfoldDownGlyph = "+";
+
     /// <summary>Where a panel's section content begins: below its rule, with
     /// the same gap the rule keeps from the row above it.</summary>
     public static float ContentTop(in ChromeElement element, float frameHeight, float scale = 1f) =>

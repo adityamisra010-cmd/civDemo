@@ -282,7 +282,7 @@ public class PlayabilityGateTests : IDisposable
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband"), Assets());
         MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
-        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Width, h.Height);
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
         h.Idle(2);
         UnitPlacement at = Placement(h, unit.Id);
         h.Click(at.X, at.Y);
@@ -315,7 +315,7 @@ public class PlayabilityGateTests : IDisposable
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband-still"), Assets());
         MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
-        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Width, h.Height);
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
         h.Idle(2);
         UnitPlacement at = Placement(h, unit.Id);
         int orders = h.Ui.Session.Orders.Count;
@@ -367,7 +367,7 @@ public class PlayabilityGateTests : IDisposable
         MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
         void Select()
         {
-            CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Width, h.Height);
+            CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
             h.Idle(2);
             UnitPlacement at = Placement(h, unit.Id);
             h.Click(at.X, at.Y);
@@ -392,10 +392,10 @@ public class PlayabilityGateTests : IDisposable
         Assert.False(h.Ui.AgePanelOpen);
         // Choosing a settlement puts the formation card away.
         SettlementRow row = h.Ui.World.Settlements[0];
-        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, row.Id.Value, h.Width, h.Height);
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, row.Id.Value, h.Ui.MapRect);
         h.Idle(2);
         LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, h.Ui.World.Terrain!.Size);
-        (double sx, double sy) = h.Ui.Camera.WorldToScreen(pos.X, pos.Y, h.Width, h.Height);
+        (double sx, double sy) = h.Ui.Camera.WorldToScreen(pos.X, pos.Y, h.Ui.MapRect);
         h.Click(sx, sy);
         Assert.Equal(-1, h.Ui.SelectedUnit);
         Assert.Empty(h.Problems);
@@ -593,6 +593,9 @@ public class PlayabilityGateTests : IDisposable
     [
         "W A S D (pan)", "drag pan", "wheel zoom to Regional", "wheel zoom to Settlement", "wheel zoom out to World",
         "centre on a settlement (CameraFocus.CenterOn)",
+        // P1: folding a panel is looking too — the map takes the space back, the game is untouched.
+        "fold the context panel (its fold button)", "unfold the context panel (its tab)",
+        "fold the selection card", "unfold the selection card", "H (fold every panel, then unfold them)",
     ];
 
     [Fact]
