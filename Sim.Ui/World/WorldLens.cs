@@ -313,7 +313,9 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
 /// <see cref="DrawList"/>. Morphology is AGGREGATED (footprint size from population, ring of
 /// dwellings blocks from housing, one glyph per structure kind and per institution type with a count),
 /// never per building, and it is a READ OF STATE ONLY — no physical feature is gated by the Age or any
-/// date (D-038 H5); the Age shows as the banner. Every colour comes from <see cref="MapInk"/>.
+/// date (D-038 H5); the Age shows as the banner. Every colour comes from <see cref="MapInk"/>, and the era's
+/// HAND — glyph stroke weight, the token plate's cut, the banner's fly, the name plate's ornament — from its
+/// <see cref="MapInk.Hand"/> (packet P13): the painters switch on those tokens, never on an era or Age number.
 /// </summary>
 public static class WorldLens
 {
@@ -349,8 +351,51 @@ public static class WorldLens
 
     private static Rgba A(Rgba c, double a) => Ink.With(c, a);
 
+    // ---------------------------------------------------------------- the map's hand (MapInk.Hand; packet P13)
+    // Every painter below takes its hand from Stroke, Emblem, HandLine, PlateRadius and Fly and the name plate's
+    // ornament tokens — the hand's tokens, never an era number. They change a mark's stroke
+    // and outline only: no mark is added, removed or moved, so the lens's geometry and hit regions are the same
+    // in every era, and the parchment hand (the default record's) reproduces today's commands exactly.
+
+    /// <summary>A glyph frame or outline of base width <paramref name="basePx"/> in the era's weight (floored).</summary>
+    private static double Stroke(MapInk k, double basePx) => Math.Max(MapHandTokens.MinStrokePx, basePx * k.Hand.StrokeScale);
+
+    /// <summary>An emblem mark of base width <paramref name="basePx"/> in the era's weight (floored).</summary>
+    private static double Emblem(MapInk k, double basePx) => Math.Max(MapHandTokens.MinStrokePx, basePx * k.Hand.EmblemScale);
+
+    private const int UnitEmblemSalt = 0x4D31, HallEmblemSalt = 0x4D32, BannerPoleSalt = 0x4D33;
+
+    /// <summary>A stroke in the era's hand: its ends displaced by up to <see cref="MapHandTokens.WobblePx"/>,
+    /// seeded (<see cref="FrameNoise"/>) from the glyph's STABLE key — the unit family, the institution type, the
+    /// settlement id — and the stroke's index, never from time, the frame or the screen position, so a glyph keeps
+    /// its hand as the camera moves. A ruled hand (wobble 0) draws the line exactly.</summary>
+    private static void HandLine(DrawList d, MapInk k, double x0, double y0, double x1, double y1, Rgba c, double w,
+        int key, int salt, int stroke)
+    {
+        double a = k.Hand.WobblePx;
+        if (a > 0)
+        {
+            int i = stroke * 4;
+            x0 += a * FrameNoise.S(key, salt, i);
+            y0 += a * FrameNoise.S(key, salt, i + 1);
+            x1 += a * FrameNoise.S(key, salt, i + 2);
+            y1 += a * FrameNoise.S(key, salt, i + 3);
+        }
+        d.Line(x0, y0, x1, y1, c, w);
+    }
+
+    /// <summary>The corner radius of a formation token's plate (half-size <paramref name="s"/>) in the era's cut. The
+    /// plate's box is 2s × 1.5s in every era (the hit rect); a radius of 0.75s rounds its ends fully.</summary>
+    public static double PlateRadius(PlateShape plate, double s) => plate switch
+    {
+        PlateShape.Pebble => s * 0.75,
+        PlateShape.Tablet => s * 0.4,
+        PlateShape.Square => 0.0,
+        _ => 2.0,   // Plaque: today's 2-px plate
+    };
+
     /// <summary>Paints the lens. <paramref name="toScreen"/> maps world px to screen px; <paramref name="scale"/>
-    /// is screen px per world px; <paramref name="ink"/> is the map's ink (the era seam, see
+    /// is screen px per world px; <paramref name="ink"/> is the map's ink and hand (the era seam, see
     /// <see cref="MapInk"/>; <see cref="MapInk.Default"/> when omitted).</summary>
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
@@ -398,7 +443,7 @@ public static class WorldLens
             if (zoom == WorldZoom.World)
             {
                 double r = WorldMarkRadius(s);
-                d.Circle(sx, sy, r + 2, A(k.SettlementHalo, 0.9), k.Ink, 1.2);
+                d.Circle(sx, sy, r + 2, A(k.SettlementHalo, 0.9), k.Ink, Stroke(k, 1.2));
                 d.Circle(sx, sy, r, pol, null);
                 if (s.IsCapital) Star(d, sx, sy, r * 0.75, k.CapitalMark);
                 Name(d, m, sx, sy + r + 5, s.Name, TypeRole.Body, k);
@@ -408,7 +453,7 @@ public static class WorldLens
             Charge(MapLayer.SettlementMarkers);
 
             if (On(WorldLayer.AgeBanners) && s.Age > 0 && s.Controller >= 0)
-                Banner(d, m, sx, sy - (zoom == WorldZoom.World ? 18 : FootprintRadius(s, scale, zoom) + 14), s.Age, pol, s.IsCapital, k);
+                Banner(d, m, sx, sy - (zoom == WorldZoom.World ? 18 : FootprintRadius(s, scale, zoom) + 14), s.Age, pol, s.IsCapital, k, s.Id);
             Charge(MapLayer.AgeBanners);
         }
 
@@ -510,7 +555,7 @@ public static class WorldLens
         // composition is a READ OF STATE (D-038 H5): no wall, palisade or tower is drawn, because no
         // settlement state records one — and the Age gates nothing physical (it flies as the banner).
         d.Circle(sx, sy, r, A(k.Footprint, 0.92), null);
-        d.Circle(sx, sy, r, null, A(ink, 0.55), 1.2);
+        d.Circle(sx, sy, r, null, A(ink, 0.55), Stroke(k, 1.2));
 
         // Dwellings: a ring of blocks, one per 25 dwellings (aggregated; capped) — one form at every Age.
         int blocks = (int)Math.Clamp(s.Dwellings / 25, 1, 48);
@@ -524,7 +569,7 @@ public static class WorldLens
         }
 
         // Centre: the capital star / settlement mark.
-        d.Circle(sx, sy, Math.Max(5, r / 6), pol, ink, 1.2);
+        d.Circle(sx, sy, Math.Max(5, r / 6), pol, ink, Stroke(k, 1.2));
         if (s.IsCapital) Star(d, sx, sy, Math.Max(4, r / 7), k.CapitalMark);
 
         charge(MapLayer.SettlementMarkers);
@@ -616,25 +661,41 @@ public static class WorldLens
     }
 
     /// <summary>A settlement's name on a soft paper plate, so a road running under it never cuts the letters (UR-7: at
-    /// the body role in the era's heading face — it was 12.5 px — and the heading role at settlement zoom).</summary>
+    /// the body role in the era's heading face — it was 12.5 px — and the heading role at settlement zoom). The plate's
+    /// ornament is the era's hand (its corner and the rule round it); its rect is the same in every hand.</summary>
     private static void Name(DrawList d, ITextMeasure m, double x, double y, string name, TypeRole role, MapInk k)
     {
         double size = _type.Size(role, FontRole.Heading);
         double w = _type.Width(m, name, role, FontRole.Heading);
-        d.Rect(new RectD(x - w / 2 - 4, y - 1, w + 8, size * 1.3 + 2), A(k.NamePlate, 0.78), null, 1, 3);
+        MapHandTokens hand = k.Hand;
+        bool ruled = hand.NamePlateRulePx > 0;
+        d.Rect(new RectD(x - w / 2 - 4, y - 1, w + 8, size * 1.3 + 2), A(k.NamePlate, 0.78),
+            ruled ? A(k.Ink, 0.55) : null, ruled ? hand.NamePlateRulePx : 1, hand.NamePlateCornerPx);
         _type.Label(d, x, y, name, role, FontRole.Heading, k.Ink, TextAlign.Center);
     }
 
-    private static void Banner(DrawList d, ITextMeasure m, double x, double y, int age, Rgba pol, bool capital, MapInk k)
+    /// <summary>A settlement's Age banner: the pole, the cloth in the controller's ink with the era's fly
+    /// (<see cref="Fly"/>), the Age numeral. Three commands in every hand.</summary>
+    private static void Banner(DrawList d, ITextMeasure m, double x, double y, int age, Rgba pol, bool capital, MapInk k, int settlement)
     {
         string t = AgePanelModel.Numeral(age);
         double size = _type.Size(TypeRole.Caption, FontRole.Caps);
         double w = _type.Width(m, t, TypeRole.Caption, FontRole.Caps) + 12;
         double h = size * 1.2;
-        d.Line(x, y + 16, x, y + 2, k.Ink, 1.4);
-        d.Polygon([(x, y - h), (x + w, y - h), (x + w - 4, y - h * 0.35), (x + w, y + 6), (x, y + 6)], pol);
+        HandLine(d, k, x, y + 16, x, y + 2, k.Ink, Stroke(k, 1.4), settlement, BannerPoleSalt, 0);
+        d.Polygon(Fly(k.Hand.Banner, x, y, w, h), pol);
         _type.Label(d, x + 6, y - h + 1, t, TypeRole.Caption, FontRole.Caps, capital ? k.CapitalMark : k.BannerText, TextAlign.Left);
     }
+
+    /// <summary>The banner's cloth for <paramref name="fly"/>: hoisted at <paramref name="x"/>, from the top
+    /// <c>y − h</c> to <c>y + 6</c>, <paramref name="w"/> wide. Every fly stays inside that box and leaves the
+    /// numeral's field (x + 6 … x + w − 6, the numeral's height below the top) covered.</summary>
+    public static (double X, double Y)[] Fly(BannerFly fly, double x, double y, double w, double h) => fly switch
+    {
+        BannerFly.Tapered => [(x, y - h), (x + w, y - h), (x + w, y), (x, y + 6)],
+        BannerFly.Square => [(x, y - h), (x + w, y - h), (x + w, y + 6), (x, y + 6)],
+        _ => [(x, y - h), (x + w, y - h), (x + w - 4, y - h * 0.35), (x + w, y + 6), (x, y + 6)],   // Swallowtail: today's
+    };
 
     /// <summary>The map's type for this paint (UR-7): the era's styles at the type scale's roles × the UI scale; with no
     /// theme (previews, tests), the same roles in the pre-theme faces.</summary>
@@ -678,15 +739,15 @@ public static class WorldLens
         switch (kind)
         {
             case StructureKind.Storage:   // granary: domed silo
-                d.Rect(new RectD(x - g * 0.6, y - g * 0.2, g * 1.2, g * 0.9), k.Granary, ink, 1);
-                d.Arc(x, y - g * 0.2, g * 0.6, 180, 180, ink, 1.4);
+                d.Rect(new RectD(x - g * 0.6, y - g * 0.2, g * 1.2, g * 0.9), k.Granary, ink, Stroke(k, 1));
+                d.Arc(x, y - g * 0.2, g * 0.6, 180, 180, ink, Stroke(k, 1.4));
                 break;
             case StructureKind.Production: // workshop: anvil-roofed block with a chimney
-                d.Rect(new RectD(x - g * 0.7, y - g * 0.3, g * 1.4, g * 0.9), k.Workshop, ink, 1);
+                d.Rect(new RectD(x - g * 0.7, y - g * 0.3, g * 1.4, g * 0.9), k.Workshop, ink, Stroke(k, 1));
                 d.Rect(new RectD(x + g * 0.25, y - g * 0.8, g * 0.25, g * 0.5), ink);
                 break;
             default:
-                d.Rect(new RectD(x - g / 2, y - g / 2, g, g), k.StructureOther, ink, 1);
+                d.Rect(new RectD(x - g / 2, y - g / 2, g, g), k.StructureOther, ink, Stroke(k, 1));
                 break;
         }
     }
@@ -703,16 +764,20 @@ public static class WorldLens
         Rgba frame = k.GlyphInk;
         Rgba fill = k.InstitutionInk(typeKey);
         Rgba mark = typeKey == 2 ? k.MedicalMark : k.EmblemMark;
+        int n = 0;
+        // An emblem stroke in the era's hand, seeded from the TYPE (every hall of a type is drawn alike).
+        void L(double x0, double y0, double x1, double y1, double w) =>
+            HandLine(d, k, x0, y0, x1, y1, mark, Emblem(k, w), typeKey, HallEmblemSalt, n++);
         d.Polygon([(x - g * 0.85, y - g * 0.35), (x, y - g * 0.95), (x + g * 0.85, y - g * 0.35)], frame);
-        d.Rect(new RectD(x - g * 0.75, y - g * 0.35, g * 1.5, g * 1.15), fill, frame, 1);
+        d.Rect(new RectD(x - g * 0.75, y - g * 0.35, g * 1.5, g * 1.15), fill, frame, Stroke(k, 1));
         double e = g * 0.38, cy = y + g * 0.22;
         switch (typeKey)
         {
-            case 1: d.Line(x - e, cy - e, x + e, cy + e, mark, 1.6); d.Line(x - e, cy + e, x + e, cy - e, mark, 1.6); break;
+            case 1: L(x - e, cy - e, x + e, cy + e, 1.6); L(x - e, cy + e, x + e, cy - e, 1.6); break;
             case 2: d.Rect(new RectD(x - e * 0.3, cy - e, e * 0.6, e * 2), mark); d.Rect(new RectD(x - e, cy - e * 0.3, e * 2, e * 0.6), mark); break;
-            case 3: d.Circle(x, cy, e * 0.75, null, mark, 1.6); for (int i = 0; i < 6; i++) { double a = Math.PI * i / 3; d.Line(x + Math.Cos(a) * e * 0.75, cy + Math.Sin(a) * e * 0.75, x + Math.Cos(a) * e * 1.1, cy + Math.Sin(a) * e * 1.1, mark, 1.4); } break;
-            case 4: d.Circle(x, cy, e * 0.35, mark, null); d.Circle(x, cy, e, null, mark, 1.1); break;
-            case 5: d.Line(x, cy + e, x, cy - e, mark, 1.4); d.Line(x, cy - e * 0.2, x - e * 0.7, cy - e * 0.9, mark, 1.2); d.Line(x, cy - e * 0.2, x + e * 0.7, cy - e * 0.9, mark, 1.2); break;
+            case 3: d.Circle(x, cy, e * 0.75, null, mark, Emblem(k, 1.6)); for (int i = 0; i < 6; i++) { double a = Math.PI * i / 3; L(x + Math.Cos(a) * e * 0.75, cy + Math.Sin(a) * e * 0.75, x + Math.Cos(a) * e * 1.1, cy + Math.Sin(a) * e * 1.1, 1.4); } break;
+            case 4: d.Circle(x, cy, e * 0.35, mark, null); d.Circle(x, cy, e, null, mark, Emblem(k, 1.1)); break;
+            case 5: L(x, cy + e, x, cy - e, 1.4); L(x, cy - e * 0.2, x - e * 0.7, cy - e * 0.9, 1.2); L(x, cy - e * 0.2, x + e * 0.7, cy - e * 0.9, 1.2); break;
             default: d.Circle(x, cy, e * 0.5, mark, null); break;
         }
     }
@@ -723,21 +788,26 @@ public static class WorldLens
     {
         MapInk k = ink ?? MapInk.Default;
         Rgba frame = k.GlyphInk, pale = k.EmblemMark;
-        d.Rect(new RectD(x - s, y - s * 0.75, s * 2, s * 1.5), owner, frame, 1.4, 2);
+        int n = 0;
+        // An emblem stroke in the era's hand, seeded from the FAMILY (every token of a family is drawn alike).
+        void L(double x0, double y0, double x1, double y1, double w) =>
+            HandLine(d, k, x0, y0, x1, y1, pale, Emblem(k, w), family, UnitEmblemSalt, n++);
+        // The plate: the same 2s × 1.5s box (the hit rect) in every era; the era cuts its corners.
+        d.Rect(new RectD(x - s, y - s * 0.75, s * 2, s * 1.5), owner, frame, Stroke(k, 1.4), PlateRadius(k.Hand.Plate, s));
         double e = s * 0.5;
         switch (family)
         {
-            case 1: d.Line(x - e, y + e * 0.6, x, y - e * 0.8, pale, 1.6); d.Line(x, y - e * 0.8, x + e, y + e * 0.6, pale, 1.6); break; // light infantry: chevron
-            case 2: d.Line(x - e, y + e, x + e, y - e, pale, 1.8); d.Polygon([(x + e, y - e), (x + e * 0.3, y - e * 0.8), (x + e * 0.8, y - e * 0.3)], pale); break; // spear
-            case 3: d.Line(x - e, y - e * 0.7, x + e, y + e * 0.7, pale, 1.6); d.Line(x - e, y + e * 0.7, x + e, y - e * 0.7, pale, 1.6); break; // heavy infantry: crossed
-            case 4: d.Circle(x, y, e * 0.7, null, pale, 1.6); d.Circle(x, y, 1.6, pale, null); break; // ranged: target
-            case 5: d.Line(x - e, y + e * 0.7, x + e, y - e * 0.7, pale, 1.8); break; // light cavalry: slash
-            case 6: d.Line(x - e, y + e * 0.7, x + e, y - e * 0.7, pale, 2.6); d.Line(x - e, y - e * 0.2, x + e * 0.2, y + e * 0.7, pale, 1.4); break;
-            case 7: d.Line(x - e, y + e * 0.7, x + e, y - e * 0.7, pale, 1.8); d.Circle(x - e * 0.4, y - e * 0.3, 2, pale, null); break;
-            case 8: d.Circle(x, y + e * 0.3, e * 0.45, null, pale, 1.6); d.Line(x - e, y - e * 0.2, x + e, y - e * 0.2, pale, 1.6); break; // siege
-            case 9: d.Polygon([(x - e, y), (x + e, y), (x + e * 0.6, y + e * 0.6), (x - e * 0.6, y + e * 0.6)], pale); d.Line(x, y, x, y - e, pale, 1.4); break;
+            case 1: L(x - e, y + e * 0.6, x, y - e * 0.8, 1.6); L(x, y - e * 0.8, x + e, y + e * 0.6, 1.6); break; // light infantry: chevron
+            case 2: L(x - e, y + e, x + e, y - e, 1.8); d.Polygon([(x + e, y - e), (x + e * 0.3, y - e * 0.8), (x + e * 0.8, y - e * 0.3)], pale); break; // spear
+            case 3: L(x - e, y - e * 0.7, x + e, y + e * 0.7, 1.6); L(x - e, y + e * 0.7, x + e, y - e * 0.7, 1.6); break; // heavy infantry: crossed
+            case 4: d.Circle(x, y, e * 0.7, null, pale, Emblem(k, 1.6)); d.Circle(x, y, 1.6, pale, null); break; // ranged: target
+            case 5: L(x - e, y + e * 0.7, x + e, y - e * 0.7, 1.8); break; // light cavalry: slash
+            case 6: L(x - e, y + e * 0.7, x + e, y - e * 0.7, 2.6); L(x - e, y - e * 0.2, x + e * 0.2, y + e * 0.7, 1.4); break;
+            case 7: L(x - e, y + e * 0.7, x + e, y - e * 0.7, 1.8); d.Circle(x - e * 0.4, y - e * 0.3, 2, pale, null); break;
+            case 8: d.Circle(x, y + e * 0.3, e * 0.45, null, pale, Emblem(k, 1.6)); L(x - e, y - e * 0.2, x + e, y - e * 0.2, 1.6); break; // siege
+            case 9: d.Polygon([(x - e, y), (x + e, y), (x + e * 0.6, y + e * 0.6), (x - e * 0.6, y + e * 0.6)], pale); L(x, y, x, y - e, 1.4); break;
             case 10: d.Polygon([(x - e, y), (x + e, y), (x + e * 0.6, y + e * 0.6), (x - e * 0.6, y + e * 0.6)], pale); break;
-            case 11: d.Line(x - e, y, x + e, y, pale, 1.6); d.Line(x, y - e * 0.7, x, y + e * 0.7, pale, 1.6); break;
+            case 11: L(x - e, y, x + e, y, 1.6); L(x, y - e * 0.7, x, y + e * 0.7, 1.6); break;
             case 12: d.Polygon([(x, y - e), (x + e * 0.35, y + e * 0.6), (x - e * 0.35, y + e * 0.6)], pale); break;
             default: d.Circle(x, y, e * 0.5, pale, null); break;
         }

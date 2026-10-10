@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Paints, for each of the nine Ages on the SAME stepped seed-42 world with only the player's Age
-# differing, the Technology tree, the capital Age panel and a chrome sample in that Age's derived era
+# differing, the Technology tree, the capital Age panel, a chrome sample and the map lens on the capital
+# (Regional zoom, the era's ink and hand over the era-invariant parchment) in that Age's derived era
 # theme (sim-ui --era-preview), screenshots each SVG with headless Chromium, and composes a contact
 # sheet. The SVGs are deleted after the screenshot (the PNGs, the contact sheet and the log are kept).
 # Usage (from repo root): docs/architecture/era-ui-preview/render-previews.sh [out-dir]
@@ -26,8 +27,9 @@ shot() { # svg width height
 for svg in "$OUT"/era-*-tree.svg; do shot "$svg" 1600 1000; done
 for svg in "$OUT"/era-*-age.svg; do shot "$svg" 560 1000; done
 for svg in "$OUT"/era-*-chrome.svg; do shot "$svg" 1280 800; done
+for svg in "$OUT"/era-*-map.svg; do shot "$svg" 1280 800; done
 
-# The contact sheet: one row per era (tree | Age panel | chrome sample), A1 at the top.
+# The contact sheet: one row per era (tree | Age panel | chrome sample | map in the era's hand), A1 at the top.
 SHEET="$OUT/contact-sheet.html"
 {
   echo '<!doctype html><html><head><meta charset="utf-8"><style>'
@@ -37,13 +39,14 @@ SHEET="$OUT/contact-sheet.html"
   echo 'img{display:block;border:1px solid #4a4238}</style></head><body>'
   for n in 1 2 3 4 5 6 7 8 9; do
     tree=$(ls "$OUT"/era-$n-*-tree.png); age=$(ls "$OUT"/era-$n-*-age.png); chrome=$(ls "$OUT"/era-$n-*-chrome.png)
+    map=$(ls "$OUT"/era-$n-*-map.png)
     name=$(basename "$tree" -tree.png | sed 's/^era-[0-9]-//')
     echo "<div class=\"row\"><div class=\"lab\">A$n<small>$name</small></div>"
-    echo "<img src=\"$(basename "$tree")\" width=\"480\" height=\"300\"><img src=\"$(basename "$age")\" width=\"168\" height=\"300\"><img src=\"$(basename "$chrome")\" width=\"480\" height=\"300\"></div>"
+    echo "<img src=\"$(basename "$tree")\" width=\"480\" height=\"300\"><img src=\"$(basename "$age")\" width=\"168\" height=\"300\"><img src=\"$(basename "$chrome")\" width=\"480\" height=\"300\"><img src=\"$(basename "$map")\" width=\"480\" height=\"300\"></div>"
   done
   echo '</body></html>'
 } > "$SHEET"
 "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --allow-file-access-from-files \
-  --window-size=1290,2826 --screenshot="$OUT/contact-sheet.png" "file://$(realpath "$SHEET")" >/dev/null 2>&1
+  --window-size=1780,2826 --screenshot="$OUT/contact-sheet.png" "file://$(realpath "$SHEET")" >/dev/null 2>&1
 rm -f "$SHEET" "$OUT"/era-*.svg
 echo "contact sheet: $OUT/contact-sheet.png"

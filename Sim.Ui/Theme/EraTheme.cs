@@ -132,6 +132,48 @@ public sealed record IconTokens(IconStyle Style, double StrokePx, double WobbleP
 /// <summary>CHARTS: sophistication 0 (tallies) … 4 (graduated axes and grids), and its parts.</summary>
 public sealed record ChartTokens(int Sophistication, bool GridLines, bool Ticks, bool Labels, double LineWidth);
 
+/// <summary>How a formation token's plate is cut — a river pebble, a clay tablet, a cast or struck plaque, a ruled
+/// card. Only the CORNER changes: the plate's box (2s × 1.5s about the token's centre) is the token's hit rect
+/// (<c>UnitSelection</c>) and is the same in every era.</summary>
+public enum PlateShape { Pebble = 1, Tablet = 2, Plaque = 3, Square = 4 }
+
+/// <summary>The fly (free edge) of a settlement's Age banner — a tapering hide pennant, the swallowtail, a square
+/// standard. The hoist, the pole and the numeral's field are the same in every era; every fly stays inside the
+/// banner's width.</summary>
+public enum BannerFly { Tapered = 1, Swallowtail = 2, Square = 3 }
+
+/// <summary>
+/// THE MAP'S HAND (era-ui.md §8; workstream packet P13) — HOW the world lens draws its marks in the era, never WHAT
+/// it draws: the composition stays a read of state (D-038 H5) and the geometry, layers and hit regions of the lens
+/// are the same in every era. It carries NO colour (the map's one ink record is <c>Sim.Ui.World.MapInk</c>, which
+/// takes this group as its <c>Hand</c>):
+/// <list type="bullet">
+/// <item><see cref="StrokeScale"/> — the weight of glyph frames and outlines (settlement marks, footprints,
+///   structure and hall glyphs, token frames, the banner pole), × the lens's base widths;</item>
+/// <item><see cref="EmblemScale"/> — the weight of the pale emblem marks on formation tokens and institution halls;</item>
+/// <item><see cref="WobblePx"/> — the hand's irregularity: a seeded displacement (from the glyph's stable key, never
+///   time or position) of the emblem strokes' and the banner pole's ends; 0 is a ruled line;</item>
+/// <item><see cref="Plate"/> — the formation token plate's cut;</item>
+/// <item><see cref="Banner"/> — the Age banner's fly;</item>
+/// <item><see cref="NamePlateCornerPx"/> and <see cref="NamePlateRulePx"/> — the name plate's corner and the rule
+///   round it (0 = no rule) — its ornament.</item>
+/// </list>
+/// Strokes never fall below <see cref="MinStrokePx"/> (the painters floor the weights; a name-plate rule is 0 or at
+/// least the floor in every era). <see cref="Parchment"/> is the map as the lens has always
+/// drawn it, and the parchment era's (A6) hand exactly, so <c>MapInk.For(A6) == MapInk.Default</c> still holds.
+/// </summary>
+public sealed record MapHandTokens(double StrokeScale, double EmblemScale, double WobblePx, PlateShape Plate, BannerFly Banner,
+    double NamePlateCornerPx, double NamePlateRulePx)
+{
+    /// <summary>The thinnest stroke the map's hand draws (px, before the UI scale): a weighted-down era never
+    /// thins a glyph's line below a pixel.</summary>
+    public const double MinStrokePx = 1.0;
+
+    /// <summary>Today's map: base weights, a ruled line, the 2-px plaque, the swallowtail, the 3-px plate with no
+    /// rule — the parchment era's hand (style bible).</summary>
+    public static readonly MapHandTokens Parchment = new(1.0, 1.0, 0.0, PlateShape.Plaque, BannerFly.Swallowtail, 3.0, 0.0);
+}
+
 // ============================================================================ the theme
 
 /// <summary>
@@ -141,7 +183,9 @@ public sealed record ChartTokens(int Sophistication, bool GridLines, bool Ticks,
 /// navigation, interaction rules and semantic colours exist in every era (continuity); material,
 /// edge, ornament, typography, density and control granularity evolve with the Age. The map's ink is
 /// NOT a token group here: the world layer's one complete ink record is <c>Sim.Ui.World.MapInk</c>,
-/// derived from this theme by <c>MapInk.For(theme)</c> (ADR-033 D8 convergence).
+/// derived from this theme by <c>MapInk.For(theme)</c> (ADR-033 D8 convergence). The map's HAND
+/// (<see cref="MapHandTokens"/>: stroke weight, plate cut, banner fly, name-plate ornament — no colour) is a
+/// token group like the others, lerped and canonicalised with them; <c>MapInk.For</c> carries it to the lens.
 /// </summary>
 public sealed record EraTheme(
     UiEra Era,
@@ -156,7 +200,8 @@ public sealed record EraTheme(
     DensityTokens Density,
     ControlTokens Controls,
     IconTokens Icons,
-    ChartTokens Charts)
+    ChartTokens Charts,
+    MapHandTokens MapHand)
 {
     /// <summary>The era's ordinal (the Age key it presents), 1..9.</summary>
     public int Ordinal => (int)Era;

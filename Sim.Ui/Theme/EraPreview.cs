@@ -16,10 +16,11 @@ namespace Sim.Ui.Theme;
 
 /// <summary>
 /// HEADLESS ERA PREVIEWS (sim-ui --era-preview [dir]; docs/architecture/era-ui.md) — for each of the
-/// nine Ages, on the SAME world state with only the player's Age differing, the three surfaces the
-/// era language shows most: the Technology tree, the capital's Age panel, and a chrome sample (the
+/// nine Ages, on the SAME world state with only the player's Age differing, the four surfaces the
+/// era language shows most: the Technology tree, the capital's Age panel, a chrome sample (the
 /// game screen at 1280×800: map, status band, selection card, docked Age panel, command bar and a
-/// context panel holding an illustrative action list and chart). The world is the research preview's
+/// context panel holding an illustrative action list and chart), and the map lens at Regional zoom on
+/// the capital in the era's ink and hand (packet P13). The world is the research preview's
 /// real stepped seed-42 world; the ONLY constructed state is the player's Age row (and the one
 /// transition row that says when it was entered), which is exactly the variable under study. The era
 /// is derived from that world through <see cref="UiEras.Of"/> — the game's own derivation — and every
@@ -28,7 +29,7 @@ namespace Sim.Ui.Theme;
 /// </summary>
 public static class EraPreview
 {
-    public const double TreeW = 1600, TreeH = 1000, AgeW = 560, AgeH = 1000, ChromeW = 1280, ChromeH = 800;
+    public const double TreeW = 1600, TreeH = 1000, AgeW = 560, AgeH = 1000, ChromeW = 1280, ChromeH = 800, MapW = 1280, MapH = 800;
 
     /// <summary>The stepped world every era is painted on (the research preview's).</summary>
     public static UiSession Session() => ProgressionPreview.SteppedSession();
@@ -52,7 +53,7 @@ public static class EraPreview
     public static EraTheme ThemeOf(UiSession s, IReadOnlyWorldState w) =>
         EraThemes.For(UiEras.Of(w, s.Config.Ages, UiPlayer.Empire));
 
-    // ------------------------------------------------------------------ the three surfaces
+    // ------------------------------------------------------------------ the four surfaces
 
     /// <summary>The Technology tree exactly as it opens (zoom 1, the lagging branch's frontier, nothing selected).</summary>
     public static string TreeSvg(UiSession s, WorldState w, string? fontDir)
@@ -155,13 +156,50 @@ public static class EraPreview
 
         // Context panel: an illustrative action list and chart in the era's controls.
         PaintContextSample(d, m, t);
-        string svg = SvgWriter.Write(d, ChromeW, ChromeH, fontDir);
-        if (terrainDataUri is null) return svg;
         // The parchment map under everything (era-invariant: the bible's substrate).
+        return OverSubstrate(SvgWriter.Write(d, ChromeW, ChromeH, fontDir), terrainDataUri,
+            (0 - cx) * zoom + ChromeW / 2, (0 - cy) * zoom + ChromeH / 2 + 4, size * zoom);
+    }
+
+    /// <summary><paramref name="svg"/> (1280 × 800) over the parchment substrate image <paramref name="terrainDataUri"/>
+    /// placed at (<paramref name="x"/>, <paramref name="y"/>), <paramref name="px"/> square — the same image in every
+    /// era (the medium never changes); the SVG itself when there is no image.</summary>
+    private static string OverSubstrate(string svg, string? terrainDataUri, double x, double y, double px)
+    {
+        if (terrainDataUri is null) return svg;
         string img = string.Create(CultureInfo.InvariantCulture,
-            $"<image href=\"{terrainDataUri}\" x=\"{(0 - cx) * zoom + ChromeW / 2:0.##}\" y=\"{(0 - cy) * zoom + ChromeH / 2 + 4:0.##}\" width=\"{size * zoom:0.##}\" height=\"{size * zoom:0.##}\" preserveAspectRatio=\"none\"/>");
+            $"<image href=\"{terrainDataUri}\" x=\"{x:0.##}\" y=\"{y:0.##}\" width=\"{px:0.##}\" height=\"{px:0.##}\" preserveAspectRatio=\"none\"/>");
         int at = svg.IndexOf("</style>\n", StringComparison.Ordinal);
         return svg.Insert(at < 0 ? 0 : at + 9, "<rect x=\"0\" y=\"0\" width=\"1280\" height=\"800\" fill=\"#7f97a0\"/>\n" + img + "\n");
+    }
+
+    /// <summary>
+    /// THE MAP IN THE ERA'S HAND (packet P13): the world lens at Regional zoom centred on the capital, painted by the
+    /// game's own call — <c>WorldLens.Paint(…, ink: MapInk.For(theme), theme: theme)</c> — over the parchment substrate,
+    /// which is the same image in every era (style bible §1: the medium never changes; only what is drawn on it takes
+    /// the era's ink and hand). The capital is selected, as in the game at turn 1.
+    /// </summary>
+    public static string MapSvg(UiSession s, WorldState w, string? fontDir, string? terrainDataUri)
+    {
+        EraTheme t = ThemeOf(s, w);
+        PolityId me = UiPlayer.Empire;
+        double size = w.Terrain!.Size;
+        double zoom = Math.Min(MapW, MapH) / (size * 0.30);
+        int capital = EmpireQuery.TryGetCapital(w, me, out SettlementId cap) ? cap.Value : -1;
+        double cx = size / 2, cy = size / 2;
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (w.Settlements[i].Id.Value == capital)
+            {
+                cx = w.Settlements[i].SiteCell % (int)size + 0.5;
+                cy = w.Settlements[i].SiteCell / (int)size + 0.5;
+            }
+        var d = new DrawList();
+        WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
+        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(zoom, MapW, MapH, size),
+            (x, y) => ((x - cx) * zoom + MapW / 2, (y - cy) * zoom + MapH / 2), zoom, new RectD(0, 0, MapW, MapH), capital,
+            ink: MapInk.For(t), theme: t);   // exactly the game's call: the era's ink, hand and type
+        return OverSubstrate(SvgWriter.Write(d, MapW, MapH, fontDir), terrainDataUri,
+            (0 - cx) * zoom + MapW / 2, (0 - cy) * zoom + MapH / 2, size * zoom);
     }
 
     /// <summary>The baseline activities of turn 1 (ADR-033 D1) as an ILLUSTRATIVE action list, and an
@@ -285,7 +323,8 @@ public static class EraPreview
     /// <summary>The file stem for an era: "era-1-prehistoric".</summary>
     public static string Stem(UiEra era) => "era-" + era.Ordinal().ToString(CultureInfo.InvariantCulture) + "-" + era.ToString().ToLowerInvariant();
 
-    /// <summary>Writes the 27 SVGs (and the log with each SVG's SHA-256) into <paramref name="outDir"/>.</summary>
+    /// <summary>Writes the 36 SVGs — four surfaces × nine eras — (and the log with each SVG's SHA-256) into
+    /// <paramref name="outDir"/>.</summary>
     public static IReadOnlyList<string> Run(string outDir, string? fontDir)
     {
         fontDir = Sim.Ui.Render.SvgWriter.FontDirectoryFor(fontDir, outDir); // F3: portable @font-face URLs
@@ -306,7 +345,8 @@ public static class EraPreview
             WorldState w = WorldAt(s.World, ages, me, era.Ordinal());
             UiEra derived = UiEras.Of(w, ages, me);
             if (derived != era) throw new InvalidOperationException($"era {era} derived as {derived}");
-            foreach ((string kind, string svg) in new[] { ("tree", TreeSvg(s, w, fontDir)), ("age", AgeSvg(s, w, fontDir)), ("chrome", ChromeSvg(s, w, fontDir, terrain)) })
+            foreach ((string kind, string svg) in new[] { ("tree", TreeSvg(s, w, fontDir)), ("age", AgeSvg(s, w, fontDir)), ("chrome", ChromeSvg(s, w, fontDir, terrain)),
+                         ("map", MapSvg(s, w, fontDir, terrain)) })
             {
                 string path = Path.Combine(outDir, Stem(era) + "-" + kind + ".svg");
                 File.WriteAllText(path, svg);

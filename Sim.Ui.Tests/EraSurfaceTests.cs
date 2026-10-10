@@ -8,6 +8,7 @@ using Sim.Ui.Progression;
 using Sim.Ui.Render;
 using Sim.Ui.Theme;
 using Sim.Ui.ViewModel;
+using Sim.Ui.World;
 
 namespace Sim.Ui.Tests;
 
@@ -310,6 +311,112 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
         Assert.Equal(8, AgeQuery.CurrentAge(b, Ages, Me));
         Assert.Equal(a.Clock.Turn, b.Clock.Turn);
         Assert.Equal(ResearchQuery.CompletedNodes(a, fx.Content, Me), ResearchQuery.CompletedNodes(b, fx.Content, Me));
+    }
+
+    // ------------------------------------------------------------------ the map lens in every era (packet P13)
+
+    /// <summary>The map lens painted exactly as the game paints it in <paramref name="era"/> — the world at that Age,
+    /// the theme derived from it, <c>ink: MapInk.For(theme), theme: theme</c> — through a game camera on the capital
+    /// at <paramref name="zoom"/> screen px per world px (1280 × 800).</summary>
+    private (DrawList D, LensFrame F, Camera Cam, WorldState W) Lens(UiEra era, double zoom)
+    {
+        const int vw = 1280, vh = 800;
+        WorldState w = WorldAt(era);
+        EraTheme t = EraPreview.ThemeOf(fx.Session, w);
+        Assert.Equal(era, t.Era);
+        var cam = new Camera(w.Terrain!.Size);
+        cam.ZoomAt(vw / 2.0, vh / 2.0, zoom, vw, vh);
+        Assert.True(EmpireQuery.TryGetCapital(w, Me, out SettlementId cap));
+        int cell = w.Settlements[Enumerable.Range(0, w.Settlements.Count).Single(i => w.Settlements[i].Id == cap)].SiteCell;
+        int size = w.Terrain.Size;
+        cam.Pan((cam.CenterX - (cell % size + 0.5)) * cam.Zoom, (cam.CenterY - (cell / size + 0.5)) * cam.Zoom, vw, vh);
+        WorldProjection p = WorldProjection.Build(w, fx.Session.Config, id => fx.Session.Names.Name(id), Me);
+        var d = new DrawList();
+        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(cam.Zoom, vw, vh, size),
+            (x, y) => cam.WorldToScreen(x, y, vw, vh), cam.Zoom, new RectD(0, 0, vw, vh), cap.Value,
+            ink: MapInk.For(t), theme: t);
+        return (d, f, cam, w);
+    }
+
+    /// <summary>
+    /// CONTINUITY ON THE MAP (packet P13 acceptance: "LensFrame geometry and hit regions are identical in all nine eras;
+    /// only tokenised ink and hand differ"): at World, Regional and Settlement zoom, every era draws the same lens frame
+    /// (layers, settlements, draw-call accounting, institution markers, network pieces, token placements), every token
+    /// plate on exactly its hit rect, and every click on a grid over the screen (and around every token) picks the same
+    /// formation and the same settlement in all nine eras.
+    /// </summary>
+    [Fact]
+    public void Continuity_TheMapLens_HasTheSameGeometryAndHitRegions_InEveryEra()
+    {
+        int tokens = 0;
+        foreach (double zoom in new[] { 3.125, 10.4, 31.25 })
+        {
+            (DrawList d1, LensFrame f1, Camera c1, WorldState w1) = Lens(UiEra.Prehistoric, zoom);
+            double s = UnitSelection.TokenSize(f1.Zoom);
+            var probes = new List<(double X, double Y)>();
+            for (double y = 0; y < 800; y += 9) for (double x = 0; x < 1280; x += 9) probes.Add((x, y));
+            foreach (UnitPlacement u in f1.UnitPlacements)
+                foreach (double dx in new[] { -s - 3.5, -s - 2.5, -s, 0, s, s + 2.5, s + 3.5 })
+                    foreach (double dy in new[] { -s * 0.75 - 3.5, -s * 0.75 - 2.5, 0, s * 0.75 + 2.5, s * 0.75 + 3.5 })
+                        probes.Add((u.X + dx, u.Y + dy));
+            int[] units1 = probes.Select(q => UnitSelection.HitTest(f1, q.X, q.Y)).ToArray();
+            int[] towns1 = probes.Select(q => SettlementSelection.HitTest(w1, c1, q.X, q.Y, 1280, 800)).ToArray();
+            Assert.Contains(towns1, h => h >= 0);
+            tokens += f1.UnitPlacements.Count;
+            foreach (UiEra era in UiEras.All)
+            {
+                (DrawList d, LensFrame f, Camera c, WorldState w) = Lens(era, zoom);
+                MapHandEraTests.AssertSameFrame(f1, f, era + " at zoom " + zoom);
+                Assert.Equal(units1, probes.Select(q => UnitSelection.HitTest(f, q.X, q.Y)).ToArray());
+                Assert.Equal(towns1, probes.Select(q => SettlementSelection.HitTest(w, c, q.X, q.Y, 1280, 800)).ToArray());
+                // The plate the player sees IS the hit rect (less its grip margin), in the era's cut.
+                foreach (UnitPlacement u in f.UnitPlacements)
+                {
+                    RectCmd plate = Assert.Single(d.Commands.OfType<RectCmd>(), r => r.Rect == new RectD(u.X - s, u.Y - s * 0.75, 2 * s, 1.5 * s));
+                    Assert.Equal(MapInkEraTests.PlateCut(EraThemes.For(era).MapHand.Plate, s), plate.Radius);   // the test's own literals, not the painter's mapping
+                }
+            }
+        }
+        Assert.True(tokens > 0, "the stepped world drew no formation token: the unit hit regions were not exercised");
+    }
+
+    /// <summary>The nine eras' map previews (<see cref="EraPreview.MapSvg"/>, the game's own lens call) are
+    /// byte-identical across runs, each derived from its world, and painting them never changes the world.</summary>
+    [Fact]
+    public void MapPreviews_AreByteIdenticalAcrossRuns_InEveryEra()
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (UiEra era in UiEras.All)
+        {
+            WorldState w = WorldAt(era);
+            string hash = WorldHash.ComputeHex(w);
+            string a = EraPreview.MapSvg(fx.Session, w, null, null);
+            string b = EraPreview.MapSvg(fx.Session, EraPreview.WorldAt(fx.Session.World, Ages, Me, era.Ordinal()), null, null);
+            Assert.Equal(a, b);
+            Assert.True(seen.Add(a), era + ": the same map as another era");
+            Assert.Equal(hash, WorldHash.ComputeHex(w));
+        }
+    }
+
+    /// <summary>THE SUBSTRATE NEVER TAKES THE ERA (style bible §1; packet P13): the parchment bake has no input an era
+    /// could reach — no theme, ink, hand or era parameter — and the bake of every era's world is byte-identical.</summary>
+    [Fact]
+    public void TheTerrainSubstrate_IsByteIdenticalInEveryEra()
+    {
+        Type[] eraTypes = [typeof(EraTheme), typeof(MapInk), typeof(MapHandTokens), typeof(UiEra), typeof(UiEra?)];
+        foreach (System.Reflection.MethodInfo bake in typeof(Sim.Ui.Art.ParchmentBaker).GetMethods().Where(x => x.Name == "Bake"))
+            foreach (System.Reflection.ParameterInfo p in bake.GetParameters())
+                Assert.DoesNotContain(p.ParameterType, eraTypes);
+        Sim.Ui.Art.AssetLibrary art = Sim.Ui.Art.AssetLibrary.Load();
+        string? first = null;
+        foreach (UiEra era in UiEras.All)
+        {
+            WorldState w = WorldAt(era);
+            Sim.Ui.Art.ParchmentBaker.Result bake = Sim.Ui.Art.ParchmentBaker.Bake(w.Terrain!, art, w.Seed);
+            string h = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bake.Rgba));
+            first ??= h;
+            Assert.True(first == h, era + ": the substrate differs from A1's");
+        }
     }
 
     [Fact]
