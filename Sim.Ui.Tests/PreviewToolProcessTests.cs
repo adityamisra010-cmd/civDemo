@@ -184,7 +184,9 @@ public sealed class PreviewToolProcessTests : IDisposable
     [Theory]
     [InlineData("--research-preview", "research preview: ", 10)]
     [InlineData("--age-preview", "age preview: ", 9)]
-    [InlineData("--era-preview", "era preview: ", 27)]
+    // --era-preview: 27 -> 36 (packet P13): each of the nine eras now also writes its map preview (era-N-*-map.svg,
+    // EraPreview.MapSvg — the lens in the era's ink and hand), measured: 9 eras x 4 surfaces = 36 SVGs.
+    [InlineData("--era-preview", "era preview: ", 36)]
     [InlineData("--r2a-preview", "r2a preview: ", 8)]
     public void EveryOtherPreviewTool_AsASeparateProcess_ExitsZero_AndWritesWhatItPrints(string flag, string prefix, int svgs)
     {

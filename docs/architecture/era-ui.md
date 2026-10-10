@@ -38,6 +38,7 @@ EraTheme theme = EraThemes.For(era)              // pure, memoised, deterministi
 | `ControlTokens` | Granularity, progress style (`Notches`, `Segments`, `Bar`, `GraduatedBar`), segment count, stroke, grab size. |
 | `IconTokens` | Icon style (`Daubed` … `Precise`), stroke, wobble, filled. |
 | `ChartTokens` | Sophistication 0–4 (tallies → graduated grids), grid lines, ticks, labels, line width. |
+| `MapHandTokens` | The map's HAND (packet P13, §7a): glyph stroke weight, emblem weight, seeded wobble, the formation token plate's cut (`Pebble`, `Tablet`, `Plaque`, `Square`), the Age banner's fly (`Tapered`, `Swallowtail`, `Square`), the name plate's corner and rule. No colour. |
 | (map ink) | Not a theme token group: the world layer's one ink record is `Sim.Ui.World.MapInk`, derived from the theme by `MapInk.For(theme)` (see §7). |
 
 `EraTheme.Canonical()` is a full `path=value` dump (doubles round-trip, colours as hex); the determinism tests
@@ -129,6 +130,50 @@ the end state.
   `WorldLens.Paint` (it fades with the theme during an Age transition), and so do the era and Age previews
   (`MapInkEraTests`).
 
+## 7a. The map's hand (workstream packet P13, 2026-10-10)
+
+The map follows the era in HOW it draws, never in WHAT it draws. `MapHandTokens` (`EraTheme.MapHand`) is a token
+group like the others: every era has a value, `ThemeLerp.Between` fades it (weights, wobble and the name-plate
+measures interpolate; the plate's cut and the banner's fly switch at the midpoint) and `Canonical()` includes it.
+`MapInk.For(theme)` carries it to the lens as `MapInk.Hand`, so the lens still reads ONE presentation record; the
+hand carries no colour, so the theme still holds no map ink. `MapHandTokens.Parchment` is today's map and the A6
+hand, so `MapInk.For(A6) == MapInk.Default` still holds and the parchment era draws today's commands byte for byte.
+
+| Age | Strokes (frame, emblem) | Wobble | Token plate | Banner fly | Name plate (corner, rule) |
+|---|---|---|---|---|---|
+| A1 | 1.35, 1.3 | 0.8 px | pebble | tapered pennant | 6 px, none |
+| A2 | 1.2, 1.15 | 0.4 px | tablet | tapered pennant | 5 px, 1.0 px |
+| A3 | 1.15, 1.1 | — | plaque | square | 2 px, 1.2 px |
+| A4 | 1.3, 1.2 | — | square | square | 0, 1.6 px |
+| A5 | 1.0, 0.95 | — | square | square (vexillum) | 0, 1.0 px |
+| A6 | 1.0, 1.0 | — | plaque (2 px) | swallowtail | 3 px, none (today's map) |
+| A7 | 0.9, 0.9 | — | square | swallowtail | 0, 1.0 px |
+| A8 | 0.85, 0.85 | — | square | square | 0, 1.0 px |
+| A9 | 0.85, 0.85 | — | tablet | square | 4 px, none |
+
+The values are TUNE. The rules the painters keep (`WorldLens`; pinned by `MapHandEraTests`, `MapInkEraTests` and
+`EraSurfaceTests.Continuity_TheMapLens_HasTheSameGeometryAndHitRegions_InEveryEra`):
+
+- **Tokens only.** The painters switch on the hand's tokens, never on an era or Age number (a source guard bans
+  era references in `Sim.Ui/World`).
+- **Same marks, same places.** The hand changes a mark's stroke weight, a plate's corner, a banner's fly inside the
+  banner's box and a name plate's corner and rule. It adds, removes and moves nothing: the `LensFrame` (layers,
+  settlements, draw-call accounting, institution markers, network pieces, token placements), the command stream's
+  kinds and order, every text, rect, circle and arc, and so every hit region, are the same in all nine eras. The
+  token plate is still its hit rect (2s × 1.5s).
+- **Not the hand's.** The territories, the dirt paths and every road class keep their strokes: a road's weight,
+  bed and marks say its class (ADR-032), so an era must not reweight them. The selection ring, the sector arcs
+  and the labour legend's swatch keep theirs too: they carry interaction or data.
+- **Floors.** No hand strokes below 1 px (`MapHandTokens.MinStrokePx`); a name-plate rule is 0 or at least 1 px.
+  The hand sets no text, so the map's text census is the parchment hand's in every era (`TheMapCensus_...`).
+- **Seeded wobble.** The irregular hands (A1, A2: exactly the eras whose icons wobble) displace emblem strokes and
+  the banner pole by a `FrameNoise` value seeded from the glyph's stable key (unit family, institution type,
+  settlement id), never from time or screen position: a panned map draws the same hand.
+- **The substrate is not themed.** The parchment bake takes no theme, ink, hand or era input, and its bytes are the
+  same for every era's world (`TheTerrainSubstrate_IsByteIdenticalInEveryEra`; style bible §1).
+- **No gate.** The composition is still a read of state (D-038 H5): the hand introduces no Age-keyed gameplay
+  effect, and `WorldMapStateTests`' every-Age composition pin passes unchanged.
+
 ## 8. Adding an era-specific treatment
 
 1. Express it as a token. If an existing token can carry it (a colour, a motif, a progress style, a
@@ -147,9 +192,11 @@ the end state.
 `docs/architecture/era-ui-preview/render-previews.sh` runs `sim-ui --era-preview`: the research preview's
 stepped seed-42 world (turn 87) with only the player's Age row (and one transition row) changed, so the nine
 eras are derived exactly as the game derives them. For each Age it paints the Technology tree as it opens, the
-capital Age panel, and a chrome sample (the HUD panel frames, the docked Age panel, the command bar, and a mock
-action list and chart labelled as illustrative), screenshots them with headless Chromium, and composes
-`contact-sheet.png` (one row per Age). `preview-log.txt` records each SVG's SHA-256 and theme hash; two runs
+capital Age panel, a chrome sample (the HUD panel frames, the docked Age panel, the command bar, and a mock
+action list and chart labelled as illustrative) and — since packet P13 — the map lens on the capital at Regional
+zoom in the era's ink and hand (`EraPreview.MapSvg`, the game's own `WorldLens.Paint` call), screenshots them with
+headless Chromium, and composes `contact-sheet.png` (one row per Age, four columns; 36 SVGs). The committed sheet
+in `era-ui-preview/` predates P13 (three columns); re-running the script renders the map column. `preview-log.txt` records each SVG's SHA-256 and theme hash; two runs
 are byte-identical (`EraSurfaceTests.Previews_AreByteIdenticalAcrossRuns_AndEachEraIsDerivedFromTheWorld`). The
 SVGs link the fonts by absolute path, so the logged SVG hashes reproduce on the same checkout path; the theme
 hashes reproduce anywhere.
