@@ -78,16 +78,37 @@ public static class SettlementSiting
         for (int i = 0; i < scores.Length; i++)
         {
             if (water[i] >= 0.5) continue;
-            double access = 1.0 - waterDistance[i] / (double)cfg.WaterAccessCutoffPx;
+            double access = WaterAccess(waterDistance[i], cfg.WaterAccessCutoffPx);
             if (access <= 0.0) continue;
             scores[i] = region[i] * access;
         }
         return scores;
     }
 
+    /// <summary>
+    /// THE WATER-ACCESS FACTOR of one cell (T3.1a), the second factor of
+    /// <see cref="CandidateScores"/>: 1 at the shoreline or riverbank, falling
+    /// linearly to 0 at <paramref name="cutoffPx"/> BFS steps, floored at 0
+    /// beyond it. <paramref name="waterDistancePx"/> is the cell's entry in
+    /// <see cref="WaterDistanceBfs"/>. M5 S1a: made public (no behaviour change)
+    /// so a read-only consumer can show a candidate's score decomposed into
+    /// its two factors without restating the formula. The floor is the
+    /// primitive overload's `access &lt; 0 → 0`; <see cref="CandidateScores"/>
+    /// skips `access &lt;= 0`, which reads the floored value identically.
+    /// </summary>
+    public static double WaterAccess(int waterDistancePx, int cutoffPx)
+    {
+        double access = 1.0 - waterDistancePx / (double)cutoffPx;
+        return access < 0.0 ? 0.0 : access;
+    }
+
     /// <summary>Box-filter sum over (2r+1)² neighbourhoods via an integral
-    /// image — O(cells), edge-clamped, deterministic (pure prefix sums).</summary>
-    private static double[] BoxSum(ReadOnlySpan<double> field, int size, int r)
+    /// image — O(cells), edge-clamped, deterministic (pure prefix sums).
+    /// With the fertility raster and r = siting.fertilityRadiusPx it is the
+    /// REGION-FERTILITY factor of <see cref="CandidateScores"/>. M5 S1a: made
+    /// public (no behaviour change) for the same read-only decomposition as
+    /// <see cref="WaterAccess"/>. r ≤ 0 returns a copy of the field.</summary>
+    public static double[] BoxSum(ReadOnlySpan<double> field, int size, int r)
     {
         if (r <= 0) return field.ToArray();
         // Integral image: I[y+1][x+1] = Σ field[0..y][0..x].
@@ -218,8 +239,7 @@ public static class SettlementSiting
         for (int i = 0; i < fertility.Length; i++)
         {
             if (water[i] >= 0.5) continue; // land candidates only
-            double access = 1.0 - waterDistance[i] / (double)waterAccessCutoffPx;
-            if (access < 0.0) access = 0.0;
+            double access = WaterAccess(waterDistance[i], waterAccessCutoffPx);
             double score = fertility[i] * access;
             // Strictly-greater on an ascending-id scan = (score DESC, id ASC).
             if (score > bestScore)
@@ -242,8 +262,10 @@ public static class SettlementSiting
     /// as worldgen's moisture BFS, restated here because that helper is
     /// private to its stage. An empty rivers span means sea-only (the
     /// primitive test surface). Cells unreachable keep int.MaxValue.
+    /// M5 S1a: public (no behaviour change) — the input of
+    /// <see cref="WaterAccess"/> for a read-only score decomposition.
     /// </summary>
-    private static int[] WaterDistanceBfs(
+    public static int[] WaterDistanceBfs(
         ReadOnlySpan<double> water, ReadOnlySpan<double> rivers, int size)
     {
         int cells = size * size;
@@ -341,9 +363,9 @@ public static class SettlementSiting
 
     /// <summary>
     /// One frontier pick: the argmax by the composite key (score DESC, cell id
-    /// ASC) over cells that are land, above the score floor, OUTSIDE every
-    /// existing settlement's spacing exclusion, and NOT already a settlement's
-    /// site cell.
+    /// ASC) over the cells <see cref="IsLegalFrontierCell"/> accepts — land,
+    /// above the score floor, OUTSIDE every existing settlement's spacing
+    /// exclusion, and NOT already a settlement's site cell.
     ///
     /// THE TWO REJECTIONS ARE SEPARATE AND BOTH ARE REQUIRED (director ruling,
     /// T4.4). Minimum travel-cost SPACING and exact SITE-CELL OCCUPANCY are
@@ -354,6 +376,23 @@ public static class SettlementSiting
     /// distinctness only INCIDENTALLY, from `minSpacingKm` being large and the
     /// test being strictly-less. Dynamic founding asserts it outright.
     ///
+    /// M5 S1a: the per-cell legality is no longer inline. It is the ONE
+    /// predicate <see cref="IsLegalFrontierCell"/>, which any other caller (an
+    /// order validator, a placement preview) shares, and which is DEFINED as the
+    /// conjunction of its two halves: <see cref="IsFrontierCandidate"/> (the
+    /// static terrain rules) and <see cref="IsUnobstructedFrontierCell"/> (the
+    /// occupancy and spacing rules, which depend on who already stands where).
+    /// The scan calls the two halves in the order the T4.4 loop tested them —
+    /// static half, then the strict-improvement test, then the dynamic half —
+    /// so the lattice-origin lookup still runs only on strict improvements and
+    /// the jitter hash only on candidates. That order is a cost choice and
+    /// nothing more: every test is pure, a cell is taken iff it is legal AND
+    /// strictly better than the best so far, and an illegal improver is skipped
+    /// WITHOUT raising bestScore — so the pick is the (score DESC, cell id ASC)
+    /// argmax over <see cref="IsLegalFrontierCell"/> cells. (Measured: calling
+    /// the whole predicate after the score test returns the same sites but
+    /// hashes the jitter for every cell, about twice the cost per call.)
+    ///
     /// Returns −1 when no legal site exists. It does NOT throw: "the frontier
     /// is full" is an ordinary outcome of a per-turn system, not a config
     /// error, which is the other reason `ChooseSites` cannot be called here.
@@ -362,28 +401,80 @@ public static class SettlementSiting
         FrontierSiting f, TerrainSet terrain, double[] spacing,
         ReadOnlySpan<int> occupiedSiteCells, double scoreJitter, ulong seed)
     {
-        ReadOnlySpan<double> water = terrain.Water;
         int bestCell = -1;
         double bestScore = double.NegativeInfinity;
         for (int i = 0; i < f.Scores.Length; i++)
         {
-            if (water[i] >= 0.5) continue;                       // land only
-            double unjittered = f.Scores[i];
-            if (unjittered <= 0.0 || unjittered < f.Floor) continue;
-            double score = unjittered * Jitter(seed, i, scoreJitter);
+            if (!IsFrontierCandidate(f, terrain, i)) continue;             // land, score, floor
+            double score = f.Scores[i] * Jitter(seed, i, scoreJitter);
             // Strictly-greater on an ascending scan = (score DESC, cell id ASC).
             if (score <= bestScore) continue;
-            if (IsOccupied(occupiedSiteCells, i)) continue;      // exact site cell
-            int node = Pathing.LatticeMap.OriginLatticeNode(f.Lattice, f.Size, i);
-            if (spacing[node] < f.MinSpacingCostUnits) continue; // travel-cost spacing
+            if (!IsUnobstructedFrontierCell(f, spacing, occupiedSiteCells, i)) continue; // occupancy, spacing
             bestScore = score;
             bestCell = i;
         }
         return bestCell;
     }
 
-    /// <summary>Linear scan — the settlement count is small and law 5 forbids a hash set here.</summary>
-    private static bool IsOccupied(ReadOnlySpan<int> cells, int cell)
+    /// <summary>
+    /// THE frontier-site legality predicate (M5 S1a, extracted unchanged from
+    /// <see cref="ChooseFrontierSite"/>): a cell is a legal frontier site iff it
+    /// is a <see cref="IsFrontierCandidate">candidate</see> AND
+    /// <see cref="IsUnobstructedFrontierCell">unobstructed</see> —
+    ///   1. land — water &lt; 0.5;
+    ///   2. the UNJITTERED candidate score is &gt; 0 and not below the floor;
+    ///   3. not already a settlement's site cell (<see cref="IsOccupied"/>);
+    ///   4. its origin lattice node is not inside any standing settlement's
+    ///      spacing exclusion (`spacing[node] &lt; MinSpacingCostUnits` rejects).
+    /// A cell outside the map is not legal (the scan never asks; another caller may).
+    ///
+    /// What this does NOT check, stated because a caller could assume it: it is
+    /// not a reachability rule (an unreachable cell keeps +∞ spacing and passes
+    /// rule 4 — ColonizationTests documents the semantics) and not a catchment
+    /// or claim rule. Pure: reads its arguments only, writes nothing.
+    /// </summary>
+    public static bool IsLegalFrontierCell(
+        FrontierSiting f, TerrainSet terrain, ReadOnlySpan<double> spacing,
+        ReadOnlySpan<int> occupiedSiteCells, int cell) =>
+        IsFrontierCandidate(f, terrain, cell)
+        && IsUnobstructedFrontierCell(f, spacing, occupiedSiteCells, cell);
+
+    /// <summary>
+    /// The STATIC half of <see cref="IsLegalFrontierCell"/> (rules 1–2): the cell
+    /// is on the map, land, and its unjittered score is &gt; 0 and not below the
+    /// floor. A pure function of terrain, so it never changes over a run. Each
+    /// rule is the NEGATION of the original T4.4 rejection test, so a NaN reads
+    /// exactly as it did inline.
+    /// </summary>
+    public static bool IsFrontierCandidate(FrontierSiting f, TerrainSet terrain, int cell)
+    {
+        if ((uint)cell >= (uint)f.Scores.Length) return false;
+        if (terrain.Water[cell] >= 0.5) return false;                      // land only
+        double unjittered = f.Scores[cell];
+        return !(unjittered <= 0.0 || unjittered < f.Floor);               // score > 0, ≥ floor
+    }
+
+    /// <summary>
+    /// The DYNAMIC half of <see cref="IsLegalFrontierCell"/> (rules 3–4): the cell
+    /// is on the map, is not a standing settlement's exact site cell, and its
+    /// origin lattice node is outside every spacing exclusion in
+    /// <paramref name="spacing"/> (as <see cref="SeedSpacing"/> /
+    /// <see cref="AcceptFrontierSite"/> build it). Written as the negation of the
+    /// original `spacing[node] &lt; MinSpacingCostUnits` rejection.
+    /// </summary>
+    public static bool IsUnobstructedFrontierCell(
+        FrontierSiting f, ReadOnlySpan<double> spacing, ReadOnlySpan<int> occupiedSiteCells, int cell)
+    {
+        if ((uint)cell >= (uint)f.Scores.Length) return false;
+        if (IsOccupied(occupiedSiteCells, cell)) return false;             // exact site cell
+        int node = Pathing.LatticeMap.OriginLatticeNode(f.Lattice, f.Size, cell);
+        return !(spacing[node] < f.MinSpacingCostUnits);                   // travel-cost spacing
+    }
+
+    /// <summary>Exact site-cell occupancy: is <paramref name="cell"/> one of
+    /// <paramref name="cells"/>? Linear scan — the settlement count is small and
+    /// law 5 forbids a hash set here. M5 S1a: public (no behaviour change).</summary>
+    public static bool IsOccupied(ReadOnlySpan<int> cells, int cell)
     {
         for (int i = 0; i < cells.Length; i++) if (cells[i] == cell) return true;
         return false;

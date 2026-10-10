@@ -303,6 +303,67 @@ public static class Pathfinder
         }
     }
 
+    /// <summary>
+    /// M5 S1a — THE COST OF EACH LEG of a lattice path, under exactly the edge
+    /// set <see cref="FindPath"/> expands (the shared <c>Expand</c>): a
+    /// lattice STEP between 8-neighbours costs <see cref="TraversalLattice.StepCost"/>,
+    /// and a LANE costs its overlay cost (<c>BuildOverlay</c>: PathBuild's
+    /// network fast lanes and ADR-032's travelled road routes, one definition).
+    /// Where several edges join the same two nodes the leg costs the CHEAPEST,
+    /// because that is the value A*'s strictly-better relaxation leaves: from
+    /// one parent, g[child] = min over its edges of (g[parent] + cost), and
+    /// IEEE rounding is monotone, so that equals g[parent] + min(cost) bit for
+    /// bit. Summing the legs from 0 along a FindPath result therefore
+    /// reproduces A*'s own g at every node of the path — and its TotalCost —
+    /// exactly (RouteQueryTests measures it). This is not a second movement
+    /// model: there is no cost here that Expand does not charge.
+    ///
+    /// Leg k joins nodes[k] and nodes[k+1]. Throws when a node is out of range
+    /// or impassable, or when two consecutive nodes are joined by no edge —
+    /// such a sequence is not a path this pathfinder could return.
+    /// </summary>
+    public static double[] LegCosts(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> nodes)
+    {
+        var legs = new double[nodes.Length > 1 ? nodes.Length - 1 : 0];
+        for (int k = 0; k < nodes.Length; k++)
+            if ((uint)nodes[k] >= (uint)lattice.NodeCount || !lattice.IsPassable(nodes[k]))
+                throw new ArgumentException(
+                    $"node {nodes[k]} at position {k} is not a passable lattice node", nameof(nodes));
+        if (legs.Length == 0) return legs;
+
+        (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
+        for (int k = 0; k < legs.Length; k++)
+        {
+            int a = nodes[k], b = nodes[k + 1];
+            bool joined = false;
+            double best = 0.0;
+            // The order Expand relaxes in: the lattice step first, then each lane
+            // in adjacency order, a lane replacing only a STRICTLY cheaper cost.
+            (int ax, int ay) = lattice.Coords(a);
+            (int bx, int by) = lattice.Coords(b);
+            if (a != b && Math.Abs(ax - bx) <= 1 && Math.Abs(ay - by) <= 1)
+            {
+                best = lattice.StepCost(a, b);
+                joined = true;
+            }
+            int[] targets = overlayTargets[a];
+            double[] costs = overlayCosts[a];
+            for (int e = 0; e < targets.Length; e++)
+            {
+                if (targets[e] != b) continue;
+                if (!joined || costs[e] < best) best = costs[e];
+                joined = true;
+            }
+            if (!joined)
+                throw new ArgumentException(
+                    $"nodes {a} and {b} (positions {k}, {k + 1}) are joined by no lattice step and no lane",
+                    nameof(nodes));
+            legs[k] = best;
+        }
+        return legs;
+    }
+
     // --- shared expansion ------------------------------------------------------
 
     private static void Expand(

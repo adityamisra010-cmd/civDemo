@@ -355,8 +355,14 @@ public static class WorldFounding
     /// site cell itself is inside the disc, so a settlement whose hinterland is
     /// entirely water (impossible for a sited settlement, which requires land)
     /// would still divide by at least one.
+    ///
+    /// M5 S1a: public (no behaviour change) — the deposit FIELD. Evaluated at a
+    /// settlement's site cell with <see cref="HinterlandRadiusPx"/> it is exactly
+    /// the pair <see cref="AddDepositsForSite"/> wrote that settlement's deposits
+    /// from; evaluated anywhere else it is what a settlement founded there would
+    /// get, before the per-good spread. The radius is in PIXELS.
     /// </summary>
-    private static (double Moisture, double Elevation) HinterlandMeans(
+    public static (double Moisture, double Elevation) HinterlandMeans(
         TerrainSet t, WorldgenConfig cfg, int site, double radiusPx)
     {
         int size = cfg.SizePx;
@@ -386,6 +392,34 @@ public static class WorldFounding
             ? (t.Moisture[site], Math.Max(0.0, t.Elevation[site] - t.SeaLevel))
             : (sumM / n, sumE / n);
     }
+
+    /// <summary>
+    /// The hinterland disc radius in PIXELS: catchment.hinterlandRadiusKm ÷
+    /// kmPerPx (50 / 4 = 12.5 at the canonical config). M5 S1a: the ONE
+    /// expression <see cref="AddDepositsForSite"/> uses, named so a read-only
+    /// caller of <see cref="HinterlandMeans"/> cannot evaluate a different disc.
+    /// </summary>
+    public static double HinterlandRadiusPx(WorldgenConfig cfg, Systems.SimConfig simCfg) =>
+        simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+
+    /// <summary>
+    /// The deposit CHANNEL a good's abundance is drawn from (goods.json
+    /// `depositChannel`), as a function of the two hinterland means:
+    /// "moisture" → the moisture mean; "elevation" → the elevation-above-sea
+    /// mean; anything else (the water-proximity channel) → moisture mean
+    /// SQUARED — the square of the mean, not the mean of the square, and not
+    /// the Water raster. M5 S1a: extracted unchanged from
+    /// <see cref="AddDepositsForSite"/> so a read-only field shares the switch.
+    /// </summary>
+    public static double DepositChannelValue(string channel, double meanMoisture, double meanElevation) =>
+        channel switch
+        {
+            "moisture" => meanMoisture,
+            "elevation" => meanElevation,
+            // water proximity: 1 at the shore, fading with the same
+            // moisture curve (clay pits, fish grounds hug the water).
+            _ => meanMoisture * meanMoisture,
+        };
 
     /// <summary>Slot base for per-good deposit rolls (cohorts 0..15, food 100,
     /// settlement factor 200; deposits 300+goodId).</summary>
@@ -479,19 +513,12 @@ public static class WorldFounding
         Systems.SimConfig simCfg, Systems.GoodsConfig goods,
         SettlementId settlement, int siteCell, ulong seed, int variationSlot)
     {
-        double radiusPx = simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+        double radiusPx = HinterlandRadiusPx(cfg, simCfg);
         (double meanMoisture, double meanElevation) = HinterlandMeans(terrain, cfg, siteCell, radiusPx);
         foreach (GoodEntry g in goods.Goods)
         {
             if (g.DepositChannel is null) continue;
-            double channel = g.DepositChannel switch
-            {
-                "moisture" => meanMoisture,
-                "elevation" => meanElevation,
-                // water proximity: 1 at the shore, fading with the same
-                // moisture curve (clay pits, fish grounds hug the water).
-                _ => meanMoisture * meanMoisture,
-            };
+            double channel = DepositChannelValue(g.DepositChannel, meanMoisture, meanElevation);
             double spread = 1.0 + g.DepositSpread * U(seed, variationSlot, DepositSlotBase + g.Id);
             deposits.Add(new DepositRow(
                 settlement, new GoodId(g.Id), Math.Max(0.0, channel * spread)));
