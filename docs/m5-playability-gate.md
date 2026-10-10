@@ -235,6 +235,13 @@ no simulation, serialization or order code changed.
   - GameUi's backend field may be named only in `GameUi.Text.cs`;
   - every `.Render(` in GameUi's files must be `Backend.Render(`.
 
+  *Integration note (2026-10-10, m5w-integration).* P4's `--frame-cost map` (`Sim.Ui/Headless/MapFrameCost.cs`)
+  was written on a branch parallel to this guard. When the two branches merged, the guard reported its five namings of
+  the backend type (20 of 34 FrameTextTests red). It is the same kind of site as `FrameCost.cs`: a headless measurement
+  that replays `WorldLens.Paint` into bare `HeadlessImGui` frames of its own, with no GameUi and no FrameText. So it
+  gets two count-pinned entries of its own (2 constructions, 3 parameter namings), each with its reason. The allowlist
+  now has 8 replay-channel entries. No entry was widened and no mutant row changed.
+
   Nine more mutants of the real tree are reported: the measured mutant's four sites, a `.Render(` on another receiver,
   a second backend held in a target-typed field, the field rebound to a new backend, a construction elsewhere in
   Sim.Ui, and a second construction in the helpers' file. The sink is init-only, so `Backend.Replayed = null` does not

@@ -646,6 +646,13 @@ internal static class FrameTextGuard
         new("Sim.Ui/Headless/FrameCost.cs", "new DrawListImGuiBackend", 1,
             "--frame-cost: replays the research screen into a bare HeadlessImGui frame of its own (no GameUi, no game frame, no FrameText to report to)"),
         new("Sim.Ui/Headless/FrameCost.cs", "DrawListImGuiBackend", 1, "FrameCost.Sweep's parameter: the measurement's own backend"),
+        // m5w integration (P4 x P6): P4's `--frame-cost map` was written on a branch parallel to this guard. It has the
+        // same shape as FrameCost.cs above: a headless measurement that draws its own bare HeadlessImGui frames. There is
+        // no GameUi and no FrameText to report to, and its replays never reach the game's screen.
+        new("Sim.Ui/Headless/MapFrameCost.cs", "new DrawListImGuiBackend", 2,
+            "--frame-cost map: one backend per measured window size and one for the run-wide JIT warm-up. Each replays WorldLens.Paint into a bare HeadlessImGui frame of its own (no GameUi, no game frame, no FrameText to report to)"),
+        new("Sim.Ui/Headless/MapFrameCost.cs", "DrawListImGuiBackend", 3,
+            "the measurement's own backend, a parameter of PainterFor, Sweep and Frame"),
         new("Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs", "DrawListImGuiBackend", 2, "the class itself: its declaration and its constructor"),
     ];
 
