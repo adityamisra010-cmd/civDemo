@@ -33,7 +33,7 @@ public sealed record ProgressionCommand(bool Close, OrderRecord? Order, Research
 /// <see cref="DrawList"/> that the ImGui backend replays in the game and
 /// <see cref="SvgWriter"/> replays for previews. Clicks return orders; they never write.
 /// </summary>
-public sealed class ProgressionScreen
+public sealed partial class ProgressionScreen
 {
     public const double LensBarH = 58, TabBarH = 50, DetailW = 404, ColumnHeaderH = 34, ControlRowH = 38, HeaderH = ColumnHeaderH + ControlRowH;
 
@@ -363,6 +363,7 @@ public sealed class ProgressionScreen
         if (Snapshot is not null && Lens == Lens.KnowledgeAndTechnology) FrameFirstTime();
         var d = new DrawList();
         _hits = [];
+        _info = [];
         PanelFrame.Field(d, new RectD(0, 0, width, height), Theme, 1);
         if (Snapshot is null) return d;
 
@@ -806,6 +807,7 @@ public sealed class ProgressionScreen
         var r = new RectD(x, y, w, h);
         bool selected = gv.ContentIndex == Selected;
         int id = CardId(vertex);
+        InfoCardHit(r, v);   // M5 polish: Shift+click a card for its info card
 
         if (gv.External)
         {
@@ -1007,7 +1009,7 @@ public sealed class ProgressionScreen
             for (int v = 0; v < Graph.OwnCount; v++) if (s.Nodes[Graph.Vertices[v].ContentIndex].Available) avail++;
             y = Stat(d, m, x, w, y, "Available now", avail.ToString(CultureInfo.InvariantCulture), sm.Available);
             y += 14;
-            foreach (string line in ThemeText.Wrap(m, t, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Drag to pan, wheel to zoom.", 13, w))
+            foreach (string line in ThemeText.Wrap(m, t, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. Drag to pan, wheel to zoom.", 13, w))
             { d.Write(t, x, y, line, 13, t.Ink.TextDim); y += L(13); }
             d.PopClip();
             return;
@@ -1068,6 +1070,7 @@ public sealed class ProgressionScreen
             string where = "";
             if (pv >= 0 && nv >= 0 && Layout.Placed[pv].Lane != Layout.Placed[nv].Lane)
                 where = " (" + (Graph.Vertices[pv].External ? (Graph.Tree == ResearchTree.Civics ? "Technology" : "Civics") : Layout.Lanes[Layout.Placed[pv].Lane].Name) + ")";
+            InfoNode(new RectD(x + 18, y, Math.Min(w - 70, m.Width(t, p.Name + where, 14)), Math.Max(18, L(14))), p.ContentIndex);
             d.Write(t, x + 18, y + 1, ThemeText.Fit(m, t, p.Name + where, 14, w - 70), 14, p.Completed ? t.Ink.Text : t.Ink.TextSoft);
             d.Write(t, x + w, y + 3, p.Kind == EdgeKind.And ? "required" : "one of", 11, t.Ink.TextDim, TextAlign.Right);
             y += Math.Max(20, L(14));
@@ -1081,6 +1084,7 @@ public sealed class ProgressionScreen
         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
         { d.Write(t, x, y, "Recursive: waits for every finite node of its subtree.", 12.5, sm.Progress); y += L(12.5); }
         y += 6;
+        y = PaintDiscovery(d, m, node, x, w, y);   // M5 polish (§10): what it opens, Age milestones, dependents, knowledge only
 
         // Eureka.
         y = Heading(d, x, w, y, "EUREKA", 3);
@@ -1117,7 +1121,7 @@ public sealed class ProgressionScreen
                 double ly0 = y;
                 for (int k = 0; k < lines.Count && k < 3; k++) { d.Write(t, x + 18, y + 1, lines[k], 13, e.Fired ? t.Ink.Text : t.Ink.TextSoft); y += L(13); }
                 d.Write(t, x + w, ly0 + 3, Pct(e.Weight) + " · " + Num(e.MaxCredit), 11, t.Ink.TextDim, TextAlign.Right, FontRole.Numeric);
-                string status = e.Fired ? "fired - credited" : e.Condition is null ? "not evaluable yet (" + e.System + ")" : e.HoldsNow == true ? "holds now - fires when available" : "condition: " + e.Condition;
+                string status = e.Fired ? "fired - credited" : e.Condition is null ? "not evaluable yet (" + e.System + ")" : e.HoldsNow == true ? "holds now - fires when available" : "condition: " + ConditionText(e.Condition);
                 foreach (string line in ThemeText.Wrap(m, t, status, 11, w - 18)) { d.Write(t, x + 18, y, line, 11, ec, TextAlign.Left); y += L(11); }
                 y += 6;
             }
@@ -1131,11 +1135,6 @@ public sealed class ProgressionScreen
             d.Write(t, x, y, u.Name, 14, t.Ink.Text);
             d.Write(t, x + w, y + 2, u.Role, 11.5, u.Role == "primary" ? t.Material.Accent : t.Ink.TextDim, TextAlign.Right, FontRole.Caps);
             y += Math.Max(20, L(14));
-        }
-        if (n.Unlocks.Count > 0)
-        {
-            y = Heading(d, x, w, y + 4, "OPENS THE WAY TO", 5);
-            foreach (string line in ThemeText.Wrap(m, t, string.Join(", ", n.Unlocks), 13, w)) { d.Write(t, x, y, line, 13, t.Ink.TextSoft); y += L(13); }
         }
         y += 8;
         foreach (string line in ThemeText.Wrap(m, t, n.Description, 13, w)) { if (y > panel.Bottom - 80) break; d.Write(t, x, y, line, 13, t.Ink.TextDim); y += L(13); }
@@ -1155,6 +1154,7 @@ public sealed class ProgressionScreen
         };
         d.Write(t, btn.CenterX, btn.Y + 12, label.ToUpperInvariant(), 14, can ? sm.Active : t.Ink.TextDim, TextAlign.Center, FontRole.Caps);
         if (can) _hits.Add(new HitRegion(btn, HitKind.SetTarget, node));
+        InfoNode(btn, node);   // M5 polish: Shift+click on the button shows the node's card, never an order
         d.PopClip();
     }
 
@@ -1209,6 +1209,8 @@ public sealed class ProgressionScreen
             foreach (string item in sec.Items)
             {
                 if (sy > c.Bottom - 60) { d.Write(t, sx + 18, sy, "...", 14, t.Ink.TextDim); break; }
+                if (sec.Subjects is { } subjects && k < subjects.Count && subjects[k] is { } subject)
+                    InfoAdd(new RectD(sx + 32, sy, Math.Min(colW - 50, m.Width(t, item, 14)), Math.Max(18, t.Type.Line(14))), subject, item);
                 EraMarks.State(d, t, sx + 22, sy + 9, 3.2, MarkKind.Completed, 0, 420 + k++);
                 d.Write(t, sx + 32, sy, ThemeText.Fit(m, t, item, 14, colW - 50), 14, t.Ink.Text);
                 sy += Math.Max(21, t.Type.Line(14));

@@ -88,7 +88,7 @@ public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, i
 /// A1–A3, a notched rule of twenty from A4, sliders with numbers from A7) and <see cref="SurfaceLayout"/>
 /// (a short flat list at A1, domain groups with headers, denser detail at the later densities).
 /// </summary>
-public sealed class ActionSurfaceScreen
+public sealed partial class ActionSurfaceScreen
 {
     public EraTheme Theme { get; set; } = EraThemes.For(UiEra.Prehistoric);
     public ActionSurfaceModel? Model { get; private set; }
@@ -277,6 +277,7 @@ public sealed class ActionSurfaceScreen
     public double Paint(DrawList d, ITextMeasure m, double x, double y, double width)
     {
         _hits = [];
+        _info = [];
         if (Model is not { } model) return 0;
         EraTheme t = T;
         double y0 = y;
@@ -292,6 +293,7 @@ public sealed class ActionSurfaceScreen
         if (model.Governance is { } gov) y = PaintGovernance(d, m, model, gov, x, y, width, flat) + gap;
         if (model.Production is { } production) y = PaintProduction(d, m, production, x, y, width, flat) + gap;
         if (model.Military is { } military) y = PaintMilitary(d, m, model, military, x, y, width, flat) + gap;
+        if (!model.Locked.IsDefaultOrEmpty) y = PaintLocked(d, m, model, x, y, width, flat) + gap;   // M5 polish: visibly locked
         if (model.Standing is { } standing) y = PaintStanding(d, m, model, standing, x, y, width, flat);
         return y - y0;
     }
@@ -385,6 +387,7 @@ public sealed class ActionSurfaceScreen
             double rowH = Math.Max(L(14), 18);
             // The activity's name keeps every identity it expresses ("Gathering wood & stone · Logging"): when it
             // does not fit beside the control it takes its own line and the control sits under it.
+            Info(new RectD(x, y, Math.Min(labelW, m.Width(t, e.Label, 14, FontRole.Heading)), L(14)), InfoSubject.Sector(e.Sector, l.Settlement.Value), e.Label);
             if (m.Width(t, e.Label, 14, FontRole.Heading) > labelW)
                 y = Wrapped(d, m, e.Label, x, y, w, 14, t.Ink.Text, FontRole.Heading);
             else
@@ -392,8 +395,9 @@ public sealed class ActionSurfaceScreen
             PaintLabourControl(d, m, spec, e.Sector, new RectD(x + w - cw, y, cw, rowH), 810 + 10 * k);
             y += rowH + 1;
             string makes = "makes " + e.Produces;
-            if (!flat && e.LearnedFrom is { } lf) makes += "  -  learned: " + lf;
-            y = Wrapped(d, m, makes, x + 8, y, w - 8, 11.5, t.Ink.TextSoft);
+            // M5 polish (§10): the research a labour activity came from is named in every era ("from …" at A1).
+            if (e.LearnedFrom is { } lf) makes += flat ? "  -  from " + lf : "  -  learned: " + lf;
+            y = WrappedInfo(d, m, makes, x + 8, y, w - 8, 11.5, t.Ink.TextSoft, FontRole.Body, GoodTokens());
             if (e.NewMarker is { } marker)
             {
                 d.Write(t, x + 8, y, ThemeText.Fit(m, t, marker, 11.5, w - 8), 11.5, t.Material.Accent, TextAlign.Left, FontRole.Heading);
@@ -515,10 +519,12 @@ public sealed class ActionSurfaceScreen
     private double PaintResearch(DrawList d, ITextMeasure m, ActionSurfaceModel model, ResearchBlock r, double x, double y, double w, bool flat)
     {
         EraTheme t = T;
+        Info(new RectD(x, y, Math.Min(w * 0.5, m.Width(t, "Learning", flat ? 15 : 12, flat ? FontRole.Heading : FontRole.Caps) + 8), L(flat ? 15 : 12)), InfoSubject.Research, "Learning");
         y = Heading(d, m, "Learning", x, y, w, flat, 830);
         // The trees link sits at the right of the block's first line (the trees are where a subject is chosen).
         RectD open = Button(d, m, r.Idle ? "Choose [K]" : "Open the trees [K]", x + w, y, 831, primary: r.Idle);
         _hits.Add(new ActionHit(open, ActionHitKind.ResearchOpen, 0, 0));
+        Info(open, InfoSubject.Research, "Learning");
         double first = w - open.W - 8;
         if (r.Idle)
         {
@@ -531,6 +537,7 @@ public sealed class ActionSurfaceScreen
         {
             ResearchItem item = r.Effective!;
             bool chosenNow = r.Chosen is not null;
+            Info(new RectD(x, y + 3, Math.Min(first, m.Width(t, item.Name, 14, FontRole.Heading)), L(14)), InfoSubject.Node(new ResearchNodeId((int)item.Key)), item.Name);
             y = Math.Max(Wrapped(d, m, item.Name, x, y + 3, first, 14, t.Semantic.Active, FontRole.Heading), open.Bottom + 2);
             double frac = item.Cost > 0 ? item.Progress / item.Cost : 0;
             EraMarks.Progress(d, t, new RectD(x, y, Math.Min(220, w * 0.6), 10), frac, t.Semantic.Active, 832);
@@ -542,6 +549,7 @@ public sealed class ActionSurfaceScreen
             {
                 RectD stop = Button(d, m, "Stop", x + w, y + 2, 833, primary: false, size: 11.5);
                 _hits.Add(new ActionHit(stop, ActionHitKind.ResearchClear, 0, 0));
+                Info(stop, InfoSubject.Research, "Learning");
                 d.Write(t, x, y + 5, ThemeText.Fit(m, t, "progress is never lost when you stop or switch", 11, w - stop.W - 10), 11, t.Ink.TextDim);
                 y = stop.Bottom + 2;
             }
@@ -563,6 +571,8 @@ public sealed class ActionSurfaceScreen
         y = Heading(d, m, flat ? "A new Age" : "The Age", x, y, w, flat, 840);
         RectD go = Button(d, m, "Advance...", x + w, y, 841, primary: true);
         _hits.Add(new ActionHit(go, ActionHitKind.AgeAdvance, 0, 0));
+        Info(go, InfoSubject.OfAge(a.NextAge), a.NextName);
+        Info(new RectD(x, y + 3, w - go.W - 10, L(13)), InfoSubject.OfAge(a.NextAge), a.NextName);
         y = Wrapped(d, m, "Our people are ready to enter the " + a.NextName + ".", x, y + 3, w - go.W - 10, 13, t.Material.Accent, FontRole.Heading);
         y = Math.Max(y, go.Bottom + 2);
         return Wrapped(d, m, "Optional: choose a surge emphasis; the next turn begins in the new Age.", x, y, w, 11.5, t.Ink.TextSoft);
@@ -592,14 +602,19 @@ public sealed class ActionSurfaceScreen
         {
             RectD build = Button(d, m, "Build", x + w, y, 852 + k, primary: p.Blocker is null, size: 12);
             _hits.Add(new ActionHit(build, ActionHitKind.Build, c.Settlement.Value, p.ProjectId));
+            Info(build, InfoSubject.OfProject(p.ProjectId, c.Settlement.Value), p.Name);
             double tw = w - build.W - 8;
             string head = p.Name + (p.Built > 0 ? "  (" + p.Built.ToString(CultureInfo.InvariantCulture) + " built)" : "");
+            Info(new RectD(x, y + 2, Math.Min(tw, m.Width(t, p.Name, 14, FontRole.Heading)), L(14)), InfoSubject.OfProject(p.ProjectId, c.Settlement.Value), p.Name);
             d.Write(t, x, y + 2, ThemeText.Fit(m, t, head, 14, tw, FontRole.Heading), 14, t.Ink.Text, TextAlign.Left, FontRole.Heading);
             y = Math.Max(y + 2 + L(14), build.Bottom) + 1;
             if (p.Blocker is { } blocker)
-                y = Wrapped(d, m, "not yet: " + blocker, x + 8, y, w - 8, 11.5, t.Semantic.Progress);
+                y = WrappedInfo(d, m, "not yet: " + blocker, x + 8, y, w - 8, 11.5, t.Semantic.Progress, FontRole.Body, GoodTokens());
             else
-                y = Wrapped(d, m, "can be built: " + p.Materials + ", " + N1(p.LabourAdultYears) + " adult-years", x + 8, y, w - 8, 11.5, t.Semantic.Positive);
+                y = WrappedInfo(d, m, "can be built: " + p.Materials + ", " + N1(p.LabourAdultYears) + " adult-years", x + 8, y, w - 8, 11.5, t.Semantic.Positive, FontRole.Body, GoodTokens());
+            // M5 polish: where a missing material comes from, and what a built one does in this build.
+            if (p.Chain is { } chain) y = WrappedInfo(d, m, "comes from: " + chain, x + 8, y, w - 8, 11, t.Semantic.Progress, FontRole.Body, GoodTokens());
+            if (p.Effects is { } effects) y = Wrapped(d, m, "does: " + effects, x + 8, y, w - 8, 11, t.Ink.TextSoft);
             if (!flat)
                 y = Wrapped(d, m, "takes " + p.Materials + " and " + N1(p.LabourAdultYears) + " adult-years"
                     + (p.Queued > 0 ? " · " + p.Queued.ToString(CultureInfo.InvariantCulture) + " queued" : "")
@@ -626,6 +641,7 @@ public sealed class ActionSurfaceScreen
     {
         EraTheme t = T;
         LabourControlSpec spec = model.Control;
+        Info(new RectD(x, y, Math.Min(w, m.Width(t, "Roads - " + rb.ClassName, flat ? 15 : 12, flat ? FontRole.Heading : FontRole.Caps) + 8), L(flat ? 15 : 12)), InfoSubject.OfRoadClass(rb.TargetClass), rb.ClassName);
         y = Heading(d, m, "Roads - " + rb.ClassName, x, y, w, flat, 870 + 30);
         if (rb.LearnedFrom is { } lf && !flat) y = Wrapped(d, m, "learned: " + lf, x, y, w, 11, t.Ink.TextDim);
 
@@ -640,6 +656,7 @@ public sealed class ActionSurfaceScreen
             PaintShareControl(d, spec, r, _roadDraft, t.Semantic.Infrastructure, ActionHitKind.RoadSlot, ActionHitKind.RoadTrack, 905, minUnits: 1);
             RectD go = Button(d, m, "Develop", x + w, y, 906, primary: true, size: 12);
             _hits.Add(new ActionHit(go, ActionHitKind.RoadApply, 0, 0));
+            Info(go, InfoSubject.OfRoadClass(rb.TargetClass), rb.ClassName);
             y = Math.Max(r.Bottom, go.Bottom) + 2;
             y = Wrapped(d, m, (spec.Numerals ? N0(_roadDraft) + "% of " : "a share of ") + "the demand on our busiest routes, heaviest-used first.", x, y, w, 11.5, t.Ink.TextSoft);
             if (_world is not null && _cfg is not null)
@@ -709,6 +726,7 @@ public sealed class ActionSurfaceScreen
     {
         EraTheme t = T;
         LabourControlSpec spec = model.Control;
+        Info(new RectD(x, y, Math.Min(w, m.Width(t, flat ? "The tax edict" : "Governance - the tax edict", flat ? 15 : 12, flat ? FontRole.Heading : FontRole.Caps) + 8), L(flat ? 15 : 12)), InfoSubject.Tax, "Tax edict");
         y = Heading(d, m, flat ? "The tax edict" : "Governance - the tax edict", x, y, w, flat, 920);
         if (g.LearnedFrom is { } lf && !flat) y = Wrapped(d, m, "learned: " + lf, x, y, w, 11, t.Ink.TextDim);
         string declared = !g.HasPolicy ? "No levy declared yet."
@@ -724,6 +742,7 @@ public sealed class ActionSurfaceScreen
         {
             RectD go = Button(d, m, "Declare", x + w, y, 922, primary: true, size: 12);
             _hits.Add(new ActionHit(go, ActionHitKind.TaxApply, 0, 0));
+            Info(go, InfoSubject.Tax, "Tax edict");
             bottom = Math.Max(bottom, go.Bottom);
         }
         y = bottom + 2;
@@ -748,6 +767,7 @@ public sealed class ActionSurfaceScreen
         foreach (FormationEntry f in mb.Formations)
         {
             EraMarks.State(d, t, x + 7, y + L(13) / 2, 5, MarkKind.Completed, 1, 941 + k, dim: true);
+            Info(new RectD(x + 18, y, Math.Min(w - 18, m.Width(t, f.Identity, 13, FontRole.Heading)), L(13)), InfoSubject.OfFormation((int)f.Id), f.Identity);
             y = Wrapped(d, m, f.Identity + " at " + f.Where, x + 18, y, w - 18, 13, t.Semantic.Military, FontRole.Heading);
             // The family line and the formation's CURRENT Age identity (ADR-031: it modernizes with the Age).
             string form = f.Family + (f.IdentityAge > 0 ? " - its Age " + AgePanelModel.Numeral(f.IdentityAge) + " form" : "");
@@ -770,11 +790,14 @@ public sealed class ActionSurfaceScreen
         foreach (ProductionEntry e in p.Entries)
         {
             EraMarks.State(d, t, x + 7, y + L(13) / 2, 5, e.Settlements > 0 ? MarkKind.Completed : MarkKind.Available, 1, 931 + k, dim: e.Settlements == 0);
+            Info(new RectD(x + 18, y, Math.Min(w - 18, m.Width(t, e.Name, 13, FontRole.Heading)), L(13)), InfoSubject.OfRecipe(RecipeOf(e)), e.Name);
             y = Wrapped(d, m, e.Name, x + 18, y, w - 18, 13, t.Ink.Text, FontRole.Heading);
+            // M5 polish: a condition is never shown without its live value and a plain reading (InfoQuery.ConditionReading).
             string where = e.Settlements > 0
                 ? "made in " + e.Settlements.ToString(CultureInfo.InvariantCulture) + " settlement(s)"
-                : e.Blocker ?? "made nowhere yet";
-            y = Wrapped(d, m, e.Detail + " · " + where, x + 18, y, w - 18, 11.5, t.Ink.TextSoft);
+                : e.Condition is { } cond ? "runs where " + cond + "; in no settlement yet" : e.Blocker ?? "made nowhere yet";
+            y = WrappedInfo(d, m, e.Detail + " · " + where, x + 18, y, w - 18, 11.5, t.Ink.TextSoft, FontRole.Body, GoodTokens());
+            if (e.Missing is { } missing) y = WrappedInfo(d, m, "cannot produce: " + missing, x + 18, y, w - 18, 11, t.Semantic.Progress, FontRole.Body, GoodTokens());
             if (e.LearnedFrom is { } lf && !flat) y = Wrapped(d, m, "learned: " + lf, x + 18, y, w - 18, 11, t.Ink.TextDim);
             k++;
         }
@@ -788,6 +811,6 @@ public sealed class ActionSurfaceScreen
         EraTheme t = T;
         y = Heading(d, m, flat ? "Without our orders" : "On their own", x, y, w, flat, 960);
         _ = model;
-        return Wrapped(d, m, string.Join(" · ", s.Items), x, y, w, 12, t.Ink.TextSoft);
+        return WrappedInfo(d, m, string.Join(" · ", s.Items), x, y, w, 12, t.Ink.TextSoft, FontRole.Body, StandingTokens(s));
     }
 }

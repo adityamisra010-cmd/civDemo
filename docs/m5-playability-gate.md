@@ -151,6 +151,38 @@ run in-process where safe (the capability is declared, so a large list cannot ab
 the `ui-artifact` job published and runs its `app/Sim.Ui.exe --smoke` (the zip's own `cimgui.dll`), failing the
 job on a non-zero exit or a missing "SMOKE PASSED"; an informational step runs the control, which must abort. See §8.
 
+### 3.1 The info area (M5 polish, stream INFO, 2026-10-06)
+
+Shift+left click is the universal "what is this?" gesture (directive §9). The gate has an **info** area that runs in
+every state (`Sim.Ui/Headless/PlayabilityGate.Info.cs`). Each surface records the subjects it paints in
+`GameUi.InfoRegistry` as `InfoQuery` subjects, each at the rect where it was drawn. The gate Shift+clicks one subject
+of every kind that surface paints:
+
+| surface | kinds Shift+clicked |
+|---|---|
+| POLICY (scrolled into view) | labour activity, good, Learning, research node, Age, project, craft (recipe), road class, tax edict, formation, standing capability, university type |
+| Age panel | Age milestone, Age, the "research next" node; plus "Show in research tree" from a milestone's card (the tree opens with that node selected) |
+| status band | the research chip and the Age chip (the card opens and the screen does not) |
+| map | the player's formation token (the selection does not change) |
+| research tree | an AVAILABLE card (no research target is ordered), an "opens the way to" entity in the detail panel, an INSTITUTIONS-lens item |
+| player views | a Work line (Place), the tax line (Empire), a founded institution (Institutions) |
+| hover hint | "Shift+click: details" is painted beside the pointer, and no ImGui tooltip window exists |
+
+A row **passes** only when all of the following hold:
+- The card opened for exactly that subject, with the title `InfoQuery.Card` gives it and a non-empty status line.
+- **No order was queued** and the **world hash is unchanged**: Shift+click never acts.
+- Escape then closed the card first, with no exit request, and the surface underneath was still open.
+
+A kind that a surface does not paint in a state is "not offered", with the reason. A Shift+click that opens nothing
+is a FAIL. Before picking a region, a check waits a few frames after a view opens. ImGui sizes the scrolled body
+from the previous frame's content, so the body's scrollbars appear one frame after the view opens. A line that was
+visible in the opening frame can then sit under a scrollbar. The checks also pick a region that is clear of the
+panel's bottom edge by more than a scrollbar's width, and scroll it into view first, as a player would. In-process
+tests for the same behaviour are in `Sim.Ui.Tests/InfoPanelTests.cs`.
+
+The §6 tables below were generated before this area existed and were not regenerated. The full run on this
+branch's final commit is in the stream report.
+
 ## 4. The controls (enumerated from the code)
 
 | control | where in the code | how the gate drives it | intended transition |
@@ -198,7 +230,7 @@ job on a non-zero exit or a missing "SMOKE PASSED"; an informational step runs t
 | Is it selectable? | It was **not**: a click on its token fell through to the settlement under it, or did nothing. **Now yes.** | `GameUi.Update` → `UnitSelection.HitTest` (new) on the lens's token placements |
 | Has it MobileAgent movement orders? | **No.** `OrderKind` has eight kinds: rain bias, labour, sector, construction, tax, research target, Age advance, roads. None moves a formation. | `Sim.Core/Kernel/OrderLog.cs` |
 | Does anything move it? | **No.** Worldgen founds one formation per Empire with a capital; the only system that writes `MilitaryUnits` afterwards is `AgeTransitionSystem`, which changes its identity at an Age entry. Nothing writes a position. | `WorldFounding.FoundInitialFormations`; `SystemCatalog` (AgeTransition doc); `AgeTransitionSystem` |
-| Is movement exposed in the UI? | **No.** `AvailableActionsQuery` lists military as a STANDING capability ("Basic fighting", no order); the POLICY block says "Recruitment, movement and battle are not yet simulated". | `AvailableActionsQuery.Military`; `ActionSurfaceModel.Military` |
+| Is movement exposed in the UI? | **No.** `AvailableActionsQuery` lists military as a STANDING capability ("Basic fighting", no order); the POLICY block says "Recruitment, movement and battle are not yet simulated" (2026-10-06, M5 polish: it now reads "Recruitment, movement and battle arrive with the Battle Layer (M7): there is no military order yet."; the military lens and the world lens name the Battle Layer (M7) too). | `AvailableActionsQuery.Military`; `ActionSurfaceModel.Military` |
 | Is movement intended in M5? | **No — deferred to M7.** D-043 B1 (universal MobileAgent: position, movement capability, Action Capacity) is ratified but unbuilt; the 2026-10-03 roadmap rebase makes M7 the Battle Layer, which consumes M6's capabilities. | `docs/d043-…` B1; `docs/milestones.md` "Roadmap rebase 2026-10-03"; ADR-033 D7 |
 | Is the current behaviour a bug? | The deferral is not; the **silent token was** a UI bug (an interactive-looking object that did nothing). Fixed below. | — |
 

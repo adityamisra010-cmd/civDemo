@@ -146,8 +146,27 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         List<string> texts = Texts(d);
         Assert.NotEmpty(texts);
         Assert.DoesNotContain(texts, t => t.Contains('%'));
+        // M5 polish (directive §4 "visibly disabled", verify G2; res-skeptic M1/M2): a governing domain the query does
+        // NOT list is named only in the non-interactive "Not open to us yet" block, with its gating predicate's
+        // reason; a project's "does:" line states what a built one really does (the granary's levy offset); and a
+        // material or craft input nothing makes names its source chain (tools <- ... <- Bronze casting <- Tin bronze).
+        // None of them is a control (the hit kinds below are unchanged). Every other line stays free of future domains.
+        Assert.Equal([InfoSubject.Tax], m.Locked.Where(l => l.Subject.Kind == Sim.Core.State.InfoKind.TaxEdict).Select(l => l.Subject));
+        Assert.Contains(m.Locked, l => l.Subject.Kind == Sim.Core.State.InfoKind.RoadClass);
+        Assert.Contains(m.Locked, l => l.Subject.Kind == Sim.Core.State.InfoKind.Age);
+        ActionSurfaceModel plain = m with
+        {
+            Locked = ImmutableArray<LockedDomain>.Empty,
+            Construction = m.Construction! with { Projects = m.Construction.Projects.Select(p => p with { Effects = null, Chain = null }).ToImmutableArray() },
+            Production = m.Production! with { Entries = m.Production.Entries.Select(e => e with { Missing = null }).ToImmutableArray() },
+        };
+        List<string> rest = Texts(Painted(s, plain, a1).List);
         foreach (string banned in new[] { "Farming", "Industry", "tax", "Tax", "levy", "Levy", "road", "Road", "nstitution", "niversit", "Advance", "Pottery", "Bronze casting" })
-            Assert.DoesNotContain(texts, t => t.Contains(banned, StringComparison.Ordinal));
+            Assert.DoesNotContain(rest, t => t.Contains(banned, StringComparison.Ordinal));
+        string added = string.Join(" ", m.Locked.Select(l => l.Label + " " + l.Reason)) + " Not open to us yet Shift+click a name for what it needs. "
+            + string.Join(" ", m.Construction.Projects.Select(p => "does: " + p.Effects + " comes from: " + p.Chain))
+            + string.Join(" ", m.Production.Entries.Select(e => "cannot produce: " + e.Missing));
+        foreach (string t in texts.Except(rest)) Assert.Contains(t, added, StringComparison.Ordinal);
 
         // The ONLY interactive regions: the pebbles, the settlement cycle, the trees link and the baseline
         // projects' build buttons — no slider track, no tax, road, Age or apply control (nothing changed yet).

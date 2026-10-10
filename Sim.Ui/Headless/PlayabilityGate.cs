@@ -106,7 +106,7 @@ public sealed record GateOptions(
 /// contract, no duplicate item ids, no ImGui error tooltip). Nothing here is a model of the UI: the controls are
 /// found from what the UI itself drew (<see cref="UiControls"/>, the screens' hit regions).
 /// </summary>
-public static class PlayabilityGate
+public static partial class PlayabilityGate
 {
     private static readonly PolityId Me = UiPlayer.Empire;
 
@@ -346,7 +346,7 @@ public static class PlayabilityGate
 
     // ================================================================== one state's run
 
-    private sealed class StateRun(UiFrameHarness h, string state, GateReport report, Action<string>? log)
+    private sealed partial class StateRun(UiFrameHarness h, string state, GateReport report, Action<string>? log)
     {
         private GameUi Ui => h.Ui;
         private UiSession S => h.Ui.Session;
@@ -374,6 +374,7 @@ public static class PlayabilityGate
 
         private void CloseEverything()
         {
+            if (Ui.Inspector.IsOpen) h.Key(Keys.Escape);   // M5 polish: the info card closes first
             for (int i = 0; i < 4 && (Ui.ProgressionOpen || Ui.Age.FlowOpen); i++) h.Key(Keys.Escape);
             if (Ui.AgePanelOpen) h.ClickControl("band-age");
             if (Ui.SelectedUnit >= 0) h.Key(Keys.Escape);
@@ -398,6 +399,8 @@ public static class PlayabilityGate
             AgeSurfaces();
             CloseEverything();
             Developer();
+            CloseEverything();
+            InfoArea();          // M5 polish (directive §9): Shift+click one subject of every kind
             CloseEverything();
             Keyboard();
             CloseEverything();

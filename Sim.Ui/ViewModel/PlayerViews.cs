@@ -7,7 +7,8 @@ using Sim.Core.Systems.Ages;
 namespace Sim.Ui.ViewModel;
 
 /// <summary>One headed block of a player view: a heading in the body face and its plain-language lines.</summary>
-public sealed record ViewBlock(string Heading, IReadOnlyList<string> Lines);
+/// <remarks>M5 polish: <c>Subjects</c> (parallel to <c>Lines</c>, optional) is each line's info subject for Shift+click.</remarks>
+public sealed record ViewBlock(string Heading, IReadOnlyList<string> Lines, IReadOnlyList<InfoSubject?>? Subjects = null);
 
 /// <summary>A player-facing view: a title line and its blocks, in reading order.</summary>
 public sealed record PlayerView(string Title, IReadOnlyList<ViewBlock> Blocks);
@@ -331,20 +332,23 @@ public static class PlayerViews
     private static ViewBlock Work(IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementId id, bool ours, int density)
     {
         var lines = new List<string>();
+        var subjects = new List<InfoSubject?>();
         if (!ours) { lines.Add("You do not direct the labour here."); return new ViewBlock("Work", lines); }
         foreach (LabourActivity a in LabourActivities.For(world, cfg, player))
         {
             if (a.Settlement != id) continue;
             string goods = a.GoodNames.Length == 0 ? "" : " - " + string.Join(", ", a.GoodNames);
             lines.Add(Fig(density, ShareWord(a.Share) + ": " + a.Label + goods, Pct(a.Share)));
+            subjects.Add(InfoSubject.Sector(a.Sector, id.Value));
         }
         if (lines.Count == 0) lines.Add("No labour is directed here.");
-        return new ViewBlock("Work", lines);
+        return new ViewBlock("Work", lines, subjects);
     }
 
     private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density)
     {
         var lines = new List<string>();
+        var subjects = new List<InfoSubject?>();
         ConstructionProjectEntry[] projects = cfg.Goods?.Projects ?? [];
         for (int i = 0; i < world.Structures.Count; i++)
         {
@@ -352,6 +356,7 @@ public static class PlayerViews
             if (s.Settlement != id || s.Count <= 0) continue;
             string label = ProjectName(projects, s.ProjectId);
             lines.Add(s.Count == 1 ? label : label + " x" + N(s.Count));
+            subjects.Add(InfoSubject.OfProject(s.ProjectId, id.Value));
         }
         if (lines.Count == 0) lines.Add("Nothing has been built here yet.");
         ConstructionQueueRow[] queue = ConstructionQuery.Queue(world, id);
@@ -364,8 +369,10 @@ public static class PlayerViews
                     if (projects[p].Id == queue[q].ProjectId)
                     { blocker = ConstructionQuery.Blocker(world, cfg, id, projects[p], world.Clock.DtYears); break; }
             lines.Add((q == 0 ? "Being built: " : "Waiting to be built: ") + label + (blocker is null ? "" : " - " + blocker));
+            subjects.Add(InfoSubject.OfProject(queue[q].ProjectId, id.Value));
         }
-        return new ViewBlock("Structures", lines);
+        while (subjects.Count < lines.Count) subjects.Insert(0, null);   // the "nothing built" line has no subject
+        return new ViewBlock("Structures", lines, subjects);
     }
 
     private static string ProjectName(ConstructionProjectEntry[] projects, int projectId)
@@ -378,18 +385,20 @@ public static class PlayerViews
         IReadOnlyWorldState world, SimConfig cfg, SettlementId id, Func<int, string> name, PolityId player, int density)
     {
         var lines = new List<string>();
+        var subjects = new List<InfoSubject?>();
         UnitFamilyContent? fam = cfg.UnitFamilies;
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
         {
             MilitaryUnitRow u = world.MilitaryUnits[i];
             if (u.Location != id) continue;
+            subjects.Add(InfoSubject.OfFormation(u.Id));
             string unit = fam?.IdentityByKey(u.Identity)?.Name ?? fam?.FamilyByKey(u.Family)?.Name ?? "Formation";
             string whose = u.Owner.Value == player.Value ? "Your" : "The empire of " + u.Owner.Value.ToString(CultureInfo.InvariantCulture) + "'s";
             lines.Add(Fig(density, whose + " " + unit + " is stationed here",
                 "experience " + u.Experience.ToString("0.0", CultureInfo.InvariantCulture)));
         }
         if (lines.Count == 0) lines.Add("No formations are stationed here.");
-        return new ViewBlock("Units", lines);
+        return new ViewBlock("Units", lines, subjects);
     }
 
     // --- the institutions ----------------------------------------------------------------------
@@ -407,6 +416,18 @@ public static class PlayerViews
     }
 
     private static void AddInstitution(
+        List<string> lines, IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v,
+        Func<int, string> name, int density, bool includeSite, List<InfoSubject?>? subjects = null)
+    {
+        int before = lines.Count;
+        AddInstitutionLines(lines, world, cfg, v, name, density, includeSite);
+        if (subjects is null) return;
+        while (subjects.Count < before) subjects.Add(null);
+        subjects.Add(InfoSubject.OfUniversity(v.TypeKey));
+        while (subjects.Count < lines.Count) subjects.Add(null);
+    }
+
+    private static void AddInstitutionLines(
         List<string> lines, IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v,
         Func<int, string> name, int density, bool includeSite)
     {
@@ -453,8 +474,9 @@ public static class PlayerViews
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
         var owned = new List<string>();
+        var ownedSubjects = new List<InfoSubject?>();
         foreach (InstitutionInstanceView v in InstitutionsQuery.Instances(world, cfg, player))
-            AddInstitution(owned, world, cfg, v, name, density, includeSite: true);
+            AddInstitution(owned, world, cfg, v, name, density, includeSite: true, ownedSubjects);
         if (owned.Count == 0)
             owned.Add("Your empire has founded no institution yet. A university is founded when its building is "
                 + "completed in a town large enough to sustain it.");
@@ -479,7 +501,7 @@ public static class PlayerViews
         if (specialties.Count == 0) specialties.Add("No specialty yet.");
 
         return new PlayerView("Institutions of your empire",
-            [new ViewBlock("Founded", owned), new ViewBlock("Specialties", specialties)]);
+            [new ViewBlock("Founded", owned, ownedSubjects), new ViewBlock("Specialties", specialties)]);
     }
 
     // --- the empire ----------------------------------------------------------------------------
@@ -598,10 +620,12 @@ public static class PlayerViews
         for (int i = 0; i < world.MilitaryUnits.Count; i++) if (world.MilitaryUnits[i].Owner.Value == player.Value) units++;
         var arms = new List<string> { units == 0 ? "You have no formations under arms." : Fig(density, "Formations under arms", N(units)) };
 
+        var ruleSubjects = new List<InfoSubject?> { null };
+        while (ruleSubjects.Count < rule.Count) ruleSubjects.Add(InfoSubject.Tax);   // every line after legitimacy is the levy's
         return new PlayerView("Your empire",
         [
             new ViewBlock("Realm", realm), new ViewBlock("Grain", food), new ViewBlock("Trade", trade),
-            new ViewBlock("Rule", rule), new ViewBlock("Roads", roads), new ViewBlock("Arms", arms),
+            new ViewBlock("Rule", rule, ruleSubjects), new ViewBlock("Roads", roads), new ViewBlock("Arms", arms),
         ]);
     }
 

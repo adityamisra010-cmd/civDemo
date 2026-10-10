@@ -227,7 +227,7 @@ public sealed class WorldProjection
         int playerAge = ages is null ? 0 : AgeQuery.CurrentAge(world, ages, player);
         var absent = new List<string>
         {
-            "Army movement and supply: not yet simulated - formations are shown where they are stationed",
+            "Army movement and supply arrive with the Battle Layer (M7) - formations are shown where they are stationed",
         };
         if (!anyInstitution) absent.Add("Institutions: none founded");
         if (world.Structures.Count == 0) absent.Add("Structures: none built yet");

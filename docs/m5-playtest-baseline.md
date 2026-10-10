@@ -1118,12 +1118,20 @@ replay defects fixed (revolt-polity actors deferred, `9bcad5b`; CLI drives revol
 |---|---|---|---|---|
 | 0 | Research screen | Opens at any window size without an assertion; tree pans/zooms, FIT, hover, target selection all work. | Any ImGui assertion dialog; screen blank or frozen | Screenshot; window size |
 | 1′ | Turn label | The status band reads **turn 1** on the founded world. | "turn 0" on screen | Status band |
-| 6′ | Taxation gate | No tax control until **both** Taxation (Civics, 1,050 RP) is complete **and** your realm is in **Age III**. With Taxation known but Age < III the control is shown disabled with the reason. | Tax control usable before A3; a levy recorded before A3 | Policy panel; Age; order log |
+| 6′ | Taxation gate | No tax control until **both** Taxation (Civics, 1,050 RP) is complete **and** your realm is in **Age III**. Until then POLICY shows no tax control at all (enabled or disabled) but a **locked line**, "Tax edict", with the reason: "needs Taxation (Civics) and the Bronze Age (Age III)", or, with Taxation known but Age < III, "Taxation (Civics) is known; needs the Bronze Age (Age III)". Shift+click the line for the edict's card. *(Corrected 2026-10-06: see the note below the table.)* | Tax control usable before A3; a levy recorded before A3; no locked line (or a wrong reason) before A3 | Policy panel; Age; order log |
 | 11′ | Unrest | Taxation builds pressure over turns. Even 100 % does not revolt on the next turn. A well-provided capital can sustain 100 % (heavy protest, no rising); a poor or distant settlement accumulates faster. Protest drags non-food output; **food output never falls below the untaxed level**. Cutting the levy lets pressure decay. | Revolt on the turn after a levy; revolt with no levy by the current ruler; food output below untaxed under protest | Grievance / unrest lines per settlement; annals |
 | 21′ | Units | Clicking the Warband opens a unit card that says it cannot be moved or ordered until the Battle Layer (M7). | Clicking it does nothing; any move control | Unit card |
 | 22′ | Revolt | Only a **segment** (class) past its tipping point rises; the settlement changes hands only when rebels are a majority. Your last settlement never revolts away. The revolt-born polity starts in **your current Age**, with your completed knowledge, no progress, no capital. | Whole settlement revolting instantly; new polity at A1 above your Age; last settlement lost | Annals; `--answer polities` |
 | 25′ | AI levy | With `--ai-empires 1` the AI's first levy comes on its first Age III turn (≈ 466 in the canonical CI leg). | AI levy while the AI is in A1/A2 | Order log kind 5, actor 2 |
 | 28 | Window | Cannot be resized below 1080×640; every command-bar button stays visible. | A control off-screen | Screenshot |
+
+> **Correction to row 6′, 2026-10-06 (M5 polish, stream INFO, branch `m5p-info`).** The row said "With Taxation known
+> but Age < III the control is shown disabled with the reason." That was not true of the hardening build `6ef1596`
+> (polish audit, verify finding G2): the POLICY tax control was **absent**, and the reason was only EMPIRE-view text.
+> Under ADR-033 D2 the surface lists only available actions, so the control stays absent. What changed is that POLICY
+> now shows a **locked line** for each governing domain the query does not list: the tax edict, road development and
+> the Age advance. Each line gives the reason from the predicate that gates it (`Governance.GateOf`, the road-class
+> knowledge query, `AgeQuery`). The row above now says this. Nothing else in this document changed.
 
 ### 15.6 Validation on the final tree (MEASURED, Release, 2026-10-05, code `6ef1596`)
 

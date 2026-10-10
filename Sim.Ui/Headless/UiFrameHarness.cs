@@ -141,6 +141,16 @@ public sealed class UiFrameHarness : IDisposable
         Frame();
     }
 
+    /// <summary>M5 polish (directive §9): a left click with Shift held throughout (move, press, release, result) — the
+    /// universal "show me what this is" gesture. Shift is released one frame after the click.</summary>
+    public void ShiftClick(double x, double y)
+    {
+        _keys.Add(Keys.LeftShift);
+        Click(x, y);
+        _keys.Remove(Keys.LeftShift);
+        Frame();
+    }
+
     /// <summary>A right-button click (the game binds nothing to it; the monkey checks that stays harmless).</summary>
     public void RightClick(double x, double y)
     {

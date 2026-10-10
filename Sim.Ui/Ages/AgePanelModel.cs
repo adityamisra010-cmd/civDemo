@@ -21,8 +21,11 @@ public enum AgePanelState
 /// observed quantity against its threshold — real state read through AgeQuery).</summary>
 /// <remarks>M5 R2b: <c>Pending</c> carries ages.json's pending note (e.g. Battle Layer (M7) recruitment) — the panel labels
 /// such a milestone "pending" instead of implying the player can satisfy it today.</remarks>
+/// <remarks>M5 polish (directive §10): <c>AgeKey</c> is the Age the milestone is an entry requirement of (its info
+/// subject); for a research milestone not yet met, <c>NextNodeKey</c> / <c>NextNodeName</c> name the node to research next
+/// toward it (InfoQuery.NextResearchToward over the listed node), so the line can say what to do and focus the tree.</remarks>
 public sealed record MilestoneLine(string Id, string Name, string Description, bool Met, long Observed, long Threshold, string Owner,
-    string? Pending = null);
+    string? Pending = null, int AgeKey = 0, int NextNodeKey = -1, string? NextNodeName = null, string? TargetNodeName = null);
 
 /// <summary>The supporting milestones of one of the five categories, and whether the category is
 /// covered (at least one of its milestones holds).</summary>
@@ -53,6 +56,18 @@ public sealed record AgePanelModel(
     /// pending — never a misleading active button (Part 4 D).</summary>
     public bool CanAdvance => State == AgePanelState.Eligible;
 
+    /// <summary>M5 polish: the node to research next for the first unmet CORE research milestone (else any unmet
+    /// research milestone), or -1 — where [K] from the Age panel opens the tree.</summary>
+    public int SuggestedNodeKey
+    {
+        get
+        {
+            foreach (MilestoneLine l in Core) if (!l.Met && l.NextNodeKey >= 0) return l.NextNodeKey;
+            foreach (CategoryGroup g in Categories) foreach (MilestoneLine l in g.Milestones) if (!l.Met && l.NextNodeKey >= 0) return l.NextNodeKey;
+            return -1;
+        }
+    }
+
     /// <summary>The roman numeral used on banners and chips (I..IX).</summary>
     public static string Numeral(int age) => age switch
     {
@@ -65,9 +80,11 @@ public sealed record AgePanelModel(
     /// <summary>Builds the panel for <paramref name="polity"/> from the world and the not-yet-stepped
     /// orders (<see cref="UiSession.QueuedOrders"/>).</summary>
     public static AgePanelModel Build(
-        IReadOnlyWorldState world, AgeContent? ages, IReadOnlyList<OrderRecord> queued, PolityId polity)
+        IReadOnlyWorldState world, AgeContent? ages, IReadOnlyList<OrderRecord> queued, PolityId polity,
+        Sim.Core.Systems.Research.ResearchContent? research = null)
     {
         if (ages is null) return Empty;
+        bool[]? completed = research is null ? null : ResearchQuery.CompletedMask(world, research, polity);
         AgeStatus status = AgeQuery.Status(world, ages, polity);
         PendingAgeAdvance? pending = AgeQuery.PendingAdvance(world, ages, queued, polity);
         AgeEligibilityReport? report = status.Eligibility;
@@ -76,13 +93,13 @@ public sealed record AgePanelModel(
         var groups = new List<CategoryGroup>();
         if (report is not null)
         {
-            foreach (MilestoneStatus m in report.Core) core.Add(Line(m));
+            foreach (MilestoneStatus m in report.Core) core.Add(Line(m, report.NextAge, research, completed));
             for (int k = 1; k <= 5; k++)
             {
                 var cat = (AgeMilestoneCategory)k;
                 var lines = new List<MilestoneLine>();
                 foreach (MilestoneStatus m in report.Supporting)
-                    if (m.Milestone.Category == cat) lines.Add(Line(m));
+                    if (m.Milestone.Category == cat) lines.Add(Line(m, report.NextAge, research, completed));
                 groups.Add(new CategoryGroup(cat, ages.Category(cat).Name, (report.CategoryMask & (1 << (k - 1))) != 0, lines));
             }
         }
@@ -101,9 +118,25 @@ public sealed record AgePanelModel(
             AgeQuery.Transitions(world, polity));
     }
 
-    private static MilestoneLine Line(MilestoneStatus m) =>
-        new(m.Milestone.Id, m.Milestone.Name, m.Milestone.Description, m.Met, m.Observed, m.Threshold, m.Milestone.Fact.Owner,
-            m.Milestone.Pending);
+    private static MilestoneLine Line(MilestoneStatus m, int age, Sim.Core.Systems.Research.ResearchContent? research, bool[]? completed)
+    {
+        int next = -1;
+        string? nextName = null, targetName = null;
+        if (!m.Met && research is not null && completed is not null && m.Milestone.Fact.Kind == MilestoneFactKind.Research)
+            foreach (int key in m.Milestone.Fact.NodeKeys)
+            {
+                int i = research.IndexOf(new ResearchNodeId(key));
+                if (i < 0 || completed[i]) continue;
+                int n = InfoQuery.NextResearchToward(research, completed, i);
+                if (n < 0) continue;
+                next = research.Nodes[n].Key.Value;
+                nextName = research.Nodes[n].Name;
+                targetName = research.Nodes[i].Name;
+                break;
+            }
+        return new(m.Milestone.Id, m.Milestone.Name, m.Milestone.Description, m.Met, m.Observed, m.Threshold, m.Milestone.Fact.Owner,
+            m.Milestone.Pending, age, next, nextName, targetName);
+    }
 }
 
 /// <summary>One surge emphasis card — qualitative only (ruling 14: no numeric effect exists, so
