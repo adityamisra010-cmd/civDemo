@@ -694,6 +694,14 @@ public sealed class UiSession
     /// replaying. Played turns: the trace's last turn when the trace exists (each replayed turn's hash is then
     /// checked against it, and a mismatch throws), else the highest order stamp. Orders stamped with the
     /// final turn were issued but not yet played; they are re-queued.
+    ///
+    /// S0 (2026-10-10) — A SESSION RECORDED UNDER ANOTHER SCHEMA. The trace's hashes cover the whole canonical
+    /// stream (WorldHash), so after any schema bump no saved trace line can equal a replayed one, and the check
+    /// above threw "resume diverged at turn 1" for every older session while the manifest's own
+    /// <see cref="SessionManifest.SchemaVersion"/> went unread. It is read now: when it is not this build's
+    /// <see cref="CanonicalSchema.Version"/>, the session is resumed by the D-008 recovery path — re-founded from
+    /// the seed and replayed from the order log WITHOUT the trace-hash check (the trace still gives the turn to
+    /// replay to) — and <see cref="ResumeNotice"/> says so explicitly. The ADR-034 order checks still apply.
     /// </summary>
     public static UiSession Resume(string manifestPath, out string sessionLogPath)
     {
@@ -712,23 +720,63 @@ public sealed class UiSession
         if (trace is { Count: > 0 }) target = trace[^1].Turn;
         else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
 
+        bool sameSchema = manifest.SchemaVersion == CanonicalSchema.Version;
         UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
-        session.ReplayTo(saved, target, trace);
+        session.ReplayTo(saved, target, sameSchema ? trace : null);
+        if (!sameSchema) session.ResumeNotice = SchemaMismatchNotice(manifest.SchemaVersion, CanonicalSchema.Version);
         return session;
     }
 
+    /// <summary>What <see cref="Resume"/> has to tell the player about how this session was rebuilt: empty for a
+    /// session started here or resumed with its trace checked, the <see cref="SchemaMismatchNotice"/> lines when it
+    /// was recorded under another schema. UI-side, like the annals — never in the world, never in a hash.</summary>
+    public IReadOnlyList<string> ResumeNotice { get; private set; } = [];
+
+    /// <summary>The kicker the game's notice toast shows <see cref="ResumeNotice"/> under.</summary>
+    public const string ResumeNoticeKicker = "RESUMED SESSION";
+
+    /// <summary>The explicit notice for a session whose manifest records schema <paramref name="recorded"/> while
+    /// this build writes <paramref name="current"/> (D-008: saves may break between milestones; seed + order-log
+    /// replay is the recovery path). Four short lines, so the notice toast shows each of them whole.</summary>
+    public static IReadOnlyList<string> SchemaMismatchNotice(int recorded, int current) =>
+    [
+        "Recorded under save schema v" + recorded.ToString(CultureInfo.InvariantCulture)
+            + "; this build is v" + current.ToString(CultureInfo.InvariantCulture) + ".",
+        "Resumed by replaying its seed and orders (D-008).",
+        "The saved trace was not checked against this replay.",
+        "The world may differ from the one originally played.",
+    ];
+
     /// <summary>The replay loop of <see cref="Resume"/>, public for the resume tests: appends the saved
     /// orders of each turn in log order and steps, until <paramref name="target"/>; then re-queues the
-    /// orders stamped <paramref name="target"/>.</summary>
+    /// orders stamped <paramref name="target"/>.
+    ///
+    /// ADR-034 §4 adopted (S0, 2026-10-10): the replay runs the SAME order checks every CLI replay runner runs —
+    /// <see cref="OrderValidation.ValidateAgainstWorld"/> once against the founded world, then
+    /// <see cref="OrderValidation.ValidateAtDelivery"/> for each turn's batch against the world it is delivered
+    /// to, before that step — so a forged or stale order for a deferred id (an actor no revolt founded, a
+    /// settlement no colony took) rejects the resume with the diagnostic `sim replay` prints instead of being
+    /// silently ignored by its consumer. The re-queued batch is checked too, against the world the next End Turn
+    /// delivers it to. Observer-only: the steps are unchanged and no hash moves. Valid only from the founded world
+    /// with an empty log — the turn-0 world the up-front pass needs — which is how <see cref="Resume"/> calls it.
+    /// </summary>
     public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null)
     {
         ArgumentNullException.ThrowIfNull(saved);
+        if (World.Clock.Turn != 0 || Orders.Count != 0)
+            throw new InvalidOperationException(
+                "ReplayTo replays a saved log from the founded world, but this session is at turn "
+                + World.Clock.Turn.ToString(CultureInfo.InvariantCulture) + " with "
+                + Orders.Count.ToString(CultureInfo.InvariantCulture) + " order(s) already logged.");
+        WorldState turnZero = World;
+        OrderValidation.ValidateAgainstWorld(saved, turnZero);
         int next = 0;
         while (World.Clock.Turn < target)
         {
             long turn = World.Clock.Turn;
             for (; next < saved.Count && saved[next].Turn <= turn; next++)
                 if (saved[next].Turn == turn) Orders.Append(saved[next]);
+            OrderValidation.ValidateAtDelivery(Orders.BatchFor(turn), turnZero, World); // ADR-034
             Step();
             if (trace is not null)
                 for (int r = 0; r < trace.Count; r++)
@@ -743,6 +791,9 @@ public sealed class UiSession
         }
         for (; next < saved.Count; next++)
             if (saved[next].Turn == World.Clock.Turn) Orders.Append(saved[next]);
+        // The re-queued batch is delivered to exactly this world by the next End Turn (orders the player adds in
+        // the meantime do not change it), so it is checked here, while the log is still the saved one.
+        OrderValidation.ValidateAtDelivery(Orders.BatchFor(World.Clock.Turn), turnZero, World); // ADR-034
     }
 
     public void Save(string path)

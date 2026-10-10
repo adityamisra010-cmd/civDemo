@@ -185,6 +185,162 @@ public class ChronicleAndResumeTests
         var bad = new List<SessionTrace.Row> { new(1, 0, 0, 0, 0, "deadbeef") };
         Assert.Throws<InvalidOperationException>(() => fresh.ReplayTo(live.Orders, 3, bad));
     }
+
+    /// <summary>Rewrites a session manifest so it records <paramref name="schemaVersion"/> — what an older build
+    /// wrote into it (every other field is the session's own).</summary>
+    internal static void RecordSchema(string manifestPath, int schemaVersion)
+    {
+        SessionManifest m;
+        using (FileStream f = File.OpenRead(manifestPath)) m = SessionManifest.Read(f, manifestPath);
+        using FileStream o = File.Create(manifestPath);
+        (m with { SchemaVersion = schemaVersion }).Write(o);
+    }
+
+    /// <summary>Rewrites every trace line's hash as a build with another canonical stream would have computed it:
+    /// WorldHash covers the whole stream, so after a schema bump no line can equal this build's replay. The
+    /// stand-in value (64 zeros) is a fixture, not a measured older-schema hash.</summary>
+    internal static void RecordTraceUnderAnotherSchema(string tracePath)
+    {
+        string[] lines = File.ReadAllLines(tracePath);
+        for (int i = 1; i < lines.Length; i++)
+            if (lines[i].Length > 0) lines[i] = lines[i][..(lines[i].LastIndexOf(',') + 1)] + new string('0', 64);
+        File.WriteAllText(tracePath, string.Join("\n", lines) + "\n");
+    }
+
+    /// <summary>
+    /// S0 (2026-10-10, D-008) — A SESSION RECORDED UNDER AN OLDER SCHEMA. Before, Resume never read the manifest's
+    /// SchemaVersion and checked the old trace's hashes, which cover the whole canonical stream — so every session
+    /// saved before any schema bump failed with "resume diverged at turn 1". Now it resumes by the D-008 recovery
+    /// path: re-founded from the seed and replayed from the order log without the trace-hash check (the trace still
+    /// gives the turn), with an explicit notice; and it continues hash-identically to a fresh replay of the same
+    /// seed and log. The control proves the check is skipped BECAUSE of the mismatch: the same doctored trace under
+    /// this build's schema is still refused.
+    /// </summary>
+    [Fact]
+    public void Resume_OfASessionRecordedUnderAnOlderSchema_ReplaysWithTheNotice_AndContinuesLikeAFreshReplay()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "s0-schema-resume-"
+            + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+        string log = Path.Combine(dir, "orders-20261010-120000-s256-n4-a1.bin");
+        try
+        {
+            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            live.ExportManifest("2026-10-10 12:00:00", log);
+            int capital = live.World.Settlements[0].Id.Value;
+            for (int t = 0; t < 8; t++)
+            {
+                if (t == 2) Assert.True(live.EmitSectorOrders([40, 20, 10, 10, 20], capital));
+                live.EndTurn();
+            }
+            Assert.True(live.EmitSectorOrders([30, 30, 10, 10, 20], capital));   // queued, not yet played
+            live.Save(log);
+            live.ExportTrace(UiSession.TracePath(log));
+            string manifestPath = UiSession.ManifestPath(log);
+
+            int older = CanonicalSchema.Version - 1;
+            RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
+
+            // Control: under THIS build's schema the doctored trace is refused at the first replayed turn.
+            RecordSchema(manifestPath, CanonicalSchema.Version);
+            InvalidOperationException diverged = Assert.Throws<InvalidOperationException>(() => UiSession.Resume(manifestPath, out _));
+            Assert.StartsWith("resume diverged at turn 1:", diverged.Message, StringComparison.Ordinal);
+
+            // Recorded under the previous schema: resumed by replay, with the notice.
+            RecordSchema(manifestPath, older);
+            UiSession resumed = UiSession.Resume(manifestPath, out string resumedLog);
+            Assert.Equal(Path.GetFullPath(log), Path.GetFullPath(resumedLog));
+            Assert.Equal(UiSession.SchemaMismatchNotice(older, CanonicalSchema.Version), resumed.ResumeNotice);
+            Assert.Equal("Recorded under save schema v" + older.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + "; this build is v" + CanonicalSchema.Version.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".",
+                resumed.ResumeNotice[0]);
+            Assert.Contains("D-008", resumed.ResumeNotice[1], StringComparison.Ordinal);
+            Assert.Empty(live.ResumeNotice);   // a session started here carries none
+            Assert.Equal(8, resumed.World.Clock.Turn);   // the trace's turn column still says how far it got
+
+            // A fresh replay of the same seed and log, with no trace at all.
+            OrderLog saved;
+            using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
+            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            fresh.ReplayTo(saved, 8);
+            Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Equal(fresh.TraceLines.ToArray(), resumed.TraceLines.ToArray());   // rebuilt with this build's hashes
+            Assert.Equal(fresh.Orders.Count, resumed.Orders.Count);                    // the queued split is re-queued
+
+            // ...and continues hash-identically to it, turn by turn (the AI producer runs live in all three).
+            for (int t = 0; t < 4; t++)
+            {
+                live.EndTurn();
+                resumed.EndTurn();
+                fresh.EndTurn();
+                Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(resumed.World));
+                Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
+            }
+            Assert.Equal(fresh.Orders.Count, resumed.Orders.Count);
+            for (int i = 0; i < fresh.Orders.Count; i++) Assert.Equal(fresh.Orders[i], resumed.Orders[i]);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+}
+
+/// <summary>S0 (D-008): the game OPENS a session resumed under another schema with the explicit notice — the toast,
+/// under its own kicker — and a session resumed under its own schema with none. Through the live UI
+/// (<see cref="Sim.Ui.Headless.UiFrameHarness"/>, a real ImGui frame), so the GameUi wiring is what is pinned.
+/// Opening the UI never touches the world (hash before and after).</summary>
+[Collection("ImGui context")]
+public class ResumeNoticeUiTests
+{
+    private static string Assets() => Path.Combine(AppContext.BaseDirectory, "assets");
+
+    [Fact]
+    public void AGameOpenedOnASessionResumedUnderAnotherSchema_ShowsTheNotice_AndOneUnderItsOwnSchemaDoesNot()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "s0-schema-notice-"
+            + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+        string log = Path.Combine(dir, "orders-20261010-120000-s256-n4.bin");
+        try
+        {
+            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+            live.ExportManifest("2026-10-10 12:00:00", log);
+            for (int t = 0; t < 2; t++) live.EndTurn();
+            live.Save(log);
+            live.ExportTrace(UiSession.TracePath(log));
+            string manifestPath = UiSession.ManifestPath(log);
+
+            int older = CanonicalSchema.Version - 1;
+            ChronicleAndResumeTests.RecordSchema(manifestPath, older);
+            ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
+            UiSession resumed = UiSession.Resume(manifestPath, out _);
+            string before = WorldHash.ComputeHex(resumed.World);
+            using (var h = Sim.Ui.Headless.UiFrameHarness.Start(resumed, Path.Combine(dir, "ui-older"), Assets()))
+            {
+                Assert.True(h.Ui.Notices.Visible);
+                Assert.Equal(UiSession.ResumeNoticeKicker, h.Ui.Notices.Kicker);
+                Assert.Equal(UiSession.SchemaMismatchNotice(older, CanonicalSchema.Version), h.Ui.Notices.Lines);
+                Assert.Empty(h.Problems);
+            }
+            Assert.Equal(before, WorldHash.ComputeHex(resumed.World));
+
+            // The same session under its own schema (and its own, undoctored trace): resumed with the trace
+            // checked, and opened with no notice.
+            live.ExportTrace(UiSession.TracePath(log));
+            ChronicleAndResumeTests.RecordSchema(manifestPath, CanonicalSchema.Version);
+            UiSession own = UiSession.Resume(manifestPath, out _);
+            Assert.Empty(own.ResumeNotice);
+            using (var h = Sim.Ui.Headless.UiFrameHarness.Start(own, Path.Combine(dir, "ui-own"), Assets()))
+            {
+                Assert.False(h.Ui.Notices.Visible);
+                Assert.Empty(h.Problems);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
 }
 
 /// <summary>Integration item 5 — what the text says is simulated is what is simulated.</summary>

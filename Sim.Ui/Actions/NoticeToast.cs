@@ -16,16 +16,24 @@ public sealed class NoticeToast
 {
     public const double Seconds = 6.0;
 
+    /// <summary>The kicker over an End Turn's lines.</summary>
+    public const string TurnKicker = "THIS TURN";
+
     private IReadOnlyList<string> _lines = [];
+    private string _kicker = TurnKicker;
     private double _age = double.MaxValue;
 
     public bool Visible => _lines.Count > 0 && _age < Seconds;
     public IReadOnlyList<string> Lines => _lines;
+    /// <summary>The caption over the lines: <see cref="TurnKicker"/> after an End Turn; S0: the resume notice's own
+    /// kicker when the game opens on a session resumed under another schema (UiSession.ResumeNotice).</summary>
+    public string Kicker => _kicker;
 
-    /// <summary>Shows <paramref name="lines"/> (nothing when empty).</summary>
-    public void Show(IReadOnlyList<string> lines)
+    /// <summary>Shows <paramref name="lines"/> (nothing when empty) under <paramref name="kicker"/>.</summary>
+    public void Show(IReadOnlyList<string> lines, string kicker = TurnKicker)
     {
         _lines = lines;
+        _kicker = kicker;
         _age = lines.Count > 0 ? 0.0 : double.MaxValue;
     }
 
@@ -47,7 +55,7 @@ public sealed class NoticeToast
         var frame = new DrawList();
         PanelFrame.Paint(frame, r, t, 560, FrameKind.Toast, null, t.Material.Accent, 1.2);
         foreach (DrawCmd c in frame.Commands) d.Add(Faded(c, fade));
-        d.Write(t, r.CenterX, r.Y + 14, "THIS TURN", cap, ThemeColor.Alpha(t.TextInk.Accent, fade), TextAlign.Center, FontRole.Caps);
+        d.Write(t, r.CenterX, r.Y + 14, _kicker, cap, ThemeColor.Alpha(t.TextInk.Accent, fade), TextAlign.Center, FontRole.Caps);
         double y = r.Y + 14 + t.Type.Line(cap) + 4;
         for (int i = 0; i < shown; i++)
         {
