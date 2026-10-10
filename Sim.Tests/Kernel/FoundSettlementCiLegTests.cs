@@ -1,0 +1,82 @@
+using Sim.Core;
+using Sim.Core.Kernel;
+using Sim.Core.State;
+using Sim.Core.Systems;
+using Sim.Core.Worldgen;
+using Sim.Tests.TestUtil;
+using Xunit;
+
+namespace Sim.Tests.Kernel;
+
+/// <summary>
+/// M5 S1b (ADR-036) — the ci.yml determinism-xproc FOUND SETTLEMENT leg is only as good as its scripted log: two
+/// processes and a replay agreeing on a run whose orders were refused would prove nothing about kind 9. This test
+/// pins the literals `scripts/gen-sample-orders.py --found` writes, and proves on the same founded world the CLI
+/// runs (production worldgen, seed 42, the production pipeline with the worldgen siting attached) that each order is
+/// LEGAL when it is delivered and founds in the next state — including the second, whose source is the colony the
+/// first founded (above the turn-0 maximum: the ADR-034 deferral).
+/// </summary>
+public class FoundSettlementCiLegTests
+{
+    private static readonly OrderRecord[] Scripted =
+    [
+        new(2, 1, OrderKind.FoundSettlement, 0, 330985.0),
+        new(5, 1, OrderKind.FoundSettlement, 12, 322801.0),
+    ];
+
+    [Fact]
+    public void TheScriptLiterals_AreTheOrdersPinnedHere()
+    {
+        string root = RepoRoot();
+        string script = File.ReadAllText(Path.Combine(root, "scripts", "gen-sample-orders.py"));
+        Assert.Contains("records = [(2, 1, 9, 0, 330985.0), (5, 1, 9, 12, 322801.0)]", script);
+        string ci = File.ReadAllText(Path.Combine(root, ".github", "workflows", "ci.yml"));
+        Assert.Contains("gen-sample-orders.py found-orders.bin 300 --found", ci);
+    }
+
+    [Fact]
+    public void EachScriptedOrder_IsLegalWhenDelivered_AndFoundsInTheNextState()
+    {
+        SimConfig cfg = FoundingRigs.Cfg();
+        var log = new OrderLog();
+        foreach (OrderRecord r in Scripted) log.Append(r);
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42UL);
+        OrderValidation.ValidateAgainstWorld(log, w);                    // what `sim run --orders` does first
+        WorldState turnZero = w.Clone();
+        SettlementSiting.FrontierSiting f = FoundingRigs.Frontier(w);
+        TurnExecutor exec = FoundingRigs.Pipeline(cfg, log);
+        int colonies = 0;
+        for (long t = 0; t <= Scripted[^1].Turn; t++)
+        {
+            OrderValidation.ValidateAtDelivery(log.BatchFor(t), turnZero, w);
+            foreach (OrderRecord r in Scripted)
+            {
+                if (r.Turn != t) continue;
+                Assert.Equal(FoundingVerdict.Legal,
+                    FoundingQuery.Check(w, cfg, f, r.Actor, new SettlementId(r.TargetId), FoundingQuery.SiteCellOf(r)));
+            }
+            int before = w.Settlements.Count;
+            w = exec.Step(w);
+            foreach (OrderRecord r in Scripted)
+            {
+                if (r.Turn != t) continue;
+                Assert.Equal(before + 1, w.Settlements.Count);
+                Assert.Equal((int)r.Amount, w.Settlements[^1].SiteCell);
+                Assert.Equal(t + 1, w.Settlements[^1].FoundedTurn);
+                colonies++;
+            }
+        }
+        Assert.Equal(2, colonies);
+        Assert.Equal(12, Scripted[1].TargetId);
+        Assert.True(Scripted[1].TargetId > FoundingRigs.MaxSettlementId(turnZero));   // the ADR-034 case
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, ".github")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+        return dir!.FullName;
+    }
+}

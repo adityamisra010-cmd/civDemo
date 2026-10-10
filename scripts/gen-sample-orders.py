@@ -16,17 +16,28 @@ knapping_oldowan (key 2) at turn 0 and a clear (-1) at turn 150, and
 EnqueueConstruction (kind 4) of a granary (project 1) at settlement 0 at turn 10.
 The AI Empire's orders (kinds 4-8) are produced in-process and written by
 --emit-session; replay reads that run log.
+--found (M5 S1b, ADR-036; founded runs: sim run --founded --seed 42): two
+FoundSettlement orders (kind 9) by the player (polity 1). Turn 2: from settlement 0
+to cell 330985. Turn 5: from settlement 12 -- the colony the first order founds in
+state 3, a source ABOVE the turn-0 maximum (the ADR-034 deferral) -- to cell 322801.
+Both sites are the nearest LEGAL sites by FoundingQuery.Check at their turns on the
+seed-42 founded world; Sim.Tests FoundSettlementCiLegTests re-derives them and fails
+if these literals drift from what the simulation accepts.
 """
 import struct
 import sys
 
-args = [a for a in sys.argv[1:] if a not in ("--labor", "--founded-mix")]
+args = [a for a in sys.argv[1:] if a not in ("--labor", "--founded-mix", "--found")]
 labor = "--labor" in sys.argv
 mix = "--founded-mix" in sys.argv
+found = "--found" in sys.argv
 path = args[0] if len(args) > 0 else "sample-orders.bin"
 max_turn = int(args[1]) if len(args) > 1 else 400
 
-if mix:
+if found:
+    # FOUND_SETTLEMENT_ORDERS -- keep in step with Sim.Tests/Kernel/FoundSettlementCiLegTests.cs
+    records = [(2, 1, 9, 0, 330985.0), (5, 1, 9, 12, 322801.0)]
+elif mix:
     records = [(0, 1, 6, 2, 0.0)]
     for turn in range(0, max_turn, 20):
         records.append((turn, 1, 3, (0 << 3) | 4, [10.0, 30.0, 20.0][(turn // 20) % 3]))
