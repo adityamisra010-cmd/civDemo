@@ -304,7 +304,10 @@ public class IntegratedSaveLoadBatteryTests
         // R2a RE-AIM (2026-10-03, MEASURED by the agent writing this line): university mid-maturation 32 -> 36.
         // Cause: the trade gate (no settlement here knows Trade, so the inter-settlement flows that supplied the
         // capital's build stop); with ONLY sim.json trade.entity removed the run returns 32.
-        Assert.Equal((1, 28, 2, 36), (
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED by the agent writing this line): first
+        // completion 28 -> 27, university mid-maturation 36 -> 34; mid-research 1 and partial road 2 unchanged. Every save
+        // point is still reached.
+        Assert.Equal((1, 27, 2, 34), (
             First((_, w) => PartialProgress(w) > 0.0, "mid-research"),
             First((p, w) => Completed(w) > Completed(p), "after a completion"),
             First((_, w) => PartialRoad(w), "partial road"),

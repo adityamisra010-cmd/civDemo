@@ -473,7 +473,13 @@ public class PopulationTests
             world.SectorAllocations.Add(new SectorAllocationRow(
                 world.Settlements[i].Id, Farming: 1.0, Herding: 0.0,
                 Extraction: 0.0, Crafting: 0.0, Construction: 0.0));
-        for (int t = 1; t <= 900; t++) world = exec.Step(world);
+        // D-051 1(b) RE-AIM (2026-10-10, time-averaged decade weather; MEASURED on this tree by the agent writing this
+        // line): 900 -> 1000 turns, the T3.1 re-stretch precedent. Time-averaging the decade harvest removes the
+        // single-year droughts that used to tip this rig over the forager land ceiling early, so on seed 42 the first
+        // starvation moves past the old horizon to turn 914 (11,348 starved by turn 1200). The rig, its seed and every
+        // assertion below are unchanged; only the horizon is long enough again for all four Population flows to occur.
+        // (Seeds 1 / 2 / 7 starve first at 656 / 711 / 787 on the same rig.)
+        for (int t = 1; t <= 1000; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
         long foodEndow = 0, harvest = 0, eaten = 0, spoiled = 0, granaryOverflow = 0;
@@ -513,7 +519,7 @@ public class PopulationTests
         for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
         Assert.True(births > 0 && deaths > 0 && harvest > 0 && eaten > 0,
-            "reconciliation is vacuous — some flow never occurred in 900 turns");
+            "reconciliation is vacuous — some flow never occurred in 1000 turns");
         // CR-003 QUARANTINE — RE-INSTATED BY T4.21-7, AND WHY, WITH BOTH
         // MEASUREMENTS. The original T3.2b quarantine recorded that the
         // Starvation flow never occurs on the pre-Malthusian dev world, so
@@ -550,7 +556,7 @@ public class PopulationTests
         // battery quarantine stay open and untouched. Layer control: with the
         // switch OFF this rig is the pre-R4 world and the quarantine reading
         // above (STARVED 0) holds again.
-        Assert.True(starved > 0, "starved > 0 in 900 turns — the forager land ceiling no longer binds in the all-food rig");
+        Assert.True(starved > 0, "starved > 0 in 1000 turns — the forager land ceiling no longer binds in the all-food rig");
     }
 
     // --- bench report -------------------------------------------------------

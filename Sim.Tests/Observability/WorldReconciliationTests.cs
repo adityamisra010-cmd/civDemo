@@ -193,10 +193,14 @@ public class WorldReconciliationTests
         // ADR-035 §6 RE-PIN (P-F0, the founding death remainder; MEASURED): first decay 148 -> 150, 81 dwellings
         // across 24 of the 300 turns.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first decay 150 -> 149, 86 dwellings across 27 of the 300 turns.
-        Assert.Equal(0, log.At(148)!.Turn.Dwellings.Decayed);
-        for (int t = 1; t < 149; t++)
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED on this tree by the agent writing this
+        // line): first decay 149 -> 201, 44 dwellings across 14 of the 300 turns. Fewer weather-driven shortfalls empty
+        // fewer homes, so decay arrives later and rarer; the positive sample stays (starvation on 8, migration on 2 and
+        // 3 unchanged).
+        Assert.Equal(0, log.At(200)!.Turn.Dwellings.Decayed);
+        for (int t = 1; t < 201; t++)
             Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
-        Assert.True(log.At(149)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 149");
+        Assert.True(log.At(201)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 201");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829

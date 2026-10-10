@@ -434,8 +434,10 @@ public record struct SmoothedAttractivenessRow(SettlementId Settlement, double V
 /// <summary>
 /// T3.4b (CR-003 ruling §3): per-settlement harvest weather. LogDeviation is the
 /// AR(1) state in LOG space — it lives in the row so it clones and snapshots
-/// (systems are stateless). Multiplier is exp(LogDeviation − σ²/2), the
-/// mean-one factor applied to realised farm output this turn.
+/// (systems are stateless). Multiplier is the mean-one factor applied to realised farm output this
+/// turn: since D-051 ruling 1(b) (2026-10-10) the TIME-AVERAGE of exp(x − σ²/2) over the turn's yearly
+/// sub-steps, so it is no longer exp(LogDeviation − σ²/2) of the carried end-of-turn state (they
+/// coincide only when the turn is one sub-step, dt < 1.5 years).
 ///
 /// MEAN ONE IS THE POINT. E[exp(x)] = exp(σ²/2) for x ~ N(0, σ²), so the −σ²/2
 /// correction makes E[Multiplier] exactly 1. Weather changes the VARIANCE of

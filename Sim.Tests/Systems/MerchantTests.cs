@@ -159,7 +159,10 @@ public class MerchantTests
         // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest): first active 124 -> 118, MEASURED.
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 118 -> 128.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): 128 -> 126.
-        Assert.Equal(126, firstActive);   // moves with the trajectory; re-measured per packet
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): 126 -> 127. The harvest series this
+        // trajectory reads is the time-average of the yearly weather; with harvestVariance.timeAveragedHarvest off the
+        // weather system is bit-identical to the pre-1(b) one (IntegratedPinAttributionTests' D-051 1(b) controls).
+        Assert.Equal(127, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

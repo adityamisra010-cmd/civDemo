@@ -403,10 +403,12 @@ public class ClassSystemTests
         // precedes the local latch and the instrument still reports the latch, so the property is untouched.
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): latch 71 -> 72.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): latch 72 -> 69.
-        Assert.Equal(69, latchTurn);
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): latch 69 -> 67; the property is untouched.
+        Assert.Equal(67, latchTurn);
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): first-present 54 -> 16 (still before the latch).
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first-present 16 -> 17.
-        Assert.Equal(17, firstPresentTurn);
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): first-present 17 -> 14 (still before the latch, 67).
+        Assert.Equal(14, firstPresentTurn);
         Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
     }

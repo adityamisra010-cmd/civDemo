@@ -93,6 +93,14 @@ public static class TestConfigs
             ? cfg with { Farming = cfg.Farming with { PreCultivation = pre with { Enabled = false } } }
             : cfg;
 
+    /// <summary>D-051 ruling 1(b) (2026-10-10) — TIME-AVERAGED DECADE WEATHER STRIPPED: sim.json
+    /// harvestVariance.timeAveragedHarvest switched OFF, so a turn's harvest multiplier is again the single point
+    /// draw exp(x − σ²/2) with ρ = exp(−dt/τ) and a row-less settlement starts at x = 0. The switch exists only as
+    /// this attribution control: on its own it returns the pre-1(b) pins byte for byte
+    /// (IntegratedPinAttributionTests' D-051 1(b) controls).</summary>
+    public static SimConfig PreTimeAveragedHarvest(SimConfig cfg) =>
+        cfg with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } };
+
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
     /// civilization that already knows its crafts. For tests whose subject is the goods economy (crafted goods,

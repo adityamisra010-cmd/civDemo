@@ -28,7 +28,8 @@ public class FirstReignTests
     // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 27dd99c66bb7bb13… -> 8f3f86b76a8a0357…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
     // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 8f3f86b76a8a0357… -> 0272b21fbd14bce1…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
     // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 0272b21fbd14bce1… -> 6720be6a8ed7261c…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
-    internal const string PostR1Golden = "6720be6a8ed7261c302b39d3802d9831ecd99955a503317e080f5ce3efcff238";
+    // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): 6720be6a8ed7261c… -> 467f2cb6f5e8ff81…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
+    internal const string PostR1Golden = "467f2cb6f5e8ff8171840de57dc44999d2f0347b3b8af8c9ef8451e199d22abb";
 
     internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null)
     {

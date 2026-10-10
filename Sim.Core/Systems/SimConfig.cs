@@ -587,7 +587,13 @@ public sealed record HarvestVarianceConfig(
     // site-to-site distance (GeographicDistance). "travelCost" = the pre-R2b road-aware SettlementDistances,
     // RETAINED ONLY as the attribution control (IntegratedPinAttributionTests strips the R2b layer with
     // it; the T4.21-4 content-twin precedent). Any other value fails the load.
-    [property: JsonPropertyName("spatialDistance")] string? SpatialDistance = null)
+    [property: JsonPropertyName("spatialDistance")] string? SpatialDistance = null,
+    // D-051 ruling 1(b) (2026-10-10): true (shipped, and the default when absent) = a turn's harvest multiplier is
+    // the TIME-AVERAGE of the yearly weather process over the turn's s = max(1, round(dt)) yearly sub-steps, and a
+    // settlement with no weather row starts at a stationary draw. false = the pre-1(b) single point draw per turn
+    // (x = 0 start), bit-exact, RETAINED ONLY as the golden-attribution control (TestConfigs.PreTimeAveragedHarvest;
+    // IntegratedPinAttributionTests proves it returns the pre-1(b) pins byte for byte).
+    [property: JsonPropertyName("timeAveragedHarvest")] bool TimeAveragedHarvest = true)
 {
     /// <summary>True when the kernel reads the legacy road-aware travel costs (attribution control only).</summary>
     [JsonIgnore] public bool LegacyTravelCostKernel => string.Equals(SpatialDistance, "travelCost", StringComparison.Ordinal);

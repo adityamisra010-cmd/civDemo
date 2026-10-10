@@ -24,6 +24,9 @@ Ruling:
 This supersedes ADR-025 §2.1 (flight on the nominal deficit) and closes the open G1 item. A CR records
 the conflict and this ruling.
 
+> **2026-10-10 — 1(b) implemented** on `m5p-d051-fixes` (time-averaged decade weather; 1(a) not yet). It moves two
+> frozen dev-corridor teeth; escalated in `docs/adr/cr-020-d051-tools-and-weather-vs-measured-behaviour.md` §B.
+
 ## 2. Resources: common floor plus regional richness, so that expansion pays
 
 Measured: stone rides the raw elevation channel with no floor. At 38 % of founded settlements it is
@@ -54,6 +57,10 @@ The Workshop must not be useless in Age I. Add an **alternative, non-bronze tool
 and wood tools) available from founding. It has **lower productivity** than bronze toolmaking.
 Bronze toolmaking (Age III, via tin bronze) remains the full-productivity path. The construction
 queue's head-of-queue semantics are unchanged.
+
+> **2026-10-10 — not implemented as a recipe.** A plain stone-toolmaking recipe ate every unit of stone and blocked
+> all granaries (measured); the Age I trap is closed instead by making a workshop whose tools cannot be made an
+> illegal order. Options in `docs/adr/cr-020-d051-tools-and-weather-vs-measured-behaviour.md` §A.
 
 ## 5. Settlers: a player "Found settlement" order in M5
 

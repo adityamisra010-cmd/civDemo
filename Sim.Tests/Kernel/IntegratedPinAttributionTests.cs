@@ -219,6 +219,50 @@ namespace Sim.Tests.Kernel;
 ///   e62b53343aad5efd… -> df85224cb7a2ab5f…
 ///   f0887401409f5e59… -> b94886cfb24df556…
 ///   ffec140b76cb4de1… -> 811b119acf46f50e…
+///
+/// D-051 RULING 1(b) (2026-10-10, time-averaged decade weather) RE-MEASURED EVERY FOUNDED / DRIVEN / FIRST-REIGN CONSTANT BELOW (BEHAVIOUR, one cause: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps, and a new settlement joins the weather at a stationary draw; mean unchanged, per-decade log-spread ~0.29 -> ~0.19).
+/// Measured on this tree by the agent writing this line; the strips still separate their layers, but no stripped value
+/// returns a pre-1(b) pin. The cause is attributed by the config twin TestConfigs.PreTimeAveragedHarvest, which returns the
+/// pre-1(b) founded, first-reign and driven pins byte for byte (*_MovedForTheTimeAveragedHarvestAlone, end of file).
+/// Old -> new (16-hex prefixes):
+///   05da2ccea08c6e91… -> 24bdc655d8aba2ec…
+///   080315066ef7b142… -> 7aaa807b52e26b2e…
+///   0939beb30ae683d3… -> bd7b6b232d27e6fb…
+///   1256f051a0747724… -> b28fb83727f50fed…
+///   17464c3f152e89c8… -> fa0493ece0057649…
+///   320884dd6f6d3d61… -> 17105b1f871ef985…
+///   416c0ebe3237b25d… -> f9d2d8b32f9a4f65…
+///   431f2f48a0031017… -> 2f72ec211b38193d…
+///   4cdad2ddce909e40… -> 2c95e3331f09f528…
+///   6153222490f6d9a8… -> 0a7c5c5c5910245f…
+///   62ee79880d95ebeb… -> 4bf64e67049b8f01…
+///   64bb34959bb3d186… -> b784eadf6b7c9e3b…
+///   653c5c0ece72b390… -> 71ca4e65df90e405…
+///   65f5e942fd4b58c9… -> 9308cd36f9a80fd7…
+///   6a6ac746181c47f1… -> 3ed34a0ecb417725…
+///   6dcc265b9e8d68b6… -> 438b9ac882f2d9a1…
+///   6f82a998c06113fe… -> 14365a5c75296190…
+///   7813772b2cee6d5f… -> 2fbff5cbb41f429b…
+///   811b119acf46f50e… -> 66bcd40e56f5620e…
+///   8bc2299e796cae8d… -> fd4306ffccdb6cce…
+///   8cd5db52cfc2a4e1… -> 003a7e49a9359dd6…
+///   8ea1b956ef550ca5… -> 52f480ba1c4d0774…
+///   91439b05e8a8c440… -> f14c03f81db56510…
+///   922ed0c1dfa427cc… -> ab380feba01c6e76…
+///   9fe68e4ef8cc7327… -> 246ff3f5b6199015…
+///   a3a57867172c09a8… -> 7d5e626004fb895f…
+///   aa5ae46d574a1e23… -> fe22abb415892680…
+///   b14899eb23a9704f… -> 9c8380a27a4ba1fc…
+///   b20df92d2e2ed05a… -> ac38d4ea209dfa25…
+///   b252a66db4ca2a03… -> 98d0e2675da9ebc7…
+///   b31684a74926d97f… -> 4c30b3d68e1e4606…
+///   b6013cb54fffaa91… -> a5d44cc8c88a9797…
+///   b94886cfb24df556… -> 5c9344e4d8946a9f…
+///   bce1a3a8a7ab61a4… -> b871cefee40eaa5a…
+///   c4833d844a1c10b2… -> 2f9fddefde4e1943…
+///   d47b7e3d1bb81bce… -> 03b86400c4e54084…
+///   db52e65e932503dc… -> ed3794e7f8db2e90…
+///   df85224cb7a2ab5f… -> 1694047ed455d28e…
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -238,7 +282,7 @@ public class IntegratedPinAttributionTests
     /// OLD (T4.21-2 alone) 789585bed857ae94888ee8edbdc18b1ee5c9222c23695109b86e7002271b194d;
     /// OLD (T4.21-3 alone) 23cdc7042bf2972ba13b52e9e6bb26a8fc526a74ba61284c93208bb73efadffd.
     internal const string CapacityFloorFixAtSchemaV22 =
-        "1256f051a074772479b880411bead0433aa662876d282f00ead1566a0ac62c79";
+        "b28fb83727f50fed8042a0cc94d8a3c4285328326a12987644d66d7f4b86c079";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -676,7 +720,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) f886efbd159f5717848534efe3af61b826fa599d742e5e244d7afafa067bce22;
         // OLD (T4.21-2 alone) 05eb271cfec6226716d58eb6ca10859ae2f7a91273b0978574509d96fbb806c3;
         // OLD (T4.21-3 alone) c870354f478551a199617e7525e51fd06bffa22f9ccaeb2015956f117c6f4828.
-        const string mainValue = "b94886cfb24df55650553f0857916c88b8e3ec80e620dfcad10f88b31176feb7";
+        const string mainValue = "5c9344e4d8946a9fd436fde5ed2abea18016963a637ce35f3554e1e55de53865";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -701,7 +745,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) e48d9bcd8883204bb2efa4843923c49a30de86fae9269e7354e6d2018bf8e1f7;
         // OLD (T4.21-2 alone) f49815f0d222a8a269a042611bc110486527d5112e3262fe591f7524266872ab;
         // OLD (T4.21-3 alone) bbbb9aece1b981f74fba310d0b0e40a3764bee0192a357018a64f8e7ed1e5e63.
-        const string beforeM4C = "64bb34959bb3d186c0a389c18535b8754c216ad54bd27e011139db24e6d406fe";
+        const string beforeM4C = "b784eadf6b7c9e3b0070513499e20bbd268d320526abae1b8d3ea4abbda09215";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -727,7 +771,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) 69d6cf178fa536e0582874eacf7adec9fbcbc686c5e14a12292f935aa2694550;
         // OLD (T4.21-2 alone) 7cb35cbdc92e3bf0419dcd091343126acb801eb0a7bc0576627c561af47ca2e1;
         // OLD (T4.21-3 alone) f424daa7da78568c23f475dd0b24dce31ee3b15f8ccf7d50fbf2713e0300d325.
-        const string mainValue = "05da2ccea08c6e919368ba29bf84e5737d52740e691940d7ff1ad5dfe12236bd";
+        const string mainValue = "24bdc655d8aba2ec0168a4fe70b69334d6f0fe8af054242f595aa743a4183aad";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(mainValue, HashAtSchemaV22(world));
@@ -738,7 +782,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) 4e7d2e69e7c5ed72444501bed84c341b50a0d77c25d123ead36498ce9b280d7b;
         // OLD (T4.21-2 alone) e877c79683265a6dd09055861541c731ecfdfed2eee0188cb6939974541cf6f5;
         // OLD (T4.21-3 alone) 89bb4b64a8c7d664c6d89d843c0255463ee49171c4d12707b4cabac181e537ee.
-        const string beforeM4C = "4cdad2ddce909e4069ea4a859234997b3da5b256a3e665664ceee49104fcb63f";
+        const string beforeM4C = "2c95e3331f09f5283c2ece72529086cc1e6940204b26bc0f08ecb14aab996546";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -782,7 +826,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) cf93e0fed26a3e28e9e971498f8240c1534a5a8aa97391fe030adeaf76d4fa75;
         // OLD (T4.21-2 alone) bdf29a88dcec3385d9bd6ccb8938877ef88459629b10eccf33707e45dcdb0c15;
         // OLD (T4.21-3 alone) edb812c3b2940498e779c0f81002f69db74b7b5023e5f78a72cb8e35d152a9c0.
-        const string beforeM4C = "c4833d844a1c10b2029704760cb7f3010eb636ed24b14315e46e4584bfbb3cd4";
+        const string beforeM4C = "2f9fddefde4e1943763009a3f1acb690ef2f8a5501ecf380491c1eef834a071f";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -833,7 +877,7 @@ public class IntegratedPinAttributionTests
         // attributed there.
         // OLD (T4.21-2 alone) 7ee73714b054cd3250a0c9a37a59677581cb74a0469e20b29e9bcde65fc05ed6;
         // OLD (T4.21-3 alone) 776616ce4e78ca8cff586a891cf495840b9e48df1e9d29bc9b5e5ecede21b566.
-        const string beforeT421 = "431f2f48a00310178c663a549c910022096dd7e3d491621d8418c99222968f19";
+        const string beforeT421 = "2f72ec211b38193d67bb4afed8cb50ad526f91d78e8bc49e9cd9b6313139d963";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
@@ -868,7 +912,7 @@ public class IntegratedPinAttributionTests
         // OLD (pre-packet) 5ee8119e365ad04bdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a;
         // OLD (T4.21-2 alone) 8e23b4b32e3a1e0257df6af8fd482d8f5cb177345bb3378f2b4061ac8a561e72;
         // OLD (T4.21-3 alone) 77454c587a98f8fadb2ad055ca00509612f32a2a7aa73762e2418e0da30ebdfb.
-        const string beforeT421 = "b31684a74926d97fb71eec21e8868dccbfa92cb4ab3d62e47d41a22ba35d9488";
+        const string beforeT421 = "4c30b3d68e1e4606d3ba59935f1601af5be522f7bb752a8c7c37568f89cde0ea";
 
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
@@ -885,7 +929,7 @@ public class IntegratedPinAttributionTests
         // OLD (pre-packet) 76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6;
         // OLD (T4.21-2 alone) cee0c2c0… (see docs/t4.21-2-record.md §2);
         // OLD (T4.21-3 alone) d6a0554e6c419cc6b8f3bd364b30f9721fb9b1ad1fb00675f265ae309ab1f1a1.
-        const string beforeT421 = "8cd5db52cfc2a4e16748e2d4e930ead0daa76dcc48dfb9224893736c3ab8bf79";
+        const string beforeT421 = "003a7e49a9359dd65f16c27052c50be41957a2b479d6ebc7b666b67c9b0c3700";
 
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
@@ -915,7 +959,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
     {
         // SnapshotTests.FoundedGolden and ci.yml's FOUNDED_GOLDEN on main.
-        const string beforeResearch = "17464c3f152e89c8a8d53445fb57db744a61340def1dacf938811ac632d39c9a";
+        const string beforeResearch = "fa0493ece0057649f2896413c91f1fe52f754346b6d8d53b52ffdfae159ae533";
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
@@ -970,7 +1014,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheResearchLayerAlone()
     {
         // FirstReignTests' golden on main.
-        const string beforeResearch = "0939beb30ae683d3b901ce773b221cb73a30f23ce4c0b145ef5b57a09699c3d3";
+        const string beforeResearch = "bd7b6b232d27e6fb40f3716fc2d85a4956017e5047617923aebb89ee663646a2";
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
     }
@@ -979,7 +1023,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
     {
         // DrivenGoldenTests' golden on main.
-        const string beforeResearch = "a3a57867172c09a832af5b7074ad01829e6ca07f4d9c94ec9ed0fc14478db0c3";
+        const string beforeResearch = "7d5e626004fb895f0f410503392bd0b3b03d73f76bf6429d24593073da63003e";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
         // The order-less research arm writes no research row (measured; see the founded control),
@@ -1012,7 +1056,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
-        const string beforeAges = "8ea1b956ef550ca5e3d92ced8794917502e44448bf54ee5dcc140520fd06c7b5";
+        const string beforeAges = "52f480ba1c4d07747bdaf013049bf1f6e48092644c59001dd834afe05283b3fd";
         WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
@@ -1022,7 +1066,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheAgeLayerAlone()
     {
-        const string beforeAges = "df85224cb7a2ab5f3d2aa5d4850914d06af44baf5a26dd9c9a6f48665ef6d176";
+        const string beforeAges = "1694047ed455d28eb43471d6f6b535f2a23bd41b3cb211dd8c8fac13e44d1a5c";
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
@@ -1031,7 +1075,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
-        const string beforeAges = "320884dd6f6d3d618cec4499043bc38e1b33f068f778836daa7c05f546d6ab6d";
+        const string beforeAges = "17105b1f871ef985cf3f627d26d95f928b53a5b91114730a3c74f7f7dafd075e";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
@@ -1060,7 +1104,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
-        const string beforeRoads = "db52e65e932503dc36e347a773211a2144fd8c232070e53b38c1e8cb124cd9df";
+        const string beforeRoads = "ed3794e7f8db2e909a68f2a39101c2eb24a97552934b8077eb2e05ff910bbb44";
         WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // no order log: no road is ever developed
@@ -1069,7 +1113,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheTransportLayoutAlone()
     {
-        const string beforeRoads = "080315066ef7b142d1147a2e753ad1184cfd062bb3759f91a62200c16c56dc61";
+        const string beforeRoads = "7aaa807b52e26b2e2a94d01f448108bbb251a107e6e52cbb6264d44301d5fbd8";
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the first-reign log carries no DevelopRoads order
@@ -1078,7 +1122,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
-        const string beforeRoads = "aa5ae46d574a1e2362e7ddc138bf2095e3ec56d5dc2977fd85f079440859db98";
+        const string beforeRoads = "fe22abb415892680514b635d9abebb136b0a07b616c9b525116659e0937e5a51";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
@@ -1112,7 +1156,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
-        const string beforeGovernance = "b14899eb23a9704f41374726172d16ff26fe6bd5c64dfabe780d31478d751450";
+        const string beforeGovernance = "9c8380a27a4ba1fc2b0ca110f6faa6b963140a743f0861c59681350852474a9d";
         WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         // Non-vacuous: the founded world's non-capital settlements carry a computed reach < 1.
@@ -1123,7 +1167,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheGovernanceLayerAlone()
     {
-        const string beforeGovernance = "7813772b2cee6d5f78b5acb55dc643f808f27741752a6cc938be5bd5fb67967f";
+        const string beforeGovernance = "2fbff5cbb41f429b9aadfd6f7ad6053927cc78fc9b32ca11a48bff77fe6cb422";
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out _));
         Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
@@ -1132,7 +1176,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
-        const string beforeGovernance = "811b119acf46f50e805cb62ad3b90c639444277648aadb9a1fe306562bc21205";
+        const string beforeGovernance = "66bcd40e56f5620e803eb296d649fd53a9e1ae390fc737b15c58e7243b807477";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
@@ -1166,7 +1210,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
-        const string beforeInstitutions = "6f82a998c06113fe17fbc26bf5919a62f03b0b447602bda6618a2f803d7f0668";
+        const string beforeInstitutions = "14365a5c7529619011a77375972377419144b3013fea1e20e822f3a6290a1dc9";
         WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // no order log: nothing is built, no university is founded
@@ -1176,7 +1220,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheInstitutionsLayoutAlone()
     {
-        const string beforeInstitutions = "653c5c0ece72b3909c8faf3921f67d37b654cb14be5f57e36b6c8578deaf14e8";
+        const string beforeInstitutions = "71ca4e65df90e40540d43c262036f1a8d0eb9f5f3a9eb33c75166165e83f7636";
         WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the first-reign log carries no EnqueueConstruction order
@@ -1185,7 +1229,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
-        const string beforeInstitutions = "65f5e942fd4b58c902bc195a0789bd0d748151aad6984246d74532280b691f13";
+        const string beforeInstitutions = "9308cd36f9a80fd7acbe90fc2e43112c2f9c482c15209ba6495f53c721b6b700";
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the driven log carries only SectorAllocation orders
@@ -1205,7 +1249,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
     {
-        const string preR1 = "9fe68e4ef8cc73270c68bddc6b8075c09d91303ebb27ad663e9a25c013f80d8c";
+        const string preR1 = "246ff3f5b619901551417ce5ba097e02ea68d2735a9457dace29df4ab494fcf4";
         Assert.Equal(preR1, V31(SnapshotTests.RunFoundedGolden(PreR1())));
         string now = V31(SnapshotTests.RunFoundedGolden(PreR2()));
         Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
@@ -1214,7 +1258,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone()
     {
-        const string preR1 = "b6013cb54fffaa91905f47370690167289c123b8962792b957e416a3424b6f6d";
+        const string preR1 = "a5d44cc8c88a97975e7e598bea283c8d8516bbd0ed07f6b02e166172f894a244";
         Assert.Equal(preR1, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
         string now = V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2()));
         Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
@@ -1223,7 +1267,7 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
     {
-        const string preR1 = "bce1a3a8a7ab61a41c5237decfff452239f786e237bdec565cf680bc754145fb";
+        const string preR1 = "b871cefee40eaa5af58af6da2ececac297fd3b64f3eaa40abd57abab835424c1";
         (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
         Assert.Equal(preR1, V31(twin));
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2());
@@ -1241,17 +1285,17 @@ public class IntegratedPinAttributionTests
     //     CONTENT/CONFIG twin (TestConfigs.PreR2b), which must return each R1 pin BYTE FOR BYTE: the three layers
     //     are the entire delta. Each OLD constant is the pin on m5-integration at f1fe76f.
 
-    internal const string PostR1FoundedGolden = "922ed0c1dfa427cc6ae3ce7f717955864ea2cb4d9fe0eb22c5d7e30414505c92";
-    internal const string PostR1FirstReignGolden = "8bc2299e796cae8d9b59aa378a0364c46962c2cee0c2d6b0d49f65a4def0a607";
-    internal const string PostR1DrivenGolden = "6dcc265b9e8d68b65d8d48a0bfbd031ce4d37db26b586112a91d6bce0feb00f2";
+    internal const string PostR1FoundedGolden = "ab380feba01c6e76d1901c3441a23097fad3fd8f066551c930b79c8e6fd1066c";
+    internal const string PostR1FirstReignGolden = "fd4306ffccdb6cceee3c7db9e10cc895c5d5a917df8a8e10b1eac5254cf5ae66";
+    internal const string PostR1DrivenGolden = "438b9ac882f2d9a18f3a76e2cee265a0420870f1a13f4d3d54234d27b3ae5ff3";
 
     // R2c (merge of R2a + R2b, 2026-10-03): on the merged tree each stream's layer is stripped separately and
     // jointly. MEASURED: R2a moves only the driven pin; R2b moves all three; the two layers compose without
     // interaction on these pins (stripping one returns exactly the other stream's own pin).
-    internal const string R2aOnlyDrivenGolden = "91439b05e8a8c4409739d7c43c2cdb70f9afa0c3743d3117bd465467dba7cba0";
-    internal const string R2bOnlyFoundedGolden = "6153222490f6d9a8f0317a67e9ebe16b4c2517634b59bffd4786ef4955c2d68b";
-    internal const string R2bOnlyFirstReignGolden = "6a6ac746181c47f1e14b783efb74311baca2319a7e4c74411c4c31b289cd6a65";
-    internal const string R2bOnlyDrivenGolden = "b20df92d2e2ed05aaac4bf75f8452620ae778307e5fc9a41535c2be4cd9ed510";
+    internal const string R2aOnlyDrivenGolden = "f14c03f81db5651030b3ba22168273f8e47c12d7b8c16f24eedae418d87fcd48";
+    internal const string R2bOnlyFoundedGolden = "0a7c5c5c5910245fd0ef05bdcbde69282772697316788e0167ff7db34bfe5927";
+    internal const string R2bOnlyFirstReignGolden = "3ed34a0ecb417725896deb65d6cd7626a43a57c9b6f3526794eb52201207b1d8";
+    internal const string R2bOnlyDrivenGolden = "ac38d4ea209dfa2560b50bad9aff989306166e86b12f00aca7172463601333ce";
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
@@ -1309,9 +1353,9 @@ public class IntegratedPinAttributionTests
     // burden offset (no run levies a tax, so Dignity reads exactly 1.0). Every older control strips the forager
     // layer too (TestConfigs), so its constant is unmoved. OLD constants are the pins on m5-integration @ 12754e3.
 
-    internal const string R3FoundedGolden = "6153222490f6d9a8f0317a67e9ebe16b4c2517634b59bffd4786ef4955c2d68b";
-    internal const string R3FirstReignGolden = "6a6ac746181c47f1e14b783efb74311baca2319a7e4c74411c4c31b289cd6a65";
-    internal const string R3DrivenGolden = "d47b7e3d1bb81bce0459455435e9d89205d53e51fc8ae5006951070c81456655";
+    internal const string R3FoundedGolden = "0a7c5c5c5910245fd0ef05bdcbde69282772697316788e0167ff7db34bfe5927";
+    internal const string R3FirstReignGolden = "3ed34a0ecb417725896deb65d6cd7626a43a57c9b6f3526794eb52201207b1d8";
+    internal const string R3DrivenGolden = "03b86400c4e54084521950d8c00bdcb37c2af7aea69f0ae4f926617f367473a0";
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
@@ -1356,9 +1400,9 @@ public class IntegratedPinAttributionTests
     // GovernanceTests, TaxAgeGateTests) and is outside every golden: no golden run taxes.
 
     internal const string V31ToyGolden = "0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269";
-    internal const string V31FoundedGolden = "416c0ebe3237b25d3d6c1a14483739c87e1dcaa14f154f2baae28b3fd25f8d49";
-    internal const string V31FirstReignGolden = "62ee79880d95ebeb2ad4ac2cd8c7fe745deb181160fcde0c27bc269bcd638bb6";
-    internal const string V31DrivenGolden = "b252a66db4ca2a03b34deb62489841f504602130f0b18920ef124d0475977542";
+    internal const string V31FoundedGolden = "f9d2d8b32f9a4f65e1011eb927a2c4249b99021e1db42a3eaeef311f72d3f680";
+    internal const string V31FirstReignGolden = "4bf64e67049b8f01fbfacaf08e0700b51011e8dbb40948f26b3a634ceec89db9";
+    internal const string V31DrivenGolden = "98d0e2675da9ebc7bfb6f0f8e0c49cc60cc7b776809ee38db8b7f8cbb4349422";
 
     [Fact]
     public void GoldenHashSeed42Turn200_MovedForTheV32LevyTrailerAlone()
@@ -1394,5 +1438,58 @@ public class IntegratedPinAttributionTests
         Assert.Equal(V31DrivenGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
         Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
+    }
+
+    // ======================================================================
+    // D-051 RULING 1(b) (Director 2026-10-10, docs/d051-m5-polish-rulings.md) — TIME-AVERAGED DECADE WEATHER
+    // ======================================================================
+    // A turn's harvest multiplier is the time-average of the yearly weather process over the turn's
+    // max(1, round(dt)) yearly sub-steps, and a settlement with no weather row starts at a stationary draw.
+    // BEHAVIOUR, and weather feeds food, so every founded / first-reign / driven pin moves, including every
+    // layer-stripped variant above (re-measured on this tree; header). The control is the CONFIG twin
+    // TestConfigs.PreTimeAveragedHarvest (sim.json harvestVariance.timeAveragedHarvest OFF), which must return
+    // each pre-1(b) pin BYTE FOR BYTE: the time-averaging is the entire delta. OLD constants are the pins on this
+    // branch's base commit 1ecbc0b.
+
+    internal const string PreTimeAveragedFoundedGolden = "e9e089bbce9f204904b73946f11b59061d925f5eb19b6b42f3a6a0f5b47a0126";
+    internal const string PreTimeAveragedFirstReignGolden = "6720be6a8ed7261c302b39d3802d9831ecd99955a503317e080f5ce3efcff238";
+    internal const string PreTimeAveragedDrivenGolden = "5a8c6c648daa451786159b11b49abb2f91ef45f3e2152413c71feb81a91b9e62";
+
+    private static Sim.Core.Systems.SimConfig PreTimeAveraged()
+    {
+        Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
+        Assert.True(shipped.HarvestVariance.TimeAveragedHarvest);   // 1(b) ships ON; the twin is the control
+        Sim.Core.Systems.SimConfig twin = TestUtil.TestConfigs.PreTimeAveragedHarvest(shipped);
+        Assert.False(twin.HarvestVariance.TimeAveragedHarvest);
+        return twin;
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
+    {
+        Assert.Equal(PreTimeAveragedFoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreTimeAveraged())));
+        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
+        Assert.NotEqual(PreTimeAveragedFoundedGolden, now);
+        Assert.Equal(SnapshotTests.FoundedGoldenHash, now);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheTimeAveragedHarvestAlone()
+    {
+        Assert.Equal(PreTimeAveragedFirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreTimeAveraged())));
+        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
+        Assert.NotEqual(PreTimeAveragedFirstReignGolden, now);
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, now);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreTimeAveraged());
+        Assert.Equal(PreTimeAveragedDrivenGolden, WorldHash.ComputeHex(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        string now = WorldHash.ComputeHex(world);
+        Assert.NotEqual(PreTimeAveragedDrivenGolden, now);
+        Assert.Equal(DrivenGoldenTests.Golden, now);
     }
 }

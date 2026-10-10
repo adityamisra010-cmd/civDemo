@@ -187,7 +187,11 @@ jobs:
           # levy in this order-less world; the levy-pressure model reads the old values exactly when untaxed). Derived
           # twice on this tree (in-test harness; CLI processes); IntegratedPinAttributionTests strips the v32 layer and
           # returns 02c7f9eb… byte for byte (docs/d049-taxation-and-revolt-model.md §8).
-          FOUNDED_GOLDEN=e9e089bbce9f204904b73946f11b59061d925f5eb19b6b42f3a6a0f5b47a0126
+          # D-051 1(b) RE-PIN (2026-10-10): e9e089bb… -> 937577ff… — time-averaged decade weather (a turn's harvest
+          # multiplier is the mean of its yearly sub-step multipliers; a new settlement starts at a stationary draw).
+          # Derived twice on this tree (in-test harness; two CLI processes, byte-identical logs);
+          # TestConfigs.PreTimeAveragedHarvest returns e9e089bb… byte for byte (IntegratedPinAttributionTests).
+          FOUNDED_GOLDEN=937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

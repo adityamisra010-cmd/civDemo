@@ -108,7 +108,18 @@ public class HarvestWeatherTests
         // the raw count. 2% is comfortably inside sampling error at these counts
         // and comfortably OUTSIDE the 3–5% pre-fix bias — the gap between those
         // two is what makes this test able to fail.
-        var (meanMult, _, _, samples) = Moments(TestConfigs.Sim(), Seed, settlements, 900);
+        //
+        // D-051 1(b) (2026-10-10): FOUR SEEDS POOLED, same 2 % tolerance. 1(b) changed the draw stream (one draw per
+        // yearly sub-step), and seed 42 alone then sampled 0.977 at n=1 and 0.979 at n=2 — about 3 standard errors
+        // low on 850 strongly correlated samples. The property itself holds: 40 weather-only worlds × 2000 turns
+        // measure 1.0013 / 0.9992 / 0.9980 at dt 10 / 5 / 1 (SE ≈ 0.001). More samples, not a wider band.
+        double sumMean = 0.0; int samples = 0;
+        foreach (ulong seed in new ulong[] { Seed, 7, 1, 2 })
+        {
+            var (m, _, _, k) = Moments(TestConfigs.Sim(), seed, settlements, 900);
+            sumMean += m * k; samples += k;
+        }
+        double meanMult = sumMean / samples;
         Assert.True(Math.Abs(meanMult - 1.0) < 0.02,
             $"n={settlements}: E[multiplier] = {meanMult.ToString("F6", CultureInfo.InvariantCulture)} "
             + $"over {samples} samples — weather is moving EXPECTED yield, not just its variance. "
@@ -142,10 +153,128 @@ public class HarvestWeatherTests
             $"n={settlements}: realised sdLog {sdLog.ToString("F6", CultureInfo.InvariantCulture)} is "
             + $"{ratio.ToString("F4", CultureInfo.InvariantCulture)}× the derived sigma "
             + $"{h.SigmaLogYield} over {samples} samples — sigma does not mean what its name says.");
+        // D-051 RULING 1(b) (2026-10-10): the reference band is a statement about ANNUAL yield, and since 1(b) a
+        // turn's multiplier is the time-average of the YEARLY process over the turn — at dt 10/5 it is a decade /
+        // half-decade harvest, whose spread is smaller BY DESIGN (σ·√0.4335 = 0.193 in log space at dt 10). This
+        // run's turn multiplier therefore cannot be held to an annual band, and asserting it would be asserting the
+        // superseded "one year's weather stands for the decade" reading. The band now has its own test at YEARLY
+        // resolution, where the substrate must still deliver it:
+        // YearlyProcess_StillDeliversTheReferenceBand_AtDtOne. The carried log-state's σ (above) is unchanged.
+        _ = cv;
+    }
+
+    // ======================================================================
+    // D-051 RULING 1(b) — THE TURN'S HARVEST IS THE TIME-AVERAGE OF THE YEARLY PROCESS
+    // ======================================================================
+
+    /// <summary>Turn multipliers and carried log-states of one settlement in a weather-only world at a fixed dt.</summary>
+    private static (List<double> Mult, List<double> Log) WeatherSeries(SimConfig cfg, double dtYears, int turns, int burnIn, ulong seed = Seed)
+    {
+        TurnExecutor exec = WeatherOnlyExecutor(cfg, dtYears);
+        WorldState world = WeatherWorld(seed, 1);
+        var mult = new List<double>();
+        var logs = new List<double>();
+        for (int t = 1; t <= turns; t++)
+        {
+            world = exec.Step(world);
+            if (t <= burnIn) continue;
+            mult.Add(world.HarvestWeather[0].Multiplier);
+            logs.Add(world.HarvestWeather[0].LogDeviation);
+        }
+        return (mult, logs);
+    }
+
+    private static (double Mean, double Sd) MeanSd(List<double> xs)
+    {
+        double m = 0.0; foreach (double v in xs) m += v; m /= xs.Count;
+        double var = 0.0; foreach (double v in xs) var += (v - m) * (v - m);
+        return (m, Math.Sqrt(var / (xs.Count - 1)));
+    }
+
+    [Fact]
+    public void DecadeHarvest_IsTheTimeAverage_MeanUnchanged_SpreadReducedAsRuled()
+    {
+        // D-051 1(b): "the decade harvest uses the time-average of the yearly weather process. The mean is unchanged;
+        // the per-decade spread falls from ~0.30 to ~0.19." At dt = 10, tau = 3, s = 10 yearly sub-steps:
+        //   sd(mean of the s yearly log-states) = σ·√(1/s·[1 + 2·Σ_{m<s} (1 − m/s)·ρ₁^m]) = 0.2936·√0.4335 = 0.1933.
+        // The pre-1(b) mechanic (one point draw for the decade) gives the full σ = 0.2936 here, so the band below
+        // separates the two by a wide margin; the mean must stay 1 to within Monte-Carlo error.
+        SimConfig cfg = TestConfigs.Sim();
+        var (mult, logs) = WeatherSeries(cfg, 10.0, 6000, 10);
+        var (meanMult, _) = MeanSd(mult);
+        var logMult = new List<double>(mult.Count);
+        foreach (double m in mult) logMult.Add(Math.Log(m));
+        var (_, sdLogMult) = MeanSd(logMult);
+        Assert.True(Math.Abs(meanMult - 1.0) < 0.01,
+            $"E[turn multiplier] = {meanMult.ToString("F5", CultureInfo.InvariantCulture)} — time-averaging moved EXPECTED yield.");
+        Assert.True(sdLogMult is > 0.170 and < 0.215,
+            $"log-spread of the decade multiplier {sdLogMult.ToString("F4", CultureInfo.InvariantCulture)} — the ruled "
+            + "time-average gives ≈ 0.193 at dt 10; ≈ 0.29 would be the superseded single-year draw.");
+
+        // The carried state keeps its law: its SD is still σ (the multiplier's smaller spread is the averaging,
+        // not a smaller process).
+        var (_, sdState) = MeanSd(logs);
+        Assert.True(Math.Abs(sdState / cfg.HarvestVariance!.SigmaLogYield - 1.0) < 0.07,
+            $"carried log-state SD {sdState.ToString("F4", CultureInfo.InvariantCulture)} is not σ — the sub-steps no longer compose to one exact step.");
+    }
+
+    [Fact]
+    public void YearlyProcess_StillDeliversTheReferenceBand_AtDtOne()
+    {
+        // At dt = 1 a turn is one sub-step, so the turn multiplier IS the yearly multiplier, and the yearly process must
+        // still deliver the 0.25–0.35 rain-fed-cereal CV that σ was derived from (moved here from
+        // RealisedSigma_MatchesTheDerivedSigma_AndTheReferenceBand by D-051 1(b)).
+        var (mult, _) = WeatherSeries(TestConfigs.Sim(), 1.0, 20000, 50);
+        var (mean, sd) = MeanSd(mult);
+        double cv = sd / mean;
         Assert.True(cv is > 0.25 and < 0.35,
-            $"n={settlements}: realised CV {cv.ToString("F4", CultureInfo.InvariantCulture)} is outside "
-            + "the 0.25–0.35 rain-fed-cereal reference band that sigma was DERIVED from. The derived "
-            + "constant is only meaningful if the substrate delivers it.");
+            $"yearly CV {cv.ToString("F4", CultureInfo.InvariantCulture)} is outside the 0.25–0.35 reference band σ was derived from.");
+    }
+
+    [Fact]
+    public void ANewSettlement_JoinsTheWeatherAtItsStationaryDistribution_NotAtZero()
+    {
+        // The −σ²/2 mean correction assumes a STATIONARY log-state; x = 0 is a below-mean year (exp(−σ²/2) ≈ 0.958).
+        // 1(b) starts a row-less settlement from x ~ N(0, σ²). Discriminated at dt = 1, where the old start gives a
+        // first-turn state of SD σ·√(1 − e^(−2/3)) ≈ 0.70σ: across many independent one-settlement worlds the
+        // first-turn state's SD must be σ, and the first-turn multiplier's mean 1.
+        SimConfig cfg = TestConfigs.Sim();
+        double sigma = cfg.HarvestVariance!.SigmaLogYield;
+        var first = new List<double>();
+        var firstMult = new List<double>();
+        for (ulong seed = 1; seed <= 3000; seed++)
+        {
+            WorldState w = WeatherOnlyExecutor(cfg, 1.0).Step(WeatherWorld(seed, 1));
+            first.Add(w.HarvestWeather[0].LogDeviation);
+            firstMult.Add(w.HarvestWeather[0].Multiplier);
+        }
+        var (_, sd) = MeanSd(first);
+        var (meanMult, _) = MeanSd(firstMult);
+        Assert.True(Math.Abs(sd / sigma - 1.0) < 0.06,
+            $"first-turn log-state SD {sd.ToString("F4", CultureInfo.InvariantCulture)} vs σ {sigma} — a new row did not start stationary.");
+        Assert.True(Math.Abs(meanMult - 1.0) < 0.02,
+            $"first-turn mean multiplier {meanMult.ToString("F4", CultureInfo.InvariantCulture)} — a new settlement's first harvest is biased.");
+    }
+
+    [Fact]
+    public void SubSteps_FollowDtInYears_AndTheCarriedStateKeepsItsTurnResolutionMemory()
+    {
+        // dt-correctness (law 3): halving dt halves the sub-step count, never the year length; the carried state's
+        // lag-1 autocorrelation stays exp(−dt/τ) at dt 5 (the sub-steps compose exactly).
+        SimConfig cfg = TestConfigs.Sim();
+        var (_, logs) = WeatherSeries(cfg, 5.0, 8000, 10);
+        double expected = Math.Exp(-5.0 / cfg.HarvestVariance!.CorrelationTimeYears);
+        double measured = Correlation(logs.GetRange(0, logs.Count - 1), logs.GetRange(1, logs.Count - 1));
+        Assert.True(Math.Abs(measured - expected) < 0.05,
+            $"lag-1 autocorrelation {measured.ToString("F4", CultureInfo.InvariantCulture)} vs exp(-dt/tau) {expected.ToString("F4", CultureInfo.InvariantCulture)} at dt 5.");
+        // And the spread of the dt-5 average sits between the dt-10 average and the yearly value, as averaging fewer
+        // years must: σ·√(1/5·[1 + 2·Σ_{m<5} (1 − m/5)·ρ₁^m]) = 0.2936·√0.6268 = 0.2324.
+        var (mult, _) = WeatherSeries(cfg, 5.0, 8000, 10);
+        var logMult = new List<double>(mult.Count);
+        foreach (double m in mult) logMult.Add(Math.Log(m));
+        var (_, sdLogMult) = MeanSd(logMult);
+        Assert.True(sdLogMult is > 0.210 and < 0.255,
+            $"log-spread at dt 5 {sdLogMult.ToString("F4", CultureInfo.InvariantCulture)}; the five-year average gives ≈ 0.232.");
     }
 
     // ======================================================================

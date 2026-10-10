@@ -53,7 +53,10 @@ public class ExplainGrievanceTests
         // MEASURED — the rig's target carries a different population into the drawdown turn; first is unchanged.
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): -> 0.77447216890595005.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): -> 0.77420936504045113.
-        Assert.Equal(0.77420936504045113, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): -> 0.78818337827898999 — the turns
+        // before the drawdown harvest the time-averaged weather, so the target carries a different store and population
+        // into it; first is unchanged.
+        Assert.Equal(0.78818337827898999, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

@@ -18,10 +18,19 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class ColonizationFrontierKeyTests
 {
+    /// <summary>D-051 1(b) RE-AIM (2026-10-10; MEASURED on this tree by the agent writing this line): the rig runs on
+    /// TestConfigs.PreTimeAveragedHarvest. With the shipped time-averaged decade weather NO single-settlement canonical
+    /// world founds a colony within 400 turns (seeds 1–6), so the rig was vacuous; on the twin seed 2 founds its first
+    /// colony on step 53 again. The property here — the frontier cache is keyed on the terrain it was built from — is a
+    /// property of ColonizationSystem's cache, not of weather, so the weather mechanic the rig rides on is immaterial
+    /// to it; the twin is bit-identical to the pre-1(b) tree, so the worlds, seeds, horizon and every assertion are
+    /// exactly the ones this test was written and verified against.</summary>
+    private static SimConfig Cfg() => TestConfigs.PreTimeAveragedHarvest(TestConfigs.Sim());
+
     private static SystemRegistration[] Pipeline()
     {
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
-        return PipelineLoader.Load(pipeStream, SystemCatalog.All(TestConfigs.Sim(), TestConfigs.Worldgen()));
+        return PipelineLoader.Load(pipeStream, SystemCatalog.All(Cfg(), TestConfigs.Worldgen()));
     }
 
     private static EraTable Era()
@@ -35,7 +44,7 @@ public class ColonizationFrontierKeyTests
     private static WorldState EveOfFirstColony(ulong seed, int maxTurns)
     {
         var exec = new TurnExecutor(Era(), Pipeline());
-        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), seed, 1);
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), Cfg(), seed, 1);
         for (int t = 0; t < maxTurns; t++)
         {
             WorldState next = exec.Step(w);
