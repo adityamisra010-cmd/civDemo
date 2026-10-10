@@ -19,6 +19,7 @@ namespace Sim.Ui.Progression;
 public sealed partial class ProgressionScreen
 {
     private List<InfoHit> _info = [];
+    private RectD? _infoClip;   // the detail panel's scrolled view while it paints (UR-4): regions are cut to it
     private (int Node, IReadOnlyWorldState? World, InfoCard? Card) _cardCache;
 
     /// <summary>The session's config (set by the host): the discoverability block and the condition readings read it.
@@ -30,6 +31,11 @@ public sealed partial class ProgressionScreen
 
     private void InfoAdd(RectD r, InfoSubject subject, string label)
     {
+        if (_infoClip is { } clip)
+        {
+            if (!r.Intersects(clip)) return;
+            r = InfoRegistry.Intersect(r, clip);
+        }
         if (r.W > 0.5 && r.H > 0.5) _info.Add(new InfoHit(r, subject, label));
     }
 
@@ -58,19 +64,12 @@ public sealed partial class ProgressionScreen
         return card;
     }
 
-    /// <summary>The detail panel's discoverability block for <paramref name="node"/>; returns the y after it.</summary>
+    /// <summary>The detail panel's discoverability block for <paramref name="node"/> (inside ENABLES; UR-4 sizing: the
+    /// body role, wrapped, never dropped); returns the y after it. Painted only when the node has an InfoQuery card.</summary>
     private double PaintDiscovery(DrawList d, ITextMeasure m, int node, double x, double w, double y)
     {
         EraTheme t = Theme;
-        double L(double size) => t.Type.Line(size);
-        ResearchNodeView n = Snapshot!.Nodes[node];
-        if (NodeCard(node) is not { } card)
-        {
-            if (n.Unlocks.Count == 0) return y;
-            y = Heading(d, x, w, y + 4, "OPENS THE WAY TO", 5);
-            foreach (string line in ThemeText.Wrap(m, t, string.Join(", ", n.Unlocks), 13, w)) { d.Write(t, x, y, line, 13, t.Ink.TextSoft); y += L(13); }
-            return y + 6;
-        }
+        if (NodeCard(node) is not { } card) return y;
 
         var opens = new List<InfoLink>();
         var leads = new List<InfoLink>();
@@ -81,66 +80,100 @@ public sealed partial class ProgressionScreen
         }
         if (opens.Count > 0)
         {
-            y = Heading(d, x, w, y, "OPENS THE WAY TO", 5);
+            y = SubHeading(d, m, x, w, y, "OPENS THE WAY TO");
             int shown = 0;
             foreach (InfoLink l in opens)
             {
-                if (shown == 6) { y = Wrapped(d, m, t, "... and " + (opens.Count - shown).ToString(System.Globalization.CultureInfo.InvariantCulture) + " more - Shift+click the node for its card", x, y, w, 11.5, t.Ink.TextDim); break; }
-                Rgba col = l.Subject is not null ? t.Semantic.Knowledge : t.Ink.Text;
-                string label = ThemeText.Fit(m, t, l.Label, 13.5, w);
-                d.Write(t, x, y, label, 13.5, col, TextAlign.Left, FontRole.Heading);
-                if (l.Subject is { } s) InfoAdd(new RectD(x, y, m.Width(t, label, 13.5, FontRole.Heading), L(13.5)), s, l.Label);
-                y += L(13.5);
-                if (l.Note is { Length: > 0 } note) y = Wrapped(d, m, t, note, x + 10, y, w - 10, 11.5, t.Ink.TextDim);
-                y += 2;
+                if (shown == 6) { y = Wrapped(d, m, "... and " + (opens.Count - shown).ToString(System.Globalization.CultureInfo.InvariantCulture) + " more - Shift+click the node for its card", x, y, w, TypeRole.Secondary, t.Ink.TextSoft); break; }
+                Rgba col = l.Subject is not null ? Ink.Knowledge : t.Ink.Text;
+                double size = Px(TypeRole.Body, FontRole.Heading), slot = FlowText.Slot(TypeRole.Body, _scale);
+                foreach (string line in FlowText.Wrap(m, l.Label, TypeRole.Body, _scale, w, FontRole.Heading))
+                {
+                    d.Write(t, x, y, line, size, col, TextAlign.Left, FontRole.Heading);
+                    if (l.Subject is { } s) InfoAdd(new RectD(x, y, FlowText.Width(m, line, TypeRole.Body, _scale, FontRole.Heading), slot), s, l.Label);
+                    y += slot;
+                }
+                if (l.Note is { Length: > 0 } note) y = Wrapped(d, m, note, x + Sp(10), y, w - Sp(10), TypeRole.Secondary, t.Ink.TextSoft);
+                y += Sp(2);
                 shown++;
             }
         }
         if (leads.Count > 0)
         {
-            y = Heading(d, x, w, y + 2, "LEADS TO", 6);
+            y = SubHeading(d, m, x, w, y + Sp(2), "LEADS TO");
             var tokens = new List<(string, InfoSubject)>();
             var names = new List<string>();
             foreach (InfoLink l in leads) { names.Add(l.Label); tokens.Add((l.Label, l.Subject!.Value)); }
-            y = WrappedTokens(d, m, t, string.Join(", ", names), x, y, w, 13, t.Semantic.Knowledge, tokens);
+            y = WrappedTokens(d, m, string.Join(", ", names), x, y, w, TypeRole.Body, Ink.Knowledge, tokens);
         }
         if (!card.KnowledgeOnly.IsDefaultOrEmpty)
         {
-            y = Heading(d, x, w, y + 4, "DESCRIBED, NOT SIMULATED", 7);
-            y = Wrapped(d, m, t, string.Join("; ", card.KnowledgeOnly), x, y, w, 12.5, t.Ink.TextSoft);
+            y = SubHeading(d, m, x, w, y + Sp(4), "DESCRIBED, NOT SIMULATED");
+            y = Wrapped(d, m, string.Join("; ", card.KnowledgeOnly), x, y, w, TypeRole.Body, t.Ink.TextSoft);
         }
         if (card.Effect == InfoEffect.KnowledgeOnly)
-            y = Wrapped(d, m, t, "Knowledge only - no simulated effect in this build.", x, y + 2, w, 12.5, t.Semantic.Progress, FontRole.Heading);
+            y = Statement(d, m, "Knowledge only - no simulated effect in this build.", x, y + Sp(2), w, Ink.Progress, FontRole.Heading);
         else if (card.Effect == InfoEffect.ResearchOnly)
-            y = Wrapped(d, m, t, "No simulated effect of its own in this build: it opens further research.", x, y + 2, w, 12, t.Semantic.Progress);
-        return y + 6;
+            y = Statement(d, m, "No simulated effect of its own in this build: it opens further research.", x, y + Sp(2), w, Ink.Progress);
+        return y + Sp(6);
     }
 
-    private static double Wrapped(DrawList d, ITextMeasure m, EraTheme t, string text, double x, double y, double w, double size, Rgba color, FontRole role = FontRole.Body)
+    /// <summary>The node's effect statement: ONE run, fitted (down to the role's floor) when it fits on a line there —
+    /// it is read as a single verdict — and wrapped at the body role otherwise (never dropped).</summary>
+    private double Statement(DrawList d, ITextMeasure m, string text, double x, double y, double w, Rgba color, FontRole font = FontRole.Body)
     {
-        foreach (string line in ThemeText.Wrap(m, t, text, size, Math.Max(20, w), role))
+        double design = Px(TypeRole.Body, font);
+        double size = FitFloor(m, text, design, w, font);
+        if (m.Width(Theme, text, size, font) > w) return Wrapped(d, m, text, x, y, w, TypeRole.Body, color, font);
+        WriteFit(d, m, x, y, text, design, w, color, TextAlign.Left, font);
+        return y + FlowText.Slot(TypeRole.Body, _scale);
+    }
+
+    /// <summary>A sub-heading inside ENABLES: capitals at the caption role in the accent's text ink.</summary>
+    private double SubHeading(DrawList d, ITextMeasure m, double x, double w, double y, string text)
+    {
+        WriteFit(d, m, x, y, text, Px(TypeRole.Caption, FontRole.Caps), w, Ink.Accent, TextAlign.Left, FontRole.Caps);
+        return y + FlowText.Slot(TypeRole.Caption, _scale, caps: true) + Sp(2);
+    }
+
+    private double Wrapped(DrawList d, ITextMeasure m, string text, double x, double y, double w, TypeRole role, Rgba color, FontRole font = FontRole.Body)
+    {
+        EraTheme t = Theme;
+        double size = Px(role, font), slot = FlowText.Slot(role, _scale);
+        foreach (string line in FlowText.Wrap(m, text, role, _scale, Math.Max(20, w), font))
         {
-            d.Write(t, x, y, line, size, color, TextAlign.Left, role);
-            y += t.Type.Line(size);
+            d.Write(t, x, y, line, size, color, TextAlign.Left, font);
+            y += slot;
         }
         return y;
     }
 
-    /// <summary>A wrapped line whose named tokens are registered where they are painted.</summary>
-    private double WrappedTokens(DrawList d, ITextMeasure m, EraTheme t, string text, double x, double y, double w, double size, Rgba color,
+    /// <summary>A wrapped line whose named tokens are registered where they are painted (a token the wrap splits is
+    /// registered on each line it occupies).</summary>
+    private double WrappedTokens(DrawList d, ITextMeasure m, string text, double x, double y, double w, TypeRole role, Rgba color,
         List<(string Token, InfoSubject Subject)> tokens)
     {
-        foreach (string line in ThemeText.Wrap(m, t, text, size, Math.Max(20, w)))
+        EraTheme t = Theme;
+        double size = Px(role), slot = FlowText.Slot(role, _scale);
+        List<string> lines = FlowText.Wrap(m, text, role, _scale, Math.Max(20, w));
+        var starts = new int[lines.Count];
+        int len = 0;
+        for (int i = 0; i < lines.Count; i++) { starts[i] = len; len += lines[i].Length + 1; }
+        string joined = string.Join(" ", lines);
+        for (int i = 0; i < lines.Count; i++) d.Write(t, x, y + i * slot, lines[i], size, color);
+        foreach ((string token, InfoSubject subject) in tokens)
         {
-            d.Write(t, x, y, line, size, color);
-            foreach ((string token, InfoSubject subject) in tokens)
+            int at = token.Length == 0 ? -1 : joined.IndexOf(token, StringComparison.Ordinal);
+            if (at < 0) continue;
+            int end = at + token.Length;
+            for (int i = 0; i < lines.Count; i++)
             {
-                int at = line.IndexOf(token, StringComparison.Ordinal);
-                if (at < 0) continue;
-                InfoAdd(new RectD(x + m.Width(t, line[..at], size), y, m.Width(t, token, size), t.Type.Line(size)), subject, token);
+                int a = Math.Max(at, starts[i]) - starts[i], b = Math.Min(end, starts[i] + lines[i].Length) - starts[i];
+                if (b <= a) continue;
+                double x0 = x + FlowText.Width(m, lines[i][..a], role, _scale);
+                InfoAdd(new RectD(x0, y + i * slot, FlowText.Width(m, lines[i][a..b], role, _scale), slot), subject, token);
             }
-            y += t.Type.Line(size);
         }
-        return y;
+        return y + lines.Count * slot;
     }
 }

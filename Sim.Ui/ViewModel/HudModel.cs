@@ -176,6 +176,15 @@ public sealed record HudModel(
     public string WorldFoodFigure =>
         string.Create(CultureInfo.InvariantCulture, $"food {WorldFood}");
 
+    // M5 polish UR-3: the status band's primary figures as VALUES (the band sets each under a caps label in the
+    // KPI face). Same carriers as the figure strings above; the band's wording is the label, never the value.
+    public string TurnValue => PlayerTurn.Current(Turn).ToString(CultureInfo.InvariantCulture);
+    public string YearValue => Year.ToString(CultureInfo.InvariantCulture);
+    public string WorldPopulationValue => WorldPopulation.ToString("#,0", CultureInfo.InvariantCulture);
+    public string WorldFoodValue => WorldFood.ToString("#,0", CultureInfo.InvariantCulture);
+    public string SettlementCountDetail => SettlementCount == 1
+        ? "1 settlement" : SettlementCount.ToString(CultureInfo.InvariantCulture) + " settlements";
+
     /// <summary>The selection card's third data line, two clickable halves.
     /// Happiness is "—" without a config or for an absent settlement.</summary>
     public string HappinessLine => double.IsNaN(Happiness)

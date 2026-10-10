@@ -6,6 +6,7 @@ using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Ui.Art;
 using Sim.Ui.ImGuiIntegration;
+using Sim.Ui.Theme;
 using Sim.Ui.ViewModel;
 
 namespace Sim.Ui;
@@ -34,7 +35,9 @@ public sealed class SimUiGame : Game
 
     // --- art substrate (style-bible parchment atlas) ----------------------
     private readonly AssetLibrary _art = AssetLibrary.Load();
-    private Texture2D? _grainTexture;
+    // UR-2: the fibre overlay in two passes (FibreOverlay) — the map's remainder before the interface, the
+    // interface's soft share after it.
+    private Texture2D? _fibreRestTexture, _fibreSoftTexture;
     private Texture2D? _panelTexture, _headerRuleTexture, _buttonPlateTexture,
                        _annalsTexture, _compassTexture;
     private UiTheme.Fonts? _fonts;
@@ -64,19 +67,23 @@ public sealed class SimUiGame : Game
     private MouseState _mouse;
     private KeyboardState _keyboard;
 
-    public SimUiGame(UiSession session, string sessionLogPath, bool developer = false)
+    public SimUiGame(UiSession session, string sessionLogPath, bool developer = false, double userScale = UiScale.DefaultUser)
     {
         _developer = developer;
+        _userScale = UiScale.NearestStep(userScale);
         _session = session;
         _sessionLogPath = sessionLogPath;
+        // UR-7 (M5 polish, 2026-10-06): the window OPENS at 90 % of the display (PanelLayout.OpeningWindow, tested) —
+        // it was the layout's 1280×800 design size on every display; the layout reflows to any window from the floor
+        // up (the design size remains the fallback when the display cannot be read).
+        (_displayWidth, _displayHeight) = DisplaySize();
+        (int openW, int openH) = PanelLayout.OpeningWindow(_displayWidth, _displayHeight);
+        OpeningDisplay = new SessionDisplay(openW, openH, _displayWidth, _displayHeight,
+            UiScale.Effective(UiScale.Auto(openH), _userScale), _userScale, DisplayDpiScale());
         _graphics = new GraphicsDeviceManager(this)
         {
-            // T3.9a-b item 4: the default window IS the layout's design
-            // resolution (PanelLayout.DesignWidth/Height = 1280×800) — read
-            // from the tested view-model so the proven-non-overlapping
-            // default layout and the actual window cannot drift apart.
-            PreferredBackBufferWidth = PanelLayout.DesignWidth,
-            PreferredBackBufferHeight = PanelLayout.DesignHeight,
+            PreferredBackBufferWidth = openW,
+            PreferredBackBufferHeight = openH,
             SynchronizeWithVerticalRetrace = true,
             PreferMultiSampling = true,
         };
@@ -92,6 +99,55 @@ public sealed class SimUiGame : Game
     }
 
     private bool _enforcingMinimum;
+    private readonly int _displayWidth, _displayHeight;
+
+    /// <summary>The display the game opens on (UR-7): the session manifest records it (provenance only).</summary>
+    public SessionDisplay OpeningDisplay { get; }
+
+    /// <summary>
+    /// The operating system's display scale (1 = 96 dpi), read from SDL (the library MonoGame's desktop platform
+    /// has already loaded) — best effort: null when it cannot be read. Provenance for the manifest; the UI scale
+    /// follows the window height (UiScale), not this value, until the DPI-aware path is verified on Windows.
+    /// </summary>
+    private static unsafe double? DisplayDpiScale()
+    {
+        try
+        {
+            foreach (string name in new[] { "SDL2", "libSDL2-2.0.so.0", "libSDL2.so", "libSDL2-2.0.0.dylib" })
+            {
+                if (!System.Runtime.InteropServices.NativeLibrary.TryLoad(name, typeof(SimUiGame).Assembly, null, out IntPtr lib)) continue;
+                if (!System.Runtime.InteropServices.NativeLibrary.TryGetExport(lib, "SDL_GetDisplayDPI", out IntPtr fn)) continue;
+                var getDpi = (delegate* unmanaged[Cdecl]<int, float*, float*, float*, int>)fn;
+                float d = 0, h = 0, v = 0;
+                if (getDpi(0, &d, &h, &v) == 0 && d > 0) return Math.Round(d / 96.0, 3);
+                return null;
+            }
+        }
+        catch (Exception) { }
+        return null;
+    }
+
+    /// <summary>The primary display's size, or (0, 0) when it cannot be read.</summary>
+    private static (int, int) DisplaySize()
+    {
+        try
+        {
+            DisplayMode mode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            return (mode.Width, mode.Height);
+        }
+        catch (Exception) { return (0, 0); }
+    }
+
+    protected override void Initialize()
+    {
+        base.Initialize();
+        // Centre the opening window on the display (the window was created before its size was known).
+        if (_displayWidth > 0 && _displayHeight > 0)
+        {
+            Rectangle b = Window.ClientBounds;
+            Window.Position = new Point(Math.Max(0, (_displayWidth - b.Width) / 2), Math.Max(0, (_displayHeight - b.Height) / 2));
+        }
+    }
 
     private void EnforceMinimumWindowSize()
     {
@@ -119,7 +175,9 @@ public sealed class SimUiGame : Game
         // T3.9a-b item 4: window state is session-scoped and in-memory ONLY — a stale imgui.ini from an older
         // build would override the PanelLayout defaults, so the ini is disabled.
         unsafe { ImGui.GetIO().NativePtr->IniFilename = null; }
-        _fonts = UiTheme.LoadFonts(_art.Root);
+        // UR-1: the atlas is rasterised at the UI scale of the opening window (and rebuilt when it changes).
+        _uiScale = UiScale.Effective(UiScale.Auto(_graphics.PreferredBackBufferHeight), _userScale);
+        _fonts = UiTheme.LoadFonts(_art.Root, _uiScale);
         _imgui = new ImGuiRenderer(this, ownsContext: false);   // declares RendererHasVtxOffset (H1)
         _worldEffect = new BasicEffect(GraphicsDevice) { VertexColorEnabled = true };
         WorldState world = _session.World;
@@ -135,7 +193,9 @@ public sealed class SimUiGame : Game
         string bakeNote = string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"map {bake.Size}² {bake.MegabytesResident:F0} MB baked in {bake.BakeMilliseconds:F0} ms");
 
-        _grainTexture = UploadArt(_art.Get("parchment/grain"));
+        ArtImage fibre = _art.Get("parchment/grain");
+        _fibreRestTexture = UploadArt(FibreOverlay.Rest(fibre));
+        _fibreSoftTexture = UploadArt(FibreOverlay.Soft(fibre));
         _panelTexture = UploadArt(_art.Get("ui/panel"));
         // D-A1: the header rule is PROCEDURAL (HeaderRuleBaker), drawn with an instrument, in code.
         _headerRuleTexture = UploadArt(Art.HeaderRuleBaker.Bake());
@@ -151,10 +211,28 @@ public sealed class SimUiGame : Game
         RebuildRiverBuffer(1.0);
 
         Rectangle v = Viewport();
-        _ui = new GameUi(_session, _sessionLogPath, _developer, _art, _fonts, new UiTextureIds(annalsId, compassId), v.Width, v.Height)
+        _ui = new GameUi(_session, _sessionLogPath, _developer, _art, _fonts, new UiTextureIds(annalsId, compassId), v.Width, v.Height,
+            _userScale)
         {
             BakeNote = bakeNote,
         };
+    }
+
+    private double _uiScale = 1.0;
+    private readonly double _userScale;
+
+    /// <summary>UR-1: when the UI asks for another scale (the window crossed a scale step, or the player pressed
+    /// Ctrl+= / Ctrl+- / Ctrl+0), the atlas is rebuilt at the new sizes between frames and handed to the UI.</summary>
+    private void FollowUiScale()
+    {
+        if (_ui is not { } ui || _imgui is null) return;
+        double wanted = ui.WantedScale;
+        if (Math.Abs(wanted - _uiScale) < 1e-9) return;
+        _uiScale = wanted;
+        ImGui.GetIO().Fonts.Clear();
+        _fonts = UiTheme.LoadFonts(_art.Root, _uiScale);
+        _imgui.RebuildFontAtlas();
+        ui.SetFonts(_fonts);
     }
 
     // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
@@ -221,6 +299,7 @@ public sealed class SimUiGame : Game
             Rectangle v = Viewport();
             ui.SetViewport(v.Width, v.Height);
             ui.Update(_mouse, _keyboard, gameTime.ElapsedGameTime.TotalSeconds, IsActive);
+            FollowUiScale();
             if (ui.ExitRequested) Exit();
         }
         base.Update(gameTime);
@@ -256,6 +335,7 @@ public sealed class SimUiGame : Game
         GraphicsDevice.RasterizerState = WorldRasterizer;
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         DrawWorldBuffer(_riverVertices);
+        DrawFibreOverlay(_fibreRestTexture);   // UR-2 pass 1: the map's remainder of the fibre (FibreOverlay.Rest)
 
         // The UI: one ImGui frame — GameUi draws it between the renderer's BeforeLayout and AfterLayout.
         ui.Fps = _fps;
@@ -264,22 +344,22 @@ public sealed class SimUiGame : Game
         ui.Draw();
         _imgui.AfterLayout();
 
-        DrawGrainOverlay();   // §4 item 2: multiplied over EVERYTHING, UI included
+        DrawFibreOverlay(_fibreSoftTexture);   // §4 item 2 (amended 2026-10-06): over EVERYTHING, the interface's soft share
         base.Draw(gameTime);
     }
 
 
-    /// <summary>The age/grain overlay (style-bible §4 item 2): one screen-filling
-    /// quad of the tiling grain texture, MULTIPLIED over the finished frame —
-    /// map, panels and text alike — so the whole window reads as one sheet of
-    /// paper rather than a map with widgets floating above it. Near-white
-    /// texture, so the effect is tooth, not dirt.</summary>
-    private void DrawGrainOverlay()
+    /// <summary>The fibre/age overlay (style-bible §4 item 2, amended 2026-10-06 by UR-2): one screen-filling quad of
+    /// a tiling texture MULTIPLIED over the frame, so the whole window reads as one sheet of paper rather than a map
+    /// with widgets floating above it. Drawn twice per frame (<see cref="FibreOverlay"/>): the map's remainder before
+    /// the interface, the soft share over everything after it — the map keeps the full fibre, the words get a calm
+    /// ground.</summary>
+    private void DrawFibreOverlay(Texture2D? texture)
     {
-        if (_grainTexture is null) return;
+        if (texture is null) return;
         Rectangle viewport = Viewport();
         _spriteBatch!.Begin(samplerState: SamplerState.LinearWrap, blendState: MultiplyBlend);
-        _spriteBatch.Draw(_grainTexture, viewport,
+        _spriteBatch.Draw(texture, viewport,
             new Rectangle(0, 0, viewport.Width, viewport.Height), Color.White);
         _spriteBatch.End();
     }

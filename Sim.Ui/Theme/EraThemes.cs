@@ -42,7 +42,7 @@ public static class EraThemes
     }
 
     /// <summary>Builds a theme from scratch (no cache) — what the determinism tests compare.</summary>
-    public static EraTheme Build(UiEra era) => UiEras.FromAge((int)era) switch
+    public static EraTheme Build(UiEra era) => Readable(UiEras.FromAge((int)era) switch
     {
         UiEra.Prehistoric => Prehistoric(),
         UiEra.Neolithic => Neolithic(),
@@ -53,7 +53,82 @@ public static class EraThemes
         UiEra.EarlyModern => EarlyModern(),
         UiEra.Industrial => Industrial(),
         _ => Modern(),
+    });
+
+    /// <summary>The token-level contrast floor of <see cref="InkTokens.TextDim"/> on the panel (UR-1).</summary>
+    public const double TextDimFloor = 5.0;
+
+    /// <summary>
+    /// THE READABILITY FLOORS (M5 polish, UI readability UR-1; Director directive 2026-10-06 §2: gameplay information
+    /// beats decorative texture, and later eras must not shrink type). Applied to every era after its mood tokens:
+    /// <list type="bullet">
+    /// <item>the type scale never shrinks below the reference: <c>SizeScale ≥ 1.0</c> (A7–A9 were 0.98, 0.95, 0.94;
+    /// the face, weight, tracking and case still evolve — ADR-033 D8's evolving type scale, without the shrink);</item>
+    /// <item><see cref="InkTokens.TextDim"/> is darkened toward the body ink until it reaches <see cref="TextDimFloor"/>
+    /// on the panel (it measured 3.55:1 at A6), so even the tertiary ink stays above 4.5:1 once rendered.</item>
+    /// </list>
+    /// The state fills' separation is built in <see cref="Semantics"/>; the semantic text inks are derived
+    /// (<see cref="EraTheme.TextInk"/>).
+    /// </summary>
+    private static EraTheme Readable(EraTheme t) => t with
+    {
+        Ink = t.Ink with { TextDim = TextInks.Darken(t.Ink.TextDim, t.Ink.Text, t.Material.Panel, TextDimFloor) },
+        Type = t.Type with { SizeScale = Math.Max(1.0, t.Type.SizeScale) },
+        Semantic = DistinctStates(t.Semantic, t.Material, t.Ink.Text),
     };
+
+    /// <summary>The minimum colour difference (CIE ΔE*ab) between any two of the four research-card state fills —
+    /// Known, Target, Available, Locked (UR-4: the state table's fills are plainly distinct surfaces; Known and Locked
+    /// were ΔE 6 apart at A1 and A6, Known and Target 1.00:1 in lightness).</summary>
+    public const double StateFillDistinct = 12.0;
+
+    /// <summary>The body ink's floor on every state fill (a card's name is primary text: 7:1).</summary>
+    public const double StateFillTextFloor = 7.0;
+
+    /// <summary>
+    /// THE STATE FILLS, MADE DISTINCT (UR-4). Available and Locked are set by their lightness separation
+    /// (<see cref="StateFillSeparation"/>); the Known (Completed gold) and Target (Active teal) fills are then the
+    /// LEAST tinted mixes of the panel or the raised surface toward their pigments that sit at least
+    /// <see cref="StateFillDistinct"/> from every other state fill while the body ink keeps
+    /// <see cref="StateFillTextFloor"/> on them — the era's mood where it already works, a stronger tint only where two
+    /// states were too alike. Integer search, deterministic; the hue family is the pigment's (pinned).
+    /// </summary>
+    private static SemanticTokens DistinctStates(SemanticTokens s, MaterialTokens m, Rgba text)
+    {
+        Rgba avail = s.AvailableFill, locked = s.LockedFill;
+        var done = new List<(Rgba Fill, int K)>();
+        var target = new List<(Rgba Fill, int K)>();
+        foreach (Rgba baseFill in new[] { m.Panel, m.PanelRaised })
+            for (int k = 16; k <= 70; k += 2)
+            {
+                Rgba d = Mix(baseFill, s.Completed, k / 100.0), a = Mix(baseFill, s.Active, k / 100.0);
+                if (Contrast(text, d) >= StateFillTextFloor) done.Add((d, k));
+                if (Contrast(text, a) >= StateFillTextFloor) target.Add((a, k));
+            }
+        if (done.Count == 0 || target.Count == 0) return s;
+        (Rgba Done, Rgba Target, int Cost, double Min) best = (s.CompletedFill, s.ActiveFill, int.MaxValue, MinDelta(s.CompletedFill, s.ActiveFill, avail, locked));
+        bool met = best.Min >= StateFillDistinct;
+        foreach ((Rgba d, int kd) in done)
+            foreach ((Rgba a, int ka) in target)
+            {
+                double min = MinDelta(d, a, avail, locked);
+                bool ok = min >= StateFillDistinct;
+                int cost = kd + ka;
+                // Prefer any candidate that meets the floor, then the least tint (ties: the larger margin); when none
+                // meets it, the largest minimum difference.
+                if (ok && (!met || cost < best.Cost || (cost == best.Cost && min > best.Min))) { best = (d, a, cost, min); met = true; }
+                else if (!ok && !met && min > best.Min) best = (d, a, cost, min);
+            }
+        return s with { CompletedFill = best.Done, ActiveFill = best.Target };
+    }
+
+    private static double MinDelta(Rgba done, Rgba target, Rgba avail, Rgba locked)
+    {
+        double m0 = Math.Min(ThemeColor.DeltaE(done, target), ThemeColor.DeltaE(done, avail));
+        double m1 = Math.Min(ThemeColor.DeltaE(done, locked), ThemeColor.DeltaE(target, avail));
+        double m2 = Math.Min(ThemeColor.DeltaE(target, locked), ThemeColor.DeltaE(avail, locked));
+        return Math.Min(m0, Math.Min(m1, m2));
+    }
 
     // ======================================================================== the nine eras
 
@@ -344,9 +419,33 @@ public static class EraThemes
             Food: S(SemanticFamilies.Food), Knowledge: S(SemanticFamilies.Knowledge), Military: S(SemanticFamilies.Military),
             Infrastructure: S(SemanticFamilies.Infrastructure),
             Prerequisite: S(SemanticFamilies.Prerequisite), Dependent: S(SemanticFamilies.Dependent),
-            AvailableFill: Mix(m.Panel, available, 0.10), ActiveFill: Mix(m.Panel, active, 0.16),
-            CompletedFill: Mix(m.Panel, completed, 0.24), LockedFill: Mix(m.Panel, m.PanelSunken, 0.45),
+            AvailableFill: AvailableFillOf(m, available), ActiveFill: Mix(m.Panel, active, 0.16),
+            CompletedFill: Mix(m.Panel, completed, 0.24), LockedFill: LockedFillOf(m, AvailableFillOf(m, available)),
             Lanes: lanes);
+    }
+
+    /// <summary>The minimum lightness ratio between the Available and Locked card fills (UR-1): state is carried by
+    /// SURFACE, not only by a hairline (they were 1.02–1.14:1 apart).</summary>
+    public const double StateFillSeparation = 1.4;
+
+    /// <summary>An available card: the raised surface with a breath of the Available hue.</summary>
+    private static Rgba AvailableFillOf(MaterialTokens m, Rgba available) => Mix(m.PanelRaised, available, 0.08);
+
+    /// <summary>A locked card: the panel sunk toward the well (and, where the era's well is too pale, on toward its
+    /// border) just far enough to sit <see cref="StateFillSeparation"/> below the available fill.</summary>
+    private static Rgba LockedFillOf(MaterialTokens m, Rgba availableFill)
+    {
+        for (int k = 45; k <= 100; k++)
+        {
+            Rgba f = Mix(m.Panel, m.PanelSunken, k / 100.0);
+            if (Contrast(availableFill, f) >= StateFillSeparation) return f;
+        }
+        for (int k = 1; k <= 60; k++)
+        {
+            Rgba f = Mix(m.PanelSunken, m.Border, k / 100.0);
+            if (Contrast(availableFill, f) >= StateFillSeparation) return f;
+        }
+        return Mix(m.PanelSunken, m.Border, 0.6);
     }
 
     private static Rgba Lane(double hue, double s, double l, Pigment p) => FromHsl(hue, s * p.Saturation, l + p.LightShift);

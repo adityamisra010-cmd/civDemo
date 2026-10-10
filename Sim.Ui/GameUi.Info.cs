@@ -153,7 +153,12 @@ public sealed partial class GameUi
     private void RegisterItem(InfoSubject subject, string label, bool passive = false, bool clipToWindow = false)
     {
         System.Numerics.Vector2 a = ImGui.GetItemRectMin(), b = ImGui.GetItemRectMax();
-        var r = new RectD(a.X, a.Y, b.X - a.X, b.Y - a.Y);
+        RegisterRect(new RectD(a.X, a.Y, b.X - a.X, b.Y - a.Y), subject, label, passive, clipToWindow);
+    }
+
+    /// <summary>Registers a screen rect (a row painted as several items — UR-3's statement and value column).</summary>
+    private void RegisterRect(RectD r, InfoSubject subject, string label, bool passive = false, bool clipToWindow = false)
+    {
         if (clipToWindow)
         {
             RectD win = CurrentWindowRect();
@@ -194,20 +199,26 @@ public sealed partial class GameUi
             _session.Names.Name, queued.Count);
         _drawListBackend ??= new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts);
 
-        BeginChrome(Placed(PanelLayout.Context));
-        DrawPanelFurniture(Placed(ChromeGeometry.Context));
+        // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
+        // title face; the close button flush right.
+        PanelRect panel = ContextRect;
+        float s = Scale;
+        BeginChrome(panel);
+        var element = new ChromeElement(panel, RulePlacement.UnderHeaderRow);
+        DrawPanelFurniture(element);
         float frameHeight = ImGui.GetFrameHeight();
-        ScreenRect close = ChromeGeometry.CloseButton(ChromeGeometry.Context, frameHeight);
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("DETAILS");
-        PlaceCursor(PanelLayout.Context, close);
+        ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight, s);
+        ScreenRect head = ChromeGeometry.HeaderRow(element, frameHeight, s);
+        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(head.X + 2f * s, head.Y));
+        TitleRow("DETAILS", close.X - head.X - 10f * s, frameHeight);
+        PlaceCursor(panel, close);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
         bool closeClicked = ImGui.Button(ChromeGeometry.CloseGlyph + "##info-close", Size(close));
         Controls.Record("info-close");
         ImGui.PopStyleVar();
 
-        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(ChromeGeometry.Context, frameHeight) - PanelLayout.Context.Y);
+        ImGui.SetCursorPosY(ChromeGeometry.ContentTop(element, frameHeight, s) - panel.Y);
         var bodyKey = (_openSection, _inspector.Subject);
         if (bodyKey != _infoBodyKey) ImGui.SetNextWindowScroll(System.Numerics.Vector2.Zero);
         _infoBodyKey = bodyKey;
@@ -235,9 +246,13 @@ public sealed partial class GameUi
 
     private RectD InfoOverlayRect()
     {
+        // UR-4: the bars and the detail column are sized by the UI scale (instance values): the card takes the detail
+        // panel's place — docked beside the tree, or the drawer's place over its right edge.
+        if (_progression is { } screen) return screen.DetailRect;
         double w = _viewportWidth, h = _viewportHeight;
-        double top = Sim.Ui.Progression.ProgressionScreen.LensBarH + Sim.Ui.Progression.ProgressionScreen.TabBarH;
-        return new RectD(w - Sim.Ui.Progression.ProgressionScreen.DetailW, top, Sim.Ui.Progression.ProgressionScreen.DetailW, Math.Max(100, h - top));
+        double top = (Sim.Ui.Progression.ProgressionScreen.LensBarRef + Sim.Ui.Progression.ProgressionScreen.TabBarRef) * Scale;
+        double dw = Sim.Ui.Progression.ProgressionScreen.DetailRef * Scale;
+        return new RectD(w - dw, top, dw, Math.Max(100, h - top));
     }
 
     /// <summary>Paints the pinned card over the research screen's detail column, and registers the screen's regions

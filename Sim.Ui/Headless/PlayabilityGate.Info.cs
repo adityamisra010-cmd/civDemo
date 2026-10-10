@@ -168,6 +168,11 @@ public static partial class PlayabilityGate
                 Screen.Focus(pick, jump: true);
                 h.MoveTo(h.Width - 20, h.Height - 120);   // off the tree: the detail panel shows the selected node
                 h.Idle(5);
+                // UR-4 (merge of m5p-ui): the detail panel SCROLLS, in decision order, and registers a region only where
+                // it is visible — in a small window ENABLES can sit below the fold, so the player scrolls the panel.
+                Sim.Ui.Render.RectD detail = Screen.DetailRect;
+                for (int step = 0; step < 30 && FirstHit(InfoKind.Entity) is null && Screen.Selected == pick; step++)
+                    h.Wheel(detail.CenterX, detail.Bottom - 30, -1);
                 if (FirstHit(InfoKind.Entity) is not { } hit) return (GateResult.Fail, "the detail panel registers no entity for " + c.Nodes[pick].Id);
                 return ShiftCheck(hit);
             });

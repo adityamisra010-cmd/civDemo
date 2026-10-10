@@ -12,7 +12,7 @@ namespace Sim.Ui.Progression;
 /// <summary>The two sibling trees under KNOWLEDGE &amp; TECHNOLOGY (ruling 11).</summary>
 public enum TreeTab { Technology = 0, Civics = 1 }
 
-public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen }
+public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen, CloseDetail, Panel }
 
 public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 
@@ -35,7 +35,61 @@ public sealed record ProgressionCommand(bool Close, OrderRecord? Order, Research
 /// </summary>
 public sealed partial class ProgressionScreen
 {
-    public const double LensBarH = 58, TabBarH = 50, DetailW = 404, ColumnHeaderH = 34, ControlRowH = 38, HeaderH = ColumnHeaderH + ControlRowH;
+    // UR-4 (M5 polish, UI readability): the screen's strips at the 1080p reference (UI scale 1) — tall enough for their
+    // text at the type scale's roles (nothing below Caption); every length is × Scale.
+    public const double LensBarRef = 66, TabBarRef = 58, ColumnHeaderRef = 40, ControlRowRef = 44, DetailRef = 440, StripRef = 64;
+
+    /// <summary>The window width (at UI scale 1) from which the detail panel is DOCKED beside the tree; below it the
+    /// panel is an overlay DRAWER that opens over the tree's right edge when a node is selected (UR-4).</summary>
+    public const double DockMinWidth = 1600;
+
+    /// <summary>The UI scale the screen is set at (UR-1): every strip, card, gap and role size is × this.</summary>
+    public double Scale
+    {
+        get => _scale;
+        set { double v = Math.Clamp(value, 0.5, 4.0); if (v != _scale) { _scale = v; EnsureLayouts(); } }
+    }
+    private double _scale = 1.0;
+
+    public double LensBarH => LensBarRef * _scale;
+    public double TabBarH => TabBarRef * _scale;
+    /// <summary>The sticky lane header: one row of lane chips.</summary>
+    public double ColumnHeaderH => ColumnHeaderRef * _scale;
+    public double ControlRowH => ControlRowRef * _scale;
+    public double HeaderH => ColumnHeaderH + ControlRowH;
+    public double DetailW => Math.Min(DetailRef * _scale, Math.Max(200, _w - 160 * _scale));
+
+    /// <summary>Whether the detail panel is docked beside the tree (wide windows) rather than an overlay drawer.</summary>
+    public bool Docked => _w >= DockMinWidth * _scale;
+
+    /// <summary>Whether the overlay drawer is open (narrow windows: a node of the tree on show is selected).</summary>
+    public bool DrawerOpen => !Docked && Lens == Lens.KnowledgeAndTechnology && Selected >= 0 && InTab(Selected);
+
+    /// <summary>Whether a content node belongs to the tree on show.</summary>
+    private bool InTab(int contentIndex) => Content.Nodes[contentIndex].Tree == (ResearchTree)((int)Tab + 1);
+
+    /// <summary>The node the detail panel shows: the hovered card, else the selected node of the tree on show, or -1.</summary>
+    public int DetailNode => Hovered >= 0 ? Hovered : Selected >= 0 && InTab(Selected) ? Selected : -1;
+
+    /// <summary>The detail panel's rect: docked, the column right of the tree under the tab bar; as a drawer, the
+    /// same width over the tree's right edge — left of the overview strip, under the lane header and control row (all
+    /// of which stay usable).</summary>
+    public RectD DetailRect => Docked
+        ? new RectD(_w - DetailW, LensBarH + TabBarH, DetailW, Math.Max(100, _h - LensBarH - TabBarH))
+        : new RectD(_w - (MinimapVisible ? StripW : 0) - DetailW, LensBarH + TabBarH + HeaderH, DetailW, Math.Max(100, _h - LensBarH - TabBarH - HeaderH));
+
+    /// <summary>Closes the overlay drawer (deselects); false when there was none.</summary>
+    public bool CloseDrawer()
+    {
+        if (!DrawerOpen) return false;
+        Selected = -1;
+        return true;
+    }
+
+    /// <summary>Whether a screen point on the canvas is covered by the overview strip or the open drawer (a card under
+    /// it is neither hovered nor clicked).</summary>
+    public bool Obscured(double x, double y) =>
+        (MinimapVisible && MinimapRect().Contains(x, y)) || (DrawerOpen && DetailRect.Contains(x, y));
 
     public ResearchContent Content { get; }
     /// <summary>Whether the overview minimap is shown (toggled by its button).</summary>
@@ -70,26 +124,31 @@ public sealed partial class ProgressionScreen
         Content = content;
         Polity = polity;
         Graphs = [ResearchGraph.Build(content, ResearchTree.Technology), ResearchGraph.Build(content, ResearchTree.Civics)];
-        var o = new TreeLayoutOptions(ViewportWidth: TreeViewportWidth);
+        TreeLayoutOptions o = TreeLayoutOptions.Scaled(_scale, TreeViewportWidth);
         Layouts = [ResearchTreeLayout.Compute(Graphs[0], o), ResearchTreeLayout.Compute(Graphs[1], o)];
         _collapsed = [new bool[Layouts[0].Lanes.Count], new bool[Layouts[1].Lanes.Count]];
+        _layoutScale = _scale;
     }
 
     private readonly bool[][] _collapsed;
+    private double _layoutScale;
 
     /// <summary>Width of the vertical overview strip docked at the canvas's right edge.</summary>
-    public const double StripW = 64;
+    public double StripW => StripRef * _scale;
 
-    /// <summary>The width the tree must fit at zoom 1: the canvas minus the overview strip. The
-    /// layout is recomputed whenever this changes, so there is never horizontal overflow.</summary>
-    public double TreeViewportWidth => Math.Max(100, _w - DetailW) - (MinimapVisible ? StripW : 0);
+    /// <summary>The width the tree must fit at zoom 1: the canvas (the window, less the docked detail panel) minus the
+    /// overview strip. The layout is recomputed whenever this changes, so there is never horizontal overflow.</summary>
+    public double TreeViewportWidth => Math.Max(100, Docked ? _w - DetailW : _w) - (MinimapVisible ? StripW : 0);
 
     private void EnsureLayouts()
     {
+        if (Layouts is null) return;
         double vw = TreeViewportWidth;
+        bool rescale = _layoutScale != _scale;
         for (int t = 0; t < 2; t++)
-            if (Layouts[t].Options.ViewportWidth != vw)
-                Layouts[t] = ResearchTreeLayout.Compute(Graphs[t], Layouts[t].Options with { ViewportWidth = vw }, _collapsed[t]);
+            if (rescale || Layouts[t].Options.ViewportWidth != vw)
+                Layouts[t] = ResearchTreeLayout.Compute(Graphs[t], TreeLayoutOptions.Scaled(_scale, vw), _collapsed[t]);
+        _layoutScale = _scale;
     }
 
     public bool IsLaneCollapsed(int lane) => _collapsed[(int)Tab][lane];
@@ -183,7 +242,7 @@ public sealed partial class ProgressionScreen
     public ProgressionCamera Camera => Cameras[(int)Tab];
     public IReadOnlyList<HitRegion> Hits => _hits;
     public RectD Canvas => Lens == Lens.KnowledgeAndTechnology
-        ? new RectD(0, LensBarH + TabBarH + HeaderH, Math.Max(100, _w - DetailW), Math.Max(100, _h - LensBarH - TabBarH - HeaderH))
+        ? new RectD(0, LensBarH + TabBarH + HeaderH, Math.Max(100, Docked ? _w - DetailW : _w), Math.Max(100, _h - LensBarH - TabBarH - HeaderH))
         : new RectD(0, LensBarH, _w, Math.Max(100, _h - LensBarH));
 
     /// <summary>Re-read the world (cheap to call every frame: rebuilds only when the world changed).</summary>
@@ -200,28 +259,44 @@ public sealed partial class ProgressionScreen
 
     // ------------------------------------------------------------------ input
 
-    public void PointerMove(double x, double y) => Hovered = NodeAt(x, y);
+    /// <summary>Tracks the pointer: the card under it is HOVERED, and the chrome's controls answer hover (UR-4).</summary>
+    public void PointerMove(double x, double y)
+    {
+        _pointer = (x, y);
+        Hovered = NodeAt(x, y);
+    }
+
+    private (double X, double Y)? _pointer;
+
+    /// <summary>Whether the pointer is over <paramref name="r"/> (a DrawList control's hover state).</summary>
+    private bool Over(RectD r) => _pointer is (double px, double py) && r.Contains(px, py);
 
     /// <summary>Content index of the card under a screen point on the current tree, or -1.</summary>
     public int NodeAt(double x, double y)
     {
         if (Lens != Lens.KnowledgeAndTechnology) return -1;
         RectD c = Canvas;
-        if (!c.Contains(x, y) ||  (MinimapVisible && MinimapRect().Contains(x, y))) return -1;
+        if (!c.Contains(x, y) || Obscured(x, y)) return -1;
         int v = Layout.HitTest(Camera.ToWorldX(x, c.X), Camera.ToWorldY(y, c.Y));
         return v < 0 ? -1 : Graph.Vertices[v].ContentIndex;
     }
 
-    /// <summary>Pixels the view scrolls per wheel notch.</summary>
+    /// <summary>Pixels the view scrolls per wheel notch (× the UI scale).</summary>
     public const double WheelStepPx = 120;
 
-    /// <summary>The wheel SCROLLS along the single axis (vertical); zoom is <see cref="WheelZoom"/>.</summary>
+    /// <summary>The wheel SCROLLS along the single axis (vertical); zoom is <see cref="WheelZoom"/>. Over the detail
+    /// panel (docked or drawer) it scrolls the panel instead.</summary>
     public void Wheel(double x, double y, double notches)
     {
+        if (Lens != Lens.KnowledgeAndTechnology) return;
+        if ((Docked || DrawerOpen) && DetailRect.Contains(x, y)) { _detailScroll = Math.Max(0, _detailScroll - notches * WheelStepPx * 0.5 * _scale); return; }
         RectD c = Canvas;
-        if (Lens != Lens.KnowledgeAndTechnology || !c.Contains(x, y)) return;
-        ScrollBy(0, -notches * WheelStepPx);
+        if (!c.Contains(x, y)) return;
+        ScrollBy(0, -notches * WheelStepPx * _scale);
     }
+
+    private double _detailScroll;
+    private int _detailNode = int.MinValue;
 
     /// <summary>Zoom about the pointer (Ctrl + wheel in the game). Zoom stays available; above
     /// zoom 1 the drawing may become wider than the view, the only case horizontal panning works.</summary>
@@ -257,11 +332,15 @@ public sealed partial class ProgressionScreen
     /// </summary>
     public ProgressionCommand Click(double x, double y)
     {
-        foreach (HitRegion h in _hits)
+        // Later-painted regions lie on top (the drawer over the tree): the last region under the point answers.
+        for (int i = _hits.Count - 1; i >= 0; i--)
         {
+            HitRegion h = _hits[i];
             if (!h.Rect.Contains(x, y)) continue;
             switch (h.Kind)
             {
+                case HitKind.Panel: return ProgressionCommand.None;
+                case HitKind.CloseDetail: Selected = -1; return ProgressionCommand.None;
                 case HitKind.Close: return new ProgressionCommand(true, null, null);
                 case HitKind.AgeOpen: return new ProgressionCommand(false, null, null) { OpenAge = true };
                 case HitKind.Lens: SetLens((Lens)h.Arg); return ProgressionCommand.None;
@@ -373,6 +452,7 @@ public sealed partial class ProgressionScreen
             PaintTree(d, m);
             PaintTabBar(d, m);
             PaintDetail(d, m);
+            PaintHoverTip(d, m);
         }
         else PaintLensPage(d, m);
         PaintLensBar(d, m);
@@ -387,119 +467,245 @@ public sealed partial class ProgressionScreen
     /// <summary>A selected tab / lens / toggle: the raised material warmed by the era's accent.</summary>
     private Rgba SelectedFill => Mix(Theme.Material.PanelRaised, Theme.Material.Accent, 0.14);
 
+    /// <summary>A hovered control: the raised material warmed a little more (the state table's +22 % accent).</summary>
+    private Rgba HoverFill => Mix(Theme.Material.PanelRaised, Theme.Material.Accent, 0.22);
+
+    // UR-4: every run is set by ROLE (TypeScale) × the UI scale, never by a literal; ThemeText.Write applies the era's
+    // size scale on top (never below 1). Geometry — every rect and hit region — comes from constants × the UI scale and
+    // the era-INVARIANT measure, so the regions are the same in every era (continuity).
+    private double Px(TypeRole role, FontRole font = FontRole.Body) => TypeScale.Px(Theme, role, font) * _scale;
+    private double Sp(double v) => v * _scale;
+    private double Line(double designPx) => Theme.Type.Line(designPx);
+
+    /// <summary>The era-invariant width estimate of a capitals label at the Caption role (geometry only): the unstyled
+    /// run widened for the widest era's tracking and weight.</summary>
+    private double CapsGeometryWidth(ITextMeasure m, string label) =>
+        m.Width(label, TypeScale.Px(TypeRole.Caption, TypeFace.Garamond, caps: true) * _scale, FontRole.Caps) * 1.18;
+
+    /// <summary>The design size at which the SET run fits <paramref name="width"/>: its own size when it fits, else
+    /// smaller — but never below the Caption floor of the run's face (UR-4: no run is set below Caption).</summary>
+    private double FitFloor(ITextMeasure m, string text, double design, double width, FontRole role = FontRole.Body)
+    {
+        EraTheme t = Theme;
+        double floorDesign = TypeScale.Floor(t.Type.For(role).Face) * _scale / t.Type.SizeScale;
+        if (design <= floorDesign) return design;
+        double fit = ThemeText.FitSize(m, t, text, design, width, role, Math.Min(1.0, floorDesign / design));
+        return Math.Max(floorDesign, fit);
+    }
+
+    /// <summary>Writes a run fitted to <paramref name="width"/> (shrunk to the floor, then ellipsised as a last resort).</summary>
+    private void WriteFit(DrawList d, ITextMeasure m, double x, double y, string text, double design, double width, Rgba color,
+        TextAlign align = TextAlign.Left, FontRole role = FontRole.Body)
+    {
+        double size = FitFloor(m, text, design, width, role);
+        d.Write(Theme, x, y, ThemeText.Fit(m, Theme, text, size, width, role), size, color, align, role);
+    }
+
+    // The text inks of this theme (derived once per theme: TextInks darkens each pigment to its floor).
+    private EraTheme? _inkTheme;
+    private TextInks _ink = null!;
+    private Rgba _availableInk, _completedInk, _lockedInk, _activeInk, _progressInk;
+
+    /// <summary>The token floor of a card's state-line ink on the panel (UR-7, measured on the rendered frame).</summary>
+    public const double StateInkFloor = 8.0;
+    private TextInks Ink
+    {
+        get
+        {
+            if (!ReferenceEquals(_inkTheme, Theme))
+            {
+                _inkTheme = Theme;
+                _ink = Theme.TextInk;
+                // The state lines are the card's sentence at the body role in a regular weight: the family's ink
+                // darkened to 8:1 on the panel (the 5.5:1 text inks measured ~3:1 as rendered, thin strokes on the
+                // state fills) — dark, but still its family's hue; a locked card's reason in the body ink (its lock
+                // mark is the non-colour cue).
+                _availableInk = TextInks.Darken(Theme.Semantic.Available, Theme.Ink.Text, Theme.Material.Panel, StateInkFloor);
+                _completedInk = TextInks.Darken(Theme.Semantic.Completed, Theme.Ink.Text, Theme.Material.Panel, StateInkFloor);
+                _activeInk = TextInks.Darken(Theme.Semantic.Active, Theme.Ink.Text, Theme.Material.Panel, StateInkFloor);
+                _progressInk = TextInks.Darken(Theme.Semantic.Progress, Theme.Ink.Text, Theme.Material.Panel, StateInkFloor);
+                _lockedInk = Theme.Ink.Text;
+            }
+            return _ink;
+        }
+    }
+
+    /// <summary>The lane's hue as a TEXT ink (a lane name is words, not a mark).</summary>
+    private Rgba LaneInk(Rgba hue) => TextInks.For(hue, Theme);
+
     private void PaintLensBar(DrawList d, ITextMeasure m)
     {
         EraTheme t = Theme;
-        PanelFrame.Paint(d, new RectD(0, 0, _w, LensBarH), t, 101, FrameKind.Bar);
-        d.Write(t, 20, 10, "PROGRESSION", 11, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
-        d.Write(t, 20, 26, "Turn " + Sim.Ui.ViewModel.PlayerTurn.Current(Snapshot!.Turn).ToString(CultureInfo.InvariantCulture), 17, t.Ink.OnChrome, TextAlign.Left, FontRole.Heading);
+        double barH = LensBarH;
+        PanelFrame.Paint(d, new RectD(0, 0, _w, barH), t, 101, FrameKind.Bar);
+        double caps = Px(TypeRole.Caption, FontRole.Caps);
+        d.Write(t, Sp(20), Sp(9), "PROGRESSION", caps, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
+        d.Write(t, Sp(20), Sp(9) + Line(caps) + Sp(1), "Turn " + Sim.Ui.ViewModel.PlayerTurn.Current(Snapshot!.Turn).ToString(CultureInfo.InvariantCulture),
+            Px(TypeRole.Heading, FontRole.Heading), t.Ink.OnChrome, TextAlign.Left, FontRole.Heading);
 
-        // Slot geometry from the era-invariant measure (the same slots in every era).
-        double x0 = 150, right = _w - 150;
-        double size = 13;
+        // The research rate and the close button on the right.
+        var close = new RectD(_w - Sp(54), (barH - Sp(38)) / 2, Sp(38), Sp(38));
+        PanelFrame.Paint(d, close, t, 120, FrameKind.Button, Over(close) ? HoverFill : null, Over(close) ? t.Material.BorderStrong : null);
+        EraMarks.Close(d, t, close, t.Ink.Text, 121);
+        _hits.Add(new HitRegion(close, HitKind.Close, 0));
+        double rx = close.X - Sp(14);
+        d.Write(t, rx, Sp(6), Snapshot.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture), Px(TypeRole.Kpi, FontRole.Numeric),
+            t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
+        d.Write(t, rx, Sp(6) + Line(Px(TypeRole.Kpi, FontRole.Numeric)) - Sp(4), "research / turn", Px(TypeRole.Caption), t.Ink.OnChromeSoft, TextAlign.Right);
+
+        // Lens slots between the two blocks, geometry from the era-invariant measure (the same slots in every era).
+        double x0 = Sp(150), right = _w - Sp(190);
+        double sub = Px(TypeRole.Caption);
+        var want = new double[Lenses.All.Count];
+        var subs = new string[Lenses.All.Count];
         double total = 0;
-        foreach (Lens l0 in Lenses.All) total += m.Width(Lenses.Label(l0), size, FontRole.Caps) + 34;
-        if (total > right - x0) { size *= (right - x0) / total; total = right - x0; }
-        double extra = (right - x0 - total) / Lenses.All.Count;
+        for (int i = 0; i < want.Length; i++)
+        {
+            Lens l = Lenses.All[i];
+            LensStatus status = l == Lens.KnowledgeAndTechnology ? LensStatus.Functional
+                : l == Lens.Industry ? LensStatus.NotYetSimulated : LensStatus.PartialData;
+            subs[i] = status switch { LensStatus.Functional => "simulated", LensStatus.PartialData => "partial", _ => "not yet simulated" };
+            want[i] = Math.Max(CapsGeometryWidth(m, Lenses.Label(l)), m.Width(subs[i], TypeScale.Px(TypeRole.Caption, TypeFace.Garamond) * _scale, FontRole.Body) * 1.08) + Sp(24);
+            total += want[i];
+        }
+        // Too narrow for every label and its status word: the status words go (each lens page states its status).
+        bool compact = total > right - x0;
+        if (compact)
+        {
+            total = 0;
+            for (int i = 0; i < want.Length; i++) { want[i] = CapsGeometryWidth(m, Lenses.Label(Lenses.All[i])) + Sp(18); total += want[i]; }
+        }
+        double extra = Math.Max(0, (right - x0 - total) / want.Length);
+        double squeeze = total > right - x0 ? (right - x0) / total : 1.0;
         double lx0 = x0;
         for (int i = 0; i < Lenses.All.Count; i++)
         {
             Lens l = Lenses.All[i];
-            double slotW = m.Width(Lenses.Label(l), size, FontRole.Caps) + 34 + extra;
-            var r = new RectD(lx0 + 3, 8, slotW - 6, LensBarH - 16);
+            double slotW = want[i] * squeeze + extra;
+            var r = new RectD(lx0 + Sp(3), Sp(7), slotW - Sp(6), barH - Sp(14));
             lx0 += slotW;
             bool on = l == Lens;
-            LensStatus status = l == Lens.KnowledgeAndTechnology ? LensStatus.Functional
-                : l == Lens.Industry ? LensStatus.NotYetSimulated : LensStatus.PartialData;
+            bool hover = !on && Over(r);
+            bool notYet = l == Lens.Industry;
             if (on)
             {
                 PanelFrame.Paint(d, r, t, 110 + i, FrameKind.Button, SelectedFill, t.Material.Accent, 1.1);
-                d.Rect(new RectD(r.X + 10, r.Bottom - 4, r.W - 20, 2.5), t.Material.Accent);
+                d.Rect(new RectD(r.X + Sp(10), r.Bottom - Sp(4), r.W - Sp(20), Sp(3)), t.Material.Accent);
             }
-            Rgba col = on ? t.Ink.Text : status == LensStatus.NotYetSimulated ? t.Ink.OnChromeSoft : t.Ink.OnChrome;
-            double ls = ThemeText.FitSize(m, t, Lenses.Label(l), size, r.W - 8, FontRole.Caps);
-            d.Write(t, r.CenterX, r.Y + 6 + (size - ls) / 2, ThemeText.Fit(m, t, Lenses.Label(l), ls, r.W - 8, FontRole.Caps), ls, col, TextAlign.Center, FontRole.Caps);
-            string sub = status switch { LensStatus.Functional => "simulated", LensStatus.PartialData => "partial", _ => "not yet simulated" };
-            d.Write(t, r.CenterX, r.Y + 24, sub, 10.5, on ? t.Ink.TextSoft : t.Ink.OnChromeSoft, TextAlign.Center);
+            else if (hover) PanelFrame.Paint(d, r, t, 110 + i, FrameKind.Button, Mix(t.Material.Chrome, t.Material.Accent, 0.25), t.Material.AccentSoft, 0.9);
+            Rgba col = on ? t.Ink.Text : notYet ? t.Ink.OnChromeSoft : t.Ink.OnChrome;
+            double ly = compact ? r.Y + (r.H - t.Type.Size(caps)) / 2 - Sp(2) : r.Y + Sp(5);
+            WriteFit(d, m, r.CenterX, ly, Lenses.Label(l), caps, r.W - Sp(8), col, TextAlign.Center, FontRole.Caps);
+            if (!compact)
+                WriteFit(d, m, r.CenterX, r.Y + Sp(5) + Line(caps), subs[i], sub, r.W - Sp(8), on ? t.Ink.TextSoft : t.Ink.OnChromeSoft, TextAlign.Center);
             _hits.Add(new HitRegion(r, HitKind.Lens, (int)l));
         }
-
-        d.Write(t, _w - 64, 12, Snapshot.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture), 18, t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
-        d.Write(t, _w - 64, 34, "research / turn", 10.5, t.Ink.OnChromeSoft, TextAlign.Right);
-        var close = new RectD(_w - 52, 12, 36, 34);
-        PanelFrame.Paint(d, close, t, 120, FrameKind.Button);
-        EraMarks.Close(d, t, close, t.Ink.Text, 121);
-        _hits.Add(new HitRegion(close, HitKind.Close, 0));
     }
 
     private void PaintTabBar(DrawList d, ITextMeasure m)
     {
         EraTheme t = Theme;
-        double y = LensBarH;
-        PanelFrame.Paint(d, new RectD(0, y, _w, TabBarH), t, 102, FrameKind.Bar);
+        double y = LensBarH, barH = TabBarH;
+        PanelFrame.Paint(d, new RectD(0, y, _w, barH), t, 102, FrameKind.Bar);
         ResearchSnapshot s = Snapshot!;
         string[] names = ["TECHNOLOGY", "CIVICS"];
         string[] counts = [s.CompletedTechnology + " / " + Content.TechnologyCount, s.CompletedCivics + " / " + Content.CivicsCount];
+        double tabW = Sp(226), tabH = barH - Sp(12);
+        double heading = Px(TypeRole.Heading, FontRole.Caps), data = Px(TypeRole.Data, FontRole.Numeric);
         for (int i = 0; i < 2; i++)
         {
-            var r = new RectD(16 + i * 196, y + 7, 186, TabBarH - 14);
+            var r = new RectD(Sp(14) + i * (tabW + Sp(8)), y + Sp(6), tabW, tabH);
             bool on = (int)Tab == i;
-            PanelFrame.Paint(d, r, t, 130 + i, FrameKind.Button, on ? SelectedFill : t.Material.Chrome, on ? t.Material.Accent : t.Ink.OnChromeSoft, on ? 1.1 : 0.8);
-            d.Write(t, r.X + 14, r.Y + 9, names[i], 14, on ? t.Ink.Text : t.Ink.OnChrome, TextAlign.Left, FontRole.Caps);
-            d.Write(t, r.Right - 12, r.Y + 10, counts[i], 13, on ? t.Ink.Text : t.Ink.OnChromeSoft, TextAlign.Right, FontRole.Numeric);
+            bool hover = !on && Over(r);
+            PanelFrame.Paint(d, r, t, 130 + i, FrameKind.Button, on ? SelectedFill : hover ? Mix(t.Material.Chrome, t.Material.Accent, 0.25) : t.Material.Chrome,
+                on ? t.Material.Accent : hover ? t.Material.AccentSoft : t.Ink.OnChromeSoft, on ? 1.1 : 0.8);
+            if (on) d.Rect(new RectD(r.X + Sp(10), r.Bottom - Sp(4), r.W - Sp(20), Sp(3)), t.Material.Accent);
+            double cw = m.Width(t, counts[i], data, FontRole.Numeric);
+            WriteFit(d, m, r.X + Sp(14), r.Y + (r.H - t.Type.Size(heading)) / 2 - Sp(2), names[i], heading, r.W - cw - Sp(36), on ? t.Ink.Text : t.Ink.OnChrome, TextAlign.Left, FontRole.Caps);
+            d.Write(t, r.Right - Sp(12), r.Y + (r.H - t.Type.Size(data)) / 2 - Sp(2), counts[i], data, on ? t.Ink.Text : t.Ink.OnChromeSoft, TextAlign.Right, FontRole.Numeric);
             _hits.Add(new HitRegion(r, HitKind.Tab, i));
         }
 
-        // The current target capsule.
-        double cx = 420;
+        // The current target capsule, the Age chip and (where there is room) the state legend, left to right.
+        double cx = Sp(14) + 2 * tabW + Sp(8) + Sp(16);
+        double rest = _w - cx - Sp(14);
         bool ageChip = Age is { State: not Sim.Ui.Ages.AgePanelState.NoContent };
-        var cap = new RectD(cx, y + 7, Math.Min(ageChip ? 360 : 420, _w - DetailW - cx - 20), TabBarH - 14);
-        if (ageChip) PaintAgeChip(d, m, new RectD(cap.Right + 12, y + 7, _w - DetailW - 20 - cap.Right - 12, TabBarH - 14));
-        if (cap.W > 160)
-        {
-            PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, t.Semantic.ActiveFill, A(t.Semantic.Active, 0.7));
-            if (s.TargetIndex is int ti)
-            {
-                ResearchNodeView v = s.Nodes[ti];
-                d.Write(t, cap.X + 12, cap.Y + 4, "RESEARCHING", 9.5, t.Semantic.Active, TextAlign.Left, FontRole.Caps);
-                d.Write(t, cap.X + 12, cap.Y + 16, ThemeText.Fit(m, t, v.Name, 14, cap.W - 150, FontRole.Heading), 14, t.Ink.Text, TextAlign.Left, FontRole.Heading);
-                EraMarks.Progress(d, t, new RectD(cap.Right - 128, cap.Y + 19, 76, 8), v.Fraction, t.Semantic.Active, 141);
-                d.Write(t, cap.Right - 12, cap.Y + 13, Pct(v.Fraction), 13, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
-            }
-            else
-            {
-                d.Write(t, cap.X + 12, cap.Y + 10, ThemeText.Fit(m, t, PendingTarget >= 0
-                    ? "Target ordered: " + s.Nodes[PendingTarget].Name + " - applies at End Turn"
-                    : "No research target - research points are idle. Choose an available node.", 12.5, cap.W - 20), 12.5,
-                    PendingTarget >= 0 ? t.Semantic.Active : t.Semantic.Progress, TextAlign.Left);
-            }
-        }
+        double capW = Math.Min(Sp(470), ageChip ? rest * 0.56 : rest);
+        double chipW = ageChip ? Math.Min(Sp(400), rest - capW - Sp(12)) : 0;
+        double legendW = Sp(330);
+        bool legend = rest - capW - (ageChip ? chipW + Sp(12) : 0) - Sp(16) >= legendW;
+        var cap = new RectD(cx, y + Sp(5), capW, barH - Sp(10));
+        if (cap.W > Sp(160)) PaintCapsule(d, m, cap);
+        if (ageChip && chipW >= Sp(180)) PaintAgeChip(d, m, new RectD(cap.Right + Sp(12), y + Sp(5), chipW, barH - Sp(10)));
+        if (!legend) return;
 
-        // Legend: the four card states, as cards of this era.
-        double lx = _w - DetailW + 14;
-        (string, Rgba, Rgba)[] keys = [("Done", t.Semantic.CompletedFill, t.Semantic.Completed), ("Target", t.Semantic.ActiveFill, t.Semantic.Active),
-            ("Open", t.Semantic.AvailableFill, t.Semantic.Available), ("Locked", t.Semantic.LockedFill, t.Semantic.Locked)];
+        // Legend: the four card states, as cards of this era, right-aligned.
+        (string, Rgba, Rgba)[] keys = [("Known", t.Semantic.CompletedFill, t.Semantic.Completed), ("Target", t.Semantic.ActiveFill, t.Semantic.Active),
+            ("Available", t.Semantic.AvailableFill, t.Semantic.Available), ("Locked", t.Semantic.LockedFill, t.Semantic.Locked)];
+        double cap0 = Px(TypeRole.Caption);
+        double lw = 0;
+        foreach ((string label, _, _) in keys) lw += Sp(22) + m.Width(t, label, cap0) + Sp(14);
+        double lx = _w - Sp(14) - lw;
         int k = 0;
         foreach ((string label, Rgba fill, Rgba edge) in keys)
         {
-            PanelFrame.Paint(d, new RectD(lx, y + 17, 16, 14), t, 150 + k++, FrameKind.Chip, fill, edge, 1.4);
-            d.Write(t, lx + 21, y + 16, label, 11.5, t.Ink.OnChromeSoft);
-            lx += 28 + m.Width(t, label, 11.5) + 8;
+            PanelFrame.Paint(d, new RectD(lx, y + (barH - Sp(16)) / 2, Sp(18), Sp(16)), t, 150 + k++, FrameKind.Chip, fill, edge, 1.4);
+            d.Write(t, lx + Sp(22), y + (barH - t.Type.Size(cap0)) / 2 - Sp(2), label, cap0, t.Ink.OnChromeSoft);
+            lx += Sp(22) + m.Width(t, label, cap0) + Sp(14);
         }
+    }
+
+    /// <summary>The research capsule: the target with its progress, or — the turn-1 call to action — a warning that
+    /// research points are idle, in the progress family's TEXT ink with a mark (it read as disabled at 2.41:1).</summary>
+    private void PaintCapsule(DrawList d, ITextMeasure m, RectD cap)
+    {
+        EraTheme t = Theme;
+        ResearchSnapshot s = Snapshot!;
+        double caps = Px(TypeRole.Caption, FontRole.Caps), body = Px(TypeRole.Body, FontRole.Heading);
+        if (s.TargetIndex is int ti)
+        {
+            PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, t.Semantic.ActiveFill, A(t.Semantic.Active, 0.8), 1.0);
+            ResearchNodeView v = s.Nodes[ti];
+            d.Write(t, cap.X + Sp(12), cap.Y + Sp(3), "RESEARCHING", caps, Ink.Active, TextAlign.Left, FontRole.Caps);
+            string pct = Pct(v.Fraction);
+            double data = Px(TypeRole.Data, FontRole.Numeric);
+            double pw = m.Width(t, pct, data, FontRole.Numeric);
+            WriteFit(d, m, cap.X + Sp(12), cap.Y + Sp(3) + Line(caps) - Sp(2), v.Name, body, cap.W - Sp(24) - Sp(96) - pw, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+            EraMarks.Progress(d, t, new RectD(cap.Right - Sp(18) - pw - Sp(82), cap.CenterY - Sp(4), Sp(76), Sp(8)), v.Fraction, t.Semantic.Active, 141);
+            d.Write(t, cap.Right - Sp(12), cap.Y + (cap.H - t.Type.Size(data)) / 2 - Sp(2), pct, data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
+            return;
+        }
+        bool ordered = PendingTarget >= 0;
+        PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, ordered ? t.Semantic.ActiveFill : t.Material.PanelRaised,
+            ordered ? A(t.Semantic.Active, 0.8) : t.Semantic.Progress, ordered ? 1.0 : 1.6);
+        double bodySize = Px(TypeRole.Body);
+        double ty = cap.Y + (cap.H - t.Type.Size(bodySize)) / 2 - Sp(3);
+        if (ordered)
+        {
+            WriteFit(d, m, cap.X + Sp(12), ty, "Target ordered: " + s.Nodes[PendingTarget].Name + " - applies at End Turn", bodySize, cap.W - Sp(24), t.Ink.Text);
+            return;
+        }
+        // "!" in a ring, the warning mark, then the sentence in the body ink.
+        double r0 = Sp(10), mx = cap.X + Sp(12) + r0;
+        d.Circle(mx, cap.CenterY, r0, Ink.Progress, null);
+        d.Write(t, mx, cap.CenterY - t.Type.Size(Px(TypeRole.Caption, FontRole.Heading)) * 0.62, "!", Px(TypeRole.Caption, FontRole.Heading), t.Material.Panel, TextAlign.Center, FontRole.Heading);
+        WriteFit(d, m, mx + r0 + Sp(10), ty, "Research idle - choose an available node", bodySize, cap.Right - Sp(12) - (mx + r0 + Sp(10)), t.Ink.Text);
     }
 
     /// <summary>The Age header chip: current Age, progress toward the next, and its state; a click opens
     /// the Age surface (milestones, Advance Age). Read from <see cref="Age"/> (AgeQuery), never invented.</summary>
     private void PaintAgeChip(DrawList d, ITextMeasure m, RectD r)
     {
-        if (r.W < 150 || Age is not { } a) return;
+        if (Age is not { } a) return;
         EraTheme t = Theme;
         bool eligible = a.State == Sim.Ui.Ages.AgePanelState.Eligible;
         bool pending = a.State == Sim.Ui.Ages.AgePanelState.Pending;
-        PanelFrame.Paint(d, r, t, 145, FrameKind.Chip, eligible ? Mix(t.Material.PanelRaised, t.Material.Accent, 0.18) : t.Material.PanelRaised,
-            eligible ? t.Material.Accent : pending ? t.Semantic.Active : t.Material.AccentSoft, eligible ? 1.8 : 1.0);
-        d.Write(t, r.X + 10, r.Y + 4, "AGE " + Sim.Ui.Ages.AgePanelModel.Numeral(a.CurrentAge), 9.5, t.Material.Accent, TextAlign.Left, FontRole.Caps);
-        d.Write(t, r.X + 10, r.Y + 16, ThemeText.Fit(m, t, a.CurrentAgeName, 13, r.W * 0.40, FontRole.Heading), 13, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+        bool hover = Over(r);
+        PanelFrame.Paint(d, r, t, 145, FrameKind.Chip, eligible ? Mix(t.Material.PanelRaised, t.Material.Accent, hover ? 0.28 : 0.18) : hover ? HoverFill : t.Material.PanelRaised,
+            eligible ? t.Material.Accent : pending ? t.Semantic.Active : hover ? t.Material.BorderStrong : t.Material.AccentSoft, eligible ? 1.8 : 1.0);
+        double caps = Px(TypeRole.Caption, FontRole.Caps);
+        string numeral = "AGE " + Sim.Ui.Ages.AgePanelModel.Numeral(a.CurrentAge);
+        d.Write(t, r.X + Sp(12), r.Y + Sp(3), numeral, caps, Ink.Accent, TextAlign.Left, FontRole.Caps);
         string right = a.State switch
         {
             Sim.Ui.Ages.AgePanelState.FinalAge => "final Age",
@@ -508,8 +714,10 @@ public sealed partial class ProgressionScreen
             _ => "next: core " + a.CoreMet + "/" + a.CoreTotal + " - supp. " + a.SupportingMet + "/" + a.SupportingRequired,
         };
         FontRole role = eligible ? FontRole.Caps : FontRole.Body;
-        d.Write(t, r.Right - 10, r.Y + 10, ThemeText.Fit(m, t, right, 11.5, r.W * 0.56, role), 11.5,
-            eligible ? t.Material.Accent : pending ? t.Semantic.Active : t.Ink.TextSoft, TextAlign.Right, role);
+        double rs = eligible ? caps : Px(TypeRole.Caption);
+        double nw = m.Width(t, numeral, caps, FontRole.Caps);
+        WriteFit(d, m, r.Right - Sp(12), r.Y + Sp(3), right, rs, r.W - Sp(36) - nw, eligible ? Ink.Accent : pending ? Ink.Active : t.Ink.TextSoft, TextAlign.Right, role);
+        WriteFit(d, m, r.X + Sp(12), r.Y + Sp(3) + Line(caps) - Sp(2), a.CurrentAgeName, Px(TypeRole.Body, FontRole.Heading), r.W - Sp(24), t.Ink.Text, TextAlign.Left, FontRole.Heading);
         _hits.Add(new HitRegion(r, HitKind.AgeOpen, 0));
     }
 
@@ -589,6 +797,8 @@ public sealed partial class ProgressionScreen
         double SY(double wy) => cam.ToScreenY(wy, c.Y);
         TreeLayoutOptions o = L.Options;
         double tx0 = SX(0), tx1 = SX(L.Width);
+        double caps = Px(TypeRole.Caption, FontRole.Caps) * z, capt = Px(TypeRole.Caption) * z;
+        bool labels = Px(TypeRole.Caption) * z >= TypeScale.Floor(t.Type.Body.Face) * _scale * 0.7;
 
         d.PushClip(c);
         // Horizontal tier bands: alternate shading and a label strip with the full Age names.
@@ -598,25 +808,27 @@ public sealed partial class ProgressionScreen
             if (y1 < c.Y || y0 > c.Bottom) continue;
             if (tb.Tier % 2 == 1) d.Rect(new RectD(tx0, y0, tx1 - tx0, y1 - y0), A(t.Material.FieldAlt, 0.55));
             d.Line(tx0, y0 + 0.5, tx1, y0 + 0.5, A(t.Material.Hairline, 0.7), 1);
-            if (z >= 0.45)
+            if (labels)
             {
                 string label = "TIER " + (tb.Tier + 1).ToString(CultureInfo.InvariantCulture);
                 double lx = SX(o.Margin + o.Spine);
-                d.Write(t, lx, y0 + 5 * z, label, 11.5 * z, t.Material.Accent, TextAlign.Left, FontRole.Caps);
+                d.Write(t, lx, y0 + Sp(9) * z, label, caps, TextInks.Darken(t.Material.Accent, t.Ink.Text, t.Material.Field, TextInks.Floor), TextAlign.Left, FontRole.Caps);
+                // The tier's Ages in full, at the body role: the cards below show only the numeral (UR-4).
                 string ages = ResearchTreeLayout.AgeRangeLabel((tb.Lo, tb.Hi));
-                if (ages.Length > 0) d.Write(t, lx + m.Width(t, label, 11.5 * z, FontRole.Caps) + 12 * z, y0 + 5 * z, ages, 11.5 * z, t.Ink.TextSoft, TextAlign.Left);
+                double ax = lx + m.Width(t, label, caps, FontRole.Caps) + Sp(14) * z;
+                double body = Px(TypeRole.Body) * z;
+                // (The body ink: it sits on the darker field, where the soft ink measured 2.6:1 as rendered.)
+                if (ages.Length > 0) WriteFit(d, m, ax, y0 + Sp(5) * z - (t.Type.Size(body) - t.Type.Size(caps)) * 0.6, ages, body, Math.Max(Sp(40), tx1 - ax - Sp(12)), t.Ink.Text);
             }
         }
-        // Lane segments: each lane's share of a tier, tinted by its hue with a coloured cap and
-        // its name, so a lane reads as one colour from tier to tier while lanes keep their order.
-        // From the Bronze era on, the cap fills with the cell's completed share: accumulated
-        // knowledge, visible at a glance.
+        // Lane segments: each lane's share of a tier (or of one of its wrapped lane rows), tinted by its hue with a
+        // coloured cap and its name, so a lane reads as one colour from tier to tier while lanes keep their order.
+        // From the Bronze era on, the cap fills with the cell's completed share: accumulated knowledge, at a glance.
         double[][] completion = t.Density.CardDetail >= 3 ? LaneTierCompletion() : [];
         foreach (LaneSegment sg in L.Segments)
         {
-            TierBand tb = L.Tiers[sg.Tier];
-            double y0 = SY(tb.Y0 + o.TierGap - 14), y1 = SY(tb.Y1 - o.RowGap / 2);
-            if (y1 < c.Y || y0 > c.Bottom) continue;
+            double y0 = SY(sg.Y0 - Sp(12)), y1 = SY(sg.Y1 - o.RowGap / 2);
+            if (y1 < c.Y || SY(sg.Y0 - Sp(40)) > c.Bottom) continue;
             LaneBox lane = L.Lanes[sg.Lane];
             Rgba hue = t.Semantic.Lanes.Of(lane.Id);
             double x0 = SX(sg.X) - 4 * z, w = (sg.Width - o.Gutter) * z + 8 * z;
@@ -628,8 +840,9 @@ public sealed partial class ProgressionScreen
             else d.Rect(capR, A(hue, completion.Length > 0 ? 0.30 : 0.75));
             if (completion.Length > 0 && completion[sg.Lane][sg.Tier] is double share && share > 0)
                 d.Rect(new RectD(capR.X, capR.Y, capR.W * share, capR.H), A(hue, 0.95));
-            if (z >= 0.45)
-                d.Write(t, x0 + 8 * z, SY(tb.Y0 + o.TierGap - 25), ThemeText.Fit(m, t, lane.Name.ToUpperInvariant(), 10 * z, w - 12 * z, FontRole.Caps), 10 * z, hue, TextAlign.Left, FontRole.Caps);
+            if (labels)
+                WriteFit(d, m, x0 + Sp(8) * z, SY(sg.Y0 - Sp(40)), lane.Name, Px(TypeRole.Body, FontRole.Heading) * z, w - Sp(12) * z,
+                    TextInks.Darken(hue, t.Ink.Text, t.Material.Field, TextInks.Floor), TextAlign.Left, FontRole.Heading);   // on the field, not the panel
         }
 
         int focus = Hovered >= 0 ? Hovered : Selected;
@@ -643,18 +856,20 @@ public sealed partial class ProgressionScreen
             foreach (int v in pre) related[v] = 1;
         }
 
-        // Cards first; with a focus, everything unrelated is dimmed.
+        // Cards first. With a focus, the unrelated cards RECEDE — their fill and frame fade a quarter toward the field
+        // — but their words keep their ink (UR-2: a veil may dim fills and frames, never text). Related cards are
+        // outlined in the prerequisite / dependent colour.
+        int hoveredV = Hovered >= 0 ? Graph.VertexOf(Hovered) : -1;
         foreach (int v in VisibleVertices())
         {
             PlacedVertex p = L.Placed[v];
             if (p.Hidden) continue;
             double x = SX(p.X), y = SY(p.Y);
-            PaintCard(d, m, v, x, y, z, v == focusV);
-            if (focusV < 0) continue;
+            bool recede = focusV >= 0 && v != focusV && related[v] == 0;
+            PaintCard(d, m, v, x, y, z, v == hoveredV, recede);
+            if (focusV < 0 || v == focusV || recede) continue;
             var r = new RectD(x - 2, y - 2, p.W * z + 4, p.H * z + 4);
-            if (v == focusV) continue;
-            if (related[v] == 0) d.Rect(r, A(t.Material.Field, 0.5), null, 0, CornerRadius(z));
-            else d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent,
+            d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent,
                 Math.Max(2.0, t.Icons.StrokePx), closed: true);
         }
 
@@ -687,9 +902,10 @@ public sealed partial class ProgressionScreen
         d.PushClip(new RectD(c.X, hy, c.W, HeaderH));
         PanelFrame.Paint(d, new RectD(c.X, hy, c.W, ColumnHeaderH), t, 103, FrameKind.Bar);
         // Lanes keep a fixed order; their chips share the header width in that order.
-        double chipW = (c.W - 24 - 6 * (L.Lanes.Count - 1)) / L.Lanes.Count;
+        double gap = Sp(6);
+        double chipW = (c.W - Sp(24) - gap * (L.Lanes.Count - 1)) / L.Lanes.Count;
         foreach (LaneBox lane in L.Lanes)
-            LaneChip(d, m, lane, c.X + 12 + lane.Index * (chipW + 6), hy + (ColumnHeaderH - 24) / 2, chipW);
+            LaneChip(d, m, lane, c.X + Sp(12) + lane.Index * (chipW + gap), hy + (ColumnHeaderH - Sp(30)) / 2, chipW);
         PaintControlRow(d, m);
         d.PopClip();
     }
@@ -705,27 +921,27 @@ public sealed partial class ProgressionScreen
     private void LaneChip(DrawList d, ITextMeasure m, LaneBox lane, double x, double y, double w)
     {
         EraTheme t = Theme;
-        const double chipH = 24;
+        double chipH = Sp(30);
         Rgba hue = t.Semantic.Lanes.Of(lane.Id);
         var chip = new RectD(x, y, w, chipH);
-        PanelFrame.Paint(d, chip, t, 200 + lane.Index, FrameKind.Chip, t.Material.PanelRaised, A(hue, 0.85), 1.0);
+        bool hover = Over(chip);
+        PanelFrame.Paint(d, chip, t, 200 + lane.Index, FrameKind.Chip, hover ? HoverFill : t.Material.PanelRaised, A(hue, hover ? 1.0 : 0.85), hover ? 1.4 : 1.0);
         // Disclosure triangle: right when collapsed, down when expanded.
-        double tx = chip.X + 11, ty = chip.Y + chipH / 2;
-        if (lane.Collapsed) d.Polygon([(tx - 3, ty - 5), (tx + 4, ty), (tx - 3, ty + 5)], hue);
-        else d.Polygon([(tx - 5, ty - 3), (tx + 5, ty - 3), (tx, ty + 4)], hue);
-        if (w > 60)
-        {
-            // From the Classical era on the chip also counts what is known: "done/total".
-            string count = lane.Collapsed ? lane.NodeCount.ToString(CultureInfo.InvariantCulture) + " hidden"
-                : t.Density.CardDetail >= 4 && !lane.External ? LaneDone(lane.Index).ToString(CultureInfo.InvariantCulture) + "/" + lane.NodeCount.ToString(CultureInfo.InvariantCulture)
-                : lane.NodeCount.ToString(CultureInfo.InvariantCulture);
-            double cw = m.Width(t, count, 11, FontRole.Numeric);
-            // A navigation label: it shrinks to fit rather than lose a word.
-            string name = lane.Name.ToUpperInvariant();
-            double ns = ThemeText.FitSize(m, t, name, 12, w - cw - 36, FontRole.Caps);
-            d.Write(t, chip.X + 22, chip.Y + 5 + (12 - ns) / 2, ThemeText.Fit(m, t, name, ns, w - cw - 36, FontRole.Caps), ns, hue, TextAlign.Left, FontRole.Caps);
-            d.Write(t, chip.Right - 8, chip.Y + 6, count, 11, t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
-        }
+        double tx = chip.X + Sp(12), ty = chip.Y + chipH / 2;
+        if (lane.Collapsed) d.Polygon([(tx - Sp(3), ty - Sp(5)), (tx + Sp(4), ty), (tx - Sp(3), ty + Sp(5))], hue);
+        else d.Polygon([(tx - Sp(5), ty - Sp(3)), (tx + Sp(5), ty - Sp(3)), (tx, ty + Sp(4))], hue);
+        // A navigation label (UR-4: mixed case at the caption role in the lane's TEXT ink): the full name, shrinking
+        // to the floor rather than losing a word; the count only where it fits beside it.
+        string count = lane.Collapsed ? lane.NodeCount.ToString(CultureInfo.InvariantCulture) + " hidden"
+            : t.Density.CardDetail >= 4 && !lane.External ? LaneDone(lane.Index).ToString(CultureInfo.InvariantCulture) + "/" + lane.NodeCount.ToString(CultureInfo.InvariantCulture)
+            : lane.NodeCount.ToString(CultureInfo.InvariantCulture);
+        double ns = Px(TypeRole.Caption, FontRole.Heading), cs = Px(TypeRole.Caption, FontRole.Numeric);
+        double cw = m.Width(t, count, cs, FontRole.Numeric);
+        double nameW = m.Width(t, lane.Name, ns, FontRole.Heading);
+        bool showCount = nameW + cw + Sp(40) <= w;
+        double ty0 = chip.Y + (chipH - t.Type.Size(ns)) / 2 - Sp(2);
+        WriteFit(d, m, chip.X + Sp(22), ty0, lane.Name, ns, w - Sp(28) - (showCount ? cw + Sp(10) : 0), LaneInk(hue), TextAlign.Left, FontRole.Heading);
+        if (showCount) d.Write(t, chip.Right - Sp(8), chip.Y + (chipH - t.Type.Size(cs)) / 2 - Sp(2), count, cs, t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
         _hits.Add(new HitRegion(chip, HitKind.LaneToggle, lane.Index));
     }
 
@@ -754,49 +970,179 @@ public sealed partial class ProgressionScreen
             ("FIT", HitKind.Fit, false),
             (MinimapVisible ? "HIDE MAP" : "SHOW MAP", HitKind.MinimapToggle, MinimapVisible),
         ];
-        double x = c.Right - 12, h = 26, y = row.Y + (ControlRowH - h) / 2;
+        double caps = Px(TypeRole.Caption, FontRole.Caps), capt = Px(TypeRole.Caption);
+        double x = c.Right - Sp(12), h = Sp(32), y = row.Y + (ControlRowH - h) / 2;
         for (int i = buttons.Length - 1; i >= 0; i--)
         {
-            double w = m.Width(buttons[i].Label, 11, FontRole.Caps) + 20;   // era-invariant geometry
+            double w = CapsGeometryWidth(m, buttons[i].Label) + Sp(22);   // era-invariant geometry
             x -= w;
             var r = new RectD(x, y, w, h);
             bool primary = buttons[i].Kind == HitKind.Frontier;
-            PanelFrame.Paint(d, r, t, 170 + i, FrameKind.Button, primary ? t.Semantic.ActiveFill : buttons[i].On ? SelectedFill : t.Material.PanelRaised,
-                primary ? t.Semantic.Active : buttons[i].On ? t.Material.AccentSoft : t.Material.Hairline, primary ? 1.1 : 0.9);
-            double bs = ThemeText.FitSize(m, t, buttons[i].Label, 11, w - 6, FontRole.Caps);
-            d.Write(t, r.X + w / 2, r.Y + 7 + (11 - bs) / 2, ThemeText.Fit(m, t, buttons[i].Label, bs, w - 6, FontRole.Caps), bs, primary ? t.Semantic.Active : t.Ink.Text, TextAlign.Center, FontRole.Caps);
+            bool hover = Over(r);
+            Rgba fill = primary ? (hover ? Mix(t.Semantic.ActiveFill, t.Semantic.Active, 0.22) : t.Semantic.ActiveFill)
+                : hover ? HoverFill : buttons[i].On ? SelectedFill : t.Material.PanelRaised;
+            PanelFrame.Paint(d, r, t, 170 + i, FrameKind.Button, fill,
+                primary ? t.Semantic.Active : hover ? t.Material.BorderStrong : buttons[i].On ? t.Material.AccentSoft : t.Material.Hairline, primary ? 1.3 : 0.9);
+            WriteFit(d, m, r.X + w / 2, r.Y + (h - t.Type.Size(caps)) / 2 - Sp(2), buttons[i].Label, caps, w - Sp(8), primary ? Ink.Active : t.Ink.Text, TextAlign.Center, FontRole.Caps);
             _hits.Add(new HitRegion(r, buttons[i].Kind, 0));
-            x -= 6;
+            x -= Sp(6);
         }
-        // Legend for the highlight (just left of the buttons).
-        (string Label, Rgba Col, bool Dash)[] keys = [("requires", Mix(t.Semantic.Prerequisite, t.Ink.OnChrome, 0.3), false),
-            ("leads to", Mix(t.Semantic.Dependent, t.Ink.OnChrome, 0.4), false), ("one of", t.Ink.OnChromeSoft, true)];
-        double lx = x - 8;
-        for (int i = keys.Length - 1; i >= 0; i--)
-        {
-            double tw = m.Width(t, keys[i].Label, 11);
-            lx -= tw + 30;
-            d.Line(lx, row.Y + 19, lx + 20, row.Y + 19, keys[i].Col, 2, keys[i].Dash ? (4, 3) : null);
-            d.Write(t, lx + 24, row.Y + 12, keys[i].Label, 11, t.Ink.OnChromeSoft);
-        }
-        // Current tier at the top of the view, with its full Age names.
+        // Current tier at the top of the view, with its full Age names, on the left.
         TreeLayout L = Layout;
         int tier = L.TierAt(Camera.ToWorldY(c.Y + 1, c.Y));
         TierBand band = L.Tiers[tier];
         string head = "TIER " + (tier + 1).ToString(CultureInfo.InvariantCulture) + " of " + L.Columns.ToString(CultureInfo.InvariantCulture);
-        d.Write(t, c.X + 12, row.Y + 11, head, 11.5, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
-        double hx = c.X + 22 + m.Width(t, head, 11.5, FontRole.Caps);
-        d.Write(t, hx, row.Y + 11, ThemeText.Fit(m, t, ResearchTreeLayout.AgeRangeLabel((band.Lo, band.Hi)), 11.5, Math.Max(0, lx - hx - 16)), 11.5, t.Ink.OnChromeSoft);
+        double ty = row.Y + (ControlRowH - t.Type.Size(caps)) / 2 - Sp(2);
+        d.Write(t, c.X + Sp(12), ty, head, caps, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
+        double hx = c.X + Sp(24) + m.Width(t, head, caps, FontRole.Caps);
+        // Legend for the highlight (just left of the buttons), where the row has room for it beside the tier's Ages.
+        (string Label, Rgba Col, bool Dash)[] keys = [("requires", Mix(t.Semantic.Prerequisite, t.Ink.OnChrome, 0.3), false),
+            ("leads to", Mix(t.Semantic.Dependent, t.Ink.OnChrome, 0.4), false), ("one of", t.Ink.OnChromeSoft, true)];
+        double legendW = 0;
+        foreach ((string label, _, _) in keys) legendW += m.Width(t, label, capt) + Sp(34);
+        double lx = x - Sp(8);
+        if (lx - legendW - hx >= Sp(260))
+        {
+            for (int i = keys.Length - 1; i >= 0; i--)
+            {
+                double tw = m.Width(t, keys[i].Label, capt);
+                lx -= tw + Sp(34);
+                d.Line(lx, row.CenterY, lx + Sp(22), row.CenterY, keys[i].Col, Sp(2), keys[i].Dash ? (Sp(4), Sp(3)) : null);
+                d.Write(t, lx + Sp(27), row.Y + (ControlRowH - t.Type.Size(capt)) / 2 - Sp(2), keys[i].Label, capt, t.Ink.OnChromeSoft);
+            }
+        }
+        WriteFit(d, m, hx, row.Y + (ControlRowH - t.Type.Size(capt)) / 2 - Sp(2), ResearchTreeLayout.AgeRangeLabel((band.Lo, band.Hi)), capt,
+            Math.Max(0, lx - hx - Sp(16)), t.Ink.OnChromeSoft);
+    }
+
+    /// <summary>The share a receding card's fill and frame fade toward the field while another node has the focus.</summary>
+    public const double RecedeFade = 0.25;
+
+    /// <summary>The card's state line (UR-4): the one sentence a card owes the player — why it is locked ("Needs
+    /// Controlled fire"), how long it would take ("Available · ~9 turns"), how far it is ("Researching · 13% · ~7
+    /// turns"), or that it is known. Read from the snapshot (ResearchQuery), never invented.</summary>
+    public string StateLine(int contentIndex)
+    {
+        ResearchSnapshot s = Snapshot!;
+        ResearchNodeView v = s.Nodes[contentIndex];
+        string Turns(double remaining) => s.PointsPerTurn > 0
+            ? "~" + Math.Ceiling(Math.Max(0, remaining) / s.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " turns" : "";
+        static string Join(params string[] parts)
+        {
+            var kept = new List<string>(parts.Length);
+            foreach (string part in parts) if (part.Length > 0) kept.Add(part);
+            return string.Join(" · ", kept);
+        }
+        switch (v.State)
+        {
+            case NodeState.Completed: return "Known";
+            case NodeState.CurrentTarget: return Join("Researching", Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
+            case NodeState.Available:
+                return PendingTarget == contentIndex ? "Ordered - applies at End Turn" : Join("Available", Turns(v.EffectiveCost - v.Progress));
+        }
+        string why = LockLine(contentIndex);
+        return v.State == NodeState.Partial ? Join(Pct(v.Fraction) + " kept", why) : why;
+    }
+
+    /// <summary>Why a node is locked, in a few words: the first missing prerequisite (and where it lives, when it is
+    /// in another lane or the other tree), the research stage, or the subtree a recursive node waits for.</summary>
+    public string LockLine(int contentIndex)
+    {
+        ResearchNodeView v = Snapshot!.Nodes[contentIndex];
+        if (v.Lock.HasFlag(LockReason.MissingPrerequisites))
+        {
+            PrereqView? first = null;
+            int missing = 0;
+            bool anyAndMissing = false;
+            foreach (PrereqView p in v.Prerequisites) if (!p.Completed && p.Kind == EdgeKind.And) anyAndMissing = true;
+            foreach (PrereqView p in v.Prerequisites)
+            {
+                if (p.Completed || (anyAndMissing && p.Kind != EdgeKind.And)) continue;
+                first ??= p;
+                missing++;
+            }
+            if (first is not null)
+            {
+                string where = "";
+                int pv = Graph.VertexOf(first.ContentIndex), nv = Graph.VertexOf(contentIndex);
+                if (pv < 0 || (nv >= 0 && Layout.Placed[pv].Lane != Layout.Placed[nv].Lane))
+                    where = pv < 0 || Graph.Vertices[pv].External ? (Graph.Tree == ResearchTree.Civics ? " (Technology)" : " (Civics)")
+                        : " (" + Layout.Lanes[Layout.Placed[pv].Lane].Name + ")";
+                string lead = anyAndMissing ? "Needs " : "Needs one of: ";
+                return lead + first.Name + where + (missing > 1 ? (anyAndMissing ? " +" + (missing - 1).ToString(CultureInfo.InvariantCulture) : " / ...") : "");
+            }
+        }
+        if (v.Lock.HasFlag(LockReason.ResearchStage)) return "Needs university";
+        if (v.Lock.HasFlag(LockReason.SubtreeNotExhausted)) return "Waits for its whole subtree";
+        return "Locked";
+    }
+
+    /// <summary>The state line's TEXT ink: the state's family, darkened to its floor (never the pigment).</summary>
+    private Rgba StateInk(NodeState state)
+    {
+        _ = Ink;
+        return state switch
+        {
+            NodeState.Completed => _completedInk,
+            NodeState.CurrentTarget => _activeInk,
+            NodeState.Available => _availableInk,
+            NodeState.Partial => _progressInk,
+            _ => _lockedInk,
+        };
+    }
+
+    /// <summary>The widths a card's name may take (UR-4): its first line beside the state mark, its second line under
+    /// it — for a card <paramref name="cardW"/> wide (world px) at UI scale <paramref name="scale"/> and zoom <paramref name="z"/>.</summary>
+    public static (double W1, double W2) NameWidths(EraTheme t, double cardW, double scale, double z = 1.0)
+    {
+        double ins = PanelFrame.ContentInset(t, FrameKind.Card) * Math.Min(1.0, z);
+        double pad = ins + 11 * scale * z, iconR = 7.5 * scale * z;
+        return (cardW * z - ins - 2 * iconR - 8 * scale * z - pad, cardW * z - ins - 4 * scale * z - pad);
+    }
+
+    /// <summary>Splits a name into at most two lines: as many words as fit <paramref name="w1"/> on the first (beside
+    /// the state mark), the rest on the second (<paramref name="w2"/>). A name too long even for two lines keeps every
+    /// word but the last line is ellipsised — no shipped name needs it at the card's minimum width (pinned).</summary>
+    public static (string First, string Second) TwoLines(ITextMeasure m, EraTheme t, string name, double size, double w1, double w2, FontRole role)
+    {
+        if (m.Width(t, name, size, role) <= w1) return (name, "");
+        // Break opportunities: after a space (dropped) or after a hyphen (kept) — "Basic (Gilchrist-" / "Thomas) process".
+        var breaks = new List<int>();
+        for (int i = 0; i < name.Length - 1; i++) if (name[i] == ' ' || name[i] == '-') breaks.Add(i);
+        string first = "", second = name;
+        foreach (int b in breaks)
+        {
+            string cand = name[..(name[b] == '-' ? b + 1 : b)];
+            if (m.Width(t, cand, size, role) > w1) break;
+            first = cand;
+            second = name[(b + 1)..];
+        }
+        if (first.Length == 0)
+        {
+            // No break fits beside the mark: the first word alone on the first line.
+            int b = breaks.Count > 0 ? breaks[0] : name.Length;
+            first = name[..Math.Min(name.Length, name[Math.Min(b, name.Length - 1)] == '-' ? b + 1 : b)];
+            second = b < name.Length ? name[(b + 1)..] : "";
+        }
+        // Prefer the split whose second line fits when the greedy one does not (a shorter first line moves words down).
+        if (m.Width(t, second, size, role) > w2)
+            foreach (int b in breaks)
+            {
+                string f = name[..(name[b] == '-' ? b + 1 : b)], s2 = name[(b + 1)..];
+                if (m.Width(t, f, size, role) <= w1 && m.Width(t, s2, size, role) <= w2) { first = f; second = s2; }
+            }
+        return (first, second);
     }
 
     /// <summary>
-    /// A RESEARCH CARD in the era's hand. Every era shows what the Director requires — the state
-    /// (mark and fill), the name, the cost, the Age (numeral and full name), retained progress
-    /// (notches → bar), and the cross-lane label; prerequisites, lock reasons and Eurekas are on
-    /// hover and in the detail panel. Density adds the rest: Eureka pips (A2+), the
-    /// prerequisite/dependent stubs (A3+), discounts (A5+), the estimate to complete (A7+).
+    /// A RESEARCH CARD in the era's hand (UR-4). Three rows the player reads, at sizes from the type scale: the NAME at
+    /// the body role in the heading face, whole, on up to two lines; the COST and the Age numeral at the data role; and
+    /// the STATE LINE at the body role in the state's text ink. The state is also its fill (Known, Target, Available
+    /// and Locked are distinct surfaces), its inner rule and its mark. Density adds the rest: Eureka pips (A2+), the
+    /// prerequisite/dependent stubs (A3+), discounts (A5+). The Age's full name is the tier strip's and the detail
+    /// panel's (and the hover tip's in a narrow window); the card keeps the numeral beside the cost.
     /// </summary>
-    private void PaintCard(DrawList d, ITextMeasure m, int vertex, double x, double y, double z, bool focus)
+    private void PaintCard(DrawList d, ITextMeasure m, int vertex, double x, double y, double z, bool hovered, bool recede = false)
     {
         EraTheme t = Theme;
         SemanticTokens s = t.Semantic;
@@ -804,27 +1150,34 @@ public sealed partial class ProgressionScreen
         ResearchNodeView v = Snapshot!.Nodes[gv.ContentIndex];
         PlacedVertex p = Layout.Placed[vertex];
         double w = p.W * z, h = p.H * z;
-        var r = new RectD(x, y, w, h);
         bool selected = gv.ContentIndex == Selected;
+        // Hover lifts the card a little (the state table's 2 px lift); the hit rect stays where it is.
+        if (hovered && !selected) y -= Sp(2) * Math.Min(1.0, z);
+        var r = new RectD(x, y, w, h);
         int id = CardId(vertex);
         InfoCardHit(r, v);   // M5 polish: Shift+click a card for its info card
 
         if (gv.External)
         {
             bool done = v.State == NodeState.Completed;
-            PanelFrame.Paint(d, r, t, id, FrameKind.Chip, done ? s.CompletedFill : t.Material.PanelSunken, done ? s.Completed : t.Material.Hairline, 0.9);
-            if (z > 0.3) d.Write(t, x + w / 2, y + h / 2 - 7 * z, ThemeText.Fit(m, t, v.Name, 12 * z, w - 16 * z), 12 * z, done ? t.Ink.Text : t.Ink.TextSoft, TextAlign.Center);
+            PanelFrame.Paint(d, r, t, id, FrameKind.Chip, done ? s.CompletedFill : t.Material.PanelSunken, done ? s.Completed : hovered ? t.Material.BorderStrong : t.Material.Hairline, hovered ? 1.4 : 0.9);
+            if (Px(TypeRole.Body) * z >= TypeScale.Floor(t.Type.Body.Face) * _scale * 0.7)
+            {
+                double size = Px(TypeRole.Body) * z;
+                double fs = FitFloor(m, v.Name, size, w - Sp(16) * z);
+                d.Write(t, x + w / 2, y + (h - t.Type.Size(fs)) / 2 - Sp(2) * z, ThemeText.Fit(m, t, v.Name, fs, w - Sp(16) * z), fs, done ? t.Ink.Text : t.Ink.TextSoft, TextAlign.Center);
+            }
             return;
         }
 
         Rgba hue = ProgressionPalette.BranchOf(t, Content, Content.Nodes[gv.ContentIndex]);
-        // The card is the era's material with the era's border (its identity across eras); the STATE
-        // is its fill, an inner rule in the state's colour, and its mark (constant meanings).
+        // THE STATE TABLE: the card is the era's material with the era's border (its identity across eras); the STATE
+        // is its fill, an inner rule in the state's colour, its mark and its state line (constant meanings).
         (Rgba fill, Rgba? inner, double iw) = v.State switch
         {
             NodeState.Completed => (s.CompletedFill, (Rgba?)s.Completed, 1.4),
-            NodeState.CurrentTarget => (s.ActiveFill, s.Active, 2.2),
-            NodeState.Available => (s.AvailableFill, s.Available, 1.6),
+            NodeState.CurrentTarget => (s.ActiveFill, s.Active, 2.4),
+            NodeState.Available => (s.AvailableFill, s.Available, 1.8),
             NodeState.Partial => (s.LockedFill, s.Progress, 1.4),
             _ => (s.LockedFill, null, 0.0),
         };
@@ -832,11 +1185,18 @@ public sealed partial class ProgressionScreen
             d.Rect(new RectD(x - 5 * z, y - 5 * z, w + 10 * z, h + 10 * z), A(s.Active, 0.18), null, 0, CornerRadius(z) + 4 * z);
         if (PendingTarget == gv.ContentIndex)
             d.Polyline(PanelFrame.Outline(new RectD(x - 4 * z, y - 4 * z, w + 8 * z, h + 8 * z), t, id, FrameKind.Card), s.Active, 1.2, closed: true);
-        Rgba border = v.State == NodeState.Locked ? A(t.Material.Border, 0.5) : t.Material.Border;
+        Rgba border = v.State == NodeState.Locked ? A(t.Material.Border, 0.55) : t.Material.Border;
         bool hairline = t.Edge.Corner == CornerStyle.Fine;   // the modern card: one hairline, in the state's colour
-        if (hairline && inner is Rgba hc && !(selected || focus)) border = hc;
-        PanelFrame.Paint(d, r, t, id, FrameKind.Card, fill, selected || focus ? t.Material.BorderStrong : border,
-            selected || focus ? 1.5 : hairline && inner is not null ? 1.6 : v.State == NodeState.Locked ? 0.8 : 1.0);
+        if (hairline && inner is Rgba hc && !(selected || hovered)) border = hc;
+        if (recede)
+        {
+            fill = ThemeColor.Mix(fill, t.Material.Field, RecedeFade);
+            border = A(border, border.A / 255.0 * (1.0 - RecedeFade * 1.6));
+            if (inner is Rgba ri) inner = A(ri, 1.0 - RecedeFade * 1.6);
+        }
+        // Selected: the strongest border (2.5 px); hovered: the strong border, one step lighter.
+        PanelFrame.Paint(d, r, t, id, FrameKind.Card, fill, selected || hovered ? t.Material.BorderStrong : border,
+            selected ? 2.5 : hovered ? 1.6 : hairline && inner is not null ? 1.6 : v.State == NodeState.Locked ? 0.8 : 1.0);
         if (inner is Rgba ic && !hairline)
         {
             double ii = (t.Edge.BorderPx + (t.Edge.DoubleRule ? 3.6 : 1.6)) * Math.Min(1.0, z);
@@ -845,20 +1205,26 @@ public sealed partial class ProgressionScreen
 
         // The lane stripe, inside the frame.
         double ins = PanelFrame.ContentInset(t, FrameKind.Card) * Math.Min(1.0, z);
-        var stripe = new RectD(x + ins, y + ins + 2 * z, Math.Max(2.5, 4 * z), h - 2 * ins - 4 * z);
+        var stripe = new RectD(x + ins, y + ins + 2 * z, Math.Max(2.5, Sp(4) * z), h - 2 * ins - 4 * z);
         Rgba stripeCol = v.State == NodeState.Locked ? A(hue, 0.45) : hue;
         if (t.Edge.Corner == CornerStyle.Organic)
-            d.Polyline(PanelFrame.Freehand(stripe.CenterX, stripe.Y, stripe.CenterX, stripe.Bottom, 1.0 * z, id, 7), stripeCol, Math.Max(2.5, 4.2 * z));
+            d.Polyline(PanelFrame.Freehand(stripe.CenterX, stripe.Y, stripe.CenterX, stripe.Bottom, 1.0 * z, id, 7), stripeCol, Math.Max(2.5, Sp(4.2) * z));
         else d.Rect(stripe, stripeCol);
 
         if (z < 0.28) return;   // level of detail: colour only when far out
         bool dim = v.State == NodeState.Locked;
-        double pad = ins + 9 * z;
-        double nameSize = 14.5 * z;
-        double iconR = 7 * z;
+        double pad = ins + Sp(11) * z;
+        double iconR = Sp(7.5) * z;
         double right = x + w - ins;
-        d.Write(t, x + pad, y + 6 * z, ThemeText.Fit(m, t, v.Name, nameSize, w - pad - ins - 2 * iconR - 10 * z, FontRole.Heading), nameSize,
-            dim ? t.Ink.TextSoft : t.Ink.Text, TextAlign.Left, FontRole.Heading);
+        double nameSize = Px(TypeRole.Body, FontRole.Heading) * z;
+        double lead = t.Type.Size(nameSize) * 1.0;   // a tight leading: the two lines are one name
+        double top = y + ins + Sp(2) * z;
+        (double w1, double w2) = NameWidths(t, p.W, _scale, z);
+        (string l1, string l2) = TwoLines(m, t, v.Name, nameSize, w1, w2, FontRole.Heading);
+        Rgba nameInk = dim ? t.Ink.TextSoft : t.Ink.Text;
+        d.Write(t, x + pad, top, l1, nameSize, nameInk, TextAlign.Left, FontRole.Heading);
+        if (l2.Length > 0)
+            d.Write(t, x + pad, top + lead, ThemeText.Fit(m, t, l2, nameSize, w2, FontRole.Heading), nameSize, nameInk, TextAlign.Left, FontRole.Heading);
 
         // State mark, top right.
         MarkKind kind = v.State switch
@@ -869,75 +1235,72 @@ public sealed partial class ProgressionScreen
             NodeState.Partial => MarkKind.Partial,
             _ => MarkKind.Locked,
         };
-        EraMarks.State(d, t, right - iconR - 4 * z, y + ins + iconR + 3 * z, iconR, kind, v.Fraction, id, dim);
+        EraMarks.State(d, t, right - iconR - 4 * z, y + ins + iconR + 4 * z, iconR, kind, v.Fraction, id, dim);
 
-        if (z < 0.45) return;
+        if (z < 0.6) return;   // level of detail: the name only when zoomed out
         int detail = t.Density.CardDetail;
-        double small = 12 * z;
-        // Row 2: cost (or Known), any discount (A5+), Eureka pips on the right (A2+).
-        string meta = v.State == NodeState.Completed ? "Known" : Num(v.EffectiveCost) + " RP";
-        d.Write(t, x + pad, y + 27 * z, meta, small, dim ? t.Ink.TextDim : t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
-        if (detail >= 4 && v.EffectiveCost < v.BaseCost && v.State != NodeState.Completed)
-            d.Write(t, x + pad + m.Width(t, meta, small, FontRole.Numeric) + 6 * z, y + 27 * z, "-" + Pct(1 - v.EffectiveCost / v.BaseCost), small, s.Positive, TextAlign.Left, FontRole.Numeric);
-        if (detail >= 2)
+        double data = Px(TypeRole.Data, FontRole.Numeric) * z;
+        double costY = top + 2 * lead + Sp(5) * z;
+        // Row 3: the cost and the Age numeral (UR-4: the data role), any discount (A5+), the stubs on the right (A3+).
+        double stubsW = 0;
+        int[] pre = [], dep = [];
+        double small = Px(TypeRole.Caption, FontRole.Numeric) * z;
+        if (detail >= 3)
+        {
+            (pre, dep) = ResearchTreeLayout.Neighbours(Graph, vertex);
+            stubsW = Sp(11) * z * 2 + m.Width(t, pre.Length.ToString(CultureInfo.InvariantCulture), small, FontRole.Numeric)
+                + m.Width(t, dep.Length.ToString(CultureInfo.InvariantCulture), small, FontRole.Numeric) + Sp(14) * z;
+        }
+        string numeral = ResearchTreeLayout.AgeNumeral(v.Age);
+        string cost = Num(v.EffectiveCost) + " RP";
+        string discount = detail >= 4 && v.EffectiveCost < v.BaseCost && v.State != NodeState.Completed ? "-" + Pct(1 - v.EffectiveCost / v.BaseCost) : "";
+        double room = right - Sp(4) * z - stubsW - (x + pad);
+        string meta = cost + "  ·  Age " + numeral;
+        double dw = discount.Length > 0 ? m.Width(t, discount, data, FontRole.Numeric) + Sp(6) * z : 0;
+        if (m.Width(t, meta, data, FontRole.Numeric) + dw > room) meta = cost + " · " + numeral;
+        // The cost is data the player compares across cards: the body ink (the soft ink measured 4.3:1 as rendered).
+        d.Write(t, x + pad, costY, meta, data, t.Ink.Text, TextAlign.Left, FontRole.Numeric);
+        if (discount.Length > 0)
+            d.Write(t, x + pad + m.Width(t, meta, data, FontRole.Numeric) + Sp(6) * z, costY, discount, data, Ink.Positive, TextAlign.Left, FontRole.Numeric);
+        if (detail >= 3)
+        {
+            double fy = costY + (t.Type.Size(data) - t.Type.Size(small)) / 2, fx = right - Sp(4) * z - stubsW + Sp(8) * z;
+            double tri = Sp(8) * z, tc = fy + t.Type.Size(small) * 0.55;
+            d.Polygon([(fx, tc + tri * 0.45), (fx + tri, tc + tri * 0.45), (fx + tri / 2, tc - tri * 0.45)], A(s.Prerequisite, dim ? 0.55 : 0.95));
+            string ins2 = pre.Length.ToString(CultureInfo.InvariantCulture);
+            d.Write(t, fx + Sp(11) * z, fy, ins2, small, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
+            fx += Sp(11) * z + m.Width(t, ins2, small, FontRole.Numeric) + Sp(6) * z;
+            d.Polygon([(fx, tc - tri * 0.45), (fx + tri, tc - tri * 0.45), (fx + tri / 2, tc + tri * 0.45)], A(s.Dependent, dim ? 0.55 : 0.95));
+            d.Write(t, fx + Sp(11) * z, fy, dep.Length.ToString(CultureInfo.InvariantCulture), small, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
+        }
+
+        // Row 4: the state line (the body role, the state's text ink), Eureka pips at its right end (A2+).
+        double stateY = costY + t.Type.Size(data) * 1.24;
+        double pipsW = 0;
+        if (detail >= 2 && v.Eurekas.Count > 0)
         {
             int total = Math.Min(6, v.Eurekas.Count);
+            pipsW = total * 10 * z + Sp(6) * z;
+            double py = stateY + t.Type.Size(Px(TypeRole.Body) * z) * 0.62;
             for (int e = 0; e < total; e++)
             {
                 bool fired = v.Eurekas[e].Fired;
                 double px = right - 6 * z - (total - e) * 10 * z + 3.5 * z;
-                d.Circle(px, y + 34 * z, 3.3 * z, fired ? s.Completed : null, fired ? null : (dim ? t.Ink.TextDim : t.Material.AccentSoft), 1.1 * z);
+                d.Circle(px, py, 3.3 * z, fired ? s.Completed : null, fired ? null : (dim ? t.Ink.TextSoft : t.Material.AccentSoft), 1.1 * z);
             }
         }
+        string line = StateLine(gv.ContentIndex);
+        double bodySize = Px(TypeRole.Body) * z;
+        double lw = right - Sp(4) * z - pipsW - (x + pad);
+        // A long reason steps down to the secondary role before it loses a word (the detail panel has it whole).
+        double ls = Math.Max(Px(TypeRole.Secondary) * z, ThemeText.FitSize(m, t, line, bodySize, lw, FontRole.Body, Px(TypeRole.Secondary) / Px(TypeRole.Body)));
+        d.Write(t, x + pad, stateY + (t.Type.Size(bodySize) - t.Type.Size(ls)) * 0.7, ThemeText.Fit(m, t, line, ls, lw), ls, StateInk(v.State), TextAlign.Left, FontRole.Body);
 
-        // Row 3: the Age — numeral AND full name, always, with the row to itself.
-        d.Write(t, x + pad, y + 44 * z, ThemeText.Fit(m, t, ResearchTreeLayout.AgeShort(v.Age), 10.5 * z, w - pad - ins - 6 * z), 10.5 * z,
-            dim ? t.Ink.TextDim : t.Material.Accent, TextAlign.Left, FontRole.Body);
-
-        // Row 4: dependency stubs (A3+), the target's estimate to complete (A7+) and the cross-lane
-        // prerequisite label (every era).
-        double fy = y + 61 * z, fx = x + pad;
-        Rgba cc = dim ? t.Ink.TextDim : t.Ink.TextSoft;
-        if (detail >= 3)
-        {
-            (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, vertex);
-            d.Polygon([(fx, fy + 9 * z), (fx + 8 * z, fy + 9 * z), (fx + 4 * z, fy + 2 * z)], A(s.Prerequisite, dim ? 0.5 : 0.9));
-            string ins2 = pre.Length.ToString(CultureInfo.InvariantCulture);
-            d.Write(t, fx + 11 * z, fy, ins2, 11 * z, cc, TextAlign.Left, FontRole.Numeric);
-            fx += 11 * z + m.Width(t, ins2, 11 * z, FontRole.Numeric) + 8 * z;
-            d.Polygon([(fx, fy + 2 * z), (fx + 8 * z, fy + 2 * z), (fx + 4 * z, fy + 9 * z)], A(s.Dependent, dim ? 0.5 : 0.9));
-            string outs = dep.Length.ToString(CultureInfo.InvariantCulture);
-            d.Write(t, fx + 11 * z, fy, outs, 11 * z, cc, TextAlign.Left, FontRole.Numeric);
-            fx += 11 * z + m.Width(t, outs, 11 * z, FontRole.Numeric) + 10 * z;
-        }
-        if (detail >= 5 && v.State == NodeState.CurrentTarget && Snapshot.PointsPerTurn > 0)
-        {
-            string est = "~" + Math.Ceiling(Math.Max(0, v.EffectiveCost - v.Progress) / Snapshot.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " t";
-            d.Write(t, fx, fy, est, 11 * z, s.Active, TextAlign.Left, FontRole.Numeric);
-            fx += m.Width(t, est, 11 * z, FontRole.Numeric) + 10 * z;
-        }
-        string cross = CrossLaneLabel(vertex);
-        string tail = cross.Length > 0 ? cross
-            : v.Lock.HasFlag(LockReason.ResearchStage) && !v.Lock.HasFlag(LockReason.MissingPrerequisites) ? "needs university" : "";
-        if (tail.Length > 0)
-        {
-            double cw = right - 4 * z - fx;
-            if (cw > 30 * z)
-            {
-                string fit = ThemeText.Fit(m, t, tail, 10.5 * z, cw - 10 * z);
-                double tw2 = m.Width(t, fit, 10.5 * z) + 10 * z;
-                var chip = new RectD(right - 4 * z - tw2, fy - 2 * z, tw2, 15 * z);
-                Rgba chipCol = cross.Length > 0 ? s.Prerequisite : s.Progress;
-                PanelFrame.Paint(d, chip, t, id + 500_000, FrameKind.Chip, A(t.Material.PanelRaised, 0.7), A(chipCol, dim ? 0.4 : 0.75), 0.8);
-                d.Write(t, chip.X + 5 * z, fy, fit, 10.5 * z, cross.Length > 0 ? (dim ? t.Ink.TextDim : t.Ink.TextSoft) : s.Progress, TextAlign.Left);
-            }
-        }
-
-        // Retained progress, in the era's representation (tally notches → graduated bar).
+        // Retained progress, in the era's representation (tally notches → graduated bar), along the card's foot.
         if (v.Progress > 0 && v.State != NodeState.Completed)
         {
             double ph = t.Controls.Progress == ProgressStyle.Notches ? 6 * z : 3.5 * z;
-            var bar = new RectD(x + pad - 2 * z, y + h - ins - ph - 2 * z, w - pad - ins - 2 * z, ph);
+            var bar = new RectD(x + pad - 2 * z, y + h - ins - ph - 1 * z, w - pad - ins - 2 * z, ph);
             EraMarks.Progress(d, t, bar, v.Fraction, v.State == NodeState.CurrentTarget ? s.Active : s.Progress, id);
         }
     }
@@ -948,14 +1311,14 @@ public sealed partial class ProgressionScreen
     public RectD MinimapRect()
     {
         RectD c = Canvas;
-        return new RectD(c.X + TreeViewportWidth + 10, c.Y + 10, StripW - 18, c.H - 20);
+        return new RectD(c.X + TreeViewportWidth + Sp(10), c.Y + Sp(10), StripW - Sp(18), c.H - Sp(20));
     }
 
     private void PaintMinimap(DrawList d)
     {
         EraTheme t = Theme;
         RectD r = MinimapRect();
-        d.Rect(new RectD(r.X - 6, c0Y(), StripW - 6, Canvas.H), t.Material.Field);
+        d.Rect(new RectD(r.X - Sp(6), c0Y(), StripW - Sp(6), Canvas.H), t.Material.Field);
         PanelFrame.Paint(d, r.Inset(-3), t, 180, FrameKind.Chip, t.Material.PanelSunken, t.Material.Border, 0.8);
         double sx = r.W / Math.Max(1, Layout.Width), sy = r.H / Math.Max(1, Layout.Height);
         foreach (PlacedVertex p in Layout.Placed)
@@ -979,171 +1342,284 @@ public sealed partial class ProgressionScreen
 
     // ---- the detail panel
 
+    /// <summary>
+    /// THE DETAIL PANEL (UR-4): docked beside the tree in a wide window, an overlay DRAWER over the tree's right edge
+    /// below <see cref="DockMinWidth"/> (opened by selecting a node, closed by its × or Escape). Its content is in
+    /// DECISION order — the node and its state, the COST and the turns it would take, the action right under them,
+    /// what it ENABLES, what it REQUIRES (and why it is locked), its Eurekas, the universities that cheapen it, and
+    /// what it is — at the body role, and it SCROLLS (the wheel over it) rather than dropping anything.
+    /// </summary>
     private void PaintDetail(DrawList d, ITextMeasure m)
+    {
+        if (!Docked && !DrawerOpen) return;
+        EraTheme t = Theme;
+        RectD panel = DetailRect;
+        if (!Docked)
+        {
+            // The drawer's shadow over the tree, then the drawer.
+            for (int k = 1; k <= 4; k++) d.Rect(new RectD(panel.X - Sp(3) * k, panel.Y, Sp(3), panel.H), A(t.Ink.Text, 0.05 * (5 - k)));
+        }
+        PanelFrame.Paint(d, panel, t, 190, FrameKind.Panel);
+        _hits.Add(new HitRegion(panel, HitKind.Panel, 0));
+        int node = DetailNode;
+        if (node != _detailNode) { _detailNode = node; _detailScroll = 0; }
+        double x = panel.X + Sp(22), w = panel.W - Sp(44);
+        var view = new RectD(panel.X + Sp(6), panel.Y + Sp(8), panel.W - Sp(12), panel.H - Sp(16));
+        d.PushClip(view);
+        _infoClip = view;   // M5 polish: the detail's inspectable regions are cut to its scrolled view
+        double y0 = panel.Y + Sp(20) - _detailScroll;
+        double end = node < 0 ? PaintIntro(d, m, x, w, y0) : PaintNode(d, m, node, x, w, y0, view);
+        _infoClip = null;
+        d.PopClip();
+        // Scrolling: the content's height against the view; a bar and a "more below" mark when it overflows.
+        double content = end + _detailScroll - (panel.Y + Sp(20)) + Sp(24);
+        double maxScroll = Math.Max(0, content - (view.H - Sp(12)));
+        if (_detailScroll > maxScroll) _detailScroll = maxScroll;
+        if (maxScroll > 0)
+        {
+            var track = new RectD(panel.Right - Sp(10), view.Y + Sp(4), Sp(4), view.H - Sp(8));
+            d.Rect(track, A(t.Material.Hairline, 0.5), null, 0, Sp(2));
+            double frac = view.H / Math.Max(view.H, content), at = _detailScroll / Math.Max(1, maxScroll);
+            double th = Math.Max(Sp(24), track.H * frac);
+            d.Rect(new RectD(track.X, track.Y + (track.H - th) * at, track.W, th), t.Material.AccentSoft, null, 0, Sp(2));
+            if (_detailScroll < maxScroll - 0.5)
+            {
+                double cap = Px(TypeRole.Caption);
+                var more = new RectD(panel.X + Sp(16), view.Bottom - t.Type.Size(cap) - Sp(10), panel.W - Sp(40), t.Type.Size(cap) + Sp(8));
+                d.Rect(more, A(t.Material.Panel, 0.94));
+                d.Write(t, more.CenterX, more.Y + Sp(2), "more below - scroll", cap, t.Ink.TextSoft, TextAlign.Center);
+            }
+        }
+        if (!Docked)
+        {
+            var close = new RectD(panel.Right - Sp(46), panel.Y + Sp(10), Sp(34), Sp(34));
+            PanelFrame.Paint(d, close, t, 198, FrameKind.Button, Over(close) ? HoverFill : null, Over(close) ? t.Material.BorderStrong : null);
+            EraMarks.Close(d, t, close, t.Ink.Text, 197);
+            _hits.Add(new HitRegion(close, HitKind.CloseDetail, 0));
+        }
+    }
+
+    /// <summary>The panel with no node in focus (docked only): the tree, its numbers, and how to use it.</summary>
+    private double PaintIntro(DrawList d, ITextMeasure m, double x, double w, double y)
     {
         EraTheme t = Theme;
         SemanticTokens sm = t.Semantic;
-        var panel = new RectD(_w - DetailW, LensBarH + TabBarH, DetailW, _h - LensBarH - TabBarH);
-        PanelFrame.Paint(d, panel, t, 190, FrameKind.Panel);
-        d.PushClip(panel);
-        int node = Hovered >= 0 ? Hovered : Selected;
-        // Era-invariant placement (continuity): the content box clears every era's frame and ornament
-        // band, so the panel's regions — and its button's hit rect — are the same in every era.
-        double inset = PanelFrame.ContentInset(t, FrameKind.Panel);
-        double x = panel.X + 22, w = DetailW - 44, y = panel.Y + 24;
-        double L(double size) => t.Type.Line(size);
-        if (node < 0)
-        {
-            ResearchSnapshot s = Snapshot!;
-            d.Title(t, x, y, Graph.Tree == ResearchTree.Technology ? "The Technology Tree" : "The Civics Tree", 24, t.Material.Accent);
-            y += L(24) + 10;
-            string intro = Graph.Tree == ResearchTree.Technology
-                ? "The main trunk and five specialised subtrees. The subtrees open together once the research stage is reached."
-                : "Forms of social organisation. Adopted civics also appear under the INSTITUTIONS lens.";
-            foreach (string line in ThemeText.Wrap(m, t, intro, 14, w)) { d.Write(t, x, y, line, 14, t.Ink.TextSoft); y += L(14); }
-            y += 12;
-            y = Stat(d, m, x, w, y, "Research stage", s.StageReached ? "reached" : "not yet reached", s.StageReached ? sm.Positive : sm.Progress);
-            y = Stat(d, m, x, w, y, "Research per turn", s.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " RP", sm.Knowledge);
-            y = Stat(d, m, x, w, y, "Completed", Graph.Tree == ResearchTree.Technology ? s.CompletedTechnology + " of " + Content.TechnologyCount : s.CompletedCivics + " of " + Content.CivicsCount, t.Ink.Text);
-            int avail = 0;
-            for (int v = 0; v < Graph.OwnCount; v++) if (s.Nodes[Graph.Vertices[v].ContentIndex].Available) avail++;
-            y = Stat(d, m, x, w, y, "Available now", avail.ToString(CultureInfo.InvariantCulture), sm.Available);
-            y += 14;
-            foreach (string line in ThemeText.Wrap(m, t, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. Drag to pan, wheel to zoom.", 13, w))
-            { d.Write(t, x, y, line, 13, t.Ink.TextDim); y += L(13); }
-            d.PopClip();
-            return;
-        }
+        ResearchSnapshot s = Snapshot!;
+        double title = Px(TypeRole.Title, FontRole.Title), body = Px(TypeRole.Body);
+        d.Title(t, x, y, Graph.Tree == ResearchTree.Technology ? "The Technology Tree" : "The Civics Tree", title, Ink.Accent);
+        y += FlowText.Slot(TypeRole.Title, _scale) + Sp(8);
+        string intro = Graph.Tree == ResearchTree.Technology
+            ? "The main trunk and five specialised subtrees. The subtrees open together once the research stage is reached."
+            : "Forms of social organisation. Adopted civics also appear under the INSTITUTIONS lens.";
+        foreach (string line in FlowText.Wrap(m, intro, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        y += Sp(12);
+        y = Stat(d, m, x, w, y, "Research stage", s.StageReached ? "reached" : "not yet reached", s.StageReached ? Ink.Positive : Ink.Progress);
+        y = Stat(d, m, x, w, y, "Research per turn", s.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " RP", Ink.Knowledge);
+        y = Stat(d, m, x, w, y, "Completed", Graph.Tree == ResearchTree.Technology ? s.CompletedTechnology + " of " + Content.TechnologyCount : s.CompletedCivics + " of " + Content.CivicsCount, t.Ink.Text);
+        int avail = 0;
+        for (int v = 0; v < Graph.OwnCount; v++) if (s.Nodes[Graph.Vertices[v].ContentIndex].Available) avail++;
+        y = Stat(d, m, x, w, y, "Available now", avail.ToString(CultureInfo.InvariantCulture), _availableInk);
+        y += Sp(14);
+        foreach (string line in FlowText.Wrap(m, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. The wheel scrolls; Ctrl + wheel zooms.", TypeRole.Body, _scale, w))
+        { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        return y;
+    }
 
-        ResearchNodeView n = Snapshot!.Nodes[node];
+    /// <summary>One node in decision order; returns the y under the last line.</summary>
+    private double PaintNode(DrawList d, ITextMeasure m, int node, double x, double w, double y, RectD view)
+    {
+        EraTheme t = Theme;
+        SemanticTokens sm = t.Semantic;
+        ResearchSnapshot s = Snapshot!;
+        ResearchNodeView n = s.Nodes[node];
+        double caps = Px(TypeRole.Caption, FontRole.Caps), body = Px(TypeRole.Body), data = Px(TypeRole.Data, FontRole.Numeric);
+        double second = Px(TypeRole.Secondary), title = Px(TypeRole.Title, FontRole.Title);
         Rgba hue = ProgressionPalette.BranchOf(t, Content, Content.Nodes[node]);
-        d.Rect(new RectD(panel.X + inset, panel.Y + inset, DetailW - 2 * inset, 4), hue);
-        d.Write(t, x, y, n.BranchName.ToUpperInvariant() + "  ·  " + ResearchTreeLayout.AgeLabel(n.Age).ToUpperInvariant(), 11.5, hue, TextAlign.Left, FontRole.Caps);
-        y += L(11.5) + 3;
+        d.Rect(new RectD(x - Sp(10), y - Sp(12), w + Sp(20), Sp(4)), hue);
+        // The node: branch and Age in full (the card shows the numeral), its name, its state.
+        if (!Docked) w -= Sp(40);   // clear the drawer's close button on the first lines
+        WriteFit(d, m, x, y, n.BranchName.ToUpperInvariant(), caps, w, LaneInk(hue), TextAlign.Left, FontRole.Caps);
+        y += FlowText.Slot(TypeRole.Caption, _scale, caps: true);
+        WriteFit(d, m, x, y, ResearchTreeLayout.AgeLabel(n.Age).ToUpperInvariant(), caps, w, Ink.Accent, TextAlign.Left, FontRole.Caps);
+        y += FlowText.Slot(TypeRole.Caption, _scale, caps: true);
+        y += Sp(2);
         bool firstLine = true;
-        foreach (string line in ThemeText.Wrap(m, t, n.Name, 25, w, FontRole.Title))
+        foreach (string line in FlowText.Wrap(m, n.Name, TypeRole.Title, _scale, w, FontRole.Title))
         {
-            if (firstLine) d.Title(t, x, y, line, 25, t.Ink.Text);
-            else d.Write(t, x, y, line, 25, t.Ink.Text, TextAlign.Left, FontRole.Title);
+            if (firstLine) d.Title(t, x, y, line, title, t.Ink.Text);
+            else d.Write(t, x, y, line, title, t.Ink.Text, TextAlign.Left, FontRole.Title);
             firstLine = false;
-            y += L(25);
+            y += FlowText.Slot(TypeRole.Title, _scale);
         }
+        if (!Docked) w += Sp(40);
+        y += Sp(4);
         Rgba stc = n.State switch { NodeState.Completed => sm.Completed, NodeState.CurrentTarget => sm.Active, NodeState.Available => sm.Available, NodeState.Partial => sm.Progress, _ => sm.Locked };
         string stateLabel = ProgressionPalette.StateLabel(n.State).ToUpperInvariant();
-        double sw = m.Width(t, stateLabel, 11, FontRole.Caps) + 18;
-        PanelFrame.Paint(d, new RectD(x, y + 2, sw, 19), t, 191, FrameKind.Chip, Mix(t.Material.Panel, stc, 0.14), stc, 1.0);
-        d.Write(t, x + 9, y + 5, stateLabel, 11, stc, TextAlign.Left, FontRole.Caps);
-        if (PendingTarget == node) d.Write(t, x + sw + 10, y + 4, "target ordered - applies at End Turn", 12, sm.Active);
-        y += 30;
+        double sw = m.Width(t, stateLabel, caps, FontRole.Caps) + Sp(20);
+        PanelFrame.Paint(d, new RectD(x, y, sw, t.Type.Size(caps) + Sp(10)), t, 191, FrameKind.Chip, Mix(t.Material.Panel, stc, 0.14), stc, 1.0);
+        d.Write(t, x + Sp(10), y + Sp(3), stateLabel, caps, StateInk(n.State), TextAlign.Left, FontRole.Caps);
+        y += FlowText.Slot(TypeRole.Caption, _scale, caps: true) + Sp(10);
+        foreach (string line in FlowText.Wrap(m, StateLine(node), TypeRole.Body, _scale, w))
+        { d.Write(t, x, y, line, body, StateInk(n.State)); y += FlowText.Slot(TypeRole.Body, _scale); }
+        y += Sp(6);
 
-        // Cost and progress.
-        y = Heading(d, x, w, y, "COST", 1);
+        // COST, the turns it would take, and the action directly under them.
+        y = Heading(d, m, x, w, y, "COST", 1);
         y = Stat(d, m, x, w, y, "Base cost", Num(n.BaseCost) + " RP", t.Ink.TextSoft);
         foreach ((string uni, double f) in n.CostTerms)
-            y = Stat(d, m, x, w, y, "  " + ResearchTreeLayout.Title(uni) + " university", "× " + f.ToString("0.00", CultureInfo.InvariantCulture), sm.Positive);
+            y = Stat(d, m, x, w, y, "  " + ResearchTreeLayout.Title(uni) + " university", "× " + f.ToString("0.00", CultureInfo.InvariantCulture), Ink.Positive);
         y = Stat(d, m, x, w, y, "Effective cost" + (n.FloorBinds ? " (floor)" : ""), Num(n.EffectiveCost) + " RP", t.Ink.Text);
         if (n.State != NodeState.Completed)
         {
-            EraMarks.Progress(d, t, new RectD(x, y + 3, w, t.Controls.Progress == ProgressStyle.Notches ? 11 : 8), n.Fraction,
+            EraMarks.Progress(d, t, new RectD(x, y + Sp(4), w, t.Controls.Progress == ProgressStyle.Notches ? Sp(11) : Sp(8)), n.Fraction,
                 n.State == NodeState.CurrentTarget ? sm.Active : sm.Progress, 192);
-            y += 18;
-            string turns = Snapshot.PointsPerTurn > 0 ? "  ·  ~" + Math.Ceiling(Math.Max(0, n.EffectiveCost - n.Progress) / Snapshot.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " turns at current rate" : "";
-            d.Write(t, x, y, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " RP" + turns, 12, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
-            y += L(12) + 6;
+            y += Sp(20);
+            string turns = s.PointsPerTurn > 0 ? "  ·  ~" + Math.Ceiling(Math.Max(0, n.EffectiveCost - n.Progress) / s.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " turns at the current rate" : "";
+            foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " RP" + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
+            { d.Write(t, x, y, line, data, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Data, _scale); }
         }
+        y += Sp(8);
+        y = PaintAction(d, m, n, node, x, w, y, view) + Sp(14);
 
-        // Prerequisites and lock reasons.
-        y = Heading(d, x, w, y, n.Prerequisites.Count == 0 ? "PREREQUISITES - none (root)" : "PREREQUISITES", 2);
+        // ENABLES: what completing it gives — the capabilities, techniques and applications the content declares, the
+        // entities it unlocks — and the nodes it leads to (all read from the content, nothing invented).
+        y = Heading(d, m, x, w, y, "ENABLES", 5);
+        ResearchNode cn = Content.Nodes[node];
+        bool any = false;
+        // M5 polish (§10): with the session's config, the node's InfoQuery card paints what it opens (each entity and
+        // what realizes it), the nodes it leads to (each inspectable) and what is knowledge only — in place of the
+        // bare "Unlocks:" / "Leads to:" lists. A preview (no config) keeps the lists.
+        bool discovery = NodeCard(node) is not null;
+        foreach ((string label, IReadOnlyList<string> items) in new (string, IReadOnlyList<string>)[]
+                     { ("", cn.Capabilities), ("Techniques: ", cn.Techniques), ("Applications: ", cn.Applications), ("Unlocks: ", n.Unlocks) })
+        {
+            if (items.Count == 0) continue;
+            if (discovery && label == "Unlocks: ") continue;
+            any = true;
+            foreach (string line in FlowText.Wrap(m, label + string.Join(label.Length == 0 ? "; " : ", ", items), TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.Text); y += FlowText.Slot(TypeRole.Body, _scale); }
+            y += Sp(4);
+        }
+        var leads = new List<string>();
+        int nvx = Graph.VertexOf(node);
+        if (nvx >= 0)
+        {
+            (int[] _, int[] deps) = ResearchTreeLayout.Neighbours(Graph, nvx);
+            foreach (int v in deps) if (!Graph.Vertices[v].External) leads.Add(Graph.Node(v).Name);
+        }
+        if (discovery)
+        {
+            double before = y;
+            y = PaintDiscovery(d, m, node, x, w, y);
+            if (y > before + Sp(6) + 0.01) any = true;
+            leads.Clear();   // the card's LEADS TO names them
+        }
+        if (leads.Count > 0)
+            foreach (string line in FlowText.Wrap(m, "Leads to: " + string.Join(", ", leads), TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        if (!any && leads.Count == 0) { d.Write(t, x, y, "Nothing further in this tree yet.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        y += Sp(8);
+
+        // REQUIRES: the prerequisites (marked done or missing; a prerequisite in another lane names it) and why it is locked.
+        y = Heading(d, m, x, w, y, n.Prerequisites.Count == 0 ? "REQUIRES - nothing (a root)" : "REQUIRES", 2);
         bool anyOr = false;
         foreach (PrereqView p in n.Prerequisites) if (p.Kind == EdgeKind.Or) anyOr = true;
         if (anyOr && n.PrerequisiteExpression is string expr)
         {
-            foreach (string line in ThemeText.Wrap(m, t, expr.Replace("_", " "), 11.5, w, FontRole.Numeric)) { d.Write(t, x, y, line, 11.5, t.Ink.TextDim, TextAlign.Left, FontRole.Numeric); y += L(11.5); }
-            y += 2;
+            foreach (string line in FlowText.Wrap(m, expr.Replace("_", " "), TypeRole.Caption, _scale, w, FontRole.Numeric))
+            { d.Write(t, x, y, line, Px(TypeRole.Caption, FontRole.Numeric), t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Caption, _scale); }
+            y += Sp(2);
         }
         int pi = 0;
         foreach (PrereqView p in n.Prerequisites)
         {
-            EraMarks.Tick(d, t, x + 1, y + 3, 11, p.Completed, p.Completed ? sm.Completed : sm.Danger, 193 + pi++);
-            // A prerequisite from another lane (or the other tree) names where it lives.
+            EraMarks.Tick(d, t, x + 1, y + Sp(5), Sp(12), p.Completed, p.Completed ? sm.Completed : sm.Danger, 193 + pi++);
             int pv = Graph.VertexOf(p.ContentIndex), nv = Graph.VertexOf(node);
             string where = "";
             if (pv >= 0 && nv >= 0 && Layout.Placed[pv].Lane != Layout.Placed[nv].Lane)
                 where = " (" + (Graph.Vertices[pv].External ? (Graph.Tree == ResearchTree.Civics ? "Technology" : "Civics") : Layout.Lanes[Layout.Placed[pv].Lane].Name) + ")";
-            InfoNode(new RectD(x + 18, y, Math.Min(w - 70, m.Width(t, p.Name + where, 14)), Math.Max(18, L(14))), p.ContentIndex);
-            d.Write(t, x + 18, y + 1, ThemeText.Fit(m, t, p.Name + where, 14, w - 70), 14, p.Completed ? t.Ink.Text : t.Ink.TextSoft);
-            d.Write(t, x + w, y + 3, p.Kind == EdgeKind.And ? "required" : "one of", 11, t.Ink.TextDim, TextAlign.Right);
-            y += Math.Max(20, L(14));
+            string kind = p.Kind == EdgeKind.And ? "required" : "one of";
+            double kw = FlowText.Width(m, kind, TypeRole.Secondary, _scale) + Sp(8);
+            List<string> lines = FlowText.Wrap(m, p.Name + where, TypeRole.Body, _scale, w - Sp(22) - kw);
+            d.Write(t, x + w, y + Sp(2), kind, second, t.Ink.TextSoft, TextAlign.Right);
+            double nameW = 0;
+            foreach (string line in lines) nameW = Math.Max(nameW, FlowText.Width(m, line, TypeRole.Body, _scale));
+            InfoNode(new RectD(x + Sp(22), y, Math.Min(w - Sp(22) - kw, nameW), lines.Count * FlowText.Slot(TypeRole.Body, _scale)), p.ContentIndex);
+            foreach (string line in lines) { d.Write(t, x + Sp(22), y, line, body, p.Completed ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         }
-        if (n.Prerequisites.Count == 0) y += 4;
         if (n.Lock.HasFlag(LockReason.ResearchStage))
-        {
-            foreach (string line in ThemeText.Wrap(m, t, "Subtree closed: the research stage is not reached (" + Snapshot.StageExpression.Replace("_", " ") + ").", 12.5, w))
-            { d.Write(t, x, y, line, 12.5, sm.Progress); y += L(12.5); }
-        }
+            foreach (string line in FlowText.Wrap(m, "Subtree closed: the research stage is not reached (" + s.StageExpression.Replace("_", " ") + ").", TypeRole.Body, _scale, w))
+            { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
-        { d.Write(t, x, y, "Recursive: waits for every finite node of its subtree.", 12.5, sm.Progress); y += L(12.5); }
-        y += 6;
-        y = PaintDiscovery(d, m, node, x, w, y);   // M5 polish (§10): what it opens, Age milestones, dependents, knowledge only
+            foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite node of its subtree.", TypeRole.Body, _scale, w))
+            { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
+        y += Sp(8);
 
-        // Eureka.
-        y = Heading(d, x, w, y, "EUREKA", 3);
-        if (n.Eurekas.Count == 0) { d.Write(t, x, y, "This node has no Eureka.", 13, t.Ink.TextDim); y += L(13) + 8; }
+        // EUREKA.
+        y = Heading(d, m, x, w, y, "EUREKA", 3);
+        if (n.Eurekas.Count == 0) { d.Write(t, x, y, "This node has no Eureka.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale) + Sp(8); }
         else
         {
             double credited = n.EurekaCredited + n.ForeignCredited;
-            d.Write(t, x, y, ThemeText.Fit(m, t, "Acceleration credit " + Num(credited) + " of " + Num(n.EurekaCeiling) + " RP ceiling (" + Pct(n.EurekaCeiling / Math.Max(1e-9, n.BaseCost)) + " of base)", 12, w, FontRole.Numeric), 12, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric);
-            y += L(12) + 2;
+            foreach (string line in FlowText.Wrap(m, "Acceleration credit " + Num(credited) + " of " + Num(n.EurekaCeiling) + " RP ceiling (" + Pct(n.EurekaCeiling / Math.Max(1e-9, n.BaseCost)) + " of base)", TypeRole.Secondary, _scale, w))
+            { d.Write(t, x, y, line, second, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Secondary, _scale); }
+            y += Sp(2);
             double ce = Math.Max(1e-9, n.EurekaCeiling);
             if (t.Charts.Sophistication <= 1)
-            {
-                // A tally of the ceiling: the credited share as notches/counters.
-                EraMarks.Progress(d, t, new RectD(x, y, w, 9), Math.Min(1, credited / ce), sm.Completed, 194);
-            }
+                EraMarks.Progress(d, t, new RectD(x, y, w, Sp(9)), Math.Min(1, credited / ce), sm.Completed, 194);
             else
             {
-                var bar = new RectD(x, y, w, 8);
+                var bar = new RectD(x, y, w, Sp(8));
                 d.Rect(bar, A(t.Material.PanelSunken, 0.6), t.Material.Hairline, 1, t.Edge.Corner == CornerStyle.Fine ? 2 : 0);
-                d.Rect(new RectD(x, y, w * Math.Min(1, n.EurekaCredited / ce), 8), sm.Completed);
-                d.Rect(new RectD(x + w * Math.Min(1, n.EurekaCredited / ce), y, w * Math.Min(1, n.ForeignCredited / ce), 8), sm.Lanes.Civics);
+                d.Rect(new RectD(x, y, w * Math.Min(1, n.EurekaCredited / ce), Sp(8)), sm.Completed);
+                d.Rect(new RectD(x + w * Math.Min(1, n.EurekaCredited / ce), y, w * Math.Min(1, n.ForeignCredited / ce), Sp(8)), sm.Lanes.Civics);
                 if (t.Charts.Ticks)
-                    for (int k = 1; k < 4; k++) d.Line(x + w * k / 4.0, y + 8, x + w * k / 4.0, y + 11, A(t.Material.Border, 0.6), 0.6);
+                    for (int k = 1; k < 4; k++) d.Line(x + w * k / 4.0, y + Sp(8), x + w * k / 4.0, y + Sp(11), A(t.Material.Border, 0.6), 0.6);
             }
-            y += 14;
-            d.Write(t, x, y, ThemeText.Fit(m, t, "Eureka " + Num(n.EurekaCredited) + " RP  ·  foreign exposure " + Num(n.ForeignCredited) + " RP" + (n.ExposureOffered > 0 ? " (offered " + Num(n.ExposureOffered) + ")" : ""), 11.5, w, FontRole.Numeric), 11.5, t.Ink.TextDim, TextAlign.Left, FontRole.Numeric);
-            y += L(11.5) + 6;
+            y += Sp(16);
+            foreach (string line in FlowText.Wrap(m, "Eureka " + Num(n.EurekaCredited) + " RP  ·  foreign exposure " + Num(n.ForeignCredited) + " RP" + (n.ExposureOffered > 0 ? " (offered " + Num(n.ExposureOffered) + ")" : ""), TypeRole.Secondary, _scale, w))
+            { d.Write(t, x, y, line, second, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Secondary, _scale); }
+            y += Sp(6);
             int ei = 0;
             foreach (EurekaView e in n.Eurekas)
             {
-                Rgba ec = e.Fired ? sm.Completed : e.HoldsNow == true ? sm.Positive : t.Ink.TextDim;
-                EraMarks.State(d, t, x + 6, y + 9, 4.5, e.Fired ? MarkKind.Completed : MarkKind.Available, 0, 195 + ei++);
-                List<string> lines = ThemeText.Wrap(m, t, e.Text, 13, w - 70);
-                double ly0 = y;
-                for (int k = 0; k < lines.Count && k < 3; k++) { d.Write(t, x + 18, y + 1, lines[k], 13, e.Fired ? t.Ink.Text : t.Ink.TextSoft); y += L(13); }
-                d.Write(t, x + w, ly0 + 3, Pct(e.Weight) + " · " + Num(e.MaxCredit), 11, t.Ink.TextDim, TextAlign.Right, FontRole.Numeric);
+                Rgba ec = e.Fired ? _completedInk : e.HoldsNow == true ? Ink.Positive : t.Ink.TextSoft;
+                EraMarks.State(d, t, x + Sp(6), y + Sp(11), Sp(5), e.Fired ? MarkKind.Completed : MarkKind.Available, 0, 195 + ei++);
+                string weight = Pct(e.Weight) + " · " + Num(e.MaxCredit);
+                double ww = FlowText.Width(m, weight, TypeRole.Caption, _scale, FontRole.Numeric) + Sp(10);
+                d.Write(t, x + w, y + Sp(3), weight, Px(TypeRole.Caption, FontRole.Numeric), t.Ink.TextSoft, TextAlign.Right, FontRole.Numeric);
+                foreach (string line in FlowText.Wrap(m, e.Text, TypeRole.Body, _scale, w - Sp(20) - ww))
+                { d.Write(t, x + Sp(20), y, line, body, e.Fired ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
                 string status = e.Fired ? "fired - credited" : e.Condition is null ? "not evaluable yet (" + e.System + ")" : e.HoldsNow == true ? "holds now - fires when available" : "condition: " + ConditionText(e.Condition);
-                foreach (string line in ThemeText.Wrap(m, t, status, 11, w - 18)) { d.Write(t, x + 18, y, line, 11, ec, TextAlign.Left); y += L(11); }
-                y += 6;
+                foreach (string line in FlowText.Wrap(m, status, TypeRole.Secondary, _scale, w - Sp(20))) { d.Write(t, x + Sp(20), y, line, second, ec, TextAlign.Left); y += FlowText.Slot(TypeRole.Secondary, _scale); }
+                y += Sp(6);
             }
         }
 
-        // University relevance.
-        y = Heading(d, x, w, y, "UNIVERSITY RELEVANCE", 4);
-        if (n.Universities.Count == 0) { d.Write(t, x, y, "None - main trunk and civics cost their base.", 13, t.Ink.TextDim); y += L(13) + 8; }
+        // UNIVERSITY relevance.
+        y = Heading(d, m, x, w, y, "UNIVERSITY", 4);
+        if (n.Universities.Count == 0) { d.Write(t, x, y, "None - main trunk and civics cost their base.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale) + Sp(8); }
         foreach (UniversityView u in n.Universities)
         {
-            d.Write(t, x, y, u.Name, 14, t.Ink.Text);
-            d.Write(t, x + w, y + 2, u.Role, 11.5, u.Role == "primary" ? t.Material.Accent : t.Ink.TextDim, TextAlign.Right, FontRole.Caps);
-            y += Math.Max(20, L(14));
+            d.Write(t, x, y, u.Name, body, t.Ink.Text);
+            d.Write(t, x + w, y + Sp(3), u.Role, caps, u.Role == "primary" ? Ink.Accent : t.Ink.TextSoft, TextAlign.Right, FontRole.Caps);
+            y += FlowText.Slot(TypeRole.Body, _scale);
         }
-        y += 8;
-        foreach (string line in ThemeText.Wrap(m, t, n.Description, 13, w)) { if (y > panel.Bottom - 80) break; d.Write(t, x, y, line, 13, t.Ink.TextDim); y += L(13); }
+        y += Sp(8);
 
-        // Action.
-        var btn = new RectD(x, panel.Bottom - 62, w, 44);
+        // What it is.
+        y = Heading(d, m, x, w, y, "ABOUT", 6);
+        foreach (string line in FlowText.Wrap(m, n.Description, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        return y;
+    }
+
+    /// <summary>The panel's action, right under the cost (UR-4): SET AS RESEARCH TARGET as the primary control when the
+    /// node is available; otherwise a disabled plate that says why (known, the target already, ordered, or what it
+    /// still needs). Its hit region exists only where it is visible in the panel.</summary>
+    private double PaintAction(DrawList d, ITextMeasure m, ResearchNodeView n, int node, double x, double w, double y, RectD view)
+    {
+        EraTheme t = Theme;
+        var btn = new RectD(x, y, w, Sp(46));
         bool can = n.Available && !n.IsTarget && PendingTarget != node;
-        d.Rect(new RectD(panel.X + inset, btn.Y - 14, DetailW - 2 * inset, panel.Bottom - inset - btn.Y + 14), t.Material.Panel);
-        PanelFrame.Paint(d, btn, t, 199, FrameKind.Button, can ? t.Semantic.ActiveFill : t.Material.PanelRaised, can ? sm.Active : t.Material.Hairline, can ? 1.3 : 0.9);
+        bool hover = can && Over(btn) && view.Contains(btn.CenterX, btn.CenterY);
         string label = n.State switch
         {
             NodeState.Completed => "Known",
@@ -1152,25 +1628,81 @@ public sealed partial class ProgressionScreen
             NodeState.Available => "Set as research target",
             _ => "Locked",
         };
-        d.Write(t, btn.CenterX, btn.Y + 12, label.ToUpperInvariant(), 14, can ? sm.Active : t.Ink.TextDim, TextAlign.Center, FontRole.Caps);
-        if (can) _hits.Add(new HitRegion(btn, HitKind.SetTarget, node));
+        double caps = Px(TypeRole.Body, FontRole.Caps);
+        if (can)
+        {
+            PanelFrame.Paint(d, btn, t, 199, FrameKind.Button, hover ? Mix(t.Semantic.ActiveFill, t.Semantic.Active, 0.30) : Mix(t.Semantic.ActiveFill, t.Semantic.Active, 0.12),
+                t.Semantic.Active, hover ? 2.2 : 1.8);
+            WriteFit(d, m, btn.CenterX, btn.Y + (btn.H - t.Type.Size(caps)) / 2 - Sp(2), label.ToUpperInvariant(), caps, btn.W - Sp(16), t.Ink.Text, TextAlign.Center, FontRole.Caps);
+            if (view.Contains(btn.CenterX, btn.CenterY)) _hits.Add(new HitRegion(btn, HitKind.SetTarget, node));
+        }
+        else
+        {
+            // The disabled plate: sunken, a dashed hairline, a lock where it is locked, the label in the soft ink.
+            d.Rect(btn, A(t.Material.PanelSunken, 0.6));
+            Rgba hl = t.Material.Hairline;
+            (double, double) dash = (Sp(5), Sp(4));
+            d.Line(btn.X, btn.Y, btn.Right, btn.Y, hl, 1, dash); d.Line(btn.X, btn.Bottom, btn.Right, btn.Bottom, hl, 1, dash);
+            d.Line(btn.X, btn.Y, btn.X, btn.Bottom, hl, 1, dash); d.Line(btn.Right, btn.Y, btn.Right, btn.Bottom, hl, 1, dash);
+            double lw = m.Width(t, label.ToUpperInvariant(), caps, FontRole.Caps);
+            double lx = btn.CenterX - lw / 2;
+            if (n.State is NodeState.Locked or NodeState.Partial)
+            {
+                EraMarks.State(d, t, lx - Sp(16), btn.CenterY, Sp(7), MarkKind.Locked, 0, 196, dim: true);
+                lx += Sp(6);
+            }
+            d.Write(t, lx, btn.Y + (btn.H - t.Type.Size(caps)) / 2 - Sp(2), label.ToUpperInvariant(), caps, t.Ink.TextSoft, TextAlign.Left, FontRole.Caps);
+        }
         InfoNode(btn, node);   // M5 polish: Shift+click on the button shows the node's card, never an order
-        d.PopClip();
+        return btn.Bottom;
     }
 
-    /// <summary>A section heading: capitals in the era's accent over the era's rule.</summary>
-    private double Heading(DrawList d, double x, double w, double y, string text, int id)
+    /// <summary>A section heading: capitals at the heading role in the accent's TEXT ink, over a hairline.</summary>
+    private double Heading(DrawList d, ITextMeasure m, double x, double w, double y, string text, int id)
     {
-        d.Write(Theme, x, y, text, 11.5, Theme.Material.Accent, TextAlign.Left, FontRole.Caps);
-        PanelFrame.Rule(d, new RectD(x, y + 16, w, 6), Theme, 900 + id);
-        return y + 27;
+        EraTheme t = Theme;
+        double hs = Px(TypeRole.Heading, FontRole.Caps);
+        WriteFit(d, m, x, y, text, hs, w, Ink.Accent, TextAlign.Left, FontRole.Caps);
+        y += FlowText.Slot(TypeRole.Heading, _scale, caps: true) + Sp(1);
+        d.Line(x, y, x + w, y, A(t.Material.Hairline, 0.9), Math.Max(1, _scale));
+        _ = id;
+        return y + Sp(8);
     }
 
     private double Stat(DrawList d, ITextMeasure m, double x, double w, double y, string label, string value, Rgba valueColor)
     {
-        d.Write(Theme, x, y, label, 14, Theme.Ink.TextSoft);
-        d.Write(Theme, x + w, y + 1, value, 14, valueColor, TextAlign.Right, FontRole.Numeric);
-        return y + Math.Max(20, Theme.Type.Line(14));
+        EraTheme t = Theme;
+        double body = Px(TypeRole.Body), data = Px(TypeRole.Data, FontRole.Numeric);
+        double vw = m.Width(t, value, data, FontRole.Numeric);
+        WriteFit(d, m, x, y, label, body, w - vw - Sp(12), t.Ink.TextSoft);
+        d.Write(t, x + w, y + (t.Type.Size(body) - t.Type.Size(data)) / 2, value, data, valueColor, TextAlign.Right, FontRole.Numeric);
+        return y + FlowText.Slot(TypeRole.Body, _scale);
+    }
+
+    /// <summary>
+    /// THE HOVER TIP (narrow windows, UR-4): with no docked panel, the hovered card's full name, its Age in full and
+    /// its state line appear beside it (the card itself shows the Age numeral); a click opens the drawer.
+    /// </summary>
+    private void PaintHoverTip(DrawList d, ITextMeasure m)
+    {
+        if (Docked || Hovered < 0 || Hovered == Selected || _pointer is not (double px, double py)) return;
+        EraTheme t = Theme;
+        ResearchNodeView n = Snapshot!.Nodes[Hovered];
+        double body = Px(TypeRole.Body), name = Px(TypeRole.Body, FontRole.Heading), cap = Px(TypeRole.Caption);
+        string age = ResearchTreeLayout.AgeLabel(n.Age);
+        string state = StateLine(Hovered);
+        double w = Math.Min(Sp(420), Math.Max(m.Width(t, n.Name, name, FontRole.Heading), Math.Max(m.Width(t, age, cap), m.Width(t, state, body))) + Sp(28));
+        double h = Line(name) + Line(cap) + Line(body) + Sp(18);
+        RectD c = Canvas;
+        double x = Math.Min(px + Sp(18), c.Right - w - Sp(8)), y = Math.Min(py + Sp(22), c.Bottom - h - Sp(8));
+        if (x < c.X + Sp(8)) x = c.X + Sp(8);
+        var r = new RectD(x, y, w, h);
+        d.Rect(new RectD(r.X + Sp(3), r.Y + Sp(4), r.W, r.H), A(t.Ink.Text, 0.18), null, 0, Sp(4));
+        PanelFrame.Paint(d, r, t, 189, FrameKind.Chip, t.Material.Panel, t.Material.BorderStrong, 1.2);
+        double ty = r.Y + Sp(8);
+        WriteFit(d, m, r.X + Sp(14), ty, n.Name, name, r.W - Sp(28), t.Ink.Text, TextAlign.Left, FontRole.Heading); ty += Line(name);
+        WriteFit(d, m, r.X + Sp(14), ty, age, cap, r.W - Sp(28), Ink.Accent); ty += Line(cap);
+        d.Write(t, r.X + Sp(14), ty, ThemeText.Fit(m, t, state, body, r.W - Sp(28)), body, StateInk(n.State));
     }
 
     // ---- the other lenses
@@ -1180,40 +1712,50 @@ public sealed partial class ProgressionScreen
         EraTheme t = Theme;
         LensPage p = Page!;
         RectD c = Canvas;
-        double x = c.X + 48, y = c.Y + 36, w = c.W - 96;
-        d.Title(t, x, y, p.Title, 34, t.Material.Accent);
-        y += 46;
-        d.Write(t, x, y, ThemeText.Fit(m, t, p.Purpose, 16, w), 16, t.Ink.TextSoft);
-        y += 30;
-        Rgba sc = p.Status switch { LensStatus.Functional => t.Semantic.Positive, LensStatus.PartialData => t.Semantic.Progress, _ => t.Ink.TextDim };
-        var note = new RectD(x, y, w, 40);
-        PanelFrame.Paint(d, note, t, 400, FrameKind.Chip, Mix(t.Material.Panel, sc, 0.10), A(sc, 0.6), 1.0);
-        d.Write(t, x + 16, y + 11, ThemeText.Fit(m, t, p.StatusNote, 14, w - 32), 14, sc);
-        y += 64;
+        double x = c.X + Sp(48), y = c.Y + Sp(30), w = c.W - Sp(96);
+        double display = Px(TypeRole.Display, FontRole.Title), body = Px(TypeRole.Body), heading = Px(TypeRole.Heading, FontRole.Caps);
+        d.Title(t, x, y, p.Title, display, Ink.Accent);
+        y += Line(display) + Sp(4);
+        foreach (string line in ThemeText.Wrap(m, t, p.Purpose, body, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += Line(body); }
+        y += Sp(10);
+        Rgba sc = p.Status switch { LensStatus.Functional => t.Semantic.Positive, LensStatus.PartialData => t.Semantic.Progress, _ => t.Ink.TextSoft };
+        Rgba si = p.Status switch { LensStatus.Functional => Ink.Positive, LensStatus.PartialData => Ink.Progress, _ => t.Ink.TextSoft };
+        List<string> noteLines = ThemeText.Wrap(m, t, p.StatusNote, body, w - Sp(32));
+        var note = new RectD(x, y, w, noteLines.Count * Line(body) + Sp(20));
+        PanelFrame.Paint(d, note, t, 400, FrameKind.Chip, Mix(t.Material.Panel, sc, 0.10), A(sc, 0.7), 1.0);
+        double ny = y + Sp(9);
+        foreach (string line in noteLines) { d.Write(t, x + Sp(16), ny, line, body, si); ny += Line(body); }
+        y = note.Bottom + Sp(22);
         if (p.Sections.Count == 0)
         {
-            d.Write(t, c.CenterX, c.CenterY, "NOT YET SIMULATED", 22, t.Ink.TextDim, TextAlign.Center, FontRole.Caps);
+            d.Write(t, c.CenterX, c.CenterY, "NOT YET SIMULATED", Px(TypeRole.Display, FontRole.Caps), t.Ink.TextSoft, TextAlign.Center, FontRole.Caps);
             return;
         }
-        double colW = (w - 24 * (p.Sections.Count - 1)) / p.Sections.Count;
+        double colW = (w - Sp(24) * (p.Sections.Count - 1)) / p.Sections.Count;
         for (int s = 0; s < p.Sections.Count; s++)
         {
             LensSection sec = p.Sections[s];
-            double sx = x + s * (colW + 24), sy = y;
-            PanelFrame.Paint(d, new RectD(sx, sy, colW, c.Bottom - sy - 30), t, 410 + s, FrameKind.Panel);
-            d.Write(t, sx + 18, sy + 16, ThemeText.Fit(m, t, sec.Heading.ToUpperInvariant(), 13, colW * 0.6, FontRole.Caps), 13, t.Material.Accent, TextAlign.Left, FontRole.Caps);
-            if (sec.Note.Length > 0) d.Write(t, sx + colW - 18, sy + 17, sec.Note, 12, t.Ink.TextDim, TextAlign.Right);
-            sy += 46;
-            if (sec.Items.Count == 0) { d.Write(t, sx + 18, sy, "Nothing yet.", 14, t.Ink.TextDim); continue; }
+            double sx = x + s * (colW + Sp(24)), sy = y;
+            PanelFrame.Paint(d, new RectD(sx, sy, colW, c.Bottom - sy - Sp(30)), t, 410 + s, FrameKind.Panel);
+            double nw = sec.Note.Length > 0 ? m.Width(t, sec.Note, Px(TypeRole.Caption)) + Sp(16) : 0;
+            WriteFit(d, m, sx + Sp(18), sy + Sp(16), sec.Heading.ToUpperInvariant(), heading, colW - Sp(36) - nw, Ink.Accent, TextAlign.Left, FontRole.Caps);
+            if (sec.Note.Length > 0) d.Write(t, sx + colW - Sp(18), sy + Sp(18), sec.Note, Px(TypeRole.Caption), t.Ink.TextSoft, TextAlign.Right);
+            sy += Sp(16) + Line(heading) + Sp(10);
+            if (sec.Items.Count == 0) { d.Write(t, sx + Sp(18), sy, "Nothing yet.", body, t.Ink.TextSoft); continue; }
             int k = 0;
-            foreach (string item in sec.Items)
+            for (int i = 0; i < sec.Items.Count; i++)
             {
-                if (sy > c.Bottom - 60) { d.Write(t, sx + 18, sy, "...", 14, t.Ink.TextDim); break; }
-                if (sec.Subjects is { } subjects && k < subjects.Count && subjects[k] is { } subject)
-                    InfoAdd(new RectD(sx + 32, sy, Math.Min(colW - 50, m.Width(t, item, 14)), Math.Max(18, t.Type.Line(14))), subject, item);
-                EraMarks.State(d, t, sx + 22, sy + 9, 3.2, MarkKind.Completed, 0, 420 + k++);
-                d.Write(t, sx + 32, sy, ThemeText.Fit(m, t, item, 14, colW - 50), 14, t.Ink.Text);
-                sy += Math.Max(21, t.Type.Line(14));
+                if (sy > c.Bottom - Sp(60) - Line(body))
+                {
+                    // Never a silent drop: the column says how many more there are.
+                    d.Write(t, sx + Sp(18), sy, "+ " + (sec.Items.Count - i).ToString(CultureInfo.InvariantCulture) + " more", body, t.Ink.TextSoft);
+                    break;
+                }
+                if (sec.Subjects is { } subjects && i < subjects.Count && subjects[i] is { } subject)
+                    InfoAdd(new RectD(sx + Sp(36), sy, Math.Min(colW - Sp(54), m.Width(t, sec.Items[i], body)), Line(body)), subject, sec.Items[i]);
+                EraMarks.State(d, t, sx + Sp(24), sy + t.Type.Size(body) * 0.6, Sp(3.4), MarkKind.Completed, 0, 420 + k++);
+                WriteFit(d, m, sx + Sp(36), sy, sec.Items[i], body, colW - Sp(54), t.Ink.Text);
+                sy += Line(body);
             }
         }
     }

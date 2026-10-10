@@ -13,7 +13,7 @@ namespace Sim.Ui.Theme;
 public static class ChromeFurniture
 {
     /// <summary>A stable frame seed per chrome element (so its hand-cut edge never shimmers).</summary>
-    public static int IdOf(in ChromeElement element) => element.Rule switch
+    public static int IdOf(in ChromeElement element) => element.Panel.Title == PanelLayout.Selection.Title ? 13 : element.Rule switch
     {
         RulePlacement.BottomEdge => 11,
         RulePlacement.TopEdge => 12,
@@ -23,13 +23,13 @@ public static class ChromeFurniture
 
     /// <summary>Paints <paramref name="element"/>'s frame and rule. <paramref name="frameHeight"/> is the
     /// MEASURED frame height in the game and <see cref="Art.UiTheme.FrameHeightPx"/> headless.</summary>
-    public static void Paint(DrawList d, EraTheme t, in ChromeElement element, float frameHeight)
+    public static void Paint(DrawList d, EraTheme t, in ChromeElement element, float frameHeight, float scale = 1f)
     {
         PanelRect p = element.Panel;
         var rect = new RectD(p.X, p.Y, p.Width, p.Height);
         int id = IdOf(element);
         PanelFrame.Paint(d, rect, t, id, FrameKind.Panel);
-        ScreenRect rule = ChromeGeometry.HeaderRule(element, frameHeight);
+        ScreenRect rule = ChromeGeometry.HeaderRule(element, frameHeight, scale);
         PanelFrame.Rule(d, new RectD(rule.X + 6, rule.Y, rule.Width - 12, rule.Height), t, id + 100);
     }
 }

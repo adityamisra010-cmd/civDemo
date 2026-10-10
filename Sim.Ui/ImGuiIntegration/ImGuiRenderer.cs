@@ -83,7 +83,10 @@ public sealed class ImGuiRenderer
         ImGuiDrawData.Configure(ImGui.GetIO());
     }
 
-    /// <summary>Uploads the ImGui font atlas as a Texture2D and binds it.</summary>
+    private IntPtr _fontTextureId;
+
+    /// <summary>Uploads the ImGui font atlas as a Texture2D and binds it, replacing (and disposing) the texture of a
+    /// previous atlas — the UI-scale change rebuilds the atlas at new sizes (M5 polish UR-1).</summary>
     public unsafe void RebuildFontAtlas()
     {
         ImGuiIOPtr io = ImGui.GetIO();
@@ -93,7 +96,9 @@ public sealed class ImGuiRenderer
 
         var fontTexture = new Texture2D(_device, width, height, false, SurfaceFormat.Color);
         fontTexture.SetData(pixels);
-        io.Fonts.SetTexID(BindTexture(fontTexture));
+        if (_fontTextureId != IntPtr.Zero && _boundTextures.Remove(_fontTextureId, out Texture2D? old)) old.Dispose();
+        _fontTextureId = BindTexture(fontTexture);
+        io.Fonts.SetTexID(_fontTextureId);
         io.Fonts.ClearTexData();
     }
 

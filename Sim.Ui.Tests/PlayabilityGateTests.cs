@@ -83,7 +83,7 @@ public class PlayabilityGateTests : IDisposable
     }
 
     /// <summary>THE CONTROL: the same live UI with the pre-fix renderer configuration (RendererHasVtxOffset NOT
-    /// declared), opened on Research at the game's 1280×800 and moved over the tree, ABORTS with the exact assertion
+    /// declared), opened on Research in a maximised 1920×1080 window and moved over the tree, ABORTS with the exact assertion
     /// the Director hit. So the gate can see the crash — and passes above only because it is fixed.</summary>
     [Fact]
     public void Control_PreFixRendererConfiguration_AbortsOnTheResearchScreen_WithImGuis16BitAssertion()
@@ -113,13 +113,15 @@ public class PlayabilityGateTests : IDisposable
             Assert.Contains(r.Rows, row => row.Control == control && row.Result == GateResult.Pass);
     }
 
-    /// <summary>The Director's click, through the real UI at the game's own size: the status band's research figure
+    /// <summary>The Director's click, through the real UI in a maximised window: the status band's research figure
     /// opens the tree; moving over it takes the background list past 65,535 vertices — the frames the pre-fix
-    /// renderer aborted on — and every one of them passes the 16-bit contract now.</summary>
+    /// renderer aborted on — and every one of them passes the 16-bit contract now. (M5 polish UR-2, deliberately: at
+    /// the default 1280×800 the calmer card texture keeps the tree under the old limit — 62,618 at most — so the
+    /// test opens the 1920×1080 window, where the tree passes it as it opens.)</summary>
     [Fact]
-    public void ResearchClick_ThroughTheLiveUi_At1280x800_HoverPassesTheOldLimit_AndEveryFrameIsValid()
+    public void ResearchClick_ThroughTheLiveUi_MaximisedWindow_HoverPassesTheOldLimit_AndEveryFrameIsValid()
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("click"), Assets());
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("click"), Assets(), width: 1920, height: 1080);
         Assert.True(h.ClickControl("band-research"));
         Assert.True(h.Ui.ProgressionOpen);
         for (int y = 180; y < 800; y += 40)
@@ -144,7 +146,10 @@ public class PlayabilityGateTests : IDisposable
         using UiFrameHarness big = UiFrameHarness.Start(UiSession.Start(42), WorkDir("chrome-1920"), Assets(), width: 1920, height: 1009);
         Assert.Equal(1920f, big.Ui.StatusRect.Width);
         Assert.Equal(1009f - PanelLayout.Command.Height, big.Ui.CommandRect.Y);
-        Assert.Equal(1920f - PanelLayout.Context.Width - PanelLayout.Margin, big.Ui.ContextRect.X);
+        // UR-3: the context panel's width follows the window (a quarter of it, 420–560 px): 480 at 1920.
+        Assert.Equal(PanelLayout.ContextWidth(1920f), big.Ui.ContextRect.Width);
+        Assert.Equal(480f, big.Ui.ContextRect.Width);
+        Assert.Equal(1920f - PanelLayout.ContextWidth(1920f) - PanelLayout.Margin, big.Ui.ContextRect.X);
         Assert.Equal(1009f - PanelLayout.Status.Height - PanelLayout.Command.Height - 2 * PanelLayout.Margin, big.Ui.ContextRect.Height);
         UiControl bigEnd = big.Ui.Controls.Find("end-turn")!.Value;
         Assert.Equal(big.Ui.CommandRect.Y + (ChromeGeometry.EndTurnButton.Y - PanelLayout.Command.Y), bigEnd.Y0, 0.5);
@@ -225,8 +230,9 @@ public class PlayabilityGateTests : IDisposable
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("age-rect"), Assets());
         Sim.Ui.Render.RectD r = h.Ui.AgePanelBounds;
-        Assert.True(r.Y >= PanelLayout.Selection.Y + PanelLayout.Selection.Height, "Age panel top " + r.Y);
-        Assert.Equal(GameUi.UnitCardRect.Y, (float)r.Y);
+        // UR-3: the selection card's height is its measured content; the column starts under the card AS DRAWN.
+        Assert.True(r.Y >= h.Ui.SelectionRect.Y + h.Ui.SelectionRect.Height, "Age panel top " + r.Y);
+        Assert.Equal(h.Ui.UnitCardRect.Y, (float)r.Y);
         Assert.True(r.Bottom <= h.Ui.CommandRect.Y, "Age panel bottom " + r.Bottom);
     }
 
@@ -288,8 +294,8 @@ public class PlayabilityGateTests : IDisposable
         // The card's ONLY control is its close button: no control pretends to move the formation.
         var onCard = new List<string>();
         foreach (UiControl c in h.Ui.Controls.Last)
-            if (c.X0 >= GameUi.UnitCardRect.X && c.X1 <= GameUi.UnitCardRect.X + GameUi.UnitCardRect.Width
-                && c.Y0 >= GameUi.UnitCardRect.Y && c.Y1 <= GameUi.UnitCardRect.Y + GameUi.UnitCardRect.Height)
+            if (c.X0 >= h.Ui.UnitCardRect.X && c.X1 <= h.Ui.UnitCardRect.X + h.Ui.UnitCardRect.Width
+                && c.Y0 >= h.Ui.UnitCardRect.Y && c.Y1 <= h.Ui.UnitCardRect.Y + h.Ui.UnitCardRect.Height)
                 onCard.Add(c.Name);
         Assert.Equal(["unit-close"], onCard);
         Assert.Empty(h.Problems);
@@ -330,8 +336,15 @@ public class PlayabilityGateTests : IDisposable
             Assert.True(territory.X1 <= PanelLayout.MinWindowWidth, "territory toggle ends at " + territory.X1);
             Assert.Empty(h.Problems);
         }
-        // Control: 1024 px (the old floor-less case the verifier found) — the harness must call it out.
+        // UR-3: the measured row tightens rather than overflows, so the old floor-less case (1024 px) now FITS…
         using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-1024"), Assets(), width: 1024, height: 640))
+        {
+            h.Idle(2);
+            Assert.DoesNotContain(h.Problems, p => p.Contains("outside", StringComparison.Ordinal));
+        }
+        // …and the control moves below what even the tightened row can hold (800 px; the tightened row's toggle ends
+        // at 857.6 px, measured): the harness must call it out.
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-800"), Assets(), width: 800, height: 640))
         {
             h.Idle(2);
             Assert.Contains(h.Problems, p => p.Contains("'territory' outside", StringComparison.Ordinal));

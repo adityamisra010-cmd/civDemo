@@ -38,14 +38,15 @@ public class ChromeGeometryTests
     private static readonly float Fh = UiTheme.FrameHeightPx;
 
     [Fact]
-    public void TheDesignFrameHeight_Is29_FromThe19pxFaceAndFramePadding5()
+    public void TheDesignFrameHeight_Is30_FromThe20pxBodyRoleAndFramePadding5()
     {
         // GetFrameHeight() = FontSize + 2 × FramePadding.y. Every rect below
         // that depends on the frame height depends on THIS; a style change
-        // that moves it must come here first.
-        Assert.Equal(19f, UiTheme.BodyFontPx);
+        // that moves it must come here first. M5 polish UR-1: the body role is
+        // 20 px of EB Garamond (TypeScale), so 19 + 10 = 29 became 20 + 10 = 30.
+        Assert.Equal(20f, UiTheme.BodyFontPx);
         Assert.Equal(5f, UiTheme.FramePaddingPx.Y);
-        Assert.Equal(29f, Fh);
+        Assert.Equal(30f, Fh);
     }
 
     // ------------------------------------------------------------------
@@ -71,11 +72,12 @@ public class ChromeGeometryTests
     {
         // The negative control. The old DrawPanelFurniture used the
         // under-title-bar formula in every window: y = top + frameHeight + 2.
-        // On the command bar that is 31..39 in a 12..42 button row.
+        // On the command bar that is 32..40 in a 12..48 button row (UR-1/UR-3:
+        // frame height 30, End Turn 36 tall; was 31..39 in 12..42).
         var old = new ChromeElement(PanelLayout.Command, RulePlacement.UnderTitleLine);
         ScreenRect rule = ChromeGeometry.HeaderRule(old, Fh);
-        Assert.Equal(PanelLayout.Command.Y + 31f, rule.Y);
-        Assert.Equal(PanelLayout.Command.Y + 39f, rule.Bottom);
+        Assert.Equal(PanelLayout.Command.Y + 32f, rule.Y);
+        Assert.Equal(PanelLayout.Command.Y + 40f, rule.Bottom);
         Assert.True(ScreenRect.Overlap(rule, ChromeGeometry.ButtonRow));
     }
 
@@ -87,10 +89,11 @@ public class ChromeGeometryTests
             bar.Width - 2f * PanelLayout.Margin, bar.Height - 2f * PanelLayout.Margin);
         ScreenRect row = ChromeGeometry.ButtonRow;
         Assert.True(inner.Contains(row), $"row {row} leaves the Margin-inset bar {inner}");
-        // 30 px of button in 56 - 24 = 32 px of room: the bar is exactly as
-        // deep as its row needs plus the Margin. Pinned so a taller button
-        // cannot quietly be pushed into the frame border.
-        Assert.Equal(ChromeGeometry.ButtonHeight, row.Height);
+        // UR-3: 36 px of End Turn (the row's height; the section buttons are a
+        // 32 px step down, centred) in 60 - 24 = 36 px of room: the bar is
+        // exactly as deep as its row needs plus the Margin. Pinned so a taller
+        // button cannot quietly be pushed into the frame border.
+        Assert.Equal(ChromeGeometry.EndTurnHeight, row.Height);
         Assert.True(row.Bottom <= bar.Bottom - PanelLayout.Margin);
     }
 
@@ -107,7 +110,7 @@ public class ChromeGeometryTests
         {
             ScreenRect nav = ChromeGeometry.NavButton(i);
             Assert.True(row.Contains(nav), $"section slot {i} {nav} leaves the row");
-            Assert.Equal(row.Y, nav.Y);
+            Assert.Equal(row.CenterY, nav.CenterY, 3);   // UR-3: a step shorter than End Turn, centred on the row
             Assert.Equal(ChromeGeometry.ButtonHeight, nav.Height);
             float gap = i == 0 ? ChromeGeometry.GroupGap : ChromeGeometry.NavGap;
             Assert.Equal(prev.Right + gap, nav.X);
@@ -170,14 +173,19 @@ public class ChromeGeometryTests
     }
 
     [Fact]
-    public void TheSelectionCard_KeepsThePrePacketFormula_Verbatim()
+    public void TheSelectionCard_HasAHeaderRow_ItsTitleTheSettlementsName_UnderTheRule()
     {
-        // Not a defect in the playtest and not in this packet's scope: its
-        // rule stays exactly where T4.18 put it, so the card's look cannot
-        // have moved by accident of the refactor.
+        // M5 polish UR-3 (deliberately replacing the T4.18 "first-line" pin):
+        // the card's title is the settlement's name in the 27 px title face,
+        // taller than the old first-line formula (y = top + frameHeight + 2)
+        // allowed — the title would have crossed its own rule — so the card has
+        // a header row like the context panel and its rule sits under that row.
         ScreenRect rule = ChromeGeometry.HeaderRule(ChromeGeometry.Selection, Fh);
-        Assert.Equal(RulePlacement.UnderTitleLine, ChromeGeometry.Selection.Rule);
-        Assert.Equal(PanelLayout.Selection.Y + Fh + 2f, rule.Y);
+        ScreenRect row = ChromeGeometry.HeaderRow(ChromeGeometry.Selection, Fh);
+        Assert.Equal(RulePlacement.UnderHeaderRow, ChromeGeometry.Selection.Rule);
+        Assert.Equal(row.Bottom + ChromeGeometry.RuleGap, rule.Y);
+        Assert.True(row.Height >= UiTheme.HeaderFontPx, "the title role fits the header row");
+        Assert.True(ScreenRect.Of(PanelLayout.Selection).Contains(rule));
     }
 
     [Fact]
@@ -210,14 +218,14 @@ public class ChromeGeometryTests
     [Theory]
     [InlineData(4f)]
     [InlineData(6f)]
-    [InlineData(9f)]    // ~an 'x' in EB Garamond at 19 px
-    [InlineData(13f)]   // the whole padded interior
+    [InlineData(9f)]    // ~an 'x' in EB Garamond at 20 px
+    [InlineData(14f)]   // the whole padded interior
     public void CloseGlyph_AnchorIsTheRectCentre_AtEveryPlausibleGlyphWidth(float glyphWidth)
     {
         // ImGui's placement rule (ChromeGeometry.LabelAnchor) with the
         // alignment the renderer pushes explicitly. Text height is the font
-        // size for a single line. Interior = 29 - 16 by 29 - 10 = 13 × 19,
-        // so any glyph up to 13 px wide centres exactly.
+        // size for a single line. Interior = 30 - 16 by 30 - 10 = 14 × 20,
+        // so any glyph up to 14 px wide centres exactly.
         ScreenRect close = ChromeGeometry.CloseButton(ChromeGeometry.Context, Fh);
         (float ax, float ay) = ChromeGeometry.LabelAnchor(close, glyphWidth, UiTheme.BodyFontPx,
             UiTheme.FramePaddingPx.X, UiTheme.FramePaddingPx.Y,
@@ -230,17 +238,17 @@ public class ChromeGeometryTests
     public void ThePreT419CloseButton_PinnedTheGlyphLowAndLeft_MeasuredNotAssumed()
     {
         // The negative control: SameLine(Width - 46) and a 24 × 20 button.
-        // Padded interior 8 × 10 under a 9 × 19 glyph, so ImGui's ImMax
-        // clamp wins in both axes: the glyph's centre lands 0.5 px right of
-        // and 4.5 px BELOW the rect's — the low, off-centre 'x' the playtest
-        // saw. The same LabelAnchor that proves the new rect centred proves
+        // Padded interior 8 × 10 under a 9 × 20 glyph (UR-1: the 20 px body
+        // role; 19 px when this was measured), so ImGui's ImMax clamp wins in
+        // both axes: the glyph's centre lands 0.5 px right of and 5 px BELOW
+        // the rect's — the low, off-centre 'x' the playtest saw. The same LabelAnchor that proves the new rect centred proves
         // the old one did not, so the model is not a tautology.
         var old = new ScreenRect(PanelLayout.Context.X + PanelLayout.Context.Width - 46f,
             PanelLayout.Context.Y + PanelLayout.Margin, 24f, 20f);
         (float ax, float ay) = ChromeGeometry.LabelAnchor(old, 9f, UiTheme.BodyFontPx,
             UiTheme.FramePaddingPx.X, UiTheme.FramePaddingPx.Y, 0.5f, 0.5f);
         Assert.Equal(0.5f, ax - old.CenterX, 3);
-        Assert.Equal(4.5f, ay - old.CenterY, 3);
+        Assert.Equal(5f, ay - old.CenterY, 3);
     }
 
     [Fact]
@@ -260,8 +268,8 @@ public class ChromeGeometryTests
     public void ContextPanel_TheHeaderRowAndTheCloseButton_AreClearOfTheRule_AndContentStartsBelowIt()
     {
         // Making the close button frame-height would have re-created defect
-        // 1 in this panel: the old under-title formula (y = top + 31) crosses
-        // a 12..41 header row. The rule is under the ROW now, and the
+        // 1 in this panel: the old under-title formula (y = top + 32) crosses
+        // a 12..42 header row. The rule is under the ROW now, and the
         // section content is placed below the rule rather than on it.
         ScreenRect rule = ChromeGeometry.HeaderRule(ChromeGeometry.Context, Fh);
         ScreenRect row = ChromeGeometry.HeaderRow(ChromeGeometry.Context, Fh);

@@ -54,6 +54,39 @@ The screen is a full-screen progression view. Open it with **K** or the **Knowle
   - a **Set as research target** button.
 - **Orders.** Clicking an available node, or the button, returns the `SetResearchTarget` order built by the existing `ResearchOrderFactory`. The game logs it through `UiSession.EmitResearchOrder`, which uses the same factory. The screen never writes state. It marks the order as pending until End Turn, and it does not re-issue an order for the current target.
 
+## Readability (M5 polish UR-4, dated 2026-10-06)
+
+> **DATED NOTE 2026-10-06 (Director directive 2026-10-06 §2; M5 polish UI readability, packet UR-4).** The text
+> above describes the screen as built; these points supersede it where they differ, and are kept beside it.
+>
+> - **Type by role, × the UI scale.** Every run is set at a `TypeScale` role (Caption is the floor) × `Scale` (the UI
+>   scale the host passes); every strip, card, gap and hit rect is a reference length × `Scale`. Strips: lens bar
+>   66, tab bar 58, lane header 40, control row 44 px at s = 1. Chrome controls answer hover.
+> - **The card** is ~208–232 × 116 px at s = 1 (`TreeLayoutOptions`: MinCardWidth 200, CardHeight 116): the NAME at
+>   the Body role in the heading face, whole, on up to two lines (`ProgressionScreen.TwoLines`: breaks at spaces or
+>   hyphens; every one of the 598 names fits the narrowest card in every era, pinned with the real atlas); the COST
+>   and the Age NUMERAL at the Data role ("1,050 RP · Age II"); the STATE LINE at the Body role in the state's ink —
+>   "Needs Controlled fire (Lane)" (the first missing prerequisite), "Available · ~9 turns", "Researching · 13% · ~7
+>   turns", "Known". The estimate to complete is on every era's card (it was A7+).
+> - **The full Age name left the card**: it is the tier strip's (right above every card group, now at the Body role),
+>   the detail panel's and the hover tip's. "Every card shows its numeral and full name" above no longer holds; the
+>   card keeps the numeral beside the cost (a Director item in the stage-B report: restoring a full-name row costs the
+>   Body-share census its margin).
+> - **The minimum card width holds at every window.** `S` is what the width holds at the minimum card width — it was
+>   forced up to the lane count (cards 123 px at 1366 × 768). A tier whose lanes do not fit side by side WRAPS its
+>   lanes into further lane rows (`LaneSegment.RowBase`, `LaneWrapGap`); routes still never pass under a card.
+> - **The detail panel** is 440 px × s, DOCKED from 1600 px × s; below that it is an overlay DRAWER over the tree's
+>   right edge, left of the overview strip and under the lane header and control row, opened by selecting a node and
+>   closed by its × or Escape (the first Escape closes the drawer, the next the screen). Its content is in decision
+>   order — the node (branch, Age in full, name, state), COST and turns, the ACTION directly under them, ENABLES (the
+>   content's capabilities, techniques, applications, unlocked entities, and the nodes it leads to), REQUIRES,
+>   EUREKA, UNIVERSITY, ABOUT — and it scrolls (wheel; a bar and a "more below" mark), never dropping a line.
+> - **State fills** (Known, Target, Available, Locked) are distinct surfaces: `EraThemes.DistinctStates` tints Known
+>   and Target the least that puts every pair ≥ ΔE 12 where the era allows (≥ 8 in every era, pinned), with the body
+>   ink ≥ 7:1 on each. Selected: a 2.5 px strong border; hovered: the strong border and a 2 px lift.
+> - **Lane chips** name their lane in mixed case at the Caption role (capitals did not fit 1600 px); the lane segments
+>   and the tier strips are set at the Body role on the field, in inks measured against the field.
+
 ## Code (pure model and layout, kept apart from rendering)
 
 | File | Role |

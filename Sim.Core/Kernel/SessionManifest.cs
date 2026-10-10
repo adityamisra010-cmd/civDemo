@@ -80,7 +80,13 @@ public sealed record SessionManifest(
     // Empires replays only into a world founded with them. An ADDITIVE key inside v2 (the ForensicFile
     // argument above): older binaries ignore it, and a manifest written before it reads back as null —
     // exactly the session it then was, since no override existed.
-    int? AiEmpires = null)
+    int? AiEmpires = null,
+    // M5 polish UR-7 (2026-10-06): the DISPLAY the session was played on — the opening window, the display, the UI
+    // scale and the OS DPI scale. PROVENANCE ONLY, like StartedAt and Platform: nothing replays from it (the UI scale
+    // is per machine, never in the simulation, the save or the replay). An ADDITIVE key inside v2 (the ForensicFile
+    // argument above), written only when present, so a manifest without it is byte-identical to before; older
+    // binaries ignore it, and an older manifest reads back with null.
+    SessionDisplay? Display = null)
 {
     /// <summary>The schema tag, so a reader can tell which vintage produced a
     /// file it did not write. v2 added `platform`.</summary>
@@ -185,6 +191,18 @@ public sealed record SessionManifest(
         json.WriteString("telemetryFile", TelemetryFile);
         json.WriteString("platform", Platform);
         json.WriteString("forensicFile", ForensicFile);
+        if (Display is { } dsp)
+        {
+            json.WriteStartObject("display");
+            json.WriteNumber("windowWidth", dsp.WindowWidth);
+            json.WriteNumber("windowHeight", dsp.WindowHeight);
+            json.WriteNumber("displayWidth", dsp.DisplayWidth);
+            json.WriteNumber("displayHeight", dsp.DisplayHeight);
+            json.WriteNumber("uiScale", dsp.UiScale);
+            json.WriteNumber("userScale", dsp.UserScale);
+            if (dsp.DpiScale is double dpi) json.WriteNumber("dpiScale", dpi); else json.WriteNull("dpiScale");
+            json.WriteEndObject();
+        }
         json.WriteEndObject();
         json.Flush();
     }
@@ -228,11 +246,31 @@ public sealed record SessionManifest(
             ForensicFile: root.TryGetProperty("forensicFile", out JsonElement ff) ? ff.GetString() ?? "" : "",
             // Absent (or null) on every manifest written before ADR-033 D5 and on any session founded with
             // worldgen.json's own count.
-            AiEmpires: Nullable(root, "aiEmpires"));
+            AiEmpires: Nullable(root, "aiEmpires"),
+            // Absent on every manifest written before M5 polish UR-7 (and wherever the host could not read it).
+            Display: root.TryGetProperty("display", out JsonElement de) && de.ValueKind == JsonValueKind.Object ? ReadDisplay(de) : null);
     }
+
+    private static SessionDisplay ReadDisplay(JsonElement d) => new(
+        WindowWidth: d.GetProperty("windowWidth").GetInt32(),
+        WindowHeight: d.GetProperty("windowHeight").GetInt32(),
+        DisplayWidth: d.TryGetProperty("displayWidth", out JsonElement w) && w.ValueKind == JsonValueKind.Number ? w.GetInt32() : 0,
+        DisplayHeight: d.TryGetProperty("displayHeight", out JsonElement h) && h.ValueKind == JsonValueKind.Number ? h.GetInt32() : 0,
+        UiScale: d.GetProperty("uiScale").GetDouble(),
+        UserScale: d.GetProperty("userScale").GetDouble(),
+        DpiScale: d.TryGetProperty("dpiScale", out JsonElement dpi) && dpi.ValueKind == JsonValueKind.Number ? dpi.GetDouble() : null);
 
     private static int? Nullable(JsonElement root, string name)
         => root.TryGetProperty(name, out JsonElement e) && e.ValueKind == JsonValueKind.Number
             ? e.GetInt32()
             : null;
 }
+
+/// <summary>
+/// THE DISPLAY A SESSION WAS PLAYED ON (M5 polish UR-7) — provenance for a human reading a playtest's record: the
+/// window the game opened at (px), the display it opened on (px; 0 = not read), the UI scale the interface was set at
+/// (the 1080p reference = 1), the player's own step (Ctrl+= / --ui-scale) and the operating system's DPI scale (1 = 96
+/// dpi; null when the host could not read it). Supplied by the caller: Sim.Core reads no display.
+/// </summary>
+public sealed record SessionDisplay(int WindowWidth, int WindowHeight, int DisplayWidth, int DisplayHeight,
+    double UiScale, double UserScale, double? DpiScale);

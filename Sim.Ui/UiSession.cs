@@ -458,7 +458,7 @@ public sealed class UiSession
     /// record; without it the director's real Windows session read as
     /// "REPRODUCTION FAILED", a determinism finding it was not.
     /// </summary>
-    public SessionManifest Manifest(string startedAt, string sessionLogPath) =>
+    public SessionManifest Manifest(string startedAt, string sessionLogPath, SessionDisplay? display = null) =>
         new(Seed: _seed,
             SizePx: _sizePx,
             Settlements: _settlements,
@@ -472,15 +472,16 @@ public sealed class UiSession
             TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)),
             Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
             ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)),
-            AiEmpires: _aiEmpires);
+            AiEmpires: _aiEmpires,
+            Display: display);
 
-    /// <summary>Writes the manifest beside the order log.</summary>
-    public void ExportManifest(string startedAt, string sessionLogPath)
+    /// <summary>Writes the manifest beside the order log (with the display the game opens on, when the host knows it).</summary>
+    public void ExportManifest(string startedAt, string sessionLogPath, SessionDisplay? display = null)
     {
         string path = ManifestPath(sessionLogPath);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         using FileStream file = File.Create(path);
-        Manifest(startedAt, sessionLogPath).Write(file);
+        Manifest(startedAt, sessionLogPath, display).Write(file);
     }
 
     /// <summary>Exports the turn trace — header plus one line per observed

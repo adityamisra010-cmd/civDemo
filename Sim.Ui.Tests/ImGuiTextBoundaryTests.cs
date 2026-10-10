@@ -34,7 +34,12 @@ public class ImGuiTextBoundaryTests
             UiTheme.Fonts fonts = UiTheme.LoadFonts(AssetsRoot());
             Assert.Contains("IBM Plex Sans", fonts.Note, StringComparison.Ordinal);
             ImFontAtlasPtr atlas = ImGui.GetIO().Fonts;
-            Assert.Equal(7, atlas.Fonts.Size);   // Garamond 19/25, Plex Serif 17/19, Plex Sans 17/19/25
+            // UR-1: every face at every raster of the ladder (and of the type scale) — was 7 (Garamond 19/25, Plex
+            // Serif 17/19, Plex Sans 17/19/25), which set an 11 px run from the 19 px raster.
+            int rasters = 0;
+            foreach (TypeFace face in new[] { TypeFace.Garamond, TypeFace.PlexSerif, TypeFace.PlexSans })
+                rasters += UiTheme.RasterSizes(face, 1.0).Length;
+            Assert.Equal(rasters, atlas.Fonts.Size);
             for (int i = 0; i < atlas.Fonts.Size; i++)
             {
                 ImFontPtr f = atlas.Fonts[i];
@@ -48,17 +53,20 @@ public class ImGuiTextBoundaryTests
                 Assert.Equal(hyphen, Advance(f, '—'));
                 // The em-dash string the trade panel shows every turn measures as its DrawList form.
                 string raw = "no trade this turn — every price within reach";
-                Assert.Equal(f.CalcTextSizeA(19f, float.MaxValue, 0f, DrawList.Latin1(raw)).X, f.CalcTextSizeA(19f, float.MaxValue, 0f, raw).X);
+                Assert.Equal(f.CalcTextSizeA(f.FontSize, float.MaxValue, 0f, DrawList.Latin1(raw)).X, f.CalcTextSizeA(f.FontSize, float.MaxValue, 0f, raw).X);
                 for (char c = ' '; c <= '~'; c++) Assert.True(Has(f, c));   // Latin-1 stays complete
             }
             // The era faces resolve: Plex Sans for the modern era's body and numbers.
             (ImFontPtr body, _, ImFontPtr numeric) = fonts.For(EraThemes.For(UiEra.Modern));
-            Assert.True(UiTheme.SameFont(body, fonts.SansBody));
-            Assert.True(UiTheme.SameFont(numeric, fonts.SansNumeric));
-            (ImFontPtr pBody, ImFontPtr pHead, ImFontPtr pNum) = fonts.For(EraThemes.For(UiEra.Medieval));
+            Assert.True(UiTheme.SameFont(body, fonts.Face(TypeFace.PlexSans, TypeScale.Px(TypeRole.Body, TypeFace.PlexSans))));
+            Assert.True(UiTheme.SameFont(numeric, fonts.Face(TypeFace.PlexSans, TypeScale.Px(TypeRole.Data, TypeFace.PlexSans))));
+            (ImFontPtr pBody, _, ImFontPtr pNum) = fonts.For(EraThemes.For(UiEra.Medieval));
             Assert.True(UiTheme.SameFont(pBody, fonts.Body));
-            Assert.True(UiTheme.SameFont(pHead, fonts.Header));
             Assert.True(UiTheme.SameFont(pNum, fonts.Numeric));
+            // Each role's raster is exactly the role's size (no minification) in every face at s = 1.
+            foreach (TypeFace face in new[] { TypeFace.Garamond, TypeFace.PlexSerif, TypeFace.PlexSans })
+                foreach (TypeRole role in TypeScale.Roles)
+                    Assert.Equal((float)TypeScale.Px(role, face), fonts.Face(face, TypeScale.Px(role, face)).FontSize);
         }
         finally
         {

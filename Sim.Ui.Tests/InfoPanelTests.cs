@@ -205,6 +205,11 @@ public class InfoPanelTests : IDisposable
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("cereals"), Assets());
         Assert.True(h.ClickControl("band-age"));
         InfoSubject cereals = InfoSubject.Milestone(2, "a2_cultivation");
+        // UR-5 (merge of m5p-ui): the Age panel SCROLLS and leads with STILL REQUIRED and the progress chips, so at
+        // 1280 x 800 the core milestones sit below the fold; a region is registered only where it is visible, so the
+        // player scrolls the panel (the wheel over it) until the milestone is on screen.
+        RectD over = h.Ui.Age.InfoHits[0].Rect;
+        for (int i = 0; i < 20 && !h.Ui.InfoRegistry.Hits.Any(x => x.Subject == cereals); i++) h.Wheel(over.CenterX, over.CenterY, -1);
         InfoHit hit = h.Ui.InfoRegistry.Hits.First(x => x.Subject == cereals);
         int queued = s.QueuedOrders().Count;
         string hash = Hash(s);

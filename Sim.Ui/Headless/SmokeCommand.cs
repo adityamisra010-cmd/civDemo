@@ -55,12 +55,15 @@ public static class SmokeCommand
         }
     }
 
-    /// <summary>The pre-fix configuration through the real UI: open Research at 1280×800 on the canonical turn-1
-    /// world and move over the tree. Expected: ImGui aborts the process with its 16-bit assertion.</summary>
+    /// <summary>The pre-fix configuration through the real UI: open Research in a maximised 1920×1080 window on the
+    /// canonical turn-1 world and move over the tree. Expected: ImGui aborts the process with its 16-bit assertion.
+    /// (M5 polish UR-2, 2026-10-06: the calmer card texture brought the 1280×800 tree under 65,535 vertices — 62,618
+    /// at most while hovering — so the control opens the window the Director's crash was in, where the A1 tree is
+    /// ≈ 96,000 vertices as it opens.)</summary>
     private static int ControlPrefix(string assets, string work)
     {
         UiSession session = UiSession.Start(42);
-        using UiFrameHarness h = UiFrameHarness.Start(session, work, assets, vtxOffset: false);
+        using UiFrameHarness h = UiFrameHarness.Start(session, work, assets, width: 1920, height: 1080, vtxOffset: false);
         Console.WriteLine("control: RendererHasVtxOffset NOT declared (the pre-fix renderer); opening Research");
         Console.Out.Flush();
         h.ClickControl("band-research");

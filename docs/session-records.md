@@ -116,6 +116,14 @@ both sides: a hash mismatch below is a determinism finding.` A manifest written 
 `not recorded (pre-v2 session)` and the notice tells you the signature to look for instead of
 guessing.
 
+> **DATED NOTE 2026-10-06 (M5 polish UI readability, packet UR-7).** The manifest also records the **display** the
+> session was played on, as an additive `display` object inside v2 (written only when the host supplies it, so a
+> manifest without it is byte-identical to before): `windowWidth`/`windowHeight` (the window the game opened at),
+> `displayWidth`/`displayHeight` (0 = not read), `uiScale` (the 1080p reference = 1), `userScale` (Ctrl+= /
+> `--ui-scale`) and `dpiScale` (the OS DPI scale, 96 dpi = 1; null when unread). It is provenance for a human reading
+> a playtest record ("what size was the text?"), like `startedAt` and `platform`: nothing replays from it, and the UI
+> scale is never in the simulation, the save or the replay.
+
 ## What this is not
 
 It is **not a savegame**. You still cannot quit at turn 60 and resume at turn 60;

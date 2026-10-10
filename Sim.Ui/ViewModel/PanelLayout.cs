@@ -35,6 +35,9 @@ public readonly record struct PanelRect(string Title, float X, float Y, float Wi
 /// TARGET RESOLUTION 1280×800 — the project's default window, and what every
 /// gate build opens at. SimUiGame reads DesignWidth/Height from HERE, so the
 /// tested layout and the actual window cannot drift apart.
+/// (M5 polish UR-7, 2026-10-06: the game now OPENS at <see cref="OpeningWindow"/>,
+/// 90 % of the display; 1280×800 stays the design size, the fallback when the
+/// display cannot be read, and a size the gate still plays at.)
 /// </summary>
 public static class PanelLayout
 {
@@ -49,18 +52,39 @@ public static class PanelLayout
     public const int MinWindowWidth = 1080;   // measured: the territory toggle ends at x = 1056.6 (H1 fonts), + Margin
     public const int MinWindowHeight = 640;
 
+    /// <summary>
+    /// THE OPENING WINDOW (M5 polish UR-7, the UI audit §6.11): the share of the display the game opens at — the
+    /// layout is designed at <see cref="DesignWidth"/> × <see cref="DesignHeight"/> and reflows to any window from
+    /// the floor up, and a 1280 × 800 window on a 1920 × 1080 display left the readable type a third of the screen.
+    /// </summary>
+    public const double OpeningShare = 0.9;
+
+    /// <summary>The window the game opens at on a display of <paramref name="displayWidth"/> × <paramref name="displayHeight"/>:
+    /// <see cref="OpeningShare"/> of it, never below the floor nor above the display; the design size when the display
+    /// is unknown (≤ 0). Pure.</summary>
+    public static (int Width, int Height) OpeningWindow(int displayWidth, int displayHeight)
+    {
+        if (displayWidth <= 0 || displayHeight <= 0) return (DesignWidth, DesignHeight);
+        int w = (int)Math.Round(displayWidth * OpeningShare, MidpointRounding.AwayFromZero);
+        int h = (int)Math.Round(displayHeight * OpeningShare, MidpointRounding.AwayFromZero);
+        return (Math.Min(displayWidth, Math.Max(MinWindowWidth, w)), Math.Min(displayHeight, Math.Max(MinWindowHeight, h)));
+    }
+
     /// <summary>Outer margin and inter-element gap, one number so the spacing
     /// is uniform by construction rather than by five separate decisions.</summary>
     public const float Margin = 12;
 
     /// <summary>The always-true world state: year, population, settlements,
     /// food. Full width, deliberately shallow — status is a band, not a
-    /// column.</summary>
-    public static readonly PanelRect Status = new("##status", 0, 0, DesignWidth, 48);
+    /// column. M5 polish UR-3: 48 → 52 px, so the 24 px primary figures and the
+    /// frame-height chips (research, Age) sit above the bottom-edge rule instead
+    /// of on it.</summary>
+    public static readonly PanelRect Status = new("##status", 0, 0, DesignWidth, 52);
 
     /// <summary>The verbs and the section navigation. Full width at the foot,
-    /// where a strategy game's controls live.</summary>
-    public static readonly PanelRect Command = new("##command", 0, DesignHeight - 56, DesignWidth, 56);
+    /// where a strategy game's controls live. M5 polish UR-3: 56 → 60 px for the
+    /// 36 px End Turn (the primary verb) and its Margin above and below.</summary>
+    public static readonly PanelRect Command = new("##command", 0, DesignHeight - 60, DesignWidth, 60);
 
     /// <summary>
     /// The selected settlement, floating over the map at the top left: the one
@@ -74,17 +98,35 @@ public static class PanelLayout
     /// Still under a tenth of the map band (pinned).
     /// ADR-033 integration item 4: 132 → 160 px — happiness and grievance now sit on lines of their own,
     /// because side by side they overflowed the 268 px card ("happiness 100.0 grievanc…").
+    /// M5 polish UR-3: 268 → 320 px wide (the population line measured 252.5 px against 240 px of content), its
+    /// title the settlement's name in the title face; the height is the card's MEASURED content in the game
+    /// (GameUi: title row, rule, one row per figure line, wrapped) — this is the nominal four-line card.
     public static readonly PanelRect Selection =
-        new("##selection", Margin, Status.Height + Margin, 268, 160);
+        new("##selection", Margin, Status.Height + Margin, SelectionWidth, 172);
+
+    /// <summary>The selection card's width at UI scale 1 (UR-3).</summary>
+    public const float SelectionWidth = 320;
 
     /// <summary>
     /// The contextual panel — policy, economy, population, market, annals or
     /// trends, whichever is open, and NOTHING when none is. Right-hand column,
-    /// between the bars.
+    /// between the bars. M5 polish UR-3: its width follows the window —
+    /// <see cref="ContextWidth"/> — 420 px at the design window (was 396 at every size).
     /// </summary>
     public static readonly PanelRect Context = new("##context",
-        DesignWidth - 396 - Margin, Status.Height + Margin,
-        396, DesignHeight - Status.Height - Command.Height - (Margin * 2));
+        DesignWidth - ContextMinWidth - Margin, Status.Height + Margin,
+        ContextMinWidth, DesignHeight - Status.Height - Command.Height - (Margin * 2));
+
+    /// <summary>The context panel's width bounds at UI scale 1 (UR-3).</summary>
+    public const float ContextMinWidth = 420, ContextMaxWidth = 560;
+
+    /// <summary>The context panel's share of the window width before the bounds apply (UR-3).</summary>
+    public const float ContextShare = 0.25f;
+
+    /// <summary>UR-3 — THE CONTEXT PANEL'S WIDTH RULE: a quarter of the window, never narrower than 420 px × s nor
+    /// wider than 560 px × s (1280 → 420, 1920 → 480, 2560 → 640 at s 1.375).</summary>
+    public static float ContextWidth(float windowWidth, float scale = 1f) =>
+        Math.Clamp(ContextShare * windowWidth, ContextMinWidth * scale, ContextMaxWidth * scale);
 
     /// <summary>The chrome that is always on screen. The context panel is NOT
     /// here: its whole point is that it is usually absent.</summary>
