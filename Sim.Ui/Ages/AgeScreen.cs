@@ -38,6 +38,9 @@ public sealed partial class AgeScreen(PolityId polity)
     /// <summary>The chosen surge emphasis key, or 0 when none is chosen yet (confirm is disabled).</summary>
     public int SelectedSurge { get; set; }
     public IReadOnlyList<AgeHitRegion> Hits => _hits;
+    /// <summary>M5 workstream P6 (observation only): the last click <see cref="Click"/> resolved to a hit region. The
+    /// playability gate's coverage reads it; nothing in the UI or the simulation does.</summary>
+    public ResolvedClick<AgeHit> LastClick { get; private set; }
 
     private IReadOnlyWorldState? _world;
     private List<AgeHitRegion> _hits = [];
@@ -79,6 +82,7 @@ public sealed partial class AgeScreen(PolityId polity)
             if (!h.Rect.Contains(x, y)) continue;
             // While the flow is open it is modal: only its own regions answer.
             if (FlowOpen && h.Kind is not (AgeHit.Surge or AgeHit.Confirm or AgeHit.Cancel)) continue;
+            LastClick = LastClick.Next(h.Kind);
             switch (h.Kind)
             {
                 case AgeHit.OpenAdvance: OpenFlow(); return AgeCommand.None;

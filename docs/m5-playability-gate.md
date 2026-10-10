@@ -277,10 +277,35 @@ can act on has a coverage key:
 - `hit:<surface>.<kind>`: a hit region of a screen that is showing (research, age, policy, card).
 - `info:<kind>`: an inspectable region.
 
-The harness collects every key drawn in any frame of a state (sweep and monkey). At every press it records the keys
-under the pointer in the frame the player saw. A plain press covers controls and hit kinds. A Shift press covers
-only the inspectable kind, because it inspects and does not click. A gate row covers what it pressed while it ran
-(`GateRow.Covers`), and only a passing row counts.
+The harness collects every key drawn in any frame of a state (sweep and monkey). A control counts as drawn when it
+is submitted, even if it is scrolled out of view. That is conservative: a row must reach it.
+
+At every press the harness records the keys the press REACHED (`UiPress.Reached`). It never infers them from geometry.
+- A plain press reaches what the UI itself routed it to, from the press frame to the release frame:
+  - the controls ImGui ACTIVATED (`UiControl.Activated`, `ImGui.IsItemActivated` at record time): hovered in the
+    window on top, inside the visible clip, and not disabled;
+  - the hit region each painted screen's own `Click` resolved (`ResolvedClick<TKind>`, kept by `AgeScreen`,
+    `ActionSurfaceScreen`, `InfoPanel` and `ProgressionScreen` for observation only).
+- A Shift press reaches only the inspectable kind it opens, because it inspects and does not click.
+
+A gate row covers what its presses reached (`GateRow.Covers`), and only a passing row counts.
+
+*Review fix (MEASURED by the reviewer and in the tests).* The first version credited every control and region whose
+laid-out rect contained the press point. ImGui's item rect is not clipped, so hidden, scrolled-away, covered and
+disabled controls counted as pressed. With POLICY open, the action surface is one invisible item about 2,000 px
+tall, and a press on `nav:Trends` covered `control:action-surface`. The tests now pin these cases:
+- `Coverage_ACommandBarPress_WithPolicyOpen_DoesNotCoverTheActionSurfaceBeneathIt`: at 1280x800 and at the minimum
+  window, after one End Turn, a press on `nav:Trends` or `nav:Annals` reaches only that button. The test first checks
+  that the old geometric rule would have credited the surface.
+- `Coverage_AControlScrolledOutOfItsPanel_IsNotReached`: POLICY is scrolled, and the surface's laid-out rect runs out
+  of the panel over other chrome. A press there reaches only the control drawn there.
+- `Coverage_APressOnTheActionSurface_ReachesExactlyTheRegionItsClickResolved`: a press on the surface reaches the
+  surface and exactly the region its own `Click` answered with. The next press credits nothing of the surface.
+- `Coverage_ControlsDisabledUnderTheModalAgeFlow_AreNotReached`: in the "age advance" state, the "flow is modal" row
+  presses End Turn and POLICY under the open flow. It passes and covers nothing.
+
+With the stricter rule the gate still passes. Every drawn key in all 9 states is reached by a passing row, and the
+allowlist is still empty.
 
 After the sweep and the monkey, each drawn key that no passing row of that state pressed, and that is not on
 `UiCoverage.Allowlist` with a reason, is a FAIL row. The allowlist is EMPTY: every drawn key is pressed by a passing
@@ -326,6 +351,7 @@ before the step. A camera operation that steps the world fails every camera row 
 |---|---|
 | base `82bde01`, `--smoke --monkey 200` | 9 states, 1588 checks: 1476 pass, 112 not offered, 0 FAIL; 0 problems; 47,609 frames; largest draw list 100,866 vertices; 129.6 s |
 | P6, `--smoke --monkey 200` | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 60,791 frames; largest draw list 104,004 vertices; 130.6 s |
+| P6 after the review fixes (replay-channel guard; a press credits only what it reached), `--smoke --monkey 200` | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 60,791 frames; largest draw list 104,004 vertices; 120.5 s. The rows, the results and the frame count are identical: the fixes only observe. Every state's coverage row passes under the stricter rule. |
 | P6, `--smoke --monkey 300` (the windows-smoke setting) | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 65,345 frames; 142.8 s |
 | P6, `--smoke` (default monkey 400) | 9 states, 1820 checks: 1710 pass, 110 not offered, 0 FAIL; 0 problems; 69,890 frames; 146.7 s |
 | P6, `--smoke --ai-empires 1 --monkey 200` | 8 states, 1607 checks: 1513 pass, 94 not offered, 0 FAIL; 0 problems; 54,030 frames; 142.9 s |
@@ -359,6 +385,16 @@ killed by at least one semantic test:
 
 M8 survived its first run (29/29 passed): no test pinned the notices surface. The notices test was added for it,
 and the rerun kills it.
+
+*Review fix, coverage credits only what a press reached (MEASURED).* Each mutant was built and run against
+`PlayabilityGateTests.Coverage`. The clean run takes 38 s, and each run was bounded at 300 s (about 8 times that). Every
+run finished in under 50 s and none hung.
+
+| mutant | killed by |
+|---|---|
+| C1 a control counts as reached when its laid-out rect holds the press point (the defect: `IsMouseHoveringRect(min, max, clip: false)` on the click) | `Coverage_ACommandBarPress_…` (all 3 rows), `Coverage_AControlScrolledOutOfItsPanel_…`, `Coverage_ControlsDisabledUnderTheModalAgeFlow_…`, `Coverage_APressOnTheActionSurface_…` |
+| C2 a DISABLED control under the pointer counts as reached (`IsItemHovered(AllowWhenDisabled)` on the click) | `Coverage_ControlsDisabledUnderTheModalAgeFlow_…` |
+| C3 a screen's last resolved click is credited to every later press (marks ignored) | `Coverage_APressOnTheActionSurface_…`, `Coverage_ControlsDisabledUnderTheModalAgeFlow_…` |
 
 *Review fix, the replay channel (MEASURED).* Each mutant replaces one `Backend.Render(...)` with
 `new Sim.Ui.ImGuiIntegration.DrawListImGuiBackend(_fonts).Render(...)`, the reviewer's mutant shape. Each was built

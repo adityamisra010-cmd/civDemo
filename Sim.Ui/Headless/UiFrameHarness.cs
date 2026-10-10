@@ -39,11 +39,15 @@ public sealed class UiFrameHarness : IDisposable
     /// showing screens' hit kinds, inspectable kinds — in ordinal order. It only observes.</summary>
     public SortedSet<string> Seen { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>P6: every left-button press so far, with what was under the pointer in the frame the player saw.</summary>
+    /// <summary>P6: every left-button press so far, with what it reached (<see cref="UiCoverage"/>): filled in as its
+    /// frames run, complete once its release frame has run.</summary>
     public List<UiPress> Presses { get; } = [];
 
     private int _x = 640, _y = 400, _wheel;
     private bool _left, _right, _wasLeft;
+    private int _press = -1;                 // the index in Presses of the plain press still being followed, or -1
+    private ClickMarks _marks;
+    private readonly SortedSet<string> _reached = new(StringComparer.Ordinal);
     private readonly HashSet<Keys> _keys = [];
 
     private UiFrameHarness(HeadlessImGui gui, GameUi ui, string logPath)
@@ -93,10 +97,15 @@ public sealed class UiFrameHarness : IDisposable
     {
         MouseState mouse = Mouse;
         KeyboardState keyboard = Keyboard;
+        bool released = !_left && _wasLeft;
         if (_left && !_wasLeft)
         {
             bool shift = _keys.Contains(Keys.LeftShift) || _keys.Contains(Keys.RightShift);
-            Presses.Add(new UiPress(Frames, _x, _y, shift, UiCoverage.Under(Ui, _x, _y, shift)));
+            // A Shift press inspects what the player saw there; a plain press is followed through its frames.
+            Presses.Add(new UiPress(Frames, _x, _y, shift, shift ? UiCoverage.Inspected(Ui, _x, _y) : []));
+            _press = shift ? -1 : Presses.Count - 1;
+            _marks = UiCoverage.Marks(Ui);
+            _reached.Clear();
         }
         _wasLeft = _left;
         Ui.SetViewport(Gui.Width, Gui.Height);
@@ -114,6 +123,14 @@ public sealed class UiFrameHarness : IDisposable
         Ui.Draw();
         ImGuiDrawReport r = Gui.EndFrame();
         UiCoverage.Drawn(Ui, Seen);
+        if (_press >= 0)
+        {
+            // P6: what the press reached in this frame — ImGui's activation (the press frame), the screens' own Click
+            // (the press frame, or the release frame's Update) — until its release frame has run.
+            UiCoverage.Reached(Ui, ref _marks, _reached);
+            if (_reached.Count != Presses[_press].Reached.Count) Presses[_press] = Presses[_press] with { Reached = [.. _reached] };
+            if (released) _press = -1;
+        }
         Frames++;
         if (r.MaxListVertices > MaxListVertices) MaxListVertices = r.MaxListVertices;
         foreach (string v in r.Violations) Problem("draw data: " + v);

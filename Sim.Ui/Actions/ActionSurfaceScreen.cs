@@ -93,6 +93,9 @@ public sealed partial class ActionSurfaceScreen
     public EraTheme Theme { get; set; } = EraThemes.For(UiEra.Prehistoric);
     public ActionSurfaceModel? Model { get; private set; }
     public IReadOnlyList<ActionHit> Hits => _hits;
+    /// <summary>M5 workstream P6 (observation only): the last click <see cref="Click"/> resolved to a hit region. The
+    /// playability gate's coverage reads it; nothing in the UI or the simulation does.</summary>
+    public ResolvedClick<ActionHitKind> LastClick { get; private set; }
 
     private List<ActionHit> _hits = [];
     private IReadOnlyWorldState? _world;
@@ -176,6 +179,7 @@ public sealed partial class ActionSurfaceScreen
         {
             ActionHit h = _hits[i];
             if (!h.Rect.Contains(x, y)) continue;
+            LastClick = LastClick.Next(h.Kind);
             LabourControlSpec spec = model.Control;
             switch (h.Kind)
             {

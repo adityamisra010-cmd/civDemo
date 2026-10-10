@@ -404,7 +404,7 @@ public static partial class PlayabilityGate
         {
             var keys = new SortedSet<string>(StringComparer.Ordinal);
             for (int i = mark; i < h.Presses.Count; i++)
-                foreach (string k in h.Presses[i].Under) keys.Add(k);
+                foreach (string k in h.Presses[i].Reached) keys.Add(k);
             return [.. keys];
         }
 

@@ -10,8 +10,13 @@ using Sim.Ui.ViewModel;
 namespace Sim.Ui.Headless;
 
 /// <summary>One left-button press the harness made: the frame, the point, whether Shift was held, and the coverage keys
-/// (<see cref="UiCoverage"/>) of what the player saw under the pointer — the last frame's controls and regions.</summary>
-public sealed record UiPress(int Frame, int X, int Y, bool Shift, IReadOnlyList<string> Under);
+/// (<see cref="UiCoverage"/>) of what the press REACHED: a plain press, the controls ImGui activated and the hit regions
+/// the screens' own Click resolved, from the press to its release; a Shift press, the inspectable region it opens.</summary>
+public sealed record UiPress(int Frame, int X, int Y, bool Shift, IReadOnlyList<string> Reached);
+
+/// <summary>The painted screens' resolved-click counts (<see cref="ResolvedClick{TKind}"/>) when a press began: what
+/// they resolve after it is the press's.</summary>
+public readonly record struct ClickMarks(object? Research, long ResearchSerial, long Age, long Policy, long Card);
 
 /// <summary>A drawn control family, hit kind or inspectable kind the gate deliberately does not press, and why.</summary>
 public sealed record CoverageAllowance(string Key, string Reason);
@@ -28,12 +33,17 @@ public sealed record CoverageAllowance(string Key, string Reason);
 /// (<see cref="ActionHitKind"/>), the pinned info card (<see cref="InfoHitKind"/>);</item>
 /// <item><c>info:&lt;kind&gt;</c> — an inspectable region (<see cref="InfoRegistry"/>) of an <see cref="InfoKind"/>.</item>
 /// </list>
-/// The harness collects every key DRAWN in any frame of a state's run (sweep and monkey alike) and records, at every
-/// press, the keys under the pointer. A gate row COVERS the keys pressed while it ran — a plain press covers controls
-/// and hit kinds, a Shift press covers inspectable kinds (it inspects; it does not perform the click) — and only a
-/// PASSING row counts. A key drawn in a state but covered by no passing row of that state, and not on
-/// <see cref="Allowlist"/> with a reason, is a FAIL: a control shipped without a gate row would otherwise be exercised
-/// only by the monkey's luck.
+/// The harness collects every key DRAWN in any frame of a state's run (sweep and monkey alike: a control is drawn when
+/// it is submitted, scrolled out of view or not — conservative, a row must reach it) and records, at every press, the
+/// keys the press REACHED. A plain press reaches what the UI itself routed it to, never what merely lies under the
+/// point: the controls ImGui ACTIVATED (<see cref="UiControl.Activated"/>: hovered in the window on top, inside the
+/// visible clip, not disabled) and the hit region each painted screen's own Click resolved
+/// (<see cref="ResolvedClick{TKind}"/>), from the press to its release. A control scrolled out of its panel, covered
+/// by another window or disabled under the modal ADVANCE AGE flow is not reached, whatever its laid-out rect contains.
+/// A Shift press reaches the inspectable kind it opens (it inspects; it does not perform the click). A gate row COVERS
+/// the keys its presses reached, and only a PASSING row counts. A key drawn in a state but covered by no passing row of
+/// that state, and not on <see cref="Allowlist"/> with a reason, is a FAIL: a control shipped without a gate row would
+/// otherwise be exercised only by the monkey's luck.
 /// </summary>
 public static class UiCoverage
 {
@@ -110,24 +120,33 @@ public static class UiCoverage
         foreach (InfoHit h in ui.InfoRegistry.Hits) into.Add(InfoKey(h.Subject.Kind));
     }
 
+    /// <summary>What a Shift press at (<paramref name="x"/>, <paramref name="y"/>) inspects: the inspectable region the
+    /// last frame registered there (what the player saw; the registry is cut to each panel's visible rect and is
+    /// top-most first, as the Shift+click itself resolves it).</summary>
+    public static IReadOnlyList<string> Inspected(GameUi ui, double x, double y) =>
+        ui.InfoRegistry.HitTest(x, y) is { } hit ? [InfoKey(hit.Subject.Kind)] : [];
+
+    /// <summary>The screens' resolved-click counts now (taken when a press begins).</summary>
+    public static ClickMarks Marks(GameUi ui) =>
+        new(ui.Progression, ui.Progression?.LastClick.Serial ?? 0, ui.Age.LastClick.Serial, ui.Actions.LastClick.Serial, ui.Inspector.LastClick.Serial);
+
     /// <summary>
-    /// What a press at (<paramref name="x"/>, <paramref name="y"/>) lands on, from the last frame's registers (what the
-    /// player saw): with Shift held, the inspectable region a Shift+click opens; without, every control and screen hit
-    /// region containing the point.
+    /// What a plain press reached in the frame just drawn (called after each of its frames, press to release): every
+    /// control ImGui ACTIVATED in that frame, and the hit region each painted screen's own Click resolved since
+    /// <paramref name="marks"/>, which it then advances. Nothing is inferred from geometry: a laid-out rect that merely
+    /// contains the point (a row scrolled away, a control under another window, a disabled one) is not reached.
     /// </summary>
-    public static IReadOnlyList<string> Under(GameUi ui, double x, double y, bool shift)
+    public static void Reached(GameUi ui, ref ClickMarks marks, ISet<string> into)
     {
-        var keys = new SortedSet<string>(StringComparer.Ordinal);
-        if (shift)
-        {
-            if (ui.InfoRegistry.HitTest(x, y) is { } hit) keys.Add(InfoKey(hit.Subject.Kind));
-            return [.. keys];
-        }
         foreach (UiControl c in ui.Controls.Last)
-            if (x >= c.X0 && x < c.X1 && y >= c.Y0 && y < c.Y1) keys.Add(ControlKey(c.Name));
-        foreach ((RectD r, string key) in Hits(ui))
-            if (r.Contains(x, y)) keys.Add(key);
-        return [.. keys];
+            if (c.Activated) into.Add(ControlKey(c.Name));
+        if (ui.Progression is { } screen
+            && screen.LastClick.Serial != (ReferenceEquals(screen, marks.Research) ? marks.ResearchSerial : 0))
+            into.Add(ResearchKey(screen.LastClick.Kind));
+        if (ui.Age.LastClick.Serial != marks.Age) into.Add(AgeKey(ui.Age.LastClick.Kind));
+        if (ui.Actions.LastClick.Serial != marks.Policy) into.Add(PolicyKey(ui.Actions.LastClick.Kind));
+        if (ui.Inspector.LastClick.Serial != marks.Card) into.Add(CardKey(ui.Inspector.LastClick.Kind));
+        marks = Marks(ui);
     }
 
     /// <summary>The hit regions of the screens showing in the last frame (a screen keeps its last list while closed).</summary>

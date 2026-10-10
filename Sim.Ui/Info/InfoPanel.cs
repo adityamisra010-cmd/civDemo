@@ -52,6 +52,9 @@ public sealed class InfoPanel
 
     /// <summary>The hit regions painted last frame.</summary>
     public IReadOnlyList<InfoPanelHit> Hits => _hits;
+    /// <summary>M5 workstream P6 (observation only): the last click <see cref="Click"/> resolved to a hit region. The
+    /// playability gate's coverage reads it; nothing in the UI or the simulation does.</summary>
+    public ResolvedClick<InfoHitKind> LastClick { get; private set; }
 
     /// <summary>The card's vertical scroll (the research overlay scrolls the card itself; the context panel uses its window).</summary>
     public double Scroll { get; private set; }
@@ -113,6 +116,7 @@ public sealed class InfoPanel
         {
             InfoPanelHit h = _hits[i];
             if (!h.Rect.Contains(x, y)) continue;
+            LastClick = LastClick.Next(h.Kind);
             return h.Kind switch
             {
                 InfoHitKind.Close => new InfoCommand(InfoCommandKind.Close),

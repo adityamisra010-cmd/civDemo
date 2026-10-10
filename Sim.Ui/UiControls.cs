@@ -7,11 +7,23 @@ namespace Sim.Ui;
 public readonly record struct UiTextureIds(IntPtr Annals, IntPtr Compass);
 
 /// <summary>One interactive ImGui control as drawn in a frame: its name (stable across frames, e.g.
-/// <c>nav:Policy</c>), its screen rect, and ImGui's item id.</summary>
-public readonly record struct UiControl(string Name, float X0, float Y0, float X1, float Y1, uint ItemId)
+/// <c>nav:Policy</c>), its screen rect (ImGui's item rect: laid out, NOT clipped — a row scrolled out of its panel
+/// keeps its rect), ImGui's item id, and whether ImGui ACTIVATED it in this frame (a press that ImGui routed to it:
+/// the item was hovered — in the window on top, inside its visible clip, not disabled — when the button went down).
+/// </summary>
+public readonly record struct UiControl(string Name, float X0, float Y0, float X1, float Y1, uint ItemId, bool Activated = false)
 {
     public float CenterX => (X0 + X1) / 2f;
     public float CenterY => (Y0 + Y1) / 2f;
+}
+
+/// <summary>M5 workstream P6 (observation only): the last click a painted screen's own <c>Click</c> resolved to one of
+/// its hit regions — a running count and the region's kind. The playability gate's coverage reads it to credit exactly
+/// the region a press reached; nothing in the UI or the simulation reads it.</summary>
+public readonly record struct ResolvedClick<TKind>(long Serial, TKind Kind) where TKind : struct, Enum
+{
+    /// <summary>The next click, resolved to <paramref name="kind"/>.</summary>
+    public ResolvedClick<TKind> Next(TKind kind) => new(Serial + 1, kind);
 }
 
 /// <summary>
@@ -54,7 +66,7 @@ public sealed class UiControls
         if (id != 0)
             foreach (UiControl c in _building)
                 if (c.ItemId == id) _duplicates.Add(c.Name + " / " + name + " (" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")");
-        _building.Add(new UiControl(name, min.X, min.Y, max.X, max.Y, id));
+        _building.Add(new UiControl(name, min.X, min.Y, max.X, max.Y, id, ImGui.IsItemActivated()));
     }
 
     /// <summary>The control named <paramref name="name"/> in the last frame, or null when it was not drawn.</summary>

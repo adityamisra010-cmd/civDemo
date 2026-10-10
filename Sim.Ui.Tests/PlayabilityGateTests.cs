@@ -471,24 +471,120 @@ public class PlayabilityGateTests : IDisposable
         Assert.Empty(UiCoverage.Uncovered(seen, [pressed], [new CoverageAllowance("control:fixture-row-#", "fixture")]));
     }
 
-    /// <summary>A press records what the player saw under the pointer: a plain press its control (and a showing screen's
-    /// hit kind), a Shift press only the inspectable kind (it inspects, it does not click); what any frame drew is Seen.</summary>
+    /// <summary>A press records what it reached: a plain press the control ImGui activated (and the region a painted
+    /// screen's own Click resolved), a Shift press only the inspectable kind (it inspects, it does not click); what any
+    /// frame drew is Seen.</summary>
     [Fact]
-    public void Coverage_APressCoversWhatWasUnderThePointer_AShiftPressOnlyTheInspectableKind()
+    public void Coverage_APressCoversWhatItReached_AShiftPressOnlyTheInspectableKind()
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("presses"), Assets());
         Assert.True(h.ClickControl("territory"));
         Assert.False(h.Presses[^1].Shift);
-        Assert.Contains("control:territory", h.Presses[^1].Under);
+        Assert.Equal(["control:territory"], h.Presses[^1].Reached);
         Assert.True(h.ClickControl("nav:Policy"));
         Assert.Contains(h.Seen, k => k.StartsWith("hit:policy.", StringComparison.Ordinal));
         Assert.Contains("info:LabourSector", h.Seen);
         Sim.Ui.Info.InfoHit row = h.Ui.InfoRegistry.First(InfoKind.LabourSector)!.Value;
         h.ShiftClick(row.Rect.CenterX, row.Rect.CenterY);
         Assert.True(h.Presses[^1].Shift);
-        Assert.Equal(["info:LabourSector"], h.Presses[^1].Under);
+        Assert.Equal(["info:LabourSector"], h.Presses[^1].Reached);
         Assert.Contains("control:info-close", h.Seen);
         Assert.Empty(h.Problems);
+    }
+
+    /// <summary>Whether the control's LAID-OUT rect (ImGui's item rect, unclipped) contains the point: the geometric rule
+    /// the coverage used before the review fix. The tests below assert it holds, so each one exercises the defect.</summary>
+    private static bool LaidOutOver(UiControl c, (double X, double Y) p) => p.X >= c.X0 && p.X < c.X1 && p.Y >= c.Y0 && p.Y < c.Y1;
+
+    /// <summary>
+    /// REVIEW FINDING (coverage credited controls the press never reached). With POLICY open the action surface is ONE
+    /// invisible item the height of the painted surface (about 2,000 px at 1280x800), so its laid-out rect runs under the
+    /// command bar: the old rule credited <c>control:action-surface</c> to a press on <c>nav:Trends</c>. A press reaches
+    /// what ImGui routed it to — the command bar's button, in the window on top — and nothing else.
+    /// </summary>
+    [Theory]
+    [InlineData(1280, 800, "nav:Trends")]
+    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Trends")]
+    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Annals")]
+    public void Coverage_ACommandBarPress_WithPolicyOpen_DoesNotCoverTheActionSurfaceBeneathIt(int width, int height, string nav)
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("bar-over-surface"), Assets(), width: width, height: height);
+        Assert.True(h.ClickControl("end-turn"));
+        Assert.True(h.ClickControl("nav:Policy"));
+        UiControl surface = h.Ui.Controls.Find("action-surface")!.Value;
+        UiControl button = h.Ui.Controls.Find(nav)!.Value;
+        (double X, double Y) aim = h.Aim(button);
+        Assert.True(LaidOutOver(surface, aim), nav + " is not under the surface's laid-out rect (y " + surface.Y0 + ".." + surface.Y1 + ")");
+        h.Click(aim.X, aim.Y);
+        Assert.Equal(nav, "nav:" + h.Ui.OpenSection);   // the press did reach the button
+        Assert.Equal(["control:" + nav], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A control scrolled out of its panel is not reached: POLICY scrolled down, the action surface's laid-out
+    /// rect runs up past the context body's top, out of the panel, over the chrome above it; a press there on another
+    /// window's control (a status-band control, or the panel's own close button) reaches that control only.</summary>
+    [Fact]
+    public void Coverage_AControlScrolledOutOfItsPanel_IsNotReached()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("scrolled-away"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        for (int k = 0; k < 20; k++) h.Wheel(h.Ui.ContextRect.X + 100, h.Ui.ContextRect.Y + 300, -3);
+        UiControl surface = h.Ui.Controls.Find("action-surface")!.Value;
+        PanelRect ctx = h.Ui.ContextRect;
+        Assert.True(surface.Y0 < ctx.Y, "POLICY did not scroll its surface past the panel's top (y " + surface.Y0 + ")");
+        UiControl? over = null;
+        foreach (UiControl c in h.Ui.Controls.Last)
+            if (c.Name != "action-surface" && (c.Name == "close" || h.Aim(c).Y < ctx.Y) && LaidOutOver(surface, h.Aim(c))) { over = c; break; }
+        Assert.True(over is not null, "no control lies under the scrolled-away part of the surface (x " + surface.X0 + ".." + surface.X1 + ")");
+        (double X, double Y) aim = h.Aim(over.Value);
+        h.Click(aim.X, aim.Y);
+        Assert.Equal([UiCoverage.ControlKey(over.Value.Name)], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A press on the action surface reaches the surface and exactly the region ITS OWN Click resolved (the last
+    /// painted region under the point), not every region whose rect holds it; the next press, elsewhere, credits nothing
+    /// of the surface (a screen's click is credited once, to the press that made it).</summary>
+    [Fact]
+    public void Coverage_APressOnTheActionSurface_ReachesExactlyTheRegionItsClickResolved()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("surface-press"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        PanelRect ctx = h.Ui.ContextRect;
+        Sim.Ui.Actions.ActionHit? target = null;
+        foreach (Sim.Ui.Actions.ActionHit a in h.Ui.Actions.Hits)
+            if (a.Kind == Sim.Ui.Actions.ActionHitKind.LabourSlot && a.Rect.CenterY > ctx.Y + 80 && a.Rect.CenterY < ctx.Y + ctx.Height - 40) { target = a; break; }
+        Assert.NotNull(target);
+        double x = target.Value.Rect.CenterX, y = target.Value.Rect.CenterY;
+        // The region the surface's Click answers with: the LAST painted region under the point.
+        Sim.Ui.Actions.ActionHitKind expected = target.Value.Kind;
+        foreach (Sim.Ui.Actions.ActionHit a in h.Ui.Actions.Hits) if (a.Rect.Contains(x, y)) expected = a.Kind;
+        long before = h.Ui.Actions.LastClick.Serial;
+        h.Click(x, y);
+        Assert.Equal(before + 1, h.Ui.Actions.LastClick.Serial);
+        Assert.Equal(expected, h.Ui.Actions.LastClick.Kind);
+        Assert.Equal(["control:action-surface", "hit:policy." + expected], h.Presses[^1].Reached);
+        Assert.True(h.ClickControl("territory"));
+        Assert.Equal(["control:territory"], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A control DISABLED under the modal ADVANCE AGE flow is not reached: in the "age advance" state the gate's
+    /// "flow is modal" row presses End Turn and POLICY under the open flow — it passes (nothing answered) and covers
+    /// nothing (the old rule credited both). The state's coverage check still passes.</summary>
+    [Fact]
+    public void Coverage_ControlsDisabledUnderTheModalAgeFlow_AreNotReached()
+    {
+        GateReport r = PlayabilityGate.Run(new GateOptions(Assets(), WorkDir("modal"), MonkeySteps: 0, OnlyStates: ["age advance"]));
+        GateRow modal = Assert.Single(r.Rows, row => row.Control == "flow is modal (the chrome beneath does not answer)");
+        Assert.Equal(GateResult.Pass, modal.Result);
+        Assert.Empty(modal.Covers);
+        Assert.Contains(r.Rows, row => row.Control == "ADVANCE AGE (opens the flow)" && row.Result == GateResult.Pass
+            && row.Covers.Contains("control:band-age") && row.Covers.Contains("hit:age.OpenAdvance"));
+        Assert.Contains(r.Rows, row => row.Area == "coverage" && row.Result == GateResult.Pass
+            && row.Control == "every drawn control, hit kind and inspectable kind has a gate row");
+        Assert.True(r.Ok, string.Join("\n", r.Problems) + "\n" + r.Details());
     }
 
     // ------------------------------------------------------------------ P6: the camera rows
