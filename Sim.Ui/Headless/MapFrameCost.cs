@@ -32,7 +32,8 @@ namespace Sim.Ui.Headless;
 /// <see cref="DefaultSettlements"/>, about the siting capacity the worldgen record gives) at turn
 /// <see cref="HighCountTurn"/>, the first turn with catchment territory (each of its turns costs tens of seconds).
 /// P9: the canonical world is also swept with EVERY resource-overlay layer shown at the default opacity with its key
-/// (<see cref="ResourceOverlay"/>; the overlay's worst case), and a table reports the overlay's bake and per-turn status.
+/// (<see cref="ResourceOverlay"/>; the overlay's worst case) and with the settlement-suitability layer alone (one layer:
+/// the common case), and a table reports the overlay's bake and per-turn status.
 /// Nothing is constructed or persisted: the worlds live in this process only. Looking changes nothing: each world's
 /// hash is taken before the sweeps and compared after them; a difference aborts the run.
 ///
@@ -77,7 +78,7 @@ public static class MapFrameCost
 
     /// <summary>A world swept, and (P9) the resource overlay it is swept with — null for the plain lens.</summary>
     private sealed record MapWorld(string Name, UiSession Session, WorldProjection Projection, string Note,
-        ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null);
+        ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null, OverlayKind? OnlyLayer = null);
 
     public static string Run(string assetsRoot, int rounds = 5, int settlements = DefaultSettlements,
         int canonicalTurn = DefaultCanonicalTurn, Action<string>? log = null)
@@ -95,6 +96,14 @@ public static class MapFrameCost
                 Name = "canonical + overlay", Overlay = canonical.Session.Overlay, OverlayStatus = canonical.Session.OverlayStatus,
                 Note = canonical.Note + "; every resource-overlay layer shown (" + canonical.Session.OverlayLayers.Count.ToString(CultureInfo.InvariantCulture)
                     + ") at opacity " + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture) + ", with its key",
+            },
+            // ... and with ONE layer shown (the settlement-suitability score), the case the game draws most.
+            canonical with
+            {
+                Name = "canonical + one overlay layer", Overlay = canonical.Session.Overlay, OverlayStatus = canonical.Session.OverlayStatus,
+                OnlyLayer = OverlayKind.Suitability,
+                Note = canonical.Note + "; the settlement-suitability overlay layer alone at opacity "
+                    + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture) + ", with its key",
             },
             Found("high-count", UiSession.Start(42, settlementsOverride: Math.Max(1, settlements)), HighCountTurn, log),
         };
@@ -221,7 +230,7 @@ public static class MapFrameCost
         if (m.Overlay is { } bake)
         {
             all = new bool[bake.Layers.Count];
-            Array.Fill(all, true);
+            foreach (OverlayLayer l in bake.Layers) all[l.Index] = m.OnlyLayer is not { } only || l.Kind == only;
         }
         return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
             new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale,
