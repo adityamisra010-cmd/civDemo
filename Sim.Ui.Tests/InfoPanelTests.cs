@@ -768,6 +768,42 @@ public class InfoPanelTests : IDisposable
     }
 
     [Fact]
+    public void TheGroundBehindAWindowTheLegendOrTheAgePanel_IsNotOffered()
+    {
+        // The place region is registered only where the pointer sees open map: a window over the map (the selection card),
+        // the legend and the docked Age panel (both painted, not windows) each hide the ground behind them.
+        UiSession s = Small();
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("behind"), Assets());
+        h.Idle(2);
+        bool PlaceAt(double x, double y)
+        {
+            h.MoveTo(x, y);
+            return h.Ui.InfoRegistry.Hits.Any(r => r.Subject.Kind == InfoKind.Cell && r.Rect.Contains(x, y));
+        }
+        // Control: open map shows the ground.
+        RectD map = h.Ui.MapRect;
+        Assert.True(PlaceAt(Math.Round(map.CenterX), Math.Round(map.CenterY)) || PlaceAt(Math.Round(map.CenterX) + 60, Math.Round(map.CenterY)),
+            "the control: open map offers its ground");
+
+        PanelRect card = h.Ui.SelectionRect;
+        Assert.True(map.Contains(card.X + card.Width - 6, card.Y + card.Height - 6), "the selection card lies over the map rect");
+        Assert.False(PlaceAt(card.X + card.Width - 6, card.Y + card.Height - 6), "the ground behind the selection card is offered");
+
+        if (!h.Ui.ShowLegend) h.Key(Keys.L);
+        h.Idle(1);
+        RectD legend = h.Ui.LensFrame!.Legend!.Rect;
+        Assert.False(PlaceAt(Math.Round(legend.CenterX), Math.Round(legend.CenterY)), "the ground behind the legend is offered");
+        h.Key(Keys.L);
+
+        Assert.True(h.ClickControl("band-age"));
+        h.Idle(2);
+        RectD age = h.Ui.AgePanelBounds;
+        Assert.True(h.Ui.AgePanelOpen);
+        Assert.False(PlaceAt(Math.Round(age.Right - 6), Math.Round(age.Bottom - 6)), "the ground behind the Age panel is offered");
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
     public void ThePlaceRegion_ContainsThePointer_AndItsCentreIsTheSameCell_AtEveryZoom()
     {
         // The gate and the coverage press a region's CENTRE: it must name the same cell as the pointer it was registered
