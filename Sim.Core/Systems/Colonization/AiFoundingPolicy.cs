@@ -27,14 +27,23 @@ namespace Sim.Core.Systems.Colonization;
 ///   (<see cref="FoundingQuery.Departure"/> on the world's tables). Sources are tried in the composite key
 ///   (population DESC, settlement id ASC) — integers only.</item>
 /// <item><b>The site</b>: the argmax of the UNJITTERED siting score (<see cref="SettlementSiting.CandidateScores"/>,
-///   the frontier's raster) by the composite key (score DESC, cell ASC) over the cells FoundingQuery ADMITS for that
-///   source — a frontier candidate (on the map, land, score &gt; 0 and not below the floor), unobstructed (not a
-///   standing site, outside every spacing exclusion), unclaimed (origin node in no catchment) and reachable (origin
-///   node in the source's connected component on the road-aware lattice: one uncapped Dijkstra flood with
-///   <see cref="Pathfinder.Isochrone"/>, the same edge set and relaxation <see cref="Pathfinder.FindPath"/> expands,
-///   so a node is flooded iff FindPath finds it). The pick is then put to
+///   the frontier's raster) by the composite key (score DESC, cell ASC) over the cells
 ///   <see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>
-///   itself, and NO order is issued unless it answers Legal: the AI cannot emit an order the predicate refuses.</item>
+///   answers Legal for from that source (<see cref="BestSiteFor(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, TerrainSet, Sites, PolityId, SettlementId, SiteCheck)"/>).
+///   A PRE-FILTER mirrors four of the predicate's per-cell arms — frontier candidate (on the map, land, score &gt; 0
+///   and not below the floor), unobstructed (not a standing site, outside every spacing exclusion), unclaimed (origin
+///   node in no catchment) and reachable (origin node in the source's connected component on the road-aware lattice:
+///   one uncapped Dijkstra flood with <see cref="Pathfinder.Isochrone"/>, the same edge set and relaxation
+///   <see cref="Pathfinder.FindPath"/> expands, so a node is flooded iff FindPath finds it). Each is a NECESSARY
+///   condition of Legal on the same inputs, so the pre-filter only ever skips cells the predicate would refuse; it
+///   spares the route search and decides nothing. THE PREDICATE DECIDES: the pre-filter's argmax is put to it, and
+///   when it answers Legal that cell is the argmax over the Legal cells too (a subset's member that tops the superset
+///   tops the subset). When it REFUSES — an arm the pre-filter does not mirror binds — the scan is repeated asking the
+///   predicate of every cell it would take, so the SAME source falls through to its NEXT-BEST Legal cell; the next
+///   source is tried only when no cell of this one is Legal. The AI cannot emit an order the predicate refuses, and
+///   any arm the predicate gains narrows the pick with no change here (pinned: AiFoundingPolicyTests, an emulated
+///   known-extent arm). An arm the predicate LOOSENS must be loosened in the pre-filter too, or the AI skips cells it
+///   may take (the oracle and bind tests catch it).</item>
 /// </list>
 /// The first source (in key order) with a legal site founds; one order per polity per turn at most.
 ///
@@ -47,14 +56,31 @@ namespace Sim.Core.Systems.Colonization;
 ///
 /// KNOWN INFORMATION-ACCESS LEAK (ADR-036 §8): the AI ranks every cell of the map. No known-extent state exists until
 /// the fog-of-war packets (S2a/S2b, awaiting the Director's fog ruling); FoundingQuery's known-extent arm is inert, so
-/// the predicate admits what the AI reads. When the extent lands, the admissible set narrows to it through the
-/// predicate and this class needs no second rule.
+/// the predicate admits what the AI reads. When the arm lands IN FoundingQuery, the AI's PICK narrows to the known
+/// extent with no change here, because a refused pick falls through to the same source's next-best Legal cell (pinned
+/// with an emulated arm). What the arm does not narrow is the READ: the scan still walks every cell's score and the
+/// reachability flood still crosses the whole component, and once the pre-filter's pick is unknown the rescan asks
+/// the predicate of every unknown improver and is refused. S2b decides whether the READ is restricted too — by adding
+/// the extent to this pre-filter (one more mirrored arm, which also keeps the predicate to one call per source) or by
+/// delegating the per-cell arms to FoundingQuery — as part of that packet; nothing here does it silently.
 ///
 /// Deterministic: roster, settlement-table and cell order; composite keys with integer tie-breaks (tie-dense test:
 /// AiFoundingPolicyTests); no RNG, no clock, no dictionary, no LINQ (law 5).
 /// </summary>
 public static class AiFoundingPolicy
 {
+    /// <summary>
+    /// THE PREDICATE as the policy asks it — the shape of FoundingQuery.Check's explicit overload (the batch's standing
+    /// sites as spans). Production passes <see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>
+    /// and nothing else (<see cref="Decide(IReadOnlyWorldState, SimConfig, PolityId, Sites)"/>); the parameter is the
+    /// seam a test uses to give the predicate an arm the pre-filter does not mirror, proving the scan defers to the
+    /// predicate rather than to its own copy of today's arms.
+    /// </summary>
+    public delegate FoundingVerdict SiteCheck(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting frontier,
+        ReadOnlySpan<double> spacing, ReadOnlySpan<int> occupied,
+        PolityId issuer, SettlementId source, int siteCell);
+
     /// <summary>
     /// The batch's standing sites, shared by every polity of one <see cref="AiOrders.For"/> call: the frontier
     /// (the same <see cref="SettlementSiting.PrepareFrontier"/> ColonizationSystem builds), the occupied site cells and
@@ -138,8 +164,17 @@ public static class AiFoundingPolicy
         Decide(world, cfg, polity, new Sites(world, cfg, worldgen));
 
     /// <summary>The order the AI issues for <paramref name="polity"/> this turn, or null. When it issues one, the
-    /// site is recorded in <paramref name="sites"/> for the later polities of the batch.</summary>
-    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites)
+    /// site is recorded in <paramref name="sites"/> for the later polities of the batch. THE production entry: the
+    /// predicate is <see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>.</summary>
+    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites) =>
+        Decide(world, cfg, polity, sites, FoundingQuery.Check);
+
+    /// <summary>As <see cref="Decide(IReadOnlyWorldState, SimConfig, PolityId, Sites)"/>, asking
+    /// <paramref name="check"/> as the predicate (the test seam of <see cref="SiteCheck"/>). Sources are tried in key
+    /// order; for each, the site is the argmax over the cells <paramref name="check"/> answers Legal for, on the world
+    /// the order will be judged on with the batch's standing sites — so the issued order is Legal by construction, and
+    /// the next source is tried only when NO cell of the current one is Legal.</summary>
+    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites, SiteCheck check)
     {
         if (cfg.Colonization?.AiFounding is not { Enabled: true } ai) return null;
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
@@ -152,12 +187,8 @@ public static class AiFoundingPolicy
         for (int k = 0; k < ranked.Length; k++)
         {
             SettlementId from = ranked[k];
-            int cell = BestSiteFor(world, f, terrain, sites, from);
-            if (cell < 0) continue;
-            // THE predicate, on the world the order will be judged on, with the batch's standing sites: the AI never
-            // issues what it refuses. (The admissible scan below is the same arms; this is the guarantee, not a cost.)
-            if (FoundingQuery.Check(world, cfg, f, sites.Spacing, sites.Occupied, polity, from, cell) != FoundingVerdict.Legal)
-                continue;
+            int cell = BestSiteFor(world, cfg, f, terrain, sites, polity, from, check);
+            if (cell < 0) continue;   // no cell of this source is Legal: the next source
             sites.Accept(cell);
             return FoundingQuery.FoundOrder(world, polity, from, cell);
         }
@@ -211,13 +242,32 @@ public static class AiFoundingPolicy
         return [.. ids];
     }
 
+    /// <summary>THE SITE ARM for one source with THE predicate (<see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>).</summary>
+    public static int BestSiteFor(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
+        PolityId issuer, SettlementId source) =>
+        BestSiteFor(world, cfg, f, terrain, sites, issuer, source, FoundingQuery.Check);
+
     /// <summary>
     /// THE SITE ARM for one source: the composite-key argmax (<see cref="BestSite"/>) of the frontier's unjittered
-    /// scores over the cells FoundingQuery admits from <paramref name="source"/> — candidate, unobstructed by the
-    /// batch's standing sites, unclaimed, and in the source's connected component. −1 when none.
+    /// scores over the cells <paramref name="check"/> answers Legal for, issued by <paramref name="issuer"/> from
+    /// <paramref name="source"/> with the batch's standing sites; −1 when no cell is Legal.
+    /// <list type="number">
+    /// <item>The PRE-FILTER argmax: candidate, unobstructed by the batch's standing sites, unclaimed, and in the
+    ///   source's connected component — each one of the predicate's own arms on the same inputs, so it never refuses
+    ///   a Legal cell.</item>
+    /// <item>THE predicate on that pick. Legal: it is the answer (the argmax of a superset that lies in the subset is
+    ///   the subset's argmax). This is every pick today — the pre-filter is exactly the predicate's per-cell arms and
+    ///   RankedSources already held the source's people and food arms — so the predicate and its route search run
+    ///   ONCE per source.</item>
+    /// <item>Refused: the scan is repeated with the predicate in the admission. BestSite asks the admission only of
+    ///   strict improvers and never raises its bar on a refused one, so the result is the argmax over the cells the
+    ///   pre-filter AND the predicate admit — the same source's next-best Legal cell.</item>
+    /// </list>
     /// </summary>
     public static int BestSiteFor(
-        IReadOnlyWorldState world, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites, SettlementId source)
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
+        PolityId issuer, SettlementId source, SiteCheck check)
     {
         int sourceCell = -1;
         for (int i = 0; i < world.Settlements.Count; i++)
@@ -225,13 +275,20 @@ public static class AiFoundingPolicy
         if (sourceCell < 0) return -1;
 
         bool[] reachable = ReachableNodes(world, f, sourceCell);
-        return BestSite(f.Scores, cell =>
+        Func<int, bool> preFilter = cell =>
         {
             if (!SettlementSiting.IsFrontierCandidate(f, terrain, cell)) return false;
             if (!SettlementSiting.IsUnobstructedFrontierCell(f, sites.Spacing, sites.Occupied, cell)) return false;
             int node = LatticeMap.OriginLatticeNode(f.Lattice, f.Size, cell);
             return reachable[node] && !sites.IsClaimed(node);
-        });
+        };
+        int pick = BestSite(f.Scores, preFilter);
+        if (pick < 0 || IsLegal(pick)) return pick;
+        // THE predicate refused the pre-filter's pick: fall through to this source's next-best Legal cell.
+        return BestSite(f.Scores, cell => preFilter(cell) && IsLegal(cell));
+
+        bool IsLegal(int cell) =>
+            check(world, cfg, f, sites.Spacing, sites.Occupied, issuer, source, cell) == FoundingVerdict.Legal;
     }
 
     /// <summary>The lattice nodes connected to <paramref name="sourceCell"/>'s origin node on the frontier lattice

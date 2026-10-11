@@ -208,8 +208,9 @@ rule, every threshold content TUNE, **flagged for the Director**.
 
 **The same order, the same predicate.** `Sim.Core/Systems/Colonization/AiFoundingPolicy.cs` (the RoadDevelopmentPolicy /
 AiConstructionPolicy shape: not a system, writes no state) returns `FoundingQuery.FoundOrder(world, polity, source,
-cell)` — the player's constructor — and issues nothing unless `FoundingQuery.Check` (the explicit overload, with the
-batch's standing sites) answers `Legal` on the world the order will be judged on. There is no AI-only legality, verb or
+cell)` — the player's constructor — for the argmax over the cells `FoundingQuery.Check` (the explicit overload, with
+the batch's standing sites) answers `Legal` for on the world the order will be judged on: THE PREDICATE DECIDES, and a
+refused pick falls through to the same source's next-best Legal cell (§8.2). There is no AI-only legality, verb or
 write path; ColonizationSystem founds or refuses the AI's order exactly as the player's. `AiOrders.For` calls it per AI
 polity after construction; `AiOrders.For`/`Append` gain a `WorldgenConfig` parameter (the siting config the pipeline's
 ColonizationSystem is built from — CLI `CliRecipes.Worldgen()`, UI `UiSession.ProductionWorldgen()`, tests
@@ -222,7 +223,7 @@ ColonizationSystem is built from — CLI `CliRecipes.Worldgen()`, UI `UiSession.
 | switch | `enabled`; absent section = inert | `true` |
 | interval | the polity's NEWEST settlement (largest `FoundedTurn` among those it controls, by any path) is at least this old, measured as the LOWER bound (turns elapsed) × (current turn length) — the era table only shortens turns, so it never opens early | `minYearsBetweenFoundings` **350** years |
 | source | controlled; at least this many people; fed (`FoodState` Normal or Stress — nobody starving); FoundingQuery's own people and food arms hold; tried in the composite key (population DESC, settlement id ASC) | `minSourcePopulation` **500** (DERIVED: the turn-zero founding size 400 ÷ (1 − orderPartyFraction 0.2)) |
-| site | the argmax of the UNJITTERED siting score (`SettlementSiting.CandidateScores`, the frontier raster) by the composite key (score DESC, cell ASC) over the cells FoundingQuery admits from that source — candidate, unobstructed by the batch's standing sites, unclaimed, and in the source's connected component (one uncapped `Pathfinder.Isochrone` flood: the edge set and relaxation `FindPath` expands, so flooded ⇔ FindPath finds it) | — |
+| site | the argmax of the UNJITTERED siting score (`SettlementSiting.CandidateScores`, the frontier raster) by the composite key (score DESC, cell ASC) over the cells `FoundingQuery.Check` answers Legal for from that source. A PRE-FILTER mirrors four per-cell arms as necessary conditions, to spare the route search: candidate, unobstructed by the batch's standing sites, unclaimed, and in the source's connected component (one uncapped `Pathfinder.Isochrone` flood: the edge set and relaxation `FindPath` expands, so flooded ⇔ FindPath finds it). Its argmax is put to the predicate; on a refusal the scan is repeated with the predicate in the admission, so the SAME source takes its next-best Legal cell (§8.2) | — |
 
 At most one order per polity per turn; the first source in key order with a legal site founds. **Batch spacing:**
 `AiFoundingPolicy.Sites` carries the occupied cells and the spacing exclusion across the polities of one producer call,
@@ -238,8 +239,15 @@ a6_towns 18): a polity holding 6 of the canonical 12 at founding reaches 14 at t
 
 **KNOWN INFORMATION-ACCESS LEAK (recorded, not fixed).** The AI ranks every cell of the map and floods its whole
 connected component: no known-extent state exists until the fog-of-war packets (S2a/S2b), which await the Director's fog
-ruling, and FoundingQuery's known-extent arm is inert (§2), so the predicate admits what the AI reads. When the extent
-lands, the admissible set narrows to it THROUGH THE PREDICATE and the policy needs no second rule. MEASURED consequence
+ruling, and FoundingQuery's known-extent arm is inert (§2), so the predicate admits what the AI reads. When the arm
+lands in `FoundingQuery`, the AI's PICK narrows to the known extent through the predicate with no change to the policy:
+a refused pick falls through to the same source's next-best Legal cell (pinned with an emulated arm, §8.2). Its READ
+does not narrow: the scan still walks every cell's score, the flood still crosses the whole component, and once the
+pre-filter's pick is unknown the rescan asks the predicate about every unknown improver. **S2b must therefore extend
+the policy's pre-filter with the extent** (one more mirrored arm, which also restores one predicate call per source)
+**or refactor the scan to delegate its per-cell arms to `FoundingQuery`**; until then the leak is in what the AI reads,
+not in what it founds. (As first written at `a2c6e78` this paragraph said the extent would narrow the admissible set
+"through the predicate" with "no second rule". That was false — a refusal skipped the whole source — §8.2.) MEASURED consequence
 (below): the score-only ranking over the whole component sends AI colonies a median 953 km (217–2,392 km) from their
 source, 44 % beyond 1,000 km; the known-extent arm is the ratified restriction (D-040 B1). A travel budget would be a new
 TUNE constant — not added; a Director option.
@@ -285,6 +293,70 @@ CLI processes on this tree). With `enabled = false` the AI world is the pre-S1c 
   452 → 418, 489 → 440, 485 → 431); A4 is reached by no run in 600 turns. Wall time per 600-turn run ×1.6–2.3 (the
   world holds 23 settlements instead of 12).
 
+### 8.2 Review finding: a refusal skipped the SOURCE, not the cell (fixed on this branch)
+
+**The finding** (major, confirmed by an independent verdict). As written at `a2c6e78`, `BestSiteFor` re-implemented
+the predicate's per-cell arms (candidate, unobstructed, reachable, unclaimed) and `FoundingQuery.Check` was only a final
+guard on its pick. When the guard refused, `Decide` moved on to the next SOURCE, not to the next-best cell. Any arm the
+predicate gains that the scan does not copy (the planned S2b known-extent arm) would therefore stop the AI founding,
+and silently: no illegal order would be issued and no legality test would fail. No test pinned the guard (mutant M9,
+"guard removed", was recorded as equivalent), and the §8 claim of "through the predicate, no second rule" was false.
+The reviewer measured it on seed 42 (one AI Empire, turn 35) with an emulated arm that refused cells with x ≥ 360:
+`Decide` returned NONE, although source 1 had a Legal cell, 463126.
+
+**The fix** (`AiFoundingPolicy.BestSiteFor`). The predicate decides. The pre-filter's argmax is put to the predicate:
+- **Legal:** it is the answer. The argmax of a superset that lies in the subset is the subset's argmax. Today that is
+  every pick, because the pre-filter is exactly the predicate's per-cell arms, so the predicate runs once per source,
+  as before.
+- **Refused:** the scan is repeated with the predicate in the admission, so the SAME source takes its next-best Legal
+  cell. The next source is tried only when none of this source's cells is Legal.
+
+`AiFoundingPolicy.SiteCheck` and `Decide(…, SiteCheck)` are the test seam. Production passes `FoundingQuery.Check` and
+nothing else. A single scan that asked the predicate about every improver was measured and rejected: on the reviewer's
+world it asked the predicate 82 times (every answer Legal), and `Decide` took 231–254 ms against 52–65 ms at `a2c6e78`,
+for the same result.
+
+**Measured** (Release, this tree; the reviewer's world, canonical 1024², seed 42, one AI Empire, stepped to turn 35 with
+the AI producer; a throwaway probe, not committed):
+- **Unrestricted:** source 1, cell 634216 (x 360), as at `a2c6e78`. The predicate is asked once and answers Legal.
+  `Decide` takes 55–85 ms.
+- **x ≥ 360 unknown (emulated):** source 1 founds at cell 463126, the reviewer's oracle cell (`a2c6e78`: NONE). The
+  predicate is asked 2,004 times, 1,952 of them refused by the arm, in 230 ms. This is the READ cost S2b must bound (§8).
+- **Behaviour today is unchanged:** full `Sim.Tests` 1662 passed, 2 failed, 13 skipped. The 2 failures are the
+  inherited CR-020 reds `Dev_MalthusCorridors_AllInBand` seeds 42 and 7. Every AI pin, the attribution constants
+  (`a416ce4b…` OFF, `aa7a87a9…` ON) and the founded golden pass unmoved.
+  The ci.yml AI leg was run exactly as CI runs it, as two CLI processes from this tree. Hash logs and run logs are
+  byte-identical, with last hash `7f374638…`, the value `65a533f` recorded. The run log holds 296 orders, kinds 3..9,
+  and 11 kind-9 orders stamped 35, 71, 107, 143, 179, 215, 286, 357, 428, 499 and 570. `sim replay` is identical and
+  `sim inspect --turn 600` reports "reproduction VERIFIED".
+
+**Tests.** `AnArmThePreFilterDoesNotMirror_StillBinds_AndTheSameSourceFoundsAtTheOraclesNextBestCell` runs on the dev
+256² rig and checks four things:
+- The emulated arm binds on the unrestricted pick, and the first-ranked source founds at exactly the oracle's cell. The
+  oracle walks (score DESC, cell ASC) with LINQ and asks the extended predicate.
+- An arm that refuses every cell of the first source moves the AI to the second source, at that source's oracle cell.
+- The seam's production value is the predicate itself.
+- Unrestricted, the predicate is asked once.
+
+The bind theory now also asserts that the predicate is asked exactly once, about the pick, and never about the refused
+cell. Its TooClose case now takes the first TooClose cell OUTSIDE every catchment. The nearest TooClose cells sit inside
+the source's catchment, where the claimed arm hid the spacing arm: dropping the unobstructed arm from the pre-filter
+survived on the old rig.
+
+**Mutant record** (filter `AiFoundingPolicyTests`: clean 8 s, 18 tests; bound 15× = 120 s; each mutant took 8–9 s and
+none hung):
+
+| mutant | killed by (a semantic test) | the property is one the system ought to have because |
+|---|---|---|
+| M9 again: the predicate removed (the pre-filter's pick returned unchecked) | `AnArm…` (it ordered the refused cell 36463, not the oracle's 42559); the bind theory's call record also fails in all 4 cases | D-051 §5: the AI uses the same predicate and never orders what it refuses |
+| a refusal skips the source (the `a2c6e78` shape) | `AnArm…` (no order at all) | an arm that refuses one cell must not stop a source with other Legal cells |
+| the rescan without the predicate | `AnArm…` (the refused cell again) | as M9 |
+| only the first source tried | `AnArm…` (null, instead of the second source's oracle order) | the first source in key order with a legal site founds |
+| pre-filter reach arm dropped | bind theory `Unreachable` (the predicate was asked about the unreachable cell) | the pre-filter spares the route search. This is now a COST mutant: the predicate refuses what it lets through, so the pick is unchanged |
+| pre-filter claimed arm dropped | bind theory `Claimed` | as above |
+| pre-filter unobstructed arm dropped | bind theory `TooClose` (killed only on the new rig) | as above |
+
 **For the Director:** (g) the AI expansion rule and its two values (350 years, 500 people) — or a ratified pace;
-(h) the known leak and its distance consequence until the extent lands (or a travel budget now); (i) whether a4_expansion
+(h) the known leak and its distance consequence until the extent lands (or a travel budget now), and whether S2b
+restricts the AI's READ (the pre-filter) as well as its PICK (the predicate, §8.2); (i) whether a4_expansion
 being met at turn 358 on every seed, ahead of the AI's other A4 milestones, is the intended reading of that milestone.

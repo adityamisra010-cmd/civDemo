@@ -1,5 +1,6 @@
 using Sim.Core;
 using Sim.Core.Kernel;
+using Sim.Core.Pathing;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Colonization;
@@ -135,7 +136,7 @@ public class AiFoundingPolicyTests
         Assert.Equal(candidates, flatCandidates);                     // the same cells, every one now tied
 
         SettlementId source = AiFoundingPolicy.RankedSources(w, Lax, Lax.Colonization!.AiFounding!, Rival)[0];
-        int pick = AiFoundingPolicy.BestSiteFor(w, flat, w.Terrain!, new AiFoundingPolicy.Sites(w, flat), source);
+        int pick = AiFoundingPolicy.BestSiteFor(w, Lax, flat, w.Terrain!, new AiFoundingPolicy.Sites(w, flat), Rival, source);
         int lowest = -1;
         for (int c = 0; c < scores.Length && lowest < 0; c++)
             if (FoundingQuery.Check(w, Lax, flat, Rival, source, c) == FoundingVerdict.Legal) lowest = c;
@@ -174,7 +175,7 @@ public class AiFoundingPolicyTests
         {
             "Occupied" => w.Settlements[w.Settlements.Count - 1].Id == src ? w.Settlements[0].SiteCell : w.Settlements[w.Settlements.Count - 1].SiteCell,
             "Unreachable" => FoundingRigs.UnreachableCandidate(w, real, src),
-            "TooClose" => FoundingRigs.FirstCell(w, Lax, real, Rival, src, FoundingVerdict.TooClose, 0, 40),
+            "TooClose" => UnclaimedTooClose(w, real, src, 40),
             _ => FoundingRigs.FirstCell(w, Lax, real, Rival, src, FoundingVerdict.Claimed, 0, 80),
         };
         Assert.True(refused >= 0, $"no {arm} cell — the rig is void");
@@ -189,10 +190,134 @@ public class AiFoundingPolicyTests
         };
         Assert.Equal(Enum.Parse<FoundingVerdict>(arm), FoundingQuery.Check(w, Lax, boosted, Rival, src, refused));
 
-        int pick = AiFoundingPolicy.BestSiteFor(w, boosted, w.Terrain!, new AiFoundingPolicy.Sites(w, boosted), src);
+        int pick = AiFoundingPolicy.BestSiteFor(w, Lax, boosted, w.Terrain!, new AiFoundingPolicy.Sites(w, boosted), Rival, src);
         Assert.NotEqual(refused, pick);
         Assert.Equal(OracleSite(w, Lax, boosted, src), pick);
         Assert.Equal(FoundingVerdict.Legal, FoundingQuery.Check(w, Lax, boosted, Rival, src, pick));
+
+        // THE predicate alone would pass this cell over too (a refused pick falls through to the same source's
+        // next-best Legal cell); the PRE-FILTER mirrors this arm so that the predicate and its route search are asked
+        // exactly once, of the pick, and never of the refused cell. A mirrored arm dropped from the pre-filter leaves
+        // the pick unchanged and is caught here, as the cost regression it is.
+        var asked = new List<int>();
+        AiFoundingPolicy.SiteCheck recording = (ww, c, ff, sp, oc, issuer, s, cell) =>
+        {
+            asked.Add(cell);
+            return FoundingQuery.Check(ww, c, ff, sp, oc, issuer, s, cell);
+        };
+        Assert.Equal(pick, AiFoundingPolicy.BestSiteFor(w, Lax, boosted, w.Terrain!, new AiFoundingPolicy.Sites(w, boosted), Rival, src, recording));
+        Assert.Equal([pick], asked);
+    }
+
+    /// <summary>The first cell (ring scan from <paramref name="source"/>, FoundingRigs.Ring order) THE predicate
+    /// refuses as TooClose whose origin node lies in NO catchment — so the spacing exclusion is the only mirrored arm
+    /// that refuses it (the nearest TooClose cells sit inside the source's own catchment, where the claimed arm would
+    /// refuse them too). −1 when none within <paramref name="maxRadius"/>.</summary>
+    private static int UnclaimedTooClose(IReadOnlyWorldState w, SettlementSiting.FrontierSiting f, SettlementId source, int maxRadius)
+    {
+        int center = FoundingRigs.SiteCellOf(w, source);
+        for (int r = 1; r < Math.Min(maxRadius, f.Size); r++)
+            foreach (int cell in FoundingRigs.Ring(f.Size, center, r))
+                if (FoundingQuery.Check(w, Lax, f, Rival, source, cell) == FoundingVerdict.TooClose
+                    && !FoundingQuery.IsClaimed(w, LatticeMap.OriginLatticeNode(f.Lattice, f.Size, cell)))
+                    return cell;
+        return -1;
+    }
+
+    // ================================================================== AN ARM THE PRE-FILTER DOES NOT MIRROR
+
+    /// <summary>A verdict no S1b arm returns: the emulated arm's refusal.</summary>
+    private const FoundingVerdict Unknown = (FoundingVerdict)(-1);
+
+    /// <summary>An EMULATED known-extent arm (D-040 B1; FoundingQuery reserves its place between arms 2 and 3 for the
+    /// fog packets S2a/S2b) that the policy's pre-filter does NOT mirror: THE predicate, except that every cell in
+    /// column <paramref name="unknownFromX"/> or east of it is unknown and refused.</summary>
+    private static AiFoundingPolicy.SiteCheck KnownWestOf(int unknownFromX) =>
+        (w, cfg, f, spacing, occupied, issuer, source, cell) =>
+            cell % f.Size >= unknownFromX ? Unknown : FoundingQuery.Check(w, cfg, f, spacing, occupied, issuer, source, cell);
+
+    /// <summary>The independent oracle for an arbitrary predicate <paramref name="check"/>: every cell with a positive
+    /// score, sorted by (score DESC, cell ASC) with LINQ, asked of <paramref name="check"/> with the world's standing
+    /// sites in turn; the first Legal one, −1 when none.</summary>
+    private static int OracleSite(
+        IReadOnlyWorldState w, SimConfig cfg, SettlementSiting.FrontierSiting f, SettlementId source, AiFoundingPolicy.SiteCheck check)
+    {
+        int[] occupied = StandingSites(w);
+        double[] spacing = SettlementSiting.SeedSpacing(f, occupied);
+        int[] keyed = Enumerable.Range(0, f.Scores.Length).Where(c => f.Scores[c] > 0.0)
+            .OrderByDescending(c => f.Scores[c]).ThenBy(c => c).ToArray();
+        foreach (int cell in keyed)
+            if (check(w, cfg, f, spacing, occupied, Rival, source, cell) == FoundingVerdict.Legal) return cell;
+        return -1;
+    }
+
+    [Fact]
+    public void AnArmThePreFilterDoesNotMirror_StillBinds_AndTheSameSourceFoundsAtTheOraclesNextBestCell()
+    {
+        // ADR-036 §8 / review finding (S1c): the scan's pre-filter copies the per-cell arms that exist today; the
+        // known-extent arm the fog packets will add to FoundingQuery is not among them. Such an arm must narrow the
+        // AI's choice THROUGH THE PREDICATE: the first-ranked source still founds, at exactly the cell the oracle
+        // finds walking (score DESC, cell ASC) and asking the extended predicate. (At a2c6e78 a refusal of the scan's
+        // pick skipped to the next SOURCE, so this arm stopped the AI's first source founding; with that guard
+        // removed — mutant M9, then recorded as equivalent — the AI issued the refused cell.)
+        WorldState w = Duo1();
+        SettlementSiting.FrontierSiting f = FoundingRigs.Frontier(w);
+        SettlementId[] ranked = AiFoundingPolicy.RankedSources(w, Lax, Lax.Colonization!.AiFounding!, Rival);
+        SettlementId first = ranked[0];
+
+        OrderRecord free = AiFoundingPolicy.Decide(w, Lax, Wg, Rival) ?? throw new InvalidOperationException("no AI order — the rig is void");
+        Assert.Equal(first.Value, free.TargetId);
+        int freeCell = FoundingQuery.SiteCellOf(free);
+
+        // The emulated arm makes the column of the unrestricted pick, and everything east of it, unknown: it BINDS on
+        // the pick, and the first source still has a known legal cell.
+        AiFoundingPolicy.SiteCheck extent = KnownWestOf(freeCell % f.Size);
+        Assert.Equal(Unknown, OracleVerdict(w, f, extent, first, freeCell));
+        int oracle = OracleSite(w, Lax, f, first, extent);
+        Assert.True(oracle >= 0, "the first source has no known legal cell — the rig is void");
+        Assert.True(oracle % f.Size < freeCell % f.Size);
+
+        OrderRecord restricted = AiFoundingPolicy.Decide(w, Lax, Rival, new AiFoundingPolicy.Sites(w, Lax, Wg), extent)
+            ?? throw new Xunit.Sdk.XunitException("no AI order under the emulated arm: a refusal skipped the source, not the cell");
+        Assert.Equal(FoundingQuery.FoundOrder(w, Rival, first, oracle), restricted);
+        Assert.Equal(FoundingVerdict.Legal, FoundingQuery.Check(w, Lax, f, Rival, first, oracle));
+
+        // An arm that refuses EVERY cell of the first source moves the AI to the next source, at that source's oracle
+        // cell — the source fall-through is for a source with no Legal cell, and only for that.
+        Assert.True(ranked.Length >= 2, "the AI has one source — the rig is void");
+        AiFoundingPolicy.SiteCheck notFirst = (ww, c, ff, sp, oc, issuer, s, cell) =>
+            s == first ? Unknown : FoundingQuery.Check(ww, c, ff, sp, oc, issuer, s, cell);
+        int secondOracle = OracleSite(w, Lax, f, ranked[1], notFirst);
+        Assert.True(secondOracle >= 0, "the second source has no legal cell — the rig is void");
+        Assert.Equal(FoundingQuery.FoundOrder(w, Rival, ranked[1], secondOracle),
+            AiFoundingPolicy.Decide(w, Lax, Rival, new AiFoundingPolicy.Sites(w, Lax, Wg), notFirst));
+
+        // Unrestricted, the seam's production value is THE predicate, and today the pre-filter IS the predicate's
+        // per-cell arms: the predicate is asked once, of the pick, and answers Legal (one route search per source).
+        var verdicts = new List<FoundingVerdict>();
+        AiFoundingPolicy.SiteCheck recording = (ww, c, ff, sp, oc, issuer, s, cell) =>
+        {
+            FoundingVerdict v = FoundingQuery.Check(ww, c, ff, sp, oc, issuer, s, cell);
+            verdicts.Add(v);
+            return v;
+        };
+        Assert.Equal(free, AiFoundingPolicy.Decide(w, Lax, Rival, new AiFoundingPolicy.Sites(w, Lax, Wg), recording));
+        Assert.Equal([FoundingVerdict.Legal], verdicts);
+    }
+
+    private static int[] StandingSites(IReadOnlyWorldState w)
+    {
+        var occupied = new int[w.Settlements.Count];
+        for (int i = 0; i < occupied.Length; i++) occupied[i] = w.Settlements[i].SiteCell;
+        return occupied;
+    }
+
+    /// <summary><paramref name="check"/>'s verdict for one cell with the world's standing sites.</summary>
+    private static FoundingVerdict OracleVerdict(
+        IReadOnlyWorldState w, SettlementSiting.FrontierSiting f, AiFoundingPolicy.SiteCheck check, SettlementId source, int cell)
+    {
+        int[] occupied = StandingSites(w);
+        return check(w, Lax, f, SettlementSiting.SeedSpacing(f, occupied), occupied, Rival, source, cell);
     }
 
     // ================================================================== SAME ORDER, SAME PREDICATE, SAME RESULT
