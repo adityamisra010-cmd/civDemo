@@ -367,8 +367,9 @@ being met at turn 358 on every seed, ahead of the AI's other A4 milestones, is t
 pushed, not merged; ADR-037). The Director's P7 addition — *"the AI cannot use information it has not legitimately
 discovered"* — answers half of item (h) above for the READ: the pre-filter's FIRST arm is now
 `PolityKnowledge.KnowsCell` for the issuer (ADR-037's one information-class seam), so a cell outside the issuer's known
-extent is never admitted and never raises the ranking's bar; the pick is a function of the known cells only, whatever
-an unknown cell scores. `PolityKnowledge.Of` is all-known until S2a stores an extent, so the arm admits every cell and
+extent is never admitted and never raises the ranking's bar, so an UNKNOWN cell is never picked, whatever it scores.
+The pick is NOT a function of known terrain only (corrected after review; this paragraph first claimed it was): a
+known cell's score is the frontier raster's, which integrates terrain under unknown nodes (below). `PolityKnowledge.Of` is all-known until S2a stores an extent, so the arm admits every cell and
 every order is byte-identical (MEASURED: the ci.yml AI leg's 600-turn hash log and run log equal the base binary's,
 byte for byte). `Decide` and `BestSiteFor` gain overloads taking the knowledge (the production entries pass
 `PolityKnowledge.Of`); `IsDue` now tests control before reading a settlement's founding turn.
@@ -377,7 +378,20 @@ What stays as §8 recorded, for S2b: the reachability flood still crosses the is
 standing-site occupancy, spacing and claimed masks — the predicate's own rule arms — are read over every settlement.
 Neither is a ranking over unknown cells: an unknown cell is refused before them.
 
+**A third channel, recorded after review: the VALUATION of a known cell.** `SettlementSiting.CandidateScores` is region
+fertility (a box sum over ±3 px, reaching the neighbouring 4-px nodes) × water access (a whole-map BFS, cutoff 24 px),
+and the candidate floor is the median of every positive-scoring cell — so terrain under unknown nodes moves known
+cells' scores, the floor, and the pick between KNOWN cells. MEASURED (dev rig, one AI, after one step): hiding only the
+eight nodes around the free pick and zeroing their fertility moves the pick 36463 → 42559, both known; with half the
+map unknown, unknown fertility alone moves 472 / 468 known cells' scores, flips the candidate arm for 433 / 2,883 known
+cells and moves the floor 18.81 → 19.56 / 26.54 (fertility 0 / 1). The READ half of item (h) is therefore only partly
+answered: the AI ranks known cells, but values them with terrain it has not discovered. What a polity's valuation of a
+partly undiscovered neighbourhood is belongs to S2b with the rest of (h); ADR-037 §6 records it, and the invariance
+tooth is quarantined (not skipped) in `PolityKnowledgeTests`.
+
 **Tests** (Sim.Tests `PolityKnowledgeTests`): a stub hiding the unrestricted pick's node moves the order to the oracle's
-best KNOWN legal cell; with the rival knowing half the map, raising every unknown cell's score above every known one
-leaves the pick unchanged (control: all-known, the same raise moves it to an unknown cell). Mutant (the `KnowsCell` arm
-dropped): killed by both (ADR-037 / `docs/m5-playability-gate.md` §3.6 kill record).
+best KNOWN legal cell; with the rival knowing half the map, raising every unknown cell's own score above every known one
+leaves the pick unchanged (control: all-known, the same raise moves it to an unknown cell); and whatever the terrain
+under the unknown half (fertility 0 or 1), the pick is a known cell and the oracle's best known legal cell (control:
+all-known, fertility 1 moves it to an unknown cell). The valuation channel's quarantine asserts it still open. Mutant
+(the `KnowsCell` arm dropped): killed by all three (ADR-037 / `docs/m5-playability-gate.md` §3.6 kill record).

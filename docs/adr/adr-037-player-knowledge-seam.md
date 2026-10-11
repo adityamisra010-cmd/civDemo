@@ -62,10 +62,12 @@ what production would do with such a deposit).
 ## 3. The AI (Sim.Core)
 
 * `AiFoundingPolicy`'s SITE SCAN asks the seam first: the pre-filter's first arm is `KnowsCell` for the issuer, so an
-  unknown cell is never admitted and never raises the ranking's bar — the pick is a function of the known cells only.
-  All-known today, so the order is byte-identical. Recorded, not hidden: the reachability flood still crosses the
-  issuer's whole connected component, and the standing-site occupancy / spacing / claimed masks are the predicate's
-  own rule arms, read over every settlement as FoundingQuery reads them (S2b decides both).
+  unknown cell is never admitted and never raises the ranking's bar — an UNKNOWN cell is never picked. The pick is NOT
+  a function of known terrain only (corrected after review; the first text of this section claimed it was): a known
+  cell's valuation is the frontier score raster, which integrates terrain under unknown nodes (§6). All-known today, so
+  the order is byte-identical. Recorded, not hidden: that valuation channel, the reachability flood across the
+  issuer's whole connected component, and the standing-site occupancy / spacing / claimed masks — the predicate's own
+  rule arms, read over every settlement as FoundingQuery reads them (S2b decides all three).
 * `AiConstructionPolicy` asks `ReadsInternals` (the availability predicate's own control arm, toy-world guard
   included) BEFORE it reads any settlement's queue — it used to read every settlement's queue and discard foreign ones
   at the availability predicate. No behaviour change (a foreign queue could never change the output); pinned
@@ -81,10 +83,14 @@ grievances, needs, prices, class states, formations — one added —, tax, Age,
 under every unknown node), and hidden EVENTS are planted. Identical under the stub: projection + lens (SVG bytes and
 LensFrame), HUD, player views, market, needs, Tab, unit and formation cards, good cards, both chronicles' annals, the
 Trends world series and `ForPlot`, the history buffer's world series, and FrameText of every player section of the
-real UI. Each has a POSITIVE CONTROL (all-known, the same perturbation changes it). The AI: perturbing every unknown
-cell's score cannot move the founding pick (control: all-known it does); perturbing every row of every settlement the
-AI does not control, and every formation it does not own, leaves `AiOrders.For` identical over twelve played turns
-(control: emptying its own stocks changes its orders).
+real UI. Each has a POSITIVE CONTROL (all-known, the same perturbation changes it). The AI: raising every unknown
+cell's own score cannot move the founding pick (control: all-known it does); whatever the TERRAIN under unknown nodes
+(fertility 0 or 1 over half the map), the pick is a known cell and the oracle's best known legal cell (control:
+all-known, fertility 1 there puts the pick on an unknown cell); the valuation channel of §6 is QUARANTINED, not skipped
+(`KnownCellsValuations_StillIntegrateTerrainUnderUnknownNodes_…` asserts it is still open and fails, naming the
+invariance tooth to restore, the moment S2b closes it); perturbing every row of every settlement the AI does not
+control, and every formation it does not own, leaves `AiOrders.For` identical over twelve played turns (control:
+emptying its own stocks changes its orders).
 
 `scripts/check-read-isolation.sh` gains an ADVISORY section (a grep cannot tell a guarded read from an unguarded one):
 a raw read of `Settlements`, `MilitaryUnits`, `Buckets` or `Deposits` through a world receiver in Sim.Ui fails unless
@@ -105,6 +111,20 @@ row. The one intended text change is §2's raw-id title. Evidence: the packet's 
 
 ## 6. Known remaining channels (not this packet's)
 
+* **The AI's valuation of a known cell integrates terrain under unknown nodes** (recorded after review; §3 first
+  claimed otherwise). `SettlementSiting.CandidateScores` — the score the site scan ranks — is region fertility (a box
+  sum over ±`fertilityRadiusPx` = 3 px, which always reaches the neighbouring 4-px nodes) × water access (a BFS over
+  the whole map, cutoff `waterAccessCutoffPx` = 24 px), and the candidate floor is the median of every positive-scoring
+  cell. MEASURED on the dev rig with one AI after one step (Sim.Tests `PolityKnowledgeTests` rig; a throwaway probe for
+  the numbers): hiding only the eight nodes around the AI's free pick (its own node known) and zeroing their fertility
+  moves the pick 36463 → 42559, both KNOWN cells; cell 36463's score falls 48.96 → 16.00. With half the map unknown,
+  changing only unknown fertility moves 472 (fertility 0) / 468 (fertility 1) known cells' scores, flips
+  `IsFrontierCandidate` for 433 / 2,883 known cells, and moves the floor 18.81 → 19.56 / 26.54. No known cell's terrain
+  changed in either. The player is held to the stricter class (the UI leak gate perturbs that terrain and requires every
+  player output identical), so the two are NOT yet held to the same information class here. What closes it — a
+  valuation over known cells only, and what a polity assumes of terrain it has not seen — is a modelling decision of
+  S2b (ADR-036 §8 item (h)); this packet does not invent it. The floor is also the predicate's own rule arm (shared with
+  the player's order), like the masks of §3.
 * `RoadDevelopmentQuery.Routes` nominates routes to any settlement within 600 km — the player's road panel and the AI
   both see such a route's endpoint (a simulation predicate: S2b, with trade pairing and emergent colonization).
 * A KNOWN foreign settlement's books (population, food, queue) are still shown in its player view, as before — what

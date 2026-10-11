@@ -63,14 +63,22 @@ namespace Sim.Core.Systems.Colonization;
 /// P7 (the information class, Director: "the AI cannot use information it has not legitimately discovered"): THE SITE
 /// SCAN goes through the one knowledge seam, <see cref="PolityKnowledge"/>. Its first pre-filter arm is
 /// <see cref="PolityKnowledge.KnowsCell"/> for the issuer, so a cell outside the issuer's known extent is never admitted
-/// and never raises the ranking's bar — the pick is a function of the KNOWN cells only, whatever an unknown cell's score
-/// (pinned by a metamorphic test with a knowledge stub: perturbing every unknown cell's score leaves the order
-/// unchanged). <see cref="PolityKnowledge.Of"/> is all-known until S2a stores an extent, so today the arm admits every
-/// cell and the order is byte-identical. What the seam does not narrow, recorded rather than hidden: the reachability
-/// flood still crosses the issuer's whole connected component (a geography graph, not a ranking — whether travel
-/// through unknown land is admissible is S2b's), and the standing-site occupancy, spacing and claimed masks are the
-/// predicate's own rule arms (mirrored so the pre-filter never skips a Legal cell), read over every settlement as
-/// FoundingQuery reads them.
+/// and never raises the ranking's bar: an UNKNOWN cell is never picked, whatever it scores (pinned by metamorphic tests
+/// with a knowledge stub: raising every unknown cell's own score leaves the pick unchanged, and whatever the terrain
+/// under unknown nodes the pick is the oracle's best KNOWN legal cell). The pick is NOT a function of known terrain only:
+/// a known cell's VALUATION is the frontier raster's (<see cref="SettlementSiting.CandidateScores"/>), and that raster
+/// integrates terrain under unknown nodes — region fertility is a box sum over ±fertilityRadiusPx (3 px, so it reaches
+/// the neighbouring 4-px nodes), water access is a BFS over the whole map (cutoff 24 px), and the candidate floor
+/// (<see cref="SettlementSiting.ScoreFloor"/>) is the median (scoreFloorPercentile 0.5) of every positive-scoring cell. Terrain the issuer has not discovered
+/// therefore moves known cells' scores, the floor, and the pick between KNOWN cells (MEASURED, P7 review: hiding only
+/// the eight nodes around the dev rig's pick and zeroing their fertility moves the pick 36463 → 42559, both known).
+/// Which valuation a polity may hold of a known cell whose neighbourhood it has not discovered is S2b's (ADR-036 §8
+/// item (h), ADR-037 §6); the channel is quarantined, not hidden (PolityKnowledgeTests). <see cref="PolityKnowledge.Of"/>
+/// is all-known until S2a stores an extent, so today the arm admits every cell and the order is byte-identical. What else
+/// the seam does not narrow, recorded rather than hidden: the reachability flood still crosses the issuer's whole
+/// connected component (a geography graph, not a ranking — whether travel through unknown land is admissible is S2b's),
+/// and the standing-site occupancy, spacing and claimed masks are the predicate's own rule arms (mirrored so the
+/// pre-filter never skips a Legal cell), read over every settlement as FoundingQuery reads them.
 ///
 /// Deterministic: roster, settlement-table and cell order; composite keys with integer tie-breaks (tie-dense test:
 /// AiFoundingPolicyTests); no RNG, no clock, no dictionary, no LINQ (law 5).

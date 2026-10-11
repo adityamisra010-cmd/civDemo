@@ -837,7 +837,7 @@ InfoQueryTests, InstitutionAiTests, AiPolicyTests — 54 tests, clean 9 s, bound
 | M15 the raw id back in the unnamed title | `RawSettlementIds_AreNotInPlayerText`, the two moved pins |
 | M16 GameUi builds the lens without the session's knowledge | the FrameText test, the gate rows |
 | M17 GameUi's Tab ignores the session's knowledge | the gate rows (`Tab never reaches a hidden settlement`) |
-| M18 the AI site scan's `KnowsCell` arm dropped | `TheAiSiteScan_RanksOnlyTheCellsItsPolityKnows`, `WhatTheAiDoesNotKnow_CannotMoveItsPick…` |
+| M18 the AI site scan's `KnowsCell` arm dropped | `TheAiSiteScan_RanksOnlyTheCellsItsPolityKnows`, `AnUnknownCellsOwnScore_CannotMoveThePick…` (named `WhatTheAiDoesNotKnow_CannotMoveItsPick…` at `cd3c91f`: renamed after review, it perturbs scores, not what the AI does not know), and — re-run after review — `TerrainUnderUnknownNodes_NeverPutsAnUnknownCellInThePick…` (fertility 1 under the unknown half: the mutant picks unknown cell 14740) |
 | M19 the formation card ignores knowledge | `TheFormationCard_OfAFormationThePlayerDoesNotKnow…` |
 | M20 the pre-P7 `DepositSector` (scans the world's settlements) | `TheGoodCardsDepositSector_IsProductionsContentRule…` (no settlement holds fish: the old body said Extraction) |
 | M21 `KnowsSettlement` ignores the masks | `Restricted_AnswersFromItsMasks…` |
