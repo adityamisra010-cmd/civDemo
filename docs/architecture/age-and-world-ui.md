@@ -483,3 +483,25 @@ Adds to §11; §1–§11 remain the record of what they describe.
   Show on map button per shortcut (`now-usable-<history index>`). Labelled 'now usable', never 'discovered'. UI state only.
 
 Tests: `Sim.Ui.Tests/DiscoveryShortcutTests.cs`; record: `docs/m5-playability-gate.md` §3.9.
+
+## 13. M5 map workstream P12a: stable placement and the compressive size class (append-only note, 2026-10-11)
+
+Supersedes §9.3–§9.4's composition details where they differ ("a ring of dwelling blocks, one per 25 dwellings,
+capped", "one glyph per kind on a ring"); §1–§10 remain the record of what they describe.
+
+- **A settlement's composition is a pure function of its state and the content** (`SettlementComposer`,
+  `Sim.Ui/World/SettlementComposition.cs`): every structure kind and institution type content can produce has its own
+  lot in the settlement's fixed glyph lattice (stable 64-bit hash, deterministic probing — the b1z2y4 algorithm, not
+  its content), so a later arrival, a removal, a count, the zoom and the pan move nothing, and no table's order matters.
+  Dwelling blocks (one per 25 dwellings) fill a fixed block lattice outward as the footprint grows, hidden where they
+  stand under a held part's glyph — no cap of 48.
+- **Size is population-primary on a compressive class scale** (D-043 D1; `Sim.Ui/UiContent/world/settlement-classes.json`,
+  view data): nine classes, thresholds 0, 250, ×4 … 4,096,000; the World mark and the footprint grow strictly with
+  population up to that stated saturation. The `SizeTier` line (D-017, the simulation's stock) is unchanged; the visual
+  class is not shown as text.
+- **What is drawn is still only what is built**: structures from `Structures` rows with a count, institutions through
+  `InstitutionMarkerSource` (founded `InstitutionRow`s only — a queued or built-but-not-founded university is
+  UNDER_CONSTRUCTION and draws nothing), aggregated one glyph per type with its count at Settlement zoom (D-043 D2).
+- **`LensFrame.Parts`** reports where each part was drawn (its lot and box), inside its settlement's hit footprint.
+
+Record: `docs/m5-playability-gate.md` §3.12; tests: `Sim.Ui.Tests/SettlementCompositionTests.cs`.

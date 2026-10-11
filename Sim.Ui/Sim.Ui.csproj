@@ -28,6 +28,9 @@
     <!-- M5 workstream P10: UI CONTENT (presentation only; nothing in the simulation reads it), embedded like Sim.Data's
          content so the game, the harness and the tests read the same bytes. -->
     <EmbeddedResource Include="UiContent\discovery-shortcuts.json" LogicalName="Sim.Ui.discovery-shortcuts.json" />
+    <!-- P12a: the settlement visual classes and composition lattice — VIEW data (how state is drawn), embedded so the
+         game, the headless tools and the tests read the same bytes. The simulation never reads it. -->
+    <EmbeddedResource Include="UiContent\world\settlement-classes.json" LogicalName="Sim.Ui.settlement-classes.json" />
   </ItemGroup>
 
   <ItemGroup>

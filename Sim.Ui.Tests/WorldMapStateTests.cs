@@ -569,7 +569,15 @@ public class WorldMapStateTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFi
         var d = new DrawList();
         PaintAll(d, With(p, settlements: [cap], units: [], roads: [], routes: []), WorldZoom.Regional);
         Rgba dwelling = Ink.With(MapInk.Default.Dwelling, 0.85);
-        Assert.Equal((int)Math.Clamp(cap.Dwellings / 25, 1, 48), d.Commands.OfType<RectCmd>().Count(r => r.Fill == dwelling));
+        // PIN RESTATED (P12a), old -> new rule: old, clamp(dwellings / 25, 1, 48) blocks on one ring spaced by index; new,
+        // dwellings / 25 blocks (none invented below 25 dwellings, no cap of 48) on the fixed block lattice, as many as the
+        // footprint's open lots not under a glyph hold. Measured on this fixture: the capital's dwellings / 25 blocks fit, so
+        // the drawn count is the same number as before; the composition reports exactly the blocks drawn.
+        int drawn = d.Commands.OfType<RectCmd>().Count(r => r.Fill == dwelling);
+        SettlementComposition comp = p.CompositionOf(cap);
+        Assert.Equal(comp.Blocks.Count, drawn);
+        Assert.Equal(cap.Dwellings / 25, comp.BlocksWanted);
+        Assert.Equal(cap.Dwellings / 25, drawn);
         Assert.Single(d.Commands.OfType<PolygonCmd>(), poly => poly.Fill == MapInk.Default.CapitalMark && poly.Points.Length == 10);   // the star
     }
 
