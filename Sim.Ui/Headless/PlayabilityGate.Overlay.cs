@@ -65,6 +65,7 @@ public static partial class PlayabilityGate
                         + ", overlay painted " + (Ui.LensFrame?.Overlay is not null));
                 });
             }
+            LookCheck("map: overlays", "overlay key (every layer: inside the clear map, off its centre line; the wheel over it scrolls every row into view)", OverlayKeyFits);
             OverlayLayer probe = layers[0];
             foreach (OverlayLayer l in layers) if (l.Kind == OverlayKind.Suitability) probe = l;
             LookCheck("map: overlays", "overlay opacity (-: one tenth less)", () => OpacityStep(probe, GameUi.OverlayOpacityDown, -1));
@@ -103,6 +104,51 @@ public static partial class PlayabilityGate
                     "clicked " + clicked + ", open " + Ui.OverlayControlsOpen);
             });
             CloseEverything();
+        }
+
+        /// <summary>P9b: with every layer shown (each through its checkbox), the key lies inside the clear map and off its
+        /// centre line (a margin either side: where the camera frames what the player focuses on); the wheel over it — the
+        /// pointer there first, as a player's is — scrolls it a row a notch to its last row, every row drawn at some scroll,
+        /// and never zooms the map; then it scrolls back to its top and the layers are hidden again.</summary>
+        private (GateResult, string) OverlayKeyFits()
+        {
+            if (!Ui.OverlayControlsOpen) h.ClickControl(GameUi.OverlaysControl);
+            foreach (OverlayLayer l in Ui.OverlayLayers) if (!Ui.OverlayShown(l.Index)) h.ClickControl(l.Control);
+            h.Idle(1);
+            try
+            {
+                if (Ui.LensFrame?.Overlay?.Key is not { } key) return (GateResult.Fail, "the key was not painted");
+                RectD map = Ui.MapRect;
+                double band = Sim.Ui.ViewModel.PanelLayout.Margin * Ui.Scale;
+                if (key.Rect.X < map.X || key.Rect.Y < map.Y || key.Rect.Right > map.Right || key.Rect.Bottom > map.Bottom)
+                    return (GateResult.Fail, "the key " + key.Rect + " leaves the clear map " + map);
+                if (key.Rect.Y < map.CenterY + band && key.Rect.Bottom > map.CenterY - band)
+                    return (GateResult.Fail, "the key " + key.Rect + " lies over the clear map's centre line y " + map.CenterY.ToString("0.0", CultureInfo.InvariantCulture));
+                double zoom = Ui.Camera.TargetZoom;
+                (double x, double y) = (Math.Round(key.Rect.CenterX), Math.Round(key.Rect.CenterY));
+                h.MoveTo(x, y);
+                var seen = new SortedSet<int>();
+                int notches = 0, rows = key.Rows.Count, max = key.MaxScroll;
+                while (true)
+                {
+                    key = Ui.LensFrame!.Overlay!.Key!;
+                    for (int r = key.Scroll; r < key.Scroll + key.RowsDrawn; r++) seen.Add(r);
+                    if (key.Scroll >= key.MaxScroll || notches > rows) break;
+                    int before = key.Scroll;
+                    h.Wheel(x, y, -1);
+                    notches++;
+                    if (Ui.LensFrame?.Overlay?.Key is not { } next || next.Scroll != before + GameUi.OverlayKeyRowsPerNotch)
+                        return (GateResult.Fail, "a notch over the key at row " + before.ToString(CultureInfo.InvariantCulture) + " did not scroll it a row");
+                }
+                bool zoomed = Ui.Camera.TargetZoom != zoom;
+                h.Wheel(x, y, max + 1);   // back to its top
+                bool top = Ui.LensFrame?.Overlay?.Key?.Scroll == 0;
+                return Expect(seen.Count == rows && !zoomed && top, rows.ToString(CultureInfo.InvariantCulture) + " rows, "
+                    + seen.Count.ToString(CultureInfo.InvariantCulture) + " drawn scrolling through "
+                    + notches.ToString(CultureInfo.InvariantCulture) + " notches (the box " + key.Rect.H.ToString("0.0", CultureInfo.InvariantCulture)
+                    + " px of the clear map's " + map.H.ToString("0.0", CultureInfo.InvariantCulture) + "), map zoomed " + zoomed + ", back at the top " + top);
+            }
+            finally { HideAllOverlays(); }
         }
 
         /// <summary>Hides every shown overlay layer through its checkbox (the controls unfolded for it).</summary>

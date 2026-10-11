@@ -678,8 +678,9 @@ public sealed partial class GameUi
                 _camera!.Pan(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y, map);
 
             // P2: the wheel moves the camera's TARGET (×1.25 a notch about the cursor); the shown view eases to it.
+            // P9b: over the overlay's key the wheel scrolls the key instead (never the map beneath it).
             int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
-            if (wheel != 0)
+            if (wheel != 0 && !OverlayKeyWheel(mouse.X, mouse.Y, wheel))
                 _camera!.ZoomToward(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), map);
 
             // T2.4 click-select: press→release edge with a small movement

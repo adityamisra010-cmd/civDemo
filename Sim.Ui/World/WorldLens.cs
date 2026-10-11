@@ -397,8 +397,12 @@ public sealed record MapLegend(RectD Rect, string Title, IReadOnlyList<WorldLaye
     IReadOnlyList<string> Absent);
 
 /// <summary>P9: where the lens lays the overlay's key out: the key's box is left-aligned on <paramref name="Left"/>, its foot
-/// on <paramref name="Bottom"/> (screen px), and it is never wider than <paramref name="MaxWidth"/>.</summary>
-public readonly record struct OverlayKeyAnchor(double Left, double Bottom, double MaxWidth);
+/// on <paramref name="Bottom"/> (screen px), and it is never wider than <paramref name="MaxWidth"/>. P9b: its box never
+/// reaches above <paramref name="Top"/> (screen px; −∞: no cap) — when its rows do not fit beneath it, the box stops there
+/// and shows a window of WHOLE rows starting at row <paramref name="Scroll"/> (clamped to the rows there are), with a
+/// scroll bar; every row stays reachable, none is dropped.</summary>
+public readonly record struct OverlayKeyAnchor(double Left, double Bottom, double MaxWidth, double Top = double.NegativeInfinity,
+    int Scroll = 0);
 
 /// <summary>P9: what the lens is asked to paint of the resource overlay: the bake, which of its layers the player shows
 /// (parallel to <see cref="ResourceOverlay.Layers"/>), the opacity (0..1), the turn's status, where the key goes (null:
@@ -421,9 +425,32 @@ public sealed record OverlayPaint(ResourceOverlay Bake, IReadOnlyList<bool> Show
     }
 }
 
-/// <summary>P9: THE OVERLAY'S KEY as one paint drew it — its box, its title and its rows (unwrapped, in order); every command
-/// of it is charged to <see cref="MapLayer.ResourceOverlay"/>.</summary>
-public sealed record OverlayKey(RectD Rect, string Title, IReadOnlyList<string> Rows);
+/// <summary>P9: THE OVERLAY'S KEY as one paint drew it — its box, its title and its rows (unwrapped, in order: ALL of them,
+/// drawn or scrolled out of view); every command of it is charged to <see cref="MapLayer.ResourceOverlay"/>.</summary>
+public sealed record OverlayKey(RectD Rect, string Title, IReadOnlyList<string> Rows)
+{
+    /// <summary>P9b: the first row drawn (0: the top) — the anchor's <see cref="OverlayKeyAnchor.Scroll"/>, clamped.</summary>
+    public int Scroll { get; init; }
+
+    /// <summary>P9b: the largest <see cref="Scroll"/> there is (0: every row fits the box, nothing scrolls) — at it the last
+    /// row is drawn.</summary>
+    public int MaxScroll { get; init; }
+
+    /// <summary>P9b: how many rows, from <see cref="Scroll"/> on, this paint drew (whole rows only: a row is drawn with all its
+    /// lines and its ramp, or not at all).</summary>
+    public int RowsDrawn { get; init; }
+
+    /// <summary>P9b: the rows this paint drew, in order.</summary>
+    public IReadOnlyList<string> DrawnRows
+    {
+        get
+        {
+            var r = new List<string>();
+            for (int i = Scroll; i < Scroll + RowsDrawn && i < Rows.Count; i++) r.Add(Rows[i]);
+            return r;
+        }
+    }
+}
 
 /// <summary>P9: what one paint drew of the resource overlay: the layers that drew a rect in view (indices, in order), per
 /// layer the rects emitted and the lattice nodes they cover, the key (null when none was asked for) and the realized-roll
@@ -913,6 +940,12 @@ public static class WorldLens
     /// P9: THE OVERLAY'S KEY — a plain data key on the legend's paper plate (no art, no ImGui window): its title, then
     /// <see cref="ResourceOverlay.KeyRows"/> word-wrapped to the anchor's width, each shown layer's name row followed by its
     /// ramp (one swatch per level, pale to deep, at the overlay's opacity — exactly the fills the layer is drawn with).
+    /// P9b: THE BOX NEVER REACHES ABOVE THE ANCHOR'S <see cref="OverlayKeyAnchor.Top"/>. While the rows fit beneath it the
+    /// key is drawn whole, exactly as before; when they do not, the box stops at the cap and shows the title and a window of
+    /// WHOLE rows (each with all its lines and its ramp) from the anchor's <see cref="OverlayKeyAnchor.Scroll"/> on, with a
+    /// scroll bar in its right padding — nothing is dropped: at <see cref="OverlayKey.MaxScroll"/> the last row is drawn, and
+    /// every row between is drawn at some scroll. The box drawn is the key's <see cref="OverlayKey.Rect"/>, the region that
+    /// takes the clicks over it — never more.
     /// </summary>
     private static OverlayKey PaintOverlayKey(DrawList d, ITextMeasure m, OverlayPaint ov, OverlayKeyAnchor at, MapInk k)
     {
@@ -928,33 +961,62 @@ public static class WorldLens
             if (shown) foreach (string r in hl.Rows) rows.Add(new OverlayKeyRow(r));
         }
         rows.AddRange(b.KeyRows(ov.Shown, ov.Status, ov.Names ?? (id => "settlement " + id.ToString(CultureInfo.InvariantCulture))));
-        // The runs, in order: (text, role, font, gap before, ramp layer after it).
-        var runs = new List<(string Text, TypeRole Role, FontRole Font, double Gap, int Ramp)>
+        // The runs, in order: (text, role, font, gap before, ramp layer after it, the row it belongs to: -1 the title).
+        var runs = new List<(string Text, TypeRole Role, FontRole Font, double Gap, int Ramp, int Row)>
         {
-            (ResourceOverlay.KeyTitle, TypeRole.Caption, FontRole.Caps, 0, -1),
+            (ResourceOverlay.KeyTitle, TypeRole.Caption, FontRole.Caps, 0, -1, -1),
         };
         double space = _type.Px(4);
-        foreach (OverlayKeyRow row in rows)
+        for (int r = 0; r < rows.Count; r++)
         {
+            OverlayKeyRow row = rows[r];
             bool heading = row.Ramp >= 0;
             (TypeRole role, FontRole font) = heading ? (TypeRole.Body, FontRole.Heading) : (TypeRole.Secondary, FontRole.Body);
             List<string> lines = _type.Wrap(m, row.Text, role, font, maxText);
             for (int i = 0; i < lines.Count; i++)
-                runs.Add((lines[i], role, font, i == 0 && heading ? space : 0, i == lines.Count - 1 ? row.Ramp : -1));
+                runs.Add((lines[i], role, font, i == 0 && heading ? space : 0, i == lines.Count - 1 ? row.Ramp : -1, r));
         }
-        double w = LevelSwatchWidth(swatch), h = 0;
-        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        double w = LevelSwatchWidth(swatch), h = 0, titleH = 0;
+        var rowH = new double[rows.Count];
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp, int row) in runs)
         {
             w = Math.Max(w, _type.Width(m, text, role, font));
-            h += gap + _type.Size(role, font) * 1.3 + (ramp >= 0 ? swatchH + space : 0);
+            double runH = gap + _type.Size(role, font) * 1.3 + (ramp >= 0 ? swatchH + space : 0);
+            h += runH;
+            if (row < 0) titleH += runH;
+            else rowH[row] += runH;
         }
         double boxW = Math.Min(at.MaxWidth, w + 2 * pad), boxH = h + 2 * pad;
+        // P9b: the cap. The rows drawn are [first, end); unscrolled, all of them.
+        int first = 0, end = rows.Count, maxScroll = 0;
+        bool scrolls = boxH > at.Bottom - at.Top;
+        double view = 0;
+        if (scrolls)
+        {
+            const double Eps = 1e-6;   // px: a row that fits to the summation's last bits fits
+            boxH = Math.Max(0, at.Bottom - at.Top);
+            view = Math.Max(0, boxH - 2 * pad - titleH);
+            // The largest scroll: the first row of the longest tail that fits the window (the last row alone at least).
+            maxScroll = Math.Max(0, rows.Count - 1);
+            double tail = 0;
+            for (int i = rows.Count - 1; i >= 0; i--)
+            {
+                tail += rowH[i];
+                if (tail > view + Eps) break;
+                maxScroll = i;
+            }
+            first = Math.Clamp(at.Scroll, 0, maxScroll);
+            double used = 0;
+            end = first;
+            while (end < rows.Count && used + rowH[end] <= view + Eps) used += rowH[end++];
+        }
         var box = new RectD(at.Left, at.Bottom - boxH, boxW, boxH);
         MapHandTokens hand = k.Hand;
         d.Rect(box, A(k.NamePlate, 0.92), A(k.Ink, 0.55), Math.Max(1.0, hand.NamePlateRulePx), hand.NamePlateCornerPx);
         double y = box.Y + pad;
-        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp, int row) in runs)
         {
+            if (row >= 0 && (row < first || row >= end)) continue;   // P9b: scrolled out of the window
             y += gap;
             _type.Label(d, box.X + pad, y, text, role, font, k.Ink, TextAlign.Left);
             y += _type.Size(role, font) * 1.3;
@@ -964,9 +1026,19 @@ public static class WorldLens
             d.Rect(new RectD(box.X + pad, y, LevelSwatchWidth(swatch), swatchH), null, A(k.Ink, 0.45), 1);
             y += swatchH + space;
         }
+        if (scrolls && view > 0)
+        {
+            // P9b: the scroll bar in the right padding (the text never reaches it): the track the window's height, the thumb
+            // the window's share of the rows, at the scroll's share of the way down.
+            double barW = _type.Px(3), barX = box.Right - pad / 2 - barW / 2, barY = box.Y + pad + titleH;
+            double thumbH = Math.Min(view, Math.Max(_type.Px(12), view * view / Math.Max(view, h - titleH)));
+            double thumbY = barY + (maxScroll > 0 ? (view - thumbH) * first / maxScroll : 0);
+            d.Rect(new RectD(barX, barY, barW, view), A(k.Ink, 0.12), null, 1, barW / 2);
+            d.Rect(new RectD(barX, thumbY, barW, thumbH), A(k.Ink, 0.55), null, 1, barW / 2);
+        }
         var texts = new List<string>();
         foreach (OverlayKeyRow row in rows) texts.Add(row.Text);
-        return new OverlayKey(box, ResourceOverlay.KeyTitle, texts);
+        return new OverlayKey(box, ResourceOverlay.KeyTitle, texts) { Scroll = first, MaxScroll = maxScroll, RowsDrawn = end - first };
     }
 
     private static double LevelSwatchWidth(double swatch) => swatch * ResourceOverlay.LevelCount;
