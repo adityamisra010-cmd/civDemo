@@ -265,6 +265,150 @@ public class MapViewportUiTests : IDisposable
         Assert.Empty(h.Problems);
     }
 
+    /// <summary>Folds the right-hand column by its header button and checks it folded.</summary>
+    private static void FoldColumn(UiFrameHarness h)
+    {
+        Assert.True(h.ClickControl("panel-fold"));
+        h.Idle(1);
+        Assert.True(h.Ui.ContextFolded);
+    }
+
+    /// <summary>The column shows <paramref name="section"/> as a panel: open, not folded, its close button drawn.</summary>
+    private static void AssertShown(UiFrameHarness h, Section section)
+    {
+        Assert.Equal(section, h.Ui.OpenSection);
+        Assert.False(h.Ui.Inspector.IsOpen);
+        Assert.False(h.Ui.ContextFolded, section + " came back folded");
+        Assert.True(h.Ui.ContextShown);
+        Assert.NotNull(h.Ui.Controls.Find("close"));
+    }
+
+    /// <summary>THE FOLD BELONGS TO THE CONTENT SHOWN (P1 review finding: the fold was remembered after its panel closed,
+    /// so the panel reopened folded — only its tab drawn). A folded section closed by Escape and reopened by its button
+    /// or its digit is shown; a section folded, another section opened (by button or digit), and the first reopened,
+    /// shows the first; a section folded, the info card opened over it and closed, shows the section. "Another section,
+    /// or another info subject, opens unfolded" (docs/m5-playability-gate.md §3.3) holds however the content came back.</summary>
+    [Fact]
+    public void FoldedColumn_IsForgottenWhenItsContentGoes_SoReopeningItShowsThePanel()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("fold-forget"), Assets());
+        IReadOnlyList<Section> roster = GameSections.Roster(false);
+        int digit = 0;
+        for (int i = 0; i < roster.Count; i++) if (roster[i] == Section.Policy) digit = i + 1;
+        Assert.True(digit > 0);
+        int otherDigit = roster[0] == Section.Policy ? 2 : 1;
+        Section other = roster[otherDigit - 1];
+
+        Assert.True(h.ClickControl("nav:Policy"));
+        FoldColumn(h);
+        h.Key(Keys.Escape);                            // Escape closes the folded section...
+        h.Idle(1);
+        Assert.Equal(Section.None, h.Ui.OpenSection);
+        Assert.True(h.ClickControl("nav:Policy"));    // ...and its button reopens it SHOWN
+        h.Idle(1);
+        AssertShown(h, Section.Policy);
+
+        FoldColumn(h);
+        h.Key(Keys.Escape);
+        h.Idle(1);
+        h.Key(Keys.D0 + digit);                        // the same by its digit
+        h.Idle(1);
+        AssertShown(h, Section.Policy);
+
+        FoldColumn(h);
+        Assert.True(h.ClickControl("nav:" + other));  // fold A, open B by its button...
+        h.Idle(1);
+        AssertShown(h, other);
+        Assert.True(h.ClickControl("nav:Policy"));    // ...reopen A: shown
+        h.Idle(1);
+        AssertShown(h, Section.Policy);
+
+        FoldColumn(h);
+        h.Key(Keys.D0 + otherDigit);                   // the same by digits
+        h.Idle(1);
+        AssertShown(h, other);
+        h.Key(Keys.D0 + digit);
+        h.Idle(1);
+        AssertShown(h, Section.Policy);
+
+        FoldColumn(h);
+        h.Ui.OpenInfo(InfoSubject.Research);           // fold A, the info card takes the column...
+        h.Idle(2);
+        Assert.True(h.Ui.Inspector.IsOpen && h.Ui.ContextShown);
+        Assert.True(h.ClickControl("info-close"));    // ...closed by its button: A comes back shown
+        h.Idle(1);
+        AssertShown(h, Section.Policy);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>The pinned info card's fold is the card's: closed by Escape and opened again on the same subject it is
+    /// shown; folded, and opened again on the same subject (Shift+click on the research figure), it is shown — the
+    /// player asked to see it. And a SECTION action never unfolds the card over it: with the card folded over an open
+    /// section, that section's button (which closes the section under the card) and a click-to-explain route (which
+    /// opens one under it) leave the card folded — they change nothing the column shows (the P1 review finding's
+    /// related case: closing the section once unfolded the card).</summary>
+    [Fact]
+    public void FoldedInfoCard_IsShownWhenOpenedAgain_AndASectionActionUnderItLeavesItFolded()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("fold-info"), Assets());
+        void ShiftClickResearch()
+        {
+            UiControl chip = h.Ui.Controls.Find("band-research") ?? throw new InvalidOperationException("no research figure");
+            h.ShiftClick(chip.CenterX, chip.CenterY);
+            h.Idle(1);
+        }
+
+        ShiftClickResearch();
+        Assert.True(h.Ui.Inspector.IsOpen && h.Ui.ContextShown);
+        InfoSubject subject = h.Ui.Inspector.Subject!.Value;
+        FoldColumn(h);
+        h.Key(Keys.Escape);                            // Escape closes the folded card...
+        h.Idle(1);
+        Assert.False(h.Ui.Inspector.IsOpen);
+        ShiftClickResearch();                          // ...and the same subject opens SHOWN
+        Assert.Equal(subject, h.Ui.Inspector.Subject);
+        Assert.True(h.Ui.ContextShown && !h.Ui.ContextFolded);
+
+        FoldColumn(h);
+        ShiftClickResearch();                          // folded, the same subject asked for again: shown
+        Assert.Equal(subject, h.Ui.Inspector.Subject);
+        Assert.True(h.Ui.ContextShown && !h.Ui.ContextFolded);
+
+        h.Key(Keys.Escape);
+        h.Idle(1);
+        Assert.True(h.ClickControl("nav:Policy"));
+        ShiftClickResearch();                          // the card over an open section...
+        FoldColumn(h);
+        Assert.True(h.ClickControl("nav:Policy"));    // ...its button closes the section under the card...
+        h.Idle(1);
+        Assert.Equal(Section.None, h.Ui.OpenSection);
+        Assert.True(h.Ui.Inspector.IsOpen && h.Ui.ContextFolded && !h.Ui.ContextShown);   // ...the card stays folded
+        Assert.True(h.ClickControl("fig:SettlementPopulation"));                          // a route opens one under it...
+        h.Idle(1);
+        Assert.NotEqual(Section.None, h.Ui.OpenSection);
+        Assert.True(h.Ui.Inspector.IsOpen && h.Ui.ContextFolded && !h.Ui.ContextShown);   // ...the card stays folded
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>CLICK-TO-EXPLAIN INTO A FOLDED SECTION SHOWS IT (P1 review finding: the route re-opened the section that
+    /// was already open but folded, the fold stayed, and the explanation stayed hidden — the click did nothing visible).</summary>
+    [Fact]
+    public void AFigureRouteIntoAFoldedSection_UnfoldsIt()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("fold-route"), Assets());
+        Assert.True(h.ClickControl("fig:SettlementPopulation"));
+        h.Idle(1);
+        Section routed = h.Ui.OpenSection;
+        Assert.NotEqual(Section.None, routed);
+        AssertShown(h, routed);
+        FoldColumn(h);
+        Assert.Equal(routed, h.Ui.OpenSection);
+        Assert.True(h.ClickControl("fig:SettlementPopulation"));   // the same figure, its section folded
+        h.Idle(1);
+        AssertShown(h, routed);
+        Assert.Empty(h.Problems);
+    }
+
     /// <summary>The selection card folds to its title row: its figure rows are not drawn, it is shorter, and the left
     /// column under it (the docked Age panel) moves up with it; unfolding restores it exactly.</summary>
     [Fact]

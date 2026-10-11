@@ -170,8 +170,9 @@ public sealed partial class GameUi
     // P1 (M5 map workstream): THE MAP RECT of the current frame — the clear map the chrome leaves (PanelLayout.MapRect
     // over the PLACED bars and the context panel when it is shown) — synced once at the start of Update, so the input,
     // the GPU pass and the lens of one frame all frame the map through the same rect. And the FOLDS, pure UI state: the
-    // right-hand column folded to a tab (the content it folded — a section, the info card — is remembered: other
-    // content opens unfolded) and the selection card folded to its title.
+    // right-hand column folded to a tab (the fold belongs to the content the column SHOWS — a section, or the info card
+    // over it — and is forgotten the frame that content goes: closed, or replaced, it comes back unfolded) and the
+    // selection card folded to its title.
     private Sim.Ui.Render.RectD _mapRect;
     private (Section Section, InfoSubject? Subject)? _foldedContext;
     private bool _cardFolded;
@@ -308,7 +309,10 @@ public sealed partial class GameUi
 
     private bool ContextHasContent => _inspector.IsOpen || _openSection != Section.None;
 
-    private (Section Section, InfoSubject? Subject) ContextContent => (_openSection, _inspector.Subject);
+    /// <summary>P1: what the right-hand column SHOWS — the info card's subject when one is pinned (it takes the column;
+    /// the section under it is not shown), else the open section. A fold is of this, and of nothing under it.</summary>
+    private (Section Section, InfoSubject? Subject) ContextContent =>
+        _inspector.IsOpen ? (Section.None, _inspector.Subject) : (_openSection, null);
 
     /// <summary>P1: the map rect for the chrome as it stands (PanelLayout.MapRect over the placed bars and panel).</summary>
     private Sim.Ui.Render.RectD ComputeMapRect() =>
@@ -319,6 +323,7 @@ public sealed partial class GameUi
     /// re-fits), then the clamp against the new rect. Pure UI state: nothing here reads or writes the simulation.</summary>
     private void SyncMapRect(int cursorX, int cursorY)
     {
+        ForgetStaleFold();
         Sim.Ui.Render.RectD next = ComputeMapRect();
         if (next == _mapRect) return;
         bool inside = next.Contains(cursorX, cursorY) && _mapRect.Contains(cursorX, cursorY);
@@ -328,6 +333,15 @@ public sealed partial class GameUi
 
     /// <summary>P1: folds (or unfolds) the right-hand column's current content to its tab. Folding nothing is nothing.</summary>
     private void FoldContext(bool fold) => _foldedContext = fold && ContextHasContent ? ContextContent : null;
+
+    /// <summary>P1: the fold belongs to the content shown. Once per frame (the top of SyncMapRect), a fold whose content
+    /// the column no longer shows — closed (Escape, a close button, the info card closed) or replaced (another section,
+    /// another subject, the card over it) — is FORGOTTEN, so that content comes back unfolded whatever path brings it.
+    /// (Compared on every read, a remembered fold once re-folded its section the next time it opened.)</summary>
+    private void ForgetStaleFold()
+    {
+        if (!ContextFolded) _foldedContext = null;
+    }
 
     /// <summary>P1: the H key — fold every panel the map can take back (the right-hand column, the selection card), or,
     /// when they are all folded already, unfold them.</summary>
@@ -1408,6 +1422,7 @@ public sealed partial class GameUi
     {
         // ADR-033 D9: the route names the explanation; the mode decides where it is shown.
         (_openSection, _developerTab) = GameSections.Resolve(route.Section, _developer, _developerTab);
+        if (!_inspector.IsOpen) FoldContext(false);   // P1: the routed section is shown — even when it was open, folded
         if (route.Section == Section.Settlement) _settlementTab = route.Tab;
         if (route.Expand == AuditExpand.Population) _auditExpanded[0] = true;
         if (route.Expand == AuditExpand.Grain) _auditExpanded[1] = true;

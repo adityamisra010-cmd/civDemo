@@ -38,8 +38,13 @@ public sealed partial class GameUi
     /// <summary>Where the hover hint was painted last frame.</summary>
     public RectD? InfoHintRect { get; private set; }
 
-    /// <summary>Opens (pins) the card for <paramref name="subject"/>; it is built at the next draw. UI state only.</summary>
-    public void OpenInfo(InfoSubject subject) => _inspector.Open(subject);
+    /// <summary>Opens (pins) the card for <paramref name="subject"/>; it is built at the next draw. UI state only. P1: the
+    /// card is shown — opened again on the subject it is folded over, it unfolds (the player asked to see it).</summary>
+    public void OpenInfo(InfoSubject subject)
+    {
+        _inspector.Open(subject);
+        FoldContext(false);
+    }
 
     /// <summary>The research figure's subject: the current target's node, else research itself.</summary>
     private InfoSubject ResearchChipSubject() =>

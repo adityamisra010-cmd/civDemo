@@ -491,7 +491,11 @@ go through it. The map is still drawn full-window beneath the chrome (the lens's
 | key **H** | — | folds every panel (column and card); with all folded, unfolds them |
 
 A folded section's own command-bar button and its digit unfold it (they do not close it); another section, or another
-info subject, opens unfolded; Escape still closes it.
+info subject, opens unfolded; Escape still closes it. The fold belongs to what the column SHOWS (the info card when one
+is pinned, else the section) and is forgotten the frame that content goes, so closed or replaced content comes back
+unfolded by any path; a click-to-explain route into a folded section and the info card opened again on its folded
+subject unfold it; a section action under a folded info card leaves the card folded. (P1 review fix: the fold was once
+remembered after its content closed, so the panel reopened folded and a route into it showed nothing.)
 
 **Gate rows (camera rows: the world hash and the queued orders must not change).** `map: panels` — "fold the context
 panel (its fold button)", "unfold the context panel (its tab)", "fold the selection card", "unfold the selection
