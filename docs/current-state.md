@@ -1,5 +1,58 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-11: M5 map / exploration / settlement workstream, `m5w-integration` @ `6b624d45` (LOCAL, NOT pushed,
+> NOT merged).**
+> This entry records MEASURED facts only. It was written by packet W0 (branch `m5w-w0-docs`). It names no base for the
+> workstream, because none is ruled. Record: `docs/m5w-map-workstream-audit-and-plan.md`, which holds the 2026-10-10
+> audit and plan and its "2026-10-11 — status" section.
+>
+> - **REMOTE: `2dc6af2` is on the remote.** `m5p-integration` @ `2dc6af2` is the remote branch
+>   `origin/claude/new-session-yavghm` (`git ls-remote origin`, 2026-10-11). Both CI runs on that head are green
+>   (`gh run view`):
+>   - CI run `38032099613`: build-and-test, determinism, determinism-xproc and calibration succeeded.
+>   - ui-artifact run `38032099661`: ui-artifact and windows-smoke succeeded. The artifact `sim-ui-win-x64-2dc6af2` is
+>     not expired.
+>
+>   This dated line supersedes, for `2dc6af2` only, the 2026-10-10 entry's "(LOCAL, NOT pushed, NOT merged …)", which
+>   is kept as written. `2dc6af2` is NOT on main (`origin/main` = `93270cd`).
+> - **LOCAL only: `m5p-d051-fixes` @ `82bde01` and `m5w-integration` @ `6b624d45`.** Neither is on the remote: no remote
+>   ref contains either commit (`git ls-remote origin`, then `git merge-base --is-ancestor` against every remote head).
+>   Neither is merged to main, and because neither is on the remote, no CI can have run on
+>   either. `m5w-integration` is cut from `82bde01`, 103 commits ahead.
+>   Seventeen packet branches are merged into it: S0, S1a, S1b, S1c, S1d, P1, P2, P3, P4, P6, P7, P8, P9, P10, P11, P12a
+>   and P13. Their heads are in the status section. None has a Director acceptance ruling.
+> - **Inherited CR-020 reds:** `Dev_MalthusCorridors_AllInBand` seeds 42 and 7 are RED on `6b624d45`'s code.
+>   - MEASURED 2026-10-11 on branch `m5w-w0-docs` (Release,
+>     `dotnet test Sim.Tests/Sim.Tests.csproj -c Release --no-build`): 1,699 passed, 2 failed, 13 skipped.
+>   - The failures carry CR-020 §B's values. Seed 7: the dev population is 124,455, above 119,000. Seed 42: migration
+>     is 8.71773E-05, below 0.75 × 0.000248624.
+>   - These are the two reds CR-020 records on `m5p-d051-fixes`. They are left RED until CR-020 is ruled.
+>
+>   On the same tree: Sim.Ui.Tests 830/830; `Sim.Ui --smoke --monkey 200` passed (12 states, 0 FAIL); the three gate
+>   scripts and the three research checks are OK.
+> - **PROPOSED, not ratified:**
+>   - ADR-036 (the Found Settlement order, kind 9). Its legality terms are the defaults the Director was told of, and
+>     they await his confirmation.
+>   - ADR-037 (the player-knowledge seam).
+>
+>   CR-020 and CR-017 are OPEN.
+> - **Open Director rulings for this workstream.** None is recorded, and no D-052 exists. They are:
+>   - the base branch: CR-020 §A/§B, approval to push `m5p-d051-fixes`, and the "cut from main" convention;
+>   - ADR-036's legality terms and its §8 items (g)–(i);
+>   - D-038 E1's visual milestone;
+>   - fog and discovered extent: D-040 pulled forward from M6;
+>   - unit movement and Action Points: CR-017 §3/§5;
+>   - unit representation;
+>   - institutions at close zoom: D-043 D2 and H8;
+>   - Age-specific terrain and architecture;
+>   - part 6's "research unlocks a resource".
+>
+>   Waiting on them: W0b, P5, P12b, P14, S2a, S2b, S2c, S3a, S3b and S3c. Some delivered packets follow defaults that are
+>   not ruled: S1b, S1c and S1d follow ADR-036's terms; P10 follows part 6 option 1; P11 follows unit-representation
+>   option 1.
+>
+> Verify against git.
+
 > **2026-10-10 (later) — `m5p-d051-fixes` (LOCAL, NOT pushed, NOT merged), cut from `m5p-integration` @ `2dc6af2`.**
 > Director rulings recorded (ADR-035 P-F2 + ADR-017 §7 amendment accepted; D-051 §6 deferred). D-051 §4: the Age I
 > workshop trap closed by `ProjectAvailability.InputUnobtainable` (a stone-toolmaking recipe was measured to block all

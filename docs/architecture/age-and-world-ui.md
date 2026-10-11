@@ -316,6 +316,31 @@ The Age still shows, as the banner: a statement of the polity's Age. `Settlement
   - Marker keys are `institution:{typeKey}`. Type keys 1–5 (the university types) draw the five emblems.
   - `Structures` glyphs are unchanged.
 
+> **2026-10-11: dated correction (append-only note, M5 map workstream packet W0; the bullets above are kept as written).**
+>
+> **What is stale.** The bullet "**Today it returns nothing.** No institution table exists on this branch…" is stale.
+> It was true of `aa6a3f8` (stream U3), the commit this section describes. It stopped being true at `941104c`
+> (2026-10-02, "feat(ADR-033 D6): universities as real institutions on ADR-028's lifecycle"), which implemented the
+> seam over the real table, as the bullet "How the institutions stream plugs in" anticipated.
+>
+> **What the seam does now** (`Sim.Ui/World/InstitutionMarkerSource.cs:35-57`). `InstitutionsAt`:
+> - scans `world.Institutions`, the `InstitutionRow` table (`Sim.Core/State/WorldState.cs:1041`);
+> - keeps the rows founded at the settlement;
+> - groups them by type, ascending, and counts them;
+> - names each type from research.json `universityTypes`.
+>
+> It returns nothing only for a settlement with no founded institution row. The legend reads "Institutions: none
+> founded" only when no projected settlement holds one (`Sim.Ui/World/WorldLens.cs:282-283, 310`).
+>
+> **Also stale, for the same reason:** §9.9's gap bullet "The institution seam returns nothing until the institutions
+> stream lands". §13 (P12a) already describes the seam as it is.
+>
+> **Where the commit is.** `941104c` is an ancestor of `2dc6af2`, `82bde01` and `m5w-integration` @ `6b624d45`. It is not an
+> ancestor of `main` @ `93270cd` (`git merge-base --is-ancestor`, measured 2026-10-11).
+>
+> **Test.** `Sim.Ui.Tests/InstitutionMarkerSourceTests.cs`, `InstitutionsAt_GroupsTheFoundedRowsByType_AscendingAndCounted_FromTheRealTable`.
+> It passed in W0's full Sim.Ui.Tests run (830/830, Release) on `6b624d45`'s code.
+
 ### 9.5 Units
 
 - **Current identity.** A token shows its row's CURRENT family emblem and identity name: what the last Age transition's automatic modernization wrote (ADR-031). In the road fixture, after the real advance to Age II:
