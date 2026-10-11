@@ -71,6 +71,13 @@ public sealed partial class GameUi
         if (_unitCard is not null) left = Math.Max(left, _unitCardRect.X + _unitCardRect.Width + margin);
         float bw = (float)Math.Ceiling(LabelWidth(OverlaysLabel()) + 2f * ImGui.GetStyle().FramePadding.X + 8f * s);
         float w = bw, h = frameH;
+        // P10: the NOW USABLE block, above everything else in the tab, while a shortcut is offered.
+        var block = NowUsableBlock(NowUsableTextWidth * s);
+        if (block.Count > 0)
+        {
+            w = Math.Max(w, NowUsableTextWidth * s);
+            h += NowUsableHeight(block);
+        }
         if (_overlayOpen)
         {
             float box = frameH + ImGui.GetStyle().ItemInnerSpacing.X;
@@ -94,7 +101,7 @@ public sealed partial class GameUi
         EnsureOverlayState();
         if (!AnyOverlayShown() || _session.Overlay is not { } bake) return null;
         return new OverlayPaint(bake, (bool[])_overlayShown.Clone(), OverlayOpacity, _session.OverlayStatus, OverlayKeyAt(OverlayTab()),
-            id => _session.Names.Name(id));
+            id => _session.Names.Name(id)) { Highlight = NowUsableHighlight(bake) };   // P10: a 'now usable' outline
     }
 
     /// <summary>Where the overlay's key goes: beside the overlays tab, its foot on the tab's, when the clear map leaves room
@@ -126,6 +133,7 @@ public sealed partial class GameUi
         DrawPanelFurniture(new ChromeElement(_overlayRect, RulePlacement.TopEdge));
         ImGui.SetCursorPos(new System.Numerics.Vector2(margin, margin));
         bool fold = false, down = false, up = false;
+        int nowUsable = DrawNowUsableBlock(NowUsableBlock(NowUsableTextWidth * Scale), margin);   // P10: the shortcuts offered
         if (_overlayOpen)
         {
             IReadOnlyList<OverlayLayer> layers = _session.OverlayLayers;
@@ -155,6 +163,7 @@ public sealed partial class GameUi
         Controls.Record(OverlaysControl);
         ImGui.End();
         if (fold) _overlayOpen = !_overlayOpen;
+        if (nowUsable >= 0) ShowNowUsable(nowUsable);
         if (down) _overlayOpacity = Math.Max(OverlayOpacityMin, _overlayOpacity - 1);
         if (up) _overlayOpacity = Math.Min(OverlayOpacityMax, _overlayOpacity + 1);
     }

@@ -360,6 +360,10 @@ public readonly record struct OverlayKeyAnchor(double Left, double Bottom, doubl
 public sealed record OverlayPaint(ResourceOverlay Bake, IReadOnlyList<bool> Shown, double Opacity, OverlayStatus? Status = null,
     OverlayKeyAnchor? Key = null, Func<int, string>? Names = null)
 {
+    /// <summary>P10: a 'now usable' shortcut's highlight — the layers whose qualifying places are outlined
+    /// (<see cref="ResourceOverlay.Outline"/>; only a SHOWN layer is) and the rows the key opens with. Null: none.</summary>
+    public OverlayHighlight? Highlight { get; init; }
+
     /// <summary>Whether any layer is shown.</summary>
     public bool Any
     {
@@ -379,7 +383,20 @@ public sealed record OverlayKey(RectD Rect, string Title, IReadOnlyList<string> 
 /// layer the rects emitted and the lattice nodes they cover, the key (null when none was asked for) and the realized-roll
 /// markers (settlement, text).</summary>
 public sealed record OverlayFrame(IReadOnlyList<int> Layers, IReadOnlyList<int> Rects, IReadOnlyList<int> Nodes, OverlayKey? Key,
-    IReadOnlyList<(int Settlement, string Text)> Markers);
+    IReadOnlyList<(int Settlement, string Text)> Markers)
+{
+    /// <summary>P10: the layers whose outline this paint drew (shown layers of the highlight, in its order).</summary>
+    public IReadOnlyList<int> OutlinedLayers { get; init; } = [];
+
+    /// <summary>P10: the outline segments this paint drew in view, and the qualifying nodes the outlines enclose.</summary>
+    public int OutlineSegments { get; init; }
+    public int OutlineNodes { get; init; }
+}
+
+/// <summary>P10: what a 'now usable' shortcut asks the lens to highlight: the overlay layers (indices into
+/// <see cref="ResourceOverlay.Layers"/>) whose qualifying places are outlined, and the rows the overlay's key opens with
+/// (the shortcut's headline and its permission / knowledge lines). UI state only.</summary>
+public sealed record OverlayHighlight(IReadOnlyList<int> Layers, IReadOnlyList<string> Rows);
 
 /// <summary>What one lens paint drew — the tests read this instead of pixels.
 /// <c>LayerDraws[(int)MapLayer]</c> counts the draw commands emitted per map layer (draw-call accounting
@@ -566,6 +583,17 @@ public static class WorldLens
         OverlayPaint? ov = overlay is { Any: true } ? overlay : null;
         int[] oRects = new int[ov?.Bake.Layers.Count ?? 0], oNodes = new int[oRects.Length];
         ov?.Bake.PaintLayers(d, ov.Shown, ov.Opacity, toScreen, viewport, k, oRects, oNodes);
+        // P10: a 'now usable' shortcut's outline of the qualifying places on its shown layers, over their fills.
+        var outlined = new List<int>();
+        int outlineSegments = 0, outlineNodes = 0;
+        if (ov?.Highlight is { } hl)
+            foreach (int li in hl.Layers)
+            {
+                if ((uint)li >= (uint)ov.Bake.Layers.Count || li >= ov.Shown.Count || !ov.Shown[li] || outlined.Contains(li)) continue;
+                outlineSegments += ov.Bake.PaintOutline(d, li, toScreen, viewport, A(k.Ink, 0.9), 2.0);
+                outlineNodes += ov.Bake.Outline(li).Nodes;
+                outlined.Add(li);
+            }
         Charge(MapLayer.ResourceOverlay, null);
 
         if (On(WorldLayer.Territories) && showTerritory)
@@ -719,7 +747,10 @@ public static class WorldLens
             }
             var shownLayers = new List<int>();
             for (int i = 0; i < oRects.Length; i++) if (oRects[i] > 0) shownLayers.Add(i);
-            overlayFrame = new OverlayFrame(shownLayers, oRects, oNodes, okey, markers);
+            overlayFrame = new OverlayFrame(shownLayers, oRects, oNodes, okey, markers)
+            {
+                OutlinedLayers = outlined, OutlineSegments = outlineSegments, OutlineNodes = outlineNodes,
+            };
         }
 
         var painted = new List<WorldLayer>();
@@ -829,7 +860,15 @@ public static class WorldLens
         ResourceOverlay b = ov.Bake;
         double pad = _type.Px(8), maxText = Math.Max(_type.Px(40), at.MaxWidth - 2 * pad);
         double swatch = _type.Px(9), swatchH = _type.Px(8);
-        IReadOnlyList<OverlayKeyRow> rows = b.KeyRows(ov.Shown, ov.Status, ov.Names ?? (id => "settlement " + id.ToString(CultureInfo.InvariantCulture)));
+        var rows = new List<OverlayKeyRow>();
+        // P10: a 'now usable' shortcut's rows open the key while one of its layers is shown.
+        if (ov.Highlight is { } hl)
+        {
+            bool shown = false;
+            foreach (int li in hl.Layers) shown |= (uint)li < (uint)ov.Shown.Count && ov.Shown[li];
+            if (shown) foreach (string r in hl.Rows) rows.Add(new OverlayKeyRow(r));
+        }
+        rows.AddRange(b.KeyRows(ov.Shown, ov.Status, ov.Names ?? (id => "settlement " + id.ToString(CultureInfo.InvariantCulture))));
         // The runs, in order: (text, role, font, gap before, ramp layer after it).
         var runs = new List<(string Text, TypeRole Role, FontRole Font, double Gap, int Ramp)>
         {

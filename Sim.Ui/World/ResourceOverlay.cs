@@ -58,6 +58,14 @@ public readonly record struct OreRoll(int Settlement, int Good, string GoodName,
 /// </summary>
 public sealed record OverlayStatus(int? Reachable, int InCatchments, int Source, bool? Workable, IReadOnlyList<OreRoll> Rolls);
 
+/// <summary>P10: the outline of one layer's qualifying places (<see cref="ResourceOverlay.Outline"/>): how many lattice
+/// nodes qualify, and the boundary as segments in terrain px, flat (x0, y0, x1, y1 per segment).</summary>
+public sealed record OverlayOutline(int Layer, int Nodes, int[] Segments)
+{
+    /// <summary>How many segments the outline has.</summary>
+    public int SegmentCount => Segments.Length / 4;
+}
+
 /// <summary>
 /// M5 map workstream P9 — THE RESOURCE AND SUITABILITY OVERLAY: per traversal-lattice node (the knowledge grid's 16 km
 /// node; D-040 B5), the value a settlement founded at the node's CENTRE CELL (<see cref="SampleCell"/>) would be judged
@@ -600,6 +608,78 @@ public sealed class ResourceOverlay
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ the outline (P10)
+
+    private OverlayOutline?[]? _outlines;
+
+    /// <summary>
+    /// M5 map workstream P10 — THE OUTLINE of layer <paramref name="layer"/>'s QUALIFYING places: the nodes the player
+    /// KNOWS (the mask this was baked under) whose value is drawn and above 0 — for a deposit channel, P9's "present" —
+    /// as the boundary between them and every other node (unknown, water, withheld, 0, off the map). Lattice-node edges,
+    /// merged into runs along each row and column boundary, in terrain px. A node the player does not know is never
+    /// inside it, so the outline reveals no undiscovered ground: it is a function of what the bake drew. Built on first
+    /// use and kept (the bake is immutable).
+    /// </summary>
+    public OverlayOutline Outline(int layer)
+    {
+        _outlines ??= new OverlayOutline?[Layers.Count];
+        return _outlines[layer] ??= BuildOutline(layer);
+    }
+
+    /// <summary>Whether node <paramref name="node"/> qualifies on layer <paramref name="layer"/> (inside its outline).</summary>
+    public bool Qualifies(int layer, int node) => _known[node] && _values[layer][node] > 0.0;   // NaN > 0 is false
+
+    private OverlayOutline BuildOutline(int layer)
+    {
+        int l = LatticeSize, b = Block, nodes = 0;
+        var q = new bool[NodeCount];
+        for (int n = 0; n < q.Length; n++)
+            if (Qualifies(layer, n)) { q[n] = true; nodes++; }
+        bool In(int x, int y) => x >= 0 && y >= 0 && x < l && y < l && q[y * l + x];
+        var seg = new List<int>();
+        for (int y = 0; y <= l; y++)          // the boundary between row y-1 and row y
+        {
+            int x = 0;
+            while (x < l)
+            {
+                if (In(x, y - 1) == In(x, y)) { x++; continue; }
+                int start = x;
+                while (x < l && In(x, y - 1) != In(x, y)) x++;
+                seg.Add(start * b); seg.Add(y * b); seg.Add(x * b); seg.Add(y * b);
+            }
+        }
+        for (int x = 0; x <= l; x++)          // the boundary between column x-1 and column x
+        {
+            int y = 0;
+            while (y < l)
+            {
+                if (In(x - 1, y) == In(x, y)) { y++; continue; }
+                int start = y;
+                while (y < l && In(x - 1, y) != In(x, y)) y++;
+                seg.Add(x * b); seg.Add(start * b); seg.Add(x * b); seg.Add(y * b);
+            }
+        }
+        return new OverlayOutline(layer, nodes, [.. seg]);
+    }
+
+    /// <summary>Paints layer <paramref name="layer"/>'s outline (<see cref="Outline"/>) as lines of
+    /// <paramref name="ink"/>, every segment that touches the viewport; returns how many it drew.</summary>
+    internal int PaintOutline(DrawList d, int layer, Func<double, double, (double X, double Y)> toScreen, RectD viewport, Rgba ink, double width)
+    {
+        int[] s = Outline(layer).Segments;
+        int drawn = 0;
+        for (int i = 0; i + 3 < s.Length; i += 4)
+        {
+            (double x0, double y0) = toScreen(s[i], s[i + 1]);
+            (double x1, double y1) = toScreen(s[i + 2], s[i + 3]);
+            if (Math.Max(x0, x1) < viewport.X || Math.Min(x0, x1) > viewport.Right
+                || Math.Max(y0, y1) < viewport.Y || Math.Min(y0, y1) > viewport.Bottom) continue;
+            d.Line(x0, y0, x1, y1, ink, width);
+            drawn++;
+        }
+        return drawn;
     }
 
     // ------------------------------------------------------------------ the key's text (the lens sets it)

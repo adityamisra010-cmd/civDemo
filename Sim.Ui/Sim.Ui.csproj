@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- M5 workstream P10: UI CONTENT (presentation only; nothing in the simulation reads it), embedded like Sim.Data's
+         content so the game, the harness and the tests read the same bytes. -->
+    <EmbeddedResource Include="UiContent\discovery-shortcuts.json" LogicalName="Sim.Ui.discovery-shortcuts.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>

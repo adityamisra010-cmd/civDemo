@@ -175,6 +175,14 @@ public sealed class UiSession
     // P7: how Knowledge is built from a world — the production view, or a test/gate stub (never anything else).
     private readonly Func<IReadOnlyWorldState, PlayerKnowledge> _knowledgeOf;
 
+    /// <summary>
+    /// M5 map workstream P10 — THE 'NOW USABLE' HISTORY: every shortcut a step fired for the player (a content-declared
+    /// recipe or activity that the player's research made knowledge-eligible, and whose effect the simulation reads —
+    /// <see cref="DiscoveryShortcuts.Transitions"/>), oldest first. Fed by <see cref="Step"/>, which Resume's replay drives
+    /// too, so a resumed session rebuilds it identically. UI-side only: it never touches the world and no hash moves.
+    /// </summary>
+    public NowUsableHistory NowUsableHistory { get; } = new(DiscoveryShortcuts.Content);
+
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
         ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null,
@@ -510,6 +518,7 @@ public sealed class UiSession
         Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
         _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
         History.Capture(World, Knowledge);
         CaptureTrace();
     }
