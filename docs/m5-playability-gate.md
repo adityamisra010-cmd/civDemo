@@ -1178,8 +1178,10 @@ player holds (`DiscoveryShortcuts.Transitions`, `Sim.Ui/ViewModel/DiscoveryShort
   have no requirement and never transition;
 - **an activity** — a sector's researched identity for a sector the UI content maps to a layer, when the production
   yield reads it: `LabourActivities.HarvestsWildFood` (the farming sector, with sim.json `farming.preCultivation` on)
-  flips for a held settlement. On the shipped content: Farming → the region-fertility layer (cultivated 26 instead of
-  wild 2 food per arable km² a year: "x13"). Herding, logging and mining are labels only (ADR-033 D1) and never fire,
+  flips for a held settlement. On the shipped content: Farming → the region-fertility layer. The yield is Leontief
+  (`ProductionSystem.Farm`: the lower of the land limit and the labour limit) and cultivation moves both arms — land
+  wild 2 → cultivated 26 food per arable km² a year, labour 4.3 → 5 food per farmer a year — so the text states both
+  and quotes no multiplier (review fix below). Herding, logging and mining are labels only (ADR-033 D1) and never fire,
   even when the content maps their sector (pinned).
 
 No research node or entity id is named in code (a source-guard test checks every string literal of the three files
@@ -1190,14 +1192,15 @@ the clock reads less than T + N — gone, turn-exactly, when it reaches T + N (s
 T+N; "shown through turn T+N").
 
 **What the player sees.** The overlays tab opens with a NOW USABLE block, kept short so the map stays clear: the
-headline ("Farming now usable: fertile land yields more food (x13)", "copper-ore, tin-ore now usable (Bronze
+headline ("Farming now usable: cultivation replaces wild food on your farmland", "copper-ore, tin-ore now usable (Bronze
 casting)"), "Permission to use: newly known (your research)", "Knowledge of the resource: not simulated", and **Show on
 map** with "shown through turn N". The button shows the shortcut's P9 layer(s) (the same state the OVERLAYS checkboxes
 set) and OUTLINES its qualifying places — the nodes the player KNOWS whose value is drawn and above 0
 (`ResourceOverlay.Outline`; for a channel, P9's "present") — as the boundary between them and every other node, never
 around an unknown one; the overlay key then opens with the shortcut's rows: the headline, "Outlined: the N known places
 where … is above 0; shown through turn …", the full permission line ("Permission to use: Farming became known (your
-research) - your farmland yields 26 instead of 2 food per arable km2 a year from your next turn"; a recipe's quotes its
+research) - from your next turn your harvest is the lower of two limits: land 2 -> 26 food per arable km2 a year;
+labour 4.3 -> 5 food per farmer a year (before tools)"; a recipe's quotes its
 own D-020 gate, "where artisan_share > 0.05"), a recipe's extraction note ("Extraction needs no research: copper-ore,
 tin-ore have been worked since founding") and the knowledge statement ("Knowledge of the resource: not simulated -
 every deposit is known wherever its ground is known"). At T + N the block entry, the outline and the rows go; the layer
@@ -1259,6 +1262,36 @@ hung (34–46 s wall each; M8 11 s, its fixture failing at once).
 Each property is one the shortcut ought to have: it claims a resource became usable only when the simulation's own
 predicate says the economy can now use it, and only once; it is gone when it says it will be; a resumed game shows the
 same history; looking never acts; it never shows the player a place it does not know.
+
+*Review fix, the farming shortcut's food claim (MEASURED on this worktree, on top of `be1fbf2`).* The review found
+(verdict: confirmed) that the farming shortcut told the player food rises x13 — headline "Farming now usable: fertile
+land yields more food (x13)", permission "your farmland yields 26 instead of 2 food per arable km2 a year" — from the
+LAND coefficients alone, while `ProductionSystem.Farm` harvests the LOWER of the land limit (arable km² × 2 → 26) and
+the labour limit (farmers × 4.3 → 5 × the tool factor), so a labour-bound farm's harvest follows the labour arm, not
+the land ratio. `DiscoveryShortcuts.ActivityShortcut` now quotes no multiplier: the headline is "Farming now usable:
+cultivation replaces wild food on your farmland" and the permission line names both arms, read from the config fields
+the yield reads (`farming` and `farming.preCultivation`): "… from your next turn your harvest is the lower of two
+limits: land 2 -> 26 food per arable km2 a year; labour 4.3 -> 5 food per farmer a year (before tools)". The tool
+factor, weather and tax multiply both states alike and are not moved by the transition. The P4 frame-cost sweep's
+stand-in key row (`MapFrameCost`, the farming view) carries the new headline; that sweep was not re-run (one key row's
+text; §"2026-10-11 — map frame cost with the 'now usable' outline" stays the record of `cec0b63`). Pinned by
+`TheFarmingShortcut_NamesBothLeontiefArms_TheLabourArmToo_AndNeverShowsTheBareLandRatioAsTheFoodChange`: the text names
+the min, the land arm and the LABOUR arm with the config's own figures (shipped, and a variant whose four coefficients
+all differ), and no headline or line carries a multiplier, the bare land ratio, or "times".
+
+| mutant (one edit to `ActivityShortcut`; `DiscoveryShortcutTests`, 21 tests, clean 35 s wall, bound 180 s; every run 33–35 s, none hung) | result | killed by (semantic test) |
+|---|---|---|
+| MA the `be1fbf2` text restored (x13 headline, land-only permission) | KILLED | `TheFarmingShortcut_NamesBothLeontiefArms_…` |
+| MB the labour arm dropped from the permission (land arm and the min kept) | KILLED | same |
+| MC the land multiplier put back on the new headline only | KILLED | same |
+| MD the labour arm hardcoded to the shipped "4.3 -> 5" | KILLED | same (the variant's 4 -> 6.4) |
+| ME the labour arm read from the land coefficient (`perGatherer = wild`) | KILLED | same |
+
+The property is one the shortcut ought to have: it never claims a change the economy is not making, and a Leontief
+harvest moves by the land ratio only where land binds both before and after. After the fix: full Sim.Ui.Tests 791
+passed, 0 failed (11 m 35 s; 790 + the new test); `--smoke --monkey 200`: 11 states, 2508 checks, 2379 pass, 129 n/o, 0 FAIL, 0 problems, 78,128 frames,
+largest draw list 149,328 vertices (the same totals as the P10 record); the three gate scripts OK. No Sim.Core,
+Sim.Cli, Sim.Data or Sim.Tests file changed, so no world hash or golden can move.
 
 **Data gaps (stated, not filled).** KNOWLEDGE OF A RESOURCE is not simulated: every deposit exists at every settlement
 from founding and is known wherever its ground is known (no prospecting, no scarcity until D-051 §2). No research gates
