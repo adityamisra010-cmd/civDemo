@@ -96,7 +96,9 @@ public static class EraPreview
         double cx = size / 2, cy = size / 2;
         WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
         int capital = EmpireQuery.TryGetCapital(w, me, out SettlementId cap) ? cap.Value : -1;
-        WorldLens.Paint(d, m, p, MapDetail.At(zoom, ChromeW, ChromeH, p.KmPerPx),   // P2: the game's continuous level of detail
+        // P2: the World band's portrait (its plateau, as before P2) — on this 256-px (1024 km) dev world the game's km bands
+        // would draw the Regional band at this fit.
+        WorldLens.Paint(d, m, p, MapDetail.Of(WorldZoom.World),
             (x, y) => ((x - cx) * zoom + ChromeW / 2, (y - cy) * zoom + ChromeH / 2 + 4), zoom, new RectD(0, 0, ChromeW, ChromeH), capital,
             ink: MapInk.For(t));   // the era's map ink, exactly as the game derives it
 
@@ -195,7 +197,9 @@ public static class EraPreview
             }
         var d = new DrawList();
         WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
-        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(zoom, MapW, MapH, p.KmPerPx),   // P2: as the game
+        // P2: the Regional band's portrait (its plateau, as before P2) — at 30 % of this 256-px (1024 km) dev world the
+        // game's km bands would draw the Settlement band.
+        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.Of(WorldZoom.Regional),
             (x, y) => ((x - cx) * zoom + MapW / 2, (y - cy) * zoom + MapH / 2), zoom, new RectD(0, 0, MapW, MapH), capital,
             ink: MapInk.For(t), theme: t);   // exactly the game's call: the era's ink, hand and type
         return OverSubstrate(SvgWriter.Write(d, MapW, MapH, fontDir), terrainDataUri,

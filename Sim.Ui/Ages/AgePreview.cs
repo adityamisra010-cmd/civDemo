@@ -197,9 +197,12 @@ public static class AgePreview
     {
         (double cx, double cy, double zoom) = CameraFor(s, z, capitalLeft);
         WorldProjection p = WorldProjection.Build(s.World, s.Config, id => s.Names.Name(id), UiPlayer.Empire);
-        // P2: the game's continuous level of detail at this camera (MapDetail, keyed on the visible km); its band names it.
-        MapDetail detail = MapDetail.At(zoom, Width, Height, p.KmPerPx);
-        WorldZoom level = detail.Band;
+        // P2: a PORTRAIT OF THE BAND it is named for — the band's plateau (MapDetail.Of), exactly what this preview drew
+        // before P2. Its world is the 256-px dev world (1024 km): at these cameras the game's km-keyed level of detail
+        // would draw the Regional band at the fit and the Settlement band at 30 % (MapDetail.At), so the shots are of
+        // each band's look, not of what this world shows at that zoom.
+        MapDetail detail = MapDetail.Of(z);
+        WorldZoom level = z;
         int sel = EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? cap.Value : -1;
         WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail,
             (x, y) => ((x - cx) * zoom + Width / 2, (y - cy) * zoom + Height / 2), zoom, new RectD(0, 0, Width, Height), sel,
