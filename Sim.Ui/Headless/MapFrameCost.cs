@@ -33,7 +33,8 @@ namespace Sim.Ui.Headless;
 /// <see cref="HighCountTurn"/>, the first turn with catchment territory (each of its turns costs tens of seconds).
 /// P9: the canonical world is also swept with EVERY resource-overlay layer shown at the default opacity with its key
 /// (<see cref="ResourceOverlay"/>; the overlay's worst case) and with the settlement-suitability layer alone (one layer:
-/// the common case), and a table reports the overlay's bake and per-turn status.
+/// the common case), and a table reports the overlay's bake and per-turn status. P10: and with the region-fertility layer
+/// alone, outlined as a 'now usable' shortcut shows it.
 /// Nothing is constructed or persisted: the worlds live in this process only. Looking changes nothing: each world's
 /// hash is taken before the sweeps and compared after them; a difference aborts the run.
 ///
@@ -78,7 +79,7 @@ public static class MapFrameCost
 
     /// <summary>A world swept, and (P9) the resource overlay it is swept with — null for the plain lens.</summary>
     private sealed record MapWorld(string Name, UiSession Session, WorldProjection Projection, string Note,
-        ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null, OverlayKind? OnlyLayer = null);
+        ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null, OverlayKind? OnlyLayer = null, bool Outline = false);
 
     public static string Run(string assetsRoot, int rounds = 5, int settlements = DefaultSettlements,
         int canonicalTurn = DefaultCanonicalTurn, Action<string>? log = null)
@@ -104,6 +105,16 @@ public static class MapFrameCost
                 OnlyLayer = OverlayKind.Suitability,
                 Note = canonical.Note + "; the settlement-suitability overlay layer alone at opacity "
                     + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture) + ", with its key",
+            },
+            // P10: the region-fertility layer alone with a 'now usable' shortcut's outline of its qualifying places and the
+            // shortcut's rows opening the key (the farming shortcut's view).
+            canonical with
+            {
+                Name = "canonical + one overlay layer + now-usable outline", Overlay = canonical.Session.Overlay,
+                OverlayStatus = canonical.Session.OverlayStatus, OnlyLayer = OverlayKind.RegionFertility, Outline = true,
+                Note = canonical.Note + "; the region-fertility overlay layer alone at opacity "
+                    + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture)
+                    + ", outlined as a 'now usable' shortcut shows it, with its key",
             },
             Found("high-count", UiSession.Start(42, settlementsOverride: Math.Max(1, settlements)), HighCountTurn, log),
         };
@@ -232,10 +243,18 @@ public static class MapFrameCost
             all = new bool[bake.Layers.Count];
             foreach (OverlayLayer l in bake.Layers) all[l.Index] = m.OnlyLayer is not { } only || l.Kind == only;
         }
+        // P10: the shortcut's outline on the only layer shown, with five key rows (a shortcut's usual count).
+        OverlayHighlight? highlight = null;
+        if (m.Outline && m.Overlay is { } ob)
+            foreach (OverlayLayer l in ob.Layers)
+                if (m.OnlyLayer == l.Kind)
+                    highlight = new OverlayHighlight([l.Index], ["Farming now usable: fertile land yields more food (x13)",
+                        "Outlined: the known places where " + l.Name + " is above 0", "Permission to use: newly known (your research)",
+                        DiscoveryShortcuts.KnowledgeStatement, "Shown through turn 19"]);
         return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
             new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale,
             overlay: m.Overlay is { } o ? new OverlayPaint(o, all!, GameUi.OverlayOpacityDefault / 10.0, m.OverlayStatus,
-                new OverlayKeyAnchor(12, h - 12, GameUi.OverlayKeyMaxWidth * uiScale), m.Session.Names.Name) : null);
+                new OverlayKeyAnchor(12, h - 12, GameUi.OverlayKeyMaxWidth * uiScale), m.Session.Names.Name) { Highlight = highlight } : null);
     }
 
     /// <summary>Per-band totals of one sweep.</summary>

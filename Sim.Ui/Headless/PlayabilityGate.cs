@@ -135,6 +135,7 @@ public static partial class PlayabilityGate
             () => UiSession.Start(42, aiEmpiresOverride: ai), PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight));
         list.Add(new("target set" + aiTag, "turn 1 + the cheapest Technology node ordered, one End Turn", () => TargetSet(ai)));
         list.Add(new("research done" + aiTag, "played: cheapest Technology node targeted and End Turn until one node completes", () => ResearchDone(ai)));
+        list.Add(new(NowUsableStateName + aiTag, "P10, played: the cheapest Technology node available at turn 1 whose completion alone fires a 'now usable' shortcut (derived from content by DiscoveryShortcuts; no node id) targeted, End Turn until the shortcut fires", () => ResearchDoneNowUsable(ai)));
         list.Add(new("tax available" + aiTag, "rig: the Taxation civic and a road class (track_road) with their prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
         list.Add(new("age advance" + aiTag, "rig: Age II's research milestones completed; the advance is then made THROUGH THE UI", () => AgeEligible(ai)));
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
@@ -556,6 +557,8 @@ public static partial class PlayabilityGate
             Annals();
             CloseEverything();
             AgeResearchNextRow();
+            CloseEverything();
+            NowUsableRows();   // P10: a shortcut the End Turns fired (or the one still offered) is pressed again
             CloseEverything();
             if (!_devHadTurn)
             {
@@ -1655,6 +1658,7 @@ public static partial class PlayabilityGate
             LegendRows();
             KnowledgeRows();
             OverlayRows();   // P9: the resource overlay's controls, layers, key and opacity
+            NowUsableRows();   // P10: the 'now usable' shortcut, offered and shown on the map (or nothing offered)
         }
 
         /// <summary>P7: the settlements that exist and the player does not know (none while the knowledge is all-known —
