@@ -732,4 +732,26 @@ public class ResourceOverlayUiTests : IDisposable
         Assert.Equal(WorldHash.ComputeHex(plain.World), WorldHash.ComputeHex(h.Ui.Session.World));
         Assert.Empty(h.Problems);
     }
+
+    [Fact]
+    public void TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque_SoTheTerrainAlwaysShowsThrough()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("opacity"), Assets());
+        Assert.Equal(0.5, h.Ui.OverlayOpacity);
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));
+        OverlayLayer score = h.Ui.OverlayLayers.Single(l => l.Kind == OverlayKind.Suitability);
+        Assert.True(h.ClickControl(score.Control));
+        for (int i = 0; i < 12; i++) h.ClickControl(GameUi.OverlayOpacityUp);
+        h.Idle(1);
+        Assert.Equal(0.8, h.Ui.OverlayOpacity, 12);
+        int deepest = 0;
+        OverlayFrame f = h.Ui.LensFrame!.Overlay!;
+        for (int i = 0; i < f.Rects[score.Index]; i++)
+            if (h.Ui.LastLensCommands[i] is RectCmd { Fill: { } fill }) deepest = Math.Max(deepest, fill.A);
+        Assert.Equal((int)Math.Round(255 * 0.8), deepest);   // the deepest level at the top opacity: never opaque
+        for (int i = 0; i < 12; i++) h.ClickControl(GameUi.OverlayOpacityDown);
+        h.Idle(1);
+        Assert.Equal(0.1, h.Ui.OverlayOpacity, 12);
+        Assert.Empty(h.Problems);
+    }
 }
