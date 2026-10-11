@@ -689,6 +689,16 @@ public class InfoPanelTests : IDisposable
         h.Key(Keys.Escape);
         Assert.False(h.Ui.Inspector.IsOpen);
         Assert.Equal(hash, Hash(s));
+
+        // The ground lies UNDER the map's tokens: Shift+click on the capital's formation token opens the formation's card.
+        MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, Me)[0];
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
+        h.Idle(2);
+        InfoHit token = h.Ui.InfoRegistry.Hits.First(x => x.Passive && x.Subject == InfoSubject.OfFormation((int)unit.Id));
+        Assert.Contains(h.Ui.InfoRegistry.Hits, x => x.Subject.Kind == InfoKind.Cell);
+        h.ShiftClick(token.Rect.CenterX, token.Rect.CenterY);
+        Assert.Equal(InfoSubject.OfFormation((int)unit.Id), h.Ui.Inspector.Subject);
+        Assert.Equal(hash, Hash(s));
         Assert.Empty(h.Problems);
     }
 

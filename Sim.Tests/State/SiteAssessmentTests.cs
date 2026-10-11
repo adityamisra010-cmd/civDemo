@@ -215,6 +215,34 @@ public class SiteAssessmentTests
                 routes++;
             }
             Assert.Equal(FoundingQuery.Check(w, Cfg, f, Player, source, cell), r.Verdict);
+
+            // EACH ARM, against its own public predicate (independent of which one fails first): the parity test below
+            // sees only the first failure, and an arm that never fails first (Claimed: a catchment is narrower than the
+            // spacing exclusion) would otherwise go unchecked.
+            bool isWater = t.Water[cell] >= 0.5, isOccupied = SettlementSiting.IsOccupied(occupied, cell);
+            bool?[] want =
+            [
+                true,                                                        // UnknownSource: the source stands
+                EmpireQuery.ControlsSettlement(w, Player, source),           // NotControlled
+                true,                                                        // OffMap
+                !isWater,                                                    // Water
+                isWater ? null : SettlementSiting.IsFrontierCandidate(f, t, cell),   // PoorSite
+                !isOccupied,                                                 // Occupied
+                isOccupied ? null : !(spacing[node] < f.MinSpacingCostUnits),        // TooClose
+                !FoundingQuery.IsClaimed(w, node),                           // Claimed
+                party >= 1,                                                  // NoParty
+                party >= 1 ? provisions >= 1 : null,                         // NoProvisions
+                path.Found,                                                  // Unreachable
+            ];
+            FoundingVerdict[] order = [FoundingVerdict.UnknownSource, FoundingVerdict.NotControlled, FoundingVerdict.OffMap, FoundingVerdict.Water,
+                FoundingVerdict.PoorSite, FoundingVerdict.Occupied, FoundingVerdict.TooClose, FoundingVerdict.Claimed, FoundingVerdict.NoParty,
+                FoundingVerdict.NoProvisions, FoundingVerdict.Unreachable];
+            Assert.Equal(order.Length, r.Arms.Length);
+            for (int a = 0; a < order.Length; a++)
+            {
+                Assert.Equal(order[a], r.Arms[a].Arm);
+                Assert.Equal(want[a], r.Arms[a].Holds);
+            }
         }
         Assert.True(claimedSeen > 0 && occupiedSeen > 0 && routes > 0 && land > 50 && water > 50,
             "the sample covers claimed, occupied, routed, land and water cells");
