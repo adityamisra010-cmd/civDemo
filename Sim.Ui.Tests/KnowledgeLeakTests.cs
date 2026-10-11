@@ -1276,8 +1276,8 @@ public class KnowledgeLeakTests : IDisposable
     /// <summary>
     /// One run of the REAL UI over <paramref name="w"/> (the player's knowledge built by <paramref name="knowledgeOf"/>; null =
     /// the production all-known view) with every map feature of the M5 map workstream engaged at once: every P9 overlay layer
-    /// shown for the four views (the opening view, the player's capital, and the hidden polity's ground at two zooms) and one
-    /// layer for the clicks, P12a's compositions, P11's tokens and formation card (whatever lies at
+    /// shown for the four views (the opening view, the player's capital, and the hidden polity's ground at two zooms) and for
+    /// the clicks (P9b), P12a's compositions, P11's tokens and formation card (whatever lies at
     /// <paramref name="clickHiddenAt"/> — where the all-known map draws the hidden polity's formation — then the player's
     /// own), P8's place card of known cells (Shift+click), P10's shortcut machinery live. Returns each component's text: the projection (emblems and compositions included), the
     /// overlay bake and per-view overlay frame, the lens paint (SVG bytes of the frame's own commands and the LensFrame:
@@ -1344,14 +1344,10 @@ public class KnowledgeLeakTests : IDisposable
             Add("frametext", "== " + name + "\n" + string.Join("\n", h.Ui.FrameText.Texts()) + "\n");
         }
 
-        // With every layer shown the overlay's key is taller than the map at 1280x800 (docs/queue.md, m5w integration) and
-        // lies over much of it, where it rightly takes the clicks; the clicks below are made with ONE layer shown (the
-        // overlay stays engaged, its key at the tab's side) on places framed in the map's upper right.
-        Assert.True(h.ClickControl(GameUi.OverlaysControl));
-        foreach (OverlayLayer l in h.Ui.OverlayLayers) if (l.Index > 0) Assert.True(h.ClickControl(l.Control));
-        Assert.True(h.ClickControl(GameUi.OverlaysControl));
-        Assert.True(h.Ui.OverlayShown(0));
-        h.Idle(2);
+        // P9b: the overlay's key keeps to the clear map's lower half (scrolling the rows that do not fit), so the clicks below
+        // are made with EVERY layer still shown, on places framed in the map's upper right. (Before P9b the six-layer key
+        // was taller than the map at 1280x800 — docs/queue.md, m5w integration — and these clicks were made with one layer.)
+        foreach (OverlayLayer l in h.Ui.OverlayLayers) Assert.True(h.Ui.OverlayShown(l.Index), l.Key + " not shown");
 
         // THE FORMATION CARD (P11): whatever lies where the all-known map draws the hidden formation, then the player's own.
         if ((clickHiddenAt ?? hiddenToken) is { } at)

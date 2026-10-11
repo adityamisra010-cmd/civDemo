@@ -766,7 +766,7 @@ public class ResourceOverlayUiTests : IDisposable
         Assert.Contains(UiCoverage.ControlKey(GameUi.OverlayOpacityDown), pressed);
         Assert.Contains(UiCoverage.ControlKey(GameUi.OverlayOpacityUp), pressed);
         foreach (OverlayLayer l in h.Ui.OverlayLayers) Assert.Contains(UiCoverage.ControlKey(l.Control), pressed);
-        Assert.Equal(2 + 2 * h.Ui.OverlayLayers.Count + 2, rows.Count);
+        Assert.Equal(2 + 2 * h.Ui.OverlayLayers.Count + 2 + 1, rows.Count);   // + 1: P9b's key-fit row
         Assert.Empty(h.Problems);
     }
 

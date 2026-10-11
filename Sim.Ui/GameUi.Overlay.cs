@@ -28,6 +28,12 @@ public sealed partial class GameUi
     private bool _overlayOpen;
     private PanelRect _overlayRect;
 
+    /// <summary>P9b: the first row of the overlay's key drawn (0: its top) — UI state: the wheel over the key moves it, and a
+    /// change of the layers shown puts it back at the top (a new key is read from its top). The lens clamps it.</summary>
+    private int _overlayKeyScroll;
+    private bool[] _overlayKeyShownAt = [];
+    private int _overlayKeyWheelRest;   // wheel units short of a notch (a fine-grained wheel), carried to the next
+
     /// <summary>P9: the overlay layers the controls list (the session's).</summary>
     public IReadOnlyList<OverlayLayer> OverlayLayers => _session.OverlayLayers;
 
@@ -95,17 +101,31 @@ public sealed partial class GameUi
     /// <summary>P9: the overlay key's widest box at UI scale 1.</summary>
     public const float OverlayKeyMaxWidth = 400f;
 
+    /// <summary>P9b: how many rows of the overlay's key one wheel notch over it scrolls.</summary>
+    public const int OverlayKeyRowsPerNotch = 1;
+
     /// <summary>What the lens is asked to paint of the overlay this frame (null when no layer is shown).</summary>
     private OverlayPaint? OverlayForLens()
     {
         EnsureOverlayState();
+        if (!_overlayKeyShownAt.AsSpan().SequenceEqual(_overlayShown))
+        {
+            _overlayKeyShownAt = (bool[])_overlayShown.Clone();
+            _overlayKeyScroll = 0;   // P9b: what the key lists changed — it is read from its top again
+        }
         if (!AnyOverlayShown() || _session.Overlay is not { } bake) return null;
         return new OverlayPaint(bake, (bool[])_overlayShown.Clone(), OverlayOpacity, _session.OverlayStatus, OverlayKeyAt(OverlayTab()),
             id => _session.Names.Name(id)) { Highlight = NowUsableHighlight(bake) };   // P10: a 'now usable' outline
     }
 
     /// <summary>Where the overlay's key goes: beside the overlays tab, its foot on the tab's, when the clear map leaves room
-    /// there (left of where the legend can reach while it shows); otherwise above the tab.</summary>
+    /// there (left of where the legend can reach while it shows); otherwise above the tab.
+    /// P9b: THE KEY KEEPS TO ITS HALF OF THE CLEAR MAP — never over the map's centre line (a margin either side of it), where
+    /// the camera frames what the player focuses on (<see cref="CameraFocus"/>: a settlement chosen, a place aimed at) with
+    /// its formations beside it; the key takes the clicks over it, so nothing framed there is ever beneath it. Its foot
+    /// below the line (beside the tab: the usual), it reaches no higher than the band; its foot above the line (above a tall
+    /// tab), no higher than the clear map's top margin, and a foot inside the band is lifted out of it. Either way the key
+    /// fits the clear map; the rows that do not fit scroll (the wheel over the key, <see cref="OverlayKeyWheel"/>).</summary>
     private OverlayKeyAnchor OverlayKeyAt(in PanelRect tab)
     {
         float s = Scale, margin = PanelLayout.Margin * s;
@@ -113,9 +133,27 @@ public sealed partial class GameUi
         double width = OverlayKeyMaxWidth * s;
         double limit = map.Right - margin - (_showLegend ? LegendMaxWidth * s + margin : 0);
         double room = limit - (tab.X + tab.Width + margin);
-        return room >= 240 * s
+        OverlayKeyAnchor at = room >= 240 * s
             ? new OverlayKeyAnchor(tab.X + tab.Width + margin, tab.Y + tab.Height, Math.Min(width, room))
             : new OverlayKeyAnchor(tab.X, tab.Y - margin / 2, Math.Min(width, Math.Max(1, map.Right - margin - tab.X)));
+        // The band: a margin (12 px × the UI scale, never under 12) either side of the centre line — at least the half
+        // height of a formation token's pick rect (0.75 × 12 + the 3 px grip), so a token framed on the line is clear whole.
+        double band = margin, cy = map.CenterY;
+        return at.Bottom >= cy + band
+            ? at with { Top = cy + band, Scroll = _overlayKeyScroll }
+            : at with { Bottom = Math.Min(at.Bottom, cy - band), Top = map.Y + margin, Scroll = _overlayKeyScroll };
+    }
+
+    /// <summary>P9b: THE WHEEL OVER THE OVERLAY'S KEY (as the lens painted it last frame) scrolls the key — a row a notch,
+    /// away from the player up toward its top — and never zooms the map beneath it, as a click on it picks nothing beneath
+    /// it. Returns whether the key took the wheel. UI state only.</summary>
+    private bool OverlayKeyWheel(double x, double y, int wheel)
+    {
+        if (_lensFrame?.Overlay?.Key is not { } key || !key.Rect.Contains(x, y)) return false;
+        int total = _overlayKeyWheelRest + wheel, notches = total / 120;
+        _overlayKeyWheelRest = total - notches * 120;
+        _overlayKeyScroll = Math.Clamp(key.Scroll - notches * OverlayKeyRowsPerNotch, 0, key.MaxScroll);
+        return true;
     }
 
     /// <summary>

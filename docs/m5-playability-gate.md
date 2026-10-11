@@ -1730,6 +1730,103 @@ whose lines under the name or key (hung left of the footprint) reached the viewp
   CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK; `git diff 00e7217 -- Sim.Core
   Sim.Data Sim.Cli` empty.
 
+### 3.13 The overlay key fits the clear map (M5 workstream P9b fix, 2026-10-11)
+
+Branch `m5w-p9b-overlay-key-fit`, cut from `m5w-integration` @ `6b624d45`; the fix is `5a27221f`. Presentation only: no
+simulation, order, serialization or AI change (`git diff 6b624d45 5a27221f -- Sim.Core Sim.Data Sim.Cli` empty).
+
+**The finding (docs/queue.md, m5w integration; verdict: confirmed, reproduced in the verifier's own worktree).** With
+1 … 6 P9 layers shown, the overlay key was 342.7 / 428.9 / 559.3 / 667.6 / 753.8 / 840.0 px tall (392.5 px wide, its
+foot at the overlays tab's), so at 1280×800 (clear map y 52–740) its top stood at y −25.8 with five layers and −112.0
+with six: rows could not be read. The key takes the clicks over it (P9: "a click on it selects nothing"), and with the
+formation card open the tab and the key stand right of the card (key x 498–891), over the map's centre: a click on the
+player's own formation token at the capital, framed at the centre, selected nothing. (The verifier's nuance: with the
+card open even the ONE-layer key, y 385.3–728.0, covered that token.)
+
+**The rule.** THE KEY KEEPS TO ITS HALF OF THE CLEAR MAP: it never lies over the map's centre line — a margin
+(`PanelLayout.Margin` × the UI scale, 12 px at scale 1, never less: a formation token's pick half-height, 0.75 × 12 + the
+3 px grip) either side of it — where the camera frames what the player focuses on (`CameraFocus`: a settlement chosen,
+a place aimed at, a formation beside it). Its foot below the line (beside the tab: the usual), its box reaches no
+higher than the band (`OverlayKeyAnchor.Top`); its foot above the line (above a tall tab, when the map leaves no room
+beside it), no higher than the clear map's top margin, a foot inside the band lifted out of it. When the rows do not
+fit beneath the cap, the box stops there and shows the title and a window of WHOLE rows (each with all its lines and
+its ramp) from the scroll position, with a scroll bar in its right padding. NOTHING IS REMOVED: `OverlayKey.Rows` is
+still every row, and every row is drawn at some scroll. The wheel over the key scrolls it a row a notch and never
+zooms the map beneath it (`GameUi.OverlayKeyWheel`); showing or hiding a layer puts it back at its top. The drawn box
+is `OverlayKey.Rect`, exactly the region `OnLegend` gives the clicks to. A key whose rows fit is painted exactly as
+before: MEASURED, a whole-map paint of the canonical world with an uncapped anchor is SVG-identical before (`6b624d45`)
+and after for 1 … 6 layers at UI scale 1 and 1.5 (12 paints).
+
+**Measured, the real UI (`UiFrameHarness`, canonical seed 42, layers shown in index order, controls unfolded).**
+
+| window | clear map y | before: key with 6 layers | after: key with 1 … 6 layers | rows drawn / rows (6 layers) |
+|---|---|---|---|---|
+| 1080×640 (floor) | 52–580, centre 316 | y −272.0–568.0 (840 px) | y 328.0–568.0 (240 px) at every count ≥ 1 | 6 / 23, max scroll 18 |
+| 1280×800 | 52–740, centre 396 | y −112.0–728.0 (840 px) | 1 layer: 320 px (7 of 9 rows); 2 … 6: y 408.0–728.0 (320 px) | 9 / 23, max scroll 16 |
+| 1920×1009 | 52–949, centre 500.5 | y 97.0–937.0 (840 px) | 1 layer whole (342.7 px); 2 … 6: y 512.5–937.0 (424.5 px) | 12 / 23, max scroll 13 |
+
+The ABOVE-THE-TAB placement (no room beside the tab: MEASURED only at the 1080×640 floor with the formation card and
+the legend open): controls unfolded, the tab's top (y 245) is above the centre line, so the key stands wholly in the
+upper half, y 64.0–239.0 (4 of 23 rows drawn); folded, its foot (y 508) is below the band, y 328.0–508.0 (4 of 23).
+The third branch — a foot INSIDE the band, lifted out of it — needs a tab whose top falls within 12 px of the centre
+line; no tested state produces one (stated, not exercised).
+
+THE COST, stated: a key that used to fit whole now scrolls wherever its rows are taller than the half map — the
+one-layer key at 1280×800 and below (7 of 9 rows at 1280×800, 6 of 9 at 1080×640), and at 1920×1080 (clear map y
+52–1020), where all six layers used to fit, three or more layers now scroll: MEASURED 1 and 2 layers whole (342.7,
+428.9 px), 3 … 6 layers y 548.0–1008.0 (460 px), 12 of 23 rows drawn with six (max scroll 12). The trade is deliberate:
+the key never hides the map's centre, and never more than (half the clear map − 12 px) × 400 px of it.
+
+**Gate row (map: overlays, every state).** A camera row: the world hash and the queued orders unchanged.
+
+| row | states | what it checks |
+|---|---|---|
+| `overlay key (every layer: inside the clear map, off its centre line; the wheel over it scrolls every row into view)` | all | every layer shown through its checkbox: the key inside the clear map and off its centre band; the pointer over the key, each wheel notch scrolls it exactly one row to its last; every row drawn at some scroll; the map's target zoom unchanged; scrolled back to its top; the layers hidden again |
+
+No new ImGui control: the key is painted by the lens (no `Controls.Record`); its new input, the wheel, is covered by the
+row above.
+
+**Tests (`Sim.Ui.Tests/OverlayKeyFitTests.cs`, 6).** FIT at 1080×640, 1280×800 and 1920×1009 with 1 … 6 layers, folded
+and with the legend shown, then with the formation card open too, unfolded and folded (non-vacuous: at 1280×800 the
+six-layer key scrolls; at 1080×640 the card-open key stands above the tab, once in each half); EVERY ROW REACHABLE at 1080×640 and
+1280×800 — from the top, a notch at a time, each notch exactly one row, to the last row; every row drawn at some scroll;
+at every scroll FrameText (lens) holds exactly the drawn rows' text line by line after the key's title (a row's lines
+joined by a space are the row) and nothing of the row past the window; past the bottom it stays; the map's target zoom
+unchanged; a layer hidden puts the key at its top; off the key the wheel zooms (control); THE CLICK — the finding's own
+case (one-AI seed 42 after six turns, the card open on the AI formation, the capital framed at the centre at zoom 4,
+six layers): the token lies in the key's column, the click selects the player's formation. The gate's overlay-row
+test counts the new row (`2 + 2n + 2 + 1`). The fog-readiness integration test now makes its clicks with EVERY layer
+shown (its one-layer workaround for this finding is removed; `AssertClear` still proves each click point is off the key).
+
+**Measured (Release, 4 shared CPUs).**
+
+| evidence | result |
+|---|---|
+| full `Sim.Ui.Tests` at `5a27221f` | 836 passed, 0 failed (16 m 32 s; the smoke ran beside it for part of the run) |
+| the fit test's card-open states (the commit after `5a27221f`, test-only) | `OverlayKeyFitTests` + `ResourceOverlayUiTests`: 11 passed, 0 failed |
+| `Sim.Ui --smoke --monkey 200`, base `6b624d45` (exported to scratch and built) then `5a27221f` | base: 12 states, 2884 checks, 2735 pass, 149 n/o, 0 FAIL, 0 problems, 90,669 frames, largest draw list 149,296 vertices, 216.6 s. After: 12 states, 2896 checks, 2747 pass, 149 n/o, 0 FAIL, 0 problems, 91,997 frames, largest draw list 191,212 vertices, 252.2 s. The two reports differ in exactly two lines: the new row (PASS in all 12 states, the 1080×640 and 1920×1009 windows among them) and the totals line. +12 checks = 1 row × 12 states. The larger draw list is the new row showing all six layers over all-known ground (before it only the hidden-rival row showed all six) |
+| uncapped key paint | SVG-identical before and after: canonical world, every 1 … 6 layer prefix, UI scale 1 and 1.5 (12 paints) |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (24 allowlisted files, unchanged), `check-readonly-proof`: OK |
+| `git diff 6b624d45 5a27221f -- Sim.Core Sim.Data Sim.Cli` | empty |
+
+**Mutant kill record (MEASURED).** One-edit mutants in this worktree, each built and run against `OverlayKeyFitTests`
+and the two overlay gate-row tests (`ResourceOverlayUiTests`, 8 tests); clean build + run 55 s, bound 5× = 275 s; every
+mutant finished in 47–53 s, none hung. Each was reverted with `git checkout` and the tree rebuilt clean afterwards.
+
+| mutant | killed by (semantic test, the assertion that failed) |
+|---|---|
+| M1 the cap removed (the key as before P9b) | `WithSixLayersAndTheCardOpen_AClickOnTheOwnFormationTokenAtTheMapCentre_SelectsIt` — the click: selected 2 (the AI's formation), want 1 — the finding's own symptom; `TheKey_FitsTheClearMap…` at all three windows; the gate rows (the key leaves the clear map) |
+| M2 the naive cap: the clear map's top margin, ignoring the centre line | the same click assertion (selected 2, want 1): fitting the map alone does not free the token; `TheKey_FitsTheClearMap…` (over the centre line); the gate rows |
+| M3 the wheel over the key zooms the map instead | `EveryRow_IsReachableByTheWheelOverTheKey…` — a notch left the scroll at 0 (want 1); the gate rows ("a notch over the key at row 0 did not scroll it a row") |
+| M4 the last scroll position clamped away (max − 1) | `EveryRow_IsReachableByTheWheelOverTheKey…` — the scroll stops one short (17, want 18 at 1080×640; 15, want 16 at 1280×800): the last row is never drawn; the gate rows |
+| M5 the window draws one row past its end | `EveryRow_IsReachableByTheWheelOverTheKey…` — FrameText holds a row past the window (the box overflows); the gate rows do not see it (they read the reported window, not FrameText) |
+| M6 showing or hiding a layer keeps the scroll | `EveryRow_IsReachableByTheWheelOverTheKey…` — after a layer is hidden the key is at row 15 / 13, want its top |
+| M7 the above-the-tab branch dropped (the lower-half cap always) — run after the fit test gained its card-open states | `TheKey_FitsTheClearMap…` at 1080×640 — card and legend open, controls unfolded: 0 of 23 rows drawn (the key's foot above its cap); 53 s |
+
+Each property is one the key ought to have: it fits the clear map at every supported window; it never hides what the
+camera frames at the map's centre, so a click there reaches the map; it says everything it said, reachable row by row
+by the wheel over it, which never zooms the map; what FrameText records is exactly what it draws.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
