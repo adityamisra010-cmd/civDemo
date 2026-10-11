@@ -1172,3 +1172,17 @@ They stay RED until CR-020 §B is ruled; it is OPEN. No other test failed.
 - **Gate scripts:** `scripts/check-banned-constructs.sh`, `check-read-isolation.sh` and `check-readonly-proof.sh` all
   report OK.
 - **Research checks:** the three research `--check` scripts that ci.yml runs report the docs current.
+
+## 2026-10-11 (later) — status supersession note
+
+The "2026-10-11 — status" section above was written at `6b624d4`, before P9b merged. It is superseded on two
+points (the section itself is kept as written):
+
+- **P9b is delivered**, not in progress: `m5w-p9b-overlay-key-fit` @ `c683259`, merged at `d8a2b62`. The
+  overlay key fits the clear map at 1080x640 / 1280x800 / 1920x1009 with 1–6 layers, keeps off the map's
+  centre line, scrolls its rows (every row reachable), and takes clicks only inside its drawn box.
+- **Measured on `0c7d40e`** (this file's merge tip): Sim.Ui.Tests 836/836; Sim.Tests golden filters
+  (Snapshot, CiPinAgreement, DrivenGolden, FirstReign) 30/30, the full Sim.Tests last measured at `1f548c5`
+  (1699 passed / 2 failed — the inherited CR-020 `Dev_MalthusCorridors_AllInBand` seeds 42 and 7 — / 13
+  skipped; nothing in Sim.Core/Sim.Data/Sim.Cli changed since); smoke 12 states, 2896 checks, 0 FAIL; all
+  three gate scripts and the three research `--check`s OK.
