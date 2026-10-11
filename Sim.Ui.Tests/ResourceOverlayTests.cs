@@ -753,6 +753,54 @@ public class ResourceOverlayUiTests : IDisposable
     }
 
     [Fact]
+    public void WithALayerShown_ShiftClickOnKnownGround_OpensP8sPlaceCard_AndTheKeyOffersNoPlaceBeneathIt()
+    {
+        UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("place"), Assets());
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));
+        OverlayLayer score = h.Ui.OverlayLayers.Single(l => l.Kind == OverlayKind.Suitability);
+        Assert.True(h.ClickControl(score.Control));
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));   // fold the controls: the layer stays shown
+        Assert.True(EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap));
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, cap.Value, h.Ui.MapRect);
+        h.Idle(2);
+        OverlayKey key = h.Ui.LensFrame!.Overlay!.Key!;
+        Assert.True(h.Ui.OverlayShown(score.Index));
+
+        // Known land off the key, near the capital: the ground is P8's passive place region, and Shift+click opens its card.
+        Sim.Core.Worldgen.TerrainSet t = h.Ui.World.Terrain!;
+        RectD map = h.Ui.MapRect;
+        (double X, double Y, int Cell)? at = null;
+        for (int ring = 40; ring <= 200 && at is null; ring += 40)
+            for (int a = 0; a < 8 && at is null; a++)
+            {
+                double x = Math.Round(map.CenterX + ring * Math.Cos(a * Math.PI / 4)), y = Math.Round(map.CenterY + ring * Math.Sin(a * Math.PI / 4));
+                int cell = MapCells.At(h.Ui.Camera, map, x, y, t.Size);
+                if (cell < 0 || t.Water[cell] >= 0.5 || key.Rect.Contains(x, y)) continue;
+                h.MoveTo(x, y);
+                if (h.Ui.InfoRegistry.HitTest(x, y) is { Subject.Kind: Sim.Core.State.InfoKind.Cell }) at = (x, y, cell);
+            }
+        Assert.NotNull(at);
+        string hash = WorldHash.ComputeHex(s.World);
+        h.ShiftClick(at.Value.X, at.Value.Y);
+        Assert.True(h.Ui.Inspector.IsOpen);
+        Assert.Equal(Sim.Core.State.InfoKind.Cell, h.Ui.Inspector.Subject!.Value.Kind);
+        Assert.Equal(at.Value.Cell, h.Ui.Inspector.Subject!.Value.Id);
+        Assert.Equal(hash, WorldHash.ComputeHex(s.World));
+        Assert.Empty(s.QueuedOrders());
+        h.Key(Microsoft.Xna.Framework.Input.Keys.Escape);
+        Assert.False(h.Ui.Inspector.IsOpen);
+
+        // The key lies over the map: no place is offered beneath it, and a click on it selects nothing.
+        h.MoveTo(key.Rect.CenterX, key.Rect.CenterY);
+        Assert.Null(h.Ui.InfoRegistry.HitTest(key.Rect.CenterX, key.Rect.CenterY));
+        int selected = h.Ui.SelectedSettlement;
+        h.Click(key.Rect.CenterX, key.Rect.CenterY);
+        Assert.Equal(selected, h.Ui.SelectedSettlement);
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
     public void TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque_SoTheTerrainAlwaysShowsThrough()
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("opacity"), Assets());
