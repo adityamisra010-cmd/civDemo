@@ -871,7 +871,8 @@ public sealed partial class GameUi
             (x, y) => cam.WorldToScreen(x, y, map), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
             theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
-            legend: legend, selectedUnit: _selectedUnit);   // P3: the lens frames the selected formation, under the legend
+            legend: legend, selectedUnit: _selectedUnit,   // P3: the lens frames the selected formation, under the legend
+            overlay: OverlayForLens());   // P9: the resource overlay's shown layers (under everything) and its key
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterPlaceUnderPointer();   // P8: Shift+click the ground for its place card (under the tokens)
@@ -1130,6 +1131,7 @@ public sealed partial class GameUi
         DrawUnitCard();
         DrawContextPanel();
         DrawLegendTab();   // P3: the map legend's tab, over the map's bottom-right corner
+        DrawOverlayTab();   // P9: the resource overlay's controls, over the map's bottom-left corner
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
@@ -1520,8 +1522,11 @@ public sealed partial class GameUi
         return clicked;
     }
 
-    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there).</summary>
-    private bool OnLegend(double x, double y) => _lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y);
+    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there) — or (P9) on
+    /// the resource overlay's key, which lies over the map the same way.</summary>
+    private bool OnLegend(double x, double y) =>
+        (_lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y))
+        || (_lensFrame?.Overlay?.Key is { } key && key.Rect.Contains(x, y));
 
     /// <summary>P3: the legend tab's label — the legend's name and the fold glyph of what a click does.</summary>
     private string LegendTabLabel() =>

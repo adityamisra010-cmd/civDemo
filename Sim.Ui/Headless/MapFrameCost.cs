@@ -31,6 +31,8 @@ namespace Sim.Ui.Headless;
 /// world founded by the simulation's own founding with <c>--settlements N</c> (the existing launch option; default
 /// <see cref="DefaultSettlements"/>, about the siting capacity the worldgen record gives) at turn
 /// <see cref="HighCountTurn"/>, the first turn with catchment territory (each of its turns costs tens of seconds).
+/// P9: the canonical world is also swept with EVERY resource-overlay layer shown at the default opacity with its key
+/// (<see cref="ResourceOverlay"/>; the overlay's worst case), and a table reports the overlay's bake and per-turn status.
 /// Nothing is constructed or persisted: the worlds live in this process only. Looking changes nothing: each world's
 /// hash is taken before the sweeps and compared after them; a difference aborts the run.
 ///
@@ -73,16 +75,27 @@ public static class MapFrameCost
 
     private const double Notch = 1.25;
 
-    private sealed record MapWorld(string Name, UiSession Session, WorldProjection Projection, string Note);
+    /// <summary>A world swept, and (P9) the resource overlay it is swept with — null for the plain lens.</summary>
+    private sealed record MapWorld(string Name, UiSession Session, WorldProjection Projection, string Note,
+        ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null);
 
     public static string Run(string assetsRoot, int rounds = 5, int settlements = DefaultSettlements,
         int canonicalTurn = DefaultCanonicalTurn, Action<string>? log = null)
     {
         rounds = Math.Max(1, rounds);
         log ??= _ => { };
+        MapWorld canonical = Found("canonical", UiSession.Start(42), Math.Max(HighCountTurn, canonicalTurn), log);
         var worlds = new List<MapWorld>
         {
-            Found("canonical", UiSession.Start(42), Math.Max(HighCountTurn, canonicalTurn), log),
+            canonical,
+            // P9: the same world with EVERY resource-overlay layer shown at the default opacity, with its key — the overlay's
+            // worst case (the game draws only the layers the player shows).
+            canonical with
+            {
+                Name = "canonical + overlay", Overlay = canonical.Session.Overlay, OverlayStatus = canonical.Session.OverlayStatus,
+                Note = canonical.Note + "; every resource-overlay layer shown (" + canonical.Session.OverlayLayers.Count.ToString(CultureInfo.InvariantCulture)
+                    + ") at opacity " + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture) + ", with its key",
+            },
             Found("high-count", UiSession.Start(42, settlementsOverride: Math.Max(1, settlements)), HighCountTurn, log),
         };
 
@@ -135,6 +148,28 @@ public static class MapFrameCost
             sb.Append(string.Create(CultureInfo.InvariantCulture,
                 $"| {m.Name} | {world.Clock.Turn} | {p.Settlements.Count} | {p.Territory.Count} | {p.Roads.Count} | {p.Routes.Count} | {p.Units.Count} | {Median(build):0.00} | {Median(lattice):0.00} |\n"));
         }
+        // P9: the overlay's bake (once per terrain and knowledge mask) and its per-turn status, per world.
+        sb.Append('\n');
+        sb.Append("| world | overlay bake ms (median; once per session while the knowledge is the same) | overlay status ms (median; once per turn while shown) | nodes | known land nodes | layers |\n");
+        sb.Append("|---|---|---|---|---|---|\n");
+        foreach (MapWorld m in worlds)
+        {
+            if (m.Overlay is not null || m.Session.Sites is not { } site) continue;
+            var bake = new List<double>();
+            var status = new List<double>();
+            ResourceOverlay? last = null;
+            for (int r = 0; r < rounds; r++)
+            {
+                long t0 = Stopwatch.GetTimestamp();
+                last = ResourceOverlay.Bake(m.Session.Config, site, m.Session.Knowledge.Core);
+                bake.Add(Stopwatch.GetElapsedTime(t0).TotalMilliseconds);
+                t0 = Stopwatch.GetTimestamp();
+                last.Status(m.Session.World, m.Session.Config, m.Session.Knowledge);
+                status.Add(Stopwatch.GetElapsedTime(t0).TotalMilliseconds);
+            }
+            sb.Append(string.Create(CultureInfo.InvariantCulture,
+                $"| {m.Name} | {Median(bake):0.0} | {Median(status):0.0} | {last!.NodeCount} | {last.KnownLandNodes} | {last.Layers.Count} |\n"));
+        }
         sb.Append('\n');
         for (int i = 0; i < worlds.Count; i++)
         {
@@ -182,8 +217,16 @@ public static class MapFrameCost
         MapInk ink = MapInk.For(theme);
         int selected = world.Settlements.Count > 0 ? world.Settlements[0].Id.Value : -1;   // the game's opening selection
         WorldProjection p = m.Projection;
+        bool[]? all = null;
+        if (m.Overlay is { } bake)
+        {
+            all = new bool[bake.Layers.Count];
+            Array.Fill(all, true);
+        }
         return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
-            new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale);
+            new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale,
+            overlay: m.Overlay is { } o ? new OverlayPaint(o, all!, GameUi.OverlayOpacityDefault / 10.0, m.OverlayStatus,
+                new OverlayKeyAnchor(12, h - 12, GameUi.OverlayKeyMaxWidth * uiScale), m.Session.Names.Name) : null);
     }
 
     /// <summary>Per-band totals of one sweep.</summary>

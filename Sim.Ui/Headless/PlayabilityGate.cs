@@ -1654,6 +1654,7 @@ public static partial class PlayabilityGate
             PanelFoldRows();
             LegendRows();
             KnowledgeRows();
+            OverlayRows();   // P9: the resource overlay's controls, layers, key and opacity
         }
 
         /// <summary>P7: the settlements that exist and the player does not know (none while the knowledge is all-known —

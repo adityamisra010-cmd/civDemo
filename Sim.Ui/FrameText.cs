@@ -47,6 +47,8 @@ public static class FrameSurface
     public const string Research = "research";
     /// <summary>P3: the map legend's tab (the legend's own text is the lens's: the lens paints it with the map).</summary>
     public const string Legend = "legend";
+    /// <summary>P9: the overlay controls (the overlay's key is the lens's: the lens paints it with the map).</summary>
+    public const string Overlay = "overlay";
 }
 
 /// <summary>
