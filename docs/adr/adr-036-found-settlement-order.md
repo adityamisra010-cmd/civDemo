@@ -153,8 +153,11 @@ t+1 with `FoundedTurn` t+1; its catchment first appears in t+2; GovernanceSystem
   rejection arm (unknown source, uncontrolled ×2, off map, water, poor site, occupied, too close, claimed, unreachable,
   empty granary, party 0) each hash-equal to the orderless step; the live-departure refusal; offered ⇔ founded over
   every source's nearest legal site, a witness of every arm and a ring sweep; same-turn multiplicity (first legal per
-  source wins in log order; an illegal first order does not spend the turn; two sources on one site); orders before
-  the emergent loop; the allocator (tie-dense remainder, keep-one, multi-pass cycling, exhaustive small sweep).
+  source wins in log order; an illegal first order does not spend the turn; two sources on one site; two sources of
+  one issuer each founding in the same turn, ids in log order); orders before the emergent loop; the allocator
+  (tie-dense remainder, unequal buckets with exact vectors for the proportional floor and the row-order remainder,
+  keep-one, multi-pass cycling, exhaustive small sweep), and the dev-world conservation test bounds every source
+  bucket's share to its proportional floor or one more.
 - `Sim.Tests/Kernel/FoundSettlementOrderLogTests.cs`: kind 9 round-trips bit-exact; the load-validation theory
   (negative source, fractional / negative / NaN / ±∞ / > int.MaxValue cells); off-map rejected up front even for a
   deferred source; the turn-0 existence/control checks; the ADR-034 deferral and its delivery check; a played log
@@ -178,9 +181,11 @@ clean baseline 11 s / 66 tests, bound 10× = 110 s; no mutant hung; every kill b
 | the provisions transfer omitted | the exact conservation test (colony grain = the share) | D-051 §5: the party "leaves with provisions"; the cascade brake needs food |
 | the emergent loop before the order loop | orders-before-emergent (B1 would take the ordered cell) | §4: an order legal on its state must not be crowded out by same-step drift |
 | allocator remainder from the highest row | the tie-dense allocator test | a stable, stated integer order (CLAUDE.md tie rule) |
+| allocator without the proportional floor (`take = 0`: every person through the row-order remainder, a pure round robin) — review finding, re-measured on the 68-test filter (clean 10.7 s, bound 110 s) | the unequal-bucket allocator test (`[10, 30, 60]` with a foreign row at 0.2 gave `[7, 0, 7, 6]`, not `[2, 0, 6, 12]`); the dev-world conservation test's proportional-floor bound (source bucket row 0, 69 people, gave 8 against a floor of 13) | §3: the party is a proportional cross-section of the source — measured on dev seed 42 settlement 0 (458 people, party 91), the round robin took 5 of the 6 people aged 60–64 (shipped: 1) and 8 of the 69 aged 0–4 (shipped: 14) |
 | keep-one dropped | allocator keep-one and the exhaustive sweep | §2.5: the source keeps a person in every non-empty bucket |
 | the claimed arm dropped | rejection arm `Claimed` | §2.4 "unclaimed" (the Director's reading to confirm) |
 | every legal order per source founds | first-legal-per-source-wins | §4: one founding per source per turn |
+| one founding per ISSUER per turn (`foundedFrom` keyed on `ActorId`, not the source) — review finding, same 68-test filter and bound | two sources of one issuer founding in one batch (6 settlements expected, 5 founded) | §4: the key is the source, so a civilization with several cities founds from each in one step |
 | departure not re-checked live | departure-is-live | §3: a party never leaves without provisions |
 | off-map check `>` not `>=` | the off-map world check | cell Size² is off the map |
 | ValidateAtDelivery ignores kind 9 | the ADR-034 deferral test; the played-log forged-source check | ADR-034: a deferred id must exist by delivery |

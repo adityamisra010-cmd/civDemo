@@ -126,6 +126,22 @@ public class FoundSettlementOrderTests
         Assert.True(party >= 1 && provisions >= 1, $"vacuous rig: party {party}, provisions {provisions}");
         Assert.Equal((long)Math.Floor(FoundingQuery.PartyFraction(Cfg) * FoundingRigs.People(prev, src)), party);
 
+        // THE PROPORTIONAL FLOOR (ADR-036 §3), checked independently of the allocator: every non-empty source
+        // bucket gives floor(T x c / N) or one more (the remainder) — never fewer, never the row-order remainder
+        // alone. Without this the key-for-key check below compares the plan with itself, and a round-robin
+        // allocator (no floor step) took 5 of the 6 people of a 60-64 cohort here and passed.
+        long sourcePeople = FoundingRigs.People(prev, src);
+        int nonEmpty = 0;
+        for (int i = 0; i < prev.Buckets.Count; i++)
+        {
+            BucketRow b = prev.Buckets[i];
+            if (b.Settlement != src || b.Count.Value <= 0) continue;
+            nonEmpty++;
+            long floor = party * b.Count.Value / sourcePeople;
+            Assert.True(plan[i] == floor || plan[i] == floor + 1, $"bucket row {i} (count {b.Count.Value}): gave {plan[i]}, proportional floor {floor}");
+        }
+        Assert.True(nonEmpty > 2, $"vacuous rig: {nonEmpty} non-empty source buckets");
+
         WorldState next = FoundingRigs.ColonizationOnly(Cfg, Log(FoundingQuery.FoundOrder(prev, Player, src, site))).Step(prev.Clone());
         var colonyId = new SettlementId(colony);
 
@@ -413,6 +429,63 @@ public class FoundSettlementOrderTests
     }
 
     [Fact]
+    public void TwoSourcesOfOneIssuer_EachFoundTheirOwnSite_InOneTurn_IdsInLogOrder()
+    {
+        // The rule is one founding per SOURCE per turn (ADR-036 §4), not per issuer: a civilization with several
+        // cities may found from each of them in the same step. Two distant settlements of the same issuer each order
+        // a legal site that stays legal once the other order has founded, so nothing but the per-turn key could
+        // refuse the second order. Both found, ids max+1 and max+2 follow the LOG order, each at its own cell, each
+        // peopled from its own source. Keyed on the issuer, the second order would be skipped.
+        WorldState w = FoundingRigs.Dev(42UL);
+        SettlementSiting.FrontierSiting f = FoundingRigs.Frontier(w);
+        SettlementId first = w.Settlements[0].Id;
+        int a = FoundingRigs.NearestLegalSite(w, Cfg, f, Player, first);
+        SettlementId second = default;
+        int b = -1;
+        for (int s = 1; s < w.Settlements.Count && b < 0; s++)
+        {
+            second = w.Settlements[s].Id;
+            b = SecondSite(w, f, second, a);                          // legal for `second` with `a` already founded
+        }
+        Assert.True(a >= 0 && b >= 0 && a != b && first != second, $"no non-conflicting pair: a {a}, b {b} — the rig is void");
+        Assert.Equal(Player, ControlOf(w, first.Value).Polity);       // the same issuer controls both sources
+        Assert.Equal(Player, ControlOf(w, second.Value).Polity);
+        // Reversed log order needs `a` legal once `b` stands: checked, not assumed.
+        int[] withB = new int[w.Settlements.Count + 1];
+        for (int i = 0; i < w.Settlements.Count; i++) withB[i] = w.Settlements[i].SiteCell;
+        withB[^1] = b;
+        Assert.Equal(FoundingVerdict.Legal,
+            FoundingQuery.Check(w, Cfg, f, SettlementSiting.SeedSpacing(f, withB), withB, Player, first, a));
+
+        int max = FoundingRigs.MaxSettlementId(w);
+        double fraction = FoundingQuery.PartyFraction(Cfg);
+        long partyA = FoundingQuery.AllocateParty(w.Buckets, first, fraction, null);
+        long partyB = FoundingQuery.AllocateParty(w.Buckets, second, fraction, null);
+        Assert.True(partyA >= 1 && partyB >= 1);
+        OrderRecord fromFirst = FoundingQuery.FoundOrder(w, Player, first, a);
+        OrderRecord fromSecond = FoundingQuery.FoundOrder(w, Player, second, b);
+
+        foreach ((OrderRecord one, OrderRecord two, SettlementId s1, int c1, long p1, SettlementId s2, int c2, long p2) in new[]
+                 {
+                     (fromFirst, fromSecond, first, a, partyA, second, b, partyB),
+                     (fromSecond, fromFirst, second, b, partyB, first, a, partyA),
+                 })
+        {
+            WorldState next = FoundingRigs.ColonizationOnly(Cfg, Log(one, two)).Step(w.Clone());
+            Assert.Equal(w.Settlements.Count + 2, next.Settlements.Count);
+            Assert.True(FoundingRigs.TryGetSettlement(next, max + 1, out SettlementRow r1), "the first order founded nothing");
+            Assert.True(FoundingRigs.TryGetSettlement(next, max + 2, out SettlementRow r2), "the second order founded nothing");
+            Assert.Equal(c1, r1.SiteCell);
+            Assert.Equal(c2, r2.SiteCell);
+            Assert.Equal(p1, FoundingRigs.People(next, r1.Id));
+            Assert.Equal(p2, FoundingRigs.People(next, r2.Id));
+            Assert.Equal(FoundingRigs.People(w, s1) - p1, FoundingRigs.People(next, s1));
+            Assert.Equal(FoundingRigs.People(w, s2) - p2, FoundingRigs.People(next, s2));
+            Assert.Equal(FoundingRigs.People(w), FoundingRigs.People(next));
+        }
+    }
+
+    [Fact]
     public void OrdersResolveBeforeTheEmergentFounding_AnOrderForTheEmergentPickTakesIt()
     {
         // B1 demand on settlement 0 AND an order for the very cell B1 would pick. Orders first (ADR-036 §4): the
@@ -499,6 +572,30 @@ public class FoundSettlementOrderTests
 
         // Twin calls are identical (no hidden state).
         Assert.Equal(per3, Allocate(t, 7, 0.26, out _));
+    }
+
+    [Fact]
+    public void Allocator_UnequalBuckets_GiveTheirProportionalFloor_ThenTheRemainderByAscendingRow()
+    {
+        // Unequal buckets, exact vectors. Equal or tiny buckets cannot tell the proportional floor from a pure
+        // row-order round robin (both give the same vector there); these can. The round robin's vectors are in the
+        // comments so the distinction is visible.
+        // [10, 30, 60] at 0.2 (one foreign row interleaved): N = 100, T = 20; floors 20x10/100 = 2, 6, 12 sum to T,
+        // so nothing is owed. Round robin would give [7, 0, 7, 6] (measured against that mutant).
+        long[] exact = Allocate(Buckets((1, 10), (2, 50), (1, 30), (1, 60)), 1, 0.2, out long t0);
+        Assert.Equal(20, t0);
+        Assert.Equal(new long[] { 2, 0, 6, 12 }, exact);
+
+        // [7, 13, 29, 51] at 0.25: N = 100, T = 25; floors 1, 3, 7, 12 (fractions .75, .25, .25, .75) sum to 23, so
+        // two are owed and they go to rows 0 and 1 — the lowest rows, not the largest fractions (that rule would
+        // give [2, 3, 7, 13]). Round robin would give [6, 7, 6, 6].
+        Assert.Equal(new long[] { 2, 4, 7, 12 }, Allocate(Buckets((1, 7), (1, 13), (1, 29), (1, 51)), 1, 0.25, out long t1));
+        Assert.Equal(25, t1);
+
+        // The same counts in reverse row order: floors 12, 7, 3, 1; the two owed go to rows 0 and 1 again — the
+        // remainder follows the row, not the size. Round robin would give [7, 6, 6, 6].
+        Assert.Equal(new long[] { 13, 8, 3, 1 }, Allocate(Buckets((1, 51), (1, 29), (1, 13), (1, 7)), 1, 0.25, out long t2));
+        Assert.Equal(25, t2);
     }
 
     [Fact]
