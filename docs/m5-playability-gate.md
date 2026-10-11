@@ -856,6 +856,27 @@ KnowledgeLeakTests (18 tests, clean 39 s, bound 170 s ≈ 4×; each run 37–43 
 | M27 `ScreenModels.Settlement` ignores knowledge | `EverySelectionKeyedReader…` |
 | M28 `ActionSurface.ForSession` passes a hidden selection through | `EverySelectionKeyedReader…` (the labour note names it: "… is not ours to command") |
 
+**After review (finding 3: four filters without teeth).** The four subject filters no test reached — a mutant removing
+all four survived every knowledge test at `129c11f` (the reviewer's measurement) — now each have a focused metamorphic
+test with their OWN positive control: `ATradeFlowOrARoadToAHiddenSettlement_ShowsNowhere_InTheEmpireViewOrTheProjection`
+plants a trade flow each way and a travelled road between the player's first settlement and a hidden one (two variants:
+different hidden settlements, amounts and lengths, the second also moving that settlement's site within its unknown
+node) and requires the Empire view's Trade and Roads blocks and the projection's routes identical through the stub and
+naming no hidden settlement, while all-known each of the three changes and names it;
+`TheMigrationView_ComparesKnownPlacesOnly_HoweverAttractiveAHiddenOneIs` builds REAL SettlementRecords (ObservationLog
+over the rig's step) with the hidden settlements' smoothed attractiveness raised above every other by two amounts, and
+requires every known settlement's Migration block identical through the stub (control: all-known it says "<hidden> looks
+more attractive" and moves). The same filter, now 20 tests (clean 40 s, bound 180 s ≈ 4×; each run 40–44 s, none
+hung):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M30 the Migration "more attractive" comparison admits hidden settlements (`PlayerViews.cs`) | `TheMigrationView_ComparesKnownPlacesOnly…` |
+| M31 the Empire trade filter removed | `ATradeFlowOrARoad…` (at "Empire / Trade") |
+| M32 the Empire roads filter removed | `ATradeFlowOrARoad…` (at "Empire / Roads") |
+| M33 `WorldProjection.Build`'s built-route filter removed (`WorldLens.cs`) | `ATradeFlowOrARoad…` (at "projection / routes") |
+| M34 all four removed together (the reviewer's mutant) | both tests |
+
 Not adopted: routing the Trends place-scope LABEL itself through the knowledge (M29, measured): it survived every test,
 because the RefreshHud guard means the label is never handed a hidden selection — an output-equivalent duplicate of the
 guard, so the label keeps reading the selection and M23's kill covers it. The GameUi call sites that hand the session's

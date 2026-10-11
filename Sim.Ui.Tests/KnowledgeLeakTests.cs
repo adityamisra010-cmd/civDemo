@@ -600,6 +600,134 @@ public class KnowledgeLeakTests : IDisposable
         Assert.NotNull(UnitCardModel.Build(w, r.Config, unitId, Player, r.Name, All(w)));
     }
 
+    // ================================================================== the subject filters, each with its own control (P7 review, finding 3)
+
+    /// <summary>The block of <paramref name="v"/> headed <paramref name="heading"/>, as text.</summary>
+    private static string Block(PlayerView v, string heading)
+    {
+        foreach (ViewBlock b in v.Blocks)
+            if (b.Heading == heading) return heading + ": " + string.Join(" ; ", b.Lines);
+        throw new Xunit.Sdk.XunitException("no " + heading + " block in " + v.Title);
+    }
+
+    /// <summary>The projection's built routes, as text (both ends, geometry, class, length).</summary>
+    private static string Routes(WorldProjection p)
+    {
+        var sb = new StringBuilder();
+        foreach (RouteLensView x in p.Routes)
+            sb.Append(x.Id).Append(':').Append(x.A).Append('-').Append(x.B).Append('@').Append(R(x.X0)).Append(',').Append(R(x.Y0))
+                .Append('>').Append(R(x.X1)).Append(',').Append(R(x.Y1)).Append(' ').Append(x.ClassName).Append(' ').Append(R(x.LengthKm)).Append('\n');
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// The rig's world after the step with a TRADE FLOW each way and a TRAVELLED ROAD planted between the player's first
+    /// settlement and a hidden one (<paramref name="variant"/> 1 and 2 pick different hidden settlements, amounts and
+    /// lengths; 2 also moves that hidden settlement's site within its own unknown node), or nothing (0). The turn-6 rig
+    /// has no trade or road with the hidden polity, so without this the trade, roads and route filters are never asked.
+    /// </summary>
+    private static WorldState PlantedNext(int variant)
+    {
+        Rig r = Played.Value;
+        WorldState w = r.Next.Clone();
+        if (variant == 0) return w;
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden), mine = KnowledgeStubs.SettlementsOf(w, Player);
+        int h = hidden[(variant - 1) % hidden.Count], me = mine[0];
+        GoodId grain = UiGoods.Grain;
+        w.TradeFlows.Add(new TradeFlowRow(new SettlementId(me), new SettlementId(h), grain, 900_000 + variant));
+        w.TradeFlows.Add(new TradeFlowRow(new SettlementId(h), new SettlementId(me), grain, 800_000 + variant));
+        int edge = 0;
+        for (int i = 0; i < w.TransportEdges.Count; i++) edge = Math.Max(edge, w.TransportEdges[i].Id + 1);
+        w.TransportEdges.Add(new TransportEdgeRow(edge, new SettlementId(me), new SettlementId(h), EdgeTypes.Trackway, TransportModes.Road,
+            TransportEdgeStates.Complete, 1000, 40.0 + variant, 0, 1, 1, EdgeTypes.Trackway, 0.0, 1.0));
+        if (variant == 2)
+        {
+            PlayerKnowledge k = Stub(w);
+            int size = w.Terrain!.Size;
+            for (int i = 0; i < w.Settlements.Count; i++)
+            {
+                if (w.Settlements[i].Id.Value != h) continue;
+                int cell = w.Settlements[i].SiteCell, node = k.Core.NodeOfCell(cell);
+                foreach (int moved in new[] { cell + 1, cell - 1, cell + size, cell - size })
+                    if (moved >= 0 && moved < size * size && k.Core.NodeOfCell(moved) == node) { w.Settlements[i] = w.Settlements[i] with { SiteCell = moved }; break; }
+                Assert.NotEqual(cell, w.Settlements[i].SiteCell);
+            }
+        }
+        return w;
+    }
+
+    [Fact]
+    public void ATradeFlowOrARoadToAHiddenSettlement_ShowsNowhere_InTheEmpireViewOrTheProjection()
+    {
+        // METAMORPHIC, one reader at a time: the Empire view's Trade and Roads blocks and the projection's built routes are
+        // identical through the stub whether nothing, or a flow each way plus a travelled road to one hidden settlement, or
+        // to another (its site moved too), is planted — and name no hidden settlement. EACH READER'S OWN CONTROL: all-known,
+        // the planted rows reach that reader (it changes and names the hidden settlement).
+        Rig r = Played.Value;
+        WorldState a = PlantedNext(0), b = PlantedNext(1), c = PlantedNext(2);
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(a, Hidden);
+        Func<WorldState, PlayerKnowledge, string>[] readers =
+        [
+            (w, k) => Block(PlayerViews.Empire(w, r.Config, Player, r.Name, 3, k), "Trade"),
+            (w, k) => Block(PlayerViews.Empire(w, r.Config, Player, r.Name, 3, k), "Roads"),
+            (w, k) => Routes(WorldProjection.Build(w, r.Config, r.Name, Player, knowledge: k)),
+        ];
+        string[] label = ["Empire / Trade", "Empire / Roads", "projection / routes"];
+        for (int i = 0; i < readers.Length; i++)
+        {
+            string sa = readers[i](a, Stub(a)), sb = readers[i](b, Stub(b)), sc = readers[i](c, Stub(c));
+            Assert.True(sa == sb && sa == sc, label[i] + " shows what the stub hides:\n" + sa + "\n" + sb + "\n" + sc);
+            foreach (int id in hidden) Assert.False(HasWord(sb + sc, r.Name(id)), label[i] + " names hidden " + r.Name(id));
+            string ca = readers[i](a, All(a)), cb = readers[i](b, All(b)), cc = readers[i](c, All(c));
+            Assert.True(ca != cb && cb != cc, label[i] + ": the planted rows do not reach this reader - its comparison proves nothing");
+        }
+        Assert.Contains(r.Name(hidden[0]), readers[0](b, All(b)), StringComparison.Ordinal);
+        Assert.Contains(r.Name(hidden[0]), readers[1](b, All(b)), StringComparison.Ordinal);
+        Assert.Contains(WorldProjection.Build(b, r.Config, r.Name, Player, knowledge: All(b)).Routes, x => x.B == hidden[0]);
+    }
+
+    [Fact]
+    public void TheMigrationView_ComparesKnownPlacesOnly_HoweverAttractiveAHiddenOneIs()
+    {
+        // A REAL SettlementRecord (ObservationLog over the rig's step) carries every settlement's attractiveness, read from
+        // PREV's smoothed table. The hidden settlements' readings are raised above every other — by two different amounts.
+        // Through the stub, every known settlement's view (its Migration block's "more attractive" comparison) is the same
+        // and names no hidden place. THE CONTROL: all-known, the comparison names the hidden settlement and moves with it.
+        Rig r = Played.Value;
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(r.Next, Hidden), mine = KnowledgeStubs.SettlementsOf(r.Next, Player);
+        string Views(double lift, Func<IReadOnlyWorldState, PlayerKnowledge> knowledge)
+        {
+            WorldState prev = r.Prev.Clone(), next = r.Next.Clone();
+            double top = double.NegativeInfinity;
+            for (int i = 0; i < prev.SmoothedAttractiveness.Count; i++)
+                if (double.IsFinite(prev.SmoothedAttractiveness[i].Value)) top = Math.Max(top, prev.SmoothedAttractiveness[i].Value);
+            int raised = 0;
+            for (int i = 0; i < prev.SmoothedAttractiveness.Count; i++)
+                if (hidden.Contains(prev.SmoothedAttractiveness[i].Settlement.Value))
+                {
+                    prev.SmoothedAttractiveness[i] = prev.SmoothedAttractiveness[i] with { Value = top + lift + 0.25 * raised };
+                    raised++;
+                }
+            Assert.True(raised >= 1, "no hidden settlement has an attractiveness row - the rig is void");
+            var log = new ObservationLog();
+            log.Observe(prev, next, r.Config, []);
+            var sb = new StringBuilder();
+            foreach (int id in mine)
+            {
+                SettlementRecord? record = log.Settlement(log.LastTurn, id);
+                Assert.NotNull(record);
+                sb.Append(Block(PlayerViews.Settlement(next, r.Config, Player, record, id, r.Name, 3, knowledge(next)), "Migration")).Append('\n');
+            }
+            return sb.ToString();
+        }
+        string s1 = Views(1.0, Stub), s2 = Views(2.0, Stub);
+        Assert.Equal(s1, s2);
+        foreach (int id in hidden) Assert.False(HasWord(s1, r.Name(id)), "the migration view names hidden " + r.Name(id) + ": " + s1);
+        string c1 = Views(1.0, All), c2 = Views(2.0, All);
+        Assert.NotEqual(c1, c2);
+        Assert.Contains(hidden, id => c1.Contains(r.Name(id) + " looks more attractive", StringComparison.Ordinal));
+    }
+
     // ================================================================== a selection that a step hides (P7 review, finding 2)
 
     private static string PolicyText(PolicyView v)

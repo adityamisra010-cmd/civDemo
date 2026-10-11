@@ -89,6 +89,11 @@ readers too: a hidden settlement's own Trends series and price series are identi
 (control: all-known they move); each reads a hidden settlement exactly as no selection (control: all-known each reads
 it); and two plays of the real UI that differ only in WHICH rival settlement was selected before the step hid the
 rival draw the same text in every player section, naming neither (control: when nothing is hidden, they differ).
+The subject filters each have their own test and control too (review finding 3): a trade flow each way and a travelled
+road planted between a known and a hidden settlement leave the Empire view's Trade and Roads blocks and the
+projection's routes identical through the stub (all-known, each changes and names it), and real settlement records
+whose hidden neighbours are the most attractive leave every known settlement's Migration comparison identical
+(all-known, it names the hidden place).
 The AI: raising every unknown
 cell's own score cannot move the founding pick (control: all-known it does); whatever the TERRAIN under unknown nodes
 (fertility 0 or 1 over half the map), the pick is a known cell and the oracle's best known legal cell (control:
