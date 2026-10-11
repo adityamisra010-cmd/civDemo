@@ -684,6 +684,55 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         Assert.Contains(b.KeyRows(AllOn(b), st, s.Names.Name), r => r.Text.StartsWith("Not evaluated: the founding path's worldgen config", StringComparison.Ordinal));
         foreach (OverlayLayer l in b.Layers) if (l.Kind == OverlayKind.Channel) Assert.Equal(0, b.Drawn(l.Index));
     }
+
+    // ================================================================== m5w integration: the markers beside P12a's footprint
+
+    /// <summary>
+    /// M5 workstream integration (P9 x P12a): a realized-roll marker stands WEST of its settlement's footprint (P9: the name
+    /// below, the banner above, the formations east) — the footprint as P12a sizes it (the population class scale,
+    /// <see cref="WorldLens.FootprintRadiusPx"/>), which the merge made the marker read when P12a replaced the old footprint
+    /// function. At the Regional and Settlement plateaus and between them, every marker's plate lies wholly left of its
+    /// settlement's hit footprint (the footprint as painted, <see cref="SettlementHit.Footprint"/>), close to it, and level
+    /// with the settlement's centre. Teeth: at the Settlement plateau the footprint is wider than the World mark by more than
+    /// the marker's gap, so a marker placed off the mark (not the footprint) would overlap it.
+    /// </summary>
+    [Fact]
+    public void TheRealizedRollMarkers_StandWestOfTheFootprintAsP12aSizesIt_NeverOverIt()
+    {
+        UiSession s = fx.Session;
+        ResourceOverlay b = s.Overlay!;
+        OverlayStatus st = s.OverlayStatus!;
+        WorldProjection p = WorldProjection.Build(s.World, s.Config, s.Names.Name, Me, knowledge: s.Knowledge);
+        var paint = new OverlayPaint(b, AllOn(b), 0.5, st, null, s.Names.Name);
+        int checkedMarkers = 0, teeth = 0;
+        foreach (SettlementLensView sv in p.Settlements)
+        {
+            if (!sv.IsPlayer || b.MarkerText(paint.Shown, st, sv.Id).Length == 0) continue;
+            foreach ((MapDetail detail, double scale) in new[] { (MapDetail.Of(WorldZoom.Regional), 2.0), (MapDetail.At(5.0, 1280, 800, p.KmPerPx), 5.0),
+                         (MapDetail.Of(WorldZoom.Settlement), 8.0), (MapDetail.Of(WorldZoom.Settlement), 14.0) })
+            {
+                var d = new DrawList();
+                LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail,
+                    (x, y) => ((x - sv.X) * scale + 640, (y - sv.Y) * scale + 400), scale, new RectD(0, 0, 1280, 800), overlay: paint);
+                (int id, string text) = f.Overlay!.Markers.Single(m => m.Settlement == sv.Id);
+                SettlementHit hit = f.SettlementHits.Single(h => h.Id == sv.Id);
+                int at = -1;
+                for (int i = 0; i < d.Commands.Count; i++) if (d.Commands[i] is TextCmd t && t.Text == text) at = i;
+                Assert.True(at > 0 && d.Commands[at - 1] is RectCmd, "no plate before the marker's text");
+                RectD plate = ((RectCmd)d.Commands[at - 1]).Rect;
+                Assert.True(plate.Right <= hit.Footprint.X, "the marker of " + sv.Name + " at scale " + scale.ToString(CultureInfo.InvariantCulture)
+                    + " overlaps its footprint: plate right " + plate.Right.ToString("R", CultureInfo.InvariantCulture)
+                    + ", footprint left " + hit.Footprint.X.ToString("R", CultureInfo.InvariantCulture));
+                Assert.InRange(400.0, plate.Y, plate.Bottom);
+                double gap = hit.Footprint.X - plate.Right;
+                Assert.True(gap < 12, "the marker floats " + gap.ToString("R", CultureInfo.InvariantCulture) + " px off its footprint");
+                if (detail.Settlement == 1.0 && WorldLens.FootprintRadiusPx(p, sv, scale, 1.0) > WorldLens.MarkRadiusPx(p, sv) + 12) teeth++;
+                checkedMarkers++;
+            }
+        }
+        Assert.True(checkedMarkers >= 4, "too few markers checked (" + checkedMarkers + ")");
+        Assert.True(teeth > 0, "no footprint is wider than its mark plus the gap - the placement is untested");
+    }
 }
 
 /// <summary>P9 through the real per-frame UI: the overlay controls, the gate's overlay rows and hash invariance across an
