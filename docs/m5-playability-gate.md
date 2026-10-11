@@ -611,16 +611,17 @@ only: no simulation, serialization or order code changed (`git diff 9e066b2 -- S
 the camera and the level of detail are UI state.
 
 **Eased zoom and pan (IMPLEMENTED).** `Camera` holds a SHOWN view (what is drawn, hit-tested and framed by the GPU pass)
-and a TARGET view. The wheel (`ZoomToward`: ×1.25 a notch, anchored at the cursor in the target view) and W A S D
-(`GlidePan`) move the target; `GameUi.Update` calls `Camera.Advance(dt)` once per frame on every path, after the input.
-`Advance` eases the VISIBLE WORLD RECT — the centre and the inverse zoom by the same fraction k = 1 − exp(−14 dt)
-(`ProgressionCamera`'s rate) — and snaps onto the target within 1e-4 of the zoom and 0.05 screen px. Because the rect's
-edges move linearly, a world point the target keeps under the cursor stays under it on every frame of the ease, not
-only once it settles. A drag (`Pan`) moves both views by the same screen delta. `ZoomAt`, `Clamp`, `Reframe` and
-`CameraFocus.CenterOn` stay immediate and leave the camera settled (`CenterOn` first ends an ease where it is,
-`Camera.Stop`), so every preview, test and measurement camera computes exactly what the P1 camera computed. The
-game's "select and centre" rows glide (`CameraFocus.GlideTo`). `UiFrameHarness.Settle` idles until the camera has
-settled (bounded; −1 when it does not).
+and a TARGET view. The wheel (`ZoomToward`: ×1.25 a notch, anchored at the cursor in the SHOWN view — the ground the
+player sees there) and W A S D (`GlidePan`) move the target; `GameUi.Update` calls `Camera.Advance(dt)` once per frame
+on every path, after the input. `Advance` eases the VISIBLE WORLD RECT — the centre and the inverse zoom by the same
+fraction k = 1 − exp(−14 dt) (`ProgressionCamera`'s rate) — and snaps onto the target within 1e-4 of the zoom and 0.05
+screen px. Because the rect's edges move linearly, a world point both views have under the cursor stays under it on
+every frame of the ease, not only once it settles — for a notch at a cursor that moved while the view was still
+easing as well as for a run of notches at one cursor. A drag (`Pan`) moves both views by the same screen delta.
+`ZoomAt`, `Clamp`, `Reframe` and `CameraFocus.CenterOn` stay immediate and leave the camera settled (`CenterOn`
+first ends an ease where it is, `Camera.Stop`), so every preview, test and measurement camera computes exactly what
+the P1 camera computed. The game's "select and centre" rows glide (`CameraFocus.GlideTo`). `UiFrameHarness.Settle`
+idles until the camera has settled (bounded; −1 when it does not).
 
 **The continuous level of detail (IMPLEMENTED).** `MapDetail` keys the level of detail on the visible km across the map
 rect's shorter side — screen px ÷ zoom × `TerrainSet.KmPerPx` (now carried by `WorldProjection.KmPerPx`). Two
@@ -743,6 +744,31 @@ ought to have.
 M12 and M14 are seen only by the road world's sweep: the canonical world at turn 2 has neither a dirt path nor a built
 route (MEASURED: `--frame-cost map --turns 2` reports "turn 2, 12 settlements, 934 territory blocks, 0 dirt-path steps,
 0 built routes"), which is why that sweep was written.
+
+**Review finding fixed (major; confirmed by an independent verdict): a notch mid-ease anchored on the TARGET view.**
+`ZoomToward` first solved its anchor in the target view (`ProgressionCamera.ZoomAt`'s pattern). A notch arriving
+mid-ease at a cursor other than the previous notch's then anchored on ground the player does not see under the cursor:
+with T(p) and S(p) the world points under screen point p in the target and the shown view, A the last notch's cursor and
+B this one, T(B) − S(B) = (B − A)(1/z_target − 1/z_shown), proportional to how far the cursor moved and to the zoom
+still pending. Every earlier test kept the cursor still between notches, where the two anchors coincide. MEASURED on
+`d535649`'s camera (the new tests, before the fix): settled at zoom 3 on the 1280×688 map rect, two notches at (400,
+300), 1 / 3 / 6 frames of 1/60 s, a notch at (900, 600) — the ground seen under (900, 600) ends 324.7 / 203.6 / 101.1
+screen px from the cursor (the finding's numbers); the live GameUi, the same shape, 257.1 px. Fix: the anchor is the
+SHOWN view (`ScreenToWorld`), so the target has the seen ground under the cursor and the eased rect keeps it there; at a
+still cursor the anchor is the same point as before. After the fix every drift is ≤ 1e-6 px and the zoom still
+accumulates (5.859375 after three notches). Tests: `ANotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor`
+(lags 1, 3, 6), `NotchesAtAMovingCursor_EachKeepTheGroundSeenUnderItsCursor` (six notches, in and out, each at another
+cursor two frames after the last) and the live
+`AWheelNotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor_TheWorldUntouched`. Mutant M16 (`ZoomToward`'s
+anchor back in the target view, one edit) on the kill-record filter above (now 70 tests; clean 81 s, bound 324 s = 4×):
+finished in 84 s, no hang, killed by exactly those five cases (the theory's three lags, the two facts) — and by none of
+the 65 older tests, which is the finding's point. Cost, for the Director: a notch restarts the target from what is on
+screen, so a W A S D glide lead still pending at the notch (DERIVED, not measured: in a steady glide the target leads
+the shown view by the glide speed ÷ 14 s⁻¹, about 1/14 s of glide) is not carried across it; `ProgressionCamera`'s
+target-anchored parity is the alternative if that is preferred. After the fix (MEASURED): `Sim.Ui.Tests` 727/727 (the
+722 before and 5 new); `Sim.Ui --smoke --monkey 200` unchanged — 9 states, 1892 checks, 1782 pass, 110 not offered, 0
+FAIL, 0 problems, 62,426 frames, the three wheel rows PASS in all nine states; `Sim.Tests` SnapshotTests and
+CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK.
 
 ## 5. The Warband (Director §3), determined from the code
 

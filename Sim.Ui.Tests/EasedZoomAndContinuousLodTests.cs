@@ -126,6 +126,75 @@ public class EasedCameraTests
         Assert.Equal(ay, wy, 9);
     }
 
+    /// <summary>The largest screen-px distance, from a notch to the end of its ease, between the cursor and the ground the
+    /// player saw under it at the notch (<paramref name="seen"/>): every frame is checked, and the settled view.</summary>
+    private static double DriftUntilNextNotchOrSettled(Camera cam, double sx, double sy, (double X, double Y) seen, int frames)
+    {
+        double worst = 0;
+        void Measure()
+        {
+            (double px, double py) = cam.WorldToScreen(seen.X, seen.Y, Map);
+            worst = Math.Max(worst, Math.Sqrt((px - sx) * (px - sx) + (py - sy) * (py - sy)));
+        }
+        Measure();
+        for (int f = 0; f < frames && cam.Advance(1.0 / 60); f++) Measure();
+        Measure();
+        return worst;
+    }
+
+    /// <summary>P2 review finding — THE CURSOR MOVES BETWEEN NOTCHES WHILE THE VIEW IS STILL EASING. The ground the player
+    /// SEES under the cursor at a notch stays under it on every frame after it and once the ease settles: the wheel anchors
+    /// on the shown view, not the target. (With the target-view anchor the ground seen under (900, 600) ended 324.7 /
+    /// 203.6 / 101.1 screen px from the cursor at lags of 1 / 3 / 6 frames — the finding's measurement, re-measured
+    /// here: the drift is (cursor moved) × (1/shown zoom − 1/target zoom), so a still cursor could never show it.)</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(6)]
+    public void ANotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor(int lagFrames)
+    {
+        Camera cam = At(3.0, 512, 512);
+        cam.ZoomToward(400, 300, 1.25, Map);
+        cam.ZoomToward(400, 300, 1.25, Map);
+        for (int f = 0; f < lagFrames; f++) Assert.True(cam.Advance(1.0 / 60));
+        Assert.False(cam.Settled);   // the next notch arrives mid-ease, at another cursor
+        double sx = 900, sy = 600;
+        (double X, double Y) seen = cam.ScreenToWorld(sx, sy, Map);
+        cam.ZoomToward(sx, sy, 1.25, Map);
+        // The target has the seen ground under the cursor (the clamp leaves this target alone) …
+        (double tx, double ty) = cam.TargetScreenToWorld(sx, sy, Map);
+        double targetDrift = Math.Sqrt((tx - seen.X) * (tx - seen.X) + (ty - seen.Y) * (ty - seen.Y)) * cam.TargetZoom;
+        // … and so has the shown view, on every frame of the ease and once it settles.
+        double drift = DriftUntilNextNotchOrSettled(cam, sx, sy, seen, 2000);
+        Assert.True(cam.Settled, "the ease did not settle");
+        Assert.True(targetDrift <= 1e-6 && drift <= 1e-6,
+            $"lag {lagFrames}: the ground seen under the cursor ends {drift:0.0} screen px from it (target view: {targetDrift:0.0} px)");
+        Assert.Equal(3.0 * Math.Pow(1.25, 3), cam.Zoom, 9);   // the notches still accumulate: three of them
+    }
+
+    /// <summary>A run of notches, in and out, each at a different cursor and two frames after the last: from every notch
+    /// until the next (and after the last, once settled), the ground seen under that notch's cursor stays under it.</summary>
+    [Fact]
+    public void NotchesAtAMovingCursor_EachKeepTheGroundSeenUnderItsCursor()
+    {
+        Camera cam = At(4.0, 512, 512);
+        (double X, double Y, double F)[] notches =
+            [(700, 400, 1.25), (300, 250, 1.25), (1000, 650, 1 / 1.25), (520, 380, 1.25), (180, 600, 1.25), (840, 140, 1 / 1.25)];
+        double expected = 4.0;
+        for (int i = 0; i < notches.Length; i++)
+        {
+            (double sx, double sy, double f) = notches[i];
+            if (i > 0) Assert.False(cam.Settled);   // mid-ease
+            (double X, double Y) seen = cam.ScreenToWorld(sx, sy, Map);
+            cam.ZoomToward(sx, sy, f, Map);
+            expected *= f;
+            double drift = DriftUntilNextNotchOrSettled(cam, sx, sy, seen, i < notches.Length - 1 ? 2 : 2000);
+            Assert.True(drift <= 1e-6, $"notch {i} at ({sx}, {sy}): the ground seen under the cursor drifts {drift:0.0} screen px");
+        }
+        Assert.True(cam.Settled);
+        Assert.Equal(expected, cam.Zoom, 9);
+    }
+
     [Theory]
     [InlineData(30.0)]
     [InlineData(60.0)]
@@ -767,6 +836,39 @@ public class EasedZoomUiTests : IDisposable
         Assert.True(h.Settle() > 0);
         Assert.Equal(h.Ui.Camera.TargetCenterX, h.Ui.Camera.CenterX);
 
+        Assert.Equal(hash, WorldHash.ComputeHex(h.Ui.Session.World));
+        Assert.Equal(queued, h.Ui.Session.QueuedOrders());
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>P2 review finding, in the live game: a notch at one cursor, then — while the view still eases — a notch at
+    /// another. The ground the player saw under the second cursor stays under it on every frame and once settled.</summary>
+    [Fact]
+    public void AWheelNotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor_TheWorldUntouched()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), Path.Combine(_root, "moved"), Assets());
+        string hash = WorldHash.ComputeHex(h.Ui.Session.World);
+        OrderRecord[] queued = [.. h.Ui.Session.QueuedOrders()];
+        RectD map = h.Ui.MapRect;
+        h.Ui.Camera.ZoomAt(map.CenterX, map.CenterY, 3.0 / h.Ui.Camera.Zoom, map);
+        h.Idle(1);
+        double z0 = h.Ui.Camera.Zoom;
+        h.Wheel(Math.Round(map.CenterX - 240), Math.Round(map.CenterY - 100), 2);
+        Assert.False(h.Ui.Camera.Settled);   // still easing when the cursor moves on
+        double sx = Math.Round(map.CenterX + 260), sy = Math.Round(map.CenterY + 200);
+        (double gx, double gy) = h.Ui.Camera.ScreenToWorld(sx, sy, map);   // the ground under the cursor's new place
+        h.Wheel(sx, sy, 1);
+        double worst = 0;
+        for (int f = 0; f < 240; f++)
+        {
+            (double px, double py) = h.Ui.Camera.WorldToScreen(gx, gy, map);
+            worst = Math.Max(worst, Math.Sqrt((px - sx) * (px - sx) + (py - sy) * (py - sy)));
+            if (h.Ui.Camera.Settled) break;
+            h.Idle(1);
+        }
+        Assert.True(h.Ui.Camera.Settled, "the camera did not settle");
+        Assert.True(worst <= 1e-6, $"the ground seen under the cursor drifts {worst:0.0} screen px from it");
+        Assert.Equal(z0 * Math.Pow(1.25, 3), h.Ui.Camera.Zoom, 9);
         Assert.Equal(hash, WorldHash.ComputeHex(h.Ui.Session.World));
         Assert.Equal(queued, h.Ui.Session.QueuedOrders());
         Assert.Empty(h.Problems);

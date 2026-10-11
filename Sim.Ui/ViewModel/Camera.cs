@@ -24,10 +24,11 @@ namespace Sim.Ui.ViewModel;
 /// <see cref="Advance"/> eases the shown view toward it by frame-rate-independent exponential smoothing — the
 /// <see cref="Sim.Ui.Progression.ProgressionCamera.Advance"/> pattern, at its rate. What is eased is the VISIBLE WORLD
 /// RECT: the centre and the inverse zoom (world px per screen px) move by the same fraction, so every edge of the
-/// rect moves linearly, and a world point the target keeps under a screen point stays under it on EVERY frame of the
-/// ease (a run of wheel notches at one cursor keeps the point under the cursor fixed throughout, not only once it
-/// settles). A drag (<see cref="Pan"/>) moves both views by the same screen delta (a drag tracks the hand). The
-/// immediate operations every preview, test and measurement uses — <see cref="ZoomAt(double, double, double, RectD)"/>,
+/// rect moves linearly, and a world point the shown view and the target both have under a screen point stays under it
+/// on EVERY frame of the ease. The wheel anchors on the shown view (the ground the player sees under the cursor), so
+/// that ground is under the cursor throughout and once the ease settles — for a run of notches at one cursor, and for
+/// a notch at a cursor that moved while the view was still easing. A drag (<see cref="Pan"/>) moves both views by the
+/// same screen delta (a drag tracks the hand). The immediate operations every preview, test and measurement uses — <see cref="ZoomAt(double, double, double, RectD)"/>,
 /// <see cref="Clamp(RectD)"/>, <see cref="Stop"/> — act on the shown view and leave the camera SETTLED (target =
 /// shown), so a camera never eased computes exactly what it computed before P2. The camera is UI state only: nothing
 /// here reads or writes the simulation.
@@ -155,14 +156,19 @@ public sealed class Camera(double worldSize)
 
     /// <summary>
     /// P2: THE WHEEL — an EASED zoom by <paramref name="factor"/> about the cursor. The target zoom is multiplied (notches
-    /// accumulate) and the target centre is solved so the world point under the cursor IN THE TARGET VIEW stays under
-    /// it (ProgressionCamera.ZoomAt): once the ease settles that point is under the cursor, and while it eases the
-    /// shown view keeps it there too whenever the shown view already had it there (see the class remarks). The clamp
-    /// applies to the target, as it applied to the immediate zoom.
+    /// accumulate) and the target centre is solved so the world point the player SEES under the cursor — in the SHOWN
+    /// view — is under it in the target view too. Both views then have that point under the cursor, so the eased
+    /// visible rect keeps it there on every frame and once the ease settles (see the class remarks), wherever the cursor
+    /// was at earlier notches. (P2 review finding: anchored on the TARGET view, as ProgressionCamera.ZoomAt is, a notch
+    /// arriving mid-ease at a cursor that had moved since the last notch anchored on ground not under the cursor; the
+    /// ground seen there drifted (cursor moved) × (1/shown zoom − 1/target zoom) — MEASURED 324.7 / 203.6 / 101.1 screen
+    /// px at 1 / 3 / 6 frames of lag.) At a still cursor the two anchors are the same point. The target's pending
+    /// W A S D glide lead is not carried across a notch: the target restarts from what is on screen. The clamp applies
+    /// to the target, as it applied to the immediate zoom.
     /// </summary>
     public void ZoomToward(double cursorSx, double cursorSy, double factor, RectD view)
     {
-        (double wx, double wy) = TargetScreenToWorld(cursorSx, cursorSy, view);
+        (double wx, double wy) = ScreenToWorld(cursorSx, cursorSy, view);
         _target.Zoom = Math.Clamp(_target.Zoom * factor, MinZoom(view), MaxZoom);
         _target.X = wx - (cursorSx - view.CenterX) / _target.Zoom;
         _target.Y = wy - (cursorSy - view.CenterY) / _target.Zoom;
