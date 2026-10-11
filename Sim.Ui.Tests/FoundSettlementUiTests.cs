@@ -624,6 +624,85 @@ public class FoundSettlementUiTests : IDisposable
         }
         Assert.Empty(h.Problems);
     }
+
+    // ------------------------------------------------------------------ m5w integration: saved by the game, resumed
+
+    /// <summary>
+    /// M5 workstream integration (S1d x S0 x P10): Found Settlement orders PLACED THROUGH THE LIVE UI — the action surface's
+    /// "Choose a site...", a click on the map, Confirm — are saved the way the GAME saves them (GameUi writes the order log,
+    /// trace and chronicle after every Confirm and End Turn; the manifest once at launch, as Program.cs does) and the
+    /// session is resumed by <see cref="UiSession.Resume"/>. The resumed session must be hash-identical to the live one,
+    /// carry the same log, queue, trace, annals, colony names and P10 'now usable' history, and continue identically —
+    /// including the second UI-placed order, confirmed at the save turn and not yet played (re-queued by the resume and
+    /// delivered by the next End Turn of both sessions, the live one through its End Turn button).
+    /// </summary>
+    [Fact]
+    public void UiPlacedFoundSettlementOrders_SavedByTheGame_ResumeHashIdentically_AndTheQueuedOneFoundsInBoth()
+    {
+        UiSession live = UiSession.Start(42);
+        using UiFrameHarness h = UiFrameHarness.Start(live, WorkDir("resume"), Assets());
+        live.ExportManifest("2026-10-11 12:00:00", h.SessionLogPath);   // as Program.cs does, once, at launch
+        Assert.True(h.ClickControl("end-turn"));   // turn 1: the first order is stamped with a turn other than 0
+
+        // ORDER 1, placed in the UI at turn 1 and played.
+        int source = ChooseASite(h);
+        int site = LegalSiteKnown(live, source);
+        (double x, double y) = Aim(h, site);
+        h.Click(x, y);
+        Assert.True(h.ClickControl("found-confirm"));
+        Assert.Equal(1L, Assert.Single(live.QueuedOrders()).Turn);
+        for (int t = 0; t < 3; t++) Assert.True(h.ClickControl("end-turn"));
+        Assert.True(SettlementAt(live.World, site) >= 0, "the UI-placed order founded nothing");
+
+        // ORDER 2, placed in the UI at the save turn and NOT played: the game's own save after Confirm holds it.
+        int source2 = ChooseASite(h);
+        int site2 = LegalSiteKnown(live, source2);
+        (x, y) = Aim(h, site2);
+        h.Click(x, y);
+        Assert.True(h.ClickControl("found-confirm"));
+        OrderRecord queued = Assert.Single(live.QueuedOrders());
+        Assert.Equal(OrderKind.FoundSettlement, queued.Kind);
+        Assert.Equal(live.World.Clock.Turn, queued.Turn);
+        Assert.True(SettlementAt(live.World, site2) < 0);
+        int founds = 0;
+        for (int i = 0; i < live.Orders.Count; i++) if (live.Orders[i].Kind == OrderKind.FoundSettlement) founds++;
+        Assert.Equal(2, founds);
+
+        // RESUME from the files the game wrote (no save call of the test's own).
+        UiSession resumed = UiSession.Resume(UiSession.ManifestPath(h.SessionLogPath), out string resumedLog);
+        Assert.Equal(Path.GetFullPath(h.SessionLogPath), Path.GetFullPath(resumedLog));
+        Assert.Empty(resumed.ResumeNotice);   // same schema: every replayed turn was checked against the saved trace
+        Assert.Equal(live.World.Clock.Turn, resumed.World.Clock.Turn);
+        Assert.Equal(Hash(live), Hash(resumed));
+        Assert.Equal(live.Orders.Count, resumed.Orders.Count);
+        for (int i = 0; i < live.Orders.Count; i++) Assert.Equal(live.Orders[i], resumed.Orders[i]);
+        Assert.Equal(live.QueuedOrders().ToArray(), resumed.QueuedOrders().ToArray());
+        Assert.Equal(live.TraceLines.ToArray(), resumed.TraceLines.ToArray());
+        Assert.Equal(live.AnnalLines.ToArray(), resumed.AnnalLines.ToArray());
+        Assert.Equal(live.NowUsableHistory.CanonicalLines().ToArray(), resumed.NowUsableHistory.CanonicalLines().ToArray());
+        Assert.Equal(live.World.Settlements.Count, resumed.World.Settlements.Count);
+        for (int i = 0; i < live.World.Settlements.Count; i++)
+        {
+            int id = live.World.Settlements[i].Id.Value;
+            Assert.Equal(live.Names.Name(id), resumed.Names.Name(id));
+        }
+
+        // CONTINUED PLAY: the re-queued UI-placed order founds in BOTH sessions on the next End Turn, identically.
+        for (int t = 0; t < 2; t++)
+        {
+            Assert.True(h.ClickControl("end-turn"));
+            resumed.EndTurn();
+            Assert.Equal(Hash(live), Hash(resumed));
+            if (t == 0)
+            {
+                Assert.True(SettlementAt(live.World, site2) >= 0, "the queued UI-placed order founded nothing (live)");
+                Assert.True(SettlementAt(resumed.World, site2) >= 0, "the re-queued UI-placed order founded nothing (resumed)");
+            }
+        }
+        Assert.Equal(live.TraceLines.ToArray(), resumed.TraceLines.ToArray());
+        Assert.Equal(live.NowUsableHistory.CanonicalLines().ToArray(), resumed.NowUsableHistory.CanonicalLines().ToArray());
+        Assert.Empty(h.Problems);
+    }
 }
 
 internal static class FoundingSessionExtensions
