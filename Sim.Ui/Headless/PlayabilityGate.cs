@@ -2006,6 +2006,25 @@ public static partial class PlayabilityGate
                 MilitaryUnitRow after = MilitaryQuery.Units(Ui.World, Me)[0];
                 return Expect(after.X == before.X && after.Y == before.Y && after.Location == before.Location && Queued == q, "it moved");
             });
+            Check("map: formation", "unit card states what is not simulated (P11)", () =>
+            {
+                if (Ui.SelectedUnit < 0)
+                {
+                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == unit) { h.Click(p.X, p.Y); break; }
+                }
+                if (Ui.UnitCard is not { } card) return (GateResult.Fail, "no card");
+                h.Idle(1);
+                // Each gap its own line, the locked movement line, all of it drawn (FrameText of the card's surface) — and
+                // no figure on the card that the row does not hold: the stat lines carry no digit.
+                IReadOnlyList<string> drawn = Ui.FrameText.Texts(FrameSurface.UnitCard);
+                var missing = new List<string>();
+                foreach (string line in UnitCardModel.NotSimulatedLines) if (!drawn.Contains(line)) missing.Add(line);
+                if (!drawn.Contains(UnitCardModel.MovementText)) missing.Add("the movement line");
+                bool digits = false;
+                foreach (string line in card.NotSimulated) foreach (char c in line) digits |= c is >= '0' and <= '9';
+                return Expect(missing.Count == 0 && !digits && card.Movement == UnitCardModel.MovementText,
+                    "not drawn: " + string.Join(" | ", missing) + (digits ? "; a stat line carries a number" : ""));
+            });
             Check("map: formation", "unit card close", () =>
             {
                 if (Ui.SelectedUnit < 0)
@@ -2015,6 +2034,98 @@ public static partial class PlayabilityGate
                 if (!h.ClickControl("unit-close")) return (GateResult.Fail, "close not drawn");
                 return Expect(Ui.SelectedUnit < 0 && Ui.UnitCard is null, "card still open");
             });
+            FormationRows();
+        }
+
+        /// <summary>P11: centres the camera (immediately) on formation <paramref name="u"/>'s anchor — its station, or in the
+        /// field its own position — then lets the lens draw the view.</summary>
+        private void CentreOnFormation(MilitaryUnitRow u)
+        {
+            if (u.Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, u.Location.Value, Ui.MapRect);
+            else
+            {
+                Ui.Camera.Stop();
+                (double sx, double sy) = Ui.Camera.WorldToScreen(u.X + 0.5, u.Y + 0.5, Ui.MapRect);
+                Ui.Camera.Pan(Ui.MapRect.CenterX - sx, Ui.MapRect.CenterY - sy, Ui.MapRect);
+            }
+            h.Idle(2);
+        }
+
+        /// <summary>
+        /// P11: THE FORMATION ROWS — every row of the token layer. (1) The lens drew exactly one token per formation the
+        /// player knows, each once (no stack, no count). (2) Each of those tokens, clicked at its centre (the camera centred
+        /// on its station or its position, at the zoom the sweep is at), selects ITS formation and opens its card — the
+        /// hit test is per row. (3) A rival formation the player knows is drawn and selectable; with none in sight the row is
+        /// not offered (the hidden-rival state hides the AI's whole polity: its click rows are the knowledge rows). All are
+        /// camera rows: looking at, and selecting, a formation changes no hash and queues no order.
+        /// </summary>
+        private void FormationRows()
+        {
+            // The rows centre the camera on formations; the view they found is given back afterwards, so the rows after
+            // them (the camera rows: drag pan, the wheel) start where they always have.
+            (double viewX, double viewY) = (Ui.Camera.CenterX, Ui.Camera.CenterY);
+            var known = new List<MilitaryUnitRow>();
+            for (int i = 0; i < Ui.World.MilitaryUnits.Count; i++)
+                if (S.Knowledge.KnowsUnit(Ui.World.MilitaryUnits[i])) known.Add(Ui.World.MilitaryUnits[i]);
+            LookCheck("map: formation", "one token per known formation (P11)", () =>
+            {
+                CloseEverything();
+                h.Idle(1);
+                if (Ui.LensFrame is not { } f) return (GateResult.Fail, "no lens frame");
+                var drawn = new List<int>(f.UnitTokens);
+                drawn.Sort();
+                var want = new List<int>();
+                foreach (MilitaryUnitRow u in known) want.Add(u.Id);
+                want.Sort();
+                bool same = drawn.Count == want.Count;
+                for (int i = 0; same && i < drawn.Count; i++) same = drawn[i] == want[i];
+                return Expect(same, "drawn " + string.Join(",", drawn) + " / known " + string.Join(",", want));
+            });
+            LookCheck("map: formation", "every token selects its own formation (P11)", () =>
+            {
+                if (known.Count == 0) return (GateResult.NotOffered, "the player knows no formation");
+                var bad = new List<string>();
+                foreach (MilitaryUnitRow u in known)
+                {
+                    CloseEverything();
+                    CentreOnFormation(u);
+                    h.Idle(1);
+                    UnitPlacement? at = null;
+                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == u.Id) at = p;
+                    if (at is not { } placed) { bad.Add(u.Id.ToString(CultureInfo.InvariantCulture) + " not drawn"); continue; }
+                    h.Click(placed.X, placed.Y);
+                    if (Ui.SelectedUnit != u.Id || Ui.UnitCard?.UnitId != u.Id)
+                        bad.Add(u.Id.ToString(CultureInfo.InvariantCulture) + " -> " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture));
+                }
+                CloseEverything();
+                return Expect(bad.Count == 0, string.Join("; ", bad));
+            });
+            LookCheck("map: formation", "select a rival formation in sight (P11)", () =>
+            {
+                MilitaryUnitRow? rival = null;
+                bool any = false;
+                for (int i = 0; i < Ui.World.MilitaryUnits.Count; i++) any |= Ui.World.MilitaryUnits[i].Owner.Value != Me.Value;
+                foreach (MilitaryUnitRow u in known) if (u.Owner.Value != Me.Value) { rival = u; break; }
+                if (rival is not { } r)
+                    return (GateResult.NotOffered, any ? "no rival formation is in the player's sight" : "no rival Empire fields a formation in this state");
+                CloseEverything();
+                CentreOnFormation(r);
+                h.Idle(1);
+                UnitPlacement? at = null;
+                foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == r.Id) at = p;
+                if (at is not { } placed) return (GateResult.Fail, "the rival's token is not drawn");
+                h.Click(placed.X, placed.Y);
+                bool ok = Ui.SelectedUnit == r.Id && Ui.UnitCard is { Mine: false } card && card.UnitId == r.Id
+                    && card.NotSimulated.Count == UnitCardModel.NotSimulatedLines.Count;
+                string why = "rival " + r.Id.ToString(CultureInfo.InvariantCulture) + ", selected " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture)
+                    + (Ui.UnitCard is { } open ? (open.Mine ? ", its card says it is the player's" : "") : ", no card");
+                CloseEverything();
+                return Expect(ok, why);
+            });
+            Ui.Camera.Stop();
+            (double sx, double sy) = Ui.Camera.WorldToScreen(viewX, viewY, Ui.MapRect);
+            Ui.Camera.Pan(Ui.MapRect.CenterX - sx, Ui.MapRect.CenterY - sy, Ui.MapRect);
+            h.Idle(1);
         }
 
         // -------------------------------------------------------------- End Turn

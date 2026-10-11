@@ -11,7 +11,30 @@ namespace Sim.Ui.ViewModel;
 /// unit-family content; <see cref="Limitation"/> states what the formation cannot do in this build.</summary>
 public sealed record UnitCard(
     int UnitId, string Title, string Owner, bool Mine, string Family, string Line, string AgeForm, string Station,
-    string NextAge, string Limitation);
+    string NextAge, string Limitation)
+{
+    /// <summary>P11: where the row says it stands — its <c>X</c>, <c>Y</c> (terrain px, the D-047 ruling 17 frame).</summary>
+    public string Position { get; init; } = "";
+
+    /// <summary>P11: whether <see cref="Position"/> says more than <see cref="UnitCard.Station"/> — false only for a
+    /// formation stationed exactly on its settlement's site cell (every founded Warband), whose station names the place.
+    /// The window draws the position line only when it does.</summary>
+    public bool PositionAddsToStation { get; init; } = true;
+
+    /// <summary>P11: the row's <c>Experience</c>, as recorded, with what changes it in this build (nothing).</summary>
+    public string Experience { get; init; } = "";
+
+    /// <summary>P11: the row's <c>Army</c> membership (0 = none), as recorded, with what forms armies (nothing yet).</summary>
+    public string Army { get; init; } = "";
+
+    /// <summary>P11: the figures a player expects of a fighting unit that this build does NOT simulate — each its own
+    /// line, never a number (<see cref="UnitCardModel.NotSimulatedLines"/>, the same for every formation).</summary>
+    public IReadOnlyList<string> NotSimulated { get; init; } = [];
+
+    /// <summary>P11: the locked movement line (<see cref="UnitCardModel.MovementText"/>): non-interactive — no control on
+    /// the card moves the formation, and no right-click on the map orders it.</summary>
+    public string Movement { get; init; } = "";
+}
 
 /// <summary>
 /// THE WARBAND AS AN HONEST UI OBJECT (M5 hardening H1, Director §3). Determined from the code at this commit:
@@ -28,9 +51,34 @@ public sealed record UnitCard(
 /// </list>
 /// So a formation is selectable and explained, and the card says plainly that it cannot be moved yet; no
 /// control on it pretends otherwise.
+/// <para>M5 map workstream P11 — THE DETAIL WINDOW. Beyond H1's lines the card carries the row's recorded position,
+/// experience and army membership, one "not simulated" line each for strength, health, attack, Action Points and the
+/// headcount (the row holds none of them; no number is ever shown for one), and the LOCKED movement line — text only,
+/// pending the Director's ruling (M7, CR-017). Nothing on it is computed beyond formatting a row field or reading the
+/// unit-family content (the card field provenance test pins each line to its field).</para>
 /// </summary>
 public static class UnitCardModel
 {
+    /// <summary>
+    /// P11: THE HONEST STAT BLOCK. <c>MilitaryUnitRow</c> holds no strength, health, attack, Action Points or headcount
+    /// (unit-families.json: "NO COMBAT STATISTICS"; a formation "holds no people and no goods"; D-043 A8 defers the
+    /// military-stat model; CR-017 §3, Action Capacity, is OPEN), so the card names each and says it is not simulated —
+    /// it never shows a number for one. The headcount line is why no token on the map carries a count label.
+    /// </summary>
+    public static readonly IReadOnlyList<string> NotSimulatedLines =
+    [
+        "Strength: not simulated",
+        "Health: not simulated",
+        "Attack: not simulated",
+        "Action points: not simulated",
+        "Headcount: not simulated - no count",
+    ];
+
+    /// <summary>P11: the locked movement line (pending the Director's ruling on the workstream's movement issue: M7 and
+    /// CR-017). It is text only: the card offers no Move control and the map reads no right-click.</summary>
+    public const string MovementText =
+        "Movement: not simulated in this build — scheduled for the Battle Layer (M7), awaiting the Director's ruling";
+
     /// <summary>The card's statement of the limitation (the same words for every formation).</summary>
     public const string LimitationText =
         "Movement and battle arrive with the Battle Layer (milestone M7). This formation cannot be moved or given "
@@ -71,8 +119,45 @@ public static class UnitCardModel
             }
             else next = "Final Age: no further modernization.";
         }
-        return new UnitCard(unit.Id, title, owner, mine, familyName, line, ageForm, station, next, LimitationText);
+        return new UnitCard(unit.Id, title, owner, mine, familyName, line, ageForm, station, next, LimitationText)
+        {
+            Position = PositionText(unit),
+            PositionAddsToStation = !AtStationSite(world, unit),
+            Experience = ExperienceText(unit.Experience),
+            Army = ArmyText(unit.Army),
+            NotSimulated = NotSimulatedLines,
+            Movement = MovementText,
+        };
     }
+
+    /// <summary>P11: whether <paramref name="unit"/> is stationed in a settlement and stands exactly on its site cell.</summary>
+    private static bool AtStationSite(IReadOnlyWorldState world, in MilitaryUnitRow unit)
+    {
+        if (unit.Location.Value < 0 || world.Terrain is not { } terrain) return false;
+        for (int i = 0; i < world.Settlements.Count; i++)
+        {
+            if (world.Settlements[i].Id.Value != unit.Location.Value) continue;
+            int cell = world.Settlements[i].SiteCell, size = terrain.Size;
+            return unit.X == cell % size && unit.Y == cell / size;
+        }
+        return false;
+    }
+
+    /// <summary>P11: the row's position as recorded — its <c>X</c>, <c>Y</c> in map (terrain) px, invariant culture, up to
+    /// two decimals.</summary>
+    public static string PositionText(in MilitaryUnitRow unit) =>
+        "Position: " + unit.X.ToString("0.##", CultureInfo.InvariantCulture) + ", " + unit.Y.ToString("0.##", CultureInfo.InvariantCulture)
+        + " on the map";
+
+    /// <summary>P11: the row's experience as recorded (one decimal, as the settlement view shows it). Worldgen founds it at
+    /// 0 and the one writer of <c>MilitaryUnits</c> (AgeTransitionSystem) preserves it: nothing in this build earns it.</summary>
+    public static string ExperienceText(double experience) =>
+        "Experience: " + experience.ToString("0.0", CultureInfo.InvariantCulture) + " - nothing earns it yet";
+
+    /// <summary>P11: the row's army membership as recorded (0 = none); nothing in this build forms an army (D-043 B5's Army
+    /// MobileAgent is unbuilt), so a membership other than none is shown as the bare number the row holds.</summary>
+    public static string ArmyText(int army) =>
+        army == 0 ? "Army: none - no army is formed yet" : "Army: number " + army.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>The family's mainline from the formation's current identity: "Warband -> Axe warriors -> Bronze swordsmen".</summary>
     public static string Line(UnitFamily? family, UnitIdentity? current)
@@ -101,18 +186,41 @@ public static class UnitSelection
     /// <summary>The token half-width the lens uses at <paramref name="zoom"/> (WorldLens.Paint).</summary>
     public static double TokenSize(WorldZoom zoom) => zoom == WorldZoom.World ? 9 : 12;
 
-    /// <summary>The formation whose token contains (x, y) in the last painted lens frame, or -1. Tokens fan out
-    /// without overlapping; the last drawn (topmost) wins a tie.</summary>
-    public static int HitTest(LensFrame? frame, double x, double y)
+    /// <summary>The formation whose token contains (x, y) in the last painted lens frame, or -1.</summary>
+    public static int HitTest(LensFrame? frame, double x, double y) =>
+        frame is null ? -1 : HitTest(frame.UnitPlacements, frame.Zoom, x, y);
+
+    /// <summary>
+    /// P11: THE FORMATION UNDER A SCREEN CLICK, or -1. ADMISSION is the token's plate as drawn (2s × 1.5s about its
+    /// centre, s = <see cref="UnitPlacement.Size"/>, or <see cref="TokenSize"/> of <paramref name="zoom"/> for a placement
+    /// no paint made) grown by <see cref="GripPx"/>. RANKING is the composite key (token-centre screen distance ASC,
+    /// unit id ASC) — the settlement pick's rule (<see cref="SettlementSelection.HitTest(IReadOnlyList{SettlementHit}, double, double)"/>),
+    /// never the order the placements were drawn in: tokens sharing an anchor fan out without overlapping
+    /// (<see cref="WorldLens.FanSlots"/>), and where two tokens of different anchors overlap (two field formations a hair
+    /// apart, a field token beside a station's fan) a click picks the one whose centre is nearer, a bit-exact tie the lower
+    /// id — so every row is picked at its own centre whatever the table order (pinned by a tie-dense test). (Before P11 the
+    /// last-drawn token won, so an overlapped formation could be unreachable in one table order and not in another.)
+    /// </summary>
+    public static int HitTest(IReadOnlyList<UnitPlacement> placements, WorldZoom zoom, double x, double y)
     {
-        if (frame is null) return -1;
-        for (int i = frame.UnitPlacements.Count - 1; i >= 0; i--)
+        bool found = false;
+        int bestId = -1;
+        double bestDistSq = double.PositiveInfinity;
+        for (int i = 0; i < placements.Count; i++)
         {
-            UnitPlacement p = frame.UnitPlacements[i];
-            double s = p.Size > 0 ? p.Size : TokenSize(frame.Zoom);   // P2: the size the token was drawn at
-            if (x >= p.X - s - GripPx && x <= p.X + s + GripPx && y >= p.Y - s * 0.75 - GripPx && y <= p.Y + s * 0.75 + GripPx)
-                return p.Id;
+            UnitPlacement p = placements[i];
+            double s = p.Size > 0 ? p.Size : TokenSize(zoom);   // P2: the size the token was drawn at
+            if (!(x >= p.X - s - GripPx && x <= p.X + s + GripPx && y >= p.Y - s * 0.75 - GripPx && y <= p.Y + s * 0.75 + GripPx))
+                continue;
+            double dx = p.X - x, dy = p.Y - y;
+            double distSq = dx * dx + dy * dy;
+            if (!found || distSq < bestDistSq || (distSq == bestDistSq && p.Id < bestId))
+            {
+                found = true;
+                bestDistSq = distSq;
+                bestId = p.Id;
+            }
         }
-        return -1;
+        return bestId;
     }
 }

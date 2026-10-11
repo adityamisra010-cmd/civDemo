@@ -58,7 +58,12 @@ public sealed record InstitutionMarker(int Settlement, string Key, long Count);
 
 /// <summary>One military formation token (a MilitaryUnits row): its CURRENT family and identity — the
 /// row as the last Age transition left it (ADR-031 automatic modernization).</summary>
-public sealed record UnitLensView(int Id, int Owner, double X, double Y, int FamilyKey, string FamilyName, string IdentityName, int Location);
+public sealed record UnitLensView(int Id, int Owner, double X, double Y, int FamilyKey, string FamilyName, string IdentityName, int Location)
+{
+    /// <summary>P11: the token's emblem, keyed by the row's CURRENT identity (<see cref="UnitEmblem.Of"/>; the projection
+    /// always sets it). Null — a view built without content — draws the family mark alone (<see cref="UnitEmblem.Unkeyed"/>).</summary>
+    public UnitEmblem? Emblem { get; init; }
+}
 
 /// <summary>Where the lens placed one formation token (screen px, the token's centre) and its fan-out
 /// slot among the formations sharing its anchor (0 = first in ascending unit id).</summary>
@@ -267,13 +272,18 @@ public sealed class WorldProjection
             if (!known.KnowsUnit(u)) continue;   // P7: D-039 C1 — a formation not observed is UNKNOWN, never drawn
             UnitIdentity? ident = fam?.IdentityByKey(u.Identity);
             units.Add(new UnitLensView(u.Id, u.Owner.Value, u.X, u.Y, u.Family,
-                fam?.FamilyByKey(u.Family)?.Name ?? "Formation", ident?.Name ?? "Formation", u.Location.Value));
+                fam?.FamilyByKey(u.Family)?.Name ?? "Formation", ident?.Name ?? "Formation", u.Location.Value)
+            {
+                Emblem = UnitEmblem.Of(fam, u.Family, u.Identity),   // P11: keyed by the CURRENT identity
+            });
         }
 
         int playerAge = ages is null ? 0 : AgeQuery.CurrentAge(world, ages, player);
         var absent = new List<string>
         {
             "Army movement and supply arrive with the Battle Layer (M7) - formations are shown where they are stationed",
+            // P11: a formation holds no people (MilitaryUnitRow has no headcount), so no token carries a count.
+            FormationCountAbsent,
         };
         if (!anyInstitution) absent.Add("Institutions: none founded");
         // P7: the rows of a hidden settlement are not counted (all-known: exactly world.Structures.Count == 0).
@@ -290,6 +300,11 @@ public sealed class WorldProjection
             Absent = absent,
         };
     }
+
+    /// <summary>P11: the honest empty state for the formation count (ledger §24's "internal composition may appear as
+    /// labels/counts" has no composition to show: <c>MilitaryUnitRow</c> holds no headcount, manpower or strength).</summary>
+    public const string FormationCountAbsent =
+        "Formation counts: not simulated - a formation holds no people, so no token shows a count";
 
     private static bool SiteOf(IReadOnlyWorldState world, SettlementId id, int size, out double x, out double y)
     {
@@ -481,7 +496,7 @@ public static class WorldLens
     /// <summary>An emblem mark of base width <paramref name="basePx"/> in the era's weight (floored).</summary>
     private static double Emblem(MapInk k, double basePx) => Math.Max(MapHandTokens.MinStrokePx, basePx * k.Hand.EmblemScale);
 
-    private const int UnitEmblemSalt = 0x4D31, HallEmblemSalt = 0x4D32, BannerPoleSalt = 0x4D33;
+    private const int UnitEmblemSalt = 0x4D31, HallEmblemSalt = 0x4D32, BannerPoleSalt = 0x4D33, UnitFormSalt = 0x4D34;
 
     /// <summary>A stroke in the era's hand: its ends displaced by up to <see cref="MapHandTokens.WobblePx"/>,
     /// seeded (<see cref="FrameNoise"/>) from the glyph's STABLE key — the unit family, the institution type, the
@@ -694,7 +709,7 @@ public static class WorldLens
                 (double fx, double fy) = FanOffset(R, slots[i], tok);
                 ux += edge + fx;
                 uy += fy;
-                UnitToken(d, ux, uy, tok, u.FamilyKey, k.PolityOf(u.Owner, p.PlayerPolity), k);
+                UnitToken(d, ux, uy, tok, u.Emblem ?? UnitEmblem.Unkeyed(u.FamilyKey), k.PolityOf(u.Owner, p.PlayerPolity), k);
                 if (R > 0)
                 {
                     int from = d.Commands.Count;
@@ -783,7 +798,7 @@ public static class WorldLens
         WorldLayer.InfrastructureDensity => "Path links in the catchment, size tier",
         WorldLayer.PopulationScale => "People and dwellings",
         WorldLayer.ProductionSignals => "Labour split: a ring of sector arcs",
-        WorldLayer.MilitaryFormations => "Formations: emblem by unit family",
+        WorldLayer.MilitaryFormations => "Formations: a token each - family emblem, a pip per form in its line",
         WorldLayer.AgeBanners => "Age banners: the holder's Age",
         _ => layer.ToString(),
     };
@@ -1293,10 +1308,25 @@ public static class WorldLens
     }
 
     /// <summary>A formation token: a framed plate whose emblem is the unit FAMILY (twelve families,
-    /// twelve emblems), filled with the owner's ink.</summary>
-    public static void UnitToken(DrawList d, double x, double y, double s, int family, Rgba owner, MapInk? ink = null)
+    /// twelve emblems), filled with the owner's ink — the family mark alone (<see cref="UnitEmblem.Unkeyed"/>).</summary>
+    public static void UnitToken(DrawList d, double x, double y, double s, int family, Rgba owner, MapInk? ink = null) =>
+        UnitToken(d, x, y, s, UnitEmblem.Unkeyed(family), owner, ink);
+
+    /// <summary>The PIP PITCH of the form pips at token half-size <paramref name="s"/>: nine pips span 1.44 s, inside the
+    /// plate's 2 s width.</summary>
+    public static double PipPitch(double s) => s * 0.18;
+
+    /// <summary>
+    /// P11: A FORMATION TOKEN KEYED BY ITS CURRENT IDENTITY (<see cref="UnitEmblem"/>) — a framed plate in the owner's
+    /// ink; on it the ROLE mark of the identity's family (the twelve H1 emblems, command for command) and, below it, one
+    /// short upright PIP per form of the identity's place in its family's line (none when the content does not know it).
+    /// Non-anatomical by construction (D-038 C1): a plate, straight strokes, small polygons and circles, all inside the
+    /// plate's 2s × 1.5s box (the hit rect) — no figure, no face, no limb, no frame of animation, and no number.
+    /// </summary>
+    public static void UnitToken(DrawList d, double x, double y, double s, UnitEmblem emblem, Rgba owner, MapInk? ink = null)
     {
         MapInk k = ink ?? MapInk.Default;
+        int family = emblem.Glyph;
         Rgba frame = k.GlyphInk, pale = k.EmblemMark;
         int n = 0;
         // An emblem stroke in the era's hand, seeded from the FAMILY (every token of a family is drawn alike).
@@ -1320,6 +1350,15 @@ public static class WorldLens
             case 11: L(x - e, y, x + e, y, 1.6); L(x, y - e * 0.7, x, y + e * 0.7, 1.6); break;
             case 12: d.Polygon([(x, y - e), (x + e * 0.35, y + e * 0.6), (x - e * 0.35, y + e * 0.6)], pale); break;
             default: d.Circle(x, y, e * 0.5, pale, null); break;
+        }
+        // The form pips: one upright stroke per form, centred in the band under the role mark, seeded from the
+        // IDENTITY (every token of an identity is drawn alike).
+        int pips = Math.Min(emblem.Form, UnitEmblem.MaxPips);
+        double pitch = PipPitch(s), top = y + s * 0.54, foot = y + s * 0.70;
+        for (int i = 0; i < pips; i++)
+        {
+            double px = x + (i - (pips - 1) / 2.0) * pitch;
+            HandLine(d, k, px, top, px, foot, pale, Emblem(k, 1.0), emblem.Identity, UnitFormSalt, i);
         }
     }
 }

@@ -280,6 +280,18 @@ public sealed partial class GameUi
     public int SelectedUnit => _selectedUnit;
     /// <summary>The selected formation's card (null when none is selected).</summary>
     public UnitCard? UnitCard => _unitCard;
+
+    /// <summary>P11: the formation card's MEASURED content height (px) in the last frame it was drawn — what the card
+    /// would need to show every line unscrolled; its rect (<see cref="UnitCardRect"/>) is that, or the room the window has.</summary>
+    public float UnitCardContentHeight { get; private set; }
+
+    /// <summary>P11: the formation card body's scroll (ImGui's ScrollY and ScrollMaxY) in the last frame it was drawn: max 0
+    /// when everything fits.</summary>
+    public (float Y, float Max) UnitCardScroll { get; private set; }
+
+    // P11: the formation whose card body the scroll belongs to (another formation's card opens at the top).
+    private int _unitCardBodyUnit = -1;
+
     /// <summary>What the world lens drew last frame (zoom, layers, where each formation token went).</summary>
     public Sim.Ui.World.LensFrame? LensFrame => _lensFrame;
     /// <summary>P6: the world lens's DrawList commands as the last frame painted them (before the backend's off-screen
@@ -1418,6 +1430,20 @@ public sealed partial class GameUi
         dl.AddCircleFilled(new System.Numerics.Vector2(cx, cy + r * 0.48f), w * 0.62f, Col(t.Ink.OnAccent), 0);
     }
 
+    /// <summary>P11: the kinds of line the formation card draws.</summary>
+    private enum CardLine { Plain, Detail, Locked, Callout }
+
+    /// <summary>P11: a small PADLOCK in the soft text ink, before the formation card's locked movement line — it marks the
+    /// line as a fact about the build, not a control (nothing about it is interactive).</summary>
+    private static void LockMark(ImDrawListPtr dl, float cx, float cy, float r, Sim.Ui.Theme.EraTheme t)
+    {
+        uint ink = Col(t.Ink.TextSoft);
+        float w = Math.Max(1.4f, r * 0.24f);
+        dl.PathArcTo(new System.Numerics.Vector2(cx, cy - r * 0.1f), r * 0.45f, MathF.PI, 2f * MathF.PI, 10);
+        dl.PathStroke(ink, ImDrawFlags.None, w);
+        dl.AddRectFilled(new System.Numerics.Vector2(cx - r * 0.7f, cy - r * 0.1f), new System.Numerics.Vector2(cx + r * 0.7f, cy + r * 0.75f), ink, r * 0.15f);
+    }
+
     /// <summary>An era colour as ImGui's packed ABGR.</summary>
     private static uint Col(ParchmentPalette.Rgba c) => ((uint)c.A << 24) | ((uint)c.B << 16) | ((uint)c.G << 8) | c.R;
 
@@ -1614,11 +1640,17 @@ public sealed partial class GameUi
     }
 
     /// <summary>
-    /// THE FORMATION CARD (H1, Director §3): name, owner, family line, current Age form, station, what the next
-    /// Age does to it — and, in the card's own words, that it cannot be moved or ordered until the Battle Layer
-    /// (M7). Its only control is the close button: nothing on it pretends to move the formation. UR-3: its height is
-    /// its measured content (the M7 limitation — its most important sentence — was clipped by a fixed 268 px), and
-    /// the limitation is a callout in the progress family's text ink with an attention mark.
+    /// THE FORMATION CARD (H1, Director §3) — P11's DETAIL WINDOW: name, owner, family line, current Age form, station,
+    /// what the next Age does to it; the row's recorded position (where it says more than the station), experience and
+    /// army membership (<see cref="UnitCard"/>); then one line each for strength, health, attack, Action Points and the
+    /// headcount, each "not simulated" (never a number), the LOCKED movement line (a padlock mark, text only) and, in the
+    /// card's own words, that it cannot be moved or ordered until the Battle Layer (M7). Its only control is the close
+    /// button: nothing on it pretends to move the formation. UR-3: its height is its measured content (the M7 limitation —
+    /// its most important sentence — was clipped by a fixed 268 px), and the limitation is a callout in the progress
+    /// family's text ink with an attention mark. P11: the identity block is set in the body size and everything explanatory below it in the
+    /// secondary size, so the whole card fits unscrolled at the 1280x800 design window and larger; where the window is
+    /// too short for it (the 1080x640 floor), its body scrolls under the fixed header (<see cref="UnitCardContentHeight"/>
+    /// records what it measured, <see cref="UnitCardScroll"/> the scroll).
     /// </summary>
     private void DrawUnitCard()
     {
@@ -1628,27 +1660,42 @@ public sealed partial class GameUi
         float frameH = ImGui.GetFrameHeight();
         float padX = ImGui.GetStyle().WindowPadding.X, width = UnitCardWidth * s, wrap = width - 2f * padX;
         float markW = 22f * s;
-        var lines = new List<(string Text, ParchmentPalette.Rgba Ink, bool Callout)>
+        var lines = new List<(string Text, ParchmentPalette.Rgba Ink, CardLine Kind)>
         {
-            (card.Owner + " - " + card.Station, _frameTheme.Ink.Text, false),
-            (card.Family + (card.Line.Length > 0 ? ": " + card.Line : ""), _frameTheme.TextInk.Accent, false),
-            (card.AgeForm, _frameTheme.Ink.Text, false),
+            (card.Owner + " - " + card.Station, _frameTheme.Ink.Text, CardLine.Plain),
+            (card.Family + (card.Line.Length > 0 ? ": " + card.Line : ""), _frameTheme.TextInk.Accent, CardLine.Plain),
+            (card.AgeForm, _frameTheme.Ink.Text, CardLine.Plain),
         };
-        if (card.NextAge.Length > 0) lines.Add((card.NextAge, _frameTheme.Ink.TextSoft, false));
-        lines.Add((card.Limitation, _frameTheme.TextInk.Progress, true));
+        if (card.NextAge.Length > 0) lines.Add((card.NextAge, _frameTheme.Ink.TextSoft, CardLine.Plain));
+        // P11: what the row records (in the explanation size), then what this build does not simulate — each its own
+        // line, each saying so — then the locked movement line, then the card's own statement of the limitation.
+        foreach (string recorded in new[] { card.PositionAddsToStation ? card.Position : "", card.Experience, card.Army })
+            if (recorded.Length > 0) lines.Add((recorded, _frameTheme.Ink.Text, CardLine.Detail));
+        foreach (string gap in card.NotSimulated) lines.Add((gap, _frameTheme.Ink.TextSoft, CardLine.Detail));
+        if (card.Movement.Length > 0) lines.Add((card.Movement, _frameTheme.Ink.TextSoft, CardLine.Locked));
+        lines.Add((card.Limitation, _frameTheme.TextInk.Progress, CardLine.Callout));
         ImFontPtr? body = RoleFont(Sim.Ui.Theme.TypeRole.Body);
+        ImFontPtr? detail = RoleFont(Sim.Ui.Theme.TypeRole.Secondary);
         float spacing = ImGui.GetStyle().ItemSpacing.Y;
         var probe = new ChromeElement(new PanelRect("##unit-card", 0, 0, width, 100), RulePlacement.UnderHeaderRow);
-        float h = ChromeGeometry.ContentTop(probe, frameH, s);
-        foreach ((string text, _, bool callout) in lines)
-            h += WrappedHeight(body, text, callout ? wrap - markW : wrap) + spacing + (callout ? 6f * s : 0f);
-        h += PanelLayout.Margin * s;
+        // The body's content as ImGui lays it out in the child: every item's height (a line's wrapped text, a gap's 6 px
+        // dummy) with the item spacing BETWEEN items; the card is that under the header, plus the window's bottom padding.
+        float content = 0f, tight = DetailSpacing * s;
+        for (int i = 0; i < lines.Count; i++)
+        {
+            (string text, _, CardLine kind) = lines[i];
+            if (kind == CardLine.Callout) content += 6f * s + spacing;
+            content += WrappedHeight(Small(kind) ? detail : body, text, kind is CardLine.Callout or CardLine.Locked ? wrap - markW : wrap);
+            if (i < lines.Count - 1) content += kind == CardLine.Detail ? tight : spacing;
+        }
+        float h = ChromeGeometry.ContentTop(probe, frameH, s) + content + ImGui.GetStyle().WindowPadding.Y;
+        UnitCardContentHeight = h;
         float y = _selectionRect.Y + _selectionRect.Height + PanelLayout.Margin * s;
         _unitCardRect = new PanelRect("##unit-card", PanelLayout.Margin * s, y, width,
             (float)Math.Ceiling(Math.Min(h, Math.Max(120f, _viewportHeight - y - CommandRect.Height - PanelLayout.Margin * s))));
         var element = new ChromeElement(_unitCardRect, RulePlacement.UnderHeaderRow);
 
-        BeginChrome(_unitCardRect);
+        BeginChrome(_unitCardRect, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
         DrawPanelFurniture(element);
         ScreenRect close = ChromeGeometry.CloseButton(element, frameH, s);
         ScreenRect head = ChromeGeometry.HeaderRow(element, frameH, s);
@@ -1663,23 +1710,46 @@ public sealed partial class GameUi
         ImGui.PopStyleVar();
         if (closeClicked) SelectUnit(-1);
         ImGui.SetCursorPosY(ChromeGeometry.ContentTop(element, frameH, s) - _unitCardRect.Y);
-        foreach ((string text, ParchmentPalette.Rgba ink, bool callout) in lines)
+        // P11: the lines scroll inside a child under the fixed header (the context panel's idiom: the title and the close
+        // button stay put, a scrollbar cannot land on the close button) — where the window is too short for the card's
+        // measured content, the wheel over the card scrolls it; where it fits, nothing scrolls and nothing moves.
+        if (card.UnitId != _unitCardBodyUnit) ImGui.SetNextWindowScroll(System.Numerics.Vector2.Zero);
+        _unitCardBodyUnit = card.UnitId;
+        ImGui.BeginChild("unit-body", System.Numerics.Vector2.Zero, ImGuiChildFlags.None, ImGuiWindowFlags.NoBackground);
+        foreach ((string text, ParchmentPalette.Rgba ink, CardLine kind) in lines)
         {
-            if (callout)
+            if (Small(kind)) PushRole(Sim.Ui.Theme.TypeRole.Secondary);
+            if (kind == CardLine.Detail)
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, DetailSpacing * s));
+            if (kind == CardLine.Callout) ImGui.Dummy(new System.Numerics.Vector2(1f, 6f * s));
+            if (kind is CardLine.Callout or CardLine.Locked)
             {
-                ImGui.Dummy(new System.Numerics.Vector2(1f, 6f * s));
                 System.Numerics.Vector2 at = ImGui.GetCursorScreenPos();
-                AttentionMark(ImGui.GetWindowDrawList(), at.X + 8f * s, at.Y + ImGui.GetTextLineHeight() / 2f, 8f * s, _frameTheme);
+                if (kind == CardLine.Callout)
+                    AttentionMark(ImGui.GetWindowDrawList(), at.X + 8f * s, at.Y + ImGui.GetTextLineHeight() / 2f, 8f * s, _frameTheme);
+                else LockMark(ImGui.GetWindowDrawList(), at.X + 8f * s, at.Y + ImGui.GetTextLineHeight() / 2f, 7f * s, _frameTheme);
                 ImGui.SetCursorScreenPos(new System.Numerics.Vector2(at.X + markW, at.Y));
             }
-            ImGui.PushTextWrapPos(width - padX);
+            ImGui.PushTextWrapPos(0f);   // the child's content edge: the card's, or short of the scrollbar when it scrolls
             ImGui.PushStyleColor(ImGuiCol.Text, Col(ink));
             Text(text);
             ImGui.PopStyleColor();
             ImGui.PopTextWrapPos();
+            if (kind == CardLine.Detail) ImGui.PopStyleVar();
+            if (Small(kind)) PopRole();
         }
+        UnitCardScroll = (ImGui.GetScrollY(), ImGui.GetScrollMaxY());
+        ImGui.EndChild();
         ImGui.End();
     }
+
+    /// <summary>P11: the leading under a recorded-field or gap line (px at UI scale 1): the block reads as one list.</summary>
+    private const float DetailSpacing = 3f;
+
+    /// <summary>P11: the card's lines set in the explanation size (<c>TypeRole.Secondary</c>): the recorded fields, the
+    /// gaps, the locked movement line and the limitation callout (its progress ink and attention mark unchanged) — the
+    /// identity block above them stays in the body size.</summary>
+    private static bool Small(CardLine kind) => kind is CardLine.Detail or CardLine.Locked or CardLine.Callout;
 
     /// <summary>
     /// THE VERBS AND THE WAYS OF LOOKING, on one row. End Turn sits apart from

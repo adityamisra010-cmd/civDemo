@@ -1434,6 +1434,112 @@ Measured on this tree (Release) after the fix:
 - `--smoke --monkey 200`: 11 states, 2417 checks, 2288 pass, 129 not offered, 0 FAIL, 0 problems, 81,461 frames. These are
   the same counts as the S1d record above, so no row and no verdict moved.
 
+### 3.11 The formation token and its detail window (M5 workstream P11, 2026-10-11)
+
+Branch `m5w-p11-unit-token-detail`, cut from `m5w-p7-player-knowledge-seam` @ `c58d9b07` (P7 head on `m5w-integration`).
+Presentation only: no file under `Sim.Core`, `Sim.Data` or `Sim.Cli` changed (`git diff --stat c58d9b07 -- Sim.Core
+Sim.Data Sim.Cli` is empty), so no world hash, golden, order or save can move. Ruling followed: the DEFAULT the Director
+was given for the unit-representation issue (no objection yet; W0b, the rulings record, is not on this base) — one
+non-anatomical emblem token per formation (D-038 C1), keyed by its current identity; the count label shows only an
+authoritative count, and `MilitaryUnitRow` has none, so NO count label is drawn. Movement stays M7 pending the Director's
+ruling (CR-017): a locked line, no Move control, no right-click order.
+
+**The token (IMPLEMENTED).** `Sim.Ui/World/UnitEmblem.cs`: the emblem is read from the unit-family content for the row's
+CURRENT identity — the role mark of the family that identity belongs to (H1's twelve emblems, command for command) and one
+upright form PIP per place in the family's line (content order; Warband 1, Axe warriors 2; at most 9, heavy infantry's
+line). It is injective over the 66 content identities, so a modernization re-keys the token; experience, army and
+position never reach it. A token is the plate plus at most two role strokes and its pips, all inside the plate's
+2s x 1.5s box (the hit rect): no figure, face, limb or animation. One token per `MilitaryUnits` row the player knows, in
+table order (the pin stands). No count: the legend's absent lines gain "Formation counts: not simulated - a formation
+holds no people, so no token shows a count", its formations entry reads "Formations: a token each - family emblem, a pip
+per form in its line", and the card's headcount line says the same.
+
+**Picking (CHANGED).** `UnitSelection.HitTest` ranked overlapping tokens by draw order (the last drawn won), so a
+formation whose plate lay under another's could be unreachable in one table order and reachable in another. It now uses
+the settlement pick's composite key: admission by the drawn plate plus grip, ranking by (token-centre distance, unit id).
+Every row is picked at its own centre whatever the table order (tie-dense test over twelve formations at one settlement,
+eight at one field position and one a quarter-px off them, in five table orders; under the old rule the quarter-px
+formation is lost in the reversed order).
+
+**The detail window (IMPLEMENTED).** Selecting a token opens the formation card. Above the line: title (the identity),
+owner and station, family and line, the Age form, the next-Age plan (`MilitaryQuery.PlanFor`), as H1 had them. Below, in
+the secondary size: the recorded position (only where it says more than the station: a founded Warband stands on its
+capital's site), experience ("0.0 - nothing earns it yet") and army ("none - no army is formed yet"); then one line each —
+"Strength: not simulated", "Health: not simulated", "Attack: not simulated", "Action points: not simulated",
+"Headcount: not simulated - no count"; then the LOCKED line, a padlock mark and text only: "Movement: not simulated in this
+build — scheduled for the Battle Layer (M7), awaiting the Director's ruling"; then H1's limitation callout (its words, ink
+and attention mark unchanged; now in the secondary size like the lines above it). The
+close button is still the card's only control (no new control, so the P6 coverage check has nothing new to cover). The
+lines scroll in a child under the fixed header. Measured card heights (content / rect, px, at the UI scale each window
+gets): 1280x800 501.4 / 498, nothing scrolled (ImGui scroll max 0); 1920x1009 501.4 / 502; 2560x1440 684.2 / 685;
+1080x640 (the floor) 501.4 / 338, the body scrolls 177 px and the wheel over it scrolls the card, not the map. The first draft
+(every line in the body size, a heading over the gaps, the position line always drawn) measured 724 px at 1280x800 and
+would have scrolled there; it was not shipped.
+
+**Rival formations.** Drawn and picked only where P7's `PlayerKnowledge.KnowsUnit` says: owned, or the node it stands on
+(its station's site when stationed) VISIBLE. A known-but-unseen node hides it like an unknown one (test over the three
+masks); perturbing a hidden formation's identity, experience and army, and adding one in its hidden nodes, leaves the
+projection (emblems included), the lens paint (SVG and LensFrame) and every card identical, and the all-known control
+sees each change.
+
+**Gate rows (added, `map: formation`):**
+
+| row | what it checks |
+|---|---|
+| `unit card states what is not simulated (P11)` | FrameText of the card surface holds every not-simulated line and the locked movement line; no stat line carries a digit |
+| `one token per known formation (P11)` | the lens drew exactly the ids of the formations the player knows, each once (a camera row) |
+| `every token selects its own formation (P11)` | centred on each known formation, a click at its token's centre selects it and opens its card (a camera row; the view is given back afterwards) |
+| `select a rival formation in sight (P11)` | in a state with a visible rival formation (one AI), clicking it opens a rival's card with the not-simulated lines; not offered elsewhere, with the reason |
+
+**Measured (base `c58d9b07` built and run before any change, then this branch):**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200` | base: 10 states, 2094 checks, 1974 pass, 120 n/o, 0 FAIL, 0 problems, 69,304 frames, 143.0 s. After: 10 states, 2134 checks, 2005 pass, 129 n/o, 0 FAIL, 0 problems, 69,466 frames, 151.8 s. With the P11 rows removed, the two reports are identical apart from the totals line: every pre-existing cell and not-offered reason is unchanged and in order. Added: 4 rows x 10 states (31 PASS, 9 n/o: the rival row outside the one-AI state — "no rival Empire fields a formation in this state", and in the hidden-rival state "no rival formation is in the player's sight") |
+| every SVG preview (`--research/--age/--era/--action/--r2a/--player-views-preview`, 77 SVGs) | 34 differ (the screens, Age and era maps and chromes that draw a token or the map legend); 43 identical. Every difference, classified line by line (font-path normalised): +36 form-pip lines (each 5 px or shorter), +8 "Formation counts: not simulated…" lines in the Age previews' legend, 8 legend rects 15 px taller and 24 legend lines moved down by one line. Nothing else was added or removed |
+| world hash | no simulation source changed (see above); the gate's camera rows re-check the hash around every new row; the founded seed-42 300-turn CLI run from this tree ends on the pinned golden `937577ff…` |
+| tests | full Sim.Ui.Tests 761 passed, 0 failed (11 m 40 s; the 13 new tests in `UnitTokenDetailTests`); Sim.Tests targeted at the seams P11 reads (PolityKnowledge, KnowledgeMonotonic, AgeSchema, UnitModernization, AgeProgression) 104 passed; banned-constructs, read-isolation and read-only-proof scripts OK |
+
+Gate runtime: +162 frames, +9 s on this machine.
+
+**Pins.** No existing test was edited and no pin moved. The legend's formations entry ("Formations: emblem by unit family"
+-> the line above) and the absent list's new line were pinned by no test (the gate's legend rows read the projection's
+lines, so they follow).
+
+**Mutant kill record.** One-edit mutants, each built and run against a filter (`UnitTokenDetailTests`, the `Warband_*`
+tests, `UnitHitTest_*`, `UnitTokens_*`, `UnitFanOut_*` — 21 tests; clean 26 s; bound 105 s = 4x); none hung, every run took
+26–30 s. The gate mutant ran the `A1 turn 1` state alone (`--smoke --monkey 0`, clean 21 s, bound 84 s; it took 24 s).
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M1 `UnitEmblem.Of` loses the form (no pip for any identity) | `TheEmblem_IsKeyedByTheCurrentIdentity_…`, `AModernizedFormation_DrawsItsNewForm_…` |
+| M2 the projection keys the emblem by the row's family, not its identity | `AModernizedFormation_…`, `PerturbingAHiddenFormation_…` (its all-known control) |
+| M3 the painter draws no form pip | `AModernizedFormation_…`, `TheToken_IsAPlateWithStrokes_NeverAFigure_…` |
+| M4 the form is the identity's Age, not its place in the line (branch identities collide) | `TheEmblem_IsKeyedByTheCurrentIdentity_AndIsInjectiveOverTheWholeContent` |
+| M5 the hit test reverts to last-drawn-wins | `EveryRow_IsPickedAtItsOwnCentre_WhateverTheTableOrder`, `TheHitTest_BreaksADistanceTie_ByTheLowerId_InAnyOrder` |
+| M6 a distance tie goes to the higher id | `TheHitTest_BreaksADistanceTie_…` |
+| M7 the card drops the not-simulated lines | `TheCard_ShowsOnlyWhatTheRowAndTheContentHold_FieldByField`, `ARivalFormation_IsDrawnAndSelectable_…`, `TheDetailWindow_DrawsEveryLine_…` (re-run after that test was made to read the constants, not the card's own list) |
+| M8 the experience line shows a constant, not the row | `TheCard_ShowsOnlyWhatTheRowAndTheContentHold_…`, `PerturbingAHiddenFormation_…` (control) |
+| M9 the position line reads Y for X | `TheCard_ShowsOnlyWhatTheRowAndTheContentHold_…` |
+| M10 the window does not draw the locked movement line | `TheDetailWindow_DrawsEveryLine_…` (and the gate row `unit card states what is not simulated`) |
+| M11 the legend's no-count line is dropped | `TheLegend_SaysTheTokensCarryNoCount_…`, `TheTokens_AreExactlyTheKnownRows_…` |
+| M12 the position line is drawn even where the station already says it | `TheDetailWindow_DrawsEveryLine_…` |
+| M13 the card's body does not scroll with the wheel | `AtTheWindowFloor_TheCardsBodyScrolls_UnderAFixedHeader_…` |
+| M14 (`Sim.Core`, P7's seam) a rival formation in the field is known where its node is KNOWN, not visible | `ARivalFormation_IsDrawnAndSelectable_OnlyWhereThePlayerSeesIt` (the "known, out of sight" mask — no P7 test separates known from visible for a formation: `KnowledgeStubs.Over` uses one mask for both) |
+| G1 the formation rows do not give the camera back | the gate's `map` / `drag pan` row (the camera was left centred on the capital against the clamp) |
+
+A runner defect, found and fixed before this record: the first battery restored each mutated file with an OLDER
+timestamp than the mutant's build output, so MSBuild kept the last mutant binary (M13's `Sim.Ui`, M14's `Sim.Core`) after
+the battery; the first M14 verdict therefore listed a spurious floor-test failure (M13's). M1–M13 were unaffected (each
+mutant's own edit forced its project's rebuild from the restored sources). The runner now touches the restored file, the
+tree was rebuilt from touched sources, and M5 (first version did not compile), M7 and M14 were re-run clean: the verdicts
+above.
+
+Each property is one the system ought to have: a token says which formation it is and nothing the row does not hold
+(D-038 C1, ledger §24, ADR-031), every formation drawn can be picked whatever the table order (CLAUDE.md's composite-key
+rule), the card shows only recorded fields and names each gap (D-043 A8; unit-families.json "NO COMBAT STATISTICS"), and a
+formation the player does not see is neither drawn nor carded (D-039 C1, Spine principle 7).
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
@@ -1455,6 +1561,13 @@ and it modernizes for free when its civilization enters a new Age."* The card's 
 button. Escape, choosing a settlement, or opening the Age panel puts it away. Tests: selection and card content,
 no control on the card but close, drags/right-clicks/destination clicks move nothing and write no order, every way
 of closing it (`PlayabilityGateTests.Warband_*`).
+
+> **DATED NOTE 2026-10-11 (M5 workstream P11).** The card is now the formation's detail window: below the lines above it
+> carries the row's recorded experience and army (and its position where that says more than the station), one "not
+> simulated" line each for strength, health, attack, Action Points and the headcount, and a LOCKED movement line ("Movement:
+> not simulated in this build — scheduled for the Battle Layer (M7), awaiting the Director's ruling"); the limitation above is
+> unchanged in words. Its only control is still close. The token's emblem is keyed by the formation's current identity, no
+> token carries a count, and picking ranks overlapping tokens by (centre distance, id). Record: §3.7.
 
 ## 6. Coverage (generated)
 
