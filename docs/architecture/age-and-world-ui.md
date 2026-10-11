@@ -328,6 +328,22 @@ The Age still shows, as the banner: a statement of the polity's Age. `Settlement
   - At World zoom the fan is a row running east. At Regional and Settlement zoom it is a labelled column.
   - Paint order stays table order, as the existing pin requires.
 
+> **DATED NOTE 2026-10-11 (M5 map workstream P11, the Director's default for the unit-representation issue: one
+> non-anatomical emblem token per formation, keyed by its current identity; no count label).** The token's emblem is now
+> KEYED BY THE ROW'S CURRENT IDENTITY (`Sim.Ui/World/UnitEmblem.cs`): the role mark is the family the identity belongs to
+> (the twelve emblems above, command for command) and, under it, one upright PIP per form — the identity's place in its
+> family's line in content order (Warband one pip, Axe warriors two). The emblem is injective over the 66 content
+> identities, so a modernization changes the token; nothing else of the row (experience, army) reaches it. It is a plate
+> with straight strokes, small polygons and circles inside the 2s × 1.5s box — D-038 C1's fence: no figure, face, limb
+> or animation. NO COUNT LABEL is drawn: `MilitaryUnitRow` holds no headcount, so ledger §24's "internal composition may
+> appear as labels/counts" has nothing to show; the legend's absent lines say so ("Formation counts: not simulated - a
+> formation holds no people, so no token shows a count") and the formation card's headcount line does. The legend entry
+> reads "Formations: a token each - family emblem, a pip per form in its line". PICKING changed from "the last drawn
+> (topmost) token wins" to the settlement pick's composite key (token-centre distance, then the lower unit id), so every
+> row is picked at its own centre whatever the table order (`UnitSelection.HitTest`). Rival formations are drawn and
+> picked only where P7's `PlayerKnowledge.KnowsUnit` says (owned, or its node VISIBLE). Paint order is unchanged. Record:
+> `docs/m5-playability-gate.md` §3.7.
+
 ### 9.6 Zoom
 
 Thresholds and per-level layer sets are unchanged (§5). The built routes ride the existing layers:
