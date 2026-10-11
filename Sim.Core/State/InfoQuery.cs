@@ -1056,7 +1056,9 @@ public static class InfoQuery
     /// "not part of the score" — the founding predicate's arms from a source, the route, the expected deposits, discovery /
     /// presence / access / extraction, the would-be catchment, the terrain fields and the nearest known settlements, and
     /// what the simulation does not model. No weight is invented. A cell the player does not know is refused: nothing of it
-    /// is read (its title says only that it is undiscovered).
+    /// is read (its title says only that it is undiscovered). THE PLAYER'S CLASS (ADR-037 §7): unless the player sees the
+    /// whole world, every value that would read beyond what it knows is shown as "not judged" (the assessment withholds
+    /// it), and the card never narrates a settlement the player does not know.
     /// </summary>
     private static void CellCard(Ctx c, B b)
     {
@@ -1085,44 +1087,62 @@ public static class InfoQuery
         b.What = "What the simulation holds for this place. Its siting score is the one composite the simulation ranks sites by;"
             + " everything after it is shown separately and is NOT part of that score - no weights are invented.";
         b.Status = InfoStatus.Known;
-        b.StatusLine = FoundingLine(r.Verdict, from) + ".";
+        b.StatusLine = (r.Verdict is { } verdict ? FoundingLine(verdict, from) : FoundingNotJudged) + ".";
 
         // ---- 1. THE COMPOSITE: the simulation's siting score, its two factors, its rank against the floor.
         int side = 2 * r.FertilityRadiusPx + 1;
+        string composite = "The simulation's own composite (SettlementSiting.CandidateScores, without the founding jitter): turn-zero siting, emergent"
+            + " colonies and the AI's founding pick rank sites by it. Two factors, multiplied; nothing else is in it.";
+        string box = "Fertility summed over the " + Inv(side) + " x " + Inv(side) + " cells around this one (" + Num(side * kmPerPx) + " km square)";
         var score = new List<InfoLink>
         {
-            new("Siting score " + Num3(r.Score) + " = region fertility " + Num3(r.RegionFertility) + " x water access " + Num3(r.WaterAccess),
-                null, r.Candidate,
-                "The simulation's own composite (SettlementSiting.CandidateScores, without the founding jitter): turn-zero siting, emergent"
-                + " colonies and the AI's founding pick rank sites by it. Two factors, multiplied; nothing else is in it."
-                + (r.IsWater ? " Water scores 0." : "")),
-            new("Region fertility " + Num3(r.RegionFertility), null, null,
-                "Fertility summed over the " + Inv(side) + " x " + Inv(side) + " cells around this one (" + Num(side * kmPerPx) + " km square)."),
-            new("Water access " + Num3(r.WaterAccess), null, null, WaterAccessNote(r)),
-            r.Score > 0.0
-                ? new InfoLink("Scores above " + Pct(r.ScoresBelow / (double)r.PositiveScores) + " of the " + N0(r.PositiveScores) + " places with a positive score")
-                : new InfoLink("No positive score", null, false, r.IsWater ? "Water." : "No water or river within " + Inv(r.WaterAccessCutoffPx) + " cells."),
-            new("Score floor " + Num3(r.Floor) + " - the " + Pct(r.FloorPercentile) + " point of the positive scores", null, r.Candidate,
-                r.Candidate ? "This place is at or above it: a candidate site." : "Land under the floor, or water, is never a site (SettlementSiting.IsFrontierCandidate)."),
+            r.ScoreUnseen
+                ? new InfoLink("Siting score: not judged", null, null, composite + " Not judged: a factor's reach includes ground you have not discovered.")
+                : new InfoLink("Siting score " + Num3(r.Score) + " = region fertility " + Num3(r.RegionFertility) + " x water access " + Num3(r.WaterAccess),
+                    null, r.SeesAll ? r.Candidate : null, composite + (r.IsWater ? " Water scores 0." : "")),
+            r.RegionFertilityUnseen
+                ? new InfoLink("Region fertility: not judged", null, null, box + " - they include ground you have not discovered.")
+                : new InfoLink("Region fertility " + Num3(r.RegionFertility), null, null, box + "."),
+            r.WaterAccessUnseen
+                ? new InfoLink("Water access: not judged", null, null, "The nearest water or river may lie in ground you have not discovered.")
+                : new InfoLink("Water access " + Num3(r.WaterAccess), null, null, WaterAccessNote(r)),
+            !r.ScoreUnseen && !(r.Score > 0.0)
+                ? new InfoLink("No positive score", null, false, r.IsWater ? "Water." : "No water or river within " + Inv(r.WaterAccessCutoffPx) + " cells.")
+                : !r.SeesAll
+                    ? new InfoLink("Rank among the places with a positive score: not judged", null, null, UnseenWholeMap)
+                    : new InfoLink("Scores above " + Pct(r.ScoresBelow / (double)r.PositiveScores) + " of the " + N0(r.PositiveScores) + " places with a positive score"),
+            !r.SeesAll
+                ? new InfoLink("Score floor: not judged - the " + Pct(r.FloorPercentile) + " point of the positive scores", null, null, UnseenWholeMap)
+                : new InfoLink("Score floor " + Num3(r.Floor) + " - the " + Pct(r.FloorPercentile) + " point of the positive scores", null, r.Candidate,
+                    r.Candidate ? "This place is at or above it: a candidate site." : "Land under the floor, or water, is never a site (SettlementSiting.IsFrontierCandidate)."),
         };
         b.More.Add(new InfoSection("The simulation's siting score", [.. score]));
 
         // ---- 2. THE FOUNDING PREDICATE, arm by arm (not part of the score).
-        var arms = new List<InfoLink> { new("FoundingQuery: " + FoundingLine(r.Verdict, from), null, r.Verdict == FoundingVerdict.Legal) };
+        var arms = new List<InfoLink>
+        {
+            r.Verdict is { } v
+                ? new InfoLink("FoundingQuery: " + FoundingLine(v, from), null, v == FoundingVerdict.Legal)
+                : new InfoLink("FoundingQuery: " + FoundingNotJudged, null, null),
+        };
         foreach (SiteAssessment.FoundingArm a in r.Arms) arms.Add(new InfoLink(ArmLabel(c, r, a.Arm, from), null, a.Holds, ArmNote(c, r, a)));
         b.More.Add(new InfoSection("Founding here" + (from.Length > 0 ? " from " + from : "") + " - not part of the score", [.. arms]));
 
         // ---- 3. THE ROUTE from the source, and access from any settlement of the player's (not part of the score).
         var route = new List<InfoLink>();
         if (r.Source < 0) route.Add(new InfoLink("You hold no settlement to set out from", null, false));
+        else if (!r.SeesAll)
+            route.Add(new InfoLink("Route from " + from + ": not judged", null, null,
+                "Pathfinder.FindPath runs over the whole traversal lattice and every road, and you do not see all of them."));
         else if (r.Route is { Found: true } path)
             route.Add(new InfoLink("Route from " + from + ": " + Inv(path.Nodes.Length - 1) + " steps, travel cost " + Num(path.TotalCost)
                 + " (about " + N0(r.RouteKm) + " km of ideal ground)", null, true,
                 "Pathfinder.FindPath over the traversal lattice and its roads (RouteQuery) - the route a founding party's order is judged on."
                 + " A cost unit buys at most " + Num(kmPerPx * Pathing.TraversalLattice.DefaultStride) + " km, less on rough ground."));
         else route.Add(new InfoLink("No land route from " + from, null, false));
-        route.Add(new InfoLink(r.AccessibleFrom >= 0 ? "Reachable from your settlements (from " + c.Name(r.AccessibleFrom) + ")" : "Reachable from none of your settlements",
-            null, r.AccessibleFrom >= 0));
+        route.Add(!r.SeesAll ? new InfoLink("Reachable from your settlements: not judged", null, null)
+            : new InfoLink(r.AccessibleFrom >= 0 ? "Reachable from your settlements (from " + c.Name(r.AccessibleFrom) + ")" : "Reachable from none of your settlements",
+                null, r.AccessibleFrom >= 0));
         int others = 0;
         foreach (SettlementId mine in c.Controlled)
         {
@@ -1166,9 +1186,11 @@ public static class InfoQuery
             new("Present", null, r.DepositsUnavailable is null ? present > 0 : null, r.DepositsUnavailable is null
                 ? Inv(present) + " of " + Inv(r.Deposits.Length) + " deposit goods are expected above 0 here."
                 : "Not evaluated."),
-            new("Reachable", null, r.AccessibleFrom >= 0, r.AccessibleFrom >= 0
-                ? "A land route from " + c.Name(r.AccessibleFrom) + "."
-                : "No land route from any settlement of yours."),
+            !r.SeesAll
+                ? new InfoLink("Reachable", null, null, "Not judged: routes run over the whole lattice and every road, and you do not see all of them.")
+                : new InfoLink("Reachable", null, r.AccessibleFrom >= 0, r.AccessibleFrom >= 0
+                    ? "A land route from " + c.Name(r.AccessibleFrom) + "."
+                    : "No land route from any settlement of yours."),
             new("Workable", null, r.Source >= 0 ? r.ColonyWorkable : null, r.Source < 0 ? "No source settlement."
                 : r.ColonyWorkable
                     ? "A colony takes its source's ruler, so its herding and extraction labour would be yours to set (LabourActivities); production works a deposit with no research gate."
@@ -1182,9 +1204,9 @@ public static class InfoQuery
                 ? new InfoLink(N0(arable) + " sq km of fertility-weighted arable land over " + Inv(r.WouldBeNodes) + " lattice nodes", null, null,
                     "Pathfinder.Partition with this site added - the catchment the recompute after a founding here would give it, if nothing else changed first.")
                 : new InfoLink("Not evaluated: " + r.CatchmentUnavailable, null, null),
-            new(r.ClaimedBy < 0 ? "Unclaimed: in no settlement's catchment"
-                : c.K.KnowsSettlement(new SettlementId(r.ClaimedBy)) ? "In " + c.Name(r.ClaimedBy) + "'s catchment" : "In the catchment of a settlement you do not know",
-                null, r.ClaimedBy < 0),
+            r.ClaimedBy >= 0 ? new InfoLink("In " + c.Name(r.ClaimedBy) + "'s catchment", null, false)
+                : r.SeesAll ? new InfoLink("Unclaimed: in no settlement's catchment", null, true)
+                : new InfoLink("Claim: not judged", null, null, UnseenClaim),
         ]));
 
         // ---- 7. THE TERRAIN FIELDS at the cell (not part of the score).
@@ -1219,6 +1241,13 @@ public static class InfoQuery
             new("Farmland taken by a settlement's own footprint (D-009)", null, null, "Not built: the arable figure is the whole catchment's."),
         ]));
     }
+
+    /// <summary>P8 (the player's class): the predicate's answer when an arm it reaches depends on what the player has not seen.</summary>
+    private const string FoundingNotJudged = "not judged - whether a Found Settlement order would be accepted here depends on what you have not seen";
+
+    private const string UnseenWholeMap = "Not judged: it is taken over every place on the map, including ground you have not discovered.";
+
+    private const string UnseenClaim = "Not judged: no settlement you know claims it, and whether another does depends on what you have not seen.";
 
     private static string FoundingLine(FoundingVerdict v, string from) => v switch
     {
@@ -1255,15 +1284,25 @@ public static class InfoQuery
 
     private static string? ArmNote(Ctx c, SiteAssessment.Report r, SiteAssessment.FoundingArm a)
     {
+        if (a.Unseen)
+            return a.Arm switch
+            {
+                FoundingVerdict.PoorSite => UnseenWholeMap,
+                FoundingVerdict.Occupied => "Not judged: this place is not in sight now.",
+                FoundingVerdict.TooClose => "Not judged: the rule measures travel to every settlement over the lattice, and you do not see all of it.",
+                FoundingVerdict.Claimed => UnseenClaim,
+                FoundingVerdict.Unreachable => "Not judged: the route runs over the whole lattice and every road, and you do not see all of them.",
+                _ => "Not judged: it depends on what you have not seen.",
+            };
         if (a.Holds is null) return "Not judged: an earlier arm decides it.";
+        // OccupiedBy / ClaimedBy name only a settlement the player knows (SiteAssessment: every one, while it sees them all).
         return a.Arm switch
         {
-            FoundingVerdict.Occupied when r.OccupiedBy >= 0 => c.K.KnowsSettlement(new SettlementId(r.OccupiedBy)) ? "The site of " + c.Name(r.OccupiedBy) + "." : "The site of a settlement.",
+            FoundingVerdict.Occupied when r.OccupiedBy >= 0 => "The site of " + c.Name(r.OccupiedBy) + ".",
             FoundingVerdict.TooClose => double.IsPositiveInfinity(r.SpacingCost)
                 ? "No standing site within the spacing reach."
                 : "The nearest standing site is " + Num(r.SpacingCost) + " travel-cost units away; the rule needs " + Num(r.MinSpacingCost) + ".",
-            FoundingVerdict.Claimed when r.ClaimedBy >= 0 => c.K.KnowsSettlement(new SettlementId(r.ClaimedBy))
-                ? "In " + c.Name(r.ClaimedBy) + "'s catchment." : "In the catchment of a settlement you do not know.",
+            FoundingVerdict.Claimed when r.ClaimedBy >= 0 => "In " + c.Name(r.ClaimedBy) + "'s catchment.",
             FoundingVerdict.NoParty => "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.Cfg)) + " of the source's people, every group keeping one.",
             FoundingVerdict.NoProvisions => "FoundingQuery.ProvisionsShare: the party's per-head share of the source's grain store.",
             _ => null,
@@ -1275,7 +1314,9 @@ public static class InfoQuery
         string falloff = "1 at a shore or riverbank, falling to 0 at " + Inv(r.WaterAccessCutoffPx) + " cells (" + Num(r.WaterAccessCutoffPx * r.KmPerPx) + " km)";
         return r.WaterDistancePx == int.MaxValue
             ? falloff + "; no water or river can be reached from here."
-            : falloff + "; this place is " + Inv(r.WaterDistancePx) + " cells (" + Num(r.WaterDistancePx * r.KmPerPx) + " km) from water.";
+            : r.WaterDistancePx < 0
+                ? falloff + "; no water or river lies within " + Inv(r.WaterAccessCutoffPx) + " cells of here."
+                : falloff + "; this place is " + Inv(r.WaterDistancePx) + " cells (" + Num(r.WaterDistancePx * r.KmPerPx) + " km) from water.";
     }
 
     // ================================================================== tax edict

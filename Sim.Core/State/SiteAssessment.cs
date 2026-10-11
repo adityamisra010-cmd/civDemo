@@ -31,13 +31,21 @@ namespace Sim.Core.State;
 ///   verdict; the party and provisions a founding would take.</item>
 /// </list>
 ///
-/// <para><b>INFORMATION CLASS (P7).</b> A cell the viewer's <see cref="PolityKnowledge"/> does not know is REFUSED: the
-/// report says so and nothing of the cell, the terrain or the world is read for it. The nearest-settlement list names
-/// known settlements only. A KNOWN cell's values are the simulation's own, and several of them read beyond the cell —
-/// the score's box and the water-access BFS, the hinterland disc, the floor and rank (every cell), the spacing,
-/// occupancy and claim masks and the route (every settlement and the whole lattice): the same channel ADR-037 §6
-/// records for the AI's valuation, which S2b/S2c decide. All-known today, so nothing is hidden. The deposit roll for the
-/// next settlement id is shown only while the viewer knows every settlement, because the id counts all of them.</para>
+/// <para><b>INFORMATION CLASS (P7; the PLAYER's, ADR-037 §6/§7).</b> The card is a player output, so it is held to the
+/// player's stricter class: what it shows is a function of what the viewer knows, never of what lies unseen. A cell the
+/// viewer's <see cref="PolityKnowledge"/> does not know is REFUSED: the report says so and nothing of the cell, the
+/// terrain or the world is read for it. For a KNOWN cell, while the viewer SEES THE WHOLE WORLD (<see cref="SeesAll"/>:
+/// all-known, or every node visible — production today) every value is the simulation's own. Otherwise each value that
+/// would read beyond what the viewer knows is WITHHELD — "not judged", never estimated: the score's factors when the
+/// fertility box or the water-access ball (the 4-connected BFS's reach, capped at the cutoff) touches an unknown cell;
+/// the floor, the rank and the floor arm (taken over every cell); spacing and the would-be catchment (every settlement,
+/// the lattice); the route and access (the lattice and every road); the hinterland and deposits when the disc touches
+/// an unknown cell; the occupancy and claim arms unless a settlement the viewer KNOWS decides them (or, for occupancy,
+/// the cell is in sight, where no settlement can stand unseen); and the predicate's verdict when such an arm comes
+/// before its first failure. A source settlement the viewer does not know names nothing. Each "withheld or shown" choice
+/// is itself a function of the knowledge masks and known rows alone. The nearest-settlement list names known settlements
+/// only. The deposit roll for the next settlement id is shown only while the viewer sees every settlement, because the
+/// id counts all of them.</para>
 ///
 /// <para><b>DATA GAPS (stated, not filled).</b> There is no per-cell resource quantity: deposits are written per
 /// settlement, at founding. The nine deposit goods collapse onto three channels. D-051 §2 (ratified, not built) will
@@ -94,8 +102,9 @@ public static class SiteAssessment
     }
 
     /// <summary>One arm of the founding predicate as judged here: <see cref="Holds"/> null when the arm could not be
-    /// judged (its source does not stand, or an earlier arm it depends on decides it).</summary>
-    public readonly record struct FoundingArm(FoundingVerdict Arm, bool? Holds);
+    /// judged — its source does not stand, or an earlier arm it depends on decides it, or (<see cref="Unseen"/>) it
+    /// depends on what the viewer has not seen (the player's information class).</summary>
+    public readonly record struct FoundingArm(FoundingVerdict Arm, bool? Holds, bool Unseen = false);
 
     /// <summary>A settlement near the cell: its id and the straight-line distance (squared terrain px, exact; and km).</summary>
     public readonly record struct Nearby(SettlementId Id, long DistanceSquaredPx, double Km);
@@ -122,6 +131,11 @@ public static class SiteAssessment
         /// <summary>The viewer knows the cell (PolityKnowledge.KnowsCell). False: refused, nothing read.</summary>
         public required bool Known { get; init; }
 
+        /// <summary>The viewer sees the whole world (<see cref="SiteAssessment.SeesAll"/>): every value below is the
+        /// simulation's own. False: every value that reads beyond what the viewer knows is withheld — its flag or its
+        /// "unavailable" reason says so — and its number is NaN / -1 / null, never an estimate (the player's class).</summary>
+        public bool SeesAll { get; init; }
+
         // ---- the terrain fields at the cell (TerrainSet)
         public double Elevation { get; init; }
         public double SeaLevel { get; init; }
@@ -135,17 +149,27 @@ public static class SiteAssessment
         public double KmPerPx { get; init; }
 
         // ---- THE COMPOSITE: the unjittered siting score and its two factors
-        /// <summary>SettlementSiting.CandidateScores at the cell (FrontierSiting.Scores).</summary>
+        /// <summary>SettlementSiting.CandidateScores at the cell (FrontierSiting.Scores); NaN when <see cref="ScoreUnseen"/>.</summary>
         public double Score { get; init; }
-        /// <summary>The region-fertility factor (BoxSum).</summary>
+        /// <summary>The region-fertility factor (BoxSum); NaN when <see cref="RegionFertilityUnseen"/>.</summary>
         public double RegionFertility { get; init; }
         public int FertilityRadiusPx { get; init; }
-        /// <summary>BFS steps to the nearest water or river cell; int.MaxValue when none is reachable.</summary>
+        /// <summary>The fertility box (±<see cref="FertilityRadiusPx"/>) touches a cell the viewer does not know.</summary>
+        public bool RegionFertilityUnseen { get; init; }
+        /// <summary>BFS steps to the nearest water or river cell; int.MaxValue when none is reachable. When the viewer does
+        /// not see the whole world: -1 when farther than the cutoff (beyond it the BFS reads ground the viewer may not have
+        /// seen, and the factor is 0 either way), and -1 too when <see cref="WaterAccessUnseen"/>.</summary>
         public int WaterDistancePx { get; init; }
         public int WaterAccessCutoffPx { get; init; }
-        /// <summary>The water-access factor (SettlementSiting.WaterAccess).</summary>
+        /// <summary>The water-access factor (SettlementSiting.WaterAccess); NaN when <see cref="WaterAccessUnseen"/>.</summary>
         public double WaterAccess { get; init; }
-        /// <summary>The score floor (FrontierSiting.Floor) and the percentile it is.</summary>
+        /// <summary>The cells the factor depends on — every cell within min(distance, cutoff) 4-connected steps, the BFS's
+        /// reach — include one the viewer does not know.</summary>
+        public bool WaterAccessUnseen { get; init; }
+        /// <summary>Either factor is withheld, so the score is.</summary>
+        public bool ScoreUnseen => RegionFertilityUnseen || WaterAccessUnseen;
+        /// <summary>The score floor (FrontierSiting.Floor) and the percentile it is. The floor and the rank are taken over
+        /// every cell of the map: withheld (NaN, 0, 0, Candidate false) unless <see cref="SeesAll"/>.</summary>
         public double Floor { get; init; }
         public double FloorPercentile { get; init; }
         /// <summary>How many cells have a positive score (ScoreFloor's population) and how many of them score strictly less
@@ -158,14 +182,16 @@ public static class SiteAssessment
         // ---- obstruction and claim (not part of the score)
         /// <summary>The lattice node the cell belongs to (LatticeMap.OriginLatticeNode).</summary>
         public int SiteNode { get; init; } = -1;
-        /// <summary>The settlement whose site cell this is, or -1.</summary>
+        /// <summary>The settlement whose site cell this is, or -1. Unless <see cref="SeesAll"/>: a settlement the viewer
+        /// KNOWS, or -1.</summary>
         public int OccupiedBy { get; init; } = -1;
         /// <summary>Min travel cost from any standing site to the cell's node (SeedSpacing; +inf beyond the spacing cap) and
-        /// the cap the spacing rule rejects under.</summary>
+        /// the cap the spacing rule rejects under. NaN unless <see cref="SeesAll"/> (every settlement, the lattice).</summary>
         public double SpacingCost { get; init; }
         public double MinSpacingCost { get; init; }
         public double MinSpacingKm { get; init; }
-        /// <summary>The settlement whose catchment holds the cell's node (a CatchmentNodes row), or -1.</summary>
+        /// <summary>The settlement whose catchment holds the cell's node (a CatchmentNodes row), or -1. Unless
+        /// <see cref="SeesAll"/>: a settlement the viewer KNOWS, or -1.</summary>
         public int ClaimedBy { get; init; } = -1;
 
         // ---- hinterland and deposits (not part of the score)
@@ -192,8 +218,11 @@ public static class SiteAssessment
         public ImmutableArray<Nearby> Nearest { get; init; } = [];
 
         // ---- source, route, access (not part of the score)
-        /// <summary>The source the route and the founding arms are judged from (-1: none).</summary>
+        /// <summary>The source the route and the founding arms are judged from (-1: none; unless <see cref="SeesAll"/>, a
+        /// source the viewer does not know is none).</summary>
         public int Source { get; init; } = -1;
+        /// <summary>The route from the source; null when the source does not stand or, unless <see cref="SeesAll"/>, always
+        /// (it is found over the whole lattice and every road: withheld, as is <see cref="AccessibleFrom"/>).</summary>
         public RouteQuery.Route? Route { get; init; }
         /// <summary>The route's cost as ideal-ground km (LatticeGeometry.IdealGroundKmForCostUnits — the reporting inverse of
         /// the one km→cost conversion; a cost unit is an UPPER bound on real ground).</summary>
@@ -202,8 +231,10 @@ public static class SiteAssessment
         public int AccessibleFrom { get; init; } = -1;
 
         // ---- the founding predicate (not part of the score)
-        /// <summary>FoundingQuery.Check's own answer for (viewer, source, cell).</summary>
-        public FoundingVerdict Verdict { get; init; }
+        /// <summary>FoundingQuery.Check's own answer for (viewer, source, cell). Unless <see cref="SeesAll"/>: the first
+        /// failing arm when every arm before it is judged from what the viewer knows, else null — "not judged"
+        /// (<see cref="FirstFailing"/>).</summary>
+        public FoundingVerdict? Verdict { get; init; }
         /// <summary>Each arm, judged separately with the predicate's own public parts, in the predicate's order.</summary>
         public ImmutableArray<FoundingArm> Arms { get; init; } = [];
         /// <summary>The party FoundingQuery.AllocateParty would form and the grain FoundingQuery.ProvisionsShare would send.</summary>
@@ -252,51 +283,94 @@ public static class SiteAssessment
         SettlementSiting.FrontierSiting f = site.Frontier;
         SitingConfig siting = site.Worldgen.Siting;
         int x = cell % size, y = cell / size;
+        int n = world.Settlements.Count;
+        int node = LatticeMap.OriginLatticeNode(f.Lattice, size, cell);
+        bool water = t.Water[cell] >= 0.5;
 
-        // ---- THE COMPOSITE and its two factors.
-        double score = f.Scores[cell];
+        // THE PLAYER'S CLASS (ADR-037 §7): unless the viewer sees the whole world, every value below that would read beyond
+        // what it knows is withheld, never estimated. Each test is of the knowledge masks and known rows alone, so whether a
+        // value is shown tells nothing of what lies unseen either.
+        bool all = SeesAll(knowledge);
+
+        // ---- THE COMPOSITE and its two factors — each withheld when its own reach touches an unknown cell: the fertility
+        // box, and the cells the 4-connected water BFS reads to settle min(distance, cutoff) (beyond the cutoff the factor is
+        // 0 whatever the distance, so a farther distance is not shown).
+        int cutoff = siting.WaterAccessCutoffPx;
         int waterDistance = site.WaterDistancePx[cell];
-        double access = SettlementSiting.WaterAccess(waterDistance, siting.WaterAccessCutoffPx);
+        bool fertilityUnseen = !all && !KnowsSquare(knowledge, size, x, y, siting.FertilityRadiusPx);
+        bool waterUnseen = !all && !KnowsDiamond(knowledge, size, x, y, Math.Min(waterDistance, cutoff));
+        double regionFertility = fertilityUnseen ? double.NaN : site.RegionFertility[cell];
+        double access = waterUnseen ? double.NaN : SettlementSiting.WaterAccess(waterDistance, cutoff);
+        double score = fertilityUnseen || waterUnseen ? double.NaN : f.Scores[cell];
+        if (!all && (waterUnseen || waterDistance > cutoff)) waterDistance = -1;
+
+        // ---- the floor and the rank: taken over every cell of the map, so only while the viewer sees it all.
         long positive = 0, below = 0;
-        for (int i = 0; i < f.Scores.Length; i++)
+        double floor = double.NaN;
+        bool candidate = false;
+        if (all)
         {
-            double s = f.Scores[i];
-            if (!(s > 0.0)) continue;
-            positive++;
-            if (s < score) below++;
+            for (int i = 0; i < f.Scores.Length; i++)
+            {
+                double s = f.Scores[i];
+                if (!(s > 0.0)) continue;
+                positive++;
+                if (s < score) below++;
+            }
+            floor = f.Floor;
+            candidate = SettlementSiting.IsFrontierCandidate(f, t, cell);
         }
 
-        // ---- obstruction (the standing sites, as FoundingQuery.Check derives them), and claim.
-        int n = world.Settlements.Count;
-        var occupied = new int[n];
-        for (int i = 0; i < n; i++) occupied[i] = world.Settlements[i].SiteCell;
-        double[] spacing = SettlementSiting.SeedSpacing(f, occupied);
-        int node = LatticeMap.OriginLatticeNode(f.Lattice, size, cell);
-        int occupiedBy = -1;
-        for (int i = 0; i < n; i++) if (occupied[i] == cell) { occupiedBy = world.Settlements[i].Id.Value; break; }
-        int claimedBy = -1;
-        for (int i = 0; i < world.CatchmentNodes.Count; i++)
-            if (world.CatchmentNodes[i].LatticeNode == node) { claimedBy = world.CatchmentNodes[i].Settlement.Value; break; }
+        // ---- obstruction (the standing sites, as FoundingQuery.Check derives them), and claim. Unless the viewer sees the
+        // whole world: spacing is withheld (every settlement, the lattice), and occupancy and claim name only a settlement
+        // the viewer KNOWS.
+        int occupiedBy = -1, claimedBy = -1;
+        bool isOccupied = false, tooClose = false;
+        double spacingCost = double.NaN;
+        if (all)
+        {
+            var occupied = new int[n];
+            for (int i = 0; i < n; i++) occupied[i] = world.Settlements[i].SiteCell;
+            spacingCost = SettlementSiting.SeedSpacing(f, occupied)[node];
+            tooClose = spacingCost < f.MinSpacingCostUnits;
+            isOccupied = SettlementSiting.IsOccupied(occupied, cell);
+            for (int i = 0; i < n; i++) if (occupied[i] == cell) { occupiedBy = world.Settlements[i].Id.Value; break; }
+            for (int i = 0; i < world.CatchmentNodes.Count; i++)
+                if (world.CatchmentNodes[i].LatticeNode == node) { claimedBy = world.CatchmentNodes[i].Settlement.Value; break; }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+                if (world.Settlements[i].SiteCell == cell && knowledge.KnowsSettlement(world.Settlements[i].Id)) { occupiedBy = world.Settlements[i].Id.Value; break; }
+            for (int i = 0; i < world.CatchmentNodes.Count; i++)
+                if (world.CatchmentNodes[i].LatticeNode == node && knowledge.KnowsSettlement(world.CatchmentNodes[i].Settlement))
+                { claimedBy = world.CatchmentNodes[i].Settlement.Value; break; }
+        }
 
         // ---- hinterland means and deposits.
         double radiusPx = WorldFounding.HinterlandRadiusPx(site.Worldgen, cfg);
-        int maxId = -1;
-        for (int i = 0; i < n; i++) maxId = Math.Max(maxId, world.Settlements[i].Id.Value);
-        int nextId = maxId + 1;
+        int nextId = -1;
+        if (all)
+        {
+            int maxId = -1;
+            for (int i = 0; i < n; i++) maxId = Math.Max(maxId, world.Settlements[i].Id.Value);
+            nextId = maxId + 1;
+        }
         double meanM = 0.0, meanE = 0.0;
         ImmutableArray<DepositPreview> deposits = [];
         string? depositsUnavailable = null, rollWithheld = null;
-        bool water = t.Water[cell] >= 0.5;
         if (cfg.Goods is not { } goods) depositsUnavailable = "no goods content is loaded";
         else if (water) depositsUnavailable = "no settlement can stand on water";
         else if (site.Worldgen.SizePx != size)
             depositsUnavailable = "the founding path's worldgen config describes a " + Inv(site.Worldgen.SizePx) + "-px map and this map is "
                 + Inv(size) + " px, so its deposit function cannot be evaluated here";
+        else if (!all && !KnowsDisc(knowledge, size, x, y, radiusPx))
+            depositsUnavailable = "the hinterland a settlement here would draw on reaches ground you have not discovered";
         else
         {
             (meanM, meanE) = WorldFounding.HinterlandMeans(t, site.Worldgen, cell, radiusPx);
             Table<DepositRow>? roll = null;
-            if (knowledge.AllKnown)
+            if (all)
             {
                 roll = new Table<DepositRow>();   // scratch: the founding's own call, into a table nobody else holds
                 WorldFounding.AddDepositsForSite(roll, t, site.Worldgen, cfg, goods, new SettlementId(nextId), cell, world.Seed, nextId);
@@ -319,10 +393,12 @@ public static class SiteAssessment
         }
 
         // ---- the would-be catchment: CatchmentSystem's partition inputs with the site appended last (the index a colony
-        // takes: ColonizationSystem appends its row), budgets by each settlement's own size tier (a colony's is 0).
+        // takes: ColonizationSystem appends its row), budgets by each settlement's own size tier (a colony's is 0). It is
+        // shared out against every settlement over the whole lattice: only while the viewer sees it all.
         double? arable = null;
         int arableNodes = 0;
         string? catchmentUnavailable = water ? "no settlement can stand on water"
+            : !all ? "the land is shared out against every settlement in the world, over the whole lattice, and you do not see all of it"
             : n == 0 || world.NetworkMeta.Count == 0 ? "no catchment is computed in this world" : null;
         if (catchmentUnavailable is null)
         {
@@ -360,13 +436,13 @@ public static class SiteAssessment
         Array.Sort(sorted, CompareNearby);
         int take = Math.Min(Math.Max(0, nearest), sorted.Length);
 
-        // ---- the source, the founding predicate and each of its arms.
+        // ---- the source, the founding predicate and each of its arms. A source the viewer does not know names nothing.
         int src = source >= 0 ? source : DefaultSource(world, viewer);
+        if (!all && src >= 0 && !knowledge.KnowsSettlement(new SettlementId(src))) src = -1;
         var srcId = new SettlementId(src);
         int srcCell = -1;
         for (int i = 0; i < n && src >= 0; i++) if (world.Settlements[i].Id.Value == src) { srcCell = world.Settlements[i].SiteCell; break; }
         bool stands = srcCell >= 0;
-        FoundingVerdict verdict = FoundingQuery.Check(world, cfg, f, viewer, srcId, cell);
 
         long party = 0, provisions = 0;
         RouteQuery.Route? route = null;
@@ -376,30 +452,55 @@ public static class SiteAssessment
             party = FoundingQuery.AllocateParty(world.Buckets, srcId, FoundingQuery.PartyFraction(cfg), null);
             if (cfg.Goods is { } gc)
                 provisions = FoundingQuery.ProvisionsShare(world.GoodStocks, world.Buckets, srcId, new GoodId(gc.GrainId), party);
-            route = RouteQuery.Find(f.Lattice, world, LatticeMap.OriginLatticeNode(f.Lattice, size, srcCell), node);
+            if (all) route = RouteQuery.Find(f.Lattice, world, LatticeMap.OriginLatticeNode(f.Lattice, size, srcCell), node);
             if (EmpireQuery.TryGetController(world, srcId, out PolityId r)) ruler = r.Value;
         }
 
-        bool candidate = SettlementSiting.IsFrontierCandidate(f, t, cell);
-        bool isOccupied = SettlementSiting.IsOccupied(occupied, cell);
-        bool tooClose = spacing[node] < f.MinSpacingCostUnits;
-        var arms = ImmutableArray.Create(
-            new FoundingArm(FoundingVerdict.UnknownSource, stands),
-            new FoundingArm(FoundingVerdict.NotControlled, stands ? EmpireQuery.ControlsSettlement(world, viewer, srcId) : null),
-            new FoundingArm(FoundingVerdict.OffMap, f.Size == size),
-            new FoundingArm(FoundingVerdict.Water, !water),
-            new FoundingArm(FoundingVerdict.PoorSite, water ? null : candidate),
-            new FoundingArm(FoundingVerdict.Occupied, !isOccupied),
-            new FoundingArm(FoundingVerdict.TooClose, isOccupied ? null : !tooClose),
-            new FoundingArm(FoundingVerdict.Claimed, !FoundingQuery.IsClaimed(world, node)),
-            new FoundingArm(FoundingVerdict.NoParty, stands ? party >= 1 : null),
-            new FoundingArm(FoundingVerdict.NoProvisions, stands && party >= 1 ? provisions >= 1 : null),
-            new FoundingArm(FoundingVerdict.Unreachable, stands ? route!.Found : null));
-
-        // ---- accessibility: a land route from a settlement the viewer controls (the source first).
-        int accessible = -1;
-        if (route is { Found: true } && EmpireQuery.ControlsSettlement(world, viewer, srcId)) accessible = src;
+        ImmutableArray<FoundingArm> arms;
+        FoundingVerdict? verdict;
+        if (all)
+        {
+            verdict = FoundingQuery.Check(world, cfg, f, viewer, srcId, cell);
+            arms = ImmutableArray.Create(
+                new FoundingArm(FoundingVerdict.UnknownSource, stands),
+                new FoundingArm(FoundingVerdict.NotControlled, stands ? EmpireQuery.ControlsSettlement(world, viewer, srcId) : null),
+                new FoundingArm(FoundingVerdict.OffMap, f.Size == size),
+                new FoundingArm(FoundingVerdict.Water, !water),
+                new FoundingArm(FoundingVerdict.PoorSite, water ? null : candidate),
+                new FoundingArm(FoundingVerdict.Occupied, !isOccupied),
+                new FoundingArm(FoundingVerdict.TooClose, isOccupied ? null : !tooClose),
+                new FoundingArm(FoundingVerdict.Claimed, !FoundingQuery.IsClaimed(world, node)),
+                new FoundingArm(FoundingVerdict.NoParty, stands ? party >= 1 : null),
+                new FoundingArm(FoundingVerdict.NoProvisions, stands && party >= 1 ? provisions >= 1 : null),
+                new FoundingArm(FoundingVerdict.Unreachable, stands ? route!.Found : null));
+        }
         else
+        {
+            // Judged from what the viewer knows, or Unseen: the floor (every cell); occupancy, unless a known settlement
+            // stands here or the cell is in sight (no settlement stands unseen on a cell in sight); spacing (every settlement,
+            // the lattice); the claim, unless a known settlement's catchment holds the node; the route (the lattice, every road).
+            arms = ImmutableArray.Create(
+                new FoundingArm(FoundingVerdict.UnknownSource, stands),
+                new FoundingArm(FoundingVerdict.NotControlled, stands ? EmpireQuery.ControlsSettlement(world, viewer, srcId) : null),
+                new FoundingArm(FoundingVerdict.OffMap, f.Size == size),
+                new FoundingArm(FoundingVerdict.Water, !water),
+                new FoundingArm(FoundingVerdict.PoorSite, null, Unseen: !water),
+                occupiedBy >= 0 ? new FoundingArm(FoundingVerdict.Occupied, false)
+                    : knowledge.SeesCell(cell) ? new FoundingArm(FoundingVerdict.Occupied, true)
+                    : new FoundingArm(FoundingVerdict.Occupied, null, Unseen: true),
+                new FoundingArm(FoundingVerdict.TooClose, null, Unseen: occupiedBy < 0),
+                claimedBy >= 0 ? new FoundingArm(FoundingVerdict.Claimed, false) : new FoundingArm(FoundingVerdict.Claimed, null, Unseen: true),
+                new FoundingArm(FoundingVerdict.NoParty, stands ? party >= 1 : null),
+                new FoundingArm(FoundingVerdict.NoProvisions, stands && party >= 1 ? provisions >= 1 : null),
+                new FoundingArm(FoundingVerdict.Unreachable, null, Unseen: stands));
+            verdict = FirstFailing(arms);
+        }
+
+        // ---- accessibility: a land route from a settlement the viewer controls (the source first) — over the whole lattice
+        // and every road, so only while the viewer sees it all.
+        int accessible = -1;
+        if (all && route is { Found: true } && EmpireQuery.ControlsSettlement(world, viewer, srcId)) accessible = src;
+        else if (all)
             foreach (SettlementId mine in LabourActivities.ControlledSettlements(world, viewer))
             {
                 if (mine.Value == src) continue;
@@ -411,15 +512,16 @@ public static class SiteAssessment
 
         return new Report
         {
-            Cell = cell, X = x, Y = y, Known = true,
+            Cell = cell, X = x, Y = y, Known = true, SeesAll = all,
             Elevation = t.Elevation[cell], SeaLevel = t.SeaLevel, Water = t.Water[cell], IsWater = water,
             TemperatureC = t.Temperature[cell], Moisture = t.Moisture[cell], Fertility = t.Fertility[cell],
             MovementCost = t.MovementCost[cell], River = t.Rivers[cell] >= 0.5, KmPerPx = t.KmPerPx,
-            Score = score, RegionFertility = site.RegionFertility[cell], FertilityRadiusPx = siting.FertilityRadiusPx,
-            WaterDistancePx = waterDistance, WaterAccessCutoffPx = siting.WaterAccessCutoffPx, WaterAccess = access,
-            Floor = f.Floor, FloorPercentile = siting.ScoreFloorPercentile, PositiveScores = positive, ScoresBelow = below,
+            Score = score, RegionFertility = regionFertility, FertilityRadiusPx = siting.FertilityRadiusPx,
+            RegionFertilityUnseen = fertilityUnseen,
+            WaterDistancePx = waterDistance, WaterAccessCutoffPx = cutoff, WaterAccess = access, WaterAccessUnseen = waterUnseen,
+            Floor = floor, FloorPercentile = siting.ScoreFloorPercentile, PositiveScores = positive, ScoresBelow = below,
             Candidate = candidate,
-            SiteNode = node, OccupiedBy = occupiedBy, SpacingCost = spacing[node], MinSpacingCost = f.MinSpacingCostUnits,
+            SiteNode = node, OccupiedBy = occupiedBy, SpacingCost = spacingCost, MinSpacingCost = f.MinSpacingCostUnits,
             MinSpacingKm = siting.MinSpacingKm, ClaimedBy = claimedBy,
             HinterlandRadiusPx = radiusPx, MeanMoisture = meanM, MeanElevation = meanE, Deposits = deposits,
             DepositsUnavailable = depositsUnavailable, NextSettlementId = nextId, RollWithheld = rollWithheld,
@@ -442,11 +544,85 @@ public static class SiteAssessment
     }
 
     /// <summary>The first arm that does not hold, in the predicate's order, or Legal — what FoundingQuery.Check answers
-    /// when the arms are its own (pinned by SiteAssessmentTests over a dense sweep).</summary>
-    public static FoundingVerdict FirstFailing(ImmutableArray<FoundingArm> arms)
+    /// when the arms are its own (pinned by SiteAssessmentTests over a dense sweep). Null when an arm the viewer cannot
+    /// judge (<see cref="FoundingArm.Unseen"/>) comes before any failure: the predicate's answer then depends on what the
+    /// viewer has not seen.</summary>
+    public static FoundingVerdict? FirstFailing(ImmutableArray<FoundingArm> arms)
     {
-        foreach (FoundingArm a in arms) if (a.Holds == false) return a.Arm;
+        foreach (FoundingArm a in arms)
+        {
+            if (a.Unseen) return null;
+            if (a.Holds == false) return a.Arm;
+        }
         return FoundingVerdict.Legal;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="knowledge"/> sees the WHOLE world: all-known, or every lattice node VISIBLE (Visible ⊆ Known,
+    /// and a settlement whose site is in sight is known, so every settlement, its catchment and its roads are). A function
+    /// of the knowledge masks alone — never of what lies unseen — so the choice it makes between a value and "not judged"
+    /// tells nothing either. Production is all-known until S2a.
+    /// </summary>
+    public static bool SeesAll(PolityKnowledge knowledge)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        if (knowledge.AllKnown) return true;
+        int nodes = knowledge.LatticeSize * knowledge.LatticeSize;
+        for (int v = 0; v < nodes; v++) if (!knowledge.Visible(v)) return false;
+        return true;
+    }
+
+    /// <summary>Whether every cell of the square ±<paramref name="r"/> about (<paramref name="x"/>, <paramref name="y"/>),
+    /// clamped to the map — BoxSum's own window — is known.</summary>
+    private static bool KnowsSquare(PolityKnowledge k, int size, int x, int y, int r)
+    {
+        r = Math.Max(0, r);
+        int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r), x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
+        for (int yy = y0; yy <= y1; yy++)
+            for (int xx = x0; xx <= x1; xx++)
+                if (!k.KnowsCell(yy * size + xx)) return false;
+        return true;
+    }
+
+    /// <summary>Whether every cell within <paramref name="r"/> 4-connected steps of (<paramref name="x"/>,
+    /// <paramref name="y"/>) is known: the cells WaterDistanceBfs reads to settle a distance up to r (its expansion is
+    /// 4-connected over every cell, so a cell's distance is the Manhattan distance to the nearest water or river cell —
+    /// none nearer than r lies inside, and none outside can come nearer).</summary>
+    private static bool KnowsDiamond(PolityKnowledge k, int size, int x, int y, int r)
+    {
+        for (int dy = -r; dy <= r; dy++)
+        {
+            int yy = y + dy;
+            if (yy < 0 || yy >= size) continue;
+            int span = r - Math.Abs(dy);
+            for (int dx = -span; dx <= span; dx++)
+            {
+                int xx = x + dx;
+                if (xx < 0 || xx >= size) continue;
+                if (!k.KnowsCell(yy * size + xx)) return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>Whether every cell of the hinterland disc about (<paramref name="x"/>, <paramref name="y"/>) is known — the
+    /// membership WorldFounding.HinterlandMeans reads (offsets within ±(int)radius, dx² + dy² ≤ radius², on the map).</summary>
+    private static bool KnowsDisc(PolityKnowledge k, int size, int x, int y, double radiusPx)
+    {
+        int r = (int)radiusPx;
+        double r2 = radiusPx * radiusPx;
+        for (int dy = -r; dy <= r; dy++)
+        {
+            int yy = y + dy;
+            if (yy < 0 || yy >= size) continue;
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int xx = x + dx;
+                if (xx < 0 || xx >= size || dx * dx + dy * dy > r2) continue;
+                if (!k.KnowsCell(yy * size + xx)) return false;
+            }
+        }
+        return true;
     }
 
     private static string Inv(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
