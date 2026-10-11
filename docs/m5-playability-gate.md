@@ -900,6 +900,66 @@ spill path is unreachable with the shipped content (pinned) and only tested synt
 milestone owns the size-class half is the open governance question the workstream's critique raised; this packet
 implements it as dispatched.
 
+**Review fix — the settlement cull follows what a settlement paints (finding: "Removing the 150 px footprint clamp
+outgrew the fixed 200 px settlement cull margin, so visible settlements pop in and out at the viewport edge", major,
+confirmed by an independent verdict).** The lens culled each settlement by its centre against a fixed 200 px margin.
+With the clamp gone, at ×32 the measured maximum (61,078 people) paints a 209 px footprint and the saturation
+(4,096,000) a 330 px one, so a settlement whose blocks, glyphs and footprint were on screen was dropped whole
+(REPRODUCED here: the fixture's capital at ×32 with its footprint's edge 8 px on screen, centre 201 px and 322 px out,
+draws nothing with the old cull line restored — mutant M1 below; and the new test's sweep, run first against `00e7217`'s
+lens, failed — its first failure a 219-person settlement at ×6.59, centre 331.5 px left of the viewport, whose lines
+under the name reached 367.5 px right of its centre). So the same margin also culled, at any population, settlements
+whose lines under the name or key (hung left of the footprint) reached the viewport from beyond it.
+
+- **The fix (IMPLEMENTED, `WorldLens.Reaches`).** A settlement is drawn when any command its paint emits has bounds the
+  replay keeps (`DrawListCull.Bounds`) touching the viewport, decided in three steps: (1) the marks about its centre by
+  their radii with stroke and fringe — the World halo, the footprint (every block and glyph lies inside it, validated
+  by the lattice), the plaza mark, the sector ring, the selection ring — accepted when they touch; (2) a vertical test
+  that sets and measures nothing (the name and plate, the lines, the key, the notables line, the banner, each as tall as
+  its set size and line count make it) culls a settlement whose labels lie wholly above or below the viewport, with a
+  pixel of slack so rounding never culls; (3) otherwise its labels are painted by their own painters (`Name`,
+  `PaintSettlementLines`, `KeyEntry`, `NotablesLine`, `Banner`) into a throw-away list at the same places and their
+  bounds tested. The key entry, the notables line, the sector ring's geometry and the name's place were lifted into
+  helpers both the paint and the cull call (`KeyEntry`, `NotablesLine`, `SectorRing`, `MorphNameY`); the commands the
+  paint emits are unchanged (MEASURED: the institution fixture's seam projection painted with nothing culled at 29 zooms
+  from ×0.8 to ×32, three eras' hands, selected and not, with the legend — 174 paints — gives a byte-identical dump of
+  every command, settlement hit, part placement and layer count on `00e7217` and on the fix, 47,395 lines, sha256
+  `ca5f86a8…`).
+- **Test (`APan_NeverCullsASettlementWhileAnyOfItsCommandsCanTouchTheViewport`).** The finding's two cases pinned first
+  (drawn, 7 parts). Then the fixture's capital at 219, 61,078 and 4,096,000 people, four variants (sector ring and
+  notables; selected with the default-split caption; no banner; a 20-entry key), 8 zooms from ×0.8 to ×32, three eras'
+  hands — 288 configurations — panned across every edge and corner of a 1280×800 viewport in 6 px steps and a quarter
+  pixel either side of where its painted box first touches: wherever any command painted with nothing culled touches the
+  viewport, the culled paint draws it (12,428 touching probes, 3,656 of them with the centre beyond the old margin); every
+  one of the 19,828 clear probes is culled, and 1,000 px clear it is not drawn. World hash unchanged.
+- **Mutant kill record (MEASURED; each built and run against the new test, clean build + run 15 s, bound 5× = 75 s; all
+  finished in 14–21 s, none hung).**
+
+| mutant | result | killed by / why not |
+|---|---|---|
+| M1 the old fixed 200 px centre margin | killed | the finding's pinned case (`SettlementsDrawn` empty) |
+| M2 marks only (the label probe never draws) | killed | left-edge probe, pop 219 ×0.8 |
+| M3 the sector ring's width left out | killed | bottom-right corner probe, pop 219 ×1.36 |
+| M4 the key left out of the probe | killed | right-edge probe, pop 219 ×6.59 |
+| M5 the banner left out of the probe | killed | bottom-left corner probe, pop 219 ×0.8 |
+| M6 no cull at all | killed | the 1,000 px clear probe is drawn |
+| M7 the selection ring left out | killed | selected variant, corner probe |
+| M8 the lines left out of the probe | killed | left-edge probe, pop 219 ×6.59 |
+| M9 the banner left out of the vertical test | killed | bottom-edge probe |
+| M10 the lines left out of the vertical test | killed | top-edge probe, pop 219 ×6.59 |
+| M11 the key glyphs' span left out of the vertical test | SURVIVED — equivalent | measured over every era's hand, themed and not, at UI scales 0.75, 1 and 2: every key glyph's bounds lie at least 4.97 px inside its own label run's box at the top and 2.64 px at the bottom, so the term never decides; kept as the bound for a hand that draws a heavier glyph |
+| M12 the name left out of the vertical test | killed | top-edge probe, pop 219 ×0.8 |
+
+- **Frame cost** (`docs/m5-hardening-measurements.md`, the 2026-10-11 review-fix section): World and Regional bands draw
+  fewer commands (the margin painted settlements nothing of which reached the viewport); the Settlement band draws the
+  settlements that were popping out, and on the 400-settlement world its median rises 0.11–0.25 → 0.30–0.65 ms (labels
+  laid out to be tested for settlements whose label band overlaps the viewport's rows).
+- **Results (MEASURED, Release, 4 shared CPUs).** `Sim.Ui.Tests` 742/742 (741 and the new test); `Sim.Ui --smoke
+  --monkey 200`: 9 states, 1892 checks, 1782 pass, 110 not offered, 0 FAIL, 0 problems, 62,426 frames, largest draw list
+  104,004 vertices — as before (no control added, so no gate row is new); `Sim.Tests` SnapshotTests and
+  CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK; `git diff 00e7217 -- Sim.Core
+  Sim.Data Sim.Cli` empty.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
