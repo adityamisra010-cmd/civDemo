@@ -123,6 +123,37 @@ public sealed record MapInk
     public IReadOnlyList<Rgba> Sectors { get; init; } =
         [Rgba.Hex(0x8FA34E), Rgba.Hex(0xC2A060), Rgba.Hex(0x8A8A86), Rgba.Hex(0xC07048), Rgba.Hex(0x6C8FB0)];
 
+    // ---------------------------------------------------------------- the resource overlay (M5 P9)
+    /// <summary>P9: the pale end every resource-overlay ramp starts from — the lowest level of every layer. An identity
+    /// ink (the same in every era): the overlay's meaning is its ramp, not the era's paper.</summary>
+    public Rgba OverlayLow { get; init; } = Rgba.Hex(0xF4ECD2);
+    // The six deep inks are hues the parchment terrain does not use (no green, no tan): a ramp must read over every
+    // ground it lies on.
+    /// <summary>P9: the deep end of the moisture deposit channel's ramp.</summary>
+    public Rgba OverlayMoisture { get; init; } = Rgba.Hex(0x4B2E8C);
+    /// <summary>P9: the deep end of the water-proximity deposit channel's ramp (any channel the deposit function reads as
+    /// the squared moisture mean).</summary>
+    public Rgba OverlayWater { get; init; } = Rgba.Hex(0x0B6F80);
+    /// <summary>P9: the deep end of the elevation deposit channel's ramp.</summary>
+    public Rgba OverlayElevation { get; init; } = Rgba.Hex(0xA03C14);
+    /// <summary>P9: the deep end of the settlement-suitability (unjittered siting score) ramp.</summary>
+    public Rgba OverlaySuitability { get; init; } = Rgba.Hex(0x8C1460);
+    /// <summary>P9: the deep end of the region-fertility factor's ramp.</summary>
+    public Rgba OverlayFertility { get; init; } = Rgba.Hex(0x8A6A00);
+    /// <summary>P9: the deep end of the water-access factor's ramp.</summary>
+    public Rgba OverlayAccess { get; init; } = Rgba.Hex(0x1A3F9C);
+
+    /// <summary>P9: the overlay's colour at ramp position <paramref name="t"/> (0 = <see cref="OverlayLow"/>, 1 =
+    /// <paramref name="deep"/>; clamped), at <paramref name="alpha"/> (0..1, rounded to the byte). Each channel is
+    /// rounded to the byte: a pure function of its arguments.</summary>
+    public Rgba OverlayRamp(Rgba deep, double t, double alpha)
+    {
+        double u = Math.Clamp(t, 0.0, 1.0);
+        byte Mix(byte a, byte b) => (byte)Math.Round(a + (b - a) * u);
+        return new Rgba(Mix(OverlayLow.R, deep.R), Mix(OverlayLow.G, deep.G), Mix(OverlayLow.B, deep.B),
+            (byte)Math.Round(255.0 * Math.Clamp(alpha, 0.0, 1.0)));
+    }
+
     // ---------------------------------------------------------------- the network
     /// <summary>The free dirt-path baseline's line (and a route's unmodernized dirt-path remainder).</summary>
     public Rgba Path { get; init; } = Rgba.Hex(0x6B4A2A);

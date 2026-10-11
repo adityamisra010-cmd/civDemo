@@ -844,3 +844,73 @@ the second window's Settlement half.
 9 states, 1892 checks: 1782 pass, 110 not offered, 0 FAIL; 0 problems; 62,426 frames, 1,800 monkey actions; largest
 draw list 104,004 vertices; 124.8 s. Against P3's record (1892 / 1782 / 61,527 frames) the checks and passes are the
 same; the +899 frames are INFERRED to be the restated wheel rows letting the ease settle (not decomposed).
+
+## 2026-10-11 — map frame cost with the resource overlay (M5 map workstream P9; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P9 agent with P4's `Sim.Ui --frame-cost map` (defaults: `--rounds 5 --settlements 400
+--turns 150`), Release, the P9 branch at `5d7abc7` (the tool's one-layer variant; every other Sim.Ui file as at the
+smoke's `e788b36`), run 14:40–14:42 UTC. A measurement, not a budget (ADR-009).
+
+**Load (read before the numbers).** 4 CPUs shared with other agents; load average 5.6 → 6.0 over the run. The
+milliseconds are wall-clock under that load — an order of magnitude only. The command and vertex columns are exact.
+
+**What was swept.** P4's two worlds unchanged (world hashes `4035cf18…` canonical and `127236…` high-count, the same as
+P4's and P2's: painting changed neither), plus the canonical world swept twice more through the same `WorldLens.Paint`
+with the overlay the game paints: every one of its six layers shown at the default opacity 0.5 with its key (the worst
+case — the layers paint over each other), and the settlement-suitability layer alone with its key (the common case).
+Without the overlay the lens paints exactly what it painted (canonical World 1280x800: 2024 commands and 13820 mean
+vertices, P2's after-figures).
+
+| window | band | canonical ms / commands / mean vertices | + one layer (suitability) | + every layer (6) |
+|---|---|---|---|---|
+| 1280x800 | World | 0.31 / 2024 / 13820 | 1.65 / 8492 / 41992 | 12.01 / 42236 / 181015 |
+| 1280x800 | Regional | 0.13 / 1048 / 4087 | 0.52 / 2752 / 13202 | 4.42 / 11672 / 52374 |
+| 1280x800 | Settlement | 0.05 / 584 / 256 | 0.15 / 702 / 3028 | 0.46 / 1204 / 8005 |
+| 1920x1009 | World | 0.29 / 1931 / 13194 | 2.10 / 8810 / 43012 | 13.56 / 44835 / 191145 |
+| 1920x1009 | Regional | 0.14 / 1091 / 4675 | 0.98 / 3090 / 14970 | 4.72 / 13585 / 60872 |
+| 1920x1009 | Settlement | 0.05 / 586 / 371 | 0.24 / 733 / 3256 | 0.41 / 1363 / 9094 |
+| 2560x1440 | World | 0.44 / 1937 / 14407 | 2.45 / 8876 / 44459 | 17.00 / 45146 / 193577 |
+| 2560x1440 | Regional | 0.23 / 1073 / 4727 | 0.80 / 3028 / 14850 | 5.09 / 13290 / 59815 |
+| 2560x1440 | Settlement | 0.07 / 586 / 432 | 0.18 / 744 / 3363 | 0.64 / 1431 / 9431 |
+| 3840x2160 | World | 0.44 / 1937 / 15503 | 1.83 / 8876 / 45555 | 14.84 / 45146 / 194673 |
+| 3840x2160 | Regional | 0.20 / 1065 / 5080 | 0.91 / 3021 / 15203 | 5.42 / 13282 / 60169 |
+| 3840x2160 | Settlement | 0.08 / 587 / 562 | 0.17 / 783 / 3646 | 0.63 / 1653 / 10467 |
+
+The overlay is one rect per run of equal ramp levels along each lattice row (16 levels): ~6,500 rects a layer at World
+zoom on the canonical map (22,937 known land nodes), fewer closer in as runs leave the viewport. Merging equal runs
+across rows was measured and cuts only 15–25 % of them (6,313 boxes for 7,535 runs on the suitability layer), so it was
+not taken. The bake (once per session while the knowledge is the same) and the per-turn status (access isochrones,
+catchments, rolls; once per turn while a layer is shown):
+
+| world | bake ms (median) | status ms (median) | nodes | known land nodes | layers |
+|---|---|---|---|---|---|
+| canonical | 49.8 | 7.6 | 65536 | 22937 | 6 |
+| high-count | 58.6 | 49.9 | 65536 | 22937 | 6 |
+
+## 2026-10-11 — map frame cost with the 'now usable' outline (M5 map workstream P10; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P10 agent with P4's `Sim.Ui --frame-cost map` (defaults: `--rounds 5 --settlements 400
+--turns 150`), Release, the P10 branch at `cec0b63`, run 16:56–16:58 UTC; load average 0.77 → 0.05 over the run (the
+machine was otherwise quiet). A measurement, not a budget (ADR-009).
+
+**What was swept.** P9's four sweeps unchanged (canonical, canonical + every overlay layer, canonical + the suitability
+layer alone, high-count; world hashes `4035cf18…` and `127236…`, the same as P4's, P2's and P9's), plus one: the
+region-fertility layer alone with a 'now usable' shortcut's outline of its qualifying places and five shortcut rows
+opening the key — the farming shortcut's view. The outline is one line per boundary run between qualifying and
+non-qualifying lattice nodes: on the canonical map (all known) the region-fertility layer qualifies 22,243 of the 22,937
+known land nodes in 1,024 segments; each deposit channel qualifies all 22,937 in 1,024 segments (the coast at the
+lattice's 16 km); the suitability and water-access layers (not opened by any shortcut today) 10,412 / 2,746 and
+10,831 / 2,800.
+
+| window | band | + one layer (suitability), P9's | + one layer (region fertility) + outline |
+|---|---|---|---|
+| 1280x800 | World | 1.60 ms / 8492 commands / 41992 mean vertices | 2.07 / 9508 / 46711 |
+| 1280x800 | Regional | 0.66 / 2752 / 13202 | 0.77 / 3010 / 14892 |
+| 1280x800 | Settlement | 0.14 / 702 / 3028 | 0.18 / 716 / 3740 |
+| 1920x1009 | World | 2.63 / 8810 / 43012 | 2.87 / 9884 / 47964 |
+| 2560x1440 | World | 2.44 / 8876 / 44459 | 2.98 / 9949 / 49409 |
+| 3840x2160 | World | 2.19 / 8876 / 45555 | 2.69 / 9949 / 50505 |
+
+The two columns are different layers (their fills differ by a few dozen runs), so the difference is an upper bound on
+the outline's cost: at most ~1,070 commands and ~0.5 ms a frame at World zoom, under 0.1 ms closer in. The outline is
+built once per bake and layer (the bake is immutable) and costs nothing while no shortcut is shown.

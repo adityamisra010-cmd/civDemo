@@ -6,6 +6,7 @@ using Sim.Core.Systems.Ages;
 using Sim.Ui.Ages;
 using Sim.Ui.Render;
 using Sim.Ui.Theme;
+using Sim.Ui.ViewModel;
 using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.World;
@@ -106,7 +107,7 @@ public sealed class WorldProjection
 
     /// <summary>The stride every system builds the traversal lattice with (<c>TraversalLattice.Build</c>'s default; the
     /// m1 spec §3 stride-4 sampling). The lens needs only the lattice's GEOMETRY, never its costs.</summary>
-    public const int LatticeStride = 4;
+    public const int LatticeStride = Sim.Core.Pathing.TraversalLattice.DefaultStride;
 
     /// <summary>
     /// The traversal lattice's geometry for a terrain of <paramref name="terrainSize"/> px, by arithmetic: nodes per
@@ -125,12 +126,21 @@ public sealed class WorldProjection
     /// <summary>Builds the projection. <paramref name="institutions"/> replaces the institution seam
     /// (tests only); the game and previews always read <see cref="InstitutionMarkerSource.InstitutionsAt"/>.
     /// <paramref name="grid"/> replaces the lattice geometry (tests only: the stride pin builds the same projection
-    /// on the geometry of a built <c>TraversalLattice</c>); otherwise <see cref="LatticeGrid"/> of the terrain size.</summary>
+    /// on the geometry of a built <c>TraversalLattice</c>); otherwise <see cref="LatticeGrid"/> of the terrain size.
+    /// <para>P7 — THE OBSERVER: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>
+    /// for <paramref name="player"/>, the seam's production view: all-known until S2a, so the projection is byte-identical).
+    /// The projection holds only what the observer knows, so every layer the lens paints from it — and every hit test that
+    /// reads the frame it paints — is filtered at once: a settlement or a formation the observer does not know is not in
+    /// it; a territory block, a dirt-path step (both ends) only on known nodes; a built route only between two known
+    /// settlements. Nothing of a hidden settlement is read (its rows are never visited), and the honest empty states
+    /// count only what is shown.</para></summary>
     public static WorldProjection Build(IReadOnlyWorldState world, SimConfig cfg, Func<int, string> name, PolityId player,
         Func<IReadOnlyWorldState, SimConfig, SettlementId, IReadOnlyList<InstitutionView>>? institutions = null,
-        (int LatticeSize, int Stride)? grid = null)
+        (int LatticeSize, int Stride)? grid = null, PlayerKnowledge? knowledge = null)
     {
         institutions ??= InstitutionMarkerSource.InstitutionsAt;
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world, player);
+        if (known.Player.Value != player.Value) throw new ArgumentException("the observer's knowledge must be the player's", nameof(knowledge));
         int size = world.Terrain?.Size ?? 256;
         (int lsize, int stride) = world.Terrain is null ? (1, 1) : grid ?? LatticeGrid(size);
 
@@ -147,6 +157,7 @@ public sealed class WorldProjection
         {
             TransportEdgeRow e = world.TransportEdges[i];
             if (!RoadPerformance.IsTravelled(e)) continue;
+            if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;   // P7: both ends known
             if (!SiteOf(world, e.A, size, out double ax, out double ay) || !SiteOf(world, e.B, size, out double bx, out double by)) continue;
             routes.Add(new RouteLensView(e.Id, e.A.Value, e.B.Value, ax, ay, bx, by, e.EdgeType, e.TargetClass, e.Modernization,
                 e.LengthKm, RoadLens.ClassName(cfg, e.EdgeType), RoadLens.ClassName(cfg, e.TargetClass)));
@@ -161,6 +172,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.NetworkEdges.Count; i++)
         {
             NetworkEdgeRow e = world.NetworkEdges[i];
+            if (!known.Known(anchor[e.A.Value]) || !known.Known(anchor[e.B.Value])) continue;   // P7: both ends on known nodes
             (double ax, double ay) = Center(anchor[e.A.Value], lsize, stride);
             (double bx, double by) = Center(anchor[e.B.Value], lsize, stride);
             var step = new RoadSegment(ax, ay, bx, by, e.EdgeType, e.Id.Value);
@@ -175,6 +187,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.CatchmentNodes.Count; i++)
         {
             CatchmentNodeRow row = world.CatchmentNodes[i];
+            if (!known.Known(row.LatticeNode) || known.IsHiddenSettlement(row.Settlement.Value)) continue;   // P7
             int ctl = EmpireQuery.TryGetController(world, row.Settlement, out PolityId p) ? p.Value : -1;
             (double cx, double cy) = Center(row.LatticeNode, lsize, stride);
             territory.Add(new TerritoryBlock(cx - stride / 2.0, cy - stride / 2.0, stride, ctl));
@@ -183,10 +196,12 @@ public sealed class WorldProjection
         AgeContent? ages = cfg.Ages;
         var settlements = new List<SettlementLensView>();
         bool anyInstitution = false;
+        bool anyStructure = false;
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementRow row = world.Settlements[s];
             SettlementId id = row.Id;
+            if (!known.KnowsSettlement(id.Value)) continue;   // P7: a settlement the observer does not know is not drawn, nor read
             int ctl = EmpireQuery.TryGetController(world, id, out PolityId controller) ? controller.Value : -1;
             bool capital = ctl >= 0 && EmpireQuery.TryGetCapital(world, controller, out SettlementId cap) && cap.Value == id.Value;
             long pop = 0;
@@ -220,6 +235,7 @@ public sealed class WorldProjection
             for (int i = 0; i < world.NetworkEdges.Count; i++)
             {
                 NetworkEdgeRow e = world.NetworkEdges[i];
+                if (!known.Known(anchor[e.A.Value]) || !known.Known(anchor[e.B.Value])) continue;   // P7: the steps the map draws
                 if (mine.Contains(anchor[e.A.Value]) || mine.Contains(anchor[e.B.Value])) roadsHere++;
             }
             int notables = 0;
@@ -248,6 +264,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
         {
             MilitaryUnitRow u = world.MilitaryUnits[i];
+            if (!known.KnowsUnit(u)) continue;   // P7: D-039 C1 — a formation not observed is UNKNOWN, never drawn
             UnitIdentity? ident = fam?.IdentityByKey(u.Identity);
             units.Add(new UnitLensView(u.Id, u.Owner.Value, u.X, u.Y, u.Family,
                 fam?.FamilyByKey(u.Family)?.Name ?? "Formation", ident?.Name ?? "Formation", u.Location.Value));
@@ -259,7 +276,10 @@ public sealed class WorldProjection
             "Army movement and supply arrive with the Battle Layer (M7) - formations are shown where they are stationed",
         };
         if (!anyInstitution) absent.Add("Institutions: none founded");
-        if (world.Structures.Count == 0) absent.Add("Structures: none built yet");
+        // P7: the rows of a hidden settlement are not counted (all-known: exactly world.Structures.Count == 0).
+        for (int k = 0; k < world.Structures.Count && !anyStructure; k++)
+            if (!known.IsHiddenSettlement(world.Structures[k].Settlement.Value)) anyStructure = true;
+        if (!anyStructure) absent.Add("Structures: none built yet");
         if (routes.Count == 0) absent.Add("Roads: none developed - the free dirt-path baseline only");
 
         return new WorldProjection
@@ -330,6 +350,54 @@ public readonly record struct LegendAnchor(double Right, double Bottom, double M
 public sealed record MapLegend(RectD Rect, string Title, IReadOnlyList<WorldLayer> Layers, IReadOnlyList<string> Entries,
     IReadOnlyList<string> Absent);
 
+/// <summary>P9: where the lens lays the overlay's key out: the key's box is left-aligned on <paramref name="Left"/>, its foot
+/// on <paramref name="Bottom"/> (screen px), and it is never wider than <paramref name="MaxWidth"/>.</summary>
+public readonly record struct OverlayKeyAnchor(double Left, double Bottom, double MaxWidth);
+
+/// <summary>P9: what the lens is asked to paint of the resource overlay: the bake, which of its layers the player shows
+/// (parallel to <see cref="ResourceOverlay.Layers"/>), the opacity (0..1), the turn's status, where the key goes (null:
+/// no key) and how a settlement is named. UI state only — none of it reaches the simulation.</summary>
+public sealed record OverlayPaint(ResourceOverlay Bake, IReadOnlyList<bool> Shown, double Opacity, OverlayStatus? Status = null,
+    OverlayKeyAnchor? Key = null, Func<int, string>? Names = null)
+{
+    /// <summary>P10: a 'now usable' shortcut's highlight — the layers whose qualifying places are outlined
+    /// (<see cref="ResourceOverlay.Outline"/>; only a SHOWN layer is) and the rows the key opens with. Null: none.</summary>
+    public OverlayHighlight? Highlight { get; init; }
+
+    /// <summary>Whether any layer is shown.</summary>
+    public bool Any
+    {
+        get
+        {
+            for (int i = 0; i < Shown.Count; i++) if (Shown[i]) return true;
+            return false;
+        }
+    }
+}
+
+/// <summary>P9: THE OVERLAY'S KEY as one paint drew it — its box, its title and its rows (unwrapped, in order); every command
+/// of it is charged to <see cref="MapLayer.ResourceOverlay"/>.</summary>
+public sealed record OverlayKey(RectD Rect, string Title, IReadOnlyList<string> Rows);
+
+/// <summary>P9: what one paint drew of the resource overlay: the layers that drew a rect in view (indices, in order), per
+/// layer the rects emitted and the lattice nodes they cover, the key (null when none was asked for) and the realized-roll
+/// markers (settlement, text).</summary>
+public sealed record OverlayFrame(IReadOnlyList<int> Layers, IReadOnlyList<int> Rects, IReadOnlyList<int> Nodes, OverlayKey? Key,
+    IReadOnlyList<(int Settlement, string Text)> Markers)
+{
+    /// <summary>P10: the layers whose outline this paint drew (shown layers of the highlight, in its order).</summary>
+    public IReadOnlyList<int> OutlinedLayers { get; init; } = [];
+
+    /// <summary>P10: the outline segments this paint drew in view, and the qualifying nodes the outlines enclose.</summary>
+    public int OutlineSegments { get; init; }
+    public int OutlineNodes { get; init; }
+}
+
+/// <summary>P10: what a 'now usable' shortcut asks the lens to highlight: the overlay layers (indices into
+/// <see cref="ResourceOverlay.Layers"/>) whose qualifying places are outlined, and the rows the overlay's key opens with
+/// (the shortcut's headline and its permission / knowledge lines). UI state only.</summary>
+public sealed record OverlayHighlight(IReadOnlyList<int> Layers, IReadOnlyList<string> Rows);
+
 /// <summary>What one lens paint drew — the tests read this instead of pixels.
 /// <c>LayerDraws[(int)MapLayer]</c> counts the draw commands emitted per map layer (draw-call accounting
 /// for the single-owner rule); <c>Institutions</c> lists every institution marker drawn; <c>Paths</c>
@@ -360,6 +428,9 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
     /// <summary>P2: the level of detail this paint drew at (<see cref="Zoom"/> is its derived band). A banded paint carries
     /// its band's plateau (<see cref="MapDetail.Of"/>).</summary>
     public MapDetail Detail { get; init; } = MapDetail.Of(WorldZoom.World);
+
+    /// <summary>P9: what this paint drew of the resource overlay, or null when no overlay layer was shown.</summary>
+    public OverlayFrame? Overlay { get; init; }
 }
 
 /// <summary>
@@ -455,8 +526,8 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1) =>
-        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit);
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null) =>
+        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit, overlay);
 
     /// <summary>
     /// P2: paints the lens at a CONTINUOUS level of detail (<see cref="MapDetail"/> — what the game paints every frame).
@@ -474,7 +545,7 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, MapDetail detail,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1)
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null)
     {
         MapInk k = ink ?? MapInk.Default;
         _type = new MapType(theme, uiScale);
@@ -507,6 +578,23 @@ public static class WorldLens
         bool On(WorldLayer l) => detail.Alpha(l) > 0;
         var unitTokens = new List<int>();
         var drawn = new List<int>();
+
+        // P9: the resource overlay's layers, under everything else the lens draws (the terrain shows through them).
+        OverlayPaint? ov = overlay is { Any: true } ? overlay : null;
+        int[] oRects = new int[ov?.Bake.Layers.Count ?? 0], oNodes = new int[oRects.Length];
+        ov?.Bake.PaintLayers(d, ov.Shown, ov.Opacity, toScreen, viewport, k, oRects, oNodes);
+        // P10: a 'now usable' shortcut's outline of the qualifying places on its shown layers, over their fills.
+        var outlined = new List<int>();
+        int outlineSegments = 0, outlineNodes = 0;
+        if (ov?.Highlight is { } hl)
+            foreach (int li in hl.Layers)
+            {
+                if ((uint)li >= (uint)ov.Bake.Layers.Count || li >= ov.Shown.Count || !ov.Shown[li] || outlined.Contains(li)) continue;
+                outlineSegments += ov.Bake.PaintOutline(d, li, toScreen, viewport, A(k.Ink, 0.9), 2.0);
+                outlineNodes += ov.Bake.Outline(li).Nodes;
+                outlined.Add(li);
+            }
+        Charge(MapLayer.ResourceOverlay, null);
 
         if (On(WorldLayer.Territories) && showTerritory)
         {
@@ -626,6 +714,45 @@ public static class WorldLens
         }
         Charge(MapLayer.UnitTokens, WorldLayer.MilitaryFormations);
 
+        // P9: the realized ore rolls beside the player's settlements (west of the footprint: the name is below, the banner
+        // above, the formations east) — closer than the World band only, fading in with the Regional blend like the
+        // formation labels (at World zoom the settlements stand too close for a line each) — then the overlay's key, both
+        // before the legend, which stays the last thing drawn.
+        OverlayFrame? overlayFrame = null;
+        if (ov is not null)
+        {
+            var markers = new List<(int, string)>();
+            if (ov.Status is { } status && R > 0)
+                foreach (SettlementLensView s in p.Settlements)
+                {
+                    string text = ov.Bake.MarkerText(ov.Shown, status, s.Id);
+                    if (text.Length == 0) continue;
+                    (double sx, double sy) = toScreen(s.X, s.Y);
+                    if (sx < viewport.X - 50 || sx > viewport.Right + 600 || sy < viewport.Y - 50 || sy > viewport.Bottom + 50) continue;
+                    int from = d.Commands.Count;
+                    double size = _type.Size(TypeRole.Caption, FontRole.Body);
+                    double w = _type.Width(m, text, TypeRole.Caption, FontRole.Body);
+                    double right = sx - FootprintRadius(s, scale, S) - 8;
+                    d.Rect(new RectD(right - w - 4, sy - size * 0.75, w + 8, size * 1.4), A(k.NamePlate, 0.85), A(k.Ink, 0.45), 1, 2);
+                    _type.Label(d, right, sy - size * 0.65, text, TypeRole.Caption, FontRole.Body, k.Ink, TextAlign.Right);
+                    d.FadeFrom(from, R);
+                    markers.Add((s.Id, text));
+                }
+            Charge(MapLayer.ResourceOverlay, null);
+            OverlayKey? okey = null;
+            if (ov.Key is OverlayKeyAnchor kat)
+            {
+                okey = PaintOverlayKey(d, m, ov, kat, k);
+                Charge(MapLayer.ResourceOverlay, null);
+            }
+            var shownLayers = new List<int>();
+            for (int i = 0; i < oRects.Length; i++) if (oRects[i] > 0) shownLayers.Add(i);
+            overlayFrame = new OverlayFrame(shownLayers, oRects, oNodes, okey, markers)
+            {
+                OutlinedLayers = outlined, OutlineSegments = outlineSegments, OutlineNodes = outlineNodes,
+            };
+        }
+
         var painted = new List<WorldLayer>();
         foreach (WorldLayer l in layers) if (visible[(int)l]) painted.Add(l);
         MapLegend? key = null;
@@ -636,7 +763,7 @@ public static class WorldLens
         }
         return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions, pieces, placements)
         {
-            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail,
+            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail, Overlay = overlayFrame,
         };
     }
 
@@ -722,6 +849,68 @@ public static class WorldLens
         }
         return new MapLegend(box, title, [.. painted], entries, [.. p.Absent]);
     }
+
+    /// <summary>
+    /// P9: THE OVERLAY'S KEY — a plain data key on the legend's paper plate (no art, no ImGui window): its title, then
+    /// <see cref="ResourceOverlay.KeyRows"/> word-wrapped to the anchor's width, each shown layer's name row followed by its
+    /// ramp (one swatch per level, pale to deep, at the overlay's opacity — exactly the fills the layer is drawn with).
+    /// </summary>
+    private static OverlayKey PaintOverlayKey(DrawList d, ITextMeasure m, OverlayPaint ov, OverlayKeyAnchor at, MapInk k)
+    {
+        ResourceOverlay b = ov.Bake;
+        double pad = _type.Px(8), maxText = Math.Max(_type.Px(40), at.MaxWidth - 2 * pad);
+        double swatch = _type.Px(9), swatchH = _type.Px(8);
+        var rows = new List<OverlayKeyRow>();
+        // P10: a 'now usable' shortcut's rows open the key while one of its layers is shown.
+        if (ov.Highlight is { } hl)
+        {
+            bool shown = false;
+            foreach (int li in hl.Layers) shown |= (uint)li < (uint)ov.Shown.Count && ov.Shown[li];
+            if (shown) foreach (string r in hl.Rows) rows.Add(new OverlayKeyRow(r));
+        }
+        rows.AddRange(b.KeyRows(ov.Shown, ov.Status, ov.Names ?? (id => "settlement " + id.ToString(CultureInfo.InvariantCulture))));
+        // The runs, in order: (text, role, font, gap before, ramp layer after it).
+        var runs = new List<(string Text, TypeRole Role, FontRole Font, double Gap, int Ramp)>
+        {
+            (ResourceOverlay.KeyTitle, TypeRole.Caption, FontRole.Caps, 0, -1),
+        };
+        double space = _type.Px(4);
+        foreach (OverlayKeyRow row in rows)
+        {
+            bool heading = row.Ramp >= 0;
+            (TypeRole role, FontRole font) = heading ? (TypeRole.Body, FontRole.Heading) : (TypeRole.Secondary, FontRole.Body);
+            List<string> lines = _type.Wrap(m, row.Text, role, font, maxText);
+            for (int i = 0; i < lines.Count; i++)
+                runs.Add((lines[i], role, font, i == 0 && heading ? space : 0, i == lines.Count - 1 ? row.Ramp : -1));
+        }
+        double w = LevelSwatchWidth(swatch), h = 0;
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        {
+            w = Math.Max(w, _type.Width(m, text, role, font));
+            h += gap + _type.Size(role, font) * 1.3 + (ramp >= 0 ? swatchH + space : 0);
+        }
+        double boxW = Math.Min(at.MaxWidth, w + 2 * pad), boxH = h + 2 * pad;
+        var box = new RectD(at.Left, at.Bottom - boxH, boxW, boxH);
+        MapHandTokens hand = k.Hand;
+        d.Rect(box, A(k.NamePlate, 0.92), A(k.Ink, 0.55), Math.Max(1.0, hand.NamePlateRulePx), hand.NamePlateCornerPx);
+        double y = box.Y + pad;
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        {
+            y += gap;
+            _type.Label(d, box.X + pad, y, text, role, font, k.Ink, TextAlign.Left);
+            y += _type.Size(role, font) * 1.3;
+            if (ramp < 0) continue;
+            for (int v = 0; v < ResourceOverlay.LevelCount; v++)
+                d.Rect(new RectD(box.X + pad + v * swatch, y, swatch, swatchH), ResourceOverlay.Fill(k, b.Layers[ramp], v, ov.Opacity));
+            d.Rect(new RectD(box.X + pad, y, LevelSwatchWidth(swatch), swatchH), null, A(k.Ink, 0.45), 1);
+            y += swatchH + space;
+        }
+        var texts = new List<string>();
+        foreach (OverlayKeyRow row in rows) texts.Add(row.Text);
+        return new OverlayKey(box, ResourceOverlay.KeyTitle, texts);
+    }
+
+    private static double LevelSwatchWidth(double swatch) => swatch * ResourceOverlay.LevelCount;
 
     /// <summary>The settlement each formation (parallel to <c>p.Units</c>) is stationed in, when the
     /// projection has it; null for a formation in the field.</summary>

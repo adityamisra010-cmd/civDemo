@@ -770,6 +770,538 @@ target-anchored parity is the alternative if that is preferred. After the fix (M
 FAIL, 0 problems, 62,426 frames, the three wheel rows PASS in all nine states; `Sim.Tests` SnapshotTests and
 CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK.
 
+### 3.6 The player-knowledge seam and the hidden-rival state (M5 workstream P7, 2026-10-11)
+
+Branch `m5w-p7-player-knowledge-seam`, cut from `m5w-integration` @ `b49ae203`. Record: ADR-037 (PROPOSED). No
+simulation behaviour changed: the seam is ALL-KNOWN until S2a stores an extent, and every reader routed through it is
+byte-identical to the base (measured below).
+
+**The seam (IMPLEMENTED).** `Sim.Core/State/PolityKnowledge.cs` answers what one polity knows — `Known(node)`,
+`Visible(node)`, `KnowsSettlement`, `KnowsUnit`, `KnowsPolity`, `ReadsInternals` — at the traversal lattice's node.
+`PolityKnowledge.Of` is all-known; its only future input is the stored known extent. `Sim.Ui/ViewModel/PlayerKnowledge.cs`
+is the player's per-turn view built from it (`UiSession.Knowledge`). The readers that ask it: the world projection (the
+lens, LensFrame and every hit test follow), Tab and the opening selection, the HUD's world totals, the annals (filtered
+by subject in UiSession), the player views, the market and needs panels, the unit and formation cards, the Trends world
+series and the history buffer's. The AI asks the same seam: the founding site scan ranks only known cells;
+AiConstructionPolicy reads a queue only after `ReadsInternals`. Raw settlement ids are gone from player text (the
+selection card's unnamed title).
+
+**The hidden-rival state and its rows.** A tenth state, `hidden rival`: the one-AI world, one End Turn played, its
+session's knowledge a stub (`Sim.Ui/Headless/KnowledgeStubs.HidePolity`) hiding the AI polity whole. The full sweep, the
+monkey and the coverage check run in it like any state, plus two rows drawn only where knowledge hides something:
+
+| row | what it checks |
+|---|---|
+| `map: knowledge` / `Tab never reaches a hidden settlement` | Tab, pressed once more than there are settlements, never selects a hidden one and reaches every known one (a camera row: no hash or order changes) |
+| `map: knowledge` / `a click on a hidden position selects nothing` | zoomed to the Settlement band and centred on each hidden settlement, a click there selects nothing and picks no formation, and the lens drew neither it nor a formation of the hidden polity |
+
+`SelectRows` now picks only settlements the player can click (in that state it picks `select settlement 8`; every
+other state's picks are the base's).
+
+**Byte-identical with all-known (MEASURED, base `b49ae203` built and run before any change, then this branch):**
+
+| evidence | result |
+|---|---|
+| every SVG preview (`--research/--age/--era/--action/--r2a/--player-views-preview`) | 77 files, identical |
+| a digest of every routed reader over seven worlds (seed 42 t0, t3; one AI t0, t12; seed 7 two AI t6; 250 px two AI t1, t5): projection, four cameras' SVG bytes and LensFrame, HUD per settlement, player views, market, needs, Tab, unit, formation and good cards, annals, Trends and history world series, AI orders | identical, except the deliberate no-selection title ("Settlement -1" -> "No settlement selected", one line per world) |
+| `--smoke --monkey 200` | base: 9 states, 1892 checks, 1782 pass, 110 n/o, 0 FAIL, 62,426 frames, 124.8 s. After: 10 states, 2094 checks, 1974 pass, 120 n/o, 0 FAIL, 0 problems, 69,304 frames, 137.7 s. Every pre-existing state's cells and not-offered reasons identical and in order; added: the `hidden rival` column (192 PASS, 10 n/o) and three rows |
+| ci.yml determinism-xproc (two CLI processes from this tree) | founded golden `937577ff…` (both logs identical), founded-orders replay, Found Settlement leg (`2149574f…`, replay, inspect VERIFIED) and 600-turn AI leg (`7f374638…`, kinds 3..9, replay, inspect VERIFIED) — every hash log and run log byte-identical to the base binary's |
+
+Gate runtime: +6,878 frames and +12.9 s on this machine (+10 %) for the new state.
+
+**Moved pins (old → new, measured cause: P7's raw-id rule).** `HudViewModelTests.HudModel_FoundedState_NumbersAndFormattingExact`
+and `SelectionTests.HudStrings_NonZeroSettlement_Exact`: an unnamed selection's title `"Settlement 0"` / `"Settlement 2"`
+→ `"Unnamed settlement"`.
+
+**Mutant kill record.** One-edit mutants, each built and run against a filter (UI: KnowledgeLeakTests, SelectionTests,
+HudViewModelTests, AnnalsTests — 41 tests, clean 27 s, bound 110 s = 4×; core: PolityKnowledgeTests, AiFoundingPolicyTests,
+InfoQueryTests, InstitutionAiTests, AiPolicyTests — 54 tests, clean 9 s, bound 40 s = 4×). None hung; every run took
+10–31 s.
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M1 `WorldProjection.Build` ignores the observer it is given | the static-reader metamorphic test, the FrameText metamorphic test, the click test, the gate rows |
+| M2 Build draws hidden settlements | as M1 |
+| M3 Build draws hidden formations | the static-reader metamorphic test, the gate rows |
+| M4 `CycleNext` ignores knowledge | `Tab_NeverReachesAHiddenSettlement…`, the static-reader test, the gate rows |
+| M5 the HUD's world population sums hidden settlements | the static-reader test, the FrameText test |
+| M6 the state chronicle's settlement filter admits everything | `TheAnnals_TellNothingOfWhatTheStubHides_EvenItsEvents` |
+| M7 the core chronicle's events unfiltered | `ACoreChronicleEvent_ReachesTheAnnals…`, the annals test, the FrameText test |
+| M8 the Trends world series sum hidden settlements | `TheTrendsWorldSeries_AreIdentical…` |
+| M9 the history buffer's world series sum hidden settlements | `TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements` |
+| M10 the settlement view reads a hidden settlement | the static-reader test |
+| M11 the settlement view lists formations the player does not know | `TheSettlementView_ListsOnlyTheFormationsThePlayerKnows_WhereverTheyStand` (first run: SURVIVED — a formation stationed in a known settlement is always seen unless the player's own settlement is out of sight, a case no test built; the test was added and the mutant re-run: killed) |
+| M12 the unit card builds for an unknown formation | the static-reader test |
+| M13 the market rows read a hidden settlement | the static-reader test |
+| M14 the needs panel reads a hidden settlement | the static-reader test |
+| M15 the raw id back in the unnamed title | `RawSettlementIds_AreNotInPlayerText`, the two moved pins |
+| M16 GameUi builds the lens without the session's knowledge | the FrameText test, the gate rows |
+| M17 GameUi's Tab ignores the session's knowledge | the gate rows (`Tab never reaches a hidden settlement`) |
+| M18 the AI site scan's `KnowsCell` arm dropped | `TheAiSiteScan_RanksOnlyTheCellsItsPolityKnows`, `AnUnknownCellsOwnScore_CannotMoveThePick…` (named `WhatTheAiDoesNotKnow_CannotMoveItsPick…` at `cd3c91f`: renamed after review, it perturbs scores, not what the AI does not know), and — re-run after review — `TerrainUnderUnknownNodes_NeverPutsAnUnknownCellInThePick…` (fertility 1 under the unknown half: the mutant picks unknown cell 14740) |
+| M19 the formation card ignores knowledge | `TheFormationCard_OfAFormationThePlayerDoesNotKnow…` |
+| M20 the pre-P7 `DepositSector` (scans the world's settlements) | `TheGoodCardsDepositSector_IsProductionsContentRule…` (no settlement holds fish: the old body said Extraction) |
+| M21 `KnowsSettlement` ignores the masks | `Restricted_AnswersFromItsMasks…` |
+| M22 the construction reorder reverted (queue before the seam) | OUTPUT-EQUIVALENT (a foreign queue never changed the output; the AI metamorphic test cannot see read order) — killed only by the structural pin `AiConstructionPolicy_AsksTheSeamBeforeItReadsAnyQueue`, recorded as such |
+
+**After review (finding 2: a selection that becomes hidden after a step).** `GameUi.RefreshHud` now drops a selection the
+player no longer knows, and each selection-keyed reader reads a hidden settlement as no selection. Mutants against
+KnowledgeLeakTests (18 tests, clean 39 s, bound 170 s ≈ 4×; each run 37–43 s, none hung):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M23 the RefreshHud guard removed (a hidden selection survives the step) | `ASelectionThatAStepHides_IsDropped_AndWhichHiddenSettlementItWasLeavesNoTrace` (the selection is not dropped; the two plays draw their own selection's name) |
+| M24 `TrendsModel.Settlement` ignores knowledge | `EverySelectionKeyedReader_ReadsAHiddenSettlementAsNoSelection…`, `TheTrendsWorldSeries_AreIdentical…` (a hidden settlement's own series moves with it) |
+| M25 `HistoryBuffer.Price` ignores knowledge | `EverySelectionKeyedReader…`, `TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements` (a hidden settlement's price series is read) |
+| M26 `ScreenModels.Policy` ignores knowledge | `EverySelectionKeyedReader…` (the labour record reads the hidden settlement's policy state) |
+| M27 `ScreenModels.Settlement` ignores knowledge | `EverySelectionKeyedReader…` |
+| M28 `ActionSurface.ForSession` passes a hidden selection through | `EverySelectionKeyedReader…` (the labour note names it: "… is not ours to command") |
+
+**After review (finding 3: four filters without teeth).** The four subject filters no test reached — a mutant removing
+all four survived every knowledge test at `129c11f` (the reviewer's measurement) — now each have a focused metamorphic
+test with their OWN positive control: `ATradeFlowOrARoadToAHiddenSettlement_ShowsNowhere_InTheEmpireViewOrTheProjection`
+plants a trade flow each way and a travelled road between the player's first settlement and a hidden one (two variants:
+different hidden settlements, amounts and lengths, the second also moving that settlement's site within its unknown
+node) and requires the Empire view's Trade and Roads blocks and the projection's routes identical through the stub and
+naming no hidden settlement, while all-known each of the three changes and names it;
+`TheMigrationView_ComparesKnownPlacesOnly_HoweverAttractiveAHiddenOneIs` builds REAL SettlementRecords (ObservationLog
+over the rig's step) with the hidden settlements' smoothed attractiveness raised above every other by two amounts, and
+requires every known settlement's Migration block identical through the stub (control: all-known it says "<hidden> looks
+more attractive" and moves). The same filter, now 20 tests (clean 40 s, bound 180 s ≈ 4×; each run 40–44 s, none
+hung):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M30 the Migration "more attractive" comparison admits hidden settlements (`PlayerViews.cs`) | `TheMigrationView_ComparesKnownPlacesOnly…` |
+| M31 the Empire trade filter removed | `ATradeFlowOrARoad…` (at "Empire / Trade") |
+| M32 the Empire roads filter removed | `ATradeFlowOrARoad…` (at "Empire / Roads") |
+| M33 `WorldProjection.Build`'s built-route filter removed (`WorldLens.cs`) | `ATradeFlowOrARoad…` (at "projection / routes") |
+| M34 all four removed together (the reviewer's mutant) | both tests |
+
+Not adopted: routing the Trends place-scope LABEL itself through the knowledge (M29, measured): it survived every test,
+because the RefreshHud guard means the label is never handed a hidden selection — an output-equivalent duplicate of the
+guard, so the label keeps reading the selection and M23's kill covers it. The GameUi call sites that hand the session's
+knowledge to `TrendsModel.Settlement` and `HistoryBuffer.Price` are likewise equivalent while the guard stands (the
+readers' own routing is what M24 and M25 pin).
+
+Each property is one the system ought to have: the player and the AI may act only on what they know (Spine principle
+7; D-040; D-039 C1); a test hides, perturbs and requires the player's every output unchanged, with a positive control
+proving the perturbation reaches that output when nothing is hidden.
+
+### 3.7 The place card: site and tile inspection (M5 workstream P8, 2026-10-11)
+
+Branch `m5w-p8-site-inspection`, cut from `m5w-p7-player-knowledge-seam` @ `c58d9b07`. Presentation only: a read-only
+Sim.Core query and a UI card. No state, order, system, schema or golden changed (measured below).
+
+**The composite, and only the one the simulation has.** The Director asked for "a composite settlement-suitability …
+explainable score and factor breakdown". The simulation already holds exactly ONE composite: the UNJITTERED siting
+score `SettlementSiting.CandidateScores` = region fertility (`BoxSum` over ±`fertilityRadiusPx`) × water access
+(`WaterAccess` of `WaterDistanceBfs`), the score turn-zero siting, emergent colonization and the AI's founding pick rank
+by and FoundingQuery's floor arm reads. The card shows THAT, titled "The simulation's siting score", decomposed into
+those two factors, with its rank among the positive scores and the floor (`ScoreFloor`'s population and percentile).
+No weight is invented and nothing else is folded in. (D-043 C2 limits institution viability, not a suitability score —
+the workstream plan's reading is corrected by the packet.)
+
+**Everything else is separate and labelled "not part of the score".** Each its own section: the founding predicate arm
+by arm (FoundingQuery's public parts — source, control, map, land, floor, occupancy, spacing, catchment claim, party,
+provisions, route — with `FoundingQuery.Check`'s own verdict; the first failing arm is pinned equal to it); the route
+and its cost from a chosen source (`RouteQuery.Find`; "set out from …" links re-judge from another settlement of the
+player's); the deposits a settlement founded here would get — EXPECTED per good (`HinterlandMeans` +
+`DepositChannelValue`, the ore spread as its range, labelled keyed to the settlement id, not the place) and, while the
+player knows every settlement, the exact roll for the next id (`AddDepositsForSite` into a scratch table, id maxId+1);
+discovery / presence / access / extraction as four lines (known cell; channel > 0; a land route from a settlement of
+the player's; `LabourActivities.CanAllocate` on the source a colony takes its ruler from — production works deposits
+with no research gate); the would-be catchment's arable land (`Pathfinder.Partition` with the site appended, the
+catchment's own tier budgets via the now-public `CatchmentSystem.TierOf`); the terrain fields; the nearest settlements
+the player knows (composite integer key: squared px distance, id); and "Not simulated": a per-place resource quantity,
+resource discovery, D-051 §2 availability classes (ratified, not built — they will change the deposit function the card
+calls), a land claim other than a catchment, farmland taken by a footprint (D-009). On water, deposits and the catchment
+are "not evaluated: no settlement can stand on water".
+
+**The refusal.** A cell the player's knowledge (P7 seam) does not know is never registered on the map, and its card, if
+asked for, is "Undiscovered ground" and reads nothing of the cell or the world. Pinned metamorphically with the stub
+(`PolityKnowledge.Restricted`): every land layer under the unknown nodes perturbed, report and card identical; control:
+all-known, the same perturbation moves them.
+
+**The UI.** The known ground under the pointer is a PASSIVE inspectable region (`InfoKind.Cell`, `InfoSubject.OfCell(cell,
+source)`), registered from the lens before the formation tokens (a token stays on top), picked through the camera's shown
+view and the map rect (`Sim.Ui/World/MapCells.At` — `Camera.ScreenToWorld`), only over open map (not an ImGui window, the
+legend, the docked Age panel or the modal Age flow). Its region is the cell's footprint, or a 12 px square about the
+pointer when a cell is smaller, so its centre names the same cell at any zoom. A plain click is unchanged; Shift+click
+opens the card in the right-hand column. The hint "Shift+click: what is here" is PAINTED and only while Shift is held
+(over all ground it would follow the pointer everywhere); never an ImGui tooltip. The card is judged from the selected
+settlement when it is the player's, else the capital. `UiSession.Sites` prepares the terrain half once per terrain, with
+the worldgen config the session's ColonizationSystem holds.
+
+**New public surface (flagged, decision ledger §29).** Sim.Core: `SiteAssessment` (`Prepare`, `Assess`, `DefaultSource`,
+`CompareNearby`, `FirstFailing`, the `Prepared` / `Report` / `FoundingArm` / `Nearby` / `DepositPreview` types),
+`InfoKind.Cell` (15), `InfoSubject.OfCell`, `InfoQuery.Card`'s optional `site` parameter, `CatchmentSystem.TierOf` (was
+private; no behaviour change). Sim.Ui: `MapCells`, `UiSession.Sites`, `InfoPanel.CellHintText` and `PaintHint`'s optional
+text, `UiFrameHarness.HoverWith`.
+
+**Gate rows (info area).**
+
+| row | states | what it checks |
+|---|---|---|
+| `info` / `shift-click Cell (map ground: the place card)` | all 10 | known land near the capital: the card opens for exactly that subject with InfoQuery's title, no order, unchanged hash and selection, Escape closes it first |
+| `info` / `hover hint over the map ground (painted only while Shift is held, never a tooltip)` | all 10 | no hint without Shift; the place hint with Shift; no tooltip window |
+| `info` / `undiscovered ground offers no place card (Shift+click opens nothing)` | hidden rival | zoomed to the Settlement band over each hidden settlement: no place region, no hint, a Shift+click opens nothing (a camera row) |
+
+**Unchanged (MEASURED).**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `c58d9b07` (exported and built) then this branch | base: 10 states, 2094 checks, 1974 pass, 120 n/o, 0 FAIL, 69,304 frames, 160.8 s. After (`496b92f`, and again on `67c6c3e` with a byte-identical report): 10 states, 2115 checks, 1995 pass, 120 n/o, 0 FAIL, 0 problems, 69,712 frames, 157.6 s / 138.2 s. With the three new rows removed, the two reports are identical line for line except the summary line (every pre-existing row's cells and not-offered reasons) |
+| world hash | `PreparingAssessingAndCarding_ChangeNoHash` (two worlds, every sampled cell, the hash, turn and ledger-flow count); the UI test and every gate row check hash and queue around the Shift+click |
+| founded seed-42 300-turn golden (`sim run --founded --seed 42 --turns 300`, two CLI processes from this tree) | both hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+
+**Data gaps (stated, not filled).** No per-cell resource quantity exists: deposits are written per settlement at founding,
+and the nine deposit goods collapse onto three channels; the card shows expected channel values. D-051 §2 will replace
+the deposit function; the card calls it and never copies it. ~~A KNOWN cell's values are the simulation's own, and several
+read beyond the cell … — the ADR-037 §6 channel, for S2b/S2c; all-known today.~~ CORRECTED by review finding 1 (below):
+§6 records that channel for the AI's valuation only; the card is a player output, held to the player's stricter class
+(ADR-037 §7).
+
+**Found, not fixed (pre-existing, recorded in `docs/queue.md`).** A session or rig whose map is not the canonical size
+(`--size`, `UiSession.Start(sizeOverridePx: …)`, the Sim.Tests dev rigs) hands ColonizationSystem the canonical 1024-px
+worldgen config, and `WorldFounding.HinterlandMeans` indexes by the CONFIG's `sizePx`: a colony's deposits are read
+from other cells (measured), and `HinterlandMeans` throws for a site in a small map's bottom rows (measured on the
+function directly). The card refuses to evaluate deposits under such a mismatch
+instead of reading the wrong cells.
+
+**Mutant kill record.** One-edit mutants, each built and run against a filter (core: SiteAssessmentTests +
+InfoQueryTests — 30 tests, clean 16 s, bound 120 s = 7.5×; UI: InfoPanelTests — 21 tests, clean 29 s, bound 240 s ≈
+8×). None hung: every core run 13–17 s, every UI run 31–35 s.
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| C1 the region-fertility factor read at radius + 1 | `TheComposite_IsTheSimulationsUnjitteredSitingScore…` |
+| C2 the assessment's refusal removed | `AnUnknownCell_IsRefused_NothingOfItIsRead…` |
+| C3 the card's refusal removed | `AnUnknownCell_IsRefused_NothingOfItIsRead…` |
+| C4 the nearest tie-break id DESC | `TheNearestOrder_IsSquaredDistanceThenId_TieDense…`, `AtAPlaceEquidistantFromTwoSettlements…` |
+| C5 the next-founding roll keyed to maxId + 2 | `TheIfFoundedNextDeposits_AreTheDepositRowsOfAColonyActuallyFoundedThere_BitExactly`, `TheWouldBeArableLand…` |
+| C6 the would-be catchment's budget at the top tier | `TheWouldBeArableLand_IsWhatTheCatchmentRecomputeGivesTheColony_BitExactly` |
+| C7 the Claimed arm always holds | `EveryOtherValue_IsItsOwnFunctionsValue…` (the per-arm pins; the arm never fails first on these maps) |
+| C8 the rank counts ties as below | `TheComposite…` |
+| C9 an invented weight folded into the composite line | `TheCellCard_ShowsTheOneCompositeDecomposed…NoWeightedComposite` |
+| C10 the nearest list names unknown settlements | `UnderAStub_TheNextFoundingRollIsWithheld_AndTheNearestListNamesOnlyKnownSettlements` |
+| C11 the next-founding roll shown under a stub | as C10 |
+| C12 deposits evaluated on water | `EveryOtherValue…` |
+| U1 the place hint painted without Shift | `ShiftClick_OnKnownMapGround…`, `TheHoverHint_IsPaintedBesideThePointer…`; the gate's hint row (`--smoke --state "A1 turn 1"`: 1 FAIL) |
+| U2 undiscovered ground offered | `UndiscoveredGround_IsNeverOffered…`; the gate's undiscovered-ground row (`--state "hidden rival"`: 1 FAIL) |
+| U3 the region is the bare footprint at every zoom | `ThePlaceRegion_ContainsThePointer_AndItsCentreIsTheSameCell_AtEveryZoom` |
+| U4 the ground registered over the tokens | `ShiftClick_OnKnownMapGround…` (Shift+click on the formation token) |
+| U5 the card ignores the selected source | `ShiftClick_OnKnownMapGround…` (the subject) |
+| U6 the ground behind a window offered | `TheGroundBehindAWindowTheLegendOrTheAgePanel_IsNotOffered` |
+| U7 the ground behind the legend offered | as U6 — SURVIVED the first version of that test (its legend probe lay over the paper beside the 256-px world); the test now zooms in and asserts each probe lies over known ground, and kills it |
+| U8 the ground behind the Age panel offered | as U6 |
+
+Each property is one the system ought to have: the card shows the simulation's own values and invents none; looking
+never acts; the player is shown only what it knows (P7); a token over the ground stays inspectable.
+
+**Review finding 1 (major), fixed: a known cell's place card read hidden settlements and hidden terrain.** The finding
+(independent verdict: confirmed) measured, through the P7 stub on the dev rig: known cells failing the spacing arm only
+because of a hidden rival with the card stating the distance to its site; at a settlement on known ground out of sight,
+"a settlement already stands here", "The site of a settlement." and "In the catchment of a settlement you do not know";
+and the score's first line moving when only the fertility under eight unknown nodes changed. The card was not in the
+gate of record, and this section called it "the ADR-037 §6 channel", which §6 records for the AI only.
+The fix holds the card to the PLAYER's class (ADR-037 §7, appended): while the player sees the whole world
+(`SiteAssessment.SeesAll` — all-known, or every node visible; production today) the card is unchanged line for line;
+otherwise every value that would read beyond what the player knows is withheld and shown "not judged" — never
+estimated — and no wording narrates a settlement the player does not know. Gate: `KnowledgeLeakTests` gains a "place
+cards" category in the static readers' comparison and `ThePlaceCardOfAKnownCell_TellsNothingOfWhatTheStubHides…` (hidden
+sites moved, hidden claims and a road planted, a river and rough ground under every unknown node; a control per
+channel); `SiteAssessmentTests` pins the finding's three cases metamorphically, each with an all-known control, and
+that a stub hiding nothing withholds nothing.
+
+Mutant kill record (one worktree; each mutant built, then `SiteAssessmentTests` — 17 tests, clean 19 s, bound 120 s —
+and `KnowledgeLeakTests` — 21 tests, clean 46 s, bound 300 s; none hung: core 15–24 s, UI 45–50 s):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| F0 `SeesAll` always true (the fix reverted) | `ThroughAStubHidingTheRival…`, `ASettlementOnKnownGroundOutOfSight…`, `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…`, `UnderAStub_TheNextFoundingRollIsWithheld…`; UI `PerturbingWhatTheStubHides…` (place cards), `ThePlaceCardOfAKnownCell…` |
+| F1 `SeesAll` = all-known only (a stub hiding nothing withholds) | `AStubThatHidesNothing_WithholdsNothing…` |
+| F2 the water-access factor never withheld | `AKnownPlaceAmidUnknownGround…`; UI `ThePlaceCardOfAKnownCell…` |
+| F3 the region-fertility factor never withheld | `AKnownPlaceAmidUnknownGround…`; UI `PerturbingWhatTheStubHides…`, `ThePlaceCardOfAKnownCell…` |
+| F4 the hinterland disc check removed | as F3 |
+| F5 occupancy names any settlement under a stub | `ASettlementOnKnownGroundOutOfSight…` |
+| F6 the claim names any settlement under a stub | `ASettlementOnKnownGroundOutOfSight…`, `ThroughAStubHidingTheRival…`; UI `ThePlaceCardOfAKnownCell…` |
+| F7 a source the player does not know is kept | `ThroughAStubHidingTheRival…` (its card is a nonexistent id's) |
+| F8 the restricted verdict is `FoundingQuery.Check`'s | `ThroughAStubHidingTheRival…`, `ASettlementOnKnownGroundOutOfSight…`, `AKnownPlaceAmidUnknownGround…`; UI both |
+| F9 route and access judged under a stub (both guards removed) | UI `ThePlaceCardOfAKnownCell…` (the planted road and rough ground); `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…` |
+| F10 floor and rank shown under a stub (both guards removed) | `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…`; UI `PerturbingWhatTheStubHides…`, `ThePlaceCardOfAKnownCell…` |
+| F11 spacing judged under a stub | `ThroughAStubHidingTheRival…`; UI `ThePlaceCardOfAKnownCell…` |
+| F12 occupancy held on a cell out of sight | `ASettlementOnKnownGroundOutOfSight…` (it would state "No settlement stands here" where one stands) |
+
+Each property is one the card ought to have: the player is shown only what it knows, the choice to withhold tells
+nothing either, and a stub hiding nothing withholds nothing.
+
+Measured on this fix's tree (base `651bfb0`):
+
+| evidence | result |
+|---|---|
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (22 allowlisted files, unchanged), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests | 753 passed, 0 failed (10 m) |
+| full Sim.Tests | 1,690 passed, 13 skipped, 2 failed — the inherited CR-020 reds `Dev_MalthusCorridors_AllInBand` seeds 42 and 7, untouched (34 m) |
+| `--smoke --monkey 200` | 10 states, 2115 checks: 1995 pass, 120 not offered, 0 FAIL; 0 problems; 69,712 frames — the P8 record's counts and frames; the place rows PASS in every state, the undiscovered-ground row PASS in hidden rival |
+| founded seed-42 300-turn golden (two CLI processes) | hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+
+### 3.8 The resource and suitability overlay (M5 workstream P9, 2026-10-11)
+
+Branch `m5w-p9-resource-overlays`, cut from `m5w-p8-site-inspection` @ `efef5da8`. Presentation only: a UI-side bake of
+the simulation's own functions, a lens layer and its controls. No state, order, system, schema, content or golden
+changed; one Sim.Core edit makes three of the place card's reach helpers public with no behaviour change
+(`SiteAssessment.KnowsSquare` / `KnowsDiamond` / `KnowsDisc`).
+
+**What the overlay is.** Per traversal-lattice node (the knowledge grid's 16 km node), the value a settlement founded at
+the node's CENTRE CELL would be judged by, through the simulation's own public functions (never read from a rendered
+colour): one layer per goods.json `depositChannel` — moisture, water-proximity, elevation — the founding's own
+`WorldFounding.HinterlandMeans` + `DepositChannelValue` (labelled "Expected abundance (rate multiplier); actual varies
+±spread"; each channel's key row names EVERY good it drives with its spread — "Drives livestock, timber, fiber, hides:
+all exact, one field - no difference between them", "Drives stone (exact), copper-ore (±80%), tin-ore (±90%)" — so no
+layer claims a per-good difference the simulation lacks); the composite settlement suitability = the simulation's own
+UNJITTERED siting score `SettlementSiting.CandidateScores`, with its founding floor; and its two factor layers, region
+fertility (`BoxSum`) and water access (`WaterAccess` of `WaterDistanceBfs`). Each layer is individually toggleable; a
+stronger value is a deeper ink AND more opaque (16 ramp levels from 0 to the largest value drawn; alpha = opacity ×
+(0.25 + 0.75 × ramp)); the opacity steps in tenths from 10 % to 80 %, never opaque, so the terrain always shows through.
+A node whose centre cell is water is not drawn (no settlement stands on water). The realized ore rolls (the player's own
+settlements' `DepositRow`s, "copper-ore 0.183 (x1.68)" — rolled ÷ expected) are marked beside those settlements from the
+Regional zoom in. Tile inspection is P8's place card (Shift+click), named in the key.
+
+**The key** (painted by the lens, never a tooltip): the abundance statement, each shown layer's name and range with its
+ramp, its goods, what it measures with its counts, the founding floor; then four rows, each from the place card's own
+predicate — DISCOVERED (`PolityKnowledge.Known`; "every place known (no extent is stored yet)" while all-known), PRESENT
+(a channel value above 0 — the card's "present"; universally true until D-051 §2), ACCESSIBLE (a land route from a
+settlement of the player's — the card's "reachable", taken for every place as the union of unbounded
+`Pathfinder.Isochrone`s, pinned equal to the card's own `AccessibleFrom` on sampled places; and the places in the
+player's catchments), EXTRACTABLE (the card's "workable": `LabourActivities.CanAllocate` for the default source; herding
+and extraction labour, no research gate).
+
+**The player's information class** (P7 seam; the place card's rules, ADR-037 §7). An unknown node is not evaluated —
+nothing of it is drawn, scored, counted into a range or shown. A known node is WITHHELD (not drawn; counted "not
+judged") when its own reach touches undiscovered ground: the hinterland disc (channels), the fertility box, the water
+BFS's diamond. The ramp runs to the largest value DRAWN. Routes are not judged under a restricted view, nor the founding
+floor. Under a restricted view region fertility is summed over its own window (`ResourceOverlay.WindowSum`), not taken
+from the simulation's integral image, whose last bits depend on every cell above-left of the window (measured: P9
+mutant M2 below; the same bits reach P8's place-card REPORT — not its text — recorded in `docs/queue.md`).
+
+**Where.** One lens-owned `MapLayer.ResourceOverlay` (`MapLayerOwnership`), painted FIRST (under territory, paths and
+settlements) as one rect per run of equal levels along each lattice row, edges snapped to whole px (runs tile exactly:
+pinned), charged to that map layer and to no information layer (the legend's precedent); markers and key are painted
+before the legend, which stays last. Controls: an OVERLAYS tab at the clear map's bottom-left (right of the Age panel and
+the formation card while they show), unfolding a checkbox per layer and the opacity; the key sits beside the tab (above
+it when the map leaves no room), and a click on it picks nothing beneath (`OnLegend`). The bake (`UiSession.Overlay`) is
+made the first time a layer is shown and kept while the terrain and the knowledge masks are the same (production: once
+per session; 50 ms on the canonical map); the status (`UiSession.OverlayStatus`) once per world while shown (8 ms).
+
+**Gate rows (map: overlays, every state; map: knowledge, hidden rival).** All camera rows: the world hash and the queued
+orders unchanged.
+
+| row | states | what it checks |
+|---|---|---|
+| `overlays (unfold: its tab)` | all 10 | the controls unfold; every layer's checkbox and both opacity steps drawn; nothing painted yet |
+| `<layer> (show: its checkbox)` × 6 | all 10 | shown; drawn (or, for a channel on a map the founding config does not describe, "Not evaluated" in the key); every node drawn known; the key names the layer, its measure, a channel's goods and the abundance statement, has the Discovered / Present / Accessible / Extractable rows, lies inside the clear map, is in FrameText (lens); no tooltip |
+| `<layer> (hide: its checkbox)` × 6 | all 10 | not shown, nothing of the overlay painted, the key's title in no lens text |
+| `overlay opacity (-: one tenth less)`, `(+: one tenth more)` | all 10 | the opacity moves one tenth and the deepest fill drawn is exactly that opacity's alpha |
+| `overlays (fold: its tab)` | all 10 | the controls fold |
+| `the overlay draws nothing on undiscovered ground` | hidden rival | every layer shown: no undiscovered node drawn, no layer paints more nodes than its bake draws; reports the undiscovered nodes and the withheld values |
+
+Coverage: `control:overlays`, `control:overlay:<moisture|water|elevation|suitability|fertility|access>`,
+`control:overlay-opacity-down`, `control:overlay-opacity-up` — each pressed by a passing row in every state.
+
+**Measured.**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `efef5da8` (exported to scratch and built) then this branch (`e788b36`) | base: 10 states, 2115 checks, 1995 pass, 120 n/o, 0 FAIL, 0 problems, 69,712 frames. After: 10 states, 2276 checks, 2156 pass, 120 n/o, 0 FAIL, 0 problems, 71,186 frames, largest draw list 149,328 vertices (base 104,004; the hidden-rival row shows all six layers). +161 rows = 16 × 10 states + 1. With the overlay rows removed the two reports are identical line for line except the summary line |
+| world hash | `BakingStatusAndPainting_ChangeNoHash`; `ShowingEveryLayerAndPlaying_IsHashIdenticalToNotShowingThem` (every layer shown, an End Turn, against a session that showed none); every gate row; the frame-cost sweeps (canonical `4035cf18…` before and after) |
+| founded seed-42 300-turn golden (`Sim.Cli run --founded --seed 42 --turns 300`, two processes, this tree) | both hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files: + `Sim.Ui/World/ResourceOverlay.cs`, routed), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests (`4e8cb1e`) | 770 passed, 0 failed (11 m 32 s; P8's 753 + 17 new) |
+| targeted Sim.Tests (`SiteAssessment`, `FoundingVariationItem0`, `SettlementTests`, `WorldgenTests`, `PolityKnowledge`) | 40 passed, 1 skipped, 0 failed — the one Sim.Core edit is an access modifier; full Sim.Tests not run (no simulation, order, serialization or AI change) |
+| frame cost (`--frame-cost map`, `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost with the resource overlay") | without the overlay the lens paints exactly what it painted; one layer adds ~1.3–2 ms a frame at World zoom (~6,500 rects), every layer ~12–17 ms (the worst case); Settlement zoom ≤ 0.7 ms |
+
+**Mutant kill record.** One-edit mutants in this worktree, each built, then `ResourceOverlay|WorldLayerOwnershipTests`
+(26 tests; clean 26 s quiet, bound 300 s; M18 against the 17 `ResourceOverlay` tests, bound 300 s); none hung (25–40 s
+each, M1 134 s while the smoke ran beside it).
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M1 the bake reads unknown nodes (the refusal removed) | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…`, `TheBakeIsKept_ForTheSameSiteAndKnowledgeMask…` |
+| M2 the restricted region sum is the integral image | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` (the low bits of a known box's sum move with unknown ground) |
+| M3 the hinterland-disc reach check removed | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` |
+| M4 the water-BFS reach check removed | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` |
+| M5 the channel read at the point, not the hinterland mean | `EveryDrawnChannelNode_IsTheFoundingsFunctionAtItsCentreCell…`, `TheSuitabilityLayers_…AndThePlaceCardAgrees` |
+| M6 the paint draws every layer, shown or not | `ThePaint_ChargesEveryCommand…DrawsOnlyTheShownLayers…`, `Opacity_ScalesOnlyTheOverlaysAlpha…` |
+| M7 the fill ignores the opacity | `Opacity_ScalesOnlyTheOverlaysAlpha…`; the gate rows (canonical, hidden rival) |
+| M8 the opacity + step does nothing | `TheOpacity_StepsInTenths…`; the gate rows |
+| M9 access judged under a restricted view | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` — SURVIVED its first version (no perturbation changed the lattice's connectivity); the test now floods the undiscovered ground (the all-known control's reachable count moves) and pins "routes not judged" |
+| M10 the ore rolls of every settlement (knowledge and books checks removed) | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` (the hidden settlements' deposits) |
+| M11 a run drawn one node too long | `ThePaint_…ItsRunsCoverExactlyTheDrawnNodes` |
+| M12 a node whose centre is water drawn | `EveryDrawnChannelNode…`, `TheSuitabilityLayers…`, `TheKeysAccessAndExtractionRows…` |
+| M13 the bake kept for any knowledge mask | `TheBakeIsKept_ForTheSameSiteAndKnowledgeMask_AndRemadeForAnotherMask` |
+| M14 a channel row names only its first good | `ThereIsNoLayerPerGood…`; the gate rows |
+| M15 a checkbox never shows its layer | `ShowingEveryLayerAndPlaying…`, `TheOpacity_StepsInTenths…`; the gate rows |
+| M16 the opacity cap removed (opaque reachable) | `TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque…` |
+| M17 the ramp inverted (a stronger value paler) | `TheSuitabilityLayers_…` (the level is floor(v / max × 16)) |
+| M18 the key left out of the map's picking guard (`OnLegend`) | `WithALayerShown_ShiftClickOnKnownGround_OpensP8sPlaceCard_AndTheKeyOffersNoPlaceBeneathIt` |
+
+Each property is one the overlay ought to have: it shows the simulation's own values at a stated granularity and invents
+none; it claims no per-good difference the simulation lacks; the player is shown only what it knows, and the choice to
+withhold tells nothing either; looking never acts; the terrain always shows through.
+
+**Data gaps (stated, not filled).** No per-cell resource quantity exists: the overlay draws the founding's EXPECTED
+channel value per node, and ore richness only as realized rolls at the player's settlements (the roll is keyed to the
+settlement id, not the place). The nine deposit goods collapse onto three channels. Presence is universally true until
+D-051 §2 (ratified, not built), which will replace the deposit function the overlay calls. The overlay's spacing and
+claim legality are not layers: they are per site and per turn, on P8's card and S1d's placement mode. On a map whose
+size differs from the founding path's worldgen config (the 256-px dev worlds) the channel layers say "Not evaluated"
+(P8's rule; the pre-existing size-mismatch defect in `docs/queue.md`).
+
+### 3.9 The resource 'now usable' shortcut (M5 workstream P10, 2026-10-11)
+
+Branch `m5w-p10-discovery-shortcut`, cut from `m5w-p9-resource-overlays` @ `c0dc157c`. Presentation only: a UI-side
+history, a block in the overlays tab, an outline on P9's layers, one UI content file. No simulation, order, schema,
+golden or Sim.Core file changed.
+
+**The Director's default (workstream part 6, the audit's Option 1 as told).** The simulation has NO research that
+unlocks or reveals a resource: no research.json entity is a resource, no node's `unlocks` names a good, and extraction
+is ungated (ADR-033 D1 — ores, stone and timber are worked from turn 1). So the shortcut fires on a REAL eligibility
+transition only: a step in which the PLAYER's completed knowledge makes a content-declared entity knowledge-eligible
+that it was not before, AND the simulation's own predicate for that entity's effect gains at least one settlement the
+player holds (`DiscoveryShortcuts.Transitions`, `Sim.Ui/ViewModel/DiscoveryShortcuts.cs`):
+
+- **a recipe** — a goods.json recipe linked to a research entity (`recipes[].entity`) whose deposit inputs (goods.json
+  `depositChannel`) no recipe the player knew before consumed. The effect is `CraftingQuery.IsKnown` over the
+  settlement's knowledge (`CraftingQuery.KnowledgeOf`) — the predicate ProductionSystem computes with. On the shipped
+  content: bronze casting → copper-ore, tin-ore on the elevation channel (timber is not claimed: the baseline
+  toolmaking recipe consumed it already); pottery firing → clay on the water-proximity channel. Weaving and toolmaking
+  have no requirement and never transition;
+- **an activity** — a sector's researched identity for a sector the UI content maps to a layer, when the production
+  yield reads it: `LabourActivities.HarvestsWildFood` (the farming sector, with sim.json `farming.preCultivation` on)
+  flips for a held settlement. On the shipped content: Farming → the region-fertility layer. The yield is Leontief
+  (`ProductionSystem.Farm`: the lower of the land limit and the labour limit) and cultivation moves both arms — land
+  wild 2 → cultivated 26 food per arable km² a year, labour 4.3 → 5 food per farmer a year — so the text states both
+  and quotes no multiplier (review fix below). Herding, logging and mining are labels only (ADR-033 D1) and never fire,
+  even when the content maps their sector (pinned).
+
+No research node or entity id is named in code (a source-guard test checks every string literal of the three files
+against every node and entity id): the entities come from goods.json and research.json, the layer from the new UI
+content `Sim.Ui/UiContent/discovery-shortcuts.json` (embedded), whose `expiryTurns` is the documented TUNE value N = 5.
+The shortcut is stamped T = the clock of the state the completing step wrote (the turn just played) and offered while
+the clock reads less than T + N — gone, turn-exactly, when it reaches T + N (shown while the player plays turns T+1 …
+T+N; "shown through turn T+N").
+
+**What the player sees.** The overlays tab opens with a NOW USABLE block, kept short so the map stays clear: the
+headline ("Farming now usable: cultivation replaces wild food on your farmland", "copper-ore, tin-ore now usable (Bronze
+casting)"), "Permission to use: newly known (your research)", "Knowledge of the resource: not simulated", and **Show on
+map** with "shown through turn N". The button shows the shortcut's P9 layer(s) (the same state the OVERLAYS checkboxes
+set) and OUTLINES its qualifying places — the nodes the player KNOWS whose value is drawn and above 0
+(`ResourceOverlay.Outline`; for a channel, P9's "present") — as the boundary between them and every other node, never
+around an unknown one; the overlay key then opens with the shortcut's rows: the headline, "Outlined: the N known places
+where … is above 0; shown through turn …", the full permission line ("Permission to use: Farming became known (your
+research) - from your next turn your harvest is the lower of two limits: land 2 -> 26 food per arable km2 a year;
+labour 4.3 -> 5 food per farmer a year (before tools)"; a recipe's quotes its
+own D-020 gate, "where artisan_share > 0.05"), a recipe's extraction note ("Extraction needs no research: copper-ore,
+tin-ore have been worked since founding") and the knowledge statement ("Knowledge of the resource: not simulated -
+every deposit is known wherever its ground is known"). At T + N the block entry, the outline and the rows go; the layer
+stays shown in OVERLAYS, which still toggles it (permanent manual access). Labelled 'now usable', never 'discovered'.
+
+**History and replay.** `UiSession.NowUsableHistory` is fed by `UiSession.Step` — the step live play and Resume's
+replay share — so a resumed session rebuilds it identically (pinned through `UiSession.Resume` and `ReplayTo`). It is
+UI-side history (the annals' precedent): it never touches the world, and no hash moves.
+
+**Gate rows (map: now usable).** All camera rows: the world hash and the queued orders unchanged.
+
+| row | states | what it checks |
+|---|---|---|
+| `<entity> (offered: an eligibility transition)` | research done: now usable | the entity is knowledge-eligible for the player now and the clock is within its offer; the block says NOW USABLE, 'now usable', the permission and knowledge lines and Show on map, and never 'discover'; its button drawn |
+| `<entity> (Show on map: its button)` | research done: now usable | the shortcut's layers shown and focused; the outline painted, with exactly the bake's qualifying nodes, every one known; the key opens with the headline and carries the permission line and the knowledge statement; no shortcut row says 'discover' |
+| `nothing offered after a completion that makes nothing usable` | every state whose last step learned something that fires nothing (research done; and, after the sweep's End Turns, every state) | the last step's completion fires nothing (`Transitions` empty), no block is drawn, nothing is offered |
+
+The new state **"research done: now usable"** is played, not rigged: from the canonical world, the cheapest node
+available at turn 1 whose completion alone fires a shortcut (`PlayabilityGate.NowUsableNode`: each available node a
+source entity's requirement names is probed through `Transitions` on a clone; the pick is the composite key
+(EffectiveCost, dense index), `PlayabilityGate.Cheapest`, tie-dense test) is targeted and End Turn pressed until the
+shortcut fires — on the shipped content "Root and tuber cultivation" (440 RP base cost), completing at clock turn 14 and firing Farming. Coverage:
+`control:now-usable-#`, pressed by the Show on map row.
+
+**Measured.**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `c0dc157c` (this worktree before any change) then this branch (`cec0b63`) | base: 10 states, 2276 checks, 2156 pass, 120 n/o, 0 FAIL, 0 problems, 71,186 frames, 154.2 s. After: 11 states, 2508 checks, 2379 pass, 129 n/o, 0 FAIL, 0 problems, 78,128 frames, largest draw list 149,328 vertices (unchanged), 196.4 s. Row by row (parsed from both reports): no base row removed or changed; +232 = the new state's 221 rows + 11 "nothing offered" rows (research done; and every state after the sweep's End Turns, where the notices row's research completion fires nothing — in the new state the shortcut has expired by then: the row requires nothing offered, i.e. the clock at 19 or past) |
+| world hash | `TheShortcut_ChangesNoHash_…` (the session's world at the firing turn = the bare production executor's from the same order log; the trigger reads two worlds and both hashes are unchanged); every gate row is a camera row (hash and queued orders unchanged) |
+| founded seed-42 300-turn golden | `Sim.Cli run --founded --seed 42 --turns 300 --hash-log`, two processes, this tree: both hash logs byte-identical (300 lines); last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` (no simulation file changed) |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files, unchanged: the new code reads no raw foreign table), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests | 790 passed, 0 failed (11 m 4 s; P9's 770 + 20 new `DiscoveryShortcutTests`), on `cec0b63` |
+| targeted Sim.Tests | `LabourActivityTests`, `ResearchUnlockPipelineTests`, `TradeResearchUnlockTests`, `TelemetryTests` (the read seams the trigger calls, and hash equality with observers): 41 passed, 0 failed. Full Sim.Tests not run: no simulation, order, serialization or AI file changed |
+| frame cost (`--frame-cost map`) | `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost with the 'now usable' outline": the region-fertility layer outlined costs at most ~1,070 commands and ~0.5 ms a frame more than one plain layer at World zoom (1,024 outline segments on the canonical map), under 0.1 ms closer in; the plain lens and P9's sweeps unchanged; every world hash unchanged by every sweep |
+
+**Mutant kill record.** One-edit mutants in this worktree (`scratchpad/p10/mutants.py`), each built, then
+`DiscoveryShortcutTests` (20 tests; clean 26 s test time, 39 s wall; bound 180 s per run, ≈ 4.6 × the clean wall); none
+hung (34–46 s wall each; M8 11 s, its fixture failing at once).
+
+| mutant | result | killed by (semantic tests) |
+|---|---|---|
+| M1 sector: the player-level transition check removed (eligible after is enough) | KILLED | `ASettlementJoiningAPlayerThatAlreadyKnowsIt_FiresNothing_…` |
+| M2 recipe: the player-level transition check removed | SURVIVED — EQUIVALENT | proof: a recipe known before the step consumes its own deposit inputs, so the newly-usable filter (no recipe known before consumed them) already leaves it nothing to claim; the explicit check states the transition and is kept |
+| M3 recipe: every deposit input claimed (the newly-usable filter removed) | KILLED | `ARecipeShortcut_NamesOnlyTheDepositGoodsNoKnownRecipeConsumedBefore_…` (timber claimed; the variant whose inputs were all in use fires) |
+| M4 sector: the yield-reads-knowledge check removed | KILLED | `TheFarmingShortcut_FiresOnlyWhileTheYieldReadsTheKnowledge`, `ALabelOnlyIdentity_NeverFires_…`, `APlayerTransitionTheEconomyAlreadyHad_…` |
+| M5 recipe: the held-settlement (economy) check removed | KILLED | `APlayerTransitionTheEconomyAlreadyHad_FiresNothing_…` |
+| M6 expiry off by one (offered AT T + N too) | KILLED | `TheOffer_StartsOnItsStampedTurn_AndExpiresTurnExactly_AtTPlusN`, `InTheGame_…GoneAtTPlusN_TheLayerStays` |
+| M7 stamped with the clock the step began from | KILLED | `TheResearchDoneState_FiresExactlyOneShortcut_…StampedWithThatStepsClock`, `InTheGame_…` |
+| M8 the history never fed (the Step line removed) | KILLED — but only through the fixture's rig (it never fires), so re-run as M8b | — |
+| M8b the history fed by EndTurn, not by Step (replay does not rebuild it) | KILLED | `Resume_RebuildsTheNowUsableHistoryIdentically`, `InTheGame_…` (a ReplayTo session) |
+| M9 the focus (outline) kept after expiry | KILLED | `InTheGame_…GoneAtTPlusN_TheLayerStays` |
+| M10 a place at 0 qualifies (>= 0) | KILLED | `TheOutline_IsExactlyTheBoundaryOfTheKnownPlacesAboveZero_…` |
+| M11 an outline run drawn one node too long | KILLED | `TheOutline_IsExactlyTheBoundaryOfTheKnownPlacesAboveZero_…` |
+| M12 the lens outlines a layer that is not shown | KILLED | `TheLens_OutlinesOnlyAShownLayer_…` |
+| M13 the rig's pick breaks cost ties by the higher index | KILLED | `Cheapest_BreaksCostTiesByTheLowerIndex_WhateverOrderTheNodesComeIn` (tie-dense) |
+| M14 the label says 'discovered' | KILLED | `TheText_SaysNowUsable_NeverDiscovered_…`, the gate rows (`TheGateRows_PassInTheResearchDoneStates_…`) |
+
+Each property is one the shortcut ought to have: it claims a resource became usable only when the simulation's own
+predicate says the economy can now use it, and only once; it is gone when it says it will be; a resumed game shows the
+same history; looking never acts; it never shows the player a place it does not know.
+
+*Review fix, the farming shortcut's food claim (MEASURED on this worktree, on top of `be1fbf2`).* The review found
+(verdict: confirmed) that the farming shortcut told the player food rises x13 — headline "Farming now usable: fertile
+land yields more food (x13)", permission "your farmland yields 26 instead of 2 food per arable km2 a year" — from the
+LAND coefficients alone, while `ProductionSystem.Farm` harvests the LOWER of the land limit (arable km² × 2 → 26) and
+the labour limit (farmers × 4.3 → 5 × the tool factor), so a labour-bound farm's harvest follows the labour arm, not
+the land ratio. `DiscoveryShortcuts.ActivityShortcut` now quotes no multiplier: the headline is "Farming now usable:
+cultivation replaces wild food on your farmland" and the permission line names both arms, read from the config fields
+the yield reads (`farming` and `farming.preCultivation`): "… from your next turn your harvest is the lower of two
+limits: land 2 -> 26 food per arable km2 a year; labour 4.3 -> 5 food per farmer a year (before tools)". The tool
+factor, weather and tax multiply both states alike and are not moved by the transition. The P4 frame-cost sweep's
+stand-in key row (`MapFrameCost`, the farming view) carries the new headline; that sweep was not re-run (one key row's
+text; §"2026-10-11 — map frame cost with the 'now usable' outline" stays the record of `cec0b63`). Pinned by
+`TheFarmingShortcut_NamesBothLeontiefArms_TheLabourArmToo_AndNeverShowsTheBareLandRatioAsTheFoodChange`: the text names
+the min, the land arm and the LABOUR arm with the config's own figures (shipped, and a variant whose four coefficients
+all differ), and no headline or line carries a multiplier, the bare land ratio, or "times".
+
+| mutant (one edit to `ActivityShortcut`; `DiscoveryShortcutTests`, 21 tests, clean 35 s wall, bound 180 s; every run 33–35 s, none hung) | result | killed by (semantic test) |
+|---|---|---|
+| MA the `be1fbf2` text restored (x13 headline, land-only permission) | KILLED | `TheFarmingShortcut_NamesBothLeontiefArms_…` |
+| MB the labour arm dropped from the permission (land arm and the min kept) | KILLED | same |
+| MC the land multiplier put back on the new headline only | KILLED | same |
+| MD the labour arm hardcoded to the shipped "4.3 -> 5" | KILLED | same (the variant's 4 -> 6.4) |
+| ME the labour arm read from the land coefficient (`perGatherer = wild`) | KILLED | same |
+
+The property is one the shortcut ought to have: it never claims a change the economy is not making, and a Leontief
+harvest moves by the land ratio only where land binds both before and after. After the fix: full Sim.Ui.Tests 791
+passed, 0 failed (11 m 35 s; 790 + the new test); `--smoke --monkey 200`: 11 states, 2508 checks, 2379 pass, 129 n/o, 0 FAIL, 0 problems, 78,128 frames,
+largest draw list 149,328 vertices (the same totals as the P10 record); the three gate scripts OK. No Sim.Core,
+Sim.Cli, Sim.Data or Sim.Tests file changed, so no world hash or golden can move.
+
+**Data gaps (stated, not filled).** KNOWLEDGE OF A RESOURCE is not simulated: every deposit exists at every settlement
+from founding and is known wherever its ground is known (no prospecting, no scarcity until D-051 §2). No research gates
+extraction (ADR-033 D1), so no shortcut ever says a deposit became extractable — only that a recipe or the farming
+yield now USES it. The farming layer is the region-fertility overlay (the siting factor: the Fertility raster summed
+around each place), not the catchment's arable area the yield reads (P8's place card states that). The history is UI-side
+and lives only through replay: `ResearchCompletedRow` carries no turn, so a snapshot load (not a replay) would start an
+empty history — every load path today replays. A shortcut with more than one overlay channel (a recipe whose new goods
+span channels) opens them all; none does on the shipped content.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

@@ -29,10 +29,14 @@ public sealed record NeedsClassBlock(
 
 public static class NeedsPanelModel
 {
+    /// <summary>The per-class blocks of one settlement. P7: a settlement the player does not know
+    /// (<paramref name="knowledge"/>; null = all-known until S2a) reads as one with nobody present — its rows are never
+    /// read.</summary>
     public static IReadOnlyList<NeedsClassBlock> Blocks(
         IReadOnlyWorldState world, int settlementId, NeedsConfig needs,
-        IReadOnlyList<ClassEntry> classes)
+        IReadOnlyList<ClassEntry> classes, PlayerKnowledge? knowledge = null)
     {
+        if ((knowledge ?? PlayerKnowledge.Of(world)).IsHiddenSettlement(settlementId)) settlementId = -1;
         var settlement = new SettlementId(settlementId);
         var blocks = new List<NeedsClassBlock>(classes.Count);
         foreach (ClassEntry cls in classes)

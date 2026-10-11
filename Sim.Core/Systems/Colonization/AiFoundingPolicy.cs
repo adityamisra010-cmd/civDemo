@@ -58,11 +58,27 @@ namespace Sim.Core.Systems.Colonization;
 /// the fog-of-war packets (S2a/S2b, awaiting the Director's fog ruling); FoundingQuery's known-extent arm is inert, so
 /// the predicate admits what the AI reads. When the arm lands IN FoundingQuery, the AI's PICK narrows to the known
 /// extent with no change here, because a refused pick falls through to the same source's next-best Legal cell (pinned
-/// with an emulated arm). What the arm does not narrow is the READ: the scan still walks every cell's score and the
-/// reachability flood still crosses the whole component, and once the pre-filter's pick is unknown the rescan asks
-/// the predicate of every unknown improver and is refused. S2b decides whether the READ is restricted too — by adding
-/// the extent to this pre-filter (one more mirrored arm, which also keeps the predicate to one call per source) or by
-/// delegating the per-cell arms to FoundingQuery — as part of that packet; nothing here does it silently.
+/// with an emulated arm).
+///
+/// P7 (the information class, Director: "the AI cannot use information it has not legitimately discovered"): THE SITE
+/// SCAN goes through the one knowledge seam, <see cref="PolityKnowledge"/>. Its first pre-filter arm is
+/// <see cref="PolityKnowledge.KnowsCell"/> for the issuer, so a cell outside the issuer's known extent is never admitted
+/// and never raises the ranking's bar: an UNKNOWN cell is never picked, whatever it scores (pinned by metamorphic tests
+/// with a knowledge stub: raising every unknown cell's own score leaves the pick unchanged, and whatever the terrain
+/// under unknown nodes the pick is the oracle's best KNOWN legal cell). The pick is NOT a function of known terrain only:
+/// a known cell's VALUATION is the frontier raster's (<see cref="SettlementSiting.CandidateScores"/>), and that raster
+/// integrates terrain under unknown nodes — region fertility is a box sum over ±fertilityRadiusPx (3 px, so it reaches
+/// the neighbouring 4-px nodes), water access is a BFS over the whole map (cutoff 24 px), and the candidate floor
+/// (<see cref="SettlementSiting.ScoreFloor"/>) is the median (scoreFloorPercentile 0.5) of every positive-scoring cell. Terrain the issuer has not discovered
+/// therefore moves known cells' scores, the floor, and the pick between KNOWN cells (MEASURED, P7 review: hiding only
+/// the eight nodes around the dev rig's pick and zeroing their fertility moves the pick 36463 → 42559, both known).
+/// Which valuation a polity may hold of a known cell whose neighbourhood it has not discovered is S2b's (ADR-036 §8
+/// item (h), ADR-037 §6); the channel is quarantined, not hidden (PolityKnowledgeTests). <see cref="PolityKnowledge.Of"/>
+/// is all-known until S2a stores an extent, so today the arm admits every cell and the order is byte-identical. What else
+/// the seam does not narrow, recorded rather than hidden: the reachability flood still crosses the issuer's whole
+/// connected component (a geography graph, not a ranking — whether travel through unknown land is admissible is S2b's),
+/// and the standing-site occupancy, spacing and claimed masks are the predicate's own rule arms (mirrored so the
+/// pre-filter never skips a Legal cell), read over every settlement as FoundingQuery reads them.
 ///
 /// Deterministic: roster, settlement-table and cell order; composite keys with integer tie-breaks (tie-dense test:
 /// AiFoundingPolicyTests); no RNG, no clock, no dictionary, no LINQ (law 5).
@@ -174,8 +190,16 @@ public static class AiFoundingPolicy
     /// order; for each, the site is the argmax over the cells <paramref name="check"/> answers Legal for, on the world
     /// the order will be judged on with the batch's standing sites — so the issued order is Legal by construction, and
     /// the next source is tried only when NO cell of the current one is Legal.</summary>
-    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites, SiteCheck check)
+    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites, SiteCheck check) =>
+        Decide(world, cfg, polity, sites, check, PolityKnowledge.Of(world, polity));
+
+    /// <summary>As <see cref="Decide(IReadOnlyWorldState, SimConfig, PolityId, Sites, SiteCheck)"/>, with the issuer's
+    /// knowledge given (P7: the seam's test entry — production passes <see cref="PolityKnowledge.Of"/>).</summary>
+    public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites, SiteCheck check,
+        PolityKnowledge knowledge)
     {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        if (knowledge.Polity.Value != polity.Value) throw new ArgumentException("the knowledge must be the issuer's", nameof(knowledge));
         if (cfg.Colonization?.AiFounding is not { Enabled: true } ai) return null;
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         if (!IsDue(world, ai, polity)) return null;
@@ -187,7 +211,7 @@ public static class AiFoundingPolicy
         for (int k = 0; k < ranked.Length; k++)
         {
             SettlementId from = ranked[k];
-            int cell = BestSiteFor(world, cfg, f, terrain, sites, polity, from, check);
+            int cell = BestSiteFor(world, cfg, f, terrain, sites, polity, from, check, knowledge);
             if (cell < 0) continue;   // no cell of this source is Legal: the next source
             sites.Accept(cell);
             return FoundingQuery.FoundOrder(world, polity, from, cell);
@@ -207,7 +231,8 @@ public static class AiFoundingPolicy
         for (int i = 0; i < world.Settlements.Count; i++)
         {
             SettlementRow row = world.Settlements[i];
-            if (row.FoundedTurn > newest && EmpireQuery.ControlsSettlement(world, polity, row.Id)) newest = row.FoundedTurn;
+            // P7: control first — a settlement's founding turn is read only for the polity's own settlements.
+            if (EmpireQuery.ControlsSettlement(world, polity, row.Id) && row.FoundedTurn > newest) newest = row.FoundedTurn;
         }
         if (newest < 0) return false;
         double elapsedYears = (world.Clock.Turn - newest) * world.Clock.DtYears;
@@ -267,8 +292,18 @@ public static class AiFoundingPolicy
     /// </summary>
     public static int BestSiteFor(
         IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
-        PolityId issuer, SettlementId source, SiteCheck check)
+        PolityId issuer, SettlementId source, SiteCheck check) =>
+        BestSiteFor(world, cfg, f, terrain, sites, issuer, source, check, PolityKnowledge.Of(world, issuer));
+
+    /// <summary>As <see cref="BestSiteFor(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, TerrainSet, Sites, PolityId, SettlementId, SiteCheck)"/>,
+    /// with the issuer's knowledge given: the pre-filter's FIRST arm is <see cref="PolityKnowledge.KnowsCell"/> (P7), so
+    /// only known cells are ranked.</summary>
+    public static int BestSiteFor(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
+        PolityId issuer, SettlementId source, SiteCheck check, PolityKnowledge knowledge)
     {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        if (knowledge.Polity.Value != issuer.Value) throw new ArgumentException("the knowledge must be the issuer's", nameof(knowledge));
         int sourceCell = -1;
         for (int i = 0; i < world.Settlements.Count; i++)
             if (world.Settlements[i].Id == source) { sourceCell = world.Settlements[i].SiteCell; break; }
@@ -277,6 +312,7 @@ public static class AiFoundingPolicy
         bool[] reachable = ReachableNodes(world, f, sourceCell);
         Func<int, bool> preFilter = cell =>
         {
+            if (!knowledge.KnowsCell(cell)) return false;   // P7: the AI ranks only what it has discovered
             if (!SettlementSiting.IsFrontierCandidate(f, terrain, cell)) return false;
             if (!SettlementSiting.IsUnobstructedFrontierCell(f, sites.Spacing, sites.Occupied, cell)) return false;
             int node = LatticeMap.OriginLatticeNode(f.Lattice, f.Size, cell);

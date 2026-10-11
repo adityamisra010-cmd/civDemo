@@ -135,10 +135,29 @@ public static partial class PlayabilityGate
             () => UiSession.Start(42, aiEmpiresOverride: ai), PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight));
         list.Add(new("target set" + aiTag, "turn 1 + the cheapest Technology node ordered, one End Turn", () => TargetSet(ai)));
         list.Add(new("research done" + aiTag, "played: cheapest Technology node targeted and End Turn until one node completes", () => ResearchDone(ai)));
+        list.Add(new(NowUsableStateName + aiTag, "P10, played: the cheapest Technology node available at turn 1 whose completion alone fires a 'now usable' shortcut (derived from content by DiscoveryShortcuts; no node id) targeted, End Turn until the shortcut fires", () => ResearchDoneNowUsable(ai)));
         list.Add(new("tax available" + aiTag, "rig: the Taxation civic and a road class (track_road) with their prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
         list.Add(new("age advance" + aiTag, "rig: Age II's research milestones completed; the advance is then made THROUGH THE UI", () => AgeEligible(ai)));
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
+        if (aiEmpires is null)
+            list.Add(new("hidden rival", "P7: the one-AI world at turn 1 seen through a knowledge stub that hides the AI polity whole (KnowledgeStubs.HidePolity) - every surface draws, Tab and clicks skip what the player does not know", HiddenRival));
         return list;
+    }
+
+    /// <summary>P7: the AI polity the hidden-rival state hides (the one-AI world's only rival).</summary>
+    public static readonly PolityId HiddenPolity = new(2);
+
+    /// <summary>P7: the canonical one-AI world, one End Turn played, its session's player knowledge a stub that hides
+    /// <see cref="HiddenPolity"/> (recomputed after every step, so a colony it founds is hidden too). The world, the orders
+    /// and every hash are the one-AI world's; only what the UI shows differs.</summary>
+    public static UiSession HiddenRival()
+    {
+        UiSession first = UiSession.Start(42, aiEmpiresOverride: 1);
+        UiSession s = UiSession.StartFrom(first.World.Clone(), 42, null, null,
+            knowledgeOf: w => KnowledgeStubs.HidePolity(w, Me, HiddenPolity));
+        s.EndTurn();
+        if (KnowledgeStubs.SettlementsOf(s.World, HiddenPolity).Count == 0) throw new InvalidOperationException("hidden-rival rig: the AI holds no settlement");
+        return s;
     }
 
     private static string MinSizeText => PanelLayout.MinWindowWidth.ToString(CultureInfo.InvariantCulture) + "x"
@@ -189,6 +208,17 @@ public static partial class PlayabilityGate
         var report = new GateReport();
         var run = new StateRun(h, state, report, null, lookMutant);
         run.Camera();
+        return report.Rows;
+    }
+
+    /// <summary>P7: the knowledge rows alone — "Tab never reaches a hidden settlement" and "a click on a hidden position
+    /// selects nothing" — exactly as the sweep runs them in the hidden-rival state, on <paramref name="h"/> (none when the
+    /// session's knowledge hides nothing).</summary>
+    public static IReadOnlyList<GateRow> KnowledgeRows(UiFrameHarness h, string state)
+    {
+        var report = new GateReport();
+        var run = new StateRun(h, state, report, null);
+        run.Knowledge();
         return report.Rows;
     }
 
@@ -527,6 +557,8 @@ public static partial class PlayabilityGate
             Annals();
             CloseEverything();
             AgeResearchNextRow();
+            CloseEverything();
+            NowUsableRows();   // P10: a shortcut the End Turns fired (or the one still offered) is pressed again
             CloseEverything();
             if (!_devHadTurn)
             {
@@ -1624,6 +1656,83 @@ public static partial class PlayabilityGate
             CameraLookRows();
             PanelFoldRows();
             LegendRows();
+            KnowledgeRows();
+            OverlayRows();   // P9: the resource overlay's controls, layers, key and opacity
+            NowUsableRows();   // P10: the 'now usable' shortcut, offered and shown on the map (or nothing offered)
+        }
+
+        /// <summary>P7: the settlements that exist and the player does not know (none while the knowledge is all-known —
+        /// every state but the hidden-rival rig, which therefore alone draws the knowledge rows).</summary>
+        private List<int> HiddenSettlements()
+        {
+            var hidden = new List<int>();
+            for (int i = 0; i < Ui.World.Settlements.Count; i++)
+                if (S.Knowledge.IsHiddenSettlement(Ui.World.Settlements[i].Id.Value)) hidden.Add(Ui.World.Settlements[i].Id.Value);
+            return hidden;
+        }
+
+        /// <summary>
+        /// P7: THE KNOWLEDGE ROWS, in a state whose player knowledge hides settlements. Tab, pressed once more than there
+        /// are settlements, never selects a hidden one and reaches every known one; a click where a hidden settlement
+        /// stands (the camera centred on it, at a close zoom) selects nothing, picks no formation, and the lens drew
+        /// neither it nor any formation of the hidden polity. Both are camera rows: looking changes no hash or order.
+        /// </summary>
+        /// <summary>P7: the knowledge rows (the public seam <see cref="PlayabilityGate.KnowledgeRows"/>).</summary>
+        public void Knowledge() => KnowledgeRows();
+
+        private void KnowledgeRows()
+        {
+            List<int> hidden = HiddenSettlements();
+            if (hidden.Count == 0) return;
+            LookCheck("map: knowledge", "Tab never reaches a hidden settlement", () =>
+            {
+                CloseEverything();
+                var reached = new List<int>();
+                int known = Ui.World.Settlements.Count - hidden.Count;
+                for (int k = 0; k <= Ui.World.Settlements.Count; k++)
+                {
+                    h.Key(Keys.Tab);
+                    int now = Ui.SelectedSettlement;
+                    if (hidden.Contains(now)) return (GateResult.Fail, "Tab selected hidden settlement " + now.ToString(CultureInfo.InvariantCulture));
+                    if (!reached.Contains(now)) reached.Add(now);
+                }
+                return Expect(reached.Count == known, "Tab reached " + reached.Count.ToString(CultureInfo.InvariantCulture)
+                    + " of the " + known.ToString(CultureInfo.InvariantCulture) + " known settlements");
+            });
+            LookCheck("map: knowledge", "a click on a hidden position selects nothing", () =>
+            {
+                CloseEverything();
+                // Close in (the Settlement band), so no known settlement's target reaches the hidden site being clicked.
+                (GateResult zoomed, string why) = WheelUntil(WorldZoom.Settlement, +1, 40);
+                if (zoomed != GateResult.Pass) return (GateResult.Fail, "could not zoom to the Settlement band: " + why);
+                foreach (int target in hidden)
+                {
+                    int before = Ui.SelectedSettlement;
+                    CameraFocus.CenterOn(Ui.Camera, Ui.World, target, Ui.MapRect);
+                    h.Idle(2);
+                    SettlementRow row = default;
+                    for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
+                    LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
+                    (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
+                    h.Click(sx, sy);
+                    if (Ui.SelectedSettlement != before) return (GateResult.Fail, "the click at hidden settlement " + target.ToString(CultureInfo.InvariantCulture) + " selected " + Ui.SelectedSettlement.ToString(CultureInfo.InvariantCulture));
+                    if (Ui.SelectedUnit >= 0) return (GateResult.Fail, "the click at hidden settlement " + target.ToString(CultureInfo.InvariantCulture) + " picked formation " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture));
+                    if (Ui.LensFrame is { } f)
+                    {
+                        bool drawn = f.SettlementsDrawn.Contains(target);
+                        foreach (SettlementHit hit in f.SettlementHits) drawn |= hit.Id == target;
+                        if (drawn) return (GateResult.Fail, "the lens drew hidden settlement " + target.ToString(CultureInfo.InvariantCulture));
+                    }
+                    if (Ui.LensFrame is { } g)
+                        foreach (int u in g.UnitTokens)
+                            for (int i = 0; i < Ui.World.MilitaryUnits.Count; i++)
+                                if (Ui.World.MilitaryUnits[i].Id == u && Ui.World.MilitaryUnits[i].Owner.Value == HiddenPolity.Value)
+                                    return (GateResult.Fail, "the lens drew formation " + u.ToString(CultureInfo.InvariantCulture) + " of the hidden polity");
+                }
+                WheelUntil(WorldZoom.World, -1, 60);
+                return (GateResult.Pass, "");
+            });
+            CloseEverything();
         }
 
         /// <summary>
@@ -1765,7 +1874,8 @@ public static partial class PlayabilityGate
             var picks = new List<int>();
             if (cap.Value >= 0 && EmpireQuery.TryGetCapital(w, Me, out _)) picks.Add(cap.Value);
             for (int i = w.Settlements.Count - 1; i >= 0 && picks.Count < 3; i--)
-                if (!picks.Contains(w.Settlements[i].Id.Value)) picks.Add(w.Settlements[i].Id.Value);
+                if (!picks.Contains(w.Settlements[i].Id.Value) && !S.Knowledge.IsHiddenSettlement(w.Settlements[i].Id.Value))   // P7: only what can be clicked
+                    picks.Add(w.Settlements[i].Id.Value);
             foreach (int id in picks)
             {
                 int target = id;

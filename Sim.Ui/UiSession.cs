@@ -62,8 +62,72 @@ public sealed class UiSession
     private readonly SimConfig _simCfg;
 
     // M5 S1c: the worldgen config the production pipeline's ColonizationSystem is built from (ProductionPipeline),
-    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders only.
+    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders and (P8) Sites only.
     private readonly Sim.Core.Worldgen.WorldgenConfig _worldgen = ProductionWorldgen();
+
+    // M5 P8: the terrain half of a site assessment for the map this session plays on.
+    private SiteAssessment.Prepared? _sites;
+
+    /// <summary>
+    /// M5 map workstream P8 — the terrain half of the map-cell card's <see cref="SiteAssessment"/> (the siting score
+    /// raster and its two factor rasters, the frontier lattice): a pure function of the immutable terrain and the configs,
+    /// built the first time a place's card is asked for and kept while the world's terrain is the same one (every clone
+    /// of a world shares it). Built with the worldgen config this session's ColonizationSystem holds, so the card's
+    /// deposit preview is the founding path's own values. UI-side only — the TerrainBaker precedent; nothing in the
+    /// simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public SiteAssessment.Prepared? Sites
+    {
+        get
+        {
+            if (World.Terrain is null) return null;
+            if (_sites is null || !_sites.IsFor(World.Terrain)) _sites = SiteAssessment.Prepare(World, _simCfg, _worldgen);
+            return _sites;
+        }
+    }
+
+    // M5 P9: the resource overlay's bake and the turn's status, kept while their inputs are the same.
+    private Sim.Ui.World.ResourceOverlay? _overlay;
+    private IReadOnlyList<Sim.Ui.World.OverlayLayer>? _overlayLayers;
+    private (WorldState World, PlayerKnowledge Knowledge, Sim.Ui.World.ResourceOverlay Bake, Sim.Ui.World.OverlayStatus Status)? _overlayStatus;
+
+    /// <summary>
+    /// M5 map workstream P9 — the resource overlay's layers for this session's content (the deposit channels, then the
+    /// siting score and its two factors): what the overlay controls list. Cheap — no terrain pass.
+    /// </summary>
+    public IReadOnlyList<Sim.Ui.World.OverlayLayer> OverlayLayers =>
+        _overlayLayers ??= World.Terrain is { } t ? Sim.Ui.World.ResourceOverlay.LayersOf(_simCfg, _worldgen, t.KmPerPx) : [];
+
+    /// <summary>
+    /// M5 map workstream P9 — THE RESOURCE OVERLAY's bake (<see cref="Sim.Ui.World.ResourceOverlay"/>) for what the player
+    /// knows: a pure function of the terrain, the configs and the knowledge masks, baked the first time an overlay layer is
+    /// shown and kept while they are the same (in production — all-known — once per session). UI-side only, the terrain
+    /// bake's precedent; nothing in the simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public Sim.Ui.World.ResourceOverlay? Overlay
+    {
+        get
+        {
+            if (Sites is not { } site) return null;
+            if (_overlay is null || !_overlay.IsFor(site, Knowledge.Core)) _overlay = Sim.Ui.World.ResourceOverlay.Bake(_simCfg, site, Knowledge.Core);
+            return _overlay;
+        }
+    }
+
+    /// <summary>M5 P9: the overlay key's per-turn status (access, extraction, the realized ore rolls) for the world and
+    /// knowledge of now; null without terrain. Kept while the world, the knowledge and the bake are the same.</summary>
+    public Sim.Ui.World.OverlayStatus? OverlayStatus
+    {
+        get
+        {
+            if (Overlay is not { } bake) return null;
+            if (_overlayStatus is { } c && ReferenceEquals(c.World, World) && ReferenceEquals(c.Knowledge, Knowledge) && ReferenceEquals(c.Bake, bake))
+                return c.Status;
+            Sim.Ui.World.OverlayStatus status = bake.Status(World, _simCfg, Knowledge);
+            _overlayStatus = (World, Knowledge, bake, status);
+            return status;
+        }
+    }
 
     /// <summary>The observation history the UI graphs and panels read through
     /// (docs/observability-architecture.md §7: one read seam).</summary>
@@ -97,11 +161,36 @@ public sealed class UiSession
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
+    /// <summary>
+    /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
+    /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
+    /// extent. Every player-facing reader asks it; the annals are filtered by it HERE, before a line is appended (an event
+    /// is kept only when the player knows every settlement and polity it names), and the history buffer's world series
+    /// sum only what it knows. Never a second source of truth: a pure function of the world (and, for a test or the
+    /// headless gate's hidden-rival rig only, of the stub <see cref="StartFrom(WorldState, ulong, int?, int?, Func{IReadOnlyWorldState, PlayerKnowledge}?)"/>
+    /// was given). The developer export (chronicle.txt) writes the same filtered annals.
+    /// </summary>
+    public PlayerKnowledge Knowledge { get; private set; }
+
+    // P7: how Knowledge is built from a world — the production view, or a test/gate stub (never anything else).
+    private readonly Func<IReadOnlyWorldState, PlayerKnowledge> _knowledgeOf;
+
+    /// <summary>
+    /// M5 map workstream P10 — THE 'NOW USABLE' HISTORY: every shortcut a step fired for the player (a content-declared
+    /// recipe or activity that the player's research made knowledge-eligible, and whose effect the simulation reads —
+    /// <see cref="DiscoveryShortcuts.Transitions"/>), oldest first. Fed by <see cref="Step"/>, which Resume's replay drives
+    /// too, so a resumed session rebuilds it identically. UI-side only: it never touches the world and no hash moves.
+    /// </summary>
+    public NowUsableHistory NowUsableHistory { get; } = new(DiscoveryShortcuts.Content);
+
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
-        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null)
+        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf = null)
     {
         World = world;
+        _knowledgeOf = knowledgeOf ?? (w => PlayerKnowledge.Of(w));
+        Knowledge = _knowledgeOf(world);
         _executor = executor;
         Orders = orders;
         _seed = seed;
@@ -119,7 +208,7 @@ public sealed class UiSession
         // FoodState classification, so the collector needs the sim config.
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg, _simCfg);
         ObserveChronicle(); // founding events fire on first sight
-        History.Capture(World); // the founding sample (turn 0)
+        History.Capture(World, Knowledge); // the founding sample (turn 0)
         CaptureTrace();         // turn 0 — the world before any order lands
     }
 
@@ -127,8 +216,21 @@ public sealed class UiSession
     {
         _chronicle.Observe(World);
         for (; _renderedEvents < _chronicle.Events.Count; _renderedEvents++)
+        {
+            // P7: the annals are filtered by SUBJECT — an event at a settlement the player does not know is never told.
+            // The collector itself still observes every settlement (its tracking state is the same with or without fog).
+            if (!AdmitsAnnal(Knowledge, _chronicle.Events[_renderedEvents])) continue;
             _annals.Add(Sim.Core.Chronicle.ChronicleProse.Render(
                 _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
+        }
+    }
+
+    /// <summary>P7: whether a core chronicle event reaches the player's annals — its subject settlement is not one the
+    /// player does not know (all-known: every event, as before).</summary>
+    public static bool AdmitsAnnal(PlayerKnowledge knowledge, Sim.Core.Chronicle.ChronicleEvent e)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        return !knowledge.IsHiddenSettlement(e.SettlementId);
     }
 
     /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.
@@ -155,10 +257,21 @@ public sealed class UiSession
     /// replays only from the same starting world, so it is never written as a playable session log.
     /// </summary>
     public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        => StartFrom(founded, seed, sizeOverridePx, settlementsOverride, knowledgeOf: null);
+
+    /// <summary>
+    /// As <see cref="StartFrom(WorldState, ulong, int?, int?)"/>, with the session's player knowledge built by
+    /// <paramref name="knowledgeOf"/> — P7's TEST SEAM: a knowledge stub (<see cref="PlayerKnowledge.From"/> over
+    /// <see cref="PolityKnowledge.Restricted"/>) that hides part of the world, for the metamorphic leak tests and the
+    /// headless gate's hidden-rival rig. Null = the production view. It changes what the UI SHOWS, never the world, the
+    /// orders or a hash.
+    /// </summary>
+    public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx, int? settlementsOverride,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf)
     {
         var orders = new OrderLog();
         return new UiSession(founded, BuildProductionExecutor(orders), orders,
-            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig());
+            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig(), knowledgeOf: knowledgeOf);
     }
 
     /// <summary>
@@ -402,9 +515,11 @@ public sealed class UiSession
         if (World.Settlements.Count != prev.Settlements.Count)
             Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, World.Seed, World);
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
+        Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
-        _events.Observe(prev, World, _simCfg, Names.Name, _annals);
-        History.Capture(World);
+        _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
+        History.Capture(World, Knowledge);
         CaptureTrace();
     }
 

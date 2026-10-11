@@ -221,7 +221,7 @@ public sealed partial class GameUi
         _camera = new Camera(_world.Terrain!.Size);
         _mapRect = ComputeMapRect();
         _camera.Clamp(_mapRect);   // P1: fitted and clamped against the map rect, not the window
-        _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
+        _selected = SettlementSelection.Opening(_world, session.Knowledge);   // P7: the first settlement the player knows
         _age.Research = session.Config.Research;   // M5 polish: the Age panel names the research to do next
         RefreshHud();
         // S0 (D-008): a session resumed under another schema opens with its notice — the trace was not checked and
@@ -427,11 +427,18 @@ public sealed partial class GameUi
     /// status band's progression figures (on selection change, End Turn and every dispatched order).</summary>
     private void RefreshHud()
     {
+        // P7: every reader below asks what the player knows — the session's view, rebuilt with each step.
+        PlayerKnowledge known = _session.Knowledge;
+        // P7 review: a selection the player no longer knows — a step moved it out of sight, or a surface named a hidden
+        // settlement — is dropped here, before any reader is keyed on it. RefreshHud runs after every step and every
+        // selection change, so no player surface (the HUD, the views, Market, Trends, Policy, the action surface, the
+        // lens) is ever handed a hidden settlement as the selection. All-known (production until S2a): never taken.
+        if (known.IsHiddenSettlement(_selected)) _selected = -1;
         _unitCard = _selectedUnit >= 0
-            ? UnitCardModel.Build(_world, _session.Config, _selectedUnit, UiPlayer.Empire, id => _session.Names.Name(id)) : null;
+            ? UnitCardModel.Build(_world, _session.Config, _selectedUnit, UiPlayer.Empire, id => _session.Names.Name(id), known) : null;
         if (_unitCard is null) _selectedUnit = -1;
         _hud = HudModel.From(_world, _selected, _needs,
-            _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config);
+            _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config, known);
 
         // T4.19 lane B: the glass-box view models, rebuilt on the same cadence
         // (selection change / End Turn) — pure reads over the observation
@@ -444,8 +451,8 @@ public sealed partial class GameUi
         Sim.Core.Observability.SettlementRecord? record = _session.Observations.Observations.Count == 0 || _selected < 0
             ? null : _session.Observations.Settlement(_session.Observations.LastTurn, _selected);
         _placeView = _selected >= 0
-            ? PlayerViews.Settlement(_world, _session.Config, UiPlayer.Empire, record, _selected, names, density) : null;
-        _empireView = PlayerViews.Empire(_world, _session.Config, UiPlayer.Empire, names, density);
+            ? PlayerViews.Settlement(_world, _session.Config, UiPlayer.Empire, record, _selected, names, density, known) : null;
+        _empireView = PlayerViews.Empire(_world, _session.Config, UiPlayer.Empire, names, density, known);
         _institutionsView = PlayerViews.Institutions(_world, _session.Config, UiPlayer.Empire, names, density);
         _trendMetrics = TrendsModel.Metrics(_displayCfg.Registries.Classes);
         if (_trendIndex >= _trendMetrics.Count) _trendIndex = 0;
@@ -457,8 +464,8 @@ public sealed partial class GameUi
         if (_selectedGood == 0)
             foreach (Sim.Core.Systems.GoodEntry g in goods.Goods)
                 if (!g.Numeraire) { _selectedGood = g.Id; break; }
-        _marketRows = MarketModel.Rows(_world, _selected, goods);
-        _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes);
+        _marketRows = MarketModel.Rows(_world, _selected, goods, known);
+        _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes, known);
 
         // ADR-033 D1/D2: the action surface, from the query, in the era the interface presents (the target
         // theme: a new Age's controls take over at once; its colours fade in with the frame theme).
@@ -742,7 +749,7 @@ public sealed partial class GameUi
             // T2.4: Tab cycles the selection in settlement-id order (key edge).
             if (keyboard.IsKeyDown(Keys.Tab) && !_lastKeyboard.IsKeyDown(Keys.Tab))
             {
-                int next = SettlementSelection.CycleNext(_world, _selected);
+                int next = SettlementSelection.CycleNext(_world, _selected, _session.Knowledge);   // P7: never a hidden one
                 if (next >= 0 && next != _selected)
                 {
                     _selected = next;
@@ -835,7 +842,9 @@ public sealed partial class GameUi
         _surface = FrameSurface.Lens;
         if (_lens is null || _lensTurn != _world.Clock.Turn)
         {
-            _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), UiPlayer.Empire);
+            // P7: the projection holds only what the player knows — the observer is the session's knowledge view.
+            _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), UiPlayer.Empire,
+                knowledge: _session.Knowledge);
             _lensTurn = _world.Clock.Turn;
         }
         // P1: the level of detail is the MAP RECT's visible span (what the player can see of the world), and the lens is
@@ -862,9 +871,11 @@ public sealed partial class GameUi
             (x, y) => cam.WorldToScreen(x, y, map), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
             theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
-            legend: legend, selectedUnit: _selectedUnit);   // P3: the lens frames the selected formation, under the legend
+            legend: legend, selectedUnit: _selectedUnit,   // P3: the lens frames the selected formation, under the legend
+            overlay: OverlayForLens());   // P9: the resource overlay's shown layers (under everything) and its key
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
+        RegisterPlaceUnderPointer();   // P8: Shift+click the ground for its place card (under the tokens)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
 
         if (_session.Config.Ages is null) return;
@@ -1120,6 +1131,7 @@ public sealed partial class GameUi
         DrawUnitCard();
         DrawContextPanel();
         DrawLegendTab();   // P3: the map legend's tab, over the map's bottom-right corner
+        DrawOverlayTab();   // P9: the resource overlay's controls, over the map's bottom-left corner
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
@@ -1510,8 +1522,11 @@ public sealed partial class GameUi
         return clicked;
     }
 
-    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there).</summary>
-    private bool OnLegend(double x, double y) => _lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y);
+    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there) — or (P9) on
+    /// the resource overlay's key, which lies over the map the same way.</summary>
+    private bool OnLegend(double x, double y) =>
+        (_lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y))
+        || (_lensFrame?.Overlay?.Key is { } key && key.Rect.Contains(x, y));
 
     /// <summary>P3: the legend tab's label — the legend's name and the fold glyph of what a click does.</summary>
     private string LegendTabLabel() =>
@@ -1580,7 +1595,7 @@ public sealed partial class GameUi
         if (unit == _selectedUnit) return;
         _selectedUnit = unit;
         _unitCard = unit >= 0
-            ? UnitCardModel.Build(_world, _session.Config, unit, UiPlayer.Empire, id => _session.Names.Name(id)) : null;
+            ? UnitCardModel.Build(_world, _session.Config, unit, UiPlayer.Empire, id => _session.Names.Name(id), _session.Knowledge) : null;
         if (_unitCard is null) _selectedUnit = -1;
         else _agePanelOpen = false;
     }
@@ -2124,7 +2139,7 @@ public sealed partial class GameUi
         }
         ImGui.Separator();
         PriceBreakdown? breakdown = _selected >= 0
-            ? MarketModel.Breakdown(_world, _selected, _selectedGood, _displayCfg.Goods!)
+            ? MarketModel.Breakdown(_world, _selected, _selectedGood, _displayCfg.Goods!, _session.Knowledge)
             : null;
         if (breakdown is null)
         {
@@ -2138,7 +2153,7 @@ public sealed partial class GameUi
         }
         ImGui.Separator();
         // Item 2 gate criterion: scarcity READS as a rising line.
-        Plot("price##sel-good", _session.History.Price(_selected, _selectedGood));
+        Plot("price##sel-good", _session.History.Price(_selected, _selectedGood, _session.Knowledge));   // P7: never a hidden one
         PopDataFont();
     }
 
@@ -2406,7 +2421,7 @@ public sealed partial class GameUi
             // Prices: the observation history has no price series (§7), so the
             // T3.9a buffer keeps them — per (settlement, good), never world.
             Text("price of the good selected under SETTLEMENT / Economy, this settlement");
-            float[] prices = _session.History.Price(_selected, _selectedGood);
+            float[] prices = _session.History.Price(_selected, _selectedGood, _session.Knowledge);   // P7: never a hidden one
             PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
             PushDataFont();
             Text(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
@@ -2416,8 +2431,8 @@ public sealed partial class GameUi
             return;
         }
         double[] series = _trendWorldScope
-            ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId)
-            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId);
+            ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId, _session.Knowledge)   // P7: known settlements
+            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId, _session.Knowledge);   // P7: never a hidden one
         PlotDomain domain = TrendAxisModel.Domain(metric.Key, series);
         PlotBand band = TrendAxisModel.Band(
             metric.Key, series.Length == 0 ? double.NaN : series[^1]);

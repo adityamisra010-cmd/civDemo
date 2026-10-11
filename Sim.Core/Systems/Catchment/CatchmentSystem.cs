@@ -71,7 +71,11 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
     public static double TierBudget(SimConfig cfg, TraversalLattice lattice, int tier) =>
         TravelBudgetCostUnits(cfg, lattice) * (1.0 + cfg.Catchment.SizeBonusMaxRatio * tier / 4.0);
 
-    private static int TierOf(IReadOnlyWorldState prev, SimConfig cfg, SettlementId settlement)
+    /// <summary>A settlement's size tier as the catchment recompute reads it: its HousingRow's dwellings through
+    /// <see cref="SizeTier"/>, 0 when it has no row yet (a colony starts homeless). M5 P8: public (no behaviour
+    /// change) so a read-only site assessment computes the partition a founding would cause with the system's own
+    /// per-settlement budgets instead of restating this lookup.</summary>
+    public static int TierOf(IReadOnlyWorldState prev, SimConfig cfg, SettlementId settlement)
     {
         for (int i = 0; i < prev.Housing.Count; i++)
             if (prev.Housing[i].Settlement == settlement)

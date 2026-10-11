@@ -294,7 +294,8 @@ public class SelectionTests
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         HudModel hud = HudModel.From(world, selectedSettlementId: 2);
 
-        Assert.Equal("Settlement 2", hud.TitleLine);
+        // P7 (raw settlement ids hidden from player text): an unnamed selection is "Unnamed settlement" (was "Settlement 2").
+        Assert.Equal("Unnamed settlement", hud.TitleLine);
         // T4.19 lane C: bands of the kernel's own stable founding vector
         // (sim.json founding._docCohortCounts); 130/200/70 was the old
         // 17.5%-elder endowment that opened the world in a 22% collapse.

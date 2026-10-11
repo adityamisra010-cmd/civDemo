@@ -93,14 +93,16 @@ public sealed class InfoPanel
     public void ScrollBy(double dy, double contentHeight, double viewHeight) =>
         Scroll = Math.Clamp(Scroll + dy, 0, Math.Max(0, contentHeight - viewHeight));
 
-    /// <summary>Builds the card when the world, the subject or the number of queued orders changed.</summary>
+    /// <summary>Builds the card when the world, the subject or the number of queued orders changed. P7:
+    /// <paramref name="knowledge"/> is what the player knows (null = the seam's production view, all-known until S2a). P8:
+    /// <paramref name="site"/> is the terrain half of a map cell's site assessment (the session's).</summary>
     public InfoCard? Ensure(IReadOnlyWorldState world, SimConfig cfg, PolityId player, ActionQueryContext context,
-        Func<int, string> names, int queued)
+        Func<int, string> names, int queued, PolityKnowledge? knowledge = null, SiteAssessment.Prepared? site = null)
     {
         if (Subject is not { } s) return null;
         if (Card is null || !ReferenceEquals(_builtFor, world) || _builtSubject != s || _builtQueued != queued)
         {
-            Card = InfoQuery.Card(world, cfg, player, s, context, names);
+            Card = InfoQuery.Card(world, cfg, player, s, context, names, knowledge: knowledge, site: site);
             _builtFor = world;
             _builtSubject = s;
             _builtQueued = queued;
@@ -310,15 +312,20 @@ public sealed class InfoPanel
     /// <summary>The one-line hover hint painted beside the pointer over an inspectable object (not an ImGui tooltip).</summary>
     public const string HintText = "Shift+click: details";
 
-    /// <summary>Paints the hover hint near (<paramref name="px"/>, <paramref name="py"/>), kept inside the viewport; returns its rect.</summary>
-    public static RectD PaintHint(DrawList d, ITextMeasure m, EraTheme t, double px, double py, double viewW, double viewH)
+    /// <summary>P8: the hint over open map ground (a place), painted only while Shift is held — a hint following the pointer
+    /// over all ground would cover the map.</summary>
+    public const string CellHintText = "Shift+click: what is here";
+
+    /// <summary>Paints the hover hint (<paramref name="text"/>, default <see cref="HintText"/>) near (<paramref name="px"/>,
+    /// <paramref name="py"/>), kept inside the viewport; returns its rect.</summary>
+    public static RectD PaintHint(DrawList d, ITextMeasure m, EraTheme t, double px, double py, double viewW, double viewH, string text = HintText)
     {
-        double w = m.Width(t, HintText, 11.5) + 14, h = t.Type.Line(11.5) + 6;
+        double w = m.Width(t, text, 11.5) + 14, h = t.Type.Line(11.5) + 6;
         double x = Math.Min(px + 16, viewW - w - 4), y = Math.Min(py + 20, viewH - h - 4);
         if (y < 0) y = 0;
         var r = new RectD(Math.Max(0, x), y, w, h);
         d.Rect(r, A(t.Material.PanelRaised, 0.94), A(t.Material.Border, 0.8), 0.8, 3);
-        d.Write(t, r.X + 7, r.Y + 3, HintText, 11.5, t.Ink.TextSoft);
+        d.Write(t, r.X + 7, r.Y + 3, text, 11.5, t.Ink.TextSoft);
         return r;
     }
 

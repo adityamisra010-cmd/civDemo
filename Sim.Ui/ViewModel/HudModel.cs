@@ -48,11 +48,17 @@ public sealed record HudModel(
     /// T2.6: pass the D-018 needs registry to get the needs block — bound
     /// needs show their satisfaction, unbound render "not yet simulated"; the
     /// grievance value reads the settlement's first class row (values are
-    /// identical across classes at M2 — settlement-wide inputs).</summary>
+    /// identical across classes at M2 — settlement-wide inputs).
+    /// P7: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>,
+    /// all-known until S2a). The WORLD totals — population, food, the settlement count — are sums over the settlements
+    /// the player knows (the dataGap default: the fog ruling may change what a world total means); a selected settlement
+    /// the player does not know reads as one that is not there.</summary>
     public static HudModel From(
         IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null,
-        string? settlementName = null, SimConfig? cfg = null)
+        string? settlementName = null, SimConfig? cfg = null, PlayerKnowledge? knowledge = null)
     {
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
+        if (known.IsHiddenSettlement(selectedSettlementId)) { selectedSettlementId = -1; settlementName = null; }   // P7: as if none
         var selected = new SettlementId(selectedSettlementId);
         bool exists = false;
         for (int i = 0; i < world.Settlements.Count; i++)
@@ -86,11 +92,17 @@ public sealed record HudModel(
             }
         }
 
+        // P7: the world totals leave out every row of a settlement the player does not know (all-known: every row, as before).
         long worldPop = 0;
-        for (int i = 0; i < world.Buckets.Count; i++) worldPop += world.Buckets[i].Count.Value;
+        for (int i = 0; i < world.Buckets.Count; i++)
+            if (!known.IsHiddenSettlement(world.Buckets[i].Settlement.Value)) worldPop += world.Buckets[i].Count.Value;
         long worldFood = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Good == UiGoods.Grain) worldFood += world.GoodStocks[i].Amount.Value;
+            if (world.GoodStocks[i].Good == UiGoods.Grain && !known.IsHiddenSettlement(world.GoodStocks[i].Settlement.Value))
+                worldFood += world.GoodStocks[i].Amount.Value;
+        int settlementCount = 0;
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (!known.IsHiddenSettlement(world.Settlements[i].Id.Value)) settlementCount++;
         double happiness = exists && cfg is not null
             ? SettlementHappiness.Of(world, selected, cfg) : double.NaN;
 
@@ -156,7 +168,7 @@ public sealed record HudModel(
             CraftingPct: Sectors.Share(allocation, Sectors.Crafting) * 100.0,
             ConstructionPct: Sectors.Share(allocation, Sectors.Construction) * 100.0,
             WorldPopulation: worldPop,
-            SettlementCount: world.Settlements.Count,
+            SettlementCount: settlementCount,
             NeedLines: needLines,
             GrievanceValue: grievance,
             SettlementName: settlementName,
@@ -194,8 +206,16 @@ public sealed record HudModel(
     /// <summary>T2.9: the chronicle name leads; the id stays for cross-
     /// referencing orders/logs. Name defaults keep pre-T2.9 tests valid.</summary>
     /// <remarks>Item 4 (audit E23): player text carries the name only — the id stays in the developer
-    /// records (DEV › RECORDS); "Settlement N" remains only for an unnamed id.</remarks>
-    public string TitleLine => SettlementName ?? string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}");
+    /// records (DEV › RECORDS). P7: an unnamed id no longer prints the raw settlement id either (ids are dense, so a
+    /// new colony's id told the player how many settlements the world holds): "Unnamed settlement", or "No settlement
+    /// selected" for none.</remarks>
+    public string TitleLine => SettlementName ?? (SettlementId >= 0 ? UnnamedTitle : NoSelectionTitle);
+
+    /// <summary>P7: the selection card's title for a selected settlement without a name.</summary>
+    public const string UnnamedTitle = "Unnamed settlement";
+
+    /// <summary>P7: the selection card's title with nothing selected.</summary>
+    public const string NoSelectionTitle = "No settlement selected";
 
     public string PopulationLine =>
         string.Create(CultureInfo.InvariantCulture,

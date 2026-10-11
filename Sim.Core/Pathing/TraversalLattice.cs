@@ -88,6 +88,11 @@ public sealed class TraversalLattice
         MinNodeCost = min == double.MaxValue ? 0.0 : min;
     }
 
+    /// <summary>The stride every system builds the lattice with (m1 spec §3 stride-4 sampling; 16 km nodes at the
+    /// canonical 4 km/px). Named so a reader of the lattice's geometry (the P7 knowledge grid, the world lens) states the
+    /// same number rather than a copy of it.</summary>
+    public const int DefaultStride = 4;
+
     /// <summary>
     /// Build the lattice over <paramref name="terrain"/>. <paramref name="riverCostFactor"/>
     /// is the TUNE constant `transport.riverCostFactor` — river traversal cost as a
@@ -95,7 +100,7 @@ public sealed class TraversalLattice
     /// be identical for every consumer in a world, and a defaulted value is how two call
     /// sites end up on two different lattices.
     /// </summary>
-    public static TraversalLattice Build(TerrainSet terrain, double riverCostFactor, int stride = 4)
+    public static TraversalLattice Build(TerrainSet terrain, double riverCostFactor, int stride = DefaultStride)
     {
         if (!(riverCostFactor > 0.0 && riverCostFactor <= 1.0))
             throw new ArgumentOutOfRangeException(nameof(riverCostFactor),

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using Sim.Core.State;
 using Sim.Ui.Info;
 using Sim.Ui.ViewModel;
+using Sim.Ui.World;
 using RectD = Sim.Ui.Render.RectD;
 
 namespace Sim.Ui;
@@ -185,6 +186,32 @@ public sealed partial class GameUi
         return new RectD(a.X, a.Y, Math.Max(0, b.X - a.X), Math.Max(0, b.Y - a.Y));
     }
 
+    /// <summary>
+    /// M5 map workstream P8 — THE PLACE UNDER THE POINTER, registered as a PASSIVE inspectable region (Shift+click opens
+    /// its card; a plain click stays the map's: select, drag, nothing else changes). Registered from the lens, before the
+    /// formation tokens, so a token over the ground stays on top. The cell is picked through the camera's shown view and
+    /// the map rect (<see cref="MapCells.At"/> — Camera.ScreenToWorld, what the lens drew there), only where the pointer
+    /// sees open map: inside the map rect, not over an ImGui window, the legend, the docked Age panel or the modal Age
+    /// flow. UNDISCOVERED GROUND IS NEVER OFFERED (P7: the player's knowledge view). The card is judged from the selected
+    /// settlement when it is the player's, else from the capital (<see cref="InfoSubject.OfCell"/>). UI state only.
+    /// </summary>
+    private void RegisterPlaceUnderPointer()
+    {
+        if (!_active || _world.Terrain is not { } terrain || _age.FlowOpen) return;
+        ImGuiIOPtr io = ImGui.GetIO();
+        double px = io.MousePos.X, py = io.MousePos.Y;
+        if (!_mapRect.Contains(px, py) || io.WantCaptureMouse || OnLegend(px, py)) return;
+        if (AgePanelVisible && AgePanelRect().Contains(px, py)) return;
+        int cell = MapCells.At(_camera!, _mapRect, px, py, terrain.Size);
+        if (cell < 0 || !_session.Knowledge.KnowsCell(cell)) return;
+        int source = _selected >= 0 && EmpireQuery.ControlsSettlement(_world, UiPlayer.Empire, new SettlementId(_selected)) ? _selected : -1;
+        InfoRegistry.Add(MapCells.Region(_camera!, _mapRect, cell, terrain.Size, px, py), InfoSubject.OfCell(cell, source), "place", passive: true);
+    }
+
+    /// <summary>P8: the session's site half, asked for only while a PLACE's card is open — it is prepared the first time
+    /// (a pass over the terrain), so no other card pays for it.</summary>
+    private SiteAssessment.Prepared? PlaceSites() => _inspector.Subject is { Kind: InfoKind.Cell } ? _session.Sites : null;
+
     private void RegisterFormationTokens()
     {
         if (_lensFrame is null) return;
@@ -202,7 +229,7 @@ public sealed partial class GameUi
         _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-            _session.Names.Name, queued.Count);
+            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7: the card knows what the player knows; P8: a place's site half
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -272,7 +299,7 @@ public sealed partial class GameUi
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-                _session.Names.Name, queued.Count);
+                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7; P8
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);
@@ -302,11 +329,16 @@ public sealed partial class GameUi
             if (_progressionOpen ? InfoOverlayRect().Contains(p.X, p.Y)
                 : p.X >= ctx.X && p.X < ctx.X + ctx.Width && p.Y >= ctx.Y && p.Y < ctx.Y + ctx.Height) return;
         }
-        if (InfoRegistry.HitTest(p.X, p.Y) is null) return;
+        if (InfoRegistry.HitTest(p.X, p.Y) is not { } hit) return;
+        // P8: open map ground is inspectable everywhere, so its hint shows only while Shift is held — following the pointer
+        // over all ground it would cover the map. Every other region's hint is unchanged.
+        bool place = hit.Subject.Kind == InfoKind.Cell;
+        if (place && !_shift) return;
+        string text = place ? InfoPanel.CellHintText : InfoPanel.HintText;
         _surface = FrameSurface.Hint;
         var d = new Sim.Ui.Render.DrawList();
-        InfoHintRect = InfoPanel.PaintHint(d, Backend, _frameTheme, p.X, p.Y, _viewportWidth, _viewportHeight);
-        InfoHint = InfoPanel.HintText;
+        InfoHintRect = InfoPanel.PaintHint(d, Backend, _frameTheme, p.X, p.Y, _viewportWidth, _viewportHeight, text);
+        InfoHint = text;
         Backend.Render(ImGui.GetForegroundDrawList(), d);
     }
 }

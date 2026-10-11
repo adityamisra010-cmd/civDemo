@@ -620,4 +620,215 @@ public class InfoPanelTests : IDisposable
         WorldProjection p = WorldProjection.Build(s.World, s.Config, id => s.Names.Name(id), Me);
         Assert.Contains(p.Absent, a => a.Contains("Battle Layer (M7)", StringComparison.Ordinal));
     }
+
+    // ------------------------------------------------------------------ P8 the place card (map ground)
+
+    /// <summary>The pointer moved onto KNOWN LAND of the clear map near the capital (rings 40..200 px around the map's
+    /// centre, every 45 degrees), returning the point, the cell and the top-most region registered there; null when none.</summary>
+    private static (double X, double Y, int Cell, InfoHit Hit)? KnownLandNear(UiFrameHarness h, PlayerKnowledge k)
+    {
+        Sim.Core.Worldgen.TerrainSet t = h.Ui.World.Terrain!;
+        RectD map = h.Ui.MapRect;
+        for (int ring = 40; ring <= 200; ring += 40)
+            for (int a = 0; a < 8; a++)
+            {
+                double x = Math.Round(map.CenterX + ring * Math.Cos(a * Math.PI / 4)), y = Math.Round(map.CenterY + ring * Math.Sin(a * Math.PI / 4));
+                int cell = MapCells.At(h.Ui.Camera, map, x, y, t.Size);
+                if (cell < 0 || t.Water[cell] >= 0.5 || !k.KnowsCell(cell)) continue;
+                h.MoveTo(x, y);
+                if (h.Ui.InfoRegistry.HitTest(x, y) is { Subject.Kind: InfoKind.Cell } hit) return (x, y, cell, hit);
+            }
+        return null;
+    }
+
+    [Fact]
+    public void ShiftClick_OnKnownMapGround_OpensItsPlaceCard_QueuesNothing_ChangesNoHash_APlainClickOpensNoCard()
+    {
+        UiSession s = Small();
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("place"), Assets());
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, Capital(s.World), h.Ui.MapRect);
+        h.Idle(2);
+        (double x, double y, int cell, InfoHit hit) = KnownLandNear(h, s.Knowledge) ?? throw new InvalidOperationException("no known land near the capital - the rig is void");
+        // The ground is a PASSIVE region naming the cell under the pointer — picked through the camera and the map rect —
+        // judged from the selected settlement when it is the player's, else the capital (-1).
+        Assert.True(hit.Passive);
+        Assert.Equal(cell, MapCells.At(h.Ui.Camera, h.Ui.MapRect, x, y, h.Ui.World.Terrain!.Size));
+        int selected = h.Ui.SelectedSettlement;
+        int source = selected >= 0 && EmpireQuery.ControlsSettlement(s.World, Me, new SettlementId(selected)) ? selected : -1;
+        Assert.Equal(InfoSubject.OfCell(cell, source), hit.Subject);
+
+        // The hint: none over plain ground; with Shift held, the place hint, painted beside the pointer, no ImGui tooltip.
+        Assert.Null(h.Ui.InfoHint);
+        (string? hint, int tips) = h.HoverWith(x, y, Keys.LeftShift, () => (h.Ui.InfoHint, h.Gui.LastTooltipWindows.Count));
+        Assert.Equal(InfoPanel.CellHintText, hint);
+        Assert.Equal(0, tips);
+
+        // A plain click is the map's: it opens no card.
+        h.Click(x, y);
+        Assert.False(h.Ui.Inspector.IsOpen);
+
+        // Shift+click opens the place's card — InfoQuery's, for the world, the player's knowledge and the session's site
+        // half — and nothing else happens: no order, the world hash unchanged, the selection unchanged.
+        string hash = Hash(s);
+        int queued = s.QueuedOrders().Count;
+        selected = h.Ui.SelectedSettlement;
+        h.ShiftClick(x, y);
+        Assert.True(h.Ui.Inspector.IsOpen);
+        Assert.Equal(hit.Subject, h.Ui.Inspector.Subject);
+        InfoCard card = h.Ui.Inspector.Card!;
+        InfoCard expected = InfoQuery.Card(s.World, s.Config, Me, hit.Subject, settlementName: id => s.Names.Name(id),
+            knowledge: s.Knowledge.Core, site: s.Sites);
+        Assert.Equal(expected.Title, card.Title);
+        Assert.Equal(expected.StatusLine, card.StatusLine);
+        Assert.Equal(expected.More.Length, card.More.Length);
+        for (int i = 0; i < card.More.Length; i++) Assert.Equal(expected.More[i], card.More[i]);
+        Assert.Equal("The simulation's siting score", card.More[0].Heading);
+        Assert.Equal(hash, Hash(s));
+        Assert.Equal(queued, s.QueuedOrders().Count);
+        Assert.Equal(selected, h.Ui.SelectedSettlement);
+        h.Key(Keys.Escape);
+        Assert.False(h.Ui.Inspector.IsOpen);
+        Assert.Equal(hash, Hash(s));
+
+        // The ground lies UNDER the map's tokens: Shift+click on the capital's formation token opens the formation's card.
+        MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, Me)[0];
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
+        h.Idle(2);
+        InfoHit token = h.Ui.InfoRegistry.Hits.First(x => x.Passive && x.Subject == InfoSubject.OfFormation((int)unit.Id));
+        Assert.Contains(h.Ui.InfoRegistry.Hits, x => x.Subject.Kind == InfoKind.Cell);
+        h.ShiftClick(token.Rect.CenterX, token.Rect.CenterY);
+        Assert.Equal(InfoSubject.OfFormation((int)unit.Id), h.Ui.Inspector.Subject);
+        Assert.Equal(hash, Hash(s));
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
+    public void UndiscoveredGround_IsNeverOffered_NoRegion_NoHint_NoCard_WhileTheAllKnownControlOffersIt()
+    {
+        UiSession first = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        var rival = new PolityId(2);
+        IReadOnlyList<int> theirs = KnowledgeStubs.SettlementsOf(first.World, rival);
+        Assert.NotEmpty(theirs);
+        (double X, double Y)? point = null;
+        // The CONTROL first (all-known): a point on the rival's site cell where the ground is the top-most region; then
+        // the same world, camera and point seen through the stub that hides the rival.
+        foreach (bool hide in new[] { false, true })
+        {
+            UiSession s = hide
+                ? UiSession.StartFrom(first.World.Clone(), 42, 256, 4, knowledgeOf: w => KnowledgeStubs.HidePolity(w, Me, rival))
+                : UiSession.StartFrom(first.World.Clone(), 42, 256, 4);
+            using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir(hide ? "undiscovered" : "undiscovered-control"), Assets());
+            int target = theirs[0];
+            h.Ui.Camera.ZoomAt(h.Ui.MapRect.CenterX, h.Ui.MapRect.CenterY, 8.0, h.Ui.MapRect);
+            CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, target, h.Ui.MapRect);
+            h.Idle(2);
+            int site = -1;
+            for (int i = 0; i < h.Ui.World.Settlements.Count; i++) if (h.Ui.World.Settlements[i].Id.Value == target) site = h.Ui.World.Settlements[i].SiteCell;
+            int size = h.Ui.World.Terrain!.Size;
+            if (point is null)
+            {
+                for (double fy = 0.1; fy < 1.0 && point is null; fy += 0.2)
+                    for (double fx = 0.1; fx < 1.0 && point is null; fx += 0.2)
+                    {
+                        (double px, double py) = h.Ui.Camera.WorldToScreen(site % size + fx, site / size + fy, h.Ui.MapRect);
+                        px = Math.Round(px);
+                        py = Math.Round(py);
+                        if (MapCells.At(h.Ui.Camera, h.Ui.MapRect, px, py, size) != site) continue;
+                        h.MoveTo(px, py);
+                        if (h.Ui.InfoRegistry.HitTest(px, py) is { Subject.Kind: InfoKind.Cell }) point = (px, py);
+                    }
+                Assert.True(point is not null, "no point of the rival's site cell shows the ground on top - the rig is void");
+            }
+            (double sx, double sy) = point!.Value;
+            int cell = MapCells.At(h.Ui.Camera, h.Ui.MapRect, sx, sy, size);
+            Assert.Equal(site, cell);
+            Assert.Equal(!hide, s.Knowledge.KnowsCell(cell));
+            string? hint = h.HoverWith(sx, sy, Keys.LeftShift, () => h.Ui.InfoHint);
+            bool region = h.Ui.InfoRegistry.Hits.Any(x => x.Subject.Kind == InfoKind.Cell && x.Rect.Contains(sx, sy));
+            string hash = Hash(s);
+            h.ShiftClick(sx, sy);
+            if (hide)
+            {
+                Assert.False(region, "a place region over undiscovered ground");
+                Assert.Null(hint);
+                Assert.False(h.Ui.Inspector.IsOpen, "a Shift+click on undiscovered ground opened a card");
+            }
+            else
+            {
+                // CONTROL: the same ground, known, is offered and opens its card.
+                Assert.True(region);
+                Assert.Equal(InfoPanel.CellHintText, hint);
+                Assert.True(h.Ui.Inspector.IsOpen);
+                Assert.Equal(InfoKind.Cell, h.Ui.Inspector.Subject!.Value.Kind);
+                Assert.Equal(cell, h.Ui.Inspector.Subject!.Value.Id);
+            }
+            Assert.Equal(hash, Hash(s));
+            Assert.Empty(h.Problems);
+        }
+    }
+
+    [Fact]
+    public void TheGroundBehindAWindowTheLegendOrTheAgePanel_IsNotOffered()
+    {
+        // The place region is registered only where the pointer sees open map: a window over the map (the selection card),
+        // the legend and the docked Age panel (both painted, not windows) each hide the ground behind them.
+        UiSession s = Small();
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("behind"), Assets());
+        // Closer than fit, so the world fills the whole map rect: every probe point below lies over known ground (at fit
+        // a wide window shows paper beside the square world, where there is no ground to offer at all).
+        h.Ui.Camera.ZoomAt(h.Ui.MapRect.CenterX, h.Ui.MapRect.CenterY, 4.0, h.Ui.MapRect);
+        h.Idle(2);
+        bool PlaceAt(double x, double y)
+        {
+            int cell = MapCells.At(h.Ui.Camera, h.Ui.MapRect, x, y, h.Ui.World.Terrain!.Size);
+            Assert.True(cell >= 0 && s.Knowledge.KnowsCell(cell), "the probe point is not over known ground - the rig is void");
+            h.MoveTo(x, y);
+            return h.Ui.InfoRegistry.Hits.Any(r => r.Subject.Kind == InfoKind.Cell && r.Rect.Contains(x, y));
+        }
+        // Control: open map shows the ground.
+        RectD map = h.Ui.MapRect;
+        Assert.True(PlaceAt(Math.Round(map.CenterX), Math.Round(map.CenterY)) || PlaceAt(Math.Round(map.CenterX) + 60, Math.Round(map.CenterY)),
+            "the control: open map offers its ground");
+
+        PanelRect card = h.Ui.SelectionRect;
+        Assert.True(map.Contains(card.X + card.Width - 6, card.Y + card.Height - 6), "the selection card lies over the map rect");
+        Assert.False(PlaceAt(card.X + card.Width - 6, card.Y + card.Height - 6), "the ground behind the selection card is offered");
+
+        if (!h.Ui.ShowLegend) h.Key(Keys.L);
+        h.Idle(1);
+        RectD legend = h.Ui.LensFrame!.Legend!.Rect;
+        Assert.False(PlaceAt(Math.Round(legend.CenterX), Math.Round(legend.CenterY)), "the ground behind the legend is offered");
+        h.Key(Keys.L);
+
+        Assert.True(h.ClickControl("band-age"));
+        h.Idle(2);
+        RectD age = h.Ui.AgePanelBounds;
+        Assert.True(h.Ui.AgePanelOpen);
+        Assert.False(PlaceAt(Math.Round(age.Right - 6), Math.Round(age.Bottom - 6)), "the ground behind the Age panel is offered");
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
+    public void ThePlaceRegion_ContainsThePointer_AndItsCentreIsTheSameCell_AtEveryZoom()
+    {
+        // The gate and the coverage press a region's CENTRE: it must name the same cell as the pointer it was registered
+        // under, whether a cell is smaller than the pointer (fit zoom: a square about the pointer) or larger (its footprint).
+        var cam = new Camera(256);
+        var map = new RectD(0, 40, 1000, 700);
+        cam.Clamp(map);
+        foreach (double zoom in new[] { 1.0, 3.0, 12.0, 30.0 })
+        {
+            cam.ZoomAt(map.CenterX, map.CenterY, zoom / cam.Zoom, map);
+            for (int px = 120; px < 900; px += 97)
+                for (int py = 90; py < 700; py += 89)
+                {
+                    int cell = MapCells.At(cam, map, px, py, 256);
+                    if (cell < 0) continue;
+                    RectD r = MapCells.Region(cam, map, cell, 256, px, py);
+                    Assert.True(r.Contains(px, py), "the region misses its pointer at zoom " + zoom);
+                    Assert.True(r.W >= MapCells.MinRegionPx - 1e-9 && r.H >= MapCells.MinRegionPx - 1e-9);
+                    Assert.Equal(cell, MapCells.At(cam, map, Math.Round(r.CenterX), Math.Round(r.CenterY), 256));
+                }
+        }
+    }
 }

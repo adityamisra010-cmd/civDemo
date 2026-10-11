@@ -59,11 +59,13 @@ public static class ScreenModels
     /// <summary>The selected settlement's tabs from its latest record and the
     /// explain queries. Null when no turn has been observed or the settlement
     /// has no record on the latest turn.</summary>
+    /// <remarks>P7 review: a settlement the session's <see cref="PlayerKnowledge"/> hides reads as no selection (null).</remarks>
     public static SettlementView? Settlement(UiSession session, int selected)
     {
         ArgumentNullException.ThrowIfNull(session);
         IObservationHistory history = session.Observations;
-        if (history.Observations.Count == 0 || selected < 0) return null;
+        PlayerKnowledge known = session.Knowledge;
+        if (history.Observations.Count == 0 || selected < 0 || known.IsHiddenSettlement(selected)) return null;
         // D6: bind the record AND its turn length to ONE observation. Reading
         // DtYears from Observations[^1] while the record came from At(turn)
         // is correct only while the two are the same object; dtYears varies
@@ -128,9 +130,12 @@ public static class ScreenModels
             sector => labels[sector]);
     }
 
+    /// <summary>The POLICY section's labour record for the selection. P7 review: a settlement the session's
+    /// <see cref="PlayerKnowledge"/> hides reads as no selection (id −1: no policy state, no change).</summary>
     public static PolicyView Policy(UiSession session, int selected)
     {
         ArgumentNullException.ThrowIfNull(session);
+        if (session.Knowledge.IsHiddenSettlement(selected)) selected = -1;
         IObservationHistory history = session.Observations;
         return new PolicyView(
             PolicyHistoryModel.CurrentLines(PolicyHistoryModel.Latest(history.PolicyStates, selected)),

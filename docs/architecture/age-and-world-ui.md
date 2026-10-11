@@ -419,3 +419,51 @@ Supersedes §5.1's layer list where they differ; §1–§9 remain the record of 
 - **The selected formation's frame** is drawn by the lens (`Paint(…, selectedUnit:)`), no longer by GameUi after it.
 
 Tests: `Sim.Ui.Tests/LensHitGeometryAndLegendTests.cs`; record: `docs/m5-playability-gate.md` §3.4.
+
+## 11. M5 map workstream P9: the resource and suitability overlay (append-only note, 2026-10-11)
+
+Supersedes §5.1's and §10's layer lists where they differ; §1–§10 remain the record of what they describe.
+
+- **A tenth map layer, `MapLayer.ResourceOverlay`**, owned by the lens (`Sim.Ui/World/ResourceOverlay.cs`): per
+  traversal-lattice node (the knowledge grid's 16 km node), the value a settlement founded at the node's centre cell
+  would be judged by, through the simulation's own public functions — one layer per goods.json `depositChannel`
+  (`WorldFounding.HinterlandMeans` + `DepositChannelValue`: an expected abundance, a rate multiplier, never a quantity;
+  each channel's key row names every good it drives with its spread, so no layer claims a per-good difference the
+  simulation lacks), the unjittered siting score (`SettlementSiting.CandidateScores`) and its two factors (region
+  fertility, water access). Painted FIRST — under territory, paths, settlements and formations — as one rect per run of
+  equal levels along each lattice row (edges snapped to whole px), then the realized ore rolls beside the player's own
+  settlements (their `DepositRow`s; Regional zoom and closer) and the overlay's KEY (a plain data plate: the abundance
+  statement, each shown layer's name, ramp, goods, measure and counts, then discovered / present / accessible /
+  extractable from the place card's own predicates), all before the P3 legend, which stays the last thing drawn.
+- **Charged to its map layer, to no information layer** (like the legend): it is not zoom-dependent and is drawn only
+  for the layers the player shows; `LensFrame.Overlay` records the layers drawn, the rects and nodes per layer, the key
+  and the markers.
+- **The player's information class** (P7 seam; the place card's rules, ADR-037 §7): an unknown node is not evaluated; a
+  known node whose reach (hinterland disc, fertility box, water BFS diamond) touches undiscovered ground is withheld;
+  the ramp runs to the largest value DRAWN; under a restricted view the region-fertility sum is taken over its own
+  window (the simulation's integral image reads every cell above-left of it) and the founding floor is not shown.
+- **Controls** (`Sim.Ui/GameUi.Overlay.cs`): an OVERLAYS tab over the clear map's bottom-left corner (right of the Age
+  panel and the formation card while they show) unfolds a checkbox per layer and the opacity, 10 % to 80 % in tenths
+  (never opaque). UI state only. The bake (`UiSession.Overlay`) is made the first time a layer is shown and kept while
+  the terrain and the knowledge masks are the same; its per-turn status (`UiSession.OverlayStatus`) while the world is.
+
+Tests: `Sim.Ui.Tests/ResourceOverlayTests.cs`; record: `docs/m5-playability-gate.md` §3.8.
+
+## 12. M5 map workstream P10: the resource 'now usable' shortcut (append-only note, 2026-10-11)
+
+Adds to §11; §1–§11 remain the record of what they describe.
+
+- **No new map layer.** The shortcut opens P9's layers (`MapLayer.ResourceOverlay`) through the same UI state the OVERLAYS
+  checkboxes set, and the lens draws, on a SHOWN layer named by the shortcut, the OUTLINE of its qualifying places
+  (`ResourceOverlay.Outline`: the known nodes drawn above 0, as lattice-node boundary runs) right after the layers' fills,
+  charged to `MapLayer.ResourceOverlay`; the overlay key opens with the shortcut's rows (`OverlayPaint.Highlight`,
+  `OverlayFrame.OutlinedLayers / OutlineSegments / OutlineNodes`).
+- **The trigger** (`DiscoveryShortcuts.Transitions`, fed by `UiSession.Step`): a content-declared recipe (goods.json
+  `recipes[].entity`) with newly usable deposit inputs, or a sector identity the UI content maps whose yield the
+  simulation reads (farming, `HarvestsWildFood`), newly knowledge-eligible for the player and gaining a held settlement.
+  No node or entity id in code. UI content: `Sim.Ui/UiContent/discovery-shortcuts.json` (embedded; `expiryTurns` TUNE 5,
+  `sectorLayers`).
+- **The control**: a NOW USABLE block at the top of the overlays tab while a shortcut is offered (clock < T + N), with a
+  Show on map button per shortcut (`now-usable-<history index>`). Labelled 'now usable', never 'discovered'. UI state only.
+
+Tests: `Sim.Ui.Tests/DiscoveryShortcutTests.cs`; record: `docs/m5-playability-gate.md` §3.9.

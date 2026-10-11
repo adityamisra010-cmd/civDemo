@@ -1,0 +1,40 @@
+# P7 (M5 map workstream) - THE Sim.Ui RAW-READ ALLOWLIST, read by BOTH scripts/check-read-isolation.sh (the advisory
+# grep, CI) and Sim.Ui.Tests KnowledgeLeakTests (the source guard). One list, two readers - never edit a copy.
+#
+# What is matched: a read of a foreign-sensitive world table - Settlements, MilitaryUnits, Buckets or Deposits - through
+# a world receiver (world, w, _world, World, prev, next, W) in Sim.Ui/**/*.cs. Any file that does so must be listed here
+# with its CLASS and a reason; a new raw read anywhere else fails both readers.
+#
+# Classes (the source guard checks the first one mechanically):
+#   routed     - a player-facing reader that asks PlayerKnowledge before it reads a settlement's or a formation's rows
+#                (the file must reference PlayerKnowledge); its non-interference is pinned by the metamorphic tests
+#   seam       - the knowledge view itself
+#   own        - reads only the player's own settlements (or the table's row count), never a foreign row's content
+#   developer  - a developer surface (DEV > TURN / RECORDS), deliberately unfiltered, like the developer export
+#   geometry   - a position for the camera, asked for a settlement the caller already holds (the selection)
+#   harness    - headless tooling (the gate, its stub, the frame-cost bench, the SVG previews), never a player surface
+#
+# Format: <path> | <class> | <reason>
+Sim.Ui/ViewModel/PlayerKnowledge.cs | seam | the per-turn view over the Sim.Core seam: it enumerates settlements to cache KnowsSettlement
+Sim.Ui/World/WorldLens.cs | routed | WorldProjection.Build: the observer; hidden settlements, formations, territory, paths and routes are never visited
+Sim.Ui/ViewModel/SettlementSelection.cs | routed | Tab cycles known settlements only; the opening selection is the first known one
+Sim.Ui/ViewModel/HudModel.cs | routed | world totals sum known settlements; a hidden selection reads as none
+Sim.Ui/ViewModel/PlayerViews.cs | routed | a hidden settlement reads as absent; formations, migration and trade lines name known subjects only
+Sim.Ui/ViewModel/StateChronicle.cs | routed | annal events are kept only when every settlement and polity they name is known
+Sim.Ui/ViewModel/UnitCardModel.cs | routed | an unknown formation has no card
+Sim.Ui/ViewModel/NeedsPanelModel.cs | routed | a hidden settlement reads as one with nobody present
+Sim.Ui/ViewModel/HistoryBuffer.cs | routed | the world series sum known settlements; per-settlement series are cached for every settlement and read through the knowledge (a hidden settlement's price series is no data)
+Sim.Ui/Actions/ActionSurfaceModel.cs | own | adults of the player's controlled settlements (the labour summary)
+Sim.Ui/UiSession.cs | own | the settlement row COUNT, to rebuild the name registry after a founding (never displayed)
+Sim.Ui/ViewModel/ScreenModels.cs | developer | DEV > RECORDS: the selected settlement's class buckets for the explain views; the selection-keyed views (Settlement, Policy) read a hidden settlement as no selection
+Sim.Ui/ViewModel/TurnAuditModel.cs | developer | DEV > TURN: the founded-settlement count of the turn audit
+Sim.Ui/ViewModel/CameraFocus.cs | geometry | the site of the settlement the caller centres on (the selection, a WHERE row)
+Sim.Ui/ViewModel/OverlayMeshes.cs | geometry | overlay mesh helpers no renderer calls any more (WorldLayerOwnershipTests); kept for their tests
+Sim.Ui/Headless/KnowledgeStubs.cs | harness | the knowledge stub itself: it must read the polity it hides
+Sim.Ui/Headless/PlayabilityGate.cs | harness | the headless gate's rigs and rows
+Sim.Ui/Headless/PlayabilityGate.Info.cs | harness | the gate's info rows (P8): the undiscovered-ground row reads where a hidden settlement stands, to check the UI offers nothing there
+Sim.Ui/Headless/MapFrameCost.cs | harness | the map frame-cost bench (--frame-cost map)
+Sim.Ui/Theme/EraPreview.cs | harness | the era SVG preview tool
+Sim.Ui/Ages/AgePreview.cs | harness | the Age SVG preview tool
+Sim.Ui/Actions/R2aPreview.cs | harness | the R2a SVG preview tool
+Sim.Ui/World/ResourceOverlay.cs | routed | the overlay's status: the ore-roll markers read the deposits of settlements the player controls and knows (PlayerKnowledge.KnowsSettlement, ReadsInternals); the player's own sites for the access isochrones; the layers read terrain only, masked by the known nodes

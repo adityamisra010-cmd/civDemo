@@ -126,9 +126,13 @@ public static class TrendsModel
     /// it has no record), with the turn-0 founding sample in front for a key
     /// that has an opening. Length == Observations.Count, + 1 when
     /// <see cref="HasOpening"/> and at least one turn was observed.</summary>
-    public static double[] Settlement(IObservationHistory history, int settlement, SeriesKey key, int classId)
+    /// <remarks>P7 review: a settlement <paramref name="knowledge"/> hides reads exactly as no selection (id −1: no record
+    /// on any turn) — its records are never read (null = all-known, the production view until S2a).</remarks>
+    public static double[] Settlement(IObservationHistory history, int settlement, SeriesKey key, int classId,
+        PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(history);
+        if (knowledge is not null && knowledge.IsHiddenSettlement(settlement)) settlement = -1;
         var into = new double[history.Observations.Count];
         int n = history.Series(settlement, key, into, classId);
         if (n != into.Length)
@@ -146,7 +150,10 @@ public static class TrendsModel
     /// first observation's non-founding openings — every settlement that
     /// existed at turn 0) is prepended; the three opening keys are all
     /// extensive, so the founding sample is always a sum.</summary>
-    public static double[] World(IObservationHistory history, SeriesKey key, int classId)
+    /// <remarks>P7: only the settlements the player knows are summed (<paramref name="knowledge"/>; null = every
+    /// settlement ever observed, the all-known reading — the same series the production view gives until S2a). A
+    /// settlement the player does not know contributes nothing on any turn, its founding sample included.</remarks>
+    public static double[] World(IObservationHistory history, SeriesKey key, int classId, PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(history);
         IReadOnlyList<TurnObservation> observations = history.Observations;
@@ -168,6 +175,9 @@ public static class TrendsModel
             SettlementRecord[] rows = observations[t].Settlements;
             for (int i = 0; i < rows.Length; i++) present[rows[i].Settlement] = true;
         }
+        if (knowledge is not null)
+            for (int id = 0; id <= maxId; id++)
+                if (knowledge.IsHiddenSettlement(id)) present[id] = false;   // P7: never read
 
         var one = new double[turns];
         for (int id = 0; id <= maxId; id++)
