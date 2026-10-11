@@ -396,6 +396,140 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
         Assert.Equal(hash, WorldHash.ComputeHex(fx.Session.World));   // composing and painting read state only
     }
 
+    /// <summary>
+    /// A PAN NEVER POPS A SETTLEMENT IN OR OUT WHILE ANY OF IT CAN BE ON SCREEN (fix to the P12a review finding: with the
+    /// 34–150 px footprint clamp gone, the fixed 200 px centre margin of the settlement cull dropped a large settlement
+    /// whose footprint, blocks, glyphs and sector ring still reached the viewport — at ×32 the measured maximum, 61,078
+    /// people, paints a 209 px footprint and the stated saturation, 4,096,000, a 330 px one). The capital of the
+    /// institution fixture (its 7 parts or 20, notables, a sector ring or the default-split caption, a banner or none,
+    /// selected or not) at the measured minimum and maximum and the saturation, at 8 zooms from the World band to ×32 and in
+    /// three eras' hands, is panned across every edge and corner of a 1280×800 viewport: wherever ANY command it paints
+    /// with nothing culled has bounds (<see cref="DrawListCull.Bounds"/>, which the replay keeps) that touch the viewport,
+    /// the culled paint draws it — probed in 6 px steps and a quarter pixel either side of the exact position where its painted box first touches.
+    /// The cull still culls: clear probes are culled, and 1,000 px clear of the viewport the settlement is not drawn. First,
+    /// the finding's own cases: the fixture's capital at ×32 with its footprint's edge 8 px on screen is drawn.
+    /// </summary>
+    [Fact]
+    public void APan_NeverCullsASettlementWhileAnyOfItsCommandsCanTouchTheViewport()
+    {
+        string hash = WorldHash.ComputeHex(fx.Session.World);
+        WorldProjection seam = Seam();
+        SettlementLensView capital = seam.Settlements.Single(s => s.Id == fx.Capital);
+        var viewport = new RectD(0, 0, 1280, 800);
+        var everywhere = new RectD(-1e6, -1e6, 2e6, 2e6);
+
+        // The finding's own cases: the capital as the fixture has it, at ×32, its footprint's right edge 8 px inside the
+        // viewport's left edge — its centre 201 px out at the measured maximum (209 px footprint) and 322 px out at the
+        // saturation (330 px). The 200 px centre margin culled both, though blocks, glyphs and the footprint were on screen.
+        foreach (long pop in new[] { MeasuredMax, SettlementClasses.Default.SaturationPopulation })
+        {
+            SettlementLensView v = capital with { Population = pop, Dwellings = pop / 5 };
+            WorldProjection p = Only(seam, v);
+            double scale = Camera.MaxZoom;
+            MapDetail detail = MapDetail.At(scale, 1280, 800, p.KmPerPx);
+            double rFoot = WorldLens.FootprintRadiusPx(p, v, scale, detail.Settlement);
+            Assert.True(rFoot > 200, $"pop {pop}: footprint {rFoot} px");
+            var d = new DrawList();
+            LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail,
+                (x, y) => ((x - v.X) * scale + 8 - rFoot, (y - v.Y) * scale + 400), scale, viewport);
+            Assert.Equal([v.Id], f.SettlementsDrawn);
+            Assert.Equal(7, f.Parts.Count);
+            Assert.Contains(d.Commands, c => DrawListCull.Bounds(c) is RectD b && DrawListCull.Touches(b, viewport));
+        }
+
+        int touching = 0, beyondOldMargin = 0, culled = 0, configs = 0;
+        // 13 more structure kinds (synthetic project ids content does not name — they claim after content's and spill): a
+        // key of 20 entries.
+        var crowded = capital.Structures.Concat(Enumerable.Range(1, 13)
+            .Select(i => new StructureView(9000 + i, "Works " + i.ToString(CultureInfo.InvariantCulture), StructureKind.Other, 1))).ToList();
+        foreach (long pop in new[] { MeasuredMin, MeasuredMax, SettlementClasses.Default.SaturationPopulation })
+        foreach (int variant in new[] { 0, 1, 2, 3 })
+        {
+            // 0: unselected, a sector ring, notables, a banner; 1: selected, the default-split caption, no notables, a
+            // banner; 2: as 0 with no banner (Age 0); 3: as 2 with the 20-entry key.
+            SettlementLensView v = capital with
+            {
+                Population = pop, Dwellings = pop / 5, Age = variant >= 2 ? 0 : Math.Max(1, capital.Age),
+                Notables = variant == 1 ? 0 : 3, Sectors = variant == 1 ? null : [0.4, 0.3, 0.15, 0.1, 0.05],
+                Structures = variant == 3 ? crowded : capital.Structures,
+            };
+            Assert.True(v.Controller >= 0, "the banner needs a controller");
+            WorldProjection p = Only(seam, v);
+            int selected = variant == 1 ? v.Id : -1;
+            foreach (EraTheme? theme in new[] { null, EraThemes.For(UiEra.Prehistoric), EraThemes.For(UiEra.Modern) })
+            {
+                MapInk ink = theme is null ? MapInk.Default : MapInk.For(theme);
+                for (int z = 0; z <= 14; z += 2)
+                {
+                    double scale = 0.8 * Math.Pow(Camera.MaxZoom / 0.8, z / 14.0);
+                    MapDetail detail = MapDetail.At(scale, 1280, 800, p.KmPerPx);
+                    DrawList Paint(double ox, double oy, RectD within, out LensFrame f)
+                    {
+                        var d = new DrawList();
+                        f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail,
+                            (x, y) => ((x - v.X) * scale + ox, (y - v.Y) * scale + oy), scale, within, selected, ink: ink, theme: theme);
+                        return d;
+                    }
+                    // The settlement's painted box about its centre, with nothing culled.
+                    RectD box = Union(Paint(0, 0, everywhere, out _).Commands);
+                    configs++;
+                    var probes = new List<(double X, double Y)>();
+                    for (double clear = -36; clear <= 36; clear += 6)
+                    {
+                        probes.Add((-box.Right - clear, 400));                    // across the left edge
+                        probes.Add((1280 - box.X + clear, 400));                  // the right
+                        probes.Add((640, -box.Bottom - clear));                   // the top
+                        probes.Add((640, 800 - box.Y + clear));                   // the bottom
+                        probes.Add((-box.Right - clear, -box.Bottom - clear));    // the corners
+                        probes.Add((1280 - box.X + clear, 800 - box.Y + clear));
+                        probes.Add((-box.Right - clear, 800 - box.Y + clear));
+                        probes.Add((1280 - box.X + clear, -box.Bottom - clear));
+                    }
+                    foreach (double e in new[] { -0.25, 0.25 })
+                    {
+                        probes.Add((-box.Right - e, 400)); probes.Add((1280 - box.X + e, 400));
+                        probes.Add((640, -box.Bottom - e)); probes.Add((640, 800 - box.Y + e));
+                    }
+                    foreach ((double ox, double oy) in probes)
+                    {
+                        bool touches = Paint(ox, oy, everywhere, out _).Commands
+                            .Any(c => DrawListCull.Bounds(c) is RectD b && DrawListCull.Touches(b, viewport));
+                        Paint(ox, oy, viewport, out LensFrame f);
+                        bool drawn = f.SettlementsDrawn.Contains(v.Id);
+                        if (touches)
+                        {
+                            touching++;
+                            Assert.True(drawn, $"pop {pop} {theme?.Era} x{scale:0.###} selected {selected}: centre ({ox:0.##}, {oy:0.##}) "
+                                + $"culled while its painted box {box} touches the viewport");
+                            if (ox < -200 || ox > 1480 || oy < -200 || oy > 1000) beyondOldMargin++;
+                        }
+                        else if (!drawn) culled++;
+                    }
+                    Paint(-box.Right - 1000, 400, viewport, out LensFrame far);
+                    Assert.DoesNotContain(v.Id, far.SettlementsDrawn);
+                }
+            }
+        }
+        Assert.Equal(3 * 4 * 3 * 8, configs);
+        // Measured on this fixture: 12,428 touching probes (3,656 of them with the centre beyond the old 200 px margin), and
+        // every one of the 19,828 clear probes culled.
+        Assert.True(touching > 12_000, $"only {touching} touching probes");
+        Assert.True(beyondOldMargin > 3_500, $"only {beyondOldMargin} touching probes lay beyond the old 200 px centre margin");
+        Assert.True(culled > 19_500, $"only {culled} clear probes were culled");
+        Assert.Equal(hash, WorldHash.ComputeHex(fx.Session.World));
+
+        static RectD Union(IReadOnlyList<DrawCmd> commands)
+        {
+            double x0 = double.MaxValue, y0 = double.MaxValue, x1 = double.MinValue, y1 = double.MinValue;
+            foreach (DrawCmd c in commands)
+                if (DrawListCull.Bounds(c) is RectD b)
+                {
+                    x0 = Math.Min(x0, b.X); y0 = Math.Min(y0, b.Y); x1 = Math.Max(x1, b.Right); y1 = Math.Max(y1, b.Bottom);
+                }
+            return new RectD(x0, y0, x1 - x0, y1 - y0);
+        }
+    }
+
     // ------------------------------------------------------------------ table order
 
     /// <summary>
