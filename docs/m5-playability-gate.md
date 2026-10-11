@@ -1116,12 +1116,13 @@ Coverage: `control:overlays`, `control:overlay:<moisture|water|elevation|suitabi
 | world hash | `BakingStatusAndPainting_ChangeNoHash`; `ShowingEveryLayerAndPlaying_IsHashIdenticalToNotShowingThem` (every layer shown, an End Turn, against a session that showed none); every gate row; the frame-cost sweeps (canonical `4035cf18…` before and after) |
 | founded seed-42 300-turn golden (`Sim.Cli run --founded --seed 42 --turns 300`, two processes, this tree) | both hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
 | gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files: + `Sim.Ui/World/ResourceOverlay.cs`, routed), `check-readonly-proof`: OK |
-| full Sim.Ui.Tests (`5d7abc7`) | 769 passed, 0 failed (14 m 27 s; P8's 753 + 16 new) |
+| full Sim.Ui.Tests (`4e8cb1e`) | 770 passed, 0 failed (11 m 32 s; P8's 753 + 17 new) |
 | targeted Sim.Tests (`SiteAssessment`, `FoundingVariationItem0`, `SettlementTests`, `WorldgenTests`, `PolityKnowledge`) | 40 passed, 1 skipped, 0 failed — the one Sim.Core edit is an access modifier; full Sim.Tests not run (no simulation, order, serialization or AI change) |
 | frame cost (`--frame-cost map`, `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost with the resource overlay") | without the overlay the lens paints exactly what it painted; one layer adds ~1.3–2 ms a frame at World zoom (~6,500 rects), every layer ~12–17 ms (the worst case); Settlement zoom ≤ 0.7 ms |
 
 **Mutant kill record.** One-edit mutants in this worktree, each built, then `ResourceOverlay|WorldLayerOwnershipTests`
-(26 tests; clean 26 s quiet, bound 300 s); none hung (25–40 s each, M1 134 s while the smoke ran beside it).
+(26 tests; clean 26 s quiet, bound 300 s; M18 against the 17 `ResourceOverlay` tests, bound 300 s); none hung (25–40 s
+each, M1 134 s while the smoke ran beside it).
 
 | mutant | killed by (semantic tests) |
 |---|---|
@@ -1142,6 +1143,7 @@ Coverage: `control:overlays`, `control:overlay:<moisture|water|elevation|suitabi
 | M15 a checkbox never shows its layer | `ShowingEveryLayerAndPlaying…`, `TheOpacity_StepsInTenths…`; the gate rows |
 | M16 the opacity cap removed (opaque reachable) | `TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque…` |
 | M17 the ramp inverted (a stronger value paler) | `TheSuitabilityLayers_…` (the level is floor(v / max × 16)) |
+| M18 the key left out of the map's picking guard (`OnLegend`) | `WithALayerShown_ShiftClickOnKnownGround_OpensP8sPlaceCard_AndTheKeyOffersNoPlaceBeneathIt` |
 
 Each property is one the overlay ought to have: it shows the simulation's own values at a stated granularity and invents
 none; it claims no per-good difference the simulation lacks; the player is shown only what it knows, and the choice to
