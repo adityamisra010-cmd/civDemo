@@ -32,6 +32,7 @@ Sim.Ui/ViewModel/CameraFocus.cs | geometry | the site of the settlement the call
 Sim.Ui/ViewModel/OverlayMeshes.cs | geometry | overlay mesh helpers no renderer calls any more (WorldLayerOwnershipTests); kept for their tests
 Sim.Ui/Headless/KnowledgeStubs.cs | harness | the knowledge stub itself: it must read the polity it hides
 Sim.Ui/Headless/PlayabilityGate.cs | harness | the headless gate's rigs and rows
+Sim.Ui/Headless/PlayabilityGate.Info.cs | harness | the gate's info rows (P8): the undiscovered-ground row reads where a hidden settlement stands, to check the UI offers nothing there
 Sim.Ui/Headless/MapFrameCost.cs | harness | the map frame-cost bench (--frame-cost map)
 Sim.Ui/Theme/EraPreview.cs | harness | the era SVG preview tool
 Sim.Ui/Ages/AgePreview.cs | harness | the Age SVG preview tool

@@ -62,8 +62,29 @@ public sealed class UiSession
     private readonly SimConfig _simCfg;
 
     // M5 S1c: the worldgen config the production pipeline's ColonizationSystem is built from (ProductionPipeline),
-    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders only.
+    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders and (P8) Sites only.
     private readonly Sim.Core.Worldgen.WorldgenConfig _worldgen = ProductionWorldgen();
+
+    // M5 P8: the terrain half of a site assessment for the map this session plays on.
+    private SiteAssessment.Prepared? _sites;
+
+    /// <summary>
+    /// M5 map workstream P8 — the terrain half of the map-cell card's <see cref="SiteAssessment"/> (the siting score
+    /// raster and its two factor rasters, the frontier lattice): a pure function of the immutable terrain and the configs,
+    /// built the first time a place's card is asked for and kept while the world's terrain is the same one (every clone
+    /// of a world shares it). Built with the worldgen config this session's ColonizationSystem holds, so the card's
+    /// deposit preview is the founding path's own values. UI-side only — the TerrainBaker precedent; nothing in the
+    /// simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public SiteAssessment.Prepared? Sites
+    {
+        get
+        {
+            if (World.Terrain is null) return null;
+            if (_sites is null || !_sites.IsFor(World.Terrain)) _sites = SiteAssessment.Prepare(World, _simCfg, _worldgen);
+            return _sites;
+        }
+    }
 
     /// <summary>The observation history the UI graphs and panels read through
     /// (docs/observability-architecture.md §7: one read seam).</summary>

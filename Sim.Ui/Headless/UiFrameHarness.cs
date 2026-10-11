@@ -205,6 +205,20 @@ public sealed class UiFrameHarness : IDisposable
         Frame();
     }
 
+    /// <summary>P8: a hover with <paramref name="key"/> held (move there with it down for three frames, as
+    /// <see cref="MoveTo"/>), then <paramref name="read"/> is asked while it is still held; the key is released after and one
+    /// frame runs. What a painted hover hint shows only while a modifier is held is read this way.</summary>
+    public T HoverWith<T>(double x, double y, Keys key, Func<T> read)
+    {
+        ArgumentNullException.ThrowIfNull(read);
+        _keys.Add(key);
+        MoveTo(x, y);
+        T value = read();
+        _keys.Remove(key);
+        Frame();
+        return value;
+    }
+
     /// <summary>A right-button click (the game binds nothing to it; the monkey checks that stays harmless).</summary>
     public void RightClick(double x, double y)
     {

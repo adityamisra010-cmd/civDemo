@@ -52,6 +52,28 @@ public static partial class PlayabilityGate
             }
         }
 
+        /// <summary>P8: the pointer moved onto KNOWN LAND in the clear map around the player's capital (the camera centred on
+        /// it; points tried on rings 40 to 200 px out, every 45 degrees, so the capital's own token is not under it), and the
+        /// passive place region the UI registered there — the top-most region at the pointer — or null.</summary>
+        private InfoHit? KnownLandUnderPointer()
+        {
+            if (Ui.World.Terrain is not { } terrain) return null;
+            if (EmpireQuery.TryGetCapital(Ui.World, Me, out SettlementId cap)) CameraFocus.CenterOn(Ui.Camera, Ui.World, cap.Value, Ui.MapRect);
+            h.Idle(2);
+            Sim.Ui.Render.RectD map = Ui.MapRect;
+            for (int ring = 40; ring <= 200; ring += 40)
+                for (int k = 0; k < 8; k++)
+                {
+                    double x = Math.Round(map.CenterX + ring * Math.Cos(k * Math.PI / 4)), y = Math.Round(map.CenterY + ring * Math.Sin(k * Math.PI / 4));
+                    if (!map.Contains(x, y)) continue;
+                    int cell = MapCells.At(Ui.Camera, map, x, y, terrain.Size);
+                    if (cell < 0 || terrain.Water[cell] >= 0.5 || !S.Knowledge.KnowsCell(cell)) continue;
+                    h.MoveTo(x, y);
+                    if (Ui.InfoRegistry.HitTest(x, y) is { Passive: true, Subject.Kind: InfoKind.Cell } hit) return hit;
+                }
+            return null;
+        }
+
         /// <summary>Shift+clicks <paramref name="hit"/> and checks the card, the order log, the world, then Escape.</summary>
         private (GateResult, string) ShiftCheck(InfoHit hit, Func<bool>? alsoUnchanged = null)
         {
@@ -166,6 +188,61 @@ public static partial class PlayabilityGate
                 int selected = Ui.SelectedUnit;
                 return ShiftCheck(hit, () => Ui.SelectedUnit == selected);
             });
+
+            // ---- P8: the map GROUND — a place's card. The known ground under the pointer is a passive region (a plain click
+            // stays the map's: it selects nothing new and moves nothing); Shift+click opens its card (InfoQuery's Cell card,
+            // built from SiteAssessment) — the card, no order and an unchanged hash, as every info row checks.
+            Check("info", "shift-click Cell (map ground: the place card)", () =>
+            {
+                CloseEverything();
+                if (KnownLandUnderPointer() is not { } hit) return (GateResult.NotOffered, "no known land in the clear map around the capital");
+                int selected = Ui.SelectedSettlement, unit = Ui.SelectedUnit;
+                return ShiftCheck(hit, () => Ui.SelectedSettlement == selected && Ui.SelectedUnit == unit);
+            });
+            Check("info", "hover hint over the map ground (painted only while Shift is held, never a tooltip)", () =>
+            {
+                CloseEverything();
+                if (KnownLandUnderPointer() is not { } hit) return (GateResult.NotOffered, "no known land in the clear map around the capital");
+                string? plain = Ui.InfoHint;
+                (string? held, int tips) = h.HoverWith(hit.Rect.CenterX, hit.Rect.CenterY, Keys.LeftShift, () => (Ui.InfoHint, h.Gui.LastTooltipWindows.Count));
+                return Expect(plain is null && held == InfoPanel.CellHintText && tips == 0,
+                    "hint without Shift '" + plain + "', with Shift '" + held + "', tooltip windows " + tips.ToString(CultureInfo.InvariantCulture));
+            });
+
+            // ---- P8: UNDISCOVERED GROUND is never offered as a place (drawn only where the player's knowledge hides something —
+            // the hidden-rival state): no place region is registered where a hidden settlement stands, the Shift hint is not
+            // painted there, and a Shift+click there opens no card. A camera row: looking changes no hash or order.
+            if (HiddenSettlements() is { Count: > 0 } hidden)
+                LookCheck("info", "undiscovered ground offers no place card (Shift+click opens nothing)", () =>
+                {
+                    CloseEverything();
+                    (GateResult zoomed, string why) = WheelUntil(WorldZoom.Settlement, +1, 40);
+                    if (zoomed != GateResult.Pass) return (GateResult.Fail, "could not zoom to the Settlement band: " + why);
+                    try
+                    {
+                        foreach (int target in hidden)
+                        {
+                            CameraFocus.CenterOn(Ui.Camera, Ui.World, target, Ui.MapRect);
+                            h.Idle(2);
+                            SettlementRow row = default;
+                            for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
+                            LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
+                            (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
+                            sx = Math.Round(sx);
+                            sy = Math.Round(sy);
+                            int cell = MapCells.At(Ui.Camera, Ui.MapRect, sx, sy, Ui.World.Terrain.Size);
+                            if (cell < 0 || S.Knowledge.KnowsCell(cell)) return (GateResult.Fail, "rig: the ground under hidden settlement " + target.ToString(CultureInfo.InvariantCulture) + " is known");
+                            string? hint = h.HoverWith(sx, sy, Keys.LeftShift, () => Ui.InfoHint);
+                            foreach (Sim.Ui.Info.InfoHit x in Ui.InfoRegistry.Hits)
+                                if (x.Subject.Kind == InfoKind.Cell && x.Rect.Contains(sx, sy)) return (GateResult.Fail, "a place region is registered over undiscovered ground (cell " + cell.ToString(CultureInfo.InvariantCulture) + ")");
+                            if (hint is not null) return (GateResult.Fail, "a hint '" + hint + "' is painted over undiscovered ground");
+                            h.ShiftClick(sx, sy);
+                            if (Ui.Inspector.IsOpen) return (GateResult.Fail, "a Shift+click on undiscovered ground opened '" + Ui.Inspector.Card?.Title + "'");
+                        }
+                        return (GateResult.Pass, "");
+                    }
+                    finally { WheelUntil(WorldZoom.World, -1, 60); }
+                });
 
             // ---- The research tree: an AVAILABLE card (a plain click would order it), an "opens" line, a lens item.
             Check("info", "shift-click an available research card (no order)", () =>

@@ -874,6 +874,7 @@ public sealed partial class GameUi
             legend: legend, selectedUnit: _selectedUnit);   // P3: the lens frames the selected formation, under the legend
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
+        RegisterPlaceUnderPointer();   // P8: Shift+click the ground for its place card (under the tokens)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
 
         if (_session.Config.Ages is null) return;
