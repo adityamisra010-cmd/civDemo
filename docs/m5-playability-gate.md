@@ -770,6 +770,136 @@ target-anchored parity is the alternative if that is preferred. After the fix (M
 FAIL, 0 problems, 62,426 frames, the three wheel rows PASS in all nine states; `Sim.Tests` SnapshotTests and
 CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK.
 
+### 3.6 Stable placement and size legibility for the settlement glyphs (M5 workstream P12a, 2026-10-11)
+
+Branch `m5w-p12a-settlement-placement-stability`, cut from `m5w-integration` @ `b49ae20`. Presentation only: no
+simulation, serialization or order code changed (`git diff b49ae20 -- Sim.Core Sim.Data Sim.Cli` is empty; the founded
+seed-42 300-turn hash is `937577ff…`, unchanged, re-run on this branch). Within D-043 D1–D3 and D-038 H2: no new art, no
+new part, no count staging (P12b), institutions aggregated per type with their count at close zoom (D-043 D2 —
+rendering each institution individually awaits the Director's ruling).
+
+**The composition (IMPLEMENTED).** `SettlementComposer` (`Sim.Ui/World/SettlementComposition.cs`) makes a settlement's
+composition a pure function of its projected state and the content; `WorldProjection.CompositionOf` memoises it per view
+instance (never state). The algorithm is ported from `origin/claude/civdemo-work-b1z2y4` (`Composition.AssignSlots`,
+`VisibleBlocks`, `FillStep`, `StableHash` = FNV-1a 64 + fmix64), not its content:
+
+- **Claims and priority.** One claim per part KIND — every content structure kind that founds no institution (ascending
+  project id) and every research.json university type (ascending key) — then any held kind content does not name.
+  Priority is the integer composite (tier, category, key). Each claim's preferred lot on each glyph ring is
+  `StableHash("settlement:{id}", "structure:{p}" | "institution:{t}") mod lots`, rings inner to outer, probed upward,
+  bounded; no free lot → spill onto the outermost ring (unreachable: 7 content kinds, 14 lots).
+- **Correction to the plan's claim order (reason measured, not preferred).** The plan keyed priority on
+  `InstitutionRow.Id/FoundedTurn` and the `Structures` row order among the kinds a settlement HOLDS. `StructureRow` is
+  (settlement, project, count) — no establishment turn — and its row position is table order, so no priority over the
+  held kinds can meet both "a later arrival never moves an earlier part" and "any table input order gives the same
+  layout": ordering by row position fails the second, ordering by project id lets a later-built lower-id kind take an
+  earlier kind's lot. Claiming over the content universe meets both, and a removal moves nothing either. Mutant M1
+  (the held-only claim set) is killed by the 5,040-order arrival test. Institution `Id/FoundedTurn` is therefore not an
+  input; the founded rows still decide WHAT is drawn (through `InstitutionMarkerSource`, unchanged).
+- **Dwelling blocks.** `dwellings / 25` blocks (none below 25 dwellings — the old floor of one block invented a dwelling),
+  on 16 fixed block rings (ring k at 1.6 + k units, ⌊2π r⌋ lots) in a fixed order: inner ring first, each ring in a
+  coprime-step order from a per-settlement rotation; a ring opens when its blocks fit the footprint, so a growing
+  settlement opens rings outward (no cap of 48); a lot under a held part's glyph is hidden where it stands. A full
+  footprint shows every open lot not under a glyph (measured on the institution fixture's capital with its seven kinds
+  at 61,078 people and 12,215 dwellings: 488 blocks wanted, 313 lots open, 278 drawn).
+- **Size (D-043 D1).** `Sim.Ui/UiContent/world/settlement-classes.json` (embedded view data, validated on load — a
+  malformed table throws naming the field): nine population classes, thresholds 0, 250 and ×4 to 4,096,000. The size
+  index is linear in ln(1 + population) between thresholds; the World mark (4 → 16 px) and the footprint (5.5 → 16.5
+  lattice units) are interpolated at it — strictly increasing up to the stated saturation 4,096,000, constant above.
+  Screen px per lattice unit = max(zoom ÷ 1.6, the band's floor 4 → 7.5 across the Regional ↔ Settlement window): the
+  ZOOM only, so the whole composition scales about its centre and nothing moves when the settlement changes. Every glyph
+  lot lies inside the smallest footprint (validated), so every part is inside every footprint at every zoom.
+- **Hit geometry.** `LensFrame.Parts`: one `PartPlacement` per institution marker (settlement, key, ring, lot, and the
+  box its commands cover). Each lies inside its settlement's `SettlementHit.Footprint`, so the existing click target
+  holds it; the footprint stays the outermost filled circle (P3's rule, unchanged).
+- **Order independence of the lists.** The projection lists a settlement's structures one per kind, ascending project id
+  (it listed them in table order).
+
+**Measured range and saturations (MEASURED and DERIVED).** Order-free canonical worlds, seeds 42 and 7, 1,500 turns, every
+100 turns (no colony was founded in either): 219 to 61,078 people per settlement, 12,211 dwellings at most. Before P12a
+the World mark saturated at 23,716 people (min(5 + √p/14, 16)), the footprint at 150 px from about 3,500 people at the
+maximum zoom (and was floored at 34 px, so where the Settlement band opens — ×4.89 at 1280×800 — every settlement below
+11,860 people drew the same 34-px footprint), and the blocks at 48 (1,200 dwellings). DERIVED from the shipped formulas:
+
+| population | class | World mark old → new (px) | Regional (×3) old → new | Settlement (×8) old → new | ×32 old → new | blocks wanted old → new (dwellings = p/5) |
+|---|---|---|---|---|---|---|
+| 219 | 0 | 6.1 → 5.5 | 14.0 → 24.0 | 34.0 → 44.9 | 85.5 → 119.8 | 1 → 1 |
+| 1,000 | 2 | 7.3 → 7.0 | 14.0 → 27.0 | 34.0 → 50.6 | 110.0 → 135.0 | 8 → 8 |
+| 3,475 | 2 | 9.2 → 8.3 | 14.0 → 30.6 | 37.4 → 57.4 | 149.7 → 153.0 | 27 → 27 |
+| 10,000 | 3 | 12.1 → 9.5 | 19.6 → 34.3 | 52.4 → 64.3 | 150.0 → 171.5 | 48 → 80 |
+| 23,716 | 4 | 16.0 → 10.4 | 27.0 → 37.7 | 72.0 → 70.7 | 150.0 → 188.5 | 48 → 189 |
+| 61,078 | 4 | 16.0 → 11.4 | 39.7 → 41.8 | 105.9 → 78.4 | 150.0 → 209.0 | 48 → 488 |
+| 1,000,000 | 6 | 16.0 → 14.5 | 40.0 → 56.9 | 150.0 → 106.6 | 150.0 → 284.3 | 48 → 8,000 |
+
+The new scale is compressive by design (D-043 D1's "class" reading): at the Settlement band's opening zoom a city of
+61,078 now draws a SMALLER footprint than the old world-scaled one (78 vs 106 px), and every settlement is larger than
+before at the closest zoom.
+
+**Tests (`Sim.Ui.Tests/SettlementCompositionTests.cs`, 13).** Independent hash vectors (Python reproduction, including the
+b1z2y4 pin); strict monotonicity at EVERY integer population 0 … 4,096,000 and constancy above; the drawn mark at a
+13-rung ladder at four zooms; the data table parsed and eight malformed variants refused; tie-dense slot ordering (32
+claims, 13 lots, 200 deterministic shuffles, and a one-lot lattice); a later arrival in all 5,040 arrival orders of the
+institution fixture's seven kinds (and the removals); count changes and growth along the measured range; zoom and pan at
+15 zooms × 3 pans × 3 eras at the smallest footprint and the measured maximum (parts on the same lot, rects inside the
+footprint, a click on a part selects the settlement; world hash unchanged); table order (Settlements, Structures,
+Institutions, Buckets, Housing reversed and rotated); built only (queued and built-not-founded universities are
+UNDER_CONSTRUCTION by `InstitutionsQuery.Lifecycle` and draw nothing; the real InstitutionsSystem founds it next turn and
+its hall stays on its lot for four more turns); snapshot round trip, a resumed canonical session, and literal pins
+(canonical turn-4 digest `d8fbf569…`, the institution capital's seven lots); the hash varies arrangements between
+settlements; every content kind has its own lot inside the smallest footprint.
+
+**Pins moved (old → new, measured cause).**
+
+| test | old | new | cause |
+|---|---|---|---|
+| `SelectionTests.HitTest_ZoomExtremes_…` | max-zoom footprint radius 64 px | 110 px | 2 world px × 32 → 5.5 units (population 0) × 20 px/unit (32 ÷ 1.6) |
+| `SelectionTests.HitTest_AtDefaultZoom_…` | footprint 28 px across, grown to the 44 px target | 44 px across, exactly the target | 14 px Regional floor → 5.5 units × 4 px/unit |
+| `WorldMapStateTests.Settlements_ShowTheirDwellingsAndCapital_ReadFromState` | clamp(d/25, 1, 48) blocks | the composition's blocks = d/25 | the rule restated; the same number on this fixture |
+
+Every other test is unchanged and passes, among them the every-Age composition pin
+(`Settlements_AreComposedFromState_IdenticallyAtEveryAge_NoWallsWithoutWallState`), both read-only world-hash tests, P3's
+hit geometry, P2's plateau identity and cross-fade continuity.
+
+**Mutant kill record (MEASURED).** Thirteen one-edit mutants, each built and run against `SettlementCompositionTests|
+SelectionTests|WorldMapStateTests` (48 tests then 49; clean 13.9 s; bound 56 s = 4×). Every run finished in 12–17 s, none
+hung, every mutant killed by a semantic test:
+
+| mutant | killed by | property (the system ought to have it) |
+|---|---|---|
+| M1 claims = the held kinds only (b1z2y4 literal) | `ALaterArrival_NeverMovesAnEarlierPart_InEveryArrivalOrder` | an arrival moves nothing |
+| M2 priority drops the key (ties to input position) | `SlotOrder_IsTheIntegerCompositeKey_TieDense_WhateverTheInputOrder` | order-independent integer key |
+| M3 blocks under a part are not hidden | `ACountChange_…_DwellingsDensifyBeyondTheOldCap` | a part hides the blocks beneath it |
+| M4 the old cap of 48 blocks | `ACountChange_…_DwellingsDensifyBeyondTheOldCap` | densification beyond 48 |
+| M5 World mark saturates at 10 px | `MarkSize_IsStrictlyMonotone…`, `DrawnMarkSize_Grows…` | no saturation below the stated population |
+| M6 parts spaced by index (the old Slot) | `ZoomAndPan_MoveNothing_AndThePartsHitRectsFollow…` | parts drawn on their lots |
+| M7 structures in table order | `AnyTableInputOrder_GivesTheSameLayout` | table-order independence |
+| M8 every block ring open | `ACountChange_…` | blocks inside the footprint |
+| M9 a built-not-founded university drawn as a structure | `OnlyWhatIsBuiltIsDrawn_…` | built (founded) only, drawn once |
+| M10 footprint clamped at 150 px | `DrawnMarkSize_Grows…` | strictly monotone as drawn |
+| M11 a part's rect not where it was drawn | `ZoomAndPan_…` | the hit rects follow the parts |
+| M12 probe from lot 0 (no hash) | `TheHashVariesTheArrangementBetweenSettlements_…` (+ the literal pins) | settlements not stamped from one die |
+| M13 no per-settlement block-ring rotation | `TheHashVariesTheArrangementBetweenSettlements_…` | the same |
+
+M12 and M13 were first killed only by the literal pins (golden-only); the variety test was added for them (`a20af42`).
+
+**Frame cost** (`--frame-cost map --rounds 3`, before `b49ae20` / after `a20af42`): `docs/m5-hardening-measurements.md`,
+2026-10-11 P12a section. Commands per frame are unchanged on the canonical world and fall by up to 7 on the 400-settlement
+world (INFERRED: its turn-1 settlements with fewer than 25 dwellings no longer draw an invented block); vertices rise by
+up to 18 % (larger blocks and glyphs at close zoom), the largest list 159,824 → 174,416 vertices (carried by
+`VtxOffset`, H1); milliseconds within the run-to-run noise.
+
+**Results on `a20af42` (MEASURED, Release, 4 shared CPUs).** `Sim.Ui.Tests` 741/741 (the base's 728 and 13 new);
+`Sim.Ui --smoke --monkey 200`: 9 states, 1892 checks, 1782 pass, 110 not offered, 0 FAIL, 0 problems, 62,426 frames,
+1,800 monkey actions, largest draw list 104,004 vertices — the same as P2's record (no control was added, so no gate row
+is new); `Sim.Tests` SnapshotTests and CiPinAgreementTests 25/25; the founded seed-42 300-turn run `937577ff…`;
+banned-constructs, read-isolation and readonly-proof OK.
+
+**Gaps (stated).** `StructureRow` has no per-instance turn, which the universe claim set no longer needs. The committed
+preview PNGs (§9.8, 05–15 of `docs/architecture/age-and-world-ui/`) were not regenerated and show the old ring. The
+spill path is unreachable with the shipped content (pinned) and only tested synthetically. Whether D-038 E1's visual
+milestone owns the size-class half is the open governance question the workstream's critique raised; this packet
+implements it as dispatched.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

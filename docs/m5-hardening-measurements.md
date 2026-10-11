@@ -844,3 +844,49 @@ the second window's Settlement half.
 9 states, 1892 checks: 1782 pass, 110 not offered, 0 FAIL; 0 problems; 62,426 frames, 1,800 monkey actions; largest
 draw list 104,004 vertices; 124.8 s. Against P3's record (1892 / 1782 / 61,527 frames) the checks and passes are the
 same; the +899 frames are INFERRED to be the restated wheel rows letting the ease settle (not decomposed).
+
+## 2026-10-11 — map frame cost before / after stable placement and the compressive size class (M5 map workstream P12a; append-only, the sections above are unchanged)
+
+`dotnet Sim.Ui.dll --frame-cost map --rounds 3`, Release, the same two worlds as above (canonical seed 42 at turn 150;
+400 settlements at turn 1). Before = `b49ae20` (`m5w-integration`), after = `a20af42`
+(`m5w-p12a-settlement-placement-stability`), run one after the other on the same 4-CPU container (load 2.6–5.2). Both
+runs: every world's hash unchanged by every sweep (canonical `4035cf18…`, high-count `12723634…`).
+
+| window | world | band | frames/sweep | cross-fade frames | median ms/frame | mean vertices | max list vertices | commands/frame | max commands |
+|---|---|---|---|---|---|---|---|---|---|
+| 1280x800 | canonical | World | 32 | 16 | 0.32 → 0.33 | 13820 → 14075 | 18948 → 19508 | 2024 → 2024 | 2467 → 2467 |
+| 1280x800 | canonical | Regional | 96 | 32 | 0.13 → 0.15 | 4087 → 4280 | 17144 → 17752 | 1048 → 1048 | 2313 → 2313 |
+| 1280x800 | canonical | Settlement | 144 | 0 | 0.05 → 0.06 | 256 → 280 | 3048 → 3624 | 584 → 584 | 664 → 664 |
+| 1280x800 | high-count | World | 32 | 16 | 2.65 → 2.69 | 119831 → 125075 | 159272 → 173876 | 8152 → 8149 | 9749 → 9742 |
+| 1280x800 | high-count | Regional | 96 | 32 | 0.88 → 0.98 | 33456 → 37495 | 130640 → 143120 | 2660 → 2658 | 8808 → 8801 |
+| 1280x800 | high-count | Settlement | 144 | 0 | 0.12 → 0.11 | 4469 → 5156 | 37372 → 43984 | 115 → 115 | 732 → 732 |
+| 1920x1009 | canonical | World | 48 | 16 | 0.29 → 0.30 | 13194 → 13359 | 18948 → 19508 | 1931 → 1931 | 2467 → 2467 |
+| 1920x1009 | canonical | Regional | 96 | 32 | 0.14 → 0.14 | 4675 → 4882 | 18312 → 18920 | 1091 → 1091 | 2313 → 2313 |
+| 1920x1009 | canonical | Settlement | 128 | 0 | 0.05 → 0.05 | 371 → 394 | 3700 → 4128 | 586 → 586 | 664 → 664 |
+| 1920x1009 | high-count | World | 48 | 16 | 3.02 → 3.22 | 115340 → 117708 | 159520 → 174108 | 8008 → 8006 | 9735 → 9728 |
+| 1920x1009 | high-count | Regional | 96 | 32 | 1.09 → 1.13 | 39767 → 44443 | 140732 → 154524 | 2934 → 2931 | 8867 → 8860 |
+| 1920x1009 | high-count | Settlement | 128 | 0 | 0.16 → 0.13 | 5913 → 6629 | 40336 → 47132 | 133 → 132 | 742 → 742 |
+| 2560x1440 | canonical | World | 48 | 16 | 0.57 → 0.36 | 14407 → 14571 | 20164 → 20724 | 1937 → 1937 | 2467 → 2467 |
+| 2560x1440 | canonical | Regional | 96 | 32 | 0.24 → 0.15 | 4727 → 4877 | 19556 → 20068 | 1073 → 1073 | 2326 → 2326 |
+| 2560x1440 | canonical | Settlement | 112 | 0 | 0.09 → 0.06 | 432 → 431 | 3640 → 3632 | 586 → 586 | 664 → 664 |
+| 2560x1440 | high-count | World | 48 | 16 | 2.61 → 2.62 | 116288 → 118650 | 159824 → 174416 | 7985 → 7983 | 9551 → 9544 |
+| 2560x1440 | high-count | Regional | 96 | 32 | 1.14 → 1.02 | 39114 → 42943 | 141880 → 155288 | 2723 → 2721 | 8852 → 8845 |
+| 2560x1440 | high-count | Settlement | 112 | 0 | 0.14 → 0.17 | 6763 → 7238 | 39596 → 46208 | 128 → 128 | 690 → 690 |
+| 3840x2160 | canonical | World | 48 | 16 | 0.32 → 0.35 | 15503 → 15667 | 21244 → 21804 | 1937 → 1937 | 2467 → 2467 |
+| 3840x2160 | canonical | Regional | 96 | 32 | 0.14 → 0.15 | 5080 → 5165 | 21892 → 22276 | 1065 → 1065 | 2326 → 2326 |
+| 3840x2160 | canonical | Settlement | 80 | 0 | 0.06 → 0.06 | 562 → 561 | 3688 → 3680 | 587 → 587 | 664 → 664 |
+| 3840x2160 | high-count | World | 48 | 16 | 2.45 → 3.03 | 116174 → 118467 | 159724 → 174168 | 7946 → 7944 | 9452 → 9445 |
+| 3840x2160 | high-count | Regional | 96 | 32 | 1.01 → 1.00 | 40539 → 44069 | 141624 → 154636 | 2599 → 2597 | 8786 → 8779 |
+| 3840x2160 | high-count | Settlement | 80 | 0 | 0.18 → 0.18 | 9327 → 9503 | 46308 → 47272 | 153 → 153 | 660 → 658 |
+
+**Reading (INFERRED from the table; nothing here is ruled).**
+- **Commands per frame are unchanged on the canonical world** in every band and window: its settlements' dwellings / 25
+  block counts are the counts the old ring drew (below its cap of 48), and each part is still one glyph.
+- **The 400-settlement world draws up to 7 fewer commands per frame**: at turn 1 some settlements have fewer than 25
+  dwellings, and the composition no longer draws the one block the old ring invented for them.
+- **Vertices rise by up to 18 %** (mean and largest list; e.g. high-count Settlement at 1280×800: mean 4,469 → 5,156, largest 37,372 → 43,984): blocks and glyphs are sized by
+  the zoom's px per lattice unit, so at close zoom they are larger and the anti-aliased outlines longer. The largest
+  single list is 174,416 vertices (before 159,824), above the 16-bit limit as before and carried by H1's `VtxOffset`.
+- **Milliseconds** move both ways by up to ±0.6 ms between the two runs at the same command counts — run-to-run load, not
+  a measured cost of the change. The composition is computed once per settlement view and turn (memoised by the
+  projection), so a paint only scales it.
