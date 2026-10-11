@@ -322,7 +322,7 @@ public class ResearchUnlockPipelineTests
     public void T16_AiCannotBypassCapabilityRequirements()
     {
         WorldState w = Step(DevDuo.Value.Clone());
-        OrderRecord[] ai = AiOrders.For(w, Cfg);
+        OrderRecord[] ai = AiOrders.For(w, Cfg, TestConfigs.Worldgen());
         Assert.DoesNotContain(ai, o => o.Kind is OrderKind.SetTaxRate or OrderKind.DevelopRoads);
         Assert.DoesNotContain(ai, o => o.Kind == OrderKind.EnqueueConstruction && Cfg.Goods!.ProjectById((int)o.Amount)?.Founds is not null);
         // Its orders take the same authoritative path: whatever it asked for, no gated effect appears.

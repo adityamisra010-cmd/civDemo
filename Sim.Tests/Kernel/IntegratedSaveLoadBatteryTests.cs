@@ -186,7 +186,7 @@ public class IntegratedSaveLoadBatteryTests
     private static void OneTurnOfOrders(OrderLog log, IReadOnlyWorldState w)
     {
         PlayerOrders(log, w);
-        AiOrders.Append(log, w, Cfg);
+        AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen());
     }
 
     private static ImmutableArray<ActionDescriptor>[] Surface(IReadOnlyWorldState w) =>
@@ -288,7 +288,7 @@ public class IntegratedSaveLoadBatteryTests
         WorldState w = loaded;
         for (int t = k; t < Horizon; t++)
         {
-            if (issued && t == k) AiOrders.Append(log, w, Cfg);
+            if (issued && t == k) AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen());
             else OneTurnOfOrders(log, w);
             w = exec.Step(w);
             Assert.True(run.Hashes[t + 1] == WorldHash.ComputeHex(w), $"{label} (saved at {k}): diverged at turn {t + 1}");

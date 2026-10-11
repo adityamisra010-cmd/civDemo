@@ -243,6 +243,9 @@ namespace Sim.Cli
             // now takes the run-log path. A world that never holds an AI polity issues no AI
             // order, so its hashes are unchanged (the ci.yml founded legs reproduce).
             Sim.Core.Systems.SimConfig? aiCfg = founded ? SimCfg() : null;
+            // M5 S1c: the AI's Found Settlement orders are judged with the worldgen siting config — the one the
+            // founded pipeline's ColonizationSystem is built from (Executor above loads the same file).
+            Sim.Core.Worldgen.WorldgenConfig? aiWorldgen = founded ? CliRecipes.Worldgen() : null;
             OrderLog? orders = aiCfg is not null ? new OrderLog() : loaded;
             var executor = Executor(orders, founded);
 
@@ -259,7 +262,7 @@ namespace Sim.Cli
                         OrderBatch batch = loaded.BatchFor(previous.Clock.Turn);
                         for (int b = 0; b < batch.Count; b++) orders!.Append(batch[b]);
                     }
-                    AiOrders.Append(orders!, previous, aiCfg);
+                    AiOrders.Append(orders!, previous, aiCfg, aiWorldgen!);
                 }
                 if (loaded is not null) OrderValidation.ValidateAtDelivery(loaded.BatchFor(previous.Clock.Turn), turnZero, previous); // ADR-034
                 world = executor.Step(previous);

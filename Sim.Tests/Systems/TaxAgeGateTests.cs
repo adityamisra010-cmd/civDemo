@@ -114,7 +114,7 @@ public class TaxAgeGateTests
         GovernanceRigs.GrantKnowledgeOnly(w, ai);
         GovernanceRigs.EnterAge(w, ai, 2);
         Assert.Empty(AiGovernance.OrdersFor(w, Cfg, ai, w.Clock.Turn));
-        Assert.DoesNotContain(AiOrders.For(w, Cfg), o => o.Kind == OrderKind.SetTaxRate);
+        Assert.DoesNotContain(AiOrders.For(w, Cfg, TestConfigs.DevWorldgen()), o => o.Kind == OrderKind.SetTaxRate);
         GovernanceRigs.EnterAge(w, ai, 3);
         Assert.NotEmpty(AiGovernance.OrdersFor(w, Cfg, ai, w.Clock.Turn));
         Assert.Empty(AiGovernance.OrdersFor(w, Cfg, player, w.Clock.Turn));

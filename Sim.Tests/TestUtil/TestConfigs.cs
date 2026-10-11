@@ -101,6 +101,15 @@ public static class TestConfigs
     public static SimConfig PreTimeAveragedHarvest(SimConfig cfg) =>
         cfg with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } };
 
+    /// <summary>M5 S1c (2026-10-11) — THE AI FOUNDING POLICY SWITCHED OFF: sim.json colonization.aiFounding.enabled
+    /// false, so no AI polity issues a Found Settlement order. On its own it returns every pre-S1c AI pin byte for byte
+    /// (AiFoundingAttributionTests; AiEmpireIntegrationTests' S1c control); every other world is untouched by the
+    /// switch (the policy acts only through the orders it adds).</summary>
+    public static SimConfig PreAiFounding(SimConfig cfg) =>
+        cfg.Colonization?.AiFounding is { } ai
+            ? cfg with { Colonization = cfg.Colonization with { AiFounding = ai with { Enabled = false } } }
+            : cfg;
+
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
     /// civilization that already knows its crafts. For tests whose subject is the goods economy (crafted goods,

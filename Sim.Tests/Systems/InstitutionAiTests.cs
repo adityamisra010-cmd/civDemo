@@ -59,10 +59,10 @@ public class InstitutionAiTests
 
         // Before the knowledge: nothing (LOCKED).
         WorldState locked = DuoAt3.Value.Clone();
-        Assert.DoesNotContain(AiOrders.For(locked, cfg), o => o.Kind == OrderKind.EnqueueConstruction
+        Assert.DoesNotContain(AiOrders.For(locked, cfg, TestConfigs.Worldgen()), o => o.Kind == OrderKind.EnqueueConstruction
             && cfg.Goods!.ProjectById((int)o.Amount) is { Founds: not null });
 
-        OrderRecord[] orders = AiOrders.For(w, cfg);
+        OrderRecord[] orders = AiOrders.For(w, cfg, TestConfigs.Worldgen());
         OrderRecord university = Assert.Single(orders, o => o.Kind == OrderKind.EnqueueConstruction
             && cfg.Goods!.ProjectById((int)o.Amount) is { Founds: not null });
         Assert.Equal(Rival.Value, university.ActorId);

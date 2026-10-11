@@ -2,10 +2,12 @@ using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Ages;
+using Sim.Core.Systems.Colonization;
 using Sim.Core.Systems.Construction;
 using Sim.Core.Systems.Governance;
 using Sim.Core.Systems.Research;
 using Sim.Core.Systems.Roads;
+using Sim.Core.Worldgen;
 
 namespace Sim.Core;
 
@@ -30,6 +32,13 @@ namespace Sim.Core;
 /// judged against the length of the turn that produced <c>world</c> (<c>world.Clock.DtYears</c>; the era table
 /// only ever shortens turns, so at an era boundary a founding can wait one more turn in the queue —
 /// ConstructionSystem re-applies its gate and never overspends); none is judged at the founding state.</item>
+/// <item><see cref="AiFoundingPolicy"/> — M5 S1c (ADR-036 §8): at most one Found Settlement order per polity
+/// (OrderKind 9), through the player's own constructor and FoundingQuery predicate, when the polity's interval has
+/// passed, a fed source of the threshold size can outfit a party and an admissible site exists. The sites of the
+/// whole batch are shared (<see cref="AiFoundingPolicy.Sites"/>) so a later polity spaces itself against an earlier
+/// one's order exactly as ColonizationSystem will. It reads the WORLDGEN siting config (<paramref name="worldgen"/> on
+/// <see cref="For"/>) — the same config the pipeline's ColonizationSystem judges the order with. sim.json
+/// <c>colonization.aiFounding.enabled = false</c> makes it issue nothing (the pre-S1c producer, byte for byte).</item>
 /// </list>
 /// then <see cref="Governance"/>, the reconciliation slot for the tax policy (OrderKind 5, stream S1).
 ///
@@ -40,11 +49,14 @@ namespace Sim.Core;
 /// </summary>
 public static class AiOrders
 {
-    /// <summary>Every AI polity's orders for the step executing from <paramref name="world"/>, stamped with its turn.</summary>
-    public static OrderRecord[] For(IReadOnlyWorldState world, SimConfig cfg)
+    /// <summary>Every AI polity's orders for the step executing from <paramref name="world"/>, stamped with its turn.
+    /// <paramref name="worldgen"/> supplies the siting config Found Settlement orders are judged with — pass the
+    /// config the executor's pipeline was built from (SystemCatalog.All).</summary>
+    public static OrderRecord[] For(IReadOnlyWorldState world, SimConfig cfg, WorldgenConfig worldgen)
     {
         var result = new List<OrderRecord>();
         var seen = new List<int>();
+        var sites = new AiFoundingPolicy.Sites(world, cfg, worldgen);   // built only if some polity reaches the site arm
         for (int i = 0; i < world.Polities.Count; i++)
         {
             PolityRow row = world.Polities[i];
@@ -58,6 +70,7 @@ public static class AiOrders
             if (RoadDevelopmentPolicy.Decide(world, cfg, polity) is { } roads) result.Add(roads);
             result.AddRange(AiConstructionPolicy.Decide(world, cfg, polity,
                 world.Clock.DtYears > 0.0 ? world.Clock.DtYears : null));
+            if (AiFoundingPolicy.Decide(world, cfg, polity, sites) is { } found) result.Add(found);
         }
         Governance(world, cfg, result);
         return [.. result];
@@ -65,9 +78,9 @@ public static class AiOrders
 
     /// <summary>Appends <see cref="For"/>'s orders to <paramref name="log"/> (the session's order log, which the
     /// executor delivers from and the replay reads) and returns how many were appended.</summary>
-    public static int Append(OrderLog log, IReadOnlyWorldState world, SimConfig cfg)
+    public static int Append(OrderLog log, IReadOnlyWorldState world, SimConfig cfg, WorldgenConfig worldgen)
     {
-        OrderRecord[] orders = For(world, cfg);
+        OrderRecord[] orders = For(world, cfg, worldgen);
         foreach (OrderRecord order in orders) log.Append(order);
         return orders.Length;
     }

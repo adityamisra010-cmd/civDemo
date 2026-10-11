@@ -31,6 +31,9 @@ namespace Sim.Tests.Kernel;
 /// (2026-10-06: the turns in this summary are the S3/S4 history. The current pins, with their dated re-pin history,
 /// are asserted in the test bodies below: road 143/144, Age 2 decided 238 / in force 239, and the first levy 463/464
 /// under the Taxation civic + Age III gate, with the stripped-Age control at 367/368.)
+/// (2026-10-11, M5 S1c: the AI also EXPANDS through the player's Found Settlement order — AiFoundingPolicy, ADR-036 §8 —
+/// which moves every pin after its first founding's delivery at turn 36; WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue
+/// is the attribution control that returns every pre-S1c value with only the policy's switch off.)
 /// </summary>
 [Trait("suite", "determinism")]
 public class AiEmpireIntegrationTests
@@ -69,7 +72,7 @@ public class AiEmpireIntegrationTests
         long age2 = -1, age3 = -1, firstCompletion = -1, firstStructure = -1, firstRoad = -1, firstTax = -1;
         for (int t = 0; t < Horizon && (age2 < 0 || w.Clock.Turn <= age2 || firstTax < 0); t++)
         {
-            AiOrders.Append(log, w, cfg);
+            AiOrders.Append(log, w, cfg, TestConfigs.Worldgen());
             WorldState prev = w;
             w = executor.Step(prev);
             hashes.Add(WorldHash.ComputeHex(w));
@@ -104,8 +107,40 @@ public class AiEmpireIntegrationTests
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 362/363 -> 366/367.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): 366/367 -> 365/366.
         // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): 365/366 -> 357/358.
-        Assert.Equal((357L, 358L), (tax.Turn, run.FirstTax));
+        // S1c RE-PIN (2026-10-11, one cause: the AI founding policy — the AI founds through OrderKind 9 at turns 35,
+        // 71, 107, 143, 179, 215 and 286 before this levy; which colony effect brings the Taxation closure forward is
+        // not isolated here; MEASURED on this tree by the agent writing this line): 357/358 -> 337/338. ATTRIBUTION: with only
+        // the switch off (TestConfigs.PreAiFounding) WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue returns 357/358.
+        Assert.Equal((337L, 338L), (tax.Turn, run.FirstTax));
         Assert.Equal(-1L, run.Age3At);   // levied in A2: exactly the pre-H2 defect
+    }
+
+    /// <summary>
+    /// S1c ATTRIBUTION CONTROL (2026-10-11; ADR-036 §8): every pin of this class moved for ONE cause, the AI founding
+    /// policy (the AI's FoundSettlement orders and the colonies they found). With only sim.json
+    /// colonization.aiFounding.enabled switched off (<see cref="TestConfigs.PreAiFounding"/>) the AI issues no
+    /// Found Settlement order and every pre-S1c value returns exactly — the ADR-033 harness and the H2 control alike.
+    /// </summary>
+    [Fact]
+    public void WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue()
+    {
+        AiRun run = RunUntilFirstLevy(TestConfigs.PreAiFounding(Cfg));
+        OrderRecord[] orders = Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]).ToArray();
+        Assert.DoesNotContain(orders, o => o.Kind == OrderKind.FoundSettlement);
+        OrderRecord[] targets = orders.Where(o => o.Kind == OrderKind.SetResearchTarget).ToArray();
+        OrderRecord firstBuild = orders.First(o => o.Kind == OrderKind.EnqueueConstruction);
+        OrderRecord advance = Assert.Single(orders, o => o.Kind == OrderKind.AdvanceAge && o.TargetId == 2);
+        OrderRecord road = orders.First(o => o.Kind == OrderKind.DevelopRoads);
+        OrderRecord tax = orders.First(o => o.Kind == OrderKind.SetTaxRate);
+        Assert.Equal((26L, 9L, 232L, 233L), (targets[1].Turn, firstBuild.Turn, advance.Turn, run.Age2At));
+        Assert.Equal((140L, 141L, 451L, 452L), (road.Turn, run.FirstRoad, tax.Turn, run.FirstTax));
+        Assert.Equal(451L, run.Age3At);
+        Assert.Equal(6, EmpireQuery.ControlledCount(run.Final, Rival));    // the turn-zero holdings, no colony
+
+        AiRun stripped = RunUntilFirstLevy(TestConfigs.PreAiFounding(TestConfigs.PreTaxAge(Cfg)));
+        OrderRecord strippedTax = Enumerable.Range(0, stripped.Log.Count).Select(i => stripped.Log[i]).First(o => o.Kind == OrderKind.SetTaxRate);
+        Assert.Equal((357L, 358L), (strippedTax.Turn, stripped.FirstTax));
+        Assert.Equal(-1L, stripped.Age3At);
     }
 
     [Fact]
@@ -122,7 +157,7 @@ public class AiEmpireIntegrationTests
         long advancedAt = -1, a3At = -1, firstCompletion = -1, firstStructure = -1, firstRoad = -1, firstTax = -1;
         for (int t = 0; t < Horizon && (advancedAt < 0 || w.Clock.Turn <= advancedAt || firstTax < 0); t++)
         {
-            AiOrders.Append(log, w, Cfg);
+            AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen());
             WorldState prev = w;
             w = executor.Step(prev);
             hashes.Add(WorldHash.ComputeHex(w));
@@ -180,7 +215,11 @@ public class AiEmpireIntegrationTests
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): advance 233/234 -> 236/237.
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): advance 236/237 -> 235/236.
         // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): advance 235/236 -> 232/233; 26 and 9 unchanged.
-        Assert.Equal((26L, 9L, 232L, 233L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
+        // S1c RE-PIN (2026-10-11, one cause: the AI founding policy — six AI colonies, ordered at 35, 71, 107, 143, 179
+        // and 215, stand before the advance; which colony effect brings the Age closure forward is not isolated here;
+        // MEASURED on this tree by the agent writing this line): advance 232/233 -> 221/222; 26 and 9 unchanged (before the first
+        // founding's delivery at 36). ATTRIBUTION: WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue returns 232/233.
+        Assert.Equal((26L, 9L, 221L, 222L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -198,9 +237,19 @@ public class AiEmpireIntegrationTests
         // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): road 140/141 -> 141/142, levy 458/459 -> 462/463 (A3 entered 462).
         // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): levy 462/463 -> 461/462 (A3 entered 461).
         // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): road 141/142 -> 140/141, levy 461/462 -> 451/452.
-        Assert.Equal((140L, 141L, 451L, 452L), (road.Turn, firstRoad, tax.Turn, firstTax));
-        Assert.Equal(451L, a3At);                            // the AI entered A3 (decided 450; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451) ...
+        // S1c RE-PIN (2026-10-11, one cause: the AI founding policy; MEASURED on this tree by the agent writing this
+        // line): road 140/141 -> 134/135, levy 451/452 -> 423/424 (still on the AI's first A3 turn: A3 451 -> 423).
+        // ATTRIBUTION: WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue returns 140/141, 451/452 and A3 at 451.
+        Assert.Equal((134L, 135L, 423L, 424L), (road.Turn, firstRoad, tax.Turn, firstTax));
+        Assert.Equal(423L, a3At);                            // the AI entered A3 (decided 422; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423) ...
         Assert.True(tax.Turn >= a3At, "the AI levied before entering A3");   // ... and levied only after it
+
+        // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
+        // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
+        // settlements (ages.json a4_expansion's 14 met from turn 358).
+        OrderRecord[] founds = orders.Where(o => o.Kind == OrderKind.FoundSettlement).ToArray();
+        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L], founds.Select(o => o.Turn));
+        Assert.Equal(14, EmpireQuery.ControlledCount(w, Rival));
 
         // REPLAY: a fresh founding, a fresh executor, the same log — and no AI producer — reproduces every turn.
         WorldState replayed = WorldFounding.Found(wg, Cfg, 42);

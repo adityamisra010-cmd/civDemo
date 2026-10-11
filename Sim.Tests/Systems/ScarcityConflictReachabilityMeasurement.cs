@@ -56,7 +56,7 @@ public class ScarcityConflictReachabilityMeasurement(ITestOutputHelper output)
             WorldState prev = w;
             // AI rivals act through the ONE producer the session and CLI use (AiOrders.Append — tax valve, Age
             // advance, roads, construction); nothing else is scripted here.
-            AiOrders.Append(orders, w, cfg);
+            AiOrders.Append(orders, w, cfg, wg);
             w = ex.Step(w);
             for (int i = 0; i < prev.Controls.Count; i++)
             {
