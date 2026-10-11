@@ -197,9 +197,11 @@ public static class AgePreview
     {
         (double cx, double cy, double zoom) = CameraFor(s, z, capitalLeft);
         WorldProjection p = WorldProjection.Build(s.World, s.Config, id => s.Names.Name(id), UiPlayer.Empire);
-        WorldZoom level = WorldLens.LevelFor(zoom, Width, Height, p.WorldSize);
+        // P2: the game's continuous level of detail at this camera (MapDetail, keyed on the visible km); its band names it.
+        MapDetail detail = MapDetail.At(zoom, Width, Height, p.KmPerPx);
+        WorldZoom level = detail.Band;
         int sel = EmpireQuery.TryGetCapital(s.World, UiPlayer.Empire, out SettlementId cap) ? cap.Value : -1;
-        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level,
+        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail,
             (x, y) => ((x - cx) * zoom + Width / 2, (y - cy) * zoom + Height / 2), zoom, new RectD(0, 0, Width, Height), sel,
             ink: MapInk.For(ThemeOf(s)));   // the era's map ink, exactly as the game derives it
         LensLegend(d, p, level);

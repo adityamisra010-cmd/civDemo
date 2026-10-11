@@ -22,7 +22,8 @@ namespace Sim.Ui.Headless;
 ///
 /// Each sample is a SWEEP: from the fit zoom to the camera's maximum in wheel notches (×1.25, at the window centre,
 /// through the real <see cref="Camera"/> and its clamp), and at every zoom a serpentine pan over a 4×4 grid of the
-/// world, so every band (World, Regional, Settlement — <see cref="WorldLens.LevelFor"/>) is crossed; a sweep that
+/// world, so every band (World, Regional, Settlement — the derived band of P2's <see cref="MapDetail"/>, the continuous
+/// level of detail the game paints at, keyed on the visible km) is crossed; a sweep that
 /// misses a band is an error. Windows: 1280×800 (the design size), 1920×1009 (a maximised 1080p window),
 /// 2560×1440 and 3840×2160. Worlds, both seed 42 at the canonical size, founded and stepped by the real session:
 /// the CANONICAL world at turn <c>--turns</c> (default <see cref="DefaultCanonicalTurn"/>: by then its settlements
@@ -95,8 +96,8 @@ public static class MapFrameCost
         sb.Append("Worlds (seed 42, canonical size; founded and stepped by the real session, never persisted):\n\n");
         foreach (MapWorld m in worlds) sb.Append("- ").Append(m.Name).Append(": ").Append(m.Note).Append('\n');
         sb.Append('\n');
-        sb.Append("| window | world | band | frames/sweep | median ms/frame | mean vertices | max list vertices | commands/frame | max commands | culled/frame |\n");
-        sb.Append("|---|---|---|---|---|---|---|---|---|---|\n");
+        sb.Append("| window | world | band | frames/sweep | median ms/frame | mean vertices | max list vertices | commands/frame | max commands | culled/frame | cross-fade frames/sweep |\n");
+        sb.Append("|---|---|---|---|---|---|---|---|---|---|---|\n");
         WarmUp(assetsRoot, worlds, log);
         foreach ((int w, int h) in Windows)
         {
@@ -106,9 +107,9 @@ public static class MapFrameCost
             foreach (MapWorld m in worlds)
             {
                 Painter paint = PainterFor(m, backend, gui.Fonts.Scale);
-                for (int k = 0; k < WarmUpSweeps; k++) Sweep(gui, backend, paint, m.Projection.WorldSize, w, h);
+                for (int k = 0; k < WarmUpSweeps; k++) Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h);
                 var samples = new List<Band[]>();
-                for (int r = 0; r < rounds; r++) samples.Add(Sweep(gui, backend, paint, m.Projection.WorldSize, w, h));
+                for (int r = 0; r < rounds; r++) samples.Add(Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h));
                 for (int z = 0; z < 3; z++) Row(sb, w, h, m.Name, (WorldZoom)z, samples, z);
             }
         }
@@ -155,7 +156,7 @@ public static class MapFrameCost
         while (sweeps < 2 * worlds.Count || Stopwatch.GetElapsedTime(t0) < GlobalWarmUp)
         {
             MapWorld m = worlds[sweeps % worlds.Count];
-            Sweep(gui, backend, PainterFor(m, backend, gui.Fonts.Scale), m.Projection.WorldSize, w, h);
+            Sweep(gui, backend, PainterFor(m, backend, gui.Fonts.Scale), m.Projection.WorldSize, m.Projection.KmPerPx, w, h);
             sweeps++;
         }
         log(string.Create(CultureInfo.InvariantCulture, $"map frame cost: warm-up {sweeps} sweeps"));
@@ -171,8 +172,8 @@ public static class MapFrameCost
         return new MapWorld(name, s, p, note);
     }
 
-    /// <summary>One frame's lens paint, as <c>GameUi.DrawWorldLensAndAge</c> issues it.</summary>
-    private delegate LensFrame Painter(DrawList d, Camera cam, WorldZoom level, int w, int h);
+    /// <summary>One frame's lens paint, as <c>GameUi.DrawWorldLensAndAge</c> issues it (P2: at the continuous detail).</summary>
+    private delegate LensFrame Painter(DrawList d, Camera cam, MapDetail detail, int w, int h);
 
     private static Painter PainterFor(MapWorld m, DrawListImGuiBackend backend, double uiScale)
     {
@@ -181,19 +182,19 @@ public static class MapFrameCost
         MapInk ink = MapInk.For(theme);
         int selected = world.Settlements.Count > 0 ? world.Settlements[0].Id.Value : -1;   // the game's opening selection
         WorldProjection p = m.Projection;
-        return (d, cam, level, w, h) => WorldLens.Paint(d, backend, p, level, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
+        return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
             new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale);
     }
 
     /// <summary>Per-band totals of one sweep.</summary>
     private sealed class Band
     {
-        public int Frames, MaxVertices, MaxCommands;
+        public int Frames, MaxVertices, MaxCommands, Fading;
         public double Ms;
         public long Vertices, Commands, Culled;
     }
 
-    private static Band[] Sweep(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, double worldSize, int w, int h)
+    private static Band[] Sweep(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, double worldSize, double kmPerPx, int w, int h)
     {
         var bands = new[] { new Band(), new Band(), new Band() };
         var cam = new Camera(worldSize);
@@ -206,7 +207,7 @@ public static class MapFrameCost
                     int i = j % 2 == 0 ? k : PanGrid.Length - 1 - k;   // serpentine: each step a short pan
                     double tx = PanGrid[i] * worldSize, ty = PanGrid[j] * worldSize;
                     cam.Pan((cam.CenterX - tx) * cam.Zoom, (cam.CenterY - ty) * cam.Zoom, w, h);
-                    Frame(gui, backend, paint, cam, worldSize, w, h, bands);
+                    Frame(gui, backend, paint, cam, kmPerPx, w, h, bands);
                 }
             if (cam.Zoom >= Camera.MaxZoom) break;
             cam.ZoomAt(w / 2.0, h / 2.0, Notch, w, h);
@@ -218,20 +219,22 @@ public static class MapFrameCost
         return bands;
     }
 
-    private static void Frame(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, Camera cam, double worldSize,
+    private static void Frame(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, Camera cam, double kmPerPx,
         int w, int h, Band[] bands)
     {
-        WorldZoom level = WorldLens.LevelFor(cam.Zoom, w, h, worldSize);
+        MapDetail detail = MapDetail.At(cam.Zoom, w, h, kmPerPx);
+        WorldZoom level = detail.Band;
         long t0 = Stopwatch.GetTimestamp();
         gui.BeginFrame(default, default, 1.0 / 60);
         var list = new DrawList();
-        paint(list, cam, level, w, h);
+        paint(list, cam, detail, w, h);
         backend.Render(ImGui.GetBackgroundDrawList(), list);
         ImGuiDrawReport r = gui.EndFrame();
         double ms = Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
         if (!r.Ok) throw new InvalidOperationException("frame-cost map: draw data violation: " + string.Join("; ", r.Violations));
         Band b = bands[(int)level];
         b.Frames++;
+        if (!detail.IsPlateau) b.Fading++;
         b.Ms += ms;
         b.Vertices += r.TotalVertices;
         b.MaxVertices = Math.Max(b.MaxVertices, r.MaxListVertices);
@@ -259,6 +262,6 @@ public static class MapFrameCost
         }
         Band a = samples[0][z];
         sb.Append(string.Create(CultureInfo.InvariantCulture,
-            $"| {w}x{h} | {world} | {band} | {a.Frames} | {Median(means):0.00} | {a.Vertices / (double)a.Frames:0} | {maxV} | {a.Commands / (double)a.Frames:0} | {maxC} | {a.Culled / (double)a.Frames:0.0} |\n"));
+            $"| {w}x{h} | {world} | {band} | {a.Frames} | {Median(means):0.00} | {a.Vertices / (double)a.Frames:0} | {maxV} | {a.Commands / (double)a.Frames:0} | {maxC} | {a.Culled / (double)a.Frames:0.0} | {a.Fading} |\n"));
     }
 }

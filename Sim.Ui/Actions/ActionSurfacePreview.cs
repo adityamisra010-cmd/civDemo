@@ -220,7 +220,7 @@ public static class ActionSurfacePreview
         double zoom = Math.Min(ScreenW, ScreenH - 104) / size;
         double cx = size / 2, cy = size / 2;
         WorldProjection p = WorldProjection.Build(w, session.Config, id => session.Names.Name(id), Me);
-        WorldLens.Paint(d, m, p, WorldLens.LevelFor(zoom, ScreenW, ScreenH, size),
+        WorldLens.Paint(d, m, p, MapDetail.At(zoom, ScreenW, ScreenH, p.KmPerPx),   // P2: the game's continuous level of detail
             (x, y) => ((x - cx) * zoom + ScreenW / 2, (y - cy) * zoom + ScreenH / 2 + 4), zoom, new RectD(0, 0, ScreenW, ScreenH), s.Selected,
             ink: MapInk.For(t));
 

@@ -16,19 +16,60 @@ namespace Sim.Ui.ViewModel;
 /// beneath the chrome; only what the camera frames moved. The (width, height) overloads are the rect at the window's
 /// origin — the full-window camera every headless paint and preview uses — and compute exactly what they computed
 /// before (the origin adds 0).
+///
+/// P2 (M5 map workstream) — EASED ZOOM AND PAN. The camera holds two views: the SHOWN view (<see cref="Zoom"/>,
+/// <see cref="CenterX"/>, <see cref="CenterY"/> — what is drawn, hit-tested and framed by the GPU pass) and the TARGET
+/// view (<see cref="TargetZoom"/>, <see cref="TargetCenterX"/>, <see cref="TargetCenterY"/> — where the player asked to
+/// look). The wheel (<see cref="ZoomToward"/>) and the keys (<see cref="GlidePan"/>) move the target; once per frame
+/// <see cref="Advance"/> eases the shown view toward it by frame-rate-independent exponential smoothing — the
+/// <see cref="Sim.Ui.Progression.ProgressionCamera.Advance"/> pattern, at its rate. What is eased is the VISIBLE WORLD
+/// RECT: the centre and the inverse zoom (world px per screen px) move by the same fraction, so every edge of the
+/// rect moves linearly, and a world point the target keeps under a screen point stays under it on EVERY frame of the
+/// ease (a run of wheel notches at one cursor keeps the point under the cursor fixed throughout, not only once it
+/// settles). A drag (<see cref="Pan"/>) moves both views by the same screen delta (a drag tracks the hand). The
+/// immediate operations every preview, test and measurement uses — <see cref="ZoomAt(double, double, double, RectD)"/>,
+/// <see cref="Clamp(RectD)"/>, <see cref="Stop"/> — act on the shown view and leave the camera SETTLED (target =
+/// shown), so a camera never eased computes exactly what it computed before P2. The camera is UI state only: nothing
+/// here reads or writes the simulation.
 /// </summary>
 public sealed class Camera(double worldSize)
 {
-    /// <summary>World-space point at the map rect's center.</summary>
-    public double CenterX { get; private set; } = worldSize / 2.0;
-    public double CenterY { get; private set; } = worldSize / 2.0;
+    /// <summary>One view of the world: the world point at the map rect's centre and the zoom.</summary>
+    private struct View
+    {
+        public double X, Y, Zoom;
+    }
 
-    /// <summary>Screen pixels per world pixel.</summary>
-    public double Zoom { get; private set; } = 1.0;
+    private View _shown = new() { X = worldSize / 2.0, Y = worldSize / 2.0, Zoom = 1.0 };
+    private View _target = new() { X = worldSize / 2.0, Y = worldSize / 2.0, Zoom = 1.0 };
+
+    /// <summary>World-space point at the map rect's center (the SHOWN view).</summary>
+    public double CenterX => _shown.X;
+    public double CenterY => _shown.Y;
+
+    /// <summary>Screen pixels per world pixel (the SHOWN view).</summary>
+    public double Zoom => _shown.Zoom;
+
+    /// <summary>P2: the view the shown one eases toward.</summary>
+    public double TargetCenterX => _target.X;
+    public double TargetCenterY => _target.Y;
+    public double TargetZoom => _target.Zoom;
+
+    /// <summary>P2: the shown view IS the target view (no ease in progress).</summary>
+    public bool Settled => _shown.X == _target.X && _shown.Y == _target.Y && _shown.Zoom == _target.Zoom;
 
     public double WorldSize { get; } = worldSize;
 
     public const double MaxZoom = 32.0;
+
+    /// <summary>P2: the ease rate, per second — ProgressionCamera's (k = 1 − exp(−14 dt)): 90 % of the way in 0.16 s.</summary>
+    public const double EaseRate = 14.0;
+
+    /// <summary>P2: the ease snaps to its target once the zoom is within this fraction of it …</summary>
+    public const double SettleZoomFraction = 1e-4;
+
+    /// <summary>… and the centre within this many screen px of it (at the target zoom).</summary>
+    public const double SettleScreenPx = 0.05;
 
     /// <summary>A full-window map rect: the window's origin, its size.</summary>
     public static RectD Window(int viewportW, int viewportH) => new(0, 0, viewportW, viewportH);
@@ -58,42 +99,101 @@ public sealed class Camera(double worldSize)
         ((wx - CenterX) * Zoom + view.CenterX,
          (wy - CenterY) * Zoom + view.CenterY);
 
+    /// <summary>P2: screen → world through the map rect in the TARGET view (where the point will be once the ease settles).</summary>
+    public (double X, double Y) TargetScreenToWorld(double sx, double sy, RectD view) =>
+        (_target.X + (sx - view.CenterX) / _target.Zoom,
+         _target.Y + (sy - view.CenterY) / _target.Zoom);
+
     /// <summary>P1: the affine map world → screen as (scale, offset x, offset y): screen = world × scale + offset. The
     /// render matrix (SimUiGame) is built from THIS, so the GPU pass and <see cref="WorldToScreen(double, double, RectD)"/>
     /// cannot disagree.</summary>
     public (double Scale, double OffsetX, double OffsetY) Transform(RectD view) =>
         (Zoom, view.CenterX - CenterX * Zoom, view.CenterY - CenterY * Zoom);
 
-    /// <summary>Pan by a SCREEN-space delta (mouse drag / WASD): the world moves
+    /// <summary>Pan by a SCREEN-space delta (mouse drag): the world moves
     /// with the cursor, so the center moves opposite, scaled by zoom.</summary>
     public void Pan(double dxScreen, double dyScreen, int viewportW, int viewportH) =>
         Pan(dxScreen, dyScreen, Window(viewportW, viewportH));
 
-    /// <summary>P1: pan, clamped to the map rect.</summary>
+    /// <summary>P1: pan, clamped to the map rect. P2: a DRAG — it moves the shown view and the target view by the same
+    /// screen delta (each at its own zoom), so the ground under the hand follows the hand while an ease goes on.</summary>
     public void Pan(double dxScreen, double dyScreen, RectD view)
     {
-        CenterX -= dxScreen / Zoom;
-        CenterY -= dyScreen / Zoom;
+        _shown.X -= dxScreen / _shown.Zoom;
+        _shown.Y -= dyScreen / _shown.Zoom;
+        _target.X -= dxScreen / _target.Zoom;
+        _target.Y -= dyScreen / _target.Zoom;
         Clamp(view);
+    }
+
+    /// <summary>P2: an EASED pan by a screen-space delta (W A S D): the target moves, the shown view glides after it.</summary>
+    public void GlidePan(double dxScreen, double dyScreen, RectD view)
+    {
+        _target.X -= dxScreen / _target.Zoom;
+        _target.Y -= dyScreen / _target.Zoom;
+        ClampView(ref _target, view);
     }
 
     /// <summary>
     /// Zoom by <paramref name="factor"/> keeping the world point under the
     /// CURSOR fixed on screen (the invariant the camera tests pin): solve the
-    /// new center from the fixed point after scaling.
+    /// new center from the fixed point after scaling. IMMEDIATE (P2): the camera is left settled.
     /// </summary>
     public void ZoomAt(double cursorSx, double cursorSy, double factor, int viewportW, int viewportH) =>
         ZoomAt(cursorSx, cursorSy, factor, Window(viewportW, viewportH));
 
-    /// <summary>P1: zoom at the cursor through the map rect.</summary>
+    /// <summary>P1: zoom at the cursor through the map rect. Immediate (P2): the camera is left settled.</summary>
     public void ZoomAt(double cursorSx, double cursorSy, double factor, RectD view)
     {
         (double wx, double wy) = ScreenToWorld(cursorSx, cursorSy, view);
-        Zoom = Math.Clamp(Zoom * factor, MinZoom(view), MaxZoom);
-        CenterX = wx - (cursorSx - view.CenterX) / Zoom;
-        CenterY = wy - (cursorSy - view.CenterY) / Zoom;
+        _shown.Zoom = Math.Clamp(Zoom * factor, MinZoom(view), MaxZoom);
+        _shown.X = wx - (cursorSx - view.CenterX) / _shown.Zoom;
+        _shown.Y = wy - (cursorSy - view.CenterY) / _shown.Zoom;
+        _target = _shown;
         Clamp(view);
     }
+
+    /// <summary>
+    /// P2: THE WHEEL — an EASED zoom by <paramref name="factor"/> about the cursor. The target zoom is multiplied (notches
+    /// accumulate) and the target centre is solved so the world point under the cursor IN THE TARGET VIEW stays under
+    /// it (ProgressionCamera.ZoomAt): once the ease settles that point is under the cursor, and while it eases the
+    /// shown view keeps it there too whenever the shown view already had it there (see the class remarks). The clamp
+    /// applies to the target, as it applied to the immediate zoom.
+    /// </summary>
+    public void ZoomToward(double cursorSx, double cursorSy, double factor, RectD view)
+    {
+        (double wx, double wy) = TargetScreenToWorld(cursorSx, cursorSy, view);
+        _target.Zoom = Math.Clamp(_target.Zoom * factor, MinZoom(view), MaxZoom);
+        _target.X = wx - (cursorSx - view.CenterX) / _target.Zoom;
+        _target.Y = wy - (cursorSy - view.CenterY) / _target.Zoom;
+        ClampView(ref _target, view);
+    }
+
+    /// <summary>
+    /// P2: eases the shown view toward the target over <paramref name="dt"/> seconds. The remaining distance of the centre
+    /// and of the inverse zoom shrinks by exp(−<see cref="EaseRate"/> dt), so N frames of dt/N reach the same view as one
+    /// frame of dt (frame-rate independent). Snaps to the target once within <see cref="SettleZoomFraction"/> and
+    /// <see cref="SettleScreenPx"/>. A settled camera is left exactly as it is. Returns true while it is still moving.
+    /// </summary>
+    public bool Advance(double dt)
+    {
+        if (Settled) return false;
+        double k = 1.0 - Math.Exp(-Math.Max(0.0, dt) * EaseRate);
+        double inv = 1.0 / _shown.Zoom;
+        inv += (1.0 / _target.Zoom - inv) * k;
+        _shown.Zoom = 1.0 / inv;
+        _shown.X += (_target.X - _shown.X) * k;
+        _shown.Y += (_target.Y - _shown.Y) * k;
+        bool moving = Math.Abs(_target.Zoom - _shown.Zoom) > SettleZoomFraction * _target.Zoom
+            || Math.Abs(_target.X - _shown.X) * _target.Zoom > SettleScreenPx
+            || Math.Abs(_target.Y - _shown.Y) * _target.Zoom > SettleScreenPx;
+        if (!moving) _shown = _target;
+        return moving;
+    }
+
+    /// <summary>P2: ends the ease where it is — the target becomes the shown view (an immediate operation such as
+    /// <see cref="CameraFocus.CenterOn(Camera, Sim.Core.State.IReadOnlyWorldState, int, RectD)"/> starts from what is on screen).</summary>
+    public void Stop() => _target = _shown;
 
     /// <summary>
     /// Keep the view inside the world: when the world is wider than the
@@ -103,12 +203,12 @@ public sealed class Camera(double worldSize)
     /// </summary>
     public void Clamp(int viewportW, int viewportH) => Clamp(Window(viewportW, viewportH));
 
-    /// <summary>P1: the clamp against the map rect — the rect, not the window, stays over the world.</summary>
+    /// <summary>P1: the clamp against the map rect — the rect, not the window, stays over the world. P2: both views are
+    /// clamped, each at its own zoom (a settled camera stays settled).</summary>
     public void Clamp(RectD view)
     {
-        Zoom = Math.Clamp(Zoom, MinZoom(view), MaxZoom);
-        CenterX = ClampAxis(CenterX, view.W);
-        CenterY = ClampAxis(CenterY, view.H);
+        ClampView(ref _shown, view);
+        ClampView(ref _target, view);
     }
 
     /// <summary>
@@ -117,21 +217,37 @@ public sealed class Camera(double worldSize)
     /// and the view is then clamped to the new rect. At the same zoom that keeps the whole picture still (a pan of
     /// zero); a view that was at the old rect's fit stays at fit — it RE-FITS to the new rect (the whole world, framed
     /// in it) — and a zoom below the new rect's fit is raised to it. Where the clamp moves the view (the world's edge
-    /// would leave the new rect), the clamp wins: that is what "inside the world" means.
+    /// would leave the new rect), the clamp wins: that is what "inside the world" means. P2: the shown view and the
+    /// target view are reframed alike, each about the same anchor, so an ease in progress carries on in the new rect.
     /// </summary>
     public void Reframe(RectD from, RectD to, double anchorSx, double anchorSy)
     {
-        bool atFit = Zoom <= MinZoom(from) * (1.0 + 1e-12);
-        (double wx, double wy) = ScreenToWorld(anchorSx, anchorSy, from);
-        Zoom = atFit ? Math.Min(MinZoom(to), MaxZoom) : Math.Clamp(Zoom, MinZoom(to), MaxZoom);
-        CenterX = wx - (anchorSx - to.CenterX) / Zoom;
-        CenterY = wy - (anchorSy - to.CenterY) / Zoom;
-        Clamp(to);
+        bool settled = Settled;
+        ReframeView(ref _shown, from, to, anchorSx, anchorSy);
+        if (settled) _target = _shown;
+        else ReframeView(ref _target, from, to, anchorSx, anchorSy);
     }
 
-    private double ClampAxis(double center, double viewportPx)
+    private void ReframeView(ref View v, RectD from, RectD to, double anchorSx, double anchorSy)
     {
-        double halfView = viewportPx / 2.0 / Zoom;
+        bool atFit = v.Zoom <= MinZoom(from) * (1.0 + 1e-12);
+        double wx = v.X + (anchorSx - from.CenterX) / v.Zoom, wy = v.Y + (anchorSy - from.CenterY) / v.Zoom;
+        v.Zoom = atFit ? Math.Min(MinZoom(to), MaxZoom) : Math.Clamp(v.Zoom, MinZoom(to), MaxZoom);
+        v.X = wx - (anchorSx - to.CenterX) / v.Zoom;
+        v.Y = wy - (anchorSy - to.CenterY) / v.Zoom;
+        ClampView(ref v, to);
+    }
+
+    private void ClampView(ref View v, RectD view)
+    {
+        v.Zoom = Math.Clamp(v.Zoom, MinZoom(view), MaxZoom);
+        v.X = ClampAxis(v.X, view.W, v.Zoom);
+        v.Y = ClampAxis(v.Y, view.H, v.Zoom);
+    }
+
+    private double ClampAxis(double center, double viewportPx, double zoom)
+    {
+        double halfView = viewportPx / 2.0 / zoom;
         if (halfView * 2.0 >= WorldSize) return WorldSize / 2.0;
         return Math.Clamp(center, halfView, WorldSize - halfView);
     }

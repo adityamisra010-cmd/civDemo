@@ -70,10 +70,11 @@ public class LensHitGeometryTests(CanonicalLensFixture fx) : IClassFixture<Canon
                     var cam = new Camera(size);
                     cam.ZoomAt(W / 2.0, H / 2.0, zoom / cam.Zoom, W, H);
                     cam.Pan((cam.CenterX - centre.X) * cam.Zoom, (cam.CenterY - centre.Y) * cam.Zoom, W, H);
-                    WorldZoom level = WorldLens.LevelFor(cam.Zoom, W, H, size);
+                    MapDetail detail = MapDetail.At(cam.Zoom, W, H, p.KmPerPx);   // P2: the game's continuous detail
+                    WorldZoom level = detail.Band;
                     bands.Add(level);
                     var d = new DrawList();
-                    LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level, (x, y) => cam.WorldToScreen(x, y, W, H),
+                    LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, detail, (x, y) => cam.WorldToScreen(x, y, W, H),
                         cam.Zoom, new RectD(0, 0, W, H), centre.Id, ink: ink, theme: theme);
                     Assert.Equal(f.SettlementsDrawn, f.SettlementHits.Select(h => h.Id));
                     foreach (SettlementHit hit in f.SettlementHits)
@@ -112,7 +113,7 @@ public class LensHitGeometryTests(CanonicalLensFixture fx) : IClassFixture<Canon
         cam.Clamp(W, H);
         cam.ZoomAt(W / 2.0, H / 2.0, 3, W, H);
         LensFrame Once() => WorldLens.Paint(new DrawList(), ApproxTextMeasure.Instance, fx.Projection,
-            WorldLens.LevelFor(cam.Zoom, W, H, fx.Projection.WorldSize), (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom,
+            MapDetail.At(cam.Zoom, W, H, fx.Projection.KmPerPx), (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom,
             new RectD(0, 0, W, H), legend: new LegendAnchor(W - 12, H - 12, 340));
         LensFrame a = Once(), b = Once();
         Assert.Equal(a.SettlementHits, b.SettlementHits);
@@ -147,7 +148,7 @@ public class MapLegendTests(CanonicalLensFixture fx) : IClassFixture<CanonicalLe
             cam.Pan((cam.CenterX - s.X) * cam.Zoom, (cam.CenterY - s.Y) * cam.Zoom, W, H);
         }
         var d = new DrawList();
-        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(cam.Zoom, W, H, size),
+        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(cam.Zoom, W, H, p.KmPerPx),
             (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom, viewport ?? new RectD(0, 0, W, H), showTerritory: territory,
             legend: legend ?? Anchor);
         return (d, f);
@@ -260,7 +261,7 @@ public class MapLegendTests(CanonicalLensFixture fx) : IClassFixture<CanonicalLe
         Assert.NotEmpty(p.Units);
         WorldProjection noUnits = new()
         {
-            WorldSize = p.WorldSize, Settlements = p.Settlements, Units = [], Roads = p.Roads, Routes = p.Routes,
+            WorldSize = p.WorldSize, KmPerPx = p.KmPerPx, Settlements = p.Settlements, Units = [], Roads = p.Roads, Routes = p.Routes,
             Territory = p.Territory, PlayerPolity = p.PlayerPolity, PlayerAge = p.PlayerAge, PlayerAgeName = p.PlayerAgeName, Absent = p.Absent,
         };
         Assert.Contains(WorldLayer.MilitaryFormations, on.Legend!.Layers);
@@ -305,7 +306,7 @@ public class MapLegendTests(CanonicalLensFixture fx) : IClassFixture<CanonicalLe
         var cam = new Camera((int)p.WorldSize);
         cam.Clamp(W, H);
         cam.ZoomAt(W / 2.0, H / 2.0, 3, W, H);
-        WorldZoom level = WorldLens.LevelFor(cam.Zoom, W, H, p.WorldSize);
+        MapDetail level = MapDetail.At(cam.Zoom, W, H, p.KmPerPx);
         LensFrame Draw(DrawList d, int selectedUnit) => WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level,
             (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom, new RectD(0, 0, W, H), legend: Anchor, selectedUnit: selectedUnit);
         var plain = new DrawList();
@@ -351,7 +352,7 @@ public class MapLegendTests(CanonicalLensFixture fx) : IClassFixture<CanonicalLe
         cam.Clamp(W, H);
         cam.ZoomAt(W / 2.0, H / 2.0, 3, W, H);
         var d = new DrawList();
-        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(cam.Zoom, W, H, p.WorldSize),
+        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(cam.Zoom, W, H, p.KmPerPx),
             (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom, new RectD(0, 0, W, H), ink: ink, legend: Anchor);
         return (d, f);
     }
@@ -396,7 +397,7 @@ public class MapLegendTests(CanonicalLensFixture fx) : IClassFixture<CanonicalLe
         var cam = new Camera(size);
         cam.Clamp(W, H);
         cam.ZoomAt(W / 2.0, H / 2.0, 3, W, H);
-        WorldZoom level = WorldLens.LevelFor(cam.Zoom, W, H, size);
+        MapDetail level = MapDetail.At(cam.Zoom, W, H, p.KmPerPx);
         var plain = new DrawList();
         LensFrame a = WorldLens.Paint(plain, ApproxTextMeasure.Instance, p, level, (x, y) => cam.WorldToScreen(x, y, W, H), cam.Zoom, new RectD(0, 0, W, H));
         var keyed = new DrawList();

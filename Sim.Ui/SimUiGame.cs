@@ -208,7 +208,6 @@ public sealed class SimUiGame : Game
         IntPtr annalsId = _imgui.BindTexture(_annalsTexture);
         IntPtr compassId = _imgui.BindTexture(_compassTexture);
 
-        RebuildRiverBuffer(1.0);
 
         Rectangle v = Viewport();
         _ui = new GameUi(_session, _sessionLogPath, _developer, _art, _fonts, new UiTextureIds(annalsId, compassId), v.Width, v.Height,
@@ -235,19 +234,17 @@ public sealed class SimUiGame : Game
         ui.SetFonts(_fonts);
     }
 
-    // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank),
-    // so the world-space strip is rebuilt when zoom changes — zoom moves on
-    // wheel events only, never per frame. Measured rebuild cost on the
-    // canonical 1024² terrain: see the D-A3 commit message.
-    private double _riverBuiltZoom;
+    // D-A3: rivers hold a CLAMPED screen width (see RiverMesh.ScreenWidthForRank). P2: the zoom now EASES (it changes
+    // every frame of a glide), so the world-space strip is rebuilt only when the shown zoom crosses a 2^(1/4) band
+    // (RiverBandCache) — built for the whole band (RiverMesh.BuildBand), the clamp held at every zoom inside it.
+    private readonly RiverBandCache _riverBands = new();
 
-    private void RebuildRiverBuffer(double zoom)
+    private void RebuildRiverBuffer(int band)
     {
         _riverVertices?.Dispose();
-        _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.Build(_session.World.Terrain!, zoom)),
+        _riverVertices = MakeBuffer(RiverMeshToLine(RiverMesh.BuildBand(_session.World.Terrain!, band)),
             new Color(ParchmentPalette.River.R, ParchmentPalette.River.G,
                       ParchmentPalette.River.B, (byte)255));
-        _riverBuiltZoom = zoom;
     }
 
     private static LineGeometry.Vertex[] RiverMeshToLine(RiverMesh.Vertex[] mesh)
@@ -315,7 +312,7 @@ public sealed class SimUiGame : Game
         if (_ui is not { } ui) { base.Draw(gameTime); return; }
         Rectangle viewport = Viewport();
         Camera cam = ui.Camera;
-        if (cam.Zoom != _riverBuiltZoom) RebuildRiverBuffer(cam.Zoom);   // D-A3
+        if (_riverBands.Update(cam.Zoom)) RebuildRiverBuffer(_riverBands.Band!.Value);   // D-A3; P2: once per zoom band
 
         // P1: the world is framed through the UI's MAP RECT (its centre shows the camera's centre), from the camera's
         // own affine map (Camera.Transform) — the same numbers WorldToScreen, the lens and the hit tests use. The map

@@ -61,7 +61,13 @@ public sealed record UnitLensView(int Id, int Owner, double X, double Y, int Fam
 
 /// <summary>Where the lens placed one formation token (screen px, the token's centre) and its fan-out
 /// slot among the formations sharing its anchor (0 = first in ascending unit id).</summary>
-public sealed record UnitPlacement(int Id, double X, double Y, int Slot);
+public sealed record UnitPlacement(int Id, double X, double Y, int Slot)
+{
+    /// <summary>P2: the half-size the token was drawn at (its plate is 2 × 1.5 times it) — blended between the bands'
+    /// 9 and 12 px across the World ↔ Regional window; 0 when the placement was not made by a paint (the hit test then
+    /// uses <see cref="ViewModel.UnitSelection.TokenSize"/> of the frame's band).</summary>
+    public double Size { get; init; }
+}
 
 /// <summary>One lattice step of the free dirt-path baseline (a <c>NetworkEdges</c> row, id
 /// <paramref name="Edge"/>) between lattice-node centres, in world px. <paramref name="CoveredBy"/> is
@@ -82,6 +88,9 @@ public readonly record struct TerritoryBlock(double X, double Y, double Size, in
 public sealed class WorldProjection
 {
     public required double WorldSize { get; init; }
+    /// <summary>P2: km per world px — the terrain's own scale (<c>TerrainSet.KmPerPx</c>; D-015's 4 km at the canonical
+    /// config). The continuous level of detail is keyed on the km the view shows (<see cref="MapDetail"/>).</summary>
+    public required double KmPerPx { get; init; }
     public required IReadOnlyList<SettlementLensView> Settlements { get; init; }
     public required IReadOnlyList<UnitLensView> Units { get; init; }
     /// <summary>The free dirt-path baseline: PathBuild's lattice steps, in <c>NetworkEdges</c> order.</summary>
@@ -255,7 +264,7 @@ public sealed class WorldProjection
 
         return new WorldProjection
         {
-            WorldSize = size, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
+            WorldSize = size, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
             PlayerPolity = player.Value, PlayerAge = playerAge,
             PlayerAgeName = ages is null || playerAge == 0 ? "" : ages.Age(playerAge).Name,
             Absent = absent,
@@ -347,6 +356,10 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
 
     /// <summary>P3: the legend this paint drew, or null when none was asked for.</summary>
     public MapLegend? Legend { get; init; }
+
+    /// <summary>P2: the level of detail this paint drew at (<see cref="Zoom"/> is its derived band). A banded paint carries
+    /// its band's plateau (<see cref="MapDetail.Of"/>).</summary>
+    public MapDetail Detail { get; init; } = MapDetail.Of(WorldZoom.World);
 }
 
 /// <summary>
@@ -361,14 +374,6 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
 /// </summary>
 public static class WorldLens
 {
-    /// <summary>The zoom level for a camera: by the share of the world's width the view spans.
-    /// More than 55% → World; more than 16% → Regional; otherwise Settlement.</summary>
-    public static WorldZoom LevelFor(double zoom, double viewportW, double viewportH, double worldSize)
-    {
-        double span = Math.Min(viewportW, viewportH) / Math.Max(1e-9, zoom) / worldSize;
-        return span > 0.55 ? WorldZoom.World : span > 0.16 ? WorldZoom.Regional : WorldZoom.Settlement;
-    }
-
     private static readonly WorldLayer[] WorldLayers =
         [WorldLayer.Territories, WorldLayer.MajorInfrastructure, WorldLayer.MajorSettlements, WorldLayer.MilitaryFormations, WorldLayer.AgeBanners];
     private static readonly WorldLayer[] RegionalLayers =
@@ -439,7 +444,8 @@ public static class WorldLens
     /// <summary>The number of information layers (<see cref="WorldLayer"/>): the length of <see cref="LensFrame.InfoDraws"/>.</summary>
     public static readonly int InfoLayerCount = Enum.GetValues<WorldLayer>().Length;
 
-    /// <summary>Paints the lens. <paramref name="toScreen"/> maps world px to screen px; <paramref name="scale"/>
+    /// <summary>Paints the lens at the PLATEAU of <paramref name="zoom"/> (<see cref="MapDetail.Of"/>) — the banded lens,
+    /// command for command. <paramref name="toScreen"/> maps world px to screen px; <paramref name="scale"/>
     /// is screen px per world px; <paramref name="ink"/> is the map's ink and hand (the era seam, see
     /// <see cref="MapInk"/>; <see cref="MapInk.Default"/> when omitted). <paramref name="selectedUnit"/>'s token is
     /// framed in the selection ink after every token is drawn (it was framed by GameUi after the paint; P3 moved it here
@@ -449,11 +455,32 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
+        LegendAnchor? legend = null, int selectedUnit = -1) =>
+        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit);
+
+    /// <summary>
+    /// P2: paints the lens at a CONTINUOUS level of detail (<see cref="MapDetail"/> — what the game paints every frame).
+    /// Each information layer is drawn at its opacity (<see cref="MapDetail.Alpha"/>; a layer at 0 is not drawn at all),
+    /// and what a layer shares with the next band — the name, the banner, the formation tokens, the footprint across
+    /// the Regional ↔ Settlement window, the glyph ring, the sector ring, the roads' widths — is drawn ONCE, at full
+    /// opacity, with sizes and offsets blended continuously between the two bands' values (<see cref="MapDetail.Mix"/>).
+    /// What only one side has fades: the World mark and the World network out, the footprint, the roads' casing look,
+    /// the glyphs and the formation labels in across the World ↔ Regional window; territory and the glyph ring's
+    /// regional size out, the key, the population and density lines, the route names in across the Regional ↔
+    /// Settlement window. On a plateau every opacity is 0 or 1 and every blend an endpoint, so the commands are exactly
+    /// the banded lens's (the <see cref="WorldZoom"/> overload).
+    /// Persisting elements are charged to the layer of the derived band (<see cref="MapDetail.Band"/>).
+    /// </summary>
+    public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, MapDetail detail,
+        Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
+        bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
         LegendAnchor? legend = null, int selectedUnit = -1)
     {
         MapInk k = ink ?? MapInk.Default;
         _type = new MapType(theme, uiScale);
-        IReadOnlyList<WorldLayer> layers = LayersFor(zoom);
+        WorldZoom zoom = detail.Band;
+        double R = detail.Regional, S = detail.Settlement;
+        IReadOnlyList<WorldLayer> layers = detail.Layers();
         var draws = new int[MapLayerOwnership.All.Length];
         var info = new int[InfoLayerCount];
         var visible = new bool[InfoLayerCount];
@@ -477,13 +504,14 @@ public static class WorldLens
             }
             mark = count;
         }
-        bool On(WorldLayer l) { foreach (WorldLayer x in layers) if (x == l) return true; return false; }
+        bool On(WorldLayer l) => detail.Alpha(l) > 0;
         var unitTokens = new List<int>();
         var drawn = new List<int>();
 
         if (On(WorldLayer.Territories) && showTerritory)
         {
-            double alpha = zoom == WorldZoom.World ? 0.42 : 0.24;
+            // P2: the tint thins continuously from the World band's to the Regional band's, and fades out toward Settlement.
+            double alpha = MapDetail.Mix(0.42, 0.24, R) * detail.Alpha(WorldLayer.Territories);
             foreach (TerritoryBlock t in p.Territory)
             {
                 (double x, double y) = toScreen(t.X, t.Y);
@@ -495,47 +523,68 @@ public static class WorldLens
         Charge(MapLayer.Territory, WorldLayer.Territories);
 
         // The network: the dirt-path baseline (dashed at World zoom, cased below) and the built routes
-        // by class on top — the World zoom's major infrastructure, the closer zooms' roads.
-        if (On(WorldLayer.Roads) || On(WorldLayer.MajorInfrastructure))
-            RoadLens.PaintNetwork(d, m, p, zoom, toScreen, viewport, k, pieces);
-        Charge(MapLayer.Paths, On(WorldLayer.Roads) ? WorldLayer.Roads : WorldLayer.MajorInfrastructure);
+        // by class on top — the World zoom's major infrastructure, the closer zooms' roads. P2: across the World ↔
+        // Regional window the two looks cross-fade (the World network fading out under the cased one fading in).
+        if (On(WorldLayer.MajorInfrastructure))
+        {
+            int from = d.Commands.Count;
+            RoadLens.PaintNetwork(d, m, p, WorldZoom.World, 0, toScreen, viewport, k, pieces);
+            d.FadeFrom(from, detail.Alpha(WorldLayer.MajorInfrastructure));
+            Charge(MapLayer.Paths, WorldLayer.MajorInfrastructure);
+        }
+        if (On(WorldLayer.Roads))
+        {
+            int from = d.Commands.Count;
+            RoadLens.PaintNetwork(d, m, p, S >= 1 ? WorldZoom.Settlement : WorldZoom.Regional, S, toScreen, viewport, k, pieces);
+            d.FadeFrom(from, detail.Alpha(WorldLayer.Roads));
+            Charge(MapLayer.Paths, WorldLayer.Roads);
+        }
 
         // The information layer of the settlement marks: the sized mark at World zoom, the built footprint closer.
         WorldLayer marks = zoom == WorldZoom.World ? WorldLayer.MajorSettlements : WorldLayer.SettlementMorphology;
+        double aMark = detail.Alpha(WorldLayer.MajorSettlements), aMorph = detail.Alpha(WorldLayer.SettlementMorphology);
         foreach (SettlementLensView s in p.Settlements)
         {
             (double sx, double sy) = toScreen(s.X, s.Y);
             if (sx < viewport.X - 200 || sx > viewport.Right + 200 || sy < viewport.Y - 200 || sy > viewport.Bottom + 200) continue;
             drawn.Add(s.Id);
             Rgba pol = k.PolityOf(s.Controller, p.PlayerPolity);
-            RectD plate;
-            double reach;   // P3: the footprint's radius as painted — the halo at World zoom, the built footprint closer
-            if (zoom == WorldZoom.World)
+            double rMark = WorldMarkRadius(s), rFoot = FootprintRadius(s, scale, S);
+            double reach = 0;   // P3: the footprint's radius as painted — the halo at World zoom, the built footprint closer
+            double worldNameY = sy + rMark + 5, morphNameY = sy;
+            if (aMark > 0)
             {
-                double r = WorldMarkRadius(s);
-                d.Circle(sx, sy, r + 2, A(k.SettlementHalo, 0.9), k.Ink, Stroke(k, 1.2));
-                d.Circle(sx, sy, r, pol, null);
-                if (s.IsCapital) Star(d, sx, sy, r * 0.75, k.CapitalMark);
-                plate = Name(d, m, sx, sy + r + 5, s.Name, TypeRole.Body, k);
-                reach = r + 2;
+                int from = d.Commands.Count;
+                d.Circle(sx, sy, rMark + 2, A(k.SettlementHalo, 0.9), k.Ink, Stroke(k, 1.2));
+                d.Circle(sx, sy, rMark, pol, null);
+                if (s.IsCapital) Star(d, sx, sy, rMark * 0.75, k.CapitalMark);
+                d.FadeFrom(from, aMark);
+                Charge(MapLayer.SettlementMarkers, WorldLayer.MajorSettlements);
+                reach = rMark + 2;
             }
-            else
+            if (aMorph > 0)
             {
-                plate = PaintMorphology(d, m, p, s, sx, sy, scale, zoom, On, Charge, institutions, k);
-                reach = FootprintRadius(s, scale, zoom);
+                morphNameY = PaintMorphology(d, m, p, s, sx, sy, rFoot, S, detail, Charge, institutions, k);
+                reach = Math.Max(reach, rFoot);
             }
-            if (s.Id == selected) d.Circle(sx, sy, (zoom == WorldZoom.World ? 20 : FootprintRadius(s, scale, zoom) + 8), null, k.Selection, 2.4);
+            // The name: ONE run, at a place and size blended between the bands' (never two names cross-fading).
+            double nameSize = MapDetail.Mix(_type.Size(TypeRole.Body, FontRole.Heading), _type.Size(TypeRole.Heading, FontRole.Heading), S);
+            double ly = MapDetail.Mix(worldNameY, morphNameY, R);
+            RectD plate = Name(d, m, sx, ly, s.Name, nameSize, k);
+            Charge(MapLayer.SettlementMarkers, marks);
+            if (aMorph > 0) PaintSettlementLines(d, m, s, sx, ly + nameSize * 1.35, S, detail, Charge, k);
+            if (s.Id == selected) d.Circle(sx, sy, MapDetail.Mix(20, rFoot + 8, R), null, k.Selection, 2.4);
             Charge(MapLayer.SettlementMarkers, marks);
             hits.Add(new SettlementHit(s.Id, sx, sy, new RectD(sx - reach, sy - reach, 2 * reach, 2 * reach), plate));
 
             if (On(WorldLayer.AgeBanners) && s.Age > 0 && s.Controller >= 0)
-                Banner(d, m, sx, sy - (zoom == WorldZoom.World ? 18 : FootprintRadius(s, scale, zoom) + 14), s.Age, pol, s.IsCapital, k, s.Id);
+                Banner(d, m, sx, sy - MapDetail.Mix(18, rFoot + 14, R), s.Age, pol, s.IsCapital, k, s.Id);
             Charge(MapLayer.AgeBanners, WorldLayer.AgeBanners);
         }
 
         if (On(WorldLayer.MilitaryFormations))
         {
-            double tok = zoom == WorldZoom.World ? 9 : 12;
+            double tok = MapDetail.Mix(9, 12, R);
             SettlementLensView?[] stations = Stations(p);
             int[] slots = FanSlots(p);
             for (int i = 0; i < p.Units.Count; i++)
@@ -544,22 +593,28 @@ public static class WorldLens
                 // A formation stationed in a settlement is anchored to it, just outside the mark's east
                 // edge at mid-height (clear of the name below and the banner above); one in the field sits
                 // at its own position. Formations sharing an anchor FAN OUT in ascending unit id (stable,
-                // never overlapping): a row eastward at World zoom, a labelled column below that.
+                // never overlapping): a row eastward at World zoom, a labelled column below that (P2: the row
+                // folds into the column across the World ↔ Regional window).
                 SettlementLensView? station = stations[i];
                 double wx = u.X + 0.5, wy = u.Y + 0.5, edge = 0;
                 if (station is not null)
                 {
                     wx = station.X; wy = station.Y;
-                    edge = (zoom == WorldZoom.World ? WorldMarkRadius(station) + 2 : FootprintRadius(station, scale, zoom)) + tok + 3;
+                    edge = MapDetail.Mix(WorldMarkRadius(station) + 2, FootprintRadius(station, scale, S), R) + tok + 3;
                 }
                 (double ux, double uy) = toScreen(wx, wy);
-                (double fx, double fy) = FanOffset(zoom, slots[i], tok);
+                (double fx, double fy) = FanOffset(R, slots[i], tok);
                 ux += edge + fx;
                 uy += fy;
                 UnitToken(d, ux, uy, tok, u.FamilyKey, k.PolityOf(u.Owner, p.PlayerPolity), k);
-                if (zoom != WorldZoom.World) _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
+                if (R > 0)
+                {
+                    int from = d.Commands.Count;
+                    _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
+                    d.FadeFrom(from, R);
+                }
                 unitTokens.Add(u.Id);
-                placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]));
+                placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]) { Size = tok });
             }
             // The selected formation's frame, over every token (UnitSelection's hit rect, 4 px out).
             foreach (UnitPlacement up in placements)
@@ -581,7 +636,7 @@ public static class WorldLens
         }
         return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions, pieces, placements)
         {
-            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key,
+            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail,
         };
     }
 
@@ -709,27 +764,40 @@ public static class WorldLens
     /// labels) a row eastward, plate width (2 × size) plus a gap apart; below it a column downward,
     /// <see cref="FanPitch"/> apart, each token's identity label to its right.</summary>
     public static (double Dx, double Dy) FanOffset(WorldZoom zoom, int slot, double tokenSize) =>
-        zoom == WorldZoom.World ? (slot * (tokenSize * 2 + 3), 0.0) : (0.0, slot * FanPitch(tokenSize));
+        FanOffset(zoom == WorldZoom.World ? 0.0 : 1.0, slot, tokenSize);
+
+    /// <summary>P2: the fan offset at a Regional blend <paramref name="regional"/> (<see cref="MapDetail.Regional"/>): the
+    /// World row (0) folds continuously into the closer bands' column (1).</summary>
+    public static (double Dx, double Dy) FanOffset(double regional, int slot, double tokenSize) =>
+        (MapDetail.Mix(slot * (tokenSize * 2 + 3), 0.0, regional), MapDetail.Mix(0.0, slot * FanPitch(tokenSize), regional));
 
     /// <summary>The radius of a settlement's mark at World zoom (from population, capped).</summary>
     private static double WorldMarkRadius(SettlementLensView s) => Math.Min(5 + Math.Sqrt(Math.Max(0, s.Population)) / 14.0, 16);
 
-    private static double FootprintRadius(SettlementLensView s, double scale, WorldZoom z)
+    /// <summary>The built footprint's radius (screen px): its world size from population × the scale, clamped to the
+    /// band's screen range — 14–40 px at Regional, 34–150 px at Settlement, the clamps blended by the Settlement blend
+    /// <paramref name="settlement"/> (P2: continuous across the Regional ↔ Settlement window).</summary>
+    private static double FootprintRadius(SettlementLensView s, double scale, double settlement)
     {
         double basePx = 2.0 + Math.Sqrt(Math.Max(0, s.Population)) / 22.0;   // world px
         double r = basePx * scale;
-        return Math.Clamp(r, z == WorldZoom.Regional ? 14 : 34, z == WorldZoom.Regional ? 40 : 150);
+        return Math.Clamp(r, MapDetail.Mix(14, 34, settlement), MapDetail.Mix(40, 150, settlement));
     }
 
-    /// <summary>A settlement's aggregated morphology at Regional and Settlement zoom; returns its name plate's rect. Each
-    /// run of commands is charged to its map layer and to the information layer it shows (P3).</summary>
-    private static RectD PaintMorphology(DrawList d, ITextMeasure m, WorldProjection p, SettlementLensView s,
-        double sx, double sy, double scale, WorldZoom zoom, Func<WorldLayer, bool> on,
+    /// <summary>A settlement's aggregated morphology at Regional and Settlement zoom — the footprint, the dwellings, the
+    /// centre mark, the embedded glyphs (and their key) and the sector ring; returns where its name goes (the y of the
+    /// name's top). Each run of commands is charged to its map layer and to the information layer it shows (P3). P2:
+    /// the footprint, the dwellings, the centre and the sector ring fade in with their layers (the Regional blend);
+    /// the glyph ring is drawn at the sum of its two layers' opacities (institutional
+    /// presence, institution types) — fading in across the World ↔ Regional window, whole across the Regional ↔
+    /// Settlement one, where its size and radius blend; the key and the notables line fade in with institution types.</summary>
+    private static double PaintMorphology(DrawList d, ITextMeasure m, WorldProjection p, SettlementLensView s,
+        double sx, double sy, double r, double settlement, MapDetail detail,
         Action<MapLayer, WorldLayer?> charge, List<InstitutionMarker> institutions, MapInk k)
     {
         Rgba ink = k.Ink;
         Rgba pol = k.PolityOf(s.Controller, p.PlayerPolity);
-        double r = FootprintRadius(s, scale, zoom);
+        int from = d.Commands.Count;
 
         // Footprint: the settlement's built extent (its radius from population), outlined. The
         // composition is a READ OF STATE (D-038 H5): no wall, palisade or tower is drawn, because no
@@ -751,26 +819,33 @@ public static class WorldLens
         // Centre: the capital star / settlement mark.
         d.Circle(sx, sy, Math.Max(5, r / 6), pol, ink, Stroke(k, 1.2));
         if (s.IsCapital) Star(d, sx, sy, Math.Max(4, r / 7), k.CapitalMark);
+        d.FadeFrom(from, detail.Alpha(WorldLayer.SettlementMorphology));
 
         charge(MapLayer.SettlementMarkers, WorldLayer.SettlementMorphology);
-        if (on(WorldLayer.InstitutionalPresence) || on(WorldLayer.InstitutionTypes))
+        double aPresence = detail.Alpha(WorldLayer.InstitutionalPresence), aTypes = detail.Alpha(WorldLayer.InstitutionTypes);
+        if (aPresence > 0 || aTypes > 0)
         {
             // Embedded glyphs inside the footprint — one per structure KIND and one per institution
             // TYPE (aggregated), with names and counts at settlement zoom.
-            bool named = on(WorldLayer.InstitutionTypes);
+            bool named = aTypes > 0;
+            double aRing = Math.Min(1.0, aPresence + aTypes);
+            WorldLayer ringLayer = detail.Band == WorldZoom.Settlement ? WorldLayer.InstitutionTypes : WorldLayer.InstitutionalPresence;
             int total = s.Structures.Count + s.Institutions.Count;
-            double g = zoom == WorldZoom.Settlement ? 9 : 6;
-            double ring = r * (zoom == WorldZoom.Settlement ? 0.42 : 0.4);
+            double g = MapDetail.Mix(6, 9, settlement);
+            double ring = r * MapDetail.Mix(0.4, 0.42, settlement);
             int n = 0;
             // Settlement zoom: a key beside the footprint (left, right-aligned) names each embedded glyph
             // with its aggregated count, so labels never overprint the footprint or each other.
             void Key(int i, string label, long count, Action<double, double> glyph)
             {
+                int at = d.Commands.Count;
                 double pitch = Math.Max(18, _type.Size(TypeRole.Caption, FontRole.Caps) * 1.3);
                 double ky = sy - total * pitch / 2 + i * pitch + pitch / 2;
                 double kx = sx - r - 18;
                 glyph(kx, ky);
                 _type.Label(d, kx - 12, ky - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, label + (count > 1 ? " x" + count.ToString(CultureInfo.InvariantCulture) : ""), TypeRole.Caption, FontRole.Caps, ink, TextAlign.Right);
+                d.FadeFrom(at, aTypes);
+                charge(MapLayer.InstitutionMarkers, WorldLayer.InstitutionTypes);
             }
             (double, double) Slot(int i)
             {
@@ -780,59 +855,84 @@ public static class WorldLens
             foreach (StructureView st in s.Structures)
             {
                 (double gx, double gy) = Slot(n++);
+                int at = d.Commands.Count;
                 StructureGlyph(d, gx, gy, g, st.Kind, k);
+                d.FadeFrom(at, aRing);
+                charge(MapLayer.InstitutionMarkers, ringLayer);
                 if (named) Key(n - 1, st.Name, st.Count, (x, y) => StructureGlyph(d, x, y, 7, st.Kind, k));
                 institutions.Add(new InstitutionMarker(s.Id, "structure:" + st.ProjectId.ToString(CultureInfo.InvariantCulture), st.Count));
             }
             foreach (InstitutionView iv in s.Institutions)
             {
                 (double gx, double gy) = Slot(n++);
+                int at = d.Commands.Count;
                 UniversityGlyph(d, gx, gy, g, iv.TypeKey, k);
+                d.FadeFrom(at, aRing);
+                charge(MapLayer.InstitutionMarkers, ringLayer);
                 if (named) Key(n - 1, iv.Name, iv.Count, (x, y) => UniversityGlyph(d, x, y, 7, iv.TypeKey, k));
                 institutions.Add(new InstitutionMarker(s.Id, "institution:" + iv.TypeKey.ToString(CultureInfo.InvariantCulture), iv.Count));
             }
             if (s.Notables > 0 && named)
+            {
+                int at = d.Commands.Count;
                 _type.Label(d, sx, sy + r * 0.12 + 6, s.Notables.ToString(CultureInfo.InvariantCulture) + " notable(s) resident", TypeRole.Secondary, FontRole.Body, ink, TextAlign.Center);
+                d.FadeFrom(at, aTypes);
+            }
         }
-        charge(MapLayer.InstitutionMarkers, on(WorldLayer.InstitutionTypes) ? WorldLayer.InstitutionTypes : WorldLayer.InstitutionalPresence);
+        charge(MapLayer.InstitutionMarkers, detail.Band == WorldZoom.Settlement ? WorldLayer.InstitutionTypes : WorldLayer.InstitutionalPresence);
 
-        if (on(WorldLayer.ProductionSignals) && s.Sectors is not null)
+        double aSectors = detail.Alpha(WorldLayer.ProductionSignals);
+        if (aSectors > 0 && s.Sectors is not null)
         {
             // Labour allocation as a ring of sector arcs just outside the footprint.
+            int at = d.Commands.Count;
             double start = -90;
             for (int i = 0; i < 5; i++)
             {
                 double sweep = 360 * s.Sectors![i];
-                double ringR = r + (zoom == WorldZoom.Settlement ? 10 : 6), ringW = zoom == WorldZoom.Settlement ? 6 : 4;
+                double ringR = r + MapDetail.Mix(6, 10, settlement), ringW = MapDetail.Mix(4, 6, settlement);
                 if (sweep >= 359) d.Circle(sx, sy, ringR, null, k.Sectors[i], ringW);
                 else if (sweep > 0.5) d.Arc(sx, sy, ringR, start, sweep - 1.5, k.Sectors[i], ringW);
                 start += sweep;
             }
+            d.FadeFrom(at, aSectors);
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.ProductionSignals);
+        return sy + r + (aSectors > 0 && s.Sectors is not null ? 18 : 8);
+    }
 
-        double ly = sy + r + (on(WorldLayer.ProductionSignals) && s.Sectors is not null ? 18 : 8);
-        TypeRole nameRole = zoom == WorldZoom.Settlement ? TypeRole.Heading : TypeRole.Body;
-        RectD plate = Name(d, m, sx, ly, s.Name, nameRole, k);
-        charge(MapLayer.SettlementMarkers, WorldLayer.SettlementMorphology);
-        ly += _type.Size(nameRole, FontRole.Heading) * 1.35;
+    /// <summary>The lines under a settlement's name at Settlement zoom — people and dwellings, path links and size tier,
+    /// the labour split — from <paramref name="y"/> down. P2: each fades in with its layer's opacity (population scale,
+    /// infrastructure density; the labour caption with the Settlement blend <paramref name="settlement"/>).</summary>
+    private static void PaintSettlementLines(DrawList d, ITextMeasure m, SettlementLensView s, double sx, double y,
+        double settlement, MapDetail detail, Action<MapLayer, WorldLayer?> charge, MapInk k)
+    {
+        Rgba ink = k.Ink;
+        double ly = y;
         double data = _type.Size(TypeRole.Data, FontRole.Numeric), second = _type.Size(TypeRole.Secondary, FontRole.Body);
         double caps = _type.Size(TypeRole.Caption, FontRole.Caps);
-        if (on(WorldLayer.PopulationScale))
+        double aPop = detail.Alpha(WorldLayer.PopulationScale), aDensity = detail.Alpha(WorldLayer.InfrastructureDensity);
+        if (aPop > 0)
         {
+            int at = d.Commands.Count;
             _type.Label(d, sx, ly, s.Population.ToString("#,0", CultureInfo.InvariantCulture) + " people  -  " + s.Dwellings.ToString("#,0", CultureInfo.InvariantCulture) + " dwellings", TypeRole.Data, FontRole.Numeric, ink, TextAlign.Center);
+            d.FadeFrom(at, aPop);
             ly += data * 1.3;
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.PopulationScale);
-        if (on(WorldLayer.InfrastructureDensity))
+        if (aDensity > 0)
         {
+            int at = d.Commands.Count;
             _type.Label(d, sx, ly, s.RoadsInCatchment.ToString(CultureInfo.InvariantCulture) + " path link(s) in catchment  -  size tier " + s.SizeTier.ToString(CultureInfo.InvariantCulture), TypeRole.Secondary, FontRole.Body, ink, TextAlign.Center);
+            d.FadeFrom(at, aDensity);
             ly += second * 1.3;
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.InfrastructureDensity);
-        if (on(WorldLayer.ProductionSignals) && zoom == WorldZoom.Settlement && s.Sectors is null)
+        bool production = detail.Alpha(WorldLayer.ProductionSignals) > 0 && settlement > 0;
+        int caption = d.Commands.Count;
+        if (production && s.Sectors is null)
             _type.Label(d, sx, ly, "labour split: default (no allocation ordered)", TypeRole.Caption, FontRole.Caps, ink, TextAlign.Center);
-        else if (on(WorldLayer.ProductionSignals) && zoom == WorldZoom.Settlement && s.Sectors is not null)
+        else if (production && s.Sectors is not null)
         {
             int top = 0;
             for (int i = 1; i < 5; i++) if (s.Sectors[i] > s.Sectors[top]) top = i;   // ties: lowest sector index
@@ -842,24 +942,24 @@ public static class WorldLens
             d.Rect(new RectD(sx - lw / 2 - 14, ly + caps * 0.25, 9, 9), k.Sectors[top], ink, 0.8);
             _type.Label(d, sx + 5, ly, lab, TypeRole.Caption, FontRole.Caps, ink, TextAlign.Center);
         }
+        d.FadeFrom(caption, settlement);
         charge(MapLayer.SettlementMarkers, WorldLayer.ProductionSignals);
-        return plate;
     }
 
     /// <summary>A settlement's name on a soft paper plate, so a road running under it never cuts the letters (UR-7: at
-    /// the body role in the era's heading face — it was 12.5 px — and the heading role at settlement zoom). The plate's
+    /// the body role in the era's heading face — it was 12.5 px — and the heading role at settlement zoom; P2: at a size
+    /// blended between the two across the Regional ↔ Settlement window). The plate's
     /// ornament is the era's hand (its corner and the rule round it); its rect is the same in every hand. Returns the
     /// plate's rect (P3: the name's hit rect — it holds the name's run, which is centred on it).</summary>
-    private static RectD Name(DrawList d, ITextMeasure m, double x, double y, string name, TypeRole role, MapInk k)
+    private static RectD Name(DrawList d, ITextMeasure m, double x, double y, string name, double size, MapInk k)
     {
-        double size = _type.Size(role, FontRole.Heading);
-        double w = _type.Width(m, name, role, FontRole.Heading);
+        double w = _type.WidthAt(m, name, size, FontRole.Heading);
         MapHandTokens hand = k.Hand;
         bool ruled = hand.NamePlateRulePx > 0;
         var plate = new RectD(x - w / 2 - 4, y - 1, w + 8, size * 1.3 + 2);
         d.Rect(plate, A(k.NamePlate, 0.78),
             ruled ? A(k.Ink, 0.55) : null, ruled ? hand.NamePlateRulePx : 1, hand.NamePlateCornerPx);
-        _type.Label(d, x, y, name, role, FontRole.Heading, k.Ink, TextAlign.Center);
+        _type.LabelAt(d, x, y, name, size, FontRole.Heading, k.Ink, TextAlign.Center);
         return plate;
     }
 
@@ -907,6 +1007,19 @@ public static class WorldLens
         {
             if (theme is { } t) d.Write(t, x, y, text, Size(role, font), color, align, font);
             else d.Text(x, y, text, Size(role, font), color, align, font);
+        }
+
+        /// <summary>P2: the width of <paramref name="text"/> set at <paramref name="size"/> px (a size between two roles' —
+        /// a blended label); at a role's own size exactly <see cref="Width"/>.</summary>
+        public double WidthAt(ITextMeasure m, string text, double size, FontRole font) => theme is { } t
+            ? m.Width(t, text, size, font)
+            : m.Width(text, size, font);
+
+        /// <summary>P2: a label set at <paramref name="size"/> px; at a role's own size exactly <see cref="Label"/>.</summary>
+        public void LabelAt(DrawList d, double x, double y, string text, double size, FontRole font, Rgba color, TextAlign align)
+        {
+            if (theme is { } t) d.Write(t, x, y, text, size, color, align, font);
+            else d.Text(x, y, text, size, color, align, font);
         }
 
         /// <summary><paramref name="px"/> design pixels at the UI scale.</summary>

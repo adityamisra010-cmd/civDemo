@@ -57,7 +57,7 @@ public class SelectionTests
     private static Sim.Ui.World.LensFrame PaintFrame(WorldState world, Camera cam, int w, int h)
     {
         var p = Sim.Ui.World.WorldProjection.Build(world, SimCfg(), id => "S" + id.ToString(System.Globalization.CultureInfo.InvariantCulture), new PolityId(0));
-        Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, w, h, cam.WorldSize);
+        Sim.Ui.World.MapDetail level = Sim.Ui.World.MapDetail.At(cam.Zoom, w, h, p.KmPerPx);   // P2: the game's continuous detail
         return Sim.Ui.World.WorldLens.Paint(new Sim.Ui.Render.DrawList(), Sim.Ui.Render.ApproxTextMeasure.Instance, p, level,
             (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom, new Sim.Ui.Render.RectD(0, 0, w, h));
     }
@@ -65,15 +65,20 @@ public class SelectionTests
     [Fact]
     public void HitTest_AtDefaultZoom_HitsTheMarker_MissesBeyondRadius()
     {
-        // Site cell 100 + 100*256 → world (100.5, 100.5); camera 1:1 centered
-        // at 128: screen = world − 128 + viewport/2. World zoom: the population
-        // mark (14 px across with its halo) is grown to the 44 px target.
+        // Site cell 100 + 100*256 → world (100.5, 100.5); camera at the fit
+        // (zoom 2) centered at 128: screen = (world − 128) × 2 + viewport/2.
+        // PIN MOVED DELIBERATELY (P2: the level of detail is keyed on the visible km). Old: this camera was the World
+        // band (it shows the whole world: share 1.0) and drew the population mark (14 px across with its halo). New:
+        // this 256-px dev world spans 256 × 4 = 1024 km, all of it visible — the REGIONAL band by km (a 1024-km world
+        // never shows the World band) — and the lens draws the built footprint at its 14 px floor (28 px across).
+        // The property pinned is unchanged: the drawn mark, whichever it is, is grown to the 44 px target.
         WorldState world = MarkerWorld(100 + 100 * 256);
         var cam = new Camera(256);
         cam.Clamp(512, 512);
         (double sx, double sy) = cam.WorldToScreen(100.5, 100.5, 512, 512);
         Sim.Ui.World.LensFrame f = PaintFrame(world, cam, 512, 512);
-        Assert.Equal(Sim.Ui.World.WorldZoom.World, f.Zoom);
+        Assert.Equal(Sim.Ui.World.WorldZoom.Regional, f.Zoom);
+        Assert.True(Assert.Single(f.SettlementHits).Footprint.W < SettlementSelection.MinTargetDiameterPx);   // grown, not its own
 
         Assert.Equal(0, SettlementSelection.HitTest(f, sx, sy));
         Assert.Equal(0, SettlementSelection.HitTest(f,
@@ -327,11 +332,14 @@ public class SelectionTests
         // selects it; just outside misses. (Ported from the legacy label rect:
         // the rect is now the plate the lens painted, not one measured beside
         // a marker.) Proven RED by ignoring the plate in HitTest.
+        // PIN MOVED DELIBERATELY (P2: bands by visible km). Old: zoom 6 was Regional on this 256-px world (a third of it
+        // in view). New: zoom 6 shows 512 / 6 × 4 = 341 km — Settlement — so the Regional scenario is taken at the fit,
+        // zoom 2 (1024 km, the middle of the Regional plateau): the same band, the same plate-under-the-footprint geometry.
         int a = 100 + 100 * 256;
         WorldState world = MarkerWorld(a);
         var cam = new Camera(256);
         cam.Clamp(512, 512);
-        cam.ZoomAt(256, 256, 6.0 / cam.Zoom, 512, 512);
+        cam.ZoomAt(256, 256, 2.0 / cam.Zoom, 512, 512);
         (double sx, double sy) = cam.WorldToScreen(100.5, 100.5, 512, 512);
         Sim.Ui.World.LensFrame f = PaintFrame(world, cam, 512, 512);
         Assert.Equal(Sim.Ui.World.WorldZoom.Regional, f.Zoom);

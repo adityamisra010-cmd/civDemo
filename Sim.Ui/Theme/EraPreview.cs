@@ -96,7 +96,7 @@ public static class EraPreview
         double cx = size / 2, cy = size / 2;
         WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
         int capital = EmpireQuery.TryGetCapital(w, me, out SettlementId cap) ? cap.Value : -1;
-        WorldLens.Paint(d, m, p, WorldLens.LevelFor(zoom, ChromeW, ChromeH, size),
+        WorldLens.Paint(d, m, p, MapDetail.At(zoom, ChromeW, ChromeH, p.KmPerPx),   // P2: the game's continuous level of detail
             (x, y) => ((x - cx) * zoom + ChromeW / 2, (y - cy) * zoom + ChromeH / 2 + 4), zoom, new RectD(0, 0, ChromeW, ChromeH), capital,
             ink: MapInk.For(t));   // the era's map ink, exactly as the game derives it
 
@@ -195,7 +195,7 @@ public static class EraPreview
             }
         var d = new DrawList();
         WorldProjection p = WorldProjection.Build(w, s.Config, id => s.Names.Name(id), me);
-        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(zoom, MapW, MapH, size),
+        WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(zoom, MapW, MapH, p.KmPerPx),   // P2: as the game
             (x, y) => ((x - cx) * zoom + MapW / 2, (y - cy) * zoom + MapH / 2), zoom, new RectD(0, 0, MapW, MapH), capital,
             ink: MapInk.For(t), theme: t);   // exactly the game's call: the era's ink, hand and type
         return OverSubstrate(SvgWriter.Write(d, MapW, MapH, fontDir), terrainDataUri,

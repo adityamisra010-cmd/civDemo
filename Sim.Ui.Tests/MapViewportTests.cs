@@ -152,18 +152,24 @@ public class MapViewportUiTests : IDisposable
     }
 
     /// <summary>THE LEVEL OF DETAIL IS THE MAP RECT'S. One wheel notch from zoom 1 at 1280x800 shows 688/1.25 = 550 px of
-    /// world across the map rect's short side (0.537 of the world: Regional), where the window's would have been 640 px
-    /// (0.625: World).</summary>
+    /// world across the map rect's short side (P2: 2202 km at 4 km per px — Regional; it was 0.537 of the world), where
+    /// the window's would have been 640 px (2560 km: World; it was 0.625).
+    /// PIN MOVED DELIBERATELY (P2): the wheel now moves the camera's TARGET and the shown zoom EASES to it. Old: Zoom ==
+    /// 1.25 right after the notch. New: TargetZoom == 1.25 right after it, and Zoom == 1.25 (exactly: the ease snaps)
+    /// once it settles; the band is MapDetail's (km), which on this canonical world agrees with the old share rule.</summary>
     [Fact]
     public void LevelOfDetail_IsTheMapRectsVisibleSpan_NotTheWindows()
     {
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("lod"), Assets());
         Assert.Equal(1.0, h.Ui.Camera.Zoom);
         RectD map = h.Ui.MapRect;
+        double km = h.Ui.World.Terrain!.KmPerPx;
         h.Wheel(map.CenterX, map.CenterY, 1);
+        Assert.Equal(1.25, h.Ui.Camera.TargetZoom, 12);
+        Assert.True(h.Settle() >= 0, "the camera did not settle");
         Assert.Equal(1.25, h.Ui.Camera.Zoom, 12);
-        Assert.Equal(WorldZoom.World, WorldLens.LevelFor(h.Ui.Camera.Zoom, h.Width, h.Height, h.Ui.Camera.WorldSize));   // control
-        Assert.Equal(WorldZoom.Regional, WorldLens.LevelFor(h.Ui.Camera.Zoom, map.W, map.H, h.Ui.Camera.WorldSize));
+        Assert.Equal(WorldZoom.World, MapDetail.At(h.Ui.Camera.Zoom, h.Width, h.Height, km).Band);   // control
+        Assert.Equal(WorldZoom.Regional, MapDetail.At(h.Ui.Camera.Zoom, map.W, map.H, km).Band);
         Assert.Equal(WorldZoom.Regional, h.Ui.LensFrame!.Zoom);
     }
 
@@ -176,6 +182,7 @@ public class MapViewportUiTests : IDisposable
         using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("reframe"), Assets());
         RectD band = h.Ui.MapRect;
         h.Wheel(band.CenterX, band.CenterY, 3);
+        Assert.True(h.Settle() >= 0);   // P2: the wheel eases — measure the reframe from a settled view
         h.MoveTo(300, 400);
         (double wx, double wy) = h.Ui.Camera.ScreenToWorld(300, 400, h.Ui.MapRect);
         double zoom = h.Ui.Camera.Zoom;
@@ -197,6 +204,7 @@ public class MapViewportUiTests : IDisposable
         Assert.Equal(wy, cy, 9);
 
         for (int k = 0; k < 20; k++) h.Wheel(band.CenterX, band.CenterY, -2);   // out to the fit
+        Assert.True(h.Settle() >= 0);   // P2: the eased zoom reaches the fit once it settles
         Assert.Equal(h.Ui.Camera.MinZoom(band), h.Ui.Camera.Zoom);
         h.Key(Keys.D1);
         h.Idle(1);

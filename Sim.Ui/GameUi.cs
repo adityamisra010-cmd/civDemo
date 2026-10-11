@@ -583,6 +583,14 @@ public sealed partial class GameUi
     /// </summary>
     public void Update(MouseState mouse, KeyboardState keyboard, double dtSeconds, bool active = true)
     {
+        UpdateInput(mouse, keyboard, dtSeconds, active);
+        // P2: the map camera eases its shown view toward the target this frame's input set (wheel, W A S D, a glide),
+        // once per frame on every path — frame-rate independent (Camera.Advance). UI state only.
+        _camera.Advance(dtSeconds);
+    }
+
+    private void UpdateInput(MouseState mouse, KeyboardState keyboard, double dtSeconds, bool active)
+    {
         _active = active;
         _eraFade?.Advance(dtSeconds);
         Rectangle viewport = Viewport();
@@ -645,9 +653,10 @@ public sealed partial class GameUi
             if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Pressed)
                 _camera!.Pan(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y, map);
 
+            // P2: the wheel moves the camera's TARGET (×1.25 a notch about the cursor); the shown view eases to it.
             int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
             if (wheel != 0)
-                _camera!.ZoomAt(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), map);
+                _camera!.ZoomToward(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), map);
 
             // T2.4 click-select: press→release edge with a small movement
             // threshold so a drag-pan never doubles as a click. A miss keeps
@@ -692,7 +701,7 @@ public sealed partial class GameUi
             if (keyboard.IsKeyDown(Keys.S)) dy -= panPx;
             if (keyboard.IsKeyDown(Keys.A)) dx += panPx;
             if (keyboard.IsKeyDown(Keys.D)) dx -= panPx;
-            if (dx != 0 || dy != 0) _camera!.Pan(dx, dy, map);
+            if (dx != 0 || dy != 0) _camera!.GlidePan(dx, dy, map);   // P2: the keys glide (the target moves; the view eases)
 
             // P1: H folds every panel the map can take back (the right-hand column to its tab, the selection card to
             // its title) — and unfolds them when all are folded. Key edge; UI state only, never an order.
@@ -833,7 +842,9 @@ public sealed partial class GameUi
         // projected through it; its cull rect stays the window, because the map is drawn full-window beneath the chrome
         // (the gutters around an open context panel show map).
         Sim.Ui.Render.RectD map = _mapRect;
-        Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, map.W, map.H, cam.WorldSize);
+        // P2: the level of detail is CONTINUOUS, keyed on the visible km across the map rect (MapDetail — the terrain's own
+        // km per px); its derived band is the LensFrame's Zoom.
+        Sim.Ui.World.MapDetail detail = Sim.Ui.World.MapDetail.At(cam.Zoom, map.W, map.H, _world.Terrain!.KmPerPx);
         var lens = new Sim.Ui.Render.DrawList();
         // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
         // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
@@ -847,7 +858,7 @@ public sealed partial class GameUi
             legend = new Sim.Ui.World.LegendAnchor(_legendTabRect.X + _legendTabRect.Width, _legendTabRect.Y - margin / 2,
                 Math.Min(LegendMaxWidth * Scale, Math.Max(1, map.W - 2 * margin)));
         }
-        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, level,
+        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, detail,
             (x, y) => cam.WorldToScreen(x, y, map), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
             theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
@@ -1962,7 +1973,7 @@ public sealed partial class GameUi
             _selected = settlementId;
             RefreshHud();
         }
-        CameraFocus.CenterOn(_camera!, _world, settlementId, _mapRect);   // P1: at the centre of the clear map
+        CameraFocus.GlideTo(_camera!, _world, settlementId, _mapRect);   // P1: at the centre of the clear map; P2: it glides there
     }
 
     /// <summary>

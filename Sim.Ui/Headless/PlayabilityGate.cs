@@ -1786,6 +1786,26 @@ public static partial class PlayabilityGate
             }
         }
 
+        /// <summary>P2: the frames a wheel row lets the eased camera take to settle (ProgressionCamera's rate: a notch settles
+        /// in about 35 frames at 60 Hz; many notches at once take longer).</summary>
+        public const int SettleFrames = 240;
+
+        /// <summary>P2: the band of the camera's TARGET view over the map rect (where the ease is going).</summary>
+        private WorldZoom TargetBand() =>
+            MapDetail.At(Ui.Camera.TargetZoom, Ui.MapRect.W, Ui.MapRect.H, Ui.World.Terrain!.KmPerPx).Band;
+
+        /// <summary>P2: one wheel row — notches of <paramref name="notch"/> at the map's centre (at most
+        /// <paramref name="max"/>) until the target view's band is <paramref name="want"/>, then the ease settles.</summary>
+        private (GateResult, string) WheelUntil(WorldZoom want, int notch, int max)
+        {
+            (double x, double y) = Centre();
+            for (int k = 0; k < max && TargetBand() != want; k++) h.Wheel(x, y, notch);
+            int frames = h.Settle(SettleFrames);
+            return Expect(frames >= 0 && Ui.LensFrame?.Zoom == want,
+                "lens " + Ui.LensFrame?.Zoom + ", target band " + TargetBand()
+                + (frames < 0 ? ", the camera did not settle in " + SettleFrames.ToString(CultureInfo.InvariantCulture) + " frames" : ""));
+        }
+
         /// <summary>Drag pan, the wheel zooms and CenterOn (camera rows).</summary>
         private void CameraLookRows()
         {
@@ -1796,22 +1816,18 @@ public static partial class PlayabilityGate
                 h.Drag(x, y, x + 120, y + 40);
                 return Expect(Ui.Camera.CenterX != cx || Ui.Camera.CenterY != cy, "camera did not move");
             });
+            // P2 — RESTATED DELIBERATELY: the wheel moves the camera's TARGET and the shown view EASES to it, so a row that
+            // stopped at the first frame the lens showed the band could pass mid-glide, on a view the camera then left.
+            // Each wheel row now notches until the TARGET view's band (MapDetail, km) is the one wanted, lets the ease
+            // settle (bounded: SettleFrames — a camera that does not settle fails the row), and then requires the lens
+            // to draw that band from the settled view. (The point under the cursor once it settles is pinned where the
+            // clamp cannot intervene, by ContinuousLevelOfDetailTests / EasedCameraTests.)
             foreach (WorldZoom level in new[] { WorldZoom.Regional, WorldZoom.Settlement })
             {
                 WorldZoom want = level;
-                LookCheck("map", "wheel zoom to " + want, () =>
-                {
-                    (double x, double y) = Centre();
-                    for (int k = 0; k < 40 && Ui.LensFrame?.Zoom != want; k++) h.Wheel(x, y, 1);
-                    return Expect(Ui.LensFrame?.Zoom == want, "lens " + Ui.LensFrame?.Zoom);
-                });
+                LookCheck("map", "wheel zoom to " + want, () => WheelUntil(want, +1, 40));
             }
-            LookCheck("map", "wheel zoom out to World", () =>
-            {
-                (double x, double y) = Centre();
-                for (int k = 0; k < 60 && Ui.LensFrame?.Zoom != WorldZoom.World; k++) h.Wheel(x, y, -1);
-                return Expect(Ui.LensFrame?.Zoom == WorldZoom.World, "lens " + Ui.LensFrame?.Zoom);
-            });
+            LookCheck("map", "wheel zoom out to World", () => WheelUntil(WorldZoom.World, -1, 60));
             LookCheck("map", "centre on a settlement (CameraFocus.CenterOn)", () =>
             {
                 // The first settlement (table order) whose marker is more than 50 px from the map rect's centre; after

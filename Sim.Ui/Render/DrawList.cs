@@ -135,6 +135,37 @@ public sealed class DrawList
     }
 
 
+    /// <summary>
+    /// P2 (the map's cross-fades): multiplies the alpha of every command from index <paramref name="start"/> on by
+    /// <paramref name="alpha"/> — fills, strokes, lines and text alike, each rounded to the byte. At an alpha of 1 or more
+    /// NOTHING is rewritten (a plateau of the level of detail paints exactly what it painted before); below 0 it is 0.
+    /// </summary>
+    public void FadeFrom(int start, double alpha)
+    {
+        if (alpha >= 1) return;
+        double a = System.Math.Max(0.0, alpha);
+        for (int i = System.Math.Max(0, start); i < _cmds.Count; i++) _cmds[i] = Faded(_cmds[i], a);
+    }
+
+    /// <summary>The command with every colour's alpha multiplied by <paramref name="alpha"/> (0..1).</summary>
+    public static DrawCmd Faded(DrawCmd c, double alpha)
+    {
+        Rgba F(Rgba x) => new(x.R, x.G, x.B, (byte)System.Math.Round(x.A * alpha));
+        Rgba? N(Rgba? x) => x is Rgba v ? F(v) : null;
+        return c switch
+        {
+            RectCmd r => r with { Fill = N(r.Fill), Stroke = N(r.Stroke) },
+            LineCmd l => l with { Color = F(l.Color) },
+            BezierCmd b => b with { Color = F(b.Color) },
+            PolygonCmd p => p with { Fill = F(p.Fill) },
+            CircleCmd k => k with { Fill = N(k.Fill), Stroke = N(k.Stroke) },
+            ArcCmd a => a with { Color = F(a.Color) },
+            TextCmd t => t with { Color = F(t.Color) },
+            PolylineCmd pl => pl with { Color = F(pl.Color) },
+            _ => c,
+        };
+    }
+
     public void PushClip(RectD r) => _cmds.Add(new ClipPushCmd(r));
     public void PopClip() => _cmds.Add(new ClipPopCmd());
 

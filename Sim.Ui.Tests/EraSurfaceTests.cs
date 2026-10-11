@@ -332,7 +332,7 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
         cam.Pan((cam.CenterX - (cell % size + 0.5)) * cam.Zoom, (cam.CenterY - (cell / size + 0.5)) * cam.Zoom, vw, vh);
         WorldProjection p = WorldProjection.Build(w, fx.Session.Config, id => fx.Session.Names.Name(id), Me);
         var d = new DrawList();
-        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(cam.Zoom, vw, vh, size),
+        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(cam.Zoom, vw, vh, p.KmPerPx),   // P2: the game's continuous detail
             (x, y) => cam.WorldToScreen(x, y, vw, vh), cam.Zoom, new RectD(0, 0, vw, vh), cap.Value,
             ink: MapInk.For(t), theme: t);
         return (d, f, cam, w);

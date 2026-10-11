@@ -225,8 +225,11 @@ public sealed class PreviewToolProcessTests : IDisposable
         Assert.Contains(lines, l => l.StartsWith("- canonical: turn 2, 12 settlements,", StringComparison.Ordinal));
         Assert.Contains(lines, l => l.StartsWith("- high-count: turn 1, 24 settlements,", StringComparison.Ordinal));
 
+        // PIN MOVED DELIBERATELY (P2): the row gained a last column, the band's frames painted inside a cross-fade of the
+        // continuous level of detail (the sweep now paints MapDetail, as the game does). Old: 10 columns ending in
+        // culled/frame; new: 11, the last an integer no larger than the frames/sweep (asserted below).
         var row = new System.Text.RegularExpressions.Regex(
-            @"^\| (\d+)x(\d+) \| (canonical|high-count) \| (World|Regional|Settlement) \| (\d+) \| (\d+\.\d\d) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+\.\d) \|$");
+            @"^\| (\d+)x(\d+) \| (canonical|high-count) \| (World|Regional|Settlement) \| (\d+) \| (\d+\.\d\d) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+\.\d) \| (\d+) \|$");
         var seen = new SortedSet<string>(StringComparer.Ordinal);
         foreach (string l in lines)
         {
@@ -235,6 +238,8 @@ public sealed class PreviewToolProcessTests : IDisposable
             Assert.True(seen.Add(m.Groups[1].Value + "x" + m.Groups[2].Value + " " + m.Groups[3].Value + " " + m.Groups[4].Value), "repeated row: " + l);
             Assert.True(int.Parse(m.Groups[5].Value, CultureInfo.InvariantCulture) > 0, "a band row with no frames: " + l);
             Assert.True(int.Parse(m.Groups[7].Value, CultureInfo.InvariantCulture) > 0, "a band row that drew nothing: " + l);
+            Assert.True(int.Parse(m.Groups[12].Value, CultureInfo.InvariantCulture) <= int.Parse(m.Groups[5].Value, CultureInfo.InvariantCulture),
+                "more cross-fade frames than frames: " + l);
         }
         foreach ((int w, int h) in Sim.Ui.Headless.MapFrameCost.Windows)
             foreach (string world in new[] { "canonical", "high-count" })
