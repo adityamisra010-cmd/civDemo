@@ -41,6 +41,8 @@ public enum InfoKind
     /// <summary>M5 P8: a terrain cell of the map: Id = its cell index (y × size + x), Settlement = the source settlement the
     /// founding arms and the route are judged from (-1 = the capital).</summary>
     Cell = 15,
+    /// <summary>M5 S1d: the Found Settlement order FROM a settlement (D-051 §5): Id = the source settlement's id.</summary>
+    Founding = 16,
 }
 
 /// <summary>
@@ -64,6 +66,7 @@ public readonly record struct InfoSubject(InfoKind Kind, long Id = 0, string? Re
     public static InfoSubject OfUniversity(int typeKey) => new(InfoKind.UniversityType, typeKey);
     public static InfoSubject Research => new(InfoKind.Learning);
     public static InfoSubject OfCell(int cell, int source = -1) => new(InfoKind.Cell, cell, null, source);
+    public static InfoSubject OfFounding(int source) => new(InfoKind.Founding, source);
 }
 
 /// <summary>Where a subject stands for the issuer now — each value the reading of the simulation's own predicate.</summary>
@@ -218,6 +221,7 @@ public static class InfoQuery
             case InfoKind.UniversityType: UniversityCard(c, b); break;
             case InfoKind.Learning: LearningCard(c, b); break;
             case InfoKind.Cell: CellCard(c, b); break;
+            case InfoKind.Founding: FoundingCard(c, b); break;
             default: b.Unknown("this kind of object"); break;
         }
         return b.Build(c);
@@ -1242,6 +1246,65 @@ public static class InfoQuery
         ]));
     }
 
+    // ================================================================== Found Settlement (M5 S1d)
+
+    /// <summary>
+    /// M5 S1d — THE FOUND SETTLEMENT ORDER FROM ONE SETTLEMENT (D-051 §5): what the order does, the SOURCE-side arms of
+    /// THE predicate read on this world (the source is yours; the party <see cref="FoundingQuery.AllocateParty"/> would form;
+    /// the provisions <see cref="FoundingQuery.ProvisionsShare"/> would send — <see cref="FoundingQuery.Departure"/>, the
+    /// function the intake applies), whether one is already ordered this turn, and that the PLACE is chosen on the map,
+    /// where each place's card judges the rest of the predicate. It carries the live descriptor when
+    /// <see cref="AvailableActionsQuery.Colonization"/> lists it. A settlement the player does not know names nothing.
+    /// </summary>
+    private static void FoundingCard(Ctx c, B b)
+    {
+        int src = b.Subject.Id is >= 0 and <= int.MaxValue ? (int)b.Subject.Id : -1;
+        var id = new SettlementId(src);
+        bool stands = false;
+        for (int i = 0; i < c.W.Settlements.Count && src >= 0; i++) if (c.W.Settlements[i].Id == id) { stands = true; break; }
+        if (!stands || !c.K.KnowsSettlement(id)) { b.Unknown("settlement you know with this id"); return; }
+        string from = c.Name(src);
+        b.Title = "Found a settlement";
+        b.Kind = "An order from " + from + " - settlers leave it with provisions and found a settlement where you choose";
+        b.What = "A party of " + from + "'s people sets out with its share of the grain and founds a settlement on a place you choose on the map; "
+            + "the settlement is yours, as its source is. People and grain move only through the Ledger: nothing is created.";
+        b.Effect = InfoEffect.Simulated;
+        b.RealizedBy = "ColonizationSystem founds it at End Turn (the settlement stands the next turn) when FoundingQuery.Check answers Legal "
+            + "on the world it was ordered from - the predicate the placement mode and the AI ask too.";
+        ActionDescriptor? action = Find(c, ActionDomain.Colonization, src);
+        b.Action = action;
+
+        bool mine = EmpireQuery.ControlsSettlement(c.W, c.P, id);
+        long party = 0, provisions = 0;
+        FoundingVerdict departure = FoundingQuery.Departure(c.W.Buckets, c.W.GoodStocks, c.Cfg, id, null, out party);
+        if (c.Cfg.Goods is { } goods) provisions = FoundingQuery.ProvisionsShare(c.W.GoodStocks, c.W.Buckets, id, new GoodId(goods.GrainId), party);
+        bool queued = c.Q.Queued is { } q && AvailableActionsQuery.FoundingQueued(q, c.P, id);
+        string grain = GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1);
+        b.Requirements.Add(new InfoLink(from + " is yours", null, mine));
+        b.Requirements.Add(new InfoLink("A party: " + N0(party) + " people would leave", null, mine ? party >= 1 : null,
+            "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.Cfg)) + " of the source's people, every group keeping one."));
+        b.Requirements.Add(new InfoLink("Provisions: " + N0(provisions) + " " + grain + " would go with them", null, mine && party >= 1 ? provisions >= 1 : null,
+            "FoundingQuery.ProvisionsShare: the party's per-head share of the source's grain store."));
+        b.Requirements.Add(new InfoLink("The place: chosen on the map", null, null,
+            "Each place's card judges the rest - on the map, land, at or above the siting floor, no settlement there or too near, in no catchment, a land route from " + from + "."));
+
+        if (action is not null)
+        {
+            b.Status = InfoStatus.Available;
+            b.StatusLine = "Available: choose a place on the map (POLICY - Choose a site..., or F).";
+            b.Summary = action.Detail;
+        }
+        else
+        {
+            b.Status = InfoStatus.Locked;
+            b.StatusLine = !mine ? "Not available: " + from + " is not yours to send settlers from."
+                : queued ? "Already ordered this turn: the settlers leave " + from + " at End Turn."
+                : departure == FoundingVerdict.NoParty ? "Not available: " + from + " cannot spare a party."
+                : departure == FoundingVerdict.NoProvisions ? "Not available: " + from + " cannot provision a party."
+                : c.W.Terrain is null ? "Not available: this world has no map to settle." : "Not available.";
+        }
+    }
+
     /// <summary>P8 (the player's class): the predicate's answer when an arm it reaches depends on what the player has not seen.</summary>
     private const string FoundingNotJudged = "not judged - whether a Found Settlement order would be accepted here depends on what you have not seen";
 
@@ -1249,7 +1312,9 @@ public static class InfoQuery
 
     private const string UnseenClaim = "Not judged: no settlement you know claims it, and whether another does depends on what you have not seen.";
 
-    private static string FoundingLine(FoundingVerdict v, string from) => v switch
+    /// <summary>The founding predicate's verdict in the player's words (the place card's status line; M5 S1d: the placement mode's
+    /// hint and bar say the same).</summary>
+    public static string FoundingLine(FoundingVerdict v, string from) => v switch
     {
         FoundingVerdict.Legal => "a Found Settlement order from " + from + " would be accepted",
         FoundingVerdict.UnknownSource => "you hold no settlement to send settlers from",
