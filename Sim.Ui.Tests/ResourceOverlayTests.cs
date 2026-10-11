@@ -277,8 +277,9 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
 
     // ================================================================== NON-INTERFERENCE (the P7 stub)
 
-    /// <summary>A copy of <paramref name="t"/> with every layer changed in every cell of a node <paramref name="known"/>
-    /// leaves out: elevation, temperature, moisture, fertility, and rivers and water flipped on a salted pattern.</summary>
+    /// <summary>A copy of <paramref name="t"/> with every layer changed in every cell of a node <paramref name="k"/> does not
+    /// know: elevation, temperature, moisture, fertility, and rivers and water flipped on a salted pattern — or, for salt 3,
+    /// all of it flooded (a sea where the undiscovered ground was).</summary>
     private static TerrainSet PerturbedUnderUnknown(TerrainSet t, PolityKnowledge k, int salt)
     {
         double[] elevation = t.Elevation.ToArray(), water = t.Water.ToArray(), temperature = t.Temperature.ToArray(),
@@ -287,6 +288,16 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         for (int cell = 0; cell < fertility.Length; cell++)
         {
             if (k.KnowsCell(cell)) continue;
+            changed++;
+            if (salt == 3)
+            {
+                // A sea where the undiscovered ground was: what lies there decides routes across it.
+                water[cell] = 1.0;
+                rivers[cell] = 0.0;
+                elevation[cell] = t.SeaLevel - 0.05;
+                fertility[cell] = 0.0;
+                continue;
+            }
             double f = 0.1 * salt;
             fertility[cell] = Math.Min(1.0, fertility[cell] * 0.5 + f);
             moisture[cell] = Math.Min(1.0, moisture[cell] * 0.5 + f);
@@ -294,7 +305,6 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
             elevation[cell] += 0.013 * salt;
             if ((cell * 31 + salt) % 13 == 0) rivers[cell] = 1.0 - rivers[cell];
             if ((cell * 17 + salt) % 29 == 0) water[cell] = 1.0 - water[cell];
-            changed++;
         }
         Assert.True(changed > 1000);
         var polylines = new int[t.RiverPolylineCount][];
@@ -348,7 +358,9 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
 
         var stub = new List<(string Bake, string Status, string Key, string Paint, ResourceOverlay B)>();
         var control = new List<(string Bake, string Status, string Key, string Paint, ResourceOverlay B)>();
-        foreach (int salt in new[] { 0, 1, 2 })
+        var statuses = new List<OverlayStatus>();
+        var controlStatuses = new List<OverlayStatus>();
+        foreach (int salt in new[] { 0, 1, 2, 3 })
         {
             WorldState w = w0.Clone();
             if (salt > 0)
@@ -365,7 +377,14 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
             }
             stub.Add(Outputs(w, cfg, mask, name));
             control.Add(Outputs(w, cfg, null, name));
+            statuses.Add(stub[^1].B.Status(w, cfg, KnowledgeStubs.Over(w, Me, mask)));
+            controlStatuses.Add(control[^1].B.Status(w, cfg, PlayerKnowledge.Of(w, Me)));
         }
+        // Routes run over the whole lattice: under the restricted view they are not judged, and the key says so.
+        foreach (OverlayStatus st in statuses) Assert.Null(st.Reachable);
+        Assert.Contains("Accessible: routes not judged (undiscovered ground)", stub[0].Key);
+        // CONTROL: all-known, the flooded ground moves what is reachable — the status would leak it if it were judged.
+        Assert.NotEqual(controlStatuses[0].Reachable, controlStatuses[3].Reachable);
         ResourceOverlay b0 = stub[0].B;
         Assert.False(b0.AllKnown || b0.SeesAll);
         Assert.True(b0.KnownNodes < b0.NodeCount - 200, "the stub hides too little: " + (b0.NodeCount - b0.KnownNodes));
@@ -381,8 +400,8 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
             Assert.Equal(stub[0].Paint, stub[i].Paint);
         }
         // POSITIVE CONTROL: all-known, the same perturbations move the bake and the paint.
-        Assert.Equal(3, control.Select(c => c.Bake).Distinct().Count());
-        Assert.Equal(3, control.Select(c => c.Paint).Distinct().Count());
+        Assert.Equal(4, control.Select(c => c.Bake).Distinct().Count());
+        Assert.Equal(4, control.Select(c => c.Paint).Distinct().Count());
         // And nothing the stub's bake draws lies on an undiscovered node.
         for (int n = 0; n < b0.NodeCount; n++)
             foreach (OverlayLayer layer in b0.Layers)
