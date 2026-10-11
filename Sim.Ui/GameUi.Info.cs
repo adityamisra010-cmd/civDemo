@@ -208,6 +208,10 @@ public sealed partial class GameUi
         InfoRegistry.Add(MapCells.Region(_camera!, _mapRect, cell, terrain.Size, px, py), InfoSubject.OfCell(cell, source), "place", passive: true);
     }
 
+    /// <summary>P8: the session's site half, asked for only while a PLACE's card is open — it is prepared the first time
+    /// (a pass over the terrain), so no other card pays for it.</summary>
+    private SiteAssessment.Prepared? PlaceSites() => _inspector.Subject is { Kind: InfoKind.Cell } ? _session.Sites : null;
+
     private void RegisterFormationTokens()
     {
         if (_lensFrame is null) return;
@@ -225,7 +229,7 @@ public sealed partial class GameUi
         _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-            _session.Names.Name, queued.Count, _session.Knowledge.Core, _session.Sites);   // P7: the card knows what the player knows; P8: a place's site half
+            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7: the card knows what the player knows; P8: a place's site half
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -295,7 +299,7 @@ public sealed partial class GameUi
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-                _session.Names.Name, queued.Count, _session.Knowledge.Core, _session.Sites);   // P7; P8
+                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7; P8
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);
