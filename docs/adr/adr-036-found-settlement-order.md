@@ -395,3 +395,88 @@ leaves the pick unchanged (control: all-known, the same raise moves it to an unk
 under the unknown half (fertility 0 or 1), the pick is a known cell and the oracle's best known legal cell (control:
 all-known, fertility 1 moves it to an unknown cell). The valuation channel's quarantine asserts it still open. Mutant
 (the `KnowsCell` arm dropped): killed by all three (ADR-037 / `docs/m5-playability-gate.md` §3.6 kill record).
+
+## 9. The player's placement mode (M5 S1d, appended 2026-10-11)
+
+**Written by packet S1d** (branch `m5w-s1d-found-settlement-ui`, cut from `m5w-p8-site-inspection` @ `efef5da`, LOCAL,
+not pushed, not merged). Presentation and order emission only: no system, table, schema, order kind or golden changed.
+D-051 §5: *"The player picks one of their settlements and an unclaimed, reachable site."* — the picking, on the map.
+
+**The action (Sim.Core, read-only).** `AvailableActionsQuery` gains the domain `Colonization` (12): ONE Order descriptor
+(`OrderKind.FoundSettlement`, Id = the source settlement, target = the source) per settlement the issuer controls whose
+SOURCE-side arms of THE predicate hold on the world asked about — arm 1 (`EmpireQuery.ControlsSettlement`) and arms 5–6
+(`FoundingQuery.Departure` on the world's tables, the function the intake applies). The per-cell arms cannot be judged
+without a cell; they are judged per place in the placement mode, by the same predicate. Not listed: a world without
+terrain; a source with a FoundSettlement order of the issuer's already queued this turn (the intake founds only the first
+legal order per source per turn — §4 — so a second would be skipped; the Age precedent). Detail: the party and its
+provisions, `FoundingQuery.AllocateParty` / `ProvisionsShare` on that world (departure is live, §3, so they are what
+would leave if it departed from this world). `FoundingQuery.RouteFrom` (new, read-only) is `RouteQuery.Find` between the
+source's and the site's origin nodes on the frontier lattice and overlay — the route arm 7 judges, for the preview;
+`InfoQuery.FoundingLine` is now public (the placement mode says the place card's own words). **The action's card:**
+`InfoKind.Founding` (16, `InfoSubject.OfFounding(source)`) — InfoQuery's contract is that every listed action has a card
+carrying exactly its descriptor (InfoQueryTests): the order in words, the source-side arms read on the world (the source
+is yours; the party; the provisions — each with its function), that the place is chosen on the map, and — when the action
+is not listed — which source arm fails or that it is already ordered this turn; a settlement the player does not know
+names nothing. POLICY's founding heading registers it for Shift+click.
+
+**The emitter (Sim.Ui).** `UiSession.EmitFoundSettlement(source, cell)` — ONE emitter, the ActionEmitterGuardTests
+pattern — appends `FoundSettlementOrderFactory.Create`, which is `FoundingQuery.FoundOrder` (the AI's constructor),
+stamped with the current turn, built only when:
+1. the player KNOWS the cell (`PolityKnowledge.KnowsCell` — the arm the AI's site scan puts first, P7; the predicate's
+   own known-extent arm is inert until S2a, so the UI is STRICTER than the intake here, never looser);
+2. no queued order from the same source already founds this turn; and
+3. `FoundingQuery.Check` (the explicit overload) answers Legal with the standing sites the intake will hold when it
+   reaches this order: `FoundSettlementOrderFactory.Standing` replays this turn's queued FoundSettlement orders in log
+   order through the same predicate, growing `AiFoundingPolicy.Sites` (the AI's batch state, reused) with each legal one
+   — the `ColonizationSystem.FoundOrdered` loop on PREV.
+
+CONSERVATIVE in one respect only, and in the safe direction: departure is live, so a queued order the step leaves
+without a party founds nothing; the factory still counts its colony, which can only refuse an order the step would have
+accepted, never queue one it refuses.
+
+**The placement mode (Sim.Ui, UI state only).** Entered from the action surface's new block ("Choose a site..." —
+`ActionHitKind.FoundSettlement`, for the block's source: the selection when listed, else the capital, else the first
+listed) or with **F**; left with **Escape**, the bar's **Cancel**, an End Turn, or once an order was appended. Over open
+map, the KNOWN cell under the pointer is judged (`PlacementMode` → `FoundSettlementOrderFactory.Judge`, the emitter's own
+judgement) and painted in the verdict's ink with a painted hint beside the pointer — the verdict in the place card's
+words, the route and its cost, the party and the provisions — never an ImGui tooltip. Once the pointer rests on a place
+(`PlacementMode.CardRestFrames`, 8 frames: the card assesses the place, tens of ms) the route (`FoundingQuery.RouteFrom`)
+is drawn and the P8 place card judged FROM THE SOURCE (`InfoSubject.OfCell(cell, source)`: the predicate arm by arm, the
+route and its cost, the party and the provisions) is docked in the right-hand column. **Two steps:** a click CHOOSES a
+place — an illegal one too, so its reason stays on the placement bar; **Confirm** (or **Enter**) asks the emitter, which
+appends nothing for an illegal place (Confirm is disabled there; Enter's refusal is shown on the bar). Undiscovered ground
+is neither hoverable nor selectable. In the mode a map click chooses a place and selects no settlement or formation.
+
+**The player's information class (ADR-037 §7).** While the player sees the whole world (`SiteAssessment.SeesAll`;
+production today) the reason and the route are the simulation's own. Otherwise a refusal decided by what lies beyond the
+player's knowledge (the floor over every cell, occupancy, spacing, the claim, the route) is told only as "why depends on
+what you have not seen", and no route is drawn or told. **Recorded, not hidden: whether a place is LEGAL is still the
+predicate's answer**, which reads every settlement and road — an order surface that refuses what the intake refuses must
+show that one bit. Which world the predicate judges a fogged issuer's order against is S2b's ruling (`docs/queue.md`).
+
+**Gate.** A new state, `placement` (turn 1, a Found Settlement order placed through the emitter from the capital to its
+best legal place, one End Turn — the colony stands; the monkey starts inside the mode), and a placement area in every
+state's sweep; the monkey's keys gain F (Enter and Escape were already among them). Record:
+`docs/m5-playability-gate.md` §3.8.
+
+### 9.1 Evidence (this branch, Release; full record `docs/m5-playability-gate.md` §3.8)
+
+- **The UI never queues what the intake refuses** (`ActionEmitterGuardTests.FoundSettlement_IsQueuedOnlyWhereTheSystemFoundsIt…`):
+  refused for a foreign source, an unknown source, the source's own site, water, off the map, a second order from a source
+  already sending settlers, and the place a queued order's colony takes — each with a control showing the same place
+  legal without that condition; over a sweep of places around the capital the factory offers an order exactly where
+  ColonizationSystem, delivering that order alone, founds; the log the UI wrote (player and AI orders) replays hash for hash.
+- **The flow, the ledger, the replay** (`FoundSettlementUiTests`, the live UI in the headless harness): choose a site,
+  hover, click, Confirm, End Turn — the colony stands at the site in t+1, the player's, `FoundedTurn` t+1, conserved; the
+  UI-queued order delivered by ColonizationSystem alone moves exactly `AllocateParty`'s people key for key and
+  `ProvisionsShare`'s grain (exact equality); a UI-queued order stamped turn 1 replays hash for hash and founds in turn 2,
+  not before; illegal places queue nothing and say why; undiscovered ground is never hovered, chosen or ordered (all-known
+  control accepts the same cell); hover, wheel, drag and the docked card change no hash and no queue.
+- **The action** (Sim.Tests `AvailableActionsColonizationTests`): listed iff controlled and `Departure` Legal, with the
+  exact party and provisions; unlisted for an empty granary, a party that floors to nobody, an absent section, no terrain,
+  or an order already queued by the issuer; the founding card carries the descriptor or names the failing arm.
+- **Moved pins** (old → new, cause: the query lists the new action, one per settlement at turn 1): Sim.Tests
+  `TurnOneActionSurfaceTests` 84 → 96 descriptors; Sim.Ui.Tests `ActionSurfaceTests` turn-1 domains + `Colonization`, hit
+  kinds + `FoundSettlement`, query count 84 → 96. No golden moved: the founded seed-42 300-turn golden is
+  `937577ff…` (two CLI processes, byte-identical logs).
+- **Mutants:** 15 one-edit mutants, each killed by a semantic test (§3.8 of the gate record).
