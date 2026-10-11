@@ -311,6 +311,114 @@ public class FoundSettlementUiTests : IDisposable
         Assert.Empty(h.Problems);
     }
 
+    // ------------------------------------------------------------------ a founding already queued this turn (S1d review)
+
+    [Fact]
+    public void AFoundingQueuedThisTurn_InsideItsColonysExclusion_TheHintTheBarConfirmAndTheDockedCardGiveOneVerdict()
+    {
+        // S1d review finding: the mode judged each place against this turn's batch, the P8 card it docked judged the bare
+        // world — so once a founding was queued, the card said a refused place "would be accepted" and ticked every arm,
+        // while the hint said "too close to a standing settlement" where none stands. Now the card is judged against the
+        // mode's own batch and a refusal only an ordered colony causes is told in its own words, everywhere alike.
+        UiSession s = Fresh();
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("batch"), Assets());
+
+        // One founding queued through the UI: the block's source to its best legal place.
+        int first = ChooseASite(h);
+        int ordered = LegalSite(s, first);
+        (double ox, double oy) = Aim(h, ordered);
+        h.Click(ox, oy);
+        Assert.True(h.ClickControl("found-confirm"));
+        OrderRecord order = Assert.Single(s.QueuedOrders());
+        string hash = Hash(s);
+
+        // ANOTHER source the surface lists, and a known place the bare world accepts from it that only the ordered colony's
+        // spacing refuses (the emitter's own judgement against this turn's batch).
+        int other = -1;
+        foreach (ActionDescriptor a in h.Ui.Actions.Model!.Actions)
+            if (a.Domain == ActionDomain.Colonization && a.Id != first) { other = checked((int)a.Id); break; }
+        Assert.True(other >= 0, "no second source listed - the rig is void");
+        string from = s.Names.Name(other);
+        SettlementSiting.FrontierSiting f = s.Sites!.Frontier;
+        FoundSettlementOrderFactory.Pending pending = FoundSettlementOrderFactory.Standing(s.World, s.Config, f, s.QueuedOrders());
+        int size = s.World.Terrain!.Size;
+        int cell = NearestCell(size, ordered, c => s.Knowledge.KnowsCell(c)
+            && FoundingQuery.Check(s.World, s.Config, f, Me, new SettlementId(other), c) == FoundingVerdict.Legal
+            && FoundSettlementOrderFactory.Judge(s.World, s.Config, f, s.Knowledge.Core, Me, new SettlementId(other), c, pending) == FoundingVerdict.TooClose);
+        Assert.True(cell >= 0, "no place inside the ordered colony's exclusion only - the rig is void");
+        string reason = InfoQuery.FoundingLine(FoundingVerdict.TooClose, from, byOrder: true);
+        Assert.Equal("too close to a settlement you ordered this turn", reason);
+
+        // The place's card is already open (built before the mode, without its batch); entering the mode and resting on the
+        // place docks the same subject, so the open card must be RE-JUDGED against the mode's batch, not kept.
+        h.Ui.OpenInfo(InfoSubject.OfCell(cell, other));
+        h.Idle(1);
+        Assert.NotNull(h.Ui.Inspector.Card);
+        Assert.True(h.Ui.BeginPlacement(other));
+        Assert.Equal(FoundingVerdict.TooClose, h.Ui.Placement.Judge(s, cell));
+
+        // HOVER, then rest: the hint and the docked card say the same thing.
+        (double x, double y) = Aim(h, cell);
+        h.MoveTo(x, y);
+        h.Idle(PlacementMode.CardRestFrames + 1);
+        Assert.Equal(cell, h.Ui.Placement.Hovered);
+        Assert.Equal(FoundingVerdict.TooClose, h.Ui.Placement.HoveredVerdict);
+        Assert.NotNull(h.Ui.PlacementHint);
+        Assert.Equal("Not here: " + reason, h.Ui.PlacementHint!.Split('\n')[0]);
+        Assert.DoesNotContain("standing settlement", h.Ui.PlacementHint);
+        Assert.Equal(InfoSubject.OfCell(cell, other), h.Ui.Inspector.Subject);
+        InfoCard card = h.Ui.Inspector.Card ?? throw new InvalidOperationException("no card docked");
+        AssertCardRefuses(card, reason);
+
+        // CLICK: chosen with the same reason on the bar; Confirm disabled; the card unchanged; Enter refuses in those words.
+        h.Click(x, y);
+        Assert.Equal(cell, h.Ui.Placement.Selected);
+        Assert.Equal(FoundingVerdict.TooClose, h.Ui.Placement.SelectedVerdict);
+        Assert.False(h.Ui.Placement.CanConfirm);
+        Assert.True(h.Ui.FrameText.Contains(" - " + reason + ".", FrameSurface.Placement), "the bar does not say why: " + reason);
+        Assert.Equal(card, h.Ui.Inspector.Card);
+        Assert.True(h.ClickControl("found-confirm"));   // drawn disabled: nothing
+        h.Key(Keys.Enter);
+        Assert.Equal("Not here: " + reason + ".", h.Ui.Placement.Refusal);
+        Assert.False(s.EmitFoundSettlement(other, cell));   // the guard agrees
+        Assert.Equal(order, Assert.Single(s.QueuedOrders()));
+        Assert.Equal(hash, Hash(s));
+
+        // The ordered site itself: occupied by the order, told as such by the hint, the bar and the card alike.
+        string here = InfoQuery.FoundingLine(FoundingVerdict.Occupied, from, byOrder: true);
+        (double sx, double sy) = Aim(h, ordered);
+        h.MoveTo(sx, sy);
+        h.Idle(PlacementMode.CardRestFrames + 1);
+        Assert.Equal(FoundingVerdict.Occupied, h.Ui.Placement.HoveredVerdict);
+        Assert.Equal("Not here: " + here, h.Ui.PlacementHint!.Split('\n')[0]);
+        h.Click(sx, sy);
+        Assert.True(h.Ui.FrameText.Contains(" - " + here + ".", FrameSurface.Placement), "the bar does not say why: " + here);
+        Assert.Equal(InfoSubject.OfCell(ordered, other), h.Ui.Inspector.Subject);
+        AssertCardRefuses(h.Ui.Inspector.Card!, here);
+
+        // CONTROL (the defect's own reproduction): the bare card — no batch — for the first place says it would be accepted.
+        InfoCard bare = InfoQuery.Card(s.World, s.Config, Me, InfoSubject.OfCell(cell, other), settlementName: s.Names.Name,
+            knowledge: s.Knowledge.Core, site: s.Sites);
+        Assert.Equal(InfoQuery.FoundingLine(FoundingVerdict.Legal, from) + ".", bare.StatusLine);
+
+        h.Key(Keys.Escape);
+        Assert.False(h.Ui.Placement.Active);
+        Assert.Equal(order, Assert.Single(s.QueuedOrders()));
+        Assert.Equal(hash, Hash(s));
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>The docked place card refuses with <paramref name="reason"/>: its status line, its FoundingQuery line (not
+    /// ticked), and an arm that fails because of the order queued this turn.</summary>
+    private static void AssertCardRefuses(InfoCard card, string reason)
+    {
+        Assert.Equal(reason + ".", card.StatusLine);
+        InfoSection arms = card.More.Single(sec => sec.Heading.StartsWith("Founding here", StringComparison.Ordinal));
+        Assert.Equal("FoundingQuery: " + reason, arms.Lines[0].Label);
+        Assert.False(arms.Lines[0].Met);
+        Assert.Contains(arms.Lines.Skip(1), l => l.Met == false && (l.Note ?? "").StartsWith("A settlement you ordered this turn will stand", StringComparison.Ordinal));
+    }
+
     // ------------------------------------------------------------------ F, Cancel, and undiscovered ground
 
     [Fact]
@@ -413,6 +521,14 @@ public class FoundSettlementUiTests : IDisposable
             Assert.NotEqual(InfoQuery.FoundingLine(v, "Ur"), text);
             Assert.Contains("depends on what you have not seen", text);
         }
+        // S1d review: a refusal only an order queued this turn causes is told in its own words (the card's); under a partial
+        // view the player's own ordered site is the player's to know, the spacing of one is not (it reads the lattice).
+        foreach (FoundingVerdict v in Enum.GetValues<FoundingVerdict>())
+            Assert.Equal(InfoQuery.FoundingLine(v, "Ur", byOrder: true), PlacementMode.ReasonText(v, "Ur", seesAll: true, byOrder: true));
+        Assert.Equal("a settlement you ordered this turn will stand here", PlacementMode.ReasonText(FoundingVerdict.Occupied, "Ur", seesAll: false, byOrder: true));
+        Assert.Contains("depends on what you have not seen", PlacementMode.ReasonText(FoundingVerdict.TooClose, "Ur", seesAll: false, byOrder: true));
+        Assert.Equal("too close to a settlement you ordered this turn", PlacementMode.ReasonText(FoundingVerdict.TooClose, "Ur", seesAll: true, byOrder: true));
+        Assert.Equal("too close to a standing settlement", PlacementMode.ReasonText(FoundingVerdict.TooClose, "Ur", seesAll: true, byOrder: false));
     }
 
     // ------------------------------------------------------------------ the ledger and the replay

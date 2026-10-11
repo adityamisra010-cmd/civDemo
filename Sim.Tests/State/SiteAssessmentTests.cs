@@ -274,6 +274,156 @@ public class SiteAssessmentTests
             Assert.Contains(v, seen);
     }
 
+    // ================================================================== AGAINST THIS TURN'S QUEUED FOUNDINGS (M5 S1d review)
+
+    /// <summary>The batch one queued founding makes: the world's settlements, then <paramref name="ordered"/> (AiFoundingPolicy.Sites
+    /// grown by it — the intake's own growth, the arrays FoundingQuery.Check's explicit overload takes).</summary>
+    private static SiteAssessment.Batch BatchWith(IReadOnlyWorldState w, SettlementSiting.FrontierSiting f, int ordered)
+    {
+        var sites = new Sim.Core.Systems.Colonization.AiFoundingPolicy.Sites(w, f);
+        int standing = sites.Occupied.Length;
+        double[] standingSpacing = sites.Spacing.ToArray();
+        sites.Accept(ordered);
+        return new SiteAssessment.Batch(f, sites.Occupied, standing, sites.Spacing, standingSpacing);
+    }
+
+    [Fact]
+    public void WithABatch_EachArmAndTheVerdict_AreTheExplicitOverloadsOnTheBatch_AndARefusalOnlyAnOrderedSiteCauses_IsToldAsSuch()
+    {
+        // S1d review finding: the placement mode judges a place against this turn's batch, and the P8 card it docked judged
+        // the bare world — so with a founding queued, the card said "would be accepted" and ticked every arm where the mode
+        // refused. With the batch the card's verdict is FoundingQuery.Check's explicit overload on the batch's sites, its first
+        // failing arm reproduces it, and a refusal is flagged "by order" exactly when the bare world does not refuse it on
+        // the same arm (an independent oracle: Check on the bare world).
+        WorldState w = Duo1();
+        SiteAssessment.Prepared site = Site(w);
+        SettlementSiting.FrontierSiting f = site.Frontier;
+        var src = w.Settlements[0].Id;
+        int ordered = FoundingRigs.NearestLegalSite(w, Cfg, f, Player, src);
+        SiteAssessment.Batch batch = BatchWith(w, f, ordered);
+        Assert.Equal(1, batch.OrderedCount);
+        int size = w.Terrain!.Size;
+        var cells = Sample(w, 3, 1499);
+        cells.Add(ordered);
+        for (int r = 1; r <= 14; r++) cells.AddRange(FoundingRigs.Ring(size, ordered, r));
+        var seen = new HashSet<(FoundingVerdict, bool)>();
+        foreach (int cell in cells)
+        {
+            SiteAssessment.Report r = SiteAssessment.Assess(w, Cfg, site, PolityKnowledge.Of(w, Player), Player, cell, src.Value, batch: batch);
+            FoundingVerdict check = FoundingQuery.Check(w, Cfg, f, batch.Spacing, batch.Occupied, Player, src, cell);
+            FoundingVerdict bare = FoundingQuery.Check(w, Cfg, f, Player, src, cell);
+            Assert.Equal(check, r.Verdict);
+            Assert.Equal(check, SiteAssessment.FirstFailing(r.Arms));
+            bool byOrder = check is FoundingVerdict.Occupied or FoundingVerdict.TooClose && bare != check;
+            Assert.Equal(byOrder, r.RefusedByOrder);
+            Assert.Equal(byOrder, batch.RefusesByOrder(check, cell));
+            Assert.Equal(1, r.OrderedSites);
+            seen.Add((check, byOrder));
+        }
+        // The sweep reaches each case: the ordered site itself, its exclusion, a standing settlement's site and exclusion.
+        Assert.Contains((FoundingVerdict.Occupied, true), seen);
+        Assert.Contains((FoundingVerdict.TooClose, true), seen);
+        Assert.Contains((FoundingVerdict.Occupied, false), seen);
+        Assert.Contains((FoundingVerdict.TooClose, false), seen);
+        Assert.Contains((FoundingVerdict.Legal, false), seen);
+
+        // CONTROL: without a batch the same report is the bare world's (P8 unchanged).
+        foreach (int cell in cells)
+            Assert.Equal(FoundingQuery.Check(w, Cfg, f, Player, src, cell), Assess(w, site, cell, src.Value).Verdict);
+    }
+
+    [Fact]
+    public void ThePlaceCard_InsideAnOrderedColonysExclusion_SaysSoInItsOwnWords_AndTheBareCardIsTheDefectsControl()
+    {
+        WorldState w = Duo1();
+        SiteAssessment.Prepared site = Site(w);
+        SettlementSiting.FrontierSiting f = site.Frontier;
+        var src = w.Settlements[0].Id;
+        int ordered = FoundingRigs.NearestLegalSite(w, Cfg, f, Player, src);
+        SiteAssessment.Batch batch = BatchWith(w, f, ordered);
+        int size = w.Terrain!.Size;
+        // A place the bare world accepts that only the ordered colony's spacing refuses.
+        int cell = -1;
+        for (int r = 1; r <= 14 && cell < 0; r++)
+            foreach (int c in FoundingRigs.Ring(size, ordered, r))
+                if (FoundingQuery.Check(w, Cfg, f, Player, src, c) == FoundingVerdict.Legal
+                    && FoundingQuery.Check(w, Cfg, f, batch.Spacing, batch.Occupied, Player, src, c) == FoundingVerdict.TooClose) { cell = c; break; }
+        Assert.True(cell >= 0, "no place inside the ordered colony's exclusion only - the rig is void");
+        PolityKnowledge k = PolityKnowledge.Of(w, Player);
+        InfoCard Card(SiteAssessment.Batch? b, int at) =>
+            InfoQuery.Card(w, Cfg, Player, InfoSubject.OfCell(at, src.Value), settlementName: Named, knowledge: k, site: site, batch: b);
+
+        InfoCard card = Card(batch, cell);
+        Assert.Equal("too close to a settlement you ordered this turn.", card.StatusLine);
+        Assert.Equal(InfoQuery.FoundingLine(FoundingVerdict.TooClose, Named(src.Value), byOrder: true) + ".", card.StatusLine);
+        InfoSection arms = card.More.Single(s => s.Heading.StartsWith("Founding here", StringComparison.Ordinal));
+        Assert.Equal("FoundingQuery: too close to a settlement you ordered this turn", arms.Lines[0].Label);
+        Assert.False(arms.Lines[0].Met);
+        InfoLink spacing = arms.Lines.Single(l => l.Label.StartsWith("Outside every settlement's spacing", StringComparison.Ordinal));
+        Assert.False(spacing.Met);
+        Assert.StartsWith("A settlement you ordered this turn will stand ", spacing.Note, StringComparison.Ordinal);
+        Assert.True(arms.Lines.Single(l => l.Label.StartsWith("No settlement stands", StringComparison.Ordinal)).Met);
+        Assert.DoesNotContain("standing settlement", card.StatusLine, StringComparison.Ordinal);
+
+        // The ordered site itself: occupied by the order, no settlement named.
+        InfoCard at = Card(batch, ordered);
+        Assert.Equal("a settlement you ordered this turn will stand here.", at.StatusLine);
+        InfoSection atArms = at.More.Single(s => s.Heading.StartsWith("Founding here", StringComparison.Ordinal));
+        InfoLink occupied = atArms.Lines.Single(l => l.Label.StartsWith("No settlement stands", StringComparison.Ordinal));
+        Assert.False(occupied.Met);
+        Assert.StartsWith("A settlement you ordered this turn will stand here", occupied.Note, StringComparison.Ordinal);
+
+        // A standing settlement's exclusion keeps its own words under the same batch.
+        int standing = -1;
+        for (int r = 1; r <= 14 && standing < 0; r++)
+            foreach (int c in FoundingRigs.Ring(size, w.Settlements[1].SiteCell, r))
+                if (FoundingQuery.Check(w, Cfg, f, Player, src, c) == FoundingVerdict.TooClose) { standing = c; break; }
+        Assert.True(standing >= 0);
+        Assert.Equal("too close to a standing settlement.", Card(batch, standing).StatusLine);
+
+        // CONTROL (the defect): the bare card for the same place says the order would be accepted and ticks every arm.
+        InfoCard bare = Card(null, cell);
+        Assert.Equal(InfoQuery.FoundingLine(FoundingVerdict.Legal, Named(src.Value)) + ".", bare.StatusLine);
+        Assert.True(bare.More.Single(s => s.Heading.StartsWith("Founding here", StringComparison.Ordinal))
+            .Lines.Single(l => l.Label.StartsWith("Outside every settlement's spacing", StringComparison.Ordinal)).Met);
+    }
+
+    [Fact]
+    public void UnderAPartialView_ThePlayersOwnOrderedSite_IsOccupiedByOrder_SpacingStaysNotJudged_TheVerdictStaysNotJudged()
+    {
+        // The player's class (ADR-037 §7): with one far node out of sight the player does not see the whole world. The batch's
+        // ORDERED site is the player's own order, so the occupancy arm says so there; spacing reads the lattice, so it stays
+        // not judged; and the verdict stays not judged (the floor arm comes first).
+        WorldState w = W1();
+        SiteAssessment.Prepared site = Site(w);
+        SettlementSiting.FrontierSiting f = site.Frontier;
+        var src = w.Settlements[0].Id;
+        int ordered = FoundingRigs.NearestLegalSite(w, Cfg, f, Player, src);
+        SiteAssessment.Batch batch = BatchWith(w, f, ordered);
+        (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        int node = any.NodeOfCell(ordered);
+        int far = (node % l < l / 2 ? l - 1 : 0) + (node / l < l / 2 ? l - 1 : 0) * l;
+        var known = new bool[l * l];
+        var visible = new bool[l * l];
+        for (int v = 0; v < known.Length; v++) { known[v] = true; visible[v] = v != far; }
+        PolityKnowledge stub = PolityKnowledge.Restricted(w, Player, known, visible);
+        Assert.False(SiteAssessment.SeesAll(stub));
+        Assert.True(stub.SeesCell(ordered));
+
+        SiteAssessment.Report withBatch = SiteAssessment.Assess(w, Cfg, site, stub, Player, ordered, src.Value, batch: batch);
+        SiteAssessment.Report without = SiteAssessment.Assess(w, Cfg, site, stub, Player, ordered, src.Value);
+        Assert.True(withBatch.OccupiedByOrder);
+        Assert.Equal(false, ArmOf(withBatch, FoundingVerdict.Occupied).Holds);
+        Assert.Equal(new SiteAssessment.FoundingArm(FoundingVerdict.TooClose, null, false), ArmOf(withBatch, FoundingVerdict.TooClose));
+        Assert.Null(withBatch.Verdict);
+        Assert.False(withBatch.TooCloseByOrder);
+        Assert.True(double.IsNaN(withBatch.BatchSpacingCost));
+        // CONTROL: without the batch the place is in sight and nothing stands there.
+        Assert.Equal(true, ArmOf(without, FoundingVerdict.Occupied).Holds);
+        Assert.False(without.OccupiedByOrder);
+    }
+
     // ================================================================== AGAINST AN ACTUAL FOUNDING
 
     [Fact]
