@@ -1232,4 +1232,204 @@ public class KnowledgeLeakTests : IDisposable
         Assert.Equal(["Sim.Ui/Headless/KnowledgeStubs.cs"], from);
         Assert.Equal(["Sim.Ui/Headless/PlayabilityGate.cs"], knowledgeOf);
     }
+
+    // ================================================================== m5w integration: fog readiness, every map feature at once
+
+    /// <summary>What one live-UI run showed, by component, and where (if anywhere) it drew the hidden polity's formation.</summary>
+    private sealed record FogRun(SortedDictionary<string, string> Parts, (double X, double Y)? HiddenToken);
+
+    private static string Rect(RectD r) => R(r.X) + "," + R(r.Y) + "," + R(r.W) + "," + R(r.H);
+
+    private static string Sha(byte[] bytes) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+
+    private static string OverlayText(OverlayFrame? o)
+    {
+        if (o is null) return "none\n";
+        var sb = new StringBuilder("layers ").Append(string.Join(",", o.Layers)).Append(" rects ").Append(string.Join(",", o.Rects))
+            .Append(" nodes ").Append(string.Join(",", o.Nodes)).Append(" outlined ").Append(string.Join(",", o.OutlinedLayers))
+            .Append(' ').Append(o.OutlineSegments).Append(' ').Append(o.OutlineNodes).Append('\n');
+        if (o.Key is { } key) sb.Append("key ").Append(Rect(key.Rect)).Append(' ').Append(key.Title).Append('\n').Append(string.Join("\n", key.Rows)).Append('\n');
+        foreach ((int settlement, string text) in o.Markers) sb.Append("marker ").Append(settlement).Append(' ').Append(text).Append('\n');
+        return sb.ToString();
+    }
+
+    /// <summary>Frames <paramref name="cell"/> at <paramref name="zoom"/> in the clear map's upper right — away from the
+    /// bottom corners, where the overlay's key and the legend stand — and returns where it is on screen.</summary>
+    private static (double X, double Y) Focus(UiFrameHarness h, int cell, int size, double zoom)
+    {
+        RectD map = h.Ui.MapRect;
+        CameraFocus.CenterOnCell(h.Ui.Camera, cell, size, map, zoom);
+        h.Ui.Camera.Pan(map.W * 0.22, -map.H * 0.22, map);
+        h.Idle(3);
+        return h.Ui.Camera.WorldToScreen(cell % size + 0.5, cell / size + 0.5, map);
+    }
+
+    /// <summary>A click at (x, y) reaches the map: neither the legend nor the overlay's key lies there (each rightly takes
+    /// the clicks over it).</summary>
+    private static void AssertClear(UiFrameHarness h, double x, double y, string what)
+    {
+        LensFrame f = h.Ui.LensFrame!;
+        Assert.False(f.Legend is { } legend && legend.Rect.Contains(x, y), what + " lies under the legend - the rig is void");
+        Assert.False(f.Overlay?.Key is { } key && key.Rect.Contains(x, y), what + " lies under the overlay's key - the rig is void");
+    }
+
+    /// <summary>
+    /// One run of the REAL UI over <paramref name="w"/> (the player's knowledge built by <paramref name="knowledgeOf"/>; null =
+    /// the production all-known view) with every map feature of the M5 map workstream engaged at once: every P9 overlay layer
+    /// shown for the four views (the opening view, the player's capital, and the hidden polity's ground at two zooms) and one
+    /// layer for the clicks, P12a's compositions, P11's tokens and formation card (whatever lies at
+    /// <paramref name="clickHiddenAt"/> — where the all-known map draws the hidden polity's formation — then the player's
+    /// own), P8's place card of known cells (Shift+click), P10's shortcut machinery live. Returns each component's text: the projection (emblems and compositions included), the
+    /// overlay bake and per-view overlay frame, the lens paint (SVG bytes of the frame's own commands and the LensFrame:
+    /// tokens, hits, parts), the formation tokens, the formation cards, the place cards and FrameText of every view.
+    /// </summary>
+    private static FogRun MapFeatures(WorldState w, Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf, string dir,
+        (double X, double Y)? clickHiddenAt, int hiddenUnit, int hiddenSite)
+    {
+        Rig r = Played.Value;
+        UiSession s = UiSession.StartFrom(w, 42, null, null, knowledgeOf);
+        var cat = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        void Add(string key, string text) => cat[key] = cat.TryGetValue(key, out string? had) ? had + text : text;
+
+        // THE PROJECTION (P7), with P11's emblems and P12a's compositions (a pure function of each view).
+        WorldProjection p = WorldProjection.Build(s.World, s.Config, s.Names.Name, Player, knowledge: s.Knowledge);
+        var proj = new StringBuilder(ProjectionDigest.Of(p));
+        foreach (UnitLensView u in p.Units)
+            proj.Append("emblem ").Append(u.Id).Append(' ').Append(u.Emblem is { } e ? e.Identity + "/" + e.Glyph + "/" + e.Form : "-").Append('\n');
+        foreach (SettlementLensView sv in p.Settlements)
+        {
+            SettlementComposition c = p.CompositionOf(sv);
+            proj.Append("comp ").Append(c.Settlement).Append(' ').Append(c.SizeClass).Append(' ').Append(R(c.SizeIndex)).Append(' ')
+                .Append(R(c.FootprintUnits)).Append(' ').Append(c.BlocksWanted).Append(' ').Append(c.OpenBlockLots);
+            foreach (PlacedPart part in c.Parts) proj.Append(" part:").Append(part.Key).Append('@').Append(part.Lot.Ring).Append('/').Append(part.Lot.Index).Append(part.Spilled ? "!" : "");
+            foreach (CompositionLot b in c.Blocks) proj.Append(" block:").Append(b.Ring).Append('/').Append(b.Index);
+            proj.Append('\n');
+        }
+        cat["projection"] = proj.ToString();
+        // THE OVERLAY (P9): the bake the session holds for this player.
+        Add("overlay", "bake " + (s.Overlay is { } bake ? Sha(bake.CanonicalBytes()) : "none") + "\n");
+
+        using UiFrameHarness h = UiFrameHarness.Start(s, dir, Assets());
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));
+        foreach (OverlayLayer l in h.Ui.OverlayLayers) Assert.True(h.ClickControl(l.Control), "no control for overlay layer " + l.Key);
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));   // fold the controls: the layers stay shown
+        Assert.NotEmpty(h.Ui.OverlayLayers);
+        foreach (OverlayLayer l in h.Ui.OverlayLayers) Assert.True(h.Ui.OverlayShown(l.Index), l.Key + " not shown");
+        h.Idle(3);
+
+        int size = s.World.Terrain!.Size;
+        Assert.True(EmpireQuery.TryGetCapital(s.World, Player, out SettlementId cap));
+        int capSite = -1;
+        for (int i = 0; i < s.World.Settlements.Count; i++) if (s.World.Settlements[i].Id == cap) capSite = s.World.Settlements[i].SiteCell;
+        (double X, double Y)? hiddenToken = null;
+        foreach ((string name, int cell, double zoom) in new[] { ("opening", -1, 0.0), ("capital", capSite, 8.0), ("hidden-regional", hiddenSite, 2.0), ("hidden-close", hiddenSite, 8.0) })
+        {
+            if (cell >= 0) Focus(h, cell, size, zoom);
+            LensFrame f = h.Ui.LensFrame!;
+            var dl = new DrawList();
+            foreach (DrawCmd cmd in h.Ui.LastLensCommands) dl.Add(cmd);
+            var lens = new StringBuilder(name).Append(" svg ").Append(ProjectionDigest.Sha(SvgWriter.Write(dl, h.Width, h.Height))).Append('\n')
+                .Append(ProjectionDigest.Of(f));
+            foreach (SettlementHit hit in f.SettlementHits) lens.Append("hit ").Append(hit.Id).Append(' ').Append(Rect(hit.Footprint)).Append(' ').Append(Rect(hit.NamePlate)).Append('\n');
+            foreach (PartPlacement part in f.Parts) lens.Append("part ").Append(part.Settlement).Append(' ').Append(part.Key).Append(' ').Append(part.Ring).Append('/').Append(part.Lot).Append(' ').Append(Rect(part.Rect)).Append('\n');
+            Add("lens", lens.ToString());
+            Add("overlay", "== " + name + "\n" + OverlayText(f.Overlay));
+            var tokens = new StringBuilder("== ").Append(name).Append(' ').Append(string.Join(",", f.UnitTokens)).Append('\n');
+            foreach (UnitPlacement up in f.UnitPlacements)
+            {
+                tokens.Append(up.Id).Append(' ').Append(R(up.X)).Append(' ').Append(R(up.Y)).Append(' ').Append(up.Slot).Append(' ').Append(R(up.Size)).Append('\n');
+                if (up.Id == hiddenUnit && name == "hidden-close") hiddenToken = (up.X, up.Y);
+            }
+            Add("tokens", tokens.ToString());
+            Add("frametext", "== " + name + "\n" + string.Join("\n", h.Ui.FrameText.Texts()) + "\n");
+        }
+
+        // With every layer shown the overlay's key is taller than the map at 1280x800 (docs/queue.md, m5w integration) and
+        // lies over much of it, where it rightly takes the clicks; the clicks below are made with ONE layer shown (the
+        // overlay stays engaged, its key at the tab's side) on places framed in the map's upper right.
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));
+        foreach (OverlayLayer l in h.Ui.OverlayLayers) if (l.Index > 0) Assert.True(h.ClickControl(l.Control));
+        Assert.True(h.ClickControl(GameUi.OverlaysControl));
+        Assert.True(h.Ui.OverlayShown(0));
+        h.Idle(2);
+
+        // THE FORMATION CARD (P11): whatever lies where the all-known map draws the hidden formation, then the player's own.
+        if ((clickHiddenAt ?? hiddenToken) is { } at)
+        {
+            Focus(h, hiddenSite, size, 8.0);   // the view the token was found in
+            AssertClear(h, at.X, at.Y, "the hidden formation's token");
+            h.Click(at.X, at.Y);
+            h.Idle(1);
+            Add("unit card", "at the hidden token: selected " + h.Ui.SelectedUnit + "\n" + string.Join("\n", h.Ui.FrameText.Texts(FrameSurface.UnitCard)) + "\n");
+        }
+        MilitaryUnitRow mine = MilitaryQuery.Units(s.World, Player)[0];
+        Focus(h, capSite, size, 8.0);
+        UnitPlacement own = h.Ui.LensFrame!.UnitPlacements.Single(x => x.Id == mine.Id);
+        AssertClear(h, own.X, own.Y, "the player's formation token");
+        h.Click(own.X, own.Y);
+        h.Idle(1);
+        Assert.Equal(mine.Id, h.Ui.SelectedUnit);
+        Add("unit card", "own: " + string.Join("\n", h.Ui.FrameText.Texts(FrameSurface.UnitCard)) + "\n");
+
+        // THE PLACE CARD (P8) of known cells where the hidden polity's ground, sites and claims meet the player's.
+        int opened = 0;
+        foreach (int cell in r.Cells.Take(8))
+        {
+            (double x, double y) = Focus(h, cell, size, 8.0);
+            AssertClear(h, x, y, "place " + cell);
+            h.ShiftClick(x, y);
+            h.Idle(1);
+            bool isCell = h.Ui.Inspector.Subject is { Kind: InfoKind.Cell } subject && subject.Id == cell;
+            if (isCell) opened++;
+            Add("place cards", cell + " " + isCell + "\n" + string.Join("\n", h.Ui.FrameText.Texts(FrameSurface.Info)) + "\n");
+            Add("frametext", "== place " + cell + "\n" + string.Join("\n", h.Ui.FrameText.Texts()) + "\n");
+            if (h.Ui.Inspector.IsOpen) h.Key(Keys.Escape);
+        }
+        Assert.True(opened >= 4, "too few place cards opened (" + opened + ") - the place-card comparison is vacuous");
+        Assert.Empty(h.Problems);
+        return new FogRun(cat, hiddenToken);
+    }
+
+    /// <summary>
+    /// M5 WORKSTREAM INTEGRATION — FOG READINESS, EVERY MAP FEATURE AT ONCE. P7's stub hides the AI polity whole; P7's
+    /// perturbation changes everything of it (its settlements' people, stocks, deposits, dwellings, structures, queues,
+    /// labour, prices, grievances, needs, its formations — one more of them — its tax, and the terrain under every unknown
+    /// node). On the INTEGRATED tree, with every P9 overlay layer shown, P12a's compositions, P11's tokens and formation card,
+    /// P8's place cards and P10's machinery all live in the one real UI, every player-facing output — the projection, the
+    /// overlay (bake, frames, key, markers), the lens paint, the formation tokens, the formation cards, the place cards and
+    /// FrameText of every view — is IDENTICAL under the stub. POSITIVE CONTROL, per component: through the all-known view
+    /// the same perturbation changes each of them (so equality under the stub means the readers filtered, not that the
+    /// perturbation missed), and the stub is not all-known's twin.
+    /// </summary>
+    [Fact]
+    public void Integration_EveryMapFeatureAtOnce_ShowsNothingOfWhatTheStubHides_AndTheAllKnownControlSeesEveryComponent()
+    {
+        Rig r = Played.Value;
+        int hiddenUnit = MilitaryQuery.Units(r.Next, Hidden)[0].Id;
+        int hiddenId = KnowledgeStubs.SettlementsOf(r.Next, Hidden)[0], hiddenSite = -1;
+        for (int i = 0; i < r.Next.Settlements.Count; i++) if (r.Next.Settlements[i].Id.Value == hiddenId) hiddenSite = r.Next.Settlements[i].SiteCell;
+        Assert.True(hiddenSite >= 0);
+
+        FogRun ca = MapFeatures(r.Next.Clone(), null, Path.Combine(_root, "fog-ca"), null, hiddenUnit, hiddenSite);
+        Assert.True(ca.HiddenToken is not null, "the all-known map does not draw the hidden formation - the card control is void");
+        FogRun cb = MapFeatures(PerturbedNext(), null, Path.Combine(_root, "fog-cb"), ca.HiddenToken, hiddenUnit, hiddenSite);
+        FogRun sa = MapFeatures(r.Next.Clone(), Stub, Path.Combine(_root, "fog-sa"), ca.HiddenToken, hiddenUnit, hiddenSite);
+        FogRun sb = MapFeatures(PerturbedNext(), Stub, Path.Combine(_root, "fog-sb"), ca.HiddenToken, hiddenUnit, hiddenSite);
+
+        Assert.Null(sa.HiddenToken);
+        Assert.Null(sb.HiddenToken);
+        Assert.Equal(sa.Parts.Keys.ToArray(), sb.Parts.Keys.ToArray());
+        Assert.Equal(["frametext", "lens", "overlay", "place cards", "projection", "tokens", "unit card"], sa.Parts.Keys.ToArray());
+        string[] leaks = [.. sa.Parts.Keys.Where(c => sa.Parts[c] != sb.Parts[c])];
+        Assert.True(leaks.Length == 0, "the stubbed player sees the hidden polity through: " + string.Join(", ", leaks));
+        foreach (int id in KnowledgeStubs.SettlementsOf(r.Next, Hidden))
+            Assert.False(HasWord(sa.Parts["frametext"], r.Name(id)), r.Name(id) + " drawn under the stub");
+
+        // POSITIVE CONTROL, per component.
+        Assert.Equal(ca.Parts.Keys.ToArray(), sa.Parts.Keys.ToArray());
+        string[] blind = [.. ca.Parts.Keys.Where(c => ca.Parts[c] == cb.Parts[c])];
+        Assert.True(blind.Length == 0, "the perturbation does not reach " + string.Join(", ", blind) + " - the comparison above proves nothing for it");
+        Assert.NotEqual(ca.Parts["projection"], sa.Parts["projection"]);
+        Assert.NotEqual(ca.Parts["tokens"], sa.Parts["tokens"]);
+    }
 }
